@@ -91,11 +91,6 @@ const store: Partial<Dictionary> = {
   'store.like.ownersOnly':
     'いいね：{count} 件。シーンを入手すると、いいねできます。',
   'store.scene.free': 'すべての人に無料',
-  'store.admin.freeTitle': 'すべての人に無料',
-  'store.admin.freeOn':
-    'サインインしているすべてのアカウントが、クレジットを使わずに再生できます。',
-  'store.admin.freeOff':
-    '他のシーンと同じく 1 クレジットです。オンにすると全員に提供します。',
   'store.error.termsOutdated':
     '利用条件が変わりました。クレジットを購入する前に、FluidEQ を更新して新しい版をお読みください。',
 };

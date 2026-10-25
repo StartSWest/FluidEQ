@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { PRODUCT_VERSION } from 'common/branding';
-import { CREATOR_PAYOUTS_OPEN } from 'common/creatorPayouts';
 import { errorText } from 'common/errors';
 import { featureTourDismissal } from 'common/featureTour';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
@@ -38,8 +37,6 @@ import SceneAnnouncementDialog from '../components/SceneAnnouncementDialog';
 import ProcessesDialog from '../components/ProcessesDialog';
 import RestartAudioDialog from '../components/RestartAudioDialog';
 import SceneReviewNotice from '../components/SceneReviewNotice';
-import ServerLimitNotice from '../components/ServerLimitNotice';
-import PayoutDueNotice from '../components/PayoutDueNotice';
 import SongEqNotice from '../components/SongEqNotice';
 import SongSoundNotice from '../components/SongSoundNotice';
 import SongSoundSaveNotice from '../components/SongSoundSaveNotice';
@@ -56,6 +53,7 @@ import { useFluidEqShell } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { resetRhythmRun } from '../utils/rhythmRun';
 import type { TWorkspaceTab } from '../workspaceTabs';
+import { rendererAddons } from '../addons';
 import { ImportNotice, RecoverableErrorNotice } from './ShellNotices';
 import {
   FEATURE_TOUR_DISMISSED_KEY,
@@ -244,15 +242,13 @@ const ShellDialogs = ({
       {/* Here too: the terms promise that the app tells a member when they
           change, and a member need never open the Plus tab to use Plus. */}
       <PlusTermsNotice />
-      {/* Here for the same reason: a scene waiting for the admin, or a
-          maker's scene approved or not, is news on whichever tab is open. */}
+      {/* Here for the same reason: a maker's scene approved or not is news
+          on whichever tab is open. */}
       <SceneReviewNotice />
-      {/* The admin's alone: the server nearing a limit of its plan, which
-          has to be paid for before it fills, on whichever tab is open. */}
-      <ServerLimitNotice />
-      {/* The admin's too: creators owed their payout, every 15 days — only
-          while creators can be paid at all (premium 0070). */}
-      {CREATOR_PAYOUTS_OPEN && <PayoutDueNotice />}
+      {/* An add-on's own corner notices (`renderer/addons.ts`). */}
+      {rendererAddons().map(
+        ({ name, Notices }) => Notices && <Notices key={name} />,
+      )}
       {/* A scene reported from the looks: the menu it was asked from
           closes under the dialog, so the dialog lives here. */}
       <SceneReportHost />

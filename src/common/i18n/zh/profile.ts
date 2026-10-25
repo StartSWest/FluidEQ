@@ -1,5 +1,4 @@
 const profile = {
-  'profile.role.admin': '作者',
   'profile.name.title': '选择你在图库中的显示方式',
   'profile.name.body':
     '一个用户名和一个名字。“可视化”图库用它们为你的场景署名。所有已登录的人都能看到它们；没有人能看到你的邮箱。',

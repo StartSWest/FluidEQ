@@ -76,3 +76,7 @@ presets/**
 native/.build/
 native/build-remote-playback/
 native/dsp-core/include/fluideq/parameters.h
+
+# Add-ons: code kept in a developer's own checkout, loaded by pnpm dev only
+# and never shipped (.erb/scripts/addons.ts). Each is a repository of its own.
+/addons/

@@ -8,29 +8,24 @@ import type { CSSProperties, ReactNode } from 'react';
 import { resolveSceneName } from 'common/scenePacks';
 import type { TSceneReviewNotice } from 'common/sceneReviewNotice';
 import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
-import {
-  openAdminSection,
-  openGalleryPage,
-  openPlusPlace,
-} from '../plus/plusNavigation';
+import { openGalleryPage, openPlusPlace } from '../plus/plusNavigation';
 import { requestPlusTab } from '../plus/plusTabRequest';
-import { REJECT_REASON_LABELS } from '../plus/ReviewDecision';
+import { REJECT_REASON_LABELS } from '../plus/rejectReasons';
 import { markSceneReviewSeen, useSceneReview } from '../plus/sceneReviewStore';
 import { useTranslation } from '../utils/I18nContext';
 import { useNoticeTurn } from '../utils/noticeTurn';
 import CompactFrame from './CompactFrame';
 import '../styles/SceneReviewNotice.scss';
 
-/** A scene waiting to be looked at, one let through, one sent back. */
+/** A scene let through, one sent back. */
 const MARKS: Record<TSceneReviewNotice['kind'], MenuIconName> = {
-  waiting: 'pending',
   approved: 'check',
   rejected: 'alert',
 };
 
 /**
- * News about scenes under review, in the corner: the admin told that a scene
- * waits for them, a maker told that theirs was approved or not and why.
+ * News about scenes under review, in the corner: a maker told that theirs
+ * was approved or not and why.
  *
  * Mounted at the app root beside the terms notice, because the news can land
  * on any tab and the person it is for need never open the Plus tab to hear
@@ -65,8 +60,7 @@ export default function SceneReviewNotice() {
     requestPlusTab();
   };
 
-  const swatch =
-    notice.kind === 'waiting' ? notice.newest.swatch : notice.swatch;
+  const { swatch } = notice;
   const edge = {
     '--scene-review-edge': `linear-gradient(180deg, ${swatch.join(', ')})`,
   } as CSSProperties;
@@ -74,33 +68,9 @@ export default function SceneReviewNotice() {
   let title: string;
   let body: ReactNode = null;
   let action: { label: string; run: () => void };
-  let quiet = t('review.notice.gotIt');
+  const quiet = t('review.notice.gotIt');
 
-  if (notice.kind === 'waiting') {
-    const name = resolveSceneName(notice.newest, locale);
-    title =
-      notice.count === 1
-        ? t('review.notice.waitingOne')
-        : t('review.notice.waitingMany', { count: String(notice.count) });
-    body = (
-      <p className="scene-review-notice__line">
-        {t(
-          notice.count === 1
-            ? 'review.notice.waitingWho'
-            : 'review.notice.waitingNewest',
-          {
-            name,
-            maker: notice.newest.authorName ?? t('plus.card.anonymous'),
-          },
-        )}
-      </p>
-    );
-    quiet = t('review.notice.later');
-    action = {
-      label: t('review.notice.review'),
-      run: () => go(() => openAdminSection('review')),
-    };
-  } else if (notice.kind === 'approved') {
+  if (notice.kind === 'approved') {
     const name = resolveSceneName(notice, locale);
     title = notice.update
       ? t('review.notice.approvedUpdate', {

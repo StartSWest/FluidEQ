@@ -94,7 +94,6 @@ describe('how a scene is run', () => {
   it('asks every place for the same fact, the desktop included', () => {
     expect(wiring('graph/SceneCanvas.tsx')).toContain('sceneMakerOf(');
     expect(wiring('plus/ScenePage.tsx')).toContain('sceneMakerOf(');
-    expect(wiring('plus/ReviewScene.tsx')).toContain('sceneMakerOf(');
     expect(wiring('player/useGraphScenePack.ts')).toContain('sceneMakerOf(');
     // Main's word, never worked out by the page (`wallpaperScenes.test.ts`).
     expect(wiring('wallpaper/WallpaperSceneLayer.tsx')).toContain(

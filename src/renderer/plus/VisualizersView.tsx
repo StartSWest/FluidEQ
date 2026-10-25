@@ -74,7 +74,7 @@ export default function VisualizersView({
   // Coming here is when the gallery is worth asking again, once what it
   // shows is a minute old; what was on screen stays there while it does.
   // What the gallery said back is cleared by the tab, which also knows when
-  // a page sent the admin to the reported queue with its answer to show.
+  // a page sent somebody to another place with its answer to show.
   useEffect(() => {
     refreshGalleryOnShow();
   }, []);
@@ -95,7 +95,7 @@ export default function VisualizersView({
         key={page.scene.lookId}
         scene={page.scene}
         from={page.from}
-        report={page.report}
+        context={page.context}
         me={me}
         onShowGraph={onShowGraph}
       />

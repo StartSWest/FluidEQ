@@ -285,28 +285,6 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1.45;
 }
 
-// The admin's "free for everyone" switch on one of FluidEQ's scenes
-// (`SceneFreeSwitch`), under the scene's actions in the inspect block's
-// shape: what it does on the left, the switch on the right.
-.gallery-scene__free-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.gallery-scene__free-text {
-  display: grid;
-  min-width: 0;
-  gap: 2px;
-}
-
-.gallery-scene__free-title {
-  color: $text-primary;
-  font-size: $text-small;
-  font-weight: $weight-semibold;
-}
-
 // The terms over the packs (`StoreTermsDialog`): one layer above the store's
 // own dialog, and as wide as a page of text reads well.
 .gallery-dialog-backdrop.store-terms-backdrop {

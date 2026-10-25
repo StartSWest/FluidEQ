@@ -6,11 +6,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useSyncExternalStore } from 'react';
 import type { ISceneReviewState } from 'main/ipc/plusReview';
-import { setReviewWaiting } from './moderationStore';
 
 /**
- * Scenes under review, as the window sees them: the corner notice the main
- * process decided on, and how many scenes wait for the admin.
+ * A maker's scenes under review, as the window sees them: the corner notice
+ * the main process decided on.
  *
  * Same shape as `plusTermsNoticeStore`, for the same reason: every fact the
  * notice depends on — the account, what the server said, what this computer
@@ -28,10 +27,6 @@ const bridge = () => window.electron?.ipcRenderer;
 
 const publish = (next: ISceneReviewState) => {
   current = next;
-  // The admin's badge follows the freshest count there is.
-  if (next.waiting !== undefined) {
-    setReviewWaiting(next.accountId, next.waiting);
-  }
   listeners.forEach((listener) => listener());
 };
 

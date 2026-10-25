@@ -15,7 +15,6 @@ import type {
   TSceneStoreOutcome,
   TStarterOutcome,
 } from '../../common/sceneStore';
-import { PACK_ID } from '../../common/scenePackFields';
 import { isCheckoutLocale } from '../../common/sceneStore';
 import { onAppLink } from '../appLinks';
 import { sceneRefOf } from '../plus/galleryAccess';
@@ -33,7 +32,6 @@ const CHANNELS = [
   'scene-store-claim',
   'scene-store-buy',
   'scene-store-checkout',
-  'scene-store-set-free',
 ] as const;
 
 export const registerSceneStoreIpc = ({
@@ -127,19 +125,6 @@ export const registerSceneStoreIpc = ({
         ? { ok: true }
         : { ok: false, reason: 'server' };
     },
-  );
-
-  // The admin's switch on one of FluidEQ's scenes; the server refuses anyone
-  // else, so nothing here asks who is pressing it.
-  ipcMain.handle(
-    'scene-store-set-free',
-    (_event, sceneId: unknown, free: unknown): Promise<TSceneStoreOutcome> =>
-      typeof sceneId === 'string' &&
-      PACK_ID.test(sceneId) &&
-      typeof free === 'boolean' &&
-      isAccountConfigured(config)
-        ? ownership.setFree(sceneId, free)
-        : Promise.resolve(unavailable),
   );
 
   return {

@@ -10,7 +10,7 @@ import type { ISceneFrame } from '../graph/sceneGl';
 import type { ISceneTuning } from '../graph/useSceneRunner';
 import MenuIcon from '../icons/MenuIcon';
 import { categoryKey } from '../plus/GalleryParts';
-import { refreshModeration, useModeration } from '../plus/moderationStore';
+import { refreshAddons, useAddonCapabilities } from '../addons';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import StudioPublishCamera from './StudioPublishCamera';
@@ -77,13 +77,13 @@ export default function StudioPublishDialog({
   const { t } = useTranslation();
   // Open on the Studio's project: its AI may not switch the Studio under it.
   useStudioAgentHold(true);
-  const moderation = useModeration();
+  const { publishesWithoutReview } = useAddonCapabilities();
   const me = useAccount().identity?.id;
   // Asked again on opening: an answer that failed earlier — offline at
-  // launch — reads as "not the admin", and the admin would be told their own
-  // scene waits for review. The reply lands while the covers are drawn.
+  // launch — would say this account's scene waits for review when it does
+  // not. The reply lands while the covers are drawn.
   useEffect(() => {
-    refreshModeration(me).catch(() => undefined);
+    refreshAddons(me);
   }, [me]);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const firstRef = useRef<HTMLButtonElement>(null);
@@ -125,8 +125,9 @@ export default function StudioPublishDialog({
   // A member's publication waits for the admin before anybody sees it
   // (server migration 0037), and the dialog says so before the press rather
   // than after it: the button sends it for review, and the first point says
-  // what that means. The admin's own goes straight out.
-  const reviewed = !moderation.admin;
+  // what that means. An account whose publications go straight out
+  // (`useAddonCapabilities`) is told so.
+  const reviewed = !publishesWithoutReview;
   let go: string;
   if (!draft.agreed) {
     go = t(reviewed ? 'studio.publish.agreeReview' : 'studio.publish.agree');

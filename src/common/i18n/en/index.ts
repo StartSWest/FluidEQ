@@ -73,7 +73,6 @@ import lighting from './lighting';
 import wallpaper from './wallpaper';
 import bugReport from './bugReport';
 import review from './review';
-import insights from './insights';
 import announce from './announce';
 import player from './player';
 import genre from './genre';
@@ -124,7 +123,6 @@ const en = {
   ...wallpaper,
   ...bugReport,
   ...review,
-  ...insights,
   ...announce,
   ...player,
   ...genre,

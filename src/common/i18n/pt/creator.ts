@@ -80,46 +80,6 @@ const creator: Partial<Dictionary> = {
   'creator.error.banned': 'Esta conta não pode receber por cenas.',
   'creator.error.server':
     'Algo deu errado do nosso lado. Nada foi alterado; tente de novo em instantes.',
-  'creator.admin.tab': 'Pagamentos',
-  'creator.admin.plan': 'Criadores pagos pela Stripe',
-  'creator.admin.loading': 'Lendo o que é devido aos criadores',
-  'creator.admin.creators': 'Criadores: {count}',
-  'creator.admin.available': 'Disponível na Stripe',
-  'creator.admin.availableNote': 'de onde saem as transferências',
-  'creator.admin.short':
-    'O saldo disponível do FluidEQ na Stripe é menor que o devido. Transferências além dele falham e são enviadas de novo no próximo pagamento.',
-  'creator.admin.list': 'Quem recebe',
-  'creator.admin.none':
-    'Ninguém tem nada a receber ainda. Os criadores aparecem aqui quando a Stripe pode pagá-los e ganhos suficientes já passaram da retenção.',
-  'creator.admin.rules':
-    'Os pagamentos saem sozinhos nos dias 1 e 16: primeiro aos criadores, depois a sua parte para o seu banco. Cada pagamento é enviado uma vez: uma execução que parou no meio é concluída pela próxima, nunca enviada de novo.',
-  'creator.admin.lastPaid': 'Último pagamento: {date}',
-  'creator.admin.neverPaid': 'Nenhum pagamento ainda',
-  'creator.admin.nextDue': 'próximo pagamento automático: {date}',
-  'creator.notice.title': 'Pagamento aos criadores em {date}',
-  'creator.notice.body':
-    '{amount} serão enviados automaticamente. Criadores a pagar: {count}.',
-  'creator.notice.later': 'Depois',
-  'creator.notice.open': 'Abrir Pagamentos',
-  'creator.notice.shortTitle':
-    'Saldo insuficiente na Stripe para o pagamento de {date}',
-  'creator.notice.shortBody':
-    'A pagar: {amount}. Criadores a pagar: {count}. A Stripe tem {available}; transferências além disso falham e esperam o próximo pagamento.',
-  'creator.admin.owed': 'Devido aos criadores',
-  'creator.admin.owedNote': 'retido {held} · pronto {ready}',
-  'creator.admin.sending': 'sendo enviado {amount}',
-  'creator.admin.onItsWay': '+ {amount} a caminho',
-  'creator.admin.yours': 'Seu',
-  'creator.admin.yoursNote':
-    'vai para o seu banco sozinho após cada pagamento; {reserve} ficam para reembolsos',
-  'creator.admin.lastToYou': 'último envio ao seu banco: {amount}, {date}',
-  'creator.admin.yoursShort':
-    'os criadores têm {amount} a receber além do que a Stripe tem',
-  'creator.admin.next': 'Próximo pagamento',
-  'creator.admin.manual':
-    'A Stripe ainda envia todo o seu saldo para o seu banco sozinha, incluindo o dinheiro dos criadores, então o FluidEQ segura a sua parte. Na Stripe, em Settings → Payouts, coloque o agendamento em Manual uma vez: o FluidEQ passa a enviar só a sua parte, sozinho, após cada pagamento.',
-  'creator.admin.pendingLine':
-    'Pagamentos deixados inacabados por uma execução anterior: {count}. A próxima execução os conclui primeiro.',
 };
 
 export default creator;

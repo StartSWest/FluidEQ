@@ -75,9 +75,6 @@ const store: Partial<Dictionary> = {
   'store.official.fine': 'FluidEQ 合集的一部分：获取后永久归你。',
   'store.like.ownersOnly': '{count} 个赞。获取场景后即可点赞。',
   'store.scene.free': '对所有人免费',
-  'store.admin.freeTitle': '对所有人免费',
-  'store.admin.freeOn': '每个已登录的账户都能播放，无需花费点数。',
-  'store.admin.freeOff': '与其他场景一样需要 1 点数。打开即可送给所有人。',
   'store.error.termsOutdated':
     '条款已更新。请先更新 FluidEQ 并阅读新版本，再购买点数。',
 };

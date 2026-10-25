@@ -2,17 +2,12 @@
 
 /**
  * What the account published and sent, read once for the gallery's Your
- * scenes and the Account panel (`plus/myScenes.ts`), and which admin pages
- * are offered while creators cannot be paid.
+ * scenes and the Account panel (`plus/myScenes.ts`).
  */
 import type { IPublishedScene } from 'common/plusGallery';
 import type { ISceneSubmission } from 'common/plusReview';
 import { premiumLookId } from 'common/scenePacks';
 import { publicationId, sentOnly } from 'renderer/plus/myScenes';
-import {
-  ADMIN_SECTIONS,
-  ADMIN_SECTIONS_SHOWN,
-} from 'renderer/plus/plusNavigation';
 
 const published = (sceneId: string, official = false): IPublishedScene =>
   ({ sceneId, official }) as IPublishedScene;
@@ -49,14 +44,5 @@ describe('what was sent and is not in the gallery', () => {
       premiumLookId('ember'),
     );
     expect(publicationId(published('lava'))).toBe('lava');
-  });
-});
-
-describe('the admin’s pages while creators cannot be paid', () => {
-  it('leave out Payouts and keep every other page in its place', () => {
-    expect(ADMIN_SECTIONS_SHOWN).not.toContain('payouts');
-    expect(ADMIN_SECTIONS_SHOWN).toEqual(
-      ADMIN_SECTIONS.filter((section) => section !== 'payouts'),
-    );
   });
 });

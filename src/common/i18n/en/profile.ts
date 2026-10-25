@@ -3,7 +3,6 @@
  * credits their scenes with, chosen and changed in the account panel.
  */
 const profile = {
-  'profile.role.admin': 'Maker',
   'profile.name.title': 'Choose how the gallery shows you',
   'profile.name.body':
     'A handle and a name. The Visualizers gallery credits your scenes with them. Everyone signed in sees them; nobody sees your email.',

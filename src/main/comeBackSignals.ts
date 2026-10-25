@@ -67,6 +67,8 @@ export interface IAccountRefreshers {
   sceneReviews: { refreshIfDue(reason: string): Promise<void> };
   plusTermsNotice: { checkIfDue(reason: string): Promise<void> };
   sceneAnnouncements: { refreshIfDue(reason: string): Promise<void> };
+  /** Add-ons from this checkout's own `addons/` folder (`addons.ts`). */
+  addons: { refreshIfDue(reason: string): Promise<void> };
 }
 
 /**
@@ -87,6 +89,7 @@ export const accountComeBackSteps = ({
   sceneAnnouncements,
   sceneReviews,
   scenePacks,
+  addons,
 }: IAccountRefreshers): IComeBackStep[] => [
   { name: 'membership', run: (reason) => entitlement.checkIfDue(reason) },
   // Right after: every scene step below plays or keeps only what is owned.
@@ -97,7 +100,7 @@ export const accountComeBackSteps = ({
   },
   { name: 'block list', run: (reason) => memberSharing.refreshIfDue(reason) },
   { name: 'gallery scenes', run: () => plusGallery.refreshIfDue() },
-  // The admin told a scene waits for review, a maker told it was answered.
+  // A maker told their scene was answered.
   { name: 'scene reviews', run: (reason) => sceneReviews.refreshIfDue(reason) },
   {
     name: 'Plus terms notice',
@@ -107,6 +110,8 @@ export const accountComeBackSteps = ({
     name: 'scene announcements',
     run: (reason) => sceneAnnouncements.refreshIfDue(reason),
   },
+  // Last: nothing above waits on an add-on, and none ships.
+  { name: 'add-ons', run: (reason) => addons.refreshIfDue(reason) },
 ];
 
 export interface IComeBackWatchDeps {
