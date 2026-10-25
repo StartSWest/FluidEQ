@@ -15,7 +15,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // from, its shape, which ears, and the two ways to play it.
 
 .my-curves {
+  container: my-curves / inline-size;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   padding: 14px 14px 10px;
 }
@@ -138,16 +140,35 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .my-curves__list {
   display: grid;
-  gap: 6px;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) 132px minmax(92px, max-content) repeat(
+      3,
+      max-content
+    );
+  gap: 6px 14px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .my-curves__none {
+  grid-column: 1 / -1;
   padding: 10px 4px;
   color: $text-faint;
   font-size: $text-small;
+}
+
+// The actions get their own line before the shared columns crowd the name.
+@container my-curves (max-width: 900px) {
+  .my-curves__list {
+    grid-template-columns: minmax(0, 1fr) 132px minmax(92px, max-content);
+  }
+}
+
+@container my-curves (max-width: 520px) {
+  .my-curves__list {
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
 }
 
 // Where Save to My curves stood once the curve is in the list

@@ -4,15 +4,13 @@
 @use 'motion' as *;
 @use 'theme' as *;
 
-// One curve. Name and meta take what the row has left; the shape, the ears
-// and the keys keep their own widths, so every row's keys line up. Where the
-// row is too narrow for all four on one line it wraps instead of squeezing:
-// the keys go to a line of their own, then the shape and the ears, the name
-// keeping the whole width. Held on one line, the keys left the name a few
-// letters at 420px and sat on top of its source chip.
+// Share the list's columns: a short Playing label must not move its preview
+// or ear label relative to the other curves. Action columns also follow the
+// widest translated label, including the confirmation to replace EQ bands.
 .my-curve {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   align-items: center;
   gap: 8px 14px;
   padding: 9px 10px 9px 12px;
@@ -27,11 +25,9 @@
   }
 }
 
-// Room for a name to be read before the row wraps rather than shrinks it.
 .my-curve__name {
   display: grid;
   min-width: 0;
-  flex: 1 1 220px;
   gap: 3px;
 
   strong {
@@ -89,7 +85,6 @@
   display: block;
   width: 132px;
   height: 40px;
-  flex: 0 0 auto;
   border: 1px solid rgba($white, 0.06);
   border-radius: $radius-s;
   background: color-mix(in srgb, $surface-base 55%, transparent);
@@ -114,24 +109,36 @@
 }
 
 .my-curve__ears {
-  flex: 0 0 92px;
   color: $text-muted;
   font-size: $text-small;
 }
 
 .my-curve__actions {
-  display: flex;
+  display: grid;
   min-width: 0;
-  flex: 0 1 auto;
-  flex-wrap: wrap;
+  grid-column: 4 / -1;
+  grid-template-columns: subgrid;
   align-items: center;
-  justify-content: flex-end;
   gap: 6px;
-  margin-left: auto;
 
   .button.is-armed {
     border-color: $amber;
     color: $amber;
+  }
+}
+
+@container my-curves (max-width: 900px) {
+  .my-curve__actions {
+    display: flex;
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
+@container my-curves (max-width: 520px) {
+  .my-curve__name {
+    grid-column: 1 / -1;
   }
 }
 
