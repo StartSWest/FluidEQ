@@ -19,7 +19,6 @@ const store: Partial<Dictionary> = {
   'store.credits.buyTitle': 'クレジットを入手',
   'store.credits.lead':
     '1 クレジットで 1 つのシーンをずっと持てます。支払いは 1 回きりで、更新はありません。',
-  'store.credits.owned': '持っているシーン：{count}',
   'store.credits.what':
     '各クレジットでギャラリーのシーンを 1 つずっと持てます。グラフでも、デスクトップでも、ライトでも。',
   'store.credits.half':

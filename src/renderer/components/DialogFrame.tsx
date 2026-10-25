@@ -23,6 +23,11 @@ import '../styles/DialogFrame.scss';
 
 interface IDialogFrameProps
   extends Omit<HTMLAttributes<HTMLDivElement>, 'title'>, IDialogIdentityProps {
+  /**
+   * A picture across the top of the rail, edge to edge, that the identity
+   * stands on: the Account panel's scene.
+   */
+  cover?: ReactNode;
   /** More of the rail under the identity: a list to walk, a game. */
   rail?: ReactNode;
   /** A note on the left and the actions on the right, loud one last. */
@@ -59,6 +64,7 @@ export default function DialogFrame({
   eyebrow,
   badge,
   description,
+  cover,
   rail,
   footer,
   onClose,
@@ -79,7 +85,10 @@ export default function DialogFrame({
       // eslint-disable-next-line react/jsx-props-no-spreading -- a dialog's own role, handlers and labels land on its surface
       {...surface}
     >
-      <div className="dialog-frame__rail">
+      <div
+        className={`dialog-frame__rail${cover ? ' dialog-frame__rail--covered' : ''}`}
+      >
+        {cover && <div className="dialog-frame__cover">{cover}</div>}
         <DialogIdentity
           icon={icon}
           title={title}

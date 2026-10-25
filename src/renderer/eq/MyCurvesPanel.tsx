@@ -7,6 +7,7 @@ import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { importEqText } from '../utils/equalizerApi';
 import MenuIcon from '../icons/MenuIcon';
+import { isCurveApplied } from './appliedCurve';
 import MyCurveRow from './MyCurveRow';
 import MyCurveAddDialog from './MyCurveAddDialog';
 import MyCurvesExportDialog from './MyCurvesExportDialog';
@@ -40,9 +41,6 @@ export default function MyCurvesPanel() {
   const [dialog, setDialog] = useState<TDialog>();
   const [editing, setEditing] = useState<IMyCurve>();
   const [isApplying, setApplying] = useState(false);
-  // The correction playing now, by its text: a curve is playing when it is
-  // the very curve the correction layer holds, whatever it was called there.
-  const playingText = headphone?.eqImport?.text;
 
   const shown = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -171,7 +169,7 @@ export default function MyCurvesPanel() {
             <MyCurveRow
               key={curve.id}
               curve={curve}
-              isPlaying={playingText === curve.text}
+              isPlaying={isCurveApplied(curve.text, headphone)}
               isDisabled={isApplying || isBlockingError}
               onApplyCurve={(chosen) => {
                 apply(chosen, 'curve').catch(() => undefined);

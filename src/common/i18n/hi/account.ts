@@ -26,6 +26,17 @@ const account = {
   'account.signOut.detailPlus':
     'जब तक आप फिर से साइन इन नहीं करते, आपके सीन यहाँ लॉक रहते हैं।',
   'account.signOut.kept': 'इस कंप्यूटर से कुछ भी नहीं हटाया जाता।',
+  'account.cover.onGraph': 'ग्राफ़ पर: {name}',
+  'account.stats.owned': 'आपके',
+  'account.stats.likes': 'पसंद',
+  'account.scenes.title': 'आपका संग्रह',
+  'account.scenes.openGallery': 'गैलरी खोलें',
+  'account.scenes.empty':
+    'आपके पाए सीन हमेशा आपके रहते हैं, और यहीं से ग्राफ़ पर चलते हैं।',
+  'account.scenes.playing': 'चल रहा है',
+  'account.scenes.play': '{name} को ग्राफ़ पर चलाएँ',
+  'account.published.title': 'प्रकाशित',
+  'account.published.live': 'गैलरी में',
   'account.name.change': 'नाम बदलें',
   'account.name.changeTitle': 'बदलें कि आप कैसे दिखते हैं',
   'account.name.changeBody':

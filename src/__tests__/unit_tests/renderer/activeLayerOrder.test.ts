@@ -48,6 +48,7 @@ const everything: TLayerListInputs = {
   headphone: as<TLayerListInputs['headphone']>({ intensity: 1, filters }),
   headset: 'model',
   headsetName: 'Model',
+  keptCorrectionName: undefined,
   setHeadphone: nothing,
   setHeadphoneStrength: nothing,
   hasShapedBands: true,
@@ -84,6 +85,26 @@ describe('the order of the Also applied row', () => {
       'tone',
       'eq',
     ]);
+  });
+
+  it('names the correction after My curves, the model, or "Custom" (Ivan, 2026-10-25)', () => {
+    const name = (inputs: Partial<TLayerListInputs>) =>
+      collectLayers({ ...everything, ...inputs }).find(
+        (layer) => layer.key === 'headphone',
+      )?.name;
+    const imported = as<TLayerListInputs['headphone']>({
+      intensity: 1,
+      filters,
+      eqImport: { text: 'Preamp: 0 dB' },
+    });
+    // From My curves, or anything kept there: the list's name.
+    expect(name({ headphone: imported, keptCorrectionName: 'My Kraken' })).toBe(
+      'My Kraken',
+    );
+    // An import nobody named.
+    expect(name({ headphone: imported })).toBe('eq.layers.customHeadphone');
+    // An OPRA pick keeps the model's name, kept in My curves or not.
+    expect(name({ keptCorrectionName: 'My Kraken' })).toBe('Model');
   });
 
   it('keeps the same places when only some layers are applied', () => {

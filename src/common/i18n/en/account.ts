@@ -35,6 +35,17 @@ const account = {
   'account.signOut.detailPlus':
     'Your scenes stay locked here until you sign back in.',
   'account.signOut.kept': 'Nothing on this computer is deleted.',
+  'account.cover.onGraph': '{name} on the graph',
+  'account.stats.owned': 'Owned',
+  'account.stats.likes': 'Likes',
+  'account.scenes.title': 'Your collection',
+  'account.scenes.openGallery': 'Open the gallery',
+  'account.scenes.empty':
+    'The scenes you get stay yours, and play on the graph from here.',
+  'account.scenes.playing': 'Playing',
+  'account.scenes.play': 'Play {name} on the graph',
+  'account.published.title': 'Published',
+  'account.published.live': 'In the gallery',
   // The name on published scenes, changed from here. The fields and their
   // refusals are the name form's own (profile.name.*).
   'account.name.change': 'Change name',

@@ -27,6 +27,17 @@ const account = {
   'account.signOut.detailPlus':
     'Ihre Szenen bleiben hier gesperrt, bis Sie sich wieder anmelden.',
   'account.signOut.kept': 'Auf diesem Computer wird nichts gelöscht.',
+  'account.cover.onGraph': '{name} im Diagramm',
+  'account.stats.owned': 'Eigene',
+  'account.stats.likes': 'Likes',
+  'account.scenes.title': 'Ihre Sammlung',
+  'account.scenes.openGallery': 'Galerie öffnen',
+  'account.scenes.empty':
+    'Szenen, die Sie holen, bleiben Ihre und laufen von hier aus im Diagramm.',
+  'account.scenes.playing': 'Läuft',
+  'account.scenes.play': '{name} im Diagramm abspielen',
+  'account.published.title': 'Veröffentlicht',
+  'account.published.live': 'In der Galerie',
   'account.name.change': 'Namen ändern',
   'account.name.changeTitle': 'Ändern, wie Sie erscheinen',
   'account.name.changeBody':

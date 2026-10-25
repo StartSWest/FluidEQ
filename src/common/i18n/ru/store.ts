@@ -19,7 +19,6 @@ const store: Partial<Dictionary> = {
   'store.credits.buyTitle': 'Получить кредиты',
   'store.credits.lead':
     'Один кредит оставляет вам одну сцену навсегда. Вы платите один раз, ничего не продлевается.',
-  'store.credits.owned': 'Ваших сцен: {count}',
   'store.credits.what':
     'Каждый кредит навсегда оставляет вам одну сцену из галереи: на графике, на рабочем столе и в подсветке.',
   'store.credits.half':

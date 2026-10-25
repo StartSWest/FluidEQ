@@ -28,6 +28,30 @@ jest.mock('../../../renderer/account/CreditsCard', () => ({
   __esModule: true,
   default: () => null,
 }));
+// The profile's picture, numbers, scenes and publications have their own
+// tests (`accountProfile.test.tsx`); the list they read is held unanswered.
+jest.mock('../../../renderer/account/AccountCover', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+jest.mock('../../../renderer/account/AccountStats', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+jest.mock('../../../renderer/account/AccountScenes', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+jest.mock('../../../renderer/account/AccountPublished', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+jest.mock('../../../renderer/plus/myScenes', () => ({
+  loadMyScenes: () =>
+    new Promise(() => {
+      // Never answered.
+    }),
+}));
 // The panel reads the same store for whether the account owns scenes; held
 // unanswered here, as an account with none.
 jest.mock('../../../renderer/plus/sceneStore', () => ({

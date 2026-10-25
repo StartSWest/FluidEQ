@@ -18,7 +18,6 @@ const store: Partial<Dictionary> = {
   'store.credits.title': '点数',
   'store.credits.buyTitle': '获取点数',
   'store.credits.lead': '每 1 点数可永久保留一个场景。只付一次，不会续费。',
-  'store.credits.owned': '你拥有的场景：{count}',
   'store.credits.what':
     '每 1 点数都能永久保留画廊中的一个场景：在图表、桌面和你的灯光上。',
   'store.credits.half':

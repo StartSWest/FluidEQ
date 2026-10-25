@@ -42,21 +42,28 @@ describe('the credits card', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('shows the balance and the scenes owned', () => {
+  it('shows the balance, and says what a credit is only to somebody with no scene yet', () => {
     mockStore = storeWith();
-    render(<CreditsCard />);
+    const { rerender } = render(<CreditsCard />);
     expect(screen.getByText('2')).toBeInTheDocument();
-    expect(screen.getByText('store.credits.owned:1')).toBeInTheDocument();
+    // The scenes owned are the rail's count now (`AccountStats`).
+    expect(screen.queryByText('store.credits.what')).not.toBeInTheDocument();
+    mockStore = storeWith({ owned: [] });
+    rerender(<CreditsCard />);
+    expect(screen.getByText('store.credits.what')).toBeInTheDocument();
   });
 
   it('says when half a credit from the account’s scenes waits, and only then', () => {
     mockStore = storeWith({ halfCredit: true });
     const { rerender } = render(<CreditsCard />);
     expect(screen.getByText('store.credits.half')).toBeInTheDocument();
+    // Drawn beside the balance as the figure it adds to: "2 ½".
+    expect(screen.getByText('½')).toBeInTheDocument();
     // The control: the same card with nothing waiting.
     mockStore = storeWith();
     rerender(<CreditsCard />);
     expect(screen.queryByText('store.credits.half')).not.toBeInTheDocument();
+    expect(screen.queryByText('½')).not.toBeInTheDocument();
   });
 
   it('offers the free credits first, and wears the loud style only with none to spend', () => {

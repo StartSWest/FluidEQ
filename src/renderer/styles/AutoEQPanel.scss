@@ -188,10 +188,13 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 14px;
   grid-template-columns: minmax(0, 1fr);
 
-  > .button {
-    min-width: 150px;
+  > .autoeq-actions {
     grid-column: 1;
     justify-self: start;
+
+    > .button {
+      min-width: 150px;
+    }
   }
 }
 

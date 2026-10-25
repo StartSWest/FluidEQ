@@ -19,7 +19,6 @@ const store: Partial<Dictionary> = {
   'store.credits.buyTitle': 'क्रेडिट पाएँ',
   'store.credits.lead':
     'एक क्रेडिट से एक सीन हमेशा के लिए आपका रहता है। आप एक बार भुगतान करते हैं, कुछ भी रिन्यू नहीं होता।',
-  'store.credits.owned': 'आपके सीन: {count}',
   'store.credits.what':
     'हर क्रेडिट से गैलरी का एक सीन हमेशा के लिए आपका रहता है: ग्राफ़ पर, आपके डेस्कटॉप पर और आपकी लाइटों पर।',
   'store.credits.half':

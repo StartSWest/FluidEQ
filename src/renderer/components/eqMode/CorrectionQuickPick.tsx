@@ -9,6 +9,7 @@ import { importEqText, loadOpraPreset } from '../../utils/equalizerApi';
 import EqModeIcon from '../../icons/EqModeIcon';
 import RichPick, { type IRichPickEntry } from '../../widgets/RichPick';
 import { IMPORT_EAR_NAMES } from '../../eq/ImportEarsPick';
+import { isCurveApplied } from '../../eq/appliedCurve';
 import { SOURCE_NAMES } from '../../eq/MyCurveRow';
 import { useMyCurves } from '../../eq/myCurvesStore';
 import {
@@ -98,15 +99,16 @@ export default function CorrectionQuickPick() {
     return [...mine, ...opra];
   }, [curves, product, t]);
 
-  // What plays now: a curve of yours by its text, whatever it was called when
-  // it was played; an OPRA curve by the library's own ids.
-  const playingText = headphone?.eqImport?.text;
-  const mineId = curves.find((curve) => curve.text === playingText)?.id;
+  // What plays now: an OPRA curve by the library's own ids; otherwise a
+  // curve of yours by its text, whichever tab played it (`appliedCurve.ts`).
+  const mineId = curves.find((curve) =>
+    isCurveApplied(curve.text, headphone),
+  )?.id;
   let activeId = '';
-  if (mineId) {
-    activeId = `${MINE}${mineId}`;
-  } else if (isOpraPlaying && headsetTarget) {
+  if (isOpraPlaying && headsetTarget) {
     activeId = `${OPRA}${headsetTarget}`;
+  } else if (mineId) {
+    activeId = `${MINE}${mineId}`;
   }
 
   const play = async (id: string) => {
