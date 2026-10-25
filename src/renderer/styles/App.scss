@@ -4501,10 +4501,10 @@ button.graph-legend {
 
 // *** Responsive shell *******************************************************
 
-// A 1440 x 900 display has limited logical space even on Retina. Keep laptop
-// density at the root and the open sound pane beside the EQ on every system.
+// A 1440 x 900 Mac has limited logical space even on Retina. This density
+// belongs only to macOS; Windows at 125% can have the same logical viewport.
 @media (min-width: $bp-xl) and (max-width: $bp-three-column) and (max-height: $bp-laptop-height) {
-  :root {
+  :root[data-platform='darwin'] {
     font-size: 90%;
 
     .app-workspace.is-sound-drawer-open:not(.is-app-full) {
