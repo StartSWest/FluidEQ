@@ -263,27 +263,29 @@ describe('the graph’s visualizer', () => {
 
   // A Plus visualizer's colours hold in Colours and Ambient however low the
   // Brightness goes (Ivan, 2026-09-28: "on plus viz we keep the viz original
-  // color when moving the app brightness"): their walk starts at 30, so Black
-  // paints them as the Backdrop, which follows the Brightness all the way,
-  // paints them at 30.
+  // color when moving the app brightness"): their walk starts at 30, where
+  // the Backdrop's follows the Brightness all the way. Below 50% the floor of
+  // either is the colour it has at 50%, darkened (`sceneTintDarkFloor.test`),
+  // so what this holds is the panes, which keep the walk: Colours and Ambient
+  // paint the Backdrop's 30 at Black.
   it('holds a visualizer’s colours at Black in Colours and Ambient', () => {
     remember([['premium:bloom', '3', sky(300)]]);
-    const floorIn = (mode: string, shade: string) => {
+    const paneIn = (mode: string, shade: string) => {
       window.localStorage.setItem('fluideq.sceneTintMode', mode);
       window.localStorage.setItem('fluideq.theme', shade);
       const shown = mount();
-      const floor = root.style.getPropertyValue('--surface-base');
+      const pane = root.style.getPropertyValue('--surface-panel');
       shown.fresh.cleanup();
       root.removeAttribute('style');
       root.removeAttribute('data-scene-tint');
-      return floor;
+      return pane;
     };
-    const colours = floorIn('tint', 'black');
+    const colours = paneIn('tint', 'black');
     expect(colours).toMatch(/^#/);
-    expect(floorIn('pulse', 'black')).toBe(colours);
-    expect(floorIn('cover', '30')).toBe(colours);
+    expect(paneIn('pulse', 'black')).toBe(colours);
+    expect(paneIn('cover', '30')).toBe(colours);
     // POSITIVE CONTROL: the Backdrop at Black has gone darker than that.
-    expect(floorIn('cover', 'black')).not.toBe(colours);
+    expect(paneIn('cover', 'black')).not.toBe(colours);
   });
 
   it('gives a look that is not a scene Lagoon, not a remembered scene’s colour', () => {
