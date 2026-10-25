@@ -27,7 +27,7 @@ const ipcListeners = new Map<string, Set<TListener>>();
 interface IFakeWindow extends EventEmitter {
   /** What the window was built with. */
   options: { webPreferences?: Record<string, unknown> } | undefined;
-  webContents: EventEmitter;
+  webContents: EventEmitter & { openDevTools: jest.Mock };
   show: jest.Mock;
   minimize: jest.Mock;
   maximize: jest.Mock;
@@ -168,8 +168,8 @@ const deps = (): IMainWindowDeps => ({
 });
 
 /** The window built, with its first load still on its way. */
-const open = () => {
-  const done = createMainWindowFactory(deps())();
+const open = (overrides: Partial<IMainWindowDeps> = {}) => {
+  const done = createMainWindowFactory({ ...deps(), ...overrides })();
   const window = windows[windows.length - 1];
   return { window, done };
 };
@@ -255,6 +255,30 @@ describe('when the window appears', () => {
     expect(ipcListeners.get(RENDERER_READY_EVENT)?.size).toBe(1);
     say(RENDERER_READY_EVENT, window.webContents);
     expect(ipcListeners.get(RENDERER_READY_EVENT)?.size).toBe(0);
+  });
+});
+
+// No developer tools at launch, in development either. They opened docked
+// inside the window on every start, and docked they decide how wide the page
+// is: a restart into the amp drew it 1920px wide in a 475px window (Ivan,
+// 2026-10-25). The menu opens them in a window of their own
+// (`devToolsMenu.test.ts`).
+describe('a development launch', () => {
+  it('shows the window without opening the developer tools', () => {
+    const { window } = open({ isDebug: true });
+    say(RENDERER_READY_EVENT, window.webContents);
+    // POSITIVE CONTROL: the window was revealed, which is where they opened.
+    expect(window.show).toHaveBeenCalledTimes(1);
+    expect(window.webContents.openDevTools).not.toHaveBeenCalled();
+  });
+
+  it('keeps a window that starts hidden free of them too', () => {
+    const { window } = open({ isDebug: true, startsHidden: () => true });
+    say(RENDERER_READY_EVENT, window.webContents);
+    // POSITIVE CONTROL: the reveal ran and kept the window hidden.
+    expect(ipcListeners.get(RENDERER_READY_EVENT)?.size).toBe(0);
+    expect(window.show).not.toHaveBeenCalled();
+    expect(window.webContents.openDevTools).not.toHaveBeenCalled();
   });
 });
 
