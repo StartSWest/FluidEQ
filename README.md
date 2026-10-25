@@ -59,11 +59,11 @@ Every output gets a sound of its own. The whole list is in the
 The biggest release FluidEQ has had; these were its headlines.
 
 - **A new window, in new colours.** One slider, Brightness, takes the whole
-  window from near-black to a light ocean blue. With a Plus visualizer on the
+  window from near-black to a light ocean blue. With a visualizer scene on the
   graph the window can take its colours, glow with it, or let it play behind
   everything on the Backdrop.
 - **Every look on your graphics card.** The graph's forty looks draw at your
-  screen's own refresh rate, eighteen of them new, and a Plus visualizer can
+  screen's own refresh rate, eighteen of them new, and a visualizer scene can
   be a real 3D world that steps on the kick and leaps at the drop. Move the
   mouse across one and it throws sparks, petals or snow.
 - **Sound exactly as you drew it.** On the FluidEQ Engine the treble plays as
@@ -204,7 +204,7 @@ volume, so it sets the level of everything the computer plays.
 window into the **Compact player**. It is the classic amp, with its LED clock,
 its lamps and the whole equaliser — presets, band layouts, EQ mode, Smart EQ,
 Bass, Mid and Treble — a visualizer, and Up Next, where dropped music files join
-the Library and the queue. On the Backdrop, over a Plus visualizer, it turns to
+the Library and the queue. On the Backdrop, over a visualizer scene, it turns to
 glass instead: the visualizer edge to edge, the song in large type and the
 controls in a glass dock. It folds to one line, stays on top of other windows if
 you ask it to, keeps a Brightness of its own, and the full app, the amp and the
@@ -396,7 +396,7 @@ they are untouched by it. The DSP tab says so at the top of its own page.
 | Exciter                | Harmonics that were never in the signal — even orders for body, odd for air — over three bands you place, plus Organic for density and Timing, which sharpens attacks and adds no harmonics at all.  |
 | Bass Forge, Bass Punch | Forge synthesises the missing fundamental for speakers that cannot reach it. Punch works on time instead of frequency: the fifteen milliseconds of attack no filter can get at.                      |
 | Equaliser              | Six to thirty-one bands, drawn as the filters actually respond. Serial or parallel, minimum or linear phase, stereo, mid or sides, up to 4× oversampling, dynamic bands, and over a hundred presets. |
-| Room                   | Surround on headphones: every channel becomes a speaker around your head, heard through a measured head and the walls of a room. Twenty-four rooms to start from, and none of it is part of Plus.    |
+| Room                   | Surround on headphones: every channel becomes a speaker around your head, heard through a measured head and the walls of a room. Twenty-four rooms to start from, all of it free.                    |
 | Dimension, Maximizer   | A widener that works per band and can never change what a mono listener hears, and a maximizer that raises the level without letting peaks past the ceiling, showing how much it holds down.         |
 | Master                 | A destination rather than a number — Streaming, Podcast, Audiobook, Broadcast, Cinema, CD, Vinyl, Club, Reference — each setting the loudness target and ceiling delivery really uses.               |
 
@@ -427,13 +427,13 @@ Twenty-four rooms to start from — eleven classics and thirteen new ones, each
 told apart by measurement — under Featured, Classic rooms and your own, and
 everything a room is made of is on its page: where each speaker stands, how far,
 its level, the walls, the space and the bass management. A listening test picks
-the head that puts sounds in front of you, by ear, in five pairs. None of it is
-part of Plus.
+the head that puts sounds in front of you, by ear, in five pairs. All of it is
+free.
 
 ![The Room stage of the DSP tab on Game World, with Reset and Save beside the picker and the stage's On switch, and a line saying it is folding a stereo stream onto the front stage. On the left, the room drawn from above: your head in the middle, the front left and front right speakers standing in front of it and the other five and the sub dimmed around the ring, 1.6 m away in a room 5 m wide. Beside it, the front left speaker's own pane with its angle, distance and level and its Mute and Solo; then Make it yours, with Space, Ambience and Distance; Room character, with Size, Walls, Tail length and Tail tone and a switch to keep the speakers' positions; Bass and centre, with the sub's crossover and the centre and sub levels; Stereo source, Front stage or Fill the room; and Your head, Small, Medium or Large, with Start the listening test.](docs/32-dsp-room.png)
 
-**Local, and account-free by default.** No cloud, no telemetry, no analytics, no
-proprietary driver, no virtual audio device. Your audio never leaves the
+**Local, and no account needed to use it.** No cloud processing, no telemetry,
+no analytics, no proprietary driver, no virtual audio device. Your audio never leaves the
 machine, except to another computer of yours when you share it with Share
 Audio, over your own network and encrypted. Signing in is optional and changes
 none of that — the equaliser, the rack, the library and the players neither
@@ -451,16 +451,16 @@ melody analysis and the voice cleaning all run on your machine. Pasting the
 words in skips the first, bringing your own instrumental skips the third, and a
 song you time by ear fetches nothing at all.
 
-## FluidEQ Plus: scenes that are yours for good
+## Visualizers: scenes that are yours for good
 
 A tab of its own that keeps FluidEQ growing. The equaliser, the DSP rack, the
 Room, the Library, Karaoke and the players stay free, as they always have been;
-Plus is the visualizers and what is built on them. There is no subscription: a
-scene costs one credit and stays yours, on every computer you sign in to, with
-every new version its maker publishes. Credits come in packs paid once, nothing
-renews, and a confirmed account gets three to start.
+what is sold is scenes. There is no subscription: a scene costs one credit and
+stays yours, on every computer you sign in to, with every new version its maker
+publishes. Credits come in packs paid once, nothing renews, and a confirmed
+account gets three to start.
 
-- **Plus visualizers.** Living scenes — mountains under the stars, curtains of
+- **Visualizers.** Living scenes — mountains under the stars, curtains of
   aurora, a neon city, real 3D worlds — drawn on your graphics card under your
   EQ curves, where the bass, the beat and the treble each move something
   different. A gallery holds FluidEQ's own and the ones members publish, and
@@ -469,20 +469,21 @@ renews, and a confirmed account gets three to start.
   and every file it saves plays on the Studio's stage at once, beside meters of
   what the scene hears of your song. It is free for every account. A scene you
   publish is reviewed before it reaches the gallery, and once it is approved it
-  plays free for you everywhere.
+  plays free for you everywhere. Every two sales of it — a member getting it
+  with a credit they paid for — earn you a credit for anyone else's scene,
+  FluidEQ's included.
 - **Your desktop and your desk.** A scene of yours can play behind your
   desktop icons, a different one on every monitor, pausing while windows cover
   it, while the computer is locked and on battery; and your RGB keyboard,
   mouse, headset and stand can take its colours and rhythm through Windows
   Dynamic Lighting and Razer Chroma (in beta).
-- **A leaderboard** of the members who listen most, if you want to be on it.
 
 Paying happens in your browser, on Stripe, and the app never sees a card. The
 terms, under Account in the app, say in plain words what your account sends to
 FluidEQ's server and what is kept — never your audio, what you play, your EQ or
 your devices.
 
-![A Plus visualizer's page in the Visualizers gallery: Neon City, a skyline of neon towers in violet and cyan under a full moon, reflected in the water in front of it, playing on your music, with its category, its maker FluidEQ and its version beside it, and Play on the graph, Set as a desktop background and Open in Studio under them. Under it, more of FluidEQ's scenes: Bloom, a lotus of glowing petals; Neon City 3D; Chrome, a mirrored sphere on a ring of light; and Crystal, a cut gem splitting the light.](docs/26-plus-scene.png)
+![A scene's page in the Visualizers gallery: Neon City, a skyline of neon towers in violet and cyan under a full moon, reflected in the water in front of it, playing on your music, with its category, its maker FluidEQ and its version beside it, and Play on the graph, Set as a desktop background and Open in Studio under them. Under it, more of FluidEQ's scenes: Bloom, a lotus of glowing petals; Neon City 3D; Chrome, a mirrored sphere on a ring of light; and Crystal, a cut gem splitting the light.](docs/26-plus-scene.png)
 
 ![The Studio with Alpine on its stage: a lake under snowy peaks and green and violet aurora, a wooden jetty lit by lanterns and a boat on the water. Down the right, Preview audio to drive the scene with your music or a test signal, and What it hears now: the level, bass, mids, treble, voice, balance and width it hears, a spectrum, and the rhythm and the song's intensity, build and drop. Under the stage, the Make with AI, Code, Pictures, Tune and Performance tabs, here on Tune with the window colours, the wave on the graph, the scene's own sliders, how it answers the music and the elements it adds around the window.](docs/31-plus-studio.png)
 
@@ -956,11 +957,11 @@ See [NOTICE.md](NOTICE.md) for the full derivative-work notice.
 
 Open **Help → User guide** in FluidEQ, or press **F1**, for the searchable
 offline handbook: 31 practical chapters in six parts, from your first five
-minutes to FluidEQ Plus, illustrated with 43 real interface captures. Each
-capture numbers its controls the way a printed manual does, and the list
-underneath names each one under the same number, with its shortcut where it has
-one; point at a line and the control is ringed on the capture. Click any capture
-to enlarge it.
+minutes to your account, credits and the Visualizers tab, illustrated with 43
+real interface captures. Each capture numbers its controls the way a printed
+manual does, and the list underneath names each one under the same number, with
+its shortcut where it has one; point at a line and the control is ringed on the
+capture. Click any capture to enlarge it.
 Ask the search in your own words: it ranks what it finds, forgives typos and
 plurals, knows the words people use for things in all ten languages and
 searches the English guide alongside yours, then takes you to the passage and
