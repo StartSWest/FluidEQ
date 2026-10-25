@@ -259,12 +259,6 @@ const plus = {
   'plus.accounts.exit.payment': 'Could not pay their way',
   'plus.accounts.exit.other': 'Something else',
   'plus.accounts.exit.none': 'Has not said',
-  'plus.accounts.engine.title': 'Engine',
-  'plus.accounts.engine.fluid': 'FluidEQ Engine',
-  'plus.accounts.engine.apo': 'Equalizer APO',
-  'plus.accounts.engine.unknown': 'Not reported {count}',
-  'plus.accounts.engine.summary':
-    'FluidEQ Engine {fluid}, Equalizer APO {apo}, not reported {unknown}',
   'plus.accounts.moreError': 'Couldn’t load more accounts. Try again.',
   'plus.accounts.error.offline':
     'The account list needs a connection. Try again online.',

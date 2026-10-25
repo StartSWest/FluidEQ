@@ -70,15 +70,29 @@ describe('the store as the server answers it', () => {
       { packs: [{ id: 'gift', credits: 5, priceCents: 499 }] },
     ],
     ['published names that are no scene ids', { published: ['../etc'] }],
+    ['a half credit that is no yes or no', { halfCredit: 'half' }],
   ])('refuses the whole answer for %s, never part of it', (_what, over) => {
     expect(parseSceneStore(answer(over))).toBeUndefined();
+  });
+
+  it('says half a credit waits only when the server says so (premium 0072)', () => {
+    expect(parseSceneStore(answer({ halfCredit: true }))?.halfCredit).toBe(
+      true,
+    );
+    // Nothing waiting, and a server before 0072, both leave it out.
+    expect(parseSceneStore(answer({ halfCredit: false }))).not.toHaveProperty(
+      'halfCredit',
+    );
+    expect(parseSceneStore(answer())).not.toHaveProperty('halfCredit');
   });
 
   it('checks a store handed across the window the same way', () => {
     const store = parseSceneStore(answer()) as ISceneStore;
     expect(isSceneStore(store)).toBe(true);
+    expect(isSceneStore({ ...store, halfCredit: true })).toBe(true);
     expect(isSceneStore({ ...store, owned: ['premium:Bad Id'] })).toBe(false);
     expect(isSceneStore({ ...store, balance: '4' })).toBe(false);
+    expect(isSceneStore({ ...store, halfCredit: 1 })).toBe(false);
   });
 
   it('names a FluidEQ scene by its look and a member’s by theirs, any case of the author', () => {
@@ -134,16 +148,20 @@ describe('which scenes play', () => {
     expect(play(memberLookId(ADA, 'other'), true)).toBe(true);
   });
 
-  it('plays a maker’s own scene once it is published and never a draft, Plus or not', () => {
+  // Ivan, 2026-10-21: "no need to publish to run on grahp" — a maker tests a
+  // scene on the graph until it is done, and publishes it to earn from it.
+  it('plays a maker’s own scene, published or still a draft, Plus or not', () => {
     expect(play(memberLookId(ME, 'mine-out'), false)).toBe(true);
-    expect(play(memberLookId(ME, 'mine-draft'), false)).toBe(false);
-    expect(play(memberLookId(ME, 'mine-draft'), true)).toBe(false);
+    expect(play(memberLookId(ME, 'mine-draft'), false)).toBe(true);
+    expect(play(memberLookId(ME, 'mine-draft'), true)).toBe(true);
+    // The control: another maker's draft of the same id is not theirs.
+    expect(play(memberLookId(ADA, 'mine-draft'), false)).toBe(false);
   });
 
-  it('plays a maker’s own scene as before, with Plus, while the server has not said what is published', () => {
+  it('plays a maker’s own scene whether or not the server has said what is published', () => {
     const older = { ...store, published: undefined };
-    expect(play(memberLookId(ME, 'mine-draft'), true, older)).toBe(true);
-    expect(play(memberLookId(ME, 'mine-draft'), false, older)).toBe(false);
+    expect(play(memberLookId(ME, 'mine-draft'), false, older)).toBe(true);
+    expect(play(memberLookId(ADA, 'mine-draft'), false, older)).toBe(false);
   });
 
   it('plays a FluidEQ scene made free for everyone signed in, and never a member scene by that list', () => {
@@ -163,15 +181,16 @@ describe('which scenes play', () => {
     ).toBe(false);
   });
 
-  it('plays every scene for the admin, drafts included', () => {
+  it('plays every scene for the admin, other makers’ drafts included', () => {
     const admin = { ...store, owned: [], published: [], everything: true };
     expect(play(premiumLookId('ember'), false, admin)).toBe(true);
     expect(play(memberLookId(ADA, 'other'), false, admin)).toBe(true);
-    expect(play(memberLookId(ME, 'mine-draft'), false, admin)).toBe(true);
+    expect(play(memberLookId(ADA, 'a-draft'), false, admin)).toBe(true);
     // The control: the same store without the flag plays none of them.
     const plain = { ...admin, everything: undefined };
     expect(play(premiumLookId('ember'), false, plain)).toBe(false);
-    expect(play(memberLookId(ME, 'mine-draft'), false, plain)).toBe(false);
+    expect(play(memberLookId(ADA, 'other'), false, plain)).toBe(false);
+    expect(play(memberLookId(ADA, 'a-draft'), false, plain)).toBe(false);
   });
 
   it('says whether anything plays at all, for the lights', () => {

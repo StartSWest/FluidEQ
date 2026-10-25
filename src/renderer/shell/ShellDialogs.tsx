@@ -35,7 +35,6 @@ import FeatureTour from '../components/featureTour/FeatureTour';
 import { featureTourFor } from '../components/featureTour/slides';
 import MandatoryUpdateModal from '../components/MandatoryUpdateModal';
 import PlusTermsNotice from '../components/PlusTermsNotice';
-import ListeningNotice from '../components/ListeningNotice';
 import SceneAnnouncementDialog from '../components/SceneAnnouncementDialog';
 import ProcessesDialog from '../components/ProcessesDialog';
 import RestartAudioDialog from '../components/RestartAudioDialog';
@@ -263,9 +262,6 @@ const ShellDialogs = ({
       {/* Here too: the terms promise that the app tells a member when they
           change, and a member need never open the Plus tab to use Plus. */}
       <PlusTermsNotice />
-      {/* And every signed-in account's, member or not: whether its
-          listening time is counted is asked once, on whichever tab is open. */}
-      <ListeningNotice />
       {/* Here for the same reason: a scene waiting for the admin, or a
           maker's scene approved or not, is news on whichever tab is open. */}
       <SceneReviewNotice />

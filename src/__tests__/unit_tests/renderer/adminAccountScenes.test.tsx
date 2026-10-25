@@ -5,10 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * One account's scenes on the admin's card: a member's own scene, played
- * from their looks and never published (server 0058, Ivan, 2026-10-19: "I
- * wanna see their scenes or published scenes"), says so; a published one
- * does not.
+ * One account's scenes on the admin's card: a member's own scene, never
+ * published (Ivan, 2026-10-19: "I wanna see their scenes or published
+ * scenes"), says so; a published one does not. Nothing on the card says how
+ * long anything played: that is not kept (premium 0071).
  */
 
 import '@testing-library/jest-dom';
@@ -35,18 +35,14 @@ const scenes: IAccountScene[] = [
     authorId: MEMBER,
     sceneId: 'supernova',
     authorName: 'Ivan',
-    seconds: 2169,
-    days: 1,
-    lastPlayed: '2026-10-18',
+    addedAt: Date.parse('2026-10-18T10:00:00Z'),
   },
   {
     sceneId: 'alpine',
     version: 57,
     names: { en: 'Alpine' },
     category: 'nature',
-    seconds: 2763,
-    days: 2,
-    lastPlayed: '2026-10-13',
+    likedAt: Date.parse('2026-10-13T10:00:00Z'),
   },
 ];
 
@@ -66,5 +62,8 @@ it("marks a member's own scene that was never published, and only that one", asy
   const chips = await screen.findAllByText('insights.chip.unpublished');
   expect(chips).toHaveLength(1);
   expect(chips[0].closest('li')).toHaveTextContent('supernova');
-  expect(screen.queryByText('insights.account.notPlayed')).toBeNull();
+  // What it added and liked, counted; nothing about time on screen.
+  expect(screen.getByText('insights.account.added')).toBeInTheDocument();
+  expect(screen.getByText('insights.chip.liked')).toBeInTheDocument();
+  expect(document.body.textContent).not.toMatch(/played|seconds|time/i);
 });

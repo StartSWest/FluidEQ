@@ -158,26 +158,53 @@ export const createRemoteAudioCredentialStore = (
 
   const read = (): ILanState => {
     const empty: ILanState = { joins: [], revoked: [] };
+    let contents: string;
     try {
-      if (!secureEncryptionAvailable()) {
+      contents = fs.readFileSync(filePath, 'utf8');
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === 'ENOENT'
+      ) {
         return empty;
       }
-      const stored = JSON.parse(
-        fs.readFileSync(filePath, 'utf8'),
-      ) as Partial<IStoredCredentials>;
+      throw new Error(
+        'Saved Share Audio pairings could not be read; they have been preserved.',
+      );
+    }
+    // A temporarily locked Keychain/keyring, unreadable file or newer schema
+    // is not a new installation. Returning an empty state here let the next
+    // write replace the existing identity and every paired computer.
+    if (!secureEncryptionAvailable()) {
+      throw new Error(
+        'Secure credential storage is unavailable; saved Share Audio pairings have been preserved.',
+      );
+    }
+    try {
+      const stored = JSON.parse(contents) as Partial<IStoredCredentials>;
       if (
         typeof stored.version !== 'number' ||
         ![1, 2, 3, 4].includes(stored.version) ||
         typeof stored.encrypted !== 'string'
       ) {
-        return empty;
+        throw new Error('Unsupported saved pairing format.');
       }
       const clear = safeStorage.decryptString(
         Buffer.from(stored.encrypted, 'base64'),
       );
-      return readStoredState(stored.version, JSON.parse(clear)) ?? empty;
+      const state = readStoredState(stored.version, JSON.parse(clear));
+      if (!state) {
+        throw new Error('Invalid saved pairing state.');
+      }
+      return state;
     } catch {
-      return empty;
+      // Do not include decryption/JSON errors: those can contain plaintext
+      // pairing material. The original ciphertext remains untouched.
+      throw new Error(
+        'Saved Share Audio pairings could not be unlocked; they have been preserved.',
+      );
     }
   };
 

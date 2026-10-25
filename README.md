@@ -435,12 +435,9 @@ part of Plus.
 **Local, and account-free by default.** No cloud, no telemetry, no analytics, no
 proprietary driver, no virtual audio device. Your audio never leaves the
 machine, except to another computer of yours when you share it with Share
-Audio, over your own network and encrypted. Signing in is optional — the
-equaliser, the rack, the library and the players neither know nor care whether
-you have. A signed-in account is asked once whether FluidEQ may count how long
-music plays, one number of minutes a day that only the maker sees, added up
-with everyone else's; it can be switched off at any time in the Account panel,
-which deletes what was sent. Four downloads are worth naming, because being
+Audio, over your own network and encrypted. Signing in is optional and changes
+none of that — the equaliser, the rack, the library and the players neither
+know nor care whether you have. Four downloads are worth naming, because being
 caught out by one of them later is worse than the download itself: asking the
 Karaoke Maker to transcribe lyrics fetches a speech-recognition model (about
 570 MB where your graphics card can run it, about 1.1 GB where it cannot),
@@ -669,10 +666,9 @@ with the pencil on its row.
 
 ## Supporting the work
 
-Without an account nothing here is tracked: no telemetry, no analytics.
-Signing in is optional, and nothing that shapes the sound is gated behind it;
-a signed-in account's daily listening minutes are counted only after it is
-told, and only until it switches that off.
+Nothing here is tracked. No telemetry, no analytics, and no account is
+required — signing in is optional, and nothing that shapes the sound is gated
+behind it.
 
 **This is one person's work — mine, Ivan Carmenates Garcia — built with a lot of love
 and an unreasonable amount of attention to detail.** Every panel was drawn by

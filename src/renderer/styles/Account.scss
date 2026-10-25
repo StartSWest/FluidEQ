@@ -164,6 +164,33 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-small;
 }
 
+// Half a credit from the account's own scenes, waiting for its pair (premium
+// 0072): a coin filled to its middle, in the balance's accent, beside what
+// makes it whole.
+.credits-card__half {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+.credits-card__coin {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  border: 1px solid color-mix(in srgb, $secondary-default 70%, transparent);
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $secondary-light 75%, transparent) 50%,
+    transparent 50%
+  );
+}
+
 .credits-card__actions {
   display: flex;
   flex-wrap: wrap;

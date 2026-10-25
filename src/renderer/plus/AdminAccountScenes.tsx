@@ -12,7 +12,6 @@ import { useTranslation } from '../utils/I18nContext';
 import { ScenePicture } from './GalleryParts';
 import {
   INSIGHT_ERRORS,
-  formatDuration,
   kindKey,
   sceneLabelName,
   scenePictureRef,
@@ -24,21 +23,24 @@ type TState =
   | { state: 'failed'; key: TranslationKey }
   | { state: 'ready'; scenes: IAccountScene[] };
 
-/** The kind this account spends the most time in, when it has played any. */
+/** The kind this account has added or liked the most scenes of. */
 const favouriteKind = (scenes: readonly IAccountScene[]) => {
   const totals = new Map<string, number>();
   scenes.forEach((scene) => {
     const kind = scene.category ?? 'other';
-    totals.set(kind, (totals.get(kind) ?? 0) + scene.seconds);
+    totals.set(kind, (totals.get(kind) ?? 0) + 1);
   });
-  const [best] = [...totals.entries()].sort((a, b) => b[1] - a[1]);
-  return best && best[1] > 0 ? best[0] : undefined;
+  const [best] = [...totals.entries()].sort(
+    (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
+  );
+  return best?.[0];
 };
 
 /**
- * Every scene one account has added, liked or played, most-played first: the
- * first section of an opened account (premium migration 0047). Asked once
- * when the account opens and again on Retry; nothing here is kept.
+ * Every scene one account has added or liked, newest first: the first
+ * section of an opened account (premium migrations 0047 and 0071). What the
+ * account watched, and for how long, is not kept. Asked once when the
+ * account opens and again on Retry; nothing here is kept either.
  */
 export default function AdminAccountScenes({ userId }: { userId: string }) {
   const { t } = useTranslation();
@@ -115,26 +117,13 @@ export default function AdminAccountScenes({ userId }: { userId: string }) {
   );
 }
 
-/** What one account has played, added and liked, once it has any. */
+/** What one account has added and liked, once it has any. */
 function AccountTaste({ scenes }: { scenes: IAccountScene[] }) {
   const { t, locale } = useTranslation();
   const count = new Intl.NumberFormat(locale);
   const date = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
-  // A play's day is the member's own calendar day, so it is read as one.
-  const day = (value: string) => {
-    const [year, month, dayOfMonth] = value.split('-').map(Number);
-    return date.format(new Date(year, month - 1, dayOfMonth));
-  };
-  const played = scenes.filter((scene) => scene.seconds > 0);
-  const total = played.reduce((sum, scene) => sum + scene.seconds, 0);
-  const most = Math.max(1, ...scenes.map((scene) => scene.seconds));
   const kind = favouriteKind(scenes);
   const facts: Array<{ key: TranslationKey; value: string }> = [
-    {
-      key: 'insights.account.played',
-      value: count.format(played.length),
-    },
-    { key: 'insights.account.time', value: formatDuration(total, locale, t) },
     {
       key: 'insights.account.added',
       value: count.format(scenes.filter((scene) => scene.addedAt).length),
@@ -184,8 +173,8 @@ function AccountTaste({ scenes }: { scenes: IAccountScene[] }) {
                   {t(kindKey(scene.category))}
                 </span>
                 <span className="admin-taste__chips">
-                  {/* A member's own scene that was never published: played
-                      from their looks, as the server keeps it since 0058. */}
+                  {/* A member's scene never published: shared by file and
+                      added from it. */}
                   {scene.authorId !== undefined &&
                     scene.version === undefined && (
                       <span className="admin-taste__chip">
@@ -206,24 +195,6 @@ function AccountTaste({ scenes }: { scenes: IAccountScene[] }) {
                     </span>
                   )}
                 </span>
-              </span>
-              <span className="admin-taste__play">
-                <span className="admin-taste__time">
-                  {scene.seconds > 0
-                    ? formatDuration(scene.seconds, locale, t)
-                    : t('insights.account.notPlayed')}
-                </span>
-                <span className="admin-taste__meter" aria-hidden="true">
-                  <i style={{ width: `${(scene.seconds / most) * 100}%` }} />
-                </span>
-                {scene.lastPlayed && (
-                  <span className="admin-taste__when">
-                    {t('insights.account.days', {
-                      days: count.format(scene.days),
-                      date: day(scene.lastPlayed),
-                    })}
-                  </span>
-                )}
               </span>
             </li>
           );

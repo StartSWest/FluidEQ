@@ -45,7 +45,7 @@ const creator: Partial<Dictionary> = {
   'creator.dialog.search': '国を検索',
   'creator.dialog.choose': '国を選択',
   'creator.dialog.countryHint':
-    'Stripe が支払えるのは米国、英国、カナダ、スイス、欧州経済領域のクリエイターで、国は後から変更できません。一覧にない場合でも、メンバーはあなたのシーンを購入でき、販売ごとに代わりにクレジットを受け取れます。',
+    'Stripe が支払えるのは米国、英国、カナダ、スイス、欧州経済領域のクリエイターで、国は後から変更できません。一覧にない場合でも、メンバーはあなたのシーンを購入でき、2 回の販売ごとに代わりに 1 クレジットを受け取れます。',
   'creator.dialog.cancel': 'キャンセル',
   'creator.dialog.go': '同意して Stripe へ進む',
   'creator.dialog.opening': 'Stripe を開いています…',

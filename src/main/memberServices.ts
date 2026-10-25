@@ -21,7 +21,6 @@ import { app, BrowserWindow } from 'electron';
 import log from 'electron-log';
 import path from 'path';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
-import type { TAudioEngine } from '../common/audioEngine';
 import { appVersion } from './appVersion';
 import { registerAccountIpc } from './ipc/account';
 import { registerAccountDeletionIpc } from './ipc/accountDeletion';
@@ -38,8 +37,6 @@ import { registerPlusReviewIpc } from './ipc/plusReview';
 import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
 import { registerSceneAnnouncementsIpc } from './ipc/sceneAnnouncements';
 import { registerSceneStoreIpc } from './ipc/sceneStore';
-import { registerSceneTasteIpc } from './ipc/sceneTaste';
-import { registerListeningIpc } from './ipc/listening';
 import forgetListening from './usage/forgetListening';
 import { registerSceneVersionsIpc } from './ipc/sceneVersions';
 import { createVersionPins } from './keptVersions';
@@ -61,8 +58,6 @@ import { createWallpaperScenes } from './wallpaper/scenes';
 export interface IMemberServicesDeps {
   getMainWindow: () => BrowserWindow | null;
   userDataDir: string;
-  /** The engine this computer runs, reported with the scenes (premium 0049). */
-  getEngine: () => TAudioEngine | null;
 }
 
 /**
@@ -78,7 +73,6 @@ export interface IMemberServicesDeps {
 const registerMemberServices = ({
   getMainWindow,
   userDataDir,
-  getEngine,
 }: IMemberServicesDeps) => {
   // DEVELOPMENT ONLY, and compiled to nothing in a packaged build:
   // `isPackaged` is decided by the binary's name, which nothing here can
@@ -99,7 +93,7 @@ const registerMemberServices = ({
     developmentEntitlement,
   });
 
-  // The leaderboard's listening tally, gone with the board.
+  // The leaderboard's listening tally and computer id, gone with the board.
   forgetListening(userDataDir, log);
 
   // The Plus terms promise that a member is told when they change. Asks the
@@ -332,26 +326,6 @@ const registerMemberServices = ({
     access: galleryAccess,
   });
 
-  // What the admin reads of how members watch: each scene's time on screen
-  // and the engine, sent only once the member has been shown terms 10.
-  const sceneTasteIpc = registerSceneTasteIpc({
-    userDataDir,
-    access: galleryAccess,
-    toldOf: plusTermsNoticeIpc.toldOf,
-    getEngine,
-    logger: log,
-  });
-
-  // How long people listen, for the admin's statistics (premium 0068):
-  // counted only once the account has been told and has not switched it off.
-  const listeningIpc = registerListeningIpc({
-    getMainWindow,
-    userDataDir,
-    access: galleryAccess,
-    entitlement: accountIpc.entitlement,
-    logger: log,
-  });
-
   // The big card announcing new scenes, and the admin's readings and
   // composer behind it (premium migrations 0047, 0049, 0050).
   const sceneAnnouncementsIpc = registerSceneAnnouncementsIpc({
@@ -411,8 +385,6 @@ const registerMemberServices = ({
     // once FluidEQ is gone.
     studioChat.dispose();
     plusProfileIpc.dispose();
-    sceneTasteIpc.dispose();
-    listeningIpc.dispose();
     sceneAnnouncementsIpc.dispose();
     adminInsightsIpc.dispose();
   };
@@ -425,8 +397,6 @@ const registerMemberServices = ({
     memberSharingIpc,
     plusGalleryIpc,
     plusReviewIpc,
-    sceneTasteIpc,
-    listeningIpc,
     sceneAnnouncementsIpc,
     wallpaperIpc,
     dispose,

@@ -66,8 +66,6 @@ export interface IAccountRefreshers {
   plusGallery: { refreshIfDue(): Promise<void> };
   sceneReviews: { refreshIfDue(reason: string): Promise<void> };
   plusTermsNotice: { checkIfDue(reason: string): Promise<void> };
-  sceneTaste: { uploadIfDue(reason: string): Promise<void> };
-  listening: { refreshIfDue(reason: string): Promise<void> };
   sceneAnnouncements: { refreshIfDue(reason: string): Promise<void> };
 }
 
@@ -89,8 +87,6 @@ export const accountComeBackSteps = ({
   sceneAnnouncements,
   sceneReviews,
   scenePacks,
-  sceneTaste,
-  listening,
 }: IAccountRefreshers): IComeBackStep[] => [
   { name: 'membership', run: (reason) => entitlement.checkIfDue(reason) },
   // Right after: every scene step below plays or keeps only what is owned.
@@ -106,17 +102,6 @@ export const accountComeBackSteps = ({
   {
     name: 'Plus terms notice',
     run: (reason) => plusTermsNotice.checkIfDue(reason),
-  },
-  // After the terms notice: what it sends waits on the member having been
-  // shown terms 10, which that step is what finds out.
-  {
-    name: 'scene plays and engine',
-    run: (reason) => sceneTaste.uploadIfDue(reason),
-  },
-  // Every signed-in account's, member or not: its own answer decides.
-  {
-    name: 'listening',
-    run: (reason) => listening.refreshIfDue(reason),
   },
   {
     name: 'scene announcements',

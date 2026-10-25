@@ -229,7 +229,6 @@ const createRemoteAudioLan = (
     self: () => ({ computerId: ownId(), deviceName: deviceNameOf() }),
     askWhoIsThere,
     inboundLive: (computerId) => (inbound.get(computerId)?.size ?? 0) > 0,
-    forgotten: (computerId) => book.forgetJoin(computerId),
   });
 
   const stop = () => {

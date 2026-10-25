@@ -261,12 +261,6 @@ const plus = {
   'plus.accounts.exit.payment': 'Не смог оплатить как хотел',
   'plus.accounts.exit.other': 'Другое',
   'plus.accounts.exit.none': 'Не ответил',
-  'plus.accounts.engine.title': 'Движок',
-  'plus.accounts.engine.fluid': 'Движок FluidEQ',
-  'plus.accounts.engine.apo': 'Equalizer APO',
-  'plus.accounts.engine.unknown': 'Не сообщили {count}',
-  'plus.accounts.engine.summary':
-    'Движок FluidEQ {fluid}, Equalizer APO {apo}, не сообщили {unknown}',
   'plus.accounts.moreError':
     'Не удалось загрузить больше аккаунтов. Попробуйте ещё раз.',
   'plus.accounts.error.offline':

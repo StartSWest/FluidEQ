@@ -263,12 +263,6 @@ const plus = {
   'plus.accounts.exit.payment': '希望の方法で払えなかった',
   'plus.accounts.exit.other': 'その他',
   'plus.accounts.exit.none': '未回答',
-  'plus.accounts.engine.title': 'エンジン',
-  'plus.accounts.engine.fluid': 'FluidEQ エンジン',
-  'plus.accounts.engine.apo': 'Equalizer APO',
-  'plus.accounts.engine.unknown': '未報告 {count}',
-  'plus.accounts.engine.summary':
-    'FluidEQ エンジン {fluid}、Equalizer APO {apo}、未報告 {unknown}',
   'plus.accounts.moreError':
     'これ以上のアカウントを読み込めませんでした。もう一度お試しください。',
   'plus.accounts.error.offline':

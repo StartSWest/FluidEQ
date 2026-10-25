@@ -281,11 +281,11 @@ const watchSystemMedia = (enabled: boolean) =>
  * Skip and seek are buttons, drawn only where the session said it takes them
  * — the flags travel with each snapshot. `pause` is not a button: it is sent
  * when a player of this app's starts, so the machine's sound gets out of the
- * way exactly as one of our own players would. Play still goes out as a media
- * key, which reaches players that never registered a session at all.
+ * way exactly as one of our own players would. Group playback uses explicit
+ * Play too, so the globally registered media key cannot catch its own output.
  */
 const sendSystemMediaCommand = (
-  command: 'next' | 'previous' | 'seek' | 'stop' | 'pause',
+  command: 'next' | 'previous' | 'seek' | 'stop' | 'play' | 'pause',
   positionMs?: number,
 ) =>
   ipcRenderer.invoke(

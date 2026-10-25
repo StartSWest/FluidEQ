@@ -5,8 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useId } from 'react';
-import type { IAccountToDelete, TAccountEngine } from 'common/accountDeletion';
-import type { TranslationKey } from 'common/i18n';
+import type { IAccountToDelete } from 'common/accountDeletion';
 import { useTranslation } from '../utils/I18nContext';
 import {
   AccountDeletionBody,
@@ -27,11 +26,6 @@ import { daysUntil, trialEndKey } from './insightsFormat';
  */
 const ONLINE_WITHIN_MS = 60 * 60 * 1000;
 
-const ENGINE_NAMES: Record<TAccountEngine, TranslationKey> = {
-  fluid: 'plus.accounts.engine.fluid',
-  apo: 'plus.accounts.engine.apo',
-};
-
 interface IAdminAccountRowProps {
   account: IAccountToDelete;
   open: boolean;
@@ -42,10 +36,10 @@ interface IAdminAccountRowProps {
 }
 
 /**
- * One account: who it is, when it joined, which FluidEQ and which engine it
- * runs, whether it is there now, its Plus and when a trial ends on one line,
- * which opens onto the scenes it adds, likes and plays, what the account
- * holds and Delete.
+ * One account: who it is, when it joined, which FluidEQ it signs in with,
+ * whether it is there now, its Plus and when a trial ends on one line, which
+ * opens onto the scenes it adds and likes, what the account holds and
+ * Delete.
  *
  * The version and the last sign-in are read from the account's own sessions
  * and are the admin's alone — the server refuses the whole list to anybody
@@ -154,13 +148,6 @@ export default function AdminAccountRow({
           {account.exitReason && (
             <span className="admin-account__tag is-reason">
               {t(TRIAL_EXIT_SHORT[account.exitReason])}
-            </span>
-          )}
-          {account.engine && (
-            <span
-              className={`admin-account__tag is-engine is-${account.engine}`}
-            >
-              {t(ENGINE_NAMES[account.engine])}
             </span>
           )}
           {account.appVersion && (

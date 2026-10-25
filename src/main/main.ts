@@ -447,10 +447,6 @@ const { apoGuard } = registerEngineServices({
     ]).catch((error: unknown) =>
       log.error('Could not move output processing to the new engine', error),
     );
-    // The admin's engine count follows a switch now, not at the next event.
-    members.sceneTasteIpc
-      .uploadIfDue('an engine switch')
-      .catch(() => undefined);
   },
 });
 
@@ -715,7 +711,6 @@ registerSystemVolumeIpc(getMainWindow);
 const members = registerMemberServices({
   getMainWindow,
   userDataDir,
-  getEngine: () => session.audioEngine,
 });
 
 // The tools menu's animations row: the saved choice, and the one this launch
@@ -907,8 +902,6 @@ const comeBack = createComeBackWatch({
     plusGallery: members.plusGalleryIpc,
     sceneReviews: members.plusReviewIpc,
     plusTermsNotice: members.plusTermsNoticeIpc,
-    sceneTaste: members.sceneTasteIpc,
-    listening: members.listeningIpc,
     sceneAnnouncements: members.sceneAnnouncementsIpc,
   }),
   getActiveAutoUpdater: updates.getActiveAutoUpdater,
@@ -1009,15 +1002,6 @@ app.on('before-quit', (event) => {
   // quit — so without this line a Windows shutdown would be refused by a
   // window trying to hide itself into the tray.
   beginQuit();
-  destroyTray();
-  stopRemoteAudioLan();
-  stopOutputMirrors();
-  members.dispose();
-  // The forum's GitHub sign-in holds a loopback socket for the same reason.
-  forumIpc.dispose();
-  motionPreferenceIpc.dispose();
-  startWithWindowsIpc.dispose();
-  graphicsPreferenceIpc.dispose();
   // Here rather than in `will-quit`, which is already too late to wait for
   // anything asynchronous. A host left running holds an audio endpoint open,
   // and an endpoint held by a process whose parent has gone is one Windows
@@ -1025,6 +1009,27 @@ app.on('before-quit', (event) => {
   shutdownDspHost().catch(() => undefined);
   // No sync after the one in flight: nothing reads the folder from here on.
   diskSync.stop();
+});
+
+// What only a quit that is going ahead may take down: the account and every
+// service on it, the forum, the tray, the network links. `before-quit` can
+// still be called off after it runs — the windows close only after it, and a
+// close that does not happen ends the quit with the process alive — and these
+// used to be disposed there: on 2026-10-24 a quit that never finished left the
+// dev window running with every one of their channels unregistered, so Sign
+// out, the credits and the forum each answered "No handler registered".
+// `will-quit` comes once every window has closed, when nothing can call the
+// quit off. The forum's GitHub sign-in holds a loopback socket, which this
+// still closes on every real quit, Windows' own included.
+app.on('will-quit', () => {
+  destroyTray();
+  stopRemoteAudioLan();
+  stopOutputMirrors();
+  members.dispose();
+  forumIpc.dispose();
+  motionPreferenceIpc.dispose();
+  startWithWindowsIpc.dispose();
+  graphicsPreferenceIpc.dispose();
 });
 
 const isTheOnlyCopy = claimTheOnlyCopy({ userDataDir, getMainWindow });

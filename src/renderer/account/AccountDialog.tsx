@@ -9,6 +9,7 @@ import type { TAuthFailure } from 'main/account/authClient';
 import type { TranslationKey } from 'common/i18n/en';
 import { isAccountConfigured } from 'common/accountConfig';
 import { PLUS_TERMS_EDITION } from 'common/plusTerms';
+import { CREATOR_PAYOUTS_OPEN } from 'common/creatorPayouts';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import DialogFrame from '../components/DialogFrame';
@@ -28,7 +29,6 @@ import ProfileNameForm from './ProfileNameForm';
 import PlusTermsDocument from './PlusTermsDocument';
 import { useSceneStore } from '../plus/sceneStore';
 import CreatorPayoutsCard from './CreatorPayoutsCard';
-import ListeningCard from './ListeningCard';
 import { forgetCreator } from './creatorStore';
 import SignInForms from './SignInForms';
 import SignOutConfirm from './SignOutConfirm';
@@ -426,10 +426,11 @@ export default function AccountDialog({
               {/* What gets scenes: credits. Plus is not sold any more, and
                   nothing about a subscription is shown (Ivan, 2026-10-21). */}
               <CreditsCard />
-              {/* Getting paid for the scenes members keep. */}
-              {accountId && <CreatorPayoutsCard accountId={accountId} />}
-              {/* Whether this account's listening time is counted. */}
-              <ListeningCard />
+              {/* Getting paid for the scenes members keep, once FluidEQ
+                  can pay creators; never asked for until then. */}
+              {CREATOR_PAYOUTS_OPEN && accountId && (
+                <CreatorPayoutsCard accountId={accountId} />
+              )}
 
               {errorLine}
 

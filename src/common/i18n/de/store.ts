@@ -22,6 +22,8 @@ const store: Partial<Dictionary> = {
   'store.credits.owned': 'Ihre Szenen: {count}',
   'store.credits.what':
     'Jeder Credit behält eine Szene aus der Galerie für immer: im Diagramm, auf Ihrem Desktop und an Ihren Lichtern.',
+  'store.credits.half':
+    'Ein halber Credit wartet: Die nächste Ihrer Szenen, die jemand mit einem bezahlten Credit holt, macht ihn voll.',
   'store.credits.buy': 'Credits holen',
   'store.credits.getFree': 'Gratis-Credits holen',
   'store.error.offline':

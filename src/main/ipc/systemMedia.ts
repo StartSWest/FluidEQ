@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { app, ipcMain } from 'electron';
+import { forwardGroupMediaCommand } from '../groupMediaKeys';
 import { ISystemMediaSnapshot } from '../systemMedia';
 import { systemMediaSourceFor } from '../systemMediaSource';
 
@@ -47,6 +48,14 @@ const registerSystemMediaIpc = ({ onMedia }: ISystemMediaIpcDeps) => {
    * on.
    */
   ipcMain.handle('media-transport', async (_event, action: unknown) => {
+    if (
+      (action === 'playPause' || action === 'next' || action === 'previous') &&
+      forwardGroupMediaCommand({
+        command: action === 'playPause' ? 'toggle' : action,
+      })
+    ) {
+      return;
+    }
     await systemMedia.sendTransportKey(action);
   });
 
@@ -99,6 +108,7 @@ const registerSystemMediaIpc = ({ onMedia }: ISystemMediaIpcDeps) => {
         command !== 'previous' &&
         command !== 'seek' &&
         command !== 'stop' &&
+        command !== 'play' &&
         command !== 'pause'
       ) {
         return;

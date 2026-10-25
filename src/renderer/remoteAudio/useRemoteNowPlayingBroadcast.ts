@@ -34,7 +34,7 @@ import type {
   IRemoteNowPlaying,
   TRemoteTransportCommand,
 } from '../../common/remoteAudio';
-import { stopAllPlayback, usePlaybackOwner } from '../audio/playbackOwner';
+import { usePlaybackOwner } from '../audio/playbackOwner';
 import type { TPlaybackOwner } from '../audio/playbackOwner';
 import pickTransportOwner from '../audio/transportRouting';
 import {
@@ -43,6 +43,7 @@ import {
 } from '../audio/transportSource';
 import type { ITransportSource } from '../audio/transportSource';
 import { onSinglePlayerChange } from '../utils/singlePlayer';
+import performLocalTransport from './localTransportCommand';
 
 /** A player's clock, made safe for the wire: whole, finite, not negative. */
 const wireMs = (value: number): number =>
@@ -283,63 +284,7 @@ const useRemoteNowPlayingBroadcast = (
     () => undefined,
   );
   performRef.current = (command) => {
-    const { current } = sourceRef;
-    if (!current) {
-      return;
-    }
-    if (command.command === 'toggle') {
-      current.toggle();
-      return;
-    }
-    if (command.command === 'stop') {
-      current.stop?.();
-      return;
-    }
-    if (command.command === 'next') {
-      current.next?.();
-      return;
-    }
-    if (command.command === 'previous') {
-      current.previous?.();
-      return;
-    }
-    if (command.command === 'nudge') {
-      // The source's own step first, for the reason the bar prefers it: where
-      // there is one, it is because this end cannot be trusted to know the
-      // position — see `ITransportSource.nudge`.
-      if (current.nudge) {
-        current.nudge(command.deltaMs);
-        return;
-      }
-      current.seek?.(
-        Math.min(
-          current.durationMs,
-          Math.max(0, current.positionMs + command.deltaMs),
-        ),
-      );
-      return;
-    }
-    // The listener started something of its own and its one-player rule says
-    // this must stop. Never a toggle: whatever is described here may already
-    // be paused, and a toggle would start it. The machine's own programs are
-    // asked to pause — all of them, because the listener wants this machine
-    // quiet and the bar names only the one Windows listed first; a player of
-    // ours is stopped through the register, the way another of ours would
-    // stop it.
-    if (!current.isPlaying) {
-      return;
-    }
-    if (current.owner === 'system') {
-      window.electron?.ipcRenderer
-        .pauseOtherSystemPlayers()
-        .catch(() => undefined);
-      return;
-    }
-    // Never the wire: a pause that arrived over the link must not leave by
-    // it. Both ways, this computer registers a `remote` player of its own
-    // while another computer plays here (`useRemoteNowPlayingSource`), and its
-    // stopper is a pause sent back out to every computer playing.
-    stopAllPlayback('remote');
+    performLocalTransport(sourceRef.current, command);
   };
   // Stable, so the signal handler that calls it need not re-subscribe.
   const performTransportRef = useRef((command: TRemoteTransportCommand) =>

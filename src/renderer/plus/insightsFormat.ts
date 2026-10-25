@@ -11,8 +11,8 @@ import type { TAdminFailure } from 'main/plus/adminInsightsApi';
 import { categoryKey } from './GalleryParts';
 
 /**
- * What the admin's scene pages say the same way: a time on screen, a scene's
- * name and picture, a kind, and how far off a trial's end is.
+ * What the admin's scene pages say the same way: a scene's name and picture,
+ * a kind, and how far off a trial's end is.
  */
 
 /** What an admin scene page says when the server did not answer. */
@@ -26,41 +26,7 @@ export const INSIGHT_ERRORS: Record<TAdminFailure, TranslationKey> = {
   'not-deployed': 'insights.error.notDeployed',
 };
 
-const HOUR = 3600;
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-/**
- * "5h 10m", "55m", "40s" — in the reader's language. Under a minute it says
- * the seconds: "under a minute" told the admin nothing about a scene put on
- * the graph moments ago (Ivan, 2026-10-12: "it need to show for how long").
- */
-export const formatDuration = (
-  seconds: number,
-  locale: LocaleCode,
-  t: (key: TranslationKey, vars?: Record<string, string>) => string,
-): string => {
-  const hours = Math.floor(seconds / HOUR);
-  const minutes = Math.floor((seconds % HOUR) / 60);
-  const unit = (value: number, kind: 'hour' | 'minute' | 'second') =>
-    new Intl.NumberFormat(locale, {
-      style: 'unit',
-      unit: kind,
-      unitDisplay: 'narrow',
-      maximumFractionDigits: 0,
-    }).format(value);
-  if (hours === 0 && minutes === 0) {
-    return unit(Math.floor(seconds), 'second');
-  }
-  if (hours === 0) {
-    return unit(minutes, 'minute');
-  }
-  return minutes === 0
-    ? unit(hours, 'hour')
-    : t('insights.time.hoursMinutes', {
-        hours: unit(hours, 'hour'),
-        minutes: unit(minutes, 'minute'),
-      });
-};
 
 /** The scene's name in the reader's language, or its id when it has none. */
 export const sceneLabelName = (scene: ISceneLabel, locale: LocaleCode) =>

@@ -240,12 +240,6 @@ const plus = {
   'plus.accounts.exit.payment': '无法用想要的方式付款',
   'plus.accounts.exit.other': '其他',
   'plus.accounts.exit.none': '未说明',
-  'plus.accounts.engine.title': '引擎',
-  'plus.accounts.engine.fluid': 'FluidEQ 引擎',
-  'plus.accounts.engine.apo': 'Equalizer APO',
-  'plus.accounts.engine.unknown': '未报告 {count}',
-  'plus.accounts.engine.summary':
-    'FluidEQ 引擎 {fluid}，Equalizer APO {apo}，未报告 {unknown}',
   'plus.accounts.moreError': '无法加载更多账户。请重试。',
   'plus.accounts.error.offline': '账户列表需要网络连接。请联网后重试。',
   'plus.accounts.error.signedOut': '请重新登录以查看账户。',

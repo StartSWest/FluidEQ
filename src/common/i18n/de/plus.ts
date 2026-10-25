@@ -269,12 +269,6 @@ const plus = {
   'plus.accounts.exit.payment': 'Konnte nicht wie gewünscht zahlen',
   'plus.accounts.exit.other': 'Etwas anderes',
   'plus.accounts.exit.none': 'Keine Angabe',
-  'plus.accounts.engine.title': 'Engine',
-  'plus.accounts.engine.fluid': 'FluidEQ-Engine',
-  'plus.accounts.engine.apo': 'Equalizer APO',
-  'plus.accounts.engine.unknown': 'Nicht gemeldet {count}',
-  'plus.accounts.engine.summary':
-    'FluidEQ-Engine {fluid}, Equalizer APO {apo}, nicht gemeldet {unknown}',
   'plus.accounts.moreError':
     'Weitere Konten konnten nicht geladen werden. Versuchen Sie es erneut.',
   'plus.accounts.error.offline':

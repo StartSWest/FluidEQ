@@ -36,7 +36,6 @@ import about from './about';
 import account from './account';
 import forum from './forum';
 import profile from './profile';
-import listening from './listening';
 import terms from './terms';
 import studio from './studio';
 import studioChat from './studioChat';
@@ -88,7 +87,6 @@ const fr: Partial<Dictionary> = {
   ...account,
   ...forum,
   ...profile,
-  ...listening,
   ...terms,
   ...studio,
   ...studioChat,

@@ -22,6 +22,8 @@ const store: Partial<Dictionary> = {
   'store.credits.owned': 'Ваших сцен: {count}',
   'store.credits.what':
     'Каждый кредит навсегда оставляет вам одну сцену из галереи: на графике, на рабочем столе и в подсветке.',
+  'store.credits.half':
+    'Вас ждёт половина кредита: следующая ваша сцена, полученная за оплаченный кредит, сделает его целым.',
   'store.credits.buy': 'Получить кредиты',
   'store.credits.getFree': 'Получить бесплатные кредиты',
   'store.error.offline':
