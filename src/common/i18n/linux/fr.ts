@@ -8,6 +8,13 @@ import { Dictionary } from '../en';
 
 /** French of `./en.ts`, the Linux wording; see there. */
 const fr: Partial<Dictionary> = {
+  'wallpaper.manage.empty': 'Chaque écran affiche son fond d’écran habituel.',
+  'wallpaper.monitor.ordinary': 'Fond d’écran',
+  'wallpaper.pause.locked': 'En pause lorsque l’écran est verrouillé',
+  'wallpaper.error.unsupported':
+    'Les fonds d’écran nécessitent GNOME et l’extension FluidEQ Desktop.',
+  'wallpaper.error.host':
+    'Le visualiseur n’a pas pu accéder au bureau. Activez FluidEQ Desktop dans Extensions, puis réessayez.',
   'app.menu.restartAudio': 'Redémarrer l’audio',
   'restart.title': 'Redémarrer l’audio',
   'restart.failed': 'L’audio n’a pas pu être redémarré.',
@@ -38,7 +45,7 @@ const fr: Partial<Dictionary> = {
     'Le catalogue téléchargeable est fourni par AutoEq. Chaque téléchargement correspond à la fréquence à laquelle fonctionne votre sortie, et le moteur FluidEQ convertit lui-même toute autre fréquence.',
   'graph.scene.gpu.auto': 'Le système décide',
   'settingsReset.body':
-    'Le graphique et les visualiseurs, Couleurs de la fenêtre, le lecteur, la Bibliothèque, la langue, les Animations et Démarrer avec la session reviennent à l’état d’une nouvelle installation de FluidEQ.',
+    'Le graphique et les visualiseurs, Couleurs de la fenêtre, le lecteur, la Bibliothèque, la langue, les Animations, Démarrer avec la session et le fond d’écran reviennent à l’état d’une nouvelle installation de FluidEQ.',
   'app.processes.hint':
     "Votre système nomme chacun d'eux comme l'application, car c'est le même programme. Voici ce que chacun fait réellement pour FluidEQ.",
   'app.processes.what.engine':
@@ -132,12 +139,6 @@ const fr: Partial<Dictionary> = {
   'help.window.plus': 'Les visualiseurs, la galerie et le Studio.',
   'help.plus.intro':
     'Le compte est facultatif : tout ce qui était gratuit fonctionne sur cet ordinateur sans compte. Une fois connecté, l’onglet Plus réunit Visualiseurs et le Studio. Une scène de Visualiseurs coûte un crédit et vous appartient pour de bon ; un compte confirmé reçoit quelques crédits gratuits, et les packs de crédits se paient une seule fois.',
-  'help.gallery.desktop':
-    'Sous Windows uniquement : place la scène derrière les icônes du Bureau.',
-  'help.gallery.manage':
-    'Sous Windows uniquement : ce que chaque écran affiche en arrière-plan du Bureau.',
-  'help.gallery.stop':
-    'Sous Windows uniquement : arrête tous les arrière-plans du Bureau.',
   'help.library.steps':
     'Ouvrez la Bibliothèque et ajoutez le dossier contenant vos médias. Laissez l’analyse se terminer avant de juger ce qui manque.\nChoisissez un artiste ou un album, ou recherchez une chanson. Lancez une piste depuis les résultats.\nUtilisez la barre en bas de la fenêtre pour mettre en pause, vous déplacer dans le morceau et passer au suivant. Son volume est celui de votre ordinateur.',
 };

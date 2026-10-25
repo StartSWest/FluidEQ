@@ -10,6 +10,7 @@ type THostEvent = 'ready' | 'active' | 'paused' | 'paused-owner' | 'error';
 const mockWindow = {
   destroyed: false,
   showInactive: jest.fn(),
+  setBounds: jest.fn(),
   destroy: jest.fn(),
   isDestroyed: () => mockWindow.destroyed,
   on: jest.fn(),
@@ -23,6 +24,7 @@ const mockWindow = {
 };
 const mockHost = {
   report: (_event: THostEvent) => undefined as void,
+  registered: () => undefined as void,
   setVisible: jest.fn(),
   stop: jest.fn(),
 };
@@ -37,8 +39,10 @@ jest.mock('../../../main/wallpaper/nativeHost', () => ({
     _executable: string,
     _handle: Buffer,
     onEvent: (event: THostEvent) => void,
+    onRegistered?: () => void,
   ) => {
     mockHost.report = onEvent;
+    mockHost.registered = onRegistered ?? (() => undefined);
     return mockHost;
   },
 }));
@@ -98,9 +102,60 @@ const create = (
   return { surface, onFail, onChange, onReady };
 };
 
+const originalPlatform = process.platform;
+afterEach(() =>
+  Object.defineProperty(process, 'platform', { value: originalPlatform }),
+);
 beforeEach(() => {
+  // These shared surface cases describe Windows' post-attachment map. Linux
+  // must map a registered source before Shell can acknowledge its actor.
+  Object.defineProperty(process, 'platform', { value: 'win32' });
   jest.clearAllMocks();
   mockWindow.destroyed = false;
+});
+
+describe('the Linux desktop source', () => {
+  beforeEach(() =>
+    Object.defineProperty(process, 'platform', { value: 'linux' }),
+  );
+
+  it('waits for registration, maps once, and pauses drawing behind a fullscreen window', () => {
+    const { surface, onReady } = create();
+    surface.drawn(1);
+    expect(mockWindow.showInactive).not.toHaveBeenCalled();
+    mockHost.registered();
+    expect(mockWindow.showInactive).toHaveBeenCalledTimes(1);
+    expect(onReady).not.toHaveBeenCalled();
+    mockHost.report('ready');
+    expect(mockWindow.setBounds).toHaveBeenCalledWith({
+      x: 0,
+      y: 0,
+      width: 2560,
+      height: 1440,
+    });
+    mockHost.report('active');
+    expect(surface.surfaceState().phase).toBe('running');
+    mockHost.report('paused');
+    expect(surface.surfaceState().phase).toBe('paused');
+    expect(surface.pauseReason()).toBe('covered');
+    expect(mockWindow.destroy).not.toHaveBeenCalled();
+    mockHost.report('active');
+    expect(surface.surfaceState().phase).toBe('running');
+    expect(mockWindow.showInactive).toHaveBeenCalledTimes(1);
+    expect(onReady).toHaveBeenCalledTimes(1);
+  });
+
+  it('removes the source on input-helper loss and ignores late reports', () => {
+    const { surface, onFail } = create();
+    surface.drawn(1);
+    mockHost.report('error');
+    expect(mockHost.stop).toHaveBeenCalledTimes(1);
+    expect(mockWindow.destroy).toHaveBeenCalledTimes(1);
+    expect(onFail).toHaveBeenCalledWith('host');
+    mockHost.report('ready');
+    mockHost.report('active');
+    expect(mockWindow.showInactive).not.toHaveBeenCalled();
+  });
 });
 
 describe('a desktop background appearing', () => {

@@ -41,6 +41,7 @@ import { setWindowFloor } from '../windowBackdrop';
 import { setWindowCloaked } from '../windowDwm';
 import type { TWindowModes } from '../windowMode';
 import { releaseLinuxWindowSize } from '../linux/linuxWindowSize';
+import setLinuxDesktopColour from '../linux/linuxDesktopColour';
 import onWindowMessage from './windowMessages';
 
 export interface IWindowIpcDeps {
@@ -144,6 +145,7 @@ export const registerWindowIpc = ({
    */
   ipcMain.handle('window-set-floor', (_event, colour: unknown) => {
     setWindowFloor(colour, getMainWindow());
+    setLinuxDesktopColour(colour);
   });
 
   ipcMain.handle(

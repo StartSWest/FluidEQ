@@ -1,0 +1,8 @@
+{
+  "uuid": "desktop@fluideq.app",
+  "name": "FluidEQ Desktop",
+  "description": "Places FluidEQ's existing music visualizers behind desktop icons and matches the top panel and dock to its window colour. FluidEQ must be running.",
+  "shell-version": ["50"],
+  "version": 2,
+  "session-modes": ["user", "unlock-dialog"]
+}

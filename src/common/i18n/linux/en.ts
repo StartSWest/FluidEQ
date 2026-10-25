@@ -10,10 +10,18 @@ import { Dictionary } from '../en';
  * The Linux words for every string the Linux app shows that speaks of
  * Windows or Equalizer APO (`./index.ts` says how they are used). The keys
  * are the shared ones, so a merge from main changes none of them; a key whose
- * screen Linux hides (the APO repairs, Dynamic lighting, desktop backgrounds)
+ * screen Linux hides (the APO repairs, Dynamic lighting)
  * is not here at all.
  */
 const en: Partial<Dictionary> = {
+  'wallpaper.manage.empty':
+    'Every monitor is showing its ordinary desktop background.',
+  'wallpaper.monitor.ordinary': 'Desktop background',
+  'wallpaper.pause.locked': 'Paused while the screen is locked',
+  'wallpaper.error.unsupported':
+    'Desktop backgrounds require GNOME and the FluidEQ Desktop extension.',
+  'wallpaper.error.host':
+    'The visualizer could not reach the desktop. Enable FluidEQ Desktop in Extensions and try again.',
   'app.menu.restartAudio': 'Restart audio',
   'restart.title': 'Restart audio',
   'restart.failed': 'The audio could not be restarted.',
@@ -42,7 +50,7 @@ const en: Partial<Dictionary> = {
     'AutoEq provides the downloadable catalogue. Each download matches the rate your output runs at, and the FluidEQ Engine converts any other rate itself.',
   'graph.scene.gpu.auto': 'The system decides',
   'settingsReset.body':
-    'The graph and visualizers, Window colours, the player, the Library, the language, Animations and Start when you sign in go back to how a new install of FluidEQ starts.',
+    'The graph and visualizers, Window colours, the player, the Library, the language, Animations, Start when you sign in and the desktop background go back to how a new install of FluidEQ starts.',
   'app.processes.hint':
     'Your system names every one of these after the app, because they are all the same program. This is what each one actually does for FluidEQ.',
   'app.processes.what.engine':
@@ -135,11 +143,6 @@ const en: Partial<Dictionary> = {
   'help.window.plus': 'Visualizers, the gallery and the Studio.',
   'help.plus.intro':
     'An account is optional: everything that was free runs on this computer without one. Signed in, the Plus tab holds Visualizers and the Studio. A scene from Visualizers costs one credit and is yours for good; a confirmed account gets some credits free, and packs of credits are paid once.',
-  'help.gallery.desktop':
-    'Windows only: puts the scene behind your desktop icons.',
-  'help.gallery.manage':
-    'Windows only: what each monitor shows as a desktop background.',
-  'help.gallery.stop': 'Windows only: stops every desktop background.',
   'help.library.steps':
     'Open Library and add the folder containing your media. Let the scan finish before judging what is missing.\nChoose an artist or album, or search for a song. Start a track from the results.\nUse the bar at the foot of the window to pause, seek and skip. Its volume is your computer’s own.',
 };

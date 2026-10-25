@@ -8,6 +8,12 @@ import { Dictionary } from '../en';
 
 /** Chinese of `./en.ts`, the Linux wording; see there. */
 const zh: Partial<Dictionary> = {
+  'wallpaper.manage.empty': '所有显示器都在显示原来的桌面背景。',
+  'wallpaper.monitor.ordinary': '桌面背景',
+  'wallpaper.pause.locked': '锁屏时暂停',
+  'wallpaper.error.unsupported': '桌面背景需要GNOME和FluidEQ Desktop扩展。',
+  'wallpaper.error.host':
+    '可视化效果无法显示在桌面上。请在“扩展”中启用FluidEQ Desktop，然后重试。',
   'app.menu.restartAudio': '重启音频',
   'restart.title': '重启音频',
   'restart.failed': '无法重启音频。',
@@ -33,7 +39,7 @@ const zh: Partial<Dictionary> = {
     '可下载的目录由 AutoEq 提供。每次下载都与你的输出运行时所用的采样率一致，其他采样率由 FluidEQ 引擎自行转换。',
   'graph.scene.gpu.auto': '由系统决定',
   'settingsReset.body':
-    '图表和可视化效果、窗口颜色、播放器、媒体库、语言、动画和登录时启动都会恢复为 FluidEQ 全新安装时的状态。',
+    '图表和可视化效果、窗口颜色、播放器、媒体库、语言、动画、登录时启动和桌面背景都会恢复为 FluidEQ 全新安装时的状态。',
   'app.processes.hint':
     '你的系统把它们全部显示为应用名称，因为它们是同一个程序。这里显示每个进程实际为 FluidEQ 做什么。',
   'app.processes.what.engine':
@@ -124,9 +130,6 @@ const zh: Partial<Dictionary> = {
   'help.window.plus': '可视化、图库和工作室。',
   'help.plus.intro':
     '账户是可选的：原本免费的一切在这台电脑上无需账户即可运行。登录后，Plus 标签页包含“可视化”和工作室。“可视化”中的场景每个一点，并永久归你；已确认的账户可免费获得一些点数，点数包只需付款一次。',
-  'help.gallery.desktop': '仅限 Windows：把场景放到桌面图标后面。',
-  'help.gallery.manage': '仅限 Windows：每台显示器作为桌面背景显示的内容。',
-  'help.gallery.stop': '仅限 Windows：停止所有桌面背景。',
   'help.library.steps':
     '打开“媒体库”并添加存放媒体的文件夹。等扫描完成后，再判断缺了什么。\n选择歌手或专辑，或搜索歌曲，然后从结果中开始播放。\n用窗口底部的播放栏暂停、定位和切歌。它的音量就是电脑本身的音量。',
 };

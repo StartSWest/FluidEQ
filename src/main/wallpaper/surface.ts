@@ -289,6 +289,12 @@ export const createDesktopSurface = (
             return;
           }
           if (message === 'ready') {
+            if (process.platform === 'linux') {
+              // Chromium's first mapped configure is clamped to the work
+              // area. Shell now owns the actor, so the desktop can take its
+              // full monitor bounds, including the panel strip.
+              window.setBounds(bounds);
+            }
             attached = true;
           } else {
             coverKnown = true;
@@ -296,6 +302,15 @@ export const createDesktopSurface = (
           }
           applyPolicy();
         },
+        process.platform === 'linux'
+          ? () => {
+              // Shell has registered this exact window before its first map,
+              // so the source can never appear over desktop icons. Its map
+              // supplies the actor Shell needs to attach and acknowledge it.
+              shown = true;
+              window.showInactive();
+            }
+          : undefined,
       );
     } catch (error) {
       log.warn(`Desktop visualizer attachment: ${error}`);

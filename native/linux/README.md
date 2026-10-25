@@ -68,6 +68,10 @@ only when neither library exists. Process memory and CPU come from `/proc`.
 without it the engine is built for PulseAudio only. `ctest -R linux-` runs the
 Linux tests.
 
+The wallpaper input helper also needs `libx11-dev libxext-dev` (Debian/Ubuntu)
+or `libX11-devel libXext-devel` (Fedora) when building. Their runtime libraries
+are already part of the supported GNOME/XWayland desktop.
+
 Release binaries come from `linux/build-portable.sh`, which builds inside
 AlmaLinux 8 (glibc 2.28) with a current compiler and pinned PipeWire headers,
 so they start on any distribution from 2018 on (they need glibc 2.27). Docker

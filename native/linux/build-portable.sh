@@ -17,7 +17,7 @@
 #
 #   native/linux/build-portable.sh [output-dir]   (default: native/.build/bin)
 #
-# Needs Docker. The source tree is mounted read-only; nothing but the four
+# Needs Docker. The source tree is mounted read-only; nothing but the five
 # helpers is written to the output directory.
 
 set -euo pipefail
@@ -47,7 +47,7 @@ docker run --rm \
   -e OWNER="$(id -u):$(id -g)" \
   -e PW_VERSION="$pw_version" -e PW_SHA256="$pw_sha256" -e PW_URL="$pw_url" \
   "$image" bash -euc '
-    dnf -q -y install gcc-toolset-14-gcc-c++ cmake make binutils >/dev/null
+    dnf -q -y install gcc-toolset-14-gcc-c++ cmake make binutils libX11-devel libXext-devel >/dev/null
     source /opt/rh/gcc-toolset-14/enable
 
     # A tarball that does not match its hash is refused, never built from.
@@ -69,14 +69,14 @@ docker run --rm \
     cmake -S /src -B /tmp/build -DCMAKE_BUILD_TYPE=Release \
       -DFEQ_BUILD_REVISION=portable -DFEQ_PIPEWIRE_HEADERS=/tmp/pwh >/dev/null
     cmake --build /tmp/build -j2 \
-      --target fluideq-linux-engine fluideq-dsp-host fluideq-linux-volume fluideq-linux-media
+      --target fluideq-linux-engine fluideq-dsp-host fluideq-linux-volume fluideq-linux-media fluideq-linux-wallpaper
     install -m 0755 /tmp/build/bin/FluidEQ-Engine /tmp/build/bin/FluidEQ-DSP \
-      /tmp/build/bin/FluidEQ-Volume /tmp/build/bin/FluidEQ-Media /out/
-    chown "$OWNER" /out/FluidEQ-Engine /out/FluidEQ-DSP /out/FluidEQ-Volume /out/FluidEQ-Media
+      /tmp/build/bin/FluidEQ-Volume /tmp/build/bin/FluidEQ-Media /tmp/build/bin/FluidEQ-Wallpaper /out/
+    chown "$OWNER" /out/FluidEQ-Engine /out/FluidEQ-DSP /out/FluidEQ-Volume /out/FluidEQ-Media /out/FluidEQ-Wallpaper
     echo "highest glibc symbol each binary needs:"
-    for binary in /out/FluidEQ-Engine /out/FluidEQ-DSP /out/FluidEQ-Volume /out/FluidEQ-Media; do
+    for binary in /out/FluidEQ-Engine /out/FluidEQ-DSP /out/FluidEQ-Volume /out/FluidEQ-Media /out/FluidEQ-Wallpaper; do
       printf "  %s: " "$(basename "$binary")"
       objdump -T "$binary" | grep -o "GLIBC_[0-9.]*" | sort -uV | tail -1
     done
   '
-echo "build-portable: $out/FluidEQ-Engine, $out/FluidEQ-DSP, $out/FluidEQ-Volume and $out/FluidEQ-Media"
+echo "build-portable: $out/FluidEQ-Engine, $out/FluidEQ-DSP, $out/FluidEQ-Volume, $out/FluidEQ-Media and $out/FluidEQ-Wallpaper"

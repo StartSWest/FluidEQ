@@ -23,6 +23,10 @@ import {
   type IScenePerformance,
 } from '../../common/scenePerformance';
 import type { ISceneOwnership } from '../plus/sceneOwnership';
+import {
+  linuxWallpaperDisplays,
+  linuxWallpaperSupported,
+} from '../linux/linuxWallpaper';
 import { isSceneFailure } from '../scenePackStore';
 import {
   EMPTY_ARRANGEMENT,
@@ -100,7 +104,8 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   const relay = createWallpaperAudioRelay();
   const cleanups: (() => void)[] = [];
   const hookedOwners = new WeakSet<WebContents>();
-  const supported = () => process.platform === 'win32';
+  const supported = () =>
+    process.platform === 'win32' || linuxWallpaperSupported();
   const owns = (lookId: string) => deps.ownership.owns(lookId);
   /** Whether what this monitor plays is still this account's to play. */
   const surfaceOwned = (surface: IDesktopSurface) => owns(surface.lookId);
@@ -108,16 +113,24 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     const window = deps.getMainWindow();
     return window && !window.isDestroyed() ? window.webContents : undefined;
   };
-  // Nothing to arrange where the desktop cannot take a background, and the
-  // physical conversion exists on Windows only.
-  const connectedDisplays = (): IWallpaperDisplay[] =>
-    supported() && app.isReady()
-      ? toWallpaperDisplays(
-          screen.getAllDisplays(),
-          screen.getPrimaryDisplay().id,
-          (rect) => screen.dipToScreenRect(null, rect),
-        )
-      : [];
+  // Each desktop converts its monitor coordinates; Windows' physical
+  // conversion API is unavailable on Linux.
+  const connectedDisplays = (): IWallpaperDisplay[] => {
+    if (!supported() || !app.isReady()) {
+      return [];
+    }
+    if (process.platform === 'linux') {
+      return linuxWallpaperDisplays(
+        screen.getAllDisplays(),
+        screen.getPrimaryDisplay(),
+      );
+    }
+    return toWallpaperDisplays(
+      screen.getAllDisplays(),
+      screen.getPrimaryDisplay().id,
+      (rect) => screen.dipToScreenRect(null, rect),
+    );
+  };
 
   const backgrounds = createMonitorBackgrounds({
     executable: wallpaperHostPath,

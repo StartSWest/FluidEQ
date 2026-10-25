@@ -8,6 +8,14 @@ import { Dictionary } from '../en';
 
 /** German of `./en.ts`, the Linux wording; see there. */
 const de: Partial<Dictionary> = {
+  'wallpaper.manage.empty':
+    'Jeder Monitor zeigt seinen normalen Desktop-Hintergrund.',
+  'wallpaper.monitor.ordinary': 'Desktop-Hintergrund',
+  'wallpaper.pause.locked': 'Pausiert, während der Bildschirm gesperrt ist',
+  'wallpaper.error.unsupported':
+    'Desktop-Hintergründe benötigen GNOME und die Erweiterung FluidEQ Desktop.',
+  'wallpaper.error.host':
+    'Der Visualizer konnte den Desktop nicht erreichen. Aktivieren Sie FluidEQ Desktop unter Erweiterungen und versuchen Sie es erneut.',
   'app.menu.restartAudio': 'Audio neu starten',
   'restart.title': 'Audio neu starten',
   'restart.failed': 'Audio konnte nicht neu gestartet werden.',
@@ -38,7 +46,7 @@ const de: Partial<Dictionary> = {
     'Den herunterladbaren Katalog stellt AutoEq bereit. Jeder Download passt zur Abtastrate, mit der Ihr Ausgang läuft, und die FluidEQ-Engine rechnet jede andere Rate selbst um.',
   'graph.scene.gpu.auto': 'Das System entscheidet',
   'settingsReset.body':
-    'Diagramm und Visualizer, Fensterfarben, Player, Bibliothek, Sprache, Animationen und „Beim Anmelden starten“ werden so eingestellt wie bei einer neuen Installation von FluidEQ.',
+    'Diagramm und Visualizer, Fensterfarben, Player, Bibliothek, Sprache, Animationen, „Beim Anmelden starten“ und der Desktop-Hintergrund werden so eingestellt wie bei einer neuen Installation von FluidEQ.',
   'app.processes.hint':
     'Ihr System benennt jeden davon nach der App, weil es dasselbe Programm ist. Hier steht, was jeder davon tatsächlich für FluidEQ tut.',
   'app.processes.what.engine':
@@ -131,11 +139,6 @@ const de: Partial<Dictionary> = {
   'help.window.plus': 'Visualizer, die Galerie und das Studio.',
   'help.plus.intro':
     'Ein Konto ist optional: Alles, was kostenlos war, läuft auf diesem Computer auch ohne. Angemeldet bündelt der Plus-Tab „Visualizer“ und das Studio. Eine Szene aus „Visualizer“ kostet einen Credit und gehört Ihnen für immer; ein bestätigtes Konto erhält einige Credits gratis, und Credit-Pakete werden einmalig bezahlt.',
-  'help.gallery.desktop':
-    'Nur unter Windows: Legt die Szene hinter Ihre Desktopsymbole.',
-  'help.gallery.manage':
-    'Nur unter Windows: Was jeder Monitor als Desktophintergrund zeigt.',
-  'help.gallery.stop': 'Nur unter Windows: Beendet alle Desktophintergründe.',
   'help.library.steps':
     'Öffnen Sie Bibliothek und fügen Sie den Ordner mit Ihren Medien hinzu. Warten Sie, bis das Einlesen fertig ist, bevor Sie beurteilen, was fehlt.\nWählen Sie einen Interpreten oder ein Album oder suchen Sie nach einem Song. Starten Sie einen Titel aus den Ergebnissen.\nMit der Leiste am unteren Fensterrand pausieren, spulen und springen Sie. Die Lautstärke dort ist die Ihres Computers.',
 };

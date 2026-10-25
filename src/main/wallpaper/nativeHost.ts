@@ -4,10 +4,14 @@ import path from 'path';
 import { createInterface } from 'readline';
 import { app } from 'electron';
 import log from 'electron-log';
+import { linuxWallpaperHostPath } from '../linux/linuxWallpaper';
 
 const EXECUTABLE = 'FluidEQ-Wallpaper.exe';
 
 export const wallpaperHostPath = (): string | undefined => {
+  if (process.platform === 'linux') {
+    return linuxWallpaperHostPath();
+  }
   if (process.platform !== 'win32') {
     return undefined;
   }
@@ -43,15 +47,24 @@ export const startWallpaperHost = (
   executable: string,
   handle: Buffer,
   onEvent: (event: TWallpaperHostEvent) => void,
+  onRegistered?: () => void,
 ): IWallpaperHost => {
   const hwnd =
     handle.length === 8
       ? handle.readBigUInt64LE().toString()
       : handle.readUInt32LE().toString();
-  const child = spawn(executable, [hwnd, String(process.pid)], {
-    windowsHide: true,
-    stdio: ['pipe', 'pipe', 'pipe'],
-  });
+  const child = spawn(
+    process.platform === 'linux' ? 'gjs' : executable,
+    [
+      ...(process.platform === 'linux' ? ['-m', executable] : []),
+      hwnd,
+      String(process.pid),
+    ],
+    {
+      windowsHide: true,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    },
+  );
   let stopped = false;
   let failed = false;
   const fail = (detail: string) => {
@@ -65,6 +78,10 @@ export const startWallpaperHost = (
   const lines = createInterface({ input: child.stdout });
   lines.on('line', (line) => {
     if (stopped || failed) {
+      return;
+    }
+    if (process.platform === 'linux' && line === 'registered') {
+      onRegistered?.();
       return;
     }
     const report = REPORTS.find((known) => known === line);

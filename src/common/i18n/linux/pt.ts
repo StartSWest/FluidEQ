@@ -8,6 +8,14 @@ import { Dictionary } from '../en';
 
 /** Portuguese of `./en.ts`, the Linux wording; see there. */
 const pt: Partial<Dictionary> = {
+  'wallpaper.manage.empty':
+    'Todos os monitores mostram o fundo habitual da área de trabalho.',
+  'wallpaper.monitor.ordinary': 'Fundo da área de trabalho',
+  'wallpaper.pause.locked': 'Em pausa enquanto o ecrã está bloqueado',
+  'wallpaper.error.unsupported':
+    'Os fundos do ambiente de trabalho requerem GNOME e a extensão FluidEQ Desktop.',
+  'wallpaper.error.host':
+    'O visualizador não conseguiu aceder ao ambiente de trabalho. Ative FluidEQ Desktop em Extensões e tente novamente.',
   'app.menu.restartAudio': 'Reiniciar o áudio',
   'restart.title': 'Reiniciar o áudio',
   'restart.failed': 'Não foi possível reiniciar o áudio.',
@@ -38,7 +46,7 @@ const pt: Partial<Dictionary> = {
     'O catálogo para download é fornecido pelo AutoEq. Cada download corresponde à taxa em que sua saída funciona, e o Motor FluidEQ converte sozinho qualquer outra taxa.',
   'graph.scene.gpu.auto': 'O sistema decide',
   'settingsReset.body':
-    'O gráfico e os visualizadores, Cores da janela, o player, a Biblioteca, o idioma, Animações e Iniciar com a sessão voltam a ser como em uma nova instalação do FluidEQ.',
+    'O gráfico e os visualizadores, Cores da janela, o player, a Biblioteca, o idioma, Animações, Iniciar com a sessão e o fundo da área de trabalho voltam a ser como em uma nova instalação do FluidEQ.',
   'app.processes.hint':
     'O seu sistema dá a todos eles o nome do app, porque são o mesmo programa. Isto é o que cada um faz na realidade pelo FluidEQ.',
   'app.processes.what.engine':
@@ -132,12 +140,6 @@ const pt: Partial<Dictionary> = {
   'help.window.plus': 'Visualizadores, a galeria e o Estúdio.',
   'help.plus.intro':
     'A conta é opcional: tudo o que era gratuito funciona neste computador sem ela. Conectado, a aba Plus reúne Visualizadores e o Estúdio. Uma cena de Visualizadores custa um crédito e é sua para sempre; uma conta confirmada recebe alguns créditos grátis, e os pacotes de créditos são pagos uma única vez.',
-  'help.gallery.desktop':
-    'Só no Windows: coloca a cena atrás dos ícones da área de trabalho.',
-  'help.gallery.manage':
-    'Só no Windows: o que cada monitor mostra como fundo da área de trabalho.',
-  'help.gallery.stop':
-    'Só no Windows: para todos os fundos da área de trabalho.',
   'help.library.steps':
     'Abra Biblioteca e adicione a pasta com suas mídias. Deixe a leitura terminar antes de avaliar o que está faltando.\nEscolha um artista ou álbum, ou busque uma música. Inicie uma faixa nos resultados.\nUse a barra na parte de baixo da janela para pausar, mudar a posição e pular. O volume dela é o do seu computador.',
 };

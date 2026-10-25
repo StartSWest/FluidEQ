@@ -91,6 +91,27 @@ endif()
 
 find_package(Threads REQUIRED)
 
+# GNOME's cloned wallpaper source stays mapped. Chromium can replace its X11
+# input shape after Electron's ignore-mouse call, so guard the dedicated source
+# against those native events before it is mapped.
+find_package(X11 REQUIRED COMPONENTS Xext)
+add_executable(fluideq-linux-wallpaper wallpaper/input.cpp)
+target_include_directories(fluideq-linux-wallpaper PRIVATE ${X11_INCLUDE_DIR})
+target_link_libraries(fluideq-linux-wallpaper PRIVATE
+  ${X11_X11_LIB} ${X11_Xext_LIB} feq_strict)
+target_link_options(fluideq-linux-wallpaper PRIVATE ${FEQ_LINUX_PORTABLE_LINK})
+set_target_properties(fluideq-linux-wallpaper PROPERTIES
+  OUTPUT_NAME "FluidEQ-Wallpaper"
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
+
+# Requires an explicitly private X server; never opens the owner's desktop.
+add_executable(fluideq-linux-wallpaper-input-test EXCLUDE_FROM_ALL tests/wallpaper_input_test.cpp)
+target_include_directories(fluideq-linux-wallpaper-input-test PRIVATE ${X11_INCLUDE_DIR})
+target_link_libraries(fluideq-linux-wallpaper-input-test PRIVATE
+  ${X11_X11_LIB} ${X11_Xext_LIB} feq_strict)
+
 # The FluidEQ Engine for Linux. PulseAudio is always in (its few functions
 # are declared by hand, pulse/pa_api.h); PipeWire joins when its headers are
 # here, which every release build has — without them the engine runs on

@@ -270,6 +270,18 @@
       "include": "assets/nsis/installer.nsh"
     },
     "linux": {
+      "extraResources": [
+        {
+          "from": "native/linux/wallpaper",
+          "to": "native/linux-wallpaper",
+          "filter": [
+            "host.js",
+            "colours.js",
+            "install.sh",
+            "gnome-extension/**"
+          ]
+        }
+      ],
       "target": ["deb", "AppImage"],
       "category": "AudioVideo",
       "executableName": "FluidEQ",
@@ -296,6 +308,7 @@
           "FluidEQ-Lighting.exe",
           "lighting-identity/**",
           "FluidEQ-Wallpaper.exe",
+          "FluidEQ-Wallpaper",
           "FluidEQ-Meter.exe",
           "FluidEQ-Games.exe",
           "FluidEQ-Volume.exe",

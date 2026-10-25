@@ -472,6 +472,12 @@ if (
 ) {
   fail('the Linux media helper was not produced');
 }
+if (
+  process.platform === 'linux' &&
+  !existsSync(path.join(BUILD_DIR, 'bin', 'FluidEQ-Wallpaper'))
+) {
+  fail('the Linux wallpaper input helper was not produced');
+}
 if (isWindows) {
   const playbackPath = path.join(BUILD_DIR, 'bin', 'FluidEQ-LAN-Playback.exe');
   if (!existsSync(playbackPath)) {

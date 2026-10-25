@@ -36,13 +36,17 @@ const wallpaperSession = () => {
 export const createWallpaperWindow = (bounds: Rectangle): BrowserWindow => {
   const window = new BrowserWindow({
     ...bounds,
+    ...(process.platform === 'linux' ? { type: 'desktop' as const } : {}),
     show: false,
     paintWhenInitiallyHidden: true,
     frame: false,
     // No resize border: the desktop helper strips it anyway, and Electron
     // re-adds WS_THICKFRAME on some calls unless it knows the window has none.
     thickFrame: false,
-    transparent: false,
+    // GTK gives opaque X11 windows invisible CSD margins even with frame and
+    // shadow disabled. A transparent Linux host removes them; the shared
+    // scene still paints the whole canvas, without a border around its clone.
+    transparent: process.platform === 'linux',
     backgroundColor: '#090b12',
     skipTaskbar: true,
     focusable: false,
@@ -68,6 +72,9 @@ export const createWallpaperWindow = (bounds: Rectangle): BrowserWindow => {
     },
   });
   window.setIgnoreMouseEvents(true);
+  if (process.platform === 'linux') {
+    window.setVisibleOnAllWorkspaces(true);
+  }
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   window.webContents.on('will-navigate', (event) => event.preventDefault());
   window.webContents.on('will-attach-webview', (event) =>

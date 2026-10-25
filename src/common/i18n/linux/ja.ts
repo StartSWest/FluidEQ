@@ -8,6 +8,14 @@ import { Dictionary } from '../en';
 
 /** Japanese of `./en.ts`, the Linux wording; see there. */
 const ja: Partial<Dictionary> = {
+  'wallpaper.manage.empty':
+    'すべてのモニターに通常のデスクトップ背景が表示されています。',
+  'wallpaper.monitor.ordinary': 'デスクトップ背景',
+  'wallpaper.pause.locked': '画面のロック中は一時停止',
+  'wallpaper.error.unsupported':
+    'デスクトップ背景にはGNOMEとFluidEQ Desktop拡張機能が必要です。',
+  'wallpaper.error.host':
+    'デスクトップにビジュアライザーを表示できませんでした。「拡張機能」でFluidEQ Desktopを有効にして、もう一度お試しください。',
   'app.menu.restartAudio': 'オーディオを再起動',
   'restart.title': 'オーディオを再起動',
   'restart.failed': 'オーディオを再起動できませんでした。',
@@ -37,7 +45,7 @@ const ja: Partial<Dictionary> = {
     'ダウンロード可能なカタログは AutoEq が提供しています。各ダウンロードは出力が動作しているサンプリング周波数に合わせ、それ以外の周波数は FluidEQ エンジンが自動で変換します。',
   'graph.scene.gpu.auto': 'システムに任せる',
   'settingsReset.body':
-    'グラフとビジュアライザー、ウィンドウの色、プレーヤー、ライブラリ、言語、アニメーション、サインイン時に起動が、FluidEQ を新しくインストールしたときの状態に戻ります。',
+    'グラフとビジュアライザー、ウィンドウの色、プレーヤー、ライブラリ、言語、アニメーション、サインイン時に起動、デスクトップ背景が、FluidEQ を新しくインストールしたときの状態に戻ります。',
   'app.processes.hint':
     'これらはすべて同じプログラムなので、システムはどれもアプリ名で表示します。ここでは各プロセスが FluidEQ のために実際に何をしているかを示します。',
   'app.processes.what.engine':
@@ -130,11 +138,6 @@ const ja: Partial<Dictionary> = {
   'help.window.plus': 'ビジュアライザー、ギャラリー、スタジオ。',
   'help.plus.intro':
     'アカウントは任意です。無料だったものはすべて、アカウントがなくてもこのコンピューターで動きます。サインインすると、Plus タブにビジュアライザーとスタジオがそろいます。ビジュアライザーのシーンは1クレジットで永久にあなたのものです。確認済みのアカウントには無料のクレジットが付き、クレジットのパックは一度払うだけです。',
-  'help.gallery.desktop':
-    'Windows のみ：シーンをデスクトップアイコンの背面に表示します。',
-  'help.gallery.manage':
-    'Windows のみ：各モニターがデスクトップの背景に表示している内容。',
-  'help.gallery.stop': 'Windows のみ：すべてのデスクトップの背景を停止します。',
   'help.library.steps':
     'ライブラリを開き、メディアの入ったフォルダーを追加します。足りないものがないか判断する前に、スキャンが終わるのを待ちます。\nアーティストやアルバムを選ぶか、曲を検索します。結果から曲を再生します。\nウィンドウ下部のバーで、一時停止、シーク、スキップができます。その音量はコンピューター自体の音量です。',
 };

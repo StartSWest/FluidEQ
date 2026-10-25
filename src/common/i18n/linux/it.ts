@@ -8,6 +8,14 @@ import { Dictionary } from '../en';
 
 /** Italian of `./en.ts`, the Linux wording; see there. */
 const it: Partial<Dictionary> = {
+  'wallpaper.manage.empty':
+    'Ogni monitor mostra il suo normale sfondo del desktop.',
+  'wallpaper.monitor.ordinary': 'Sfondo del desktop',
+  'wallpaper.pause.locked': 'In pausa mentre lo schermo è bloccato',
+  'wallpaper.error.unsupported':
+    'Gli sfondi del desktop richiedono GNOME e l’estensione FluidEQ Desktop.',
+  'wallpaper.error.host':
+    'Il visualizzatore non ha potuto accedere al desktop. Attiva FluidEQ Desktop in Estensioni e riprova.',
   'app.menu.restartAudio': 'Riavvia l’audio',
   'restart.title': 'Riavvia l’audio',
   'restart.failed': 'Impossibile riavviare l’audio.',
@@ -38,7 +46,7 @@ const it: Partial<Dictionary> = {
     'Il catalogo scaricabile è fornito da AutoEq. Ogni download corrisponde alla frequenza a cui funziona la tua uscita, e il motore FluidEQ converte da solo qualsiasi altra frequenza.',
   'graph.scene.gpu.auto': 'Decide il sistema',
   'settingsReset.body':
-    'Il grafico e i visualizzatori, Colori della finestra, il lettore, la Libreria, la lingua, le Animazioni e Avvia all’accesso tornano come in una nuova installazione di FluidEQ.',
+    'Il grafico e i visualizzatori, Colori della finestra, il lettore, la Libreria, la lingua, le Animazioni, Avvia all’accesso e lo sfondo del desktop tornano come in una nuova installazione di FluidEQ.',
   'app.processes.hint':
     'Il sistema chiama ognuno di questi come l’app, perché sono lo stesso programma. Questo è ciò che ciascuno fa davvero per FluidEQ.',
   'app.processes.what.engine':
@@ -131,12 +139,6 @@ const it: Partial<Dictionary> = {
   'help.window.plus': 'Visualizzatori, la galleria e lo Studio.',
   'help.plus.intro':
     'L’account è facoltativo: tutto ciò che era gratuito funziona su questo computer anche senza. Con l’accesso, la scheda Plus raccoglie Visualizzatori e lo Studio. Una scena di Visualizzatori costa un credito ed è tua per sempre; un account confermato riceve alcuni crediti gratis, e i pacchetti di crediti si pagano una sola volta.',
-  'help.gallery.desktop':
-    'Solo su Windows: mette la scena dietro le icone del desktop.',
-  'help.gallery.manage':
-    'Solo su Windows: cosa mostra ogni monitor come sfondo del desktop.',
-  'help.gallery.stop':
-    'Solo su Windows: interrompe tutti gli sfondi del desktop.',
   'help.library.steps':
     'Apri Libreria e aggiungi la cartella multimediale. Lascia finire la scansione prima di valutare cosa manca.\nScegli artista o album oppure cerca un brano e avvialo dai risultati.\nUsa la barra in fondo alla finestra per mettere in pausa, cercare e saltare. Il suo volume è quello del tuo computer.',
 };

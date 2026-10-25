@@ -8,6 +8,14 @@ import { Dictionary } from '../en';
 
 /** Spanish of `./en.ts`, the Linux wording; see there. */
 const es: Partial<Dictionary> = {
+  'wallpaper.manage.empty':
+    'Todos los monitores muestran su fondo de escritorio habitual.',
+  'wallpaper.monitor.ordinary': 'Fondo de escritorio',
+  'wallpaper.pause.locked': 'En pausa mientras la pantalla está bloqueada',
+  'wallpaper.error.unsupported':
+    'Los fondos de escritorio requieren GNOME y la extensión FluidEQ Desktop.',
+  'wallpaper.error.host':
+    'El visualizador no pudo acceder al escritorio. Activa FluidEQ Desktop en Extensiones e inténtalo de nuevo.',
   'app.menu.restartAudio': 'Reiniciar el audio',
   'restart.title': 'Reiniciar el audio',
   'restart.failed': 'No se pudo reiniciar el audio.',
@@ -38,7 +46,7 @@ const es: Partial<Dictionary> = {
     'El catálogo descargable lo proporciona AutoEq. Cada descarga coincide con la frecuencia a la que funciona tu salida, y el Motor FluidEQ convierte él mismo cualquier otra frecuencia.',
   'graph.scene.gpu.auto': 'Decide el sistema',
   'settingsReset.body':
-    'La gráfica y los visualizadores, Colores de la ventana, el reproductor, la Biblioteca, el idioma, Animaciones e Iniciar con la sesión vuelven a como empieza FluidEQ recién instalado.',
+    'La gráfica y los visualizadores, Colores de la ventana, el reproductor, la Biblioteca, el idioma, Animaciones, Iniciar con la sesión y el fondo de escritorio vuelven a como empieza FluidEQ recién instalado.',
   'app.processes.hint':
     'Tu sistema llama a todos estos igual que a la aplicación, porque son el mismo programa. Esto es lo que hace cada uno en realidad para FluidEQ.',
   'app.processes.what.engine':
@@ -132,12 +140,6 @@ const es: Partial<Dictionary> = {
   'help.window.plus': 'Visualizadores, la galería y el Estudio.',
   'help.plus.intro':
     'La cuenta es opcional: todo lo que era gratis funciona en este equipo sin ella. Con la sesión iniciada, la pestaña Plus reúne Visualizadores y el Estudio. Una escena de Visualizadores cuesta un crédito y es tuya para siempre; una cuenta confirmada recibe algunos créditos gratis, y los paquetes de créditos se pagan una sola vez.',
-  'help.gallery.desktop':
-    'Solo en Windows: pone la escena detrás de los iconos del escritorio.',
-  'help.gallery.manage':
-    'Solo en Windows: lo que muestra cada monitor como fondo de escritorio.',
-  'help.gallery.stop':
-    'Solo en Windows: detiene todos los fondos de escritorio.',
   'help.library.steps':
     'Abre Biblioteca y añade tu carpeta de medios. Deja que termine el escaneo antes de decidir qué falta.\nElige un artista o álbum, o busca una canción y reprodúcela.\nUsa la barra de la parte inferior de la ventana para pausar, moverte por la pista y saltar. Su volumen es el de tu ordenador.',
 };
