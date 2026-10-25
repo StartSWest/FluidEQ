@@ -12,6 +12,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * make_picture, and the window's questions about Codex start nothing.
  */
 
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import { CHATGPT_PICTURES_OPEN } from '../../../common/studioChatPictures';
 import type { TAgentProject } from '../../../main/studioAgent/agentProject';
 import type { IStudioLook } from '../../../main/studioAgent/studioTools';
@@ -73,8 +76,11 @@ it('offers Claude no make_picture, and keeps pack_artwork', () => {
 
 it("answers the window's questions about Codex without starting it", async () => {
   mockHandlers.clear();
+  // A folder of its own: the chat keeps its picture consent there, and a
+  // root of '' once left that file in the working folder.
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-pictures-'));
   const pictures = createChatPictures({
-    root: '',
+    root,
     pageOf: () => undefined,
     fromWindow: () => true,
     project: noProject,
@@ -101,4 +107,5 @@ it("answers the window's questions about Codex without starting it", async () =>
   expect(mockSignInToCodex).not.toHaveBeenCalled();
   expect(mockCodexAccount).not.toHaveBeenCalled();
   await pictures.dispose();
+  fs.rmSync(root, { recursive: true, force: true });
 });
