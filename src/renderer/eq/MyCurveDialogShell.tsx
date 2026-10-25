@@ -23,6 +23,7 @@ export default function MyCurveDialogShell({
   footer,
   onClose,
   children,
+  className,
 }: {
   icon: MenuIconName;
   title: string;
@@ -31,6 +32,7 @@ export default function MyCurveDialogShell({
   footer: ReactNode;
   onClose: () => void;
   children: ReactNode;
+  className?: string;
 }) {
   const { t } = useTranslation();
   const surfaceRef = useRef<HTMLDivElement>(null);
@@ -51,7 +53,7 @@ export default function MyCurveDialogShell({
     >
       <DialogFrame
         ref={surfaceRef}
-        className="my-curve-dialog"
+        className={`my-curve-dialog${className ? ` ${className}` : ''}`}
         icon={<MenuIcon name={icon} />}
         title={title}
         titleId={titleId}

@@ -602,7 +602,7 @@ const tour: Partial<Dictionary> = {
   'tour.myCurves.point1':
     '{applyCurve} spielt eine Kurve als Kopfhörerkorrektur, mit eigener Stärke und eigenem Schalter; {applyEq} legt ihre Bänder stattdessen in Ihren EQ.',
   'tour.myCurves.point2':
-    '{squiglink} hat einen eigenen Tab, und {save} behält, was Sie mitbringen, mit einem Klick.',
+    'Der Zugang zu {squiglink} in {myCurves} öffnet die Importvorschau; {save} bewahrt Ihre Kurve für später auf.',
   'tour.myCurves.point3':
     '{exportList} schreibt die ganze Liste in eine Datei, als Sicherung oder für einen anderen Computer; {importList} liest sie wieder ein und sagt, was ausgelassen wird.',
   'tour.myCurves.how':

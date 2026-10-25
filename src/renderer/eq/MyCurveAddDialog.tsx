@@ -1,6 +1,13 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { useId, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from 'react';
 import type { TImportEars } from 'common/bandEars';
 import type { ErrorDescription } from 'common/errors';
 import { OPRA_SOURCE_ID } from 'common/constants';
@@ -16,11 +23,16 @@ import {
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { importEqText } from '../utils/equalizerApi';
-import EqCurveChart from '../graph/EqCurveChart';
-import { PREVIEW_BOX, makeCurve } from '../graph/curvePreview';
+import MenuIcon from '../icons/MenuIcon';
+import {
+  hasEqToReplace,
+  persistEqText,
+  readStoredEqText,
+} from '../utils/squiglinkImport';
 import { appliedOpraName, knownOpraProducts } from '../opraProducts';
 import ImportEarsPick from './ImportEarsPick';
 import MyCurveDialogShell from './MyCurveDialogShell';
+import MyCurvePreview from './MyCurvePreview';
 import MyCurveSourcePick, { type TCurveOrigin } from './MyCurveSourcePick';
 import {
   addMyCurve,
@@ -28,6 +40,7 @@ import {
   updateMyCurve,
   useMyCurves,
 } from './myCurvesStore';
+import '../styles/MyCurveAdd.scss';
 
 const ORIGIN_OF: Record<TCurveSource, TCurveOrigin> = {
   squiglink: 'paste',
@@ -49,9 +62,8 @@ const SOURCE_OF: Record<TCurveOrigin, TCurveSource> = {
  * OPRA correction playing now. The curve is drawn as it will play before it
  * is kept, every line it could not read is named, and it is named on the
  * spot, from where it came: a list of "Squiglink export" ten times over is
- * not a list anybody can pick from. The Squiglink panel and the OPRA library
- * keep their curve in one press instead (`SaveToMyCurves`): theirs is already
- * on screen, named.
+ * not a list anybody can pick from. Squiglink's shortcut opens this same
+ * importer; its old draft is retained when the separate tab goes away.
  */
 export default function MyCurveAddDialog({
   editing,
@@ -68,6 +80,10 @@ export default function MyCurveAddDialog({
     headset,
     headsetSource,
     headsetTarget,
+    eqImport,
+    graphicEq,
+    activeDeviceId,
+    isBlockingError,
     refreshState,
     setGlobalError,
   } = useFluidEqContext();
@@ -79,7 +95,14 @@ export default function MyCurveAddDialog({
       new Date().toLocaleDateString(locale, { day: 'numeric', month: 'short' }),
     [locale],
   );
-  const [text, setText] = useState(editing?.text ?? '');
+  const [text, setText] = useState(
+    () =>
+      editing?.text ??
+      readStoredEqText() ??
+      headphone?.eqImport?.text ??
+      eqImport?.text ??
+      '',
+  );
   const [origin, setOrigin] = useState<TCurveOrigin>(
     ORIGIN_OF[editing?.source ?? 'squiglink'],
   );
@@ -90,6 +113,13 @@ export default function MyCurveAddDialog({
   const [ears, setEars] = useState<TImportEars>(editing?.ears ?? 'both');
   const [busy, setBusy] = useState(false);
   const [fileFailed, setFileFailed] = useState(false);
+  const [replaceArmed, setReplaceArmed] = useState(false);
+  const [isAdvancedOpen, setAdvancedOpen] = useState(false);
+  useEffect(() => {
+    if (!editing && origin === 'paste') {
+      persistEqText(text);
+    }
+  }, [editing, origin, text]);
 
   // The OPRA correction playing now: a correction from the library, never a
   // Squiglink curve played as one, which is already text somebody has.
@@ -125,24 +155,12 @@ export default function MyCurveAddDialog({
   const shownText = origin === 'eq' && !editing ? eqNow.text : text;
 
   const parsed = useMemo(() => readCurveText(shownText), [shownText]);
-  const curve = useMemo(
-    () =>
-      parsed
-        ? makeCurve(
-            parsed.preAmp,
-            parsed.eqFormat,
-            parsed.graphicEq,
-            parsed.filters,
-            PREVIEW_BOX,
-          )
-        : undefined,
-    [parsed],
-  );
   const bandCount = parsed
     ? (parsed.graphicEq?.length ?? Object.keys(parsed.filters).length)
     : 0;
   const isFull = !editing && isMyCurvesFull(curves);
   const canSave = Boolean(parsed) && name.trim().length > 0 && !busy && !isFull;
+  useEffect(() => setReplaceArmed(false), [shownText, ears, activeDeviceId]);
 
   const nameFrom = (next: string) => {
     if (!isNameTyped) {
@@ -162,8 +180,8 @@ export default function MyCurveAddDialog({
       setEars('both');
       nameFrom(opra.name ?? t('myCurves.defaultNameOpra', { date: today }));
     } else if (next === 'paste' && origin !== 'paste') {
-      // What the box held for another way in is not a paste.
-      setText('');
+      // A file or a live EQ must not overwrite the independent Squiglink draft.
+      setText(readStoredEqText() ?? '');
       nameFrom(t('myCurves.defaultName', { date: today }));
     }
     setOrigin(next);
@@ -193,8 +211,8 @@ export default function MyCurveAddDialog({
       .catch(() => setFileFailed(true));
   };
 
-  const save = async (andApply: boolean) => {
-    if (!canSave) {
+  const save = async (destination?: 'curve' | 'eq') => {
+    if (!canSave || (destination && isBlockingError)) {
       return;
     }
     setBusy(true);
@@ -210,9 +228,14 @@ export default function MyCurveAddDialog({
       if (!kept) {
         return;
       }
-      if (andApply) {
-        await importEqText(kept.text, kept.name, 'curve', 'both');
-        await refreshState();
+      if (destination) {
+        await importEqText(
+          kept.text,
+          kept.name,
+          destination,
+          destination === 'eq' ? ears : 'both',
+        );
+        await refreshState({ revealBands: destination === 'eq' });
       }
       onClose();
     } catch (error) {
@@ -226,6 +249,7 @@ export default function MyCurveAddDialog({
 
   return (
     <MyCurveDialogShell
+      className="my-curve-add-dialog"
       icon={editing ? 'pencil' : 'plus'}
       title={t(editing ? 'myCurves.editTitle' : 'myCurves.addTitle')}
       description={t(editing ? 'myCurves.editIntro' : 'myCurves.addIntro')}
@@ -245,9 +269,9 @@ export default function MyCurveAddDialog({
             <button
               type="button"
               className="button small subtle"
-              disabled={!canSave}
+              disabled={!canSave || isBlockingError}
               onClick={() => {
-                save(true).catch(() => undefined);
+                save('curve').catch(() => undefined);
               }}
             >
               {t('myCurves.saveApply')}
@@ -258,7 +282,7 @@ export default function MyCurveAddDialog({
             className="button small"
             disabled={!canSave}
             onClick={() => {
-              save(false).catch(() => undefined);
+              save().catch(() => undefined);
             }}
           >
             {t(editing ? 'myCurves.saveChanges' : 'myCurves.save')}
@@ -279,83 +303,143 @@ export default function MyCurveAddDialog({
             onPick={pick}
           />
         )}
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".txt,text/plain"
-          hidden
-          onChange={readFile}
-        />
-        <label className="my-curve-add__label" htmlFor={`${ids}-text`}>
-          {t('myCurves.textLabel')}
-        </label>
-        <textarea
-          id={`${ids}-text`}
-          className="my-curve-add__text"
-          spellCheck={false}
-          placeholder={t('myCurves.textPlaceholder')}
-          value={shownText}
-          readOnly={origin === 'eq' && !editing}
-          onChange={(event) => setText(event.target.value)}
-        />
-        <div className="my-curve-add__status" role="status">
-          <p className={`my-curve-add__read${parsed ? ' is-read' : ''}`}>
-            {fileFailed && t('myCurves.fileFailed')}
-            {!fileFailed &&
-              shownText.trim() !== '' &&
-              (parsed
-                ? t('myCurves.read', {
-                    count: bandCount,
-                    preamp: parsed.preAmp.toFixed(1),
-                  })
-                : t('myCurves.readNothing'))}
-          </p>
-          {unread.length > 0 && (
-            <p className="my-curve-add__unread">
-              {t('myCurves.unread', { lines: unread.join(', ') })}
-            </p>
-          )}
-          {origin === 'eq' && !editing && eqNow.leftOut > 0 && (
-            <p className="my-curve-add__unread">
-              {t('myCurves.eqLeftOut', { count: eqNow.leftOut })}
-            </p>
-          )}
-        </div>
-        <div className="my-curve-add__row">
-          <label className="my-curve-add__field" htmlFor={`${ids}-name`}>
-            <span className="my-curve-add__label">{t('myCurves.name')}</span>
+        <div className="my-curve-add__workspace">
+          <div className="my-curve-add__form">
+            {origin === 'paste' && (
+              <div className="my-curve-add__guide">
+                <div>
+                  <strong>{t('myCurves.squiglinkGuide')}</strong>
+                  <a
+                    href="https://squig.link/"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span>{t('squigImport.open')}</span>
+                    <MenuIcon name="external" />
+                  </a>
+                </div>
+                <p>{t('myCurves.squiglinkSteps')}</p>
+              </div>
+            )}
             <input
-              id={`${ids}-name`}
-              type="text"
-              maxLength={CURVE_NAME_MAX}
-              value={name}
-              onChange={(event) => {
-                setName(event.target.value);
-                setNameTyped(true);
-              }}
+              ref={fileRef}
+              type="file"
+              accept=".txt,text/plain"
+              hidden
+              onChange={readFile}
             />
-          </label>
-          <span className="my-curve-add__field">
-            <span className="my-curve-add__label">{t('myCurves.ears')}</span>
-            <ImportEarsPick value={ears} onChange={setEars} />
-          </span>
+            <label className="my-curve-add__label" htmlFor={`${ids}-text`}>
+              {t('myCurves.textLabel')}
+            </label>
+            <textarea
+              id={`${ids}-text`}
+              className="my-curve-add__text"
+              spellCheck={false}
+              placeholder={t('myCurves.textPlaceholder')}
+              value={shownText}
+              readOnly={origin === 'eq' && !editing}
+              onChange={(event) => setText(event.target.value)}
+            />
+            <div className="my-curve-add__status" role="status">
+              <p className={`my-curve-add__read${parsed ? ' is-read' : ''}`}>
+                {fileFailed && t('myCurves.fileFailed')}
+                {!fileFailed &&
+                  shownText.trim() !== '' &&
+                  (parsed
+                    ? t('myCurves.read', {
+                        count: bandCount,
+                        preamp: parsed.preAmp.toFixed(1),
+                      })
+                    : t('myCurves.readNothing'))}
+              </p>
+              {unread.length > 0 && (
+                <p className="my-curve-add__unread">
+                  {t('myCurves.unread', { lines: unread.join(', ') })}
+                </p>
+              )}
+              {origin === 'eq' && !editing && eqNow.leftOut > 0 && (
+                <p className="my-curve-add__unread">
+                  {t('myCurves.eqLeftOut', { count: eqNow.leftOut })}
+                </p>
+              )}
+            </div>
+            <div className="my-curve-add__row">
+              <label className="my-curve-add__field" htmlFor={`${ids}-name`}>
+                <span className="my-curve-add__label">
+                  {t('myCurves.name')}
+                </span>
+                <input
+                  id={`${ids}-name`}
+                  type="text"
+                  maxLength={CURVE_NAME_MAX}
+                  value={name}
+                  onChange={(event) => {
+                    setName(event.target.value);
+                    setNameTyped(true);
+                  }}
+                />
+              </label>
+            </div>
+            <div className="my-curve-add__provenance">
+              <span>{t('myCurves.sourceLabel')}</span>
+              <span>
+                {t(`myCurves.source.${editing?.source ?? SOURCE_OF[origin]}`)}
+              </span>
+            </div>
+            {(editing || origin === 'eq') && (
+              <div className="my-curve-add__field">
+                <span className="my-curve-add__label">
+                  {t('myCurves.ears')}
+                </span>
+                <ImportEarsPick value={ears} onChange={setEars} />
+              </div>
+            )}
+            {!editing && (
+              <details
+                className="my-curve-add__advanced"
+                open={isAdvancedOpen}
+                onToggle={(event) => setAdvancedOpen(event.currentTarget.open)}
+              >
+                <summary tabIndex={0}>{t('myCurves.editableEq')}</summary>
+                {isAdvancedOpen && (
+                  <>
+                    <p>{t('myCurves.editableEqHint')}</p>
+                    {origin !== 'eq' && (
+                      <ImportEarsPick value={ears} onChange={setEars} />
+                    )}
+                    <button
+                      type="button"
+                      className="button small subtle"
+                      disabled={!canSave || isBlockingError}
+                      onClick={() => {
+                        if (
+                          !replaceArmed &&
+                          hasEqToReplace({
+                            eqImport,
+                            preAmp,
+                            filters,
+                            graphicEq,
+                          })
+                        ) {
+                          setReplaceArmed(true);
+                        } else {
+                          save('eq').catch(() => undefined);
+                        }
+                      }}
+                    >
+                      {t(
+                        replaceArmed
+                          ? 'myCurves.replaceBands'
+                          : 'myCurves.saveReplaceEq',
+                      )}
+                    </button>
+                  </>
+                )}
+              </details>
+            )}
+          </div>
+          <MyCurvePreview text={shownText} name={name} />
         </div>
-        {curve && (
-          <EqCurveChart
-            className="my-curve-add__chart"
-            box={PREVIEW_BOX}
-            bounds={{ min: curve.min, max: curve.max }}
-            ariaLabel={t('myCurves.chartAria', { name })}
-            lines={[
-              {
-                id: 'curve',
-                path: curve.path,
-                className: 'my-curve-add__curve',
-                stroke: 'currentColor',
-              },
-            ]}
-          />
-        )}
       </div>
     </MyCurveDialogShell>
   );

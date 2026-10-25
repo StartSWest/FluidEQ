@@ -543,7 +543,7 @@ const tour: Partial<Dictionary> = {
   'tour.myCurves.point1':
     '{applyCurve} 把曲线作为耳机校正播放，有自己的强度和开关；{applyEq} 则把它的频段放进你的 EQ。',
   'tour.myCurves.point2':
-    '{squiglink} 有了自己的标签页，{save} 一键保存你带来的曲线。',
+    '{myCurves} 中的 {squiglink} 快捷入口会打开导入预览；{save} 会保存曲线供以后使用。',
   'tour.myCurves.point3':
     '{exportList} 把整个列表写进一个文件，用来备份或带到另一台电脑；{importList} 再读回来，并告诉你哪些没有导入。',
   'tour.myCurves.how':

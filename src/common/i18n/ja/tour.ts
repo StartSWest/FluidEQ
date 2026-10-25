@@ -585,7 +585,7 @@ const tour: Partial<Dictionary> = {
   'tour.myCurves.point1':
     '{applyCurve} はカーブをヘッドホン補正として再生し、強さとスイッチも独立しています。{applyEq} はそのバンドを EQ に入れます。',
   'tour.myCurves.point2':
-    '{squiglink} は専用のタブになり、{save} で取り込んだものをワンクリックで保存できます。',
+    '{myCurves} の {squiglink} ショートカットで読み込みプレビューを開き、{save} でカーブを保存できます。',
   'tour.myCurves.point3':
     '{exportList} はリスト全体を 1 つのファイルに書き出し、バックアップや別のパソコンへの移動に使えます。{importList} で読み込むと、取り込まなかったものも教えてくれます。',
   'tour.myCurves.how':

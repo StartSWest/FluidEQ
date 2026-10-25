@@ -531,9 +531,8 @@ const eq: Partial<Dictionary> = {
   'profiles.error.duplicate': 'यह नाम पहले से है, दूसरा चुनें।',
   'profiles.edit': 'प्रोफ़ाइल का नाम बदलें',
   'autoeq.page.eyebrow': 'अपने हेडफ़ोन से मिलाएँ',
-  'autoeq.page.title': 'हेडफ़ोन सुधार',
-  'autoeq.page.intro':
-    'बताइए आप किन हेडफ़ोन पर सुन रहे हैं और FluidEQ उनके लिए प्रकाशित सुधार लगा देगा। यह अपनी अलग परत के रूप में जुड़ता है, अपनी ताक़त और अपने स्विच के साथ, इसलिए आपके EQ बैंड कभी नहीं छुए जाते। यहाँ का हर माप असली रिग पर लिया गया है और किसी ने उसे प्रकाशित किया है — कुछ भी मॉडल के नाम से अंदाज़े में नहीं बनाया गया।',
+  'autoeq.page.title': 'EQ प्रीसेट',
+  'autoeq.page.intro': 'हेडफ़ोन सुधार खोजें या अपना कर्व जोड़ें।',
   'autoeq.model.hint':
     'ब्रांड या मॉडल से खोजें। अगर आपका मॉडल मापा नहीं गया है, तो उसी श्रेणी का नज़दीकी मॉडल आमतौर पर काफ़ी क़रीब ले आता है।',
   'autoeq.target.hint':
@@ -802,6 +801,23 @@ const eq: Partial<Dictionary> = {
   'eq.refused.externalEq':
     'बाहरी EQ में ऐसे चरण हैं जिन्हें FluidEQ सुरक्षित रूप से नहीं अपना सकता। उसकी फ़ाइलें नहीं बदली गईं।',
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.intro': 'आपकी सेव की हुई ध्वनि, जब चाहें तैयार।',
+  'myCurves.importSquiglink': 'Squiglink से आयात करें',
+  'myCurves.preview': 'कर्व का पूर्वावलोकन',
+  'myCurves.previewRange': 'EQ सुधार · 20 Hz–20 kHz',
+  'myCurves.previewEmpty': 'आपके कर्व का पूर्वावलोकन यहाँ दिखेगा',
+  'myCurves.filters': 'फ़िल्टर',
+  'myCurves.preamp': 'प्रीऐम्प',
+  'myCurves.correctionHint':
+    'हेडफ़ोन सुधार के रूप में लागू करें। आपका संपादन योग्य EQ बना रहता है।',
+  'myCurves.squiglinkGuide': 'Squiglink से आ रहे हैं?',
+  'myCurves.squiglinkSteps':
+    'हेडफ़ोन + लक्ष्य चुनें → EQ निर्यात करें → नीचे चिपकाएँ',
+  'myCurves.sourceLabel': 'स्रोत',
+  'myCurves.editableEq': 'इसके बजाय संपादन योग्य EQ पर लागू करें',
+  'myCurves.editableEqHint':
+    'आपके संपादन योग्य बैंड बदलता है। कान चुनें और पुष्टि के लिए फिर दबाएँ।',
+  'myCurves.saveReplaceEq': 'सेव करें और EQ बदलें',
   'myCurves.tab.opra': 'OPRA लाइब्रेरी',
   'myCurves.tab.mine': 'मेरे कर्व',
   'myCurves.tab.squiglink': 'Squiglink',
@@ -814,7 +830,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.export': 'सूची निर्यात करें',
   'myCurves.empty.title': 'अभी तक आपका कोई कर्व नहीं',
   'myCurves.empty.body':
-    'Squiglink एक्सपोर्ट या .txt फ़ाइल से एक जोड़ें, या Squiglink टैब से सेव करें। आपके कर्व इस कंप्यूटर पर रहते हैं, जब तक आप उन्हें निर्यात न करें।',
+    'Squiglink निर्यात, .txt फ़ाइल, मौजूदा EQ या OPRA सुधार जोड़ें। आपके कर्व निर्यात होने तक इस कंप्यूटर पर रहते हैं।',
   'myCurves.noMatch': 'किसी कर्व के नाम में यह नहीं है।',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': 'फ़ाइल',
@@ -837,8 +853,8 @@ const eq: Partial<Dictionary> = {
   'myCurves.cancel': 'रद्द करें',
   'myCurves.addTitle': 'कर्व जोड़ें',
   'myCurves.addIntro':
-    'यह मेरे कर्व में जाता है। जब तक आप इसे लागू न करें, कुछ नहीं बजता।',
-  'myCurves.textLabel': 'ParametricEQ टेक्स्ट',
+    'इस कर्व को बाद के लिए सेव करें, या अभी सेव करके लागू करें।',
+  'myCurves.textLabel': 'EQ टेक्स्ट',
   'myCurves.textPlaceholder':
     'यहाँ ParametricEQ या GraphicEQ एक्सपोर्ट पेस्ट करें',
   'myCurves.read': 'पढ़ा गया: {count} बैंड, प्रीऐम्प {preamp} dB',
@@ -850,7 +866,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.defaultName': 'Squiglink कर्व, {date}',
   'myCurves.chartAria': 'कर्व {name}, 20 Hz से 20 kHz तक',
   'myCurves.save': 'मेरे कर्व में सेव करें',
-  'myCurves.saveApply': 'सेव करें और कर्व के रूप में लागू करें',
+  'myCurves.saveApply': 'सेव करें और लागू करें',
   'myCurves.exportTitle': 'मेरे कर्व निर्यात करें',
   'myCurves.exportIntro':
     'सूची में कर्व: {count}। आपके आउटपुट या खाते के बारे में कुछ भी फ़ाइल में नहीं जाता।',
@@ -884,11 +900,11 @@ const eq: Partial<Dictionary> = {
   'myCurves.importNote':
     'आयात किए गए कर्व अपने आप कभी नहीं बजते; जो अभी बज रहा है वह बजता रहता है।',
   'myCurves.from': 'यह कहाँ से आता है',
-  'myCurves.from.paste': 'पेस्ट करें',
+  'myCurves.from.paste': 'EQ टेक्स्ट चिपकाएँ',
   'myCurves.from.pasteHint': 'Squiglink का ParametricEQ टेक्स्ट, या AutoEQ का',
-  'myCurves.from.file': 'एक .txt फ़ाइल',
+  'myCurves.from.file': 'टेक्स्ट फ़ाइल',
   'myCurves.from.fileHint': 'Equalizer APO या AutoEQ फ़ॉर्मैट',
-  'myCurves.from.eq': 'मेरा EQ अभी',
+  'myCurves.from.eq': 'मौजूदा EQ',
   'myCurves.from.eqHint': 'आपके सेट किए बैंड, जैसे वे बजते हैं',
   'myCurves.from.opra': 'OPRA से',
   'myCurves.from.opraHint':

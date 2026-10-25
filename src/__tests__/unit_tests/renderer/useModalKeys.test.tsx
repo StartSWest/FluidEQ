@@ -75,6 +75,11 @@ function Form() {
       <button ref={firstRef} type="button">
         first
       </button>
+      <input type="file" hidden />
+      <input type="hidden" value="internal" readOnly />
+      <div hidden>
+        <button type="button">hidden action</button>
+      </div>
       <a href="https://fluideq.example/licence">licence</a>
       <select aria-label="size">
         <option>small</option>
@@ -89,7 +94,7 @@ function Form() {
 
 // Left out, the publish dialog's description could not be reached from the
 // keyboard, and About's links were skipped.
-it('stops Tab at links, lists and text areas too', () => {
+it('reaches visible links, lists and text areas past hidden file inputs and controls', () => {
   render(<Form />);
   expect(tab()).toBe(false);
   expect(screen.getByRole('link', { name: 'licence' })).toHaveFocus();

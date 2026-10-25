@@ -2,6 +2,7 @@
 
 import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
+import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
 
 /** Where a new curve is taken from, in the Add dialog. */
 export type TCurveOrigin = 'paste' | 'file' | 'eq' | 'opra';
@@ -10,22 +11,31 @@ const ORIGINS: ReadonlyArray<{
   origin: TCurveOrigin;
   title: TranslationKey;
   hint: TranslationKey;
+  icon: MenuIconName;
 }> = [
   {
     origin: 'paste',
     title: 'myCurves.from.paste',
     hint: 'myCurves.from.pasteHint',
+    icon: 'copyText',
   },
   {
     origin: 'file',
     title: 'myCurves.from.file',
     hint: 'myCurves.from.fileHint',
+    icon: 'download',
   },
-  { origin: 'eq', title: 'myCurves.from.eq', hint: 'myCurves.from.eqHint' },
+  {
+    origin: 'eq',
+    title: 'myCurves.from.eq',
+    hint: 'myCurves.from.eqHint',
+    icon: 'configure',
+  },
   {
     origin: 'opra',
     title: 'myCurves.from.opra',
     hint: 'myCurves.from.opraHint',
+    icon: 'model',
   },
 ];
 
@@ -51,7 +61,7 @@ export default function MyCurveSourcePick({
       role="group"
       aria-label={t('myCurves.from')}
     >
-      {ORIGINS.map(({ origin, title, hint }) => {
+      {ORIGINS.map(({ origin, title, hint, icon }) => {
         const isOff = origin === 'opra' && !hasOpra;
         return (
           <button
@@ -60,10 +70,11 @@ export default function MyCurveSourcePick({
             className={`my-curve-source${value === origin ? ' is-selected' : ''}`}
             aria-pressed={value === origin}
             disabled={isOff}
+            title={t(isOff ? 'myCurves.from.opraNone' : hint)}
             onClick={() => onPick(origin)}
           >
-            <strong>{t(title)}</strong>
-            <span>{t(isOff ? 'myCurves.from.opraNone' : hint)}</span>
+            <MenuIcon name={icon} />
+            <span>{t(title)}</span>
           </button>
         );
       })}

@@ -591,7 +591,7 @@ const tour: Partial<Dictionary> = {
   'tour.myCurves.point1':
     '{applyCurve} включает кривую как коррекцию наушников, со своей силой и переключателем; {applyEq} переносит её полосы в ваш EQ.',
   'tour.myCurves.point2':
-    'У {squiglink} своя вкладка, а {save} сохраняет принесённое одним нажатием.',
+    'Кнопка {squiglink} в {myCurves} открывает предпросмотр импорта; {save} сохраняет кривую на потом.',
   'tour.myCurves.point3':
     '{exportList} записывает весь список в один файл — для резервной копии или другого компьютера; {importList} читает его обратно и говорит, что не вошло.',
   'tour.myCurves.how':

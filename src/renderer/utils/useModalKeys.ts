@@ -30,6 +30,11 @@ const TAB_STOPS = [
 export function moveTabStop(surface: HTMLElement | null, event: KeyboardEvent) {
   const targets = Array.from(
     surface?.querySelectorAll<HTMLElement>(TAB_STOPS) ?? [],
+  ).filter(
+    // The curve importer's hidden file picker kept Tab on the previous stop:
+    // focusing it cannot reach the text field that comes after it.
+    (target) =>
+      !target.closest('[hidden]') && !target.matches('input[type="hidden"]'),
   );
   if (!targets.length) {
     return;

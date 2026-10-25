@@ -641,7 +641,7 @@ const tour = {
   'tour.myCurves.point1':
     '{applyCurve} plays a curve as the headphone correction, with its own strength and switch; {applyEq} puts its bands in your EQ instead.',
   'tour.myCurves.point2':
-    '{squiglink} has a tab of its own, and {save} keeps what you bring in with one press.',
+    'The {squiglink} shortcut in {myCurves} opens the import preview; {save} keeps your curve for later.',
   'tour.myCurves.point3':
     '{exportList} writes the whole list to one file, to back it up or take it to another computer; {importList} reads it back and says what it leaves out.',
   'tour.myCurves.how':

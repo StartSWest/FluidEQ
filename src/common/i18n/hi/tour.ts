@@ -587,7 +587,7 @@ const tour: Partial<Dictionary> = {
   'tour.myCurves.point1':
     '{applyCurve} किसी कर्व को हेडफ़ोन करेक्शन की तरह चलाता है, उसकी अपनी ताकत और स्विच के साथ; {applyEq} उसके बैंड आपके EQ में डाल देता है।',
   'tour.myCurves.point2':
-    '{squiglink} का अपना टैब है, और {save} आपका लाया कर्व एक क्लिक में रख लेता है।',
+    '{myCurves} में {squiglink} शॉर्टकट आयात का पूर्वावलोकन खोलता है; {save} कर्व को बाद के लिए रखता है।',
   'tour.myCurves.point3':
     '{exportList} पूरी सूची एक फ़ाइल में लिखता है, बैकअप के लिए या दूसरे कंप्यूटर पर ले जाने के लिए; {importList} उसे फिर से पढ़ता है और बताता है कि क्या छूट गया।',
   'tour.myCurves.how':
