@@ -657,6 +657,15 @@ export const createMainWindowFactory = ({
     created.once('closed', stopReadyMessages);
     created.on('maximize', sendWindowState);
     created.on('unmaximize', sendWindowState);
+    if (process.platform === 'darwin') {
+      // AppKit can reset its button container after a show or completed
+      // native layout without changing the page's slot. Tell that slot
+      // again after the native transition, not only after a DOM resize.
+      created.on('show', sendWindowState);
+      created.on('restore', sendWindowState);
+      created.on('resized', sendWindowState);
+      created.on('focus', sendWindowState);
+    }
     // The material comes off in full screen and goes back on the way out (see
     // `windowBackdrop.ts`), and the page squares its own edge off and rounds
     // it again with it.

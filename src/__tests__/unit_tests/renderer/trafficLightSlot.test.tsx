@@ -16,6 +16,7 @@ let stripBottom = 86;
 
 const sendMessage = jest.fn();
 let observed: (() => void) | undefined;
+let nativeWindowChanged: (() => void) | undefined;
 
 /** A ResizeObserver whose callback the test calls itself. */
 const fakeResizeObserver = jest.fn((callback: () => void) => {
@@ -43,7 +44,15 @@ const box = (left: number, top: number, height: number) =>
 const loadSlot = (platform: string): ComponentType => {
   window.electron = {
     platform,
-    ipcRenderer: { sendMessage, on: jest.fn(() => () => undefined) },
+    ipcRenderer: {
+      sendMessage,
+      on: jest.fn((_channel: string, listener: () => void) => {
+        nativeWindowChanged = listener;
+        return () => {
+          nativeWindowChanged = undefined;
+        };
+      }),
+    },
   } as unknown as typeof window.electron;
   return TrafficLightSlot;
 };
@@ -57,6 +66,7 @@ const Strip = ({ Slot }: { Slot: ComponentType }) => (
 beforeEach(() => {
   jest.clearAllMocks();
   observed = undefined;
+  nativeWindowChanged = undefined;
   slotBox = { left: 30, top: 17, height: 64 };
   stripBottom = 86;
   window.ResizeObserver =
@@ -135,5 +145,59 @@ describe("the traffic lights' place in a strip", () => {
     const Slot = loadSlot('darwin');
     render(<Strip Slot={Slot} />);
     expect(sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('repositions after native show and completed layout even when the page box has not moved', () => {
+    slotBox = { left: 32, top: 18, height: 64 };
+    const Slot = loadSlot('darwin');
+    render(<Strip Slot={Slot} />);
+    expect(sendMessage).toHaveBeenCalledTimes(1);
+    act(() => nativeWindowChanged?.());
+    expect(sendMessage).toHaveBeenCalledTimes(2);
+    expect(sendMessage).toHaveBeenLastCalledWith(
+      TRAFFIC_LIGHTS_CHANNEL,
+      [32, 50, 86],
+    );
+  });
+
+  it('follows changed native overlay geometry without feeding unchanged answers back forever', () => {
+    const original = Object.getOwnPropertyDescriptor(
+      navigator,
+      'windowControlsOverlay',
+    );
+    let area = box(80, 0, 56);
+    const overlay = Object.assign(new EventTarget(), {
+      getTitlebarAreaRect: () => area,
+    });
+    Object.defineProperty(navigator, 'windowControlsOverlay', {
+      configurable: true,
+      value: overlay,
+    });
+    try {
+      slotBox = { left: 33, top: 18, height: 64 };
+      const Slot = loadSlot('darwin');
+      const view = render(<Strip Slot={Slot} />);
+      expect(sendMessage).toHaveBeenCalledTimes(1);
+      act(() => overlay.dispatchEvent(new Event('geometrychange')));
+      expect(sendMessage).toHaveBeenCalledTimes(2);
+      act(() => overlay.dispatchEvent(new Event('geometrychange')));
+      expect(sendMessage).toHaveBeenCalledTimes(2);
+      area = box(0, 0, 0);
+      act(() => overlay.dispatchEvent(new Event('geometrychange')));
+      expect(sendMessage).toHaveBeenCalledTimes(2);
+      area = box(80, 0, 28);
+      act(() => overlay.dispatchEvent(new Event('geometrychange')));
+      expect(sendMessage).toHaveBeenCalledTimes(3);
+      view.unmount();
+      area = box(80, 0, 56);
+      act(() => overlay.dispatchEvent(new Event('geometrychange')));
+      expect(sendMessage).toHaveBeenCalledTimes(3);
+    } finally {
+      if (original) {
+        Object.defineProperty(navigator, 'windowControlsOverlay', original);
+      } else {
+        Reflect.deleteProperty(navigator, 'windowControlsOverlay');
+      }
+    }
   });
 });

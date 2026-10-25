@@ -94,10 +94,34 @@ const TrafficLightSlot = () => {
       placed = '';
       report();
     };
+    const overlay = (
+      navigator as Navigator & {
+        windowControlsOverlay?: EventTarget & {
+          getTitlebarAreaRect(): DOMRect;
+        };
+      }
+    ).windowControlsOverlay;
+    let nativeGeometry = '';
+    const nativeLayout = () => {
+      const area = overlay?.getTitlebarAreaRect();
+      if (!area) {
+        return;
+      }
+      const geometry = [area.x, area.y, area.width, area.height].join(',');
+      // Our placement also updates the overlay. Ignore an unchanged answer
+      // so native geometry notifications cannot become an IPC feedback loop.
+      if (geometry !== nativeGeometry) {
+        nativeGeometry = geometry;
+        if (area.width > 0 && area.height > 0) {
+          reportAgain();
+        }
+      }
+    };
     report();
     const observer = new ResizeObserver(report);
     observer.observe(slot);
     window.addEventListener('resize', reportAgain);
+    overlay?.addEventListener('geometrychange', nativeLayout);
     const stopListening = window.electron.ipcRenderer.on(
       'window-state-changed',
       reportAgain,
@@ -105,6 +129,7 @@ const TrafficLightSlot = () => {
     return () => {
       observer.disconnect();
       window.removeEventListener('resize', reportAgain);
+      overlay?.removeEventListener('geometrychange', nativeLayout);
       stopListening();
     };
   }, [isMac]);

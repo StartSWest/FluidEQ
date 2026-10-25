@@ -185,6 +185,30 @@ afterEach(() => {
 });
 
 describe('when the window appears', () => {
+  it.each([
+    ['darwin', 4],
+    ['win32', 0],
+  ])(
+    'refreshes button placement after native layout on %s',
+    async (platform, expected) => {
+      const original = process.platform;
+      Object.defineProperty(process, 'platform', { value: platform });
+      const options = deps();
+      const done = createMainWindowFactory(options)();
+      try {
+        const window = windows[windows.length - 1];
+        ['show', 'restore', 'resized', 'focus'].forEach((event) =>
+          window.emit(event),
+        );
+        expect(options.sendWindowState).toHaveBeenCalledTimes(Number(expected));
+      } finally {
+        Object.defineProperty(process, 'platform', { value: original });
+        finishLoad();
+        await done;
+      }
+    },
+  );
+
   it('is not decided by ready-to-show, and no clock is started for it', () => {
     const { window } = open();
     window.emit('ready-to-show');

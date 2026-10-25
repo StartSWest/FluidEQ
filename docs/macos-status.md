@@ -344,3 +344,26 @@ taps. This page records the current implementation and its remaining limits.
   unsupported-default error. Native configuration, volume-control and calibrated
   meter checks passed. This closes the live switching gap on the available
   Mac; Bluetooth, HDMI and physical multi-device coverage remain unverified.
+
+## Mac window-button alignment — 2026-10-24
+
+- The renderer had already centered the traffic lights before the native
+  window finished opening. AppKit could subsequently restore its titlebar
+  layout while the DOM slot stayed unchanged, so the slot's cached position
+  was not sent again. Mac show, restore, completed resize and focus events
+  now request a fresh placement from the visible strip.
+- Native Window Controls Overlay geometry changes also reassert the slot's
+  position. Identical native geometry is ignored, and a hidden/zero-size
+  overlay does not reposition fullscreen controls. Listeners are removed when
+  their strip unmounts. No polling, timer, style or hardcoded new inset was
+  introduced; Windows/Linux retain their existing event behavior.
+- Read-only live diagnostics covered the full app's 40-point button slot
+  inside a 56-point strip, then the user's player with a 33-point slot and
+  34-point native overlay. These confirm each layout's geometry; they do not
+  replace a visual check for a later native button jump.
+- All 32 focused window/desktop/layout suites passed (246 tests), including
+  native transition refreshes, overlay feedback suppression, teardown, both
+  player styles and Windows behavior. App/script types, lint, encoding,
+  platform isolation and production native/main/renderer builds passed.
+  The user was asked to confirm the native buttons remain centered, with
+  Computer Use still off; no automatic app launch or UI control occurred.
