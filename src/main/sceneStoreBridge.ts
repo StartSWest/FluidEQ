@@ -35,12 +35,6 @@ export const sceneStoreBridge = {
       ipcRenderer.removeListener('scene-store-checkout-returned', handler);
     };
   },
-  // The admin's: one of FluidEQ's scenes free for every account, or paid.
-  setOfficialSceneFree: (
-    sceneId: string,
-    free: boolean,
-  ): Promise<TSceneStoreOutcome> =>
-    ipcRenderer.invoke('scene-store-set-free', sceneId, free),
   // The earlier versions this computer kept of an owned scene, and going
   // back to one (`null` is the newest again).
   keptSceneVersions: (

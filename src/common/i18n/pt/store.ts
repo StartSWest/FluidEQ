@@ -86,10 +86,6 @@ const store: Partial<Dictionary> = {
     'Parte da coleção do FluidEQ: sua para sempre assim que você a obtiver.',
   'store.like.ownersOnly': '{count} curtidas. Obtenha a cena para curti-la.',
   'store.scene.free': 'Grátis para todos',
-  'store.admin.freeTitle': 'Grátis para todos',
-  'store.admin.freeOn': 'Toda conta conectada a toca sem gastar um crédito.',
-  'store.admin.freeOff':
-    'Um crédito, como as outras cenas. Ative para dá-la a todos.',
   'store.error.termsOutdated':
     'Os termos mudaram. Atualize o FluidEQ para ler a nova versão antes de comprar créditos.',
 };

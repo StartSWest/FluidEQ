@@ -25,7 +25,6 @@ import {
   buyScene,
   claimStarterCredits,
   fetchSceneStore,
-  setOfficialSceneFree,
   startCreditCheckout,
 } from './sceneStoreApi';
 
@@ -76,11 +75,6 @@ export interface ISceneOwnership {
   refreshNow(): Promise<TSceneStoreOutcome>;
   buy(scene: { authorId: string; sceneId: string }): Promise<TBuyOutcome>;
   claimStarter(): Promise<TStarterOutcome>;
-  /**
-   * The admin makes one of FluidEQ's scenes free, or paid again; the store
-   * is read again so every gate follows at once.
-   */
-  setFree(sceneId: string, free: boolean): Promise<TSceneStoreOutcome>;
   /** A Stripe page to pay for the pack, in this language; the caller opens it. */
   checkout(
     packId: string,
@@ -318,15 +312,6 @@ export const createSceneOwnership = ({
       return refreshed.ok
         ? { ok: true, store: refreshed.store }
         : { ok: false, reason: refreshed.reason };
-    },
-    setFree: async (sceneId, free) => {
-      const userId = accountId();
-      const auth = userId ? await authFor(userId) : undefined;
-      if (!userId || !auth) {
-        return { ok: false, reason: 'signed-out' };
-      }
-      const set = await setOfficialSceneFree(auth, sceneId, free);
-      return set.ok ? refreshNow() : set;
     },
     checkout: async (packId, locale) => {
       const userId = accountId();

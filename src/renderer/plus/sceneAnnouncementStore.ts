@@ -10,8 +10,8 @@ import type { TSceneAnnouncementState } from 'main/ipc/sceneAnnouncements';
 
 /**
  * The announcement of new scenes this account has not been shown yet, as
- * main has it (`ipc/sceneAnnouncements.ts`), and the admin's preview of one
- * being written, which shows the same card without recording anything.
+ * main has it (`ipc/sceneAnnouncements.ts`), and a preview of one not yet
+ * out, which shows the same card without recording anything.
  */
 
 let announcement: TSceneAnnouncementState = null;
@@ -55,7 +55,7 @@ const subscribe = (listener: () => void) => {
   };
 };
 
-/** What the card shows: the admin's preview first, then the real one. */
+/** What the card shows: a preview first, then the real one. */
 export interface IShownAnnouncement {
   announcement: IAnnouncement;
   preview: boolean;
@@ -92,7 +92,7 @@ export const putAnnouncementAway = async (shownNow: IShownAnnouncement) => {
   }
 };
 
-/** The admin's composer showing its draft as members will see it. */
+/** An announcement shown as members will see it, before it goes out. */
 export const previewAnnouncement = (draft: IAnnouncement) => {
   preview = draft;
   notify();

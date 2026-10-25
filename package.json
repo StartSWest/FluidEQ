@@ -48,7 +48,7 @@
     "make-tray-badge-icon": "ts-node .erb/scripts/make-tray-badge-icon.ts",
     "fetch-apo": "ts-node ./.erb/scripts/fetch-equalizer-apo.ts",
     "fetch-apo:source": "ts-node ./.erb/scripts/fetch-equalizer-apo.ts --source",
-    "package": "ts-node ./.erb/scripts/clean.js dist && pnpm fetch-apo && pnpm licenses:notices --check && pnpm build && electron-builder build --publish never",
+    "package": "ts-node ./.erb/scripts/clean.js dist && pnpm fetch-apo && pnpm licenses:notices --check && cross-env FLUIDEQ_NO_ADDONS=1 pnpm build && ts-node ./.erb/scripts/check-release-addons.ts && electron-builder build --publish never",
     "licenses:notices": "ts-node ./.erb/scripts/generate-third-party-licenses.ts",
     "prepare": "husky",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
@@ -341,7 +341,7 @@
     "npm": ">=7.x"
   },
   "electronmon": {
-    "patterns": ["!**/**", "src/main/**", "src/common/**"],
+    "patterns": ["!**/**", "src/main/**", "src/common/**", "addons/*/main/**"],
     "logLevel": "quiet"
   }
 }

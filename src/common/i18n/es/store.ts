@@ -86,11 +86,6 @@ const store: Partial<Dictionary> = {
   'store.like.ownersOnly':
     '{count} me gusta. Consigue la escena para darle me gusta.',
   'store.scene.free': 'Gratis para todos',
-  'store.admin.freeTitle': 'Gratis para todos',
-  'store.admin.freeOn':
-    'Toda cuenta con sesión iniciada la usa sin gastar un crédito.',
-  'store.admin.freeOff':
-    'Un crédito, como las demás escenas. Actívalo para dársela a todos.',
   'store.error.termsOutdated':
     'Las condiciones han cambiado. Actualiza FluidEQ para leer la nueva versión antes de comprar créditos.',
 };

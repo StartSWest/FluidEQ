@@ -90,11 +90,6 @@ const store: Partial<Dictionary> = {
   'store.like.ownersOnly':
     '{count} „Gefällt mir“. Holen Sie die Szene, um sie zu markieren.',
   'store.scene.free': 'Für alle kostenlos',
-  'store.admin.freeTitle': 'Für alle kostenlos',
-  'store.admin.freeOn':
-    'Jedes angemeldete Konto nutzt sie, ohne einen Credit auszugeben.',
-  'store.admin.freeOff':
-    'Ein Credit, wie jede andere Szene. Schalten Sie es ein, um sie allen zu geben.',
   'store.error.termsOutdated':
     'Die Bedingungen haben sich geändert. Aktualisieren Sie FluidEQ, um die neue Fassung zu lesen, bevor Sie Credits kaufen.',
 };

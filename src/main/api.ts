@@ -37,6 +37,7 @@ import {
 } from '../common/taskbarTransport';
 import type { IAudioRestartOutcome } from '../common/audioEngine';
 import { VIDEO_DOWNLOAD_REVEAL } from '../common/videoDownloads';
+import { addonBridge } from './addonBridge';
 import { dspHostBridge } from './dspHost/bridge';
 import karaokeBridge from './karaokeBridge';
 import libraryBridge from './libraryBridge';
@@ -413,5 +414,8 @@ export default {
     ...engineHealthBridge,
     ...lightingBridge,
     ...wallpaperBridge,
+    // An add-on kept in a developer's own checkout, never shipped
+    // (`main/addons.ts`): `addon:` channels and nothing else.
+    ...addonBridge,
   },
 };

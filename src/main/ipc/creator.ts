@@ -10,18 +10,15 @@ import {
   type IAccountConfig,
 } from '../../common/accountConfig';
 import type {
-  ICreatorPayoutPreview,
   TCreatorFailure,
   TCreatorOutcome,
 } from '../../common/creatorPayouts';
 import { isCheckoutLocale } from '../../common/sceneStore';
 import type { IAccountSession } from '../account/session';
 import { onAppLink } from '../appLinks';
-import type { TAdminOutcome } from '../plus/adminInsightsApi';
 import {
   fetchCreatorStatus,
   openCreatorDashboard,
-  previewCreatorPayouts,
   refreshCreatorAccount,
   startCreatorSignUp,
 } from '../plus/creatorApi';
@@ -42,7 +39,6 @@ const CHANNELS = [
   'creator-sign-up',
   'creator-dashboard',
   'creator-refresh',
-  'creator-payouts-preview',
 ] as const;
 
 export type TCreatorOpened =
@@ -174,28 +170,6 @@ export const registerCreatorIpc = ({
 
   ipcMain.handle('creator-refresh', (): Promise<TCreatorOutcome> =>
     refreshed(),
-  );
-
-  // The admin's payout page. Whether the caller is the admin is the server's
-  // to say on every call (run-creator-payouts asks is_admin); nothing here
-  // decides it.
-  const asAdmin = async <T>(
-    call: (auth: IGalleryAuth) => Promise<TAdminOutcome<T>>,
-  ): Promise<TAdminOutcome<T>> => {
-    const asking = await authNow();
-    if (!asking.ok) {
-      return {
-        ok: false,
-        reason: asking.reason === 'unavailable' ? 'not-deployed' : 'signed-out',
-      };
-    }
-    return call(asking.auth);
-  };
-
-  ipcMain.handle(
-    'creator-payouts-preview',
-    (): Promise<TAdminOutcome<ICreatorPayoutPreview>> =>
-      asAdmin(previewCreatorPayouts),
   );
 
   return {

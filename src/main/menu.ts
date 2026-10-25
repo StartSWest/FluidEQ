@@ -24,6 +24,7 @@ import {
   MenuItemConstructorOptions,
 } from 'electron';
 import { PRODUCT_NAME, REPOSITORY_URL } from '../common/branding';
+import { inspectDetached, toggleDetachedDevTools } from './devTools';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -179,7 +180,7 @@ export default class MenuBuilder {
         {
           label: 'Inspect element',
           click: () => {
-            this.mainWindow.webContents.inspectElement(x, y);
+            inspectDetached(this.mainWindow.webContents, x, y);
           },
         },
       ]).popup({ window: this.mainWindow });
@@ -255,7 +256,7 @@ export default class MenuBuilder {
           label: 'Toggle Developer Tools',
           accelerator: 'Alt+Command+I',
           click: () => {
-            this.mainWindow.webContents.toggleDevTools();
+            toggleDetachedDevTools(this.mainWindow.webContents);
           },
         },
       ],
@@ -348,7 +349,7 @@ export default class MenuBuilder {
                 label: 'Toggle &Developer Tools',
                 accelerator: 'Alt+Ctrl+I',
                 click: () => {
-                  this.mainWindow.webContents.toggleDevTools();
+                  toggleDetachedDevTools(this.mainWindow.webContents);
                 },
               },
             ]

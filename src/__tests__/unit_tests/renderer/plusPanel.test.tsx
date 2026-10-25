@@ -10,8 +10,14 @@ import userEvent from '@testing-library/user-event';
 import { subscribeAccountPanelRequests } from '../../../renderer/account/accountPanel';
 import { resetAccountStore } from '../../../renderer/account/accountStore';
 import { resetEntitlementStore } from '../../../renderer/account/entitlementStore';
+import {
+  registerRendererAddon,
+  resetRendererAddons,
+  type IAddonRailProps,
+} from '../../../renderer/addons';
 import CommunityPanel from '../../../renderer/community/CommunityPanel';
 import {
+  openPlusPlace,
   resetPlusNavigation,
   usePlusNavigation,
 } from '../../../renderer/plus/plusNavigation';
@@ -58,6 +64,7 @@ beforeEach(() => {
   resetEntitlementStore();
   resetProfileStore();
   resetPlusNavigation();
+  resetRendererAddons();
   bridge.getAccountState.mockResolvedValue(signedIn);
   bridge.getEntitlementStatus.mockResolvedValue({ state: 'active' });
   bridge.plusProfile.mockResolvedValue({ ok: true, value: null });
@@ -130,10 +137,41 @@ describe('the Plus tab', () => {
     await renderPanel();
     expect(screen.getByText('Ivan C')).toBeInTheDocument();
     expect(screen.getByText('@ivan_c')).toBeInTheDocument();
-    expect(screen.getByText('profile.role.admin')).toBeInTheDocument();
+    // The app names no role of its own; an add-on may (`AccountBadge`).
+    expect(screen.queryByText('profile.role.admin')).toBeNull();
     expect(
       screen.queryByRole('button', { name: 'profile.name.choose' }),
     ).toBeNull();
+  });
+
+  /**
+   * An add-on (`renderer/addons.ts`) brings its places to the rail, its
+   * place when one is open and its badge at the foot; the first test, with
+   * none, is the control.
+   */
+  it('shows an add-on’s places, its place and its badge through the slots', async () => {
+    registerRendererAddon({
+      name: 'test-addon',
+      places: ['addon:test'],
+      RailPlaces: ({ openPlace }: IAddonRailProps) => (
+        <button type="button" onClick={() => openPlace('addon:test')}>
+          test place
+        </button>
+      ),
+      Place: () => <p>inside the test place</p>,
+      AccountBadge: () => <span>test badge</span>,
+    });
+    await renderPanel();
+    expect(screen.getByText('test badge')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'test place' }));
+    expect(screen.getByText('inside the test place')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('addon:test');
+  });
+
+  it('opens the gallery for a remembered add-on place no add-on offers', async () => {
+    openPlusPlace('addon:gone');
+    await renderPanel();
+    expect(screen.getByText('visualizers view')).toBeInTheDocument();
   });
 
   /** The member's own card at the foot of the rail is the way to the account. */

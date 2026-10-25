@@ -570,9 +570,6 @@ export const createMainWindowFactory = ({
         if (restored.isMaximized && !player) {
           created.once('show', () => created.maximize());
         }
-        if (isDebug) {
-          created.webContents.openDevTools();
-        }
         return;
       }
 
@@ -591,11 +588,11 @@ export const createMainWindowFactory = ({
         }
         created.show();
       }
-
-      if (isDebug) {
-        // When in debug mode, show dev tools after the app loads.
-        created.webContents.openDevTools();
-      }
+      // No developer tools at launch, in development either. They opened
+      // docked here on every start, and docked they set the page's width
+      // themselves rather than the window (`devTools.ts`): a restart into the
+      // amp drew it for a window four times its width (Ivan, 2026-10-25).
+      // The menu and Inspect element open them in a window of their own.
     };
 
     /**
@@ -610,8 +607,7 @@ export const createMainWindowFactory = ({
      *  - the page finishing its load — `await firstLoad` below, which is
      *    `did-finish-load`. A bundle that threw before it could draw anything
      *    still finishes loading, so this is what shows a crashed bundle's
-     *    window, with whatever it managed to put up and, in development, its
-     *    devtools;
+     *    window, with whatever it managed to put up;
      *  - the page failing: its load refused (`did-fail-load`), its process
      *    gone (`render-process-gone`), its preload thrown (`preload-error`),
      *    or the window no longer answering (`unresponsive`). Recovery

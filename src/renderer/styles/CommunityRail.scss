@@ -310,9 +310,9 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The admin's place, below a rule of its own under the members' places: it is
-// not one of them. Its tile wears the admin's colour, the one on the admin's
-// name tag, and carries the count of reported scenes waiting.
+// An add-on's places (`renderer/addons.ts`), below a rule of their own under
+// the app's: they are not among them. A count on a place's tile says what
+// waits there.
 .community__rail-rule {
   // Solid and flat, and quiet: the menus' own inner line (`$menu-rule`), in
   // from the rail's edges and round at its ends (Ivan, 2026-09-27: "the top
@@ -325,26 +325,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
   @container eq-panel (max-width: 600px) {
     display: none;
-  }
-}
-
-.community__channel--admin .community__channel-mark {
-  position: relative;
-  color: color-mix(in srgb, $complementary 65%, $text-faint);
-}
-
-.community__channel--admin.is-active {
-  background: color-mix(in srgb, $complementary 13%, transparent);
-
-  &::before {
-    background: $complementary;
-    box-shadow: 0 0 8px color-mix(in srgb, $complementary 60%, transparent);
-  }
-
-  .community__channel-mark {
-    color: color-mix(in srgb, $complementary 80%, $white);
-    background: color-mix(in srgb, $complementary 22%, transparent);
-    box-shadow: 0 0 14px color-mix(in srgb, $complementary 30%, transparent);
   }
 }
 
@@ -367,9 +347,9 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1;
 }
 
-// The admin's place while the server has not yet said whether this account
-// is the admin: the ring the tab shows while the account is checked, late on
-// purpose for the same reason.
+// A place while it waits to know what to show — an add-on's, while the server
+// says whether this account may see it: the ring the tab shows while the
+// account is checked, late on purpose for the same reason.
 .community__place-checking {
   display: grid;
   flex: 1 1 auto;

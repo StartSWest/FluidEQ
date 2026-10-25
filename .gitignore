@@ -80,3 +80,7 @@ native/dsp-core/include/fluideq/parameters.h
 # Subagent-driven development scratch: ledgers, briefs and review packages.
 # The git history is the record; this is the controller working memory.
 .superpowers/
+
+# Add-ons: code kept in a developer's own checkout, loaded by pnpm dev only
+# and never shipped (.erb/scripts/addons.ts). Each is a repository of its own.
+/addons/

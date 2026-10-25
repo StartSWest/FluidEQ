@@ -5,15 +5,13 @@ import type {
   TGallerySort,
   TPlusCategory,
 } from 'common/plusGallery';
-import type { IReportedScene } from 'common/plusModeration';
-import type { IReviewItem } from 'common/plusReview';
-import { CREATOR_PAYOUTS_OPEN } from 'common/creatorPayouts';
+import { isAddonPlace, type TAddonPlace } from '../addons';
 import { readStored, removeStored, writeStored } from '../utils/graphStorage';
 
 /**
  * Where the member is inside the Plus tab: which place in its rail — the
- * Visualizers gallery, the Studio, the lighting, or the admin's own place — in the gallery which page, and in the admin's place
- * which of its pages.
+ * Visualizers gallery, the Studio, the lighting, or a place an add-on adds
+ * (`renderer/addons.ts`) — and in the gallery which page.
  *
  * Kept outside the components so it outlives them. The tab unmounts whenever
  * another one is chosen in the title bar, and coming back should find the
@@ -26,53 +24,15 @@ import { readStored, removeStored, writeStored } from '../utils/graphStorage';
  * sent away from it every time the window reloaded.
  */
 
-export const PLUS_PLACES = [
-  'visualizers',
-  'studio',
-  'lighting',
-  'admin',
-] as const;
-export type TPlusPlace = (typeof PLUS_PLACES)[number];
-
-/**
- * The admin's pages: the scenes waiting to be approved, the scenes members
- * reported, every account, the Plus given away, the scenes members come back
- * to, the announcements of new ones, and how full the server is. Only the
- * admin is offered the place;
- * the server refuses anybody else on every call regardless.
- *
- * Approving first, and where the place opens: it is the one page with work
- * that holds members up — a scene nobody has approved is a scene its maker
- * is waiting on (server migration 0037).
- */
-export const ADMIN_SECTIONS = [
-  'review',
-  'reported',
-  'accounts',
-  'gifts',
-  'favourites',
-  'announcements',
-  'payouts',
-  'server',
-] as const;
-export type TAdminSection = (typeof ADMIN_SECTIONS)[number];
-
-/**
- * The sections the admin is offered. Payouts only while creators can be
- * paid (`CREATOR_PAYOUTS_OPEN`, premium 0070): closed, the page had nothing
- * to pay and nobody to pay it to (Ivan, 2026-10-24: "payouts we dont need
- * that for now ... so hide it").
- */
-export const ADMIN_SECTIONS_SHOWN: readonly TAdminSection[] =
-  ADMIN_SECTIONS.filter(
-    (section) => section !== 'payouts' || CREATOR_PAYOUTS_OPEN,
-  );
+export const PLUS_PLACES = ['visualizers', 'studio', 'lighting'] as const;
+export type TPlusPlace = (typeof PLUS_PLACES)[number] | TAddonPlace;
 
 const PLACE_KEY = 'fluideq.plusPlace';
 
 const isPlusPlace = (value: unknown): value is TPlusPlace =>
-  typeof value === 'string' &&
-  (PLUS_PLACES as readonly string[]).includes(value);
+  isAddonPlace(value) ||
+  (typeof value === 'string' &&
+    (PLUS_PLACES as readonly string[]).includes(value));
 
 /** The place last opened, or the gallery when none was or it is not a place. */
 const storedPlace = (): TPlusPlace => {
@@ -96,8 +56,13 @@ export type TGalleryPage =
        * before and after it without going back to that list.
        */
       from?: Omit<IGalleryQuery, 'offset'>;
-      /** Opened from the admin's queue: what it was reported for. */
-      report?: IReportedScene;
+      /**
+       * What an add-on opened the page with, for its own part of the page
+       * (`ScenePageExtras`); the app never reads it.
+       */
+      context?: unknown;
+      /** Where Back goes instead of the gallery, for a page an add-on opened. */
+      onBack?: () => void;
     }
   | { kind: 'maker'; maker: IMakerRef }
   | { kind: 'mine' };
@@ -125,23 +90,12 @@ interface IPlusNavigation {
   place: TPlusPlace;
   page: TGalleryPage;
   filters: IBrowseFilters;
-  admin: TAdminSection;
-  /** The scene waiting for review that the admin opened to watch. */
-  reviewing?: IReviewItem;
-  /**
-   * Counts every opening of an admin page, the one already showing included:
-   * a list is read afresh on each, so "Review now" on a notice, or the tab
-   * pressed again, never shows the list as it was before the news.
-   */
-  adminVisit: number;
 }
 
 const INITIAL: IPlusNavigation = {
   place: 'visualizers',
   page: { kind: 'browse' },
   filters: { sort: 'liked', text: '' },
-  admin: 'review',
-  adminVisit: 0,
 };
 
 let navigation: IPlusNavigation = { ...INITIAL, place: storedPlace() };
@@ -169,6 +123,9 @@ export const usePlusNavigation = (): IPlusNavigation =>
     () => INITIAL,
   );
 
+/** The place open now, for code that is not a component. */
+export const plusPlace = (): TPlusPlace => navigation.place;
+
 export const openPlusPlace = (place: TPlusPlace) => {
   if (place !== navigation.place) {
     publish({ ...navigation, place });
@@ -178,32 +135,6 @@ export const openPlusPlace = (place: TPlusPlace) => {
 /** Shows a gallery page in place of the one showing. */
 export const openGalleryPage = (page: TGalleryPage) =>
   publish({ ...navigation, place: 'visualizers', page });
-
-/** Shows one of the admin's pages, at its list, read afresh. */
-export const openAdminSection = (admin: TAdminSection) =>
-  publish({
-    ...navigation,
-    place: 'admin',
-    admin,
-    reviewing: undefined,
-    adminVisit: navigation.adminVisit + 1,
-  });
-
-/** Opens one waiting scene to watch and answer, in the admin's place. */
-export const openReviewItem = (reviewing: IReviewItem) =>
-  publish({ ...navigation, place: 'admin', admin: 'review', reviewing });
-
-/**
- * Whether this waiting scene is the one on screen. An answer's reply arrives
- * after the admin may have gone back and opened another: it only moves the
- * page it was sent from.
- */
-export const isReviewing = (item: IReviewItem) =>
-  navigation.place === 'admin' &&
-  navigation.admin === 'review' &&
-  navigation.reviewing?.lookId === item.lookId &&
-  navigation.reviewing.version === item.version &&
-  navigation.reviewing.sha256 === item.sha256;
 
 /**
  * How far down each page was scrolled, by page, so Back lands where the
@@ -230,22 +161,15 @@ export const setBrowseFilters = (filters: IBrowseFilters) => {
  * over to get anywhere (Ivan: "tiene que ir al root siempre de una sola
  * vez"). The gallery reopens where it was scrolled to.
  *
- * A scene the admin opened from the reported queue goes back to that queue:
- * the admin came from there, not from the gallery.
+ * A scene page an add-on opened goes back where the add-on says: the person
+ * came from there, not from the gallery.
  */
 export const goBackInGallery = () => {
   const { page } = navigation;
-  publish({
-    ...navigation,
-    page: { kind: 'browse' },
-    ...(page.kind === 'scene' && page.report
-      ? {
-          place: 'admin',
-          admin: 'reported',
-          adminVisit: navigation.adminVisit + 1,
-        }
-      : {}),
-  });
+  publish({ ...navigation, page: { kind: 'browse' } });
+  if (page.kind === 'scene') {
+    page.onBack?.();
+  }
 };
 
 /** For tests: a clean module between runs. */

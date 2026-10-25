@@ -40,7 +40,7 @@ const refusalOf = async (response: Response): Promise<unknown> => {
   return undefined;
 };
 
-const storeFailureOf = (status: number): TStoreFailure => {
+export const storeFailureOf = (status: number): TStoreFailure => {
   if (status === 401) {
     return 'signed-out';
   }
@@ -190,28 +190,4 @@ export const startCreditCheckout = async (
   } catch {
     return { ok: false, reason: 'server' };
   }
-};
-
-/**
- * The admin makes one of FluidEQ's scenes free for every account, or paid
- * again (premium 0061). Whether the caller is the admin is the server's to
- * say: anyone else is refused there.
- */
-export const setOfficialSceneFree = async (
-  auth: IGalleryAuth,
-  sceneId: string,
-  free: boolean,
-): Promise<{ ok: true } | { ok: false; reason: TStoreFailure }> => {
-  let response: Response;
-  try {
-    response = await rpc(auth, 'set_official_scene_free', {
-      p_scene: sceneId,
-      p_free: free,
-    });
-  } catch {
-    return { ok: false, reason: 'offline' };
-  }
-  return response.ok
-    ? { ok: true }
-    : { ok: false, reason: storeFailureOf(response.status) };
 };

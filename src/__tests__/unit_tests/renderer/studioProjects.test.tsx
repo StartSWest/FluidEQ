@@ -12,7 +12,10 @@ import {
   resetAccountStore,
   subscribeAccount,
 } from '../../../renderer/account/accountStore';
-import { refreshModeration } from '../../../renderer/plus/moderationStore';
+import {
+  registerRendererAddon,
+  resetRendererAddons,
+} from '../../../renderer/addons';
 import StudioProjects from '../../../renderer/studio/StudioProjects';
 import StudioPublishDialog from '../../../renderer/studio/StudioPublishDialog';
 import type { IPublishDraft } from '../../../renderer/studio/useStudioPublish';
@@ -48,13 +51,12 @@ const state: IStudioState = {
   ],
 };
 
-const ADMIN = '33333333-3333-4333-8333-333333333333';
+const PUBLISHER = '33333333-3333-4333-8333-333333333333';
 
 const bridge = {
   selectStudioProject: jest.fn(),
   createStudioStarter: jest.fn(),
   linkStudioFolder: jest.fn(),
-  moderationStatus: jest.fn(),
   getAccountState: jest.fn(),
   onAccountState: jest.fn(() => () => {}),
 };
@@ -63,10 +65,6 @@ beforeEach(() => {
   jest.clearAllMocks();
   bridge.selectStudioProject.mockResolvedValue(state);
   bridge.linkStudioFolder.mockResolvedValue(state);
-  bridge.moderationStatus.mockResolvedValue({
-    ok: true,
-    status: { admin: false, open: 0, review: 0 },
-  });
   bridge.getAccountState.mockResolvedValue({ status: 'signed-out' });
   Object.defineProperty(window, 'electron', {
     configurable: true,
@@ -74,11 +72,10 @@ beforeEach(() => {
   });
 });
 
-// The admin's answer is kept per account; signed out, every test starts as
-// a member again.
-afterEach(async () => {
+// Signed out and with no add-on, every test starts as a member again.
+afterEach(() => {
   resetAccountStore();
-  await act(() => refreshModeration(undefined));
+  resetRendererAddons();
 });
 
 describe('the Studio’s projects', () => {
@@ -276,7 +273,7 @@ describe('the publish dialog', () => {
         onCancel={jest.fn()}
       />,
     );
-    // A member's scene goes to the admin first, and the dialog says so
+    // A member's scene waits for review first, and the dialog says so
     // before the press, not after it.
     expect(screen.getByText('studio.publish.pointReview')).toBeInTheDocument();
     const go = screen.getByRole('button', { name: 'studio.publish.goReview' });
@@ -289,14 +286,29 @@ describe('the publish dialog', () => {
     expect(onPublish).toHaveBeenCalledWith('space', undefined, undefined);
   });
 
-  it('publishes straight to the gallery for the admin, who reviews everyone else', async () => {
+  // An add-on (`renderer/addons.ts`) can say this account's publications go
+  // straight out; the test above, with none, is its control.
+  it('publishes straight to the gallery when an add-on says the account needs no review', async () => {
     bridge.getAccountState.mockResolvedValue({
       status: 'signed-in',
-      identity: { id: ADMIN },
+      identity: { id: PUBLISHER },
     });
-    bridge.moderationStatus.mockResolvedValue({
-      ok: true,
-      status: { admin: true, open: 0, review: 0 },
+    let straight = false;
+    const listeners = new Set<() => void>();
+    const refresh = jest.fn(() => {
+      straight = true;
+      listeners.forEach((listener) => listener());
+    });
+    registerRendererAddon({
+      name: 'test-addon',
+      refresh,
+      capabilities: {
+        subscribe: (listener) => {
+          listeners.add(listener);
+          return () => listeners.delete(listener);
+        },
+        get: () => ({ publishesWithoutReview: straight }),
+      },
     });
     const onPublish = jest.fn();
     render(
@@ -314,9 +326,9 @@ describe('the publish dialog', () => {
       />,
     );
     // Asked on opening, for the account signed in: the answer the dialog
-    // opened with may have been a failure read as "not the admin".
+    // opened with may have been a failure.
     const go = await screen.findByRole('button', { name: 'studio.publish.go' });
-    expect(bridge.moderationStatus).toHaveBeenCalled();
+    expect(refresh).toHaveBeenCalled();
     expect(
       screen.queryByText('studio.publish.pointReview'),
     ).not.toBeInTheDocument();
