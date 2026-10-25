@@ -9,11 +9,14 @@ import {
   SCENE_PACK_SCHEMA,
   type IScenePack,
 } from '../../common/scenePacks';
-import { STARTER_SOURCE, starterManifest } from '../memberScenes/starterScene';
+import {
+  LANTERN_NIGHT_SOURCE,
+  lanternNightManifest,
+} from './lanternNightScene';
 
 /**
- * The scene the Dynamic lighting page plays without Plus: the Studio's
- * starter, the hanami night every new project begins with. It ships in the
+ * The scene the Dynamic lighting page plays without Plus: the hanami night
+ * that was the Studio's starter until 2026-10-21. It ships in the
  * app, so the desk is lit on a machine that is offline or signed out, and it
  * was built to move with every part of the music — which is what the lamps
  * are there to show.
@@ -40,14 +43,14 @@ const DEMO_NAMES = {
 let built: IScenePack | null | undefined;
 
 /**
- * The starter as a pack, built once: the manifest "New project" would write,
- * with the demo's own name, and the source beside it. Null if the starter
- * ever stops being a valid pack — a test holds that it does not.
+ * The scene as a pack, built once: its manifest with the demo's own name, and
+ * the source beside it. Null if it ever stops being a valid pack — a test
+ * holds that it does not.
  */
 export const lightingDemoScene = (): IScenePack | null => {
   if (built === undefined) {
     const manifest: unknown = JSON.parse(
-      starterManifest(DEMO_NAMES.en, DEMO_ID),
+      lanternNightManifest(DEMO_NAMES.en, DEMO_ID),
     );
     built =
       typeof manifest === 'object' && manifest !== null
@@ -55,7 +58,7 @@ export const lightingDemoScene = (): IScenePack | null => {
             ...manifest,
             schema: SCENE_PACK_SCHEMA,
             names: DEMO_NAMES,
-            source: STARTER_SOURCE,
+            source: LANTERN_NIGHT_SOURCE,
           })
         : null;
   }

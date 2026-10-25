@@ -25,6 +25,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * badge, does a missing asset degrade instead of blanking the icon.
  */
 import type { BrowserWindow } from 'electron';
+import setUpPlatform from '../../utils/setUpPlatform';
+
+setUpPlatform('win32');
 
 interface IMenuItem {
   label?: string;

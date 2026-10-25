@@ -18,13 +18,23 @@ import {
 } from '../../../common/plusTerms';
 import { LOCALES, loadLocale, translate } from '../../../common/i18n';
 import { PLUS_MOVE_CREDITS } from '../../../common/sceneStore';
+import { CREATOR_PAYOUTS_OPEN } from '../../../common/creatorPayouts';
 import AccountDialog from '../../../renderer/account/AccountDialog';
 import { termsValues } from '../../../renderer/account/PlusTermsDocument';
 import {
   TERMS_HIGHLIGHTS,
-  TERMS_SECTIONS,
-  TERMS_SENT_ROWS,
+  termsLayout,
 } from '../../../renderer/account/plusTermsContent';
+
+/** The document this build shows, and both its forms. */
+const SHOWN = termsLayout(CREATOR_PAYOUTS_OPEN);
+const OPEN = termsLayout(true);
+const CLOSED = termsLayout(false);
+const keysOf = (layout: ReturnType<typeof termsLayout>) => [
+  layout.intro,
+  ...layout.sections.flatMap((section) => [section.title, ...section.lines]),
+  ...layout.sentRows.flatMap((row) => [row.what, row.when, row.who]),
+];
 
 let mockAccountState: IAccountState = {
   status: 'signed-in',
@@ -162,10 +172,10 @@ describe('the Plus terms', () => {
     ).toBeInTheDocument();
 
     const sections = container.querySelectorAll('.plus-terms__section');
-    expect(sections).toHaveLength(TERMS_SECTIONS.length);
+    expect(sections).toHaveLength(SHOWN.sections.length);
     const rows = container.querySelectorAll('.plus-terms__sent-row');
-    expect(rows).toHaveLength(TERMS_SENT_ROWS.length);
-    TERMS_SENT_ROWS.forEach((row, index) => {
+    expect(rows).toHaveLength(SHOWN.sentRows.length);
+    SHOWN.sentRows.forEach((row, index) => {
       const item = within(rows[index] as HTMLElement);
       expect(item.getByText(new RegExp(`^${row.what}`))).toBeInTheDocument();
       expect(item.getByText(new RegExp(`^${row.when}`))).toBeInTheDocument();
@@ -190,11 +200,12 @@ describe('the Plus terms', () => {
    * two can never promise different things.
    */
   it('quote the refund and the creator terms from the code that keeps them, in every language', () => {
-    // What payouts send has its row, and the creator terms their section.
-    expect(TERMS_SENT_ROWS.map((row) => row.what)).toContain(
+    // Once creators can be paid, what payouts send has its row, and the
+    // creator terms their section.
+    expect(OPEN.sentRows.map((row) => row.what)).toContain(
       'terms.sent.payouts.what',
     );
-    const lines = TERMS_SECTIONS.flatMap((section) => section.lines);
+    const lines = OPEN.sections.flatMap((section) => section.lines);
     expect(lines).toEqual(
       expect.arrayContaining([
         'terms.credits.p7',
@@ -229,6 +240,80 @@ describe('the Plus terms', () => {
   });
 
   /**
+   * Nothing about how anybody uses FluidEQ is sent (Ivan, 2026-10-24; premium
+   * 0068 and 0071): no row for listening time, time on screen or the engine,
+   * and the one sentence that says so is true because of it. A sent row
+   * that came back would contradict "no tracking or analytics" on the same
+   * page.
+   */
+  it('list nothing sent about how FluidEQ is used, and say there is no tracking', () => {
+    const rows = [...OPEN.sentRows, ...CLOSED.sentRows];
+    expect(
+      rows.filter((row) => /listening|scene-time|engine/.test(row.id)),
+    ).toEqual([]);
+    const told = rows.map((row) => translate('en', row.what));
+    expect(
+      told.filter((what) =>
+        /on your screen|audio engine|how long music/i.test(what),
+      ),
+    ).toEqual([]);
+    // The positive control: the sentence is there to be contradicted.
+    expect(translate('en', 'terms.protect.p4')).toMatch(
+      /no tracking or analytics/,
+    );
+  });
+
+  /**
+   * FluidEQ cannot pay creators yet (Ivan, 2026-10-24), so the terms this
+   * build shows must not promise it: no payouts section, no row of what
+   * payouts send, and every sentence that mentioned payouts in its twin
+   * without them — each twin a real rewrite in every language, so opening
+   * payouts later brings the full text back.
+   */
+  it('say nothing about paying creators while payouts are closed, and keep it ready for when they open', () => {
+    expect(CREATOR_PAYOUTS_OPEN).toBe(false);
+    const closed = keysOf(CLOSED);
+    expect(closed.filter((key) => /payout|creator\./i.test(key))).toEqual([]);
+    expect(
+      CLOSED.sections.find((section) => section.id === 'payouts'),
+    ).toBeUndefined();
+    expect(CLOSED.sentRows.find((row) => row.id === 'payouts')).toBeUndefined();
+    const values = termsValues();
+    const mentions = closed.filter((key) =>
+      /payout|be paid|getting paid|money/i.test(translate('en', key, values)),
+    );
+    expect(mentions).toEqual([]);
+    // The positive control: the open form says all of it, and each twin
+    // differs from the sentence it stands in for, in every language.
+    const opened = keysOf(OPEN);
+    expect(opened).toEqual(
+      expect.arrayContaining([
+        'terms.introPayouts',
+        'terms.payouts.p1',
+        'terms.keep.p8',
+        'terms.sent.payouts.what',
+      ]),
+    );
+    expect(
+      opened.filter((key) =>
+        /payout|be paid|getting paid|money/i.test(translate('en', key, values)),
+      ).length,
+    ).toBeGreaterThan(0);
+    const twins = opened.filter((key) => key.endsWith('Payouts'));
+    expect(twins).toHaveLength(5);
+    const same = LOCALES.flatMap(({ code }) =>
+      twins
+        .filter(
+          (twin) =>
+            translate(code, twin) ===
+            translate(code, twin.replace(/Payouts$/, '') as typeof twin),
+        )
+        .map((twin) => `${code} ${twin}`),
+    );
+    expect(same).toEqual([]);
+  });
+
+  /**
    * A placeholder the document does not fill reaches the reader as
    * "{computers}" in the middle of a promise. Every language, every line the
    * document says, filled from the same values the page uses.
@@ -236,8 +321,8 @@ describe('the Plus terms', () => {
   it('fill every number they quote, in every language', () => {
     const said = [
       ...TERMS_HIGHLIGHTS.flatMap((item) => [item.title, item.body]),
-      ...TERMS_SECTIONS.flatMap((section) => section.lines),
-      ...TERMS_SENT_ROWS.flatMap((row) => [row.what, row.when, row.who]),
+      ...keysOf(OPEN),
+      ...keysOf(CLOSED),
     ];
     const values = termsValues();
     const unfilled = LOCALES.flatMap(({ code }) =>
@@ -257,7 +342,7 @@ describe('the Plus terms', () => {
    * the other sends the reader looking for a switch that is not there.
    */
   it('name the Studio’s AI link by its card’s own title, in every language', () => {
-    expect(TERMS_SECTIONS.flatMap((section) => section.lines)).toContain(
+    expect(SHOWN.sections.flatMap((section) => section.lines)).toContain(
       'terms.elsewhere.p9',
     );
     const namesTheCard = (
@@ -281,7 +366,7 @@ describe('the Plus terms', () => {
    * the other points them at something that is not there.
    */
   it('name the Help video and its button as the guide shows them, in every language', () => {
-    expect(TERMS_SECTIONS.flatMap((section) => section.lines)).toContain(
+    expect(SHOWN.sections.flatMap((section) => section.lines)).toContain(
       'terms.elsewhere.p10',
     );
     const namesTheVideo = (

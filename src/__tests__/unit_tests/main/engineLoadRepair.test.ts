@@ -17,6 +17,9 @@ import {
 } from 'main/engineLoadRepair';
 import type { IAudioEngineStatus } from 'common/audioEngine';
 import { createAutomaticSetup } from 'main/automaticSetup';
+import setUpPlatform from '../../utils/setUpPlatform';
+
+setUpPlatform('win32');
 
 const status = (
   fluid: Partial<IAudioEngineStatus['fluid']> = {},

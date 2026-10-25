@@ -86,6 +86,8 @@ const KEPT = [
   // What they agreed to, saw, won or gave.
   'fluideq.disclaimerAccepted',
   'fluideq.featureTourDismissed',
+  // Per-project tutorial progress, like the tour the listener has dismissed.
+  'fluideq.studio.starterGuide',
   'fluideq.seenSceneVersions',
   'fluideq.hasContributed',
   'fluideq-euphoria-reached',

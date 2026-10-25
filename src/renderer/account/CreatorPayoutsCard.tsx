@@ -80,7 +80,9 @@ export default function CreatorPayoutsCard({
     loadCreator(accountId).catch(() => undefined);
   }, [accountId]);
 
-  if (!status || asked !== accountId) {
+  // A server whose switch is closed (premium 0070) refuses every sign-up, so
+  // the card would only offer a button that cannot work.
+  if (!status || asked !== accountId || !status.terms.payoutsOpen) {
     return null;
   }
 

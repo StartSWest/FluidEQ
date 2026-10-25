@@ -12,7 +12,7 @@ const announce = {
   'announce.untitled': '新场景',
   'announce.tab': '公告',
   'announce.pageHint':
-    '每个人只会看到一次公告，以大尺寸显示在他们打开的任何内容之上。免费体验将在两天内结束的会员，还会看到一行关于保留 Plus 的提示。',
+    '每个人只会看到一次公告，以大尺寸显示在他们打开的任何内容之上。免费体验将在两天内结束的会员，还会看到一行关于保留会员的提示。',
   'announce.field.title': '标题',
   'announce.field.titlePlaceholder': '例如：夜间驾驶',
   'announce.field.body': '内容简介',
@@ -25,8 +25,8 @@ const announce = {
   'announce.field.audience': '谁能看到',
   'announce.audience.everyone': '所有已登录的人',
   'announce.audience.everyoneLine':
-    'Plus 会员、免费体验用户和免费账户。免费账户会被引导到“可视化”去试用这些场景。',
-  'announce.audience.members': 'Plus 会员和免费体验用户',
+    '会员、免费体验用户和免费账户。免费账户会被引导到“可视化”去试用这些场景。',
+  'announce.audience.members': '会员和免费体验用户',
   'announce.audience.membersLine': '所有现在就能播放这些场景的人。',
   'announce.audience.trialEnding': '仅限 2 天内结束的免费体验',
   'announce.audience.trialEndingLine': '即将决定是否付费的会员。',

@@ -29,8 +29,9 @@ export const sameFolder = (
   b: string,
   platform: NodeJS.Platform = process.platform,
 ) => {
+  const files = platform === 'win32' ? path.win32 : path;
   const real = (folder: string) => {
-    const resolved = path.resolve(folder);
+    const resolved = files.resolve(folder);
     try {
       return fs.realpathSync.native(resolved);
     } catch {

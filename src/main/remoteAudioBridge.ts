@@ -18,13 +18,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ipcRenderer, IpcRendererEvent } from 'electron';
-import type {
-  ILanHostDetails,
-  ILanRemoteAudioChunk,
-  ILanRemoteAudioNetworkStats,
-  ILanRemoteAudioSignal,
-  ILanSavedJoin,
-  ILinkSwitches,
+import {
+  GROUP_MEDIA_COMMAND,
+  GROUP_MEDIA_WATCH,
+} from '../common/groupMediaTransport';
+import {
+  isRemoteTransportCommand,
+  type TRemoteTransportCommand,
+  type ILanHostDetails,
+  type ILanRemoteAudioChunk,
+  type ILanRemoteAudioNetworkStats,
+  type ILanRemoteAudioSignal,
+  type ILanSavedJoin,
+  type ILinkSwitches,
 } from '../common/remoteAudio';
 
 /**
@@ -91,6 +97,33 @@ const setRemoteAudioBothWays = (bothWays: boolean) =>
 /** The network is back: look for every computer still away, now. */
 const retryRemoteAudioLan = () =>
   ipcRenderer.invoke('remote-audio-lan-retry') as Promise<void>;
+
+const onRemoteAudioLanResume = (listener: () => void) => {
+  const wrapped = () => listener();
+  ipcRenderer.on('remote-audio-lan-resume', wrapped);
+  return () => ipcRenderer.removeListener('remote-audio-lan-resume', wrapped);
+};
+
+const watchGroupMediaKeys = (enabled: boolean): Promise<void> =>
+  ipcRenderer.invoke(GROUP_MEDIA_WATCH, enabled);
+
+/** Platform media sessions can feed this same command shape without an
+ * injected key; the receiving renderer routes it once across its links. */
+const onGroupMediaCommand = (
+  listener: (command: TRemoteTransportCommand) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, value: unknown) => {
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      isRemoteTransportCommand(value as Record<string, unknown>)
+    ) {
+      listener(value as TRemoteTransportCommand);
+    }
+  };
+  ipcRenderer.on(GROUP_MEDIA_COMMAND, wrapped);
+  return () => ipcRenderer.removeListener(GROUP_MEDIA_COMMAND, wrapped);
+};
 
 /** The codes pasted here, whenever that list changes. */
 const onRemoteAudioLanJoins = (listener: (joins: ILanSavedJoin[]) => void) => {
@@ -200,6 +233,9 @@ const remoteAudioBridge = {
   joinRemoteAudioLan,
   unlinkRemoteAudioLan,
   retryRemoteAudioLan,
+  onRemoteAudioLanResume,
+  watchGroupMediaKeys,
+  onGroupMediaCommand,
   setRemoteAudioBothWays,
   onRemoteAudioLanJoins,
   sendRemoteAudioLanSignal,

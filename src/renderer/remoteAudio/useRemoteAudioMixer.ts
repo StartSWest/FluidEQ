@@ -24,12 +24,14 @@ const useRemoteAudioMixer = ({
   onBlocked,
   onMeter,
   onFailure,
+  recoveryAttempt = 0,
 }: {
   wanted: boolean;
   outputSinkIdRef: { current: string };
   onBlocked(blocked: boolean): void;
   onMeter: TRemoteAudioMeterListener;
   onFailure(): void;
+  recoveryAttempt?: number;
 }) => {
   const mixerRef = useRef<IPcmMixer | undefined>(undefined);
   const callbacksRef = useRef({ onBlocked, onMeter, onFailure });
@@ -76,7 +78,7 @@ const useRemoteAudioMixer = ({
       }
       opened?.close().catch(() => undefined);
     };
-  }, [outputSinkIdRef, wanted]);
+  }, [outputSinkIdRef, wanted, recoveryAttempt]);
 
   const removePeer = useCallback((peerId: string) => {
     mixerRef.current?.removePeer(peerId);

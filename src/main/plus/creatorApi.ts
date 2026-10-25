@@ -55,6 +55,10 @@ const failureOf = async (response: Response): Promise<TCreatorFailure> => {
   if (word === 'banned') {
     return 'banned';
   }
+  // Signing up closed until FluidEQ can pay creators (premium 0070).
+  if (word === 'payouts_closed') {
+    return 'unavailable';
+  }
   // A server before 0064 has neither the function nor the table.
   return response.status === 404 && word !== 'no_account'
     ? 'unavailable'

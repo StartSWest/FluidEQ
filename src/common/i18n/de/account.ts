@@ -12,7 +12,7 @@ const account = {
   'account.close': 'Schließen',
 
   'account.optional':
-    'Die Anmeldung ist freiwillig. Ohne Konto funktioniert FluidEQ genau wie immer: Alles läuft auf diesem Rechner, und nichts wird erfasst. Mit Konto wird gezählt, wie lange Sie hören, für die Statistik von FluidEQ, sofern Sie es nicht ausschalten. Ein Konto gibt es nur für die Teile, die wirklich eines brauchen.',
+    'Die Anmeldung ist freiwillig. FluidEQ funktioniert ohne Konto genau wie immer – alles läuft auf diesem Rechner, und nichts wird erfasst. Ein Konto gibt es nur für die Teile, die wirklich eines brauchen.',
 
   'account.signIn': 'Anmelden',
   'account.signUp': 'Konto erstellen',
@@ -87,7 +87,7 @@ const account = {
   'account.error.alreadyRegistered':
     'Mit dieser Adresse gibt es bereits ein Konto. Melden Sie sich stattdessen an.',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks':
     'Szenen, die Ihnen für immer gehören, ein Credit pro Szene.',

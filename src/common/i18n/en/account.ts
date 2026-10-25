@@ -20,7 +20,7 @@ const account = {
   'account.close': 'Close',
 
   'account.optional':
-    'Signing in is optional. Without an account FluidEQ works exactly as it always has: everything runs on this machine, and nothing is tracked. With one, how long you listen is counted for FluidEQ’s statistics unless you switch it off. An account is only there for the parts that genuinely need one.',
+    'Signing in is optional. FluidEQ works exactly as it always has without an account — everything runs on this machine, and nothing is tracked. An account is only there for the parts that genuinely need one.',
 
   'account.signIn': 'Sign in',
   'account.signUp': 'Create account',
@@ -97,7 +97,7 @@ const account = {
   'account.error.alreadyRegistered':
     'There is already an account with that address. Sign in instead.',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': 'Scenes that are yours for good, one credit each.',
   'account.perk.visualizers':

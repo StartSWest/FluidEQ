@@ -9,6 +9,10 @@ it under the terms of the GNU General Public License version 3 or later.
 import fs from 'fs';
 import path from 'path';
 import { safeStorage } from 'electron';
+import {
+  isAudioGroupLink,
+  type IAudioGroupLink,
+} from '../common/remoteAudioGroup';
 
 const FILE_NAME = 'remote-audio-lan.json';
 const CODE_PREFIX = 'FLUIDEQ-LAN-2.';
@@ -31,6 +35,7 @@ export interface ILanState {
   identity?: ILanIdentity;
   joins: string[];
   revoked: string[];
+  groupLinks?: IAudioGroupLink[];
 }
 
 interface IStoredCredentials {
@@ -44,6 +49,8 @@ export interface IRemoteAudioCredentialStore {
   /** Adds a pasted code, replacing one for the same computer. */
   addJoin(code: string, sameComputer: (saved: string) => boolean): void;
   removeJoin(matches: (saved: string) => boolean): void;
+  saveGroupLink(link: IAudioGroupLink): void;
+  removeGroupLink(computerId: string): void;
   revoke(computerId: string): void;
   unrevoke(computerId: string): void;
   clear(): void;
@@ -99,6 +106,13 @@ export const readStoredState = (
       ...(isIdentity(value.identity) ? { identity: value.identity } : {}),
       joins: joins.slice(0, MAX_JOINS),
       revoked: revoked.slice(0, MAX_REVOKED),
+      ...(Array.isArray(value.groupLinks)
+        ? {
+            groupLinks: value.groupLinks
+              .filter(isAudioGroupLink)
+              .slice(0, MAX_JOINS),
+          }
+        : {}),
     };
   }
   if (version === 1) {
@@ -144,26 +158,53 @@ export const createRemoteAudioCredentialStore = (
 
   const read = (): ILanState => {
     const empty: ILanState = { joins: [], revoked: [] };
+    let contents: string;
     try {
-      if (!secureEncryptionAvailable()) {
+      contents = fs.readFileSync(filePath, 'utf8');
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === 'ENOENT'
+      ) {
         return empty;
       }
-      const stored = JSON.parse(
-        fs.readFileSync(filePath, 'utf8'),
-      ) as Partial<IStoredCredentials>;
+      throw new Error(
+        'Saved Share Audio pairings could not be read; they have been preserved.',
+      );
+    }
+    // A temporarily locked Keychain/keyring, unreadable file or newer schema
+    // is not a new installation. Returning an empty state here let the next
+    // write replace the existing identity and every paired computer.
+    if (!secureEncryptionAvailable()) {
+      throw new Error(
+        'Secure credential storage is unavailable; saved Share Audio pairings have been preserved.',
+      );
+    }
+    try {
+      const stored = JSON.parse(contents) as Partial<IStoredCredentials>;
       if (
         typeof stored.version !== 'number' ||
         ![1, 2, 3, 4].includes(stored.version) ||
         typeof stored.encrypted !== 'string'
       ) {
-        return empty;
+        throw new Error('Unsupported saved pairing format.');
       }
       const clear = safeStorage.decryptString(
         Buffer.from(stored.encrypted, 'base64'),
       );
-      return readStoredState(stored.version, JSON.parse(clear)) ?? empty;
+      const state = readStoredState(stored.version, JSON.parse(clear));
+      if (!state) {
+        throw new Error('Invalid saved pairing state.');
+      }
+      return state;
     } catch {
-      return empty;
+      // Do not include decryption/JSON errors: those can contain plaintext
+      // pairing material. The original ciphertext remains untouched.
+      throw new Error(
+        'Saved Share Audio pairings could not be unlocked; they have been preserved.',
+      );
     }
   };
 
@@ -198,6 +239,23 @@ export const createRemoteAudioCredentialStore = (
 
   return {
     read,
+    saveGroupLink: (link) =>
+      update((state) => ({
+        ...state,
+        groupLinks: [
+          ...(state.groupLinks ?? []).filter(
+            (saved) => saved.computerId !== link.computerId,
+          ),
+          link,
+        ].slice(-MAX_JOINS),
+      })),
+    removeGroupLink: (computerId) =>
+      update((state) => ({
+        ...state,
+        groupLinks: (state.groupLinks ?? []).filter(
+          (saved) => saved.computerId !== computerId,
+        ),
+      })),
     writeIdentity: (identity) => update((state) => ({ ...state, identity })),
     addJoin: (code, sameComputer) =>
       update((state) => ({

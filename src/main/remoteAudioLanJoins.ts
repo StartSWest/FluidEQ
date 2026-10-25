@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import crypto from 'crypto';
+import log from 'electron-log';
 import type WebSocket from 'ws';
 import type { ILanRemoteAudioSignal } from '../common/remoteAudio';
 import { decodeDiscoveryAnnouncement } from './remoteAudioDiscovery';
@@ -57,6 +58,7 @@ interface IJoin {
    * listener reached on two addresses at once accepts only one of them. */
   peerId: string;
   attempts: Map<string, () => void>;
+  authenticating: Set<string>;
   socket?: WebSocket;
   lastAddress?: string;
 }
@@ -70,8 +72,6 @@ export interface ILanJoinsDeps {
   askWhoIsThere(secret: string): void;
   /** A connection from that computer to this one is open. */
   inboundLive(computerId: string): boolean;
-  /** The other computer said this code is not to be used again. */
-  forgotten(computerId: string): void;
 }
 
 export const createLanJoins = (deps: ILanJoinsDeps) => {
@@ -80,6 +80,7 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
   const cancelAttempts = (join: IJoin) => {
     join.attempts.forEach((cancel) => cancel());
     join.attempts.clear();
+    join.authenticating.clear();
   };
 
   const leave = (computerId: string) => {
@@ -127,11 +128,20 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
       deviceName,
       computerId,
       fresh: join.fresh,
+      ticket: join.pairing.computerId !== undefined,
+      onChallenge: () => {
+        if (
+          joins.get(join.computerId) === join &&
+          join.state === 'looking' &&
+          join.peerId === peerId
+        ) {
+          join.authenticating.add(at);
+        }
+      },
     });
     join.attempts.set(at, attempt.cancel);
     attempt.joined
       .then(({ socket, sessionKey }) => {
-        join.attempts.delete(at);
         if (
           joins.get(join.computerId) !== join ||
           join.state !== 'looking' ||
@@ -140,14 +150,20 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
           closeWebSocketSafely(socket);
           return undefined;
         }
+        join.attempts.delete(at);
+        join.authenticating.delete(at);
         cancelAttempts(join);
         join.state = 'connected';
         join.socket = socket;
         join.lastAddress = address;
         join.port = port;
         join.fresh = false;
-        socket.once('close', () => {
+        socket.once('close', (code) => {
           if (joins.get(join.computerId) === join && join.socket === socket) {
+            log.info('Share Audio connection closed; keeping pairing', {
+              computerId: join.computerId,
+              code,
+            });
             join.socket = undefined;
             look(join);
           }
@@ -161,25 +177,43 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
             computerId: join.computerId,
             deviceName: join.pairing.deviceName,
             joined: true,
+            ...(join.pairing.introduced ? { introduced: true } : {}),
           },
         });
         return undefined;
       })
       .catch((error: unknown) => {
-        join.attempts.delete(at);
-        if (joins.get(join.computerId) !== join || join.state !== 'looking') {
+        if (
+          joins.get(join.computerId) !== join ||
+          join.state !== 'looking' ||
+          join.peerId !== peerId
+        ) {
           return;
         }
+        // A cancelled round may finish after a retry has opened the same
+        // address again. It must not remove or put that newer round to sleep.
+        join.attempts.delete(at);
+        join.authenticating.delete(at);
         if (!(error instanceof LanJoinClosed)) {
           // Nobody there, or not this computer: the next announcement says
           // where it is.
           return;
         }
         if (error.code === CLOSE_FORGET) {
-          leave(join.computerId);
-          deps.forgotten(join.computerId);
-        } else if (
-          error.code === CLOSE_ALREADY_LINKED &&
+          log.info(
+            'Share Audio peer refused a connection; saved pairing retained',
+            {
+              computerId: join.computerId,
+              code: error.code,
+            },
+          );
+        }
+        // Old builds used 4001 for duplicate connections as well as unlink.
+        // A bare WebSocket close is not an authenticated unlink instruction.
+        // Keep the pairing; only an encrypted stop/forget removes it in LAN.
+        if (
+          (error.code === CLOSE_FORGET ||
+            error.code === CLOSE_ALREADY_LINKED) &&
           deps.inboundLive(join.computerId)
         ) {
           sleep(join);
@@ -209,10 +243,24 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
   return {
     /** Keeps a link to the computer whose code this is; its id. */
     join(pairing: ILanPairingPayload, fresh: boolean): string {
-      const computerId = computerIdOf(pairing.secret);
+      const computerId = pairing.computerId ?? computerIdOf(pairing.secret);
       const existing = joins.get(computerId);
       if (existing) {
         existing.fresh = existing.fresh || fresh;
+        if (
+          existing.pairing.computerId &&
+          existing.pairing.secret !== pairing.secret
+        ) {
+          // A concurrent introduction chose another scoped credential. Keep
+          // the authenticated session alive while both computers learn it;
+          // closing here could cut off delivery of the winning credential.
+          existing.pairing = pairing;
+          existing.pairingKey = keyFromSecret(pairing.secret);
+          if (existing.state === 'looking') {
+            look(existing);
+          }
+          return computerId;
+        }
         if (existing.state === 'looking') {
           probe(existing);
         }
@@ -227,6 +275,7 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
         state: 'looking',
         peerId: '',
         attempts: new Map(),
+        authenticating: new Set(),
       };
       joins.set(computerId, join);
       if (deps.inboundLive(computerId)) {
@@ -255,7 +304,14 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
       if (!join) {
         return 'accept';
       }
-      if (join.state === 'connected' && deps.self().computerId < computerId) {
+      // Rank a pending outbound connection only once its peer has answered
+      // with an authenticated challenge. A stale IP/port that never answers
+      // must not prevent a reachable peer reconnecting in the other direction.
+      // Ranking two live handshakes prevents each PC cancelling the other.
+      if (
+        (join.state === 'connected' || join.authenticating.size > 0) &&
+        deps.self().computerId < computerId
+      ) {
         return 'refuse';
       }
       sleep(join);
@@ -290,7 +346,7 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
     retry() {
       joins.forEach((join) => {
         if (join.state === 'looking') {
-          probe(join);
+          look(join);
         }
       });
     },

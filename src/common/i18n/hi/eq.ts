@@ -164,7 +164,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.brightness': 'चमक',
   'graph.sceneTint.rainbow': 'इंद्रधनुष मोड',
   'graph.sceneTint.rainbowHint':
-    'बैंड, शीर्षक और जले हुए नियंत्रण एक रंग के बजाय एक पैलेट में — Plus विज़ुअलाइज़र चुना हो तो उसी के रंगों में।',
+    'बैंड, शीर्षक और जले हुए नियंत्रण एक रंग के बजाय एक पैलेट में — कोई सीन चुना हो तो उसी के रंगों में।',
   'graph.sceneTint.sparks': 'पॉइंटर की चिंगारियाँ',
   'graph.sceneTint.sparksHint':
     'विज़ुअलाइज़र माउस से जो उछालता है: तस्वीर पर से गुज़रते हुए एक लकीर, और जहाँ आप क्लिक करें वहाँ एक फुहार — चिंगारियाँ, पंखुड़ियाँ, बर्फ़, जो भी सीन में हो।',
@@ -194,7 +194,7 @@ const eq: Partial<Dictionary> = {
   'graph.member.likeOffline': 'पसंद करने के लिए इंटरनेट कनेक्शन चाहिए',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.scene.badge': 'Plus',
+  'graph.scene.badge': 'सीन',
   'graph.scene.report': '{name} की रिपोर्ट करें',
   'graph.version.new': 'नया',
   'graph.version.caption': 'v{version} · {note}',
@@ -263,14 +263,13 @@ const eq: Partial<Dictionary> = {
   'graph.scene.gpu.auto': 'Windows तय करे',
   'graph.scene.gpu.high': 'उच्च प्रदर्शन',
   'graph.scene.gpu.restart': 'पुनः आरंभ के बाद',
-  'graph.scene.locked':
-    'FluidEQ Plus का हिस्सा। इसे चुनकर देखें कि इसे कैसे खोलें।',
+  'graph.scene.locked': 'अभी आपका नहीं है। इसे चुनकर देखें कि इसे कैसे पाएँ।',
   'graph.style.next': 'अगली शैली',
   'graph.style.previous': 'पिछली शैली',
   'graph.picker.label': 'शैलियाँ और विज़ुअलाइज़र',
   'graph.picker.search': 'शैलियाँ और विज़ुअलाइज़र खोजें',
   'graph.picker.styles': 'शैलियाँ',
-  'graph.picker.plus': 'Plus विज़ुअलाइज़र',
+  'graph.picker.plus': 'विज़ुअलाइज़र',
   'graph.picker.all': 'सभी',
   'graph.picker.yours': 'आपके',
   'graph.picker.filterStyles': 'शैलियाँ फ़िल्टर करें',

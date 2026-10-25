@@ -11,7 +11,7 @@ const account = {
   'account.close': '閉じる',
 
   'account.optional':
-    'サインインは任意です。アカウントがなければ FluidEQ はこれまでどおり動作し、すべてこのマシン上で動いて、何も追跡されません。アカウントがあると、オフにしない限り、聴いた時間が FluidEQ の統計のために数えられます。アカウントは本当に必要な機能のためだけにあります。',
+    'サインインは任意です。アカウントがなくても FluidEQ はこれまでどおり動作します。すべてこのマシン上で動き、何も追跡されません。アカウントは本当に必要な機能のためだけにあります。',
 
   'account.signIn': 'サインイン',
   'account.signUp': 'アカウントを作成',
@@ -85,7 +85,7 @@ const account = {
   'account.error.alreadyRegistered':
     'このアドレスのアカウントはすでにあります。代わりにサインインしてください。',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': '永久にあなたのものになるシーン。1シーン1クレジット。',
   'account.perk.visualizers':

@@ -478,7 +478,7 @@ describe('App', () => {
     setGraphContents('curves');
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
-    await pressTab('Plus', 'community');
+    await pressTab('Visualizers', 'community');
     expect(container.querySelector('.graph-wrapper')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Play gallery scene' }));
     expect(screen.getByRole('tab', { name: 'EQ' })).toHaveAttribute(

@@ -268,13 +268,13 @@ export const formatPackPrice = (priceCents: number, locale: string): string =>
  * alike, so the two cannot disagree about a scene.
  *
  * The admin plays every scene (Ivan, 2026-10-21: "always free for the
- * admin"). Anybody else: their own scene once it is published (2026-10-18:
- * "quien la hace la ve", "necesitan publicar para poder ver") — a draft
- * plays on the Studio's stage and nowhere else, Plus or not, and until the
- * server has said which are published a maker's own scenes play as they did
- * before, with Plus; a FluidEQ scene the admin made free; and any other
- * scene bought, or any while Plus lasts. A member's scene is never free for
- * anyone but its maker.
+ * admin"). Anybody else: their own scene, published or not — a maker tests a
+ * scene on the graph until it is done, and publishes it to earn from it
+ * (Ivan, 2026-10-21: "no need to publish to run on grahp", "they will publish
+ * to earn money when the scene is fully done and tested in the grahp"; this
+ * replaces 2026-10-18's "necesitan publicar para poder ver"); a FluidEQ scene
+ * the admin made free; and any other scene bought, or any while Plus lasts.
+ * A member's scene is never free for anyone but its maker.
  */
 export const mayPlayLook = ({
   lookId,
@@ -298,7 +298,7 @@ export const mayPlayLook = ({
   }
   const member = parseMemberLookId(lookId);
   if (member && member.authorId === accountId.toLowerCase()) {
-    return store?.published ? store.published.includes(member.packId) : plus;
+    return true;
   }
   return plus || (store?.owned.includes(lookId) ?? false);
 };

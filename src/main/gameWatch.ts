@@ -75,7 +75,9 @@ export const parseGameWatchLine = (
   return {
     kind,
     program: {
-      name: name.trim() || path.basename(file).replace(/\.exe$/i, ''),
+      // This protocol comes from the Windows helper, including when a saved
+      // report is parsed on Linux. Its separators are the sender's.
+      name: name.trim() || path.win32.basename(file).replace(/\.exe$/i, ''),
       path: file,
       source: 'running',
       pid: Number(pid),

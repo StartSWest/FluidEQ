@@ -23,7 +23,7 @@ const tour: Partial<Dictionary> = {
   'tour.player.subtitle':
     'Un seul interrupteur transforme la fenêtre en lecteur',
   'tour.player.lead':
-    'Un interrupteur dans la barre de titre replie tout FluidEQ en un lecteur. C’est l’ampli classique, avec son horloge LED, ses voyants et l’égaliseur complet ; en mode {backdrop}, sur un visualiseur Plus, il devient de verre. Le même interrupteur vous ramène à la page que vous aviez quittée.',
+    'Un interrupteur dans la barre de titre replie tout FluidEQ en un lecteur. C’est l’ampli classique, avec son horloge LED, ses voyants et l’égaliseur complet ; en mode {backdrop}, sur une scène, il devient de verre. Le même interrupteur vous ramène à la page que vous aviez quittée.',
   'tour.player.point1':
     'Tout l’égaliseur est du voyage : préréglages, dispositions de bandes, Mode EQ, Égalisation auto, Graves, Médiums et Aigus.',
   'tour.player.point2':
@@ -42,7 +42,7 @@ const tour: Partial<Dictionary> = {
   'tour.look.subtitle':
     'Un seul curseur de thème, et un visualiseur derrière tout',
   'tour.look.lead':
-    'Les panneaux reposent sur un seul plan ouvert, aux couleurs de la nouvelle icône, et un seul curseur, {brightness}, fait passer toute la fenêtre du presque noir à un bleu océan clair. Avec un visualiseur Plus sur le graphique, la fenêtre peut prendre ses couleurs, ou le laisser jouer derrière tout.',
+    'Les panneaux reposent sur un seul plan ouvert, aux couleurs de la nouvelle icône, et un seul curseur, {brightness}, fait passer toute la fenêtre du presque noir à un bleu océan clair. Avec une scène sur le graphique, la fenêtre peut prendre ses couleurs, ou la laisser jouer derrière tout.',
   'tour.look.point1':
     '{brightness} se trouve dans le menu derrière l’icône d’impulsion, et à côté de {transparency} dans {windowColours}.',
   'tour.look.point2':
@@ -50,7 +50,7 @@ const tour: Partial<Dictionary> = {
   'tour.look.point3':
     'Les boîtes de dialogue et les menus partagent une même matière, et le {rainbow} parcourt les couleurs de l’icône, ou celles d’un visualiseur.',
   'tour.look.how':
-    'Déplacez {brightness} dans le menu des actions derrière l’icône d’impulsion en haut à droite. Avec un visualiseur Plus sur le graphique, ouvrez {windowColours} depuis la barre du graphique et choisissez {backdrop}.',
+    'Déplacez {brightness} dans le menu des actions derrière l’icône d’impulsion en haut à droite. Avec une scène sur le graphique, ouvrez {windowColours} depuis la barre du graphique et choisissez {backdrop}.',
   'tour.look.open': 'Ouvrir l’Égaliseur',
   'tour.look.imageAlt':
     'FluidEQ dans ses propres couleurs sur la page Égaliseur, l’Analyseur dessinant un morceau sous les courbes, et le menu derrière l’icône d’impulsion ouvert au-dessus de son coin, avec la Luminosité à moitié et le Mode arc-en-ciel activé.',
@@ -59,7 +59,7 @@ const tour: Partial<Dictionary> = {
   'tour.gpu.subtitle':
     'Quarante styles au rythme de votre écran, et des mondes 3D',
   'tour.gpu.lead':
-    'Les quarante styles du graphique s’affichent désormais avec le moteur des scènes Plus : sur votre carte graphique, à la fréquence de rafraîchissement de votre écran, si bien que barres, particules et crêtes glissent là où elles sautaient. Et un visualiseur Plus peut désormais être un vrai monde 3D.',
+    'Les quarante styles du graphique s’affichent désormais avec le moteur des scènes : sur votre carte graphique, à la fréquence de rafraîchissement de votre écran, si bien que barres, particules et crêtes glissent là où elles sautaient. Et une scène peut désormais être un vrai monde 3D.',
   'tour.gpu.point1':
     'Dix-huit nouveaux styles dans {scenes}, dont {synthwave}, {horizon}, {towers} et {ledwall} ; un style sans couleurs propres prend celles de la fenêtre.',
   'tour.gpu.point2':
@@ -70,13 +70,13 @@ const tour: Partial<Dictionary> = {
     'Cliquez sur le nom du style sur le graphique et choisissez-en un dans {scenes}.',
   'tour.gpu.open': 'Ouvrir l’Égaliseur',
   'tour.gpu.imageAlt':
-    'Un visualiseur Plus qui est une ville 3D de nuit, et quatre nouveaux styles photographiés sur le graphique — {synthwave}, {horizon}, {towers} et {ledwall} — avec le sélecteur de styles entouré sur le premier.',
+    'Une scène qui est une ville 3D de nuit, et quatre nouveaux styles photographiés sur le graphique — {synthwave}, {horizon}, {towers} et {ledwall} — avec le sélecteur de styles entouré sur le premier.',
   'tour.gpu.world': 'Monde 3D',
   'tour.sparks.kicker': 'ÉTINCELLES DU POINTEUR',
   'tour.sparks.title': 'Des visualiseurs qui répondent à votre souris',
   'tour.sparks.subtitle': 'Étincelles, pétales ou neige au bout du pointeur',
   'tour.sparks.lead':
-    'Passez la souris sur un visualiseur Plus et il lance ce dont il est fait — étincelles, pétales, neige, braises — en traînée derrière le pointeur, et éclate là où vous cliquez. En modes {ambient} et {backdrop}, ses oiseaux, pétales et lumières flottent aussi sur toute la fenêtre.',
+    'Passez la souris sur une scène et elle lance ce dont elle est faite — étincelles, pétales, neige, braises — en traînée derrière le pointeur, et éclate là où vous cliquez. En modes {ambient} et {backdrop}, ses oiseaux, pétales et lumières flottent aussi sur toute la fenêtre.',
   'tour.sparks.point1':
     'Chaque visualiseur lance les siens : de la neige pour une scène d’hiver, des braises pour un feu de camp, des pétales pour un jardin.',
   'tour.sparks.point2':
@@ -84,7 +84,7 @@ const tour: Partial<Dictionary> = {
   'tour.sparks.point3':
     'Un seul interrupteur pour tous les visualiseurs : {sparks}, dans {windowColours} sous {rainbow}.',
   'tour.sparks.how':
-    'Avec un visualiseur Plus sur le graphique, passez la souris dessus et cliquez. {sparks} se trouve dans {windowColours}, sous {rainbow}.',
+    'Avec une scène sur le graphique, passez la souris dessus et cliquez. {sparks} se trouve dans {windowColours}, sous {rainbow}.',
   'tour.sparks.open': 'Ouvrir l’Égaliseur',
   'tour.sparks.imageAlt':
     'Un visualiseur d’aurore avec une traînée d’étincelles lumineuses derrière le pointeur et une gerbe là où il a cliqué, et {windowColours} avec son interrupteur {sparks} entouré.',
@@ -188,8 +188,9 @@ const tour: Partial<Dictionary> = {
     'Les scènes peuvent être de vrais mondes en 3D qui marchent sur la grosse caisse et bondissent au drop.',
   'tour.studio.point3':
     'Copiez le prompt pour l’IA, et votre assistant IA peut voir votre scène et entendre comment le morceau évolue.',
-  'tour.studio.how': 'Ouvrez Plus et choisissez Studio dans sa barre latérale.',
-  'tour.studio.open': 'Ouvrir Plus',
+  'tour.studio.how':
+    'Ouvrez Visualiseurs et choisissez Studio dans sa barre latérale.',
+  'tour.studio.open': 'Ouvrir Visualiseurs',
   'tour.studio.imageAlt':
     'Le Studio avec Alpine sur sa scène, un lac sous des sommets enneigés et une aurore, les trois étapes pour créer une scène avec votre IA en dessous, et deux notes : gratuit pour tous les comptes, et une scène publiée joue gratuitement pour son créateur.',
   'tour.studio.earned': 'Publiée : joue gratuitement pour vous',
@@ -266,10 +267,10 @@ const tour: Partial<Dictionary> = {
   'tour.plus.point3':
     'Chaque scène peut être regardée d’abord, et celles que vous obtenez jouent sur chaque ordinateur où vous vous connectez.',
   'tour.plus.how':
-    'Ouvrez l’onglet Plus : Visualiseurs, Studio et Éclairage dynamique se trouvent sur sa gauche.',
-  'tour.plus.open': 'Ouvrir Plus',
+    'Ouvrez l’onglet Visualiseurs : la Galerie, le Studio et l’Éclairage dynamique se trouvent sur sa gauche.',
+  'tour.plus.open': 'Ouvrir Visualiseurs',
   'tour.plus.imageAlt':
-    'L’onglet Plus : Visualiseurs, Studio et Éclairage dynamique sur le côté, et la galerie Visualiseurs avec Chrome, Floraison, Aurore, Alpin et Ville néon.',
+    'L’onglet Visualiseurs : Galerie, Studio et Éclairage dynamique sur le côté, et la Galerie avec Chrome, Floraison, Aurore, Alpin et Ville néon.',
   'tour.scene.alpine': 'Alpin',
   'tour.scene.aurora': 'Aurore',
   'tour.scene.bloom': 'Floraison',
@@ -280,24 +281,24 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.title': 'Des scènes qui bougent avec votre musique',
   'tour.visualizers.subtitle': 'Dessinées par votre carte graphique',
   'tour.visualizers.lead':
-    'Les visualiseurs Plus sont des scènes vivantes — des montagnes sous les étoiles, des rideaux d’aurore boréale, une ville néon — dessinées par votre carte graphique sous vos courbes d’EQ. Les basses, le rythme et les aigus font chacun bouger quelque chose de différent, et la fenêtre autour d’elles peut prendre leurs couleurs.',
+    'Les scènes sont des images vivantes — des montagnes sous les étoiles, des rideaux d’aurore boréale, une ville néon — dessinées par votre carte graphique sous vos courbes d’EQ. Les basses, le rythme et les aigus font chacun bouger quelque chose de différent, et la fenêtre autour d’elles peut prendre leurs couleurs.',
   'tour.visualizers.point1':
-    'Un seul sélecteur pour tout : {styles} styles gratuits à façonner et à colorer, et les visualiseurs Plus par catégorie.',
+    'Un seul sélecteur pour tout : {styles} styles gratuits à façonner et à colorer, et les scènes par catégorie.',
   'tour.visualizers.point2':
     'Parcourez la galerie, essayez dix secondes les scènes d’exemple de FluidEQ et ajoutez celles qui vous plaisent.',
   'tour.visualizers.point3':
     'Changez de style automatiquement, passez en plein écran, et réglez l’attaque et le relâchement d’une scène dans Affichage.',
   'tour.visualizers.how':
-    'Sur le graphique, cliquez sur le nom du style et choisissez une scène sous Visualiseurs Plus, ou parcourez-les toutes dans Plus → Visualiseurs.',
+    'Sur le graphique, cliquez sur le nom du style et choisissez-en une sous Visualiseurs, ou parcourez-les toutes dans Visualiseurs → Galerie.',
   'tour.visualizers.open': 'Ouvrir l’Égaliseur',
   'tour.visualizers.imageAlt':
-    'Alpin, un visualiseur Plus montrant des montagnes au-dessus d’un lac de nuit, en lecture sur le graphique sous les courbes d’EQ, avec quatre autres scènes en dessous.',
+    'Alpin, une scène montrant des montagnes au-dessus d’un lac de nuit, en lecture sur le graphique sous les courbes d’EQ, avec quatre autres scènes en dessous.',
 
   'tour.desktop.kicker': 'VISUALISEUR DU BUREAU',
   'tour.desktop.title': 'Votre musique derrière votre Bureau',
   'tour.desktop.subtitle': 'Une scène sur chaque écran',
   'tour.desktop.lead':
-    'Placez un visualiseur Plus derrière les icônes du Bureau. Il bouge avec ce que vous écoutez, ou calmement de lui-même, et chaque écran peut afficher sa propre scène.',
+    'Placez une scène derrière les icônes du Bureau. Elle bouge avec ce que vous écoutez, ou calmement d’elle-même, et chaque écran peut afficher sa propre scène.',
   'tour.desktop.point1':
     'Choisissez les écrans sur une carte de votre bureau, chacun avec son propre visualiseur.',
   'tour.desktop.point2':
@@ -305,16 +306,16 @@ const tour: Partial<Dictionary> = {
   'tour.desktop.point3':
     'Il revient tout seul au prochain démarrage de FluidEQ.',
   'tour.desktop.how':
-    'Avec un visualiseur Plus sur le graphique, appuyez sur le bouton en forme d’écran à côté de son nom, ou choisissez Affichage → Définir comme arrière-plan du Bureau.',
+    'Avec une scène sur le graphique, appuyez sur le bouton en forme d’écran à côté de son nom, ou choisissez Affichage → Définir comme arrière-plan du Bureau.',
   'tour.desktop.open': 'Ouvrir l’Égaliseur',
   'tour.desktop.imageAlt':
-    'Trois écrans, chacun avec un visualiseur Plus — Aurore, Alpin et Ville néon — derrière ses icônes du Bureau et sa barre des tâches.',
+    'Trois écrans, chacun avec une scène — Aurore, Alpin et Ville néon — derrière ses icônes du Bureau et sa barre des tâches.',
 
   'tour.lighting.kicker': 'ÉCLAIRAGE DYNAMIQUE',
   'tour.lighting.title': 'Votre bureau s’illumine avec la scène',
   'tour.lighting.subtitle': 'Bêta · vos appareils RVB suivent le visualiseur',
   'tour.lighting.lead':
-    'Votre clavier, votre souris, votre tapis de souris, votre casque et votre support prennent les couleurs et le rythme du visualiseur Plus affiché sur le graphique, via Windows Dynamic Lighting et Razer Chroma.',
+    'Votre clavier, votre souris, votre tapis de souris, votre casque et votre support prennent les couleurs et le rythme de la scène affichée sur le graphique, via Windows Dynamic Lighting et Razer Chroma.',
   'tour.lighting.point1':
     'Quatre styles pour chaque visualiseur : Scène, Vague de couleur, Spectre et Onde rythmique.',
   'tour.lighting.point2':
@@ -322,8 +323,8 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.point3':
     'Un aperçu en direct dessine votre propre bureau pendant qu’il s’illumine. C’est une bêta : dites-nous comment se comportent vos appareils.',
   'tour.lighting.how':
-    'Ouvrez Plus → Éclairage dynamique et activez-le, puis mettez un visualiseur Plus sur le graphique.',
-  'tour.lighting.open': 'Ouvrir Plus',
+    'Ouvrez Visualiseurs → Éclairage dynamique et activez-le, puis mettez une scène sur le graphique.',
+  'tour.lighting.open': 'Ouvrir Visualiseurs',
   'tour.lighting.imageAlt':
     'Un clavier, une souris et un tapis de souris éclairés aux tons rose, violet et cyan de Ville néon.',
 
@@ -657,7 +658,7 @@ const tour: Partial<Dictionary> = {
     'Elle fonctionne avec Claude Code sur cet ordinateur, avec votre propre abonnement, et montre ce qu’il reste de vos limites. Avec ChatGPT, elle peint des images pour la scène, en demandant avant chacune.',
   'tour.chat.how':
     'Ouvrez {plus}, choisissez {studio} dans son rail, choisissez une scène ou commencez-en une, et écrivez dans la zone à côté de la scène.',
-  'tour.chat.open': 'Ouvrir Plus',
+  'tour.chat.open': 'Ouvrir Visualiseurs',
   'tour.chat.imageAlt':
     'La scène du Studio à côté de sa discussion : une demande pour que les lumières de la scène flashent sur la caisse claire, les étapes de la réponse cochées une à une, la version 2 gardée avec Rétablir, et les lumières de la scène qui se mettent à flasher quand la version 2 joue.',
   'tour.chat.ask':

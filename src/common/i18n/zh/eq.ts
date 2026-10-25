@@ -156,7 +156,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.brightness': '亮度',
   'graph.sceneTint.rainbow': '彩虹模式',
   'graph.sceneTint.rainbowHint':
-    '频段、标题和亮起的控件使用调色板而不是单一颜色；选择 Plus 可视化效果时使用它自己的颜色。',
+    '频段、标题和亮起的控件使用调色板而不是单一颜色；选择场景时使用它自己的颜色。',
   'graph.sceneTint.sparks': '指针火花',
   'graph.sceneTint.sparksHint':
     '可视化从鼠标处抛出的效果：鼠标划过画面时留下拖尾，点击处迸发——火花、花瓣、雪花，取决于场景。',
@@ -185,7 +185,7 @@ const eq: Partial<Dictionary> = {
   'graph.member.likeOffline': '点赞需要联网',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.scene.badge': 'Plus',
+  'graph.scene.badge': '场景',
   'graph.scene.report': '举报 {name}',
   'graph.version.new': '新',
   'graph.version.caption': 'v{version} · {note}',
@@ -249,13 +249,13 @@ const eq: Partial<Dictionary> = {
   'graph.scene.gpu.auto': '由 Windows 决定',
   'graph.scene.gpu.high': '高性能',
   'graph.scene.gpu.restart': '重启后',
-  'graph.scene.locked': 'FluidEQ Plus 专属。选择它即可了解如何解锁。',
+  'graph.scene.locked': '还不属于你。选择它即可了解如何获取。',
   'graph.style.next': '下一个样式',
   'graph.style.previous': '上一个样式',
   'graph.picker.label': '样式与可视化效果',
   'graph.picker.search': '搜索样式和可视化效果',
   'graph.picker.styles': '样式',
-  'graph.picker.plus': 'Plus 可视化效果',
+  'graph.picker.plus': '可视化',
   'graph.picker.all': '全部',
   'graph.picker.yours': '你的',
   'graph.picker.filterStyles': '筛选样式',

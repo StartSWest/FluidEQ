@@ -9,7 +9,7 @@
  * and adding it to PLUS_TERMS_CHANGES in `common/plusTermsNotice.ts`.
  */
 const termsNotice = {
-  'termsNotice.title': 'The Plus terms have changed',
+  'termsNotice.title': 'The terms have changed',
   'termsNotice.read': 'Read the terms',
   'termsNotice.gotIt': 'Got it',
 
@@ -30,9 +30,9 @@ const termsNotice = {
   'termsNotice.change.9':
     'Every scene published in Visualizers is now read by FluidEQ’s maker before anyone else sees it. And Plus can arrive without a payment: a free trial a new account can take once, and a month earned by a scene that is approved. Neither renews, and nothing is ever charged for either.',
   'termsNotice.change.10':
-    'While you have Plus, FluidEQ now tells its maker how long each scene is on your screen, one number per scene per day, and which audio engine you use, so new scenes can follow what members enjoy. Nobody else sees either. FluidEQ can also announce new scenes in the app. What’s new can also play short films of the app from fluideq.com, with nothing about you.',
+    'FluidEQ can also announce new scenes in the app. What’s new can also play short films of the app from fluideq.com, with nothing about you.',
   'termsNotice.change.11':
-    'Scenes are now yours for good: one credit each, from packs paid once on Stripe, and a confirmed account gets some credits free to start. Every scene can be watched for a few seconds first. The Studio and publishing are free for every account, and your own scenes play everywhere once they are published. FluidEQ can also make some of its own scenes free for everyone. Plus is no longer sold: a membership already running keeps working until FluidEQ moves its members to credits, and the scenes a member added then stay theirs. And how long you listen is now counted for FluidEQ’s own statistics, once you are told, unless you switch it off.',
+    'Scenes are now yours for good: one credit each, from packs paid once on Stripe, and a confirmed account gets some credits free to start. Every scene can be watched for a few seconds first. The Studio and publishing are free for every account, and your own scenes play everywhere once they are published. FluidEQ can also make some of its own scenes free for everyone. The Plus membership is no longer sold: one already running keeps working until FluidEQ moves its members to credits, and the scenes a member added then stay theirs.',
 } as const;
 
 export default termsNotice;

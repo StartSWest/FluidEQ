@@ -39,6 +39,8 @@ import {
 import type { IAudioDevice } from 'common/constants';
 // eslint-disable-next-line import/first
 import { createAutomaticSetup } from 'main/automaticSetup';
+// eslint-disable-next-line import/first -- keep the native-service mocks installed first
+import setUpPlatform from '../../utils/setUpPlatform';
 
 const device = (fields: Record<string, unknown>) => ({
   id: 'x',
@@ -48,6 +50,8 @@ const device = (fields: Record<string, unknown>) => ({
   isActive: true,
   ...fields,
 });
+
+setUpPlatform('win32');
 
 beforeEach(() => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-apo-off-'));

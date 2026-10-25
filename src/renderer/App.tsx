@@ -47,7 +47,6 @@ import SmartHeadroomEngine from './SmartHeadroomEngine';
 import showGalleryGraph from './plus/showGalleryGraph';
 import { subscribeGraphShowRequests } from './plus/graphShowRequest';
 import useStudioAgent from './studio/useStudioAgent';
-import UsageMeter from './usage/UsageMeter';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
 import HeardSongNames from './graph/HeardSongNames';
 import WallpaperAudio from './wallpaper/WallpaperAudio';
@@ -865,9 +864,6 @@ export default function App() {
             {/* That visualizer's own elements — birds, petals, stars — faintly
                 over the window in the same mode; nothing in the page otherwise. */}
             <SceneAmbient />
-            {/* Counts listening while music plays. Renders nothing; main keeps
-                it only for an account that was told and kept it on. */}
-            <UsageMeter />
             {/* Dynamic lighting's loop: renders nothing, and lights nothing
                 unless a Plus member switched it on. */}
             <DynamicLightingLoop />

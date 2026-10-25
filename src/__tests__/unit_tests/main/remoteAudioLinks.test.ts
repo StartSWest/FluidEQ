@@ -70,6 +70,68 @@ describe('who this computer sends to', () => {
 /** What the window sends: both switches, the pause and the link's volume. */
 const ON = { send: true, play: true, paused: false, volume: 1 };
 
+describe('group identity and local source', () => {
+  it('lists an introduced computer without playing it until Receive is enabled', () => {
+    const { links } = create();
+    links.connected('new', 'New PC', false, 'new-id', true);
+    expect(links.hears('new')).toBe(false);
+    links.choose('id:new-id', ON);
+    expect(links.hears('new')).toBe(true);
+  });
+  it('mutes one received mix, preserves its level and keeps it muted after reconnect', () => {
+    const { links } = create();
+    links.connected('a', 'A', true, 'first');
+    links.connected('b', 'B', true, 'second');
+    links.choose('id:first', { ...ON, volume: 0.4, muted: true });
+    expect(links.volume('a')).toBe(0);
+    expect(links.volume('b')).toBe(1);
+    expect(links.switchesFor('id:first').volume).toBe(0.4);
+    const restarted = create();
+    restarted.links.connected('new', 'Renamed', true, 'first');
+    expect(restarted.links.volume('new')).toBe(0);
+    restarted.links.choose('id:first', { ...ON, volume: 0.4, muted: false });
+    expect(restarted.links.volume('new')).toBe(0.4);
+  });
+  it('keeps identically named computers independent across renames and reconnects', () => {
+    const { links, targets } = create();
+    links.connected('a', 'DESKTOP', true, 'first');
+    links.connected('b', 'DESKTOP', true, 'second');
+    links.choose('id:first', { ...ON, send: false, volume: 0.25 });
+    expect(targets()).toEqual(['b']);
+    expect(links.volume('a')).toBe(0.25);
+    expect(links.volume('b')).toBe(1);
+    links.disconnected('a');
+    links.connected('a-new', 'RENAMED', true, 'first');
+    expect(links.volume('a-new')).toBe(0.25);
+    expect(targets()).toEqual(['b']);
+  });
+  it('migrates a legacy name once without assigning its settings to a second same-name computer', () => {
+    const { links } = create();
+    links.choose('DESKTOP', { ...ON, volume: 0.4 });
+    links.connected('a', 'DESKTOP', true, 'first');
+    links.connected('b', 'DESKTOP', true, 'second');
+    expect(links.volume('a')).toBe(0.4);
+    expect(links.volume('b')).toBe(1);
+    expect(create().links.switchesFor('id:first').volume).toBe(0.4);
+  });
+  it('stops all outgoing sound while preserving receiving and each Send choice, including new links', () => {
+    const { links, targets } = create();
+    links.connected('a', 'A', true);
+    links.connected('b', 'B', true);
+    links.choose('B', { ...ON, send: false });
+    links.choose('@source', { ...ON, send: false });
+    expect(targets()).toEqual([]);
+    expect(links.hears('a')).toBe(true);
+    links.connected('c', 'C', true);
+    expect(targets()).toEqual([]);
+    links.choose('@source', ON);
+    expect(targets()).toEqual(['a', 'c']);
+    expect(links.switchesFor('B').send).toBe(false);
+    const restarted = create();
+    expect(restarted.links.switchesFor('B').send).toBe(false);
+  });
+});
+
 describe('the two switches', () => {
   it('tell the other computer what this one does, as they are and as they change', () => {
     const { announce, links, targets } = create();

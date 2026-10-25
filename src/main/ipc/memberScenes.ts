@@ -26,8 +26,8 @@ import type { TInspection, TProjectRestore } from './studioProjectTypes';
 /**
  * Member scenes, as the renderer sees them, and the Studio hung off them.
  *
- * A member scene plays for an account that owns it — bought, or its own once
- * published (`mayPlayLook`) — asked fresh on every call rather than once at
+ * A member scene plays for an account that owns it — bought, or its own,
+ * published or not (`mayPlayLook`) — asked fresh on every call rather than once at
  * startup, exactly as FluidEQ's own looks are. Removing one does not ask: a
  * member can always take a scene out of the app.
  *
@@ -97,6 +97,12 @@ export interface IMemberScenesIpcRegistration {
   agentProject: IStudioProjectsIpcRegistration['agentProject'];
   /** The scene list changed outside this file: an import, a takedown. */
   announce(): void;
+  /**
+   * A publication landed: what went out becomes the author's own look, so
+   * the graph plays it from that moment (Ivan, 2026-10-21: "after publishing
+   * an scene it needs to show in grahp").
+   */
+  keepPublished(author: string, pack: IScenePack): void;
   dispose(): void;
 }
 
@@ -148,7 +154,6 @@ export const registerMemberScenesIpc = ({
     documentsDir,
     store,
     accountId,
-    mayKeep: (lookId) => ownership.owns(lookId),
     announceScenes,
     dialogImpl,
     openPath,
@@ -224,6 +229,18 @@ export const registerMemberScenesIpc = ({
     openInspection: studio.openInspection,
     agentProject: studio.agentProject,
     announce: announceScenes,
+    keepPublished: (author, pack) => {
+      try {
+        store.save(author, pack);
+      } catch (error) {
+        logger?.warn(
+          `Keeping published scene ${pack.id} in the looks failed: ${String(error)}`,
+        );
+        return;
+      }
+      announceScenes();
+      studio.announceStudio();
+    },
     dispose: () => {
       unsubscribe();
       studio.dispose();

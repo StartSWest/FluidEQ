@@ -38,6 +38,8 @@ const storeWith = (identity?: ILanIdentity): IRemoteAudioCredentialStore => ({
   revoke: jest.fn(),
   unrevoke: jest.fn(),
   clear: jest.fn(),
+  saveGroupLink: jest.fn(),
+  removeGroupLink: jest.fn(),
 });
 
 const saved = { port: 49_100, secret: 's'.repeat(43) };

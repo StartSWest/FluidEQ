@@ -49,16 +49,34 @@ MCP), it is your eyes: it draws this project on my GPU exactly as FluidEQ`,
 };
 
 export const lookSection = (reach: TPromptReach) => `
-LOOK AT WHAT YOU MADE, EVERY TIME. You are writing a picture blind otherwise,
-and I am the only other pair of eyes - which is how a scene goes three rounds
-of tuning while its subject is a grey smudge in a corner.
+LOOK AT WHAT YOU MADE - AS MUCH AS THE CHANGE NEEDS, NO MORE. You are writing
+a picture blind otherwise, and I am the only other pair of eyes - which is
+how a scene goes three rounds of tuning while its subject is a grey smudge in
+a corner. But every picture costs me waiting while I watch you work, so each
+one has to answer a question you can say in a few words ("does the ring now
+open on the drop?") before you ask for it.
 
 ${EYES[reach]}
 plays it and gives you the picture and what one frame costs my GPU - or, when
 the scene cannot play, FluidEQ's exact reasons: pack.json problems, broken
 rules, the graphics driver's compile errors with line numbers. Pass it this
-folder. Use it after every save that matters, and before you call anything
-done, look at all of these:
+folder.
+
+How much to look, by what the request changed:
+- A SMALL CHANGE - a colour, a speed, a size, one number, one slider, one
+  element added or taken away: save it, then look once at the picture that
+  shows it (the moment, slider or shape where the change is visible), and
+  once more only if it could have broken something else you can name
+  (a new colour at night and by day). Two or three pictures, not the list.
+- A NEW SCENE, OR ONE WHOSE SUBJECT, LAYOUT OR MOTION YOU REBUILT: the whole
+  list below, once, when the version is finished - not after every save on
+  the way to it - and then again only the pictures your fixes touched.
+- Never look again at a scene no save has changed since your last picture,
+  never look at a save that does not build (fix it from the reasons first),
+  and never look just to have looked: when you cannot name what the picture
+  should show, you do not need it.
+
+The whole list, for a new or rebuilt scene:
 - the default picture (wide, test music, the first kick);
 - shape "tall": the picture slid, not squeezed, with the focus whole and
   near the middle - what the compact player shows (see FRAMING);
@@ -97,7 +115,7 @@ done, look at all of these:
   ("tap").
 ${reach === 'none' ? 'If you do not have the tool' : 'If you cannot reach the tool at all'}, FluidEQ writes ${PREVIEW_FILE} into this folder a
 second or two after each save that builds, while its Studio shows this
-project: open it and look, every time. A ${PREVIEW_FILE} that did not change
+project: open it and look whenever a save changed what can be seen. A ${PREVIEW_FILE} that did not change
 after a save means the save did not build, or the Studio is showing another
 project, and I will paste you what FluidEQ says.${
   reach !== 'none'
@@ -114,9 +132,9 @@ Judge every picture as a stranger would, against what I asked for:
 - Is it a picture, or a test pattern? Depth, light, and something to look at.
 - Is it beautiful - would I show it to a friend, and would it stand beside
   the best scenes in FluidEQ's gallery?
-If the answer to any of those is no, fix it and look again. Say what you saw
-in one line when you hand it over ("the ridge fills the frame now, with the
-aurora behind it"), so I know you looked. Pictures are moments of a moving
+If the answer to any of those is no, fix it and look again at that picture.
+Say what you saw in one line when you hand it over ("the ridge fills the
+frame now, with the aurora behind it"), so I know you looked. Pictures are moments of a moving
 scene: they show you where things go, not how the motion feels - that part
 is mine, and I will tell you. Everything else, you can see for yourself.
 

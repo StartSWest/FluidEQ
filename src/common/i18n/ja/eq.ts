@@ -166,7 +166,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.brightness': '明るさ',
   'graph.sceneTint.rainbow': 'レインボーモード',
   'graph.sceneTint.rainbowHint':
-    'バンド、タイトル、点灯中のコントロールを単色ではなくパレットで表示します。Plus ビジュアライザーの選択中はその色で表示します。',
+    'バンド、タイトル、点灯中のコントロールを単色ではなくパレットで表示します。シーンの選択中はその色で表示します。',
   'graph.sceneTint.sparks': 'ポインターの火花',
   'graph.sceneTint.sparksHint':
     'ビジュアライザーがマウスから放つもの。画面の上を動かすと軌跡が残り、クリックした場所ではじけます。火花、花びら、雪など、シーンに合わせて。',
@@ -196,7 +196,7 @@ const eq: Partial<Dictionary> = {
   'graph.member.likeOffline': 'いいねにはインターネット接続が必要です',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.scene.badge': 'Plus',
+  'graph.scene.badge': 'シーン',
   'graph.scene.report': '{name} を報告',
   'graph.version.new': '新着',
   'graph.version.caption': 'v{version} · {note}',
@@ -268,13 +268,13 @@ const eq: Partial<Dictionary> = {
   'graph.scene.gpu.high': '高パフォーマンス',
   'graph.scene.gpu.restart': '再起動後',
   'graph.scene.locked':
-    'FluidEQ Plus の一部です。選ぶと解除する方法が表示されます。',
+    'まだあなたのものではありません。選ぶと入手方法が表示されます。',
   'graph.style.next': '次のスタイル',
   'graph.style.previous': '前のスタイル',
   'graph.picker.label': 'スタイルとビジュアライザー',
   'graph.picker.search': 'スタイルとビジュアライザーを検索',
   'graph.picker.styles': 'スタイル',
-  'graph.picker.plus': 'Plus ビジュアライザー',
+  'graph.picker.plus': 'ビジュアライザー',
   'graph.picker.all': 'すべて',
   'graph.picker.yours': 'あなたの',
   'graph.picker.filterStyles': 'スタイルを絞り込む',

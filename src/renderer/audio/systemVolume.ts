@@ -22,6 +22,7 @@ let volume: ISystemVolume | null | undefined;
 const listeners = new Set<() => void>();
 let watchers = 0;
 let stopListening: (() => void) | undefined;
+let pending: { requestId: string; sessionId?: string } | undefined;
 
 const notify = () => listeners.forEach((listener) => listener());
 
@@ -52,7 +53,18 @@ const startWatching = () => {
     return;
   }
   stopListening = bridge.on(SYSTEM_VOLUME_CHANGED, (...args: unknown[]) => {
-    volume = isVolume(args[0]) ? args[0] : null;
+    const next = isVolume(args[0]) ? args[0] : null;
+    if (
+      next &&
+      pending &&
+      next.canAcknowledge &&
+      next.sessionId === pending.sessionId &&
+      next.appliedRequestId !== pending.requestId
+    ) {
+      return;
+    }
+    pending = undefined;
+    volume = next;
     notify();
   });
   ask(['watch', true]);
@@ -63,6 +75,7 @@ const stopWatching = () => {
   stopListening?.();
   stopListening = undefined;
   volume = undefined;
+  pending = undefined;
   notify();
 };
 
@@ -98,14 +111,27 @@ export const useSystemVolume = (isWanted: boolean) => {
  * Windows; Windows' own answer follows and is what stays.
  */
 export const setSystemVolume = (level: number) => {
+  if (!Number.isFinite(level) || level < 0 || level > 1) {
+    return;
+  }
+  const requestId = volume?.canAcknowledge ? crypto.randomUUID() : undefined;
+  pending = requestId ? { requestId, sessionId: volume?.sessionId } : undefined;
   if (volume) {
     volume = { ...volume, level };
     notify();
   }
-  ask(['set', level]);
+  ask(requestId ? ['set', level, requestId] : ['set', level]);
 };
 
-export const setSystemMute = (isMuted: boolean) => ask(['mute', isMuted]);
+export const setSystemMute = (isMuted: boolean) => {
+  const requestId = volume?.canAcknowledge ? crypto.randomUUID() : undefined;
+  pending = requestId ? { requestId, sessionId: volume?.sessionId } : undefined;
+  if (volume) {
+    volume = { ...volume, isMuted };
+    notify();
+  }
+  ask(requestId ? ['mute', isMuted, requestId] : ['mute', isMuted]);
+};
 
 /**
  * THE ONE FADER IN THIS APP, and it is the computer's.

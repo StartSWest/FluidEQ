@@ -11,7 +11,7 @@ const account = {
   'account.close': 'Fermer',
 
   'account.optional':
-    'La connexion est facultative. Sans compte, FluidEQ fonctionne exactement comme toujours : tout s’exécute sur cette machine et rien n’est suivi. Avec un compte, le temps que vous écoutez est compté pour les statistiques de FluidEQ, sauf si vous le désactivez. Un compte ne sert qu’aux parties qui en ont réellement besoin.',
+    'La connexion est facultative. FluidEQ fonctionne exactement comme toujours sans compte : tout s’exécute sur cette machine et rien n’est suivi. Un compte ne sert qu’aux parties qui en ont réellement besoin.',
 
   'account.signIn': 'Se connecter',
   'account.signUp': 'Créer un compte',
@@ -85,7 +85,7 @@ const account = {
   'account.error.alreadyRegistered':
     'Un compte existe déjà avec cette adresse. Connectez-vous plutôt.',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': 'Des scènes à vous pour de bon, un crédit chacune.',
   'account.perk.visualizers':

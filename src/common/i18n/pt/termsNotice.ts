@@ -1,5 +1,5 @@
 const termsNotice = {
-  'termsNotice.title': 'Os termos do Plus mudaram',
+  'termsNotice.title': 'Os termos mudaram',
   'termsNotice.read': 'Ler os termos',
   'termsNotice.gotIt': 'Entendido',
 
@@ -20,9 +20,9 @@ const termsNotice = {
   'termsNotice.change.9':
     'Agora, cada cena publicada em Visualizadores é lida pelo criador do FluidEQ antes de qualquer outra pessoa a ver. E o Plus pode chegar sem pagamento: um teste gratuito que uma conta nova pode usar uma vez, e um mês ganho com uma cena aprovada. Nenhum dos dois se renova, e nunca é cobrado nada por eles.',
   'termsNotice.change.10':
-    'Enquanto você tiver o Plus, o FluidEQ agora informa ao seu criador quanto tempo cada cena fica na sua tela, um número por cena por dia, e qual motor de áudio você usa, para que as novas cenas acompanhem o que os membros curtem. Ninguém mais vê nenhum dos dois. O FluidEQ também pode anunciar novas cenas no app. Novidades também pode tocar vídeos curtos do app vindos de fluideq.com, sem nada sobre você.',
+    'O FluidEQ também pode anunciar novas cenas no app. Novidades também pode tocar vídeos curtos do app vindos de fluideq.com, sem nada sobre você.',
   'termsNotice.change.11':
-    'As cenas agora são suas para sempre: um crédito cada, de pacotes pagos uma única vez na Stripe, e uma conta confirmada recebe alguns créditos grátis para começar. Cada cena pode ser assistida por alguns segundos antes. O Estúdio e a publicação são gratuitos para todas as contas, e as suas próprias cenas tocam em todo lugar depois de publicadas. O FluidEQ também pode deixar algumas das próprias cenas gratuitas para todos. O Plus não é mais vendido: uma assinatura já ativa continua funcionando até que o FluidEQ passe os seus membros para créditos, e as cenas que um membro adicionou ficam então com ele. E agora o tempo que você ouve é contado para as estatísticas do próprio FluidEQ, depois que você é avisado, a menos que você desative.',
+    'As cenas agora são suas para sempre: um crédito cada, de pacotes pagos uma única vez na Stripe, e uma conta confirmada recebe alguns créditos grátis para começar. Cada cena pode ser assistida por alguns segundos antes. O Estúdio e a publicação são gratuitos para todas as contas, e as suas próprias cenas tocam em todo lugar depois de publicadas. O FluidEQ também pode deixar algumas das próprias cenas gratuitas para todos. A assinatura Plus não é mais vendida: uma já ativa continua funcionando até que o FluidEQ passe os seus membros para créditos, e as cenas que um membro adicionou ficam então com ele.',
 } as const;
 
 export default termsNotice;

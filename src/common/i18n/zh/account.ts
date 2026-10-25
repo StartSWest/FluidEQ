@@ -11,7 +11,7 @@ const account = {
   'account.close': '关闭',
 
   'account.optional':
-    '登录是可选的。没有账户时，FluidEQ 和往常完全一样——一切都在这台电脑上运行，不会追踪任何内容。有账户时，除非你关闭，你的收听时长会计入 FluidEQ 的统计。账户只用于确实需要它的功能。',
+    '登录是可选的。没有账户，FluidEQ 也和往常完全一样——一切都在这台电脑上运行，不会追踪任何内容。账户只用于确实需要它的功能。',
 
   'account.signIn': '登录',
   'account.signUp': '创建账户',
@@ -73,7 +73,7 @@ const account = {
   'account.error.invalidEmail': '这看起来不像一个邮箱地址。',
   'account.error.alreadyRegistered': '该地址已有账户。请直接登录。',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': '永久归你的场景，每个一点。',
   'account.perk.visualizers': '“可视化”：会员创作的场景，向所有账户开放。',

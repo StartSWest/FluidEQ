@@ -30,6 +30,7 @@ import ChannelEnum from '../../../common/channels';
 import type { IEngineSetupResult } from '../../../main/engineSetup';
 import { encodeChainSettings } from '../../../common/dsp/chainWire';
 import { DSP_DEFAULTS } from '../../../common/dsp/chain';
+import setUpPlatform from '../../utils/setUpPlatform';
 
 // Imports come after jest.mock on purpose: the module under test reads the
 // mocked dependency at import time, so hoisting the import above the mock
@@ -79,6 +80,8 @@ const DECLINED: IEngineSetupResult = {
 };
 
 const GUID = '{a1b2c3d4-e5f6-4708-9a0b-1c2d3e4f5061}';
+
+setUpPlatform('win32');
 
 describe('the audio engine channels', () => {
   let userDataDir: string;

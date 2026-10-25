@@ -51,15 +51,15 @@ export interface ILanAudioLease {
 
 const MAX_QUEUED_BYTES = 1_048_576;
 const MAX_STDERR_BYTES = 4_096;
-const HELPER_NAME = 'FluidEQ-LAN-Playback.exe';
 
 export const findRemoteAudioPlaybackExecutable = (): string | undefined => {
+  const helperName = `FluidEQ-LAN-Playback${process.platform === 'win32' ? '.exe' : ''}`;
   const resources = (process as NodeJS.Process & { resourcesPath?: string })
     .resourcesPath;
   return [
-    ...(resources ? [path.join(resources, 'native', HELPER_NAME)] : []),
-    path.join(__dirname, '../../../native/.build/bin', HELPER_NAME),
-    path.join(__dirname, '../../native/.build/bin', HELPER_NAME),
+    ...(resources ? [path.join(resources, 'native', helperName)] : []),
+    path.join(__dirname, '../../../native/.build/bin', helperName),
+    path.join(__dirname, '../../native/.build/bin', helperName),
   ].find((candidate) => existsSync(candidate));
 };
 

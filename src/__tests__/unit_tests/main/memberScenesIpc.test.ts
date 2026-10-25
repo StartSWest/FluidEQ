@@ -187,7 +187,7 @@ describe('member scenes over IPC', () => {
     registration.dispose();
   });
 
-  it('plays and adds only what the account owns, and locks the rest without losing it', async () => {
+  it('locks playback when ownership changes without losing the maker’s project or ability to keep it', async () => {
     const registration = setup();
     chosen = await project();
     await invoke<Promise<IStudioState>>('studio-open');
@@ -196,21 +196,21 @@ describe('member scenes over IPC', () => {
     const { lookId } =
       invoke<IMemberScenesListing>('member-scenes-list').scenes[0];
 
-    // Not owned now: a draft of their own taken out of the gallery, say.
+    // The ownership service now refuses playback; the project stays theirs.
     owned = false;
     ownershipChanged();
     expect(invoke('member-scenes-load', lookId)).toBeUndefined();
     // The Studio stays theirs: another project is made as before.
     expect(await invoke('studio-create-project', 'Neon City')).toBe('written');
-    // A draft goes into the looks once it is in the gallery.
-    expect(await invoke('studio-add-to-looks')).toEqual({
-      ok: false,
-      reason: 'unpublished',
+    // Keeping their own work is independent of publishing it to the gallery.
+    expect(await invoke('studio-add-to-looks')).toMatchObject({
+      ok: true,
+      scene: { authorId: ME, own: true },
     });
     // Kept and shown locked, never deleted.
     const listing = invoke<IMemberScenesListing>('member-scenes-list');
     expect(listing.scenes).toEqual([]);
-    expect(listing.locked.map((scene) => scene.lookId)).toEqual([lookId]);
+    expect(listing.locked.map((scene) => scene.lookId)).toContain(lookId);
     // And the member can still take their own work out.
     expect(invoke('member-scenes-remove', lookId)).toBe(true);
     registration.dispose();

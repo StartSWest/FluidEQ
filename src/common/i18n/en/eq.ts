@@ -174,7 +174,7 @@ const eq = {
   'graph.sceneTint.brightness': 'Brightness',
   'graph.sceneTint.rainbow': 'Rainbow mode',
   'graph.sceneTint.rainbowHint':
-    'The bands, the title and the lit controls in a palette instead of one colour — a Plus visualizer’s own colours while one is chosen.',
+    'The bands, the title and the lit controls in a palette instead of one colour — a scene’s own colours while one is chosen.',
   'graph.sceneTint.sparks': 'Pointer sparks',
   'graph.sceneTint.sparksHint':
     'What the visualizer throws from the mouse: a trail as it crosses the picture and a burst where you click - sparks, petals, snow, whatever the scene is made of.',
@@ -211,7 +211,7 @@ const eq = {
   'graph.member.likeOffline': 'Likes need a connection',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.scene.badge': 'Plus',
+  'graph.scene.badge': 'Scene',
   'graph.scene.report': 'Report {name}',
   'graph.version.new': 'New',
   'graph.version.caption': 'v{version} · {note}',
@@ -280,14 +280,13 @@ const eq = {
   'graph.scene.gpu.auto': 'Windows decides',
   'graph.scene.gpu.high': 'High performance',
   'graph.scene.gpu.restart': 'after restart',
-  'graph.scene.locked':
-    'Part of FluidEQ Plus. Choose it to see how to unlock it.',
+  'graph.scene.locked': 'Not yours yet. Choose it to see how to get it.',
   'graph.style.next': 'Next style',
   'graph.style.previous': 'Previous style',
   'graph.picker.label': 'Styles and visualizers',
   'graph.picker.search': 'Search styles and visualizers',
   'graph.picker.styles': 'Styles',
-  'graph.picker.plus': 'Plus visualizers',
+  'graph.picker.plus': 'Visualizers',
   'graph.picker.all': 'All',
   'graph.picker.yours': 'Yours',
   'graph.picker.filterStyles': 'Filter styles',

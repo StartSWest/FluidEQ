@@ -144,8 +144,9 @@ const studio = {
   'studio.publish.goUpdate': 'Publish update',
   'studio.publish.agree': 'Agree and publish',
   'studio.publish.running': 'Publishing…',
-  'studio.publish.done': '{name} is in the gallery.',
-  'studio.publish.updated': 'The gallery has the new version of {name}.',
+  'studio.publish.done': '{name} is in the gallery and playing on your graph.',
+  'studio.publish.updated':
+    'The gallery has the new version of {name}, and so does your graph.',
   'studio.publish.noPicture':
     'The picture could not be taken. Let the scene play, then try again.',
   'studio.publish.offline': 'Publishing needs a connection. Try again online.',
@@ -242,11 +243,7 @@ const studio = {
     '{name} is yours. It is back in your looks, and open here to keep working on.',
   'studio.import.unreadable': 'That file is not a FluidEQ scene.',
   'studio.import.signedOut': 'Sign in to open a scene file.',
-  'studio.draft.badge': 'Draft',
-  'studio.draft.line': 'Publish to see it full',
   'studio.new.signedOut': 'Sign in to start a project.',
-  'studio.notice.unpublished':
-    'Publish it first: your own scene goes into your looks once it is in the gallery.',
   'studio.import.changed':
     'That file was changed after it was exported, so FluidEQ will not play it.',
   'studio.import.blocked': 'That scene has been taken down.',
@@ -580,9 +577,9 @@ const studio = {
   'studio.publish.agreeReview': 'Agree and send for review',
   'studio.publish.runningReview': 'Sending…',
   'studio.publish.submitted':
-    '{name} was sent for review. You will be told when it is approved.',
+    '{name} is playing on your graph and was sent for review. You will be told when it is approved.',
   'studio.publish.submittedUpdate':
-    'The new version of {name} was sent for review. Everyone keeps the current version until it is approved.',
+    'The new version of {name} is playing on your graph and was sent for review. Everyone else keeps the current version until it is approved.',
   // The switch that lets the member's own AI look at the stage over MCP, and
   // its one-time setup. The assistants' names are theirs, in every language.
   'studio.agent.title': 'Let your AI see the stage',

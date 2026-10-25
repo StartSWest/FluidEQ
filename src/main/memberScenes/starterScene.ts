@@ -1,117 +1,96 @@
 import { SCENE_DAYLIGHT_CONTROL } from '../../common/sceneDaylight';
 import { SCENE_CONTRACT_VERSION } from '../../common/sceneUniformContract';
 
-export { default as STARTER_SOURCE } from './starterSceneSource';
+export { default as STARTER_SOURCE } from '../../common/studioStarterSource';
 
 /**
  * What "New project" writes: a scene that already moves with the music, so
  * the stage has something alive on it before anybody has asked an AI for
- * anything, and a working example of every channel, of the scene's own
- * sliders, of a response and of the ambient layer for the AI to build on.
+ * anything, and a working example of the music's channels, of the scene's
+ * own dials, of a response and of the ambient layer for the AI to build on.
  *
- * A spring night under cherry blossom (`starterSceneSource.ts`). The lanterns
- * are the spectrum, each read against where real songs sit at its frequency;
- * the moon's halo is the bass, the blossom's warmth the mids, stars and petals
- * the treble, the candles the beat, a shooting star the rare accent, and the
- * pond the waveform. Played through the app's own pipeline on seven songs, no
- * lantern-sized patch jumped more than a tenth of full brightness in a frame,
- * and at 2560x1440 it draws in the time Aurora does.
+ * Pulse (`common/studioStarterSource.ts`): an orb that swells with the bass,
+ * a ring that is the spectrum, a sky the mids warm, sparks the treble lights
+ * and a floor a ripple crosses on every beat. Each dial is named for the one
+ * part it changes, so moving one teaches what a dial is.
  *
  * The scene keeps the member rules (`memberSceneRules.ts`) and this manifest
  * passes the project check (`readProject`). A test holds both.
  */
 
-/** The scene's own sliders, each named in every language the app speaks. */
+/** The scene's own dials, each named in every language the app speaks. */
 const STARTER_PARAMS = [
   {
     id: 'glow',
     names: {
-      en: 'Lantern light',
-      es: 'Luz de los farolillos',
-      pt: 'Luz das lanternas',
-      fr: 'Lumière des lanternes',
-      de: 'Laternenlicht',
-      it: 'Luce delle lanterne',
-      ru: 'Свет фонариков',
-      zh: '灯笼的光',
-      ja: '提灯の明かり',
-      hi: 'लालटेन की रोशनी',
+      en: 'Orb glow',
+      es: 'Brillo del orbe',
+      pt: 'Brilho do orbe',
+      fr: "Halo de l'orbe",
+      de: 'Leuchten der Kugel',
+      it: "Bagliore dell'orbe",
+      ru: 'Сияние шара',
+      zh: '光球的光晕',
+      ja: '光球の輝き',
+      hi: 'गोले की चमक',
     },
     min: 0,
     max: 1,
     value: 0.6,
   },
   {
-    id: 'petals',
+    id: 'ring',
     names: {
-      en: 'Falling petals',
-      es: 'Pétalos que caen',
-      pt: 'Pétalas caindo',
-      fr: 'Pétales qui tombent',
-      de: 'Fallende Blüten',
-      it: 'Petali che cadono',
-      ru: 'Падающие лепестки',
-      zh: '飘落的花瓣',
-      ja: '舞い散る花びら',
-      hi: 'गिरती पंखुड़ियाँ',
+      en: 'Ring height',
+      es: 'Altura del anillo',
+      pt: 'Altura do anel',
+      fr: "Hauteur de l'anneau",
+      de: 'Höhe des Rings',
+      it: "Altezza dell'anello",
+      ru: 'Высота кольца',
+      zh: '光环的高度',
+      ja: 'リングの高さ',
+      hi: 'छल्ले की ऊँचाई',
+    },
+    min: 0,
+    max: 1,
+    value: 0.65,
+  },
+  {
+    id: 'sparks',
+    names: {
+      en: 'Sparks',
+      es: 'Chispas',
+      pt: 'Faíscas',
+      fr: 'Étincelles',
+      de: 'Funken',
+      it: 'Scintille',
+      ru: 'Искры',
+      zh: '火花',
+      ja: '火の粉',
+      hi: 'चिंगारियाँ',
     },
     min: 0,
     max: 1,
     value: 0.5,
   },
   {
-    id: 'breeze',
+    id: 'ripples',
     names: {
-      en: 'Breeze',
-      es: 'Brisa',
-      pt: 'Brisa',
-      fr: 'Brise',
-      de: 'Brise',
-      it: 'Brezza',
-      ru: 'Ветерок',
-      zh: '微风',
-      ja: 'そよ風',
-      hi: 'मंद हवा',
+      en: 'Floor ripples',
+      es: 'Ondas en el suelo',
+      pt: 'Ondas no chão',
+      fr: 'Ondes au sol',
+      de: 'Wellen am Boden',
+      it: 'Onde sul pavimento',
+      ru: 'Волны на полу',
+      zh: '地面的涟漪',
+      ja: '床の波紋',
+      hi: 'फ़र्श पर लहरें',
     },
     min: 0,
     max: 1,
-    value: 0.4,
-  },
-  {
-    id: 'moon',
-    names: {
-      en: 'Moonlight',
-      es: 'Luz de luna',
-      pt: 'Luar',
-      fr: 'Clair de lune',
-      de: 'Mondlicht',
-      it: 'Chiaro di luna',
-      ru: 'Лунный свет',
-      zh: '月光',
-      ja: '月明かり',
-      hi: 'चाँदनी',
-    },
-    min: 0,
-    max: 1,
-    value: 0.6,
-  },
-  {
-    id: 'blossom',
-    names: {
-      en: 'Blossom colour',
-      es: 'Color de las flores',
-      pt: 'Cor das flores',
-      fr: 'Couleur des fleurs',
-      de: 'Blütenfarbe',
-      it: 'Colore dei fiori',
-      ru: 'Оттенок цветов',
-      zh: '花的颜色',
-      ja: '花の色',
-      hi: 'फूलों का रंग',
-    },
-    min: 0,
-    max: 1,
-    value: 0.45,
+    value: 0.7,
   },
 ];
 
@@ -127,55 +106,38 @@ const STARTER_RESPONSE = {
 };
 
 /**
- * Petals, blossoms and lantern glows around the window in Ambient mode. Sized
- * and coloured to be seen over the app's dark panes: at 10-18 px and pale
- * pink, on a window 2560 px wide, they could not be found. The petals follow
- * the level and the lantern glows the beat, because the treble a song's hats
- * leave in the bands sits near nothing and moved neither.
+ * Sparks rising round the window in Ambient mode, and a few soft lights that
+ * pulse on the beat. The sparks follow the level, because the treble a
+ * song's hats leave in the bands sits near nothing and moved neither.
  */
 const STARTER_AMBIENT = {
   elements: [
     {
-      id: 'petals',
-      shape: 'petal',
-      colours: ['#ffa8cc', '#ffc2dc', '#ff8fbd'],
-      count: 14,
-      size: [18, 30],
-      opacity: 1,
-      motion: 'fall',
-      speed: 0.24,
+      id: 'sparks',
+      shape: 'spark',
+      colours: ['#ffd7ec', '#ff9cc8', '#9fe6ff'],
+      count: 12,
+      size: [14, 24],
+      opacity: 0.95,
+      motion: 'rise',
+      speed: 0.22,
       area: 'all',
-      flap: 0.6,
-      turn: 0.8,
+      flap: 0.3,
+      turn: 0.4,
       music: 'level',
-      react: 0.35,
+      react: 0.4,
     },
     {
-      id: 'blossoms',
-      shape: 'blossom',
-      colours: ['#ff9ec4', '#ffb3d1'],
-      count: 5,
-      size: [28, 42],
-      opacity: 0.9,
-      motion: 'drift',
-      speed: 0.18,
-      area: 'top',
-      flap: 0.25,
-      turn: 0.55,
-      music: 'mid',
-      react: 0.35,
-    },
-    {
-      id: 'lanterns',
+      id: 'lights',
       shape: 'bokeh',
-      colours: ['#ff8a3d', '#ff6a3d'],
-      count: 6,
+      colours: ['#ff5c9d', '#ffb347'],
+      count: 5,
       size: [44, 64],
-      opacity: 0.65,
+      opacity: 0.6,
       motion: 'twinkle',
       speed: 0.05,
       area: 'edges',
-      flap: 0.35,
+      flap: 0.3,
       turn: 0.3,
       music: 'beat',
       react: 0.5,
@@ -183,43 +145,23 @@ const STARTER_AMBIENT = {
   ],
   params: [
     {
-      id: 'petal_count',
+      id: 'spark_count',
       names: {
-        en: 'Petals around the app',
-        es: 'Pétalos alrededor de la app',
-        pt: 'Pétalas ao redor do app',
-        fr: "Pétales autour de l'appli",
-        de: 'Blüten rund um die App',
-        it: "Petali intorno all'app",
-        ru: 'Лепестки вокруг приложения',
-        zh: '应用周围的花瓣',
-        ja: 'アプリのまわりの花びら',
-        hi: 'ऐप के आसपास पंखुड़ियाँ',
+        en: 'Sparks around the app',
+        es: 'Chispas alrededor de la app',
+        pt: 'Faíscas ao redor do app',
+        fr: "Étincelles autour de l'appli",
+        de: 'Funken rund um die App',
+        it: "Scintille intorno all'app",
+        ru: 'Искры вокруг приложения',
+        zh: '应用周围的火花',
+        ja: 'アプリのまわりの火の粉',
+        hi: 'ऐप के आसपास चिंगारियाँ',
       },
       value: 0.6,
       targets: [
-        { element: 'petals', field: 'count', min: 4, max: 16 },
-        { element: 'blossoms', field: 'count', min: 1, max: 7 },
-      ],
-    },
-    {
-      id: 'petal_speed',
-      names: {
-        en: 'Petal speed',
-        es: 'Velocidad de los pétalos',
-        pt: 'Velocidade das pétalas',
-        fr: 'Vitesse des pétales',
-        de: 'Tempo der Blüten',
-        it: 'Velocità dei petali',
-        ru: 'Скорость лепестков',
-        zh: '花瓣的速度',
-        ja: '花びらの速さ',
-        hi: 'पंखुड़ियों की गति',
-      },
-      value: 0.4,
-      targets: [
-        { element: 'petals', field: 'speed', min: 0.08, max: 0.6 },
-        { element: 'blossoms', field: 'speed', min: 0.05, max: 0.45 },
+        { element: 'sparks', field: 'count', min: 4, max: 16 },
+        { element: 'lights', field: 'count', min: 1, max: 7 },
       ],
     },
   ],
@@ -234,11 +176,10 @@ export const starterManifest = (name: string, id: string) =>
       contract: SCENE_CONTRACT_VERSION,
       names: { en: name },
       fallbackStyle: 'dots',
-      swatch: ['#0d0b26', '#ff8a4c', '#ffc2d9'],
+      swatch: ['#0a0c22', '#ff5c9d', '#9fe6ff'],
       sourceFile: 'scene.frag',
       // The time of day first, as the Studio asks of every scene
-      // (`sceneDaylight.ts`): the shader draws the hanami by night at 0 and
-      // by day at 100.
+      // (`sceneDaylight.ts`): the shader draws night at 0 and day at 100.
       params: [SCENE_DAYLIGHT_CONTROL, ...STARTER_PARAMS],
       response: STARTER_RESPONSE,
       ambient: STARTER_AMBIENT,

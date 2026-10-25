@@ -3,11 +3,6 @@ import { useTranslation } from '../utils/I18nContext';
 import StudioShipMore, { type IShipMoreItem } from './StudioShipMore';
 
 interface IStudioShipCardProps {
-  /**
-   * In the gallery now. Until it is, the scene is a draft: it goes into the
-   * looks only once published, so publishing is what this card recommends.
-   */
-  published: boolean;
   /** No scene that plays and passes, so nothing can be kept or sent yet. */
   unfit: boolean;
   onAdd: () => void;
@@ -24,16 +19,18 @@ interface IStudioShipCardProps {
  * What to do with the scene once it plays, at the end of the Studio's bar
  * (layout A, Ivan 2026-09-27): publish it to the gallery, keep it in the
  * member's looks, and behind More, send it as a file or play it on the
- * desktop. A draft plays in the looks only once published (Ivan, 2026-10-18:
- * "necesitan publicar para poder ver"), so Publish wears the loud style
- * until it is, and Add after; the bench shows `StudioShipInspect` for one of
+ * desktop. A maker's own scene plays in their looks and on the graph
+ * whether or not it is published: they try it there until it is done, and
+ * publish it to share it and earn (Ivan, 2026-10-21: "they will publish to
+ * earn money when the scene is fully done and tested in the grahp"). So Add
+ * wears the loud style, the step taken over and over while a scene is made,
+ * and Publish the quiet one; the bench shows `StudioShipInspect` for one of
  * FluidEQ's scenes opened to look inside.
  *
  * In the bar they are in reach wherever the page was left: at the foot of the
  * side column they were a card pinned over everything that scrolled there.
  */
 export default function StudioShipCard({
-  published,
   unfit,
   onAdd,
   publishing,
@@ -81,7 +78,7 @@ export default function StudioShipCard({
       <StudioShipMore items={more} />
       <button
         type="button"
-        className={`button small${published ? ' subtle' : ''}${publishing ? ' is-running' : ''}`}
+        className={`button small subtle${publishing ? ' is-running' : ''}`}
         aria-busy={publishing}
         onClick={onPublish}
         disabled={unfit}
@@ -91,7 +88,7 @@ export default function StudioShipCard({
       </button>
       <button
         type="button"
-        className={`button small${published ? '' : ' subtle'} studio-ship__add`}
+        className="button small studio-ship__add"
         onClick={onAdd}
         disabled={unfit}
       >

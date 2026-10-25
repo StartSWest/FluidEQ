@@ -76,12 +76,6 @@ export interface IStudioProjectsIpcDeps {
   store: IMemberSceneStore;
   /** Read fresh on every call: the Studio is any signed-in account's. */
   accountId: () => string | undefined;
-  /**
-   * Whether this account may play a look anywhere (`mayPlayLook`): a scene
-   * goes into the looks from here only once it would play there, which for
-   * the member's own is once it is published.
-   */
-  mayKeep: (lookId: string) => boolean;
   /** The member scenes list changed: "Add to my looks" and a settings save. */
   announceScenes: () => void;
   logger?: { info(message: string): void; warn(message: string): void };
@@ -107,6 +101,8 @@ export interface IStudioProjectsIpcRegistration {
    * the account may use and the Studio is told.
    */
   accountChanged(): void;
+  /** The Studio told again, so the bench shows its looks copy as it now is. */
+  announceStudio(): void;
   dispose(): void;
 }
 
@@ -132,7 +128,6 @@ export const registerStudioProjectsIpc = ({
   documentsDir,
   store,
   accountId,
-  mayKeep,
   announceScenes,
   logger,
   dialogImpl = dialog,
@@ -207,7 +202,6 @@ export const registerStudioProjectsIpc = ({
   const looksCopy = createStudioLooksCopy({
     store,
     accountId,
-    mayKeep,
     activeFolder,
     activeIsInspection,
     announceScenes,
@@ -444,6 +438,7 @@ export const registerStudioProjectsIpc = ({
       bench.start();
       announceStudio();
     },
+    announceStudio,
     dispose: () => {
       bench.stop();
       disposePanes();

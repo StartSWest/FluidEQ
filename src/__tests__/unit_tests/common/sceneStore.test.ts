@@ -134,16 +134,16 @@ describe('which scenes play', () => {
     expect(play(memberLookId(ADA, 'other'), true)).toBe(true);
   });
 
-  it('plays a maker’s own scene once it is published and never a draft, Plus or not', () => {
+  it('plays a maker’s own scene before and after publishing, Plus or not', () => {
     expect(play(memberLookId(ME, 'mine-out'), false)).toBe(true);
-    expect(play(memberLookId(ME, 'mine-draft'), false)).toBe(false);
-    expect(play(memberLookId(ME, 'mine-draft'), true)).toBe(false);
+    expect(play(memberLookId(ME, 'mine-draft'), false)).toBe(true);
+    expect(play(memberLookId(ME, 'mine-draft'), true)).toBe(true);
   });
 
-  it('plays a maker’s own scene as before, with Plus, while the server has not said what is published', () => {
+  it('plays a maker’s own work without waiting for the server’s publication list', () => {
     const older = { ...store, published: undefined };
     expect(play(memberLookId(ME, 'mine-draft'), true, older)).toBe(true);
-    expect(play(memberLookId(ME, 'mine-draft'), false, older)).toBe(false);
+    expect(play(memberLookId(ME, 'mine-draft'), false, older)).toBe(true);
   });
 
   it('plays a FluidEQ scene made free for everyone signed in, and never a member scene by that list', () => {
@@ -168,10 +168,12 @@ describe('which scenes play', () => {
     expect(play(premiumLookId('ember'), false, admin)).toBe(true);
     expect(play(memberLookId(ADA, 'other'), false, admin)).toBe(true);
     expect(play(memberLookId(ME, 'mine-draft'), false, admin)).toBe(true);
-    // The control: the same store without the flag plays none of them.
+    // Without admin, somebody else's unowned scene stays locked; their own
+    // work still plays, independently of publication or the admin flag.
     const plain = { ...admin, everything: undefined };
     expect(play(premiumLookId('ember'), false, plain)).toBe(false);
-    expect(play(memberLookId(ME, 'mine-draft'), false, plain)).toBe(false);
+    expect(play(memberLookId(ADA, 'other'), false, plain)).toBe(false);
+    expect(play(memberLookId(ME, 'mine-draft'), false, plain)).toBe(true);
   });
 
   it('says whether anything plays at all, for the lights', () => {

@@ -6,39 +6,31 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 const insights = {
   'insights.tab': 'Любимые',
-  'insights.loading': 'Загружаются сцены, которые смотрят участники',
+  'insights.loading': 'Загружаются сцены, которые получают участники',
   'insights.period': 'Период',
   'insights.period.week': '7 дней',
   'insights.period.month': '30 дней',
   'insights.period.quarter': '90 дней',
   'insights.period.all': 'За всё время',
   'insights.favourites.hint':
-    'Каждая сцена, которую за этот период воспроизводили, добавляли или лайкали, по числу людей, которые её воспроизводили, затем по времени на экране. Ваши собственные проверки не учитываются.',
-  'insights.favourites.summary': 'Сцен воспроизведено: {scenes}, всего {time}',
+    'Каждая сцена, которую за этот период добавляли или лайкали, по числу добавлений, затем по лайкам. Ваши собственные не учитываются.',
+  'insights.favourites.summary':
+    'Сцен добавлено: {scenes}, добавлений всего: {adds}',
   'insights.favourites.empty':
-    'За этот период ни одну сцену не воспроизводили, не добавляли и не лайкали.',
-  'insights.favourites.kinds': 'Время на экране по видам',
-  'insights.favourites.noPlays':
-    'За этот период пока ничего не воспроизводилось.',
+    'За этот период ни одну сцену не добавляли и не лайкали.',
+  'insights.favourites.kinds': 'Добавления по видам',
+  'insights.favourites.noAdds': 'За этот период пока ничего не добавлялось.',
   'insights.favourites.advice':
-    'На «{kind}» приходится {share} всего просмотра, сцен: {count}. Больше сцен вида «{kind}» — самая надёжная ставка.',
+    'На «{kind}» приходится {share} всех добавлений, сцен: {count}. Больше сцен вида «{kind}» — самая надёжная ставка.',
   'insights.col.rank': 'Место',
   'insights.col.scene': 'Сцена',
-  'insights.col.people': 'Людей',
-  'insights.col.time': 'Время',
-  'insights.col.perPerson': 'На человека',
   'insights.col.adds': 'Добавления',
   'insights.col.likes': 'Лайки',
   'insights.account.title': 'Сцены',
-  'insights.account.empty':
-    'Пока ни одна сцена не добавлена, не лайкнута и не воспроизведена. Время воспроизведения учитывается, как только участник запускает эту версию FluidEQ и видел обновлённые условия.',
-  'insights.account.played': 'Воспроизведено сцен',
-  'insights.account.time': 'На экране',
+  'insights.account.empty': 'Пока ни одна сцена не добавлена и не лайкнута.',
   'insights.account.added': 'Добавлено',
   'insights.account.liked': 'Лайкнуто',
   'insights.account.kind': 'Любимый вид',
-  'insights.account.notPlayed': 'Не воспроизводилась',
-  'insights.account.days': 'Дней: {days} · последний раз {date}',
   'insights.by': 'автор: {maker}',
   'insights.byFluidEQ': 'автор: FluidEQ',
   'insights.member': 'участник',
@@ -46,7 +38,6 @@ const insights = {
   'insights.chip.liked': 'Лайк',
   'insights.chip.unpublished': 'Не опубликована',
   'insights.kind.other': 'Без категории',
-  'insights.time.hoursMinutes': '{hours} {minutes}',
   'insights.error.offline':
     'FluidEQ не удалось связаться со своим сервером. Проверьте подключение и попробуйте ещё раз.',
   'insights.error.signedOut': 'Войдите снова, чтобы это увидеть.',

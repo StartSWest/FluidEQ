@@ -15,7 +15,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { EventEmitter } from 'events';
+import { ipcMain } from 'electron';
 import { RENDERER_READY_EVENT } from 'common/constants';
+import { GROUP_MEDIA_WATCH } from 'common/groupMediaTransport';
 import type { IMainWindowDeps } from '../../../main/mainWindow';
 import type { TWindowModes } from '../../../main/windowMode';
 
@@ -95,6 +97,8 @@ jest.mock('electron', () => {
       off: jest.fn(),
     },
     ipcMain: {
+      handle: jest.fn(),
+      removeHandler: jest.fn(),
       on: (channel: string, listener: TListener) => {
         const set = ipcListeners.get(channel) ?? new Set<TListener>();
         set.add(listener);
@@ -178,6 +182,7 @@ beforeEach(() => {
   windows.length = 0;
   ipcListeners.clear();
   saveWindowState.mockClear();
+  jest.mocked(ipcMain.handle).mockClear();
 });
 
 afterEach(() => {
@@ -210,6 +215,10 @@ describe('when the window appears', () => {
 
   it('is not decided by ready-to-show, and no clock is started for it', () => {
     const { window } = open();
+    expect(ipcMain.handle).toHaveBeenCalledWith(
+      GROUP_MEDIA_WATCH,
+      expect.any(Function),
+    );
     window.emit('ready-to-show');
     expect(window.show).not.toHaveBeenCalled();
     expect(jest.getTimerCount()).toBe(0);

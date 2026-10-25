@@ -11,6 +11,7 @@ import os from 'os';
 import path from 'path';
 
 let mockEncryptionAvailable = true;
+let mockDecryptionFails = false;
 
 jest.mock('electron', () => ({
   safeStorage: {
@@ -18,10 +19,14 @@ jest.mock('electron', () => ({
     getSelectedStorageBackend: () => 'gnome_libsecret',
     encryptString: (value: string) =>
       Buffer.from(value, 'utf8').map((byte) => (byte + 165) % 256),
-    decryptString: (value: Buffer) =>
-      Buffer.from(Buffer.from(value).map((byte) => (byte + 91) % 256)).toString(
-        'utf8',
-      ),
+    decryptString: (value: Buffer) => {
+      if (mockDecryptionFails) {
+        throw new Error('Keychain is locked.');
+      }
+      return Buffer.from(
+        Buffer.from(value).map((byte) => (byte + 91) % 256),
+      ).toString('utf8');
+    },
   },
 }));
 
@@ -48,6 +53,7 @@ describe('secure LAN audio reconnect credentials', () => {
 
   beforeEach(() => {
     mockEncryptionAvailable = true;
+    mockDecryptionFails = false;
     directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-lan-audio-'));
   });
 
@@ -146,4 +152,52 @@ describe('secure LAN audio reconnect credentials', () => {
       'Secure credential storage is unavailable.',
     );
   });
+
+  it('keeps existing pairings intact while the OS credential store is locked', () => {
+    const store = createRemoteAudioCredentialStore(directory);
+    store.writeIdentity(identity);
+    store.addJoin(codeA, () => false);
+    const file = path.join(directory, 'remote-audio-lan.json');
+    const before = fs.readFileSync(file, 'utf8');
+    mockEncryptionAvailable = false;
+    expect(() => store.read()).toThrow('preserved');
+    expect(() =>
+      store.writeIdentity({ ...identity, secret: 'x'.repeat(43) }),
+    ).toThrow('preserved');
+    expect(fs.readFileSync(file, 'utf8')).toBe(before);
+    mockEncryptionAvailable = true;
+    expect(createRemoteAudioCredentialStore(directory).read()).toEqual({
+      identity,
+      joins: [codeA],
+      revoked: [],
+    });
+  });
+
+  it('does not replace an identity or codes after a temporary decrypt failure', () => {
+    const store = createRemoteAudioCredentialStore(directory);
+    store.writeIdentity(identity);
+    store.addJoin(codeA, () => false);
+    const file = path.join(directory, 'remote-audio-lan.json');
+    const before = fs.readFileSync(file, 'utf8');
+    mockDecryptionFails = true;
+    expect(() =>
+      store.writeIdentity({ ...identity, secret: 'x'.repeat(43) }),
+    ).toThrow('preserved');
+    expect(fs.readFileSync(file, 'utf8')).toBe(before);
+    mockDecryptionFails = false;
+    expect(store.read().identity).toEqual(identity);
+    expect(store.read().joins).toEqual([codeA]);
+  });
+
+  it.each(['{"version":4,', '{"version":99,"encrypted":"future-format"}'])(
+    'refuses to overwrite an unreadable or newer saved format: %s',
+    (contents) => {
+      const file = path.join(directory, 'remote-audio-lan.json');
+      fs.writeFileSync(file, contents);
+      const store = createRemoteAudioCredentialStore(directory);
+      expect(() => store.read()).toThrow('preserved');
+      expect(() => store.writeIdentity(identity)).toThrow('preserved');
+      expect(fs.readFileSync(file, 'utf8')).toBe(contents);
+    },
+  );
 });

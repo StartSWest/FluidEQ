@@ -16,7 +16,7 @@ const announce = {
   'announce.untitled': 'New scenes',
   'announce.tab': 'Announcements',
   'announce.pageHint':
-    'Each person sees an announcement once, big, over whatever they have open. Members whose trial ends within two days also see a line about keeping Plus.',
+    'Each person sees an announcement once, big, over whatever they have open. Members whose trial ends within two days also see a line about keeping their membership.',
   'announce.field.title': 'Title',
   'announce.field.titlePlaceholder': 'For example: Night Drive',
   'announce.field.body': 'What it is',
@@ -30,8 +30,8 @@ const announce = {
   'announce.field.audience': 'Who sees it',
   'announce.audience.everyone': 'Everyone signed in',
   'announce.audience.everyoneLine':
-    'Plus members, trials and free accounts. Free accounts are sent to Visualizers to try the scenes.',
-  'announce.audience.members': 'Plus members and trials',
+    'Members, trials and free accounts. Free accounts are sent to Visualizers to try the scenes.',
+  'announce.audience.members': 'Members and trials',
   'announce.audience.membersLine': 'Everyone who can play the scenes now.',
   'announce.audience.trialEnding': 'Only trials ending within 2 days',
   'announce.audience.trialEndingLine':

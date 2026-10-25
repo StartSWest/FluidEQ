@@ -167,7 +167,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.brightness': 'Luminosità',
   'graph.sceneTint.rainbow': 'Modalità arcobaleno',
   'graph.sceneTint.rainbowHint':
-    'Le bande, il titolo e i controlli accesi in una tavolozza invece che in un solo colore; con un visualizzatore Plus, nei suoi colori.',
+    'Le bande, il titolo e i controlli accesi in una tavolozza invece che in un solo colore; con una scena scelta, nei suoi colori.',
   'graph.sceneTint.sparks': 'Scintille del puntatore',
   'graph.sceneTint.sparksHint':
     'Ciò che il visualizzatore lancia dal mouse: una scia mentre attraversa l’immagine e uno scoppio dove fai clic - scintille, petali, neve, ciò di cui è fatta la scena.',
@@ -198,7 +198,7 @@ const eq: Partial<Dictionary> = {
   'graph.member.likeOffline': 'Per i mi piace serve una connessione',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.scene.badge': 'Plus',
+  'graph.scene.badge': 'Scena',
   'graph.scene.report': 'Segnala {name}',
   'graph.version.new': 'Nuovo',
   'graph.version.caption': 'v{version} · {note}',
@@ -268,14 +268,13 @@ const eq: Partial<Dictionary> = {
   'graph.scene.gpu.auto': 'Decide Windows',
   'graph.scene.gpu.high': 'Prestazioni elevate',
   'graph.scene.gpu.restart': 'dopo il riavvio',
-  'graph.scene.locked':
-    'Parte di FluidEQ Plus. Scegli questo aspetto per vedere come sbloccarlo.',
+  'graph.scene.locked': 'Non è ancora tua. Sceglila per vedere come ottenerla.',
   'graph.style.next': 'Stile successivo',
   'graph.style.previous': 'Stile precedente',
   'graph.picker.label': 'Stili e visualizzatori',
   'graph.picker.search': 'Cerca stili e visualizzatori',
   'graph.picker.styles': 'Stili',
-  'graph.picker.plus': 'Visualizzatori Plus',
+  'graph.picker.plus': 'Visualizzatori',
   'graph.picker.all': 'Tutti',
   'graph.picker.yours': 'Tuoi',
   'graph.picker.filterStyles': 'Filtra stili',

@@ -32,7 +32,7 @@ const tour = {
   'tour.player.title': 'FluidEQ, folded into a player',
   'tour.player.subtitle': 'One switch turns the window into a player',
   'tour.player.lead':
-    'One switch in the title bar folds all of FluidEQ into a player. It is the classic amp, with its LED clock, its lamps and the whole equaliser; on the {backdrop}, over a Plus visualizer, it turns to glass. The same switch takes you back to the page you left.',
+    'One switch in the title bar folds all of FluidEQ into a player. It is the classic amp, with its LED clock, its lamps and the whole equaliser; on the {backdrop}, over a scene, it turns to glass. The same switch takes you back to the page you left.',
   'tour.player.point1':
     'The whole equaliser comes along: presets, band layouts, EQ mode, Smart EQ, Bass, Mid and Treble.',
   'tour.player.point2':
@@ -51,7 +51,7 @@ const tour = {
   'tour.look.title': 'A new window, in new colours',
   'tour.look.subtitle': 'One theme slider, and a visualizer behind it all',
   'tour.look.lead':
-    'The panes stand on one open floor in the colours of the new icon, and one slider, {brightness}, takes the whole window from near-black to a light ocean blue. With a Plus visualizer on the graph, the window can take its colours, or let it play behind everything.',
+    'The panes stand on one open floor in the colours of the new icon, and one slider, {brightness}, takes the whole window from near-black to a light ocean blue. With a scene on the graph, the window can take its colours, or let it play behind everything.',
   'tour.look.point1':
     '{brightness} sits in the menu behind the pulse icon, and beside {transparency} under {windowColours}.',
   'tour.look.point2':
@@ -59,7 +59,7 @@ const tour = {
   'tour.look.point3':
     'Dialogs and menus share one material, and {rainbow} runs through the icon’s colours, or a visualizer’s own.',
   'tour.look.how':
-    'Move {brightness} in the menu behind the pulse icon at the top right. With a Plus visualizer on the graph, open {windowColours} from the graph’s bar and choose {backdrop}.',
+    'Move {brightness} in the menu behind the pulse icon at the top right. With a scene on the graph, open {windowColours} from the graph’s bar and choose {backdrop}.',
   'tour.look.open': 'Open EQ',
   'tour.look.imageAlt':
     'FluidEQ in its own colours on the EQ page, the Analyzer drawing a song under the curves, and the menu behind the pulse icon open over its corner, with Brightness at half and Rainbow mode on.',
@@ -67,7 +67,7 @@ const tour = {
   'tour.gpu.title': 'Every visualizer on your graphics card',
   'tour.gpu.subtitle': "Forty looks at your screen's own speed, and 3D worlds",
   'tour.gpu.lead':
-    "The graph's forty looks now draw on the engine the Plus scenes run on: on your graphics card, at your screen's own refresh rate, so bars, particles and peaks glide where they used to step. And a Plus visualizer can now be a real 3D world.",
+    "The graph's forty looks now draw on the engine the scenes run on: on your graphics card, at your screen's own refresh rate, so bars, particles and peaks glide where they used to step. And a scene can now be a real 3D world.",
   'tour.gpu.point1':
     "Eighteen new looks under {scenes}, among them {synthwave}, {horizon}, {towers} and {ledwall}; a look with no colours of its own wears the window's.",
   'tour.gpu.point2':
@@ -78,13 +78,13 @@ const tour = {
     "Click the look's name on the graph and pick one under {scenes}.",
   'tour.gpu.open': 'Open EQ',
   'tour.gpu.imageAlt':
-    'A Plus visualizer that is a 3D city by night, and four new looks photographed on the graph — {synthwave}, {horizon}, {towers} and {ledwall} — with the look picker ringed on the first.',
+    'A scene that is a 3D city by night, and four new looks photographed on the graph — {synthwave}, {horizon}, {towers} and {ledwall} — with the look picker ringed on the first.',
   'tour.gpu.world': '3D world',
   'tour.sparks.kicker': 'POINTER SPARKS',
   'tour.sparks.title': 'Visualizers that answer your mouse',
   'tour.sparks.subtitle': 'Sparks, petals or snow from the pointer',
   'tour.sparks.lead':
-    'Move the mouse across a Plus visualizer and it throws what it is made of — sparks, petals, snow, embers — in a trail behind the pointer, and bursts wherever you click. In {ambient} and on the {backdrop}, its birds, petals and lights drift over the whole window too.',
+    'Move the mouse across a scene and it throws what it is made of — sparks, petals, snow, embers — in a trail behind the pointer, and bursts wherever you click. In {ambient} and on the {backdrop}, its birds, petals and lights drift over the whole window too.',
   'tour.sparks.point1':
     'Each visualizer throws its own: snow from a winter scene, embers from a campfire, petals from a garden.',
   'tour.sparks.point2':
@@ -92,7 +92,7 @@ const tour = {
   'tour.sparks.point3':
     'One switch for every visualizer: {sparks}, in {windowColours} under {rainbow}.',
   'tour.sparks.how':
-    'With a Plus visualizer on the graph, move the mouse over it and click. {sparks} is in {windowColours}, under {rainbow}.',
+    'With a scene on the graph, move the mouse over it and click. {sparks} is in {windowColours}, under {rainbow}.',
   'tour.sparks.open': 'Open EQ',
   'tour.sparks.imageAlt':
     'An aurora visualizer with a trail of glowing sparks behind the pointer and a burst where it clicked, and {windowColours} with its {sparks} switch ringed.',
@@ -198,8 +198,8 @@ const tour = {
     'Scenes can be real 3D worlds that step on the kick and leap at the drop.',
   'tour.studio.point3':
     'Copy the AI prompt and your AI assistant can see your scene and hear how the song moves.',
-  'tour.studio.how': 'Open Plus and choose Studio in its rail.',
-  'tour.studio.open': 'Open Plus',
+  'tour.studio.how': 'Open Visualizers and choose Studio in its rail.',
+  'tour.studio.open': 'Open Visualizers',
   'tour.studio.imageAlt':
     'The Studio playing Alpine on its stage, a lake under snowy peaks and an aurora, with the three steps to make a scene with your AI under it, and two notes: free for every account, and a published scene plays free for its maker.',
   'tour.studio.earned': 'Published: plays free for you',
@@ -277,10 +277,10 @@ const tour = {
   'tour.plus.point3':
     'Every scene can be watched first, and the ones you get play on every computer you sign in to.',
   'tour.plus.how':
-    'Open the Plus tab: Visualizers, the Studio and Dynamic lighting are down its left side.',
-  'tour.plus.open': 'Open Plus',
+    'Open the Visualizers tab: the Gallery, the Studio and Dynamic lighting are down its left side.',
+  'tour.plus.open': 'Open Visualizers',
   'tour.plus.imageAlt':
-    'The Plus tab: Visualizers, Studio and Dynamic lighting down the side, and the Visualizers gallery with Chrome, Bloom, Aurora, Alpine and Neon City.',
+    'The Visualizers tab: Gallery, Studio and Dynamic lighting down the side, and the Gallery with Chrome, Bloom, Aurora, Alpine and Neon City.',
   // The scenes the tour's pictures show, by the names they are published
   // under in each language.
   'tour.scene.alpine': 'Alpine',
@@ -293,24 +293,24 @@ const tour = {
   'tour.visualizers.title': 'Scenes that move with your music',
   'tour.visualizers.subtitle': 'Drawn on your graphics card',
   'tour.visualizers.lead':
-    'Plus visualizers are living scenes — mountains under the stars, curtains of aurora, a neon city — drawn on your graphics card under your EQ curves. The bass, the beat and the treble each move something different, and the window around them can take on their colours.',
+    'Scenes are living pictures — mountains under the stars, curtains of aurora, a neon city — drawn on your graphics card under your EQ curves. The bass, the beat and the treble each move something different, and the window around them can take on their colours.',
   'tour.visualizers.point1':
-    'One picker for everything: {styles} free styles to shape and colour, and Plus visualizers by category.',
+    'One picker for everything: {styles} free styles to shape and colour, and scenes by category.',
   'tour.visualizers.point2':
     'Browse the gallery, try FluidEQ’s samples for ten seconds, and add the scenes you like.',
   'tour.visualizers.point3':
     'Switch looks automatically, go full screen, and set a scene’s attack and release in View.',
   'tour.visualizers.how':
-    'Click the look’s name on the graph and choose a scene under Plus visualizers, or browse them all in Plus → Visualizers.',
+    'Click the look’s name on the graph and choose one under Visualizers, or browse them all in Visualizers → Gallery.',
   'tour.visualizers.open': 'Open EQ',
   'tour.visualizers.imageAlt':
-    'Alpine, a Plus visualizer of mountains over a lake at night, playing on the graph under the EQ curves, with four more scenes below it.',
+    'Alpine, a scene of mountains over a lake at night, playing on the graph under the EQ curves, with four more scenes below it.',
 
   'tour.desktop.kicker': 'DESKTOP VISUALIZER',
   'tour.desktop.title': 'Your music behind your desktop',
   'tour.desktop.subtitle': 'A scene on every monitor',
   'tour.desktop.lead':
-    'Put a Plus visualizer behind your desktop icons. It moves with whatever you are listening to, or calmly on its own, and every monitor can show a scene of its own.',
+    'Put a scene behind your desktop icons. It moves with whatever you are listening to, or calmly on its own, and every monitor can show a scene of its own.',
   'tour.desktop.point1':
     'Pick monitors on a map of your desk, each with its own visualizer.',
   'tour.desktop.point2':
@@ -318,16 +318,16 @@ const tour = {
   'tour.desktop.point3':
     'It comes back by itself the next time FluidEQ starts.',
   'tour.desktop.how':
-    'With a Plus visualizer on the graph, press the monitor button beside its name, or choose View → Set as desktop background.',
+    'With a scene on the graph, press the monitor button beside its name, or choose View → Set as desktop background.',
   'tour.desktop.open': 'Open EQ',
   'tour.desktop.imageAlt':
-    'Three monitors, each showing a Plus visualizer — Aurora, Alpine and Neon City — behind its desktop icons and taskbar.',
+    'Three monitors, each showing a scene — Aurora, Alpine and Neon City — behind its desktop icons and taskbar.',
 
   'tour.lighting.kicker': 'DYNAMIC LIGHTING',
   'tour.lighting.title': 'Your desk lights up with the scene',
   'tour.lighting.subtitle': 'Beta · your RGB devices follow the visualizer',
   'tour.lighting.lead':
-    'Your keyboard, mouse, mousepad, headset and stand take the colours and the rhythm of the Plus visualizer on the graph, through Windows Dynamic Lighting and Razer Chroma.',
+    'Your keyboard, mouse, mousepad, headset and stand take the colours and the rhythm of the scene on the graph, through Windows Dynamic Lighting and Razer Chroma.',
   'tour.lighting.point1':
     'Four styles for each visualizer: Scene, Colour wave, Spectrum and Beat ripple.',
   'tour.lighting.point2':
@@ -335,8 +335,8 @@ const tour = {
   'tour.lighting.point3':
     'A live preview draws your own desk as it lights. It is in beta: tell us how your devices behave.',
   'tour.lighting.how':
-    'Open Plus → Dynamic lighting and switch it on, then put a Plus visualizer on the graph.',
-  'tour.lighting.open': 'Open Plus',
+    'Open Visualizers → Dynamic lighting and switch it on, then put a scene on the graph.',
+  'tour.lighting.open': 'Open Visualizers',
   'tour.lighting.imageAlt':
     'A keyboard, mouse and mousepad lit in the pink, violet and cyan of Neon City.',
 
@@ -626,7 +626,7 @@ const tour = {
     'It runs on Claude Code installed on this computer, on your own plan, and shows how much of your limits is left. With ChatGPT connected it can paint pictures for the scene, asking you before each one.',
   'tour.chat.how':
     'Open {plus}, choose {studio} in its rail, pick a scene or start one, and type in the box beside the stage.',
-  'tour.chat.open': 'Open Plus',
+  'tour.chat.open': 'Open Visualizers',
   'tour.chat.imageAlt':
     'The Studio’s stage beside its chat: a request to make the stage lights flash on the snare, the steps of the reply ticking in, version 2 kept with Bring back, and the stage’s lights starting to flash as version 2 plays.',
   'tour.chat.ask': 'Make the stage lights flash on the snare.',

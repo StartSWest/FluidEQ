@@ -10,6 +10,12 @@ jest.mock('../../../main/remoteAudioLanJoin', () => {
 
 // eslint-disable-next-line import/first
 import { createLanJoins } from '../../../main/remoteAudioLanJoins';
+// eslint-disable-next-line import/first -- keep the mocked join boundary above
+import {
+  LanJoinClosed,
+  CLOSE_FORGET,
+  CLOSE_ALREADY_LINKED,
+} from '../../../main/remoteAudioLanJoin';
 // eslint-disable-next-line import/first
 import {
   computerIdOf,
@@ -35,7 +41,6 @@ const joinsAs = (selfId: string, inboundLive = false) => {
     self: () => ({ computerId: selfId, deviceName: 'ME' }),
     askWhoIsThere: jest.fn(),
     inboundLive: jest.fn(() => inboundLive),
-    forgotten: jest.fn(),
   };
   return { joins: createLanJoins(deps), deps };
 };
@@ -129,5 +134,84 @@ describe('joining every computer whose code was pasted', () => {
 
     joins.inboundClosed(computerIdOf('c'.repeat(43)));
     expect(mockJoinAt).toHaveBeenCalled();
+  });
+
+  it('chooses one direction before either simultaneous handshake completes', () => {
+    const target = pairing('b'.repeat(43));
+    const below = joinsAs('-'.repeat(32));
+    below.joins.join(target, false);
+    mockJoinAt.mock.calls[0][0].onChallenge();
+    const ownAttempts = mockJoinAt.mock.results.map(
+      (result) => result.value.cancel,
+    );
+    expect(below.joins.inboundArrived(computerIdOf(target.secret))).toBe(
+      'refuse',
+    );
+    ownAttempts.forEach((cancel) => expect(cancel).not.toHaveBeenCalled());
+    mockJoinAt.mockClear();
+    const above = joinsAs('z'.repeat(32));
+    above.joins.join(target, false);
+    mockJoinAt.mock.calls[0][0].onChallenge();
+    expect(above.joins.inboundArrived(computerIdOf(target.secret))).toBe(
+      'accept',
+    );
+    mockJoinAt.mock.results.forEach((result) =>
+      expect(result.value.cancel).toHaveBeenCalled(),
+    );
+  });
+
+  it('accepts a reachable inbound peer while its old address has not answered', () => {
+    const target = pairing('b'.repeat(43));
+    const { joins } = joinsAs('-'.repeat(32));
+    joins.join(target, false);
+    expect(joins.inboundArrived(computerIdOf(target.secret))).toBe('accept');
+    mockJoinAt.mock.results.forEach((result) =>
+      expect(result.value.cancel).toHaveBeenCalled(),
+    );
+  });
+
+  it('keeps a saved pairing after a legacy duplicate/forget close and can retry it', async () => {
+    mockJoinAt.mockImplementation(() => ({
+      joined: Promise.reject(new LanJoinClosed(CLOSE_FORGET)),
+      cancel: jest.fn(),
+    }));
+    const { joins } = joinsAs('m'.repeat(32));
+    const id = joins.join(pairing('b'.repeat(43)), false);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(joins.has(id)).toBe(true);
+    mockJoinAt.mockClear();
+    joins.retry();
+    expect(mockJoinAt).toHaveBeenCalledTimes(2);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(joins.has(id)).toBe(true);
+  });
+
+  it('ignores cancelled handshake results after a newer reconnect round starts', async () => {
+    const rejects: ((error: Error) => void)[] = [];
+    const cancels: jest.Mock[] = [];
+    mockJoinAt.mockImplementation(() => {
+      const cancel = jest.fn();
+      cancels.push(cancel);
+      return {
+        joined: new Promise((_resolve, reject) => {
+          rejects.push(reject);
+        }),
+        cancel,
+      };
+    });
+    const { joins, deps } = joinsAs('m'.repeat(32));
+    const target = pairing('b'.repeat(43));
+    joins.join(target, false);
+    joins.retry();
+    deps.inboundLive.mockReturnValue(true);
+    rejects[0](new LanJoinClosed(CLOSE_ALREADY_LINKED));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(cancels[2]).not.toHaveBeenCalled();
+    expect(cancels[3]).not.toHaveBeenCalled();
+    joins.join(target, false);
+    expect(mockJoinAt).toHaveBeenCalledTimes(4);
   });
 });

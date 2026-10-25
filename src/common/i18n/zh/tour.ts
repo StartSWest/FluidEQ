@@ -22,7 +22,7 @@ const tour: Partial<Dictionary> = {
   'tour.player.title': 'FluidEQ，折叠成一台播放器',
   'tour.player.subtitle': '一个开关，把窗口变成播放器',
   'tour.player.lead':
-    '标题栏里的一个开关，就能把整个 FluidEQ 收成一个播放器。它是经典功放，带 LED 时钟、指示灯和完整的均衡器；在“{backdrop}”模式下、Plus 可视化效果之上，它会变成玻璃。同一个开关会带你回到离开时的页面。',
+    '标题栏里的一个开关，就能把整个 FluidEQ 收成一个播放器。它是经典功放，带 LED 时钟、指示灯和完整的均衡器；在“{backdrop}”模式下、场景之上，它会变成玻璃。同一个开关会带你回到离开时的页面。',
   'tour.player.point1':
     '完整的均衡器一并带上：预设、频段布局、EQ 模式、智能均衡，以及低音、中音和高音。',
   'tour.player.point2':
@@ -40,7 +40,7 @@ const tour: Partial<Dictionary> = {
   'tour.look.title': '全新的窗口，全新的颜色',
   'tour.look.subtitle': '一个主题滑块，所有内容背后都能有可视化效果',
   'tour.look.lead':
-    '各个面板立在同一块开放的底面上，用的是新图标的配色；一个滑块“{brightness}”就能让整个窗口从近乎黑色过渡到明亮的海洋蓝。图表上有 Plus 可视化效果时，窗口可以采用它的颜色，也可以让它在所有内容背后播放。',
+    '各个面板立在同一块开放的底面上，用的是新图标的配色；一个滑块“{brightness}”就能让整个窗口从近乎黑色过渡到明亮的海洋蓝。图表上有场景时，窗口可以采用它的颜色，也可以让它在所有内容背后播放。',
   'tour.look.point1':
     '“{brightness}”位于脉冲图标后的菜单中，在“{windowColours}”里则与“{transparency}”并排。',
   'tour.look.point2':
@@ -48,7 +48,7 @@ const tour: Partial<Dictionary> = {
   'tour.look.point3':
     '对话框和菜单使用同一种材质，“{rainbow}”会贯穿图标的颜色，或可视化效果自己的颜色。',
   'tour.look.how':
-    '在右上角脉冲图标后的操作菜单中拖动“{brightness}”。图表上有 Plus 可视化效果时，从图表的工具栏打开“{windowColours}”并选择“{backdrop}”。',
+    '在右上角脉冲图标后的操作菜单中拖动“{brightness}”。图表上有场景时，从图表的工具栏打开“{windowColours}”并选择“{backdrop}”。',
   'tour.look.open': '打开均衡器',
   'tour.look.imageAlt':
     '在“均衡器”页面上以自身配色显示的 FluidEQ：“频谱分析仪”在曲线下方描绘一首歌，角落上方打开了脉冲图标后的菜单，“亮度”在一半，“彩虹模式”已开启。',
@@ -56,7 +56,7 @@ const tour: Partial<Dictionary> = {
   'tour.gpu.title': '所有可视化效果都在你的显卡上运行',
   'tour.gpu.subtitle': '四十种样式跟上屏幕刷新率，还有 3D 世界',
   'tour.gpu.lead':
-    '图表的四十种样式现在都由 Plus 场景所用的引擎绘制：在你的显卡上、以你屏幕自己的刷新率运行，频柱、粒子和峰值从过去的跳动变成流畅滑动。Plus 可视化效果现在还可以是真正的 3D 世界。',
+    '图表的四十种样式现在都由场景所用的引擎绘制：在你的显卡上、以你屏幕自己的刷新率运行，频柱、粒子和峰值从过去的跳动变成流畅滑动。场景现在还可以是真正的 3D 世界。',
   'tour.gpu.point1':
     '“{scenes}”里新增十八种样式，包括“{synthwave}”“{horizon}”“{towers}”和“{ledwall}”；没有自带颜色的样式会使用窗口的颜色。',
   'tour.gpu.point2':
@@ -66,13 +66,13 @@ const tour: Partial<Dictionary> = {
   'tour.gpu.how': '点击图表上的样式名称，在“{scenes}”中选择一种。',
   'tour.gpu.open': '打开均衡器',
   'tour.gpu.imageAlt':
-    '一个呈现夜晚 3D 城市的 Plus 可视化效果，以及在图表上实拍的四种新样式：“{synthwave}”“{horizon}”“{towers}”和“{ledwall}”，第一张中的样式选择器被圈出。',
+    '一个呈现夜晚 3D 城市的场景，以及在图表上实拍的四种新样式：“{synthwave}”“{horizon}”“{towers}”和“{ledwall}”，第一张中的样式选择器被圈出。',
   'tour.gpu.world': '3D 世界',
   'tour.sparks.kicker': '指针火花',
   'tour.sparks.title': '会回应鼠标的可视化效果',
   'tour.sparks.subtitle': '从指针洒出火花、花瓣或雪花',
   'tour.sparks.lead':
-    '把鼠标移过 Plus 可视化效果，它会在指针后面拖出一道由自身元素组成的轨迹——火花、花瓣、雪花、余烬——并在你点击的地方迸发。在“{ambient}”和“{backdrop}”模式下，它的飞鸟、花瓣和光点还会飘过整个窗口。',
+    '把鼠标移过场景，它会在指针后面拖出一道由自身元素组成的轨迹——火花、花瓣、雪花、余烬——并在你点击的地方迸发。在“{ambient}”和“{backdrop}”模式下，它的飞鸟、花瓣和光点还会飘过整个窗口。',
   'tour.sparks.point1':
     '每个可视化效果洒出的都不一样：冬景下雪，篝火飞出余烬，花园飘落花瓣。',
   'tour.sparks.point2':
@@ -80,7 +80,7 @@ const tour: Partial<Dictionary> = {
   'tour.sparks.point3':
     '一个开关管所有可视化效果：“{windowColours}”中“{rainbow}”下方的“{sparks}”。',
   'tour.sparks.how':
-    '图表上有 Plus 可视化效果时，把鼠标移到上面并点击。“{sparks}”在“{windowColours}”中，位于“{rainbow}”下方。',
+    '图表上有场景时，把鼠标移到上面并点击。“{sparks}”在“{windowColours}”中，位于“{rainbow}”下方。',
   'tour.sparks.open': '打开均衡器',
   'tour.sparks.imageAlt':
     '一个极光可视化效果，指针后拖着一道发光的火花轨迹，点击处迸出火花；以及“{windowColours}”，其中的“{sparks}”开关被圈出。',
@@ -180,8 +180,8 @@ const tour: Partial<Dictionary> = {
     '场景可以是真正的 3D 世界，踩着底鼓的节拍，在 drop 时一跃而起。',
   'tour.studio.point3':
     '复制 AI 提示词，你的 AI 助手就能看到你的场景，并听出歌曲如何起伏。',
-  'tour.studio.how': '打开 Plus，在侧栏中选择“工作室”。',
-  'tour.studio.open': '打开 Plus',
+  'tour.studio.how': '打开“可视化”，在侧栏中选择“工作室”。',
+  'tour.studio.open': '打开“可视化”',
   'tour.studio.imageAlt':
     '工作室的舞台上正播放 Alpine：雪峰下的湖泊和极光，下方是用你的 AI 创作场景的三个步骤，以及两条说明：所有账户免费，发布的场景对其作者免费播放。',
   'tour.studio.earned': '已发布：为你免费播放',
@@ -256,10 +256,10 @@ const tour: Partial<Dictionary> = {
   'tour.plus.point3':
     '每个场景都可以先观看，你获取的场景会在你登录的每台电脑上播放。',
   'tour.plus.how':
-    '打开 Plus 标签页：“可视化”“工作室”和“动态灯效”都在它的左侧。',
-  'tour.plus.open': '打开 Plus',
+    '打开“可视化”标签页：“图库”“工作室”和“动态灯效”都在它的左侧。',
+  'tour.plus.open': '打开“可视化”',
   'tour.plus.imageAlt':
-    'Plus 标签页：侧边是可视化、工作室和动态灯效，另有展示铬光、绽放、极光、阿尔卑斯和霓虹之城的“可视化”图库。',
+    '“可视化”标签页：侧边是图库、工作室和动态灯效，另有展示铬光、绽放、极光、阿尔卑斯和霓虹之城的图库。',
   'tour.scene.alpine': '阿尔卑斯',
   'tour.scene.aurora': '极光',
   'tour.scene.bloom': '绽放',
@@ -270,47 +270,47 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.title': '随音乐而动的场景',
   'tour.visualizers.subtitle': '由你的显卡绘制',
   'tour.visualizers.lead':
-    'Plus 可视化效果是由你的显卡在 EQ 曲线下方绘制的鲜活场景：星空下的群山、极光的光幕、霓虹城市。低音、节拍和高音各自带动不同的部分，周围的窗口也能换上它们的颜色。',
+    '场景是由你的显卡在 EQ 曲线下方绘制的鲜活画面：星空下的群山、极光的光幕、霓虹城市。低音、节拍和高音各自带动不同的部分，周围的窗口也能换上它们的颜色。',
   'tour.visualizers.point1':
-    '一个选择器包揽一切：{styles} 种可自行塑形和配色的免费样式，以及按分类排列的 Plus 可视化效果。',
+    '一个选择器包揽一切：{styles} 种可自行塑形和配色的免费样式，以及按分类排列的场景。',
   'tour.visualizers.point2':
     '浏览图库，试看 FluidEQ 的示例场景十秒钟，再添加你喜欢的场景。',
   'tour.visualizers.point3':
     '自动切换外观、全屏显示，还能在“视图”中设置场景的起音和释放。',
   'tour.visualizers.how':
-    '点击图表上的外观名称，在“Plus 可视化效果”下选择一个场景，或在“Plus → 可视化”中浏览全部场景。',
+    '点击图表上的外观名称，在“可视化”下选择一个场景，或在“可视化 → 图库”中浏览全部场景。',
   'tour.visualizers.open': '打开均衡器',
   'tour.visualizers.imageAlt':
-    '阿尔卑斯：一款描绘夜晚湖上群山的 Plus 可视化效果，正在图表上的 EQ 曲线下方播放，下面还有另外四个场景。',
+    '阿尔卑斯：一个描绘夜晚湖上群山的场景，正在图表上的 EQ 曲线下方播放，下面还有另外四个场景。',
 
   'tour.desktop.kicker': '桌面可视化效果',
   'tour.desktop.title': '让音乐在你的桌面背后律动',
   'tour.desktop.subtitle': '每台显示器一个场景',
   'tour.desktop.lead':
-    '把 Plus 可视化效果放到桌面图标后面。它会随你正在听的内容而动，也可以独自平静地播放，而且每台显示器都能显示自己的场景。',
+    '把场景放到桌面图标后面。它会随你正在听的内容而动，也可以独自平静地播放，而且每台显示器都能显示自己的场景。',
   'tour.desktop.point1':
     '在显示器排布图上挑选显示器，每台都能显示自己的可视化效果。',
   'tour.desktop.point2': '窗口盖住显示器、电脑锁定或使用电池供电时，它会暂停。',
   'tour.desktop.point3': '下次启动 FluidEQ 时，它会自动恢复。',
   'tour.desktop.how':
-    '图表上显示 Plus 可视化效果时，按下其名称旁的显示器按钮，或选择“视图 → 设为桌面背景”。',
+    '图表上显示场景时，按下其名称旁的显示器按钮，或选择“视图 → 设为桌面背景”。',
   'tour.desktop.open': '打开均衡器',
   'tour.desktop.imageAlt':
-    '三台显示器，各自在桌面图标和任务栏后方显示一个 Plus 可视化效果：极光、阿尔卑斯和霓虹之城。',
+    '三台显示器，各自在桌面图标和任务栏后方显示一个场景：极光、阿尔卑斯和霓虹之城。',
 
   'tour.lighting.kicker': '动态灯效',
   'tour.lighting.title': '你的桌面随场景亮起',
   'tour.lighting.subtitle': 'Beta · 你的 RGB 设备跟随可视化效果',
   'tour.lighting.lead':
-    '通过 Windows Dynamic Lighting 和 Razer Chroma，你的键盘、鼠标、鼠标垫、耳机和支架会呈现图表上 Plus 可视化效果的色彩与节奏。',
+    '通过 Windows Dynamic Lighting 和 Razer Chroma，你的键盘、鼠标、鼠标垫、耳机和支架会呈现图表上场景的色彩与节奏。',
   'tour.lighting.point1':
     '每个可视化效果有四种风格：“场景”“色彩波浪”“频谱”和“节拍涟漪”。',
   'tour.lighting.point2': '每台设备都能单独调整，还可以选择音乐停止时的效果。',
   'tour.lighting.point3':
     '实时预览会画出你自己的桌面，以及它亮起的样子。它仍处于 Beta 阶段：请告诉我们你的设备表现如何。',
   'tour.lighting.how':
-    '打开“Plus → 动态灯效”并开启它，然后在图表上显示一个 Plus 可视化效果。',
-  'tour.lighting.open': '打开 Plus',
+    '打开“可视化 → 动态灯效”并开启它，然后在图表上显示一个场景。',
+  'tour.lighting.open': '打开“可视化”',
   'tour.lighting.imageAlt':
     '键盘、鼠标和鼠标垫亮起霓虹之城的粉色、紫色和青色。',
 
@@ -599,7 +599,7 @@ const tour: Partial<Dictionary> = {
     '它运行在这台电脑上安装的 Claude Code 上，用你自己的方案，并显示你的额度还剩多少。连接 ChatGPT 后，它可以为场景绘制图片，每张之前都会先问你。',
   'tour.chat.how':
     '打开“{plus}”，在侧栏选择“{studio}”，选择一个场景或新建一个，然后在舞台旁的输入框里输入。',
-  'tour.chat.open': '打开 Plus',
+  'tour.chat.open': '打开“可视化”',
   'tour.chat.imageAlt':
     '工作室的舞台和旁边的聊天：一条让舞台灯随军鼓闪烁的请求，回复的步骤逐一打勾，带“恢复”的版本 2 被保留，版本 2 播放时舞台灯开始闪烁。',
   'tour.chat.ask': '让舞台灯随军鼓闪烁。',

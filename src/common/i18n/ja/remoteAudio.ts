@@ -2,11 +2,25 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.group.title': 'グループ全体',
+  'remoteAudio.group.mix': '自分のミックス',
+  'remoteAudio.group.thisPC': 'このPC',
+  'remoteAudio.group.receive': '受信',
+  'remoteAudio.group.send': '送信',
+  'remoteAudio.group.share': '共有',
+  'remoteAudio.group.options': '{name} のオプション',
+  'remoteAudio.group.count': '{count} 台のコンピューター',
+  'remoteAudio.group.sourceOff': '共有はオフです',
+  'remoteAudio.group.offline': 'オフライン',
+  'remoteAudio.group.unavailable': 'システム音量を利用できません',
+  'remoteAudio.group.mute': 'このPCをミュート',
+  'remoteAudio.group.unmute': 'このPCのミュートを解除',
+  'remoteAudio.group.output': '出力',
+  'remoteAudio.group.hint':
+    'コンピューターを接続してグループに参加します。各コンピューターは自分の音声を他のコンピューターに直接送信します。聞く音量は自分のミックスで調整できます。',
   'tabs.share': '音声を共有',
   'remoteAudio.eyebrow': 'LAN オーディオリンク',
   'remoteAudio.title': 'ほかのコンピューターの音をここで聴く',
-  'remoteAudio.subtitle':
-    '2 台のコンピューターをリンクすると、互いの音を再生します。それぞれ自分の音を手を加えずに送り、聴いている側のコンピューターが自分の EQ・カーブ・DSP をかけます。',
   'remoteAudio.security': '接続の特性',
   'remoteAudio.badge.local': 'プライベート LAN のみ',
   'remoteAudio.badge.lossless': 'ロスレス Float32 PCM 伝送',
@@ -35,13 +49,11 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.rule.steadyTitle': '安定、ずれなし',
   'remoteAudio.rule.steady':
     '遅れは約 30 ms で一定です。2 台のクロックを揃えるので、音切れも、じわじわとしたずれもありません。',
-  'remoteAudio.linked.section': 'リンク中',
   'remoteAudio.linked.cardLabel': '{name} とのリンク',
   'remoteAudio.linked.bothWays': '双方向',
   'remoteAudio.linked.incomingOnly': '受信のみ',
   'remoteAudio.linked.outgoingOnly': '送信のみ',
   'remoteAudio.linked.paused': '一時停止',
-  'remoteAudio.linked.looking': 'ネットワーク上で {name} を探しています…',
   'remoteAudio.linked.lossless': 'ロスレス',
   'remoteAudio.linked.unlink': 'リンク解除',
   'remoteAudio.linked.pause': '一時停止',

@@ -45,6 +45,10 @@ import {
   isEngineInstalled,
   noteFluidEngineRegistered,
 } from 'main/registry';
+// eslint-disable-next-line import/first -- keep the registry's Electron mocks installed first
+import setUpPlatform from '../../utils/setUpPlatform';
+
+setUpPlatform('win32');
 
 describe('the engine-aware config directory', () => {
   let programData: string;
