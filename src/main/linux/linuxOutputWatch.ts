@@ -18,6 +18,7 @@ import fs from 'fs';
 import path from 'path';
 import electronLog from 'electron-log';
 import coalesceRequests from '../../common/coalescedRequest';
+import type { IAudioDevice } from '../../common/constants';
 import type { IOutputWatch, IOutputWatchOptions } from '../outputWatch';
 import { linuxEngineRoot } from './linuxEngineFiles';
 import { readLinuxOutputs, toAudioDevices } from './linuxOutputs';
@@ -27,19 +28,35 @@ const OUTPUTS_FILE = 'outputs.json';
 const startLinuxOutputWatch = ({
   onOutputs,
   log = electronLog,
-  read = async () => toAudioDevices(await readLinuxOutputs()),
+  read,
 }: Pick<IOutputWatchOptions, 'onOutputs' | 'log' | 'read'>): IOutputWatch => {
   const root = linuxEngineRoot();
   let isStopped = false;
+  let previous: string | undefined;
 
   // One reading at a time and one queued, however many renames land: the
   // engine rewrites the file for every change of a burst (a headset
   // connecting is several), and a reading queued behind one in flight sees
   // the last of them.
   const follow = coalesceRequests(async () => {
-    const devices = await read();
+    let devices: IAudioDevice[];
+    let signature: string | undefined;
+    if (read) {
+      devices = await read();
+    } else {
+      const outputs = await readLinuxOutputs();
+      // PulseAudio also announces volume changes. Reopening Share Audio for
+      // those interrupts sound on each drag; only a changed output snapshot
+      // or engine PID means its devices may need to be opened again.
+      signature = JSON.stringify(outputs);
+      if (signature === previous) {
+        return;
+      }
+      devices = toAudioDevices(outputs);
+    }
     if (!isStopped) {
       await onOutputs(devices);
+      previous = signature;
     }
   });
   const wake = () => {

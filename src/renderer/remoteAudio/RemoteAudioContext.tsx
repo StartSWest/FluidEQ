@@ -223,7 +223,6 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       if (generationRef.current !== attempt) {
         return;
       }
-      heardLinksRef.current = true;
       setDeviceName(started.details.deviceName);
       setCode(started.details.code);
       setJoins(started.joins);
@@ -231,6 +230,10 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       if (generationRef.current !== attempt) {
         return;
       }
+      // Restoring saved links and opening the page can overlap. Mark the
+      // snapshot heard only after this attempt's final await; a superseded
+      // start must not make its replacement skip the live-link replay.
+      heardLinksRef.current = true;
       setSharingState(source?.send !== false);
       setError(undefined);
       if (phaseRef.current === 'preparing') {

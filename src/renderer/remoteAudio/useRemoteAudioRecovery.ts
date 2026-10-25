@@ -1,6 +1,7 @@
 /* FluidEQ — GPL-3.0-or-later */
 import { useEffect } from 'react';
 import type { TRemoteAudioPhase } from './remoteAudioState';
+import subscribeLinuxShareRecovery from './linuxShareRecovery';
 
 /** Recover on actual lifecycle events. No clock restarts a healthy stream. */
 const useRemoteAudioRecovery = (
@@ -51,7 +52,9 @@ const useRemoteAudioRecovery = (
       retryFailedAudio,
     );
     const stopWake = bridge?.onRemoteAudioLanResume?.(wake);
+    const stopLinuxDevices = subscribeLinuxShareRecovery(wake);
     return () => {
+      stopLinuxDevices();
       stopWake?.();
       window.removeEventListener('online', online);
       window.removeEventListener('focus', focus);
