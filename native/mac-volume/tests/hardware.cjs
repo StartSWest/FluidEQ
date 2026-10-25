@@ -2,7 +2,7 @@
 const assert = require('node:assert/strict');
 const { execFileSync } = require('node:child_process');
 const client = require('./client.cjs');
-const [volumePath, enginePath] = process.argv.slice(2);
+const [volumePath, enginePath, fixturePath] = process.argv.slice(2);
 const outputs = JSON.parse(
   execFileSync(enginePath, ['--list-outputs'], { encoding: 'utf8' }),
 );
@@ -16,10 +16,14 @@ const selected = (uid) =>
 (async () => {
   const observer = await client(volumePath);
   const writer = await client(volumePath);
+  let fixture;
   const original = observer.current();
   const results = [];
   let switched = false;
   try {
+    fixture = fixturePath
+      ? await require('./output_fixture.cjs')(fixturePath)
+      : undefined;
     assert.ok(
       original?.canSet && original.canMute,
       'Current output lacks volume or mute controls',
@@ -41,11 +45,14 @@ const selected = (uid) =>
       assert.equal(applied.muted, muted);
       await observer.wait((state) => state?.muted === muted);
     }
-    const other = outputs.find((item) => !item.isDefault);
+    const other = fixture
+      ? { name: 'temporary aggregate of the original output' }
+      : outputs.find((item) => !item.isDefault);
     if (other) {
-      choose(other.uid);
+      if (fixture) await fixture.select('alternate');
+      else choose(other.uid);
       switched = true;
-      if (selected(other.uid)) {
+      if (fixture || selected(other.uid)) {
         const alternate = await observer.wait(
           (state) => state !== null && state.device !== original.device,
         );
@@ -71,7 +78,8 @@ const selected = (uid) =>
   } finally {
     try {
       if (switched && originalOutput) {
-        choose(originalOutput.uid);
+        if (fixture) await fixture.select('original');
+        else choose(originalOutput.uid);
         await observer.wait((state) => state?.device === original.device);
       }
       if (original?.level !== undefined)
@@ -79,6 +87,7 @@ const selected = (uid) =>
       if (original?.muted !== undefined)
         await writer.command('mute', original.muted ? 1 : 0, original.device);
     } finally {
+      await fixture?.close();
       await writer.close();
       await observer.close();
     }

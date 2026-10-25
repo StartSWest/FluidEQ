@@ -12,3 +12,11 @@ add_executable(fluideq-mac-volume-test tests/controls.cpp output_volume.cpp)
 target_include_directories(fluideq-mac-volume-test PRIVATE . ../mac-engine/src)
 target_link_libraries(fluideq-mac-volume-test PRIVATE feq_strict)
 add_test(NAME mac-volume-controls COMMAND fluideq-mac-volume-test)
+
+# Opt-in hardware fixture: a real temporary route using the existing output.
+# Not a CTest default: selecting a system output requires an explicit run.
+add_executable(fluideq-mac-volume-output-fixture tests/output_fixture.cpp
+  ../mac-engine/src/output_devices.cpp)
+target_include_directories(fluideq-mac-volume-output-fixture PRIVATE ../mac-engine/src)
+target_link_libraries(fluideq-mac-volume-output-fixture PRIVATE feq_strict
+  "-framework CoreAudio" "-framework CoreFoundation")

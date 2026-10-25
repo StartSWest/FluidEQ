@@ -125,6 +125,18 @@ bool set_default_output(const std::string& uid, std::string& error) {
     return false;
   }
   AudioObjectPropertyAddress where =
+      address(kAudioDevicePropertyDeviceCanBeDefaultDevice,
+              kAudioObjectPropertyScopeOutput);
+  UInt32 eligible = 0;
+  size = sizeof(eligible);
+  if (AudioObjectGetPropertyData(device, &where, 0, nullptr, &size,
+                                  &eligible) != noErr || eligible == 0) {
+    // Some virtual outputs accept the set call but can never become default.
+    // Report that capability instead of claiming a switch that did not occur.
+    error = "that output cannot be the system default";
+    return false;
+  }
+  where =
       address(kAudioHardwarePropertyDefaultOutputDevice);
   const OSStatus status = AudioObjectSetPropertyData(
       kAudioObjectSystemObject, &where, 0, nullptr, sizeof(device), &device);

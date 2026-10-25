@@ -323,3 +323,24 @@ taps. This page records the current implementation and its remaining limits.
   battery start, resume and pause regressions. Main production build, app
   TypeScript and changed-file lint passed. Actual icon interaction, Spaces
   gestures and physical multi-monitor hotplug remain manual checks.
+
+## Default-output switching follow-up — 2026-10-24
+
+- The Microsoft Teams device is alive but Core Audio reports
+  `DeviceCanBeDefaultDevice = 0`. Its set-default call returned success
+  without changing the route. The Mac backend now rejects an output with
+  that capability missing instead of claiming that it switched.
+- Added an opt-in native fixture that creates a temporary aggregate of the
+  original physical output. It waits for native default-output acknowledgments,
+  restores the original route and removes its aggregate on exit. It plays
+  no audio and is not registered as an automatic CTest or packaged resource.
+- Silent hardware verification passed a real default switch from the built-in
+  speakers to this aggregate and back. The volume watcher adopted the new
+  identity, truthfully reported that the aggregate has neither volume nor
+  mute controls, and refused the old output's volume command. External real
+  level/mute checks and applied acknowledgments also passed. The original
+  speakers and zero-volume/unmuted state were restored; no test device remained.
+- The rebuilt production engine also rejected Teams with the explicit
+  unsupported-default error. Native configuration, volume-control and calibrated
+  meter checks passed. This closes the live switching gap on the available
+  Mac; Bluetooth, HDMI and physical multi-device coverage remain unverified.
