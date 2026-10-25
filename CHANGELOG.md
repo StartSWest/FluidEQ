@@ -14,7 +14,9 @@ DSP rack and Room come back with them. Any band can now be tuned for each ear
 on its own, the DSP rack gains a De-esser that turns down only a voice's
 sharp S, a second output plays straight from the FluidEQ Engine, Share Audio
 works both ways between two computers, songs can remember how you like them,
-and the graph shows every band's numbers right on the curve.
+and the graph shows every band's numbers right on the curve. And the
+visualizers are yours for good: a scene costs one credit and stays yours,
+with no subscription, and the Studio is open to every account.
 
 This release brings FluidEQ Engine 1.23. FluidEQ offers the update after it
 starts, with one Windows prompt; until then each ear plays both ears' bands
@@ -153,12 +155,27 @@ and the De-esser is not heard, and everything else plays as before.
 
 ### Visualizers
 
+- **Scenes are yours for good, one credit each.** Open a scene in
+  **Visualizers → Gallery**, watch it for 10 seconds, and **Get** keeps it in
+  your looks for good — on the graph, your desktop and your lights, on every
+  computer you sign in to, with every update its maker publishes. Credits come
+  in packs paid once on Stripe in your browser — 5 for $4.99, 12 for $9.99,
+  30 for $19.99 — and nothing renews; a confirmed account gets 3 credits free
+  to start. Credits you have not spent are refunded if you ask within 14 days.
+- **No more subscription.** The Plus membership is no longer sold, and the
+  tab it opened is now **Visualizers**. A membership already running keeps
+  working until FluidEQ moves its members to credits; then every scene a
+  member added stays theirs, and every account that paid for it gets at least
+  5 credits.
+- **FluidEQ can make some of its own scenes free for everyone**: while one is
+  free it plays for every account signed in.
+- **The leaderboard is gone.**
 - **Tune the wave where you put a visualizer on the desktop.** The Desktop
   background dialog has Wave height and Wave position, drawn at once on the
   monitor that will play it, and opens on the wave a monitor already plays it
   with.
-- **Standard looks have their own graphics settings**, apart from Plus
-  visualizers: full resolution and plain scaling to start with.
+- **Standard looks have their own graphics settings**, apart from the
+  scenes: full resolution and plain scaling to start with.
 - **Tap a 3D world's birds or fish and they fly off the way they face**,
   larger near the bottom of the screen and smaller towards the top, as they
   would be nearer or farther away. They used to spin like petals and fly on
@@ -173,10 +190,16 @@ and the De-esser is not heard, and everything else plays as before.
   sees it; FluidEQ's own scenes carry no counts.
 - **Your account shows how long each scene has played**, your own scenes
   included, down to the second under a minute. Counting starts only once you
-  have seen the revised Plus terms, which say what is kept: how long each
-  scene is on screen, per scene and day, and which audio engine you use.
+  have seen the revised terms, which say what is kept: how long each scene is
+  on screen, per scene and day, and which audio engine you use.
 
 ### The Studio
+
+- **The Studio is free for every account.** Make scenes with your AI, export
+  them and publish them to the gallery, with no membership. A scene you
+  publish is read by FluidEQ's maker first, and plays free for you everywhere
+  once it is approved; each time an account gets it with a paid credit, you
+  earn a credit.
 
 - **Ask for a change and watch it on the stage.** The Studio has a chat beside
   its stage: say what should change — how a scene looks, how it moves with the
@@ -207,6 +230,11 @@ and the De-esser is not heard, and everything else plays as before.
 
 ### Account
 
+- **How long you listen, counted only as you choose.** Signed in, FluidEQ
+  asks you once whether to count the minutes of music that play each day —
+  one number a day, never what played — for its maker's own statistics, seen
+  by nobody else and never with your name. Switch it off any time under
+  **Account**, and what was sent is deleted.
 - **Sign in with Google.** Continue with Google opens Google in your own
   browser, where you are usually signed in already, and FluidEQ finishes the
   sign-in when Google sends you back; the panel says it is waiting and keeps
