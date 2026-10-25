@@ -171,6 +171,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// Give long translated ear labels a full line at the smallest panel widths.
+@container my-curves (max-width: 320px) {
+  .my-curves__list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 // Where Save to My curves stood once the curve is in the list
 // (`SaveToMyCurves.tsx`): as tall as the buttons beside it, so the row does
 // not jump when the press is answered.
