@@ -69,7 +69,6 @@ function CurvesPage({ turn, index }: { turn: ITurn; index: number }) {
   const { t } = useTranslation();
   const tabs: [string, TranslationKey][] = [
     ['opra', 'myCurves.tab.opra'],
-    ['squiglink', 'myCurves.tab.squiglink'],
     ['mine', 'myCurves.tab.mine'],
   ];
   return (
@@ -94,6 +93,22 @@ function CurvesPage({ turn, index }: { turn: ITurn; index: number }) {
       </div>
       <div className="autoeq-panel__picker">
         <section className="my-curves">
+          <header className="my-curves__header">
+            <div>
+              <h3>{t('myCurves.tab.mine')}</h3>
+              <p>{t('myCurves.intro')}</p>
+            </div>
+            <div className="my-curves__actions">
+              <span className="button small subtle">
+                <MenuIcon name="import" />
+                {t('myCurves.importSquiglink')}
+              </span>
+              <span className="button small">
+                <MenuIcon name="plus" />
+                {t('myCurves.add')}
+              </span>
+            </div>
+          </header>
           <div className="my-curves__toolbar">
             <span className="my-curves__search">
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -123,10 +138,6 @@ function CurvesPage({ turn, index }: { turn: ITurn; index: number }) {
             <span className="button small subtle">
               <MenuIcon name="upload" />
               {t('myCurves.export')}
-            </span>
-            <span className="button small">
-              <MenuIcon name="plus" />
-              {t('myCurves.add')}
             </span>
           </div>
           <ul className="my-curves__list">

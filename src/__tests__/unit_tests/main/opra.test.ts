@@ -17,7 +17,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { DEFAULT_QUALITY, FilterTypeEnum } from 'common/constants';
-import { forgetOpraIndex, getOpraPreset, getOpraProductList } from 'main/opra';
+import {
+  forgetOpraIndex,
+  getOpraPreset,
+  getOpraPresets,
+  getOpraProductList,
+} from 'main/opra';
 import { addFileToPath } from 'main/flush';
 
 const OPRA_DIR = addFileToPath('src/__tests__/data/read_only', 'opra');
@@ -197,6 +202,27 @@ describe('opra', () => {
       expect(() =>
         getOpraPreset('testbrand::model_one', 'no-such-curve', OPRA_DIR),
       ).toThrow();
+    });
+
+    it('reads every curve of a product at once, each exactly as one read gives it', () => {
+      // Ids are new on every read, so the bands are compared without them.
+      const bands = (preset: ReturnType<typeof getOpraPreset>) =>
+        Object.values(preset.filters).map(({ id, ...band }) => band);
+      const all = getOpraPresets('testbrand::model_one', OPRA_DIR);
+      expect(Object.keys(all)).toEqual([
+        'testbrand:model_one::oratory1990',
+        'testbrand:model_one::autoeq_crinacle',
+        'testbrand:model_one::edge_cases',
+      ]);
+      Object.entries(all).forEach(([curveId, preset]) => {
+        const one = getOpraPreset('testbrand::model_one', curveId, OPRA_DIR);
+        expect(preset.preAmp).toBe(one.preAmp);
+        expect(bands(preset)).toEqual(bands(one));
+      });
+      // A product the library does not list is refused, as one read is.
+      expect(() => getOpraPresets('testbrand::nothing', OPRA_DIR)).toThrow(
+        'Unknown OPRA product',
+      );
     });
 
     it('never builds a file name out of an id the library does not list', () => {

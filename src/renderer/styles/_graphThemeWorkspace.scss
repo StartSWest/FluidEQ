@@ -585,11 +585,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .app-workspace.is-app-full .live-output-controls {
-  // `right` with it: the bar steps out from under the sound panel in step
-  // with the drawer (`App.scss`, `.is-sound-drawer-open`).
-  transition:
-    top $motion-base ease,
-    right 180ms ease-out;
+  transition: top $motion-base ease;
 }
 
 // In full screen the same shade, across the whole window and from its top

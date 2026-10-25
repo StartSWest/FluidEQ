@@ -47,7 +47,7 @@ const creator = {
   'creator.dialog.search': 'Search countries',
   'creator.dialog.choose': 'Choose a country',
   'creator.dialog.countryHint':
-    "Stripe can pay creators in the US, the UK, Canada, Switzerland and the European Economic Area, and it can't be changed later. Not in the list? Members can still buy your scenes, and each sale earns you a credit instead.",
+    "Stripe can pay creators in the US, the UK, Canada, Switzerland and the European Economic Area, and it can't be changed later. Not in the list? Members can still buy your scenes, and every two sales earn you a credit instead.",
   'creator.dialog.cancel': 'Cancel',
   'creator.dialog.go': 'Agree and continue to Stripe',
   'creator.dialog.opening': 'Opening Stripe…',

@@ -9,13 +9,12 @@ it under the terms of the GNU General Public License version 3 or later.
 import { useState, type ReactNode } from 'react';
 import OpraLibraryStatus from './components/OpraLibraryStatus';
 import OpraPicker from './OpraPicker';
-import SquiglinkImport from './SquiglinkImport';
 import MyCurvesPanel from './eq/MyCurvesPanel';
 import { useMyCurves } from './eq/myCurvesStore';
 import { useTranslation } from './utils/I18nContext';
 import './styles/AutoEQPanel.scss';
 
-type TLibrary = 'opra' | 'squiglink' | 'mine';
+type TLibrary = 'opra' | 'mine';
 
 const LibraryTab = ({
   id,
@@ -49,14 +48,9 @@ const LibraryTab = ({
  * a button with no room to say what any of them were for — and every band below
  * it paid for the height.
  *
- * Three ways to a curve, one tab each: OPRA's library, bundled; Squiglink's
- * calculator, pasted in; and the listener's own list (My curves, Ivan
- * 2026-10-20). Squiglink has a tab of its own right after OPRA (Ivan,
- * 2026-10-21: "my curves will push it down and down"): under My curves it
- * sat below a list that only grows. What it brings in is kept with one press
- * from its own card, so it needs no list beside it. Each card is controls on
- * the left and the curve they produce on the right, and each control carries
- * its own sentence of help underneath it.
+ * Squiglink is a source for My curves, rather than a second library holding
+ * the same imports (Ivan, 2026-10-25, approved Unified library mockup). Its
+ * shortcut stays above the saved list so a growing list cannot bury it.
  */
 const EqPresetsPanel = () => {
   const { t } = useTranslation();
@@ -78,29 +72,19 @@ const EqPresetsPanel = () => {
         <LibraryTab id="opra" library={library} onPick={setLibrary}>
           {t('myCurves.tab.opra')}
         </LibraryTab>
-        <LibraryTab id="squiglink" library={library} onPick={setLibrary}>
-          {t('myCurves.tab.squiglink')}
-        </LibraryTab>
         <LibraryTab id="mine" library={library} onPick={setLibrary}>
           {t('myCurves.tab.mine')}
           <span className="autoeq-panel__tab-count">{myCurves.length}</span>
         </LibraryTab>
       </div>
 
-      {/* Squiglink's card is a surface of its own, so it is not put in the
-          libraries' well. */}
       <div
         id="autoeq-library"
         role="tabpanel"
         aria-labelledby={`autoeq-tab-${library}`}
-        className={
-          library === 'squiglink'
-            ? 'autoeq-panel__squiglink'
-            : 'autoeq-panel__picker'
-        }
+        className="autoeq-panel__picker"
       >
         {library === 'opra' && <OpraPicker />}
-        {library === 'squiglink' && <SquiglinkImport />}
         {library === 'mine' && <MyCurvesPanel />}
       </div>
     </section>

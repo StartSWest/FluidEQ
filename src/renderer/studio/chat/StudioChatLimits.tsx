@@ -61,9 +61,14 @@ function LimitBar({
 
 /**
  * The Claude plan's two usage windows, under its account (Ivan, 2026-10-14:
- * "show the 5h and weekly limits … under accounts"): Claude Code passes them
- * on while it answers and has no way to be asked for them, so this shows the
- * last report and when it came, and says so when there has not been one yet.
+ * "show the 5h and weekly limits … under accounts"). Opening the card shows
+ * the last reading and asks Claude Code for a new one, which replaces it a
+ * few seconds later; every answer asks again (`chatUsage.ts`).
+ *
+ * A window whose reset has passed is not shown: its figure is the old
+ * window's, and the card once showed last week's 31% days into a week at
+ * 12% (Ivan, 2026-10-24). The reading's time carries its day when it is
+ * not today's.
  */
 export default function StudioChatLimits() {
   const { t, locale } = useTranslation();
@@ -90,29 +95,38 @@ export default function StudioChatLimits() {
     [locale],
   );
 
-  if (!limits || (!limits.fiveHour && !limits.week)) {
+  const now = Date.now();
+  const current = (limit: IStudioChatLimit | undefined) =>
+    limit && limit.resetsAt > now ? limit : undefined;
+  const fiveHour = current(limits?.fiveHour);
+  const week = current(limits?.week);
+  if (!limits || (!fiveHour && !week)) {
     return (
       <p className="studio-chat-limits__none">{t('studioChat.limits.none')}</p>
     );
   }
+  const sameDay =
+    new Date(limits.at).toDateString() === new Date(now).toDateString();
   return (
     <div className="studio-chat-limits">
-      {limits.fiveHour && (
+      {fiveHour && (
         <LimitBar
           name="studioChat.limits.fiveHour"
-          limit={limits.fiveHour}
+          limit={fiveHour}
           resets={time}
         />
       )}
-      {limits.week && (
+      {week && (
         <LimitBar
           name="studioChat.limits.week"
-          limit={limits.week}
+          limit={week}
           resets={dayAndTime}
         />
       )}
       <p className="studio-chat-limits__as-of">
-        {t('studioChat.limits.asOf', { time: time.format(limits.at) })}
+        {t('studioChat.limits.asOf', {
+          time: (sameDay ? time : dayAndTime).format(limits.at),
+        })}
       </p>
     </div>
   );

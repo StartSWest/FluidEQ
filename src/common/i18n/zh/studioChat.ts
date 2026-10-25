@@ -1,6 +1,6 @@
 const studioChat = {
-  'studioChat.label': '与 Claude 聊天',
-  'studioChat.title': 'Claude',
+  'studioChat.label': '用 AI 制作',
+  'studioChat.title': '用 AI 制作',
   'studioChat.where': '这台电脑上的 Claude Code',
   'studioChat.wherePlan': 'Claude Code · {plan} 套餐',
   'studioChat.new': '新聊天',
@@ -8,12 +8,12 @@ const studioChat = {
   'studioChat.menu': '聊天选项',
   'studioChat.backToChat': '回到聊天',
   'studioChat.fold': '收起聊天',
-  'studioChat.unfold': '与 Claude 聊天',
+  'studioChat.unfold': '用 AI 制作',
   'studioChat.inspect':
     '这是 FluidEQ 的场景，打开来看看内部。开始一个你自己的项目，就能和 Claude 一起做一个。',
   'studioChat.noProject': '开始一个项目，Claude 就能在这里和你一起做它的场景。',
   'studioChat.checking': '正在这台电脑上查找 Claude Code…',
-  'studioChat.missingTitle': '和 Claude 聊天来制作场景',
+  'studioChat.missingTitle': '和你的 AI 聊天来制作场景',
   'studioChat.missingBody':
     'Studio 通过这台电脑上的 Claude Code 聊天，使用你自己的 Claude 套餐。它还没有安装。',
   'studioChat.signInTitle': '登录 Claude',
@@ -152,7 +152,7 @@ const studioChat = {
   'studioChat.sketch.text': '文字',
   'studioChat.sketch.textHint': '输入后按回车',
   'studioChat.accounts.title': '账号',
-  'studioChat.accounts.open': '查看聊天使用的 Claude 和 ChatGPT 账号',
+  'studioChat.accounts.open': '查看聊天使用的账号',
   'studioChat.accounts.claude': 'Claude',
   'studioChat.accounts.chatgpt': 'ChatGPT',
   'studioChat.accounts.unknown': '已登录',

@@ -20,6 +20,7 @@ import {
   createStudioTools,
   type IStudioLook,
 } from '../studioAgent/studioTools';
+import { CHATGPT_PICTURES_OPEN } from '../../common/studioChatPictures';
 import { createChatAsks } from './chatAsks';
 import { createChatServer } from './chatServer';
 import { codexAccount, type ICodexAccount } from './codexAccount';
@@ -183,12 +184,15 @@ export const createChatPictures = ({
     },
   );
 
+  // Closed (`studioChatPictures.ts`), each answers nothing and starts no
+  // Codex: `codexState` runs `codex login status`, and the account is read
+  // from `codex app-server`.
   ipcMain.handle('studio-chat-codex', (event) =>
-    fromWindow(event) ? codexOf() : undefined,
+    CHATGPT_PICTURES_OPEN && fromWindow(event) ? codexOf() : undefined,
   );
 
   ipcMain.handle('studio-chat-codex-sign-in', async (event) => {
-    if (!fromWindow(event)) {
+    if (!CHATGPT_PICTURES_OPEN || !fromWindow(event)) {
       return undefined;
     }
     const { executable } = await codexState();
@@ -201,10 +205,11 @@ export const createChatPictures = ({
   });
 
   ipcMain.handle('studio-chat-codex-disconnect', (event) => {
-    if (fromWindow(event)) {
-      asks.disconnect();
+    if (!CHATGPT_PICTURES_OPEN || !fromWindow(event)) {
+      return undefined;
     }
-    return fromWindow(event) ? codexOf() : undefined;
+    asks.disconnect();
+    return codexOf();
   });
 
   ipcMain.handle(

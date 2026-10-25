@@ -543,7 +543,7 @@ const tour: Partial<Dictionary> = {
   'tour.myCurves.point1':
     '{applyCurve} 把曲线作为耳机校正播放，有自己的强度和开关；{applyEq} 则把它的频段放进你的 EQ。',
   'tour.myCurves.point2':
-    '{squiglink} 有了自己的标签页，{save} 一键保存你带来的曲线。',
+    '{myCurves} 中的 {squiglink} 快捷入口会打开导入预览；{save} 会保存曲线供以后使用。',
   'tour.myCurves.point3':
     '{exportList} 把整个列表写进一个文件，用来备份或带到另一台电脑；{importList} 再读回来，并告诉你哪些没有导入。',
   'tour.myCurves.how':
@@ -596,7 +596,7 @@ const tour: Partial<Dictionary> = {
   'tour.chat.point2':
     '“{attach}”会把场景的画面随消息一起发送，你还可以在上面画出你的意思。它工作时发送的消息会排队，之后一起发出。',
   'tour.chat.point3':
-    '它运行在这台电脑上安装的 Claude Code 上，用你自己的方案，并显示你的额度还剩多少。连接 ChatGPT 后，它可以为场景绘制图片，每张之前都会先问你。',
+    '它运行在这台电脑上安装的 Claude Code 上，用你自己的方案，并显示你的额度还剩多少。',
   'tour.chat.how':
     '打开“{plus}”，在侧栏选择“{studio}”，选择一个场景或新建一个，然后在舞台旁的输入框里输入。',
   'tour.chat.open': '打开“可视化”',

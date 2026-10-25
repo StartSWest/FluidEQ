@@ -9,6 +9,7 @@ import type {
   TStudioChatPackAnswer,
 } from '../../common/studioChat';
 import type { TAgentProject } from '../studioAgent/agentProject';
+import { CHATGPT_PICTURES_OPEN } from '../../common/studioChatPictures';
 import type { IMcpTool } from '../studioAgent/mcpProtocol';
 import type { TChatAsks } from './chatAsks';
 import createMakePictureTool from './makePictureTool';
@@ -43,7 +44,12 @@ export interface IPictureToolsDeps {
   logger?: { info(message: string): void; warn(message: string): void };
 }
 
+/**
+ * make_picture only while ChatGPT pictures are open (`studioChatPictures.ts`):
+ * closed, Claude is never offered it, so no Codex is ever started for one.
+ * pack_artwork starts nothing outside FluidEQ and stays.
+ */
 export const createPictureTools = (deps: IPictureToolsDeps): IMcpTool[] => [
-  createMakePictureTool(deps),
+  ...(CHATGPT_PICTURES_OPEN ? [createMakePictureTool(deps)] : []),
   createPackArtworkTool(deps),
 ];

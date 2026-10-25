@@ -28,6 +28,13 @@ jest.mock('renderer/utils/audioEngineApi', () => ({
   setSystemDspChain: jest.fn(() => Promise.resolve('not-fluid')),
 }));
 
+// The My curves list names a correction kept there; empty here, and held
+// still, so its first read cannot land after a case has finished.
+jest.mock('renderer/eq/myCurvesStore', () => ({
+  ...jest.requireActual('renderer/eq/myCurvesStore'),
+  useMyCurves: () => [],
+}));
+
 jest.mock('renderer/utils/equalizerApi', () => ({
   clearConvolution: jest.fn(),
   clearGains: (...args: unknown[]) => mockClearGains(...args),

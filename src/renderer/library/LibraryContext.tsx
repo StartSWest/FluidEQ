@@ -59,7 +59,7 @@ interface ILibraryContextValue {
   addFolder: () => Promise<void>;
   addFolderPaths: (paths: string[]) => Promise<void>;
   /**
-   * Music files dropped straight onto a queue: they join the library and
+   * Music files or folders dropped onto a queue: they join the library and
    * their ids come back, in the order they were dropped, so the caller can
    * queue them in the same gesture. A file already known keeps its id.
    */

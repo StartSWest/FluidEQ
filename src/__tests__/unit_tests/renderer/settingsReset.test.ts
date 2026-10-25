@@ -52,6 +52,9 @@ const KEPT = [
   'fluideq.karaoke.current-progress.v1',
   'fluideq.squiglink-import.text',
   'fluideq.studio.idea',
+  // A new project's guide: the steps done, and closed for good once
+  // published or closed - a reset must not hand a member step one again.
+  'fluideq.studio.starterGuide',
   'fluideq-rhythm-best-multiplier',
   'fluideq-rhythm-high-score',
   // Where they were.
@@ -86,8 +89,6 @@ const KEPT = [
   // What they agreed to, saw, won or gave.
   'fluideq.disclaimerAccepted',
   'fluideq.featureTourDismissed',
-  // Per-project tutorial progress, like the tour the listener has dismissed.
-  'fluideq.studio.starterGuide',
   'fluideq.seenSceneVersions',
   'fluideq.hasContributed',
   'fluideq-euphoria-reached',

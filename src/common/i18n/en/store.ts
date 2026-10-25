@@ -21,9 +21,10 @@ const store = {
   'store.credits.buyTitle': 'Get credits',
   'store.credits.lead':
     'One credit keeps one scene for good. You pay once, and nothing renews.',
-  'store.credits.owned': 'Scenes you own: {count}',
   'store.credits.what':
     'Each credit keeps one scene from the gallery for good: on the graph, your desktop and your lights.',
+  'store.credits.half':
+    'Half a credit is waiting: the next scene of yours got with a paid credit makes it whole.',
   'store.credits.buy': 'Get credits',
   'store.credits.getFree': 'Claim free credits',
   'store.error.offline':

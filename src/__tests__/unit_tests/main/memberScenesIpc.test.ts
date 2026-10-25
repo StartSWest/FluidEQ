@@ -187,7 +187,39 @@ describe('member scenes over IPC', () => {
     registration.dispose();
   });
 
-  it('locks playback when ownership changes without losing the maker’s project or ability to keep it', async () => {
+  // Ivan, 2026-10-21: "no need to publish to run on grahp" - a maker tries a
+  // scene on the graph until it is done, and publishes to earn from it.
+  it("adds the member's own scene to the looks before it is published", async () => {
+    const registration = setup();
+    chosen = await project();
+    await invoke<Promise<IStudioState>>('studio-open');
+    await link();
+    // The store says nothing of this scene being out.
+    owned = false;
+    ownershipChanged();
+    expect(
+      await invoke<Promise<TAddOutcome>>('studio-add-to-looks'),
+    ).toMatchObject({ ok: true, scene: { packId: 'my-first-scene' } });
+    registration.dispose();
+  });
+
+  // Ivan, 2026-10-21: "after publishing an scene it needs to show in grahp".
+  it('keeps what a publication sent out in the looks, and tells the window and the Studio', async () => {
+    const registration = setup();
+    await invoke<Promise<IStudioState>>('studio-open');
+    sent = [];
+    registration.keepPublished(ME, memberPack({ version: 4 }));
+    const listing = invoke<IMemberScenesListing>('member-scenes-list');
+    expect(
+      listing.scenes.map((scene) => [scene.packId, scene.version]),
+    ).toEqual([['neon-city', 4]]);
+    expect(sent.map(([channel]) => channel)).toEqual(
+      expect.arrayContaining(['member-scenes-changed', 'studio-changed']),
+    );
+    registration.dispose();
+  });
+
+  it('plays only what the account owns, and locks the rest without losing it', async () => {
     const registration = setup();
     chosen = await project();
     await invoke<Promise<IStudioState>>('studio-open');
@@ -196,21 +228,16 @@ describe('member scenes over IPC', () => {
     const { lookId } =
       invoke<IMemberScenesListing>('member-scenes-list').scenes[0];
 
-    // The ownership service now refuses playback; the project stays theirs.
+    // Not owned now: a draft of their own taken out of the gallery, say.
     owned = false;
     ownershipChanged();
     expect(invoke('member-scenes-load', lookId)).toBeUndefined();
     // The Studio stays theirs: another project is made as before.
     expect(await invoke('studio-create-project', 'Neon City')).toBe('written');
-    // Keeping their own work is independent of publishing it to the gallery.
-    expect(await invoke('studio-add-to-looks')).toMatchObject({
-      ok: true,
-      scene: { authorId: ME, own: true },
-    });
     // Kept and shown locked, never deleted.
     const listing = invoke<IMemberScenesListing>('member-scenes-list');
     expect(listing.scenes).toEqual([]);
-    expect(listing.locked.map((scene) => scene.lookId)).toContain(lookId);
+    expect(listing.locked.map((scene) => scene.lookId)).toEqual([lookId]);
     // And the member can still take their own work out.
     expect(invoke('member-scenes-remove', lookId)).toBe(true);
     registration.dispose();

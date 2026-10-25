@@ -7,6 +7,7 @@ import type {
 } from 'common/plusGallery';
 import type { IReportedScene } from 'common/plusModeration';
 import type { IReviewItem } from 'common/plusReview';
+import { CREATOR_PAYOUTS_OPEN } from 'common/creatorPayouts';
 import { readStored, removeStored, writeStored } from '../utils/graphStorage';
 
 /**
@@ -55,6 +56,17 @@ export const ADMIN_SECTIONS = [
   'server',
 ] as const;
 export type TAdminSection = (typeof ADMIN_SECTIONS)[number];
+
+/**
+ * The sections the admin is offered. Payouts only while creators can be
+ * paid (`CREATOR_PAYOUTS_OPEN`, premium 0070): closed, the page had nothing
+ * to pay and nobody to pay it to (Ivan, 2026-10-24: "payouts we dont need
+ * that for now ... so hide it").
+ */
+export const ADMIN_SECTIONS_SHOWN: readonly TAdminSection[] =
+  ADMIN_SECTIONS.filter(
+    (section) => section !== 'payouts' || CREATOR_PAYOUTS_OPEN,
+  );
 
 const PLACE_KEY = 'fluideq.plusPlace';
 

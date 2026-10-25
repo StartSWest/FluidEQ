@@ -101,6 +101,11 @@ enum ChannelEnum {
   // is applied and has no business pulling two megabytes of index across the
   // bridge to find it.
   GET_OPRA_LABEL = 'getOpraLabel',
+  // Every curve of one product as the text My curves keeps, read without
+  // applying any: what the measurement list draws beside each entry, what
+  // "Save to My curves" keeps, and how the picker knows a curve is the one
+  // already playing whichever tab applied it.
+  GET_OPRA_CURVES = 'getOpraCurves',
   LOAD_OPRA_PRESET = 'loadOpraPreset',
   GET_CONVOLUTION_CATALOG = 'getConvolutionCatalog',
   DOWNLOAD_CONVOLUTION = 'downloadConvolution',

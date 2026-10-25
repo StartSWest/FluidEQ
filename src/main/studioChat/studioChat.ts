@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { randomUUID } from 'crypto';
 import path from 'path';
+import type { ChildProcess } from 'child_process';
 import type { BrowserWindow } from 'electron';
 import {
   type IStudioChat,
@@ -30,14 +31,15 @@ import {
 import { createChatPictures } from './chatPictures';
 import createChatQueue from './chatQueue';
 import createChatTurns from './chatTurns';
-import createChatUsage from './chatUsage';
+import createChatUsage, { usageRequestLine } from './chatUsage';
+import createUsageRead from './chatUsageRead';
 import createChatWindow from './chatWindow';
 import registerChatHandlers from './chatHandlers';
 import endProcessTree from './endProcessTree';
 import { createPastChats } from './pastChats';
 import { createTranscripts } from './chatTranscript';
 import createTranscriptCache from './transcriptCache';
-import { findClaudeCode, systemEnv } from './claudeCode';
+import { findClaudeCode, startClaudeCode, systemEnv } from './claudeCode';
 
 /**
  * The Studio's chat (Ivan, 2026-10-09: "they connect their claude sub account
@@ -120,6 +122,23 @@ export const createStudioChat = ({
     ...(logger ? { logger } : {}),
   });
 
+  // The plan's usage, asked of Claude Code: of a chat's own process when one
+  // runs (`askUsage`), of one started for the question when none does.
+  const usageRead = createUsageRead({
+    executable: () => findClaudeCode(systemEnv()),
+    start: (executable, args, cwd) =>
+      startClaudeCode(executable, args, {
+        cwd,
+        stdio: ['pipe', 'pipe', 'ignore'],
+        windowsHide: true,
+      }),
+    cwd: root,
+    onUsage: (use) => usage.note(undefined, use),
+  });
+  const askUsage = (child: ChildProcess) => {
+    child.stdin?.write(usageRequestLine());
+  };
+
   const queue = createChatQueue((projectId, queued) =>
     pageOf()?.send('studio-chat-queue', { projectId, queued }),
   );
@@ -184,6 +203,10 @@ export const createStudioChat = ({
           return;
         }
         turns.onEvent(projectId, session, event);
+        // Each answer spent some of the plan: the card reads it again.
+        if (event.type === 'end') {
+          askUsage(child);
+        }
         // A Claude Code that answered "signed out" holds the sign-in it
         // started with, and a sign-in renewed since does not reach it: it
         // ends, and the next message starts one that reads the sign-in
@@ -206,6 +229,7 @@ export const createStudioChat = ({
       },
     );
     sessions.set(projectId, session);
+    askUsage(child);
     return session;
   };
 
@@ -452,12 +476,23 @@ export const createStudioChat = ({
     },
     entriesOf: (projectId) => transcriptOf(projectId).entries,
     versionsOf: transcripts.versionsOf,
-    limits: usage.limits,
+    // The card shows the last reading at once and asks for a new one, which
+    // reaches it as a report.
+    limits: () => {
+      const running = sessions.values().next().value;
+      if (running) {
+        askUsage(running.child);
+      } else {
+        usageRead.read();
+      }
+      return usage.limits();
+    },
   });
 
   return {
     dispose: () => {
       chatWindow.dispose();
+      usageRead.dispose();
       pictures.dispose().catch(() => undefined);
       past.dispose();
       // A reply FluidEQ's closing cuts short is kept as it stood, stopped,

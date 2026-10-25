@@ -188,9 +188,9 @@ const terms = {
   'terms.scenes.p3':
     'Quand vous exportez une scène, vous permettez à FluidEQ de la vérifier — y compris en la comparant aux scènes de FluidEQ —, de retirer les commentaires de son code et de la signer avec votre nom d’affichage et votre identifiant de compte, pour que les autres membres qui la possèdent puissent la lancer et voir que c’est vous qui l’avez créée. C’est toute la permission : le créateur de FluidEQ ne vendra pas votre scène, ne l’utilisera pas dans de la publicité, n’en fera pas une des scènes de FluidEQ sans vous le demander d’abord, et ne vous empêche de rien faire d’autre avec votre propre travail.',
   'terms.scenes.p4':
-    'Quand un compte obtient l’une de vos scènes avec un crédit d’un pack qu’il a payé, vous gagnez un crédit — du crédit pour obtenir des scènes, jamais de l’argent. Une scène obtenue avec un crédit gratuit ne rapporte rien. Et, jusqu’à ce que FluidEQ passe ses membres aux crédits, une de vos scènes approuvée par le créateur de FluidEQ vous donne un mois d’abonnement.',
+    'Quand un compte obtient l’une de vos scènes avec un crédit d’un pack qu’il a payé, vous gagnez un demi-crédit, et deux moitiés font un crédit — du crédit pour obtenir des scènes, jamais de l’argent. Une scène obtenue avec un crédit gratuit, ou avec un crédit gagné grâce à des scènes, ne rapporte rien. Et, jusqu’à ce que FluidEQ passe ses membres aux crédits, une de vos scènes approuvée par le créateur de FluidEQ vous donne un mois d’abonnement.',
   'terms.scenes.p4Payouts':
-    'Quand un compte obtient l’une de vos scènes avec un crédit d’un pack qu’il a payé, vous gagnez quelque chose : une fois les paiements configurés dans le panneau Compte, de l’argent, selon les conditions des créateurs de Être payé pour vos scènes ; d’ici là, ou là où Stripe ne peut pas vous payer, un crédit — du crédit pour obtenir des scènes, jamais de l’argent. Une scène obtenue avec un crédit gratuit ne rapporte rien. Et, jusqu’à ce que FluidEQ passe ses membres aux crédits, une de vos scènes approuvée par le créateur de FluidEQ vous donne un mois d’abonnement.',
+    'Quand un compte obtient l’une de vos scènes avec un crédit d’un pack qu’il a payé, vous gagnez quelque chose : une fois les paiements configurés dans le panneau Compte, de l’argent, selon les conditions des créateurs de Être payé pour vos scènes ; d’ici là, ou là où Stripe ne peut pas vous payer, un demi-crédit, et deux moitiés font un crédit — du crédit pour obtenir des scènes, jamais de l’argent. Une scène obtenue avec un crédit gratuit, ou avec un crédit gagné grâce à des scènes, ne rapporte rien. Et, jusqu’à ce que FluidEQ passe ses membres aux crédits, une de vos scènes approuvée par le créateur de FluidEQ vous donne un mois d’abonnement.',
   'terms.scenes.p6':
     'Ne partagez que ce que vous avez le droit de partager : vos propres photos, dessins et modèles 3D, ou ceux dont le propriétaire l’autorise. Les règles pour ce que vous publiez s’appliquent à chaque scène que vous partagez. Le créateur de FluidEQ peut empêcher une scène de s’ouvrir si elle enfreint ces conditions ou les droits de quelqu’un d’autre.',
   'terms.scenes.p7':
@@ -270,9 +270,9 @@ const terms = {
   'terms.sent.sceneGet.when':
     'Quand vous confirmez l’obtention d’une scène, et quand vous recevez les crédits de départ',
   'terms.sent.sceneGet.who':
-    'Gardé avec votre compte, pour que la scène reste à vous. Si elle a été obtenue avec un crédit payé, l’auteur d’une scène de membre y gagne un crédit et ne sait jamais qui l’a obtenue.',
+    'Gardé avec votre compte, pour que la scène reste à vous. Si elle a été obtenue avec un crédit payé, l’auteur d’une scène de membre y gagne un demi-crédit et ne sait jamais qui l’a obtenue.',
   'terms.sent.sceneGet.whoPayouts':
-    'Gardé avec votre compte, pour que la scène reste à vous. Si elle a été obtenue avec un crédit payé, l’auteur d’une scène de membre gagne quelque chose — de l’argent quand Stripe peut le payer, un crédit d’ici là — et ne sait jamais qui l’a obtenue.',
+    'Gardé avec votre compte, pour que la scène reste à vous. Si elle a été obtenue avec un crédit payé, l’auteur d’une scène de membre gagne quelque chose — de l’argent quand Stripe peut le payer, un demi-crédit d’ici là — et ne sait jamais qui l’a obtenue.',
   'terms.keep.p7':
     'Crédits : chaque pack que vous avez payé, chaque crédit dépensé et chaque scène que vous possédez sont gardés avec votre compte, pour que vos scènes restent à vous sur chaque ordinateur ; les identifiants Stripe de chaque paiement sont gardés pour en donner les crédits et les reprendre après un remboursement. Tout est supprimé avec votre compte.',
   'terms.scenes.p11':
@@ -281,7 +281,7 @@ const terms = {
     'Les crédits que vous n’avez pas dépensés sont remboursés si vous le demandez dans les {refundDays} jours suivant l’achat de leur pack : écrivez à {contact}. Seuls ces crédits sont repris ; un crédit déjà dépensé n’est pas remboursé, et les scènes obtenues restent à vous.',
   'terms.payouts.title': 'Être payé pour vos scènes',
   'terms.payouts.p1':
-    'Un membre qui publie des scènes peut être payé pour elles via Stripe, en configurant les paiements dans le panneau Compte. Stripe paie les créateurs aux États-Unis, au Royaume-Uni, au Canada, en Suisse et dans l’Espace économique européen ; partout ailleurs, chaque vente rapporte un crédit à la place. Voici les conditions des créateurs que vous acceptez avant que la page de Stripe s’ouvre :',
+    'Un membre qui publie des scènes peut être payé pour elles via Stripe, en configurant les paiements dans le panneau Compte. Stripe paie les créateurs aux États-Unis, au Royaume-Uni, au Canada, en Suisse et dans l’Espace économique européen ; partout ailleurs, chaque vente rapporte un demi-crédit à la place, et deux en font un. Voici les conditions des créateurs que vous acceptez avant que la page de Stripe s’ouvre :',
   'terms.sent.payouts.what':
     'Votre jeton de connexion, pour lire où en sont vos paiements ; si vous configurez les paiements, le pays où vous vivez et la version des conditions des créateurs que vous avez acceptée ; puis, de la part de Stripe, l’identifiant de votre compte Stripe et si Stripe peut vous payer',
   'terms.sent.payouts.when':

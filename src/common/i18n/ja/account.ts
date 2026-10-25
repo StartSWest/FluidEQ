@@ -26,6 +26,17 @@ const account = {
   'account.signOut.detailPlus':
     '再びサインインするまで、ここではあなたのシーンはロックされたままです。',
   'account.signOut.kept': 'このパソコンのものは何も削除されません。',
+  'account.cover.onGraph': 'グラフで再生中: {name}',
+  'account.stats.owned': '所有',
+  'account.stats.likes': 'いいね',
+  'account.scenes.title': 'コレクション',
+  'account.scenes.openGallery': 'ギャラリーを開く',
+  'account.scenes.empty':
+    '手に入れたシーンはずっとあなたのもので、ここからグラフで再生できます。',
+  'account.scenes.playing': '再生中',
+  'account.scenes.play': '{name} をグラフで再生',
+  'account.published.title': '公開済み',
+  'account.published.live': 'ギャラリーに掲載中',
   'account.name.change': '名前を変更',
   'account.name.changeTitle': '表示のされ方を変える',
   'account.name.changeBody':

@@ -594,7 +594,7 @@ const tour: Partial<Dictionary> = {
   'tour.myCurves.point1':
     '{applyCurve} reproduce una curva como corrección de auriculares, con su propia intensidad y su interruptor; {applyEq} pone sus bandas en tu EQ.',
   'tour.myCurves.point2':
-    '{squiglink} tiene su propia pestaña, y {save} guarda lo que traes con una sola pulsación.',
+    'El acceso a {squiglink} en {myCurves} abre la vista previa de importación; {save} conserva tu curva para después.',
   'tour.myCurves.point3':
     '{exportList} escribe toda la lista en un archivo, como copia o para llevarla a otro equipo; {importList} la vuelve a leer y dice lo que deja fuera.',
   'tour.myCurves.how':
@@ -647,7 +647,7 @@ const tour: Partial<Dictionary> = {
   'tour.chat.point2':
     '{attach} envía una imagen de la escena con tu mensaje, y puedes dibujar encima para mostrar lo que quieres decir. Los mensajes que envías mientras trabaja esperan en una cola y salen juntos.',
   'tour.chat.point3':
-    'Funciona con Claude Code instalado en este equipo, con tu propio plan, y muestra cuánto te queda de tus límites. Con ChatGPT conectado puede pintar imágenes para la escena, y te pregunta antes de cada una.',
+    'Funciona con Claude Code instalado en este equipo, con tu propio plan, y muestra cuánto te queda de tus límites.',
   'tour.chat.how':
     'Abre {plus}, elige {studio} en su barra lateral, elige una escena o empieza una y escribe en el cuadro junto al escenario.',
   'tour.chat.open': 'Abrir Visualizadores',

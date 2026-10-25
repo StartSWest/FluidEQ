@@ -132,7 +132,7 @@ it('shows My curves with the page’s own parts and lands on EQ Presets', () => 
   ).toBeInTheDocument();
   expect(
     screen.getByText(
-      'Squiglink has a tab of its own, and Save to My curves keeps what you bring in with one press.',
+      'The Squiglink shortcut in My curves opens the import preview; Save to My curves keeps your curve for later.',
     ),
   ).toBeInTheDocument();
   // The picture is the page's own rows, each drawing its own curve: the

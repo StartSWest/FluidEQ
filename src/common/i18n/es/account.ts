@@ -26,6 +26,17 @@ const account = {
   'account.signOut.detailPlus':
     'Tus escenas quedan bloqueadas aquí hasta que vuelvas a iniciar sesión.',
   'account.signOut.kept': 'No se borra nada de este ordenador.',
+  'account.cover.onGraph': '{name} en la gráfica',
+  'account.stats.owned': 'Tuyas',
+  'account.stats.likes': 'Me gusta',
+  'account.scenes.title': 'Tu colección',
+  'account.scenes.openGallery': 'Abrir la galería',
+  'account.scenes.empty':
+    'Las escenas que consigas son tuyas para siempre y se ponen en la gráfica desde aquí.',
+  'account.scenes.playing': 'Sonando',
+  'account.scenes.play': 'Poner {name} en la gráfica',
+  'account.published.title': 'Publicadas',
+  'account.published.live': 'En la galería',
   'account.name.change': 'Cambiar nombre',
   'account.name.changeTitle': 'Cambia cómo te ven',
   'account.name.changeBody':

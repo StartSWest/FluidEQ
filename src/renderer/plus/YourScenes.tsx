@@ -1,44 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { TranslationKey } from 'common/i18n';
 import { memberLookId } from 'common/memberScenes';
 import { FLUIDEQ_CREATOR_ID, type IPublishedScene } from 'common/plusGallery';
 import type { ISceneSubmission } from 'common/plusReview';
 import { premiumLookId, resolveSceneName } from 'common/scenePacks';
-import type { TMineOutcome } from 'main/ipc/plusPublishing';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { setGalleryNotice } from './galleryActions';
 import GalleryListNotice from './GalleryListNotice';
 import { markGalleryStale } from './galleryStore';
 import { categoriesLabel, ScenePicture } from './GalleryParts';
+import { loadMyScenes, publicationId, sentOnly, type TMine } from './myScenes';
 import { openPlusPlace } from './plusNavigation';
 import SubmittedSceneRow, { ReviewState } from './SubmittedSceneRow';
 import '../styles/Review.scss';
 
-type TMineFailure = Extract<TMineOutcome, { ok: false }>['reason'];
-
-const MINE_ERRORS: Record<TMineFailure, TranslationKey> = {
-  offline: 'plus.gallery.error.offline',
-  'signed-out': 'plus.gallery.error.signedOut',
-  server: 'plus.gallery.error.server',
-};
-
-type TMine =
-  | { state: 'loading' }
-  | {
-      state: 'ready';
-      scenes: IPublishedScene[];
-      /** What was sent for review, waiting or answered (fluideq-premium 0037). */
-      sent: ISceneSubmission[];
-    }
-  | { state: 'failed'; key: TranslationKey };
-
 interface IYourScenesProps {
   me: string | undefined;
 }
-
-const publicationId = (scene: IPublishedScene) =>
-  scene.official ? premiumLookId(scene.sceneId) : scene.sceneId;
 
 /**
  * The scenes this member has published: how each is doing, and the way to
@@ -58,28 +36,8 @@ export default function YourScenes({ me }: IYourScenesProps) {
 
   const load = useCallback(() => {
     setMine({ state: 'loading' });
-    const api = window.electron?.ipcRenderer;
-    // What waits for review is read beside what is published, and never
-    // costs the list: a server before review has nothing waiting, and a read
-    // that failed shows the published scenes as they are.
-    const sent =
-      api
-        ?.mySceneSubmissions?.()
-        .then((outcome) => (outcome.ok ? outcome.submissions : []))
-        .catch(() => []) ?? Promise.resolve([]);
-    Promise.all([api?.myPublishedScenes?.(), sent])
-      .then(([outcome, submissions]) => {
-        if (!outcome) {
-          setMine({ state: 'failed', key: 'plus.gallery.error.offline' });
-          return undefined;
-        }
-        setMine(
-          outcome.ok
-            ? { state: 'ready', scenes: outcome.scenes, sent: submissions }
-            : { state: 'failed', key: MINE_ERRORS[outcome.reason] },
-        );
-        return undefined;
-      })
+    loadMyScenes()
+      .then(setMine)
       .catch(() =>
         setMine({ state: 'failed', key: 'plus.gallery.error.offline' }),
       );
@@ -168,20 +126,8 @@ export default function YourScenes({ me }: IYourScenesProps) {
 
   // What was sent for review and is not in the gallery at all, and for a
   // scene that is, what became of its newest version.
-  const live =
-    mine.state === 'ready'
-      ? new Set(
-          mine.scenes
-            .filter((scene) => !scene.official)
-            .map((scene) => scene.sceneId),
-        )
-      : new Set<string>();
   const sentBefore =
-    mine.state === 'ready'
-      ? mine.sent.filter(
-          (entry) => entry.state !== 'approved' && !live.has(entry.sceneId),
-        )
-      : [];
+    mine.state === 'ready' ? sentOnly(mine.scenes, mine.sent) : [];
   const sentFor = (scene: IPublishedScene) =>
     mine.state === 'ready' && !scene.official
       ? mine.sent.find(

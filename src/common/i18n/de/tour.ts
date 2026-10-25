@@ -602,7 +602,7 @@ const tour: Partial<Dictionary> = {
   'tour.myCurves.point1':
     '{applyCurve} spielt eine Kurve als Kopfhörerkorrektur, mit eigener Stärke und eigenem Schalter; {applyEq} legt ihre Bänder stattdessen in Ihren EQ.',
   'tour.myCurves.point2':
-    '{squiglink} hat einen eigenen Tab, und {save} behält, was Sie mitbringen, mit einem Klick.',
+    'Der Zugang zu {squiglink} in {myCurves} öffnet die Importvorschau; {save} bewahrt Ihre Kurve für später auf.',
   'tour.myCurves.point3':
     '{exportList} schreibt die ganze Liste in eine Datei, als Sicherung oder für einen anderen Computer; {importList} liest sie wieder ein und sagt, was ausgelassen wird.',
   'tour.myCurves.how':
@@ -655,7 +655,7 @@ const tour: Partial<Dictionary> = {
   'tour.chat.point2':
     '{attach} schickt ein Bild der Szene mit, auf das Sie zeichnen können. Was Sie während der Arbeit senden, wartet in einer Schlange und geht gemeinsam hinaus.',
   'tour.chat.point3':
-    'Er läuft mit Claude Code auf diesem Computer, mit Ihrem eigenen Abo, und zeigt Ihre restlichen Limits. Mit ChatGPT malt er Bilder für die Szene und fragt vor jedem.',
+    'Er läuft mit Claude Code auf diesem Computer, mit Ihrem eigenen Abo, und zeigt Ihre restlichen Limits.',
   'tour.chat.how':
     'Öffnen Sie {plus}, wählen Sie in der Leiste {studio}, wählen oder beginnen Sie eine Szene und schreiben Sie in das Feld neben der Bühne.',
   'tour.chat.open': 'Visualizer öffnen',

@@ -47,7 +47,7 @@ const creator: Partial<Dictionary> = {
   'creator.dialog.search': 'Rechercher un pays',
   'creator.dialog.choose': 'Choisissez un pays',
   'creator.dialog.countryHint':
-    'Stripe peut payer les créateurs aux États-Unis, au Royaume-Uni, au Canada, en Suisse et dans l’Espace économique européen, et ce choix ne peut pas être modifié ensuite. Votre pays n’y est pas ? Les membres peuvent quand même acheter vos scènes, et chaque vente vous rapporte un crédit à la place.',
+    'Stripe peut payer les créateurs aux États-Unis, au Royaume-Uni, au Canada, en Suisse et dans l’Espace économique européen, et ce choix ne peut pas être modifié ensuite. Votre pays n’y est pas ? Les membres peuvent quand même acheter vos scènes, et deux ventes vous rapportent un crédit à la place.',
   'creator.dialog.cancel': 'Annuler',
   'creator.dialog.go': 'Accepter et continuer vers Stripe',
   'creator.dialog.opening': 'Ouverture de Stripe…',

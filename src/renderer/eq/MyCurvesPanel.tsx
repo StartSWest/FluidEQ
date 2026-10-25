@@ -7,6 +7,7 @@ import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { importEqText } from '../utils/equalizerApi';
 import MenuIcon from '../icons/MenuIcon';
+import { isCurveApplied } from './appliedCurve';
 import MyCurveRow from './MyCurveRow';
 import MyCurveAddDialog from './MyCurveAddDialog';
 import MyCurvesExportDialog from './MyCurvesExportDialog';
@@ -40,9 +41,6 @@ export default function MyCurvesPanel() {
   const [dialog, setDialog] = useState<TDialog>();
   const [editing, setEditing] = useState<IMyCurve>();
   const [isApplying, setApplying] = useState(false);
-  // The correction playing now, by its text: a curve is playing when it is
-  // the very curve the correction layer holds, whatever it was called there.
-  const playingText = headphone?.eqImport?.text;
 
   const shown = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -78,6 +76,32 @@ export default function MyCurvesPanel() {
 
   return (
     <section className="my-curves" aria-label={t('myCurves.tab.mine')}>
+      <header className="my-curves__header">
+        <div>
+          <h3>{t('myCurves.tab.mine')}</h3>
+          <p>{t('myCurves.intro')}</p>
+        </div>
+        <div className="my-curves__actions">
+          <button
+            type="button"
+            className="button small subtle"
+            disabled={!isLoaded}
+            onClick={() => setDialog('add')}
+          >
+            <MenuIcon name="import" />
+            {t('myCurves.importSquiglink')}
+          </button>
+          <button
+            type="button"
+            className="button small"
+            disabled={!isLoaded}
+            onClick={() => setDialog('add')}
+          >
+            <MenuIcon name="plus" />
+            {t('myCurves.add')}
+          </button>
+        </div>
+      </header>
       <div className="my-curves__toolbar">
         <label className="my-curves__search" htmlFor="my-curves-search">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -135,15 +159,6 @@ export default function MyCurvesPanel() {
           <MenuIcon name="upload" />
           {t('myCurves.export')}
         </button>
-        <button
-          type="button"
-          className="button small"
-          disabled={!isLoaded}
-          onClick={() => setDialog('add')}
-        >
-          <MenuIcon name="plus" />
-          {t('myCurves.add')}
-        </button>
       </div>
 
       {isFailed && (
@@ -171,7 +186,7 @@ export default function MyCurvesPanel() {
             <MyCurveRow
               key={curve.id}
               curve={curve}
-              isPlaying={playingText === curve.text}
+              isPlaying={isCurveApplied(curve.text, headphone)}
               isDisabled={isApplying || isBlockingError}
               onApplyCurve={(chosen) => {
                 apply(chosen, 'curve').catch(() => undefined);

@@ -19,9 +19,10 @@ const store: Partial<Dictionary> = {
   'store.credits.buyTitle': 'Ottieni crediti',
   'store.credits.lead':
     'Un credito tiene una scena per sempre. Paghi una volta e nulla si rinnova.',
-  'store.credits.owned': 'Scene tue: {count}',
   'store.credits.what':
     'Ogni credito tiene per sempre una scena della galleria: sul grafico, sul desktop e sulle tue luci.',
+  'store.credits.half':
+    'Hai mezzo credito in attesa: la prossima tua scena ottenuta con un credito pagato lo completa.',
   'store.credits.buy': 'Ottieni crediti',
   'store.credits.getFree': 'Ricevi crediti gratuiti',
   'store.error.offline':

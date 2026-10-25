@@ -92,6 +92,7 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.studioGrid',
   'fluideq.studioGroupFold',
   'fluideq.studio.stageRatio',
+  // Whether a new project's starter has its parts labelled on the stage.
   'fluideq.studio.starterLabels',
   // Its chat: folded or not, its width and zoom, the model and effort asked.
   'fluideq.studio.chatFolded',

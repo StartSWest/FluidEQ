@@ -26,6 +26,17 @@ const account = {
   'account.signOut.detailPlus':
     'Vos scènes restent verrouillées ici jusqu’à ce que vous vous reconnectiez.',
   'account.signOut.kept': 'Rien n’est supprimé sur cet ordinateur.',
+  'account.cover.onGraph': '{name} sur le graphique',
+  'account.stats.owned': 'À vous',
+  'account.stats.likes': 'J’aime',
+  'account.scenes.title': 'Votre collection',
+  'account.scenes.openGallery': 'Ouvrir la galerie',
+  'account.scenes.empty':
+    'Les scènes que vous obtenez restent à vous et se lancent sur le graphique d’ici.',
+  'account.scenes.playing': 'En cours',
+  'account.scenes.play': 'Lancer {name} sur le graphique',
+  'account.published.title': 'Publiées',
+  'account.published.live': 'Dans la galerie',
   'account.name.change': 'Changer de nom',
   'account.name.changeTitle': 'Changer la façon dont vous apparaissez',
   'account.name.changeBody':

@@ -3793,8 +3793,8 @@ $graph-card-pages: list.join(
 // And that row ends short of the button, by the gap between two of its own
 // (Ivan, 2026-09-27: "push the bar to the left"): it ran to the window's
 // edge and its last button, Full screen, lay under the panel's. Past a ruled
-// plot's level labels either way; the open drawer and the look editor say
-// where it ends themselves (`--graph-controls-right`).
+// plot's level labels either way; the look editor says where it ends itself
+// (`--graph-controls-right`).
 $graph-controls-past-fold: calc(
   (#{$sound-pane-rail} + #{$sound-pane-fold}) / 2 + #{$spacing-s}
 );
@@ -4039,35 +4039,10 @@ $graph-controls-past-fold: calc(
   left: 58px;
 }
 
-// Out from under the sound panel (Ivan, 2026-09-25: "the options bar on the
-// top needs to move when it opens"). Below the three-column width the panel
-// is a drawer over the right of the page, and it lay over the end of this
-// bar — the View menu and the grid, the switches reached most. The bar is
-// right-aligned and wraps, so it moves in by what the drawer covers of the
-// graph, in step with the drawer, and folds onto a second row if that leaves
-// it too little room.
-.live-output-controls {
-  transition: right 180ms ease-out;
-}
-
-@media (max-width: $bp-three-column) {
-  .app-workspace.is-sound-drawer-open:not(.is-app-full)
-    .graph-wrapper
-    > .live-output-controls {
-    // The open panel covers the page its own width in from the window's
-    // edge, and the graph already stops its rail short of that edge.
-    right: calc(#{$sound-panel-width} - #{$sound-pane-rail} + 12px);
-  }
-}
-
-// Full screen keeps the drawer at the window's edge, over the picture.
-.app-workspace.is-app-full.is-sound-drawer-open {
-  --graph-controls-right: calc(#{$sound-panel-width} + 12px);
-
-  .graph-wrapper > .live-output-controls {
-    right: var(--graph-controls-right);
-  }
-}
+// The bar stays put when the sound panel opens over it. From 2026-09-25 it
+// slid left out from under the drawer, window and full screen alike; Ivan
+// took that back on 2026-10-25: the panel floats over the page, "so no need
+// to alter the ui underneath".
 
 .graph-legend {
   display: flex;

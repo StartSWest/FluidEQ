@@ -585,7 +585,7 @@ const tour: Partial<Dictionary> = {
   'tour.myCurves.point1':
     '{applyCurve} はカーブをヘッドホン補正として再生し、強さとスイッチも独立しています。{applyEq} はそのバンドを EQ に入れます。',
   'tour.myCurves.point2':
-    '{squiglink} は専用のタブになり、{save} で取り込んだものをワンクリックで保存できます。',
+    '{myCurves} の {squiglink} ショートカットで読み込みプレビューを開き、{save} でカーブを保存できます。',
   'tour.myCurves.point3':
     '{exportList} はリスト全体を 1 つのファイルに書き出し、バックアップや別のパソコンへの移動に使えます。{importList} で読み込むと、取り込まなかったものも教えてくれます。',
   'tour.myCurves.how':
@@ -638,7 +638,7 @@ const tour: Partial<Dictionary> = {
   'tour.chat.point2':
     '「{attach}」でメッセージにシーンの画像を添えられ、その上に描いて伝えたいことを示せます。作業中に送ったメッセージは待ち行列に入り、まとめて送られます。',
   'tour.chat.point3':
-    'このコンピューターにインストールされた Claude Code で、あなた自身のプランを使って動き、利用上限の残りも表示します。ChatGPT をつなぐと、1 枚ごとに確認したうえでシーン用の画像を描けます。',
+    'このコンピューターにインストールされた Claude Code で、あなた自身のプランを使って動き、利用上限の残りも表示します。',
   'tour.chat.how':
     '「{plus}」を開いて一覧から「{studio}」を選び、シーンを選ぶか新しく始めて、ステージの横の入力欄に書き込みます。',
   'tour.chat.open': 'ビジュアライザーを開く',

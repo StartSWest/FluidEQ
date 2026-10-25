@@ -195,7 +195,8 @@ and the De-esser is not heard, and everything else plays as before.
   them and publish them to the gallery, with no membership. A scene you
   publish is read by FluidEQ's maker first, and plays free for you everywhere
   once it is approved; each time an account gets it with a paid credit, you
-  earn a credit.
+  earn half a credit, and every two make a credit to get other members' scenes
+  or FluidEQ's. The account panel says when half a credit is waiting.
 
 - **Ask for a change and watch it on the stage.** The Studio has a chat beside
   its stage: say what should change — how a scene looks, how it moves with the
@@ -213,8 +214,6 @@ and the De-esser is not heard, and everything else plays as before.
   - Pick the model and how hard it thinks; a ring shows how much of the
     conversation's room is used, **Compact** makes more, and the accounts
     card shows how much of your 5-hour and weekly limits is left.
-  - With ChatGPT connected through Codex, it can paint pictures for the scene,
-    asking you before each one.
 - **The Studio says which versions you have**: the bench's, the copy in your
   looks (and whether it is behind), and the gallery's.
 - **While the Studio is open, the scenes' time of day follows its

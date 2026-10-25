@@ -184,9 +184,9 @@ const terms = {
   'terms.scenes.p3':
     'Quando esporti una scena, permetti a FluidEQ di controllarla — anche confrontandola con le scene di FluidEQ —, rimuovere i commenti dal suo codice e firmarla con il tuo nome visualizzato e il tuo id account, così gli altri membri che la possiedono possono riprodurla e vedere che l’hai creata tu. È tutto il permesso: il creatore di FluidEQ non venderà la tua scena né la userà in pubblicità, non la renderà una delle scene di FluidEQ senza chiedertelo prima, e non ti impedisce di fare nient’altro con il tuo lavoro.',
   'terms.scenes.p4':
-    'Quando un account ottiene una tua scena con un credito di un pacchetto che ha pagato, guadagni un credito: credito per ottenere scene, mai denaro. Una scena ottenuta con un credito gratuito non rende nulla. E, finché FluidEQ non passa i suoi membri ai crediti, una tua scena approvata dal creatore di FluidEQ ti dà un mese di abbonamento.',
+    'Quando un account ottiene una tua scena con un credito di un pacchetto che ha pagato, guadagni mezzo credito, e due metà fanno un credito: credito per ottenere scene, mai denaro. Una scena ottenuta con un credito gratuito, o con uno guadagnato con le scene, non rende nulla. E, finché FluidEQ non passa i suoi membri ai crediti, una tua scena approvata dal creatore di FluidEQ ti dà un mese di abbonamento.',
   'terms.scenes.p4Payouts':
-    'Quando un account ottiene una tua scena con un credito di un pacchetto che ha pagato, ci guadagni: appena configuri i pagamenti nel pannello Account, denaro, secondo le condizioni per i creatori di Farti pagare per le tue scene; fino ad allora, o dove Stripe non può pagarti, un credito: credito per ottenere scene, mai denaro. Una scena ottenuta con un credito gratuito non rende nulla. E, finché FluidEQ non passa i suoi membri ai crediti, una tua scena approvata dal creatore di FluidEQ ti dà un mese di abbonamento.',
+    'Quando un account ottiene una tua scena con un credito di un pacchetto che ha pagato, ci guadagni: appena configuri i pagamenti nel pannello Account, denaro, secondo le condizioni per i creatori di Farti pagare per le tue scene; fino ad allora, o dove Stripe non può pagarti, mezzo credito, e due metà fanno un credito: credito per ottenere scene, mai denaro. Una scena ottenuta con un credito gratuito, o con uno guadagnato con le scene, non rende nulla. E, finché FluidEQ non passa i suoi membri ai crediti, una tua scena approvata dal creatore di FluidEQ ti dà un mese di abbonamento.',
   'terms.scenes.p6':
     'Condividi solo lavori che hai il diritto di condividere: le tue foto, i tuoi disegni e i tuoi modelli 3D, o quelli di chi lo permette. Le regole per ciò che pubblichi valgono per ogni scena che condividi. Il creatore di FluidEQ può impedire che una scena si apra se viola queste condizioni o i diritti di qualcun altro.',
   'terms.scenes.p7':
@@ -266,9 +266,9 @@ const terms = {
   'terms.sent.sceneGet.when':
     'Quando confermi di ottenere una scena, e quando ricevi i crediti iniziali',
   'terms.sent.sceneGet.who':
-    'Conservato con il tuo account, così la scena resta tua. Se è stata ottenuta con un credito pagato, l’autore della scena di un membro ci guadagna un credito e non sa mai chi l’ha ottenuta.',
+    'Conservato con il tuo account, così la scena resta tua. Se è stata ottenuta con un credito pagato, l’autore della scena di un membro ci guadagna mezzo credito e non sa mai chi l’ha ottenuta.',
   'terms.sent.sceneGet.whoPayouts':
-    'Conservato con il tuo account, così la scena resta tua. Se è stata ottenuta con un credito pagato, l’autore della scena di un membro ci guadagna (denaro quando Stripe può pagarlo, un credito fino ad allora) e non sa mai chi l’ha ottenuta.',
+    'Conservato con il tuo account, così la scena resta tua. Se è stata ottenuta con un credito pagato, l’autore della scena di un membro ci guadagna (denaro quando Stripe può pagarlo, mezzo credito fino ad allora) e non sa mai chi l’ha ottenuta.',
   'terms.keep.p7':
     'Crediti: ogni pacchetto che hai pagato, ogni credito che hai speso e ogni scena che possiedi sono conservati con il tuo account, così le tue scene restano tue su ogni computer; gli id di Stripe di ogni pagamento sono conservati per dare i suoi crediti e riprenderli dopo un rimborso. Tutto viene eliminato con il tuo account.',
   'terms.scenes.p11':
@@ -277,7 +277,7 @@ const terms = {
     'I crediti che non hai speso vengono rimborsati se lo chiedi entro {refundDays} giorni dall’acquisto del loro pacchetto: scrivi a {contact}. Vengono ripresi solo quei crediti; un credito già speso non viene rimborsato, e le scene che hai ottenuto restano tue.',
   'terms.payouts.title': 'Farti pagare per le tue scene',
   'terms.payouts.p1':
-    'Un membro che pubblica scene può essere pagato per esse tramite Stripe, configurando i pagamenti nel pannello Account. Stripe paga i creatori negli USA, nel Regno Unito, in Canada, in Svizzera e nello Spazio economico europeo; altrove, ogni vendita rende invece un credito. Queste sono le condizioni per i creatori che accetti prima che si apra la pagina di Stripe:',
+    'Un membro che pubblica scene può essere pagato per esse tramite Stripe, configurando i pagamenti nel pannello Account. Stripe paga i creatori negli USA, nel Regno Unito, in Canada, in Svizzera e nello Spazio economico europeo; altrove, ogni vendita rende invece mezzo credito, e due ne fanno uno. Queste sono le condizioni per i creatori che accetti prima che si apra la pagina di Stripe:',
   'terms.sent.payouts.what':
     'Il tuo token di accesso, per leggere a che punto sono i tuoi pagamenti; se configuri i pagamenti, il paese in cui vivi e quale versione delle condizioni per i creatori hai accettato; poi, da Stripe, l’id del tuo account Stripe e se Stripe può già pagarti',
   'terms.sent.payouts.when':
