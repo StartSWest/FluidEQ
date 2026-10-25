@@ -39,6 +39,7 @@ import {
 import { setTrayLocale } from '../tray';
 import { setWindowFloor } from '../windowBackdrop';
 import { setWindowCloaked } from '../windowDwm';
+import placeMacTrafficLights from '../macTrafficLights';
 import type { TWindowModes } from '../windowMode';
 import onWindowMessage from './windowMessages';
 
@@ -271,7 +272,7 @@ export const registerWindowIpc = ({
       mainWindow.webContents.getZoomFactor(),
       buttonHeight,
     );
-    mainWindow.setWindowButtonPosition(position);
+    placeMacTrafficLights(mainWindow, position);
     mainWindow.setSheetOffset(sheetOffset);
   });
 

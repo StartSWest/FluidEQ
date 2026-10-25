@@ -300,8 +300,8 @@ taps. This page records the current implementation and its remaining limits.
   physical receiving PC were not tested. The renderer regression mounts a
   video element without playback and verifies media-independent control and
   dragging; it is not a visual or listening check. No Computer Use or app
-  launch was performed. Live window/desktop checks and backend-access blockers
-  remain open. These changes stay on `macos`; `main` is unchanged.
+  launch was performed. Live window/desktop checks remain open. Backend work
+  is outside this Mac task. These changes stay on `macos`; `main` is unchanged.
 
 ## Mac wallpaper battery pause — 2026-10-24
 
@@ -367,3 +367,24 @@ taps. This page records the current implementation and its remaining limits.
   platform isolation and production native/main/renderer builds passed.
   The user was asked to confirm the native buttons remain centered, with
   Computer Use still off; no automatic app launch or UI control occurred.
+
+## Native button-frame follow-up — 2026-10-24
+
+- The user confirmed that the initial event/overlay correction still allowed
+  the buttons to jump. AppKit changed the actual native titlebar frames without
+  changing Electron's stored position or its computed overlay rectangle, so
+  those events could not reliably detect the reset.
+- The Mac now observes its own titlebar/button views through public AppKit
+  frame and window-update notifications. It compares their real window-space
+  position with the current app/player placement and reasserts that placement
+  only when needed. Its own synchronous notifications are guarded against
+  feedback; hidden, removed, fullscreen and destroyed controls are left alone.
+  Recreated native views are rebound and observers/references released at close.
+- Live native measurements caught the original 21-point top offset resetting
+  to 9 points and verified its restoration. The user then confirmed that the
+  buttons stay centered when switching between the full app and player.
+  No Computer Use, screenshot or automatic app launch was used.
+- Five focused suites passed (38 tests), including a native-only frame jump,
+  stable geometry, synchronous callback feedback, current player placement,
+  temporarily absent/hidden buttons, both fullscreen modes and observer cleanup.
+  App TypeScript, lint and the production main build passed.
