@@ -4,15 +4,17 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { app } from 'electron';
+import { app, nativeImage } from 'electron';
+import log from 'electron-log';
 
 /**
  * FluidEQ's icon in the Dock and the app switcher of a development build.
  *
  * A Mac draws an app from the bundle it runs from, and in development that
  * is Electron's own `Electron.app`, so the Dock showed Electron's atom. A
- * release is already right: electron-builder puts `icon.icns` in FluidEQ's own
- * bundle, and this does nothing there.
+ * release reads the same Mac artwork from its app-icon.icns bundle resource;
+ * both leave the transparent surround that keeps its size in line with the
+ * other Dock icons. This does nothing to a packaged app's runtime icon.
  *
  * Windows' answer, stamping the icon into the development binary
  * (`name-dev-electron.ts`), is not one here. The bundle is signed and its
@@ -28,7 +30,12 @@ const showOwnIconInDevDock = (iconPath: string): void => {
   if (app.isPackaged || app.dock === undefined) {
     return;
   }
-  app.dock.setIcon(iconPath);
+  const icon = nativeImage.createFromPath(iconPath);
+  if (icon.isEmpty()) {
+    log.warn('The development Dock icon could not be read', iconPath);
+    return;
+  }
+  app.dock.setIcon(icon);
 };
 
 export default showOwnIconInDevDock;

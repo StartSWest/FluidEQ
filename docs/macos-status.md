@@ -388,3 +388,26 @@ taps. This page records the current implementation and its remaining limits.
   stable geometry, synchronous callback feedback, current player placement,
   temporarily absent/hidden buttons, both fullscreen modes and observer cleanup.
   App TypeScript, lint and the production main build passed.
+
+## Mac Dock reopening and icon sizing — 2026-10-24
+
+- Dock activation used to create a window only when the main window was null.
+  Closing FluidEQ hides its live window for background audio, so that check
+  left a Dock click doing nothing. Activation now restores a minimized window,
+  shows and focuses a hidden one, and recreates only a missing/destroyed window.
+  Repeated clicks while a replacement loads share the same creation and wait
+  for its first load rather than exposing a half-painted page.
+- The shared icon's opaque body occupied 946 of 1024 pixels. The Mac-specific
+  asset adds transparent surround to the same artwork: 828 pixels versus
+  Calculator's 824 pixels. Development and packaged Mac builds use the same
+  inset; Windows/Linux keep their original icon selection. The reproducible
+  AppKit generator is `.erb/scripts/make-mac-app-icon.swift`.
+- All 14 affected window/player/activation suites passed (117 tests), including
+  hidden/minimized reopen, recreation, repeated clicks before the replacement
+  page loads, failed-creation retry and existing Windows/fullscreen behavior.
+  App TypeScript, lint, encoding, platform isolation, production main build and
+  unsigned arm64 app-bundle packaging passed. The packaged icon's checksum
+  matches the generated Mac ICNS, and the arm64 Koffi binding is unpacked.
+- The user confirmed native button alignment. Live Dock reopening/icon-size
+  confirmation is still pending; no Computer Use or automatic app launch was
+  performed. Signing/notarization is not established by the unsigned check.

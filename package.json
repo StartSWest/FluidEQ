@@ -216,6 +216,7 @@
     "files": ["dist", "node_modules", "package.json"],
     "afterSign": ".erb/scripts/after-sign.cjs",
     "mac": {
+      "icon": "assets/mac/app-icon.icns",
       "target": {
         "target": "default",
         "arch": ["arm64"]

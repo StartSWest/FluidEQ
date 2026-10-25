@@ -73,6 +73,7 @@ import {
 import { consumeUnattendedRestart } from './unattendedUpdate';
 import { accountComeBackSteps, createComeBackWatch } from './comeBackSignals';
 import { createMainWindowFactory } from './mainWindow';
+import createAppActivation from './appActivation';
 import { installCrashLogging } from './crashRecovery';
 import { createApoAdoption } from './apoAdopt';
 import { registerTransferIpc } from './ipc/transfer';
@@ -1177,14 +1178,11 @@ const onAppReady = async () => {
     // helper's last report would otherwise rewrite a config being neutralised.
     app.on('before-quit', () => outputWatch?.stop());
   }
+  const activate = createAppActivation({ getMainWindow, createMainWindow });
   app.on('activate', () => {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (mainWindow === null) {
-      createMainWindow().catch((error) => {
-        log.error(`Failed to create the ${PRODUCT_NAME} window`, error);
-      });
-    }
+    activate().catch((error) => {
+      log.error(`Failed to activate the ${PRODUCT_NAME} window`, error);
+    });
   });
 };
 

@@ -198,7 +198,7 @@ export const createMainWindowFactory = ({
     const getAssetPath = (...paths: string[]): string => {
       return path.join(RESOURCES_PATH, ...paths);
     };
-    showOwnIconInDevDock(getAssetPath('icon.png'));
+    showOwnIconInDevDock(getAssetPath('mac', 'app-icon.png'));
 
     const saved = loadWindowState();
     const isFirstRun = saved.width === undefined;
