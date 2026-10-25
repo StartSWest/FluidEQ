@@ -207,6 +207,95 @@ describe('a linked computer', () => {
     ).toBeChecked();
   });
 
+  it('disables Receive while the peer stops sharing and restores the saved choice when it resumes', () => {
+    const link = remoteAudioLink();
+    const remote = remoteAudioValue({ links: [link] });
+    const view = renderPanel(remote);
+    const receive = () =>
+      card().getByRole('checkbox', { name: 'remoteAudio.group.receive' });
+    const send = () =>
+      card().getByRole('checkbox', { name: 'remoteAudio.lane.to' });
+    expect(receive()).toBeEnabled();
+    expect(receive()).toBeChecked();
+    view.rerender(
+      <RemoteAudioContext.Provider
+        value={{
+          ...remote,
+          links: [{ ...link, theirs: { sends: false, plays: true } }],
+        }}
+      >
+        <RemoteAudioPanel />
+      </RemoteAudioContext.Provider>,
+    );
+    expect(receive()).toBeDisabled();
+    expect(receive()).not.toBeChecked();
+    // A peer with its source off can still listen to this computer.
+    expect(send()).toBeEnabled();
+    expect(send()).toBeChecked();
+    fireEvent.click(receive());
+    expect(remote.setSwitches).not.toHaveBeenCalled();
+    view.rerender(
+      <RemoteAudioContext.Provider value={remote}>
+        <RemoteAudioPanel />
+      </RemoteAudioContext.Provider>,
+    );
+    expect(receive()).toBeEnabled();
+    expect(receive()).toBeChecked();
+    expect(remote.setSwitches).not.toHaveBeenCalled();
+  });
+
+  it('disables Send when this computer stops sharing while Receive stays available', () => {
+    const remote = remoteAudioValue({
+      sharing: false,
+      links: [remoteAudioLink()],
+    });
+    renderPanel(remote);
+    const send = card().getByRole('checkbox', {
+      name: 'remoteAudio.lane.to',
+    });
+    expect(send).toBeDisabled();
+    expect(send).not.toBeChecked();
+    expect(
+      card().getByRole('checkbox', { name: 'remoteAudio.group.receive' }),
+    ).toBeEnabled();
+    expect(
+      card().getByRole('checkbox', { name: 'remoteAudio.group.receive' }),
+    ).toBeChecked();
+    fireEvent.click(send);
+    expect(remote.setSwitches).not.toHaveBeenCalled();
+  });
+
+  it.each(['here', 'there'])(
+    'disables both directions while paused %s',
+    (side) => {
+      const remote = remoteAudioValue({
+        links: [
+          remoteAudioLink({
+            switches: {
+              send: true,
+              play: true,
+              paused: side === 'here',
+              volume: 1,
+            },
+            theirs: { sends: true, plays: true, paused: side === 'there' },
+          }),
+        ],
+      });
+      renderPanel(remote);
+      card()
+        .getAllByRole('checkbox')
+        .forEach((control) => {
+          expect(control).toBeDisabled();
+          expect(control).not.toBeChecked();
+          fireEvent.click(control);
+        });
+      expect(remote.setSwitches).not.toHaveBeenCalled();
+      expect(
+        card().getByRole('button', { name: 'remoteAudio.group.options' }),
+      ).toBeEnabled();
+    },
+  );
+
   it('keeps sending to an older FluidEQ it joined, which sends nothing back', () => {
     renderPanel(
       remoteAudioValue({
