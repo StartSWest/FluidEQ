@@ -234,6 +234,9 @@ const NOT_SETTING_FILES = [
   'framing.json',
   '.fluideq-scene.json',
   'chat.json',
+  // The message being written to Claude, beside its chat: the member's own
+  // words, which no reset may take.
+  'draft.json',
   'codex.json',
   'limits.json',
   'meta.json',

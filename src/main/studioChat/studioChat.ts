@@ -28,6 +28,7 @@ import {
   retryOf,
   type IChatMessage,
 } from './chatMessage';
+import createChatDrafts from './chatDraft';
 import { createChatPictures } from './chatPictures';
 import createChatQueue from './chatQueue';
 import createChatTurns from './chatTurns';
@@ -84,6 +85,8 @@ export const createStudioChat = ({
   );
   const chatWindow = createChatWindow(getMainWindow);
   const { pageOf, fromWindow, handle } = chatWindow;
+  // The message being written, kept per project until it is sent.
+  createChatDrafts({ root, handle });
 
   /** Already aborted: what a project with no reply running is handed. */
   const nothingRunning = new AbortController();
