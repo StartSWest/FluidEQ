@@ -107,6 +107,8 @@ const dsp = {
     'Mesure l’audio externe pendant la lecture, ajuste les deux canaux ensemble et protège les crêtes avant l’exciteur et l’égaliseur.',
   'dsp.normalizer.liveAnalysis': 'Analyse de la source en direct',
   'dsp.normalizer.shortTerm': 'Sonie à court terme',
+  'dsp.normalizer.inputLoudness': 'Sonie en entrée (3 s)',
+  'dsp.normalizer.outputLoudness': 'Sonie en sortie (3 s)',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'Le DSP traite uniquement les pistes audio lues depuis la Bibliothèque. Le son partagé reçu, le karaoké, les vidéos et les autres applications ne sont pas traités.',

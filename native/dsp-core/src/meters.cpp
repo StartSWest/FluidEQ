@@ -206,6 +206,7 @@ struct FeqMeters {
   std::atomic<float> live_input_peak{-120};
   std::atomic<float> live_input_lufs{-120};
   std::atomic<float> live_reference_lufs{-120};
+  std::atomic<float> live_output_lufs{-120};
   std::atomic<int> live_level_state{0};
   std::atomic<double> denoise_reduction{0}, denoise_floor{-120};
   std::atomic<uint32_t> denoise_clicks{0}, denoise_underruns{0};
@@ -929,12 +930,13 @@ void feq_meters_read_denoise(const FeqMeters* meters, FeqDenoiseReport* report) 
 }
 
 void feq_meters_publish_live_input(FeqMeters* meters, double peak_db, double lufs,
-                                 double reference_lufs, int level_state) {
+                                 double reference_lufs, int level_state, double output_lufs) {
   if (meters == nullptr) return;
   meters->live_input_peak.store(static_cast<float>(peak_db), std::memory_order_relaxed);
   meters->live_input_lufs.store(static_cast<float>(lufs), std::memory_order_relaxed);
   meters->live_reference_lufs.store(static_cast<float>(reference_lufs), std::memory_order_relaxed);
   meters->live_level_state.store(level_state, std::memory_order_relaxed);
+  meters->live_output_lufs.store(static_cast<float>(output_lufs), std::memory_order_relaxed);
 }
 void feq_meters_read_live_input(FeqMeters* meters, float* values) {
   if (meters == nullptr || values == nullptr) return;
@@ -942,5 +944,6 @@ void feq_meters_read_live_input(FeqMeters* meters, float* values) {
   values[1] = meters->live_input_lufs.load(std::memory_order_relaxed);
   values[2] = meters->live_reference_lufs.load(std::memory_order_relaxed);
   values[3] = static_cast<float>(meters->live_level_state.load(std::memory_order_relaxed));
+  values[4] = meters->live_output_lufs.load(std::memory_order_relaxed);
 }
 }  // extern "C"

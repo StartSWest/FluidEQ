@@ -27,6 +27,7 @@ typedef struct FeqLiveNormalizerReading {
   double applied_gain_db;
   double reference_lufs;
   int level_state; /* 0 off, 1 peak protection, 2 learning, 3 hold, 4 leveling, 5 limited */
+  double output_lufs; /* measured after gain and peak protection, over 3 s */
 } FeqLiveNormalizerReading;
 FeqLiveNormalizer* feq_live_normalizer_create(double rate, uint32_t channels);
 void feq_live_normalizer_destroy(FeqLiveNormalizer* state);

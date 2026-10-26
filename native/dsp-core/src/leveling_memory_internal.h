@@ -22,13 +22,16 @@ struct FeqLevelingState {
   double settled_level = -120;
   double settled_peak_db = -120;
   double foreground_seconds = 0;
+  double control_target_lufs = -120;
+  double control_ceiling_db = -120;
+  bool retarget_pending = false;
   bool established = false;  // a gain has been decided from music or memory
   bool named = false;        // the programme has a song identity right now
   bool known = false;        // the song's level came from an earlier play
   bool glide = false;        // a remembered level is still being reached
 };
 
-inline constexpr std::size_t kLevelingWords = 10;
+inline constexpr std::size_t kLevelingWords = 12;
 
 struct FeqLevelingMemory {
   // Announcements come from watcher threads, several per output; the audio

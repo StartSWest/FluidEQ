@@ -687,6 +687,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 
+  &.is-live {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   div {
     display: flex;
     min-width: 0;

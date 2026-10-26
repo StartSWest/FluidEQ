@@ -107,6 +107,8 @@ const dsp = {
     'Mide el audio externo mientras se reproduce, ajusta ambos canales a la vez y protege los picos antes del excitador y el ecualizador.',
   'dsp.normalizer.liveAnalysis': 'Análisis de la fuente en directo',
   'dsp.normalizer.shortTerm': 'Sonoridad a corto plazo',
+  'dsp.normalizer.inputLoudness': 'Sonoridad de entrada (3 s)',
+  'dsp.normalizer.outputLoudness': 'Sonoridad de salida (3 s)',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'El DSP solo procesa pistas de audio reproducidas desde la Biblioteca. No procesa audio compartido recibido, karaoke, vídeos ni otras aplicaciones.',

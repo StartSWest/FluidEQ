@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "fluideq/leveling_memory.h"
 #include "fluideq/live_normalizer.h"
+#include "fluideq/loudness_meter.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -33,12 +34,16 @@ struct Leveler {
   FeqLiveNormalizer* processor = feq_live_normalizer_create(kRate, 2);
   FeqNormalizerSettings settings{2, -1, -14};
   FeqLiveNormalizerReading reading{};
+  FeqLoudnessMeter* output_observer = nullptr;
   std::vector<float> left = std::vector<float>(kBlock), right = std::vector<float>(kBlock);
   uint64_t position = 0;
   explicit Leveler(FeqLevelingMemory* memory) {
     feq_live_normalizer_attach_memory(processor, memory);
   }
-  ~Leveler() { feq_live_normalizer_destroy(processor); }
+  ~Leveler() {
+    feq_live_normalizer_destroy(processor);
+    feq_loudness_meter_destroy(output_observer);
+  }
   Leveler(const Leveler&) = delete;
   Leveler& operator=(const Leveler&) = delete;
   void block(double amplitude) {
@@ -49,6 +54,8 @@ struct Leveler {
     }
     float* planes[2] = {left.data(), right.data()};
     reading = feq_live_normalizer_process(processor, planes, kBlock, &settings);
+    if (output_observer != nullptr)
+      feq_loudness_meter_process(output_observer, planes, kBlock);
   }
   void play(double seconds, double amplitude) {
     const auto blocks = static_cast<uint64_t>(std::llround(seconds * kRate / kBlock));
@@ -221,6 +228,117 @@ void switching_modes_starts_over() {
   check(relocked.reading.reference_lufs < -100 && std::abs(relocked.gain()) < 0.01,
         "switching back on relearns rather than restoring what Off discarded");
 }
+
+void target_edits_override_hold_without_forgetting_the_song() {
+  Memory memory;
+  Leveler leveler(memory.handle);
+  leveler.settings.target_lufs = -24;
+  feq_leveling_memory_begin_song(memory.handle, kSongA, -16, -13);
+  leveler.play(50, kChorus);
+  check(std::abs(leveler.gain() + 8) < 0.1, "a low target establishes eight dB of reduction");
+  const double reference = leveler.reading.reference_lufs;
+  leveler.settings.target_lufs = -12;
+  leveler.play(0.1, kChorus);
+  check(leveler.gain() > -8 && leveler.gain() < -7.7,
+        "raising the target moves the held gain smoothly on the next block");
+  leveler.play(8, kChorus);
+  check(std::abs(leveler.gain() - 4) < 0.1, "the raised target is reached without switching modes");
+  check(std::abs(leveler.reading.reference_lufs - reference) < 0.01,
+        "a target edit preserves the song's learned loudness");
+  leveler.settings.target_lufs = -18;
+  leveler.play(4, kChorus);
+  check(std::abs(leveler.gain() + 2) < 0.1, "lowering the target also retargets the established gain");
+  leveler.settings.target_lufs = -17.5;
+  leveler.play(1, kChorus);
+  check(std::abs(leveler.gain() + 1.5) < 0.1, "an explicit half-LU edit is not swallowed by the programme deadband");
+  leveler.play(30, kVerse);
+  check(std::abs(leveler.gain() + 1.5) < 0.1, "a later quiet verse still keeps the edited gain");
+}
+
+void ceiling_edits_and_relocking_keep_the_controls_current() {
+  Memory memory;
+  {
+    Leveler first(memory.handle);
+    first.settings = {2, -12, -5};
+    feq_leveling_memory_begin_song(memory.handle, kSongA, -16, -13);
+    first.play(10, kChorus);
+    check(std::abs(first.gain() - 0.5) < 0.1, "the initial gain respects the tight peak ceiling");
+  }
+  Leveler next(memory.handle);
+  next.settings = {2, -1, -5};
+  next.play(0.1, kChorus);
+  check(next.gain() > 0.5 && next.gain() < 0.8,
+        "a replacement chain notices a relaxed ceiling after adopting the old gain");
+  next.play(4, kChorus);
+  check(std::abs(next.gain() - 6) < 0.1, "the relaxed ceiling permits the new gain within the six-dB limit");
+  next.settings.ceiling_db = -12;
+  // Applied gain includes peak protection, whose platform must release after
+  // it catches the initially hotter samples during the downward glide.
+  next.play(12, kChorus);
+  check(std::abs(next.gain() - 0.5) < 0.1, "tightening the ceiling retargets the held gain too");
+}
+
+void unknown_songs_honor_late_edits_and_relocked_targets() {
+  Memory memory;
+  double reference = 0;
+  {
+    Leveler first(memory.handle);
+    first.settings.target_lufs = -24;
+    feq_leveling_memory_begin_song(memory.handle, kSongA, -120, -120);
+    first.play(60, kChorus);
+    reference = first.reading.reference_lufs;
+  }
+  Leveler next(memory.handle);
+  next.settings.target_lufs = -12;
+  next.play(8, kChorus);
+  check(std::abs(next.gain() - (-12 - reference)) < 0.1,
+        "a target edit after the opening survives adoption by a new chain");
+  next.settings.target_lufs = -18;
+  next.play(5, kChorus);
+  check(std::abs(next.gain() - (-18 - reference)) < 0.1,
+        "an unremembered song honors later dial edits without waiting for a new song");
+
+  Memory fresh;
+  Leveler early(fresh.handle);
+  early.settings.target_lufs = -24;
+  feq_leveling_memory_begin_song(fresh.handle, kSongB, -120, -120);
+  early.play(1, kChorus);
+  early.settings.target_lufs = -12;
+  early.play(5, kChorus);
+  check(early.gain() > 3,
+        "an edit during the first incomplete window applies once that window is ready");
+}
+
+void lufs_measures_the_actual_output_during_a_gain_ramp() {
+  Memory memory;
+  Leveler leveler(memory.handle);
+  leveler.output_observer = feq_loudness_meter_create(kRate, 2);
+  leveler.settings.target_lufs = -24;
+  feq_leveling_memory_begin_song(memory.handle, kSongA, -16, -13);
+  leveler.play(1, kChorus);
+  check(leveler.reading.input_lufs == -120 && leveler.reading.output_lufs == -120,
+        "both short-term readings wait for a complete three-second window");
+  leveler.play(7, kChorus);
+  check(std::abs((leveler.reading.output_lufs - leveler.reading.input_lufs) + 8) < 0.05,
+        "steady output LUFS measures the eight-dB normalization independently of input");
+  leveler.settings.target_lufs = -12;
+  leveler.play(1, kChorus);
+  FeqLoudnessReading observed{};
+  feq_loudness_meter_read(leveler.output_observer, &observed);
+  check(std::abs(leveler.reading.output_lufs - observed.short_term_lufs) < 0.001,
+        "output LUFS agrees with an independent meter on the actual processed samples");
+  check(std::abs(leveler.reading.output_lufs -
+        (leveler.reading.input_lufs + leveler.gain())) > 0.5,
+        "during a ramp output LUFS is not guessed from the instantaneous gain");
+  leveler.settings = {1, -12, -5};
+  feq_loudness_meter_reset(leveler.output_observer);
+  leveler.play(8, 0.75);
+  feq_loudness_meter_read(leveler.output_observer, &observed);
+  check(leveler.reading.input_lufs - leveler.reading.output_lufs > 8,
+        "output LUFS includes the actual peak protection reduction");
+  check(std::abs(leveler.reading.output_lufs - observed.short_term_lufs) < 0.001,
+        "the measured output still agrees with the observer while peak protection is active");
+}
 }
 
 int main() {
@@ -230,5 +348,9 @@ int main() {
   what_was_learned_survives_a_new_chain();
   titles_pauses_and_the_next_song();
   switching_modes_starts_over();
+  target_edits_override_hold_without_forgetting_the_song();
+  ceiling_edits_and_relocking_keep_the_controls_current();
+  unknown_songs_honor_late_edits_and_relocked_targets();
+  lufs_measures_the_actual_output_during_a_gain_ramp();
   return failures == 0 ? 0 : 1;
 }
