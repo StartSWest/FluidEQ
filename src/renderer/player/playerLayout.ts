@@ -4,8 +4,16 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { PLAYER_DEFAULT_HEIGHT, PLAYER_FOLD_HEIGHT } from 'common/constants';
+import { foldSectionsAway, stripStepsAside } from './playerMotion';
 import {
   holdPlayerHeight,
   needPlayerWidth,
@@ -257,22 +265,64 @@ const recallUnfoldedHeight = (): number | undefined => {
  * double-clicks on the header brought none. The only other way to have one
  * is to time two presses, which is guessing at the listener's own
  * double-click setting, so the fold is the menu's and the strip's.
+ *
+ * Folding plays the sections up into the header first and asks for the
+ * strip's height once they have gone; unfolding steps the strip's controls
+ * aside and asks for the remembered height, and the column opens down by
+ * itself as it appears (`playerMotion.ts`). With Animations off both ask at
+ * once, as before.
  */
-export const usePlayerFold = () => {
+export const usePlayerFold = (root: RefObject<HTMLElement | null>) => {
   const isFolded = useIsFolded();
+  // One fold or unfold at a time: a second press while the sections are
+  // moving would start a second motion over the first and ask for the same
+  // height twice.
+  const isMoving = useRef(false);
   const fold = useCallback(() => {
+    if (isMoving.current) {
+      return;
+    }
+    isMoving.current = true;
     rememberUnfoldedHeight(window.innerHeight);
-    // The player's own floor holds the window above the strip, so the hold
-    // goes first and the strip's own height is asked for after
-    // (`usePlayerHeightFloor`).
-    holdPlayerHeight(null, null);
-    resizePlayerWindow(PLAYER_FOLD_HEIGHT).catch(() => undefined);
-  }, []);
+    const motion = foldSectionsAway(root.current);
+    motion.finished
+      .then(() => {
+        // Switched to the full app while the sections went up: the window
+        // is the app's now, and the strip's height is no longer the player's
+        // to ask for.
+        if (!root.current?.isConnected) {
+          return undefined;
+        }
+        // The player's own floor holds the window above the strip, so the
+        // hold goes first and the strip's own height is asked for after
+        // (`usePlayerHeightFloor`).
+        holdPlayerHeight(null, null);
+        return resizePlayerWindow(PLAYER_FOLD_HEIGHT);
+      })
+      // Main refused the height: the sections come back rather than leave an
+      // empty player standing at its old size.
+      .catch(() => motion.cancel())
+      .finally(() => {
+        isMoving.current = false;
+      });
+  }, [root]);
   const unfold = useCallback(() => {
-    resizePlayerWindow(recallUnfoldedHeight() ?? PLAYER_DEFAULT_HEIGHT).catch(
-      () => undefined,
-    );
-  }, []);
+    if (isMoving.current) {
+      return;
+    }
+    isMoving.current = true;
+    const motion = stripStepsAside(root.current);
+    motion.finished
+      .then(() =>
+        root.current?.isConnected
+          ? resizePlayerWindow(recallUnfoldedHeight() ?? PLAYER_DEFAULT_HEIGHT)
+          : undefined,
+      )
+      .catch(() => motion.cancel())
+      .finally(() => {
+        isMoving.current = false;
+      });
+  }, [root]);
 
   return { isFolded, fold, unfold };
 };

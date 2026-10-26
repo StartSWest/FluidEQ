@@ -54,11 +54,11 @@ const PlayerAmp = ({
   onOpenPage: (page: TPlayerPage) => void;
 }) => {
   const { t } = useTranslation();
-  const { isFolded, fold, unfold } = usePlayerFold();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const { isFolded, fold, unfold } = usePlayerFold(rootRef);
   const isVisFull = usePlayerVisFull();
   const { isShelfOpen } = usePlayerShelfOpen();
   const { sound } = usePlayerSound();
-  const rootRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   // One load of the graph's Plus visualizer for the whole amp, folded or not:
   // it keeps moving behind the folded line.

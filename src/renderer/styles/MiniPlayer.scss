@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 @use 'sass:meta';
 @use 'glass';
+@use 'playerMotion';
 
 // THE LIBRARY'S SCAN CARD FLOATS OVER THE QUEUE'S FOOT (Ivan, 2026-10-25:
 // "it needs to be floating, it cannot push the content down of the list or
