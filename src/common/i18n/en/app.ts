@@ -47,9 +47,9 @@ const app = {
   'app.menu.resetSettings': 'Reset all settings…',
   'settingsReset.title': 'Reset all settings?',
   'settingsReset.body':
-    'The graph and visualizers, Window colours, the player, the Library, the language, Animations, Start with Windows, the desktop background and Dynamic lighting go back to how a new install of FluidEQ starts.',
+    'The graph and visualizers, Window colours, the player, the Library, where each page was left, Animations, Start with Windows, the desktop background and Dynamic lighting go back to how a new install of FluidEQ starts.',
   'settingsReset.kept':
-    'Your EQ, presets, curves and DSP stay as they are, and so do your outputs, the audio engine and everything you saved.',
+    'Your EQ, presets, curves and DSP stay as they are, and so do your outputs, the audio engine, the language and everything you saved.',
   'settingsReset.action': 'Reset settings',
   'settingsReset.failed': 'The settings could not be reset. Try again.',
   'app.processes.eyebrow': 'Processes',

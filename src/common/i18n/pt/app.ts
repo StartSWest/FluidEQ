@@ -49,9 +49,9 @@ const app: Partial<Dictionary> = {
   'app.menu.resetSettings': 'Redefinir todas as configurações…',
   'settingsReset.title': 'Redefinir todas as configurações?',
   'settingsReset.body':
-    'O gráfico e os visualizadores, Cores da janela, o player, a Biblioteca, o idioma, Animações, Iniciar com o Windows, o fundo da área de trabalho e a Iluminação dinâmica voltam a ser como em uma nova instalação do FluidEQ.',
+    'O gráfico e os visualizadores, Cores da janela, o player, a Biblioteca, onde cada página ficou, Animações, Iniciar com o Windows, o fundo da área de trabalho e a Iluminação dinâmica voltam a ser como em uma nova instalação do FluidEQ.',
   'settingsReset.kept':
-    'Seu EQ, seus presets, curvas e DSP continuam como estão, assim como suas saídas, o mecanismo de áudio e tudo o que você salvou.',
+    'Seu EQ, seus presets, curvas e DSP continuam como estão, assim como suas saídas, o mecanismo de áudio, o idioma e tudo o que você salvou.',
   'settingsReset.action': 'Redefinir configurações',
   'settingsReset.failed':
     'Não foi possível redefinir as configurações. Tente novamente.',

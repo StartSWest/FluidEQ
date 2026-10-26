@@ -25,6 +25,8 @@ export interface ISettingsResetDeps {
   resetLighting: () => void;
   /** The compact player's Always on top, off. */
   unpinWindow: () => void;
+  /** The graph's on/off switch, on: it is kept in the state file beside the EQ. */
+  showGraph: () => void;
   logger: ILogger;
 }
 
@@ -36,10 +38,14 @@ export interface ISettingsResetDeps {
  * answers, and reloads, which reads every one of them again.
  *
  * What main keeps that is a setting: the animations, the graphics card,
- * whether Windows starts FluidEQ, the desktop backgrounds, the desk lights
- * and the compact player's Always on top. What it keeps that is not, and so
- * is left alone: the engine and the outputs, the EQ in every profile, the
- * song EQs, the band layouts, the account, the Library and the Studio.
+ * whether Windows starts FluidEQ, the desktop backgrounds, the desk lights,
+ * the compact player's Always on top, and the graph's on/off switch (Ivan,
+ * 2026-10-26, from the reset checklist: "do it"). What it keeps that is not,
+ * and so is left alone: the engine and the outputs, the EQ in every profile,
+ * the song EQs, the band layouts, the account, the Library and the Studio —
+ * and, by the same checklist, the window's size, place and mode, because a
+ * window that jumps or changes shape on a reset reads as something breaking.
+ * `settingsResetIpc.test.ts` fails on any file main keeps that is in no list.
  *
  * Each part is its own step: one Windows refuses (the startup entry is
  * Windows' to write) is logged and does not keep the others from resetting.
@@ -66,6 +72,7 @@ export const registerSettingsResetIpc = (deps: ISettingsResetDeps) => {
     ['desktop backgrounds', deps.resetDesktopBackgrounds],
     ['desk lights', deps.resetLighting],
     ['always on top', deps.unpinWindow],
+    ['graph switch', deps.showGraph],
   ];
 
   ipcMain.handle(SETTINGS_RESET_CHANNEL, (event) => {

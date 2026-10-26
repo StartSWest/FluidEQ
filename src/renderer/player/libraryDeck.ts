@@ -53,11 +53,10 @@ export interface ILibraryDeck {
   jumpTo: (position: number) => void;
   /**
    * Music files or folders dragged onto the queue from the computer: they join the
-   * library and go on the end of the play order, in the order they were
-   * dropped. Loose files join immediately; folders wait for the cancellable
-   * Library scan to discover their songs.
+   * library and join at the chosen gap, or the end when no gap is named,
+   * in drop order. Folders wait for the cancellable Library scan.
    */
-  addFiles: (paths: string[]) => Promise<TDroppedMusic>;
+  addFiles: (paths: string[], at?: number) => Promise<TDroppedMusic>;
   scanProgress?: ILibraryScanProgress;
   cancelScan: () => void;
   /**
@@ -161,7 +160,7 @@ interface IPublishedLibraryDeck {
   setShuffle: (isShuffled: boolean) => void;
   cycleRepeat: () => void;
   jumpToQueuePosition: (position: number) => void;
-  addFiles: (paths: string[]) => Promise<TDroppedMusic>;
+  addFiles: ILibraryDeck['addFiles'];
   moveUpNext: (from: number, to: number) => void;
   removeUpNextAt: (position: number) => void;
   /** Whether a song stands in the queue as a continuation draw. */

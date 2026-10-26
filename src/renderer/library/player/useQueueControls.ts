@@ -29,6 +29,8 @@ import {
   appendToEnd,
   dropGuessesAhead,
   idsStillComing,
+  insertAt,
+  insertionBefore,
   settleGuesses,
   topUpQueue as topUpPlayOrder,
   uniqueTrackIds,
@@ -38,6 +40,11 @@ export interface IQueueControls {
   jumpToQueuePosition: (position: number) => void;
   /** Puts songs at the end of Up next, and says how many joined. */
   appendToQueue: (trackIds: readonly string[]) => number;
+  /** Inserts before the first still-upcoming anchor, retaining drop order. */
+  insertIntoQueue: (
+    trackIds: readonly string[],
+    beforeIds: readonly string[],
+  ) => number;
   removeUpNextAt: (position: number) => void;
   moveUpNext: (from: number, to: number) => void;
   setShuffle: (isShuffled: boolean) => void;
@@ -109,8 +116,8 @@ export const useQueueControls = (options: {
     [isGuess, setQueue],
   );
 
-  const appendToQueue = useCallback(
-    (trackIds: readonly string[]) => {
+  const addToQueue = useCallback(
+    (trackIds: readonly string[], beforeIds?: readonly string[]) => {
       const [first] = trackIds;
       if (first === undefined) {
         return 0;
@@ -119,9 +126,8 @@ export const useQueueControls = (options: {
         playTracks(trackIds, first);
         return uniqueTrackIds(trackIds).length;
       }
-      // AT THE END, AND ONCE (`appendToEnd`). Only the songs that join are
-      // marked as picks: a song already coming keeps the heading it had,
-      // and a song playing is not "up next".
+      // Only songs that join are marked as picks: a song already coming
+      // keeps the heading it had, and a song playing is not "up next".
       const coming = idsStillComing(queueRef.current, isGuess);
       const joining = uniqueTrackIds(trackIds).filter((id) => !coming.has(id));
       if (joining.length > 0) {
@@ -131,9 +137,19 @@ export const useQueueControls = (options: {
           return next;
         });
       }
-      setQueue((queue) =>
-        queue ? appendToEnd(queue, trackIds, isGuess) : queue,
-      );
+      setQueue((queue) => {
+        if (!queue) {
+          return queue;
+        }
+        return beforeIds === undefined
+          ? appendToEnd(queue, trackIds, isGuess)
+          : insertAt(
+              queue,
+              trackIds,
+              insertionBefore(queue, beforeIds),
+              isGuess,
+            );
+      });
       return joining.length;
     },
     [playTracks, setQueue, queueRef, isGuess, setAddedIds],
@@ -335,7 +351,8 @@ export const useQueueControls = (options: {
 
   return {
     jumpToQueuePosition,
-    appendToQueue,
+    appendToQueue: addToQueue,
+    insertIntoQueue: addToQueue,
     removeUpNextAt,
     moveUpNext,
     setShuffle,

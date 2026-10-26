@@ -328,22 +328,22 @@ const tour: Partial<Dictionary> = {
   'tour.share.kicker': 'CADA PC, EN LAS DOS DIRECCIONES',
   'tour.share.title': 'Comparte audio entre tus ordenadores',
   'tour.share.subtitle':
-    'Oye los dos ordenadores, te sientes en el que te sientes',
+    'Oye todos los ordenadores del grupo, te sientes en el que te sientes',
   'tour.share.lead':
-    'Tu PC de juegos y tu portátil suenan el uno en el otro: te sientes en el que te sientes, oyes los dos, por tu propia red, sin pérdida, cifrado y con el EQ que ajustaste en ese ordenador.',
+    'Tu PC de juegos, tu portátil y cualquier otro ordenador de tu red suenan en un solo grupo: te sientes en el que te sientes, oyes a los demás, sin pérdidas, cifrado y con el EQ de ese ordenador.',
   'tour.share.pairLabel': 'EN LAS DOS DIRECCIONES',
-  'tour.share.pairName': 'Cada ordenador reproduce el sonido del otro',
+  'tour.share.pairName': 'Cada ordenador reproduce el sonido de los demás',
   'tour.share.wireLabel': 'Sin pérdidas · Cifrado · LAN privada',
   'tour.share.stepsTitle': 'Configúralo en tres pasos',
   'tour.share.step1Title': 'En un ordenador, copia su código',
   'tour.share.step1':
-    'Abre la pestaña Compartir audio y pulsa «Copiar código». El código es siempre el mismo.',
+    'Abre la pestaña Compartir audio, pulsa «Añadir ordenador» y luego «Copiar código». El código es siempre el mismo.',
   'tour.share.step2Title': 'En el otro, pégalo y enlaza',
   'tour.share.step2':
-    'Abre allí Compartir audio, pega el código en «Código del otro ordenador» y pulsa «Enlazar». Los dos empiezan a reproducirse al instante, sin tocar: cada uno aplica su propio EQ a lo que oye.',
+    'Allí, pulsa «Añadir ordenador», pega el código en «Código del otro ordenador» y pulsa «Enlazar». Los ordenadores que enlaces después se unen a todo el grupo.',
   'tour.share.step3Title': 'Elige qué va adónde',
   'tour.share.step3':
-    'Cada ordenador enlazado tiene dos interruptores, «Reproducir aquí» y «Enviar mi sonido»: apaga uno si quieres una sola dirección. La barra muestra la canción del otro ordenador y sus botones funcionan a través del enlace. Un deslizador junto a «Reproducir aquí» fija su volumen, y «Pausar» detiene ambos sentidos hasta que pulses «Reanudar».',
+    'Cada ordenador tiene «Recibir» y «Enviar», y «Compartir» apaga tu sonido para todos. «Tu mezcla» ajusta cada nivel. Pausar y Desenlazar están en el menú de cada ordenador, y los botones de la barra funcionan a través de la red.',
   'tour.share.fact1Title': 'Sin pérdidas',
   'tour.share.fact1':
     'PCM Float32 de extremo a extremo. Sin códec, sin pérdida de generación.',
@@ -352,9 +352,9 @@ const tour: Partial<Dictionary> = {
     'AES-256-GCM en cada paquete. El código es la clave; sin él nadie puede escuchar.',
   'tour.share.fact3Title': 'Sigue enlazado',
   'tour.share.fact3':
-    'El enlace sobrevive a cerrar la app y a los reinicios, desde cualquiera de los dos lados. Solo «Desenlazar» lo termina.',
+    'El grupo se vuelve a encontrar tras un reinicio, la suspensión, un corte de red o un cambio de motor. Los ordenadores ausentes siguen en la lista.',
   'tour.share.tip':
-    'Empieza bajito: dos ordenadores sonando a la vez se suman. Baja el volumen antes del primer enlace.',
+    'Empieza bajito: los ordenadores sonando a la vez se suman. Baja el volumen antes del primer enlace.',
   'tour.share.open': 'Abrir Compartir audio',
 
   'tour.library.kicker': 'TU MÚSICA, TU REPRODUCTOR',

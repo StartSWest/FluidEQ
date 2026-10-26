@@ -64,6 +64,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   mask-image: linear-gradient($black calc(100% - 22px), transparent);
   @include slim-scrollbar;
 
+  // Keep the chosen gap visible even at the list's fading foot.
+  &.is-file-drop {
+    mask-image: none;
+  }
+
   li {
     display: block;
   }

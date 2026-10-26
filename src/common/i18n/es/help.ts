@@ -98,9 +98,9 @@ const help: Record<keyof typeof en, string> = {
     'El nivel de salida, izquierdo y derecho, en decibelios reales. Púlsalo para cambiar su estilo.',
   'help.player.title': 'El Reproductor compacto',
   'help.player.intro':
-    'Un interruptor convierte la ventana de FluidEQ en el Reproductor compacto: una columna estrecha con la canción, tu ecualizador, un visualizador y A continuación, en paneles que abres y cierras. Lo que esté sonando sigue sonando, y el mismo interruptor te devuelve a la app completa, en la página que dejaste.',
+    'Un interruptor convierte la ventana de FluidEQ en el Reproductor compacto, una sola columna estrecha: arriba, un visualizador con la canción encima y los controles de reproducción debajo; luego Sonido, tu ecualizador; y luego A continuación y tus listas. Lo que esté sonando sigue sonando, y el mismo interruptor te devuelve a la app completa, en la página que dejaste.',
   'help.player.steps':
-    'Pulsa el interruptor del Reproductor compacto en la barra de título, junto a Ayuda. En el reproductor, el mismo interruptor te devuelve a la app completa.\nAbre y cierra los paneles con EQ, Visual y Cola. La ventana crece y se encoge según lo que ocupa cada uno, y el reproductor recuerda su tamaño y su posición.\nHaz doble clic en la barra del reproductor, o elige Plegar en una línea en su menú, para plegarlo en una sola línea; el logotipo de FluidEQ lo despliega.\nAjusta el Brillo propio del reproductor en su menú, y mantenlo por encima de las demás ventanas con Siempre visible.\nSuelta archivos de música en A continuación: se suman a la Biblioteca y a la cola.',
+    'Pulsa el interruptor del Reproductor compacto en la barra de título, junto a Ayuda. En el reproductor, el mismo interruptor te devuelve a la app completa.\nPliega Sonido, o A continuación y Listas, hasta su cabecera, y el visualizador ocupa el espacio; pulsa la cabecera para volver a abrirlo. Arrastra el borde superior o inferior del reproductor para hacerlo más alto o más bajo.\nHaz doble clic en el visualizador para que llene la pantalla; Esc lo devuelve a su sitio. Pulsa el nombre del estilo, junto a Aleatorio y Repetir, para elegir entre todos los estilos y escenas.\nHaz doble clic en la cabecera del reproductor, o elige Plegar en una línea en el menú del logotipo de FluidEQ, para plegarlo en una sola línea; el logotipo lo despliega.\nEn ese mismo menú, ajusta el Brillo propio del reproductor, la Transparencia sobre una escena o el Tono de la ventana sobre un estilo estándar, y la Luz del día de una escena. Siempre visible, ahí o en la cabecera, lo mantiene por encima de las demás ventanas.\nSuelta archivos de música en cualquier parte del reproductor: se suman a la Biblioteca y al final de A continuación o, sobre la lista, al punto donde los sueltes.',
   'help.player.tip':
     'El volumen del reproductor es el de tu ordenador, el mismo que en Windows, así que ajusta el nivel de todo lo que suena en el ordenador. Si el reproductor acaba fuera de la pantalla, haz clic derecho en el icono de FluidEQ en la bandeja del sistema y elige Recuperar la ventana.',
   'help.player.keywords':
@@ -111,7 +111,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.menuCaption': 'El menú del reproductor',
   'help.player.foldedCaption': 'Plegado en una línea',
   'help.player.menu':
-    'Volver a la app completa o a una de sus páginas, el Brillo propio del reproductor, Siempre visible y Plegar en una línea.',
+    'Volver a la app completa o a una de sus páginas; el Brillo propio del reproductor, la Transparencia o el Tono, la Luz del día de una escena, el Modo colorido y los deslizadores del EQ; Siempre visible y Plegar en una línea.',
   'help.player.pin':
     'Mantiene el reproductor por encima de las demás ventanas.',
   'help.player.switch': 'Volver a la app completa, en la página que dejaste.',
@@ -133,30 +133,29 @@ const help: Record<keyof typeof en, string> = {
   'help.player.orderName': 'Aleatorio y repetir',
   'help.player.order':
     'Pone A continuación en orden aleatorio, y repite todo, solo esta canción o nada.',
-  'help.player.lookName': 'Siguiente estilo',
+  'help.player.lookName': 'Estilo',
   'help.player.look':
-    'Cambia el estilo del visualizador. Ctrl+clic vuelve al anterior, y el clic derecho los muestra todos.',
+    'El estilo o la escena que dibuja el visualizador. Púlsalo para elegir entre todos.',
   'help.player.screen':
     'Lo que oyes, dibujado: tus bandas, el EQ inteligente y todo lo demás que se aplica, sobre un estilo del visualizador. También aplicado los enumera, y pulsar la etiqueta de uno lo desactiva sin quitarlo.',
   'help.player.bands':
     'Arrastra una banda arriba o abajo para realzarla o atenuarla. Debajo lleva escrita su frecuencia.',
   'help.player.tone':
-    'Bandas muestra todas las bandas; Tono las cambia por los mandos de Graves, Medios y Agudos.',
+    'Tono muestra los mandos de Graves, Medios y Agudos; la pestaña de al lado, todas las bandas.',
   'help.player.upNext':
-    'Tu posición en la cola, el tiempo que queda en ella y cuánto has avanzado.',
+    'A continuación y Listas, cada pestaña con cuántos elementos tiene, y el tiempo que le queda a la cola.',
   'help.player.library': 'Abre la Biblioteca en la app completa.',
   'help.player.songsName': 'Las canciones',
   'help.player.songs':
-    'Lo que suena después. Haz doble clic en una canción para reproducirla, o suelta aquí archivos de música para añadirlos.',
+    'Lo que suena después. Haz clic en una canción para reproducirla, arrástrala para moverla, o suelta aquí archivos de música para añadirlos donde los sueltes.',
   'help.player.openIn': 'Abre la app completa en una de sus páginas.',
   'help.player.theme':
-    'El Brillo propio del reproductor, independiente del de la app completa; la Transparencia, para el reproductor de cristal sobre un visualizador; y el Modo colorido.',
+    'El Brillo propio del reproductor, independiente del de la app completa; la Transparencia sobre una escena, o el Tono de la ventana sobre un estilo estándar; la Luz del día de una escena; y el Modo colorido.',
   'help.player.fold':
-    'Pliega el reproductor en una línea. Un doble clic en su barra hace lo mismo.',
+    'Pliega el reproductor en una línea. Un doble clic en su cabecera hace lo mismo.',
   'help.player.unfold':
     'Despliega el reproductor. La flecha del otro extremo también.',
-  'help.player.foldedPlaying':
-    'Anterior, reproducir o pausar, siguiente y detener.',
+  'help.player.foldedPlaying': 'Reproducir o pausar.',
   'help.player.foldedClock': 'El tiempo y por dónde va la canción.',
 
   'help.requirements.title': 'Qué necesita tu PC',
@@ -701,13 +700,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.share.title': 'Comparte audio entre ordenadores',
   'help.share.intro':
-    'Compartir audio enlaza dos ordenadores de la misma red privada y cada uno reproduce el sonido del otro: te sientes en el que te sientes, oyes los dos. Cada ordenador envía su sonido intacto y nunca devuelve lo que recibe, así que no hay eco; el ordenador en el que escuchas aplica su propio EQ, curvas y DSP. Es distinto de duplicar a un segundo dispositivo en un mismo ordenador.',
+    'Compartir audio une ordenadores de la misma red privada en un grupo, y cada uno reproduce el sonido de los demás: te sientes en el que te sientes, oyes al resto. Cada ordenador envía su propio sonido directamente a los demás, sin tocar, y nunca reenvía lo que recibe, así que no hay eco; el ordenador en el que escuchas aplica su propio EQ, curvas y DSP. Esto es distinto de duplicar a un segundo dispositivo en un mismo ordenador.',
   'help.share.steps':
-    'En un ordenador, abre Compartir audio y pulsa Copiar código. Empieza con poco volumen.\nEn el otro ordenador, abre Compartir audio, pega el código en Código del otro ordenador y pulsa Enlazar. Los dos ordenadores se reproducen al instante.\nCada ordenador enlazado tiene dos interruptores: Reproducir aquí y Enviar mi sonido. Apaga uno para compartir en una sola dirección. El deslizador junto a Reproducir aquí ajusta lo alto que suena aquí ese ordenador.\nPausar detiene las dos direcciones hasta que pulses Reanudar; Desenlazar termina el enlace para siempre.',
+    'En un ordenador, abre Compartir audio, pulsa Añadir ordenador y luego Copiar código. Empieza con poco volumen.\nEn el otro ordenador, pulsa Añadir ordenador, pega el código en Código del otro ordenador y pulsa Enlazar. Los dos ordenadores se reproducen al instante. Enlaza más ordenadores igual: cada uno se une a todo el grupo, y los que llegan a través de otro aparecen con Recibir apagado hasta que lo enciendas.\nEn Todo el grupo, cada ordenador tiene dos interruptores, Recibir y Enviar; Compartir apaga el sonido de este ordenador para todos. Tu mezcla ajusta el volumen de Este PC y uno por ordenador.\nPausar, Reanudar y Desenlazar están en el menú de cada ordenador. Un ordenador ausente sigue en la lista como Sin conexión, y el grupo se vuelve a encontrar tras un reinicio, la suspensión, un corte de red o un cambio de motor.',
   'help.share.tip':
     'El código de conexión autoriza el enlace: mantenlo privado. Con el Motor FluidEQ, este ordenador mantiene su DSP mientras comparte, y el ordenador que reproduce su sonido aplica el suyo. Reproducir y enviar a la vez requiere Windows en ese ordenador; en otros, un enlace funciona en una sola dirección.',
   'help.share.keywords':
-    'red local, LAN, wifi, otro PC, otra computadora, transmitir audio, remoto, emparejar, dos direcciones, bidireccional, enlazar, desenlazar, pausar, reanudar, volumen',
+    'red local, LAN, wifi, otro PC, otra computadora, transmitir audio, remoto, emparejar, dos direcciones, bidireccional, enlazar, desenlazar, pausar, reanudar, volumen, grupo, añadir ordenador, recibir, enviar, compartir, mezcla, sin conexión, varios ordenadores',
 
   'help.trouble.title': 'Cuando algo suena mal',
   'help.trouble.intro':

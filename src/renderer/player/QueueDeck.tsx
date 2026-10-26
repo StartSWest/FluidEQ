@@ -15,6 +15,7 @@ import PlayerIcon from './PlayerIcon';
 import QueueDropNotice from './QueueDropNotice';
 import QueueNaming from './QueueSave';
 import { useLibraryDeck } from './libraryDeck';
+import type { TMusicDrop } from './useMusicDrop';
 
 /**
  * The drag type a queue row carries, so a song being reordered and music
@@ -41,10 +42,12 @@ const QueueDeck = ({
   isNaming,
   onNamed,
   onOpenLibrary,
+  musicDrop,
 }: {
   isNaming: boolean;
   onNamed: () => void;
   onOpenLibrary: () => void;
+  musicDrop: TMusicDrop;
 }) => {
   const { t } = useTranslation();
   const library = useLibraryDeck();
@@ -65,6 +68,36 @@ const QueueDeck = ({
   const nowRef = useRef<HTMLButtonElement>(null);
   const position = library?.position;
   const hasQueue = library !== undefined && library.total > 0;
+  const fileDropAt = musicDrop.isOver ? musicDrop.dropAt : undefined;
+  const markerAt = fileDropAt ?? dropAt;
+  const lastShown = library?.items[library.items.length - 1]?.position;
+  const markerEnd =
+    fileDropAt !== undefined && lastShown !== undefined
+      ? lastShown + 1
+      : (library?.total ?? 0);
+
+  // The upper/lower half of a row means before/after it, including a drop
+  // on its cover, remove button, or the space after the last visible row.
+  // History stays history: the earliest gap is after the song playing.
+  const filePosition = (event: DragEvent<HTMLElement>) => {
+    if (!library || !hasQueue) {
+      return undefined;
+    }
+    const first = library.position + 1;
+    const rows = listRef.current?.querySelectorAll<HTMLElement>(
+      '[data-queue-position]',
+    );
+    const before = Array.from(rows ?? []).find((row) => {
+      const { top, height } = row.getBoundingClientRect();
+      return event.clientY < top + height / 2;
+    });
+    return Math.max(
+      first,
+      before
+        ? Number(before.dataset.queuePosition)
+        : (lastShown ?? library.position) + 1,
+    );
+  };
   /** Where Keep playing's songs still to come begin, if any are listed. */
   const firstGuessAhead = library?.items.find(
     (item) => item.isContinued === true && item.position > library.position,
@@ -213,7 +246,11 @@ const QueueDeck = ({
   };
 
   const onRowDragOver = (event: DragEvent<HTMLElement>, at: number) => {
-    if (draggingAt === undefined || !canMove(at)) {
+    if (
+      event.dataTransfer.types.includes('Files') ||
+      draggingAt === undefined ||
+      !canMove(at)
+    ) {
       return;
     }
     event.preventDefault();
@@ -225,7 +262,10 @@ const QueueDeck = ({
   };
 
   const onRowDrop = (event: DragEvent<HTMLElement>, at: number) => {
-    if (draggingAt === undefined) {
+    if (
+      event.dataTransfer.types.includes('Files') ||
+      draggingAt === undefined
+    ) {
       return;
     }
     // Stopped here, or the deck's own drop handler clears the file overlay
@@ -245,7 +285,11 @@ const QueueDeck = ({
    */
   const end = library?.total ?? 0;
   const onListDragOver = (event: DragEvent<HTMLElement>) => {
-    if (draggingAt === undefined || !canMove(end)) {
+    if (
+      event.dataTransfer.types.includes('Files') ||
+      draggingAt === undefined ||
+      !canMove(end)
+    ) {
       return;
     }
     event.preventDefault();
@@ -254,7 +298,10 @@ const QueueDeck = ({
   };
 
   const onListDrop = (event: DragEvent<HTMLElement>) => {
-    if (draggingAt === undefined) {
+    if (
+      event.dataTransfer.types.includes('Files') ||
+      draggingAt === undefined
+    ) {
       return;
     }
     event.preventDefault();
@@ -270,7 +317,13 @@ const QueueDeck = ({
   };
 
   return (
-    <section className="player-queue" aria-label={t('library.upNext')}>
+    <section
+      className="player-queue"
+      aria-label={t('library.upNext')}
+      onDragOver={(event) => musicDrop.onDragOver(event, filePosition(event))}
+      onDragLeave={musicDrop.onDragLeave}
+      onDrop={(event) => musicDrop.onDrop(event, filePosition(event))}
+    >
       {hasQueue && isNaming && <QueueNaming onDone={onNamed} />}
       {library?.scanProgress ? (
         <LibraryScanProgress
@@ -283,8 +336,8 @@ const QueueDeck = ({
       {hasQueue ? (
         <ol
           className={`player-queue__list${
-            dropAt === end && draggingAt !== undefined ? ' is-drop-after' : ''
-          }`}
+            markerAt === markerEnd ? ' is-drop-after' : ''
+          }${fileDropAt !== undefined ? ' is-file-drop' : ''}`}
           ref={listRef}
           onDragOver={onListDragOver}
           onDrop={onListDrop}
@@ -314,14 +367,17 @@ const QueueDeck = ({
                     <span>{t('library.upNext.continued')}</span>
                   </li>
                 )}
-                <li className={canMove(item.position) ? 'is-ahead' : undefined}>
+                <li
+                  className={canMove(item.position) ? 'is-ahead' : undefined}
+                  data-queue-position={item.position}
+                >
                   <button
                     type="button"
                     ref={isNow ? nowRef : undefined}
                     className={`player-queue__row${isNow ? ' is-now' : ''}${
                       item.position < library.position ? ' is-played' : ''
                     }${draggingAt === item.position ? ' is-dragging' : ''}${
-                      dropAt === item.position && draggingAt !== item.position
+                      markerAt === item.position && draggingAt !== item.position
                         ? ' is-drop-before'
                         : ''
                     }`}

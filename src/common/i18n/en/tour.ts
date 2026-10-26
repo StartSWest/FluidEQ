@@ -342,22 +342,23 @@ const tour = {
 
   'tour.share.kicker': 'EVERY PC, BOTH WAYS',
   'tour.share.title': 'Share audio between your computers',
-  'tour.share.subtitle': 'Hear both computers, whichever one you sit at',
+  'tour.share.subtitle':
+    'Hear every computer in the group, whichever one you sit at',
   'tour.share.lead':
-    'Your gaming PC and your laptop play into each other: whichever one you sit at, you hear both — over your own network, losslessly, encrypted, and through the EQ you tuned on that computer.',
+    'Your gaming PC, your laptop and any other computer on your network play into one group: whichever one you sit at, you hear the others, losslessly, encrypted and through that computer’s own EQ.',
   'tour.share.pairLabel': 'BOTH WAYS',
-  'tour.share.pairName': 'Each computer plays the other’s sound',
+  'tour.share.pairName': 'Each computer plays the others’ sound',
   'tour.share.wireLabel': 'Lossless · Encrypted · Private LAN',
   'tour.share.stepsTitle': 'Set it up in three steps',
   'tour.share.step1Title': 'On one computer, copy its code',
   'tour.share.step1':
-    'Open the Share Audio tab and press “Copy code”. The code stays the same every time.',
+    'Open the Share Audio tab, press “Add computer” and then “Copy code”. The code stays the same every time.',
   'tour.share.step2Title': 'On the other, paste it and link',
   'tour.share.step2':
-    'Open Share Audio there, paste the code under “The other computer’s code” and press “Link”. Both start playing each other right away, untouched: each one applies its own EQ to what it hears.',
+    'There, press “Add computer”, paste the code under “The other computer’s code” and press “Link”. Computers you link later join the whole group.',
   'tour.share.step3Title': 'Choose what goes where',
   'tour.share.step3':
-    'Each linked computer has two switches, “Play it here” and “Send my sound”: turn one off for one way only. The bar shows the other computer’s song, and its buttons work across the wire. A slider beside “Play it here” sets how loud it plays, and “Pause” stops both ways until “Resume”.',
+    'Each computer has “Receive” and “Send”, and “Share” turns your sound off for all of them. “Your mix” sets each level. Pause and Unlink are in each computer’s menu, and the bar’s buttons work across the wire.',
   'tour.share.fact1Title': 'Lossless',
   'tour.share.fact1':
     'Float32 PCM end to end. No media codec, no generation loss.',
@@ -366,9 +367,9 @@ const tour = {
     'AES-256-GCM on every packet. The code is the key; nobody without it can listen in.',
   'tour.share.fact3Title': 'Stays linked',
   'tour.share.fact3':
-    'The link survives app closes and reboots, from either side. Only “Unlink” ends it.',
+    'The group finds itself again after a restart, sleep, a network drop or an engine switch. Computers that are away stay listed.',
   'tour.share.tip':
-    'Start quietly: two computers playing at once add up. Lower your volume before the first link.',
+    'Start quietly: computers playing at once add up. Lower your volume before the first link.',
   'tour.share.open': 'Open Share Audio',
 
   'tour.library.kicker': 'YOUR MUSIC, YOUR PLAYER',

@@ -13,8 +13,8 @@ import { useLibraryDeck } from './libraryDeck';
 import { usePlayerQueuePage } from './playerLayout';
 
 /**
- * MUSIC DROPPED ANYWHERE ON THE AMP goes on the end of the queue (Ivan,
- * 2026-10-25: "we also need to fix the drag and drop, still not working").
+ * Music dropped on the amp joins Up next. Over the list itself, the gap
+ * under the pointer chooses its place; elsewhere it joins the end.
  * Only the queue's own page took a drop, and in the one amp that is the
  * last stretch of the column, under the picture, the transport and the
  * sound: a file let go anywhere else did nothing at all. Now the whole amp
@@ -36,30 +36,37 @@ const useMusicDrop = () => {
   const library = useLibraryDeck();
   const { setQueuePage } = usePlayerQueuePage();
   const [isOver, setIsOver] = useState(false);
+  const [dropAt, setDropAt] = useState<number>();
 
-  const onDragOver = (event: DragEvent<HTMLElement>) => {
+  const onDragOver = (event: DragEvent<HTMLElement>, at?: number) => {
     if (!event.dataTransfer.types.includes('Files')) {
       return;
     }
     // Without this the browser refuses the drop outright.
     event.preventDefault();
+    // The queue names a gap; the amp must not replace it with "at the end".
+    event.stopPropagation();
     event.dataTransfer.dropEffect = 'copy';
     setIsOver(true);
+    setDropAt(at);
   };
 
   const onDragLeave = (event: DragEvent<HTMLElement>) => {
     // The pointer crossing onto something inside the amp is not leaving it.
     if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
       setIsOver(false);
+      setDropAt(undefined);
     }
   };
 
-  const onDrop = (event: DragEvent<HTMLElement>) => {
+  const onDrop = (event: DragEvent<HTMLElement>, at?: number) => {
     if (!event.dataTransfer.types.includes('Files')) {
       return;
     }
     event.preventDefault();
+    event.stopPropagation();
     setIsOver(false);
+    setDropAt(undefined);
     const paths = Array.from(event.dataTransfer.files)
       .map(droppedFilePath)
       .filter((path) => path.length > 0);
@@ -77,8 +84,9 @@ const useMusicDrop = () => {
     // music, all of it already coming, or a failure — which goes into the
     // log file as well, so the next bug report carries it (`reportError`;
     // a bare console line reaches no file).
-    library
-      .addFiles(paths)
+    const added =
+      at === undefined ? library.addFiles(paths) : library.addFiles(paths, at);
+    added
       .then((outcome) => {
         if (outcome !== 'added') {
           showDropNotice(outcome);
@@ -94,7 +102,9 @@ const useMusicDrop = () => {
       });
   };
 
-  return { isOver, onDragOver, onDragLeave, onDrop };
+  return { isOver, dropAt, onDragOver, onDragLeave, onDrop };
 };
+
+export type TMusicDrop = ReturnType<typeof useMusicDrop>;
 
 export default useMusicDrop;

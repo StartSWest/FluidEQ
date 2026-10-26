@@ -4,10 +4,11 @@ Copyright (C) <2026> <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from '../../utils/I18nContext';
+import PlayerPicture, { type TPlayerPicture } from './PlayerPicture';
 import TitlebarCorner from './TitlebarCorner';
-import playerScene from '../../../../assets/tour/player-scene.jpg';
-import playerLook from '../../../../assets/tour/player-look.jpg';
+import { PICTURE_WIDTH } from './playerPictureData';
 
 /**
  * The Compact player's slide: the switch in the title bar that makes it,
@@ -17,18 +18,39 @@ import playerLook from '../../../../assets/tour/player-look.jpg';
  * both faces of Sound are on the slide (Ivan, 2026-10-25: one amp for every
  * window colour).
  *
- * Photographs of the real player, not drawings, as the slide has always
- * had: taken from the player harness at its own width with made-up songs
- * and covers (`?songs=demo`), never real music, on the window's middle
- * Brightness so they read on a dark tour and a light one. Retake both when
- * the player changes.
+ * Each is the player drawn by its own parts (`PlayerPicture`), not a
+ * photograph of it, so the slide shows the player as it is in whatever
+ * colours and language the reader has, and changes when it changes.
  */
 
 /**
- * The photographs' own pixels (the player's 480 x 966 at 1.5x), so each
- * holds its place before it loads.
+ * The player at its own width, made as wide as the slot the slide gives it:
+ * `zoom` lays it out at that size, so the slot is as tall as the player is.
+ * Measured on the slot's own resizing, never on a clock.
  */
-const PHOTO = { width: 720, height: 1449 };
+const PictureSlot = ({ picture }: { picture: TPlayerPicture }) => {
+  const slotRef = useRef<HTMLSpanElement>(null);
+  const [zoom, setZoom] = useState(0);
+  useLayoutEffect(() => {
+    const slot = slotRef.current;
+    if (!slot) {
+      return undefined;
+    }
+    const fit = () => setZoom(slot.clientWidth / PICTURE_WIDTH);
+    fit();
+    if (typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    const observer = new ResizeObserver(fit);
+    observer.observe(slot);
+    return () => observer.disconnect();
+  }, []);
+  return (
+    <span className="player-pair__frame" ref={slotRef}>
+      <PlayerPicture picture={picture} zoom={zoom} />
+    </span>
+  );
+};
 
 export default function CompactPlayerVisual() {
   const { t } = useTranslation();
@@ -41,25 +63,17 @@ export default function CompactPlayerVisual() {
       aria-label={t('tour.player.imageAlt', { player, backdrop })}
     >
       <TitlebarCorner ringed="player" label={player} />
-      <div className="player-pair__amps">
+      {/* The player itself, so nothing in it may be pressed, focused or
+          read out: the description above says what it shows. */}
+      <div className="player-pair__amps" inert aria-hidden="true">
         <span className="player-pair__amp">
-          <img
-            src={playerScene}
-            alt=""
-            width={PHOTO.width}
-            height={PHOTO.height}
-          />
+          <PictureSlot picture="scene" />
           <span className="player-pair__caption">
             {t('tour.player.scene', { backdrop })}
           </span>
         </span>
         <span className="player-pair__amp">
-          <img
-            src={playerLook}
-            alt=""
-            width={PHOTO.width}
-            height={PHOTO.height}
-          />
+          <PictureSlot picture="look" />
           <span className="player-pair__caption">
             {t('tour.player.standard')}
           </span>

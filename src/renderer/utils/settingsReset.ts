@@ -14,12 +14,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * A setting is a choice about how FluidEQ looks and behaves: the graph's look
  * and views, the window's colours, brightness and sparks, the sliders, the
- * language, the player's and the Library's layout, the karaoke screen. Kept,
- * because none of it is a setting: the sound (the EQ, its presets, curves and
- * corrections, the DSP rack and Smart EQ), the outputs and the engine, what
- * the listener made or saved (presets, rooms, fades, looks, game profiles, the
- * Library, karaoke, the Studio), where they were (open tabs, folders and
- * songs), what they already agreed to or saw, and caches.
+ * player's and the Library's layout, the karaoke screen, and where each page
+ * was left. Kept, because none of it is a setting: the sound (the EQ, its
+ * presets, curves and corrections, the DSP rack and Smart EQ), the outputs
+ * and the engine, what the listener made or saved (presets, rooms, fades,
+ * looks, game profiles, the Library, karaoke, the Studio), what is playing
+ * and where in it, the language, search histories, what they already agreed
+ * to or saw, and caches. Ivan chose each from a checklist of every one of
+ * them on 2026-10-26.
  *
  * `settingsReset.test.ts` fails on any stored name in the source that is in
  * neither this file nor its own list of what is kept, so a new setting cannot
@@ -63,9 +65,11 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.standardPerformance',
   'fluideq.sceneResponse',
   'fluideq.sceneWaves',
-  // The window: colours, Rainbow, Brightness, Transparency, the Tint, a
-  // scene's own time of day, sparks, sliders, the language, and how it is
-  // divided.
+  // The window: colours, Colourful mode, Brightness, Transparency, the Tint, a
+  // scene's own time of day, sparks, sliders, and how it is divided. Not the
+  // language (Ivan, 2026-10-26, from the reset checklist): put back to
+  // Windows' own, somebody who chose another one would be facing a language
+  // they may not read.
   'fluideq.sceneTintMode',
   'fluideq-rainbow',
   'fluideq.theme',
@@ -74,7 +78,6 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.sceneDaylight',
   'fluideq.pointerSparks',
   'fluideq.sliderHandle',
-  'fluideq.locale',
   'fluideq.plusRailPinned',
   'fluideq.editorShareByTab',
   'fluideq.soundPaneFolded',
@@ -125,6 +128,25 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.karaoke.melody-tone-volume',
   'fluideq.karaoke.microphoneGain',
   'fluideq.karaoke.whisperMemory.v1',
+  // Where each page was left (Ivan, 2026-10-26, from the reset checklist):
+  // the page the window opens on, the DSP page's open section, the
+  // Visualizers and Studio places, the Library's open folder, album, artist,
+  // genre or playlist and its folder tree, and the Karaoke Maker's panels.
+  // Each page opens at its start after a reset; what is in them — the songs,
+  // playlists, queue and projects — is never touched.
+  'fluideq.workspaceTab',
+  'fluideq.dsp.openSection',
+  'fluideq.plusPlace',
+  'fluideq.studio.workTab',
+  'fluideq.library.openAlbum',
+  'fluideq.library.openArtist',
+  'fluideq.library.openFolder',
+  'fluideq.library.openGenre',
+  'fluideq.library.openPlaylist',
+  'fluideq.library.folderTree',
+  'fluideq.karaoke.maker-open',
+  'fluideq.karaoke.maker-preview-open',
+  'fluideq.karaoke.maker-editor-views.v1',
   // Where earlier versions kept some of the above. Each is read when the new
   // name is empty, so a reset that left one would bring back its old answer
   // instead of the new install's.
