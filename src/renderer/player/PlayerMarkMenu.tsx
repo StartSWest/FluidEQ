@@ -12,6 +12,7 @@ import SliderHandlePicker from '../components/SliderHandlePicker';
 import DaylightSourceChoice from '../graph/DaylightSourceChoice';
 import LookColourSlider from '../graph/LookColourSlider';
 import RainbowSwitch from '../graph/RainbowSwitch';
+import AppIconTintSwitch from '../graph/AppIconTintSwitch';
 import SceneDaylightSlider from '../graph/SceneDaylightSlider';
 import WindowBrightnessSlider from '../graph/WindowBrightnessSlider';
 import { useTranslation } from '../utils/I18nContext';
@@ -157,6 +158,7 @@ export const PlayerMarkMenuItems = ({
             </>
           )}
           <RainbowSwitch />
+          <AppIconTintSwitch />
         </div>
         <SliderHandlePicker />
         {/* How the amp looks above, how its window behaves below. */}

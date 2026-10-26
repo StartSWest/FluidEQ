@@ -315,3 +315,35 @@ describe('the tray icon and what it advertises', () => {
     expect(deps.onCheckForUpdates).toHaveBeenCalledTimes(1);
   });
 });
+
+/**
+ * "Tint app icon": the tray wears the taskbar button's drawn icon while the
+ * switch is on, and the installed one once it is off (Ivan, 2026-10-26:
+ * "also I am not seeing the systray tints").
+ */
+describe('the tray icon in the window colours', () => {
+  const DRAWN = 'C:/Users/me/AppData/Roaming/FluidEQ/taskbar-icon.ico';
+
+  it('wears the drawn icon while the switch is on, and the installed one after', () => {
+    const tray = loadTray();
+    setUpWorkingTray(tray);
+
+    tray.setTrayTintedIcon(DRAWN);
+    expect(lastImage()).toBe(DRAWN);
+
+    tray.setTrayTintedIcon(undefined);
+    expect(pathEndsWith(lastImage(), PLAIN)).toBe(true);
+  });
+
+  it('keeps the update badge over a drawn icon', () => {
+    const tray = loadTray();
+    setUpWorkingTray(tray);
+    tray.setTrayTintedIcon(DRAWN);
+
+    tray.setTrayUpdateReady(true, deps);
+    expect(pathEndsWith(lastImage(), BADGED)).toBe(true);
+
+    tray.setTrayUpdateReady(false, deps);
+    expect(lastImage()).toBe(DRAWN);
+  });
+});

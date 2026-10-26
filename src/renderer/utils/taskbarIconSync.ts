@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import log from 'electron-log/renderer';
 import type { TTaskbarIconRequest } from 'common/taskbarIcon';
+import { isAppIconTinted, subscribeAppIconTint } from './appIconTint';
 import { LAGOON_SKY } from './rainbowPalette';
 import type { ISceneSky } from './sceneTint';
 import { getShownSceneSky } from './sceneTintStore';
@@ -29,7 +30,8 @@ import {
  * lent with no Tint and no visualizer or Studio project lending theirs
  * (`SceneTint.tsx`), at a new install's Brightness. That is the window as it
  * ships, and its button keeps the icon a pinned shortcut shows. Anything
- * else — a Tint, a visualizer's colours, Brightness moved — is drawn.
+ * else — a Tint, a visualizer's colours, Brightness moved — is drawn, and
+ * only while "Tint app icon" is on (`appIconTint.ts`); it starts off.
  */
 export const isStockTaskbarIcon = (
   sky: ISceneSky | undefined,
@@ -146,12 +148,18 @@ export const startTaskbarIconSync = (
   send: (request: TTaskbarIconRequest) => Promise<void>,
 ): (() => void) => {
   const sync = createTaskbarIconSync({
-    read: () =>
-      taskbarIconReading(
-        isStockTaskbarIcon(getShownSceneSky(), getThemeShade()),
-        readTaskbarIconColours(),
+    read: () => {
+      // "Tint app icon" off — the default — keeps the installed icon however
+      // the window is coloured, and reads no colours to find that out.
+      const isStock =
+        !isAppIconTinted() ||
+        isStockTaskbarIcon(getShownSceneSky(), getThemeShade());
+      return taskbarIconReading(
+        isStock,
+        isStock ? undefined : readTaskbarIconColours(),
         (colours) => ({ kind: 'drawn', images: drawTaskbarIcons(colours) }),
-      ),
+      );
+    },
     send,
     // A minimised window paints no frames, and its taskbar button is the
     // one part of it still on screen: there the work runs once the task that
@@ -168,10 +176,12 @@ export const startTaskbarIconSync = (
   });
   const stopRoot = subscribeRoot(sync.changed);
   const stopTheme = subscribeTheme(sync.changed);
+  const stopSwitch = subscribeAppIconTint(sync.changed);
   sync.changed();
   return () => {
     sync.stop();
     stopRoot();
     stopTheme();
+    stopSwitch();
   };
 };

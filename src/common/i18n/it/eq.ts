@@ -171,6 +171,9 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.rainbow': 'Modalità colorata',
   'graph.sceneTint.rainbowHint':
     'Le bande, il titolo e i controlli accesi in una tavolozza invece che in un solo colore; con una scena scelta, nei suoi colori.',
+  'graph.sceneTint.appIcon': 'Colora l’icona',
+  'graph.sceneTint.appIconHint':
+    'Il pulsante sulla barra delle applicazioni e l’icona nell’area di notifica con i colori della finestra. Disattivato, resta l’icona di FluidEQ.',
   'graph.sceneTint.sparks': 'Scintille del puntatore',
   'graph.sceneTint.sparksHint':
     'Ciò che il visualizzatore lancia dal mouse: una scia mentre attraversa l’immagine e uno scoppio dove fai clic - scintille, petali, neve, ciò di cui è fatta la scena.',

@@ -77,6 +77,8 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.windowTint',
   'fluideq.sceneDaylight',
   'fluideq.pointerSparks',
+  // "Tint app icon": cleared is off, the installed icon (`appIconTint.ts`).
+  'fluideq.appIconTint',
   'fluideq.sliderHandle',
   'fluideq.plusRailPinned',
   'fluideq.editorShareByTab',

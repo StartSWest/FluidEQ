@@ -182,7 +182,23 @@ const applyTrayIcon = () => {
   if (!tray || tray.isDestroyed() || !trayIcons) {
     return;
   }
-  tray.setImage(isUpdateReady ? trayIcons.update : trayIcons.plain);
+  tray.setImage(
+    isUpdateReady ? trayIcons.update : (tintedIcon ?? trayIcons.plain),
+  );
+};
+
+/**
+ * The taskbar button's icon drawn in the window's colours, the same .ico
+ * (`taskbarIcon.ts`), while "Tint app icon" is on; undefined for the
+ * installed one (Ivan, 2026-10-26: "also I am not seeing the systray tints").
+ * The update badge still wins: that mark is the only sign in the tray that
+ * an update is waiting, and it exists as the installed icon alone.
+ */
+let tintedIcon: string | undefined;
+
+export const setTrayTintedIcon = (icon: string | undefined) => {
+  tintedIcon = icon;
+  applyTrayIcon();
 };
 
 /** Read by the window's `close` handler; see the note on the flag. */

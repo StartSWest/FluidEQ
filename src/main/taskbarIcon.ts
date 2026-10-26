@@ -45,6 +45,11 @@ export interface ITaskbarIconDeps {
   stockIconPath: string;
   getWindow: () => BrowserWindow | null;
   logger: ILogger;
+  /**
+   * Where the drawn icon now is, or undefined for the installed one: the
+   * tray wears the same (`setTrayTintedIcon`).
+   */
+  onIconFile: (icon: string | undefined) => void;
 }
 
 /** The size of one drawing's pixels: `size` × `size` RGBA. */
@@ -153,6 +158,7 @@ export const registerTaskbarIconIpc = (deps: ITaskbarIconDeps) => {
     }
     if (request.kind === 'stock') {
       window.setIcon(deps.stockIconPath);
+      deps.onIconFile(undefined);
       return;
     }
     const temporary = `${iconPath}.tmp`;
@@ -160,6 +166,7 @@ export const registerTaskbarIconIpc = (deps: ITaskbarIconDeps) => {
     await fs.rename(temporary, iconPath);
     if (!window.isDestroyed()) {
       window.setIcon(iconPath);
+      deps.onIconFile(iconPath);
     }
   };
 

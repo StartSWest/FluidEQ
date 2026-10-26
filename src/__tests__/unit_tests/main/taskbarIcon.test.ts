@@ -79,6 +79,7 @@ describe('setting the taskbar icon', () => {
   let window: BrowserWindow;
   let dispose: () => void;
   const logger = { error: jest.fn() };
+  const onIconFile = jest.fn();
   const contents = { mainFrame: {} };
 
   const askFrom = (sender: unknown, request: unknown, frame?: unknown) => {
@@ -104,11 +105,13 @@ describe('setting the taskbar icon', () => {
       setIcon: jest.fn(),
     } as unknown as BrowserWindow;
     logger.error.mockReset();
+    onIconFile.mockReset();
     ({ dispose } = registerTaskbarIconIpc({
       userDataDir: folder,
       stockIconPath: 'C:\\FluidEQ\\assets\\icon.ico',
       getWindow: () => window,
       logger,
+      onIconFile,
     }));
   });
 
@@ -132,6 +135,15 @@ describe('setting the taskbar icon', () => {
     expect(window.setIcon).toHaveBeenCalledWith(
       'C:\\FluidEQ\\assets\\icon.ico',
     );
+  });
+
+  it('hands the tray the drawn file, and nothing once the icon is the installed one', async () => {
+    await askFrom(contents, { kind: 'drawn', images: allSizes() });
+    expect(onIconFile).toHaveBeenLastCalledWith(
+      path.join(folder, 'taskbar-icon.ico'),
+    );
+    await askFrom(contents, { kind: 'stock' });
+    expect(onIconFile).toHaveBeenLastCalledWith(undefined);
   });
 
   it('refuses a set that lacks a size, or carries pixels of the wrong length', async () => {

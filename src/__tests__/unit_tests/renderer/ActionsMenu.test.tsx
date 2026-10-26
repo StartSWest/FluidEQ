@@ -466,6 +466,14 @@ describe('opening and closing the actions menu', () => {
       expect(shape).toHaveFocus();
     });
 
+    // "Tint app icon" under Colourful mode, off as a new install has it.
+    fireEvent.keyDown(menu, { key: 'ArrowUp' });
+    const appIcon = screen.getByRole('checkbox', {
+      name: en['graph.sceneTint.appIcon'],
+    });
+    expect(appIcon).toHaveFocus();
+    expect(appIcon).not.toBeChecked();
+
     fireEvent.keyDown(menu, { key: 'ArrowUp' });
     expect(
       screen.getByRole('checkbox', { name: en['graph.sceneTint.rainbow'] }),
