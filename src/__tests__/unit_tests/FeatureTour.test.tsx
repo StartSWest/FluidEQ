@@ -1,7 +1,13 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import '@testing-library/jest-dom';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
 import { ANALYSIS_STYLES, isAnalysisStyle } from 'common/graphAnalysis';
 import { SELECTABLE_GRAPH_STYLES } from 'common/graphStyles';
 import FeatureTour from 'renderer/components/featureTour/FeatureTour';
@@ -267,6 +273,39 @@ it('shows the one player the switch opens, over a scene and over a standard visu
   expect(
     document.querySelector('.titlebar-corner__switch.is-ringed'),
   ).not.toBeNull();
+});
+
+// Drawn by the player's own parts, not photographed (Ivan, 2026-10-26:
+// "make help use the app code for UI instead of pictures so it's easy to
+// update"): its words are the reader's language and its levels its own
+// faders' and knobs', and nothing in it can be reached.
+it('draws the player from its own parts, out of reach of the keyboard and of screen readers', () => {
+  showTour();
+  goTo('The whole app in one column');
+  const amps = document.querySelector('.player-pair__amps') as HTMLElement;
+  expect(amps).toHaveAttribute('inert');
+  expect(amps).toHaveAttribute('aria-hidden', 'true');
+  const players = amps.querySelectorAll('.player-picture > .mini-player');
+  expect(players).toHaveLength(2);
+  // Over a scene on the Backdrop, and with a standard look in its panel.
+  expect(players[0]).toHaveClass('is-backdrop');
+  expect(players[1]).not.toHaveClass('is-backdrop');
+  const scene = within(players[0] as HTMLElement);
+  const look = within(players[1] as HTMLElement);
+  // The player's own words, as the player reads them out.
+  expect(scene.getByText('Sound')).toBeInTheDocument();
+  expect(scene.getByText('Up next')).toBeInTheDocument();
+  expect(scene.getByText('FluidEQ Engine on')).toBeInTheDocument();
+  // Its faders, printing their own levels, and its Tone knobs.
+  expect(scene.getByText('+3.5')).toBeInTheDocument();
+  expect(
+    scene.getByRole('slider', { hidden: true, name: '32 Hz' }),
+  ).toHaveAttribute('aria-valuenow', '3.5');
+  expect(look.getByText('Bass')).toBeInTheDocument();
+  expect(look.getByText('Treble')).toBeInTheDocument();
+  // The made-up song playing, in both.
+  expect(scene.getAllByText('Afterglow Avenue').length).toBeGreaterThan(0);
+  expect(look.getAllByText('Afterglow Avenue').length).toBeGreaterThan(0);
 });
 
 it('names the new looks on the visualizer engine slide as the picker does', () => {

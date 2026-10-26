@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   IFilter,
   MAX_GAIN,
@@ -28,13 +28,8 @@ import { useTranslation } from '../utils/I18nContext';
 import { sortHelper, useLatestCall } from '../utils/utils';
 import PlayerFader from './PlayerFader';
 import PlayerIcon from './PlayerIcon';
+import useFaderRow from './useFaderRow';
 import useAutoPreAmp from '../components/useAutoPreAmp';
-
-/**
- * How many bands one page of the row holds, at a width a finger can grip
- * (Ivan, 2026-10-25: "make sure they fit the 10 bands the width remaining").
- */
-const BANDS_PER_PAGE = 10;
 
 /** The preamp's key among the faders, for the screen's read-out. */
 export const PREAMP_FOCUS = 'preamp';
@@ -167,79 +162,7 @@ const MiniBands = ({ onFocus }: { onFocus?: TFocus }) => {
     );
   }, []);
 
-  /**
-   * ONE WIDTH FOR A BAND, WHATEVER THE LAYOUT (Ivan, 2026-10-25: "all bands
-   * need to fit same … if we add more we just do left and right scroll into
-   * other sections", "fit the 10 bands the width remaining"). The row is cut
-   * into ten equal steps — the amp's width is fixed, so that is one size for
-   * good — and a layout of ten
-   * or fewer stands in the middle of it, while a bigger one runs on past the
-   * row's edge in pages of ten, turned with the arrows at its ends
-   * (`turnPage`) or by scrolling sideways. Thirty-one bands squeezed into
-   * the row were too narrow to grip and lost their names to every other one.
-   *
-   * Each step is the same width, with the same gap between them — IN THE
-   * PIXELS THE SCREEN HAS (Ivan, 2026-09-21: keep a minimum between the
-   * bands).
-   *
-   * Shared out by the browser, each band gets a fraction of a pixel and the
-   * caps land two apart in one place and three in the next, which reads as
-   * a bunched row however equal the numbers are. Whole CSS pixels are not
-   * enough either — the page can be zoomed, this window sits at about 0.91,
-   * and a whole CSS pixel is then a fraction of a real one. So the row is
-   * measured in device pixels and cut into equal steps there, the gap is a
-   * whole number of them and never less than the deck asks for, the row is
-   * pushed to the next whole device pixel, and the few left over are split
-   * between its two ends.
-   *
-   * Written straight onto the row, so a window being dragged does not
-   * re-render the equalizer on every frame of it.
-   */
-  useLayoutEffect(() => {
-    const row = fadersRef.current;
-    if (!row || typeof ResizeObserver === 'undefined') {
-      return undefined;
-    }
-    const fit = () => {
-      const deck = row.parentElement ?? row;
-      // From the deck, never from the row: the row is where the snapped
-      // lengths are written, and reading those back would snap them again.
-      const deckStyle = getComputedStyle(deck);
-      const base =
-        parseFloat(deckStyle.getPropertyValue('--player-band-gap')) || 4;
-      const band =
-        parseFloat(deckStyle.getPropertyValue('--player-fader-cap')) || 13;
-      const ratio = window.devicePixelRatio || 1;
-      const box = row.getBoundingClientRect();
-      const gap = Math.max(1, Math.round(base * ratio));
-      const widest = Math.max(2, Math.round(band * ratio));
-      const room = Math.floor(box.width * ratio);
-      // A page shared out in whole pixels, with the gap taken off the top:
-      // whatever is left is the band, and the cap is never wider than that,
-      // or the caps eat the gap the row was measured out to keep.
-      const step = Math.max(gap + 2, Math.floor((room + gap) / BANDS_PER_PAGE));
-      const cap = Math.min(widest, step - gap);
-      // Ten or fewer stand in the middle; more start at the left edge,
-      // where each page starts.
-      const spare =
-        count > BANDS_PER_PAGE ? 0 : Math.max(0, room - (count * step - gap));
-      const edge = Math.ceil(box.left * ratio) - box.left * ratio;
-      row.style.setProperty('--player-band-gap', `${gap / ratio}px`);
-      row.style.setProperty('--player-band-width', `${(step - gap) / ratio}px`);
-      row.style.setProperty('--player-fader-cap', `${cap / ratio}px`);
-      row.style.setProperty('--player-page-width', `${room / ratio}px`);
-      row.style.paddingLeft = `${(edge + Math.floor(spare / 2)) / ratio}px`;
-      readPages();
-    };
-    fit();
-    const observer = new ResizeObserver(fit);
-    observer.observe(row);
-    row.addEventListener('scroll', readPages, { passive: true });
-    return () => {
-      observer.disconnect();
-      row.removeEventListener('scroll', readPages);
-    };
-  }, [count, readPages]);
+  useFaderRow(fadersRef, count, readPages);
 
   /** A page of ten bands on, or back, as far as the row goes. */
   const turnPage = (direction: -1 | 1) => {
