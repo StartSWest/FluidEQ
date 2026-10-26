@@ -1,0 +1,483 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'miniPlayerParts' as *;
+
+// THE TOP PANEL (Ivan, 2026-10-25): the visualizer, with the song over it and
+// the picture's own keys in its corner (`PlayerHero`), then the transport.
+
+// The picture and the transport under it: the column's first two rows
+// (`.player-body`), which give the picture its height. Positioned, so a Plus
+// visualizer outside the Backdrop (`.player-stage`) lies behind both of them
+// and stops at the transport's foot.
+.player-top {
+  position: relative;
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+}
+
+// Nothing clipped at its foot: the cover's shadow falls past it and fades on
+// its own. Cut there, it drew the very edge the fade exists to hide (Ivan,
+// 2026-10-25: "it cannot get cut there").
+.player-hero {
+  position: relative;
+  min-height: 0;
+}
+
+// A standard look, drawn in the panel itself by the graph's own live trace
+// from the graph's own settings, and the main graph's grid over a measuring
+// one (`PlayerPaper`).
+.player-hero__view {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.player-hero__trace,
+.player-hero__paper,
+.player-hero__spectrum {
+  position: absolute;
+  inset: 0;
+}
+
+// The graph's own rules, a whisper of them: the picture is the subject. They
+// run to the panel's top and fade out there rather than stopping on a line
+// (Ivan, 2026-10-25: "they need to fade in to the top, no gap").
+.player-hero__paper {
+  opacity: 0.45;
+  mask-image: linear-gradient(transparent 0, #{$black} 64px);
+}
+
+.player-hero__trace canvas {
+  position: absolute;
+  inset: 0;
+}
+
+// ONE FADE, NO SEAM (Ivan, 2026-10-25: "no line between the hero and the
+// controls … is a transition"). Over a standard look the words need a floor:
+// a shade from the top for the keys, and the transport's own colour rising
+// from the foot, so the picture runs into the transport with no edge between.
+.player-hero__shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-base) 70%, transparent) 0%,
+      transparent 28%
+    ),
+    linear-gradient(
+      0deg,
+      var(--player-pane) 0%,
+      color-mix(in srgb, var(--player-pane) 60%, transparent) 38%,
+      transparent 74%
+    );
+  pointer-events: none;
+}
+
+// OVER A PLUS VISUALIZER, ONE SHADE ACROSS THE PANEL AND THE TRANSPORT (Ivan,
+// 2026-10-25: "I can see the divider line still"). The picture runs on behind
+// the transport, so a shade that ended at the panel's foot drew that foot as a
+// line across the picture: darker above it, untouched below. Instead the
+// panel's own goes, and one gradient over both darkens under the keys at the
+// top and under the song, and is gone by the transport's foot. Behind
+// everything on the two, in front of the picture alone.
+.mini-player.has-scene .player-hero__shade {
+  display: none;
+}
+
+// Every turn of it eased (`eased-ramp`): a straight ramp's corners drew lines
+// across a bright scene just over the song's line.
+.mini-player.has-scene .player-top::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    eased-ramp($black, 0%, 20%, 0.3, 0),
+    eased-ramp($black, 28%, 54%, 0, 0.24),
+    eased-ramp($black, 54%, 100%, 0.24, 0)
+  );
+  content: '';
+  pointer-events: none;
+}
+
+// In the Backdrop the header stands on the picture with nothing under it, so
+// a shade starting at the panel's top started on a line just under the
+// header: only the shade under the song stays.
+.mini-player.is-backdrop .player-top::after {
+  background: linear-gradient(
+    180deg,
+    eased-ramp($black, 28%, 54%, 0, 0.24),
+    eased-ramp($black, 54%, 100%, 0.24, 0)
+  );
+}
+
+// ========================================================= the keys ========
+//
+// The picture's keys in its top right corner, and nothing else over it: the
+// look's name stood at the left and was taken off (`PlayerHero`). The last
+// key stands on one line with the heart under it (Ivan, 2026-10-25: "make
+// sure these icons are aligned"): centred on the heart, which is 32px wide
+// at the song row's 14px inset, so a 28px key stands 16px in.
+.player-hero__top {
+  position: absolute;
+  z-index: 1;
+  top: 8px;
+  right: 16px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+// The glass the picture's keys stand on.
+@mixin hero-glass {
+  border: 1px solid color-mix(in srgb, var(--player-text) 14%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 55%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.player-hero__keys {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+}
+
+// EVERY KEY ON THE PICTURE: the full screen, and the graph's own switches
+// brought here — the automatic switching, a member scene's heart, what the
+// scene does to the window, the desk lights and the desktop. They are the
+// graph's controls, whose look is scoped to the graph's strip, so their
+// whole face is said here: a small glass tile, lit in the accent's light
+// while on.
+.player-hero__keys {
+  .player-hero__key,
+  .graph-look-step,
+  .graph-scene-look__trigger,
+  .graph-like,
+  .dropdown.graph-auto-cycle > [role='menu'] {
+    @include hero-glass;
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: auto;
+    min-width: 28px;
+    height: 26px;
+    min-height: 0;
+    margin: 0;
+    padding: 0 6px;
+    border-radius: 8px;
+    box-shadow: none;
+    color: var(--player-text-muted);
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: $weight-semibold;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: $transition-control;
+
+    svg,
+    .player-icon {
+      width: 14px;
+      height: 14px;
+    }
+
+    &:hover {
+      background: color-mix(in srgb, var(--surface-base) 75%, transparent);
+      color: var(--player-text);
+    }
+
+    &:focus-visible {
+      @include focus-ring($white);
+    }
+  }
+
+  // The glyphs the graph draws as line art.
+  .graph-look-step svg,
+  .graph-auto-cycle__icon {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+  }
+
+  .player-hero__key[aria-pressed='true'],
+  .graph-look-step[aria-pressed='true'],
+  .graph-scene-look__trigger.is-on,
+  .dropdown.graph-auto-cycle.is-on > [role='menu'] {
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    color: var(--player-ink-bright);
+  }
+
+  .graph-scene-look__trigger.is-open,
+  .dropdown--open > [role='menu'] {
+    background: color-mix(in srgb, var(--surface-base) 80%, transparent);
+    color: var(--player-text);
+  }
+
+  // Glyphs alone: the words the graph's strip gives these are said by their
+  // titles, and the corner has room for keys, not for sentences.
+  .graph-scene-look__trigger > span,
+  .arrow {
+    display: none;
+  }
+
+  .scene-tint-choice__glyph {
+    width: 14px;
+    height: 14px;
+  }
+
+  // The heart on a member's scene carries its count, drawn as a line in the
+  // keys' own ink as on the graph; lit, it fills with the likes' pink.
+  .graph-like__heart {
+    flex: none;
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+  }
+
+  .graph-like.is-on {
+    color: var(--player-text);
+
+    .graph-like__heart {
+      fill: $analogous-1;
+      stroke: $analogous-1;
+    }
+  }
+}
+
+// The automatic switching keeps its glyph alone: the corner holds the
+// picture's keys, and its interval is on its title and in its menu. The words
+// are a bare text node beside the glyph, which no selector reaches, and the
+// glyph is sized in pixels, so a type size of nothing takes the words alone.
+.player-hero__keys .dropdown.graph-auto-cycle > [role='menu'] {
+  gap: 0;
+  font-size: 0;
+}
+
+// ======================================================= the song ==========
+.player-hero__now {
+  position: absolute;
+  z-index: 1;
+  right: 14px;
+  bottom: 10px;
+  left: 14px;
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 14px;
+}
+
+.player-hero__art {
+  width: 76px;
+  height: 76px;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow:
+    0 10px 26px rgba($black, 0.55),
+    inset 0 0 0 1px color-mix(in srgb, #{$white} 8%, transparent);
+
+  .library-cover-art {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+}
+
+.player-hero__words {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding-bottom: 2px;
+}
+
+// The one thing on the amp read from across the room, and still scrolling
+// when it is longer than its line.
+.player-hero__title {
+  height: 1.2em;
+  color: var(--player-text);
+  font-size: 21px;
+  font-weight: $weight-bold;
+  line-height: 1.2;
+  text-shadow: var(--player-text-shadow);
+  @include tracking(-0.01em);
+}
+
+.player-hero__artist {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--player-text-muted);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: var(--player-text-shadow);
+}
+
+// Where the song comes from, over its title (`PlayerSource`).
+.player-source {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: color-mix(in srgb, var(--accent-light) 80%, var(--text-faint));
+  font-size: 10px;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  text-shadow: var(--player-text-shadow);
+  @include tracking(0.14em);
+
+  .player-source__icon {
+    flex: none;
+    width: 11px;
+    height: 11px;
+  }
+
+  .player-source__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+button.player-source {
+  cursor: pointer;
+
+  &:hover {
+    color: var(--accent-light);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+// The level, the delay and the rate (`PlayerReadouts`): a figure in the
+// accent's light and its unit small beside it, each in its own chip.
+.player-readouts {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.player-readouts__chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  padding: 1px 6px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--surface-base) 50%, transparent);
+  color: var(--accent-light);
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: $weight-bold;
+  line-height: 15px;
+  white-space: nowrap;
+
+  // The level's figure, written four times a second: as wide as its widest
+  // reading, so the chips after it never move, and the dash of silence in
+  // the middle of that room rather than at its far end.
+  b {
+    min-width: 5ch;
+    font-weight: inherit;
+    text-align: center;
+  }
+
+  small {
+    margin-left: 2px;
+    color: var(--text-faint);
+    font-size: 9px;
+    font-weight: $weight-semibold;
+  }
+
+  .player-icon {
+    width: 11px;
+    height: 11px;
+    margin-right: 3px;
+    align-self: center;
+  }
+}
+
+// The delay where it is Game mode's key: pressed, the engine cuts it, and the
+// chip is lit while it does.
+button.player-readouts__chip {
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+
+  &.is-on {
+    border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+// A Library song in Favourites, and the press that puts it there.
+.player-hero__heart {
+  @include hero-glass;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  margin-bottom: 4px;
+  padding: 0;
+  border-radius: 50%;
+  color: var(--player-text-muted);
+  cursor: pointer;
+  transition: $transition-control;
+
+  .player-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    color: var(--player-text);
+  }
+
+  &.is-on {
+    color: $analogous-1;
+
+    .player-icon__stroke {
+      fill: currentColor;
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}

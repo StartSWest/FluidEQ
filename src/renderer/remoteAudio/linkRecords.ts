@@ -37,6 +37,21 @@ export const ALL_ON: ILinkSwitches = LINK_SWITCHES_ON;
 export const linkPaused = (link: ILinkRecord): boolean =>
   link.switches.paused || link.theirs?.paused === true;
 
+/** A saved switch is a preference, not proof that its direction is available.
+ * Reflect the peer's source gate and our own source gate without overwriting
+ * those preferences, so sharing back on restores the mix and switches. */
+export const linkControls = (
+  link: ILinkRecord,
+  bothWays: boolean,
+  sharing: boolean,
+) => ({
+  receive:
+    !linkPaused(link) &&
+    (bothWays || !link.joined) &&
+    link.theirs?.sends !== false,
+  send: !linkPaused(link) && (bothWays || link.joined) && sharing,
+});
+
 /**
  * The user's new switches on every link to the computer called `name`. One
  * that no longer plays here is no longer receiving, whatever was arriving.

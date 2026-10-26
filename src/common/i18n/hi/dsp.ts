@@ -106,7 +106,8 @@ const dsp = {
   'dsp.normalizer.liveDescription':
     'बाहरी ऑडियो के बजते समय उसे मापता है, दोनों चैनलों को साथ समायोजित करता है और एक्साइटर व EQ से पहले पीक की सुरक्षा करता है।',
   'dsp.normalizer.liveAnalysis': 'लाइव स्रोत विश्लेषण',
-  'dsp.normalizer.shortTerm': 'अल्पकालिक लाउडनेस',
+  'dsp.normalizer.inputLoudness': 'इनपुट लाउडनेस (3 सेकंड)',
+  'dsp.normalizer.outputLoudness': 'आउटपुट लाउडनेस (3 सेकंड)',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'DSP केवल लाइब्रेरी से चलाए गए ऑडियो ट्रैक को प्रोसेस करता है। प्राप्त साझा ऑडियो, कराओके, वीडियो और दूसरे ऐप्स को प्रोसेस नहीं किया जाता।',

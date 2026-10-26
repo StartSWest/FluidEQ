@@ -321,7 +321,6 @@ const app: Partial<Dictionary> = {
   'sidebar.preampAuto':
     'Подбирается автоматически. Отключите авто-нормализацию, чтобы задать вручную.',
   'sidebar.autoPreamp': 'Авто-нормализация',
-  'sidebar.visualizer': 'ВИЗУАЛИЗАЦИЯ',
   'sidebar.graphView': 'График АЧХ',
   'sidebar.output': 'Выход',
   'config.eyebrow': 'ЧТО ЧИТАЕТ ДВИЖОК',

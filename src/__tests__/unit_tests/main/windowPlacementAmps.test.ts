@@ -35,6 +35,8 @@ interface IRect {
 
 // At the full app's floor on this screen, which the file never goes under.
 const APP = { x: 100, y: 34, width: 1200, height: 792 };
+// The amp at its one width, and the two amps as files kept them before.
+const AMP = { x: 700, y: 60, width: 480, height: 700 };
 const CLASSIC = { x: 700, y: 60, width: 620, height: 700 };
 const STAGE = { x: 200, y: 100, width: 900, height: 600 };
 
@@ -60,6 +62,7 @@ const fakeWindow = () => {
     setMaximizable: () => undefined,
     setFullScreenable: () => undefined,
     setAlwaysOnTop: () => undefined,
+    setResizable: () => undefined,
     webContents: {
       getZoomFactor: () => 1,
       isDevToolsOpened: () => false,
@@ -93,8 +96,7 @@ const placementFor = (platform: NodeJS.Platform = 'win32') => {
     mode: 'app',
     isPinned: false,
     app: {},
-    amp: 'classic',
-    players: {},
+    player: {},
   });
   modes.followWindow(win);
   const placement = createWindowPlacement({
@@ -105,11 +107,13 @@ const placementFor = (platform: NodeJS.Platform = 'win32') => {
   return { modes, win, drag, ...placement };
 };
 
+const statePath = () => path.join(userDataDir, 'window-state.json');
+
 const writeFile = (contents: object) =>
-  fs.writeFileSync(
-    path.join(userDataDir, 'window-state.json'),
-    JSON.stringify(contents),
-  );
+  fs.writeFileSync(statePath(), JSON.stringify(contents));
+
+const readFile = () =>
+  JSON.parse(fs.readFileSync(statePath(), 'utf8')) as Record<string, unknown>;
 
 it('announces an early native fullscreen flag as system-owned before the completed entry event', () => {
   const { win, modes, sendWindowState } = placementFor('darwin');
@@ -123,44 +127,63 @@ it('announces an early native fullscreen flag as system-owned before the complet
   );
 });
 
-// Ivan, 2026-09-28: "we should preserve 3 window sizes: the full app, the amp
-// standard app and the amp backdrop glassy app" — across a restart too.
-describe('the window-state file and the two amps', () => {
-  it('keeps the full app, the 2.0 amp and the Stage, and which amp it closed as', async () => {
+// The full app and the amp are two windows to the listener, kept apart
+// across a restart (Ivan, 2026-09-28: "we should preserve 3 window sizes",
+// two of them the amps that were, one amp since 2026-10-25).
+describe('the window-state file and the amp', () => {
+  it('keeps the full app, where the amp was left, and that it closed as the amp', async () => {
     const { modes, win, drag, saveWindowState, loadWindowState } =
       placementFor();
     await modes.setMode(win, 'player');
-    drag(CLASSIC);
-    modes.setAmp(win, 'stage');
-    drag(STAGE);
+    drag(AMP);
     saveWindowState();
-    const saved = loadWindowState();
-    expect(saved).toEqual(
+    await flushPendingWrites();
+    expect(loadWindowState()).toEqual(
       expect.objectContaining({
         ...APP,
         mode: 'player',
-        amp: 'stage',
-        player: CLASSIC,
-        stagePlayer: STAGE,
+        player: AMP,
         playerRule: PLAYER_BOUNDS_RULE,
       }),
     );
+    // Nothing of the two amps there were is written any more.
+    expect(readFile()).not.toHaveProperty('amp');
+    expect(readFile()).not.toHaveProperty('stagePlayer');
   });
 
-  it('reads a file from before there were two amps as the 2.0 amp’s', () => {
+  // A file from when there were two amps kept one of each: the one amp
+  // opens where the last of them was left.
+  it.each([
+    ['the Stage', 'stage', STAGE],
+    ['the 2.0 amp', 'classic', CLASSIC],
+    ['the 2.0 amp, in a file from before there were two', undefined, CLASSIC],
+  ])(
+    'opens where %s was left, in a file written while there were two amps',
+    (_name, amp, expected) => {
+      writeFile({
+        ...APP,
+        mode: 'player',
+        ...(amp ? { amp } : {}),
+        player: CLASSIC,
+        ...(amp ? { stagePlayer: STAGE } : {}),
+        playerRule: PLAYER_BOUNDS_RULE,
+      });
+      expect(placementFor().loadWindowState().player).toEqual(expected);
+    },
+  );
+
+  it('takes the other amp’s place where the one it closed as kept none', () => {
     writeFile({
       ...APP,
       mode: 'player',
+      amp: 'stage',
       player: CLASSIC,
       playerRule: PLAYER_BOUNDS_RULE,
     });
-    const saved = placementFor().loadWindowState();
-    expect(saved.amp).toBe('classic');
-    expect(saved.player).toEqual(CLASSIC);
-    expect(saved.stagePlayer).toBeUndefined();
+    expect(placementFor().loadWindowState().player).toEqual(CLASSIC);
   });
 
-  it('drops a Stage written down under an older rule, as it drops the 2.0 amp', () => {
+  it('drops an amp written down under an older rule', () => {
     writeFile({
       ...APP,
       mode: 'player',
@@ -170,8 +193,7 @@ describe('the window-state file and the two amps', () => {
       playerRule: PLAYER_BOUNDS_RULE - 1,
     });
     const saved = placementFor().loadWindowState();
-    expect(saved.amp).toBe('stage');
     expect(saved.player).toBeUndefined();
-    expect(saved.stagePlayer).toBeUndefined();
+    expect(saved.playerRule).toBeUndefined();
   });
 });

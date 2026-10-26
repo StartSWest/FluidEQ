@@ -77,14 +77,9 @@ import Chevron from './icons/Chevron';
 import { type TEngineState } from './components/ActionsMenu';
 import type { IHelpHandlers } from './help/helpMenuActions';
 import MiniPlayer from './player/MiniPlayer';
-import usePlayerAmp from './player/usePlayerAmp';
 import type { TPlayerPage } from './player/PlayerTitleStrip';
 import { usePlayerVisFull } from './player/playerLayout';
-import {
-  reportPlayerAmp,
-  setWindowMode,
-  useWindowMode,
-} from './player/windowModeStore';
+import { setWindowMode, useWindowMode } from './player/windowModeStore';
 import { applyThemeScope } from './utils/theme';
 import { applyBackdropVeilScope } from './utils/backdropVeil';
 import { applySceneDaylightScope } from './utils/sceneDaylightSetting';
@@ -171,15 +166,6 @@ const AppContent = () => {
   // it onto one of the pages: the page is chosen while the app is still put
   // away, so it comes back already showing it.
   const { mode: windowMode } = useWindowMode();
-  // Which amp the switch will open, said while the window is the full app so
-  // the player opens at that amp's own size; the amp says it itself once it
-  // is on screen (`AmpMark`), ahead of its own limits.
-  const playerAmp = usePlayerAmp();
-  useEffect(() => {
-    if (windowMode === 'app') {
-      reportPlayerAmp(playerAmp);
-    }
-  }, [playerAmp, windowMode]);
   /**
    * THE AMP'S QUEUE DECK NEEDS THE LIBRARY'S PLAYER, whether or not anything
    * is playing (Ivan, 2026-09-22: "drag and drop into the up next doesn't
@@ -189,8 +175,8 @@ const AppContent = () => {
    * played, and as they
    * have never been on a fresh launch — the deck had nothing to list and a
    * drop went nowhere, silently. So while the window is the amp, the Library
-   * counts as opened and as active below: its queue is one tab of the amp's
-   * sheet away (the Stage, 2026-09-27), and its count names that tab.
+   * counts as opened and as active below: its queue is the amp's Up next
+   * (`PlayerQueue`), and its count names that tab.
    */
   const playerWantsLibrary = windowMode === 'player';
   /**

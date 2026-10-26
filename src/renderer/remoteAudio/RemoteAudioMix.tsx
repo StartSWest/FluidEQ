@@ -4,6 +4,7 @@ import { useTranslation } from '../utils/I18nContext';
 import RemoteAudioFader from './RemoteAudioFader';
 import { audioGroupRows, audioLinkKey } from './RemoteAudioGroup';
 import type { IRemoteAudioValue } from './remoteAudioState';
+import { linkControls } from './linkRecords';
 
 /** The system fader targets the OS default output, which the output picker
  * changes too. Incoming gains are independent receiver gains; no send gain. */
@@ -30,7 +31,7 @@ const RemoteAudioMix = ({
     : 'remoteAudio.group.mute';
   return (
     <section
-      className="remote-audio__link"
+      className="remote-audio__link remote-audio__mix"
       aria-label={t('remoteAudio.group.mix')}
     >
       <header className="remote-audio__link-head">
@@ -71,47 +72,67 @@ const RemoteAudioMix = ({
               )
         }
       />
-      {audioGroupRows(remote).map(({ link }) => {
-        if (!link) {
-          return null;
-        }
-        let caption = t('remoteAudio.lane.inQuiet', { name: link.name });
-        if (link.receiving) {
-          caption = t('remoteAudio.lane.receiving');
-        }
-        if (link.switches.paused) {
-          caption = t('remoteAudio.linked.paused');
-        }
-        return (
-          <RemoteAudioFader
-            key={link.id}
-            id={`volume-${link.id}`}
-            label={link.name}
-            value={link.switches.volume}
-            muted={link.switches.muted}
-            muteLabel={`${link.name}: ${t(link.switches.muted ? 'library.unmute' : 'library.mute')}`}
-            onToggleMute={() => {
-              remote
-                .setSwitches(audioLinkKey(link), {
-                  ...link.switches,
-                  muted: !link.switches.muted,
-                })
-                .catch(() => undefined);
-            }}
-            disabled={!(remote.bothWays || !link.joined)}
-            caption={caption}
-            onChange={(volume) => {
-              remote
-                .setSwitches(audioLinkKey(link), {
-                  ...link.switches,
-                  volume,
-                  ...(volume > 0 ? { muted: false } : {}),
-                })
-                .catch(() => undefined);
-            }}
-          />
-        );
-      })}
+      <div
+        className="remote-audio__peer-scroll"
+        role="group"
+        aria-label={t('remoteAudio.group.mix')}
+      >
+        {audioGroupRows(remote).map(({ link }) => {
+          if (!link) {
+            return null;
+          }
+          const controls = linkControls(link, remote.bothWays, remote.sharing);
+          const canAdjust = controls.receive && link.switches.play;
+          let caption = t('remoteAudio.lane.inQuiet', { name: link.name });
+          if (link.receiving) {
+            caption = t('remoteAudio.lane.receiving');
+          }
+          if (link.switches.paused) {
+            caption = t('remoteAudio.linked.paused');
+          } else if (link.theirs?.paused) {
+            caption = t('remoteAudio.lane.pausedThere', { name: link.name });
+          } else if (link.theirs?.sends === false) {
+            caption = t('remoteAudio.lane.inNotSent', { name: link.name });
+          } else if (!link.switches.play) {
+            caption = t('remoteAudio.lane.inOff', { name: link.name });
+          }
+          return (
+            <RemoteAudioFader
+              key={link.id}
+              id={`volume-${link.id}`}
+              label={link.name}
+              value={link.switches.volume}
+              muted={link.switches.muted}
+              muteLabel={`${link.name}: ${t(link.switches.muted ? 'library.unmute' : 'library.mute')}`}
+              onToggleMute={() => {
+                if (!canAdjust) {
+                  return;
+                }
+                remote
+                  .setSwitches(audioLinkKey(link), {
+                    ...link.switches,
+                    muted: !link.switches.muted,
+                  })
+                  .catch(() => undefined);
+              }}
+              disabled={!canAdjust}
+              caption={caption}
+              onChange={(volume) => {
+                if (!canAdjust) {
+                  return;
+                }
+                remote
+                  .setSwitches(audioLinkKey(link), {
+                    ...link.switches,
+                    volume,
+                    ...(volume > 0 ? { muted: false } : {}),
+                  })
+                  .catch(() => undefined);
+              }}
+            />
+          );
+        })}
+      </div>
     </section>
   );
 };

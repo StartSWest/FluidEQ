@@ -54,8 +54,25 @@ describe('external engine analysis', () => {
     [-6, -18, -18, 6],
     [-6, -18, -18, 2.5],
     [-6, -18, -18],
+    [-6, -18, -18, 3, Number.NaN],
+    [-6, -18, -18, 3, Number.POSITIVE_INFINITY],
+    [-6, -18, -18, 3, -20, -21],
   ])('refuses malformed live metadata %p', (...values) => {
     expect(decodeEngineAnalysis(packet(values))).toBeUndefined();
+  });
+  it('reads measured output LUFS without changing the legacy fields', () => {
+    expect(
+      decodeEngineAnalysis(packet([-6, -18, -16, 4, -22.5]))?.normalizer,
+    ).toMatchObject({
+      inputTruePeakDb: -6,
+      inputLufs: -18,
+      referenceLufs: -16,
+      levelState: 4,
+      outputLufs: -22.5,
+    });
+    expect(
+      decodeEngineAnalysis(packet([-6, -18, -16, 4]))?.normalizer.outputLufs,
+    ).toBeUndefined();
   });
   it('rejects truncated spectra instead of interpreting their end as metadata', () => {
     const frame = packet([-6, -18, -18, 4]);

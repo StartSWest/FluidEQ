@@ -21,7 +21,7 @@ import path from 'path';
 import type { NsisUpdater } from 'electron-updater';
 import type { IAppUpdateStatus } from '../common/constants';
 import { isMandatoryUpdate } from '../common/mandatoryUpdate';
-import { POWERSHELL_PATH } from './powershell';
+import { POWERSHELL_PATH, utf8Command } from './powershell';
 import { verifyUpdateFeedSignature } from './updateFeedSignature';
 
 /**
@@ -216,7 +216,9 @@ const inspectAuthenticodeSignature: SignatureInspector = (executablePath) =>
         '-InputFormat',
         'None',
         '-Command',
-        buildPowershellScript(executablePath),
+        // The path comes back to be compared, and a Windows account named in
+        // Chinese or with an accent put it back in another code page.
+        utf8Command(buildPowershellScript(executablePath)),
       ],
       { encoding: 'utf8', windowsHide: true },
       (error, stdout, stderr) => {

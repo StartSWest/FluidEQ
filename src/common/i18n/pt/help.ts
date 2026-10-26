@@ -56,11 +56,11 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'O cabeçalho leva você de uma página do FluidEQ a outra e mostra o som enquanto ele toca. O painel da esquerda traz o interruptor geral do EQ, a pré-amplificação e o medidor de nível; o painel da direita acompanha sua saída e os perfis dela.',
   'help.window.steps':
-    'Escolha uma página no cabeçalho: Mídia online, Compartilhar áudio e EQ antes do sinal; DSP, Biblioteca, Karaokê e Visualizadores depois dele.\nAtive EQ do sistema no painel da esquerda e deixe Normalizar automaticamente ligado, para que nenhum reforço sature.\nPressione o sinal ou o medidor de nível para mudar como ele é desenhado, e o Modo arco-íris para que as curvas e os medidores se movam na taxa de atualização total da sua tela.',
+    'Escolha uma página no cabeçalho: Mídia online, Compartilhar áudio e EQ antes do sinal; DSP, Biblioteca, Karaokê e Visualizadores depois dele.\nAtive EQ do sistema no painel da esquerda e deixe Normalizar automaticamente ligado, para que nenhum reforço sature.\nPressione o sinal ou o medidor de nível para mudar como ele é desenhado, e o Modo colorido para que as curvas e os medidores se movam na taxa de atualização total da sua tela.',
   'help.window.tip':
     'O menu Ajuda abre este guia, Novidades, a solução de problemas de áudio e Relatar um problema. O botão de pulso ao lado dele reúne o cartão do motor, sua conta, a importação de configurações de EQ ou de uma resposta ao impulso, o reinício do áudio do Windows e Processos, que mostra o que cada parte do FluidEQ está usando; na parte de baixo dele ficam Brilho e Transparência, as animações, Iniciar com o Windows e o idioma. O botão depois deles transforma a janela no Player compacto.',
   'help.window.keywords':
-    'interface, abas, navegação, tela principal, visão geral, barra superior, barra inferior, painel lateral, VU meter, preamp, tema, modo escuro, modo claro, tema escuro, tema claro, dark mode, idioma, língua, iniciar com o windows, iniciar automaticamente, inicialização automática, inicialização, conta',
+    'interface, abas, navegação, tela principal, visão geral, barra superior, barra inferior, painel lateral, VU meter, preamp, modo colorido, arco-íris, tema, modo escuro, modo claro, tema escuro, tema claro, dark mode, idioma, língua, iniciar com o windows, iniciar automaticamente, inicialização automática, inicialização, conta',
   'help.window.headerLeftCaption': 'O cabeçalho, até o sinal',
   'help.window.headerRightCaption': 'O cabeçalho, depois do sinal',
   'help.window.railCaption': 'O painel da esquerda',
@@ -147,7 +147,7 @@ const help: Record<keyof typeof en, string> = {
     'O que toca a seguir. Clique duas vezes em uma música para tocá-la, ou solte arquivos de música aqui para adicioná-los.',
   'help.player.openIn': 'Abre o app completo em uma das páginas dele.',
   'help.player.theme':
-    'O Brilho do próprio player, separado do app completo; a Transparência, para o player de vidro sobre um visualizador; e o Modo arco-íris.',
+    'O Brilho do próprio player, separado do app completo; a Transparência, para o player de vidro sobre um visualizador; e o Modo colorido.',
   'help.player.fold':
     'Recolhe o player em uma linha. Clicar duas vezes na barra dele faz o mesmo.',
   'help.player.unfold': 'Expande o player. A seta na outra ponta também.',

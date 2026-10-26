@@ -168,7 +168,8 @@ const AppTitlebar = ({
                 </span>
               )}
             </div>
-            <div className="workspace-header__tagline">{t('app.tagline')}</div>
+            {/* No slogan under it: one confident line (Ivan, 2026-10-25,
+                trying "C · Clean wordmark"). The slogan stays in About. */}
           </div>
         </div>
         <WorkspaceTabsLeft

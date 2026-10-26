@@ -176,6 +176,10 @@ const library: Partial<Dictionary> = {
   'library.karaoke.sending': 'Wird an Karaoke gesendet…',
   'library.karaoke.failed':
     'Diese Datei konnte nicht an Karaoke gesendet werden — sie ist vielleicht zu groß oder nicht lesbar.',
+  'library.drop.empty': 'In dem, was Sie abgelegt haben, ist keine Musik',
+  'library.drop.already':
+    'Alles, was Sie abgelegt haben, steht schon in „Als Nächstes“',
+  'library.drop.failed': 'Die abgelegte Musik konnte nicht hinzugefügt werden',
 };
 
 export default library;

@@ -10,6 +10,7 @@ import path from 'path';
 import fs from 'fs';
 import log from 'electron-log';
 import {
+  IAudioDevice,
   IDeviceProfileAssignment,
   IDeviceProfileSettings,
 } from '../common/constants';
@@ -60,6 +61,32 @@ export const assignDeviceProfile = (
   assignment: IDeviceProfileAssignment,
 ) => {
   settings.assignments[assignment.deviceId] = assignment;
+};
+
+/**
+ * Each attached output's saved name, brought up to what Windows calls it now.
+ * True when one changed, and the settings need saving.
+ *
+ * An assignment keeps the output's name from the moment its profile was
+ * attached, and the config file's comment line is written from that copy
+ * (`fluideq-device-<slug>.txt`), as is the `Device:` line of an output with
+ * no id. A name read through the wrong code page (GitHub issue 39) or taken
+ * before a rename in Sound settings stayed in the file for good; matched by
+ * the output's id, the next reading of the outputs puts the real one there.
+ */
+export const followOutputNames = (
+  settings: IDeviceProfileSettings,
+  devices: readonly IAudioDevice[],
+): boolean => {
+  let changed = false;
+  devices.forEach((device) => {
+    const assignment = settings.assignments[device.id];
+    if (assignment && device.name && assignment.deviceName !== device.name) {
+      assignment.deviceName = device.name;
+      changed = true;
+    }
+  });
+  return changed;
 };
 
 export const removeDeviceProfile = (

@@ -632,27 +632,40 @@ $pet-hop-duration: 520ms;
   }
 }
 
-// At the ceiling the bloom turns rainbow, and turns.
+// At the ceiling the bloom takes Colourful mode's colours, and turns.
 //
-// The same five stops the trace, the bands and the share card run, wrapped back
-// to the first so the ring closes with no seam. Blurred rather than drawn as a
-// sharp conic: unblurred it is a colour wheel — a graphic sitting behind her —
-// and blurred it is light coming off her, which is the whole difference.
+// The palette in use (`Rainbow.scss`) — the window's Tint, or the
+// visualizer's colours — wrapped back to the first stop so the ring closes
+// with no seam. It was five fixed colours drawn as a hard disc behind her
+// (Ivan, 2026-10-25: "remove all rainbow crap and colors"); faded out by a
+// mask from her middle, as the bloom at rest falls off, it is light coming
+// off her rather than a colour wheel sitting behind her.
 //
-// The spin is slow and the opacity is low, because this is behind the one thing
-// in the panel people are meant to look at. `rotate` is composited, so a ring
-// turning forever costs nothing to keep on screen.
+// The spin is slow, because this is behind the one thing in the panel people
+// are meant to look at. `rotate` is composited, so a ring turning forever
+// costs nothing to keep on screen.
 .is-euphoric .support-pet--hero::before {
+  $bloom-falloff: radial-gradient(
+    circle,
+    $black 18%,
+    rgba($black, 0.55) 42%,
+    transparent 70%
+  );
+  width: calc(150px + var(--pet-joy, 0) * 22px);
+  height: calc(150px + var(--pet-joy, 0) * 22px);
   background: conic-gradient(
     from 0deg,
-    #00e5ff,
-    #54ff8a,
-    #ffe66d,
-    #ff3cac,
-    #8b5cff,
-    #00e5ff
+    var(--rainbow-1),
+    var(--rainbow-2),
+    var(--rainbow-3),
+    var(--rainbow-4),
+    var(--rainbow-5),
+    var(--rainbow-6),
+    var(--rainbow-7),
+    var(--rainbow-1)
   );
-  opacity: 0.5;
+  opacity: 0.75;
+  mask: $bloom-falloff;
   animation: pet-aura-spin 8s linear infinite;
 }
 

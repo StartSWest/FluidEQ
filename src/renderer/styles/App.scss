@@ -1226,8 +1226,9 @@ select option {
   @include truncate;
   display: flex;
   align-items: baseline;
-  gap: 7px;
-  font-size: 1.2rem;
+  gap: 5px;
+  // A touch larger now that it stands alone on the line, centred on the mark.
+  font-size: 1.35rem;
   font-weight: $weight-bold;
   letter-spacing: -0.02em;
 }
@@ -1246,18 +1247,35 @@ select option {
   width: min(420px, calc(100vw - 36px));
 }
 
-// Quiet by design: useful in a bug report, not something to read every day.
+// Quiet by design: useful in a bug report, not something to read every day —
+// a small suffix to the name rather than a badge beside it (Ivan, 2026-10-25,
+// trying "C · Clean wordmark").
 .workspace-header__version {
   flex: 0 0 auto;
-  padding: 1px 6px;
-  color: $text-accent;
-  border: 1px solid $border-field;
-  border-radius: $radius-2xs;
-  background: color-mix(in srgb, $secondary-default 10%, transparent);
+  align-self: flex-start;
+  margin-top: 1px;
+  // Last, once the name has risen (`SignalBrand.scss`): its seven letters
+  // start 700ms in, 45ms apart, so this comes in as "Q" settles rather than
+  // standing alone beside an empty name (Ivan, 2026-10-25: "the version
+  // shows at the end of the animation").
+  opacity: 0;
+  transform: translateY(5px);
+  animation: signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards;
+  animation-delay: calc(700ms + 8 * 45ms);
+  color: $text-faint;
   font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;
   @include tracking(0.02em);
+}
+
+// Still with the name, which stands risen at once here (`SignalBrand.scss`).
+@media (prefers-reduced-motion: reduce) {
+  .workspace-header__version {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
 }
 
 .workspace-header__tagline {

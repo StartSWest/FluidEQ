@@ -4,13 +4,13 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useState } from 'react';
+import { useState, type Ref } from 'react';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import TextInput from '../widgets/TextInput';
 import RemoteAudioCodeList from './RemoteAudioCodeList';
 
-interface IRemoteAudioLinkFormProps {
+export interface IRemoteAudioLinkFormProps {
   deviceName?: string;
   /** This computer's one code. */
   code?: string;
@@ -19,6 +19,7 @@ interface IRemoteAudioLinkFormProps {
   pasteError?: string;
   /** Resolves true once the code is saved and being linked. */
   onLink(code: string): Promise<boolean>;
+  inputRef?: Ref<HTMLInputElement>;
 }
 
 /**
@@ -32,6 +33,7 @@ const RemoteAudioLinkForm = ({
   status,
   pasteError,
   onLink,
+  inputRef,
 }: IRemoteAudioLinkFormProps) => {
   const { t } = useTranslation();
   const [pasted, setPasted] = useState('');
@@ -78,6 +80,7 @@ const RemoteAudioLinkForm = ({
           </span>
           <div className="remote-audio__link-paste">
             <TextInput
+              ref={inputRef}
               ariaLabel={t('remoteAudio.link.codeLabel')}
               value={pasted}
               isDisabled={false}

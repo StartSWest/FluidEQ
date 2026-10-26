@@ -36,13 +36,17 @@ struct FeqLiveNormalizer {
   bool live = false;
   bool gap_pending = false;
   FeqLoudnessMeter* loudness = nullptr;
+  FeqLoudnessMeter* output_loudness = nullptr;
   FeqPostFilterNormalizer safety{};
   std::vector<FeqTruePeak> detectors;
   std::vector<FeqTruePeak> input_detectors;
   std::vector<std::vector<float>> delay;
   std::vector<float*> planes;
   std::vector<float> reductions;
-  ~FeqLiveNormalizer() { feq_loudness_meter_destroy(loudness); }
+  ~FeqLiveNormalizer() {
+    feq_loudness_meter_destroy(loudness);
+    feq_loudness_meter_destroy(output_loudness);
+  }
 };
 
 namespace {
@@ -100,6 +104,7 @@ void restart_settled(FeqLiveNormalizer& state) {
 void empty_window(FeqLiveNormalizer& state) {
   state.samples = 0;
   feq_loudness_meter_reset(state.loudness);
+  feq_loudness_meter_reset(state.output_loudness);
 }
 
 /* A new programme. The gain and whether one was ever decided carry over. */
@@ -113,6 +118,7 @@ void begin_segment(FeqLiveNormalizer& state, uint64_t song_id, double level, dou
   restart_settled(state);
   song.foreground_seconds = 0;
   song.glide = false;
+  song.retarget_pending = false;
 }
 
 double desired_gain(const FeqLevelingState& song, const FeqNormalizerSettings& settings,
@@ -122,6 +128,28 @@ double desired_gain(const FeqLevelingState& song, const FeqNormalizerSettings& s
   // Preserve observed crest factor instead of boosting into continuous
   // limiting to force a LUFS target. A target is an aim, not a guarantee.
   return std::clamp(std::min(requested, peak_room), -48.0, 6.0);
+}
+
+void follow_controls(FeqLiveNormalizer& state, const FeqNormalizerSettings& settings) {
+  if (!state.live) return;
+  auto& song = state.song;
+  const double target = bounded(settings.target_lufs, -14, -24, -5);
+  const double ceiling = bounded(settings.ceiling_db, -1, -12, -0.1);
+  // Holding a quieter verse must not hold a deliberate dial edit. Keep the
+  // controls with the learned gain so this also works after a new graph adopts it.
+  if (heard(song.control_target_lufs) &&
+      (target != song.control_target_lufs || ceiling != song.control_ceiling_db)) {
+    song.retarget_pending = true;
+  }
+  song.control_target_lufs = target;
+  song.control_ceiling_db = ceiling;
+  if (song.retarget_pending && heard(song.song_level)) {
+    double requested = 0, peak_room = 0;
+    song.target_db = desired_gain(song, settings, requested, peak_room);
+    song.established = true;
+    song.glide = true;
+    song.retarget_pending = false;
+  }
 }
 
 void apply_cue(FeqLiveNormalizer& state, const feq_leveling::Cue& cue,
@@ -279,7 +307,8 @@ FeqLiveNormalizer* feq_live_normalizer_create(double rate, uint32_t channels) {
   state->look_ahead = feq_post_filter_normalizer_look_ahead(rate);
   state->latency = state->look_ahead;
   state->loudness = feq_loudness_meter_create(rate, channels);
-  if (state->loudness == nullptr) return nullptr;
+  state->output_loudness = feq_loudness_meter_create(rate, channels);
+  if (state->loudness == nullptr || state->output_loudness == nullptr) return nullptr;
   state->detectors.resize(channels);
   state->input_detectors.resize(channels);
   state->delay.resize(channels);
@@ -305,6 +334,7 @@ void feq_live_normalizer_reset(FeqLiveNormalizer* state) {
   state->live = false;
   state->gap_pending = false;
   feq_loudness_meter_reset(state->loudness);
+  feq_loudness_meter_reset(state->output_loudness);
   for (uint32_t channel = 0; channel < state->channels; ++channel) {
     std::fill(state->delay[channel].begin(), state->delay[channel].end(), 0.0f);
     feq_true_peak_init(&state->input_detectors[channel], 4);
@@ -333,7 +363,7 @@ void feq_live_normalizer_silence(FeqLiveNormalizer* state, uint32_t frames) {
 }
 FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,
     float* const* channels, uint32_t frames, const FeqNormalizerSettings* settings) {
-  FeqLiveNormalizerReading reading{-120, -120, 0, -120, 0};
+  FeqLiveNormalizerReading reading{-120, -120, 0, -120, 0, -120};
   if (state == nullptr || channels == nullptr || settings == nullptr || frames == 0)
     return reading;
   if (state->mode != settings->mode) {
@@ -354,12 +384,6 @@ FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,
       state->gap_pending = false;
     }
   }
-  feq_loudness_meter_process(state->loudness, channels, frames);
-  FeqLoudnessReading measured{};
-  feq_loudness_meter_read(state->loudness, &measured);
-  state->samples += frames;
-  const bool ready = static_cast<double>(state->samples) >= state->rate * kWindowSeconds;
-  reading.input_lufs = ready ? measured.short_term_lufs : measured.momentary_lufs;
   double peak = 0;
   for (uint32_t channel = 0; channel < state->channels; ++channel) {
     peak = std::max(peak, feq_true_peak_block(&state->input_detectors[channel],
@@ -372,7 +396,17 @@ FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,
   if (settings->mode == 2) {
     if (programme) adopt(*state);
     follow_cue(*state, *settings);
+  }
+  // Both meters start at the same programme boundary and use the same 3 s
+  // window. A 400 ms fallback made the input and output incomparable at start.
+  feq_loudness_meter_process(state->loudness, channels, frames);
+  FeqLoudnessReading measured{};
+  feq_loudness_meter_read(state->loudness, &measured);
+  state->samples += frames;
+  reading.input_lufs = measured.short_term_lufs;
+  if (settings->mode == 2) {
     reading.level_state = level(*state, measured, peak, frames, *settings);
+    follow_controls(*state, *settings);
     target = state->song.target_db;
   }
   reading.reference_lufs = state->song.song_level;
@@ -408,6 +442,10 @@ FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,
   feq_post_filter_normalizer_process(&state->safety, channels, frames, &options);
   const auto safety = feq_post_filter_normalizer_take_telemetry(&state->safety);
   reading.applied_gain_db = song.gain_db + safety.gain_reduction_db;
+  feq_loudness_meter_process(state->output_loudness, channels, frames);
+  FeqLoudnessReading output{};
+  feq_loudness_meter_read(state->output_loudness, &output);
+  reading.output_lufs = output.short_term_lufs;
   return reading;
 }
 }

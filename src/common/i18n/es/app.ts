@@ -322,7 +322,6 @@ const app: Partial<Dictionary> = {
   'sidebar.preampAuto':
     'Se ajusta sola. Desactiva Normalizar automáticamente para cambiarla.',
   'sidebar.autoPreamp': 'Normalizar automáticamente',
-  'sidebar.visualizer': 'VISUALIZADOR',
   'sidebar.graphView': 'Gráfica de respuesta',
   'sidebar.output': 'Salida',
   'config.eyebrow': 'LO QUE LEE EL MOTOR',

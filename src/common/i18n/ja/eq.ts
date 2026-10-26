@@ -161,10 +161,13 @@ const eq: Partial<Dictionary> = {
     '環境光に加えて、ウィンドウ全体の背後にビジュアライザー。',
   'graph.editHint':
     'ポイントをドラッグ · Ctrl/Shiftで選択 · Ctrl+ホイール: Q · Ctrl+ドラッグ: ベル',
+  'graph.windowTint': '色合い',
+  'graph.windowTintHint':
+    '標準のルックでのウィンドウの色。ダブルクリックで元の色に戻ります。',
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': 'パネル越しにビジュアライザーがどれだけ見えるか',
   'graph.sceneTint.brightness': '明るさ',
-  'graph.sceneTint.rainbow': 'レインボーモード',
+  'graph.sceneTint.rainbow': 'カラフルモード',
   'graph.sceneTint.rainbowHint':
     'バンド、タイトル、点灯中のコントロールを単色ではなくパレットで表示します。シーンの選択中はその色で表示します。',
   'graph.sceneTint.sparks': 'ポインターの火花',
@@ -173,15 +176,19 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.daylight': '時間帯',
   'graph.sceneTint.daylightHint': 'ビジュアライザーの時間帯。夜から真昼まで',
   'graph.sceneTint.daylightFollowingHint':
-    '明るさに連動しています。「時間帯を明るさに連動」をオフにすると、ビジュアライザーの時間帯を個別に設定できます',
-  'graph.sceneTint.daylightFollows': '時間帯を明るさに連動',
+    '明るさに連動中。ここでビジュアライザーの時間帯を設定するには、下で「なし」を選びます',
+  'graph.sceneTint.daylightSource': '連動',
+  'graph.sceneTint.daylightSourceOwn': 'なし',
+  'graph.sceneTint.daylightSourceBrightness': '明るさ',
+  'graph.sceneTint.daylightSourceClock': '時計',
+  'graph.sceneTint.daylightOwnHint':
+    'ビジュアライザーは上で設定した昼の明るさを保ちます。',
   'graph.sceneTint.daylightFollowsHint':
-    'オンにすると、ビジュアライザーは明るさに合わせて夜から昼へ移ります。オフにすると上で設定した時間帯を保ち、明るさはウィンドウだけを変えます。',
-  'graph.sceneTint.daylightClock': '時間帯を時計に連動',
+    'ビジュアライザーは明るさに合わせて夜から昼へ変わります。',
   'graph.sceneTint.daylightClockHint':
-    'オンにすると、このコンピューターの時計に合わせて、ビジュアライザーは夜は夜に、昼は昼になります。オフにすると上で設定した時間帯を保ちます。',
+    'ビジュアライザーはこのコンピューターの時計に合わせて、夜は夜、昼は昼になります。',
   'graph.sceneTint.daylightFollowingClockHint':
-    '時計に連動しています。「時間帯を時計に連動」をオフにすると、ビジュアライザーの時間帯を個別に設定できます',
+    '時計に連動中。ここでビジュアライザーの時間帯を設定するには、下で「なし」を選びます',
   'graph.sceneTint.daylightStudioHint':
     'スタジオを開いている間は、明るさがビジュアライザーの時間帯を決めるので、シーンを夜から昼まで試せます。スタジオを離れると、ここでの選択に戻ります',
   'graph.sceneTint.brightnessHint':
@@ -623,7 +630,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.balance.note': '測定を続ける · 明るさと暖かさもそろえる',
   'eq.smart.mode.target': 'ターゲット',
   'eq.smart.mode.target.note': '測定を継続 · すべての音源を同じカーブへ',
-  'eq.layers': '同時に適用中',
   'eq.layers.aria': 'この出力に効いているその他の処理',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} バンド',
@@ -775,7 +781,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': '自分の EQ バンドだけ。上に重ねるものはありません',
   'voicing.strength': '強さ',
   'waveform.style': 'メーターのスタイルを変更',
-  'waveform.rainbow': 'レインボー',
+  'waveform.rainbow': 'カラフル',
   'waveform.live': 'ライブ出力',
   'waveform.signal': 'オーディオ信号',
   'waveform.clip': 'クリップ',

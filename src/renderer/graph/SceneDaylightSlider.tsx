@@ -34,7 +34,7 @@ const FOLLOWING_HINT: Record<TDaylightSource, TranslationKey> = {
  * can select an individual time of day for the scene"). Drawn as the menu's
  * other slider rows, with the same quarters to fall into.
  *
- * While it follows Brightness or the clock (`DaylightFollowSwitch`, the rows
+ * While it follows Brightness or the clock (`DaylightSourceChoice`, the row
  * under it) it stands dimmed and does not move under the pointer — as
  * Transparency does outside the Backdrop — and shows the time of day it is
  * being given, so dragging Brightness moves this thumb too, and switching the

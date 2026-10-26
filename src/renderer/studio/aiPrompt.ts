@@ -1,4 +1,4 @@
-import { PLAYER_DEFAULT_HEIGHT, PLAYER_DEFAULT_WIDTH } from 'common/constants';
+import { PLAYER_PICTURE_HEIGHT, PLAYER_WIDTH } from 'common/constants';
 import { MAX_MEMBER_LOOP_ITERATIONS } from 'common/memberGlslLoops';
 import { MAX_MEMBER_PIXEL_WORK } from 'common/memberGlslWork';
 import { MAX_MEMBER_LOOPS } from 'common/memberSceneRules';
@@ -360,7 +360,7 @@ FIT THE PANEL AND MY WAVE
   the whole picture for panels at least "narrowest" wide (1.7778 is 16:9)
   and put its important part - the cabin, the dancer, the sun over the
   dunes, the bars themselves - at "focus". On a narrower panel (the compact
-  player's whole window, ${PLAYER_DEFAULT_WIDTH} by ${PLAYER_DEFAULT_HEIGHT}; a column; a desktop on its side)
+  player's picture, ${PLAYER_WIDTH} by ${PLAYER_PICTURE_HEIGHT}; a desktop on its side)
   FluidEQ draws the picture at the same scale and slides it sideways until
   the focus is in view, as near the middle as the picture's own edges allow;
   on a panel wider than "widest", when you give one, it slides it up and

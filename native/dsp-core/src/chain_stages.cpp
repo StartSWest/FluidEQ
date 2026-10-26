@@ -91,7 +91,8 @@ void chain_process_input_gain(FeqChain* chain, float* const* channels,
     feq_meters_publish_normalizer(chain->meters, input_peaks, output_peaks,
         reading.applied_gain_db, frames, chain->sample_rate);
     feq_meters_publish_live_input(chain->meters, reading.input_true_peak_db,
-                                  reading.input_lufs, reading.reference_lufs, reading.level_state);
+                                  reading.input_lufs, reading.reference_lufs, reading.level_state,
+                                  reading.output_lufs);
     return;
   }
   const bool has_programme =

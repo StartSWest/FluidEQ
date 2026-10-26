@@ -98,7 +98,7 @@ std::vector<unsigned char> AnalysisLink::snapshot() {
   const size_t band_bytes = sizeof(float) * frame.bands;
   const size_t detail_bytes = sizeof(float) * detail_bins;
   std::vector<unsigned char> packet(sizeof(frame) + spectrum_bytes +
-      scope_bytes + band_bytes * 2 + detail_bytes + sizeof(float) * 4);
+      scope_bytes + band_bytes * 2 + detail_bytes + sizeof(float) * 5);
   size_t offset = 0;
   const auto append = [&](const void* source, size_t size) {
     std::memcpy(packet.data() + offset, source, size);
@@ -110,7 +110,7 @@ std::vector<unsigned char> AnalysisLink::snapshot() {
   append(amounts.data(), band_bytes);
   append(levels.data(), band_bytes);
   append(detail.data(), detail_bytes);
-  float live_input[4] = {-120, -120, -120, 0};
+  float live_input[5] = {-120, -120, -120, 0, -120};
   feq_meters_read_live_input(meters_, live_input);
   append(live_input, sizeof(live_input));
   return packet;

@@ -2,6 +2,7 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.group.add': 'Añadir ordenador',
   'remoteAudio.group.title': 'Todo el grupo',
   'remoteAudio.group.mix': 'Tu mezcla',
   'remoteAudio.group.thisPC': 'Este PC',
@@ -25,7 +26,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.badge.local': 'Solo LAN privada',
   'remoteAudio.badge.lossless': 'Transporte PCM Float32 sin pérdidas',
   'remoteAudio.badge.encrypted': 'Cifrado AES-256-GCM',
-  'remoteAudio.link.section': 'Enlazar un ordenador',
   'remoteAudio.link.thisComputer': 'Este ordenador',
   'remoteAudio.link.thisHint':
     'Pega este código en el otro ordenador, o pega aquí el código de ese ordenador. Funciona de las dos maneras.',
@@ -98,7 +98,6 @@ const remoteAudio: Partial<Dictionary> = {
     'Enviar en las dos direcciones necesita Windows, o el FluidEQ Engine en Linux.',
   'remoteAudio.lane.outFailed':
     'No se pudo capturar el sonido de este ordenador. Apaga y vuelve a encender «Enviar mi sonido» para intentarlo de nuevo.',
-  'remoteAudio.another.section': 'Enlazar otro ordenador',
   'remoteAudio.singlePlayer.title': 'Un solo reproductor',
   'remoteAudio.singlePlayer.body':
     'también abarca los ordenadores enlazados: empezar algo en uno pausa lo que sonaba en el otro.',

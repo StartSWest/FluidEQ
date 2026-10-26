@@ -266,16 +266,52 @@ export const useStudioTintSource = () =>
   );
 
 /**
- * The mode the window is in now: the Studio's own while its project holds
- * the window's colour — its bench on screen and its choice not Theme — and
- * the app's otherwise. What is drawn round the window reads this (the glow,
- * the scene's elements, the Studio's own note on them); the app's Window
- * colours menu shows and sets the app's alone.
+ * THE AMP HAS NO WINDOW-COLOUR MODES: it is the Backdrop whenever a Plus
+ * visualizer is on (Ivan, 2026-10-25: "let's remove colour modes, always
+ * backdrop only on the amp ui, don't touch the full app", "so we're always
+ * at backdrop for plus viz"). Said by the amp while it holds the window
+ * (`MiniPlayer`), and never written down: the app's own choice stays what
+ * it was and comes back with the full app.
+ */
+let ampHoldsWindow = false;
+const ampListeners = new Set<() => void>();
+
+export const setAmpHoldsWindow = (next: boolean) => {
+  if (next === ampHoldsWindow) {
+    return;
+  }
+  ampHoldsWindow = next;
+  ampListeners.forEach((listener) => listener());
+};
+
+export const useAmpHoldsWindow = () =>
+  useSyncExternalStore(
+    (listener) => {
+      ampListeners.add(listener);
+      return () => {
+        ampListeners.delete(listener);
+      };
+    },
+    () => ampHoldsWindow,
+    () => false,
+  );
+
+/**
+ * The mode the window is in now: the Backdrop while the amp holds it, the
+ * Studio's own while its project holds the window's colour — its bench on
+ * screen and its choice not Theme — and the app's otherwise. What is drawn
+ * round the window reads this (the glow, the scene's elements, the Studio's
+ * own note on them); the app's Window colours menu shows and sets the app's
+ * alone.
  */
 export const useWindowTintMode = (): TSceneTintMode => {
   const app = useSceneTintMode();
   const studio = useStudioTintMode();
   const source = useStudioTintSource();
+  const isAmp = useAmpHoldsWindow();
+  if (isAmp) {
+    return 'cover';
+  }
   return source && studio !== 'theme' ? studio : app;
 };
 

@@ -6,9 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   PLAYER_DEFAULT_HEIGHT,
-  PLAYER_DEFAULT_WIDTH,
   PLAYER_FOLD_HEIGHT,
-  PLAYER_MIN_WIDTH,
+  PLAYER_WIDTH,
   WINDOW_MIN_HEIGHT,
   WINDOW_MIN_WIDTH,
 } from './constants';
@@ -24,22 +23,6 @@ import {
 export type TWindowMode = 'app' | 'player';
 
 /**
- * Which of the two amps the player is: the glass Stage, worn while the
- * window is in the Backdrop, or the 2.0 amp in every other mode
- * (`MiniPlayer`). Each keeps its own size and place, as the full app keeps
- * its own (Ivan, 2026-09-28: "we should preserve 3 window sizes: the full
- * app, the amp standard app and the amp backdrop glassy app").
- */
-export type TPlayerAmp = 'classic' | 'stage';
-
-/**
- * The page's word for which amp the player is: `[amp]`, said whenever it
- * changes, in either mode, so the window already knows which size to open
- * the player at when the switch is pressed.
- */
-export const PLAYER_AMP_CHANNEL = 'window-player-amp';
-
-/**
  * The page address's word for the mode: main opens a player window with it,
  * and the page keeps it in step after every switch, so the page can draw the
  * right mode on its first frame and again after a reload.
@@ -53,12 +36,23 @@ export const WINDOW_MODE_PARAM = 'windowMode';
 export const PLAYER_HEIGHT_LIMIT_CHANNEL = 'window-player-height-limit';
 
 /**
- * The page's word for the width its equalizer needs: `[cssWidth]`, which is
- * the widest band layout the listener has chosen (`playerWidthForBands`).
- * The player cannot be dragged narrower than this, because under it the
- * bands stop having a gap between them.
+ * The page's word for the width the amp's controls need to stand on one line:
+ * `[cssWidth]`. The amp has one width, never under `PLAYER_WIDTH`, and it
+ * rises to this where a row needs more — a long preset name, a long
+ * language, a large zoom — because no row of controls is ever let break onto
+ * a second line (Ivan, 2026-10-25: "they will just push the app min width so
+ * they all fit on any res").
  */
-export const PLAYER_WIDTH_FLOOR_CHANNEL = 'window-player-width-floor';
+export const PLAYER_WIDTH_NEED_CHANNEL = 'window-player-width-need';
+
+/**
+ * The page's word that the amp's height is being dragged by its TOP edge:
+ * `[cssHeight]`, the window's foot staying where it is and its top following
+ * the pointer (Ivan, 2026-10-25: "we need to be able to resize from the top
+ * too"). The bottom edge's drag goes through `resizePlayerWindow`, which
+ * keeps the top.
+ */
+export const PLAYER_RESIZE_TOP_CHANNEL = 'window-player-resize-top';
 
 /**
  * The page's word that a switch between the app and the player is starting:
@@ -150,20 +144,22 @@ export const appMinimumSize = (workArea: ISize): ISize => ({
 });
 
 /**
- * The player's floor, in window units.
+ * The player's floor, in window units: the amp's one width, and one line of
+ * height — the player folded.
  *
  * The page lays the player out in CSS pixels and the window is sized in the
  * system's, and the two differ by the page's zoom (Ctrl +/−), so the floor is
- * the CSS figure scaled by it. Its height is one line: the player folded.
+ * the CSS figure scaled by it. The width is the ceiling too: the amp is one
+ * column of one width (`PLAYER_WIDTH`).
  */
 export const playerMinimumSize = (zoom: number): ISize => ({
-  width: Math.ceil(PLAYER_MIN_WIDTH * zoom),
+  width: Math.round(PLAYER_WIDTH * zoom),
   height: Math.ceil(PLAYER_FOLD_HEIGHT * zoom),
 });
 
-/** The player's size the first time it opens, before it fits its decks. */
+/** The player's size the first time it opens. */
 export const playerFirstSize = (zoom: number): ISize => ({
-  width: Math.round(PLAYER_DEFAULT_WIDTH * zoom),
+  width: Math.round(PLAYER_WIDTH * zoom),
   height: Math.round(PLAYER_DEFAULT_HEIGHT * zoom),
 });
 

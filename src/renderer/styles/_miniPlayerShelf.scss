@@ -1,0 +1,464 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'miniPlayerParts' as *;
+
+// WHAT PLAYS NEXT, AND WHAT COULD (`PlayerQueue`): Up next and Playlists as
+// two pages of the room the amp has left under the sound. The room is the
+// column's last row (`.player-body`) and changes with the window; the page's
+// list scrolls inside it, and nothing in it ever changes the window's height.
+// Folded, the row slides down to the tabs and the page fades under them.
+.player-shelf {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--player-pane);
+}
+
+// A small key on the page: Save as playlist, a playlist's Play.
+@mixin shelf-key($height: 28px) {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: $height;
+  min-height: $height;
+  padding: 0 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: $radius-m;
+  background: transparent;
+  box-shadow: none;
+  color: var(--player-text-muted);
+  font-size: 12px;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    background: transparent;
+    color: var(--player-text);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.4;
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+// MUSIC DRAGGED IN FROM THE COMPUTER, anywhere on the amp (`useMusicDrop`):
+// the whole column says it will take it while a drag carrying files is over
+// it, and nothing at any other time. Enough floor to read the words on, and
+// little enough that the amp under it still shows.
+.player-drop {
+  position: absolute;
+  z-index: 30;
+  inset: 44px 6px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 60%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-base) 82%, transparent);
+  color: var(--player-ink-bright);
+  font-size: 14px;
+  font-weight: $weight-semibold;
+  // The drop belongs to the amp underneath; this only says so.
+  pointer-events: none;
+
+  .player-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+// ============================================================ the tabs =====
+.player-shelf__tabs {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 0 10px 0 14px;
+  border-bottom: 1px solid var(--player-rule);
+  transition: border-color 280ms ease;
+
+  // Folded, the foot's rule is the one under the tabs.
+  .player-shelf.is-folded & {
+    border-bottom-color: transparent;
+  }
+}
+
+.player-shelf__tab {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  // With the rule under it, `--player-shelf-tabs`.
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--player-text-soft);
+  font-size: 13px;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 150ms ease;
+
+  .player-icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  &:hover {
+    color: var(--player-text);
+  }
+
+  &[aria-selected='true'] {
+    color: var(--player-text);
+
+    .player-icon {
+      color: var(--player-ink);
+    }
+
+    // The page on view, underlined in the accent's light.
+    &::after {
+      position: absolute;
+      right: 0;
+      bottom: -1px;
+      left: 0;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      content: '';
+      transition: opacity 220ms ease;
+    }
+  }
+
+  // Folded, no page is on view to underline.
+  .player-shelf.is-folded &[aria-selected='true']::after {
+    opacity: 0;
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+.player-shelf__count {
+  color: var(--player-text-soft);
+  font-size: 11px;
+  font-weight: $weight-semibold;
+}
+
+// The end of the tabs: how long the queue has left, the key that keeps it as
+// a playlist, and the fold.
+.player-shelf__end {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.player-shelf__time {
+  margin-right: 4px;
+  color: var(--player-text-soft);
+  font-size: 11.5px;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+}
+
+// A glyph on the tabs: quiet until the pointer is on it, lit while what it
+// opens is open.
+.player-shelf__key {
+  display: grid;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-m;
+  background: none;
+  color: var(--player-text-soft);
+  cursor: pointer;
+  transition: $transition-control;
+
+  .player-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    background: var(--player-hover);
+    color: var(--player-text);
+  }
+
+  &[aria-pressed='true'] {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--player-ink-bright);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+// One caret that turns over as the queue folds, as the sound's does.
+.player-shelf__chevron {
+  transition: transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  .player-shelf.is-folded & {
+    transform: rotate(180deg);
+  }
+}
+
+// =========================================================== the pages =====
+.player-shelf__page {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 8px 8px 0;
+  transition: opacity 220ms ease;
+
+  .player-shelf.is-folded & {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-shelf__tabs,
+  .player-shelf__page,
+  .player-shelf__chevron,
+  .player-shelf__tab::after {
+    transition: none;
+  }
+}
+
+.player-shelf .player-queue {
+  gap: 2px;
+}
+
+// The playlist's name, asked for in a line over the list while the save key
+// is pressed (`QueueSave`).
+.player-queue__naming {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0 6px 6px;
+
+  .text-input {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .text-input input {
+    height: 28px;
+  }
+}
+
+.player-queue__cancel {
+  @include player-round(28px, 13px);
+  border-radius: $radius-m;
+}
+
+// The way to the Library, under an empty page.
+.mini-player .player-queue__empty .button.player-queue__open {
+  @include shelf-key;
+  justify-self: center;
+  margin: 8px auto 0;
+  color: var(--player-ink-bright);
+
+  .player-icon {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+// ============================================================ the rows =====
+//
+// The grip, the cover, the song, its length, and the cross over the row's
+// right end on what is still to come — every row keeps that room, so the
+// lengths stand in one column.
+.player-shelf .player-queue__list {
+  padding-bottom: 10px;
+
+  li {
+    position: relative;
+  }
+}
+
+.player-shelf .player-queue__row {
+  grid-template-columns: 16px 34px minmax(0, 1fr) auto;
+  gap: 10px;
+  min-height: 0;
+  padding: 6px 42px 6px 6px;
+  border-radius: 9px;
+
+  &:hover {
+    background: color-mix(in srgb, var(--player-text) 5%, transparent);
+  }
+
+  // What has played is listed as it is; the bar marks where the queue is.
+  &.is-played {
+    opacity: 1;
+  }
+
+  &.is-now {
+    background: color-mix(in srgb, var(--accent) 11%, transparent);
+    box-shadow: inset 2px 0 0 var(--accent);
+
+    .player-queue__title {
+      color: var(--player-ink-bright);
+    }
+
+    .player-queue__grip {
+      color: var(--accent);
+      opacity: 1;
+    }
+  }
+}
+
+// "More like this" over Keep playing's songs (`_miniPlayerQueue.scss`), on
+// the same columns as the rows above: its words and rule start at the covers
+// and end at the lengths. Change the row's grid and this changes with it.
+.player-shelf .player-queue__list > .player-queue__section {
+  grid-template-columns: 16px 34px minmax(0, 1fr);
+  padding: 0 42px 0 6px;
+}
+
+.player-queue__grip {
+  width: 12px;
+  height: 12px;
+  justify-self: center;
+  color: var(--player-text-soft);
+  opacity: 0.55;
+
+  .player-icon__stroke {
+    stroke-width: 4;
+  }
+}
+
+.player-shelf .player-queue__art {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.player-shelf .player-queue__title {
+  font-size: 13px;
+  font-weight: $weight-semibold;
+}
+
+.player-shelf .player-queue__artist {
+  color: var(--player-text-soft);
+  font-size: 11.5px;
+}
+
+.player-shelf .player-queue__time {
+  color: var(--player-text-soft);
+  font-size: 11.5px;
+  font-weight: $weight-bold;
+}
+
+.player-queue__remove {
+  @include player-round(26px, 11px);
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  border-radius: 7px;
+  opacity: 0.65;
+  translate: 0 -50%;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    opacity: 1;
+  }
+}
+
+// ======================================================= the playlists =====
+.player-lists {
+  display: grid;
+  flex: 1 1 auto;
+  align-content: start;
+  gap: 2px;
+  min-height: 0;
+  margin: 0;
+  padding: 0 0 10px;
+  overflow-y: auto;
+  list-style: none;
+  @include slim-scrollbar;
+}
+
+.player-lists__row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 6px;
+  border-radius: 9px;
+  transition: background 150ms ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--player-text) 5%, transparent);
+  }
+}
+
+.player-lists__art {
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: 6px;
+
+  .library-cover-art {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+}
+
+.player-lists__words {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.player-lists__name {
+  overflow: hidden;
+  color: var(--player-text);
+  font-size: 13px;
+  font-weight: $weight-semibold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-lists__count {
+  color: var(--player-text-soft);
+  font-size: 11.5px;
+}
+
+.player-lists__play {
+  @include shelf-key(26px);
+  color: var(--player-text);
+}

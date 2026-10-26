@@ -134,7 +134,8 @@ interface ILiveTraceCanvasProps {
   eqResponse?: IChartPointData[];
   /**
    * Whether a measuring view names its readings in a key: yes wherever it is
-   * the picture, no where it plays behind another drawing (`EqScreen`).
+   * the picture, no where something else stands in the key's place (the
+   * song over the amp's picture, `PlayerHero`).
    */
   hasKey?: boolean;
   /**

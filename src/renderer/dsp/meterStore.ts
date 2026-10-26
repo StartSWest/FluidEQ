@@ -218,6 +218,7 @@ export const useDspDenoiseMeterFlag = (
 export interface IDspNormalizerMeter {
   inputTruePeakDb?: number;
   inputLufs?: number;
+  outputLufs?: number;
   referenceLufs?: number;
   levelState?: number;
   inputPeaks: readonly [number, number];

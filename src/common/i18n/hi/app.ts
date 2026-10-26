@@ -316,7 +316,6 @@ const app: Partial<Dictionary> = {
   'sidebar.preampAuto':
     'यह अपने आप तय होता है। खुद बदलने के लिए “अपने आप सामान्य करें” बंद करें।',
   'sidebar.autoPreamp': 'अपने आप सामान्य करें',
-  'sidebar.visualizer': 'विज़ुअलाइज़र',
   'sidebar.graphView': 'रिस्पॉन्स ग्राफ़',
   'sidebar.output': 'आउटपुट',
   'config.eyebrow': 'इंजन असल में क्या पढ़ता है',

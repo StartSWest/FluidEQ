@@ -25,22 +25,41 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .remote-audio__header {
+  position: sticky;
+  z-index: 2;
+  top: 0;
   display: flex;
   min-width: 0;
   flex: 0 0 auto;
   align-items: flex-start;
+  gap: 16px;
+  background: $surface-panel;
 
   > div {
-    width: 100%;
+    flex: 1;
     min-width: 0;
+  }
+
+  > .button {
+    flex: 0 0 auto;
+    gap: 6px;
+
+    // A menu icon has no size of its own; drawn at 0x0 the plus vanished.
+    .menu-icon {
+      width: 15px;
+      height: 15px;
+      flex: 0 0 auto;
+    }
   }
 
   h2 {
     margin: 1px 0 4px;
     font-size: 1.42rem;
   }
+}
 
-  p:not(.eyebrow) {
+.remote-audio__intro {
+  > p {
     max-width: 920px;
     margin: 0;
     color: $text-muted;
@@ -80,25 +99,6 @@ it under the terms of the GNU General Public License version 3 or later.
     + li {
       border-left: 1px solid rgba($edge-tint, 0.12);
     }
-  }
-}
-
-.remote-audio__choice-title {
-  display: flex;
-  align-items: center;
-  margin: 2px 0 -2px;
-  gap: 10px;
-  color: $text-muted;
-  font-size: $text-small;
-  font-weight: $weight-bold;
-  @include tracking(0.12em);
-  text-transform: uppercase;
-
-  &::after {
-    height: 1px;
-    flex: 1 1 auto;
-    background: color-mix(in srgb, $secondary-light 22%, transparent);
-    content: '';
   }
 }
 

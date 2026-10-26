@@ -6,7 +6,7 @@ import Switch from '../widgets/Switch';
 import RemoteAudioLane from './RemoteAudioLane';
 import RemoteAudioPeerMenu from './RemoteAudioPeerMenu';
 import type { IRemoteAudioLink, IRemoteAudioValue } from './remoteAudioState';
-import { playsHere } from './linkRecords';
+import { linkControls, playsHere } from './linkRecords';
 
 export const audioLinkKey = (link: IRemoteAudioLink) =>
   link.computerId ? `id:${link.computerId}` : link.name;
@@ -66,7 +66,7 @@ const RemoteAudioGroup = ({
   };
   return (
     <section
-      className="remote-audio__link"
+      className="remote-audio__link remote-audio__group"
       aria-label={t('remoteAudio.group.title')}
     >
       <header className="remote-audio__link-head">
@@ -102,102 +102,108 @@ const RemoteAudioGroup = ({
           />
         </div>
       </article>
-      {audioGroupRows(remote).map(({ name, computerId, link }) => {
-        const paused = link?.switches.paused ?? false;
-        const canPlay = !!link && (remote.bothWays || !link.joined);
-        const canSend = !!link && (remote.bothWays || link.joined);
-        const live =
-          !!link &&
-          playsHere(link, remote.bothWays) &&
-          link.receiving &&
-          link.theirs?.sends !== false &&
-          !link.theirs?.paused;
-        let line = t('remoteAudio.group.offline');
-        if (link) {
-          if (paused) {
-            line = t('remoteAudio.lane.inPaused');
-          } else if (link.theirs?.paused) {
-            line = t('remoteAudio.lane.pausedThere', { name });
-          } else if (!canPlay) {
-            line = t('remoteAudio.lane.inOneWay');
-          } else if (!link.switches.play) {
-            line = t('remoteAudio.lane.inOff', { name });
-          } else if (link.joined && link.theirs === undefined) {
-            line = t('remoteAudio.lane.inOld', { name });
-          } else if (link.theirs?.sends === false) {
-            line = t('remoteAudio.lane.inNotSent', { name });
-          } else if (live) {
-            line = link.nowPlaying?.title ?? t('remoteAudio.lane.receiving');
-          } else {
-            line = t('remoteAudio.lane.inQuiet', { name });
+      <div
+        className="remote-audio__group-list remote-audio__peer-scroll"
+        role="group"
+        aria-label={t('remoteAudio.group.title')}
+      >
+        {audioGroupRows(remote).map(({ name, computerId, link }) => {
+          const paused = link?.switches.paused ?? false;
+          const canPlay = !!link && (remote.bothWays || !link.joined);
+          const controls = link && linkControls(link, remote.bothWays, sharing);
+          const live =
+            !!link &&
+            playsHere(link, remote.bothWays) &&
+            link.receiving &&
+            link.theirs?.sends !== false &&
+            !link.theirs?.paused;
+          let line = t('remoteAudio.group.offline');
+          if (link) {
+            if (paused) {
+              line = t('remoteAudio.lane.inPaused');
+            } else if (link.theirs?.paused) {
+              line = t('remoteAudio.lane.pausedThere', { name });
+            } else if (!canPlay) {
+              line = t('remoteAudio.lane.inOneWay');
+            } else if (link.joined && link.theirs === undefined) {
+              line = t('remoteAudio.lane.inOld', { name });
+            } else if (link.theirs?.sends === false) {
+              line = t('remoteAudio.lane.inNotSent', { name });
+            } else if (!link.switches.play) {
+              line = t('remoteAudio.lane.inOff', { name });
+            } else if (live) {
+              line = link.nowPlaying?.title ?? t('remoteAudio.lane.receiving');
+            } else {
+              line = t('remoteAudio.lane.inQuiet', { name });
+            }
           }
-        }
-        return (
-          <article
-            className="remote-audio__lane remote-audio__group-row"
-            key={computerId}
-            aria-label={name}
-          >
-            <div className="remote-audio__lanes remote-audio__group-lanes">
-              <RemoteAudioLane
-                direction="in"
-                kicker={
-                  link
-                    ? t('remoteAudio.lane.from', { name })
-                    : t('remoteAudio.group.offline')
-                }
-                title={name}
-                line={line}
-                lineDetail={live ? link?.nowPlaying?.subtitle : undefined}
-                live={live}
-                meterKey={link?.id ?? computerId}
-                subscribe={remote.subscribeMeter}
-                figures={[]}
-                switchId={`receive-${computerId}`}
-                switchLabel={t('remoteAudio.group.receive')}
-                isOn={canPlay && !!link?.switches.play}
-                isSwitchDisabled={!canPlay || paused}
-                onToggle={() => {
-                  if (link) {
-                    choose(link, { play: !link.switches.play });
+          return (
+            <article
+              className="remote-audio__lane remote-audio__group-row"
+              key={computerId}
+              aria-label={name}
+            >
+              <div className="remote-audio__lanes remote-audio__group-lanes">
+                <RemoteAudioLane
+                  direction="in"
+                  kicker={
+                    link
+                      ? t('remoteAudio.lane.from', { name })
+                      : t('remoteAudio.group.offline')
                   }
-                }}
-              />
-            </div>
-            <div className="remote-audio__link-actions remote-audio__group-actions">
-              <div className="remote-audio__lane-switch">
-                <span>{t('remoteAudio.group.send')}</span>
-                <Switch
-                  id={`send-${computerId}`}
-                  ariaLabel={t('remoteAudio.lane.to', { name })}
-                  isOn={canSend && !!link?.switches.send}
-                  isDisabled={!canSend || paused}
-                  handleToggle={() => {
-                    if (link) {
-                      choose(link, { send: !link.switches.send });
+                  title={name}
+                  line={line}
+                  lineDetail={live ? link?.nowPlaying?.subtitle : undefined}
+                  live={live}
+                  meterKey={link?.id ?? computerId}
+                  subscribe={remote.subscribeMeter}
+                  figures={[]}
+                  switchId={`receive-${computerId}`}
+                  switchLabel={t('remoteAudio.group.receive')}
+                  isOn={!!controls?.receive && !!link?.switches.play}
+                  isSwitchDisabled={!controls?.receive}
+                  onToggle={() => {
+                    if (link && controls?.receive) {
+                      choose(link, { play: !link.switches.play });
                     }
                   }}
                 />
               </div>
-              <RemoteAudioPeerMenu
-                name={name}
-                paused={paused}
-                canPause={!!link}
-                onPause={() => {
-                  if (link) {
-                    choose(link, { paused: !paused });
-                  }
-                }}
-                onUnlink={() => {
-                  remote
-                    .unlink(link ? { peerId: link.id } : { computerId })
-                    .catch(() => undefined);
-                }}
-              />
-            </div>
-          </article>
-        );
-      })}
+              <div className="remote-audio__link-actions remote-audio__group-actions">
+                <div className="remote-audio__lane-switch">
+                  <span>{t('remoteAudio.group.send')}</span>
+                  <Switch
+                    id={`send-${computerId}`}
+                    ariaLabel={t('remoteAudio.lane.to', { name })}
+                    isOn={!!controls?.send && !!link?.switches.send}
+                    isDisabled={!controls?.send}
+                    handleToggle={() => {
+                      if (link && controls?.send) {
+                        choose(link, { send: !link.switches.send });
+                      }
+                    }}
+                  />
+                </div>
+                <RemoteAudioPeerMenu
+                  name={name}
+                  paused={paused}
+                  canPause={!!link}
+                  onPause={() => {
+                    if (link) {
+                      choose(link, { paused: !paused });
+                    }
+                  }}
+                  onUnlink={() => {
+                    remote
+                      .unlink(link ? { peerId: link.id } : { computerId })
+                      .catch(() => undefined);
+                  }}
+                />
+              </div>
+            </article>
+          );
+        })}
+      </div>
     </section>
   );
 };

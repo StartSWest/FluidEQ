@@ -172,6 +172,9 @@ const library = {
   'library.karaoke.sending': 'Sending to Karaoke…',
   'library.karaoke.failed':
     'This file could not be sent to Karaoke — it may be too large or unreadable.',
+  'library.drop.empty': 'No music in what you dropped',
+  'library.drop.already': 'Everything you dropped is already in Up next',
+  'library.drop.failed': 'The music you dropped could not be added',
 } as const;
 
 export default library;

@@ -5,14 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useCallback, useId, useRef, useState } from 'react';
-import BrandMark from '../icons/BrandMark';
 import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
 import MenuPreferenceIcon from '../components/MenuPreferenceIcon';
+import SignalBrandMark from '../components/SignalBrandMark';
 import SliderHandlePicker from '../components/SliderHandlePicker';
-import BackdropVeilSlider from '../graph/BackdropVeilSlider';
+import DaylightSourceChoice from '../graph/DaylightSourceChoice';
+import LookColourSlider from '../graph/LookColourSlider';
 import RainbowSwitch from '../graph/RainbowSwitch';
+import SceneDaylightSlider from '../graph/SceneDaylightSlider';
 import WindowBrightnessSlider from '../graph/WindowBrightnessSlider';
 import { useTranslation } from '../utils/I18nContext';
+import useIsSceneLook from '../utils/useIsSceneLook';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import Switch from '../widgets/Switch';
 import PlayerIcon from './PlayerIcon';
@@ -99,6 +102,7 @@ interface IPlayerMarkMenuProps {
  */
 const PlayerMarkMenu = ({ onFold, onOpenPage }: IPlayerMarkMenuProps) => {
   const { t } = useTranslation();
+  const isSceneLook = useIsSceneLook();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const holder = useRef<HTMLDivElement>(null);
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
@@ -119,7 +123,7 @@ const PlayerMarkMenu = ({ onFold, onOpenPage }: IPlayerMarkMenuProps) => {
         aria-expanded={isMenuOpen}
         onClick={() => setIsMenuOpen((open) => !open)}
       >
-        <BrandMark />
+        <SignalBrandMark />
         <PlayerIcon name="caret" className="player-icon player-icon--caret" />
       </button>
       <AnchoredMenu
@@ -171,7 +175,17 @@ const PlayerMarkMenu = ({ onFold, onOpenPage }: IPlayerMarkMenuProps) => {
         <div className="actions-menu__prefs">
           <div className="actions-menu__sliders">
             <WindowBrightnessSlider />
-            <BackdropVeilSlider />
+            <LookColourSlider />
+            {/* A Plus visualizer's own time of day and what it follows, as
+                in the full app's window-colours menu (Ivan, 2026-10-25: "we
+                also need a separate scene brightness slider for plus viz",
+                "and the follow day and all that same as in the full app"). */}
+            {isSceneLook && (
+              <>
+                <SceneDaylightSlider />
+                <DaylightSourceChoice />
+              </>
+            )}
             <RainbowSwitch />
           </div>
           <SliderHandlePicker />

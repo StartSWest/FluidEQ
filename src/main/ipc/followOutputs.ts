@@ -11,6 +11,10 @@ import { ErrorCode } from '../../common/errors';
 import type { TSuccess } from '../../renderer/utils/ipcRequest';
 import { checkConfigFile, save, updateConfig } from '../flush';
 import { getStateForAudioDevice } from '../deviceProfiles';
+import {
+  followOutputNames,
+  saveDeviceProfileSettings,
+} from '../deviceProfileSettings';
 import { flushDeviceProfiles } from '../deviceProfileFlush';
 import { getConfigPath } from '../registry';
 import mainText from '../mainText';
@@ -67,6 +71,47 @@ export const createOutputFollower = ({
   guardAgainstApo,
   onPlaybackOutputChanged,
 }: TOutputFollowerDeps) => {
+  /**
+   * Every attached output's config, written again from its profile.
+   *
+   * Written once, and its own failure is the answer. It used to be tried
+   * five times, half a second to a second apart, against two config writes
+   * landing at once. Neither is left for a wait to fix: every config write
+   * goes through the coalescing writer, one snapshot in flight per folder
+   * (`asyncWriter`), so two of ours cannot collide, and a reader holding the
+   * file — the engine's watcher, Equalizer APO — gets the contents written in
+   * place. What still fails is a folder gone, full or not ours, which no
+   * wait changes; the next change writes again. The retries also hid the
+   * real error behind "failed after 5 retries".
+   */
+  const flushOutputs = async () => {
+    try {
+      if (!session.configPath) {
+        session.configPath = await getConfigPath(session.audioEngine ?? 'apo');
+      }
+      if (!checkConfigFile(session.configPath)) {
+        await updateConfig(session.configPath);
+      }
+      await flushDeviceProfiles(
+        deviceProfileSettings,
+        presetDirForDevice,
+        session.configPath,
+        undefined,
+        state.isEnabled,
+        undefined,
+        session.audioDevices ?? session.secondOutputDevices,
+        {
+          writeDsp: session.audioEngine === 'fluid',
+          dspOverrides: session.outputDspOverrides,
+          stateOverrides: session.outputStateOverrides,
+          systemRackEnabled: session.systemRackEnabled,
+        },
+      );
+    } catch (error) {
+      log.error('Failed to flush the profile for the active output', error);
+    }
+  };
+
   return async (
     devices: IAudioDevice[],
     sink: IReplySink,
@@ -75,6 +120,15 @@ export const createOutputFollower = ({
     const previousMain = session.playbackAudioDevice?.id;
     session.audioDevices = devices;
     session.playbackAudioDevice = devices.find((device) => device.isDefault);
+    // Before anything is written from them: a saved name that is not what
+    // Windows calls the output now is put right (`followOutputNames`).
+    const renamed = followOutputNames(deviceProfileSettings, devices);
+    if (renamed) {
+      saveDeviceProfileSettings(deviceProfileSettings, userDataDir).catch(
+        (error) => log.error('Failed to save the outputs’ new names', error),
+      );
+    }
+    let flushed = false;
     const editing = devices.find(
       (device) => device.id === session.editingAudioDeviceId && device.isActive,
     );
@@ -122,48 +176,19 @@ export const createOutputFollower = ({
       // A Windows output change must immediately replace the APO rules. This
       // prevents the previous device's profile from remaining active until a
       // later EQ edit is made in FluidEQ.
-      try {
-        if (!session.configPath) {
-          session.configPath = await getConfigPath(
-            session.audioEngine ?? 'apo',
-          );
-        }
-        if (!checkConfigFile(session.configPath)) {
-          await updateConfig(session.configPath);
-        }
-        // Written once, and its own failure is the answer. It used to be
-        // tried five times, half a second to a second apart, against two
-        // config writes landing at once. Neither is left for a wait to fix:
-        // every config write goes through the coalescing writer, one snapshot
-        // in flight per folder (`asyncWriter`), so two of ours cannot collide,
-        // and a reader holding the file — the engine's watcher, Equalizer APO
-        // — gets the contents written in place. What still fails is a folder
-        // gone, full or not ours, which no wait changes; the next change
-        // writes again. The retries also hid the real error behind "failed
-        // after 5 retries".
-        await flushDeviceProfiles(
-          deviceProfileSettings,
-          presetDirForDevice,
-          session.configPath,
-          undefined,
-          state.isEnabled,
-          undefined,
-          session.audioDevices ?? session.secondOutputDevices,
-          {
-            writeDsp: session.audioEngine === 'fluid',
-            dspOverrides: session.outputDspOverrides,
-            stateOverrides: session.outputStateOverrides,
-            systemRackEnabled: session.systemRackEnabled,
-          },
-        );
-      } catch (error) {
-        log.error('Failed to flush the profile for the active output', error);
-      }
+      await flushOutputs();
+      flushed = true;
 
-      // Last, and outside the try: the config write can fail without making the
-      // swap any less real, and the panels must never be left describing the
-      // output the user just moved away from.
+      // Last, and outside the flush: the config write can fail without
+      // making the swap any less real, and the panels must never be left
+      // describing the output the user just moved away from.
       notifyOutputStateChanged();
+    }
+    // A name put right with no switch to carry it is written now, once: the
+    // config files name their output in a comment, and only a flush writes
+    // them. A reading that changes no name writes nothing.
+    if (renamed && !flushed) {
+      await flushOutputs();
     }
     const main = session.playbackAudioDevice;
     if (main && previousMain !== main.id) {

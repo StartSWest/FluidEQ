@@ -102,25 +102,30 @@ export interface ILibraryPlayerContextValue {
   closeVideo: () => void;
   toggle: () => void;
   /**
-   * Re-aims what plays next at a new list, without touching what is playing.
+   * Puts the list a song was pressed in under that song, without touching
+   * what is playing — the half of a press that arrives once the store has
+   * said where the song stands in its list.
    *
-   * The queue used to be whatever was on screen when Play was pressed, and it
-   * stayed that list however the reader browsed afterwards. That reads as
-   * stale rather than as stable: the same files group differently on every
-   * shelf — an album is what the tags say, a folder is what the disk says,
-   * and neither is what the Songs list shows — so the honest answer to "what
-   * is next" is whatever is being looked at.
+   * Only a press re-aims the queue. It used to follow whatever list was on
+   * screen, at every change of song and of view, so browsing the Library —
+   * or the Library hidden behind the amp — replaced a playlist being played
+   * with whatever shelf was open (Ivan, 2026-10-25). Browsing is looking;
+   * what plays next is what was played.
    *
    * The current track keeps playing and keeps its place in the new list. If
-   * it is not in that list at all — a search that excludes it, a shelf it
-   * does not appear on — the queue is left exactly as it was, because the
-   * alternative is stranding somebody mid-song with nothing after it.
+   * it is not in that list at all the queue is left exactly as it was.
    *
    * `listKey` names the list, so the one the queue is already aimed at is
    * known when it is asked for again: that only tops the queue up, keeping
    * the order the listener made (`extendQueue`).
    */
   retargetQueue: (trackIds: readonly string[], listKey: string) => void;
+  /**
+   * Tops the queue up from the list it plays — `listKey` naming it as
+   * `retargetQueue`'s does — and leaves it alone for any other list. What a
+   * change of song asks, so a long list refills the queue as it is played.
+   */
+  topUpQueue: (trackIds: readonly string[], listKey: string) => void;
   /**
    * WHAT THE LISTENER PUT THERE, AND NOTHING ELSE.
    *
@@ -165,9 +170,10 @@ export interface ILibraryPlayerContextValue {
    * With nothing playing it starts the list instead, because "add to up next"
    * on an empty player means the same thing as pressing play and there is no
    * sense in a queue nobody is listening to. Tracks already queued are left
-   * where they are rather than duplicated.
+   * where they are rather than duplicated. Answers how many joined, so a
+   * drop that added nothing can say so.
    */
-  appendToQueue: (trackIds: readonly string[]) => void;
+  appendToQueue: (trackIds: readonly string[]) => number;
   /** Takes one entry back out of what is queued ahead, by its place in the
    * run — the same song can be in the list more than once. */
   removeUpNextAt: (position: number) => void;

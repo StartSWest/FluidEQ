@@ -151,10 +151,12 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.cover':
     '包含“氛围”的一切，并把可视化效果铺在整个窗口背后。',
   'graph.editHint': '拖动点 · Ctrl/Shift 选择 · Ctrl+滚轮：Q · Ctrl+拖动：钟形',
+  'graph.windowTint': '色调',
+  'graph.windowTintHint': '使用标准外观时窗口的颜色。双击恢复原来的颜色。',
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': '透过面板能看到多少可视化效果',
   'graph.sceneTint.brightness': '亮度',
-  'graph.sceneTint.rainbow': '彩虹模式',
+  'graph.sceneTint.rainbow': '多彩模式',
   'graph.sceneTint.rainbowHint':
     '频段、标题和亮起的控件使用调色板而不是单一颜色；选择场景时使用它自己的颜色。',
   'graph.sceneTint.sparks': '指针火花',
@@ -163,15 +165,17 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.daylight': '时段',
   'graph.sceneTint.daylightHint': '可视化效果的时段，从夜晚到正午',
   'graph.sceneTint.daylightFollowingHint':
-    '跟随亮度。关闭“时段跟随亮度”即可单独设置可视化效果的时段',
-  'graph.sceneTint.daylightFollows': '时段跟随亮度',
-  'graph.sceneTint.daylightFollowsHint':
-    '开启时，可视化效果随亮度从夜晚变为白天。关闭时，它保持上方设置的时段，亮度只改变窗口。',
-  'graph.sceneTint.daylightClock': '时段跟随时钟',
+    '正在跟随亮度。在下方选择“无”即可在这里设置可视化效果的时间',
+  'graph.sceneTint.daylightSource': '跟随',
+  'graph.sceneTint.daylightSourceOwn': '无',
+  'graph.sceneTint.daylightSourceBrightness': '亮度',
+  'graph.sceneTint.daylightSourceClock': '时钟',
+  'graph.sceneTint.daylightOwnHint': '可视化效果保持上方设置的日光。',
+  'graph.sceneTint.daylightFollowsHint': '可视化效果随亮度从夜晚变为白天。',
   'graph.sceneTint.daylightClockHint':
-    '开启时，可视化效果按这台电脑的时钟，夜里是夜晚，白天是白天。关闭时，它保持上方设置的时段。',
+    '可视化效果按这台电脑的时钟，夜里是夜晚，白天是白天。',
   'graph.sceneTint.daylightFollowingClockHint':
-    '跟随时钟。关闭“时段跟随时钟”即可单独设置可视化效果的时段',
+    '正在跟随时钟。在下方选择“无”即可在这里设置可视化效果的时间',
   'graph.sceneTint.daylightStudioHint':
     '工作室打开时，可视化效果的时段由亮度决定，便于从夜晚到白天检验场景。离开工作室后，此处的选择恢复生效',
   'graph.sceneTint.brightnessHint': '窗口在主题或可视化效果颜色下的明暗',
@@ -594,7 +598,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.balance.note': '持续测量 · 同时统一明亮与温暖',
   'eq.smart.mode.target': '目标',
   'eq.smart.mode.target.note': '持续测量 · 让每张唱片贴合同一条曲线',
-  'eq.layers': '同时生效',
   'eq.layers.aria': '还有什么在影响这个输出',
   'eq.layers.eq': '均衡器',
   'eq.layers.eq.bands': '{count} 个频段',
@@ -736,7 +739,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': '只用你自己的频段，不叠加任何东西',
   'voicing.strength': '强度',
   'waveform.style': '更换指示器样式',
-  'waveform.rainbow': '彩虹',
+  'waveform.rainbow': '多彩',
   'waveform.live': '实时输出',
   'waveform.signal': '音频信号',
   'waveform.clip': '削波',

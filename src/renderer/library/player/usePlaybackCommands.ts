@@ -37,6 +37,7 @@ import {
   releasePlayback,
 } from '../../audio/playbackOwner';
 import type { TSetPlaybackHandoff } from '../../audio/playbackHandoff';
+import { uniqueTrackIds } from './upNextRules';
 
 export interface IPlaybackCommands {
   /** Pause and rewind the loaded item without discarding its queue. */
@@ -119,8 +120,11 @@ export const usePlaybackCommands = (options: {
       // keeps a list; this is the half that starts one.
       setAddedIds((current) => (current.size === 0 ? current : new Set()));
       setQueue((current) => {
+        // Each song once: a playlist can name a song twice, and Up Next
+        // holds no song twice (Ivan, 2026-10-25: "make sure it doesn't
+        // duplicate").
         const next = buildQueue(
-          [...trackIds],
+          uniqueTrackIds(trackIds),
           startTrackId,
           current?.isShuffled ?? false,
         );

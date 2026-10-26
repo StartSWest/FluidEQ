@@ -166,13 +166,16 @@ const eq = {
     'Drag points · Ctrl/Shift select · Ctrl+scroll: Q · Ctrl+drag: bell',
   // The window-colours menu's sliders. The Backdrop's: how much of the scene
   // shows through the panes.
+  'graph.windowTint': 'Tint',
+  'graph.windowTintHint':
+    "The window's colour while a standard look is on. Double-click for the original colour.",
   'graph.backdropVeil': 'Transparency',
   'graph.backdropVeilHint':
     'How much of the visualizer shows through the panels',
   // The window-colours menu's Brightness: the theme's own slider, which also
   // sets how light a visualizer's colours stand.
   'graph.sceneTint.brightness': 'Brightness',
-  'graph.sceneTint.rainbow': 'Rainbow mode',
+  'graph.sceneTint.rainbow': 'Colourful mode',
   'graph.sceneTint.rainbowHint':
     'The bands, the title and the lit controls in a palette instead of one colour — a scene’s own colours while one is chosen.',
   'graph.sceneTint.sparks': 'Pointer sparks',
@@ -182,15 +185,19 @@ const eq = {
   'graph.sceneTint.daylightHint':
     "The visualizer's time of day, from night to full day",
   'graph.sceneTint.daylightFollowingHint':
-    "Following Brightness. Turn off Daylight follows Brightness to set the visualizer's time of day on its own",
-  'graph.sceneTint.daylightFollows': 'Daylight follows Brightness',
+    "Following Brightness. Choose Off below to set the visualizer's time of day here",
+  'graph.sceneTint.daylightSource': 'Follows',
+  'graph.sceneTint.daylightSourceOwn': 'Off',
+  'graph.sceneTint.daylightSourceBrightness': 'Brightness',
+  'graph.sceneTint.daylightSourceClock': 'Clock',
+  'graph.sceneTint.daylightOwnHint':
+    'The visualizer keeps the Daylight set above.',
   'graph.sceneTint.daylightFollowsHint':
-    'On, the visualizer turns from night to day with Brightness. Off, it keeps the Daylight set above, and Brightness changes only the window.',
-  'graph.sceneTint.daylightClock': 'Daylight follows the clock',
+    'The visualizer turns from night to day with Brightness.',
   'graph.sceneTint.daylightClockHint':
-    "On, the visualizer is night at night and day by day, by this computer's clock. Off, it keeps the Daylight set above.",
+    "The visualizer is night at night and day by day, by this computer's clock.",
   'graph.sceneTint.daylightFollowingClockHint':
-    "Following the clock. Turn off Daylight follows the clock to set the visualizer's time of day on its own",
+    "Following the clock. Choose Off below to set the visualizer's time of day here",
   'graph.sceneTint.daylightStudioHint':
     "While the Studio is open, Brightness sets the visualizer's time of day, so a scene can be tried from night to day. This choice comes back when you leave the Studio",
   'graph.sceneTint.brightnessHint':
@@ -640,7 +647,6 @@ const eq = {
   'eq.smart.mode.target': 'Target',
   'eq.smart.mode.target.note':
     'Keeps measuring · every record to the same curve',
-  'eq.layers': 'Also applied',
   'eq.layers.aria': 'Also shaping this output',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} bands',
@@ -794,7 +800,7 @@ const eq = {
   'voicing.none.hint': 'Your EQ bands only, nothing layered on top',
   'voicing.strength': 'Strength',
   'waveform.style': 'Change the meter style',
-  'waveform.rainbow': 'Rainbow',
+  'waveform.rainbow': 'Colourful',
   'waveform.live': 'LIVE OUTPUT',
   'waveform.signal': 'AUDIO SIGNAL',
   'waveform.clip': 'CLIP',

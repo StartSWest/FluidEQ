@@ -7,24 +7,33 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'sass:meta';
 @use 'glass';
 
-// The Library's floating scan card belongs in the queue's flow in either
-// amp, leaving the rows and their scrollbar reachable while a folder loads.
+// THE LIBRARY'S SCAN CARD FLOATS OVER THE QUEUE'S FOOT (Ivan, 2026-10-25:
+// "it needs to be floating, it cannot push the content down of the list or
+// the ui"): in the queue's flow it pushed every row down by its own height
+// the moment a scan began, and back up when it ended. Over the list it moves
+// nothing, and the rows above it stay where the eye left them.
 .player-queue > .library-scan-progress {
-  position: relative;
-  inset: auto;
-  flex: none;
+  position: absolute;
+  z-index: 4;
+  inset: auto 6px 8px;
   width: auto;
+  // Solid: the rows go on under it, and through the Library card's 4% of
+  // glass a row's title stood as a ghost behind the card's own words — the
+  // drop's notice (`QueueDropNotice`) as much as the scan.
+  background: var(--surface-menu-top);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
 }
 
-// The two amps' stylesheets: the Stage's (`_ampStage.scss`) and the 2.0
-// amp's (`ampClassic/`), one window, one of them at a time (`MiniPlayer`).
-//
-// EACH ONE SCOPED TO ITS OWN AMP. The two were written with the same class
-// names for the same parts — a title strip, a row of equalizer keys, a queue
-// — and loaded together they painted each other: the 2.0 amp's deck face
-// under the Stage's glass, the Stage's pills on the 2.0 amp's keys. The
-// document's root says which amp is on screen (`data-amp`), and each sheet
-// applies under its own word alone. Inside a scope `:root` is read as a
+// A drop's notice is a line of words beside its button, not the scan's two
+// lines over a bar, so the two stand on one centre.
+.player-queue > .player-queue__notice {
+  align-items: center;
+}
+
+// The amp's stylesheet (`_ampStage.scss`), scoped to the amp: it names its
+// parts as the app names its own — a title strip, a row of equalizer keys —
+// and applies only while the document's root says the amp is up
+// (`data-amp`, `MiniPlayer`). Inside a scope `:root` is read as a
 // descendant of the scope's root and matches nothing, so the rules written
 // for the page's root say `:scope` instead.
 //
@@ -89,16 +98,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
   );
 }
 
-// EVERY MENU OPENED IN THE AMP IS A PANE OF THE GLASS, in both amps (Ivan,
-// 2026-09-28: "menu need blur also … all menus there"): the frosted fill,
-// the blur behind it, the bevel and no edge — the treatment the app's menus
-// take over the Backdrop (`App.scss`, read by `menu-face` and by the menus
-// built without it in `Rainbow.scss`). The app's rule is keyed on its own
-// Backdrop being drawn, which it never is while the window is the amp, so
-// the amp's menus came out with no blur at all.
+// EVERY MENU OPENED IN THE AMP IS A PANE OF THE GLASS (Ivan, 2026-09-28:
+// "menu need blur also … all menus there"): the frosted fill, the blur
+// behind it and the bevel — the treatment the app's menus take over the
+// Backdrop (`App.scss`, read by `menu-face` and by the menus built without it
+// in `Rainbow.scss`). The app's rule is keyed on its own Backdrop being
+// drawn, which it never is while the window is the amp, so the amp's menus
+// came out with no blur at all. Edged in the amp's own divider colour
+// (`--player-rule`), so a menu stands off the panes it opens over (Ivan,
+// 2026-10-25: "same border colour to the menu as the divider so it's more
+// visible"); with no edge it dissolved into them.
 :root[data-amp] {
   --surface-menu-floor: #{glass.$glass-fill};
-  --menu-edge: transparent;
+  --menu-edge: var(--player-rule);
   --menu-lift: #{glass.$glass-bevel};
   --menu-glass: #{glass.$glass-blur};
 }
@@ -106,7 +118,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // THE AMP'S EDGE IS WINDOWS' OWN (Ivan, 2026-09-28: "why does the amp's
 // border suck? We need normal ones"). The full app lights a hairline just
 // inside the window's clip (`body::after` in `App.scss`), a rim for a dark
-// floor; over the Stage's picture, as bright as a scene is at the window's
+// floor; over the amp's picture, as bright as a scene is at the window's
 // top, it read as a second, lighter frame inside Windows' own, rounded apart
 // from it at the corners. The amp's picture and decks run to the edge and
 // Windows' border marks where it stops, as it does for every other window.
@@ -114,10 +126,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   display: none;
 }
 
-@scope (:root[data-amp='stage']) {
+@scope (:root[data-amp]) {
   @include meta.load-css('ampStage');
-}
-
-@scope (:root[data-amp='classic']) {
-  @include meta.load-css('ampClassic/index');
 }

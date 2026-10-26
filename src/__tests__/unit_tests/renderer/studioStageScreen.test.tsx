@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { PLAYER_DEFAULT_HEIGHT, PLAYER_DEFAULT_WIDTH } from 'common/constants';
+import { PLAYER_PICTURE_HEIGHT, PLAYER_WIDTH } from 'common/constants';
 import StudioStageControls from 'renderer/studio/StudioStageControls';
 import {
   PLATE_GAP,
@@ -21,11 +21,12 @@ jest.mock('renderer/utils/I18nContext', () => ({
 /**
  * The Studio's stage can show a scene behind the compact player (Ivan,
  * 2026-09-28: "this app is not for mobile show the amp player instead"): a
- * window the shape the player opens at, as tall as the stage allows, and
- * clear of the plate in the stage's corner.
+ * window the shape of the amp's picture, where the one amp draws a scene
+ * (`PlayerStage`), as tall as the stage allows, and clear of the plate in
+ * the stage's corner.
  */
 describe('the scene behind the compact player, on the Studio’s stage', () => {
-  const shape = PLAYER_DEFAULT_WIDTH / PLAYER_DEFAULT_HEIGHT;
+  const shape = PLAYER_WIDTH / PLAYER_PICTURE_HEIGHT;
 
   it('is the whole stage until it is asked for', () => {
     expect(stageScreen({ width: 1280, height: 720 }, false, 900)).toEqual({
@@ -43,14 +44,15 @@ describe('the scene behind the compact player, on the Studio’s stage', () => {
   });
 
   it('moves left of the plate where the plate would stand over it', () => {
-    const box = { width: 700, height: 720 };
+    // A stage wider than the picture, so there is room beside it to move to.
+    const box = { width: 1280, height: 400 };
     const centred = stageScreen(box, true, undefined);
-    const plateLeft = 500;
+    const plateLeft = 800;
     const clear = stageScreen(box, true, plateLeft);
     expect(clear.left).toBeLessThan(centred.left ?? 0);
     expect((clear.left ?? 0) + clear.width).toBe(plateLeft - PLATE_GAP);
     // A plate far to the right leaves it in the middle.
-    expect(stageScreen(box, true, 690).left).toBe(centred.left);
+    expect(stageScreen(box, true, 1270).left).toBe(centred.left);
   });
 
   it('never leaves the stage for a plate it cannot clear', () => {

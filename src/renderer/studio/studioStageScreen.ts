@@ -4,14 +4,14 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { PLAYER_DEFAULT_HEIGHT, PLAYER_DEFAULT_WIDTH } from 'common/constants';
+import { PLAYER_PICTURE_HEIGHT, PLAYER_WIDTH } from 'common/constants';
 
 /**
- * The compact player's window as it first opens, 480 by 1080: the Stage amp
- * draws the scene as that whole window's background (`PlayerStage`), so
- * this is the shape a scene is most often seen at narrower than the graph.
+ * The amp's picture, 480 by 309: the one amp draws a scene behind its top
+ * panel and its transport (`PlayerStage`), so this is the shape a scene is
+ * most often seen at narrower than the graph.
  */
-const PLAYER_SHAPE = PLAYER_DEFAULT_WIDTH / PLAYER_DEFAULT_HEIGHT;
+const PLAYER_SHAPE = PLAYER_WIDTH / PLAYER_PICTURE_HEIGHT;
 /** Room round the player's window, for its edge and shadow. */
 export const PLAYER_INSET = 16;
 /** Between the player's window and the plate it stands clear of. */

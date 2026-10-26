@@ -6,17 +6,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useMemo } from 'react';
 import type { ScaleLinear, ScaleLogarithmic } from 'd3';
-import Axis from '../graph/Axis';
-import { frequencyTickFormat } from '../graph/ChartController';
 import GridLine from '../graph/GridLine';
 import {
   FREQUENCY_MAJOR_TICKS,
   FREQUENCY_MINOR_TICKS,
   MINOR_RULE_INK,
-  frequencyLabelTicksFor,
   liveLevelTicksFor,
 } from '../graph/graphPaper';
-import { graphLevelTickFormat } from '../graph/liveGraphBand';
 import type { IPlayerPaper } from './paperRules';
 
 interface IPlayerPaperProps {
@@ -29,13 +25,12 @@ interface IPlayerPaperProps {
 }
 
 /**
- * The main graph's grid under a measuring view in the player: the same rules,
- * the same labels and the same ink, drawn by the same components, so a reading
- * in the player is read against exactly what it is read against in the app.
+ * The main graph's rules under a measuring view in the amp's top panel: the
+ * same rules in the same ink, drawn by the same component, and faint
+ * (`_miniPlayerHero.scss`) — the rules without their numbers (`paperRules`).
  *
- * Unanimated, unlike the main graph's: the deck changes size whenever its
- * divider is dragged, and a scale easing into place behind a drag reads as
- * the paper lagging the picture.
+ * Unanimated, unlike the main graph's: a scale easing into place behind a
+ * change of size reads as the paper lagging the picture.
  */
 const PlayerPaper = ({
   width,
@@ -44,18 +39,17 @@ const PlayerPaper = ({
   frequency,
   level,
 }: IPlayerPaperProps) => {
-  const { left, top, right, bottom } = paper.padding;
-  const plotRight = width - right;
-  const plotBottom = height - bottom;
-  const frequencyLabels = useMemo(
-    () => frequencyLabelTicksFor(frequency),
-    [frequency],
+  // Every level rule but the one along the panel's top edge, which read as a
+  // line ruled across the panel under the keys (Ivan, 2026-10-25: "don't
+  // show a top line on the graph").
+  const levelTicks = useMemo(
+    () => liveLevelTicksFor(level).filter((tick) => level(tick) > 1),
+    [level],
   );
-  const levelTicks = useMemo(() => liveLevelTicksFor(level), [level]);
 
   return (
     <svg
-      className="player-gap__paper"
+      className="player-hero__paper"
       width={width}
       height={height}
       aria-hidden
@@ -66,50 +60,33 @@ const PlayerPaper = ({
             type="vertical"
             scale={frequency}
             tickValues={FREQUENCY_MAJOR_TICKS}
-            size={plotBottom - top}
-            transform={`translate(0, ${plotBottom})`}
+            size={height}
+            transform={`translate(0, ${height})`}
             disableAnimation
           />
-          {/* Inset top and bottom as the main graph's are: the decades run
-              the full height, what lies between them stops short. */}
+          {/* The decades run the whole height, fading out at the top
+              (`_miniPlayerHero.scss`); what lies between them stops short at
+              the foot, as on the main graph. */}
           <GridLine
             type="vertical"
             scale={frequency}
             tickValues={FREQUENCY_MINOR_TICKS}
-            size={Math.max(0, plotBottom - top - 20)}
-            transform={`translate(0, ${plotBottom - 10})`}
+            size={Math.max(0, height - 10)}
+            transform={`translate(0, ${height - 10})`}
             color={MINOR_RULE_INK}
-            disableAnimation
-          />
-          <Axis
-            type="bottom"
-            scale={frequency}
-            transform={`translate(0, ${plotBottom})`}
-            tickValues={frequencyLabels}
-            tickFormat={frequencyTickFormat}
             disableAnimation
           />
         </>
       )}
       {paper.level && (
-        <>
-          <GridLine
-            type="horizontal"
-            scale={level}
-            tickValues={levelTicks}
-            size={plotRight - left}
-            transform={`translate(${left}, 0)`}
-            disableAnimation
-          />
-          <Axis
-            type="right"
-            scale={level}
-            transform={`translate(${plotRight}, 0)`}
-            tickValues={levelTicks}
-            tickFormat={graphLevelTickFormat}
-            disableAnimation
-          />
-        </>
+        <GridLine
+          type="horizontal"
+          scale={level}
+          tickValues={levelTicks}
+          size={width}
+          transform="translate(0, 0)"
+          disableAnimation
+        />
       )}
     </svg>
   );

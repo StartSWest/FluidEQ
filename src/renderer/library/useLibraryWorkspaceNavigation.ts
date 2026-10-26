@@ -50,6 +50,8 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
     playlists,
     playTracks,
     retargetQueue,
+    topUpQueue,
+    queueSource,
     upNext,
     playingTrack,
     isPlaying,
@@ -575,10 +577,12 @@ const useLibraryWorkspaceNavigation = (shelf: TLibraryWorkspaceShelf) => {
       recordQuery: recordQueueQuery,
       shelfQuery: shelfTracksQuery,
       playingTrackId: playingTrack?.id,
+      queueSource,
       upNextIds,
       isScanning,
       playTracks,
       retargetQueue,
+      topUpQueue,
     });
 
   /**

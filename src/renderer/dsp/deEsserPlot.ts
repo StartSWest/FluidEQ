@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { TDeEsserMode } from '../../common/dsp/deEsser';
+import { sampleCutCurve } from './deEsserCurve';
 
 /**
  * The De-esser's two pictures, drawn onto one canvas: what it did over the
@@ -239,71 +240,6 @@ const xOf = (box: IPlotBox, hz: number) =>
 /** A range edge in kilohertz, as its dial reads it. */
 const formatEdge = (hz: number) => `${(hz / 1000).toFixed(1)}k`;
 
-/** A complex number, as the analog prototypes below need. */
-type TComplex = readonly [number, number];
-
-const divide = ([a, b]: TComplex, [c, d]: TComplex): TComplex => {
-  const scale = c * c + d * d;
-  return [(a * c + b * d) / scale, (b * c - a * d) / scale];
-};
-
-/** The Q whose -3 dB points are `octaves` apart (`quality_for`). */
-const qualityFor = (octaves: number) => {
-  const half = 2 ** (octaves / 2);
-  return 1 / (half - 1 / half);
-};
-
-/**
- * The cut at one frequency, dB, as the engine makes it in each mode: the
- * parallel form `x + (g - 1) * part(x)` from `deesser_process.cpp`, on the
- * analog prototypes of its filters. Spectral sums every band's band-pass at
- * its own gain; Treble takes the part over a Butterworth split at 0.9 of the
- * range's bottom (`kSplitBelow`), whose small rise at the corner is drawn
- * too; Whole voice scales everything. The gains are the engine's own
- * (`band_cut_db`); only the curve between them is computed here.
- */
-export const cutAt = (
-  hz: number,
-  treble: ITrebleNow,
-  mode: TDeEsserMode,
-  lowHz: number,
-): number => {
-  const { hz: centres, cutDb } = treble;
-  if (centres.length === 0) {
-    return 0;
-  }
-  const deepest = Math.min(0, ...cutDb);
-  if (mode === 'whole') {
-    return deepest;
-  }
-  let real = 1;
-  let imaginary = 0;
-  if (mode === 'treble') {
-    const w = hz / (lowHz * 0.9);
-    const over = divide([-w * w, Math.SQRT2 * w], [1 - w * w, Math.SQRT2 * w]);
-    const gain = 10 ** (deepest / 20) - 1;
-    real += gain * over[0];
-    imaginary += gain * over[1];
-  } else {
-    // The bands' width, as `build_layout` lays them: the step between
-    // centres, never under a sixth of an octave.
-    const step =
-      centres.length > 1
-        ? Math.log2((centres[centres.length - 1] ?? 1) / (centres[0] ?? 1)) /
-          (centres.length - 1)
-        : 1 / 3;
-    const quality = qualityFor(Math.max(step, 1 / 6));
-    centres.forEach((centre, band) => {
-      const w = hz / centre;
-      const pass = divide([0, w / quality], [1 - w * w, w / quality]);
-      const gain = 10 ** ((cutDb[band] ?? 0) / 20) - 1;
-      real += gain * pass[0];
-      imaginary += gain * pass[1];
-    });
-  }
-  return 10 * Math.log10(Math.max(1e-12, real * real + imaginary * imaginary));
-};
-
 /**
  * The treble now, 2 to 20 kHz: the range it listens to, each band's level
  * against where the stage starts on it, and the cut hanging from the top.
@@ -332,6 +268,19 @@ export const drawTreble = (
   const { x, y, width, height } = box;
   const plotBottom = y + height - 16;
   const cutHeight = (height - 16) * 0.3;
+  const steps = Math.max(24, Math.round(width / 4));
+  const curve = sampleCutCurve(
+    treble,
+    mode,
+    lowHz,
+    TREBLE_LOW_HZ,
+    TREBLE_HIGH_HZ,
+    steps,
+    spanDb,
+  );
+  // Leave room for the stroke at either extreme of the fitted response.
+  const cutY = (db: number) => y + 2 + (db / curve.bottomDb) * (cutHeight - 4);
+  const baseline = cutY(0);
   const levelTop = y + cutHeight + 8;
   const levelY = (db: number) =>
     levelTop +
@@ -417,30 +366,30 @@ export const drawTreble = (
     });
   }
 
-  // The cut, hanging from the top line, the shape the mode makes.
+  // The cut, hanging from zero, with room for the whole response.
   context.strokeStyle = 'rgba(255,255,255,0.14)';
-  line(context, x, Math.round(y) + 0.5, x + width, Math.round(y) + 0.5);
-  const steps = Math.max(24, Math.round(width / 4));
+  line(
+    context,
+    x,
+    Math.round(baseline) + 0.5,
+    x + width,
+    Math.round(baseline) + 0.5,
+  );
   const traceCut = () => {
     context.beginPath();
-    for (let step = 0; step <= steps; step += 1) {
-      const hz =
-        TREBLE_LOW_HZ * (TREBLE_HIGH_HZ / TREBLE_LOW_HZ) ** (step / steps);
-      const cut = Math.max(
-        -spanDb,
-        Math.min(0, cutAt(hz, treble, mode, lowHz)),
-      );
-      const at = y + (-cut / spanDb) * cutHeight;
+    curve.points.forEach((db, step) => {
+      const at = cutY(db);
+      const left = x + (step / steps) * width;
       if (step === 0) {
-        context.moveTo(xOf(box, hz), at);
+        context.moveTo(left, at);
       } else {
-        context.lineTo(xOf(box, hz), at);
+        context.lineTo(left, at);
       }
-    }
+    });
   };
   traceCut();
-  context.lineTo(x + width, y);
-  context.lineTo(x, y);
+  context.lineTo(x + width, baseline);
+  context.lineTo(x, baseline);
   context.closePath();
   context.fillStyle = `rgba(${inks.cut},0.22)`;
   context.fill();

@@ -52,7 +52,7 @@ const PlayerVolume = () => {
         onChange={(event) => fader.setLevel(Number(event.target.value) / 100)}
       />
       <span className="player-volume__value" aria-hidden="true">
-        {percent}
+        {`${percent}%`}
       </span>
     </div>
   );

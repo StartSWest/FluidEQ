@@ -1,0 +1,18 @@
+{
+  "tool": "built-in ImageGen",
+  "generated": "2026-10-25",
+  "prompts": [
+    {
+      "key": "sound-wave",
+      "prompt": "Use case: ads-marketing. Asset type: premium decorative key art for FluidEQ audio software postcards and flyers. Create a wide landscape 3:2 macro sculpture of flowing translucent liquid glass forming a smooth audio waveform in midnight navy, luminous mint, aqua, ice blue and restrained periwinkle, matching the supplied FluidEQ icon's color family. The glass wave enters from bottom left and curls upward along the right side, with the center-left upper half dark and calm for real typeset headlines later. Rich dimensional refraction, editorial product-ad lighting, tactile glass, polished sophisticated atmosphere, restrained soft glow, no gaudy neon grid. Crisp high-resolution print quality. No words, no text, no logos, no UI, no device screens, no watermark. This is abstract campaign artwork, not an app screenshot."
+    },
+    {
+      "key": "headphones",
+      "prompt": "Use case: ads-marketing. Asset type: decorative editorial hero photo for FluidEQ audio software flyer. Portrait 4:5 composition, luxurious matte graphite over-ear headphones floating slightly above a midnight navy reflective surface, sculptural liquid-glass sound ribbon flowing around the earcups in luminous mint, aqua, ice blue with small periwinkle reflections. Headphones occupy lower half and right side, generous dark negative space in upper third for later real typography. Sophisticated cinematic studio photography, realistic acoustic fabric and machined metal, delicate light, exceptional product advertising polish, no invented brand labels, no people. No text, no logo, no numbers, no interface, no watermark. FluidEQ is software; the headphones are generic decorative hardware, no endorsement."
+    },
+    {
+      "key": "listening-desk",
+      "prompt": "Use case: ads-marketing. Asset type: premium decorative lifestyle hero for FluidEQ audio software postcards. Landscape 3:2 composition. A beautifully composed intimate home listening desk at blue hour, two small refined unbranded graphite speakers on either side of a closed plain dark laptop, comfortable over-ear headphones on a stand, subtle mint and blue perimeter lighting, midnight navy setting, a thin elegant translucent glass sound ribbon gently connects the speakers and headphones. No screen or software interface visible. Objects occupy right two-thirds and lower half; left third is dark uncluttered negative space for later headline. Physically plausible high-end editorial photography, warm human atmosphere with restrained cyan accents, genuine materials and reflections, sophisticated and inviting. No text, no logo, no watermark, no cables implying a specific connection."
+    }
+  ]
+}

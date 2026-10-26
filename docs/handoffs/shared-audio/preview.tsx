@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import CurrentCards from './CurrentCards';
 import Dropdown from '../../../src/renderer/widgets/Dropdown';
 import ImplementedGroup from './ImplementedGroup';
+import RemoteAudioLinkDialog from '../../../src/renderer/remoteAudio/RemoteAudioLinkDialog';
 import {
   addComputer,
   initialGroup,
@@ -21,7 +22,6 @@ function Preview() {
   const [current, setCurrent] = useState(false);
   const [compact, setCompact] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [newName, setNewName] = useState('Kitchen PC');
   const [message, setMessage] = useState('');
   const local = group.computers.find((pc) => pc.id === localId);
   if (!local) {
@@ -85,6 +85,32 @@ function Preview() {
               className="button small subtle"
               onClick={() =>
                 setGroup((previous) =>
+                  Array.from({ length: 12 }, (_, index) => index).reduce(
+                    (next, index) =>
+                      addComputer(next, {
+                        id: `preview-${index}`,
+                        name: `Listening room ${index + 1}`,
+                        platform: 'Windows',
+                        online: true,
+                        captureReady: true,
+                        sharing: true,
+                        paused: false,
+                        systemVolume: 1,
+                        output: 'Speakers',
+                        source: 'System audio · Browser & apps',
+                      }),
+                    previous,
+                  ),
+                )
+              }
+            >
+              Many computers
+            </button>
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={() =>
+                setGroup((previous) =>
                   updateComputer(previous, 'studio', {
                     online: !previous.computers.find((pc) => pc.id === 'studio')
                       ?.online,
@@ -134,17 +160,16 @@ function Preview() {
             </button>
           </header>
           {adding && (
-            <form
-              className="remote-audio__link-head preview-add"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (!newName.trim()) {
-                  return;
-                }
+            <RemoteAudioLinkDialog
+              deviceName={local.name}
+              code="FLUIDEQ-LAN-2.preview-only"
+              status="Ready"
+              onClose={() => setAdding(false)}
+              onLink={async () => {
                 setGroup((previous) =>
                   addComputer(previous, {
                     id: crypto.randomUUID(),
-                    name: newName.trim(),
+                    name: 'Kitchen PC',
                     platform: 'Linux',
                     online: true,
                     captureReady: true,
@@ -159,30 +184,9 @@ function Preview() {
                 setMessage(
                   'Computer added to the whole group. Enable Receive to hear it.',
                 );
+                return true;
               }}
-            >
-              <label htmlFor="preview-computer-name">
-                Simulated computer name
-                <input
-                  id="preview-computer-name"
-                  aria-label="Computer name"
-                  value={newName}
-                  maxLength={80}
-                  required
-                  onChange={(event) => setNewName(event.target.value)}
-                />
-              </label>
-              <button type="submit" className="button small">
-                Add simulated computer
-              </button>
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={() => setAdding(false)}
-              >
-                Cancel
-              </button>
-            </form>
+            />
           )}
           {message && (
             <p className="remote-audio__notice" role="status">

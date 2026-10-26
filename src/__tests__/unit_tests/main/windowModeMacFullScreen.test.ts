@@ -31,7 +31,7 @@ interface IRect {
  */
 const fakeMacWindow = () => {
   const events = new EventEmitter();
-  let bounds: IRect = { x: 200, y: 140, width: 420, height: 520 };
+  let bounds: IRect = { x: 200, y: 140, width: 480, height: 520 };
   let before: IRect | undefined;
   let isFullScreen = false;
   let isFullScreenable = true;
@@ -63,6 +63,7 @@ const fakeMacWindow = () => {
     setMinimumSize: () => undefined,
     setMaximumSize: () => undefined,
     setMaximizable: () => undefined,
+    setResizable: () => undefined,
     setAlwaysOnTop: () => undefined,
     unmaximize: () => undefined,
     maximize: () => undefined,
@@ -112,8 +113,7 @@ const macWindowAs = (mode: 'app' | 'player') => {
     mode,
     isPinned: false,
     app: {},
-    amp: 'classic',
-    players: mode === 'player' ? { classic: fake.bounds() } : {},
+    player: mode === 'player' ? fake.bounds() : {},
   });
   modes.followWindow(fake.win);
   modes.applyLimits(fake.win);
@@ -199,6 +199,6 @@ describe('the player’s visualizer on a Mac', () => {
     modes.setFullScreen(win, false);
     finish();
     expect(bounds()).toEqual(left);
-    expect(modes.memory().players.classic).toEqual(left);
+    expect(modes.memory().player).toEqual(left);
   });
 });

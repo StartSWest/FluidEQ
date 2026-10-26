@@ -305,7 +305,6 @@ const app: Partial<Dictionary> = {
   'sidebar.preampAria': '前级增益（dB）',
   'sidebar.preampAuto': '已自动设置。关闭自动归一化后才能手动调整。',
   'sidebar.autoPreamp': '自动归一化',
-  'sidebar.visualizer': '可视化',
   'sidebar.graphView': '频响图',
   'sidebar.output': '输出',
   'config.eyebrow': '引擎实际读到的内容',

@@ -162,11 +162,14 @@ const eq: Partial<Dictionary> = {
     'Tudo do Ambiente, com o visualizador atrás de toda a janela.',
   'graph.editHint':
     'Arraste os pontos · Ctrl/Shift seleciona · Ctrl+roda: Q · Ctrl+arrastar: sino',
+  'graph.windowTint': 'Tom',
+  'graph.windowTintHint':
+    'A cor da janela com um visual padrão. Clique duas vezes para voltar à cor original.',
   'graph.backdropVeil': 'Transparência',
   'graph.backdropVeilHint':
     'Quanto do visualizador aparece através dos painéis',
   'graph.sceneTint.brightness': 'Brilho',
-  'graph.sceneTint.rainbow': 'Modo arco-íris',
+  'graph.sceneTint.rainbow': 'Modo colorido',
   'graph.sceneTint.rainbowHint':
     'As bandas, o título e os controles acesos numa paleta em vez de uma só cor; com uma cena escolhida, nas cores dela.',
   'graph.sceneTint.sparks': 'Faíscas do ponteiro',
@@ -176,15 +179,19 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.daylightHint':
     'A hora do dia do visualizador, da noite ao dia pleno',
   'graph.sceneTint.daylightFollowingHint':
-    'Segue o brilho. Desative “A luz segue o brilho” para escolher à parte a hora do dia do visualizador',
-  'graph.sceneTint.daylightFollows': 'A luz segue o brilho',
+    'Seguindo o brilho. Escolha Nada abaixo para definir aqui a hora do dia do visualizador',
+  'graph.sceneTint.daylightSource': 'Segue',
+  'graph.sceneTint.daylightSourceOwn': 'Nada',
+  'graph.sceneTint.daylightSourceBrightness': 'Brilho',
+  'graph.sceneTint.daylightSourceClock': 'Relógio',
+  'graph.sceneTint.daylightOwnHint':
+    'O visualizador mantém a luz do dia definida acima.',
   'graph.sceneTint.daylightFollowsHint':
-    'Ativado, o visualizador passa da noite ao dia com o brilho. Desativado, ele mantém a luz do dia escolhida acima, e o brilho muda só a janela.',
-  'graph.sceneTint.daylightClock': 'A luz segue o relógio',
+    'O visualizador passa da noite ao dia com o brilho.',
   'graph.sceneTint.daylightClockHint':
-    'Ativado, o visualizador fica de noite à noite e de dia durante o dia, pelo relógio deste computador. Desativado, ele mantém a luz do dia escolhida acima.',
+    'O visualizador fica de noite à noite e de dia durante o dia, pelo relógio deste computador.',
   'graph.sceneTint.daylightFollowingClockHint':
-    'Segue o relógio. Desative “A luz segue o relógio” para escolher à parte a hora do dia do visualizador',
+    'Seguindo o relógio. Escolha Nada abaixo para definir aqui a hora do dia do visualizador',
   'graph.sceneTint.daylightStudioHint':
     'Com o Estúdio aberto, o Brilho define a hora do dia do visualizador, para você testar uma cena da noite ao dia. Esta escolha volta quando você sai do Estúdio',
   'graph.sceneTint.brightnessHint':
@@ -630,7 +637,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target': 'Alvo',
   'eq.smart.mode.target.note':
     'Continua medindo · cada gravação para a mesma curva',
-  'eq.layers': 'Também aplicado',
   'eq.layers.aria': 'Outros ajustes que afetam esta saída',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} bandas',
@@ -783,7 +789,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Apenas suas bandas de EQ, sem nada por cima',
   'voicing.strength': 'Intensidade',
   'waveform.style': 'Mudar o estilo do medidor',
-  'waveform.rainbow': 'Arco-íris',
+  'waveform.rainbow': 'Colorido',
   'waveform.live': 'SAÍDA AO VIVO',
   'waveform.signal': 'SINAL DE ÁUDIO',
   'waveform.clip': 'SATURAÇÃO',

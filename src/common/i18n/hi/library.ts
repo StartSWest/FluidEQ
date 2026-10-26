@@ -174,6 +174,9 @@ const library: Partial<Dictionary> = {
   'library.karaoke.sending': 'कराओके में भेजा जा रहा है…',
   'library.karaoke.failed':
     'यह फ़ाइल कराओके में नहीं भेजी जा सकी — शायद यह बहुत बड़ी है या पढ़ी नहीं जा सकती।',
+  'library.drop.empty': 'आपने जो छोड़ा, उसमें कोई संगीत नहीं है',
+  'library.drop.already': 'आपने जो कुछ छोड़ा, वह सब पहले से “आगे” में है',
+  'library.drop.failed': 'छोड़ा गया संगीत जोड़ा नहीं जा सका',
 };
 
 export default library;

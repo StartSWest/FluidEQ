@@ -4,12 +4,48 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+@use 'sass:list';
+@use 'sass:math';
+@use 'sass:meta';
 @use 'color' as *;
 @use 'theme' as *;
 
 // The amp's parts: the glass everything stands on, the pills and round keys
 // on it, and the title that scrolls. Every piece of the amp is built from
 // these, in the amp's own colours (`_miniPlayerShell.scss`).
+
+// ============================================================ the scrims ===
+//
+// A SHADE THAT EASES IN AND OUT, as gradient stops from `$from` to `$to`:
+// `$paint` at `$start` of its strength turning to `$end` along a smoothstep,
+// so the ramp leaves and arrives flat. A straight ramp has a corner at each
+// end, and over a bright picture the eye draws a line along a corner however
+// soft the ramp is (a Mach band) — the divider Ivan kept seeing between the
+// picture and the transport after every line in the CSS was gone (2026-10-25:
+// "still can notice the divider line"). `$from` and `$to` may be lengths the
+// page measures (`var(--…)`, with a unit on `$from`), and the stops are then
+// laid out in `calc()`.
+@function eased-ramp($paint, $from, $to, $start, $end, $steps: 10) {
+  $stops: ();
+  $is-measured: meta.type-of($from) != 'number' or meta.type-of($to) != 'number';
+  @for $i from 0 through $steps {
+    $t: math.div($i, $steps);
+    $eased: $t * $t * (3 - 2 * $t);
+    $strength: math.percentage($start + ($end - $start) * $eased);
+    $at: $from;
+    @if $is-measured {
+      $at: calc(#{$from} + (#{$to} - #{$from}) * #{$t});
+    } @else {
+      $at: $from + ($to - $from) * $t;
+    }
+    $stops: list.append(
+      $stops,
+      color-mix(in srgb, #{$paint} #{$strength}, transparent) $at,
+      $separator: comma
+    );
+  }
+  @return $stops;
+}
 
 // ============================================================= the glass ===
 //
@@ -197,6 +233,51 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // ============================================================= readouts ====
 //
+// THE APP'S MARK ON A STRIP (`SignalBrandMark`): the full app header's tile,
+// in the window's colours with its wave alive, at a strip's size — the menu
+// in the header, the way back from the folded line. The icon's own edge and
+// glow, scaled down with it, and the glow lifted under the pointer. Through
+// both of the tile's classes, to outweigh its header size and lift whichever
+// order the two sheets land in.
+@mixin strip-mark($tile: 28px, $glyph: 19px) {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  cursor: pointer;
+
+  .brand-mark.brand-mark--signal {
+    width: $tile;
+    height: $tile;
+    border-width: 1px;
+    border-radius: 8px;
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, #{$white} 8%, transparent),
+      0 3px 10px color-mix(in srgb, var(--logo-4) 22%, transparent);
+    transition: box-shadow 150ms ease;
+
+    svg {
+      width: $glyph;
+      height: $glyph;
+    }
+  }
+
+  &:hover .brand-mark.brand-mark--signal,
+  &[aria-expanded='true'] .brand-mark.brand-mark--signal {
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, #{$white} 12%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--logo-3) 40%, transparent),
+      0 3px 14px color-mix(in srgb, var(--logo-4) 42%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
 // A figure and its unit, as the queue's head writes how much is left.
 .player-readout {
   display: inline-flex;

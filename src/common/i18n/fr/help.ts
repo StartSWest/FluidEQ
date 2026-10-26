@@ -56,11 +56,11 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'L’en-tête vous fait passer d’une page de FluidEQ à l’autre et montre le son en direct. La colonne de gauche contient l’interrupteur général de l’EQ, le préampli et l’indicateur de niveau ; la colonne de droite suit votre sortie et ses profils.',
   'help.window.steps':
-    'Appuyez sur une page dans l’en-tête : Médias en ligne, Partager l’audio et Égaliseur avant le signal ; DSP, Bibliothèque, Karaoké et Visualiseurs après.\nActivez l’Égaliseur système dans la colonne de gauche et laissez la Normalisation auto activée, pour qu’aucune amplification ne sature.\nAppuyez sur le signal ou sur l’indicateur de niveau pour changer la façon dont il est dessiné, et sur Mode arc-en-ciel pour que les courbes et les vumètres bougent à la pleine fréquence de votre écran.',
+    'Appuyez sur une page dans l’en-tête : Médias en ligne, Partager l’audio et Égaliseur avant le signal ; DSP, Bibliothèque, Karaoké et Visualiseurs après.\nActivez l’Égaliseur système dans la colonne de gauche et laissez la Normalisation auto activée, pour qu’aucune amplification ne sature.\nAppuyez sur le signal ou sur l’indicateur de niveau pour changer la façon dont il est dessiné, et sur Mode coloré pour que les courbes et les vumètres bougent à la pleine fréquence de votre écran.',
   'help.window.tip':
     'Le menu Aide mène à ce guide, à Nouveautés, au dépannage audio et à Signaler un problème. Le bouton d’impulsion, juste à côté, contient la carte du moteur, votre compte, l’importation de réglages d’égalisation ou d’une réponse impulsionnelle, le redémarrage de l’audio de Windows et Processus, qui montre ce que chaque partie de FluidEQ utilise ; tout en bas se trouvent Luminosité et Transparence, les animations, Démarrer avec Windows et la langue. Juste après ces deux boutons, un interrupteur transforme la fenêtre en Lecteur compact.',
   'help.window.keywords':
-    'onglets, navigation, naviguer, interface, entête, barre de titre, barre d’outils, barre latérale, panneau latéral, barre du bas, barre de lecture, vu-mètre, icônes, faire un don, donation, thème, mode sombre, mode clair, thème sombre, thème clair, mode nuit, langue, changer de langue, démarrer avec windows, démarrage automatique, lancer au démarrage, démarrage, compte',
+    'onglets, navigation, naviguer, interface, entête, barre de titre, barre d’outils, barre latérale, panneau latéral, barre du bas, barre de lecture, vu-mètre, mode coloré, arc-en-ciel, icônes, faire un don, donation, thème, mode sombre, mode clair, thème sombre, thème clair, mode nuit, langue, changer de langue, démarrer avec windows, démarrage automatique, lancer au démarrage, démarrage, compte',
   'help.window.headerLeftCaption': 'L’en-tête, jusqu’au signal',
   'help.window.headerRightCaption': 'L’en-tête, après le signal',
   'help.window.railCaption': 'La colonne de gauche',
@@ -150,7 +150,7 @@ const help: Record<keyof typeof en, string> = {
     'Ce qui joue ensuite. Double-cliquez sur un morceau pour le lire, ou déposez ici des fichiers musicaux pour les ajouter.',
   'help.player.openIn': 'Ouvre l’application complète sur l’une de ses pages.',
   'help.player.theme':
-    'La Luminosité propre au lecteur, indépendante de celle de l’application complète ; la Transparence, pour le lecteur en verre au-dessus d’un visualiseur ; et le Mode arc-en-ciel.',
+    'La Luminosité propre au lecteur, indépendante de celle de l’application complète ; la Transparence, pour le lecteur en verre au-dessus d’un visualiseur ; et le Mode coloré.',
   'help.player.fold':
     'Replie le lecteur sur une ligne. Un double-clic sur sa barre fait de même.',
   'help.player.unfold': 'Déplie le lecteur. La flèche à l’autre bout aussi.',

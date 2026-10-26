@@ -40,7 +40,7 @@ const renderNativeLibrary = () => {
     const endedTrackRef = useRef<string | undefined>(undefined);
     const naturalCrossfadeTrackRef = useRef<string | undefined>(undefined);
 
-    usePlaybackCommands({
+    const commands = usePlaybackCommands({
       activeElement: () => element,
       audioElements: [element],
       queueRef,
@@ -60,7 +60,7 @@ const renderNativeLibrary = () => {
       audioElementRef,
     });
 
-    return { isPlaying };
+    return { isPlaying, queue, playTracks: commands.playTracks };
   });
 
   return { ...rendered, element };
@@ -90,5 +90,22 @@ describe('native Library playback ownership', () => {
 
     expect(result.current.isPlaying).toBe(false);
     expect(getPlaybackOwner()).toBeUndefined();
+  });
+});
+
+describe('playing a list', () => {
+  beforeEach(() => resetPlaybackOwner());
+
+  // A playlist can name a song twice; Up next holds no song twice (Ivan,
+  // 2026-10-25: "make sure it doesn't duplicate").
+  it('queues each song of it once, in the order it first appears', () => {
+    const { result } = renderNativeLibrary();
+    act(() => result.current.playTracks(['b', 'a', 'b', 'c', 'a'], 'b'));
+    const { queue } = result.current;
+    expect(queue?.order.map((index) => queue.trackIds[index])).toEqual([
+      'b',
+      'a',
+      'c',
+    ]);
   });
 });

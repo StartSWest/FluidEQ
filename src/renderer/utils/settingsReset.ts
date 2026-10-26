@@ -63,12 +63,14 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.standardPerformance',
   'fluideq.sceneResponse',
   'fluideq.sceneWaves',
-  // The window: colours, Rainbow, Brightness, Transparency, a scene's own
-  // time of day, sparks, sliders, the language, and how it is divided.
+  // The window: colours, Rainbow, Brightness, Transparency, the Tint, a
+  // scene's own time of day, sparks, sliders, the language, and how it is
+  // divided.
   'fluideq.sceneTintMode',
   'fluideq-rainbow',
   'fluideq.theme',
   'fluideq.backdropVeil',
+  'fluideq.windowTint',
   'fluideq.sceneDaylight',
   'fluideq.pointerSparks',
   'fluideq.sliderHandle',
@@ -83,7 +85,10 @@ export const SETTING_STEMS: readonly string[] = [
   // The amp.
   'fluideq.player.decks',
   'fluideq.player.eqFace',
+  'fluideq.player.queuePage',
   'fluideq.player.sheet',
+  'fluideq.player.shelfOpen',
+  'fluideq.player.soundOpen',
   'fluideq.player.timeLeft',
   'fluideq.player.unfoldedHeight',
   'fluideq.player.visHeight',
@@ -150,6 +155,20 @@ export const isSettingKey = (key: string) =>
   SETTING_KEYS.includes(key) ||
   SETTING_STEMS.some((stem) => key === stem || key.startsWith(`${stem}.`));
 
+/**
+ * What a reset sets rather than forgets: the few settings whose fresh install
+ * answer is not the one a reset should give. Automatic visualizer switching
+ * and Rainbow mode both start on for a new user, to show what the graph can
+ * do; somebody resetting their settings has seen it and gets them off (Ivan,
+ * 2026-10-25: "on reset setting auto change viz off by default", "also
+ * rainbow mode off by default too"). Written as each store writes them
+ * (`graphAutoCycle.ts`, `euphoriaMode.ts`).
+ */
+export const RESET_CHOICES: Readonly<Record<string, string>> = {
+  'fluideq-graph-auto-cycle-seconds': '0',
+  'fluideq-rainbow': 'off',
+};
+
 /** Every setting in `storage` forgotten, and nothing else. */
 export const forgetSettings = (storage: Storage) => {
   // Read out whole first: removing while walking the indices skips entries.
@@ -161,4 +180,12 @@ export const forgetSettings = (storage: Storage) => {
       storage.removeItem(key);
     }
   });
+};
+
+/** Reset settings: every setting forgotten, then `RESET_CHOICES` written. */
+export const resetSettings = (storage: Storage) => {
+  forgetSettings(storage);
+  Object.entries(RESET_CHOICES).forEach(([key, value]) =>
+    storage.setItem(key, value),
+  );
 };
