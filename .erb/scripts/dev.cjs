@@ -9,6 +9,11 @@
  * webpack — stacked four of those between the console and the dev server. One
  * plain node process asks nothing and dies on the first Ctrl+C.
  */
+// Check before the native build, engine sync, add-on updates or port listener.
+// Otherwise an elevated terminal launches a working-looking amp that Windows
+// refuses every Explorer drop into, before its file handlers can see a thing.
+require('./dev-privileges.cjs')();
+
 const chalk = require('chalk');
 const net = require('net');
 const path = require('path');
