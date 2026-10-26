@@ -374,10 +374,10 @@ return to.
 
 ![The Karaoke Maker with a song open: its tools along the top beside the song's name and Use in player; under them the song's waveform, the words laid out in staggered rows, and a pitch grid from C1 to C7 where the melody sits as labelled note blocks. Below the grid, the song position with a scrubber over the whole track and Follow lyrics. At the foot, a live preview draws the stage exactly as the player will — the current line lit, the lines either side of it dimmed, and a strip of the notes underneath — above a running count of notes, words and how many are still pending, the artist field, and a box confirming there is permission to use and export this audio and these lyrics.](docs/12-karaoke-maker-pitch-and-lyrics.png)
 
-**Shape the sound with a studio rack.** A **DSP** tab adds a rack of ten stages
-— Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension,
-Room, Maximizer and Master — with a crossfade between Library tracks beside
-them. The order the sound takes through them is fixed, because it is the order
+**Shape the sound with a studio rack.** A **DSP** tab adds a rack of eleven
+stages — Normalizer, Denoise, De-esser, Exciter, Bass Forge, Equaliser, Bass
+Punch, Dimension, Room, Maximizer and Master — with a crossfade between Library
+tracks beside them. The order the sound takes through them is fixed, because it is the order
 the arithmetic makes sense in; the Room, listed after Dimension, runs just ahead
 of it. Every stage starts off except the Normalizer, whose True Peak mode only
 ever turns a hot record down, and every one of them draws what it is actually
@@ -849,10 +849,10 @@ what you interact with.
   profiles, and WAV impulse responses.
 - **A guided external import**, with a link to Squiglink and a
   preview of the EQ text you paste or open locally.
-- **A ten-stage DSP rack**, on everything the computer plays under the FluidEQ
-  Engine and on the Library under Equalizer APO, running on a C++ engine of its
-  own: normalisation, denoise, exciter, two bass stages, an equaliser of six to
-  thirty-one bands, width, headphone surround in twenty-four rooms, maximiser
+- **An eleven-stage DSP rack**, on everything the computer plays under the
+  FluidEQ Engine and on the Library under Equalizer APO, running on a C++ engine
+  of its own: normalisation, denoise, a de-esser, exciter, two bass stages, an
+  equaliser of six to thirty-one bands, width, headphone surround in twenty-four rooms, maximiser
   and a mastering stage with a delivery target, saved and exchanged as complete
   racks.
 
