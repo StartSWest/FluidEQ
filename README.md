@@ -201,18 +201,19 @@ players outside FluidEQ too, if you ask it to. Its volume slider is Windows' own
 volume, so it sets the level of everything the computer plays.
 
 **Shrinks to a player.** One switch in the title bar, beside Help, turns the
-window into the **Compact player**. It is the classic amp, with its LED clock,
-its lamps and the whole equaliser — presets, band layouts, EQ mode, Smart EQ,
-Bass, Mid and Treble — a visualizer, and Up Next, where dropped music files join
-the Library and the queue. On the Backdrop, over a visualizer scene, it turns to
-glass instead: the visualizer edge to edge, the song in large type and the
-controls in a glass dock. It folds to one line, stays on top of other windows if
-you ask it to, keeps a Brightness of its own, and the full app, the amp and the
-glass player each remember their own size and place. Its volume, like the
-transport's, is the computer's own. The same switch brings the full app back on
-the page you left.
+window into the **Compact player**: one column, the same in every window
+colour. The visualizer is at the top with the song over it, then the
+transport, then Sound — the Bass, Mid and Treble knobs or your EQ's own bands,
+with presets, Smart EQ and EQ mode — and Up next and Playlists at the foot,
+each folding away when you want the room. With a visualizer scene it is always
+the Backdrop, the scene playing behind all of it. Music dropped anywhere on it
+goes on the end of Up next. It keeps one width, and its height is yours, from
+its top edge or its bottom one. It folds to one line, stays on top of other
+windows if you ask it to, and the full app and the player each remember their
+own size and place. Its volume, like the transport's, is the computer's own.
+The same switch brings the full app back on the page you left.
 
-<p align="center"><img src="assets/tour/player-stage.jpg" alt="The Compact player on the Backdrop, as a player of glass: the Northern Lights visualizer fills it, with the song Afterglow Avenue by Velvet Circuit in large type at the top over its progress bar and controls, the visualizer's name and Auto switching under them, and at its foot the equaliser sheet with the Equalizer and Up next tabs, System EQ on the FluidEQ Engine, Smart and the Custom preset, the curves and fifteen band sliders." width="360"></p>
+<p align="center"><img src="assets/tour/player-scene.jpg" alt="The Compact player on the Backdrop: the Northern Lights visualizer behind the whole player, the song Afterglow Avenue by Velvet Circuit over its cover at the top, the progress bar and the controls under it, then Sound with the Custom preset, Smart EQ and ten EQ band sliders, and at its foot Up next with the songs to come." width="360"></p>
 
 **Watch the sound, however you like to.** The graph measures what is playing
 the way studio analysers do: twelve views, from the Analyzer, a spectrogram and

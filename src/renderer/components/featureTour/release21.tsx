@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useTranslation } from '../../utils/I18nContext';
 import BandsVisual from './BandsVisual';
+import CompactPlayerVisual from './CompactPlayerVisual';
 import DeEsserVisual from './DeEsserVisual';
 import EarsVisual from './EarsVisual';
 import MyCurvesVisual from './MyCurvesVisual';
@@ -16,10 +17,10 @@ import StudioChatVisual from './StudioChatVisual';
 import type { ISlideActions } from './slides';
 
 /**
- * 2.1's slides: every output keeping its own sound, the bands read out on
- * the graph with EQ mode beside it, a band tuned for each ear, the
- * listener's own list of curves, songs that remember their sound, the DSP
- * rack's De-esser and the Studio's chat. Each
+ * 2.1's slides: every output keeping its own sound, the one Compact player,
+ * the bands read out on the graph with EQ mode beside it, a band tuned for
+ * each ear, the listener's own list of curves, songs that remember their
+ * sound, the DSP rack's De-esser and the Studio's chat. Each
  * quotes the app's own labels for the controls it sends the reader to, so a
  * renamed control renames the slide.
  */
@@ -39,6 +40,28 @@ export function OutputsSlide({ actions }: ISlideProps) {
         output: t('output.title'),
         secondOutput: t('extraOutput.title'),
         editSound: t('extraOutput.edit'),
+      }}
+    />
+  );
+}
+
+/**
+ * The one Compact player (Ivan, 2026-10-25), the same in every window
+ * colour. No film: the one the slide had was recorded with the two players
+ * this one replaced.
+ */
+export function CompactPlayerSlide({ actions }: ISlideProps) {
+  const { t } = useTranslation();
+  return (
+    <ShowcaseSlide
+      prefix="tour.player"
+      onOpen={actions.openPlayer}
+      visual={<CompactPlayerVisual />}
+      values={{
+        backdrop: t('graph.sceneTint.short.cover'),
+        sound: t('player.sound.title'),
+        upNext: t('library.upNext'),
+        playlists: t('library.browse.playlist'),
       }}
     />
   );

@@ -236,7 +236,7 @@ it('lists every view the look picker has under Analysis, by the picker’s names
 
 it('turns the window into the Compact player from its slide, closing the tour as not done', () => {
   const { onClose } = showTour();
-  goTo('FluidEQ, folded into a player');
+  goTo('The whole app in one column');
   fireEvent.click(
     screen.getByRole('button', { name: 'Try the Compact player' }),
   );
@@ -244,12 +244,25 @@ it('turns the window into the Compact player from its slide, closing the tour as
   expect(setWindowMode).toHaveBeenCalledWith('player');
 });
 
-it('shows both players the switch opens, the classic amp and the glass one', () => {
+// One player since 2.1 (Ivan, 2026-10-25), shown twice: over a scene and
+// with a standard visualizer, its parts named as the player names them.
+it('shows the one player the switch opens, over a scene and over a standard visualizer', () => {
   showTour();
-  goTo('FluidEQ, folded into a player');
-  expect(screen.getByText('Classic amp')).toBeInTheDocument();
-  // The glass player's mode is named as Window colours names it.
-  expect(screen.getByText('Glass, on Backdrop')).toBeInTheDocument();
+  goTo('The whole app in one column');
+  // The Backdrop is named as Window colours names it.
+  expect(screen.getByText('With a scene, on Backdrop')).toBeInTheDocument();
+  expect(screen.getByText('With a standard visualizer')).toBeInTheDocument();
+  expect(
+    screen.getByRole('img', { name: /and the Compact player twice:/ }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(/^Sound holds the Bass, Mid and Treble knobs/),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(/^Up next and Playlists wait at the foot\./),
+  ).toBeInTheDocument();
+  // No film: the one it had shows the two players this one replaced.
+  expect(screen.queryByRole('button', { name: 'Watch the video' })).toBeNull();
   // The switch it is made with, ringed where the title bar has it.
   expect(
     document.querySelector('.titlebar-corner__switch.is-ringed'),

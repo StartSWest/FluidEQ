@@ -19,6 +19,7 @@ jest.mock('electron', () => ({
       },
     ),
     on: jest.fn(),
+    removeListener: jest.fn(),
   },
 }));
 
@@ -80,6 +81,8 @@ import { registerRemoteAudioIpc } from '../../../main/ipc/remoteAudio';
 import createRemoteAudioLan from '../../../main/remoteAudioLan';
 // eslint-disable-next-line import/first
 import { encodePairingCode } from '../../../main/remoteAudioLanProtocol';
+// eslint-disable-next-line import/first
+import { windowsAudioRestarted } from '../../../main/windowsAudioRestarts';
 
 describe.each(['win32', 'darwin'])(
   'Share Audio all to all on %s',
@@ -270,6 +273,8 @@ describe.each(['win32', 'darwin'])(
       userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-links-'));
     });
     afterAll(() => fs.rmSync(userDataDir, { recursive: true, force: true }));
+    // Dispose each registration so a previous test cannot hear a later restart.
+    let dispose: () => void = () => undefined;
     const sent: [string, unknown][] = [];
     const window = {
       isDestroyed: () => false,
@@ -292,14 +297,15 @@ describe.each(['win32', 'darwin'])(
       credentials.read.mockReturnValue({ joins: [], revoked: [] });
       mockStartRemoteAudioHostSession.mockResolvedValue(hostSession);
       lan.join.mockReturnValue({ computerId: 'r-id', deviceName: 'Receiver' });
-      registerRemoteAudioIpc({
+      dispose = registerRemoteAudioIpc({
         getMainWindow: () => window as unknown as BrowserWindow,
         userDataDir,
       });
     });
-    afterEach(() =>
-      Object.defineProperty(process, 'platform', { value: originalPlatform }),
-    );
+    afterEach(() => {
+      dispose();
+      Object.defineProperty(process, 'platform', { value: originalPlatform });
+    });
 
     /** Joins, then the joined computer connects, as the transport reports it. */
     const linkJoined = async () => {
@@ -339,6 +345,36 @@ describe.each(['win32', 'darwin'])(
           duplex: { sends: true, plays: true },
         },
       });
+    });
+
+    it('opens its capture and the window player again after Windows audio restarts', async () => {
+      const firstClose = jest.fn();
+      mockCapture.mockResolvedValueOnce({ close: firstClose });
+      await linkJoined();
+      await settle();
+      expect(mockCapture).toHaveBeenCalledTimes(1);
+      sent.length = 0;
+
+      windowsAudioRestarted();
+      await settle();
+
+      // Windows' audio-service lifecycle must not reopen a Mac process tap.
+      expect(firstClose).toHaveBeenCalledTimes(platform === 'win32' ? 1 : 0);
+      expect(mockCapture).toHaveBeenCalledTimes(platform === 'win32' ? 2 : 1);
+      expect(sent.map(([channel]) => channel)).toContain(
+        'remote-audio-lan-resume',
+      );
+      expect(
+        sent.some(([channel]) => channel === 'remote-audio-lan-sending'),
+      ).toBe(platform === 'win32');
+      expect(lan.retry).not.toHaveBeenCalled();
+    });
+
+    it('opens nothing when Windows audio restarts with Share Audio never started', async () => {
+      windowsAudioRestarted();
+      await settle();
+      expect(mockCapture).not.toHaveBeenCalled();
+      expect(sent).toEqual([]);
     });
 
     it('tells a replacement window that its existing capture is still sending', async () => {

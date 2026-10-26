@@ -14,6 +14,11 @@
 import { act, render } from '@testing-library/react';
 import type { ILanRemoteAudioSignal } from 'common/remoteAudio';
 import { readRackGate, resetRackGate } from 'renderer/dsp/rackPlacement';
+import {
+  isTransportPlaying,
+  resetTransportSource,
+  useTransportSources,
+} from 'renderer/audio/transportSource';
 import RemoteAudioProvider from 'renderer/remoteAudio/RemoteAudioContext';
 import type { IRemoteAudioValue } from 'renderer/remoteAudio/remoteAudioState';
 import {
@@ -92,9 +97,11 @@ const bridge = {
 
 let latest: IRemoteAudioValue | undefined;
 let receivingNow = false;
+let onTheBar: ReturnType<typeof useTransportSources> = {};
 const Probe = () => {
   latest = useRemoteAudio();
   receivingNow = useRemoteAudioReceiving();
+  onTheBar = useTransportSources();
   return null;
 };
 const value = () => {
@@ -290,6 +297,46 @@ describe('the picture of a link', () => {
     act(() => listeners.streaming.forEach((listener) => listener('peer')));
     expect(receivingNow).toBe(true);
     expect(value().links[0].receiving).toBe(true);
+  });
+
+  it('gives the bar back when the other computer stops sharing', async () => {
+    await linked();
+    const theySend = (sends: boolean) =>
+      emit({
+        peerId: 'peer',
+        signal: {
+          kind: 'stream-mode',
+          mode: 'video',
+          duplex: { sends, plays: true },
+        },
+      });
+    theySend(true);
+    emit({
+      peerId: 'peer',
+      signal: {
+        kind: 'now-playing',
+        playing: {
+          title: 'NAYEON "ABCD" M/V',
+          isPlaying: true,
+          positionMs: 0,
+          durationMs: 0,
+          canNext: false,
+          canPrevious: false,
+          canStep: false,
+          canStop: false,
+        },
+      },
+    });
+    await settle();
+    expect(isTransportPlaying('remote')).toBe(true);
+
+    // Its Share switched off: it still describes its player, and none of
+    // its sound comes here any more.
+    theySend(false);
+    await settle();
+    expect(isTransportPlaying('remote')).toBe(false);
+    expect(onTheBar.remote).toBeUndefined();
+    act(() => resetTransportSource());
   });
 
   it('takes the one-player switch from a linked computer', async () => {

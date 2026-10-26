@@ -89,6 +89,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOneWay':
     'दोनों दिशाओं में चलाने के लिए Windows, या Linux पर FluidEQ Engine चाहिए।',
   'remoteAudio.lane.outQuiet': 'इस कंप्यूटर पर कुछ नहीं चल रहा',
+  'remoteAudio.lane.outSounding': 'इस कंप्यूटर पर आवाज़ चल रही है',
   'remoteAudio.lane.outOff': 'नहीं भेज रहे। {name} इस कंप्यूटर को नहीं सुनता।',
   'remoteAudio.lane.outNotPlayed': '{name} पर “यहाँ चलाएँ” बंद है।',
   'remoteAudio.lane.outOld':

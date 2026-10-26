@@ -6,32 +6,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useTranslation } from '../../utils/I18nContext';
 import TitlebarCorner from './TitlebarCorner';
-import playerClassic from '../../../../assets/tour/player-classic.jpg';
-import playerStage from '../../../../assets/tour/player-stage.jpg';
+import playerScene from '../../../../assets/tour/player-scene.jpg';
+import playerLook from '../../../../assets/tour/player-look.jpg';
 
 /**
  * The Compact player's slide: the switch in the title bar that makes it,
- * ringed where it stands, and the two players it makes side by side — the
- * classic amp every window-colour mode but the Backdrop gets, and the glass
- * one over the visualizer on the Backdrop.
+ * ringed where it stands, and the one player it makes, twice — over a scene
+ * on the Backdrop with the EQ's bands open, and with a standard visualizer
+ * behind the song and the Tone knobs open — so both kinds of picture and
+ * both faces of Sound are on the slide (Ivan, 2026-10-25: one amp for every
+ * window colour).
  *
- * Photographs of the real players, not drawings (Ivan, 2026-09-28: "show a
- * nice legacy amp … show the 2 modes glassy and standard"): the amp's LED
- * clock, lamps and faders are what it is loved for, and a drawing small
- * enough for this slide had none of them. Taken at Brightness 50% from the
- * player harness with made-up albums (`scratchpad/tour-shots`), so one pair
- * reads on a dark window and a light one; retake them when the players
- * change.
+ * Photographs of the real player, not drawings, as the slide has always
+ * had: taken from the player harness at its own width with made-up songs
+ * and covers (`?songs=demo`), never real music, on the window's middle
+ * Brightness so they read on a dark tour and a light one. Retake both when
+ * the player changes.
  */
 
 /**
- * The photographs' own sizes, so each holds its place before it loads: the
- * classic amp at its narrow width with Up next open, the glass one wider, as
- * each is used (Ivan, 2026-09-28: "the standard amp view is narrow and the
- * glass one wider").
+ * The photographs' own pixels (the player's 480 x 966 at 1.5x), so each
+ * holds its place before it loads.
  */
-const CLASSIC = { width: 467, height: 1000 };
-const STAGE = { width: 711, height: 1000 };
+const PHOTO = { width: 720, height: 1449 };
 
 export default function CompactPlayerVisual() {
   const { t } = useTranslation();
@@ -45,26 +42,26 @@ export default function CompactPlayerVisual() {
     >
       <TitlebarCorner ringed="player" label={player} />
       <div className="player-pair__amps">
-        <span className="player-pair__amp player-pair__amp--classic">
+        <span className="player-pair__amp">
           <img
-            src={playerClassic}
+            src={playerScene}
             alt=""
-            width={CLASSIC.width}
-            height={CLASSIC.height}
+            width={PHOTO.width}
+            height={PHOTO.height}
           />
           <span className="player-pair__caption">
-            {t('tour.player.classic')}
+            {t('tour.player.scene', { backdrop })}
           </span>
         </span>
-        <span className="player-pair__amp player-pair__amp--glass">
+        <span className="player-pair__amp">
           <img
-            src={playerStage}
+            src={playerLook}
             alt=""
-            width={STAGE.width}
-            height={STAGE.height}
+            width={PHOTO.width}
+            height={PHOTO.height}
           />
           <span className="player-pair__caption">
-            {t('tour.player.glass', { backdrop })}
+            {t('tour.player.standard')}
           </span>
         </span>
       </div>

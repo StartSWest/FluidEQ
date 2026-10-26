@@ -19,23 +19,23 @@ const tour: Partial<Dictionary> = {
   'tour.howTitle': 'So geht es los',
   'tour.beta': 'Beta',
   'tour.player.kicker': 'KOMPAKTER PLAYER',
-  'tour.player.title': 'FluidEQ, zum Player zusammengeklappt',
-  'tour.player.subtitle': 'Ein Schalter macht aus dem Fenster einen Player',
+  'tour.player.title': 'Die ganze App in einer Spalte',
+  'tour.player.subtitle': 'Ein Player, gleich in allen Fensterfarben',
   'tour.player.lead':
-    'Ein Schalter in der Titelleiste macht aus ganz FluidEQ einen Player. Er ist der klassische Verstärker mit LED-Uhr, Lämpchen und dem ganzen Equalizer; im Modus {backdrop}, über einer Szene, wird er zu Glas. Derselbe Schalter bringt Sie zurück auf die Seite, die Sie verlassen haben.',
+    'Ein Schalter in der Titelleiste klappt FluidEQ zu einer Spalte zusammen: oben der Visualizer mit dem Song, darunter die Bedienung, Ihr Klang und was als Nächstes läuft. Derselbe Player in allen Fensterfarben, und eine gewählte Szene läuft hinter allem, im Modus {backdrop}.',
   'tour.player.point1':
-    'Der ganze Equalizer kommt mit: Presets, Band-Layouts, EQ-Modus, Smart-EQ, Bass, Mitten und Höhen.',
+    'Unter {sound}: Regler für Bass, Mitten und Höhen oder Ihre EQ-Bänder, daneben Preset, Smart-EQ und EQ-Modus.',
   'tour.player.point2':
-    'Klappen Sie den Player auf eine Zeile ein, halten Sie ihn über anderen Fenstern oder doppelklicken Sie auf den Visualizer für Vollbild.',
+    '„{upNext}“ und {playlists} stehen unten; klappen Sie sie für ein größeres Bild ein. Musik, die Sie irgendwo auf dem Player ablegen, kommt in die Warteschlange.',
   'tour.player.point3':
-    'Ein eigenes Design, und Songs, die Sie auf „Als Nächstes“ ablegen, kommen in die Bibliothek und in die Warteschlange.',
+    'Feste Breite, die Höhe ziehen Sie am oberen oder unteren Rand. Auf eine Zeile einklappen, über anderen Fenstern halten oder per Doppelklick aufs Bild als Vollbild.',
   'tour.player.how':
     'Drücken Sie in der Titelleiste neben Hilfe den Schalter Kompakter Player. Im Player holt derselbe Schalter die vollständige App zurück.',
   'tour.player.open': 'Kompakter Player ausprobieren',
   'tour.player.imageAlt':
-    'Die Ecke der Titelleiste mit markiertem Schalter {player} und die beiden Player, die er öffnet: der klassische Verstärker mit LED-Uhr, Lämpchen, Equalizer und Warteschlange, und der breitere Glas-Player über einem Polarlicht im Modus {backdrop}.',
-  'tour.player.classic': 'Klassischer Verstärker',
-  'tour.player.glass': 'Glas, im Modus {backdrop}',
+    'Die Ecke der Titelleiste mit markiertem Schalter {player} und zweimal der Kompakte Player: über einer Szene im Modus {backdrop} mit geöffneten EQ-Bändern und mit einem Standard-Visualizer hinter dem Song und geöffneten Klangreglern.',
+  'tour.player.scene': 'Mit einer Szene, im Modus {backdrop}',
+  'tour.player.standard': 'Mit einem Standard-Visualizer',
   'tour.look.kicker': 'NEUES AUSSEHEN',
   'tour.look.title': 'Ein neues Fenster in neuen Farben',
   'tour.look.subtitle':
@@ -256,7 +256,7 @@ const tour: Partial<Dictionary> = {
   'tour.room.imageAlt':
     'Ein Raum von oben: sieben Lautsprecher und ein Sub um einen Kopf in der Mitte, jeder mit seinem Weg zu den Ohren.',
 
-  'tour.plus.kicker': 'FLUIDEQ PLUS',
+  'tour.plus.kicker': 'VISUALIZER',
   'tour.plus.title': 'Szenen, die Ihnen für immer gehören',
   'tour.plus.subtitle': 'Visualizer, Studio, Beleuchtung und mehr',
   'tour.plus.lead':

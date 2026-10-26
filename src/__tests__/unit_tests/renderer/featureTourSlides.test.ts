@@ -13,6 +13,7 @@ describe("What's new in 2.1", () => {
       'every-output',
       'each-ear',
       'share-audio',
+      'compact-player',
       'band-labels',
       'my-curves',
       'song-sound',
@@ -22,7 +23,12 @@ describe("What's new in 2.1", () => {
   });
 
   it('keeps showing 2.0 as new under its own number, and 1.7 no longer', () => {
-    expect(idsOf('2.1.0', '2.0')).toEqual(idsOf('2.0.0', '2.0'));
+    // All of it but the Compact player, whose slide 2.1 moved up: the one
+    // player replaced 2.0's two (Ivan, 2026-10-25).
+    expect(idsOf('2.1.0', '2.0')).toEqual(
+      idsOf('2.0.0', '2.0').filter((id) => id !== 'compact-player'),
+    );
+    expect(idsOf('2.0.0', '2.0')).toContain('compact-player');
     expect(idsOf('2.1.0', '1.7')).toEqual([]);
   });
 

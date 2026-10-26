@@ -25,6 +25,7 @@ import createRemoteAudioBook from '../remoteAudioBook';
 import createRemoteAudioLevels from '../remoteAudioLevels';
 import { createRemoteAudioLinks } from '../remoteAudioLinks';
 import createRemoteAudioPorts from '../remoteAudioPorts';
+import { onWindowsAudioRestarted } from '../windowsAudioRestarts';
 import onWindowMessage from './windowMessages';
 import { registerRemoteAudioPlayback } from './remoteAudioPlayback';
 import { setDspHostRawSharing } from './dspHost';
@@ -416,20 +417,34 @@ export const registerRemoteAudioIpc = ({
       startNetworkCaptureIfWanted();
     }
   });
-  const wake = () => {
-    if (!started) {
-      return;
-    }
-    // Windows can leave an open loopback stream silent after suspend. A
-    // fresh lease reacquires it; target switches and receive gains stay put.
+  /**
+   * This computer's capture and the window's player, opened again. A fresh
+   * capture lease reacquires the stream; target switches and receive gains
+   * stay put. The window reopens its player on the resume message.
+   */
+  const reopenAudio = () => {
     if (process.platform === 'win32') {
       stopNetworkCapture();
       startNetworkCaptureIfWanted();
     }
-    lan.retry();
     sendToWindow('remote-audio-lan-resume', undefined);
   };
+  const wake = () => {
+    if (!started) {
+      return;
+    }
+    // Windows can leave an open loopback stream silent after suspend.
+    reopenAudio();
+    lan.retry();
+  };
   powerMonitor.on('resume', wake);
+  // An engine switch restarts Windows audio, which ends both streams; the
+  // network is untouched, so the links stay as they are.
+  const stopHearingRestarts = onWindowsAudioRestarted(() => {
+    if (started) {
+      reopenAudio();
+    }
+  });
   ipcMain.handle('remote-audio-lan-send', (_event, signal: unknown) => {
     if (
       isLanRemoteAudioSignal(signal) &&
@@ -519,6 +534,7 @@ export const registerRemoteAudioIpc = ({
 
   return () => {
     powerMonitor.removeListener('resume', wake);
+    stopHearingRestarts();
     started = undefined;
     told.clear();
     resetSession();

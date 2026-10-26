@@ -610,10 +610,10 @@ select option {
 
 // What the ends leave over, up to 420px.
 //
-// And the ends give ground before it does: the tagline and the creature leave
-// the moment keeping them would cost the drawing any width (`data-crowded`,
-// set by `useTitlebarRoom`), and only then does it narrow, to what the two
-// ends' content leaves.
+// And the ends give ground before it does: the creature leaves the moment
+// keeping her would cost the drawing any width (`data-crowded`, set by
+// `useTitlebarRoom`), and only then does it narrow, to what the two ends'
+// content leaves.
 //
 // A length rather than a flex basis: the pane's own width is a percentage of
 // this box, and a percentage inside a shrink-to-fit parent contributes nothing
@@ -1002,31 +1002,23 @@ select option {
   }
 }
 
-// THE TAGLINE AND THE CREATURE GO FIRST, together, the moment keeping them
-// would cost the wave any of its width (Ivan, 2026-09-22: "the moment the
-// wave starts narrowing remove help and pet [...] and also hide the 'Your
-// sound' text to make space"). `useTitlebarRoom` measures that moment in the
-// running window and sets `data-crowded`; it was two fixed widths, 1560 and
-// 1280, and the wave was already giving ground above both — by 191px at 1281
-// in English, the creature still standing beside it — and where it starts
-// depends on the names in the two ends, which is different in every language.
+// THE CREATURE GOES FIRST, the moment keeping her would cost the wave any of
+// its width (Ivan, 2026-09-22: "the moment the wave starts narrowing remove
+// help and pet [...] and also hide the 'Your sound' text to make space"; that
+// slogan has left the bar altogether since). `useTitlebarRoom` measures that
+// moment in the running window and sets `data-crowded`; it was two fixed
+// widths, 1560 and 1280, and the wave was already giving ground above both —
+// by 191px at 1281 in English, the creature still standing beside it — and
+// where it starts depends on the names in the two ends, which is different in
+// every language.
 //
 // Help does not go with them: it is a glyph inside the capsule, and Support is
 // one item down in the menu beside her, with the full-screen chrome keeping
 // its own copy.
-.window-titlebar[data-crowded] {
-  // Out of the flow and not out of the page, so what it would take back can
-  // still be measured, in whatever language it is in by then.
-  .workspace-header__tagline {
-    position: absolute;
-    visibility: hidden;
-  }
-
-  // Out of the page: hidden any other way her animations go on running
-  // unseen. Her width is a fixed box the hook remembers.
-  .window-titlebar__right > .support-pet {
-    display: none;
-  }
+// Out of the page: hidden any other way her animations go on running unseen.
+// Her width is a fixed box the hook remembers.
+.window-titlebar[data-crowded] .window-titlebar__right > .support-pet {
+  display: none;
 }
 
 // AND THEN THE BAR ITSELF, at a window zoomed past what its ends and the
@@ -1276,13 +1268,6 @@ select option {
     transform: none;
     animation: none;
   }
-}
-
-.workspace-header__tagline {
-  @include truncate;
-  margin-top: 2px;
-  color: $text-primary;
-  font-size: $text-body;
 }
 
 // The last three places, the pet, the actions button and the window controls.

@@ -33,6 +33,7 @@ import { existsSync } from 'fs';
 import path from 'path';
 import log from 'electron-log';
 import { IFluidEngineEndpoint } from '../common/audioEngine';
+import { windowsAudioRestarted } from './windowsAudioRestarts';
 
 /**
  * `settle` is the one that never elevates: it waits until Windows audio has
@@ -337,6 +338,15 @@ export const runEngineSetup = (
             `FluidEQ Engine Setup (${command}) failed on ${endpoint.guid}: ${endpoint.error}`,
           );
         });
+      // Told even when the run failed later on: the restart may already have
+      // ended every stream, and reopening a stream that was not ended costs
+      // a moment of silence. A declined prompt never ran anything.
+      if (
+        !result.declined &&
+        (command === 'restart-audio' || args.includes('--restart-audio'))
+      ) {
+        windowsAudioRestarted();
+      }
       resolve(result);
     });
   });
