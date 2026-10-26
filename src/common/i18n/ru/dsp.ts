@@ -106,7 +106,6 @@ const dsp = {
   'dsp.normalizer.liveDescription':
     'Измеряет внешний звук во время воспроизведения, регулирует оба канала вместе и защищает пики перед эксайтером и эквалайзером.',
   'dsp.normalizer.liveAnalysis': 'Анализ источника в реальном времени',
-  'dsp.normalizer.shortTerm': 'Кратковременная громкость',
   'dsp.normalizer.inputLoudness': 'Входная громкость (3 с)',
   'dsp.normalizer.outputLoudness': 'Выходная громкость (3 с)',
   'dsp.title': 'DSP',

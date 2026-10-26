@@ -106,7 +106,6 @@ const dsp = {
   'dsp.normalizer.liveDescription':
     'Misura l’audio esterno durante la riproduzione, regola insieme i due canali e protegge i picchi prima di Exciter ed EQ.',
   'dsp.normalizer.liveAnalysis': 'Analisi della sorgente dal vivo',
-  'dsp.normalizer.shortTerm': 'Sonorità a breve termine',
   'dsp.normalizer.inputLoudness': 'Sonorità in ingresso (3 s)',
   'dsp.normalizer.outputLoudness': 'Sonorità in uscita (3 s)',
   'dsp.title': 'DSP',

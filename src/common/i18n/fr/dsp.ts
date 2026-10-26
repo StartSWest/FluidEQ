@@ -106,7 +106,6 @@ const dsp = {
   'dsp.normalizer.liveDescription':
     'Mesure l’audio externe pendant la lecture, ajuste les deux canaux ensemble et protège les crêtes avant l’exciteur et l’égaliseur.',
   'dsp.normalizer.liveAnalysis': 'Analyse de la source en direct',
-  'dsp.normalizer.shortTerm': 'Sonie à court terme',
   'dsp.normalizer.inputLoudness': 'Sonie en entrée (3 s)',
   'dsp.normalizer.outputLoudness': 'Sonie en sortie (3 s)',
   'dsp.title': 'DSP',

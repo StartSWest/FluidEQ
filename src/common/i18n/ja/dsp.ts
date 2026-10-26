@@ -106,7 +106,6 @@ const dsp = {
   'dsp.normalizer.liveDescription':
     '再生中の外部音声を測定し、両チャンネルを同時に調整して、エキサイターとEQの前でピークを保護します。',
   'dsp.normalizer.liveAnalysis': '入力音声のリアルタイム解析',
-  'dsp.normalizer.shortTerm': '短時間ラウドネス',
   'dsp.normalizer.inputLoudness': '入力ラウドネス（3秒）',
   'dsp.normalizer.outputLoudness': '出力ラウドネス（3秒）',
   'dsp.title': 'DSP',
