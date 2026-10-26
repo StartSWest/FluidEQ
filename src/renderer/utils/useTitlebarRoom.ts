@@ -7,17 +7,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { RefObject, useLayoutEffect, useSyncExternalStore } from 'react';
 
 /**
- * Whether the titlebar is crowded: whether keeping the tagline under the name
- * and the creature would cost the wave any of its width. Published as
- * `data-crowded` on the bar, which takes both out (`App.scss`).
+ * Whether the titlebar is crowded: whether keeping the creature in its right
+ * end would cost the wave any of its width. Published as `data-crowded` on
+ * the bar, which takes her out (`App.scss`).
  *
  * Ivan, 2026-09-22: "the moment the wave starts narrowing remove help and pet
  * [...] and also hide the 'Your sound' text to make space". Of everything in
- * the bar those two say the least — the same sentence on every launch, and a
- * creature that is company rather than information — so neither may cost the
- * drawing a pixel, and they leave together.
+ * the bar she says the least — company rather than information — so she may
+ * not cost the drawing a pixel. The slogan left with her until it left the
+ * bar altogether (2026-10-25, the logo corner: one line, no slogan).
  *
- * MEASURED, NOT WRITTEN DOWN. They used to leave at fixed widths, the tagline
+ * MEASURED, NOT WRITTEN DOWN. They used to leave at fixed widths, the slogan
  * at 1560 and the creature at 1280, and the wave was giving ground above both:
  * measured in English it was 22px short at 1561 and 191px short at 1281, with
  * the creature still there. Where it first gives ground depends on the names
@@ -33,13 +33,10 @@ import { RefObject, useLayoutEffect, useSyncExternalStore } from 'react';
  * stylesheet's to say.
  *
  * Coming back is the same sum the other way: the room the ends have spare
- * against what the two would take back, the tagline's excess over the name
- * above it and the creature with its gap. Away, the tagline is only out of
- * the flow (`position: absolute; visibility: hidden`), which keeps it
- * measurable in whatever language it is in by then; the creature is taken
- * out of the page, because her animations would otherwise go on running
- * unseen, and her width — a fixed 40px box — is remembered from the last
- * time she stood there.
+ * against what she would take back, her width and the gap beside her. She is
+ * taken out of the page while away, because her animations would otherwise
+ * go on running unseen, so her width — a fixed 40px box — is remembered from
+ * the last time she stood there.
  *
  * AFTER THEM, THE BAR ITSELF RUNS OUT. The window's minimum is 1024, but the
  * page zooms to about twice its size, and from about 650px the bar's ends at
@@ -52,14 +49,14 @@ import { RefObject, useLayoutEffect, useSyncExternalStore } from 'react';
  * while they are away (`useTitlebarToolsShed`). Each goes when the bar runs
  * past its edge and comes back when the ends have room for what it takes
  * back, remembered as it went; the last to go is the first back, and the
- * tagline and the creature come back only after both.
+ * creature comes back only after both.
  */
 
 /** An end with less room than this beside its content has none to give. */
 const NO_ROOM_PX = 0.5;
 
 /**
- * Room wanted beyond an exact fit before the two come back. Without it, a
+ * Room wanted beyond an exact fit before anything comes back. Without it, a
  * window on the boundary lays out one way, measures as the other, and flips.
  */
 const COMEBACK_MARGIN_PX = 1;
@@ -68,7 +65,7 @@ export interface ITitlebarRoom {
   /** How much wider each end's track is than its content, px. */
   leftSpare: number;
   rightSpare: number;
-  /** What the tagline and the creature would take back, px. */
+  /** What the creature would take back, px: her width and her gap. */
   comeback: number;
 }
 
@@ -183,23 +180,7 @@ export const watchTitlebarRoom = (
   let petWidth = 0;
   const pet = () => right.querySelector<HTMLElement>(':scope > .support-pet');
 
-  const comeback = () => {
-    const tagline = left.querySelector<HTMLElement>(
-      '.workspace-header__tagline',
-    );
-    const column = tagline?.parentElement;
-    // At the narrowest widths the name and tagline are a hover card out of
-    // the flow, where showing the tagline costs the bar nothing.
-    const taglineBack =
-      tagline && column && getComputedStyle(column).position !== 'absolute'
-        ? Math.max(
-            0,
-            tagline.getBoundingClientRect().width -
-              column.getBoundingClientRect().width,
-          )
-        : 0;
-    return taglineBack + (pet() && petWidth > 0 ? petWidth + gapOf(right) : 0);
-  };
+  const comeback = () => (pet() && petWidth > 0 ? petWidth + gapOf(right) : 0);
 
   // The bar's own parts, in the order they go.
   const meter = () => bar.querySelector<HTMLElement>(':scope > .titlebar-nav');
@@ -230,7 +211,7 @@ export const watchTitlebarRoom = (
   /**
    * The bar's own parts, last out first back; true when it changed the bar.
    * Undefined when neither is out and the bar still fits with the meter,
-   * which leaves the tagline and the creature to the decision below.
+   * which leaves the creature to the decision below.
    */
   const shed = (): boolean | undefined => {
     if (bar.hasAttribute('data-shed-tools')) {
@@ -337,7 +318,7 @@ export const useTitlebarRoom = (
   right: RefObject<HTMLElement | null>,
 ) => {
   // A layout effect, so the first decision is made before the first paint
-  // and a narrow window never shows the two for a frame.
+  // and a narrow window never shows the creature for a frame.
   useLayoutEffect(() => {
     const bar = header.current;
     // `ResizeObserver` is absent in the jsdom the titlebar's tests run under —
