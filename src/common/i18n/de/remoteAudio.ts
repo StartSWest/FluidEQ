@@ -2,8 +2,9 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.group.add': 'Computer hinzufügen',
   'remoteAudio.group.title': 'Die ganze Gruppe',
-  'remoteAudio.group.mix': 'Dein Mix',
+  'remoteAudio.group.mix': 'Ihr Mix',
   'remoteAudio.group.thisPC': 'Dieser PC',
   'remoteAudio.group.receive': 'Empfangen',
   'remoteAudio.group.send': 'Senden',
@@ -17,7 +18,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.group.unmute': 'Stummschaltung aufheben',
   'remoteAudio.group.output': 'Ausgang',
   'remoteAudio.group.hint':
-    'Verbinde einen Computer, um seiner Gruppe beizutreten. Jeder Computer sendet seinen eigenen Ton direkt an die anderen. Passe deinen Mix hier an.',
+    'Verbinden Sie einen Computer, um seiner Gruppe beizutreten. Jeder Computer sendet seinen eigenen Ton direkt an die anderen. Passen Sie Ihren Mix hier an.',
   'tabs.share': 'Audio teilen',
   'remoteAudio.eyebrow': 'LAN-AUDIOVERBINDUNG',
   'remoteAudio.title': 'Audio zwischen Ihren Computern teilen',
@@ -25,7 +26,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.badge.local': 'Nur privates LAN',
   'remoteAudio.badge.lossless': 'Verlustfreie Float32-PCM-Übertragung',
   'remoteAudio.badge.encrypted': 'AES-256-GCM-verschlüsselt',
-  'remoteAudio.link.section': 'Computer verbinden',
   'remoteAudio.link.thisComputer': 'Dieser Computer',
   'remoteAudio.link.thisHint':
     'Fügen Sie diesen Code auf dem anderen Computer ein oder den Code des anderen Computers hier. Beides funktioniert.',
@@ -90,6 +90,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOneWay':
     'Wiedergabe in beide Richtungen braucht Windows oder die FluidEQ Engine unter Linux.',
   'remoteAudio.lane.outQuiet': 'Auf diesem Computer läuft nichts',
+  'remoteAudio.lane.outSounding': 'Auf diesem Computer läuft Ton',
   'remoteAudio.lane.outOff': 'Senden aus. {name} hört diesen Computer nicht.',
   'remoteAudio.lane.outNotPlayed': 'Bei {name} ist „Hier abspielen“ aus.',
   'remoteAudio.lane.outOld':
@@ -98,7 +99,6 @@ const remoteAudio: Partial<Dictionary> = {
     'Senden in beide Richtungen braucht Windows oder die FluidEQ Engine unter Linux.',
   'remoteAudio.lane.outFailed':
     'Der Ton dieses Computers konnte nicht aufgenommen werden. Schalten Sie „Meinen Ton senden“ aus und wieder ein, um es erneut zu versuchen.',
-  'remoteAudio.another.section': 'Weiteren Computer verbinden',
   'remoteAudio.singlePlayer.title': 'Nur ein Player',
   'remoteAudio.singlePlayer.body':
     'gilt auch für verbundene Computer: Wird auf einem etwas gestartet, pausiert, was auf dem anderen lief.',

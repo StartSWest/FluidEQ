@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 const remoteAudio = {
+  'remoteAudio.group.add': 'Add computer',
   'remoteAudio.group.title': 'The whole group',
   'remoteAudio.group.mix': 'Your mix',
   'remoteAudio.group.thisPC': 'This PC',
@@ -30,7 +31,6 @@ const remoteAudio = {
   'remoteAudio.badge.local': 'Private LAN only',
   'remoteAudio.badge.lossless': 'Lossless Float32 PCM transport',
   'remoteAudio.badge.encrypted': 'AES-256-GCM encrypted',
-  'remoteAudio.link.section': 'Link a computer',
   'remoteAudio.link.thisComputer': 'This computer',
   'remoteAudio.link.thisHint':
     'Paste this code on the other computer, or paste that computer’s code here. Either way works.',
@@ -93,6 +93,7 @@ const remoteAudio = {
   'remoteAudio.lane.inOneWay':
     'Playing both ways needs Windows, or the FluidEQ Engine on Linux.',
   'remoteAudio.lane.outQuiet': 'Nothing playing on this computer',
+  'remoteAudio.lane.outSounding': 'Sound playing on this computer',
   'remoteAudio.lane.outOff': 'Not sending. {name} doesn’t hear this computer.',
   'remoteAudio.lane.outNotPlayed': '{name} has “Play it here” off.',
   'remoteAudio.lane.outOld':
@@ -101,7 +102,6 @@ const remoteAudio = {
     'Sending both ways needs Windows, or the FluidEQ Engine on Linux.',
   'remoteAudio.lane.outFailed':
     'This computer’s sound could not be captured. Switch “Send my sound” off and on to try again.',
-  'remoteAudio.another.section': 'Link another computer',
   'remoteAudio.singlePlayer.title': 'One player at a time',
   'remoteAudio.singlePlayer.body':
     'covers linked computers too: starting something on either one pauses what was playing on the other.',

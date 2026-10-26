@@ -89,7 +89,7 @@ const AppTitlebar = ({
   const { t } = useTranslation();
 
   // Whether the two ends of the titlebar leave the meter between them its
-  // whole width with the tagline and the creature still in them. The bar's
+  // whole width with the creature still in the right one. The bar's
   // own element carries the answer as `data-crowded` — see the hook.
   const titlebarRef = useRef<HTMLElement | null>(null);
   const titlebarLeftRef = useRef<HTMLDivElement | null>(null);
@@ -168,7 +168,8 @@ const AppTitlebar = ({
                 </span>
               )}
             </div>
-            <div className="workspace-header__tagline">{t('app.tagline')}</div>
+            {/* No slogan under it: one confident line (Ivan, 2026-10-25,
+                trying "C · Clean wordmark"). The slogan stays in About. */}
           </div>
         </div>
         <WorkspaceTabsLeft
@@ -196,7 +197,7 @@ const AppTitlebar = ({
           the window. It is not restyled or resized by being in here — it
           keeps its own pane, its own border and its own drawing, and only
           its width gives way, to whatever the two ends leave over once the
-          tagline and the creature have gone. See `useTitlebarRoom`. */}
+          creature has gone. See `useTitlebarRoom`. */}
       <div className="titlebar-nav">
         <WaveformVisualizer />
       </div>

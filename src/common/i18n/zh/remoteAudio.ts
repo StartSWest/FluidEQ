@@ -2,6 +2,7 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.group.add': '添加电脑',
   'remoteAudio.group.title': '整个群组',
   'remoteAudio.group.mix': '你的混音',
   'remoteAudio.group.thisPC': '本机',
@@ -25,7 +26,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.badge.local': '仅限私有局域网',
   'remoteAudio.badge.lossless': '无损 Float32 PCM 传输',
   'remoteAudio.badge.encrypted': 'AES-256-GCM 加密',
-  'remoteAudio.link.section': '链接一台电脑',
   'remoteAudio.link.thisComputer': '这台电脑',
   'remoteAudio.link.thisHint':
     '把这个连接码粘贴到另一台电脑上，或者把那台电脑的连接码粘贴到这里，两种方式都可以。',
@@ -85,6 +85,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOneWay':
     '双向播放需要 Windows，或 Linux 上的 FluidEQ Engine。',
   'remoteAudio.lane.outQuiet': '这台电脑上没有在播放',
+  'remoteAudio.lane.outSounding': '这台电脑上正在播放声音',
   'remoteAudio.lane.outOff': '未发送。{name} 听不到这台电脑。',
   'remoteAudio.lane.outNotPlayed': '{name} 关闭了“在此播放”。',
   'remoteAudio.lane.outOld':
@@ -93,7 +94,6 @@ const remoteAudio: Partial<Dictionary> = {
     '双向发送需要 Windows，或 Linux 上的 FluidEQ Engine。',
   'remoteAudio.lane.outFailed':
     '无法捕获这台电脑的声音。关闭再打开“发送我的声音”即可重试。',
-  'remoteAudio.another.section': '链接另一台电脑',
   'remoteAudio.singlePlayer.title': '同时只播放一处',
   'remoteAudio.singlePlayer.body':
     '同样适用于已链接的电脑：在其中一台开始播放，会暂停另一台正在播放的内容。',

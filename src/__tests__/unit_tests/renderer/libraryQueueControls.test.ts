@@ -202,6 +202,27 @@ describe('a long list handed over as a sliding window', () => {
 });
 
 describe('adding to Up next', () => {
+  it('inserts dropped songs before their anchor without changing the playing song', () => {
+    const { held, api } = controls();
+    expect(api().insertIntoQueue(['x', 'c', 'y', 'x'], ['c', 'd'])).toBe(2);
+    expect(upNext(held.queue)).toEqual(['b', 'x', 'y', 'c', 'd']);
+    expect(held.queue && currentTrackId(held.queue)).toBe('a');
+    expect(api().insertIntoQueue(['x', 'a'], ['b'])).toBe(0);
+    expect(upNext(held.queue)).toEqual(['b', 'x', 'y', 'c', 'd']);
+  });
+
+  it('retains a drop’s target across intervening playback and queue edits', () => {
+    const { held, api } = controls();
+    // Captured when a folder was dropped before c; its scan resolves later.
+    const beforeIds = ['c', 'd'];
+    api().moveUpNext(3, 1);
+    api().jumpToQueuePosition(1);
+    api().removeUpNextAt(3);
+    expect(api().insertIntoQueue(['x', 'y'], beforeIds)).toBe(2);
+    expect(upNext(held.queue)).toEqual(['b', 'x', 'y']);
+    expect(held.queue && currentTrackId(held.queue)).toBe('d');
+  });
+
   it('puts the songs at the end, says how many joined, and never twice', () => {
     const { held, api } = controls();
     expect(api().appendToQueue(['x', 'c', 'y', 'x'])).toBe(2);

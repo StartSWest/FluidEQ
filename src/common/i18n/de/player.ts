@@ -51,7 +51,7 @@ export default {
   'player.queue.emptyTitle': 'Nichts in der Warteschlange',
   'player.queue.emptyNote':
     'Titel, die du aus der Bibliothek abspielst, reihen sich hier ein – oder lege Musikdateien hier ab.',
-  'player.sound.title': 'Klang',
+  'player.sound.title': 'Sound',
   'player.sound.fold': 'Klangregler einklappen',
   'player.sound.unfold': 'Klangregler zeigen',
   'player.sound.bands': '{count}-Band-EQ',

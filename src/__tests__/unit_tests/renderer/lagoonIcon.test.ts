@@ -71,12 +71,14 @@ describe('Lagoon, everywhere it is written', () => {
   });
 
   // The name's "EQ" is in the window's colours (Ivan, 2026-09-26: "when plus
-  // viz is on it should also use the viz theme"): the accent's run, which a
-  // visualizer or Rainbow mode leans toward its own colours.
+  // viz is on it should also use the viz theme"): the last stretch of the
+  // name's one sweep, from the accent to the window's bluer end (2026-10-25,
+  // "2 · One sweep"), which a visualizer or Colourful mode leans toward its
+  // own colours.
   it('is what the header name’s “EQ” is drawn in only through the palette', () => {
     const sheet = css('SignalBrand.scss');
     expect(ruleBody(sheet, '.signal-name__suffix')).toContain(
-      'var(--accent-fill)',
+      'linear-gradient(90deg, var(--accent), var(--accent-end))',
     );
     expect(sheet).not.toContain('html.is-euphoric .signal-name__suffix');
     expect(ruleBody(sheet, '.signal-name__suffix')).not.toContain(LAGOON[0]);

@@ -33,7 +33,7 @@ import { app, BrowserWindow, powerMonitor } from 'electron';
 import log from 'electron-log';
 import path from 'path';
 import fs from 'fs';
-import { fetchSettings } from './flush';
+import { fetchSettings, save } from './flush';
 import { flushPendingWrites, scheduleWrite } from './asyncWriter';
 import {
   getConfigPath,
@@ -805,6 +805,15 @@ registerSettingsResetIpc({
     if (mainWindow && !mainWindow.isDestroyed()) {
       windowModes.setPinned(mainWindow, false);
     }
+  },
+  // The window reads the state again as it reloads after the reset, so the
+  // switch is right in memory at once; the file follows on the writer's own
+  // schedule, as after any edit.
+  showGraph: () => {
+    state.isGraphViewOn = true;
+    save(state, userDataDir).catch((error) =>
+      log.error('Settings reset: could not save the graph switch', error),
+    );
   },
   logger: log,
 });

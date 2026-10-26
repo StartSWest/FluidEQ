@@ -46,6 +46,8 @@ jest.mock('child_process', () => ({
 import { parseEngineSetupOutput, runEngineSetup } from 'main/engineSetup';
 // eslint-disable-next-line import/first
 import log from 'electron-log';
+// eslint-disable-next-line import/first
+import { onWindowsAudioRestarted } from 'main/windowsAudioRestarts';
 
 beforeEach(() => {
   fakeChild = new FakeChildProcess();
@@ -186,5 +188,46 @@ describe('running the setup helper', () => {
       ),
     ).toBe(true);
     warn.mockRestore();
+  });
+});
+
+/**
+ * A restart of Windows audio ends every stream on the machine, Share Audio's
+ * capture and player among them, and the helper's exit is the moment Windows
+ * audio is running again. Every engine switch restarts it.
+ */
+describe('a run that restarts Windows audio', () => {
+  const finish = async (
+    command: Parameters<typeof runEngineSetup>[0],
+    args: string[],
+    exitCode: number,
+  ) => {
+    const heard = jest.fn();
+    const stop = onWindowsAudioRestarted(heard);
+    const info = jest.spyOn(log, 'info').mockImplementation(() => undefined);
+    const promise = runEngineSetup(command, args, 'C:\fake-setup.exe');
+    fakeChild.stdout.emit(
+      'data',
+      exitCode === 2 ? '' : '{"ok":true,"error":"","endpoints":[]}',
+    );
+    fakeChild.emit('close', exitCode);
+    await promise;
+    stop();
+    info.mockRestore();
+    return heard;
+  };
+
+  it('says Windows audio is back once a switch has restarted it', async () => {
+    expect(
+      await finish('suspend-apo', ['--restart-audio'], 0),
+    ).toHaveBeenCalledTimes(1);
+    expect(await finish('restart-audio', [], 0)).toHaveBeenCalledTimes(1);
+  });
+
+  it('says nothing for a run that restarts nothing, or a declined prompt', async () => {
+    expect(await finish('attach', ['{A}'], 0)).not.toHaveBeenCalled();
+    expect(
+      await finish('restore-apo', ['--restart-audio'], 2),
+    ).not.toHaveBeenCalled();
   });
 });

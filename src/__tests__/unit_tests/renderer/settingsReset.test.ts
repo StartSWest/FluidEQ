@@ -58,29 +58,20 @@ const KEPT = [
   'fluideq.studio.starterGuide',
   'fluideq-rhythm-best-multiplier',
   'fluideq-rhythm-high-score',
-  // Where they were.
-  'fluideq.workspaceTab',
+  // What is playing and where in it, and where Online Media was left — not
+  // where each page was, which a reset puts back (Ivan, 2026-10-26).
   // Which forum topics have been read: a reset is not a reason to call
   // every topic new again.
   'fluideq.forum.read.v1',
-  'fluideq.plusPlace',
-  'fluideq.dsp.openSection',
-  'fluideq.studio.workTab',
   'fluideq.transport.lastOwner',
   'fluideq.transport.lastShown',
-  'fluideq.library.folderTree',
-  'fluideq.library.openAlbum',
-  'fluideq.library.openArtist',
-  'fluideq.library.openFolder',
-  'fluideq.library.openGenre',
-  'fluideq.library.openPlaylist',
   'fluideq.library.playback',
   'fluideq.library.videoPositions',
   'fluideq.videoLastUrl',
   'fluideq.videoResume',
-  'fluideq.karaoke.maker-editor-views.v1',
-  'fluideq.karaoke.maker-open',
-  'fluideq.karaoke.maker-preview-open',
+  // The language: put back to Windows' own, somebody who chose another one
+  // would face a language they may not read (Ivan, 2026-10-26).
+  'fluideq.locale',
   // What they searched for.
   'fluideq.autoEqModelSearchHistory',
   'fluideq.convolutionSearchHistory',
@@ -258,6 +249,58 @@ describe('Reset all settings', () => {
       [],
     );
     expect(kept.filter((key) => !window.localStorage.getItem(key))).toEqual([]);
+    window.localStorage.clear();
+  });
+
+  // From the checklist Ivan chose on 2026-10-26: each page opens at its
+  // start, and the language stays.
+  it('forgets where each page was left, and not what was playing', () => {
+    window.localStorage.clear();
+    const places = [
+      'fluideq.workspaceTab',
+      'fluideq.dsp.openSection',
+      'fluideq.plusPlace',
+      'fluideq.studio.workTab',
+      'fluideq.library.openAlbum',
+      'fluideq.library.openArtist',
+      'fluideq.library.openFolder',
+      'fluideq.library.openGenre',
+      'fluideq.library.openPlaylist',
+      'fluideq.library.folderTree',
+      'fluideq.karaoke.maker-open',
+      'fluideq.karaoke.maker-preview-open',
+      'fluideq.karaoke.maker-editor-views.v1',
+    ];
+    const playing = [
+      'fluideq.library.playback',
+      'fluideq.library.videoPositions',
+      'fluideq.videoResume',
+    ];
+    [...places, ...playing].forEach((key) =>
+      window.localStorage.setItem(key, 'stored'),
+    );
+
+    resetSettings(window.localStorage);
+
+    expect(places.filter((key) => window.localStorage.getItem(key))).toEqual(
+      [],
+    );
+    expect(
+      playing.filter((key) => window.localStorage.getItem(key) === null),
+    ).toEqual([]);
+    window.localStorage.clear();
+  });
+
+  it('keeps the language the listener chose', () => {
+    window.localStorage.clear();
+    window.localStorage.setItem('fluideq.locale', 'de');
+    // POSITIVE CONTROL: a setting beside it is forgotten.
+    window.localStorage.setItem('fluideq.theme', 'stored');
+
+    resetSettings(window.localStorage);
+
+    expect(window.localStorage.getItem('fluideq.locale')).toBe('de');
+    expect(window.localStorage.getItem('fluideq.theme')).toBeNull();
     window.localStorage.clear();
   });
 

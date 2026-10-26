@@ -19,6 +19,7 @@ import {
 import { usePlaylistDeck } from './playlistDeck';
 import { formatQueueTime } from './playerText';
 import useRowNeed from './useRowNeed';
+import type { TMusicDrop } from './useMusicDrop';
 
 /**
  * WHAT PLAYS NEXT, AND WHAT COULD (Ivan, 2026-10-25): Up next and Playlists
@@ -33,7 +34,13 @@ import useRowNeed from './useRowNeed';
  * collapsible too"), the picture at the top of the amp takes the room, and a
  * press on either tab opens it again on that page.
  */
-const PlayerQueue = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
+const PlayerQueue = ({
+  onOpenLibrary,
+  musicDrop,
+}: {
+  onOpenLibrary: () => void;
+  musicDrop: TMusicDrop;
+}) => {
   const { t } = useTranslation();
   const { queuePage, setQueuePage } = usePlayerQueuePage();
   const { isShelfOpen, setShelfOpen } = usePlayerShelfOpen();
@@ -137,6 +144,7 @@ const PlayerQueue = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
       >
         {queuePage === 'next' ? (
           <QueueDeck
+            musicDrop={musicDrop}
             isNaming={isNaming}
             onNamed={() => setIsNaming(false)}
             onOpenLibrary={onOpenLibrary}

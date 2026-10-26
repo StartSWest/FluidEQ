@@ -18,6 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { IRemoteNowPlaying } from 'common/remoteAudio';
 import {
   ALL_ON,
+  heardHere,
   type ILinkRecord,
   linkPhase,
   linkViews,
@@ -64,6 +65,42 @@ describe('playsHere', () => {
     // nothing back, which is the link as it ran before both ways.
     expect(playsHere(record({ joined: true }), false)).toBe(false);
     expect(playsHere(record({ joined: false }), false)).toBe(true);
+  });
+});
+
+describe('heardHere', () => {
+  it('hears a computer whose sound is played here and sent here', () => {
+    expect(heardHere(record(), true)).toBe(true);
+    expect(heardHere(record({ joined: true }), true)).toBe(true);
+  });
+
+  it('hears nothing from a computer that stopped sharing, paused or turned Send off', () => {
+    // Each of the three reaches this end as the same word: not sending.
+    expect(
+      heardHere(record({ theirs: { sends: false, plays: true } }), true),
+    ).toBe(false);
+    expect(
+      heardHere(
+        record({ theirs: { sends: false, plays: false, paused: true } }),
+        true,
+      ),
+    ).toBe(false);
+  });
+
+  it('hears nothing with Receive off here, or from an older FluidEQ it joined', () => {
+    expect(
+      heardHere(
+        record({
+          switches: { send: true, play: false, paused: false, volume: 1 },
+        }),
+        true,
+      ),
+    ).toBe(false);
+    expect(heardHere(record({ joined: true, theirs: undefined }), true)).toBe(
+      false,
+    );
+    // One that joined this computer is heard before it has said anything.
+    expect(heardHere(record({ theirs: undefined }), true)).toBe(true);
   });
 });
 

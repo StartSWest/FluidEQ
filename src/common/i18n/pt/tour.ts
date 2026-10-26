@@ -19,23 +19,23 @@ const tour: Partial<Dictionary> = {
   'tour.howTitle': 'Como começar',
   'tour.beta': 'Beta',
   'tour.player.kicker': 'O PLAYER COMPACTO',
-  'tour.player.title': 'O FluidEQ, recolhido em um player',
-  'tour.player.subtitle': 'Um botão transforma a janela em um player',
+  'tour.player.title': 'O app inteiro em uma coluna',
+  'tour.player.subtitle': 'Um player, igual em todas as cores de janela',
   'tour.player.lead':
-    'Um botão na barra de título transforma todo o FluidEQ em um player. É o amplificador clássico, com seu relógio de LED, suas luzes e o equalizador completo; com {backdrop}, sobre uma cena, ele vira vidro. O mesmo botão leva você de volta à página que deixou.',
+    'Um botão na barra de título recolhe o FluidEQ em uma coluna: o visualizador no topo com a música, os controles, o seu som e o que toca a seguir. É o mesmo player em todas as cores de janela, e a cena que você escolher aparece atrás de tudo, em {backdrop}.',
   'tour.player.point1':
-    'O equalizador inteiro vai junto: presets, layouts de bandas, Modo EQ, EQ inteligente, Graves, Médios e Agudos.',
+    '{sound} traz os controles de Graves, Médios e Agudos ou as bandas do seu EQ, com o preset, o EQ inteligente e o Modo EQ ao lado.',
   'tour.player.point2':
-    'Recolha-o em uma linha, mantenha-o acima das outras janelas ou clique duas vezes no visualizador para tela cheia.',
+    '{upNext} e {playlists} ficam embaixo; recolha-os para ter uma imagem maior. Músicas soltas em qualquer lugar do player vão para a fila.',
   'tour.player.point3':
-    'Um tema próprio, e as músicas soltas em “A seguir” entram na Biblioteca e na fila.',
+    'Uma só largura, e a altura é você quem escolhe, pela borda de cima ou de baixo. Recolha-o em uma linha, mantenha-o por cima ou clique duas vezes na imagem para tela cheia.',
   'tour.player.how':
     'Pressione o botão Player compacto na barra de título, ao lado de Ajuda. No player, o mesmo botão traz o app completo de volta.',
   'tour.player.open': 'Experimentar o Player compacto',
   'tour.player.imageAlt':
-    'O canto da barra de título com o botão {player} destacado, e os dois players que ele abre: o amplificador clássico com relógio de LED, luzes, equalizador e fila, e o player de vidro, mais largo, sobre uma aurora com {backdrop}.',
-  'tour.player.classic': 'Amplificador clássico',
-  'tour.player.glass': 'Vidro, com {backdrop}',
+    'O canto da barra de título com o botão {player} destacado, e o Player compacto duas vezes: sobre uma cena em {backdrop} com as bandas do EQ abertas, e com um visualizador padrão atrás da música e os controles de Tom abertos.',
+  'tour.player.scene': 'Com uma cena, em {backdrop}',
+  'tour.player.standard': 'Com um visualizador padrão',
   'tour.look.kicker': 'UM VISUAL NOVO',
   'tour.look.title': 'Uma janela nova, com cores novas',
   'tour.look.subtitle':
@@ -252,7 +252,7 @@ const tour: Partial<Dictionary> = {
   'tour.room.imageAlt':
     'Uma sala vista de cima: sete alto-falantes e um sub ao redor de uma cabeça no centro, cada um com o seu caminho até os ouvidos.',
 
-  'tour.plus.kicker': 'FLUIDEQ PLUS',
+  'tour.plus.kicker': 'VISUALIZADORES',
   'tour.plus.title': 'Cenas que são suas para sempre',
   'tour.plus.subtitle': 'Visualizadores, Estúdio, iluminação e mais',
   'tour.plus.lead':
@@ -328,22 +328,22 @@ const tour: Partial<Dictionary> = {
   'tour.share.kicker': 'CADA PC, NOS DOIS SENTIDOS',
   'tour.share.title': 'Compartilhe áudio entre seus computadores',
   'tour.share.subtitle':
-    'Ouça os dois computadores, seja qual for o que você está usando',
+    'Ouça todos os computadores do grupo, seja qual for o que você está usando',
   'tour.share.lead':
-    'Seu PC gamer e seu notebook tocam um no outro: seja qual for o que você está usando, você ouve os dois — pela sua própria rede, sem perdas, criptografado e com o EQ que você ajustou naquele computador.',
+    'Seu PC gamer, seu notebook e qualquer outro computador da sua rede tocam em um só grupo: seja qual for o que você está usando, você ouve os outros, sem perdas, criptografado e pelo EQ daquele computador.',
   'tour.share.pairLabel': 'NOS DOIS SENTIDOS',
-  'tour.share.pairName': 'Cada computador toca o som do outro',
+  'tour.share.pairName': 'Cada computador toca o som dos outros',
   'tour.share.wireLabel': 'Sem perdas · Criptografado · LAN privada',
   'tour.share.stepsTitle': 'Configure em três passos',
   'tour.share.step1Title': 'Em um computador, copie o código',
   'tour.share.step1':
-    'Abra a aba Compartilhar áudio e pressione “Copiar código”. O código é sempre o mesmo.',
+    'Abra a aba Compartilhar áudio, pressione “Adicionar computador” e depois “Copiar código”. O código é sempre o mesmo.',
   'tour.share.step2Title': 'No outro, cole e vincule',
   'tour.share.step2':
-    'Abra Compartilhar áudio no outro computador, cole o código em “Código do outro computador” e pressione “Vincular”. Os dois começam a tocar um ao outro na hora, intactos: cada um aplica o próprio EQ ao que ouve.',
+    'No outro, pressione “Adicionar computador”, cole o código em “Código do outro computador” e pressione “Vincular”. Os computadores que você vincular depois entram no grupo todo.',
   'tour.share.step3Title': 'Escolha o que vai para onde',
   'tour.share.step3':
-    'Cada computador vinculado tem duas chaves, “Tocar aqui” e “Enviar meu som”: desligue uma para um sentido só. A barra mostra a música do outro computador e a controla pela conexão. Um controle ao lado de “Tocar aqui” ajusta o volume, e “Pausar” para os dois sentidos até você tocar em “Retomar”.',
+    'Cada computador tem “Receber” e “Enviar”, e “Compartilhar” desliga o seu som para todos. “Sua mixagem” ajusta cada nível. Pausar e Desvincular ficam no menu de cada computador, e os botões da barra funcionam pela rede.',
   'tour.share.fact1Title': 'Sem perdas',
   'tour.share.fact1':
     'PCM Float32 de ponta a ponta. Sem codec, sem perda de geração.',
@@ -352,9 +352,9 @@ const tour: Partial<Dictionary> = {
     'AES-256-GCM em cada pacote. O código é a chave; sem ele ninguém consegue ouvir.',
   'tour.share.fact3Title': 'Continua vinculado',
   'tour.share.fact3':
-    'O vínculo sobrevive a fechar o app e a reinicializações, de qualquer um dos lados. Só “Desvincular” acaba com ele.',
+    'O grupo se reencontra sozinho depois de reiniciar, suspender, cair a rede ou trocar de motor. Computadores ausentes continuam na lista.',
   'tour.share.tip':
-    'Comece baixo: dois computadores tocando ao mesmo tempo se somam. Abaixe o volume antes do primeiro vínculo.',
+    'Comece baixo: computadores tocando ao mesmo tempo se somam. Abaixe o volume antes do primeiro vínculo.',
   'tour.share.open': 'Abrir Compartilhar áudio',
 
   'tour.library.kicker': 'SUA MÚSICA, SEU PLAYER',

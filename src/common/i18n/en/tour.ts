@@ -29,23 +29,23 @@ const tour = {
   'tour.beta': 'Beta',
 
   'tour.player.kicker': 'THE COMPACT PLAYER',
-  'tour.player.title': 'FluidEQ, folded into a player',
-  'tour.player.subtitle': 'One switch turns the window into a player',
+  'tour.player.title': 'The whole app in one column',
+  'tour.player.subtitle': 'One player, the same in every window colour',
   'tour.player.lead':
-    'One switch in the title bar folds all of FluidEQ into a player. It is the classic amp, with its LED clock, its lamps and the whole equaliser; on the {backdrop}, over a scene, it turns to glass. The same switch takes you back to the page you left.',
+    'One switch in the title bar folds FluidEQ into one column: the visualizer at the top with the song over it, the controls, your sound and what plays next. It is the same player in every window colour, and a scene you pick plays behind all of it, on the {backdrop}.',
   'tour.player.point1':
-    'The whole equaliser comes along: presets, band layouts, EQ mode, Smart EQ, Bass, Mid and Treble.',
+    '{sound} holds the Bass, Mid and Treble knobs or your EQ’s own bands, with the preset, Smart EQ and EQ mode beside them.',
   'tour.player.point2':
-    'Fold it to one line, keep it on top of other windows, or double-click the visualizer to fill the screen.',
+    '{upNext} and {playlists} wait at the foot. Fold either part away for a bigger picture, and drop music anywhere on the player to add it to the queue.',
   'tour.player.point3':
-    'A theme of its own, and songs dropped on Up Next join the Library and the queue.',
+    'It keeps one width, and its height is yours from the top or bottom edge. Fold it to one line, keep it on top, or double-click the picture to fill the screen.',
   'tour.player.how':
     'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.',
   'tour.player.open': 'Try the Compact player',
   'tour.player.imageAlt':
-    'The corner of the title bar with the {player} switch ringed, and the two players it opens: the classic amp with its LED clock, lamps, equaliser and queue, and the wider glass player over an aurora on the {backdrop}.',
-  'tour.player.classic': 'Classic amp',
-  'tour.player.glass': 'Glass, on {backdrop}',
+    'The corner of the title bar with the {player} switch ringed, and the Compact player twice: over a scene on the {backdrop} with its EQ bands open, and with a standard visualizer behind the song and the Tone knobs open.',
+  'tour.player.scene': 'With a scene, on {backdrop}',
+  'tour.player.standard': 'With a standard visualizer',
 
   'tour.look.kicker': 'A NEW LOOK',
   'tour.look.title': 'A new window, in new colours',
@@ -265,7 +265,7 @@ const tour = {
   'tour.room.imageAlt':
     'A room seen from above: seven speakers and a sub standing around a head in the middle, each with its path to the ears.',
 
-  'tour.plus.kicker': 'FLUIDEQ PLUS',
+  'tour.plus.kicker': 'VISUALIZERS',
   'tour.plus.title': 'Scenes that are yours for good',
   'tour.plus.subtitle': 'Visualizers, Studio, lighting and more',
   'tour.plus.lead':
@@ -342,22 +342,23 @@ const tour = {
 
   'tour.share.kicker': 'EVERY PC, BOTH WAYS',
   'tour.share.title': 'Share audio between your computers',
-  'tour.share.subtitle': 'Hear both computers, whichever one you sit at',
+  'tour.share.subtitle':
+    'Hear every computer in the group, whichever one you sit at',
   'tour.share.lead':
-    'Your gaming PC and your laptop play into each other: whichever one you sit at, you hear both — over your own network, losslessly, encrypted, and through the EQ you tuned on that computer.',
+    'Your gaming PC, your laptop and any other computer on your network play into one group: whichever one you sit at, you hear the others, losslessly, encrypted and through that computer’s own EQ.',
   'tour.share.pairLabel': 'BOTH WAYS',
-  'tour.share.pairName': 'Each computer plays the other’s sound',
+  'tour.share.pairName': 'Each computer plays the others’ sound',
   'tour.share.wireLabel': 'Lossless · Encrypted · Private LAN',
   'tour.share.stepsTitle': 'Set it up in three steps',
   'tour.share.step1Title': 'On one computer, copy its code',
   'tour.share.step1':
-    'Open the Share Audio tab and press “Copy code”. The code stays the same every time.',
+    'Open the Share Audio tab, press “Add computer” and then “Copy code”. The code stays the same every time.',
   'tour.share.step2Title': 'On the other, paste it and link',
   'tour.share.step2':
-    'Open Share Audio there, paste the code under “The other computer’s code” and press “Link”. Both start playing each other right away, untouched: each one applies its own EQ to what it hears.',
+    'There, press “Add computer”, paste the code under “The other computer’s code” and press “Link”. Computers you link later join the whole group.',
   'tour.share.step3Title': 'Choose what goes where',
   'tour.share.step3':
-    'Each linked computer has two switches, “Play it here” and “Send my sound”: turn one off for one way only. The bar shows the other computer’s song, and its buttons work across the wire. A slider beside “Play it here” sets how loud it plays, and “Pause” stops both ways until “Resume”.',
+    'Each computer has “Receive” and “Send”, and “Share” turns your sound off for all of them. “Your mix” sets each level. Pause and Unlink are in each computer’s menu, and the bar’s buttons work across the wire.',
   'tour.share.fact1Title': 'Lossless',
   'tour.share.fact1':
     'Float32 PCM end to end. No media codec, no generation loss.',
@@ -366,9 +367,9 @@ const tour = {
     'AES-256-GCM on every packet. The code is the key; nobody without it can listen in.',
   'tour.share.fact3Title': 'Stays linked',
   'tour.share.fact3':
-    'The link survives app closes and reboots, from either side. Only “Unlink” ends it.',
+    'The group finds itself again after a restart, sleep, a network drop or an engine switch. Computers that are away stay listed.',
   'tour.share.tip':
-    'Start quietly: two computers playing at once add up. Lower your volume before the first link.',
+    'Start quietly: computers playing at once add up. Lower your volume before the first link.',
   'tour.share.open': 'Open Share Audio',
 
   'tour.library.kicker': 'YOUR MUSIC, YOUR PLAYER',

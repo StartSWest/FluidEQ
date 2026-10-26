@@ -89,6 +89,22 @@ export const linkViews = (
 export const playsHere = (link: ILinkRecord, bothWays: boolean): boolean =>
   linkSwitchesInEffect(link.switches).play && (bothWays || !link.joined);
 
+/**
+ * Whether a link's sound actually reaches this computer: played here, and
+ * sent by the other one. Its Share off, its Pause and its Send switched off
+ * for this computer all arrive as `sends: false`. An older FluidEQ this one
+ * joined never says anything and never sends back.
+ *
+ * What the bar shows and what the one-player rule pauses follow this, not the
+ * Receive switch alone: a computer that stopped sharing kept its song on this
+ * computer's bar, and kept being paused by this computer's players, while
+ * none of its sound came here (Ivan, 2026-10-26).
+ */
+export const heardHere = (link: ILinkRecord, bothWays: boolean): boolean =>
+  playsHere(link, bothWays) &&
+  link.theirs?.sends !== false &&
+  !(link.joined && link.theirs === undefined);
+
 /** Whether this computer's sound goes to a link, as the window can tell. */
 export const sendsThere = (link: ILinkRecord, bothWays: boolean): boolean =>
   linkSwitchesInEffect(link.switches).send &&

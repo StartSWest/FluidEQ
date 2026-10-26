@@ -1,6 +1,12 @@
 import '@testing-library/jest-dom';
 import { useCallback, useState } from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  createEvent,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import en from 'common/i18n/en';
 import { currentTrackId, type ILibraryQueue } from 'common/library/queue';
@@ -128,6 +134,17 @@ const row = (title: string) =>
 /** The whole amp, where music from the computer may be let go anywhere. */
 const amp = () => screen.getByRole('region', { name: en['player.aria'] });
 
+const fileGesture = (
+  type: 'dragOver' | 'drop',
+  target: HTMLElement,
+  dataTransfer: ReturnType<typeof transfer>,
+  clientY: number,
+) => {
+  const event = createEvent[type](target, { dataTransfer });
+  Object.defineProperty(event, 'clientY', { value: clientY });
+  fireEvent(target, event);
+};
+
 // The amp's Up next, on the shelf it shares with Playlists (`PlayerQueue`).
 describe('the amp’s queue', () => {
   beforeEach(async () => {
@@ -162,6 +179,23 @@ describe('the amp’s queue', () => {
     // The summary, and then how long is left: the store sums it, since the
     // queue can run past the stretch the deck lists.
     await store.settle();
+    // Real pointer positions select gaps; jsdom has no layout of its own.
+    screen
+      .getByRole('list')
+      .querySelectorAll('li')
+      .forEach((element, index) => {
+        jest.spyOn(element, 'getBoundingClientRect').mockReturnValue({
+          top: index * 50,
+          bottom: (index + 1) * 50,
+          height: 50,
+          x: 0,
+          y: index * 50,
+          left: 0,
+          right: 400,
+          width: 400,
+          toJSON: () => undefined,
+        });
+      });
   });
 
   afterEach(() => {
@@ -291,16 +325,89 @@ describe('the amp’s queue', () => {
       ]);
       // Before the drop, Chromium protects the file list but exposes its type.
       const hover = { ...dataTransfer, files: [] };
-      fireEvent.dragOver(row('Song C'), { dataTransfer: hover });
+      fileGesture('dragOver', row('Song C'), hover, 110);
       expect(hover.dropEffect).toBe('copy');
-      expect(screen.getByText(en['player.queue.drop'])).toBeInTheDocument();
-      fireEvent.drop(row('Song C'), { dataTransfer });
-      expect(addFiles).toHaveBeenCalledWith([
-        'D:\\music\\Inna - Various',
-        'D:\\music\\Album.2026',
-      ]);
+      expect(row('Song C')).toHaveClass('is-drop-before');
+      expect(
+        screen.queryByText(en['player.queue.drop']),
+      ).not.toBeInTheDocument();
+      fileGesture('drop', row('Song C'), dataTransfer, 110);
+      expect(addFiles).toHaveBeenCalledWith(
+        ['D:\\music\\Inna - Various', 'D:\\music\\Album.2026'],
+        2,
+      );
       expect(row('Song C')).not.toHaveClass('is-drop-before');
       expect(moveUpNext).not.toHaveBeenCalled();
+    });
+
+    it('inserts a batch after the pointed row without hiding the list', () => {
+      const files = transfer([
+        new File([], 'first.flac'),
+        new File([], 'second.mp3'),
+      ]);
+      fileGesture('dragOver', row('Song C'), files, 140);
+      expect(row('Song D')).toHaveClass('is-drop-before');
+      expect(
+        screen.queryByText(en['player.queue.drop']),
+      ).not.toBeInTheDocument();
+      fileGesture('drop', row('Song C'), files, 140);
+      expect(addFiles).toHaveBeenCalledTimes(1);
+      expect(addFiles).toHaveBeenCalledWith(
+        ['D:\\music\\first.flac', 'D:\\music\\second.mp3'],
+        3,
+      );
+      expect(row('Song D')).not.toHaveClass('is-drop-before');
+      expect(moveUpNext).not.toHaveBeenCalled();
+    });
+
+    it('accepts a drop over a row’s remove button at that row’s gap', () => {
+      const remove = row('Song D').parentElement?.querySelector(
+        'button.player-queue__remove',
+      );
+      if (!(remove instanceof HTMLElement)) {
+        throw new Error('Missing row remove button');
+      }
+      fileGesture('drop', remove, transfer([new File([], 'song.flac')]), 160);
+      expect(addFiles).toHaveBeenCalledWith(['D:\\music\\song.flac'], 3);
+    });
+
+    it('keeps a drop over played history ahead of the song playing', () => {
+      const files = transfer([new File([], 'song.flac')]);
+      fileGesture('dragOver', row('Song A'), files, 10);
+      expect(row('Song C')).toHaveClass('is-drop-before');
+      fileGesture('drop', row('Song A'), files, 10);
+      expect(addFiles).toHaveBeenCalledWith(['D:\\music\\song.flac'], 2);
+    });
+
+    it('marks the final gap and appends when the file lands below the rows', () => {
+      const files = transfer([new File([], 'song.flac')]);
+      fileGesture('dragOver', screen.getByRole('list'), files, 280);
+      expect(screen.getByRole('list')).toHaveClass(
+        'is-drop-after',
+        'is-file-drop',
+      );
+      fileGesture('drop', screen.getByRole('list'), files, 280);
+      expect(addFiles).toHaveBeenCalledWith(['D:\\music\\song.flac'], 5);
+      expect(screen.getByRole('list')).not.toHaveClass('is-drop-after');
+    });
+
+    it('switches between append-on-Amp and insertion-in-list feedback', () => {
+      const files = transfer([new File([], 'song.flac')]);
+      fireEvent.dragOver(amp(), { dataTransfer: files });
+      expect(screen.getByText(en['player.queue.drop'])).toBeInTheDocument();
+      fileGesture('dragOver', row('Song C'), files, 110);
+      expect(
+        screen.queryByText(en['player.queue.drop']),
+      ).not.toBeInTheDocument();
+      expect(row('Song C')).toHaveClass('is-drop-before');
+      fireEvent.dragOver(amp(), { dataTransfer: files });
+      expect(screen.getByText(en['player.queue.drop'])).toBeInTheDocument();
+      expect(row('Song C')).not.toHaveClass('is-drop-before');
+      fireEvent.dragLeave(amp(), { relatedTarget: null });
+      expect(
+        screen.queryByText(en['player.queue.drop']),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole('list')).not.toHaveClass('is-file-drop');
     });
 
     it('does not light up for a drag that carries no files', () => {

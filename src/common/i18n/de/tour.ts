@@ -19,23 +19,23 @@ const tour: Partial<Dictionary> = {
   'tour.howTitle': 'So geht es los',
   'tour.beta': 'Beta',
   'tour.player.kicker': 'KOMPAKTER PLAYER',
-  'tour.player.title': 'FluidEQ, zum Player zusammengeklappt',
-  'tour.player.subtitle': 'Ein Schalter macht aus dem Fenster einen Player',
+  'tour.player.title': 'Die ganze App in einer Spalte',
+  'tour.player.subtitle': 'Ein Player, gleich in allen Fensterfarben',
   'tour.player.lead':
-    'Ein Schalter in der Titelleiste macht aus ganz FluidEQ einen Player. Er ist der klassische Verstärker mit LED-Uhr, Lämpchen und dem ganzen Equalizer; im Modus {backdrop}, über einer Szene, wird er zu Glas. Derselbe Schalter bringt Sie zurück auf die Seite, die Sie verlassen haben.',
+    'Ein Schalter in der Titelleiste klappt FluidEQ zu einer Spalte zusammen: oben der Visualizer mit dem Song, darunter die Bedienung, Ihr Klang und was als Nächstes läuft. Derselbe Player in allen Fensterfarben, und eine gewählte Szene läuft hinter allem, im Modus {backdrop}.',
   'tour.player.point1':
-    'Der ganze Equalizer kommt mit: Presets, Band-Layouts, EQ-Modus, Smart-EQ, Bass, Mitten und Höhen.',
+    'Unter {sound}: Regler für Bass, Mitten und Höhen oder Ihre EQ-Bänder, daneben Preset, Smart-EQ und EQ-Modus.',
   'tour.player.point2':
-    'Klappen Sie den Player auf eine Zeile ein, halten Sie ihn über anderen Fenstern oder doppelklicken Sie auf den Visualizer für Vollbild.',
+    '„{upNext}“ und {playlists} stehen unten; klappen Sie sie für ein größeres Bild ein. Musik, die Sie irgendwo auf dem Player ablegen, kommt in die Warteschlange.',
   'tour.player.point3':
-    'Ein eigenes Design, und Songs, die Sie auf „Als Nächstes“ ablegen, kommen in die Bibliothek und in die Warteschlange.',
+    'Feste Breite, die Höhe ziehen Sie am oberen oder unteren Rand. Auf eine Zeile einklappen, über anderen Fenstern halten oder per Doppelklick aufs Bild als Vollbild.',
   'tour.player.how':
     'Drücken Sie in der Titelleiste neben Hilfe den Schalter Kompakter Player. Im Player holt derselbe Schalter die vollständige App zurück.',
   'tour.player.open': 'Kompakter Player ausprobieren',
   'tour.player.imageAlt':
-    'Die Ecke der Titelleiste mit markiertem Schalter {player} und die beiden Player, die er öffnet: der klassische Verstärker mit LED-Uhr, Lämpchen, Equalizer und Warteschlange, und der breitere Glas-Player über einem Polarlicht im Modus {backdrop}.',
-  'tour.player.classic': 'Klassischer Verstärker',
-  'tour.player.glass': 'Glas, im Modus {backdrop}',
+    'Die Ecke der Titelleiste mit markiertem Schalter {player} und zweimal der Kompakte Player: über einer Szene im Modus {backdrop} mit geöffneten EQ-Bändern und mit einem Standard-Visualizer hinter dem Song und geöffneten Klangreglern.',
+  'tour.player.scene': 'Mit einer Szene, im Modus {backdrop}',
+  'tour.player.standard': 'Mit einem Standard-Visualizer',
   'tour.look.kicker': 'NEUES AUSSEHEN',
   'tour.look.title': 'Ein neues Fenster in neuen Farben',
   'tour.look.subtitle':
@@ -256,7 +256,7 @@ const tour: Partial<Dictionary> = {
   'tour.room.imageAlt':
     'Ein Raum von oben: sieben Lautsprecher und ein Sub um einen Kopf in der Mitte, jeder mit seinem Weg zu den Ohren.',
 
-  'tour.plus.kicker': 'FLUIDEQ PLUS',
+  'tour.plus.kicker': 'VISUALIZER',
   'tour.plus.title': 'Szenen, die Ihnen für immer gehören',
   'tour.plus.subtitle': 'Visualizer, Studio, Beleuchtung und mehr',
   'tour.plus.lead':
@@ -331,22 +331,23 @@ const tour: Partial<Dictionary> = {
 
   'tour.share.kicker': 'JEDER PC, IN BEIDE RICHTUNGEN',
   'tour.share.title': 'Audio zwischen Ihren Computern teilen',
-  'tour.share.subtitle': 'Hören Sie beide Computer, egal an welchem Sie sitzen',
+  'tour.share.subtitle':
+    'Hören Sie jeden Computer der Gruppe, egal an welchem Sie sitzen',
   'tour.share.lead':
-    'Ihr Gaming-PC und Ihr Laptop spielen ineinander: An welchem Sie auch sitzen, Sie hören beide – über Ihr eigenes Netzwerk, verlustfrei, verschlüsselt und durch den EQ, den Sie an diesem Computer eingestellt haben.',
+    'Ihr Gaming-PC, Ihr Laptop und jeder andere Computer in Ihrem Netzwerk spielen in eine Gruppe: Egal an welchem Sie sitzen, Sie hören die anderen – verlustfrei, verschlüsselt und durch den EQ dieses Computers.',
   'tour.share.pairLabel': 'IN BEIDE RICHTUNGEN',
-  'tour.share.pairName': 'Jeder Computer spielt den Ton des anderen',
+  'tour.share.pairName': 'Jeder Computer spielt den Ton der anderen',
   'tour.share.wireLabel': 'Verlustfrei · Verschlüsselt · Privates LAN',
   'tour.share.stepsTitle': 'In drei Schritten eingerichtet',
   'tour.share.step1Title': 'Auf einem Computer den Code kopieren',
   'tour.share.step1':
-    'Öffnen Sie den Tab „Audio teilen“ und drücken Sie „Code kopieren“. Der Code bleibt jedes Mal derselbe.',
+    'Öffnen Sie „Audio teilen“, drücken Sie „Computer hinzufügen“ und dann „Code kopieren“. Der Code bleibt immer derselbe.',
   'tour.share.step2Title': 'Auf dem anderen einfügen und verbinden',
   'tour.share.step2':
-    'Öffnen Sie dort „Audio teilen“, fügen Sie den Code unter „Code des anderen Computers“ ein und drücken Sie „Verbinden“. Beide spielen sich sofort unverändert gegenseitig, jeder mit seinem eigenen EQ.',
+    'Drücken Sie dort „Computer hinzufügen“, fügen Sie den Code unter „Code des anderen Computers“ ein und drücken Sie „Verbinden“. Später verbundene Computer kommen in die ganze Gruppe.',
   'tour.share.step3Title': 'Festlegen, was wohin geht',
   'tour.share.step3':
-    'Jeder verbundene Computer hat zwei Schalter, „Hier abspielen“ und „Meinen Ton senden“; mit einem davon aus geht es nur in eine Richtung. Die Leiste zeigt den Song des anderen Computers und steuert ihn. Ein Regler neben „Hier abspielen“ bestimmt die Lautstärke, und „Pausieren“ hält beide Richtungen an, bis Sie „Fortsetzen“ drücken.',
+    'Jeder Computer hat „Empfangen“ und „Senden“, und „Teilen“ schaltet Ihren Ton für alle ab. „Ihr Mix“ regelt jede Lautstärke. Pausieren und Trennen stehen im Menü jedes Computers, und die Tasten der Leiste wirken über das Netzwerk.',
   'tour.share.fact1Title': 'Verlustfrei',
   'tour.share.fact1':
     'Float32-PCM von Ende zu Ende. Kein Codec, kein Generationsverlust.',
@@ -355,9 +356,9 @@ const tour: Partial<Dictionary> = {
     'AES-256-GCM auf jedem Paket. Der Code ist der Schlüssel; ohne ihn hört niemand mit.',
   'tour.share.fact3Title': 'Bleibt verbunden',
   'tour.share.fact3':
-    'Die Verbindung übersteht das Schließen der App und Neustarts, auf beiden Seiten. Nur „Trennen“ beendet sie.',
+    'Die Gruppe findet sich nach einem Neustart, dem Ruhezustand, einem Netzwerkausfall oder einem Engine-Wechsel von selbst wieder. Abwesende Computer bleiben aufgelistet.',
   'tour.share.tip':
-    'Leise anfangen: Zwei gleichzeitig spielende Computer addieren sich. Drehen Sie die Lautstärke vor der ersten Verbindung herunter.',
+    'Leise anfangen: Gleichzeitig spielende Computer addieren sich. Drehen Sie die Lautstärke vor der ersten Verbindung herunter.',
   'tour.share.open': 'Audio teilen öffnen',
 
   'tour.library.kicker': 'IHRE MUSIK, IHR PLAYER',

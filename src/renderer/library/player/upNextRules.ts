@@ -12,8 +12,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * below the last one, only when a song reaches its last position it shows
  * more similar things to play as a different section"):
  *
- * - Songs added go to the END of what the listener has queued, in the order
- *   given.
+ * - Songs added join the end, or a gap explicitly chosen by a file drop,
+ *   in the order given.
  * - No song stands twice in what is coming, the song playing included.
  * - What continuation draws ("More like this") comes after the last song the
  *   listener queued, and only once that song is playing: while any song of
@@ -90,7 +90,8 @@ export const idsStillComing = (
   );
 
 /**
- * "Add to up next": the songs join the end, never twice.
+ * Songs join the chosen gap ahead of playback, never twice. Add to Up next
+ * uses the end; an Explorer drop can choose a gap between existing songs.
  *
  * It used to splice them in right after the song playing, ahead of the rest
  * of the record, and to look for a song already queued only BEYOND the songs
@@ -106,9 +107,10 @@ export const idsStillComing = (
  * the listener's own and nothing of continuation's stands between them.
  * Answers `queue` itself when nothing joins.
  */
-export const appendToEnd = (
+export const insertAt = (
   queue: ILibraryQueue,
   trackIds: readonly string[],
+  at: number,
   isGuess: (trackId: string) => boolean,
 ): ILibraryQueue => {
   const kept = dropGuessesAhead(queue, isGuess);
@@ -122,20 +124,65 @@ export const appendToEnd = (
   // `setShuffle` and `removeFromQueue` would read as one song in two places.
   const pointedAt = new Set(kept.order);
   const nextTrackIds = [...kept.trackIds];
-  const order = [...kept.order];
+  const inserted: number[] = [];
   joining.forEach((id) => {
     const free = nextTrackIds.findIndex(
       (existing, index) => existing === id && !pointedAt.has(index),
     );
     if (free !== -1) {
       pointedAt.add(free);
-      order.push(free);
+      inserted.push(free);
       return;
     }
     nextTrackIds.push(id);
-    order.push(nextTrackIds.length - 1);
+    inserted.push(nextTrackIds.length - 1);
   });
-  return { ...kept, trackIds: nextTrackIds, order };
+  // Dropping continuation's draws may remove entries before the chosen gap.
+  // Count only those that survived, then keep the insertion ahead of playback.
+  const before = queue.order
+    .slice(0, Math.max(queue.position + 1, at))
+    .filter((index, position) =>
+      position <= queue.position ? true : !isGuess(queue.trackIds[index] ?? ''),
+    ).length;
+  const position = Math.max(kept.position + 1, before);
+  return {
+    ...kept,
+    trackIds: nextTrackIds,
+    order: [
+      ...kept.order.slice(0, position),
+      ...inserted,
+      ...kept.order.slice(position),
+    ],
+  };
+};
+
+export const appendToEnd = (
+  queue: ILibraryQueue,
+  trackIds: readonly string[],
+  isGuess: (trackId: string) => boolean,
+): ILibraryQueue => insertAt(queue, trackIds, queue.order.length, isGuess);
+
+/**
+ * A folder scan can finish after playback moves on or the queue is edited.
+ * Follow the first surviving song after the dropped gap, rather than a stale
+ * numeric position that now names another song. With none left, join the end.
+ */
+export const insertionBefore = (
+  queue: ILibraryQueue,
+  beforeIds: readonly string[],
+): number => {
+  const positions = new Map<string, number>();
+  queue.order.forEach((index, position) => {
+    const id = queue.trackIds[index];
+    if (position > queue.position && id !== undefined && !positions.has(id)) {
+      positions.set(id, position);
+    }
+  });
+  return (
+    beforeIds
+      .map((id) => positions.get(id))
+      .find((position) => position !== undefined) ?? queue.order.length
+  );
 };
 
 /**

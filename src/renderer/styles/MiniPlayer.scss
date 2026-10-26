@@ -38,6 +38,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // for the page's root say `:scope` instead.
 //
 // Only what is the whole window's stands outside both.
+//
+// The same sheet applies inside a picture of the player drawn by its own
+// parts (`.player-picture`, What's New's `PlayerPicture`), with that box as
+// the page's root: one stylesheet, so the picture cannot drift from the
+// player it shows.
 
 // The colours the amps' canvases read when they are sized, registered so a
 // canvas is handed a colour and not the text of a `color-mix()`. One
@@ -126,6 +131,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   display: none;
 }
 
-@scope (:root[data-amp]) {
+@scope (:root[data-amp], .player-picture) {
   @include meta.load-css('ampStage');
 }

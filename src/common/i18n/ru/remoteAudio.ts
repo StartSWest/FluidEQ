@@ -2,6 +2,7 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.group.add': 'Добавить компьютер',
   'remoteAudio.group.title': 'Вся группа',
   'remoteAudio.group.mix': 'Ваш микс',
   'remoteAudio.group.thisPC': 'Этот ПК',
@@ -25,7 +26,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.badge.local': 'Только частная LAN',
   'remoteAudio.badge.lossless': 'Передача Float32 PCM без потерь',
   'remoteAudio.badge.encrypted': 'Шифрование AES-256-GCM',
-  'remoteAudio.link.section': 'Связать компьютер',
   'remoteAudio.link.thisComputer': 'Этот компьютер',
   'remoteAudio.link.thisHint':
     'Вставьте этот код на другом компьютере или вставьте сюда код того компьютера. Подойдёт любой вариант.',
@@ -90,6 +90,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOneWay':
     'Воспроизведение в обе стороны требует Windows или FluidEQ Engine в Linux.',
   'remoteAudio.lane.outQuiet': 'На этом компьютере ничего не играет',
+  'remoteAudio.lane.outSounding': 'На этом компьютере играет звук',
   'remoteAudio.lane.outOff':
     'Отправка выключена. {name} не слышит этот компьютер.',
   'remoteAudio.lane.outNotPlayed':
@@ -100,7 +101,6 @@ const remoteAudio: Partial<Dictionary> = {
     'Отправка в обе стороны требует Windows или FluidEQ Engine в Linux.',
   'remoteAudio.lane.outFailed':
     'Не удалось захватить звук этого компьютера. Выключите и снова включите «Отправлять мой звук», чтобы попробовать ещё раз.',
-  'remoteAudio.another.section': 'Связать ещё один компьютер',
   'remoteAudio.singlePlayer.title': 'Только один проигрыватель',
   'remoteAudio.singlePlayer.body':
     'распространяется и на связанные компьютеры: запуск чего-то на одном ставит на паузу то, что играло на другом.',

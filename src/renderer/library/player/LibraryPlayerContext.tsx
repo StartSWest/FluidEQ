@@ -532,6 +532,7 @@ export const LibraryPlayerProvider = ({
   const {
     jumpToQueuePosition,
     appendToQueue,
+    insertIntoQueue,
     removeUpNextAt,
     moveUpNext,
     setShuffle,
@@ -590,14 +591,27 @@ export const LibraryPlayerProvider = ({
    * the rows would draw as their own identifiers.
    */
   const addFiles = useCallback(
-    async (paths: string[]): Promise<TDroppedMusic> => {
+    async (paths: string[], at?: number): Promise<TDroppedMusic> => {
+      // Capture the gap before an asynchronous folder scan can move the queue.
+      const snapshot = queueRef.current;
+      const beforeIds =
+        at === undefined
+          ? undefined
+          : (snapshot?.order
+              .slice(at)
+              .map((index) => snapshot.trackIds[index])
+              .filter((id): id is string => id !== undefined) ?? []);
       const trackIds = await queueFiles(paths);
       if (trackIds.length === 0) {
         return 'empty';
       }
-      return appendToQueue(trackIds) > 0 ? 'added' : 'already';
+      const joined =
+        beforeIds === undefined
+          ? appendToQueue(trackIds)
+          : insertIntoQueue(trackIds, beforeIds);
+      return joined > 0 ? 'added' : 'already';
     },
-    [appendToQueue, queueFiles],
+    [appendToQueue, insertIntoQueue, queueFiles],
   );
   usePublishedLibraryDeck({
     queue,

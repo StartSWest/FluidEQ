@@ -2,6 +2,7 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.group.add': 'コンピューターを追加',
   'remoteAudio.group.title': 'グループ全体',
   'remoteAudio.group.mix': '自分のミックス',
   'remoteAudio.group.thisPC': 'このPC',
@@ -25,7 +26,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.badge.local': 'プライベート LAN のみ',
   'remoteAudio.badge.lossless': 'ロスレス Float32 PCM 伝送',
   'remoteAudio.badge.encrypted': 'AES-256-GCM 暗号化',
-  'remoteAudio.link.section': 'コンピューターをリンク',
   'remoteAudio.link.thisComputer': 'このコンピューター',
   'remoteAudio.link.thisHint':
     'このコードをもう一方のコンピューターに貼り付けるか、そのコンピューターのコードをここに貼り付けます。どちらでも構いません。',
@@ -89,6 +89,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOneWay':
     '双方向の再生には Windows、または Linux の FluidEQ Engine が必要です。',
   'remoteAudio.lane.outQuiet': 'このコンピューターでは何も再生されていません',
+  'remoteAudio.lane.outSounding': 'このコンピューターで音が再生されています',
   'remoteAudio.lane.outOff':
     '送信していません。{name} にはこのコンピューターの音は聞こえません。',
   'remoteAudio.lane.outNotPlayed': '{name} は「ここで再生する」がオフです。',
@@ -98,7 +99,6 @@ const remoteAudio: Partial<Dictionary> = {
     '双方向の送信には Windows、または Linux の FluidEQ Engine が必要です。',
   'remoteAudio.lane.outFailed':
     'このコンピューターの音をキャプチャできませんでした。「自分の音を送る」をオフにしてからオンにし直してください。',
-  'remoteAudio.another.section': 'ほかのコンピューターをリンク',
   'remoteAudio.singlePlayer.title': '再生はひとつだけ',
   'remoteAudio.singlePlayer.body':
     'はリンクしたコンピューターにも及びます。片方で再生を始めると、もう片方で再生中のものが一時停止します。',

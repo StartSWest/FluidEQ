@@ -19,23 +19,23 @@ const tour: Partial<Dictionary> = {
   'tour.howTitle': '如何开始',
   'tour.beta': 'Beta',
   'tour.player.kicker': '迷你播放器',
-  'tour.player.title': 'FluidEQ，折叠成一台播放器',
-  'tour.player.subtitle': '一个开关，把窗口变成播放器',
+  'tour.player.title': '整个应用收进一列',
+  'tour.player.subtitle': '一个播放器，任何窗口配色都一样',
   'tour.player.lead':
-    '标题栏里的一个开关，就能把整个 FluidEQ 收成一个播放器。它是经典功放，带 LED 时钟、指示灯和完整的均衡器；在“{backdrop}”模式下、场景之上，它会变成玻璃。同一个开关会带你回到离开时的页面。',
+    '标题栏上的一个开关把 FluidEQ 收成一列：最上面是可视化效果，歌曲信息叠在上面，下面是控制按钮、你的声音和接下来播放的内容。无论哪种窗口配色，都是同一个播放器；选择场景时，场景会在整个播放器后面播放，即“{backdrop}”。',
   'tour.player.point1':
-    '完整的均衡器一并带上：预设、频段布局、EQ 模式、智能均衡，以及低音、中音和高音。',
+    '“{sound}”里有低音、中音、高音旋钮，或者你自己的 EQ 频段，旁边是预设、智能均衡和 EQ 模式。',
   'tour.player.point2':
-    '把它折叠为一行、置顶在其他窗口之上，或双击可视化效果铺满屏幕。',
+    '“{upNext}”和“{playlists}”在最下面。折叠任一部分可让画面更大；把音乐拖放到播放器的任意位置，即可加入播放队列。',
   'tour.player.point3':
-    '有自己的主题；拖放到“接下来播放”的歌曲会加入媒体库和队列。',
+    '宽度固定，高度由你从顶部或底部边缘拖动决定。可以折叠为一行、置顶在其他窗口之上，或双击画面铺满屏幕。',
   'tour.player.how':
     '按下标题栏中“帮助”旁边的“迷你播放器”开关。在播放器上，同一个开关会带回完整界面。',
   'tour.player.open': '试试迷你播放器',
   'tour.player.imageAlt':
-    '标题栏一角，“{player}”开关被圈出；以及它打开的两种播放器：带 LED 时钟、指示灯、均衡器和播放队列的经典功放，和在“{backdrop}”模式下、极光之上更宽的玻璃播放器。',
-  'tour.player.classic': '经典功放',
-  'tour.player.glass': '玻璃，“{backdrop}”模式',
+    '标题栏一角，圈出了{player}开关；下面是两个迷你播放器：一个在“{backdrop}”下叠在场景上，打开了 EQ 频段；另一个在歌曲后面显示标准可视化效果，打开了音色旋钮。',
+  'tour.player.scene': '场景，“{backdrop}”',
+  'tour.player.standard': '标准可视化效果',
   'tour.look.kicker': '全新外观',
   'tour.look.title': '全新的窗口，全新的颜色',
   'tour.look.subtitle': '一个主题滑块，所有内容背后都能有可视化效果',
@@ -244,7 +244,7 @@ const tour: Partial<Dictionary> = {
   'tour.room.imageAlt':
     '俯视的房间：七只音箱和一只低音炮围绕中央的头部，每只都有通往双耳的路径。',
 
-  'tour.plus.kicker': 'FluidEQ Plus',
+  'tour.plus.kicker': '可视化',
   'tour.plus.title': '永久归你的场景',
   'tour.plus.subtitle': '可视化、工作室、灯效，还有更多',
   'tour.plus.lead':
@@ -316,21 +316,22 @@ const tour: Partial<Dictionary> = {
 
   'tour.share.kicker': '每台电脑，双向互通',
   'tour.share.title': '在你的电脑之间共享音频',
-  'tour.share.subtitle': '无论坐在哪台电脑前，都能听到两台的声音',
+  'tour.share.subtitle': '无论坐在哪台电脑前，都能听到群组里每台电脑的声音',
   'tour.share.lead':
-    '你的游戏电脑和笔记本互相播放：无论你坐在哪台前，都能听到两台的声音——通过你自己的网络，无损、加密，并经过你在那台电脑上调好的 EQ。',
+    '你的游戏 PC、笔记本和网络里的其他电脑都在同一个群组里播放：无论坐在哪台前，你都能听到其他电脑，无损、加密，并经过那台电脑自己的 EQ。',
   'tour.share.pairLabel': '双向',
-  'tour.share.pairName': '每台电脑播放对方的声音',
+  'tour.share.pairName': '每台电脑播放其他电脑的声音',
   'tour.share.wireLabel': '无损 · 加密 · 私有局域网',
   'tour.share.stepsTitle': '三步完成设置',
   'tour.share.step1Title': '在一台电脑上复制连接码',
-  'tour.share.step1': '打开“共享音频”标签页，按“复制代码”。连接码每次都一样。',
+  'tour.share.step1':
+    '打开“共享音频”标签页，按“添加电脑”，然后按“复制代码”。代码每次都一样。',
   'tour.share.step2Title': '在另一台上粘贴并链接',
   'tour.share.step2':
-    '在另一台电脑上打开“共享音频”，把连接码粘贴到“另一台电脑的连接码”下，然后按“链接”。两台会立即原样互相播放：每台都对自己听到的声音套用自己的 EQ。',
+    '在那台电脑上按“添加电脑”，把连接码粘贴到“另一台电脑的连接码”下，然后按“链接”。之后链接的电脑都会加入整个群组。',
   'tour.share.step3Title': '选择声音的去向',
   'tour.share.step3':
-    '每台已链接的电脑都有两个开关：“在此播放”和“发送我的声音”。关闭其中一个即可只单向共享。播放栏会显示另一台电脑的歌曲，其按钮可跨链接使用。“在此播放”旁的滑块可调节音量，“暂停”会停止两个方向，直到你按下“继续”。',
+    '每台电脑都有“接收”和“发送”，“共享”会对所有电脑关闭你的声音。“你的混音”设置每个音量。暂停和取消链接在每台电脑的菜单里，播放栏的按钮可以跨网络使用。',
   'tour.share.fact1Title': '无损',
   'tour.share.fact1': '端到端 Float32 PCM。没有媒体编解码器，没有转码损失。',
   'tour.share.fact2Title': '加密',
@@ -338,9 +339,9 @@ const tour: Partial<Dictionary> = {
     '每个数据包都经 AES-256-GCM 加密。连接码就是密钥，没有它谁也听不到。',
   'tour.share.fact3Title': '保持链接',
   'tour.share.fact3':
-    '关闭应用或重启后，链接依然保留，哪一边都一样。只有“取消链接”才会结束它。',
+    '重启、睡眠、网络中断或切换引擎后，群组会自动重新连上。不在线的电脑仍留在列表里。',
   'tour.share.tip':
-    '从小音量开始：两台电脑同时播放会叠加音量。首次链接前请先调低音量。',
+    '从小音量开始：同时播放的电脑会叠加音量。首次链接前请先调低音量。',
   'tour.share.open': '打开共享音频',
 
   'tour.library.kicker': '你的音乐，你的播放器',

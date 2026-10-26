@@ -9,6 +9,8 @@ import {
   appendToEnd,
   dropGuessesAhead,
   idsStillComing,
+  insertAt,
+  insertionBefore,
   isOnLastSong,
   settleGuesses,
   topUpQueue,
@@ -41,6 +43,83 @@ const guesses = (...ids: string[]) => {
   return (id: string) => set.has(id);
 };
 const noGuesses = () => false;
+
+describe('inserting dropped files at a chosen gap', () => {
+  it('keeps a batch in drop order between the existing songs', () => {
+    const queue = queueOf(['a', 'b', 'c', 'd'], 1);
+    const next = insertAt(queue, ['x', 'y'], 3, noGuesses);
+    expect(fromPlaying(next)).toEqual(['b', 'c', 'x', 'y', 'd']);
+    expect(next.order.slice(0, 2)).toEqual(queue.order.slice(0, 2));
+    expect(queue.trackIds).toEqual(['a', 'b', 'c', 'd']);
+  });
+
+  it('keeps shuffled playback order rather than inserting into the source list', () => {
+    const queue = {
+      ...queueOf(['a', 'b', 'c', 'd'], 1, [2, 0, 3, 1]),
+      isShuffled: true,
+    };
+    const next = insertAt(queue, ['x'], 3, noGuesses);
+    expect(fromPlaying(next)).toEqual(['a', 'd', 'x', 'b']);
+    expect(next.isShuffled).toBe(true);
+  });
+
+  it('deduplicates incoming songs and leaves already-upcoming songs in place', () => {
+    const next = insertAt(
+      queueOf(['a', 'b', 'c'], 0),
+      ['x', 'c', 'x', 'a', 'y'],
+      1,
+      noGuesses,
+    );
+    expect(fromPlaying(next)).toEqual(['a', 'x', 'y', 'b', 'c']);
+  });
+
+  it.each([-1, 0, 1])(
+    'keeps insertion %i ahead of playback and history',
+    (at) => {
+      const next = insertAt(
+        queueOf(['a', 'b', 'c', 'd'], 1),
+        ['x'],
+        at,
+        noGuesses,
+      );
+      expect(fromPlaying(next)).toEqual(['b', 'x', 'c', 'd']);
+    },
+  );
+
+  it('joins the end when the named gap is past the queue', () => {
+    const next = insertAt(queueOf(['a', 'b', 'c'], 0), ['x'], 99, noGuesses);
+    expect(fromPlaying(next)).toEqual(['a', 'b', 'c', 'x']);
+  });
+
+  it('rebases the gap after removing continuation draws before it', () => {
+    const next = insertAt(
+      queueOf(['a', 'guess', 'b', 'c'], 0),
+      ['x', 'y'],
+      3,
+      guesses('guess'),
+    );
+    expect(fromPlaying(next)).toEqual(['a', 'b', 'x', 'y', 'c']);
+  });
+
+  it('follows the target song when the list was reordered during a scan', () => {
+    const queue = queueOf(['a', 'b', 'c', 'd'], 0, [0, 3, 1, 2]);
+    const at = insertionBefore(queue, ['d']);
+    expect(fromPlaying(insertAt(queue, ['x'], at, noGuesses))).toEqual([
+      'a',
+      'x',
+      'd',
+      'b',
+      'c',
+    ]);
+  });
+
+  it('uses the next surviving upcoming anchor if the target was removed or played', () => {
+    const queue = queueOf(['a', 'b', 'c', 'd', 'e'], 1, [0, 1, 3, 4]);
+    expect(insertionBefore(queue, ['b', 'c', 'd', 'e'])).toBe(2);
+    expect(insertionBefore(queue, ['gone'])).toBe(4);
+    expect(insertionBefore(queue, [])).toBe(4);
+  });
+});
 
 describe('adding to Up next', () => {
   it('puts the songs at the end, in the order given', () => {

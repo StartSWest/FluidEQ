@@ -610,10 +610,10 @@ select option {
 
 // What the ends leave over, up to 420px.
 //
-// And the ends give ground before it does: the tagline and the creature leave
-// the moment keeping them would cost the drawing any width (`data-crowded`,
-// set by `useTitlebarRoom`), and only then does it narrow, to what the two
-// ends' content leaves.
+// And the ends give ground before it does: the creature leaves the moment
+// keeping her would cost the drawing any width (`data-crowded`, set by
+// `useTitlebarRoom`), and only then does it narrow, to what the two ends'
+// content leaves.
 //
 // A length rather than a flex basis: the pane's own width is a percentage of
 // this box, and a percentage inside a shrink-to-fit parent contributes nothing
@@ -1002,31 +1002,23 @@ select option {
   }
 }
 
-// THE TAGLINE AND THE CREATURE GO FIRST, together, the moment keeping them
-// would cost the wave any of its width (Ivan, 2026-09-22: "the moment the
-// wave starts narrowing remove help and pet [...] and also hide the 'Your
-// sound' text to make space"). `useTitlebarRoom` measures that moment in the
-// running window and sets `data-crowded`; it was two fixed widths, 1560 and
-// 1280, and the wave was already giving ground above both — by 191px at 1281
-// in English, the creature still standing beside it — and where it starts
-// depends on the names in the two ends, which is different in every language.
+// THE CREATURE GOES FIRST, the moment keeping her would cost the wave any of
+// its width (Ivan, 2026-09-22: "the moment the wave starts narrowing remove
+// help and pet [...] and also hide the 'Your sound' text to make space"; that
+// slogan has left the bar altogether since). `useTitlebarRoom` measures that
+// moment in the running window and sets `data-crowded`; it was two fixed
+// widths, 1560 and 1280, and the wave was already giving ground above both —
+// by 191px at 1281 in English, the creature still standing beside it — and
+// where it starts depends on the names in the two ends, which is different in
+// every language.
 //
 // Help does not go with them: it is a glyph inside the capsule, and Support is
 // one item down in the menu beside her, with the full-screen chrome keeping
 // its own copy.
-.window-titlebar[data-crowded] {
-  // Out of the flow and not out of the page, so what it would take back can
-  // still be measured, in whatever language it is in by then.
-  .workspace-header__tagline {
-    position: absolute;
-    visibility: hidden;
-  }
-
-  // Out of the page: hidden any other way her animations go on running
-  // unseen. Her width is a fixed box the hook remembers.
-  .window-titlebar__right > .support-pet {
-    display: none;
-  }
+// Out of the page: hidden any other way her animations go on running unseen.
+// Her width is a fixed box the hook remembers.
+.window-titlebar[data-crowded] .window-titlebar__right > .support-pet {
+  display: none;
 }
 
 // AND THEN THE BAR ITSELF, at a window zoomed past what its ends and the
@@ -1226,8 +1218,9 @@ select option {
   @include truncate;
   display: flex;
   align-items: baseline;
-  gap: 7px;
-  font-size: 1.2rem;
+  gap: 5px;
+  // A touch larger now that it stands alone on the line, centred on the mark.
+  font-size: 1.35rem;
   font-weight: $weight-bold;
   letter-spacing: -0.02em;
 }
@@ -1246,25 +1239,35 @@ select option {
   width: min(420px, calc(100vw - 36px));
 }
 
-// Quiet by design: useful in a bug report, not something to read every day.
+// Quiet by design: useful in a bug report, not something to read every day —
+// a small suffix to the name rather than a badge beside it (Ivan, 2026-10-25,
+// trying "C · Clean wordmark").
 .workspace-header__version {
   flex: 0 0 auto;
-  padding: 1px 6px;
-  color: $text-accent;
-  border: 1px solid $border-field;
-  border-radius: $radius-2xs;
-  background: color-mix(in srgb, $secondary-default 10%, transparent);
+  align-self: flex-start;
+  margin-top: 1px;
+  // Last, once the name has risen (`SignalBrand.scss`): its seven letters
+  // start 700ms in, 45ms apart, so this comes in as "Q" settles rather than
+  // standing alone beside an empty name (Ivan, 2026-10-25: "the version
+  // shows at the end of the animation").
+  opacity: 0;
+  transform: translateY(5px);
+  animation: signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards;
+  animation-delay: calc(700ms + 8 * 45ms);
+  color: $text-faint;
   font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;
   @include tracking(0.02em);
 }
 
-.workspace-header__tagline {
-  @include truncate;
-  margin-top: 2px;
-  color: $text-primary;
-  font-size: $text-body;
+// Still with the name, which stands risen at once here (`SignalBrand.scss`).
+@media (prefers-reduced-motion: reduce) {
+  .workspace-header__version {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
 }
 
 // The last three places, the pet, the actions button and the window controls.

@@ -98,9 +98,9 @@ const help: Record<keyof typeof en, string> = {
     'Le niveau de sortie des canaux gauche et droit, en décibels réels. Appuyez dessus pour changer son style.',
   'help.player.title': 'Le Lecteur compact',
   'help.player.intro':
-    'Un seul interrupteur transforme la fenêtre de FluidEQ en Lecteur compact : une colonne étroite avec le morceau, votre égaliseur, un visualiseur et la file À suivre, en volets que vous ouvrez et fermez. Ce qui est en lecture continue de jouer, et le même interrupteur ramène l’application complète sur la page que vous aviez quittée.',
+    'Un seul interrupteur transforme la fenêtre de FluidEQ en Lecteur compact, une seule colonne étroite : en haut, un visualiseur avec le morceau par-dessus et les commandes de lecture en dessous ; puis Son, votre égaliseur ; puis À suivre et vos playlists. Ce qui est en lecture continue de jouer, et le même interrupteur ramène l’application complète sur la page que vous aviez quittée.',
   'help.player.steps':
-    'Appuyez sur l’interrupteur Lecteur compact dans la barre de titre, à côté d’Aide. Sur le lecteur, le même interrupteur ramène l’application complète.\nOuvrez et fermez les volets avec EQ, Visuel et File. La fenêtre s’agrandit et rétrécit selon la place que prend chacun, et le lecteur retient sa taille et sa position.\nDouble-cliquez sur la barre du lecteur, ou choisissez Replier sur une ligne dans son menu, pour qu’il tienne sur une seule ligne ; le logo FluidEQ le déplie.\nRéglez la Luminosité propre au lecteur dans son menu, et gardez-le au-dessus des autres fenêtres avec Toujours au premier plan.\nDéposez des fichiers musicaux sur À suivre : ils rejoignent la Bibliothèque et la file de lecture.',
+    'Appuyez sur l’interrupteur Lecteur compact dans la barre de titre, à côté d’Aide. Sur le lecteur, le même interrupteur ramène l’application complète.\nRepliez Son, ou À suivre et Playlists, sur leur en-tête : le visualiseur prend la place, et un clic sur l’en-tête les rouvre. Faites glisser le bord haut ou bas du lecteur pour le rendre plus haut ou plus bas.\nDouble-cliquez sur le visualiseur pour qu’il remplisse l’écran ; Échap le remet en place. Cliquez sur le nom du style, à côté de l’aléatoire et de la répétition, pour choisir parmi tous les styles et toutes les scènes.\nDouble-cliquez sur l’en-tête du lecteur, ou choisissez Replier sur une ligne dans le menu du logo FluidEQ, pour qu’il tienne sur une seule ligne ; le logo le déplie.\nDans ce même menu, réglez la Luminosité propre au lecteur, la Transparence sur une scène ou la Teinte de la fenêtre sur un style standard, et la Lumière du jour d’une scène. Toujours au premier plan, là ou dans l’en-tête, le garde au-dessus des autres fenêtres.\nDéposez des fichiers musicaux n’importe où sur le lecteur : ils rejoignent la Bibliothèque et la fin d’À suivre ou, sur la liste, l’endroit où vous les lâchez.',
   'help.player.tip':
     'Le volume du lecteur est celui de votre ordinateur, le même que dans Windows : il règle donc le niveau de tout ce que joue l’ordinateur. Si le lecteur se retrouve hors de l’écran, faites un clic droit sur FluidEQ dans la zone de notification de la barre des tâches et choisissez Récupérer la fenêtre.',
   'help.player.keywords':
@@ -111,7 +111,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.menuCaption': 'Le menu du lecteur',
   'help.player.foldedCaption': 'Replié sur une ligne',
   'help.player.menu':
-    'Revenir à l’application complète ou à l’une de ses pages, la Luminosité propre au lecteur, Toujours au premier plan et Replier sur une ligne.',
+    'Revenir à l’application complète ou à l’une de ses pages ; la Luminosité propre au lecteur, la Transparence ou la Teinte, la Lumière du jour d’une scène, le Mode coloré et les curseurs de l’EQ ; Toujours au premier plan et Replier sur une ligne.',
   'help.player.pin':
     'Garde le lecteur au-dessus de toutes les autres fenêtres.',
   'help.player.switch':
@@ -133,28 +133,28 @@ const help: Record<keyof typeof en, string> = {
   'help.player.orderName': 'Aléatoire et répétition',
   'help.player.order':
     'Mélange la file À suivre, et répète : rien, tout ou cette chanson.',
-  'help.player.lookName': 'Style suivant',
+  'help.player.lookName': 'Style',
   'help.player.look':
-    'Change le style du visualiseur. Ctrl+clic revient au précédent, et un clic droit les liste tous.',
+    'Le style ou la scène que dessine le visualiseur. Cliquez dessus pour choisir parmi tous.',
   'help.player.screen':
     'Ce que vous entendez, dessiné : vos bandes, l’Égalisation auto et tout autre traitement appliqué, sur un style de visualiseur. Également appliqué les liste, et chaque étiquette désactive sa couche sans la supprimer.',
   'help.player.bands':
     'Faites glisser une bande vers le haut ou le bas pour l’amplifier ou l’atténuer. Sa fréquence est écrite en dessous.',
   'help.player.tone':
-    'Bandes affiche toutes les bandes ; Tonalité les remplace par les boutons Graves, Médiums et Aigus.',
+    'Tonalité affiche les boutons Graves, Médiums et Aigus ; l’onglet d’à côté, toutes les bandes.',
   'help.player.upNext':
-    'Où vous en êtes dans la file, le temps qu’il y reste, et votre progression.',
+    'À suivre et Playlists, chacun avec son nombre, et le temps qu’il reste dans la file.',
   'help.player.library': 'Ouvre la Bibliothèque dans l’application complète.',
   'help.player.songsName': 'Les morceaux',
   'help.player.songs':
-    'Ce qui joue ensuite. Double-cliquez sur un morceau pour le lire, ou déposez ici des fichiers musicaux pour les ajouter.',
+    'Ce qui joue ensuite. Cliquez sur un morceau pour le lire, faites-le glisser pour le déplacer, ou déposez ici des fichiers musicaux pour les ajouter à l’endroit où vous les lâchez.',
   'help.player.openIn': 'Ouvre l’application complète sur l’une de ses pages.',
   'help.player.theme':
-    'La Luminosité propre au lecteur, indépendante de celle de l’application complète ; la Transparence, pour le lecteur en verre au-dessus d’un visualiseur ; et le Mode coloré.',
+    'La Luminosité propre au lecteur, indépendante de celle de l’application complète ; la Transparence sur une scène, ou la Teinte de la fenêtre sur un style standard ; la Lumière du jour d’une scène ; et le Mode coloré.',
   'help.player.fold':
-    'Replie le lecteur sur une ligne. Un double-clic sur sa barre fait de même.',
+    'Replie le lecteur sur une ligne. Un double-clic sur son en-tête fait de même.',
   'help.player.unfold': 'Déplie le lecteur. La flèche à l’autre bout aussi.',
-  'help.player.foldedPlaying': 'Précédent, lecture ou pause, suivant et arrêt.',
+  'help.player.foldedPlaying': 'Lecture ou pause.',
   'help.player.foldedClock': 'Le temps, et où en est le morceau.',
 
   'help.requirements.title': 'Ce qu’il faut à votre PC',
@@ -700,13 +700,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.share.title': 'Partagez l’audio entre ordinateurs',
   'help.share.intro':
-    'Partager l’audio relie deux ordinateurs du même réseau privé, et chacun joue le son de l’autre : quel que soit celui devant lequel vous êtes, vous entendez les deux. Chaque ordinateur envoie son son intact et ne renvoie jamais ce qu’il reçoit, donc pas d’écho ; l’ordinateur sur lequel vous écoutez applique son propre EQ, ses courbes et son DSP. C’est différent de la recopie vers un deuxième appareil sur un même ordinateur.',
+    'Partager l’audio relie les ordinateurs d’un même réseau privé en un groupe, et chacun joue le son des autres : où que vous soyez assis, vous entendez le reste. Chaque ordinateur envoie son propre son directement aux autres, intact, et ne renvoie jamais ce qu’il reçoit, donc pas d’écho ; l’ordinateur sur lequel vous écoutez applique son propre EQ, ses courbes et son DSP. C’est distinct de la recopie vers un second appareil sur un même ordinateur.',
   'help.share.steps':
-    'Sur un ordinateur, ouvrez Partager l’audio et appuyez sur Copier le code. Commencez à faible volume.\nSur l’autre ordinateur, ouvrez Partager l’audio, collez le code sous Code de l’autre ordinateur et appuyez sur Relier. Les deux ordinateurs se jouent aussitôt l’un l’autre.\nChaque ordinateur relié a deux interrupteurs : Le jouer ici et Envoyer mon son. Coupez-en un pour ne partager que dans un sens. Le curseur à côté de Le jouer ici règle le volume auquel cet ordinateur joue ici.\nPause coupe les deux sens jusqu’à ce que vous appuyiez sur Reprendre ; Délier met fin à la liaison pour de bon.',
+    'Sur un ordinateur, ouvrez Partager l’audio, appuyez sur Ajouter un ordinateur puis sur Copier le code. Commencez à faible volume.\nSur l’autre ordinateur, appuyez sur Ajouter un ordinateur, collez le code sous Code de l’autre ordinateur et appuyez sur Relier. Les deux ordinateurs se jouent aussitôt l’un l’autre. Reliez d’autres ordinateurs de la même façon : chacun rejoint tout le groupe, et ceux qui arrivent par un autre apparaissent avec Recevoir coupé jusqu’à ce que vous l’activiez.\nDans Tout le groupe, chaque ordinateur a deux interrupteurs, Recevoir et Envoyer ; Partager coupe le son de cet ordinateur pour tous. Votre mixage règle le volume de Ce PC et un niveau par ordinateur.\nPause, Reprendre et Délier se trouvent dans le menu de chaque ordinateur. Un ordinateur absent reste dans la liste comme Hors ligne, et le groupe se retrouve tout seul après un redémarrage, une mise en veille, une coupure réseau ou un changement de moteur.',
   'help.share.tip':
     'Le code de connexion autorise la liaison : gardez-le privé. Avec le moteur FluidEQ, cet ordinateur garde son DSP pendant qu’il partage, et l’ordinateur qui joue son son applique le sien. Jouer et envoyer à la fois demande Windows sur cet ordinateur ; ailleurs, une liaison fonctionne dans un seul sens.',
   'help.share.keywords':
-    'réseau local, diffuser, transmettre, autre PC, deuxième PC, jumelage, LAN, wifi, Ethernet, deux sens, bidirectionnel, relier, délier, pause, reprendre, volume',
+    'réseau local, diffuser, transmettre, autre PC, deuxième PC, jumelage, LAN, wifi, Ethernet, deux sens, bidirectionnel, relier, délier, pause, reprendre, volume, groupe, ajouter un ordinateur, recevoir, envoyer, partager, mixage, hors ligne, plusieurs ordinateurs',
 
   'help.trouble.title': 'Quand le son ne va pas',
   'help.trouble.intro':

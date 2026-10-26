@@ -11,18 +11,18 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'tour-miniature' as *;
 
 // The Compact player's slide (`CompactPlayerVisual.tsx`): the title bar's
-// corner with its switch ringed, and under it the two players side by side,
-// photographed.
+// corner with its switch ringed, and under it the one player twice side by
+// side, each drawn by the player's own parts (`PlayerPicture`).
 //
 // Sized in tour units rather than as a share of the frame: the frame's own
 // height comes from the slide, and a picture sized from the frame made the
 // slide taller than the panel at 2560 x 1392, with "How to start" under the
-// fold.
+// fold. Measured in all ten languages at 1920 x 1032 and 2560 x 1392.
 
 .player-pair {
   display: grid;
   width: 100%;
-  max-width: calc(#{$u} * 28);
+  max-width: calc(#{$u} * 30);
   justify-items: center;
   // Room under the corner for the name hanging from its ringed switch.
   gap: calc(#{$u} * 2.9);
@@ -42,28 +42,25 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .player-pair__amp {
   display: grid;
+  // The same share each: the two players are the same size.
+  flex: 1 1 0;
   min-width: 0;
   justify-items: center;
   gap: calc(#{$u} * 0.55);
-
-  img {
-    @include framed;
-
-    display: block;
-    width: 100%;
-    height: auto;
-    border-radius: $radius-m;
-  }
 }
 
-// Each takes a width in proportion to its photograph's shape (467 x 1000 and
-// 711 x 1000), so the two stand the same height whatever the slide's width.
-.player-pair__amp--classic {
-  flex: 467 1 0;
-}
+// The slot a player stands in, the player's own shape; it is laid out at its
+// own 480 x 966 and zoomed to the slot (`PictureSlot`), so its edge, its
+// rounding and its shadow are the slot's.
+.player-pair__frame {
+  @include framed;
 
-.player-pair__amp--glass {
-  flex: 711 1 0;
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  aspect-ratio: 480 / 966;
+  border-radius: $radius-m;
 }
 
 .player-pair__caption {
@@ -72,4 +69,34 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-semibold;
   line-height: 1.3;
   text-align: center;
+}
+
+// ============================================================ the player ===
+//
+// The player as its window holds it, in a box of its own size: its sheet
+// applies here through the scope it applies to the window by
+// (`MiniPlayer.scss`), and the player is fixed to the window there, so here
+// it is held to the box instead.
+.player-picture {
+  position: relative;
+  width: 480px;
+  height: 966px;
+  overflow: hidden;
+
+  .mini-player {
+    position: absolute;
+    inset: 0;
+    z-index: auto;
+  }
+}
+
+// The two stills, each filling the part it stands in for: the scene behind
+// the whole player, the look in its panel.
+.player-picture__still {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
