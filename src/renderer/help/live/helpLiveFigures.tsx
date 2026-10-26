@@ -7,6 +7,7 @@ import {
   PlayerFoldDrawing,
   PlayerMenuDrawing,
 } from './playerFigures';
+import ShareDrawing from './shareFigures';
 import WindowHeaderDrawing from './windowFigures';
 
 /**
@@ -31,6 +32,7 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'player-queue': PlayerDrawing,
   'player-menu': PlayerMenuDrawing,
   'player-folded': PlayerFoldDrawing,
+  'share-page': ShareDrawing,
 };
 
 const DRAWINGS: ReadonlyMap<string, ComponentType> = new Map(

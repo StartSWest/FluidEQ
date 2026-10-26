@@ -328,6 +328,21 @@ describe('measuring a drawing', () => {
     });
   });
 
+  // A whole page shown plain, as the Share Audio chapter's is: nothing to
+  // frame and nothing named. An empty selector throws, and threw the window
+  // into recovery.
+  it('draws a figure that frames and names nothing, whole', () => {
+    const { onMeasure } = measured(
+      { ...figure, frame: undefined, controls: undefined },
+      Panel,
+    );
+    expect(onMeasure).toHaveBeenLastCalledWith({
+      width: 400,
+      height: 300,
+      boxes: [],
+    });
+  });
+
   // A row scrolled out of its list still has a rectangle, below the list's:
   // counted, the queue's remove keys reached past the bottom of the player.
   it('counts only what the lists in it show', () => {

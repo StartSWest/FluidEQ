@@ -1,6 +1,5 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import CAPTURED from './captured';
 import { type IHelpChapter, WINDOW } from './model';
 
 /** Listening, singing and sharing, and where to turn when something is wrong. */
@@ -181,9 +180,19 @@ const LISTEN_CHAPTERS = [
   {
     id: 'share',
     group: 'listen',
-    // Taken by `scripts/help-captures` (`captured.ts`), the connection code
-    // and every network address blurred.
-    figures: [CAPTURED['14-share-audio-roles.png']],
+    // The page drawn by its own parts (`help/live/shareFigures`) with a
+    // made-up group of four, laid out at a laptop window's width, where the
+    // group and the mix still stand side by side. Its still is the capture
+    // from before the group, one computer linked, the connection code and
+    // every network address blurred, for the exported guide.
+    figures: [
+      {
+        live: 'share-page',
+        width: 1040,
+        height: 830,
+        still: '14-share-audio-roles.png',
+      },
+    ],
   },
   {
     id: 'trouble',

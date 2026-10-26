@@ -10,7 +10,6 @@ import queue from '../../../docs/09-library-album-and-play-queue.png';
 import karaoke from '../../../docs/11-karaoke-player.png';
 import maker from '../../../docs/12-karaoke-maker-pitch-and-lyrics.png';
 import denoise from '../../../docs/13-dsp-denoise-and-source-analysis.png';
-import share from '../../../docs/14-share-audio-roles.png';
 import engine from '../../../docs/15-engine-dialog.png';
 import bands from '../../../docs/16-eq-bands.png';
 import bandMenu from '../../../docs/17-band-menu.png';
@@ -57,7 +56,6 @@ const SHOTS: Record<THelpPicture, string> = {
   '11-karaoke-player.png': karaoke,
   '12-karaoke-maker-pitch-and-lyrics.png': maker,
   '13-dsp-denoise-and-source-analysis.png': denoise,
-  '14-share-audio-roles.png': share,
   '15-engine-dialog.png': engine,
   '16-eq-bands.png': bands,
   '17-band-menu.png': bandMenu,

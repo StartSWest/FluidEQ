@@ -217,16 +217,17 @@ export default function HelpLiveSurface({
     }
     const observer = new ResizeObserver(() => remeasure.current());
     observer.observe(drawing);
-    drawing
-      .querySelectorAll(
-        [
-          figure.frame,
-          ...(figure.controls ?? []).map((control) => control.target),
-        ]
-          .filter((selector): selector is string => Boolean(selector))
-          .join(', '),
-      )
-      .forEach((element) => observer.observe(element));
+    // A figure that frames nothing and names nothing watches only itself:
+    // an empty selector throws, and it took the whole window down with it.
+    const parts = [
+      figure.frame,
+      ...(figure.controls ?? []).map((control) => control.target),
+    ].filter((selector): selector is string => Boolean(selector));
+    if (parts.length > 0) {
+      drawing
+        .querySelectorAll(parts.join(', '))
+        .forEach((element) => observer.observe(element));
+    }
     // A picture arriving, and a part that moves into place as it mounts —
     // the menu opens with a scale — which no resize reports: a transform
     // changes nothing's size, and measured mid-way the menu's frame lost its
