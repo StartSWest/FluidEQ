@@ -482,12 +482,14 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.categories': '只显示一类场景。',
   'help.gallery.mine': '你发布的场景及其获赞数。',
   'help.gallery.cardName': '场景',
-  'help.gallery.card': '点击图片打开场景；“添加”会把它放进你的外观。',
+  'help.gallery.card':
+    '点击图片打开场景。“获取”用 1 点数把它留下，心形按钮为它点赞。',
   'help.gallery.manage': '每台显示器作为桌面背景显示的内容。',
   'help.gallery.stop': '停止所有桌面背景。',
   'help.gallery.sceneCaption': '场景页面',
   'help.gallery.back': '回到图库中你离开时的位置。',
-  'help.gallery.play': '把场景添加到你的外观，或在图表上播放它。',
+  'help.gallery.play':
+    '在图表上播放场景。你还没有的场景会显示“获取”，需要 1 点数。',
   'help.gallery.desktop': '把场景放到桌面图标后面。',
   'help.gallery.inspect': '在工作室中打开 FluidEQ 的场景，看看它是怎么做的。',
 
@@ -503,11 +505,13 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.project': '你的项目，以及可查看内部的 FluidEQ 场景。',
   'help.studio.stageName': '舞台',
   'help.studio.stage': '随你的音乐播放的场景。双击可全屏。',
-  'help.studio.code': '场景的代码，实时显示，并在你的 AI 保存时更新。',
   'help.studio.hears': '场景接收到的内容：音量、节拍、低音、中音、高音。',
+  'help.studio.tabs':
+    '“调整”用来试波形和场景自己的设置，“代码”在你的 AI 保存时显示场景代码，“性能”显示它在这里运行得如何，下方打开的是“它此刻听到的”。',
+  'help.studio.chat':
+    '用你自己的话请 Claude 修改。每条改动过场景的回复都能把那个版本找回来。',
   'help.studio.signals': '只驱动当前预览的测试信号。',
   'help.studio.size': '在全屏下试看场景。',
-  'help.studio.wave': '试试听众可以设置的波形高度和位置。',
 
   'help.desktop.title': '桌面可视化效果',
   'help.desktop.intro':
@@ -539,8 +543,8 @@ const help: Record<keyof typeof en, string> = {
   'help.lighting.browse': '打开图库选择可视化效果。',
   'help.lighting.previewName': '桌面实时预览',
   'help.lighting.preview': '你自己的桌面，以发送给它的颜色亮起。',
-  'help.lighting.devices': '找到的所有设备。点击其中一台可单独调整。',
-  'help.lighting.all': '回到同时调整所有设备。',
+  'help.lighting.devices':
+    '找到的所有设备。点击其中一台可单独调整；列表上方的“所有设备”可重新同时调整所有设备。',
   'help.lighting.style':
     '“场景”“色彩波浪”“频谱”或“节拍涟漪”，为每个可视化效果分别保存。',
 
@@ -658,7 +662,7 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.intro':
     '论坛把 FluidEQ 的 GitHub Discussions 带进应用：公告、想法、问题，以及大家引以为傲的调音。任何人都可以阅读；发帖使用你的 GitHub 账户，而不是 FluidEQ 账户。',
   'help.forum.steps':
-    '打开“帮助 → 论坛”，选择一个版块：“公告”“综合”“想法”“投票”“Q&A”或“作品展示”。\n搜索论坛，或打开一个话题阅读回复。\n按“使用 GitHub 登录”，在浏览器中完成，然后发布“新话题”或回复。',
+    '打开“帮助 → 论坛”，选择一个版块：“公告”“综合”“想法”“投票”“Q&A”或“作品展示”。“你的新消息”汇集上次查看后新来的内容，“议题”列出在 GitHub 上报告的问题。\n搜索论坛，或打开一个话题阅读回复。\n按“使用 GitHub 登录”，在浏览器中完成，然后发布“新话题”或回复。',
   'help.forum.tip':
     '发布的所有内容都会以你的 GitHub 名字在 GitHub 上公开。在 Q&A 中，请把有用的回答标记出来，方便后来的人找到。',
   'help.forum.keywords':

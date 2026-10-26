@@ -7,8 +7,13 @@ import {
   PlayerFoldDrawing,
   PlayerMenuDrawing,
 } from './playerFigures';
+import DesktopDialogDrawing from './desktopFigures';
+import ForumDrawing from './forumFigures';
+import LightingDrawing from './lightingFigures';
 import LookPickerDrawing from './lookFigures';
+import { SceneDrawing, VisualizersDrawing } from './plusFigures';
 import ShareDrawing from './shareFigures';
+import StudioDrawing from './studioFigures';
 import WindowHeaderDrawing from './windowFigures';
 
 /**
@@ -26,8 +31,13 @@ import WindowHeaderDrawing from './windowFigures';
  * language and fails on a drawing that throws or a control it cannot find.
  */
 const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
+  'desktop-dialog': DesktopDialogDrawing,
+  'forum-page': ForumDrawing,
+  'gallery-scene': SceneDrawing,
   'header-left': WindowHeaderDrawing,
   'header-right': WindowHeaderDrawing,
+  'lighting-page': LightingDrawing,
+  'lighting-tuning': LightingDrawing,
   'look-picker': LookPickerDrawing,
   'player-top': PlayerDrawing,
   'player-sound': PlayerDrawing,
@@ -35,6 +45,9 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'player-menu': PlayerMenuDrawing,
   'player-folded': PlayerFoldDrawing,
   'share-page': ShareDrawing,
+  'studio-bench': StudioDrawing,
+  'visualizers-gallery': VisualizersDrawing,
+  'visualizers-rail': VisualizersDrawing,
 };
 
 const DRAWINGS: ReadonlyMap<string, ComponentType> = new Map(

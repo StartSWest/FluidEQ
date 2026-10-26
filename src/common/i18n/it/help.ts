@@ -537,13 +537,13 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.mine': 'Le scene che hai pubblicato, con i loro mi piace.',
   'help.gallery.cardName': 'Una scena',
   'help.gallery.card':
-    'La sua immagine apre la scena; Aggiungi la mette nei tuoi aspetti.',
+    'La sua immagine apre la scena. Ottieni la tiene con un credito, e il cuore le mette un mi piace.',
   'help.gallery.manage': 'Cosa mostra ogni monitor come sfondo del desktop.',
   'help.gallery.stop': 'Interrompe tutti gli sfondi del desktop.',
   'help.gallery.sceneCaption': 'La pagina di una scena',
   'help.gallery.back': 'Torna alla galleria, dove l’avevi lasciata.',
   'help.gallery.play':
-    'Aggiunge la scena ai tuoi aspetti o la riproduce sul grafico.',
+    'Riproduce la scena sul grafico. Una scena che non hai ancora offre Ottieni, per un credito.',
   'help.gallery.desktop': 'Mette la scena dietro le icone del desktop.',
   'help.gallery.inspect':
     'Apre la scena di FluidEQ nello Studio per vedere come è fatta.',
@@ -562,14 +562,14 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.stageName': 'Palco',
   'help.studio.stage':
     'La scena, dal vivo con la tua musica. Doppio clic per lo schermo intero.',
-  'help.studio.code':
-    'Il codice della scena, dal vivo, aggiornato a ogni salvataggio della tua IA.',
   'help.studio.hears':
     'Ciò che riceve la scena: livello, battito, bassi, medi, acuti.',
+  'help.studio.tabs':
+    'Regola prova l’onda e le impostazioni proprie della scena, Codice mostra il suo codice a ogni salvataggio della tua IA, Prestazioni come gira qui, e sotto è aperto Cosa sente adesso.',
+  'help.studio.chat':
+    'Chiedi a Claude una modifica con parole tue. Ogni risposta che ha cambiato la scena può riportare quella versione.',
   'help.studio.signals': 'Segnali di prova che animano solo questa anteprima.',
   'help.studio.size': 'Prova la scena a schermo intero.',
-  'help.studio.wave':
-    'Prova l’altezza e la posizione dell’onda che chi ascolta può impostare.',
 
   'help.desktop.title': 'Il visualizzatore del desktop',
   'help.desktop.intro':
@@ -604,8 +604,7 @@ const help: Record<keyof typeof en, string> = {
   'help.lighting.preview':
     'La tua scrivania, illuminata con i colori che le vengono inviati.',
   'help.lighting.devices':
-    'Tutti i dispositivi trovati. Fai clic su uno per regolarlo da solo.',
-  'help.lighting.all': 'Torna a regolare tutti i dispositivi insieme.',
+    'Tutti i dispositivi trovati. Fai clic su uno per regolarlo da solo; il pulsante Tutti i dispositivi, sopra l’elenco, torna a regolarli tutti insieme.',
   'help.lighting.style':
     'Scena, Onda di colore, Spettro o Onda ritmica, salvato per ogni visualizzatore.',
 
@@ -732,7 +731,7 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.intro':
     'Il Forum porta nell’app le GitHub Discussions di FluidEQ: annunci, idee, domande e regolazioni di cui le persone vanno fiere. Chiunque può leggere; per scrivere usi il tuo account GitHub, non un account FluidEQ.',
   'help.forum.steps':
-    'Apri Aiuto → Forum e scegli una categoria: Annunci, Generale, Idee, Sondaggi, Q&A o Vetrina.\nCerca nel forum, oppure apri un argomento per leggere le risposte.\nPremi Accedi con GitHub, completa nel browser, poi pubblica un Nuovo argomento o una risposta.',
+    'Apri Aiuto → Forum e scegli una categoria: Annunci, Generale, Idee, Sondaggi, Q&A o Vetrina. Novità per te raccoglie ciò che è arrivato dall’ultima visita, e Segnalazioni elenca i problemi segnalati su GitHub.\nCerca nel forum, oppure apri un argomento per leggere le risposte.\nPremi Accedi con GitHub, completa nel browser, poi pubblica un Nuovo argomento o una risposta.',
   'help.forum.tip':
     'Tutto ciò che pubblichi è pubblico su GitHub con il tuo nome GitHub. In Q&A, segna la risposta che ha funzionato, così chi arriva dopo la trova.',
   'help.forum.keywords':

@@ -522,12 +522,13 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.mine': 'あなたが公開したシーンと、そのいいね。',
   'help.gallery.cardName': 'シーン',
   'help.gallery.card':
-    '画像を押すとシーンが開き、「追加」でマイ表示に入ります。',
+    '画像を押すとシーンが開きます。「入手」で 1 クレジットを使って手元に残し、ハートで「いいね」できます。',
   'help.gallery.manage': '各モニターがデスクトップの背景に表示している内容。',
   'help.gallery.stop': 'すべてのデスクトップの背景を停止します。',
   'help.gallery.sceneCaption': 'シーンのページ',
   'help.gallery.back': '離れたときの位置のまま、ギャラリーに戻ります。',
-  'help.gallery.play': 'シーンをマイ表示に追加するか、グラフで再生します。',
+  'help.gallery.play':
+    'シーンをグラフで再生します。まだ持っていないシーンには、1 クレジットの「入手」が表示されます。',
   'help.gallery.desktop': 'シーンをデスクトップアイコンの背面に表示します。',
   'help.gallery.inspect':
     'FluidEQ のシーンをスタジオで開き、どう作られているかを見られます。',
@@ -546,13 +547,14 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.stageName': 'ステージ',
   'help.studio.stage':
     'あなたの音楽で再生中のシーン。ダブルクリックで全画面になります。',
-  'help.studio.code':
-    'シーンのコード。AI が保存するたびにリアルタイムで更新されます。',
   'help.studio.hears':
     'シーンが受け取るもの：レベル、ビート、低音、中音、高音。',
+  'help.studio.tabs':
+    '「調整」では波形とシーン独自の設定を試し、「コード」では AI が保存するたびにシーンのコードを表示し、「パフォーマンス」ではこのパソコンでの動き具合を確認できます。下には「いま聞いているもの」が開いています。',
+  'help.studio.chat':
+    '変更してほしいことを自分の言葉で Claude に頼みます。シーンを変えた返信からは、そのバージョンに戻せます。',
   'help.studio.signals': 'このプレビューだけを動かすテスト信号。',
   'help.studio.size': 'シーンを全画面で試します。',
-  'help.studio.wave': 'リスナーが設定できる波形の高さと位置を試します。',
 
   'help.desktop.title': 'デスクトップ ビジュアライザー',
   'help.desktop.intro':
@@ -588,8 +590,7 @@ const help: Record<keyof typeof en, string> = {
   'help.lighting.previewName': 'デスクのライブプレビュー',
   'help.lighting.preview': '送られた色で光る、あなた自身のデスク。',
   'help.lighting.devices':
-    '見つかったすべてのデバイス。クリックすると、そのデバイスだけを調整できます。',
-  'help.lighting.all': 'すべてのデバイスをまとめて調整する状態に戻ります。',
+    '見つかったすべてのデバイス。クリックすると、そのデバイスだけを調整できます。一覧の上の「すべてのデバイス」で、まとめて調整する状態に戻ります。',
   'help.lighting.style':
     'シーン、カラーウェーブ、スペクトル、ビートの波紋。ビジュアライザーごとに保存されます。',
 
@@ -714,7 +715,7 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.intro':
     'フォーラムは、FluidEQ の GitHub Discussions をアプリに取り込みます。お知らせ、アイデア、質問、そして自慢のチューニングが集まっています。閲覧は誰でもでき、投稿には FluidEQ ではなく GitHub のアカウントを使います。',
   'help.forum.steps':
-    '「ヘルプ → フォーラム」を開き、カテゴリを選びます：「お知らせ」「全般」「アイデア」「投票」「Q&A」「ショーケース」。\nフォーラムを検索するか、トピックを開いて返信を読みます。\n「GitHub でサインイン」を押してブラウザで完了し、「新しいトピック」か返信を投稿します。',
+    '「ヘルプ → フォーラム」を開き、カテゴリを選びます：「お知らせ」「全般」「アイデア」「投票」「Q&A」「ショーケース」。「あなたへの新着」には前回以降に届いたものがまとまり、「Issue」には GitHub で報告された問題が並びます。\nフォーラムを検索するか、トピックを開いて返信を読みます。\n「GitHub でサインイン」を押してブラウザで完了し、「新しいトピック」か返信を投稿します。',
   'help.forum.tip':
     '投稿した内容はすべて、あなたの GitHub の名前で GitHub 上に公開されます。Q&A では、次の人が見つけられるよう、役立った回答をマークしてください。',
   'help.forum.keywords':

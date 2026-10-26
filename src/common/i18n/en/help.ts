@@ -525,13 +525,13 @@ const help = {
   'help.gallery.mine': 'The scenes you published, with their likes.',
   'help.gallery.cardName': 'A scene',
   'help.gallery.card':
-    'Its picture opens the scene; Add puts it in your looks.',
+    'Its picture opens the scene. Get keeps it with a credit, and the heart likes it.',
   'help.gallery.manage': 'What each monitor shows as a desktop background.',
   'help.gallery.stop': 'Stops every desktop background.',
   'help.gallery.sceneCaption': "A scene's page",
   'help.gallery.back': 'Back to the gallery, where you left it.',
   'help.gallery.play':
-    'Adds the scene to your looks, or plays it on the graph.',
+    'Plays the scene on the graph. A scene you do not have yet offers Get, for one credit.',
   'help.gallery.desktop': 'Puts the scene behind your desktop icons.',
   'help.gallery.inspect':
     'Opens FluidEQ’s scene in the Studio to see how it is made.',
@@ -549,12 +549,14 @@ const help = {
   'help.studio.stageName': 'Stage',
   'help.studio.stage':
     'The scene, playing on your music. Double-click for full screen.',
-  'help.studio.code': 'The scene’s code, live, updated as your AI saves it.',
   'help.studio.hears':
     'What the scene receives: level, beat, bass, mids, treble.',
+  'help.studio.tabs':
+    'Tune tries the wave and the scene’s own settings, Code shows its code as your AI saves it, Performance how it runs here, and What it hears now is open below.',
+  'help.studio.chat':
+    'Ask Claude for a change in your own words. Each reply that changed the scene can bring that version back.',
   'help.studio.signals': 'Test signals that drive only this preview.',
   'help.studio.size': 'Tries the scene full screen.',
-  'help.studio.wave': 'Tries the wave height and position listeners can set.',
 
   'help.desktop.title': 'The desktop visualizer',
   'help.desktop.intro':
@@ -587,8 +589,8 @@ const help = {
   'help.lighting.browse': 'Opens the gallery to choose a visualizer.',
   'help.lighting.previewName': 'Live desk preview',
   'help.lighting.preview': 'Your own desk, lit with the colours sent to it.',
-  'help.lighting.devices': 'Every device found. Click one to tune it alone.',
-  'help.lighting.all': 'Back to tuning every device at once.',
+  'help.lighting.devices':
+    'Every device found. Click one to tune it alone; All devices, above the list, tunes them all at once again.',
   'help.lighting.style':
     'Scene, Colour wave, Spectrum or Beat ripple, kept for each visualizer.',
 
@@ -712,7 +714,7 @@ const help = {
   'help.forum.intro':
     'The Forum brings FluidEQ’s GitHub Discussions into the app: announcements, ideas, questions and tunings people are proud of. Anyone can read; posting uses your GitHub account, not a FluidEQ one.',
   'help.forum.steps':
-    'Open Help → Forum and pick a board: Announcements, General, Ideas, Polls, Q&A or Show and tell.\nSearch the forum, or open a topic to read the replies.\nPress Sign in with GitHub, finish in your browser, then post a New topic or a reply.',
+    'Open Help → Forum and pick a board: Announcements, General, Ideas, Polls, Q&A or Show and tell. New for you gathers what came in since you last looked, and Issues lists the problems reported on GitHub.\nSearch the forum, or open a topic to read the replies.\nPress Sign in with GitHub, finish in your browser, then post a New topic or a reply.',
   'help.forum.tip':
     'Everything posted is public on GitHub under your GitHub name. On Q&A, mark the answer that worked so the next person finds it.',
   'help.forum.keywords':

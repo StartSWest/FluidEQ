@@ -20,12 +20,6 @@ import room from '../../../docs/32-dsp-room.png';
 import strip from '../../../docs/21-graph-strip.png';
 import stripPlus from '../../../docs/22-graph-strip-plus.png';
 import viewMenu from '../../../docs/23-graph-view-menu.png';
-import visualizers from '../../../docs/25-plus-visualizers.png';
-import scene from '../../../docs/26-plus-scene.png';
-import desktop from '../../../docs/27-desktop-dialog.png';
-import lighting from '../../../docs/29-plus-lighting.png';
-import forum from '../../../docs/30-forum.png';
-import studio from '../../../docs/31-plus-studio.png';
 import makerTools from '../../../docs/33-karaoke-maker-tools.png';
 import makerLyrics from '../../../docs/34-karaoke-maker-lyrics.png';
 import makerToolbar from '../../../docs/35-karaoke-maker-toolbar.png';
@@ -65,12 +59,6 @@ const SHOTS: Record<THelpPicture, string> = {
   '21-graph-strip.png': strip,
   '22-graph-strip-plus.png': stripPlus,
   '23-graph-view-menu.png': viewMenu,
-  '25-plus-visualizers.png': visualizers,
-  '26-plus-scene.png': scene,
-  '27-desktop-dialog.png': desktop,
-  '29-plus-lighting.png': lighting,
-  '30-forum.png': forum,
-  '31-plus-studio.png': studio,
   '33-karaoke-maker-tools.png': makerTools,
   '34-karaoke-maker-lyrics.png': makerLyrics,
   '35-karaoke-maker-toolbar.png': makerToolbar,

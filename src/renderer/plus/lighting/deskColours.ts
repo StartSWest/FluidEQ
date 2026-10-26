@@ -51,7 +51,22 @@ export interface IDeskColourFeed {
   close(): void;
 }
 
-export const createDeskColourFeed = (): IDeskColourFeed => {
+/**
+ * Where the desk's frames come from, told each one as it is drawn: the scene
+ * playing (`subscribeLightingPreview`), unless a picture of a desk lit by a
+ * still is wanted — Help's (`help/live/lightingFigures`), which must neither
+ * read the reader's scene nor light the reader's devices.
+ */
+export type TDeskFrameSource = (
+  receive: (
+    frame: ILightingFrame | undefined,
+    image: ImageBitmap | undefined,
+  ) => void,
+) => () => void;
+
+export const createDeskColourFeed = (
+  frames: TDeskFrameSource = subscribeLightingPreview,
+): IDeskColourFeed => {
   let devices: readonly ILightingDevice[] = [];
   let settings: ILightingSettings | undefined;
   const memories = new Map<string, { memory: ILampMemory; rgb: Uint8Array }>();
@@ -104,7 +119,7 @@ export const createDeskColourFeed = (): IDeskColourFeed => {
     listeners.forEach((listener) => listener(latest));
   };
 
-  const stopPreview = subscribeLightingPreview(compute);
+  const stopPreview = frames(compute);
 
   return {
     // Kept for the next frame rather than applied to the last one again: a

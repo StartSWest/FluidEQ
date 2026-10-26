@@ -530,14 +530,14 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.mine': 'As cenas que você publicou, com as curtidas delas.',
   'help.gallery.cardName': 'Uma cena',
   'help.gallery.card':
-    'A imagem abre a cena; Adicionar a coloca nos seus visuais.',
+    'A imagem abre a cena. Obter a guarda com um crédito, e o coração curte a cena.',
   'help.gallery.manage':
     'O que cada monitor mostra como fundo da área de trabalho.',
   'help.gallery.stop': 'Para todos os fundos da área de trabalho.',
   'help.gallery.sceneCaption': 'A página de uma cena',
   'help.gallery.back': 'Volta à galeria, onde você parou.',
   'help.gallery.play':
-    'Adiciona a cena aos seus visuais ou a reproduz no gráfico.',
+    'Reproduz a cena no gráfico. Uma cena que você ainda não tem oferece Obter, por um crédito.',
   'help.gallery.desktop': 'Coloca a cena atrás dos ícones da área de trabalho.',
   'help.gallery.inspect':
     'Abre a cena do FluidEQ no Estúdio para ver como ela é feita.',
@@ -556,14 +556,14 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.stageName': 'Palco',
   'help.studio.stage':
     'A cena, tocando com sua música. Clique duas vezes para tela cheia.',
-  'help.studio.code':
-    'O código da cena, ao vivo, atualizado conforme sua IA o salva.',
   'help.studio.hears':
     'O que a cena recebe: nível, batida, graves, médios, agudos.',
+  'help.studio.tabs':
+    'Ajustar testa a onda e as configurações próprias da cena, Código mostra o código conforme sua IA o salva, Desempenho como ela roda aqui, e abaixo está aberto O que ela ouve agora.',
+  'help.studio.chat':
+    'Peça uma mudança ao Claude com suas próprias palavras. Cada resposta que mudou a cena pode trazer aquela versão de volta.',
   'help.studio.signals': 'Sinais de teste que movem só esta prévia.',
   'help.studio.size': 'Testa a cena em tela cheia.',
-  'help.studio.wave':
-    'Testa a altura e a posição da onda que os ouvintes podem ajustar.',
 
   'help.desktop.title': 'O visualizador da área de trabalho',
   'help.desktop.intro':
@@ -599,8 +599,7 @@ const help: Record<keyof typeof en, string> = {
   'help.lighting.preview':
     'Sua própria mesa, iluminada com as cores enviadas a ela.',
   'help.lighting.devices':
-    'Todos os dispositivos encontrados. Clique em um para ajustá-lo separadamente.',
-  'help.lighting.all': 'Volta a ajustar todos os dispositivos de uma vez.',
+    'Todos os dispositivos encontrados. Clique em um para ajustá-lo separadamente; o botão Todos os dispositivos, acima da lista, volta a ajustar todos de uma vez.',
   'help.lighting.style':
     'Cena, Onda de cor, Espectro ou Onda rítmica, salvo para cada visualizador.',
 
@@ -726,7 +725,7 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.intro':
     'O Fórum traz o GitHub Discussions do FluidEQ para dentro do app: anúncios, ideias, perguntas e ajustes de que as pessoas se orgulham. Qualquer um pode ler; para publicar, você usa sua conta do GitHub, não uma do FluidEQ.',
   'help.forum.steps':
-    'Abra Ajuda → Fórum e escolha uma categoria: Anúncios, Geral, Ideias, Votações, Q&A ou Mostre o seu som.\nPesquise no fórum ou abra um tópico para ler as respostas.\nPressione Entrar com GitHub, termine no navegador e depois publique um Novo tópico ou uma resposta.',
+    'Abra Ajuda → Fórum e escolha uma categoria: Anúncios, Geral, Ideias, Votações, Q&A ou Mostre o seu som. Novo para você reúne o que chegou desde a última visita, e Problemas mostra o que foi relatado no GitHub.\nPesquise no fórum ou abra um tópico para ler as respostas.\nPressione Entrar com GitHub, termine no navegador e depois publique um Novo tópico ou uma resposta.',
   'help.forum.tip':
     'Tudo o que é publicado fica público no GitHub, com seu nome do GitHub. Em Q&A, marque a resposta que funcionou para que a próxima pessoa a encontre.',
   'help.forum.keywords':

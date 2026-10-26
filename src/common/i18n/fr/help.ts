@@ -538,14 +538,14 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.mine': 'Les scènes que vous avez publiées, avec leurs j’aime.',
   'help.gallery.cardName': 'Une scène',
   'help.gallery.card':
-    'Son image ouvre la scène ; Ajouter la met dans vos styles.',
+    'Son image ouvre la scène. Obtenir la garde pour un crédit, et le cœur indique que vous l’aimez.',
   'help.gallery.manage':
     'Ce que chaque écran affiche en arrière-plan du Bureau.',
   'help.gallery.stop': 'Arrête tous les arrière-plans du Bureau.',
   'help.gallery.sceneCaption': 'La page d’une scène',
   'help.gallery.back': 'Retour à la galerie, là où vous l’aviez laissée.',
   'help.gallery.play':
-    'Ajoute la scène à vos styles, ou la lance sur le graphique.',
+    'Lance la scène sur le graphique. Une scène que vous n’avez pas encore propose Obtenir, pour un crédit.',
   'help.gallery.desktop': 'Place la scène derrière les icônes du Bureau.',
   'help.gallery.inspect':
     'Ouvre la scène de FluidEQ dans le Studio pour voir comment elle est faite.',
@@ -563,14 +563,14 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.stageName': 'Aperçu',
   'help.studio.stage':
     'La scène, en direct sur votre musique. Double-cliquez pour le plein écran.',
-  'help.studio.code':
-    'Le code de la scène, en direct, mis à jour à chaque enregistrement de votre IA.',
   'help.studio.hears':
     'Ce que reçoit la scène : niveau, temps, basses, médiums, aigus.',
+  'help.studio.tabs':
+    'Réglages essaie l’onde et les réglages propres à la scène, Code montre son code à chaque enregistrement de votre IA, Performance comment elle tourne ici, et Ce qu’elle entend maintenant est ouvert en dessous.',
+  'help.studio.chat':
+    'Demandez une modification à Claude avec vos propres mots. Chaque réponse qui a changé la scène peut faire revenir cette version.',
   'help.studio.signals': 'Des signaux de test qui n’animent que cet aperçu.',
   'help.studio.size': 'Essaie la scène en plein écran.',
-  'help.studio.wave':
-    'Essaie la hauteur et la position de l’onde que les auditeurs peuvent régler.',
 
   'help.desktop.title': 'Le visualiseur du Bureau',
   'help.desktop.intro':
@@ -606,8 +606,7 @@ const help: Record<keyof typeof en, string> = {
   'help.lighting.preview':
     'Votre propre bureau, éclairé avec les couleurs qui lui sont envoyées.',
   'help.lighting.devices':
-    'Tous les appareils trouvés. Cliquez sur l’un d’eux pour le régler seul.',
-  'help.lighting.all': 'Revient au réglage de tous les appareils à la fois.',
+    'Tous les appareils trouvés. Cliquez sur l’un d’eux pour le régler seul ; le bouton Tous les appareils, au-dessus de la liste, les règle de nouveau tous à la fois.',
   'help.lighting.style':
     'Scène, Vague de couleur, Spectre ou Onde rythmique, mémorisé pour chaque visualiseur.',
 
@@ -735,7 +734,7 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.intro':
     'Le Forum intègre les GitHub Discussions de FluidEQ à l’application : annonces, idées, questions et réglages dont les gens sont fiers. Tout le monde peut lire ; pour publier, vous utilisez votre compte GitHub, pas un compte FluidEQ.',
   'help.forum.steps':
-    'Ouvrez Aide → Forum et choisissez une catégorie : Annonces, Général, Idées, Sondages, Q&A ou Vitrine.\nRecherchez dans le forum, ou ouvrez un sujet pour lire les réponses.\nAppuyez sur Se connecter avec GitHub, terminez dans votre navigateur, puis publiez un Nouveau sujet ou une réponse.',
+    'Ouvrez Aide → Forum et choisissez une catégorie : Annonces, Général, Idées, Sondages, Q&A ou Vitrine. Nouveau pour vous rassemble ce qui est arrivé depuis votre dernière visite, et Tickets liste les problèmes signalés sur GitHub.\nRecherchez dans le forum, ou ouvrez un sujet pour lire les réponses.\nAppuyez sur Se connecter avec GitHub, terminez dans votre navigateur, puis publiez un Nouveau sujet ou une réponse.',
   'help.forum.tip':
     'Tout ce qui est publié est public sur GitHub, sous votre nom GitHub. Dans Q&A, marquez la réponse qui a marché pour que la personne suivante la trouve.',
   'help.forum.keywords':

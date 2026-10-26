@@ -202,7 +202,17 @@ const LISTEN_CHAPTERS = [
   {
     id: 'forum',
     group: 'help',
-    figures: [{ image: '30-forum.png', width: 2560, height: 1392 }],
+    // The page drawn by its own rail and list (`help/live/forumFigures`)
+    // from a made-up forum, on All topics with two topics new; its still is
+    // the 2.0 capture of the window, for the exported guide.
+    figures: [
+      {
+        live: 'forum-page',
+        width: 1120,
+        height: 640,
+        still: '30-forum.png',
+      },
+    ],
   },
 ] as const satisfies readonly IHelpChapter[];
 

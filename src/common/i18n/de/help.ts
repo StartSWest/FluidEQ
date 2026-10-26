@@ -543,14 +543,14 @@ const help: Record<keyof typeof en, string> = {
     'Die Szenen, die Sie veröffentlicht haben, mit ihren „Gefällt mir“.',
   'help.gallery.cardName': 'Eine Szene',
   'help.gallery.card':
-    'Das Bild öffnet die Szene; Hinzufügen legt sie in Ihre Darstellungen.',
+    'Das Bild öffnet die Szene. Holen behält sie für einen Credit, und mit dem Herz zeigen Sie, dass sie Ihnen gefällt.',
   'help.gallery.manage': 'Was jeder Monitor als Desktophintergrund zeigt.',
   'help.gallery.stop': 'Beendet alle Desktophintergründe.',
   'help.gallery.sceneCaption': 'Die Seite einer Szene',
   'help.gallery.back':
     'Zurück zur Galerie, dorthin, wo Sie sie verlassen haben.',
   'help.gallery.play':
-    'Fügt die Szene Ihren Darstellungen hinzu oder spielt sie im Diagramm ab.',
+    'Spielt die Szene im Diagramm ab. Eine Szene, die Sie noch nicht haben, bietet Holen für einen Credit an.',
   'help.gallery.desktop': 'Legt die Szene hinter Ihre Desktopsymbole.',
   'help.gallery.inspect':
     'Öffnet die Szene von FluidEQ im Studio, damit Sie sehen, wie sie gemacht ist.',
@@ -568,14 +568,14 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.stageName': 'Bühne',
   'help.studio.stage':
     'Die Szene, live zu Ihrer Musik. Doppelklick für Vollbild.',
-  'help.studio.code':
-    'Der Code der Szene, live aktualisiert, sobald Ihre KI ihn speichert.',
   'help.studio.hears':
     'Was die Szene empfängt: Pegel, Schlag, Bass, Mitten, Höhen.',
+  'help.studio.tabs':
+    'Abstimmen testet die Welle und die eigenen Einstellungen der Szene, Code zeigt ihren Code, sobald Ihre KI ihn speichert, Leistung, wie sie hier läuft, und darunter ist „Was sie gerade hört“ geöffnet.',
+  'help.studio.chat':
+    'Bitten Sie Claude mit eigenen Worten um eine Änderung. Jede Antwort, die die Szene geändert hat, kann diese Version zurückholen.',
   'help.studio.signals': 'Testsignale, die nur diese Vorschau antreiben.',
   'help.studio.size': 'Testet die Szene im Vollbild.',
-  'help.studio.wave':
-    'Testet Höhe und Position der Welle, die Hörer einstellen können.',
 
   'help.desktop.title': 'Der Desktop-Visualizer',
   'help.desktop.intro':
@@ -613,8 +613,7 @@ const help: Record<keyof typeof en, string> = {
   'help.lighting.preview':
     'Ihr eigener Schreibtisch, beleuchtet mit den Farben, die an ihn gesendet werden.',
   'help.lighting.devices':
-    'Alle gefundenen Geräte. Klicken Sie auf eines, um es einzeln abzustimmen.',
-  'help.lighting.all': 'Zurück zum Abstimmen aller Geräte auf einmal.',
+    'Alle gefundenen Geräte. Klicken Sie auf eines, um es einzeln abzustimmen; „Alle Geräte“ über der Liste stimmt wieder alle auf einmal ab.',
   'help.lighting.style':
     'Szene, Farbwelle, Spektrum oder Beat-Welle, gespeichert für jeden Visualizer.',
 
@@ -741,7 +740,7 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.intro':
     'Das Forum holt die GitHub Discussions von FluidEQ in die App: Ankündigungen, Ideen, Fragen und Klangeinstellungen, auf die Leute stolz sind. Lesen kann jeder; zum Schreiben nutzen Sie Ihr GitHub-Konto, kein FluidEQ-Konto.',
   'help.forum.steps':
-    'Öffnen Sie Hilfe → Forum und wählen Sie eine Kategorie: Ankündigungen, Allgemein, Ideen, Umfragen, Q&A oder Schaufenster.\nDurchsuchen Sie das Forum oder öffnen Sie ein Thema, um die Antworten zu lesen.\nDrücken Sie Mit GitHub anmelden, schließen Sie die Anmeldung im Browser ab und schreiben Sie dann ein Neues Thema oder eine Antwort.',
+    'Öffnen Sie Hilfe → Forum und wählen Sie eine Kategorie: Ankündigungen, Allgemein, Ideen, Umfragen, Q&A oder Schaufenster. Neu für dich sammelt, was seit Ihrem letzten Besuch kam, und Issues listet die auf GitHub gemeldeten Probleme.\nDurchsuchen Sie das Forum oder öffnen Sie ein Thema, um die Antworten zu lesen.\nDrücken Sie Mit GitHub anmelden, schließen Sie die Anmeldung im Browser ab und schreiben Sie dann ein Neues Thema oder eine Antwort.',
   'help.forum.tip':
     'Alles, was Sie schreiben, ist auf GitHub unter Ihrem GitHub-Namen öffentlich. Markieren Sie in Q&A die Antwort, die geholfen hat, damit die nächste Person sie findet.',
   'help.forum.keywords':
