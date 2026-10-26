@@ -6,7 +6,11 @@ import Switch from '../widgets/Switch';
 import RemoteAudioLane from './RemoteAudioLane';
 import RemoteAudioPeerMenu from './RemoteAudioPeerMenu';
 import type { IRemoteAudioLink, IRemoteAudioValue } from './remoteAudioState';
-import { linkControls, playsHere } from './linkRecords';
+import { heardHere, linkControls } from './linkRecords';
+import useIncomingSounding, { THIS_COMPUTER } from './useIncomingSounding';
+
+/** The one sound the This computer row listens for. */
+const ONLY_THIS_COMPUTER: readonly string[] = [THIS_COMPUTER];
 
 export const audioLinkKey = (link: IRemoteAudioLink) =>
   link.computerId ? `id:${link.computerId}` : link.name;
@@ -49,7 +53,20 @@ const RemoteAudioGroup = ({
 }) => {
   const { t } = useTranslation();
   const { sharing } = remote;
-  let localLine = localNowPlaying?.title ?? t('remoteAudio.lane.outQuiet');
+  const thisComputerSounds =
+    useIncomingSounding(remote.subscribeMeter, ONLY_THIS_COMPUTER)[
+      THIS_COMPUTER
+    ] === true;
+  // A player that never describes itself is still sound going out: a game,
+  // or a program the machine cannot read (every one on a Mac, 2026-10-26),
+  // must not read as "Nothing playing" over a moving wave.
+  let localLine =
+    localNowPlaying?.title ??
+    t(
+      thisComputerSounds
+        ? 'remoteAudio.lane.outSounding'
+        : 'remoteAudio.lane.outQuiet',
+    );
   if (remote.sendingFailed) {
     localLine = t('remoteAudio.lane.outFailed');
   }
@@ -112,11 +129,7 @@ const RemoteAudioGroup = ({
           const canPlay = !!link && (remote.bothWays || !link.joined);
           const controls = link && linkControls(link, remote.bothWays, sharing);
           const live =
-            !!link &&
-            playsHere(link, remote.bothWays) &&
-            link.receiving &&
-            link.theirs?.sends !== false &&
-            !link.theirs?.paused;
+            !!link && heardHere(link, remote.bothWays) && link.receiving;
           let line = t('remoteAudio.group.offline');
           if (link) {
             if (paused) {

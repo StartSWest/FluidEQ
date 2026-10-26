@@ -23,6 +23,7 @@ import {
   linkPaused,
   linkPhase,
   linkViews,
+  heardHere,
   playsHere,
   sendsThere,
 } from './linkRecords';
@@ -196,7 +197,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     links.filter((link) => !linkPaused(link)).map((link) => link.id),
   );
   const acceptRemoteStart = useRemoteNowPlayingSource(
-    links.filter((link) => playsHere(link, bothWays)),
+    links.filter((link) => heardHere(link, bothWays)),
     links.filter((link) => !link.joined).map((link) => link.id),
     delays,
   );
@@ -348,7 +349,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
         if (
           signal.started === true &&
           signal.playing?.isPlaying === true &&
-          playsHere(record, bothWays)
+          heardHere(record, bothWays)
         ) {
           acceptRemoteStart(peerId);
         }

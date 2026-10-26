@@ -15,6 +15,7 @@
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
+import type { IRemoteAudioMeter } from '../../../renderer/remoteAudio/meter';
 import RemoteAudioPanel from '../../../renderer/remoteAudio/RemoteAudioPanel';
 import type { IRemoteAudioValue } from '../../../renderer/remoteAudio/remoteAudioState';
 import RemoteAudioContext from '../../../renderer/remoteAudio/remoteAudioValueContext';
@@ -361,6 +362,32 @@ describe('a linked computer', () => {
       }),
     );
     expect(screen.getByText('remoteAudio.lane.outFailed')).toBeInTheDocument();
+  });
+
+  it('says sound is playing here when the wave moves and no player has said what', () => {
+    const meters: Array<(meter: IRemoteAudioMeter) => void> = [];
+    renderPanel(
+      remoteAudioValue({
+        phase: 'ready',
+        links: [remoteAudioLink()],
+        sending: true,
+        subscribeMeter: jest.fn((listener) => {
+          meters.push(listener);
+          return jest.fn();
+        }),
+      }),
+    );
+    expect(screen.getByText('remoteAudio.lane.outQuiet')).toBeInTheDocument();
+    // This computer's own sound on its way out carries no source.
+    act(() =>
+      meters.forEach((listener) =>
+        listener({ peak: 0.2, rms: 0.1, waveform: new Float32Array(64) }),
+      ),
+    );
+    expect(
+      screen.getByText('remoteAudio.lane.outSounding'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('remoteAudio.lane.outQuiet')).toBeNull();
   });
 
   it('asks for a press when the window may not play sound yet', () => {

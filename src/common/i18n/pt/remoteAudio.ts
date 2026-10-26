@@ -87,6 +87,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOneWay':
     'Tocar nos dois sentidos exige Windows, ou o FluidEQ Engine no Linux.',
   'remoteAudio.lane.outQuiet': 'Nada tocando neste computador',
+  'remoteAudio.lane.outSounding': 'Som tocando neste computador',
   'remoteAudio.lane.outOff': 'Sem enviar. {name} não ouve este computador.',
   'remoteAudio.lane.outNotPlayed': '{name} está com “Tocar aqui” desligado.',
   'remoteAudio.lane.outOld':

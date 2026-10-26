@@ -10,7 +10,7 @@ import type {
 } from '../../common/remoteAudio';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
-import { playsHere, sendsThere } from './linkRecords';
+import { heardHere, sendsThere } from './linkRecords';
 import type { TRemoteAudioMeterListener } from './meter';
 import RemoteAudioLane from './RemoteAudioLane';
 import type { ILinkSwitches, IRemoteAudioLink } from './remoteAudioState';
@@ -56,12 +56,7 @@ const RemoteAudioLinkCard = ({
   const { name } = link;
   const canPlay = bothWays || !link.joined;
   const canSend = bothWays || link.joined;
-  // What can actually arrive: an older FluidEQ whose code this computer
-  // used never sends back, and one that says it is not sending is not.
-  const plays =
-    playsHere(link, bothWays) &&
-    !(link.joined && link.theirs === undefined) &&
-    link.theirs?.sends !== false;
+  const plays = heardHere(link, bothWays);
   const sends = sendsThere(link, bothWays);
   // Paused here keeps both switches as they were for the resume; paused
   // there is the other computer's choice, and each lane says whose it is.

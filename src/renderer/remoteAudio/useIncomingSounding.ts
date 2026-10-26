@@ -22,7 +22,15 @@ const SOUNDING_PEAK = 0.0003;
 const SILENCE_HOLD_MS = 4000;
 
 /**
- * Which of the arriving computers is sending sound right now, by id.
+ * The id this computer's own sound is read under, on its way out: its meter
+ * carries no source. Peer ids are the transport's own tokens and never start
+ * with an at sign.
+ */
+export const THIS_COMPUTER = '@this-computer';
+
+/**
+ * Which of the arriving computers is sending sound right now, by id, and
+ * this computer's own sound on its way out, under `THIS_COMPUTER`.
  *
  * A computer that is linked and streaming is not necessarily playing
  * anything — its stream goes on, silent, between songs and with nothing
@@ -64,8 +72,8 @@ const useIncomingSounding = (
   useEffect(
     () =>
       subscribeMeter((meter) => {
-        const id = meter.sourceId;
-        if (id === undefined || !arrivingRef.current.includes(id)) {
+        const id = meter.sourceId ?? THIS_COMPUTER;
+        if (!arrivingRef.current.includes(id)) {
           return;
         }
         const now = performance.now();

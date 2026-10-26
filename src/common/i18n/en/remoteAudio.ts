@@ -93,6 +93,7 @@ const remoteAudio = {
   'remoteAudio.lane.inOneWay':
     'Playing both ways needs Windows, or the FluidEQ Engine on Linux.',
   'remoteAudio.lane.outQuiet': 'Nothing playing on this computer',
+  'remoteAudio.lane.outSounding': 'Sound playing on this computer',
   'remoteAudio.lane.outOff': 'Not sending. {name} doesn’t hear this computer.',
   'remoteAudio.lane.outNotPlayed': '{name} has “Play it here” off.',
   'remoteAudio.lane.outOld':
