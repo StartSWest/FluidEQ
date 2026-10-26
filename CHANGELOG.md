@@ -112,6 +112,11 @@ and everything else plays as before.
   Reset in EQ mode goes back there. Off is still one press away.
 - **The curve follows a slider at once.** Moving a band's slider redraws the
   curve in the same frame, as dragging the curve already moved the slider.
+- **The Tone knobs and a band's controls change places smoothly.** Selecting
+  a band fades the Tone row out and brings the band's controls in from left
+  to right; clicking off brings the Tone knobs back the same way, and moving
+  from one band to another does too. Each change plays once, dragging a band
+  moves nothing, and Animations off makes it instant.
 - **The handles and knobs work from the keyboard**: the arrow keys step a
   fader, a knob or a point's gain, and a screen reader names each point by its
   band and frequency. While the EQ is switched off its controls are dimmed and
@@ -175,6 +180,9 @@ and everything else plays as before.
   playlist is added twice. With Keep playing on, **More like this** appears
   only when the last song is playing, as its own part below the list. Music
   dropped on the Compact player's Up next goes in where you let go.
+- **A Library scan can be put out of the way.** Its notice has a × that hides
+  it while the scan carries on, and a small Stop; the Rescan chip says how far
+  the scan has got and brings the notice back.
 
 ### The Compact player
 
@@ -186,6 +194,11 @@ and everything else plays as before.
   Backdrop, and the scene follows Brightness as the full app does. It has one
   width; its height is yours, from its top edge or its bottom one, and nothing
   in it scrolls but the list. It replaces the classic amp and the Stage.
+- **It opens and folds with a motion of its own.** From the full app or from
+  the strip folded to one line, the column opens down out of its header, and
+  folding to one line plays it back up into it. The full app switches without
+  motion, to stay light, and Animations off makes both instant. Coming back
+  from it puts the full app where it was, at its own size.
 
 ### Visualizers
 
@@ -197,6 +210,10 @@ and everything else plays as before.
 - **Rainbow mode is now Colourful mode**, and it plays in the window's own
   colours — the Tint you picked or a scene's — instead of a fixed rainbow.
   Its share card is new too.
+- **Tint app icon.** A switch under Colourful mode, in the main menu, Window
+  colours and the Compact player's menu, draws FluidEQ's taskbar button, its
+  tray icon and the icon in the tray's menu in the window's colours, and
+  follows them as they change. It starts off.
 - **The name in the title bar stands alone**, on one line in one sweep of
   colour, with the version coming in last.
 - **What a scene's time of day follows is one choice of three**, Off,
@@ -264,6 +281,9 @@ and everything else plays as before.
   - Pick the model and how hard it thinks; a ring shows how much of the
     conversation's room is used, **Compact** makes more, and the accounts
     card shows how much of your 5-hour and weekly limits is left.
+- **The message you are writing is kept.** Each scene keeps its unsent chat
+  message, and the stage picture attached with your drawings on it, through a
+  restart, until you send it.
 - **The Studio says which versions you have**: the bench's, the copy in your
   looks (and whether it is behind), and the gallery's.
 - **While the Studio is open, the scenes' time of day follows its
@@ -283,6 +303,12 @@ and everything else plays as before.
   longer tells its maker how long each scene is on your screen or which audio
   engine you use, and what was sent before is deleted. What the service keeps
   is what you do on purpose: the scenes you get, like and publish.
+- **What another player played is not kept.** A browser tab or another
+  player's song shows on the bar only while that player is playing it, and
+  is gone once it closes, on this computer and on every computer in a Share
+  Audio group; it no longer comes back when FluidEQ starts. Songs whose sound
+  you keep are filed by a fingerprint, never by their title, and the Media
+  page's download log no longer names the files.
 - **Sign in with Google.** Continue with Google opens Google in your own
   browser, where you are usually signed in already, and FluidEQ finishes the
   sign-in when Google sends you back; the panel says it is waiting and keeps
@@ -291,6 +317,11 @@ and everything else plays as before.
 
 ### What's New and Help
 
+- **Help is drawn from the app itself.** Its pictures of the title bar, the
+  Compact player, Share Audio, the look picker, the Forum and the Visualizers
+  pages are FluidEQ's own parts, in your language and your window's colours,
+  so they always show the app you have. The downloadable guide carries the
+  same text.
 - **Films of the real app.** Fourteen of What's New's slides, and the Help
   topics they belong to, now have a short film of the feature being used,
   with a voice saying what it is and how to use it, in your language, and the
@@ -329,6 +360,7 @@ and everything else plays as before.
 
 - Output names in any language read right: a name in Chinese or any other
   script came out as question marks and boxes.
+- A Share Audio group of one says "1 computer", in every language.
 - **Reset all settings** also sends every page back to where a new install
   opens it and turns the graph back on, and it no longer changes your
   language. The window keeps its size and place.
