@@ -3,7 +3,7 @@
 # There is no per-application transport API to call here. Spotify, a browser
 # tab, VLC and the app's own player all listen for the same three virtual keys
 # a keyboard's media row sends, so pressing one is the only command that
-# reaches every player at once — including the ones that are not running yet.
+# reaches every player at once -- including the ones that are not running yet.
 #
 # The caller chooses the code, and it is checked again here. The set is closed
 # on both sides deliberately: nothing on this path should be able to synthesise
@@ -18,6 +18,11 @@ param(
     [ValidateSet(176, 177, 179)]
     [int]$VirtualKey
 )
+
+# Answer in UTF-8, as the app reads it -- see windows-audio-devices.ps1 and
+# UTF8_OUTPUT_STATEMENT in src/main/powershell.ts (GitHub issue 39). This file
+# stays ASCII for the same reason.
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $source = @'
 using System;
