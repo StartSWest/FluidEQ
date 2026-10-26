@@ -216,16 +216,29 @@ export const createMainWindowFactory = ({
           )
         : centreIn(playerFirstSize(1), rememberedArea);
     }
+    // Even a first launch into the amp needs a full app to return to. Its
+    // real initial bounds replace this seed when the app window is created.
+    const appArea = isUsableRect(restored)
+      ? screen.getDisplayMatching(restored).workArea
+      : screen.getPrimaryDisplay().workArea;
+    const appPlacement = {
+      ...centreIn(
+        {
+          width: restored.width ?? firstRun.width,
+          height: restored.height ?? firstRun.height,
+        },
+        appArea,
+      ),
+      ...(restored.x !== undefined && restored.y !== undefined
+        ? { x: restored.x, y: restored.y }
+        : {}),
+      isMaximized:
+        restored.isMaximized === true || (isFirstRun && firstRun.maximize),
+    };
     windowModes.restore({
       mode: player ? 'player' : 'app',
       isPinned: restored.isPinned === true,
-      app: {
-        x: restored.x,
-        y: restored.y,
-        width: restored.width,
-        height: restored.height,
-        isMaximized: restored.isMaximized,
-      },
+      app: appPlacement,
       player: playerRect ?? {},
     });
     // The floor for the mode it opens in. The player's is scaled by the
@@ -337,6 +350,7 @@ export const createMainWindowFactory = ({
     // right between drags of the window's edge, never during one — and
     // where the player is left standing, so it opens there next time.
     windowModes.followWindow(created);
+    saveWindowState();
     created.on('moved', keepFloor);
     created.webContents.on('did-finish-load', keepFloor);
     screen.on('display-metrics-changed', keepFloor);
@@ -515,7 +529,7 @@ export const createMainWindowFactory = ({
         // update, permanently. So it waits for the tray to open the window and
         // happens then, one frame late and visible as a snap, which is the
         // cost of not flashing a window at somebody who put it away.
-        if (restored.isMaximized && !player) {
+        if (appPlacement.isMaximized && !player) {
           created.once('show', () => created.maximize());
         }
         return;
@@ -528,10 +542,7 @@ export const createMainWindowFactory = ({
         // size and then visibly snap outward. A first run on a screen below 2K
         // takes the same path, for the same reason.
         // Never the player: `isMaximized` is the app's, kept for going back.
-        if (
-          !player &&
-          (restored.isMaximized || (isFirstRun && firstRun.maximize))
-        ) {
+        if (!player && appPlacement.isMaximized) {
           created.maximize();
         }
         created.show();

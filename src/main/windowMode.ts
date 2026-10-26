@@ -11,18 +11,16 @@ import {
   clampInto,
   isPlayerRect,
   isUsableRect,
-  placeAtTopRight,
   playerFirstSize,
   playerMinimumSize,
 } from '../common/windowMode';
 import type { IRect, TWindowMode } from '../common/windowMode';
 import { createFullScreenOwner } from './fullScreenOwner';
 import { setWindowTransitions } from './windowDwm';
+import { appPlacementFromWindow, appReturnBounds } from './appWindowPlacement';
+import type { IAppPlacement } from './appWindowPlacement';
 
-/** Where the full app was, as the window-state file keeps it. */
-export interface IAppPlacement extends Partial<IRect> {
-  isMaximized?: boolean;
-}
+export type { IAppPlacement } from './appWindowPlacement';
 
 /** Everything about the two modes worth keeping between launches. */
 export interface IWindowModeMemory {
@@ -41,9 +39,6 @@ export interface IWindowModeMemory {
 
 const workAreaOf = (rect: IRect): IRect =>
   screen.getDisplayMatching(rect).workArea;
-
-/** How much of a screen the app takes when there is nowhere to go back to. */
-const APP_SCREEN_FRACTION = 0.9;
 
 /**
  * A window size no screen reaches, for "no ceiling": said as a number rather
@@ -182,6 +177,13 @@ export const createWindowModes = (
     );
   };
 
+  /** Release the amp's frame and width ceiling before placing the full app. */
+  const releaseAppLimits = (win: BrowserWindow) => {
+    win.setResizable(true);
+    win.setMaximizable(true);
+    win.setMaximumSize(NO_CEILING, NO_CEILING);
+  };
+
   /**
    * The limits of the mode the window is in, on the screen it is on now: its
    * floor, the height it is held to if it is held to one, and whether it can
@@ -242,11 +244,12 @@ export const createWindowModes = (
       // rounds it and draws its shadow.
       win.setResizable(false);
     } else {
+      releaseAppLimits(win);
       win.setMinimumSize(floor.width, floor.height);
-      win.setMaximumSize(NO_CEILING, NO_CEILING);
-      win.setResizable(true);
     }
-    win.setMaximizable(!isPlayer);
+    if (isPlayer) {
+      win.setMaximizable(false);
+    }
   };
 
   /**
@@ -328,7 +331,9 @@ export const createWindowModes = (
   /** Resolves once the window stands at the player's size. */
   const enterPlayer = (win: BrowserWindow): Promise<void> => {
     const onScreen = win.getBounds();
-    memory.app = { ...win.getNormalBounds(), isMaximized: win.isMaximized() };
+    memory.app = appPlacementFromWindow(win, memory.app);
+    // Persist the full app before any amp resize can reach the window.
+    onChange();
     const target = playerTarget(win, onScreen);
     memory.mode = 'player';
     isSwitching = true;
@@ -384,33 +389,14 @@ export const createWindowModes = (
     playerHeld = undefined;
     playerHeightFloor = undefined;
     playerWidthNeed = undefined;
-    const area = workAreaOf(onScreen);
     const saved = memory.app;
-    const floor = appMinimumSize(area);
-    // Where it was, pulled back onto a screen if that one has gone; the first
-    // time, nine tenths of this screen from the corner the switch is in.
-    const target = isUsableRect(saved)
-      ? clampInto(saved, workAreaOf(saved))
-      : placeAtTopRight(
-          onScreen,
-          {
-            width: Math.max(
-              floor.width,
-              Math.round(area.width * APP_SCREEN_FRACTION),
-            ),
-            height: Math.max(
-              floor.height,
-              Math.round(area.height * APP_SCREEN_FRACTION),
-            ),
-          },
-          area,
-        );
+    const target = appReturnBounds(saved, onScreen);
+    memory.app = { ...target, isMaximized: saved.isMaximized };
     applyPin(win);
     // The amp's ceiling off first: its one width is its maximum as well as
     // its floor, and the app's bounds set under it came out the amp's width
     // (Ivan, 2026-10-25: "your width fix is screwing my full app").
-    win.setMaximumSize(NO_CEILING, NO_CEILING);
-    win.setResizable(true);
+    releaseAppLimits(win);
     // Out to the app's size before its floor goes up: the other way round the
     // floor pushes the player's small window wide from where it stands, off
     // the edge of the screen when it stands near one.
@@ -654,8 +640,22 @@ export const createWindowModes = (
         // restored to it (Ivan, 2026-09-22).
         if (isPlayersOwn(win)) {
           keepPlayer(win.getBounds());
+        } else if (
+          !win.isDestroyed() &&
+          memory.mode === 'app' &&
+          !isSwitching &&
+          !win.isFullScreen()
+        ) {
+          memory.app = appPlacementFromWindow(win, memory.app);
         }
       };
+      // These precede placement's save listeners. A mode flips to "app"
+      // before its native resize completes; none of those intermediate amp
+      // bounds may replace the full-app snapshot on disk.
+      win.on('move', remember);
+      win.on('resize', remember);
+      win.on('maximize', remember);
+      win.on('unmaximize', remember);
       win.on('will-resize', () => {
         isDragging = true;
       });
@@ -687,6 +687,7 @@ export const createWindowModes = (
           settleAfterFullScreen(win);
         }
       });
+      remember();
     },
 
     /**
