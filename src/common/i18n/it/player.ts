@@ -12,7 +12,6 @@ export default {
   'player.menu.openIn': "Apri nell'app completa",
   'player.menu.alwaysOnTop': 'Sempre in primo piano',
   'player.menu.fold': 'Riduci a una riga',
-  'player.menu.foldHint': 'Doppio clic sulla barra',
   'player.unfold': 'Espandi',
   'player.switch.name': 'Lettore compatto',
   'player.switch.toPlayer': 'Passa al lettore compatto',
@@ -22,7 +21,6 @@ export default {
   'player.clock.aria': 'Tempo trascorso o rimanente',
   'player.clock.hint':
     'Fai clic per passare dal tempo trascorso a quello rimanente',
-  'player.well.aria': 'Analizzatore di spettro',
   'player.readout.level': 'Livello di uscita',
   'player.readout.rate': 'Frequenza di campionamento',
   'player.unit.db': 'dB',
@@ -34,12 +32,9 @@ export default {
   'player.seekNone':
     'Questa sorgente non permette di spostarsi in un altro punto del brano',
   'player.eq.aria': 'Equalizzatore',
-  'player.eq.on': 'Attivo',
   'player.eq.onHint': 'Attiva o disattiva FluidEQ',
-  'player.eq.short': 'EQ',
   'player.eq.smart': 'Intelligente',
   'player.eq.song': 'Brano',
-  'player.eq.curve': "Curva dell'equalizzatore",
   'player.eq.pre': 'Pre',
   'player.eq.auto': 'Auto',
   'player.eq.autoHint': 'Attiva la normalizzazione automatica',

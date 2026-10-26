@@ -138,211 +138,265 @@ const START_CHAPTERS = [
     ],
   },
   {
-    // The Compact player, taken on 2026-09-29 from the real player and its
-    // stylesheets at 480 CSS pixels wide (560 for the folded strip, which
-    // gives up its EQ key below 520), drawn at
-    // two device pixels each so it stays sharp enlarged — with a made-up
-    // queue and drawn covers, nobody's real albums. Boxes are the elements'
-    // own rectangles, doubled. Each deck is its own picture: the whole player
-    // held twenty-seven numbered controls, which no layout keeps readable.
+    // The Compact player, drawn by its own parts (`help/live/playerFigures`)
+    // playing the made-up queue What's New plays, so the pictures follow the
+    // player and speak the reader's language (Ivan, 2026-10-26: "do the help
+    // and what new"). The drawing lays the whole player out as its window
+    // holds it, 480 CSS pixels wide, and each figure frames one part of it:
+    // the whole player held twenty-seven numbered controls, which no layout
+    // keeps readable. Each control is found by its own class on the drawing;
+    // the stills are the 2.0 captures, for the exported guide.
     id: 'player',
     group: 'start',
     figures: [
       {
-        image: '42-player-top.png',
-        width: 960,
-        height: 564,
+        live: 'player-top',
+        width: 480,
+        height: 362,
+        frame: '.player-title, .player-top',
         caption: 'help.player.topCaption',
+        still: '42-player-top.png',
         controls: [
           {
-            box: [12, 7, 80, 52],
+            target: '.player-title__mark',
             name: 'player.menu',
             text: 'help.player.menu',
           },
           {
-            box: [646, 7, 56, 52],
+            target:
+              '.player-title__controls > .player-title__button:first-child',
             name: 'player.menu.alwaysOnTop',
             text: 'help.player.pin',
           },
           {
-            box: [708, 7, 116, 52],
+            target: '.window-mode-switch',
             name: 'player.switch.name',
             text: 'help.player.switch',
           },
           {
-            box: [52, 146, 325, 101],
-            name: 'player.clock.aria',
-            text: 'help.player.clock',
+            target: '.player-hero__key',
+            name: 'graph.view.fullscreen',
+            text: 'help.player.fullScreen',
           },
           {
-            box: [52, 257, 365, 68],
-            name: 'player.well.aria',
-            text: 'help.player.well',
+            target: '.player-source',
+            name: 'help.player.sourceName',
+            text: 'help.player.source',
           },
           {
-            box: [583, 194, 110, 30],
+            target: '.player-readouts',
             name: 'player.readout.level',
             text: 'help.player.level',
           },
           {
-            box: [32, 359, 518, 48],
-            name: 'player.volume.system',
-            text: 'help.player.volume',
+            target: '.player-hero__heart',
+            name: 'library.playlist.addToFavorites',
+            text: 'help.player.heart',
           },
           {
-            box: [566, 357, 362, 52],
-            name: 'help.player.decksName',
-            text: 'help.player.decks',
-          },
-          {
-            box: [116, 425, 728, 32],
+            target: '.player-dock__seek .player-range--seek',
             name: 'player.seek',
             text: 'help.player.seek',
           },
           {
-            box: [32, 473, 482, 60],
+            // The keys, not their row: the row runs the player's width
+            // and its circle stood in the empty space beside them.
+            target: '.player-dock__keys > button',
             name: 'help.player.playingName',
             text: 'help.player.playing',
           },
           {
-            box: [736, 473, 130, 60],
+            target: '.player-volume',
+            name: 'player.volume.system',
+            text: 'help.player.volume',
+          },
+          {
+            target: '.player-dock__mode',
             name: 'help.player.orderName',
             text: 'help.player.order',
           },
           {
-            box: [876, 475, 52, 56],
+            target: '.player-dock__look',
             name: 'help.player.lookName',
             text: 'help.player.look',
           },
         ],
       },
       {
-        image: '43-player-eq.png',
-        width: 960,
-        height: 770,
+        live: 'player-sound',
+        width: 480,
+        height: 330,
+        frame: '.player-sound',
         caption: 'help.player.eqCaption',
+        still: '43-player-eq.png',
         controls: [
           {
-            box: [32, 33, 102, 52],
-            name: 'player.eq.on',
-            text: 'help.window.systemEq',
+            target: '.player-sound__fold',
+            name: 'player.sound.title',
+            text: 'help.player.soundFold',
           },
-          { box: [144, 33, 197, 52], name: 'eq.smart', text: 'help.eq.smart' },
           {
-            box: [736, 33, 192, 52],
+            target: '.voicing-pick',
             name: 'dsp.presets',
             text: 'help.eq.voicing',
           },
+          { target: '.player-split', name: 'eq.smart', text: 'help.eq.smart' },
           {
-            box: [32, 101, 896, 230],
-            name: 'player.eq.curve',
-            text: 'help.player.screen',
+            target: '.player-sound__power',
+            name: 'sidebar.systemEq',
+            text: 'help.window.systemEq',
           },
           {
-            box: [32, 347, 64, 324],
-            name: 'sidebar.preamp',
-            text: 'help.window.preamp',
-          },
-          {
-            box: [130, 347, 798, 324],
-            name: 'tabs.eqMain',
-            text: 'help.player.bands',
-          },
-          {
-            box: [32, 687, 199, 52],
+            target: '.player-eq__faces',
             name: 'eq.tone',
             text: 'help.player.tone',
           },
           {
-            box: [241, 687, 205, 52],
+            target: '.player-bands > :first-child',
+            name: 'sidebar.preamp',
+            text: 'help.window.preamp',
+          },
+          {
+            target: '.player-bands__window',
+            name: 'tabs.eqMain',
+            text: 'help.player.bands',
+          },
+          {
+            target: '.quick-layouts',
             name: 'eq.quickLayouts',
             text: 'help.eq.layouts',
           },
-          { box: [456, 687, 202, 52], name: 'eq.mode', text: 'help.eq.mode' },
-          { box: [868, 687, 60, 52], name: 'eq.clear', text: 'help.eq.clear' },
+          {
+            target: '.eq-mode-trigger',
+            name: 'eq.mode',
+            text: 'help.player.mode',
+          },
+          {
+            target: '.clear-eq-trigger',
+            name: 'eq.clear',
+            text: 'help.eq.clear',
+          },
         ],
       },
       {
-        image: '44-player-queue.png',
-        width: 960,
-        height: 1088,
+        live: 'player-queue',
+        width: 480,
+        height: 280,
+        frame: '.player-shelf, .player-foot',
         caption: 'help.player.queueCaption',
+        still: '44-player-queue.png',
         controls: [
           {
-            box: [32, 44, 741, 26],
+            target: '.player-shelf__tab',
             name: 'library.upNext',
             text: 'help.player.upNext',
           },
           {
-            box: [789, 31, 139, 52],
-            name: 'tabs.library',
-            text: 'help.player.library',
+            target: '.player-shelf__key:not(.player-shelf__fold)',
+            name: 'player.queue.save',
+            text: 'help.player.save',
           },
           {
-            box: [32, 99, 896, 957],
+            target: '.player-shelf__fold',
+            name: 'player.queue.fold',
+            text: 'help.player.queueFold',
+          },
+          {
+            // One song, the next to play, by its cover, and a remove key a
+            // row below: a target that matches several is pointed at where
+            // they stand together, which for a column of rows is the gap
+            // between two; and the whole row ends beside its remove key.
+            target: 'li:not(.is-ahead) + li.is-ahead .player-queue__art',
             name: 'help.player.songsName',
             text: 'help.player.songs',
+          },
+          {
+            // The song after it, so the two circles stand a row apart.
+            target:
+              'li:not(.is-ahead) + li.is-ahead + li.is-ahead .player-queue__remove',
+            name: 'library.queue.remove',
+            text: 'help.player.remove',
+          },
+          {
+            target: '.player-foot__output',
+            name: 'sidebar.output',
+            text: 'help.player.output',
+          },
+          {
+            target: '.player-foot__engine',
+            name: 'help.player.engineName',
+            text: 'help.player.engine',
           },
         ],
       },
       {
-        image: '45-player-menu.png',
-        width: 634,
-        height: 1016,
+        live: 'player-menu',
+        width: 420,
+        height: 560,
+        frame: '.player-menu',
         caption: 'help.player.menuCaption',
+        still: '45-player-menu.png',
         controls: [
           {
-            box: [34, 33, 566, 112],
+            target: '.player-menu__home',
             name: 'player.menu.fullApp',
             text: 'help.player.switch',
           },
           {
-            box: [34, 153, 566, 301],
+            target: '.player-menu__page:first-child',
             name: 'player.menu.openIn',
             text: 'help.player.openIn',
           },
           {
-            box: [54, 472, 534, 228],
+            target: '.actions-menu__sliders',
             name: 'graph.sceneTint.brightness',
             text: 'help.player.theme',
           },
           {
-            box: [96, 790, 492, 76],
+            // A settings row lays its parts out in the tray's grid and has
+            // no box of its own (`display: contents`): its parts are found.
+            target: '.actions-menu__sliders + .menu-preference > *',
+            name: 'eq.sliders',
+            text: 'help.player.sliders',
+          },
+          {
+            target: '.actions-menu__prefs-rule + .menu-preference > *',
             name: 'player.menu.alwaysOnTop',
             text: 'help.player.pin',
           },
           {
-            box: [34, 898, 566, 84],
+            target: '.player-menu__fold',
             name: 'player.menu.fold',
             text: 'help.player.fold',
           },
         ],
       },
       {
-        image: '46-player-folded.png',
-        width: 1120,
-        height: 80,
+        live: 'player-folded',
+        width: 480,
+        height: 54,
         caption: 'help.player.foldedCaption',
+        still: '46-player-folded.png',
         controls: [
           {
-            box: [12, 14, 56, 52],
+            target: '.player-fold__mark',
             name: 'player.unfold',
             text: 'help.player.unfold',
           },
           {
-            box: [199, 14, 246, 52],
-            name: 'help.player.playingName',
+            target: '.player-fold__play',
+            name: 'library.play',
             text: 'help.player.foldedPlaying',
           },
           {
-            box: [453, 14, 211, 52],
+            target: '.player-fold__time',
             name: 'player.clock.aria',
-            text: 'help.player.foldedClock',
+            text: 'help.player.clock',
           },
           {
-            box: [824, 14, 96, 52],
-            name: 'player.eq.short',
-            text: 'help.window.systemEq',
+            target: '.player-fold__seek',
+            name: 'player.seek',
+            text: 'help.player.seek',
           },
         ],
       },

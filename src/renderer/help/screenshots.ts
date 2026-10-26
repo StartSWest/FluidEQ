@@ -37,20 +37,18 @@ import headerRight from '../../../docs/38-header-right.png';
 import railLeft from '../../../docs/39-rail-left.png';
 import railRight from '../../../docs/40-rail-right.png';
 import games from '../../../docs/41-game-presets.png';
-import playerTop from '../../../docs/42-player-top.png';
-import playerEq from '../../../docs/43-player-eq.png';
-import playerQueue from '../../../docs/44-player-queue.png';
-import playerMenu from '../../../docs/45-player-menu.png';
-import playerFolded from '../../../docs/46-player-folded.png';
-import type { THelpImage } from '../../common/helpGuide';
+import type { THelpPicture } from '../../common/helpGuide';
 
 /**
  * Every capture, one set: taken at the middle of the Brightness slider, where
  * one picture reads on a dark window and a light one (2026-09-29; the Light
  * theme's twins went with the themes). Static imports make webpack include
  * each one in offline packaged builds.
+ *
+ * A live figure's still is not here: the app draws that figure from its own
+ * components (`HelpLiveFigure`), and only the exported guide shows the still.
  */
-const SHOTS: Record<THelpImage, string> = {
+const SHOTS: Record<THelpPicture, string> = {
   '01-online-media-youtube-live-eq.png': online,
   '03-eq-parametric-bands-and-live-response.png': eq,
   '04-eq-headphone-correction-and-import.png': headphones,
@@ -88,14 +86,9 @@ const SHOTS: Record<THelpImage, string> = {
   '39-rail-left.png': railLeft,
   '40-rail-right.png': railRight,
   '41-game-presets.png': games,
-  '42-player-top.png': playerTop,
-  '43-player-eq.png': playerEq,
-  '44-player-queue.png': playerQueue,
-  '45-player-menu.png': playerMenu,
-  '46-player-folded.png': playerFolded,
 };
 
 /** A capture, as the guide shows it. */
-const helpScreenshot = (image: THelpImage): string => SHOTS[image];
+const helpScreenshot = (image: THelpPicture): string => SHOTS[image];
 
 export default helpScreenshot;

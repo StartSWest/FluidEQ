@@ -100,13 +100,13 @@ const help: Record<keyof typeof en, string> = {
   'help.player.intro':
     'Um botão transforma a janela do FluidEQ no Player compacto, uma única coluna estreita: no alto, um visualizador com a música por cima e os controles de reprodução embaixo; depois Som, seu equalizador; e depois A seguir e suas playlists. O que estiver tocando continua tocando, e o mesmo botão traz o app completo de volta na página em que você estava.',
   'help.player.steps':
-    'Pressione o botão Player compacto na barra de título, ao lado de Ajuda. No player, o mesmo botão traz o app completo de volta.\nRecolha Som, ou A seguir e Playlists, até o cabeçalho, e o visualizador ocupa o espaço; clique no cabeçalho para abrir de novo. Arraste a borda de cima ou de baixo do player para deixá-lo mais alto ou mais baixo.\nClique duas vezes no visualizador para ele ocupar a tela inteira; Esc o devolve ao lugar. Clique no nome do estilo, ao lado do aleatório e da repetição, para escolher entre todos os estilos e cenas.\nClique duas vezes no cabeçalho do player, ou escolha Recolher em uma linha no menu do logo do FluidEQ, para recolhê-lo em uma linha; o logo o expande de novo.\nNo mesmo menu, ajuste o Brilho do próprio player, a Transparência sobre uma cena ou o Tom da janela sobre um estilo padrão, e a Luz do dia de uma cena. Sempre visível, ali ou no cabeçalho, o mantém acima das outras janelas.\nSolte arquivos de música em qualquer lugar do player: eles entram na Biblioteca e no fim de A seguir ou, sobre a lista, no ponto em que você soltar.',
+    'Pressione o botão Player compacto na barra de título, ao lado de Ajuda. No player, o mesmo botão traz o app completo de volta.\nRecolha Som, ou A seguir e Playlists, até o cabeçalho, e o visualizador ocupa o espaço; clique no cabeçalho para abrir de novo. Arraste a borda de cima ou de baixo do player para deixá-lo mais alto ou mais baixo.\nClique duas vezes no visualizador para ele ocupar a tela inteira; Esc o devolve ao lugar. Clique no nome do estilo, ao lado do aleatório e da repetição, para escolher entre todos os estilos e cenas.\nEscolha Recolher em uma linha no menu do logo do FluidEQ para recolher o player em uma linha; o logo o expande de novo.\nNo mesmo menu, ajuste o Brilho do próprio player, a Transparência sobre uma cena ou o Tom da janela sobre um estilo padrão, e a Luz do dia de uma cena. Sempre visível, ali ou no cabeçalho, o mantém acima das outras janelas.\nSolte arquivos de música em qualquer lugar do player: eles entram na Biblioteca e no fim de A seguir ou, sobre a lista, no ponto em que você soltar.',
   'help.player.tip':
     'O volume do player é o do seu computador, o mesmo do Windows, então ele ajusta o nível de tudo o que o computador toca. Se o player acabar fora da tela, clique com o botão direito no ícone do FluidEQ na bandeja do sistema e escolha Recuperar a janela.',
   'help.player.keywords':
     'mini player, miniplayer, player pequeno, player compacto, compacto, modo compacto, reprodutor compacto, winamp, amp, modo player, sempre visível, sempre no topo, sempre por cima, always on top, fixar, recolher, uma linha, fila, a seguir, soltar arquivos, arrastar arquivos, tema, tema claro, tema escuro, modo escuro, modo claro, janela pequena, player flutuante, janela flutuante, volume',
   'help.player.topCaption': 'O topo: a música, e como ela toca',
-  'help.player.eqCaption': 'O equalizador',
+  'help.player.eqCaption': 'Som, seu equalizador',
   'help.player.queueCaption': 'A seguir',
   'help.player.menuCaption': 'O menu do player',
   'help.player.foldedCaption': 'Recolhido em uma linha',
@@ -115,14 +115,9 @@ const help: Record<keyof typeof en, string> = {
   'help.player.pin': 'Mantém o player acima de todas as outras janelas.',
   'help.player.switch': 'Voltar ao app completo, na página em que você estava.',
   'help.player.clock': 'Tempo tocado. Clique nele para ver o tempo restante.',
-  'help.player.well':
-    'O som enquanto toca. Clique nele para alternar entre barras e onda.',
   'help.player.level': 'O nível do som que sai do FluidEQ, em decibéis.',
   'help.player.volume':
     'O volume do seu computador, o mesmo do Windows: ele ajusta o nível de tudo o que o computador toca.',
-  'help.player.decksName': 'EQ, Visual e Fila',
-  'help.player.decks':
-    'Abrem e fecham o equalizador, o visualizador e a fila A seguir. A janela cresce e encolhe conforme o que cada um ocupa.',
   'help.player.seek': 'Onde a música está. Arraste para ir a outro ponto.',
   'help.player.playingName': 'Controles de reprodução',
   'help.player.playing':
@@ -133,26 +128,43 @@ const help: Record<keyof typeof en, string> = {
   'help.player.lookName': 'Estilo',
   'help.player.look':
     'O estilo ou a cena que o visualizador está desenhando. Clique para escolher entre todos.',
-  'help.player.screen':
-    'O que você ouve, desenhado: suas bandas, o EQ inteligente e tudo o mais que estiver aplicado, sobre um estilo do visualizador. Também aplicado lista cada um, e uma etiqueta desliga um deles sem removê-lo.',
   'help.player.bands':
     'Arraste uma banda para cima ou para baixo para reforçá-la ou cortá-la. A frequência dela fica escrita embaixo.',
   'help.player.tone':
     'Tom mostra os controles Graves, Médios e Agudos; a aba ao lado, todas as bandas.',
   'help.player.upNext':
     'A seguir e Playlists, cada uma com quantos itens tem, e o tempo que falta na fila.',
-  'help.player.library': 'Abre a Biblioteca no app completo.',
   'help.player.songsName': 'As músicas',
   'help.player.songs':
     'O que toca a seguir. Clique em uma música para tocá-la, arraste para mudá-la de lugar, ou solte arquivos de música aqui para adicioná-los no ponto em que você soltar.',
   'help.player.openIn': 'Abre o app completo em uma das páginas dele.',
   'help.player.theme':
     'O Brilho do próprio player, separado do app completo; a Transparência sobre uma cena, ou o Tom da janela sobre um estilo padrão; a Luz do dia de uma cena; e o Modo colorido.',
-  'help.player.fold':
-    'Recolhe o player em uma linha. Clicar duas vezes no cabeçalho dele faz o mesmo.',
+  'help.player.fold': 'Recolhe o player em uma linha.',
   'help.player.unfold': 'Expande o player. A seta na outra ponta também.',
   'help.player.foldedPlaying': 'Reproduzir ou pausar.',
-  'help.player.foldedClock': 'O tempo, e onde a música está.',
+  'help.player.fullScreen':
+    'Enche a tela com o visualizador. Clicar duas vezes na imagem faz o mesmo, e Esc devolve a tela.',
+  'help.player.sourceName': 'Origem',
+  'help.player.source':
+    'De onde vem a música: a Biblioteca, Mídia online, Karaokê, outro computador ou outro programa deste PC. Clicar nele abre essa página no app completo.',
+  'help.player.heart':
+    'Adiciona uma música da Biblioteca aos seus Favoritos, ou a tira de lá.',
+  'help.player.soundFold':
+    'Recolhe os controles de som até esta linha, que deixa à mão o preset, o EQ inteligente e o botão, e os abre de novo.',
+  'help.player.mode':
+    'Abre o Modo EQ: com que força seu EQ e as curvas atuam, o Q de banda, a fase e os agudos deles.',
+  'help.player.save': 'Guarda A seguir como uma playlist própria.',
+  'help.player.queueFold':
+    'Recolhe A seguir e Playlists até as abas, e o visualizador ocupa o espaço.',
+  'help.player.remove': 'Tira de A seguir uma música que ainda não tocou.',
+  'help.player.output':
+    'Para onde o som vai: a saída pela qual o Windows toca.',
+  'help.player.engineName': 'Motor',
+  'help.player.engine':
+    'Qual motor está moldando o som; fica aceso enquanto o FluidEQ está ligado.',
+  'help.player.sliders':
+    'Alças redondas ou tampas retangulares nos deslizantes do EQ, aqui e na página do EQ.',
 
   'help.requirements.title': 'O que o seu PC precisa',
   'help.requirements.intro':

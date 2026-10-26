@@ -1,0 +1,72 @@
+/* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// A LIVE FIGURE (`HelpLiveFigure`): the panel drawn by the app's own parts
+// where a capture used to stand, in the capture's frame and on its sheet.
+
+// The frame a capture wears (`.help-guide__capture`), round a drawing. Its
+// hairline is drawn over the drawing rather than round it, so the drawing
+// fills the frame to the pixel the call-outs were placed by.
+.help-guide__capture.help-figure__live {
+  border: 0;
+  cursor: default;
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba($white, 0.09);
+    border-radius: inherit;
+    content: '';
+    pointer-events: none;
+  }
+}
+
+// The drawing: laid out at the figure's own width and clipped to the part it
+// frames (`HelpLiveSurface`, which sets both inline).
+.help-live {
+  position: relative;
+  overflow: hidden;
+
+  // A picture of the app, so its motion stands down as the window's does
+  // when motion is reduced (`App.scss`): a menu that opened with a scale was
+  // measured half-open. Not to nothing — a duration of none cancels the
+  // event that tells the figure to measure again.
+  &,
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+}
+
+.help-live__drawing {
+  position: relative;
+}
+
+// The press that enlarges a live figure, over the drawing: a button may not
+// hold the panel's own buttons, inert or not.
+.help-figure__enlarge {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-m;
+  background: transparent;
+  cursor: zoom-in;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// Enlarged: drawn again, larger, in the middle of the room it is given.
+.help-lightbox__live {
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}

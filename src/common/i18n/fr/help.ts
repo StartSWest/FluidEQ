@@ -100,13 +100,13 @@ const help: Record<keyof typeof en, string> = {
   'help.player.intro':
     'Un seul interrupteur transforme la fenêtre de FluidEQ en Lecteur compact, une seule colonne étroite : en haut, un visualiseur avec le morceau par-dessus et les commandes de lecture en dessous ; puis Son, votre égaliseur ; puis À suivre et vos playlists. Ce qui est en lecture continue de jouer, et le même interrupteur ramène l’application complète sur la page que vous aviez quittée.',
   'help.player.steps':
-    'Appuyez sur l’interrupteur Lecteur compact dans la barre de titre, à côté d’Aide. Sur le lecteur, le même interrupteur ramène l’application complète.\nRepliez Son, ou À suivre et Playlists, sur leur en-tête : le visualiseur prend la place, et un clic sur l’en-tête les rouvre. Faites glisser le bord haut ou bas du lecteur pour le rendre plus haut ou plus bas.\nDouble-cliquez sur le visualiseur pour qu’il remplisse l’écran ; Échap le remet en place. Cliquez sur le nom du style, à côté de l’aléatoire et de la répétition, pour choisir parmi tous les styles et toutes les scènes.\nDouble-cliquez sur l’en-tête du lecteur, ou choisissez Replier sur une ligne dans le menu du logo FluidEQ, pour qu’il tienne sur une seule ligne ; le logo le déplie.\nDans ce même menu, réglez la Luminosité propre au lecteur, la Transparence sur une scène ou la Teinte de la fenêtre sur un style standard, et la Lumière du jour d’une scène. Toujours au premier plan, là ou dans l’en-tête, le garde au-dessus des autres fenêtres.\nDéposez des fichiers musicaux n’importe où sur le lecteur : ils rejoignent la Bibliothèque et la fin d’À suivre ou, sur la liste, l’endroit où vous les lâchez.',
+    'Appuyez sur l’interrupteur Lecteur compact dans la barre de titre, à côté d’Aide. Sur le lecteur, le même interrupteur ramène l’application complète.\nRepliez Son, ou À suivre et Playlists, sur leur en-tête : le visualiseur prend la place, et un clic sur l’en-tête les rouvre. Faites glisser le bord haut ou bas du lecteur pour le rendre plus haut ou plus bas.\nDouble-cliquez sur le visualiseur pour qu’il remplisse l’écran ; Échap le remet en place. Cliquez sur le nom du style, à côté de l’aléatoire et de la répétition, pour choisir parmi tous les styles et toutes les scènes.\nChoisissez Replier sur une ligne dans le menu du logo FluidEQ pour que le lecteur tienne sur une seule ligne ; le logo le déplie.\nDans ce même menu, réglez la Luminosité propre au lecteur, la Transparence sur une scène ou la Teinte de la fenêtre sur un style standard, et la Lumière du jour d’une scène. Toujours au premier plan, là ou dans l’en-tête, le garde au-dessus des autres fenêtres.\nDéposez des fichiers musicaux n’importe où sur le lecteur : ils rejoignent la Bibliothèque et la fin d’À suivre ou, sur la liste, l’endroit où vous les lâchez.',
   'help.player.tip':
     'Le volume du lecteur est celui de votre ordinateur, le même que dans Windows : il règle donc le niveau de tout ce que joue l’ordinateur. Si le lecteur se retrouve hors de l’écran, faites un clic droit sur FluidEQ dans la zone de notification de la barre des tâches et choisissez Récupérer la fenêtre.',
   'help.player.keywords':
     'mini lecteur, mini-lecteur, petit lecteur, lecteur compact, mode compact, mode lecteur, mini player, winamp, ampli, toujours au premier plan, au-dessus des autres fenêtres, always on top, épingler, replier, sur une ligne, file de lecture, file d’attente, à suivre, déposer des fichiers, glisser-déposer, thème, thème clair, thème sombre, mode sombre, mode clair, petite fenêtre, lecteur flottant, fenêtre flottante, volume',
   'help.player.topCaption': 'Le haut : le morceau et sa lecture',
-  'help.player.eqCaption': 'L’égaliseur',
+  'help.player.eqCaption': 'Son, votre égaliseur',
   'help.player.queueCaption': 'À suivre',
   'help.player.menuCaption': 'Le menu du lecteur',
   'help.player.foldedCaption': 'Replié sur une ligne',
@@ -117,14 +117,9 @@ const help: Record<keyof typeof en, string> = {
   'help.player.switch':
     'Vous ramène à l’application complète, sur la page que vous aviez quittée.',
   'help.player.clock': 'Le temps écoulé. Cliquez dessus pour le temps restant.',
-  'help.player.well':
-    'Le son en direct. Cliquez dessus pour passer des barres à l’onde, et inversement.',
   'help.player.level': 'Le niveau du son qui sort de FluidEQ, en décibels.',
   'help.player.volume':
     'Le volume de votre ordinateur, le même que dans Windows : il règle le niveau de tout ce que joue l’ordinateur.',
-  'help.player.decksName': 'EQ, Visuel et File',
-  'help.player.decks':
-    'Ouvrez et fermez l’égaliseur, le visualiseur et À suivre. La fenêtre s’agrandit et rétrécit selon la place que prend chacun.',
   'help.player.seek':
     'Où en est le morceau. Faites glisser pour vous y déplacer.',
   'help.player.playingName': 'Commandes de lecture',
@@ -136,26 +131,44 @@ const help: Record<keyof typeof en, string> = {
   'help.player.lookName': 'Style',
   'help.player.look':
     'Le style ou la scène que dessine le visualiseur. Cliquez dessus pour choisir parmi tous.',
-  'help.player.screen':
-    'Ce que vous entendez, dessiné : vos bandes, l’Égalisation auto et tout autre traitement appliqué, sur un style de visualiseur. Également appliqué les liste, et chaque étiquette désactive sa couche sans la supprimer.',
   'help.player.bands':
     'Faites glisser une bande vers le haut ou le bas pour l’amplifier ou l’atténuer. Sa fréquence est écrite en dessous.',
   'help.player.tone':
     'Tonalité affiche les boutons Graves, Médiums et Aigus ; l’onglet d’à côté, toutes les bandes.',
   'help.player.upNext':
     'À suivre et Playlists, chacun avec son nombre, et le temps qu’il reste dans la file.',
-  'help.player.library': 'Ouvre la Bibliothèque dans l’application complète.',
   'help.player.songsName': 'Les morceaux',
   'help.player.songs':
     'Ce qui joue ensuite. Cliquez sur un morceau pour le lire, faites-le glisser pour le déplacer, ou déposez ici des fichiers musicaux pour les ajouter à l’endroit où vous les lâchez.',
   'help.player.openIn': 'Ouvre l’application complète sur l’une de ses pages.',
   'help.player.theme':
     'La Luminosité propre au lecteur, indépendante de celle de l’application complète ; la Transparence sur une scène, ou la Teinte de la fenêtre sur un style standard ; la Lumière du jour d’une scène ; et le Mode coloré.',
-  'help.player.fold':
-    'Replie le lecteur sur une ligne. Un double-clic sur son en-tête fait de même.',
+  'help.player.fold': 'Replie le lecteur sur une ligne.',
   'help.player.unfold': 'Déplie le lecteur. La flèche à l’autre bout aussi.',
   'help.player.foldedPlaying': 'Lecture ou pause.',
-  'help.player.foldedClock': 'Le temps, et où en est le morceau.',
+  'help.player.fullScreen':
+    'Remplit l’écran avec le visualiseur. Un double-clic sur l’image fait de même, et Échap rend l’écran.',
+  'help.player.sourceName': 'Source',
+  'help.player.source':
+    'D’où vient le morceau : la Bibliothèque, Médias en ligne, Karaoké, un autre ordinateur ou un autre programme de ce PC. Un clic ouvre cette page dans l’application complète.',
+  'help.player.heart':
+    'Ajoute un morceau de la Bibliothèque à vos Favoris, ou l’en retire.',
+  'help.player.soundFold':
+    'Replie les réglages du son sur cette ligne, qui garde à portée le préréglage, l’égalisation auto et l’interrupteur, et les rouvre.',
+  'help.player.mode':
+    'Ouvre le Mode EQ : la force avec laquelle votre EQ et les courbes s’appliquent, leur Q de bande, leur phase et leurs aigus.',
+  'help.player.save': 'Garde À suivre comme une playlist à part entière.',
+  'help.player.queueFold':
+    'Replie À suivre et Playlists sur leurs onglets, et le visualiseur prend la place.',
+  'help.player.remove':
+    'Retire d’À suivre un morceau qui n’a pas encore été joué.',
+  'help.player.output':
+    'Où va le son : la sortie que Windows utilise pour jouer.',
+  'help.player.engineName': 'Moteur',
+  'help.player.engine':
+    'Le moteur qui façonne le son, allumé tant que FluidEQ est activé.',
+  'help.player.sliders':
+    'Des poignées rondes ou des capuchons rectangulaires sur les curseurs de l’EQ, ici et sur la page EQ.',
 
   'help.requirements.title': 'Ce qu’il faut à votre PC',
   'help.requirements.intro':

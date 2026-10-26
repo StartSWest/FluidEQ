@@ -5,8 +5,11 @@ import path from 'path';
 import prettier from 'prettier';
 import {
   HELP_CHAPTERS,
+  figureImage,
+  isLiveFigure,
   type IHelpControl,
   type IHelpFigure,
+  type IHelpPictureFigure,
 } from '../../src/common/helpGuide';
 import {
   planHelpCallouts,
@@ -41,8 +44,13 @@ const chapters = HELP_CHAPTERS.map(({ id, group, figures }) => ({
   steps: en[`help.${id}.steps`].split('\n'),
   tip: en[`help.${id}.tip`],
 }));
+// A live figure is drawn by the app and has no capture of its own yet: this
+// document shows the still its chapter names for it, which can be older than
+// the panel, plain and with its controls listed under it — its circles were
+// measured on the drawing, not on the still — until pictures are drawn from
+// the live figures by script.
 const captures = new Set(
-  chapters.flatMap((chapter) => chapter.figures.map((figure) => figure.image)),
+  chapters.flatMap((chapter) => chapter.figures.map(figureImage)),
 );
 const output = path.resolve(__dirname, '../../docs');
 captures.forEach((image) => {
@@ -54,13 +62,33 @@ captures.forEach((image) => {
 const figureTitle = (figure: IHelpFigure, chapterTitle: string) =>
   figure.caption ? en[figure.caption] : chapterTitle;
 
+/** What the list says of a control, whichever kind of figure it is on. */
+type TListedControl = Pick<IHelpControl, 'name' | 'text' | 'keys'>;
+
 // Numbered in the order the capture is read, the same numbers the illustrated
-// edition prints in its circles and the reader shows in the app.
-const controlLines = (controls: readonly IHelpControl[]) =>
-  readingOrder(controls.map((control) => control.box)).map((index, step) => {
-    const control = controls[index];
-    return `${step + 1}. **${en[control.name]}**${control.keys ? ` (\`${control.keys}\`)` : ''} — ${en[control.text]}`;
-  });
+// edition prints in its circles and the reader shows in the app; a live
+// figure's in the order its chapter lists them, as the app numbers them.
+const inOrder = (figure: IHelpFigure): readonly TListedControl[] => {
+  if (isLiveFigure(figure)) {
+    return figure.controls ?? [];
+  }
+  const controls = figure.controls ?? [];
+  return readingOrder(controls.map((control) => control.box)).map(
+    (index) => controls[index],
+  );
+};
+
+const controlLines = (figure: IHelpFigure) =>
+  inOrder(figure).map(
+    (control, step) =>
+      `${step + 1}. **${en[control.name]}**${control.keys ? ` (\`${control.keys}\`)` : ''} — ${en[control.text]}`,
+  );
+
+/** A PNG's own size, from its header, for a still drawn without circles. */
+const pngSize = (file: string) => {
+  const header = fs.readFileSync(path.join(output, file)).subarray(16, 24);
+  return { width: header.readUInt32BE(0), height: header.readUInt32BE(4) };
+};
 
 const startsGroup = (index: number) =>
   index === 0 || chapters[index].group !== chapters[index - 1].group;
@@ -94,9 +122,9 @@ const markdown = [
     '',
     ...chapter.figures.flatMap((figure) => [
       ...(figure.caption ? [`### ${en[figure.caption]}`, ''] : []),
-      `![${figureTitle(figure, chapter.title)}](${figure.image})`,
+      `![${figureTitle(figure, chapter.title)}](${figureImage(figure)})`,
       '',
-      ...controlLines(figure.controls ?? []),
+      ...controlLines(figure),
       ...(figure.controls?.length ? [''] : []),
     ]),
     `### ${en['help.steps']}`,
@@ -123,7 +151,7 @@ const NARROW: IHelpCalloutRoom = { width: 340, maxImageHeight: 520 };
 const px = (value: number) => String(Math.round(value * 10) / 10);
 
 const calloutSvg = (
-  figure: IHelpFigure,
+  figure: IHelpPictureFigure,
   title: string,
   room: IHelpCalloutRoom,
   layout: 'wide' | 'narrow',
@@ -146,18 +174,31 @@ const calloutSvg = (
   return `<svg class="callouts ${layout}" viewBox="0 0 ${px(plan.width)} ${px(plan.height)}" width="${px(plan.width)}" height="${px(plan.height)}" role="img" aria-label="${escape(title)}"><defs><clipPath id="${clip}"><rect x="${px(image.left)}" y="${px(image.top)}" width="${px(image.width)}" height="${px(image.height)}" rx="10"/></clipPath></defs><a href="${figure.image}" aria-label="${escape(en['help.enlarge'].replace('{title}', title))}"><image href="${figure.image}" x="${px(image.left)}" y="${px(image.top)}" width="${px(image.width)}" height="${px(image.height)}" clip-path="url(#${clip})"/></a><rect class="edge" x="${px(image.left)}" y="${px(image.top)}" width="${px(image.width)}" height="${px(image.height)}" rx="10"/><g class="leads">${leads}</g>${numbers}</svg>`;
 };
 
+const legendItem = (number: number, control: TListedControl) =>
+  `<li><span class="n">${number}</span><span><span class="name"><strong>${escape(en[control.name])}</strong>${control.keys ? `<kbd>${escape(control.keys)}</kbd>` : ''}</span><span class="text">${escape(en[control.text])}</span></span></li>`;
+
+const plainFigure = (
+  image: string,
+  size: { width: number; height: number },
+  title: string,
+) =>
+  `<figure><a href="${image}" aria-label="${escape(en['help.enlarge'].replace('{title}', title))}"><img src="${image}" width="${size.width}" height="${size.height}" alt="${escape(title)}" loading="lazy"></a><figcaption>${escape(title)} · FluidEQ</figcaption></figure>`;
+
 const figureHtml = (figure: IHelpFigure, chapterTitle: string) => {
   const title = figureTitle(figure, chapterTitle);
-  const controls = figure.controls ?? [];
   const heading = figure.caption ? `<h3>${escape(title)}</h3>` : '';
+  if (isLiveFigure(figure)) {
+    const legend = inOrder(figure)
+      .map((control, index) => legendItem(index + 1, control))
+      .join('');
+    return `${heading}${plainFigure(figure.still, pngSize(figure.still), title)}${legend ? `<ol class="controls">${legend}</ol>` : ''}`;
+  }
+  const controls = figure.controls ?? [];
   if (controls.length === 0) {
-    return `${heading}<figure><a href="${figure.image}" aria-label="${escape(en['help.enlarge'].replace('{title}', title))}"><img src="${figure.image}" width="${figure.width}" height="${figure.height}" alt="${escape(title)}" loading="lazy"></a><figcaption>${escape(title)} · FluidEQ</figcaption></figure>`;
+    return `${heading}${plainFigure(figure.image, figure, title)}`;
   }
   const legend = planHelpCallouts(figure, WIDE)
-    .callouts.map(({ index, number }) => {
-      const control = controls[index];
-      return `<li><span class="n">${number}</span><span><span class="name"><strong>${escape(en[control.name])}</strong>${control.keys ? `<kbd>${escape(control.keys)}</kbd>` : ''}</span><span class="text">${escape(en[control.text])}</span></span></li>`;
-    })
+    .callouts.map(({ index, number }) => legendItem(number, controls[index]))
     .join('');
   return `${heading}<figure class="annotated">${calloutSvg(figure, title, WIDE, 'wide')}${calloutSvg(figure, title, NARROW, 'narrow')}<figcaption>${escape(title)} · FluidEQ</figcaption></figure><ol class="controls">${legend}</ol>`;
 };

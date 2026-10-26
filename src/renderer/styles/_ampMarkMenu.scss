@@ -177,10 +177,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
     background: color-mix(in srgb, #{$white} 10%, transparent);
   }
 
-  // Fold to one line, with how else to do it at the row's end.
+  // Fold to one line. It is the only way to fold: the header's double-click
+  // never reached the player on Windows, and its hint here went with it.
   .player-menu__fold {
     display: grid;
-    grid-template-columns: 18px minmax(0, 1fr) auto;
+    grid-template-columns: 18px minmax(0, 1fr);
     align-items: center;
     gap: 10px;
     min-height: 42px;
@@ -199,11 +200,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
       width: 18px;
       height: 18px;
       color: var(--player-text-soft);
-    }
-
-    small {
-      color: var(--player-text-soft);
-      font-size: 11.5px;
     }
 
     &:hover,

@@ -100,13 +100,13 @@ const help: Record<keyof typeof en, string> = {
   'help.player.intro':
     'Un interruttore trasforma la finestra di FluidEQ nel Lettore compatto, una sola colonna stretta: in alto un visualizzatore con il brano sopra e i comandi di riproduzione sotto; poi Suono, il tuo equalizzatore; poi In coda e le tue playlist. Ciò che è in riproduzione continua a suonare, e lo stesso interruttore riporta l’app completa sulla pagina che avevi lasciato.',
   'help.player.steps':
-    'Premi l’interruttore Lettore compatto nella barra del titolo, accanto ad Aiuto. Sul lettore, lo stesso interruttore riporta l’app completa.\nComprimi Suono, oppure In coda e Playlist, fino all’intestazione, e il visualizzatore prende lo spazio; fai clic sull’intestazione per riaprirli. Trascina il bordo superiore o inferiore del lettore per renderlo più alto o più basso.\nFai doppio clic sul visualizzatore perché riempia lo schermo; Esc lo riporta al suo posto. Premi il nome dello stile, accanto a riproduzione casuale e ripetizione, per scegliere tra tutti gli stili e le scene.\nPer ridurre il lettore a una riga, fai doppio clic sulla sua intestazione o scegli Riduci a una riga nel menu del logo di FluidEQ; il logo lo espande di nuovo.\nNello stesso menu regola la Luminosità del lettore, la Trasparenza su una scena o la Tinta della finestra su uno stile standard, e la Luce del giorno di una scena. Sempre in primo piano, lì o nell’intestazione, lo tiene sopra le altre finestre.\nTrascina file musicali in qualunque punto del lettore: entrano nella Libreria e in fondo a In coda o, sopra l’elenco, nel punto in cui li rilasci.',
+    'Premi l’interruttore Lettore compatto nella barra del titolo, accanto ad Aiuto. Sul lettore, lo stesso interruttore riporta l’app completa.\nComprimi Suono, oppure In coda e Playlist, fino all’intestazione, e il visualizzatore prende lo spazio; fai clic sull’intestazione per riaprirli. Trascina il bordo superiore o inferiore del lettore per renderlo più alto o più basso.\nFai doppio clic sul visualizzatore perché riempia lo schermo; Esc lo riporta al suo posto. Premi il nome dello stile, accanto a riproduzione casuale e ripetizione, per scegliere tra tutti gli stili e le scene.\nPer ridurre il lettore a una riga, scegli Riduci a una riga nel menu del logo di FluidEQ; il logo lo espande di nuovo.\nNello stesso menu regola la Luminosità del lettore, la Trasparenza su una scena o la Tinta della finestra su uno stile standard, e la Luce del giorno di una scena. Sempre in primo piano, lì o nell’intestazione, lo tiene sopra le altre finestre.\nTrascina file musicali in qualunque punto del lettore: entrano nella Libreria e in fondo a In coda o, sopra l’elenco, nel punto in cui li rilasci.',
   'help.player.tip':
     'Il volume del lettore è quello del tuo computer, lo stesso di Windows, quindi regola il livello di tutto ciò che il computer riproduce. Se il lettore finisce fuori dallo schermo, fai clic destro su FluidEQ nell’area di notifica della barra delle applicazioni e scegli Ripristina la finestra.',
   'help.player.keywords':
     'mini player, mini lettore, lettore piccolo, lettore compatto, modalità compatta, winamp, amp, modalità lettore, sempre in primo piano, always on top, in primo piano, ridurre a una riga, una riga, rimpicciolire, coda, prossimi brani, trascinare file, trascina e rilascia, tema, tema chiaro, tema scuro, modalità chiara, modalità scura, dark mode, finestra piccola, lettore fluttuante, volume',
   'help.player.topCaption': 'In alto: il brano e la sua riproduzione',
-  'help.player.eqCaption': 'L’equalizzatore',
+  'help.player.eqCaption': 'Suono, il tuo equalizzatore',
   'help.player.queueCaption': 'In coda',
   'help.player.menuCaption': 'Il menu del lettore',
   'help.player.foldedCaption': 'Ridotto a una riga',
@@ -117,14 +117,9 @@ const help: Record<keyof typeof en, string> = {
     'Torna all’app completa, sulla pagina che avevi lasciato.',
   'help.player.clock':
     'Il tempo trascorso. Fai clic per vedere quello rimanente.',
-  'help.player.well':
-    'Il suono in tempo reale. Fai clic per passare dalle barre all’onda.',
   'help.player.level': 'Il livello del suono in uscita da FluidEQ, in decibel.',
   'help.player.volume':
     'Il volume del tuo computer, lo stesso di Windows: regola il livello di tutto ciò che il computer riproduce.',
-  'help.player.decksName': 'EQ, Visual e Coda',
-  'help.player.decks':
-    'Aprono e chiudono l’equalizzatore, il visualizzatore e In coda. La finestra cresce e si riduce di quanto occupa ciascuno.',
   'help.player.seek': 'A che punto è il brano. Trascina per spostarti.',
   'help.player.playingName': 'Controlli di riproduzione',
   'help.player.playing':
@@ -135,27 +130,44 @@ const help: Record<keyof typeof en, string> = {
   'help.player.lookName': 'Stile',
   'help.player.look':
     'Lo stile o la scena che il visualizzatore sta disegnando. Premilo per scegliere tra tutti.',
-  'help.player.screen':
-    'Ciò che senti, disegnato: le tue bande, l’EQ intelligente e tutto il resto applicato, sopra un aspetto del visualizzatore. Applicato anche li elenca, e un’etichetta ne spegne uno senza toglierlo.',
   'help.player.bands':
     'Trascina una banda in su o in giù per rinforzarla o tagliarla. La sua frequenza è scritta sotto.',
   'help.player.tone':
     'Tono mostra le manopole Bassi, Medi e Alti; la scheda accanto, tutte le bande.',
   'help.player.upNext':
     'In coda e Playlist, ciascuna con il suo numero, e il tempo che resta nella coda.',
-  'help.player.library': 'Apre la Libreria nell’app completa.',
   'help.player.songsName': 'I brani',
   'help.player.songs':
     'Cosa suona dopo. Fai clic su un brano per riprodurlo, trascinalo per spostarlo, o trascina qui dei file musicali per aggiungerli nel punto in cui li rilasci.',
   'help.player.openIn': 'Apre l’app completa su una delle sue pagine.',
   'help.player.theme':
     'La Luminosità del lettore, separata da quella dell’app completa; la Trasparenza su una scena, o la Tinta della finestra su uno stile standard; la Luce del giorno di una scena; e la Modalità colorata.',
-  'help.player.fold':
-    'Riduce il lettore a una riga. Il doppio clic sulla sua intestazione fa lo stesso.',
+  'help.player.fold': 'Riduce il lettore a una riga.',
   'help.player.unfold':
     'Espande il lettore. Lo fa anche la freccia all’altra estremità.',
   'help.player.foldedPlaying': 'Riproduci o pausa.',
-  'help.player.foldedClock': 'Il tempo, e a che punto è il brano.',
+  'help.player.fullScreen':
+    'Riempie lo schermo con il visualizzatore. Il doppio clic sull’immagine fa lo stesso, ed Esc restituisce lo schermo.',
+  'help.player.sourceName': 'Sorgente',
+  'help.player.source':
+    'Da dove arriva il brano: la Libreria, Media online, Karaoke, un altro computer o un altro programma di questo PC. Premerlo apre quella pagina nell’app completa.',
+  'help.player.heart':
+    'Aggiunge un brano della Libreria ai tuoi Preferiti, o lo toglie.',
+  'help.player.soundFold':
+    'Comprime i controlli del suono fino a questa riga, che tiene a portata di mano il preset, l’EQ intelligente e l’interruttore, e li riapre.',
+  'help.player.mode':
+    'Apre la Modalità EQ: quanto forte agiscono il tuo EQ e le curve, il loro Q di banda, la fase e gli alti.',
+  'help.player.save': 'Tiene In coda come una playlist a sé.',
+  'help.player.queueFold':
+    'Comprime In coda e Playlist fino alle loro schede, e il visualizzatore prende lo spazio.',
+  'help.player.remove':
+    'Toglie da In coda un brano che non è ancora stato riprodotto.',
+  'help.player.output': 'Dove va il suono: l’uscita da cui riproduce Windows.',
+  'help.player.engineName': 'Motore',
+  'help.player.engine':
+    'Quale motore dà forma al suono; resta acceso finché FluidEQ è attivo.',
+  'help.player.sliders':
+    'Maniglie tonde o cappucci rettangolari sui cursori dell’EQ, qui e nella pagina dell’EQ.',
 
   'help.requirements.title': 'Che cosa serve al tuo PC',
   'help.requirements.intro':

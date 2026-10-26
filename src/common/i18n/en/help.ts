@@ -102,13 +102,13 @@ const help = {
   'help.player.intro':
     'One switch turns FluidEQ’s window into the Compact player, a single narrow column: a visualizer at the top with the song over it and the play controls under it, then Sound, your equaliser, then Up next and your playlists. Whatever is playing keeps playing, and the same switch brings the full app back on the page you left.',
   'help.player.steps':
-    'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.\nFold Sound, or Up next and Playlists, down to its header, and the visualizer takes the room; press the header to open it again. Drag the player’s top or bottom edge to make it taller or shorter.\nDouble-click the visualizer to fill the screen with it; Escape gives it back. Press the look’s name beside shuffle and repeat to choose from every style and scene.\nDouble-click the player’s header, or choose Fold to one line in the FluidEQ mark’s menu, to fold it down to one line; the mark unfolds it.\nIn the same menu, set the player’s own Brightness, the Transparency over a scene or the window’s Tint over a standard style, and a scene’s Daylight. Always on top, there or in the header, keeps it above other windows.\nDrop music files anywhere on the player: they join the Library and the end of Up next or, over the list, the place where you let go.',
+    'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.\nFold Sound, or Up next and Playlists, down to its header, and the visualizer takes the room; press the header to open it again. Drag the player’s top or bottom edge to make it taller or shorter.\nDouble-click the visualizer to fill the screen with it; Escape gives it back. Press the look’s name beside shuffle and repeat to choose from every style and scene.\nChoose Fold to one line in the FluidEQ mark’s menu to fold the player down to one line; the mark unfolds it.\nIn the same menu, set the player’s own Brightness, the Transparency over a scene or the window’s Tint over a standard style, and a scene’s Daylight. Always on top, there or in the header, keeps it above other windows.\nDrop music files anywhere on the player: they join the Library and the end of Up next or, over the list, the place where you let go.',
   'help.player.tip':
     'The player’s volume is your computer’s own, the same as in Windows, so it sets the level of everything the computer plays. If the player ends up off the screen, right-click FluidEQ in the taskbar’s tray and choose Recover the window.',
   'help.player.keywords':
     'mini player, small player, compact, compact mode, winamp, amp, player mode, always on top, pin, fold, one line, queue, up next, drop files, theme, light theme, dark theme, dark mode, light mode, small window, floating player, volume',
   'help.player.topCaption': 'The top: the song, and how it plays',
-  'help.player.eqCaption': 'The equaliser',
+  'help.player.eqCaption': 'Sound, your equaliser',
   'help.player.queueCaption': 'Up next',
   'help.player.menuCaption': 'The player’s menu',
   'help.player.foldedCaption': 'Folded to one line',
@@ -117,14 +117,9 @@ const help = {
   'help.player.pin': 'Keeps the player above every other window.',
   'help.player.switch': 'Back to the full app, on the page you left.',
   'help.player.clock': 'Time played. Click it for the time left.',
-  'help.player.well':
-    'The sound as it plays. Click it to switch between bars and the wave.',
   'help.player.level': 'The level of the sound leaving FluidEQ, in decibels.',
   'help.player.volume':
     'Your computer’s volume, the same as in Windows: it sets the level of everything the computer plays.',
-  'help.player.decksName': 'EQ, Vis and Queue',
-  'help.player.decks':
-    'Open and close the equaliser, the visualizer and Up Next. The window grows and shrinks by what each takes.',
   'help.player.seek': 'Where the song is. Drag to jump.',
   'help.player.playingName': 'Play controls',
   'help.player.playing':
@@ -135,27 +130,44 @@ const help = {
   'help.player.lookName': 'Look',
   'help.player.look':
     'The style or scene the visualizer is drawing. Press it to choose from all of them.',
-  'help.player.screen':
-    'What you hear, drawn: your bands, Smart EQ and anything else applied, over a visualizer look. Also applied lists them, and a tag switches one off without removing it.',
   'help.player.bands':
     'Drag a band up or down to boost or cut it. Its frequency is written under it.',
   'help.player.tone':
     'Tone shows the Bass, Mid and Treble dials; the tab beside it, every band.',
   'help.player.upNext':
     'Up next and Playlists, each with how many it holds, and the time left in the queue.',
-  'help.player.library': 'Opens the Library in the full app.',
   'help.player.songsName': 'The songs',
   'help.player.songs':
     'What plays next. Click a song to play it, drag it to move it, or drop music files here to add them where you let go.',
   'help.player.openIn': 'Opens the full app on one of its pages.',
   'help.player.theme':
     'The player’s own Brightness, apart from the full app’s; Transparency over a scene, or the window’s Tint over a standard style; a scene’s Daylight; and Colourful mode.',
-  'help.player.fold':
-    'Folds the player to one line. Double-clicking its header does the same.',
+  'help.player.fold': 'Folds the player to one line.',
   'help.player.unfold':
     'Unfolds the player. The arrow at the other end does too.',
   'help.player.foldedPlaying': 'Play or pause.',
-  'help.player.foldedClock': 'The time, and where the song is.',
+  'help.player.fullScreen':
+    'Fills the screen with the visualizer. Double-clicking the picture does the same, and Escape gives the screen back.',
+  'help.player.sourceName': 'Source',
+  'help.player.source':
+    'Where the song is coming from: the Library, Online Media, Karaoke, another computer or another program on this PC. Pressing it opens that page in the full app.',
+  'help.player.heart':
+    'Adds a song from the Library to your Favourites, or takes it out.',
+  'help.player.soundFold':
+    'Folds the sound controls down to this row, which keeps the preset, Smart EQ and the switch at hand, and opens them again.',
+  'help.player.mode':
+    'Opens EQ mode: how strongly your EQ and the curves apply, their band Q, phase and treble.',
+  'help.player.save': 'Keeps Up next as a playlist of its own.',
+  'help.player.queueFold':
+    'Folds Up next and Playlists down to their tabs, and the visualizer takes the room.',
+  'help.player.remove': 'Takes a song that has not played yet out of Up next.',
+  'help.player.output':
+    'Where the sound is going: the output Windows plays through.',
+  'help.player.engineName': 'Engine',
+  'help.player.engine':
+    'Which engine is shaping the sound, lit while FluidEQ is on.',
+  'help.player.sliders':
+    'Round handles or rectangular caps on the EQ’s sliders, here and on the EQ page.',
 
   'help.requirements.title': 'What your PC needs',
   'help.requirements.intro':

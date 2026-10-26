@@ -88,13 +88,13 @@ const help: Record<keyof typeof en, string> = {
   'help.player.intro':
     '一个开关就能把 FluidEQ 的窗口变成迷你播放器，窄窄的一列：最上面是可视化效果，歌曲显示在它上面，下面是播放控制；接着是“声音”，也就是你的均衡器；再往下是“接下来播放”和你的播放列表。正在播放的内容不会中断，同一个开关也能把完整界面带回你离开时的页面。',
   'help.player.steps':
-    '按下标题栏中“帮助”旁边的“迷你播放器”开关。在播放器上，同一个开关会带回完整界面。\n把“声音”，或者“接下来播放”和“播放列表”，收起到只剩标题，空出的地方会留给可视化效果；点击标题即可重新展开。拖动播放器的上边缘或下边缘，可以把它拉高或缩短。\n双击可视化效果，它就会铺满整个屏幕；按 Esc 即可还原。点击随机播放和循环旁边的样式名称，就能从所有样式和场景中选择。\n双击播放器的标题栏，或在 FluidEQ 标志的菜单中选择“折叠为一行”，即可把它折叠成一行；点击标志即可重新展开。\n在同一个菜单中，调整播放器自己的“亮度”、场景上的“透明度”或标准样式上窗口的“色调”，以及场景的“时段”。“窗口置顶”在菜单和标题栏中都有，能让播放器保持在其他窗口之上。\n把音乐文件拖放到播放器上的任何地方：它们会加入媒体库，并排到“接下来播放”的末尾；如果放在列表上，就会插到你松手的位置。',
+    '按下标题栏中“帮助”旁边的“迷你播放器”开关。在播放器上，同一个开关会带回完整界面。\n把“声音”，或者“接下来播放”和“播放列表”，收起到只剩标题，空出的地方会留给可视化效果；点击标题即可重新展开。拖动播放器的上边缘或下边缘，可以把它拉高或缩短。\n双击可视化效果，它就会铺满整个屏幕；按 Esc 即可还原。点击随机播放和循环旁边的样式名称，就能从所有样式和场景中选择。\n在 FluidEQ 标志的菜单中选择“折叠为一行”，即可把播放器折叠成一行；点击标志即可重新展开。\n在同一个菜单中，调整播放器自己的“亮度”、场景上的“透明度”或标准样式上窗口的“色调”，以及场景的“时段”。“窗口置顶”在菜单和标题栏中都有，能让播放器保持在其他窗口之上。\n把音乐文件拖放到播放器上的任何地方：它们会加入媒体库，并排到“接下来播放”的末尾；如果放在列表上，就会插到你松手的位置。',
   'help.player.tip':
     '播放器的音量就是电脑本身的音量，和 Windows 中的一样，因此它控制着电脑播放的所有声音。如果播放器跑到了屏幕之外，请在任务栏托盘中右键点击 FluidEQ，然后选择“恢复窗口”。',
   'help.player.keywords':
     '迷你播放器, 小播放器, 迷你模式, 精简模式, 紧凑模式, 小窗模式, 播放器模式, mini player, winamp, 窗口置顶, 置顶, 总在最前, 折叠, 一行, 单行, 队列, 播放队列, 接下来播放, 拖放文件, 拖入文件, 主题, 浅色主题, 深色主题, 深色模式, 浅色模式, 小窗口, 小窗, 悬浮窗, 悬浮播放器, 音量',
   'help.player.topCaption': '顶部：歌曲，以及它如何播放',
-  'help.player.eqCaption': '均衡器',
+  'help.player.eqCaption': '声音（均衡器）',
   'help.player.queueCaption': '接下来播放',
   'help.player.menuCaption': '播放器菜单',
   'help.player.foldedCaption': '折叠为一行时',
@@ -103,13 +103,9 @@ const help: Record<keyof typeof en, string> = {
   'help.player.pin': '让播放器保持在所有其他窗口之上。',
   'help.player.switch': '返回完整界面，回到你离开时的页面。',
   'help.player.clock': '已播放时间。点击它可显示剩余时间。',
-  'help.player.well': '正在播放的声音。点击它可在柱状图和波形之间切换。',
   'help.player.level': '离开 FluidEQ 的声音电平，以分贝为单位。',
   'help.player.volume':
     '你电脑的音量，和 Windows 中的一样：它控制着电脑播放的所有声音。',
-  'help.player.decksName': '均衡、可视化和队列',
-  'help.player.decks':
-    '展开或收起均衡器、可视化效果和“接下来播放”。窗口会按每个面板所占的空间变大或变小。',
   'help.player.seek': '歌曲播放到的位置。拖动即可跳转。',
   'help.player.playingName': '播放控制',
   'help.player.playing':
@@ -120,24 +116,39 @@ const help: Record<keyof typeof en, string> = {
   'help.player.lookName': '样式',
   'help.player.look':
     '可视化效果正在绘制的样式或场景。点击即可从全部样式和场景中选择。',
-  'help.player.screen':
-    '把你听到的画出来：你的频段、智能均衡和其他所有生效的设置，叠在可视化效果之上。“同时生效”会列出它们，点一下标签就能关闭其中一项而不移除它。',
   'help.player.bands': '上下拖动频段即可提升或衰减。它的频率标在下方。',
   'help.player.tone':
     '“音色”显示“低音”“中音”和“高音”旋钮；旁边的标签页则显示所有频段。',
   'help.player.upNext':
     '“接下来播放”和“播放列表”，各自显示数量，以及队列剩余的时间。',
-  'help.player.library': '在完整界面中打开媒体库。',
   'help.player.songsName': '歌曲',
   'help.player.songs':
     '接下来要播放的内容。点击一首歌即可播放，拖动可以调整顺序，也可以把音乐文件拖放到这里，插到你松手的位置。',
   'help.player.openIn': '打开完整界面，直接进入其中某个页面。',
   'help.player.theme':
     '播放器自己的“亮度”，与完整应用分开；场景上的“透明度”，或标准样式上窗口的“色调”；场景的“时段”；还有“多彩模式”。',
-  'help.player.fold': '把播放器折叠为一行。双击它的标题栏也一样。',
+  'help.player.fold': '把播放器折叠为一行。',
   'help.player.unfold': '展开播放器。另一端的箭头也可以。',
   'help.player.foldedPlaying': '播放或暂停。',
-  'help.player.foldedClock': '时间，以及歌曲播放到了哪里。',
+  'help.player.fullScreen':
+    '让可视化效果铺满整个屏幕。双击画面也一样，按 Esc 即可还原。',
+  'help.player.sourceName': '来源',
+  'help.player.source':
+    '歌曲的来源：媒体库、在线媒体、卡拉OK、另一台电脑，或这台电脑上的其他程序。点击它会在完整界面中打开对应的页面。',
+  'help.player.heart': '把媒体库中的歌曲加入收藏，或从收藏中移除。',
+  'help.player.soundFold':
+    '把声音控制收起到这一行，预设、智能均衡和开关仍留在手边；再次点击即可展开。',
+  'help.player.mode':
+    '打开“EQ 模式”：设置你的 EQ 和曲线的作用强度、频段 Q 值、相位和高音。',
+  'help.player.save': '把“接下来播放”保存为一个单独的播放列表。',
+  'help.player.queueFold':
+    '把“接下来播放”和“播放列表”收起到只剩标签页，空出的地方留给可视化效果。',
+  'help.player.remove': '把还没播放的歌曲从“接下来播放”中移除。',
+  'help.player.output': '声音的去向：Windows 用来播放的输出设备。',
+  'help.player.engineName': '引擎',
+  'help.player.engine': '正在处理声音的引擎；FluidEQ 开启时会亮起。',
+  'help.player.sliders':
+    'EQ 滑块上的圆形把手或矩形推子帽，这里和 EQ 页面都会使用。',
 
   'help.requirements.title': '你的电脑需要什么',
   'help.requirements.intro':

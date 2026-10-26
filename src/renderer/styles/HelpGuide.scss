@@ -5,6 +5,7 @@
 @use 'motion' as *;
 @use 'theme' as *;
 @use 'dialog' as dialog;
+@use 'helpLive';
 
 // QUIET, AND NOT A BOX (Ivan, 2026-09-22). It wore the same raised, bordered
 // face the engine's chip wears, so the titlebar's right-hand end read as
@@ -301,7 +302,9 @@
   border-top: dialog.$seam;
   @include slim-scrollbar;
 
-  img {
+  // The capture, and only the capture: written for every image inside, it
+  // stretched a live figure's album cover to 1280px in its own little frame.
+  > img {
     display: block;
     width: max(100%, 1280px);
     max-width: max-content;

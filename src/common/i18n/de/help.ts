@@ -100,13 +100,13 @@ const help: Record<keyof typeof en, string> = {
   'help.player.intro':
     'Mit einem Schalter wechselt das Fenster von FluidEQ in die Ansicht Kompakter Player: eine schmale Spalte, oben ein Visualizer mit dem Song darauf und der Wiedergabesteuerung darunter, dann Sound, Ihr Equalizer, dann „Als Nächstes“ und Ihre Playlists. Was gerade läuft, läuft weiter, und derselbe Schalter bringt die vollständige App auf der Seite zurück, die Sie verlassen haben.',
   'help.player.steps':
-    'Drücken Sie in der Titelleiste neben Hilfe den Schalter Kompakter Player. Im Player holt derselbe Schalter die vollständige App zurück.\nKlappen Sie Sound oder „Als Nächstes“ und Playlists bis auf die Kopfzeile ein, und der Visualizer bekommt den Platz; ein Klick auf die Kopfzeile öffnet den Bereich wieder. Ziehen Sie den oberen oder unteren Rand des Players, um ihn höher oder niedriger zu machen.\nDoppelklicken Sie auf den Visualizer, damit er den ganzen Bildschirm füllt; Esc gibt ihn zurück. Ein Klick auf den Namen des Looks neben Zufallswiedergabe und Wiederholen zeigt alle Stile und Szenen zur Auswahl.\nDoppelklicken Sie auf die Kopfzeile des Players oder wählen Sie im Menü des FluidEQ-Logos Auf eine Zeile einklappen, um ihn auf eine Zeile zu verkleinern; das Logo klappt ihn wieder aus.\nStellen Sie im selben Menü die eigene Helligkeit des Players ein, die Transparenz über einer Szene oder den Farbton des Fensters über einem Standardstil, und das Tageslicht einer Szene. Immer im Vordergrund, dort oder in der Kopfzeile, hält ihn über anderen Fenstern.\nLegen Sie Musikdateien irgendwo auf dem Player ab: Die Dateien kommen in die Bibliothek und ans Ende von „Als Nächstes“ – oder, über der Liste abgelegt, genau an diese Stelle.',
+    'Drücken Sie in der Titelleiste neben Hilfe den Schalter Kompakter Player. Im Player holt derselbe Schalter die vollständige App zurück.\nKlappen Sie Sound oder „Als Nächstes“ und Playlists bis auf die Kopfzeile ein, und der Visualizer bekommt den Platz; ein Klick auf die Kopfzeile öffnet den Bereich wieder. Ziehen Sie den oberen oder unteren Rand des Players, um ihn höher oder niedriger zu machen.\nDoppelklicken Sie auf den Visualizer, damit er den ganzen Bildschirm füllt; Esc gibt ihn zurück. Ein Klick auf den Namen des Looks neben Zufallswiedergabe und Wiederholen zeigt alle Stile und Szenen zur Auswahl.\nWählen Sie im Menü des FluidEQ-Logos Auf eine Zeile einklappen, um den Player auf eine Zeile zu verkleinern; das Logo klappt ihn wieder aus.\nStellen Sie im selben Menü die eigene Helligkeit des Players ein, die Transparenz über einer Szene oder den Farbton des Fensters über einem Standardstil, und das Tageslicht einer Szene. Immer im Vordergrund, dort oder in der Kopfzeile, hält ihn über anderen Fenstern.\nLegen Sie Musikdateien irgendwo auf dem Player ab: Die Dateien kommen in die Bibliothek und ans Ende von „Als Nächstes“ – oder, über der Liste abgelegt, genau an diese Stelle.',
   'help.player.tip':
     'Die Lautstärke des Players ist die Ihres Computers, dieselbe wie in Windows, und regelt daher den Pegel von allem, was der Computer abspielt. Landet der Player außerhalb des Bildschirms, klicken Sie im Infobereich der Taskleiste mit der rechten Maustaste auf FluidEQ und wählen Sie Fenster wiederherstellen.',
   'help.player.keywords':
     'mini player, miniplayer, mini-player, kleiner player, kompakt, kompaktmodus, kompakte ansicht, winamp, amp, player-modus, immer im vordergrund, immer oben, always on top, anheften, pin, einklappen, zusammenklappen, eine zeile, warteschlange, als nächstes, dateien ablegen, drag and drop, design, theme, helles design, dunkles design, dark mode, dunkelmodus, light mode, kleines fenster, schwebender player, lautstärke',
   'help.player.topCaption': 'Der obere Teil: der Song und wie er läuft',
-  'help.player.eqCaption': 'Der Equalizer',
+  'help.player.eqCaption': 'Sound, Ihr Equalizer',
   'help.player.queueCaption': 'Als Nächstes',
   'help.player.menuCaption': 'Das Player-Menü',
   'help.player.foldedCaption': 'Auf eine Zeile eingeklappt',
@@ -117,15 +117,10 @@ const help: Record<keyof typeof en, string> = {
     'Zurück zur vollständigen App, auf der Seite, die Sie verlassen haben.',
   'help.player.clock':
     'Gespielte Zeit. Klicken Sie darauf, um die verbleibende Zeit zu sehen.',
-  'help.player.well':
-    'Der Klang, während er läuft. Klicken Sie darauf, um zwischen Balken und Welle zu wechseln.',
   'help.player.level':
     'Der Pegel des Klangs, der FluidEQ verlässt, in Dezibel.',
   'help.player.volume':
     'Die Lautstärke Ihres Computers, dieselbe wie in Windows; sie regelt den Pegel von allem, was der Computer abspielt.',
-  'help.player.decksName': 'EQ, Visual und Liste',
-  'help.player.decks':
-    'Blenden Sie den Equalizer, den Visualizer und „Als Nächstes“ ein und aus. Das Fenster wächst und schrumpft um den Platz, den jeder braucht.',
   'help.player.seek': 'Wo der Song gerade steht. Ziehen Sie, um zu springen.',
   'help.player.playingName': 'Wiedergabesteuerung',
   'help.player.playing':
@@ -136,27 +131,45 @@ const help: Record<keyof typeof en, string> = {
   'help.player.lookName': 'Look',
   'help.player.look':
     'Der Stil oder die Szene, die der Visualizer zeichnet. Klicken Sie darauf, um aus allen zu wählen.',
-  'help.player.screen':
-    'Was Sie hören, gezeichnet: Ihre Bänder, Smart-EQ und alles andere, was aktiv ist, über einem Visualizer-Look. Unter Ebenfalls aktiv stehen sie einzeln, und ein Chip schaltet seine Ebene aus, ohne sie zu entfernen.',
   'help.player.bands':
     'Ziehen Sie ein Band nach oben oder unten, um es anzuheben oder abzusenken. Seine Frequenz steht darunter.',
   'help.player.tone':
     'Klang zeigt die Regler Bass, Mitten und Höhen, der Reiter daneben jedes Band.',
   'help.player.upNext':
     '„Als Nächstes“ und Playlists, jeweils mit ihrer Anzahl, und die Zeit, die in der Warteschlange noch bleibt.',
-  'help.player.library': 'Öffnet die Bibliothek in der vollständigen App.',
   'help.player.songsName': 'Die Songs',
   'help.player.songs':
     'Was als Nächstes läuft. Klicken Sie auf einen Song, um ihn abzuspielen, ziehen Sie ihn, um ihn zu verschieben, oder legen Sie Musikdateien hier ab, um sie an dieser Stelle einzufügen.',
   'help.player.openIn': 'Öffnet die vollständige App auf einer ihrer Seiten.',
   'help.player.theme':
     'Die eigene Helligkeit des Players, unabhängig von der vollständigen App; Transparenz über einer Szene oder der Farbton des Fensters über einem Standardstil; das Tageslicht einer Szene; und der Bunte Modus.',
-  'help.player.fold':
-    'Klappt den Player auf eine Zeile ein. Ein Doppelklick auf seine Kopfzeile tut dasselbe.',
+  'help.player.fold': 'Klappt den Player auf eine Zeile ein.',
   'help.player.unfold':
     'Klappt den Player wieder aus. Der Pfeil am anderen Ende tut das auch.',
   'help.player.foldedPlaying': 'Wiedergabe oder Pause.',
-  'help.player.foldedClock': 'Die Zeit und wo der Song gerade steht.',
+  'help.player.fullScreen':
+    'Füllt den Bildschirm mit dem Visualizer. Ein Doppelklick auf das Bild tut dasselbe, und Esc gibt den Bildschirm zurück.',
+  'help.player.sourceName': 'Quelle',
+  'help.player.source':
+    'Woher der Song kommt: Bibliothek, Online-Medien, Karaoke, ein anderer Computer oder ein anderes Programm auf diesem PC. Ein Klick darauf öffnet diese Seite in der vollständigen App.',
+  'help.player.heart':
+    'Fügt einen Song aus der Bibliothek zu Ihren Favoriten hinzu oder entfernt ihn wieder.',
+  'help.player.soundFold':
+    'Klappt die Klangregler bis auf diese Zeile ein, in der Preset, Smart-EQ und der Schalter griffbereit bleiben, und öffnet sie wieder.',
+  'help.player.mode':
+    'Öffnet den EQ-Modus: wie stark Ihr EQ und die Kurven wirken, ihr Band-Q, ihre Phase und ihre Höhen.',
+  'help.player.save': 'Speichert „Als Nächstes“ als eigene Playlist.',
+  'help.player.queueFold':
+    'Klappt „Als Nächstes“ und Playlists bis auf ihre Reiter ein, und der Visualizer bekommt den Platz.',
+  'help.player.remove':
+    'Nimmt einen Song, der noch nicht gelaufen ist, aus „Als Nächstes“ heraus.',
+  'help.player.output':
+    'Wohin der Klang geht: die Ausgabe, über die Windows abspielt.',
+  'help.player.engineName': 'Engine',
+  'help.player.engine':
+    'Welche Engine den Klang formt; sie leuchtet, solange FluidEQ eingeschaltet ist.',
+  'help.player.sliders':
+    'Runde Griffe oder rechteckige Kappen auf den Schiebereglern des EQ, hier und auf der EQ-Seite.',
 
   'help.requirements.title': 'Was Ihr PC braucht',
   'help.requirements.intro':
