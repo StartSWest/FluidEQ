@@ -110,9 +110,9 @@ const HEADING_HEIGHT = 26;
  * A queued song, and its PLACE in the run.
  *
  * The place is what everything here acts on rather than the track's id: the
- * same song can sit in this list several times — a request asked for twice is
- * played twice — so an id says nothing about which of them was meant, and it
- * cannot key a row either.
+ * play order behind the playhead can hold a song that comes round again, so
+ * the place is the one thing that names a row exactly. What is coming holds
+ * each song once (`upNextRules.ts`).
  */
 /** A section heading: one small line and the rule under it. */
 const SECTION_HEIGHT = 32;
@@ -187,10 +187,11 @@ const buildEntries = (
 /**
  * What is coming, on the right of the library.
  *
- * Anything added by hand sits at the front of it and the rest of the album,
- * folder or shelf follows — so the panel answers "what is next" whether or
- * not a list has been built. Rows drag into a different order, can be taken
- * back out, and can hold the same song more than once.
+ * The rest of the album, folder, shelf or playlist first, anything added by
+ * hand after it, and Keep playing's songs last, once the last of those plays
+ * — so the panel answers "what is next" whether or not a list has been
+ * built. Rows drag into a different order and can be taken back out; no song
+ * stands in it twice.
  *
  * WINDOWED. Only the entries over the scrollport are mounted and two spacers
  * stand in for the rest, measured from a real offset table rather than from

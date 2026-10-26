@@ -178,6 +178,10 @@ const library: Partial<Dictionary> = {
   'library.karaoke.sending': 'Envoi au Karaoké…',
   'library.karaoke.failed':
     'Ce fichier n’a pas pu être envoyé au Karaoké — il est peut-être trop volumineux ou illisible.',
+  'library.drop.empty': 'Aucune musique dans ce que vous avez déposé',
+  'library.drop.already':
+    'Tout ce que vous avez déposé est déjà dans « À suivre »',
+  'library.drop.failed': 'La musique déposée n’a pas pu être ajoutée',
 };
 
 export default library;

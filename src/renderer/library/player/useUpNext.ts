@@ -26,21 +26,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   Dispatch,
   SetStateAction,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import {
-  CONTINUATION_BATCH,
-  CONTINUATION_LOW_WATER,
-} from '../../../common/library/continuation';
+import { CONTINUATION_BATCH } from '../../../common/library/continuation';
 import { ILibraryQueue, currentTrackId } from '../../../common/library/queue';
 import { ILibraryTrack } from '../../../common/library/types';
 import {
   readStoredContinuation,
   writeStoredContinuation,
 } from './playbackMemory';
+import { dropGuessesAhead, isOnLastSong } from './upNextRules';
 
 /** One row of Up Next, tagged with which of the three lists it came from. */
 export interface IUpNextEntry {
@@ -59,6 +58,12 @@ export interface IUpNext {
   setAddedIds: Dispatch<SetStateAction<ReadonlySet<string>>>;
   addedIdsRef: React.MutableRefObject<ReadonlySet<string>>;
   continuedIdsRef: React.MutableRefObject<ReadonlySet<string>>;
+  /**
+   * Whether a song stands in the queue as continuation's draw — drawn, and
+   * not picked since. A new function whenever either set changes, so a list
+   * drawn from it (the amp's) is drawn again.
+   */
+  isGuess: (trackId: string) => boolean;
 }
 
 export const useUpNext = (options: {
@@ -80,15 +85,20 @@ export const useUpNext = (options: {
    * the answer arrives as silence with no explanation, which is the shape of
    * failure this project's rules are written against.
    *
-   * So when the run ahead gets short, more of the same genre is drawn from
-   * the whole library and appended. The store does the choosing
-   * (`continuation` in `libraryTrackQuestions.ts`, the rules of
-   * `pickContinuation`); this owns only when to ask.
+   * So when the last song of the list plays, more of the same genre is drawn
+   * from the whole library and appended, under a heading of its own. The
+   * store does the choosing (`continuation` in `libraryTrackQuestions.ts`,
+   * the rules of `pickContinuation`); this owns only when to ask.
    *
-   * NOT A TIMER, and it must never become one: the condition is how much is
-   * left ahead of the playhead, which changes exactly when the queue does.
+   * ONLY ON THE LAST SONG (Ivan, 2026-10-25: "only when a song reaches its
+   * last position it shows more similar things"). It drew with three songs
+   * still to come, so a short playlist carried ten strangers under it from
+   * its first song.
+   *
+   * NOT A TIMER, and it must never become one: the condition is where the
+   * playhead stands, which changes exactly when the queue does.
    */
-  const [isContinuationOn, setIsContinuationOn] = useState<boolean>(
+  const [isContinuationOn, setIsContinuationOnState] = useState<boolean>(
     readStoredContinuation,
   );
   useEffect(() => {
@@ -105,6 +115,25 @@ export const useUpNext = (options: {
   // changes, not as it was when the callback was made.
   const continuedIdsRef = useRef(continuedIds);
   continuedIdsRef.current = continuedIds;
+
+  /**
+   * SWITCHED OFF, THE QUEUE ENDS WHERE THE LISTENER'S LIST DOES (Ivan: "only
+   * when that option is on"). What was drawn and is still ahead goes with
+   * the switch; the song playing plays on.
+   */
+  const setIsContinuationOn = useCallback(
+    (next: boolean) => {
+      setIsContinuationOnState(next);
+      if (!next) {
+        setQueue((current) =>
+          current
+            ? dropGuessesAhead(current, (id) => continuedIdsRef.current.has(id))
+            : current,
+        );
+      }
+    },
+    [setQueue],
+  );
 
   /**
    * Everything played this session.
@@ -134,15 +163,10 @@ export const useUpNext = (options: {
     if (!isContinuationOn || !queue || queue.repeat !== 'off') {
       return undefined;
     }
-    const ahead = queue.order.length - queue.position - 1;
     // A film ending is not a request for more films. Continuation is about
     // music carrying on in the background; the store draws audio only, and
     // seeding it from a video would answer a question nobody asked.
-    if (
-      ahead >= CONTINUATION_LOW_WATER ||
-      playing === undefined ||
-      seedKind !== 'audio'
-    ) {
+    if (!isOnLastSong(queue) || playing === undefined || seedKind !== 'audio') {
       return undefined;
     }
     let isCurrent = true;
@@ -216,12 +240,12 @@ export const useUpNext = (options: {
   /**
    * Everything still ahead of the playhead, in the order it arrives.
    *
-   * What was added by hand sits at the front of it — `appendToQueue` splices
-   * those in right after the current track — and the rest of the album, the
-   * folder or the shelf follows. A list that showed ONLY hand-picked entries
-   * was empty for the ordinary case of pressing play on a record and reading
-   * as broken; a list that shows what is genuinely coming answers the
-   * question either way.
+   * The rest of the album, the folder, the shelf or the playlist first, what
+   * was added by hand after it — `appendToQueue` puts songs at the end — and
+   * continuation's draws last, once the last of those plays. A list that
+   * showed ONLY hand-picked entries was empty for the ordinary case of
+   * pressing play on a record and reading as broken; a list that shows what
+   * is genuinely coming answers the question either way.
    */
   const upNext = useMemo(() => {
     if (!queue) {
@@ -257,6 +281,11 @@ export const useUpNext = (options: {
       );
   }, [addedIds, continuedIds, queue]);
 
+  const isGuess = useCallback(
+    (id: string) => continuedIds.has(id) && !addedIds.has(id),
+    [addedIds, continuedIds],
+  );
+
   return {
     upNext,
     isContinuationOn,
@@ -264,5 +293,6 @@ export const useUpNext = (options: {
     setAddedIds,
     addedIdsRef,
     continuedIdsRef,
+    isGuess,
   };
 };

@@ -22,6 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { MutableRefObject, useCallback } from 'react';
 import { ILibraryQueue, advanceQueue } from '../../../common/library/queue';
 import { PREVIOUS_RESTART_THRESHOLD_MS } from './playerContract';
+import { settleGuesses } from './upNextRules';
 
 export interface ITransportControls {
   /** Next, or Previous — which rewinds first if the track is underway. */
@@ -44,6 +45,8 @@ export const useTransportControls = (options: {
   setQueue: (
     update: (current: ILibraryQueue | undefined) => ILibraryQueue | undefined,
   ) => void;
+  /** Whether a song stands in the queue as a continuation draw. */
+  isGuess: (trackId: string) => boolean;
 }): ITransportControls => {
   const {
     activeElement,
@@ -54,6 +57,7 @@ export const useTransportControls = (options: {
     publishedPositionMs,
     setPositionMs,
     setQueue,
+    isGuess,
   } = options;
 
   /**
@@ -144,11 +148,15 @@ export const useTransportControls = (options: {
        * change anything, and a settle on every Next is a real effect on the
        * crossfade path to carry on a hunch.
        */
+      // Previous puts the listener's songs ahead again, and continuation's
+      // draws go with it (`settleGuesses`).
       setQueue((current) =>
-        current ? advanceQueue(current, direction) : current,
+        current
+          ? settleGuesses(advanceQueue(current, direction), isGuess)
+          : current,
       );
     },
-    [publishedPositionMs, finishCrossfadeRef, seek, setQueue],
+    [publishedPositionMs, finishCrossfadeRef, isGuess, seek, setQueue],
   );
 
   return { skip, seek };

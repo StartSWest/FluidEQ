@@ -9,6 +9,12 @@ import type { ILibraryQueue, TLibraryRepeat } from 'common/library/queue';
 import type { ILibraryScanProgress, ILibraryTrack } from 'common/library/types';
 import { useLibrary } from '../library/LibraryContext';
 
+/**
+ * What a drop of music files put on Up next: songs, nothing that was music,
+ * or nothing that was not already coming (`dropNotice.ts` says the last two).
+ */
+export type TDroppedMusic = 'added' | 'empty' | 'already';
+
 /** One song of the Library's play order, as the player's queue lists it. */
 export interface ILibraryDeckItem {
   /** Where it stands in the play order — what a press jumps to. */
@@ -18,6 +24,12 @@ export interface ILibraryDeckItem {
   artist?: string;
   durationMs?: number;
   artId?: string;
+  /**
+   * Drawn by the Library's Keep playing once the last song queued began, and
+   * not picked since: the amp heads these as "More like this", apart from
+   * the listener's own list, as the Library's Up Next does.
+   */
+  isContinued?: boolean;
 }
 
 /**
@@ -45,7 +57,7 @@ export interface ILibraryDeck {
    * dropped. Loose files join immediately; folders wait for the cancellable
    * Library scan to discover their songs.
    */
-  addFiles: (paths: string[]) => Promise<void>;
+  addFiles: (paths: string[]) => Promise<TDroppedMusic>;
   scanProgress?: ILibraryScanProgress;
   cancelScan: () => void;
   /**
@@ -54,6 +66,17 @@ export interface ILibraryDeck {
    * a song already played is a record of what happened.
    */
   move: (from: number, to: number) => void;
+  /**
+   * Take a song out of what is coming up, by its place: the same song can
+   * stand in the play order more than once. What has played stays.
+   */
+  remove: (position: number) => void;
+  /**
+   * The whole play order's songs, first to last, for saving it as a
+   * playlist. Asked for when it is wanted rather than kept in the deck: a
+   * queue built from a whole library is thousands long.
+   */
+  playOrder: () => string[];
   /** The play order around the current song — see `QUEUE_WINDOW`. */
   items: ILibraryDeckItem[];
   /** The current song's place in the play order, and how many there are. */
@@ -138,8 +161,11 @@ interface IPublishedLibraryDeck {
   setShuffle: (isShuffled: boolean) => void;
   cycleRepeat: () => void;
   jumpToQueuePosition: (position: number) => void;
-  addFiles: (paths: string[]) => Promise<void>;
+  addFiles: (paths: string[]) => Promise<TDroppedMusic>;
   moveUpNext: (from: number, to: number) => void;
+  removeUpNextAt: (position: number) => void;
+  /** Whether a song stands in the queue as a continuation draw. */
+  isGuess: (trackId: string) => boolean;
 }
 
 /**
@@ -158,6 +184,8 @@ export const usePublishedLibraryDeck = ({
   jumpToQueuePosition,
   addFiles,
   moveUpNext,
+  removeUpNextAt,
+  isGuess,
 }: IPublishedLibraryDeck) => {
   const { summary, isScanning, progress, cancelScan } = useLibrary();
   /**
@@ -223,6 +251,7 @@ export const usePublishedLibraryDeck = ({
         artist: song?.artist,
         durationMs: song?.durationMs,
         artId: song?.artId,
+        ...(isGuess(id) ? { isContinued: true } : {}),
       });
     });
     setDeck({
@@ -237,6 +266,11 @@ export const usePublishedLibraryDeck = ({
       scanProgress: isScanning ? progress : undefined,
       cancelScan,
       move: moveUpNext,
+      remove: removeUpNextAt,
+      playOrder: () =>
+        (queue?.order ?? [])
+          .map((index) => queue?.trackIds[index])
+          .filter((id): id is string => id !== undefined),
       items,
       position,
       total: order.length,
@@ -249,6 +283,8 @@ export const usePublishedLibraryDeck = ({
     cancelScan,
     cycleRepeat,
     moveUpNext,
+    removeUpNextAt,
+    isGuess,
     isShuffled,
     jumpToQueuePosition,
     leftDurationMs,

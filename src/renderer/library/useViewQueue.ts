@@ -5,26 +5,30 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * What plays next follows what is on screen.
+ * What plays next is the list a song was played in.
  *
- * The same files group differently on every shelf, so the album that follows
- * this song is not the folder that follows it and neither is what the Songs
- * list has next. Leaving the queue frozen at whatever was open when Play was
- * pressed made Next answer for a screen the reader had left. So the queue is
- * re-aimed at the list on screen — a record's own list when one is open and
- * has somewhere to go, the shelf's songs otherwise — on every change of view
- * and every change of song. Nothing restarts: `retargetQueue` keeps the
- * playing song and its place, and does nothing when that song is not in the
- * new list. The list is named by the view's own key, so a change of song —
- * the same list asked for again — only tops the queue up and keeps the order
- * the listener made in Up Next; only a change of view re-aims it.
+ * A press on a song makes the list it was pressed in the queue — a record's
+ * own list when one is open and has somewhere to go, the shelf's songs
+ * otherwise. Nothing restarts: `retargetQueue` keeps the playing song and its
+ * place. After that the queue is its own list: a change of song tops it up
+ * from that list (`topUpQueue`), whatever is on screen, and browsing changes
+ * nothing.
+ *
+ * IT USED TO FOLLOW THE SCREEN, at every change of view and every change of
+ * song, so a playlist started from the amp — with the Library hidden behind
+ * it on the Songs shelf — was replaced at its first song by the two hundred
+ * songs either side of it on that shelf, and one played in the Library was
+ * replaced the moment somebody looked at another shelf (Ivan, 2026-10-25:
+ * "fix the weird issue on upnext when playing playlist").
  *
  * The list is the store's, so the queue is a window of it asked for by id
  * around the playing song — the store says where the song stands and hands
- * back the ids either side of it.
+ * back the ids either side of it. The queue names its list by the list's own
+ * query (`ILibraryQueue.source`), which is how it is asked for again after
+ * the view has moved on, and after a restart.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ILibraryListQuery } from '../../common/library/query';
 import { useLibraryList } from './useLibraryList';
 
@@ -77,12 +81,40 @@ const windowAround = async (
   return [...earlier, ...ids];
 };
 
+/**
+ * The list a queue names itself by, read back as the query it was.
+ *
+ * A queue is aimed with its list's query spelled out (`JSON.stringify`), so
+ * the name is enough to ask for the list again. Anything else — a queue
+ * started from the amp's playlists, which carries its whole list and names
+ * none, or a name from an older build — answers nothing, and that queue is
+ * simply not topped up. Main checks every request it is handed, so the shape
+ * is only looked at here as far as telling a query from some other text.
+ */
+const queryOfSource = (
+  source: string | undefined,
+): ILibraryListQuery | undefined => {
+  if (source === undefined) {
+    return undefined;
+  }
+  try {
+    const value: unknown = JSON.parse(source);
+    return typeof value === 'object' &&
+      value !== null &&
+      typeof (value as { shelf?: unknown }).shelf === 'string'
+      ? (value as ILibraryListQuery)
+      : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 export interface IViewQueue {
   /**
-   * How much of the list is still to come that the queue has NOT got — the
-   * queue is a window, and the panel adds this to the rows it holds.
-   * Nothing when the playing song is not on this list: then the queue is its
-   * own list and its rows are the whole honest count.
+   * How much of the queue's own list is still to come that the queue has NOT
+   * got — the queue is a window, and the panel adds this to the rows it
+   * holds. Nothing when the queue names no list, or the list no longer holds
+   * the playing song: then its rows are the whole honest count.
    */
   restTotal: number | undefined;
   /** Plays a song pressed on screen, the list it was pressed in its queue. */
@@ -93,21 +125,26 @@ export const useViewQueue = ({
   recordQuery,
   shelfQuery,
   playingTrackId,
+  queueSource,
   upNextIds,
   isScanning,
   playTracks,
   retargetQueue,
+  topUpQueue,
 }: {
   /** The songs of the record open on screen, in its own order, if any. */
   recordQuery: ILibraryListQuery | undefined;
   /** The shelf's songs, in the shelf's order. */
   shelfQuery: ILibraryListQuery | undefined;
   playingTrackId: string | undefined;
+  /** The list the queue plays, as it names it (`ILibraryQueue.source`). */
+  queueSource: string | undefined;
   /** What the queue is carrying ahead of the playhead. */
   upNextIds: readonly string[];
   isScanning: boolean;
   playTracks: (trackIds: readonly string[], startTrackId: string) => void;
   retargetQueue: (trackIds: readonly string[], listKey: string) => void;
+  topUpQueue: (trackIds: readonly string[], listKey: string) => void;
 }): IViewQueue => {
   /**
    * A QUEUE OF ONE IS NOT A QUEUE, AND IT FAILS SILENTLY: `advanceQueue`
@@ -132,37 +169,79 @@ export const useViewQueue = ({
   const viewQuery = viewQueryOf();
   const viewKey = viewQuery === undefined ? '' : JSON.stringify(viewQuery);
 
-  /** Moved by every press, so pressing the song that is already on the
-   * transport — paused, say — re-aims the queue it just replaced. */
-  const [pressed, setPressed] = useState(0);
+  /**
+   * The latest press: which song, and a count that moves with every press,
+   * so pressing the song that is already on the transport — paused, say —
+   * aims the queue it just replaced.
+   */
+  const [press, setPress] = useState<{ trackId: string; count: number }>();
+  /** The press whose list has been asked for, so each is asked for once. */
+  const askedPressRef = useRef(0);
 
+  // THE LIST A PRESS WAS MADE IN, ONCE PER PRESS. Not cancelled by the view
+  // moving on while the store answers — the press was made in this list —
+  // only by a newer press.
   useEffect(() => {
-    if (playingTrackId === undefined || viewQuery === undefined) {
-      return undefined;
+    if (
+      press === undefined ||
+      press.count === askedPressRef.current ||
+      viewQuery === undefined
+    ) {
+      return;
     }
-    let isCurrent = true;
-    windowAround(viewQuery, playingTrackId)
+    askedPressRef.current = press.count;
+    const { count } = press;
+    windowAround(viewQuery, press.trackId)
       .then((ids) => {
-        if (isCurrent && ids !== undefined) {
+        if (ids !== undefined && count === askedPressRef.current) {
           retargetQueue(ids, viewKey);
         }
         return undefined;
       })
       .catch((error: unknown) => {
+        // eslint-disable-next-line no-console -- context-rich error before it is dropped; the song plays as a queue of itself
+        console.error(
+          'Could not put the list it was played in under the song',
+          error,
+        );
+      });
+    // `viewQuery` is what `viewKey` spells.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [press, viewKey, retargetQueue]);
+
+  // A CHANGE OF SONG TOPS THE QUEUE UP FROM ITS OWN LIST, never from the one
+  // on screen. Read through a ref so a press re-aiming the queue — the song
+  // the same, the name new — asks nothing more.
+  const queueSourceRef = useRef(queueSource);
+  queueSourceRef.current = queueSource;
+  useEffect(() => {
+    const source = queueSourceRef.current;
+    const query = queryOfSource(source);
+    if (playingTrackId === undefined || source === undefined || !query) {
+      return undefined;
+    }
+    let isCurrent = true;
+    windowAround(query, playingTrackId)
+      .then((ids) => {
+        if (isCurrent && ids !== undefined) {
+          topUpQueue(ids, source);
+        }
+        return undefined;
+      })
+      .catch((error: unknown) => {
         // eslint-disable-next-line no-console -- context-rich error before it is dropped; the queue stays as it was
-        console.error('Could not aim the queue at the list on screen', error);
+        console.error('Could not top the queue up from its list', error);
       });
     return () => {
       isCurrent = false;
     };
-    // `viewQuery` is what `viewKey` spells.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playingTrackId, viewKey, pressed, retargetQueue]);
+  }, [playingTrackId, topUpQueue]);
 
   const [restTotal, setRestTotal] = useState<number | undefined>(undefined);
   const upNextKey = upNextIds.join('\n');
   useEffect(() => {
-    if (playingTrackId === undefined || viewQuery === undefined) {
+    const query = queryOfSource(queueSource);
+    if (playingTrackId === undefined || !query) {
       setRestTotal(undefined);
       return undefined;
     }
@@ -170,7 +249,7 @@ export const useViewQueue = ({
     ipc()
       .queryLibrary({
         type: 'rest',
-        query: viewQuery,
+        query,
         afterId: playingTrackId,
         exclude: upNextIds,
       })
@@ -188,17 +267,17 @@ export const useViewQueue = ({
     // more when a scan ends, never at each of its batches, which would walk
     // the list several times a second for a number nobody watches move.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playingTrackId, viewKey, upNextKey, isScanning]);
+  }, [playingTrackId, queueSource, upNextKey, isScanning]);
 
   /**
    * The song starts at once, as a queue of itself; the list it was pressed
    * in follows a moment later, when the store has said where the song stands
-   * in it — the effect above, which the press moves along.
+   * in it — the first effect above, which the press moves along.
    */
   const playTrack = useCallback(
     (trackId: string) => {
       playTracks([trackId], trackId);
-      setPressed((count) => count + 1);
+      setPress((current) => ({ trackId, count: (current?.count ?? 0) + 1 }));
     },
     [playTracks],
   );

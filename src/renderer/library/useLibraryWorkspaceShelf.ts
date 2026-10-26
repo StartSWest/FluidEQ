@@ -90,6 +90,8 @@ const useLibraryWorkspaceShelf = ({
   const {
     playTracks,
     retargetQueue,
+    topUpQueue,
+    queue,
     appendToQueue,
     upNext,
     videoTrackId,
@@ -600,6 +602,8 @@ const useLibraryWorkspaceShelf = ({
     playlistsWereReset,
     playTracks,
     retargetQueue,
+    topUpQueue,
+    queueSource: queue?.source,
     appendToQueue,
     upNext,
     videoTrackId,

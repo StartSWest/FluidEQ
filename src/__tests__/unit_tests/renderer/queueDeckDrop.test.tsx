@@ -13,7 +13,10 @@ import {
 import { LibraryProvider } from 'renderer/library/LibraryContext';
 import QueueDeck from 'renderer/player/QueueDeck';
 import ClassicQueueDeck from 'renderer/player/classic/QueueDeck';
-import { usePublishedLibraryDeck } from 'renderer/player/libraryDeck';
+import {
+  usePublishedLibraryDeck,
+  type TDroppedMusic,
+} from 'renderer/player/libraryDeck';
 import createFakeLibraryStore, {
   type IFakeLibraryStore,
 } from '../../utils/fakeLibraryStore';
@@ -43,7 +46,7 @@ const startQueue: ILibraryQueue = {
 };
 
 const moveUpNext = jest.fn();
-const addFiles = jest.fn(() => Promise.resolve());
+const addFiles = jest.fn(() => Promise.resolve<TDroppedMusic>('added'));
 const jumpTo = jest.fn();
 const cancelScan = jest.fn();
 let reportProgress: (progress: ILibraryScanProgress) => void;
@@ -73,6 +76,9 @@ const Publisher = () => {
     jumpToQueuePosition,
     addFiles,
     moveUpNext,
+    removeUpNextAt: () => undefined,
+    // No song here was drawn by Keep playing.
+    isGuess: () => false,
   });
   return null;
 };
