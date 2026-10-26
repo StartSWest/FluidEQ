@@ -60,9 +60,9 @@ const help = {
   'help.window.intro':
     'The header takes you between FluidEQ’s pages and shows the sound as it plays. The left rail holds the switch for the whole EQ, the preamp and the level meter; the right rail follows your output and its profiles.',
   'help.window.steps':
-    'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Visualizers after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the signal or the level meter to change how it is drawn, and Colourful mode to have the curves and meters move at your screen’s full rate.',
+    'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Visualizers after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the level meter to change how it is drawn, and Colourful on the signal to have the bands, the title and the lit controls in a palette instead of one colour.',
   'help.window.tip':
-    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The pulse button beside it holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio and Processes, which shows what each part of FluidEQ is using; at its foot are Brightness and Transparency, animations, Start with Windows and the language. The switch after them turns the window into the Compact player.',
+    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The menu button beside it, three lines, holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio, Processes, which shows what each part of FluidEQ is using, and Reset all settings; at its foot are Brightness, Tint and Colourful mode, the EQ sliders, animations, Start with Windows and the language. The switch after them turns the window into the Compact player.',
   'help.window.keywords':
     'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, rainbow, colourful mode, colorful mode, theme, dark mode, light mode, dark theme, light theme, language, start with windows, autostart, startup, account',
   'help.window.headerLeftCaption': 'The header, up to the signal',
@@ -76,7 +76,7 @@ const help = {
     'Your bands, presets, headphone correction, game presets and the engine’s config.',
   'help.window.waveName': 'Audio signal',
   'help.window.wave':
-    'What is playing, as it plays. Press it to change how it is drawn.',
+    'What is playing, as it plays, with its peak level. Colourful, at its top, turns Colourful mode on or off; the graph’s View menu can hide it.',
   'help.window.dsp':
     'The effects rack: presets, the Room and every stage of the chain.',
   'help.window.library': 'Your music files, albums and play queue.',
@@ -87,7 +87,7 @@ const help = {
   'help.window.help':
     'This guide, What’s new, the audio troubleshooter and Report a problem.',
   'help.window.actions':
-    'The engine, your account, importing EQ settings, restarting Windows audio and Processes; Brightness and Transparency, animations, Start with Windows and the language.',
+    'The engine, your account, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint and Colourful mode, the EQ sliders, animations, Start with Windows and the language.',
   'help.window.systemEq':
     'Turns FluidEQ’s processing on or off for everything the PC plays.',
   'help.window.preamp':

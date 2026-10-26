@@ -56,9 +56,9 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'El encabezado te lleva de una página de FluidEQ a otra y muestra el sonido mientras suena. El panel izquierdo tiene el interruptor general del EQ, la preamplificación y el medidor de nivel; el panel derecho sigue a tu salida y sus perfiles.',
   'help.window.steps':
-    'Abre una página desde el encabezado: antes de la señal, Multimedia en línea, Compartir audio y EQ; después, DSP, Biblioteca, Karaoke y Visualizadores.\nActiva EQ del sistema en el panel izquierdo y deja Normalizar automáticamente activado, para que ningún realce sature.\nPulsa la señal o el medidor de nivel para cambiar cómo se dibuja, y Modo colorido para que las curvas y los medidores se muevan a la frecuencia completa de tu pantalla.',
+    'Abre una página desde el encabezado: antes de la señal, Multimedia en línea, Compartir audio y EQ; después, DSP, Biblioteca, Karaoke y Visualizadores.\nActiva EQ del sistema en el panel izquierdo y deja Normalizar automáticamente activado, para que ningún realce sature.\nPulsa el medidor de nivel para cambiar cómo se dibuja, y Colorido, sobre la señal, para ver las bandas, el título y los controles encendidos en una paleta en lugar de un solo color.',
   'help.window.tip':
-    'El menú Ayuda abre esta guía, Novedades, el solucionador de problemas de audio e Informar de un problema. El botón con el icono de pulso que hay a su lado reúne la tarjeta del motor, tu cuenta, la importación de ajustes de EQ o de una respuesta al impulso, el reinicio del audio de Windows y Procesos, que muestra qué está usando cada parte de FluidEQ; al pie del menú están Brillo y Transparencia, las animaciones, Iniciar con Windows y el idioma. El interruptor que sigue a esos dos botones convierte la ventana en el Reproductor compacto.',
+    'El menú Ayuda abre esta guía, Novedades, el solucionador de problemas de audio e Informar de un problema. El botón de menú de tres líneas que hay a su lado reúne la tarjeta del motor, tu cuenta, la importación de ajustes de EQ o de una respuesta al impulso, el reinicio del audio de Windows, Procesos, que muestra qué está usando cada parte de FluidEQ, y Restablecer todos los ajustes; al pie del menú están Brillo, Tono y Modo colorido, los deslizadores del EQ, las animaciones, Iniciar con Windows y el idioma. El interruptor que sigue a esos dos botones convierte la ventana en el Reproductor compacto.',
   'help.window.keywords':
     'interfaz, pestañas, cabecera, secciones, navegación, barra superior, barra inferior, barra de reproducción, panel lateral, botones, vúmetro, modo colorido, arcoíris, tour, donar, donaciones, tema, modo oscuro, modo claro, tema oscuro, tema claro, modo nocturno, idioma, lenguaje, cambiar idioma, iniciar con windows, arrancar con windows, inicio automático, arranque automático, al iniciar windows, cuenta',
   'help.window.headerLeftCaption': 'El encabezado, hasta la señal',
@@ -72,7 +72,7 @@ const help: Record<keyof typeof en, string> = {
     'Tus bandas, presets, corrección de auriculares, presets de juego y la configuración del motor.',
   'help.window.waveName': 'Señal de audio',
   'help.window.wave':
-    'Lo que está sonando, mientras suena. Púlsala para cambiar cómo se dibuja.',
+    'Lo que está sonando, mientras suena, con su nivel de pico. Colorido, en lo alto, activa o desactiva el Modo colorido; el menú Vista del gráfico puede ocultarla.',
   'help.window.dsp':
     'El rack de efectos: presets, la Sala y todas las etapas de la cadena.',
   'help.window.library':
@@ -85,7 +85,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Esta guía, Novedades, el solucionador de problemas de audio e Informar de un problema.',
   'help.window.actions':
-    'El motor, tu cuenta, la importación de ajustes de EQ, el reinicio del audio de Windows y Procesos; Brillo y Transparencia, las animaciones, Iniciar con Windows y el idioma.',
+    'El motor, tu cuenta, la importación de ajustes de EQ, el reinicio del audio de Windows, Procesos y Restablecer todos los ajustes; Brillo, Tono y Modo colorido, los deslizadores del EQ, las animaciones, Iniciar con Windows y el idioma.',
   'help.window.systemEq':
     'Activa o desactiva el procesamiento de FluidEQ para todo lo que suena en el PC.',
   'help.window.preamp':

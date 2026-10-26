@@ -24,6 +24,13 @@ import HelpLiveEnlarged from 'renderer/help/live/HelpLiveEnlarged';
 import { helpLiveDrawing } from 'renderer/help/live/helpLiveFigures';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 
+// Drawn as a shipped build draws them, with accounts: only then does the
+// title bar have its Visualizers tab (`WorkspaceTabsRight`).
+jest.mock('common/accountConfig', () => ({
+  ...jest.requireActual('common/accountConfig'),
+  isAccountConfigured: () => true,
+}));
+
 /**
  * Every live figure in the guide, drawn in every language.
  *
@@ -48,17 +55,24 @@ const missingIn = (drawn: Element, figure: IHelpLiveFigure) =>
     .filter((selector): selector is string => selector !== undefined)
     .filter((selector) => drawn.querySelector(selector) === null);
 
-const drawIn = (locale: LocaleCode, figure: IHelpLiveFigure) => {
+/**
+ * The drawing, settled: the title bar's tab strips measure their lit tab
+ * again when the underline they draw for it arrives, which a mutation
+ * observer reports just after the render — inside an act that waits.
+ */
+const drawIn = async (locale: LocaleCode, figure: IHelpLiveFigure) => {
   window.localStorage.setItem('fluideq.locale', locale);
   const Drawing = helpLiveDrawing(figure.live);
   if (!Drawing) {
     throw new Error(`no drawing for ${figure.live}`);
   }
-  return render(
+  const { container } = render(
     <I18nProvider>
       <Drawing />
     </I18nProvider>,
-  ).container;
+  );
+  await act(async () => undefined);
+  return container;
 };
 
 beforeAll(() => Promise.all(LOCALES.map(({ code }) => loadLocale(code))));
@@ -81,15 +95,15 @@ it('has live figures to check, each with a drawing', () => {
 describe.each(LOCALES.map(({ code }) => code))('in %s', (locale) => {
   it.each(LIVE.map(({ name, figure }) => [name, figure] as const))(
     'draws %s with everything it frames and names',
-    (_, figure) => {
-      expect(missingIn(drawIn(locale, figure), figure)).toEqual([]);
+    async (_, figure) => {
+      expect(missingIn(await drawIn(locale, figure), figure)).toEqual([]);
     },
   );
 });
 
 // The check above passes just as well if nothing is ever reported missing:
 // here is one it must report.
-it('reports a control the drawing does not have', () => {
+it('reports a control the drawing does not have', async () => {
   const [{ figure }] = LIVE;
   const broken: IHelpLiveFigure = {
     ...figure,
@@ -98,23 +112,23 @@ it('reports a control the drawing does not have', () => {
       { target: '.not-in-any-panel', name: 'help.title', text: 'help.title' },
     ],
   };
-  expect(missingIn(drawIn('en', broken), broken)).toEqual([
+  expect(missingIn(await drawIn('en', broken), broken)).toEqual([
     '.not-in-any-panel',
   ]);
 });
 
-it("speaks the reader's language", () => {
-  const menu = LIVE.find(({ figure }) => figure.live === 'player-menu');
-  if (!menu) {
-    throw new Error('the guide has no live player menu');
-  }
-  (['de', 'ja', 'ru'] as const).forEach((locale) => {
-    expect(drawIn(locale, menu.figure)).toHaveTextContent(
+it.each(['de', 'ja', 'ru'] as const)(
+  "speaks the reader's language: %s",
+  async (locale) => {
+    const menu = LIVE.find(({ figure }) => figure.live === 'player-menu');
+    if (!menu) {
+      throw new Error('the guide has no live player menu');
+    }
+    expect(await drawIn(locale, menu.figure)).toHaveTextContent(
       translate(locale, 'player.menu.fullApp'),
     );
-    cleanup();
-  });
-});
+  },
+);
 
 describe('a live figure in the guide', () => {
   const folded = LIVE.find(({ figure }) => figure.live === 'player-folded');
@@ -291,6 +305,26 @@ describe('measuring a drawing', () => {
       width: 300,
       height: 200,
       boxes: [[20, 20, 80, 30], undefined],
+    });
+  });
+
+  // The title bar's parts are framed with some of the bar round them, as a
+  // capture's crop kept some. The drawing has 20 of its pixels above and
+  // left of the panel and 80 right of and below it: 30 asked for are cut
+  // to what there is on two sides, 100 on all four.
+  it('keeps the room it is asked for round its part, inside the drawing', () => {
+    const near = measured({ ...figure, margin: 30 }, Panel).onMeasure;
+    expect(near).toHaveBeenLastCalledWith({
+      width: 350,
+      height: 250,
+      boxes: [[40, 40, 80, 30], undefined],
+    });
+    cleanup();
+    const far = measured({ ...figure, margin: 100 }, Panel).onMeasure;
+    expect(far).toHaveBeenLastCalledWith({
+      width: 400,
+      height: 300,
+      boxes: [[40, 40, 80, 30], undefined],
     });
   });
 

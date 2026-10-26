@@ -7,6 +7,7 @@ import {
   PlayerFoldDrawing,
   PlayerMenuDrawing,
 } from './playerFigures';
+import WindowHeaderDrawing from './windowFigures';
 
 /**
  * Every live figure's drawing, by the name its chapter gives it
@@ -23,6 +24,8 @@ import {
  * language and fails on a drawing that throws or a control it cannot find.
  */
 const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
+  'header-left': WindowHeaderDrawing,
+  'header-right': WindowHeaderDrawing,
   'player-top': PlayerDrawing,
   'player-sound': PlayerDrawing,
   'player-queue': PlayerDrawing,

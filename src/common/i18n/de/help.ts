@@ -56,9 +56,9 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'Über die Kopfzeile wechseln Sie zwischen den Seiten von FluidEQ, und sie zeigt den Klang in Echtzeit. Die linke Leiste enthält den Schalter für den ganzen EQ, die Vorverstärkung und die Pegelanzeige; die rechte Leiste folgt Ihrem Ausgang und seinen Profilen.',
   'help.window.steps':
-    'Drücken Sie in der Kopfzeile auf eine Seite: Online-Medien, Audio teilen und EQ vor dem Signal, DSP, Bibliothek, Karaoke und Visualizer danach.\nSchalten Sie in der linken Leiste System-EQ ein und lassen Sie Automatisch normalisieren eingeschaltet, damit keine Anhebung übersteuern kann.\nDrücken Sie auf das Signal oder die Pegelanzeige, um zu ändern, wie sie gezeichnet werden, und auf „Bunter Modus“, damit sich Kurven und Pegelanzeigen mit der vollen Bildwiederholrate Ihres Bildschirms bewegen.',
+    'Drücken Sie in der Kopfzeile auf eine Seite: Online-Medien, Audio teilen und EQ vor dem Signal, DSP, Bibliothek, Karaoke und Visualizer danach.\nSchalten Sie in der linken Leiste System-EQ ein und lassen Sie Automatisch normalisieren eingeschaltet, damit keine Anhebung übersteuern kann.\nDrücken Sie auf die Pegelanzeige, um zu ändern, wie sie gezeichnet wird, und auf „Bunt“ am Signal, damit Bänder, Titel und leuchtende Bedienelemente in einer Palette statt in einer Farbe erscheinen.',
   'help.window.tip':
-    'Hilfe öffnet dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden. Hinter dem Puls-Knopf daneben finden Sie die Karte der Engine, Ihr Konto, den Import von EQ-Einstellungen oder einer Impulsantwort, den Neustart von Windows-Audio und Prozesse, wo Sie sehen, was jeder Teil von FluidEQ gerade nutzt; ganz unten stehen Helligkeit und Transparenz, die Animationen, Mit Windows starten und die Sprache. Mit dem Schalter danach wechselt das Fenster in die Ansicht Kompakter Player.',
+    'Hilfe öffnet dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden. Hinter dem Menüknopf mit den drei Linien daneben finden Sie die Karte der Engine, Ihr Konto, den Import von EQ-Einstellungen oder einer Impulsantwort, den Neustart von Windows-Audio, Prozesse, wo Sie sehen, was jeder Teil von FluidEQ gerade nutzt, und Alle Einstellungen zurücksetzen; ganz unten stehen Helligkeit, Farbton und Bunter Modus, die EQ-Schieberegler, die Animationen, Mit Windows starten und die Sprache. Mit dem Schalter danach wechselt das Fenster in die Ansicht Kompakter Player.',
   'help.window.keywords':
     'oberfläche, benutzeroberfläche, übersicht, menüleiste, titelleiste, obere leiste, symbolleiste, seitenleiste, tabs, reiter, registerkarten, navigation, layout, untere leiste, pegelmesser, VU-meter, bunter modus, regenbogen, preamp, headroom, einschalten, ausschalten, design, theme, dunkles design, helles design, dunkelmodus, dunkler modus, dark mode, nachtmodus, heller modus, light mode, sprache, sprache ändern, mit windows starten, autostart, automatisch starten, beim hochfahren, konto, account',
   'help.window.headerLeftCaption': 'Die Kopfzeile bis zum Signal',
@@ -72,7 +72,7 @@ const help: Record<keyof typeof en, string> = {
     'Ihre Bänder, Presets, Kopfhörerkorrektur, Spiel-Presets und die Config der Engine.',
   'help.window.waveName': 'Audiosignal',
   'help.window.wave':
-    'Was gerade läuft, in Echtzeit. Drücken Sie darauf, um zu ändern, wie es gezeichnet wird.',
+    'Was gerade läuft, in Echtzeit, mit dem Spitzenpegel. „Bunt“ oben auf der Anzeige schaltet „Bunter Modus“ ein oder aus; ausblenden lässt sie sich im Menü „Ansicht“ des Graphen.',
   'help.window.dsp':
     'Das Effekt-Rack: Presets, der Raum und jede Stufe der Kette.',
   'help.window.library': 'Ihre Musikdateien, Alben und die Warteschlange.',
@@ -85,7 +85,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden.',
   'help.window.actions':
-    'Die Engine, Ihr Konto, der Import von EQ-Einstellungen, der Neustart von Windows-Audio und Prozesse; Helligkeit und Transparenz, die Animationen, Mit Windows starten und die Sprache.',
+    'Die Engine, Ihr Konto, der Import von EQ-Einstellungen, der Neustart von Windows-Audio, Prozesse und Alle Einstellungen zurücksetzen; Helligkeit, Farbton und Bunter Modus, die EQ-Schieberegler, die Animationen, Mit Windows starten und die Sprache.',
   'help.window.systemEq':
     'Schaltet die Verarbeitung von FluidEQ für alles, was der PC abspielt, ein oder aus.',
   'help.window.preamp':

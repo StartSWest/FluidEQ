@@ -110,13 +110,19 @@ const measureDrawing = (
     return undefined;
   }
   const unit = origin.width / figure.width;
-  const frame = (figure.frame &&
-    unionOf(drawing, origin, unit, figure.frame)) || {
-    left: 0,
-    top: 0,
-    right: figure.width,
-    bottom: origin.height / unit,
-  };
+  const height = origin.height / unit;
+  const part = figure.frame && unionOf(drawing, origin, unit, figure.frame);
+  // The room round the part, never past the drawing's own edges: beyond
+  // them there is nothing drawn to show.
+  const margin = figure.margin ?? 0;
+  const frame = part
+    ? {
+        left: Math.max(0, part.left - margin),
+        top: Math.max(0, part.top - margin),
+        right: Math.min(figure.width, part.right + margin),
+        bottom: Math.min(height, part.bottom + margin),
+      }
+    : { left: 0, top: 0, right: figure.width, bottom: height };
   return {
     frame,
     measure: {

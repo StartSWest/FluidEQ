@@ -27,75 +27,97 @@ const START_CHAPTERS = [
     },
   },
   {
-    // The window's frame, taken from the running window at 2560 x 1392 on
-    // 2026-09-29. The header is cut at the signal into two captures: whole,
-    // it is 2560 x 84 and is drawn about forty pixels tall in the guide, too
-    // small to read a label. Its boxes are the elements' own rectangles, and
-    // each side column's control is its whole group, name and switch.
+    // The window's frame. The title bar is drawn by its own parts
+    // (`help/live/windowFigures`) and framed in two, cut at the signal:
+    // whole, it is drawn too small in the guide to read a label. The drawing
+    // is laid out wider than the bar ever comes to, so nothing in it wraps,
+    // and each tab is found by its place in its strip. Its stills are the
+    // 2.0 captures, for the exported guide.
+    //
+    // The rails are captures from the running window at 2560 x 1392 on
+    // 2026-09-29: their boxes are the elements' own rectangles, and each
+    // side column's control is its whole group, name and switch.
     id: 'window',
     group: 'start',
     figures: [
       {
-        image: '37-header-left.png',
-        width: 1498,
-        height: 84,
+        live: 'header-left',
+        width: 2400,
+        height: 74,
+        frame: '.window-titlebar__left, .titlebar-nav',
+        // Under the 8px the bar keeps between its parts below 1920px wide:
+        // at 10 the right figure showed a sliver of the signal's rim.
+        margin: 6,
         caption: 'help.window.headerLeftCaption',
+        still: '37-header-left.png',
         controls: [
           {
-            box: [661, 17, 151, 40],
+            target: '.window-titlebar__left .workspace-tab:nth-of-type(1)',
             name: 'tabs.media',
             text: 'help.window.media',
           },
           {
-            box: [818, 17, 144, 40],
+            target: '.window-titlebar__left .workspace-tab:nth-of-type(2)',
             name: 'tabs.share',
             text: 'help.window.share',
           },
-          { box: [968, 17, 86, 40], name: 'tabs.eq', text: 'help.window.eq' },
           {
-            // The whole signal, its Rainbow badge with it.
-            box: [1070, 10, 420, 54],
+            target: '.window-titlebar__left .workspace-tab:nth-of-type(3)',
+            name: 'tabs.eq',
+            text: 'help.window.eq',
+          },
+          {
+            // The whole signal, its Colourful switch with it.
+            target: '.titlebar-nav .waveform-visualizer-shell',
             name: 'help.window.waveName',
             text: 'help.window.wave',
           },
         ],
       },
       {
-        image: '38-header-right.png',
-        width: 1062,
-        height: 84,
+        live: 'header-right',
+        width: 2400,
+        height: 74,
+        frame: '.window-titlebar__right',
+        margin: 6,
         caption: 'help.window.headerRightCaption',
+        still: '38-header-right.png',
         controls: [
-          { box: [8, 17, 94, 40], name: 'tabs.dsp', text: 'help.window.dsp' },
           {
-            box: [108, 17, 113, 40],
+            target: '.window-titlebar__right .workspace-tab:nth-of-type(1)',
+            name: 'tabs.dsp',
+            text: 'help.window.dsp',
+          },
+          {
+            target: '.window-titlebar__right .workspace-tab:nth-of-type(2)',
             name: 'tabs.library',
             text: 'help.window.library',
           },
           {
-            box: [227, 17, 119, 40],
+            target: '.window-titlebar__right .workspace-tab:nth-of-type(3)',
             name: 'tabs.karaoke',
             text: 'help.window.karaoke',
           },
           {
-            box: [352, 17, 95, 40],
+            // Only in a build with accounts (`WorkspaceTabsRight`).
+            target: '.window-titlebar__right .workspace-tab:nth-of-type(4)',
             name: 'tabs.plus',
             text: 'help.window.plus',
           },
           {
-            box: [703, 17, 40, 40],
+            target: '.support-pet',
             name: 'app.menu.support',
             text: 'help.window.support',
           },
           {
-            box: [804, 24, 32, 26],
-            name: 'help.menu',
-            text: 'help.window.help',
-          },
-          {
-            box: [756, 24, 46, 26],
+            target: '.actions-menu .workspace-header__tools-trigger',
             name: 'app.actions',
             text: 'help.window.actions',
+          },
+          {
+            target: '.help-menu__trigger',
+            name: 'help.menu',
+            text: 'help.window.help',
           },
         ],
       },

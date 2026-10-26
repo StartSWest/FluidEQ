@@ -32,8 +32,6 @@ import makerTools from '../../../docs/33-karaoke-maker-tools.png';
 import makerLyrics from '../../../docs/34-karaoke-maker-lyrics.png';
 import makerToolbar from '../../../docs/35-karaoke-maker-toolbar.png';
 import bandSelected from '../../../docs/36-eq-band-selected.png';
-import headerLeft from '../../../docs/37-header-left.png';
-import headerRight from '../../../docs/38-header-right.png';
 import railLeft from '../../../docs/39-rail-left.png';
 import railRight from '../../../docs/40-rail-right.png';
 import games from '../../../docs/41-game-presets.png';
@@ -81,8 +79,6 @@ const SHOTS: Record<THelpPicture, string> = {
   '34-karaoke-maker-lyrics.png': makerLyrics,
   '35-karaoke-maker-toolbar.png': makerToolbar,
   '36-eq-band-selected.png': bandSelected,
-  '37-header-left.png': headerLeft,
-  '38-header-right.png': headerRight,
   '39-rail-left.png': railLeft,
   '40-rail-right.png': railRight,
   '41-game-presets.png': games,

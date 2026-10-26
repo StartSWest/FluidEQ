@@ -43,10 +43,34 @@
     transition-duration: 1ms !important;
     transition-delay: 0ms !important;
   }
+
+  // NOTHING IN IT IS A HANDLE ON THE WINDOW. The player's title strip and
+  // folded line, and the whole title bar, are the window's drag regions where
+  // they belong; drawn here they marked strips of the guide that Windows
+  // takes a press on as the start of moving the window, so the figure under
+  // them never heard it. A drag region survives `inert`, and a region its
+  // own stylesheet scopes in wins over a plain rule, so this one is
+  // important.
+  * {
+    -webkit-app-region: no-drag !important;
+  }
 }
 
 .help-live__drawing {
   position: relative;
+}
+
+// THE TITLE BAR, drawn in a figure (`help/live/windowFigures`): in the
+// figure's box rather than fixed across the window's top, and with each of
+// its three tracks only as wide as what it holds. In the window the two ends
+// share whatever the window has over, which a picture of the bar would show
+// as empty floor between its parts.
+.help-live .window-titlebar {
+  position: relative;
+  z-index: auto;
+  inset: auto;
+  grid-template-columns: repeat(3, max-content);
+  justify-content: start;
 }
 
 // The press that enlarges a live figure, over the drawing: a button may not

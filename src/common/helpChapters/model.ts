@@ -69,7 +69,10 @@ export interface IHelpLiveControl {
  * shown — a whole player laid out as its window holds it, and only its
  * header and picture framed. The figure's height is measured from what is
  * drawn; `height` is only what is expected, for the room it holds until it
- * is drawn (it mounts as it nears the reader).
+ * is drawn (it mounts as it nears the reader). `margin` is room kept round
+ * the framed part, in the drawing's CSS pixels and never past its edges, as
+ * a capture's crop kept some: the title bar's parts would otherwise touch
+ * the figure's own edge.
  *
  * `still` is the capture the exported guide and the README go on showing
  * until pictures are drawn from these figures by script; it can be older
@@ -80,6 +83,7 @@ export interface IHelpLiveFigure<TImage extends string = string> {
   readonly width: number;
   readonly height: number;
   readonly frame?: string;
+  readonly margin?: number;
   readonly caption?: TranslationKey;
   readonly controls?: readonly IHelpLiveControl[];
   readonly still: TImage;

@@ -56,9 +56,9 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'O cabeçalho leva você de uma página do FluidEQ a outra e mostra o som enquanto ele toca. O painel da esquerda traz o interruptor geral do EQ, a pré-amplificação e o medidor de nível; o painel da direita acompanha sua saída e os perfis dela.',
   'help.window.steps':
-    'Escolha uma página no cabeçalho: Mídia online, Compartilhar áudio e EQ antes do sinal; DSP, Biblioteca, Karaokê e Visualizadores depois dele.\nAtive EQ do sistema no painel da esquerda e deixe Normalizar automaticamente ligado, para que nenhum reforço sature.\nPressione o sinal ou o medidor de nível para mudar como ele é desenhado, e o Modo colorido para que as curvas e os medidores se movam na taxa de atualização total da sua tela.',
+    'Escolha uma página no cabeçalho: Mídia online, Compartilhar áudio e EQ antes do sinal; DSP, Biblioteca, Karaokê e Visualizadores depois dele.\nAtive EQ do sistema no painel da esquerda e deixe Normalizar automaticamente ligado, para que nenhum reforço sature.\nPressione o medidor de nível para mudar como ele é desenhado, e Colorido, sobre o sinal, para ver as bandas, o título e os controles acesos numa paleta em vez de uma só cor.',
   'help.window.tip':
-    'O menu Ajuda abre este guia, Novidades, a solução de problemas de áudio e Relatar um problema. O botão de pulso ao lado dele reúne o cartão do motor, sua conta, a importação de configurações de EQ ou de uma resposta ao impulso, o reinício do áudio do Windows e Processos, que mostra o que cada parte do FluidEQ está usando; na parte de baixo dele ficam Brilho e Transparência, as animações, Iniciar com o Windows e o idioma. O botão depois deles transforma a janela no Player compacto.',
+    'O menu Ajuda abre este guia, Novidades, a solução de problemas de áudio e Relatar um problema. O botão de menu de três linhas ao lado dele reúne o cartão do motor, sua conta, a importação de configurações de EQ ou de uma resposta ao impulso, o reinício do áudio do Windows, Processos, que mostra o que cada parte do FluidEQ está usando, e Redefinir todas as configurações; na parte de baixo dele ficam Brilho, Tom e Modo colorido, os deslizantes do EQ, as animações, Iniciar com o Windows e o idioma. O botão depois deles transforma a janela no Player compacto.',
   'help.window.keywords':
     'interface, abas, navegação, tela principal, visão geral, barra superior, barra inferior, painel lateral, VU meter, preamp, modo colorido, arco-íris, tema, modo escuro, modo claro, tema escuro, tema claro, dark mode, idioma, língua, iniciar com o windows, iniciar automaticamente, inicialização automática, inicialização, conta',
   'help.window.headerLeftCaption': 'O cabeçalho, até o sinal',
@@ -72,7 +72,7 @@ const help: Record<keyof typeof en, string> = {
     'Suas bandas, presets, correção de fones, presets de jogo e a configuração do motor.',
   'help.window.waveName': 'Sinal de áudio',
   'help.window.wave':
-    'O que está tocando, enquanto toca. Pressione-o para mudar como ele é desenhado.',
+    'O que está tocando, enquanto toca, com o nível de pico. Colorido, no alto, liga ou desliga o Modo colorido; o menu Visualização do gráfico pode ocultá-lo.',
   'help.window.dsp':
     'O rack de efeitos: presets, a Sala e cada estágio da cadeia.',
   'help.window.library':
@@ -85,7 +85,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Este guia, Novidades, a solução de problemas de áudio e Relatar um problema.',
   'help.window.actions':
-    'O motor, sua conta, a importação de configurações de EQ, o reinício do áudio do Windows e Processos; Brilho e Transparência, as animações, Iniciar com o Windows e o idioma.',
+    'O motor, sua conta, a importação de configurações de EQ, o reinício do áudio do Windows, Processos e Redefinir todas as configurações; Brilho, Tom e Modo colorido, os deslizantes do EQ, as animações, Iniciar com o Windows e o idioma.',
   'help.window.systemEq':
     'Liga ou desliga o processamento do FluidEQ para tudo o que o PC toca.',
   'help.window.preamp':
