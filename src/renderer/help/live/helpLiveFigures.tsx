@@ -7,6 +7,7 @@ import {
   PlayerFoldDrawing,
   PlayerMenuDrawing,
 } from './playerFigures';
+import LookPickerDrawing from './lookFigures';
 import ShareDrawing from './shareFigures';
 import WindowHeaderDrawing from './windowFigures';
 
@@ -27,6 +28,7 @@ import WindowHeaderDrawing from './windowFigures';
 const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'header-left': WindowHeaderDrawing,
   'header-right': WindowHeaderDrawing,
+  'look-picker': LookPickerDrawing,
   'player-top': PlayerDrawing,
   'player-sound': PlayerDrawing,
   'player-queue': PlayerDrawing,

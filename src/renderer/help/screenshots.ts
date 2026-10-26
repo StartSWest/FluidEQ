@@ -20,7 +20,6 @@ import room from '../../../docs/32-dsp-room.png';
 import strip from '../../../docs/21-graph-strip.png';
 import stripPlus from '../../../docs/22-graph-strip-plus.png';
 import viewMenu from '../../../docs/23-graph-view-menu.png';
-import picker from '../../../docs/24-look-picker.png';
 import visualizers from '../../../docs/25-plus-visualizers.png';
 import scene from '../../../docs/26-plus-scene.png';
 import desktop from '../../../docs/27-desktop-dialog.png';
@@ -66,7 +65,6 @@ const SHOTS: Record<THelpPicture, string> = {
   '21-graph-strip.png': strip,
   '22-graph-strip-plus.png': stripPlus,
   '23-graph-view-menu.png': viewMenu,
-  '24-look-picker.png': picker,
   '25-plus-visualizers.png': visualizers,
   '26-plus-scene.png': scene,
   '27-desktop-dialog.png': desktop,

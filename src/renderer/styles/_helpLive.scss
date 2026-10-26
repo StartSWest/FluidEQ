@@ -28,6 +28,12 @@
 .help-live {
   position: relative;
   overflow: hidden;
+  // The window's type, not the page's around it: the guide reads at 15px on
+  // 1.75 and breaks a word anywhere (`HelpGuide.scss`), and a panel drawn in
+  // it inherited all three — rows grew, and names broke mid-word.
+  font-size: 1rem;
+  line-height: normal;
+  overflow-wrap: normal;
 
   // A picture of the app, so its motion stands down as the window's does
   // when motion is reduced (`App.scss`): a menu that opened with a scale was
