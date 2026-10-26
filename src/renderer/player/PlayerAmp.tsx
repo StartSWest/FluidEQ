@@ -136,7 +136,10 @@ const PlayerAmp = ({
               <PlayerDock />
             </div>
             <PlayerSound />
-            <PlayerQueue onOpenLibrary={() => onOpenPage('library')} />
+            <PlayerQueue
+              onOpenLibrary={() => onOpenPage('library')}
+              musicDrop={drop}
+            />
           </div>
           <PlayerFoot />
           <PlayerHeightGrip edge="top" />
@@ -144,7 +147,7 @@ const PlayerAmp = ({
           {/* Over the amp rather than in its flow: a message that pushed
               anything down would move it out from under the pointer that is
               about to let go. */}
-          {drop.isOver && (
+          {drop.isOver && drop.dropAt === undefined && (
             <div className="player-drop" aria-hidden="true">
               <PlayerIcon name="queue" />
               <span>{t('player.queue.drop')}</span>
