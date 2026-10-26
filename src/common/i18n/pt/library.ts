@@ -86,6 +86,9 @@ const library: Partial<Dictionary> = {
   'library.scan.running': 'Lendo {name}',
   'library.scan.counted': '{parsed} de {seen} arquivos',
   'library.scan.cancel': 'Parar',
+  'library.scan.hide': 'Ocultar este aviso',
+  'library.scan.hideHint':
+    'Ocultar este aviso. A Biblioteca continua lendo seus arquivos.',
 
   'library.roots': 'Pastas',
   'library.root.remove': 'Remover esta pasta',

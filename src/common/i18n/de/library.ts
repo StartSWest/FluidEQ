@@ -86,6 +86,9 @@ const library: Partial<Dictionary> = {
   'library.scan.running': '{name} wird eingelesen',
   'library.scan.counted': '{parsed} von {seen} Dateien',
   'library.scan.cancel': 'Stopp',
+  'library.scan.hide': 'Hinweis ausblenden',
+  'library.scan.hideHint':
+    'Hinweis ausblenden. Die Bibliothek liest Ihre Dateien weiter ein.',
 
   'library.roots': 'Ordner',
   'library.root.remove': 'Diesen Ordner entfernen',

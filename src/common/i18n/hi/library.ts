@@ -86,6 +86,9 @@ const library: Partial<Dictionary> = {
   'library.scan.running': '{name} पढ़ा जा रहा है',
   'library.scan.counted': '{seen} में से {parsed} फ़ाइलें',
   'library.scan.cancel': 'रोकें',
+  'library.scan.hide': 'यह सूचना छिपाएँ',
+  'library.scan.hideHint':
+    'यह सूचना छिपाएँ। लाइब्रेरी आपकी फ़ाइलें पढ़ती रहेगी।',
 
   'library.roots': 'फ़ोल्डर',
   'library.root.remove': 'यह फ़ोल्डर हटाएँ',

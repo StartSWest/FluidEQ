@@ -88,6 +88,9 @@ const library: Partial<Dictionary> = {
   'library.scan.running': 'Lecture de {name}',
   'library.scan.counted': '{parsed} sur {seen} fichiers',
   'library.scan.cancel': 'Arrêter',
+  'library.scan.hide': 'Masquer cet avis',
+  'library.scan.hideHint':
+    'Masquer cet avis. La Bibliothèque continue de lire vos fichiers.',
 
   'library.roots': 'Dossiers',
   'library.root.remove': 'Retirer ce dossier',

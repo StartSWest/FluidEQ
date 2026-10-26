@@ -70,6 +70,8 @@ const LibraryWorkspaceView = ({
     isIndexLoaded,
     isScanning,
     progress,
+    isScanNoticeHidden,
+    hideScanNotice,
     addFolder,
     addFolderPaths,
     rescan,
@@ -399,8 +401,12 @@ const LibraryWorkspaceView = ({
           {/* Pinned under the toolbar rather than a modal: the scan is
           backgroundable simply by leaving the tab, which only works if
           nothing here blocks the rest of the workspace. */}
-          {isScanning && progress && (
-            <LibraryScanProgress progress={progress} onCancel={cancelScan} />
+          {isScanning && progress && !isScanNoticeHidden && (
+            <LibraryScanProgress
+              progress={progress}
+              onCancel={cancelScan}
+              onHide={hideScanNotice}
+            />
           )}
           {/* Only once the index has actually been read. It starts empty and is
           filled by a reply a moment later, so gated on the count alone this

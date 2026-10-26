@@ -86,6 +86,9 @@ const library: Partial<Dictionary> = {
   'library.scan.running': 'Чтение {name}',
   'library.scan.counted': '{parsed} из {seen} файлов',
   'library.scan.cancel': 'Остановить',
+  'library.scan.hide': 'Скрыть это уведомление',
+  'library.scan.hideHint':
+    'Скрыть это уведомление. Библиотека продолжит читать ваши файлы.',
 
   'library.roots': 'Папки',
   'library.root.remove': 'Удалить эту папку',
