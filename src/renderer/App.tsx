@@ -98,6 +98,7 @@ import SceneColumnLayer from './graph/SceneColumnLayer';
 import GraphScene from './graph/GraphScene';
 import SceneTint from './components/SceneTint';
 import RainbowSource from './components/RainbowSource';
+import TaskbarIconSource from './components/TaskbarIconSource';
 import { importConvolutionFile, importEqFile } from './utils/equalizerApi';
 import { AudioEngineContext } from './utils/audioEngineContext';
 import { startScenePrebuild } from './graph/scenePrebuild';
@@ -839,6 +840,8 @@ export default function App() {
             {/* Rainbow mode's palette: Aurora, or the chosen Plus
                 visualizer's colours. Renders nothing. */}
             <RainbowSource />
+            {/* The taskbar button in the window's colours. Renders nothing. */}
+            <TaskbarIconSource />
             {/* The back of the window, where that visualizer is drawn in the
                 Backdrop mode; an empty layer otherwise. */}
             <SceneCover />

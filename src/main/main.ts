@@ -111,6 +111,7 @@ import { registerGamesIpc } from './ipc/games';
 import { registerSystemVolumeIpc } from './systemVolume';
 import { registerStartWithWindowsIpc } from './ipc/startWithWindows';
 import { registerSettingsResetIpc } from './ipc/settingsReset';
+import { registerTaskbarIconIpc } from './taskbarIcon';
 import { DEFAULT_LIGHTING_SETTINGS } from '../common/lighting/lightingModel';
 import { MOTION_SWITCHES, readMotionPreference } from './motionPreference';
 import {
@@ -806,6 +807,17 @@ registerSettingsResetIpc({
       log.error('Settings reset: could not save the graph switch', error),
     );
   },
+  logger: log,
+});
+// The taskbar button in the window's colours; the installed icon while it
+// wears the app's own (`taskbarIcon.ts`). The same .ico the window is made
+// with (`mainWindow.ts`), found the same way.
+registerTaskbarIconIpc({
+  userDataDir,
+  stockIconPath: app.isPackaged
+    ? path.join(process.resourcesPath, 'assets', 'icon.ico')
+    : path.join(__dirname, '../../assets/icon.ico'),
+  getWindow: () => mainWindow,
   logger: log,
 });
 // The process list, which needs the host's pid to include it as a row — the
