@@ -6,7 +6,7 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { usePlaybackOwner } from '../audio/playbackOwner';
 import {
   useLastTransportOwner,
@@ -21,7 +21,7 @@ import RemoteAudioMix from './RemoteAudioMix';
 import RemoteAudioOutput from './RemoteAudioOutput';
 import { useSystemFader } from '../audio/systemVolume';
 import '../styles/RemoteAudioGroup.scss';
-import RemoteAudioLinkForm from './RemoteAudioLinkForm';
+import RemoteAudioLinkDialog from './RemoteAudioLinkDialog';
 import { useRemoteAudio } from './remoteAudioValueContext';
 import {
   describeForRemote,
@@ -51,10 +51,12 @@ const RULES = [
  *
  * One group, with the local source first and a stable order for the rest,
  * including offline computers. Your mix holds the OS volume and independent
- * receive gains. Pairing stays beneath it, inside the existing app page.
+ * receive gains. Pairing opens from the header so a growing list cannot
+ * push the connection controls out of reach.
  */
 const RemoteAudioPanel = () => {
   const { t } = useTranslation();
+  const [adding, setAdding] = useState(false);
   const remote = useRemoteAudio();
   const system = useSystemFader();
   const singlePlayer = useSinglePlayer();
@@ -86,35 +88,48 @@ const RemoteAudioPanel = () => {
   } else if (phase === 'ready' || phase === 'playback-blocked') {
     codeStatus = t('remoteAudio.status.noNetwork');
   }
-  const form = (
-    <RemoteAudioLinkForm
-      deviceName={remote.deviceName}
-      code={remote.code}
-      status={codeStatus}
-      pasteError={
-        remote.error === 'code' ? t('remoteAudio.error.code') : undefined
-      }
-      onLink={remote.link}
-    />
-  );
-
   return (
     <section className="remote-audio" aria-labelledby="remote-audio-title">
       <header className="remote-audio__header">
         <div>
           <p className="eyebrow">{t('remoteAudio.eyebrow')}</p>
           <h2 id="remote-audio-title">{t('remoteAudio.title')}</h2>
-          <p>{t('remoteAudio.group.hint')}</p>
-          <ul
-            className="remote-audio__facts"
-            aria-label={t('remoteAudio.security')}
-          >
-            <li>{t('remoteAudio.badge.local')}</li>
-            <li>{t('remoteAudio.badge.lossless')}</li>
-            <li>{t('remoteAudio.badge.encrypted')}</li>
-          </ul>
         </div>
+        <button
+          type="button"
+          className="button small"
+          aria-haspopup="dialog"
+          aria-expanded={adding}
+          onClick={() => setAdding(true)}
+        >
+          <MenuIcon name="plus" />
+          {t('remoteAudio.group.add')}
+        </button>
       </header>
+      <div className="remote-audio__intro">
+        <p>{t('remoteAudio.group.hint')}</p>
+        <ul
+          className="remote-audio__facts"
+          aria-label={t('remoteAudio.security')}
+        >
+          <li>{t('remoteAudio.badge.local')}</li>
+          <li>{t('remoteAudio.badge.lossless')}</li>
+          <li>{t('remoteAudio.badge.encrypted')}</li>
+        </ul>
+      </div>
+
+      {adding && (
+        <RemoteAudioLinkDialog
+          deviceName={remote.deviceName}
+          code={remote.code}
+          status={codeStatus}
+          pasteError={
+            remote.error === 'code' ? t('remoteAudio.error.code') : undefined
+          }
+          onLink={remote.link}
+          onClose={() => setAdding(false)}
+        />
+      )}
 
       <div className="remote-audio__columns">
         <RemoteAudioGroup remote={remote} localNowPlaying={localNowPlaying} />
@@ -150,12 +165,6 @@ const RemoteAudioPanel = () => {
         </>
       )}
 
-      <h3 className="remote-audio__choice-title">
-        {linked
-          ? t('remoteAudio.another.section')
-          : t('remoteAudio.link.section')}
-      </h3>
-      {form}
       {!linked && (
         <ul className="remote-audio__rules">
           {RULES.map((rule) => (

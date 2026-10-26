@@ -1,4 +1,8 @@
 /* Geometry only: appearance comes from the existing Share Audio controls. */
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'theme' as *;
+
 .remote-audio__columns {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 270px;
@@ -14,6 +18,23 @@
 }
 .remote-audio__group > .remote-audio__link-head {
   grid-column: 1 / -1;
+}
+// Only the peers scroll; the group heading, local source and system fader
+// stay outside these lists. Subgrid preserves the shared waveform edges.
+.remote-audio__peer-scroll {
+  min-height: 0;
+  max-height: clamp(180px, 45vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  @include slim-scrollbar;
+}
+.remote-audio__group-list {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+.remote-audio__peer-scroll > .remote-audio__lane:first-child {
+  border-top: 1px solid rgba($edge-tint, 0.1);
 }
 .remote-audio__group-row {
   grid-template-areas: none;
@@ -66,6 +87,24 @@
   align-items: stretch;
   gap: 8px;
 }
+.remote-audio__add-backdrop {
+  @include dialog.backdrop(1450);
+}
+.dialog-frame.remote-audio__add-dialog {
+  @include dialog.size(960px, 780px);
+  container: audio-link / inline-size;
+}
+.remote-audio__add-dialog .remote-audio__link-form-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+.remote-audio__add-dialog .remote-audio__link-or {
+  flex-direction: row;
+
+  > span {
+    width: auto;
+    height: 1px;
+  }
+}
 @container eq-panel (max-width: 950px) {
   .remote-audio__columns {
     grid-template-columns: minmax(0, 1fr);
@@ -74,6 +113,9 @@
 @container eq-panel (max-width: 800px) {
   .remote-audio__group {
     display: flex;
+  }
+  .remote-audio__group-list {
+    display: block;
   }
   .remote-audio__group-row {
     grid-template-columns: minmax(0, 1fr);
@@ -98,5 +140,12 @@
   .remote-audio__group-lanes .remote-audio__lane-switch {
     grid-column: 2;
     grid-row: 1;
+  }
+}
+@container audio-link (max-width: 560px) {
+  .remote-audio__add-dialog .remote-audio__link-paste,
+  .remote-audio__add-dialog .remote-audio__code-row {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

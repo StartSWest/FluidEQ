@@ -40,6 +40,14 @@ const renderPanel = (remote: IRemoteAudioValue) =>
 
 const card = () => within(screen.getByRole('article', { name: 'SWEST-YOGA' }));
 
+// Pairing lives in its own dialog, opened from the page's header.
+const openAdd = () => {
+  fireEvent.click(
+    screen.getByRole('button', { name: 'remoteAudio.group.add' }),
+  );
+  return within(screen.getByRole('dialog', { name: 'remoteAudio.group.add' }));
+};
+
 describe('the Share Audio page before a link', () => {
   it("opens on this computer's code, and asks for it only once", () => {
     const idle = remoteAudioValue({ phase: 'idle', code: undefined });
@@ -57,35 +65,52 @@ describe('the Share Audio page before a link', () => {
 
   it('shows one code, however many networks this computer is on', () => {
     renderPanel(remoteAudioValue());
-    expect(screen.getAllByText('FLUIDEQ-LAN-2.mine')).toHaveLength(1);
+    const dialog = openAdd();
+    expect(dialog.getAllByText('FLUIDEQ-LAN-2.mine')).toHaveLength(1);
     expect(
-      screen.getAllByRole('button', { name: 'remoteAudio.code.copy' }),
+      dialog.getAllByRole('button', { name: 'remoteAudio.code.copy' }),
     ).toHaveLength(1);
   });
 
   it("links with the other computer's code, trimmed, and not without one", async () => {
     const remote = remoteAudioValue();
     renderPanel(remote);
-    const start = screen.getByRole('button', {
+    const dialog = openAdd();
+    const start = dialog.getByRole('button', {
       name: 'remoteAudio.link.start',
     });
     expect(start).toBeDisabled();
-    const paste = screen.getByRole('textbox', {
-      name: 'remoteAudio.link.codeLabel',
-    });
-    fireEvent.change(paste, { target: { value: '  FLUIDEQ-LAN-2.theirs  ' } });
+    fireEvent.change(
+      dialog.getByRole('textbox', { name: 'remoteAudio.link.codeLabel' }),
+      { target: { value: '  FLUIDEQ-LAN-2.theirs  ' } },
+    );
     await act(async () => {
       fireEvent.click(start);
     });
     expect(remote.link).toHaveBeenCalledWith('FLUIDEQ-LAN-2.theirs');
-    // Linked: the field is ready for the next computer's code.
-    expect(paste).toHaveValue('');
+    // Linked: the dialog has done its job and goes.
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('says why a pasted code did not link, beside the paste', () => {
-    renderPanel(remoteAudioValue({ error: 'code' }));
-    expect(screen.getByText('remoteAudio.error.code')).toBeInTheDocument();
+  it('keeps Add computer open on a code that did not link, and says why beside the paste', async () => {
+    const remote = remoteAudioValue({ error: 'code' });
+    jest.mocked(remote.link).mockResolvedValueOnce(false);
+    renderPanel(remote);
+    const dialog = openAdd();
+    expect(dialog.getByText('remoteAudio.error.code')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    fireEvent.change(
+      dialog.getByRole('textbox', { name: 'remoteAudio.link.codeLabel' }),
+      { target: { value: 'FLUIDEQ-LAN-2.wrong' } },
+    );
+    await act(async () => {
+      fireEvent.click(
+        dialog.getByRole('button', { name: 'remoteAudio.link.start' }),
+      );
+    });
+    expect(
+      screen.getByRole('dialog', { name: 'remoteAudio.group.add' }),
+    ).toBeInTheDocument();
   });
 
   it('says why it could not show a code, and tries again on request', () => {
@@ -371,11 +396,12 @@ describe('a linked computer', () => {
     expect(remote.unlink).toHaveBeenCalledWith({ peerId: 'peer-1' });
   });
 
-  it("offers this computer's code for another computer, whichever side pasted", () => {
+  it("offers this computer's code from Add computer, whichever side pasted", () => {
     renderPanel(
       remoteAudioValue({ links: [remoteAudioLink({ joined: true })] }),
     );
-    expect(screen.getByText('remoteAudio.another.section')).toBeInTheDocument();
-    expect(screen.getByText('FLUIDEQ-LAN-2.mine')).toBeInTheDocument();
+    // Pairing lives in the dialog, so a long group never pushes it out of reach.
+    expect(screen.queryByText('FLUIDEQ-LAN-2.mine')).not.toBeInTheDocument();
+    expect(openAdd().getByText('FLUIDEQ-LAN-2.mine')).toBeInTheDocument();
   });
 });
