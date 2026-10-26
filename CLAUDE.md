@@ -783,13 +783,18 @@ Everything worth knowing about them is available through commands:
   unity makes a mono record about as wide as an ordinary stereo mix. A
   profile whose centre carries speech or a position (Movie, Gaming) keeps
   the made side 10 dB or more under the centre between 500 Hz and 2 kHz.
-- **Auto normalize starts at the curve's own level and climbs back.** The
-  app's `Preamp:` becomes the start (`auto_preamp_start_db`, captured at the
-  directive so a Preamp in the custom file stays a fixed gain); after 5 s of
-  room the level recovers 0.15 dB/s toward 0 dB. Ivan's own design ("don't
-  touch my auto normalizer", "recover to 0 dB"); 0.3 dB/s after 3 s made a
-  jazz track 10 dB dirtier in its worst second, which is how the rate was
-  chosen on five songs.
+- **Auto normalize starts at 0 dB, comes down for the peaks, and climbs
+  back** (Ivan, 2026-10-26: "start at 0 and reduce", "speed up the raising,
+  like x2"). It used to start at the curve's own level, the app's `Preamp:`
+  (`auto_preamp_start_db`), which now only measures how far a louder edit
+  comes down at once (`set_curve_level`, `hold`); a Preamp in the custom
+  file stays a fixed gain. After 5 s of room the level recovers 0.3 dB/s
+  toward 0 dB (0.15 before). Measured on his five songs: a song's first ten
+  seconds 1 to 10 dB louder, quiet songs no longer 5 to 9 dB down for half a
+  minute; a loud passage met at once has its first peaks limited 3 to 6 dB
+  for about 0.2 s. Edits keep their predicted level. The 5 s wait stays:
+  0.3 dB/s after 3 s made a jazz track 10 dB dirtier in its worst second.
+  The readout used to step from 0 to the curve's level on the first block.
 - **An edit's level is predicted, never climbed to** (engine 1.16, Ivan
   2026-09-23: "jump straight to it and then the auto normalize just
   finetune"). The engine keeps the last 10 s of music as it leaves the rack

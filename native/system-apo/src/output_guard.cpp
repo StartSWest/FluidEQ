@@ -7,19 +7,25 @@ namespace fluideq_engine {
 namespace {
 /**
  * How the level comes back up once the music leaves room: after 5 s with the
- * loudest peak at least a decibel under what the level allows, at 0.15 dB/s.
+ * loudest peak at least a decibel under what the level allows, at 0.3 dB/s
+ * (Ivan, 2026-10-26: "speed up the raising, like x2", with the start moved to
+ * 0 dB in the same change).
  *
- * Measured on five of Ivan's songs (rock, pop, EDM, a ballad, smooth jazz)
- * through his BlackShark curve, starting from the curve's level, against the
- * normalizer that started at 0 dB: loudness within 0.9 dB on every song, and
- * the limiter's worst second 15 dB cleaner on the rock master and 11 dB on
- * the jazz. Faster costs cleanliness — at 0.3 dB/s after 3 s the level
- * climbs into the limiter over and over, and the jazz came out 10 dB dirtier
- * than before — and slower costs the loudness this normalizer is for: the
- * old 0.1 dB/s left the jazz 2.9 dB quieter.
+ * Measured on his five songs (rock, pop, EDM, a ballad, smooth jazz) through
+ * his BlackShark curve, a bass shelf and his bands alone: a song from its
+ * start comes out 1 to 10 dB louder over its first ten seconds than when the
+ * level started at the curve's own level, and quiet songs no longer sit 5 to
+ * 9 dB down for half a minute. The cost is on loud material met at once (a
+ * song resumed in its chorus): the limiter takes 3 to 6 dB off the first
+ * peaks for about a fifth of a second, until two overloaded tenths of a
+ * second bring the level down. An edit keeps its predicted level and is as
+ * clean as before (limiter under 1.8 dB on its first peaks, its worst
+ * second under 0.05 dB). At 0.15 dB/s the jazz took 26.7 s to settle; the
+ * 5 s wait stays, because at 0.3 dB/s after 3 s the level climbed into the
+ * limiter over and over (09-21).
  */
 constexpr double kRecoverAfterSeconds = 5.0;
-constexpr double kRecoverDbPerSecond = 0.15;
+constexpr double kRecoverDbPerSecond = 0.3;
 
 /**
  * How long an edit's level takes to arrive (`move_target`): the bands' own
@@ -67,9 +73,12 @@ void OutputGuard::process(float* const* planar, uint32_t frames, bool enabled) n
     holding_ = false;
     glide_left_ = 0;
   } else if (armed_) {
-    // The limiter meets this as a drop and back-fills it across its
-    // look-ahead, so the first sample out is already at the curve's level.
-    target_db_ = curve_level_db_;
+    // At 0 dB, not at the curve's level (Ivan, 2026-10-26: "start at 0 and
+    // reduce"): the level comes down only where the music's peaks need it,
+    // and the readout no longer stepped from 0 to the curve's level on the
+    // first block. The curve's level stays the reference an edit is moved
+    // by (`set_curve_level`, `hold`).
+    target_db_ = 0.0;
     glide_left_ = 0;
     armed_ = false;
   }
