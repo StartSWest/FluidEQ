@@ -69,36 +69,14 @@ export const sourceLabel = (
   }
 };
 
-/**
- * The same, as the Stage's signal path names it (`PlayerPath`): one word
- * where the bar's are two or three — the media tab by its short name, and
- * another computer by its own name, which is what tells two of them apart.
- */
-export const sourceShortLabel = (
-  source: Pick<ITransportSource, 'owner' | 'origin'>,
-  t: TranslateFn,
-) => {
-  switch (source.owner) {
-    case 'library':
-      return t('tabs.library');
-    case 'karaoke':
-      return t('tabs.karaoke');
-    case 'system':
-      return t('library.systemAudio');
-    case 'remote':
-      return source.origin?.trim() ? source.origin : t('tabs.share');
-    default:
-      return t('tabs.mediaShort');
+/** A queue's length, which runs past an hour where a song's never does. */
+export const formatQueueTime = (ms: number) => {
+  const whole = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(whole / 3600);
+  if (hours === 0) {
+    return formatDuration(ms);
   }
-};
-
-/**
- * A file's format as a tag beside where it plays from, when the format has a
- * short name. `music-metadata` calls an MP3 "MPEG 1 Layer 3" and an Ogg file
- * "Vorbis I", which beside one word read as a sentence; FLAC, ALAC, AAC, Opus
- * and PCM keep theirs.
- */
-export const codecTag = (codec: string | undefined) => {
-  const name = codec?.trim().toUpperCase();
-  return name !== undefined && /^[A-Z0-9]{2,5}$/.test(name) ? name : undefined;
+  const minutes = String(Math.floor((whole % 3600) / 60)).padStart(2, '0');
+  const seconds = String(whole % 60).padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
 };

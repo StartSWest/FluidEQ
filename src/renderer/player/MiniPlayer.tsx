@@ -4,13 +4,10 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { TPlayerAmp } from 'common/windowMode';
-import ClassicAmp from './classic/ClassicAmp';
-import StageAmp from './StageAmp';
-import usePlayerAmp from './usePlayerAmp';
-import { handOverAmp, reportPlayerAmp } from './windowModeStore';
+import { setAmpHoldsWindow } from '../utils/sceneTintStore';
+import PlayerAmp from './PlayerAmp';
 import type { TPlayerPage } from './PlayerTitleStrip';
 import '../styles/MiniPlayer.scss';
 
@@ -58,54 +55,35 @@ const usePlayerHost = () => {
 };
 
 /**
- * The amp's word on the document and to main, said before anything inside
- * the amp measures itself: it stands before the amp in the tree, and React
- * runs an earlier sibling's layout effects first. The amp's parts read their
- * sizes under their own stylesheet (`data-amp`), and tell main the height and
- * width they hold the window to only once main knows which amp is asking
- * (`reportPlayerAmp`) — told the other way round, the new amp's limits were
- * applied to the old one's window and then forgotten with it.
- *
- * A change of amp is made out of sight (`handOverAmp`). The first amp is not
- * a change: it comes in with the switch from the full app, which takes the
- * window off the screen itself.
+ * The amp's word on the document (`data-amp` on its root), said before
+ * anything inside the amp measures itself: it stands before the amp in the
+ * tree, and React runs an earlier sibling's layout effects first. The amp's
+ * stylesheet applies under that word alone (`MiniPlayer.scss`) — on the root
+ * and not on the amp, because the amp's menus are portalled to the foot of
+ * the document and are the amp's too.
  */
-const AmpMark = ({ amp }: { amp: TPlayerAmp }) => {
-  const shown = useRef<TPlayerAmp | undefined>(undefined);
+const AmpMark = () => {
   useLayoutEffect(() => {
     const root = document.documentElement;
-    root.dataset.amp = amp;
-    if (shown.current !== undefined && shown.current !== amp) {
-      handOverAmp(amp);
-    } else {
-      reportPlayerAmp(amp);
-    }
-    shown.current = amp;
+    root.dataset.amp = '';
+    // And the window is the Backdrop while the amp holds it, whatever the
+    // app's colour mode (`setAmpHoldsWindow`).
+    setAmpHoldsWindow(true);
     return () => {
       delete root.dataset.amp;
+      setAmpHoldsWindow(false);
     };
-  }, [amp]);
+  }, []);
   return null;
 };
 
 /**
- * The window as a player — one of two, the way the full app is one of two
- * (Ivan, 2026-09-28: "when ambient is set to backdrop we do this one, but
- * when set to other than that we do the other one we used to have, similar
- * to what the app does"). With the Backdrop the amp is the Stage, its panes
- * glass floating over the picture (`StageAmp`); in every other mode it is the
- * 2.0 amp, solid decks on the window's floor (`ClassicAmp`).
+ * The window as a player: the one amp (Ivan, 2026-10-25: "an unified amp ui
+ * so we only have one mode"), whatever the window colours are (`PlayerAmp`).
  *
- * Both are drawn outside the app's own root, which stays mounted and hidden
- * while the window is the player, so everything that plays keeps playing and
- * nothing the app listens for hears the player's keys (`stopAtHost`).
- *
- * THE DOCUMENT SAYS WHICH (`data-amp` on its root). The two amps were built
- * with the same class names for the same parts — a title strip, a deck of
- * equalizer keys, a queue — and each one's stylesheet is scoped to its own
- * word (`MiniPlayer.scss`), so neither ever paints the other. On the root and
- * not on the amp, because the amp's menus are portalled to the foot of the
- * document and are the amp's too.
+ * Drawn outside the app's own root, which stays mounted and hidden while the
+ * window is the player, so everything that plays keeps playing and nothing
+ * the app listens for hears the player's keys (`stopAtHost`).
  */
 const MiniPlayer = ({
   onOpenPage,
@@ -113,18 +91,10 @@ const MiniPlayer = ({
   onOpenPage: (page: TPlayerPage) => void;
 }) => {
   const host = usePlayerHost();
-  const amp = usePlayerAmp();
   return (
     <>
-      <AmpMark amp={amp} />
-      {createPortal(
-        amp === 'stage' ? (
-          <StageAmp onOpenPage={onOpenPage} />
-        ) : (
-          <ClassicAmp onOpenPage={onOpenPage} />
-        ),
-        host,
-      )}
+      <AmpMark />
+      {createPortal(<PlayerAmp onOpenPage={onOpenPage} />, host)}
     </>
   );
 };

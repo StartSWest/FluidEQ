@@ -63,12 +63,14 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.standardPerformance',
   'fluideq.sceneResponse',
   'fluideq.sceneWaves',
-  // The window: colours, Rainbow, Brightness, Transparency, a scene's own
-  // time of day, sparks, sliders, the language, and how it is divided.
+  // The window: colours, Rainbow, Brightness, Transparency, the Tint, a
+  // scene's own time of day, sparks, sliders, the language, and how it is
+  // divided.
   'fluideq.sceneTintMode',
   'fluideq-rainbow',
   'fluideq.theme',
   'fluideq.backdropVeil',
+  'fluideq.windowTint',
   'fluideq.sceneDaylight',
   'fluideq.pointerSparks',
   'fluideq.sliderHandle',
@@ -83,7 +85,10 @@ export const SETTING_STEMS: readonly string[] = [
   // The amp.
   'fluideq.player.decks',
   'fluideq.player.eqFace',
+  'fluideq.player.queuePage',
   'fluideq.player.sheet',
+  'fluideq.player.shelfOpen',
+  'fluideq.player.soundOpen',
   'fluideq.player.timeLeft',
   'fluideq.player.unfoldedHeight',
   'fluideq.player.visHeight',

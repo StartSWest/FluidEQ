@@ -37,7 +37,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     max-width: calc(100vw - 16px);
     gap: 4px;
     padding: 8px;
-    border-radius: 22px;
     background: color-mix(in srgb, var(--surface-base) 82%, transparent);
     backdrop-filter: blur(26px) saturate(150%);
     box-shadow:
@@ -45,10 +44,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
       inset 0 0 0 1px var(--player-glass-edge),
       0 24px 60px rgba($black, 0.45);
 
-    // The tray is glass of the menu, not a solid slab laid on it.
+    // The tray is glass of the menu, not a solid slab laid on it. Its corner,
+    // the way-back card's and the rows' are the menu's own (`$card-radius`,
+    // the app's corner for every menu and panel), so each shape inside
+    // follows the one round it (Ivan, 2026-10-25: "match the back to full app
+    // card border to panel borders, not do the opposite"). They were rounder
+    // than the menu holding them.
     .actions-menu__prefs {
       margin-top: 2px;
-      border-radius: 14px;
+      border-radius: $card-radius;
       background: color-mix(in srgb, #{$black} 22%, transparent);
       box-shadow: inset 0 0 0 1px var(--player-glass-edge);
     }
@@ -62,7 +66,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     gap: 12px;
     padding: 10px 12px;
     border: 0;
-    border-radius: 16px;
+    border-radius: $card-radius;
     background: var(--player-chosen);
     color: var(--player-text);
     font: inherit;
@@ -112,11 +116,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 
   // The app's pages, each behind the glyph the tab strip gives it, four to a
-  // row: this menu stands in for that strip.
+  // row: this menu stands in for that strip. Each name keeps room either side
+  // (Ivan, 2026-10-25: "Online Media and all that, no padding"): the columns
+  // are as wide as their names on one line, the menu widening to hold them up
+  // to the window's width, and only past that does a name take two lines.
   .player-menu__pages {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 2px;
+    grid-template-columns: repeat(4, minmax(min-content, 1fr));
+    gap: 4px;
     padding: 4px 0;
   }
 
@@ -126,9 +133,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
     align-items: center;
     gap: 5px;
     min-width: 0;
-    padding: 8px 2px;
+    padding: 8px 6px;
+    text-wrap: balance;
     border: 0;
-    border-radius: 12px;
+    border-radius: $card-radius;
     background: none;
     color: var(--player-text-muted);
     font: inherit;
@@ -178,7 +186,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     min-height: 42px;
     padding: 0 10px;
     border: 0;
-    border-radius: 12px;
+    border-radius: $card-radius;
     background: none;
     color: var(--player-text);
     font: inherit;

@@ -55,6 +55,14 @@ const load = (stored: Record<string, string> = {}) => {
   return { store, Menu, Tiles, library };
 };
 
+/** The four modes, apart from the menu's other choices (what Daylight follows). */
+const modeChoices = (fresh: typeof TestingLibrary) =>
+  fresh
+    .within(
+      fresh.screen.getByRole('radiogroup', { name: 'graph.sceneTint.label' }),
+    )
+    .getAllByRole('radio');
+
 describe('the modes a launch starts in', () => {
   it('starts the whole app on the Backdrop, the Studio included, for somebody new', () => {
     const { store, library: fresh } = load();
@@ -115,7 +123,7 @@ describe('the graph’s menu', () => {
     expect(fresh.screen.queryByRole('radio')).toBeNull();
 
     await userEvent.click(button);
-    const choices = fresh.screen.getAllByRole('radio');
+    const choices = modeChoices(fresh);
     expect(choices).toHaveLength(4);
     expect(choices[0]).toHaveTextContent('graph.sceneTint.short.off');
     expect(choices[3]).toHaveTextContent('graph.sceneTint.short.cover');
@@ -136,39 +144,32 @@ describe('the graph’s menu', () => {
     await userEvent.click(
       fresh.screen.getByRole('button', { name: 'graph.sceneTint.label' }),
     );
-    await userEvent.click(fresh.screen.getAllByRole('radio')[3]);
+    await userEvent.click(modeChoices(fresh)[3]);
     expect(result.current).toBe('cover');
     expect(window.localStorage.getItem('fluideq.sceneTintMode')).toBe('cover');
     expect(
       fresh.screen.getByRole('button', { name: 'graph.sceneTint.label' }),
     ).toHaveTextContent('graph.sceneTint.short.cover');
     // Open still: the chosen mode's sliders are what comes next.
-    expect(fresh.screen.getAllByRole('radio')[3]).toHaveAttribute(
-      'aria-checked',
-      'true',
-    );
+    expect(modeChoices(fresh)[3]).toHaveAttribute('aria-checked', 'true');
   });
 
   // Two sliders at the head of the menu in every mode, Brightness and
   // Transparency (Ivan, 2026-09-25: "in total I want only two options
   // brightness and transparency"), and Transparency only moves under the
   // Backdrop with a Plus visualizer chosen: the one arrangement with a scene
-  // behind the panes to see through to (`useIsBackdrop`). The mode alone is
-  // remembered across looks, and with a standard look on it there is nothing
-  // behind them (2026-09-26: "the transparency slider is enabled which is
-  // not right").
+  // behind the panes to see through to (`useIsBackdrop`).
   it.each([
-    ['off', 'premium:bloom', false],
-    ['tint', 'premium:bloom', false],
-    ['pulse', 'premium:bloom', false],
-    ['cover', 'premium:bloom', true],
-    ['cover', undefined, false],
+    ['off', false],
+    ['tint', false],
+    ['pulse', false],
+    ['cover', true],
   ])(
-    'under %s with %s offers Brightness, Daylight, and Transparency live: %s',
-    async (mode, look, isLive) => {
+    'under %s with a Plus visualizer offers Brightness, Daylight, and Transparency live: %s',
+    async (mode, isLive) => {
       const { Menu, library: fresh } = load({
         'fluideq.sceneTintMode': mode,
-        ...(look ? { 'fluideq-graph-style': look } : {}),
+        'fluideq-graph-style': 'premium:bloom',
       });
       fresh.render(<Menu />);
       await userEvent.click(
@@ -200,6 +201,78 @@ describe('the graph’s menu', () => {
       ).toBe(!isLive);
     },
   );
+
+  // With a standard visualizer there is nothing behind the panes to see
+  // through to, so Transparency's place holds the window's Tint, live in
+  // every mode (Ivan, 2026-10-25: "instead of showing transparency disabled
+  // we show the tint").
+  it.each(['off', 'cover'])(
+    'under %s with a standard visualizer offers the Tint in Transparency’s place',
+    async (mode) => {
+      const { Menu, library: fresh } = load({ 'fluideq.sceneTintMode': mode });
+      fresh.render(<Menu />);
+      await userEvent.click(
+        fresh.screen.getByRole('button', { name: 'graph.sceneTint.label' }),
+      );
+      expect(
+        fresh.screen
+          .queryAllByRole('slider')
+          .map((slider) => slider.getAttribute('aria-label')),
+      ).toEqual([
+        'graph.sceneTint.brightness',
+        'graph.windowTint',
+        'graph.sceneTint.daylight',
+      ]);
+      expect(
+        fresh.screen.getByRole('slider', { name: 'graph.windowTint' }),
+      ).toBeEnabled();
+    },
+  );
+
+  // One row of three under the Daylight slider, where two switches stood
+  // that were only ever on one at a time (Ivan, 2026-10-25: "too many
+  // options", "let's simplify this on both sides").
+  it('says what the time of day follows in one choice of three, and frees its slider on Off', async () => {
+    const { Menu, library: fresh } = load({
+      'fluideq-graph-style': 'premium:bloom',
+    });
+    fresh.render(<Menu />);
+    await userEvent.click(
+      fresh.screen.getByRole('button', { name: 'graph.sceneTint.label' }),
+    );
+    const daylight = () =>
+      fresh.screen.getByRole('slider', { name: 'graph.sceneTint.daylight' });
+    const sources = () =>
+      fresh.within(
+        fresh.screen.getByRole('radiogroup', {
+          name: 'graph.sceneTint.daylightSource',
+        }),
+      );
+    const source = (name: string) => sources().getByRole('radio', { name });
+    expect(sources().getAllByRole('radio')).toHaveLength(3);
+    expect(source('graph.sceneTint.daylightSourceBrightness')).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    expect(daylight()).toBeDisabled();
+
+    await userEvent.click(source('graph.sceneTint.daylightSourceClock'));
+    expect(source('graph.sceneTint.daylightSourceClock')).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    expect(source('graph.sceneTint.daylightSourceBrightness')).toHaveAttribute(
+      'aria-checked',
+      'false',
+    );
+    expect(daylight()).toBeDisabled();
+
+    await userEvent.click(source('graph.sceneTint.daylightSourceOwn'));
+    expect(daylight()).toBeEnabled();
+    // Left where the clock had put it, as a whole percent.
+    const value = Number(daylight().getAttribute('aria-valuenow'));
+    expect(Number.isInteger(value)).toBe(true);
+  });
 });
 
 describe('the Studio’s tiles', () => {

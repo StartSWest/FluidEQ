@@ -18,6 +18,7 @@ import {
 } from '../utils/rainbowPalette';
 import { useUsableScenes } from '../utils/scenePacks';
 import { useRememberedSceneSky } from '../utils/sceneTintStore';
+import { tintedLagoonStops, useWindowTint } from '../utils/windowTint';
 
 /**
  * Chooses Rainbow mode's palette. Renders nothing.
@@ -61,9 +62,17 @@ const RainbowSource = () => {
 
   // A layout effect, so the first frame a new scene is drawn in already has
   // its rainbow round it.
+  // With a standard look the rainbow is Lagoon's, turned to the window's
+  // tint where one is chosen (`windowTint.ts`), so the graph and the faders
+  // follow the colour the window wears.
+  const tint = useWindowTint();
   useLayoutEffect(() => {
-    setRainbowStops(swatch ? rainbowFromColours(swatch.split(' ')) : undefined);
-  }, [swatch]);
+    if (swatch) {
+      setRainbowStops(rainbowFromColours(swatch.split(' ')));
+    } else {
+      setRainbowStops(tint === undefined ? undefined : tintedLagoonStops(tint));
+    }
+  }, [swatch, tint]);
 
   return null;
 };

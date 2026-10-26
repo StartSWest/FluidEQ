@@ -294,30 +294,28 @@ export const WINDOW_MIN_WIDTH = 1024;
 export const WINDOW_MIN_HEIGHT = 800;
 
 /**
- * The player's own floor, in CSS pixels: fifteen bands still a finger wide
- * each, and the transport on one row.
- *
- * The equalizer raises it from the page when the listener's band layout
- * needs more — thirty-one bands ask for about 480 (`playerWidthForBands`,
- * `PLAYER_WIDTH_FLOOR_CHANNEL`) — so this is the floor of the floor.
+ * The amp's width, in CSS pixels, and the only one it has (Ivan, 2026-10-25:
+ * "no 2 columns and no width resize"): one column, as wide as thirty-one
+ * faders a finger apart and the transport on one row. The window is held to
+ * it at the page's zoom (`playerMinimumSize`); only its height is the
+ * listener's.
  */
-export const PLAYER_MIN_WIDTH = 360;
+export const PLAYER_WIDTH = 480;
 /** One line: the player folded to its strip, in CSS pixels. */
-export const PLAYER_FOLD_HEIGHT = 40;
+export const PLAYER_FOLD_HEIGHT = 54;
 /**
- * Where the player opens the first time, in CSS pixels (Ivan, 2026-09-21).
- *
- * The width is the narrowest that reads well, and the listener's own band
- * layout raises it from the page where it needs more
- * (`playerWidthForBands`). The height is a tall column that suits a
- * 1080-pixel screen, which the deck, the equalizer, the visualizer and the
- * queue fill between them — everything the player opens with
- * (`DEFAULT_DECKS`), in the middle of the screen (`centreIn`). After that
- * the window is the listener's, and grows and shrinks with the decks they
- * open.
+ * How tall the player opens the first time, in CSS pixels (Ivan,
+ * 2026-09-21): a tall column that suits a 1080-pixel screen, in the middle
+ * of the screen (`centreIn`). After that the height is the listener's.
  */
-export const PLAYER_DEFAULT_WIDTH = 480;
 export const PLAYER_DEFAULT_HEIGHT = 1080;
+/**
+ * How tall the amp's picture is, in CSS pixels: the top panel at the height
+ * it has when there is room for it and the transport a Plus visualizer is
+ * drawn behind (`.player-top`, 180 + 129, measured). A scene is seen in the
+ * amp at its width by this, and the Studio previews it at that shape.
+ */
+export const PLAYER_PICTURE_HEIGHT = 309;
 
 // The index is optional: APO ignores whatever sits between `Filter` and the
 // colon, and exporters differ — AutoEq numbers its lines, OPRA does not.

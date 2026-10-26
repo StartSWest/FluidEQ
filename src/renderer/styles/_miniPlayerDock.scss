@@ -1,0 +1,373 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'miniPlayerParts' as *;
+
+// THE TRANSPORT (`PlayerDock`), under the picture: the song's line, the keys
+// round the play key, and the volume, the queue's switches and the
+// visualizer's picker under them.
+//
+// No line between it and the picture above, and no seam either: over a
+// standard look it is the colour the picture fades into; over a Plus
+// visualizer it is open, the picture running on behind it and settling into
+// the panes' colour at its foot (Ivan, 2026-10-25: "the play and volume
+// controls inside the graph with a soft gradient into solid at the bottom").
+.player-dock {
+  display: grid;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--player-rule);
+  background: var(--player-pane);
+}
+
+// Into the pane along an eased ramp (`eased-ramp`): the straight one's corner,
+// a fifth of the way down, read as a line across the picture under the song's
+// line (Ivan, 2026-10-25: "still can notice the divider line").
+.mini-player.has-scene .player-dock {
+  background: linear-gradient(
+    180deg,
+    eased-ramp(var(--player-pane), 18%, 100%, 0, 1)
+  );
+}
+
+// THE KEYS AND SELECTS ARE GLASS IN THE BACKDROP (Ivan, 2026-10-25: "all
+// these buttons and selects need blur bg, so they blend more"): their solid
+// faces stood on the picture as tiles cut out of it. Each is a small pane of
+// frost with a little of the field in it, edged in the header keys' own
+// hairline, so the picture shows through blurred. Play keeps its fill — the
+// one filled key — and the power keeps its lit face while on.
+.mini-player.is-backdrop {
+  .player-dock__key,
+  .player-dock__look .look-picker__trigger,
+  .player-sound__head .rich-pick__trigger,
+  .player-sound__head .player-split,
+  .player-sound__power:not([aria-pressed='true']),
+  .player-sound .player-eq__faces {
+    border-color: color-mix(in srgb, var(--player-text) 14%, transparent);
+    background: color-mix(in srgb, var(--surface-field) 38%, transparent);
+    backdrop-filter: blur(14px) saturate(1.2);
+  }
+
+  // The same glass on the preset's key while a preset is chosen, and on the
+  // power key while it is on, which keep their own edge and ink to say so
+  // (Ivan, 2026-10-25: "not all buttons same bg and blur as the others"):
+  // their own rules for those states laid a solid face back over the glass.
+  .player-sound__head .rich-pick__trigger.is-active:not([aria-expanded='true']),
+  .player-sound__power[aria-pressed='true'] {
+    background: color-mix(in srgb, var(--surface-field) 38%, transparent);
+    backdrop-filter: blur(14px) saturate(1.2);
+  }
+
+  .player-dock__key:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--surface-field) 58%, transparent);
+  }
+}
+
+// In the Backdrop the transport stands on the frost that rises through it
+// into the panes (`.player-stage::before`), with no rule where it meets them.
+.mini-player.is-backdrop.has-scene .player-dock {
+  border-bottom: 0;
+  background: none;
+}
+
+// ============================================================ the line =====
+.player-dock__seek {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-dock__seek.is-still .player-range {
+  opacity: 0.4;
+}
+
+// THE SONG'S LINE AND THE VOLUME, as the approved amp draws them (Ivan,
+// 2026-10-25: "seek bar bg not good either"): the empty part sunk into the
+// theme's own well, darker than the pane, with no glow round it; the filled
+// part in the accent, from its dark end to its own; a white thumb in a ring
+// of the accent. The amp's sliders lit the whole line, empty part and all,
+// and in a lighter grey than the pane, so the line read as one bright tube.
+.player-dock .player-range {
+  --track-height: 4px;
+  --thumb-size: 14px;
+  --thumb-halo: color-mix(in srgb, var(--accent) 35%, transparent);
+
+  &::-webkit-slider-runnable-track {
+    background:
+      linear-gradient(
+        90deg,
+        transparent var(--fill, 0%),
+        var(--track-well) var(--fill, 0%)
+      ),
+      var(--fill-paint);
+    box-shadow: none;
+  }
+
+  &::-webkit-slider-thumb {
+    box-shadow:
+      0 0 0 3px var(--thumb-halo),
+      0 2px 6px rgba($black, 0.5);
+  }
+
+  &:hover:not(:disabled)::-webkit-slider-thumb {
+    box-shadow:
+      0 0 0 5px color-mix(in srgb, var(--accent) 30%, transparent),
+      0 2px 6px rgba($black, 0.5);
+  }
+}
+
+.player-dock .player-range--seek {
+  --fill-paint: linear-gradient(90deg, var(--accent-dark), var(--accent));
+}
+
+.player-dock .player-range--volume {
+  --fill-paint: linear-gradient(
+    90deg,
+    var(--accent-dark),
+    var(--accent) 70%,
+    var(--accent-light)
+  );
+}
+
+.player-dock__time {
+  color: var(--player-text-soft);
+  font-size: 11.5px;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+  text-shadow: var(--player-text-shadow);
+
+  &.is-left {
+    text-align: right;
+  }
+}
+
+// ============================================================ the keys =====
+.player-dock__keys {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.player-dock__key {
+  display: grid;
+  flex: none;
+  width: 38px;
+  height: 36px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: $radius-l;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-field), #{$white} 4%),
+    var(--surface-field)
+  );
+  color: var(--player-text-muted);
+  cursor: pointer;
+  transition: $transition-control;
+
+  .player-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    color: var(--player-text);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.4;
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+// Play: the one filled key on the amp, in the accent with its glow round it.
+.player-dock__play {
+  display: grid;
+  flex: none;
+  width: 58px;
+  height: 46px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--accent-light), var(--accent));
+  box-shadow:
+    0 6px 22px color-mix(in srgb, var(--accent) 40%, transparent),
+    inset 0 0 0 1px rgba($white, 0.35);
+  color: color-mix(in srgb, var(--surface-base), #{$black} 40%);
+  cursor: pointer;
+  transition:
+    transform 140ms ease,
+    box-shadow 160ms ease;
+
+  .player-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover:not(:disabled) {
+    box-shadow:
+      0 6px 28px color-mix(in srgb, var(--accent) 60%, transparent),
+      inset 0 0 0 1px rgba($white, 0.45);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  // Nothing to play yet: the same key with its light turned down.
+  &:disabled {
+    cursor: default;
+    opacity: 0.45;
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+// ============================================== the volume and the rest ====
+.player-dock__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--player-text-soft);
+}
+
+.player-volume {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+// The level as the taskbar says it, in percent, at a width that never moves
+// the keys after it.
+.player-volume__value {
+  flex: none;
+  min-width: 4.5ch;
+  color: var(--player-text-soft);
+  font-size: 11.5px;
+  font-weight: $weight-bold;
+  text-align: right;
+}
+
+.player-dock__mode {
+  @include player-round(30px, 16px);
+  position: relative;
+  border-radius: $radius-m;
+
+  &[aria-pressed='true']:not(:disabled) {
+    color: var(--player-ink-bright);
+  }
+
+  // Repeat one: the key carries a small one in its corner.
+  &.is-one::after {
+    position: absolute;
+    right: 4px;
+    bottom: 3px;
+    color: var(--player-ink-bright);
+    content: '1';
+    font-size: 8px;
+    font-weight: $weight-bold;
+  }
+}
+
+// THE VISUALIZER, AND ITS WHOLE LIST (Ivan, 2026-10-25: "make sure the viz
+// dropdown opens the menu right to pick not just to cycle"): the graph's own
+// picker, its name cut short past a width so a scene with a sentence for a
+// name never pushes the volume off the row.
+.player-dock__look {
+  display: flex;
+  flex: none;
+  min-width: 0;
+
+  .dropdown.look-picker {
+    display: flex;
+    flex: none;
+  }
+
+  .look-picker__trigger {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 9px 0 8px;
+    border: 1px solid var(--border-subtle);
+    border-radius: $radius-l;
+    background: var(--surface-field);
+    box-shadow: none;
+    color: var(--player-text);
+    font-size: 12.5px;
+    font-weight: $weight-semibold;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: $transition-control;
+
+    &:hover:not(:disabled) {
+      border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    }
+
+    &:focus-visible {
+      @include focus-ring($white);
+    }
+
+    .arrow {
+      width: 9px;
+      height: 9px;
+      color: var(--player-text-soft);
+    }
+  }
+
+  .dropdown--open > .look-picker__trigger {
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    background: var(--player-chosen);
+  }
+
+  .graph-look-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .graph-look-name {
+    max-width: 112px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // A scene's glyph, not a thumbnail of it: its near-black tile goes, and
+  // the strokes stand on the key at the name's size.
+  .graph-look-option__icon {
+    flex: none;
+    width: 15px;
+    height: 15px;
+  }
+
+  .graph-look-option__icon--scene rect {
+    fill: none;
+  }
+
+  // The badge is the hero's to show, over the picture it names.
+  .graph-look-badge {
+    display: none;
+  }
+}

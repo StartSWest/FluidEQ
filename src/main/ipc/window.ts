@@ -21,9 +21,9 @@ import { BrowserWindow, ipcMain, systemPreferences } from 'electron';
 import log from 'electron-log';
 import { loadLocale, resolveLocale } from '../../common/i18n';
 import {
-  PLAYER_AMP_CHANNEL,
   PLAYER_HEIGHT_LIMIT_CHANNEL,
-  PLAYER_WIDTH_FLOOR_CHANNEL,
+  PLAYER_RESIZE_TOP_CHANNEL,
+  PLAYER_WIDTH_NEED_CHANNEL,
   TITLEBAR_DOUBLE_CLICK_CHANNEL,
   TRAFFIC_LIGHTS_CHANNEL,
   WINDOW_HIDE_FOR_SWITCH_CHANNEL,
@@ -213,16 +213,16 @@ export const registerWindowIpc = ({
   });
 
   /**
-   * The width the player's equalizer needs, in the page's CSS pixels: the
-   * listener's band layout decides how narrow the window may be dragged.
+   * The width the amp's rows need on one line, in the page's CSS pixels: the
+   * amp's one width rises to it (`needPlayerWidth`).
    */
-  onWindowMessage(PLAYER_WIDTH_FLOOR_CHANNEL, (event, arg: unknown) => {
+  onWindowMessage(PLAYER_WIDTH_NEED_CHANNEL, (event, arg: unknown) => {
     const mainWindow = getMainWindow();
     if (!mainWindow || event.sender !== mainWindow.webContents) {
       return;
     }
     const [width] = Array.isArray(arg) ? (arg as unknown[]) : [];
-    windowModes.floorPlayerWidth(
+    windowModes.needPlayerWidth(
       mainWindow,
       typeof width === 'number' && Number.isFinite(width) && width > 0
         ? width
@@ -231,18 +231,18 @@ export const registerWindowIpc = ({
   });
 
   /**
-   * Which amp the player is — the glass Stage in the Backdrop, the 2.0 amp
-   * otherwise — said by the page whenever it changes, in either mode, so each
-   * amp opens at its own size (`setAmp`).
+   * The amp's height dragged by its top edge, in the page's CSS pixels: its
+   * foot stays put (`resizePlayer`). On the plain message channel, so no new
+   * bridge was needed for it.
    */
-  onWindowMessage(PLAYER_AMP_CHANNEL, (event, arg: unknown) => {
+  onWindowMessage(PLAYER_RESIZE_TOP_CHANNEL, (event, arg: unknown) => {
     const mainWindow = getMainWindow();
     if (!mainWindow || event.sender !== mainWindow.webContents) {
       return;
     }
-    const [amp] = Array.isArray(arg) ? (arg as unknown[]) : [];
-    if (amp === 'classic' || amp === 'stage') {
-      windowModes.setAmp(mainWindow, amp);
+    const [height] = Array.isArray(arg) ? (arg as unknown[]) : [];
+    if (typeof height === 'number') {
+      windowModes.resizePlayer(mainWindow, height, true);
     }
   });
 

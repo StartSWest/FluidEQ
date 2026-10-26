@@ -1,12 +1,16 @@
+/**
+ * The amp's words and numbers: the folded line's clock and its state, where
+ * the sound is from, and how long the queue has left.
+ */
+
 import en from 'common/i18n/en';
 import type { ITransportSource } from 'renderer/audio/transportSource';
-import { clockText } from 'renderer/player/classic/LedClock';
 import {
   clockFor,
-  nowPlayingLine,
+  formatQueueTime,
   playerStateOf,
   sourceLabel,
-} from 'renderer/player/classic/playerText';
+} from 'renderer/player/playerText';
 
 const t = (key: keyof typeof en, vars?: Record<string, string | number>) =>
   Object.entries(vars ?? {}).reduce(
@@ -26,28 +30,22 @@ const source = (overrides: Partial<ITransportSource>): ITransportSource =>
     ...overrides,
   }) as ITransportSource;
 
-describe('the LED clock’s five cells', () => {
-  it('shows minutes and seconds with a blank sign, and a minus counting down', () => {
-    expect(clockText(17, false)).toBe(' 0017');
-    expect(clockText(277, true)).toBe('-0437');
-    expect(clockText(3599.9, false)).toBe(' 5959');
-  });
-
-  it('shows four dashes when there is nothing to count', () => {
-    expect(clockText(undefined, false)).toBe(' ----');
-    expect(clockText(Number.NaN, true)).toBe(' ----');
-  });
-
-  it('never runs past two digits of minutes', () => {
-    expect(clockText(100 * 60 + 5, false)).toBe(' 9905');
-  });
-});
-
 describe('what the clock reads', () => {
-  it('counts up by default and down when turned round', () => {
+  it('counts up by default, and down with a minus in front when turned round', () => {
     const at = { shownMs: 17_000, durationMs: 294_000, isKnown: true };
-    expect(clockFor({ ...at, isTimeLeft: false })).toBe(' 0017');
-    expect(clockFor({ ...at, isTimeLeft: true })).toBe('-0437');
+    expect(clockFor({ ...at, isTimeLeft: false })).toBe('0:17');
+    expect(clockFor({ ...at, isTimeLeft: true })).toBe('−4:37');
+  });
+
+  it('never counts down past the end', () => {
+    expect(
+      clockFor({
+        shownMs: 300_000,
+        durationMs: 294_000,
+        isTimeLeft: true,
+        isKnown: true,
+      }),
+    ).toBe('−0:00');
   });
 
   it('is dashes for a source with no position or no length', () => {
@@ -58,7 +56,7 @@ describe('what the clock reads', () => {
         isTimeLeft: false,
         isKnown: true,
       }),
-    ).toBe(' ----');
+    ).toBe('–:––');
     expect(
       clockFor({
         shownMs: 0,
@@ -66,26 +64,11 @@ describe('what the clock reads', () => {
         isTimeLeft: true,
         isKnown: false,
       }),
-    ).toBe(' ----');
+    ).toBe('–:––');
   });
 });
 
-describe('the line across the display', () => {
-  it('is artist, title and length', () => {
-    expect(nowPlayingLine(source({}), 'nothing')).toBe('N’Sync — Gone (4:54)');
-  });
-
-  it('leaves out what a source does not know', () => {
-    expect(
-      nowPlayingLine(source({ subtitle: undefined, durationMs: 0 }), 'x'),
-    ).toBe('Gone');
-    expect(nowPlayingLine(undefined, 'Nothing playing')).toBe(
-      'Nothing playing',
-    );
-  });
-});
-
-describe('the state lamp', () => {
+describe('the state the folded line shows', () => {
   it('is play while playing, pause once into a song, stop at its head', () => {
     expect(playerStateOf(source({ isPlaying: true }), 17)).toBe('play');
     expect(playerStateOf(source({ isPlaying: false }), 17)).toBe('pause');
@@ -122,5 +105,18 @@ describe('the source’s name', () => {
     expect(sourceLabel(source({ owner: 'library', delayMs: 145 }), t)).toBe(
       en['tabs.library'],
     );
+  });
+});
+
+describe('how long the queue has left', () => {
+  it('reads as a song’s length under an hour, and with the hours past one', () => {
+    expect(formatQueueTime(14 * 60_000)).toBe('14:00');
+    expect(formatQueueTime(59 * 60_000 + 59_900)).toBe('59:59');
+    expect(formatQueueTime(3_600_000)).toBe('1:00:00');
+    expect(formatQueueTime(2 * 3_600_000 + 5 * 60_000 + 7_000)).toBe('2:05:07');
+  });
+
+  it('writes nothing for a length below zero, rather than a negative time', () => {
+    expect(formatQueueTime(-5_000)).toBe('');
   });
 });

@@ -75,6 +75,7 @@ import {
   usePublishedLibraryDeck,
   type TDroppedMusic,
 } from '../../player/libraryDeck';
+import { usePublishedPlaylistDeck } from '../../player/playlistDeck';
 import { useQueueControls } from './useQueueControls';
 import { useSessionMemory } from './useSessionMemory';
 import { useTrackAnalysis } from './useTrackAnalysis';
@@ -613,6 +614,8 @@ export const LibraryPlayerProvider = ({
     removeUpNextAt,
     isGuess,
   });
+  // And its playlists and Favourites, for the amp's Playlists and its heart.
+  usePublishedPlaylistDeck(playTracks);
   // Publish the handoff lease before giving up audible ownership. Otherwise
   // the synchronous owner update can let another tab's paused bar flash for
   // one render between tracks. The next real play event/telemetry frame claims

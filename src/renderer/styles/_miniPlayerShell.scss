@@ -31,7 +31,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // spectrum — which is the rainbow, and belongs to the mode (Ivan,
 // 2026-09-21).
 //
-// On the page's root (`:scope`, the root while the Stage is the amp) and not
+// On the page's root (`:scope`, the root while the window is the amp) and not
 // on the amp, because the amp's menus are drawn at the foot of the document,
 // outside it, and wear the same colours.
 :scope {
@@ -67,7 +67,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
     var(--accent-light) 42%,
     transparent
   );
-  --player-rule: color-mix(in srgb, #{$edge-tint} 10%, transparent);
+  // THE RULES BETWEEN THE AMP'S SECTIONS, ONE COLOUR WHATEVER IS UNDER THEM
+  // (Ivan, 2026-10-25: "the divider line needs to be same color"). A
+  // see-through rule took the colour of what it lay on, so over a picture the
+  // rule under the transport read lighter than the one under the sound; mixed
+  // solid from the panel's own colour, every one is the same line. On the
+  // root, so the amp's menus, drawn outside it, are edged in it too
+  // (`--menu-edge` in `MiniPlayer.scss`).
+  --player-rule: color-mix(in srgb, var(--surface-panel), #{$edge-tint} 14%);
   --player-rule-strong: color-mix(in srgb, #{$edge-tint} 16%, transparent);
   // The empty part of a line — the volume, the song, the queue's progress —
   // light on the glass, so it reads over any picture.
@@ -152,16 +159,139 @@ SPDX-License-Identifier: GPL-3.0-or-later
   isolation: isolate;
   container: player / inline-size;
 
+  // THE PANES' COLOUR: the theme's own panel, solid — but glass in the
+  // Backdrop, below.
+  --player-pane: var(--surface-panel);
+  // THE ROOM THE COLUMN SHARES OUT (`.player-body`). The picture's height
+  // when there is room for it — shorter than the approved amp's 232, so the
+  // amp fits a laptop's screen whole (Ivan, 2026-10-25: "make the top hero
+  // less tall, try to fit it in my laptop"), measured on his at 776 CSS
+  // pixels with the faders open — and its least: the keys over the song,
+  // with nothing between them.
+  --player-hero-height: 180px;
+  --player-hero-least: 139px;
+  // The queue's tabs, rule and all, and the least of its page that stays
+  // under them: a row and a half, so the cut row says there is more.
+  --player-shelf-tabs: 41px;
+  --player-shelf-least: 77px;
+
+  // In the Backdrop the panes are the full app's glass, at exactly the
+  // strength Transparency leaves the app's own panes (`SceneCover.scss`): the
+  // picture is the window's, and it is meant to be seen through all of it
+  // (Ivan, 2026-10-25: "the app is too opaque").
+  &.is-backdrop {
+    --player-pane: color-mix(
+      in srgb,
+      var(--surface-panel) var(--backdrop-veil),
+      transparent
+    );
+  }
+
   &:focus {
     outline: none;
   }
+}
 
-  // The layout at its natural height, for the one measurement a change of
-  // size takes (`usePlayerHeightLimit`); never painted. The open space then
-  // stands at its least.
-  &.is-measuring {
-    bottom: auto;
+// The sound and the queue stand on the Backdrop's one pane of frost, which
+// carries their glass (`.player-stage::before`): a pane each of their own
+// blurred only the picture behind itself and met the next on a step.
+.mini-player.is-backdrop :is(.player-sound, .player-shelf) {
+  background: transparent;
+}
+
+// The one reading of what a row's content takes on one line, whatever width
+// the amp has given it (`useRowNeed`): the Sound's own rows say so in
+// `_miniPlayerEqKeys.scss`, these here.
+.mini-player :is(.player-sound__tabs, .player-shelf__tabs).is-measuring {
+  width: max-content;
+}
+
+// THE COLUMN UNDER THE HEADER, AND NOTHING IN IT SCROLLS but the queue's own
+// list (Ivan, 2026-10-25: "we need a way to avoid scroll on the full amp
+// ui"). Four rows — the picture, the transport, the sound, the queue — and
+// the room shared out in that order of need: the transport and the sound
+// their own height, the queue its tabs and least, then the picture up to the
+// height it would like, then the queue the rest. Folded, the queue gives the
+// picture everything over its tabs: the picture's ceiling rises past any
+// window and the queue's least falls to its tabs, both sliding, so the room
+// passes from one to the other at the drawer's pace and nothing in between
+// is left empty. A grid rather than a column of flex boxes, because the
+// picture's least is a track's and not a guess at the transport's height.
+//
+// The window is never shorter than all the least heights together
+// (`usePlayerHeightFloor`); only a screen too short for them scrolls it.
+.player-body {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr);
+  // The transport's and the sound's rows at their whole height, never
+  // less: an `auto` row starts from what its content could be squeezed to,
+  // and shared the picture's room with the sound until the faders' foot lay
+  // over the queue.
+  grid-template-rows:
+    minmax(var(--player-hero-least), var(--player-hero-height))
+    max-content
+    max-content
+    minmax(calc(var(--player-shelf-tabs) + var(--player-shelf-least)), 1fr);
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transition: grid-template-rows 280ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  @include slim-scrollbar;
+}
+
+.mini-player.is-shelf-folded .player-body {
+  grid-template-rows:
+    minmax(var(--player-hero-least), 100vh)
+    max-content
+    max-content
+    minmax(var(--player-shelf-tabs), 1fr);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-body {
+    transition: none;
   }
+}
+
+// The amp as short as it may be, for the one measurement of the window's
+// floor (`usePlayerHeightFloor`); never painted. The picture at its least,
+// the sound open whatever it is now, the queue at its least: nothing the
+// listener opens afterwards asks the window for more. Its slides are held
+// still for the measurement and for the style pass that puts the amp back
+// (`is-quiet`), or the measurement would start them.
+.mini-player.is-measuring {
+  bottom: auto;
+
+  .player-body {
+    flex: none;
+    grid-template-rows:
+      var(--player-hero-least)
+      max-content
+      max-content
+      calc(var(--player-shelf-tabs) + var(--player-shelf-least));
+    overflow: visible;
+  }
+
+  // Through the sound itself, to outweigh its own folded rules.
+  .player-sound .player-sound__drawer {
+    grid-template-rows: 1fr;
+  }
+
+  .player-sound .player-sound__body {
+    padding-bottom: var(--player-sound-foot);
+  }
+}
+
+.mini-player:is(.is-measuring, .is-quiet)
+  :is(
+    .player-body,
+    .player-sound__drawer,
+    .player-sound__body,
+    .player-shelf__page,
+    .player-shelf__tabs
+  ) {
+  transition: none;
 }
 
 // ================================================== the picture, alone ====
@@ -169,8 +299,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // A double-press on the picture takes the screen (Ivan, 2026-09-22). The amp
 // keeps everything mounted — the equalizer is still applying, the queue is
 // still the queue — and puts it out of the way for the duration, so coming
-// back is the glass returning rather than the amp being built again. Escape
-// and a second double-press give the window back (`PlayerGap`).
+// back is the amp returning rather than being built again. Escape and a
+// second double-press give the window back (`PlayerHero`).
 .mini-player.is-vis-full {
   // BLACK, AND NOT THE THEME'S FLOOR (Ivan, 2026-09-22: "FULL SCREEN need to
   // be black BG"): a scene that does not reach every pixel — one still
@@ -178,27 +308,40 @@ SPDX-License-Identifier: GPL-3.0-or-later
   background: $black;
 
   .player-title,
-  .player-now,
   .player-dock,
-  .player-sheet {
+  .player-sound,
+  .player-shelf,
+  .player-foot,
+  .player-height-grip,
+  .player-hero__now,
+  .player-hero__shade {
     display: none;
   }
 
-  .player-main,
-  .player-main__lead {
-    margin: 0;
-  }
-
-  .player-gap {
-    margin: 0;
+  // The picture the whole column, and the rows of what is put away nothing.
+  .player-body {
+    grid-template-rows: minmax(0, 1fr) max-content max-content 0;
+    overflow: hidden;
+    transition: none;
   }
 
   .player-stage {
     background: $black;
 
-    &::before,
     &::after {
       display: none;
+    }
+  }
+
+  // The picture's keys stand back until the pointer is on them — far enough
+  // to stop being the subject, not so far that they cannot be found.
+  .player-hero__top {
+    opacity: 0.42;
+    transition: opacity 160ms ease;
+
+    &:hover,
+    &:focus-within {
+      opacity: 1;
     }
   }
 }

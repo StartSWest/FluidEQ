@@ -4,8 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-// The Stage's stylesheet, in pieces — scoped to the Stage by
-// `MiniPlayer.scss`.
+// The amp's stylesheet, in pieces — scoped to the amp by `MiniPlayer.scss`.
 //
 // IN CASCADE ORDER, AND THE ORDER IS LOAD-BEARING. Sass writes each module's
 // rules out where it is first loaded, so the list below is the order the
@@ -17,7 +16,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'miniPlayerSliders';
 @use 'miniPlayerShell';
 @use 'miniPlayerStage';
-@use 'miniPlayerGap';
-@use 'miniPlayerSheet';
+@use 'miniPlayerHero';
+@use 'miniPlayerDock';
 @use 'miniPlayerEq';
+@use 'miniPlayerSound';
 @use 'miniPlayerDecks';
+@use 'miniPlayerShelf';
+@use 'miniPlayerFoot';

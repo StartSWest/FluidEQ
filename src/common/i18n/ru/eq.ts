@@ -161,6 +161,9 @@ const eq: Partial<Dictionary> = {
     'Всё из «Атмосферы», и визуализатор за всем окном.',
   'graph.editHint':
     'Перетаскивайте точки · Ctrl/Shift — выбор · Ctrl+колесо: Q · Ctrl+перетаскивание: колокол',
+  'graph.windowTint': 'Оттенок',
+  'graph.windowTintHint':
+    'Цвет окна при стандартном виде. Двойной щелчок возвращает исходный цвет.',
   'graph.backdropVeil': 'Прозрачность',
   'graph.backdropVeilHint': 'Насколько визуализатор виден сквозь панели',
   'graph.sceneTint.brightness': 'Яркость',
@@ -174,15 +177,19 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.daylightHint':
     'Время суток визуализатора — от ночи до яркого дня',
   'graph.sceneTint.daylightFollowingHint':
-    'Следует за яркостью. Выключите «Время суток по яркости», чтобы задать время суток визуализатора отдельно',
-  'graph.sceneTint.daylightFollows': 'Время суток по яркости',
+    'Следует яркости. Выберите «Ничему» ниже, чтобы задать время суток визуализатора здесь',
+  'graph.sceneTint.daylightSource': 'Следует',
+  'graph.sceneTint.daylightSourceOwn': 'Ничему',
+  'graph.sceneTint.daylightSourceBrightness': 'Яркости',
+  'graph.sceneTint.daylightSourceClock': 'Часам',
+  'graph.sceneTint.daylightOwnHint':
+    'Визуализатор сохраняет дневной свет, заданный выше.',
   'graph.sceneTint.daylightFollowsHint':
-    'Включено — визуализатор переходит от ночи к дню вместе с яркостью. Выключено — он сохраняет время суток, заданное выше, а яркость меняет только окно.',
-  'graph.sceneTint.daylightClock': 'Время суток по часам',
+    'Визуализатор переходит от ночи к дню вместе с яркостью.',
   'graph.sceneTint.daylightClockHint':
-    'Включено — у визуализатора ночью ночь, а днём день, по часам этого компьютера. Выключено — он сохраняет время суток, заданное выше.',
+    'Визуализатор показывает ночь ночью и день днём — по часам этого компьютера.',
   'graph.sceneTint.daylightFollowingClockHint':
-    'Следует за часами. Выключите «Время суток по часам», чтобы задать время суток визуализатора отдельно',
+    'Следует часам. Выберите «Ничему» ниже, чтобы задать время суток визуализатора здесь',
   'graph.sceneTint.daylightStudioHint':
     'Пока открыта Студия, время суток визуализатора задаёт Яркость, чтобы проверить сцену от ночи до дня. Этот выбор вернётся, когда вы выйдете из Студии',
   'graph.sceneTint.brightnessHint':
@@ -629,7 +636,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target': 'Цель',
   'eq.smart.mode.target.note':
     'Продолжает измерять · каждую запись к одной кривой',
-  'eq.layers': 'Также применено',
   'eq.layers.aria': 'Что ещё влияет на этот выход',
   'eq.layers.eq': 'Эквалайзер',
   'eq.layers.eq.bands': 'полос: {count}',

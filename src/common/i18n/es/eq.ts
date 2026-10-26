@@ -161,6 +161,9 @@ const eq: Partial<Dictionary> = {
     'Todo lo de Ambiente, con el visualizador detrás de toda la ventana.',
   'graph.editHint':
     'Arrastra los puntos · Ctrl/Mayús selecciona · Ctrl+rueda: Q · Ctrl+arrastrar: campana',
+  'graph.windowTint': 'Tono',
+  'graph.windowTintHint':
+    'El color de la ventana con un aspecto estándar. Doble clic para volver al color original.',
   'graph.backdropVeil': 'Transparencia',
   'graph.backdropVeilHint':
     'Cuánto del visualizador se ve a través de los paneles',
@@ -175,15 +178,19 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.daylightHint':
     'La hora del día del visualizador, de la noche a pleno día',
   'graph.sceneTint.daylightFollowingHint':
-    'Sigue al brillo. Desactiva «La luz sigue al brillo» para darle al visualizador su propia hora del día',
-  'graph.sceneTint.daylightFollows': 'La luz sigue al brillo',
+    'Sigue al brillo. Elige Nada abajo para fijar aquí la hora del día del visualizador',
+  'graph.sceneTint.daylightSource': 'Sigue',
+  'graph.sceneTint.daylightSourceOwn': 'Nada',
+  'graph.sceneTint.daylightSourceBrightness': 'Brillo',
+  'graph.sceneTint.daylightSourceClock': 'Reloj',
+  'graph.sceneTint.daylightOwnHint':
+    'El visualizador mantiene la luz del día fijada arriba.',
   'graph.sceneTint.daylightFollowsHint':
-    'Activado, el visualizador pasa de la noche al día con el brillo. Desactivado, conserva la luz del día que elijas arriba, y el brillo solo cambia la ventana.',
-  'graph.sceneTint.daylightClock': 'La luz sigue al reloj',
+    'El visualizador pasa de la noche al día con el brillo.',
   'graph.sceneTint.daylightClockHint':
-    'Activado, el visualizador es de noche por la noche y de día durante el día, según el reloj de este equipo. Desactivado, conserva la luz del día que elijas arriba.',
+    'El visualizador es de noche por la noche y de día por el día, según el reloj de este ordenador.',
   'graph.sceneTint.daylightFollowingClockHint':
-    'Sigue al reloj. Desactiva «La luz sigue al reloj» para darle al visualizador su propia hora del día',
+    'Sigue al reloj. Elige Nada abajo para fijar aquí la hora del día del visualizador',
   'graph.sceneTint.daylightStudioHint':
     'Con el Estudio abierto, el Brillo fija la hora del día del visualizador, para probar una escena de noche a día. Esta elección vuelve al salir del Estudio',
   'graph.sceneTint.brightnessHint':
@@ -634,7 +641,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target': 'Objetivo',
   'eq.smart.mode.target.note':
     'Sigue midiendo · cada grabación a la misma curva',
-  'eq.layers': 'También aplicado',
   'eq.layers.aria': 'Otros ajustes que afectan a esta salida',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} bandas',

@@ -159,6 +159,9 @@ const eq: Partial<Dictionary> = {
     'माहौल का सब कुछ, पूरी विंडो के पीछे विज़ुअलाइज़र के साथ।',
   'graph.editHint':
     'पॉइंट खींचें · Ctrl/Shift से चुनें · Ctrl+स्क्रॉल: Q · Ctrl+खींचें: बेल',
+  'graph.windowTint': 'रंगत',
+  'graph.windowTintHint':
+    'स्टैंडर्ड लुक में विंडो का रंग। मूल रंग पर लौटने के लिए डबल-क्लिक करें।',
   'graph.backdropVeil': 'पारदर्शिता',
   'graph.backdropVeilHint': 'पैनलों के पार विज़ुअलाइज़र कितना दिखे',
   'graph.sceneTint.brightness': 'चमक',
@@ -171,15 +174,19 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.daylight': 'दिन का उजाला',
   'graph.sceneTint.daylightHint': 'विज़ुअलाइज़र का समय, रात से पूरे दिन तक',
   'graph.sceneTint.daylightFollowingHint':
-    'चमक के साथ चल रहा है। विज़ुअलाइज़र का समय अलग से चुनने के लिए “उजाला चमक के साथ” बंद करें',
-  'graph.sceneTint.daylightFollows': 'उजाला चमक के साथ',
+    'चमक का अनुसरण कर रहा है। यहाँ विज़ुअलाइज़र का समय सेट करने के लिए नीचे “कुछ नहीं” चुनें',
+  'graph.sceneTint.daylightSource': 'अनुसरण',
+  'graph.sceneTint.daylightSourceOwn': 'कुछ नहीं',
+  'graph.sceneTint.daylightSourceBrightness': 'चमक',
+  'graph.sceneTint.daylightSourceClock': 'घड़ी',
+  'graph.sceneTint.daylightOwnHint':
+    'विज़ुअलाइज़र ऊपर सेट की गई दिन की रोशनी बनाए रखता है।',
   'graph.sceneTint.daylightFollowsHint':
-    'चालू होने पर विज़ुअलाइज़र चमक के साथ रात से दिन में बदलता है। बंद होने पर वह ऊपर चुना गया उजाला रखता है, और चमक सिर्फ़ विंडो बदलती है।',
-  'graph.sceneTint.daylightClock': 'उजाला घड़ी के साथ',
+    'विज़ुअलाइज़र चमक के साथ रात से दिन में बदलता है।',
   'graph.sceneTint.daylightClockHint':
-    'चालू होने पर इस कंप्यूटर की घड़ी के अनुसार विज़ुअलाइज़र में रात को रात और दिन को दिन होता है। बंद होने पर वह ऊपर चुना गया उजाला रखता है।',
+    'विज़ुअलाइज़र इस कंप्यूटर की घड़ी के अनुसार रात में रात और दिन में दिन रहता है।',
   'graph.sceneTint.daylightFollowingClockHint':
-    'घड़ी के साथ चल रहा है। विज़ुअलाइज़र का समय अलग से चुनने के लिए “उजाला घड़ी के साथ” बंद करें',
+    'घड़ी का अनुसरण कर रहा है। यहाँ विज़ुअलाइज़र का समय सेट करने के लिए नीचे “कुछ नहीं” चुनें',
   'graph.sceneTint.daylightStudioHint':
     'स्टूडियो खुला होने पर चमक ही विज़ुअलाइज़र का समय तय करती है, ताकि सीन को रात से दिन तक परखा जा सके। स्टूडियो से निकलते ही यह चुनाव फिर लागू होता है',
   'graph.sceneTint.brightnessHint':
@@ -622,7 +629,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.balance.note': 'मापता रहे · चमक और गर्माहट भी बराबर करे',
   'eq.smart.mode.target': 'लक्ष्य',
   'eq.smart.mode.target.note': 'मापता रहता है · हर रिकॉर्डिंग को एक ही कर्व पर',
-  'eq.layers': 'यह भी लागू है',
   'eq.layers.aria': 'इस आउटपुट पर और क्या असर डाल रहा है',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} बैंड',

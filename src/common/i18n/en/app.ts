@@ -308,7 +308,6 @@ const app = {
   'sidebar.preampAria': 'Pre-Amplification Gain (dB)',
   'sidebar.preampAuto': 'Set for you. Turn off Auto normalize to adjust it.',
   'sidebar.autoPreamp': 'Auto normalize',
-  'sidebar.visualizer': 'VISUALIZER',
   'sidebar.graphView': 'Response graph',
   'sidebar.output': 'Output',
   'config.eyebrow': 'WHAT THE ENGINE READS',

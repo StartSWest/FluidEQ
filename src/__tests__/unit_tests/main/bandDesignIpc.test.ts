@@ -128,8 +128,9 @@ describe('band design and clear commands', () => {
   );
 
   // Ivan, 2026-10-13: "switching built in layout needs to reset all bands and
-  // their freq", "the q too needs to reset".
-  it('starts a built-in layout fresh: its frequencies, its Q, flat, both ears', async () => {
+  // their freq", "the q too needs to reset" — and never the sound: 2026-10-25,
+  // "each time I change band size it resets the EQ, can't happen".
+  it('starts a built-in layout on its own frequencies, its Q and both ears, playing the curve the bands played', async () => {
     Object.values(state.filters).forEach((filter, index) => {
       filter.frequency = 1590 + index * 37;
       filter.gain = 4;
@@ -146,7 +147,13 @@ describe('band design and clear commands', () => {
     expect(bands.map((band) => band.quality)).toEqual(
       qualitiesForRack(frequencies),
     );
-    expect(bands.every((band) => band.gain === 0)).toBe(true);
+    // The bands were all lifted between 1.6 and 2.1 kHz: the layout's bands
+    // there are lifted, and the far bass is left as it was, flat.
+    const gainAt = (frequency: number) =>
+      bands.find((band) => band.frequency === frequency)?.gain ?? Number.NaN;
+    expect(gainAt(1600)).toBeGreaterThan(3);
+    expect(gainAt(2500)).toBeGreaterThan(1);
+    expect(Math.abs(gainAt(25))).toBeLessThan(0.5);
     expect(bands.every((band) => band.channel === undefined)).toBe(true);
     expect(state.mainBandQ).toBeUndefined();
   });

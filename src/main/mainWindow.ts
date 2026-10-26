@@ -32,7 +32,7 @@ import {
   playerMinimumSize,
   WINDOW_MODE_PARAM,
 } from '../common/windowMode';
-import type { IRect, TPlayerAmp, TWindowMode } from '../common/windowMode';
+import type { IRect, TWindowMode } from '../common/windowMode';
 import type { TWindowModes } from './windowMode';
 import { resolveHtmlPath } from './util';
 import openExternalIfSafe from './safeExternal';
@@ -109,8 +109,6 @@ export interface IMainWindowDeps {
     isMaximized?: boolean;
     mode?: TWindowMode;
     player?: IRect;
-    stagePlayer?: IRect;
-    amp?: TPlayerAmp;
     isPinned?: boolean;
   };
   /**
@@ -201,30 +199,25 @@ export const createMainWindowFactory = ({
     const isFirstRun = restored.width === undefined;
     const firstRun = firstRunPlacement();
     // Closed as the player, it opens as the player — where it was, pulled
-    // back onto a screen if that one has gone. With nowhere remembered, or a
-    // player remembered as the whole screen, which nobody sized
-    // (`isPlayerRect`), it opens at its own narrow size in the middle of the
-    // screen, and the record is forgotten. Each amp's record is its own, and
-    // it opens as the amp it closed as; the page says straight away if that
-    // has changed, and the window moves to the other amp's place (`setAmp`).
-    const amp = restored.amp ?? 'classic';
-    const playerOnScreen = (rect: IRect | undefined) =>
-      rect && isPlayerRect(rect, screen.getDisplayMatching(rect).workArea)
-        ? rect
-        : undefined;
-    const players = {
-      classic: playerOnScreen(restored.player),
-      stage: playerOnScreen(restored.stagePlayer),
-    };
-    const remembered = amp === 'stage' ? restored.stagePlayer : restored.player;
+    // back onto a screen if that one has gone, at the amp's one width. With
+    // nowhere remembered, or a player remembered as the whole screen, which
+    // nobody sized (`isPlayerRect`), it opens at its own size in the middle
+    // of the screen, and the record is forgotten.
+    const remembered = restored.player;
     const rememberedArea = remembered
       ? screen.getDisplayMatching(remembered).workArea
       : screen.getPrimaryDisplay().workArea;
-    const playerRect = players[amp];
+    const playerRect =
+      remembered && isPlayerRect(remembered, rememberedArea)
+        ? remembered
+        : undefined;
     let player: IRect | undefined;
     if (restored.mode === 'player') {
       player = playerRect
-        ? clampInto(playerRect, rememberedArea)
+        ? clampInto(
+            { ...playerRect, width: playerFirstSize(1).width },
+            rememberedArea,
+          )
         : centreIn(playerFirstSize(1), rememberedArea);
     }
     windowModes.restore({
@@ -237,8 +230,7 @@ export const createMainWindowFactory = ({
         height: restored.height,
         isMaximized: restored.isMaximized,
       },
-      amp,
-      players,
+      player: playerRect ?? {},
     });
     // The floor for the mode it opens in. The player's is scaled by the
     // page's zoom, which is not known until the page has loaded — this is the

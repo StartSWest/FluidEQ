@@ -415,6 +415,54 @@ it under the terms of the GNU General Public License version 3 or later.
   text-align: right;
 }
 
+// The window's Tint (`WindowTintSlider`): the colour wheel along the track,
+// every hue at one lightness and strength so no part of it shouts, the thumb
+// white in a dark ring so it reads on any of them, and the colour itself
+// where the other rows put a number.
+.graph-view-menu__slider--hue {
+  input[type='range'] {
+    height: 6px;
+    background: linear-gradient(
+      90deg,
+      oklch(0.72 0.13 0),
+      oklch(0.72 0.13 45),
+      oklch(0.72 0.13 90),
+      oklch(0.72 0.13 135),
+      oklch(0.72 0.13 180),
+      oklch(0.72 0.13 225),
+      oklch(0.72 0.13 270),
+      oklch(0.72 0.13 315),
+      oklch(0.72 0.13 360)
+    );
+
+    &::-webkit-slider-thumb {
+      background: $white;
+      box-shadow: 0 0 0 2px rgba($black, 0.45);
+    }
+  }
+}
+
+// A choice of a few short words where a switch would stand (`DaylightSource
+// Choice`): the app's segmented switch, at the menu's small size so three
+// options fit beside the row's name in the narrowest of the menus.
+.graph-view-menu__choice.segmented {
+  flex: none;
+
+  .segmented__option {
+    padding: 3px 8px;
+    font-size: $text-small;
+  }
+}
+
+.graph-view-menu__slider > .graph-view-menu__swatch {
+  justify-self: end;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: oklch(0.72 0.13 var(--tint-hue, 200));
+  box-shadow: inset 0 0 0 1px rgba($white, 0.25);
+}
+
 // Rainbow mode's row (`RainbowSwitch`): a switch where the sliders' track and
 // value stand, at the right, the name wrapping as the sliders' names do. Its
 // own three columns, the glyph's as wide as the sliders' so the names line

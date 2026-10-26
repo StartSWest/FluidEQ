@@ -1,9 +1,8 @@
 /** @jest-environment node */
 import {
   PLAYER_DEFAULT_HEIGHT,
-  PLAYER_DEFAULT_WIDTH,
   PLAYER_FOLD_HEIGHT,
-  PLAYER_MIN_WIDTH,
+  PLAYER_WIDTH,
   WINDOW_MIN_HEIGHT,
   WINDOW_MIN_WIDTH,
 } from 'common/constants';
@@ -66,7 +65,7 @@ describe('where the player opens the first time', () => {
 
   it('is the player’s own size, scaled by the page’s zoom', () => {
     expect(playerFirstSize(1)).toEqual({
-      width: PLAYER_DEFAULT_WIDTH,
+      width: PLAYER_WIDTH,
       height: PLAYER_DEFAULT_HEIGHT,
     });
     expect(playerFirstSize(1.25)).toEqual({ width: 600, height: 1350 });
@@ -101,14 +100,17 @@ describe('the floors', () => {
     });
   });
 
-  it('give the player its own width and one folded line, at the page’s zoom', () => {
+  // The amp has one width (Ivan, 2026-10-25: "no width resize"), so its
+  // floor is that width too, and one folded line.
+  it('give the player its one width and one folded line, at the page’s zoom', () => {
     expect(playerMinimumSize(1)).toEqual({
-      width: PLAYER_MIN_WIDTH,
+      width: PLAYER_WIDTH,
       height: PLAYER_FOLD_HEIGHT,
     });
-    expect(playerMinimumSize(0.9)).toEqual({
-      width: Math.ceil(PLAYER_MIN_WIDTH * 0.9),
-      height: Math.ceil(PLAYER_FOLD_HEIGHT * 0.9),
+    // Ivan's laptop: 150% scaling and the app's own zoom.
+    expect(playerMinimumSize(1.31)).toEqual({
+      width: Math.round(PLAYER_WIDTH * 1.31),
+      height: Math.ceil(PLAYER_FOLD_HEIGHT * 1.31),
     });
   });
 });

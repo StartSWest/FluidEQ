@@ -37,6 +37,8 @@ import SliderHandlePicker from './SliderHandlePicker';
 import StartupPicker from './StartupPicker';
 import RainbowSwitch from '../graph/RainbowSwitch';
 import WindowBrightnessSlider from '../graph/WindowBrightnessSlider';
+import WindowTintSlider from '../graph/WindowTintSlider';
+import useIsSceneLook from '../utils/useIsSceneLook';
 import '../styles/ActionsMenu.scss';
 
 /**
@@ -169,6 +171,7 @@ const ActionsMenu = ({
   const forumNewsAll = useForumNewsCount();
   const forumNewsHidden = useForumNewsHidden();
   const forumNews = forumNewsHidden ? 0 : forumNewsAll;
+  const isSceneLook = useIsSceneLook();
   const [open, setOpen] = useState(false);
   // Held here rather than in the menu's panel, which is gone the moment the
   // row is pressed.
@@ -464,14 +467,17 @@ const ActionsMenu = ({
           {/* Last, and in every state: someone who cannot read the rest of
               this menu still has to be able to reach the language. */}
           <div className="actions-menu__prefs">
-            {/* The window's look: Brightness, as Window colours sets it, and
-                Rainbow mode's switch under it. Not Transparency (Ivan,
-                2026-09-28: "remove the transparent slider from the root menu
-                since no point, and keep it on the backdrop menu and amp
-                player"): it only does anything in the Backdrop, and it stands
-                where the Backdrop is chosen and in the amp's own menu. */}
+            {/* The window's look: Brightness, as Window colours sets it, the
+                window's Tint under it while a standard look is on (Ivan,
+                2026-10-25: "make sure to do tint here too"), and Rainbow
+                mode's switch. Not Transparency (Ivan, 2026-09-28: "remove the
+                transparent slider from the root menu since no point, and keep
+                it on the backdrop menu and amp player"): it only does
+                anything in the Backdrop, and it stands where the Backdrop is
+                chosen and in the amp's own menu. */}
             <div className="actions-menu__sliders">
               <WindowBrightnessSlider />
+              {!isSceneLook && <WindowTintSlider />}
               <RainbowSwitch />
             </div>
             <SliderHandlePicker />

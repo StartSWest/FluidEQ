@@ -38,8 +38,8 @@ const setTransparency = (transparency: number) =>
  *
  * Only the Backdrop puts a scene behind the panes, so under any other mode
  * it stands dimmed and does not move: a slider that moved and changed
- * nothing would read as broken. In the amp it moves the Stage's glass, which
- * is the amp's own Transparency (`backdropVeil.ts`).
+ * nothing would read as broken. In the amp, which is always the Backdrop
+ * with a Plus visualizer, it moves the amp's glass (`backdropVeil.ts`).
  */
 /** The slider's ends as transparencies, the veil's range turned round. */
 const MIN_SHOWN = 100 - BACKDROP_VEIL_MAX;
@@ -48,8 +48,8 @@ const MAX_SHOWN = 100 - BACKDROP_VEIL_MIN;
 const BackdropVeilSlider = () => {
   const { t } = useTranslation();
   const veil = useBackdropVeil();
-  // Only while the Backdrop is drawn — in the amp too, which is the glass
-  // Stage then and the solid 2.0 amp otherwise (`MiniPlayer`).
+  // Only while the Backdrop is drawn: the amp is, whenever a Plus
+  // visualizer is on (`setAmpHoldsWindow`).
   const isBackdrop = useIsBackdrop();
   // The thumb under the pointer, the window's restyle a frame behind it
   // (`useLiveSlider`), as Brightness beside it.
