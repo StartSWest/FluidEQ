@@ -331,22 +331,23 @@ const tour: Partial<Dictionary> = {
 
   'tour.share.kicker': 'JEDER PC, IN BEIDE RICHTUNGEN',
   'tour.share.title': 'Audio zwischen Ihren Computern teilen',
-  'tour.share.subtitle': 'Hören Sie beide Computer, egal an welchem Sie sitzen',
+  'tour.share.subtitle':
+    'Hören Sie jeden Computer der Gruppe, egal an welchem Sie sitzen',
   'tour.share.lead':
-    'Ihr Gaming-PC und Ihr Laptop spielen ineinander: An welchem Sie auch sitzen, Sie hören beide – über Ihr eigenes Netzwerk, verlustfrei, verschlüsselt und durch den EQ, den Sie an diesem Computer eingestellt haben.',
+    'Ihr Gaming-PC, Ihr Laptop und jeder andere Computer in Ihrem Netzwerk spielen in eine Gruppe: Egal an welchem Sie sitzen, Sie hören die anderen – verlustfrei, verschlüsselt und durch den EQ dieses Computers.',
   'tour.share.pairLabel': 'IN BEIDE RICHTUNGEN',
-  'tour.share.pairName': 'Jeder Computer spielt den Ton des anderen',
+  'tour.share.pairName': 'Jeder Computer spielt den Ton der anderen',
   'tour.share.wireLabel': 'Verlustfrei · Verschlüsselt · Privates LAN',
   'tour.share.stepsTitle': 'In drei Schritten eingerichtet',
   'tour.share.step1Title': 'Auf einem Computer den Code kopieren',
   'tour.share.step1':
-    'Öffnen Sie den Tab „Audio teilen“ und drücken Sie „Code kopieren“. Der Code bleibt jedes Mal derselbe.',
+    'Öffnen Sie „Audio teilen“, drücken Sie „Computer hinzufügen“ und dann „Code kopieren“. Der Code bleibt immer derselbe.',
   'tour.share.step2Title': 'Auf dem anderen einfügen und verbinden',
   'tour.share.step2':
-    'Öffnen Sie dort „Audio teilen“, fügen Sie den Code unter „Code des anderen Computers“ ein und drücken Sie „Verbinden“. Beide spielen sich sofort unverändert gegenseitig, jeder mit seinem eigenen EQ.',
+    'Drücken Sie dort „Computer hinzufügen“, fügen Sie den Code unter „Code des anderen Computers“ ein und drücken Sie „Verbinden“. Später verbundene Computer kommen in die ganze Gruppe.',
   'tour.share.step3Title': 'Festlegen, was wohin geht',
   'tour.share.step3':
-    'Jeder verbundene Computer hat zwei Schalter, „Hier abspielen“ und „Meinen Ton senden“; mit einem davon aus geht es nur in eine Richtung. Die Leiste zeigt den Song des anderen Computers und steuert ihn. Ein Regler neben „Hier abspielen“ bestimmt die Lautstärke, und „Pausieren“ hält beide Richtungen an, bis Sie „Fortsetzen“ drücken.',
+    'Jeder Computer hat „Empfangen“ und „Senden“, und „Teilen“ schaltet Ihren Ton für alle ab. „Ihr Mix“ regelt jede Lautstärke. Pausieren und Trennen stehen im Menü jedes Computers, und die Tasten der Leiste wirken über das Netzwerk.',
   'tour.share.fact1Title': 'Verlustfrei',
   'tour.share.fact1':
     'Float32-PCM von Ende zu Ende. Kein Codec, kein Generationsverlust.',
@@ -355,9 +356,9 @@ const tour: Partial<Dictionary> = {
     'AES-256-GCM auf jedem Paket. Der Code ist der Schlüssel; ohne ihn hört niemand mit.',
   'tour.share.fact3Title': 'Bleibt verbunden',
   'tour.share.fact3':
-    'Die Verbindung übersteht das Schließen der App und Neustarts, auf beiden Seiten. Nur „Trennen“ beendet sie.',
+    'Die Gruppe findet sich nach einem Neustart, dem Ruhezustand, einem Netzwerkausfall oder einem Engine-Wechsel von selbst wieder. Abwesende Computer bleiben aufgelistet.',
   'tour.share.tip':
-    'Leise anfangen: Zwei gleichzeitig spielende Computer addieren sich. Drehen Sie die Lautstärke vor der ersten Verbindung herunter.',
+    'Leise anfangen: Gleichzeitig spielende Computer addieren sich. Drehen Sie die Lautstärke vor der ersten Verbindung herunter.',
   'tour.share.open': 'Audio teilen öffnen',
 
   'tour.library.kicker': 'IHRE MUSIK, IHR PLAYER',

@@ -678,13 +678,13 @@ const help = {
 
   'help.share.title': 'Share audio between computers',
   'help.share.intro':
-    'Share Audio links two computers on the same private network, and each plays the other’s sound: whichever one you sit at, you hear both. Each computer sends its sound untouched and never sends back what it receives, so there is no echo; the computer you listen on applies its own EQ, curves and DSP. This is separate from mirroring to a second device on one computer.',
+    'Share Audio links computers on the same private network into one group, and each one plays the others’ sound: whichever one you sit at, you hear the rest. Each computer sends its own sound straight to the others, untouched, and never sends back what it receives, so there is no echo; the computer you listen on applies its own EQ, curves and DSP. This is separate from mirroring to a second device on one computer.',
   'help.share.steps':
-    'On one computer, open Share Audio and press Copy code. Start at a low volume.\nOn the other computer, open Share Audio, paste the code under The other computer’s code and press Link. Both computers play each other right away.\nEach linked computer has two switches: Play it here and Send my sound. Turn one off to share one way only. The slider beside Play it here sets how loud that computer plays here.\nPause stops both directions until you press Resume; Unlink ends the link for good.',
+    'On one computer, open Share Audio, press Add computer and then Copy code. Start at a low volume.\nOn the other computer, press Add computer, paste the code under The other computer’s code and press Link. Both computers play each other right away. Link more computers the same way: each one joins the whole group, and computers that join through another one appear with Receive off until you turn it on.\nIn The whole group, each computer has two switches, Receive and Send; Share turns this computer’s sound off for all of them. Your mix sets This PC’s volume and a level for each computer.\nPause, Resume and Unlink are in each computer’s menu. A computer that is away stays listed as Offline, and the group finds itself again after a restart, sleep, a network drop or an engine switch.',
   'help.share.tip':
     'Keep the connection code private: it authorizes linking. Under the FluidEQ Engine this computer keeps its DSP on while it shares, and the computer playing its sound applies its own. Playing and sending at once needs Windows on that computer; elsewhere a link runs one way.',
   'help.share.keywords':
-    'network, lan, wifi, local network, stream audio, send audio, another pc, another computer, second computer, remote, receiver, sender, connection code, pair, both ways, two way, link, unlink, duplex, pause, resume, volume',
+    'network, lan, wifi, local network, stream audio, send audio, another pc, another computer, second computer, remote, receiver, sender, connection code, pair, both ways, two way, link, unlink, duplex, pause, resume, volume, group, add computer, receive, send, share, mix, offline, several computers',
 
   'help.trouble.title': 'When something sounds wrong',
   'help.trouble.intro':

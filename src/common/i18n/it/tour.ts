@@ -328,22 +328,22 @@ const tour: Partial<Dictionary> = {
   'tour.share.kicker': 'OGNI PC, IN ENTRAMBE LE DIREZIONI',
   'tour.share.title': 'Condividi l’audio tra i tuoi computer',
   'tour.share.subtitle':
-    'Senti entrambi i computer, a qualunque dei due tu sia seduto',
+    'Senti ogni computer del gruppo, a qualunque tu sia seduto',
   'tour.share.lead':
-    'Il PC da gioco e il portatile suonano l’uno nell’altro: a qualunque dei due tu sia seduto, li senti entrambi — sulla tua rete, senza perdita, cifrato e attraverso l’EQ che hai regolato su quel computer.',
+    'Il tuo PC da gioco, il tuo portatile e qualsiasi altro computer della tua rete suonano in un unico gruppo: a qualunque tu sia seduto, senti gli altri, senza perdite, cifrato e con l’EQ di quel computer.',
   'tour.share.pairLabel': 'IN ENTRAMBE LE DIREZIONI',
-  'tour.share.pairName': 'Ogni computer riproduce il suono dell’altro',
+  'tour.share.pairName': 'Ogni computer riproduce il suono degli altri',
   'tour.share.wireLabel': 'Senza perdite · Cifrato · LAN privata',
   'tour.share.stepsTitle': 'Configuralo in tre passaggi',
   'tour.share.step1Title': 'Su un computer, copia il suo codice',
   'tour.share.step1':
-    'Apri la scheda Condividi audio e premi «Copia codice». Il codice resta sempre lo stesso.',
+    'Apri la scheda Condividi audio, premi «Aggiungi computer» e poi «Copia codice». Il codice resta sempre lo stesso.',
   'tour.share.step2Title': 'Sull’altro, incollalo e collega',
   'tour.share.step2':
-    'Apri lì Condividi audio, incolla il codice in «Codice dell’altro computer» e premi «Collega». Entrambi iniziano subito a riprodursi a vicenda, intatti: ognuno applica il proprio EQ a ciò che sente.',
+    'Lì premi «Aggiungi computer», incolla il codice in «Codice dell’altro computer» e premi «Collega». I computer che colleghi dopo entrano in tutto il gruppo.',
   'tour.share.step3Title': 'Scegli cosa va dove',
   'tour.share.step3':
-    'Ogni computer collegato ha due interruttori, «Riproduci qui» e «Invia il mio suono»: spegnine uno per una sola direzione. La barra mostra il brano dell’altro computer e i suoi pulsanti funzionano attraverso il collegamento. Un cursore accanto a «Riproduci qui» ne regola il volume, e «Pausa» ferma entrambe le direzioni finché non premi «Riprendi».',
+    'Ogni computer ha «Ricevi» e «Invia», e «Condividi» spegne il tuo suono per tutti. «Il tuo mix» regola ogni livello. Pausa e Scollega sono nel menu di ogni computer, e i pulsanti della barra funzionano attraverso la rete.',
   'tour.share.fact1Title': 'Senza perdite',
   'tour.share.fact1':
     'PCM Float32 da un capo all’altro. Nessun codec, nessuna perdita di generazione.',
@@ -352,9 +352,9 @@ const tour: Partial<Dictionary> = {
     'AES-256-GCM su ogni pacchetto. Il codice è la chiave; senza, nessuno può ascoltare.',
   'tour.share.fact3Title': 'Resta collegato',
   'tour.share.fact3':
-    'Il collegamento sopravvive alla chiusura dell’app e ai riavvii, da entrambi i lati. Solo «Scollega» lo termina.',
+    'Il gruppo si ritrova da solo dopo un riavvio, la sospensione, un’interruzione di rete o un cambio di motore. I computer assenti restano in elenco.',
   'tour.share.tip':
-    'Parti piano: due computer che suonano insieme si sommano. Abbassa il volume prima del primo collegamento.',
+    'Parti piano: computer che suonano insieme si sommano. Abbassa il volume prima del primo collegamento.',
   'tour.share.open': 'Apri Condividi audio',
 
   'tour.library.kicker': 'LA TUA MUSICA, IL TUO LETTORE',

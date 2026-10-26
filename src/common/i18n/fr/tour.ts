@@ -331,22 +331,22 @@ const tour: Partial<Dictionary> = {
   'tour.share.kicker': 'CHAQUE PC, DANS LES DEUX SENS',
   'tour.share.title': 'Partagez l’audio entre vos ordinateurs',
   'tour.share.subtitle':
-    'Entendez les deux ordinateurs, où que vous soyez assis',
+    'Entendez chaque ordinateur du groupe, où que vous soyez assis',
   'tour.share.lead':
-    'Votre PC de jeu et votre portable jouent l’un dans l’autre : quel que soit celui devant lequel vous êtes, vous entendez les deux — sur votre propre réseau, sans perte, chiffré, et à travers l’EQ que vous avez réglé sur cet ordinateur.',
+    'Votre PC de jeu, votre portable et tout autre ordinateur de votre réseau jouent dans un même groupe : où que vous soyez assis, vous entendez les autres, sans perte, chiffré et à travers l’EQ de cet ordinateur.',
   'tour.share.pairLabel': 'DANS LES DEUX SENS',
-  'tour.share.pairName': 'Chaque ordinateur joue le son de l’autre',
+  'tour.share.pairName': 'Chaque ordinateur joue le son des autres',
   'tour.share.wireLabel': 'Sans perte · Chiffré · LAN privé',
   'tour.share.stepsTitle': 'Configurez-le en trois étapes',
   'tour.share.step1Title': 'Sur un ordinateur, copiez son code',
   'tour.share.step1':
-    'Ouvrez l’onglet Partager l’audio et appuyez sur « Copier le code ». Le code reste le même à chaque fois.',
+    'Ouvrez l’onglet Partager l’audio, appuyez sur « Ajouter un ordinateur » puis sur « Copier le code ». Le code reste le même à chaque fois.',
   'tour.share.step2Title': 'Sur l’autre, collez-le et reliez',
   'tour.share.step2':
-    'Ouvrez Partager l’audio sur l’autre ordinateur, collez le code sous « Code de l’autre ordinateur » et appuyez sur « Relier ». Les deux se jouent aussitôt l’un l’autre, intacts : chacun applique son propre EQ à ce qu’il entend.',
+    'Sur l’autre, appuyez sur « Ajouter un ordinateur », collez le code sous « Code de l’autre ordinateur » et appuyez sur « Relier ». Les ordinateurs reliés ensuite rejoignent tout le groupe.',
   'tour.share.step3Title': 'Choisissez ce qui va où',
   'tour.share.step3':
-    'Chaque ordinateur relié a deux interrupteurs, « Le jouer ici » et « Envoyer mon son » : coupez-en un pour un seul sens. La barre affiche le morceau de l’autre ordinateur et le pilote à distance. Un curseur à côté de « Le jouer ici » règle son volume, et « Pause » arrête les deux sens jusqu’à « Reprendre ».',
+    'Chaque ordinateur a « Recevoir » et « Envoyer », et « Partager » coupe votre son pour tous. « Votre mixage » règle chaque niveau. Pause et Délier se trouvent dans le menu de chaque ordinateur, et les boutons de la barre agissent à travers le réseau.',
   'tour.share.fact1Title': 'Sans perte',
   'tour.share.fact1':
     'PCM Float32 de bout en bout. Aucun codec, aucune perte de génération.',
@@ -355,9 +355,9 @@ const tour: Partial<Dictionary> = {
     'AES-256-GCM sur chaque paquet. Le code est la clé ; sans lui, personne ne peut écouter.',
   'tour.share.fact3Title': 'Reste relié',
   'tour.share.fact3':
-    'La liaison survit à la fermeture de l’app et aux redémarrages, d’un côté comme de l’autre. Seul « Délier » y met fin.',
+    'Le groupe se retrouve tout seul après un redémarrage, une mise en veille, une coupure réseau ou un changement de moteur. Les ordinateurs absents restent dans la liste.',
   'tour.share.tip':
-    'Commencez doucement : deux ordinateurs qui jouent en même temps s’additionnent. Baissez le volume avant la première liaison.',
+    'Commencez doucement : des ordinateurs qui jouent en même temps s’additionnent. Baissez le volume avant la première liaison.',
   'tour.share.open': 'Ouvrir Partager l’audio',
 
   'tour.library.kicker': 'VOTRE MUSIQUE, VOTRE LECTEUR',

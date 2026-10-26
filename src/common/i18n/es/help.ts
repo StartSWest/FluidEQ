@@ -701,13 +701,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.share.title': 'Comparte audio entre ordenadores',
   'help.share.intro':
-    'Compartir audio enlaza dos ordenadores de la misma red privada y cada uno reproduce el sonido del otro: te sientes en el que te sientes, oyes los dos. Cada ordenador envía su sonido intacto y nunca devuelve lo que recibe, así que no hay eco; el ordenador en el que escuchas aplica su propio EQ, curvas y DSP. Es distinto de duplicar a un segundo dispositivo en un mismo ordenador.',
+    'Compartir audio une ordenadores de la misma red privada en un grupo, y cada uno reproduce el sonido de los demás: te sientes en el que te sientes, oyes al resto. Cada ordenador envía su propio sonido directamente a los demás, sin tocar, y nunca reenvía lo que recibe, así que no hay eco; el ordenador en el que escuchas aplica su propio EQ, curvas y DSP. Esto es distinto de duplicar a un segundo dispositivo en un mismo ordenador.',
   'help.share.steps':
-    'En un ordenador, abre Compartir audio y pulsa Copiar código. Empieza con poco volumen.\nEn el otro ordenador, abre Compartir audio, pega el código en Código del otro ordenador y pulsa Enlazar. Los dos ordenadores se reproducen al instante.\nCada ordenador enlazado tiene dos interruptores: Reproducir aquí y Enviar mi sonido. Apaga uno para compartir en una sola dirección. El deslizador junto a Reproducir aquí ajusta lo alto que suena aquí ese ordenador.\nPausar detiene las dos direcciones hasta que pulses Reanudar; Desenlazar termina el enlace para siempre.',
+    'En un ordenador, abre Compartir audio, pulsa Añadir ordenador y luego Copiar código. Empieza con poco volumen.\nEn el otro ordenador, pulsa Añadir ordenador, pega el código en Código del otro ordenador y pulsa Enlazar. Los dos ordenadores se reproducen al instante. Enlaza más ordenadores igual: cada uno se une a todo el grupo, y los que llegan a través de otro aparecen con Recibir apagado hasta que lo enciendas.\nEn Todo el grupo, cada ordenador tiene dos interruptores, Recibir y Enviar; Compartir apaga el sonido de este ordenador para todos. Tu mezcla ajusta el volumen de Este PC y uno por ordenador.\nPausar, Reanudar y Desenlazar están en el menú de cada ordenador. Un ordenador ausente sigue en la lista como Sin conexión, y el grupo se vuelve a encontrar tras un reinicio, la suspensión, un corte de red o un cambio de motor.',
   'help.share.tip':
     'El código de conexión autoriza el enlace: mantenlo privado. Con el Motor FluidEQ, este ordenador mantiene su DSP mientras comparte, y el ordenador que reproduce su sonido aplica el suyo. Reproducir y enviar a la vez requiere Windows en ese ordenador; en otros, un enlace funciona en una sola dirección.',
   'help.share.keywords':
-    'red local, LAN, wifi, otro PC, otra computadora, transmitir audio, remoto, emparejar, dos direcciones, bidireccional, enlazar, desenlazar, pausar, reanudar, volumen',
+    'red local, LAN, wifi, otro PC, otra computadora, transmitir audio, remoto, emparejar, dos direcciones, bidireccional, enlazar, desenlazar, pausar, reanudar, volumen, grupo, añadir ordenador, recibir, enviar, compartir, mezcla, sin conexión, varios ordenadores',
 
   'help.trouble.title': 'Cuando algo suena mal',
   'help.trouble.intro':

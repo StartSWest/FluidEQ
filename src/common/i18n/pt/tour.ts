@@ -328,22 +328,22 @@ const tour: Partial<Dictionary> = {
   'tour.share.kicker': 'CADA PC, NOS DOIS SENTIDOS',
   'tour.share.title': 'Compartilhe áudio entre seus computadores',
   'tour.share.subtitle':
-    'Ouça os dois computadores, seja qual for o que você está usando',
+    'Ouça todos os computadores do grupo, seja qual for o que você está usando',
   'tour.share.lead':
-    'Seu PC gamer e seu notebook tocam um no outro: seja qual for o que você está usando, você ouve os dois — pela sua própria rede, sem perdas, criptografado e com o EQ que você ajustou naquele computador.',
+    'Seu PC gamer, seu notebook e qualquer outro computador da sua rede tocam em um só grupo: seja qual for o que você está usando, você ouve os outros, sem perdas, criptografado e pelo EQ daquele computador.',
   'tour.share.pairLabel': 'NOS DOIS SENTIDOS',
-  'tour.share.pairName': 'Cada computador toca o som do outro',
+  'tour.share.pairName': 'Cada computador toca o som dos outros',
   'tour.share.wireLabel': 'Sem perdas · Criptografado · LAN privada',
   'tour.share.stepsTitle': 'Configure em três passos',
   'tour.share.step1Title': 'Em um computador, copie o código',
   'tour.share.step1':
-    'Abra a aba Compartilhar áudio e pressione “Copiar código”. O código é sempre o mesmo.',
+    'Abra a aba Compartilhar áudio, pressione “Adicionar computador” e depois “Copiar código”. O código é sempre o mesmo.',
   'tour.share.step2Title': 'No outro, cole e vincule',
   'tour.share.step2':
-    'Abra Compartilhar áudio no outro computador, cole o código em “Código do outro computador” e pressione “Vincular”. Os dois começam a tocar um ao outro na hora, intactos: cada um aplica o próprio EQ ao que ouve.',
+    'No outro, pressione “Adicionar computador”, cole o código em “Código do outro computador” e pressione “Vincular”. Os computadores que você vincular depois entram no grupo todo.',
   'tour.share.step3Title': 'Escolha o que vai para onde',
   'tour.share.step3':
-    'Cada computador vinculado tem duas chaves, “Tocar aqui” e “Enviar meu som”: desligue uma para um sentido só. A barra mostra a música do outro computador e a controla pela conexão. Um controle ao lado de “Tocar aqui” ajusta o volume, e “Pausar” para os dois sentidos até você tocar em “Retomar”.',
+    'Cada computador tem “Receber” e “Enviar”, e “Compartilhar” desliga o seu som para todos. “Sua mixagem” ajusta cada nível. Pausar e Desvincular ficam no menu de cada computador, e os botões da barra funcionam pela rede.',
   'tour.share.fact1Title': 'Sem perdas',
   'tour.share.fact1':
     'PCM Float32 de ponta a ponta. Sem codec, sem perda de geração.',
@@ -352,9 +352,9 @@ const tour: Partial<Dictionary> = {
     'AES-256-GCM em cada pacote. O código é a chave; sem ele ninguém consegue ouvir.',
   'tour.share.fact3Title': 'Continua vinculado',
   'tour.share.fact3':
-    'O vínculo sobrevive a fechar o app e a reinicializações, de qualquer um dos lados. Só “Desvincular” acaba com ele.',
+    'O grupo se reencontra sozinho depois de reiniciar, suspender, cair a rede ou trocar de motor. Computadores ausentes continuam na lista.',
   'tour.share.tip':
-    'Comece baixo: dois computadores tocando ao mesmo tempo se somam. Abaixe o volume antes do primeiro vínculo.',
+    'Comece baixo: computadores tocando ao mesmo tempo se somam. Abaixe o volume antes do primeiro vínculo.',
   'tour.share.open': 'Abrir Compartilhar áudio',
 
   'tour.library.kicker': 'SUA MÚSICA, SEU PLAYER',
