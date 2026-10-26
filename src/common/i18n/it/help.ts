@@ -98,9 +98,9 @@ const help: Record<keyof typeof en, string> = {
     'Il livello di uscita, sinistro e destro, in decibel reali. Premilo per cambiarne lo stile.',
   'help.player.title': 'Il Lettore compatto',
   'help.player.intro':
-    'Un interruttore trasforma la finestra di FluidEQ nel Lettore compatto: una colonna stretta con il brano, il tuo equalizzatore, un visualizzatore e In coda, in pannelli che apri e chiudi. Ciò che è in riproduzione continua a suonare, e lo stesso interruttore riporta l’app completa sulla pagina che avevi lasciato.',
+    'Un interruttore trasforma la finestra di FluidEQ nel Lettore compatto, una sola colonna stretta: in alto un visualizzatore con il brano sopra e i comandi di riproduzione sotto; poi Suono, il tuo equalizzatore; poi In coda e le tue playlist. Ciò che è in riproduzione continua a suonare, e lo stesso interruttore riporta l’app completa sulla pagina che avevi lasciato.',
   'help.player.steps':
-    'Premi l’interruttore Lettore compatto nella barra del titolo, accanto ad Aiuto. Sul lettore, lo stesso interruttore riporta l’app completa.\nApri e chiudi i pannelli con EQ, Visual e Coda. La finestra cresce e si riduce di quanto occupa ciascuno, e il lettore ricorda la sua dimensione e la sua posizione.\nPer ridurre il lettore a una riga, fai doppio clic sulla sua barra o scegli Riduci a una riga nel suo menu; il logo di FluidEQ lo espande di nuovo.\nNel menu del lettore regola la sua Luminosità, e tienilo sopra le altre finestre con Sempre in primo piano.\nTrascina file musicali su In coda: entrano nella Libreria e nella coda.',
+    'Premi l’interruttore Lettore compatto nella barra del titolo, accanto ad Aiuto. Sul lettore, lo stesso interruttore riporta l’app completa.\nComprimi Suono, oppure In coda e Playlist, fino all’intestazione, e il visualizzatore prende lo spazio; fai clic sull’intestazione per riaprirli. Trascina il bordo superiore o inferiore del lettore per renderlo più alto o più basso.\nFai doppio clic sul visualizzatore perché riempia lo schermo; Esc lo riporta al suo posto. Premi il nome dello stile, accanto a riproduzione casuale e ripetizione, per scegliere tra tutti gli stili e le scene.\nPer ridurre il lettore a una riga, fai doppio clic sulla sua intestazione o scegli Riduci a una riga nel menu del logo di FluidEQ; il logo lo espande di nuovo.\nNello stesso menu regola la Luminosità del lettore, la Trasparenza su una scena o la Tinta della finestra su uno stile standard, e la Luce del giorno di una scena. Sempre in primo piano, lì o nell’intestazione, lo tiene sopra le altre finestre.\nTrascina file musicali in qualunque punto del lettore: entrano nella Libreria e in fondo a In coda o, sopra l’elenco, nel punto in cui li rilasci.',
   'help.player.tip':
     'Il volume del lettore è quello del tuo computer, lo stesso di Windows, quindi regola il livello di tutto ciò che il computer riproduce. Se il lettore finisce fuori dallo schermo, fai clic destro su FluidEQ nell’area di notifica della barra delle applicazioni e scegli Ripristina la finestra.',
   'help.player.keywords':
@@ -111,7 +111,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.menuCaption': 'Il menu del lettore',
   'help.player.foldedCaption': 'Ridotto a una riga',
   'help.player.menu':
-    'Il ritorno all’app completa o a una delle sue pagine, la Luminosità del lettore, Sempre in primo piano e Riduci a una riga.',
+    'Il ritorno all’app completa o a una delle sue pagine; la Luminosità del lettore, la Trasparenza o la Tinta, la Luce del giorno di una scena, la Modalità colorata e i cursori dell’EQ; Sempre in primo piano e Riduci a una riga.',
   'help.player.pin': 'Tiene il lettore sopra tutte le altre finestre.',
   'help.player.switch':
     'Torna all’app completa, sulla pagina che avevi lasciato.',
@@ -132,30 +132,29 @@ const help: Record<keyof typeof en, string> = {
   'help.player.orderName': 'Casuale e ripetizione',
   'help.player.order':
     'Mescola In coda, e non ripete nulla, ripete tutto o solo questo brano.',
-  'help.player.lookName': 'Stile successivo',
+  'help.player.lookName': 'Stile',
   'help.player.look':
-    'Cambia l’aspetto del visualizzatore. Ctrl+click torna al precedente, e il clic destro li elenca tutti.',
+    'Lo stile o la scena che il visualizzatore sta disegnando. Premilo per scegliere tra tutti.',
   'help.player.screen':
     'Ciò che senti, disegnato: le tue bande, l’EQ intelligente e tutto il resto applicato, sopra un aspetto del visualizzatore. Applicato anche li elenca, e un’etichetta ne spegne uno senza toglierlo.',
   'help.player.bands':
     'Trascina una banda in su o in giù per rinforzarla o tagliarla. La sua frequenza è scritta sotto.',
   'help.player.tone':
-    'Bande mostra tutte le bande; Tono le sostituisce con le manopole Bassi, Medi e Alti.',
+    'Tono mostra le manopole Bassi, Medi e Alti; la scheda accanto, tutte le bande.',
   'help.player.upNext':
-    'La tua posizione nella coda, il tempo che resta e quanto ne hai già ascoltato.',
+    'In coda e Playlist, ciascuna con il suo numero, e il tempo che resta nella coda.',
   'help.player.library': 'Apre la Libreria nell’app completa.',
   'help.player.songsName': 'I brani',
   'help.player.songs':
-    'Cosa suona dopo. Fai doppio clic su un brano per riprodurlo, o trascina qui dei file musicali per aggiungerli.',
+    'Cosa suona dopo. Fai clic su un brano per riprodurlo, trascinalo per spostarlo, o trascina qui dei file musicali per aggiungerli nel punto in cui li rilasci.',
   'help.player.openIn': 'Apre l’app completa su una delle sue pagine.',
   'help.player.theme':
-    'La Luminosità del lettore, separata da quella dell’app completa; la Trasparenza, per il lettore in vetro sopra un visualizzatore; e la Modalità colorata.',
+    'La Luminosità del lettore, separata da quella dell’app completa; la Trasparenza su una scena, o la Tinta della finestra su uno stile standard; la Luce del giorno di una scena; e la Modalità colorata.',
   'help.player.fold':
-    'Riduce il lettore a una riga. Il doppio clic sulla sua barra fa lo stesso.',
+    'Riduce il lettore a una riga. Il doppio clic sulla sua intestazione fa lo stesso.',
   'help.player.unfold':
     'Espande il lettore. Lo fa anche la freccia all’altra estremità.',
-  'help.player.foldedPlaying':
-    'Precedente, riproduci o pausa, successivo e ferma.',
+  'help.player.foldedPlaying': 'Riproduci o pausa.',
   'help.player.foldedClock': 'Il tempo, e a che punto è il brano.',
 
   'help.requirements.title': 'Che cosa serve al tuo PC',

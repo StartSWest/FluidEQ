@@ -98,9 +98,9 @@ const help: Record<keyof typeof en, string> = {
     'Der Ausgangspegel, links und rechts, in echten Dezibel. Drücken Sie darauf, um den Stil der Anzeige zu ändern.',
   'help.player.title': 'Kompakter Player',
   'help.player.intro':
-    'Mit einem Schalter wechselt das Fenster von FluidEQ in die Ansicht Kompakter Player: eine schmale Spalte mit dem Song, Ihrem Equalizer, einem Visualizer und „Als Nächstes“, in Bereichen, die Sie ein- und ausblenden. Was gerade läuft, läuft weiter, und derselbe Schalter bringt die vollständige App auf der Seite zurück, die Sie verlassen haben.',
+    'Mit einem Schalter wechselt das Fenster von FluidEQ in die Ansicht Kompakter Player: eine schmale Spalte, oben ein Visualizer mit dem Song darauf und der Wiedergabesteuerung darunter, dann Sound, Ihr Equalizer, dann „Als Nächstes“ und Ihre Playlists. Was gerade läuft, läuft weiter, und derselbe Schalter bringt die vollständige App auf der Seite zurück, die Sie verlassen haben.',
   'help.player.steps':
-    'Drücken Sie in der Titelleiste neben Hilfe den Schalter Kompakter Player. Im Player holt derselbe Schalter die vollständige App zurück.\nBlenden Sie die Bereiche mit EQ, Visual und Liste ein und aus. Das Fenster wächst und schrumpft um den Platz, den jeder braucht, und der Player merkt sich Größe und Position.\nDoppelklicken Sie auf die Leiste des Players oder wählen Sie in seinem Menü Auf eine Zeile einklappen, um ihn auf eine Zeile zu verkleinern; das FluidEQ-Logo klappt ihn wieder aus.\nStellen Sie im Menü des Players seine eigene Helligkeit ein und halten Sie ihn mit Immer im Vordergrund über anderen Fenstern.\nLegen Sie Musikdateien auf „Als Nächstes“ ab, und sie kommen in die Bibliothek und in die Warteschlange.',
+    'Drücken Sie in der Titelleiste neben Hilfe den Schalter Kompakter Player. Im Player holt derselbe Schalter die vollständige App zurück.\nKlappen Sie Sound oder „Als Nächstes“ und Playlists bis auf die Kopfzeile ein, und der Visualizer bekommt den Platz; ein Klick auf die Kopfzeile öffnet den Bereich wieder. Ziehen Sie den oberen oder unteren Rand des Players, um ihn höher oder niedriger zu machen.\nDoppelklicken Sie auf den Visualizer, damit er den ganzen Bildschirm füllt; Esc gibt ihn zurück. Ein Klick auf den Namen des Looks neben Zufallswiedergabe und Wiederholen zeigt alle Stile und Szenen zur Auswahl.\nDoppelklicken Sie auf die Kopfzeile des Players oder wählen Sie im Menü des FluidEQ-Logos Auf eine Zeile einklappen, um ihn auf eine Zeile zu verkleinern; das Logo klappt ihn wieder aus.\nStellen Sie im selben Menü die eigene Helligkeit des Players ein, die Transparenz über einer Szene oder den Farbton des Fensters über einem Standardstil, und das Tageslicht einer Szene. Immer im Vordergrund, dort oder in der Kopfzeile, hält ihn über anderen Fenstern.\nLegen Sie Musikdateien irgendwo auf dem Player ab: Die Dateien kommen in die Bibliothek und ans Ende von „Als Nächstes“ – oder, über der Liste abgelegt, genau an diese Stelle.',
   'help.player.tip':
     'Die Lautstärke des Players ist die Ihres Computers, dieselbe wie in Windows, und regelt daher den Pegel von allem, was der Computer abspielt. Landet der Player außerhalb des Bildschirms, klicken Sie im Infobereich der Taskleiste mit der rechten Maustaste auf FluidEQ und wählen Sie Fenster wiederherstellen.',
   'help.player.keywords':
@@ -111,7 +111,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.menuCaption': 'Das Player-Menü',
   'help.player.foldedCaption': 'Auf eine Zeile eingeklappt',
   'help.player.menu':
-    'Zurück zur vollständigen App oder zu einer ihrer Seiten, die eigene Helligkeit des Players, Immer im Vordergrund und Auf eine Zeile einklappen.',
+    'Zurück zur vollständigen App oder zu einer ihrer Seiten; die eigene Helligkeit des Players, Transparenz oder Farbton, das Tageslicht einer Szene, der Bunte Modus und die EQ-Schieberegler; Immer im Vordergrund und Auf eine Zeile einklappen.',
   'help.player.pin': 'Hält den Player über allen anderen Fenstern.',
   'help.player.switch':
     'Zurück zur vollständigen App, auf der Seite, die Sie verlassen haben.',
@@ -133,30 +133,29 @@ const help: Record<keyof typeof en, string> = {
   'help.player.orderName': 'Zufallswiedergabe und Wiederholen',
   'help.player.order':
     'Mischt „Als Nächstes“ und wiederholt nichts, alles oder diesen Song.',
-  'help.player.lookName': 'Nächster Look',
+  'help.player.lookName': 'Look',
   'help.player.look':
-    'Wechselt den Look des Visualizers. Strg+Klick geht einen zurück, und ein Rechtsklick zeigt alle.',
+    'Der Stil oder die Szene, die der Visualizer zeichnet. Klicken Sie darauf, um aus allen zu wählen.',
   'help.player.screen':
     'Was Sie hören, gezeichnet: Ihre Bänder, Smart-EQ und alles andere, was aktiv ist, über einem Visualizer-Look. Unter Ebenfalls aktiv stehen sie einzeln, und ein Chip schaltet seine Ebene aus, ohne sie zu entfernen.',
   'help.player.bands':
     'Ziehen Sie ein Band nach oben oder unten, um es anzuheben oder abzusenken. Seine Frequenz steht darunter.',
   'help.player.tone':
-    'Bänder zeigt jedes Band; Klang ersetzt sie durch die Regler Bass, Mitten und Höhen.',
+    'Klang zeigt die Regler Bass, Mitten und Höhen, der Reiter daneben jedes Band.',
   'help.player.upNext':
-    'Wo Sie in der Warteschlange stehen, wie viel Zeit darin noch bleibt und wie weit Sie schon sind.',
+    '„Als Nächstes“ und Playlists, jeweils mit ihrer Anzahl, und die Zeit, die in der Warteschlange noch bleibt.',
   'help.player.library': 'Öffnet die Bibliothek in der vollständigen App.',
   'help.player.songsName': 'Die Songs',
   'help.player.songs':
-    'Was als Nächstes läuft. Doppelklicken Sie auf einen Song, um ihn abzuspielen, oder legen Sie Musikdateien hier ab, um sie hinzuzufügen.',
+    'Was als Nächstes läuft. Klicken Sie auf einen Song, um ihn abzuspielen, ziehen Sie ihn, um ihn zu verschieben, oder legen Sie Musikdateien hier ab, um sie an dieser Stelle einzufügen.',
   'help.player.openIn': 'Öffnet die vollständige App auf einer ihrer Seiten.',
   'help.player.theme':
-    'Die eigene Helligkeit des Players, unabhängig von der vollständigen App; Transparenz für den Glas-Player über einem Visualizer; und der Bunte Modus.',
+    'Die eigene Helligkeit des Players, unabhängig von der vollständigen App; Transparenz über einer Szene oder der Farbton des Fensters über einem Standardstil; das Tageslicht einer Szene; und der Bunte Modus.',
   'help.player.fold':
-    'Klappt den Player auf eine Zeile ein. Ein Doppelklick auf die Leiste tut dasselbe.',
+    'Klappt den Player auf eine Zeile ein. Ein Doppelklick auf seine Kopfzeile tut dasselbe.',
   'help.player.unfold':
     'Klappt den Player wieder aus. Der Pfeil am anderen Ende tut das auch.',
-  'help.player.foldedPlaying':
-    'Vorheriger Titel, Wiedergabe oder Pause, Nächster Titel und Stopp.',
+  'help.player.foldedPlaying': 'Wiedergabe oder Pause.',
   'help.player.foldedClock': 'Die Zeit und wo der Song gerade steht.',
 
   'help.requirements.title': 'Was Ihr PC braucht',

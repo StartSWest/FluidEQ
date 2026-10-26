@@ -100,20 +100,20 @@ const help = {
     'The output level, left and right, in real decibels. Press it to change its style.',
   'help.player.title': 'The Compact player',
   'help.player.intro':
-    'One switch turns FluidEQ’s window into the Compact player: a narrow column with the song, your equaliser, a visualizer and Up Next, in decks you open and close. Whatever is playing keeps playing, and the same switch brings the full app back on the page you left.',
+    'One switch turns FluidEQ’s window into the Compact player, a single narrow column: a visualizer at the top with the song over it and the play controls under it, then Sound, your equaliser, then Up next and your playlists. Whatever is playing keeps playing, and the same switch brings the full app back on the page you left.',
   'help.player.steps':
-    'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.\nOpen and close the decks with EQ, Vis and Queue. The window grows and shrinks by what each takes, and the player remembers its size and place.\nDouble-click the player’s strip, or choose Fold to one line in its menu, to fold it down to one line; the FluidEQ mark unfolds it.\nSet the player’s own Brightness in its menu, and keep it above other windows with Always on top.\nDrop music files on Up Next: they join the Library and the queue.',
+    'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.\nFold Sound, or Up next and Playlists, down to its header, and the visualizer takes the room; press the header to open it again. Drag the player’s top or bottom edge to make it taller or shorter.\nDouble-click the visualizer to fill the screen with it; Escape gives it back. Press the look’s name beside shuffle and repeat to choose from every style and scene.\nDouble-click the player’s header, or choose Fold to one line in the FluidEQ mark’s menu, to fold it down to one line; the mark unfolds it.\nIn the same menu, set the player’s own Brightness, the Transparency over a scene or the window’s Tint over a standard style, and a scene’s Daylight. Always on top, there or in the header, keeps it above other windows.\nDrop music files anywhere on the player: they join the Library and the end of Up next or, over the list, the place where you let go.',
   'help.player.tip':
     'The player’s volume is your computer’s own, the same as in Windows, so it sets the level of everything the computer plays. If the player ends up off the screen, right-click FluidEQ in the taskbar’s tray and choose Recover the window.',
   'help.player.keywords':
     'mini player, small player, compact, compact mode, winamp, amp, player mode, always on top, pin, fold, one line, queue, up next, drop files, theme, light theme, dark theme, dark mode, light mode, small window, floating player, volume',
   'help.player.topCaption': 'The top: the song, and how it plays',
   'help.player.eqCaption': 'The equaliser',
-  'help.player.queueCaption': 'Up Next',
+  'help.player.queueCaption': 'Up next',
   'help.player.menuCaption': 'The player’s menu',
   'help.player.foldedCaption': 'Folded to one line',
   'help.player.menu':
-    'Back to the full app or to one of its pages, the player’s own Brightness, Always on top and Fold to one line.',
+    'Back to the full app or to one of its pages; the player’s own Brightness, Transparency or Tint, a scene’s Daylight, Colourful mode and the EQ sliders; Always on top and Fold to one line.',
   'help.player.pin': 'Keeps the player above every other window.',
   'help.player.switch': 'Back to the full app, on the page you left.',
   'help.player.clock': 'Time played. Click it for the time left.',
@@ -132,29 +132,29 @@ const help = {
   'help.player.orderName': 'Shuffle and repeat',
   'help.player.order':
     'Shuffles Up Next, and repeats nothing, everything or this song.',
-  'help.player.lookName': 'Next look',
+  'help.player.lookName': 'Look',
   'help.player.look':
-    'Changes the visualizer’s look. Ctrl+click goes back one, and right-click lists them all.',
+    'The style or scene the visualizer is drawing. Press it to choose from all of them.',
   'help.player.screen':
     'What you hear, drawn: your bands, Smart EQ and anything else applied, over a visualizer look. Also applied lists them, and a tag switches one off without removing it.',
   'help.player.bands':
     'Drag a band up or down to boost or cut it. Its frequency is written under it.',
   'help.player.tone':
-    'Bands shows every band; Tone swaps them for the Bass, Mid and Treble dials.',
+    'Tone shows the Bass, Mid and Treble dials; the tab beside it, every band.',
   'help.player.upNext':
-    'Where you are in the queue, the time left in it, and how far through it you are.',
+    'Up next and Playlists, each with how many it holds, and the time left in the queue.',
   'help.player.library': 'Opens the Library in the full app.',
   'help.player.songsName': 'The songs',
   'help.player.songs':
-    'What plays next. Double-click a song to play it, or drop music files here to add them.',
+    'What plays next. Click a song to play it, drag it to move it, or drop music files here to add them where you let go.',
   'help.player.openIn': 'Opens the full app on one of its pages.',
   'help.player.theme':
-    'The player’s own Brightness, apart from the full app’s; Transparency, for the glass player over a visualizer; and Colourful mode.',
+    'The player’s own Brightness, apart from the full app’s; Transparency over a scene, or the window’s Tint over a standard style; a scene’s Daylight; and Colourful mode.',
   'help.player.fold':
-    'Folds the player to one line. Double-clicking its strip does the same.',
+    'Folds the player to one line. Double-clicking its header does the same.',
   'help.player.unfold':
     'Unfolds the player. The arrow at the other end does too.',
-  'help.player.foldedPlaying': 'Previous, play or pause, next and stop.',
+  'help.player.foldedPlaying': 'Play or pause.',
   'help.player.foldedClock': 'The time, and where the song is.',
 
   'help.requirements.title': 'What your PC needs',
