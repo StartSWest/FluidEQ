@@ -15,6 +15,12 @@
 # says which of the executables under it a player would recognise, and the app
 # matches anything run from inside it.
 
+# Answer in UTF-8, as the app reads it -- see windows-audio-devices.ps1 and
+# UTF8_OUTPUT_STATEMENT in src/main/powershell.ts (GitHub issue 39): a game in
+# a folder named in Chinese came back as question marks. This file stays ASCII
+# for the same reason.
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $ErrorActionPreference = 'SilentlyContinue'
 $ProgressPreference = 'SilentlyContinue'
 

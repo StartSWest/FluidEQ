@@ -42,9 +42,9 @@ $player-fader-around: 58px;
     // the row cannot end up with two pixels of gap beside three — which is
     // what a fader row split into fractions looked like (Ivan, 2026-09-21).
     //
-    // The cap is at most this wide; a narrow row draws it smaller, down to the
-    // 13px `playerWidthForBands` holds the window's floor to (`MiniBands.tsx`
-    // cuts the row into whole pixels and gives the cap what is left of each).
+    // The cap is at most this wide; a page of ten in the amp's one width
+    // draws it at what is left of each step (`MiniBands.tsx` cuts the row
+    // into whole pixels).
     --player-fader-cap: 18px;
     --player-band-gap: 4px;
 
@@ -457,32 +457,6 @@ $player-fader-around: 58px;
 
     .player-band__cap {
       box-shadow: none;
-    }
-  }
-
-  // Thirty-one bands in a narrow deck: smaller caps, a tighter gap, every
-  // other name, and no arrows or figures — at a band this narrow they run into
-  // each other, and the band held is read out on the screen above anyway. The
-  // window's own floor is worked out from these two numbers
-  // (`playerWidthForBands`), so a change here is a change there.
-  .player-bands.is-dense {
-    --player-fader-cap: 10px;
-    --player-band-gap: 3px;
-
-    .player-band__hz {
-      font-size: 7.5px;
-    }
-
-    .player-bands__faders .player-band {
-      .arrow-up,
-      .arrow-down,
-      .player-band__value {
-        visibility: hidden;
-      }
-    }
-
-    .player-bands__faders .player-band:nth-child(even) .player-band__hz {
-      visibility: hidden;
     }
   }
 }

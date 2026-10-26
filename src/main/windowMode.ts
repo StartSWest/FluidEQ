@@ -15,7 +15,7 @@ import {
   playerFirstSize,
   playerMinimumSize,
 } from '../common/windowMode';
-import type { IRect, TPlayerAmp, TWindowMode } from '../common/windowMode';
+import type { IRect, TWindowMode } from '../common/windowMode';
 import { createFullScreenOwner } from './fullScreenOwner';
 import { setWindowTransitions } from './windowDwm';
 import unmaximizeLinuxWindow from './linux/linuxWindowRestore';
@@ -40,16 +40,11 @@ export interface IWindowModeMemory {
   /** The full app's normal bounds, to go back to from the player. */
   app: IAppPlacement;
   /**
-   * Which amp the player is (`TPlayerAmp`), as the page last said: the glass
-   * Stage in the Backdrop, the 2.0 amp otherwise.
+   * Where the amp was left: the next switch to it opens it there and at that
+   * height, the app and the player being two windows to the listener. Its
+   * width is always the amp's own (`playerMinimumSize`).
    */
-  amp: TPlayerAmp;
-  /**
-   * Each amp's bounds, whose size the next switch to it opens it at. Two
-   * amps, two windows to the listener, as the app and the player are
-   * (Ivan, 2026-09-28: "we should preserve 3 window sizes").
-   */
-  players: Partial<Record<TPlayerAmp, Partial<IRect>>>;
+  player: Partial<IRect>;
 }
 
 const workAreaOf = (rect: IRect): IRect =>
@@ -85,15 +80,14 @@ export const createWindowModes = (
     mode: 'app',
     isPinned: false,
     app: {},
-    amp: 'classic',
-    players: {},
+    player: {},
   };
-  /** Where the amp on screen was left. */
-  const ownPlayer = () => memory.players[memory.amp];
+  /** Where the amp was left. */
+  const ownPlayer = () => memory.player;
   const boundsToKeep = (rect: IRect) =>
     platform === 'linux' ? linuxPlayerBounds(rect, ownPlayer()) : rect;
   const keepPlayer = (rect: IRect) => {
-    memory.players = { ...memory.players, [memory.amp]: boundsToKeep(rect) };
+    memory.player = boundsToKeep(rect);
   };
   const fullScreen = createFullScreenOwner();
   // Set once by main, beside the function that tells the page (`listen`).
@@ -112,12 +106,11 @@ export const createWindowModes = (
    */
   let playerHeightFloor: number | undefined;
   /**
-   * The width the player's equalizer needs, in the page's CSS pixels — the
-   * page says so from the band layout the listener has chosen. Narrower than
-   * this and the faders lose the gap between them, so it is a floor and not
-   * a preference.
+   * The width the amp's rows need on one line, in the page's CSS pixels, as
+   * the page says (`PLAYER_WIDTH_NEED_CHANNEL`): the amp's one width rises
+   * to it where it is more than the amp's own.
    */
-  let playerWidthFloor: number | undefined;
+  let playerWidthNeed: number | undefined;
   /** Whether the listener is dragging the window's edge (`followWindow`). */
   let isDragging = false;
   /**
@@ -154,17 +147,18 @@ export const createWindowModes = (
     !win.isMaximized();
 
   /**
-   * The player's floor width in the window's own pixels: its own, or the
-   * equalizer's if that is wider, and never wider than the screen it stands
-   * on — a band layout nobody can fit is still a window that must be usable.
+   * The amp's width in the window's own pixels: its one width at the page's
+   * zoom, or what its rows need on one line if that is more, and never wider
+   * than the screen it stands on.
    */
-  const floorWidth = (win: BrowserWindow, own: number) => {
-    if (memory.mode !== 'player' || playerWidthFloor === undefined) {
-      return own;
-    }
+  const playerWidth = (win: BrowserWindow) => {
+    const zoom = zoomOf(win);
     return Math.min(
       workAreaOf(win.getBounds()).width,
-      Math.max(own, Math.round(playerWidthFloor * zoomOf(win))),
+      Math.max(
+        playerMinimumSize(zoom).width,
+        Math.ceil((playerWidthNeed ?? 0) * zoom),
+      ),
     );
   };
 
@@ -229,34 +223,55 @@ export const createWindowModes = (
       : appMinimumSize(workAreaOf(win.getBounds()));
     // A FULL-SCREEN WINDOW HAS NO LIMITS OF OURS ON IT (Ivan, 2026-09-22).
     // The visualizer takes the screen without leaving player mode, so every
-    // limit here is the PLAYER's — the height its decks hold it to, the width
-    // its equalizer needs — and none of them describe a window that is
-    // supposed to be exactly the display. A ceiling under the screen's height
+    // limit here is the PLAYER's — the height it may not go under, its one
+    // width — and none of them describe a window that is supposed to be
+    // exactly the display. A ceiling under the screen's height
     // capped the picture; a floor measured while it was up held the window at
     // the work area's full height once it came back down.
     if (isFullScreen) {
       win.setMinimumSize(floor.width, floor.height);
       win.setMaximumSize(NO_CEILING, NO_CEILING);
       win.setMaximizable(!isPlayer);
+      // Resizable for the length of it: AppKit takes no window full screen
+      // that cannot be resized, and the amp is not resizable to the system
+      // otherwise (below).
+      win.setResizable(true);
       return;
     }
-    const held = heldHeight(win);
-    const minWidth = floorWidth(win, floor.width);
-    const minHeight = held ?? floorHeight(win, floor.height);
-    const transition = linuxWindowSizeOf(win);
-    win.setMinimumSize(minWidth, minHeight);
-    win.setMaximumSize(
-      transition ? Math.max(minWidth, transition.width) : NO_CEILING,
-      transition
-        ? Math.max(minHeight, transition.height)
-        : (held ?? NO_CEILING),
-    );
+    // ONE WIDTH FOR THE AMP (Ivan, 2026-10-25: "no width resize"): its
+    // floor and its ceiling, so only its height can be dragged.
+    if (isPlayer) {
+      const held = heldHeight(win);
+      const width = playerWidth(win);
+      const minHeight = held ?? floorHeight(win, floor.height);
+      const transition = linuxWindowSizeOf(win);
+      win.setMinimumSize(width, minHeight);
+      // Linux's final compositor configure must not replace the remembered
+      // height while the page is still drawing the newly placed amp.
+      win.setMaximumSize(
+        width,
+        transition
+          ? Math.max(minHeight, transition.height)
+          : (held ?? NO_CEILING),
+      );
+      // NOT RESIZABLE TO WINDOWS, so no edge offers the sideways resize
+      // cursor for a width that cannot change (Ivan, 2026-10-25: "don't show
+      // x resize mouse icon on the width"); the amp's height is dragged by
+      // its own grip along its foot (`PlayerHeightGrip`, `resizePlayer`).
+      // A frameless window keeps its thick frame either way, so Windows still
+      // rounds it and draws its shadow.
+      win.setResizable(false);
+    } else {
+      win.setMinimumSize(floor.width, floor.height);
+      win.setMaximumSize(NO_CEILING, NO_CEILING);
+      win.setResizable(true);
+    }
     win.setMaximizable(!isPlayer);
   };
 
   /**
-   * The window brought to the height it is held to and out to the width its
-   * equalizer needs.
+   * The window brought to the height it is held to, at least its floor, and
+   * to the amp's one width.
    *
    * Never while the listener is dragging its edge: Windows owns the window's
    * size until the drag ends and applies the new limits on the drag's next
@@ -276,7 +291,7 @@ export const createWindowModes = (
     const held = heldHeight(win);
     const bounds = win.getBounds();
     const own = playerMinimumSize(zoomOf(win));
-    const width = Math.max(bounds.width, floorWidth(win, own.width));
+    const width = playerWidth(win);
     const height =
       held ?? Math.max(bounds.height, floorHeight(win, own.height));
     if (bounds.height !== height || bounds.width !== width) {
@@ -320,9 +335,13 @@ export const createWindowModes = (
    */
   const playerTarget = (win: BrowserWindow, onScreen: IRect): IRect => {
     const remembered = ownPlayer();
+    // At the amp's one width, whatever width it was left at: an amp
+    // remembered from before there was one width comes back at it, where it
+    // stood.
+    const { width } = playerMinimumSize(zoomOf(win));
     return isUsableRect(remembered) &&
       isPlayerRect(remembered, workAreaOf(remembered))
-      ? clampInto(remembered, workAreaOf(remembered))
+      ? clampInto({ ...remembered, width }, workAreaOf(remembered))
       : centreIn(playerFirstSize(zoomOf(win)), workAreaOf(onScreen));
   };
 
@@ -394,7 +413,7 @@ export const createWindowModes = (
     // The page says them again the next time it draws the player.
     playerHeld = undefined;
     playerHeightFloor = undefined;
-    playerWidthFloor = undefined;
+    playerWidthNeed = undefined;
     const area = workAreaOf(onScreen);
     const saved = memory.app;
     const floor = appMinimumSize(area);
@@ -417,6 +436,11 @@ export const createWindowModes = (
           area,
         );
     applyPin(win);
+    // The amp's ceiling off first: its one width is its maximum as well as
+    // its floor, and the app's bounds set under it came out the amp's width
+    // (Ivan, 2026-10-25: "your width fix is screwing my full app").
+    win.setMaximumSize(NO_CEILING, NO_CEILING);
+    win.setResizable(true);
     // Out to the app's size before its floor goes up: the other way round the
     // floor pushes the player's small window wide from where it stands, off
     // the edge of the screen when it stands near one.
@@ -454,7 +478,7 @@ export const createWindowModes = (
     memory: (): IWindowModeMemory => ({
       ...memory,
       app: { ...memory.app },
-      players: { ...memory.players },
+      player: { ...memory.player },
     }),
 
     /**
@@ -465,54 +489,8 @@ export const createWindowModes = (
      * player's, full screen and switches included — which is how the amp
      * came to be remembered as the size of the screen.
      */
-    playerBounds: (
-      win: BrowserWindow,
-      amp: TPlayerAmp,
-    ): Partial<IRect> | undefined =>
-      amp === memory.amp && isPlayersOwn(win)
-        ? boundsToKeep(win.getBounds())
-        : memory.players[amp],
-
-    /**
-     * Which amp the player is, as the page says whenever it changes
-     * (`PLAYER_AMP_CHANNEL`). While the window is the player, the amp it
-     * leaves is written down where it stands and the one it becomes is put
-     * where it was left — the window-colours menu turned to the Backdrop and
-     * back is two windows changing places, not one window changing looks.
-     * The picture on the whole screen keeps the screen; the new amp's place
-     * is taken when it comes down (`settleAfterFullScreen`).
-     *
-     * The height and width the page held the window to were the old amp's,
-     * and the new one says its own right after this (`reportPlayerAmp`), so
-     * they come off first: left on, the 2.0 amp's height ceiling held the
-     * Stage to the 2.0 amp's height whatever it had been left at.
-     */
-    setAmp: (win: BrowserWindow, next: TPlayerAmp) => {
-      if (next === memory.amp) {
-        return;
-      }
-      const isPlaced =
-        !win.isDestroyed() &&
-        memory.mode === 'player' &&
-        !isSwitching &&
-        !win.isFullScreen();
-      if (isPlaced && isPlayersOwn(win)) {
-        keepPlayer(win.getBounds());
-      }
-      memory.amp = next;
-      playerHeld = undefined;
-      playerHeightFloor = undefined;
-      playerWidthFloor = undefined;
-      if (isPlaced) {
-        const target = playerTarget(win, win.getBounds());
-        isSwitching = true;
-        applyLimits(win);
-        win.setBounds(target);
-        keepPlayer(target);
-        isSwitching = false;
-      }
-      onChange();
-    },
+    playerBounds: (win: BrowserWindow): Partial<IRect> =>
+      isPlayersOwn(win) ? boundsToKeep(win.getBounds()) : memory.player,
 
     /** Which of the two the window is now. */
     mode: (): TWindowMode => memory.mode,
@@ -522,8 +500,7 @@ export const createWindowModes = (
       memory.mode = saved.mode;
       memory.isPinned = saved.isPinned;
       memory.app = { ...saved.app };
-      memory.amp = saved.amp;
-      memory.players = { ...saved.players };
+      memory.player = { ...saved.player };
     },
 
     applyLimits,
@@ -666,17 +643,16 @@ export const createWindowModes = (
     },
 
     /**
-     * The width the player's equalizer needs, in the page's CSS pixels: the
-     * window cannot be dragged narrower, and a window already narrower than
-     * a band layout just chosen is widened to it.
+     * The width the amp's rows need on one line, in the page's CSS pixels:
+     * the amp's one width rises to it, and comes back down when it is less.
+     * Never while the picture has the screen, where what the page measures is
+     * the display.
      */
-    floorPlayerWidth: (win: BrowserWindow, cssWidth: number | undefined) => {
-      // Measured on a screen-wide layout while the picture is up, and no more
-      // the player's than the height above it is.
+    needPlayerWidth: (win: BrowserWindow, cssWidth: number | undefined) => {
       if (win.isFullScreen()) {
         return;
       }
-      playerWidthFloor = memory.mode === 'player' ? cssWidth : undefined;
+      playerWidthNeed = memory.mode === 'player' ? cssWidth : undefined;
       applyLimits(win);
       fitPlayerBounds(win);
     },
@@ -769,8 +745,12 @@ export const createWindowModes = (
      * A player held to its decks' height stays there: the page asks for the
      * new height and for the hold in the same breath, and either order has to
      * end at the same window. The fold lets the hold go before it asks.
+     *
+     * Dragged by its top edge (`fromTop`), the foot stays put instead and the
+     * top follows the pointer; held at the floor, the top stops where the
+     * floor puts it rather than sliding the whole window down.
      */
-    resizePlayer: (win: BrowserWindow, cssHeight: number) => {
+    resizePlayer: (win: BrowserWindow, cssHeight: number, fromTop = false) => {
       if (
         memory.mode !== 'player' ||
         win.isFullScreen() ||
@@ -780,10 +760,16 @@ export const createWindowModes = (
       }
       const zoom = zoomOf(win);
       const bounds = win.getBounds();
+      // Never under the amp's floor: with the window not resizable to
+      // Windows, its own limits are no longer what stops the grip.
       const height =
         heldHeight(win) ??
-        Math.max(playerMinimumSize(zoom).height, Math.round(cssHeight * zoom));
-      win.setBounds(clampInto({ ...bounds, height }, workAreaOf(bounds)));
+        Math.max(
+          floorHeight(win, playerMinimumSize(zoom).height),
+          Math.round(cssHeight * zoom),
+        );
+      const y = fromTop ? bounds.y + bounds.height - height : bounds.y;
+      win.setBounds(clampInto({ ...bounds, y, height }, workAreaOf(bounds)));
     },
   };
 };

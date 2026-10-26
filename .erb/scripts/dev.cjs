@@ -102,6 +102,20 @@ const stampDevElectron = () => {
   });
 };
 
+/**
+ * Bring the add-ons in `addons/` up to date before development loads them
+ * (`addons.ts`). Never stops dev: one that cannot be pulled runs as it is.
+ */
+const pullAddons = () => {
+  const { spawnSync } = require('child_process');
+  const tsNode = require.resolve('ts-node/dist/bin.js');
+  const script = path.join(__dirname, 'pull-addons.ts');
+  spawnSync(process.execPath, [tsNode, script], {
+    stdio: 'inherit',
+    env: process.env,
+  });
+};
+
 const startDevServer = () => {
   const cli = require.resolve('webpack-cli/bin/cli.js');
   const config = path.join(
@@ -143,6 +157,7 @@ probe.once('listening', () => {
     }
     syncInstalledEngine();
     stampDevElectron();
+    pullAddons();
     startDevServer();
   });
 });

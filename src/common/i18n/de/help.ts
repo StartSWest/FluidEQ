@@ -56,11 +56,11 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'Über die Kopfzeile wechseln Sie zwischen den Seiten von FluidEQ, und sie zeigt den Klang in Echtzeit. Die linke Leiste enthält den Schalter für den ganzen EQ, die Vorverstärkung und die Pegelanzeige; die rechte Leiste folgt Ihrem Ausgang und seinen Profilen.',
   'help.window.steps':
-    'Drücken Sie in der Kopfzeile auf eine Seite: Online-Medien, Audio teilen und EQ vor dem Signal, DSP, Bibliothek, Karaoke und Visualizer danach.\nSchalten Sie in der linken Leiste System-EQ ein und lassen Sie Automatisch normalisieren eingeschaltet, damit keine Anhebung übersteuern kann.\nDrücken Sie auf das Signal oder die Pegelanzeige, um zu ändern, wie sie gezeichnet werden, und auf Regenbogenmodus, damit sich Kurven und Pegelanzeigen mit der vollen Bildwiederholrate Ihres Bildschirms bewegen.',
+    'Drücken Sie in der Kopfzeile auf eine Seite: Online-Medien, Audio teilen und EQ vor dem Signal, DSP, Bibliothek, Karaoke und Visualizer danach.\nSchalten Sie in der linken Leiste System-EQ ein und lassen Sie Automatisch normalisieren eingeschaltet, damit keine Anhebung übersteuern kann.\nDrücken Sie auf das Signal oder die Pegelanzeige, um zu ändern, wie sie gezeichnet werden, und auf „Bunter Modus“, damit sich Kurven und Pegelanzeigen mit der vollen Bildwiederholrate Ihres Bildschirms bewegen.',
   'help.window.tip':
     'Hilfe öffnet dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden. Hinter dem Puls-Knopf daneben finden Sie die Karte der Engine, Ihr Konto, den Import von EQ-Einstellungen oder einer Impulsantwort, den Neustart von Windows-Audio und Prozesse, wo Sie sehen, was jeder Teil von FluidEQ gerade nutzt; ganz unten stehen Helligkeit und Transparenz, die Animationen, Mit Windows starten und die Sprache. Mit dem Schalter danach wechselt das Fenster in die Ansicht Kompakter Player.',
   'help.window.keywords':
-    'oberfläche, benutzeroberfläche, übersicht, menüleiste, titelleiste, obere leiste, symbolleiste, seitenleiste, tabs, reiter, registerkarten, navigation, layout, untere leiste, pegelmesser, VU-meter, preamp, headroom, einschalten, ausschalten, design, theme, dunkles design, helles design, dunkelmodus, dunkler modus, dark mode, nachtmodus, heller modus, light mode, sprache, sprache ändern, mit windows starten, autostart, automatisch starten, beim hochfahren, konto, account',
+    'oberfläche, benutzeroberfläche, übersicht, menüleiste, titelleiste, obere leiste, symbolleiste, seitenleiste, tabs, reiter, registerkarten, navigation, layout, untere leiste, pegelmesser, VU-meter, bunter modus, regenbogen, preamp, headroom, einschalten, ausschalten, design, theme, dunkles design, helles design, dunkelmodus, dunkler modus, dark mode, nachtmodus, heller modus, light mode, sprache, sprache ändern, mit windows starten, autostart, automatisch starten, beim hochfahren, konto, account',
   'help.window.headerLeftCaption': 'Die Kopfzeile bis zum Signal',
   'help.window.headerRightCaption': 'Die Kopfzeile nach dem Signal',
   'help.window.railCaption': 'Die linke Leiste',
@@ -150,7 +150,7 @@ const help: Record<keyof typeof en, string> = {
     'Was als Nächstes läuft. Doppelklicken Sie auf einen Song, um ihn abzuspielen, oder legen Sie Musikdateien hier ab, um sie hinzuzufügen.',
   'help.player.openIn': 'Öffnet die vollständige App auf einer ihrer Seiten.',
   'help.player.theme':
-    'Die eigene Helligkeit des Players, unabhängig von der vollständigen App; Transparenz für den Glas-Player über einem Visualizer; und der Regenbogenmodus.',
+    'Die eigene Helligkeit des Players, unabhängig von der vollständigen App; Transparenz für den Glas-Player über einem Visualizer; und der Bunte Modus.',
   'help.player.fold':
     'Klappt den Player auf eine Zeile ein. Ein Doppelklick auf die Leiste tut dasselbe.',
   'help.player.unfold':

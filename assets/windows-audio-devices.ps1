@@ -1,5 +1,12 @@
 param([string]$SetDefaultDeviceId = '', [string]$AssemblyPath = '')
 
+# Answer in UTF-8, as the app reads it. Windows PowerShell writes the console's
+# code page otherwise, and an output Windows names in Chinese reached the
+# window as replacement characters (GitHub issue 39; UTF8_OUTPUT_STATEMENT in
+# src/main/powershell.ts). This file stays ASCII: PowerShell 5.1 reads a
+# script without a byte-order mark in that same code page.
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $source = @'
 using System;
 using System.Collections.Generic;
@@ -19,8 +26,8 @@ public static class AquaAudioDevices
 
     // FxProperties stores the effect registrations under value names shaped
     // like "{format-guid},pid" rather than a plain name. The engine can sit
-    // in any of eight: the three composite lists — PKEY_FX_EndpointEffectClsid
-    // (,15), PKEY_FX_ModeEffectClsid (,14), PKEY_FX_StreamEffectClsid (,13) —
+    // in any of eight: the three composite lists -- PKEY_FX_EndpointEffectClsid
+    // (,15), PKEY_FX_ModeEffectClsid (,14), PKEY_FX_StreamEffectClsid (,13) --
     // the same three as one class id each (,7 ,6 ,5), and the two pre-8.1
     // single values, GFX (,2) and LFX (,1). Everything below the lists is
     // where the helper's slot ladder puts it on an output whose driver reads
@@ -158,7 +165,7 @@ public static class AquaAudioDevices
     };
 
     // PKEY_AudioEndpoint_Disable_SysFx: Windows' own "Audio enhancements"
-    // switch for one output — Off in Sound settings, "Disable all
+    // switch for one output -- Off in Sound settings, "Disable all
     // enhancements" in the old panel. While it is set, Windows loads no
     // system effect on that output at all, so an engine that is installed,
     // attached, healthy and correct is still never heard, with nothing
@@ -386,8 +393,8 @@ public static class AquaAudioDevices
     }
 
     // The two probes below answer "not attached" for an output with no key
-    // under Render at all, which is true and useless: it offered a repair —
-    // attach the engine, open the Device Selector — that can never work on
+    // under Render at all, which is true and useless: it offered a repair --
+    // attach the engine, open the Device Selector -- that can never work on
     // an output Windows runs no effects on. This is the question underneath.
     private static Nullable<bool> CanHostEffects(string deviceGuid)
     {

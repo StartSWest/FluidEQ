@@ -1,49 +1,66 @@
-/* FluidEQ — GPL-3.0-or-later */
-import { toggleWindowDevTools } from '../../../main/devTools';
+/** @jest-environment node */
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
 
-const original = Object.getOwnPropertyDescriptor(process, 'platform');
-afterEach(() => {
-  if (original) {
-    Object.defineProperty(process, 'platform', original);
-  }
-});
+/**
+ * The developer tools open in a window of their own and never docked inside
+ * the app's (`devTools.ts`): docked, they decide how wide the page is, and a
+ * development restart drew the amp 1920px wide in a 475px window (Ivan,
+ * 2026-10-25). The menu's toggle and Inspect element both go through here
+ * (`devToolsMenu.test.ts`).
+ */
 
-it('keeps Linux menu reopenings detached as well as the initial inspector', () => {
-  Object.defineProperty(process, 'platform', { value: 'linux' });
-  let opened = false;
-  const inspector = {
-    isDevToolsOpened: () => opened,
+import type { WebContents } from 'electron';
+import { inspectDetached, toggleDetachedDevTools } from 'main/devTools';
+
+const DETACHED = { mode: 'detach', activate: false };
+
+/** A page whose developer tools open and close as asked. */
+const pageWithTools = (isOpen: boolean) => {
+  let open = isOpen;
+  const page = {
+    isDevToolsOpened: jest.fn(() => open),
     openDevTools: jest.fn(() => {
-      opened = true;
+      open = true;
     }),
     closeDevTools: jest.fn(() => {
-      opened = false;
+      open = false;
     }),
-    toggleDevTools: jest.fn(),
+    inspectElement: jest.fn(),
   };
-  toggleWindowDevTools(inspector);
-  toggleWindowDevTools(inspector);
-  toggleWindowDevTools(inspector);
-  expect(inspector.openDevTools.mock.calls).toEqual([
-    [{ mode: 'detach' }],
-    [{ mode: 'detach' }],
-  ]);
-  expect(inspector.closeDevTools).toHaveBeenCalledTimes(1);
-  expect(inspector.toggleDevTools).not.toHaveBeenCalled();
-});
+  return { page, contents: page as unknown as WebContents };
+};
 
-it.each(['win32', 'darwin'] as const)(
-  'preserves the native toggle on %s',
-  (platform) => {
-    Object.defineProperty(process, 'platform', { value: platform });
-    const inspector = {
-      isDevToolsOpened: jest.fn(),
-      openDevTools: jest.fn(),
-      closeDevTools: jest.fn(),
-      toggleDevTools: jest.fn(),
-    };
-    toggleWindowDevTools(inspector);
-    expect(inspector.toggleDevTools).toHaveBeenCalledWith();
-    expect(inspector.openDevTools).not.toHaveBeenCalled();
-  },
-);
+describe('the developer tools', () => {
+  it('open in a window of their own, behind the app, and close again', () => {
+    const { page, contents } = pageWithTools(false);
+    toggleDetachedDevTools(contents);
+    expect(page.openDevTools).toHaveBeenCalledWith(DETACHED);
+    toggleDetachedDevTools(contents);
+    expect(page.closeDevTools).toHaveBeenCalledTimes(1);
+    expect(page.openDevTools).toHaveBeenCalledTimes(1);
+  });
+
+  it('open in a window of their own before an element is inspected', () => {
+    const { page, contents } = pageWithTools(false);
+    inspectDetached(contents, 12, 34);
+    expect(page.openDevTools).toHaveBeenCalledWith(DETACHED);
+    // First: inspecting with the tools closed opens them where they were
+    // last docked.
+    expect(page.openDevTools.mock.invocationCallOrder[0]).toBeLessThan(
+      page.inspectElement.mock.invocationCallOrder[0],
+    );
+    expect(page.inspectElement).toHaveBeenCalledWith(12, 34);
+  });
+
+  it('inspect in the tools already open, without opening them again', () => {
+    const { page, contents } = pageWithTools(true);
+    inspectDetached(contents, 1, 2);
+    expect(page.openDevTools).not.toHaveBeenCalled();
+    // POSITIVE CONTROL: the inspection itself still happens.
+    expect(page.inspectElement).toHaveBeenCalledWith(1, 2);
+  });
+});

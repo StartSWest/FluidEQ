@@ -37,6 +37,8 @@ import SliderHandlePicker from './SliderHandlePicker';
 import StartupPicker from './StartupPicker';
 import RainbowSwitch from '../graph/RainbowSwitch';
 import WindowBrightnessSlider from '../graph/WindowBrightnessSlider';
+import WindowTintSlider from '../graph/WindowTintSlider';
+import useIsSceneLook from '../utils/useIsSceneLook';
 import '../styles/ActionsMenu.scss';
 
 /**
@@ -51,8 +53,16 @@ const STATUS_KEYS: Record<TEngineState, TranslationKey> = {
   failing: 'app.status.error',
 };
 
-/** The trigger's own drawing, repeated on the engine card it opens onto. */
+/** The engine card's drawing: the engine at work. */
 const PULSE = 'M4 12h3l2-6 4 12 2-6h5';
+
+/**
+ * The trigger's: a menu, which is what it opens — fixes, imports, the
+ * window's look, the account and the language. It wore the engine's pulse,
+ * which read as a meter rather than a way in (Ivan, 2026-10-25: "perhaps the
+ * icon needs to be menu icon or settings"). The engine's lamp stays beside it.
+ */
+const MENU_LINES = 'M4 7h16M4 12h16M4 17h16';
 
 /** Everything the arrow keys walk through, in the order it is drawn. */
 const FOCUSABLE =
@@ -161,6 +171,7 @@ const ActionsMenu = ({
   const forumNewsAll = useForumNewsCount();
   const forumNewsHidden = useForumNewsHidden();
   const forumNews = forumNewsHidden ? 0 : forumNewsAll;
+  const isSceneLook = useIsSceneLook();
   const [open, setOpen] = useState(false);
   // Held here rather than in the menu's panel, which is gone the moment the
   // row is pressed.
@@ -295,7 +306,7 @@ const ActionsMenu = ({
         }}
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d={PULSE} />
+          <path d={MENU_LINES} />
         </svg>
         <span
           className={`status-dot${engineState === 'failing' ? ' error' : ''}`}
@@ -456,14 +467,17 @@ const ActionsMenu = ({
           {/* Last, and in every state: someone who cannot read the rest of
               this menu still has to be able to reach the language. */}
           <div className="actions-menu__prefs">
-            {/* The window's look: Brightness, as Window colours sets it, and
-                Rainbow mode's switch under it. Not Transparency (Ivan,
-                2026-09-28: "remove the transparent slider from the root menu
-                since no point, and keep it on the backdrop menu and amp
-                player"): it only does anything in the Backdrop, and it stands
-                where the Backdrop is chosen and in the amp's own menu. */}
+            {/* The window's look: Brightness, as Window colours sets it, the
+                window's Tint under it while a standard look is on (Ivan,
+                2026-10-25: "make sure to do tint here too"), and Rainbow
+                mode's switch. Not Transparency (Ivan, 2026-09-28: "remove the
+                transparent slider from the root menu since no point, and keep
+                it on the backdrop menu and amp player"): it only does
+                anything in the Backdrop, and it stands where the Backdrop is
+                chosen and in the amp's own menu. */}
             <div className="actions-menu__sliders">
               <WindowBrightnessSlider />
+              {!isSceneLook && <WindowTintSlider />}
               <RainbowSwitch />
             </div>
             <SliderHandlePicker />

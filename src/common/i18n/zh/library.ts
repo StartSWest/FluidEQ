@@ -167,6 +167,9 @@ const library: Partial<Dictionary> = {
   'library.karaoke.sending': '正在发送到卡拉OK…',
   'library.karaoke.failed':
     '无法把这个文件发送到卡拉OK — 它可能太大或无法读取。',
+  'library.drop.empty': '拖入的内容里没有音乐',
+  'library.drop.already': '拖入的内容已全部在“接下来播放”里',
+  'library.drop.failed': '无法添加拖入的音乐',
 };
 
 export default library;

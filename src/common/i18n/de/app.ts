@@ -315,7 +315,6 @@ const app: Partial<Dictionary> = {
   'sidebar.preampAuto':
     'Wird für Sie gesetzt. Schalten Sie „Automatisch normalisieren“ aus, um selbst zu regeln.',
   'sidebar.autoPreamp': 'Automatisch normalisieren',
-  'sidebar.visualizer': 'ANZEIGE',
   'sidebar.graphView': 'Frequenzgang',
   'sidebar.output': 'Ausgabe',
   'config.eyebrow': 'WAS DIE ENGINE LIEST',

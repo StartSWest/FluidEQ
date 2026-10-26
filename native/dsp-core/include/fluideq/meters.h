@@ -433,7 +433,8 @@ uint32_t feq_meters_read_bands(FeqMeters* meters,
 
 /* Live source measurements, separate from the output loudness meter. */
 void feq_meters_publish_live_input(FeqMeters* meters, double peak_db, double lufs,
-                                 double reference_lufs, int level_state);
+                                 double reference_lufs, int level_state, double output_lufs);
+/* Five words: peak, input LUFS, reference LUFS, state, output LUFS. */
 void feq_meters_read_live_input(FeqMeters* meters, float* values);
 
 /** Audio-thread publication; the display reader never follows a retired chain. */

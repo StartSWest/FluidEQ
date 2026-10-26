@@ -6,6 +6,7 @@ import ts from 'typescript';
 import {
   forgetSettings,
   isSettingKey,
+  resetSettings,
 } from '../../../renderer/utils/settingsReset';
 
 /**
@@ -257,6 +258,33 @@ describe('Reset all settings', () => {
       [],
     );
     expect(kept.filter((key) => !window.localStorage.getItem(key))).toEqual([]);
+    window.localStorage.clear();
+  });
+
+  // Ivan, 2026-10-25: "on reset setting auto change viz off by default",
+  // "also rainbow mode off by default too".
+  it('leaves automatic switching and Rainbow mode off after a reset', () => {
+    window.localStorage.clear();
+    window.localStorage.setItem('fluideq-graph-auto-cycle-seconds', '120');
+    window.localStorage.setItem('fluideq-rainbow', 'on');
+    window.localStorage.setItem('fluideq.pointerSparks', 'stored');
+
+    resetSettings(window.localStorage);
+
+    // POSITIVE CONTROL: every other setting is still forgotten.
+    expect(window.localStorage.getItem('fluideq.pointerSparks')).toBeNull();
+    let autoCycle: number | undefined;
+    let rainbow: boolean | undefined;
+    jest.isolateModules(() => {
+      /* eslint-disable global-require */
+      autoCycle =
+        require('../../../renderer/utils/graphAutoCycle').readGraphAutoCycle();
+      rainbow =
+        require('../../../renderer/utils/euphoriaMode').isEuphoriaEnabled();
+      /* eslint-enable global-require */
+    });
+    expect(autoCycle).toBe(0);
+    expect(rainbow).toBe(false);
     window.localStorage.clear();
   });
 });

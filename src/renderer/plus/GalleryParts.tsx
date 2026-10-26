@@ -5,7 +5,7 @@ import { useEntitlement } from '../account/entitlementStore';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { toggleGalleryLike } from './galleryActions';
-import { useModeration } from './moderationStore';
+import { useAddonCapabilities } from '../addons';
 import { useScenePicture } from './scenePictures';
 import { useOwnsLook } from './sceneStore';
 
@@ -157,18 +157,18 @@ interface ISceneHeartProps {
  * A scene's heart as this member can use it.
  *
  * FluidEQ's own scenes have one too (server 0048): they are most of the
- * gallery, and without it nobody could see which of them members like. The
- * admin publishes those, so to the admin they are their own scenes and show
- * the count alone, as the server refuses their publisher's like. Only a scene
+ * gallery, and without it nobody could see which of them members like. To
+ * the account that publishes them they are its own scenes and show the count
+ * alone, as the server refuses their publisher's like. Only a scene
  * this account owns can be liked by it (server 0056): a like is somebody who
  * has it saying it is good.
  */
 export function SceneHeart({ scene, name, own, className }: ISceneHeartProps) {
   const { t } = useTranslation();
   const owned = useOwnsLook(scene.lookId);
-  const { admin } = useModeration();
+  const { ownsOfficialScenes } = useAddonCapabilities();
   const count = String(scene.likes);
-  const mine = own || (scene.official && admin);
+  const mine = own || (scene.official && ownsOfficialScenes);
   if (mine || !owned) {
     return (
       <LikeCount

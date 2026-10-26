@@ -16,6 +16,7 @@ import {
 } from '../graph/sceneSky';
 import { useSelectedLookId } from '../utils/graphStyle';
 import { LAGOON_SKY } from '../utils/rainbowPalette';
+import { tintedLagoon, useWindowTint } from '../utils/windowTint';
 import { skyFromSwatch } from '../utils/sceneTint';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import { useUsableScenes } from '../utils/scenePacks';
@@ -24,6 +25,7 @@ import {
   recallSceneSky,
   showSceneSky,
   studioSkyKey,
+  useAmpHoldsWindow,
   useSceneTintEnabled,
   useStudioTintSource,
   useWindowTintMode,
@@ -56,7 +58,11 @@ import {
  * through the theme; a new save in the Studio does the same.
  */
 const SceneTint = () => {
-  const isEnabled = useSceneTintEnabled();
+  // The amp is the Backdrop whatever the app's mode (`setAmpHoldsWindow`),
+  // so it wears the scene's colours as the Backdrop does.
+  const isAmp = useAmpHoldsWindow();
+  const isEnabled = useSceneTintEnabled() || isAmp;
+  const tint = useWindowTint();
   const studio = useStudioTintSource();
   const lookId = useSelectedLookId();
   const scenes = useUsableScenes();
@@ -137,7 +143,16 @@ const SceneTint = () => {
       // want the one that rainbow on has now", 2026-09-27). Rainbow changes
       // only what is drawn in its stops. Lent, so it fades out toward Black,
       // which is black and grey ("moving toward the 0 make it no tinting").
-      lendSceneSky(LAGOON_SKY, fade);
+      // The listener's own colour where they chose one (Ivan, 2026-10-25:
+      // "add a colour tint option ... choose any colour", `windowTint.ts`),
+      // held at every Brightness as Colours holds a scene's: a colour picked
+      // by hand that faded away toward Black left the controls untinted
+      // there ("when brightness is zero it's not tinting the controls").
+      if (tint === undefined) {
+        lendSceneSky(LAGOON_SKY, fade);
+      } else {
+        showSceneSky(tintedLagoon(tint), fade, 'held');
+      }
       return stop;
     }
     if (!isEnabled) {
@@ -159,7 +174,7 @@ const SceneTint = () => {
       showMeasured(measureSceneSky(lookId, version));
     }
     return stop;
-  }, [studio, isEnabled, isSceneLook, lookId, version, swatch, tone]);
+  }, [studio, isEnabled, isSceneLook, lookId, version, swatch, tone, tint]);
 
   return null;
 };

@@ -129,7 +129,10 @@ export const isLocaleLoaded = (code: LocaleCode): boolean =>
  * fallback every missing key already has — until a later ask succeeds.
  */
 export const loadLocale = (code: LocaleCode): Promise<void> => {
-  if (code === 'en' || isLocaleLoaded(code)) {
+  if (
+    code === 'en' ||
+    (isLocaleLoaded(code) && EXTRAS.every((extra) => code in extra.held))
+  ) {
     return Promise.resolve();
   }
   const pending = loading.get(code);
@@ -138,13 +141,50 @@ export const loadLocale = (code: LocaleCode): Promise<void> => {
   }
   const load = (async () => {
     try {
-      DICTIONARIES[code] = (await LOADERS[code]()).default;
+      if (!isLocaleLoaded(code)) {
+        DICTIONARIES[code] = (await LOADERS[code]()).default;
+      }
+      // Only when there are any: awaiting nothing still costs a microtask, and
+      // without an add-on a switch lands exactly when it always did.
+      if (EXTRAS.length > 0) {
+        await Promise.all(EXTRAS.map((extra) => loadExtra(extra, code)));
+      }
     } finally {
       loading.delete(code);
     }
   })();
   loading.set(code, load);
   return load;
+};
+
+/**
+ * Strings an add-on brings with it (`renderer/addons.ts`): its own keys, in
+ * its own dictionaries, never part of the app's. Looked up by
+ * `translateExtra` alone, so an app string can never be answered from one,
+ * and loaded with each language like the app's own.
+ */
+export type TExtraStrings = Readonly<Partial<Record<string, string>>>;
+
+interface IExtraDictionaries {
+  en: TExtraStrings;
+  load: (code: Exclude<LocaleCode, 'en'>) => Promise<TExtraStrings>;
+  held: Partial<Record<LocaleCode, TExtraStrings>>;
+}
+
+const EXTRAS: IExtraDictionaries[] = [];
+
+const loadExtra = async (extra: IExtraDictionaries, code: LocaleCode) => {
+  if (code === 'en' || code in extra.held) {
+    return;
+  }
+  extra.held[code] = await extra.load(code);
+};
+
+export const extendDictionaries = (
+  en: TExtraStrings,
+  load: (code: Exclude<LocaleCode, 'en'>) => Promise<TExtraStrings>,
+) => {
+  EXTRAS.push({ en, load, held: { en } });
 };
 
 /**
@@ -216,6 +256,29 @@ export const translate = (
   return template.replace(PLACEHOLDER, (whole, name: string) =>
     name in vars ? String(vars[name]) : whole,
   );
+};
+
+/** An add-on's string (`extendDictionaries`), filled like `translate`'s. */
+export const translateExtra = (
+  locale: LocaleCode,
+  key: string,
+  vars?: TranslateVars,
+): string => {
+  const template = EXTRAS.map(
+    (extra) => extra.held[locale]?.[key] ?? extra.en[key],
+  ).find((text) => text !== undefined);
+  const text = template ?? key;
+  if (!vars) {
+    return text;
+  }
+  return text.replace(PLACEHOLDER, (whole, name: string) =>
+    name in vars ? String(vars[name]) : whole,
+  );
+};
+
+/** For tests: no add-on strings between runs. */
+export const resetExtraDictionaries = () => {
+  EXTRAS.length = 0;
 };
 
 /**

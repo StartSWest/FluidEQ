@@ -4,38 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { IReviewItem, ISceneSubmission } from '../../../common/plusReview';
+import type { ISceneSubmission } from '../../../common/plusReview';
 import {
   ANSWER_NEWS_DAYS,
   sceneReviewNotice,
-  waitingKey,
-  waitingKeys,
 } from '../../../common/sceneReviewNotice';
 
-const MEI = '9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d';
-const KIKO = '1b2c3d4e-5f60-4718-8a9b-0c1d2e3f4a5b';
 const NOW = Date.parse('2026-09-19T12:00:00.000Z');
 const DAY = 24 * 60 * 60 * 1000;
 const at = (daysAgo: number) => new Date(NOW - daysAgo * DAY).toISOString();
-
-const waiting = (over: Partial<IReviewItem> = {}): IReviewItem => ({
-  authorId: MEI,
-  lookId: `member:${MEI}:neon-city`,
-  authorName: 'Mei Tanaka',
-  authorHandle: 'mei',
-  sceneId: 'neon-city',
-  version: 1,
-  category: 'cities',
-  names: { en: 'Neon City' },
-  swatch: ['#050a1a', '#00e5cf'],
-  hasPhoto: true,
-  sha256: 'a'.repeat(64),
-  submittedAt: at(1),
-  takenDown: false,
-  authorBanned: false,
-  openReports: 0,
-  ...over,
-});
 
 const answer = (over: Partial<ISceneSubmission> = {}): ISceneSubmission => ({
   sceneId: 'lake',
@@ -51,69 +28,6 @@ const answer = (over: Partial<ISceneSubmission> = {}): ISceneSubmission => ({
 });
 
 const none = new Set<string>();
-
-describe('the admin told a scene waits', () => {
-  it('counts everything waiting and names the newest arrival', () => {
-    const older = waiting();
-    const newer = waiting({
-      authorId: KIKO,
-      authorName: 'DJ Kiko',
-      sceneId: 'ember',
-      names: { en: 'Ember' },
-      submittedAt: at(0.5),
-      sha256: 'b'.repeat(64),
-    });
-    expect(
-      sceneReviewNotice({ waiting: [older, newer], seen: none, now: NOW }),
-    ).toEqual({
-      kind: 'waiting',
-      count: 2,
-      newest: {
-        names: { en: 'Ember' },
-        authorName: 'DJ Kiko',
-        swatch: newer.swatch,
-      },
-      keys: waitingKeys([older, newer]),
-    });
-  });
-
-  it('is told once: everything it named, seen, is quiet', () => {
-    const queue = [waiting(), waiting({ sceneId: 'aurora' })];
-    expect(
-      sceneReviewNotice({
-        waiting: queue,
-        seen: new Set(waitingKeys(queue)),
-        now: NOW,
-      }),
-    ).toBeUndefined();
-  });
-
-  it('comes back for a new version of a scene already seen, naming that one', () => {
-    const seenOne = waiting();
-    const resent = waiting({
-      version: 2,
-      sha256: 'c'.repeat(64),
-      submittedAt: at(0.1),
-    });
-    const other = waiting({ sceneId: 'aurora', names: { en: 'Aurora' } });
-    const notice = sceneReviewNotice({
-      waiting: [resent, other],
-      seen: new Set([waitingKey(seenOne), waitingKey(other)]),
-      now: NOW,
-    });
-    expect(notice).toMatchObject({
-      kind: 'waiting',
-      count: 2,
-      newest: { names: { en: 'Neon City' } },
-    });
-  });
-
-  it('counts the same version sent again with other bytes as new', () => {
-    const first = waiting();
-    const again = waiting({ sha256: 'd'.repeat(64) });
-    expect(waitingKey(first)).not.toBe(waitingKey(again));
-  });
-});
 
 describe('a maker told what became of their scene', () => {
   it('says a first version is in the gallery', () => {
@@ -220,27 +134,5 @@ describe('a maker told what became of their scene', () => {
         now: NOW,
       }),
     ).toBeUndefined();
-  });
-});
-
-describe('the admin who is also a maker', () => {
-  it('hears about the queue first, and about their own answers after it', () => {
-    const queue = [waiting()];
-    expect(
-      sceneReviewNotice({
-        waiting: queue,
-        mine: [answer()],
-        seen: none,
-        now: NOW,
-      }),
-    ).toMatchObject({ kind: 'waiting' });
-    expect(
-      sceneReviewNotice({
-        waiting: queue,
-        mine: [answer()],
-        seen: new Set(waitingKeys(queue)),
-        now: NOW,
-      }),
-    ).toMatchObject({ kind: 'approved' });
   });
 });

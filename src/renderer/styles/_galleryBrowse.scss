@@ -172,9 +172,8 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 0 1 auto;
 }
 
-// The member's own pages at the toolbar's end: their scenes, and for the
-// admin the reported ones before it. One group, so a wrap takes both to the
-// next line together instead of splitting them.
+// The member's own pages at the toolbar's end. One group, so a wrap takes
+// them to the next line together instead of splitting them.
 .gallery-toolbar__own {
   display: flex;
   flex-wrap: wrap;

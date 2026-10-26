@@ -1,0 +1,564 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'miniPlayerParts' as *;
+
+// SOUND (`PlayerSound`): the amp's equalizer as a section that folds to its
+// header. Its rows are the Stage equalizer's own (`player-eq__keys`,
+// `__foot`, `__faces`, `_miniPlayerEqKeys.scss`), and so are the words they
+// give up as room runs out; their keys are drawn here as the approved one
+// amp draws them (Ivan, 2026-10-25): small rounded keys on the pane, edged
+// in the theme's own hairline.
+
+// A key on the pane: the preset, Smart EQ, the band layout, EQ mode, Clear EQ.
+@mixin sound-key($height: 30px) {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: $height;
+  height: $height;
+  padding: 0 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  background: var(--surface-field);
+  box-shadow: none;
+  color: var(--player-text);
+  font-size: 12.5px;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    background: var(--surface-field);
+    color: var(--player-text);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+// Its own height, whatever the window's: the picture and the queue share the
+// room that is left (`.player-body`). The equalizer page this borrows from
+// grew to fill the sheet it stood on.
+.mini-player .player-sound {
+  gap: 0;
+  border-bottom: 1px solid var(--player-rule);
+  background: var(--player-pane);
+}
+
+// ============================================================ the head =====
+.player-sound__head {
+  gap: 8px;
+  padding: 8px 12px 8px 10px;
+
+  // The fold at the left; the preset, Smart EQ and the power at the right,
+  // together. The Stage's row pushed Smart EQ alone to the right.
+  > .player-sound__fold + * {
+    margin-left: auto;
+  }
+
+  > .player-split {
+    margin-left: 0;
+  }
+}
+
+.player-sound__fold {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 0 6px 0 4px;
+  border: 0;
+  border-radius: $radius-m;
+  background: none;
+  color: var(--player-text);
+  font-size: 13.5px;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    background: var(--player-hover);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+
+  .player-sound__mark {
+    width: 15px;
+    height: 15px;
+    color: var(--player-ink);
+  }
+
+  // One caret that turns over as the drawer shuts, rather than two that
+  // swap: it moves with the drawer.
+  .player-sound__chevron {
+    width: 11px;
+    height: 11px;
+    color: var(--player-text-soft);
+    transition: transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+}
+
+.player-sound.is-folded .player-sound__chevron {
+  transform: rotate(180deg);
+}
+
+// The preset: its glyph in the accent, its name, its caret.
+.mini-player .player-sound__head .rich-pick__trigger {
+  @include sound-key;
+
+  .rich-pick__glyph {
+    width: 13px;
+    height: 13px;
+    color: var(--player-ink);
+  }
+}
+
+.mini-player .player-sound__head .rich-pick__trigger[aria-expanded='true'],
+.mini-player
+  .player-sound__head
+  .rich-pick__trigger.is-active:not([aria-expanded='true']) {
+  background: var(--surface-field);
+  color: var(--player-text);
+}
+
+// SMART: one key with its lamp, in capitals, quiet until it is on; the caret
+// that chooses how it listens is the same key's other half.
+.mini-player .player-sound__head .player-split {
+  @include sound-key;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+  color: var(--player-text-soft);
+  font-size: 11.5px;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  cursor: default;
+  @include tracking(0.04em);
+
+  > .button.player-split__main,
+  > .button.player-split__caret {
+    &,
+    &:hover:not(:disabled),
+    &:active:not(:disabled) {
+      min-height: 28px;
+      font: inherit;
+      text-transform: inherit;
+    }
+  }
+
+  > .button.player-split__main {
+    gap: 6px;
+    padding: 0 9px 0 10px;
+  }
+
+  > .button.player-split__caret {
+    padding: 0 7px;
+
+    &::after {
+      top: 7px;
+      bottom: 7px;
+      background: var(--border-subtle);
+    }
+  }
+
+  .player-led__lamp {
+    width: 6px;
+    height: 6px;
+    background: var(--player-text-soft);
+    opacity: 0.5;
+  }
+
+  // SMART and its lamp alone, as the approved amp draws the key: how it
+  // listens is its caret's menu to say, and named on the key it pushed the
+  // preset off the row (Ivan, 2026-10-25: "the button not good").
+  .player-led__value {
+    display: none;
+  }
+
+  &:has(> .player-split__main[aria-pressed='true']:not(:disabled)) {
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+    background: transparent;
+    box-shadow: none;
+    color: var(--accent-light);
+
+    .player-led__lamp {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      opacity: 1;
+    }
+  }
+}
+
+// FluidEQ on or off, as the power sign: lit in the accent while on.
+.player-sound__power {
+  display: grid;
+  flex: none;
+  width: 32px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--player-text-soft);
+  cursor: pointer;
+  transition: $transition-control;
+
+  .player-icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  &[aria-pressed='true'] {
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--accent);
+  }
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.4;
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+// ============================================================ the body =====
+//
+// THE DRAWER (Ivan, 2026-10-25: "add nice animation on collapse expand"): the
+// body slides shut on the head and open again, fading as it goes, while the
+// queue under it takes the room back at the same pace. A grid row going from
+// its content's height to nothing, so the slide is the body's own height
+// whatever face it shows, with no height measured or written anywhere.
+.player-sound__drawer {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 280ms cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  .player-sound.is-folded & {
+    grid-template-rows: 0fr;
+  }
+}
+
+.player-sound__body {
+  // Its foot's padding, named for the measurement of the window's floor,
+  // which opens the drawer and has to give it back (`_miniPlayerShell.scss`).
+  --player-sound-foot: 12px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  padding: 0 14px var(--player-sound-foot);
+  overflow: hidden;
+  transition:
+    opacity 220ms ease,
+    padding-bottom 280ms cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  .player-sound.is-folded & {
+    padding-bottom: 0;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-sound__drawer,
+  .player-sound__body,
+  .player-sound__fold .player-sound__chevron {
+    transition: none;
+  }
+}
+
+// The two faces at the left, and whether the equalizer is on at the right,
+// the song's save between them while Smart EQ measures.
+.player-sound__tabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+// The faces as tabs in a well, the chosen one raised out of it.
+// THE FACES ON THE PANE, as the keys beside them are (Ivan, 2026-10-25: "too
+// dark for light theme"): the keys' own face and hairline for the track, and
+// the chosen face as the app's segmented switches mark theirs (`.segmented`
+// in `_dspEq.scss`) — a step of mist under the accent's word. They stood in
+// the theme's well with the chosen one on the block colour, and a well is
+// kept darker than the floor at every Brightness, so at the light end the
+// pair read as a dark slab on a light pane.
+.mini-player .player-sound .player-eq__faces {
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  background: var(--surface-field);
+  box-shadow: none;
+}
+
+.mini-player .player-sound .player-eq__face {
+  height: auto;
+  padding: 5px 12px;
+  border-radius: 7px;
+  color: var(--player-text-soft);
+  font-size: 12.5px;
+
+  &:hover:not([aria-pressed='true']) {
+    background: rgba($edge-tint, 0.05);
+    color: var(--player-text);
+  }
+
+  &[aria-pressed='true'] {
+    background: rgba($edge-tint, 0.12);
+    box-shadow: none;
+    color: $secondary-light;
+  }
+}
+
+.player-sound__state {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  color: var(--accent-light);
+  font-size: 11.5px;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+
+  &.is-off {
+    color: var(--player-text-soft);
+  }
+}
+
+.player-sound__lamp {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+
+  .is-off > & {
+    background: var(--player-text-soft);
+    box-shadow: none;
+    opacity: 0.5;
+  }
+}
+
+// The faders are as tall as a graphic equalizer's travel and no taller: the
+// section keeps its height in a tall window, and the queue gets the room.
+.player-sound .player-bands {
+  flex: none;
+  height: calc(var(--player-band-min) + 64px);
+}
+
+// PAGES OF TEN (`MiniBands`): every band one width, and a layout of more
+// than ten runs on past the row's edge, a page at a time. The row
+// scrolls sideways and settles on a page's first band; where it runs on, that
+// edge fades and carries an arrow to the next page.
+.player-sound .player-bands__window {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
+.player-sound .player-bands__faders {
+  flex: 1 1 auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  > .player-band:nth-child(10n + 1) {
+    scroll-snap-align: start;
+  }
+}
+
+.player-sound .player-bands__window.can-on .player-bands__faders {
+  mask-image: linear-gradient(90deg, #{$black} calc(100% - 32px), transparent);
+}
+
+.player-sound .player-bands__window.can-back .player-bands__faders {
+  mask-image: linear-gradient(90deg, transparent, #{$black} 32px);
+}
+
+.player-sound .player-bands__window.can-back.can-on .player-bands__faders {
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #{$black} 32px,
+    #{$black} calc(100% - 32px),
+    transparent
+  );
+}
+
+// The pages' arrows as their glyphs on a faint glass, over the faders'
+// faded edges (Ivan, 2026-10-25: "the band next and prev buttons need to be
+// more glassy too, perhaps just the arrows, not that big thing"): a solid
+// tile the faders' height stood over the last fader of each page. The glass
+// stays, a touch lighter under the pointer, so the arrow is seen to be there
+// ("show the bg that you show on hover, so it is more visible").
+.player-bands__page {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  display: grid;
+  width: 24px;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--player-text) 9%, transparent);
+  color: var(--player-text-muted);
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  translate: 0 -50%;
+  transition: $transition-control;
+
+  .player-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--player-text) 15%, transparent);
+    color: var(--player-text);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+
+  &.is-back {
+    left: 0;
+  }
+
+  &.is-on {
+    right: 0;
+  }
+}
+
+// THE TONE: Bass, Mid, Treble and the preamp, four across, each with its name
+// over the dial and its reading under it.
+.player-sound .player-tone {
+  --tone-knob-size: 70px;
+
+  display: grid;
+  flex: none;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-content: center;
+  gap: 6px;
+  min-height: 0;
+  padding: 4px 0 2px;
+
+  .tone-knob {
+    gap: 2px;
+  }
+
+  .tone-knob__name {
+    order: -1;
+    color: var(--player-text-soft);
+    font-size: 11px;
+    text-transform: none;
+    @include tracking(0.04em);
+  }
+}
+
+// The preamp's name, which is its Auto switch: the name in the other dials'
+// type, and while the app sets the level a small lit AUTO beside it.
+.player-tone__auto {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled) {
+    color: var(--player-text);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+.player-tone__auto-tag {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: color-mix(in srgb, var(--surface-base), #{$black} 40%);
+  font-size: 8.5px;
+  font-weight: $weight-bold;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+// The dial is the preamp's to turn only once Auto is off: its name stays at
+// full strength whatever the dial is doing, because the name is the switch.
+.player-sound .tone-knob--disabled .tone-knob__name:has(.player-tone__auto) {
+  opacity: 1;
+}
+
+// =========================================================== the foot ======
+//
+// The band layout and EQ mode at the left, Clear EQ at the right, each a
+// small key on the pane.
+.mini-player .player-sound__foot {
+  gap: 6px;
+
+  // The triggers alone: the band layout's menu opens in place, and its own
+  // buttons keep the EQ page's faces.
+  .button.quick-layouts__trigger,
+  .eq-mode-trigger,
+  .button.clear-eq-trigger {
+    @include sound-key(28px);
+    gap: 6px;
+    border-radius: $radius-m;
+    background: transparent;
+    color: var(--player-text-muted);
+    font-size: 12px;
+
+    svg {
+      color: var(--player-text-soft);
+    }
+  }
+
+  .button.clear-eq-trigger {
+    margin-left: auto;
+  }
+}

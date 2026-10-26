@@ -4,8 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { isLockedLookId } from 'common/scenePacks';
+import { requestAccountPanel } from '../account/accountPanel';
+import LookPicker from '../graph/LookPicker';
 import { formatDuration } from '../library/player/NowPlayingBar';
+import { setGraphLook, useSelectedLookId } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
 import PlayerIcon from './PlayerIcon';
 import PlayerVolume from './PlayerVolume';
@@ -13,27 +17,40 @@ import SeekRange from './SeekRange';
 import { useLibraryDeck } from './libraryDeck';
 import usePlayerClock from './usePlayerClock';
 import usePlayerSource from './usePlayerSource';
+import { setWindowMode } from './windowModeStore';
 
 /** The bar's own step for back and forward on a source with no seek line. */
 const NUDGE_MS = 5_000;
 
 /**
- * The dock: the glass panel that drives the song (the Stage, Ivan 2026-09-27).
- *
- * The song's line with what has played and what is left at its ends; the
- * five keys that move through it round one large play key; and under them
- * the computer's volume, with the queue's shuffle, repeat and stop at the
- * end. It offers only what the source can do: no seek for a source that
- * cannot seek, shuffle and repeat only for the Library's queue.
+ * The transport, under the picture (the one amp, Ivan 2026-10-25): the
+ * song's line with what has played and what is left at its ends; the keys
+ * that move through it round one large play key, stop last; and under them
+ * the computer's volume, the queue's shuffle and repeat, and the visualizer
+ * the picture above is drawing, whose press opens the whole list of looks
+ * (Ivan: "make sure the viz dropdown opens the menu right to pick not just
+ * to cycle"). It offers only what the source can do: no seek for a source
+ * that cannot seek, shuffle and repeat only for the Library's queue.
  */
 const PlayerDock = () => {
   const { t } = useTranslation();
   const source = usePlayerSource();
   const library = useLibraryDeck();
+  const selectedLookId = useSelectedLookId();
   const { second, durationMs, hasPosition } = usePlayerClock(source);
   const [scrubMs, setScrubMs] = useState<number>();
   const isLibrary = source?.owner === 'library' && library !== undefined;
-  const shownMs = scrubMs ?? (second ?? 0) * 1000;
+  /**
+   * Where the source says it is — what the seek line is handed, never
+   * `shownMs`. The line holds a seek until this moves to where it was asked
+   * for (`SeekRange`), and handed `shownMs` it was watching its own held
+   * place come back through `onScrub`: that number never moves, so the hold
+   * never ended and the line stood still after every jump while the song
+   * played on (Ivan, 2026-10-25: "the music continue playing but the bar
+   * not moving").
+   */
+  const clockMs = (second ?? 0) * 1000;
+  const shownMs = scrubMs ?? clockMs;
   const canSeek = source?.seek !== undefined && hasPosition;
   const canNudge = source?.nudge !== undefined || canSeek;
   const nudge = (deltaMs: number) => {
@@ -47,46 +64,59 @@ const PlayerDock = () => {
   // its own.
   const stop = isLibrary ? library.stop : source?.stop;
   const isPlaying = source?.isPlaying === true;
+  const chooseLook = useCallback((lookId: string) => {
+    if (!isLockedLookId(lookId)) {
+      setGraphLook(lookId);
+      return;
+    }
+    // Plus is explained and bought in the Account panel, which is the full
+    // app's; the look on screen stays put, as it does there.
+    setWindowMode('app')
+      .then(() => requestAccountPanel())
+      .catch(() => undefined);
+  }, []);
+
+  const key = (
+    name: 'back5' | 'previous' | 'next' | 'forward5' | 'stop',
+    label: string,
+    isDisabled: boolean,
+    onPress: () => void,
+  ) => (
+    <button
+      type="button"
+      className="player-dock__key"
+      aria-label={label}
+      title={label}
+      disabled={isDisabled}
+      onClick={onPress}
+    >
+      <PlayerIcon name={name} />
+    </button>
+  );
 
   return (
     <section className="player-dock" aria-label={t('player.transport')}>
       <div className={`player-dock__seek${canSeek ? '' : ' is-still'}`}>
+        <span className="player-dock__time">
+          {hasPosition ? formatDuration(shownMs) : '–:––'}
+        </span>
         <SeekRange
-          positionMs={shownMs}
+          positionMs={clockMs}
           durationMs={durationMs}
           onSeek={canSeek ? source?.seek : undefined}
           onScrub={setScrubMs}
         />
-        <span className="player-dock__times">
-          <span>{hasPosition ? formatDuration(shownMs) : '–:––'}</span>
-          <span>
-            {hasPosition
-              ? `−${formatDuration(Math.max(0, durationMs - shownMs))}`
-              : '–:––'}
-          </span>
+        <span className="player-dock__time is-left">
+          {hasPosition
+            ? `−${formatDuration(Math.max(0, durationMs - shownMs))}`
+            : '–:––'}
         </span>
       </div>
       <div className="player-dock__keys">
-        <button
-          type="button"
-          className="player-dock__key is-side"
-          aria-label={t('library.back5')}
-          title={t('library.back5')}
-          disabled={!canNudge}
-          onClick={() => nudge(-NUDGE_MS)}
-        >
-          <PlayerIcon name="back5" />
-        </button>
-        <button
-          type="button"
-          className="player-dock__key"
-          aria-label={t('library.previous')}
-          title={t('library.previous')}
-          disabled={!source?.previous}
-          onClick={() => source?.previous?.()}
-        >
-          <PlayerIcon name="previous" />
-        </button>
+        {key('previous', t('library.previous'), !source?.previous, () =>
+          source?.previous?.(),
+        )}
+        {key('back5', t('library.back5'), !canNudge, () => nudge(-NUDGE_MS))}
         <button
           type="button"
           className="player-dock__play"
@@ -97,30 +127,14 @@ const PlayerDock = () => {
         >
           <PlayerIcon name={isPlaying ? 'pause' : 'play'} />
         </button>
-        <button
-          type="button"
-          className="player-dock__key"
-          aria-label={t('library.next')}
-          title={t('library.next')}
-          disabled={!source?.next}
-          onClick={() => source?.next?.()}
-        >
-          <PlayerIcon name="next" />
-        </button>
-        <button
-          type="button"
-          className="player-dock__key is-side"
-          aria-label={t('library.forward5')}
-          title={t('library.forward5')}
-          disabled={!canNudge}
-          onClick={() => nudge(NUDGE_MS)}
-        >
-          <PlayerIcon name="forward5" />
-        </button>
+        {key('forward5', t('library.forward5'), !canNudge, () =>
+          nudge(NUDGE_MS),
+        )}
+        {key('next', t('library.next'), !source?.next, () => source?.next?.())}
+        {key('stop', t('library.stop'), !stop, () => stop?.())}
       </div>
       <div className="player-dock__row">
         <PlayerVolume />
-        <span className="player-dock__rule" aria-hidden="true" />
         <button
           type="button"
           className="player-dock__mode"
@@ -145,16 +159,13 @@ const PlayerDock = () => {
         >
           <PlayerIcon name="repeat" />
         </button>
-        <button
-          type="button"
-          className="player-dock__mode"
-          aria-label={t('library.stop')}
-          title={t('library.stop')}
-          disabled={!stop}
-          onClick={() => stop?.()}
-        >
-          <PlayerIcon name="stop" />
-        </button>
+        <span className="player-dock__look">
+          <LookPicker
+            value={selectedLookId}
+            disabled={false}
+            onChoose={chooseLook}
+          />
+        </span>
       </div>
     </section>
   );

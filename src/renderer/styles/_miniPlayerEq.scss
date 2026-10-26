@@ -4,10 +4,9 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-// The player's equalizer: its keys, its screen, its faders and its foot, in
+// The player's equalizer: its keys, its faders, its menus and its rows, in
 // cascade order (see `MiniPlayer.scss`).
 @use 'miniPlayerEqKeys';
-@use 'miniPlayerEqScreen';
 @use 'miniPlayerEqFaders';
 @use 'miniPlayerMenus';
 @use 'miniPlayerEqRows';

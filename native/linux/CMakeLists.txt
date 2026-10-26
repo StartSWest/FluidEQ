@@ -232,6 +232,8 @@ set_tests_properties(linux-output-engine PROPERTIES TIMEOUT 60)
 # for Linux — read from its version resource at configure time, so a merge
 # from main that raises it raises the Linux one with it. The app gates its
 # features on this number (`src/common/engineHealth.ts`), through outputs.json.
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+  ${FEQ_APO_SRC}/engine.rc)
 file(STRINGS ${FEQ_APO_SRC}/engine.rc feq_engine_rc_version
   REGEX "^FILEVERSION[ \t]+[0-9]+")
 string(REGEX MATCHALL "[0-9]+" feq_engine_version_parts "${feq_engine_rc_version}")

@@ -85,8 +85,8 @@ export type ShareAudience = ShareNetwork | 'copy';
  * know what it is before a number from it means anything.
  *
  * The multiplier is only claimed once it has been reached, because "×1" reads
- * worse than saying nothing. Rainbow mode is named as what it is — a look the
- * game unlocks — rather than as the headline it used to be.
+ * worse than saying nothing. Colourful mode is described as what it is — a look
+ * the run lights up — rather than as the headline it used to be.
  */
 const runClause = (
   score: number,
@@ -99,11 +99,11 @@ const runClause = (
   const top = Math.max(EUPHORIA_MULTIPLIER, peak);
   if (compact) {
     return euphoric
-      ? `It hides a beat game: ×${top}, ${points} points, and the interface goes rainbow.`
+      ? `It hides a beat game: ×${top}, ${points} points, and the interface lights up in colour.`
       : `It hides a beat game: ${points} points at ×${peak}.`;
   }
   if (euphoric) {
-    return `It also hides a beat game: I ran the streak to ×${top} for ${points} points and the whole interface went rainbow.`;
+    return `It also hides a beat game: I ran the streak to ×${top} for ${points} points and the whole interface lit up in colour.`;
   }
   return `It also hides a beat game, where I just scored ${points} points at ×${peak}.`;
 };

@@ -35,7 +35,6 @@ import {
   rememberedPlayer,
   type IRect,
   type IWindowState as IWindowStatePush,
-  type TPlayerAmp,
   type TWindowMode,
 } from '../common/windowMode';
 import { peekScheduled, scheduleWrite } from './asyncWriter';
@@ -54,19 +53,26 @@ interface IWindowState {
   isMaximized?: boolean;
   /** The app or the player; missing in every file written before the player. */
   mode?: TWindowMode;
-  /** The 2.0 amp's bounds — the one amp there was when this was named. */
+  /** Where the amp was left. */
   player?: IRect;
-  /** The Stage's bounds, the amp worn in the Backdrop. */
-  stagePlayer?: IRect;
   /**
-   * Which rule wrote the amps' bounds down (`PLAYER_BOUNDS_RULE`); missing in
+   * Which rule wrote the amp's bounds down (`PLAYER_BOUNDS_RULE`); missing in
    * every file written before the rule.
    */
   playerRule?: number;
-  /** Which amp the player was; missing in every file from before there were two. */
-  amp?: TPlayerAmp;
   /** The player's Always on top. */
   isPinned?: boolean;
+}
+
+/**
+ * What a file written while there were two amps holds besides (2026-09-28 to
+ * 2026-10-25): the Stage's own bounds, and which amp the window was. Read
+ * once, so the one amp opens where the last of the two was left; never
+ * written again.
+ */
+interface ITwoAmpsState {
+  stagePlayer?: IRect;
+  amp?: unknown;
 }
 
 /** The screen a saved rectangle belongs to, or the primary one. */
@@ -156,7 +162,7 @@ export const createWindowPlacement = ({
       const file = windowStatePath();
       const parsed = JSON.parse(
         peekScheduled(file) ?? fs.readFileSync(file, 'utf8'),
-      ) as IWindowState;
+      ) as IWindowState & ITwoAmpsState;
 
       const isSize = (value: unknown): value is number =>
         typeof value === 'number' && Number.isFinite(value) && value > 0;
@@ -168,18 +174,21 @@ export const createWindowPlacement = ({
         mode: parsed.mode === 'player' ? 'player' : 'app',
         isPinned: parsed.isPinned === true,
       };
-      // Each amp's own size and place (Ivan, 2026-09-28: "we should
-      // preserve 3 window sizes"), and which one the player was.
-      state.amp = parsed.amp === 'stage' ? 'stage' : 'classic';
+      // The amp's place and height. A file from when there were two amps
+      // kept one of each, and the one the window was last is the one it
+      // opens where.
       const player = rememberedPlayer(parsed);
       const stagePlayer = rememberedPlayer({
         player: parsed.stagePlayer,
         playerRule: parsed.playerRule,
       });
-      if (player || stagePlayer) {
+      const left =
+        parsed.amp === 'stage'
+          ? (stagePlayer ?? player)
+          : (player ?? stagePlayer);
+      if (left) {
         state.playerRule = PLAYER_BOUNDS_RULE;
-        state.player = player;
-        state.stagePlayer = stagePlayer;
+        state.player = left;
       }
       if (isSize(parsed.width) && isSize(parsed.height)) {
         // Up to the app's floor on the screen it was left on. A window saved
@@ -247,9 +256,8 @@ export const createWindowPlacement = ({
       // The full app's bounds are the window's own while it is the app. While
       // it is the player they are the ones the switch put aside, to go back to.
       const bounds = isPlayer ? modes.app : mainWindow.getNormalBounds();
-      // Each amp's own bounds, never the full screen's or a switch's.
-      const player = windowModes.playerBounds(mainWindow, 'classic');
-      const stagePlayer = windowModes.playerBounds(mainWindow, 'stage');
+      // The amp's own bounds, never the full screen's or a switch's.
+      const player = windowModes.playerBounds(mainWindow);
       // A window that is off screen right now cannot report the state the user
       // chose. Normally that never happens: the close handler saves before it
       // hides, so the window is still visible at that moment. It does happen
@@ -268,12 +276,9 @@ export const createWindowPlacement = ({
         // The player is never maximised; what it keeps is the app's own.
         isMaximized: isPlayer ? modes.app.isMaximized === true : isAppMaximized,
         mode: modes.mode,
-        ...(isUsableRect(player) ? { player } : {}),
-        ...(isUsableRect(stagePlayer) ? { stagePlayer } : {}),
-        ...(isUsableRect(player) || isUsableRect(stagePlayer)
-          ? { playerRule: PLAYER_BOUNDS_RULE }
+        ...(isUsableRect(player)
+          ? { player, playerRule: PLAYER_BOUNDS_RULE }
           : {}),
-        amp: modes.amp,
         isPinned: modes.isPinned,
       };
       scheduleWrite(windowStatePath(), JSON.stringify(state, null, 2)).catch(

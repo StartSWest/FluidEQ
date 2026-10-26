@@ -5,17 +5,29 @@
   gap: 18px;
   align-items: start;
 }
+// All computers share these tracks. Sizing each row independently let the
+// local waveform drift right because it has fewer controls than a peer.
+.remote-audio__group {
+  display: grid;
+  grid-template-columns: minmax(170px, 230px) minmax(75px, 1fr) auto auto;
+  column-gap: 18px;
+}
+.remote-audio__group > .remote-audio__link-head {
+  grid-column: 1 / -1;
+}
 .remote-audio__group-row {
   grid-template-areas: none;
   padding: 0;
-  gap: 0;
-  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 18px;
+  grid-template-columns: subgrid;
 }
 .remote-audio__group-actions {
+  grid-column: 4;
   padding-right: 18px;
 }
 .remote-audio__group-lanes {
-  grid-template-columns: minmax(170px, 0.8fr) minmax(75px, 1fr) auto;
+  grid-column: 1 / 4;
+  grid-template-columns: subgrid;
 }
 .remote-audio__group-lanes > .remote-audio__lane {
   grid-template-columns: subgrid;
@@ -29,6 +41,9 @@
 }
 .remote-audio__group-lanes .remote-audio__lane-figures:empty {
   display: none;
+}
+.remote-audio__group-lanes .remote-audio__lane-names strong {
+  overflow-wrap: anywhere;
 }
 .remote-audio__mix-fader {
   display: block;
@@ -57,6 +72,9 @@
   }
 }
 @container eq-panel (max-width: 800px) {
+  .remote-audio__group {
+    display: flex;
+  }
   .remote-audio__group-row {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -67,6 +85,7 @@
     padding-bottom: 16px;
   }
   .remote-audio__group-lanes {
+    grid-column: 1;
     grid-template-columns: minmax(0, 1fr) auto;
   }
   .remote-audio__group-lanes .remote-audio__lane-direction {

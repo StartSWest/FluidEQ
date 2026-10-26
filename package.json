@@ -48,7 +48,7 @@
     "make-tray-badge-icon": "ts-node .erb/scripts/make-tray-badge-icon.ts",
     "fetch-apo": "ts-node ./.erb/scripts/fetch-equalizer-apo.ts",
     "fetch-apo:source": "ts-node ./.erb/scripts/fetch-equalizer-apo.ts --source",
-    "package": "ts-node ./.erb/scripts/clean.js dist && pnpm fetch-apo && pnpm licenses:notices --check && pnpm build && electron-builder build --publish never",
+    "package": "ts-node ./.erb/scripts/clean.js dist && pnpm fetch-apo && pnpm licenses:notices --check && cross-env FLUIDEQ_NO_ADDONS=1 pnpm build && ts-node ./.erb/scripts/check-release-addons.ts && electron-builder build --publish never",
     "licenses:notices": "ts-node ./.erb/scripts/generate-third-party-licenses.ts",
     "prepare": "husky",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
@@ -69,7 +69,7 @@
     "typecheck:encoding": "ts-node ./.erb/scripts/check-encoding.ts",
     "perf:probe": "cross-env TS_NODE_TRANSPILE_ONLY=true ts-node ./.erb/scripts/perf-probe.ts",
     "package:release": "pnpm package && ts-node ./.erb/scripts/sign-update-feed.ts",
-    "package:linux": "ts-node ./.erb/scripts/clean.js dist && pnpm licenses:notices && pnpm build:native-dsp && native/linux/build-portable.sh && pnpm build:main && pnpm build:renderer && electron-builder build --linux --publish never",
+    "package:linux": "ts-node ./.erb/scripts/clean.js dist && pnpm licenses:notices && pnpm build:native-dsp && native/linux/build-portable.sh && pnpm build:main && pnpm build:renderer && ts-node ./.erb/scripts/check-release-addons.ts && electron-builder build --linux --publish never",
     "update-feed-keys": "ts-node ./.erb/scripts/update-feed-keys.ts",
     "update-feed-key": "ts-node ./.erb/scripts/update-feed-key.ts",
     "package:signed": "ts-node ./.erb/scripts/package-signed.ts"
@@ -348,7 +348,7 @@
     "npm": ">=7.x"
   },
   "electronmon": {
-    "patterns": ["!**/**", "src/main/**", "src/common/**"],
+    "patterns": ["!**/**", "src/main/**", "src/common/**", "addons/*/main/**"],
     "logLevel": "quiet"
   }
 }

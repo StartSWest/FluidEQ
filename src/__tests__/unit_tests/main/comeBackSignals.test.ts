@@ -188,8 +188,8 @@ describe('createComeBackWatch', () => {
 
 describe('accountComeBackSteps', () => {
   /**
-   * Every refresher, recording the order it was called in. The scene
-   * announcements are the last step, and say so on `done`.
+   * Every refresher, recording the order it was called in. The add-ons are
+   * the last step, and say so on `done`.
    */
   const makeRefreshers = () => {
     const calls: string[] = [];
@@ -206,8 +206,11 @@ describe('accountComeBackSteps', () => {
       sceneReviews: { refreshIfDue: jest.fn(record('scene reviews')) },
       plusTermsNotice: { checkIfDue: jest.fn(record('Plus terms notice')) },
       sceneAnnouncements: {
+        refreshIfDue: jest.fn(record('scene announcements')),
+      },
+      addons: {
         refreshIfDue: jest.fn(async () => {
-          calls.push('scene announcements');
+          calls.push('add-ons');
           done.emit('done');
         }),
       },
@@ -248,6 +251,7 @@ describe('accountComeBackSteps', () => {
       'scene reviews',
       'Plus terms notice',
       'scene announcements',
+      'add-ons',
     ]);
     expect(refreshers.entitlement.checkIfDue).toHaveBeenCalledWith(
       'wake from sleep',
@@ -266,6 +270,9 @@ describe('accountComeBackSteps', () => {
       'wake from sleep',
     );
     expect(refreshers.sceneAnnouncements.refreshIfDue).toHaveBeenCalledWith(
+      'wake from sleep',
+    );
+    expect(refreshers.addons.refreshIfDue).toHaveBeenCalledWith(
       'wake from sleep',
     );
     expect(harness.logger.warn).not.toHaveBeenCalled();
@@ -295,6 +302,7 @@ describe('accountComeBackSteps', () => {
       'scene reviews',
       'Plus terms notice',
       'scene announcements',
+      'add-ons',
     ]);
     expect(harness.logger.warn.mock.calls).toEqual([
       ['Refreshing the FluidEQ scenes after screen unlock failed.', rejected],

@@ -2,7 +2,7 @@
 # Copyright (C) <2026>  <Ivan Carmenates Garcia>
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
-# One output's shared-mode format — the "Default Format" in Sound settings —
+# One output's shared-mode format -- the "Default Format" in Sound settings --
 # read, set to 7.1, or put back. Windows sends a game's or a film's surround
 # channels only to an output whose format has that many channels, so the
 # Room's one-press 7.1 is this: the same rate and bit depth the output has,
@@ -25,6 +25,11 @@ param(
     [int]$SetChannels = 0,
     [string]$Restore = ''
 )
+
+# Answer in UTF-8, as the app reads it -- see windows-audio-devices.ps1 and
+# UTF8_OUTPUT_STATEMENT in src/main/powershell.ts (GitHub issue 39). This file
+# stays ASCII for the same reason.
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $source = @'
 using System;

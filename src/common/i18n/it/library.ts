@@ -177,6 +177,9 @@ const library: Partial<Dictionary> = {
   'library.karaoke.sending': 'Invio al Karaoke…',
   'library.karaoke.failed':
     'Non è stato possibile mandare questo file al Karaoke: forse è troppo grande o illeggibile.',
+  'library.drop.empty': 'In ciò che hai trascinato non c’è musica',
+  'library.drop.already': 'Tutto ciò che hai trascinato è già «In coda»',
+  'library.drop.failed': 'Impossibile aggiungere la musica trascinata',
 };
 
 export default library;

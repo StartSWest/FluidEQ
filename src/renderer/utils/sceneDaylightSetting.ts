@@ -61,6 +61,16 @@ const isSource = (value: unknown): value is TDaylightSource =>
   SOURCES.some((source) => source === value);
 
 /**
+ * A time of day kept on its own is a whole percent, like every slider it is
+ * set on. Turning a follow off keeps the scene where it was at that moment,
+ * which is wherever Brightness or the clock had put it — 96.7334490740…% —
+ * and the Daylight row printed every digit of that (Ivan, 2026-10-25: "look
+ * at this mess", "those numbers"). Read back whole too, so one stored before
+ * this is healed on its next launch.
+ */
+const wholeDaylight = (daylight: number) => clampDaylight(Math.round(daylight));
+
+/**
  * Where a stored setting says its time of day comes from. The first build of
  * this choice had two ways, kept as `followsBrightness`; one written then is
  * read as the same choice.
@@ -102,7 +112,7 @@ const readSetting = (
   ) {
     return undefined;
   }
-  return { source, daylight: clampDaylight(parsed.daylight) };
+  return { source, daylight: wholeDaylight(parsed.daylight) };
 };
 
 const appSetting = readSetting('app') ?? FOLLOWING;
@@ -195,13 +205,13 @@ export const holdDaylightToBrightness = (): (() => void) => {
 export const setDaylightSource = (source: TDaylightSource, current: number) =>
   choose(
     source === 'own'
-      ? { source, daylight: clampDaylight(current) }
+      ? { source, daylight: wholeDaylight(current) }
       : { ...chosen[scope], source },
   );
 
 /** The time of day a scene keeps while it is set on its own. */
 export const setSceneDaylight = (daylight: number) =>
-  choose({ ...chosen[scope], daylight: clampDaylight(daylight) });
+  choose({ ...chosen[scope], daylight: wholeDaylight(daylight) });
 
 const subscribe = (listener: () => void) => {
   listeners.add(listener);

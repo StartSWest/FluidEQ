@@ -161,11 +161,14 @@ const eq: Partial<Dictionary> = {
     'Tutto Ambiente, con il visualizzatore dietro tutta la finestra.',
   'graph.editHint':
     'Trascina i punti · Ctrl/Maiusc per selezionare · Ctrl+rotellina: Q · Ctrl+trascina: campana',
+  'graph.windowTint': 'Tinta',
+  'graph.windowTintHint':
+    'Il colore della finestra con un aspetto standard. Doppio clic per tornare al colore originale.',
   'graph.backdropVeil': 'Trasparenza',
   'graph.backdropVeilHint':
     'Quanto del visualizzatore si vede attraverso i pannelli',
   'graph.sceneTint.brightness': 'Luminosità',
-  'graph.sceneTint.rainbow': 'Modalità arcobaleno',
+  'graph.sceneTint.rainbow': 'Modalità colorata',
   'graph.sceneTint.rainbowHint':
     'Le bande, il titolo e i controlli accesi in una tavolozza invece che in un solo colore; con una scena scelta, nei suoi colori.',
   'graph.sceneTint.sparks': 'Scintille del puntatore',
@@ -175,15 +178,19 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.daylightHint':
     'L’ora del giorno del visualizzatore, dalla notte al pieno giorno',
   'graph.sceneTint.daylightFollowingHint':
-    'Segue la luminosità. Disattiva «La luce segue la luminosità» per scegliere a parte l’ora del giorno del visualizzatore',
-  'graph.sceneTint.daylightFollows': 'La luce segue la luminosità',
+    'Segue la luminosità. Scegli Niente sotto per impostare qui l’ora del visualizzatore',
+  'graph.sceneTint.daylightSource': 'Segue',
+  'graph.sceneTint.daylightSourceOwn': 'Niente',
+  'graph.sceneTint.daylightSourceBrightness': 'Luminosità',
+  'graph.sceneTint.daylightSourceClock': 'Orologio',
+  'graph.sceneTint.daylightOwnHint':
+    'Il visualizzatore mantiene la luce del giorno impostata sopra.',
   'graph.sceneTint.daylightFollowsHint':
-    'Attivo, il visualizzatore passa dalla notte al giorno con la luminosità. Disattivo, mantiene la luce del giorno impostata sopra e la luminosità cambia solo la finestra.',
-  'graph.sceneTint.daylightClock': 'La luce segue l’orologio',
+    'Il visualizzatore passa dalla notte al giorno con la luminosità.',
   'graph.sceneTint.daylightClockHint':
-    'Attivo, il visualizzatore è di notte la notte e di giorno il giorno, secondo l’orologio di questo computer. Disattivo, mantiene la luce del giorno impostata sopra.',
+    'Il visualizzatore è notte di notte e giorno di giorno, secondo l’orologio di questo computer.',
   'graph.sceneTint.daylightFollowingClockHint':
-    'Segue l’orologio. Disattiva «La luce segue l’orologio» per scegliere a parte l’ora del giorno del visualizzatore',
+    'Segue l’orologio. Scegli Niente sotto per impostare qui l’ora del visualizzatore',
   'graph.sceneTint.daylightStudioHint':
     'Con lo Studio aperto, la Luminosità decide l’ora del giorno del visualizzatore, per provare una scena dalla notte al giorno. Questa scelta torna quando esci dallo Studio',
   'graph.sceneTint.brightnessHint':
@@ -631,7 +638,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target': 'Obiettivo',
   'eq.smart.mode.target.note':
     'Continua a misurare · ogni registrazione sulla stessa curva',
-  'eq.layers': 'Applicato anche',
   'eq.layers.aria': 'Cos’altro sta modellando questa uscita',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} bande',
@@ -787,7 +793,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Solo le tue bande di EQ, senza nulla sopra',
   'voicing.strength': 'Intensità',
   'waveform.style': "Cambia lo stile dell'indicatore",
-  'waveform.rainbow': 'Arcobaleno',
+  'waveform.rainbow': 'Colorata',
   'waveform.live': 'USCITA IN TEMPO REALE',
   'waveform.signal': 'SEGNALE AUDIO',
   'waveform.clip': 'SATURAZIONE',

@@ -8,7 +8,7 @@ import type { ISceneSubmission } from 'common/plusReview';
 import { resolveSceneName } from 'common/scenePacks';
 import { useTranslation } from '../utils/I18nContext';
 import { categoriesLabel } from './GalleryParts';
-import { REJECT_REASON_LABELS } from './ReviewDecision';
+import { REJECT_REASON_LABELS } from './rejectReasons';
 import ReviewPicture from './ReviewPicture';
 
 interface IReviewStateProps {

@@ -25,13 +25,13 @@ interface IPlayerTitleStripProps {
  * The amp's header, and the handle the window is dragged by (the Stage, Ivan
  * 2026-09-27: "we need a nicer header with title and handler look").
  *
- * Nothing in its middle but a grab bar over the name, which says "drag
- * here" and is all header — the visualizer's controls went onto the picture
- * (`PlayerStageBar`) so the strip stays clean to drag. At its ends two glass
- * pieces hold the only buttons in it: the FluidEQ mark, which opens the menu
- * that stands in for the app's tab strip (`PlayerMarkMenu`), and the window's
- * own — Always on top and the switch back to the full app, then minimise and
- * close.
+ * Nothing in its middle but the name between two double rules, which says
+ * "drag here" the way the ridges on a piece of hardware do (the one amp, Ivan
+ * 2026-10-25), and is all header — the visualizer's controls are on the
+ * picture (`PlayerHero`) so the strip stays clean to drag. At its ends the
+ * only buttons in it: the FluidEQ mark, which opens the menu that stands in
+ * for the app's tab strip (`PlayerMarkMenu`), and the window's own — Always
+ * on top and the switch back to the full app, then minimise and close.
  *
  * A double-click on the header folds the player to one line, where the app's
  * titlebar would maximise — a player has nothing to maximise into. Windows
@@ -55,8 +55,9 @@ const PlayerTitleStrip = ({ onFold, onOpenPage }: IPlayerTitleStripProps) => {
         <PlayerMarkMenu onFold={onFold} onOpenPage={onOpenPage} />
       </div>
       <span className="player-title__handle" aria-hidden="true">
-        <span className="player-title__grabber" />
+        <span className="player-title__line" />
         <span className="player-title__name">{PRODUCT_NAME}</span>
+        <span className="player-title__line" />
       </span>
       <div className="player-title__controls">
         <button
@@ -72,7 +73,6 @@ const PlayerTitleStrip = ({ onFold, onOpenPage }: IPlayerTitleStripProps) => {
         <WindowModeSwitch />
         {!isMac && (
           <>
-            <span className="player-title__rule" aria-hidden="true" />
             <button
               type="button"
               className="player-title__button"

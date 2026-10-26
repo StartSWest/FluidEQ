@@ -276,7 +276,7 @@ it('sends the reader to the Pointer sparks switch by its own label', () => {
   goTo('Visualizers that answer your mouse');
   expect(
     screen.getByText(
-      'One switch for every visualizer: Pointer sparks, in Window colours under Rainbow mode.',
+      'One switch for every visualizer: Pointer sparks, in Window colours under Colourful mode.',
     ),
   ).toBeInTheDocument();
   expect(

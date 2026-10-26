@@ -56,7 +56,7 @@ import path from 'path';
 import log from 'electron-log';
 import { APP_USER_MODEL_ID } from './appIdentity';
 import { createHelperReplacement } from './helperReplacement';
-import { POWERSHELL_PATH } from './powershell';
+import { POWERSHELL_PATH, utf8Command } from './powershell';
 import isBase64 from '../common/base64';
 import createLinuxMediaArtwork from './linux/linuxMediaArtwork';
 
@@ -664,7 +664,7 @@ ${commandScript}
         '-ExecutionPolicy',
         'Bypass',
         '-Command',
-        script,
+        utf8Command(script),
       ],
       { windowsHide: true },
     );
@@ -742,7 +742,7 @@ foreach ($candidate in @($manager.GetSessions())) {
         '-ExecutionPolicy',
         'Bypass',
         '-Command',
-        script,
+        utf8Command(script),
       ],
       {
         windowsHide: true,

@@ -4,15 +4,26 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { ReactNode } from 'react';
 import Knob from './Knob';
 import '../styles/ToneKnob.scss';
 
 interface IToneKnobProps {
-  /** The word under the dial: Bass, Mid, Treble. */
+  /** The word under the dial: Bass, Mid, Treble, Preamp. */
   name: string;
+  /**
+   * What stands in the name's place where the name is also a control: the
+   * preamp's, which is its Auto switch. The dial is still called `name`.
+   */
+  label?: ReactNode;
   value: number;
   min: number;
   max: number;
+  /**
+   * The value at the top of the sweep, for a range that is not even about
+   * it: the preamp's -60 to +20 keeps unity at the top (`Knob`).
+   */
+  centre?: number;
   step: number;
   isDisabled: boolean;
   unit: string;
@@ -30,9 +41,11 @@ interface IToneKnobProps {
  */
 const ToneKnob = ({
   name,
+  label,
   value,
   min,
   max,
+  centre,
   step,
   isDisabled,
   unit,
@@ -46,6 +59,7 @@ const ToneKnob = ({
       value={value}
       min={min}
       max={max}
+      centre={centre}
       step={step}
       isDisabled={isDisabled}
       unit={unit}
@@ -53,7 +67,7 @@ const ToneKnob = ({
       onReset={onReset}
       handleChange={handleChange}
     />
-    <span className="tone-knob__name">{name}</span>
+    <span className="tone-knob__name">{label ?? name}</span>
   </div>
 );
 

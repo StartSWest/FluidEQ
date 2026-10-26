@@ -168,8 +168,8 @@ const deps = (): IMainWindowDeps => ({
 });
 
 /** The window built, with its first load still on its way. */
-const open = () => {
-  const done = createMainWindowFactory(deps())();
+const open = (overrides: Partial<IMainWindowDeps> = {}) => {
+  const done = createMainWindowFactory({ ...deps(), ...overrides })();
   const window = windows[windows.length - 1];
   return { window, done };
 };
@@ -190,29 +190,6 @@ afterEach(() => {
 });
 
 describe('when the window appears', () => {
-  it.each([
-    ['linux', [{ mode: 'detach' }]],
-    ['win32', []],
-  ] as const)(
-    'keeps the %s development inspector from changing the intended app viewport',
-    async (platform, options) => {
-      const original = Object.getOwnPropertyDescriptor(process, 'platform');
-      Object.defineProperty(process, 'platform', { value: platform });
-      try {
-        const done = createMainWindowFactory({ ...deps(), isDebug: true })();
-        const window = windows[windows.length - 1];
-        say(RENDERER_READY_EVENT, window.webContents);
-        expect(window.webContents.openDevTools.mock.calls).toEqual([options]);
-        finishLoad();
-        await done;
-      } finally {
-        if (original) {
-          Object.defineProperty(process, 'platform', original);
-        }
-      }
-    },
-  );
-
   it('is not decided by ready-to-show, and no clock is started for it', () => {
     const { window } = open();
     expect(ipcMain.handle).toHaveBeenCalledWith(
@@ -278,6 +255,30 @@ describe('when the window appears', () => {
     expect(ipcListeners.get(RENDERER_READY_EVENT)?.size).toBe(1);
     say(RENDERER_READY_EVENT, window.webContents);
     expect(ipcListeners.get(RENDERER_READY_EVENT)?.size).toBe(0);
+  });
+});
+
+// No developer tools at launch, in development either. They opened docked
+// inside the window on every start, and docked they decide how wide the page
+// is: a restart into the amp drew it 1920px wide in a 475px window (Ivan,
+// 2026-10-25). The menu opens them in a window of their own
+// (`devToolsMenu.test.ts`).
+describe('a development launch', () => {
+  it('shows the window without opening the developer tools', () => {
+    const { window } = open({ isDebug: true });
+    say(RENDERER_READY_EVENT, window.webContents);
+    // POSITIVE CONTROL: the window was revealed, which is where they opened.
+    expect(window.show).toHaveBeenCalledTimes(1);
+    expect(window.webContents.openDevTools).not.toHaveBeenCalled();
+  });
+
+  it('keeps a window that starts hidden free of them too', () => {
+    const { window } = open({ isDebug: true, startsHidden: () => true });
+    say(RENDERER_READY_EVENT, window.webContents);
+    // POSITIVE CONTROL: the reveal ran and kept the window hidden.
+    expect(ipcListeners.get(RENDERER_READY_EVENT)?.size).toBe(0);
+    expect(window.show).not.toHaveBeenCalled();
+    expect(window.webContents.openDevTools).not.toHaveBeenCalled();
   });
 });
 

@@ -27,4 +27,11 @@ Object.entries(require('./.erb/configs/public-env').default).forEach(
   },
 );
 
+// Add-ons kept in this checkout's own `addons/` folder (git-ignored), each
+// registering itself with `src/main/addons.ts` before the app starts. Only
+// here: the packaged main process is bundled from main.ts, which names none.
+require('./.erb/scripts/addons')
+  .mainAddonEntries()
+  .forEach((entry) => require(entry));
+
 require('./src/main/main.ts');

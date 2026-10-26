@@ -87,10 +87,6 @@ const store: Partial<Dictionary> = {
   'store.like.ownersOnly':
     'Лайков: {count}. Получите сцену, чтобы поставить лайк.',
   'store.scene.free': 'Бесплатно для всех',
-  'store.admin.freeTitle': 'Бесплатно для всех',
-  'store.admin.freeOn': 'Любой вошедший аккаунт запускает её, не тратя кредит.',
-  'store.admin.freeOff':
-    'Один кредит, как любая другая сцена. Включите, чтобы отдать её всем.',
   'store.error.termsOutdated':
     'Условия изменились. Обновите FluidEQ, чтобы прочитать новую версию, прежде чем покупать кредиты.',
 };

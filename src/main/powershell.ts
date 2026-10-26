@@ -45,3 +45,27 @@ export const POWERSHELL_PATH = path.join(
   'v1.0',
   'powershell.exe',
 );
+
+/**
+ * The first thing every PowerShell this app runs does: answer in UTF-8.
+ *
+ * Every reader here decodes PowerShell's output as UTF-8, and Windows
+ * PowerShell 5.1 writes it in the console's code page instead — GBK (936) on
+ * a Chinese system, 437 on an American one. So an output Windows names in
+ * Chinese reached the window as ������ (GitHub issue 39), and the same name
+ * came back as ??? here: Japanese, Korean and Cyrillic names did too, an
+ * accent became �, and so did a game folder's name or the path the update
+ * check is handed back. Without a byte-order mark, because Node does not
+ * strip one: the first line would start with an invisible character and the
+ * JSON on it would no longer parse.
+ *
+ * Shipped scripts carry it as their first statement after `param`
+ * (`assets/*.ps1`), an inline `-Command` gets it from `utf8Command`, and
+ * `powershellUtf8.test.ts` fails on any that does not.
+ */
+export const UTF8_OUTPUT_STATEMENT =
+  '[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)';
+
+/** An inline `-Command` script that answers in UTF-8 (`UTF8_OUTPUT_STATEMENT`). */
+export const utf8Command = (script: string): string =>
+  `${UTF8_OUTPUT_STATEMENT}\n${script}`;

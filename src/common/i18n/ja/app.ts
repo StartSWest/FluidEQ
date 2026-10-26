@@ -316,7 +316,6 @@ const app: Partial<Dictionary> = {
   'sidebar.preampAuto':
     '自動で設定されます。自分で決めるには自動ノーマライズをオフにしてください。',
   'sidebar.autoPreamp': '自動ノーマライズ',
-  'sidebar.visualizer': 'ビジュアライザー',
   'sidebar.graphView': '周波数特性',
   'sidebar.output': '出力',
   'config.eyebrow': 'エンジンが実際に読むもの',

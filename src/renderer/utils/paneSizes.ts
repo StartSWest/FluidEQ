@@ -371,14 +371,16 @@ export const belowGraphPaneKey = (tab: string) => `${tab}${BELOW_GRAPH_SUFFIX}`;
 const BELOW_GRAPH_DEFAULT_HEIGHT = 344;
 
 /**
- * And never less than this share of the page, on a window with room to spare
- * (Ivan, 2026-09-29: "the EQ in main EQ default to be like 40% of the
- * height"). By need alone the bands opened at about a third of a 2560x1392
- * window, the graph towering over sliders drawn short. The need still
- * wins where it is the larger — a 1440x852 laptop, where 40% would put the
- * tracks under their floor and scroll the page.
+ * And never less than this share of the page, on a window with room to spare:
+ * the bands a little over half, the graph the rest (Ivan, 2026-10-25, with a
+ * screenshot of the split he wanted: "more on the EQ band sliders than in the
+ * graph", measured off it at 0.56 of this base — about three fifths of what the
+ * graph and the bands share). It was 0.4 from 2026-09-29 ("like 40% of the
+ * height"), and the graph stood over sliders drawn short. The need still wins
+ * where it is the larger — a 1440x852 laptop, where a share alone would put
+ * the tracks under their floor and scroll the page.
  */
-const BELOW_GRAPH_DEFAULT_SHARE = 0.4;
+const BELOW_GRAPH_DEFAULT_SHARE = 0.56;
 
 const editorShareForTab = (tab: string) => {
   const stored = editorSharesByTab[tab];

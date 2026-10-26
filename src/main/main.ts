@@ -883,6 +883,7 @@ const comeBack = createComeBackWatch({
     sceneReviews: members.plusReviewIpc,
     plusTermsNotice: members.plusTermsNoticeIpc,
     sceneAnnouncements: members.sceneAnnouncementsIpc,
+    addons: members.addons,
   }),
   getActiveAutoUpdater: updates.getActiveAutoUpdater,
   applyUpdateIfUnattended: updates.applyUpdateIfUnattended,

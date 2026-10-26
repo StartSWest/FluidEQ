@@ -56,6 +56,12 @@ const PEAK_WIDEST = ['-000.0 dBFS'];
 const analysisValue = (value: number | undefined, unit: string) =>
   value === undefined ? '—' : `${value.toFixed(1)} ${unit}`;
 
+/** A full short-term window is required on both sides before comparing them. */
+const liveLufs = (value: number | undefined) =>
+  value === undefined || !Number.isFinite(value) || value <= -100
+    ? '—'
+    : analysisValue(value, 'LUFS');
+
 /** What the engine's leveller is doing right now, under the FluidEQ Engine. */
 export const DspNormalizerLiveState = () => {
   const { t } = useTranslation();
@@ -81,34 +87,41 @@ export const DspNormalizerStats = ({
   const livePeak = useDspNormalizerMeterValue((meter) =>
     analysisValue(meter.inputTruePeakDb, 'dBTP'),
   );
-  const liveLoudness = useDspNormalizerMeterValue((meter) =>
-    analysisValue(meter.inputLufs, 'LUFS'),
+  const inputLoudness = useDspNormalizerMeterValue((meter) =>
+    liveLufs(meter.inputLufs),
+  );
+  const outputLoudness = useDspNormalizerMeterValue((meter) =>
+    liveLufs(meter.outputLufs),
   );
   const appliedGain = useDspNormalizerMeterValue((meter) =>
     analysisValue(meter.appliedGainDb, 'dB'),
   );
   return (
-    <dl className="dsp-normalizer-stats">
+    <dl className={`dsp-normalizer-stats${isLive ? ' is-live' : ''}`}>
+      {isLive && (
+        <>
+          <div>
+            <dt>{t('dsp.normalizer.inputLoudness')}</dt>
+            <dd>{inputLoudness}</dd>
+          </div>
+          <div>
+            <dt>{t('dsp.normalizer.outputLoudness')}</dt>
+            <dd>{outputLoudness}</dd>
+          </div>
+        </>
+      )}
       <div>
         <dt>{t('dsp.normalizer.measuredPeak')}</dt>
         <dd>
           {isLive ? livePeak : analysisValue(analysis?.truePeakDbtp, 'dBTP')}
         </dd>
       </div>
-      <div>
-        <dt>
-          {t(
-            isLive
-              ? 'dsp.normalizer.shortTerm'
-              : 'dsp.normalizer.measuredLoudness',
-          )}
-        </dt>
-        <dd>
-          {isLive
-            ? liveLoudness
-            : analysisValue(analysis?.integratedLufs, 'LUFS')}
-        </dd>
-      </div>
+      {!isLive && (
+        <div>
+          <dt>{t('dsp.normalizer.measuredLoudness')}</dt>
+          <dd>{analysisValue(analysis?.integratedLufs, 'LUFS')}</dd>
+        </div>
+      )}
       <div>
         <dt>{t('dsp.normalizer.appliedGain')}</dt>
         <dd>{appliedGain}</dd>

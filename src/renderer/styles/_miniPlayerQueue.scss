@@ -4,18 +4,16 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-@use 'sass:list';
-@use 'sass:math';
 @use 'color' as *;
 @use 'theme' as *;
 @use 'miniPlayerParts' as *;
 
-// The queue: the Library's play order around the song playing, as the
-// sheet's second page (the Stage, Ivan 2026-09-27).
+// The queue: the Library's play order around the song playing, as the Up
+// next page of the shelf at the amp's foot (`PlayerQueue`, Ivan 2026-10-25).
 
 // ============================================================ the queue ====
 //
-// The sheet is its face; it fills the page, and its list scrolls inside.
+// It fills the shelf's page, and its list scrolls inside.
 .player-queue {
   position: relative;
   display: flex;
@@ -24,63 +22,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 8px;
   min-width: 0;
   min-height: 0;
-}
-
-.player-queue__head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  padding: 0 4px;
-}
-
-// MUSIC DRAGGED IN FROM THE COMPUTER. The page says it will take it while a
-// drag carrying files is over it, and nothing at any other time.
-.player-queue__drop {
-  position: absolute;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  inset: 0;
-  border: 1px dashed color-mix(in srgb, var(--accent) 55%, transparent);
-  border-radius: 18px;
-  // Enough of the glass to read a word on, and little enough that the list
-  // under it still says which queue is being added to.
-  background: color-mix(in srgb, var(--surface-base) 78%, transparent);
-  color: var(--player-ink-bright);
-  font-size: 12.5px;
-  font-weight: $weight-semibold;
-  // The drop belongs to the page underneath; this only says so.
-  pointer-events: none;
-
-  .player-icon {
-    width: 14px;
-    height: 14px;
-    transform: rotate(90deg);
-  }
-}
-
-// HOW FAR THROUGH THE QUEUE THE PLAYHEAD IS, as a line lit in the accent. It
-// takes whatever width the head has left, from what is left to the Library.
-.player-queue__progress {
-  flex: 1 1 24px;
-  min-width: 16px;
-  height: 3px;
-  overflow: hidden;
-  border-radius: 2px;
-  background: var(--player-track);
-
-  &::before {
-    display: block;
-    width: calc(var(--queue-progress, 0) * 100%);
-    height: 100%;
-    border-radius: inherit;
-    background: var(--accent);
-    content: '';
-    transition: width 220ms ease;
-  }
 }
 
 // The way to the Library, as a link in the accent's light: it takes the
@@ -195,145 +136,41 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-.player-queue__number,
+// "More like this": the songs Keep playing draws once the last song queued
+// begins, under a heading of their own as in the Library's Up Next (Ivan,
+// 2026-10-25: "as a different section"). Small capitals over a dashed rule,
+// quieter than any row, because what is under it is the player's guess and
+// not a list anybody built. Inside the list, so it scrolls with the rows,
+// and 24px tall: the queue can be a row and a half on a laptop. Laid out on
+// the row's own grid, so the words and the rule start where the covers do.
+.player-queue__list > .player-queue__section {
+  display: grid;
+  grid-template-columns: 1.8em 40px minmax(0, 1fr);
+  column-gap: 10px;
+  box-sizing: border-box;
+  height: 24px;
+  margin-bottom: 2px;
+  padding: 0 12px 0 4px;
+
+  > span {
+    @include truncate;
+    grid-column: 2 / -1;
+    align-self: end;
+    padding-bottom: 3px;
+    border-bottom: 1px dashed
+      color-mix(in srgb, var(--player-text-soft) 40%, transparent);
+    color: var(--player-text-soft);
+    font-size: 10px;
+    font-weight: $weight-bold;
+    line-height: 12px;
+    text-transform: uppercase;
+    @include tracking(0.12em);
+  }
+}
+
 .player-queue__time {
   color: var(--player-text-soft);
   font-size: 12px;
-}
-
-.player-queue__number {
-  display: flex;
-  justify-content: flex-end;
-}
-
-// Three bars keeping time beside the song that is playing.
-//
-// Each bar falls from its own height to a quarter of the meter and back. The
-// fall used to be the bar's `height`, which laid the row out again on every
-// frame for as long as the queue was open, playing or paused. Now nothing
-// that moves takes up room: the bar's box stands at its full height, and in
-// it a body shrinks from the bottom and a cap rides its top, both on the
-// compositor. Two pieces rather than one bar squashed, so the rounded ends
-// keep their shape at every height; the bar's own rounded clip gives the
-// foot, and the glow is a filter over the whole bar, so it is the same 4px
-// halo at every height instead of one squashed with the bar. The cap is two
-// radii tall and the body starts one radius down, so each meets the other
-// inside solid lamp and no seam can show where they join.
-$queue-bar-meter: 10px;
-$queue-bar-radius: 1px;
-// Where every bar falls to, as a share of the meter.
-$queue-bar-floor: 0.25;
-// Each bar's height at rest and its place in the beat, left to right.
-$queue-bar-rests: (0.6, 1, 0.4);
-$queue-bar-delays: (0s, -0.3s, -0.6s);
-
-.player-queue__bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 1.5px;
-  height: $queue-bar-meter;
-
-  span {
-    position: relative;
-    width: 3px;
-    overflow: hidden;
-    border-radius: 0 0 $queue-bar-radius $queue-bar-radius;
-    filter: drop-shadow(0 0 4px var(--player-glow));
-    transition:
-      opacity 220ms ease,
-      filter 220ms ease;
-
-    &::before,
-    &::after {
-      position: absolute;
-      left: 0;
-      width: 100%;
-      background: var(--player-lamp);
-      content: '';
-      animation-duration: 0.9s;
-      animation-timing-function: ease-in-out;
-      animation-iteration-count: infinite;
-      animation-direction: alternate;
-    }
-
-    // The body.
-    &::before {
-      top: $queue-bar-radius;
-      bottom: 0;
-      transform-origin: 50% 100%;
-    }
-
-    // The cap.
-    &::after {
-      top: 0;
-      height: 2 * $queue-bar-radius;
-      border-radius: $queue-bar-radius $queue-bar-radius 0 0;
-    }
-  }
-
-  // Standing still while the song is paused (`QueueDeck.tsx`). The bars say
-  // "this is what you are hearing"; falling and rising over silence they
-  // said the opposite, and kept a layer animating for as long as the queue
-  // was open. Held where they stood, and unlit — a meter at rest, not one that
-  // froze mid-song — and paused rather than removed, so the next play carries
-  // on from these heights instead of snapping all three back to the start.
-  &.is-paused span {
-    filter: none;
-    opacity: 0.55;
-  }
-
-  &.is-paused span::before,
-  &.is-paused span::after {
-    animation-play-state: paused;
-  }
-
-  @for $bar from 1 through list.length($queue-bar-rests) {
-    span:nth-child(#{$bar}) {
-      height: math.percentage(list.nth($queue-bar-rests, $bar));
-
-      &::before,
-      &::after {
-        animation-delay: list.nth($queue-bar-delays, $bar);
-      }
-
-      &::before {
-        animation-name: player-queue-bar-#{$bar}-body;
-      }
-
-      &::after {
-        animation-name: player-queue-bar-#{$bar}-cap;
-      }
-    }
-  }
-}
-
-// Both pieces of a bar move linearly with its height, on one timing, so
-// they stay together at every frame of the fall.
-@for $bar from 1 through list.length($queue-bar-rests) {
-  $rest: list.nth($queue-bar-rests, $bar) * $queue-bar-meter;
-  $floor: $queue-bar-floor * $queue-bar-meter;
-
-  @keyframes player-queue-bar-#{$bar}-body {
-    to {
-      scale: 1 math.div($floor - $queue-bar-radius, $rest - $queue-bar-radius);
-    }
-  }
-
-  @keyframes player-queue-bar-#{$bar}-cap {
-    to {
-      translate: 0 ($rest - $floor);
-    }
-  }
-}
-
-// Standing still at their resting heights. `:nth-child(n)` makes this as
-// specific as the rules naming each bar's animations, which a plain `span`
-// would lose to.
-@media (prefers-reduced-motion: reduce) {
-  .player-queue__bars span:nth-child(n)::before,
-  .player-queue__bars span:nth-child(n)::after {
-    animation: none;
-  }
 }
 
 .player-queue__art {

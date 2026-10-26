@@ -11,9 +11,8 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 
 // The applied layers: the Bands page's "Curves" button (`CurvesPicker`) and
-// the rows in its menu, which the player's EQ screen opens as well
-// (`EqScreen`). The row of chips that stood above the bands is gone; they
-// live in a menu now and nowhere else.
+// the rows in its menu. The row of chips that stood above the bands is gone;
+// they live in a menu now and nowhere else.
 
 // One menu trigger with the toolbar's standard shape.
 .active-layers__picker {

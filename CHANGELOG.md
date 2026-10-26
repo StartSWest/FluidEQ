@@ -153,7 +153,27 @@ and the De-esser is not heard, and everything else plays as before.
   says so and an Undo. It starts switched off. **One player at a time** starts
   switched on.
 
+### The Compact player
+
+- **One Compact player, the same in every window colour.** It is one column:
+  the visualizer at the top with the song over it, the transport, the Sound
+  with its Tone knobs or your EQ's bands, and Up next and Playlists below,
+  each folding away when you want the room. Drop music anywhere on it and it
+  goes on the end of Up next. With a Plus visualizer it is always the
+  Backdrop, and the scene follows Brightness as the full app does. It has one
+  width; its height is yours, from its top edge or its bottom one, and nothing
+  in it scrolls but the list. It replaces the classic amp and the Stage.
+
 ### Visualizers
+
+- **Any colour for the window with a standard visualizer.** A Tint slider
+  beside Brightness, in Window colours, the main menu and the Compact
+  player's menu, turns the whole window to the colour you pick, the graph and
+  the faders with it, rainbow and all. Double-click it to go back to the
+  usual colour; Reset all settings does the same.
+- **What a scene's time of day follows is one choice of three**, Off,
+  Brightness or Clock, right under its Daylight slider, in Window colours and
+  in the Compact player's menu. Daylight always reads as a whole percent.
 
 - **Scenes are yours for good, one credit each.** Open a scene in
   **Visualizers → Gallery**, watch it for 10 seconds, and **Get** keeps it in

@@ -11,7 +11,6 @@ import {
   type ISceneStore,
   type TBuyOutcome,
   type TCheckoutOutcome,
-  type TSceneStoreOutcome,
   type TStarterOutcome,
   type TStoreFailure,
 } from 'common/sceneStore';
@@ -132,22 +131,6 @@ export const claimStarterCredits = async (): Promise<TStarterOutcome> => {
   const { owner } = state;
   const outcome: TStarterOutcome = (await bridge()
     ?.claimStarterCredits?.()
-    .catch(() => undefined)) ?? { ok: false, reason: 'offline' };
-  if (outcome.ok) {
-    adoptStore(owner, outcome.store);
-  }
-  return outcome;
-};
-
-/** The admin's switch on one of FluidEQ's scenes (premium 0061). */
-export const setOfficialSceneFree = async (
-  sceneId: string,
-  free: boolean,
-): Promise<TSceneStoreOutcome> => {
-  bindAccount();
-  const { owner } = state;
-  const outcome: TSceneStoreOutcome = (await bridge()
-    ?.setOfficialSceneFree?.(sceneId, free)
     .catch(() => undefined)) ?? { ok: false, reason: 'offline' };
   if (outcome.ok) {
     adoptStore(owner, outcome.store);

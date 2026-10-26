@@ -8,14 +8,10 @@ import {
   CREATOR_AGREEMENT_VERSION,
   isPayableCountry,
   parseCreatorStatus,
-  parsePayoutPreview,
-  type ICreatorPayoutPreview,
   type TCreatorFailure,
   type TCreatorOutcome,
 } from '../../common/creatorPayouts';
 import type { TCheckoutLocale } from '../../common/sceneStore';
-import { adminFailureOf } from './adminAccountsApi';
-import type { TAdminOutcome } from './adminInsightsApi';
 import type { IGalleryAuth } from './galleryAccess';
 import { headers, rpc } from './galleryApi';
 
@@ -162,54 +158,3 @@ export const refreshCreatorAccount = async (
     ? { ok: true }
     : { ok: false, reason: await failureOf(response) };
 };
-
-// The admin only ever looks: the server pays on its own schedule alone.
-const callPayouts = async (
-  auth: IGalleryAuth,
-): Promise<Response | undefined> => {
-  try {
-    return await (auth.fetchImpl ?? fetch)(
-      `${auth.config.apiUrl}/run-creator-payouts`,
-      {
-        method: 'POST',
-        headers: headers(auth),
-        body: JSON.stringify({ mode: 'preview' }),
-      },
-    );
-  } catch {
-    return undefined;
-  }
-};
-
-const payoutsAnswer = async <T>(
-  response: Response | undefined,
-  parse: (json: unknown) => T | undefined,
-): Promise<TAdminOutcome<T>> => {
-  if (!response) {
-    return { ok: false, reason: 'offline' };
-  }
-  if (!response.ok) {
-    // A function not deployed yet is answered 404 by the gateway.
-    return {
-      ok: false,
-      reason:
-        response.status === 404
-          ? 'not-deployed'
-          : await adminFailureOf(response),
-    };
-  }
-  try {
-    const value = parse(await response.json());
-    return value === undefined
-      ? { ok: false, reason: 'server' }
-      : { ok: true, value };
-  } catch {
-    return { ok: false, reason: 'server' };
-  }
-};
-
-/** The admin's: who a payout run would pay now, and from what balance. */
-export const previewCreatorPayouts = async (
-  auth: IGalleryAuth,
-): Promise<TAdminOutcome<ICreatorPayoutPreview>> =>
-  payoutsAnswer(await callPayouts(auth), parsePayoutPreview);

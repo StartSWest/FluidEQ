@@ -69,8 +69,11 @@ const MIN_ROW_GAP = 1.5;
 export interface IPanelSegments {
   cell: number;
   rowPitch: number;
-  /** One per copy: its rows and where its floor is. */
-  boards: { rows: number; floor: number; up: number }[];
+  /**
+   * One per copy: the rows a reading lights, the unlit rows printed (at
+   * least those), and where its floor is.
+   */
+  boards: { rows: number; drawn: number; floor: number; up: number }[];
 }
 
 interface IPanel extends IPanelSegments {
@@ -115,11 +118,22 @@ export const panelSegments = (
     rowPitch = shallowest / MIN_ROWS;
     cell = Math.max(1, rowPitch - Math.max(MIN_ROW_GAP, rowPitch * ROW_GAP));
   }
-  const boards = bands.map((band) => ({
-    rows: Math.max(1, Math.floor((band.bottom - band.top) / rowPitch)),
-    floor: band.flipped ? band.top : band.bottom,
-    up: band.flipped ? 1 : -1,
-  }));
+  // The unlit segments run on past the band to the canvas's top, where the
+  // graph's lines start, the last row cut by that edge (Ivan, 2026-10-25:
+  // "bg needs to reach this line"); the band's rows are still what a reading
+  // lights, so a segment stands where the level scale says. A hanging panel
+  // keeps to its band.
+  const boards = bands.map((band) => {
+    const rows = Math.max(1, Math.floor((band.bottom - band.top) / rowPitch));
+    return {
+      rows,
+      drawn: band.flipped
+        ? rows
+        : Math.max(rows, Math.ceil(band.bottom / rowPitch)),
+      floor: band.flipped ? band.top : band.bottom,
+      up: band.flipped ? 1 : -1,
+    };
+  });
   return { cell, rowPitch, boards };
 };
 
@@ -128,7 +142,7 @@ const panelFor = (frame: ISceneFrame, row: IPieceRow): IPanel => {
   const { cell, rowPitch, boards } = panelSegments(frame.bands, row);
   return {
     key: `${row.count}|${row.body.toFixed(2)}|${rowPitch.toFixed(2)}|${boards
-      .map((board) => `${board.rows}@${Math.round(board.floor)}`)
+      .map((board) => `${board.rows}/${board.drawn}@${Math.round(board.floor)}`)
       .join(',')}|${ratio}|${colours.join(',')}|${look.ink}|${
       look.filled ? 'fill' : `frame${look.lineWidth}`
     }`,
@@ -158,7 +172,12 @@ const segmentTint = (
 ): number =>
   frame.look.ink === 'heat'
     ? columnLevel
-    : inkPosition(frame.look.ink, along, rows > 1 ? step / (rows - 1) : 1);
+    : inkPosition(
+        frame.look.ink,
+        along,
+        // Past the band's top, an unlit segment takes the top's colour.
+        rows > 1 ? Math.min(1, step / (rows - 1)) : 1,
+      );
 
 /** The whole panel, unlit: every segment a dim print of its own colour. */
 const printGhost = (
@@ -179,7 +198,7 @@ const printGhost = (
   panel.boards.forEach((board) => {
     // Dim prints are one path per row for level, one per column otherwise:
     // either way a few dozen fills, once.
-    for (let step = 0; step < board.rows; step += 1) {
+    for (let step = 0; step < board.drawn; step += 1) {
       const y = segmentAt(panel, board, step);
       const cells = new Path2D();
       for (let piece = 0; piece < row.count; piece += 1) {

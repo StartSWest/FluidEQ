@@ -5,55 +5,51 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 @use 'color' as *;
-@use 'motion' as *;
 @use 'theme' as *;
 @use 'miniPlayerParts' as *;
 
-// THE STAGE (Ivan, 2026-09-27): the picture behind the whole window, the
-// header the window is dragged by, the song large over the picture, and the
-// dock that drives it.
+// The picture behind the top panel, and the header the window is dragged by.
 
 // =========================================================== the picture ===
 //
-// The graph's Plus visualizer the size of the window (`PlayerStage`), or,
-// without one, a soft ground in the theme's own colours with the accent
-// glowing in it. Under everything, in the amp's own stacking.
+// The graph's Plus visualizer behind the top panel and the transport under
+// it (`PlayerStage`), or, without one, the amp's flat floor, which a
+// standard look is drawn over.
+// Under everything, in the amp's own stacking — and so under the panes of the
+// sound and the queue as well, which is where its reflection lies.
 .player-stage {
   position: absolute;
   z-index: -1;
   inset: 0;
   overflow: hidden;
-  background:
-    radial-gradient(
-      90% 55% at 18% 16%,
-      color-mix(in srgb, var(--accent) 17%, transparent),
-      transparent 62%
-    ),
-    radial-gradient(
-      85% 55% at 88% 34%,
-      color-mix(in srgb, var(--accent-dark) 24%, transparent),
-      transparent 66%
-    ),
-    linear-gradient(
-      var(--surface-base),
-      color-mix(in srgb, var(--surface-base), #{$black} 35%)
-    );
+  // FLAT, as the approved amp is (Ivan, 2026-10-25: "same bg no highlights,
+  // nice and flat"): the floor the panes stand on, and nothing glowing in it.
+  background: var(--surface-base);
   pointer-events: none;
   contain: strict;
 
+  // A PLUS VISUALIZER STAYS IN THE TOP PART outside the Backdrop: the panes
+  // under it are the window colours' own, solid, and Ambient's glow is
+  // Ambient's (Ivan, 2026-10-25: "non backdrop colours don't show the viz
+  // underneath, it's a solid colour, or ambient has its ambient thing"). A
+  // mirror of the picture spread down under the panes was tried first; the
+  // Backdrop is where the picture is behind everything (`PlayerAmp`).
   &.has-scene {
     background: $black;
   }
 
-  // The header's words and the window's buttons stand on the top of the
-  // picture, whatever the picture is doing there: a shade that is gone by
-  // the song's title.
-  &::after {
+  // The picture's foot softened under the transport: its keys stand on it
+  // sharp at the top and soft at the bottom, where the picture settles into
+  // the pane under it. The blur comes in along an eased ramp: a straight one
+  // started on a corner, and the picture going soft there read as a line
+  // just over the song's line.
+  &.has-scene::after {
     position: absolute;
-    inset: 0 0 auto;
-    height: 96px;
-    background: linear-gradient(rgba($black, 0.55), rgba($black, 0));
+    inset: auto 0 0;
+    height: 45%;
+    backdrop-filter: blur(16px);
     content: '';
+    mask-image: linear-gradient(180deg, eased-ramp($black, 0%, 85%, 0, 1));
   }
 
   // Nothing on the picture is pressed: the way back to a scene's own view
@@ -65,25 +61,173 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // ============================================================ the header ===
 //
-// THE HANDLE THE WINDOW IS DRAGGED BY (Ivan, 2026-09-27: "we need a nicer
-// header with title and handler look"). A grab bar over the name in its
-// middle says "drag here"; the two glass ends hold the only buttons in it —
-// the mark and its menu, and the window's own. The two ends are columns of
-// an equal share, so the handle stands in the middle of the window whenever
-// both fit, and gives way to the wider end, never over it, when they do not.
+// THE HANDLE THE WINDOW IS DRAGGED BY: a strip of the amp's floor with the
+// name in small capitals between two double rules in its middle (the one
+// amp, Ivan 2026-10-25: "the title in the center and the side 2 lines"). The
+// mark and its menu at the left, the window's own buttons at the right. No
+// rule under it in any mode (Ivan, 2026-10-25: "let's remove the header
+// border on the rest of the modes too", then "I like it more like that").
+//
+// Above the column under it, so the app icon's glow falls whole over the
+// picture's top: in the flow, the column came after the header and painted
+// over the glow's lower half ("fix the shadow cut on the icon").
 .player-title {
+  position: relative;
+  z-index: 2;
   display: grid;
   flex: none;
-  grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  height: 52px;
-  padding: 0 10px;
+  height: 38px;
+  padding: 0 6px 0 8px;
+  background: color-mix(in srgb, var(--surface-base) 92%, transparent);
   -webkit-app-region: drag;
 
   button {
     -webkit-app-region: no-drag;
   }
+}
+
+// IN THE BACKDROP THE PICTURE RUNS BEHIND THE HEADER TOO (Ivan, 2026-10-25:
+// "on the plus viz let's overflow it also to the top bar", "only during
+// backdrop"). The picture is the whole window's there (`PlayerAmp`), the
+// header stands over the top of the column instead of above it, and the
+// column keeps its room under it; the header keeps a shade of its own for
+// its words and buttons, and no rule across the picture.
+.mini-player.is-backdrop:not(.is-vis-full) {
+  // THE HEADER IS PART OF THE PICTURE (Ivan, 2026-10-25: "the top bar on
+  // backdrop needs to be kind of same as the viz", "no divider on the header
+  // either", "no bg on header", "remove that drop shadow thing"). Nothing
+  // under it at all: no pane, no frost, no shade, and no shadow round its
+  // words and glyphs, which drew a dark haze along the window's top. A
+  // frosted bar (2026-10-25: "add some blur to the top bar"), a shade easing
+  // out past it and the shadows were each read as a strip laid over the
+  // picture. The keys keep their own glass ("the icons need to merge more").
+  // THE FOOT'S GLASS ON THE HEADER, WITH NO EDGE (Ivan, 2026-10-25: "add
+  // some bg like the footer to the header but with no visible division,
+  // something smooth"): the panes' frost and the foot's touch of dark, on a
+  // layer under the header that runs a little past it and eases out there,
+  // so the picture comes up out of it rather than starting on a line.
+  .player-title {
+    position: absolute;
+    z-index: 3;
+    top: 0;
+    right: 0;
+    left: 0;
+    background: none;
+
+    &::before {
+      position: absolute;
+      z-index: -1;
+      inset: 0 0 -26px;
+      background:
+        linear-gradient(rgba($black, 0.14), rgba($black, 0.14)),
+        var(--player-pane);
+      backdrop-filter: blur(24px) saturate(1.15);
+      content: '';
+      mask-image: linear-gradient(
+        180deg,
+        #{$black} 0,
+        #{$black} 30px,
+        eased-ramp($black, 30px, 64px, 1, 0)
+      );
+      pointer-events: none;
+    }
+  }
+
+  // The name and its double rules in a stronger ink over the picture ("also
+  // the title and the lines more visible").
+  .player-title__name {
+    color: var(--player-text);
+  }
+
+  .player-title__line {
+    border-color: color-mix(in srgb, var(--player-text) 55%, transparent);
+    opacity: 1;
+  }
+
+  // The window's own buttons over the picture at full ink and a size up, so
+  // they read with no strip and no shadow under them (Ivan, 2026-10-25:
+  // "make sure the minimise and close buttons are stronger, more visible").
+  .player-title__button {
+    color: var(--player-text);
+
+    .player-icon {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  // The menu's key is the app's icon and its caret and nothing round them
+  // ("the menu dropdown button, perhaps no bg on that, only the icon and the
+  // dropdown arrow", "don't screw with the app icon"): the field the Backdrop
+  // laid behind the pair is gone, and the icon is the app's own tile, as in
+  // every mode (`strip-mark`).
+  .player-title__mark .player-icon--caret {
+    color: var(--player-text);
+  }
+
+  .player-title__controls > .window-mode-switch {
+    border-color: color-mix(in srgb, var(--player-text) 14%, transparent);
+    background: color-mix(in srgb, var(--surface-field) 40%, transparent);
+  }
+
+  .player-title__button[aria-pressed='true'] {
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+
+  .player-body {
+    padding-top: 38px;
+  }
+}
+
+// THE BACKDROP'S GLASS IS ONE PANE OF FROST (Ivan, 2026-10-25: "this control
+// section needs to be a soft blurred gradient so it meets the next section").
+// It rises through the transport, clear at its top and whole at the panel's
+// foot (`--player-frost-top`, `--player-frost-ramp`, measured by
+// `PlayerStage`), and goes on whole under the sound and the queue, whose own
+// panes are clear there (`_miniPlayerShell.scss`). One layer and not one per
+// pane, because a blur only reads the picture behind its own box: the
+// transport's frost and the sound's each stopped at their shared edge and
+// disagreed there, a step a sixth of their brightness on a lake.
+// Not while the picture has the whole screen: there is nothing under it.
+// Over the scene's own canvas, which is positioned and would otherwise paint
+// over a layer that comes before it.
+.mini-player.is-backdrop:not(.is-vis-full) > .player-stage::before {
+  position: absolute;
+  z-index: 1;
+  inset: var(--player-frost-top, 50%) 0 0;
+  background: var(--player-pane);
+  backdrop-filter: blur(24px) saturate(1.15);
+  content: '';
+  mask-image: linear-gradient(
+    180deg,
+    eased-ramp($black, 0px, var(--player-frost-ramp, 120px), 0, 1),
+    #{$black} 100%
+  );
+}
+
+// THE WINDOW UNDER THE PICTURE'S PANEL HELD DARK (Ivan, 2026-10-25: "during
+// backdrop the bottom section getting lighter, not good"). The Backdrop's
+// picture is the window's background, and under its panel it runs on into
+// the scene's lower half — a lake's reflections, a lit floor — which came
+// through the queue's glass brighter than the sound's. So from the panel's
+// foot (`--player-panel-foot`, measured by `PlayerStage`) a shade eases in
+// and holds, and nothing under the transport is softened: the panes there
+// blur the picture themselves.
+.mini-player.is-backdrop:not(.is-vis-full) > .player-stage::after {
+  position: absolute;
+  inset: var(--player-panel-foot, 50%) 0 0;
+  height: auto;
+  background: linear-gradient(
+    180deg,
+    eased-ramp($black, 0%, 45%, 0, 0.38),
+    rgba($black, 0.38) 100%
+  );
+  backdrop-filter: none;
+  content: '';
+  mask-image: none;
 }
 
 .player-title__lead {
@@ -97,84 +241,62 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .player-title__controls {
-  @include player-glass-pane(var(--player-glass), false);
   display: flex;
   align-items: center;
   justify-self: end;
-  gap: 1px;
-  height: 34px;
-  padding: 0 3px;
-  border-radius: $radius-xl;
+  gap: 4px;
 }
 
 .player-title__handle {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 7px 18px 6px;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
   cursor: grab;
 }
 
-.player-title__grabber {
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
-  background: color-mix(in srgb, #{$white} 42%, transparent);
-  box-shadow: 0 1px 3px rgba($black, 0.4);
+// The double rule either side of the name, as long as the strip allows.
+.player-title__line {
+  flex: 1 1 0;
+  min-width: 8px;
+  max-width: 120px;
+  height: 5px;
+  border-top: 1px solid var(--rule-major);
+  border-bottom: 1px solid var(--rule-major);
+  opacity: 0.8;
 }
 
 .player-title__name {
-  color: var(--player-text);
-  font-size: 13px;
-  font-weight: $weight-semibold;
+  flex: none;
+  color: var(--player-text-soft);
+  font-size: 10px;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
   white-space: nowrap;
-  text-shadow: var(--player-text-shadow);
-  @include tracking(0.06em);
+  @include tracking(0.32em);
 }
 
-// The mark on its glass: the app's own mark, the caret beside it.
+// THE MARK IS THE APP HEADER'S OWN (Ivan, 2026-10-25: "the top menu icon
+// needs to match the app one"): `SignalBrandMark`'s tile in the window's
+// colours with its living wave, at the strip's size, and the caret beside it
+// that says it opens the menu. A bare wave on a field of its own read as some
+// other app's icon.
 .player-title__mark {
-  @include player-glass-pane(var(--player-glass), false);
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 3px;
-  height: 32px;
-  padding: 0 7px 0 3px;
-  border: 0;
-  border-radius: 11px;
-  color: var(--player-text-muted);
-  cursor: pointer;
-  transition: $transition-control;
+  @include strip-mark;
+  gap: 4px;
+  padding: 0 4px 0 0;
 
-  // The mark component's own tile (`.brand-mark` in `App.scss`), redrawn at
-  // the header's size with no box: the glass is the box.
-  .brand-mark {
-    display: grid;
-    width: 26px;
-    height: 26px;
-    place-items: center;
-    border: 0;
-    border-radius: 8px;
-    background: none;
-    box-shadow: none;
-    color: var(--player-ink);
+  .player-icon--caret {
+    width: 9px;
+    height: 9px;
+    color: var(--player-text-soft);
+    transition: color 150ms ease;
   }
 
-  .brand-mark svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  &:hover,
-  &[aria-expanded='true'] {
-    background: color-mix(in srgb, var(--surface-base) 80%, transparent);
+  &:hover .player-icon--caret,
+  &[aria-expanded='true'] .player-icon--caret {
     color: var(--player-text);
-  }
-
-  &:focus-visible {
-    @include focus-ring($white);
   }
 }
 
@@ -186,29 +308,31 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .player-title__button {
   display: grid;
-  width: 30px;
-  height: 28px;
+  width: 28px;
+  height: 26px;
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: 9px;
+  border-radius: 7px;
   background: transparent;
-  color: var(--player-text-muted);
+  color: var(--player-text-soft);
   cursor: pointer;
   transition: $transition-control;
 
   .player-icon {
-    width: 15px;
-    height: 15px;
+    width: 14px;
+    height: 14px;
   }
 
   &:hover {
-    background: color-mix(in srgb, #{$white} 12%, transparent);
+    background: color-mix(in srgb, var(--player-text) 8%, transparent);
     color: var(--player-text);
   }
 
+  // Always on top, while it is.
   &[aria-pressed='true'] {
-    color: var(--player-ink-bright);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--accent);
   }
 
   &:focus-visible {
@@ -221,504 +345,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   color: $white;
 }
 
-.player-title__rule {
-  flex: none;
-  width: 1px;
-  height: 16px;
-  margin: 0 2px;
-  background: color-mix(in srgb, #{$white} 14%, transparent);
-}
-
 // The switch between the app and the amp — the same control, in the same
-// corner, as in the app's titlebar — with the glass as its well.
+// corner, as in the app's titlebar — at the strip's height.
 .player-title__controls > .window-mode-switch {
   width: 54px;
   height: 26px;
-  margin: 0 2px;
-  border: 0;
-  background: color-mix(in srgb, #{$black} 28%, transparent);
-  box-shadow: inset 0 0 0 1px var(--player-glass-edge);
-}
-
-// ========================================================= the song, large =
-.player-now {
-  display: flex;
-  flex: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-  padding: 18px 24px 0;
-  text-align: center;
-}
-
-.player-now__art {
-  width: 84px;
-  height: 84px;
-  margin-bottom: 12px;
-  overflow: hidden;
-  border-radius: 18px;
-  box-shadow:
-    0 16px 40px rgba($black, 0.5),
-    0 0 0 1px color-mix(in srgb, #{$white} 14%, transparent);
-
-  .library-cover-art {
-    width: 100%;
-    height: 100%;
-    border-radius: 0;
-  }
-}
-
-// The one thing on the amp read from across the room, in the window's own
-// face at its largest, and still scrolling when it is longer than its line.
-.player-now__title {
-  width: 100%;
-  height: 1.2em;
-  color: var(--player-text);
-  font-size: clamp(22px, 6.2cqi, 30px);
-  font-weight: $weight-bold;
-  line-height: 1.2;
-  text-shadow:
-    0 1px 3px rgba($black, 0.5),
-    0 2px 18px rgba($black, 0.6);
-  @include tracking(-0.015em);
-
-  &:not(.is-running) .player-marquee__track {
-    justify-content: center;
-  }
-}
-
-.player-now__artist {
-  max-width: 100%;
-  overflow: hidden;
-  color: var(--player-text-muted);
-  font-size: clamp(13px, 3.4cqi, 16px);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-shadow: var(--player-text-shadow);
-}
-
-// Where the sound goes, under the song (`PlayerPath`): one strip of glass
-// and Game mode beside it, wrapping rather than running off the window.
-.player-now__chips {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-// THE PATH (Ivan, 2026-09-28, the third design: "C ok"): where the sound
-// comes from, FluidEQ, and the output, as three stops on one glass. The two
-// wires carry a light while sound goes through (`data-flow`, written by the
-// strip itself) that is brighter as the sound is louder (`--path-level`,
-// 0 to 1). One glass and not three: over a busy scene a single piece holds
-// its words better than a row of small ones.
-.player-path {
-  @include player-glass-pane(var(--player-glass), false);
-  display: inline-flex;
-  flex: none;
-  max-width: 100%;
-  align-items: center;
-  height: 32px;
-  padding: 0 4px;
-  border-radius: $radius-pill;
-}
-
-.player-path__node {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 6px;
-  height: 24px;
-  padding: 0 7px;
-  border: 0;
-  border-radius: $radius-pill;
-  background: none;
-  color: var(--player-text);
-  font-size: 12px;
-  font-weight: $weight-semibold;
-  white-space: nowrap;
-}
-
-// The source opens its page and FluidEQ the equalizer; the output is a
-// reading, and takes no press.
-button.player-path__node {
-  cursor: pointer;
-  transition: $transition-control;
-
-  &:hover {
-    background: var(--player-hover);
-  }
-
-  &:focus-visible {
-    @include focus-ring($white);
-  }
-}
-
-// Every stop's glyph in the accent's ink: the icons are the path's colour,
-// the words its reading.
-.player-path .player-path__icon {
-  width: 15px;
-  height: 15px;
-  flex: none;
-  color: var(--player-ink);
-}
-
-// The rate at the node's own weight: `b` alone would draw it a step heavier
-// than the words beside it.
-.player-path__node b {
-  font-weight: inherit;
-}
-
-.player-path__soft {
-  color: var(--player-text-soft);
-  font-weight: $weight-regular;
-}
-
-// A Library song's format, as the Library's own bar names it (`codecTag`).
-.player-path__tag {
-  padding: 0 5px;
-  border-radius: 5px;
-  box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--player-text) 32%, transparent);
-  color: var(--player-text-muted);
-  font-size: 9.5px;
-  font-weight: $weight-bold;
-  line-height: 14px;
-  @include tracking(0.06em);
-}
-
-// The narrowest windows give the tag up: in French and Russian the strip
-// measured 326-328px against the 312 the song's own margins leave at 360.
-@container player (max-width: 400px) {
-  .player-path__tag {
-    display: none;
-  }
-}
-
-// FluidEQ as its own mark, the app icon's wave with no tile round it (the
-// header's mark draws it the same way), and greyed while FluidEQ is off.
-.player-path__node--eq {
-  padding: 0 5px;
-
-  .brand-mark {
-    width: 24px;
-    height: 24px;
-    border: 0;
-    border-radius: 0;
-    background: none;
-    box-shadow: none;
-    transition:
-      filter $motion-fast ease,
-      opacity $motion-fast ease;
-  }
-
-  .brand-mark svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  &.is-off .brand-mark {
-    filter: grayscale(1);
-    opacity: 0.5;
-  }
-}
-
-.player-path__wire {
-  position: relative;
-  flex: none;
-  width: 22px;
-  height: 2px;
-  background: repeating-linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--player-text) 34%, transparent) 0 3px,
-    transparent 3px 6px
-  );
-
-  // The light, which runs from one stop to the next. Its glow follows the
-  // level through a filter, which is not the animated property, so a change
-  // of level lands on the moving light at once.
-  &::after {
-    position: absolute;
-    top: -2px;
-    left: 0;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--player-ink-bright);
-    box-shadow:
-      0 0 8px var(--player-ink),
-      0 0 3px $white;
-    content: '';
-    filter: brightness(calc(0.6 + 0.6 * var(--path-level, 1)));
-    opacity: 0;
-  }
-}
-
-.player-path[data-flow='on'] .player-path__wire::after {
-  animation: player-path-flow 1.1s linear infinite;
-}
-
-// Half a run behind the first, so one light seems to go the whole way.
-.player-path[data-flow='on'] .player-path__wire--out::after {
-  animation-delay: -0.55s;
-}
-
-@keyframes player-path-flow {
-  0% {
-    opacity: 0;
-    transform: translateX(-3px);
-  }
-
-  20%,
-  80% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateX(19px);
-  }
-}
-
-// Still, for somebody who asked for stillness: the lights stand on the
-// wires while sound goes through, and are gone when it stops.
-@media (prefers-reduced-motion: reduce) {
-  .player-path[data-flow='on'] .player-path__wire::after {
-    animation: none;
-    opacity: 1;
-    transform: translateX(8px);
-  }
-}
-
-// GAME MODE, BESIDE THE PATH: a switch, lamp and all, carrying the delay it
-// is there to cut. On, it wears the amp's "on" (`player-key-on`) with the
-// accent's glow round it and its lamp lit.
-.player-game {
-  @include player-glass-pane(var(--player-glass), false);
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 12px 0 11px;
-  border: 0;
-  border-radius: $radius-pill;
-  color: var(--player-text);
-  font-size: 12px;
-  font-weight: $weight-semibold;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: $transition-control;
-
-  &:hover:not(:disabled, .is-on) {
-    background: color-mix(in srgb, #{$white} 14%, transparent);
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: 0.5;
-  }
-
-  &:focus-visible {
-    @include focus-ring($white);
-  }
-
-  &.is-on {
-    @include player-key-on;
-    box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent),
-      0 0 18px color-mix(in srgb, var(--accent) 25%, transparent);
-  }
-}
-
-.player-game__lamp {
-  width: 6px;
-  height: 6px;
-  flex: none;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--player-text) 30%, transparent);
-  transition:
-    background $motion-fast ease,
-    box-shadow $motion-fast ease;
-
-  .player-game.is-on & {
-    background: var(--player-ink);
-    box-shadow: 0 0 8px var(--player-ink);
-  }
-}
-
-.player-game .player-game__icon {
-  width: 15px;
-  height: 15px;
-  color: var(--player-text-muted);
-
-  .player-game.is-on & {
-    color: var(--player-ink-bright);
-  }
-}
-
-.player-game__delay {
-  color: var(--player-text-soft);
-  font-weight: $weight-regular;
-
-  .player-game.is-on & {
-    color: var(--player-ink-bright);
-    font-weight: $weight-semibold;
-  }
-}
-
-// ============================================================== the dock ===
-//
-// The glass that drives the song: its line with the time at each end, the
-// five keys round one large play key, and the volume with the queue's own
-// switches under them.
-.player-dock {
-  @include player-glass-pane;
-  flex: none;
-  margin: 20px 14px 0;
-  padding: 14px 18px 10px;
-  border-radius: 26px;
-}
-
-.player-dock__seek.is-still .player-range {
-  opacity: 0.4;
-}
-
-// The glass over a bright scene is itself bright, and the soft ink the
-// design gave these faded into it: the times and the volume's figure take
-// the muted ink, edged by the shadow words on the picture wear.
-.player-dock__times {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 4px;
-  color: var(--player-text-muted);
-  font-size: 11.5px;
-  text-shadow: var(--player-text-shadow);
-}
-
-.player-dock__keys {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(4px, 2.9cqi, 14px);
-  margin-top: 2px;
-}
-
-.player-dock__key {
-  @include player-round(44px, 24px);
-  color: var(--player-text);
-
-  &.is-side {
-    width: 38px;
-    height: 38px;
-    color: var(--player-text-muted);
-
-    .player-icon {
-      width: 20px;
-      height: 20px;
-    }
-  }
-}
-
-// Play: the one filled key on the amp — a disc of the text's own light with
-// the accent glowing round it.
-.player-dock__play {
-  display: grid;
-  flex: none;
-  width: 64px;
-  height: 64px;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: var(--player-text);
-  box-shadow:
-    0 10px 30px rgba($black, 0.35),
-    0 0 30px color-mix(in srgb, var(--accent) 35%, transparent);
-  color: color-mix(in srgb, var(--surface-base), #{$black} 40%);
-  cursor: pointer;
-  transition:
-    transform 140ms ease,
-    box-shadow 160ms ease;
-
-  .player-icon {
-    width: 26px;
-    height: 26px;
-  }
-
-  &:hover:not(:disabled) {
-    box-shadow:
-      0 10px 30px rgba($black, 0.35),
-      0 0 38px color-mix(in srgb, var(--accent) 55%, transparent);
-  }
-
-  &:active:not(:disabled) {
-    transform: scale(0.96);
-  }
-
-  // Nothing to play yet: the same key with its light turned down.
-  &:disabled {
-    cursor: default;
-    opacity: 0.45;
-    box-shadow: none;
-  }
-
-  &:focus-visible {
-    @include focus-ring($white);
-  }
-}
-
-.player-dock__row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-  color: var(--player-text-soft);
-}
-
-.player-volume {
-  display: flex;
-  flex: 1 1 auto;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.player-volume__value {
-  flex: none;
-  min-width: 3ch;
-  color: var(--player-text-muted);
-  font-size: 11.5px;
-  text-align: right;
-  text-shadow: var(--player-text-shadow);
-}
-
-.player-dock__rule {
-  flex: none;
-  width: 1px;
-  height: 18px;
-  background: color-mix(in srgb, #{$white} 14%, transparent);
-}
-
-.player-dock__mode {
-  @include player-round(30px, 16px);
-  position: relative;
-
-  &[aria-pressed='true']:not(:disabled) {
-    color: var(--player-ink-bright);
-  }
-
-  // Repeat one: the key carries a small one in its corner.
-  &.is-one::after {
-    position: absolute;
-    right: 4px;
-    bottom: 3px;
-    color: var(--player-ink-bright);
-    content: '1';
-    font-size: 8px;
-    font-weight: $weight-bold;
-  }
+  border-color: var(--border-subtle);
+  border-radius: 8px;
 }

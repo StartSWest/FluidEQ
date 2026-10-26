@@ -23,7 +23,7 @@ jest.mock('../../../main/windowDwm', () => ({
 import { createWindowModes } from '../../../main/windowMode';
 
 const APP = { x: 100, y: 60, width: 1200, height: 850 };
-const PLAYER = { x: 150, y: 70, width: 580, height: 850 };
+const PLAYER = { x: 150, y: 70, width: 480, height: 850 };
 
 const session = () => {
   const events = new EventEmitter();
@@ -44,6 +44,7 @@ const session = () => {
     setMinimumSize: jest.fn(),
     setMaximumSize: jest.fn(),
     setMaximizable: jest.fn(),
+    setResizable: jest.fn(),
     setAlwaysOnTop: jest.fn(),
     webContents: Object.assign(new EventEmitter(), { getZoomFactor: () => 1 }),
     unmaximize: () => {
@@ -59,8 +60,7 @@ const session = () => {
     mode: 'app',
     isPinned: false,
     app: { ...APP, isMaximized: true },
-    amp: 'classic',
-    players: { classic: PLAYER },
+    player: PLAYER,
   });
   const changed = jest.fn();
   modes.listen(changed);
@@ -89,7 +89,7 @@ it('keeps the narrow player size after the compositor finishes restoring the ful
   test.completeNativeRestore();
   await expect(switched).resolves.toBe('player');
   expect(test.win.getBounds()).toEqual(PLAYER);
-  expect(test.modes.memory().players.classic).toEqual(PLAYER);
+  expect(test.modes.memory().player).toEqual(PLAYER);
   expect(test.changed).toHaveBeenCalledTimes(1);
   expect(test.events.listenerCount('resize')).toBe(0);
 });

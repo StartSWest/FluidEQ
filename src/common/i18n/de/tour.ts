@@ -47,12 +47,12 @@ const tour: Partial<Dictionary> = {
   'tour.look.point2':
     '{windowColours} bietet {original}, {colours}, {ambient} und {backdrop}, jeweils mit einer Zeile dazu, was es mit dem Fenster macht.',
   'tour.look.point3':
-    'Dialoge und Menüs sind aus einem Material, und der {rainbow} läuft durch die Farben des Symbols oder die eines Visualizers.',
+    'Dialoge und Menüs sind aus einem Material, und „{rainbow}“ läuft durch die Farben des Symbols oder die eines Visualizers.',
   'tour.look.how':
     'Verschieben Sie {brightness} im Aktionsmenü hinter dem Puls-Symbol oben rechts. Mit einer Szene im Diagramm öffnen Sie {windowColours} über die Leiste des Diagramms und wählen {backdrop}.',
   'tour.look.open': 'EQ öffnen',
   'tour.look.imageAlt':
-    'FluidEQ in seinen eigenen Farben auf der EQ-Seite, der Analyzer zeichnet einen Song unter den Kurven, und das Menü hinter dem Puls-Symbol ist über seiner Ecke geöffnet, mit Helligkeit auf halber Höhe und eingeschaltetem Regenbogenmodus.',
+    'FluidEQ in seinen eigenen Farben auf der EQ-Seite, der Analyzer zeichnet einen Song unter den Kurven, und das Menü hinter dem Puls-Symbol ist über seiner Ecke geöffnet, mit Helligkeit auf halber Höhe und eingeschaltetem „Bunter Modus“.',
   'tour.gpu.kicker': 'EINE NEUE VISUALIZER-ENGINE',
   'tour.gpu.title': 'Jeder Visualizer auf Ihrer Grafikkarte',
   'tour.gpu.subtitle':

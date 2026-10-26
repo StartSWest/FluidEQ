@@ -176,6 +176,9 @@ const library: Partial<Dictionary> = {
   'library.karaoke.sending': 'カラオケへ送っています…',
   'library.karaoke.failed':
     'このファイルはカラオケへ送れませんでした。大きすぎるか、読み取れない可能性があります。',
+  'library.drop.empty': 'ドロップしたものに音楽がありません',
+  'library.drop.already': 'ドロップした曲はすべて「次に再生」に入っています',
+  'library.drop.failed': 'ドロップした音楽を追加できませんでした',
 };
 
 export default library;

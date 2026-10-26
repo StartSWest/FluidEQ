@@ -5,8 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { PLUS_OFFLINE_GRACE_DAYS } from '../../common/plusTerms';
-import { MAKER_PLAN, PLUS_TRIAL_PLAN } from '../../common/pastPlans';
-import { GIFT_PLAN } from '../../common/plusGifts';
+import { GIFT_PLAN, MAKER_PLAN, PLUS_TRIAL_PLAN } from '../../common/pastPlans';
 
 /**
  * What a membership record means, whenever it is asked: the record's shape,

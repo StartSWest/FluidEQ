@@ -30,13 +30,9 @@ import { ILibraryTrack } from './types';
  *
  * This is what it reaches for instead: more of the same genre, drawn from
  * the whole library. Nothing here schedules anything or watches a clock —
- * it is a pure pick, called when the run ahead of the playhead gets short.
+ * it is a pure pick, called when the last song of the run begins playing
+ * (`isOnLastSong` in `upNextRules.ts`).
  */
-
-/** How many entries the run ahead may fall to before more are drawn. Low
- * enough that the queue is still mostly the reader's own list, high enough
- * that the next track is chosen well before the current one ends. */
-export const CONTINUATION_LOW_WATER = 3;
 
 /** How many to draw at a time. A batch rather than one at a time so the Up
  * Next panel shows a run worth reading, and small enough that changing shelf

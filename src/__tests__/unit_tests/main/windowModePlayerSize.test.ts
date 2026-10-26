@@ -40,7 +40,10 @@ const fakeWindow = (start: IRect, isMaximizedAtStart: boolean) => {
   let isMaximized = isMaximizedAtStart;
   let isFullScreen = false;
   let beforeFullScreen: IRect | undefined;
-  let ceiling = Number.POSITIVE_INFINITY;
+  let ceiling = {
+    width: Number.POSITIVE_INFINITY,
+    height: Number.POSITIVE_INFINITY,
+  };
   const bounds = (): IRect => {
     if (isFullScreen) {
       return { ...DISPLAY };
@@ -59,7 +62,11 @@ const fakeWindow = (start: IRect, isMaximizedAtStart: boolean) => {
     // Windows holds a window under its maximum size, whatever it is asked.
     setBounds: (next: Partial<IRect>) => {
       const asked = { ...normal, ...next };
-      normal = { ...asked, height: Math.min(asked.height, ceiling) };
+      normal = {
+        ...asked,
+        width: Math.min(asked.width, ceiling.width),
+        height: Math.min(asked.height, ceiling.height),
+      };
     },
     setFullScreen: (next: boolean) => {
       if (next) {
@@ -70,10 +77,11 @@ const fakeWindow = (start: IRect, isMaximizedAtStart: boolean) => {
       isFullScreen = next;
     },
     setMinimumSize: () => undefined,
-    setMaximumSize: (_width: number, height: number) => {
-      ceiling = height;
+    setMaximumSize: (width: number, height: number) => {
+      ceiling = { width, height };
     },
     setMaximizable: () => undefined,
+    setResizable: () => undefined,
     setAlwaysOnTop: () => undefined,
     unmaximize: () => undefined,
     maximize: () => {
@@ -111,7 +119,10 @@ const fakeWindow = (start: IRect, isMaximizedAtStart: boolean) => {
 };
 
 const APP = { x: 100, y: 80, width: 1200, height: 700 };
+// The amp's one width, 480, in the middle of the screen and as tall as it.
 const FIRST = { x: 480, y: 34, width: 480, height: 792 };
+// Where the listener left it: only its place and its height are theirs.
+const SIZED = { x: 700, y: 60, width: 480, height: 700 };
 
 const modesAt = (
   player: Partial<IRect> | undefined,
@@ -123,8 +134,7 @@ const modesAt = (
     mode: 'app',
     isPinned: false,
     app: {},
-    amp: 'classic',
-    players: { classic: player },
+    player: player ?? {},
   });
   modes.followWindow(fake.win);
   return { modes, ...fake };
@@ -150,13 +160,20 @@ describe('the size the amp opens at', () => {
   it('is the size the listener left it at, switch after switch', async () => {
     const { modes, win, bounds, drag } = modesAt(undefined);
     await modes.setMode(win, 'player');
-    const sized = { x: 700, y: 60, width: 620, height: 700 };
-    drag(sized);
-    expect(modes.playerBounds(win, 'classic')).toEqual(sized);
+    drag(SIZED);
+    expect(modes.playerBounds(win)).toEqual(SIZED);
     await modes.setMode(win, 'app');
-    expect(modes.memory().players.classic).toEqual(sized);
+    expect(modes.memory().player).toEqual(SIZED);
     await modes.setMode(win, 'player');
-    expect(bounds()).toEqual(sized);
+    expect(bounds()).toEqual(SIZED);
+  });
+
+  // An amp remembered from when it could be any width (the two amps, until
+  // 2026-10-25) opens where it stood, at the one width it has now.
+  it('is the amp’s one width, where an amp remembered wider stood', async () => {
+    const { modes, win, bounds } = modesAt({ ...SIZED, width: 620 });
+    await modes.setMode(win, 'player');
+    expect(bounds()).toEqual(SIZED);
   });
 });
 
@@ -164,60 +181,56 @@ describe('what is written down as the amp’s size', () => {
   it('is never the full screen’s', async () => {
     const { modes, win, drag } = modesAt(undefined);
     await modes.setMode(win, 'player');
-    const sized = { x: 700, y: 60, width: 620, height: 700 };
-    drag(sized);
+    drag(SIZED);
     modes.setFullScreen(win, true);
     // The window-state file is written on every resize, the full screen's
     // included.
-    expect(modes.playerBounds(win, 'classic')).toEqual(sized);
+    expect(modes.playerBounds(win)).toEqual(SIZED);
     win.emit('resized');
-    expect(modes.memory().players.classic).toEqual(sized);
+    expect(modes.memory().player).toEqual(SIZED);
   });
 
   it('is never the maximised app’s, on a switch pressed back before Windows restored it', async () => {
-    const remembered = { x: 700, y: 60, width: 620, height: 700 };
-    const { modes, win, bounds, finishRestore } = modesAt(remembered, {
+    const { modes, win, bounds, finishRestore } = modesAt(SIZED, {
       maximized: true,
     });
     const goingIn = modes.setMode(win, 'player');
     // Still maximised: Windows has not restored the window yet.
-    expect(modes.playerBounds(win, 'classic')).toEqual(remembered);
+    expect(modes.playerBounds(win)).toEqual(SIZED);
     const goingBack = modes.setMode(win, 'app');
     finishRestore();
     await goingIn;
     await goingBack;
-    expect(modes.memory().players.classic).toEqual(remembered);
+    expect(modes.memory().player).toEqual(SIZED);
     // And the next switch opens it where it was, not the size of the screen.
     await modes.setMode(win, 'player');
-    expect(bounds()).toEqual(remembered);
+    expect(bounds()).toEqual(SIZED);
   });
 
   it('is never the app’s, restored by Windows before the switch has placed the player', async () => {
-    const remembered = { x: 700, y: 60, width: 620, height: 700 };
     const { modes, win, bounds, restoreUnannounced, finishRestore } = modesAt(
-      remembered,
+      SIZED,
       { maximized: true },
     );
     const goingIn = modes.setMode(win, 'player');
     restoreUnannounced();
     // The window reports the app's normal bounds, and it is not maximised.
     expect(bounds()).toEqual(APP);
-    expect(modes.playerBounds(win, 'classic')).toEqual(remembered);
+    expect(modes.playerBounds(win)).toEqual(SIZED);
     win.emit('resized');
-    expect(modes.memory().players.classic).toEqual(remembered);
+    expect(modes.memory().player).toEqual(SIZED);
     finishRestore();
     await goingIn;
-    expect(bounds()).toEqual(remembered);
+    expect(bounds()).toEqual(SIZED);
   });
 
   it('is never a maximised window’s, however the window came to be maximised', async () => {
     const { modes, win, drag, maximizeBySystem } = modesAt(undefined);
     await modes.setMode(win, 'player');
-    const sized = { x: 700, y: 60, width: 620, height: 700 };
-    drag(sized);
+    drag(SIZED);
     maximizeBySystem();
-    expect(modes.playerBounds(win, 'classic')).toEqual(sized);
-    expect(modes.memory().players.classic).toEqual(sized);
+    expect(modes.playerBounds(win)).toEqual(SIZED);
+    expect(modes.memory().player).toEqual(SIZED);
   });
 
   it('is the player’s own once a switch from a maximised app has placed it', async () => {
@@ -228,84 +241,80 @@ describe('what is written down as the amp’s size', () => {
     finishRestore();
     await goingIn;
     expect(bounds()).toEqual(FIRST);
-    expect(modes.playerBounds(win, 'classic')).toEqual(FIRST);
+    expect(modes.playerBounds(win)).toEqual(FIRST);
   });
 });
 
-// Two amps and the full app, each its own window to the listener (Ivan,
-// 2026-09-28: "we should preserve 3 window sizes: the full app, the amp
-// standard app and the amp backdrop glassy app").
-describe('each amp’s own size', () => {
-  const CLASSIC = { x: 700, y: 60, width: 620, height: 700 };
-  const STAGE = { x: 200, y: 100, width: 900, height: 600 };
-
-  it('opens the other amp where it was left, and the first one comes back to its own', async () => {
-    const { modes, win, bounds, drag } = modesAt(undefined);
+// One width, and the height the listener's (Ivan, 2026-10-25: "no 2 columns
+// and no width resize").
+describe('the amp’s width and height', () => {
+  it('rises to what its rows need on one line, and comes back to its own', async () => {
+    const { modes, win, bounds } = modesAt(SIZED);
     await modes.setMode(win, 'player');
-    drag(CLASSIC);
-    modes.setAmp(win, 'stage');
-    // Never opened before: its own narrow size, in the middle of the screen.
-    expect(bounds()).toEqual(FIRST);
-    drag(STAGE);
-    modes.setAmp(win, 'classic');
-    expect(bounds()).toEqual(CLASSIC);
-    modes.setAmp(win, 'stage');
-    expect(bounds()).toEqual(STAGE);
-    expect(modes.memory().players).toEqual({ classic: CLASSIC, stage: STAGE });
+    modes.needPlayerWidth(win, 512);
+    expect(bounds().width).toBe(512);
+    // Less than its own is its own.
+    modes.needPlayerWidth(win, 300);
+    expect(bounds().width).toBe(480);
+    modes.needPlayerWidth(win, undefined);
+    expect(bounds()).toEqual(SIZED);
   });
 
-  it('opens the amp chosen in the full app at that amp’s size, and leaves the app where it is', async () => {
-    const { modes, win, bounds, drag } = modesAt(undefined);
+  // The page's own measure while the picture has the screen is the
+  // display's, and taken as a need it was the screen's width.
+  it('takes no need from the page while the picture has the screen', async () => {
+    const { modes, win, bounds } = modesAt(SIZED);
     await modes.setMode(win, 'player');
-    drag(CLASSIC);
-    await modes.setMode(win, 'app');
-    modes.setAmp(win, 'stage');
-    expect(bounds()).toEqual(APP);
-    await modes.setMode(win, 'player');
-    expect(bounds()).toEqual(FIRST);
-    drag(STAGE);
-    await modes.setMode(win, 'app');
-    modes.setAmp(win, 'classic');
-    await modes.setMode(win, 'player');
-    expect(bounds()).toEqual(CLASSIC);
-  });
-
-  it('writes each amp down separately for the window-state file', async () => {
-    const { modes, win, drag } = modesAt(CLASSIC);
-    await modes.setMode(win, 'player');
-    modes.setAmp(win, 'stage');
-    drag(STAGE);
-    expect(modes.playerBounds(win, 'stage')).toEqual(STAGE);
-    expect(modes.playerBounds(win, 'classic')).toEqual(CLASSIC);
-  });
-
-  it('lets go of the height the old amp held the window to', async () => {
-    const { modes, win, bounds, drag } = modesAt(undefined);
-    await modes.setMode(win, 'player');
-    modes.setAmp(win, 'stage');
-    drag(STAGE);
-    modes.setAmp(win, 'classic');
-    // The 2.0 amp with nothing open is exactly its decks: held to 300. Left
-    // on, that ceiling held the Stage to 300 as well.
-    modes.limitPlayerHeight(win, 300, 300);
-    expect(bounds().height).toBe(300);
-    modes.setAmp(win, 'stage');
-    expect(bounds()).toEqual(STAGE);
-  });
-
-  it('takes the new amp’s place when the picture comes down from the whole screen', async () => {
-    const { modes, win, bounds, drag } = modesAt(undefined);
-    await modes.setMode(win, 'player');
-    modes.setAmp(win, 'stage');
-    drag(STAGE);
-    modes.setAmp(win, 'classic');
-    drag(CLASSIC);
     modes.setFullScreen(win, true);
-    modes.setAmp(win, 'stage');
-    // The picture keeps the screen.
-    expect(bounds()).toEqual(DISPLAY);
+    modes.needPlayerWidth(win, 1440);
     modes.setFullScreen(win, false);
-    expect(bounds()).toEqual(STAGE);
-    expect(modes.memory().players.classic).toEqual(CLASSIC);
+    // The page says its layout again once it is the amp's, which fits the
+    // window to what it was told: a need kept from the full screen would be
+    // the screen's width then.
+    modes.limitPlayerHeight(win, undefined, 650);
+    expect(bounds()).toEqual(SIZED);
+  });
+
+  // Dragged by its foot, the top stays put; by its top edge, the foot does
+  // (Ivan, 2026-10-25: "we need to be able to resize from the top too").
+  it('grows from its foot with its top where it was', async () => {
+    const { modes, win, bounds } = modesAt(SIZED);
+    await modes.setMode(win, 'player');
+    modes.resizePlayer(win, 600);
+    expect(bounds()).toEqual({ ...SIZED, height: 600 });
+  });
+
+  it('grows from its top edge with its foot where it was', async () => {
+    const { modes, win, bounds } = modesAt(SIZED);
+    await modes.setMode(win, 'player');
+    const foot = SIZED.y + SIZED.height;
+    modes.resizePlayer(win, 600, true);
+    expect(bounds()).toEqual({ ...SIZED, y: foot - 600, height: 600 });
+    modes.resizePlayer(win, 720, true);
+    expect(bounds()).toEqual({ ...SIZED, y: foot - 720, height: 720 });
+    // Never over the top of the screen: there the amp keeps its place on it.
+    modes.resizePlayer(win, 740, true);
+    expect(bounds()).toEqual({ ...SIZED, y: WORK_AREA.y, height: 740 });
+  });
+
+  it('stops its top where the floor puts it, rather than sliding the whole amp down', async () => {
+    const { modes, win, bounds } = modesAt(SIZED);
+    await modes.setMode(win, 'player');
+    // The amp's floor with its sound open (`usePlayerHeightFloor`).
+    modes.limitPlayerHeight(win, undefined, 650);
+    const foot = SIZED.y + SIZED.height;
+    modes.resizePlayer(win, 200, true);
+    expect(bounds()).toEqual({ ...SIZED, y: foot - 650, height: 650 });
+  });
+
+  // The amp's one width is its maximum as well as its floor, and the app's
+  // bounds set under it came out the amp's width (Ivan, 2026-10-25: "your
+  // width fix is screwing my full app").
+  it('leaves the full app its own width when the window goes back to it', async () => {
+    const { modes, win, bounds } = modesAt(SIZED);
+    await modes.setMode(win, 'player');
+    expect(bounds().width).toBe(480);
+    await modes.setMode(win, 'app');
+    expect(bounds()).toEqual(APP);
   });
 });

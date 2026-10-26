@@ -4,6 +4,7 @@ import { useTranslation } from '../utils/I18nContext';
 import RemoteAudioFader from './RemoteAudioFader';
 import { audioGroupRows, audioLinkKey } from './RemoteAudioGroup';
 import type { IRemoteAudioValue } from './remoteAudioState';
+import { linkControls } from './linkRecords';
 
 /** The system fader targets the OS default output, which the output picker
  * changes too. Incoming gains are independent receiver gains; no send gain. */
@@ -62,12 +63,20 @@ const RemoteAudioMix = ({
         if (!link) {
           return null;
         }
+        const controls = linkControls(link, remote.bothWays, remote.sharing);
+        const canAdjust = controls.receive && link.switches.play;
         let caption = t('remoteAudio.lane.inQuiet', { name: link.name });
         if (link.receiving) {
           caption = t('remoteAudio.lane.receiving');
         }
         if (link.switches.paused) {
           caption = t('remoteAudio.linked.paused');
+        } else if (link.theirs?.paused) {
+          caption = t('remoteAudio.lane.pausedThere', { name: link.name });
+        } else if (link.theirs?.sends === false) {
+          caption = t('remoteAudio.lane.inNotSent', { name: link.name });
+        } else if (!link.switches.play) {
+          caption = t('remoteAudio.lane.inOff', { name: link.name });
         }
         return (
           <RemoteAudioFader
@@ -78,6 +87,9 @@ const RemoteAudioMix = ({
             muted={link.switches.muted}
             muteLabel={`${link.name}: ${t(link.switches.muted ? 'library.unmute' : 'library.mute')}`}
             onToggleMute={() => {
+              if (!canAdjust) {
+                return;
+              }
               remote
                 .setSwitches(audioLinkKey(link), {
                   ...link.switches,
@@ -85,9 +97,12 @@ const RemoteAudioMix = ({
                 })
                 .catch(() => undefined);
             }}
-            disabled={!(remote.bothWays || !link.joined)}
+            disabled={!canAdjust}
             caption={caption}
             onChange={(volume) => {
+              if (!canAdjust) {
+                return;
+              }
               remote
                 .setSwitches(audioLinkKey(link), {
                   ...link.switches,

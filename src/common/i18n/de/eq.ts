@@ -165,10 +165,13 @@ const eq: Partial<Dictionary> = {
     'Alles von Ambiente, mit dem Visualizer hinter dem ganzen Fenster.',
   'graph.editHint':
     'Punkte ziehen · Strg/Umschalt wählt aus · Strg+Mausrad: Q · Strg+Ziehen: Glocke',
+  'graph.windowTint': 'Farbton',
+  'graph.windowTintHint':
+    'Die Farbe des Fensters bei einem Standard-Look. Doppelklick für die ursprüngliche Farbe.',
   'graph.backdropVeil': 'Transparenz',
   'graph.backdropVeilHint': 'Wie viel vom Visualizer durch die Flächen scheint',
   'graph.sceneTint.brightness': 'Helligkeit',
-  'graph.sceneTint.rainbow': 'Regenbogenmodus',
+  'graph.sceneTint.rainbow': 'Bunter Modus',
   'graph.sceneTint.rainbowHint':
     'Bänder, Titel und leuchtende Bedienelemente in einer Palette statt in einer Farbe – mit einer gewählten Szene in deren eigenen Farben.',
   'graph.sceneTint.sparks': 'Zeiger-Funken',
@@ -178,15 +181,19 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.daylightHint':
     'Die Tageszeit des Visualizers, von Nacht bis voller Tag',
   'graph.sceneTint.daylightFollowingHint':
-    'Folgt der Helligkeit. Schalten Sie „Tageslicht folgt Helligkeit“ aus, um die Tageszeit des Visualizers selbst festzulegen',
-  'graph.sceneTint.daylightFollows': 'Tageslicht folgt Helligkeit',
+    'Folgt der Helligkeit. Wählen Sie unten Nichts, um die Tageszeit des Visualizers hier einzustellen',
+  'graph.sceneTint.daylightSource': 'Folgt',
+  'graph.sceneTint.daylightSourceOwn': 'Nichts',
+  'graph.sceneTint.daylightSourceBrightness': 'Helligkeit',
+  'graph.sceneTint.daylightSourceClock': 'Uhr',
+  'graph.sceneTint.daylightOwnHint':
+    'Der Visualizer behält das oben eingestellte Tageslicht.',
   'graph.sceneTint.daylightFollowsHint':
-    'Ein: Der Visualizer wechselt mit der Helligkeit von Nacht zu Tag. Aus: Er behält das oben eingestellte Tageslicht, und die Helligkeit ändert nur das Fenster.',
-  'graph.sceneTint.daylightClock': 'Tageslicht folgt der Uhrzeit',
+    'Der Visualizer wechselt mit der Helligkeit von Nacht zu Tag.',
   'graph.sceneTint.daylightClockHint':
-    'Ein: Beim Visualizer ist es nachts Nacht und tagsüber Tag, nach der Uhr dieses Computers. Aus: Er behält das oben eingestellte Tageslicht.',
+    'Der Visualizer ist nachts Nacht und tagsüber Tag, nach der Uhr dieses Computers.',
   'graph.sceneTint.daylightFollowingClockHint':
-    'Folgt der Uhrzeit. Schalten Sie „Tageslicht folgt der Uhrzeit“ aus, um die Tageszeit des Visualizers selbst festzulegen',
+    'Folgt der Uhr. Wählen Sie unten Nichts, um die Tageszeit des Visualizers hier einzustellen',
   'graph.sceneTint.daylightStudioHint':
     'Solange das Studio geöffnet ist, bestimmt die Helligkeit die Tageszeit des Visualizers, damit Sie eine Szene von Nacht bis Tag ausprobieren können. Diese Wahl gilt wieder, sobald Sie das Studio verlassen',
   'graph.sceneTint.brightnessHint':
@@ -635,7 +642,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target': 'Ziel',
   'eq.smart.mode.target.note':
     'Misst weiter · jede Aufnahme auf dieselbe Kurve',
-  'eq.layers': 'Ebenfalls aktiv',
   'eq.layers.aria': 'Was diesen Ausgang außerdem formt',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} Bänder',
@@ -791,7 +797,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Nur Ihre EQ-Bänder, nichts darüber',
   'voicing.strength': 'Stärke',
   'waveform.style': 'Stil der Anzeige wechseln',
-  'waveform.rainbow': 'Regenbogen',
+  'waveform.rainbow': 'Bunt',
   'waveform.live': 'LIVE-AUSGABE',
   'waveform.signal': 'AUDIOSIGNAL',
   'waveform.clip': 'ÜBERSTEUERUNG',
