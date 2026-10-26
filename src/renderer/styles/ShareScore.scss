@@ -47,18 +47,6 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-s;
 }
 
-// What the plain card costs to leave behind, in the lime the rhythm game
-// scores in — a line under the card, not a box round it.
-.share-score__unlock {
-  margin: 0;
-  color: $neon-lime;
-  font-size: $text-lead;
-  font-weight: $weight-semibold;
-  line-height: 1.5;
-  text-align: center;
-  text-wrap: balance;
-}
-
 // "Copied", for its moment: the hold's end is what puts the button's own label
 // back (`ShareScoreCard.tsx`), where a timer beside it used to. The same 1.6s.
 //
@@ -100,6 +88,9 @@ $share-score-copied: 1.6s;
   align-items: center;
   justify-self: center;
   gap: 7px;
+  // Clear of a two-line hint above it, which the game's 6px gap alone left
+  // crowding the button's edge.
+  margin-top: 4px;
   padding: 5px 14px;
   color: $secondary-light;
   border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
@@ -133,21 +124,35 @@ $share-score-copied: 1.6s;
     background: color-mix(in srgb, $secondary-default 12%, transparent);
   }
 
-  // At the ceiling it stops being an outline and becomes the spectrum, because
-  // this is the one moment worth showing anyone — the offer is made while the
-  // thing it captures is still on screen. Stepping through Rainbow mode's
-  // palette with the rest of the mode (`rainbow-cycle`).
+  // With Colourful mode on it stops being an outline and is filled with the
+  // mode's palette — the window's Tint, or the visualizer's colours — as one
+  // still sweep, the share card's own SCORE pill. It used to flash through
+  // the palette a colour at a time (Ivan, 2026-10-25: "remove all rainbow
+  // crap and colors").
   &.is-euphoric {
-    animation: rainbow-cycle 3.6s linear infinite;
     color: $surface-well;
     border-color: transparent;
-    background: var(--rainbow-now);
-    font-weight: $weight-bold;
-    box-shadow: 0 0 14px color-mix(in srgb, var(--rainbow-now) 55%, transparent);
+    background: linear-gradient(
+      90deg,
+      var(--rainbow-1),
+      var(--rainbow-3),
+      var(--rainbow-5),
+      var(--rainbow-7)
+    );
+    // From the border's edge, or the sweep repeats under the transparent
+    // border and draws a sliver of its first colour down the right side.
+    background-origin: border-box;
+    box-shadow: 0 0 14px color-mix(in srgb, var(--rainbow-4) 40%, transparent);
 
     &:hover {
       color: $surface-well;
-      background: color-mix(in srgb, var(--rainbow-now) 75%, white);
+      background: linear-gradient(
+        90deg,
+        color-mix(in oklab, var(--rainbow-1) 82%, $white),
+        color-mix(in oklab, var(--rainbow-3) 82%, $white),
+        color-mix(in oklab, var(--rainbow-5) 82%, $white),
+        color-mix(in oklab, var(--rainbow-7) 82%, $white)
+      );
     }
   }
 }

@@ -168,7 +168,7 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeil': 'Transparenz',
   'graph.backdropVeilHint': 'Wie viel vom Visualizer durch die Flächen scheint',
   'graph.sceneTint.brightness': 'Helligkeit',
-  'graph.sceneTint.rainbow': 'Regenbogenmodus',
+  'graph.sceneTint.rainbow': 'Bunter Modus',
   'graph.sceneTint.rainbowHint':
     'Bänder, Titel und leuchtende Bedienelemente in einer Palette statt in einer Farbe – mit einer gewählten Szene in deren eigenen Farben.',
   'graph.sceneTint.sparks': 'Zeiger-Funken',
@@ -789,7 +789,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Nur Ihre EQ-Bänder, nichts darüber',
   'voicing.strength': 'Stärke',
   'waveform.style': 'Stil der Anzeige wechseln',
-  'waveform.rainbow': 'Regenbogen',
+  'waveform.rainbow': 'Bunt',
   'waveform.live': 'LIVE-AUSGABE',
   'waveform.signal': 'AUDIOSIGNAL',
   'waveform.clip': 'ÜBERSTEUERUNG',

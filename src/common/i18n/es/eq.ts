@@ -165,7 +165,7 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeilHint':
     'Cuánto del visualizador se ve a través de los paneles',
   'graph.sceneTint.brightness': 'Brillo',
-  'graph.sceneTint.rainbow': 'Modo arcoíris',
+  'graph.sceneTint.rainbow': 'Modo colorido',
   'graph.sceneTint.rainbowHint':
     'Las bandas, el título y los controles encendidos en una paleta en lugar de un solo color; con una escena elegida, en sus propios colores.',
   'graph.sceneTint.sparks': 'Chispas del puntero',
@@ -788,7 +788,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Solo tus bandas de EQ, sin nada encima',
   'voicing.strength': 'Intensidad',
   'waveform.style': 'Cambia el estilo del medidor',
-  'waveform.rainbow': 'Arcoíris',
+  'waveform.rainbow': 'Colorido',
   'waveform.live': 'SALIDA EN DIRECTO',
   'waveform.signal': 'SEÑAL DE AUDIO',
   'waveform.clip': 'SATURACIÓN',

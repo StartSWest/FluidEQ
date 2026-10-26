@@ -164,7 +164,7 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': 'パネル越しにビジュアライザーがどれだけ見えるか',
   'graph.sceneTint.brightness': '明るさ',
-  'graph.sceneTint.rainbow': 'レインボーモード',
+  'graph.sceneTint.rainbow': 'カラフルモード',
   'graph.sceneTint.rainbowHint':
     'バンド、タイトル、点灯中のコントロールを単色ではなくパレットで表示します。シーンの選択中はその色で表示します。',
   'graph.sceneTint.sparks': 'ポインターの火花',
@@ -775,7 +775,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': '自分の EQ バンドだけ。上に重ねるものはありません',
   'voicing.strength': '強さ',
   'waveform.style': 'メーターのスタイルを変更',
-  'waveform.rainbow': 'レインボー',
+  'waveform.rainbow': 'カラフル',
   'waveform.live': 'ライブ出力',
   'waveform.signal': 'オーディオ信号',
   'waveform.clip': 'クリップ',

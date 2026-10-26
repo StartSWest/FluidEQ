@@ -24,6 +24,7 @@ import {
   setEuphoriaEnabled,
   winEuphoria,
 } from 'renderer/utils/euphoriaMode';
+import { RAINBOW_TOKENS } from 'renderer/utils/rainbowPalette';
 import { resetRhythmRun, setRhythmRun } from 'renderer/utils/rhythmRun';
 
 // The audio half mounts only while the mode is running, and all it wants is a
@@ -87,6 +88,25 @@ describe('the euphoria root class', () => {
     // The control: this is the state the burst used to fire in.
     expect(isRootEuphoric()).toBe(true);
     expect(view.container.querySelector('.euphoria-burst')).toBeNull();
+  });
+
+  // Each blade one stop of the palette in use, in turn — the window's Tint or
+  // the visualizer's colours — where they were spaced round the whole colour
+  // wheel (Ivan, 2026-10-25: "not use those fixed rainbow colors").
+  it('lights the switch-on flash in the palette in use, stop by stop', () => {
+    act(() => setEuphoriaEnabled(false));
+    const view = render(<EuphoriaGlow />);
+    act(() => setEuphoriaEnabled(true));
+    const blades = [
+      ...view.container.querySelectorAll<HTMLElement>('.euphoria-burst__blade'),
+    ];
+    expect(blades.length).toBeGreaterThan(RAINBOW_TOKENS.length);
+    blades.forEach((blade, index) => {
+      expect(blade.style.getPropertyValue('--euphoria-blade-colour')).toBe(
+        `var(${RAINBOW_TOKENS[index % RAINBOW_TOKENS.length]})`,
+      );
+      expect(blade.style.getPropertyValue('--euphoria-blade-hue')).toBe('');
+    });
   });
 
   it('takes the class with it when the shell unmounts', () => {

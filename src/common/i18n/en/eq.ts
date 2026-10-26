@@ -172,7 +172,7 @@ const eq = {
   // The window-colours menu's Brightness: the theme's own slider, which also
   // sets how light a visualizer's colours stand.
   'graph.sceneTint.brightness': 'Brightness',
-  'graph.sceneTint.rainbow': 'Rainbow mode',
+  'graph.sceneTint.rainbow': 'Colourful mode',
   'graph.sceneTint.rainbowHint':
     'The bands, the title and the lit controls in a palette instead of one colour — a scene’s own colours while one is chosen.',
   'graph.sceneTint.sparks': 'Pointer sparks',
@@ -794,7 +794,7 @@ const eq = {
   'voicing.none.hint': 'Your EQ bands only, nothing layered on top',
   'voicing.strength': 'Strength',
   'waveform.style': 'Change the meter style',
-  'waveform.rainbow': 'Rainbow',
+  'waveform.rainbow': 'Colourful',
   'waveform.live': 'LIVE OUTPUT',
   'waveform.signal': 'AUDIO SIGNAL',
   'waveform.clip': 'CLIP',

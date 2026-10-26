@@ -21,6 +21,7 @@ import { getStreakJoy } from 'common/rhythmGame';
 import { forEachGraphPoint } from '../graph/EditablePoint';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
 import { getBandLevel } from '../utils/bandLevel';
+import { RAINBOW_TOKENS } from '../utils/rainbowPalette';
 import { useRhythmRun } from '../utils/rhythmRun';
 import {
   isEuphoriaAchieved,
@@ -289,7 +290,13 @@ const EuphoriaGlow = () => {
               style={
                 {
                   '--euphoria-blade-index': index,
-                  '--euphoria-blade-hue': `${(index * 360) / EUPHORIA_BLADES.length}deg`,
+                  // Each blade one stop of the palette in use, in turn: the
+                  // window's Tint, or the visualizer's colours. Spaced round
+                  // the whole colour wheel, the flash painted the flag that
+                  // the mode itself had stopped painting (Ivan, 2026-10-25).
+                  '--euphoria-blade-colour': `var(${
+                    RAINBOW_TOKENS[index % RAINBOW_TOKENS.length]
+                  })`,
                 } as CSSProperties
               }
             />

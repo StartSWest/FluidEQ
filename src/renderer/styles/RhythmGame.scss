@@ -11,6 +11,12 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 
 .rhythm-game {
+  // What a good tap lights — the streak, the beat marks, the target's flash,
+  // a perfect and the multiplier: the game's lime, or the palette in use with
+  // Colourful mode on (`Euphoria.scss`), all in one ink so the mode moves
+  // them together.
+  --game-ink: #{$neon-lime};
+
   // Arrives rather than appears. This mounts the instant the badge is earned,
   // straight out of the star that was standing in its place, so it is the
   // second half of that one animation and not a decoration on a panel that had
@@ -127,9 +133,9 @@ it under the terms of the GNU General Public License version 3 or later.
   bottom: 4px;
   left: calc(100% + 12px);
   padding: 1px 10px;
-  color: $neon-lime;
+  color: var(--game-ink);
   border-radius: $radius-xs;
-  background: rgba($neon-lime, 0.12);
+  background: color-mix(in srgb, var(--game-ink) 12%, transparent);
   font-size: 1rem;
   font-weight: $weight-bold;
   font-variant-numeric: tabular-nums;
@@ -174,6 +180,13 @@ it under the terms of the GNU General Public License version 3 or later.
     height: 100%;
   }
 
+  // The gradients' stops, in the colours the markup hands them: the palette
+  // Colourful mode is in (`RhythmGame.tsx`).
+  stop {
+    stop-color: var(--stop-colour);
+    stop-opacity: var(--stop-opacity, 1);
+  }
+
   // Filled, because it is mirrored about the middle and closed — a waveform,
   // the same shape the titlebar meter draws rather than a second style for the
   // same idea in one app.
@@ -198,15 +211,17 @@ it under the terms of the GNU General Public License version 3 or later.
   // is actually lining up against the target, so they are drawn on top of the
   // waveform rather than behind it.
   .rhythm-game__peak {
-    stroke: $neon-lime;
+    stroke: var(--game-ink);
     stroke-width: 4;
     stroke-linecap: round;
     vector-effect: non-scaling-stroke;
     // Two shadows rather than one: a tight bright core and a wide soft halo.
     // A single large blur just goes muddy, and these have to read at a glance
     // against a waveform of the same colour family.
-    filter: drop-shadow(0 0 3px rgba($neon-lime, 0.95))
-      drop-shadow(0 0 9px rgba($neon-lime, 0.55));
+    filter: drop-shadow(
+        0 0 3px color-mix(in srgb, var(--game-ink) 95%, transparent)
+      )
+      drop-shadow(0 0 9px color-mix(in srgb, var(--game-ink) 55%, transparent));
   }
 
   // What to do about an empty box, said in the empty box.
@@ -270,11 +285,11 @@ it under the terms of the GNU General Public License version 3 or later.
 
 @keyframes rhythm-target-flash {
   0% {
-    background: $neon-lime;
+    background: var(--game-ink);
     box-shadow:
-      0 0 6px rgba($neon-lime, 1),
-      0 0 22px rgba($neon-lime, 0.85),
-      0 0 44px rgba($neon-lime, 0.5);
+      0 0 6px var(--game-ink),
+      0 0 22px color-mix(in srgb, var(--game-ink) 85%, transparent),
+      0 0 44px color-mix(in srgb, var(--game-ink) 50%, transparent);
     scale: 1 1.06;
   }
 
@@ -285,47 +300,78 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// One cell holding the message on show and, invisibly, the two long ones
+// (`data-hint`, `data-listening`), so the line is always as tall as the
+// longest of them at this width, in this language. Pseudo-elements rather
+// than copies in the markup: they are not in the accessibility tree once
+// hidden, and nothing reads them twice.
 .rhythm-game__verdict {
-  display: flex;
+  display: grid;
   min-height: 16px;
-  align-items: baseline;
-  justify-content: center;
-  gap: 8px;
+  align-items: center;
   margin: 0;
   font-size: $text-small;
   font-weight: $weight-bold;
+  line-height: 1.5;
   @include tracking(0.1em);
   text-align: center;
   text-transform: uppercase;
+  text-wrap: balance;
+
+  &::before,
+  &::after {
+    grid-area: 1 / 1;
+    visibility: hidden;
+  }
+
+  &::before {
+    content: attr(data-hint);
+  }
+
+  &::after {
+    content: attr(data-listening);
+  }
+}
+
+.rhythm-game__verdict-row {
+  display: flex;
+  grid-area: 1 / 1;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 // The multiplier, beside the verdict rather than only in the score row. It
 // flares on every hit, because this is the number the player is protecting and
 // it should feel like it is being paid out.
 .rhythm-game__verdict-multiplier {
-  color: $neon-lime;
+  color: var(--game-ink);
   font-size: $text-body;
   font-variant-numeric: tabular-nums;
+  // Inside the verdict's own line box, so a tap's larger figure never makes
+  // the line taller than the one-line hint it replaced.
+  line-height: 1;
   @include tracking(0.02em);
   animation: rhythm-multiplier-flare 520ms ease-out;
   text-shadow:
-    0 0 8px rgba($neon-lime, 0.9),
-    0 0 20px rgba($neon-lime, 0.5);
+    0 0 8px color-mix(in srgb, var(--game-ink) 90%, transparent),
+    0 0 20px color-mix(in srgb, var(--game-ink) 50%, transparent);
 }
 
 @keyframes rhythm-multiplier-flare {
   0% {
     scale: 1.5;
     text-shadow:
-      0 0 14px rgba($neon-lime, 1),
-      0 0 34px rgba($neon-lime, 0.8);
+      0 0 14px var(--game-ink),
+      0 0 34px color-mix(in srgb, var(--game-ink) 80%, transparent);
   }
 
   100% {
     scale: 1;
     text-shadow:
-      0 0 8px rgba($neon-lime, 0.9),
-      0 0 20px rgba($neon-lime, 0.5);
+      0 0 8px color-mix(in srgb, var(--game-ink) 90%, transparent),
+      0 0 20px color-mix(in srgb, var(--game-ink) 50%, transparent);
   }
 }
 
@@ -346,7 +392,7 @@ $rhythm-verdict-hold: 900ms;
   }
 
   &--perfect {
-    color: $neon-lime;
+    color: var(--game-ink);
   }
 
   &--great {

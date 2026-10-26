@@ -56,11 +56,11 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'El encabezado te lleva de una página de FluidEQ a otra y muestra el sonido mientras suena. El panel izquierdo tiene el interruptor general del EQ, la preamplificación y el medidor de nivel; el panel derecho sigue a tu salida y sus perfiles.',
   'help.window.steps':
-    'Abre una página desde el encabezado: antes de la señal, Multimedia en línea, Compartir audio y EQ; después, DSP, Biblioteca, Karaoke y Visualizadores.\nActiva EQ del sistema en el panel izquierdo y deja Normalizar automáticamente activado, para que ningún realce sature.\nPulsa la señal o el medidor de nivel para cambiar cómo se dibuja, y Modo arcoíris para que las curvas y los medidores se muevan a la frecuencia completa de tu pantalla.',
+    'Abre una página desde el encabezado: antes de la señal, Multimedia en línea, Compartir audio y EQ; después, DSP, Biblioteca, Karaoke y Visualizadores.\nActiva EQ del sistema en el panel izquierdo y deja Normalizar automáticamente activado, para que ningún realce sature.\nPulsa la señal o el medidor de nivel para cambiar cómo se dibuja, y Modo colorido para que las curvas y los medidores se muevan a la frecuencia completa de tu pantalla.',
   'help.window.tip':
     'El menú Ayuda abre esta guía, Novedades, el solucionador de problemas de audio e Informar de un problema. El botón con el icono de pulso que hay a su lado reúne la tarjeta del motor, tu cuenta, la importación de ajustes de EQ o de una respuesta al impulso, el reinicio del audio de Windows y Procesos, que muestra qué está usando cada parte de FluidEQ; al pie del menú están Brillo y Transparencia, las animaciones, Iniciar con Windows y el idioma. El interruptor que sigue a esos dos botones convierte la ventana en el Reproductor compacto.',
   'help.window.keywords':
-    'interfaz, pestañas, cabecera, secciones, navegación, barra superior, barra inferior, barra de reproducción, panel lateral, botones, vúmetro, tour, donar, donaciones, tema, modo oscuro, modo claro, tema oscuro, tema claro, modo nocturno, idioma, lenguaje, cambiar idioma, iniciar con windows, arrancar con windows, inicio automático, arranque automático, al iniciar windows, cuenta',
+    'interfaz, pestañas, cabecera, secciones, navegación, barra superior, barra inferior, barra de reproducción, panel lateral, botones, vúmetro, modo colorido, arcoíris, tour, donar, donaciones, tema, modo oscuro, modo claro, tema oscuro, tema claro, modo nocturno, idioma, lenguaje, cambiar idioma, iniciar con windows, arrancar con windows, inicio automático, arranque automático, al iniciar windows, cuenta',
   'help.window.headerLeftCaption': 'El encabezado, hasta la señal',
   'help.window.headerRightCaption': 'El encabezado, después de la señal',
   'help.window.railCaption': 'El panel izquierdo',
@@ -150,7 +150,7 @@ const help: Record<keyof typeof en, string> = {
     'Lo que suena después. Haz doble clic en una canción para reproducirla, o suelta aquí archivos de música para añadirlos.',
   'help.player.openIn': 'Abre la app completa en una de sus páginas.',
   'help.player.theme':
-    'El Brillo propio del reproductor, independiente del de la app completa; la Transparencia, para el reproductor de cristal sobre un visualizador; y el Modo arcoíris.',
+    'El Brillo propio del reproductor, independiente del de la app completa; la Transparencia, para el reproductor de cristal sobre un visualizador; y el Modo colorido.',
   'help.player.fold':
     'Pliega el reproductor en una línea. Un doble clic en su barra hace lo mismo.',
   'help.player.unfold':

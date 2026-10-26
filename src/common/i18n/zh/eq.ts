@@ -154,7 +154,7 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': '透过面板能看到多少可视化效果',
   'graph.sceneTint.brightness': '亮度',
-  'graph.sceneTint.rainbow': '彩虹模式',
+  'graph.sceneTint.rainbow': '多彩模式',
   'graph.sceneTint.rainbowHint':
     '频段、标题和亮起的控件使用调色板而不是单一颜色；选择场景时使用它自己的颜色。',
   'graph.sceneTint.sparks': '指针火花',
@@ -736,7 +736,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': '只用你自己的频段，不叠加任何东西',
   'voicing.strength': '强度',
   'waveform.style': '更换指示器样式',
-  'waveform.rainbow': '彩虹',
+  'waveform.rainbow': '多彩',
   'waveform.live': '实时输出',
   'waveform.signal': '音频信号',
   'waveform.clip': '削波',

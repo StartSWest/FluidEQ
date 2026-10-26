@@ -52,7 +52,7 @@ const tour: Partial<Dictionary> = {
     'Mova {brightness} no menu de ações no ícone de pulso do canto superior direito. Com uma cena no gráfico, abra {windowColours} pela barra do gráfico e escolha {backdrop}.',
   'tour.look.open': 'Abrir EQ',
   'tour.look.imageAlt':
-    'O FluidEQ nas próprias cores na página do EQ, o Analisador desenhando uma música sob as curvas, e o menu do ícone de pulso aberto sobre o canto, com o Brilho na metade e o Modo arco-íris ligado.',
+    'O FluidEQ nas próprias cores na página do EQ, o Analisador desenhando uma música sob as curvas, e o menu do ícone de pulso aberto sobre o canto, com o Brilho na metade e o Modo colorido ligado.',
   'tour.gpu.kicker': 'UM NOVO MOTOR DE VISUALIZADORES',
   'tour.gpu.title': 'Todos os visualizadores na sua placa de vídeo',
   'tour.gpu.subtitle': 'Quarenta estilos no ritmo da sua tela, e mundos 3D',

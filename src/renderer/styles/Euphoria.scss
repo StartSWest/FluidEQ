@@ -79,6 +79,13 @@ it under the terms of the GNU General Public License version 3 or later.
     stroke: url('#rhythm-line');
   }
 
+  // What a good tap lights, in the trace's middle colour rather than the
+  // game's lime (`RhythmGame.scss`), so the game reads as one colour family
+  // with the wave and the bloom above it.
+  .rhythm-game {
+    --game-ink: var(--rainbow-4);
+  }
+
   // The band sliders pulsed here, with a glow round each track that grew with
   // `--band-level`. The tracks light from inside now, with the mode on or off
   // (`.range__glow`, written by `BandLevels`), and a ring round a track whose
@@ -308,7 +315,10 @@ it under the terms of the GNU General Public License version 3 or later.
   inset: 0;
 
   // A broad diagonal colour cut crosses behind the blades. It is light rather
-  // than an opaque sheet, so the app remains legible throughout the hit.
+  // than an opaque sheet, so the app remains legible throughout the hit. In
+  // the palette in use (`Rainbow.scss`): it was cyan, green, yellow, pink and
+  // violet whatever colours the window wore (Ivan, 2026-10-25: "not use those
+  // fixed rainbow colors ... but to use current colorful color").
   &::before {
     position: absolute;
     content: '';
@@ -323,11 +333,11 @@ it under the terms of the GNU General Public License version 3 or later.
     background: linear-gradient(
       105deg,
       transparent 0%,
-      rgba(#4defff, 0.12) 14%,
-      rgba(#7dff7a, 0.34) 31%,
-      rgba(#ffe86a, 0.48) 48%,
-      rgba(#ff6cb8, 0.42) 66%,
-      rgba(#8e69ff, 0.18) 84%,
+      color-mix(in srgb, var(--rainbow-1) 12%, transparent) 14%,
+      color-mix(in srgb, var(--rainbow-3) 34%, transparent) 31%,
+      color-mix(in srgb, var(--rainbow-4) 48%, transparent) 48%,
+      color-mix(in srgb, var(--rainbow-5) 42%, transparent) 66%,
+      color-mix(in srgb, var(--rainbow-7) 18%, transparent) 84%,
       transparent 100%
     );
     transform: skewX(-13deg) translate3d(-40vw, 0, 0);
@@ -345,9 +355,9 @@ it under the terms of the GNU General Public License version 3 or later.
   background: linear-gradient(
     180deg,
     transparent 4%,
-    hsl(var(--euphoria-blade-hue) 96% 68% / 8%) 22%,
-    hsl(var(--euphoria-blade-hue) 98% 64% / 52%) 50%,
-    hsl(var(--euphoria-blade-hue) 96% 68% / 10%) 78%,
+    color-mix(in srgb, var(--euphoria-blade-colour) 8%, transparent) 22%,
+    color-mix(in srgb, var(--euphoria-blade-colour) 52%, transparent) 50%,
+    color-mix(in srgb, var(--euphoria-blade-colour) 10%, transparent) 78%,
     transparent 96%
   );
   opacity: 0;
@@ -584,9 +594,9 @@ it under the terms of the GNU General Public License version 3 or later.
   .euphoria-burst {
     background: linear-gradient(
       105deg,
-      rgba(#4defff, 0.08),
-      rgba(#ffe86a, 0.14),
-      rgba(#ff4daf, 0.1)
+      color-mix(in srgb, var(--rainbow-1) 8%, transparent),
+      color-mix(in srgb, var(--rainbow-4) 14%, transparent),
+      color-mix(in srgb, var(--rainbow-6) 10%, transparent)
     );
     animation-duration: 240ms;
 

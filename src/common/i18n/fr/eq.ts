@@ -168,7 +168,7 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeilHint':
     'Quelle part du visualiseur transparaît à travers les panneaux',
   'graph.sceneTint.brightness': 'Luminosité',
-  'graph.sceneTint.rainbow': 'Mode arc-en-ciel',
+  'graph.sceneTint.rainbow': 'Mode coloré',
   'graph.sceneTint.rainbowHint':
     'Les bandes, le titre et les commandes allumées dans une palette plutôt qu’une seule couleur — avec une scène choisie, dans ses propres couleurs.',
   'graph.sceneTint.sparks': 'Étincelles du pointeur',
@@ -790,7 +790,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Vos bandes d’égalisation seules, rien par-dessus',
   'voicing.strength': 'Intensité',
   'waveform.style': "Changer le style de l'indicateur",
-  'waveform.rainbow': 'Arc-en-ciel',
+  'waveform.rainbow': 'Coloré',
   'waveform.live': 'SORTIE EN DIRECT',
   'waveform.signal': 'SIGNAL AUDIO',
   'waveform.clip': 'SATURATION',

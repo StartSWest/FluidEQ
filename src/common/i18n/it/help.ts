@@ -56,11 +56,11 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'L’intestazione ti porta da una pagina all’altra di FluidEQ e mostra il suono in tempo reale. La colonna di sinistra ospita l’interruttore generale dell’EQ, la preamplificazione e il misuratore di livello; la colonna di destra segue l’uscita e i suoi profili.',
   'help.window.steps':
-    'Premi una pagina nell’intestazione: Media online, Condividi audio ed EQ stanno prima del segnale; DSP, Libreria, Karaoke e Visualizzatori dopo.\nAttiva EQ di sistema nella colonna di sinistra e lascia attivo Normalizza automaticamente, così nessun rinforzo va in saturazione.\nPremi il segnale o il misuratore di livello per cambiare come viene disegnato, e Modalità arcobaleno per far muovere curve e misuratori alla piena frequenza del tuo schermo.',
+    'Premi una pagina nell’intestazione: Media online, Condividi audio ed EQ stanno prima del segnale; DSP, Libreria, Karaoke e Visualizzatori dopo.\nAttiva EQ di sistema nella colonna di sinistra e lascia attivo Normalizza automaticamente, così nessun rinforzo va in saturazione.\nPremi il segnale o il misuratore di livello per cambiare come viene disegnato, e Modalità colorata per far muovere curve e misuratori alla piena frequenza del tuo schermo.',
   'help.window.tip':
     'Il menu Aiuto apre questa guida, Novità, la risoluzione dei problemi audio e Segnala un problema. Il pulsante a impulso accanto ad Aiuto contiene la scheda del motore, il tuo account, l’importazione di impostazioni EQ o di una risposta all’impulso, il riavvio dell’audio di Windows e Processi, che mostra cosa sta usando ogni parte di FluidEQ; in fondo al menu ci sono Luminosità e Trasparenza, le animazioni, Avvia con Windows e la lingua. L’interruttore dopo questi due pulsanti trasforma la finestra nel Lettore compatto.',
   'help.window.keywords':
-    'interfaccia, navigazione, panoramica, schermata principale, barra superiore, barra di riproduzione, pannello laterale, layout, tab, header, toolbar, vumetro, VU meter, indicatore di livello, tema, tema scuro, tema chiaro, modalità scura, modalità chiara, dark mode, lingua, cambiare lingua, avvio con windows, avvio automatico, esecuzione automatica, all’avvio, account',
+    'interfaccia, navigazione, panoramica, schermata principale, barra superiore, barra di riproduzione, pannello laterale, layout, tab, header, toolbar, vumetro, VU meter, modalità colorata, arcobaleno, indicatore di livello, tema, tema scuro, tema chiaro, modalità scura, modalità chiara, dark mode, lingua, cambiare lingua, avvio con windows, avvio automatico, esecuzione automatica, all’avvio, account',
   'help.window.headerLeftCaption': 'L’intestazione, fino al segnale',
   'help.window.headerRightCaption': 'L’intestazione, dopo il segnale',
   'help.window.railCaption': 'La colonna di sinistra',
@@ -149,7 +149,7 @@ const help: Record<keyof typeof en, string> = {
     'Cosa suona dopo. Fai doppio clic su un brano per riprodurlo, o trascina qui dei file musicali per aggiungerli.',
   'help.player.openIn': 'Apre l’app completa su una delle sue pagine.',
   'help.player.theme':
-    'La Luminosità del lettore, separata da quella dell’app completa; la Trasparenza, per il lettore in vetro sopra un visualizzatore; e la Modalità arcobaleno.',
+    'La Luminosità del lettore, separata da quella dell’app completa; la Trasparenza, per il lettore in vetro sopra un visualizzatore; e la Modalità colorata.',
   'help.player.fold':
     'Riduce il lettore a una riga. Il doppio clic sulla sua barra fa lo stesso.',
   'help.player.unfold':

@@ -164,7 +164,7 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeil': 'Прозрачность',
   'graph.backdropVeilHint': 'Насколько визуализатор виден сквозь панели',
   'graph.sceneTint.brightness': 'Яркость',
-  'graph.sceneTint.rainbow': 'Режим «Радуга»',
+  'graph.sceneTint.rainbow': 'Цветной режим',
   'graph.sceneTint.rainbowHint':
     'Полосы, заголовок и включённые элементы — палитрой вместо одного цвета; с выбранной сценой — её собственными цветами.',
   'graph.sceneTint.sparks': 'Искры от указателя',
@@ -780,7 +780,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Только ваши полосы, ничего сверху',
   'voicing.strength': 'Сила',
   'waveform.style': 'Сменить стиль индикатора',
-  'waveform.rainbow': 'Радуга',
+  'waveform.rainbow': 'Цветной',
   'waveform.live': 'ВЫХОД В РЕАЛЬНОМ ВРЕМЕНИ',
   'waveform.signal': 'АУДИОСИГНАЛ',
   'waveform.clip': 'ПЕРЕГРУЗКА',

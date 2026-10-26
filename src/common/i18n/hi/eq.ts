@@ -162,7 +162,7 @@ const eq: Partial<Dictionary> = {
   'graph.backdropVeil': 'पारदर्शिता',
   'graph.backdropVeilHint': 'पैनलों के पार विज़ुअलाइज़र कितना दिखे',
   'graph.sceneTint.brightness': 'चमक',
-  'graph.sceneTint.rainbow': 'इंद्रधनुष मोड',
+  'graph.sceneTint.rainbow': 'रंगीन मोड',
   'graph.sceneTint.rainbowHint':
     'बैंड, शीर्षक और जले हुए नियंत्रण एक रंग के बजाय एक पैलेट में — कोई सीन चुना हो तो उसी के रंगों में।',
   'graph.sceneTint.sparks': 'पॉइंटर की चिंगारियाँ',
@@ -774,7 +774,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'सिर्फ़ आपके EQ बैंड, ऊपर कुछ नहीं',
   'voicing.strength': 'मात्रा',
   'waveform.style': 'मीटर की शैली बदलें',
-  'waveform.rainbow': 'इंद्रधनुष',
+  'waveform.rainbow': 'रंगीन',
   'waveform.live': 'लाइव आउटपुट',
   'waveform.signal': 'ऑडियो सिग्नल',
   'waveform.clip': 'क्लिप',

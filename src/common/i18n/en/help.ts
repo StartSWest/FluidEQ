@@ -60,11 +60,11 @@ const help = {
   'help.window.intro':
     'The header takes you between FluidEQ’s pages and shows the sound as it plays. The left rail holds the switch for the whole EQ, the preamp and the level meter; the right rail follows your output and its profiles.',
   'help.window.steps':
-    'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Visualizers after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the signal or the level meter to change how it is drawn, and Rainbow mode to have the curves and meters move at your screen’s full rate.',
+    'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Visualizers after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the signal or the level meter to change how it is drawn, and Colourful mode to have the curves and meters move at your screen’s full rate.',
   'help.window.tip':
     'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The pulse button beside it holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio and Processes, which shows what each part of FluidEQ is using; at its foot are Brightness and Transparency, animations, Start with Windows and the language. The switch after them turns the window into the Compact player.',
   'help.window.keywords':
-    'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, rainbow, theme, dark mode, light mode, dark theme, light theme, language, start with windows, autostart, startup, account',
+    'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, rainbow, colourful mode, colorful mode, theme, dark mode, light mode, dark theme, light theme, language, start with windows, autostart, startup, account',
   'help.window.headerLeftCaption': 'The header, up to the signal',
   'help.window.headerRightCaption': 'The header, after the signal',
   'help.window.railCaption': 'The left rail',
@@ -149,7 +149,7 @@ const help = {
     'What plays next. Double-click a song to play it, or drop music files here to add them.',
   'help.player.openIn': 'Opens the full app on one of its pages.',
   'help.player.theme':
-    'The player’s own Brightness, apart from the full app’s; Transparency, for the glass player over a visualizer; and Rainbow mode.',
+    'The player’s own Brightness, apart from the full app’s; Transparency, for the glass player over a visualizer; and Colourful mode.',
   'help.player.fold':
     'Folds the player to one line. Double-clicking its strip does the same.',
   'help.player.unfold':

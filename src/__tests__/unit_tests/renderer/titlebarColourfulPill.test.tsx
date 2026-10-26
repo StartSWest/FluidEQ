@@ -5,8 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Normal or Rainbow, from the titlebar's wave (Ivan, 2026-09-26: "put back
- * the rainbow button to toggle on and off in the top wave"). A sibling of the
+ * Normal or Colourful, from the titlebar's wave (Ivan, 2026-09-26: "put back
+ * the rainbow button to toggle on and off in the top wave"; the mode was
+ * Rainbow mode until 2026-10-25, "change all ui that says rainbow to colorful
+ * mode"). A sibling of the
  * meter's own button rather than inside it, because a button inside a button
  * is unnested by the browser and its click lost.
  */
@@ -83,10 +85,10 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-describe('the Rainbow switch on the titlebar wave', () => {
-  it('turns Rainbow off and on again, and says which it is', () => {
+describe('the Colourful switch on the titlebar wave', () => {
+  it('turns Colourful mode off and on again, and says which it is', () => {
     render(<WaveformVisualizer />);
-    const pill = screen.getByRole('button', { name: 'Rainbow' });
+    const pill = screen.getByRole('button', { name: 'Colourful' });
     // On from the start (`euphoriaMode.ts`).
     expect(pill).toHaveAttribute('aria-pressed', 'true');
 
@@ -102,7 +104,7 @@ describe('the Rainbow switch on the titlebar wave', () => {
 
   it('is its own button, not one inside the meter', () => {
     render(<WaveformVisualizer />);
-    const pill = screen.getByRole('button', { name: 'Rainbow' });
+    const pill = screen.getByRole('button', { name: 'Colourful' });
     expect(pill.parentElement?.closest('button')).toBeNull();
   });
 });
