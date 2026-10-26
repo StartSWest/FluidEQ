@@ -298,21 +298,41 @@ describe('a page going full screen', () => {
 });
 
 describe("the window's size and position", () => {
+  it('saves the startup placement before any move or resize', () => {
+    const { windowModes } = deps();
+    open({ windowModes });
+    expect(saveWindowState).toHaveBeenCalledTimes(1);
+    expect(
+      jest.mocked(windowModes.followWindow).mock.invocationCallOrder[0],
+    ).toBeLessThan(saveWindowState.mock.invocationCallOrder[0]);
+  });
+
+  it('seeds a full-app placement even when the first window is the amp', () => {
+    const { windowModes } = deps();
+    open({ loadWindowState: () => ({ mode: 'player' }), windowModes });
+    expect(windowModes.restore).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: 'player',
+        app: { x: 320, y: 90, width: 1280, height: 900, isMaximized: false },
+      }),
+    );
+  });
+
   it('are asked for on every move and resize, with no timer in between', () => {
     const { window } = open();
-    expect(saveWindowState).not.toHaveBeenCalled();
+    expect(saveWindowState).toHaveBeenCalledTimes(1);
     window.emit('resize');
     window.emit('resize');
     window.emit('move');
     window.emit('maximize');
     window.emit('unmaximize');
-    expect(saveWindowState).toHaveBeenCalledTimes(5);
+    expect(saveWindowState).toHaveBeenCalledTimes(6);
     expect(jest.getTimerCount()).toBe(0);
   });
 
   it('are written once more as the window closes', () => {
     const { window } = open();
     window.emit('close', { preventDefault: jest.fn() });
-    expect(saveWindowState).toHaveBeenCalledTimes(1);
+    expect(saveWindowState).toHaveBeenCalledTimes(2);
   });
 });

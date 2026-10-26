@@ -44,17 +44,24 @@ const STAGE = { x: 200, y: 100, width: 900, height: 600 };
 const fakeWindow = () => {
   const events = new EventEmitter();
   let normal: IRect = { ...APP };
+  let reportedNormal: IRect | undefined;
   const win = {
     on: events.on.bind(events),
     once: events.once.bind(events),
     isDestroyed: () => false,
     isVisible: () => true,
+    isMinimized: () => false,
     isMaximized: () => false,
     isFullScreen: () => false,
     getBounds: () => ({ ...normal }),
-    getNormalBounds: () => ({ ...normal }),
+    getNormalBounds: () => ({ ...(reportedNormal ?? normal) }),
     setBounds: (next: Partial<IRect>) => {
+      // Native frame changes can notify persistence while the old rectangle
+      // is still on screen. The mode has already changed at that point.
+      events.emit('resize');
       normal = { ...normal, ...next };
+      events.emit('resize');
+      events.emit('move');
     },
     setMinimumSize: () => undefined,
     setMaximumSize: () => undefined,
@@ -67,7 +74,11 @@ const fakeWindow = () => {
     win: win as unknown as BrowserWindow,
     drag: (next: IRect) => {
       normal = { ...next };
+      events.emit('resize');
       events.emit('resized');
+    },
+    reportNormal: (next: IRect) => {
+      reportedNormal = next;
     },
   };
 };
@@ -85,7 +96,7 @@ afterEach(async () => {
 
 const placementFor = () => {
   const modes = createWindowModes('win32');
-  const { win, drag } = fakeWindow();
+  const { win, drag, reportNormal } = fakeWindow();
   modes.restore({
     mode: 'app',
     isPinned: false,
@@ -98,7 +109,8 @@ const placementFor = () => {
     getMainWindow: () => win,
     windowModes: modes,
   });
-  return { modes, win, drag, ...placement };
+  modes.listen(placement.saveWindowState);
+  return { modes, win, drag, reportNormal, ...placement };
 };
 
 const statePath = () => path.join(userDataDir, 'window-state.json');
@@ -113,6 +125,71 @@ const readFile = () =>
 // across a restart (Ivan, 2026-09-28: "we should preserve 3 window sizes",
 // two of them the amps that were, one amp since 2026-10-25).
 describe('the window-state file and the amp', () => {
+  it('captures the full app at startup, before any move or mode switch', async () => {
+    const { saveWindowState } = placementFor();
+    saveWindowState();
+    await flushPendingWrites();
+    expect(readFile()).toMatchObject({ ...APP, mode: 'app' });
+  });
+
+  it('never writes the amp rectangle as the app during a native resize', async () => {
+    const { modes, win, saveWindowState, loadWindowState } = placementFor();
+    await modes.setMode(win, 'player');
+    const duringReturn: object[] = [];
+    win.on('resize', () => {
+      saveWindowState();
+      if (modes.mode() === 'app') {
+        duringReturn.push(loadWindowState());
+      }
+    });
+    await modes.setMode(win, 'app');
+    await flushPendingWrites();
+    expect(duringReturn).toHaveLength(2);
+    duringReturn.forEach((state) => expect(state).toMatchObject(APP));
+    expect(readFile()).toMatchObject({ ...APP, mode: 'app' });
+  });
+
+  it('keeps the app size and position across repeated switches with stale normal bounds', async () => {
+    const { modes, win, reportNormal } = placementFor();
+    reportNormal(AMP);
+    await modes.setMode(win, 'player');
+    await modes.setMode(win, 'app');
+    expect(win.getBounds()).toEqual(APP);
+    await modes.setMode(win, 'player');
+    await modes.setMode(win, 'app');
+    await flushPendingWrites();
+    expect(win.getBounds()).toEqual(APP);
+    expect(readFile()).toMatchObject({ ...APP, mode: 'app' });
+  });
+
+  it('remembers a new full-app placement before entering the amp', async () => {
+    const { modes, win, drag, reportNormal } = placementFor();
+    const movedApp = { ...APP, x: 80, width: 1300 };
+    reportNormal(AMP);
+    drag(movedApp);
+    await modes.setMode(win, 'player');
+    await flushPendingWrites();
+    expect(readFile()).toMatchObject({ ...movedApp, mode: 'player' });
+    await modes.setMode(win, 'app');
+    expect(win.getBounds()).toEqual(movedApp);
+  });
+
+  it('repairs an old amp-sized full-app record before returning to it', async () => {
+    const { modes, win, drag } = placementFor();
+    modes.restore({
+      mode: 'player',
+      isPinned: false,
+      app: AMP,
+      player: AMP,
+    });
+    drag(AMP);
+    await modes.setMode(win, 'app');
+    await flushPendingWrites();
+    const repaired = { x: 416, y: 34, width: 1024, height: 792 };
+    expect(win.getBounds()).toEqual(repaired);
+    expect(readFile()).toMatchObject({ ...repaired, mode: 'app' });
+  });
+
   it('keeps the full app, where the amp was left, and that it closed as the amp', async () => {
     const { modes, win, drag, saveWindowState, loadWindowState } =
       placementFor();
