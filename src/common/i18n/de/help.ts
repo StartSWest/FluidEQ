@@ -58,7 +58,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.steps':
     'Drücken Sie in der Kopfzeile auf eine Seite: Online-Medien, Audio teilen und EQ vor dem Signal, DSP, Bibliothek, Karaoke und Visualizer danach.\nSchalten Sie in der linken Leiste System-EQ ein und lassen Sie Automatisch normalisieren eingeschaltet, damit keine Anhebung übersteuern kann.\nDrücken Sie auf die Pegelanzeige, um zu ändern, wie sie gezeichnet wird, und auf „Bunt“ am Signal, damit Bänder, Titel und leuchtende Bedienelemente in einer Palette statt in einer Farbe erscheinen.',
   'help.window.tip':
-    'Hilfe öffnet dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden. Hinter dem Menüknopf mit den drei Linien daneben finden Sie die Karte der Engine, Ihr Konto, den Import von EQ-Einstellungen oder einer Impulsantwort, den Neustart von Windows-Audio, Prozesse, wo Sie sehen, was jeder Teil von FluidEQ gerade nutzt, und Alle Einstellungen zurücksetzen; ganz unten stehen Helligkeit, Farbton und Bunter Modus, die EQ-Schieberegler, die Animationen, Mit Windows starten und die Sprache. Mit dem Schalter danach wechselt das Fenster in die Ansicht Kompakter Player.',
+    'Hilfe öffnet dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden. Hinter dem Menüknopf mit den drei Linien daneben finden Sie die Karte der Engine, Ihr Konto, den Import von EQ-Einstellungen oder einer Impulsantwort, den Neustart von Windows-Audio, Prozesse, wo Sie sehen, was jeder Teil von FluidEQ gerade nutzt, und Alle Einstellungen zurücksetzen; ganz unten stehen Helligkeit, Farbton, Bunter Modus, App-Symbol einfärben (anfangs aus; färbt das Symbol in der Taskleiste, im Infobereich und in dessen Menü in den Farben des Fensters), die EQ-Schieberegler, die Animationen, Mit Windows starten und die Sprache. Mit dem Schalter danach wechselt das Fenster in die Ansicht Kompakter Player.',
   'help.window.keywords':
     'oberfläche, benutzeroberfläche, übersicht, menüleiste, titelleiste, obere leiste, symbolleiste, seitenleiste, tabs, reiter, registerkarten, navigation, layout, untere leiste, pegelmesser, VU-meter, bunter modus, regenbogen, preamp, headroom, einschalten, ausschalten, design, theme, dunkles design, helles design, dunkelmodus, dunkler modus, dark mode, nachtmodus, heller modus, light mode, sprache, sprache ändern, mit windows starten, autostart, automatisch starten, beim hochfahren, konto, account',
   'help.window.headerLeftCaption': 'Die Kopfzeile bis zum Signal',
@@ -85,7 +85,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden.',
   'help.window.actions':
-    'Die Engine, Ihr Konto, der Import von EQ-Einstellungen, der Neustart von Windows-Audio, Prozesse und Alle Einstellungen zurücksetzen; Helligkeit, Farbton und Bunter Modus, die EQ-Schieberegler, die Animationen, Mit Windows starten und die Sprache.',
+    'Die Engine, Ihr Konto, der Import von EQ-Einstellungen, der Neustart von Windows-Audio, Prozesse und Alle Einstellungen zurücksetzen; Helligkeit, Farbton, Bunter Modus und App-Symbol einfärben, die EQ-Schieberegler, die Animationen, Mit Windows starten und die Sprache.',
   'help.window.systemEq':
     'Schaltet die Verarbeitung von FluidEQ für alles, was der PC abspielt, ein oder aus.',
   'help.window.preamp':
@@ -111,7 +111,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.menuCaption': 'Das Player-Menü',
   'help.player.foldedCaption': 'Auf eine Zeile eingeklappt',
   'help.player.menu':
-    'Zurück zur vollständigen App oder zu einer ihrer Seiten; die eigene Helligkeit des Players, Transparenz oder Farbton, das Tageslicht einer Szene, der Bunte Modus und die EQ-Schieberegler; Immer im Vordergrund und Auf eine Zeile einklappen.',
+    'Zurück zur vollständigen App oder zu einer ihrer Seiten; die eigene Helligkeit des Players, Transparenz oder Farbton, das Tageslicht einer Szene, der Bunte Modus, App-Symbol einfärben und die EQ-Schieberegler; Immer im Vordergrund und Auf eine Zeile einklappen.',
   'help.player.pin': 'Hält den Player über allen anderen Fenstern.',
   'help.player.switch':
     'Zurück zur vollständigen App, auf der Seite, die Sie verlassen haben.',
@@ -142,7 +142,7 @@ const help: Record<keyof typeof en, string> = {
     'Was als Nächstes läuft. Klicken Sie auf einen Song, um ihn abzuspielen, ziehen Sie ihn, um ihn zu verschieben, oder legen Sie Musikdateien hier ab, um sie an dieser Stelle einzufügen.',
   'help.player.openIn': 'Öffnet die vollständige App auf einer ihrer Seiten.',
   'help.player.theme':
-    'Die eigene Helligkeit des Players, unabhängig von der vollständigen App; Transparenz über einer Szene oder der Farbton des Fensters über einem Standardstil; das Tageslicht einer Szene; und der Bunte Modus.',
+    'Die eigene Helligkeit des Players, unabhängig von der vollständigen App; Transparenz über einer Szene oder der Farbton des Fensters über einem Standardstil; das Tageslicht einer Szene; der Bunte Modus; und App-Symbol einfärben, anfangs aus, für das Symbol in der Taskleiste, im Infobereich und in dessen Menü in den Farben des Fensters.',
   'help.player.fold': 'Klappt den Player auf eine Zeile ein.',
   'help.player.unfold':
     'Klappt den Player wieder aus. Der Pfeil am anderen Ende tut das auch.',
@@ -740,7 +740,7 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.intro':
     'Das Forum holt die GitHub Discussions von FluidEQ in die App: Ankündigungen, Ideen, Fragen und Klangeinstellungen, auf die Leute stolz sind. Lesen kann jeder; zum Schreiben nutzen Sie Ihr GitHub-Konto, kein FluidEQ-Konto.',
   'help.forum.steps':
-    'Öffnen Sie Hilfe → Forum und wählen Sie eine Kategorie: Ankündigungen, Allgemein, Ideen, Umfragen, Q&A oder Schaufenster. Neu für dich sammelt, was seit Ihrem letzten Besuch kam, und Issues listet die auf GitHub gemeldeten Probleme.\nDurchsuchen Sie das Forum oder öffnen Sie ein Thema, um die Antworten zu lesen.\nDrücken Sie Mit GitHub anmelden, schließen Sie die Anmeldung im Browser ab und schreiben Sie dann ein Neues Thema oder eine Antwort.',
+    'Öffnen Sie Hilfe → Forum und wählen Sie eine Kategorie: Ankündigungen, Allgemein, Ideen, Umfragen, Q&A oder Schaufenster. Neu für Sie sammelt, was seit Ihrem letzten Besuch kam, und Issues listet die auf GitHub gemeldeten Probleme.\nDurchsuchen Sie das Forum oder öffnen Sie ein Thema, um die Antworten zu lesen.\nDrücken Sie Mit GitHub anmelden, schließen Sie die Anmeldung im Browser ab und schreiben Sie dann ein Neues Thema oder eine Antwort.',
   'help.forum.tip':
     'Alles, was Sie schreiben, ist auf GitHub unter Ihrem GitHub-Namen öffentlich. Markieren Sie in Q&A die Antwort, die geholfen hat, damit die nächste Person sie findet.',
   'help.forum.keywords':

@@ -352,8 +352,12 @@ const START_CHAPTERS = [
         ],
       },
       {
+        // As wide as the menu's longest language: it is as wide as its row
+        // of pages, which is 467px in Japanese and over 440 in Spanish,
+        // Portuguese and Russian. At 420 their right side was cut off, with
+        // the circles of the lines that end there left standing apart.
         live: 'player-menu',
-        width: 420,
+        width: 480,
         height: 560,
         frame: '.player-menu',
         caption: 'help.player.menuCaption',
