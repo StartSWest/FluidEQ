@@ -72,10 +72,6 @@ import onWindowMessage from './ipc/windowMessages';
  * draws no edge of its own there.
  */
 
-/** A double-click on a window's non-client area, and the caption hit code. */
-const WM_NCLBUTTONDBLCLK = 0x00a3;
-const HTCAPTION = 2;
-
 /**
  * Building the window, and everything that has to be true before it opens.
  *
@@ -349,21 +345,6 @@ export const createMainWindowFactory = ({
       screen.off('display-metrics-changed', keepFloor);
       screen.off('display-removed', keepFloor);
     });
-    if (process.platform === 'win32') {
-      // The player's strips are the window's drag handle, and Windows keeps
-      // every click on a drag handle to itself: the page is never told of a
-      // double-click there, so the player hears of it from here and folds
-      // to one line or back. Only the caption itself; a double-click on a
-      // resizing edge is Windows' own.
-      created.hookWindowMessage(WM_NCLBUTTONDBLCLK, (wParam) => {
-        if (
-          windowModes.mode() === 'player' &&
-          wParam.readUInt32LE(0) === HTCAPTION
-        ) {
-          created.webContents.send('player-caption-double-click');
-        }
-      });
-    }
     // The material, from the first frame: it is what Windows rounds the
     // window's corners around, so a window without it is square from the
     // moment it opens.

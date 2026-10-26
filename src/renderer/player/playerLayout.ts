@@ -4,13 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from 'react';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { PLAYER_DEFAULT_HEIGHT, PLAYER_FOLD_HEIGHT } from 'common/constants';
 import {
   holdPlayerHeight,
@@ -253,9 +247,16 @@ const recallUnfoldedHeight = (): number | undefined => {
 };
 
 /**
- * Folding the player to one line and back — from its menu, its strip's own
- * button, or a double-click on the header, which Windows keeps from the page
- * and main passes on (`player-caption-double-click`).
+ * Folding the player to one line and back, from its menu and its strip's own
+ * button.
+ *
+ * Not from a double-click on the header (Ivan, 2026-10-26: "this is not
+ * working the double click"). The header is the window's drag handle, so the
+ * page never sees a click there, and Windows sent the player's window no
+ * caption double-click at all: hooked in main and logged on his machine, two
+ * double-clicks on the header brought none. The only other way to have one
+ * is to time two presses, which is guessing at the listener's own
+ * double-click setting, so the fold is the menu's and the strip's.
  */
 export const usePlayerFold = () => {
   const isFolded = useIsFolded();
@@ -272,26 +273,6 @@ export const usePlayerFold = () => {
       () => undefined,
     );
   }, []);
-
-  // Read by a listener subscribed once, so it answers for the window as it
-  // is at the double-click and not as it was when it subscribed.
-  const isFoldedRef = useRef(isFolded);
-  isFoldedRef.current = isFolded;
-  useEffect(() => {
-    const stop = window.electron?.ipcRenderer.on(
-      'player-caption-double-click',
-      () => {
-        if (isFoldedRef.current) {
-          unfold();
-        } else {
-          fold();
-        }
-      },
-    );
-    return () => {
-      stop?.();
-    };
-  }, [fold, unfold]);
 
   return { isFolded, fold, unfold };
 };

@@ -83,8 +83,6 @@ jest.mock('electron', () => {
     isDestroyed() {
       return this.destroyed;
     }
-
-    hookWindowMessage = jest.fn();
   }
   return {
     BrowserWindow: FakeWindow,

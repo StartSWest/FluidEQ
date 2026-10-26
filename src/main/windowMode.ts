@@ -185,9 +185,9 @@ export const createWindowModes = (
   /**
    * The limits of the mode the window is in, on the screen it is on now: its
    * floor, the height it is held to if it is held to one, and whether it can
-   * be maximised. The player cannot — a double-click on its strip folds it,
-   * where Windows would otherwise have filled the screen with a layout built
-   * for a corner of it, and dragging it to the top edge would do the same.
+   * be maximised. The player cannot — a double-click on its strip would
+   * otherwise have filled the screen with a layout built for a corner of it,
+   * and dragging it to the top edge would do the same.
    */
   const applyLimits = (
     win: BrowserWindow,
