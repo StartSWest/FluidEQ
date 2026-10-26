@@ -17,6 +17,7 @@ import {
   TASKBAR_ICON_SIZES,
   type TTaskbarIconRequest,
 } from '../common/taskbarIcon';
+import type { ITrayTintedIcon } from './tray';
 
 /**
  * THE TASKBAR BUTTON IN THE WINDOW'S COLOURS (Ivan, 2026-10-26: "change the
@@ -46,10 +47,11 @@ export interface ITaskbarIconDeps {
   getWindow: () => BrowserWindow | null;
   logger: ILogger;
   /**
-   * Where the drawn icon now is, or undefined for the installed one: the
-   * tray wears the same (`setTrayTintedIcon`).
+   * The drawn icon — its file and the drawings in it — or undefined for the
+   * installed one: the tray and the menu it opens wear the same
+   * (`setTrayTintedIcon`).
    */
-  onIconFile: (icon: string | undefined) => void;
+  onIcon: (icon: ITrayTintedIcon | undefined) => void;
 }
 
 /** The size of one drawing's pixels: `size` × `size` RGBA. */
@@ -158,7 +160,7 @@ export const registerTaskbarIconIpc = (deps: ITaskbarIconDeps) => {
     }
     if (request.kind === 'stock') {
       window.setIcon(deps.stockIconPath);
-      deps.onIconFile(undefined);
+      deps.onIcon(undefined);
       return;
     }
     const temporary = `${iconPath}.tmp`;
@@ -166,7 +168,7 @@ export const registerTaskbarIconIpc = (deps: ITaskbarIconDeps) => {
     await fs.rename(temporary, iconPath);
     if (!window.isDestroyed()) {
       window.setIcon(iconPath);
-      deps.onIconFile(iconPath);
+      deps.onIcon({ file: iconPath, drawings: request.images });
     }
   };
 

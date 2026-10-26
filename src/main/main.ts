@@ -820,7 +820,7 @@ registerTaskbarIconIpc({
     : path.join(__dirname, '../../assets/icon.ico'),
   getWindow: () => mainWindow,
   logger: log,
-  onIconFile: setTrayTintedIcon,
+  onIcon: setTrayTintedIcon,
 });
 // The process list, which needs the host's pid to include it as a row — the
 // DSP engine is our own child rather than Electron's, so `getAppMetrics` has
