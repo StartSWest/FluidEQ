@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import type { ILibraryTrack } from '../../common/library/types';
 import { usePlaybackOwner, type TPlaybackOwner } from '../audio/playbackOwner';
-import { useLastShown } from '../audio/lastShown';
+import { useLastShown, type TOwnOwner } from '../audio/lastShown';
 import pickTransportOwner from '../audio/transportRouting';
 import {
   useLastTransportOwner,
@@ -61,6 +61,13 @@ const TRANSPORT_TAB: Partial<Record<TPlaybackOwner, TWorkspaceTab>> = {
   remote: 'share',
 };
 
+/** Where a remembered song was played: only the listener's own songs are
+ * remembered (`lastShown.ts`), and each of those has a tab. */
+const OWN_TAB: Record<TOwnOwner, TWorkspaceTab> = {
+  library: 'library',
+  karaoke: 'karaoke',
+};
+
 /**
  * The bar when there is no player to put in it.
  *
@@ -94,10 +101,11 @@ export const IdleTransportBarSlot = ({
   // On a machine where the library is still empty — a fresh install, the
   // "No music yet" screen — a transport across the whole foot of the window
   // is the loudest thing on it, and it is for nothing: there is no queue to
-  // resume and no tab that could fill it. `lastOwner` and `remembered` are
-  // kept across restarts, so this appears the moment something has been
-  // played once and stays from then on, which is the "always a bar" that was
-  // asked for — saying what played last, from then on, rather than nothing.
+  // resume and no tab that could fill it. This appears the moment something
+  // has been played once and stays from then on, which is the "always a bar"
+  // that was asked for — across restarts once a song of the listener's own
+  // has played, since only that is written down (`lastShown.ts`), and saying
+  // what it was. Anything that played outside is never what it says.
   if (
     owner !== undefined ||
     isFullScreen ||
@@ -105,13 +113,9 @@ export const IdleTransportBarSlot = ({
   ) {
     return null;
   }
-  const tab =
-    remembered === undefined ? 'library' : TRANSPORT_TAB[remembered.owner];
+  const tab = remembered === undefined ? 'library' : OWN_TAB[remembered.owner];
   return (
-    <IdleTransportBar
-      remembered={remembered}
-      onReveal={tab === undefined ? undefined : () => onGoToTab(tab)}
-    />
+    <IdleTransportBar remembered={remembered} onReveal={() => onGoToTab(tab)} />
   );
 };
 

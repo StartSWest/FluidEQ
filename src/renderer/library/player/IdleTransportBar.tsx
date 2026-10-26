@@ -37,14 +37,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * pointer goes looking for it, over a picture — and an empty one appearing
  * over a video would be chrome arriving to say nothing.
  *
- * AND IT SAYS WHAT PLAYED LAST, once anything has. The player that described
- * a song can go — a reload, the browser tab closed, the other computer
- * disconnected, the queue stopped — and "Nothing playing" in its place read
- * as the app having forgotten (Ivan, 2026-09-24: "we need to keep last thing
- * was playing on the bar always unless there is a new thing that plays").
- * The words, the picture and where it came from stay, from `lastShown`; the
- * buttons stay quiet, because there is nothing live behind them to press,
- * and the press on the title goes to the tab that played it.
+ * AND IT SAYS WHAT PLAYED LAST OF THE LISTENER'S OWN, once anything has. The
+ * player that described a song can go — a reload, the queue stopped — and
+ * "Nothing playing" in its place read as the app having forgotten (Ivan,
+ * 2026-09-24: "we need to keep last thing was playing on the bar always
+ * unless there is a new thing that plays"). The words, the picture and where
+ * it came from stay, from `lastShown`; the buttons stay quiet, because there
+ * is nothing live behind them to press, and the press on the title goes to
+ * the tab that played it. Never another program's song, another computer's
+ * or a Media page's: those leave with their player (`lastShown.ts`).
  */
 
 import { useRef } from 'react';
@@ -62,11 +63,10 @@ interface IIdleTransportBarProps {
   remembered: ILastShown | undefined;
   /**
    * Where the press on the title goes: the tab that played the remembered
-   * song, the Library when there is none. Absent for another program's sound,
-   * which has no tab here — see `SourceTransportBar` for why a press that goes
-   * nowhere is not offered.
+   * song, the Library when there is none. There always is one: only the
+   * Library's and Karaoke's songs are remembered.
    */
-  onReveal: (() => void) | undefined;
+  onReveal: () => void;
 }
 
 const IdleTransportBar = ({ remembered, onReveal }: IIdleTransportBarProps) => {
@@ -112,7 +112,6 @@ const IdleTransportBar = ({ remembered, onReveal }: IIdleTransportBarProps) => {
             className="now-playing-bar__reveal"
             aria-label={t('library.nothingPlayingHint')}
             onClick={onReveal}
-            disabled={onReveal === undefined}
           >
             {/* The generated tile, from no title at all: the same square in
                 the same place, so the bar does not change shape the moment a
@@ -138,7 +137,6 @@ const IdleTransportBar = ({ remembered, onReveal }: IIdleTransportBarProps) => {
             title={contextLabel}
             aria-label={`${contextLabel} — ${remembered.title}`}
             onClick={onReveal}
-            disabled={onReveal === undefined}
           >
             <LibraryCoverArt
               src={remembered.artworkUrl}

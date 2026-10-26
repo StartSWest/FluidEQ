@@ -24,8 +24,11 @@ import {
   putSongSoundOn,
   returnSongSound,
 } from '../songSoundLoan';
+import { storedSongIdentity } from '../songMemoryNames';
 import {
+  keepSongSoundSettings,
   loadSongSoundSettings,
+  readSongSoundSettings,
   saveSongSoundSettings,
 } from '../songSoundStore';
 import onWindowMessage from './windowMessages';
@@ -105,13 +108,16 @@ const replyInvalidParameter = (
  * curve together, so the engine hears the song's sound arrive in one piece
  * rather than band by band. Whether it is lent, and what that keeps out of
  * the output's profile, is `songSoundLoan.ts`.
+ *
+ * Settles once the read just after launch has been taken in. Main does not
+ * wait for it; the tests do.
  */
 const registerSongSoundIpc = ({
   state,
   userDataDir,
   getOutputEditor,
   handleUpdateHelper,
-}: ISongSoundIpcDeps): void => {
+}: ISongSoundIpcDeps): Promise<void> => {
   let cached: ISongSoundSettings | undefined;
   const settings = (): ISongSoundSettings => {
     if (!cached) {
@@ -119,6 +125,17 @@ const registerSongSoundIpc = ({
     }
     return cached;
   };
+  // Read once just after launch, off the main thread, rather than at the
+  // first song: a file written before 2026-10-26 names the songs in it, and
+  // reading it is what writes it again without them (`songMemoryNames.ts`).
+  // A lookup that lands first has read the file itself and written it then,
+  // and may have saved a song since, so this then leaves both alone.
+  const launchRead = readSongSoundSettings(userDataDir).then((loaded) => {
+    if (cached === undefined) {
+      cached = keepSongSoundSettings(userDataDir, loaded);
+    }
+    return undefined;
+  });
   const replySuccess = (event: Electron.IpcMainEvent, channel: ChannelEnum) => {
     const reply: TSuccess<void> = { result: undefined };
     event.reply(channel, reply);
@@ -146,7 +163,11 @@ const registerSongSoundIpc = ({
       return;
     }
     const reply: TSuccess<ISongSoundEntry | undefined> = {
-      result: lookupSongSound(settings(), deviceId, identity),
+      result: lookupSongSound(
+        settings(),
+        deviceId,
+        storedSongIdentity(identity),
+      ),
     };
     event.reply(channel, reply);
   });
@@ -160,7 +181,13 @@ const registerSongSoundIpc = ({
       replyInvalidParameter(event, channel);
       return;
     }
-    cached = saveSongSound(settings(), deviceId, identity, sound, Date.now());
+    cached = saveSongSound(
+      settings(),
+      deviceId,
+      storedSongIdentity(identity),
+      sound,
+      Date.now(),
+    );
     saveSongSoundSettings(userDataDir, cached);
     replySuccess(event, channel);
   });
@@ -175,7 +202,11 @@ const registerSongSoundIpc = ({
     }
     // The identity, not a key: which entry this removes is
     // `common/songMemory.ts`'s decision, exactly as it is for a lookup.
-    cached = forgetSongSound(settings(), deviceId, identity);
+    cached = forgetSongSound(
+      settings(),
+      deviceId,
+      storedSongIdentity(identity),
+    );
     saveSongSoundSettings(userDataDir, cached);
     replySuccess(event, channel);
   });
@@ -237,6 +268,8 @@ const registerSongSoundIpc = ({
     }
     await handleUpdateHelper(event, channel, undefined, false, true);
   });
+
+  return launchRead;
 };
 
 export default registerSongSoundIpc;
