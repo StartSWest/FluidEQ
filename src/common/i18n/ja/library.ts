@@ -89,6 +89,9 @@ const library: Partial<Dictionary> = {
   'library.scan.hide': 'この通知を隠す',
   'library.scan.hideHint':
     'この通知を隠します。ライブラリはファイルの読み込みを続けます。',
+  'library.scan.chip': '読み込み中 {percent}%',
+  'library.scan.chipFinding': '読み込み中…',
+  'library.scan.show': '進行状況と「停止」をもう一度表示します',
 
   'library.roots': 'フォルダー',
   'library.root.remove': 'このフォルダーを削除',

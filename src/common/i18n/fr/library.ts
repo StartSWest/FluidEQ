@@ -91,6 +91,9 @@ const library: Partial<Dictionary> = {
   'library.scan.hide': 'Masquer cet avis',
   'library.scan.hideHint':
     'Masquer cet avis. La Bibliothèque continue de lire vos fichiers.',
+  'library.scan.chip': 'Lecture {percent} %',
+  'library.scan.chipFinding': 'Lecture…',
+  'library.scan.show': 'Réafficher la progression et Arrêter',
 
   'library.roots': 'Dossiers',
   'library.root.remove': 'Retirer ce dossier',

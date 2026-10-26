@@ -41,6 +41,27 @@ export const libraryScanPercent = (
     : 0;
 
 /**
+ * A scan running with its notice put away, as the Rescan chip shows it
+ * (`LibraryFolderActions`): how far it has got once files are being read,
+ * no number while they are still being found; nothing when there is no such
+ * scan.
+ */
+export const libraryHiddenScan = ({
+  isScanning,
+  isScanNoticeHidden,
+  progress,
+}: {
+  isScanning: boolean;
+  isScanNoticeHidden: boolean;
+  progress: ILibraryScanProgress | undefined;
+}): { percent?: number } | undefined => {
+  if (!isScanning || !isScanNoticeHidden || !progress) {
+    return undefined;
+  }
+  return progress.parsed > 0 ? { percent: libraryScanPercent(progress) } : {};
+};
+
+/**
  * The strip pinned under the toolbar while a scan runs.
  *
  * Not a modal, on purpose: `LibraryWorkspace` mounts this beside the content

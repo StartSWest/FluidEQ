@@ -64,6 +64,8 @@ interface ILibraryContextValue {
    */
   isScanNoticeHidden: boolean;
   hideScanNotice: () => void;
+  /** Brings a put-away notice back, Stop and all (the Rescan chip). */
+  showScanNotice: () => void;
   addFolder: () => Promise<void>;
   addFolderPaths: (paths: string[]) => Promise<void>;
   /**
@@ -248,6 +250,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const hideScanNotice = useCallback(() => setIsScanNoticeHidden(true), []);
+  const showScanNotice = useCallback(() => setIsScanNoticeHidden(false), []);
 
   const removeRoot = useCallback(
     async (rootId: string) => {
@@ -264,6 +267,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
       progress,
       isScanNoticeHidden,
       hideScanNotice,
+      showScanNotice,
       addFolder,
       addFolderPaths,
       queueFiles,
@@ -279,6 +283,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
       progress,
       isScanNoticeHidden,
       hideScanNotice,
+      showScanNotice,
       addFolder,
       addFolderPaths,
       queueFiles,

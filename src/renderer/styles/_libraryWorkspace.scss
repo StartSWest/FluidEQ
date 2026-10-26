@@ -286,6 +286,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-left: 1px solid rgba($edge-tint, 0.14);
 }
 
+// A scan running with its notice put away, on the Rescan chip ("Scanning
+// 26%"): kept at every width — the bar drops only unclassed words — and in
+// even figures, so the chip does not twitch as the number climbs.
+.library-toolbar__chip-status {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 // `.video-browser__site`'s pill, under this file's own name so the two can
 // diverge later without one silently restyling the other.
 .library-toolbar__chip {

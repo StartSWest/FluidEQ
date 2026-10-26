@@ -89,6 +89,9 @@ const library: Partial<Dictionary> = {
   'library.scan.hide': 'Ocultar este aviso',
   'library.scan.hideHint':
     'Ocultar este aviso. A Biblioteca continua lendo seus arquivos.',
+  'library.scan.chip': 'Lendo {percent}%',
+  'library.scan.chipFinding': 'Lendo…',
+  'library.scan.show': 'Mostrar de novo o progresso e Parar',
 
   'library.roots': 'Pastas',
   'library.root.remove': 'Remover esta pasta',

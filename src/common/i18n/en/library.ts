@@ -87,6 +87,9 @@ const library = {
   'library.scan.hide': 'Hide this notice',
   'library.scan.hideHint':
     'Hide this notice. The Library keeps reading your files.',
+  'library.scan.chip': 'Scanning {percent}%',
+  'library.scan.chipFinding': 'Scanning…',
+  'library.scan.show': 'Show the scan again, with Stop',
 
   'library.roots': 'Folders',
   'library.root.remove': 'Remove this folder',

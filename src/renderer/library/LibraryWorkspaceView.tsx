@@ -28,7 +28,7 @@ import LibraryVideoStage from './player/LibraryVideoStage';
 import LibraryToolbar from './LibraryToolbar';
 import LibraryFolderActions from './LibraryFolderActions';
 import LibraryUpNext, { LibraryUpNextChip, upNextTotal } from './LibraryUpNext';
-import LibraryScanProgress from './LibraryScanProgress';
+import LibraryScanProgress, { libraryHiddenScan } from './LibraryScanProgress';
 import LibraryEmptyState from './LibraryEmptyState';
 import Spinner from '../icons/Spinner';
 import LibraryPlaceBar from './LibraryPlaceBar';
@@ -72,6 +72,7 @@ const LibraryWorkspaceView = ({
     progress,
     isScanNoticeHidden,
     hideScanNotice,
+    showScanNotice,
     addFolder,
     addFolderPaths,
     rescan,
@@ -372,6 +373,12 @@ const LibraryWorkspaceView = ({
                   onRescan={handleRescan}
                   onForceRescan={handleForceRescan}
                   onRemoveRoot={handleRemoveRoot}
+                  hiddenScan={libraryHiddenScan({
+                    isScanning,
+                    isScanNoticeHidden,
+                    progress,
+                  })}
+                  onShowScan={showScanNotice}
                 />
                 {/* IN THE ROW, AND IN BOTH STATES.
                 It stood under the row before, in the slot the panel opens

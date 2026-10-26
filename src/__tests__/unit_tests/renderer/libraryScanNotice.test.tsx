@@ -5,7 +5,10 @@ import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ILibraryScanProgress } from 'common/library/types';
 import { LibraryProvider, useLibrary } from 'renderer/library/LibraryContext';
-import LibraryScanProgress from 'renderer/library/LibraryScanProgress';
+import LibraryFolderActions from 'renderer/library/LibraryFolderActions';
+import LibraryScanProgress, {
+  libraryHiddenScan,
+} from 'renderer/library/LibraryScanProgress';
 import {
   useLibraryDeck,
   usePublishedLibraryDeck,
@@ -96,6 +99,26 @@ const ScanNotice = () => {
   ) : null;
 };
 
+/**
+ * The Library toolbar's folder actions, told about a put-away scan the way
+ * the Library page tells them (`libraryHiddenScan`).
+ */
+const FolderActions = () => {
+  const library = useLibrary();
+  return (
+    <LibraryFolderActions
+      roots={[]}
+      isScanning={library.isScanning}
+      onAddFolder={() => undefined}
+      onRescan={() => undefined}
+      onForceRescan={() => undefined}
+      onRemoveRoot={() => undefined}
+      hiddenScan={libraryHiddenScan(library)}
+      onShowScan={library.showScanNotice}
+    />
+  );
+};
+
 /** The Compact player's deck, published as the Library player does it. */
 const PublishedDeck = () => {
   usePublishedLibraryDeck({
@@ -131,6 +154,7 @@ describe('a notice put away', () => {
       <I18nProvider>
         <LibraryProvider>
           <ScanNotice />
+          <FolderActions />
           <PublishedDeck />
           <DeckScan />
         </LibraryProvider>
@@ -149,13 +173,37 @@ describe('a notice put away', () => {
       screen.getByRole('button', { name: 'Hide this notice' }),
     );
     expect(notice()).not.toBeInTheDocument();
-    // The scan goes on, and its news does not bring the notice back.
+    // The scan goes on, and its news does not bring the notice back: once
+    // that news has arrived (on the next frame, the chip says), still away.
     act(() => opened.sendProgress(scan({ parsed: 2 })));
+    await screen.findByRole('button', { name: 'Scanning 67%' });
     expect(notice()).not.toBeInTheDocument();
 
     act(() => opened.sendProgress(scan({ parsed: 3, isDone: true })));
     act(() => opened.sendProgress(scan({ parsed: 0 })));
     expect(notice()).toBeInTheDocument();
+  });
+
+  // Put away, nothing else showed the scan or could stop it: Rescan now says
+  // how far it has got and brings the notice back.
+  it('turns Rescan into the way back, with how far the scan has got', async () => {
+    const opened = mount();
+    act(() => opened.sendProgress(scan({ parsed: 0 })));
+    expect(screen.getByRole('button', { name: 'Rescan' })).toBeDisabled();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Hide this notice' }),
+    );
+    expect(
+      screen.getByRole('button', { name: 'Scanning…' }),
+    ).toBeInTheDocument();
+    // News part-way through a scan arrives on the next frame
+    // (`LibraryContext`), so the new figure is waited for.
+    act(() => opened.sendProgress(scan({ parsed: 1 })));
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Scanning 33%' }),
+    );
+    expect(notice()).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Rescan' })).toBeDisabled();
   });
 
   // One answer for both places: put away on the Library page, it is put

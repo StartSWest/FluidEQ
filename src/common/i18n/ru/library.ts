@@ -89,6 +89,9 @@ const library: Partial<Dictionary> = {
   'library.scan.hide': 'Скрыть это уведомление',
   'library.scan.hideHint':
     'Скрыть это уведомление. Библиотека продолжит читать ваши файлы.',
+  'library.scan.chip': 'Чтение {percent} %',
+  'library.scan.chipFinding': 'Чтение…',
+  'library.scan.show': 'Снова показать ход и «Остановить»',
 
   'library.roots': 'Папки',
   'library.root.remove': 'Удалить эту папку',
