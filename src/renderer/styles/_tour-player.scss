@@ -11,18 +11,19 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'tour-miniature' as *;
 
 // The Compact player's slide (`CompactPlayerVisual.tsx`): the title bar's
-// corner with its switch ringed, and under it the two players side by side,
-// photographed.
+// corner with its switch ringed, and under it the one player, photographed
+// twice side by side.
 //
 // Sized in tour units rather than as a share of the frame: the frame's own
 // height comes from the slide, and a picture sized from the frame made the
 // slide taller than the panel at 2560 x 1392, with "How to start" under the
-// fold.
+// fold. Measured with the one player's two photographs in all ten languages
+// at 1920 x 1032 and 2560 x 1392.
 
 .player-pair {
   display: grid;
   width: 100%;
-  max-width: calc(#{$u} * 28);
+  max-width: calc(#{$u} * 30);
   justify-items: center;
   // Room under the corner for the name hanging from its ringed switch.
   gap: calc(#{$u} * 2.9);
@@ -42,6 +43,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .player-pair__amp {
   display: grid;
+  // The same share each: the two photographs are the same shape.
+  flex: 1 1 0;
   min-width: 0;
   justify-items: center;
   gap: calc(#{$u} * 0.55);
@@ -54,16 +57,6 @@ it under the terms of the GNU General Public License version 3 or later.
     height: auto;
     border-radius: $radius-m;
   }
-}
-
-// Each takes a width in proportion to its photograph's shape (467 x 1000 and
-// 711 x 1000), so the two stand the same height whatever the slide's width.
-.player-pair__amp--classic {
-  flex: 467 1 0;
-}
-
-.player-pair__amp--glass {
-  flex: 711 1 0;
 }
 
 .player-pair__caption {

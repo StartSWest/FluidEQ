@@ -19,23 +19,23 @@ const tour: Partial<Dictionary> = {
   'tour.howTitle': 'Come iniziare',
   'tour.beta': 'Beta',
   'tour.player.kicker': 'IL LETTORE COMPATTO',
-  'tour.player.title': 'FluidEQ, racchiuso in un lettore',
-  'tour.player.subtitle': 'Un interruttore trasforma la finestra in un lettore',
+  'tour.player.title': 'Tutta l’app in una colonna',
+  'tour.player.subtitle': 'Un lettore, uguale in ogni colore della finestra',
   'tour.player.lead':
-    'Un interruttore nella barra del titolo trasforma tutto FluidEQ in un lettore. È l’ampli classico, con il suo orologio LED, le spie e l’equalizzatore completo; con {backdrop}, su una scena, diventa di vetro. Lo stesso interruttore ti riporta alla pagina da cui eri partito.',
+    'Un interruttore nella barra del titolo racchiude FluidEQ in una colonna: in alto il visualizzatore con il brano sopra, poi i comandi, il tuo suono e cosa viene dopo. È lo stesso lettore in ogni colore della finestra, e la scena che scegli scorre dietro a tutto, in {backdrop}.',
   'tour.player.point1':
-    'Tutto l’equalizzatore viene con te: preset, disposizioni delle bande, Modalità EQ, EQ intelligente, Bassi, Medi e Alti.',
+    '{sound} contiene le manopole di Bassi, Medi e Alti o le bande del tuo EQ, con il preset, l’EQ intelligente e la modalità EQ accanto.',
   'tour.player.point2':
-    'Riducilo a una riga, tienilo sopra le altre finestre o fai doppio clic sul visualizzatore per riempire lo schermo.',
+    '{upNext} e {playlists} stanno in fondo. Riduci una delle due parti per avere un’immagine più grande, e trascina la musica in qualsiasi punto del lettore per aggiungerla alla coda.',
   'tour.player.point3':
-    'Un tema tutto suo, e i brani trascinati su In coda entrano nella Libreria e nella coda.',
+    'Ha una sola larghezza, e l’altezza la scegli tu dal bordo superiore o inferiore. Riducilo a una riga, tienilo sopra le altre finestre o fai doppio clic sull’immagine per riempire lo schermo.',
   'tour.player.how':
     'Premi l’interruttore Lettore compatto nella barra del titolo, accanto ad Aiuto. Sul lettore, lo stesso interruttore riporta l’app completa.',
   'tour.player.open': 'Prova il Lettore compatto',
   'tour.player.imageAlt':
-    'L’angolo della barra del titolo con l’interruttore {player} cerchiato, e i due lettori che apre: l’ampli classico con orologio LED, spie, equalizzatore e coda, e il lettore di vetro, più largo, su un’aurora con {backdrop}.',
-  'tour.player.classic': 'Ampli classico',
-  'tour.player.glass': 'Vetro, con {backdrop}',
+    'L’angolo della barra del titolo con l’interruttore {player} evidenziato, e il Lettore compatto due volte: su una scena in {backdrop} con le bande dell’EQ aperte, e con un visualizzatore standard dietro al brano e le manopole del Tono aperte.',
+  'tour.player.scene': 'Con una scena, in {backdrop}',
+  'tour.player.standard': 'Con un visualizzatore standard',
   'tour.look.kicker': 'UN NUOVO ASPETTO',
   'tour.look.title': 'Una finestra nuova, con colori nuovi',
   'tour.look.subtitle':
@@ -252,7 +252,7 @@ const tour: Partial<Dictionary> = {
   'tour.room.imageAlt':
     'Una stanza vista dall’alto: sette diffusori e un sub intorno a una testa al centro, ognuno con il suo percorso verso le orecchie.',
 
-  'tour.plus.kicker': 'FLUIDEQ PLUS',
+  'tour.plus.kicker': 'VISUALIZZATORI',
   'tour.plus.title': 'Scene che sono tue per sempre',
   'tour.plus.subtitle': 'Visualizzatori, Studio, illuminazione e altro',
   'tour.plus.lead':

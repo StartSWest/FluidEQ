@@ -29,23 +29,23 @@ const tour = {
   'tour.beta': 'Beta',
 
   'tour.player.kicker': 'THE COMPACT PLAYER',
-  'tour.player.title': 'FluidEQ, folded into a player',
-  'tour.player.subtitle': 'One switch turns the window into a player',
+  'tour.player.title': 'The whole app in one column',
+  'tour.player.subtitle': 'One player, the same in every window colour',
   'tour.player.lead':
-    'One switch in the title bar folds all of FluidEQ into a player. It is the classic amp, with its LED clock, its lamps and the whole equaliser; on the {backdrop}, over a scene, it turns to glass. The same switch takes you back to the page you left.',
+    'One switch in the title bar folds FluidEQ into one column: the visualizer at the top with the song over it, the controls, your sound and what plays next. It is the same player in every window colour, and a scene you pick plays behind all of it, on the {backdrop}.',
   'tour.player.point1':
-    'The whole equaliser comes along: presets, band layouts, EQ mode, Smart EQ, Bass, Mid and Treble.',
+    '{sound} holds the Bass, Mid and Treble knobs or your EQ’s own bands, with the preset, Smart EQ and EQ mode beside them.',
   'tour.player.point2':
-    'Fold it to one line, keep it on top of other windows, or double-click the visualizer to fill the screen.',
+    '{upNext} and {playlists} wait at the foot. Fold either part away for a bigger picture, and drop music anywhere on the player to add it to the queue.',
   'tour.player.point3':
-    'A theme of its own, and songs dropped on Up Next join the Library and the queue.',
+    'It keeps one width, and its height is yours from the top or bottom edge. Fold it to one line, keep it on top, or double-click the picture to fill the screen.',
   'tour.player.how':
     'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.',
   'tour.player.open': 'Try the Compact player',
   'tour.player.imageAlt':
-    'The corner of the title bar with the {player} switch ringed, and the two players it opens: the classic amp with its LED clock, lamps, equaliser and queue, and the wider glass player over an aurora on the {backdrop}.',
-  'tour.player.classic': 'Classic amp',
-  'tour.player.glass': 'Glass, on {backdrop}',
+    'The corner of the title bar with the {player} switch ringed, and the Compact player twice: over a scene on the {backdrop} with its EQ bands open, and with a standard visualizer behind the song and the Tone knobs open.',
+  'tour.player.scene': 'With a scene, on {backdrop}',
+  'tour.player.standard': 'With a standard visualizer',
 
   'tour.look.kicker': 'A NEW LOOK',
   'tour.look.title': 'A new window, in new colours',
@@ -265,7 +265,7 @@ const tour = {
   'tour.room.imageAlt':
     'A room seen from above: seven speakers and a sub standing around a head in the middle, each with its path to the ears.',
 
-  'tour.plus.kicker': 'FLUIDEQ PLUS',
+  'tour.plus.kicker': 'VISUALIZERS',
   'tour.plus.title': 'Scenes that are yours for good',
   'tour.plus.subtitle': 'Visualizers, Studio, lighting and more',
   'tour.plus.lead':

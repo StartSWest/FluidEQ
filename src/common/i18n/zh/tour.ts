@@ -19,23 +19,23 @@ const tour: Partial<Dictionary> = {
   'tour.howTitle': '如何开始',
   'tour.beta': 'Beta',
   'tour.player.kicker': '迷你播放器',
-  'tour.player.title': 'FluidEQ，折叠成一台播放器',
-  'tour.player.subtitle': '一个开关，把窗口变成播放器',
+  'tour.player.title': '整个应用收进一列',
+  'tour.player.subtitle': '一个播放器，任何窗口配色都一样',
   'tour.player.lead':
-    '标题栏里的一个开关，就能把整个 FluidEQ 收成一个播放器。它是经典功放，带 LED 时钟、指示灯和完整的均衡器；在“{backdrop}”模式下、场景之上，它会变成玻璃。同一个开关会带你回到离开时的页面。',
+    '标题栏上的一个开关把 FluidEQ 收成一列：最上面是可视化效果，歌曲信息叠在上面，下面是控制按钮、你的声音和接下来播放的内容。无论哪种窗口配色，都是同一个播放器；选择场景时，场景会在整个播放器后面播放，即“{backdrop}”。',
   'tour.player.point1':
-    '完整的均衡器一并带上：预设、频段布局、EQ 模式、智能均衡，以及低音、中音和高音。',
+    '“{sound}”里有低音、中音、高音旋钮，或者你自己的 EQ 频段，旁边是预设、智能均衡和 EQ 模式。',
   'tour.player.point2':
-    '把它折叠为一行、置顶在其他窗口之上，或双击可视化效果铺满屏幕。',
+    '“{upNext}”和“{playlists}”在最下面。折叠任一部分可让画面更大；把音乐拖放到播放器的任意位置，即可加入播放队列。',
   'tour.player.point3':
-    '有自己的主题；拖放到“接下来播放”的歌曲会加入媒体库和队列。',
+    '宽度固定，高度由你从顶部或底部边缘拖动决定。可以折叠为一行、置顶在其他窗口之上，或双击画面铺满屏幕。',
   'tour.player.how':
     '按下标题栏中“帮助”旁边的“迷你播放器”开关。在播放器上，同一个开关会带回完整界面。',
   'tour.player.open': '试试迷你播放器',
   'tour.player.imageAlt':
-    '标题栏一角，“{player}”开关被圈出；以及它打开的两种播放器：带 LED 时钟、指示灯、均衡器和播放队列的经典功放，和在“{backdrop}”模式下、极光之上更宽的玻璃播放器。',
-  'tour.player.classic': '经典功放',
-  'tour.player.glass': '玻璃，“{backdrop}”模式',
+    '标题栏一角，圈出了{player}开关；下面是两个迷你播放器：一个在“{backdrop}”下叠在场景上，打开了 EQ 频段；另一个在歌曲后面显示标准可视化效果，打开了音色旋钮。',
+  'tour.player.scene': '场景，“{backdrop}”',
+  'tour.player.standard': '标准可视化效果',
   'tour.look.kicker': '全新外观',
   'tour.look.title': '全新的窗口，全新的颜色',
   'tour.look.subtitle': '一个主题滑块，所有内容背后都能有可视化效果',
@@ -244,7 +244,7 @@ const tour: Partial<Dictionary> = {
   'tour.room.imageAlt':
     '俯视的房间：七只音箱和一只低音炮围绕中央的头部，每只都有通往双耳的路径。',
 
-  'tour.plus.kicker': 'FluidEQ Plus',
+  'tour.plus.kicker': '可视化',
   'tour.plus.title': '永久归你的场景',
   'tour.plus.subtitle': '可视化、工作室、灯效，还有更多',
   'tour.plus.lead':

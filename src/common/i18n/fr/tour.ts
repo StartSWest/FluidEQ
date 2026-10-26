@@ -19,24 +19,24 @@ const tour: Partial<Dictionary> = {
   'tour.howTitle': 'Pour commencer',
   'tour.beta': 'Bêta',
   'tour.player.kicker': 'LE LECTEUR COMPACT',
-  'tour.player.title': 'FluidEQ, replié en un lecteur',
+  'tour.player.title': 'Toute l’application en une colonne',
   'tour.player.subtitle':
-    'Un seul interrupteur transforme la fenêtre en lecteur',
+    'Un lecteur, le même dans toutes les couleurs de fenêtre',
   'tour.player.lead':
-    'Un interrupteur dans la barre de titre replie tout FluidEQ en un lecteur. C’est l’ampli classique, avec son horloge LED, ses voyants et l’égaliseur complet ; en mode {backdrop}, sur une scène, il devient de verre. Le même interrupteur vous ramène à la page que vous aviez quittée.',
+    'Un interrupteur dans la barre de titre replie FluidEQ en une colonne : le visualiseur en haut avec le morceau, les commandes, votre son et ce qui suit. Le même lecteur dans toutes les couleurs de fenêtre, et la scène choisie défile derrière tout, en {backdrop}.',
   'tour.player.point1':
-    'Tout l’égaliseur est du voyage : préréglages, dispositions de bandes, Mode EQ, Égalisation auto, Graves, Médiums et Aigus.',
+    '{sound} réunit les boutons Graves, Médiums et Aigus ou les bandes de votre EQ, avec le préréglage, l’égalisation auto et le mode EQ à côté.',
   'tour.player.point2':
-    'Repliez-le sur une ligne, gardez-le au-dessus des autres fenêtres, ou double-cliquez sur le visualiseur pour passer en plein écran.',
+    '« {upNext} » et {playlists} attendent en bas ; repliez-les pour agrandir l’image. La musique déposée n’importe où sur le lecteur rejoint la file d’attente.',
   'tour.player.point3':
-    'Son propre thème, et les morceaux déposés sur À suivre rejoignent la Bibliothèque et la file de lecture.',
+    'Une seule largeur, et la hauteur se règle par le bord du haut ou du bas. Repliez-le sur une ligne, gardez-le au premier plan, ou double-cliquez sur l’image pour le plein écran.',
   'tour.player.how':
     'Appuyez sur l’interrupteur Lecteur compact dans la barre de titre, à côté d’Aide. Sur le lecteur, le même interrupteur ramène l’application complète.',
   'tour.player.open': 'Essayer le Lecteur compact',
   'tour.player.imageAlt':
-    'Le coin de la barre de titre avec l’interrupteur {player} entouré, et les deux lecteurs qu’il ouvre : l’ampli classique avec son horloge LED, ses voyants, son égaliseur et sa file d’attente, et le lecteur de verre, plus large, sur une aurore en mode {backdrop}.',
-  'tour.player.classic': 'Ampli classique',
-  'tour.player.glass': 'Verre, en mode {backdrop}',
+    'Le coin de la barre de titre avec l’interrupteur {player} entouré, et le Lecteur compact deux fois : sur une scène en {backdrop} avec les bandes de l’EQ ouvertes, et avec un visualiseur standard derrière le morceau et les boutons de tonalité ouverts.',
+  'tour.player.scene': 'Avec une scène, en {backdrop}',
+  'tour.player.standard': 'Avec un visualiseur standard',
   'tour.look.kicker': 'UNE NOUVELLE APPARENCE',
   'tour.look.title': 'Une nouvelle fenêtre, de nouvelles couleurs',
   'tour.look.subtitle':
@@ -255,7 +255,7 @@ const tour: Partial<Dictionary> = {
   'tour.room.imageAlt':
     'Une salle vue de dessus : sept enceintes et un sub autour d’une tête au centre, chacune avec son chemin vers les oreilles.',
 
-  'tour.plus.kicker': 'FLUIDEQ PLUS',
+  'tour.plus.kicker': 'VISUALISEURS',
   'tour.plus.title': 'Des scènes à vous pour de bon',
   'tour.plus.subtitle': 'Visualiseurs, Studio, éclairage et plus encore',
   'tour.plus.lead':

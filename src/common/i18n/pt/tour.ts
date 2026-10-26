@@ -19,23 +19,23 @@ const tour: Partial<Dictionary> = {
   'tour.howTitle': 'Como começar',
   'tour.beta': 'Beta',
   'tour.player.kicker': 'O PLAYER COMPACTO',
-  'tour.player.title': 'O FluidEQ, recolhido em um player',
-  'tour.player.subtitle': 'Um botão transforma a janela em um player',
+  'tour.player.title': 'O app inteiro em uma coluna',
+  'tour.player.subtitle': 'Um player, igual em todas as cores de janela',
   'tour.player.lead':
-    'Um botão na barra de título transforma todo o FluidEQ em um player. É o amplificador clássico, com seu relógio de LED, suas luzes e o equalizador completo; com {backdrop}, sobre uma cena, ele vira vidro. O mesmo botão leva você de volta à página que deixou.',
+    'Um botão na barra de título recolhe o FluidEQ em uma coluna: o visualizador no topo com a música, os controles, o seu som e o que toca a seguir. É o mesmo player em todas as cores de janela, e a cena que você escolher aparece atrás de tudo, em {backdrop}.',
   'tour.player.point1':
-    'O equalizador inteiro vai junto: presets, layouts de bandas, Modo EQ, EQ inteligente, Graves, Médios e Agudos.',
+    '{sound} traz os controles de Graves, Médios e Agudos ou as bandas do seu EQ, com o preset, o EQ inteligente e o Modo EQ ao lado.',
   'tour.player.point2':
-    'Recolha-o em uma linha, mantenha-o acima das outras janelas ou clique duas vezes no visualizador para tela cheia.',
+    '{upNext} e {playlists} ficam embaixo; recolha-os para ter uma imagem maior. Músicas soltas em qualquer lugar do player vão para a fila.',
   'tour.player.point3':
-    'Um tema próprio, e as músicas soltas em “A seguir” entram na Biblioteca e na fila.',
+    'Uma só largura, e a altura é você quem escolhe, pela borda de cima ou de baixo. Recolha-o em uma linha, mantenha-o por cima ou clique duas vezes na imagem para tela cheia.',
   'tour.player.how':
     'Pressione o botão Player compacto na barra de título, ao lado de Ajuda. No player, o mesmo botão traz o app completo de volta.',
   'tour.player.open': 'Experimentar o Player compacto',
   'tour.player.imageAlt':
-    'O canto da barra de título com o botão {player} destacado, e os dois players que ele abre: o amplificador clássico com relógio de LED, luzes, equalizador e fila, e o player de vidro, mais largo, sobre uma aurora com {backdrop}.',
-  'tour.player.classic': 'Amplificador clássico',
-  'tour.player.glass': 'Vidro, com {backdrop}',
+    'O canto da barra de título com o botão {player} destacado, e o Player compacto duas vezes: sobre uma cena em {backdrop} com as bandas do EQ abertas, e com um visualizador padrão atrás da música e os controles de Tom abertos.',
+  'tour.player.scene': 'Com uma cena, em {backdrop}',
+  'tour.player.standard': 'Com um visualizador padrão',
   'tour.look.kicker': 'UM VISUAL NOVO',
   'tour.look.title': 'Uma janela nova, com cores novas',
   'tour.look.subtitle':
@@ -252,7 +252,7 @@ const tour: Partial<Dictionary> = {
   'tour.room.imageAlt':
     'Uma sala vista de cima: sete alto-falantes e um sub ao redor de uma cabeça no centro, cada um com o seu caminho até os ouvidos.',
 
-  'tour.plus.kicker': 'FLUIDEQ PLUS',
+  'tour.plus.kicker': 'VISUALIZADORES',
   'tour.plus.title': 'Cenas que são suas para sempre',
   'tour.plus.subtitle': 'Visualizadores, Estúdio, iluminação e mais',
   'tour.plus.lead':
