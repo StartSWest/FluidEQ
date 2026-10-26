@@ -250,21 +250,18 @@ export const INVOKES: Record<string, TAnswer> = {
   },
   'output-mirror-stop': () => undefined,
   'output-mirror-volume': () => undefined,
-  // Share Audio: this computer keeps its code, and the capture script links
-  // a computer to it once the page shows the code (`figures.ts`).
-  'remote-audio-lan-saved-role': () => 'listener',
-  'remote-audio-lan-restore': () => ({
-    role: 'listener',
+  // Share Audio: this computer is on the network under its code, nobody
+  // linked yet; the capture script links a computer once the group is up
+  // (`figures.ts`).
+  'remote-audio-lan-saved': () => true,
+  'remote-audio-lan-start': () => ({
     details: {
       deviceName: 'Desk PC',
-      options: [
-        {
-          address: '192.168.1.20',
-          code: 'FLUIDEQ-LAN-2-HARNESS-NOT-A-REAL-CODE',
-          deviceName: 'Desk PC',
-        },
-      ],
+      code: 'FLUIDEQ-LAN-2-HARNESS-NOT-A-REAL-CODE',
+      computerId: 'harness-desk-pc',
     },
+    joins: [],
+    links: [],
   }),
   'remote-audio-lan-switches-for': () => ({
     send: true,
