@@ -24,14 +24,14 @@ class OutputGuard {
   double last_input_peak() const noexcept { return last_input_peak_; }
   void reassess(uint32_t settling_frames) noexcept;
   /**
-   * The curve's own level, 0 dB or below: how much a louder curve has to
-   * come down at once.
+   * The curve's own level, 0 dB or below: where Auto normalize starts, and
+   * how much a louder curve has to come down at once.
    *
-   * No longer where Auto normalize starts: the first enabled block starts at
-   * 0 dB and the level comes down only where the music's peaks need it
-   * (Ivan, 2026-10-26). A later, lower level (a band raised while playing)
-   * takes the level down by the difference at once, so the boost never
-   * arrives over the ceiling; a higher one is left to the recovery.
+   * The first enabled block starts here rather than at 0 dB, and the level is
+   * brought back up from it as the music leaves room — Ivan's description of
+   * his normalizer. A later, lower level (a band raised while playing) takes
+   * the level down by the difference at once, so the boost never arrives over
+   * the ceiling; a higher one is left to the recovery.
    */
   void set_curve_level(double db) noexcept;
   /**

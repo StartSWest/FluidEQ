@@ -110,11 +110,6 @@ and everything else plays as before.
   settings back in a menu.
 - **Corrections are smoothed at 1/12 octave until you choose otherwise**, and
   Reset in EQ mode goes back there. Off is still one press away.
-- **Auto normalize starts at full level** and turns down only where the
-  music's peaks need it, instead of starting low and climbing; it comes back
-  up twice as fast once the music leaves room. A song is heard at its own
-  loudness from its first seconds, and quiet songs no longer wait half a
-  minute to come up. Under the FluidEQ Engine, with its update.
 - **The curve follows a slider at once.** Moving a band's slider redraws the
   curve in the same frame, as dragging the curve already moved the slider.
 - **The handles and knobs work from the keyboard**: the arrow keys step a
