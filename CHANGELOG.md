@@ -42,9 +42,11 @@ and everything else plays as before.
   their own switches for each one. **Your mix** holds this computer's volume
   and a volume of its own for every computer you hear. **Add computer** opens
   the pairing whenever you need it, computers that are away stay listed, and
-  the group finds itself again by itself after a restart, a sleep or a
-  network drop. Each computer can be paused and resumed, the sound arriving
+  the group finds itself again by itself after a restart, a sleep, a
+  network drop or a switch of audio engine. Each computer can be paused and resumed, the sound arriving
   shows the rate it comes in at, and a new connection always starts playing.
+  The bar shows only the computers whose sound reaches you, and **This
+  computer** says when sound is playing that no player names, such as a game.
 - **Bluetooth headphones show their battery** beside the output, and beside
   the second output.
 
@@ -171,7 +173,8 @@ and everything else plays as before.
   Compact player, keeps that playlist in Up next whatever you browse next;
   **Add to up next** puts songs at the bottom, each once, even when the same
   playlist is added twice. With Keep playing on, **More like this** appears
-  only when the last song is playing, as its own part below the list.
+  only when the last song is playing, as its own part below the list. Music
+  dropped on the Compact player's Up next goes in where you let go.
 
 ### The Compact player
 
@@ -326,6 +329,9 @@ and everything else plays as before.
 
 - Output names in any language read right: a name in Chinese or any other
   script came out as question marks and boxes.
+- **Reset all settings** also sends every page back to where a new install
+  opens it and turns the graph back on, and it no longer changes your
+  language. The window keeps its size and place.
 - Dragging a band is heard as it moves again. Each step used to wait until
   every output's settings had been written, so with many outputs the sound
   trailed the hand by seconds.
