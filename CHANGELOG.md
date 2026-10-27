@@ -202,7 +202,8 @@ and everything else plays as before.
 - **Folded to one line, it has room to breathe.** The strip is a little
   taller, with even margins, a soft play key, quieter window buttons and a
   thin line for the song's position that never glows; its knob shows when you
-  point at it.
+  point at it. A standard visualizer moves faintly behind the song, as a
+  scene already does.
 
 ### Visualizers
 
