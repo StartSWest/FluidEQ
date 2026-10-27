@@ -59,7 +59,10 @@ const PlayerAmp = ({
   const isVisFull = usePlayerVisFull();
   const { isShelfOpen } = usePlayerShelfOpen();
   const { sound } = usePlayerSound();
-  const topRef = useRef<HTMLDivElement>(null);
+  // The top panel itself, held as state: the Backdrop's stage stands before
+  // it on the page and frames the scene to it, so it has to hear when the
+  // panel arrives (`PlayerStage`).
+  const [topPanel, setTopPanel] = useState<HTMLDivElement | null>(null);
   // One load of the graph's Plus visualizer for the whole amp, folded or not:
   // it keeps moving behind the folded line.
   const scene = useGraphScenePack();
@@ -116,15 +119,11 @@ const PlayerAmp = ({
       ) : (
         <>
           {isBackdrop && (
-            <PlayerStage
-              scene={drawn}
-              onTrouble={onTrouble}
-              panelRef={topRef}
-            />
+            <PlayerStage scene={drawn} onTrouble={onTrouble} panel={topPanel} />
           )}
           <PlayerTitleStrip onFold={fold} onOpenPage={onOpenPage} />
           <div className="player-body">
-            <div className="player-top" ref={topRef}>
+            <div className="player-top" ref={setTopPanel}>
               {!isBackdrop && (
                 <PlayerStage scene={drawn} onTrouble={onTrouble} />
               )}
