@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import '@testing-library/jest-dom';
 import { act, render } from '@testing-library/react';
 import { useRef } from 'react';
+import { PLAYER_FOLD_HEIGHT } from 'common/constants';
 import {
   foldSectionsAway,
   stripStepsAside,
@@ -209,7 +210,7 @@ describe('folding the window', () => {
     expect(resizePlayerWindow).not.toHaveBeenCalled();
     await finishAll();
     expect(holdPlayerHeight).toHaveBeenCalledWith(null, null);
-    expect(resizePlayerWindow).toHaveBeenCalledWith(54);
+    expect(resizePlayerWindow).toHaveBeenCalledWith(PLAYER_FOLD_HEIGHT);
   });
 
   it('asks at once with Animations off', async () => {
@@ -220,7 +221,7 @@ describe('folding the window', () => {
       await Promise.resolve();
     });
     expect(played).toHaveLength(0);
-    expect(resizePlayerWindow).toHaveBeenCalledWith(54);
+    expect(resizePlayerWindow).toHaveBeenCalledWith(PLAYER_FOLD_HEIGHT);
   });
 
   it('takes no second fold while the first is moving', async () => {

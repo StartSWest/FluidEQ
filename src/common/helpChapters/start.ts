@@ -400,7 +400,7 @@ const START_CHAPTERS = [
       {
         live: 'player-folded',
         width: 480,
-        height: 54,
+        height: 64,
         caption: 'help.player.foldedCaption',
         still: '46-player-folded.png',
         controls: [
