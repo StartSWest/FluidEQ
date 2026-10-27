@@ -32,21 +32,23 @@ describe('songEqStore', () => {
 
   it('reads back exactly what it wrote', () => {
     // Positive control for the test above: proves the empty result is a
-    // missing file rather than a reader that always returns empty.
+    // missing file rather than a reader that always returns empty. Filed by
+    // fingerprints, as everything it writes is (`songMemoryNames.ts`).
     const dir = tempDir();
+    const key = 'a'.repeat(40);
     const settings = {
       ...getDefaultSongEqSettings(),
       outputs: {
         'device-a': {
           entries: {
-            'library:x': {
+            [key]: {
               settings: { filters: {} },
               title: 'Song',
               plays: 2,
               updatedAt: 5,
             },
           },
-          aliases: { 'song|artist': 'library:x' },
+          aliases: { ['b'.repeat(40)]: key },
         },
       },
     };

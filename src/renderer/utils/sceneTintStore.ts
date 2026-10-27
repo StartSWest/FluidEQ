@@ -851,6 +851,9 @@ const subscribeWanted = (listener: () => void) => {
   };
 };
 
+/** The sky the window is in or on its way to, read once. */
+export const getShownSceneSky = () => wanted;
+
 /** The sky the window is in or on its way to, for the switch's swatch. */
 export const useShownSceneSky = () =>
   useSyncExternalStore(

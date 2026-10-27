@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 @use 'sass:meta';
 @use 'glass';
+@use 'playerMotion';
 
 // THE LIBRARY'S SCAN CARD FLOATS OVER THE QUEUE'S FOOT (Ivan, 2026-10-25:
 // "it needs to be floating, it cannot push the content down of the list or
@@ -40,9 +41,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // Only what is the whole window's stands outside both.
 //
 // The same sheet applies inside a picture of the player drawn by its own
-// parts (`.player-picture`, What's New's `PlayerPicture`), with that box as
-// the page's root: one stylesheet, so the picture cannot drift from the
-// player it shows.
+// parts (`.player-picture`, What's New's `PlayerPicture`, and `.player-part`,
+// a part of it Help draws on its own), with that box as the page's root: one
+// stylesheet, so the picture cannot drift from the player it shows.
 
 // The colours the amps' canvases read when they are sized, registered so a
 // canvas is handed a colour and not the text of a `color-mix()`. One
@@ -131,6 +132,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
   display: none;
 }
 
-@scope (:root[data-amp], .player-picture) {
+@scope (:root[data-amp], .player-picture, .player-part) {
   @include meta.load-css('ampStage');
+}
+
+// ONE PART OF THE PLAYER, drawn outside its window by Help's live figures
+// (`help/live/playerFigures`): its sheet applies through the scope above,
+// and the player, fixed to the window there, is held to the part's own box.
+.player-part {
+  position: relative;
+
+  .mini-player {
+    position: absolute;
+    inset: 0;
+    z-index: auto;
+  }
 }

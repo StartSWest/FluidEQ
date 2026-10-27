@@ -329,6 +329,7 @@ const QueueDeck = ({
         <LibraryScanProgress
           progress={library.scanProgress}
           onCancel={library.cancelScan}
+          onHide={library.hideScanNotice}
         />
       ) : (
         <QueueDropNotice position={position} total={library?.total} />

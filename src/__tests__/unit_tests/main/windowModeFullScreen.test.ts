@@ -40,6 +40,8 @@ const fakeWindow = () => {
     once: events.once.bind(events),
     emit: events.emit.bind(events),
     isDestroyed: () => false,
+    isVisible: () => true,
+    isMinimized: () => false,
     isMaximized: () => false,
     isFullScreen: () => isFullScreen,
     getBounds: () => ({ ...bounds }),

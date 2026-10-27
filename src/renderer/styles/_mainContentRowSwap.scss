@@ -1,0 +1,46 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// The row under the bands changing between the band's editor and the Tone
+// row (`EqRowSwap.tsx`): the leaving row lifts away and fades, and the
+// arriving one's controls come in from below, left to right. Opacity and
+// transform only. Animations off stands both down (`App.scss`), and the
+// leaving row's 1 ms end still arrives to take it away.
+
+$-ease-out: cubic-bezier(0.15, 0.85, 0.25, 1);
+
+@keyframes eq-row-leave {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes eq-row-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.eq-flat-editor.is-leaving {
+  // Over the arriving row's cell, never under the pointer.
+  pointer-events: none;
+  // Quick to fade, so it is mostly gone before the arriving controls show:
+  // overlapped at half strength the two rows read as one smear of words.
+  animation: eq-row-leave 100ms $-ease-out forwards;
+}
+
+.eq-flat-editor.is-arriving > * {
+  // A beat after the leaving row starts, so the two are not one smear.
+  animation: eq-row-arrive 180ms $-ease-out 60ms backwards;
+
+  @for $i from 2 through 8 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{60 + ($i - 1) * 18}ms;
+    }
+  }
+}

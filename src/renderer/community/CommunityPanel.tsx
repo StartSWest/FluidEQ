@@ -50,7 +50,7 @@ interface IPlace {
  * The rail, top to bottom: visualizers, Studio, then dynamic lighting — the places that make scenes before the one that takes them off
  * the screen. An add-on's places follow (`renderer/addons.ts`), when there is one.
  */
-const PLACES: readonly IPlace[] = [
+export const PLACES: readonly IPlace[] = [
   {
     place: 'visualizers',
     glyph: 'looks',

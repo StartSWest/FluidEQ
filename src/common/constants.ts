@@ -301,8 +301,12 @@ export const WINDOW_MIN_HEIGHT = 800;
  * listener's.
  */
 export const PLAYER_WIDTH = 480;
-/** One line: the player folded to its strip, in CSS pixels. */
-export const PLAYER_FOLD_HEIGHT = 54;
+/**
+ * One line: the player folded to its strip, in CSS pixels. 64 since the
+ * strip was given room round its row and its line (Ivan, 2026-10-26: "more
+ * padding", A3 of the one-line mockups); it was 54.
+ */
+export const PLAYER_FOLD_HEIGHT = 64;
 /**
  * How tall the player opens the first time, in CSS pixels (Ivan,
  * 2026-09-21): a tall column that suits a 1080-pixel screen, in the middle

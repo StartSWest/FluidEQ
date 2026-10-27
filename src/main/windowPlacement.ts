@@ -252,29 +252,21 @@ export const createWindowPlacement = ({
     }
     try {
       const modes = windowModes.memory();
-      const isPlayer = modes.mode === 'player';
-      // The full app's bounds are the window's own while it is the app. While
-      // it is the player they are the ones the switch put aside, to go back to.
-      const bounds = isPlayer ? modes.app : mainWindow.getNormalBounds();
+      // The mode owner captures the app only outside switches. Reading live
+      // normal bounds here saved the amp's width while returning to the app.
+      const bounds = modes.app;
+      if (!isUsableRect(bounds)) {
+        return;
+      }
       // The amp's own bounds, never the full screen's or a switch's.
       const player = windowModes.playerBounds(mainWindow);
-      // A window that is off screen right now cannot report the state the user
-      // chose. Normally that never happens: the close handler saves before it
-      // hides, so the window is still visible at that moment. It does happen
-      // after an unattended update, which builds the window and never shows
-      // it — `isMaximized()` answers false, and writing that answer down would
-      // un-maximise FluidEQ for good, one update at a time. Keep what was
-      // already recorded instead.
-      const isAppMaximized = mainWindow.isVisible()
-        ? mainWindow.isMaximized()
-        : loadWindowState().isMaximized === true;
       const state: IWindowState = {
         width: bounds.width,
         height: bounds.height,
         x: bounds.x,
         y: bounds.y,
         // The player is never maximised; what it keeps is the app's own.
-        isMaximized: isPlayer ? modes.app.isMaximized === true : isAppMaximized,
+        isMaximized: modes.app.isMaximized === true,
         mode: modes.mode,
         ...(isUsableRect(player)
           ? { player, playerRule: PLAYER_BOUNDS_RULE }

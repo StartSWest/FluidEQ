@@ -40,10 +40,13 @@ const SongSoundNotice = () => {
   }
 
   const { entry } = notice;
+  // The song playing, never the memory's own name for it: the memory keeps no
+  // name for anything but the listener's own files (`songMemoryNames.ts`).
+  const { title } = notice.identity;
   const preset = songSoundPresetName(entry.sound.presetId, t);
   const body = preset
-    ? t('songSound.noticeBody', { title: entry.title, preset })
-    : t('songSound.noticeBodyNoPreset', { title: entry.title });
+    ? t('songSound.noticeBody', { title, preset })
+    : t('songSound.noticeBodyNoPreset', { title });
 
   return (
     <CompactFrame

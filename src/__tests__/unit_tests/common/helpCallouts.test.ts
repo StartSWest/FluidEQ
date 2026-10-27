@@ -17,7 +17,9 @@ import {
 import {
   HELP_CAPTURE_SCALE,
   HELP_CHAPTERS,
-  type IHelpFigure,
+  HELP_LIVE_MAX_SCALE,
+  isLiveFigure,
+  type IHelpPictureFigure,
 } from '../../../common/helpGuide';
 
 /**
@@ -31,9 +33,19 @@ import {
  * guide ships, at a wide column and a narrow one, rather than on a sample.
  */
 
+// Every capture with circles on it. A live figure's boxes exist only once it
+// is drawn, so its layout is checked where it is drawn (the planner below is
+// the same; `helpLiveFigures.test.tsx` checks that its controls are there).
 const figures = HELP_CHAPTERS.flatMap((chapter) =>
-  chapter.figures.filter((figure) => (figure.controls?.length ?? 0) > 0),
+  chapter.figures.flatMap((figure) =>
+    isLiveFigure(figure) || (figure.controls?.length ?? 0) === 0
+      ? []
+      : [figure],
+  ),
 );
+
+/** A made-up capture, written the way a chapter writes one. */
+const capture = (figure: IHelpPictureFigure) => figure;
 
 // The widths a reader actually meets: a full window, a narrow one, the Help's
 // column at its tightest — the window's 720-pixel minimum is wider than this,
@@ -292,7 +304,7 @@ describe('help call-out layout', () => {
   // A positive control for everything above: a figure small enough to reason
   // about, whose answers are known. Without it, a planner that put nothing
   // anywhere would pass the "no overlaps" and "nothing on the capture" rules.
-  const figure: IHelpFigure = {
+  const figure: IHelpPictureFigure = {
     image: 'synthetic.png',
     width: 600,
     height: 400,
@@ -330,11 +342,40 @@ describe('help call-out layout', () => {
     expect(plan.image.height).toBeCloseTo(400 / HELP_CAPTURE_SCALE);
   });
 
+  // A live figure, measured in CSS pixels: the same three controls, listed
+  // in the order its chapter gives them, which is how the app numbers its
+  // list before the drawing exists and how the exported guide numbers it.
+  const live = planHelpCallouts(
+    {
+      width: 600,
+      height: 400,
+      controls: figure.controls,
+      maxScale: HELP_LIVE_MAX_SCALE,
+      numbering: 'listed',
+    },
+    { width: 2000, maxImageHeight: 2000 },
+  );
+  const liveIndex = (index: number) =>
+    live.callouts.find((callout) => callout.index === index);
+
+  it('numbers a live figure as listed, not as read', () => {
+    expect(liveIndex(0)?.number).toBe(1);
+    expect(liveIndex(1)?.number).toBe(2);
+    expect(liveIndex(2)?.number).toBe(3);
+    // Its circles go where the capture's do: only the numbers differ.
+    expect(liveIndex(0)?.side).toBe(byIndex(0)?.side);
+  });
+
+  it('draws a live figure up to the size its capture would be drawn', () => {
+    expect(live.image.width).toBeCloseTo(600 * HELP_LIVE_MAX_SCALE);
+    expect(live.image.height).toBeCloseTo(400 * HELP_LIVE_MAX_SCALE);
+  });
+
   // The menu case itself, small enough to see: four rows as wide as the menu.
   // Every circle belongs beside its row, not above or below the menu.
   it('numbers a menu down its side, not across its top and bottom', () => {
     const menu = planHelpCallouts(
-      {
+      capture({
         image: 'menu.png',
         width: 200,
         height: 185,
@@ -360,7 +401,7 @@ describe('help call-out layout', () => {
             text: 'help.eq.addRight',
           },
         ],
-      },
+      }),
       { width: 900, maxImageHeight: 800 },
     );
     expect(
@@ -379,7 +420,7 @@ describe('help call-out layout', () => {
 
   it('gives an unannotated capture no margins at all', () => {
     const bare = planHelpCallouts(
-      { image: 'bare.png', width: 600, height: 400 },
+      capture({ image: 'bare.png', width: 600, height: 400 }),
       { width: 900, maxImageHeight: 800 },
     );
     expect(bare.callouts).toEqual([]);

@@ -228,6 +228,7 @@ describe('a scan in progress', () => {
           isDone: false,
         }}
         onCancel={onCancel}
+        onHide={jest.fn()}
       />,
     );
     expect(screen.getByText('Reading a.mp3')).toBeInTheDocument();

@@ -45,6 +45,7 @@ describe('the folder actions', () => {
         onRescan={jest.fn()}
         onForceRescan={jest.fn()}
         onRemoveRoot={jest.fn()}
+        onShowScan={jest.fn()}
       />,
     );
     expect(screen.getByRole('button', { name: 'Rescan' })).toBeDisabled();
@@ -62,6 +63,7 @@ describe('the folder actions', () => {
         onRescan={onRescan}
         onForceRescan={jest.fn()}
         onRemoveRoot={jest.fn()}
+        onShowScan={jest.fn()}
       />,
     );
     await user.click(screen.getByRole('button', { name: 'Add folder' }));
@@ -81,6 +83,7 @@ describe('the folder actions', () => {
         onRescan={jest.fn()}
         onForceRescan={onForceRescan}
         onRemoveRoot={jest.fn()}
+        onShowScan={jest.fn()}
       />,
     );
     await user.click(screen.getByRole('button', { name: 'Force rescan' }));
@@ -96,6 +99,7 @@ describe('the folder actions', () => {
         onRescan={jest.fn()}
         onForceRescan={jest.fn()}
         onRemoveRoot={jest.fn()}
+        onShowScan={jest.fn()}
       />,
     );
     expect(
@@ -114,6 +118,7 @@ describe('the folder actions', () => {
           onRescan={jest.fn()}
           onForceRescan={jest.fn()}
           onRemoveRoot={jest.fn()}
+          onShowScan={jest.fn()}
         />
         <button type="button">Outside</button>
       </div>,
@@ -135,6 +140,7 @@ describe('the folder actions', () => {
         onRescan={jest.fn()}
         onForceRescan={jest.fn()}
         onRemoveRoot={jest.fn()}
+        onShowScan={jest.fn()}
       />,
     );
     await user.click(screen.getByRole('button', { name: 'Folders' }));
@@ -154,6 +160,7 @@ describe('the folder actions', () => {
         onRescan={jest.fn()}
         onForceRescan={jest.fn()}
         onRemoveRoot={onRemoveRoot}
+        onShowScan={jest.fn()}
       />,
     );
     await user.click(screen.getByRole('button', { name: 'Folders' }));

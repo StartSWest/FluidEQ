@@ -170,6 +170,9 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.rainbow': 'カラフルモード',
   'graph.sceneTint.rainbowHint':
     'バンド、タイトル、点灯中のコントロールを単色ではなくパレットで表示します。シーンの選択中はその色で表示します。',
+  'graph.sceneTint.appIcon': 'アプリアイコンを着色',
+  'graph.sceneTint.appIconHint':
+    'タスクバーのボタンと通知領域のアイコンをウィンドウの色にします。オフにすると FluidEQ 本来のアイコンのままです。',
   'graph.sceneTint.sparks': 'ポインターの火花',
   'graph.sceneTint.sparksHint':
     'ビジュアライザーがマウスから放つもの。画面の上を動かすと軌跡が残り、クリックした場所ではじけます。火花、花びら、雪など、シーンに合わせて。',

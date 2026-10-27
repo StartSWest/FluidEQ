@@ -159,6 +159,9 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.rainbow': '多彩模式',
   'graph.sceneTint.rainbowHint':
     '频段、标题和亮起的控件使用调色板而不是单一颜色；选择场景时使用它自己的颜色。',
+  'graph.sceneTint.appIcon': '为应用图标着色',
+  'graph.sceneTint.appIconHint':
+    '任务栏按钮和通知区域图标使用窗口的颜色。关闭时保留 FluidEQ 原来的图标。',
   'graph.sceneTint.sparks': '指针火花',
   'graph.sceneTint.sparksHint':
     '可视化从鼠标处抛出的效果：鼠标划过画面时留下拖尾，点击处迸发——火花、花瓣、雪花，取决于场景。',

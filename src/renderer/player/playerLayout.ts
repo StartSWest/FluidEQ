@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
+  type RefObject,
   useCallback,
   useEffect,
   useRef,
@@ -12,6 +13,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import { PLAYER_DEFAULT_HEIGHT, PLAYER_FOLD_HEIGHT } from 'common/constants';
+import { foldSectionsAway, stripStepsAside } from './playerMotion';
 import {
   holdPlayerHeight,
   needPlayerWidth,
@@ -253,45 +255,74 @@ const recallUnfoldedHeight = (): number | undefined => {
 };
 
 /**
- * Folding the player to one line and back — from its menu, its strip's own
- * button, or a double-click on the header, which Windows keeps from the page
- * and main passes on (`player-caption-double-click`).
+ * Folding the player to one line and back, from its menu and its strip's own
+ * button.
+ *
+ * Not from a double-click on the header (Ivan, 2026-10-26: "this is not
+ * working the double click"). The header is the window's drag handle, so the
+ * page never sees a click there, and Windows sent the player's window no
+ * caption double-click at all: hooked in main and logged on his machine, two
+ * double-clicks on the header brought none. The only other way to have one
+ * is to time two presses, which is guessing at the listener's own
+ * double-click setting, so the fold is the menu's and the strip's.
+ *
+ * Folding plays the sections up into the header first and asks for the
+ * strip's height once they have gone; unfolding steps the strip's controls
+ * aside and asks for the remembered height, and the column opens down by
+ * itself as it appears (`playerMotion.ts`). With Animations off both ask at
+ * once, as before.
  */
-export const usePlayerFold = () => {
+export const usePlayerFold = (root: RefObject<HTMLElement | null>) => {
   const isFolded = useIsFolded();
+  // One fold or unfold at a time: a second press while the sections are
+  // moving would start a second motion over the first and ask for the same
+  // height twice.
+  const isMoving = useRef(false);
   const fold = useCallback(() => {
+    if (isMoving.current) {
+      return;
+    }
+    isMoving.current = true;
     rememberUnfoldedHeight(window.innerHeight);
-    // The player's own floor holds the window above the strip, so the hold
-    // goes first and the strip's own height is asked for after
-    // (`usePlayerHeightFloor`).
-    holdPlayerHeight(null, null);
-    resizePlayerWindow(PLAYER_FOLD_HEIGHT).catch(() => undefined);
-  }, []);
-  const unfold = useCallback(() => {
-    resizePlayerWindow(recallUnfoldedHeight() ?? PLAYER_DEFAULT_HEIGHT).catch(
-      () => undefined,
-    );
-  }, []);
-
-  // Read by a listener subscribed once, so it answers for the window as it
-  // is at the double-click and not as it was when it subscribed.
-  const isFoldedRef = useRef(isFolded);
-  isFoldedRef.current = isFolded;
-  useEffect(() => {
-    const stop = window.electron?.ipcRenderer.on(
-      'player-caption-double-click',
-      () => {
-        if (isFoldedRef.current) {
-          unfold();
-        } else {
-          fold();
+    const motion = foldSectionsAway(root.current);
+    motion.finished
+      .then(() => {
+        // Switched to the full app while the sections went up: the window
+        // is the app's now, and the strip's height is no longer the player's
+        // to ask for.
+        if (!root.current?.isConnected) {
+          return undefined;
         }
-      },
-    );
-    return () => {
-      stop?.();
-    };
-  }, [fold, unfold]);
+        // The player's own floor holds the window above the strip, so the
+        // hold goes first and the strip's own height is asked for after
+        // (`usePlayerHeightFloor`).
+        holdPlayerHeight(null, null);
+        return resizePlayerWindow(PLAYER_FOLD_HEIGHT);
+      })
+      // Main refused the height: the sections come back rather than leave an
+      // empty player standing at its old size.
+      .catch(() => motion.cancel())
+      .finally(() => {
+        isMoving.current = false;
+      });
+  }, [root]);
+  const unfold = useCallback(() => {
+    if (isMoving.current) {
+      return;
+    }
+    isMoving.current = true;
+    const motion = stripStepsAside(root.current);
+    motion.finished
+      .then(() =>
+        root.current?.isConnected
+          ? resizePlayerWindow(recallUnfoldedHeight() ?? PLAYER_DEFAULT_HEIGHT)
+          : undefined,
+      )
+      .catch(() => motion.cancel())
+      .finally(() => {
+        isMoving.current = false;
+      });
+  }, [root]);
 
   return { isFolded, fold, unfold };
 };

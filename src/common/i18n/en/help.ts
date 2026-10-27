@@ -60,9 +60,9 @@ const help = {
   'help.window.intro':
     'The header takes you between FluidEQ’s pages and shows the sound as it plays. The left rail holds the switch for the whole EQ, the preamp and the level meter; the right rail follows your output and its profiles.',
   'help.window.steps':
-    'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Visualizers after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the signal or the level meter to change how it is drawn, and Colourful mode to have the curves and meters move at your screen’s full rate.',
+    'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Visualizers after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the level meter to change how it is drawn, and Colourful on the signal to have the bands, the title and the lit controls in a palette instead of one colour.',
   'help.window.tip':
-    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The pulse button beside it holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio and Processes, which shows what each part of FluidEQ is using; at its foot are Brightness and Transparency, animations, Start with Windows and the language. The switch after them turns the window into the Compact player.',
+    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The menu button beside it, three lines, holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio, Processes, which shows what each part of FluidEQ is using, and Reset all settings; at its foot are Brightness, Tint, Colourful mode, Tint app icon (off at first; it puts the taskbar icon, the tray icon and the icon in the tray’s menu in the window’s colours), the EQ sliders, animations, Start with Windows and the language. The switch after them turns the window into the Compact player.',
   'help.window.keywords':
     'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, rainbow, colourful mode, colorful mode, theme, dark mode, light mode, dark theme, light theme, language, start with windows, autostart, startup, account',
   'help.window.headerLeftCaption': 'The header, up to the signal',
@@ -76,7 +76,7 @@ const help = {
     'Your bands, presets, headphone correction, game presets and the engine’s config.',
   'help.window.waveName': 'Audio signal',
   'help.window.wave':
-    'What is playing, as it plays. Press it to change how it is drawn.',
+    'What is playing, as it plays, with its peak level. Colourful, at its top, turns Colourful mode on or off; the graph’s View menu can hide it.',
   'help.window.dsp':
     'The effects rack: presets, the Room and every stage of the chain.',
   'help.window.library': 'Your music files, albums and play queue.',
@@ -87,7 +87,7 @@ const help = {
   'help.window.help':
     'This guide, What’s new, the audio troubleshooter and Report a problem.',
   'help.window.actions':
-    'The engine, your account, importing EQ settings, restarting Windows audio and Processes; Brightness and Transparency, animations, Start with Windows and the language.',
+    'The engine, your account, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint, Colourful mode and Tint app icon, the EQ sliders, animations, Start with Windows and the language.',
   'help.window.systemEq':
     'Turns FluidEQ’s processing on or off for everything the PC plays.',
   'help.window.preamp':
@@ -102,29 +102,24 @@ const help = {
   'help.player.intro':
     'One switch turns FluidEQ’s window into the Compact player, a single narrow column: a visualizer at the top with the song over it and the play controls under it, then Sound, your equaliser, then Up next and your playlists. Whatever is playing keeps playing, and the same switch brings the full app back on the page you left.',
   'help.player.steps':
-    'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.\nFold Sound, or Up next and Playlists, down to its header, and the visualizer takes the room; press the header to open it again. Drag the player’s top or bottom edge to make it taller or shorter.\nDouble-click the visualizer to fill the screen with it; Escape gives it back. Press the look’s name beside shuffle and repeat to choose from every style and scene.\nDouble-click the player’s header, or choose Fold to one line in the FluidEQ mark’s menu, to fold it down to one line; the mark unfolds it.\nIn the same menu, set the player’s own Brightness, the Transparency over a scene or the window’s Tint over a standard style, and a scene’s Daylight. Always on top, there or in the header, keeps it above other windows.\nDrop music files anywhere on the player: they join the Library and the end of Up next or, over the list, the place where you let go.',
+    'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.\nFold Sound, or Up next and Playlists, down to its header, and the visualizer takes the room; press the header to open it again. Drag the player’s top or bottom edge to make it taller or shorter.\nDouble-click the visualizer to fill the screen with it; Escape gives it back. Press the look’s name beside shuffle and repeat to choose from every style and scene.\nChoose Fold to one line in the FluidEQ mark’s menu to fold the player down to one line; the mark unfolds it.\nIn the same menu, set the player’s own Brightness, the Transparency over a scene or the window’s Tint over a standard style, and a scene’s Daylight. Always on top, there or in the header, keeps it above other windows.\nDrop music files anywhere on the player: they join the Library and the end of Up next or, over the list, the place where you let go.',
   'help.player.tip':
     'The player’s volume is your computer’s own, the same as in Windows, so it sets the level of everything the computer plays. If the player ends up off the screen, right-click FluidEQ in the taskbar’s tray and choose Recover the window.',
   'help.player.keywords':
     'mini player, small player, compact, compact mode, winamp, amp, player mode, always on top, pin, fold, one line, queue, up next, drop files, theme, light theme, dark theme, dark mode, light mode, small window, floating player, volume',
   'help.player.topCaption': 'The top: the song, and how it plays',
-  'help.player.eqCaption': 'The equaliser',
+  'help.player.eqCaption': 'Sound, your equaliser',
   'help.player.queueCaption': 'Up next',
   'help.player.menuCaption': 'The player’s menu',
   'help.player.foldedCaption': 'Folded to one line',
   'help.player.menu':
-    'Back to the full app or to one of its pages; the player’s own Brightness, Transparency or Tint, a scene’s Daylight, Colourful mode and the EQ sliders; Always on top and Fold to one line.',
+    'Back to the full app or to one of its pages; the player’s own Brightness, Transparency or Tint, a scene’s Daylight, Colourful mode, Tint app icon and the EQ sliders; Always on top and Fold to one line.',
   'help.player.pin': 'Keeps the player above every other window.',
   'help.player.switch': 'Back to the full app, on the page you left.',
   'help.player.clock': 'Time played. Click it for the time left.',
-  'help.player.well':
-    'The sound as it plays. Click it to switch between bars and the wave.',
   'help.player.level': 'The level of the sound leaving FluidEQ, in decibels.',
   'help.player.volume':
     'Your computer’s volume, the same as in Windows: it sets the level of everything the computer plays.',
-  'help.player.decksName': 'EQ, Vis and Queue',
-  'help.player.decks':
-    'Open and close the equaliser, the visualizer and Up Next. The window grows and shrinks by what each takes.',
   'help.player.seek': 'Where the song is. Drag to jump.',
   'help.player.playingName': 'Play controls',
   'help.player.playing':
@@ -135,27 +130,44 @@ const help = {
   'help.player.lookName': 'Look',
   'help.player.look':
     'The style or scene the visualizer is drawing. Press it to choose from all of them.',
-  'help.player.screen':
-    'What you hear, drawn: your bands, Smart EQ and anything else applied, over a visualizer look. Also applied lists them, and a tag switches one off without removing it.',
   'help.player.bands':
     'Drag a band up or down to boost or cut it. Its frequency is written under it.',
   'help.player.tone':
     'Tone shows the Bass, Mid and Treble dials; the tab beside it, every band.',
   'help.player.upNext':
     'Up next and Playlists, each with how many it holds, and the time left in the queue.',
-  'help.player.library': 'Opens the Library in the full app.',
   'help.player.songsName': 'The songs',
   'help.player.songs':
     'What plays next. Click a song to play it, drag it to move it, or drop music files here to add them where you let go.',
   'help.player.openIn': 'Opens the full app on one of its pages.',
   'help.player.theme':
-    'The player’s own Brightness, apart from the full app’s; Transparency over a scene, or the window’s Tint over a standard style; a scene’s Daylight; and Colourful mode.',
-  'help.player.fold':
-    'Folds the player to one line. Double-clicking its header does the same.',
+    'The player’s own Brightness, apart from the full app’s; Transparency over a scene, or the window’s Tint over a standard style; a scene’s Daylight; Colourful mode; and Tint app icon, off at first, for the taskbar icon, the tray icon and the icon in the tray’s menu in the window’s colours.',
+  'help.player.fold': 'Folds the player to one line.',
   'help.player.unfold':
     'Unfolds the player. The arrow at the other end does too.',
   'help.player.foldedPlaying': 'Play or pause.',
-  'help.player.foldedClock': 'The time, and where the song is.',
+  'help.player.fullScreen':
+    'Fills the screen with the visualizer. Double-clicking the picture does the same, and Escape gives the screen back.',
+  'help.player.sourceName': 'Source',
+  'help.player.source':
+    'Where the song is coming from: the Library, Online Media, Karaoke, another computer or another program on this PC. Pressing it opens that page in the full app.',
+  'help.player.heart':
+    'Adds a song from the Library to your Favourites, or takes it out.',
+  'help.player.soundFold':
+    'Folds the sound controls down to this row, which keeps the preset, Smart EQ and the switch at hand, and opens them again.',
+  'help.player.mode':
+    'Opens EQ mode: how strongly your EQ and the curves apply, their band Q, phase and treble.',
+  'help.player.save': 'Keeps Up next as a playlist of its own.',
+  'help.player.queueFold':
+    'Folds Up next and Playlists down to their tabs, and the visualizer takes the room.',
+  'help.player.remove': 'Takes a song that has not played yet out of Up next.',
+  'help.player.output':
+    'Where the sound is going: the output Windows plays through.',
+  'help.player.engineName': 'Engine',
+  'help.player.engine':
+    'Which engine is shaping the sound, lit while FluidEQ is on.',
+  'help.player.sliders':
+    'Round handles or rectangular caps on the EQ’s sliders, here and on the EQ page.',
 
   'help.requirements.title': 'What your PC needs',
   'help.requirements.intro':
@@ -513,13 +525,13 @@ const help = {
   'help.gallery.mine': 'The scenes you published, with their likes.',
   'help.gallery.cardName': 'A scene',
   'help.gallery.card':
-    'Its picture opens the scene; Add puts it in your looks.',
+    'Its picture opens the scene. Get keeps it with a credit, and the heart likes it.',
   'help.gallery.manage': 'What each monitor shows as a desktop background.',
   'help.gallery.stop': 'Stops every desktop background.',
   'help.gallery.sceneCaption': "A scene's page",
   'help.gallery.back': 'Back to the gallery, where you left it.',
   'help.gallery.play':
-    'Adds the scene to your looks, or plays it on the graph.',
+    'Plays the scene on the graph. A scene you do not have yet offers Get, for one credit.',
   'help.gallery.desktop': 'Puts the scene behind your desktop icons.',
   'help.gallery.inspect':
     'Opens FluidEQ’s scene in the Studio to see how it is made.',
@@ -537,12 +549,14 @@ const help = {
   'help.studio.stageName': 'Stage',
   'help.studio.stage':
     'The scene, playing on your music. Double-click for full screen.',
-  'help.studio.code': 'The scene’s code, live, updated as your AI saves it.',
   'help.studio.hears':
     'What the scene receives: level, beat, bass, mids, treble.',
+  'help.studio.tabs':
+    'Tune tries the wave and the scene’s own settings, Code shows its code as your AI saves it, Performance how it runs here, and What it hears now is open below.',
+  'help.studio.chat':
+    'Ask Claude for a change in your own words. Each reply that changed the scene can bring that version back.',
   'help.studio.signals': 'Test signals that drive only this preview.',
   'help.studio.size': 'Tries the scene full screen.',
-  'help.studio.wave': 'Tries the wave height and position listeners can set.',
 
   'help.desktop.title': 'The desktop visualizer',
   'help.desktop.intro':
@@ -575,8 +589,8 @@ const help = {
   'help.lighting.browse': 'Opens the gallery to choose a visualizer.',
   'help.lighting.previewName': 'Live desk preview',
   'help.lighting.preview': 'Your own desk, lit with the colours sent to it.',
-  'help.lighting.devices': 'Every device found. Click one to tune it alone.',
-  'help.lighting.all': 'Back to tuning every device at once.',
+  'help.lighting.devices':
+    'Every device found. Click one to tune it alone; All devices, above the list, tunes them all at once again.',
   'help.lighting.style':
     'Scene, Colour wave, Spectrum or Beat ripple, kept for each visualizer.',
 
@@ -700,7 +714,7 @@ const help = {
   'help.forum.intro':
     'The Forum brings FluidEQ’s GitHub Discussions into the app: announcements, ideas, questions and tunings people are proud of. Anyone can read; posting uses your GitHub account, not a FluidEQ one.',
   'help.forum.steps':
-    'Open Help → Forum and pick a board: Announcements, General, Ideas, Polls, Q&A or Show and tell.\nSearch the forum, or open a topic to read the replies.\nPress Sign in with GitHub, finish in your browser, then post a New topic or a reply.',
+    'Open Help → Forum and pick a board: Announcements, General, Ideas, Polls, Q&A or Show and tell. New for you gathers what came in since you last looked, and Issues lists the problems reported on GitHub.\nSearch the forum, or open a topic to read the replies.\nPress Sign in with GitHub, finish in your browser, then post a New topic or a reply.',
   'help.forum.tip':
     'Everything posted is public on GitHub under your GitHub name. On Q&A, mark the answer that worked so the next person finds it.',
   'help.forum.keywords':

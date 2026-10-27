@@ -37,6 +37,8 @@ const session = () => {
   const win = Object.assign(events, {
     isDestroyed: () => destroyed,
     isMaximized: () => maximized,
+    isMinimized: () => false,
+    isVisible: () => true,
     isFullScreen: () => false,
     getBounds: () => ({ ...bounds }),
     getNormalBounds: () => ({ ...APP }),
@@ -85,12 +87,14 @@ it('keeps the narrow player size after the compositor finishes restoring the ful
   const test = session();
   const switched = test.modes.setMode(test.win, 'player');
   expect(test.setBounds).not.toHaveBeenCalled();
-  expect(test.changed).not.toHaveBeenCalled();
+  // Main now saves the full app before a mode switch can resize it.
+  expect(test.changed).toHaveBeenCalledTimes(1);
+  expect(test.modes.memory().app).toEqual({ ...APP, isMaximized: true });
   test.completeNativeRestore();
   await expect(switched).resolves.toBe('player');
   expect(test.win.getBounds()).toEqual(PLAYER);
   expect(test.modes.memory().player).toEqual(PLAYER);
-  expect(test.changed).toHaveBeenCalledTimes(1);
+  expect(test.changed).toHaveBeenCalledTimes(2);
   expect(test.events.listenerCount('resize')).toBe(0);
 });
 

@@ -55,6 +55,8 @@ const fakeWindow = (start: IRect, isMaximizedAtStart: boolean) => {
     once: events.once.bind(events),
     emit: events.emit.bind(events),
     isDestroyed: () => false,
+    isVisible: () => true,
+    isMinimized: () => false,
     isMaximized: () => isMaximized,
     isFullScreen: () => isFullScreen,
     getBounds: bounds,
@@ -118,7 +120,7 @@ const fakeWindow = (start: IRect, isMaximizedAtStart: boolean) => {
   };
 };
 
-const APP = { x: 100, y: 80, width: 1200, height: 700 };
+const APP = { x: 100, y: 34, width: 1200, height: 792 };
 // The amp's one width, 480, in the middle of the screen and as tall as it.
 const FIRST = { x: 480, y: 34, width: 480, height: 792 };
 // Where the listener left it: only its place and its height are theirs.

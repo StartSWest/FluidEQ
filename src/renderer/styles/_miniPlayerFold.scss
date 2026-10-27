@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 @use 'color' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 @use 'miniPlayerParts' as *;
 
@@ -12,6 +13,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // the time and the way back, on the amp's floor with a Plus visualizer still
 // moving faintly behind it, and the song's line thin along its foot. The
 // whole line is the drag handle.
+//
+// A3 of the one-line mockups (Ivan, 2026-10-26: "improve the one liner ...
+// the bar not glowing and more padding", "kjust the standard app borders and
+// rounded borders not that doble crap thing", "A3"): the strip fills its
+// window, whose only edge is the corner and border Windows draws round every
+// FluidEQ window (`roundedCorners`), so nothing here draws an edge of its
+// own. The row stands 12px clear of the top and of the left side, the close
+// key's glyph (13px in its 26px key) as far in from the right, and the line
+// along the foot below it: one measure round all four edges. 64px tall
+// (`PLAYER_FOLD_HEIGHT`).
 .player-fold {
   position: relative;
   display: flex;
@@ -20,7 +31,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 10px;
   min-width: 0;
   min-height: 0;
-  padding: 0 8px 0 10px;
+  padding: 0 16px 6px 12px;
   -webkit-app-region: drag;
 
   button,
@@ -53,29 +64,71 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// The mark: the app header's own tile, as on the amp's header, at the play
-// key's height beside it, and the same press as unfold at the line's end.
-.player-fold__mark {
-  @include strip-mark(34px, 23px);
+// A standard look behind the line (`FoldTrace`), very faint (Ivan,
+// 2026-10-26: "in the bg very suttle", the Whisper of the mockups at 18%):
+// over the amp's floor and under the line's own floor, and fading out toward
+// the top, where the song's title stands, so the song always reads over it.
+.player-fold-trace {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0.18;
+  pointer-events: none;
+  mask-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, #{$black} 25%, transparent),
+    $black 75%
+  );
+
+  canvas {
+    position: absolute;
+    inset: 0;
+  }
 }
 
-// Play: the amp's one filled key, the line's size of it.
+// The mark: the app header's own tile, as on the amp's header, at the play
+// key's height beside it, and the same press as unfold at the line's end.
+// Without the tile's glow, at rest or under the pointer: on a line this
+// short it was the loudest thing in it, louder than play.
+.player-fold__mark {
+  @include strip-mark(34px, 23px);
+
+  .brand-mark.brand-mark--signal {
+    box-shadow: inset 0 1px 0 color-mix(in srgb, #{$white} 8%, transparent);
+  }
+
+  &:hover .brand-mark.brand-mark--signal {
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, #{$white} 12%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--logo-3) 40%, transparent);
+  }
+}
+
+// Play: a soft key — the accent's wash, its edge and an accent glyph — so
+// the song leads the line rather than the key.
 .player-fold__play {
   display: grid;
   flex: none;
-  width: 40px;
-  height: 34px;
+  width: 36px;
+  height: 32px;
   place-items: center;
   padding: 0;
   border: 0;
   border-radius: 10px;
-  background: linear-gradient(180deg, var(--accent-light), var(--accent));
-  color: color-mix(in srgb, var(--surface-base), #{$black} 40%);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent);
+  color: var(--accent-light);
   cursor: pointer;
+  transition: background $motion-fast $ease-out;
 
   .player-icon {
-    width: 15px;
-    height: 15px;
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent) 26%, transparent);
   }
 
   &:disabled {
@@ -95,19 +148,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
   min-width: 0;
 }
 
+// The song a step over its singer: semibold over regular.
 .player-fold__title {
-  height: 1.3em;
+  height: 1.25em;
   color: var(--player-text);
   font-size: 13px;
-  font-weight: $weight-bold;
-  line-height: 1.3;
+  font-weight: $weight-semibold;
+  line-height: 1.25;
 }
 
 .player-fold__artist {
   min-width: 0;
+  margin-top: 1px;
   overflow: hidden;
   color: var(--player-text-soft);
-  font-size: 11px;
+  font-size: 11.5px;
+  font-weight: $weight-regular;
+  line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -116,7 +173,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // blinks, as a deck's did.
 .player-fold__time {
   flex: none;
-  min-width: 3.4em;
+  min-width: 3.2em;
   padding: 4px 2px;
   border: 0;
   border-radius: 6px;
@@ -124,7 +181,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   color: var(--player-text-soft);
   font: inherit;
   font-size: 11.5px;
-  font-weight: $weight-bold;
+  font-weight: $weight-medium;
+  font-variant-numeric: tabular-nums;
   text-align: center;
   cursor: pointer;
 
@@ -161,32 +219,79 @@ SPDX-License-Identifier: GPL-3.0-or-later
   display: flex;
   flex: none;
   align-items: center;
-  gap: 2px;
+  gap: 0;
 }
 
-// The song's line along the foot in the accent's light, and its knob, whole
-// and always there (Ivan, 2026-10-25: "fix the one liner, it needs to fully
-// display the knob"): the line stood on the window's very edge with the knob
-// shown only under the pointer, and half of it fell past the window. Lifted
-// by half a knob and its ring, and in from the rounded corners, so the knob
-// is never cut at either end; its ring is the transport's knob's, two pixels
-// here for the line's height.
+// The window's own buttons, a step quieter than the transport: smaller
+// glyphs at under two thirds of the text's light, full light and the usual
+// washes only under the pointer. Weighted past the Backdrop's rule that sets
+// the amp header's buttons at full ink and a size up (`_miniPlayerStage`),
+// which reaches these too.
+.mini-player.is-folded
+  > .player-fold
+  .player-fold__window
+  .player-title__button {
+  width: 26px;
+  height: 26px;
+  border-radius: 13px;
+  color: color-mix(in srgb, var(--player-text) 58%, transparent);
+
+  .player-icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  &:hover {
+    color: var(--player-text);
+    background: color-mix(in srgb, var(--player-text) 10%, transparent);
+  }
+
+  &.player-title__button--close:hover {
+    background: #c42b1c;
+    color: $white;
+  }
+}
+
+// The song's line along the foot: a 2px hairline in the accent over the
+// amp's own solid track, with no glow round the line or its knob (Ivan,
+// 2026-10-26: "the bar not glowing"). The knob shows only under the pointer,
+// while dragged or focused, and is then whole: held in as far from each side
+// as the row, and lifted so its 10px stand clear of the window's foot and
+// rounded corners — the line used to stand on the very edge, and half the
+// knob fell past the window (2026-10-25: "it needs to fully display the
+// knob").
 .player-fold__seek.player-range {
   --track-height: 2px;
-  --thumb-size: 9px;
-  --thumb-halo: color-mix(in srgb, var(--accent) 35%, transparent);
+  --thumb-size: 10px;
+  --thumb-halo: transparent;
+  --fill-paint: var(--accent);
+  --glow: 0;
 
   position: absolute;
-  right: 8px;
-  bottom: 2px;
-  left: 8px;
+  right: 12px;
+  bottom: 5px;
+  left: 12px;
   width: auto;
-  height: 9px;
-  filter: drop-shadow(0 0 4px var(--accent));
+  height: 10px;
 
   &::-webkit-slider-thumb {
+    opacity: 0;
     box-shadow:
-      0 0 0 2px var(--thumb-halo),
-      0 1px 3px rgba($black, 0.45);
+      0 0 0 1px color-mix(in srgb, #{$black} 30%, transparent),
+      0 1px 2px rgba($black, 0.3);
+    transition: opacity $motion-fast $ease-out;
+  }
+
+  &:hover::-webkit-slider-thumb,
+  &:active::-webkit-slider-thumb {
+    opacity: 1;
+  }
+
+  // Reached by the keyboard, the knob wears the transport's focus ring.
+  &:focus-visible::-webkit-slider-thumb {
+    opacity: 1;
+    box-shadow:
+      0 0 0 2px var(--player-floor),
+      0 0 0 4px $white;
   }
 }

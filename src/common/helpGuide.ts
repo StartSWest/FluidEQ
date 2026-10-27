@@ -22,10 +22,13 @@ export type {
   IHelpChapter,
   IHelpControl,
   IHelpFigure,
+  IHelpLiveControl,
+  IHelpLiveFigure,
+  IHelpPictureFigure,
   THelpBox,
   THelpGroup,
 } from './helpChapters/model';
-export { HELP_GROUPS } from './helpChapters/model';
+export { HELP_GROUPS, figureImage, isLiveFigure } from './helpChapters/model';
 
 /**
  * What a capture is drawn down by, so it is never shown larger than it was
@@ -42,6 +45,14 @@ export const HELP_CAPTURE_SCALE = 1.5;
  */
 export const HELP_CAPTURE_MAX_VIEWPORT = 0.72;
 
+/**
+ * The largest a live figure is drawn, as a share of its own CSS pixels: the
+ * size a capture of the same panel is drawn at (its pixels the screen's two
+ * to one, drawn at most `1 / HELP_CAPTURE_SCALE` of them), so a panel that
+ * becomes live stands in the guide at the size its capture did.
+ */
+export const HELP_LIVE_MAX_SCALE = 2 / HELP_CAPTURE_SCALE;
+
 /** In reading order: the modules follow the guide's groups. */
 const CHAPTERS = [
   ...START_CHAPTERS,
@@ -54,13 +65,39 @@ const CHAPTERS = [
 
 export type HelpChapterId = (typeof CHAPTERS)[number]['id'];
 
+type TGuideFigure = (typeof CHAPTERS)[number]['figures'][number];
+
 /** Every capture the guide shows, once. */
-export type THelpImage = (typeof CHAPTERS)[number]['figures'][number]['image'];
+export type THelpPicture = Extract<
+  TGuideFigure,
+  { readonly image: string }
+>['image'];
+
+/**
+ * The captures the live figures stand in for, which only the exported guide
+ * and the README show.
+ */
+export type THelpStill = Extract<
+  TGuideFigure,
+  { readonly still: string }
+>['still'];
+
+/** Every capture the guide names, shown or stood in for. */
+export type THelpImage = THelpPicture | THelpStill;
+
+/** Every live figure, by its drawing's name (`help/live/helpLiveFigures`). */
+export type THelpLiveId = Extract<
+  TGuideFigure,
+  { readonly live: string }
+>['live'];
 
 /**
  * The chapters, read as chapters. The literal lists keep the ids and file
  * names exact; read through them directly, a figure without a caption or
  * controls has no such property at all rather than an optional one.
  */
-export const HELP_CHAPTERS: readonly IHelpChapter<HelpChapterId, THelpImage>[] =
-  CHAPTERS;
+export const HELP_CHAPTERS: readonly IHelpChapter<
+  HelpChapterId,
+  THelpPicture,
+  THelpStill
+>[] = CHAPTERS;

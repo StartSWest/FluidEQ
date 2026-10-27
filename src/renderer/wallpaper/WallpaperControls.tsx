@@ -78,7 +78,7 @@ export function WallpaperMenuAction({
   );
 }
 
-function SetDesktopButton({ lookId }: { lookId: string }) {
+export function SetDesktopButton({ lookId }: { lookId: string }) {
   const { t } = useTranslation();
   return (
     <button

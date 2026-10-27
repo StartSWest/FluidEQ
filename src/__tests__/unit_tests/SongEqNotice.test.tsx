@@ -103,6 +103,28 @@ describe('SongEqNotice', () => {
   });
 
   /**
+   * The memory keeps no name for a song that is not the listener's own file
+   * (`songMemoryNames.ts`), so the notice names the song that is playing. Read
+   * from the entry, it said nothing at all for a browser tab's song.
+   */
+  it('names the song playing, which the memory may not', () => {
+    mockUseSongEqNotice.mockReturnValue({
+      identity: {
+        key: 'system:chrome.exe:a tune:',
+        title: 'A tune',
+        source: 'system',
+      },
+      entry: { ...entryOf(3), title: '' },
+    });
+    render(<SongEqNotice />);
+    expect(
+      screen.getByText(
+        translate('en', 'songEq.noticeBody', { title: 'A tune', plays: 3 }),
+      ),
+    ).toBeVisible();
+  });
+
+  /**
    * Fails if either button's class list loses `subtle` — the exact defect
    * CLAUDE.md names by example, and one this notice must not repeat now that
    * neither action is the recommendation.

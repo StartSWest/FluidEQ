@@ -56,6 +56,16 @@ interface ILibraryContextValue {
   isIndexLoaded: boolean;
   isScanning: boolean;
   progress: ILibraryScanProgress | undefined;
+  /**
+   * The scan's notice put away by its ×, for the rest of this scan: the
+   * scan carries on, and the next scan shows its notice again. One answer
+   * for the Library page and the Compact player, so closing it in one does
+   * not leave it open in the other.
+   */
+  isScanNoticeHidden: boolean;
+  hideScanNotice: () => void;
+  /** Brings a put-away notice back, Stop and all (the Rescan chip). */
+  showScanNotice: () => void;
   addFolder: () => Promise<void>;
   addFolderPaths: (paths: string[]) => Promise<void>;
   /**
@@ -101,6 +111,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
   const [summary, setSummary] = useState<ILibrarySummary>(EMPTY_SUMMARY);
   const [isIndexLoaded, setIsIndexLoaded] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [isScanNoticeHidden, setIsScanNoticeHidden] = useState(false);
   const [progress, setProgress] = useState<ILibraryScanProgress | undefined>(
     undefined,
   );
@@ -179,6 +190,11 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
         // first animation frame — and the last is what the renderer derives
         // "still scanning" from, so deferring it risks pinning the pane on.
         if (next.isDone || !isRunning) {
+          // A scan starting: a notice put away during the last one comes
+          // back for this one.
+          if (!isRunning && !next.isDone) {
+            setIsScanNoticeHidden(false);
+          }
           isRunning = !next.isDone;
           deliverNow(next);
           return;
@@ -233,6 +249,9 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
     window.electron.ipcRenderer.cancelLibraryScan();
   }, []);
 
+  const hideScanNotice = useCallback(() => setIsScanNoticeHidden(true), []);
+  const showScanNotice = useCallback(() => setIsScanNoticeHidden(false), []);
+
   const removeRoot = useCallback(
     async (rootId: string) => {
       takeSummary(await window.electron.ipcRenderer.removeLibraryRoot(rootId));
@@ -246,6 +265,9 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
       isIndexLoaded,
       isScanning,
       progress,
+      isScanNoticeHidden,
+      hideScanNotice,
+      showScanNotice,
       addFolder,
       addFolderPaths,
       queueFiles,
@@ -259,6 +281,9 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
       isIndexLoaded,
       isScanning,
       progress,
+      isScanNoticeHidden,
+      hideScanNotice,
+      showScanNotice,
       addFolder,
       addFolderPaths,
       queueFiles,

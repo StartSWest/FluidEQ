@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { IHelpVideo } from 'common/helpChapters/model';
-import type { THelpImage } from 'common/helpGuide';
+import type { THelpPicture } from 'common/helpGuide';
 import PlayerIcon from '../player/PlayerIcon';
 import { useTranslation } from '../utils/I18nContext';
 import helpScreenshot from './screenshots';
@@ -23,7 +23,7 @@ type TFilmState = 'idle' | 'loading' | 'playing' | 'failed';
 export default function HelpVideo({
   video,
 }: {
-  video: IHelpVideo<THelpImage>;
+  video: IHelpVideo<THelpPicture>;
 }) {
   const { t } = useTranslation();
   const [state, setState] = useState<TFilmState>('idle');

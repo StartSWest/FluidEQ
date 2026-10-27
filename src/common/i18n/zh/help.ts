@@ -53,9 +53,9 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     '标题栏带你在 FluidEQ 的各个页面之间切换，并实时显示正在播放的声音。左侧栏有整个 EQ 的总开关、前级增益和电平表；右侧栏跟随你的输出及其配置。',
   'help.window.steps':
-    '在标题栏中点击要去的页面：音频信号之前是“在线媒体”“共享音频”和“均衡器”，之后是“DSP”“媒体库”“卡拉OK”和“可视化”。\n在左侧栏开启“系统均衡”，并保持“自动归一化”开启，这样任何提升都不会削波。\n点击音频信号或电平表可更改其绘制方式；按“多彩模式”则会让曲线和电平表以屏幕的完整刷新率绘制。',
+    '在标题栏中点击要去的页面：音频信号之前是“在线媒体”“共享音频”和“均衡器”，之后是“DSP”“媒体库”“卡拉OK”和“可视化”。\n在左侧栏开启“系统均衡”，并保持“自动归一化”开启，这样任何提升都不会削波。\n点击电平表可更改其绘制方式；点击音频信号上的“多彩”，频段、标题和亮起的控件会使用调色板而不是单一颜色。',
   'help.window.tip':
-    '“帮助”菜单可打开本指南、“更新说明”、音频排障工具和“报告问题”。旁边的脉冲按钮里则有引擎卡片、你的账户、导入均衡设置或脉冲响应、重启 Windows 音频，以及“进程”——它会显示 FluidEQ 的每个部分正在占用什么；它的菜单底部则是“亮度”和“透明度”、动画、“随 Windows 启动”和语言。这两个按钮之后的开关会把窗口变成迷你播放器。',
+    '“帮助”菜单可打开本指南、“更新说明”、音频排障工具和“报告问题”。旁边的三横线菜单按钮里则有引擎卡片、你的账户、导入均衡设置或脉冲响应、重启 Windows 音频、“进程”——它会显示 FluidEQ 的每个部分正在占用什么——以及“重置所有设置”；它的菜单底部则是“亮度”“色调”“多彩模式”、“为应用图标着色”（默认关闭；让任务栏图标、托盘图标及托盘菜单中的图标使用窗口的颜色）、EQ 滑块、动画、“随 Windows 启动”和语言。这两个按钮之后的开关会把窗口变成迷你播放器。',
   'help.window.keywords':
     '主界面, 界面介绍, UI, 导航, 标签页, 选项卡, 工具栏, 侧边栏, 顶栏, 底栏, 播放栏, 音量表, 多彩模式, 彩虹, 主题, 深色模式, 浅色模式, 暗黑模式, 夜间模式, 深色主题, 浅色主题, 语言, 界面语言, 切换语言, 随 Windows 启动, 开机启动, 开机自启, 自启动, 启动项, 账户, 账号',
   'help.window.headerLeftCaption': '标题栏，到音频信号为止',
@@ -67,7 +67,8 @@ const help: Record<keyof typeof en, string> = {
     '把这台电脑的声音发送到另一台电脑，或在这里播放另一台电脑的声音。',
   'help.window.eq': '你的频段、预设、耳机校正、游戏预设以及引擎配置。',
   'help.window.waveName': '音频信号',
-  'help.window.wave': '正在播放的内容，实时呈现。点击它可更改绘制方式。',
+  'help.window.wave':
+    '正在播放的内容及其峰值电平，实时呈现。顶部的“多彩”可开启或关闭“多彩模式”；在图表的“视图”菜单中可以隐藏它。',
   'help.window.dsp': '效果机架：预设、“房间”，以及处理链的每个环节。',
   'help.window.library': '你的音乐文件、专辑和播放队列。',
   'help.window.karaoke': '跟着唱，也可以用你自己的歌曲制作卡拉OK。',
@@ -75,7 +76,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.support': '支持 FluidEQ 开发工作的几种方式。',
   'help.window.help': '本指南、“更新说明”、音频排障工具和“报告问题”。',
   'help.window.actions':
-    '引擎、你的账户、导入均衡设置、重启 Windows 音频，以及“进程”；还有“亮度”和“透明度”、动画、“随 Windows 启动”和语言。',
+    '引擎、你的账户、导入均衡设置、重启 Windows 音频、“进程”和“重置所有设置”；还有“亮度”“色调”“多彩模式”和“为应用图标着色”、EQ 滑块、动画、“随 Windows 启动”和语言。',
   'help.window.systemEq': '为电脑播放的所有声音开启或关闭 FluidEQ 的处理。',
   'help.window.preamp':
     '在 EQ 之前降低电平，给提升留出余量。“自动归一化”会替你设置它。',
@@ -88,28 +89,24 @@ const help: Record<keyof typeof en, string> = {
   'help.player.intro':
     '一个开关就能把 FluidEQ 的窗口变成迷你播放器，窄窄的一列：最上面是可视化效果，歌曲显示在它上面，下面是播放控制；接着是“声音”，也就是你的均衡器；再往下是“接下来播放”和你的播放列表。正在播放的内容不会中断，同一个开关也能把完整界面带回你离开时的页面。',
   'help.player.steps':
-    '按下标题栏中“帮助”旁边的“迷你播放器”开关。在播放器上，同一个开关会带回完整界面。\n把“声音”，或者“接下来播放”和“播放列表”，收起到只剩标题，空出的地方会留给可视化效果；点击标题即可重新展开。拖动播放器的上边缘或下边缘，可以把它拉高或缩短。\n双击可视化效果，它就会铺满整个屏幕；按 Esc 即可还原。点击随机播放和循环旁边的样式名称，就能从所有样式和场景中选择。\n双击播放器的标题栏，或在 FluidEQ 标志的菜单中选择“折叠为一行”，即可把它折叠成一行；点击标志即可重新展开。\n在同一个菜单中，调整播放器自己的“亮度”、场景上的“透明度”或标准样式上窗口的“色调”，以及场景的“时段”。“窗口置顶”在菜单和标题栏中都有，能让播放器保持在其他窗口之上。\n把音乐文件拖放到播放器上的任何地方：它们会加入媒体库，并排到“接下来播放”的末尾；如果放在列表上，就会插到你松手的位置。',
+    '按下标题栏中“帮助”旁边的“迷你播放器”开关。在播放器上，同一个开关会带回完整界面。\n把“声音”，或者“接下来播放”和“播放列表”，收起到只剩标题，空出的地方会留给可视化效果；点击标题即可重新展开。拖动播放器的上边缘或下边缘，可以把它拉高或缩短。\n双击可视化效果，它就会铺满整个屏幕；按 Esc 即可还原。点击随机播放和循环旁边的样式名称，就能从所有样式和场景中选择。\n在 FluidEQ 标志的菜单中选择“折叠为一行”，即可把播放器折叠成一行；点击标志即可重新展开。\n在同一个菜单中，调整播放器自己的“亮度”、场景上的“透明度”或标准样式上窗口的“色调”，以及场景的“时段”。“窗口置顶”在菜单和标题栏中都有，能让播放器保持在其他窗口之上。\n把音乐文件拖放到播放器上的任何地方：它们会加入媒体库，并排到“接下来播放”的末尾；如果放在列表上，就会插到你松手的位置。',
   'help.player.tip':
     '播放器的音量就是电脑本身的音量，和 Windows 中的一样，因此它控制着电脑播放的所有声音。如果播放器跑到了屏幕之外，请在任务栏托盘中右键点击 FluidEQ，然后选择“恢复窗口”。',
   'help.player.keywords':
     '迷你播放器, 小播放器, 迷你模式, 精简模式, 紧凑模式, 小窗模式, 播放器模式, mini player, winamp, 窗口置顶, 置顶, 总在最前, 折叠, 一行, 单行, 队列, 播放队列, 接下来播放, 拖放文件, 拖入文件, 主题, 浅色主题, 深色主题, 深色模式, 浅色模式, 小窗口, 小窗, 悬浮窗, 悬浮播放器, 音量',
   'help.player.topCaption': '顶部：歌曲，以及它如何播放',
-  'help.player.eqCaption': '均衡器',
+  'help.player.eqCaption': '声音（均衡器）',
   'help.player.queueCaption': '接下来播放',
   'help.player.menuCaption': '播放器菜单',
   'help.player.foldedCaption': '折叠为一行时',
   'help.player.menu':
-    '返回完整界面或其中某个页面；播放器自己的“亮度”、“透明度”或“色调”、场景的“时段”、“多彩模式”和 EQ 滑块；“窗口置顶”和“折叠为一行”。',
+    '返回完整界面或其中某个页面；播放器自己的“亮度”、“透明度”或“色调”、场景的“时段”、“多彩模式”“为应用图标着色”和 EQ 滑块；“窗口置顶”和“折叠为一行”。',
   'help.player.pin': '让播放器保持在所有其他窗口之上。',
   'help.player.switch': '返回完整界面，回到你离开时的页面。',
   'help.player.clock': '已播放时间。点击它可显示剩余时间。',
-  'help.player.well': '正在播放的声音。点击它可在柱状图和波形之间切换。',
   'help.player.level': '离开 FluidEQ 的声音电平，以分贝为单位。',
   'help.player.volume':
     '你电脑的音量，和 Windows 中的一样：它控制着电脑播放的所有声音。',
-  'help.player.decksName': '均衡、可视化和队列',
-  'help.player.decks':
-    '展开或收起均衡器、可视化效果和“接下来播放”。窗口会按每个面板所占的空间变大或变小。',
   'help.player.seek': '歌曲播放到的位置。拖动即可跳转。',
   'help.player.playingName': '播放控制',
   'help.player.playing':
@@ -120,24 +117,39 @@ const help: Record<keyof typeof en, string> = {
   'help.player.lookName': '样式',
   'help.player.look':
     '可视化效果正在绘制的样式或场景。点击即可从全部样式和场景中选择。',
-  'help.player.screen':
-    '把你听到的画出来：你的频段、智能均衡和其他所有生效的设置，叠在可视化效果之上。“同时生效”会列出它们，点一下标签就能关闭其中一项而不移除它。',
   'help.player.bands': '上下拖动频段即可提升或衰减。它的频率标在下方。',
   'help.player.tone':
     '“音色”显示“低音”“中音”和“高音”旋钮；旁边的标签页则显示所有频段。',
   'help.player.upNext':
     '“接下来播放”和“播放列表”，各自显示数量，以及队列剩余的时间。',
-  'help.player.library': '在完整界面中打开媒体库。',
   'help.player.songsName': '歌曲',
   'help.player.songs':
     '接下来要播放的内容。点击一首歌即可播放，拖动可以调整顺序，也可以把音乐文件拖放到这里，插到你松手的位置。',
   'help.player.openIn': '打开完整界面，直接进入其中某个页面。',
   'help.player.theme':
-    '播放器自己的“亮度”，与完整应用分开；场景上的“透明度”，或标准样式上窗口的“色调”；场景的“时段”；还有“多彩模式”。',
-  'help.player.fold': '把播放器折叠为一行。双击它的标题栏也一样。',
+    '播放器自己的“亮度”，与完整应用分开；场景上的“透明度”，或标准样式上窗口的“色调”；场景的“时段”；“多彩模式”；还有“为应用图标着色”，默认关闭，让任务栏图标、托盘图标及托盘菜单中的图标使用窗口的颜色。',
+  'help.player.fold': '把播放器折叠为一行。',
   'help.player.unfold': '展开播放器。另一端的箭头也可以。',
   'help.player.foldedPlaying': '播放或暂停。',
-  'help.player.foldedClock': '时间，以及歌曲播放到了哪里。',
+  'help.player.fullScreen':
+    '让可视化效果铺满整个屏幕。双击画面也一样，按 Esc 即可还原。',
+  'help.player.sourceName': '来源',
+  'help.player.source':
+    '歌曲的来源：媒体库、在线媒体、卡拉OK、另一台电脑，或这台电脑上的其他程序。点击它会在完整界面中打开对应的页面。',
+  'help.player.heart': '把媒体库中的歌曲加入收藏，或从收藏中移除。',
+  'help.player.soundFold':
+    '把声音控制收起到这一行，预设、智能均衡和开关仍留在手边；再次点击即可展开。',
+  'help.player.mode':
+    '打开“EQ 模式”：设置你的 EQ 和曲线的作用强度、频段 Q 值、相位和高音。',
+  'help.player.save': '把“接下来播放”保存为一个单独的播放列表。',
+  'help.player.queueFold':
+    '把“接下来播放”和“播放列表”收起到只剩标签页，空出的地方留给可视化效果。',
+  'help.player.remove': '把还没播放的歌曲从“接下来播放”中移除。',
+  'help.player.output': '声音的去向：Windows 用来播放的输出设备。',
+  'help.player.engineName': '引擎',
+  'help.player.engine': '正在处理声音的引擎；FluidEQ 开启时会亮起。',
+  'help.player.sliders':
+    'EQ 滑块上的圆形把手或矩形推子帽，这里和 EQ 页面都会使用。',
 
   'help.requirements.title': '你的电脑需要什么',
   'help.requirements.intro':
@@ -470,12 +482,14 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.categories': '只显示一类场景。',
   'help.gallery.mine': '你发布的场景及其获赞数。',
   'help.gallery.cardName': '场景',
-  'help.gallery.card': '点击图片打开场景；“添加”会把它放进你的外观。',
+  'help.gallery.card':
+    '点击图片打开场景。“获取”用 1 点数把它留下，心形按钮为它点赞。',
   'help.gallery.manage': '每台显示器作为桌面背景显示的内容。',
   'help.gallery.stop': '停止所有桌面背景。',
   'help.gallery.sceneCaption': '场景页面',
   'help.gallery.back': '回到图库中你离开时的位置。',
-  'help.gallery.play': '把场景添加到你的外观，或在图表上播放它。',
+  'help.gallery.play':
+    '在图表上播放场景。你还没有的场景会显示“获取”，需要 1 点数。',
   'help.gallery.desktop': '把场景放到桌面图标后面。',
   'help.gallery.inspect': '在工作室中打开 FluidEQ 的场景，看看它是怎么做的。',
 
@@ -491,11 +505,13 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.project': '你的项目，以及可查看内部的 FluidEQ 场景。',
   'help.studio.stageName': '舞台',
   'help.studio.stage': '随你的音乐播放的场景。双击可全屏。',
-  'help.studio.code': '场景的代码，实时显示，并在你的 AI 保存时更新。',
   'help.studio.hears': '场景接收到的内容：音量、节拍、低音、中音、高音。',
+  'help.studio.tabs':
+    '“调整”用来试波形和场景自己的设置，“代码”在你的 AI 保存时显示场景代码，“性能”显示它在这里运行得如何，下方打开的是“它此刻听到的”。',
+  'help.studio.chat':
+    '用你自己的话请 Claude 修改。每条改动过场景的回复都能把那个版本找回来。',
   'help.studio.signals': '只驱动当前预览的测试信号。',
   'help.studio.size': '在全屏下试看场景。',
-  'help.studio.wave': '试试听众可以设置的波形高度和位置。',
 
   'help.desktop.title': '桌面可视化效果',
   'help.desktop.intro':
@@ -527,8 +543,8 @@ const help: Record<keyof typeof en, string> = {
   'help.lighting.browse': '打开图库选择可视化效果。',
   'help.lighting.previewName': '桌面实时预览',
   'help.lighting.preview': '你自己的桌面，以发送给它的颜色亮起。',
-  'help.lighting.devices': '找到的所有设备。点击其中一台可单独调整。',
-  'help.lighting.all': '回到同时调整所有设备。',
+  'help.lighting.devices':
+    '找到的所有设备。点击其中一台可单独调整；列表上方的“所有设备”可重新同时调整所有设备。',
   'help.lighting.style':
     '“场景”“色彩波浪”“频谱”或“节拍涟漪”，为每个可视化效果分别保存。',
 
@@ -646,7 +662,7 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.intro':
     '论坛把 FluidEQ 的 GitHub Discussions 带进应用：公告、想法、问题，以及大家引以为傲的调音。任何人都可以阅读；发帖使用你的 GitHub 账户，而不是 FluidEQ 账户。',
   'help.forum.steps':
-    '打开“帮助 → 论坛”，选择一个版块：“公告”“综合”“想法”“投票”“Q&A”或“作品展示”。\n搜索论坛，或打开一个话题阅读回复。\n按“使用 GitHub 登录”，在浏览器中完成，然后发布“新话题”或回复。',
+    '打开“帮助 → 论坛”，选择一个版块：“公告”“综合”“想法”“投票”“Q&A”或“作品展示”。“你的新消息”汇集上次查看后新来的内容，“议题”列出在 GitHub 上报告的问题。\n搜索论坛，或打开一个话题阅读回复。\n按“使用 GitHub 登录”，在浏览器中完成，然后发布“新话题”或回复。',
   'help.forum.tip':
     '发布的所有内容都会以你的 GitHub 名字在 GitHub 上公开。在 Q&A 中，请把有用的回答标记出来，方便后来的人找到。',
   'help.forum.keywords':

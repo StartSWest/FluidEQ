@@ -5,12 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useCallback, useLayoutEffect, useRef } from 'react';
-import type { RefObject } from 'react';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { FULL_VIEW, sceneViewOf, type TSceneView } from '../graph/sceneView';
 import ScenePreview from '../plus/ScenePreview';
 import type { IGraphScenePack } from './useGraphScenePack';
 import usePlayerScenePulse from './usePlayerScenePulse';
+import { layoutBoxIn } from '../utils/layoutBox';
 
 interface IPlayerStageProps {
   /** The Plus visualizer to draw, loaded and not troubled; none otherwise. */
@@ -18,10 +18,17 @@ interface IPlayerStageProps {
   onTrouble: () => void;
   /**
    * The scene's own panel, where it is framed, on a stage larger than it:
-   * the amp's top part, while the stage is the whole window (the Backdrop).
-   * Absent, the stage is the panel.
+   * the amp's top part, while the stage is the whole window (the Backdrop);
+   * null until the panel is on the page. Absent, the stage is the panel.
+   *
+   * The element, not a ref to it: the panel stands after the stage on the
+   * page, so it is attached after the stage's own effects run, and a ref read
+   * there was still empty. The stage then framed the scene to the whole
+   * window — the top third of it in the panel, a sun with no city — until
+   * the scene itself changed, which on a first launch its loading did and
+   * on an unfold from one line nothing does (Ivan, 2026-10-27).
    */
-  panelRef?: RefObject<HTMLElement | null>;
+  panel?: HTMLElement | null;
 }
 
 /**
@@ -41,7 +48,7 @@ interface IPlayerStageProps {
  * stage or the panel changes size, and as the column the panel stands in
  * scrolls.
  */
-const PlayerStage = ({ scene, onTrouble, panelRef }: IPlayerStageProps) => {
+const PlayerStage = ({ scene, onTrouble, panel }: IPlayerStageProps) => {
   const layerRef = useRef<HTMLDivElement>(null);
   // The window's light beats with this picture in Ambient, as it does with
   // the graph's in the full app.
@@ -50,26 +57,39 @@ const PlayerStage = ({ scene, onTrouble, panelRef }: IPlayerStageProps) => {
 
   useLayoutEffect(() => {
     const layer = layerRef.current;
-    const panel = panelRef?.current;
     if (!layer || !panel || typeof ResizeObserver === 'undefined') {
       viewRef.current = FULL_VIEW;
       return undefined;
     }
     const measure = () => {
-      const panelBox = panel.getBoundingClientRect();
-      const layerBox = layer.getBoundingClientRect();
+      // Laid out, never drawn: the column's opening turns the panel and the
+      // transport as it plays, and framed from their drawn boxes the scene
+      // was framed for a strip until something happened to measure again
+      // (`layoutBoxIn`).
+      const root = layer.offsetParent;
+      const panelBox =
+        root instanceof HTMLElement ? layoutBoxIn(panel, root) : undefined;
+      const layerBox =
+        root instanceof HTMLElement ? layoutBoxIn(layer, root) : undefined;
+      if (!panelBox || !layerBox) {
+        viewRef.current = FULL_VIEW;
+        return;
+      }
       viewRef.current = sceneViewOf(panelBox, layerBox);
+      const panelBottom = panelBox.top + panelBox.height;
       // Where the panel's foot stands on the stage, and where its transport
       // starts: the frost under the amp's panes rises through the transport
       // and is whole from the foot down, and the shade that holds the window
       // dark starts at the foot (`_miniPlayerStage.scss`).
       const transport = panel.querySelector('.player-dock');
-      const frostTop = transport
-        ? transport.getBoundingClientRect().top
-        : panelBox.bottom;
+      const transportBox =
+        transport instanceof HTMLElement && root instanceof HTMLElement
+          ? layoutBoxIn(transport, root)
+          : undefined;
+      const frostTop = transportBox ? transportBox.top : panelBottom;
       layer.style.setProperty(
         '--player-panel-foot',
-        `${Math.round(panelBox.bottom - layerBox.top)}px`,
+        `${Math.round(panelBottom - layerBox.top)}px`,
       );
       layer.style.setProperty(
         '--player-frost-top',
@@ -77,7 +97,7 @@ const PlayerStage = ({ scene, onTrouble, panelRef }: IPlayerStageProps) => {
       );
       layer.style.setProperty(
         '--player-frost-ramp',
-        `${Math.round(panelBox.bottom - frostTop)}px`,
+        `${Math.round(panelBottom - frostTop)}px`,
       );
     };
     measure();
@@ -90,7 +110,7 @@ const PlayerStage = ({ scene, onTrouble, panelRef }: IPlayerStageProps) => {
       observer.disconnect();
       column?.removeEventListener('scroll', measure);
     };
-  }, [panelRef, scene]);
+  }, [panel]);
 
   const shapeFrame = useCallback(
     (frame: ISceneFrame): ISceneFrame =>
@@ -116,7 +136,7 @@ const PlayerStage = ({ scene, onTrouble, panelRef }: IPlayerStageProps) => {
           wave={scene.wave}
           onTrouble={onTrouble}
           onDrawn={onDrawn}
-          shapeFrame={panelRef ? shapeFrame : undefined}
+          shapeFrame={panel !== undefined ? shapeFrame : undefined}
         />
       )}
     </div>

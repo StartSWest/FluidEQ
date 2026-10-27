@@ -1,0 +1,99 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// THE AMP OPENS DOWN FROM ITS HEADER WHENEVER IT APPEARS (Ivan, 2026-10-26:
+// "I do want the amp ui to have that nice animation when showing, whether is
+// from one liner or from full app to this"): from the full app, from the
+// strip folded to one line, and back from the picture alone on the screen.
+// Each section turns down about its top edge as it settles, top first; the
+// fold to one line plays the same steps backwards (`playerMotion.ts`, whose
+// lifts these are). The full app has none of this: animating the big window
+// costs more than it gives.
+//
+// Transform and opacity only, so the compositor plays it without the player
+// drawing a frame, and `backwards` so nothing is left transformed after:
+// a transform left on a section would make it the box every `fixed` child
+// is placed against.
+//
+// HELD WHILE THE WINDOW CANNOT BE SEEN (`data-window-hidden`, set by
+// `windowModeStore`): from the full app the column mounts while the window is
+// cloaked and changing size, and played from that moment it was over before
+// anybody saw it. Animations off in the menu stands it down with everything
+// else (`App.scss`).
+//
+// Outside the amp's scoped sheet on purpose: Help's live figures draw the
+// player's parts under that scope, and a figure has no business opening.
+
+$-turn: perspective(1100px) translateY(var(--player-lift, 0px)) rotateX(-84deg);
+$-flat: perspective(1100px) translateY(0px) rotateX(0deg);
+$-ease-out: cubic-bezier(0.15, 0.85, 0.25, 1);
+
+@keyframes player-section-open {
+  from {
+    opacity: 0;
+    transform: $-turn;
+  }
+
+  to {
+    opacity: 1;
+    transform: $-flat;
+  }
+}
+
+@keyframes player-section-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes player-strip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+:root[data-amp] .mini-player:not(.is-folded) {
+  > .player-body > .player-top,
+  > .player-body > .player-sound,
+  > .player-body > .player-shelf {
+    transform-origin: 50% 0;
+    animation: player-section-open 125ms $-ease-out backwards;
+  }
+
+  > .player-body > .player-top {
+    --player-lift: 0px;
+    animation-duration: 140ms;
+  }
+
+  > .player-body > .player-sound {
+    --player-lift: -84px;
+    animation-delay: 40ms;
+  }
+
+  > .player-body > .player-shelf {
+    --player-lift: -150px;
+    animation-duration: 120ms;
+    animation-delay: 65ms;
+  }
+
+  > .player-foot {
+    animation: player-section-fade 100ms $-ease-out 90ms backwards;
+  }
+}
+
+// Folded to one line, the strip's controls come in as the window becomes it.
+:root[data-amp] .mini-player.is-folded > .player-fold {
+  animation: player-strip-in 120ms $-ease-out backwards;
+}
+
+:root[data-amp][data-window-hidden] .mini-player {
+  > .player-body > *,
+  > .player-foot,
+  > .player-fold {
+    animation-play-state: paused;
+  }
+}

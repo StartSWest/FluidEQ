@@ -104,36 +104,41 @@ const VISUAL_CHAPTERS = [
     group: 'visuals',
     figures: [
       {
-        image: '24-look-picker.png',
-        width: 800,
-        height: 580,
+        // The picker, open, drawn by its own list (`help/live/lookFigures`)
+        // from FluidEQ's styles and made-up scenes on the stills the app
+        // ships. The filters are each column's whole row of chips: a line
+        // to one chip read as pointing at it and struck through the others.
+        // Its still is the 2.0 capture, for the exported guide.
+        live: 'look-picker',
+        width: 780,
+        height: 560,
+        // The picker's own box: on a window under 796px it is narrower than
+        // the 780 it is laid out at, as the real one is there.
+        frame: '.look-picker__menu',
+        still: '24-look-picker.png',
         controls: [
           {
-            box: [11, 11, 778, 32],
+            target: '.look-picker__search',
             name: 'help.looks.searchName',
             text: 'help.looks.search',
           },
           {
-            box: [19, 53, 310, 12],
+            target: '.look-picker__column--styles .look-picker__head',
             name: 'graph.picker.styles',
             text: 'help.looks.styles',
           },
           {
-            // Every filter chip, both rows, not "Lines" alone — a line to
-            // the one chip read as pointing at it and struck through "All".
-            box: [19, 73, 310, 20],
+            target: '.look-picker__column--styles .gallery-chip',
             name: 'help.looks.familiesName',
             text: 'help.looks.families',
           },
           {
-            box: [346, 53, 435, 17],
+            target: '.look-picker__column--plus .look-picker__head',
             name: 'graph.picker.plus',
             text: 'help.looks.plus',
           },
           {
-            // From "All" to "Made by you", not "Nature" alone: a line to the
-            // one chip had to strike through the other four to reach it.
-            box: [346, 78, 435, 20],
+            target: '.look-picker__column--plus .gallery-chip',
             name: 'help.looks.categoriesName',
             text: 'help.looks.categories',
           },

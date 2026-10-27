@@ -206,13 +206,15 @@ const lockDownSession = () => {
         const savePath = item.getSavePath();
         if (savePath) {
           rememberCompletedVideoDownload(savePath);
-          log.info(`Video download saved to ${savePath}`);
         }
+        // Neither the file's name nor its folder: both are the video's title,
+        // and the log goes into every bug report (Ivan, 2026-10-26).
+        log.info('Video download saved');
         update('completed');
       } else if (state === 'cancelled') {
         update('cancelled');
       } else {
-        log.warn(`Video download failed: ${fileName} (${state})`);
+        log.warn(`Video download failed (${state})`);
         update('failed');
       }
     });

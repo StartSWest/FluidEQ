@@ -9,12 +9,10 @@ import type { MouseEvent } from 'react';
 import { isMemberLookId } from 'common/memberScenes';
 import { useLastShown } from '../audio/lastShown';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
-import { frequencyScale, gainScale } from '../graph/ChartController';
 import GraphWallpaperToggle from '../graph/GraphWallpaperToggle';
 import LightingToggle from '../graph/LightingToggle';
 import LiveTraceCanvas from '../graph/LiveTraceCanvas';
 import { liveLevelScaleFor } from '../graph/graphPaper';
-import liveTraceCurves from '../graph/liveTraceCurves';
 import SceneLikeButton from '../graph/SceneLikeButton';
 import LibraryCoverArt from '../library/LibraryCoverArt';
 import {
@@ -22,7 +20,6 @@ import {
   useGraphGridHidden,
   useGraphLook,
   useSelectedLookId,
-  useWaveOrientation,
 } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
 import { reportError } from '../utils/logger';
@@ -36,19 +33,11 @@ import type { TPlayerPage } from './PlayerMarkMenu';
 import { playerPaperFor } from './paperRules';
 import { useLibraryDeck } from './libraryDeck';
 import { usePlayerVisFull } from './playerLayout';
+import usePlayerTrace from './playerTrace';
 import { usePlaylistDeck } from './playlistDeck';
 import type { IGraphScenePack } from './useGraphScenePack';
 import usePlayerSource from './usePlayerSource';
 import switchVisFullScreen from './visFullScreen';
-
-/**
- * The span a standard look is drawn over, fixed: 20 Hz to 18 kHz (Ivan,
- * 2026-10-25). The graph's own 25 kHz left the top of the panel empty on
- * most records, its 16 kHz cut off air some of them carry ("cut at 18k
- * because still some info getting cut"), and a span that followed the grid
- * switch slid the whole drawing sideways.
- */
-const PLOT_SPAN: readonly [number, number] = [20, 18_000];
 
 interface IPlayerHeroProps {
   /** The Plus visualizer drawn behind the panel, when there is one. */
@@ -76,7 +65,6 @@ const PlayerHero = ({ scene, isLoading, onOpenPage }: IPlayerHeroProps) => {
   const isFull = usePlayerVisFull();
   const look = useGraphLook();
   const selectedLookId = useSelectedLookId();
-  const orientation = useWaveOrientation();
   const isGridHidden = useGraphGridHidden();
   const memberScenes = useUsableMemberScenes();
   const memberScene = isMemberLookId(selectedLookId)
@@ -152,35 +140,15 @@ const PlayerHero = ({ scene, isLoading, onOpenPage }: IPlayerHeroProps) => {
     return () => observer.disconnect();
   }, [isTrace]);
 
-  // THE GRAPH'S OWN RULE FOR A STANDARD LOOK IN ITS PANE: the whole plot,
-  // from its foot, whatever the big views' height and position were left at
-  // (`FrequencyResponseChart`, `isPlainPane`). The panel borrowed full
-  // screen's instead, and somebody who had set full screen to a sliver in the
-  // middle got a flat line across the panel (Ivan, 2026-10-25: "the standard
-  // wave is just a line"; his full screen read 5% high, centred).
-  const traceCurves = useMemo(
-    () =>
-      liveTraceCurves({
-        orientation,
-        height: 1,
-        position: 0,
-        opacity: 1,
-      }),
-    [orientation],
-  );
+  // The look drawn as the folded line draws it too (`usePlayerTrace`). The
+  // keys at the right stand over the drawing, as they always did over the
+  // LED walls.
+  const {
+    curves: traceCurves,
+    xScale,
+    yScale,
+  } = usePlayerTrace(box.width, box.height);
   const paper = playerPaperFor(look.style, { isTrace, isGridHidden });
-  // Edge to edge: the drawing runs to the panel's sides and foot, with no
-  // gutter for numbers it does not carry (`paperRules`), over one fixed span.
-  const xScale = useMemo(
-    () => frequencyScale(box.width, 0, 0, PLOT_SPAN),
-    [box.width],
-  );
-  // EVERY LOOK REACHES THE PANEL'S TOP. Standard looks started under the
-  // look's name (Ivan, 2026-10-25: "just below the analyzer button"); with
-  // the name gone (`player-hero__top`) a band of nothing stood where it had
-  // been, over a panel already made shorter to fit a laptop. The keys at the
-  // right stand over the drawing, as they always did over the LED walls.
-  const yScale = useMemo(() => gainScale(box.height, 0, 0), [box.height]);
   const levelScale = useMemo(
     () =>
       liveLevelScaleFor({

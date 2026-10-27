@@ -12,27 +12,31 @@ const PLUS_CHAPTERS = [
     group: 'plus',
     figures: [
       {
-        image: '25-plus-visualizers.png',
-        width: 2078,
-        height: 406,
+        // The tab drawn by its own parts (`help/live/plusFigures`) for a
+        // made-up member; this figure is its rail and the gallery's first
+        // row. Its still is the 2.0 capture, for the exported guide.
+        live: 'visualizers-rail',
+        width: 1400,
+        height: 440,
+        still: '25-plus-visualizers.png',
         controls: [
           {
-            box: [5, 91, 218, 42],
+            target: '.community__channel:nth-of-type(1)',
             name: 'plus.visualizers.title',
             text: 'help.plus.visualizers',
           },
           {
-            box: [5, 135, 218, 42],
+            target: '.community__channel:nth-of-type(2)',
             name: 'studio.title',
             text: 'help.plus.studio',
           },
           {
-            box: [5, 179, 218, 42],
+            target: '.community__channel:nth-of-type(3)',
             name: 'lighting.title',
             text: 'help.plus.lighting',
           },
           {
-            box: [11, 9, 28, 28],
+            target: '.community__rail-pin',
             name: 'plus.rail.collapse',
             text: 'help.plus.fold',
           },
@@ -47,74 +51,81 @@ const PLUS_CHAPTERS = [
     group: 'plus',
     figures: [
       {
-        image: '25-plus-visualizers.png',
-        width: 2078,
-        height: 406,
+        // The same tab, the gallery framed without the rail.
+        live: 'visualizers-gallery',
+        width: 1400,
+        height: 440,
+        frame: '.community__main',
+        still: '25-plus-visualizers.png',
         controls: [
           {
-            box: [285, 75, 277, 27],
+            target: '.gallery-search',
             name: 'plus.gallery.search',
             text: 'help.gallery.search',
           },
           {
-            box: [581, 74, 206, 27],
+            target: '.gallery-sorts',
             name: 'help.gallery.sortName',
             text: 'help.gallery.sort',
           },
           {
             // The chips themselves, not the whole row they sit in: a line to
             // the row's far end pointed at empty space beside them.
-            box: [253, 120, 660, 24],
+            target: '.gallery-chips .gallery-chip',
             name: 'help.gallery.categoriesName',
             text: 'help.gallery.categories',
           },
           {
-            box: [253, 160, 219, 234],
+            target: '.gallery-card:first-child',
             name: 'help.gallery.cardName',
             text: 'help.gallery.card',
           },
           {
-            box: [1961, 72, 100, 32],
+            target: '.gallery-toolbar__own .button',
             name: 'plus.gallery.mine',
             text: 'help.gallery.mine',
           },
           {
-            box: [1940, 13, 66, 32],
+            target: '.wallpaper-status .button:nth-of-type(1)',
             name: 'wallpaper.manage',
             text: 'help.gallery.manage',
           },
           {
-            box: [2014, 13, 47, 32],
             // "Stop" with one monitor playing, "Stop all" with more: the
-            // picture has one.
+            // drawing has one.
+            target: '.wallpaper-status .button:nth-of-type(2)',
             name: 'wallpaper.stop',
             text: 'help.gallery.stop',
           },
         ],
       },
       {
-        image: '26-plus-scene.png',
-        width: 2078,
-        height: 1236,
+        // A scene's page in the same tab, Neon City owned and playing; the
+        // rail is the figure above's, so this one frames the page alone.
+        live: 'gallery-scene',
+        width: 1400,
+        height: 1020,
+        frame: '.community__main',
         caption: 'help.gallery.sceneCaption',
+        still: '26-plus-scene.png',
         controls: [
           {
-            box: [1778, 288, 266, 32],
+            target: '.gallery-scene__actions > .button:first-child',
             name: 'plus.scene.play',
             text: 'help.gallery.play',
           },
           {
-            box: [1778, 363, 266, 32],
+            target: '.wallpaper-scene-action',
             name: 'wallpaper.action',
             text: 'help.gallery.desktop',
           },
           {
-            box: [1778, 422, 266, 32],
+            target: '.gallery-scene__inspect .button',
             name: 'plus.inspect.open',
             text: 'help.gallery.inspect',
           },
           {
-            box: [253, 71, 58, 24],
+            target: '.gallery-back',
             name: 'plus.scene.back',
             text: 'help.gallery.back',
           },
@@ -127,46 +138,52 @@ const PLUS_CHAPTERS = [
     group: 'plus',
     figures: [
       {
-        image: '31-plus-studio.png',
-        width: 2372,
-        height: 1236,
+        // The bench drawn by its own parts (`help/live/studioFigures`) for a
+        // made-up project, the work tabs open on What it hears and the chat
+        // beside the stage; the rail is the Visualizers figures'. Its still
+        // is the 2.0 capture, for the exported guide.
+        live: 'studio-bench',
+        width: 1400,
+        height: 834,
+        frame: '.community__main',
+        still: '31-plus-studio.png',
         controls: [
           {
-            box: [253, 72, 330, 30],
+            target: '.studio-projects',
             name: 'studio.project.label',
             text: 'help.studio.project',
           },
           {
-            box: [253, 119, 1830, 779],
+            target: '.studio-stage',
             name: 'help.studio.stageName',
             text: 'help.studio.stage',
           },
           {
-            box: [357, 910, 54, 40],
-            name: 'studio.code.title',
-            text: 'help.studio.code',
-          },
-          {
-            box: [2099, 414, 248, 559],
-            name: 'studio.meters.title',
-            text: 'help.studio.hears',
-          },
-          // Code is a tab under the stage in 2.0, beside Tune, whose Wave on
-          // the graph is the last box: the picture keeps the Tune tab open.
-          {
-            box: [2099, 123, 248, 283],
-            name: 'studio.signals.title',
-            text: 'help.studio.signals',
-          },
-          {
-            box: [1969, 135, 31, 28],
+            target: '.studio-stage-controls__button:first-child',
             name: 'studio.size.full',
             text: 'help.studio.size',
           },
           {
-            box: [729, 996, 423, 129],
-            name: 'studio.wave.title',
-            text: 'help.studio.wave',
+            target: '.studio-chat',
+            name: 'studioChat.title',
+            text: 'help.studio.chat',
+          },
+          {
+            // The tab row, not two of its tabs: side by side under the stage,
+            // a second line had to run down through the stage to reach one.
+            target: '.studio-work__tabs',
+            name: 'studio.work.label',
+            text: 'help.studio.tabs',
+          },
+          {
+            target: '.studio-tiles',
+            name: 'studio.signals.title',
+            text: 'help.studio.signals',
+          },
+          {
+            target: '.studio-meters',
+            name: 'studio.meters.title',
+            text: 'help.studio.hears',
           },
         ],
       },
@@ -177,39 +194,44 @@ const PLUS_CHAPTERS = [
     group: 'plus',
     figures: [
       {
-        image: '27-desktop-dialog.png',
-        width: 924,
-        height: 636,
+        // The dialog drawn by its own frame, stage and choices
+        // (`help/live/desktopFigures`) for three made-up monitors. Its still
+        // is the 2.0 capture, for the exported guide.
+        live: 'desktop-dialog',
+        width: 900,
+        height: 760,
+        frame: '.wallpaper-dialog',
+        still: '27-desktop-dialog.png',
         controls: [
           {
             // The monitor tiles the line describes, not the "All monitors"
             // box above them, which is where this pointed until 1.7.5.
-            box: [305, 104, 578, 181],
+            target: '.wallpaper-stage',
             name: 'wallpaper.monitors',
             text: 'help.desktop.monitors',
           },
           {
-            box: [305, 321, 285, 71],
+            target: '.wallpaper-motion__option--music',
             name: 'wallpaper.motion.music',
             text: 'help.desktop.music',
           },
           {
-            box: [598, 321, 285, 71],
+            target: '.wallpaper-motion__option--calm',
             name: 'wallpaper.motion.calm',
             text: 'help.desktop.calm',
           },
           {
-            box: [306, 407, 576, 72],
+            target: '.wallpaper-dialog__setting:nth-child(3)',
             name: 'wallpaper.follow',
             text: 'help.desktop.follow',
           },
           {
-            box: [306, 479, 576, 58],
+            target: '.wallpaper-dialog__setting:nth-child(4)',
             name: 'wallpaper.pauseOnBattery',
             text: 'help.desktop.battery',
           },
           {
-            box: [786, 575, 107, 32],
+            target: '.dialog-frame__actions > .button:last-child',
             name: 'wallpaper.start',
             text: 'help.desktop.start',
           },
@@ -222,44 +244,57 @@ const PLUS_CHAPTERS = [
     group: 'plus',
     figures: [
       {
-        image: '29-plus-lighting.png',
-        width: 2078,
-        height: 1236,
+        // The page drawn by its own stage, rows and editor
+        // (`help/live/lightingFigures`) for a made-up desk lit by the Aurora
+        // still, in two figures: the page whole is nearly as tall as it is
+        // wide, and drawn whole on a 1280 x 800 window it came out a third
+        // of the column wide. This one is the switch, the scene and the desk.
+        // Both stills are the 2.0 capture, for the exported guide.
+        live: 'lighting-page',
+        width: 1400,
+        height: 560,
+        frame: '.lighting-hero',
+        still: '29-plus-lighting.png',
         controls: [
           {
-            box: [253, 72, 38, 22],
+            target: '.lighting-switch',
             name: 'lighting.switch',
             text: 'help.lighting.switch',
           },
           {
-            box: [253, 181, 1800, 432],
+            target: '.lighting-scene-bar .button',
+            name: 'lighting.pickScene',
+            text: 'help.lighting.browse',
+          },
+          {
+            target: '.lighting-stage',
             name: 'help.lighting.previewName',
             text: 'help.lighting.preview',
           },
+        ],
+      },
+      {
+        // The same page's devices and style, under the desk.
+        live: 'lighting-tuning',
+        width: 1400,
+        height: 740,
+        frame: '.lighting-columns',
+        still: '29-plus-lighting.png',
+        controls: [
           {
-            // The device rows, not the whole card: the card held the "All
-            // devices" chip, so that chip's line could run down through every
-            // row of the list without it counting as a crossing.
-            box: [266, 694, 1028, 366],
+            // The device rows, not the whole card. Their line tells of the
+            // All devices button over them too: on a line of its own, that
+            // button's ran out to the right through the style card's Reset.
+            target: '.lighting-device',
             name: 'lighting.devices.title',
             text: 'help.lighting.devices',
           },
           {
             // The four style buttons, not the card's header row — that box
             // put the line on the card's Reset button.
-            box: [1336, 698, 704, 116],
+            target: '.lighting-effects',
             name: 'lighting.tuning.title',
             text: 'help.lighting.style',
-          },
-          {
-            box: [1918, 122, 120, 32],
-            name: 'lighting.pickScene',
-            text: 'help.lighting.browse',
-          },
-          {
-            box: [1215, 641, 80, 32],
-            name: 'lighting.target.all',
-            text: 'help.lighting.all',
           },
         ],
       },

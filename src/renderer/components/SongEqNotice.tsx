@@ -80,10 +80,13 @@ const SongEqNotice = () => {
   }
 
   const { entry } = notice;
+  // The song playing, never the memory's own name for it: the memory keeps no
+  // name for anything but the listener's own files (`songMemoryNames.ts`).
+  const { title } = notice.identity;
   const body =
     entry.plays <= 1
-      ? t('songEq.noticeBodyOnce', { title: entry.title })
-      : t('songEq.noticeBody', { title: entry.title, plays: entry.plays });
+      ? t('songEq.noticeBodyOnce', { title })
+      : t('songEq.noticeBody', { title, plays: entry.plays });
 
   return (
     <CompactFrame

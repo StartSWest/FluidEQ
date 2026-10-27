@@ -33,6 +33,14 @@ interface ILibraryFolderActionsProps {
    * sits beside Rescan rather than replacing it. */
   onForceRescan: () => void;
   onRemoveRoot: (rootId: string) => void;
+  /**
+   * A scan running with its notice put away. Rescan then says how far it has
+   * got — `percent` absent while files are still being found — and a press
+   * brings the notice back, Stop included: closed, nothing else in the app
+   * showed the scan or could stop it.
+   */
+  hiddenScan?: { readonly percent?: number };
+  onShowScan: () => void;
 }
 
 /**
@@ -59,6 +67,8 @@ const LibraryFolderActions = ({
   onRescan,
   onForceRescan,
   onRemoveRoot,
+  hiddenScan,
+  onShowScan,
 }: ILibraryFolderActionsProps) => {
   const { t } = useTranslation();
   const [isFoldersMenuOpen, setIsFoldersMenuOpen] = useState(false);
@@ -112,16 +122,35 @@ const LibraryFolderActions = ({
         <MenuIcon name="folder" className="library-toolbar__action-icon" />
         <span>{t('library.add')}</span>
       </button>
-      <button
-        type="button"
-        className="library-toolbar__chip"
-        disabled={isScanning}
-        title={t('library.rescan')}
-        onClick={onRescan}
-      >
-        <MenuIcon name="restart" className="library-toolbar__action-icon" />
-        <span>{t('library.rescan')}</span>
-      </button>
+      {hiddenScan ? (
+        <button
+          type="button"
+          className="library-toolbar__chip"
+          title={t('library.scan.show')}
+          onClick={onShowScan}
+        >
+          <MenuIcon name="restart" className="library-toolbar__action-icon" />
+          {/* Its own class, so the bar keeps these words when it drops the
+              other chips' (`_librarySizes.scss`): how far the scan has got
+              is what the chip is for while it shows. */}
+          <span className="library-toolbar__chip-status">
+            {hiddenScan.percent === undefined
+              ? t('library.scan.chipFinding')
+              : t('library.scan.chip', { percent: hiddenScan.percent })}
+          </span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="library-toolbar__chip"
+          disabled={isScanning}
+          title={t('library.rescan')}
+          onClick={onRescan}
+        >
+          <MenuIcon name="restart" className="library-toolbar__action-icon" />
+          <span>{t('library.rescan')}</span>
+        </button>
+      )}
       {/* Rare enough to sit quietly beside Rescan rather than replace it —
           most rescans should stay the cheap, incremental kind. Icon only:
           two chips a word apart both reading "rescan" is a row nobody can
