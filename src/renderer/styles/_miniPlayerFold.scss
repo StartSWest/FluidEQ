@@ -64,6 +64,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// A standard look behind the line (`FoldTrace`), very faint (Ivan,
+// 2026-10-26: "in the bg very suttle", the Whisper of the mockups at 18%):
+// over the amp's floor and under the line's own floor, and fading out toward
+// the top, where the song's title stands, so the song always reads over it.
+.player-fold-trace {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0.18;
+  pointer-events: none;
+  mask-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, #{$black} 25%, transparent),
+    $black 75%
+  );
+
+  canvas {
+    position: absolute;
+    inset: 0;
+  }
+}
+
 // The mark: the app header's own tile, as on the amp's header, at the play
 // key's height beside it, and the same press as unfold at the line's end.
 // Without the tile's glow, at rest or under the pointer: on a line this

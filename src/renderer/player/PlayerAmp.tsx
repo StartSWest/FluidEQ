@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import FoldStrip from './FoldStrip';
+import FoldTrace from './FoldTrace';
 import PlayerDock from './PlayerDock';
 import PlayerFoot from './PlayerFoot';
 import PlayerHeightGrip from './PlayerHeightGrip';
@@ -45,8 +46,9 @@ import useMusicDrop from './useMusicDrop';
  * height, the queue its least, the picture takes what it would like down to
  * its least, and the queue the rest — or the picture, with the queue folded.
  * The window may not be dragged shorter than all of that with the sound open
- * (`usePlayerHeightFloor`). Folded to one line, with a Plus visualizer still
- * moving behind it.
+ * (`usePlayerHeightFloor`). Folded to one line, with the visualizer still
+ * moving behind it: a Plus visualizer, or a standard look drawn faintly
+ * (`FoldTrace`).
  */
 const PlayerAmp = ({
   onOpenPage,
@@ -114,6 +116,9 @@ const PlayerAmp = ({
       {isFolded ? (
         <>
           <PlayerStage scene={drawn} onTrouble={onTrouble} />
+          {/* A standard look behind the line, as a scene is behind it; none
+              while a scene is on its way, as the top panel draws none. */}
+          {drawn === undefined && scene.state !== 'loading' && <FoldTrace />}
           <FoldStrip onUnfold={unfold} />
         </>
       ) : (
