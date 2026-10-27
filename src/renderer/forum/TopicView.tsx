@@ -140,8 +140,13 @@ export default function TopicView({ forum }: ITopicViewProps) {
     );
   }
 
-  // An issue is answered on GitHub (`IssueFoot`), never from here.
-  const canReply = signedIn && !topic.locked && !topic.issue;
+  // An issue takes a comment here only where the sign-in's GitHub App may
+  // write issues (`canComment`, asked of GitHub by main); otherwise it is
+  // answered on GitHub (`IssueFoot`).
+  const canReply =
+    signedIn &&
+    !topic.locked &&
+    (!topic.issue || topic.issue.canComment === true);
   // What came after the reader last looked, their own words aside: those
   // they have read by writing them.
   const viewer =
@@ -327,7 +332,7 @@ export default function TopicView({ forum }: ITopicViewProps) {
                 onSubmit={(body) => reply(topic.id, body)}
               />
             )}
-            {topic.issue && <IssueFoot url={topic.url} />}
+            {topic.issue && !canReply && <IssueFoot url={topic.url} />}
             {!signedIn &&
               !topic.locked &&
               !topic.issue &&

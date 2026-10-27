@@ -15,6 +15,7 @@ import { FORUM_CONFIG, type IForumConfig } from '../forum/forumConfig';
 import ForumError from '../forum/forumError';
 import { createForumFeed } from '../forum/forumFeed';
 import { createForumIssues } from '../forum/forumIssues';
+import { createIssuesLive } from '../forum/issuesLive';
 import { createForumService } from '../forum/forumService';
 import { createForumSession } from '../forum/forumSession';
 import type { ISignInPages } from '../forum/githubOAuth';
@@ -136,6 +137,11 @@ export const registerForumIpc = ({
     session,
     feed: createForumFeed(config.feedUrl, fetchImpl),
     issues: createForumIssues(config.issuesUrl, fetchImpl),
+    live: createIssuesLive({
+      owner: config.owner,
+      name: config.name,
+      fetchImpl,
+    }),
     fetchImpl,
   });
   lookup.viewer = (token) => service.fetchViewer(token);

@@ -18,6 +18,8 @@ const MARKDOWN_URL = 'https://api.github.com/markdown';
 export interface IGithubApi {
   graphql(query: string, variables: Record<string, unknown>): Promise<unknown>;
   markdown(text: string, context: string): Promise<string>;
+  /** A REST read under the reader's token, as JSON. */
+  get(url: string): Promise<unknown>;
 }
 
 export interface IGithubApiDeps {
@@ -100,16 +102,27 @@ export const createGithubApi = ({
     const token = await accessToken();
     let response: Response;
     try {
-      response = await fetchImpl(url, {
-        method: 'POST',
-        headers: {
-          Accept: accept,
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-        body: JSON.stringify(body),
-      });
+      response = await fetchImpl(
+        url,
+        body === undefined
+          ? {
+              headers: {
+                Accept: accept,
+                Authorization: `Bearer ${token}`,
+                'X-GitHub-Api-Version': '2022-11-28',
+              },
+            }
+          : {
+              method: 'POST',
+              headers: {
+                Accept: accept,
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'X-GitHub-Api-Version': '2022-11-28',
+              },
+              body: JSON.stringify(body),
+            },
+      );
     } catch (error) {
       throw new ForumError('network', `GitHub could not be reached: ${error}`);
     }
@@ -149,6 +162,15 @@ export const createGithubApi = ({
         'application/vnd.github+json',
       );
       return response.text();
+    },
+
+    get: async (url) => {
+      const response = await send(
+        url,
+        undefined,
+        'application/vnd.github+json',
+      );
+      return response.json();
     },
   };
 };

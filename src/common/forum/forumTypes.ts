@@ -121,6 +121,12 @@ export interface IForumIssue {
   closed: boolean;
   /** The labels' names, as the repository's owner wrote them. */
   labels: string[];
+  /**
+   * The signed-in reader may comment here, in the thread. Only when the
+   * sign-in's GitHub App holds "Issues: Read and write"; absent or false,
+   * comments are written on GitHub. Set on a thread, never on a list row.
+   */
+  canComment?: boolean;
 }
 
 export interface IForumTopicSummary {
