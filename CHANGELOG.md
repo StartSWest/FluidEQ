@@ -199,6 +199,10 @@ and everything else plays as before.
   folding to one line plays it back up into it. The full app switches without
   motion, to stay light, and Animations off makes both instant. Coming back
   from it puts the full app where it was, at its own size.
+- **Folded to one line, it has room to breathe.** The strip is a little
+  taller, with even margins, a soft play key, quieter window buttons and a
+  thin line for the song's position that never glows; its knob shows when you
+  point at it.
 
 ### Visualizers
 
