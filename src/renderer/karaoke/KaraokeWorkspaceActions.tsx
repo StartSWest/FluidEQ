@@ -9,7 +9,8 @@ import { hasKaraokeStageArt } from './KaraokeStageMedia';
 import MenuIcon from '../icons/MenuIcon';
 import {
   writePitchGuideVisibility,
-  writeStageArtVisibility,
+  writeKaraokeBackground,
+  type TKaraokeBackground,
 } from './karaokeWorkspacePrefs';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import { KaraokeLiveValue } from './karaokeLiveValue';
@@ -22,7 +23,7 @@ import { useTranslation } from '../utils/I18nContext';
 
 interface IKaraokeWorkspaceActionsProps {
   song: IKaraokeSong | undefined;
-  isStageArtVisible: boolean;
+  background: TKaraokeBackground;
   isFullScreen: boolean;
   isChromeIdle: boolean;
   playlist: IKaraokePlaylistItem[];
@@ -36,7 +37,7 @@ interface IKaraokeWorkspaceActionsProps {
   fileInputRef: RefObject<HTMLInputElement | null>;
   isPitchGuideVisible: boolean;
   setIsPitchGuideVisible: Dispatch<SetStateAction<boolean>>;
-  setIsStageArtVisible: Dispatch<SetStateAction<boolean>>;
+  setBackground: Dispatch<SetStateAction<TKaraokeBackground>>;
   microphoneMenuButtonRef: RefObject<HTMLButtonElement | null>;
   microphone: ReturnType<typeof useKaraokeMicrophoneInput>;
   isMicrophoneMenuOpen: boolean;
@@ -54,7 +55,7 @@ interface IKaraokeWorkspaceActionsProps {
  */
 const KaraokeWorkspaceActions = ({
   song,
-  isStageArtVisible,
+  background,
   isFullScreen,
   isChromeIdle,
   playlist,
@@ -68,7 +69,7 @@ const KaraokeWorkspaceActions = ({
   fileInputRef,
   isPitchGuideVisible,
   setIsPitchGuideVisible,
-  setIsStageArtVisible,
+  setBackground,
   microphoneMenuButtonRef,
   microphone,
   isMicrophoneMenuOpen,
@@ -83,7 +84,7 @@ const KaraokeWorkspaceActions = ({
     if (!hasStageArt) {
       return 'karaoke.stage.noArt';
     }
-    return isStageArtVisible
+    return background === 'cover'
       ? 'karaoke.stage.hideArt'
       : 'karaoke.stage.showArt';
   })();
@@ -197,13 +198,13 @@ const KaraokeWorkspaceActions = ({
           className="button small subtle karaoke-workspace__icon-action karaoke-workspace__stage-art-toggle"
           aria-label={t(stageArtActionKey)}
           title={t(stageArtActionKey)}
-          aria-pressed={isStageArtVisible}
+          aria-pressed={background === 'cover'}
           disabled={!hasStageArt}
           aria-disabled={!hasStageArt}
           onClick={() => {
-            setIsStageArtVisible((visible) => {
-              const next = !visible;
-              writeStageArtVisibility(next);
+            setBackground((current) => {
+              const next = current === 'cover' ? 'none' : 'cover';
+              writeKaraokeBackground(next);
               return next;
             });
           }}
@@ -218,6 +219,38 @@ const KaraokeWorkspaceActions = ({
           </svg>
         </button>
       )}
+      <button
+        type="button"
+        className="button small subtle karaoke-workspace__icon-action karaoke-workspace__graph-background-toggle"
+        aria-label={t(
+          background === 'graph'
+            ? 'karaoke.stage.hideGraph'
+            : 'karaoke.stage.showGraph',
+        )}
+        title={t(
+          background === 'graph'
+            ? 'karaoke.stage.hideGraph'
+            : 'karaoke.stage.showGraph',
+        )}
+        aria-pressed={background === 'graph'}
+        onClick={() => {
+          // One choice prevents the cover/video and live graph from competing.
+          setBackground((current) => {
+            const next = current === 'graph' ? 'none' : 'graph';
+            writeKaraokeBackground(next);
+            return next;
+          });
+        }}
+      >
+        <svg
+          className="karaoke-button__icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path d="M3 4.5h18v15H3zM6 12h2l2-4 4 8 2-4h2" />
+        </svg>
+      </button>
       <button
         ref={microphoneMenuButtonRef}
         type="button"

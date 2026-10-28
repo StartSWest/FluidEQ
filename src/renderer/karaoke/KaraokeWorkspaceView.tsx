@@ -19,6 +19,7 @@ import { ERROR_KEYS, SOURCE_KEYS } from './karaokeWorkspaceLabels';
 import KaraokeSetAsideNotice from './KaraokeSetAsideNotice';
 import KaraokePaneSplitter from './KaraokePaneSplitter';
 import KaraokeStageMedia from './KaraokeStageMedia';
+import KaraokeGraphBackground from './KaraokeGraphBackground';
 import KaraokeChordGuide from './KaraokeChordGuide';
 import { karaokeProviderDisplayName } from '../../common/karaoke/provider';
 import { MAX_LYRIC_TEXT_SIZE, MIN_LYRIC_TEXT_SIZE } from './karaokeLyricText';
@@ -102,8 +103,8 @@ const KaraokeWorkspaceView = ({
     useStagePitch,
     isPitchGuideVisible,
     setIsPitchGuideVisible,
-    isStageArtVisible,
-    setIsStageArtVisible,
+    background,
+    setBackground,
     audioClock,
     microphone,
     session,
@@ -170,7 +171,7 @@ const KaraokeWorkspaceView = ({
   const workspaceActions = (
     <KaraokeWorkspaceActions
       song={song}
-      isStageArtVisible={isStageArtVisible}
+      background={background}
       isFullScreen={isFullScreen}
       isChromeIdle={isChromeIdle}
       playlist={playlist}
@@ -184,7 +185,7 @@ const KaraokeWorkspaceView = ({
       fileInputRef={fileInputRef}
       isPitchGuideVisible={isPitchGuideVisible}
       setIsPitchGuideVisible={setIsPitchGuideVisible}
-      setIsStageArtVisible={setIsStageArtVisible}
+      setBackground={setBackground}
       microphoneMenuButtonRef={microphoneMenuButtonRef}
       microphone={microphone}
       isMicrophoneMenuOpen={isMicrophoneMenuOpen}
@@ -488,6 +489,10 @@ const KaraokeWorkspaceView = ({
           style={pitchStyle}
         >
           {isFullScreen && !isGraphOverlay && workspaceActions}
+          {background === 'graph' &&
+            !isHidden &&
+            !isMakerOpen &&
+            !isGraphOverlay && <KaraokeGraphBackground />}
           {playlist.length > 0 && layout.playlistCollapsed && (
             <button
               type="button"
@@ -509,7 +514,7 @@ const KaraokeWorkspaceView = ({
                   heading, lyrics and pitch guide keep the grid they had.
                   Unmounted rather than hidden when the art is switched off, so
                   a video stops decoding instead of playing to nobody. */}
-              {isStageArtVisible && (
+              {background === 'cover' && (
                 <KaraokeLiveValue value={playhead}>
                   {(playheadMs) => (
                     <KaraokeStageMedia

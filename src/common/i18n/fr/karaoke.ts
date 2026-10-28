@@ -78,6 +78,10 @@ const karaoke: Partial<Dictionary> = {
     'Les vidéos {format} ne peuvent pas être lues ici',
   'karaoke.stage.videoFailed': 'La vidéo {format} n’a pas pu être décodée ici',
   'karaoke.stage.hideArt': 'Masquer la pochette',
+  'karaoke.stage.showGraph':
+    'Utiliser le graphique et le visualiseur actuels en arrière-plan',
+  'karaoke.stage.hideGraph':
+    'Désactiver le graphique et le visualiseur en arrière-plan',
   'karaoke.stage.showArt': 'Afficher la pochette',
   'karaoke.stage.noArt': 'Ce morceau n’a pas de pochette',
   'karaoke.playlist.title': 'Liste de lecture',

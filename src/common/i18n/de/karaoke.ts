@@ -78,6 +78,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.stage.videoFailed':
     '{format}-Video konnte hier nicht dekodiert werden',
   'karaoke.stage.hideArt': 'Cover ausblenden',
+  'karaoke.stage.showGraph':
+    'Aktuellen Graphen und Visualizer als Hintergrund verwenden',
+  'karaoke.stage.hideGraph': 'Graphen- und Visualizer-Hintergrund ausschalten',
   'karaoke.stage.showArt': 'Cover einblenden',
   'karaoke.stage.noArt': 'Dieser Titel hat kein Cover',
   'karaoke.playlist.title': 'Playlist',

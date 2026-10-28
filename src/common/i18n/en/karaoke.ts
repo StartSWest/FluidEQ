@@ -78,6 +78,8 @@ const karaoke = {
   'karaoke.stage.videoUnsupported': '{format} video cannot be played here',
   'karaoke.stage.videoFailed': '{format} video could not be decoded here',
   'karaoke.stage.hideArt': 'Hide cover art',
+  'karaoke.stage.showGraph': 'Use current graph + visualizer as background',
+  'karaoke.stage.hideGraph': 'Turn off graph + visualizer background',
   'karaoke.stage.showArt': 'Show cover art',
   'karaoke.stage.noArt': 'This song has no cover art',
   'karaoke.playlist.title': 'Playlist',

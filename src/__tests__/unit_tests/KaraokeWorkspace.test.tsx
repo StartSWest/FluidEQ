@@ -322,8 +322,8 @@ describe('KaraokeWorkspace', () => {
       container.querySelector('.karaoke-stage-media'),
     ).not.toBeInTheDocument();
     expect(
-      window.localStorage.getItem('fluideq-karaoke-stage-art-visible'),
-    ).toBe('false');
+      window.localStorage.getItem('fluideq-karaoke-stage-background'),
+    ).toBe('none');
 
     const showArt = screen.getByRole('button', { name: 'Show cover art' });
     expect(showArt).toHaveAttribute('aria-pressed', 'false');
@@ -331,8 +331,97 @@ describe('KaraokeWorkspace', () => {
 
     expect(container.querySelector('.karaoke-stage-media')).toBeInTheDocument();
     expect(
-      window.localStorage.getItem('fluideq-karaoke-stage-art-visible'),
-    ).toBe('true');
+      window.localStorage.getItem('fluideq-karaoke-stage-background'),
+    ).toBe('cover');
+  });
+
+  it('switches exclusively between art, the current graph, and no background', async () => {
+    const { container, rerender } = render(
+      <KaraokeWorkspace isHidden={false} />,
+    );
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [
+            new File(['audio'], 'painted-song.mp3', { type: 'audio/mpeg' }),
+            new File(['image'], 'painted-song.jpg', { type: 'image/jpeg' }),
+          ],
+        },
+      },
+    );
+    await screen.findByRole('heading', { name: 'painted song' });
+    const audio = container.querySelector('audio');
+    expect(
+      container.querySelector('.karaoke-stage-media__still'),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Use current graph + visualizer as background',
+      }),
+    );
+    expect(
+      container.querySelector('.karaoke-stage-media__still'),
+    ).not.toBeInTheDocument();
+    expect(
+      container.querySelector('.karaoke-graph-background'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Show cover art' }),
+    ).toHaveAttribute('aria-pressed', 'false');
+    expect(
+      window.localStorage.getItem('fluideq-karaoke-stage-background'),
+    ).toBe('graph');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show cover art' }));
+    expect(
+      container.querySelector('.karaoke-stage-media__still'),
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector('.karaoke-graph-background'),
+    ).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Use current graph + visualizer as background',
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Turn off graph + visualizer background',
+      }),
+    );
+    expect(
+      container.querySelector('.karaoke-stage-media'),
+    ).not.toBeInTheDocument();
+    expect(
+      window.localStorage.getItem('fluideq-karaoke-stage-background'),
+    ).toBe('none');
+    expect(container.querySelector('audio')).toBe(audio);
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Use current graph + visualizer as background',
+      }),
+    );
+    rerender(<KaraokeWorkspace isHidden={false} isFullScreen />);
+    expect(
+      container.querySelector('.karaoke-graph-background'),
+    ).toBeInTheDocument();
+    rerender(<KaraokeWorkspace isHidden />);
+    expect(
+      container.querySelector('.karaoke-graph-background'),
+    ).not.toBeInTheDocument();
+    rerender(<KaraokeWorkspace isHidden={false} />);
+    expect(
+      container.querySelector('.karaoke-graph-background'),
+    ).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+    });
+    expect(
+      container.querySelector('.karaoke-graph-background'),
+    ).not.toBeInTheDocument();
   });
 
   it('toggles full screen from the Karaoke surface without hijacking controls', async () => {

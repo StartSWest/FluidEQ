@@ -32,7 +32,7 @@ import {
   initiallyUseStagePitch,
   readKaraokePlaylistFolderGrouping,
   readPitchGuideVisibility,
-  readStageArtVisibility,
+  readKaraokeBackground,
   STAGE_PITCH_MEDIA_QUERY,
 } from './karaokeWorkspacePrefs';
 import { IKaraokeSetAsideFiles } from './karaokeImportNotices';
@@ -127,9 +127,7 @@ const useKaraokeWorkspaceStage = ({
   const [isPitchGuideVisible, setIsPitchGuideVisible] = useState(
     readPitchGuideVisibility,
   );
-  const [isStageArtVisible, setIsStageArtVisible] = useState(
-    readStageArtVisibility,
-  );
+  const [background, setBackground] = useState(readKaraokeBackground);
   const layoutMode: TKaraokeLayoutMode = isFullScreen ? 'fullscreen' : 'normal';
   const [layouts, setLayouts] = useState<
     Record<TKaraokeLayoutMode, IKaraokeLayoutSettings>
@@ -832,8 +830,8 @@ const useKaraokeWorkspaceStage = ({
     useStagePitch,
     isPitchGuideVisible,
     setIsPitchGuideVisible,
-    isStageArtVisible,
-    setIsStageArtVisible,
+    background,
+    setBackground,
     autoplayAfterLoadRef,
     retainWhenHidden,
     setRetainWhenHidden,

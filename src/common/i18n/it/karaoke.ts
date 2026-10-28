@@ -78,6 +78,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.stage.videoFailed':
     'Non è stato possibile decodificare il video {format} qui',
   'karaoke.stage.hideArt': 'Nascondi la copertina',
+  'karaoke.stage.showGraph':
+    'Usa il grafico e il visualizzatore attuali come sfondo',
+  'karaoke.stage.hideGraph': 'Disattiva lo sfondo con grafico e visualizzatore',
   'karaoke.stage.showArt': 'Mostra la copertina',
   'karaoke.stage.noArt': 'Questo brano non ha una copertina',
   'karaoke.playlist.title': 'Scaletta',

@@ -300,6 +300,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // because a song with no artwork still carries the preference — lighting up
   // a button that cannot act is the one case where the highlight would lie.
   .karaoke-workspace__pitch-toggle[aria-pressed='true'],
+  .karaoke-workspace__graph-background-toggle[aria-pressed='true'],
   .karaoke-workspace__stage-art-toggle[aria-pressed='true']:not(:disabled) {
     // The filled button's face (`--control-fill`): flat outside Rainbow mode,
     // lit under the pointer by the same brightness the filled button takes.

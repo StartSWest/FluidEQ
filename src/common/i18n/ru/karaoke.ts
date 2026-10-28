@@ -76,6 +76,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.stage.videoUnsupported': 'Видео {format} здесь воспроизвести нельзя',
   'karaoke.stage.videoFailed': 'Видео {format} здесь не удалось декодировать',
   'karaoke.stage.hideArt': 'Скрыть обложку',
+  'karaoke.stage.showGraph':
+    'Использовать текущий график и визуализатор как фон',
+  'karaoke.stage.hideGraph': 'Выключить фон с графиком и визуализатором',
   'karaoke.stage.showArt': 'Показать обложку',
   'karaoke.stage.noArt': 'У этой песни нет обложки',
   'karaoke.playlist.title': 'Плейлист',
