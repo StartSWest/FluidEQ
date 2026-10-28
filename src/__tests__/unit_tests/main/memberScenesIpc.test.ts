@@ -27,6 +27,7 @@ jest.mock('electron', () => ({
 }));
 
 /* eslint-disable import/first -- the electron mock must be installed first */
+import { memberLookId } from '../../../common/memberScenes';
 import {
   registerMemberScenesIpc,
   type ILinkFolderResult,
@@ -216,6 +217,20 @@ describe('member scenes over IPC', () => {
     expect(sent.map(([channel]) => channel)).toEqual(
       expect.arrayContaining(['member-scenes-changed', 'studio-changed']),
     );
+    registration.dispose();
+  });
+
+  // The lamps ask on every frame, so the ids are kept; every change to the
+  // looks is announced, and has to be heard by the next ask.
+  it("holds the account's own scene for the lamps from the moment it is kept, and only that account's", async () => {
+    const registration = setup();
+    expect(registration.heldLookIds()).toEqual([]);
+    registration.keepPublished(ME, memberPack({ version: 4 }));
+    expect(registration.heldLookIds()).toEqual([memberLookId(ME, 'neon-city')]);
+    // Another account signed in on this computer holds none of it.
+    me = SOMEONE;
+    ownershipChanged();
+    expect(registration.heldLookIds()).toEqual([]);
     registration.dispose();
   });
 

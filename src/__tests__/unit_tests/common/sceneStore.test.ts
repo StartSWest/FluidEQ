@@ -193,13 +193,44 @@ describe('which scenes play', () => {
     expect(play(memberLookId(ADA, 'a-draft'), false, plain)).toBe(false);
   });
 
+  const anything = (
+    plus: boolean,
+    over: ISceneStore | undefined,
+    held: readonly string[] = [],
+  ) => mayPlayAnything({ accountId: ME, plus, store: over, held });
+
   it('says whether anything plays at all, for the lights', () => {
-    expect(mayPlayAnything(true, undefined)).toBe(true);
-    expect(mayPlayAnything(false, undefined)).toBe(false);
-    expect(mayPlayAnything(false, { ...store, owned: [], published: [] })).toBe(
+    expect(anything(true, undefined)).toBe(true);
+    expect(anything(false, undefined)).toBe(false);
+    expect(anything(false, { ...store, owned: [], published: [] })).toBe(false);
+    expect(anything(false, { ...store, owned: [] })).toBe(true);
+    expect(anything(false, { ...store, published: [] })).toBe(true);
+    // Nobody signed in plays nothing, whatever a store says.
+    expect(
+      mayPlayAnything({
+        accountId: undefined,
+        plus: true,
+        store,
+        held: [memberLookId(ME, 'mine')],
+      }),
+    ).toBe(false);
+  });
+
+  // Ivan, 2026-10-27: a creator publishes and uses the scene at once; only
+  // the gallery and its credits wait for the admin. The graph already played
+  // it, while the lighting switch said no scene was theirs.
+  it('lights the lamps for a maker whose only scene is their own, waiting for review', () => {
+    const nothing = { ...store, owned: [], published: [], free: [] };
+    expect(anything(false, nothing, [memberLookId(ME, 'in-review')])).toBe(
+      true,
+    );
+    expect(anything(false, undefined, [memberLookId(ME, 'never-sent')])).toBe(
+      true,
+    );
+    // The control: another maker's scene held here is not this account's.
+    expect(anything(false, nothing, [memberLookId(ADA, 'in-review')])).toBe(
       false,
     );
-    expect(mayPlayAnything(false, { ...store, owned: [] })).toBe(true);
-    expect(mayPlayAnything(false, { ...store, published: [] })).toBe(true);
+    expect(anything(false, nothing, [])).toBe(false);
   });
 });

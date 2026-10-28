@@ -779,7 +779,7 @@ const lighting = registerLightingIpc({
   userDataDir,
   appVersion: appVersion(),
   getMainWindow,
-  entitled: () => members.sceneOwnership.ownsAnything(),
+  entitled: () => members.ownsAnyScene(),
 });
 // The helper's exit hands every Windows lamp back; Razer's session is ended
 // rather than left to lapse.

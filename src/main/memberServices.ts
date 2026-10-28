@@ -376,6 +376,10 @@ const registerMemberServices = ({
   return {
     accountIpc,
     sceneOwnership,
+    // What the lamps ask: the account's own scenes in its looks count, as
+    // they play on the graph, approved or not.
+    ownsAnyScene: () =>
+      sceneOwnership.ownsAnything(memberScenesIpc.heldLookIds()),
     plusTermsNoticeIpc,
     scenePacksIpc,
     memberSharingIpc,

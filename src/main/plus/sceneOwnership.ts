@@ -30,8 +30,8 @@ import {
 
 /**
  * Which scenes the signed-in account may play: the ones it bought, its own
- * once published, and — until the cutover ends Plus — every other scene
- * while it is a Plus member (`mayPlayLook`).
+ * whether published or not, and — until the cutover ends Plus — every other
+ * scene while it is a Plus member (`mayPlayLook`).
  *
  * Every gate in main asks `owns(lookId)`, the graph's load, the desktop
  * background and the desk lights alike, so a scene is one answer wherever it
@@ -65,8 +65,12 @@ export const SCENE_STORE_STALE_AFTER_MS = 4 * 60 * 60 * 1000;
 export interface ISceneOwnership {
   /** Whether this account may play this look anywhere, right now. */
   owns(lookId: string): boolean;
-  /** Whether any scene at all is this account's to play: Plus, or one bought. */
-  ownsAnything(): boolean;
+  /**
+   * Whether any scene at all is this account's to play (`mayPlayAnything`):
+   * one bought or free, or one of `held`, the looks this computer holds —
+   * which is where a maker's own scene still waiting for review is.
+   */
+  ownsAnything(held: readonly string[]): boolean;
   /** The last store the server gave the signed-in account. */
   known(): ISceneStore | undefined;
   /** Hear about anything that changes `owns`: a buy, an account, Plus. */
@@ -260,8 +264,13 @@ export const createSceneOwnership = ({
         plus: plusMember(),
         store: known(),
       }),
-    ownsAnything: () =>
-      accountId() !== undefined && mayPlayAnything(plusMember(), known()),
+    ownsAnything: (held) =>
+      mayPlayAnything({
+        accountId: accountId(),
+        plus: plusMember(),
+        store: known(),
+        held,
+      }),
     known,
     subscribe: (listener) => {
       listeners.add(listener);

@@ -312,13 +312,31 @@ export const mayPlayLook = ({
   return plus || (store?.owned.includes(lookId) ?? false);
 };
 
-/** Whether any scene at all plays for this account: what the lamps ask. */
-export const mayPlayAnything = (
-  plus: boolean,
-  store: ISceneStore | undefined,
-): boolean =>
-  plus ||
-  store?.everything === true ||
-  (store?.owned.length ?? 0) > 0 ||
-  (store?.published?.length ?? 0) > 0 ||
-  (store?.free?.length ?? 0) > 0;
+/**
+ * Whether any scene at all plays for this account: what the lamps ask, in
+ * main's gate (`sceneOwnership.ts`) and on the window's switch alike.
+ *
+ * `held` is every look id this computer holds for the account. A look held
+ * that `mayPlayLook` plays counts, which is how a maker's own scene does:
+ * the store's `published` lists only versions the admin approved, so a
+ * creator whose one scene was waiting for review had it on the graph while
+ * the lighting switch said no scene was theirs.
+ */
+export const mayPlayAnything = ({
+  accountId,
+  plus,
+  store,
+  held,
+}: {
+  accountId: string | undefined;
+  plus: boolean;
+  store: ISceneStore | undefined;
+  held: readonly string[];
+}): boolean =>
+  accountId !== undefined &&
+  (plus ||
+    store?.everything === true ||
+    (store?.owned.length ?? 0) > 0 ||
+    (store?.published?.length ?? 0) > 0 ||
+    (store?.free?.length ?? 0) > 0 ||
+    held.some((lookId) => mayPlayLook({ lookId, accountId, plus, store })));
