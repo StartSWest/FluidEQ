@@ -14,11 +14,11 @@ const CAPTURED = {
   '16-eq-bands.png': {
     image: '16-eq-bands.png',
     width: 2080,
-    height: 1257,
+    height: 1152,
     caption: 'help.eq.bandsCaption',
     controls: [
       {
-        box: [1437, 12, 102, 32],
+        box: [1436, 12, 102, 32],
         name: 'dsp.presets',
         text: 'help.eq.voicing',
       },
@@ -28,7 +28,7 @@ const CAPTURED = {
         text: 'help.eq.smart',
       },
       {
-        box: [1669, 12, 103, 32],
+        box: [1668, 12, 104, 32],
         name: 'eq.mode',
         text: 'help.eq.mode',
       },
@@ -53,27 +53,27 @@ const CAPTURED = {
         text: 'help.eq.clear',
       },
       {
-        box: [1191, 373, 48, 42],
+        box: [1191, 270, 48, 42],
         name: 'help.eq.labelName',
         text: 'help.eq.label',
       },
       {
-        box: [1124, 812, 64, 290],
+        box: [1124, 617, 64, 380],
         name: 'help.eq.bandName',
         text: 'help.eq.band',
       },
       {
-        box: [792, 1127, 88, 108],
+        box: [792, 1022, 88, 108],
         name: 'eq.tone.bass',
         text: 'help.eq.bass',
       },
       {
-        box: [894, 1127, 88, 108],
+        box: [894, 1022, 88, 108],
         name: 'eq.tone.mid',
         text: 'help.eq.mid',
       },
       {
-        box: [996, 1127, 88, 108],
+        box: [996, 1022, 88, 108],
         name: 'eq.tone.treble',
         text: 'help.eq.treble',
       },
@@ -82,7 +82,7 @@ const CAPTURED = {
   '36-eq-band-selected.png': {
     image: '36-eq-band-selected.png',
     width: 2078,
-    height: 1302,
+    height: 1197,
     caption: 'help.eq.bandCaption',
     controls: [
       {
@@ -91,37 +91,37 @@ const CAPTURED = {
         text: 'help.eq.gameMode',
       },
       {
-        box: [686, 1172, 104, 108],
+        box: [686, 1067, 104, 108],
         name: 'eq.selected',
         text: 'help.eq.selected',
       },
       {
-        box: [798, 1172, 162, 108],
+        box: [798, 1067, 162, 108],
         name: 'eq.filter',
         text: 'help.eq.filter',
       },
       {
-        box: [968, 1172, 84, 108],
+        box: [968, 1067, 84, 108],
         name: 'eq.frequency',
         text: 'help.eq.frequency',
       },
       {
-        box: [1060, 1172, 84, 108],
+        box: [1060, 1067, 84, 108],
         name: 'eq.gain',
         text: 'help.eq.gain',
       },
       {
-        box: [1152, 1172, 84, 108],
+        box: [1152, 1067, 84, 108],
         name: 'eq.quality',
         text: 'help.eq.q',
       },
       {
-        box: [1244, 1172, 56, 108],
+        box: [1244, 1067, 56, 108],
         name: 'eq.active',
         text: 'help.eq.disable',
       },
       {
-        box: [1308, 1205, 38, 38],
+        box: [1308, 1100, 38, 38],
         name: 'eq.delete',
         text: 'help.eq.delete',
       },
@@ -235,7 +235,7 @@ const CAPTURED = {
   '23-graph-view-menu.png': {
     image: '23-graph-view-menu.png',
     width: 372,
-    height: 714,
+    height: 762,
     caption: 'help.graph.viewCaption',
     controls: [
       {
@@ -251,66 +251,66 @@ const CAPTURED = {
         keys: 'Ctrl+F',
       },
       {
-        box: [6, 127, 360, 28],
+        box: [6, 175, 360, 28],
         name: 'help.graph.showingName',
         text: 'help.graph.showing',
         keys: 'Ctrl+W',
       },
       {
-        box: [6, 183, 360, 28],
+        box: [6, 231, 360, 28],
         name: 'graph.item.eqLabels',
         text: 'help.graph.labels',
       },
       {
-        box: [6, 211, 360, 28],
+        box: [6, 259, 360, 28],
         name: 'help.graph.waveName',
         text: 'help.graph.wave',
       },
       {
-        box: [6, 239, 360, 28],
+        box: [6, 287, 360, 28],
         name: 'help.graph.topWaveName',
         text: 'help.graph.topWave',
       },
       {
-        box: [6, 267, 360, 28],
+        box: [6, 315, 360, 28],
         name: 'help.graph.gridName',
         text: 'help.graph.grid',
         keys: 'Ctrl+G',
       },
       {
-        box: [6, 295, 360, 28],
+        box: [6, 343, 360, 28],
         name: 'help.graph.bandsName',
         text: 'help.graph.bandsMenu',
       },
       {
-        box: [6, 323, 360, 28],
+        box: [6, 371, 360, 28],
         name: 'help.graph.meterName',
         text: 'help.graph.meter',
       },
       {
-        box: [6, 464, 360, 28],
+        box: [6, 512, 360, 28],
         name: 'graph.style.next',
         text: 'help.graph.next',
         keys: 'Space',
       },
       {
-        box: [6, 492, 360, 28],
+        box: [6, 540, 360, 28],
         name: 'graph.style.previous',
         text: 'help.graph.previous',
         keys: 'Ctrl+Space',
       },
       {
-        box: [6, 351, 360, 24],
+        box: [6, 399, 360, 24],
         name: 'graph.waveHeight',
         text: 'help.graph.waveHeight',
       },
       {
-        box: [6, 375, 360, 24],
+        box: [6, 423, 360, 24],
         name: 'graph.wavePosition',
         text: 'help.graph.wavePosition',
       },
       {
-        box: [0, 0, 372, 713],
+        box: [0, 0, 372, 761],
         name: 'settings.group.drawing',
         text: 'help.graph.drawing',
       },

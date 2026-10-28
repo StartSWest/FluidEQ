@@ -542,8 +542,8 @@ The response graph draws your EQ curves over the live sound. The strip above it 
 6. **Top wave** — The small wave in the title bar.
 7. **Grid** (`Ctrl+G`) — Shows or hides the grid and scales.
 8. **Listening bands** — The same shading; greyed over a scene, which never draws it.
-9. **Level meter** — The output meter in the left rail.
-10. **How it is drawn** — Frame rate, resolution and smoothing, kept apart for standard styles and scenes.
+9. **How it is drawn** — Frame rate, resolution and smoothing, kept apart for standard styles and scenes.
+10. **Level meter** — The output meter in the left rail.
 11. **Wave height** — How tall the wave is drawn.
 12. **Wave position** — From the bottom edge up to the middle.
 13. **Next style** (`Space`) — Steps forward to the next look.
