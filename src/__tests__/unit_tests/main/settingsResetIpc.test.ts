@@ -124,6 +124,17 @@ describe('resetting the settings main keeps', () => {
     expect(deps.unpinWindow).toHaveBeenCalledTimes(1);
   });
 
+  it('preserves app news history so resetting preferences cannot repeat dismissed news', () => {
+    const history = JSON.stringify({
+      items: [],
+      seen: { public: { startsAt: 1793199600000, id: 25 } },
+    });
+    const remembered = path.join(folder, 'app-news.json');
+    fs.writeFileSync(remembered, history);
+    askFrom(owner);
+    expect(fs.readFileSync(remembered, 'utf8')).toBe(history);
+  });
+
   it('resets the rest when one part throws', () => {
     jest.mocked(deps.resetDesktopBackgrounds).mockImplementation(() => {
       throw new Error('disposed');
@@ -212,6 +223,8 @@ const KEPT_FILES = [
   'terms-agreed.json',
   'plus-terms-notice.json',
   'scene-announcements-seen.json',
+  // Public copy and what was already read, not a preference to reset.
+  'app-news.json',
   'scene-review-notice.json',
   'forum-github.json',
   // The app's own bookkeeping, and the corrections it downloaded.

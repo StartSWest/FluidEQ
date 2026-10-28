@@ -5,6 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 const announce = {
+  'announce.news.title': 'アプリのお知らせ',
+  'announce.news.description':
+    'FluidEQ からのお知らせを、いつでもここで読めます。',
+  'announce.news.read': 'お知らせを読む',
+  'announce.news.offline':
+    'オフラインです。有効期限内の保存済みのお知らせを表示しています。',
+  'announce.news.empty': '現在のお知らせはありません。',
+
   'announce.eyebrow': 'ビジュアライザーの新着 · {count} シーン',
   'announce.try': '今すぐ試す',
   'announce.later': 'あとで',
