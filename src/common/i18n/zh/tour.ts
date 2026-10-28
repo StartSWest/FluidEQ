@@ -2,6 +2,15 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
+  'tour.karaokeBackground.title': '让可视化效果衬托歌词',
+  'tour.karaokeBackground.subtitle': '将所选样式带到卡拉 OK 舞台',
+  'tour.karaokeBackground.lead': '选择可视化效果或场景，作为卡拉 OK 的背景。',
+  'tour.karaokeBackground.how':
+    '在 EQ 的 {looks} 中选择样式，然后在卡拉 OK 中点击 {showGraph}。',
+  'tour.karaokeBackground.open': '打开卡拉 OK',
+  'tour.karaokeBackground.imageAlt': '卡拉 OK 的背景按钮，以及歌词后方的场景。',
+  'tour.karaokeBackground.lyric': '让我们的歌声点亮这个夜晚',
+
   'tour.contribute': '请支持我们',
   'tour.eyebrow': '本版本新功能',
   'tour.title': 'FluidEQ 新功能',
@@ -187,9 +196,9 @@ const tour: Partial<Dictionary> = {
   'tour.studio.earned': '已发布：为你免费播放',
   'tour.help.kicker': '帮助',
   'tour.help.title': '用你自己的话问指南',
-  'tour.help.subtitle': '不怕错字和单复数，支持十种语言',
+  'tour.help.subtitle': '不怕错字和单复数，用你熟悉的语言',
   'tour.help.lead':
-    '像问朋友一样搜索指南——“没有声音”、“限制器”、“壁纸”——十种语言任你选用。最相关的章节排在最前，指南会带你直达那个控件，并在截图上把它圈出来。',
+    '像问朋友一样，用你熟悉的语言搜索指南——“没有声音”、“限制器”、“壁纸”。最相关的章节排在最前，指南会带你直达那个控件，并在截图上把它圈出来。',
   'tour.help.point1': '它能包容错字和单复数，也懂得人们对各种东西的习惯叫法。',
   'tour.help.point2': '截图上的每个控件都像印刷版说明书一样编了号。',
   'tour.help.point3':
@@ -674,6 +683,7 @@ const tour: Partial<Dictionary> = {
     '打开“在线媒体”标签页，在顶部一行选一个网站，在搜索框输入并按搜索。后退、前进和刷新与浏览器一样。',
   'tour.media.open': '打开在线媒体',
   'tour.studio.free': '所有账户免费',
+  'tour.film.englishAudio': '英语音频 · 翻译字幕',
 };
 
 export default tour;

@@ -21,6 +21,7 @@ import { type useKaraokeMicrophoneInput } from './useKaraokeMicrophone';
 import { type IKaraokeSong } from '../../common/karaoke/types';
 import { useTranslation } from '../utils/I18nContext';
 import KaraokeClearButton from './KaraokeClearButton';
+import KaraokeGraphBackgroundButton from './KaraokeGraphBackgroundButton';
 
 interface IKaraokeWorkspaceActionsProps {
   song: IKaraokeSong | undefined;
@@ -211,20 +212,8 @@ const KaraokeWorkspaceActions = ({
           </svg>
         </button>
       )}
-      <button
-        type="button"
-        className="button small subtle karaoke-workspace__icon-action karaoke-workspace__graph-background-toggle"
-        aria-label={t(
-          background === 'graph'
-            ? 'karaoke.stage.hideGraph'
-            : 'karaoke.stage.showGraph',
-        )}
-        title={t(
-          background === 'graph'
-            ? 'karaoke.stage.hideGraph'
-            : 'karaoke.stage.showGraph',
-        )}
-        aria-pressed={background === 'graph'}
+      <KaraokeGraphBackgroundButton
+        isSelected={background === 'graph'}
         onClick={() => {
           // One choice prevents the cover/video and live graph from competing.
           setBackground((current) => {
@@ -233,16 +222,7 @@ const KaraokeWorkspaceActions = ({
             return next;
           });
         }}
-      >
-        <svg
-          className="karaoke-button__icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          aria-hidden="true"
-        >
-          <path d="M3 4.5h18v15H3zM6 12h2l2-4 4 8 2-4h2" />
-        </svg>
-      </button>
+      />
       <button
         ref={microphoneMenuButtonRef}
         type="button"

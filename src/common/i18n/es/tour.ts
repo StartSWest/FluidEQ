@@ -2,6 +2,18 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
+  'tour.karaokeBackground.title': 'Visualizadores detrás de tus letras',
+  'tour.karaokeBackground.subtitle':
+    'El estilo que elijas, en el escenario de Karaoke',
+  'tour.karaokeBackground.lead':
+    'Elige un visualizador o una escena como fondo de Karaoke.',
+  'tour.karaokeBackground.how':
+    'Elige un estilo en {looks} de EQ y pulsa {showGraph} en Karaoke.',
+  'tour.karaokeBackground.open': 'Abrir Karaoke',
+  'tour.karaokeBackground.imageAlt':
+    'El control del fondo de Karaoke con una escena detrás de la letra.',
+  'tour.karaokeBackground.lyric': 'Que nuestra canción ilumine la noche',
+
   'tour.contribute': 'Por favor, contribuye',
   'tour.eyebrow': 'NOVEDADES DE ESTA VERSIÓN',
   'tour.title': 'Novedades de FluidEQ',
@@ -193,9 +205,9 @@ const tour: Partial<Dictionary> = {
   'tour.studio.earned': 'Publicada: suena gratis para ti',
   'tour.help.kicker': 'AYUDA',
   'tour.help.title': 'Pregunta a la guía con tus palabras',
-  'tour.help.subtitle': 'Erratas, plurales y diez idiomas',
+  'tour.help.subtitle': 'Erratas, plurales y tu idioma',
   'tour.help.lead':
-    'Busca en la guía como se lo preguntarías a un amigo — «no hay sonido», «limitador», «fondo de pantalla» — en cualquiera de diez idiomas. El mejor capítulo aparece primero, y la guía te lleva al control, rodeado con un círculo en la imagen.',
+    'Busca en la guía como se lo preguntarías a un amigo — «no hay sonido», «limitador», «fondo de pantalla» — en tu idioma. El mejor capítulo aparece primero, y la guía te lleva al control, rodeado con un círculo en la imagen.',
   'tour.help.point1':
     'Perdona las erratas y los plurales, y conoce las palabras que la gente usa para las cosas.',
   'tour.help.point2':
@@ -726,6 +738,7 @@ const tour: Partial<Dictionary> = {
     'Abre la pestaña Multimedia en línea, elige un sitio de la fila superior, escribe en el campo de búsqueda y pulsa Buscar. Atrás, Adelante y Recargar funcionan como en un navegador.',
   'tour.media.open': 'Abrir Multimedia en línea',
   'tour.studio.free': 'Gratis para todas las cuentas',
+  'tour.film.englishAudio': 'Audio en inglés · subtítulos traducidos',
 };
 
 export default tour;

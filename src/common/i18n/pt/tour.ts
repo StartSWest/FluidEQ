@@ -2,6 +2,18 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
+  'tour.karaokeBackground.title': 'Visualizadores por trás das letras',
+  'tour.karaokeBackground.subtitle':
+    'O estilo que você escolher, no palco do Karaokê',
+  'tour.karaokeBackground.lead':
+    'Escolha um visualizador ou uma cena como fundo do Karaokê.',
+  'tour.karaokeBackground.how':
+    'Escolha um estilo em {looks} no EQ e pressione {showGraph} no Karaokê.',
+  'tour.karaokeBackground.open': 'Abrir Karaokê',
+  'tour.karaokeBackground.imageAlt':
+    'O controle de fundo do Karaokê com uma cena por trás da letra.',
+  'tour.karaokeBackground.lyric': 'Que a nossa canção ilumine a noite',
+
   'tour.contribute': 'Por favor, contribua',
   'tour.eyebrow': 'NOVIDADES DESTA VERSÃO',
   'tour.title': 'Novidades do FluidEQ',
@@ -193,9 +205,9 @@ const tour: Partial<Dictionary> = {
   'tour.studio.earned': 'Publicada: toca de graça para você',
   'tour.help.kicker': 'AJUDA',
   'tour.help.title': 'Pergunte ao guia com suas palavras',
-  'tour.help.subtitle': 'Erros de digitação, plurais e dez idiomas',
+  'tour.help.subtitle': 'Erros de digitação, plurais e seu idioma',
   'tour.help.lead':
-    'Busque no guia do jeito que você perguntaria a um amigo — “sem som”, “limitador”, “papel de parede” — em qualquer um dos dez idiomas. O melhor capítulo vem primeiro, e o guia leva você ao controle, circulado na captura.',
+    'Busque no guia do jeito que você perguntaria a um amigo — “sem som”, “limitador”, “papel de parede” — no seu idioma. O melhor capítulo vem primeiro, e o guia leva você ao controle, circulado na captura.',
   'tour.help.point1':
     'Ele perdoa erros de digitação e plurais, e conhece as palavras que as pessoas usam para as coisas.',
   'tour.help.point2':
@@ -727,6 +739,7 @@ const tour: Partial<Dictionary> = {
     'Abra a aba Mídia online, escolha um site na fileira de cima, digite no campo de busca e pressione Buscar. Voltar, Avançar e Recarregar funcionam como em um navegador.',
   'tour.media.open': 'Abrir Mídia online',
   'tour.studio.free': 'Grátis para todas as contas',
+  'tour.film.englishAudio': 'Áudio em inglês · legendas traduzidas',
 };
 
 export default tour;
