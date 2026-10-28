@@ -444,3 +444,31 @@ taps. This page records the current implementation and its remaining limits.
   redraws, alongside Windows behavior. App TypeScript, changed-file lint and
   the production main build passed. These changes stay on `macos`; `main`
   remains unchanged.
+
+## Mac output meter reads after Auto normalize — 2026-10-27
+
+- Reproduced the reported positive reading at the native monitor boundary:
+  +1.57 dB, with 183 full-scale samples in 30 seconds. A simultaneous passive
+  Core Audio comparison measured the all-process device tap at +1.566 dB and
+  the engine-only device tap at -1.004 dB, with no engine-output overloads.
+  A second process tap still hears the originals silenced by the engine's
+  muted tap; including them beside the processed copy double-counted music.
+- The live monitor now includes only the running engine on the selected
+  output, and returns to the direct device mix while the engine rests or is
+  off. Core Audio process/output notifications update this selection; outgoing
+  Share Audio keeps its existing raw-source exclusions. No normalization
+  ceiling, recovery speed, initial gain or processing stage was changed.
+- The user's current configuration resolves with its final guard enabled,
+  Auto normalize on and a -5.07 dB start. An offline overload probe through
+  the Mac wrapper remained below -4.02 dB; the shared graph's unprotected
+  positive control reached +1.058 dB. The rebuilt helper produced meaningful
+  processed audio, and the corrected running app captured 1,440,000 frames
+  with stereo peaks of -5.66/-5.80 dB and no full-scale samples.
+- TypeScript, changed-source ESLint, 50 focused JS cases, and six native
+  checks passed: monitor source selection, the Mac configuration reader,
+  graph processing, output transitions, output guard and graph crossing.
+  The new native regression checks the real Core Audio tap description and
+  its direct/processed/restarted-engine transitions beside the direct-mix
+  control. Native helpers only were executed; the existing FluidEQ app and
+  processing engine were not launched or restarted. Temporary diagnostic
+  hooks and analysis claims were released after measurement.

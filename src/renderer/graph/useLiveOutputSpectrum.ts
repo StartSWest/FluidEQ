@@ -33,6 +33,7 @@ import {
   NO_POINTS,
   NO_WAVEFORM,
   captureSystemOutput,
+  stopSystemOutput,
 } from './liveSpectrumFrames';
 import { type ILiveFrame, type ILiveFrameReader } from './liveFrameReader';
 import { IOutputLevel } from './outputLevel';
@@ -206,7 +207,9 @@ const useLiveOutputSpectrum = () => {
     splitterNodeRef.current?.disconnect();
     splitterNodeRef.current = undefined;
     frameReaderRef.current = undefined;
-    streamRef.current?.getTracks().forEach((track) => track.stop());
+    if (streamRef.current) {
+      stopSystemOutput(streamRef.current);
+    }
     streamRef.current = undefined;
     audioContextRef.current?.close().catch(() => undefined);
     audioContextRef.current = undefined;
@@ -353,7 +356,7 @@ const useLiveOutputSpectrum = () => {
       // during the negotiation releases the display claim, and carrying on
       // would install exactly the stream that release was asking to avoid.
       if (!autoStartRef.current || !isCaptureWanted()) {
-        stream.getTracks().forEach((track) => track.stop());
+        stopSystemOutput(stream);
         return false;
       }
 
@@ -396,9 +399,15 @@ const useLiveOutputSpectrum = () => {
       // awaits, and the context just started is a hardware stream nobody would
       // ever close.
       if (!autoStartRef.current || !isCaptureWanted()) {
-        stream.getTracks().forEach((track) => track.stop());
+        stopSystemOutput(stream);
         activeAudioContext.close().catch(() => undefined);
         return false;
+      }
+      if (
+        window.electron?.platform === 'darwin' &&
+        audioTrack.readyState !== 'live'
+      ) {
+        throw new Error(tRef.current('eq.smart.error.noAudioTrack'));
       }
       // The spectrum's analyser and the meter's (`liveCaptureGraph.ts`), the
       // source and the fan-out kept so they can be disconnected rather than
@@ -511,7 +520,9 @@ const useLiveOutputSpectrum = () => {
 
       return true;
     } catch (captureError) {
-      stream?.getTracks().forEach((track) => track.stop());
+      if (stream) {
+        stopSystemOutput(stream);
+      }
       audioContext?.close().catch(() => undefined);
       stop();
       setError(

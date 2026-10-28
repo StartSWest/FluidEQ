@@ -9,10 +9,22 @@ import type { INativeCaptureProcess } from '../nativeCaptureProcess';
  * The tap excludes that process, plus the system engine's processed output:
  * received sound never goes back out and the other computer gets raw audio.
  */
-export const startMacNetworkCapture = async (
+interface IMacCaptureProcess extends INativeCaptureProcess {
+  close(): Promise<void>;
+}
+
+interface ICaptureCommands {
+  start: number;
+  stop: number;
+  audio: number;
+  payload?: Buffer;
+}
+
+const startMacCapture = async (
+  commands: ICaptureCommands,
   onAudio: (chunk: ILanRemoteAudioChunk) => void,
   onFailure: () => void,
-): Promise<INativeCaptureProcess> => {
+): Promise<IMacCaptureProcess> => {
   let lease: ILanAudioLease | undefined;
   let closed = false;
   let ready = false;
@@ -33,9 +45,12 @@ export const startMacNetworkCapture = async (
       if (closed) {
         return;
       }
-      if (reply.kind === 9 && reply.id === captureId) {
+      if (reply.kind === commands.stop && reply.id === captureId) {
         fail(new Error('The Mac system audio tap stopped.'));
-      } else if (reply.kind === 10 && reply.channels !== undefined) {
+      } else if (
+        reply.kind === commands.audio &&
+        reply.channels !== undefined
+      ) {
         onAudio({
           channels: reply.channels,
           frames: reply.frames,
@@ -49,7 +64,7 @@ export const startMacNetworkCapture = async (
     stopped: fail,
   });
   try {
-    const request = lease.request(8, Buffer.from('lan'));
+    const request = lease.request(commands.start, commands.payload);
     captureId = request.id;
     await request.answered;
     if (closed) {
@@ -62,19 +77,41 @@ export const startMacNetworkCapture = async (
     throw error;
   }
   const activeLease = lease;
+  let closing: Promise<void> | undefined;
   return {
     command: () => {
       throw new Error('This capture does not provide Windows output mirrors.');
     },
     close: () => {
+      if (closing) {
+        return closing;
+      }
       if (closed) {
-        return;
+        return Promise.resolve();
       }
       closed = true;
-      activeLease
-        .request(9)
+      closing = activeLease
+        .request(commands.stop)
         .answered.catch(() => undefined)
         .finally(activeLease.release);
+      return closing;
     },
   };
 };
+
+export const startMacNetworkCapture = (
+  onAudio: (chunk: ILanRemoteAudioChunk) => void,
+  onFailure: () => void,
+): Promise<INativeCaptureProcess> =>
+  startMacCapture(
+    { start: 8, stop: 9, audio: 10, payload: Buffer.from('lan') },
+    onAudio,
+    onFailure,
+  );
+
+/** Its own tap: closing the analyser never stops outgoing Share Audio. */
+export const startMacMonitorCapture = (
+  onAudio: (chunk: ILanRemoteAudioChunk) => void,
+  onFailure: () => void,
+): Promise<IMacCaptureProcess> =>
+  startMacCapture({ start: 11, stop: 12, audio: 11 }, onAudio, onFailure);

@@ -13,6 +13,11 @@ target_link_libraries(fluideq-mac-remote-audio PRIVATE
   "-framework CoreAudio" "-framework CoreFoundation"
   "-framework AudioUnit" "-framework Foundation" proc)
 set_source_files_properties(capture.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+add_executable(fluideq-mac-monitor-source-test tests/monitor_source_test.mm)
+set_source_files_properties(tests/monitor_source_test.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+target_link_libraries(fluideq-mac-monitor-source-test PRIVATE feq_strict
+  "-framework CoreAudio" "-framework Foundation")
+add_test(NAME mac-monitor-source COMMAND fluideq-mac-monitor-source-test)
 set_target_properties(fluideq-mac-remote-audio PROPERTIES
   OUTPUT_NAME "FluidEQ-LAN-Playback"
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"

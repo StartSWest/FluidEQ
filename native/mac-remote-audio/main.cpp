@@ -19,7 +19,8 @@ namespace {
 constexpr uint32_t kFailure = 0x80004005;
 constexpr size_t kMaxPayload = remote::kMaxPacketFrames * remote::kMaxChannels * sizeof(float) + sizeof(uint32_t);
 bool command(const Header& h, const void* payload, Playback& playback,
-             Capture& capture, Replies& replies, bool& quit, uint32_t& capture_id) {
+             Capture& capture, Capture& monitor, Replies& replies, bool& quit,
+             uint32_t& capture_id, uint32_t& monitor_id) {
   const auto* bytes = static_cast<const char*>(payload);
   std::string error;
   switch (h.kind) {
@@ -58,6 +59,14 @@ bool command(const Header& h, const void* payload, Playback& playback,
       return replies.send(3, h.id, opened ? 0 : kFailure);
     }
     case 9: if (h.bytes) return false; capture.stop(); return replies.send(3, h.id);
+    case 11: {
+      if (h.bytes || monitor.active()) return false;
+      monitor_id = h.id;
+      const bool opened = monitor.start(error);
+      if (!opened) std::fprintf(stderr, "Live output capture: %s\n", error.c_str());
+      return replies.send(3, h.id, opened ? 0 : kFailure);
+    }
+    case 12: if (h.bytes) return false; monitor.stop(); return replies.send(3, h.id);
     default: return false;
   }
 }
@@ -71,9 +80,11 @@ int run(uint32_t parent_pid) {
   Replies replies;
   Playback playback(replies, wake);
   Capture capture(replies, wake);
+  Capture monitor(replies, wake, CapturePurpose::monitor);
   if (!replies.send(1)) return 1;
   bool quit = false;
   uint32_t capture_id = 0;
+  uint32_t monitor_id = 0;
   std::vector<char> pending;
   pending.reserve(kMaxPayload + sizeof(Header));
   std::array<char, 16384> input{};
@@ -89,6 +100,11 @@ int run(uint32_t parent_pid) {
         std::fprintf(stderr, "Share Audio capture stopped: %s\n", error.c_str());
         if (!replies.send(9, capture_id, kFailure)) return 1;
       }
+      if (!monitor.refresh(error)) {
+        monitor.stop();
+        std::fprintf(stderr, "Live output capture stopped: %s\n", error.c_str());
+        if (!replies.send(12, monitor_id, kFailure)) return 1;
+      }
     }
     if (descriptors[0].revents & (POLLIN | POLLHUP | POLLERR)) {
       const auto count = ::read(STDIN_FILENO, input.data(), input.size());
@@ -102,7 +118,7 @@ int run(uint32_t parent_pid) {
         const size_t total = sizeof(Header) + header.bytes;
         if (pending.size() < total) break;
         if (!command(header, pending.data() + sizeof(Header), playback, capture,
-                     replies, quit, capture_id)) {
+                     monitor, replies, quit, capture_id, monitor_id)) {
           replies.send(4, header.id, kFailure); return 1;
         }
         pending.erase(pending.begin(), pending.begin() + static_cast<std::ptrdiff_t>(total));

@@ -29,7 +29,7 @@ export interface IPlaybackReply {
   rate: number;
   frames: number;
   payload: Buffer;
-  /** Present on a native helper's system-audio capture frame (kind 10). */
+  /** Present on a native helper's system-audio frame (10 network, 11 Mac monitor). */
   channels?: number;
 }
 
@@ -42,6 +42,8 @@ export class PlaybackReplyReader {
     while (this.pending.byteLength >= PLAYBACK_HEADER_BYTES) {
       const size = this.pending.readUInt32LE(20);
       const kind = this.pending.readUInt32LE(4);
+      const isCapture =
+        kind === 10 || (process.platform === 'darwin' && kind === 11);
       const rate = this.pending.readUInt32LE(12);
       const channels = this.pending.readUInt16LE(16);
       const frames = this.pending.readUInt16LE(18);
@@ -55,7 +57,7 @@ export class PlaybackReplyReader {
         size === frames * channels * 4;
       if (
         this.pending.readUInt32LE(0) !== PLAYBACK_MAGIC ||
-        (kind === 10 ? !validCapture : size > MAX_REPLY_BYTES)
+        (isCapture ? !validCapture : size > MAX_REPLY_BYTES)
       ) {
         throw new Error('Invalid native playback reply.');
       }
@@ -68,7 +70,7 @@ export class PlaybackReplyReader {
         id: this.pending.readUInt32LE(8),
         rate,
         frames,
-        ...(kind === 10 ? { channels } : {}),
+        ...(isCapture ? { channels } : {}),
         payload: this.pending.subarray(PLAYBACK_HEADER_BYTES, total),
       };
       this.pending = this.pending.subarray(total);

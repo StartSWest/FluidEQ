@@ -136,6 +136,7 @@ import {
 } from './deviceProfileSettings';
 import { createMacEngine } from './macEngine/macEngine';
 import registerMacPermissionIpc from './macEngine/macPermissionIpc';
+import registerMacMonitorIpc from './macEngine/macMonitorIpc';
 import { adoptMacOutputGuids } from './macEngine/macOutputs';
 import {
   capabilitiesFor,
@@ -630,6 +631,7 @@ registerSystemMediaIpc({ onMedia: songProgramme.onMedia });
 const macEngine = createMacEngine();
 app.on('will-quit', () => macEngine.stop());
 registerMacPermissionIpc();
+registerMacMonitorIpc(getMainWindow);
 
 // Every switch between the app and the player is written down at once — a
 // window closed straight after one must open in the mode it was left in — and

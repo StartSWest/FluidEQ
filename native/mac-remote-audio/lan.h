@@ -37,9 +37,11 @@ class Wake {
   int pipe_[2]{-1, -1};
 };
 
+enum class CapturePurpose { network, monitor };
+
 class Capture {
  public:
-  Capture(Replies& replies, Wake& wake);
+  Capture(Replies& replies, Wake& wake, CapturePurpose purpose = CapturePurpose::network);
   ~Capture();
   bool start(std::string& error);
   void stop();

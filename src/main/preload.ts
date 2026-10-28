@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { contextBridge, ipcRenderer } from 'electron';
 import api from './api';
+import { MAC_AUDIO_CAPTURE_PORT } from '../common/macAudioCapture';
 import {
   isRemoteAudioPortKind,
   REMOTE_AUDIO_PORT_CHANNEL,
@@ -34,12 +35,12 @@ window.addEventListener('message', (event: MessageEvent<unknown>) => {
   const data = event.data as { channel?: unknown; kind?: unknown } | null;
   if (
     event.source === window &&
-    data?.channel === REMOTE_AUDIO_PORT_CHANNEL &&
-    isRemoteAudioPortKind(data.kind) &&
+    ((data?.channel === REMOTE_AUDIO_PORT_CHANNEL &&
+      isRemoteAudioPortKind(data.kind)) ||
+      (process.platform === 'darwin' &&
+        data?.channel === MAC_AUDIO_CAPTURE_PORT)) &&
     event.ports.length === 1
   ) {
-    ipcRenderer.postMessage(REMOTE_AUDIO_PORT_CHANNEL, data.kind, [
-      event.ports[0],
-    ]);
+    ipcRenderer.postMessage(data.channel, data.kind, [event.ports[0]]);
   }
 });

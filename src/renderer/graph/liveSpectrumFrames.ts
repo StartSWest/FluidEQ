@@ -22,6 +22,9 @@ import { Translate } from 'common/i18n';
 // window: the frames module is imported far and wide and must not pull the
 // worklet's loader in with it.
 import { AUDIO_CLOCK_TICKS_PER_SECOND } from '../audio/audioClockNames';
+import captureMacSystemOutput, {
+  releaseMacSystemOutput,
+} from '../audio/macSystemOutputCapture';
 import { IChartPointData } from './ChartController';
 import { IOutputLevel, LEVEL_FLOOR_DB } from './outputLevel';
 
@@ -390,11 +393,19 @@ export const writeChannelWaveformPoints = (
 
 // Handed a translator rather than reaching for one: this is a plain async
 // function outside the component, so it cannot call a hook.
+export const stopSystemOutput = (stream: MediaStream) => {
+  releaseMacSystemOutput(stream);
+  stream.getTracks().forEach((track) => track.stop());
+};
+
 export const captureSystemOutput = async (
   t: Translate,
 ): Promise<MediaStream> => {
   if (!navigator.mediaDevices) {
     throw new Error(t('eq.smart.error.noCapture'));
+  }
+  if (window.electron?.platform === 'darwin') {
+    return captureMacSystemOutput(t);
   }
 
   let displayCaptureError: unknown;
