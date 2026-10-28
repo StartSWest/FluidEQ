@@ -614,8 +614,11 @@ const KaraokeTransport = ({
             level={shownLevel}
             inputId={`${controlId}-${shownLevel.id}`}
             onTouch={setLastLevelId}
+            // The menu also holds the scene's look behind the lyrics, so it
+            // needs its trigger whenever that is passed in, even with a
+            // single fader: otherwise the look has no way in from here.
             trailing={
-              levels.length > 1 ? (
+              levels.length > 1 || appearanceControls ? (
                 <button
                   type="button"
                   className="karaoke-transport__mix-trigger"
