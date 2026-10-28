@@ -38,6 +38,8 @@ const plus = {
     'ギャラリーを読み込めませんでした。もう一度お試しください。',
   'plus.gallery.moreError':
     'これ以上のシーンを読み込めませんでした。もう一度お試しください。',
+  'plus.gallery.error.forbidden':
+    'このアカウントには、これらのシーンを読み込む権限がありません。',
   'plus.gallery.retry': '再試行',
 
   'plus.category.nature': '自然',

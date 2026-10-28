@@ -318,6 +318,7 @@ const LookPicker = ({
           onChoose={choose}
           searchRef={searchRef}
           columnsRef={arrive}
+          onLeave={() => close(false)}
         />
       </AnchoredMenu>
     </div>

@@ -35,6 +35,8 @@ const plus = {
   'plus.gallery.error.signedOut': 'Reconnectez-vous pour voir la galerie.',
   'plus.gallery.error.server': 'La galerie n’a pas pu être chargée. Réessayez.',
   'plus.gallery.moreError': 'Impossible de charger plus de scènes. Réessayez.',
+  'plus.gallery.error.forbidden':
+    'Ce compte n’a pas l’autorisation de charger ces scènes.',
   'plus.gallery.retry': 'Réessayer',
 
   'plus.category.nature': 'Nature',

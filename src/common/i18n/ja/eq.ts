@@ -285,6 +285,13 @@ const eq: Partial<Dictionary> = {
   'graph.picker.search': 'スタイルとビジュアライザーを検索',
   'graph.picker.styles': 'スタイル',
   'graph.picker.plus': 'ビジュアライザー',
+  'graph.picker.discover.title': '音楽に彩りを',
+  'graph.picker.discover.body':
+    'アニメーションシーンを購入してずっと楽しむことも、Studio で自分のシーンを無料で作ることもできます。',
+  'graph.picker.discover.explore': 'シーンを探す',
+  'graph.picker.discover.create': '自分で作る',
+  'graph.picker.discover.free':
+    'FluidEQ とオーディオツールは引き続き無料です。',
   'graph.picker.all': 'すべて',
   'graph.picker.yours': 'あなたの',
   'graph.picker.filterStyles': 'スタイルを絞り込む',

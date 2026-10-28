@@ -13,6 +13,7 @@ import {
   fetchEnvelope,
   fetchPicture,
   listGallery,
+  listPublished,
   MAX_PICTURE_BYTES,
 } from '../../../main/plus/galleryApi';
 import {
@@ -60,6 +61,49 @@ const authWith = (fetchImpl: jest.Mock) => ({
   config,
   accessToken: 'token',
   fetchImpl: fetchImpl as unknown as typeof fetch,
+});
+
+describe('publication list failures', () => {
+  it('accepts a real publication and a genuine empty response, but never silently drops a broken row', async () => {
+    const publication = {
+      ...row,
+      published_at: row.updated_at,
+      blocked: false,
+    };
+    expect(
+      await listPublished(authWith(answering(fakeResponse(200, [])))),
+    ).toEqual({ ok: true, scenes: [] });
+    const valid = await listPublished(
+      authWith(answering(fakeResponse(200, [publication]))),
+    );
+    expect(valid.ok && valid.scenes[0].sceneId).toBe('neon-city');
+    expect(
+      await listPublished(
+        authWith(answering(fakeResponse(200, [publication, { broken: true }]))),
+      ),
+    ).toEqual({ ok: false, reason: 'server' });
+  });
+  it.each([
+    [401, 'signed-out'],
+    [403, 'forbidden'],
+    [500, 'server'],
+  ] as const)(
+    'keeps a %s response distinct from a successful empty list',
+    async (status, reason) => {
+      const result = await listPublished(
+        authWith(answering(fakeResponse(status, {}))),
+      );
+      expect(result).toEqual({ ok: false, reason });
+    },
+  );
+
+  it('keeps a network exception distinct from server and permission errors', async () => {
+    const fetchImpl = jest.fn().mockRejectedValue(new Error('connection lost'));
+    expect(await listPublished(authWith(fetchImpl))).toEqual({
+      ok: false,
+      reason: 'offline',
+    });
+  });
 });
 
 describe('listing the gallery', () => {

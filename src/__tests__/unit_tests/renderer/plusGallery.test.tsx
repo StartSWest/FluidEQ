@@ -117,6 +117,7 @@ const bridge = {
   reportGalleryScene: jest.fn(),
   likeMemberScene: jest.fn(),
   myPublishedScenes: jest.fn(),
+  mySceneSubmissions: jest.fn(),
   unpublishScene: jest.fn(),
   listMemberScenes: jest.fn(),
   removeMemberScene: jest.fn(),
@@ -137,6 +138,7 @@ beforeEach(() => {
     packs: [],
     locked: [],
   });
+  bridge.mySceneSubmissions.mockResolvedValue({ ok: true, submissions: [] });
   resetScenePictures();
   mockRenderSceneStill.mockResolvedValue(undefined);
   bridge.listGallery.mockResolvedValue({

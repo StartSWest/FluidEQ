@@ -285,6 +285,13 @@ const eq: Partial<Dictionary> = {
   'graph.picker.search': 'Cerca stili e visualizzatori',
   'graph.picker.styles': 'Stili',
   'graph.picker.plus': 'Visualizzatori',
+  'graph.picker.discover.title': 'Dai vita alla tua musica',
+  'graph.picker.discover.body':
+    'Scopri scene animate da acquistare e tenere per sempre, oppure crea le tue gratis nello Studio.',
+  'graph.picker.discover.explore': 'Esplora le scene',
+  'graph.picker.discover.create': 'Crea la tua scena',
+  'graph.picker.discover.free':
+    'FluidEQ e i suoi strumenti audio restano gratuiti.',
   'graph.picker.all': 'Tutti',
   'graph.picker.yours': 'Tuoi',
   'graph.picker.filterStyles': 'Filtra stili',

@@ -297,6 +297,12 @@ const eq = {
   'graph.picker.search': 'Search styles and visualizers',
   'graph.picker.styles': 'Styles',
   'graph.picker.plus': 'Visualizers',
+  'graph.picker.discover.title': 'Bring your music to life',
+  'graph.picker.discover.body':
+    'Discover animated scenes to buy and keep, or create your own for free in the Studio.',
+  'graph.picker.discover.explore': 'Explore scenes',
+  'graph.picker.discover.create': 'Create your own',
+  'graph.picker.discover.free': 'FluidEQ and its audio tools stay free.',
   'graph.picker.all': 'All',
   'graph.picker.yours': 'Yours',
   'graph.picker.filterStyles': 'Filter styles',

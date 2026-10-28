@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { memberLookId } from 'common/memberScenes';
 import { FLUIDEQ_CREATOR_ID, type IPublishedScene } from 'common/plusGallery';
 import type { ISceneSubmission } from 'common/plusReview';
 import { premiumLookId, resolveSceneName } from 'common/scenePacks';
+import { requestAccountPanel } from '../account/accountPanel';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { setGalleryNotice } from './galleryActions';
@@ -26,24 +27,43 @@ interface IYourScenesProps {
  * Publishing and updating happen in the Studio, from the project itself,
  * which is the only place the scene's files are.
  */
-export default function YourScenes({ me }: IYourScenesProps) {
+function YourScenesList({ me }: IYourScenesProps) {
   const { t, locale } = useTranslation();
   const [mine, setMine] = useState<TMine>({ state: 'loading' });
   const [confirming, setConfirming] = useState<string>();
   const [working, setWorking] = useState<string>();
+  const generation = useRef(0);
   const dates = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
   const numbers = new Intl.NumberFormat(locale);
 
   const load = useCallback(() => {
+    generation.current += 1;
+    const request = generation.current;
+    if (!me) {
+      setMine({ state: 'failed', key: 'plus.gallery.error.signedOut' });
+      return;
+    }
     setMine({ state: 'loading' });
     loadMyScenes()
-      .then(setMine)
-      .catch(() =>
-        setMine({ state: 'failed', key: 'plus.gallery.error.offline' }),
-      );
-  }, []);
+      .then((next) => {
+        if (generation.current === request) {
+          setMine(next);
+        }
+        return undefined;
+      })
+      .catch(() => {
+        if (generation.current === request) {
+          setMine({ state: 'failed', key: 'plus.gallery.error.offline' });
+        }
+      });
+  }, [me]);
 
-  useEffect(load, [load]);
+  useEffect(() => {
+    load();
+    return () => {
+      generation.current += 1;
+    };
+  }, [load]);
 
   // Said through the gallery's own line, which is shown under the gallery's
   // head: a scene taken down from far down this list answered at the top of
@@ -152,9 +172,21 @@ export default function YourScenes({ me }: IYourScenesProps) {
         </button>
       </div>
 
-      {mine.state === 'failed' && (
-        <GalleryListNotice text={t(mine.key)} onRetry={load} />
-      )}
+      {mine.state === 'failed' &&
+        (mine.key === 'plus.gallery.error.signedOut' ? (
+          <div className="gallery-alert" role="alert">
+            <span>{t(mine.key)}</span>
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={() => requestAccountPanel()}
+            >
+              {t('account.signIn')}
+            </button>
+          </div>
+        ) : (
+          <GalleryListNotice text={t(mine.key)} onRetry={load} />
+        ))}
 
       {mine.state === 'loading' && (
         <div
@@ -317,4 +349,9 @@ export default function YourScenes({ me }: IYourScenesProps) {
         )}
     </div>
   );
+}
+
+/** Changing accounts discards the old list and all its pending actions before paint. */
+export default function YourScenes({ me }: IYourScenesProps) {
+  return <YourScenesList key={me ?? ''} me={me} />;
 }

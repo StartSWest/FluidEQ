@@ -43,7 +43,7 @@ export const MAX_PICTURE_BYTES = 512 * 1024;
 
 export const SCENE_BUCKET = 'member-scenes';
 
-export type TGalleryFailure = 'offline' | 'signed-out' | 'server';
+export type TGalleryFailure = 'offline' | 'signed-out' | 'forbidden' | 'server';
 
 export interface IAuthorised {
   config: IAccountConfig;
@@ -62,14 +62,24 @@ export const rpc = async (
   auth: IAuthorised,
   name: string,
   body: Record<string, unknown>,
+  signal?: AbortSignal,
 ): Promise<Response> =>
   (auth.fetchImpl ?? fetch)(
     new URL(`/rest/v1/rpc/${name}`, auth.config.supabaseUrl).toString(),
-    { method: 'POST', headers: headers(auth), body: JSON.stringify(body) },
+    {
+      method: 'POST',
+      headers: headers(auth),
+      body: JSON.stringify(body),
+      ...(signal ? { signal } : {}),
+    },
   );
 
-const failureOf = (status: number): TGalleryFailure =>
-  status === 401 ? 'signed-out' : 'server';
+const failureOf = (status: number): TGalleryFailure => {
+  if (status === 401) {
+    return 'signed-out';
+  }
+  return status === 403 ? 'forbidden' : 'server';
+};
 
 type TListOutcome =
   | { ok: true; scenes: IGalleryScene[]; more: boolean }
@@ -159,14 +169,16 @@ export const listPublished = async (
   }
   try {
     const rows: unknown = await response.json();
-    return Array.isArray(rows)
-      ? {
-          ok: true,
-          scenes: rows.flatMap((row) => {
-            const scene = parsePublishedRow(row);
-            return scene ? [scene] : [];
-          }),
-        }
+    if (!Array.isArray(rows)) {
+      return { ok: false, reason: 'server' };
+    }
+    const scenes = rows.map(parsePublishedRow);
+    // Dropping an unreadable publication can turn a broken response into
+    // "you have not published anything", with nothing left to retry.
+    return scenes.every(
+      (scene): scene is IPublishedScene => scene !== undefined,
+    )
+      ? { ok: true, scenes }
       : { ok: false, reason: 'server' };
   } catch {
     return { ok: false, reason: 'server' };

@@ -127,12 +127,14 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
   return fakeResponse(200, null);
 }) as unknown as typeof fetch;
 
+let listAuthorization: IGalleryAccess['authorize'];
 const access = (): IGalleryAccess => ({
   accountId: () => (signedIn ? ME : undefined),
   entitled: () => entitled,
   // Plus owns every scene while it lasts (`sceneOwnership.ts`).
   owns: () => entitled,
   auth: async () => ({ config, accessToken: 'token', fetchImpl }),
+  authorize: listAuthorization,
 });
 
 const setup = () => {
@@ -162,6 +164,7 @@ beforeEach(() => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-gallery-ipc-'));
   entitled = true;
   signedIn = true;
+  listAuthorization = undefined;
   announced = 0;
   refreshed = 0;
   calls = [];
@@ -174,6 +177,18 @@ afterEach(() => {
 });
 
 describe('listing', () => {
+  it.each(['offline', 'signed-out', 'forbidden', 'server'] as const)(
+    'preserves a %s authorization failure before asking for gallery rows',
+    async (reason) => {
+      listAuthorization = async () => ({ ok: false, reason });
+      setup();
+      expect(await invoke('plus-gallery-list', {})).toEqual({
+        ok: false,
+        reason,
+      });
+      expect(calls).toEqual([]);
+    },
+  );
   it('syncs a signed republication into an installed copy and retains it after withdrawal', async () => {
     const gallery = setup();
     store.saveImported(signedEnvelope(memberPayload()));

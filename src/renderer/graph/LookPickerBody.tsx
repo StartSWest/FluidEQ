@@ -9,6 +9,7 @@ import type { TranslationKey } from 'common/i18n';
 import LookIcon from '../icons/LookIcon';
 import { useTranslation } from '../utils/I18nContext';
 import LookPickerScene from './LookPickerScene';
+import LookPickerDiscover from './LookPickerDiscover';
 import {
   categoryName,
   FAMILY_KEYS,
@@ -39,6 +40,7 @@ interface ILookPickerBodyProps {
   searchRef: RefObject<HTMLInputElement | null>;
   /** Told when the columns arrive, to scroll each to its chosen row. */
   columnsRef?: (columns: HTMLDivElement | null) => void;
+  onLeave?: () => void;
 }
 
 /**
@@ -62,6 +64,7 @@ const LookPickerBody = ({
   onChoose,
   searchRef,
   columnsRef,
+  onLeave,
 }: ILookPickerBodyProps) => {
   const { t } = useTranslation();
 
@@ -70,6 +73,8 @@ const LookPickerBody = ({
   const activeStyle = styleChips.includes(styleFilter) ? styleFilter : 'all';
   const activePlus = plusChips.includes(plusFilter) ? plusFilter : 'all';
   const searching = query.trim().length > 0;
+  const discovering =
+    plusRows.length === 0 && !searching && onLeave !== undefined;
   const shownStyles = styleRows.filter((row) =>
     searching ? matchesSearch(row.search, query) : keepStyle(row, activeStyle),
   );
@@ -275,7 +280,9 @@ const LookPickerBody = ({
         >
           <header className="look-picker__head">
             <h3>{t('graph.picker.plus')}</h3>
-            <span className="look-picker__count">{shownPlus.length}</span>
+            {!discovering && (
+              <span className="look-picker__count">{shownPlus.length}</span>
+            )}
           </header>
           {plusRows.length > 0 &&
             chips(
@@ -286,13 +293,28 @@ const LookPickerBody = ({
               'graph.picker.filterPlus',
             )}
           <div
-            className="look-picker__list"
+            className={`look-picker__list${discovering ? ' look-picker__list--discover' : ''}`}
             data-look-picker-scroll
             data-anchored-menu-scroll
           >
             {shownPlus.flatMap(renderScene)}
-            {shownPlus.length === 0 && (
-              <p className="look-picker__empty">{t('common.noMatches')}</p>
+            {discovering && onLeave ? (
+              <LookPickerDiscover onLeave={onLeave} />
+            ) : (
+              shownPlus.length === 0 && (
+                <div className="look-picker__empty">
+                  <p>{t('common.noMatches')}</p>
+                  {searching && (
+                    <button
+                      type="button"
+                      className="button small subtle"
+                      onClick={() => onQuery('')}
+                    >
+                      {t('common.clearSearch')}
+                    </button>
+                  )}
+                </div>
+              )
             )}
           </div>
         </section>

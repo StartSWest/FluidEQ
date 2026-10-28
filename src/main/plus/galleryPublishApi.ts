@@ -18,6 +18,7 @@ import { headers, type IAuthorised } from './galleryApi';
 export type TPublishFailure =
   | 'offline'
   | 'signed-out'
+  | 'forbidden'
   /** A server before the free Studio: only Plus members could publish. */
   | 'not-entitled'
   /** The address is not confirmed yet, which publishing needs. */
