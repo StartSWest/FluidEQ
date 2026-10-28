@@ -2,6 +2,7 @@
 #include "capture_children.h"
 #include "playback_runtime.h"
 #include "replies.h"
+#include "../../common/windows_audio_task.h"
 #include <array>
 #include <charconv>
 #include <cmath>
@@ -42,6 +43,7 @@ int main(int argc, char** argv) {
   });
   int exit_code = 0;
   {
+    const feq::remote::AudioIoTask scheduling;
     CaptureChildren captures(pid, [](std::uint32_t id, DWORD code) {
       playback_reply(9, id, static_cast<std::uint32_t>(code));
     });

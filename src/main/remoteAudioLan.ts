@@ -46,6 +46,8 @@ import {
 } from './remoteAudioLanJoin';
 import { createLanJoins } from './remoteAudioLanJoins';
 import createRemoteAudioTransport from './remoteAudioTransport';
+import { audioWorkerEnabled } from './shareAudio/host';
+import { createWorkerLan } from './shareAudio/lanAdapter';
 import type {
   ILanHostCredentials,
   ILanHostSession,
@@ -84,6 +86,9 @@ const createRemoteAudioLan = (
   emitNetwork: (stats: ILanRemoteAudioNetworkStats) => void,
   book: ILanLinkBook,
 ): IRemoteAudioLan => {
+  if (audioWorkerEnabled()) {
+    return createWorkerLan(emitSignal, emitError, emitNetwork, book);
+  }
   let server: WebSocketServer | undefined;
   let discoverySocket: dgram.Socket | undefined;
   let rejectHostStart: ((error: Error) => void) | undefined;

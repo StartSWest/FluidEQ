@@ -11,14 +11,13 @@ import path from 'path';
 import { safeStorage } from 'electron';
 import {
   isAudioGroupLink,
+  MAX_AUDIO_GROUP_COMPUTERS as MAX_JOINS,
+  MAX_AUDIO_REVOKED_COMPUTERS as MAX_REVOKED,
   type IAudioGroupLink,
 } from '../common/remoteAudioGroup';
 
 const FILE_NAME = 'remote-audio-lan.json';
 const CODE_PREFIX = 'FLUIDEQ-LAN-2.';
-/** As many computers as anybody links; the list is bounded all the same. */
-const MAX_JOINS = 32;
-const MAX_REVOKED = 64;
 
 export interface ILanIdentity {
   port: number;

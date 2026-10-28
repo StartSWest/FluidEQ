@@ -22,6 +22,7 @@ const configuration: webpack.Configuration = {
   // Each surface has its own authority: only the app receives the full bridge.
   // Video and wallpaper preloads expose only what their surfaces need.
   entry: {
+    'share-audio-worker': path.join(webpackPaths.srcMainPath, 'shareAudio/worker.ts'),
     'inference-worker': path.join(
       webpackPaths.srcMainPath,
       'inferenceWorker.ts',

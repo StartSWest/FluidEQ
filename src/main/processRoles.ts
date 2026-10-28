@@ -15,6 +15,7 @@ import type { IMeterReading } from './processMeter';
 import {
   LIBRARY_SCAN_PROCESS_NAME,
   MODEL_PROCESS_NAME,
+  SHARE_AUDIO_PROCESS_NAME,
 } from './utilityProcessNames';
 
 /**
@@ -171,6 +172,7 @@ const UTILITY_ROLES: Record<string, TProcessRole> = {
  * listed the karaoke models and a library scan as two identical helpers.
  */
 const OWN_UTILITY_ROLES: Record<string, TProcessRole> = {
+  [SHARE_AUDIO_PROCESS_NAME]: 'sharePlayback',
   [MODEL_PROCESS_NAME]: 'models',
   [LIBRARY_SCAN_PROCESS_NAME]: 'libraryScan',
 };
