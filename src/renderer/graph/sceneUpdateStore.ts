@@ -8,7 +8,10 @@ import { useSyncExternalStore } from 'react';
 import { FLUIDEQ_CREATOR_ID, type IGalleryScene } from 'common/plusGallery';
 import type { TLocalizedName } from 'common/scenePacks';
 import { findGalleryScene } from '../plus/galleryStore';
-import { markSceneVersionSeen } from '../utils/seenSceneVersions';
+import {
+  markSceneVersionSeen,
+  seenSceneVersion,
+} from '../utils/seenSceneVersions';
 
 /**
  * The one notice the graph gives when the Plus look it is playing arrives at a
@@ -78,6 +81,11 @@ export const reportScenePlayed = async (played: IPlayedScene) => {
     return;
   }
   const scene = await galleryEntry(played);
+  // A slow gallery reply for an older version must not replace the notice
+  // for the newer pack that has already been confirmed by the scene runner.
+  if (seenSceneVersion(played.lookId) !== played.version) {
+    return;
+  }
   publish({
     ok: true,
     names: scene?.names ?? played.names,
@@ -85,6 +93,21 @@ export const reportScenePlayed = async (played: IPlayedScene) => {
     ...(scene?.versionNote ? { note: scene.versionNote } : {}),
     ...(scene ? { scene } : {}),
   });
+};
+
+/**
+ * The mounted toast has received this notice and owns its lifetime now.
+ * Leaving it in the store replayed an already dismissed toast on every graph
+ * remount. The persisted highest played version prevents another report from
+ * raising it again; only the pending delivery is cleared here.
+ */
+export const acknowledgeSceneUpdateNotice = (shown: ISceneUpdateNotice) => {
+  if (notice !== shown) {
+    return false;
+  }
+  notice = undefined;
+  listeners.forEach((listener) => listener());
+  return true;
 };
 
 const subscribe = (listener: () => void) => {

@@ -4,12 +4,14 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { useEffect, useState } from 'react';
 import { resolveSceneName } from 'common/scenePacks';
 import PlusToastStack from '../plus/PlusToastStack';
 import { openGalleryPage } from '../plus/plusNavigation';
 import { requestPlusTab } from '../plus/plusTabRequest';
 import { useTranslation } from '../utils/I18nContext';
 import {
+  acknowledgeSceneUpdateNotice,
   useSceneUpdateNotice,
   type ISceneUpdateNotice,
 } from './sceneUpdateStore';
@@ -23,7 +25,15 @@ import '../styles/SceneUpdateNotice.scss';
  */
 export default function GraphUpdateNotice() {
   const { t, locale } = useTranslation();
-  const notice = useSceneUpdateNotice();
+  const pending = useSceneUpdateNotice();
+  const [notice, setNotice] = useState<ISceneUpdateNotice>();
+  useEffect(() => {
+    // Claim a delivery once even if two graph surfaces are mounted together.
+    // This mounted stack then keeps the toast and its action until it leaves.
+    if (pending && acknowledgeSceneUpdateNotice(pending)) {
+      setNotice(pending);
+    }
+  }, [pending]);
   return (
     <div className="graph-update-notice">
       <PlusToastStack<ISceneUpdateNotice>
