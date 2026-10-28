@@ -169,11 +169,31 @@ describe('the player and full screen', () => {
     expect(lastMaximum()[1]).toBe(NO_CEILING);
   });
 
-  it('is refused a switch of mode while full screen', async () => {
+  it('leaves full screen before switching back to the app', async () => {
     const { modes, win } = playerAt();
     modes.setFullScreen(win, true);
-    await expect(modes.setMode(win, 'app')).resolves.toBe('player');
+    await expect(modes.setMode(win, 'app')).resolves.toBe('app');
+    expect(win.isFullScreen()).toBe(false);
   });
+
+  it.each(['win32', 'linux'] as const)(
+    'switches fullscreen Karaoke to the amp and restores the app on %s',
+    async (platform) => {
+      const modes = createWindowModes(platform);
+      const { win, bounds } = fakeWindow();
+      const app = { x: 100, y: 90, width: 1200, height: 840 };
+      win.setBounds(app);
+      modes.followWindow(win);
+      modes.setFullScreen(win, true);
+      expect(bounds()).toEqual(DISPLAY);
+      await expect(modes.setMode(win, 'player')).resolves.toBe('player');
+      expect(win.isFullScreen()).toBe(false);
+      expect(bounds().width).toBeLessThan(app.width);
+      expect(modes.memory().app).toEqual({ ...app, isMaximized: false });
+      await modes.setMode(win, 'app');
+      expect(bounds()).toEqual(app);
+    },
+  );
 });
 
 describe('whose full screen it is', () => {

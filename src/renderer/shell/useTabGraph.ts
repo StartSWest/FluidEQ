@@ -22,7 +22,6 @@ import { exitGraphFullScreen, getGraphView } from '../utils/graphStyle';
 import type { TWorkspaceTab } from '../workspaceTabs';
 import {
   GRAPH_VISIBILITY_BY_TAB_KEY,
-  isFullscreenMediaTab,
   readWorkspaceGraphVisibility,
   type TWorkspaceGraphVisibility,
 } from './workspaceGroups';
@@ -55,10 +54,11 @@ const useTabGraph = ({
   // on the Library and taken back out, because the switch in the sidebar then
   // did nothing on that one tab — a control that visibly does nothing being
   // worse than the row it saved.
+  // The current page's switch is the authority. A larger graph mode must not
+  // force a disabled media-page graph back on or defeat its Off switch.
   const showsGraph =
-    (graphView !== 'normal' && isFullscreenMediaTab(activeWorkspaceTab)) ||
-    (graphVisibilityByTab?.[activeWorkspaceTab] ??
-      (activeWorkspaceTab === 'eq' ? isGraphViewOn : false));
+    graphVisibilityByTab?.[activeWorkspaceTab] ??
+    (activeWorkspaceTab === 'eq' ? isGraphViewOn : false);
 
   const setActiveTabGraphVisibility = useCallback(
     (next: boolean) => {

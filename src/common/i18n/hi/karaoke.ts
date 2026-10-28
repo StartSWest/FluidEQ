@@ -20,6 +20,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const karaoke: Partial<Dictionary> = {
+  'karaoke.import.clearTitle': 'सभी कराओके गाने हटाएँ?',
+  'karaoke.import.clearBody':
+    'इससे प्लेबैक रुक जाएगा और कराओके की पूरी प्लेलिस्ट खाली हो जाएगी। आपकी फ़ाइलें इस कंप्यूटर पर रहेंगी।',
   'karaoke.eyebrow': 'स्थानीय कराओके',
   'karaoke.title': 'आपके संगीत के लिए बना मंच',
   'karaoke.intro':
@@ -75,8 +78,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.stage.videoUnsupported': '{format} वीडियो यहाँ नहीं चल सकता',
   'karaoke.stage.videoFailed': '{format} वीडियो यहाँ डिकोड नहीं हो सका',
   'karaoke.stage.hideArt': 'कवर आर्ट छिपाएँ',
-  'karaoke.stage.showGraph': 'मौजूदा ग्राफ़ और विज़ुअलाइज़र को पृष्ठभूमि बनाएँ',
-  'karaoke.stage.hideGraph': 'ग्राफ़ और विज़ुअलाइज़र की पृष्ठभूमि बंद करें',
+  'karaoke.stage.showGraph': 'मौजूदा विज़ुअलाइज़र को पृष्ठभूमि बनाएँ',
+  'karaoke.stage.hideGraph': 'विज़ुअलाइज़र की पृष्ठभूमि बंद करें',
   'karaoke.stage.showArt': 'कवर आर्ट दिखाएँ',
   'karaoke.stage.noArt': 'इस गाने में कवर आर्ट नहीं है',
   'karaoke.playlist.title': 'प्लेलिस्ट',

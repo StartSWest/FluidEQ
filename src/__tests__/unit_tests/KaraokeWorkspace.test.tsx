@@ -33,6 +33,11 @@ import {
 } from '../../renderer/karaoke/karaokeAudioClock';
 import { FakeClockContext, openFakeClock } from '../utils/fakeAudioClock';
 
+jest.mock('../../renderer/audio/LiveAudioContext', () => ({
+  ...jest.requireActual('../../renderer/audio/LiveAudioContext'),
+  useLiveAudioCapture: jest.fn(),
+}));
+
 /**
  * The count-in, the Maker's countdown and its auditions keep time on the sound
  * card's clock, which jsdom does not have. One clock the test moves by hand,
@@ -290,9 +295,7 @@ describe('KaraokeWorkspace', () => {
     expect(
       screen.getByRole('button', { name: 'This song has no cover art' }),
     ).toBeDisabled();
-    expect(
-      container.querySelector('.karaoke-stage-media'),
-    ).not.toBeInTheDocument();
+    expect(container.querySelector('.karaoke-ambient')).toBeInTheDocument();
   });
 
   it('hides and restores cover art, and remembers which', async () => {
@@ -318,9 +321,7 @@ describe('KaraokeWorkspace', () => {
     expect(hideArt).toHaveAttribute('aria-pressed', 'true');
     fireEvent.click(hideArt);
 
-    expect(
-      container.querySelector('.karaoke-stage-media'),
-    ).not.toBeInTheDocument();
+    expect(container.querySelector('.karaoke-ambient')).toBeInTheDocument();
     expect(
       window.localStorage.getItem('fluideq-karaoke-stage-background'),
     ).toBe('none');
@@ -335,7 +336,7 @@ describe('KaraokeWorkspace', () => {
     ).toBe('cover');
   });
 
-  it('switches exclusively between art, the current graph, and no background', async () => {
+  it('switches exclusively between cover, visualizer and ambient scenery', async () => {
     const { container, rerender } = render(
       <KaraokeWorkspace isHidden={false} />,
     );
@@ -358,7 +359,7 @@ describe('KaraokeWorkspace', () => {
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Use current graph + visualizer as background',
+        name: 'Use current visualizer as background',
       }),
     );
     expect(
@@ -383,17 +384,15 @@ describe('KaraokeWorkspace', () => {
     ).not.toBeInTheDocument();
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Use current graph + visualizer as background',
+        name: 'Use current visualizer as background',
       }),
     );
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Turn off graph + visualizer background',
+        name: 'Turn off visualizer background',
       }),
     );
-    expect(
-      container.querySelector('.karaoke-stage-media'),
-    ).not.toBeInTheDocument();
+    expect(container.querySelector('.karaoke-ambient')).toBeInTheDocument();
     expect(
       window.localStorage.getItem('fluideq-karaoke-stage-background'),
     ).toBe('none');
@@ -401,7 +400,7 @@ describe('KaraokeWorkspace', () => {
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Use current graph + visualizer as background',
+        name: 'Use current visualizer as background',
       }),
     );
     rerender(<KaraokeWorkspace isHidden={false} isFullScreen />);

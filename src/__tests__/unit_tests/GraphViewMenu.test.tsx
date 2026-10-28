@@ -51,6 +51,26 @@ const renderMenuForSizing = (
   );
 
 describe('GraphViewMenu curve toggles', () => {
+  it('offers see-through and blur for a Plus graph over Karaoke', () => {
+    const opacity = jest.fn();
+    const blur = jest.fn();
+    renderMenuForSizing({
+      view: 'expanded',
+      sceneLookId: 'premium:aurora',
+      hasPlaybackBackdrop: true,
+      onChangeOverlayOpacity: opacity,
+      onChangeOverlayBlur: blur,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Expanded' }));
+    fireEvent.change(screen.getByRole('slider', { name: 'See through' }), {
+      target: { value: '75' },
+    });
+    fireEvent.change(screen.getByRole('slider', { name: 'Blur' }), {
+      target: { value: '12' },
+    });
+    expect(opacity).toHaveBeenCalledWith(0.25);
+    expect(blur).toHaveBeenCalledWith(12);
+  });
   it('offers drawing controls for a Standard visualizer and saves them separately from Plus', () => {
     window.localStorage.removeItem('fluideq.standardPerformance');
     resetScenePerformanceForTesting();

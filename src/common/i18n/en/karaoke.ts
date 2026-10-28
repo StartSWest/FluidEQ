@@ -18,6 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /** The Karaoke tab, its player and the Maker. */
 const karaoke = {
+  'karaoke.import.clearTitle': 'Unload all karaoke songs?',
+  'karaoke.import.clearBody':
+    'This stops playback and clears the entire Karaoke playlist. Your files stay on this computer.',
   'karaoke.eyebrow': 'LOCAL KARAOKE',
   'karaoke.title': 'A stage built around your music',
   'karaoke.intro':
@@ -78,8 +81,8 @@ const karaoke = {
   'karaoke.stage.videoUnsupported': '{format} video cannot be played here',
   'karaoke.stage.videoFailed': '{format} video could not be decoded here',
   'karaoke.stage.hideArt': 'Hide cover art',
-  'karaoke.stage.showGraph': 'Use current graph + visualizer as background',
-  'karaoke.stage.hideGraph': 'Turn off graph + visualizer background',
+  'karaoke.stage.showGraph': 'Use current visualizer as background',
+  'karaoke.stage.hideGraph': 'Turn off visualizer background',
   'karaoke.stage.showArt': 'Show cover art',
   'karaoke.stage.noArt': 'This song has no cover art',
   'karaoke.playlist.title': 'Playlist',

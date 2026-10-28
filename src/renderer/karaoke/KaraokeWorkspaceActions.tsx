@@ -20,6 +20,7 @@ import { type useKaraokeSession } from './useKaraokeSession';
 import { type useKaraokeMicrophoneInput } from './useKaraokeMicrophone';
 import { type IKaraokeSong } from '../../common/karaoke/types';
 import { useTranslation } from '../utils/I18nContext';
+import KaraokeClearButton from './KaraokeClearButton';
 
 interface IKaraokeWorkspaceActionsProps {
   song: IKaraokeSong | undefined;
@@ -101,16 +102,7 @@ const KaraokeWorkspaceActions = ({
       role="toolbar"
       aria-label={t('karaoke.actions')}
     >
-      {playlist.length > 0 && (
-        <button
-          type="button"
-          className="button small subtle karaoke-workspace__action"
-          onClick={clearPlaylist}
-        >
-          <MenuIcon name="clear" className="karaoke-button__icon" />
-          <span>{t('karaoke.import.clear')}</span>
-        </button>
-      )}
+      {playlist.length > 0 && <KaraokeClearButton onClear={clearPlaylist} />}
       <button
         type="button"
         className="button small subtle karaoke-workspace__action"
@@ -298,9 +290,9 @@ const KaraokeWorkspaceActions = ({
         aria-label={t(
           isFullScreen ? 'karaoke.fullscreen.exit' : 'karaoke.fullscreen.enter',
         )}
-        title={`${t(
+        title={t(
           isFullScreen ? 'karaoke.fullscreen.exit' : 'karaoke.fullscreen.enter',
-        )} (Ctrl+F)`}
+        )}
         aria-pressed={isFullScreen}
         onClick={onToggleFullScreen}
       >

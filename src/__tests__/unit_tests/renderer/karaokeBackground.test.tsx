@@ -6,48 +6,158 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import '@testing-library/jest-dom';
 import { cleanup, render, screen } from '@testing-library/react';
-import { createPortal } from 'react-dom';
-import KaraokeGraphBackground, {
-  useKaraokeGraphHost,
-} from '../../../renderer/karaoke/KaraokeGraphBackground';
+import KaraokeGraphBackground from '../../../renderer/karaoke/KaraokeGraphBackground';
+import KaraokeBackdrop from '../../../renderer/karaoke/KaraokeBackdrop';
+import { createKaraokeLiveValue } from '../../../renderer/karaoke/karaokeLiveValue';
+import {
+  setGraphContents,
+  setGraphView,
+} from '../../../renderer/utils/graphStyle';
+import { setOverlayBlur } from '../../../renderer/utils/graphOverlay';
+import { resetSettings } from '../../../renderer/utils/settingsReset';
 import {
   readKaraokeBackground,
   writeKaraokeBackground,
 } from '../../../renderer/karaoke/karaokeWorkspacePrefs';
 
-function GraphShell() {
-  const host = useKaraokeGraphHost();
-  const graph = (
-    <div data-testid="current-graph">Current graph + visualizer</div>
-  );
-  return host ? createPortal(graph, host) : <aside>{graph}</aside>;
-}
+jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
+  useLiveAudioCapture: jest.fn(),
+}));
+jest.mock('../../../renderer/player/useGraphScenePack', () => ({
+  __esModule: true,
+  default: () => ({ state: 'none' }),
+}));
+jest.mock('../../../renderer/graph/LiveTraceCanvas', () => ({
+  __esModule: true,
+  default: ({ hasKey }: { hasKey: boolean }) => (
+    <canvas data-testid="background-trace" data-has-key={String(hasKey)} />
+  ),
+}));
+
+const originalObserver = global.ResizeObserver;
+beforeEach(() => {
+  global.ResizeObserver = jest
+    .fn()
+    .mockImplementation((callback: ResizeObserverCallback) => {
+      const observer: ResizeObserver = {
+        observe: () =>
+          callback(
+            [
+              {
+                contentRect: { width: 800, height: 500 },
+              } as ResizeObserverEntry,
+            ],
+            observer,
+          ),
+        unobserve: jest.fn(),
+        disconnect: jest.fn(),
+      };
+      return observer;
+    });
+});
 
 afterEach(() => {
   cleanup();
   window.localStorage.clear();
   jest.restoreAllMocks();
+  global.ResizeObserver = originalObserver;
+  setGraphContents('everything');
+  setGraphView('normal');
 });
 
-it('moves the one graph into the stage and returns it when the stage leaves', () => {
+it('keeps the normal graph separate while the background comes and goes', () => {
   const { container, rerender } = render(
     <>
-      <GraphShell />
+      <aside data-testid="regular-graph" />
       <KaraokeGraphBackground />
     </>,
   );
   const backdrop = container.querySelector('.karaoke-graph-background');
-  expect(backdrop).toContainElement(screen.getByTestId('current-graph'));
+  expect(backdrop).not.toContainElement(screen.getByTestId('regular-graph'));
   expect(backdrop).toHaveAttribute('inert');
   expect(backdrop).toHaveAttribute('aria-hidden', 'true');
-  expect(screen.getAllByTestId('current-graph')).toHaveLength(1);
-
-  rerender(<GraphShell />);
-  expect(container.querySelector('aside')).toContainElement(
-    screen.getByTestId('current-graph'),
+  expect(screen.getByTestId('background-trace')).toHaveAttribute(
+    'data-has-key',
+    'false',
   );
+  expect(backdrop?.querySelector('svg, button, [role="slider"]')).toBeNull();
+  expect(screen.getByTestId('regular-graph')).toBeInTheDocument();
+
+  rerender(<aside data-testid="regular-graph" />);
+  expect(screen.getByTestId('regular-graph')).toBeInTheDocument();
   expect(container.querySelector('.karaoke-graph-background')).toBeNull();
-  expect(screen.getAllByTestId('current-graph')).toHaveLength(1);
+});
+
+it('keeps scenery visible when the graph contents are set to Clean', () => {
+  setGraphContents('clean');
+  render(<KaraokeGraphBackground />);
+  expect(screen.getByTestId('background-trace')).toBeInTheDocument();
+});
+
+it('unmounts the ambient lights when a visualizer is selected, and restores them alone', () => {
+  const playhead = createKaraokeLiveValue(0);
+  const { container, rerender } = render(
+    <KaraokeBackdrop
+      background="none"
+      playhead={playhead}
+      isPlaying={false}
+      isGraphOverlay={false}
+    />,
+  );
+  expect(container.querySelectorAll('.karaoke-stage-media')).toHaveLength(1);
+  expect(container.querySelector('.karaoke-ambient')).toBeInTheDocument();
+  rerender(
+    <KaraokeBackdrop
+      background="graph"
+      playhead={playhead}
+      isPlaying={false}
+      isGraphOverlay={false}
+    />,
+  );
+  expect(container.querySelector('.karaoke-ambient')).toBeNull();
+  expect(screen.getByTestId('background-trace')).toBeInTheDocument();
+  rerender(
+    <KaraokeBackdrop
+      background="cover"
+      playhead={playhead}
+      isPlaying={false}
+      isGraphOverlay={false}
+    />,
+  );
+  expect(container.querySelector('.karaoke-ambient')).toBeInTheDocument();
+  expect(screen.queryByTestId('background-trace')).toBeNull();
+});
+
+it('applies the graph blur to scenery only while it is behind an overlay', () => {
+  setGraphView('expanded');
+  setOverlayBlur(16);
+  const playhead = createKaraokeLiveValue(0);
+  const { container, rerender } = render(
+    <KaraokeBackdrop
+      background="none"
+      playhead={playhead}
+      isPlaying={false}
+      isGraphOverlay
+    />,
+  );
+  expect(
+    (container.firstChild as HTMLElement).style.getPropertyValue(
+      '--karaoke-backdrop-filter',
+    ),
+  ).toBe('blur(16px)');
+  rerender(
+    <KaraokeBackdrop
+      background="none"
+      playhead={playhead}
+      isPlaying={false}
+      isGraphOverlay={false}
+    />,
+  );
+  expect(
+    (container.firstChild as HTMLElement).style.getPropertyValue(
+      '--karaoke-backdrop-filter',
+    ),
+  ).toBe('none');
 });
 
 it.each(['cover', 'graph', 'none'] as const)(
@@ -57,6 +167,17 @@ it.each(['cover', 'graph', 'none'] as const)(
     expect(readKaraokeBackground()).toBe(mode);
   },
 );
+
+it('resets the background preference and legacy art choice without clearing song progress', () => {
+  writeKaraokeBackground('graph');
+  window.localStorage.setItem('fluideq-karaoke-stage-art-visible', 'false');
+  window.localStorage.setItem('fluideq.karaoke.current-progress.v1', 'saved');
+  resetSettings(window.localStorage);
+  expect(readKaraokeBackground()).toBe('cover');
+  expect(
+    window.localStorage.getItem('fluideq.karaoke.current-progress.v1'),
+  ).toBe('saved');
+});
 
 it('keeps the old art visibility preference until a background is selected', () => {
   expect(readKaraokeBackground()).toBe('cover');

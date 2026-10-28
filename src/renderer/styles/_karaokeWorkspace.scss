@@ -63,56 +63,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   scrollbar-gutter: auto;
 }
 
-// *** The player assembling **************************************************
-//
-// KEYED OFF `.is-hidden`, like the Media tab and for the same reason: this
-// workspace is mounted once and then hidden rather than destroyed, so leaving
-// the tab does not stop the song. Its elements are therefore never new, and a
-// plain entrance would play on the first visit of the session and never again.
-// The selector matches only while the tab is showing, so removing the class
-// starts the animation and putting it back arms it for the next visit.
-//
-// The frames hold still and their contents arrive into them — the stage keeps
-// its card, the playlist keeps its panel. That is what makes the
-// tab read as filling in rather than as being rebuilt, and it is also what
-// keeps this flat: one sequence of delays over leaf elements, never a cascade
-// nested inside a container that is itself animating. See `stagger-in`.
-.karaoke-workspace:not(.is-hidden) .karaoke-workspace__header {
-  @include animate(rise-in);
+// Restore used to insert Make and artwork controls into an already visible
+// toolbar while separate leaf delays brought the rest in at different times.
+// The restore promise determines readiness; the finished view fades in once.
+.karaoke-workspace.is-restoring {
+  > .karaoke-workspace__header,
+  > .karaoke-workspace__player,
+  > .karaoke-workspace__readiness {
+    visibility: hidden;
+  }
+
+  .karaoke-workspace__restoring {
+    visibility: visible;
+  }
 }
 
-.karaoke-workspace:not(.is-hidden) .karaoke-playlist__heading {
-  @include animate(rise-in, $motion-base, $ease-out, 55ms);
+.karaoke-workspace:not(.is-hidden):not(.is-restoring) {
+  @include animate(karaoke-workspace-ready);
 }
 
-// Ten covers a full pane; a longer playlist scrolls, and rows below the fold
-// take the tail delay rather than arriving ahead of the rows above them.
-//
-// Safe to animate despite the rows being reorderable, because the reorder is
-// native HTML drag-and-drop rather than a transform: nothing here fights the
-// browser for the same property, and the drag image is a snapshot taken from
-// an element that settled long before anyone could reach for it.
-.karaoke-workspace:not(.is-hidden) .karaoke-playlist__item {
-  @include stagger-in($count: 10, $step: 26ms, $offset: 90ms);
-}
-
-// The stage's own contents, which is the one cascade here that earns its keep
-// twice. It replays on returning to the tab, and it replays when a song loads
-// — the empty state and the loaded player are two different sets of children
-// in the same box, so React builds new elements and the row of them assembles
-// itself: heading, lyrics, then the pitch guide.
-//
-// Six is a ceiling for both arrangements. The drop overlay is excluded because
-// it is absolutely positioned feedback that appears mid-drag, and sliding it
-// into place would answer a drag that has already happened. The playlist's
-// restore pill likewise answers the fold, and arrives on the fold's own timing
-// (`.karaoke-playlist__expand`).
-.karaoke-workspace:not(.is-hidden)
-  .karaoke-workspace__stage
-  > *:not(.karaoke-workspace__drop-overlay):not(.karaoke-stage-media):not(
-    .karaoke-playlist__expand
-  ) {
-  @include stagger-in($count: 6, $step: 45ms, $offset: 90ms);
+// Keep the first ready frame visible: a fade from black would flash the
+// shell and pause visibility-aware canvases until the animation ended.
+@keyframes karaoke-workspace-ready {
+  from {
+    opacity: 0.88;
+  }
 }
 
 // *** The picture behind the words *******************************************
@@ -121,9 +96,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // inside the stage's own stacking context, so the grid above it is untouched
 // and the heading, lyrics and pitch guide keep the layout they had.
 //
-// Excluded from the cascade above on purpose. Everything else on this stage
-// arrives with an 8px rise, which is right for content and wrong for scenery —
-// a backdrop that slides is a backdrop you look at instead of through.
+// Scenery stays still while the complete workspace fades in; translating it
+// separately would make the background compete with the words.
 .karaoke-stage-media {
   position: absolute;
   z-index: 0;
@@ -190,10 +164,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: $text-title;
   line-height: 1.4;
   @include tracking(0.01em);
-}
-
-.karaoke-workspace:not(.is-hidden) .karaoke-transport {
-  @include animate(rise-in, $motion-base, $ease-out, 310ms);
 }
 
 @keyframes karaoke-maker-surface-enter {
@@ -461,10 +431,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   position: absolute;
   z-index: 9;
   top: 9px;
-  right: 10px;
+  right: var(--fullscreen-controls-right, 10px);
   left: auto;
   width: auto;
-  max-width: calc(100% - 20px);
+  max-width: calc(100% - var(--fullscreen-controls-right, 10px) - 10px);
   gap: 5px;
   padding: 5px;
   border: 1px solid $border-field;

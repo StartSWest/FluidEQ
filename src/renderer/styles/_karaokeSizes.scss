@@ -36,8 +36,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 6px;
 
     .karaoke-workspace__action {
-      min-width: 104px;
-      flex: 1 1 104px;
+      min-width: max-content;
+      flex: 1 1 auto;
     }
 
     .karaoke-workspace__icon-action {
@@ -83,6 +83,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .karaoke-workspace__stage.has-song {
     padding: 10px;
+  }
+
+  // The fullscreen dock spans the narrow stage: there is no free left-hand
+  // corner for the title. Give the entire heading the dock's row clearance.
+  .karaoke-workspace.is-fullscreen
+    .karaoke-workspace__stage.has-song:has(
+      > .karaoke-workspace__actions.is-stage-toolbar
+    )
+    .karaoke-song__heading {
+    flex-wrap: wrap;
+    margin-top: 56px;
+
+    > div:first-child {
+      flex-basis: 100%;
+    }
+
+    .karaoke-song__tools {
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      margin-top: 0;
+    }
   }
 
   .karaoke-chords__next[data-order='2'] {

@@ -90,12 +90,17 @@ const usePlayerMounts = ({
   const isSystemPlaying = useIsTransportPlaying('system');
   const hasSystemTitle = useHasTransportTitle('system');
   const isSystemSounding = playingOwner === undefined && isSystemPlaying;
-  const graphBackdropOwner =
+  const heldGraphBackdropOwner =
     isGraphBackdropMode &&
     (!isSceneOnGraph || heldOwner === 'karaoke') &&
     (!isSystemSounding || heldOwner === 'karaoke')
       ? heldOwner
       : undefined;
+  // Opening the graph over Karaoke must keep that page's chosen scenery,
+  // including before its first Play. A playback claim is about sound, not
+  // permission to show the background the member explicitly switched on.
+  const graphBackdropOwner =
+    isGraphBackdropMode && isKaraokeTab ? 'karaoke' : heldGraphBackdropOwner;
   const showsMediaGraphBackdrop = graphBackdropOwner === 'media';
   const showsLibraryGraphBackdrop = graphBackdropOwner === 'library';
   const showsKaraokeGraphBackdrop = graphBackdropOwner === 'karaoke';

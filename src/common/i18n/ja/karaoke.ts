@@ -20,6 +20,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const karaoke: Partial<Dictionary> = {
+  'karaoke.import.clearTitle': 'カラオケのすべての曲を閉じますか？',
+  'karaoke.import.clearBody':
+    '再生を停止し、カラオケのプレイリスト全体を空にします。ファイルはこのコンピューターに残ります。',
   'karaoke.eyebrow': 'ローカルカラオケ',
   'karaoke.title': 'あなたの音楽のためのステージ',
   'karaoke.intro':
@@ -75,8 +78,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.stage.videoUnsupported': '{format} 動画はここでは再生できません',
   'karaoke.stage.videoFailed': '{format} 動画をここでデコードできませんでした',
   'karaoke.stage.hideArt': 'カバーアートを非表示',
-  'karaoke.stage.showGraph': '現在のグラフとビジュアライザーを背景にする',
-  'karaoke.stage.hideGraph': 'グラフとビジュアライザーの背景をオフにする',
+  'karaoke.stage.showGraph': '現在のビジュアライザーを背景にする',
+  'karaoke.stage.hideGraph': 'ビジュアライザーの背景をオフにする',
   'karaoke.stage.showArt': 'カバーアートを表示',
   'karaoke.stage.noArt': 'この曲にはカバーアートがありません',
   'karaoke.playlist.title': 'プレイリスト',

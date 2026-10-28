@@ -25,7 +25,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { createPortal } from 'react-dom';
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import { isAccountConfigured } from 'common/accountConfig';
 import useMediaQuery from './utils/useMediaQuery';
@@ -72,7 +71,6 @@ import { shortWindowPaneKey, belowGraphPaneKey } from './utils/paneSizes';
 import { EqTitleSlotContext } from './utils/eqTitleSlot';
 import useWorkspaceAxis from './utils/workspaceAxis';
 import FrequencyResponseChart from './graph/FrequencyResponseChart';
-import { useKaraokeGraphHost } from './karaoke/KaraokeGraphBackground';
 import eqReachesSound from './utils/eqReachesSound';
 import useWindowFloor from './utils/windowFloor';
 import Chevron from './icons/Chevron';
@@ -264,7 +262,6 @@ const AppContent = () => {
     graphView,
     isGraphViewOn,
   });
-  const karaokeGraphHost = useKaraokeGraphHost();
 
   // The announcement of new scenes plays its first one on the EQ page's
   // graph (`SceneAnnouncementDialog`), as the gallery's own button does.
@@ -692,7 +689,7 @@ const AppContent = () => {
           >
             <MiddleContent
               paneKey={paneKey}
-              isSized={showsGraph && !isGraphFullScreen && !karaokeGraphHost}
+              isSized={showsGraph && !isGraphFullScreen}
             >
               {/* The six places are in the titlebar now, beside the meter —
                 see `AppTitlebar`. */}
@@ -755,7 +752,7 @@ const AppContent = () => {
               already unmounts it, so its loops and its claim on the capture
               are known to stop and start cleanly. */}
           <Activity mode={behindAmp}>
-            {showsGraph && !isGraphFullScreen && !karaokeGraphHost && (
+            {showsGraph && !isGraphFullScreen && (
               <GraphPaneResizer
                 paneKey={paneKey}
                 ariaLabel={t('graph.resize')}
@@ -764,16 +761,12 @@ const AppContent = () => {
                 onEnd={resize.handleGraphResizeEnd}
               />
             )}
-            {karaokeGraphHost &&
-              createPortal(
-                <FrequencyResponseChart isVisible />,
-                karaokeGraphHost,
-              )}
-            {!karaokeGraphHost && showsGraph && (
+            {showsGraph && (
               <FrequencyResponseChart
                 isVisible
                 hasLayersInHead={isGraphFirst && activeWorkspaceTab === 'eq'}
                 isGrown={isGraphGrown}
+                hasPlaybackBackdrop={mounts.showsKaraokeGraphBackdrop}
               />
             )}
             {/* The graph's Plus visualizer, beside the graph and not in it:

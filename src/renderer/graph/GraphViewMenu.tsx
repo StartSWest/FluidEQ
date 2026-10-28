@@ -123,6 +123,8 @@ interface IGraphViewMenuProps {
    * greys the listening bands, which are never drawn over one.
    */
   sceneLookId?: string;
+  /** Karaoke keeps its own picture behind even a Plus graph. */
+  hasPlaybackBackdrop?: boolean;
 }
 
 /** Names the state the next press moves to, since three states cycle. */
@@ -175,6 +177,7 @@ const GraphViewMenu = ({
   hasTopBar,
   onToggleTopBar,
   sceneLookId,
+  hasPlaybackBackdrop = false,
 }: IGraphViewMenuProps) => {
   const { t } = useTranslation();
   const bandLabelsHidden = useGraphBandLabelsHidden();
@@ -312,13 +315,10 @@ const GraphViewMenu = ({
                   </button>
                 )}
 
-                {/* Not with a Plus visualizer. A scene fills the graph edge to
-                    edge, so there is nothing of what lies behind it to see
-                    through to or blur — and it no longer lies over a video at
-                    all: in full screen it plays alone, and the video has its
-                    own full screen on a double-click (App.tsx). The standard
-                    visualizers keep both. */}
-                {!sceneLookId && (
+                {/* Karaoke keeps its independent scenery behind every look.
+                    Elsewhere a Plus scene plays alone, so there is no picture
+                    behind it to see through to or blur. */}
+                {(!sceneLookId || hasPlaybackBackdrop) && (
                   <>
                     <label
                       className="graph-view-menu__slider graph-view-menu__slider--overlay"

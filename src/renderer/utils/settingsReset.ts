@@ -127,6 +127,7 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq-karaoke-pitch-guide-visible',
   'fluideq-karaoke-playlist-group-by-folder',
   'fluideq-karaoke-stage-art-visible',
+  'fluideq-karaoke-stage-background',
   'fluideq.karaoke.melody-tone-volume',
   'fluideq.karaoke.microphoneGain',
   'fluideq.karaoke.whisperMemory.v1',
