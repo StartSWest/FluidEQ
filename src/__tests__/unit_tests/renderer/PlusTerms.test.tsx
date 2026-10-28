@@ -400,6 +400,8 @@ describe('the Plus terms', () => {
       de: '3D-Modelle',
       it: 'modelli 3D',
       ru: '3D-модел',
+      ko: '3D 모델',
+      'zh-Hant': '3D 模型',
       zh: '3D 模型',
       ja: '3D モデル',
       hi: '3D मॉडल',
