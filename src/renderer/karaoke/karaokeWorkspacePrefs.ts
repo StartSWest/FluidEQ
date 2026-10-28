@@ -8,6 +8,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // the pitch guide and the stage background, each kept in this
 // window's local storage, and whether the stage opens with its pitch lane.
 
+import { useSyncExternalStore } from 'react';
+
+const backgroundListeners = new Set<() => void>();
+const subscribeBackground = (listener: () => void) => {
+  backgroundListeners.add(listener);
+  return () => {
+    backgroundListeners.delete(listener);
+  };
+};
+
 export const STAGE_PITCH_MEDIA_QUERY = '(min-width: 1120px)';
 
 const PLAYLIST_FOLDER_GROUPING_KEY = 'fluideq-karaoke-playlist-group-by-folder';
@@ -76,6 +86,25 @@ export const writeKaraokeBackground = (
     // Keep the live preference when storage is unavailable.
   }
 };
+
+let shownBackground: TKaraokeBackground | undefined;
+
+/** The stage publishes after commit, not from its state updater. */
+export const publishKaraokeBackgroundChoice = (
+  background: TKaraokeBackground,
+) => {
+  shownBackground = background;
+  backgroundListeners.forEach((listener) => listener());
+};
+
+const getShownBackground = () => shownBackground ?? readKaraokeBackground();
+
+export const useKaraokeBackgroundChoice = () =>
+  useSyncExternalStore(
+    subscribeBackground,
+    getShownBackground,
+    () => 'cover' as const,
+  );
 
 export const initiallyUseStagePitch = (): boolean =>
   typeof window.matchMedia !== 'function' ||

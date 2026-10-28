@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import type { ReactNode } from 'react';
 import {
   IFiltersMap,
   IFilter,
@@ -538,6 +539,7 @@ interface IFrequencyResponseChartProps {
   isGrown?: boolean;
   /** The Karaoke stage remains behind the graph, including Plus looks. */
   hasPlaybackBackdrop?: boolean;
+  backdropControls?: ReactNode;
 }
 
 /**
@@ -555,6 +557,7 @@ const FrequencyResponseChart = ({
   hasLayersInHead = false,
   isGrown = false,
   hasPlaybackBackdrop = false,
+  backdropControls,
 }: IFrequencyResponseChartProps) => {
   const { t } = useTranslation();
   // The selection, not the resolved look: while the designer is open the chart
@@ -2200,6 +2203,7 @@ const FrequencyResponseChart = ({
               onToggleTopBar={toggleFullScreenTopBar}
               sceneLookId={drawnScene?.lookId}
               hasPlaybackBackdrop={hasPlaybackBackdrop}
+              backdropControls={backdropControls}
             />
           </span>
           {/* No way out here any more. Full screen keeps the app's own top

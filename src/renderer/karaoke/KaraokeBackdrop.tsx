@@ -11,6 +11,7 @@ import KaraokeGraphBackground from './KaraokeGraphBackground';
 import KaraokeStageMedia, { hasKaraokeStageArt } from './KaraokeStageMedia';
 import { KaraokeLiveValue, type IKaraokeLiveValue } from './karaokeLiveValue';
 import type { TKaraokeBackground } from './karaokeWorkspacePrefs';
+import { useKaraokeSceneAppearance } from './karaokeSceneAppearance';
 
 /** Exactly one backdrop. Hidden pages unmount it, stopping every renderer. */
 export default function KaraokeBackdrop({
@@ -26,15 +27,22 @@ export default function KaraokeBackdrop({
   isPlaying: boolean;
   isGraphOverlay: boolean;
 }) {
-  const blur = useOverlayBlur();
+  const overlayBlur = useOverlayBlur();
+  const scene = useKaraokeSceneAppearance();
+  let blur = 0;
+  if (background === 'graph') {
+    blur = scene.blur;
+  } else if (isGraphOverlay) {
+    blur = overlayBlur;
+  }
   const showsCover = background === 'cover' && song && hasKaraokeStageArt(song);
   return (
     <div
       className="karaoke-backdrop"
       style={
         {
-          '--karaoke-backdrop-filter':
-            isGraphOverlay && blur > 0 ? `blur(${blur}px)` : 'none',
+          '--karaoke-backdrop-filter': blur > 0 ? `blur(${blur}px)` : 'none',
+          '--karaoke-scene-opacity': scene.opacity,
         } as CSSProperties
       }
     >

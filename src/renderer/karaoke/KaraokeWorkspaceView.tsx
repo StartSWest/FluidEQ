@@ -13,6 +13,7 @@ import {
 import KaraokeWorkspaceActions from './KaraokeWorkspaceActions';
 import { KaraokeLiveValue } from './karaokeLiveValue';
 import KaraokeTransport from './KaraokeTransport';
+import KaraokeSceneAppearanceControls from './KaraokeSceneAppearanceControls';
 import KaraokePlaylist, { KARAOKE_PLAYLIST_DRAG_MIME } from './KaraokePlaylist';
 import { KARAOKE_FILE_PICKER_ACCEPT } from '../../common/karaoke/files';
 import { ERROR_KEYS, SOURCE_KEYS } from './karaokeWorkspaceLabels';
@@ -248,6 +249,13 @@ const KaraokeWorkspaceView = ({
                     label: t('library.volume'),
                     value: fader.level,
                     onChange: fader.setLevel,
+                    // The master has a real output mute. Zeroing a stem and
+                    // restoring its level cannot release that separate mute.
+                    pressed: fader.isMuted,
+                    onToggle: fader.toggleMute,
+                    toggleLabel: t(
+                      fader.isMuted ? 'library.unmute' : 'library.mute',
+                    ),
                   },
                 ]
               : []),
@@ -285,6 +293,11 @@ const KaraokeWorkspaceView = ({
                 ]
               : []),
           ]}
+          appearanceControls={
+            background === 'graph' ? (
+              <KaraokeSceneAppearanceControls />
+            ) : undefined
+          }
           onTogglePlayback={handleTogglePlayback}
           onStop={handleStopPlayback}
           onJumpToStart={() => handleSeek(0)}
