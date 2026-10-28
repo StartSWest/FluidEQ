@@ -36,6 +36,8 @@ const DEMO_NAMES = {
   it: 'Notte di lanterne',
   ru: 'Ночь фонариков',
   zh: '灯笼之夜',
+  'zh-Hant': '燈籠之夜',
+  ko: '등불의 밤',
   ja: '提灯の夜',
   hi: 'लालटेन की रात',
 };

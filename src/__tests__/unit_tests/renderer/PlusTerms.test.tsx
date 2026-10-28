@@ -84,7 +84,7 @@ jest.mock('../../../renderer/account/entitlementStore', () => ({
 
 describe('the Plus terms', () => {
   // Every language but English is a chunk of its own, loaded when it is
-  // first chosen; these read all ten, so all ten are loaded first.
+  // first chosen; these read every locale, so all are loaded first.
   beforeAll(() => Promise.all(LOCALES.map(({ code }) => loadLocale(code))));
 
   beforeEach(() => {

@@ -105,7 +105,7 @@ describe('the disclaimer text in English', () => {
  */
 describe('the disclaimer in every shipped language', () => {
   // Every language but English is a chunk of its own, loaded when it is
-  // first chosen; these read all ten, so all ten are loaded first.
+  // first chosen; these read every locale, so all are loaded first.
   beforeAll(() => Promise.all(LOCALES.map(({ code }) => loadLocale(code))));
 
   const translated = LOCALES.filter(({ code }) => code !== 'en');

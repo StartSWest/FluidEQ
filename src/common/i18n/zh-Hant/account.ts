@@ -1,0 +1,98 @@
+/* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
+
+import type { Dictionary } from '../en';
+
+const account = {
+  'account.validation.passwordRequired': '輸入您的密碼。',
+  'account.validation.passwordShort': '至少使用 {count} 字元。',
+  'account.validation.passwordLong': '使用不超過 128 個字元。',
+  'account.validation.nameLong': '使用不超過 80 個字元。',
+  'account.validation.code': '輸入六位數程式碼。',
+  'account.menu': '帳戶',
+  'account.eyebrow': 'FluidEQ',
+  'account.title': '帳戶',
+  'account.checking': '正在檢查您的帳戶...',
+  'account.close': '關閉',
+  'account.optional':
+    '登入是可選的。 FluidEQ 的工作方式與往常一樣，無需帳戶 — 一切都在這臺電腦上執行，並且不會追蹤任何內容。帳戶僅適用於真正需要的部分。',
+  'account.signIn': '登入',
+  'account.signUp': '建立帳戶',
+  'account.signInHint':
+    '您的密碼會直接進入帳戶服務，不會儲存在應用程式的任何位置。',
+  'account.signUpHint': '六位數程式碼傳送至該地址。在此輸入以完成。',
+  'account.working': '一會兒…',
+  'account.signOut': '退出',
+  'account.signOut.confirm': '登出該帳戶？',
+  'account.signOut.detail': '您可以隨時重新登入。',
+  'account.signOut.detailPlus': '您的場景將一直鎖定在此處，直到您重新登入。',
+  'account.signOut.kept': '此電腦上的任何內容都不會被刪除。',
+  'account.cover.onGraph': '圖表上的 {name}',
+  'account.stats.owned': '擁有',
+  'account.stats.likes': '喜歡',
+  'account.scenes.title': '你的收藏',
+  'account.scenes.openGallery': '開啟畫廊',
+  'account.scenes.empty': '您獲得的場景仍屬於您自己，並從此處在圖表上播放。',
+  'account.scenes.playing': '演奏',
+  'account.scenes.play': '在圖表上播放 {name}',
+  'account.published.title': '已發表',
+  'account.published.live': '在畫廊裡',
+  'account.name.change': '更改姓名',
+  'account.name.changeTitle': '改變你的外表',
+  'account.name.changeBody':
+    '您在已發布的場景中的暱稱和姓名。它們同時到處都在變化；您的電子郵件保持私密。',
+  'account.name.cancel': '取消',
+  'account.backToSignIn': '返回登入',
+  'account.field.email': '電子郵件',
+  'account.field.emailHint': '從未向任何人展示過——僅用於登入和驗證碼',
+  'account.field.password': '密碼',
+  'account.field.passwordHint': '至少 {count} 個字元',
+  'account.field.name': '名稱',
+  'account.field.optional': '可選的',
+  'account.field.code': '電子郵件中的程式碼',
+  'account.code.sent': '我們向 {email} 發送了一個六位數程式碼。',
+  'account.code.confirm': '確認',
+  'account.code.sendAgain': '再次傳送程式碼',
+  'account.code.sentAgain': '再次傳送',
+  'account.code.otherEmail': '使用不同的電子郵件',
+  'account.code.hint':
+    '什麼也沒到？檢查垃圾郵件資料夾 - 如果您已經擁有使用此地址的帳戶，則不會傳送程式碼：請登入。',
+  'account.forgot.link': '忘記密碼？',
+  'account.forgot.lead': '輸入您註冊時使用的地址，那裡會出現一個程式碼。',
+  'account.forgot.submit': '傳送重設程式碼',
+  'account.reset.sent':
+    '我們向 {email} 發送了一個六位數程式碼。在此輸入您的新密碼。',
+  'account.reset.submit': '設定新密碼',
+  'account.unavailable': '此係統無法登入',
+  'account.unavailableHint':
+    '此電腦上沒有安全的位置來儲存登入資訊，因此 FluidEQ 將不會儲存登入資訊。其他一切正常。',
+  'account.error.network': '無法存取帳戶服務。檢查您的連線並重試。',
+  'account.error.rejected': '帳戶服務拒絕了這一點。稍後再試一次。',
+  'account.error.expired': '該登入不再有效。請重新登入。',
+  'account.error.signedOutElsewhere':
+    '由於您的帳戶在另一臺電腦上登入，因此該電腦已登出。一個帳戶一次最多可在 5 臺電腦上保持登入狀態：再次登入即可在此使用該帳戶，而最近最少使用的電腦將被登出。',
+  'account.error.malformed': '帳戶服務發送了 FluidEQ 無法讀取的內容。',
+  'account.error.wrongCredentials': '電子郵件或密碼錯誤。',
+  'account.error.unconfirmed':
+    '該帳戶尚未得到確認。輸入電子郵件中的程式碼以完成。',
+  'account.error.weakPassword':
+    '這個密碼太容易猜到了。嘗試更長的，而不是您以前使用過的。',
+  'account.error.badCode': '該程式碼錯誤或已過期。要求換一張新的。',
+  'account.error.rateLimited': '短時間內嘗試過多。稍等一下，然後重試。',
+  'account.error.invalidEmail': '這看起來不像電子郵件地址。',
+  'account.error.alreadyRegistered': '已經有一個使用該地址的帳戶。請登入。',
+  'account.plus.eyebrow': 'FluidEQ',
+  'account.perk.looks': '永遠屬於您的場景，每個場景一分。',
+  'account.perk.visualizers': '展示臺：成員製作的場景，對每個帳號開放。',
+  'account.google': '繼續使用谷歌',
+  'account.or': '或',
+  'account.google.waiting': '在瀏覽器中完成 Google 登入。',
+  'account.google.cancel': '取消',
+  'account.error.googleUnfinished':
+    '使用 Google 登入未完成。再試一次，或使用您的電子郵件。',
+  'account.google.doneTitle': '您已登入',
+  'account.google.doneBody': '您可以關閉此分頁並返回 FluidEQ。',
+  'account.google.failedTitle': '登入未完成',
+  'account.google.failedBody': '返回 FluidEQ 重試，或使用您的電子郵件登入。',
+} satisfies Partial<Dictionary>;
+
+export default account;

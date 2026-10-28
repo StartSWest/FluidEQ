@@ -9,6 +9,7 @@ import PlayerIcon from '../player/PlayerIcon';
 import { useTranslation } from '../utils/I18nContext';
 import {
   FEATURE_FILMS,
+  featureFilmLocale,
   featureFilmUrl,
 } from '../components/featureTour/featureFilms';
 import FILM_POSTERS from '../components/featureTour/filmPosters';
@@ -20,8 +21,8 @@ type TFilmState = 'idle' | 'loading' | 'playing' | 'failed';
  * One of What's New's films in the Help topic it shows (Ivan, 2026-10-15:
  * the films go in Help too). Help's own promise holds: nothing is fetched
  * until the reader presses play, so until then it is a picture bundled with
- * the app. Pressed, it plays with its voice in the reader's language, and
- * the line being said stands under it, as on the What's New slide.
+ * the app. Pressed, it plays an available voice with each line translated
+ * below it, as on the What's New slide. English fallback is disclosed first.
  */
 export default function HelpFilm({
   id,
@@ -44,6 +45,10 @@ export default function HelpFilm({
   }
   // Its first line says what the feature is: the card's name.
   const title = t(film.cues[0].key);
+  const audioNote =
+    featureFilmLocale(locale) !== locale
+      ? t('tour.film.englishAudio')
+      : undefined;
   const shape = {
     '--film-aspect': film.width / film.height,
   } as CSSProperties;
@@ -56,7 +61,7 @@ export default function HelpFilm({
         style={shape}
         data-film={id}
         onClick={() => setState('loading')}
-        aria-label={t('help.video.play', { title })}
+        aria-label={`${t('help.video.play', { title })}${audioNote ? `. ${audioNote}` : ''}`}
       >
         <span className="help-film__screen">
           <img src={poster} alt="" />
@@ -64,7 +69,10 @@ export default function HelpFilm({
             <PlayerIcon name="play" />
           </span>
         </span>
-        <span className="help-film__line">{title}</span>
+        <span className="help-film__line">
+          {title}
+          {audioNote && <span>{audioNote}</span>}
+        </span>
       </button>
     );
   }
@@ -89,7 +97,7 @@ export default function HelpFilm({
           </div>
         ) : (
           <>
-            {/* eslint-disable-next-line jsx-a11y/media-has-caption -- every line the voice says is the subtitle under the film, in the reader's language, from the dictionary the voice was read from */}
+            {/* eslint-disable-next-line jsx-a11y/media-has-caption -- every line the voice says is the subtitle under the film, translated into the reader's language */}
             <video
               key={attempt}
               ref={video}

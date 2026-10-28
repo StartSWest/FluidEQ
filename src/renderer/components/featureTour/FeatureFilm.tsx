@@ -8,7 +8,7 @@ import { type ReactNode, useRef, useState } from 'react';
 import PlayerIcon from '../../player/PlayerIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import FeatureFilmLarge from './FeatureFilmLarge';
-import { FEATURE_FILMS } from './featureFilms';
+import { FEATURE_FILMS, featureFilmLocale } from './featureFilms';
 
 /**
  * A slide's picture, and under it a key that plays the slide's film: the
@@ -30,7 +30,7 @@ interface IFeatureFilmProps {
 }
 
 export default function FeatureFilm({ id, children }: IFeatureFilmProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const film = FEATURE_FILMS[id];
   const opener = useRef<HTMLButtonElement>(null);
   const [isOpen, setOpen] = useState(false);
@@ -49,6 +49,8 @@ export default function FeatureFilm({ id, children }: IFeatureFilmProps) {
       >
         <PlayerIcon name="play" />
         {t('tour.film.watch')}
+        {featureFilmLocale(locale) !== locale &&
+          ` · ${t('tour.film.englishAudio')}`}
       </button>
       {isOpen && (
         <FeatureFilmLarge

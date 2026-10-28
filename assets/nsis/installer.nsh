@@ -201,7 +201,7 @@
   Pop $R0
 !macroend
 
-; The ten translations. The charset is named at the include because this file
+; The installer translations. The charset is named at the include because this file
 ; is read in the machine's ANSI code page otherwise; engine-strings.nsh says
 ; the rest.
 !include /CHARSET=UTF8 "${__FILEDIR__}\engine-strings.nsh"

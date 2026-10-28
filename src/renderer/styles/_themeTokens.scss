@@ -709,4 +709,4 @@ $scrollbar-thumb-hover: color-mix(in srgb, $secondary-default 62%, transparent);
 
 // The locales whose script tracking damages; `html[lang]` is the active
 // locale (I18nContext), and any element marked with its own `lang` counts too.
-$untracked-languages: hi, ja, zh;
+$untracked-languages: hi, ja, zh, ko;

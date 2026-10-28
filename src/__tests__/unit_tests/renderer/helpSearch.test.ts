@@ -11,7 +11,7 @@ import {
 } from 'renderer/help/helpSearch';
 
 // Every language but English is a chunk of its own, loaded when it is first
-// chosen; these search all ten, so all ten are loaded first.
+// chosen; these search every locale, so all are loaded first.
 beforeAll(() => Promise.all(LOCALES.map(({ code }) => loadLocale(code))));
 
 // The guide is indexed once per language, as the Help reader does.
@@ -115,6 +115,10 @@ describe('searchHelp', () => {
       ['ru', 'обои', 'desktop'],
       ['zh', '没有声音', 'trouble'],
       ['zh', '壁纸', 'desktop'],
+      ['zh-Hant', '沒有聲音', 'trouble'],
+      ['zh-Hant', '桌布', 'desktop'],
+      ['ko', '소리가 안 나요', 'trouble'],
+      ['ko', '배경화면', 'desktop'],
       ['ja', '音が出ない', 'trouble'],
       ['ja', '壁紙', 'desktop'],
       ['hi', 'आवाज़ नहीं', 'trouble'],
@@ -181,6 +185,8 @@ describe('searchHelp', () => {
         'Настроить звук',
       ],
       zh: ['标签', '电量', '歌曲', '固定', '键盘', '编辑声音'],
+      'zh-Hant': ['標籤', '電量', '歌曲', '固定', '鍵盤', '編輯音效'],
+      ko: ['라벨', '배터리', '노래', '고정', '키보드', '사운드 편집'],
       ja: [
         'ラベル',
         'バッテリー',

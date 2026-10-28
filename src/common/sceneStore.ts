@@ -60,9 +60,11 @@ export const CREDIT_PACK_ID = /^pack-[0-9]{1,4}$/;
 export const SCENE_PRICE_CREDITS = 1;
 
 /**
- * The languages a pack's checkout can be in: the app's ten. The server turns
+ * The languages the separate checkout service currently accepts. The server turns
  * one into Stripe's own language for its page and into the fluideq.com page
- * it returns to (`create-credit-checkout`).
+ * it returns to (`create-credit-checkout`). Korean and Traditional Chinese
+ * currently use the existing English fallback at the IPC boundary until
+ * the service and its return pages support them too.
  */
 export const CHECKOUT_LOCALES = [
   'en',

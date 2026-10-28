@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Structural headings, in the ten languages this app ships.
+ * Structural headings, in the interface languages this app ships.
  *
  * WHY A VOCABULARY AND NOT A SHAPE. "A bracketed group on its own" looks like
  * the general rule and is not: `[Ooh ooh ooh]`, `[x2]` and `[Laughing]` are
@@ -16,7 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * lyric, which the singer can see for themselves.
  *
  * So the list stays a list. What was wrong before was its LENGTH: thirteen
- * English words, in an app that ships in ten languages, so `[Estribillo]` and
+ * English words, in an app that then shipped ten languages, so `[Estribillo]` and
  * `[サビ]` were handed to the singer as words to perform.
  */
 const SECTION_WORDS = [
@@ -97,6 +97,20 @@ const SECTION_WORDS = [
   '橋段',
   '桥段',
   '独奏',
+  '獨奏',
+  // Korean: explicit musical headings only; bracketed sung words stay lyrics.
+  '전주',
+  '간주',
+  '후주',
+  '후렴',
+  '후렴구',
+  '절',
+  '브리지',
+  '독주',
+  '인트로',
+  '아웃트로',
+  '벌스',
+  '코러스',
   // Hindi
   'मुखड़ा',
   'अंतरा',

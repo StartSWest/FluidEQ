@@ -102,7 +102,7 @@ export default function HelpMenu({
     () => setShowGuide(true),
   );
   // "Help · New: 12" — two names the app already has in every language,
-  // joined by a mark that reads as a separator in all ten.
+  // joined by a mark that reads as a separator in every interface language.
   const name =
     shown > 0
       ? `${t('help.menu')} · ${t('forum.new.countLabel', {

@@ -68,7 +68,7 @@ interface IAccountDialogProps {
  * The same shape `ProcessesDialog` uses for its role names, and for the same
  * reason — a template key built from the value would be a string the key type
  * cannot check, and the first failure added without a translation would render
- * its own key in all ten languages with nothing failing anywhere.
+ * its own key in every language with nothing failing anywhere.
  */
 const ERROR_KEYS: Record<TAuthFailure, TranslationKey> = {
   network: 'account.error.network',

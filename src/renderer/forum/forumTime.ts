@@ -1,7 +1,7 @@
 /**
  * When something was posted, the way a forum says it: "3 days ago", in the
  * reader's language, from the platform's own relative-time formatter — so
- * ten languages' grammar for "ago" is the browser's problem and not a table
+ * each language's grammar for "ago" is the browser's problem and not a table
  * of ours.
  *
  * Computed when the row is drawn and not kept current: the list is read again

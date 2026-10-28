@@ -114,7 +114,7 @@ export const registerWindowIpc = ({
    * cannot read, so the renderer states it on startup and again whenever the
    * picker changes it. Re-resolved here rather than trusted: this arrives over
    * IPC as a string, and `resolveLocale` is what turns anything at all into
-   * one of the ten shipped codes.
+   * one of the registered interface codes.
    *
    * The dictionary is loaded before the tray takes the language, because this
    * process holds only English until asked (`loadLocale`) and everything that
