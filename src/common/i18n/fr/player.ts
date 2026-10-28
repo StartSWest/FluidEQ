@@ -12,7 +12,6 @@ export default {
   'player.menu.openIn': "Ouvrir dans l'application complète",
   'player.menu.alwaysOnTop': 'Toujours au premier plan',
   'player.menu.fold': 'Replier sur une ligne',
-  'player.menu.foldHint': 'Double-clic sur la barre',
   'player.unfold': 'Déplier',
   'player.switch.name': 'Lecteur compact',
   'player.switch.toPlayer': 'Passer au lecteur compact',
@@ -22,7 +21,6 @@ export default {
   'player.clock.aria': 'Temps écoulé ou restant',
   'player.clock.hint':
     'Cliquez pour passer du temps écoulé au temps restant, et inversement',
-  'player.well.aria': 'Analyseur de spectre',
   'player.readout.level': 'Niveau de sortie',
   'player.readout.rate': "Fréquence d'échantillonnage",
   'player.unit.db': 'dB',
@@ -36,12 +34,9 @@ export default {
   'player.seekNone':
     "Cette source ne permet pas d'aller à un autre point du morceau",
   'player.eq.aria': 'Égaliseur',
-  'player.eq.on': 'Actif',
   'player.eq.onHint': 'Activer ou désactiver FluidEQ',
-  'player.eq.short': 'EQ',
   'player.eq.smart': 'Auto',
   'player.eq.song': 'Morceau',
-  'player.eq.curve': "Courbe de l'égaliseur",
   'player.eq.pre': 'Pré',
   'player.eq.auto': 'Auto',
   'player.eq.autoHint': 'Activer la normalisation automatique',

@@ -18,7 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useSyncExternalStore } from 'react';
 import type { ISongIdentity } from 'common/songIdentity';
-import { noteShown, resetLastShown } from './lastShown';
+import {
+  isOwnMusic,
+  noteShown,
+  resetLastShown,
+  type TOwnOwner,
+} from './lastShown';
 import { getPlaybackOwner, type TPlaybackOwner } from './playbackOwner';
 import pickTransportOwner from './transportRouting';
 
@@ -188,58 +193,75 @@ const sameIdentity = (
  * song somebody paused (Ivan, 2026-09-24: "we need to keep last thing was
  * playing on the bar always unless there is a new thing that plays").
  *
- * Every owner counts, the machine's own players and another computer's
- * included ("and for system audio metadata same"; "other pc can be sender
- * their metadata too"). It used to leave out a program outside this app, so a
- * paused browser tab lost the bar to a library song paused hours before, and
- * to leave another computer out of storage, so a reload forgot it.
+ * Every owner counts while it is there, the machine's own players and another
+ * computer's included ("and for system audio metadata same"; "other pc can be
+ * sender their metadata too"): a paused browser tab keeps the bar on a page
+ * that is not a player for as long as Windows still lists it.
  *
- * Remembered across restarts, so the answer survives the one moment it is
- * least obvious: the app opens with nothing having been described yet. The
- * stored name decides which of this app's own players is mounted at launch
- * to restore itself (`App.tsx`); a source that never arrives is never drawn
- * as live, because `pickTransportOwner` reads the register rather than this,
- * and what the bar shows in its place is `lastShown`.
+ * ONLY THE LISTENER'S OWN IS WRITTEN DOWN, AND ONLY IT OUTLIVES ITS PLAYER
+ * (`TOwnOwner`, Ivan 2026-10-26). Another program, another computer or a
+ * Media page borrows the bar while it plays and hands it back when its player
+ * withdraws: `clearTransportSource` puts back the listener's own last owner,
+ * which is what is kept in storage across restarts, so the answer survives
+ * the one moment it is least obvious — the app opening with nothing described
+ * yet. That stored name decides which of the Library and Karaoke is mounted
+ * at launch to restore itself (`usePlayerMounts.ts`); a source that never
+ * arrives is never drawn as live, because `pickTransportOwner` reads the
+ * register rather than this, and what the bar shows in its place is
+ * `lastShown`.
  */
 const LAST_OWNER_KEY = 'fluideq.transport.lastOwner';
 
-const OWNERS: readonly TPlaybackOwner[] = [
-  'library',
-  'karaoke',
-  'media',
-  'system',
-  'remote',
-];
-
 /**
- * Who was using this app when it last closed, straight from storage.
+ * Whose song of the listener's own was on the bar when this app last closed,
+ * straight from storage.
  *
  * Distinct from `useLastTransportOwner` only in when it can be asked: that
  * one reads the module's copy below, which needs a render and a subscription
  * to reach. The question a startup has to ask is this same one — who was
  * using this last time — and it has to be answerable before any player
  * exists, because the answer is what decides whether one is mounted at all.
- * See `App.tsx`. The two now agree on the answer; they did not always, and
- * see `clearTransportSource` for what that cost.
+ * See `usePlayerMounts.ts`.
  */
-export const readRememberedTransportOwner = (): TPlaybackOwner | undefined => {
+export const readRememberedTransportOwner = (): TOwnOwner | undefined => {
   try {
     const stored = window.localStorage.getItem(LAST_OWNER_KEY);
-    return OWNERS.find((owner) => owner === stored);
+    return isOwnMusic(stored) ? stored : undefined;
   } catch {
     return undefined;
   }
 };
 
-let lastOwner: TPlaybackOwner | undefined = readRememberedTransportOwner();
+/**
+ * The stored owner as the window opens, with whatever may not stay removed:
+ * builds before 2026-10-26 wrote `system`, `remote` and `media` here too, and
+ * a launch that found one mounted the Media page to describe itself on the bar
+ * — the title of a video from the previous session, on the first frame.
+ */
+const rememberedAtLaunch = (): TOwnOwner | undefined => {
+  const owner = readRememberedTransportOwner();
+  if (owner === undefined) {
+    try {
+      window.localStorage.removeItem(LAST_OWNER_KEY);
+    } catch {
+      // Nothing can be read or removed; nothing will be shown either.
+    }
+  }
+  return owner;
+};
+
+/** The listener's own last owner — the stored one. See `lastOwner`. */
+let ownOwner: TOwnOwner | undefined = rememberedAtLaunch();
+
+let lastOwner: TPlaybackOwner | undefined = ownOwner;
 
 /**
  * Who most recently reported `isPlaying: true`, kept alive across the pause
  * that follows.
  *
  * Distinct from `lastOwner` above: that one is what the bar showed playing,
- * so a browser tab playing under a library song never takes it, and it
- * outlives a restart. This is for a recorder rather than a bar —
+ * so a browser tab playing under a library song never takes it, and the
+ * listener's own outlives a restart. This is for a recorder rather than a bar —
  * `nowPlayingIdentity.ts`'s `pickPlayingIdentity` is the only reader — and
  * wants any source that reported playing, for this window only.
  *
@@ -293,16 +315,20 @@ export const setTransportSource = (next: ITransportSource): void => {
     nextSources[onTheBar]?.isPlaying === true;
   if (ownerChanged) {
     lastOwner = onTheBar;
-    try {
-      window.localStorage.setItem(LAST_OWNER_KEY, onTheBar);
-    } catch {
-      // The preference then lasts as long as the window, which is what it
-      // did before it was written down at all.
+    if (isOwnMusic(onTheBar)) {
+      ownOwner = onTheBar;
+      try {
+        window.localStorage.setItem(LAST_OWNER_KEY, onTheBar);
+      } catch {
+        // The preference then lasts as long as the window, which is what it
+        // did before it was written down at all.
+      }
     }
   }
   // The words and the picture of the last thing played follow that owner's
   // description, paused or playing, so the bar that stands in for it after
-  // the player has gone says what the live bar said last.
+  // the player has gone says what the live bar said last — for a song of the
+  // listener's own, which is all `noteShown` keeps.
   const shown = lastOwner === undefined ? undefined : nextSources[lastOwner];
   if (shown !== undefined && (ownerChanged || lastOwner === next.owner)) {
     noteShown(shown);
@@ -358,6 +384,14 @@ export const setTransportSource = (next: ITransportSource): void => {
  * which was never cleared here and therefore already outlived every stop —
  * the bar came back after a restart and not after a press of Stop, which is
  * the shape of the bug rather than a design.
+ *
+ * EXCEPT FOR WHAT PLAYED OUTSIDE THE LISTENER'S OWN FILES. A browser tab
+ * closed, a sender that stopped, a Media page gone: the bar goes back to the
+ * listener's own last song, as if the outside sound had never borrowed it,
+ * and with none of those it keeps the name alone — which indexes nothing, so
+ * the bar reads "Nothing playing" rather than leaving the foot of the window.
+ * Nothing of the outside sound is kept anywhere to be shown in its place
+ * (`lastShown.ts`).
  */
 export const clearTransportSource = (owner: TPlaybackOwner): void => {
   if (sources[owner] === undefined) {
@@ -371,6 +405,9 @@ export const clearTransportSource = (owner: TPlaybackOwner): void => {
   if (lastPlayingOwner === owner) {
     lastPlayingOwner = undefined;
     lastPlayingKey = undefined;
+  }
+  if (lastOwner === owner && !isOwnMusic(owner)) {
+    lastOwner = ownOwner ?? lastOwner;
   }
   publish(next);
 };
@@ -456,6 +493,7 @@ export const useLastPlayingOwner = (): TPlaybackOwner | undefined =>
 export const resetTransportSource = (): void => {
   sources = {};
   identitySources = {};
+  ownOwner = undefined;
   lastOwner = undefined;
   lastPlayingOwner = undefined;
   lastPlayingKey = undefined;

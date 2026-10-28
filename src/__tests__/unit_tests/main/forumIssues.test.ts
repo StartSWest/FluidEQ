@@ -132,15 +132,15 @@ describe('the issues’ row in the Forum', () => {
   const build = (auth: TForumAuthState) => {
     // GitHub's API is never asked about an issue: any call to it fails the
     // test that makes one.
-    const fetchImpl = jest.fn(() =>
-      Promise.reject(new Error('GitHub was asked')),
+    const fetchImpl = jest.fn((url: string) =>
+      Promise.reject(new Error(`GitHub was asked for ${url}`)),
     );
     const service = createForumService({
       config: CONFIG,
       session: session(auth),
       feed: { load: () => Promise.resolve({ boards: [], topics: [] }) },
       issues: { load: () => Promise.resolve(readIssues(FILE)) },
-      fetchImpl,
+      fetchImpl: fetchImpl as unknown as typeof fetch,
     });
     return { service, fetchImpl };
   };
@@ -184,7 +184,11 @@ describe('the issues’ row in the Forum', () => {
     const thread = await service.topic(29);
     expect(thread.issue?.closed).toBe(true);
     expect(thread.comments).toHaveLength(1);
-    expect(fetchImpl).not.toHaveBeenCalled();
+    // Signed in, GitHub is asked only whether the app may comment on
+    // issues — never for the issue itself.
+    expect(fetchImpl.mock.calls.map(([url]) => url)).toEqual([
+      'https://api.github.com/user/installations',
+    ]);
   });
 
   it('counts the issues with the boards', async () => {

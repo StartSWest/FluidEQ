@@ -56,9 +56,9 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'O cabeçalho leva você de uma página do FluidEQ a outra e mostra o som enquanto ele toca. O painel da esquerda traz o interruptor geral do EQ, a pré-amplificação e o medidor de nível; o painel da direita acompanha sua saída e os perfis dela.',
   'help.window.steps':
-    'Escolha uma página no cabeçalho: Mídia online, Compartilhar áudio e EQ antes do sinal; DSP, Biblioteca, Karaokê e Visualizadores depois dele.\nAtive EQ do sistema no painel da esquerda e deixe Normalizar automaticamente ligado, para que nenhum reforço sature.\nPressione o sinal ou o medidor de nível para mudar como ele é desenhado, e o Modo colorido para que as curvas e os medidores se movam na taxa de atualização total da sua tela.',
+    'Escolha uma página no cabeçalho: Mídia online, Compartilhar áudio e EQ antes do sinal; DSP, Biblioteca, Karaokê e Visualizadores depois dele.\nAtive EQ do sistema no painel da esquerda e deixe Normalizar automaticamente ligado, para que nenhum reforço sature.\nPressione o medidor de nível para mudar como ele é desenhado, e Colorido, sobre o sinal, para ver as bandas, o título e os controles acesos numa paleta em vez de uma só cor.',
   'help.window.tip':
-    'O menu Ajuda abre este guia, Novidades, a solução de problemas de áudio e Relatar um problema. O botão de pulso ao lado dele reúne o cartão do motor, sua conta, a importação de configurações de EQ ou de uma resposta ao impulso, o reinício do áudio do Windows e Processos, que mostra o que cada parte do FluidEQ está usando; na parte de baixo dele ficam Brilho e Transparência, as animações, Iniciar com o Windows e o idioma. O botão depois deles transforma a janela no Player compacto.',
+    'O menu Ajuda abre este guia, Novidades, a solução de problemas de áudio e Relatar um problema. O botão de menu de três linhas ao lado dele reúne o cartão do motor, sua conta, a importação de configurações de EQ ou de uma resposta ao impulso, o reinício do áudio do Windows, Processos, que mostra o que cada parte do FluidEQ está usando, e Redefinir todas as configurações; na parte de baixo dele ficam Brilho, Tom, Modo colorido, Colorir o ícone (desligado no início; deixa o ícone da barra de tarefas, o da bandeja e o do menu dela nas cores da janela), os deslizantes do EQ, as animações, Iniciar com o Windows e o idioma. O botão depois deles transforma a janela no Player compacto.',
   'help.window.keywords':
     'interface, abas, navegação, tela principal, visão geral, barra superior, barra inferior, painel lateral, VU meter, preamp, modo colorido, arco-íris, tema, modo escuro, modo claro, tema escuro, tema claro, dark mode, idioma, língua, iniciar com o windows, iniciar automaticamente, inicialização automática, inicialização, conta',
   'help.window.headerLeftCaption': 'O cabeçalho, até o sinal',
@@ -72,7 +72,7 @@ const help: Record<keyof typeof en, string> = {
     'Suas bandas, presets, correção de fones, presets de jogo e a configuração do motor.',
   'help.window.waveName': 'Sinal de áudio',
   'help.window.wave':
-    'O que está tocando, enquanto toca. Pressione-o para mudar como ele é desenhado.',
+    'O que está tocando, enquanto toca, com o nível de pico. Colorido, no alto, liga ou desliga o Modo colorido; o menu Visualização do gráfico pode ocultá-lo.',
   'help.window.dsp':
     'O rack de efeitos: presets, a Sala e cada estágio da cadeia.',
   'help.window.library':
@@ -85,7 +85,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Este guia, Novidades, a solução de problemas de áudio e Relatar um problema.',
   'help.window.actions':
-    'O motor, sua conta, a importação de configurações de EQ, o reinício do áudio do Windows e Processos; Brilho e Transparência, as animações, Iniciar com o Windows e o idioma.',
+    'O motor, sua conta, a importação de configurações de EQ, o reinício do áudio do Windows, Processos e Redefinir todas as configurações; Brilho, Tom, Modo colorido e Colorir o ícone, os deslizantes do EQ, as animações, Iniciar com o Windows e o idioma.',
   'help.window.systemEq':
     'Liga ou desliga o processamento do FluidEQ para tudo o que o PC toca.',
   'help.window.preamp':
@@ -100,29 +100,24 @@ const help: Record<keyof typeof en, string> = {
   'help.player.intro':
     'Um botão transforma a janela do FluidEQ no Player compacto, uma única coluna estreita: no alto, um visualizador com a música por cima e os controles de reprodução embaixo; depois Som, seu equalizador; e depois A seguir e suas playlists. O que estiver tocando continua tocando, e o mesmo botão traz o app completo de volta na página em que você estava.',
   'help.player.steps':
-    'Pressione o botão Player compacto na barra de título, ao lado de Ajuda. No player, o mesmo botão traz o app completo de volta.\nRecolha Som, ou A seguir e Playlists, até o cabeçalho, e o visualizador ocupa o espaço; clique no cabeçalho para abrir de novo. Arraste a borda de cima ou de baixo do player para deixá-lo mais alto ou mais baixo.\nClique duas vezes no visualizador para ele ocupar a tela inteira; Esc o devolve ao lugar. Clique no nome do estilo, ao lado do aleatório e da repetição, para escolher entre todos os estilos e cenas.\nClique duas vezes no cabeçalho do player, ou escolha Recolher em uma linha no menu do logo do FluidEQ, para recolhê-lo em uma linha; o logo o expande de novo.\nNo mesmo menu, ajuste o Brilho do próprio player, a Transparência sobre uma cena ou o Tom da janela sobre um estilo padrão, e a Luz do dia de uma cena. Sempre visível, ali ou no cabeçalho, o mantém acima das outras janelas.\nSolte arquivos de música em qualquer lugar do player: eles entram na Biblioteca e no fim de A seguir ou, sobre a lista, no ponto em que você soltar.',
+    'Pressione o botão Player compacto na barra de título, ao lado de Ajuda. No player, o mesmo botão traz o app completo de volta.\nRecolha Som, ou A seguir e Playlists, até o cabeçalho, e o visualizador ocupa o espaço; clique no cabeçalho para abrir de novo. Arraste a borda de cima ou de baixo do player para deixá-lo mais alto ou mais baixo.\nClique duas vezes no visualizador para ele ocupar a tela inteira; Esc o devolve ao lugar. Clique no nome do estilo, ao lado do aleatório e da repetição, para escolher entre todos os estilos e cenas.\nEscolha Recolher em uma linha no menu do logo do FluidEQ para recolher o player em uma linha; o logo o expande de novo.\nNo mesmo menu, ajuste o Brilho do próprio player, a Transparência sobre uma cena ou o Tom da janela sobre um estilo padrão, e a Luz do dia de uma cena. Sempre visível, ali ou no cabeçalho, o mantém acima das outras janelas.\nSolte arquivos de música em qualquer lugar do player: eles entram na Biblioteca e no fim de A seguir ou, sobre a lista, no ponto em que você soltar.',
   'help.player.tip':
     'O volume do player é o do seu computador, o mesmo do Windows, então ele ajusta o nível de tudo o que o computador toca. Se o player acabar fora da tela, clique com o botão direito no ícone do FluidEQ na bandeja do sistema e escolha Recuperar a janela.',
   'help.player.keywords':
     'mini player, miniplayer, player pequeno, player compacto, compacto, modo compacto, reprodutor compacto, winamp, amp, modo player, sempre visível, sempre no topo, sempre por cima, always on top, fixar, recolher, uma linha, fila, a seguir, soltar arquivos, arrastar arquivos, tema, tema claro, tema escuro, modo escuro, modo claro, janela pequena, player flutuante, janela flutuante, volume',
   'help.player.topCaption': 'O topo: a música, e como ela toca',
-  'help.player.eqCaption': 'O equalizador',
+  'help.player.eqCaption': 'Som, seu equalizador',
   'help.player.queueCaption': 'A seguir',
   'help.player.menuCaption': 'O menu do player',
   'help.player.foldedCaption': 'Recolhido em uma linha',
   'help.player.menu':
-    'Voltar ao app completo ou a uma das páginas dele; o Brilho do próprio player, a Transparência ou o Tom, a Luz do dia de uma cena, o Modo colorido e os deslizantes do EQ; Sempre visível e Recolher em uma linha.',
+    'Voltar ao app completo ou a uma das páginas dele; o Brilho do próprio player, a Transparência ou o Tom, a Luz do dia de uma cena, o Modo colorido, Colorir o ícone e os deslizantes do EQ; Sempre visível e Recolher em uma linha.',
   'help.player.pin': 'Mantém o player acima de todas as outras janelas.',
   'help.player.switch': 'Voltar ao app completo, na página em que você estava.',
   'help.player.clock': 'Tempo tocado. Clique nele para ver o tempo restante.',
-  'help.player.well':
-    'O som enquanto toca. Clique nele para alternar entre barras e onda.',
   'help.player.level': 'O nível do som que sai do FluidEQ, em decibéis.',
   'help.player.volume':
     'O volume do seu computador, o mesmo do Windows: ele ajusta o nível de tudo o que o computador toca.',
-  'help.player.decksName': 'EQ, Visual e Fila',
-  'help.player.decks':
-    'Abrem e fecham o equalizador, o visualizador e a fila A seguir. A janela cresce e encolhe conforme o que cada um ocupa.',
   'help.player.seek': 'Onde a música está. Arraste para ir a outro ponto.',
   'help.player.playingName': 'Controles de reprodução',
   'help.player.playing':
@@ -133,26 +128,43 @@ const help: Record<keyof typeof en, string> = {
   'help.player.lookName': 'Estilo',
   'help.player.look':
     'O estilo ou a cena que o visualizador está desenhando. Clique para escolher entre todos.',
-  'help.player.screen':
-    'O que você ouve, desenhado: suas bandas, o EQ inteligente e tudo o mais que estiver aplicado, sobre um estilo do visualizador. Também aplicado lista cada um, e uma etiqueta desliga um deles sem removê-lo.',
   'help.player.bands':
     'Arraste uma banda para cima ou para baixo para reforçá-la ou cortá-la. A frequência dela fica escrita embaixo.',
   'help.player.tone':
     'Tom mostra os controles Graves, Médios e Agudos; a aba ao lado, todas as bandas.',
   'help.player.upNext':
     'A seguir e Playlists, cada uma com quantos itens tem, e o tempo que falta na fila.',
-  'help.player.library': 'Abre a Biblioteca no app completo.',
   'help.player.songsName': 'As músicas',
   'help.player.songs':
     'O que toca a seguir. Clique em uma música para tocá-la, arraste para mudá-la de lugar, ou solte arquivos de música aqui para adicioná-los no ponto em que você soltar.',
   'help.player.openIn': 'Abre o app completo em uma das páginas dele.',
   'help.player.theme':
-    'O Brilho do próprio player, separado do app completo; a Transparência sobre uma cena, ou o Tom da janela sobre um estilo padrão; a Luz do dia de uma cena; e o Modo colorido.',
-  'help.player.fold':
-    'Recolhe o player em uma linha. Clicar duas vezes no cabeçalho dele faz o mesmo.',
+    'O Brilho do próprio player, separado do app completo; a Transparência sobre uma cena, ou o Tom da janela sobre um estilo padrão; a Luz do dia de uma cena; o Modo colorido; e Colorir o ícone, desligado no início, para o ícone da barra de tarefas, o da bandeja e o do menu dela nas cores da janela.',
+  'help.player.fold': 'Recolhe o player em uma linha.',
   'help.player.unfold': 'Expande o player. A seta na outra ponta também.',
   'help.player.foldedPlaying': 'Reproduzir ou pausar.',
-  'help.player.foldedClock': 'O tempo, e onde a música está.',
+  'help.player.fullScreen':
+    'Enche a tela com o visualizador. Clicar duas vezes na imagem faz o mesmo, e Esc devolve a tela.',
+  'help.player.sourceName': 'Origem',
+  'help.player.source':
+    'De onde vem a música: a Biblioteca, Mídia online, Karaokê, outro computador ou outro programa deste PC. Clicar nele abre essa página no app completo.',
+  'help.player.heart':
+    'Adiciona uma música da Biblioteca aos seus Favoritos, ou a tira de lá.',
+  'help.player.soundFold':
+    'Recolhe os controles de som até esta linha, que deixa à mão o preset, o EQ inteligente e o botão, e os abre de novo.',
+  'help.player.mode':
+    'Abre o Modo EQ: com que força seu EQ e as curvas atuam, o Q de banda, a fase e os agudos deles.',
+  'help.player.save': 'Guarda A seguir como uma playlist própria.',
+  'help.player.queueFold':
+    'Recolhe A seguir e Playlists até as abas, e o visualizador ocupa o espaço.',
+  'help.player.remove': 'Tira de A seguir uma música que ainda não tocou.',
+  'help.player.output':
+    'Para onde o som vai: a saída pela qual o Windows toca.',
+  'help.player.engineName': 'Motor',
+  'help.player.engine':
+    'Qual motor está moldando o som; fica aceso enquanto o FluidEQ está ligado.',
+  'help.player.sliders':
+    'Alças redondas ou tampas retangulares nos deslizantes do EQ, aqui e na página do EQ.',
 
   'help.requirements.title': 'O que o seu PC precisa',
   'help.requirements.intro':
@@ -518,14 +530,14 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.mine': 'As cenas que você publicou, com as curtidas delas.',
   'help.gallery.cardName': 'Uma cena',
   'help.gallery.card':
-    'A imagem abre a cena; Adicionar a coloca nos seus visuais.',
+    'A imagem abre a cena. Obter a guarda com um crédito, e o coração curte a cena.',
   'help.gallery.manage':
     'O que cada monitor mostra como fundo da área de trabalho.',
   'help.gallery.stop': 'Para todos os fundos da área de trabalho.',
   'help.gallery.sceneCaption': 'A página de uma cena',
   'help.gallery.back': 'Volta à galeria, onde você parou.',
   'help.gallery.play':
-    'Adiciona a cena aos seus visuais ou a reproduz no gráfico.',
+    'Reproduz a cena no gráfico. Uma cena que você ainda não tem oferece Obter, por um crédito.',
   'help.gallery.desktop': 'Coloca a cena atrás dos ícones da área de trabalho.',
   'help.gallery.inspect':
     'Abre a cena do FluidEQ no Estúdio para ver como ela é feita.',
@@ -544,14 +556,14 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.stageName': 'Palco',
   'help.studio.stage':
     'A cena, tocando com sua música. Clique duas vezes para tela cheia.',
-  'help.studio.code':
-    'O código da cena, ao vivo, atualizado conforme sua IA o salva.',
   'help.studio.hears':
     'O que a cena recebe: nível, batida, graves, médios, agudos.',
+  'help.studio.tabs':
+    'Ajustar testa a onda e as configurações próprias da cena, Código mostra o código conforme sua IA o salva, Desempenho como ela roda aqui, e abaixo está aberto O que ela ouve agora.',
+  'help.studio.chat':
+    'Peça uma mudança ao Claude com suas próprias palavras. Cada resposta que mudou a cena pode trazer aquela versão de volta.',
   'help.studio.signals': 'Sinais de teste que movem só esta prévia.',
   'help.studio.size': 'Testa a cena em tela cheia.',
-  'help.studio.wave':
-    'Testa a altura e a posição da onda que os ouvintes podem ajustar.',
 
   'help.desktop.title': 'O visualizador da área de trabalho',
   'help.desktop.intro':
@@ -587,8 +599,7 @@ const help: Record<keyof typeof en, string> = {
   'help.lighting.preview':
     'Sua própria mesa, iluminada com as cores enviadas a ela.',
   'help.lighting.devices':
-    'Todos os dispositivos encontrados. Clique em um para ajustá-lo separadamente.',
-  'help.lighting.all': 'Volta a ajustar todos os dispositivos de uma vez.',
+    'Todos os dispositivos encontrados. Clique em um para ajustá-lo separadamente; o botão Todos os dispositivos, acima da lista, volta a ajustar todos de uma vez.',
   'help.lighting.style':
     'Cena, Onda de cor, Espectro ou Onda rítmica, salvo para cada visualizador.',
 
@@ -714,7 +725,7 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.intro':
     'O Fórum traz o GitHub Discussions do FluidEQ para dentro do app: anúncios, ideias, perguntas e ajustes de que as pessoas se orgulham. Qualquer um pode ler; para publicar, você usa sua conta do GitHub, não uma do FluidEQ.',
   'help.forum.steps':
-    'Abra Ajuda → Fórum e escolha uma categoria: Anúncios, Geral, Ideias, Votações, Q&A ou Mostre o seu som.\nPesquise no fórum ou abra um tópico para ler as respostas.\nPressione Entrar com GitHub, termine no navegador e depois publique um Novo tópico ou uma resposta.',
+    'Abra Ajuda → Fórum e escolha uma categoria: Anúncios, Geral, Ideias, Votações, Q&A ou Mostre o seu som. Novo para você reúne o que chegou desde a última visita, e Problemas mostra o que foi relatado no GitHub.\nPesquise no fórum ou abra um tópico para ler as respostas.\nPressione Entrar com GitHub, termine no navegador e depois publique um Novo tópico ou uma resposta.',
   'help.forum.tip':
     'Tudo o que é publicado fica público no GitHub, com seu nome do GitHub. Em Q&A, marque a resposta que funcionou para que a próxima pessoa a encontre.',
   'help.forum.keywords':

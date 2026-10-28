@@ -174,6 +174,9 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.rainbow': 'Mode coloré',
   'graph.sceneTint.rainbowHint':
     'Les bandes, le titre et les commandes allumées dans une palette plutôt qu’une seule couleur — avec une scène choisie, dans ses propres couleurs.',
+  'graph.sceneTint.appIcon': 'Teinter l’icône',
+  'graph.sceneTint.appIconHint':
+    'Le bouton de la barre des tâches et l’icône de la zone de notification aux couleurs de la fenêtre. Désactivé, l’icône de FluidEQ reste.',
   'graph.sceneTint.sparks': 'Étincelles du pointeur',
   'graph.sceneTint.sparksHint':
     'Ce que le visualiseur lance depuis la souris : une traînée quand elle traverse l’image et une gerbe là où vous cliquez - étincelles, pétales, neige, ce dont la scène est faite.',

@@ -36,6 +36,10 @@ import {
   TTaskbarTransportAction,
 } from '../common/taskbarTransport';
 import type { IAudioRestartOutcome } from '../common/audioEngine';
+import {
+  TASKBAR_ICON_CHANNEL,
+  type TTaskbarIconRequest,
+} from '../common/taskbarIcon';
 import { VIDEO_DOWNLOAD_REVEAL } from '../common/videoDownloads';
 import { addonBridge } from './addonBridge';
 import { dspHostBridge } from './dspHost/bridge';
@@ -177,6 +181,13 @@ const setStartWithWindows = (wanted: boolean) =>
  */
 const resetSettings = () =>
   ipcRenderer.invoke('settings-reset') as Promise<void>;
+
+/**
+ * The taskbar button in the window's colours (`main/taskbarIcon.ts`):
+ * answered once the icon is set, which is when the window sends the next.
+ */
+const setTaskbarIcon = (request: TTaskbarIconRequest) =>
+  ipcRenderer.invoke(TASKBAR_ICON_CHANNEL, request) as Promise<void>;
 
 /** Which graphics card the whole app runs on; applies from the next start. */
 const graphicsPreference = () =>
@@ -373,6 +384,7 @@ export default {
     graphicsPreference,
     setGraphicsPreference,
     resetSettings,
+    setTaskbarIcon,
     getChangelog,
     installUpdate,
     isWindowMaximized,

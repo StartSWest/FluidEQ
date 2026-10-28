@@ -14,6 +14,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import type { GraphStyle } from 'common/graphStyles';
+import type { TranslationKey } from 'common/i18n';
 
 const cover = (body: string) =>
   `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
@@ -130,8 +131,12 @@ export const PICTURE_LEVEL_DB = -7.1;
 /** The computer's volume, in percent. */
 export const PICTURE_VOLUME = 64;
 
-/** The output the foot names: a device name, the same in every language. */
-export const PICTURE_OUTPUT = 'Headphones';
+/**
+ * The output the foot names, in the reader's language as Windows names its
+ * own outputs: an English "Headphones" stood in the Russian and Japanese
+ * guides beside every other word translated.
+ */
+export const PICTURE_OUTPUT: TranslationKey = 'tour.engine.flow.headphones';
 
 /** The preamp, which Auto normalize is setting. */
 export const PICTURE_PREAMP_DB = -2;

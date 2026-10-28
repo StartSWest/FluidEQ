@@ -24,6 +24,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
   min-height: 0;
 }
 
+// A Library scan's Stop, beside its bar: the player's quiet pill, a size
+// down. The app's 30px key stretched across the whole card was the loudest
+// thing in the player (Ivan, 2026-10-26: "the stop button need to be just
+// small or so at least on the amp ui that is too big for what the app is").
+.mini-player
+  .player-queue
+  > .library-scan-progress
+  > .button.library-scan-progress__stop {
+  @include player-pill;
+  min-height: 26px;
+  padding: 0 11px;
+}
+
 // The way to the Library, as a link in the accent's light: it takes the
 // listener somewhere else, which a pill beside it would not say.
 .mini-player .button.player-queue__open {

@@ -85,6 +85,11 @@ const library: Partial<Dictionary> = {
   'library.scan.running': '正在读取 {name}',
   'library.scan.counted': '{parsed} / {seen} 个文件',
   'library.scan.cancel': '停止',
+  'library.scan.hide': '隐藏此提示',
+  'library.scan.hideHint': '隐藏此提示。媒体库会继续读取你的文件。',
+  'library.scan.chip': '正在读取 {percent}%',
+  'library.scan.chipFinding': '正在读取…',
+  'library.scan.show': '再次显示进度和“停止”',
 
   'library.roots': '文件夹',
   'library.root.remove': '移除此文件夹',

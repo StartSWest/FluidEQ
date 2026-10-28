@@ -88,6 +88,16 @@ it under the terms of the GNU General Public License version 3 or later.
     inset: 0;
     z-index: auto;
   }
+
+  // A PICTURE IS NEVER A HANDLE ON THE WINDOW. The player's title strip and
+  // folded line are its own window's drag regions; drawn here, inside the
+  // full app, each marked a strip of the slide that Windows takes a press on
+  // as the start of moving the window. The player's sheet is scoped in here
+  // (`MiniPlayer.scss`), and a scoped rule wins over a plain one, so this
+  // one is important.
+  * {
+    -webkit-app-region: no-drag !important;
+  }
 }
 
 // The two stills, each filling the part it stands in for: the scene behind

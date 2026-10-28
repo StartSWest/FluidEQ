@@ -15,6 +15,7 @@ import type {
   TProjectBuild,
   TSourceWrite,
 } from 'main/memberScenes/project';
+import { forgetChatDraft } from './chat/chatDraftStore';
 
 /**
  * The Studio, as the renderer sees it: the member's projects, the latest
@@ -170,11 +171,15 @@ export const selectStudioProject = async (id: string) => {
   }
 };
 
-/** Takes a project off the list. Its folder stays exactly as it is. */
+/**
+ * Takes a project off the list. Its folder stays exactly as it is; the
+ * message being written to Claude about it goes.
+ */
 export const forgetStudioProject = async (id: string) => {
   const state = await bridge()?.forgetStudioProject?.(id);
   if (state) {
     adopt(state);
+    forgetChatDraft(id);
   }
 };
 

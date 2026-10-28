@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { HELP_CHAPTERS, type HelpChapterId } from './helpGuide';
+import { HELP_CHAPTERS, isLiveFigure, type HelpChapterId } from './helpGuide';
 import type { TranslationKey } from './i18n';
 
 /**
@@ -51,16 +51,27 @@ export const helpChaptersFor = (
         (chapter) => !WINDOWS_ONLY_CHAPTERS.has(chapter.id),
       ).map((chapter) => ({
         ...chapter,
-        figures: chapter.figures.map((figure) =>
-          figure.controls
+        // Live panels address controls by selector; captures use pixel boxes.
+        // Keep that distinction when applying the Mac-only wording.
+        figures: chapter.figures.map((figure) => {
+          if (!figure.controls) {
+            return figure;
+          }
+          return isLiveFigure(figure)
             ? {
+                ...figure,
+                controls: figure.controls?.map((control) => ({
+                  ...control,
+                  text: helpTextKey(control.text, true),
+                })),
+              }
+            : {
                 ...figure,
                 controls: figure.controls.map((control) => ({
                   ...control,
                   text: helpTextKey(control.text, true),
                 })),
-              }
-            : figure,
-        ),
+              };
+        }),
       }))
     : HELP_CHAPTERS;

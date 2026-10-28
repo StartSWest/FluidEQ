@@ -17,6 +17,11 @@ namespace {
  * climbs into the limiter over and over, and the jazz came out 10 dB dirtier
  * than before — and slower costs the loudness this normalizer is for: the
  * old 0.1 dB/s left the jazz 2.9 dB quieter.
+ *
+ * Keep these two values, and keep the start at the curve's level. On
+ * 2026-10-26 a start at 0 dB and a doubled climb (0.3 dB/s) were tried and
+ * taken back the same day: Ivan heard the level jump up at every new song
+ * ("keep as it was").
  */
 constexpr double kRecoverAfterSeconds = 5.0;
 constexpr double kRecoverDbPerSecond = 0.15;

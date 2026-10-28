@@ -12,7 +12,6 @@ export default {
   'player.menu.openIn': 'In der vollständigen App öffnen',
   'player.menu.alwaysOnTop': 'Immer im Vordergrund',
   'player.menu.fold': 'Auf eine Zeile einklappen',
-  'player.menu.foldHint': 'Doppelklick auf die Leiste',
   'player.unfold': 'Ausklappen',
   'player.switch.name': 'Kompakter Player',
   'player.switch.toPlayer': 'Zum kompakten Player wechseln',
@@ -22,7 +21,6 @@ export default {
   'player.clock.aria': 'Gespielte oder verbleibende Zeit',
   'player.clock.hint':
     'Klicken Sie, um zwischen gespielter und verbleibender Zeit zu wechseln',
-  'player.well.aria': 'Spektrumanalysator',
   'player.readout.level': 'Ausgangspegel',
   'player.readout.rate': 'Abtastrate',
   'player.unit.db': 'dB',
@@ -36,12 +34,9 @@ export default {
   'player.seekNone':
     'Bei dieser Quelle lässt sich keine andere Stelle im Titel ansteuern',
   'player.eq.aria': 'Equalizer',
-  'player.eq.on': 'An',
   'player.eq.onHint': 'FluidEQ ein- oder ausschalten',
-  'player.eq.short': 'EQ',
   'player.eq.smart': 'Smart',
   'player.eq.song': 'Titel',
-  'player.eq.curve': 'Equalizer-Kurve',
   'player.eq.pre': 'Vor',
   'player.eq.auto': 'Auto',
   'player.eq.autoHint': 'Automatische Normalisierung einschalten',

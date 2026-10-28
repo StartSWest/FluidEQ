@@ -1,22 +1,13 @@
 import { useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  WALLPAPER_MOTIONS,
-  type IWallpaperWave,
-  type TWallpaperMotion,
-} from '../../common/wallpaper';
+import type { IWallpaperWave, TWallpaperMotion } from '../../common/wallpaper';
 import Glyph from '../community/Glyph';
 import DialogFrame from '../components/DialogFrame';
 import MenuIcon from '../icons/MenuIcon';
-import {
-  getWatchedGraphWave,
-  MIN_GRAPH_WAVE_HEIGHT,
-} from '../utils/graphOverlaySettings';
-import { snapPercent } from '../utils/percentSnaps';
+import { getWatchedGraphWave } from '../utils/graphOverlaySettings';
 import { useSceneLook } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
-import Switch from '../widgets/Switch';
 import {
   MonitorFace,
   MonitorStage,
@@ -25,7 +16,11 @@ import {
   useMonitorLayout,
 } from './MonitorStage';
 import MonitorScenePreview, { useMonitorScene } from './MonitorScenePreview';
-import { ERROR_KEYS, MOTION_COPY } from './wallpaperCopy';
+import { ERROR_KEYS } from './wallpaperCopy';
+import {
+  WallpaperDialogSettings,
+  WallpaperMotionPicker,
+} from './WallpaperDialogParts';
 import useWallpaperLooks from './wallpaperLooks';
 import {
   startWallpaper,
@@ -67,11 +62,6 @@ export default function WallpaperDialog({
   const surfaceRef = useRef<HTMLDivElement>(null);
   const focusRef = useRef<HTMLButtonElement>(null);
   const headingId = useId();
-  const batteryId = useId();
-  const followId = useId();
-  const motionName = useId();
-  const waveHeightId = useId();
-  const wavePositionId = useId();
   const look = lookOf(lookId);
   const primary = displays.find((display) => display.primary) ?? displays[0];
   const showing = screens.filter((screen) => screen.lookId === lookId);
@@ -371,120 +361,21 @@ export default function WallpaperDialog({
           </MonitorStage>
         </section>
 
-        <fieldset className="wallpaper-motion" disabled={operation.pending}>
-          <legend className="eyebrow">{t('wallpaper.motion')}</legend>
-          <div className="wallpaper-motion__options">
-            {WALLPAPER_MOTIONS.map((entry) => {
-              const copy = MOTION_COPY[entry];
-              return (
-                <label
-                  key={entry}
-                  htmlFor={`${motionName}-${entry}`}
-                  className={`wallpaper-motion__option wallpaper-motion__option--${entry}`}
-                >
-                  <input
-                    id={`${motionName}-${entry}`}
-                    type="radio"
-                    name={motionName}
-                    value={entry}
-                    checked={motion === entry}
-                    onChange={() => setMotionChoice(entry)}
-                  />
-                  <span className="wallpaper-motion__mark" aria-hidden="true">
-                    <Glyph name={copy.glyph} />
-                  </span>
-                  <span className="wallpaper-motion__copy">
-                    <span className="wallpaper-motion__name">
-                      {t(copy.name)}
-                    </span>
-                    <span className="wallpaper-motion__hint">
-                      {t(copy.hint)}
-                    </span>
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-        </fieldset>
+        <WallpaperMotionPicker
+          motion={motion}
+          onMotion={setMotionChoice}
+          disabled={operation.pending}
+        />
 
-        <div className="wallpaper-dialog__settings">
-          <div className="wallpaper-dialog__setting wallpaper-wave">
-            <label htmlFor={waveHeightId} title={t('graph.waveHeightHint')}>
-              {t('graph.waveHeight')}
-            </label>
-            <input
-              id={waveHeightId}
-              type="range"
-              min={MIN_GRAPH_WAVE_HEIGHT * 100}
-              max={100}
-              step={1}
-              value={Math.round(shownWave.height * 100)}
-              disabled={operation.pending}
-              onChange={(event) =>
-                setWaveChoice({
-                  ...shownWave,
-                  height: snapPercent(Number(event.target.value)) / 100,
-                })
-              }
-            />
-            <span className="wallpaper-wave__value">
-              {t('graph.scene.percent', {
-                percent: String(Math.round(shownWave.height * 100)),
-              })}
-            </span>
-          </div>
-          <div className="wallpaper-dialog__setting wallpaper-wave">
-            <label htmlFor={wavePositionId} title={t('graph.wavePositionHint')}>
-              {t('graph.wavePosition')}
-            </label>
-            <input
-              id={wavePositionId}
-              type="range"
-              min={0}
-              max={100}
-              step={1}
-              value={Math.round(shownWave.position * 100)}
-              disabled={operation.pending}
-              onChange={(event) =>
-                setWaveChoice({
-                  ...shownWave,
-                  position: Number(event.target.value) / 100,
-                })
-              }
-            />
-            <span className="wallpaper-wave__value">
-              {t('graph.scene.percent', {
-                percent: String(Math.round(shownWave.position * 100)),
-              })}
-            </span>
-          </div>
-          <div className="wallpaper-dialog__setting">
-            <span className="wallpaper-dialog__setting-copy">
-              <label htmlFor={followId}>{t('wallpaper.follow')}</label>
-              <span>{t('wallpaper.follow.choice')}</span>
-            </span>
-            <Switch
-              id={followId}
-              isOn={follows}
-              isDisabled={operation.pending}
-              ariaLabel={t('wallpaper.follow')}
-              handleToggle={() => setFollowChoice(!follows)}
-            />
-          </div>
-          <div className="wallpaper-dialog__setting">
-            <span className="wallpaper-dialog__setting-copy">
-              <label htmlFor={batteryId}>{t('wallpaper.pauseOnBattery')}</label>
-              <span>{t('wallpaper.pauseOnBattery.hint')}</span>
-            </span>
-            <Switch
-              id={batteryId}
-              isOn={pauseOnBattery}
-              isDisabled={operation.pending}
-              ariaLabel={t('wallpaper.pauseOnBattery')}
-              handleToggle={() => setBatteryChoice(!pauseOnBattery)}
-            />
-          </div>
-        </div>
+        <WallpaperDialogSettings
+          wave={shownWave}
+          onWave={setWaveChoice}
+          follows={follows}
+          onFollows={setFollowChoice}
+          pauseOnBattery={pauseOnBattery}
+          onPauseOnBattery={setBatteryChoice}
+          disabled={operation.pending}
+        />
 
         {failures.length > 0 && (
           <ul className="wallpaper-dialog__errors" role="alert">

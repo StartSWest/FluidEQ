@@ -178,6 +178,17 @@ const markSwitching = (isSwitching: boolean) => {
   );
 };
 
+/**
+ * Marks the stretch of a switch in which the window cannot be seen — cloaked
+ * on Windows, faded out elsewhere — and lifts it as the window is shown
+ * again. The amp's opening is held while it stands (`_playerMotion.scss`):
+ * played from the moment the column mounts, most of it ran behind the cloak
+ * while the window changed size, and what showed was the end of it.
+ */
+const markWindowHidden = (isHidden: boolean) => {
+  document.documentElement.toggleAttribute('data-window-hidden', isHidden);
+};
+
 const fadeOut = async () => {
   if (!canHold()) {
     return;
@@ -256,12 +267,15 @@ const rise = async () => {
 
 const fadeIn = async () => {
   if (!canHold()) {
+    markWindowHidden(false);
     return;
   }
   // Only once the page has drawn the new mode at the window's new size, so
   // the first frame to show is that one and not the stretched one before it.
   await untilViewportIsWindow();
   await afterNextFrame();
+  // The amp opens with the rise rather than after it.
+  markWindowHidden(false);
   await rise();
 };
 
@@ -284,6 +298,7 @@ export const hidesWindow = () =>
  */
 export const setWindowMode = async (mode: TWindowMode): Promise<void> => {
   const isHidden = hidesWindow();
+  markWindowHidden(true);
   if (isHidden) {
     window.electron.ipcRenderer.sendMessage(WINDOW_HIDE_FOR_SWITCH_CHANNEL, []);
   } else {
@@ -297,6 +312,7 @@ export const setWindowMode = async (mode: TWindowMode): Promise<void> => {
       await untilViewportIsWindow();
       await afterNextFrame();
       window.electron.ipcRenderer.sendMessage(WINDOW_REVEAL_CHANNEL, []);
+      markWindowHidden(false);
     } else {
       await fadeIn();
     }

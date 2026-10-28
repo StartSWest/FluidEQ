@@ -168,6 +168,9 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.rainbow': 'रंगीन मोड',
   'graph.sceneTint.rainbowHint':
     'बैंड, शीर्षक और जले हुए नियंत्रण एक रंग के बजाय एक पैलेट में — कोई सीन चुना हो तो उसी के रंगों में।',
+  'graph.sceneTint.appIcon': 'ऐप आइकन रंगें',
+  'graph.sceneTint.appIconHint':
+    'टास्कबार बटन और ट्रे आइकन विंडो के रंगों में। बंद होने पर FluidEQ का अपना आइकन रहता है।',
   'graph.sceneTint.sparks': 'पॉइंटर की चिंगारियाँ',
   'graph.sceneTint.sparksHint':
     'विज़ुअलाइज़र माउस से जो उछालता है: तस्वीर पर से गुज़रते हुए एक लकीर, और जहाँ आप क्लिक करें वहाँ एक फुहार — चिंगारियाँ, पंखुड़ियाँ, बर्फ़, जो भी सीन में हो।',

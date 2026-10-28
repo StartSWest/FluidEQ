@@ -30,6 +30,7 @@ interface IMenuItem {
   label?: string;
   type?: string;
   click?: () => void;
+  icon?: IFakeImage;
 }
 
 const trayInstances: {
@@ -50,15 +51,21 @@ let existingFiles = new Set<string>();
  */
 interface IFakeImage {
   source: string;
+  /** The pixels an image made from a bitmap was handed. */
+  bitmap: Buffer<ArrayBufferLike>;
   isEmpty: () => boolean;
   resize: () => IFakeImage;
   addRepresentation: jest.Mock;
   toPNG: () => Buffer;
 }
 
-const fakeImage = (source: string): IFakeImage => {
+const fakeImage = (
+  source: string,
+  bitmap: Buffer<ArrayBufferLike> = Buffer.alloc(0),
+): IFakeImage => {
   const image: IFakeImage = {
     source,
+    bitmap,
     isEmpty: () => false,
     resize: () => image,
     addRepresentation: jest.fn(),
@@ -75,7 +82,11 @@ jest.mock('fs', () => ({
 
 jest.mock('electron', () => ({
   app: { isPackaged: false, quit: jest.fn() },
-  nativeImage: { createFromPath: (target: string) => fakeImage(target) },
+  nativeImage: {
+    createFromPath: (target: string) => fakeImage(target),
+    createFromBitmap: (bitmap: Buffer, options: { width: number }) =>
+      fakeImage(`bitmap:${options.width}`, bitmap),
+  },
   Menu: {
     buildFromTemplate: (template: IMenuItem[]) => {
       builtMenus.push(template);
@@ -336,5 +347,100 @@ describe('the tray icon and what it advertises', () => {
     // The positive control for the three tests above: proves the item is not
     // merely absent everywhere, and that when shown it is genuinely wired.
     expect(deps.onCheckForUpdates).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * "Tint app icon": the tray wears the taskbar button's drawn icon while the
+ * switch is on, and the installed one once it is off (Ivan, 2026-10-26:
+ * "also I am not seeing the systray tints").
+ */
+describe('the tray icon in the window colours', () => {
+  // These cases exercise Windows' .ico assets, even when run on this Mac.
+  const hostPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+  beforeAll(() =>
+    Object.defineProperty(process, 'platform', { value: 'win32' }),
+  );
+  afterAll(() => {
+    if (hostPlatform) {
+      Object.defineProperty(process, 'platform', hostPlatform);
+    }
+  });
+
+  const FILE = 'C:/Users/me/AppData/Roaming/FluidEQ/taskbar-icon.ico';
+
+  /** The drawings at the menu's four scales, every pixel one colour. */
+  const drawn = (rgba: [number, number, number, number]) => ({
+    file: FILE,
+    drawings: [16, 20, 24, 32, 48].map((size) => {
+      const pixels = new Uint8Array(size * size * 4);
+      for (let at = 0; at < pixels.length; at += 4) {
+        pixels.set(rgba, at);
+      }
+      return { size, rgba: pixels };
+    }),
+  });
+
+  /** The icon on the menu's "Open FluidEQ" item, as last built. */
+  const openItemIcon = () =>
+    (builtMenus[builtMenus.length - 1] ?? []).find(
+      (item) => item.label === 'Open FluidEQ',
+    )?.icon;
+
+  it('wears the drawn icon in the tray and its menu while the switch is on, and the installed one after', () => {
+    const tray = loadTray();
+    setUpWorkingTray(tray);
+
+    tray.setTrayTintedIcon(drawn([200, 150, 255, 255]));
+    expect(lastImage()).toBe(FILE);
+    const icon = openItemIcon();
+    expect(icon?.source).toBe('bitmap:16');
+    // The 20, 24 and 32 drawings, for 125%, 150% and 200%: never the 16px
+    // one resampled by the shell.
+    expect(
+      icon?.addRepresentation.mock.calls.map(
+        ([options]: [{ scaleFactor: number }]) => options.scaleFactor,
+      ),
+    ).toEqual([1.25, 1.5, 2]);
+
+    tray.setTrayTintedIcon(undefined);
+    expect(pathEndsWith(lastImage(), PLAIN)).toBe(true);
+    expect(pathEndsWith(openItemIcon()?.source, '16x16.png')).toBe(true);
+  });
+
+  it('follows a colour change made while the app runs', () => {
+    const tray = loadTray();
+    setUpWorkingTray(tray);
+    tray.setTrayTintedIcon(drawn([200, 150, 255, 255]));
+    const first = openItemIcon()?.bitmap;
+
+    tray.setTrayTintedIcon(drawn([95, 227, 154, 255]));
+    const second = openItemIcon()?.bitmap;
+    expect(second).toBeDefined();
+    expect(second?.equals(first ?? Buffer.alloc(0))).toBe(false);
+  });
+
+  it('hands Chromium the drawing as it holds a bitmap: BGRA, premultiplied', () => {
+    const tray = loadTray();
+    const icon = tray.menuIconFromDrawings(drawn([255, 0, 0, 128]).drawings);
+    expect([...(icon as unknown as IFakeImage).bitmap.subarray(0, 4)]).toEqual([
+      0, 0, 128, 128,
+    ]);
+  });
+
+  it('keeps the update badge over a drawn icon, in the tray and its menu', () => {
+    const tray = loadTray();
+    setUpWorkingTray(tray);
+    tray.setTrayTintedIcon(drawn([200, 150, 255, 255]));
+
+    tray.setTrayUpdateReady(true, deps);
+    expect(pathEndsWith(lastImage(), BADGED)).toBe(true);
+    const install = (builtMenus[builtMenus.length - 1] ?? []).find(
+      (item) => item.label === 'Install update and restart',
+    );
+    expect(pathEndsWith(install?.icon?.source, BADGED)).toBe(true);
+
+    tray.setTrayUpdateReady(false, deps);
+    expect(lastImage()).toBe(FILE);
   });
 });

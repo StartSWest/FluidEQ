@@ -178,6 +178,9 @@ const eq = {
   'graph.sceneTint.rainbow': 'Colourful mode',
   'graph.sceneTint.rainbowHint':
     'The bands, the title and the lit controls in a palette instead of one colour — a scene’s own colours while one is chosen.',
+  'graph.sceneTint.appIcon': 'Tint app icon',
+  'graph.sceneTint.appIconHint':
+    'The taskbar button and the tray icon in the window’s colours. Off keeps FluidEQ’s own icon.',
   'graph.sceneTint.sparks': 'Pointer sparks',
   'graph.sceneTint.sparksHint':
     'What the visualizer throws from the mouse: a trail as it crosses the picture and a burst where you click - sparks, petals, snow, whatever the scene is made of.',

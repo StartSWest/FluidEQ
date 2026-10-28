@@ -75,10 +75,6 @@ import onWindowMessage from './ipc/windowMessages';
  * draws no edge of its own there.
  */
 
-/** A double-click on a window's non-client area, and the caption hit code. */
-const WM_NCLBUTTONDBLCLK = 0x00a3;
-const HTCAPTION = 2;
-
 /**
  * Building the window, and everything that has to be true before it opens.
  *
@@ -237,16 +233,29 @@ export const createMainWindowFactory = ({
           )
         : centreIn(playerFirstSize(1), rememberedArea);
     }
+    // Even a first launch into the amp needs a full app to return to. Its
+    // real initial bounds replace this seed when the app window is created.
+    const appArea = isUsableRect(restored)
+      ? screen.getDisplayMatching(restored).workArea
+      : screen.getPrimaryDisplay().workArea;
+    const appPlacement = {
+      ...centreIn(
+        {
+          width: restored.width ?? firstRun.width,
+          height: restored.height ?? firstRun.height,
+        },
+        appArea,
+      ),
+      ...(restored.x !== undefined && restored.y !== undefined
+        ? { x: restored.x, y: restored.y }
+        : {}),
+      isMaximized:
+        restored.isMaximized === true || (isFirstRun && firstRun.maximize),
+    };
     windowModes.restore({
       mode: player ? 'player' : 'app',
       isPinned: restored.isPinned === true,
-      app: {
-        x: restored.x,
-        y: restored.y,
-        width: restored.width,
-        height: restored.height,
-        isMaximized: restored.isMaximized,
-      },
+      app: appPlacement,
       player: playerRect ?? {},
     });
     // The floor for the mode it opens in. The player's is scaled by the
@@ -358,6 +367,7 @@ export const createMainWindowFactory = ({
     // right between drags of the window's edge, never during one — and
     // where the player is left standing, so it opens there next time.
     windowModes.followWindow(created);
+    saveWindowState();
     created.on('moved', keepFloor);
     created.webContents.on('did-finish-load', keepFloor);
     screen.on('display-metrics-changed', keepFloor);
@@ -366,21 +376,6 @@ export const createMainWindowFactory = ({
       screen.off('display-metrics-changed', keepFloor);
       screen.off('display-removed', keepFloor);
     });
-    if (process.platform === 'win32') {
-      // The player's strips are the window's drag handle, and Windows keeps
-      // every click on a drag handle to itself: the page is never told of a
-      // double-click there, so the player hears of it from here and folds
-      // to one line or back. Only the caption itself; a double-click on a
-      // resizing edge is Windows' own.
-      created.hookWindowMessage(WM_NCLBUTTONDBLCLK, (wParam) => {
-        if (
-          windowModes.mode() === 'player' &&
-          wParam.readUInt32LE(0) === HTCAPTION
-        ) {
-          created.webContents.send('player-caption-double-click');
-        }
-      });
-    }
     // The material, from the first frame: it is what Windows rounds the
     // window's corners around, so a window without it is square from the
     // moment it opens.
@@ -559,7 +554,7 @@ export const createMainWindowFactory = ({
         // update, permanently. So it waits for the tray to open the window and
         // happens then, one frame late and visible as a snap, which is the
         // cost of not flashing a window at somebody who put it away.
-        if (restored.isMaximized && !player) {
+        if (appPlacement.isMaximized && !player) {
           created.once('show', () => created.maximize());
         }
         return;
@@ -572,10 +567,7 @@ export const createMainWindowFactory = ({
         // size and then visibly snap outward. A first run on a screen below 2K
         // takes the same path, for the same reason.
         // Never the player: `isMaximized` is the app's, kept for going back.
-        if (
-          !player &&
-          (restored.isMaximized || (isFirstRun && firstRun.maximize))
-        ) {
+        if (!player && appPlacement.isMaximized) {
           created.maximize();
         }
         created.show();

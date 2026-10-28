@@ -20,3 +20,10 @@ export interface IHelpColumn {
 export const HelpColumnContext = createContext<IHelpColumn | undefined>(
   undefined,
 );
+
+/**
+ * The guide's scrolling article, which a live figure watches to be drawn as
+ * the reader nears it (`live/useNearView`). `null` outside the guide: the
+ * window's own viewport.
+ */
+export const HelpScrollContext = createContext<Element | null>(null);

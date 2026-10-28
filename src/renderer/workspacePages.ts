@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { ComponentProps } from 'react';
-import type { TPlaybackOwner } from './audio/playbackOwner';
+import type { TOwnOwner } from './audio/lastShown';
 import { readRememberedTransportOwner } from './audio/transportSource';
 import lazyPage, { type ILazyPage } from './utils/lazyPage';
 import { readWorkspaceTab, type TWorkspaceTab } from './workspaceTabs';
@@ -102,8 +102,7 @@ const PAGE_OF_TAB: Partial<Record<TWorkspaceTab, IPreloadable>> = {
 };
 
 /** The player a remembered transport restores, which mounts at launch. */
-const PAGE_OF_OWNER: Partial<Record<TPlaybackOwner, IPreloadable>> = {
-  media: MediaPage,
+const PAGE_OF_OWNER: Record<TOwnOwner, IPreloadable> = {
   library: LibraryPage,
   karaoke: KaraokePage,
 };
@@ -118,7 +117,7 @@ export const preloadTab = (tab: TWorkspaceTab): Promise<void> =>
 
 /**
  * What the first frame needs: the page the window was left on, and the
- * player whose transport it restores (`restoredOwner` in `App.tsx`), which
+ * player whose transport it restores (`restoredOwner` in `usePlayerMounts`), which
  * mounts hidden at launch and has to describe itself to the bar at once or
  * the bar opens on "Nothing playing" and changes under the pointer.
  */

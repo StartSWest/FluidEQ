@@ -18,6 +18,9 @@ import '../../styles/StudioChatComposer.scss';
 interface IStudioChatComposerProps {
   draft: string;
   onDraft: (draft: string) => void;
+  /** The stage's picture going with the next message, marks and all. */
+  stage?: Uint8Array;
+  onStage: (stage?: Uint8Array) => void;
   /** Claude is writing a reply: the box takes no message, and Stop shows. */
   busy: boolean;
   /** Nothing has been said yet: the box asks for the scene itself. */
@@ -32,7 +35,8 @@ interface IStudioChatComposerProps {
  * Where the member writes to Claude. Enter sends and Shift+Enter starts a
  * new line, as in every chat. "Attach the stage" takes a picture of the
  * scene as it looks now, which the member can draw on, and sends it with
- * the message, for "this, but…" requests.
+ * the message, for "this, but…" requests. The words and the picture are the
+ * project's draft (`chatDraftStore.ts`), kept until they are sent.
  *
  * Everything but the words stands on one bar inside the box, as in Claude's
  * own (design C, Ivan 2026-10-09): the stage's camera, the model, the effort
@@ -41,15 +45,14 @@ interface IStudioChatComposerProps {
 export default function StudioChatComposer({
   draft,
   onDraft,
+  stage,
+  onStage: setStage,
   busy,
   first,
   folder,
   captureStage,
 }: IStudioChatComposerProps) {
   const { t } = useTranslation();
-  // The stage's picture going with the next message: taken when the camera
-  // is pressed, so it can be drawn on before it goes.
-  const [stage, setStage] = useState<Uint8Array>();
   const [capturing, setCapturing] = useState(false);
   // Between the press and main's first word back: no second send.
   const [sending, setSending] = useState(false);

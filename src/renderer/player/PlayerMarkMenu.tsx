@@ -12,6 +12,7 @@ import SliderHandlePicker from '../components/SliderHandlePicker';
 import DaylightSourceChoice from '../graph/DaylightSourceChoice';
 import LookColourSlider from '../graph/LookColourSlider';
 import RainbowSwitch from '../graph/RainbowSwitch';
+import AppIconTintSwitch from '../graph/AppIconTintSwitch';
 import SceneDaylightSlider from '../graph/SceneDaylightSlider';
 import WindowBrightnessSlider from '../graph/WindowBrightnessSlider';
 import { useTranslation } from '../utils/I18nContext';
@@ -81,6 +82,103 @@ interface IPlayerMarkMenuProps {
   onOpenPage: (page: TPlayerPage) => void;
 }
 
+interface IPlayerMarkMenuItemsProps extends IPlayerMarkMenuProps {
+  /** Every choice closes the menu before it acts. */
+  onClose: () => void;
+}
+
+/**
+ * What the mark's menu holds, apart from the menu that holds it, so Help can
+ * draw the menu as it is without opening one (`help/live/playerFigures`).
+ */
+export const PlayerMarkMenuItems = ({
+  onFold,
+  onOpenPage,
+  onClose,
+}: IPlayerMarkMenuItemsProps) => {
+  const { t } = useTranslation();
+  const isSceneLook = useIsSceneLook();
+  const run = (action: () => void) => () => {
+    onClose();
+    action();
+  };
+  return (
+    <>
+      {/* The way back to the full app, first and largest: it is the one
+          thing everybody opens this menu for. */}
+      <button
+        type="button"
+        role="menuitem"
+        className="player-menu__home"
+        onClick={run(() => {
+          setWindowMode('app').catch(() => undefined);
+        })}
+      >
+        <PlayerIcon name="app" />
+        <span className="player-menu__home-text">
+          <b>{t('player.menu.fullApp')}</b>
+          <small>{t('player.menu.fullAppHint')}</small>
+        </span>
+        <PlayerIcon name="chevronRight" />
+      </button>
+      {/* The app's pages, each behind the glyph the tab strip gives it, four
+          to a row: this menu stands in for that strip. */}
+      <div
+        className="player-menu__pages"
+        role="group"
+        aria-label={t('player.menu.openIn')}
+      >
+        {PAGES.map(({ page, labelKey, icon }) => (
+          <button
+            key={page}
+            type="button"
+            role="menuitem"
+            className="player-menu__page"
+            onClick={run(() => onOpenPage(page))}
+          >
+            <span className="player-menu__page-icon" aria-hidden="true">
+              <MenuIcon name={icon} />
+            </span>
+            {t(labelKey)}
+          </button>
+        ))}
+      </div>
+      <div className="actions-menu__prefs">
+        <div className="actions-menu__sliders">
+          <WindowBrightnessSlider />
+          <LookColourSlider />
+          {/* A Plus visualizer's own time of day and what it follows, as in
+              the full app's window-colours menu (Ivan, 2026-10-25: "we also
+              need a separate scene brightness slider for plus viz", "and the
+              follow day and all that same as in the full app"). */}
+          {isSceneLook && (
+            <>
+              <SceneDaylightSlider />
+              <DaylightSourceChoice />
+            </>
+          )}
+          <RainbowSwitch />
+          <AppIconTintSwitch />
+        </div>
+        <SliderHandlePicker />
+        {/* How the amp looks above, how its window behaves below. */}
+        <div className="actions-menu__prefs-rule" aria-hidden="true" />
+        <PinPreference />
+      </div>
+      <hr className="player-menu__rule" />
+      <button
+        type="button"
+        role="menuitem"
+        className="player-menu__fold"
+        onClick={run(onFold)}
+      >
+        <PlayerIcon name="fold" />
+        <span>{t('player.menu.fold')}</span>
+      </button>
+    </>
+  );
+};
+
 /**
  * The FluidEQ mark on its key, and the menu it opens.
  *
@@ -102,15 +200,10 @@ interface IPlayerMarkMenuProps {
  */
 const PlayerMarkMenu = ({ onFold, onOpenPage }: IPlayerMarkMenuProps) => {
   const { t } = useTranslation();
-  const isSceneLook = useIsSceneLook();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const holder = useRef<HTMLDivElement>(null);
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
   useMenuDismiss(isMenuOpen, holder, closeMenu);
-  const run = (action: () => void) => () => {
-    closeMenu();
-    action();
-  };
 
   return (
     <div className="player-title__menu" ref={holder}>
@@ -133,77 +226,11 @@ const PlayerMarkMenu = ({ onFold, onOpenPage }: IPlayerMarkMenuProps) => {
         className="player-menu player-menu--mark"
         ariaLabel={t('player.menu')}
       >
-        {/* The way back to the full app, first and largest: it is the one
-            thing everybody opens this menu for. */}
-        <button
-          type="button"
-          role="menuitem"
-          className="player-menu__home"
-          onClick={run(() => {
-            setWindowMode('app').catch(() => undefined);
-          })}
-        >
-          <PlayerIcon name="app" />
-          <span className="player-menu__home-text">
-            <b>{t('player.menu.fullApp')}</b>
-            <small>{t('player.menu.fullAppHint')}</small>
-          </span>
-          <PlayerIcon name="chevronRight" />
-        </button>
-        {/* The app's pages, each behind the glyph the tab strip gives it,
-            four to a row: this menu stands in for that strip. */}
-        <div
-          className="player-menu__pages"
-          role="group"
-          aria-label={t('player.menu.openIn')}
-        >
-          {PAGES.map(({ page, labelKey, icon }) => (
-            <button
-              key={page}
-              type="button"
-              role="menuitem"
-              className="player-menu__page"
-              onClick={run(() => onOpenPage(page))}
-            >
-              <span className="player-menu__page-icon" aria-hidden="true">
-                <MenuIcon name={icon} />
-              </span>
-              {t(labelKey)}
-            </button>
-          ))}
-        </div>
-        <div className="actions-menu__prefs">
-          <div className="actions-menu__sliders">
-            <WindowBrightnessSlider />
-            <LookColourSlider />
-            {/* A Plus visualizer's own time of day and what it follows, as
-                in the full app's window-colours menu (Ivan, 2026-10-25: "we
-                also need a separate scene brightness slider for plus viz",
-                "and the follow day and all that same as in the full app"). */}
-            {isSceneLook && (
-              <>
-                <SceneDaylightSlider />
-                <DaylightSourceChoice />
-              </>
-            )}
-            <RainbowSwitch />
-          </div>
-          <SliderHandlePicker />
-          {/* How the amp looks above, how its window behaves below. */}
-          <div className="actions-menu__prefs-rule" aria-hidden="true" />
-          <PinPreference />
-        </div>
-        <hr className="player-menu__rule" />
-        <button
-          type="button"
-          role="menuitem"
-          className="player-menu__fold"
-          onClick={run(onFold)}
-        >
-          <PlayerIcon name="fold" />
-          <span>{t('player.menu.fold')}</span>
-          <small>{t('player.menu.foldHint')}</small>
-        </button>
+        <PlayerMarkMenuItems
+          onFold={onFold}
+          onOpenPage={onOpenPage}
+          onClose={closeMenu}
+        />
       </AnchoredMenu>
     </div>
   );

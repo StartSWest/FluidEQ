@@ -1,0 +1,102 @@
+/* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// A LIVE FIGURE (`HelpLiveFigure`): the panel drawn by the app's own parts
+// where a capture used to stand, in the capture's frame and on its sheet.
+
+// The frame a capture wears (`.help-guide__capture`), round a drawing. Its
+// hairline is drawn over the drawing rather than round it, so the drawing
+// fills the frame to the pixel the call-outs were placed by.
+.help-guide__capture.help-figure__live {
+  border: 0;
+  cursor: default;
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba($white, 0.09);
+    border-radius: inherit;
+    content: '';
+    pointer-events: none;
+  }
+}
+
+// The drawing: laid out at the figure's own width and clipped to the part it
+// frames (`HelpLiveSurface`, which sets both inline).
+.help-live {
+  position: relative;
+  overflow: hidden;
+  // The window's type, not the page's around it: the guide reads at 15px on
+  // 1.75 and breaks a word anywhere (`HelpGuide.scss`), and a panel drawn in
+  // it inherited all three — rows grew, and names broke mid-word.
+  font-size: 1rem;
+  line-height: normal;
+  overflow-wrap: normal;
+
+  // A picture of the app, so its motion stands down as the window's does
+  // when motion is reduced (`App.scss`): a menu that opened with a scale was
+  // measured half-open. Not to nothing — a duration of none cancels the
+  // event that tells the figure to measure again.
+  &,
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  // NOTHING IN IT IS A HANDLE ON THE WINDOW. The player's title strip and
+  // folded line, and the whole title bar, are the window's drag regions where
+  // they belong; drawn here they marked strips of the guide that Windows
+  // takes a press on as the start of moving the window, so the figure under
+  // them never heard it. A drag region survives `inert`, and a region its
+  // own stylesheet scopes in wins over a plain rule, so this one is
+  // important.
+  * {
+    -webkit-app-region: no-drag !important;
+  }
+}
+
+.help-live__drawing {
+  position: relative;
+}
+
+// THE TITLE BAR, drawn in a figure (`help/live/windowFigures`): in the
+// figure's box rather than fixed across the window's top, and with each of
+// its three tracks only as wide as what it holds. In the window the two ends
+// share whatever the window has over, which a picture of the bar would show
+// as empty floor between its parts.
+.help-live .window-titlebar {
+  position: relative;
+  z-index: auto;
+  inset: auto;
+  grid-template-columns: repeat(3, max-content);
+  justify-content: start;
+}
+
+// The press that enlarges a live figure, over the drawing: a button may not
+// hold the panel's own buttons, inert or not.
+.help-figure__enlarge {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-m;
+  background: transparent;
+  cursor: zoom-in;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// Enlarged: drawn again, larger, in the middle of the room it is given.
+.help-lightbox__live {
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}

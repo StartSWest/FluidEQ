@@ -1,9 +1,14 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import { memo } from 'react';
-import type { HELP_CHAPTERS } from 'common/helpGuide';
+import {
+  isLiveFigure,
+  type HELP_CHAPTERS,
+  type IHelpLiveFigure,
+} from 'common/helpGuide';
 import { useTranslation } from '../utils/I18nContext';
 import HelpFigure from './HelpFigure';
+import HelpLiveFigure from './HelpLiveFigure';
 import { Marked } from './HelpMarks';
 import { helpAnchor, type IHelpHit } from './helpSearch';
 import HelpFilm from './HelpFilm';
@@ -29,17 +34,19 @@ export interface IHelpShownChapter {
   hit?: IHelpHit;
 }
 
-/** A capture asked to be shown at full size. */
-export interface IHelpCapture {
-  src: string;
-  title: string;
-}
+/**
+ * A figure asked to be shown at full size: a capture's picture, or a live
+ * figure drawn again larger (`HelpLiveEnlarged`).
+ */
+export type THelpCapture =
+  | { readonly src: string; readonly title: string }
+  | { readonly live: IHelpLiveFigure; readonly title: string };
 
 interface IHelpChapterProps {
   chapter: IHelpShownChapter;
   /** Its part of the guide, named above it when it is the first shown. */
   groupLabel?: string;
-  onEnlarge: (capture: IHelpCapture) => void;
+  onEnlarge: (capture: THelpCapture) => void;
 }
 
 /**
@@ -88,11 +95,23 @@ function HelpChapter({ chapter, groupLabel, onEnlarge }: IHelpChapterProps) {
       {chapter.video && <HelpVideo video={chapter.video} />}
       {chapter.figures.map((figure, figureIndex) => {
         const title = figure.caption ? t(figure.caption) : chapter.title;
+        const anchor = helpAnchor.figure(chapter.id, figureIndex);
+        if (isLiveFigure(figure)) {
+          return (
+            <HelpLiveFigure
+              key={anchor}
+              anchor={anchor}
+              figure={figure}
+              title={title}
+              onEnlarge={() => onEnlarge({ live: figure, title })}
+            />
+          );
+        }
         const src = helpScreenshot(figure.image);
         return (
           <HelpFigure
             key={figure.image}
-            anchor={helpAnchor.figure(chapter.id, figureIndex)}
+            anchor={anchor}
             figure={figure}
             src={src}
             title={title}

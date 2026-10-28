@@ -412,10 +412,10 @@ describe('the idle bar', () => {
 });
 
 /**
- * Once anything has played, the bar never goes back to "Nothing playing".
- * The player that showed a song can go — a reload, a browser tab closed, the
- * other computer disconnected, Stop — and the bar goes on saying what played
- * last, where it played, and where to find it again.
+ * Once a song of the listener's own has played, the bar never goes back to
+ * "Nothing playing". Its player can go — a reload, Stop — and the bar goes on
+ * saying what played last, where it played, and where to find it again. What
+ * played outside is never handed to it (`transportSource.test.ts`).
  */
 describe('the idle bar after something has played', () => {
   it('says what played last and where, instead of "Nothing playing"', () => {
@@ -436,18 +436,6 @@ describe('the idle bar after something has played', () => {
     expect(screen.getByRole('button', { name: /^play$/i })).toBeDisabled();
   });
 
-  it('names the computer a sent song came from', () => {
-    render(
-      <I18nProvider>
-        <IdleTransportBar
-          remembered={{ owner: 'remote', title: 'Take Five', origin: 'Den' }}
-          onReveal={undefined}
-        />
-      </I18nProvider>,
-    );
-    expect(screen.getByText('Playing remote · Den')).toBeVisible();
-  });
-
   it('sends the press on the song to the place that played it', async () => {
     const reveal = jest.fn();
     render(
@@ -462,21 +450,5 @@ describe('the idle bar after something has played', () => {
       screen.getByRole('button', { name: 'Karaoke — Warm-up' }),
     );
     expect(reveal).toHaveBeenCalledTimes(1);
-  });
-
-  it('offers no press for sound that has no place here to go back to', () => {
-    // Another program's sound has no tab in this app. A press that would go
-    // nowhere is switched off, not offered and ignored.
-    render(
-      <I18nProvider>
-        <IdleTransportBar
-          remembered={{ owner: 'system', title: 'A browser tab' }}
-          onReveal={undefined}
-        />
-      </I18nProvider>,
-    );
-    expect(
-      screen.getByRole('button', { name: 'System audio — A browser tab' }),
-    ).toBeDisabled();
   });
 });

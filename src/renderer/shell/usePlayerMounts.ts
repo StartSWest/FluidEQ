@@ -173,10 +173,16 @@ const usePlayerMounts = ({
    * themselves perfectly well the moment they exist. Nobody was mounting them.
    *
    * One of them, not all three: this is "what was I last listening to", and
-   * bringing up a browser engine and a karaoke session alongside the queue
-   * somebody actually left would be three players restored to answer a
-   * question about one. Each restores paused — the point is the transport
-   * being there to press, not sound arriving unasked at launch.
+   * bringing up a karaoke session alongside the queue somebody actually left
+   * would be two players restored to answer a question about one. Each
+   * restores paused — the point is the transport being there to press, not
+   * sound arriving unasked at launch.
+   *
+   * The Library or Karaoke only, never the Media tab: its page is not the
+   * listener's own file, and mounted at launch it described itself on the bar
+   * before anybody had touched the window — last night's video, by name, on
+   * the first frame (`lastShown.ts`). It comes back to its page when its tab
+   * is opened.
    *
    * Held in state purely to be read once. The answer is a fact about how the
    * window opened; re-reading storage after that would be wasted work and
@@ -185,9 +191,7 @@ const usePlayerMounts = ({
   const [restoredOwner] = useState(readRememberedTransportOwner);
   // Once visited, the Media tab is eligible to reconstruct its guest. A silent
   // hidden browser stays only while it is the last thing played.
-  const [hasOpenedVideo, setHasOpenedVideo] = useState(
-    () => restoredOwner === 'media',
-  );
+  const [hasOpenedVideo, setHasOpenedVideo] = useState(false);
   // Library follows the same eligibility rule. Its providers survive off-tab
   // while a deck is making sound, or while its queue is the last thing played.
   const [hasOpenedLibrary, setHasOpenedLibrary] = useState(

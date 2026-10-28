@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { FLUIDEQ_CREATOR_ID, type IGalleryScene } from 'common/plusGallery';
 import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 import { blobAsDataUrl, renderSceneStill } from '../graph/sceneStill';
@@ -125,6 +125,15 @@ const asPicture = (value: string | null | undefined): TScenePicture => {
 };
 
 /**
+ * Pictures already in hand, by look id, shown as they are and never drawn or
+ * fetched: Help draws the gallery from made-up scenes and the stills the app
+ * ships (`help/live/plusFigures`). Empty everywhere else.
+ */
+export const SceneStillsContext = createContext<ReadonlyMap<string, string>>(
+  new Map(),
+);
+
+/**
  * A scene's picture, asked for once `element` is near the screen, so a page
  * of sixty cards fetches the dozen that are visible first.
  */
@@ -133,12 +142,13 @@ export const useScenePicture = (
   element: Element | null,
 ): TScenePicture => {
   const key = pictureKey(scene);
+  const still = useContext(SceneStillsContext).get(scene.lookId);
   const [picture, setPicture] = useState<TScenePicture>(() =>
-    asPicture(pictures.get(key)),
+    asPicture(still ?? pictures.get(key)),
   );
 
   useEffect(() => {
-    const known = pictures.get(key);
+    const known = still ?? pictures.get(key);
     setPicture(asPicture(known));
     if (known !== undefined || !element) {
       return undefined;
@@ -179,9 +189,9 @@ export const useScenePicture = (
       observer.disconnect();
     };
     // The key names the scene's version; the ids inside it do not change
-    // without it.
+    // without it. A picture in hand is named on its own.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, element]);
+  }, [key, element, still]);
 
   return picture;
 };

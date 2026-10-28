@@ -174,6 +174,9 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.rainbow': 'Bunter Modus',
   'graph.sceneTint.rainbowHint':
     'Bänder, Titel und leuchtende Bedienelemente in einer Palette statt in einer Farbe – mit einer gewählten Szene in deren eigenen Farben.',
+  'graph.sceneTint.appIcon': 'App-Symbol einfärben',
+  'graph.sceneTint.appIconHint':
+    'Die Taskleisten-Schaltfläche und das Symbol im Infobereich in den Farben des Fensters. Aus behält das FluidEQ-Symbol.',
   'graph.sceneTint.sparks': 'Zeiger-Funken',
   'graph.sceneTint.sparksHint':
     'Was der Visualizer von der Maus wirft: eine Spur, wenn sie über das Bild fährt, und einen Schauer, wo Sie klicken – Funken, Blütenblätter, Schnee, woraus die Szene besteht.',

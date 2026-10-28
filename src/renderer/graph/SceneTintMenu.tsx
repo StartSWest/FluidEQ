@@ -24,6 +24,7 @@ import LookColourSlider from './LookColourSlider';
 import DaylightSourceChoice from './DaylightSourceChoice';
 import PointerSparksSwitch from './PointerSparksSwitch';
 import RainbowSwitch from './RainbowSwitch';
+import AppIconTintSwitch from './AppIconTintSwitch';
 import SceneDaylightSlider from './SceneDaylightSlider';
 import WindowBrightnessSlider from './WindowBrightnessSlider';
 
@@ -131,6 +132,7 @@ const SceneTintMenu = () => {
             <DaylightSourceChoice />
             <RainbowSwitch />
             <PointerSparksSwitch />
+            <AppIconTintSwitch />
           </div>
           <div
             className="scene-look-menu__choices"

@@ -4,15 +4,15 @@ const forum = {
   'forum.source': 'GitHub Discussions',
   'forum.allTopics': 'Alle Themen',
   'forum.allTopics.blurb': 'Alle Kategorien, neueste Aktivität zuerst',
-  'forum.new': 'Neu für dich',
-  'forum.new.blurb': 'Was seit deinem letzten Besuch kam',
+  'forum.new': 'Neu für Sie',
+  'forum.new.blurb': 'Was seit Ihrem letzten Besuch kam',
   'forum.new.countLabel': 'Neu: {count}',
   'forum.new.markAllRead': 'Alles als gelesen markieren',
   'forum.news.hide': 'Forum-Benachrichtigungen ausschalten',
   'forum.news.show': 'Forum-Benachrichtigungen einschalten',
   'forum.new.empty': 'Alles gelesen',
   'forum.new.emptyHint':
-    'Neue Themen und Antworten erscheinen hier, bis du sie öffnest.',
+    'Neue Themen und Antworten erscheinen hier, bis Sie sie öffnen.',
   'forum.topic.new': 'Neu',
   'forum.thread.newReplies': 'Neu: {count}',
 

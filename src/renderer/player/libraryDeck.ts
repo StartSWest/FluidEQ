@@ -57,8 +57,10 @@ export interface ILibraryDeck {
    * in drop order. Folders wait for the cancellable Library scan.
    */
   addFiles: (paths: string[], at?: number) => Promise<TDroppedMusic>;
+  /** A scan under way, unless its notice was put away (`hideScanNotice`). */
   scanProgress?: ILibraryScanProgress;
   cancelScan: () => void;
+  hideScanNotice: () => void;
   /**
    * Drag a song to a different place in what is coming up. Only what is
    * still ahead of the playhead can move, and only to somewhere ahead of it:
@@ -186,7 +188,14 @@ export const usePublishedLibraryDeck = ({
   removeUpNextAt,
   isGuess,
 }: IPublishedLibraryDeck) => {
-  const { summary, isScanning, progress, cancelScan } = useLibrary();
+  const {
+    summary,
+    isScanning,
+    progress,
+    cancelScan,
+    isScanNoticeHidden,
+    hideScanNotice,
+  } = useLibrary();
   /**
    * How long is still to come, summed by the store over every id from the
    * playhead on — the queue can run past the window the deck lists, and the
@@ -262,8 +271,9 @@ export const usePublishedLibraryDeck = ({
       cycleRepeat,
       jumpTo: jumpToQueuePosition,
       addFiles,
-      scanProgress: isScanning ? progress : undefined,
+      scanProgress: isScanning && !isScanNoticeHidden ? progress : undefined,
       cancelScan,
+      hideScanNotice,
       move: moveUpNext,
       remove: removeUpNextAt,
       playOrder: () =>
@@ -280,6 +290,8 @@ export const usePublishedLibraryDeck = ({
     isScanning,
     progress,
     cancelScan,
+    isScanNoticeHidden,
+    hideScanNotice,
     cycleRepeat,
     moveUpNext,
     removeUpNextAt,

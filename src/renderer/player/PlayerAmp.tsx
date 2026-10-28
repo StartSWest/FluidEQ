@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import FoldStrip from './FoldStrip';
+import FoldTrace from './FoldTrace';
 import PlayerDock from './PlayerDock';
 import PlayerFoot from './PlayerFoot';
 import PlayerHeightGrip from './PlayerHeightGrip';
@@ -45,8 +46,9 @@ import useMusicDrop from './useMusicDrop';
  * height, the queue its least, the picture takes what it would like down to
  * its least, and the queue the rest — or the picture, with the queue folded.
  * The window may not be dragged shorter than all of that with the sound open
- * (`usePlayerHeightFloor`). Folded to one line, with a Plus visualizer still
- * moving behind it.
+ * (`usePlayerHeightFloor`). Folded to one line, with the visualizer still
+ * moving behind it: a Plus visualizer, or a standard look drawn faintly
+ * (`FoldTrace`).
  */
 const PlayerAmp = ({
   onOpenPage,
@@ -54,12 +56,15 @@ const PlayerAmp = ({
   onOpenPage: (page: TPlayerPage) => void;
 }) => {
   const { t } = useTranslation();
-  const { isFolded, fold, unfold } = usePlayerFold();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const { isFolded, fold, unfold } = usePlayerFold(rootRef);
   const isVisFull = usePlayerVisFull();
   const { isShelfOpen } = usePlayerShelfOpen();
   const { sound } = usePlayerSound();
-  const rootRef = useRef<HTMLDivElement>(null);
-  const topRef = useRef<HTMLDivElement>(null);
+  // The top panel itself, held as state: the Backdrop's stage stands before
+  // it on the page and frames the scene to it, so it has to hear when the
+  // panel arrives (`PlayerStage`).
+  const [topPanel, setTopPanel] = useState<HTMLDivElement | null>(null);
   // One load of the graph's Plus visualizer for the whole amp, folded or not:
   // it keeps moving behind the folded line.
   const scene = useGraphScenePack();
@@ -111,20 +116,19 @@ const PlayerAmp = ({
       {isFolded ? (
         <>
           <PlayerStage scene={drawn} onTrouble={onTrouble} />
+          {/* A standard look behind the line, as a scene is behind it; none
+              while a scene is on its way, as the top panel draws none. */}
+          {drawn === undefined && scene.state !== 'loading' && <FoldTrace />}
           <FoldStrip onUnfold={unfold} />
         </>
       ) : (
         <>
           {isBackdrop && (
-            <PlayerStage
-              scene={drawn}
-              onTrouble={onTrouble}
-              panelRef={topRef}
-            />
+            <PlayerStage scene={drawn} onTrouble={onTrouble} panel={topPanel} />
           )}
           <PlayerTitleStrip onFold={fold} onOpenPage={onOpenPage} />
           <div className="player-body">
-            <div className="player-top" ref={topRef}>
+            <div className="player-top" ref={setTopPanel}>
               {!isBackdrop && (
                 <PlayerStage scene={drawn} onTrouble={onTrouble} />
               )}

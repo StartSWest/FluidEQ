@@ -22,9 +22,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * The bar on a tab that is not a player is whatever was last listened to:
  * the owner the bar last showed playing, whoever that was — one of this
  * app's players, the machine's own, another computer's. A player that only
- * describes itself does not take it, and a player going away does not take
- * it either: the words of what played stay, so the bar can keep showing them
- * until something new plays.
+ * describes itself does not take it. A song of the listener's own stays
+ * after its player has gone, so the bar can keep showing it until something
+ * new plays; anything that played outside leaves with its player, and
+ * nothing of it is written down (Ivan, 2026-10-26).
  */
 
 import { act, renderHook } from '@testing-library/react';
@@ -77,6 +78,20 @@ const appPauses = (next: ITransportSource) => {
     releasePlayback(next.owner);
     setTransportSource({ ...next, isPlaying: false });
   });
+};
+
+/**
+ * Sound from outside the listener's own files taking the bar: a Media page
+ * claims playback as the app's own players do, while another program and
+ * another computer take it by saying they are playing.
+ */
+const outsidePlays = (owner: TPlaybackOwner, title = `${owner} title`) => {
+  const next = { ...source(owner), title };
+  if (owner === 'media') {
+    appPlays(next);
+    return;
+  }
+  act(() => setTransportSource({ ...next, isPlaying: true }));
 };
 
 const librarySongA = buildSongIdentity('library', 'a', 'Song A');
@@ -156,12 +171,61 @@ describe('the register of players', () => {
     expect(result.current).toBe('library');
   });
 
-  it('writes the last thing down, another computer’s sound included', () => {
+  it('writes the last thing down when it is the listener’s own', () => {
     // What decides, at the next launch, which player comes back to restore
-    // itself — and a sender that was last is last after a reload too.
-    act(() => setTransportSource(source('remote', true)));
+    // itself.
+    appPlays(source('karaoke'));
 
-    expect(readRememberedTransportOwner()).toBe('remote');
+    expect(readRememberedTransportOwner()).toBe('karaoke');
+  });
+
+  it.each<TPlaybackOwner>(['system', 'remote', 'media'])(
+    'never writes down that %s sound was last, and keeps the listener’s own',
+    (outside) => {
+      // The control is the case above: the same playing does write a name.
+      const { result } = renderHook(() => useLastTransportOwner());
+      appPlays(source('library'));
+      appPauses(source('library'));
+      outsidePlays(outside);
+      // It did take the bar: what is asserted below is the storage alone.
+      expect(result.current).toBe(outside);
+
+      expect(readRememberedTransportOwner()).toBe('library');
+      expect(window.localStorage.getItem('fluideq.transport.lastOwner')).toBe(
+        'library',
+      );
+    },
+  );
+
+  it('hands the bar back to the listener’s own song when outside sound goes', () => {
+    // A browser tab closed: the bar is what it was before the tab played,
+    // not a name that indexes nothing.
+    const { result } = renderHook(() => useLastTransportOwner());
+
+    appPlays(source('library'));
+    appPauses(source('library'));
+    act(() => setTransportSource(source('system', true)));
+    expect(result.current).toBe('system');
+
+    act(() => clearTransportSource('system'));
+
+    expect(result.current).toBe('library');
+  });
+
+  it('keeps only the name of outside sound that goes when nothing of the listener’s own played', () => {
+    // The name indexes no player, so the bar reads "Nothing playing" rather
+    // than leaving the foot of the window; and nothing of it is stored.
+    const { result } = renderHook(() => ({
+      last: useLastTransportOwner(),
+      shown: useLastShown(),
+    }));
+
+    act(() => setTransportSource(source('remote', true)));
+    act(() => clearTransportSource('remote'));
+
+    expect(result.current.last).toBe('remote');
+    expect(result.current.shown).toBeUndefined();
+    expect(readRememberedTransportOwner()).toBeUndefined();
   });
 
   it('forgets a player that has gone', () => {
@@ -257,27 +321,38 @@ describe('the register of players', () => {
  * aside, because a component of this copy's own React would be a second
  * React the test renderer has never heard of.
  */
-const reloadedLastShown = (): LastShownModule.ILastShown | undefined => {
-  let fresh: typeof LastShownModule | undefined;
+const reloaded = (): {
+  shown: LastShownModule.ILastShown | undefined;
+  owner: TPlaybackOwner | undefined;
+} => {
+  let freshShown: typeof LastShownModule | undefined;
+  let freshTransport:
+    typeof import('../../../renderer/audio/transportSource') | undefined;
   jest.isolateModules(() => {
     jest.doMock('react', () => ({
       useSyncExternalStore: (_subscribe: unknown, getSnapshot: () => unknown) =>
         getSnapshot(),
     }));
     // eslint-disable-next-line global-require -- a fresh copy of the module is what a reload is
-    fresh = require('../../../renderer/audio/lastShown');
+    freshTransport = require('../../../renderer/audio/transportSource');
+    // eslint-disable-next-line global-require -- the copy the one above loaded
+    freshShown = require('../../../renderer/audio/lastShown');
   });
   jest.dontMock('react');
-  if (fresh === undefined) {
-    throw new Error('the reloaded module did not load');
+  if (freshShown === undefined || freshTransport === undefined) {
+    throw new Error('the reloaded modules did not load');
   }
-  return fresh.useLastShown();
+  return {
+    shown: freshShown.useLastShown(),
+    owner: freshTransport.useLastTransportOwner(),
+  };
 };
 
 /**
- * "Nothing playing" never replaces a song that was playing: after Stop, a
- * closed browser tab, a disconnected sender or a reload, the bar goes on
- * saying what played last until something new plays.
+ * "Nothing playing" never replaces a song of the listener's own: after Stop
+ * or a reload, the bar goes on saying what played last until something new
+ * plays. What played outside — a browser tab, another computer, a Media page
+ * — is never kept to be said, in memory or in storage, once its player goes.
  */
 describe('what the bar last showed playing', () => {
   const song: ITransportSource = {
@@ -301,23 +376,67 @@ describe('what the bar last showed playing', () => {
     });
   });
 
-  it('keeps a sender’s name, for the line that says where it came from', () => {
+  it.each<TPlaybackOwner>(['system', 'remote', 'media'])(
+    'keeps nothing of %s sound once its player has gone',
+    (outside) => {
+      // The case Ivan reported: a browser tab closed, and its title stayed on
+      // the bar. The test above is the control — the same withdrawal keeps
+      // a song of the listener's own.
+      const { result } = renderHook(() => useLastShown());
+
+      outsidePlays(outside, 'A private title');
+      act(() => clearTransportSource(outside));
+
+      expect(result.current).toBeUndefined();
+    },
+  );
+
+  it('does not let outside sound take the place of the listener’s own song', () => {
     const { result } = renderHook(() => useLastShown());
 
-    act(() =>
-      setTransportSource({
-        ...source('remote', true),
-        title: 'Take Five',
-        origin: 'Studio PC',
-      }),
-    );
-    act(() => clearTransportSource('remote'));
+    appPlays(song);
+    appPauses(song);
+    outsidePlays('system', 'A private title');
+    act(() => clearTransportSource('system'));
 
-    expect(result.current).toEqual({
-      owner: 'remote',
-      title: 'Take Five',
-      origin: 'Studio PC',
+    expect(result.current?.title).toBe('Blue in Green');
+  });
+
+  it('writes nothing that played outside to storage, while it plays or after', () => {
+    // Every value the window keeps, not one key: the words must be nowhere.
+    const everythingStored = () => {
+      const values: string[] = [];
+      for (let index = 0; index < window.localStorage.length; index += 1) {
+        const key = window.localStorage.key(index);
+        values.push(
+          `${key}=${key === null ? '' : window.localStorage.getItem(key)}`,
+        );
+      }
+      return values.join('\n');
+    };
+
+    // The control: the listener's own song is written down.
+    appPlays(song);
+    expect(everythingStored()).toContain('Blue in Green');
+
+    (['system', 'remote', 'media'] as const).forEach((outside) => {
+      const described = {
+        ...source(outside),
+        title: 'A private title',
+        subtitle: 'A private channel',
+        artworkUrl: 'data:image/png;base64,cHJpdmF0ZQ==',
+        origin: 'Den PC',
+      };
+      if (outside === 'media') {
+        appPlays(described);
+      } else {
+        act(() => setTransportSource({ ...described, isPlaying: true }));
+      }
+      expect(everythingStored()).not.toMatch(/private|cHJpdmF0ZQ|Den PC/);
+      act(() => clearTransportSource(outside));
     });
+
+    expect(everythingStored()).not.toMatch(/private|cHJpdmF0ZQ|Den PC/);
   });
 
   it('is not replaced by a player that only describes itself', () => {
@@ -357,11 +476,41 @@ describe('what the bar last showed playing', () => {
     appPlays(song);
     act(() => clearTransportSource('library'));
 
-    expect(reloadedLastShown()).toEqual({
+    expect(reloaded()).toEqual({
+      shown: {
+        owner: 'library',
+        title: 'Blue in Green',
+        subtitle: 'Miles Davis',
+        artworkUrl: 'fluideq-media://art/cover-1',
+      },
       owner: 'library',
-      title: 'Blue in Green',
-      subtitle: 'Miles Davis',
-      artworkUrl: 'fluideq-media://art/cover-1',
     });
   });
+
+  it.each<TPlaybackOwner>(['system', 'remote', 'media'])(
+    'is forgotten at launch when an older build kept %s sound there',
+    (outside) => {
+      // Builds before 2026-10-26 wrote what played outside here, and its
+      // owner beside it. The test above is the control: a song of the
+      // listener's own comes back with the window.
+      window.localStorage.setItem(
+        'fluideq.transport.lastShown',
+        JSON.stringify({
+          owner: outside,
+          title: 'A private title',
+          subtitle: 'A private channel',
+          origin: 'Den PC',
+        }),
+      );
+      window.localStorage.setItem('fluideq.transport.lastOwner', outside);
+
+      expect(reloaded()).toEqual({ shown: undefined, owner: undefined });
+      expect(
+        window.localStorage.getItem('fluideq.transport.lastShown'),
+      ).toBeNull();
+      expect(
+        window.localStorage.getItem('fluideq.transport.lastOwner'),
+      ).toBeNull();
+    },
+  );
 });

@@ -57,7 +57,8 @@ export type TThemeScope = 'app' | 'player';
  */
 const STORAGE_KEY = 'fluideq.theme';
 const PLAYER_STORAGE_KEY = 'fluideq.theme.player';
-const DEFAULT_SHADE = 50;
+/** Brightness on a new install, in either mode. */
+export const DEFAULT_SHADE = 50;
 
 const SHADE_OF_THEME: Record<TTheme, number> = {
   black: THEME_SHADE_MIN,
@@ -276,7 +277,7 @@ export const readTextInk = (): string => readSurface('--text-faint', '#bfd3e3');
 const rootListeners = new Set<() => void>();
 let rootObserver: MutationObserver | undefined;
 
-const subscribeRoot = (listener: () => void) => {
+export const subscribeRoot = (listener: () => void) => {
   rootListeners.add(listener);
   if (!rootObserver && typeof MutationObserver !== 'undefined') {
     rootObserver = new MutationObserver(() => {

@@ -379,7 +379,7 @@ export const PlayerPictureFoot = () => {
     <footer className="player-foot">
       <span className="player-foot__output">
         <PlayerIcon name="headphones" />
-        <span className="player-foot__words">{PICTURE_OUTPUT}</span>
+        <span className="player-foot__words">{t(PICTURE_OUTPUT)}</span>
       </span>
       <span className="player-foot__engine is-on">
         <span className="player-foot__lamp" />

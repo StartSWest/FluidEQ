@@ -1,7 +1,9 @@
 /* FluidEQ — GPL-3.0-or-later */
 import type { IRemoteNowPlaying } from '../../common/remoteAudio';
 import { compareAudioComputers } from '../../common/remoteAudioGroup';
+import type { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
+import { pluralCategory } from '../utils/pluralCategory';
 import Switch from '../widgets/Switch';
 import RemoteAudioLane from './RemoteAudioLane';
 import RemoteAudioPeerMenu from './RemoteAudioPeerMenu';
@@ -51,7 +53,10 @@ const RemoteAudioGroup = ({
   remote: IRemoteAudioValue;
   localNowPlaying?: IRemoteNowPlaying;
 }) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  // This computer and every other one listed, counted in the language's own
+  // plural: with nobody linked the header read "1 computers".
+  const computers = 1 + audioGroupRows(remote).length;
   const { sharing } = remote;
   const thisComputerSounds =
     useIncomingSounding(remote.subscribeMeter, ONLY_THIS_COMPUTER)[
@@ -92,9 +97,10 @@ const RemoteAudioGroup = ({
         </span>
         <span className="remote-audio__link-spacer" />
         <span className="remote-audio__link-stats">
-          {t('remoteAudio.group.count', {
-            count: 1 + audioGroupRows(remote).length,
-          })}
+          {t(
+            `remoteAudio.group.count.${pluralCategory(computers, locale)}` as TranslationKey,
+            { count: new Intl.NumberFormat(locale).format(computers) },
+          )}
         </span>
       </header>
       <article className="remote-audio__lane remote-audio__group-row">

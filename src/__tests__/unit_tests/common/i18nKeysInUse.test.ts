@@ -158,6 +158,13 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     'lighting.focus.*',
     'lighting.idle.*',
   ],
+  // How many computers the group holds, in the language's own plural forms.
+  'src/renderer/remoteAudio/RemoteAudioGroup.tsx': [
+    [
+      'remoteAudio.group.count.{one,few,many,other}',
+      'remoteAudio.group.count.*',
+    ],
+  ],
   'src/renderer/remoteAudio/RemoteAudioPanel.tsx': ['remoteAudio.error.*'],
   'src/renderer/studio/StudioListen.tsx': [
     'studio.signal.*',

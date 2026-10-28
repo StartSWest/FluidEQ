@@ -37,6 +37,12 @@ export interface ILookThumbnailRef {
   };
   /** The scene installed on this computer, when it is. */
   load?: () => Promise<IScenePack | undefined>;
+  /**
+   * A picture already in hand, shown as it is and never drawn or asked for:
+   * Help draws the picker from made-up scenes and the stills the app ships
+   * (`help/live/lookFigures`).
+   */
+  still?: string;
 }
 
 export type TLookThumbnail =
@@ -132,12 +138,13 @@ export const useLookThumbnail = (
   element: Element | null,
 ): TLookThumbnail => {
   const key = keyOf(ref);
+  const { still } = ref;
   const [thumbnail, setThumbnail] = useState<TLookThumbnail>(() =>
-    asThumbnail(pictures.get(key)),
+    asThumbnail(still ?? pictures.get(key)),
   );
 
   useEffect(() => {
-    const known = pictures.get(key);
+    const known = still ?? pictures.get(key);
     setThumbnail(asThumbnail(known));
     if (known !== undefined || !element) {
       return undefined;
@@ -179,9 +186,9 @@ export const useLookThumbnail = (
       observer.disconnect();
     };
     // The key names the scene's version; nothing else in `ref` changes
-    // without it.
+    // without it but a still, which is named on its own.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, element]);
+  }, [key, element, still]);
 
   return thumbnail;
 };

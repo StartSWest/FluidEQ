@@ -38,6 +38,7 @@ import ResetSettingsDialog from './ResetSettingsDialog';
 import SliderHandlePicker from './SliderHandlePicker';
 import StartupPicker from './StartupPicker';
 import RainbowSwitch from '../graph/RainbowSwitch';
+import AppIconTintSwitch from '../graph/AppIconTintSwitch';
 import WindowBrightnessSlider from '../graph/WindowBrightnessSlider';
 import WindowTintSlider from '../graph/WindowTintSlider';
 import useIsSceneLook from '../utils/useIsSceneLook';
@@ -488,6 +489,7 @@ const ActionsMenu = ({
               <WindowBrightnessSlider />
               {!isSceneLook && <WindowTintSlider />}
               <RainbowSwitch />
+              <AppIconTintSwitch />
             </div>
             <SliderHandlePicker />
             {/* How the window looks above, how the app behaves below. */}

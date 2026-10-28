@@ -33,15 +33,13 @@ interface IPlayerTitleStripProps {
  * for the app's tab strip (`PlayerMarkMenu`), and the window's own — Always
  * on top and the switch back to the full app, then minimise and close.
  *
- * A double-click on the header folds the player to one line, where the app's
- * titlebar would maximise — a player has nothing to maximise into. Windows
- * keeps that double-click to itself, so it arrives from main
- * (`usePlayerFold`), not as a page event.
+ * A double-click on the header does nothing: a player has nothing to
+ * maximise into, and the page is never told of one on a drag handle (why the
+ * fold is not there, `usePlayerFold`). Folding is the mark menu's.
  *
  * On a Mac the window's own traffic lights open the header and the two
  * window buttons are not drawn. A Mac keeps a double-click on a drag handle
- * to itself as well, and answers it with the listener's own setting, so the
- * fold is the mark menu's there.
+ * to itself too, and answers it with the listener's own setting.
  */
 const PlayerTitleStrip = ({ onFold, onOpenPage }: IPlayerTitleStripProps) => {
   const { t } = useTranslation();
