@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { DragEvent, memo, ReactNode, useMemo } from 'react';
+import { DragEvent, memo, ReactNode, useMemo, useState } from 'react';
 import {
   IKaraokePlaylistItem,
   karaokeFileExtension,
@@ -109,6 +109,11 @@ export const buildKaraokePlaylistFolderTree = (
   return roots;
 };
 
+/** The songs a folder holds, its sub-folders' included. */
+const songsIn = (node: IKaraokePlaylistTreeNode): number =>
+  node.items.length +
+  node.children.reduce((total, child) => total + songsIn(child), 0);
+
 const KaraokePlaylist = ({
   items,
   selectedId,
@@ -126,6 +131,19 @@ const KaraokePlaylist = ({
     () => (groupByFolder ? buildKaraokePlaylistFolderTree(items) : []),
     [groupByFolder, items],
   );
+  const [closedFolders, setClosedFolders] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const toggleFolder = (id: string) =>
+    setClosedFolders((closed) => {
+      const next = new Set(closed);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
 
   const onDropItem = (
     event: DragEvent<HTMLButtonElement>,
@@ -209,18 +227,44 @@ const KaraokePlaylist = ({
     );
   };
 
-  const renderTreeNode = (node: IKaraokePlaylistTreeNode): ReactNode => (
-    <li className="karaoke-playlist__tree-node" key={node.id}>
-      <div className="karaoke-playlist__folder" title={node.path || undefined}>
-        <MenuIcon name="folder" />
-        <span>{node.label ?? t('karaoke.playlist.looseFiles')}</span>
-      </div>
-      <ul className="karaoke-playlist__tree-children">
-        {node.children.map(renderTreeNode)}
-        {node.items.map((item, index) => renderSong(item, node.items, index))}
-      </ul>
-    </li>
-  );
+  // A folder folds to its heading, and its heading says how many songs it
+  // holds, sub-folders included. Folded rows are not drawn at all: a session
+  // holds up to 5,000 files.
+  const renderTreeNode = (node: IKaraokePlaylistTreeNode): ReactNode => {
+    const isOpen = !closedFolders.has(node.id);
+    return (
+      <li className="karaoke-playlist__tree-node" key={node.id}>
+        <button
+          type="button"
+          className="karaoke-playlist__folder"
+          title={node.path || undefined}
+          aria-expanded={isOpen}
+          onClick={() => toggleFolder(node.id)}
+        >
+          <svg
+            className="karaoke-playlist__folder-chevron"
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+          >
+            <path d="m7.5 4.5 5.5 5.5-5.5 5.5" />
+          </svg>
+          <MenuIcon name="folder" />
+          <span>{node.label ?? t('karaoke.playlist.looseFiles')}</span>
+          <small className="karaoke-playlist__folder-count">
+            {songsIn(node)}
+          </small>
+        </button>
+        {isOpen && (
+          <ul className="karaoke-playlist__tree-children">
+            {node.children.map(renderTreeNode)}
+            {node.items.map((item, index) =>
+              renderSong(item, node.items, index),
+            )}
+          </ul>
+        )}
+      </li>
+    );
+  };
 
   return (
     <aside

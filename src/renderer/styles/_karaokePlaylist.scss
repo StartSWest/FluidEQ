@@ -108,17 +108,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// A folder's heading folds it: the chevron turns as it opens, and the count
+// on the right says what a folded folder holds.
 .karaoke-playlist__folder {
   display: grid;
+  width: 100%;
   min-width: 0;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 7px;
   margin: 2px 0 3px;
   padding: 5px;
   color: $text-muted;
-  border: 0;
+  border: 1px solid transparent;
+  border-radius: $radius-s;
   background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
 
   svg {
     width: 13px;
@@ -126,6 +134,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     fill: none;
     stroke: $secondary-light;
     stroke-width: 1.7;
+  }
+
+  .karaoke-playlist__folder-chevron {
+    width: 11px;
+    height: 11px;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+    transition: transform 150ms ease;
+  }
+
+  &[aria-expanded='true'] .karaoke-playlist__folder-chevron {
+    transform: rotate(90deg);
   }
 
   span {
@@ -136,6 +158,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
+  &:hover,
+  &:focus-visible {
+    color: $text-primary;
+    border-color: rgba($edge-tint, 0.11);
+    background: $hover-accent;
+    outline: none;
+  }
+}
+
+.karaoke-playlist__folder-count {
+  display: grid;
+  min-width: 20px;
+  height: 18px;
+  place-items: center;
+  padding: 0 5px;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-default 25%, transparent);
+  border-radius: $radius-2xs;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
 }
 
 .karaoke-playlist__heading {
