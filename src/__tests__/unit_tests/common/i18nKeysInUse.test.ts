@@ -92,6 +92,13 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
       '*.*',
     ],
   ],
+  // 2.2's slides whose "How to start" is the menu's own control.
+  'src/renderer/components/featureTour/release22.tsx': [
+    [
+      'tour.{tray,languages}.{kicker,title,lead,how,point1,point2,point3}',
+      '*.*',
+    ],
+  ],
   'src/renderer/components/featureTour/ShowcaseSlide.tsx': [
     [
       'tour.{engine,room,plus,visualizers,desktop,lighting,look,gpu,sparks,sound,graph,player,games,presets,tone,studio,help,outputs,bands,ears,myCurves,songs,deesser,chat}.{kicker,title,lead,how,open,point1,point2,point3}',

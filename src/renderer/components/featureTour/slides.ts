@@ -51,7 +51,7 @@ import {
   SongsSlide,
   StudioChatSlide,
 } from './release21';
-import KaraokeBackgroundSlide from './release22';
+import KaraokeBackgroundSlide, { LanguagesSlide, TraySlide } from './release22';
 import WalkthroughSlide, { WALKTHROUGH_FILM } from './WalkthroughSlide';
 
 /**
@@ -326,6 +326,18 @@ const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
         titleKey: 'tour.karaokeBackground.title',
         subtitleKey: 'tour.karaokeBackground.subtitle',
         Body: KaraokeBackgroundSlide,
+      },
+      {
+        id: 'tray-start',
+        titleKey: 'tour.tray.title',
+        subtitleKey: 'tour.tray.subtitle',
+        Body: TraySlide,
+      },
+      {
+        id: 'languages',
+        titleKey: 'tour.languages.title',
+        subtitleKey: 'tour.languages.subtitle',
+        Body: LanguagesSlide,
       },
     ]),
     ...announced('2.1', RELEASE_21),

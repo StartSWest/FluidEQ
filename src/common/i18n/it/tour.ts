@@ -12,6 +12,35 @@ const tour: Partial<Dictionary> = {
   'tour.karaokeBackground.imageAlt':
     'Il controllo dello sfondo del Karaoke con una scena dietro le parole.',
   'tour.karaokeBackground.lyric': 'La nostra canzone illumina la notte',
+  'tour.tray.kicker': 'SILENZIOSO DALL’ACCESSO',
+  'tour.tray.title': 'FluidEQ parte nell’area di notifica',
+  'tour.tray.subtitle': 'Il tuo suono dall’accesso, senza finestre',
+  'tour.tray.lead':
+    'Con «{startup}» attivo, FluidEQ parte nell’area di notifica quando accedi a Windows e modella il tuo suono dal primo secondo, senza finestre in mezzo.',
+  'tour.tray.point1':
+    'Il tuo EQ, i preset e il suono di ogni uscita suonano dal primo brano, prima che tu apra qualcosa.',
+  'tour.tray.point2':
+    'L’icona nell’area di notifica apre la finestra, e il pulsante di chiusura della finestra la rimette lì.',
+  'tour.tray.point3':
+    'Se apri FluidEQ tu, si apre la sua finestra, come sempre.',
+  'tour.tray.how': 'Attivalo qui, o in fondo al menu (tre linee):',
+  'tour.tray.imageAlt':
+    'L’area di notifica della barra delle applicazioni di Windows con l’icona di FluidEQ e, sopra, una scheda che dice che FluidEQ sta modellando il suono.',
+  'tour.tray.card': 'Modella il suono di ogni app',
+  'tour.languages.kicker': 'DODICI LINGUE',
+  'tour.languages.title': 'Ora in coreano e cinese tradizionale',
+  'tour.languages.subtitle': '한국어 e 繁體中文 si aggiungono ad altre dieci',
+  'tour.languages.lead':
+    'FluidEQ parla dodici lingue. Il cinese tradizionale viene scelto per Taiwan, Hong Kong e Macao, e una lingua che hai scelto tu resta sempre.',
+  'tour.languages.point1':
+    'Tutta la finestra, la Guida, le Novità e il programma di installazione parlano entrambe.',
+  'tour.languages.point2':
+    'Ogni lingua si chiama col proprio nome nell’elenco, così trovi sempre la tua.',
+  'tour.languages.point3':
+    'Il cinese semplificato resta per la Cina continentale e Singapore.',
+  'tour.languages.how': 'Sceglila in fondo al menu (tre linee):',
+  'tour.languages.imageAlt':
+    'Le dodici lingue di FluidEQ, ognuna nella propria scrittura, con il coreano e il cinese tradizionale segnati come nuovi.',
 
   'tour.contribute': 'Contribuisci, per favore',
   'tour.eyebrow': 'NOVITÀ DI QUESTA VERSIONE',

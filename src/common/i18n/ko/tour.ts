@@ -766,6 +766,34 @@ const tour = {
   'tour.karaokeBackground.imageAlt':
     '노래방 배경 설정 버튼과 가사 뒤에 펼쳐진 장면.',
   'tour.karaokeBackground.lyric': '우리 노래로 이 밤을 밝혀요',
+  'tour.tray.kicker': '로그인부터 조용하게',
+  'tour.tray.title': 'FluidEQ가 알림 영역에서 시작합니다',
+  'tour.tray.subtitle': '로그인한 순간부터, 창 없이 나만의 소리',
+  'tour.tray.lead':
+    '‘{startup}’을 켜 두면 FluidEQ는 Windows에 로그인할 때 알림 영역에서 시작해, 창을 띄우지 않고도 첫 순간부터 소리를 다듬습니다.',
+  'tour.tray.point1':
+    'EQ, 프리셋, 출력마다의 소리가 아무것도 열지 않아도 첫 곡부터 적용됩니다.',
+  'tour.tray.point2':
+    '알림 영역 아이콘을 누르면 창이 열리고, 창의 닫기 버튼을 누르면 다시 알림 영역으로 돌아갑니다.',
+  'tour.tray.point3': 'FluidEQ를 직접 열면 지금처럼 창이 열립니다.',
+  'tour.tray.how': '여기서 켜거나, 메뉴(세 줄) 맨 아래에서 켤 수 있습니다:',
+  'tour.tray.imageAlt':
+    'Windows 작업 표시줄 알림 영역의 FluidEQ 아이콘과, 그 위에 FluidEQ가 소리를 다듬고 있음을 알려 주는 카드.',
+  'tour.tray.card': '모든 앱의 소리를 다듬는 중',
+  'tour.languages.kicker': '12개 언어',
+  'tour.languages.title': '이제 한국어와 번체 중국어로',
+  'tour.languages.subtitle': '한국어와 繁體中文이 새로 합류했습니다',
+  'tour.languages.lead':
+    'FluidEQ는 12개 언어를 지원합니다. 대만, 홍콩, 마카오에서는 번체 중국어가 선택되며, 직접 고른 언어는 언제나 그대로 유지됩니다.',
+  'tour.languages.point1':
+    '창 전체와 도움말, 새로운 기능 안내, 설치 프로그램이 두 언어를 모두 지원합니다.',
+  'tour.languages.point2':
+    '목록에서 각 언어가 자기 이름으로 표시되므로 언제든 내 언어를 찾을 수 있습니다.',
+  'tour.languages.point3':
+    '중국 본토와 싱가포르에서는 간체 중국어가 그대로 쓰입니다.',
+  'tour.languages.how': '메뉴(세 줄) 맨 아래에서 고르세요:',
+  'tour.languages.imageAlt':
+    'FluidEQ가 지원하는 12개 언어를 각자의 문자로 보여 주고, 한국어와 번체 중국어에 새 표시를 한 그림.',
 } satisfies Partial<Dictionary>;
 
 export default tour;
