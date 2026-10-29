@@ -8,6 +8,14 @@ import { Dictionary } from '../en';
 
 /** `./en.ts` in Korean, in the shared Korean dictionary's own terms. */
 const ko: Partial<Dictionary> = {
+  'wallpaper.manage.empty':
+    '모든 모니터에 원래의 바탕 화면 배경이 표시되고 있습니다.',
+  'wallpaper.monitor.ordinary': '바탕 화면 배경',
+  'wallpaper.pause.locked': '화면이 잠겨 있는 동안 일시 중지됨',
+  'wallpaper.error.unsupported':
+    '바탕 화면 배경을 사용하려면 GNOME과 FluidEQ Desktop 확장이 필요합니다.',
+  'wallpaper.error.host':
+    '시각화 도우미가 바탕 화면에 닿지 못했습니다. 확장에서 FluidEQ Desktop을 켠 다음 다시 시도해 보세요.',
   'app.menu.restartAudio': '오디오 다시 시작',
   'restart.title': '오디오 다시 시작',
   'restart.failed': '오디오를 다시 시작할 수 없습니다.',
@@ -37,7 +45,7 @@ const ko: Partial<Dictionary> = {
     'AutoEq가 다운로드 가능한 카탈로그를 제공합니다. 각 다운로드는 출력이 실행되는 샘플 레이트에 맞으며, 다른 샘플 레이트는 FluidEQ 엔진이 직접 변환합니다.',
   'graph.scene.gpu.auto': '시스템이 결정',
   'settingsReset.body':
-    '그래프와 비주얼라이저, 창 색상, 플레이어, 라이브러리, 언어, 애니메이션, 로그인할 때 시작이 FluidEQ를 새로 설치했을 때의 상태로 돌아갑니다.',
+    '그래프와 비주얼라이저, 창 색상, 플레이어, 라이브러리, 언어, 애니메이션, 로그인할 때 시작, 바탕 화면 배경이 FluidEQ를 새로 설치했을 때의 상태로 돌아갑니다.',
   'app.processes.hint':
     '모두 같은 프로그램이기 때문에 시스템은 이들 모두에 앱 이름을 붙입니다. 각각이 FluidEQ를 위해 실제로 하는 일은 다음과 같습니다.',
   'app.processes.what.engine':
@@ -130,10 +138,6 @@ const ko: Partial<Dictionary> = {
   'help.window.plus': '비주얼라이저, 갤러리, 스튜디오.',
   'help.plus.intro':
     '계정은 선택 사항입니다. 무료였던 모든 것은 계정 없이도 이 컴퓨터에서 실행됩니다. 로그인하면 비주얼라이저 탭에 갤러리와 스튜디오가 있습니다. 갤러리의 장면은 1크레딧이며 영원히 내 것이 됩니다. 확인된 계정은 일부 크레딧을 무료로 받으며, 크레딧 팩은 한 번만 결제합니다.',
-  'help.gallery.desktop': 'Windows 전용: 바탕 화면 아이콘 뒤에 장면을 둡니다.',
-  'help.gallery.manage':
-    'Windows 전용: 각 모니터에 바탕 화면 배경으로 보이는 것.',
-  'help.gallery.stop': 'Windows 전용: 모든 바탕 화면 배경을 멈춥니다.',
   'help.library.steps':
     '라이브러리를 열고 미디어가 있는 폴더를 추가하세요. 무엇이 빠졌는지 판단하기 전에 검색이 끝나기를 기다리세요.\n아티스트나 앨범을 고르거나 노래를 검색하세요. 결과에서 트랙을 시작합니다.\n창 아래쪽 막대로 일시 정지, 탐색, 건너뛰기를 합니다. 볼륨은 컴퓨터 자체의 볼륨입니다.',
 };

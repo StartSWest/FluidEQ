@@ -8,6 +8,13 @@ import { Dictionary } from '../en';
 
 /** `./en.ts` in Traditional Chinese, in the shared dictionary's own terms. */
 const zhHant: Partial<Dictionary> = {
+  'wallpaper.manage.empty': '每臺顯示器都顯示原本的桌面背景。',
+  'wallpaper.monitor.ordinary': '桌面背景',
+  'wallpaper.pause.locked': '螢幕鎖定時暫停',
+  'wallpaper.error.unsupported':
+    '桌面背景需要 GNOME 與 FluidEQ Desktop 擴充功能。',
+  'wallpaper.error.host':
+    '視覺化效果無法顯示在桌面上。請在「擴充功能」中啟用 FluidEQ Desktop，然後再試一次。',
   'app.menu.restartAudio': '重新啟動音訊',
   'restart.title': '重新啟動音訊',
   'restart.failed': '無法重新啟動音訊。',
@@ -34,7 +41,7 @@ const zhHant: Partial<Dictionary> = {
     '可下載的目錄由 AutoEq 提供。每個下載都符合您的輸出所用的取樣率，其他取樣率則由 FluidEQ 引擎自行轉換。',
   'graph.scene.gpu.auto': '由系統決定',
   'settingsReset.body':
-    '圖表與視覺化效果、視窗色彩、播放器、媒體庫、語言、動畫與「登入時啟動」都會回到全新安裝 FluidEQ 時的狀態。',
+    '圖表與視覺化效果、視窗色彩、播放器、媒體庫、語言、動畫、「登入時啟動」與桌面背景都會回到全新安裝 FluidEQ 時的狀態。',
   'app.processes.hint':
     '它們都是同一個程式，所以系統以應用程式的名稱稱呼每一個。以下是每一個實際為 FluidEQ 做的事。',
   'app.processes.what.engine':
@@ -126,9 +133,6 @@ const zhHant: Partial<Dictionary> = {
   'help.window.plus': '視覺化效果、畫廊與工作室。',
   'help.plus.intro':
     '帳戶是選用的：原本免費的一切在這台電腦上無需帳戶即可執行。登入後，「視覺化效果」分頁包含畫廊與工作室。畫廊中的一個場景需要 1 點，並且永遠屬於您；已確認的帳戶可免費獲得一些點數，點數包則一次付清。',
-  'help.gallery.desktop': '僅限 Windows：把場景放在桌面圖示後面。',
-  'help.gallery.manage': '僅限 Windows：每個螢幕顯示為桌面背景的內容。',
-  'help.gallery.stop': '僅限 Windows：停止所有桌面背景。',
   'help.library.steps':
     '開啟「媒體庫」並加入存放媒體的資料夾。先讓掃描完成，再判斷缺少了什麼。\n選擇演出者或專輯，或搜尋歌曲。從結果中開始播放曲目。\n使用視窗底部的列來暫停、跳轉與略過。它的音量就是電腦本身的音量。',
 };

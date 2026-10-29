@@ -210,6 +210,9 @@ const KEPT_FILES = [
   'output-formats.json',
   'remote-audio-lan.json',
   'remote-audio-links.json',
+  // Share Audio's Smooth switch, which the other computer on each link was
+  // told about: put back alone it would leave the far end playing smooth.
+  'remote-audio-smooth.json',
   // Where the window stands, its size and mode: a window that jumps or
   // changes shape on a reset reads as something breaking (checklist).
   'window-state.json',

@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import vm from 'vm';
+import { REMOTE_AUDIO_PLAYBACK_PROFILES } from '../../../renderer/remoteAudio/remoteAudioPlaybackProfiles';
 
 interface IProcessor {
   port: {
@@ -118,10 +119,16 @@ describe('video-mode continuous playback', () => {
   it('restores each startup buffer when switching Music to Game/Video and back', () => {
     const instance = processor();
     const outputs = [[new Float32Array(128), new Float32Array(128)]];
+    // Each mode's start, read from its profile: the music cushion is Share
+    // Audio's Smooth switch, and moves when that switch is retuned.
+    const startFrames = (mode: 'music' | 'video') =>
+      Math.round(
+        REMOTE_AUDIO_PLAYBACK_PROFILES[mode].startBufferSeconds * 48_000,
+      );
     const modes = [
-      { mode: 'music', frames: 11_520 },
-      { mode: 'video', frames: 4_800 },
-      { mode: 'music', frames: 11_520 },
+      { mode: 'music', frames: startFrames('music') },
+      { mode: 'video', frames: startFrames('video') },
+      { mode: 'music', frames: startFrames('music') },
     ];
     modes.forEach(({ mode, frames }) => {
       // Mode changes re-handshake the sender and reset the playback port.

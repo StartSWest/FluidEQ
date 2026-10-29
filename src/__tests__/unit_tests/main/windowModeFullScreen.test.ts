@@ -9,6 +9,10 @@ jest.mock('electron', () => ({
   screen: {
     getDisplayMatching: () => ({ workArea: WORK_AREA }),
     getAllDisplays: () => [{ workArea: WORK_AREA }],
+    // Linux follows the display's metrics to keep the window's top below the
+    // desktop panel (`linux/linuxWindowTop.ts`).
+    on: jest.fn(),
+    off: jest.fn(),
   },
 }));
 
@@ -38,6 +42,7 @@ const fakeWindow = () => {
   const win = {
     on: events.on.bind(events),
     once: events.once.bind(events),
+    removeListener: events.removeListener.bind(events),
     emit: events.emit.bind(events),
     isDestroyed: () => false,
     isVisible: () => true,
@@ -75,7 +80,9 @@ const fakeWindow = () => {
     setAlwaysOnTop: () => undefined,
     unmaximize: () => undefined,
     maximize: () => undefined,
-    webContents: { getZoomFactor: () => 1 },
+    // An emitter because Linux holds the amp's size until the page has drawn
+    // it, listening on the page (`linux/linuxWindowSize.ts`).
+    webContents: Object.assign(new EventEmitter(), { getZoomFactor: () => 1 }),
   };
   return {
     win: win as unknown as BrowserWindow,
