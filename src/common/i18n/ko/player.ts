@@ -39,8 +39,8 @@ const player = {
   'player.queue.leftHint': '{duration}가 대기열에 남아 있음',
   'player.queue.play': '{title} 재생',
   'player.queue.openLibraryHint': '전체 앱에서 라이브러리 열기',
-  'player.queue.drop': '여기에 음악을 드롭하세요.',
-  'player.queue.emptyTitle': '대기 중인 항목이 없습니다.',
+  'player.queue.drop': '여기에 음악을 끌어다 놓으세요',
+  'player.queue.emptyTitle': '대기 중인 곡이 없습니다',
   'player.queue.emptyNote':
     '라이브러리에서 재생한 노래가 여기에 나열되거나 음악 파일이 여기에 드롭됩니다.',
   'player.sound.title': '소리',

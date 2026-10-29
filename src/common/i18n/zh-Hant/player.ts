@@ -31,7 +31,7 @@ const player = {
   'player.eq.aria': '等化器',
   'player.eq.onHint': '開啟或關閉 FluidEQ',
   'player.eq.smart': '智慧',
-  'player.eq.song': '宋',
+  'player.eq.song': '歌曲',
   'player.eq.pre': '前級',
   'player.eq.auto': '自動',
   'player.eq.autoHint': '開啟自動標準化',
@@ -39,7 +39,7 @@ const player = {
   'player.queue.play': '播放 {title}',
   'player.queue.openLibraryHint': '在完整的應用程式中開啟媒體庫',
   'player.queue.drop': '將音樂放在這裡',
-  'player.queue.emptyTitle': '沒有排隊',
+  'player.queue.emptyTitle': '待播清單是空的',
   'player.queue.emptyNote':
     '您從庫中播放的歌曲會在此處排列 - 或將音樂檔案拖放到此處。',
   'player.sound.title': '聲音',
@@ -56,7 +56,7 @@ const player = {
     '開啟庫一次，您的播放清單和收藏夾就會出現在此。',
   'player.foot.on': '{engine} 開啟',
   'player.foot.off': '{engine} 關閉',
-  'player.eq.pageBack': '以前的頻段',
+  'player.eq.pageBack': '上一組頻段',
   'player.eq.pageOn': '更多頻段',
   'player.heightGrip': '拖曳以更改高度',
 } satisfies Partial<Dictionary>;
