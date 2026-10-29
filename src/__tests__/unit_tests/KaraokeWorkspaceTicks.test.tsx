@@ -27,6 +27,17 @@ import { setTransportSlot } from '../../renderer/audio/transportSlot';
 import { useTransportSources } from '../../renderer/audio/transportSource';
 import KaraokeWorkspace from '../../renderer/karaoke/KaraokeWorkspace';
 
+// The stage's lights read the window's music (`KaraokeLights`); there is
+// no capture in these tests.
+jest.mock('../../renderer/audio/LiveAudioContext', () => ({
+  ...jest.requireActual('../../renderer/audio/LiveAudioContext'),
+  useLiveAudioCapture: jest.fn(),
+  useLiveAudioControl: () => ({
+    isPaused: false,
+    readFrame: () => undefined,
+  }),
+}));
+
 let mockWorkspaceRenders = 0;
 // Drawn straight from the workspace's own render and nowhere else — never
 // behind a memo or a subscription — so its renders are the workspace's.

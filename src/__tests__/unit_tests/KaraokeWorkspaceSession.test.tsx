@@ -42,6 +42,17 @@ import {
 } from '../../renderer/karaoke/karaokeAudioClock';
 import { FakeClockContext, openFakeClock } from '../utils/fakeAudioClock';
 
+// The stage's lights read the window's music (`KaraokeLights`); there is
+// no capture in these tests.
+jest.mock('../../renderer/audio/LiveAudioContext', () => ({
+  ...jest.requireActual('../../renderer/audio/LiveAudioContext'),
+  useLiveAudioCapture: jest.fn(),
+  useLiveAudioControl: () => ({
+    isPaused: false,
+    readFrame: () => undefined,
+  }),
+}));
+
 /**
  * The count-in, the Maker's countdown and its auditions keep time on the sound
  * card's clock, which jsdom does not have. One clock the test moves by hand,

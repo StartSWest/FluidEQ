@@ -378,26 +378,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: clamp(18px, 4vw, 52px);
   padding: clamp(24px, 4vw, 52px);
   overflow: hidden;
-  // The playlist's card, with the palette's two lights in it. It was a
-  // diagonal of its own under a graph-paper grid, beside a playlist that is
-  // a plain card: two materials in one row.
-  background:
-    radial-gradient(
-      circle at 18% 48%,
-      color-mix(in srgb, #{$karaoke-warm} 14%, transparent),
-      transparent 27%
-    ),
-    radial-gradient(
-      circle at 82% 42%,
-      color-mix(in srgb, #{$karaoke-cool} 12%, transparent),
-      transparent 30%
-    ),
-    $card-glow, $surface-card;
-  // No outline: the stage stands inside the page's own card now
-  // (`$section-card-pages`), and a card's edge drawn inside a card's edge
-  // framed the lyrics twice (Ivan, 2026-09-27: "remove karaoke lyric
-  // border"). Cleared rather than removed, so a dragged song can still
-  // light it.
+  // No fill and no outline: the stage stands inside the page's own card
+  // (`$section-card-pages`), and a card's face inside a card's face was a
+  // second box round the lyrics, its corners showing under the title and
+  // the transport (Ivan, 2026-09-27: "remove karaoke lyric border";
+  // 2026-10-29: "remove the double bg container"). What lights the stage is
+  // its backdrop alone: the cover, a scene, or the music-led lights
+  // (`KaraokeLights`). The edge is cleared rather than removed, so a dragged
+  // song can still light it, and the corners stay for the backdrop to
+  // follow.
+  background: none;
   border-color: transparent;
 
   &.is-dragging {
