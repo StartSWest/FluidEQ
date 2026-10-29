@@ -45,6 +45,15 @@ export interface IFeatureFilm {
    * recordings of the same tour timed its lines up to a second apart.
    */
   timedOnSite?: boolean;
+  /**
+   * What plays in its place while the film itself is not on the site, with
+   * its own captions (WebVTT, English) drawn on the picture and none of the
+   * film's lines under it. The walkthrough shipped before its recording was
+   * finished, and the first-steps tutorial Help already streams stands in
+   * until it is uploaded (Ivan, 2026-10-29: "put the old walkthrough in the
+   * app", "saying the video can't play").
+   */
+  standIn?: { src: string; captions: string };
 }
 
 /**
@@ -224,6 +233,10 @@ export const FEATURE_FILMS: Readonly<Record<string, IFeatureFilm>> = {
     height: 1080,
     locales: ['en'],
     timedOnSite: true,
+    standIn: {
+      src: `${OFFICIAL_SITE_URL}/video/first-steps.mp4`,
+      captions: `${OFFICIAL_SITE_URL}/video/first-steps.en.vtt`,
+    },
     cues: [
       { key: 'tour.film.walkthrough.intro', from: 0.5, to: 8.7 },
       { key: 'tour.film.walkthrough.graph', from: 8.7, to: 18.63 },

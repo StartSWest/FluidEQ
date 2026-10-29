@@ -24,6 +24,9 @@ import {
 import FILM_POSTERS from './filmPosters';
 import useFilmLine from './useFilmLine';
 
+/** A stand-in's lines are its own captions, on the picture. */
+const NO_LINES: readonly IFilmCue[] = [];
+
 /**
  * A film's picture and the line its voice is saying, in the reader's
  * language: the What's New slide draws it small and the larger view draws it
@@ -64,13 +67,45 @@ export default function FilmPicture({
   children?: ReactNode;
 }) {
   const { t, locale } = useTranslation();
-  const timing = film.timedOnSite
-    ? featureFilmTimingUrl(id, locale)
-    : undefined;
+  // Set once the film itself could not be loaded and it has a stand-in; a
+  // stand-in that fails too is the film failing.
+  const [isStandIn, setStandIn] = useState(false);
+  const standIn = isStandIn ? film.standIn : undefined;
+  const timing =
+    film.timedOnSite && !standIn ? featureFilmTimingUrl(id, locale) : undefined;
   const track = useRef<HTMLTrackElement>(null);
   const [timed, setTimed] = useState<readonly IFilmCue[] | undefined>();
-  const cue = useFilmLine(video, timed ?? film.cues, isShown);
+  const cue = useFilmLine(
+    video,
+    standIn ? NO_LINES : (timed ?? film.cues),
+    isShown,
+  );
   const [isSoundOn, setSoundOn] = useState(isSoundOnAtStart);
+  const standInTrack = useRef<HTMLTrackElement>(null);
+  const [standInLine, setStandInLine] = useState('');
+
+  // A stand-in's captions are said in the line under the picture, as every
+  // film's lines are, not drawn over it: kept hidden, read as each cue
+  // starts and ends (the track element hears `cuechange` as its track does).
+  useEffect(() => {
+    const element = standInTrack.current;
+    if (!element) {
+      return undefined;
+    }
+    if (element.track) {
+      element.track.mode = 'hidden';
+    }
+    const read = () =>
+      setStandInLine(
+        Array.from(element.track?.activeCues ?? [])
+          .map((cue) =>
+            'text' in cue && typeof cue.text === 'string' ? cue.text : '',
+          )
+          .join(' '),
+      );
+    element.addEventListener('cuechange', read);
+    return () => element.removeEventListener('cuechange', read);
+  }, [standIn]);
 
   // Set on the element, not as an attribute: React writes `muted` once, when
   // the video is made, and a press must reach the film already playing.
@@ -104,11 +139,11 @@ export default function FilmPicture({
         {/* eslint-disable-next-line jsx-a11y/media-has-caption -- the voice's lines are the subtitle drawn under the film, in the reader's language, from the same dictionary the voice was read from */}
         <video
           ref={video}
-          src={featureFilmUrl(id, locale)}
+          src={standIn?.src ?? featureFilmUrl(id, locale)}
           // A track from the site is read across origins only with the site's
           // grant, which /video/ sends; without the attribute the browser
           // refuses the track and the film plays on its own timings.
-          crossOrigin={timing ? 'anonymous' : undefined}
+          crossOrigin={timing || standIn ? 'anonymous' : undefined}
           // A frame of the film, bundled, until the site's first picture.
           poster={FILM_POSTERS[id]}
           muted={!isSoundOn}
@@ -125,9 +160,25 @@ export default function FilmPicture({
             }
           }}
           onPlaying={onPlaying}
-          onError={onFailed}
+          onError={() => {
+            if (film.standIn && !isStandIn) {
+              setStandIn(true);
+            } else {
+              onFailed();
+            }
+          }}
         >
-          {timing && <track ref={track} kind="metadata" src={timing} default />}
+          {standIn ? (
+            <track
+              ref={standInTrack}
+              kind="captions"
+              src={standIn.captions}
+              srcLang="en"
+              default
+            />
+          ) : (
+            timing && <track ref={track} kind="metadata" src={timing} default />
+          )}
         </video>
         {isShown && (
           <div className="feature-film__controls">
@@ -155,10 +206,12 @@ export default function FilmPicture({
       </div>
       {/* Always there, so a line arriving never moves the picture above. */}
       <p className="feature-film__subtitle">
-        {notice !== undefined ? (
-          <span role="status">{notice}</span>
-        ) : (
-          cue && <span key={cue.key}>{t(cue.key)}</span>
+        {notice !== undefined && <span role="status">{notice}</span>}
+        {notice === undefined && standIn && standInLine && (
+          <span key={standInLine}>{standInLine}</span>
+        )}
+        {notice === undefined && !standIn && cue && (
+          <span key={cue.key}>{t(cue.key)}</span>
         )}
       </p>
     </div>

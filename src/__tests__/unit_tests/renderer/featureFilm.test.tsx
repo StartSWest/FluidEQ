@@ -257,6 +257,59 @@ describe('a film timed on the site', () => {
   });
 });
 
+describe('a film with a stand-in, while it is not on the site', () => {
+  const { walkthrough } = FEATURE_FILMS;
+
+  it('plays the stand-in in its place, with its own captions and none of the film’s lines', () => {
+    const { standIn } = walkthrough;
+    if (!standIn) {
+      throw new Error('the walkthrough has no stand-in');
+    }
+    render(<FeatureFilm id="walkthrough">{drawing}</FeatureFilm>);
+    const { dialog, video } = openFilm();
+    fireEvent.error(video);
+
+    // The tutorial, not a notice: Watch plays something.
+    expect(video).toHaveAttribute('src', standIn.src);
+    expect(video.getAttribute('src')).toBe(
+      'https://fluideq.com/video/first-steps.mp4',
+    );
+    expect(screen.queryByRole('status')).toBeNull();
+    const track = video.querySelector('track');
+    expect(track).toHaveAttribute('kind', 'captions');
+    expect(track).toHaveAttribute('src', standIn.captions);
+    expect(video).toHaveAttribute('crossorigin', 'anonymous');
+
+    // The walkthrough's lines would be another film's words over this one.
+    fireEvent.playing(video);
+    const [intro] = walkthrough.cues;
+    playTo(video, (intro.from + intro.to) / 2);
+    paint();
+    const subtitle = dialog.querySelector('.feature-film__subtitle');
+    expect(subtitle).toBeEmptyDOMElement();
+
+    // Its own captions are said there instead, as each one starts.
+    Object.defineProperty(track, 'track', {
+      value: { mode: 'hidden', activeCues: [{ text: 'In a few minutes,' }] },
+    });
+    act(() => {
+      track?.dispatchEvent(new Event('cuechange'));
+    });
+    expect(subtitle).toHaveTextContent('In a few minutes,');
+  });
+
+  it('says it cannot play only once the stand-in cannot either', () => {
+    render(<FeatureFilm id="walkthrough">{drawing}</FeatureFilm>);
+    const { video } = openFilm();
+    fireEvent.error(video);
+    expect(screen.queryByRole('status')).toBeNull();
+    fireEvent.error(video);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      en['tour.film.unavailable'],
+    );
+  });
+});
+
 describe('the timings a site track gives', () => {
   const { walkthrough } = FEATURE_FILMS;
   const [intro, graph] = walkthrough.cues;
