@@ -107,6 +107,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   pointer-events: none;
 }
 
+// A picture behind the words reaches the page's edges: the graph's scene or
+// the song's cover (Ivan, 2026-10-29: "remove padd on karaoke so the graph
+// bg shows no gap"). The page card's padding left a band of the card's own
+// colour round a picture meant to fill it, so with one the padding moves off
+// the card and onto what sits beside the stage — the header, the playlist,
+// the pitch lane under an empty stage — and the stage, square-cornered,
+// runs to the card's own rounded edge, which clips it.
+.karaoke-workspace:has(
+  > .karaoke-workspace__player
+    > .karaoke-workspace__stage:is(.is-backdrop-graph, .is-backdrop-cover)
+) {
+  padding: 0;
+
+  > .karaoke-workspace__header {
+    padding: 12px 12px 0;
+  }
+
+  > .karaoke-workspace__readiness {
+    margin: 0 12px 12px;
+  }
+
+  > .karaoke-workspace__player
+    > :not(.karaoke-workspace__stage, .karaoke-pane-splitter) {
+    margin: 0 0 12px 12px;
+  }
+
+  > .karaoke-workspace__player > .karaoke-workspace__stage {
+    border-radius: 0;
+  }
+}
+
 .karaoke-stage-media__still,
 .karaoke-stage-media__video {
   position: absolute;
