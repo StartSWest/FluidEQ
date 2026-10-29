@@ -10,6 +10,32 @@ const tour: Partial<Dictionary> = {
   'tour.karaokeBackground.open': '打开卡拉 OK',
   'tour.karaokeBackground.imageAlt': '卡拉 OK 的背景按钮，以及歌词后方的场景。',
   'tour.karaokeBackground.lyric': '让我们的歌声点亮这个夜晚',
+  'tour.tray.kicker': '登录起就安静运行',
+  'tour.tray.title': 'FluidEQ 在系统托盘中启动',
+  'tour.tray.subtitle': '从登录起就有你的声音，无需窗口',
+  'tour.tray.lead':
+    '开启“{startup}”后，FluidEQ 会在你登录 Windows 时于通知区域启动，从第一秒起处理你的声音，不会弹出任何窗口。',
+  'tour.tray.point1':
+    '你的 EQ、预设和每个输出各自的声音从第一首歌就开始生效，无需打开任何东西。',
+  'tour.tray.point2': '托盘图标可以打开窗口，窗口的关闭按钮会把它放回托盘。',
+  'tour.tray.point3': '你自己打开 FluidEQ 时，窗口仍会照常打开。',
+  'tour.tray.how': '在这里开启，或在菜单（三条横线）底部开启：',
+  'tour.tray.imageAlt':
+    'Windows 任务栏通知区域中的 FluidEQ 图标，上方是一张显示 FluidEQ 正在处理声音的卡片。',
+  'tour.tray.card': '正在处理每个应用的声音',
+  'tour.languages.kicker': '十二种语言',
+  'tour.languages.title': '现在支持韩语和繁体中文',
+  'tour.languages.subtitle': '한국어 和 繁體中文 加入了另外十种语言',
+  'tour.languages.lead':
+    'FluidEQ 支持十二种语言。台湾、香港和澳门会选择繁体中文，你自己选择的语言会一直保留。',
+  'tour.languages.point1':
+    '整个窗口、帮助、新功能介绍和安装程序都支持这两种语言。',
+  'tour.languages.point2':
+    '列表中的每种语言都用它自己的文字显示，你总能找到自己的语言。',
+  'tour.languages.point3': '中国大陆和新加坡仍使用简体中文。',
+  'tour.languages.how': '在菜单（三条横线）底部选择：',
+  'tour.languages.imageAlt':
+    'FluidEQ 支持的十二种语言，每种都用自己的文字书写，韩语和繁体中文标为新增。',
 
   'tour.contribute': '请支持我们',
   'tour.eyebrow': '本版本新功能',

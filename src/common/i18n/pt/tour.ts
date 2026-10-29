@@ -13,6 +13,35 @@ const tour: Partial<Dictionary> = {
   'tour.karaokeBackground.imageAlt':
     'O controle de fundo do Karaokê com uma cena por trás da letra.',
   'tour.karaokeBackground.lyric': 'Que a nossa canção ilumine a noite',
+  'tour.tray.kicker': 'DISCRETO DESDE O LOGIN',
+  'tour.tray.title': 'O FluidEQ inicia na bandeja',
+  'tour.tray.subtitle': 'Seu som desde o login, sem janela',
+  'tour.tray.lead':
+    'Com “{startup}” ativado, o FluidEQ inicia na área de notificação quando você entra no Windows e molda o seu som desde o primeiro segundo, sem nenhuma janela no caminho.',
+  'tour.tray.point1':
+    'Seu EQ, seus presets e o som de cada saída tocam desde a primeira música, antes de você abrir qualquer coisa.',
+  'tour.tray.point2':
+    'O ícone da bandeja abre a janela, e o botão de fechar da janela a devolve à bandeja.',
+  'tour.tray.point3':
+    'Se você mesmo abrir o FluidEQ, a janela abre, como sempre.',
+  'tour.tray.how': 'Ative aqui ou no fim do menu (três linhas):',
+  'tour.tray.imageAlt':
+    'A área de notificação da barra de tarefas do Windows com o ícone do FluidEQ e, acima, um cartão dizendo que o FluidEQ está moldando o som.',
+  'tour.tray.card': 'Moldando o som de todos os apps',
+  'tour.languages.kicker': 'DOZE IDIOMAS',
+  'tour.languages.title': 'Agora em coreano e chinês tradicional',
+  'tour.languages.subtitle': '한국어 e 繁體中文 se juntam a outros dez',
+  'tour.languages.lead':
+    'O FluidEQ fala doze idiomas. O chinês tradicional é escolhido para Taiwan, Hong Kong e Macau, e o idioma que você mesmo escolheu é sempre mantido.',
+  'tour.languages.point1':
+    'A janela inteira, a Ajuda, as Novidades e o instalador falam os dois.',
+  'tour.languages.point2':
+    'Cada idioma aparece com o próprio nome na lista, para você sempre achar o seu.',
+  'tour.languages.point3':
+    'O chinês simplificado continua para a China continental e Singapura.',
+  'tour.languages.how': 'Escolha no fim do menu (três linhas):',
+  'tour.languages.imageAlt':
+    'Os doze idiomas do FluidEQ, cada um na própria escrita, com o coreano e o chinês tradicional marcados como novos.',
 
   'tour.contribute': 'Por favor, contribua',
   'tour.eyebrow': 'NOVIDADES DESTA VERSÃO',

@@ -12,6 +12,36 @@ const tour: Partial<Dictionary> = {
   'tour.karaokeBackground.imageAlt':
     'カラオケの背景ボタンと、歌詞の後ろに表示されたシーン。',
   'tour.karaokeBackground.lyric': '私たちの歌でこの夜を照らそう',
+  'tour.tray.kicker': 'サインインから静かに',
+  'tour.tray.title': 'FluidEQ は通知領域で起動します',
+  'tour.tray.subtitle': 'サインインした瞬間から、ウィンドウなしで音を',
+  'tour.tray.lead':
+    '「{startup}」をオンにすると、FluidEQ は Windows へのサインイン時に通知領域で起動し、ウィンドウを開くことなく最初の 1 秒から音を整えます。',
+  'tour.tray.point1':
+    'EQ、プリセット、出力ごとの音は、何も開かなくても最初の曲から適用されます。',
+  'tour.tray.point2':
+    '通知領域のアイコンでウィンドウが開き、ウィンドウの閉じるボタンで通知領域に戻ります。',
+  'tour.tray.point3':
+    'FluidEQ を自分で開いたときは、これまでどおりウィンドウが開きます。',
+  'tour.tray.how':
+    'ここでオンにするか、メニュー（三本線）のいちばん下で切り替えます:',
+  'tour.tray.imageAlt':
+    'Windows タスクバーの通知領域にある FluidEQ のアイコンと、その上に FluidEQ が音を整えていることを示すカード。',
+  'tour.tray.card': 'すべてのアプリの音を整えています',
+  'tour.languages.kicker': '12 の言語',
+  'tour.languages.title': '韓国語と繁体字中国語に対応しました',
+  'tour.languages.subtitle': '한국어 と 繁體中文 が加わりました',
+  'tour.languages.lead':
+    'FluidEQ は 12 の言語に対応しました。台湾、香港、マカオでは繁体字中国語が選ばれ、自分で選んだ言語はいつでもそのまま保たれます。',
+  'tour.languages.point1':
+    'ウィンドウ全体、ヘルプ、新機能の紹介、インストーラーが両方の言語に対応しています。',
+  'tour.languages.point2':
+    'リストでは各言語が自分の言葉で表示されるので、いつでも自分の言語を見つけられます。',
+  'tour.languages.point3':
+    '中国本土とシンガポールでは引き続き簡体字中国語が使われます。',
+  'tour.languages.how': 'メニュー（三本線）のいちばん下で選べます:',
+  'tour.languages.imageAlt':
+    'FluidEQ が対応する 12 の言語をそれぞれの文字で表示し、韓国語と繁体字中国語に新しい印を付けた図。',
 
   'tour.contribute': 'ご支援をお願いします',
   'tour.eyebrow': 'このバージョンの新機能',

@@ -8,11 +8,13 @@ const idsOf = (version: string, release?: string) =>
     .map((slide) => slide.id);
 
 describe("What's new in 2.2", () => {
-  it('opens on the walkthrough, then the Karaoke background entry, without changing 2.1', () => {
+  it('opens on the walkthrough, then Karaoke backgrounds, the tray and the two languages, without changing 2.1', () => {
     expect(featureTourFor('2.2.0')[0].id).toBe('walkthrough');
     expect(idsOf('2.2.0', '2.2')).toEqual([
       'walkthrough',
       'karaoke-background',
+      'tray-start',
+      'languages',
     ]);
     expect(idsOf('2.1.0', '2.2')).toEqual([]);
     expect(idsOf('2.2.0', '2.1')).toEqual(idsOf('2.1.0', '2.1'));
