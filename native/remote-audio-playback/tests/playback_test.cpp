@@ -88,6 +88,47 @@ void gap_and_overflow() {
   output.fill(0); peer.mix(output.data(), 480);
   check(peer.stats().buffered_ms <= 500, "overflow cannot replay seconds of old sound");
 }
+/** Real time in 10 ms blocks, with Wi-Fi stalls of `stall_ms` every 6 s: the
+ * packets sent during a stall arrive together at its end, as TCP delivers
+ * them. Returns the stream's figures after 26 s. */
+feq::remote::PlaybackStats through_stalls(bool smooth, int stall_ms) {
+  feq::remote::PeerPlayback peer(48000, 2);
+  check(peer.output_format(48000, 2, 3), "stall run accepts stereo output");
+  peer.set_smooth(smooth);
+  std::array<float, 960> packet{};
+  packet.fill(0.25F);
+  std::array<float, 960> output{};
+  std::uint32_t sequence = 0, held = 0;
+  for (int block = 0; block < 2600; ++block) {
+    const int at_ms = block * 10 % 6000;
+    const bool stalled = block >= 200 && at_ms >= 2000 && at_ms < 2000 + stall_ms;
+    if (stalled) {
+      ++held;
+    } else {
+      for (; held > 0; --held) peer.push(packet.data(), 480, sequence++);
+      peer.push(packet.data(), 480, sequence++);
+    }
+    output.fill(0);
+    peer.mix(output.data(), 480);
+  }
+  return peer.stats();
+}
+void smooth_rides_out_stalls() {
+  // Four stalls of 1.5 s. Ordinary playback cuts out in every one; smooth
+  // playback cuts out in the first alone and holds that stall and a margin
+  // from then on.
+  const auto ordinary = through_stalls(false, 1500);
+  check(ordinary.underruns >= 4, "ordinary playback cuts out in every 1.5 s stall");
+  const auto smooth = through_stalls(true, 1500);
+  check(smooth.underruns == 1, "smooth playback cuts out once, then rides out the same stall");
+  check(smooth.trimmed_frames == 0 && smooth.discontinuities == 0,
+        "smooth playback keeps every packet a stall delivers late");
+  check(smooth.target_ms >= 1500 && smooth.target_ms <= 2000,
+        "smooth playback holds the stall it learned, within its ceiling");
+  // A stall within the starting cushion is never heard at all.
+  const auto short_stall = through_stalls(true, 250);
+  check(short_stall.underruns == 0, "smooth playback rides out a quarter-second stall untouched");
+}
 } // namespace
 int main() {
   start_and_starve();
@@ -95,5 +136,6 @@ int main() {
   continuous_rate(44100, 48000, -150);
   continuous_rate(96000, 48000, 0);
   gap_and_overflow();
+  smooth_rides_out_stalls();
   return failures == 0 ? 0 : 1;
 }

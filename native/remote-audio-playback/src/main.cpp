@@ -20,11 +20,20 @@
  * process — the second output's mirrors among them — carry on.
  *
  * Commands: 1 open output <guid>, 2 audio, 3 remove peer, 4 volume, 5 reset,
- * 6 quit, 7 close output, 8 start a capture "<pipe> <token> local|lan".
- * Replies: 1 ready, 3 result of 1/7/8 by id, 4 output failed (id 0) or a bad
- * command (then it ends), 5 meter, 6 output format, 9 a capture started
- * under that id has ended (its exit code in the rate field).
+ * 6 quit, 7 close output, 8 start a capture "<pipe> <token> local|lan",
+ * 9 smooth playback for one peer (on when the rate field is 1).
+ * Replies: 1 ready, its rate field this helper's protocol version (an app
+ * sends a command only to a helper whose version has it: an unknown one ends
+ * the helper, and the captures under it), 3 result of 1/7/8 by id, 4 output
+ * failed (id 0) or a bad command (then it ends), 5 meter, 6 output format,
+ * 9 a capture started under that id has ended (its exit code in the rate
+ * field).
  */
+
+/** 2: command 9, smooth playback. Every helper before it answered ready
+ * with 0 here. */
+constexpr std::uint32_t kProtocolVersion = 2;
+
 int main(int argc, char** argv) {
   DWORD pid = 0;
   if (argc != 3 || std::string_view(argv[1]) != "--parent-pid") return 2;
@@ -50,7 +59,7 @@ int main(int argc, char** argv) {
     PlaybackRuntime runtime(parent);
     std::vector<float> payload(feq::remote::kMaxPacketFrames * feq::remote::kMaxChannels + 1);
     std::array<std::uint32_t, feq::remote::kMaxPeers> meter_frames{};
-    bool live = playback_reply(1);
+    bool live = playback_reply(1, 0, kProtocolVersion);
     while (live) {
       PlaybackHeader header;
       if (!playback_read(&header, sizeof(header))) break;
@@ -111,6 +120,10 @@ int main(int argc, char** argv) {
           if (header.bytes != 0) { live = false; break; }
           runtime.close();
           live = playback_reply(3, header.id, static_cast<std::uint32_t>(S_OK));
+          break;
+        case 9:
+          if (header.bytes != 0 || header.id == 0 || header.id > feq::remote::kMaxPeers || header.rate > 1) live = false;
+          else runtime.smooth(header.id, header.rate == 1);
           break;
         case 8: {
           const std::string_view request(reinterpret_cast<const char*>(payload.data()), header.bytes);

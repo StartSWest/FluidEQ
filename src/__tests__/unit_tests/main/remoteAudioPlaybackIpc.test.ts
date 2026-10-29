@@ -18,6 +18,7 @@ const createPlayer = () => ({
   remove: jest.fn(),
   reset: jest.fn(),
   setVolume: jest.fn(),
+  setSmooth: jest.fn(),
   setOutput: jest.fn().mockResolvedValue(undefined),
   close: jest.fn().mockResolvedValue(undefined),
 });

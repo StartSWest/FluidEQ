@@ -154,6 +154,13 @@ const getRemoteAudioLinkSwitches = (name: string) =>
     ILinkSwitches | undefined
   >;
 
+/** Share Audio's Smooth playback switch: a cushion that never cuts out. */
+const getRemoteAudioSmooth = () =>
+  ipcRenderer.invoke('remote-audio-lan-smooth') as Promise<boolean>;
+
+const setRemoteAudioSmooth = (on: boolean) =>
+  ipcRenderer.invoke('remote-audio-lan-set-smooth', on) as Promise<void>;
+
 /** Whether this computer's sound is going to another computer. */
 const onRemoteAudioLanSending = (listener: (sending: boolean) => void) => {
   const wrapped = (_event: IpcRendererEvent, sending: boolean) =>
@@ -242,6 +249,8 @@ const remoteAudioBridge = {
   sendRemoteAudioLanAudio,
   setRemoteAudioLinkSwitches,
   getRemoteAudioLinkSwitches,
+  getRemoteAudioSmooth,
+  setRemoteAudioSmooth,
   onRemoteAudioLanSendingFailed,
   onRemoteAudioLanSending,
   onRemoteAudioLanSignal,

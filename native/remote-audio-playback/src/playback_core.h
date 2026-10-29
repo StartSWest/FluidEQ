@@ -32,6 +32,15 @@ class PeerPlayback {
             std::uint32_t sequence) noexcept;
   void mix(float* output, std::uint32_t frames) noexcept;
   void reset() noexcept;
+  /**
+   * Smooth playback, for music: a cushion of 300 ms that never shrinks below
+   * 300, and that after a dropout keeps what the stall left queued, up to
+   * 2 s, where the ordinary one starts at 30 ms and stays under 160. Called
+   * on the thread that pushes; the stream fades out and
+   * primes again at the new cushion, so a change is a short gap, never a
+   * click.
+   */
+  void set_smooth(bool smooth) noexcept;
   PlaybackStats stats() const noexcept;
   std::uint32_t source_rate() const noexcept;
   std::uint16_t source_channels() const noexcept;

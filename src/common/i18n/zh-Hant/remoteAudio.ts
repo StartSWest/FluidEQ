@@ -10,6 +10,8 @@ const remoteAudio = {
   'remoteAudio.group.receive': '接收',
   'remoteAudio.group.send': '傳送',
   'remoteAudio.group.share': '分享',
+  'remoteAudio.group.smooth': '流暢',
+  'remoteAudio.group.smoothHint': '適合音樂：永不中斷，約晚半秒播放',
   'remoteAudio.group.options': '{name} 的選項',
   'remoteAudio.group.count.one': '{count}電腦',
   'remoteAudio.group.count.few': '{count} 電腦',

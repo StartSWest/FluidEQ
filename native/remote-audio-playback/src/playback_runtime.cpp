@@ -36,6 +36,7 @@ bool PlaybackRuntime::push(unsigned id, std::uint32_t rate, std::uint16_t channe
   if (!peer || peer->source_rate() != rate || peer->source_channels() != channels) {
     auto next = std::make_unique<feq::remote::PeerPlayback>(rate, channels);
     if (!next->output_format(output_.rate(), output_.channels(), output_.mask())) return false;
+    next->set_smooth(smooth_[id - 1]);
     audible_[id - 1].store(next.get());
     if (peer) retired_.push_back({std::move(peer), blocks_.load()});
     peer = std::move(next);
@@ -45,8 +46,14 @@ bool PlaybackRuntime::push(unsigned id, std::uint32_t rate, std::uint16_t channe
   peer->push(pcm, frames, sequence);
   return true;
 }
+void PlaybackRuntime::smooth(unsigned id, bool on) {
+  if (id == 0 || id > feq::remote::kMaxPeers) return;
+  smooth_[id - 1] = on;
+  if (peers_[id - 1]) peers_[id - 1]->set_smooth(on);
+}
 void PlaybackRuntime::remove(unsigned id) {
   if (id == 0 || id > feq::remote::kMaxPeers) return;
+  smooth_[id - 1] = false;
   audible_[id - 1].store(nullptr);
   if (peers_[id - 1]) retired_.push_back({std::move(peers_[id - 1]), blocks_.load()});
   reclaim();

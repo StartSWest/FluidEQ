@@ -61,10 +61,7 @@ describe('direct remote audio ports', () => {
     const { attach, bridge, onStreaming } = setup();
     const port = new Port();
     attach('playback', port);
-    bridge.signal({
-      peerId: 'sender',
-      signal: { kind: 'stream-mode', mode: 'video' },
-    });
+    bridge.mode('sender', 'video');
     bridge.audio(chunk);
     bridge.audio({ ...chunk, sequence: 1 });
     expect(port.postMessage.mock.calls.map(([value]) => value.kind)).toEqual([

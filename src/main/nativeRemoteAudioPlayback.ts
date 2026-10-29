@@ -3,7 +3,10 @@
 import type { ILanRemoteAudioChunk } from '../common/remoteAudio';
 import type { IRemotePlaybackMeter } from '../common/remoteAudioPlayback';
 import { type ILanAudioLease, leaseLanAudioHelper } from './lanAudioHelper';
-import { playbackCommand } from './nativeRemoteAudioPlaybackProtocol';
+import {
+  PLAYBACK_SMOOTH_SINCE,
+  playbackCommand,
+} from './nativeRemoteAudioPlaybackProtocol';
 import { audioWorkerEnabled } from './shareAudio/host';
 import { startWorkerPlayback } from './shareAudio/nativeAdapters';
 
@@ -12,6 +15,12 @@ export interface INativeRemoteAudioPlayback {
   remove(peerId: string): void;
   reset(): void;
   setVolume(volume: number): void;
+  /**
+   * Smooth playback for the sound from one computer: a cushion of a third of
+   * a second that rides out Wi-Fi stalls, where the ordinary one is 30 ms.
+   * A helper too old for it plays on as before.
+   */
+  setSmooth(peerId: string, smooth: boolean): void;
   setOutput(guid: string): Promise<void>;
   close(): Promise<void>;
 }
@@ -115,6 +124,15 @@ export const startNativeRemoteAudioPlayback = async (
   };
   // Whatever an earlier receiver left in the helper is not this one's.
   write(playbackCommand(5));
+  // Which computers' sound plays smooth, kept from before its first chunk:
+  // the helper learns it when it learns the peer.
+  const smooth = new Set<string>();
+  const tellSmooth = (id: number, on: boolean) => {
+    // An unknown command ends the helper and every capture under it.
+    if (lease.version >= PLAYBACK_SMOOTH_SINCE) {
+      write(playbackCommand(9, id, Buffer.alloc(0), on ? 1 : 0));
+    }
+  };
   return {
     push: (chunk) => {
       let peer = peers.get(chunk.peerId);
@@ -128,6 +146,9 @@ export const startNativeRemoteAudioPlayback = async (
         }
         peer = { id, waveform: new Float32Array(64) };
         peers.set(chunk.peerId, peer);
+        if (smooth.has(chunk.peerId)) {
+          tellSmooth(id, true);
+        }
       }
       peer.waveform.fill(0);
       const samples = new Float32Array(chunk.pcm);
@@ -172,6 +193,20 @@ export const startNativeRemoteAudioPlayback = async (
       const value = Buffer.alloc(4);
       value.writeFloatLE(volume);
       write(playbackCommand(4, 0, value));
+    },
+    setSmooth: (peerId, on) => {
+      if (smooth.has(peerId) === on) {
+        return;
+      }
+      if (on) {
+        smooth.add(peerId);
+      } else {
+        smooth.delete(peerId);
+      }
+      const peer = peers.get(peerId);
+      if (peer) {
+        tellSmooth(peer.id, on);
+      }
     },
     setOutput: (guid) => {
       if (closed || failed) {

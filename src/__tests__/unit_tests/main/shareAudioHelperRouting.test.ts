@@ -20,6 +20,7 @@ it('routes a capture exit only to its own lease using the original main-side req
     }),
     send: jest.fn(),
     release: jest.fn(),
+    version: 2,
   };
   const factory = jest.fn(async (client: ILanAudioClient) => {
     clients.push(client);

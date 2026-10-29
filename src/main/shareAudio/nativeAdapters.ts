@@ -13,7 +13,7 @@ export const leaseWorkerAudioHelper = async (
   client: ILanAudioClient,
 ): Promise<ILanAudioLease> => {
   const host = getAudioWorker();
-  const { id } = await host.request('helper.lease');
+  const { id, version } = await host.request('helper.lease');
   const unlisten = host.listen((event) => {
     if (event.type === 'helper-reply' && event.id === id) {
       client.reply?.({
@@ -40,6 +40,7 @@ export const leaseWorkerAudioHelper = async (
     send: (packet) => {
       host.request('helper.send', id, packet).catch(onFailure);
     },
+    version,
     release: () => {
       unlisten();
       unfail();
@@ -75,6 +76,9 @@ export const startWorkerPlayback = async (
     },
     setVolume: (volume) => {
       host.request('playback.volume', id, volume).catch(onFailure);
+    },
+    setSmooth: (peerId, smooth) => {
+      host.request('playback.smooth', id, peerId, smooth).catch(onFailure);
     },
     setOutput: (guid) => host.request('playback.output', id, guid),
     close: async () => {
