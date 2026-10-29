@@ -39,6 +39,9 @@ the Studio.
 - **Your own scene lights your keyboard and mouse at once.** A scene you
   made counts for Dynamic lighting while it waits for review, as it
   already played on the graph.
+- **More scenes, one press away.** Under your own scenes, the look
+  picker's Visualizers column offers the gallery, and says how many scenes
+  went up there since you last opened it.
 - **Scene update notices show once per version** and stay dismissed when
   you switch views or reopen the app.
 
@@ -60,6 +63,8 @@ the Studio.
   the words, two washes and two beams light the stage: the washes swell
   with the bass, the beams open with the level and the treble, and every
   beat flashes them.
+- **Playlist folders fold.** A folder in the Karaoke playlist opens and
+  closes from its heading, which counts its songs.
 
 ### Starting with Windows
 
@@ -74,6 +79,10 @@ the Studio.
 
 - **Share Audio holds steady under load.** Capture and the network link
   run in their own service, so a busy window no longer stalls the sound.
+- **Fluid, for music over Wi-Fi.** A switch beside Share plays every link
+  about a third of a second later, and a little more after a dropout, so a
+  stalling network no longer cuts the music. Off, Share Audio sounds
+  exactly as before. Both computers need FluidEQ 2.2.
 - **Forum issue threads update at once**, and can be answered right in the
   thread once FluidEQ's GitHub permission allows it.
 
@@ -83,9 +92,9 @@ the Studio.
   goes over every part of FluidEQ, with a voice saying how to use each one.
   It is voiced in English for now, with captions in all twelve languages,
   and it takes the place of the single-feature videos.
-- **A slide for Karaoke backgrounds**, with the real control. The tour
-  reopens only for a new feature release, never for a fix release of the
-  same one.
+- **Slides for Karaoke backgrounds, starting in the tray and the two new
+  languages**, each with the real control. The tour reopens only for a new
+  feature release, never for a fix release of the same one.
 
 ## 2.1.0
 
