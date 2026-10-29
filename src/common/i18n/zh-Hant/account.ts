@@ -62,6 +62,14 @@ const account = {
   'account.reset.sent':
     '我們向 {email} 發送了一個六位數程式碼。在此輸入您的新密碼。',
   'account.reset.submit': '設定新密碼',
+
+  'account.macKeychainTitle': '允許存取鑰匙圈以登入',
+  'account.macKeychainHint':
+    'FluidEQ 無法存取 Mac 的鑰匙圈。請重新啟動 FluidEQ，然後在 macOS 提示中選擇「允許」。已儲存的資料仍保持加密。',
+  'account.macKeychainRestart': '重新啟動 FluidEQ',
+  'account.macKeychainRestarting': '正在重新啟動 FluidEQ…',
+  'account.macKeychainManual':
+    '請完全結束 FluidEQ，然後重新開啟，以重試存取鑰匙圈。',
   'account.unavailable': '此係統無法登入',
   'account.unavailableHint':
     '此電腦上沒有安全的位置來儲存登入資訊，因此 FluidEQ 將不會儲存登入資訊。其他一切正常。',

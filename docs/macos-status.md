@@ -14,7 +14,8 @@ taps. This page records the current implementation and its remaining limits.
   The redundant `macos-support` branch is retired; its history remains
   in `macos`. Shared Share Audio fixes land on `main` first and are merged
   into `macos`; Core Audio capture/playback stays on `macos`. Mac-specific
-  work is never merged wholesale into `main`.
+  changes are committed and pushed only to `macos`, never to `main`.
+  `main` is the Windows build and the base inherited by Mac and Linux.
 
 ## Implemented
 
@@ -444,6 +445,348 @@ taps. This page records the current implementation and its remaining limits.
   redraws, alongside Windows behavior. App TypeScript, changed-file lint and
   the production main build passed. These changes stay on `macos`; `main`
   remains unchanged.
+
+## Mac button siblings and desktop visibility — 2026-10-25
+
+- The new screenshot showed the close button at the requested inset while
+  minimize and fullscreen had returned to AppKit's default inset. Native
+  placement had measured only the close button's vertical position, so it
+  missed this partial reset. The observer now measures all three controls
+  and aligns their centers in each button's actual parent coordinates. The
+  correction stays inside the existing animation-free transaction and yields
+  throughout native fullscreen transitions.
+- On this Mac, Core Graphics reported a full-display Dock surface one level
+  above desktop, the same level previously used for FluidEQ. The background
+  now uses desktop-icons - 1, above that surface and still below Finder's
+  icons and normal applications. Click-through and the desktop type's Spaces
+  behavior remain in place.
+- A second blank-desktop path removed the scene canvas when macOS reported
+  document occlusion. A battery-paused scene then had no picture to reveal
+  and no animated frame to replace it. A runner with an explicitly supplied
+  pause state now retains its canvas across occlusion and idles its worker;
+  ordinary graph scenes retain their existing hidden-scene disposal policy.
+- Read-only checks of the running development app confirmed a retained
+  2880 x 1800 canvas while hidden and battery-paused, with nonblank pixels in
+  all 2560 sampled positions. Native metadata confirmed the new layer at
+  -2147483604, below Finder's -2147483603 and above Dock's -2147483622.
+  Only the built-in Retina monitor is connected. These checks do not replace
+  the requested manual icon, Spaces, monitor and native-button checks.
+- App TypeScript, changed-source lint and both production builds passed (the
+  scene runner retains four existing console warnings). Visual confirmation, regression suites,
+  commit and push for this correction are pending. No Computer Use, backend
+  changes or automatic application launch was performed. These native
+  corrections remain specific to `macos`.
+- The menu-bar name `Electron` belongs to the stock development app bundle.
+  The existing packaged bundle's display name and bundle name are FluidEQ.
+  Runtime `app.setName` cannot change the OS name. The signed development
+  host was left intact to preserve its capture-permission identity.
+
+### Desktop test app — 2026-10-25
+
+- Built the native helpers and both production bundles from the current
+  `macos` working tree. TypeScript and source lint passed, with the scene
+  runner's four existing console warnings. The test bundle includes the
+  pending desktop corrections and the existing pending button alignment.
+- Packaged an Apple Silicon app at
+  `release/build/macos-desktop-test/mac-arm64/FluidEQ.app`, separate from
+  the earlier build. Its name is FluidEQ, minimum OS is 14.4, and the DSP,
+  engine, Share Audio and system-volume helpers plus the unpacked Koffi
+  module are present for arm64. Strict deep signature verification passed.
+- Local test signing uses a temporary entitlement file with library
+  validation disabled for ad-hoc native modules. Production entitlements
+  were not edited. The app was neither launched, notarized nor published;
+  the user requested this build to perform the visual check themselves.
+  Regression updates and the focused Mac commit/push await that feedback.
+
+## Mac laptop layout and Analyzer selector — 2026-10-25
+
+- The initial shared correction `c94cebbd5`, merged into `macos` as
+  `232f894cd`, was reverted from `main` by `2985ba4dc`: Windows at 125%
+  also has a 1536 x 864 logical viewport. After merging that rollback, the
+  density tier is explicitly scoped to the Mac root. At logical widths
+  1280–1560 and heights up to 900 it keeps application zoom at 100%, slightly
+  reduces text density, and reserves the open right pane beside the EQ.
+- The user confirmed both panes and the EQ fit comfortably on this Mac's
+  1440 x 900 Retina desktop at 100%. The look selector now takes 144px, with
+  ellipsis for long names; its complete menu remains available. The graph
+  toolbar no longer reserves the already-docked pane twice and retains room
+  for the right-hand level scale. An isolated 2x render confirmed one row.
+- Stylesheet checks passed, as did 9 layout/media suites (85 tests) and the
+  added transport conflict regression (14 tests). The conflict resolution
+  keeps main's linked-group forwarding before this platform's local transport
+  fallback; both Mac and Windows routes are covered. TypeScript passed after
+  restoring the pending native corrections. No backend code was changed.
+- The previous native button and desktop corrections are restored locally
+  and remain separate, awaiting the user's visual confirmation before their
+  regression coverage, commit and push. No Computer Use was performed.
+- The Mac-only scope passed stylesheet compilation and the three existing
+  band-layout suites (21 tests). Isolated previews of the current compiled
+  CSS confirmed a 14.4px Mac root at 1440 x 807 / 2x, and normal 16px roots
+  for Windows at 1536 x 864 / 1.25x and Linux at 1536 x 864 / 1x. FluidEQ
+  was not running during this scope check and was not launched. The branch
+  policy is recorded in `AGENTS.md`; this correction is pushed only to `macos`.
+
+## Main sync and audio-only Mac capture — 2026-10-25
+
+- Merged main's account/profile and curve updates through `3c67b45fc`, then
+  its graph/import updates through `664a5e37e`, into `macos`. Account code
+  comes from main as-is; no backend or generic account repair was made here.
+  The merges and Mac laptop compatibility correction are pushed to `macos`
+  at `6e1e746ba`. Neither the local main branch nor remote main was changed.
+- Main stopped publishing the shared drawer-open workspace class. The
+  confirmed Mac-only laptop rule now reads the actual open pane with `:has`,
+  keeping its reserved column without restoring main's removed behavior.
+  App, BandLayoutMenu and common bandLayouts passed (3 suites, 59 tests).
+  An offline render of current production CSS, without the removed class,
+  reported a 14.4px root and 132/968/340px columns on Mac at 1440 logical
+  pixels / 2x. Windows at 1536 / 1.25x and Linux at 1536 / 1x retained their
+  16px roots and floating-pane grids. All stylesheets compile.
+- The first audio-only experiment used a legacy desktop-audio media request.
+  The user's launch exposed Chromium's bad-IPC 263 rejection before that
+  request ever reached Electron's media handler. That test app is superseded
+  by the native capture replacement below; it must not be used for testing.
+  The live permission notice already reads system-audio permission and
+  describes audio-only access in all ten locales.
+- Retaining the desktop canvas across occlusion is explicitly gated on the
+  native Mac platform exposed by its isolated preload. Windows retains its
+  existing hidden-scene disposal. The desktop/button/audio changes remain
+  pending user verification before their regression suites, commit and push,
+  following the repository's change-first workflow. TypeScript, changed-source
+  lint and the complete production/native build pass (four existing scene
+  runner console warnings). No FluidEQ launch, Computer Use, screen capture,
+  backend changes, or unsolicited audio playback was performed.
+- A fresh Apple Silicon test app is packaged at
+  `release/build/macos-desktop-audio-test/mac-arm64/FluidEQ.app`, with a ZIP
+  beside it. Its display name is FluidEQ; the four native helpers are arm64,
+  and strict deep signature verification passed. Local test entitlements
+  retain the ad-hoc library-validation exception; production entitlements
+  are unchanged. This build includes main through `664a5e37e` and the pending
+  Mac desktop/button/audio changes, and was not launched by the agent.
+
+## Remove the Mac renderer-killing capture request — 2026-10-25
+
+- The supplied log terminates the renderer with bad IPC 263 on every recovery,
+  exhausting its reload budget. Chromium names this invalid stream-type
+  combination: legacy desktop audio requires a desktop video type in the
+  browser's validation, before Electron's downstream handler is reached.
+  The prior inspection of Electron alone missed that validation. GPU mailbox
+  and disposed-frame errors accompany the terminated renderer; no GPU flag
+  or recovery budget was changed to hide the failure.
+- Removed the Mac browser capture request entirely. The existing Mac native
+  audio helper now owns a separate live-monitor tap, following the default
+  output and rate through Core Audio notifications. The monitor hears received
+  audio too, while outgoing Share Audio keeps its existing unmuted global tap
+  and excludes helper playback and processed engine output. Separate commands,
+  PCM reply types and stop acknowledgements keep closing/reopening the
+  analyser independent of sending and receiving.
+- A main-frame-validated private MessagePort owns the monitor lease. Replacing
+  a renderer waits for the old capture's stop acknowledgement before opening
+  its successor. Closing the port, abandoning an opening, hiding the last
+  display owner, changing outputs or quitting releases the tap. The existing
+  PCM worklet/resampler creates an audio-only stream for the existing graph;
+  its only speaker connection has zero gain. No microphone, picture, browser
+  media request, voice processing, timer or fallback to screen capture is used.
+- TypeScript, changed-source lint, the complete native/production build and
+  platform-isolation checks pass. The replacement Apple Silicon test app is
+  at `release/build/macos-desktop-native-audio-test/mac-arm64/FluidEQ.app`.
+  Strict deep signature verification passed; the updated native audio helper
+  is arm64. The app was not launched by the agent, and no FluidEQ process or
+  debugging endpoint was available for a live check. Desktop/button/audio
+  confirmation, regressions, commit and push remain pending user feedback.
+- The user's subsequent Keychain prompt names `fluideq-app Safe Storage`.
+  Existing account and Share Audio stores use Electron's OS-backed encryption
+  key. These local test builds have ad-hoc signatures, which can make macOS
+  request access again between builds. No secret or Keychain entry was read,
+  changed or bypassed, and no backend/account code was altered for this prompt.
+
+## Mac Keychain recovery instead of an unsupported-system dead end — 2026-10-25
+
+- The user reported the generic sign-in-unavailable card after macOS asked
+  for access to `fluideq-app Safe Storage`. The account session rechecks its
+  credential store; the false answer originates in Electron's Mac cipher.
+  Electron 43.2.0 restores Chromium's synchronous Mac OSCrypt implementation
+  in `revert_oscrypt_remove_sync_backend.patch`: `DeriveKey` marks Keychain
+  tried after either success or failure and never retries a failed lookup
+  in that process. Reopening a panel cannot clear this failure; a fresh app
+  launch can retry it. The exact choice made in the user's native prompt has
+  been requested and remains unconfirmed; it was not inferred as a denial.
+- Added a Mac-only recovery notice using the existing account notice/button
+  styles, with all ten translations. It describes inaccessible Keychain
+  storage and offers Restart FluidEQ. Only a user click can request this
+  restart; its Mac-only handler validates the owning window and main frame,
+  and uses the normal quit/write-drain path. Development sessions are left
+  to their owner and get explicit manual quit/reopen instructions.
+- Account/session, credential store, encrypted JSON storage, remote services,
+  and Windows/Linux unavailable-state behavior are unchanged. No secret or
+  encrypted credential file was read, deleted or replaced. Keychain security
+  was not bypassed, encryption was not weakened, and no application was
+  launched or restarted by the agent.
+- Available signing-certificate metadata reports zero valid code-signing
+  identities on this Mac. Test bundles remain locally ad-hoc signed; a
+  persistent Developer ID identity is not currently available. No certificate,
+  Keychain trust setting, ACL or password was created or changed.
+- App TypeScript, changed-source lint and the full native/production build
+  pass (one existing single-export style warning in macPermissionBridge).
+  Offline 2x renders of the new notice were inspected in English at 1098px
+  and German/Japanese at 318px: text wraps, buttons remain readable, and the
+  card has no horizontal overflow. These are fixtures, not captures of the
+  user's desktop or a substitute for the pending live app check.
+- Packaged `release/build/macos-keychain-recovery-test/mac-arm64/FluidEQ.app`
+  with the prior native-audio, desktop and button corrections. Strict deep
+  signature verification passes. The current running app can also retry by
+  a full manual quit/reopen of that same bundle. The native Keychain decision
+  stays with the user; permission/sign-in, desktop/buttons/audio checks,
+  regression coverage and the focused Mac commit/push remain pending.
+
+## Confirmed Keychain refusal and latest main merge — 2026-10-25
+
+- Read-only macOS security diagnostics covering the actual launch identify
+  the failure, rather than inferring the user's button choice. At 10:51:28
+  securityd requested access for the new native-audio test bundle. Its
+  existing FluidEQ Safe Storage ACL named the older test build's code hash.
+  At 10:51:59 macOS recorded that access was not approved and rejected the
+  lookup. No password or encryption-key value was read. A valid native
+  Keychain authorization is still necessary to read the protected sign-in;
+  resetting data, weakening encryption or impersonating the older signature
+  is not a repair.
+- The Mac recovery handler now queues at most one restart per process and
+  reports a failed restart through the existing manual recovery path. This
+  prevents repeated IPC while normal quit drains pending writes from
+  scheduling multiple app instances and multiple Keychain requests.
+- Merged main through `9c0c599e6` (eight new shared commits) into `macos`,
+  preserving the pending Mac changes. The only conflict was a shared Studio
+  test; current main's version was retained because its changes were shared
+  Studio expectations, with no Mac adaptation to lose. Its four tests pass,
+  as do TypeScript and the complete native/production build. Normal hooks
+  passed, and merge `0dd567af5` is pushed only to `macos`. Local main remains
+  `2985ba4dc`; no main or backend fix was authored here.
+- The native monitor's extra PCM reply is explicitly decoded only on Darwin;
+  Windows/Linux retain their original reply handling. The Mac desktop,
+  buttons, native-audio and Keychain recovery changes remain uncommitted,
+  awaiting the repository's required runtime confirmation and regressions.
+  The up-to-date local test package is `release/build/macos-test/mac-arm64/FluidEQ.app`.
+  No application was launched/restarted by the agent, no Computer Use was
+  performed, and no Keychain approval or trust setting was changed.
+- A final remote refresh found main's public/private add-on separation and
+  detached developer tools (`844de9105`). These are now inherited too, in
+  merge `7abeb9a13`, pushed only to `macos`. The ignore-file conflict retained
+  both the existing scratch rule and main's add-on rule. Git's autostash
+  restored every tracked Mac change; the two pre-existing stashes remain
+  unchanged and no merge conflict remains.
+- With the final merge, app TypeScript and the complete native/production
+  build pass. Main's public-release checker confirms no private add-on code
+  is bundled. The three developer-tools/window-reveal suites pass (18 tests),
+  alongside the four Studio conflict-resolution tests from the previous
+  merge. The refreshed Mac package passes strict deep signature verification.
+  These checks validate the merges and build, not the pending user runtime
+  checks or the unrun regression coverage for the new Mac features.
+
+## Final public Mac package after main refresh — 2026-10-25
+
+- Main is inherited through `844de9105`; final merge `7abeb9a13` is pushed
+  only to `macos`, authored as StartSWest. The final ignore-file conflict
+  retained both rules. Git applied the temporary autostash successfully;
+  both pre-existing user stashes remain unchanged and the Mac work is intact.
+- TypeScript, the full native/production build with add-ons disabled, main's
+  public-release add-on checker and strict deep signature verification pass.
+  Three developer-tools/window-reveal suites passed (18 tests), alongside
+  the four Studio merge-resolution cases. Mac runtime checks and the new
+  feature regressions are still pending and are not represented by this count.
+- The current test app and ZIP are in `release/build/macos-test`. Its
+  build-info records the merge and included main revision. The native-audio,
+  desktop/button and Keychain recovery work is present in the app but remains
+  uncommitted pending the required verification. macOS Keychain approval is
+  an external requirement: the actual launch log records access not approved.
+  No application was launched, no authentication was bypassed, and no backend
+  repair was performed by this agent.
+
+## Relay Share Audio and amp follow-up — 2026-10-26
+
+- Main is inherited through `1519a62bb`, in merge `d972b687b`, pushed only to
+  `macos`. This follows the earlier 14-commit refresh in `b096f9857`.
+  The shared Share Audio routing/fallback and Windows restart changes came
+  from main; no main/backend repair was authored on this Mac. The conflict
+  retained both Mac and Windows IPC coverage, with 94 focused cases passing.
+  All 60 pending files were preserved across the merge; only subsequent
+  intentional Mac edits differ from the backup. The older two stashes remain.
+- Relay task #6 is `9c3050a7-8e76-4761-9f82-d29d8a2b88d9`; amp task #7 is
+  `fc80184b-e12f-4adf-a6fe-4daa586b4b2f`. Relay 0.4.0 now registers this chat
+  separately on those tickets and overall coordination #3. Its code-only local
+  listener reports `codex-app-tools` delivery with model polling disabled.
+  Actual Windows handoffs and an owner status request reached this chat and
+  have explicit Read receipts. This verifies receipt on this Mac, not setup
+  on every peer. The old project route remains paused; no scheduler, other
+  chat's inbox or global cursor was used. Delivery requires the desktop app
+  and this local connection to remain running.
+- The Mac now-playing helper uses platform notifications in a system Perl
+  host, with the author's BSD-3-Clause MediaRemote declarations pinned at
+  `0e82bf1c44ec39554fbfc402ec88a48c6ae2a0fd`. Licence and provenance are retained.
+  No timed polling, screen capture, SIP/system-binary-signature/credential change, or new
+  user-facing string is involved. Music/Spotify broadcasts remain a fallback.
+  The framework is packaged as signed nested code in `Contents/Frameworks`;
+  its script and licence are data under `Resources/native/mac-media`.
+- Real macOS 26.5.1 check: Safari's title, playing state and elapsed position
+  are read; WebKit's GPU process resolves to Safari. That stream advertises
+  play/pause and no seek/next/previous, which are emitted truthfully. Explicit
+  pause and play both acknowledged and produced state notifications; original
+  playback was restored. Closing stdin exits the watcher with code zero.
+  The user's amp screenshot also shows Netflix / Safari on the system card.
+- The Mac output monitor mistakenly excluded the engine, whose muted process
+  tap replaces the original playback. It now includes processed and received
+  sound on the default output. Outgoing capture still excludes the engine and
+  LAN playback, preserving raw sending and the no-feedback boundary. A monitor
+  no longer needs its own process object when it excludes no processes.
+- Through the running app's pre-granted audio API, a temporary work claim
+  produced 12,288 real frames at 48 kHz with stereo peak amplitudes 0.3142 and
+  0.3306. The analysis branch ended in a silent stream destination, no tone or
+  output-volume change occurred, no audio file was written, and the claim was
+  released. This proves the native monitor delivers sound while the window is
+  hidden; it is not yet a visible amp/canvas verdict.
+- Shared follow-ups were sent to the Windows coordinators: the amp dB reader
+  reads only the direct frame even though sharing intentionally selects the
+  sender's visible frame, and the system-media contract needs optional
+  `canToggle` passthrough for sessions without that capability. These are main
+  changes, not local Mac-only workarounds. Their replies remain pending.
+- The new Mac implementation and earlier desktop/titlebar/audio/Keychain work
+  remain uncommitted pending the required runtime feedback and Mac regressions.
+  Native and public JS builds, TypeScript, ESLint, public add-on exclusion and
+  platform isolation checks pass. No FluidEQ app was launched by the agent;
+  the user-owned dev session and native diagnostic helpers were used instead.
+- The final arm64 test app and ZIP in `release/build/macos-test` include these
+  pending changes and main through `1519a62bb`. Both the app and nested media
+  framework pass strict signature verification. The packaged helper also
+  reads the real Safari session, reports its enabled controls, and exits zero
+  on EOF. Only the helper was executed; the packaged FluidEQ app was not
+  launched. Visible amp, cross-PC one-player, desktop/titlebar and Keychain
+  checks, Mac regressions and the focused Mac commit/push remain pending.
+- A final fetch also found six main commits through `0e51ad010` covering
+  Compact player queue/reset behavior, Help and the tour. Merge `85dd86278`
+  inherited them without conflicts. All 60 pending Mac files were restored;
+  their changed lines match the pre-merge backup exactly. TypeScript, the
+  full native/public JS build, public add-on exclusion and platform isolation
+  checks pass; eight affected main suites pass all 101 cases. The refreshed
+  package includes this revision. No shared amp readout correction has landed
+  in that main range, so the main-owner follow-up remains open.
+
+## Main refresh — 2026-10-27
+
+- Merged 32 incoming main commits through `64d93517d` into `macos` as
+  `1e484e59e`, keeping local main at `2985ba4dc`. The placement-test conflict
+  retains both Mac native-fullscreen coverage and main's new stale-placement
+  cases. Main's live Help panels require preserving the figure kind while
+  applying Mac-only wording; the Mac adapter now narrows that kind explicitly.
+  Inherited Windows tray-tint tests select Windows explicitly while retaining
+  the Mac template-icon case. No backend or main repair was authored here.
+- TypeScript and changed-source ESLint pass, as do ten integration suites
+  with 118 cases, the complete native/public production build, platform
+  isolation and public add-on exclusion. The normal pre-commit lint-staged
+  hook passed. All 60 pending Mac files were restored with their exact changed
+  lines intact; only `main.ts` also inherited upstream edits. Both older user
+  stashes remain; only the verified temporary sync stash was dropped.
+- Earlier Mac feature work remains uncommitted pending runtime feedback and
+  regressions. This refresh builds production bundles; the packaged test app
+  from the prior handoff remains based on `85dd86278`. No FluidEQ application
+  was launched or restarted, and no Computer Use or credential access occurred.
 
 ## Mac output meter reads after Auto normalize — 2026-10-27
 

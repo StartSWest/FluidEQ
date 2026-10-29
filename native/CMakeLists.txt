@@ -601,6 +601,7 @@ endif()
 add_subdirectory(remote-audio-playback)
 if(APPLE)
   add_subdirectory(mac-remote-audio)
+  add_subdirectory(mac-media)
 endif()
 add_executable(fluideq-capture-queue-test
   remote-audio-capture/tests/capture_queue_test.cpp

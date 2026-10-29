@@ -69,6 +69,14 @@ const account = {
     'Abbiamo inviato un codice di sei cifre a {email}. Inseriscilo qui con la nuova password.',
   'account.reset.submit': 'Imposta nuova password',
 
+  'account.macKeychainTitle': 'Consenti l’accesso al portachiavi per accedere',
+  'account.macKeychainHint':
+    'FluidEQ non ha potuto accedere al portachiavi del Mac. Riavvia FluidEQ per riprovare, poi scegli Consenti nella richiesta di macOS. I dati salvati restano cifrati.',
+  'account.macKeychainRestart': 'Riavvia FluidEQ',
+  'account.macKeychainRestarting': 'Riavvio di FluidEQ…',
+  'account.macKeychainManual':
+    'Chiudi completamente FluidEQ, poi riaprilo per riprovare l’accesso al portachiavi.',
+
   'account.unavailable': 'L’accesso non è disponibile su questo sistema',
   'account.unavailableHint':
     'Su questa macchina non c’è un posto sicuro dove conservare un accesso, quindi FluidEQ non ne salva alcuno. Tutto il resto funziona normalmente.',

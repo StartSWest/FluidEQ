@@ -80,6 +80,14 @@ const account = {
     'We sent a six-digit code to {email}. Type it here with your new password.',
   'account.reset.submit': 'Set new password',
 
+  'account.macKeychainTitle': 'Allow Keychain access to sign in',
+  'account.macKeychainHint':
+    'FluidEQ couldn’t access your Mac’s Keychain. Restart FluidEQ to try again, then choose Allow in the macOS prompt. Your saved data remains encrypted.',
+  'account.macKeychainRestart': 'Restart FluidEQ',
+  'account.macKeychainRestarting': 'Restarting FluidEQ…',
+  'account.macKeychainManual':
+    'Quit FluidEQ completely, then open it again to retry Keychain access.',
+
   'account.unavailable': 'Signing in is not available on this system',
   'account.unavailableHint':
     'There is no secure place to keep a sign-in on this machine, so FluidEQ will not store one. Everything else works as normal.',

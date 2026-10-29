@@ -69,6 +69,15 @@ const account = {
     '{email} に6桁のコードを送りました。ここにコードと新しいパスワードを入力してください。',
   'account.reset.submit': '新しいパスワードを設定',
 
+  'account.macKeychainTitle':
+    'サインインするにはキーチェーンへのアクセスを許可',
+  'account.macKeychainHint':
+    'FluidEQ は Mac のキーチェーンにアクセスできませんでした。FluidEQ を再起動し、macOS の確認画面で「許可」を選んでください。保存データは暗号化されたままです。',
+  'account.macKeychainRestart': 'FluidEQ を再起動',
+  'account.macKeychainRestarting': 'FluidEQ を再起動中…',
+  'account.macKeychainManual':
+    'FluidEQ を完全に終了してから開き直し、キーチェーンへのアクセスを再試行してください。',
+
   'account.unavailable': 'このシステムではサインインできません',
   'account.unavailableHint':
     'このマシンにはサインイン情報を安全に保存できる場所がないため、FluidEQ は保存しません。それ以外はすべて通常どおり動作します。',

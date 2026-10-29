@@ -275,7 +275,7 @@ const app: Partial<Dictionary> = {
   'notice.captureFailedBody':
     'O medidor de nível e a curva ao vivo do gráfico estão desligados por enquanto. Todo o resto funciona normalmente.',
   'notice.captureNeedsMacPermission':
-    'No Mac, o medidor de nível e a curva ao vivo do gráfico precisam do FluidEQ permitido na lista de cima de Privacidade e Segurança › Gravação de Tela e Áudio do Sistema. A lista só de áudio basta para o seu EQ, mas não para eles. Todo o resto funciona normalmente.',
+    'Permita que o FluidEQ grave o áudio do sistema em Privacidade e Segurança › Gravação de Tela e Áudio do Sistema. Apenas o áudio do sistema basta para o medidor e a curva ao vivo; não é necessário gravar a tela.',
   'notice.tryAgain': 'Tentar de novo',
   'notice.restartConfirm':
     'O áudio vai parar por alguns segundos e o Windows vai pedir permissão de administrador. Continuar?',

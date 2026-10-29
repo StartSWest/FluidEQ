@@ -10,8 +10,9 @@ let windowLevel: TWindowLevel | undefined;
 
 /**
  * Electron 43.2's desktop type sets kCGDesktopWindowLevel - 1, below the
- * system wallpaper. Keep its Spaces behavior but place our picture one
- * level ABOVE that wallpaper, still below Finder's icons and every app.
+ * system wallpaper. Keep its Spaces behavior but place our picture directly
+ * below Finder's icons and every app. On Tahoe, Dock owns a full-screen
+ * desktop surface at desktop + 1, so that former target could still hide us.
  * Query the OS levels rather than freezing their large negative values.
  */
 export default function macDesktopLevel(): number {
@@ -32,10 +33,11 @@ export default function macDesktopLevel(): number {
   const desktop = windowLevel(DESKTOP);
   const icons = windowLevel(DESKTOP_ICONS);
   const normal = windowLevel(NORMAL);
-  const target = desktop + 1;
+  const target = icons - 1;
   const relative = target - normal;
   if (
     ![desktop, icons, normal, relative].every(Number.isSafeInteger) ||
+    target <= desktop ||
     target >= icons ||
     target >= normal ||
     relative < -2_147_483_648 ||

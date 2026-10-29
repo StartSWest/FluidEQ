@@ -121,6 +121,8 @@ export interface ISceneRunnerOptions {
    * instead — which is what a scene nobody can see does on the graph — would
    * leave the desktop black under the window that covered it, and put the
    * picture back only after a whole build.
+   * The Mac desktop also keeps this picture across document occlusion;
+   * other platforms retain the usual hidden-scene disposal policy.
    */
   asleep?: boolean;
   /**

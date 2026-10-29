@@ -69,6 +69,14 @@ const account = {
     'हमने {email} पर छह अंकों का कोड भेजा है। उसे अपने नए पासवर्ड के साथ यहाँ लिखें।',
   'account.reset.submit': 'नया पासवर्ड सेट करें',
 
+  'account.macKeychainTitle': 'साइन इन करने के लिए कीचेन का ऐक्सेस दें',
+  'account.macKeychainHint':
+    'FluidEQ आपके Mac की कीचेन तक नहीं पहुँच सका। फिर कोशिश करने के लिए FluidEQ रीस्टार्ट करें और macOS के संदेश में अनुमति दें चुनें। आपका सेव किया गया डेटा एन्क्रिप्टेड रहता है।',
+  'account.macKeychainRestart': 'FluidEQ रीस्टार्ट करें',
+  'account.macKeychainRestarting': 'FluidEQ रीस्टार्ट हो रहा है…',
+  'account.macKeychainManual':
+    'FluidEQ को पूरी तरह बंद करें, फिर कीचेन का ऐक्सेस पाने के लिए इसे दोबारा खोलें।',
+
   'account.unavailable': 'इस सिस्टम पर साइन इन उपलब्ध नहीं है',
   'account.unavailableHint':
     'इस मशीन पर साइन इन को सुरक्षित रखने की कोई जगह नहीं है, इसलिए FluidEQ इसे सहेजेगा नहीं। बाकी सब सामान्य रूप से काम करता है।',

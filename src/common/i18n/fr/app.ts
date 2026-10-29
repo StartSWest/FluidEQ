@@ -276,7 +276,7 @@ const app: Partial<Dictionary> = {
   'notice.captureFailedBody':
     'Le vumètre et la courbe en direct du graphique sont coupés pour l’instant. Tout le reste fonctionne normalement.',
   'notice.captureNeedsMacPermission':
-    'Sur un Mac, le vumètre et la courbe en direct du graphique ont besoin que FluidEQ soit autorisé dans la liste du haut de Confidentialité et sécurité › Enregistrement de l’écran et de l’audio du système. La liste réservée au son suffit à votre EQ, mais pas à eux. Tout le reste fonctionne normalement.',
+    'Autorisez FluidEQ à enregistrer l’audio du système dans Confidentialité et sécurité › Enregistrement de l’écran et de l’audio du système. L’audio seul suffit au vumètre et à la courbe en direct ; l’enregistrement de l’écran est inutile.',
   'notice.tryAgain': 'Réessayer',
   'notice.restartConfirm':
     'Le son va s’interrompre quelques secondes et Windows demandera une autorisation d’administrateur. Continuer ?',

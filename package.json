@@ -231,7 +231,19 @@
         "NSAudioCaptureUsageDescription": "FluidEQ uses system audio to equalize your Mac’s sound and share it with linked computers when you enable Share Audio.",
         "NSMicrophoneUsageDescription": "FluidEQ uses the microphone in Karaoke to hear and score your singing."
       },
+      "extraFiles": [
+        {
+          "from": "native/.build/bin/mac-media/FluidEQMedia.framework",
+          "to": "Frameworks/FluidEQMedia.framework",
+          "filter": ["**/*"]
+        }
+      ],
       "extraResources": [
+        {
+          "from": "native/.build/bin/mac-media",
+          "to": "native/mac-media",
+          "filter": ["media-host.pl", "LICENSE.txt"]
+        },
         {
           "from": "assets/mac/locales",
           "to": ".",

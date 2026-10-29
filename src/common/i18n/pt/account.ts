@@ -69,6 +69,14 @@ const account = {
     'Enviamos um código de seis dígitos para {email}. Digite-o aqui com sua nova senha.',
   'account.reset.submit': 'Definir nova senha',
 
+  'account.macKeychainTitle': 'Permita o acesso às Chaves para entrar',
+  'account.macKeychainHint':
+    'O FluidEQ não conseguiu acessar as Chaves do Mac. Reinicie o FluidEQ para tentar novamente e escolha Permitir na solicitação do macOS. Seus dados salvos continuam criptografados.',
+  'account.macKeychainRestart': 'Reiniciar FluidEQ',
+  'account.macKeychainRestarting': 'Reiniciando o FluidEQ…',
+  'account.macKeychainManual':
+    'Encerre o FluidEQ completamente e abra-o novamente para tentar acessar as Chaves.',
+
   'account.unavailable': 'O login não está disponível neste sistema',
   'account.unavailableHint':
     'Não há um lugar seguro para armazenar uma sessão nesta máquina, por isso o FluidEQ não a armazena. Todo o resto funciona normalmente.',

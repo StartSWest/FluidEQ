@@ -275,7 +275,7 @@ const app: Partial<Dictionary> = {
   'notice.captureFailedBody':
     'Il misuratore di livello e la curva in tempo reale del grafico sono spenti per ora. Tutto il resto funziona normalmente.',
   'notice.captureNeedsMacPermission':
-    'Su un Mac, il misuratore di livello e la curva in tempo reale del grafico richiedono FluidEQ consentito nell’elenco in alto di Privacy e sicurezza › Registrazione schermo e audio di sistema. L’elenco solo per l’audio basta al tuo EQ, ma non a loro. Tutto il resto funziona normalmente.',
+    'Consenti a FluidEQ di registrare l’audio di sistema in Privacy e sicurezza › Registrazione schermo e audio di sistema. Per il misuratore di livello e la curva in tempo reale basta il solo audio; non serve registrare lo schermo.',
   'notice.tryAgain': 'Riprova',
   'notice.restartConfirm':
     'L’audio si interromperà per qualche secondo e Windows chiederà i permessi di amministratore. Continuare?',

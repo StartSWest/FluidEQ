@@ -37,6 +37,7 @@ import { forgetCreator } from './creatorStore';
 import SignInForms from './SignInForms';
 import SignOutConfirm from './SignOutConfirm';
 import AccountPitch from './AccountPitch';
+import MacKeychainNotice from './MacKeychainNotice';
 import initialsOf from './initials';
 // The panel sits on the About panel's backdrop, so it asks for the sheet that
 // defines it: a component that draws with a class it only gets because
@@ -479,14 +480,17 @@ export default function AccountDialog({
             </>
           )}
 
-          {status === 'unavailable' && (
-            <div className="account__notice">
-              <span className="account__notice-title">
-                {t('account.unavailable')}
-              </span>
-              <span>{t('account.unavailableHint')}</span>
-            </div>
-          )}
+          {status === 'unavailable' &&
+            (window.electron?.platform === 'darwin' ? (
+              <MacKeychainNotice />
+            ) : (
+              <div className="account__notice">
+                <span className="account__notice-title">
+                  {t('account.unavailable')}
+                </span>
+                <span>{t('account.unavailableHint')}</span>
+              </div>
+            ))}
 
           {!signedIn && status !== 'unavailable' && (
             <div className="account__form-column">

@@ -267,7 +267,7 @@ const app = {
   'notice.captureFailedBody':
     'The level meter and the live curve on the graph are off for now. Everything else works normally.',
   'notice.captureNeedsMacPermission':
-    'On a Mac, the level meter and the live curve on the graph need FluidEQ allowed in the upper list of Privacy & Security › Screen & System Audio Recording. The list for sound alone is enough for your EQ, but not for them. Everything else works normally.',
+    'Allow FluidEQ to record system audio in Privacy & Security › Screen & System Audio Recording. System audio only is enough for the level meter and live curve; screen recording is not needed.',
   'notice.tryAgain': 'Try again',
   'notice.restartConfirm':
     'Audio will stop for a few seconds and Windows will request administrator permission. Continue?',

@@ -167,6 +167,12 @@ published source. No part of it has been copied.
 
 ## Libraries FluidEQ is built with
 
+On macOS, the now-playing helper includes MediaRemote declarations from
+[mediaremote-adapter](https://github.com/ungive/mediaremote-adapter), by Jonas
+van den Berg and contributors, under BSD-3-Clause. The pinned source and
+licence are retained in `native/mac-media/vendor`; the complete licence ships
+beside the Mac helper as `native/mac-media/LICENSE.txt`.
+
 FluidEQ ships Electron and eighteen npm packages of its own choosing. Most are
 permissively licensed — MIT, except d3, which is ISC, and
 `@huggingface/transformers`, which is Apache-2.0 — and each of those licences

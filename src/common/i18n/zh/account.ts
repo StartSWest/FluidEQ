@@ -64,6 +64,14 @@ const account = {
     '我们已向 {email} 发送了一个六位数验证码。在此输入验证码和新密码。',
   'account.reset.submit': '设置新密码',
 
+  'account.macKeychainTitle': '允许访问钥匙串以登录',
+  'account.macKeychainHint':
+    'FluidEQ 无法访问 Mac 的钥匙串。请重新启动 FluidEQ，然后在 macOS 提示中选择“允许”。已保存的数据仍保持加密。',
+  'account.macKeychainRestart': '重新启动 FluidEQ',
+  'account.macKeychainRestarting': '正在重新启动 FluidEQ…',
+  'account.macKeychainManual':
+    '请完全退出 FluidEQ，然后重新打开，以重试访问钥匙串。',
+
   'account.unavailable': '此系统不支持登录',
   'account.unavailableHint':
     '这台电脑上没有安全的地方保存登录信息，因此 FluidEQ 不会保存。其他功能一切正常。',

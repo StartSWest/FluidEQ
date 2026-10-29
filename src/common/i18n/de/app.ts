@@ -272,7 +272,7 @@ const app: Partial<Dictionary> = {
   'notice.captureFailedBody':
     'Pegelanzeige und Live-Kurve im Diagramm sind vorerst aus. Alles andere funktioniert normal.',
   'notice.captureNeedsMacPermission':
-    'Auf einem Mac brauchen Pegelanzeige und Live-Kurve im Diagramm FluidEQ in der oberen Liste unter Datenschutz & Sicherheit › Bildschirm- & Systemaudioaufnahme. Die Liste nur für Ton genügt Ihrem EQ, ihnen aber nicht. Alles andere funktioniert normal.',
+    'Erlauben Sie FluidEQ unter Datenschutz & Sicherheit › Bildschirm- & Systemaudioaufnahme die Aufnahme von Systemaudio. Für Pegelanzeige und Live-Kurve genügt Systemaudio allein; eine Bildschirmaufnahme ist nicht nötig.',
   'notice.tryAgain': 'Erneut versuchen',
   'notice.restartConfirm':
     'Der Ton setzt für ein paar Sekunden aus und Windows fragt nach Administratorrechten. Fortfahren?',

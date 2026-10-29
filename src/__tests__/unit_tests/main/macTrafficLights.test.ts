@@ -19,7 +19,8 @@ const setup = () => {
   };
   let changed: () => void = () => undefined;
   const native = {
-    read: jest.fn(() => actual),
+    read: jest.fn(() => (actual ? { ...actual, aligned: true } : undefined)),
+    align: jest.fn(),
     stop: jest.fn(),
     canPlace: jest.fn(() => true),
     withoutAnimation: jest.fn((place: () => void) => place()),
@@ -60,7 +61,13 @@ it('repairs the native frame jump even when Electron and the page report unchang
   expect(window.setWindowButtonPosition).toHaveBeenCalledTimes(1);
   change({ x: 9, y: 9, height: 14, hidden: false });
   expect(window.setWindowButtonPosition).toHaveBeenCalledTimes(2);
-  expect(native.read()).toEqual({ x: 8, y: 21, height: 14, hidden: false });
+  expect(native.read()).toEqual({
+    x: 8,
+    y: 21,
+    height: 14,
+    hidden: false,
+    aligned: true,
+  });
 });
 
 it('does nothing for stable native frames and ignores its own synchronous notifications', () => {

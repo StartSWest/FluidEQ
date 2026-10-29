@@ -16,7 +16,7 @@ beforeEach(() => {
   }));
   jest.mocked(leaseLanAudioHelper).mockImplementation(async (listener) => {
     client = listener;
-    return { request, release, send: jest.fn() };
+    return { request, release, send: jest.fn(), version: 0 };
   });
 });
 

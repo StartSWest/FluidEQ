@@ -260,7 +260,7 @@ const app: Partial<Dictionary> = {
   'notice.captureFailedBody':
     '电平表和图表上的实时曲线暂时关闭。其他功能均正常工作。',
   'notice.captureNeedsMacPermission':
-    '在 Mac 上，电平表和图表上的实时曲线需要在“隐私与安全性” › “录屏与系统录音”的上方列表中允许 FluidEQ。仅系统录音的列表足以让 EQ 工作，但不够它们使用。其他功能均正常工作。',
+    '请在“隐私与安全性” › “录屏与系统录音”中允许 FluidEQ 录制系统音频。电平表和实时曲线只需要系统音频权限，无需录屏权限。',
   'notice.tryAgain': '重试',
   'notice.restartConfirm':
     '声音会中断几秒，Windows 会请求管理员权限。要继续吗？',

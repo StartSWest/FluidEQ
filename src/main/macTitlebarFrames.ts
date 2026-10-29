@@ -1,6 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 
-import type { BrowserWindow } from 'electron';
+import type { BrowserWindow, Point } from 'electron';
 
 type TId = bigint | null;
 interface IRect {
@@ -78,6 +78,12 @@ const makeRuntime = () => {
     rect,
     'void *',
   ]) as (object: TId, method: TId, value: IRect, view: TId) => IRect;
+  const point = koffi.struct({ x: 'double', y: 'double' });
+  const setOrigin = objc.func('objc_msgSend', 'void', [
+    'void *',
+    'void *',
+    point,
+  ]) as (object: TId, method: TId, value: Point) => void;
   const observe = objc.func('objc_msgSend', 'void', [
     'void *',
     'void *',
@@ -244,8 +250,70 @@ const makeRuntime = () => {
       changed();
     });
     watch();
+    const buttonFrames = () =>
+      [0, 1, 2].flatMap((index) => {
+        const view = sendIndex(
+          nativeWindow,
+          selector('standardWindowButton:'),
+          index,
+        );
+        if (!view) {
+          return [];
+        }
+        const bounds = convert(
+          view,
+          selector('convertRect:toView:'),
+          frame(view, selector('bounds')),
+          null,
+        );
+        return [
+          {
+            view,
+            bounds,
+            hidden: readBool(view, selector('isHiddenOrHasHiddenAncestor')),
+          },
+        ];
+      });
     return {
       canPlace: () => phase === 'windowed',
+      align: (position: Point) => {
+        if (phase !== 'windowed') {
+          return;
+        }
+        const buttons = buttonFrames();
+        const first = buttons[0];
+        if (!first) {
+          return;
+        }
+        const windowHeight = frame(nativeWindow, selector('frame')).height;
+        const centre = windowHeight - position.y - first.bounds.height / 2;
+        buttons.forEach(({ view, bounds, hidden }) => {
+          if (
+            hidden ||
+            Math.abs(bounds.y + bounds.height / 2 - centre) <= 0.5
+          ) {
+            return;
+          }
+          const parent = send(view, selector('superview'));
+          // Tahoe can reset the siblings independently. Electron's aggregate
+          // margin reports the close button correctly while the other two
+          // remain at the default inset. Align each real NSButton in its own
+          // parent's coordinates, without changing native actions or spacing.
+          const placed = convert(
+            parent,
+            selector('convertRect:fromView:'),
+            {
+              ...bounds,
+              y: centre - bounds.height / 2,
+            },
+            null,
+          );
+          setOrigin(view, selector('setFrameOrigin:'), {
+            x: placed.x,
+            y: placed.y,
+          });
+        });
+      },
       withoutAnimation: (place: () => void) => {
         const transaction = classOf('CATransaction');
         const animation = classOf('NSAnimationContext');
@@ -266,37 +334,31 @@ const makeRuntime = () => {
         }
       },
       read: () => {
-        const close = button();
-        if (!close) {
+        const buttons = buttonFrames();
+        const first = buttons[0];
+        if (!first) {
           return undefined;
         }
-        const boundsOf = (object: TId) =>
-          convert(
-            object,
-            selector('convertRect:toView:'),
-            frame(object, selector('bounds')),
-            null,
-          );
-        const bounds = boundsOf(close);
+        const { bounds } = first;
         // Electron mirrors the three controls on an RTL system. Its margin
         // describes their left edge, which need not be the close button.
-        const left = Math.min(
-          bounds.x,
-          ...[1, 2].map((index) => {
-            const other = sendIndex(
-              nativeWindow,
-              selector('standardWindowButton:'),
-              index,
-            );
-            return other ? boundsOf(other).x : bounds.x;
-          }),
-        );
+        const left = Math.min(...buttons.map((item) => item.bounds.x));
         const windowFrame = frame(nativeWindow, selector('frame'));
         return {
           x: left,
           y: windowFrame.height - bounds.y - bounds.height,
           height: bounds.height,
-          hidden: readBool(close, selector('isHiddenOrHasHiddenAncestor')),
+          hidden: buttons.every((item) => item.hidden),
+          aligned: buttons.every(
+            (item) =>
+              item.hidden ||
+              Math.abs(
+                item.bounds.y +
+                  item.bounds.height / 2 -
+                  bounds.y -
+                  bounds.height / 2,
+              ) <= 0.5,
+          ),
         };
       },
       stop: () => {

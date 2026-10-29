@@ -69,6 +69,14 @@ const account = {
     'Nous avons envoyé un code à six chiffres à {email}. Saisissez-le ici avec votre nouveau mot de passe.',
   'account.reset.submit': 'Définir le nouveau mot de passe',
 
+  'account.macKeychainTitle': 'Autoriser le trousseau pour se connecter',
+  'account.macKeychainHint':
+    'FluidEQ n’a pas pu accéder au trousseau de votre Mac. Redémarrez FluidEQ pour réessayer, puis choisissez Autoriser dans la demande de macOS. Vos données restent chiffrées.',
+  'account.macKeychainRestart': 'Redémarrer FluidEQ',
+  'account.macKeychainRestarting': 'Redémarrage de FluidEQ…',
+  'account.macKeychainManual':
+    'Quittez complètement FluidEQ, puis rouvrez-le pour réessayer l’accès au trousseau.',
+
   'account.unavailable': 'La connexion n’est pas disponible sur ce système',
   'account.unavailableHint':
     'Il n’existe aucun endroit sûr pour conserver une connexion sur cette machine, donc FluidEQ n’en enregistre pas. Tout le reste fonctionne normalement.',

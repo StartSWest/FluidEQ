@@ -69,6 +69,14 @@ const account = {
     'Мы отправили шестизначный код на {email}. Введите его здесь вместе с новым паролем.',
   'account.reset.submit': 'Задать новый пароль',
 
+  'account.macKeychainTitle': 'Разрешите доступ к Связке ключей для входа',
+  'account.macKeychainHint':
+    'FluidEQ не смог получить доступ к Связке ключей Mac. Перезапустите FluidEQ и выберите «Разрешить» в запросе macOS. Сохранённые данные остаются зашифрованными.',
+  'account.macKeychainRestart': 'Перезапустить FluidEQ',
+  'account.macKeychainRestarting': 'Перезапуск FluidEQ…',
+  'account.macKeychainManual':
+    'Полностью закройте FluidEQ, затем откройте его снова, чтобы повторить доступ к Связке ключей.',
+
   'account.unavailable': 'Вход недоступен в этой системе',
   'account.unavailableHint':
     'На этом компьютере нет безопасного места для хранения входа, поэтому FluidEQ не будет его сохранять. Всё остальное работает как обычно.',

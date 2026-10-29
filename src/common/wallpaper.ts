@@ -243,6 +243,8 @@ export interface IWallpaperAudio {
 }
 
 export interface IWallpaperSurfaceBridge {
+  /** Native platform, when provided, for the Mac desktop's occlusion policy. */
+  readonly platform?: string;
   bootstrap(): Promise<IWallpaperBootstrap | undefined>;
   drawn(renderGeneration: number): void;
   /**

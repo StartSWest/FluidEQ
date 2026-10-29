@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useRef } from 'react';
 import { isFluidEngineBuiltIn } from 'common/platformCapabilities';
-import { useMacScreenPermission } from '../audio/useMacAudioPermission';
+import { useMacAudioPermission } from '../audio/useMacAudioPermission';
 import CompactFrame from '../components/CompactFrame';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
@@ -20,7 +20,7 @@ interface ILiveCaptureFailedNoticeProps {
 
 /**
  * The live capture refused on a Mac because FluidEQ may not record the
- * screen: what is missing, by FluidEQ's own name, and the page that changes
+ * system audio: what is missing, by FluidEQ's own name, and the page that changes
  * it. "Try again" has nothing to offer here — macOS gives the same answer
  * until the setting changes — so the setting is the loud button.
  */
@@ -63,14 +63,10 @@ const MacCapturePermissionNotice = ({ onHide }: { onHide: () => void }) => {
 /**
  * The live capture's failure, with the reason a Mac can name.
  *
- * On a Mac the capture brings a window's picture with the sound, and macOS
- * refuses the picture to an app it has not allowed to record the screen —
- * the upper list under Screen & System Audio Recording; the list for sound
- * alone, which the engine needs, does not cover it. Refused that way, the
- * capture fails with nothing better than "Could not start video source", so
- * the permission is asked for here and, while it is missing, the card says
- * so instead of offering a retry that would be refused again. Coming back to
- * FluidEQ with it allowed starts the capture again by itself.
+ * A Mac captures only system audio, like its EQ engine. A refused audio tap
+ * can arrive as an ended track, so read the actual audio permission rather
+ * than infer it from the media request's error. The Screen Recording list
+ * is not relevant. Returning after allowing audio retries the capture.
  *
  * Everywhere else, and on a Mac whose permission is in place, it is the card
  * it always was.
@@ -80,28 +76,28 @@ const LiveCaptureFailedNotice = ({
   onRetry,
 }: ILiveCaptureFailedNoticeProps) => {
   const isBuiltIn = isFluidEngineBuiltIn(windowCapabilities());
-  const screen = useMacScreenPermission();
+  const audio = useMacAudioPermission();
   const wasRefused = useRef(false);
 
   useEffect(() => {
-    if (screen === undefined) {
+    if (audio === undefined) {
       return;
     }
-    if (screen !== 'granted') {
+    if (audio === 'denied') {
       wasRefused.current = true;
       return;
     }
-    if (wasRefused.current) {
+    if (audio === 'granted' && wasRefused.current) {
       wasRefused.current = false;
       onRetry();
     }
-  }, [screen, onRetry]);
+  }, [audio, onRetry]);
 
-  if (isBuiltIn && screen === undefined) {
+  if (isBuiltIn && audio === undefined) {
     // Still asking: one card, not the wrong one and then the right one.
     return null;
   }
-  if (isBuiltIn && screen !== 'granted') {
+  if (isBuiltIn && audio === 'denied') {
     return <MacCapturePermissionNotice onHide={onHide} />;
   }
   return <CaptureFailedNotice onHide={onHide} onRetry={onRetry} />;

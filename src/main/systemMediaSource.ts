@@ -10,9 +10,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Every operating system answers this differently and none of the answers
  * resemble each other: Windows publishes every player's session through WinRT
- * (`systemMedia.ts`, reached through PowerShell), macOS closed its system-wide
- * equivalent to third-party apps in 15.4 and leaves the broadcasts individual
- * players make (`systemMediaMac.ts`). What they share is the shape the bar is
+ * (`systemMedia.ts`), macOS reads MediaRemote's notifications through its
+ * system host (`systemMediaMac.ts`), falling back to individual players'
+ * broadcasts when unavailable. What they share is the shape the bar is
  * drawn from — `ISystemMediaSnapshot` — and the six things the window can ask
  * for, so that is the whole of this interface.
  *
@@ -71,7 +71,7 @@ const noSource: ISystemMediaSource = {
   cover: () => undefined,
 };
 
-/** macOS: what Music and Spotify broadcast about themselves. */
+/** macOS: system now-playing notifications, with player broadcasts as fallback. */
 const macSource: ISystemMediaSource = macSystemMediaSource;
 
 export const systemMediaSourceFor = (

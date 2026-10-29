@@ -18,4 +18,6 @@ export const macPermissionBridge = {
     ipcRenderer.invoke('mac-screen-permission'),
   openMacAudioPrivacy: (): Promise<void> =>
     ipcRenderer.invoke('open-mac-audio-privacy'),
+  restartForMacKeychain: (): Promise<boolean> =>
+    ipcRenderer.invoke('mac-restart-for-keychain'),
 };

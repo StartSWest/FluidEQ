@@ -71,6 +71,15 @@ const account = {
     'Wir haben einen sechsstelligen Code an {email} gesendet. Geben Sie ihn hier mit Ihrem neuen Passwort ein.',
   'account.reset.submit': 'Neues Passwort festlegen',
 
+  'account.macKeychainTitle':
+    'Zum Anmelden Zugriff auf den Schlüsselbund erlauben',
+  'account.macKeychainHint':
+    'FluidEQ konnte nicht auf den Schlüsselbund Ihres Mac zugreifen. Starten Sie FluidEQ neu und wählen Sie in der macOS-Abfrage „Erlauben“. Ihre gespeicherten Daten bleiben verschlüsselt.',
+  'account.macKeychainRestart': 'FluidEQ neu starten',
+  'account.macKeychainRestarting': 'FluidEQ wird neu gestartet…',
+  'account.macKeychainManual':
+    'Beenden Sie FluidEQ vollständig und öffnen Sie es erneut, um den Schlüsselbundzugriff zu wiederholen.',
+
   'account.unavailable': 'Die Anmeldung ist auf diesem System nicht verfügbar',
   'account.unavailableHint':
     'Auf diesem Rechner gibt es keinen sicheren Ort für eine Anmeldung, deshalb speichert FluidEQ keine. Alles andere funktioniert wie gewohnt.',

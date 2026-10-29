@@ -545,5 +545,15 @@ if (process.platform === 'darwin') {
   if (!existsSync(macVolumePath)) {
     fail(`the macOS system volume helper was not produced at ${macVolumePath}`);
   }
+  const macMediaRoot = path.join(BUILD_DIR, 'bin', 'mac-media');
+  [
+    'media-host.pl',
+    'FluidEQMedia.framework/FluidEQMedia',
+    'LICENSE.txt',
+  ].forEach((file) => {
+    if (!existsSync(path.join(macMediaRoot, file))) {
+      fail(`the macOS now-playing adapter is missing ${file}`);
+    }
+  });
 }
 console.log(`native dsp build: ${hostPath}`);

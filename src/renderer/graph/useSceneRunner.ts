@@ -163,6 +163,11 @@ export default function useSceneRunner({
   const visibleRef = useRef(true);
   const asleepRef = useRef(asleep === true);
   asleepRef.current = asleep === true;
+  // Mac desktop occlusion arrives before main's pause IPC. Retain its picture
+  // even in that gap; Windows keeps its existing hidden-scene disposal.
+  const retainPictureRef = useRef(false);
+  retainPictureRef.current =
+    asleep !== undefined && window.wallpaper?.platform === 'darwin';
   const heldRef = useRef(held === true);
   heldRef.current = held === true;
   const clipRef = useRef<readonly [number, number, number, number]>([
@@ -671,7 +676,12 @@ export default function useSceneRunner({
      */
     const stopObserving = observeShown(host, (shown) => {
       shownRef.current = shown;
-      if (!shown && rendererRef.current) {
+      if (!shown && rendererRef.current && retainPictureRef.current) {
+        // Keep the last picture while the desktop is covered or in another
+        // Space. The frame loop and worker both stop; a battery pause can
+        // then reveal this picture without needing a new animated frame.
+        rendererRef.current.idle();
+      } else if (!shown && rendererRef.current) {
         shelvedRef.current = wantedRef.current ?? packRef.current;
         generationRef.current += 1;
         buildingRef.current = false;

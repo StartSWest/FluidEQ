@@ -7,6 +7,7 @@ import {
 
 // No generic send/invoke, account, filesystem, playback, or scene-export API.
 const bridge: IWallpaperSurfaceBridge = {
+  platform: process.platform,
   bootstrap: () => ipcRenderer.invoke(WALLPAPER.bootstrap),
   drawn: (generation) => ipcRenderer.send(WALLPAPER.drawn, generation),
   failed: (reason) => ipcRenderer.send(WALLPAPER.failed, reason),

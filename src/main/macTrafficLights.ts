@@ -29,9 +29,10 @@ export default function placeMacTrafficLights(
       const positionToApply = target;
       applying = true;
       try {
-        frames.withoutAnimation(() =>
-          window.setWindowButtonPosition(positionToApply),
-        );
+        frames.withoutAnimation(() => {
+          window.setWindowButtonPosition(positionToApply);
+          frames.align(positionToApply);
+        });
       } finally {
         applying = false;
       }
@@ -52,7 +53,8 @@ export default function placeMacTrafficLights(
         actual &&
         !actual.hidden &&
         (Math.abs(actual.x - target.x) > 0.5 ||
-          Math.abs(actual.y - target.y) > 0.5)
+          Math.abs(actual.y - target.y) > 0.5 ||
+          !actual.aligned)
       ) {
         apply();
         log.debug('Mac window controls after native titlebar layout', {
@@ -67,6 +69,7 @@ export default function placeMacTrafficLights(
         const actual = frames.read();
         if (
           actual &&
+          actual.aligned &&
           Math.abs(actual.x - next.x) <= 0.5 &&
           Math.abs(actual.y - next.y) <= 0.5
         ) {

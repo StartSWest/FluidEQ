@@ -66,6 +66,14 @@ const account = {
   'account.reset.sent':
     '{email}로 6자리 코드를 보냈습니다. 여기에 새 비밀번호를 입력하세요.',
   'account.reset.submit': '새 비밀번호 설정',
+
+  'account.macKeychainTitle': '로그인하려면 키체인 접근을 허용하세요',
+  'account.macKeychainHint':
+    'FluidEQ가 Mac의 키체인에 접근하지 못했습니다. FluidEQ를 다시 시작한 다음 macOS 알림에서 허용을 선택하세요. 저장된 데이터는 계속 암호화되어 있습니다.',
+  'account.macKeychainRestart': 'FluidEQ 다시 시작',
+  'account.macKeychainRestarting': 'FluidEQ 다시 시작 중…',
+  'account.macKeychainManual':
+    'FluidEQ를 완전히 종료한 다음 다시 열어 키체인 접근을 다시 시도하세요.',
   'account.unavailable': '이 시스템에서는 로그인할 수 없습니다',
   'account.unavailableHint':
     '이 컴퓨터에는 로그인을 보관할 안전한 장소가 없으므로 FluidEQ는 로그인을 저장하지 않습니다. 다른 모든 것은 정상적으로 작동합니다.',
