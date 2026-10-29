@@ -44,6 +44,7 @@ const setShown = (shown: boolean) => {
 
 /* eslint-disable import/first -- the watcher mock above has to be in place first. */
 import KaraokeLyrics from '../../renderer/karaoke/KaraokeLyrics';
+import { SONG_LYRIC_ENTRANCE_TIME_MS } from '../../renderer/karaoke/karaokeLyricText';
 import KaraokePitchLane from '../../renderer/karaoke/KaraokePitchLane';
 import { I18nProvider } from '../../renderer/utils/I18nContext';
 /* eslint-enable import/first */
@@ -225,8 +226,21 @@ describe("the karaoke stage's frame loops", () => {
       meta: { sourceFormat: 'lrc', gapMs: 0 },
     };
 
-    /** The height `Line 5` is written at, in each frame that writes it. */
+    /**
+     * The height `Line 5` is written at, in each frame that writes it. The
+     * stage draws a phrase word by word, so it can wrap one onto rows
+     * (`karaokeLyricLayout.ts`): the line is found by the one word only it
+     * has.
+     */
     const lineFiveYs: number[] = [];
+    /** Every line written in the frame measured, by its number. */
+    const drawnLines = new Set<string>();
+    /**
+     * Frames on the page's own clock, past the song's fade-in: the stage
+     * writes no word it would draw fully transparent, and a frame stamped
+     * before the song began is one where every word still is.
+     */
+    let frameZero = 0;
 
     beforeEach(() => {
       lineFiveYs.length = 0;
@@ -234,7 +248,10 @@ describe("the karaoke stage's frame loops", () => {
         {
           measureText: (text: string) => ({ width: text.length * 10 }),
           fillText: (text: string, _x: number, y: number) => {
-            if (text === 'Line 5') {
+            if (/^[1-6]$/u.test(text)) {
+              drawnLines.add(text);
+            }
+            if (text === '5') {
               lineFiveYs.push(y);
             }
           },
@@ -281,7 +298,8 @@ describe("the karaoke stage's frame loops", () => {
       const { rerender } = render(
         <KaraokeLyrics song={song} playheadMs={1_200} onSeek={jest.fn()} />,
       );
-      runFrame(0);
+      frameZero = performance.now() + SONG_LYRIC_ENTRANCE_TIME_MS;
+      runFrame(frameZero);
       Object.defineProperty(document, 'hidden', {
         configurable: true,
         value: hiddenByWindow,
@@ -296,7 +314,8 @@ describe("the karaoke stage's frame loops", () => {
       });
       setShown(true);
       lineFiveYs.length = 0;
-      runFrame(16);
+      drawnLines.clear();
+      runFrame(frameZero + 16);
       return lineFiveYs[0];
     };
 
@@ -306,7 +325,11 @@ describe("the karaoke stage's frame loops", () => {
     });
 
     it('POSITIVE CONTROL: a minimised window still resumes mid-glide', () => {
-      expect(returnToLineFive(true)).toBeGreaterThan(200);
+      const lineFive = returnToLineFive(true);
+      // The frame was drawn, and line 5 has not reached the singing height:
+      // it is still below it, or too far below to be written yet.
+      expect(drawnLines.size).toBeGreaterThan(0);
+      expect(lineFive ?? Number.POSITIVE_INFINITY).toBeGreaterThan(200);
     });
 
     it('stop drawing while the Maker covers them, and come back where they belong', () => {
@@ -314,7 +337,8 @@ describe("the karaoke stage's frame loops", () => {
       const { rerender } = render(
         <KaraokeLyrics song={song} playheadMs={1_200} onSeek={jest.fn()} />,
       );
-      runFrame(0);
+      frameZero = performance.now() + SONG_LYRIC_ENTRANCE_TIME_MS;
+      runFrame(frameZero);
       // The control: an uncovered stage draws, frame after frame.
       expect(frames.size).toBe(1);
 
@@ -333,7 +357,7 @@ describe("the karaoke stage's frame loops", () => {
       );
       expect(frames.size).toBe(1);
       lineFiveYs.length = 0;
-      runFrame(16);
+      runFrame(frameZero + 16);
       // Line 5 at the singing height at once, not gliding up from line 2,
       // which was up when the Maker opened.
       expect(lineFiveYs[0]).toBeCloseTo(200, 6);
