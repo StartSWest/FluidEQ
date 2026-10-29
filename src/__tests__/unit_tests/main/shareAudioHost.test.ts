@@ -117,3 +117,29 @@ it('ends ownership after a control cannot be sent and rejects the other pending 
   await expect(host.request('lan.retry')).rejects.toThrow('could not be sent');
   expect(await pending).toBe('Share Audio worker stopped.');
 });
+
+it("says which step failed and the system's code for it", async () => {
+  const host = createAudioWorkerHost('fixture');
+  const worker = mockWorkers[0];
+  const started = host.request('lan.retry');
+  worker.emit('message', {
+    type: 'answer',
+    id: 1,
+    error: 'Share Audio operation failed.',
+    reason: 'EADDRINUSE listen',
+  });
+  await expect(started).rejects.toThrow(
+    'Share Audio operation failed. lan.retry (EADDRINUSE listen)',
+  );
+  // The control: with no code, the step alone.
+  const retried = host.request('lan.retry');
+  worker.emit('message', {
+    type: 'answer',
+    id: 2,
+    error: 'Share Audio operation failed.',
+  });
+  await expect(retried).rejects.toThrow(
+    /^Share Audio operation failed\. lan\.retry$/,
+  );
+  host.stop();
+});

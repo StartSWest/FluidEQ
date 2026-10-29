@@ -78,5 +78,12 @@ export type TAudioEvent =
   | { type: 'helper-reply'; id: number; reply: IPlaybackReply }
   | { type: 'helper-stopped'; id: number };
 export type TAudioResponse =
-  | { type: 'answer'; id: number; value?: unknown; error?: string }
+  | {
+      type: 'answer';
+      id: number;
+      value?: unknown;
+      error?: string;
+      /** The system's own code for a failure (`failureReason`), never its text. */
+      reason?: string;
+    }
   | { type: 'event'; event: TAudioEvent; credit?: string };

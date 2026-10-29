@@ -31,7 +31,11 @@ export const createAudioWorkerHost = (
   const worker = spawn(entry, resourcesPath);
   const pending = new Map<
     number,
-    { resolve(value: unknown): void; reject(error: Error): void }
+    {
+      method: TAudioMethod;
+      resolve(value: unknown): void;
+      reject(error: Error): void;
+    }
   >();
   const listeners = new Set<(event: TAudioEvent) => void>();
   const failures = new Set<() => void>();
@@ -72,7 +76,17 @@ export const createAudioWorkerHost = (
         worker.unref();
       }
       if (message.error) {
-        request?.reject(new Error(message.error));
+        // Which step failed and the system's code for it, so a log can say
+        // "lan.start (EADDRINUSE listen)" where it said "operation failed".
+        const detail = [
+          request?.method,
+          message.reason && `(${message.reason})`,
+        ]
+          .filter(Boolean)
+          .join(' ');
+        request?.reject(
+          new Error(detail ? `${message.error} ${detail}` : message.error),
+        );
       } else {
         request?.resolve(message.value);
       }
@@ -115,6 +129,7 @@ export const createAudioWorkerHost = (
       worker.ref();
       return new Promise<IAudioMethods[K]['result']>((resolve, reject) => {
         pending.set(id, {
+          method,
           resolve: (value) => resolve(value as IAudioMethods[K]['result']),
           reject,
         });

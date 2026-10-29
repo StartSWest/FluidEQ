@@ -13,6 +13,27 @@ import { createAudioTelemetry } from './telemetry';
 import { createAudioLeasePool } from './leasePool';
 import { createRemoteAudioPreview } from '../../common/remoteAudioPreview';
 
+const SYSTEM_WORD = /^[A-Za-z][A-Za-z0-9_]{0,39}$/;
+
+/**
+ * What a failure may say on its way out of the Share Audio service: the
+ * system's code for it and the call that raised it ("EADDRINUSE listen"),
+ * never its message, which pairing and auth parsing can fill with secrets.
+ * With nothing at all, a local link that would not start reached the log as
+ * "operation failed" twice and no more (Ivan's log, 2026-10-28).
+ */
+export const failureReason = (error: unknown): string | undefined => {
+  if (typeof error !== 'object' || error === null) {
+    return undefined;
+  }
+  const { code, syscall } = error as { code?: unknown; syscall?: unknown };
+  const words = [code, syscall].filter(
+    (word): word is string =>
+      typeof word === 'string' && SYSTEM_WORD.test(word),
+  );
+  return words.length > 0 ? words.join(' ') : undefined;
+};
+
 export interface IAudioRuntimeDeps {
   post(message: TAudioResponse): void;
   createLan: typeof import('../remoteAudioLan').default;
@@ -429,12 +450,14 @@ export const createAudioRuntime = ({
     } else {
       execute(message).then(
         (value) => post({ type: 'answer', id: message.id, value }),
-        // Never forward arbitrary exceptions: pair/auth parsing can contain secrets.
-        () =>
+        // Never forward arbitrary exceptions: pair/auth parsing can contain
+        // secrets. The system's code for the failure is not one.
+        (error: unknown) =>
           post({
             type: 'answer',
             id: message.id,
             error: 'Share Audio operation failed.',
+            reason: failureReason(error),
           }),
       );
     }
