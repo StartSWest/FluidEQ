@@ -5,9 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import KaraokeGraphBackground from '../../../renderer/karaoke/KaraokeGraphBackground';
-import KaraokeBackdrop from '../../../renderer/karaoke/KaraokeBackdrop';
+import KaraokeBackdrop, {
+  karaokeBackdropKind,
+} from '../../../renderer/karaoke/KaraokeBackdrop';
 import { createKaraokeLiveValue } from '../../../renderer/karaoke/karaokeLiveValue';
 import {
   setGraphContents,
@@ -20,8 +22,17 @@ import {
   writeKaraokeBackground,
 } from '../../../renderer/karaoke/karaokeWorkspacePrefs';
 
+// The music the stage's lights follow (`KaraokeLights`), set by a test.
+const mockMusic: { reading?: Record<string, number> } = {};
 jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
   useLiveAudioCapture: jest.fn(),
+  useLiveAudioControl: () => ({
+    isPaused: false,
+    readFrame: () =>
+      mockMusic.reading
+        ? { sound: { music: () => mockMusic.reading } }
+        : undefined,
+  }),
 }));
 jest.mock('../../../renderer/player/useGraphScenePack', () => ({
   __esModule: true,
@@ -126,6 +137,85 @@ it('unmounts the ambient lights when a visualizer is selected, and restores them
   );
   expect(container.querySelector('.karaoke-ambient')).toBeInTheDocument();
   expect(screen.queryByTestId('background-trace')).toBeNull();
+});
+
+it('draws no lights of its own while the window’s visualizer is behind the page', () => {
+  const playhead = createKaraokeLiveValue(0);
+  const { container, rerender } = render(
+    <KaraokeBackdrop
+      background="none"
+      playhead={playhead}
+      isPlaying={false}
+      isGraphOverlay
+    />,
+  );
+  expect(container.querySelector('.karaoke-stage-media')).toBeNull();
+  // The control: the same page without the visualizer has its lights.
+  rerender(
+    <KaraokeBackdrop
+      background="none"
+      playhead={playhead}
+      isPlaying={false}
+      isGraphOverlay={false}
+    />,
+  );
+  expect(container.querySelector('.karaoke-ambient')).toBeInTheDocument();
+  expect(karaokeBackdropKind('none', undefined, true)).toBe('none');
+  expect(karaokeBackdropKind('graph', undefined, true)).toBe('graph');
+});
+
+it('lights the stage with the music while the song plays, and lets it go when it stops', () => {
+  // Frames by hand, and a cancelled one never runs: the loop that stops
+  // when the song does must not keep going behind the new one.
+  const frames = new Map<number, FrameRequestCallback>();
+  let nextFrame = 0;
+  jest.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+    nextFrame += 1;
+    frames.set(nextFrame, callback);
+    return nextFrame;
+  });
+  jest
+    .spyOn(window, 'cancelAnimationFrame')
+    .mockImplementation((id) => frames.delete(id));
+  const runFrames = (count: number, from: number) => {
+    for (let i = 0; i < count; i += 1) {
+      const due = [...frames.values()];
+      frames.clear();
+      act(() => due.forEach((callback) => callback(from + i * 16)));
+    }
+  };
+  const lightOf = (layer: Element | null, key: string) =>
+    Number(
+      (layer as HTMLElement).style.getPropertyValue(`--karaoke-light-${key}`),
+    );
+  mockMusic.reading = { level: 0.8, bass: 0.9, treble: 0.6, beat: 1 };
+  const playhead = createKaraokeLiveValue(0);
+  const { container, rerender } = render(
+    <KaraokeBackdrop
+      background="none"
+      playhead={playhead}
+      isPlaying
+      isGraphOverlay={false}
+    />,
+  );
+  runFrames(30, 0);
+  const layer = container.querySelector('.karaoke-ambient');
+  expect(lightOf(layer, 'level')).toBeGreaterThan(0.7);
+  expect(lightOf(layer, 'bass')).toBeGreaterThan(0.8);
+  expect(lightOf(layer, 'treble')).toBeGreaterThan(0.5);
+  rerender(
+    <KaraokeBackdrop
+      background="none"
+      playhead={playhead}
+      isPlaying={false}
+      isGraphOverlay={false}
+    />,
+  );
+  runFrames(200, 1000);
+  expect(lightOf(layer, 'level')).toBeLessThan(0.01);
+  // Back at rest, the loop has stopped asking for frames.
+  expect(frames.size).toBe(0);
+  mockMusic.reading = undefined;
 });
 
 it('applies the graph blur to scenery only while it is behind an overlay', () => {

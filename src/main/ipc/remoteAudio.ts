@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import { app, BrowserWindow, ipcMain, powerMonitor } from 'electron';
+import log from 'electron-log';
 import {
   isLanRemoteAudioSignal,
   type ILanHostDetails,
@@ -379,7 +380,11 @@ export const registerRemoteAudioIpc = ({
         return session.details;
       })();
       started = starting;
-      starting.catch(() => {
+      starting.catch((error: unknown) => {
+        // The window can only say "could not open that local connection";
+        // what actually failed (a port, the network, the Share Audio
+        // service) is written here, where a bug report collects it.
+        log.error('Share Audio: the local link could not start', error);
         if (started === starting) {
           started = undefined;
         }

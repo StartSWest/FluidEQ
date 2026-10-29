@@ -20,8 +20,7 @@ the Studio.
 - **한국어 and 繁體中文.** FluidEQ now has twelve languages. Traditional
   Chinese is picked for Taiwan, Hong Kong and Macau, Simplified for
   mainland China and Singapore, and a language you chose yourself is
-  kept. The installer speaks both too. What's New's films are not voiced in
-  them yet: they play in English with captions in your language.
+  kept. The installer speaks both too.
 
 ### Announcements
 
@@ -55,7 +54,21 @@ the Studio.
   timing, and a soft veil under the words keeps them readable over a bright
   scene.
 - **Exclusive cover and graph backgrounds** for the Karaoke stage, kept
-  apart from the graph's controls.
+  apart from the graph's controls. Either one now reaches the edges of the
+  page, with no frame of empty space around it.
+- **Stage lights that follow the music.** With no cover and no scene behind
+  the words, two washes and two beams light the stage: the washes swell
+  with the bass, the beams open with the level and the treble, and every
+  beat flashes them.
+
+### Starting with Windows
+
+- **FluidEQ starts in the tray.** With Start with Windows on, it no longer
+  opens its window at every sign-in: it starts in the notification area,
+  shaping your sound from the first second, and its tray icon opens the
+  window when you want it. Opening FluidEQ yourself still opens the window.
+  A startup entry from an earlier version moves over by itself, and stays
+  off if you switched it off in Windows' Startup apps.
 
 ### Share Audio and Forum
 
@@ -66,6 +79,10 @@ the Studio.
 
 ### What's New
 
+- **A guided tour of the whole app.** What's New opens on one video that
+  goes over every part of FluidEQ, with a voice saying how to use each one.
+  It is voiced in English for now, with captions in all twelve languages,
+  and it takes the place of the single-feature videos.
 - **A slide for Karaoke backgrounds**, with the real control. The tour
   reopens only for a new feature release, never for a fix release of the
   same one.

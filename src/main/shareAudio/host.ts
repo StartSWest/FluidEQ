@@ -31,7 +31,11 @@ export const createAudioWorkerHost = (
   const worker = spawn(entry, resourcesPath);
   const pending = new Map<
     number,
-    { resolve(value: unknown): void; reject(error: Error): void }
+    {
+      method: TAudioMethod;
+      resolve(value: unknown): void;
+      reject(error: Error): void;
+    }
   >();
   const listeners = new Set<(event: TAudioEvent) => void>();
   const failures = new Set<() => void>();
@@ -72,7 +76,21 @@ export const createAudioWorkerHost = (
         worker.unref();
       }
       if (message.error) {
-        request?.reject(new Error(message.error));
+        // The failure as main knew it before the link moved out of it: the
+        // system's code on the error, which the port fallback reads, and the
+        // step and code in its text, where the log said "operation failed".
+        const { code, syscall } = message;
+        const system = [code, syscall].filter(Boolean).join(' ');
+        const detail = [request?.method, system && `(${system})`]
+          .filter(Boolean)
+          .join(' ');
+        request?.reject(
+          Object.assign(
+            new Error(detail ? `${message.error} ${detail}` : message.error),
+            code ? { code } : {},
+            syscall ? { syscall } : {},
+          ),
+        );
       } else {
         request?.resolve(message.value);
       }
@@ -115,6 +133,7 @@ export const createAudioWorkerHost = (
       worker.ref();
       return new Promise<IAudioMethods[K]['result']>((resolve, reject) => {
         pending.set(id, {
+          method,
           resolve: (value) => resolve(value as IAudioMethods[K]['result']),
           reject,
         });

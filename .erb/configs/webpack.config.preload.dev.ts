@@ -22,21 +22,12 @@ const configuration: webpack.Configuration = {
   // Each surface has its own authority: only the app receives the full bridge.
   // Video and wallpaper preloads expose only what their surfaces need.
   entry: {
-    'share-audio-worker': path.join(webpackPaths.srcMainPath, 'shareAudio/worker.ts'),
-    'inference-worker': path.join(
-      webpackPaths.srcMainPath,
-      'inferenceWorker.ts',
-    ),
     preload: path.join(webpackPaths.srcMainPath, 'preload.ts'),
     'wallpaper-preload': path.join(
       webpackPaths.srcMainPath,
       'wallpaperPreload.ts',
     ),
     'video-preload': path.join(webpackPaths.srcMainPath, 'videoPreload.ts'),
-    'library-scan-worker': path.join(
-      webpackPaths.srcMainPath,
-      'library/scanWorker.ts',
-    ),
   },
 
   output: {
@@ -93,4 +84,32 @@ const configuration: webpack.Configuration = {
   watch: true,
 };
 
-export default merge(baseConfig, configuration);
+/**
+ * The programs main starts as utility processes and workers run in Node, and
+ * are built for Node here as the production build builds them
+ * (`webpack.config.main.prod.ts`, target electron-main). Built with the
+ * preloads, they took the browser builds packages offer: `ws` became its
+ * browser stand-in, which has no server, so in development Share Audio's
+ * local link failed to start every time with no system code (Ivan's log,
+ * 2026-10-29), while the packaged app worked.
+ */
+const workers: webpack.Configuration = {
+  ...configuration,
+  target: 'electron-main',
+  entry: {
+    'share-audio-worker': path.join(
+      webpackPaths.srcMainPath,
+      'shareAudio/worker.ts',
+    ),
+    'inference-worker': path.join(
+      webpackPaths.srcMainPath,
+      'inferenceWorker.ts',
+    ),
+    'library-scan-worker': path.join(
+      webpackPaths.srcMainPath,
+      'library/scanWorker.ts',
+    ),
+  },
+};
+
+export default [merge(baseConfig, configuration), merge(baseConfig, workers)];

@@ -15,9 +15,27 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// Two prepainted washes and two broad beams. Only transforms move: no canvas,
-// frame callbacks, animated blur or full-stage gradient repaints.
+// Two prepainted washes and two broad beams, the stage's lights when no cover
+// and no scene stands behind the words (`KaraokeLights`). They sway on their
+// own, and the music reaches them as four properties the component sets once
+// a frame, 0 to 1: the washes swell with the bass, the warm beam opens and
+// brightens with the level, the cool one with the treble, and every beat
+// flashes all four. Only opacity, scale and the sway's transform move: no
+// canvas, animated blur or gradient repaints.
 .karaoke-ambient {
+  --karaoke-light-level: 0;
+  --karaoke-light-bass: 0;
+  --karaoke-light-treble: 0;
+  --karaoke-light-beat: 0;
+
+  // The lights fade out before the stage's edges, so they light the stage
+  // without drawing its box: lit to the edge, the stage's corners showed as
+  // a second card inside the page's.
+  mask-image:
+    linear-gradient(to bottom, transparent, #000 14%, #000 70%, transparent),
+    linear-gradient(to right, transparent, #000 14%, #000 86%, transparent);
+  mask-composite: intersect;
+
   &::before,
   &::after {
     position: absolute;
@@ -25,17 +43,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
     content: '';
     background: radial-gradient(
       ellipse at 24% 64%,
-      color-mix(in srgb, #{$karaoke-warm} 20%, transparent),
+      color-mix(in srgb, #{$karaoke-warm} 24%, transparent),
       transparent 54%
     );
+    opacity: calc(
+      0.62 + var(--karaoke-light-bass) * 0.38 + var(--karaoke-light-beat) * 0.2
+    );
+    scale: calc(1 + var(--karaoke-light-bass) * 0.1);
     animation: karaoke-glow-drift 24s ease-in-out infinite alternate;
   }
 
   &::after {
     background: radial-gradient(
       ellipse at 76% 34%,
-      color-mix(in srgb, #{$karaoke-cool} 23%, transparent),
+      color-mix(in srgb, #{$karaoke-cool} 26%, transparent),
       transparent 54%
+    );
+    opacity: calc(
+      0.62 + var(--karaoke-light-level) * 0.38 + var(--karaoke-light-beat) * 0.2
     );
     animation-direction: alternate-reverse;
     animation-duration: 31s;
@@ -51,10 +76,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
   background: conic-gradient(
     from 156deg at 50% 0%,
     transparent,
-    color-mix(in srgb, #{$karaoke-warm} 9%, transparent) 12deg,
-    color-mix(in srgb, #{$karaoke-warm} 14%, transparent) 24deg,
+    color-mix(in srgb, #{$karaoke-warm} 12%, transparent) 12deg,
+    color-mix(in srgb, #{$karaoke-warm} 20%, transparent) 24deg,
     transparent 48deg
   );
+  opacity: calc(
+    0.5 + var(--karaoke-light-level) * 0.5 + var(--karaoke-light-beat) * 0.3
+  );
+  scale: calc(1 + var(--karaoke-light-beat) * 0.05)
+    calc(1 + var(--karaoke-light-level) * 0.14);
   transform-origin: 50% 0;
   animation: karaoke-spotlight-sway 19s ease-in-out infinite alternate;
 
@@ -63,9 +93,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
     background: conic-gradient(
       from 156deg at 50% 0%,
       transparent,
-      color-mix(in srgb, #{$karaoke-cool} 10%, transparent) 12deg,
-      color-mix(in srgb, #{$karaoke-cool} 15%, transparent) 24deg,
+      color-mix(in srgb, #{$karaoke-cool} 13%, transparent) 12deg,
+      color-mix(in srgb, #{$karaoke-cool} 21%, transparent) 24deg,
       transparent 48deg
+    );
+    opacity: calc(
+      0.5 + var(--karaoke-light-treble) * 0.5 + var(--karaoke-light-beat) * 0.3
     );
     animation-duration: 27s;
     animation-direction: alternate-reverse;
@@ -95,5 +128,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   .karaoke-ambient::after,
   .karaoke-ambient__light {
     animation: none;
+    // Still lights: a beam pulsing on every beat is motion too.
+    opacity: 0.8;
+    scale: none;
   }
 }

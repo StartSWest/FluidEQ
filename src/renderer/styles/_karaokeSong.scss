@@ -235,9 +235,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: hidden;
   overscroll-behavior: contain;
 
-  // Open stage's local protection sits under the words alone. Its static
-  // gradient preserves the scene and graph's own opacity/blur settings.
-  &::before {
+  // Open stage's local protection sits under the words alone, and only over
+  // a cover, the one backdrop that can be a bright photograph. Over a scene,
+  // the window's visualizer or the stage's own lights it read as a fixed
+  // spotlight in the middle of the stage (Ivan, 2026-10-29), and the words'
+  // own dark key already holds them there.
+  .karaoke-workspace__stage.is-backdrop-cover &::before {
     position: absolute;
     z-index: -1;
     inset: 0;

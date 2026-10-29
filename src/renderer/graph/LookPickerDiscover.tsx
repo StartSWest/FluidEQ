@@ -3,12 +3,10 @@
 import neonHorizon from '../../../assets/plus/neon-horizon.jpg';
 import lanternLake from '../../../assets/plus/lantern-lake.jpg';
 import prismBloom from '../../../assets/plus/prism-bloom.jpg';
-import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
 import Glyph from '../community/Glyph';
-import { openGalleryPage, openPlusPlace } from '../plus/plusNavigation';
-import { requestPlusTab } from '../plus/plusTabRequest';
 import { useTranslation } from '../utils/I18nContext';
+import openLookPickerPlace from './lookPickerPlaces';
 import '../styles/PlusWelcome.scss';
 
 const SCENES = [
@@ -25,19 +23,8 @@ export default function LookPickerDiscover({
 }) {
   const { t } = useTranslation();
   const account = useAccount();
-  const open = (place: 'visualizers' | 'studio') => {
-    if (place === 'visualizers') {
-      openGalleryPage({ kind: 'browse' });
-    } else {
-      openPlusPlace('studio');
-    }
-    onLeave();
-    requestPlusTab();
-    // The destination survives sign-in in the existing Plus navigation.
-    if (account.status !== 'signed-in') {
-      requestAccountPanel();
-    }
-  };
+  const open = (place: 'gallery' | 'studio') =>
+    openLookPickerPlace(place, onLeave, account.status === 'signed-in');
   return (
     <div className="look-picker__discover">
       <div className="look-picker__discover-story" data-anchored-menu-scroll>
@@ -67,7 +54,7 @@ export default function LookPickerDiscover({
           <button
             type="button"
             className="button small"
-            onClick={() => open('visualizers')}
+            onClick={() => open('gallery')}
           >
             <Glyph name="looks" />
             {t('graph.picker.discover.explore')}

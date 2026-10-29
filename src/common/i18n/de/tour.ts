@@ -586,6 +586,63 @@ const tour: Partial<Dictionary> = {
     'Dann formen Sie sie. Teile legt fest, wie viele Balken es gibt, und auch Farben, Abstände und Bewegung bestimmen Sie.',
   'tour.film.looks.save':
     'Drücken Sie Speichern, um sie als eigene Darstellung zu behalten, oder teilen Sie sie als Datei.',
+  'tour.walkthrough.kicker': 'DER GANZE RUNDGANG',
+  'tour.walkthrough.title': 'Ganz FluidEQ in einem Video',
+  'tour.walkthrough.subtitle': 'Von Anfang bis Ende ansehen',
+  'tour.walkthrough.lead':
+    'Ein geführter Rundgang durch alles, was FluidEQ kann, vom ersten Band, das Sie ziehen, bis zu den Visualizern, mit einer Stimme, die erklärt, wie Sie jeden Teil verwenden.',
+  'tour.film.walkthrough.intro':
+    'Das ist FluidEQ 2.2: ein Equalizer für alles, was Ihr Computer abspielt. Machen wir einen Rundgang.',
+  'tour.film.walkthrough.graph':
+    'Ziehen Sie einen beliebigen Punkt im Diagramm, um den Klang zu formen. Jedes Band zeigt Frequenz und Verstärkung direkt auf der Kurve.',
+  'tour.film.walkthrough.sliders':
+    'Die Regler bewegen dieselben Bänder, und die Kurve folgt sofort. Das Band, das Sie berühren, öffnet darunter seine eigenen Einstellungen.',
+  'tour.film.walkthrough.tone':
+    'Klicken Sie daneben, und die Zeile „Klang“ ist wieder da: Bass, Mitten und Höhen, mit einer Tiefen- und einer Höhensperre zu beiden Seiten.',
+  'tour.film.walkthrough.ears':
+    'Klicken Sie mit der rechten Maustaste auf ein Band und wählen Sie Links + rechts, um jedes Ohr für sich einzustellen. Die durchgezogene Linie ist Ihr linkes Ohr, die gestrichelte Ihr rechtes.',
+  'tour.film.walkthrough.eqmode':
+    'Der EQ-Modus sitzt neben dem Diagramm. Er legt fest, wie stark Ihre Kurven wirken, und Präzise spielt die Höhen genau so, wie sie gezeichnet sind.',
+  'tour.film.walkthrough.headphones':
+    'Unter EQ-Presets finden Sie Ihre Kopfhörer unter Tausenden gemessenen Modellen und wenden ihre Korrektur mit einem Klick an.',
+  'tour.film.walkthrough.mycurves':
+    'Speichern Sie sie in Meine Kurven, Ihrer eigenen Liste neben der von OPRA, jederzeit griffbereit.',
+  'tour.film.walkthrough.outputs':
+    'Jeder Ausgang behält seinen eigenen Klang. Wechseln Sie zu Ihren Kopfhörern, und sie klingen genau so, wie Sie sie verlassen haben. Ein zweiter Ausgang spielt dieselbe Musik auf einem anderen Gerät.',
+  'tour.film.walkthrough.songs':
+    'Schalten Sie Klang jedes Songs merken ein, und jeder Song kommt mit dem Klang zurück, den Sie ihm gegeben haben.',
+  'tour.film.walkthrough.games':
+    'Spiel-Presets wechseln den Klang, sobald ein Spiel in den Vordergrund kommt, und wechseln zurück, wenn Sie es schließen.',
+  'tour.film.walkthrough.dsp':
+    'Das DSP-Rack ist eine Kette von Studioeffekten für alles, was Sie hören. Wählen Sie ein Preset für das ganze Rack, von Musikstilen bis zu Filmen und Spielen.',
+  'tour.film.walkthrough.deesser':
+    'Der neue De-Esser senkt nur das scharfe S in einer Stimme und lässt die Becken in Ruhe.',
+  'tour.film.walkthrough.character':
+    'Der Exciter bringt Glanz, die Bass-Schmiede Gewicht, und Dimension macht das Stereobild breiter.',
+  'tour.film.walkthrough.room':
+    'Der Raum stellt Sie zwischen Lautsprecher in einem echten Raum, sogar mit Kopfhörern.',
+  'tour.film.walkthrough.maximizer':
+    'Und der Maximizer hält alles laut und sauber, ohne je zu übersteuern.',
+  'tour.film.walkthrough.library':
+    'Die Bibliothek spielt Ihre eigene Musik mit demselben Klang, mit Alben, Playlists und Als Nächstes.',
+  'tour.film.walkthrough.compact':
+    'Der Kompakte Player bringt alles in ein kleines Fenster: den Song, die Steuerung und Ihren EQ.',
+  'tour.film.walkthrough.oneline':
+    'Falten Sie ihn auf eine Zeile, und er ist Ihnen nicht im Weg, mit einem Visualizer, der sanft hinter dem Song spielt.',
+  'tour.film.walkthrough.looks':
+    'Das Diagramm kann selbst zum Visualizer werden. Wählen Sie einen Look oder eine ganze Szene, und das Fenster übernimmt ihre Farben.',
+  'tour.film.walkthrough.gallery':
+    'In der Galerie unter Visualizer finden Sie Szenen von FluidEQ und seiner Community. Jede gehört Ihnen für immer, für ein Credit.',
+  'tour.film.walkthrough.studio':
+    'Im Studio beschreiben Sie eine Änderung in Ihren eigenen Worten und sehen zu, wie sie auf der Bühne entsteht.',
+  'tour.film.walkthrough.karaoke':
+    'Karaoke macht Ihre Songs zum Mitsingen, mit getimten Texten und Ihrer Tonhöhe auf dem Bildschirm.',
+  'tour.film.walkthrough.share':
+    'Audio teilen verbindet die Computer in Ihrem Heimnetz, sodass Musik zwischen ihnen fließt, in beide Richtungen.',
+  'tour.film.walkthrough.help':
+    'Und alles hier steht im Benutzerhandbuch, gezeichnet aus der App selbst.',
+  'tour.film.walkthrough.outro':
+    'Das ist FluidEQ. Machen Sie es zu Ihrem Klang und zu Ihrem Look.',
   'tour.film.engine.intro':
     'FluidEQ hat eine eigene Audio-Engine. Sie bringt Ihren EQ und das DSP-Rack zu allem, was der Computer abspielt.',
   'tour.film.engine.choose':
@@ -605,6 +662,8 @@ const tour: Partial<Dictionary> = {
   'tour.film.soundOff': 'Ton ausschalten',
   'tour.film.watch': 'Video ansehen',
   'tour.film.close': 'Video schließen',
+  'tour.film.unavailable':
+    'Dieses Video kann gerade nicht abgespielt werden. Versuchen Sie es später noch einmal.',
 
   'tour.myCurves.kicker': 'EIGENE KURVEN',
   'tour.myCurves.title': 'Ihre eigene Kurvenliste, neben der von OPRA',

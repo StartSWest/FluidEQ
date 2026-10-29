@@ -49,7 +49,7 @@ export default function FeatureFilm({ id, children }: IFeatureFilmProps) {
       >
         <PlayerIcon name="play" />
         {t('tour.film.watch')}
-        {featureFilmLocale(locale) !== locale &&
+        {featureFilmLocale(locale, film) !== locale &&
           ` · ${t('tour.film.englishAudio')}`}
       </button>
       {isOpen && (

@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { app } from 'electron';
 import {
+  moveStartWithWindowsIntoTray,
   readStartWithWindows,
   writeStartWithWindows,
 } from '../../../main/startWithWindows';
@@ -48,8 +49,11 @@ describe('starting with Windows', () => {
       blockedByWindows: false,
     });
     // A packaged app is its own executable; an entry for anything else would
-    // launch something that is not FluidEQ.
-    expect(mockGet).toHaveBeenCalledWith({ path: process.execPath, args: [] });
+    // launch something that is not FluidEQ. Told to start in the tray.
+    expect(mockGet).toHaveBeenCalledWith({
+      path: process.execPath,
+      args: ['--start-in-tray'],
+    });
   });
 
   it('says so when the entry is written and Windows will not honour it', () => {
@@ -73,7 +77,7 @@ describe('starting with Windows', () => {
     });
     expect(mockSet).toHaveBeenCalledWith({
       path: process.execPath,
-      args: [],
+      args: ['--start-in-tray'],
       openAtLogin: true,
     });
   });
@@ -113,9 +117,88 @@ describe('starting with Windows', () => {
     // every sign-in.
     expect(mockSet).toHaveBeenCalledWith({
       path: process.execPath,
-      args: ['D:/app'],
+      args: ['D:/app', '--start-in-tray'],
       openAtLogin: true,
     });
     Object.defineProperty(app, 'isPackaged', { value: true });
+  });
+});
+
+/**
+ * An entry written before the tray's word opened the window at every sign-in.
+ * Windows compares the whole command, so the old entry and the new one are
+ * told apart by the word alone, and Electron's write would switch Windows'
+ * own Startup apps entry back on unless handed what it was.
+ */
+describe('moving an older startup entry into the tray', () => {
+  const entries = ({
+    tray,
+    window,
+  }: {
+    tray: ReturnType<typeof settings>;
+    window: ReturnType<typeof settings>;
+  }) =>
+    mockGet.mockImplementation(({ args }: { args: string[] }) =>
+      args.includes('--start-in-tray') ? tray : window,
+    );
+  const logger = { info: jest.fn(), error: jest.fn() };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSet.mockReset();
+  });
+
+  it('rewrites an entry that opens the window, as one that starts in the tray', () => {
+    // Read back after the write: Windows now holds the tray's entry.
+    let written = false;
+    mockSet.mockImplementation(() => {
+      written = true;
+    });
+    mockGet.mockImplementation(({ args }: { args: string[] }) =>
+      args.includes('--start-in-tray') ? settings(written) : settings(true),
+    );
+
+    expect(moveStartWithWindowsIntoTray(logger)).toBe(true);
+    expect(mockSet).toHaveBeenCalledWith({
+      path: process.execPath,
+      args: ['--start-in-tray'],
+      openAtLogin: true,
+      enabled: true,
+    });
+    expect(logger.info).toHaveBeenCalled();
+  });
+
+  it('keeps an entry switched off in Startup apps switched off', () => {
+    entries({ tray: settings(false), window: settings(true, false) });
+
+    moveStartWithWindowsIntoTray(logger);
+
+    expect(mockSet).toHaveBeenCalledWith(
+      expect.objectContaining({ args: ['--start-in-tray'], enabled: false }),
+    );
+  });
+
+  it('writes nothing when the entry already starts in the tray', () => {
+    entries({ tray: settings(true), window: settings(false) });
+
+    expect(moveStartWithWindowsIntoTray(logger)).toBe(false);
+    expect(mockSet).not.toHaveBeenCalled();
+  });
+
+  it('writes nothing for somebody who never asked to start with Windows', () => {
+    entries({ tray: settings(false), window: settings(false) });
+
+    expect(moveStartWithWindowsIntoTray(logger)).toBe(false);
+    expect(mockSet).not.toHaveBeenCalled();
+  });
+
+  it('says so when Windows refuses the move, and leaves the old entry working', () => {
+    entries({ tray: settings(false), window: settings(true) });
+    mockSet.mockImplementation(() => {
+      throw new Error('refused');
+    });
+
+    expect(moveStartWithWindowsIntoTray(logger)).toBe(false);
+    expect(logger.error).toHaveBeenCalled();
   });
 });

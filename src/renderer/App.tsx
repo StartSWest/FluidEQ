@@ -28,6 +28,7 @@ import {
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import { isAccountConfigured } from 'common/accountConfig';
 import { useKaraokeBackgroundChoice } from './karaoke/karaokeWorkspacePrefs';
+import usePerformanceContext from './utils/performanceContext';
 import KaraokeSceneAppearanceControls from './karaoke/KaraokeSceneAppearanceControls';
 import useMediaQuery from './utils/useMediaQuery';
 import {
@@ -169,6 +170,7 @@ const AppContent = () => {
   // it onto one of the pages: the page is chosen while the app is still put
   // away, so it comes back already showing it.
   const { mode: windowMode } = useWindowMode();
+  usePerformanceContext(activeWorkspaceTab, windowMode);
   /**
    * THE AMP'S QUEUE DECK NEEDS THE LIBRARY'S PLAYER, whether or not anything
    * is playing (Ivan, 2026-09-22: "drag and drop into the up next doesn't

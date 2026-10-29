@@ -8,10 +8,34 @@ import type { CSSProperties } from 'react';
 import type { IKaraokeSong } from '../../common/karaoke/types';
 import { useOverlayBlur } from '../utils/graphOverlay';
 import KaraokeGraphBackground from './KaraokeGraphBackground';
+import KaraokeLights from './KaraokeLights';
 import KaraokeStageMedia, { hasKaraokeStageArt } from './KaraokeStageMedia';
 import { KaraokeLiveValue, type IKaraokeLiveValue } from './karaokeLiveValue';
 import type { TKaraokeBackground } from './karaokeWorkspacePrefs';
 import { useKaraokeSceneAppearance } from './karaokeSceneAppearance';
+
+/**
+ * What stands behind the words. The graph's scene, the song's cover, the
+ * stage's own lights when there is neither — or nothing at all while the
+ * window's visualizer is drawn through the page: its picture is the
+ * backdrop then, and lights laid over it were a second spotlight on a stage
+ * that already had one (Ivan, 2026-10-29).
+ */
+export type TKaraokeBackdropKind = 'graph' | 'cover' | 'lights' | 'none';
+
+export const karaokeBackdropKind = (
+  background: TKaraokeBackground,
+  song: IKaraokeSong | undefined,
+  isGraphOverlay: boolean,
+): TKaraokeBackdropKind => {
+  if (background === 'graph') {
+    return 'graph';
+  }
+  if (background === 'cover' && song && hasKaraokeStageArt(song)) {
+    return 'cover';
+  }
+  return isGraphOverlay ? 'none' : 'lights';
+};
 
 /** Exactly one backdrop. Hidden pages unmount it, stopping every renderer. */
 export default function KaraokeBackdrop({
@@ -35,7 +59,7 @@ export default function KaraokeBackdrop({
   } else if (isGraphOverlay) {
     blur = overlayBlur;
   }
-  const showsCover = background === 'cover' && song && hasKaraokeStageArt(song);
+  const kind = karaokeBackdropKind(background, song, isGraphOverlay);
   return (
     <div
       className="karaoke-backdrop"
@@ -46,8 +70,8 @@ export default function KaraokeBackdrop({
         } as CSSProperties
       }
     >
-      {background === 'graph' && <KaraokeGraphBackground />}
-      {background !== 'graph' && showsCover && (
+      {kind === 'graph' && <KaraokeGraphBackground />}
+      {kind === 'cover' && song && (
         <KaraokeLiveValue value={playhead}>
           {(playheadMs) => (
             <KaraokeStageMedia
@@ -58,12 +82,7 @@ export default function KaraokeBackdrop({
           )}
         </KaraokeLiveValue>
       )}
-      {background !== 'graph' && !showsCover && (
-        <div className="karaoke-stage-media karaoke-ambient" aria-hidden inert>
-          <span className="karaoke-ambient__light" />
-          <span className="karaoke-ambient__light is-cool" />
-        </div>
-      )}
+      {kind === 'lights' && <KaraokeLights isPlaying={isPlaying} />}
     </div>
   );
 }

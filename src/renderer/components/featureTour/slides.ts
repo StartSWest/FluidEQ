@@ -54,6 +54,7 @@ import {
   StudioChatSlide,
 } from './release21';
 import KaraokeBackgroundSlide from './release22';
+import WalkthroughSlide, { WALKTHROUGH_FILM } from './WalkthroughSlide';
 
 /**
  * The workspace tabs a slide can send the user to. `community` is Plus;
@@ -316,6 +317,12 @@ const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
 const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
   '2.2': [
     ...announced('2.2', [
+      {
+        id: WALKTHROUGH_FILM,
+        titleKey: 'tour.walkthrough.title',
+        subtitleKey: 'tour.walkthrough.subtitle',
+        Body: WalkthroughSlide,
+      },
       {
         id: 'karaoke-background',
         titleKey: 'tour.karaokeBackground.title',

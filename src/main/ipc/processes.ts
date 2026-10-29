@@ -105,7 +105,9 @@ const desktopVisualizerPids = (): Set<number> =>
       .filter((pid) => pid !== 0),
   );
 
-export const registerProcessIpc = (deps: IProcessIpcDeps): void => {
+export const registerProcessIpc = (
+  deps: IProcessIpcDeps,
+): { listQuietly: () => IAppProcess[] } => {
   // The meter runs while the list is open, and only then: the list says when
   // it closes, and a window that reloads or goes away has closed it too.
   const stopMeter = () => deps.meter?.stop();
@@ -120,7 +122,11 @@ export const registerProcessIpc = (deps: IProcessIpcDeps): void => {
     contents.once('destroyed', stopMeter);
   };
 
-  ipcMain.handle('app-processes', async (): Promise<IAppProcess[]> => {
+  // Every process Electron and the engines report on, read without the meter:
+  // what the list starts from, and what the performance log reads each time
+  // the screen changes (`performanceLog.ts`), where starting the meter would
+  // cost more than what it measures.
+  const listQuietly = () => {
     const window = deps.getMainWindow();
     const context = {
       appWindowPid: processIdOf(window?.webContents),
@@ -195,7 +201,11 @@ export const registerProcessIpc = (deps: IProcessIpcDeps): void => {
       listed.add(row.pid);
       return true;
     });
+    return { window, listed, unique };
+  };
 
+  ipcMain.handle('app-processes', async (): Promise<IAppProcess[]> => {
+    const { window, listed, unique } = listQuietly();
     watchWindow(window);
     // The LAN audio helper starts the capture helpers itself, as its own
     // children — that is how the capture sent to another computer leaves
@@ -230,4 +240,5 @@ export const registerProcessIpc = (deps: IProcessIpcDeps): void => {
     }
   });
   app.on('will-quit', stopMeter);
+  return { listQuietly: () => listQuietly().unique };
 };

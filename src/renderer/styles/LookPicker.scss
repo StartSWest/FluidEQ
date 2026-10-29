@@ -138,6 +138,41 @@ SPDX-License-Identifier: GPL-3.0-or-later
   overscroll-behavior: contain;
 }
 
+// The Visualizers column's last line: the way to more scenes, under the list
+// and never scrolled away with it. In a narrow column or a long language it
+// wraps to two lines rather than squeezing the button.
+.look-picker__more {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-xs $spacing-s;
+  padding: $spacing-s 4px 0;
+  border-top: 1px solid $menu-rule;
+
+  .button {
+    gap: 6px;
+    max-width: 100%;
+  }
+}
+
+.look-picker__more-lead {
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-micro;
+}
+
+// How many are new, a chip inside the button in the button's own colour.
+.look-picker__more-new {
+  padding: 1px 6px;
+  border-radius: $radius-2xs;
+  background: color-mix(in srgb, currentcolor 18%, transparent);
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+}
+
 // One row, whichever column it is in: the list's own hover wash and the
 // selection's fill, so this reads as the same kind of list as every other
 // menu in the window.

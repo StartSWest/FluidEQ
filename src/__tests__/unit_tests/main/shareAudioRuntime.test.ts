@@ -2,6 +2,7 @@
 /** @jest-environment node */
 import {
   createAudioRuntime,
+  failureCode,
   type IAudioRuntimeDeps,
 } from '../../../main/shareAudio/runtime';
 import { createAudioTelemetry } from '../../../main/shareAudio/telemetry';
@@ -417,4 +418,46 @@ it('recovers a failed local player while the sending capture and network stay ru
   });
   fixture.arrive(chunk());
   expect(fixture.player.push).toHaveBeenCalledTimes(1);
+});
+
+// A local link that would not start reached the log as "operation failed"
+// and nothing else; the system's code for it says why without its text.
+it("names a failed start by the system's code alone, never by its text", async () => {
+  const fixture = setup();
+  fixture.lan.start.mockRejectedValueOnce(
+    Object.assign(new Error('listen EADDRINUSE pairing secret s3cr3t'), {
+      code: 'EADDRINUSE',
+      syscall: 'listen',
+    }),
+  );
+  await expect(
+    fixture.request('lan.start', undefined, { revoked: [], links: [] }),
+  ).rejects.toThrow('operation failed');
+  const failed = fixture.messages.filter(
+    (message) => message.type === 'answer' && message.error,
+  );
+  expect(failed).toEqual([
+    expect.objectContaining({ code: 'EADDRINUSE', syscall: 'listen' }),
+  ]);
+  expect(JSON.stringify(failed)).not.toContain('s3cr3t');
+  // The control: a failure with no system code carries nothing more.
+  fixture.lan.start.mockRejectedValueOnce(new Error('pairing secret s3cr3t'));
+  await expect(
+    fixture.request('lan.start', undefined, { revoked: [], links: [] }),
+  ).rejects.toThrow('operation failed');
+  const plain = fixture.messages.filter(
+    (message) => message.type === 'answer' && message.error,
+  );
+  expect(plain[1]).not.toHaveProperty('code');
+  expect(plain[1]).not.toHaveProperty('syscall');
+  expect(JSON.stringify(plain)).not.toContain('s3cr3t');
+});
+
+it('keeps a code that could carry text out of what it forwards', () => {
+  expect(failureCode({ code: 'EACCES', syscall: 'bind' })).toEqual({
+    code: 'EACCES',
+    syscall: 'bind',
+  });
+  expect(failureCode({ code: 'not a code: s3cr3t' })).toEqual({});
+  expect(failureCode('EADDRINUSE')).toEqual({});
 });

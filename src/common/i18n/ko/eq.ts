@@ -934,6 +934,8 @@ const eq = {
   'graph.picker.discover.explore': '장면 둘러보기',
   'graph.picker.discover.create': '직접 만들기',
   'graph.picker.discover.free': 'FluidEQ와 오디오 도구는 계속 무료입니다.',
+  'graph.picker.more.lead': '갤러리에 더 많은 장면이 있습니다',
+  'graph.picker.more.new': '새 장면 {count}',
 } satisfies Partial<Dictionary>;
 
 export default eq;
