@@ -108,7 +108,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // A picture behind the words reaches the page's edges: the graph's scene or
-// the song's cover (Ivan, 2026-10-29: "remove padd on karaoke so the graph
+// the song's cover (Ivan, 2026-10-28: "remove padd on karaoke so the graph
 // bg shows no gap"). The page card's padding left a band of the card's own
 // colour round a picture meant to fill it, so with one the padding moves off
 // the card and onto what sits beside the stage — the header, the playlist,
@@ -135,6 +135,41 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > .karaoke-workspace__player > .karaoke-workspace__stage {
     border-radius: 0;
+  }
+}
+
+// And behind everything on the page, as in full screen: the playlist sits on
+// the picture instead of pushing it into the stage's column (Ivan,
+// 2026-10-28: "viz in karaoke also need to be covering full space so the
+// playlist doesnt push it, same as when is on fullscreen"). Full screen fixes
+// the picture to the window; here layout containment makes this card the
+// box a fixed element fills, so the picture covers the card and nothing
+// outside it, clipped by the card's rounded edge. The stage is a positioned
+// stacking context, so what must stay over the picture is lifted above it.
+.karaoke-workspace:not(.is-fullscreen):has(
+    > .karaoke-workspace__player
+      > .karaoke-workspace__stage:is(.is-backdrop-graph, .is-backdrop-cover)
+  ) {
+  contain: layout;
+
+  .karaoke-stage-media {
+    position: fixed;
+    inset: 0;
+  }
+
+  > .karaoke-workspace__header,
+  > .karaoke-workspace__readiness,
+  > .karaoke-workspace__player > .karaoke-playlist,
+  > .karaoke-workspace__player > .karaoke-pane-splitter {
+    position: relative;
+    z-index: 1;
+  }
+
+  // The rows read over whatever the picture is: the card colour, opaque, as
+  // full screen has it.
+  > .karaoke-workspace__player.has-playlist > .karaoke-playlist {
+    border-color: color-mix(in srgb, $secondary-light 20%, transparent);
+    background: $card-glow, $karaoke-chip-face;
   }
 }
 
