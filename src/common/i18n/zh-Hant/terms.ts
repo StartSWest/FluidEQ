@@ -23,7 +23,7 @@ const terms = {
     'FluidEQ 的服務永遠不會接收您的音訊、曲目名稱或 EQ。',
   'terms.membership.title': '舊Plus會員資格',
   'terms.membership.p1':
-    'Plus 是會員資格，不再出售：點數取代了它。已執行的會員資格會繼續播放並新增視覺化工具中的每個場景、FluidEQ 自己的場景以及桌面和 RGB 燈上的場景，直到 FluidEQ 將其會員移至製作人員名單。在那一天，成員新增的每個場景都將永遠屬於他們，每個為 Plus 付費的帳戶都將獲得至少 {moveCredits} 點數。不提供新的免費試用；在那一天之前，FluidEQ 製作者批准的場景仍然可以獲得一個月的會員資格。如果沒有它，帳戶將觀看任何場景 {tasteSeconds} 秒，以獲取帶有製作人員名單的場景，並在 Studio 中製作、匯出和發布場景。',
+    'Plus 是會員資格，不再出售：點數取代了它。已執行的會員資格會繼續播放並新增視覺化工具中的每個場景、FluidEQ 自己的場景以及桌面和 RGB 燈上的場景，直到 FluidEQ 將其會員轉為點數。在那一天，成員新增的每個場景都將永遠屬於他們，每個為 Plus 付費的帳戶都將獲得至少 {moveCredits} 點數。不提供新的免費試用；在那一天之前，FluidEQ 製作者批准的場景仍然可以獲得一個月的會員資格。如果沒有它，帳戶將觀看任何場景 {tasteSeconds} 秒，用點數取得場景，並在 Studio 中製作、匯出和發布場景。',
   'terms.membership.p2':
     'Plus 是透過「Buy Me a Coffee」支付的，根據其自己的條款，FluidEQ 從未看到您的卡或銀行詳細資料。您仍需付費的會員資格可以隨時在「Buy Me a Coffee」上取消：會員資格將一直保留到您付費的期限結束，並且不再收取任何費用。在 FluidEQ 將其會員轉為點數後，任何「Buy Me a Coffee」所收取的費用都會退還。',
   'terms.membership.p4':
@@ -216,7 +216,7 @@ const terms = {
   'terms.short.credits.title': '場景永遠屬於您',
   'terms.short.credits.body':
     '每個點數可從您在 Stripe 上支付一次的套餐中獲得。沒有任何更新，而且 FluidEQ 永遠不會看到您的卡片。',
-  'terms.credits.title': '製作人員名單和您的場景',
+  'terms.credits.title': '點數和您的場景',
   'terms.credits.p1':
     '獲得點數後，您將獲得 Visualizers 中的一個場景（FluidEQ 的一個場景或成員發布的一個場景），然後該場景就永遠屬於您：在圖表、您的桌面和燈光上，在您登入的每臺電腦上，以及其製造商發布的每個新版本。在獲得場景之前，任何場景都會在其頁面上播放 {tasteSeconds} 秒。 FluidEQ 在花費點數之前會進行詢問，並且花費的點數無法收回。',
   'terms.credits.p2':
@@ -230,7 +230,7 @@ const terms = {
   'terms.credits.p6':
     '任何新人都無法獲得製作者未發布的場景；如果您已經擁有它，它會繼續為您播放。正如釋出內容的規則所說，因違反這些條款而被刪除的場景將不再在任何地方公開。',
   'terms.sent.store.what':
-    '您的登入令牌，用於讀取您的製作人員名單、您擁有的場景、您自己的哪些場景已發布以及 FluidEQ 的哪些場景是免費的',
+    '您的登入令牌，用於讀取您的點數、您擁有的場景、您自己的哪些場景已發布以及 FluidEQ 的哪些場景是免費的',
   'terms.sent.store.when':
     '當應用程式啟動時、當您登入時、當您返回電腦時（最多每隔幾個小時，以及每次您開始付款尚未完成時）以及當您開啟點數或獲取場景時',
   'terms.sent.store.who':
@@ -241,9 +241,8 @@ const terms = {
     '當您選擇套餐並繼續付款時，以及Stripe確認、退款或對該付款提出異議時',
   'terms.sent.credits.who':
     '製造商將包的點數存入您的帳戶，並在付款退款或有爭議時將其收回。您的卡僅適用於 Stripe。',
-  'terms.sent.sceneGet.what':
-    '您獲得哪個場景的製作人員名單，以及您拍攝時的起始製作人員名單',
-  'terms.sent.sceneGet.when': '當您確認獲得某個場景以及獲得起始製作人員名單時',
+  'terms.sent.sceneGet.what': '您用點數取得了哪個場景，以及您領取的起始點數',
+  'terms.sent.sceneGet.when': '當您確認取得某個場景，以及領取起始點數時',
   'terms.sent.sceneGet.who':
     '儲存在您的帳戶中，因此場景屬於您。當它透過付費點數獲得時，會員場景的製作者可以從中獲得一半的點數，並且永遠不知道是誰獲得了它。',
   'terms.sent.sceneGet.whoPayouts':

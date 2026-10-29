@@ -3,7 +3,7 @@
 import type { Dictionary } from '../en';
 
 const store = {
-  'store.credit.one': '{count} 點數額',
+  'store.credit.one': '{count} 點數',
   'store.credit.few': '{count} 點數',
   'store.credit.many': '{count} 點數',
   'store.credit.other': '{count} 點數',
@@ -11,9 +11,9 @@ const store = {
   'store.credits.unit.few': '點數',
   'store.credits.unit.many': '點數',
   'store.credits.unit.other': '點數',
-  'store.credits.title': '製作人員',
+  'store.credits.title': '點數',
   'store.credits.buyTitle': '獲得點數',
-  'store.credits.lead': '一份功勞永遠保留一個場景。您支付一次，就不會續訂。',
+  'store.credits.lead': '一個點數永久保留一個場景。只需付款一次，不會續訂。',
   'store.credits.what':
     '每個點數都會永久保留相簿中的一個場景：在圖表、桌面和燈光上。',
   'store.credits.half':
@@ -45,7 +45,7 @@ const store = {
   'store.loading': '正在閱讀您的點數...',
   'store.packs.title': '你需要點數',
   'store.packs.lead':
-    '每個製作人員都會永久保留一個場景。只需點選一下即可取得套裝，然後即可獲得 {name}。',
+    '每個點數都會永久保留一個場景。取得一個套裝，{name} 只需點選一下即可獲得。',
   'store.packs.negative':
     '退款收回了您已使用的點數，因此您的餘額為 {credits}。一包可以讓它回到零以上。',
   'store.packs.choose': '選擇一個包',
