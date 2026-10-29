@@ -29,6 +29,7 @@ jest.mock('electron', () => ({
 
 /* eslint-disable import/first -- install the mock first */
 import {
+  moveLinuxAutostartIntoTray,
   readLinuxAutostart,
   writeLinuxAutostart,
 } from '../../../main/linux/linuxAutostart';
@@ -107,5 +108,67 @@ describe('the Linux autostart entry', () => {
         ),
     );
     expect(readLinuxAutostart()).toEqual({ on: true, blockedByWindows: true });
+  });
+
+  it('asks the app to start in the tray', () => {
+    writeLinuxAutostart(true);
+    expect(fs.readFileSync(entry(), 'utf8')).toContain(
+      `Exec="${process.execPath}" --start-in-tray`,
+    );
+  });
+});
+
+describe('moving an older Linux autostart entry into the tray', () => {
+  // What every version before the tray's word wrote: this app, nothing else.
+  const writeOld = (exec: string, extra = '') => {
+    fs.mkdirSync(path.dirname(entry()), { recursive: true });
+    fs.writeFileSync(
+      entry(),
+      [
+        '[Desktop Entry]',
+        'Type=Application',
+        'Name=FluidEQ',
+        `Exec=${exec}`,
+        'Icon=fluideq-app',
+        'Terminal=false',
+        `X-GNOME-Autostart-enabled=true${extra}`,
+        '',
+      ].join('\n'),
+    );
+  };
+
+  it('rewrites an entry that opens the window, as one that starts in the tray', () => {
+    writeOld(`"${process.execPath}"`);
+    expect(moveLinuxAutostartIntoTray()).toBe(true);
+    const text = fs.readFileSync(entry(), 'utf8');
+    expect(text).toContain(`Exec="${process.execPath}" --start-in-tray\n`);
+    expect(text.match(/^Exec=/gm)).toHaveLength(1);
+    expect(fs.readdirSync(path.dirname(entry()))).toEqual(['fluideq.desktop']);
+  });
+
+  it('keeps an entry the desktop switched off switched off', () => {
+    writeOld(`"${process.execPath}"`, '\nHidden=true');
+    expect(moveLinuxAutostartIntoTray()).toBe(true);
+    expect(readLinuxAutostart()).toEqual({ on: true, blockedByWindows: true });
+  });
+
+  it('writes nothing when the entry already starts in the tray', () => {
+    writeLinuxAutostart(true);
+    const before = fs.readFileSync(entry(), 'utf8');
+    expect(moveLinuxAutostartIntoTray()).toBe(false);
+    expect(fs.readFileSync(entry(), 'utf8')).toBe(before);
+  });
+
+  it('leaves an entry that starts another copy of FluidEQ to that copy', () => {
+    writeOld('"/home/me/Apps/FluidEQ-2.0.AppImage"');
+    expect(moveLinuxAutostartIntoTray()).toBe(false);
+    expect(fs.readFileSync(entry(), 'utf8')).toContain(
+      'Exec="/home/me/Apps/FluidEQ-2.0.AppImage"\n',
+    );
+  });
+
+  it('writes nothing for somebody who never asked to start with the desktop', () => {
+    expect(moveLinuxAutostartIntoTray()).toBe(false);
+    expect(fs.existsSync(entry())).toBe(false);
   });
 });

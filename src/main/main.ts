@@ -94,6 +94,7 @@ import { registerProfilesIpc } from './ipc/profiles';
 import { IOutputWatch, startOutputWatch } from './outputWatch';
 import { linuxEngine } from './linux/linuxEngineProcess';
 import startLinuxOutputWatch from './linux/linuxOutputWatch';
+import linuxTrayIsShown from './linux/linuxTrayHost';
 import { registerUpdatesIpc } from './ipc/updates';
 import { registerLibraryIpc } from './ipc/library';
 import {
@@ -256,10 +257,13 @@ const didRestartForUnattendedUpdate = consumeUnattendedRestart(
 );
 
 /**
- * Windows started this launch at sign-in (`startWithWindows.ts`): FluidEQ
- * starts in the tray, applying its sound, and the tray opens the window.
+ * The system started this launch at sign-in (`startWithWindows.ts`): FluidEQ
+ * starts in the tray, applying its sound, and the tray opens the window. On
+ * Linux only once the desktop is known to draw tray icons, which `onAppReady`
+ * asks before the window exists (`linux/linuxTrayHost.ts`).
  */
-const startedInTray = process.argv.includes(START_IN_TRAY_ARG);
+const askedForTray = process.argv.includes(START_IN_TRAY_ARG);
+let startedInTray = askedForTray && process.platform !== 'linux';
 
 const updates = createAppUpdates({
   getMainWindow,
@@ -979,7 +983,7 @@ installCrashLogging();
 // everything. An installer starts the app itself and passes `--updated`, which
 // is what tells a launch that came out of setup from one somebody made.
 log.info(
-  `FluidEQ ${appVersion()} starting: pid ${process.pid}, packaged=${app.isPackaged}, from setup=${process.argv.includes('--updated')}, in tray=${startedInTray}`,
+  `FluidEQ ${appVersion()} starting: pid ${process.pid}, packaged=${app.isPackaged}, from setup=${process.argv.includes('--updated')}, in tray=${askedForTray}`,
 );
 
 /**
@@ -1129,6 +1133,13 @@ const onAppReady = async () => {
     // Linux's engine is this app's child, started before the window as the
     // Windows engine's pipe is served before it (`linux/linuxEngineProcess`).
     linuxEngine().start();
+    // An autostart entry from before the tray's word opens the window at
+    // every sign-in; the Windows one is moved above, after the app's id.
+    moveStartWithWindowsIntoTray(log);
+    if (askedForTray) {
+      startedInTray = await linuxTrayIsShown();
+      log.info(`Desktop draws tray icons: ${startedInTray}`);
+    }
   }
   try {
     await createMainWindow();

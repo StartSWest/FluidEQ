@@ -32,6 +32,16 @@ jest.mock('electron', () => ({
   },
 }));
 
+const mockReadLinux = jest.fn();
+const mockWriteLinux = jest.fn();
+const mockMoveLinux = jest.fn();
+
+jest.mock('../../../main/linux/linuxAutostart', () => ({
+  readLinuxAutostart: () => mockReadLinux(),
+  writeLinuxAutostart: (wanted: boolean) => mockWriteLinux(wanted),
+  moveLinuxAutostartIntoTray: () => mockMoveLinux(),
+}));
+
 const settings = (openAtLogin: boolean, willLaunch = openAtLogin) => ({
   openAtLogin,
   executableWillLaunchAtLogin: willLaunch,
@@ -216,5 +226,49 @@ describe('moving an older startup entry into the tray', () => {
 
     expect(moveStartWithWindowsIntoTray(logger)).toBe(false);
     expect(logger.error).toHaveBeenCalled();
+  });
+});
+
+/**
+ * Linux keeps its entry in the XDG autostart folder (`linuxAutostart.test.ts`
+ * pins the file); here only that every question reaches it on Linux, and that
+ * a development build writes no entry there either.
+ */
+describe('starting with the desktop on Linux', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    Object.defineProperty(process, 'platform', { value: 'linux' });
+    mockReadLinux.mockReturnValue({ on: true, blockedByWindows: false });
+    mockMoveLinux.mockReturnValue(true);
+  });
+  afterEach(() => {
+    Object.defineProperty(process, 'platform', { value: 'win32' });
+  });
+
+  it('asks the autostart folder, never Windows', () => {
+    expect(readStartWithWindows()).toEqual({
+      on: true,
+      blockedByWindows: false,
+    });
+    expect(writeStartWithWindows(true).on).toBe(true);
+    expect(mockWriteLinux).toHaveBeenCalledWith(true);
+    expect(moveStartWithWindowsIntoTray()).toBe(true);
+    expect(mockMoveLinux).toHaveBeenCalledTimes(1);
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(mockSet).not.toHaveBeenCalled();
+  });
+
+  it('writes no entry in development, which the desktop could only fail to start', () => {
+    Object.defineProperty(app, 'isPackaged', { value: false });
+    try {
+      expect(writeStartWithWindows(true).unavailable).toBe(true);
+      expect(readStartWithWindows().unavailable).toBe(true);
+      expect(moveStartWithWindowsIntoTray()).toBe(false);
+      expect(mockWriteLinux).not.toHaveBeenCalled();
+      expect(mockReadLinux).not.toHaveBeenCalled();
+      expect(mockMoveLinux).not.toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(app, 'isPackaged', { value: true });
+    }
   });
 });

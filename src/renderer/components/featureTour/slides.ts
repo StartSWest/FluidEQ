@@ -427,8 +427,17 @@ const ALWAYS: TSlideEntry[] = [
  * What only Windows has: desktop backgrounds are drawn behind Windows' own
  * desktop icons, and Dynamic lighting goes through Windows Dynamic Lighting
  * and Razer Chroma's Windows service. Linux has neither, so neither is shown.
+ * The tray slide draws Windows' taskbar corner and says "sign in to
+ * Windows"; Linux starts in the tray too, but only on a desktop that draws
+ * tray icons, which that picture cannot promise. The 2.2 walkthrough was
+ * recorded on Windows and Linux shows it all the same (Ivan, 2026-10-29: "the
+ * app keep not showing the walt video on whats new").
  */
-const WINDOWS_ONLY = new Set(['desktop-visualizer', 'dynamic-lighting']);
+const WINDOWS_ONLY = new Set([
+  'desktop-visualizer',
+  'dynamic-lighting',
+  'tray-start',
+]);
 
 export const featureTourFor = (version: string): ITourSlide[] => {
   const featured = NEW_BY_RELEASE[featureTourKey(version)] ?? [];

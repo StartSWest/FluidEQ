@@ -100,4 +100,14 @@ describe.each([
     expect(chapterIds().includes('desktop')).toBe(showsWindowsOnly);
     expect(chapterIds()).toContain('engine');
   });
+
+  // The tray slide draws Windows' taskbar and says "sign in to Windows"; the
+  // walkthrough was recorded on Windows too and Linux shows it all the same
+  // (Ivan, 2026-10-29), so the film is the control beside the hidden slide.
+  it('tells of starting in the tray only on Windows, and plays the walkthrough on both', () => {
+    const ids = featureTourFor('2.2.0').map((slide) => slide.id);
+    expect(ids.includes('tray-start')).toBe(showsWindowsOnly);
+    expect(ids[0]).toBe('walkthrough');
+    expect(ids).toContain('languages');
+  });
 });

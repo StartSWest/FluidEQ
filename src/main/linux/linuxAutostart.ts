@@ -9,6 +9,7 @@ import os from 'os';
 import path from 'path';
 import { app } from 'electron';
 import { PRODUCT_NAME } from '../../common/branding';
+import START_IN_TRAY_ARG from '../startInTray';
 import type { IStartWithWindows } from '../startWithWindows';
 
 /**
@@ -36,13 +37,13 @@ const autostartDir = (): string =>
 const entryPath = (): string => path.join(autostartDir(), FILE_NAME);
 
 /**
- * What to start. An AppImage runs from a temporary mount that is gone next
+ * The app itself. An AppImage runs from a temporary mount that is gone next
  * sign-in, so its entry names the AppImage file itself (`APPIMAGE`, set by
  * its runtime); the .deb's executable stays where it was installed. In
  * development `process.execPath` is Electron's own binary, which starts
  * nothing without the app's folder beside it.
  */
-const command = (): string => {
+const appLaunch = (): string => {
   const quote = (part: string) => `"${part.replace(/(["`$\\])/g, '\\$1')}"`;
   if (process.env.APPIMAGE) {
     return quote(process.env.APPIMAGE);
@@ -51,6 +52,16 @@ const command = (): string => {
     ? quote(process.execPath)
     : `${quote(process.execPath)} ${quote(app.getAppPath())}`;
 };
+
+/**
+ * What to start: the app, told to start in the tray, as Windows' entry does.
+ * Whether it then stays there is decided at launch, by whether this desktop
+ * draws tray icons at all (`linuxTrayHost.ts`) — sign-in is when that is
+ * known, not the moment the switch was turned on.
+ */
+const command = (): string => `${appLaunch()} ${START_IN_TRAY_ARG}`;
+
+const EXEC_LINE = /^Exec\s*=(.*)$/m;
 
 /** A desktop's own startup settings switched the entry off. */
 const switchedOff = (text: string): boolean =>
@@ -68,6 +79,17 @@ export const readLinuxAutostart = (): IStartWithWindows => {
   return { on: true, blockedByWindows: switchedOff(text) };
 };
 
+/**
+ * Beside the entry and renamed, so a desktop reading the folder at sign-in
+ * never meets half an entry.
+ */
+const writeEntry = (text: string): void => {
+  const target = entryPath();
+  const aside = `${target}.${process.pid}.tmp`;
+  fs.writeFileSync(aside, text, 'utf8');
+  fs.renameSync(aside, target);
+};
+
 export const writeLinuxAutostart = (wanted: boolean): void => {
   const target = entryPath();
   if (!wanted) {
@@ -75,19 +97,54 @@ export const writeLinuxAutostart = (wanted: boolean): void => {
     return;
   }
   fs.mkdirSync(autostartDir(), { recursive: true });
-  const text = [
-    '[Desktop Entry]',
-    'Type=Application',
-    `Name=${PRODUCT_NAME}`,
-    `Exec=${command()}`,
-    'Icon=fluideq-app',
-    'Terminal=false',
-    'X-GNOME-Autostart-enabled=true',
-    '',
-  ].join('\n');
-  // Beside it and renamed, so a desktop reading the folder at sign-in never
-  // meets half an entry.
-  const aside = `${target}.${process.pid}.tmp`;
-  fs.writeFileSync(aside, text, 'utf8');
-  fs.renameSync(aside, target);
+  writeEntry(
+    [
+      '[Desktop Entry]',
+      'Type=Application',
+      `Name=${PRODUCT_NAME}`,
+      `Exec=${command()}`,
+      'Icon=fluideq-app',
+      'Terminal=false',
+      'X-GNOME-Autostart-enabled=true',
+      '',
+    ].join('\n'),
+  );
+};
+
+/**
+ * An entry written before the tray's word existed opens the window at every
+ * sign-in. Run once at launch, this rewrites its `Exec` to the one that
+ * starts in the tray and leaves every other line as it was — a desktop's own
+ * switch (`Hidden`, `X-GNOME-Autostart-enabled`) included, so an entry
+ * somebody switched off stays off. Only an entry that starts exactly this
+ * app is moved, as on Windows: one written by another copy of FluidEQ (an
+ * AppImage elsewhere, a development checkout) is that copy's to move.
+ * Returns whether an entry was moved.
+ */
+export const moveLinuxAutostartIntoTray = (logger?: {
+  info(message: string): void;
+  error(message: string, ...details: unknown[]): void;
+}): boolean => {
+  let text: string;
+  try {
+    text = fs.readFileSync(entryPath(), 'utf8');
+  } catch {
+    // No entry: nobody asked to start with the desktop, so nothing to move.
+    return false;
+  }
+  const exec = EXEC_LINE.exec(text);
+  if (!exec || exec[1].trim() !== appLaunch()) {
+    return false;
+  }
+  try {
+    writeEntry(text.replace(EXEC_LINE, () => `Exec=${command()}`));
+  } catch (error) {
+    logger?.error(
+      'Could not move the Linux autostart entry into the tray',
+      error,
+    );
+    return false;
+  }
+  logger?.info('The Linux autostart entry now starts FluidEQ in the tray');
+  return true;
 };

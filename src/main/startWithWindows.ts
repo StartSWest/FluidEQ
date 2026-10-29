@@ -6,9 +6,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { app } from 'electron';
 import {
+  moveLinuxAutostartIntoTray,
   readLinuxAutostart,
   writeLinuxAutostart,
 } from './linux/linuxAutostart';
+import START_IN_TRAY_ARG from './startInTray';
 
 /**
  * Whether FluidEQ starts with Windows.
@@ -45,15 +47,7 @@ export interface IStartWithWindows {
   unavailable?: boolean;
 }
 
-/**
- * The word Windows passes FluidEQ at sign-in, so the launch it makes starts
- * in the tray: running and applying its sound, with no window. Users reported
- * it opening its window at every sign-in (Ivan, 2026-10-29: "it needs to start
- * on the systray with the app closed but the app running in the systray
- * affecting the system audio"). A launch from the Start menu, a shortcut or
- * setup carries no such word and opens the window as it always has.
- */
-export const START_IN_TRAY_ARG = '--start-in-tray';
+export { START_IN_TRAY_ARG };
 
 /**
  * Only an installed FluidEQ can be started by Windows. A development build's
@@ -135,10 +129,13 @@ export const moveStartWithWindowsIntoTray = (logger?: {
   info(message: string): void;
   error(message: string, ...details: unknown[]): void;
 }): boolean => {
-  if (
-    !isStartableByWindows() ||
-    app.getLoginItemSettings(command()).openAtLogin
-  ) {
+  if (!isStartableByWindows()) {
+    return false;
+  }
+  if (process.platform === 'linux') {
+    return moveLinuxAutostartIntoTray(logger);
+  }
+  if (app.getLoginItemSettings(command()).openAtLogin) {
     return false;
   }
   const old = app.getLoginItemSettings(appLaunch());
