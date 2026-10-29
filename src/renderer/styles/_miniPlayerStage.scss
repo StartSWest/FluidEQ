@@ -80,7 +80,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   align-items: center;
   gap: 8px;
   height: 38px;
-  padding: 0 6px 0 8px;
+  // The app's 28px tile as far in from the side as from the top,
+  // (38 - 28) / 2: at 8px it sat further from the window's left edge than
+  // from its top (Ivan, 2026-10-29: "remove bit padd from left").
+  padding: 0 6px 0 5px;
   background: color-mix(in srgb, var(--surface-base) 92%, transparent);
   -webkit-app-region: drag;
 

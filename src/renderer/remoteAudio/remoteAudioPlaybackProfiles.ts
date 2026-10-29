@@ -9,6 +9,19 @@ export interface IRemoteAudioPlaybackProfile {
   startBufferSeconds: number;
 }
 
+/**
+ * A computer whose `stream-mode` word has not arrived yet. It is the
+ * reservoir the `music` profile had before that word became the Fluid
+ * switch, kept apart from it so that a stream starting before its word plays
+ * as it always did, with Fluid off on both ends.
+ */
+export const UNANNOUNCED_PLAYBACK_PROFILE: IRemoteAudioPlaybackProfile = {
+  deadbandSeconds: 0.02,
+  maximumBufferSeconds: 0.6,
+  recoveryStepSeconds: 0.06,
+  startBufferSeconds: 0.24,
+};
+
 export const REMOTE_AUDIO_PLAYBACK_PROFILES: Record<
   'music' | 'video',
   IRemoteAudioPlaybackProfile

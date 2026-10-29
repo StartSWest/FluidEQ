@@ -12,7 +12,6 @@ import {
   DSP_OUTPUT_COUNT,
   DSP_OUTPUT_INDEX,
 } from '../../../renderer/dsp/monitorOutputs';
-import { REMOTE_AUDIO_PLAYBACK_PROFILES } from '../../../renderer/remoteAudio/remoteAudioPlaybackProfiles';
 
 /**
  * The worklet's own webpack config, asserted as configuration rather than run.
@@ -323,10 +322,7 @@ describe('dsp worklet bundle', () => {
 
   it('plays equal-rate LAN audio continuously across packet boundaries', () => {
     const processor = new (loadProcessor('fluideq-remote-audio'))();
-    // A source no mode was set for plays as music, from that profile's start.
-    const primingFrames = Math.round(
-      REMOTE_AUDIO_PLAYBACK_PROFILES.music.startBufferSeconds * SAMPLE_RATE,
-    );
+    const primingFrames = 11_520;
     const frames = primingFrames + QUANTUM * 12;
     const samples = Float32Array.from(
       { length: frames * 2 },
