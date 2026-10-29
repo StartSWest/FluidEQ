@@ -13,19 +13,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // frame across the page with the play key over it, and the words under it.
 // Beside the words, as the other showcase slides have it, a 16:9 film was a
 // third of the page wide in a well twice its height.
+// The page is exactly the stage's height, and the frame takes what the words
+// leave: a share of the window's height left the stage scrolling by 10 to
+// 20px at 2560 x 1440 and at 1024 x 768 alike (Ivan, 2026-10-29: "make the
+// section just a bit smaller so no scroll on 2k screen"), because the dialog's
+// own height is a formula of the window that a share of it cannot follow.
 .tour-slide.tour-walkthrough {
+  height: 100%;
   flex-direction: column;
   flex-wrap: nowrap;
   gap: calc(#{$u} * 1.1);
 
   // The showcase's row bases would be heights in a column.
-  > .tour-showcase__visual,
   > .tour-slide__text {
     flex: none;
   }
 
   > .tour-showcase__visual {
+    min-height: calc(#{$u} * 8);
+    flex: 1 1 0;
     padding: calc(#{$u} * 0.9);
+    // The frame is sized from this box (`cqw`, `cqh`), whichever of its
+    // width or its height runs out first.
+    container-type: size;
   }
 }
 
@@ -67,9 +77,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   position: relative;
   display: grid;
-  // As wide as the page, and no taller than leaves the words under it in
-  // view on a short window.
-  width: min(100%, calc(44vh * 16 / 9));
+  // As large as its box holds at the film's own shape (16:9, set on the
+  // element from the film).
+  width: min(100cqw, calc(100cqh * 16 / 9));
   place-items: center;
   overflow: hidden;
   border-radius: $radius-l;
