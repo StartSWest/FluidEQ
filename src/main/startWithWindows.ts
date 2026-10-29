@@ -34,6 +34,11 @@ export interface IStartWithWindows {
   blockedByWindows: boolean;
   /** The last write failed, and the switch is not what was asked for. */
   failed?: boolean;
+  /**
+   * A development build, which Windows cannot start: nothing is written and
+   * the row is not shown (`isStartableByWindows`).
+   */
+  unavailable?: boolean;
 }
 
 /**
@@ -47,23 +52,32 @@ export interface IStartWithWindows {
 export const START_IN_TRAY_ARG = '--start-in-tray';
 
 /**
- * In development `process.execPath` is Electron's own binary, which launches
- * nothing without the app beside it; a packaged build is the app. Registering
- * the wrong command would write an entry that opens an empty Electron at
- * every sign-in, which is worse than refusing.
+ * Only an installed FluidEQ can be started by Windows. A development build's
+ * main process is TypeScript that `dev-main.cjs` compiles as it loads, and
+ * its window comes from webpack's dev server, which `pnpm dev` starts and
+ * nothing at sign-in does. The entry development used to write — Electron
+ * pointed at the checkout — ran `main.ts` as plain JavaScript and put
+ * "Cannot use import statement outside a module" on screen at every sign-in
+ * (Ivan, 2026-10-29), so development writes none.
  */
-const appLaunch = () =>
-  app.isPackaged
-    ? { path: process.execPath, args: [] as string[] }
-    : { path: process.execPath, args: [app.getAppPath()] };
+const isStartableByWindows = () => app.isPackaged;
+
+/** A packaged build is its own executable, started with nothing else. */
+const appLaunch = () => ({ path: process.execPath, args: [] as string[] });
 
 /** The entry Windows starts FluidEQ from: the app, told to start in the tray. */
-const command = () => {
-  const launch = appLaunch();
-  return { ...launch, args: [...launch.args, START_IN_TRAY_ARG] };
+const command = () => ({ ...appLaunch(), args: [START_IN_TRAY_ARG] });
+
+const UNAVAILABLE: IStartWithWindows = {
+  on: false,
+  blockedByWindows: false,
+  unavailable: true,
 };
 
 export const readStartWithWindows = (): IStartWithWindows => {
+  if (!isStartableByWindows()) {
+    return UNAVAILABLE;
+  }
   const settings = app.getLoginItemSettings(command());
   return {
     on: settings.openAtLogin,
@@ -78,6 +92,9 @@ export const writeStartWithWindows = (
   wanted: boolean,
   logger?: { error(message: string, ...details: unknown[]): void },
 ): IStartWithWindows => {
+  if (!isStartableByWindows()) {
+    return UNAVAILABLE;
+  }
   try {
     app.setLoginItemSettings({ ...command(), openAtLogin: wanted });
   } catch (error) {
@@ -107,7 +124,10 @@ export const moveStartWithWindowsIntoTray = (logger?: {
   info(message: string): void;
   error(message: string, ...details: unknown[]): void;
 }): boolean => {
-  if (app.getLoginItemSettings(command()).openAtLogin) {
+  if (
+    !isStartableByWindows() ||
+    app.getLoginItemSettings(command()).openAtLogin
+  ) {
     return false;
   }
   const old = app.getLoginItemSettings(appLaunch());
