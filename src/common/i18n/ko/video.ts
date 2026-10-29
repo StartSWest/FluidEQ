@@ -13,7 +13,7 @@ const video = {
   'video.searchGo': '검색',
   'video.searchClear': '검색 지우기',
   'video.searchRecent': '최근 검색어',
-  'video.searchForget': '"{term}"를 잊어버리세요',
+  'video.searchForget': '"{term}" 지우기',
   'video.searchForgetAll': '최근 검색 지우기',
   'video.adBlock': '광고 차단',
   'video.adBlockHint':

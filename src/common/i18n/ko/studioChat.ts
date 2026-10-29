@@ -27,7 +27,7 @@ const studioChat = {
   'studioChat.install': 'Claude Code 설치',
   'studioChat.signIn': '로그인',
   'studioChat.signingIn': '로그인을 기다리는 중…',
-  'studioChat.checkAgain': '다시 확인하세요',
+  'studioChat.checkAgain': '다시 확인',
   'studioChat.plans':
     'Claude Code에는 Claude Pro, Max, Team 또는 Enterprise 요금제가 필요합니다.',
   'studioChat.otherAiNote':
@@ -116,7 +116,7 @@ const studioChat = {
   'studioChat.ask.pictureTitle': 'ChatGPT로 이 사진을 만드시겠어요?',
   'studioChat.ask.pictureSize': '{width} × {height}',
   'studioChat.ask.transparent': '투명한 배경에서 잘라내기',
-  'studioChat.ask.makeIt': '만들어 보세요',
+  'studioChat.ask.makeIt': '만들기',
   'studioChat.ask.allowChat': '이 채팅을 허용합니다',
   'studioChat.ask.cost': 'ChatGPT 계획을 사용합니다. 약 1분 정도.',
   'studioChat.chatgptOn': 'ChatGPT 사진이 켜져 있습니다.',
@@ -140,7 +140,7 @@ const studioChat = {
   'studioChat.sketch.title': '그림 위에 그림을 그리세요',
   'studioChat.sketch.lead':
     '사물에 동그라미를 치거나 화살표를 가리키거나 옆에 글을 쓰세요. Claude는 그림에서 당신의 흔적을 봅니다.',
-  'studioChat.sketch.done': '이 사진을 사용하세요',
+  'studioChat.sketch.done': '이 그림 사용',
   'studioChat.sketch.cancel': '취소',
   'studioChat.sketch.undo': '실행 취소',
   'studioChat.sketch.clear': '지우기',
@@ -154,7 +154,7 @@ const studioChat = {
   'studioChat.sketch.thick': '두꺼운 펜',
   'studioChat.sketch.canvas': '무대 그림에 그림을 그리다',
   'studioChat.sketch.open': '그림 위에 그림을 그리세요',
-  'studioChat.sketch.remove': '사진을 삭제하세요',
+  'studioChat.sketch.remove': '그림 삭제',
   'studioChat.sketch.tool': '도구',
   'studioChat.sketch.pen': '펜',
   'studioChat.sketch.arrow': '화살표',

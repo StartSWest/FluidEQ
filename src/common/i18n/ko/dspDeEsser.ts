@@ -25,7 +25,7 @@ const dspDeEsser = {
   'dsp.deEsser.widthOct': '폭',
   'dsp.deEsser.attackMs': '시작을 잡아라',
   'dsp.deEsser.releaseMs': '가자',
-  'dsp.deEsser.keepCymbals': '심벌즈를 보관하세요',
+  'dsp.deEsser.keepCymbals': '심벌 보존',
   'dsp.deEsser.mode.label': '감소 방법',
   'dsp.deEsser.mode.spectral': '스펙트럼',
   'dsp.deEsser.mode.treble': '고음',

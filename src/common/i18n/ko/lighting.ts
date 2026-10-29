@@ -25,7 +25,7 @@ const lighting = {
   'lighting.effect.scene': '장면',
   'lighting.effect.flow': '컬러 웨이브',
   'lighting.effect.spectrum': '스펙트럼',
-  'lighting.effect.pulse': '리플을 물리치세요',
+  'lighting.effect.pulse': '비트 물결',
   'lighting.tuning.sensitivity': '음악감수성',
   'lighting.tuning.speed': '모션 속도',
   'lighting.tuning.saturation': '색상 강도',

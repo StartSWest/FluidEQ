@@ -15,7 +15,7 @@ const engineHealth = {
     '사운드가 {device}의 FluidEQ를 통과하지 않습니다.',
   'engineHealth.bypassedBody':
     '이 출력을 위해 엔진이 설치되고 켜져 있으며 Windows는 그 너머로 음악을 재생하고 있습니다. 전혀 소리가 나지 않습니다. 출력에는 효과가 배치될 수 있는 여러 위치가 있으며 Windows는 각 스트림 종류에 대해 서로 다른 위치를 선택합니다. FluidEQ는 결코 지나치지 않는 이 음악에 앉아 있습니다. 다른 항목으로 이동하려면 Windows 권한 1회와 침묵 1초가 필요합니다.',
-  'engineHealth.tryAnotherSlot': '다른 곳을 찾아보세요',
+  'engineHealth.tryAnotherSlot': '다른 위치 시도',
   'engineHealth.partlyOff': '부분적으로 꺼짐',
   'engineHealth.problemsTitle': '사운드의 일부가 {device}에 도달하지 않습니다.',
   'engineHealth.problem.convolution':

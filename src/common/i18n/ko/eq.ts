@@ -556,7 +556,7 @@ const eq = {
   'autoeq.searchModels': '브랜드나 모델로 검색하세요…',
   'opra.about':
     'OPRA는 광범위한 헤드폰 모델을 최적화하는 제품 정보 및 EQ 보상 곡선이 포함된 커뮤니티에서 관리하는 개방형 디렉터리입니다.',
-  'opra.seeHere': '여기를 참조하세요',
+  'opra.seeHere': '여기 참조',
   'opra.createdBy': '프리셋 제작: {author}',
   'opra.distributedBy': 'Roon의 OPRA에서 배포',
   'opra.source': '소스',
@@ -917,7 +917,7 @@ const eq = {
   'myCurves.readFailed': '곡선을 읽을 수 없습니다.',
   'myCurves.readFailedBody':
     '그것들은 여전히 이 컴퓨터에 있고 아무것도 변경되지 않았습니다. 잠시 후에 다시 시도해 보세요.',
-  'myCurves.retry': '다시 시도하세요',
+  'myCurves.retry': '다시 시도',
   'myCurves.importSkippedMore':
     '제외, 곡선 없음 유지: {names} 및 {count} 더보기',
   'myCurves.importRoom':

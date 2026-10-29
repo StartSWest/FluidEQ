@@ -27,7 +27,7 @@ const help = {
   'help.tip': '알아두면 좋은 점',
   'help.back': '맨 위로 돌아가기',
   'help.group.start': '시작하기',
-  'help.group.sound': '사운드를 형성하세요',
+  'help.group.sound': '사운드 다듬기',
   'help.group.visuals': '음악 보기',
   'help.group.plus': '비주얼라이저 및 계정',
   'help.group.listen': '듣고, 노래하고, 공유하세요',
@@ -48,7 +48,7 @@ const help = {
   'help.video.loading': 'fluideq.com에서 로딩 중…',
   'help.video.failed':
     '동영상을 로드할 수 없습니다. fluideq.com에서 재생되므로 인터넷 연결이 필요합니다.',
-  'help.video.retry': '다시 시도하세요',
+  'help.video.retry': '다시 시도',
   'help.video.open': 'fluideq.com에서 열기',
   'help.window.title': '창의 각 부분',
   'help.window.intro':

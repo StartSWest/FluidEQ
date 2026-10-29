@@ -16,7 +16,7 @@ const bugReport = {
   'bugReport.privacyWithEmail':
     '계정 이름, 경로 및 이메일 주소는 자동으로 제거됩니다. 이 중 하나를 누를 때까지 아무 것도 전송되지 않습니다. 이메일은 개발자에게만 전달됩니다. 문제는 공개적입니다.',
   'bugReport.openIssue': 'GitHub 문제 열기',
-  'bugReport.email': '비공개로 이메일을 보내세요.',
+  'bugReport.email': '비공개 이메일로 보내기',
   'bugReport.copy': '복사',
   'bugReport.copied': '보고서가 복사되었습니다.',
   'bugReport.issuePaste':
