@@ -18,11 +18,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { execFile } from 'child_process';
 import path from 'path';
-import type { NsisUpdater } from 'electron-updater';
+import type { AppUpdater, NsisUpdater } from 'electron-updater';
 import type { IAppUpdateStatus } from '../common/constants';
 import { isMandatoryUpdate } from '../common/mandatoryUpdate';
 import { POWERSHELL_PATH, utf8Command } from './powershell';
-import { verifyUpdateFeedSignature } from './updateFeedSignature';
+import {
+  UPDATE_FEED_KEYS,
+  verifyUpdateFeedSignature,
+} from './updateFeedSignature';
+
+/**
+ * How this Linux copy was installed, which decides how an update lands: an
+ * AppImage replaces its own file, a .deb goes through the package manager.
+ * Anything else — the unpacked folder, a tarball, a distribution's own
+ * package — has nothing electron-updater can replace, so it gets no updater.
+ */
+export type TLinuxPackage = 'appimage' | 'deb';
 
 /**
  * How stale a check has to be before another one is worth making.
@@ -89,9 +100,12 @@ export type UpdateBearerTokenProvider = () => Promise<string>;
 export interface IReleaseAutoUpdateOptions {
   executablePath: string;
   isPackaged: boolean;
-  loadUpdater: () => NsisUpdater;
+  /** NSIS on Windows; on Linux the AppImage or .deb updater electron-updater picks. */
+  loadUpdater: () => AppUpdater;
   logger: IUpdateLogger;
   platform: NodeJS.Platform;
+  /** Linux only: how this copy was installed (`TLinuxPackage`). */
+  linuxPackage?: TLinuxPackage;
   publisherName: string;
   sendStatus: (status: IAppUpdateStatus) => void;
   updateUrl: string;
@@ -149,6 +163,15 @@ export interface IAuthorizedAutoUpdater {
    * a way to ask a question.
    */
   isReadyToInstall(): boolean;
+  /**
+   * Whether an install can run with nobody at the machine.
+   *
+   * False for a .deb: the package manager runs as root, so the install puts
+   * the desktop's password prompt up, and an unattended install would raise
+   * it in front of nobody — or in front of somebody who never asked. A .deb
+   * update downloads by itself and installs when the button is pressed.
+   */
+  installsUnattended: boolean;
   /**
    * Run one update check now, whatever the clock says.
    *
@@ -407,6 +430,7 @@ export const setUpReleaseAutoUpdates = async (
     executablePath,
     getBearerToken,
     isPackaged,
+    linuxPackage,
     loadUpdater,
     logger,
     onManualCheckResult,
@@ -419,17 +443,35 @@ export const setUpReleaseAutoUpdates = async (
     verifyUnsigned = verifyAuthenticodeUnsigned,
   } = options;
 
-  if (platform !== 'win32') {
-    logger.info('Updates disabled: only packaged Windows builds can update.');
+  if (platform !== 'win32' && platform !== 'linux') {
+    logger.info(
+      'Updates disabled: only packaged Windows and Linux builds can update.',
+    );
     return undefined;
   }
   if (!isPackaged) {
     logger.info('Updates disabled: this is a development build.');
     return undefined;
   }
+  const isLinux = platform === 'linux';
+  if (isLinux && !linuxPackage) {
+    logger.info(
+      'Updates disabled: this Linux copy is neither the AppImage nor the .deb, so nothing could install an update over it.',
+    );
+    return undefined;
+  }
+  // Linux has no Authenticode, so the feed's own signature is all that
+  // vouches for an update there, and a build that trusts no feed key would
+  // take whatever the repository's releases name.
+  if (isLinux && Object.keys(UPDATE_FEED_KEYS).length === 0) {
+    logger.warn(
+      'Updates disabled: this Linux build trusts no update feed key.',
+    );
+    return undefined;
+  }
 
-  const expectedPublisher = publisherName.trim();
-  const rawFeedPin = rawUpdateUrl.trim();
+  const expectedPublisher = isLinux ? '' : publisherName.trim();
+  const rawFeedPin = isLinux ? '' : rawUpdateUrl.trim();
   const hasPublisherPin = expectedPublisher.length > 0;
   const hasFeedPin = rawFeedPin.length > 0;
   if (hasPublisherPin !== hasFeedPin) {
@@ -448,14 +490,16 @@ export const setUpReleaseAutoUpdates = async (
     return undefined;
   }
 
-  const currentSignature = isSignedChannel
-    ? await verifyPublisher(executablePath, expectedPublisher)
-    : await verifyUnsigned(executablePath);
-  if (!currentSignature.valid) {
-    logger.warn(
-      `Updates disabled: current executable does not match its release channel (${currentSignature.reason || 'signature verification failed'}).`,
-    );
-    return undefined;
+  if (!isLinux) {
+    const currentSignature = isSignedChannel
+      ? await verifyPublisher(executablePath, expectedPublisher)
+      : await verifyUnsigned(executablePath);
+    if (!currentSignature.valid) {
+      logger.warn(
+        `Updates disabled: current executable does not match its release channel (${currentSignature.reason || 'signature verification failed'}).`,
+      );
+      return undefined;
+    }
   }
 
   // Loading electron-updater constructs its singleton. Keep that construction
@@ -477,24 +521,36 @@ export const setUpReleaseAutoUpdates = async (
     updater.setFeedURL(UNSIGNED_GITHUB_UPDATE_FEED);
   }
 
-  const verifyInstaller = (installerPath: string) =>
-    isSignedChannel
+  // On Linux a package carries no signature of its own to check: what
+  // vouches for it is the SHA-512 electron-updater has already matched
+  // against the feed, and the feed's signature, checked below like every
+  // channel's.
+  const verifyInstaller = (
+    installerPath: string,
+  ): Promise<ISignatureVerification> => {
+    if (isLinux) {
+      return Promise.resolve({ valid: true });
+    }
+    return isSignedChannel
       ? verifyPublisher(installerPath, expectedPublisher)
       : verifyUnsigned(installerPath);
+  };
 
   // electron-updater calls this in its NSIS download path when app-update.yml
   // contains publisherName. Unsigned builds do not have that field, so the
   // update-downloaded listener below repeats the check unconditionally and the
   // returned controller gates the only installation path.
-  updater.verifyUpdateCodeSignature = async (
-    _publisherNames,
-    installerPath,
-  ) => {
-    const verification = await verifyInstaller(installerPath);
-    return verification.valid
-      ? null
-      : verification.reason || 'Authenticode verification failed';
-  };
+  if (!isLinux) {
+    (updater as NsisUpdater).verifyUpdateCodeSignature = async (
+      _publisherNames,
+      installerPath,
+    ) => {
+      const verification = await verifyInstaller(installerPath);
+      return verification.valid
+        ? null
+        : verification.reason || 'Authenticode verification failed';
+    };
+  }
 
   let isMandatoryPending = false;
   let hasDownloaded = false;
@@ -684,7 +740,7 @@ export const setUpReleaseAutoUpdates = async (
   logger.info(
     isSignedChannel
       ? `Signed updates enabled from the official HTTPS feed: ${updateUrl}`
-      : `Unsigned updates enabled from GitHub Releases: ${UNSIGNED_GITHUB_UPDATE_FEED.owner}/${UNSIGNED_GITHUB_UPDATE_FEED.repo}`,
+      : `${isLinux ? `Linux ${linuxPackage}` : 'Unsigned'} updates enabled from GitHub Releases: ${UNSIGNED_GITHUB_UPDATE_FEED.owner}/${UNSIGNED_GITHUB_UPDATE_FEED.repo}`,
   );
 
   return {
@@ -693,6 +749,22 @@ export const setUpReleaseAutoUpdates = async (
         throw new Error(
           'The downloaded installer has not passed release-channel verification.',
         );
+      }
+      if (isLinux) {
+        // On Linux the install runs inside this call — the package manager
+        // behind the desktop's password prompt, or the AppImage moved over
+        // its own file — and electron-updater quits only afterwards, on the
+        // next turn. A refused prompt fails it here, raising `error` before
+        // the call returns; the quit flag is armed only once it has worked,
+        // or a cancelled password would leave the app quitting on the next
+        // close of its window instead of going to the tray.
+        isInstalling = true;
+        updater.quitAndInstall(isSilent, isForceRunAfter);
+        if (!isInstalling) {
+          throw new Error('The update could not be installed.');
+        }
+        beforeQuit?.();
+        return;
       }
       // Arm the tray's "real quit" flag before app.quit() runs — otherwise the
       // window's close handler cancels the exit and the detached installer
@@ -703,6 +775,7 @@ export const setUpReleaseAutoUpdates = async (
       updater.quitAndInstall(isSilent, isForceRunAfter);
     },
     isReadyToInstall: () => isInstallerAuthorized,
+    installsUnattended: linuxPackage !== 'deb',
     checkNow,
     checkIfDue,
   };

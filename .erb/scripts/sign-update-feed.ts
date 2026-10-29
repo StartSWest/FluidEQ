@@ -1,5 +1,6 @@
 /**
- * Signs `release/build/latest.yml` at the end of `pnpm package`.
+ * Signs `release/build/latest.yml` at the end of `pnpm package:release`, and
+ * `latest-linux.yml` at the end of `pnpm package:linux:release`.
  *
  * The app refuses an update whose feed it cannot verify once it carries a key
  * (see `src/main/updateFeedSignature.ts`). So once `UPDATE_FEED_KEYS` holds
@@ -84,7 +85,14 @@ export const signFeed = (
  * not be signed with it.
  */
 export const signReleaseFeed = ({
-  feedPath = path.join(__dirname, '../../release/build/latest.yml'),
+  // The feed this machine's package wrote: the Windows build's `latest.yml`,
+  // the Linux build's `latest-linux.yml` (the AppImage and the .deb in one),
+  // which is what electron-updater reads on Linux.
+  feedPath = path.join(
+    __dirname,
+    '../../release/build',
+    process.platform === 'linux' ? 'latest-linux.yml' : 'latest.yml',
+  ),
   store = createFeedKeyStore(),
   envPath = path.join(__dirname, '../../.env'),
   keys = UPDATE_FEED_KEYS,

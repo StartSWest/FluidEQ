@@ -19,7 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { app, BrowserWindow, Notification } from 'electron';
 import log from 'electron-log';
-import type { NsisUpdater } from 'electron-updater';
+import type { AppUpdater } from 'electron-updater';
+import linuxPackageOf from './linux/linuxPackage';
 import { APP_UPDATE_EVENT } from '../common/constants';
 import { translate } from '../common/i18n';
 import { appVersion } from './appVersion';
@@ -176,7 +177,12 @@ const createAppUpdates = ({
       install: installActiveUpdate,
       // Reads the controller through the same late-bound `activeAutoUpdater`
       // the install does, because this is built before it exists.
-      isInstallerReady: () => Boolean(activeAutoUpdater?.isReadyToInstall()),
+      // A .deb installs only when asked: its install is a password prompt.
+      isInstallerReady: () =>
+        Boolean(
+          activeAutoUpdater?.isReadyToInstall() &&
+          activeAutoUpdater.installsUnattended,
+        ),
       isPlayingAudio: isDspHostPlaying,
       isWindowOnScreen: () => isWindowOnScreen(getMainWindow()),
       rememberRestart: () =>
@@ -196,9 +202,10 @@ const createAppUpdates = ({
       // silent when they find nothing, which is most of the time.
       onManualCheckResult: (result, version) =>
         nativeUpdatePrompt?.notifyManualCheckResult(result, version),
+      linuxPackage: linuxPackageOf(),
       loadUpdater: () =>
         // eslint-disable-next-line global-require -- loaded only once updates are switched on, never on a build that has none
-        require('electron-updater').autoUpdater as NsisUpdater,
+        require('electron-updater').autoUpdater as AppUpdater,
       sendStatus: (payload) => {
         // The native surfaces first — a user with the window hidden into the
         // tray must see something regardless of whether the renderer is alive.

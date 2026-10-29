@@ -19,6 +19,9 @@
  *
  * The secret only ever crosses to PowerShell on standard input, never on a
  * command line, where any process can read it.
+ *
+ * On Linux, where the Linux packages are built and their feed is signed, the
+ * same key is kept in the account's keyring instead (`libsecretCipher`).
  */
 
 import fs from 'fs';
@@ -80,18 +83,70 @@ export const dpapiCipher: IFeedKeyCipher = {
     ),
 };
 
-export const DEFAULT_FEED_KEY_FILE = path.join(
-  process.env.APPDATA ?? path.join(os.homedir(), 'AppData', 'Roaming'),
-  'FluidEQ Release',
-  'update-feed-key.json',
-);
+/**
+ * What `libsecretCipher` writes into the key file: the key itself is not in
+ * it, only where the keyring keeps it.
+ */
+export const KEYRING_MARK = 'keyring:fluideq-update-feed';
+
+const secretTool = (args: string[], input?: string): string =>
+  execFileSync('secret-tool', args, {
+    input,
+    encoding: 'utf8',
+  });
+
+/**
+ * The Linux counterpart of DPAPI: the desktop's keyring (GNOME Keyring, or
+ * KWallet through its Secret Service), which encrypts for this account and
+ * opens with its login, through `secret-tool` (Ubuntu's `libsecret-tools`).
+ * The key goes in on standard input, never on a command line, as on Windows,
+ * and only the mark naming its entry is written to the key file.
+ */
+export const libsecretCipher: IFeedKeyCipher = {
+  protect: (plain) => {
+    secretTool(
+      ['store', '--label=FluidEQ update feed key', 'application', ENTROPY],
+      plain,
+    );
+    return KEYRING_MARK;
+  },
+  unprotect: (protectedText) => {
+    if (protectedText !== KEYRING_MARK) {
+      throw new Error(
+        'This key file was written on Windows; import the key on this machine.',
+      );
+    }
+    const key = secretTool(['lookup', 'application', ENTROPY]).trim();
+    if (!key) {
+      throw new Error('The keyring holds no update feed key.');
+    }
+    return key;
+  },
+};
+
+export const DEFAULT_FEED_KEY_FILE =
+  process.platform === 'linux'
+    ? path.join(
+        process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'),
+        'FluidEQ Release',
+        'update-feed-key.json',
+      )
+    : path.join(
+        process.env.APPDATA ?? path.join(os.homedir(), 'AppData', 'Roaming'),
+        'FluidEQ Release',
+        'update-feed-key.json',
+      );
+
+/** Windows' data protection on Windows, the account's keyring on Linux. */
+const platformCipher = (): IFeedKeyCipher =>
+  process.platform === 'linux' ? libsecretCipher : dpapiCipher;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
 export const createFeedKeyStore = ({
   filePath = DEFAULT_FEED_KEY_FILE,
-  cipher = dpapiCipher,
+  cipher = platformCipher(),
 }: { filePath?: string; cipher?: IFeedKeyCipher } = {}): IFeedKeyStore => {
   const read = (): IStoredFeedKey | undefined => {
     if (!fs.existsSync(filePath)) {

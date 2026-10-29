@@ -178,8 +178,88 @@ export const importPastedKey = (
   return { ok: true, keyId };
 };
 
-const run = (command: string | undefined): number => {
+/**
+ * The key typed or pasted at the terminal with nothing echoed, for Linux,
+ * where this machine has no clipboard tool to read it from (`wl-paste` and
+ * `xclip` are not part of a desktop install) and a key on a command line is
+ * readable by every process.
+ */
+const readHidden = (prompt: string): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const { stdin } = process;
+    if (!stdin.isTTY) {
+      reject(
+        new Error('Run this in a terminal: the key is pasted at a prompt.'),
+      );
+      return;
+    }
+    process.stdout.write(prompt);
+    stdin.setRawMode(true);
+    stdin.resume();
+    stdin.setEncoding('utf8');
+    let typed = '';
+    const finish = (error?: Error) => {
+      stdin.setRawMode(false);
+      stdin.pause();
+      stdin.removeListener('data', onData);
+      process.stdout.write('\n');
+      if (error) {
+        reject(error);
+      } else {
+        resolve(typed);
+      }
+    };
+    const onData = (chunk: string) => {
+      // A paste arrives as one chunk, a typed key as several; Enter ends it
+      // either way, and Ctrl+C abandons it rather than being read as text.
+      if (chunk.includes('\u0003')) {
+        finish(new Error('Cancelled.'));
+        return;
+      }
+      const end = chunk.search(/[\r\n]/);
+      typed += end === -1 ? chunk : chunk.slice(0, end);
+      if (end !== -1) {
+        finish();
+      }
+    };
+    stdin.on('data', onData);
+  });
+
+/** `import` on Linux: the key at a hidden prompt, kept in the keyring. */
+const importOnLinux = async (store: IFeedKeyStore): Promise<number> => {
+  let pasted: string;
+  try {
+    pasted = await readHidden(
+      'Paste the update feed key from your password manager, then press Enter: ',
+    );
+  } catch (error) {
+    console.error((error as Error).message);
+    return 1;
+  }
+  const outcome = importPastedKey(pasted, store);
+  if (!outcome.ok) {
+    console.error(outcome.reason);
+    return 1;
+  }
+  console.log(
+    `Update feed key "${outcome.keyId}" is kept in this account's keyring; ` +
+      `${store.filePath} names it.`,
+  );
+  return 0;
+};
+
+const run = async (command: string | undefined): Promise<number> => {
   const store = createFeedKeyStore();
+  if (process.platform === 'linux' && command === 'import') {
+    return importOnLinux(store);
+  }
+  if (process.platform === 'linux' && command === 'copy') {
+    console.error(
+      'copy runs on Windows, where the key was made; your password manager ' +
+        'already holds the copy this machine imports.',
+    );
+    return 1;
+  }
   if (command === 'copy') {
     const key = store.read();
     if (!key) {
@@ -221,5 +301,10 @@ const run = (command: string | undefined): number => {
 };
 
 if (require.main === module) {
-  process.exit(run(process.argv[2]));
+  run(process.argv[2])
+    .then((code) => process.exit(code))
+    .catch((error: unknown) => {
+      console.error(error);
+      process.exit(1);
+    });
 }

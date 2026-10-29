@@ -81,7 +81,10 @@ const makeHarness = () => {
 describe('current executable update authorization', () => {
   it.each([
     ['development', { isPackaged: false }],
-    ['non-Windows', { platform: 'linux' as NodeJS.Platform }],
+    ['macOS', { platform: 'darwin' as NodeJS.Platform }],
+    // The unpacked folder: neither the AppImage nor the .deb, so nothing
+    // could install an update over it.
+    ['Linux copy from no package', { platform: 'linux' as NodeJS.Platform }],
     ['missing publisher', { publisherName: '' }],
     ['missing feed', { updateUrl: '' }],
     ['non-HTTPS feed', { updateUrl: 'http://updates.example.com/' }],
@@ -126,6 +129,7 @@ describe('current executable update authorization', () => {
     expect(result).toEqual({
       checkIfDue: expect.any(Function),
       checkNow: expect.any(Function),
+      installsUnattended: true,
       isReadyToInstall: expect.any(Function),
       quitAndInstall: expect.any(Function),
     });
@@ -585,5 +589,143 @@ describe('an installer that does not start', () => {
     expect(harness.options.sendStatus).not.toHaveBeenCalledWith(
       expect.objectContaining({ phase: 'failed' }),
     );
+  });
+});
+
+/**
+ * Linux has no Authenticode: the feed's signature is what vouches for an
+ * update there, the SHA-512 it names is what electron-updater checks the
+ * download against, and a .deb's install is the desktop's password prompt.
+ */
+describe('updates on Linux', () => {
+  const onLinux = (
+    harness: ReturnType<typeof makeHarness>,
+    linuxPackage: 'appimage' | 'deb',
+    extra: Partial<IReleaseAutoUpdateOptions> = {},
+  ) =>
+    setUpReleaseAutoUpdates({
+      ...harness.options,
+      platform: 'linux',
+      linuxPackage,
+      // Windows' pins, which a Linux build must ignore: GitHub is its feed.
+      verifyUnsigned: jest.fn().mockResolvedValue({ valid: false }),
+      ...extra,
+    });
+
+  const download = async (harness: ReturnType<typeof makeHarness>) => {
+    harness.listeners.get('update-downloaded')?.({
+      downloadedFile: '/tmp/fluideq-app-updater/FluidEQ-2.2.1-amd64.deb',
+      version: '2.2.1',
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+  };
+
+  it('takes GitHub Releases and asks Windows nothing', async () => {
+    const harness = makeHarness();
+    const original = harness.updater.verifyUpdateCodeSignature;
+
+    const controller = await onLinux(harness, 'deb');
+
+    expect(controller).toBeDefined();
+    expect(harness.updater.setFeedURL).toHaveBeenCalledWith({
+      provider: 'github',
+      owner: 'StartSWest',
+      repo: 'FluidEQ',
+    });
+    expect(harness.verifyPublisher).not.toHaveBeenCalled();
+    expect(harness.updater.verifyUpdateCodeSignature).toBe(original);
+    expect(harness.updater.checkForUpdates).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets an AppImage install by itself and a .deb only when asked', async () => {
+    const appImage = await onLinux(makeHarness(), 'appimage');
+    const deb = await onLinux(makeHarness(), 'deb');
+
+    expect(appImage?.installsUnattended).toBe(true);
+    expect(deb?.installsUnattended).toBe(false);
+  });
+
+  it('authorizes a download whose feed the maker signed, and no other', async () => {
+    const verifyFeed = jest.spyOn(updateFeed, 'verifyUpdateFeedSignature');
+    try {
+      const signed = makeHarness();
+      const trusted = await onLinux(signed, 'deb');
+      verifyFeed.mockReturnValue({ valid: true });
+      await download(signed);
+      expect(trusted?.isReadyToInstall()).toBe(true);
+      expect(signed.options.sendStatus).toHaveBeenCalledWith({
+        phase: 'ready',
+        version: '2.2.1',
+      });
+
+      const unsigned = makeHarness();
+      const refused = await onLinux(unsigned, 'deb');
+      verifyFeed.mockReturnValue({
+        valid: false,
+        reason: 'the update feed is not signed',
+      });
+      await download(unsigned);
+      expect(refused?.isReadyToInstall()).toBe(false);
+      expect(unsigned.logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('the update feed is not signed'),
+      );
+    } finally {
+      verifyFeed.mockRestore();
+    }
+  });
+
+  it('is off in a Linux build that trusts no feed key', async () => {
+    const keys = jest.replaceProperty(updateFeed, 'UPDATE_FEED_KEYS', {});
+    try {
+      const harness = makeHarness();
+      expect(await onLinux(harness, 'appimage')).toBeUndefined();
+      expect(harness.loadUpdater).not.toHaveBeenCalled();
+    } finally {
+      keys.restore();
+    }
+  });
+
+  const ready = async (beforeQuit: jest.Mock) => {
+    const harness = makeHarness();
+    const controller = await onLinux(harness, 'deb', { beforeQuit });
+    if (!controller) {
+      throw new Error('setUpReleaseAutoUpdates returned no controller');
+    }
+    const verifyFeed = jest
+      .spyOn(updateFeed, 'verifyUpdateFeedSignature')
+      .mockReturnValue({ valid: true });
+    await download(harness);
+    verifyFeed.mockRestore();
+    return { harness, controller };
+  };
+
+  it('arms the quit only once the install has run', async () => {
+    const beforeQuit = jest.fn();
+    const { harness, controller } = await ready(beforeQuit);
+
+    controller.quitAndInstall(true, true);
+
+    const installOrder = (harness.updater.quitAndInstall as jest.Mock).mock
+      .invocationCallOrder[0];
+    expect(beforeQuit.mock.invocationCallOrder[0]).toBeGreaterThan(
+      installOrder,
+    );
+  });
+
+  it('stays open and says so when the password prompt is refused', async () => {
+    // electron-updater raises `error` inside the call when the package
+    // manager fails, before it would quit.
+    const beforeQuit = jest.fn();
+    const { harness, controller } = await ready(beforeQuit);
+    (harness.updater.quitAndInstall as jest.Mock).mockImplementation(() =>
+      harness.listeners.get('error')?.(new Error('Request dismissed')),
+    );
+
+    expect(() => controller.quitAndInstall(true, true)).toThrow(
+      /could not be installed/,
+    );
+    expect(beforeQuit).not.toHaveBeenCalled();
+    expect(controller.isReadyToInstall()).toBe(true);
   });
 });
