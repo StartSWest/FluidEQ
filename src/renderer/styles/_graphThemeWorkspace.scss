@@ -871,6 +871,18 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// Karaoke blurs its scenery itself so the words stay sharp. The scene painted
+// on this graph follows the same surface opacity, revealing that independent
+// stage instead of hiding the see-through slider behind an opaque canvas.
+.center-workspace.is-graph-full:has(
+    .workspace-tab-panel--karaoke.is-graph-overlay:not(.is-hidden)
+  )
+  > .graph-wrapper.has-playback-backdrop {
+  backdrop-filter: none;
+  --graph-scene-opacity: var(--graph-overlay-opacity, 1);
+  --graph-scene-visibility: var(--graph-overlay-scene-visibility, visible);
+}
+
 // Expanded on a page with no picture: the page folds away and the graph takes
 // its height (`isGraphGrown` in `App.tsx`).
 //

@@ -81,8 +81,9 @@ let heldHeight: number | null | undefined;
 let floorHeight: number | null | undefined;
 /** The same for the width the amp's rows need. */
 let neededWidth: number | undefined;
-// Linux can report an intermediate restore before its final configure.
-// Keep the old mode's layout until the page reaches the requested size.
+// Linux sends intermediate restore sizes before its final configure. Keep
+// the old layout until the viewport reaches the requested mode's size, or
+// the player measures the wide app and saves that layout as its own size.
 let linuxModeSwitching = false;
 
 const publish = (state: Partial<IWindowState> | undefined) => {
@@ -301,8 +302,8 @@ export const hidesWindow = () =>
 
 /**
  * Ask main for the other mode. What the page draws follows main's answer,
- * never the request: in full screen the switch is refused. Main answers once
- * the window has the new mode's size.
+ * never the request. Main leaves full screen first when needed and answers
+ * once the window has the new mode's size.
  *
  * The window goes before the question is asked — main hears the two in the
  * order they are sent — and comes back, in a `finally`, whatever the answer:

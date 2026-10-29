@@ -29,7 +29,26 @@ target_link_libraries(fluideq-remote-playback-test PRIVATE fluideq-playback-core
 feq_playback_target(fluideq-remote-playback-test)
 add_test(NAME remote-playback COMMAND fluideq-remote-playback-test)
 
+# Replays measured transport arrivals against the real mixer, without opening
+# any sound device. Its default run includes a steady and a stalled control.
+add_executable(fluideq-remote-arrival-replay tests/arrival_replay.cpp)
+target_link_libraries(fluideq-remote-arrival-replay PRIVATE fluideq-playback-core)
+feq_playback_target(fluideq-remote-arrival-replay)
+add_test(NAME remote-arrival-replay COMMAND fluideq-remote-arrival-replay)
+
 if(WIN32 AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
+  function(feq_continuity_source target writer)
+    add_executable(${target} tests/continuity_source.cpp "${writer}"
+      ../remote-audio-capture/src/capture_queue.cpp)
+    target_include_directories(${target} PRIVATE ../remote-audio-capture/src)
+    feq_playback_target(${target})
+    target_compile_definitions(${target} PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00)
+    target_link_libraries(${target} PRIVATE avrt)
+  endfunction()
+  feq_continuity_source(fluideq-continuity-source "${CMAKE_CURRENT_SOURCE_DIR}/../remote-audio-capture/src/capture_writer.cpp")
+  if(DEFINED FEQ_BASELINE_CAPTURE_WRITER)
+    feq_continuity_source(fluideq-continuity-source-baseline "${FEQ_BASELINE_CAPTURE_WRITER}")
+  endif()
   add_executable(fluideq-remote-audio-playback
     src/main.cpp src/wasapi_output.cpp src/playback_runtime.cpp src/replies.cpp
     src/capture_children.cpp)

@@ -1,0 +1,99 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026> <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'karaokeTokens' as *;
+
+.karaoke-backdrop {
+  display: contents;
+
+  > .karaoke-stage-media {
+    // Blur only the scenery, keeping lyrics and playlist text crisp.
+    filter: var(--karaoke-backdrop-filter, none);
+  }
+}
+
+// Two prepainted washes and two broad beams. Only transforms move: no canvas,
+// frame callbacks, animated blur or full-stage gradient repaints.
+.karaoke-ambient {
+  &::before,
+  &::after {
+    position: absolute;
+    inset: -12%;
+    content: '';
+    background: radial-gradient(
+      ellipse at 24% 64%,
+      color-mix(in srgb, #{$karaoke-warm} 20%, transparent),
+      transparent 54%
+    );
+    animation: karaoke-glow-drift 24s ease-in-out infinite alternate;
+  }
+
+  &::after {
+    background: radial-gradient(
+      ellipse at 76% 34%,
+      color-mix(in srgb, #{$karaoke-cool} 23%, transparent),
+      transparent 54%
+    );
+    animation-direction: alternate-reverse;
+    animation-duration: 31s;
+  }
+}
+
+.karaoke-ambient__light {
+  position: absolute;
+  top: -12%;
+  left: 8%;
+  width: 58%;
+  height: 120%;
+  background: conic-gradient(
+    from 156deg at 50% 0%,
+    transparent,
+    color-mix(in srgb, #{$karaoke-warm} 9%, transparent) 12deg,
+    color-mix(in srgb, #{$karaoke-warm} 14%, transparent) 24deg,
+    transparent 48deg
+  );
+  transform-origin: 50% 0;
+  animation: karaoke-spotlight-sway 19s ease-in-out infinite alternate;
+
+  &.is-cool {
+    left: 38%;
+    background: conic-gradient(
+      from 156deg at 50% 0%,
+      transparent,
+      color-mix(in srgb, #{$karaoke-cool} 10%, transparent) 12deg,
+      color-mix(in srgb, #{$karaoke-cool} 15%, transparent) 24deg,
+      transparent 48deg
+    );
+    animation-duration: 27s;
+    animation-direction: alternate-reverse;
+  }
+}
+
+@keyframes karaoke-glow-drift {
+  from {
+    transform: translate(-3%, 2%) scale(0.98);
+  }
+  to {
+    transform: translate(4%, -3%) scale(1.05);
+  }
+}
+
+@keyframes karaoke-spotlight-sway {
+  from {
+    transform: rotate(-14deg);
+  }
+  to {
+    transform: rotate(16deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .karaoke-ambient::before,
+  .karaoke-ambient::after,
+  .karaoke-ambient__light {
+    animation: none;
+  }
+}

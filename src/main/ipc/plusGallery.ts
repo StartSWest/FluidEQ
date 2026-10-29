@@ -28,7 +28,11 @@ import {
   reportScene,
   type TGalleryFailure,
 } from '../plus/galleryApi';
-import { sceneRefOf, type IGalleryAccess } from '../plus/galleryAccess';
+import {
+  authorizeGallery,
+  sceneRefOf,
+  type IGalleryAccess,
+} from '../plus/galleryAccess';
 import { createPictureCache } from '../plus/pictureCache';
 import {
   createPictureDiskCache,
@@ -334,10 +338,11 @@ export const registerPlusGalleryIpc = ({
   const listPage = async (
     query: IGalleryQuery,
   ): Promise<TGalleryListOutcome> => {
-    const auth = await access.auth();
-    const listed = auth
-      ? await listGallery(auth, query)
-      : ({ ok: false, reason: 'signed-out' } as const);
+    const authorization = await authorizeGallery(access, access.accountId());
+    if (!authorization.ok) {
+      return authorization;
+    }
+    const listed = await listGallery(authorization.auth, query);
     if (!listed.ok) {
       return listed;
     }

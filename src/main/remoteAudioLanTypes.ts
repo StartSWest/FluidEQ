@@ -32,6 +32,10 @@ export interface IRemoteAudioLan {
  * codes to drop when the other computer says so.
  */
 export interface ILanLinkBook {
+  snapshot?(): {
+    revoked: readonly string[];
+    links: readonly IAudioGroupLink[];
+  };
   groupLinks?(): readonly IAudioGroupLink[];
   saveGroupLink?(link: IAudioGroupLink): void;
   isRevoked(computerId: string): boolean;

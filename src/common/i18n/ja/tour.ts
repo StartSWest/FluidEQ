@@ -2,6 +2,17 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
+  'tour.karaokeBackground.title': '歌詞の背景にビジュアライザーを',
+  'tour.karaokeBackground.subtitle': '選んだスタイルをカラオケのステージに',
+  'tour.karaokeBackground.lead':
+    'ビジュアライザーやシーンをカラオケの背景に選べます。',
+  'tour.karaokeBackground.how':
+    'EQ の {looks} でスタイルを選び、カラオケで {showGraph} を押します。',
+  'tour.karaokeBackground.open': 'カラオケを開く',
+  'tour.karaokeBackground.imageAlt':
+    'カラオケの背景ボタンと、歌詞の後ろに表示されたシーン。',
+  'tour.karaokeBackground.lyric': '私たちの歌でこの夜を照らそう',
+
   'tour.contribute': 'ご支援をお願いします',
   'tour.eyebrow': 'このバージョンの新機能',
   'tour.title': 'FluidEQ の新機能',
@@ -192,9 +203,9 @@ const tour: Partial<Dictionary> = {
   'tour.studio.earned': '公開済み：あなたには無料で再生',
   'tour.help.kicker': 'ヘルプ',
   'tour.help.title': 'ガイドに、自分の言葉で聞く',
-  'tour.help.subtitle': '入力ミスも、語形の違いも、10 か国語も',
+  'tour.help.subtitle': '入力ミスも、語形の違いも、あなたの言葉で',
   'tour.help.lead':
-    '「音が出ない」「リミッター」「壁紙」のように、友だちに聞く感覚で、10 か国語のどれでもガイドを検索できます。いちばん合う章が最初に表示され、ガイドはその操作の場所まで移動して、図の中で丸く囲みます。',
+    '「音が出ない」「リミッター」「壁紙」のように、友だちに聞く感覚で、自分の言葉でガイドを検索できます。いちばん合う章が最初に表示され、ガイドはその操作の場所まで移動して、図の中で丸く囲みます。',
   'tour.help.point1':
     '入力ミスや語形の違いを吸収し、人がふだん使う呼び方も知っています。',
   'tour.help.point2':
@@ -717,6 +728,7 @@ const tour: Partial<Dictionary> = {
     '「オンラインメディア」タブを開き、上の列からサイトを選び、検索欄に入力して検索を押します。戻る、進む、再読み込みはブラウザーと同じです。',
   'tour.media.open': 'オンラインメディアを開く',
   'tour.studio.free': 'すべてのアカウントで無料',
+  'tour.film.englishAudio': '英語音声・翻訳字幕',
 };
 
 export default tour;

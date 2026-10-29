@@ -284,6 +284,13 @@ const eq: Partial<Dictionary> = {
   'graph.picker.search': 'Поиск стилей и визуализаторов',
   'graph.picker.styles': 'Стили',
   'graph.picker.plus': 'Визуализаторы',
+  'graph.picker.discover.title': 'Оживите свою музыку',
+  'graph.picker.discover.body':
+    'Покупайте анимированные сцены навсегда или бесплатно создавайте свои в Studio.',
+  'graph.picker.discover.explore': 'Посмотреть сцены',
+  'graph.picker.discover.create': 'Создать свою',
+  'graph.picker.discover.free':
+    'FluidEQ и его инструменты для звука остаются бесплатными.',
   'graph.picker.all': 'Все',
   'graph.picker.yours': 'Ваши',
   'graph.picker.filterStyles': 'Фильтр стилей',

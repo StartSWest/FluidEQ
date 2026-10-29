@@ -19,6 +19,7 @@ import { createLightingService } from 'main/lighting/lightingService';
 import type { ILampArrayEvent, THelperEvent } from 'main/lighting/lightingWire';
 import { LANTERN_NIGHT_SOURCE } from 'main/lighting/lanternNightScene';
 import { checkMemberSceneSource } from 'common/memberSceneRules';
+import { LOCALES } from 'common/i18n';
 import {
   DEFAULT_LIGHTING_SETTINGS,
   type TSynapseState,
@@ -118,7 +119,7 @@ it('hands the page the lantern night as a pack that passes every rule', () => {
   expect(checkMemberSceneSource(LANTERN_NIGHT_SOURCE)).toEqual([]);
   // Named in every language the app speaks, not after a project.
   expect(Object.keys(pack?.names ?? {}).sort()).toEqual(
-    ['de', 'en', 'es', 'fr', 'hi', 'it', 'ja', 'pt', 'ru', 'zh'].sort(),
+    LOCALES.map(({ code }) => code).sort(),
   );
   // The time of day first, as every scene the Studio builds declares it.
   expect(pack?.params.map((param) => param.id)).toEqual([

@@ -154,6 +154,15 @@ mutation ForumComment($discussionId: ID!, $body: String!) {
 }
 `;
 
+/** A comment on an issue: GitHub's general `addComment`, given the issue's id. */
+export const ADD_ISSUE_COMMENT = `
+mutation ForumIssueComment($subjectId: ID!, $body: String!) {
+  addComment(input: { subjectId: $subjectId, body: $body }) {
+    commentEdge { node { id } }
+  }
+}
+`;
+
 export const ADD_REPLY = `
 mutation ForumReply($discussionId: ID!, $body: String!, $replyToId: ID!) {
   addDiscussionComment(input: { discussionId: $discussionId, body: $body, replyToId: $replyToId }) {

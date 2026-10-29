@@ -337,8 +337,8 @@ it under the terms of the GNU General Public License version 3 or later.
     // Wraps rather than being cut. The columns are fixed so they line up, so
     // a label longer than its column has to give somewhere — and a menu that
     // clips the end of a word is a menu that cannot be read. The width above
-    // is set so that no label in any of the ten languages needs this; it is
-    // here for the one that some day will.
+    // fits ordinary labels; wrapping keeps a longer translation readable
+    // too.
     white-space: normal;
     overflow-wrap: break-word;
   }

@@ -43,6 +43,10 @@ const createRemoteAudioBook = (
   };
   const publishJoins = () => publish(savedJoins());
   const book: ILanLinkBook = {
+    snapshot: () => {
+      const state = credentials.read();
+      return { revoked: state.revoked, links: state.groupLinks ?? [] };
+    },
     groupLinks: () => credentials.read().groupLinks ?? [],
     saveGroupLink: (link) => {
       credentials.saveGroupLink(link);

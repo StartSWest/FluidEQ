@@ -1,5 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 #include "capture_writer.h"
+#include "../../common/windows_audio_task.h"
 
 CaptureWriter::CaptureWriter(HANDLE output, HANDLE parent,
                              std::uint32_t sample_rate, std::uint16_t channels)
@@ -85,6 +86,7 @@ bool CaptureWriter::write(const void* data, std::uint32_t bytes) noexcept {
 }
 
 DWORD WINAPI CaptureWriter::run(void* context) {
+  const feq::remote::AudioIoTask scheduling;
   auto& self = *static_cast<CaptureWriter*>(context);
   const CaptureFrameHeader ready{kCaptureFrameMagic, 1, kCapturePipeVersion,
       self.sample_rate_, self.channels_, 0, 0};

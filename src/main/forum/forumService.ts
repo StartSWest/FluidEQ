@@ -13,6 +13,7 @@ import type { IForumConfig } from './forumConfig';
 import ForumError from './forumError';
 import type { IForumFeedSource } from './forumFeed';
 import type { IForumIssuesSource } from './forumIssues';
+import type { IIssuesLive } from './issuesLive';
 import {
   type IRepositoryBoards,
   readBoardCounts,
@@ -23,6 +24,7 @@ import {
 } from './forumGraphqlModel';
 import {
   ADD_COMMENT,
+  ADD_ISSUE_COMMENT,
   ADD_REPLY,
   ADD_VOTE,
   BOARDS_QUERY,
@@ -40,7 +42,7 @@ import {
   UPDATE_TOPIC_TITLE,
   VIEWER_QUERY,
 } from './forumQueries';
-import { num, person, rec, str } from './forumRead';
+import { arr, num, person, rec, str } from './forumRead';
 import type { IForumSession } from './forumSession';
 import { createGithubApi, type IGithubApi } from './githubApi';
 
@@ -78,6 +80,8 @@ export interface IForumServiceDeps {
   feed: IForumFeedSource;
   /** The repository's issues; none where nothing publishes them. */
   issues?: IForumIssuesSource;
+  /** The issues read from GitHub itself; the file above when it cannot. */
+  live?: IIssuesLive;
   fetchImpl?: typeof fetch;
 }
 
@@ -159,18 +163,75 @@ export const createForumService = ({
   session,
   feed,
   issues = NO_ISSUES,
+  live,
   fetchImpl = fetch,
 }: IForumServiceDeps): IForumService => {
-  // Opening a topic asks first whether its number is an issue's. A file that
-  // cannot be read then means "not an issue", so a missing or unreachable
-  // issues' file never stops a discussion from opening.
-  const issuesOrNone = () => issues.load().catch(() => []);
+  // The issues as GitHub has them now (`issuesLive.ts`), and the published
+  // file whenever GitHub cannot be asked — it is at most five minutes behind.
+  const allIssues = () =>
+    live ? live.list().catch(() => issues.load()) : issues.load();
+  // Opening a topic asks first whether its number is an issue's. A list that
+  // cannot be read at all then means "not an issue", so an unreachable
+  // GitHub and a missing file never stop a discussion from opening.
+  const issuesOrNone = () => allIssues().catch(() => []);
+  const issueThread = async (number: number, listed: IForumTopic) => {
+    if (live) {
+      try {
+        return await live.thread(number);
+      } catch {
+        // Offline or past GitHub's limit: the published copy below.
+      }
+    }
+    const published = await issues.load().catch(() => []);
+    return published.find((issue) => issue.number === number) ?? listed;
+  };
   const repository = { owner: config.owner, name: config.name };
   const api: IGithubApi = createGithubApi({
     accessToken: () => session.accessToken(),
     onUnauthorized: () => session.invalidate(),
     fetchImpl,
   });
+
+  // Whether the sign-in's GitHub App may comment on this repository's
+  // issues: it may not unless its owner gave it "Issues: Read and write"
+  // and the installation on the repository accepted that. GitHub says which
+  // through the reader's own token. A yes is kept for the token; a no, or a
+  // failure to ask, is asked again at the next thread, so a permission
+  // granted while the app runs is seen without signing in again.
+  let issueWrites: { token: string; answer: Promise<boolean> } | undefined;
+  const canWriteIssues = async (): Promise<boolean> => {
+    if (!signedIn()) {
+      return false;
+    }
+    const token = await session.accessToken().catch(() => '');
+    if (!token) {
+      return false;
+    }
+    if (issueWrites?.token !== token) {
+      issueWrites = {
+        token,
+        answer: api
+          .get('https://api.github.com/user/installations')
+          .then((payload) =>
+            arr(rec(payload).installations).some((value) => {
+              const installation = rec(value);
+              return (
+                str(rec(installation.account).login).toLowerCase() ===
+                  config.owner.toLowerCase() &&
+                str(rec(installation.permissions).issues) === 'write'
+              );
+            }),
+          )
+          .catch(() => false),
+      };
+    }
+    const asked = issueWrites;
+    const answer = await asked.answer;
+    if (!answer && issueWrites === asked) {
+      issueWrites = undefined;
+    }
+    return answer;
+  };
   // The repository's id and the boards' ids, which every new topic needs.
   // Kept from the last boards read under this sign-in.
   let known: IRepositoryBoards | undefined;
@@ -243,10 +304,11 @@ export const createForumService = ({
     },
 
     topics: async (query) => {
-      // The issues' row reads the issues' file for everybody (`forumIssues.ts`).
-      // A search still spans the discussions alone.
+      // The issues' row reads GitHub for everybody, without a token, and
+      // the published file when it cannot (`issuesLive.ts`). A search
+      // still spans the discussions alone.
       if (query.board === FORUM_ISSUES_BOARD && !searchWords(query.search)) {
-        return feedPage(await issues.load(), query);
+        return feedPage(await allIssues(), query);
       }
       if (!signedIn()) {
         return feedPage((await feed.load()).topics, query);
@@ -280,7 +342,13 @@ export const createForumService = ({
         (candidate) => candidate.number === number,
       );
       if (issue) {
-        return issue;
+        const [thread, canComment] = await Promise.all([
+          issueThread(number, issue),
+          canWriteIssues(),
+        ]);
+        return thread.issue
+          ? { ...thread, issue: { ...thread.issue, canComment } }
+          : thread;
       }
       if (!signedIn()) {
         const found = (await feed.load()).topics.find(
@@ -333,6 +401,12 @@ export const createForumService = ({
     },
 
     reply: async (topicId, body, replyToId) => {
+      // GitHub's ids say what they name: an issue's starts `I_`, a
+      // discussion's `D_`. An issue takes the general comment mutation.
+      if (topicId.startsWith('I_')) {
+        await api.graphql(ADD_ISSUE_COMMENT, { subjectId: topicId, body });
+        return;
+      }
       await (replyToId
         ? api.graphql(ADD_REPLY, { discussionId: topicId, body, replyToId })
         : api.graphql(ADD_COMMENT, { discussionId: topicId, body }));

@@ -2,6 +2,17 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
+  'tour.karaokeBackground.title': 'Visualizer hinter Ihrem Liedtext',
+  'tour.karaokeBackground.subtitle': 'Ihr gewählter Look auf der Karaoke-Bühne',
+  'tour.karaokeBackground.lead':
+    'Wählen Sie einen Visualizer oder eine Szene als Karaoke-Hintergrund.',
+  'tour.karaokeBackground.how':
+    'Wählen Sie unter {looks} im EQ einen Look und drücken Sie dann in Karaoke auf {showGraph}.',
+  'tour.karaokeBackground.open': 'Karaoke öffnen',
+  'tour.karaokeBackground.imageAlt':
+    'Die Karaoke-Hintergrundtaste mit einer Szene hinter dem Liedtext.',
+  'tour.karaokeBackground.lyric': 'Unser Lied erhellt die Nacht',
+
   'tour.contribute': 'Bitte unterstützen Sie uns',
   'tour.eyebrow': 'NEU IN DIESER VERSION',
   'tour.title': 'Neu in FluidEQ',
@@ -197,9 +208,9 @@ const tour: Partial<Dictionary> = {
   'tour.studio.earned': 'Veröffentlicht: läuft für Sie kostenlos',
   'tour.help.kicker': 'HILFE',
   'tour.help.title': 'Fragen Sie das Handbuch mit eigenen Worten',
-  'tour.help.subtitle': 'Tippfehler, Pluralformen und zehn Sprachen',
+  'tour.help.subtitle': 'Tippfehler, Pluralformen und Ihre Sprache',
   'tour.help.lead':
-    'Durchsuchen Sie das Handbuch so, wie Sie einen Freund fragen würden – „kein Ton“, „Limiter“, „Hintergrundbild“ – in jeder der zehn Sprachen. Das beste Kapitel steht ganz oben, und das Handbuch führt Sie zum Bedienelement, auf dem Bild eingekreist.',
+    'Durchsuchen Sie das Handbuch so, wie Sie einen Freund fragen würden – „kein Ton“, „Limiter“, „Hintergrundbild“ – in Ihrer Sprache. Das beste Kapitel steht ganz oben, und das Handbuch führt Sie zum Bedienelement, auf dem Bild eingekreist.',
   'tour.help.point1':
     'Es verzeiht Tippfehler und Pluralformen und kennt die Wörter, die Menschen für die Dinge verwenden.',
   'tour.help.point2':
@@ -734,6 +745,7 @@ const tour: Partial<Dictionary> = {
     'Öffnen Sie den Tab Online-Medien, wählen Sie oben eine Seite, tippen Sie ins Suchfeld und drücken Sie Suchen. Zurück, Vorwärts und Neu laden funktionieren wie im Browser.',
   'tour.media.open': 'Online-Medien öffnen',
   'tour.studio.free': 'Kostenlos für jedes Konto',
+  'tour.film.englishAudio': 'Englischer Ton · übersetzte Untertitel',
 };
 
 export default tour;

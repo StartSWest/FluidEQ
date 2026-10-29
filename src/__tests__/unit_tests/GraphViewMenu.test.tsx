@@ -1,7 +1,12 @@
 import '@testing-library/jest-dom';
 import type { ComponentProps } from 'react';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import GraphViewMenu from 'renderer/graph/GraphViewMenu';
+import KaraokeSceneAppearanceControls from 'renderer/karaoke/KaraokeSceneAppearanceControls';
+import {
+  setKaraokeSceneBlur,
+  setKaraokeSceneOpacity,
+} from 'renderer/karaoke/karaokeSceneAppearance';
 import type { TGraphCurve } from 'renderer/utils/graphStyle';
 import {
   readScenePerformance,
@@ -51,6 +56,57 @@ const renderMenuForSizing = (
   );
 
 describe('GraphViewMenu curve toggles', () => {
+  it('offers independent Karaoke appearance controls in normal View without editing the graph', () => {
+    act(() => {
+      setKaraokeSceneOpacity(1);
+      setKaraokeSceneBlur(0);
+    });
+    const graphOpacity = jest.fn();
+    const graphBlur = jest.fn();
+    renderMenuForSizing({
+      view: 'normal',
+      sceneLookId: 'premium:aurora',
+      hasPlaybackBackdrop: true,
+      backdropControls: <KaraokeSceneAppearanceControls />,
+      onChangeOverlayOpacity: graphOpacity,
+      onChangeOverlayBlur: graphBlur,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'View' }));
+    fireEvent.change(screen.getByRole('slider', { name: 'See through' }), {
+      target: { value: '75' },
+    });
+    fireEvent.change(screen.getByRole('slider', { name: 'Blur' }), {
+      target: { value: '12' },
+    });
+    expect(window.localStorage.getItem('fluideq-karaoke-scene-opacity')).toBe(
+      '0.25',
+    );
+    expect(window.localStorage.getItem('fluideq-karaoke-scene-blur')).toBe(
+      '12',
+    );
+    expect(graphOpacity).not.toHaveBeenCalled();
+    expect(graphBlur).not.toHaveBeenCalled();
+  });
+  it('offers see-through and blur for a Plus graph over Karaoke', () => {
+    const opacity = jest.fn();
+    const blur = jest.fn();
+    renderMenuForSizing({
+      view: 'expanded',
+      sceneLookId: 'premium:aurora',
+      hasPlaybackBackdrop: true,
+      onChangeOverlayOpacity: opacity,
+      onChangeOverlayBlur: blur,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Expanded' }));
+    fireEvent.change(screen.getByRole('slider', { name: 'See through' }), {
+      target: { value: '75' },
+    });
+    fireEvent.change(screen.getByRole('slider', { name: 'Blur' }), {
+      target: { value: '12' },
+    });
+    expect(opacity).toHaveBeenCalledWith(0.25);
+    expect(blur).toHaveBeenCalledWith(12);
+  });
   it('offers drawing controls for a Standard visualizer and saves them separately from Plus', () => {
     window.localStorage.removeItem('fluideq.standardPerformance');
     resetScenePerformanceForTesting();

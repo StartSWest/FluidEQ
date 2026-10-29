@@ -34,6 +34,7 @@ import { featureTourFor } from '../components/featureTour/slides';
 import MandatoryUpdateModal from '../components/MandatoryUpdateModal';
 import PlusTermsNotice from '../components/PlusTermsNotice';
 import SceneAnnouncementDialog from '../components/SceneAnnouncementDialog';
+import { AppNewsHost, AppNewsNotice } from '../components/AppNews';
 import ProcessesDialog from '../components/ProcessesDialog';
 import RestartAudioDialog from '../components/RestartAudioDialog';
 import SceneReviewNotice from '../components/SceneReviewNotice';
@@ -72,6 +73,7 @@ export interface IShellDialogsProps {
    * rather than by the red banner every other blocking failure raises.
    */
   isEngineUnchosen: boolean;
+  isNewsObscured?: boolean;
   selectTopWorkspaceTab: (tab: TWorkspaceTab) => void;
 }
 
@@ -83,6 +85,7 @@ const ShellDialogs = ({
   dialogs,
   engine,
   isEngineUnchosen,
+  isNewsObscured = false,
   selectTopWorkspaceTab,
 }: IShellDialogsProps) => {
   const { globalError, isBlockingError, isLoading, setGlobalError } =
@@ -255,6 +258,8 @@ const ShellDialogs = ({
       {/* New scenes announced, once, on whichever tab is open: the set's
           first scene plays on the graph from its button. */}
       <SceneAnnouncementDialog />
+      <AppNewsNotice obscured={isNewsObscured} />
+      <AppNewsHost />
       {showFeatureTour && (
         <FeatureTour
           version={PRODUCT_VERSION}

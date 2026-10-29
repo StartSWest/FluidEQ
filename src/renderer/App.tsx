@@ -27,6 +27,8 @@ import {
 } from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import { isAccountConfigured } from 'common/accountConfig';
+import { useKaraokeBackgroundChoice } from './karaoke/karaokeWorkspacePrefs';
+import KaraokeSceneAppearanceControls from './karaoke/KaraokeSceneAppearanceControls';
 import useMediaQuery from './utils/useMediaQuery';
 import {
   setSoundPaneFolded,
@@ -256,6 +258,8 @@ const AppContent = () => {
   // The EQ pages lock on all three ways a band cannot be heard, not only the
   // two the context knows about. See `eqReachesSound.ts`.
   const isEqReachingSound = eqReachesSound(isEngineUsable, isEngineOnOutput);
+
+  const karaokeBackground = useKaraokeBackgroundChoice();
 
   const { showsGraph, setActiveTabGraphVisibility, showGraphOn } = useTabGraph({
     activeWorkspaceTab,
@@ -761,13 +765,20 @@ const AppContent = () => {
                 onEnd={resize.handleGraphResizeEnd}
               />
             )}
-            {showsGraph ? (
+            {showsGraph && (
               <FrequencyResponseChart
                 isVisible
                 hasLayersInHead={isGraphFirst && activeWorkspaceTab === 'eq'}
                 isGrown={isGraphGrown}
+                hasPlaybackBackdrop={mounts.showsKaraokeGraphBackdrop}
+                backdropControls={
+                  activeWorkspaceTab === 'karaoke' &&
+                  karaokeBackground === 'graph' ? (
+                    <KaraokeSceneAppearanceControls />
+                  ) : undefined
+                }
               />
-            ) : null}
+            )}
             {/* The graph's Plus visualizer, beside the graph and not in it:
                 on the plot, the EQ column or, on the EQ page, the Backdrop
                 (`GraphScene`). Renders only its canvas, wherever that is. */}
@@ -808,6 +819,7 @@ const AppContent = () => {
         <ShellDialogs
           dialogs={dialogs}
           engine={engine}
+          isNewsObscured={isSoundPaneOverPage && isSoundPaneShown}
           isEngineUnchosen={isEngineUnchosen}
           selectTopWorkspaceTab={selectTopWorkspaceTab}
         />

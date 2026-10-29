@@ -25,6 +25,7 @@ export interface IAudioGroupLink extends IAudioGroupEndpoint {
 }
 
 export const MAX_AUDIO_GROUP_COMPUTERS = 32;
+export const MAX_AUDIO_REVOKED_COMPUTERS = 64;
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 export const isAudioComputerId = (value: unknown): value is string =>

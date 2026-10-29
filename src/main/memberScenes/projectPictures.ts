@@ -117,7 +117,7 @@ const cleanNames = (value: unknown): TLocalizedName | undefined => {
   const cleaned: Record<string, string> = {};
   Object.entries(value).forEach(([locale, raw]) => {
     const name = sanitizeDisplayText(raw);
-    if (/^[a-z]{2}$/.test(locale) && name) {
+    if (/^(?:[a-z]{2}|zh-Hant)$/.test(locale) && name) {
       cleaned[locale] = name.slice(0, MAX_MEMBER_NAME_LENGTH);
     }
   });

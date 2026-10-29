@@ -24,6 +24,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // nine thousand lines until 2026-09-28, split with the compiled CSS held
 // identical.
 @use 'karaokeWorkspace';
+@use 'karaokeGraphBackground';
+@use 'karaokeAmbient';
 @use 'karaokePlaylist';
 @use 'karaokeSong';
 @use 'karaokeTransport';

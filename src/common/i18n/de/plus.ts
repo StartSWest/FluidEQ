@@ -39,6 +39,8 @@ const plus = {
     'Die Galerie konnte nicht geladen werden. Versuchen Sie es erneut.',
   'plus.gallery.moreError':
     'Weitere Szenen konnten nicht geladen werden. Versuchen Sie es erneut.',
+  'plus.gallery.error.forbidden':
+    'Dieses Konto hat keine Berechtigung, diese Szenen zu laden.',
   'plus.gallery.retry': 'Erneut versuchen',
 
   'plus.category.nature': 'Natur',

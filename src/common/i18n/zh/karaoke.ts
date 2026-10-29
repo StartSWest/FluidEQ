@@ -20,6 +20,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const karaoke: Partial<Dictionary> = {
+  'karaoke.import.clearTitle': '清空整个卡拉 OK 播放列表？',
+  'karaoke.import.clearBody':
+    '这将停止播放并清空整个卡拉 OK 播放列表。文件仍会保留在此电脑上。',
   'karaoke.eyebrow': '本地卡拉OK',
   'karaoke.title': '为你的音乐打造的舞台',
   'karaoke.intro':
@@ -69,6 +72,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.stage.videoUnsupported': '此处无法播放 {format} 视频',
   'karaoke.stage.videoFailed': '此处无法解码 {format} 视频',
   'karaoke.stage.hideArt': '隐藏封面',
+  'karaoke.stage.showGraph': '将当前可视化效果用作背景',
+  'karaoke.stage.hideGraph': '关闭可视化背景',
   'karaoke.stage.showArt': '显示封面',
   'karaoke.stage.noArt': '这首歌没有封面',
   'karaoke.playlist.title': '播放列表',

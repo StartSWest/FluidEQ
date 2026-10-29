@@ -16,3 +16,4 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 export const MODEL_PROCESS_NAME = 'FluidEQ Native Inference';
 export const LIBRARY_SCAN_PROCESS_NAME = 'FluidEQ Library Scan';
+export const SHARE_AUDIO_PROCESS_NAME = 'FluidEQ Share Audio';

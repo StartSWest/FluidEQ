@@ -43,7 +43,7 @@ export const SCENE_DAYLIGHT_CONTROL = {
 
 /**
  * The same, as it is written in the file: filled into the sentence rather
- * than written out in each of its ten languages, since it is what goes in
+ * than translated into every interface language, since it is what goes in
  * `pack.json`, not words.
  */
 export const SCENE_DAYLIGHT_DECLARATION = JSON.stringify(

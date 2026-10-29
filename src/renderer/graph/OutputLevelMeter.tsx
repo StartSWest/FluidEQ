@@ -109,7 +109,7 @@ const METER_STYLE_NAME_KEYS = {
 /**
  * What to call a bar.
  *
- * A single letter, and still a key: several of the ten locales do not use L and
+ * A single letter, and still a key: several supported locales do not use L and
  * R for this — Russian sound gear says Л and П, Chinese 左 and 右 — and the one
  * place a translator can say so is a dictionary entry. `M` is the honest label
  * for the case where Windows handed over a mono endpoint and there is genuinely

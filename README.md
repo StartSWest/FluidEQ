@@ -251,8 +251,8 @@ installed and nothing leaves your network.
 
 ![The Share Audio tab, headed "Share audio between your computers": a live strip of the shared sound with the network's rate, its state, the playback delay and the peak level; under it this computer's two roles side by side — Play audio on this computer, chosen, for the computer your headset is connected to, and Send audio from this computer, for each of the others — and below them the connection code, blurred, with Copy code. The equaliser's side column and the output panel stay either side of it.](docs/14-share-audio-roles.png)
 
-**Ten languages.** English, 简体中文, हिन्दी, Español, Français, Português,
-Русский, 日本語, Deutsch, Italiano — the most-spoken left-to-right scripts.
+**12 interface languages.** English, 简体中文, 繁體中文, हिन्दी, Español, Français,
+Português, Русский, 日本語, 한국어, Deutsch, Italiano.
 The installer offers a language too, preselecting your Windows one, and the app
 does the same on first run. Change it any time from the actions menu. Every
 label, hint, error and tooltip is translated, and a test fails the build if a
@@ -261,9 +261,9 @@ the layout has never been mirrored, and a broken Arabic is worse than none.
 
 **A guide inside the app.** F1 opens a user guide from anywhere, searched the
 way you would ask a friend — "no sound", "limiter", "wallpaper" — in any of the
-ten languages, forgiving typos and plurals. The best chapter comes first, and
-every control on its pictures is numbered like a printed manual, with the one
-you asked about ringed. The same guide is in [docs/USER-GUIDE.md](docs/USER-GUIDE.md).
+supported languages, forgiving typos and plurals. The best chapter comes first,
+and every control on its pictures is numbered like a printed manual, with the one
+you asked about ringed. An English edition is in [docs/USER-GUIDE.md](docs/USER-GUIDE.md).
 
 **Updates itself, from wherever it came from.** The build published here checks
 GitHub for a new version, downloads it in the background and offers to restart.
@@ -881,7 +881,8 @@ what you interact with.
 - **A live spectrum, a response graph and a real level meter**, in three sizes
   that each remember how you left them, the spectrum drawn as a measuring view
   or a drawn form and the meter in any of ten looks.
-- **Ten languages**, with a test that fails the build when one falls behind.
+- **12 interface languages**, with a test that fails the build when one falls
+  behind.
 - **In-app updates** and a What's new dialog rendered from the changelog, with a
   tray icon that keeps the equaliser running when the window is closed.
 - Window position and size remembered, and no white flash on launch.
@@ -964,12 +965,12 @@ manual does, and the list underneath names each one under the same number, with
 its shortcut where it has one; point at a line and the control is ringed on the
 capture. Click any capture to enlarge it.
 Ask the search in your own words: it ranks what it finds, forgives typos and
-plurals, knows the words people use for things in all ten languages and
+plurals, knows the words people use for things in all supported languages and
 searches the English guide alongside yours, then takes you to the passage and
 rings the control it is about. The guide follows the app's selected language
 and theme.
 
-The same instructions are available as an [illustrated, print-ready document](docs/user-guide.html)
+English editions are available as an [illustrated, print-ready document](docs/user-guide.html)
 and a [Markdown user guide](docs/USER-GUIDE.md). Keep the HTML beside the PNG
 captures when copying it for offline use. Use its **Print / Save as PDF** button
 for a paper or PDF copy. Regenerate both documents with `pnpm docs:guide` after

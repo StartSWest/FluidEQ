@@ -9,6 +9,7 @@ import {
 import writeFileAtomically from '../atomicWrite';
 import type { IGalleryAccess } from '../plus/galleryAccess';
 import { rpc } from '../plus/galleryApi';
+import { registerAppNewsIpc } from './appNews';
 
 /**
  * The big card that announces new scenes (premium migration 0050), over IPC.
@@ -67,6 +68,12 @@ export const registerSceneAnnouncementsIpc = ({
   onAccountChange: (listener: () => void) => () => void;
   logger?: { warn(message: string): void };
 }) => {
+  const news = registerAppNewsIpc({
+    getMainWindow,
+    userDataDir,
+    access,
+    logger,
+  });
   const filePath = path.join(userDataDir, FILE_NAME);
   let seen = readSeen(filePath);
   let listed: { accountId: string; announcements: IAnnouncement[] } | undefined;
@@ -124,6 +131,8 @@ export const registerSceneAnnouncementsIpc = ({
   };
 
   const refreshIfDue = async (reason: string) => {
+    // News has its own delivery channel; an unavailable feed cannot hold up scenes.
+    news.refresh().catch(() => undefined);
     asking =
       asking ??
       ask(reason).finally(() => {
@@ -179,6 +188,7 @@ export const registerSceneAnnouncementsIpc = ({
   return {
     refreshIfDue,
     dispose: () => {
+      news.dispose();
       unsubscribe();
       CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));
     },

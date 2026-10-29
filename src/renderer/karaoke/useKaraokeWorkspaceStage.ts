@@ -32,7 +32,8 @@ import {
   initiallyUseStagePitch,
   readKaraokePlaylistFolderGrouping,
   readPitchGuideVisibility,
-  readStageArtVisibility,
+  readKaraokeBackground,
+  publishKaraokeBackgroundChoice,
   STAGE_PITCH_MEDIA_QUERY,
 } from './karaokeWorkspacePrefs';
 import { IKaraokeSetAsideFiles } from './karaokeImportNotices';
@@ -127,9 +128,10 @@ const useKaraokeWorkspaceStage = ({
   const [isPitchGuideVisible, setIsPitchGuideVisible] = useState(
     readPitchGuideVisibility,
   );
-  const [isStageArtVisible, setIsStageArtVisible] = useState(
-    readStageArtVisibility,
-  );
+  const [background, setBackground] = useState(readKaraokeBackground);
+  // The graph menu edits this picture while the stage keeps owning it. Notify
+  // after commit: the toggle's updater must not update a different component.
+  useEffect(() => publishKaraokeBackgroundChoice(background), [background]);
   const layoutMode: TKaraokeLayoutMode = isFullScreen ? 'fullscreen' : 'normal';
   const [layouts, setLayouts] = useState<
     Record<TKaraokeLayoutMode, IKaraokeLayoutSettings>
@@ -832,8 +834,8 @@ const useKaraokeWorkspaceStage = ({
     useStagePitch,
     isPitchGuideVisible,
     setIsPitchGuideVisible,
-    isStageArtVisible,
-    setIsStageArtVisible,
+    background,
+    setBackground,
     autoplayAfterLoadRef,
     retainWhenHidden,
     setRetainWhenHidden,

@@ -506,7 +506,7 @@ const useKaraokeWorkspacePlaylist = (
         isMakerTypingTarget ||
         isBlockedControl ||
         document.querySelector(
-          '.karaoke-maker__modal-backdrop, .dropdown--open',
+          '.karaoke-maker__modal-backdrop, [role="alertdialog"], .dropdown--open',
         )
       ) {
         return;

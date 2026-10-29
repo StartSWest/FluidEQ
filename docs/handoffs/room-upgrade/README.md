@@ -54,13 +54,13 @@ Then complete these steps in order:
 
 Read [task-5-brief.md](task-5-brief.md). Add six distinct v2 Featured profiles: Reference, Music Space, Cinema with a new ID, Game World, Competitive, Live Venue. Keep all 11 Classics' IDs/values/sounds exact. Append new IDs AFTER existing custom to retain every old wire ordinal; this specific compatibility decision overrides older generic advice about insertion order.
 
-Profiles own the complete Room shape, preserving personal head/correction, already-spatial preference, comparison selection, global Game mode and other processors. All Featured profiles preserve position. Reference/Competitive late ambience is exactly off. Measure actual shipped-head output across rates/layouts/modes and use the real TS values in fixtures. Save without overwriting existing rooms: case-insensitive unique names within 40 characters and honest storage failures. Update all 10 locales together.
+Profiles own the complete Room shape, preserving personal head/correction, already-spatial preference, comparison selection, global Game mode and other processors. All Featured profiles preserve position. Reference/Competitive late ambience is exactly off. Measure actual shipped-head output across rates/layouts/modes and use the real TS values in fixtures. Save without overwriting existing rooms: case-insensitive unique names within 40 characters and honest storage failures. Update every registered locale together.
 
 ### Task 6: first-screen editor and advanced UI
 
 Read [task-6-brief.md](task-6-brief.md) and [fluid-room-preview.html](fluid-room-preview.html). Implement compact diagram plus immediate selected-speaker pane, advanced Room/Tune/Fit, Featured/Classic/Saved browser, Restore profile versus full Reset, keyboard/pointer cancel behavior, and truthful comparison/source/update-required states. The old layout's graph pushed the editor below the screen; SVG speakers lacked keyboard semantics. Classic v1 cannot present apparently working v2 controls without explicit upgrade.
 
-Preserve existing Free/Plus boundaries, current Dark theme tokens, reduced motion and all 10 locales. No timers or meter-driven whole-card rerenders. Add completion-driven latest-value coalescing for Library DSP updates: one in flight plus latest pending, preserving engage/disengage/cross-controller barriers, failures and final drag value. Keep main's newer latency handling. Distinguish actual LFE from derived stereo in Sub availability; do not change legacy bass routing.
+Preserve existing Free/Plus boundaries, current Dark theme tokens, reduced motion and every registered locale. No timers or meter-driven whole-card rerenders. Add completion-driven latest-value coalescing for Library DSP updates: one in flight plus latest pending, preserving engage/disengage/cross-controller barriers, failures and final drag value. Keep main's newer latency handling. Distinguish actual LFE from derived stereo in Sub availability; do not change legacy bass routing.
 
 ### Task 7: final proof
 

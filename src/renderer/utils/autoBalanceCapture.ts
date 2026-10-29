@@ -887,7 +887,7 @@ export const isBalanceCheckDue = (state: IBalanceCaptureState): boolean =>
  * only reads English will ever see. Spanish and Italian make the participle
  * agree with the noun's gender; German and Russian want it in a case the noun
  * is not in; Japanese puts the verb last. There is no ordering of two
- * separately-translated fragments that is right in all ten.
+ * separately-translated fragments that is right in every supported language.
  *
  * So the clause is the unit. `eq.smart.shape.lifted` is a whole phrase with the
  * range in a placeholder, and each dictionary decides where the range goes and

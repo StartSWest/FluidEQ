@@ -24,7 +24,11 @@ import {
   type IAuthorised,
   type TGalleryFailure,
 } from '../plus/galleryApi';
-import { sceneRefOf, type IGalleryAccess } from '../plus/galleryAccess';
+import {
+  authorizeGallery,
+  sceneRefOf,
+  type IGalleryAccess,
+} from '../plus/galleryAccess';
 import {
   publishScene,
   unpublishScene,
@@ -155,11 +159,11 @@ export const registerPlusPublishingIpc = ({
 }: IPlusPublishingIpcDeps) => {
   ipcMain.handle('plus-gallery-mine', async (): Promise<TMineOutcome> => {
     const me = access.accountId();
-    const auth = me ? await access.auth() : undefined;
-    if (!auth || access.accountId() !== me) {
-      return { ok: false, reason: 'signed-out' };
+    const authorization = await authorizeGallery(access, me);
+    if (!authorization.ok) {
+      return authorization;
     }
-    const outcome = await mineOf(auth);
+    const outcome = await mineOf(authorization.auth);
     return access.accountId() === me
       ? outcome
       : { ok: false, reason: 'signed-out' };

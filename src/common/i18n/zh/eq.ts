@@ -263,6 +263,12 @@ const eq: Partial<Dictionary> = {
   'graph.picker.search': '搜索样式和可视化效果',
   'graph.picker.styles': '样式',
   'graph.picker.plus': '可视化',
+  'graph.picker.discover.title': '让音乐鲜活起来',
+  'graph.picker.discover.body':
+    '探索可购买并永久保留的动态场景，或在 Studio 中免费创作自己的场景。',
+  'graph.picker.discover.explore': '探索场景',
+  'graph.picker.discover.create': '创作场景',
+  'graph.picker.discover.free': 'FluidEQ 及其音频工具始终免费。',
   'graph.picker.all': '全部',
   'graph.picker.yours': '你的',
   'graph.picker.filterStyles': '筛选样式',

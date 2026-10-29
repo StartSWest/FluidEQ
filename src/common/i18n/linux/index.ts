@@ -13,9 +13,11 @@ import fr from './fr';
 import hi from './hi';
 import it from './it';
 import ja from './ja';
+import ko from './ko';
 import pt from './pt';
 import ru from './ru';
 import zh from './zh';
+import zhHant from './zh-Hant';
 
 /**
  * The Linux app's words where the shared ones speak of Windows or Equalizer
@@ -37,7 +39,9 @@ const LINUX_TEXT: Record<LocaleCode, Partial<Dictionary>> = {
   it,
   ru,
   zh,
+  'zh-Hant': zhHant,
   ja,
+  ko,
   hi,
 };
 

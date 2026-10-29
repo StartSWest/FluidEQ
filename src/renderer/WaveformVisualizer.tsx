@@ -857,7 +857,7 @@ const WaveformVisualizer = () => {
         // one from the next without cycling through the whole set. The style
         // keys ('line', 'spectrum', …) are technical identifiers rather than
         // prose, so they pass through the label as-is rather than each
-        // needing an entry in ten locales.
+        // needing an entry in every registered locale.
         aria-label={`${t('waveform.style')} — ${style}`}
         title={`${t('waveform.style')} — ${style}`}
         onClick={cycleStyle}

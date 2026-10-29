@@ -31,6 +31,7 @@ const plus = {
   'plus.gallery.error.signedOut': '请重新登录以查看图库。',
   'plus.gallery.error.server': '无法加载图库。请重试。',
   'plus.gallery.moreError': '无法加载更多场景。请重试。',
+  'plus.gallery.error.forbidden': '此账户无权加载这些场景。',
   'plus.gallery.retry': '重试',
 
   'plus.category.nature': '自然',

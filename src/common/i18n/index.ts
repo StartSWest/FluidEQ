@@ -42,7 +42,18 @@ import en, { Dictionary, TranslationKey } from './en';
 export type { Dictionary, TranslationKey };
 
 export type LocaleCode =
-  'en' | 'es' | 'pt' | 'fr' | 'de' | 'it' | 'ru' | 'zh' | 'ja' | 'hi';
+  | 'en'
+  | 'es'
+  | 'pt'
+  | 'fr'
+  | 'de'
+  | 'it'
+  | 'ru'
+  | 'zh'
+  | 'zh-Hant'
+  | 'ja'
+  | 'ko'
+  | 'hi';
 
 export interface ILocale {
   code: LocaleCode;
@@ -53,7 +64,7 @@ export interface ILocale {
 }
 
 /**
- * The ten shipped languages.
+ * The shipped interface languages.
  *
  * Chosen by number of speakers among left-to-right scripts, which is why
  * Arabic and Urdu are absent — see the note above.
@@ -61,12 +72,14 @@ export interface ILocale {
 export const LOCALES: ILocale[] = [
   { code: 'en', name: 'English', englishName: 'English' },
   { code: 'zh', name: '简体中文', englishName: 'Chinese (Simplified)' },
+  { code: 'zh-Hant', name: '繁體中文', englishName: 'Chinese (Traditional)' },
   { code: 'hi', name: 'हिन्दी', englishName: 'Hindi' },
   { code: 'es', name: 'Español', englishName: 'Spanish' },
   { code: 'fr', name: 'Français', englishName: 'French' },
   { code: 'pt', name: 'Português', englishName: 'Portuguese' },
   { code: 'ru', name: 'Русский', englishName: 'Russian' },
   { code: 'ja', name: '日本語', englishName: 'Japanese' },
+  { code: 'ko', name: '한국어', englishName: 'Korean' },
   { code: 'de', name: 'Deutsch', englishName: 'German' },
   { code: 'it', name: 'Italiano', englishName: 'Italian' },
 ];
@@ -108,7 +121,9 @@ const LOADERS: Record<
   it: () => import(/* webpackChunkName: "locale-it" */ './it'),
   ru: () => import(/* webpackChunkName: "locale-ru" */ './ru'),
   zh: () => import(/* webpackChunkName: "locale-zh" */ './zh'),
+  'zh-Hant': () => import(/* webpackChunkName: "locale-zh-Hant" */ './zh-Hant'),
   ja: () => import(/* webpackChunkName: "locale-ja" */ './ja'),
+  ko: () => import(/* webpackChunkName: "locale-ko" */ './ko'),
   hi: () => import(/* webpackChunkName: "locale-hi" */ './hi'),
 };
 
@@ -188,20 +203,41 @@ export const extendDictionaries = (
 };
 
 /**
- * Turn whatever the platform reports into one of the ten.
+ * Turn a saved preference or platform language into a shipped locale.
  *
- * Windows and Electron both hand out BCP-47 tags — `pt-BR`, `zh-Hans-CN`,
- * `es-419`. Only the primary subtag is matched, so every Portuguese is
- * Portuguese and every Chinese is Simplified. That is a real limitation
- * (Traditional readers get Simplified) and an honest one at ten languages.
+ * A script is explicit and wins over a region: zh-Hans-TW is Simplified,
+ * zh-Hant-CN is Traditional. Without a script, Taiwan, Hong Kong and Macao
+ * use Traditional. Bare zh stays Simplified, preserving saved preferences.
+ * Windows' older CHS/CHT aliases and underscore separators are accepted too.
  */
 export const resolveLocale = (tag?: string | null): LocaleCode => {
   if (!tag) {
     return DEFAULT_LOCALE;
   }
-  const primary = tag.toLowerCase().split(/[-_]/)[0];
-  const match = LOCALES.find((locale) => locale.code === primary);
-  return match ? match.code : DEFAULT_LOCALE;
+  const normalized = tag
+    .trim()
+    .replace(/_/g, '-')
+    .replace(
+      /^zh-(chs|cht)(?=-|$)/i,
+      (_whole, legacy: string) =>
+        `zh-${legacy.toLowerCase() === 'cht' ? 'Hant' : 'Hans'}`,
+    );
+  try {
+    const locale = new Intl.Locale(normalized);
+    if (locale.language === 'zh') {
+      const traditional =
+        locale.script === 'Hant' ||
+        (!locale.script && ['TW', 'HK', 'MO'].includes(locale.region ?? ''));
+      return traditional ? 'zh-Hant' : 'zh';
+    }
+    return (
+      LOCALES.find(({ code }) => code === locale.language)?.code ??
+      DEFAULT_LOCALE
+    );
+  } catch {
+    // An invalid stored value or platform tag must never prevent startup.
+    return DEFAULT_LOCALE;
+  }
 };
 
 export type TranslateVars = Record<string, string | number>;

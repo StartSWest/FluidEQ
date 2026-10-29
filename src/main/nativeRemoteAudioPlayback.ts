@@ -4,6 +4,8 @@ import type { ILanRemoteAudioChunk } from '../common/remoteAudio';
 import type { IRemotePlaybackMeter } from '../common/remoteAudioPlayback';
 import { type ILanAudioLease, leaseLanAudioHelper } from './lanAudioHelper';
 import { playbackCommand } from './nativeRemoteAudioPlaybackProtocol';
+import { audioWorkerEnabled } from './shareAudio/host';
+import { startWorkerPlayback } from './shareAudio/nativeAdapters';
 
 export interface INativeRemoteAudioPlayback {
   push(chunk: ILanRemoteAudioChunk): void;
@@ -44,6 +46,9 @@ export const startNativeRemoteAudioPlayback = async (
   onMeter: (meter: IRemotePlaybackMeter) => void,
   onFailure: () => void,
 ): Promise<INativeRemoteAudioPlayback> => {
+  if (audioWorkerEnabled()) {
+    return startWorkerPlayback(onMeter, onFailure);
+  }
   const peers = new Map<string, { id: number; waveform: Float32Array }>();
   /**
    * The output device's own buffer, in milliseconds, as the helper reports

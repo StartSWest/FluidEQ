@@ -9,6 +9,7 @@ import type { IPublishedScene } from 'common/plusGallery';
 import type { ISceneSubmission } from 'common/plusReview';
 import { premiumLookId } from 'common/scenePacks';
 import type { TMineOutcome } from 'main/ipc/plusPublishing';
+import type { TMySubmissionsOutcome } from 'main/ipc/plusReview';
 
 /**
  * The scenes this account published and what it sent for review, read once
@@ -16,12 +17,16 @@ import type { TMineOutcome } from 'main/ipc/plusPublishing';
  * say the same thing about the same scene.
  */
 
-type TMineFailure = Extract<TMineOutcome, { ok: false }>['reason'];
+type TMineFailure = Extract<
+  TMineOutcome | TMySubmissionsOutcome,
+  { ok: false }
+>['reason'];
 
 const MINE_ERRORS: Record<TMineFailure, TranslationKey> = {
   offline: 'plus.gallery.error.offline',
   'signed-out': 'plus.gallery.error.signedOut',
   server: 'plus.gallery.error.server',
+  forbidden: 'plus.gallery.error.forbidden',
 };
 
 export type TMine =
@@ -39,28 +44,25 @@ export const publicationId = (scene: IPublishedScene) =>
   scene.official ? premiumLookId(scene.sceneId) : scene.sceneId;
 
 /**
- * Both lists. What waits for review never costs the published list: a server
- * before review has nothing waiting, and a read that failed shows the
- * published scenes as they are.
+ * A failed review read is not an empty review queue. Otherwise an account
+ * with only a pending scene was told it had never sent anything.
  */
 export const loadMyScenes = async (): Promise<TMine> => {
   const api = window.electron?.ipcRenderer;
-  const sent =
-    api
-      ?.mySceneSubmissions?.()
-      .then((outcome) => (outcome.ok ? outcome.submissions : []))
-      .catch(() => []) ?? Promise.resolve([]);
   try {
-    const [outcome, submissions] = await Promise.all([
+    const [outcome, sent] = await Promise.all([
       api?.myPublishedScenes?.(),
-      sent,
+      api?.mySceneSubmissions?.(),
     ]);
-    if (!outcome) {
+    if (!outcome || !sent) {
       return { state: 'failed', key: 'plus.gallery.error.offline' };
     }
-    return outcome.ok
-      ? { state: 'ready', scenes: outcome.scenes, sent: submissions }
-      : { state: 'failed', key: MINE_ERRORS[outcome.reason] };
+    if (!outcome.ok) {
+      return { state: 'failed', key: MINE_ERRORS[outcome.reason] };
+    }
+    return sent.ok
+      ? { state: 'ready', scenes: outcome.scenes, sent: sent.submissions }
+      : { state: 'failed', key: MINE_ERRORS[sent.reason] };
   } catch {
     return { state: 'failed', key: 'plus.gallery.error.offline' };
   }

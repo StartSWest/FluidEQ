@@ -13,12 +13,13 @@ import {
 import KaraokeWorkspaceActions from './KaraokeWorkspaceActions';
 import { KaraokeLiveValue } from './karaokeLiveValue';
 import KaraokeTransport from './KaraokeTransport';
+import KaraokeSceneAppearanceControls from './KaraokeSceneAppearanceControls';
 import KaraokePlaylist, { KARAOKE_PLAYLIST_DRAG_MIME } from './KaraokePlaylist';
 import { KARAOKE_FILE_PICKER_ACCEPT } from '../../common/karaoke/files';
 import { ERROR_KEYS, SOURCE_KEYS } from './karaokeWorkspaceLabels';
 import KaraokeSetAsideNotice from './KaraokeSetAsideNotice';
 import KaraokePaneSplitter from './KaraokePaneSplitter';
-import KaraokeStageMedia from './KaraokeStageMedia';
+import KaraokeBackdrop from './KaraokeBackdrop';
 import KaraokeChordGuide from './KaraokeChordGuide';
 import { karaokeProviderDisplayName } from '../../common/karaoke/provider';
 import { MAX_LYRIC_TEXT_SIZE, MIN_LYRIC_TEXT_SIZE } from './karaokeLyricText';
@@ -102,8 +103,8 @@ const KaraokeWorkspaceView = ({
     useStagePitch,
     isPitchGuideVisible,
     setIsPitchGuideVisible,
-    isStageArtVisible,
-    setIsStageArtVisible,
+    background,
+    setBackground,
     audioClock,
     microphone,
     session,
@@ -170,7 +171,7 @@ const KaraokeWorkspaceView = ({
   const workspaceActions = (
     <KaraokeWorkspaceActions
       song={song}
-      isStageArtVisible={isStageArtVisible}
+      background={background}
       isFullScreen={isFullScreen}
       isChromeIdle={isChromeIdle}
       playlist={playlist}
@@ -184,7 +185,7 @@ const KaraokeWorkspaceView = ({
       fileInputRef={fileInputRef}
       isPitchGuideVisible={isPitchGuideVisible}
       setIsPitchGuideVisible={setIsPitchGuideVisible}
-      setIsStageArtVisible={setIsStageArtVisible}
+      setBackground={setBackground}
       microphoneMenuButtonRef={microphoneMenuButtonRef}
       microphone={microphone}
       isMicrophoneMenuOpen={isMicrophoneMenuOpen}
@@ -248,6 +249,13 @@ const KaraokeWorkspaceView = ({
                     label: t('library.volume'),
                     value: fader.level,
                     onChange: fader.setLevel,
+                    // The master has a real output mute. Zeroing a stem and
+                    // restoring its level cannot release that separate mute.
+                    pressed: fader.isMuted,
+                    onToggle: fader.toggleMute,
+                    toggleLabel: t(
+                      fader.isMuted ? 'library.unmute' : 'library.mute',
+                    ),
                   },
                 ]
               : []),
@@ -285,6 +293,11 @@ const KaraokeWorkspaceView = ({
                 ]
               : []),
           ]}
+          appearanceControls={
+            background === 'graph' ? (
+              <KaraokeSceneAppearanceControls />
+            ) : undefined
+          }
           onTogglePlayback={handleTogglePlayback}
           onStop={handleStopPlayback}
           onJumpToStart={() => handleSeek(0)}
@@ -322,7 +335,7 @@ const KaraokeWorkspaceView = ({
       ref={workspaceRef}
       className={`karaoke-workspace workspace-tab-panel workspace-tab-panel--karaoke${
         isHidden ? ' is-hidden' : ''
-      }${isFullScreen ? ' is-fullscreen' : ''}${
+      }${isRestoring ? ' is-restoring' : ''}${isFullScreen ? ' is-fullscreen' : ''}${
         isGraphOverlay && !isMakerOpen ? ' is-graph-overlay' : ''
       }${isMakerOpen ? ' is-maker-open' : ''}${
         song ? ' has-song' : ' is-empty'
@@ -488,6 +501,15 @@ const KaraokeWorkspaceView = ({
           style={pitchStyle}
         >
           {isFullScreen && !isGraphOverlay && workspaceActions}
+          {!isHidden && !isMakerOpen && (
+            <KaraokeBackdrop
+              background={background}
+              song={song}
+              playhead={playhead}
+              isPlaying={status === 'playing'}
+              isGraphOverlay={isGraphOverlay}
+            />
+          )}
           {playlist.length > 0 && layout.playlistCollapsed && (
             <button
               type="button"
@@ -504,22 +526,6 @@ const KaraokeWorkspaceView = ({
           )}
           {song ? (
             <>
-              {/* First, so it is behind everything the stage draws. It is
-                  absolutely positioned and takes no row of its own — the
-                  heading, lyrics and pitch guide keep the grid they had.
-                  Unmounted rather than hidden when the art is switched off, so
-                  a video stops decoding instead of playing to nobody. */}
-              {isStageArtVisible && (
-                <KaraokeLiveValue value={playhead}>
-                  {(playheadMs) => (
-                    <KaraokeStageMedia
-                      song={song}
-                      playheadMs={playheadMs}
-                      isPlaying={status === 'playing'}
-                    />
-                  )}
-                </KaraokeLiveValue>
-              )}
               <div className="karaoke-song__heading">
                 <div>
                   <p>{song.artist || t('karaoke.song.unknownArtist')}</p>

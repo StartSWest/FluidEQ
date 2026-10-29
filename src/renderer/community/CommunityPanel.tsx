@@ -138,14 +138,15 @@ export default function CommunityPanel({
 
   const pinLabel = t(pinned ? 'plus.rail.collapse' : 'plus.rail.pin');
 
-  // A place remembered from an add-on that is not loaded is the gallery.
-  const addon = isAddonPlace(view) ? addonForPlace(view) : undefined;
-  // Dynamic lighting still depends on Windows services. Keep the Linux rail
-  // adapted while sharing main's add-on availability and gallery fallback.
+  // Dynamic lighting works through Windows Dynamic Lighting and Razer
+  // Chroma's Windows service, so Linux has no such place. A place kept from
+  // before, like one remembered from an add-on that is not loaded, opens on
+  // the gallery.
   const isLinux = runsOnLinux();
   const places = isLinux
     ? PLACES.filter((entry) => entry.place !== 'lighting')
     : PLACES;
+  const addon = isAddonPlace(view) ? addonForPlace(view) : undefined;
   const shown: TPlusPlace =
     (isAddonPlace(view) && !addon) || (view === 'lighting' && isLinux)
       ? 'visualizers'

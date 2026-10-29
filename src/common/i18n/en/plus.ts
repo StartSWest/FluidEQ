@@ -39,6 +39,8 @@ const plus = {
   'plus.gallery.error.signedOut': 'Sign in again to see the gallery.',
   'plus.gallery.error.server': 'The gallery could not be loaded. Try again.',
   'plus.gallery.moreError': 'Couldn’t load more scenes. Try again.',
+  'plus.gallery.error.forbidden':
+    'This account does not have permission to load these scenes.',
   'plus.gallery.retry': 'Try again',
 
   'plus.category.nature': 'Nature',

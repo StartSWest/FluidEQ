@@ -188,6 +188,29 @@ afterEach(() => {
 });
 
 describe('when the window appears', () => {
+  // No developer tools at launch on any platform, in development either:
+  // docked they set the page's width rather than the window (`devTools.ts`),
+  // and Linux's switches wait for the page to reach the window's size.
+  it.each(['linux', 'win32'] as const)(
+    'opens no %s development inspector at launch',
+    async (platform) => {
+      const original = Object.getOwnPropertyDescriptor(process, 'platform');
+      Object.defineProperty(process, 'platform', { value: platform });
+      try {
+        const done = createMainWindowFactory({ ...deps(), isDebug: true })();
+        const window = windows[windows.length - 1];
+        say(RENDERER_READY_EVENT, window.webContents);
+        expect(window.webContents.openDevTools).not.toHaveBeenCalled();
+        finishLoad();
+        await done;
+      } finally {
+        if (original) {
+          Object.defineProperty(process, 'platform', original);
+        }
+      }
+    },
+  );
+
   it('is not decided by ready-to-show, and no clock is started for it', () => {
     const { window } = open();
     expect(ipcMain.handle).toHaveBeenCalledWith(

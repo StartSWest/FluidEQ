@@ -6,7 +6,7 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { BrowserWindow, ipcMain, powerMonitor } from 'electron';
+import { app, BrowserWindow, ipcMain, powerMonitor } from 'electron';
 import {
   isLanRemoteAudioSignal,
   type ILanHostDetails,
@@ -29,6 +29,13 @@ import { onWindowsAudioRestarted } from '../windowsAudioRestarts';
 import onWindowMessage from './windowMessages';
 import { registerRemoteAudioPlayback } from './remoteAudioPlayback';
 import { setDspHostRawSharing } from './dspHost';
+import {
+  audioWorkerEnabled,
+  enableAudioWorker,
+  getAudioWorker,
+  listenAudioWorker,
+  stopAudioWorker,
+} from '../shareAudio/host';
 
 const LAN_SIGNAL_CHANNEL = 'remote-audio-lan-signal';
 const LAN_AUDIO_CHANNEL = 'remote-audio-lan-audio';
@@ -65,6 +72,9 @@ export const registerRemoteAudioIpc = ({
   getMainWindow,
   userDataDir,
 }: IRemoteAudioIpcDeps): (() => void) => {
+  if (process.platform === 'win32' && typeof app?.isPackaged === 'boolean') {
+    enableAudioWorker();
+  }
   const sendToWindow = (channel: string, value: unknown) => {
     const mainWindow = getMainWindow();
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -77,6 +87,20 @@ export const registerRemoteAudioIpc = ({
   const playback = registerRemoteAudioPlayback(getMainWindow);
   const levels = createRemoteAudioLevels();
   const streaming = new Set<string>();
+  let stopWorkerEvents: (() => void) | undefined;
+  const syncRouting = () => {
+    if (!audioWorkerEnabled() || !link) {
+      return;
+    }
+    getAudioWorker()
+      .request('routing', {
+        targets: networkTargets,
+        receive: [...told.keys()]
+          .filter((peerId) => links.hears(peerId))
+          .map((peerId) => ({ peerId, volume: links.volume(peerId) })),
+      })
+      .catch(() => sendToWindow(LAN_ERROR_CHANNEL, undefined));
+  };
   /**
    * The window is told once that a computer's sound is arriving, and it
    * forgets that by itself whenever the sound stops: the other computer
@@ -163,6 +187,7 @@ export const registerRemoteAudioIpc = ({
           }
           ports.signal(signal);
           sendToWindow(LAN_SIGNAL_CHANNEL, signal);
+          syncRouting();
         },
         (arrived) => {
           // "Play it here" switched off, or the other computer saying it has
@@ -192,6 +217,14 @@ export const registerRemoteAudioIpc = ({
         (stats) => sendToWindow(LAN_NETWORK_CHANNEL, stats),
         book,
       );
+      if (audioWorkerEnabled()) {
+        stopWorkerEvents = listenAudioWorker((event) => {
+          if (event.type === 'streaming' && links.hears(event.peerId)) {
+            streaming.add(event.peerId);
+            sendToWindow('remote-audio-lan-streaming', event.peerId);
+          }
+        });
+      }
     }
     return link;
   };
@@ -236,13 +269,15 @@ export const registerRemoteAudioIpc = ({
   const sendCaptured = (chunk: ILanRemoteAudioChunk) => {
     // The transport owns the critical path. The visual meter is a decimated
     // renderer-only mirror and cannot delay a network packet.
-    networkTargets.forEach((peerId) => {
-      try {
-        lan.sendAudio({ ...chunk, peerId });
-      } catch {
-        // That computer has just gone; its `stop` takes it off the list.
-      }
-    });
+    if (!audioWorkerEnabled()) {
+      networkTargets.forEach((peerId) => {
+        try {
+          lan.sendAudio({ ...chunk, peerId });
+        } catch {
+          // That computer has just gone; its `stop` takes it off the list.
+        }
+      });
+    }
     ports.analyze(chunk);
     const now = Date.now();
     if (now - lastMeterAt >= 33) {
@@ -299,6 +334,7 @@ export const registerRemoteAudioIpc = ({
     },
     targetsChanged: (targets) => {
       networkTargets = targets;
+      syncRouting();
       if (targets.length === 0) {
         // Always the whole stop, a capture still starting included: it has
         // already put the Library's player into pass-through, and only the
@@ -373,6 +409,11 @@ export const registerRemoteAudioIpc = ({
     // A new window: every link is told again, and sound already arriving is
     // announced again with the next chunk, through a port of its own.
     [...streaming].forEach(forgetArriving);
+    if (audioWorkerEnabled()) {
+      getAudioWorker()
+        .request('streams.replay')
+        .catch(() => sendToWindow(LAN_ERROR_CHANNEL, undefined));
+    }
     return {
       details,
       joins: savedJoins(),
@@ -462,6 +503,7 @@ export const registerRemoteAudioIpc = ({
         throw new Error('Invalid Share Audio switches.');
       }
       links.choose(name, switches);
+      syncRouting();
       [...streaming].forEach((peerId) => {
         if (!links.hears(peerId)) {
           forgetArriving(peerId);
@@ -544,5 +586,7 @@ export const registerRemoteAudioIpc = ({
     link?.stop();
     ports.close();
     playback.close().catch(() => undefined);
+    stopWorkerEvents?.();
+    stopAudioWorker();
   };
 };

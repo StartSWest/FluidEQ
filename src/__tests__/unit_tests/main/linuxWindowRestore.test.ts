@@ -21,9 +21,17 @@ jest.mock('../../../main/windowDwm', () => ({
 
 // eslint-disable-next-line import/first
 import { createWindowModes } from '../../../main/windowMode';
+// eslint-disable-next-line import/first
+import { playerMinimumSize } from '../../../common/windowMode';
 
 const APP = { x: 100, y: 60, width: 1200, height: 850 };
-const PLAYER = { x: 150, y: 70, width: 480, height: 850 };
+// At the amp’s one width, which every switch to it gives the window.
+const PLAYER = {
+  x: 150,
+  y: 70,
+  width: playerMinimumSize(1).width,
+  height: 850,
+};
 
 const session = () => {
   const events = new EventEmitter();
@@ -36,9 +44,9 @@ const session = () => {
   });
   const win = Object.assign(events, {
     isDestroyed: () => destroyed,
-    isMaximized: () => maximized,
-    isMinimized: () => false,
     isVisible: () => true,
+    isMinimized: () => false,
+    isMaximized: () => maximized,
     isFullScreen: () => false,
     getBounds: () => ({ ...bounds }),
     getNormalBounds: () => ({ ...APP }),
@@ -87,9 +95,11 @@ it('keeps the narrow player size after the compositor finishes restoring the ful
   const test = session();
   const switched = test.modes.setMode(test.win, 'player');
   expect(test.setBounds).not.toHaveBeenCalled();
-  // Main now saves the full app before a mode switch can resize it.
+  // Only the full app's own place is kept before the compositor answers; the
+  // player's is not taken from a size the window passes through on the way.
   expect(test.changed).toHaveBeenCalledTimes(1);
-  expect(test.modes.memory().app).toEqual({ ...APP, isMaximized: true });
+  expect(test.modes.memory().player).toEqual(PLAYER);
+  expect(test.modes.memory().app.isMaximized).toBe(true);
   test.completeNativeRestore();
   await expect(switched).resolves.toBe('player');
   expect(test.win.getBounds()).toEqual(PLAYER);

@@ -4,6 +4,12 @@ import { spawn } from 'child_process';
 import type { ChildProcessWithoutNullStreams } from 'child_process';
 import { existsSync } from 'fs';
 import path from 'path';
+import { workerData } from 'worker_threads';
+import { audioWorkerEnabled, enableAudioWorker } from './shareAudio/host';
+import {
+  audioWorkerHelperPid,
+  leaseWorkerAudioHelper,
+} from './shareAudio/nativeAdapters';
 import {
   type IPlaybackReply,
   playbackCommand,
@@ -52,10 +58,26 @@ export interface ILanAudioLease {
 const MAX_QUEUED_BYTES = 1_048_576;
 const MAX_STDERR_BYTES = 4_096;
 
+// Choose before the first helper lease (including an early second-output
+// restore), and keep that choice for the session. Switching owners later
+// would split the process tree the network capture must exclude for no echo.
+if (
+  process.platform === 'win32' &&
+  (process as NodeJS.Process & { type?: string }).type === 'browser'
+) {
+  enableAudioWorker();
+}
+let audioResources: string | undefined;
+export const setLanAudioResources = (resources: string | undefined) => {
+  audioResources = resources;
+};
+
 export const findRemoteAudioPlaybackExecutable = (): string | undefined => {
   const helperName = `FluidEQ-LAN-Playback${process.platform === 'win32' ? '.exe' : ''}`;
-  const resources = (process as NodeJS.Process & { resourcesPath?: string })
-    .resourcesPath;
+  const resources =
+    audioResources ??
+    (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath ??
+    (workerData as { resourcesPath?: string } | null)?.resourcesPath;
   return [
     ...(resources ? [path.join(resources, 'native', helperName)] : []),
     path.join(__dirname, '../../../native/.build/bin', helperName),
@@ -217,11 +239,14 @@ const release = (helper: IHelper, client: ILanAudioClient) => {
 
 /** The helper's process id while it runs, for the Processes list. */
 export const lanAudioHelperPid = (): number | undefined =>
-  current && !current.ended ? current.child.pid : undefined;
+  current && !current.ended ? current.child.pid : audioWorkerHelperPid();
 
 export const leaseLanAudioHelper = async (
   client: ILanAudioClient,
 ): Promise<ILanAudioLease> => {
+  if (audioWorkerEnabled()) {
+    return leaseWorkerAudioHelper(client);
+  }
   current ??= start();
   const helper = current;
   helper.clients.add(client);

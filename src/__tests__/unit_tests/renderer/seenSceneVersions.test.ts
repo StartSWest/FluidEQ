@@ -13,6 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import type * as SeenSceneVersions from '../../../renderer/utils/seenSceneVersions';
+import { resetSettings } from '../../../renderer/utils/settingsReset';
 
 const KEY = 'fluideq.seenSceneVersions';
 
@@ -61,6 +62,30 @@ it('remembers across a restart', () => {
   const again = load()();
   expect(again.seenSceneVersion('premium:aurora')).toBe(4);
   expect(again.isUnseenSceneVersion('premium:aurora', 5)).toBe(true);
+});
+
+it('persists version 11 through reload, reinstall and reset while keeping scenes independent', () => {
+  const first = load()();
+  first.markSceneVersionSeen('premium:neon-horizon', 10);
+  expect(first.markSceneVersionSeen('premium:neon-horizon', 11)).toBe(10);
+  localStorage.setItem('fluideq.theme', 'stored');
+  resetSettings(localStorage);
+  expect(localStorage.getItem('fluideq.theme')).toBeNull();
+  // A reinstall, cache refresh or renderer restart reloads the same stable
+  // look id and normalized pack version, not a download/revision timestamp.
+  const restarted = load()();
+  expect(
+    restarted.markSceneVersionSeen('premium:neon-horizon', 11),
+  ).toBeUndefined();
+  expect(
+    restarted.markSceneVersionSeen('premium:neon-horizon', 10),
+  ).toBeUndefined();
+  expect(
+    restarted.markSceneVersionSeen('premium:neon-horizon', 11),
+  ).toBeUndefined();
+  expect(restarted.markSceneVersionSeen('premium:neon-horizon', 12)).toBe(11);
+  restarted.markSceneVersionSeen('premium:another-scene', 10);
+  expect(restarted.markSceneVersionSeen('premium:another-scene', 11)).toBe(10);
 });
 
 it('reads a damaged record as nothing played, and keeps only sensible entries', () => {

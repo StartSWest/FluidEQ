@@ -285,7 +285,7 @@ const unread = (keys: string[], strings: Set<string>) =>
 
 describe('the dictionaries', () => {
   it('hold no key that nothing reads', () => {
-    // Delete what this lists from all ten languages in one change — or, if
+    // Delete what this lists from every registered locale in one change — or, if
     // the key is made at runtime, add the place that makes it to BUILDERS.
     expect(unread(Object.keys(en), readSources().strings)).toEqual([]);
   });

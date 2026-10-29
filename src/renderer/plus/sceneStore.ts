@@ -16,6 +16,10 @@ import {
 } from 'common/sceneStore';
 import { getAccountSnapshot, subscribeAccount } from '../account/accountStore';
 import {
+  getMemberSceneListing,
+  subscribeMemberScenes,
+} from '../utils/memberScenes';
+import {
   getEntitlementSnapshot,
   subscribeEntitlement,
 } from '../account/entitlementStore';
@@ -236,16 +240,33 @@ export const useOwnsLook = (lookId: string): boolean =>
     () => ownsLookNow(lookId),
   );
 
-const ownsAnythingNow = () =>
-  ownerNow() !== '' &&
-  mayPlayAnything(
-    plusNow(),
-    state.owner === ownerNow() ? state.store : undefined,
-  );
+const subscribeLamps = (listener: () => void) => {
+  const stopBoth = subscribeBoth(listener);
+  const stopScenes = subscribeMemberScenes(listener);
+  return () => {
+    stopBoth();
+    stopScenes();
+  };
+};
 
-/** Any scene playable here — Plus, one bought, or one's own published: what the lamps ask. */
+/** Main's gate decides from the same rule and the same looks (`memberServices.ts`). */
+const ownsAnythingNow = () => {
+  const owner = ownerNow();
+  const { scenes, locked } = getMemberSceneListing();
+  return mayPlayAnything({
+    accountId: owner || undefined,
+    plus: plusNow(),
+    store: state.owner === owner ? state.store : undefined,
+    held: [...scenes, ...locked].map((scene) => scene.lookId),
+  });
+};
+
+/**
+ * Any scene playable here — one bought or free, or one of the account's own
+ * in its looks, published, waiting for review or never sent: what the lamps ask.
+ */
 export const useOwnsAnything = (): boolean =>
-  useSyncExternalStore(subscribeBoth, ownsAnythingNow, ownsAnythingNow);
+  useSyncExternalStore(subscribeLamps, ownsAnythingNow, ownsAnythingNow);
 
 /** For tests: a clean module between runs. */
 export const resetSceneStore = () => {
