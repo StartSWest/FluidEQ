@@ -26,6 +26,7 @@ import createRemoteAudioBook from '../remoteAudioBook';
 import createRemoteAudioLevels from '../remoteAudioLevels';
 import { createRemoteAudioLinks } from '../remoteAudioLinks';
 import createRemoteAudioPorts from '../remoteAudioPorts';
+import { createSmoothLinks, createSmoothSwitch } from '../remoteAudioSmooth';
 import { onWindowsAudioRestarted } from '../windowsAudioRestarts';
 import onWindowMessage from './windowMessages';
 import { registerRemoteAudioPlayback } from './remoteAudioPlayback';
@@ -52,18 +53,6 @@ const LAN_JOINS_CHANNEL = 'remote-audio-lan-joins';
 /** The raw-source capture stopped on its own — see `startRawSourceCapture`. */
 const RAW_SOURCE_LOST_CHANNEL = 'raw-source-lost';
 
-/**
- * Every stream is the low-delay one, whatever was asked for.
- *
- * There was a "Stream priority" choice once — Game/Video against Music, a
- * short start against a safer one — and nothing is left of it that can change
- * a sample: the control is gone and the transport's own `setStreamMode`
- * returns without doing anything on both sides of the link. The word still
- * travels, in the `stream-mode` signal that now carries what each computer
- * does with a link, because two versions of the app have to agree on it.
- */
-const STREAM_MODE = 'video';
-
 export interface IRemoteAudioIpcDeps {
   getMainWindow: () => BrowserWindow | null;
   userDataDir: string;
@@ -86,6 +75,17 @@ export const registerRemoteAudioIpc = ({
     sendToWindow('remote-audio-lan-streaming', peerId),
   );
   const playback = registerRemoteAudioPlayback(getMainWindow);
+  const smoothSwitch = createSmoothSwitch(userDataDir);
+  // Where the sound plays in this process (macOS and Linux) and the links
+  // sent from it; on Windows the Share Audio service keeps its own.
+  const smoothLinks = createSmoothLinks((peerId, smooth) => {
+    const mode = smooth ? 'music' : 'video';
+    ports.mode(peerId, mode);
+    if (!audioWorkerEnabled() && link) {
+      link.setStreamMode(peerId, mode);
+    }
+  });
+  smoothLinks.setLocal(smoothSwitch.get());
   const levels = createRemoteAudioLevels();
   const streaming = new Set<string>();
   let stopWorkerEvents: (() => void) | undefined;
@@ -99,6 +99,7 @@ export const registerRemoteAudioIpc = ({
         receive: [...told.keys()]
           .filter((peerId) => links.hears(peerId))
           .map((peerId) => ({ peerId, volume: links.volume(peerId) })),
+        smooth: smoothSwitch.get(),
       })
       .catch(() => sendToWindow(LAN_ERROR_CHANNEL, undefined));
   };
@@ -164,6 +165,11 @@ export const registerRemoteAudioIpc = ({
         (signal) => {
           const { peerId } = signal;
           remember(signal);
+          if (signal.signal.kind === 'stream-mode') {
+            smoothLinks.heard(peerId, signal.signal.mode);
+          } else if (signal.signal.kind === 'stop') {
+            smoothLinks.forget(peerId);
+          }
           if (signal.signal.kind === 'peer-ready') {
             links.connected(
               peerId,
@@ -205,6 +211,7 @@ export const registerRemoteAudioIpc = ({
             ports.audio(chunk);
             return;
           }
+          playback.setSmooth(chunk.peerId, smoothLinks.smooth(chunk.peerId));
           playback.push(chunk);
           if (!streaming.has(chunk.peerId)) {
             streaming.add(chunk.peerId);
@@ -327,7 +334,16 @@ export const registerRemoteAudioIpc = ({
       try {
         lan.sendSignal({
           peerId,
-          signal: { kind: 'stream-mode', mode: STREAM_MODE, duplex },
+          signal: {
+            kind: 'stream-mode',
+            // `music` while Smooth playback is on here, which makes the link
+            // smooth at both ends, and `video`, the low-delay stream,
+            // otherwise: the words of an old "Stream priority" choice, which
+            // every version reads. One from before Smooth playback answers
+            // `music` with a larger cushion of its own.
+            mode: smoothSwitch.get() ? 'music' : 'video',
+            duplex,
+          },
         });
       } catch {
         // Gone already; a computer that comes back is told again.
@@ -359,6 +375,7 @@ export const registerRemoteAudioIpc = ({
   let started: Promise<ILanHostDetails> | undefined;
   const resetSession = () => {
     told.clear();
+    smoothLinks.clear();
     ports.reset();
     streaming.clear();
     playback.reset();
@@ -516,6 +533,19 @@ export const registerRemoteAudioIpc = ({
       });
     },
   );
+  ipcMain.handle('remote-audio-lan-smooth', () => smoothSwitch.get());
+  ipcMain.handle('remote-audio-lan-set-smooth', (_event, on: unknown) => {
+    if (typeof on !== 'boolean') {
+      throw new Error('Invalid Smooth playback switch.');
+    }
+    if (on === smoothSwitch.get()) {
+      return;
+    }
+    smoothSwitch.set(on);
+    smoothLinks.setLocal(on);
+    links.retell();
+    syncRouting();
+  });
   ipcMain.handle('remote-audio-lan-switches-for', (_event, name: unknown) =>
     typeof name === 'string' ? links.switchesFor(name) : undefined,
   );

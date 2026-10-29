@@ -65,7 +65,12 @@ const createRemoteAudioTransport = ({
   let generation = 0;
   let stopping = false;
   const MAX_PENDING_DECODE_BYTES = 8 * 1024 * 1024;
+  // How much may wait to go out before a link is called stuck: about 0.7 s
+  // of 48 kHz stereo, and 2.7 s for a computer that asked for smooth
+  // playback, whose cushion rides out a stall that long.
   const MAX_SOCKET_BUFFER_BYTES = 256 * 1024;
+  const MAX_SMOOTH_SOCKET_BUFFER_BYTES = 1024 * 1024;
+  const smooth = new Set<string>();
 
   /**
    * `computer` names the machine at the other end, as the address it arrived
@@ -159,6 +164,7 @@ const createRemoteAudioTransport = ({
       if (sockets.get(peerId)?.socket === socket) {
         sockets.delete(peerId);
         pendingDecodeBytes.delete(peerId);
+        smooth.delete(peerId);
         if (!stopping) {
           emitSignal({ peerId, signal: { kind: 'stop' } });
         }
@@ -178,7 +184,10 @@ const createRemoteAudioTransport = ({
     // Capture already supplies float PCM. Always send it immediately; a sound
     // preset or a legacy Music/Video selection must not add an encoder queue.
     const queuedBytes = socket.bufferedAmount;
-    if (queuedBytes > MAX_SOCKET_BUFFER_BYTES) {
+    const limit = smooth.has(chunk.peerId)
+      ? MAX_SMOOTH_SOCKET_BUFFER_BYTES
+      : MAX_SOCKET_BUFFER_BYTES;
+    if (queuedBytes > limit) {
       socket.close(1013, 'Network send buffer is overloaded');
       return;
     }
@@ -208,6 +217,7 @@ const createRemoteAudioTransport = ({
       socket.close();
     });
     sockets.clear();
+    smooth.clear();
     decodeQueues.clear();
     pendingDecodeBytes.clear();
     networkMeter.clear();
@@ -226,9 +236,14 @@ const createRemoteAudioTransport = ({
     has: (peerId: string) => sockets.has(peerId),
     sendAudio,
     sendSignal,
-    // Retained for older peers; sending always uses the raw low-delay path.
-    setStreamMode: (_peerId: string, _mode: TRemoteAudioStreamMode) =>
-      undefined,
+    // Sending is always the raw path; music only lets more wait in it.
+    setStreamMode: (peerId: string, mode: TRemoteAudioStreamMode) => {
+      if (mode === 'music') {
+        smooth.add(peerId);
+      } else {
+        smooth.delete(peerId);
+      }
+    },
     size: () => sockets.size,
   };
 };

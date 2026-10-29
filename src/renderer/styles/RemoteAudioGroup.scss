@@ -42,13 +42,52 @@
   gap: 0 18px;
   grid-template-columns: subgrid;
 }
+// Right-aligned, so each row's switch ends the same distance from its
+// square button.
 .remote-audio__group-actions {
   grid-column: 4;
+  justify-content: flex-end;
   padding-right: 18px;
 }
 .remote-audio__group-lanes {
   grid-column: 1 / 4;
   grid-template-columns: subgrid;
+}
+// Every row ends in one slot of the same width — the options button, or
+// This computer's hint glyph centred under it — so the switches before them
+// stand in one column.
+$group-end-slot: 34px;
+.remote-audio__group-actions > .button.small {
+  justify-content: center;
+  width: $group-end-slot;
+  padding-inline: 0;
+}
+.remote-audio__group-info {
+  display: inline-grid;
+  place-items: center;
+  width: $group-end-slot;
+  height: $group-end-slot;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-pill;
+  background: none;
+  color: $text-faint;
+  cursor: help;
+  transition: $transition-control;
+
+  .menu-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    color: $text-muted;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    color: $text-muted;
+  }
 }
 .remote-audio__group-lanes > .remote-audio__lane {
   grid-template-columns: subgrid;

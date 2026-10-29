@@ -18,6 +18,9 @@ class PlaybackRuntime {
   bool push(unsigned id, std::uint32_t rate, std::uint16_t channels,
             std::uint32_t frames, std::uint32_t sequence, const float* pcm);
   void remove(unsigned id);
+  /** Smooth playback for one stream, kept for it across a change of format
+   * and forgotten when it is removed. */
+  void smooth(unsigned id, bool on);
   void reset();
   void volume(float value) { volume_.store(value); }
   feq::remote::PlaybackStats stats(unsigned id) const;
@@ -28,6 +31,7 @@ class PlaybackRuntime {
   struct Retired { std::unique_ptr<feq::remote::PeerPlayback> peer; std::uint64_t block; };
   std::array<std::unique_ptr<feq::remote::PeerPlayback>, feq::remote::kMaxPeers> peers_{};
   std::array<std::atomic<feq::remote::PeerPlayback*>, feq::remote::kMaxPeers> audible_{};
+  std::array<bool, feq::remote::kMaxPeers> smooth_{};
   std::vector<Retired> retired_;
   std::atomic<std::uint64_t> blocks_{0};
   std::atomic<float> volume_{1};

@@ -10,6 +10,9 @@ const remoteAudio = {
   'remoteAudio.group.receive': '수신',
   'remoteAudio.group.send': '보내기',
   'remoteAudio.group.share': '공유',
+  'remoteAudio.group.smooth': '부드럽게',
+  'remoteAudio.group.smoothHint':
+    '음악용: 끊기지 않고 약 0.5초 늦게 재생됩니다',
   'remoteAudio.group.options': '{name} 옵션',
   'remoteAudio.group.count.one': '{count} 컴퓨터',
   'remoteAudio.group.count.few': '{count} 컴퓨터',

@@ -79,3 +79,18 @@ it.each(['darwin', 'linux'])(
     expect(startWithWindows).not.toHaveBeenCalled();
   },
 );
+
+it('has no row in a development build, which Windows cannot start', async () => {
+  onPlatform('win32');
+  startWithWindows.mockResolvedValueOnce({
+    on: false,
+    blockedByWindows: false,
+    unavailable: true,
+  });
+  const fresh = await rendered();
+
+  expect(startWithWindows).toHaveBeenCalledTimes(1);
+  expect(
+    fresh.screen.queryByRole('checkbox', { name: en['startup.label'] }),
+  ).not.toBeInTheDocument();
+});

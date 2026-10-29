@@ -149,6 +149,45 @@ describe('LAN audio transport boundaries', () => {
     expect(socket.sent).toHaveLength(0);
     transport.closeAll();
   });
+
+  it('lets a smooth link ride out a stall the ordinary one is closed for', () => {
+    const { transport } = createTransport();
+    const socket = new FakeSocket();
+    transport.attach(
+      'music-peer',
+      socket as unknown as WebSocket,
+      keyFromSecret('music-session'),
+    );
+    transport.setStreamMode('music-peer', 'music');
+    socket.bufferedAmount = 256 * 1024 + 1;
+    transport.sendAudio(audioChunk('music-peer', 0));
+    expect(socket.close).not.toHaveBeenCalled();
+    expect(socket.sent).toHaveLength(1);
+
+    socket.bufferedAmount = 1024 * 1024 + 1;
+    transport.sendAudio(audioChunk('music-peer', 1));
+    expect(socket.close).toHaveBeenCalledWith(
+      1013,
+      'Network send buffer is overloaded',
+    );
+
+    // Back to the ordinary stream, the ordinary limit holds again.
+    const next = new FakeSocket();
+    transport.attach(
+      'music-peer-2',
+      next as unknown as WebSocket,
+      keyFromSecret('music-session'),
+    );
+    transport.setStreamMode('music-peer-2', 'music');
+    transport.setStreamMode('music-peer-2', 'video');
+    next.bufferedAmount = 256 * 1024 + 1;
+    transport.sendAudio(audioChunk('music-peer-2', 0));
+    expect(next.close).toHaveBeenCalledWith(
+      1013,
+      'Network send buffer is overloaded',
+    );
+    transport.closeAll();
+  });
 });
 it.each(['music', 'video'] as const)(
   'sends unchanged PCM immediately for a legacy %s preference',

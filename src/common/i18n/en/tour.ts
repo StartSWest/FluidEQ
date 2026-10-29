@@ -21,6 +21,36 @@ const tour = {
   'tour.karaokeBackground.imageAlt':
     'The Karaoke background control with a scene behind the lyrics.',
   'tour.karaokeBackground.lyric': 'Let our song light up the night',
+  'tour.tray.kicker': 'QUIET FROM SIGN-IN',
+  'tour.tray.title': 'FluidEQ starts in the tray',
+  'tour.tray.subtitle': 'Your sound from sign-in, with no window',
+  'tour.tray.lead':
+    'With {startup} on, FluidEQ starts in the notification area when you sign in to Windows, shaping your sound from the first second with no window in the way.',
+  'tour.tray.point1':
+    'Your EQ, presets and every output’s own sound play from the first song, before you open anything.',
+  'tour.tray.point2':
+    'The tray icon opens the window, and the window’s close button puts it back in the tray.',
+  'tour.tray.point3':
+    'Opening FluidEQ yourself still opens its window, as it always has.',
+  'tour.tray.how':
+    'Switch it on here, or at the foot of the menu (three lines):',
+  'tour.tray.imageAlt':
+    'The Windows taskbar’s notification area with the FluidEQ icon, and above it a card saying FluidEQ is shaping the sound.',
+  'tour.tray.card': 'Shaping every app’s sound',
+  'tour.languages.kicker': 'TWELVE LANGUAGES',
+  'tour.languages.title': 'Now in Korean and Traditional Chinese',
+  'tour.languages.subtitle': '한국어 and 繁體中文 join ten others',
+  'tour.languages.lead':
+    'FluidEQ speaks twelve languages. Traditional Chinese is picked for Taiwan, Hong Kong and Macau, and a language you chose yourself is always kept.',
+  'tour.languages.point1':
+    'The whole window, Help, What’s New and the installer speak both.',
+  'tour.languages.point2':
+    'Each language names itself in the list, so you can always find your own.',
+  'tour.languages.point3':
+    'Simplified Chinese stays for mainland China and Singapore.',
+  'tour.languages.how': 'Pick it at the foot of the menu (three lines):',
+  'tour.languages.imageAlt':
+    'The twelve languages FluidEQ speaks, each written in its own script, with Korean and Traditional Chinese marked new.',
 
   'tour.contribute': 'Please contribute',
   'tour.eyebrow': 'NEW IN THIS VERSION',

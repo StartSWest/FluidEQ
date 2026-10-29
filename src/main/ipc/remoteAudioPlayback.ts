@@ -143,6 +143,8 @@ export const registerRemoteAudioPlayback = (
     push: (chunk: ILanRemoteAudioChunk) =>
       run((current) => current.push(chunk)),
     remove: (peerId: string) => run((current) => current.remove(peerId)),
+    setSmooth: (peerId: string, smooth: boolean) =>
+      run((current) => current.setSmooth(peerId, smooth)),
     reset: () => run((current) => current.reset()),
     close,
   };

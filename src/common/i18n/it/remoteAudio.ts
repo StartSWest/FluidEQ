@@ -9,6 +9,9 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.group.receive': 'Ricevi',
   'remoteAudio.group.send': 'Invia',
   'remoteAudio.group.share': 'Condividi',
+  'remoteAudio.group.smooth': 'Fluido',
+  'remoteAudio.group.smoothHint':
+    'Per la musica: non si interrompe mai, suona circa mezzo secondo dopo',
   'remoteAudio.group.options': 'Opzioni di {name}',
   'remoteAudio.group.count.one': '{count} computer',
   'remoteAudio.group.count.few': '{count} computer',

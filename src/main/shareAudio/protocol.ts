@@ -15,6 +15,8 @@ import type { IPlaybackReply } from '../nativeRemoteAudioPlaybackProtocol';
 export interface IAudioRouting {
   targets: readonly string[];
   receive: readonly { peerId: string; volume: number }[];
+  /** This computer's Smooth playback switch. */
+  smooth: boolean;
 }
 export interface IAudioBook {
   revoked: readonly string[];
@@ -44,9 +46,13 @@ export interface IAudioMethods {
   'playback.remove': { args: [number, string]; result: void };
   'playback.reset': { args: [number]; result: void };
   'playback.volume': { args: [number, number]; result: void };
+  'playback.smooth': { args: [number, string, boolean]; result: void };
   'playback.output': { args: [number, string]; result: void };
   'playback.close': { args: [number]; result: void };
-  'helper.lease': { args: []; result: { id: number; pid?: number } };
+  'helper.lease': {
+    args: [];
+    result: { id: number; pid?: number; version: number };
+  };
   'helper.request': {
     args: [number, number, number, Uint8Array | undefined];
     result: void;

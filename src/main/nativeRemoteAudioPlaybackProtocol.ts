@@ -2,6 +2,8 @@
 
 export const PLAYBACK_MAGIC = 0x31504c46;
 export const PLAYBACK_HEADER_BYTES = 24;
+/** The helper protocol that has command 9, smooth playback for one peer. */
+export const PLAYBACK_SMOOTH_SINCE = 2;
 const MAX_REPLY_BYTES = 4_096;
 
 export const playbackCommand = (

@@ -45,6 +45,7 @@ const setup = () => {
     remove: jest.fn(),
     reset: jest.fn(),
     setVolume: jest.fn(),
+    setSmooth: jest.fn(),
     setOutput: jest.fn(async () => undefined),
     close: jest.fn(async () => undefined),
   };
@@ -155,6 +156,7 @@ it('keeps send and receive PCM inside the audio owner while the UI withholds eve
   await fixture.request('routing', {
     targets: ['one', 'two'],
     receive: [{ peerId: 'one', volume: 1 }],
+    smooth: false,
   });
   await fixture.request('capture.start');
   for (let sequence = 0; sequence < 600; sequence += 1) {
@@ -207,6 +209,7 @@ it('keeps independent receive gains, removes disabled audio and reannounces a re
       { peerId: 'one', volume: 0.5 },
       { peerId: 'two', volume: 1 },
     ],
+    smooth: false,
   });
   const audio = chunk();
   fixture.arrive(audio);
@@ -223,6 +226,7 @@ it('keeps independent receive gains, removes disabled audio and reannounces a re
   await fixture.request('routing', {
     targets: [],
     receive: [{ peerId: 'two', volume: 1 }],
+    smooth: false,
   });
   fixture.arrive(chunk());
   expect(fixture.player.remove).toHaveBeenCalledWith('one');
@@ -261,7 +265,11 @@ it('rejects a capture that fails during its open and permits a clean retry', asy
     'operation failed',
   );
   await fixture.request('lan.start', undefined, { revoked: [], links: [] });
-  await fixture.request('routing', { targets: ['one'], receive: [] });
+  await fixture.request('routing', {
+    targets: ['one'],
+    receive: [],
+    smooth: false,
+  });
   await fixture.request('capture.start');
   fixture.capture(chunk());
   expect(fixture.openCapture).toHaveBeenCalledTimes(2);
@@ -279,6 +287,7 @@ it('honors a remote pause before main processes its signal and preserves other l
       { peerId: 'one', volume: 1 },
       { peerId: 'two', volume: 1 },
     ],
+    smooth: false,
   });
   fixture.signal({
     peerId: 'one',
@@ -298,6 +307,7 @@ it('honors a remote pause before main processes its signal and preserves other l
       { peerId: 'one', volume: 1 },
       { peerId: 'two', volume: 1 },
     ],
+    smooth: false,
   });
   fixture.arrive(chunk());
   expect(fixture.player.push).toHaveBeenCalledTimes(1);
@@ -334,6 +344,7 @@ it('does not let closing an old player close its replacement or stop the sending
   await fixture.request('routing', {
     targets: ['one'],
     receive: [{ peerId: 'one', volume: 1 }],
+    smooth: false,
   });
   await fixture.request('playback.close', old);
   fixture.capture(chunk());
@@ -402,6 +413,7 @@ it('recovers a failed local player while the sending capture and network stay ru
   await fixture.request('routing', {
     targets: ['two'],
     receive: [{ peerId: 'one', volume: 1 }],
+    smooth: false,
   });
   fixture.failPlayer();
   expect(() =>
@@ -415,6 +427,7 @@ it('recovers a failed local player while the sending capture and network stay ru
   await fixture.request('routing', {
     targets: ['two'],
     receive: [{ peerId: 'one', volume: 1 }],
+    smooth: false,
   });
   fixture.arrive(chunk());
   expect(fixture.player.push).toHaveBeenCalledTimes(1);

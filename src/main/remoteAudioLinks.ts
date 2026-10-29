@@ -284,6 +284,11 @@ export const createRemoteAudioLinks = ({
       peers.forEach((peer, peerId) => tell(peerId, peer));
       refresh();
     },
+    /** Every link is told again what this computer does with it: the
+     * Smooth playback switch moved, and with it the word it travels in. */
+    retell() {
+      peers.forEach((peer, peerId) => tell(peerId, peer));
+    },
     switchesFor(name: string): ILinkSwitches {
       return remembered.get(name) ?? LINK_SWITCHES_ON;
     },

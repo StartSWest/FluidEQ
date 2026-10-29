@@ -52,6 +52,13 @@ export interface ILanAudioLease {
     payload?: Buffer,
   ): { id: number; answered: Promise<void> };
   send(packet: Buffer): void;
+  /**
+   * The protocol version the helper said it speaks when it was ready: 0 for
+   * every helper before smooth playback, 2 from it. A command the helper does
+   * not know ends it, and every capture under it, so a newer command is sent
+   * only where this says the helper has it.
+   */
+  readonly version: number;
   release(): void;
 }
 
@@ -91,6 +98,7 @@ interface IHelper {
   ready: Promise<void>;
   requests: Map<number, { resolve(): void; reject(error: Error): void }>;
   nextId: number;
+  version: number;
   ended: boolean;
 }
 
@@ -149,6 +157,7 @@ const start = (): IHelper => {
     }),
     requests: new Map(),
     nextId: 0,
+    version: 0,
     ended: false,
   };
   // Settled either way before anyone awaits it; a refusal is also an `end`.
@@ -178,6 +187,7 @@ const start = (): IHelper => {
       reader.push(bytes, (reply) => {
         if (reply.kind === 1 && !isReady && reply.payload.byteLength === 0) {
           isReady = true;
+          helper.version = reply.rate;
           markReady();
           return;
         }
@@ -276,6 +286,7 @@ export const leaseLanAudioHelper = async (
       return { id, answered };
     },
     send: (packet) => write(helper, packet),
+    version: helper.version,
     release: () => {
       if (!released) {
         released = true;
