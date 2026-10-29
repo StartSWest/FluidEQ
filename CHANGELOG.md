@@ -6,6 +6,70 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ---
 
+## 2.2.0
+
+FluidEQ 2.2 speaks Korean and Traditional Chinese, tells you what is new
+in a notice that never gets in your way, and puts a scene behind your
+Karaoke lyrics with its own transparency and blur. Your scenes says
+plainly what is yours, what is waiting for review and what failed to
+load, and an empty Visualizers column now points you to the gallery and
+the Studio.
+
+### Languages
+
+- **한국어 and 繁體中文.** FluidEQ now has twelve languages. Traditional
+  Chinese is picked for Taiwan, Hong Kong and Macau, Simplified for
+  mainland China and Singapore, and a language you chose yourself is
+  kept. The installer speaks both too. What's New's films are not voiced in
+  them yet: they play in English with captions in your language.
+
+### Announcements
+
+- **News from FluidEQ in a floating notice.** An announcement shows its
+  headline and one line of its text over the window, without moving
+  anything or blocking what you are doing, and is remembered once read.
+  Some announcements are for signed-in accounts only.
+
+### Visualizers
+
+- **Your scenes tells you what is happening.** Scenes you own, scenes you
+  published, scenes waiting for review and scenes that could not load are
+  each shown as what they are, instead of failing silently.
+- **An empty column points somewhere.** With no visualizer scenes yet, the
+  look picker offers Explore scenes and Create your own.
+- **Your own scene lights your keyboard and mouse at once.** A scene you
+  made counts for Dynamic lighting while it waits for review, as it
+  already played on the graph.
+- **Scene update notices show once per version** and stay dismissed when
+  you switch views or reopen the app.
+
+### Karaoke
+
+- **A scene behind the lyrics, with its own look.** Karaoke can show a
+  visualizer scene or the graph behind the words, with its own
+  transparency and blur, apart from the graph's own, and the scene follows
+  Karaoke's mute.
+- **Lyrics on an open stage.** The phrase being sung is larger and sits in
+  the middle of the stage; a long one wraps onto balanced rows instead of
+  shrinking, with the highlight running across them on the song's own
+  timing, and a soft veil under the words keeps them readable over a bright
+  scene.
+- **Exclusive cover and graph backgrounds** for the Karaoke stage, kept
+  apart from the graph's controls.
+
+### Share Audio and Forum
+
+- **Share Audio holds steady under load.** Capture and the network link
+  run in their own service, so a busy window no longer stalls the sound.
+- **Forum issue threads update at once**, and can be answered right in the
+  thread once FluidEQ's GitHub permission allows it.
+
+### What's New
+
+- **A slide for Karaoke backgrounds**, with the real control. The tour
+  reopens only for a new feature release, never for a fix release of the
+  same one.
+
 ## 2.1.0
 
 FluidEQ 2.1 gives every output a sound of its own. Put your headphones on and
