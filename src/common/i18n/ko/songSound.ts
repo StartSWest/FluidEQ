@@ -3,7 +3,7 @@
 import type { Dictionary } from '../en';
 
 const songSound = {
-  'songSound.switch': '각 노래의 사운드를 기억하세요',
+  'songSound.switch': '각 노래의 사운드 기억',
   'songSound.switchHint':
     '노래 중에 설정된 프리셋, 톤 또는 EQ는 해당 노래가 여기에서 재생될 때마다 다시 나타납니다.',
   'songSound.noticeTitle': '이 노래만의 사운드',

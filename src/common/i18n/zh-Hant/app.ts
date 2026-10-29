@@ -11,7 +11,7 @@ const app = {
   'recovery.reload': '重新載入 FluidEQ',
   'recovery.quit': '結束',
   'recovery.copy': '複製詳細資訊',
-  'recovery.history': '早期的失敗',
+  'recovery.history': '先前的錯誤',
   'app.tagline': '您的音色。每部裝置。自動套用。',
   'app.knob.type': '點選以鍵入一個值',
   'app.actions': 'FluidEQ 操作',
@@ -25,7 +25,7 @@ const app = {
   'engine.apo.reconfigure': '重新設定 Equalizer APO',
   'engine.apo.settings': 'Equalizer APO 設定',
   'app.menu.support': '支持開發',
-  'app.menu.fix': '解決這個問題',
+  'app.menu.fix': '修正這個問題',
   'app.menu.reportProblem': '報告問題',
   'app.menu.about': '關於 {product}...',
   'app.processes.menu': '處理程序…',
@@ -54,7 +54,7 @@ const app = {
   'app.processes.sceneRate':
     '{place}：{name} 在 {fps} fps 處，在 {drawn} 處為 {shown} 繪製',
   'app.processes.place.graph': '圖形視覺化工具',
-  'app.processes.place.studio': '演播室舞臺',
+  'app.processes.place.studio': '工作室舞臺',
   'app.processes.name.window': '介面',
   'app.processes.what.window':
     '您正在檢視的視窗：曲線、庫、播放器、每個控制項。每個視窗一個程式，因此大量重繪不會使聲音停止。場景在其內部的執行緒上執行，因此沉重的場景不會佔用控制項。',
@@ -118,7 +118,7 @@ const app = {
   'app.processes.name.lighting': '動態照明',
   'app.processes.what.lighting':
     '將場景的顏色傳遞給使用 Windows 動態照明的裝置。僅在燈光開啟或頁面開啟時執行。',
-  'app.processes.name.helper': '幫手',
+  'app.processes.name.helper': '輔助程式',
   'app.processes.what.helper':
     'Chromium 服務按需啟動。 FluidEQ 從不要求提供該名稱。',
   'app.menu.reinstallApp': '重新安裝 {product}...',
@@ -142,7 +142,7 @@ const app = {
   'engine.cancel': '取消',
   'engine.close': '關閉',
   'engine.switched': '切換到 {engine}',
-  'engine.installing': '切換引擎...',
+  'engine.installing': '正在切換引擎…',
   'engine.declined': 'Windows 許可權被拒絕，因此沒有任何改變。',
   'engine.failed': '引擎無法切換。一切都沒有改變。',
   'engine.detachFailed': '無法從此輸出中刪除 FluidEQ 引擎。一切都沒有改變。',
@@ -155,7 +155,7 @@ const app = {
   'prereq.dismiss': '關閉',
   'prereq.credit.apo':
     'Equalizer APO 包含在 {product} 中 — 不會下載任何內容。它的設定將詢問哪些音訊裝置要均衡，然後重新啟動。 {author} 單獨的 GPLv2 專案，捆綁不變。',
-  'prereq.starting': '開始…',
+  'prereq.starting': '正在啟動…',
   'prereq.bundleMissing': '此版本缺少 Equalizer APO 的副本。改為開啟官方專案。',
   'prereq.notStarted':
     'Equalizer APO 未啟動 — 需要管理員許可權。重試並批准 Windows 提示。',
@@ -259,7 +259,7 @@ const app = {
     '此版本修復了一個嚴重到 FluidEQ 不應繼續執行的問題。現在正在獲取更新。',
   'update.mandatory.notOptional':
     '這不是可選更新。您可以關閉此通知並完成您正在做的事情 - 它將返回，直到 FluidEQ 更新為止。',
-  'update.mandatory.later': '現在不行',
+  'update.mandatory.later': '暫不更新',
   'update.mandatory.waiting': '正在獲取更新...',
   'update.mandatory.readyPrompt':
     '更新已下載。 FluidEQ 將在安裝時關閉，然後再次開啟。',
@@ -291,7 +291,7 @@ const app = {
   'config.lede': '顯示磁碟上實際儲存的內容，而非 FluidEQ 預計寫入的內容。',
   'config.reload': '重新載入',
   'config.reloadTitle': '再次從磁碟讀取配置',
-  'config.reading': '閱讀…',
+  'config.reading': '正在讀取…',
   'config.absent': 'FluidEQ 尚未寫入此 Equalizer APO 安裝。',
   'config.absent.fluid': 'FluidEQ 尚未寫入 FluidEQ 引擎配置。',
   'config.status.notIncluded':
@@ -356,7 +356,7 @@ const app = {
   'startup.label': '隨 Windows 啟動',
   'startup.blocked': 'Windows 已在啟動應用程式中關閉此功能',
   'startup.failed': 'Windows 未能變更這項設定。',
-  'settings.group.picture': '圖片',
+  'settings.group.picture': '畫面',
   'settings.group.visualizer': '視覺化工具',
   'settings.group.drawing': '繪製方式',
   'settings.group.thisView': '目前檢視',
