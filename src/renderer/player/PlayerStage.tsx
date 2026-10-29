@@ -4,10 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useLayoutEffect, useRef } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { FULL_VIEW, sceneViewOf, type TSceneView } from '../graph/sceneView';
 import ScenePreview from '../plus/ScenePreview';
+import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
 import type { IGraphScenePack } from './useGraphScenePack';
 import usePlayerScenePulse from './usePlayerScenePulse';
 import { layoutBoxIn } from '../utils/layoutBox';
@@ -52,8 +53,25 @@ const PlayerStage = ({ scene, onTrouble, panel }: IPlayerStageProps) => {
   const layerRef = useRef<HTMLDivElement>(null);
   // The window's light beats with this picture in Ambient, as it does with
   // the graph's in the full app.
-  const onDrawn = usePlayerScenePulse(scene !== undefined, layerRef);
+  const pulse = usePlayerScenePulse(scene !== undefined, layerRef);
   const viewRef = useRef<TSceneView>(FULL_VIEW);
+  // Which scene has drawn its first frame: Auto counts a look's time on
+  // screen from it, as the graph's canvas does (`SceneCanvas`), so a scene
+  // still compiling is never passed over before it has drawn.
+  const identity = scene?.identity;
+  const [drawnIdentity, setDrawnIdentity] = useState<string>();
+  const drawnRef = useRef<string | undefined>(undefined);
+  useHoldGraphAutoCycle(identity !== undefined && drawnIdentity !== identity);
+  const onDrawn = useCallback(
+    (frame: ISceneFrame) => {
+      pulse(frame);
+      if (identity !== undefined && drawnRef.current !== identity) {
+        drawnRef.current = identity;
+        setDrawnIdentity(identity);
+      }
+    },
+    [pulse, identity],
+  );
 
   useLayoutEffect(() => {
     const layer = layerRef.current;

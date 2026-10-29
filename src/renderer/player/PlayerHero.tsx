@@ -16,6 +16,11 @@ import { liveLevelScaleFor } from '../graph/graphPaper';
 import SceneLikeButton from '../graph/SceneLikeButton';
 import LibraryCoverArt from '../library/LibraryCoverArt';
 import {
+  useGraphAutoCycle,
+  useGraphAutoCycleSeconds,
+  useHoldGraphAutoCycle,
+} from '../utils/graphAutoCycle';
+import {
   toggleGraphGrid,
   useGraphGridHidden,
   useGraphLook,
@@ -71,6 +76,17 @@ const PlayerHero = ({ scene, isLoading, onOpenPage }: IPlayerHeroProps) => {
     ? memberScenes.find((candidate) => candidate.lookId === selectedLookId)
     : undefined;
   const [box, setBox] = useState({ width: 0, height: 0 });
+  // Auto changes the look here too. The graph's toolbar runs the cycle in the
+  // full app, and the whole app sleeps behind the player (`App.tsx`'s
+  // Activity), effects and their frame loops with it, so with only the
+  // graph's the look never moved while the window was the player (Ivan,
+  // 2026-10-29: "I toggle auto in the app and in the amp ui is not cycling
+  // the viz"). The same interval and holds: the picker open or a scene still
+  // loading keep the look where it is.
+  useGraphAutoCycle(useGraphAutoCycleSeconds(), false, selectedLookId);
+  // A Plus look still on its way has not started its time on screen; once it
+  // arrives, the stage holds until its first frame (`PlayerStage`).
+  useHoldGraphAutoCycle(isLoading);
 
   // The song playing, or the last one shown while nothing plays.
   const source = usePlayerSource();
