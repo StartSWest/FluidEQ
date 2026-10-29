@@ -254,6 +254,9 @@ enum ChannelEnum {
   // error handling that can itself fail is not error handling.
   LOG_ERROR = 'logError',
   LOG_INFO = 'logInfo',
+  // What is on screen, for the performance log (`main/ipc/performance.ts`):
+  // the page and the graph's look. One way, no reply, like the two above.
+  PERFORMANCE_CONTEXT = 'performanceContext',
   // The report the dialog just built left the machine (clipboard, mail app
   // or browser). Carries the moment its logs were gathered, which is where
   // the next report's logs begin. One way, no reply, like the two above.

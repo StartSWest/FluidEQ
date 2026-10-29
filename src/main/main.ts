@@ -147,6 +147,7 @@ import {
 import createApoDiskSync from './apoDiskSync';
 import { createUpdatePath, handleError } from './updatePath';
 import registerDiagnosticsIpc from './ipc/diagnostics';
+import { registerPerformanceLog } from './ipc/performance';
 import registerApoConfigIpc from './ipc/apoConfig';
 import registerEngineStateIpc from './ipc/engineState';
 import registerNativeDialogsIpc from './ipc/nativeDialogs';
@@ -825,13 +826,17 @@ registerTaskbarIconIpc({
 // The process list, which needs the host's pid to include it as a row — the
 // DSP engine is our own child rather than Electron's, so `getAppMetrics` has
 // never heard of it.
-registerProcessIpc({
+const processList = registerProcessIpc({
   getMainWindow,
   getNativeHostPid: dspHostPid,
   getNativeHostStats: dspHostStats,
   getLightingHelperPid: () => lighting.helperPid(),
   getSystemEngineProcesses: readEngineProcesses,
   meter: createProcessMeter(),
+});
+registerPerformanceLog({
+  getMainWindow,
+  listProcesses: processList.listQuietly,
 });
 
 const libraryIpc = registerLibraryIpc({
