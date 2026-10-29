@@ -187,7 +187,12 @@ int main(int argc, char** argv) {
   }
   if (args.exit_with_parent) {
     const pid_t parent = getppid();
-    prctl(PR_SET_PDEATHSIG, SIGTERM);
+    // SIGTERM is blocked for the main loop below. If a sound-server call
+    // stalls before that loop, a dead owner's signal stays pending forever,
+    // retaining the engine lock and inherited app sockets across restarts.
+    // Normal quit still closes the owner pipe for graceful route cleanup;
+    // an owner that has already died must never leave an orphan behind.
+    prctl(PR_SET_PDEATHSIG, SIGKILL);
     // The parent may have died between fork and prctl; then nothing will
     // ever send the signal.
     if (getppid() != parent) return 0;

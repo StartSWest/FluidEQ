@@ -95,28 +95,4 @@ void PipeWireRouter::on_origin_process(void* data) {
   }
 }
 
-void PipeWireRouter::on_volume_control(void* data, uint32_t id,
-                                       const pw_stream_control* control) {
-  auto* self = static_cast<PipeWireRouter*>(data);
-  if (control == nullptr || control->n_values == 0) return;
-  if (id == SPA_PROP_channelVolumes) {
-    self->master_channels_ = std::min<uint32_t>(control->n_values, 8);
-    std::copy_n(control->values, self->master_channels_, self->master_volumes_);
-  } else if (id == SPA_PROP_mute) {
-    self->master_mute_ = control->values[0];
-  } else {
-    return;
-  }
-  self->apply_playback_volume();
-}
-
-void PipeWireRouter::apply_playback_volume() {
-  if (playback_.stream == nullptr) return;
-  // One system master, after the local/received mix and DSP. The Send tap
-  // contains only origin samples; it never sees either master control.
-  api_.stream_set_control(playback_.stream, SPA_PROP_channelVolumes,
-      master_channels_ > 0 ? master_channels_ : layout_.channels,
-      master_volumes_, SPA_PROP_mute, 1u, &master_mute_, 0u);
-}
-
 }  // namespace fluideq_linux

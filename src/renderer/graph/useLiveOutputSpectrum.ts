@@ -750,7 +750,17 @@ const useLiveOutputSpectrum = () => {
       return undefined;
     }
     return subscribeAudioDevices((reading) => {
-      reading.then(retryStart, retryStart);
+      reading.then(() => {
+        if (!streamRef.current) {
+          // The engine returning is fresh evidence even after attempts made
+          // without its monitor were exhausted. A focus-only retry could
+          // otherwise leave live output disabled for the rest of the session.
+          retriesRef.current = 0;
+          isRetryPendingRef.current = true;
+          retryStart();
+        }
+        return undefined;
+      }, retryStart);
     });
   }, [retryStart]);
 

@@ -271,6 +271,8 @@ void PulseRouter::on_sink_info(pa::context* context, const pa::sink_info* info,
     sink.name = info->name;
     sink.description = info->description != nullptr ? info->description : info->name;
     sink.rate = info->spec.rate;
+    sink.volume = info->volume;
+    sink.muted = info->mute != 0;
     std::vector<Speaker> speakers;
     for (uint8_t at = 0; at < info->map.channels && at < pa::kChannelsMax; ++at) {
       speakers.push_back(speaker_of(info->map.map[at]));
@@ -290,6 +292,7 @@ void PulseRouter::on_sink_info(pa::context* context, const pa::sink_info* info,
     return;
   }
   self->choose_target();
+  self->sync_system_volume();
   self->write_outputs();
   self->api_.mainloop_signal(self->loop_, 0);
 }
@@ -332,12 +335,23 @@ void PulseRouter::choose_target() {
 }
 
 void PulseRouter::retarget(const Sink& sink) {
+  if (volume_initialised_) {
+    retarget_volume_ = master_volume_;
+    retarget_mute_ = master_muted_;
+  }
   log_->write("playing to \"" + sink.description + "\" (" + sink.name + "), " +
               std::to_string(sink.layout.channels) + " ch, " +
               std::to_string(sink.rate) + " Hz");
   close_streams();
   target_name_ = sink.name;
   target_index_ = sink.index;
+  ++volume_generation_;
+  volume_initialised_ = false;
+  volume_failed_ = false;
+  master_changed_ = false;
+  source_echo_pending_ = false;
+  source_echo_seen_ = false;
+  sync_system_volume();
   follow_monitor();
   layout_ = sink.layout;
   channel_map_ = map_of(layout_);
@@ -484,7 +498,7 @@ bool PulseRouter::open_playback(const Sink& sink) {
   // the next refresh opens one to wherever the listener is now.
   const int flags = pa::kStreamVariableRate | pa::kStreamAdjustLatency |
                     pa::kStreamAutoTimingUpdate | pa::kStreamInterpolateTiming |
-                    kStreamDontMove;
+                    kStreamDontMove | 0x1000;  // PA_STREAM_START_MUTED
   if (api_.stream_connect_playback(playback_, sink.name.c_str(), &attr, flags,
                                    nullptr, nullptr) < 0) {
     log_->write("could not play to " + sink.name);

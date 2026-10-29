@@ -12,7 +12,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * application's direct monitor precedes the sink's master volume/mute;
  * pipewire-pulse instead supplies its raw aggregate monitor ports.
  * those local origins feed Send, then received audio joins them before DSP.
- * The sink's system controls apply only to the final playback stream.
+ * The default sink mirrors the selected output's system controls. The real
+ * output is the only audible master, after both sources have been mixed.
  * A discarded null sink keeps its own time and
  * the output keeps the sound card's, so the two drift apart by a few samples
  * a second; the playback stream's rate is nudged by the backlog it holds
@@ -66,6 +67,8 @@ class PulseRouter final : public SoundRouter {
     std::string description;
     uint32_t rate = 0;
     ChannelLayout layout{};
+    pa::cvolume volume{};
+    bool muted = false;
   };
 
   PulseRouter(const pa::Api& api, RouterOptions options);
@@ -97,6 +100,10 @@ class PulseRouter final : public SoundRouter {
   static void on_origin_loaded(pa::context*, uint32_t index, void* data);
   void follow_master_volume(const pa::sink_info& info);
   void apply_playback_volume();
+  void sync_system_volume();
+  void write_system_volume(uint32_t index, const pa::cvolume& volume,
+                            bool muted, bool to_output);
+  static void on_volume_written(pa::context*, int success, void*);
   void open_record();
   std::string null_sink_args(const std::string& name,
                              const std::string& properties,
@@ -160,6 +167,19 @@ class PulseRouter final : public SoundRouter {
   uint32_t origin_module_ = UINT32_MAX;
   pa::cvolume master_volume_{};
   bool master_muted_ = false;
+  bool master_changed_ = false;
+  bool volume_initialised_ = false;
+  bool volume_failed_ = false;
+  uint32_t volume_writes_ = 0;
+  bool volume_write_to_output_ = false;
+  uint32_t volume_generation_ = 0;
+  uint32_t volume_write_generation_ = 0;
+  pa::cvolume mirrored_volume_{};
+  bool mirrored_mute_ = false;
+  bool source_echo_pending_ = false;
+  bool source_echo_seen_ = false;
+  pa::cvolume retarget_volume_{};
+  bool retarget_mute_ = false;
   uint32_t module_rate_ = 0;
   ChannelLayout module_layout_{};
   bool loading_ = false;

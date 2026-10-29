@@ -532,10 +532,18 @@ export const setUpTray = (deps: ITrayDeps) => {
   // at the scalings most laptops actually run at, and picking those out of a
   // multi-resolution icon is the difference between a crisp mark and a
   // resampled smudge. macOS and Linux have no .ico, so they take the png.
-  const iconPath = path.join(
+  let iconPath = path.join(
     assetsPath,
     process.platform === 'win32' ? 'icon.ico' : 'icon.png',
   );
+  if (process.platform === 'linux') {
+    // GTK publishes this file at its original size. The 512px app artwork
+    // left a cropped mark in GNOME's panel after the tray host returned.
+    const panelIcon = path.join(assetsPath, 'icons', '24x24.png');
+    if (fs.existsSync(panelIcon)) {
+      iconPath = panelIcon;
+    }
+  }
 
   // The same mark with the update dot on it, built by
   // .erb/scripts/make-tray-badge-icon.ts. Resolved once here rather than at

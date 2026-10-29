@@ -5,16 +5,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The FluidEQ sink holds the OS system master. Its raw monitor ports feed
+ * The FluidEQ sink mirrors the selected output's OS master. Its raw monitor ports feed
  * the origin capture, ahead of volume/mute; the sink's post-master process
  * buffers are discarded. The origin capture triggers playback, which taps
  * Send before mixing received audio and running DSP. The OS master applies
- * only to the final playback stream. All audio callbacks share one data loop.
+ * only at the real output. All audio callbacks share one data loop.
  */
 
 #include <spa/param/audio/format-utils.h>
+#include <spa/param/audio/raw-types.h>
 #include <spa/param/latency-utils.h>
 #include <spa/pod/builder.h>
+#include <spa/debug/types.h>
 
 #include <algorithm>
 #include <cstring>
@@ -127,13 +129,16 @@ void PipeWireRouter::run_on_data_thread(void (*fn)(PipeWireRouter*, void*),
 }
 
 void PipeWireRouter::retarget(const Sink& sink) {
+  const bool carry_volume = volume_initialised_;
   const ChannelLayout layout = layout_for(sink.channels, sink.positions);
   const bool relayout = capture_.stream == nullptr || !(layout == layout_);
   log_->write("playing to \"" + sink.description + "\" (" + sink.name + "), " +
               std::to_string(layout.channels) + " ch");
   close_stream(playback_, true);
   target_name_ = sink.name;
+  volume_initialised_ = false;
   layout_ = layout;
+  if (carry_volume) write_target_volume();
   if (relayout) {
     close_origin();
     close_tap(monitor_);
@@ -155,11 +160,23 @@ void PipeWireRouter::retarget(const Sink& sink) {
     if (!open_origin(layout)) return;
   }
   apply_playback_volume();
+  sync_source_volume();
   ensure_engine();
 }
 
 bool PipeWireRouter::open_capture(const ChannelLayout& layout) {
+  source_volume_seen_ = false;
+  source_mute_seen_ = false;
   const std::string group = "fluideq-engine-" + std::to_string(getpid());
+  const std::string channels = std::to_string(layout.channels);
+  std::string positions = "[ ";
+  for (uint32_t at = 0; at < layout.channels; ++at) {
+    const char* name = spa_debug_type_find_short_name(spa_type_audio_channel,
+        spa_channel_of(layout.speakers[at], at));
+    positions += name != nullptr ? name : "UNKNOWN";
+    positions += ' ';
+  }
+  positions += ']';
   pw_properties* props = api_.properties_new(
       PW_KEY_MEDIA_TYPE, "Audio", PW_KEY_MEDIA_CLASS, "Audio/Sink",
       PW_KEY_NODE_NAME, options_.sink_name.c_str(), PW_KEY_NODE_DESCRIPTION,
@@ -167,6 +184,8 @@ bool PipeWireRouter::open_capture(const ChannelLayout& layout) {
       "node.link-group", group.c_str(), "node.loop.name", kDataLoop,
       PW_KEY_NODE_VIRTUAL, "true", "resample.prefill", "true",
       "monitor.channel-volumes", "false",
+      "state.restore-props", "false",
+      "audio.channels", channels.c_str(), "audio.position", positions.c_str(),
       "device.icon-name", "audio-card", nullptr);
   capture_.stream = api_.stream_new(core_, "FluidEQ", props);
   latency_reported_ = UINT32_MAX;  // A new stream has reported nothing.
@@ -180,7 +199,6 @@ bool PipeWireRouter::open_capture(const ChannelLayout& layout) {
     e.process = &PipeWireRouter::on_capture_process;
     e.param_changed = &PipeWireRouter::on_capture_param;
     e.state_changed = &PipeWireRouter::on_stream_state;
-    e.control_info = &PipeWireRouter::on_volume_control;
     return e;
   }();
   api_.stream_add_listener(capture_.stream, &capture_.listener, &events, this);
@@ -222,6 +240,7 @@ bool PipeWireRouter::open_playback(const Sink& sink,
       sink.name.c_str(),
       PW_KEY_NODE_DONT_RECONNECT, "true", "node.dont-fallback", "true",
       "node.dont-move", "true", PW_KEY_STREAM_DONT_REMIX, "true",
+      "state.restore-props", "false",
       // Passive: with nothing playing into FluidEQ the real output may
       // suspend, as it would without the engine.
       PW_KEY_NODE_PASSIVE, "true", PW_KEY_NODE_GROUP, group.c_str(),
@@ -236,7 +255,7 @@ bool PipeWireRouter::open_playback(const Sink& sink,
     pw_stream_events e{};
     e.version = PW_VERSION_STREAM_EVENTS;
     e.process = &PipeWireRouter::on_playback_process;
-    e.state_changed = &PipeWireRouter::on_stream_state;
+    e.state_changed = &PipeWireRouter::on_playback_state;
     return e;
   }();
   api_.stream_add_listener(playback_.stream, &playback_.listener, &events,

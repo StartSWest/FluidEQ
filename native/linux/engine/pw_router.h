@@ -79,6 +79,8 @@ class PipeWireRouter final : public SoundRouter {
     uint32_t channels = 0;
     std::vector<Speaker> positions;
     bool described = false;
+    std::vector<float> volumes;
+    bool muted = false;
     pw_proxy* proxy = nullptr;
     spa_hook listener{};
     PipeWireRouter* router = nullptr;
@@ -108,6 +110,8 @@ class PipeWireRouter final : public SoundRouter {
                         const spa_dict* props);
   static void on_global_remove(void* data, uint32_t id);
   static void on_node_info(void* data, const pw_node_info* info);
+  static void on_sink_param(void* data, int seq, uint32_t id,
+                            uint32_t index, uint32_t next, const spa_pod* param);
   static int on_metadata_property(void* data, uint32_t subject, const char* key,
                                   const char* type, const char* value);
   static void on_core_done(void* data, uint32_t id, int seq);
@@ -134,9 +138,13 @@ class PipeWireRouter final : public SoundRouter {
   bool open_origin(const ChannelLayout& layout);
   void close_origin() noexcept;
   static void on_origin_process(void* data);
-  static void on_volume_control(void* data, uint32_t id,
-                                 const pw_stream_control* control);
+  void source_volume_changed();
   void apply_playback_volume();
+  void sync_source_volume();
+  void write_target_volume();
+  void volume_synced(int seq);
+  static void on_playback_state(void* data, pw_stream_state old,
+                                pw_stream_state state, const char* error);
   bool open_playback(const Sink& sink, const ChannelLayout& layout);
   void close_stream(Stream& stream, bool playback) noexcept;
   // "FluidEQ Monitor" and "FluidEQ Send": the engine's output, and what
@@ -175,6 +183,7 @@ class PipeWireRouter final : public SoundRouter {
   bool synced_ = false;
 
   std::map<uint32_t, std::unique_ptr<Sink>> sinks_;
+  std::unique_ptr<Sink> volume_source_;
   /** Our own sink's global id, once PipeWire has announced it. */
   uint32_t own_sink_id_ = 0;
   bool own_sink_seen_ = false;
@@ -206,6 +215,16 @@ class PipeWireRouter final : public SoundRouter {
   float master_volumes_[8] = {1, 1, 1, 1, 1, 1, 1, 1};
   uint32_t master_channels_ = 0;
   float master_mute_ = 0;
+  bool source_volume_seen_ = false;
+  bool source_mute_seen_ = false;
+  bool volume_initialised_ = false;
+  bool volume_syncing_ = false;
+  int volume_write_seq_ = 0;
+  int volume_source_seq_ = 0;
+  std::vector<float> mirrored_volumes_;
+  bool mirrored_muted_ = false;
+  bool source_echo_seen_ = false;
+  bool source_changed_ = false;
   std::unique_ptr<ShareRing> share_ring_;
   uint32_t capture_rate_ = 0;
   uint32_t capture_channels_ = 0;

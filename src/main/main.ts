@@ -912,17 +912,33 @@ const resetActiveEngineAtSessionEnd = (): void => {
 // updater, which development, macOS and Linux never have.
 const comeBack = createComeBackWatch({
   powerMonitor,
-  accountSteps: accountComeBackSteps({
-    entitlement: members.accountIpc.entitlement,
-    sceneStore: members.sceneOwnership,
-    scenePacks: members.scenePacksIpc,
-    memberSharing: members.memberSharingIpc,
-    plusGallery: members.plusGalleryIpc,
-    sceneReviews: members.plusReviewIpc,
-    plusTermsNotice: members.plusTermsNoticeIpc,
-    sceneAnnouncements: members.sceneAnnouncementsIpc,
-    addons: members.addons,
-  }),
+  accountSteps: [
+    // A failed startup left Linux without its monitor for the whole session.
+    // Use the existing return/wake events; start is a no-op for a live engine.
+    ...(process.platform === 'linux'
+      ? [
+          {
+            name: 'Linux audio engine',
+            run: async () => {
+              if (!isAppQuitting()) {
+                linuxEngine().start();
+              }
+            },
+          },
+        ]
+      : []),
+    ...accountComeBackSteps({
+      entitlement: members.accountIpc.entitlement,
+      sceneStore: members.sceneOwnership,
+      scenePacks: members.scenePacksIpc,
+      memberSharing: members.memberSharingIpc,
+      plusGallery: members.plusGalleryIpc,
+      sceneReviews: members.plusReviewIpc,
+      plusTermsNotice: members.plusTermsNoticeIpc,
+      sceneAnnouncements: members.sceneAnnouncementsIpc,
+      addons: members.addons,
+    }),
+  ],
   getActiveAutoUpdater: updates.getActiveAutoUpdater,
   applyUpdateIfUnattended: updates.applyUpdateIfUnattended,
   logger: log,

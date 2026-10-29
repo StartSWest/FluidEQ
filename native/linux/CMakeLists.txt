@@ -176,7 +176,7 @@ if(FEQ_PIPEWIRE_FOUND)
     PRIVATE feq_strict)
   target_sources(fluideq-linux-engine PRIVATE
     engine/pw_router.cpp engine/pw_streams.cpp engine/pw_monitor.cpp
-    engine/pw_share.cpp engine/pw_origin.cpp)
+    engine/pw_share.cpp engine/pw_origin.cpp engine/pw_volume.cpp)
   target_link_libraries(fluideq-linux-engine PRIVATE fluideq-linux-pipewire)
   target_compile_definitions(fluideq-linux-engine PRIVATE FEQ_LINUX_HAS_PIPEWIRE=1)
 else()

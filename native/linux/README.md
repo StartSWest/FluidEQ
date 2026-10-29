@@ -55,6 +55,20 @@ use, 3 already running for this user.
 Both libraries are opened at run time (`pipewire/pw_api.*`, `pulse/pa_api.*`),
 never linked, so one binary starts everywhere and says plainly what is missing.
 
+### System volume and Share Audio
+
+The selected real output is the only audible master. The default FluidEQ
+output mirrors its volume, channel balance and mute through native server
+notifications, in both directions. Startup adopts the real output's saved
+controls; switching outputs carries the current level and mute. The engine's
+playback stream stays at unity, so a second saved speaker volume cannot make
+the system fader report 100% over a silent output, or attenuate sound twice.
+
+Local-origin capture precedes those controls and feeds **FluidEQ Send** before
+received sound is mixed in. Changing this computer's system volume or mute
+therefore changes only local playback. Received audio never enters Send, and
+captured samples are never divided by a volume value.
+
 ## FluidEQ-DSP (the Library player's host)
 
 `dsp-host/` fills the host's existing per-OS slot: PipeWire where it runs, ALSA

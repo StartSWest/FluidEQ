@@ -553,7 +553,10 @@ export const registerRemoteAudioIpc = ({
     try {
       lan.sendAudio(chunk);
     } catch {
-      sendToWindow(LAN_ERROR_CHANNEL, undefined);
+      // A worklet chunk can already be queued when this peer disconnects.
+      // Its transport stop removes that peer; the other authenticated PCs
+      // stay connected. Match the native capture's per-peer handling above,
+      // rather than clearing the whole renderer group on Linux/macOS.
     }
   });
   /*

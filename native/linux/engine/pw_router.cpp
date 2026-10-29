@@ -141,6 +141,7 @@ void PipeWireRouter::roundtrip() {
 
 void PipeWireRouter::on_core_done(void* data, uint32_t id, int seq) {
   auto* self = static_cast<PipeWireRouter*>(data);
+  if (id == PW_ID_CORE) self->volume_synced(seq);
   if (id == PW_ID_CORE && seq == self->pending_seq_) {
     self->synced_ = true;
     self->api_.thread_loop_signal(self->loop_, false);
@@ -200,7 +201,6 @@ void PipeWireRouter::on_global(void* data, uint32_t id, uint32_t permissions,
     self->own_sink_id_ = id;
     self->own_sink_seen_ = true;
     self->claim_default();
-    return;
   }
   if (std::strcmp(name, kShareSinkName) == 0) return;
   auto sink = std::make_unique<Sink>();
@@ -212,20 +212,43 @@ void PipeWireRouter::on_global(void* data, uint32_t id, uint32_t permissions,
     sink->priority = std::atoi(priority);
   }
   sink->router = self;
+  // Binding our own exported node can deliver cached Props immediately.
+  // Publish its owner first, so that callback can consume those controls.
+  Sink* const watched = sink.get();
+  if (self->options_.sink_name == name) {
+    if (self->volume_source_ && self->volume_source_->proxy != nullptr) {
+      spa_hook_remove(&self->volume_source_->listener);
+      self->api_.proxy_destroy(self->volume_source_->proxy);
+    }
+    self->volume_source_seq_ = 0;
+    self->source_echo_seen_ = false;
+    self->source_changed_ = false;
+    self->volume_initialised_ = false;
+    self->source_volume_seen_ = false;
+    self->source_mute_seen_ = false;
+    self->volume_source_ = std::move(sink);
+  } else {
+    self->sinks_[id] = std::move(sink);
+  }
   // Its channels are in the node's info, not the global: bind to read them.
-  sink->proxy = static_cast<pw_proxy*>(pw_registry_bind(
+  watched->proxy = static_cast<pw_proxy*>(pw_registry_bind(
       self->registry_, id, PW_TYPE_INTERFACE_Node, PW_VERSION_NODE, 0));
-  if (sink->proxy != nullptr) {
+  if (watched->proxy != nullptr) {
     static const pw_node_events events = [] {
       pw_node_events e{};
       e.version = PW_VERSION_NODE_EVENTS;
       e.info = &PipeWireRouter::on_node_info;
+      e.param = &PipeWireRouter::on_sink_param;
       return e;
     }();
-    pw_node_add_listener(reinterpret_cast<pw_node*>(sink->proxy),
-                         &sink->listener, &events, sink.get());
+    pw_node_add_listener(reinterpret_cast<pw_node*>(watched->proxy),
+                         &watched->listener, &events, watched);
+    uint32_t params[] = {SPA_PARAM_Props};
+    pw_node_subscribe_params(reinterpret_cast<pw_node*>(watched->proxy), params, 1);
+    pw_node_enum_params(reinterpret_cast<pw_node*>(watched->proxy), 0,
+                        SPA_PARAM_Props, 0, UINT32_MAX, nullptr);
   }
-  self->sinks_[id] = std::move(sink);
+  if (self->options_.sink_name == name) self->source_volume_changed();
 }
 
 void PipeWireRouter::on_node_info(void* data, const pw_node_info* info) {
@@ -242,6 +265,7 @@ void PipeWireRouter::on_node_info(void* data, const pw_node_info* info) {
   const bool first = !sink->described;
   sink->described = true;
   PipeWireRouter* self = sink->router;
+  if (sink->name == self->options_.sink_name) return;
   if (first && self->synced_) self->choose_target();
 }
 
@@ -262,6 +286,7 @@ int PipeWireRouter::on_metadata_property(void* data, uint32_t subject,
     return 0;
   }
   if (self->synced_) self->choose_target();
+  self->sync_source_volume();
   return 0;
 }
 
@@ -269,6 +294,11 @@ void PipeWireRouter::on_global_remove(void* data, uint32_t id) {
   auto* self = static_cast<PipeWireRouter*>(data);
   if (self->own_sink_seen_ && id == self->own_sink_id_) {
     self->own_sink_seen_ = false;
+    if (self->volume_source_ && self->volume_source_->proxy != nullptr) {
+      spa_hook_remove(&self->volume_source_->listener);
+      self->api_.proxy_destroy(self->volume_source_->proxy);
+    }
+    self->volume_source_.reset();
     return;
   }
   if (self->metadata_ != nullptr && id == self->metadata_id_) {
@@ -419,6 +449,13 @@ void PipeWireRouter::shutdown() noexcept {
     latency_event_ = nullptr;
   }
   if (!lost_) roundtrip();
+  if (volume_source_) {
+    if (volume_source_->proxy != nullptr) {
+      spa_hook_remove(&volume_source_->listener);
+      api_.proxy_destroy(volume_source_->proxy);
+    }
+    volume_source_.reset();
+  }
   for (auto it = sinks_.begin(); it != sinks_.end();) {
     const uint32_t id = it->first;
     ++it;

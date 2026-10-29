@@ -408,6 +408,10 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     }
     recordsRef.current.forEach((_record, peerId) => removePeer(peerId));
     clearLinks();
+    // Main may still have authenticated peers when only discovery failed.
+    // Clearing the window's records also invalidates its replay marker;
+    // otherwise recovery hides those live peers until they reconnect.
+    heardLinksRef.current = false;
     setError('connection');
     setPhase('error');
     // Straight back on the network; failing that, when it comes back.
