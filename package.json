@@ -70,6 +70,8 @@
     "typecheck:platform": "ts-node ./.erb/scripts/check-platform-isolation.ts",
     "perf:probe": "cross-env TS_NODE_TRANSPILE_ONLY=true ts-node ./.erb/scripts/perf-probe.ts",
     "package:mac": "ts-node ./.erb/scripts/clean.js dist && pnpm licenses:notices --check && cross-env FLUIDEQ_NO_ADDONS=1 pnpm build && ts-node ./.erb/scripts/check-release-addons.ts && electron-builder build --mac --publish never -c.mac.identity=- -c.mac.hardenedRuntime=false",
+    "package:mac:release": "pnpm package:mac && ts-node ./.erb/scripts/sign-mac-feed.ts",
+    "mac-feed-key": "ts-node ./.erb/scripts/mac-feed-key.ts",
     "package:release": "pnpm package && ts-node ./.erb/scripts/sign-update-feed.ts",
     "update-feed-keys": "ts-node ./.erb/scripts/update-feed-keys.ts",
     "update-feed-key": "ts-node ./.erb/scripts/update-feed-key.ts",

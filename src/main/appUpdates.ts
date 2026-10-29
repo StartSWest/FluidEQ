@@ -33,6 +33,8 @@ import {
   IAuthorizedAutoUpdater,
   setUpReleaseAutoUpdates,
 } from './signedAutoUpdates';
+import { setUpMacSelfUpdates } from './macSelfUpdate';
+import macSelfUpdateDeps from './macSelfUpdateDeps';
 import {
   beginQuit,
   getTrayLocale,
@@ -215,6 +217,31 @@ const createAppUpdates = ({
         }
       },
     });
+
+    // A Mac updates itself from its own signed feed (macSelfUpdate.ts):
+    // Squirrel.Mac installs nothing into an ad-hoc signed app, and the call
+    // above turns itself off anywhere but Windows.
+    if (process.platform === 'darwin') {
+      activeAutoUpdater = await setUpMacSelfUpdates(
+        macSelfUpdateDeps({
+          logger: log,
+          beforeQuit: beginQuit,
+          onManualCheckResult: (result, version) =>
+            nativeUpdatePrompt?.notifyManualCheckResult(result, version),
+          sendStatus: (payload) => {
+            // The same surfaces, in the same order, as the call above.
+            nativeUpdatePrompt?.handleStatus(payload);
+            const mainWindow = getMainWindow();
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              mainWindow.webContents.send(APP_UPDATE_EVENT, payload);
+            }
+            if (payload.phase === 'ready') {
+              applyUpdateIfUnattended('the download finishing');
+            }
+          },
+        }),
+      );
+    }
 
     // The tray asks before it offers anything. An updater that failed its
     // Authenticode or feed check leaves this false, and the menu then shows
