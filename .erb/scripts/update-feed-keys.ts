@@ -10,12 +10,17 @@
  * manager — a lost key means installed copies can no longer be updated by
  * any release signed with another. Refuses to replace a key that is already
  * there, and to run while `.env` still holds one.
+ *
+ * On Linux it makes the Linux builds' own key instead: the public half goes
+ * into `LINUX_UPDATE_FEED_KEYS`, which only a Linux build reads, and the
+ * private half into this account's keyring. Windows' key and list are not
+ * touched, so nothing made here can sign an update a Windows copy takes.
  */
 
 import fs from 'fs';
 import path from 'path';
 import { generateKeyPairSync } from 'crypto';
-import { UPDATE_FEED_KEYS } from '../../src/main/updateFeedSignature';
+import { platformFeedKeys } from '../../src/main/updateFeedSignature';
 import { envHoldsFeedKey } from './sign-update-feed';
 import { createFeedKeyStore } from './update-feed-key-store';
 
@@ -23,9 +28,11 @@ const root = path.join(__dirname, '../..');
 const envPath = path.join(root, '.env');
 const sourcePath = path.join(root, 'src/main/updateFeedSignature.ts');
 const store = createFeedKeyStore();
+const isLinux = process.platform === 'linux';
+const listName = isLinux ? 'LINUX_UPDATE_FEED_KEYS' : 'UPDATE_FEED_KEYS';
 
 if (
-  Object.keys(UPDATE_FEED_KEYS).length > 0 ||
+  Object.keys(platformFeedKeys()).length > 0 ||
   store.exists() ||
   (fs.existsSync(envPath) && envHoldsFeedKey(fs.readFileSync(envPath, 'utf8')))
 ) {
@@ -38,15 +45,16 @@ if (
 }
 
 const source = fs.readFileSync(sourcePath, 'utf8');
-const empty =
-  'export const UPDATE_FEED_KEYS: Readonly<Record<string, string>> = {};';
+const empty = `export const ${listName}: Readonly<Record<string, string>> = {};`;
 if (!source.includes(empty)) {
   console.error(`${sourcePath} does not hold the empty key list any more.`);
   process.exit(1);
 }
 
 const { publicKey, privateKey } = generateKeyPairSync('ed25519');
-const keyId = `fluideq-feed-${new Date().toISOString().slice(0, 10)}`;
+const keyId = `fluideq-${isLinux ? 'linux-' : ''}feed-${new Date()
+  .toISOString()
+  .slice(0, 10)}`;
 const publicBase64 = publicKey
   .export({ format: 'der', type: 'spki' })
   .toString('base64');
@@ -59,16 +67,21 @@ store.write({
     .export({ format: 'der', type: 'pkcs8' })
     .toString('base64'),
 });
+// Beside the file and renamed, so a running build never reads half a source.
+const aside = `${sourcePath}.${process.pid}.tmp`;
 fs.writeFileSync(
-  sourcePath,
+  aside,
   source.replace(
     empty,
-    `export const UPDATE_FEED_KEYS: Readonly<Record<string, string>> = {\n  '${keyId}':\n    '${publicBase64}',\n};`,
+    `export const ${listName}: Readonly<Record<string, string>> = {\n  '${keyId}':\n    '${publicBase64}',\n};`,
   ),
 );
+fs.renameSync(aside, sourcePath);
 console.log(
   `Made update feed key "${keyId}". The public half is in ` +
-    'src/main/updateFeedSignature.ts (commit it); the private half is kept ' +
-    `encrypted at ${store.filePath}. Now run \`pnpm update-feed-key copy\` ` +
-    'and paste it into your password manager.',
+    `${listName} in src/main/updateFeedSignature.ts (commit it); the ` +
+    `private half is kept at ${store.filePath}` +
+    (isLinux
+      ? ", in this account's keyring."
+      : '. Now run `pnpm update-feed-key copy` and paste it into your password manager.'),
 );

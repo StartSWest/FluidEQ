@@ -18,6 +18,9 @@ import { generateKeyPairSync } from 'crypto';
 import {
   FEED_KEY_FIELD,
   FEED_SIGNATURE_FIELD,
+  LINUX_UPDATE_FEED_KEYS,
+  platformFeedKeys,
+  UPDATE_FEED_KEYS,
   verifyUpdateFeedSignature,
 } from '../../../main/updateFeedSignature';
 import { readFeed, signFeed } from '../../../../.erb/scripts/sign-update-feed';
@@ -100,5 +103,18 @@ describe('the update feed signature', () => {
     expect(verifyUpdateFeedSignature(parsed(FEED), {})).toEqual({
       valid: true,
     });
+  });
+});
+
+describe('whose keys a build trusts', () => {
+  it('keeps Linux and Windows on separate lists', () => {
+    expect(platformFeedKeys('linux')).toBe(LINUX_UPDATE_FEED_KEYS);
+    expect(platformFeedKeys('win32')).toBe(UPDATE_FEED_KEYS);
+    const windowsIds = Object.keys(UPDATE_FEED_KEYS);
+    expect(
+      Object.keys(LINUX_UPDATE_FEED_KEYS).filter((id) =>
+        windowsIds.includes(id),
+      ),
+    ).toEqual([]);
   });
 });

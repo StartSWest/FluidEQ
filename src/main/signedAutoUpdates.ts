@@ -23,7 +23,7 @@ import type { IAppUpdateStatus } from '../common/constants';
 import { isMandatoryUpdate } from '../common/mandatoryUpdate';
 import { POWERSHELL_PATH, utf8Command } from './powershell';
 import {
-  UPDATE_FEED_KEYS,
+  LINUX_UPDATE_FEED_KEYS,
   verifyUpdateFeedSignature,
 } from './updateFeedSignature';
 
@@ -463,7 +463,7 @@ export const setUpReleaseAutoUpdates = async (
   // Linux has no Authenticode, so the feed's own signature is all that
   // vouches for an update there, and a build that trusts no feed key would
   // take whatever the repository's releases name.
-  if (isLinux && Object.keys(UPDATE_FEED_KEYS).length === 0) {
+  if (isLinux && Object.keys(LINUX_UPDATE_FEED_KEYS).length === 0) {
     logger.warn(
       'Updates disabled: this Linux build trusts no update feed key.',
     );
@@ -638,7 +638,11 @@ export const setUpReleaseAutoUpdates = async (
         // has already been checked against — must carry the maker's own
         // signature, so whoever controls where releases are published cannot
         // hand out an installer of their own.
-        const feed = verifyUpdateFeedSignature(info);
+        // Linux trusts its own key, made and kept on the machine that builds
+        // the Linux packages, and never Windows' (`LINUX_UPDATE_FEED_KEYS`).
+        const feed = isLinux
+          ? verifyUpdateFeedSignature(info, LINUX_UPDATE_FEED_KEYS)
+          : verifyUpdateFeedSignature(info);
         if (!feed.valid) {
           rejectDownload(feed.reason || 'the update feed is not trusted');
           return;

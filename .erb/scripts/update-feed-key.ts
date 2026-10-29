@@ -15,7 +15,7 @@
 import { execFileSync } from 'child_process';
 import { createPrivateKey, createPublicKey, sign, verify } from 'crypto';
 import {
-  UPDATE_FEED_KEYS,
+  platformFeedKeys,
   updateFeedMessage,
 } from '../../src/main/updateFeedSignature';
 import {
@@ -32,7 +32,7 @@ const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
 /** The trusted key id whose public half this private key has, if any. */
 export const trustedKeyIdOf = (
   privateKey: string,
-  keys: Readonly<Record<string, string>> = UPDATE_FEED_KEYS,
+  keys: Readonly<Record<string, string>> = platformFeedKeys(),
 ): string | undefined => {
   let publicKey: string;
   try {
@@ -71,7 +71,7 @@ export const readPastedKey = (text: string): string | undefined => {
 /** Signs and verifies a throwaway message with the key and the source's public half. */
 export const signsForTrustedKey = (
   key: IStoredFeedKey,
-  keys: Readonly<Record<string, string>> = UPDATE_FEED_KEYS,
+  keys: Readonly<Record<string, string>> = platformFeedKeys(),
 ): boolean => {
   if (!Object.prototype.hasOwnProperty.call(keys, key.keyId)) {
     return false;
@@ -150,7 +150,7 @@ const clipboard = {
 export const importPastedKey = (
   pasted: string,
   store: IFeedKeyStore,
-  keys: Readonly<Record<string, string>> = UPDATE_FEED_KEYS,
+  keys: Readonly<Record<string, string>> = platformFeedKeys(),
 ): { ok: true; keyId: string } | { ok: false; reason: string } => {
   const privateKey = readPastedKey(pasted);
   if (!privateKey) {

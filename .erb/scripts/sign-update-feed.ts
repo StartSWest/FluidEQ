@@ -22,7 +22,7 @@ import { createPrivateKey, sign } from 'crypto';
 import {
   FEED_KEY_FIELD,
   FEED_SIGNATURE_FIELD,
-  UPDATE_FEED_KEYS,
+  platformFeedKeys,
   updateFeedMessage,
 } from '../../src/main/updateFeedSignature';
 import {
@@ -95,7 +95,9 @@ export const signReleaseFeed = ({
   ),
   store = createFeedKeyStore(),
   envPath = path.join(__dirname, '../../.env'),
-  keys = UPDATE_FEED_KEYS,
+  // Linux's own key on Linux, Windows' on Windows: each build signs with
+  // the key its copies trust.
+  keys = platformFeedKeys(),
 }: {
   feedPath?: string;
   store?: IFeedKeyStore;

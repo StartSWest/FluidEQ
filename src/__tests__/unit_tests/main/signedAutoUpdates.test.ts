@@ -598,6 +598,19 @@ describe('an installer that does not start', () => {
  * download against, and a .deb's install is the desktop's password prompt.
  */
 describe('updates on Linux', () => {
+  // A Linux build trusts only its own list; the real one is made on the
+  // machine that builds the Linux packages.
+  let linuxKeys: jest.ReplaceProperty<Readonly<Record<string, string>>>;
+  beforeEach(() => {
+    linuxKeys = jest.replaceProperty(updateFeed, 'LINUX_UPDATE_FEED_KEYS', {
+      'fluideq-linux-feed-test':
+        'MCowBQYDK2VwAyEAtestOnlyNotARealPublicKey000000000=',
+    });
+  });
+  afterEach(() => {
+    linuxKeys.restore();
+  });
+
   const onLinux = (
     harness: ReturnType<typeof makeHarness>,
     linuxPackage: 'appimage' | 'deb',
@@ -675,14 +688,36 @@ describe('updates on Linux', () => {
     }
   });
 
-  it('is off in a Linux build that trusts no feed key', async () => {
-    const keys = jest.replaceProperty(updateFeed, 'UPDATE_FEED_KEYS', {});
+  it('is off in a Linux build that trusts no Linux key, whatever Windows trusts', async () => {
+    linuxKeys.replaceValue({});
+    const harness = makeHarness();
+    expect(await onLinux(harness, 'appimage')).toBeUndefined();
+    expect(harness.loadUpdater).not.toHaveBeenCalled();
+  });
+
+  it('checks a Linux feed against the Linux keys, and a Windows feed against Windows keys', async () => {
+    const verifyFeed = jest
+      .spyOn(updateFeed, 'verifyUpdateFeedSignature')
+      .mockReturnValue({ valid: true });
     try {
-      const harness = makeHarness();
-      expect(await onLinux(harness, 'appimage')).toBeUndefined();
-      expect(harness.loadUpdater).not.toHaveBeenCalled();
+      const linux = makeHarness();
+      await onLinux(linux, 'deb');
+      await download(linux);
+      expect(verifyFeed).toHaveBeenLastCalledWith(
+        expect.anything(),
+        updateFeed.LINUX_UPDATE_FEED_KEYS,
+      );
+
+      // The control: Windows' check is the one it always was, its own keys
+      // by default, so a key on the Linux machine never signs for Windows.
+      const windows = makeHarness();
+      await setUpReleaseAutoUpdates(windows.options);
+      await download(windows);
+      expect(
+        verifyFeed.mock.calls[verifyFeed.mock.calls.length - 1],
+      ).toHaveLength(1);
     } finally {
-      keys.restore();
+      verifyFeed.mockRestore();
     }
   });
 

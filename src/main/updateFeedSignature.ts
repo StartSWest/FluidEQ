@@ -34,6 +34,22 @@ export const UPDATE_FEED_KEYS: Readonly<Record<string, string>> = {
     'MCowBQYDK2VwAyEA/I+6CGkfAGhHhGrGDDUN1h/Xe9s+Mkhe3iuYOw6c2sA=',
 };
 
+/**
+ * The keys a Linux build trusts, apart from Windows'. The Linux packages are
+ * built and signed on the Linux machine, where this key was made and is kept
+ * in the account's keyring (`pnpm update-feed-keys linux`); Windows' key stays
+ * on the Windows machine. Keeping the lists apart means a key on the Linux
+ * machine can never sign an update a Windows copy would take. Written by
+ * `pnpm update-feed-keys linux`.
+ */
+export const LINUX_UPDATE_FEED_KEYS: Readonly<Record<string, string>> = {};
+
+/** The keys this platform's build trusts. */
+export const platformFeedKeys = (
+  platform: NodeJS.Platform = process.platform,
+): Readonly<Record<string, string>> =>
+  platform === 'linux' ? LINUX_UPDATE_FEED_KEYS : UPDATE_FEED_KEYS;
+
 /** The fields `sign-update-feed.ts` adds to `latest.yml`. */
 export const FEED_SIGNATURE_FIELD = 'fluideqFeedSignature';
 export const FEED_KEY_FIELD = 'fluideqFeedKeyId';
