@@ -119,20 +119,24 @@ describe('starting with Windows', () => {
     expect(logger.error).toHaveBeenCalled();
   });
 
-  it('registers Electron with the app beside it while in development', () => {
+  it('writes no entry in development, which Windows could only fail to start', () => {
     Object.defineProperty(app, 'isPackaged', { value: false });
-    mockGet.mockReturnValue(settings(false));
-
-    writeStartWithWindows(true);
-
-    // Without the app path a development entry opens an empty Electron at
-    // every sign-in.
-    expect(mockSet).toHaveBeenCalledWith({
-      path: process.execPath,
-      args: ['D:/app', '--start-in-tray'],
-      openAtLogin: true,
-    });
-    Object.defineProperty(app, 'isPackaged', { value: true });
+    mockGet.mockReturnValue(settings(true));
+    try {
+      // Electron pointed at the checkout ran main.ts as plain JavaScript and
+      // put a syntax error on screen at every sign-in.
+      expect(writeStartWithWindows(true)).toEqual({
+        on: false,
+        blockedByWindows: false,
+        unavailable: true,
+      });
+      expect(readStartWithWindows().unavailable).toBe(true);
+      expect(moveStartWithWindowsIntoTray()).toBe(false);
+      expect(mockSet).not.toHaveBeenCalled();
+      expect(mockGet).not.toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(app, 'isPackaged', { value: true });
+    }
   });
 });
 

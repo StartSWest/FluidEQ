@@ -67,8 +67,10 @@ const StartupPicker = () => {
   }, []);
 
   // A window whose bridge predates this row has no answer to show, and a
-  // switch that cannot be read is worse than no row at all.
-  if (!state || !onWindows()) {
+  // switch that cannot be read is worse than no row at all. A development
+  // build is one Windows cannot start (Ivan, 2026-10-29: "que no salga en dev
+  // time la opcion").
+  if (!state || state.unavailable || !onWindows()) {
     return null;
   }
 

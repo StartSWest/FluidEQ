@@ -14,6 +14,9 @@ const remoteAudio = {
   'remoteAudio.group.receive': 'Receive',
   'remoteAudio.group.send': 'Send',
   'remoteAudio.group.share': 'Share',
+  'remoteAudio.group.smooth': 'Fluid',
+  'remoteAudio.group.smoothHint':
+    'For music: never cuts out, plays about half a second later',
   'remoteAudio.group.options': 'Options for {name}',
   'remoteAudio.group.count.one': '{count} computer',
   'remoteAudio.group.count.few': '{count} computers',

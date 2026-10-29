@@ -9,6 +9,7 @@ import log from 'electron-log';
 import type {
   ILanRemoteAudioChunk,
   ILanRemoteAudioSignal,
+  TRemoteAudioStreamMode,
 } from '../common/remoteAudio';
 import {
   isRemoteAudioPortKind,
@@ -23,7 +24,7 @@ const createRemoteAudioPorts = (
   onStreaming: (peerId: string) => void,
 ) => {
   const ports = new Map<TRemoteAudioPortKind, MessagePortMain>();
-  const modes = new Map<string, 'music' | 'video'>();
+  const modes = new Map<string, TRemoteAudioStreamMode>();
   const streaming = new Set<string>();
   const post = (kind: TRemoteAudioPortKind, data: unknown) => {
     const port = ports.get(kind);
@@ -92,14 +93,16 @@ const createRemoteAudioPorts = (
       post('source', chunk);
     },
     signal: ({ peerId, signal }: ILanRemoteAudioSignal) => {
-      if (signal.kind === 'stream-mode') {
-        modes.set(peerId, signal.mode);
-        post('playback', { kind: 'configure', mode: signal.mode, peerId });
-      } else if (signal.kind === 'stop') {
+      if (signal.kind === 'stop') {
         streaming.delete(peerId);
         modes.delete(peerId);
         post('playback', { kind: 'remove-peer', peerId });
       }
+    },
+    /** How one computer's sound plays here: `music` is Smooth playback. */
+    mode: (peerId: string, mode: TRemoteAudioStreamMode) => {
+      modes.set(peerId, mode);
+      post('playback', { kind: 'configure', mode, peerId });
     },
     reset: () => {
       modes.clear();

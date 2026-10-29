@@ -4,12 +4,14 @@ import { compareAudioComputers } from '../../common/remoteAudioGroup';
 import type { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import { pluralCategory } from '../utils/pluralCategory';
+import MenuIcon from '../icons/MenuIcon';
 import Switch from '../widgets/Switch';
 import RemoteAudioLane from './RemoteAudioLane';
 import RemoteAudioPeerMenu from './RemoteAudioPeerMenu';
 import type { IRemoteAudioLink, IRemoteAudioValue } from './remoteAudioState';
 import { heardHere, linkControls } from './linkRecords';
 import useIncomingSounding, { THIS_COMPUTER } from './useIncomingSounding';
+import useRemoteAudioSmooth from './useRemoteAudioSmooth';
 
 /** The one sound the This computer row listens for. */
 const ONLY_THIS_COMPUTER: readonly string[] = [THIS_COMPUTER];
@@ -58,6 +60,7 @@ const RemoteAudioGroup = ({
   // plural: with nobody linked the header read "1 computers".
   const computers = 1 + audioGroupRows(remote).length;
   const { sharing } = remote;
+  const [smooth, setSmooth] = useRemoteAudioSmooth();
   const thisComputerSounds =
     useIncomingSounding(remote.subscribeMeter, ONLY_THIS_COMPUTER)[
       THIS_COMPUTER
@@ -123,6 +126,29 @@ const RemoteAudioGroup = ({
               remote.setSharing(!sharing).catch(() => undefined);
             }}
           />
+        </div>
+        {/* Smooth stands where every other row has Send, and its hint where
+            they have their options button, so the switches and the buttons
+            make straight columns. */}
+        <div className="remote-audio__link-actions remote-audio__group-actions">
+          <div className="remote-audio__lane-switch">
+            <span>{t('remoteAudio.group.smooth')}</span>
+            <Switch
+              id="remote-audio-smooth"
+              ariaLabel={t('remoteAudio.group.smooth')}
+              isOn={smooth}
+              isDisabled={false}
+              handleToggle={() => setSmooth(!smooth)}
+            />
+          </div>
+          <button
+            type="button"
+            className="remote-audio__group-info"
+            title={t('remoteAudio.group.smoothHint')}
+            aria-label={t('remoteAudio.group.smoothHint')}
+          >
+            <MenuIcon name="info" />
+          </button>
         </div>
       </article>
       <div

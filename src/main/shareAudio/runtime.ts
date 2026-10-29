@@ -12,6 +12,7 @@ import type { TAudioEvent, TAudioRequest, TAudioResponse } from './protocol';
 import { createAudioTelemetry } from './telemetry';
 import { createAudioLeasePool } from './leasePool';
 import { createRemoteAudioPreview } from '../../common/remoteAudioPreview';
+import { createSmoothLinks } from '../remoteAudioSmooth';
 
 const SYSTEM_WORD = /^[A-Za-z][A-Za-z0-9_]{0,39}$/;
 
@@ -81,6 +82,11 @@ export const createAudioRuntime = ({
   let playing = 0;
   let lan: IRemoteAudioLan | undefined;
   let savedBookLoaded = false;
+  // A smooth link may queue more on its way out before it is called stuck;
+  // its sound here plays with the smooth cushion (`arriving`).
+  const smoothLinks = createSmoothLinks((peerId, smooth) =>
+    lan?.setStreamMode(peerId, smooth ? 'music' : 'video'),
+  );
   const captures = createAudioLeasePool(
     async (ids) => {
       let lastMeterAt = 0;
@@ -204,6 +210,9 @@ export const createAudioRuntime = ({
     }
     try {
       const player = players.get(playing);
+      // Told with every chunk, so a player opened after the switch moved
+      // learns it before the sound it plays; the player keeps only changes.
+      player.setSmooth(chunk.peerId, smoothLinks.smooth(chunk.peerId));
       player.push(levels.apply(chunk, volume));
       if (!streaming.has(chunk.peerId)) {
         streaming.add(chunk.peerId);
@@ -220,7 +229,11 @@ export const createAudioRuntime = ({
         if (signal.kind === 'stop') {
           remoteSends.delete(peerId);
           remotePlays.delete(peerId);
-        } else if (signal.kind === 'stream-mode' && signal.duplex) {
+          smoothLinks.forget(peerId);
+        } else if (signal.kind === 'stream-mode') {
+          smoothLinks.heard(peerId, signal.mode);
+        }
+        if (signal.kind === 'stream-mode' && signal.duplex) {
           remoteSends.set(peerId, signal.duplex.sends);
           remotePlays.set(peerId, signal.duplex.plays);
         }
@@ -291,10 +304,12 @@ export const createAudioRuntime = ({
       case 'lan.stop':
         lan?.stop();
         lan = undefined;
+        smoothLinks.clear();
         return undefined;
       case 'routing': {
         const [routing] = request.args;
         targets = routing.targets;
+        smoothLinks.setLocal(routing.smooth);
         const before = [...receive.keys()];
         receive.clear();
         routing.receive.forEach(({ peerId, volume }) =>
@@ -347,6 +362,11 @@ export const createAudioRuntime = ({
       case 'playback.volume': {
         const [id, volume] = request.args;
         players.get(id).setVolume(volume);
+        return undefined;
+      }
+      case 'playback.smooth': {
+        const [id, peerId, smooth] = request.args;
+        players.get(id).setSmooth(peerId, smooth);
         return undefined;
       }
       case 'playback.output': {
@@ -404,7 +424,7 @@ export const createAudioRuntime = ({
         });
         leases.set(id, lease);
         event({ type: 'helper-pid', pid: helperPid() });
-        return { id, pid: helperPid() };
+        return { id, pid: helperPid(), version: lease.version };
       }
       case 'helper.request': {
         const [id, alias, kind, payload] = request.args;

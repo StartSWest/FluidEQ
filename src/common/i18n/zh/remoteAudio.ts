@@ -9,6 +9,8 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.group.receive': '接收',
   'remoteAudio.group.send': '发送',
   'remoteAudio.group.share': '共享',
+  'remoteAudio.group.smooth': '流畅',
+  'remoteAudio.group.smoothHint': '适合音乐：从不中断，约晚半秒播放',
   'remoteAudio.group.options': '{name} 的选项',
   'remoteAudio.group.count.one': '{count} 台电脑',
   'remoteAudio.group.count.few': '{count} 台电脑',
