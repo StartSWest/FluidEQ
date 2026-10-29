@@ -39,7 +39,7 @@ const plus = {
     '갤러리를 로드할 수 없습니다. 다시 시도해 보세요.',
   'plus.gallery.moreError':
     '더 많은 장면을 로드할 수 없습니다. 다시 시도해 보세요.',
-  'plus.gallery.retry': '다시 시도하세요',
+  'plus.gallery.retry': '다시 시도',
   'plus.category.nature': '자연',
   'plus.category.cities': '도시',
   'plus.category.space': '공간',
@@ -112,7 +112,7 @@ const plus = {
   'plus.scene.inLooks': '당신의 외모 속 Made by member 아래',
   'plus.scene.inLooksOwn': '너의 외모 속 Made by you 아래',
   'plus.scene.inLooksPlus': '네 외모엔 FluidEQ 아래',
-  'plus.scene.report': '이 장면을 신고하세요',
+  'plus.scene.report': '이 장면 신고',
   'plus.scene.reported': '보고되었습니다. 감사합니다.',
   'plus.scene.moreBy': '{name}의 콘텐츠 더 보기',
   'plus.scene.moreByYou': '당신의 작품 더보기',
@@ -132,7 +132,7 @@ const plus = {
   'plus.mine.confirm':
     '갤러리에서 삭제하고 새로운 다운로드를 중단하시겠습니까? 이미 다운로드한 회원은 사본을 유지합니다.',
   'plus.mine.confirmYes': '게시 취소',
-  'plus.mine.confirmNo': '유지하세요',
+  'plus.mine.confirmNo': '유지',
   'plus.mine.unpublished': '{name}는 더 이상 갤러리에 없습니다.',
   'plus.mine.failed': '게시를 취소할 수 없습니다. 다시 시도해 보세요.',
   'plus.report.title': '{name} 보고',

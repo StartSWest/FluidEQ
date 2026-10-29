@@ -167,9 +167,9 @@ const dsp = {
   'dsp.denoise.graphHissAction': '히스 감소 적용',
   'dsp.denoise.graphHum': '험',
   'dsp.denoise.graphIdle': '유휴',
-  'dsp.denoise.graphClicks': '수리를 클릭하세요',
+  'dsp.denoise.graphClicks': '클릭 노이즈 복구',
   'dsp.denoise.graphClicksIn': '{seconds}의 {count} 수리',
-  'dsp.denoise.graphClicksOff': '수리 끄기를 클릭하세요',
+  'dsp.denoise.graphClicksOff': '클릭 노이즈 복구 끔',
   'dsp.denoise.graphHumAt': '흠 {hz}Hz',
   'dsp.denoise.profileSource': '노이즈 플로어',
   'dsp.denoise.scanned': '스캔됨',
@@ -603,7 +603,7 @@ const dsp = {
   'dsp.room.preset.openAir': '야외',
   'dsp.room.presetHint':
     '{size} m 방 · {distance} m의 스피커 · 벽 {live}% 라이브',
-  'dsp.room.saveTitle': '이 방을 저장하세요',
+  'dsp.room.saveTitle': '이 룸 저장',
   'dsp.room.saveHint':
     '모양, 스피커, 레벨 및 음소거, 베이스 및 스테레오 선택, 공간 및 분위기 등 이미 저장된 공간 옆에 있는 전체 공간이 이 이름으로 저장됩니다. 머리와 헤드폰은 당신의 것입니다.',
   'dsp.room.savePlaceholder': '객실명',
@@ -706,7 +706,7 @@ const dsp = {
   'dsp.room.speaker.noteSub': '재생 중인 서브우퍼 채널입니다.',
   'dsp.room.speaker.noteSubUnfed':
     '스테레오에는 서브우퍼 채널이 없으므로 이 레벨을 바꿔도 달라지는 소리가 없습니다. 저음을 서브우퍼로 보내는 경우에는 각 스피커의 저역이 이 경로로 재생됩니다.',
-  'dsp.room.quick.title': '당신의 것으로 만드세요',
+  'dsp.room.quick.title': '내 취향대로',
   'dsp.room.quick.space': '공간',
   'dsp.room.quick.ambience': '분위기',
   'dsp.room.quick.hint':
@@ -768,7 +768,7 @@ const dsp = {
   'dsp.roomFit.resultBody':
     '이제부터 이 헤드 모델을 사용합니다. 언제든지 헤드 설정에서 바꿀 수 있습니다.',
   'dsp.roomFit.use': '이 모델 사용',
-  'dsp.roomFit.again': '다시 시도하세요',
+  'dsp.roomFit.again': '다시 시도',
   'dsp.roomFit.cancel': '취소',
   'dsp.master.limit.limiting':
     '필요한 {requested} dB — {room} dB의 피크 룸에 허용되는 제한이 더해졌습니다.',

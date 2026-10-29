@@ -29,7 +29,7 @@ const creator = {
   'creator.setUp': '지급 설정',
   'creator.finish': '설정 완료',
   'creator.readTerms': '새로운 약관 읽기',
-  'creator.checkAgain': '다시 확인하세요',
+  'creator.checkAgain': '다시 확인',
   'creator.dashboard': 'Stripe 대시보드',
   'creator.dialog.title': '장면에 대한 대가를 받으세요',
   'creator.dialog.lead':

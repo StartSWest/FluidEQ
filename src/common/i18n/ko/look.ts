@@ -115,7 +115,7 @@ const look = {
   'support.game.listening': '비트를 듣는 중…',
   'support.game.share': '공유',
   'support.game.shareEuphoria': '점수 공유',
-  'support.game.shareTitle': '점수를 공유하세요',
+  'support.game.shareTitle': '점수 공유',
   'support.game.shareNote':
     '카드를 저장한 다음 게시물에 첨부하세요. 이러한 네트워크 중 어느 것도 링크에서 이미지를 가져올 수 없습니다.',
   'support.game.shareSave': '카드 저장',

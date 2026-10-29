@@ -12,7 +12,7 @@ const announce = {
   'announce.news.empty': '현재 공지 사항이 없습니다.',
 
   'announce.eyebrow': '비주얼라이저 새 소식 · 장면 {count}개',
-  'announce.try': '지금 사용해 보세요',
+  'announce.try': '지금 사용해 보기',
   'announce.later': '나중에',
   'announce.previewNote':
     '미리보기. 아무 것도 전송되지 않았고 아무 것도 기록되지 않았습니다.',

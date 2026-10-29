@@ -38,7 +38,7 @@ const wallpaper = {
   'wallpaper.done': '완료',
   'wallpaper.start': '배경 설정',
   'wallpaper.start.many': '{count} 모니터에 설정',
-  'wallpaper.retry': '다시 시도하세요',
+  'wallpaper.retry': '다시 시도',
   'wallpaper.stop': '정지',
   'wallpaper.stopAll': '모두 중지',
   'wallpaper.manage': '관리하다',

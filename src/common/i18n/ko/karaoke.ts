@@ -69,7 +69,7 @@ const karaoke = {
   'karaoke.playlist.resize': '재생목록 및 스테이지 크기 조정',
   'karaoke.playlist.collapse': '재생목록 접기',
   'karaoke.playlist.expand': '재생목록 펼치기',
-  'karaoke.playlist.select': '{title}를 선택하세요.',
+  'karaoke.playlist.select': '{title} 선택',
   'karaoke.playlist.moveUp': '{title}를 위로 이동',
   'karaoke.playlist.moveDown': '{title}를 아래로 이동',
   'karaoke.playlist.remove': '{title} 제거',
@@ -419,19 +419,19 @@ const karaoke = {
   'karaoke.maker.modelWhisper': '연설(속삭임)',
   'karaoke.maker.modelPitch': '피치(RMVPE)',
   'karaoke.maker.modelSeparation': '분리(RoFormer)',
-  'karaoke.maker.freeMemory': '지금 RAM을 확보하세요',
+  'karaoke.maker.freeMemory': '지금 RAM 비우기',
   'karaoke.maker.memoryReleased':
     'RAM에서 음성 모델이 제거되었습니다. 다운로드한 파일은 캐시된 상태로 유지됩니다.',
   'karaoke.maker.memoryReleaseBusy':
     '음성 모델이 사용 중이어서 아직 출시할 수 없습니다.',
   'karaoke.maker.memoryAfterUse': '유휴 상태일 때',
-  'karaoke.maker.memoryPolicy.ask': '나에게 물어보세요',
+  'karaoke.maker.memoryPolicy.ask': '매번 묻기',
   'karaoke.maker.memoryPolicy.auto': '자동으로 해제',
-  'karaoke.maker.memoryPolicy.keep': '계속 로드하세요',
+  'karaoke.maker.memoryPolicy.keep': '로드 상태 유지',
   'karaoke.maker.memoryPromptTitle': '자유 음성 모델 메모리?',
   'karaoke.maker.memoryPromptBody':
     '로컬 음성 모델이 유휴 상태입니다. 이를 해제하면 RAM이 절약됩니다. 더 빠른 재로드를 위해 해당 파일은 캐시된 상태로 유지됩니다.',
-  'karaoke.maker.keepLoaded': '계속 로드하세요',
+  'karaoke.maker.keepLoaded': '로드 상태 유지',
   'karaoke.maker.exported': '{file}를 내보냈습니다.',
   'karaoke.maker.exportedPartialLrc':
     '{lines} 가사 없이 {file}를 내보냈습니다. LRC는 줄이나 단어 중 하나에 시간이 필요하지만 둘 다 없습니다. Maker에서 시간을 측정하고 다시 내보내어 완전한 파일을 만드세요.',
@@ -466,7 +466,7 @@ const karaoke = {
   'karaoke.maker.localAnalysisFailed': '로컬 분석 실패',
   'karaoke.maker.whisperDownloadError':
     'FluidEQ가 Hugging Face에서 모델을 다운로드할 수 없습니다. 인터넷 연결이나 방화벽을 확인한 후 다시 시도하세요.',
-  'karaoke.maker.tryAgain': '다시 시도하세요',
+  'karaoke.maker.tryAgain': '다시 시도',
   'karaoke.maker.dismiss': '오류 무시',
   'karaoke.maker.analysisSource': '“{file}”를 로컬 분석 소스로만 사용합니다.',
   'karaoke.maker.rightsRequired':
