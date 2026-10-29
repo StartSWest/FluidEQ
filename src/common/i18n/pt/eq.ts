@@ -292,6 +292,8 @@ const eq: Partial<Dictionary> = {
   'graph.picker.discover.create': 'Criar minha cena',
   'graph.picker.discover.free':
     'O FluidEQ e suas ferramentas de áudio continuam gratuitos.',
+  'graph.picker.more.lead': 'Mais cenas na galeria',
+  'graph.picker.more.new': 'Novas: {count}',
   'graph.picker.all': 'Todos',
   'graph.picker.yours': 'Seus',
   'graph.picker.filterStyles': 'Filtrar estilos',

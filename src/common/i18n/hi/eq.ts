@@ -286,6 +286,8 @@ const eq: Partial<Dictionary> = {
   'graph.picker.discover.explore': 'सीन देखें',
   'graph.picker.discover.create': 'अपना सीन बनाएँ',
   'graph.picker.discover.free': 'FluidEQ और इसके ऑडियो टूल मुफ़्त रहेंगे।',
+  'graph.picker.more.lead': 'गैलरी में और सीन',
+  'graph.picker.more.new': 'नए: {count}',
   'graph.picker.all': 'सभी',
   'graph.picker.yours': 'आपके',
   'graph.picker.filterStyles': 'शैलियाँ फ़िल्टर करें',

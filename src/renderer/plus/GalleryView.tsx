@@ -7,6 +7,7 @@ import GalleryCard from './GalleryCard';
 import GalleryList from './GalleryList';
 import GalleryToolbar from './GalleryToolbar';
 import { useGalleryList } from './galleryStore';
+import { markGallerySeen } from './gallerySeen';
 import {
   openGalleryPage,
   openPlusPlace,
@@ -41,6 +42,9 @@ export default function GalleryView({ me }: IGalleryViewProps) {
     ...(asked ? { query: asked } : {}),
   };
   const { list, loadMore, reload } = useGalleryList(query);
+
+  // What the look picker counts as new is what went up since this page.
+  useEffect(() => markGallerySeen(), []);
 
   const wanted = filters.text.trim();
   useEffect(() => {
