@@ -1,0 +1,5 @@
+/* What macOS shows when FluidEQ asks to hear the sound the Mac plays. */
+"NSAudioCaptureUsageDescription" = "FluidEQ는 시스템 오디오로 Mac의 사운드를 이퀄라이징하며, 오디오 공유를 켜면 연결된 컴퓨터와 그 사운드를 공유합니다.";
+
+/* What macOS shows when Karaoke asks for the microphone. */
+"NSMicrophoneUsageDescription" = "FluidEQ는 노래방에서 마이크로 노래를 듣고 점수를 매깁니다.";

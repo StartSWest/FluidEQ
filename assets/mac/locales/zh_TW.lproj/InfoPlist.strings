@@ -1,0 +1,5 @@
+/* What macOS shows when FluidEQ asks to hear the sound the Mac plays. */
+"NSAudioCaptureUsageDescription" = "FluidEQ 使用系統音訊來等化 Mac 的聲音，並在您啟用「分享音訊」時與已連結的電腦分享。";
+
+/* What macOS shows when Karaoke asks for the microphone. */
+"NSMicrophoneUsageDescription" = "FluidEQ 在卡拉 OK 中使用麥克風來聆聽您的歌聲並為其評分。";
