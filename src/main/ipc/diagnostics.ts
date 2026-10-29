@@ -24,6 +24,7 @@ import { redact } from '../../common/bugReport';
 import ChannelEnum from '../../common/channels';
 import { ErrorCode } from '../../common/errors';
 import gatherBugReportFacts from '../bugReportFacts';
+import { writePerformanceReport } from './performance';
 import { writeBugReportMark } from '../bugReportMark';
 import { recordFailure } from '../crashRecovery';
 import { openSupportEmail } from '../safeExternal';
@@ -78,6 +79,9 @@ const registerDiagnosticsIpc = ({
   onWindowMessage(ChannelEnum.GATHER_BUG_REPORT, async (event) => {
     const channel = ChannelEnum.GATHER_BUG_REPORT;
     try {
+      // What each page and look cost since the last report, written where
+      // the logs this report collects will find it.
+      writePerformanceReport();
       const facts = await gatherBugReportFacts(getEngine(), userDataDir);
       event.reply(channel, { result: facts });
     } catch (e) {

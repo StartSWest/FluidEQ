@@ -292,6 +292,8 @@ const eq: Partial<Dictionary> = {
   'graph.picker.discover.create': '自分で作る',
   'graph.picker.discover.free':
     'FluidEQ とオーディオツールは引き続き無料です。',
+  'graph.picker.more.lead': 'ギャラリーにもっとシーンがあります',
+  'graph.picker.more.new': '新着 {count}',
   'graph.picker.all': 'すべて',
   'graph.picker.yours': 'あなたの',
   'graph.picker.filterStyles': 'スタイルを絞り込む',

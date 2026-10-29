@@ -48,8 +48,13 @@ export const createAudioProcess = (
         queued.splice(0).forEach(send);
       });
       child.on('message', (message) => events.emit('message', message));
-      child.on('error', () =>
-        events.emit('error', new Error('Share Audio process failed.')),
+      // Electron says what went wrong and where; kept in the message, or a
+      // failed service reached the log as nothing but its name.
+      child.on('error', (type, location) =>
+        events.emit(
+          'error',
+          new Error(`Share Audio process failed: ${type} at ${location}.`),
+        ),
       );
       child.on('exit', (code) => {
         ended = true;

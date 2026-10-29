@@ -303,6 +303,8 @@ const eq = {
   'graph.picker.discover.explore': 'Explore scenes',
   'graph.picker.discover.create': 'Create your own',
   'graph.picker.discover.free': 'FluidEQ and its audio tools stay free.',
+  'graph.picker.more.lead': 'More scenes in the gallery',
+  'graph.picker.more.new': '{count} new',
   'graph.picker.all': 'All',
   'graph.picker.yours': 'Yours',
   'graph.picker.filterStyles': 'Filter styles',

@@ -30,7 +30,6 @@ export function FluidEngineSlide({ actions }: ISlideProps) {
   return (
     <ShowcaseSlide
       prefix="tour.engine"
-      film="fluideq-engine"
       onOpen={() => actions.openTab('dsp')}
       visual={<EngineFlow />}
     />

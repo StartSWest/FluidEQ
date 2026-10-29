@@ -24,6 +24,10 @@ import { FakeClockContext, openFakeClock } from '../utils/fakeAudioClock';
 jest.mock('../../renderer/audio/LiveAudioContext', () => ({
   ...jest.requireActual('../../renderer/audio/LiveAudioContext'),
   useLiveAudioCapture: jest.fn(),
+  useLiveAudioControl: () => ({
+    isPaused: false,
+    readFrame: () => undefined,
+  }),
 }));
 let mockClock = createKaraokeAudioClock(openFakeClock(new FakeClockContext()));
 jest.mock('../../renderer/karaoke/karaokeAudioClock', () => ({

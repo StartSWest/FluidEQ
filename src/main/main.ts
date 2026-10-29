@@ -113,6 +113,10 @@ import { registerMotionPreferenceIpc } from './ipc/motionPreference';
 import { registerGamesIpc } from './ipc/games';
 import { registerSystemVolumeIpc } from './systemVolume';
 import { registerStartWithWindowsIpc } from './ipc/startWithWindows';
+import {
+  moveStartWithWindowsIntoTray,
+  START_IN_TRAY_ARG,
+} from './startWithWindows';
 import { registerSettingsResetIpc } from './ipc/settingsReset';
 import { registerTaskbarIconIpc } from './taskbarIcon';
 import { DEFAULT_LIGHTING_SETTINGS } from '../common/lighting/lightingModel';
@@ -149,6 +153,7 @@ import {
 import createApoDiskSync from './apoDiskSync';
 import { createUpdatePath, handleError } from './updatePath';
 import registerDiagnosticsIpc from './ipc/diagnostics';
+import { registerPerformanceLog } from './ipc/performance';
 import registerApoConfigIpc from './ipc/apoConfig';
 import registerEngineStateIpc from './ipc/engineState';
 import registerNativeDialogsIpc from './ipc/nativeDialogs';
@@ -249,6 +254,12 @@ const didRestartForUnattendedUpdate = consumeUnattendedRestart(
   UNATTENDED_RESTART_MARKER_PATH,
   appVersion(),
 );
+
+/**
+ * Windows started this launch at sign-in (`startWithWindows.ts`): FluidEQ
+ * starts in the tray, applying its sound, and the tray opens the window.
+ */
+const startedInTray = process.argv.includes(START_IN_TRAY_ARG);
 
 const updates = createAppUpdates({
   getMainWindow,
@@ -834,13 +845,17 @@ registerTaskbarIconIpc({
 // The process list, which needs the host's pid to include it as a row — the
 // DSP engine is our own child rather than Electron's, so `getAppMetrics` has
 // never heard of it.
-registerProcessIpc({
+const processList = registerProcessIpc({
   getMainWindow,
   getNativeHostPid: dspHostPid,
   getNativeHostStats: dspHostStats,
   getLightingHelperPid: () => lighting.helperPid(),
   getSystemEngineProcesses: readEngineProcesses,
   meter: createProcessMeter(),
+});
+registerPerformanceLog({
+  getMainWindow,
+  listProcesses: processList.listQuietly,
 });
 
 const libraryIpc = registerLibraryIpc({
@@ -935,7 +950,7 @@ const createMainWindow = createMainWindowFactory({
   setUpAutoUpdates: updates.setUpAutoUpdates,
   setUpMemoryTraceTrigger: memoryTrace.setUpMemoryTraceTrigger,
   startMemoryProbe: memoryTrace.startMemoryProbe,
-  startsHidden: () => didRestartForUnattendedUpdate,
+  startsHidden: () => didRestartForUnattendedUpdate || startedInTray,
   syncDatabasesOnStartup,
 });
 
@@ -948,7 +963,7 @@ installCrashLogging();
 // everything. An installer starts the app itself and passes `--updated`, which
 // is what tells a launch that came out of setup from one somebody made.
 log.info(
-  `FluidEQ ${appVersion()} starting: pid ${process.pid}, packaged=${app.isPackaged}, from setup=${process.argv.includes('--updated')}`,
+  `FluidEQ ${appVersion()} starting: pid ${process.pid}, packaged=${app.isPackaged}, from setup=${process.argv.includes('--updated')}, in tray=${startedInTray}`,
 );
 
 /**
@@ -1076,6 +1091,9 @@ const onAppReady = async () => {
     // has one of its own, or the taskbar draws it with the installed app's
     // icon (`appIdentity.ts`).
     app.setAppUserModelId(APP_USER_MODEL_ID);
+    // After the id, which is the startup entry's name: read before it, the
+    // entry would be looked for under Electron's own.
+    moveStartWithWindowsIntoTray(log);
   }
   // Before any window exists, so the player's session and the rules its web
   // contents run under are in place by the time one can be attached.

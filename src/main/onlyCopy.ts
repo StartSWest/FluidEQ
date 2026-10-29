@@ -23,6 +23,7 @@ import { sweepAbandonedWrites } from './asyncWriter';
 import { appLinkInArgs, deliverAppLink } from './appLinks';
 import { karaokeMakerDraftDir } from './karaokeMakerStorage';
 import { karaokeStemsDir } from './karaokeSeparation';
+import { START_IN_TRAY_ARG } from './startWithWindows';
 import {
   claimInstance,
   describeInstanceHolder,
@@ -128,7 +129,10 @@ const claimTheOnlyCopy = ({
 
   app.on('second-instance', (_event, argv) => {
     const mainWindow = getMainWindow();
-    if (mainWindow && !mainWindow.isDestroyed()) {
+    // Windows' sign-in launch finding FluidEQ already running asks for the
+    // tray, which it already has: the window stays where it is.
+    const wantsWindow = !argv.includes(START_IN_TRAY_ARG);
+    if (wantsWindow && mainWindow && !mainWindow.isDestroyed()) {
       if (mainWindow.isMinimized()) {
         mainWindow.restore();
       }

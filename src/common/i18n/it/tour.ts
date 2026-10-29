@@ -577,6 +577,63 @@ const tour: Partial<Dictionary> = {
     'Poi dagli forma. Elementi decide quante barre ci sono, e anche colori, spazi e movimento li scegli tu.',
   'tour.film.looks.save':
     'Premi Salva per tenerlo come un aspetto tuo, oppure condividilo come file.',
+  'tour.walkthrough.kicker': 'IL TOUR COMPLETO',
+  'tour.walkthrough.title': 'Tutto FluidEQ in un solo video',
+  'tour.walkthrough.subtitle': 'Guardalo dall’inizio alla fine',
+  'tour.walkthrough.lead':
+    'Una visita guidata a tutto ciò che fa FluidEQ, dalla prima banda che trascini fino ai visualizzatori, con una voce che ti dice come usare ogni parte.',
+  'tour.film.walkthrough.intro':
+    'Questo è FluidEQ 2.2: un equalizzatore per tutto ciò che suona sul tuo computer. Facciamo un giro.',
+  'tour.film.walkthrough.graph':
+    'Trascina un punto qualsiasi del grafico per modellare il suono. Ogni banda mostra frequenza e guadagno direttamente sulla curva.',
+  'tour.film.walkthrough.sliders':
+    'I cursori muovono le stesse bande, e la curva li segue subito. La banda che tocchi apre i suoi comandi qui sotto.',
+  'tour.film.walkthrough.tone':
+    'Fai clic altrove e torna il Tono: Bassi, Medi e Alti, con un taglio dei bassi e uno degli alti ai lati.',
+  'tour.film.walkthrough.ears':
+    'Fai clic destro su una banda e scegli Sinistro + destro per regolare ogni orecchio da solo. La linea continua è il sinistro, quella tratteggiata il destro.',
+  'tour.film.walkthrough.eqmode':
+    'La Modalità EQ sta accanto al grafico. Decide quanto forti suonano le tue curve, e Preciso riproduce gli alti esattamente come sono disegnati.',
+  'tour.film.walkthrough.headphones':
+    'In Preset EQ trovi le tue cuffie tra migliaia di modelli misurati, e applichi la loro correzione con un clic.',
+  'tour.film.walkthrough.mycurves':
+    'Salvala in Le mie curve, la tua lista accanto a quella di OPRA, pronta quando ti serve.',
+  'tour.film.walkthrough.outputs':
+    'Ogni uscita tiene il suo suono. Passa alle cuffie e tornano esattamente come le avevi lasciate. Una seconda uscita può suonare la stessa musica su un altro dispositivo.',
+  'tour.film.walkthrough.songs':
+    'Attiva Ricorda il suono di ogni brano, e ogni brano tornerà con il suono che gli hai dato.',
+  'tour.film.walkthrough.games':
+    'I preset di gioco cambiano il suono appena un gioco passa in primo piano, e lo riportano indietro quando lo chiudi.',
+  'tour.film.walkthrough.dsp':
+    'Il rack DSP è una catena di effetti da studio per tutto ciò che ascolti. Scegli un preset per l’intero rack, dai generi musicali ai film e ai giochi.',
+  'tour.film.walkthrough.deesser':
+    'Il nuovo De-esser abbassa solo la S tagliente di una voce, e lascia stare i piatti.',
+  'tour.film.walkthrough.character':
+    'L’Exciter aggiunge brillantezza, la Fucina dei bassi aggiunge corpo e Dimensione allarga lo stereo.',
+  'tour.film.walkthrough.room':
+    'La Stanza ti mette tra gli altoparlanti di uno spazio vero, anche in cuffia.',
+  'tour.film.walkthrough.maximizer':
+    'E il Maximizer tiene tutto forte e pulito, senza mai distorcere.',
+  'tour.film.walkthrough.library':
+    'La Libreria riproduce la tua musica con lo stesso suono, con album, playlist e In coda.',
+  'tour.film.walkthrough.compact':
+    'Il Lettore compatto mette tutto in una piccola finestra: il brano, i comandi e il tuo EQ.',
+  'tour.film.walkthrough.oneline':
+    'Piegalo su una riga e non ti intralcia, con un visualizzatore che si muove piano dietro il brano.',
+  'tour.film.walkthrough.looks':
+    'Il grafico può diventare un visualizzatore. Scegli uno stile, o un’intera scena, e la finestra ne prende i colori.',
+  'tour.film.walkthrough.gallery':
+    'In Visualizzatori, la Galleria raccoglie scene create da FluidEQ e dalla sua comunità. Ognuna è tua per sempre, per un credito.',
+  'tour.film.walkthrough.studio':
+    'Nello Studio descrivi una modifica con parole tue, e guardala prendere forma sul palco.',
+  'tour.film.walkthrough.karaoke':
+    'Karaoke trasforma i tuoi brani in canzoni da cantare, con testi sincronizzati e la tua intonazione sullo schermo.',
+  'tour.film.walkthrough.share':
+    'Condividi audio collega i computer della tua rete di casa, così la musica scorre tra loro, in entrambe le direzioni.',
+  'tour.film.walkthrough.help':
+    'E tutto questo è nella Guida utente, disegnata dall’app stessa.',
+  'tour.film.walkthrough.outro':
+    'Questo è FluidEQ. Fallo suonare, e apparire, come piace a te.',
   'tour.film.engine.intro':
     'FluidEQ ha un motore audio tutto suo. Porta il tuo EQ e il rack DSP a tutto ciò che suona sul computer.',
   'tour.film.engine.choose':
@@ -596,6 +653,8 @@ const tour: Partial<Dictionary> = {
   'tour.film.soundOff': 'Disattiva l’audio',
   'tour.film.watch': 'Guarda il video',
   'tour.film.close': 'Chiudi il video',
+  'tour.film.unavailable':
+    'Questo video non si può riprodurre ora. Riprova più tardi.',
 
   'tour.myCurves.kicker': 'CURVE TUTTE TUE',
   'tour.myCurves.title': 'La tua lista di curve, accanto a quella di OPRA',

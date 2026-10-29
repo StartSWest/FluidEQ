@@ -111,4 +111,54 @@ describe('KaraokePlaylist', () => {
     expect(screen.getByText('Live')).toBeVisible();
     expect(screen.getByText('Loose files')).toBeVisible();
   });
+
+  it('folds a folder to its heading, which says how many songs it holds', () => {
+    const songs = [
+      { ...item('First'), relativePath: 'Artist/Album/First.mp3' },
+      { ...item('Second'), relativePath: 'Artist/Album/Second.mp3' },
+      { ...item('Concert'), relativePath: 'Artist/Live/Concert.mp3' },
+    ];
+    render(
+      <KaraokePlaylist
+        items={songs}
+        selectedId={songs[0].id}
+        groupByFolder
+        onToggleFolderGrouping={jest.fn()}
+        onSelect={jest.fn()}
+        onActivate={jest.fn()}
+        onMove={jest.fn()}
+        onRemove={jest.fn()}
+        onCollapse={jest.fn()}
+      />,
+    );
+    const artist = screen.getByRole('button', { name: /Artist/ });
+    const album = screen.getByRole('button', { name: /Album/ });
+    // Open at first, and each counts its sub-folders' songs too.
+    expect(artist).toHaveAttribute('aria-expanded', 'true');
+    expect(artist).toHaveTextContent('3');
+    expect(album).toHaveTextContent('2');
+
+    fireEvent.click(album);
+    expect(album).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('button', { name: 'Select First' })).toBeNull();
+    // Its neighbour stays as it was.
+    expect(
+      screen.getByRole('button', { name: 'Select Concert' }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(artist);
+    expect(screen.queryByRole('button', { name: /Album/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Select Concert' })).toBeNull();
+
+    // Opened again, the album keeps its own fold.
+    fireEvent.click(artist);
+    expect(screen.getByRole('button', { name: /Album/ })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Album/ }));
+    expect(
+      screen.getByRole('button', { name: 'Select First' }),
+    ).toBeInTheDocument();
+  });
 });

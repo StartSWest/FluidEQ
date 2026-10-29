@@ -528,6 +528,61 @@ const tour: Partial<Dictionary> = {
     '然后调整它的样子。“分段”决定有多少根柱子，颜色、间隙和动态也都由你决定。',
   'tour.film.looks.save':
     '点击“保存”，把它留作你自己的外观，也可以存成文件分享。',
+  'tour.walkthrough.kicker': '完整导览',
+  'tour.walkthrough.title': '一个视频看完 FluidEQ',
+  'tour.walkthrough.subtitle': '从头到尾看一遍',
+  'tour.walkthrough.lead':
+    '从你拖动的第一个频段到可视化效果，带你看完 FluidEQ 的全部功能，并有语音讲解每个部分怎么用。',
+  'tour.film.walkthrough.intro':
+    '这就是 FluidEQ 2.2：一个均衡器，管好你电脑上播放的一切声音。我们来看看吧。',
+  'tour.film.walkthrough.graph':
+    '拖动图表上的任意一点来塑造声音。每个频段的频率和增益都直接显示在曲线上。',
+  'tour.film.walkthrough.sliders':
+    '滑块调节的是同样的频段，曲线会立刻跟上。你点到的频段，会在下方打开它自己的控件。',
+  'tour.film.walkthrough.tone':
+    '点一下空白处，音色就回来了：低音、中音和高音，两边还有低切和高切。',
+  'tour.film.walkthrough.ears':
+    '右键点击一个频段，选择“左 + 右”，就能分别调节左右耳。实线是左耳，虚线是右耳。',
+  'tour.film.walkthrough.eqmode':
+    'EQ 模式就在图表旁边。它决定曲线起作用的强度，而“精确”会按画出的样子精准还原高音。',
+  'tour.film.walkthrough.headphones':
+    '在“EQ 预设”里，从数千款实测型号中找到你的耳机，一键应用它的校正。',
+  'tour.film.walkthrough.mycurves':
+    '把它存进“我的曲线”，这是你自己的列表，就在 OPRA 旁边，随用随取。',
+  'tour.film.walkthrough.outputs':
+    '每个输出都会保留自己的声音。切换到耳机，它会回到你上次设置的样子。第二输出还能在另一台设备上播放同样的音乐。',
+  'tour.film.walkthrough.songs':
+    '打开“记住每首歌的声音”，每首歌都会带着你给它的声音回来。',
+  'tour.film.walkthrough.games':
+    '游戏预设会在游戏切到前台的那一刻切换声音，关闭游戏时再切回来。',
+  'tour.film.walkthrough.dsp':
+    'DSP 效果架是一串录音室效果，作用于你听到的一切。为整个效果架选一个预设，从音乐风格到电影和游戏都有。',
+  'tour.film.walkthrough.deesser':
+    '新的齿音消除只压低人声里刺耳的齿音，不碰镲片。',
+  'tour.film.walkthrough.character':
+    '激励器增添光泽，低音熔炉增加厚度，空间感让立体声更宽。',
+  'tour.film.walkthrough.room':
+    '房间让你置身真实空间的音箱之间，戴耳机也一样。',
+  'tour.film.walkthrough.maximizer': '最大化器则让一切响亮又干净，永不削波。',
+  'tour.film.walkthrough.library':
+    '媒体库用同样的声音播放你自己的音乐，还有专辑、播放列表和“接下来播放”。',
+  'tour.film.walkthrough.compact':
+    '迷你播放器把这一切装进一个小窗口：歌曲、控制和你的 EQ。',
+  'tour.film.walkthrough.oneline':
+    '把它折叠成一行，就不会挡路，歌曲后面还有可视化效果轻轻律动。',
+  'tour.film.walkthrough.looks':
+    '图表本身就能变成可视化效果。选一种外观，或一整个场景，窗口也会换上它的颜色。',
+  'tour.film.walkthrough.gallery':
+    '在“可视化”的图库里，有 FluidEQ 和社区创作的场景。每个只需一点，永久归你。',
+  'tour.film.walkthrough.studio':
+    '在工作室里，用你自己的话描述想要的改动，就能看着它在舞台上实现。',
+  'tour.film.walkthrough.karaoke':
+    '卡拉OK 让你的歌都能跟着唱，歌词按时出现，你的音高也显示在屏幕上。',
+  'tour.film.walkthrough.share':
+    '共享音频把你家庭网络里的电脑连起来，让音乐在它们之间双向流动。',
+  'tour.film.walkthrough.help':
+    '这些内容都在用户指南里，图示直接取自应用本身。',
+  'tour.film.walkthrough.outro': '这就是 FluidEQ。让它的声音和样子都属于你。',
   'tour.film.engine.intro':
     'FluidEQ 有自己的音频引擎，它把你的 EQ 和 DSP 机架用到电脑播放的一切声音上。',
   'tour.film.engine.choose':
@@ -544,6 +599,7 @@ const tour: Partial<Dictionary> = {
   'tour.film.soundOff': '关闭声音',
   'tour.film.watch': '观看视频',
   'tour.film.close': '关闭视频',
+  'tour.film.unavailable': '这个视频暂时无法播放，请稍后再试。',
 
   'tour.myCurves.kicker': '你自己的曲线',
   'tour.myCurves.title': '你自己的曲线列表，就在 OPRA 旁边',

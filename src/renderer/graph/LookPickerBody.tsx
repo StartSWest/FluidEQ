@@ -10,6 +10,7 @@ import LookIcon from '../icons/LookIcon';
 import { useTranslation } from '../utils/I18nContext';
 import LookPickerScene from './LookPickerScene';
 import LookPickerDiscover from './LookPickerDiscover';
+import LookPickerMore from './LookPickerMore';
 import {
   categoryName,
   FAMILY_KEYS,
@@ -317,6 +318,9 @@ const LookPickerBody = ({
               )
             )}
           </div>
+          {/* Under the list, not in it: always there, however long the
+              list scrolls. The empty column's own offer already has it. */}
+          {!discovering && onLeave && <LookPickerMore onLeave={onLeave} />}
         </section>
       </div>
     </>

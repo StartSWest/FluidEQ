@@ -10,9 +10,15 @@
 .karaoke-background-visual {
   display: grid;
   width: 100%;
-  height: 100%;
+  // A stage's own shape, centred in the slide's frame. Filling the frame's
+  // height, it became a tall portrait in a tall window and pushed How to
+  // start under the dialog's foot (Ivan, 2026-10-29: "fix too tall, the
+  // pic").
+  height: auto;
+  aspect-ratio: 16 / 11;
+  max-height: 100%;
   min-width: 0;
-  min-height: calc(var(--tour-unit) * 24);
+  min-height: calc(var(--tour-unit) * 20);
   overflow: hidden;
   border-radius: $radius-m;
   @include miniature.framed;
@@ -20,7 +26,8 @@
   &__drawing {
     display: grid;
     min-height: 0;
-    grid-template-rows: minmax(240px, 1fr) auto;
+    height: 100%;
+    grid-template-rows: minmax(0, 1fr) auto;
     background: $surface-panel;
   }
 

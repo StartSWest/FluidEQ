@@ -78,5 +78,14 @@ export type TAudioEvent =
   | { type: 'helper-reply'; id: number; reply: IPlaybackReply }
   | { type: 'helper-stopped'; id: number };
 export type TAudioResponse =
-  | { type: 'answer'; id: number; value?: unknown; error?: string }
+  | {
+      type: 'answer';
+      id: number;
+      value?: unknown;
+      error?: string;
+      /** The system's own code for a failure (`failureCode`), never its text. */
+      code?: string;
+      /** The call that raised it: listen, bind. */
+      syscall?: string;
+    }
   | { type: 'event'; event: TAudioEvent; credit?: string };

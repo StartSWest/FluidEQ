@@ -82,7 +82,6 @@ export function GamePresetsSlide({ actions }: ISlideProps) {
   return (
     <ShowcaseSlide
       prefix="tour.games"
-      film="game-presets"
       onOpen={() => actions.openTab('games')}
       visual={<GameStoryVisual />}
     />

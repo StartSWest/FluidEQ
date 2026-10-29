@@ -13,6 +13,35 @@ import { createAudioTelemetry } from './telemetry';
 import { createAudioLeasePool } from './leasePool';
 import { createRemoteAudioPreview } from '../../common/remoteAudioPreview';
 
+const SYSTEM_WORD = /^[A-Za-z][A-Za-z0-9_]{0,39}$/;
+
+const systemWord = (word: unknown): string | undefined =>
+  typeof word === 'string' && SYSTEM_WORD.test(word) ? word : undefined;
+
+/**
+ * What a failure may say on its way out of the Share Audio service: the
+ * system's code for it and the call that raised it (EADDRINUSE, listen),
+ * never its message, which pairing and auth parsing can fill with secrets.
+ *
+ * The code is not only for the log. Main falls back to a fresh port when the
+ * saved one is taken (`startRemoteAudioHostSession`, on EADDRINUSE), and
+ * once the link moved into this service every failure arrived as "operation
+ * failed" with no code: a taken port stopped the link from starting at all
+ * (Ivan, 2026-10-28, twice in a row on the Share Audio page).
+ */
+export const failureCode = (
+  error: unknown,
+): { code?: string; syscall?: string } => {
+  if (typeof error !== 'object' || error === null) {
+    return {};
+  }
+  const { code, syscall } = error as { code?: unknown; syscall?: unknown };
+  return {
+    ...(systemWord(code) ? { code: systemWord(code) } : {}),
+    ...(systemWord(syscall) ? { syscall: systemWord(syscall) } : {}),
+  };
+};
+
 export interface IAudioRuntimeDeps {
   post(message: TAudioResponse): void;
   createLan: typeof import('../remoteAudioLan').default;
@@ -429,12 +458,14 @@ export const createAudioRuntime = ({
     } else {
       execute(message).then(
         (value) => post({ type: 'answer', id: message.id, value }),
-        // Never forward arbitrary exceptions: pair/auth parsing can contain secrets.
-        () =>
+        // Never forward arbitrary exceptions: pair/auth parsing can contain
+        // secrets. The system's code for the failure is not one.
+        (error: unknown) =>
           post({
             type: 'answer',
             id: message.id,
             error: 'Share Audio operation failed.',
+            ...failureCode(error),
           }),
       );
     }

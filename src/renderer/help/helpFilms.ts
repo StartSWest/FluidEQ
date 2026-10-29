@@ -9,27 +9,35 @@
  * nothing is fetched before that.
  */
 const HELP_FILMS: Readonly<Record<string, readonly string[]>> = {
-  eq: ['each-ear', 'delete-import'],
-  eqmode: ['engine-sound'],
-  games: ['game-presets'],
-  headphones: ['headphone-presets'],
-  profiles: ['every-output'],
-  engine: ['fluideq-engine'],
   looks: ['custom-looks'],
-  dsp: ['dsp', 'de-esser'],
-  library: ['library'],
-  karaoke: ['karaoke'],
-  maker: ['karaoke-maker'],
 };
 
 /**
- * Films that play nowhere until they are recorded again, because they show
- * something the app no longer has. Their files, captions and posters stay
- * where they are, so a new take replaces the old one and comes back here.
+ * Films that play nowhere until they are recorded again. Their files,
+ * captions and posters stay where they are, so a new take replaces the old
+ * one and comes back here.
  *
  * - `compact-player` shows the two players 2.1 made one (Ivan, 2026-10-26:
  *   out of What's New and Help until it is recorded again).
+ * - The rest were each one feature's film; the walkthrough on What's New's
+ *   first page now goes over all of them (Ivan, 2026-10-28: "remove all other
+ *   videos we have, only keep the visualizer one"), and only the custom
+ *   looks' film, the visualizer's, stays.
  */
-export const FILMS_AWAY: readonly string[] = ['compact-player'];
+export const FILMS_AWAY: readonly string[] = [
+  'compact-player',
+  'de-esser',
+  'delete-import',
+  'dsp',
+  'each-ear',
+  'engine-sound',
+  'every-output',
+  'fluideq-engine',
+  'game-presets',
+  'headphone-presets',
+  'karaoke',
+  'karaoke-maker',
+  'library',
+];
 
 export default HELP_FILMS;

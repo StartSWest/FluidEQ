@@ -56,8 +56,15 @@ describe('the 2.2 Karaoke background entry', () => {
     window.localStorage.removeItem('fluideq-karaoke-stage-background');
   });
 
+  // Second in 2.2, after the walkthrough on the first page.
+  const showKaraokeBackground = () => {
+    const shown = showTour('2.2.0');
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    return shown;
+  };
+
   it('shows the real lyric renderer and selected background control as an inert picture', () => {
-    showTour('2.2.0');
+    showKaraokeBackground();
     expect(
       screen.getByRole('heading', { name: 'Visualizers behind your lyrics' }),
     ).toBeInTheDocument();
@@ -81,7 +88,7 @@ describe('the 2.2 Karaoke background entry', () => {
 
   it('opens Karaoke by the existing action without silently changing the background', () => {
     writeKaraokeBackground('cover');
-    const { onOpenTab } = showTour('2.2.0');
+    const { onOpenTab } = showKaraokeBackground();
     expect(
       screen.getByText(
         'Choose a look in Styles and visualizers on EQ, then press Use current visualizer as background in Karaoke.',

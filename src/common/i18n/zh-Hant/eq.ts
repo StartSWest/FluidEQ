@@ -882,6 +882,8 @@ const eq = {
   'graph.picker.discover.explore': '探索場景',
   'graph.picker.discover.create': '自行創作',
   'graph.picker.discover.free': 'FluidEQ 及其音訊工具維持免費。',
+  'graph.picker.more.lead': '畫廊中還有更多場景',
+  'graph.picker.more.new': '新場景 {count}',
 } satisfies Partial<Dictionary>;
 
 export default eq;

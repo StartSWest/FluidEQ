@@ -19,7 +19,7 @@ import { KARAOKE_FILE_PICKER_ACCEPT } from '../../common/karaoke/files';
 import { ERROR_KEYS, SOURCE_KEYS } from './karaokeWorkspaceLabels';
 import KaraokeSetAsideNotice from './KaraokeSetAsideNotice';
 import KaraokePaneSplitter from './KaraokePaneSplitter';
-import KaraokeBackdrop from './KaraokeBackdrop';
+import KaraokeBackdrop, { karaokeBackdropKind } from './KaraokeBackdrop';
 import KaraokeChordGuide from './KaraokeChordGuide';
 import { karaokeProviderDisplayName } from '../../common/karaoke/provider';
 import { MAX_LYRIC_TEXT_SIZE, MIN_LYRIC_TEXT_SIZE } from './karaokeLyricText';
@@ -489,7 +489,11 @@ const KaraokeWorkspaceView = ({
         )}
         <div
           ref={stageRef}
-          className={`karaoke-workspace__stage${song ? ' has-song' : ''}${
+          className={`karaoke-workspace__stage is-backdrop-${karaokeBackdropKind(
+            background,
+            song,
+            isGraphOverlay,
+          )}${song ? ' has-song' : ''}${
             isPitchGuideVisible && song && useStagePitch
               ? ' has-stage-pitch'
               : ''

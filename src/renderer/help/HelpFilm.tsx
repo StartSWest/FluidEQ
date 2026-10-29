@@ -46,7 +46,7 @@ export default function HelpFilm({
   // Its first line says what the feature is: the card's name.
   const title = t(film.cues[0].key);
   const audioNote =
-    featureFilmLocale(locale) !== locale
+    featureFilmLocale(locale, film) !== locale
       ? t('tour.film.englishAudio')
       : undefined;
   const shape = {
