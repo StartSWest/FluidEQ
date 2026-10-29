@@ -1,0 +1,16 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026> <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// The background has its own visualizer, so graph visibility, grid and
+// contents never decide whether there is scenery behind the words.
+.karaoke-graph-background {
+  // The normal picture stays dim enough for lyrics; See through can fade it.
+  opacity: calc(0.32 * var(--karaoke-scene-opacity, 1));
+
+  .scene-view-reset {
+    display: none;
+  }
+}

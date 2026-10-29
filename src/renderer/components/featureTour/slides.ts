@@ -53,6 +53,7 @@ import {
   SongsSlide,
   StudioChatSlide,
 } from './release21';
+import KaraokeBackgroundSlide from './release22';
 
 /**
  * The workspace tabs a slide can send the user to. `community` is Plus;
@@ -313,6 +314,19 @@ const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
  * from decides what is new to them, not the version they are going to.
  */
 const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
+  '2.2': [
+    ...announced('2.2', [
+      {
+        id: 'karaoke-background',
+        titleKey: 'tour.karaokeBackground.title',
+        subtitleKey: 'tour.karaokeBackground.subtitle',
+        Body: KaraokeBackgroundSlide,
+      },
+    ]),
+    ...announced('2.1', RELEASE_21),
+    // Earlier features remain discoverable without being announced again.
+    ...RELEASE_20.filter((entry) => !RELEASE_21.includes(entry)),
+  ],
   '1.6': announced('1.6', [SECOND_OUTPUT, SHARE_AUDIO]),
   '1.7': announced('1.7', RELEASE_17),
   '2.0': [

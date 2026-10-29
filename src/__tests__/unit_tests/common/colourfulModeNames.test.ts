@@ -30,6 +30,8 @@ const NAMES: Record<LocaleCode, string> = {
   ru: 'Цветной режим',
   ja: 'カラフルモード',
   zh: '多彩模式',
+  'zh-Hant': '多彩模式',
+  ko: '컬러풀 모드',
   hi: 'रंगीन मोड',
 };
 
@@ -44,12 +46,14 @@ const WORDS: Record<LocaleCode, string> = {
   ru: 'Цветной',
   ja: 'カラフル',
   zh: '多彩',
+  'zh-Hant': '多彩',
+  ko: '컬러풀',
   hi: 'रंगीन',
 };
 
 /** Each language's rainbow, as its strings used to write it. */
 const RAINBOW =
-  /rainbow|arco[íi]ris|arco-íris|regenbogen|arc-en-ciel|arcobaleno|радуг|радуж|レインボー|虹|इंद्रधनुष/i;
+  /rainbow|arco[íi]ris|arco-íris|regenbogen|arc-en-ciel|arcobaleno|радуг|радуж|レインボー|虹|무지개|彩虹|इंद्रधनुष/i;
 
 const SHOWN: TranslationKey[] = [
   'graph.sceneTint.rainbow',
@@ -67,7 +71,7 @@ const codes = LOCALES.map((locale) => locale.code);
 beforeAll(() => Promise.all(codes.map((code) => loadLocale(code))));
 
 describe('Colourful mode’s name', () => {
-  it('covers all ten languages', () => {
+  it('covers every registered language', () => {
     expect([...codes].sort()).toEqual(Object.keys(NAMES).sort());
   });
 

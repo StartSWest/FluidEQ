@@ -4,6 +4,7 @@ import { PRODUCT_NAME } from 'common/branding';
 import type { Translate } from 'common/i18n';
 import { isFluidEngineBuiltIn } from 'common/platformCapabilities';
 import type { MenuIconName } from '../icons/MenuIcon';
+import { openAppNews } from '../plus/appNewsStore';
 import windowCapabilities from '../utils/windowCapabilities';
 
 /** What each of Help's entries opens; the app shell owns every one of them. */
@@ -18,7 +19,14 @@ export interface IHelpHandlers {
 
 export interface IHelpAction {
   /** Fixing audio is the actions menu's own row too, so it knows to skip it. */
-  id: 'guide' | 'whatsNew' | 'fixAudio' | 'report' | 'forum' | 'about';
+  id:
+    | 'guide'
+    | 'whatsNew'
+    | 'appNews'
+    | 'fixAudio'
+    | 'report'
+    | 'forum'
+    | 'about';
   label: string;
   run: () => void;
   icon: MenuIconName;
@@ -42,6 +50,12 @@ const helpMenuActions = (
 ): IHelpAction[] => [
   { id: 'guide', label: t('help.title'), run: onGuide, icon: 'guide' },
   { id: 'whatsNew', label: t('app.menu.whatsNew'), run: onTour, icon: 'gift' },
+  {
+    id: 'appNews',
+    label: t('announce.news.title'),
+    run: openAppNews,
+    icon: 'gift',
+  },
   // Not where the engine is part of the app (macOS): every step the
   // troubleshooter offers is a repair of Windows' engine.
   ...(isFluidEngineBuiltIn(windowCapabilities())

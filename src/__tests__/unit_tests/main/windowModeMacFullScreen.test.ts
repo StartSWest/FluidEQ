@@ -173,6 +173,24 @@ describe('the player’s visualizer on a Mac', () => {
     expect(win.isFullScreen()).toBe(false);
   });
 
+  it('waits for fullscreen exit before placing the amp and restores the app', async () => {
+    const { modes, win, finish, bounds } = macWindowAs('app');
+    const app = { x: 100, y: 20, width: 1200, height: 840 };
+    win.setBounds(app);
+    win.emit('moved');
+    modes.setFullScreen(win, true);
+    finish();
+    const switched = modes.setMode(win, 'player');
+    expect(modes.mode()).toBe('app');
+    expect(bounds()).toEqual(DISPLAY);
+    finish();
+    await expect(switched).resolves.toBe('player');
+    expect(win.isFullScreen()).toBe(false);
+    expect(bounds().width).toBeLessThan(app.width);
+    await modes.setMode(win, 'app');
+    expect(bounds()).toEqual(app);
+  });
+
   it('may take the screen, and the green button is disabled again after', () => {
     const { modes, win, finish, isFullScreenable, fullscreenable } =
       macWindowAs('player');

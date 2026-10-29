@@ -11,6 +11,17 @@ it under the terms of the GNU General Public License version 3 or later.
  * big things, one slide each. Strings are per slide, prefixed by the slide.
  */
 const tour = {
+  'tour.karaokeBackground.title': 'Visualizers behind your lyrics',
+  'tour.karaokeBackground.subtitle': 'Your chosen look, on the Karaoke stage',
+  'tour.karaokeBackground.lead':
+    'Choose a visualizer or scene as your Karaoke background.',
+  'tour.karaokeBackground.how':
+    'Choose a look in {looks} on EQ, then press {showGraph} in Karaoke.',
+  'tour.karaokeBackground.open': 'Open Karaoke',
+  'tour.karaokeBackground.imageAlt':
+    'The Karaoke background control with a scene behind the lyrics.',
+  'tour.karaokeBackground.lyric': 'Let our song light up the night',
+
   'tour.contribute': 'Please contribute',
   'tour.eyebrow': 'NEW IN THIS VERSION',
   'tour.title': "What's new in FluidEQ",
@@ -206,9 +217,9 @@ const tour = {
 
   'tour.help.kicker': 'HELP',
   'tour.help.title': 'Ask the guide in your own words',
-  'tour.help.subtitle': 'Typos, plurals and ten languages',
+  'tour.help.subtitle': 'Typos, plurals and your language',
   'tour.help.lead':
-    'Search the guide the way you would ask a friend — “no sound”, “limiter”, “wallpaper” — in any of ten languages. The best chapter comes first, and the guide takes you to the control, ringed on the picture.',
+    'Search the guide the way you would ask a friend — “no sound”, “limiter”, “wallpaper” — in your language. The best chapter comes first, and the guide takes you to the control, ringed on the picture.',
   'tour.help.point1':
     'It forgives typos and plurals, and knows the words people use for things.',
   'tour.help.point2':
@@ -736,6 +747,7 @@ const tour = {
     'Open the Online Media tab, pick a site from the row at the top, type in the search field and press Search. Back, Forward and Reload work as in a browser.',
   'tour.media.open': 'Open Online Media',
   'tour.studio.free': 'Free for every account',
+  'tour.film.englishAudio': 'English audio · translated captions',
 } as const;
 
 export default tour;

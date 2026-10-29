@@ -280,6 +280,12 @@ const eq: Partial<Dictionary> = {
   'graph.picker.search': 'शैलियाँ और विज़ुअलाइज़र खोजें',
   'graph.picker.styles': 'शैलियाँ',
   'graph.picker.plus': 'विज़ुअलाइज़र',
+  'graph.picker.discover.title': 'अपने संगीत को जीवंत बनाएँ',
+  'graph.picker.discover.body':
+    'एनिमेटेड सीन खरीदें और हमेशा अपने पास रखें, या Studio में अपने सीन मुफ़्त बनाएँ।',
+  'graph.picker.discover.explore': 'सीन देखें',
+  'graph.picker.discover.create': 'अपना सीन बनाएँ',
+  'graph.picker.discover.free': 'FluidEQ और इसके ऑडियो टूल मुफ़्त रहेंगे।',
   'graph.picker.all': 'सभी',
   'graph.picker.yours': 'आपके',
   'graph.picker.filterStyles': 'शैलियाँ फ़िल्टर करें',

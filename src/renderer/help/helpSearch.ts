@@ -169,7 +169,10 @@ const STOP_WORDS: Record<LocaleCode, string> = {
   it: 'il lo la i gli le un uno una di del della dei delle a al alla in nel nella e o che come perché per con su mio mia dove quale posso si',
   ru: 'и в во на с со к по для как какой что это я мой моя где почему зачем или а о у из от до ли можно',
   zh: '的 了 是 在 吗 呢 和 与 我 怎么 如何 怎样 什么 哪里 为什么 这 那 一个',
+  'zh-Hant':
+    '的 了 是 在 嗎 呢 和 與 我 怎麼 如何 怎樣 什麼 哪裡 為什麼 這 那 一個',
   ja: 'の は が を に で と も へ や か する して です ます どう どこ 何 なに なぜ どうして どうやって',
+  ko: '은 는 이 가 을 를 에 에서 로 으로 와 과 의 도 만 하고 그리고 또는 어떻게 무엇 뭐 왜 어디 언제 어떤 저 제 내 나 너 우리 수 있나요 하나요',
   hi: 'का की के है हैं में से को और या कैसे क्या क्यों मेरा मेरी यह वह पर एक कहाँ',
 };
 

@@ -28,7 +28,7 @@ export type TLightingRoute = 'synapse' | 'windows';
 /**
  * What a device is, for its picture on the page and for which part of the
  * music drives it most. Closed on purpose: every kind has a drawing and a name
- * in all ten locales.
+ * in every registered locale.
  */
 export type TLightingKind =
   | 'keyboard'

@@ -2,7 +2,7 @@
  * The FluidEQ Plus terms: which version is current, and the numbers the text
  * quotes.
  *
- * The words live in the `terms.*` dictionaries, all ten languages. The
+ * The words live in the `terms.*` dictionaries, every supported interface language. The
  * numbers live here, next to the version, because each one is also enforced
  * somewhere — the offline grace by the entitlement check, the scene-play
  * window and the daily cap by the server — and a promise in the

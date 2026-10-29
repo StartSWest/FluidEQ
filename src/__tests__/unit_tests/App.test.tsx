@@ -49,6 +49,7 @@ import {
   prereqBannerEngine,
 } from '../../renderer/utils/audioEngineApi';
 import {
+  getGraphView,
   getGraphWaveHidden,
   setGraphContents,
   setGraphView,
@@ -504,7 +505,29 @@ describe('App', () => {
     });
   });
 
+  it.each([
+    ['karaoke', 'Karaoke'],
+    ['library', 'Library'],
+    ['community', 'Visualizers'],
+  ] as const)(
+    'keeps the hidden %s graph closed on Ctrl+S and Ctrl+F',
+    async (page, label) => {
+      jest.spyOn(accountConfig, 'isAccountConfigured').mockReturnValue(true);
+      const { container } = render(<App />);
+      await act(async () => Promise.resolve());
+      await pressTab(label, page);
+      fireEvent.keyDown(window, { key: 's', code: 'KeyS', ctrlKey: true });
+      fireEvent.keyDown(window, { key: 'f', code: 'KeyF', ctrlKey: true });
+      expect(container.querySelector('.graph-wrapper')).toBeNull();
+      expect(setWindowFullScreen).not.toHaveBeenCalled();
+    },
+  );
+
   it('uses the media surface for its control and graph fullscreen for Ctrl+F', async () => {
+    window.localStorage.setItem(
+      'fluideq.graphVisibilityByTab',
+      JSON.stringify({ karaoke: true }),
+    );
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
     await pressTab('Karaoke', 'karaoke');
@@ -513,6 +536,7 @@ describe('App', () => {
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
     );
+    expect(getGraphView()).toBe('normal');
     fireEvent.click(screen.getByRole('button', { name: 'Exit full screen' }));
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
@@ -529,10 +553,14 @@ describe('App', () => {
       'is-app-full',
       'has-top-bar',
     );
-    expect(container.querySelector('.app-workspace')).not.toHaveClass(
+    expect(container.querySelector('.app-workspace')).toHaveClass(
       'is-media-full',
       'is-karaoke-full',
       'has-karaoke-graph',
+    );
+    expect(getGraphView()).toBe('fullscreen');
+    expect(container.querySelector('.karaoke-workspace')).toHaveClass(
+      'is-graph-overlay',
     );
     expect(
       screen.queryByRole('heading', {
@@ -565,49 +593,78 @@ describe('App', () => {
     );
   });
 
-  it('stays in full screen when Escape closes a dialog in front of the graph', async () => {
+  it("enables Gallery graph shortcuts only with that page's response graph", async () => {
+    jest.spyOn(accountConfig, 'isAccountConfigured').mockReturnValue(true);
+    window.localStorage.setItem(
+      'fluideq.graphVisibilityByTab',
+      JSON.stringify({ community: true }),
+    );
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
-    fireEvent.keyDown(window, { key: 'f', code: 'KeyF', ctrlKey: true });
-    await waitFor(() =>
-      expect(container.querySelector('.center-workspace')).toHaveClass(
-        'is-graph-full',
-      ),
+    await pressTab('Visualizers', 'community');
+    expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: 's', ctrlKey: true });
+    expect(container.querySelector('.center-workspace')).toHaveClass(
+      'is-graph-grown',
     );
-    setWindowFullScreen.mockClear();
-
-    // A dialog that closes on the document, as the app's dialogs do. In the
-    // running app its close lands before the window hears the key; a scripted
-    // key runs every listener first, so this one leaves on the spot instead.
-    const dialog = document.createElement('div');
-    dialog.setAttribute('role', 'dialog');
-    document.body.append(dialog);
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        dialog.remove();
-      }
-    };
-    document.addEventListener('keydown', closeOnEscape);
-    try {
-      fireEvent.keyDown(document.body, { key: 'Escape', code: 'Escape' });
-      expect(dialog).not.toBeInTheDocument();
-      expect(container.querySelector('.center-workspace')).toHaveClass(
-        'is-graph-full',
-      );
-      expect(setWindowFullScreen).not.toHaveBeenCalled();
-
-      // With nothing in front, the same key leaves.
-      fireEvent.keyDown(document.body, { key: 'Escape', code: 'Escape' });
-      await waitFor(() =>
-        expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
-      );
-      expect(container.querySelector('.center-workspace')).not.toHaveClass(
-        'is-graph-full',
-      );
-    } finally {
-      document.removeEventListener('keydown', closeOnEscape);
-    }
+    fireEvent.keyDown(window, { key: 'f', ctrlKey: true });
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
+    );
+    expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
+    );
+    expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
   });
+
+  it.each(['dialog', 'alertdialog'])(
+    'stays in full screen when Escape closes a %s in front of the graph',
+    async (role) => {
+      const { container } = render(<App />);
+      await act(async () => Promise.resolve());
+      fireEvent.keyDown(window, { key: 'f', code: 'KeyF', ctrlKey: true });
+      await waitFor(() =>
+        expect(container.querySelector('.center-workspace')).toHaveClass(
+          'is-graph-full',
+        ),
+      );
+      setWindowFullScreen.mockClear();
+
+      // A dialog that closes on the document, as the app's dialogs do. In the
+      // running app its close lands before the window hears the key; a scripted
+      // key runs every listener first, so this one leaves on the spot instead.
+      const dialog = document.createElement('div');
+      dialog.setAttribute('role', role);
+      document.body.append(dialog);
+      const closeOnEscape = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+          dialog.remove();
+        }
+      };
+      document.addEventListener('keydown', closeOnEscape);
+      try {
+        fireEvent.keyDown(document.body, { key: 'Escape', code: 'Escape' });
+        expect(dialog).not.toBeInTheDocument();
+        expect(container.querySelector('.center-workspace')).toHaveClass(
+          'is-graph-full',
+        );
+        expect(setWindowFullScreen).not.toHaveBeenCalled();
+
+        // With nothing in front, the same key leaves.
+        fireEvent.keyDown(document.body, { key: 'Escape', code: 'Escape' });
+        await waitFor(() =>
+          expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
+        );
+        expect(container.querySelector('.center-workspace')).not.toHaveClass(
+          'is-graph-full',
+        );
+      } finally {
+        document.removeEventListener('keydown', closeOnEscape);
+      }
+    },
+  );
 
   it('closes the top bar menu, not full screen, on Escape', async () => {
     const { container } = render(<App />);
@@ -643,6 +700,10 @@ describe('App', () => {
   ] as const)(
     'keeps Online Media hidden when %s owns the graph backdrop',
     async (owner, tabName, ownerSelector) => {
+      window.localStorage.setItem(
+        'fluideq.graphVisibilityByTab',
+        JSON.stringify({ video: true }),
+      );
       const { container } = render(<App />);
       await act(async () => Promise.resolve());
       await pressTab(tabName, owner);
@@ -671,6 +732,10 @@ describe('App', () => {
   );
 
   it('restores a Library graph fullscreen double-click that passes through the graph', async () => {
+    window.localStorage.setItem(
+      'fluideq.graphVisibilityByTab',
+      JSON.stringify({ library: true }),
+    );
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
     await pressTab('Library', 'library');
@@ -703,6 +768,10 @@ describe('App', () => {
   ] as const)(
     'exits graph %s when the workspace tab changes',
     async (_mode, key, code, expectedFullScreenCalls) => {
+      window.localStorage.setItem(
+        'fluideq.graphVisibilityByTab',
+        JSON.stringify({ video: true }),
+      );
       const { container } = render(<App />);
       await act(async () => Promise.resolve());
       await pressTab('Online Media', 'video');

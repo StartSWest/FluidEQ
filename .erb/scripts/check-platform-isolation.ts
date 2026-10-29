@@ -184,6 +184,10 @@ const SINGLE_PLATFORM_PROGRAMS = new Map<string, string>([
   ['native/remote-audio-capture/', 'WASAPI process-loopback capture'],
   ['native/remote-audio-playback/', 'WASAPI playback of audio from the LAN'],
   [
+    'native/common/windows_audio_task.h',
+    'the MMCSS audio task both WASAPI Share Audio programs above join; included by those two alone',
+  ],
+  [
     'native/foreground-watch/',
     "game profiles' watcher, which asks Windows which program is in front",
   ],

@@ -75,28 +75,30 @@ export default function ScenePlot({
 
   return (
     <>
-      <SceneLoading
-        lookId={scene.lookId}
-        swatch={scene.swatch}
-        settled={run?.drawnIdentity === sceneIdentityOf(scene)}
-        width={width}
-        height={height}
-      />
+      {/* One surface for the picture and its loading. Fading only the canvas
+          left an opaque loading floor over Karaoke, and an invisible scene
+          correctly waits for visibility before it can finish loading. */}
+      <div className="chart-scene-surface" style={{ width, height }}>
+        <SceneLoading
+          lookId={scene.lookId}
+          swatch={scene.swatch}
+          settled={run?.drawnIdentity === sceneIdentityOf(scene)}
+          width={width}
+          height={height}
+        />
+        {/* The running canvas moves here without being remounted. */}
+        <div
+          ref={slotRef}
+          className="chart-scene-slot"
+          aria-hidden="true"
+          style={{ display: 'contents' }}
+        />
+      </div>
       <div
         ref={panelRef}
         className="chart-scene-panel"
         aria-hidden="true"
         style={{ width, height }}
-      />
-      {/* Where the canvas stands while the scene is drawn on the plot: here
-          in the order, over the loading and under the drawing. It is put
-          in and taken out by the scene (`useMovableContainer`), never by
-          React, and lays nothing out itself. */}
-      <div
-        ref={slotRef}
-        className="chart-scene-slot"
-        aria-hidden="true"
-        style={{ display: 'contents' }}
       />
       {run && (
         <SceneViewReset

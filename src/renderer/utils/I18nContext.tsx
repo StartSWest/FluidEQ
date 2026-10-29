@@ -118,7 +118,7 @@ export const I18nProvider = ({ children }: { children: ReactNode }) => {
   // The tray menu is the one piece of interface the main process writes by
   // itself, and the chosen language lives here rather than there. Pushed on
   // mount as well as on every change, because the main process starts with no
-  // idea which of the ten this window settled on.
+  // idea which language this window settled on.
   useEffect(() => {
     // Optional all the way down, including the call itself. The bridge is
     // typed from the preload module, so TypeScript believes this method is

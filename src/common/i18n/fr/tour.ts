@@ -2,6 +2,17 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
+  'tour.karaokeBackground.title': 'Des visualisations derrière vos paroles',
+  'tour.karaokeBackground.subtitle': 'Le style choisi, sur la scène du karaoké',
+  'tour.karaokeBackground.lead':
+    'Choisissez une visualisation ou une scène en arrière-plan du karaoké.',
+  'tour.karaokeBackground.how':
+    'Choisissez un style dans {looks} sur EQ, puis appuyez sur {showGraph} dans le karaoké.',
+  'tour.karaokeBackground.open': 'Ouvrir le karaoké',
+  'tour.karaokeBackground.imageAlt':
+    'La commande d’arrière-plan du karaoké et une scène derrière les paroles.',
+  'tour.karaokeBackground.lyric': 'Que notre chanson éclaire la nuit',
+
   'tour.contribute': 'Merci de contribuer',
   'tour.eyebrow': 'NOUVEAU DANS CETTE VERSION',
   'tour.title': 'Nouveautés de FluidEQ',
@@ -196,9 +207,9 @@ const tour: Partial<Dictionary> = {
   'tour.studio.earned': 'Publiée : joue gratuitement pour vous',
   'tour.help.kicker': 'AIDE',
   'tour.help.title': 'Interrogez le guide avec vos propres mots',
-  'tour.help.subtitle': 'Fautes de frappe, pluriels et dix langues',
+  'tour.help.subtitle': 'Fautes de frappe, pluriels et votre langue',
   'tour.help.lead':
-    'Cherchez dans le guide comme vous demanderiez à un ami — « pas de son », « limiteur », « fond d’écran » — dans l’une des dix langues. Le meilleur chapitre arrive en tête, et le guide vous mène à la commande, entourée sur la capture.',
+    'Cherchez dans le guide comme vous demanderiez à un ami — « pas de son », « limiteur », « fond d’écran » — dans votre langue. Le meilleur chapitre arrive en tête, et le guide vous mène à la commande, entourée sur la capture.',
   'tour.help.point1':
     'Il pardonne les fautes de frappe et les pluriels, et connaît les mots de tous les jours.',
   'tour.help.point2':
@@ -734,6 +745,7 @@ const tour: Partial<Dictionary> = {
     'Ouvrez l’onglet Médias en ligne, choisissez un site dans la rangée du haut, tapez dans le champ de recherche et appuyez sur Rechercher. Précédent, Suivant et Actualiser fonctionnent comme dans un navigateur.',
   'tour.media.open': 'Ouvrir Médias en ligne',
   'tour.studio.free': 'Gratuit pour tous les comptes',
+  'tour.film.englishAudio': 'Audio en anglais · sous-titres traduits',
 };
 
 export default tour;

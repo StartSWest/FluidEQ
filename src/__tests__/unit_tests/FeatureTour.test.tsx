@@ -14,6 +14,10 @@ import FeatureTour from 'renderer/components/featureTour/FeatureTour';
 import { featureTourFor } from 'renderer/components/featureTour/slides';
 import { requestHelpGuide } from 'renderer/help/helpGuideRequests';
 import { setWindowMode } from 'renderer/player/windowModeStore';
+import {
+  readKaraokeBackground,
+  writeKaraokeBackground,
+} from 'renderer/karaoke/karaokeWorkspacePrefs';
 
 jest.mock('renderer/player/windowModeStore', () => ({
   setWindowMode: jest.fn(() => Promise.resolve()),
@@ -46,6 +50,49 @@ const showTour = (version = '2.0.0') => {
 /** The rail entry whose title is `title` (its name also holds its number). */
 const goTo = (title: string) =>
   fireEvent.click(screen.getByRole('button', { name: new RegExp(title) }));
+
+describe('the 2.2 Karaoke background entry', () => {
+  afterEach(() => {
+    window.localStorage.removeItem('fluideq-karaoke-stage-background');
+  });
+
+  it('shows the real lyric renderer and selected background control as an inert picture', () => {
+    showTour('2.2.0');
+    expect(
+      screen.getByRole('heading', { name: 'Visualizers behind your lyrics' }),
+    ).toBeInTheDocument();
+    const picture = screen.getByRole('img', {
+      name: 'The Karaoke background control with a scene behind the lyrics.',
+    });
+    expect(
+      picture.querySelector('.karaoke-lyrics__canvas'),
+    ).toBeInTheDocument();
+    expect(picture.querySelector('[inert]')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
+    expect(
+      picture.querySelector('.karaoke-workspace__graph-background-toggle'),
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      screen.queryByRole('button', { name: 'Turn off visualizer background' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('opens Karaoke by the existing action without silently changing the background', () => {
+    writeKaraokeBackground('cover');
+    const { onOpenTab } = showTour('2.2.0');
+    expect(
+      screen.getByText(
+        'Choose a look in Styles and visualizers on EQ, then press Use current visualizer as background in Karaoke.',
+      ),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Open Karaoke' }));
+    expect(onOpenTab).toHaveBeenCalledTimes(1);
+    expect(onOpenTab).toHaveBeenCalledWith('karaoke');
+    expect(readKaraokeBackground()).toBe('cover');
+  });
+});
 
 it('heads each release it shows as new with its own number, then the rest', () => {
   showTour();

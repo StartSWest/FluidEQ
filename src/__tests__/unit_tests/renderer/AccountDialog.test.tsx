@@ -345,7 +345,7 @@ describe('the account panel', () => {
   });
 
   /**
-   * Names arrive in ten scripts. Slicing a string by index cuts a surrogate
+   * Names can use many scripts. Slicing a string by index cuts a surrogate
    * pair in half and renders the replacement glyph, so the initials are taken
    * as whole characters.
    */

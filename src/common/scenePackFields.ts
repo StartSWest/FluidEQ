@@ -74,7 +74,8 @@ export const readNumber = (value: unknown, fallback: number): number =>
  * stringified for its revision hash and handed to the window. The ambient
  * elements' own controls already keep exactly this rule.
  */
-const LOCALE = /^[a-z]{2}$/;
+// Keep the finite name-key bound while admitting the shipped Chinese script.
+const LOCALE = /^(?:[a-z]{2}|zh-Hant)$/;
 
 /**
  * The name in each language. English is required; the rest are taken where

@@ -123,6 +123,7 @@ const notice = () => invoke<ISceneReviewState>('scene-review-notice');
 
 beforeEach(() => {
   handlers.clear();
+  access.authorize = undefined;
   signedInAs = ME;
   mine = [];
   calls = [];
@@ -145,6 +146,19 @@ afterEach(() => {
   registration.dispose();
   fs.rmSync(userDataDir, { recursive: true, force: true });
 });
+describe('reading submissions', () => {
+  it.each(['offline', 'signed-out', 'forbidden', 'server'] as const)(
+    'preserves a %s authorization failure for the creator page',
+    async (reason) => {
+      access.authorize = async () => ({ ok: false, reason });
+      expect(await invoke('plus-my-submissions')).toEqual({
+        ok: false,
+        reason,
+      });
+    },
+  );
+});
+
 describe('a maker told what became of their scene', () => {
   it('says it is in the gallery', async () => {
     mine = [

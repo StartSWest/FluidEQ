@@ -271,12 +271,14 @@
       "installerLanguages": [
         "en_US",
         "zh_CN",
+        "zh_TW",
         "hi_IN",
         "es_ES",
         "fr_FR",
         "pt_BR",
         "ru_RU",
         "ja_JP",
+        "ko_KR",
         "de_DE",
         "it_IT"
       ],

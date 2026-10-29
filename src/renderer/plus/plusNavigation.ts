@@ -7,6 +7,7 @@ import type {
 } from 'common/plusGallery';
 import { isAddonPlace, type TAddonPlace } from '../addons';
 import { readStored, removeStored, writeStored } from '../utils/graphStorage';
+import { getAccountSnapshot, subscribeAccount } from '../account/accountStore';
 
 /**
  * Where the member is inside the Plus tab: which place in its rail — the
@@ -100,6 +101,9 @@ const INITIAL: IPlusNavigation = {
 
 let navigation: IPlusNavigation = { ...INITIAL, place: storedPlace() };
 const listeners = new Set<() => void>();
+// Reading the account at import time couples otherwise independent startup stores.
+let owner: string | undefined;
+let stopAccount = () => {};
 
 const publish = (next: IPlusNavigation) => {
   if (next.place !== navigation.place) {
@@ -109,10 +113,28 @@ const publish = (next: IPlusNavigation) => {
   listeners.forEach((listener) => listener());
 };
 
+const bindAccount = () => {
+  const next = getAccountSnapshot().identity?.id;
+  if (next !== owner) {
+    owner = next;
+    // A saved scene page carries the previous account's likes and actions.
+    // Keep the chosen workspace (including a guest's Studio destination),
+    // but open a fresh gallery page for the next account.
+    publish({ ...navigation, page: { kind: 'browse' } });
+  }
+};
+
 const subscribe = (listener: () => void) => {
+  if (listeners.size === 0) {
+    stopAccount = subscribeAccount(bindAccount);
+    bindAccount();
+  }
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
+    if (listeners.size === 0) {
+      stopAccount();
+    }
   };
 };
 
@@ -127,14 +149,17 @@ export const usePlusNavigation = (): IPlusNavigation =>
 export const plusPlace = (): TPlusPlace => navigation.place;
 
 export const openPlusPlace = (place: TPlusPlace) => {
+  bindAccount();
   if (place !== navigation.place) {
     publish({ ...navigation, place });
   }
 };
 
 /** Shows a gallery page in place of the one showing. */
-export const openGalleryPage = (page: TGalleryPage) =>
+export const openGalleryPage = (page: TGalleryPage) => {
+  bindAccount();
   publish({ ...navigation, place: 'visualizers', page });
+};
 
 /**
  * How far down each page was scrolled, by page, so Back lands where the
@@ -174,6 +199,9 @@ export const goBackInGallery = () => {
 
 /** For tests: a clean module between runs. */
 export const resetPlusNavigation = () => {
+  stopAccount();
+  stopAccount = () => {};
+  owner = getAccountSnapshot().identity?.id;
   removeStored(PLACE_KEY);
   navigation = INITIAL;
   listeners.clear();

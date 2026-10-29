@@ -1,4 +1,4 @@
-; Everything the engine page and the two engine paths say, in the ten
+; Everything the engine page and the two engine paths say, in the
 ; languages the installer is built for (`build.nsis.installerLanguages` in
 ; package.json).
 ;
@@ -28,6 +28,8 @@
 !macro EngineLangStrings
 LangString EngineTitle ${LANG_ENGLISH} "How should FluidEQ process your sound?"
 LangString EngineTitle ${LANG_SIMPCHINESE} "FluidEQ 该如何处理你的声音？"
+LangString EngineTitle ${LANG_TRADCHINESE} "您希望 FluidEQ 如何處理音效？"
+LangString EngineTitle ${LANG_KOREAN} "FluidEQ에서 소리를 어떻게 처리할까요?"
 LangString EngineTitle ${LANG_HINDI} "FluidEQ आपकी आवाज़ को कैसे प्रोसेस करे?"
 LangString EngineTitle ${LANG_SPANISHINTERNATIONAL} "¿Cómo debe procesar FluidEQ tu sonido?"
 LangString EngineTitle ${LANG_FRENCH} "Comment FluidEQ doit-il traiter votre son ?"
@@ -39,6 +41,8 @@ LangString EngineTitle ${LANG_ITALIAN} "Come deve elaborare il suono FluidEQ?"
 
 LangString EngineSubtitle ${LANG_ENGLISH} "One engine runs for the whole PC. You can switch later from the app menu."
 LangString EngineSubtitle ${LANG_SIMPCHINESE} "整台电脑只运行一个引擎。之后可以在应用菜单里切换。"
+LangString EngineSubtitle ${LANG_TRADCHINESE} "整台電腦使用同一個音效引擎。之後可在應用程式選單中切換。"
+LangString EngineSubtitle ${LANG_KOREAN} "PC 전체에 하나의 엔진을 사용합니다. 나중에 앱 메뉴에서 바꿀 수 있습니다."
 LangString EngineSubtitle ${LANG_HINDI} "पूरे PC के लिए एक ही इंजन चलता है। बाद में ऐप के मेन्यू से बदल सकते हैं।"
 LangString EngineSubtitle ${LANG_SPANISHINTERNATIONAL} "Un único motor funciona en todo el PC. Puedes cambiarlo después desde el menú de la aplicación."
 LangString EngineSubtitle ${LANG_FRENCH} "Un seul moteur tourne pour tout le PC. Vous pourrez en changer plus tard depuis le menu de l’application."
@@ -50,6 +54,8 @@ LangString EngineSubtitle ${LANG_ITALIAN} "Un solo motore lavora su tutto il PC.
 
 LangString EngineFluid ${LANG_ENGLISH} "FluidEQ Audio Processing Engine (recommended)"
 LangString EngineFluid ${LANG_SIMPCHINESE} "FluidEQ Audio Processing Engine（推荐）"
+LangString EngineFluid ${LANG_TRADCHINESE} "FluidEQ Audio Processing Engine（建議使用）"
+LangString EngineFluid ${LANG_KOREAN} "FluidEQ Audio Processing Engine (권장)"
 LangString EngineFluid ${LANG_HINDI} "FluidEQ Audio Processing Engine (अनुशंसित)"
 LangString EngineFluid ${LANG_SPANISHINTERNATIONAL} "FluidEQ Audio Processing Engine (recomendado)"
 LangString EngineFluid ${LANG_FRENCH} "FluidEQ Audio Processing Engine (recommandé)"
@@ -61,6 +67,8 @@ LangString EngineFluid ${LANG_ITALIAN} "FluidEQ Audio Processing Engine (consigl
 
 LangString EngineFluidHint ${LANG_ENGLISH} "Runs inside Windows’ own audio system, after your sound card’s effects, so Alienware Sound Center, Nahimic, MaxxAudio and Dolby keep working. EQ and the DSP rack apply to everything, with no restart."
 LangString EngineFluidHint ${LANG_SIMPCHINESE} "运行在 Windows 自己的音频系统内，位于声卡音效之后，因此 Alienware Sound Center、Nahimic、MaxxAudio 和 Dolby 都能继续工作。均衡器和 DSP 机架作用于所有声音，无需重启。"
+LangString EngineFluidHint ${LANG_TRADCHINESE} "在 Windows 音訊系統內執行，處理順序位於音效卡的效果之後，因此 Alienware Sound Center、Nahimic、MaxxAudio 和 Dolby 仍可正常使用。EQ 與 DSP 效果器機架適用於所有音訊，無須重新啟動。"
+LangString EngineFluidHint ${LANG_KOREAN} "Windows 오디오 시스템 안에서 사운드 카드 효과 다음에 작동하므로 Alienware Sound Center, Nahimic, MaxxAudio, Dolby를 계속 사용할 수 있습니다. 다시 시작하지 않아도 EQ와 DSP 랙이 모든 소리에 적용됩니다."
 LangString EngineFluidHint ${LANG_HINDI} "यह Windows के अपने ऑडियो सिस्टम के भीतर, आपके साउंड कार्ड के इफ़ेक्ट के बाद चलता है, इसलिए Alienware Sound Center, Nahimic, MaxxAudio और Dolby चलते रहते हैं। EQ और DSP रैक हर आवाज़ पर लागू होते हैं, बिना पुनः शुरू किए।"
 LangString EngineFluidHint ${LANG_SPANISHINTERNATIONAL} "Funciona dentro del propio sistema de audio de Windows, después de los efectos de tu tarjeta de sonido, así que Alienware Sound Center, Nahimic, MaxxAudio y Dolby siguen funcionando. El EQ y el rack DSP se aplican a todo, sin reiniciar."
 LangString EngineFluidHint ${LANG_FRENCH} "Fonctionne dans le système audio de Windows, après les effets de votre carte son, si bien qu’Alienware Sound Center, Nahimic, MaxxAudio et Dolby continuent de fonctionner. L’EQ et le rack DSP s’appliquent à tout, sans redémarrage."
@@ -72,6 +80,8 @@ LangString EngineFluidHint ${LANG_ITALIAN} "Funziona dentro il sistema audio di 
 
 LangString EngineApo ${LANG_ENGLISH} "Equalizer APO"
 LangString EngineApo ${LANG_SIMPCHINESE} "Equalizer APO"
+LangString EngineApo ${LANG_TRADCHINESE} "Equalizer APO"
+LangString EngineApo ${LANG_KOREAN} "Equalizer APO"
 LangString EngineApo ${LANG_HINDI} "Equalizer APO"
 LangString EngineApo ${LANG_SPANISHINTERNATIONAL} "Equalizer APO"
 LangString EngineApo ${LANG_FRENCH} "Equalizer APO"
@@ -83,6 +93,8 @@ LangString EngineApo ${LANG_ITALIAN} "Equalizer APO"
 
 LangString EngineApoHint ${LANG_ENGLISH} "The classic engine: custom commands, Peace and VST plugins, with the DSP rack in Library playback only. It takes your sound card’s effect slot, so vendor panels can lose controls; its setup opens next and Windows must restart."
 LangString EngineApoHint ${LANG_SIMPCHINESE} "经典引擎：自定义命令、Peace 和 VST 插件，DSP 机架仅在媒体库播放时生效。它会占用声卡的音效插槽，厂商面板可能失去部分控制项；接着会打开它自己的安装程序，Windows 需要重启。"
+LangString EngineApoHint ${LANG_TRADCHINESE} "經典引擎：支援自訂指令、Peace 與 VST 外掛程式，DSP 效果器機架僅適用於媒體庫播放。此引擎會佔用音效卡的效果插槽，廠商控制面板可能因此失去部分控制項；接著將開啟它的安裝程式，完成後須重新啟動 Windows。"
+LangString EngineApoHint ${LANG_KOREAN} "기존 엔진입니다. 사용자 지정 명령, Peace, VST 플러그인을 지원하며 DSP 랙은 라이브러리 재생에만 적용됩니다. 사운드 카드의 효과 슬롯을 사용하므로 제조사 제어판의 일부 기능을 사용할 수 없게 될 수 있습니다. 다음으로 전용 설치 프로그램이 열리며 Windows를 다시 시작해야 합니다."
 LangString EngineApoHint ${LANG_HINDI} "क्लासिक इंजन: कस्टम कमांड, Peace और VST प्लगइन, DSP रैक केवल लाइब्रेरी प्लेबैक में। यह आपके साउंड कार्ड का इफ़ेक्ट स्लॉट ले लेता है, निर्माता के पैनल से नियंत्रण गायब हो सकते हैं; इसका अपना सेटअप आगे खुलेगा और Windows को पुनः शुरू करना होगा।"
 LangString EngineApoHint ${LANG_SPANISHINTERNATIONAL} "El motor clásico: comandos personalizados, Peace y plugins VST, con el rack DSP solo en la reproducción de la Biblioteca. Ocupa la ranura de efectos de tu tarjeta de sonido y los paneles del fabricante pueden perder controles; su instalación se abre después y Windows se reinicia."
 LangString EngineApoHint ${LANG_FRENCH} "Le moteur classique : commandes personnalisées, Peace et plugins VST, avec le rack DSP dans la lecture de la Bibliothèque seulement. Il prend la place d’effets de votre carte son et les panneaux du fabricant peuvent perdre des réglages ; son installation s’ouvre ensuite et Windows redémarre."
@@ -94,6 +106,8 @@ LangString EngineApoHint ${LANG_ITALIAN} "Il motore classico: comandi personaliz
 
 LangString EngineWhy ${LANG_ENGLISH} "Windows will ask for permission next. An audio engine has to be placed inside Windows’ audio system, and only an administrator can do that. Either choice asks once."
 LangString EngineWhy ${LANG_SIMPCHINESE} "接下来 Windows 会请求授权。音频引擎必须放进 Windows 的音频系统里，而只有管理员才能这么做。两种选择都只会询问一次。"
+LangString EngineWhy ${LANG_TRADCHINESE} "接下來 Windows 會要求授權。音效引擎必須安裝到 Windows 音訊系統中，這項操作需要系統管理員權限。兩種選擇都只會要求授權一次。"
+LangString EngineWhy ${LANG_KOREAN} "다음 단계에서 Windows가 권한을 요청합니다. 오디오 엔진을 Windows 오디오 시스템에 설치하려면 관리자 권한이 필요합니다. 어느 엔진을 선택해도 한 번만 요청합니다."
 LangString EngineWhy ${LANG_HINDI} "आगे Windows अनुमति माँगेगा। ऑडियो इंजन को Windows के ऑडियो सिस्टम के अंदर रखना पड़ता है, और यह केवल एक व्यवस्थापक ही कर सकता है। दोनों में से कोई भी विकल्प एक ही बार पूछता है।"
 LangString EngineWhy ${LANG_SPANISHINTERNATIONAL} "A continuación Windows pedirá permiso. Un motor de audio tiene que colocarse dentro del sistema de audio de Windows, y eso solo puede hacerlo un administrador. Cualquiera de las dos opciones lo pide una sola vez."
 LangString EngineWhy ${LANG_FRENCH} "Windows va maintenant demander une autorisation. Un moteur audio doit être placé dans le système audio de Windows, et seul un administrateur peut le faire. Les deux choix ne le demandent qu’une fois."
@@ -105,6 +119,8 @@ LangString EngineWhy ${LANG_ITALIAN} "Ora Windows chiederà il permesso. Un moto
 
 LangString EngineDeclined ${LANG_ENGLISH} "FluidEQ Engine was not installed – administrator permission is required. FluidEQ will still install; you can install the engine from the button inside the app."
 LangString EngineDeclined ${LANG_SIMPCHINESE} "未安装 FluidEQ Engine – 需要管理员权限。FluidEQ 仍会安装；你可以用应用内的按钮安装引擎。"
+LangString EngineDeclined ${LANG_TRADCHINESE} "FluidEQ Engine 尚未安裝，因為需要系統管理員權限。FluidEQ 仍會繼續安裝；之後可透過應用程式中的按鈕安裝引擎。"
+LangString EngineDeclined ${LANG_KOREAN} "관리자 권한이 없어 FluidEQ Engine을 설치하지 못했습니다. FluidEQ 설치는 계속됩니다. 나중에 앱의 버튼으로 엔진을 설치할 수 있습니다."
 LangString EngineDeclined ${LANG_HINDI} "FluidEQ Engine इंस्टॉल नहीं हुआ – व्यवस्थापक अनुमति चाहिए। FluidEQ फिर भी इंस्टॉल होगा; इंजन आप ऐप के अंदर दिए बटन से इंस्टॉल कर सकते हैं।"
 LangString EngineDeclined ${LANG_SPANISHINTERNATIONAL} "FluidEQ Engine no se instaló – hace falta permiso de administrador. FluidEQ se instalará igualmente; puedes instalar el motor desde el botón que hay dentro de la aplicación."
 LangString EngineDeclined ${LANG_FRENCH} "FluidEQ Engine n’a pas été installé – une autorisation d’administrateur est nécessaire. FluidEQ s’installe quand même ; vous pourrez installer le moteur depuis le bouton dans l’application."
@@ -121,6 +137,8 @@ LangString EngineDeclined ${LANG_ITALIAN} "FluidEQ Engine non è stato installat
 ; variable and not as a placeholder somebody would have to substitute.
 LangString EngineFailed ${LANG_ENGLISH} "FluidEQ Engine setup did not finish (code $2). FluidEQ will still install; the app will offer the engine again."
 LangString EngineFailed ${LANG_SIMPCHINESE} "FluidEQ Engine 的安装未能完成（代码 $2）。FluidEQ 仍会安装；应用会再次提供该引擎。"
+LangString EngineFailed ${LANG_TRADCHINESE} "FluidEQ Engine 未能完成安裝（代碼 $2）。FluidEQ 仍會繼續安裝；之後可在應用程式中再次安裝引擎。"
+LangString EngineFailed ${LANG_KOREAN} "FluidEQ Engine 설치를 완료하지 못했습니다(코드 $2). FluidEQ 설치는 계속되며 앱에서 엔진을 다시 설치할 수 있습니다."
 LangString EngineFailed ${LANG_HINDI} "FluidEQ Engine का सेटअप पूरा नहीं हुआ (कोड $2)। FluidEQ फिर भी इंस्टॉल होगा; ऐप इंजन को दोबारा देगा।"
 LangString EngineFailed ${LANG_SPANISHINTERNATIONAL} "La instalación de FluidEQ Engine no terminó (código $2). FluidEQ se instalará igualmente; la aplicación volverá a ofrecer el motor."
 LangString EngineFailed ${LANG_FRENCH} "L’installation de FluidEQ Engine ne s’est pas terminée (code $2). FluidEQ s’installe quand même ; l’application proposera de nouveau le moteur."
@@ -132,6 +150,8 @@ LangString EngineFailed ${LANG_ITALIAN} "L’installazione di FluidEQ Engine non
 
 LangString EngineBundleMissing ${LANG_ENGLISH} "This build of FluidEQ is missing its copy of the FluidEQ Audio Processing Engine. FluidEQ will install, and it will offer the engine again from the button inside the app."
 LangString EngineBundleMissing ${LANG_SIMPCHINESE} "此版本的 FluidEQ 缺少 FluidEQ Audio Processing Engine 的副本。FluidEQ 仍会安装，之后会在应用内的按钮再次提供该引擎。"
+LangString EngineBundleMissing ${LANG_TRADCHINESE} "這個 FluidEQ 版本缺少隨附的 FluidEQ Audio Processing Engine。FluidEQ 仍會繼續安裝，之後可透過應用程式中的按鈕安裝引擎。"
+LangString EngineBundleMissing ${LANG_KOREAN} "이 FluidEQ 버전에는 FluidEQ Audio Processing Engine이 포함되어 있지 않습니다. FluidEQ 설치는 계속되며 나중에 앱의 버튼으로 엔진을 설치할 수 있습니다."
 LangString EngineBundleMissing ${LANG_HINDI} "FluidEQ के इस बिल्ड में FluidEQ Audio Processing Engine की प्रति नहीं है। FluidEQ इंस्टॉल हो जाएगा और बाद में ऐप के अंदर दिए बटन से इंजन फिर से देगा।"
 LangString EngineBundleMissing ${LANG_SPANISHINTERNATIONAL} "A esta versión de FluidEQ le falta su copia del FluidEQ Audio Processing Engine. FluidEQ se instalará y volverá a ofrecer el motor desde el botón que hay dentro de la aplicación."
 LangString EngineBundleMissing ${LANG_FRENCH} "Il manque à cette version de FluidEQ sa copie du FluidEQ Audio Processing Engine. FluidEQ s’installe quand même et proposera de nouveau le moteur depuis le bouton dans l’application."
@@ -143,6 +163,8 @@ LangString EngineBundleMissing ${LANG_ITALIAN} "A questa build di FluidEQ manca 
 
 LangString EngineNotRemoved ${LANG_ENGLISH} "FluidEQ Engine could not be removed – administrator permission is required. You can remove it by running FluidEQ-Engine-Setup.exe uninstall from the FluidEQ folder."
 LangString EngineNotRemoved ${LANG_SIMPCHINESE} "无法移除 FluidEQ Engine – 需要管理员权限。你可以在 FluidEQ 文件夹中运行 FluidEQ-Engine-Setup.exe uninstall 来移除它。"
+LangString EngineNotRemoved ${LANG_TRADCHINESE} "無法移除 FluidEQ Engine，因為需要系統管理員權限。您可以在 FluidEQ 資料夾中執行 FluidEQ-Engine-Setup.exe uninstall 來移除引擎。"
+LangString EngineNotRemoved ${LANG_KOREAN} "관리자 권한이 없어 FluidEQ Engine을 제거하지 못했습니다. FluidEQ 폴더에서 FluidEQ-Engine-Setup.exe uninstall을 실행하여 제거할 수 있습니다."
 LangString EngineNotRemoved ${LANG_HINDI} "FluidEQ Engine हटाया नहीं जा सका – व्यवस्थापक अनुमति चाहिए। आप इसे FluidEQ फ़ोल्डर में FluidEQ-Engine-Setup.exe uninstall चलाकर हटा सकते हैं।"
 LangString EngineNotRemoved ${LANG_SPANISHINTERNATIONAL} "No se pudo quitar FluidEQ Engine – hace falta permiso de administrador. Puedes quitarlo ejecutando FluidEQ-Engine-Setup.exe uninstall desde la carpeta de FluidEQ."
 LangString EngineNotRemoved ${LANG_FRENCH} "FluidEQ Engine n’a pas pu être supprimé – une autorisation d’administrateur est nécessaire. Vous pouvez le supprimer en lançant FluidEQ-Engine-Setup.exe uninstall depuis le dossier FluidEQ."
@@ -158,6 +180,8 @@ LangString EngineNotRemoved ${LANG_ITALIAN} "Non è stato possibile rimuovere Fl
 ; read, those two could not be told apart to write a second message for.
 LangString EngineRemoveFailed ${LANG_ENGLISH} "FluidEQ Engine could not be removed (code $2). You can remove it by running FluidEQ-Engine-Setup.exe uninstall from the FluidEQ folder."
 LangString EngineRemoveFailed ${LANG_SIMPCHINESE} "无法移除 FluidEQ Engine（代码 $2）。你可以在 FluidEQ 文件夹中运行 FluidEQ-Engine-Setup.exe uninstall 来移除它。"
+LangString EngineRemoveFailed ${LANG_TRADCHINESE} "無法移除 FluidEQ Engine（代碼 $2）。您可以在 FluidEQ 資料夾中執行 FluidEQ-Engine-Setup.exe uninstall 來移除引擎。"
+LangString EngineRemoveFailed ${LANG_KOREAN} "FluidEQ Engine을 제거하지 못했습니다(코드 $2). FluidEQ 폴더에서 FluidEQ-Engine-Setup.exe uninstall을 실행하여 제거할 수 있습니다."
 LangString EngineRemoveFailed ${LANG_HINDI} "FluidEQ Engine हटाया नहीं जा सका (कोड $2)। आप इसे FluidEQ फ़ोल्डर में FluidEQ-Engine-Setup.exe uninstall चलाकर हटा सकते हैं।"
 LangString EngineRemoveFailed ${LANG_SPANISHINTERNATIONAL} "No se pudo quitar FluidEQ Engine (código $2). Puedes quitarlo ejecutando FluidEQ-Engine-Setup.exe uninstall desde la carpeta de FluidEQ."
 LangString EngineRemoveFailed ${LANG_FRENCH} "FluidEQ Engine n’a pas pu être supprimé (code $2). Vous pouvez le supprimer en lançant FluidEQ-Engine-Setup.exe uninstall depuis le dossier FluidEQ."

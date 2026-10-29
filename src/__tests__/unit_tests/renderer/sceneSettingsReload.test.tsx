@@ -1,6 +1,8 @@
 import { act, render } from '@testing-library/react';
 import type { IScenePack } from '../../../common/scenePacks';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
+import { reportScenePlayed } from '../../../renderer/graph/sceneUpdateStore';
+import { seenSceneVersion } from '../../../renderer/utils/seenSceneVersions';
 import useSceneRunner, {
   type ISceneSource,
 } from '../../../renderer/graph/useSceneRunner';
@@ -16,6 +18,10 @@ const mockProgram = {
   musicAccent: () => 0,
 };
 const mockGl = { isContextLost: () => false };
+
+jest.mock('../../../renderer/plus/galleryStore', () => ({
+  findGalleryScene: () => undefined,
+}));
 
 // The runner hears the music through the scene audio context, which the
 // graph fills from the capture and a desktop background from its own relay.
@@ -150,3 +156,97 @@ it.each(['source', 'artwork', 'declaration'] as const)(
     expect(preparations()).toBe(2);
   },
 );
+
+it('keeps a failed update unseen and reports it only once the retry is confirmed', async () => {
+  const lookId = 'premium:failed-update';
+  const confirmed = jest.fn((next: IScenePack) =>
+    reportScenePlayed({
+      lookId,
+      version: next.version,
+      names: next.names,
+    }),
+  );
+  function ConfirmedStage({ scene }: { scene: ISceneSource }) {
+    const ref = useSceneRunner({
+      source: scene,
+      width: 480,
+      height: 270,
+      spectrumRect: [0, 1, 0, 1],
+      onLoaded: confirmed,
+    });
+    return <div ref={ref} />;
+  }
+  // Observe the runner's actual success/failure events, so an early report
+  // on a download or compile attempt would advance the persisted version.
+  let finishReady: () => void = () => {};
+  let ready = new Promise<void>((resolve) => {
+    finishReady = resolve;
+  });
+  confirmed.mockImplementation(async (next) => {
+    await reportScenePlayed({
+      lookId,
+      version: next.version,
+      names: next.names,
+    });
+    finishReady();
+  });
+  const initial = { ...pack, version: 10 };
+  const graph = render(<ConfirmedStage scene={source(initial, 10)} />);
+  await act(async () => ready);
+  expect(seenSceneVersion(lookId)).toBe(10);
+  const updated = { ...pack, version: 11, source: `${pack.source}\n// update` };
+  const download = source(updated, 11);
+  let finishDownload: () => void = () => {};
+  const unavailable = new Promise<void>((resolve) => {
+    finishDownload = resolve;
+  });
+  download.load = () => Promise.reject(new Error('synthetic download failure'));
+  download.block = jest.fn(finishDownload);
+  graph.rerender(<ConfirmedStage scene={download} />);
+  await act(async () => unavailable);
+  expect(download.block).toHaveBeenCalledTimes(1);
+  expect(confirmed).toHaveBeenCalledTimes(1);
+  expect(seenSceneVersion(lookId)).toBe(10);
+  const failed = source(updated, 12);
+  let finishFailure: () => void = () => {};
+  const failure = new Promise<void>((resolve) => {
+    finishFailure = resolve;
+  });
+  failed.reportFailure = jest.fn(finishFailure);
+  const error = jest
+    .spyOn(console, 'error')
+    .mockImplementation(() => undefined);
+  mockLoad.mockResolvedValueOnce({
+    kind: 'compile',
+    log: 'synthetic compile failure',
+  });
+  try {
+    graph.rerender(<ConfirmedStage scene={failed} />);
+    await act(async () => failure);
+    expect(failed.reportFailure).toHaveBeenCalledWith(
+      'compile',
+      'synthetic compile failure',
+    );
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(confirmed).toHaveBeenCalledTimes(1);
+    expect(seenSceneVersion(lookId)).toBe(10);
+    ready = new Promise<void>((resolve) => {
+      finishReady = resolve;
+    });
+    // A cache revision changes to retry the same scene version; only the
+    // confirmed pack's numeric version belongs in notification history.
+    graph.rerender(<ConfirmedStage scene={source(updated, 13)} />);
+    await act(async () => ready);
+    expect(confirmed).toHaveBeenCalledTimes(2);
+    expect(seenSceneVersion(lookId)).toBe(11);
+    graph.unmount();
+    ready = new Promise<void>((resolve) => {
+      finishReady = resolve;
+    });
+    render(<ConfirmedStage scene={source(updated, 14)} />);
+    await act(async () => ready);
+    expect(seenSceneVersion(lookId)).toBe(11);
+  } finally {
+    error.mockRestore();
+  }
+});

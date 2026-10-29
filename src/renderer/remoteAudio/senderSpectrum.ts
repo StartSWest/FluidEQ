@@ -2,8 +2,9 @@
 
 import fftInPlace from '../../common/dsp/fft';
 import type { ILanRemoteAudioChunk } from '../../common/remoteAudio';
+import { REMOTE_AUDIO_ANALYSIS_FRAMES } from '../../common/remoteAudioPreview';
 
-export const SENDER_SPECTRUM_SIZE = 2048;
+export const SENDER_SPECTRUM_SIZE = REMOTE_AUDIO_ANALYSIS_FRAMES;
 
 export interface ISenderSpectrum {
   sampleRate: number;

@@ -11,7 +11,8 @@ import { useLookThumbnail } from './lookThumbnails';
 
 /** The graph picker's keyboard walk and the small parts of its rows. */
 
-export const PICK = '.look-picker__pick';
+export const PICK =
+  ':is(.look-picker__pick, .look-picker__discover-actions .button)';
 
 /**
  * The arrows walk a column, left and right cross to the other at the same

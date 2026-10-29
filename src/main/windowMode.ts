@@ -474,14 +474,32 @@ export const createWindowModes = (
 
     /**
      * Into the player or back to the app, answered once the window has the
-     * new mode's size. Refused in full screen, where there is no window size
-     * to change and no titlebar to have pressed.
+     * new mode's size. A deliberate mode switch leaves full screen first:
+     * the kept titlebar still offers the Amp switch over a Karaoke stage.
      */
     setMode: async (
       win: BrowserWindow,
       next: TWindowMode,
     ): Promise<TWindowMode> => {
-      if (next === memory.mode || win.isFullScreen()) {
+      if (next === memory.mode || win.isDestroyed()) {
+        return memory.mode;
+      }
+      if (win.isFullScreen()) {
+        // AppKit refuses new bounds until its fullscreen animation ends.
+        // Windows raises that event before resizing and finishes in the call.
+        // This explicit mode switch may also leave a system-owned fullscreen;
+        // the passive page reconciliation still cannot end one.
+        if (platform === 'darwin') {
+          await new Promise<void>((resolve) => {
+            win.once('leave-full-screen', () => resolve());
+            win.setFullScreen(false);
+          });
+        } else {
+          win.setFullScreen(false);
+          settleAfterFullScreen(win);
+        }
+      }
+      if (win.isDestroyed()) {
         return memory.mode;
       }
       if (next === 'player') {

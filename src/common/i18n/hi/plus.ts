@@ -34,6 +34,8 @@ const plus = {
   'plus.gallery.error.signedOut': 'गैलरी देखने के लिए फिर से साइन इन करें।',
   'plus.gallery.error.server': 'गैलरी लोड नहीं हो सकी। फिर कोशिश करें।',
   'plus.gallery.moreError': 'और सीन लोड नहीं हो सके। फिर कोशिश करें।',
+  'plus.gallery.error.forbidden':
+    'इस खाते को ये सीन लोड करने की अनुमति नहीं है।',
   'plus.gallery.retry': 'फिर कोशिश करें',
 
   'plus.category.nature': 'प्रकृति',

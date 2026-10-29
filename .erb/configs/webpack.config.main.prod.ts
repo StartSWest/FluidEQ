@@ -36,6 +36,7 @@ const configuration: webpack.Configuration = {
 
   entry: {
     main: path.join(webpackPaths.srcMainPath, 'main.ts'),
+    'share-audio-worker': path.join(webpackPaths.srcMainPath, 'shareAudio/worker.ts'),
     preload: path.join(webpackPaths.srcMainPath, 'preload.ts'),
     'wallpaper-preload': path.join(
       webpackPaths.srcMainPath,

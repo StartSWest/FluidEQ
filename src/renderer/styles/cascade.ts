@@ -173,6 +173,7 @@ import './SceneAnnouncement.scss';
 import './MandatoryUpdate.scss';
 import './DisclaimerGate.scss';
 import './WhatsNew.scss';
+import './AppNews.scss';
 import './FeatureTour.scss';
 import './HelpGuide.scss';
 import './PlayerIcon.scss';

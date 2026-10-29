@@ -230,9 +230,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-lyrics-shell {
   position: relative;
   z-index: 1;
+  isolation: isolate;
   min-height: 0;
   overflow: hidden;
   overscroll-behavior: contain;
+
+  // Open stage's local protection sits under the words alone. Its static
+  // gradient preserves the scene and graph's own opacity/blur settings.
+  &::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: radial-gradient(
+      ellipse 58% 42% at 50% 50%,
+      rgba($primary-dark, 0.48),
+      rgba($primary-dark, 0.18) 68%,
+      transparent
+    );
+    pointer-events: none;
+    content: '';
+  }
 }
 
 .karaoke-song__text-size {

@@ -88,7 +88,7 @@ export const DISCLAIMER_HEADING_KEY: TranslationKey = 'disclaimer.heading';
  * `disclaimer.liability` interpolates `{author}`, which is the one placeholder
  * in this text. It names the person disclaiming liability, and a fork that
  * renamed the program — which TRADEMARK.md asks a fork to do — must not be left
- * naming the wrong person in ten languages. `i18n.test.ts` checks that the
+ * naming the wrong person in any translation. `i18n.test.ts` checks that the
  * placeholder survives every translation.
  */
 export const DISCLAIMER_PARAGRAPH_KEYS: readonly TranslationKey[] = [
@@ -103,7 +103,7 @@ export const DISCLAIMER_PARAGRAPH_KEYS: readonly TranslationKey[] = [
  * Which text is the original, said quietly at the end.
  *
  * Standard, and it protects in both directions: the reader gets a notice in a
- * language they can read, and a slip in one of ten translations cannot be read
+ * language they can read, and a slip in a translation cannot be read
  * as a different promise from the one that was made. Separate from the
  * paragraphs above because it is a note about the notice rather than part of
  * it, and it is set in the quieter style for the same reason.
@@ -124,7 +124,7 @@ export const DISCLAIMER_ACCEPTED_KEY = 'fluideq.disclaimerAccepted';
  *
  * A boolean would have been enough to stop the dialog reappearing and would be
  * worth nothing as evidence. These four fields say which wording was shown, in
- * which of the ten languages, by which build, and at what moment — which is the
+ * which interface language, by which build, and at what moment — which is the
  * difference between "the flag is set" and "this text was put in front of this
  * person on this date". The locale earns its place now that the text is
  * translated: without it the record no longer identifies the words that were

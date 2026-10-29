@@ -140,7 +140,7 @@ describe('how the playlist folds', () => {
     expect(move).toMatch(/^[1-9]\d*ms$/);
   });
 
-  it('brings the restore pill in on the fold’s own timing, not the stage’s cascade', () => {
+  it('keeps the restore pill on the fold timing without staggering stage controls', () => {
     const cascade = rules.find(({ selectors }) =>
       selectors.some(
         (selector) =>
@@ -148,9 +148,14 @@ describe('how the playlist folds', () => {
           selector.includes(':not(.karaoke-workspace__drop-overlay)'),
       ),
     );
-    expect(cascade?.selectors.join()).toContain(
-      ':not(.karaoke-playlist__expand)',
-    );
+    expect(cascade).toBeUndefined();
+    expect(
+      declared(
+        '.karaoke-workspace:not(.is-hidden):not(.is-restoring)',
+        'animation',
+        [],
+      ),
+    ).toContain('karaoke-workspace-ready');
     expect(
       declared(
         '.karaoke-workspace:not(.is-hidden) .karaoke-playlist__expand',

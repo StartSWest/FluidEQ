@@ -20,6 +20,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const karaoke: Partial<Dictionary> = {
+  'karaoke.import.clearTitle': 'Karaoke-Wiedergabeliste leeren?',
+  'karaoke.import.clearBody':
+    'Die Wiedergabe wird gestoppt und die gesamte Karaoke-Wiedergabeliste geleert. Deine Dateien bleiben auf diesem Computer.',
   'karaoke.eyebrow': 'LOKALES KARAOKE',
   'karaoke.title': 'Eine Bühne für Ihre Musik',
   'karaoke.intro':
@@ -78,6 +81,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.stage.videoFailed':
     '{format}-Video konnte hier nicht dekodiert werden',
   'karaoke.stage.hideArt': 'Cover ausblenden',
+  'karaoke.stage.showGraph': 'Aktuellen Visualizer als Hintergrund verwenden',
+  'karaoke.stage.hideGraph': 'Visualizer-Hintergrund ausschalten',
   'karaoke.stage.showArt': 'Cover einblenden',
   'karaoke.stage.noArt': 'Dieser Titel hat kein Cover',
   'karaoke.playlist.title': 'Playlist',

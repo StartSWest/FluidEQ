@@ -66,7 +66,7 @@ export interface IKaraokeSessionWarning {
    * over, an extension no adapter claimed — and the workspace falls back to
    * the one generic sentence for those. The code travels rather than the
    * message because the messages thrown in `src/common` are English
-   * diagnostics; only the UI knows which of ten languages to say them in.
+   * diagnostics; only the UI knows which interface language to say them in.
    */
   code?: TKaraokeParseErrorCode;
   /** 1-based, and only for the codes whose parser could point at a row. */

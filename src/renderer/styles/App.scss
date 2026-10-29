@@ -3802,6 +3802,11 @@ $graph-controls-past-fold: calc(
   (#{$sound-pane-rail} + #{$sound-pane-fold}) / 2 + #{$spacing-s}
 );
 
+.app-workspace.is-app-full {
+  // Playback toolbars share the graph's clearance for the sound-pane fold.
+  --fullscreen-controls-right: #{$graph-controls-past-fold};
+}
+
 .app-workspace.is-app-full .graph-wrapper > .live-output-controls {
   right: var(--graph-controls-right, #{$graph-controls-past-fold});
 }

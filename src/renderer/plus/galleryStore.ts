@@ -2,6 +2,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 import type { IGalleryQuery, IGalleryScene } from 'common/plusGallery';
 import type { TGalleryListOutcome } from 'main/ipc/plusGallery';
 import { recallRecent, rememberRecent } from '../utils/recentMap';
+import { getAccountSnapshot, subscribeAccount } from '../account/accountStore';
 
 /**
  * The gallery's lists, as the renderer holds them: one per question asked —
@@ -71,6 +72,16 @@ export const GALLERY_REFRESH_AFTER_MS = 60_000;
 
 const lists = new Map<string, IListEntry>();
 const listeners = new Set<() => void>();
+const ownerNow = () => {
+  const account = getAccountSnapshot();
+  return account.status === 'signed-in' ? account.identity?.id : undefined;
+};
+// Bind on subscription, after the account store itself has initialized.
+let owner: string | undefined;
+// A new account may ask the same query before the old answer lands. Request
+// identities must outlive the cleared cache so that old answer cannot match.
+let nextGeneration = 0;
+let stopAccount = () => {};
 
 /**
  * Lists kept at once. The key holds the search text, and the search asks for
@@ -93,6 +104,15 @@ export const galleryListKey = (query: TListQuery) =>
 
 const notify = () => listeners.forEach((listener) => listener());
 
+const bindAccount = () => {
+  const next = ownerNow();
+  if (next !== owner) {
+    owner = next;
+    lists.clear();
+    notify();
+  }
+};
+
 const put = (key: string, entry: IListEntry) => {
   rememberRecent(lists, key, entry, KEPT_LISTS);
   notify();
@@ -113,8 +133,10 @@ const request = async (query: IGalleryQuery): Promise<TGalleryListOutcome> => {
 const load = async (query: TListQuery, offset: number) => {
   const key = galleryListKey(query);
   const current = lists.get(key);
-  const generation =
-    offset === 0 ? (current?.generation ?? 0) + 1 : (current?.generation ?? 0);
+  if (offset === 0) {
+    nextGeneration += 1;
+  }
+  const generation = offset === 0 ? nextGeneration : (current?.generation ?? 0);
   put(key, {
     list: { ...(current?.list ?? EMPTY_LIST), loading: true },
     stale: false,
@@ -162,9 +184,16 @@ const load = async (query: TListQuery, offset: number) => {
 };
 
 const subscribe = (listener: () => void) => {
+  if (listeners.size === 0) {
+    stopAccount = subscribeAccount(bindAccount);
+    bindAccount();
+  }
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
+    if (listeners.size === 0) {
+      stopAccount();
+    }
   };
 };
 
@@ -176,10 +205,13 @@ export const useGalleryList = (query: TListQuery) => {
   const key = galleryListKey(query);
   const list = useSyncExternalStore(
     subscribe,
-    () => lists.get(key)?.list ?? EMPTY_LIST,
+    () =>
+      ownerNow() === owner ? (lists.get(key)?.list ?? EMPTY_LIST) : EMPTY_LIST,
     () => EMPTY_LIST,
   );
-  const entry = lists.get(key);
+  // With the gallery closed, an account can change before its subscription
+  // clears the cache. That old entry must not suppress the new account's load.
+  const entry = ownerNow() === owner ? lists.get(key) : undefined;
   const needsLoad = !entry || (entry.stale && !entry.list.loading);
 
   useEffect(() => {
@@ -283,6 +315,9 @@ export const useGalleryScene = (scene: IGalleryScene): IGalleryScene =>
 
 /** For tests: a clean module between runs. */
 export const resetGalleryStore = () => {
+  stopAccount();
+  stopAccount = () => {};
   lists.clear();
   listeners.clear();
+  owner = ownerNow();
 };

@@ -38,7 +38,6 @@ import {
   clamp,
   groupKaraokeTokensIntoWords,
   karaokeLyricEntranceOpacity,
-  karaokeVisualWordDisplayText,
   karaokeVisualWordProgressWidth,
 } from './karaokeLyricText';
 import {
@@ -49,6 +48,14 @@ import {
 } from './karaokeLyricsTranslation';
 import { rainbowColourAt } from '../utils/rainbowPalette';
 import { readAccent, readAccentLight } from '../utils/theme';
+import {
+  fitKaraokeLyricLayout,
+  IKaraokeLyricLayout,
+  karaokeLyricBlockGap,
+  karaokeLyricRestingSize,
+  positionKaraokeLyricBlocks,
+  scaleKaraokeLyricLayout,
+} from './karaokeLyricLayout';
 
 interface IKaraokeLyricsProps {
   song: IKaraokeSong;
@@ -150,31 +157,6 @@ interface ILyricEntranceState {
   songId: string;
   startedAtMs: number;
 }
-
-const lyricLineMotion = (offset: number) => {
-  const distance = Math.abs(offset);
-  if (distance < 1) {
-    // The next phrase remains readable for preparation; the phrase already
-    // sung recedes quickly. Both step down clearly in size so the active line
-    // owns the stage instead of sitting in a wall of equally large text.
-    const directionOpacity = offset >= 0 ? 0.85 : 0.3;
-    const directionScale = offset >= 0 ? 0.84 : 0.78;
-    return {
-      opacity: 1 + (directionOpacity - 1) * distance,
-      scale: 1 + (directionScale - 1) * distance,
-    };
-  }
-  const isUpcoming = offset > 0;
-  const nearOpacity = isUpcoming ? 0.85 : 0.3;
-  const farOpacity = isUpcoming ? 0.65 : 0.05;
-  const nearScale = isUpcoming ? 0.84 : 0.78;
-  const farScale = 0.68;
-  const fade = clamp(distance - 1, 0, 1);
-  return {
-    opacity: nearOpacity + (farOpacity - nearOpacity) * fade,
-    scale: nearScale + (farScale - nearScale) * fade,
-  };
-};
 
 const KaraokeLyrics = ({
   song,
@@ -345,6 +327,15 @@ const KaraokeLyrics = ({
 
     let animationFrame: number | undefined;
     const hitRegions = lineHitRegionsRef.current;
+    const layoutCache = new Map<
+      number,
+      {
+        line: IKaraokeSong['lines'][number];
+        key: string;
+        layout: IKaraokeLyricLayout;
+        scaled?: { key: string; layout: IKaraokeLyricLayout };
+      }
+    >();
     const draw = (frameTimeMs: number) => {
       const {
         song: currentSong,
@@ -414,8 +405,8 @@ const KaraokeLyrics = ({
         frameTimeMs,
       };
 
-      const centerY = height * 0.5;
       const textScale = textSizeRef.current / 100;
+      const preferredSize = clamp(width * 0.066, 28, 64) * textScale;
       const baseRowSpacing = clamp(
         Math.max(height * 0.155, 38) * textScale,
         38,
@@ -424,10 +415,11 @@ const KaraokeLyrics = ({
       // No band behind the lead line. The teal wash and its two hairlines
       // drew a visible box across the stage, which fought the artwork behind
       // it and framed a line that already stands out by being the only bright
-      // one. Emphasis here is the lyric's own colour and glow, not a plate.
+      // one. Emphasis here is the lyric's own colour, not a plate; the stage
+      // veil under the words (`.karaoke-lyrics-shell::before`) has no edge.
 
       // Budgeted once per frame, outside the per-line loop below, so every
-      // visible line's slot grows by the same fixed amount regardless of
+      // visible line's block grows by the same fixed amount regardless of
       // which one is focused this frame -- never the leftover space between
       // two lines sized only for the original, which is the "three waveforms
       // in a 27px strip" bug this project already shipped once. See
@@ -435,15 +427,109 @@ const KaraokeLyrics = ({
       const translationBudget = currentTranslationTextById
         ? karaokeLyricsTranslationBudget(width, baseRowSpacing, textScale)
         : undefined;
-      const rowSpacing = baseRowSpacing + (translationBudget?.rowHeight ?? 0);
-
+      const translationHeight = translationBudget?.rowHeight ?? 0;
       const first = Math.max(0, Math.floor(animatedCenter) - 3);
       const last = Math.min(
         currentSong.lines.length - 1,
         Math.ceil(animatedCenter) + 3,
       );
-      let hitRegionCount = 0;
+      // Deleting the entry being visited is safe inside Map's own forEach.
+      layoutCache.forEach((_entry, index) => {
+        if (index < first || index > last) {
+          layoutCache.delete(index);
+        }
+      });
+      const blocks: {
+        index: number;
+        layout: IKaraokeLyricLayout;
+        height: number;
+      }[] = [];
       for (let index = first; index <= last; index += 1) {
+        const line = currentSong.lines[index];
+        const isSection = line.kind === 'section';
+        const offset = index - animatedCenter;
+        const focus = clamp(1 - Math.abs(offset), 0, 1);
+        const focusedSize = isSection
+          ? clamp(preferredSize * 0.42, 16, 26)
+          : preferredSize;
+        const restingSize = karaokeLyricRestingSize(
+          preferredSize,
+          offset,
+          width,
+          isSection,
+        );
+        const focusedMaximumHeight = Math.max(
+          24,
+          height * (height < 250 ? 0.43 : 0.36) -
+            (isSection ? 0 : translationHeight),
+        );
+        // Wrap once for the focused phrase, then retain those exact row
+        // breaks during a hand-off. Rewrapping at each intermediate font
+        // size made words jump sideways half way into the centre.
+        const key = `${focusedSize}:${width}:${focusedMaximumHeight}`;
+        let cached = layoutCache.get(index);
+        if (!cached || cached.line !== line || cached.key !== key) {
+          cached = {
+            line,
+            key,
+            layout: fitKaraokeLyricLayout(
+              context,
+              line.tokens,
+              focusedSize,
+              Math.max(1, width - 40),
+              focusedMaximumHeight,
+              !isSection,
+            ),
+          };
+          layoutCache.set(index, cached);
+        }
+        const restingMaximumHeight = Math.max(
+          24,
+          height * 0.17 - (isSection ? 0 : translationHeight),
+        );
+        const maximumHeight =
+          restingMaximumHeight +
+          (focusedMaximumHeight - restingMaximumHeight) * focus;
+        const scale = Math.min(
+          1,
+          (restingSize + (focusedSize - restingSize) * focus) /
+            cached.layout.fontSize,
+          maximumHeight / cached.layout.height,
+        );
+        const size = Math.floor(cached.layout.fontSize * scale * 4) / 4;
+        const scaledKey = `${size}:${focus > 0.5}`;
+        let { scaled } = cached;
+        if (!scaled || scaled.key !== scaledKey) {
+          scaled = {
+            key: scaledKey,
+            layout: scaleKaraokeLyricLayout(
+              context,
+              cached.layout,
+              size,
+              !isSection && focus > 0.5,
+            ),
+          };
+          cached.scaled = scaled;
+        }
+        blocks.push({
+          index,
+          layout: scaled.layout,
+          height: scaled.layout.height + (isSection ? 0 : translationHeight),
+        });
+      }
+      const positions = positionKaraokeLyricBlocks(
+        blocks,
+        animatedCenter,
+        height,
+        karaokeLyricBlockGap(width, height),
+      );
+      let hitRegionCount = 0;
+      blocks.forEach(({ index, layout }, blockIndex) => {
+        const position = positions[blockIndex];
+        const alpha = position.opacity * songEntranceOpacity;
+        if (alpha <= 0.001 || !layout.rows.length) {
+          return;
+        }
         const line = currentSong.lines[index];
         const isSection = line.kind === 'section';
         const isCaptureLine = line.id === captureLineId;
@@ -453,94 +539,24 @@ const KaraokeLyrics = ({
           isCaptureLine && captureLineState === 'started';
         const isCaptureComplete =
           isCaptureLine && captureLineState === 'complete';
-        const offset = index - animatedCenter;
-        const motion = lyricLineMotion(offset);
-        const y = centerY + offset * rowSpacing;
-        const viewportFade = clamp(
-          1 - Math.abs(y - centerY) / Math.max(1, height * 0.53),
-          0,
-          1,
-        );
-        // Interpolate typography from the animated position. Switching the
-        // focused font immediately would make the incoming line pop before it
-        // actually reaches the center.
-        const focusAmount = clamp(1 - Math.abs(offset), 0, 1);
+        const focusAmount = clamp(1 - Math.abs(index - animatedCenter), 0, 1);
         const isTimingActive =
           index === currentActiveIndex &&
           !isSection &&
           !isCapturePending &&
           !isCaptureStarted;
-        const restingFontSize = isSection
-          ? clamp(width * 0.011, 10.5, 14)
-          : clamp(width * 0.0145, 12, 17);
-        const focusedFontSize = isSection
-          ? clamp(width * 0.017, 15, 23)
-          : clamp(width * 0.032, 22, 38);
-        let fontSize =
-          restingFontSize + (focusedFontSize - restingFontSize) * focusAmount;
-        fontSize *= motion.scale * textScale;
-        const fontWeight = Math.round(
-          (isSection ? 760 : 720) + (isSection ? 80 : 180) * focusAmount,
-        );
-        context.font = `${fontWeight} ${fontSize}px ${LYRIC_FONT_FAMILY}`;
-
+        const { fontSize } = layout;
+        context.font = `${layout.fontWeight} ${fontSize}px ${LYRIC_FONT_FAMILY}`;
         const visualWords = groupKaraokeTokensIntoWords(line.tokens);
-        let textWidth = 0;
-        for (
-          let wordIndex = 0;
-          wordIndex < visualWords.length;
-          wordIndex += 1
-        ) {
-          const word = visualWords[wordIndex];
-          textWidth += context.measureText(
-            karaokeVisualWordDisplayText(
-              word,
-              wordIndex,
-              visualWords[wordIndex - 1],
-            ),
-          ).width;
-        }
-        const availableWidth = Math.max(1, width - 40);
-        if (textWidth > availableWidth) {
-          // Fit the complete phrase even in the shorter Maker preview. A hard
-          // font-size floor allowed exceptionally long lines to be clipped in
-          // the middle of their first/last word.
-          fontSize = Math.max(1, fontSize * (availableWidth / textWidth));
-          context.font = `${fontWeight} ${fontSize}px ${LYRIC_FONT_FAMILY}`;
-          textWidth = 0;
-          for (
-            let wordIndex = 0;
-            wordIndex < visualWords.length;
-            wordIndex += 1
-          ) {
-            const word = visualWords[wordIndex];
-            textWidth += context.measureText(
-              karaokeVisualWordDisplayText(
-                word,
-                wordIndex,
-                visualWords[wordIndex - 1],
-              ),
-            ).width;
-          }
-        }
-
-        const alpha = motion.opacity * viewportFade * songEntranceOpacity;
-        const textLeft = (width - textWidth) * 0.5;
+        const progressByWord = new Map<number, number>();
         const hasEuphoriaText =
           isEuphoric &&
           focusAmount > 0.08 &&
           (!isCaptureLine || isCaptureComplete);
         const euphoriaFill = hasEuphoriaText
-          ? context.createLinearGradient(
-              textLeft,
-              y,
-              textLeft + Math.max(1, textWidth),
-              y,
-            )
+          ? context.createLinearGradient(width * 0.15, 0, width * 0.85, 0)
           : undefined;
         if (euphoriaFill) {
-          // Three points of Rainbow mode's palette a little apart, riding
-          // the sweep together (`rainbowPalette.ts`).
           euphoriaFill.addColorStop(
             0,
             rainbowColourAt(euphoriaHue / 360, 0.04),
@@ -558,102 +574,118 @@ const KaraokeLyrics = ({
         context.globalAlpha = alpha;
         context.textAlign = 'left';
         context.textBaseline = 'middle';
-        // No halo round the words. The focused line carried a 20px glow in a
-        // fixed cyan, whatever the window's palette, and the dark key below
-        // is what actually makes it read over a picture (Ivan, 2026-09-26:
-        // "karaoke fix all those suck ui and no drop shadow").
-        let wordX = textLeft;
-        for (
-          let wordIndex = 0;
-          wordIndex < visualWords.length;
-          wordIndex += 1
-        ) {
-          const word = visualWords[wordIndex];
-          const displayText = karaokeVisualWordDisplayText(
-            word,
-            wordIndex,
-            visualWords[wordIndex - 1],
-          );
-          const wordWidth = context.measureText(displayText).width;
-          let red = isSection ? 96 : Math.round(225 + 17 * focusAmount);
-          let green = isSection ? 232 : Math.round(231 + 15 * focusAmount);
-          let blue = isSection ? 219 : Math.round(244 + 11 * focusAmount);
-          if (isCaptureStarted) {
-            red = 70;
-            green = 220;
-            blue = 214;
-          } else if (isCaptureComplete && !isEuphoric) {
-            red = 132;
-            green = 255;
-            blue = 247;
-          }
-
-          if (hasEuphoriaText) {
-            // A dark outside key keeps every glyph readable; the thinner
-            // travelling colour on top is the actual Euphoria edge. Only the
-            // focused line receives it, so upcoming lyrics stay quiet.
-            context.save();
-            context.lineJoin = 'round';
-            context.lineWidth = 3.2 * focusAmount;
-            context.strokeStyle = `rgba(2, 8, 15, ${0.72 * focusAmount})`;
-            context.strokeText(displayText, wordX, y);
-            context.lineWidth = Math.max(0.7, 1.15 * focusAmount);
-            context.strokeStyle = `hsla(${
-              (euphoriaHue + wordIndex * 11) % 360
-            }, 96%, 70%, ${0.72 * focusAmount})`;
-            context.strokeText(displayText, wordX, y);
-            context.restore();
-          } else if (focusAmount > 0.55 && !isSection && !isCapturePending) {
-            // A compact dark key gives the focused phrase the crisp television
-            // karaoke silhouette that glow alone cannot provide. It appears
-            // only near the centre, so surrounding lyrics stay soft and quiet.
-            context.save();
-            context.lineJoin = 'round';
-            context.lineWidth = 2.4 * focusAmount;
-            context.strokeStyle = `rgba(2, 8, 15, ${0.64 * focusAmount})`;
-            context.strokeText(displayText, wordX, y);
-            context.restore();
-          }
-
-          // Line motion already fades context. Multiplying it by a second
-          // text alpha made upcoming words look disabled before their turn.
-          context.fillStyle = `rgb(${red}, ${green}, ${blue})`;
-          context.fillText(displayText, wordX, y);
-
-          if (isTimingActive) {
-            const progressWidth = karaokeVisualWordProgressWidth(
-              context,
-              word,
-              displayText,
-              currentPlayheadMs,
-            );
-            if (progressWidth > 0) {
-              context.save();
-              context.beginPath();
-              context.rect(
-                wordX,
-                y - fontSize * 0.72,
-                Math.min(wordWidth, progressWidth),
-                fontSize * 1.44,
-              );
-              context.clip();
-              context.fillStyle =
-                euphoriaFill ??
-                (isCaptureComplete
-                  ? readAccentLight(1, 'rgb(208, 255, 251)')
-                  : readAccent(1, 'rgb(103, 241, 232)'));
-              context.fillText(displayText, wordX, y);
-              context.restore();
+        let lastY = position.top;
+        layout.rows.forEach((row, rowIndex) => {
+          const textLeft = (width - row.width) * 0.5;
+          const y =
+            position.top + fontSize * 0.68 + rowIndex * layout.lineHeight;
+          lastY = y;
+          row.fragments.forEach((fragment) => {
+            const { text, wordIndex } = fragment;
+            const wordX = textLeft + fragment.x;
+            let red = isSection ? 96 : Math.round(225 + 17 * focusAmount);
+            let green = isSection ? 232 : Math.round(231 + 15 * focusAmount);
+            let blue = isSection ? 219 : Math.round(244 + 11 * focusAmount);
+            if (isCaptureStarted) {
+              red = 70;
+              green = 220;
+              blue = 214;
+            } else if (isCaptureComplete && !isEuphoric) {
+              red = 132;
+              green = 255;
+              blue = 247;
             }
+            // A compact dark key plus the local, static stage veil keeps the
+            // same native glyphs readable over dark or bright scenes. Neither
+            // is applied to the visualizer, graph or surrounding controls.
+            // No halo round the words: a 20px glow in a fixed cyan ignored
+            // the window's palette (Ivan, 2026-09-26: "karaoke fix all those
+            // suck ui and no drop shadow"). Under Euphoria the thinner
+            // travelling colour on top of the key is the actual edge.
+            context.save();
+            context.lineJoin = 'round';
+            context.lineWidth = hasEuphoriaText
+              ? 0.7 + 2.5 * focusAmount
+              : 0.7 + 1.1 * focusAmount;
+            context.strokeStyle = 'rgba(2, 8, 15, 0.85)';
+            context.strokeText(text, wordX, y);
+            if (hasEuphoriaText) {
+              context.lineWidth = Math.max(0.7, 1.15 * focusAmount);
+              context.strokeStyle = `hsla(${(euphoriaHue + wordIndex * 11) % 360}, 96%, 70%, ${0.72 * focusAmount})`;
+              context.strokeText(text, wordX, y);
+            }
+            context.restore();
+            // The block's position already fades context. Multiplying it by
+            // a second text alpha made upcoming words look disabled before
+            // their turn.
+            context.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+            context.fillText(text, wordX, y);
+            if (isTimingActive) {
+              let progress = progressByWord.get(wordIndex);
+              if (progress === undefined) {
+                progress = karaokeVisualWordProgressWidth(
+                  context,
+                  visualWords[wordIndex],
+                  fragment.displayText,
+                  currentPlayheadMs,
+                );
+                progressByWord.set(wordIndex, progress);
+              }
+              const progressWidth = clamp(
+                progress - fragment.prefixWidth,
+                0,
+                fragment.width,
+              );
+              if (progressWidth > 0) {
+                context.save();
+                context.beginPath();
+                context.rect(
+                  wordX,
+                  y - fontSize * 0.68,
+                  progressWidth,
+                  fontSize * 1.36,
+                );
+                context.clip();
+                context.fillStyle =
+                  euphoriaFill ??
+                  (isCaptureComplete
+                    ? readAccentLight(1, 'rgb(208, 255, 251)')
+                    : readAccent(1, 'rgb(103, 241, 232)'));
+                context.fillText(text, wordX, y);
+                context.restore();
+              }
+            }
+          });
+          let hitRegion = hitRegions[hitRegionCount];
+          if (!hitRegion) {
+            hitRegion = { index, left: 0, right: 0, top: 0, bottom: 0 };
+            hitRegions[hitRegionCount] = hitRegion;
           }
-          wordX += wordWidth;
-        }
+          hitRegion.index = index;
+          // Only the painted row is interactive. Regions with vertical
+          // bounds alone made the empty margins across the whole canvas seek
+          // to whichever line happened to share that height.
+          hitRegion.left = textLeft;
+          hitRegion.right = textLeft + row.width;
+          hitRegion.top = y - fontSize * 0.68;
+          // The last row is extended by the translation's budget below it:
+          // that dead space still belongs to this line, not to whichever
+          // neighbour happens to be closest under the pointer.
+          hitRegion.bottom =
+            y +
+            fontSize * 0.68 +
+            (rowIndex === layout.rows.length - 1 && !isSection
+              ? translationHeight
+              : 0);
+          hitRegionCount += 1;
+        });
         context.restore();
 
-        // Line-level, unhighlighted, budgeted rather than squeezed into
-        // whatever this row had left over -- see karaokeLyricsTranslation.ts's
-        // module doc. Sections carry the same bracketed label in every sheet,
-        // so they never get a second row of their own.
+        // Line-level, unhighlighted, under the phrase's last row and
+        // budgeted rather than squeezed into whatever this block had left
+        // over -- see karaokeLyricsTranslation.ts's module doc. Sections
+        // carry the same bracketed label in every sheet, so they never get
+        // a second row of their own.
         const translationText = isSection
           ? undefined
           : currentTranslationTextById?.get(line.id);
@@ -661,39 +693,14 @@ const KaraokeLyrics = ({
           paintKaraokeLyricsTranslationLine({
             context,
             width,
-            y,
+            y: lastY,
             originalFontSize: fontSize,
             budget: translationBudget,
             alpha,
             text: translationText,
           });
         }
-
-        let hitRegion = hitRegions[hitRegionCount];
-        if (!hitRegion) {
-          hitRegion = {
-            index,
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
-          };
-          hitRegions[hitRegionCount] = hitRegion;
-        }
-        hitRegion.index = index;
-        // Only the painted lyric is interactive. Previously these regions had
-        // vertical bounds alone, making the empty margins across the whole
-        // canvas seek to whichever line happened to share that row.
-        hitRegion.left = textLeft;
-        hitRegion.right = textLeft + textWidth;
-        hitRegion.top = y - fontSize * 0.68;
-        // Extended by the same budget the translation row reserved below this
-        // line: that dead space still belongs to this line, not to whichever
-        // neighbour happens to be closest under the pointer.
-        hitRegion.bottom =
-          y + fontSize * 0.68 + (translationBudget?.rowHeight ?? 0);
-        hitRegionCount += 1;
-      }
+      });
       hitRegions.length = hitRegionCount;
 
       // *** The count-in ****************************************************
@@ -923,6 +930,7 @@ const KaraokeLyrics = ({
       <canvas
         ref={canvasRef}
         className="karaoke-lyrics__canvas"
+        lang={song.meta.language}
         role="button"
         aria-current="true"
         aria-label={t('karaoke.lyrics.line', { number: centerIndex + 1 })}

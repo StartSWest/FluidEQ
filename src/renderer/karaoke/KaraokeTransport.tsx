@@ -60,6 +60,8 @@ export interface IKaraokeTransportLevel {
   valueText?: string;
   disabled?: boolean;
   toggleDisabled?: boolean;
+  /** The switch's action when it differs from the slider's label. */
+  toggleLabel?: string;
   pressed?: boolean;
   onToggle?: () => void;
 }
@@ -69,6 +71,7 @@ interface IKaraokeTransportProps {
   playheadMs: number;
   durationMs: number;
   levels: readonly IKaraokeTransportLevel[];
+  appearanceControls?: ReactNode;
   onTogglePlayback: () => void;
   onStop: () => void;
   onJumpToStart: () => void;
@@ -296,9 +299,9 @@ const KaraokeTransportLevel = ({
           className="karaoke-transport__volume-icon karaoke-transport__volume-toggle"
           onClick={level.onToggle}
           disabled={level.toggleDisabled ?? level.disabled}
-          aria-label={level.label}
+          aria-label={level.toggleLabel ?? level.label}
           aria-pressed={level.pressed}
-          title={level.label}
+          title={level.toggleLabel ?? level.label}
         >
           {icon}
         </button>
@@ -370,6 +373,7 @@ const KaraokeTransport = ({
   playheadMs,
   durationMs,
   levels,
+  appearanceControls,
   onTogglePlayback,
   onStop,
   onJumpToStart,
@@ -610,8 +614,11 @@ const KaraokeTransport = ({
             level={shownLevel}
             inputId={`${controlId}-${shownLevel.id}`}
             onTouch={setLastLevelId}
+            // The menu also holds the scene's look behind the lyrics, so it
+            // needs its trigger whenever that is passed in, even with a
+            // single fader: otherwise the look has no way in from here.
             trailing={
-              levels.length > 1 ? (
+              levels.length > 1 || appearanceControls ? (
                 <button
                   type="button"
                   className="karaoke-transport__mix-trigger"
@@ -663,6 +670,7 @@ const KaraokeTransport = ({
             />
           ))}
         </div>
+        {appearanceControls}
       </AnchoredMenu>
     </div>
   );

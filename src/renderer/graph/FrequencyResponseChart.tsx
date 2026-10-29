@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import type { ReactNode } from 'react';
 import {
   IFiltersMap,
   IFilter,
@@ -536,6 +537,9 @@ interface IFrequencyResponseChartProps {
    * and the plain plot stays a measurement, as at the normal size.
    */
   isGrown?: boolean;
+  /** The Karaoke stage remains behind the graph, including Plus looks. */
+  hasPlaybackBackdrop?: boolean;
+  backdropControls?: ReactNode;
 }
 
 /**
@@ -552,6 +556,8 @@ const FrequencyResponseChart = ({
   isVisible,
   hasLayersInHead = false,
   isGrown = false,
+  hasPlaybackBackdrop = false,
+  backdropControls,
 }: IFrequencyResponseChartProps) => {
   const { t } = useTranslation();
   // The selection, not the resolved look: while the designer is open the chart
@@ -1479,7 +1485,9 @@ const FrequencyResponseChart = ({
         )
       ) {
         escapeInFront.set(event, 'menu');
-      } else if (document.querySelector('[role="dialog"]')) {
+      } else if (
+        document.querySelector('[role="dialog"], [role="alertdialog"]')
+      ) {
         escapeInFront.set(event, 'dialog');
       }
     };
@@ -1809,7 +1817,7 @@ const FrequencyResponseChart = ({
         isGridHidden ? ' is-gridless' : ''
       }${isDisplayedGridHidden ? ' is-edge-to-edge' : ''}${
         isDesignerOpen ? ' is-designing' : ''
-      }${isClean ? ' is-clean' : ''}`}
+      }${isClean ? ' is-clean' : ''}${hasPlaybackBackdrop ? ' has-playback-backdrop' : ''}`}
       // Read by the full-screen rules only. Handed down as variables rather
       // than as a style on the card itself, because what they actually apply to
       // is the surface layer behind the drawing — see GraphTheme.
@@ -1820,6 +1828,8 @@ const FrequencyResponseChart = ({
           // rewritten every frame. The trace draws itself now and reads the
           // width straight off the look, so there is nothing left to inherit.
           '--graph-overlay-opacity': overlayOpacity,
+          '--graph-overlay-scene-visibility':
+            overlayOpacity === 0 ? 'hidden' : 'visible',
           // The whole filter, so that no blur is the keyword `none` rather than
           // `blur(0px)` — which is still a filter, and still costs a
           // compositing layer re-composited every frame to change nothing.
@@ -2192,6 +2202,8 @@ const FrequencyResponseChart = ({
               hasTopBar={hasTopBar}
               onToggleTopBar={toggleFullScreenTopBar}
               sceneLookId={drawnScene?.lookId}
+              hasPlaybackBackdrop={hasPlaybackBackdrop}
+              backdropControls={backdropControls}
             />
           </span>
           {/* No way out here any more. Full screen keeps the app's own top

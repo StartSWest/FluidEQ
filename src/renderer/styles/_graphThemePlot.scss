@@ -74,6 +74,15 @@ it under the terms of the GNU General Public License version 3 or later.
 // mounted together. No euphoria keyframe here on purpose: that
 // animation exists to tick `--euphoria-hue` for the 2D painter to read, and a
 // scene is handed the accent as a uniform instead, so the two cannot disagree.
+.chart-scene-surface {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: var(--graph-scene-opacity, 1);
+  visibility: var(--graph-scene-visibility, visible);
+}
+
 .chart-scene-canvas {
   position: absolute;
   inset: 0;

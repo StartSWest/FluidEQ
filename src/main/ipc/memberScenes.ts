@@ -76,6 +76,12 @@ export interface IMemberScenesIpcRegistration {
    * by who made it (`sceneRules.ts`), as the window's own list says.
    */
   loadVisible(lookId: unknown): IVisibleScene | undefined;
+  /**
+   * The look ids of every scene this account holds here, playable or not:
+   * what the lamps' gate counts a maker's own scene from. Read again only
+   * after the list is announced, because the gate asks on every frame.
+   */
+  heldLookIds(): readonly string[];
   subscribeScenes(listener: () => void): () => void;
   /**
    * A member's look would not run here, right now. The graph reports through
@@ -143,7 +149,16 @@ export const registerMemberScenesIpc = ({
 
   const sceneListeners = new Set<() => void>();
 
+  // Every change to the store, and every change of account or ownership, is
+  // announced, so the ids read since the last announcement are still true.
+  let held: readonly string[] | undefined;
+  const heldLookIds = () => {
+    held ??= visible().map((scene) => scene.lookId);
+    return held;
+  };
+
   const announceScenes = () => {
+    held = undefined;
     getMainWindow()?.webContents.send('member-scenes-changed', listing());
     sceneListeners.forEach((listener) => listener());
   };
@@ -215,6 +230,7 @@ export const registerMemberScenesIpc = ({
   return {
     store,
     loadVisible,
+    heldLookIds,
     subscribeScenes: (listener) => {
       sceneListeners.add(listener);
       return () => {

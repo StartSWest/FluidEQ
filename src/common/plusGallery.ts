@@ -213,7 +213,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const HEX_COLOUR = /^#[0-9a-f]{6}$/i;
 const HANDLE = /^[a-z0-9_]{3,20}$/;
-const LOCALE = /^[a-z]{2}$/;
+const LOCALE = /^(?:[a-z]{2}|zh-Hant)$/;
 const MAX_AUTHOR_NAME = 60;
 
 /** PostgREST hands a `bigint` back as a string; both read as a count. */

@@ -10,7 +10,11 @@ import {
   sceneReviewNotice,
   type TSceneReviewNotice,
 } from '../../common/sceneReviewNotice';
-import { sceneRefOf, type IGalleryAccess } from '../plus/galleryAccess';
+import {
+  authorizeGallery,
+  sceneRefOf,
+  type IGalleryAccess,
+} from '../plus/galleryAccess';
 import { createReviewNoticeSeen } from '../plus/reviewNoticeSeen';
 import {
   fetchSubmissionPicture,
@@ -223,11 +227,11 @@ export const registerPlusReviewIpc = ({
     'plus-my-submissions',
     async (): Promise<TMySubmissionsOutcome> => {
       const me = access.accountId();
-      const auth = await authFor(me);
-      if (!auth) {
-        return { ok: false, reason: 'signed-out' };
+      const authorization = await authorizeGallery(access, me);
+      if (!authorization.ok) {
+        return authorization;
       }
-      const outcome = await mySubmissions(auth);
+      const outcome = await mySubmissions(authorization.auth);
       if (access.accountId() !== me) {
         return { ok: false, reason: 'signed-out' };
       }

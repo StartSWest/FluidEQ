@@ -110,13 +110,11 @@ export const listed = async <TRow>(
     if (!Array.isArray(rows)) {
       return { ok: false, reason: 'server' };
     }
-    return {
-      ok: true,
-      rows: rows.flatMap((row) => {
-        const parsed = parse(row);
-        return parsed ? [parsed] : [];
-      }),
-    };
+    const parsedRows = rows.map(parse);
+    // A malformed pending scene is a failed read, not an empty queue.
+    return parsedRows.every((row): row is TRow => row !== undefined)
+      ? { ok: true, rows: parsedRows }
+      : { ok: false, reason: 'server' };
   } catch {
     return { ok: false, reason: 'server' };
   }

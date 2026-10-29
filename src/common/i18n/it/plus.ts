@@ -36,6 +36,8 @@ const plus = {
     'Non è stato possibile caricare la galleria. Riprova.',
   'plus.gallery.moreError':
     'Non è stato possibile caricare altre scene. Riprova.',
+  'plus.gallery.error.forbidden':
+    'Questo account non è autorizzato a caricare queste scene.',
   'plus.gallery.retry': 'Riprova',
 
   'plus.category.nature': 'Natura',

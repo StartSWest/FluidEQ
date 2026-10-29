@@ -38,9 +38,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * settings. They stay spelled out where they are used.
  *
  * The translated dictionaries in `common/i18n` are the other deliberate
- * omission. There the name is inside sentences in ten languages, and pulling
- * it out into a placeholder would buy a rename at the cost of ten dictionaries
- * of interpolation that no translator asked for.
+ * omission. There the name is inside sentences in every supported language.
+ * Pulling it into a placeholder would buy a rename at the cost of adding
+ * interpolation to every dictionary, which no translator asked for.
  *
  * The project's own build configuration is left alone too. It is read before
  * any of this module exists, so it cannot import it.

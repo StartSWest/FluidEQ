@@ -201,7 +201,8 @@ export interface ISceneAmbient {
 const ELEMENT_ID = /^[a-z][a-z0-9_]{0,23}$/;
 const PARAM_ID = /^[a-z][a-z0-9_]{0,23}$/;
 const HEX_COLOUR = /^#[0-9a-f]{6}$/i;
-const LOCALE = /^[a-z]{2}$/;
+// Vendored without imports; keep in step with scenePackFields' bounded keys.
+const LOCALE = /^(?:[a-z]{2}|zh-Hant)$/;
 const MAX_NAME = 40;
 /** Only commands and numbers: an outline, and nothing that could be anything else. */
 const PATH_TEXT = /^[MmLlHhVvCcSsQqTtZz0-9eE.,+\-\s]*$/;

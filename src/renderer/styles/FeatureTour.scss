@@ -19,6 +19,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'tour-lighting';
 @use 'tour-release18';
 @use 'tour-release21';
+@use 'tour-release22';
 @use 'tour-film';
 @use 'tour-miniature';
 
@@ -321,7 +322,7 @@ it under the terms of the GNU General Public License version 3 or later.
   text-wrap: balance;
 }
 
-// No word left alone on a paragraph's last line, in any of the ten languages
+// No word left alone on a paragraph's last line, in any supported language
 // ("left." ended the Compact player's lead by itself in English).
 .tour-slide__lead {
   margin: 0;

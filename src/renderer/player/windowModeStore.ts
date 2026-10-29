@@ -289,8 +289,8 @@ export const hidesWindow = () =>
 
 /**
  * Ask main for the other mode. What the page draws follows main's answer,
- * never the request: in full screen the switch is refused. Main answers once
- * the window has the new mode's size.
+ * never the request. Main leaves full screen first when needed and answers
+ * once the window has the new mode's size.
  *
  * The window goes before the question is asked — main hears the two in the
  * order they are sent — and comes back, in a `finally`, whatever the answer:

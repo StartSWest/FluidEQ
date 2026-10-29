@@ -68,6 +68,7 @@ export type TNoticeClaim =
   | 'addonC'
   /** New scenes announced, big (`SceneAnnouncementDialog`). */
   | 'sceneAnnouncement'
+  | 'appNews'
   /** The window is full screen: graph or media (`useAppFullMark`). */
   | 'appFull'
   /**
@@ -122,6 +123,15 @@ export const NOTICE_WAITS_FOR: Readonly<
     'addonC',
   ],
   appFull: [],
+  appNews: [
+    ...CORNER_WAITS_FOR,
+    'plusTerms',
+    'sceneReview',
+    'addonA',
+    'addonB',
+    'addonC',
+    'sceneAnnouncement',
+  ],
   modal: [],
 };
 

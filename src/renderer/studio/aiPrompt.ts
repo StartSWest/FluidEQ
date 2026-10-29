@@ -184,7 +184,7 @@ pack.json:
   make it with just that one key. FluidEQ fills the "What's new" box with
   it, for me to edit or replace. If you reply with the files instead of
   writing them, put the line after them.
-- names: English required; add es, pt, fr, de, it, ru, zh, ja, hi if you can.
+- names: English required; add es, pt, fr, de, it, ru, zh, zh-Hant, ja, ko, hi if you can.
   At most 40 characters each.
 - swatch: 2 to 4 colours that represent the scene.
 - fallbackStyle: drawn when a computer cannot run the scene. Use one of:
