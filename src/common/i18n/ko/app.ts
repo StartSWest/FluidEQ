@@ -247,14 +247,14 @@ const app = {
   'notice.captureFailed': '라이브 출력을 시작할 수 없습니다',
   'notice.captureFailedBody':
     '현재 그래프의 레벨 미터와 라이브 곡선은 꺼져 있습니다. 다른 모든 것은 정상적으로 작동합니다.',
-  'notice.tryAgain': '다시 시도하세요',
+  'notice.tryAgain': '다시 시도',
   'notice.restartConfirm':
     '오디오가 몇 초 동안 중지되고 Windows에서 관리자 권한을 요청합니다. 계속하다?',
   'restart.title': 'Windows 오디오 다시 시작',
   'restart.action': '오디오 다시 시작',
   'restart.running': '오디오 다시 시작 중…',
   'restart.failed': 'Windows 오디오를 다시 시작할 수 없습니다.',
-  'restart.tryAgain': '다시 시도하세요',
+  'restart.tryAgain': '다시 시도',
   'restart.close': '닫기',
   'restart.declined':
     'Windows 권한이 거부되어 오디오가 다시 시작되지 않았습니다.',
