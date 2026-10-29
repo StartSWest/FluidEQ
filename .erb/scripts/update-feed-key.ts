@@ -156,7 +156,7 @@ export const importPastedKey = (
   if (!privateKey) {
     return {
       ok: false,
-      reason: 'The clipboard does not hold one update feed key.',
+      reason: 'That is not one update feed key.',
     };
   }
   const keyId = trustedKeyIdOf(privateKey, keys);
