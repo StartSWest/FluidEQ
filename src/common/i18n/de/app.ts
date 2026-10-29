@@ -49,9 +49,9 @@ const app: Partial<Dictionary> = {
   'app.menu.resetSettings': 'Alle Einstellungen zurücksetzen…',
   'settingsReset.title': 'Alle Einstellungen zurücksetzen?',
   'settingsReset.body':
-    'Diagramm und Visualizer, Fensterfarben, Player, Bibliothek, Sprache, Animationen, „Mit Windows starten“, Desktophintergrund und Dynamische Beleuchtung werden so eingestellt wie bei einer neuen Installation von FluidEQ.',
+    'Diagramm und Visualizer, Fensterfarben, Player, Bibliothek, die zuletzt geöffneten Stellen jeder Seite, Animationen, „Mit Windows starten“, Desktophintergrund und Dynamische Beleuchtung werden so eingestellt wie bei einer neuen Installation von FluidEQ.',
   'settingsReset.kept':
-    'Ihr EQ, Ihre Presets, Kurven und DSP bleiben unverändert, ebenso Ihre Ausgänge, die Audio-Engine und alles, was Sie gespeichert haben.',
+    'Ihr EQ, Ihre Presets, Kurven und DSP bleiben unverändert, ebenso Ihre Ausgänge, die Audio-Engine, die Sprache und alles, was Sie gespeichert haben.',
   'settingsReset.action': 'Einstellungen zurücksetzen',
   'settingsReset.failed':
     'Die Einstellungen konnten nicht zurückgesetzt werden. Versuchen Sie es erneut.',
@@ -75,7 +75,7 @@ const app: Partial<Dictionary> = {
   'app.processes.place.studio': 'Studio-Bühne',
   'app.processes.name.window': 'Oberfläche',
   'app.processes.what.window':
-    'Das Fenster, das Sie gerade sehen: die Kurve, die Bibliothek, der Player, alle Regler. Ein Prozess pro Fenster, damit ein aufwendiges Neuzeichnen den Ton nicht ausbremst. Die Plus-Visualizer laufen darin in einem eigenen Thread, damit eine aufwendige Szene die Regler nicht aufhält.',
+    'Das Fenster, das Sie gerade sehen: die Kurve, die Bibliothek, der Player, alle Regler. Ein Prozess pro Fenster, damit ein aufwendiges Neuzeichnen den Ton nicht ausbremst. Die Szenen laufen darin in einem eigenen Thread, damit eine aufwendige Szene die Regler nicht aufhält.',
   'app.processes.name.core': 'App-Kern',
   'app.processes.what.core':
     'Der Teil ohne eigenes Fenster. Verwaltet Ihre Einstellungen, spricht mit den Audiogeräten und dem System-Equalizer, sucht nach Updates und startet alles andere in dieser Liste.',
@@ -84,10 +84,10 @@ const app: Partial<Dictionary> = {
     'Die eigene Engine von FluidEQ. Dekodiert, was Sie abspielen, und wendet dabei den Equalizer an. Ein eigenständiges Programm, weshalb Windows es getrennt von den übrigen einsortiert.',
   'app.processes.name.graphics': 'Grafik',
   'app.processes.what.graphics':
-    'Zeichnet alles auf dem Bildschirm auf der Grafikkarte: Spektrum, Kurve, jede Animation und die Szenen der Plus-Visualizer. Beschäftigt, sobald sich etwas bewegt; hier laufen keine Modelle.',
+    'Zeichnet alles auf dem Bildschirm auf der Grafikkarte: Spektrum, Kurve, jede Animation und die Szenen. Beschäftigt, sobald sich etwas bewegt; hier laufen keine Modelle.',
   'app.processes.name.desktop': 'Desktop-Visualizer',
   'app.processes.what.desktop':
-    'Ein Plus-Visualizer als Desktophintergrund eines Monitors, getrennt von diesem Fenster: einer für jeden Monitor, der einen zeigt. Er pausiert, solange Fenster diesen Monitor verdecken oder der PC gesperrt ist.',
+    'Eine Szene als Desktophintergrund eines Monitors, getrennt von diesem Fenster: eine für jeden Monitor, der eine zeigt. Sie pausiert, solange Fenster diesen Monitor verdecken oder der PC gesperrt ist.',
   'app.processes.name.desktopHost': 'Desktop-Visualizer-Helfer',
   'app.processes.what.desktopHost':
     'Legt den Desktop-Visualizer dieses Monitors hinter die Symbole und meldet ihm, wenn Fenster den Bildschirm verdecken. Einer für jeden Monitor, der einen zeigt.',
@@ -256,7 +256,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'Online-Medien',
   'tabs.mediaShort': 'Medien',
   'tabs.karaoke': 'Karaoke',
-  'tabs.plus': 'Plus',
+  'tabs.plus': 'Visualizer',
   'tabs.scrollBack': 'Tabs zurück scrollen',
   'tabs.scrollForward': 'Tabs weiter scrollen',
   'notice.apoReconfigured':
@@ -315,7 +315,6 @@ const app: Partial<Dictionary> = {
   'sidebar.preampAuto':
     'Wird für Sie gesetzt. Schalten Sie „Automatisch normalisieren“ aus, um selbst zu regeln.',
   'sidebar.autoPreamp': 'Automatisch normalisieren',
-  'sidebar.visualizer': 'ANZEIGE',
   'sidebar.graphView': 'Frequenzgang',
   'sidebar.output': 'Ausgabe',
   'config.eyebrow': 'WAS DIE ENGINE LIEST',

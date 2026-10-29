@@ -2,6 +2,8 @@
 
 /** @jest-environment node */
 
+import { powerMonitor } from 'electron';
+
 const handlers = new Map<string, (...args: unknown[]) => unknown>();
 const mockStartRemoteAudioHostSession = jest.fn();
 const mockRawSharing = jest.fn().mockResolvedValue(undefined);
@@ -9,6 +11,7 @@ const mockCapture = jest.fn().mockResolvedValue({ close: jest.fn() });
 
 jest.mock('electron', () => ({
   BrowserWindow: class {},
+  powerMonitor: { on: jest.fn(), removeListener: jest.fn() },
   ipcMain: {
     handle: jest.fn(
       (channel: string, handler: (...args: unknown[]) => unknown) => {
@@ -16,6 +19,7 @@ jest.mock('electron', () => ({
       },
     ),
     on: jest.fn(),
+    removeListener: jest.fn(),
   },
 }));
 
@@ -77,6 +81,8 @@ import { registerRemoteAudioIpc } from '../../../main/ipc/remoteAudio';
 import createRemoteAudioLan from '../../../main/remoteAudioLan';
 // eslint-disable-next-line import/first
 import { encodePairingCode } from '../../../main/remoteAudioLanProtocol';
+// eslint-disable-next-line import/first
+import { windowsAudioRestarted } from '../../../main/windowsAudioRestarts';
 
 describe('Share Audio all to all: one code, every link kept', () => {
   const originalPlatform = process.platform;
@@ -125,6 +131,24 @@ describe('Share Audio all to all: one code, every link kept', () => {
     );
     expect(lan.join).toHaveBeenCalledWith(first, false);
     expect(lan.join).toHaveBeenCalledWith(second, false);
+  });
+
+  it('retries saved computers and wakes audio after the OS resumes, without starting an unused LAN session', async () => {
+    const listener = jest
+      .mocked(powerMonitor.on)
+      .mock.calls.find(([event]) => String(event) === 'resume')?.[1] as
+      (() => void) | undefined;
+    if (!listener) {
+      throw new Error('No system-resume listener');
+    }
+    listener();
+    expect(lan.retry).not.toHaveBeenCalled();
+    await handlers.get('remote-audio-lan-start')?.({}, true);
+    listener();
+    expect(lan.retry).toHaveBeenCalledTimes(1);
+    expect(sent.map(([channel]) => channel)).toContain(
+      'remote-audio-lan-resume',
+    );
   });
 
   it('opening the page again keeps every link up', async () => {
@@ -251,6 +275,9 @@ describe('the network capture a link starts', () => {
       send: (channel: string, value: unknown) => sent.push([channel, value]),
     },
   };
+  // Each test's Share Audio goes with it: one left registered would answer
+  // a restart of Windows audio in the next test as well.
+  let dispose: () => void = () => undefined;
 
   beforeEach(() => {
     Object.defineProperty(process, 'platform', { value: 'win32' });
@@ -266,14 +293,15 @@ describe('the network capture a link starts', () => {
     credentials.read.mockReturnValue({ joins: [], revoked: [] });
     mockStartRemoteAudioHostSession.mockResolvedValue(hostSession);
     lan.join.mockReturnValue({ computerId: 'r-id', deviceName: 'Receiver' });
-    registerRemoteAudioIpc({
+    dispose = registerRemoteAudioIpc({
       getMainWindow: () => window as unknown as BrowserWindow,
       userDataDir,
     });
   });
-  afterEach(() =>
-    Object.defineProperty(process, 'platform', { value: originalPlatform }),
-  );
+  afterEach(() => {
+    dispose();
+    Object.defineProperty(process, 'platform', { value: originalPlatform });
+  });
 
   /** Joins, then the joined computer connects, as the transport reports it. */
   const linkJoined = async () => {
@@ -313,6 +341,44 @@ describe('the network capture a link starts', () => {
         duplex: { sends: true, plays: true },
       },
     });
+  });
+
+  it('opens its capture and the window player again after Windows audio restarts', async () => {
+    const firstClose = jest.fn();
+    mockCapture.mockResolvedValueOnce({ close: firstClose });
+    await linkJoined();
+    await settle();
+    expect(mockCapture).toHaveBeenCalledTimes(1);
+    sent.length = 0;
+
+    // What every engine switch does once its helper has Windows audio back.
+    windowsAudioRestarted();
+    await settle();
+
+    expect(firstClose).toHaveBeenCalledTimes(1);
+    expect(mockCapture).toHaveBeenCalledTimes(2);
+    expect(sent).toContainEqual(['remote-audio-lan-sending', true]);
+    expect(sent.map(([channel]) => channel)).toContain(
+      'remote-audio-lan-resume',
+    );
+    // The network was never down: no link is looked for again.
+    expect(lan.retry).not.toHaveBeenCalled();
+  });
+
+  it('opens nothing when Windows audio restarts with Share Audio never started', async () => {
+    windowsAudioRestarted();
+    await settle();
+    expect(mockCapture).not.toHaveBeenCalled();
+    expect(sent).toEqual([]);
+  });
+
+  it('tells a replacement window that its existing capture is still sending', async () => {
+    await linkJoined();
+    await settle();
+    sent.length = 0;
+    await handlers.get('remote-audio-lan-start')?.({}, true);
+    expect(sent).toContainEqual(['remote-audio-lan-sending', true]);
+    expect(mockCapture).toHaveBeenCalledTimes(1);
   });
 
   it('puts the Library back and says so when it cannot go raw', async () => {

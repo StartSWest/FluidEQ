@@ -14,7 +14,6 @@ const HELP_FILMS: Readonly<Record<string, readonly string[]>> = {
   games: ['game-presets'],
   headphones: ['headphone-presets'],
   profiles: ['every-output'],
-  player: ['compact-player'],
   engine: ['fluideq-engine'],
   looks: ['custom-looks'],
   dsp: ['dsp', 'de-esser'],
@@ -22,5 +21,15 @@ const HELP_FILMS: Readonly<Record<string, readonly string[]>> = {
   karaoke: ['karaoke'],
   maker: ['karaoke-maker'],
 };
+
+/**
+ * Films that play nowhere until they are recorded again, because they show
+ * something the app no longer has. Their files, captions and posters stay
+ * where they are, so a new take replaces the old one and comes back here.
+ *
+ * - `compact-player` shows the two players 2.1 made one (Ivan, 2026-10-26:
+ *   out of What's New and Help until it is recorded again).
+ */
+export const FILMS_AWAY: readonly string[] = ['compact-player'];
 
 export default HELP_FILMS;

@@ -9,6 +9,7 @@ import {
   settingsOfPack,
   type ISceneSettings,
 } from '../../common/sceneSettings';
+import type { IScenePack } from '../../common/scenePacks';
 import { readVersionNote } from '../../common/sceneVersionNote';
 import { readProject } from '../memberScenes/project';
 import { raiseProjectVersion } from '../memberScenes/projectVersion';
@@ -23,7 +24,11 @@ import {
   type IAuthorised,
   type TGalleryFailure,
 } from '../plus/galleryApi';
-import { sceneRefOf, type IGalleryAccess } from '../plus/galleryAccess';
+import {
+  authorizeGallery,
+  sceneRefOf,
+  type IGalleryAccess,
+} from '../plus/galleryAccess';
 import {
   publishScene,
   unpublishScene,
@@ -100,7 +105,8 @@ export interface IPlusPublishingIpcDeps {
   mayPublishActive: () => boolean;
   /** A publication recorded an agreement to this version of the Plus terms. */
   onTermsAgreed?: (version: number) => void;
-  onPublished?: () => void;
+  /** A publication landed: who published, and the pack exactly as it went out. */
+  onPublished?: (author: string, pack: IScenePack) => void;
 }
 
 const CHANNELS = [
@@ -153,11 +159,11 @@ export const registerPlusPublishingIpc = ({
 }: IPlusPublishingIpcDeps) => {
   ipcMain.handle('plus-gallery-mine', async (): Promise<TMineOutcome> => {
     const me = access.accountId();
-    const auth = me ? await access.auth() : undefined;
-    if (!auth || access.accountId() !== me) {
-      return { ok: false, reason: 'signed-out' };
+    const authorization = await authorizeGallery(access, me);
+    if (!authorization.ok) {
+      return authorization;
     }
-    const outcome = await mineOf(auth);
+    const outcome = await mineOf(authorization.auth);
     return access.accountId() === me
       ? outcome
       : { ok: false, reason: 'signed-out' };
@@ -361,7 +367,7 @@ export const registerPlusPublishingIpc = ({
         // not adopt its agreement through the current-account callback.
         if (access.accountId() === me) {
           onTermsAgreed?.(termsVersion);
-          onPublished?.();
+          onPublished?.(me, raised.pack);
         }
       }
       return published;

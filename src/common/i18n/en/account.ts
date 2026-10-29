@@ -20,7 +20,7 @@ const account = {
   'account.close': 'Close',
 
   'account.optional':
-    'Signing in is optional. Without an account FluidEQ works exactly as it always has: everything runs on this machine, and nothing is tracked. With one, how long you listen is counted for FluidEQ’s statistics unless you switch it off. An account is only there for the parts that genuinely need one.',
+    'Signing in is optional. FluidEQ works exactly as it always has without an account — everything runs on this machine, and nothing is tracked. An account is only there for the parts that genuinely need one.',
 
   'account.signIn': 'Sign in',
   'account.signUp': 'Create account',
@@ -35,6 +35,17 @@ const account = {
   'account.signOut.detailPlus':
     'Your scenes stay locked here until you sign back in.',
   'account.signOut.kept': 'Nothing on this computer is deleted.',
+  'account.cover.onGraph': '{name} on the graph',
+  'account.stats.owned': 'Owned',
+  'account.stats.likes': 'Likes',
+  'account.scenes.title': 'Your collection',
+  'account.scenes.openGallery': 'Open the gallery',
+  'account.scenes.empty':
+    'The scenes you get stay yours, and play on the graph from here.',
+  'account.scenes.playing': 'Playing',
+  'account.scenes.play': 'Play {name} on the graph',
+  'account.published.title': 'Published',
+  'account.published.live': 'In the gallery',
   // The name on published scenes, changed from here. The fields and their
   // refusals are the name form's own (profile.name.*).
   'account.name.change': 'Change name',
@@ -97,7 +108,7 @@ const account = {
   'account.error.alreadyRegistered':
     'There is already an account with that address. Sign in instead.',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': 'Scenes that are yours for good, one credit each.',
   'account.perk.visualizers':

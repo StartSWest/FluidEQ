@@ -86,6 +86,12 @@ const library: Partial<Dictionary> = {
   'library.scan.running': 'Чтение {name}',
   'library.scan.counted': '{parsed} из {seen} файлов',
   'library.scan.cancel': 'Остановить',
+  'library.scan.hide': 'Скрыть это уведомление',
+  'library.scan.hideHint':
+    'Скрыть это уведомление. Библиотека продолжит читать ваши файлы.',
+  'library.scan.chip': 'Чтение {percent} %',
+  'library.scan.chipFinding': 'Чтение…',
+  'library.scan.show': 'Снова показать ход и «Остановить»',
 
   'library.roots': 'Папки',
   'library.root.remove': 'Удалить эту папку',
@@ -174,6 +180,9 @@ const library: Partial<Dictionary> = {
   'library.karaoke.sending': 'Отправляем в Караоке…',
   'library.karaoke.failed':
     'Не удалось отправить этот файл в Караоке — возможно, он слишком большой или нечитаемый.',
+  'library.drop.empty': 'В том, что вы перетащили, нет музыки',
+  'library.drop.already': 'Всё, что вы перетащили, уже есть в «Далее»',
+  'library.drop.failed': 'Не удалось добавить перетащенную музыку',
 };
 
 export default library;

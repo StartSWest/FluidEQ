@@ -34,13 +34,7 @@ import type { IAccountConfig } from '../../../common/accountConfig';
 import {
   CREATOR_AGREEMENT_VERSION,
   isPayableCountry,
-  owedShortCents,
-  owedTotal,
   parseCreatorStatus,
-  parsePayoutPreview,
-  payoutShort,
-  payoutSoon,
-  yoursCents,
 } from '../../../common/creatorPayouts';
 import { appLinkOf, deliverAppLink } from '../../../main/appLinks';
 import { registerCreatorIpc } from '../../../main/ipc/creator';
@@ -61,6 +55,7 @@ const STATUS = {
     minimumCents: 1000,
     agreementVersion: 1,
     payoutDays: 15,
+    payoutsOpen: true,
   },
   account: {
     country: 'DE',
@@ -83,6 +78,21 @@ const json = (status: number, body: unknown) =>
 describe('what the server says, read', () => {
   it('reads a creator whole', () => {
     expect(parseCreatorStatus(STATUS)).toEqual(STATUS);
+  });
+
+  it('reads payouts as closed unless the server says they are open (premium 0070)', () => {
+    const { payoutsOpen, ...before } = STATUS.terms;
+    expect(payoutsOpen).toBe(true);
+    // A server before 0070 does not say: closed.
+    expect(
+      parseCreatorStatus({ ...STATUS, terms: before })?.terms.payoutsOpen,
+    ).toBe(false);
+    expect(
+      parseCreatorStatus({
+        ...STATUS,
+        terms: { ...before, payoutsOpen: 'yes' },
+      })?.terms.payoutsOpen,
+    ).toBe(false);
   });
 
   it('reads a creator who has not begun as one with no account', () => {
@@ -111,122 +121,6 @@ describe('what the server says, read', () => {
       expect(parseCreatorStatus(value)).toBeUndefined();
     },
   );
-
-  it('reads the admin preview, and refuses it whole for one bad row', () => {
-    const due = [
-      { creatorId: 'c1', readyCents: 2480, handle: 'neon_rain' },
-      { creatorId: 'c2', readyCents: 1215 },
-    ];
-    expect(
-      parsePayoutPreview({
-        due,
-        totalCents: 3695,
-        availableCents: 900,
-        pending: 0,
-      }),
-    ).toEqual({ due, totalCents: 3695, availableCents: 900, pending: 0 });
-    expect(
-      parsePayoutPreview({
-        due: [...due, { creatorId: 'c3', readyCents: 0 }],
-        totalCents: 3695,
-        pending: 0,
-      }),
-    ).toBeUndefined();
-    // Stripe not saying the balance is said as nothing, never as $0.
-    expect(
-      parsePayoutPreview({
-        due,
-        totalCents: 3695,
-        availableCents: null,
-        pending: 0,
-      }),
-    ).not.toHaveProperty('availableCents');
-  });
-
-  it('reads when creators were last paid and when the next automatic run goes', () => {
-    const preview = parsePayoutPreview({
-      due: [{ creatorId: 'c1', readyCents: 2480 }],
-      totalCents: 2480,
-      availableCents: 1000,
-      pending: 0,
-      lastPaidAt: '2026-10-01T15:00:00Z',
-      nextRunAt: '2026-11-01T15:00:00Z',
-      payoutDays: 15,
-    });
-    if (!preview) {
-      throw new Error('the preview did not read');
-    }
-    const next = Date.parse('2026-11-01T15:00:00Z');
-    expect(preview.lastPaidAt).toBe(Date.parse('2026-10-01T15:00:00Z'));
-    expect(preview.nextRunAt).toBe(next);
-    const day = 24 * 60 * 60 * 1000;
-    // Told in the three days before a run, not sooner.
-    expect(payoutSoon(preview, next - 4 * day)).toBe(false);
-    expect(payoutSoon(preview, next - 3 * day)).toBe(true);
-    // Nobody due: nothing to tell.
-    expect(payoutSoon({ ...preview, due: [] }, next - day)).toBe(false);
-    // Stripe holding less than is due, said; not knowing, not said.
-    expect(payoutShort(preview)).toBe(true);
-    expect(payoutShort({ ...preview, availableCents: undefined })).toBe(false);
-    expect(payoutShort({ ...preview, availableCents: 2480 })).toBe(false);
-  });
-
-  it('says what of the Stripe balance is FluidEQ’s, after creators and what is held back', () => {
-    const preview = parsePayoutPreview({
-      due: [],
-      totalCents: 0,
-      availableCents: 30000,
-      pendingCents: 900,
-      pending: 0,
-      owed: { heldCents: 9000, readyCents: 4000, sendingCents: 1000 },
-      ownPayouts: 'daily',
-      reserveCents: 2500,
-      lastOwnerPayout: { amountCents: 12345, at: '2026-10-16T15:00:10Z' },
-    });
-    if (!preview) {
-      throw new Error('the preview did not read');
-    }
-    expect(preview.pendingCents).toBe(900);
-    expect(preview.ownPayouts).toBe('daily');
-    expect(preview.lastOwnerPayout).toEqual({
-      amountCents: 12345,
-      at: Date.parse('2026-10-16T15:00:10Z'),
-    });
-    expect(owedTotal(preview)).toBe(14000);
-    // The balance less what creators are owed and the refund reserve: what
-    // the next run sends to the bank.
-    expect(yoursCents(preview)).toBe(30000 - 14000 - 2500);
-    expect(owedShortCents(preview)).toBe(0);
-    // A server before 0069 holds nothing back.
-    expect(yoursCents({ ...preview, reserveCents: undefined })).toBe(16000);
-    // Less at Stripe than is owed: nothing is FluidEQ's, and what is missing
-    // is said apart.
-    expect(yoursCents({ ...preview, availableCents: 10000 })).toBe(0);
-    expect(owedShortCents({ ...preview, availableCents: 10000 })).toBe(4000);
-    // A last payout that does not read is left out, not invented.
-    expect(
-      parsePayoutPreview({
-        due: [],
-        totalCents: 0,
-        pending: 0,
-        lastOwnerPayout: { amountCents: 'x', at: 'never' },
-      }),
-    ).not.toHaveProperty('lastOwnerPayout');
-    // Not knowing either side is not a number.
-    expect(yoursCents({ ...preview, owed: undefined })).toBeUndefined();
-    expect(
-      yoursCents({ ...preview, availableCents: undefined }),
-    ).toBeUndefined();
-    // A malformed liability is not read as owing nothing.
-    expect(
-      parsePayoutPreview({
-        due: [],
-        totalCents: 0,
-        pending: 0,
-        owed: { heldCents: '9000' },
-      }),
-    ).not.toHaveProperty('owed');
-  });
 
   it('offers only the countries Stripe can pay from a US account', () => {
     expect(isPayableCountry('DE')).toBe(true);
@@ -427,6 +321,8 @@ describe('the creator channels', () => {
   it.each([
     [409, { error: 'agreement_outdated' }, 'agreement-outdated'],
     [403, { error: 'banned' }, 'banned'],
+    // Signing up closed until FluidEQ can pay creators (premium 0070).
+    [403, { error: 'payouts_closed' }, 'unavailable'],
     [403, { error: 'unconfirmed' }, 'unconfirmed'],
     [401, { error: 'signed_out' }, 'signed-out'],
     [502, { error: 'server' }, 'server'],
@@ -469,21 +365,11 @@ describe('the creator channels', () => {
     expect(sent).toEqual([]);
   });
 
-  it('reads the admin preview, and a function not deployed as such', async () => {
-    answers.set(
-      'run-creator-payouts',
-      json(200, { due: [], totalCents: 0, availableCents: 100, pending: 0 }),
-    );
-    await expect(call('creator-payouts-preview')).resolves.toEqual({
-      ok: true,
-      value: { due: [], totalCents: 0, availableCents: 100, pending: 0 },
-    });
-    expect(calls[0].body).toEqual({ mode: 'preview' });
-    answers.set('run-creator-payouts', json(404, { message: 'not found' }));
-    await expect(call('creator-payouts-preview')).resolves.toEqual({
-      ok: false,
-      reason: 'not-deployed',
-    });
+  // Who a run would pay is for the admin, whose add-on asks it; the app
+  // that ships has no way to.
+  it('offers the window no payout preview', () => {
+    expect(() => call('creator-payouts-preview')).toThrow('not registered');
+    expect(calls).toEqual([]);
   });
 
   // Payouts are the server's schedule alone (Ivan, 2026-10-21): the window

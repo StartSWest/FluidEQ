@@ -11,7 +11,7 @@ const account = {
   'account.close': '閉じる',
 
   'account.optional':
-    'サインインは任意です。アカウントがなければ FluidEQ はこれまでどおり動作し、すべてこのマシン上で動いて、何も追跡されません。アカウントがあると、オフにしない限り、聴いた時間が FluidEQ の統計のために数えられます。アカウントは本当に必要な機能のためだけにあります。',
+    'サインインは任意です。アカウントがなくても FluidEQ はこれまでどおり動作します。すべてこのマシン上で動き、何も追跡されません。アカウントは本当に必要な機能のためだけにあります。',
 
   'account.signIn': 'サインイン',
   'account.signUp': 'アカウントを作成',
@@ -26,6 +26,17 @@ const account = {
   'account.signOut.detailPlus':
     '再びサインインするまで、ここではあなたのシーンはロックされたままです。',
   'account.signOut.kept': 'このパソコンのものは何も削除されません。',
+  'account.cover.onGraph': 'グラフで再生中: {name}',
+  'account.stats.owned': '所有',
+  'account.stats.likes': 'いいね',
+  'account.scenes.title': 'コレクション',
+  'account.scenes.openGallery': 'ギャラリーを開く',
+  'account.scenes.empty':
+    '手に入れたシーンはずっとあなたのもので、ここからグラフで再生できます。',
+  'account.scenes.playing': '再生中',
+  'account.scenes.play': '{name} をグラフで再生',
+  'account.published.title': '公開済み',
+  'account.published.live': 'ギャラリーに掲載中',
   'account.name.change': '名前を変更',
   'account.name.changeTitle': '表示のされ方を変える',
   'account.name.changeBody':
@@ -85,7 +96,7 @@ const account = {
   'account.error.alreadyRegistered':
     'このアドレスのアカウントはすでにあります。代わりにサインインしてください。',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': '永久にあなたのものになるシーン。1シーン1クレジット。',
   'account.perk.visualizers':

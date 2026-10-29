@@ -17,11 +17,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import type { ILibraryScanProgress } from '../../common/library/types';
+import DialogClose from '../components/DialogClose';
 import { useTranslation } from '../utils/I18nContext';
 
 interface ILibraryScanProgressProps {
   progress: ILibraryScanProgress;
   onCancel: () => void;
+  /** Puts the notice away and lets the scan carry on. */
+  onHide: () => void;
 }
 
 /**
@@ -36,6 +39,27 @@ export const libraryScanPercent = (
   progress.parsed > 0
     ? Math.min(100, Math.round((progress.parsed / progress.seen) * 100))
     : 0;
+
+/**
+ * A scan running with its notice put away, as the Rescan chip shows it
+ * (`LibraryFolderActions`): how far it has got once files are being read,
+ * no number while they are still being found; nothing when there is no such
+ * scan.
+ */
+export const libraryHiddenScan = ({
+  isScanning,
+  isScanNoticeHidden,
+  progress,
+}: {
+  isScanning: boolean;
+  isScanNoticeHidden: boolean;
+  progress: ILibraryScanProgress | undefined;
+}): { percent?: number } | undefined => {
+  if (!isScanning || !isScanNoticeHidden || !progress) {
+    return undefined;
+  }
+  return progress.parsed > 0 ? { percent: libraryScanPercent(progress) } : {};
+};
 
 /**
  * The strip pinned under the toolbar while a scan runs.
@@ -54,10 +78,21 @@ export const libraryScanPercent = (
  * parsing starts, at which point `seen` cannot move again and the ratio
  * climbs to exactly 100% on the last file. No clamp: a clamp over a number
  * that is now genuinely monotonic would only exist to hide a future bug.
+ *
+ * TWO WAYS OUT, AND STOP IS THE QUIET ONE (Ivan, 2026-10-26: "needs to have
+ * a x to close it also in case it take time but they want to continue
+ * scanning"). The corner's × is every notice's (`DialogClose`) and puts this
+ * one away for the rest of the scan, which carries on (`hideScanNotice`);
+ * Stop ends the scan. Stop stands at the end of the bar's row, as the bar's
+ * own key: after the full-width bar in a two-column grid it used to fall to
+ * a row of its own and stretch across the whole card, which in the Compact
+ * player read as the loudest thing on screen ("too big for what the app
+ * is").
  */
 const LibraryScanProgress = ({
   progress,
   onCancel,
+  onHide,
 }: ILibraryScanProgressProps) => {
   const { t } = useTranslation();
   const { seen, parsed, current, karaokeSkipped } = progress;
@@ -79,6 +114,12 @@ const LibraryScanProgress = ({
           </span>
         )}
       </div>
+      <DialogClose
+        className="library-scan-progress__close"
+        label={t('library.scan.hide')}
+        hint={t('library.scan.hideHint')}
+        onClose={onHide}
+      />
       <div
         className={`library-scan-progress__bar${
           hasEstimate ? '' : ' is-indeterminate'
@@ -91,7 +132,11 @@ const LibraryScanProgress = ({
       >
         <span style={hasEstimate ? { width: `${percent}%` } : undefined} />
       </div>
-      <button type="button" className="button small subtle" onClick={onCancel}>
+      <button
+        type="button"
+        className="button small subtle library-scan-progress__stop"
+        onClick={onCancel}
+      >
         {t('library.scan.cancel')}
       </button>
     </div>

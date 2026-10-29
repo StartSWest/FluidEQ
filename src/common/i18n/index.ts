@@ -42,7 +42,18 @@ import en, { Dictionary, TranslationKey } from './en';
 export type { Dictionary, TranslationKey };
 
 export type LocaleCode =
-  'en' | 'es' | 'pt' | 'fr' | 'de' | 'it' | 'ru' | 'zh' | 'ja' | 'hi';
+  | 'en'
+  | 'es'
+  | 'pt'
+  | 'fr'
+  | 'de'
+  | 'it'
+  | 'ru'
+  | 'zh'
+  | 'zh-Hant'
+  | 'ja'
+  | 'ko'
+  | 'hi';
 
 export interface ILocale {
   code: LocaleCode;
@@ -53,7 +64,7 @@ export interface ILocale {
 }
 
 /**
- * The ten shipped languages.
+ * The shipped interface languages.
  *
  * Chosen by number of speakers among left-to-right scripts, which is why
  * Arabic and Urdu are absent — see the note above.
@@ -61,12 +72,14 @@ export interface ILocale {
 export const LOCALES: ILocale[] = [
   { code: 'en', name: 'English', englishName: 'English' },
   { code: 'zh', name: '简体中文', englishName: 'Chinese (Simplified)' },
+  { code: 'zh-Hant', name: '繁體中文', englishName: 'Chinese (Traditional)' },
   { code: 'hi', name: 'हिन्दी', englishName: 'Hindi' },
   { code: 'es', name: 'Español', englishName: 'Spanish' },
   { code: 'fr', name: 'Français', englishName: 'French' },
   { code: 'pt', name: 'Português', englishName: 'Portuguese' },
   { code: 'ru', name: 'Русский', englishName: 'Russian' },
   { code: 'ja', name: '日本語', englishName: 'Japanese' },
+  { code: 'ko', name: '한국어', englishName: 'Korean' },
   { code: 'de', name: 'Deutsch', englishName: 'German' },
   { code: 'it', name: 'Italiano', englishName: 'Italian' },
 ];
@@ -108,7 +121,9 @@ const LOADERS: Record<
   it: () => import(/* webpackChunkName: "locale-it" */ './it'),
   ru: () => import(/* webpackChunkName: "locale-ru" */ './ru'),
   zh: () => import(/* webpackChunkName: "locale-zh" */ './zh'),
+  'zh-Hant': () => import(/* webpackChunkName: "locale-zh-Hant" */ './zh-Hant'),
   ja: () => import(/* webpackChunkName: "locale-ja" */ './ja'),
+  ko: () => import(/* webpackChunkName: "locale-ko" */ './ko'),
   hi: () => import(/* webpackChunkName: "locale-hi" */ './hi'),
 };
 
@@ -129,7 +144,10 @@ export const isLocaleLoaded = (code: LocaleCode): boolean =>
  * fallback every missing key already has — until a later ask succeeds.
  */
 export const loadLocale = (code: LocaleCode): Promise<void> => {
-  if (code === 'en' || isLocaleLoaded(code)) {
+  if (
+    code === 'en' ||
+    (isLocaleLoaded(code) && EXTRAS.every((extra) => code in extra.held))
+  ) {
     return Promise.resolve();
   }
   const pending = loading.get(code);
@@ -138,7 +156,14 @@ export const loadLocale = (code: LocaleCode): Promise<void> => {
   }
   const load = (async () => {
     try {
-      DICTIONARIES[code] = (await LOADERS[code]()).default;
+      if (!isLocaleLoaded(code)) {
+        DICTIONARIES[code] = (await LOADERS[code]()).default;
+      }
+      // Only when there are any: awaiting nothing still costs a microtask, and
+      // without an add-on a switch lands exactly when it always did.
+      if (EXTRAS.length > 0) {
+        await Promise.all(EXTRAS.map((extra) => loadExtra(extra, code)));
+      }
     } finally {
       loading.delete(code);
     }
@@ -148,20 +173,71 @@ export const loadLocale = (code: LocaleCode): Promise<void> => {
 };
 
 /**
- * Turn whatever the platform reports into one of the ten.
+ * Strings an add-on brings with it (`renderer/addons.ts`): its own keys, in
+ * its own dictionaries, never part of the app's. Looked up by
+ * `translateExtra` alone, so an app string can never be answered from one,
+ * and loaded with each language like the app's own.
+ */
+export type TExtraStrings = Readonly<Partial<Record<string, string>>>;
+
+interface IExtraDictionaries {
+  en: TExtraStrings;
+  load: (code: Exclude<LocaleCode, 'en'>) => Promise<TExtraStrings>;
+  held: Partial<Record<LocaleCode, TExtraStrings>>;
+}
+
+const EXTRAS: IExtraDictionaries[] = [];
+
+const loadExtra = async (extra: IExtraDictionaries, code: LocaleCode) => {
+  if (code === 'en' || code in extra.held) {
+    return;
+  }
+  extra.held[code] = await extra.load(code);
+};
+
+export const extendDictionaries = (
+  en: TExtraStrings,
+  load: (code: Exclude<LocaleCode, 'en'>) => Promise<TExtraStrings>,
+) => {
+  EXTRAS.push({ en, load, held: { en } });
+};
+
+/**
+ * Turn a saved preference or platform language into a shipped locale.
  *
- * Windows and Electron both hand out BCP-47 tags — `pt-BR`, `zh-Hans-CN`,
- * `es-419`. Only the primary subtag is matched, so every Portuguese is
- * Portuguese and every Chinese is Simplified. That is a real limitation
- * (Traditional readers get Simplified) and an honest one at ten languages.
+ * A script is explicit and wins over a region: zh-Hans-TW is Simplified,
+ * zh-Hant-CN is Traditional. Without a script, Taiwan, Hong Kong and Macao
+ * use Traditional. Bare zh stays Simplified, preserving saved preferences.
+ * Windows' older CHS/CHT aliases and underscore separators are accepted too.
  */
 export const resolveLocale = (tag?: string | null): LocaleCode => {
   if (!tag) {
     return DEFAULT_LOCALE;
   }
-  const primary = tag.toLowerCase().split(/[-_]/)[0];
-  const match = LOCALES.find((locale) => locale.code === primary);
-  return match ? match.code : DEFAULT_LOCALE;
+  const normalized = tag
+    .trim()
+    .replace(/_/g, '-')
+    .replace(
+      /^zh-(chs|cht)(?=-|$)/i,
+      (_whole, legacy: string) =>
+        `zh-${legacy.toLowerCase() === 'cht' ? 'Hant' : 'Hans'}`,
+    );
+  try {
+    const locale = new Intl.Locale(normalized);
+    if (locale.language === 'zh') {
+      const traditional =
+        locale.script === 'Hant' ||
+        (!locale.script && ['TW', 'HK', 'MO'].includes(locale.region ?? ''));
+      return traditional ? 'zh-Hant' : 'zh';
+    }
+    return (
+      LOCALES.find(({ code }) => code === locale.language)?.code ??
+      DEFAULT_LOCALE
+    );
+  } catch {
+    // An invalid stored value or platform tag must never prevent startup.
+    return DEFAULT_LOCALE;
+  }
 };
 
 export type TranslateVars = Record<string, string | number>;
@@ -216,6 +292,29 @@ export const translate = (
   return template.replace(PLACEHOLDER, (whole, name: string) =>
     name in vars ? String(vars[name]) : whole,
   );
+};
+
+/** An add-on's string (`extendDictionaries`), filled like `translate`'s. */
+export const translateExtra = (
+  locale: LocaleCode,
+  key: string,
+  vars?: TranslateVars,
+): string => {
+  const template = EXTRAS.map(
+    (extra) => extra.held[locale]?.[key] ?? extra.en[key],
+  ).find((text) => text !== undefined);
+  const text = template ?? key;
+  if (!vars) {
+    return text;
+  }
+  return text.replace(PLACEHOLDER, (whole, name: string) =>
+    name in vars ? String(vars[name]) : whole,
+  );
+};
+
+/** For tests: no add-on strings between runs. */
+export const resetExtraDictionaries = () => {
+  EXTRAS.length = 0;
 };
 
 /**

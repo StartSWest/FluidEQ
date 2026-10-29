@@ -28,7 +28,8 @@ import { setLookVector, sizeLookData } from './lookInput';
  *
  *   uLook[6] the board: pitch, lamp radius, columns
  *   uLook[10], uLook[11] each copy's board (`ledBoard`): its foot row,
- *            which way it grows, how many rows, present
+ *            which way it grows, how many rows a reading lights, and the
+ *            unlit rows printed (0 for a copy that is not there)
  *   texel i  column i's level, its held peak, whether its top lamp sparks
  */
 
@@ -94,7 +95,8 @@ vec4 sceneColour(vec2 uv) {
       }
       LedBoard board = ledBoard(band, pitch);
       float row = floor((p.y - board.foot) / (board.up * pitch) + 0.5);
-      if (row < 0.0 || row >= board.rows) {
+      // The glass runs on to the canvas's top: the drawn rows (ledWall.ts).
+      if (row < 0.0 || row >= band.w) {
         continue;
       }
       vec2 q = p - vec2(x, board.foot + board.up * row * pitch);
@@ -199,7 +201,14 @@ const step = (
     const band = reading.bands[copy];
     if (band) {
       const board = ledBoard(band, row.pitch);
-      setLookVector(input, 10 + copy, board.foot, board.up, board.rows, 1);
+      setLookVector(
+        input,
+        10 + copy,
+        board.foot,
+        board.up,
+        board.rows,
+        board.drawn,
+      );
     } else {
       setLookVector(input, 10 + copy, 0, 0, 0, 0);
     }

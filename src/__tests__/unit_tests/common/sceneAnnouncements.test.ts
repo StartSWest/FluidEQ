@@ -6,18 +6,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * Announcements of new scenes (premium 0050): what a member's app takes from
- * the server, what the admin's composer may send, and which one a member is
- * shown. The limits repeat the server's, so the composer says what is wrong
- * before anything is sent.
+ * the server, and which one a member is shown.
  */
 
 import {
-  MAX_ANNOUNCEMENT_SCENES,
   nextAnnouncement,
-  parseAdminAnnouncements,
   parseAnnouncements,
-  readAnnouncementDraft,
-  trialEndsByDay,
   type IAnnouncement,
 } from '../../../common/sceneAnnouncements';
 
@@ -95,57 +89,6 @@ describe('what a member’s app reads', () => {
   });
 });
 
-describe('what the admin’s page reads', () => {
-  it('needs every row to read, with its audience', () => {
-    const admin = { ...row, audience: 'members', created_at: row.starts_at };
-    expect(parseAdminAnnouncements([admin])?.[0]?.audience).toBe('members');
-    expect(
-      parseAdminAnnouncements([admin, { ...admin, audience: 'nobody' }]),
-    ).toBeUndefined();
-  });
-});
-
-describe('what the composer may send', () => {
-  const draft = {
-    title: 'Night Drive',
-    body: '',
-    scenes: ['night-market', 'lantern-lake'],
-    startsAt: Date.parse('2026-10-14T10:00:00Z'),
-    audience: 'everyone',
-  };
-
-  it('takes a new one and a change to one not yet out', () => {
-    expect(readAnnouncementDraft(draft)).toEqual(draft);
-    expect(readAnnouncementDraft({ ...draft, id: 4 })?.id).toBe(4);
-  });
-
-  it('refuses what the server would refuse', () => {
-    expect(readAnnouncementDraft({ ...draft, title: '   ' })).toBeUndefined();
-    expect(
-      readAnnouncementDraft({ ...draft, title: 'x'.repeat(81) }),
-    ).toBeUndefined();
-    expect(readAnnouncementDraft({ ...draft, scenes: [] })).toBeUndefined();
-    expect(
-      readAnnouncementDraft({
-        ...draft,
-        scenes: Array.from(
-          { length: MAX_ANNOUNCEMENT_SCENES + 1 },
-          (_, index) => `scene-${index}`,
-        ),
-      }),
-    ).toBeUndefined();
-    expect(
-      readAnnouncementDraft({ ...draft, scenes: ['alpine', 'alpine'] }),
-    ).toBeUndefined();
-    expect(
-      readAnnouncementDraft({ ...draft, audience: 'nobody' }),
-    ).toBeUndefined();
-    expect(
-      readAnnouncementDraft({ ...draft, startsAt: Number.NaN }),
-    ).toBeUndefined();
-  });
-});
-
 describe('which one a member is shown', () => {
   const at = (id: number): IAnnouncement => ({
     id,
@@ -158,19 +101,5 @@ describe('which one a member is shown', () => {
   it('is the newest not yet seen', () => {
     expect(nextAnnouncement([at(3), at(2), at(1)], new Set([3]))?.id).toBe(2);
     expect(nextAnnouncement([at(3)], new Set([3]))).toBeUndefined();
-  });
-});
-
-describe('trial ends by the admin’s own day', () => {
-  it('counts each end under its local calendar day', () => {
-    const morning = new Date(2026, 9, 15, 9).getTime();
-    const evening = new Date(2026, 9, 15, 21).getTime();
-    const next = new Date(2026, 9, 16, 1).getTime();
-    expect(trialEndsByDay([morning, evening, next])).toEqual(
-      new Map([
-        ['2026-10-15', 2],
-        ['2026-10-16', 1],
-      ]),
-    );
   });
 });

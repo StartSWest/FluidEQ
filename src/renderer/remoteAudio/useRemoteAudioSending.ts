@@ -64,9 +64,18 @@ const useRemoteAudioSending = ({
     };
   }, []);
 
-  /** The window's own sender (off Windows) could not capture either. */
-  const markSendingFailed = useCallback(() => setSendingFailed(true), []);
-  return { sending, sendingFailed, markSendingFailed };
+  /** The window's sender reports real blocks, just as main's capture does. */
+  const markSending = useCallback((active: boolean) => {
+    setSending(active);
+    if (active) {
+      setSendingFailed(false);
+    }
+  }, []);
+  const markSendingFailed = useCallback(() => {
+    setSending(false);
+    setSendingFailed(true);
+  }, []);
+  return { sending, sendingFailed, markSending, markSendingFailed };
 };
 
 export default useRemoteAudioSending;

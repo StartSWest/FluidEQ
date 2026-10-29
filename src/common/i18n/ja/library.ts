@@ -86,6 +86,12 @@ const library: Partial<Dictionary> = {
   'library.scan.running': '{name} を読み込み中',
   'library.scan.counted': '{seen} 件中 {parsed} 件のファイル',
   'library.scan.cancel': '停止',
+  'library.scan.hide': 'この通知を隠す',
+  'library.scan.hideHint':
+    'この通知を隠します。ライブラリはファイルの読み込みを続けます。',
+  'library.scan.chip': '読み込み中 {percent}%',
+  'library.scan.chipFinding': '読み込み中…',
+  'library.scan.show': '進行状況と「停止」をもう一度表示します',
 
   'library.roots': 'フォルダー',
   'library.root.remove': 'このフォルダーを削除',
@@ -176,6 +182,9 @@ const library: Partial<Dictionary> = {
   'library.karaoke.sending': 'カラオケへ送っています…',
   'library.karaoke.failed':
     'このファイルはカラオケへ送れませんでした。大きすぎるか、読み取れない可能性があります。',
+  'library.drop.empty': 'ドロップしたものに音楽がありません',
+  'library.drop.already': 'ドロップした曲はすべて「次に再生」に入っています',
+  'library.drop.failed': 'ドロップした音楽を追加できませんでした',
 };
 
 export default library;

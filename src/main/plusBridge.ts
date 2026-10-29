@@ -30,31 +30,12 @@ import type {
   TUnpublishOutcome,
 } from './ipc/plusPublishing';
 import type { IGalleryQuery, TReportReason } from '../common/plusGallery';
-import type {
-  TModerationActOutcome,
-  TModerationListOutcome,
-  TModerationStatusOutcome,
-} from './ipc/plusModeration';
-import type {
-  TPlusGiftActOutcome,
-  TPlusGiftsListOutcome,
-} from './ipc/plusGifts';
-import type {
-  TAccountListOutcome,
-  TDeleteAccountOutcome,
-  TFindAccountsOutcome,
-} from './ipc/accountDeletion';
-import type { IAccountListRequest } from '../common/adminAccounts';
-import type {
-  TModerationAction,
-  TModerationList,
-} from '../common/plusModeration';
 import type { TPlusProfileResult } from './ipc/plusProfile';
 import type { IPlusProfile } from '../common/plusProfile';
 
 /**
- * The Plus gallery, the admin's queue, gifts and accounts, and a member's
- * profile. The server decides who may do what.
+ * The Plus gallery and a member's profile. The server decides who may do
+ * what.
  */
 
 // The Plus gallery. Scenes are named by author and scene id, never by a path.
@@ -141,60 +122,6 @@ const unpublishScene = (sceneId: string) =>
     sceneId,
   ) as Promise<TUnpublishOutcome>;
 
-// The admin's queue of reported scenes. The server decides who the admin is.
-const moderationStatus = () =>
-  ipcRenderer.invoke(
-    'plus-moderation-status',
-  ) as Promise<TModerationStatusOutcome>;
-
-const listReportedScenes = (list: TModerationList) =>
-  ipcRenderer.invoke(
-    'plus-moderation-list',
-    list,
-  ) as Promise<TModerationListOutcome>;
-
-const moderateScene = (
-  action: TModerationAction,
-  authorId: string,
-  sceneId: string,
-) =>
-  ipcRenderer.invoke(
-    'plus-moderation-act',
-    action,
-    authorId,
-    sceneId,
-  ) as Promise<TModerationActOutcome>;
-
-// The admin's Plus gifts. The server decides who the admin is.
-const listPlusGifts = () =>
-  ipcRenderer.invoke('plus-gifts-list') as Promise<TPlusGiftsListOutcome>;
-
-const givePlus = (gift: { email: string; note?: string; until?: number }) =>
-  ipcRenderer.invoke('plus-gifts-give', gift) as Promise<TPlusGiftActOutcome>;
-
-const takeBackPlus = (email: string) =>
-  ipcRenderer.invoke(
-    'plus-gifts-take-back',
-    email,
-  ) as Promise<TPlusGiftActOutcome>;
-
-// The admin's accounts: every one a page at a time, the account behind an
-// address, then deleting it for good. The server decides who the admin is.
-const listAccounts = (request: IAccountListRequest) =>
-  ipcRenderer.invoke('account-list', request) as Promise<TAccountListOutcome>;
-
-const findAccountsToDelete = (email: string) =>
-  ipcRenderer.invoke(
-    'account-deletion-find',
-    email,
-  ) as Promise<TFindAccountsOutcome>;
-
-const deleteAccount = (email: string) =>
-  ipcRenderer.invoke(
-    'account-deletion-delete',
-    email,
-  ) as Promise<TDeleteAccountOutcome>;
-
 // The member's name on the board and in the gallery: read it, choose it, or
 // change it. A result rather than a throw, so "that handle is taken" survives
 // the bridge.
@@ -221,15 +148,6 @@ const plusBridge = {
   myPublishedScenes,
   publishedStudioSettings,
   unpublishScene,
-  moderationStatus,
-  listReportedScenes,
-  moderateScene,
-  listPlusGifts,
-  givePlus,
-  takeBackPlus,
-  listAccounts,
-  findAccountsToDelete,
-  deleteAccount,
   plusProfile,
   plusCreateProfile,
   plusUpdateProfile,

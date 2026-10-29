@@ -22,9 +22,9 @@ const WEB_SOCKET_CLOSED = 3;
 /**
  * Close codes a listener answers a join with, beside the protocol's own.
  *
- * `FORGET`: this computer was unlinked there, or the two are already linked
- * the other way and this code is not needed — the joining computer forgets
- * the code instead of coming back. `ALREADY_LINKED`: the two computers each
+ * `FORGET`: this computer was unlinked there; old builds also used it for a
+ * duplicate. The close code alone never removes credentials: only the
+ * authenticated stop/forget signal does. `ALREADY_LINKED`: the two computers each
  * pasted the other's code and the other connection is the one kept; the code
  * stays, asleep, for when that connection ends.
  */
@@ -75,6 +75,9 @@ export interface IJoinHandshake {
   deviceName: string;
   computerId: string;
   fresh: boolean;
+  ticket?: boolean;
+  /** The remote endpoint proved it knows the pairing key. */
+  onChallenge?(): void;
 }
 
 export interface IJoinedSocket {
@@ -97,14 +100,19 @@ export const joinAt = ({
   deviceName,
   computerId,
   fresh,
+  ticket,
+  onChallenge,
 }: IJoinHandshake): {
   joined: Promise<IJoinedSocket>;
   cancel(): void;
 } => {
-  const socket = new WebSocket(`ws://${address}:${port}`, {
-    perMessageDeflate: false,
-    maxPayload: MAX_PACKET_BYTES,
-  });
+  const socket = new WebSocket(
+    `ws://${address}:${port}${ticket ? `/?computer=${encodeURIComponent(computerId)}` : ''}`,
+    {
+      perMessageDeflate: false,
+      maxPayload: MAX_PACKET_BYTES,
+    },
+  );
   socket.once('upgrade', (response) => probeWhileQuiet(response.socket));
   let settled = false;
   let cancelled = false;
@@ -133,6 +141,7 @@ export const joinAt = ({
             throw new Error('LAN listener did not send a challenge.');
           }
           challenge = openAuthChallenge(packet.clear).challenge;
+          onChallenge?.();
           socket.send(
             sealAuthReady(
               {

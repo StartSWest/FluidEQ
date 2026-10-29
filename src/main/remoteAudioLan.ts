@@ -9,37 +9,35 @@ it under the terms of the GNU General Public License version 3 or later.
 import crypto from 'crypto';
 import dgram from 'dgram';
 import os from 'os';
-import WebSocket, { WebSocketServer, type RawData } from 'ws';
+import { WebSocketServer } from 'ws';
+import type WebSocket from 'ws';
+import registerLanPeers from './remoteAudioLanServer';
+import createRemoteAudioGroup from './remoteAudioGroup';
+import {
+  closeDiscoverySocket,
+  sendToEach,
+  configureLanDiscovery,
+  announceLanIdentity,
+} from './remoteAudioLanDiscovery';
+import type { IAudioGroupLink } from '../common/remoteAudioGroup';
 import type {
   ILanRemoteAudioChunk,
   ILanRemoteAudioNetworkStats,
   ILanRemoteAudioSignal,
+  TRemoteAudioSignal,
 } from '../common/remoteAudio';
 import { isLanRemoteAudioSignal } from '../common/remoteAudio';
 import {
   MAX_PACKET_BYTES,
-  PACKET_AUTH_READY,
   computerIdOf,
-  createAuthChallenge,
   decodePairingCode,
-  deriveSessionKey,
   encodePairingCode,
   keyFromSecret,
-  openAuthReady,
-  openPacket,
-  sealAuthAccepted,
-  sealAuthChallenge,
 } from './remoteAudioLanProtocol';
-import {
-  discoveryTargets,
-  isPrivateIpv4,
-  lanAddresses,
-} from './remoteAudioLanAddresses';
+import { discoveryTargets, lanAddresses } from './remoteAudioLanAddresses';
 import {
   REMOTE_AUDIO_DISCOVERY_PORT,
-  encodeDiscoveryAnnouncement,
   encodeDiscoveryQuery,
-  isDiscoveryQuery,
 } from './remoteAudioDiscovery';
 import {
   CLOSE_ALREADY_LINKED,
@@ -47,9 +45,9 @@ import {
   closeWebSocketSafely,
 } from './remoteAudioLanJoin';
 import { createLanJoins } from './remoteAudioLanJoins';
-import createRemoteAudioTransport, {
-  probeWhileQuiet,
-} from './remoteAudioTransport';
+import createRemoteAudioTransport from './remoteAudioTransport';
+import { audioWorkerEnabled } from './shareAudio/host';
+import { createWorkerLan } from './shareAudio/lanAdapter';
 import type {
   ILanHostCredentials,
   ILanHostSession,
@@ -57,53 +55,12 @@ import type {
   IRemoteAudioLan,
 } from './remoteAudioLanTypes';
 
-const MAX_PENDING_SOCKETS = 64;
-const MAX_PENDING_SOCKETS_PER_ADDRESS = 8;
-const MAX_AUTHENTICATED_SOCKETS = 32;
 /**
  * How many times the network is asked who is there, each sent once the last
  * has left the socket. A datagram can be dropped; a computer that comes up
  * later announces itself and is heard without being asked again.
  */
 const DISCOVERY_QUERIES = 3;
-const WEB_SOCKET_OPEN = 1;
-
-const closeDiscoverySocket = (socket: dgram.Socket) => {
-  socket.removeAllListeners();
-  try {
-    socket.close();
-  } catch (error) {
-    const code =
-      typeof error === 'object' && error !== null && 'code' in error
-        ? (error as { code?: unknown }).code
-        : undefined;
-    if (code !== 'ERR_SOCKET_DGRAM_NOT_RUNNING') {
-      throw error;
-    }
-  }
-};
-
-/** Sends one datagram to each target in turn, each once the last has left. */
-const sendToEach = (
-  socket: dgram.Socket,
-  data: Buffer,
-  targets: readonly string[],
-  done: () => void = () => undefined,
-) => {
-  const [target, ...rest] = targets;
-  if (target === undefined) {
-    done();
-    return;
-  }
-  try {
-    socket.send(data, REMOTE_AUDIO_DISCOVERY_PORT, target, () =>
-      sendToEach(socket, data, rest, done),
-    );
-  } catch {
-    // The adapter went away mid-send, or the socket closed. A computer that
-    // comes up later still announces itself.
-  }
-};
 
 const deviceNameOf = () => os.hostname().trim() || 'FluidEQ';
 
@@ -129,12 +86,18 @@ const createRemoteAudioLan = (
   emitNetwork: (stats: ILanRemoteAudioNetworkStats) => void,
   book: ILanLinkBook,
 ): IRemoteAudioLan => {
+  if (audioWorkerEnabled()) {
+    return createWorkerLan(emitSignal, emitError, emitNetwork, book);
+  }
   let server: WebSocketServer | undefined;
   let discoverySocket: dgram.Socket | undefined;
   let rejectHostStart: ((error: Error) => void) | undefined;
   let session: ILanHostCredentials | undefined;
   let lifecycleGeneration = 0;
-  const usedPeerIds = new Set<string>();
+  const announced = new Map<
+    string,
+    Extract<TRemoteAudioSignal, { kind: 'stream-mode' }>
+  >();
   /** Every open link: which computer, and whether this one pasted its code. */
   const peers = new Map<string, { computerId?: string; joined: boolean }>();
   /** Connections from each computer to this one, while they are open. */
@@ -144,19 +107,80 @@ const createRemoteAudioLan = (
 
   const forgetPeer = (peerId: string) => {
     peers.delete(peerId);
+    announced.delete(peerId);
+    group.disconnected(peerId);
   };
+
+  const restoreGroupLink = (link: IAudioGroupLink) => {
+    if (book.isRevoked(link.computerId)) {
+      return;
+    }
+    joins.join(
+      {
+        ...link,
+        address: link.addresses[0] ?? '',
+        computerId: link.computerId,
+      },
+      false,
+    );
+  };
+  const group = createRemoteAudioGroup({
+    self: () =>
+      session && book.groupLinks && book.saveGroupLink
+        ? {
+            secret: session.secret,
+            endpoint: {
+              computerId: ownId(),
+              deviceName: deviceNameOf(),
+              addresses: lanAddresses(),
+              port: session.port,
+            },
+          }
+        : undefined,
+    saved: () => book.groupLinks?.() ?? [],
+    known: () => [
+      ...(book.groupLinks?.() ?? []).map((link) => link.computerId),
+    ],
+    revoked: (id) => book.isRevoked(id),
+    save: (link) => book.saveGroupLink?.(link),
+    join: restoreGroupLink,
+    send: (message) => {
+      // Repeat the current duplex description with the group handshake. A
+      // capability-only stream-mode would replace the replay snapshot and
+      // could lose Receive/Send state after a renderer reload.
+      const previous = announced.get(message.peerId);
+      transport.sendSignal(
+        message.signal.kind === 'stream-mode' && previous
+          ? {
+              ...message,
+              signal: {
+                ...message.signal,
+                mode: previous.mode,
+                duplex: previous.duplex,
+              },
+            }
+          : message,
+      );
+    },
+  });
 
   const transport = createRemoteAudioTransport({
     emitAudio,
     emitNetwork,
     emitSignal: (message) => {
       const { peerId, signal } = message;
+      if (group.receive(message)) {
+        return;
+      }
       if (signal.kind === 'stop') {
         const computerId = peers.get(peerId)?.computerId;
         // Unlinked over there: a code this computer holds for it is not to
         // be used again (a FluidEQ from before all to all never says so).
-        if (signal.forget === true && computerId && joins.has(computerId)) {
-          joins.leave(computerId);
+        if (signal.forget === true && computerId) {
+          book.revoke(computerId);
+          if (joins.has(computerId)) {
+            joins.leave(computerId);
+          }
           book.forgetJoin(computerId);
         }
         forgetPeer(peerId);
@@ -179,6 +203,18 @@ const createRemoteAudioLan = (
     ask(0);
   };
 
+  const announceSelf = () => {
+    if (!session || !discoverySocket) {
+      return;
+    }
+    const socket = discoverySocket;
+    const { port, secret } = session;
+    announceLanIdentity(socket, port, deviceNameOf(), [
+      secret,
+      ...(book.groupLinks?.() ?? []).map((link) => link.secret),
+    ]);
+  };
+
   const joins = createLanJoins({
     attach: (peerId, socket, sessionKey) => {
       transport.attach(peerId, socket, sessionKey);
@@ -191,11 +227,13 @@ const createRemoteAudioLan = (
         });
       }
       emitSignal(message);
+      if (message.signal.kind === 'peer-ready') {
+        group.connected(message.peerId, message.signal.computerId);
+      }
     },
     self: () => ({ computerId: ownId(), deviceName: deviceNameOf() }),
     askWhoIsThere,
     inboundLive: (computerId) => (inbound.get(computerId)?.size ?? 0) > 0,
-    forgotten: (computerId) => book.forgetJoin(computerId),
   });
 
   const stop = () => {
@@ -209,8 +247,9 @@ const createRemoteAudioLan = (
     session = undefined;
     joins.closeAll();
     transport.closeAll();
-    usedPeerIds.clear();
     peers.clear();
+    announced.clear();
+    group.reset();
     inbound.clear();
     if (activeDiscoverySocket) {
       closeDiscoverySocket(activeDiscoverySocket);
@@ -299,163 +338,46 @@ const createRemoteAudioLan = (
       perMessageDeflate: false,
     });
     server = nextServer;
-    /**
-     * Connections that have not authenticated yet, oldest first, over all and
-     * per address. A connection arriving to a full room makes room by
-     * closing the one that has waited longest — never a timer: an honest
-     * peer answers its challenge in one round trip, a silent one is the one
-     * let go.
-     */
-    const pendingCandidates = new Map<WebSocket, () => void>();
-    const pendingByAddress = new Map<string, Set<WebSocket>>();
-    const makeRoom = (waiting: Iterable<WebSocket>) => {
-      const [oldest] = waiting;
-      if (oldest) {
-        pendingCandidates.get(oldest)?.();
-        closeWebSocketSafely(
-          oldest,
-          1008,
-          'Too many unauthenticated connections',
-        );
-      }
-    };
-
-    nextServer.on('connection', (candidate, request) => {
-      if (lifecycleGeneration !== operation || server !== nextServer) {
-        closeWebSocketSafely(candidate);
-        return;
-      }
-      const remoteAddress = request.socket.remoteAddress?.replace(
-        /^::ffff:/,
-        '',
-      );
-      if (!remoteAddress || !isPrivateIpv4(remoteAddress)) {
-        closeWebSocketSafely(
+    registerLanPeers(nextServer, {
+      current: () => lifecycleGeneration === operation && server === nextServer,
+      pairingKey: nextKey,
+      book,
+      admit,
+      arriving: (computerId, candidate) => {
+        const open = inbound.get(computerId) ?? new Set<WebSocket>();
+        open.add(candidate);
+        inbound.set(computerId, open);
+        candidate.once('close', () => {
+          open.delete(candidate);
+          if (open.size === 0 && inbound.get(computerId) === open) {
+            inbound.delete(computerId);
+            joins.inboundClosed(computerId);
+          }
+        });
+      },
+      ready: (candidate, sessionKey, message, remoteAddress, introduced) => {
+        const { computerId } = message;
+        transport.attach(
+          message.peerId,
           candidate,
-          1008,
-          'Only private LAN connections are allowed',
+          sessionKey,
+          computerId
+            ? `in:${computerId}`
+            : `${remoteAddress}\n${message.deviceName}`,
         );
-        return;
-      }
-      probeWhileQuiet(request.socket);
-      const fromAddress =
-        pendingByAddress.get(remoteAddress) ?? new Set<WebSocket>();
-      if (fromAddress.size >= MAX_PENDING_SOCKETS_PER_ADDRESS) {
-        makeRoom(fromAddress);
-      }
-      if (pendingCandidates.size >= MAX_PENDING_SOCKETS) {
-        makeRoom(pendingCandidates.keys());
-      }
-      fromAddress.add(candidate);
-      pendingByAddress.set(remoteAddress, fromAddress);
-      let isPending = true;
-      const releasePending = () => {
-        if (!isPending) {
-          return;
-        }
-        isPending = false;
-        pendingCandidates.delete(candidate);
-        fromAddress.delete(candidate);
-        if (fromAddress.size === 0) {
-          pendingByAddress.delete(remoteAddress);
-        }
-      };
-      pendingCandidates.set(candidate, releasePending);
-      candidate.once('close', releasePending);
-      const challenge = createAuthChallenge();
-      const onPendingError = () => {
-        closeWebSocketSafely(candidate, 1008, 'Authentication failed');
-      };
-      candidate.once('error', onPendingError);
-      const authenticate = (data: RawData) => {
-        try {
-          const packet = openPacket(data, nextKey);
-          const message =
-            packet.kind === PACKET_AUTH_READY
-              ? openAuthReady(packet.clear)
-              : undefined;
-          if (
-            !message ||
-            message.challenge !== challenge ||
-            usedPeerIds.has(message.peerId) ||
-            usedPeerIds.size >= MAX_AUTHENTICATED_SOCKETS
-          ) {
-            closeWebSocketSafely(candidate, 1008, 'Authentication failed');
-            return;
-          }
-          candidate.removeListener('message', authenticate);
-          const { computerId } = message;
-          const refusal = admit(computerId, message.fresh === true);
-          if (refusal !== undefined) {
-            closeWebSocketSafely(candidate, refusal, 'Not linked');
-            return;
-          }
-          if (computerId) {
-            const open = inbound.get(computerId) ?? new Set<WebSocket>();
-            open.add(candidate);
-            inbound.set(computerId, open);
-            candidate.once('close', () => {
-              open.delete(candidate);
-              if (open.size === 0 && inbound.get(computerId) === open) {
-                inbound.delete(computerId);
-                joins.inboundClosed(computerId);
-              }
-            });
-          }
-          const sessionKey = deriveSessionKey(
-            nextKey,
-            challenge,
-            message.peerId,
-          );
-          // Reserve the peer identity before the asynchronous send callback,
-          // or two simultaneous responses using the same peer ID could both
-          // pass the duplicate check and race to replace one transport.
-          usedPeerIds.add(message.peerId);
-          candidate.once('close', () => usedPeerIds.delete(message.peerId));
-          candidate.send(
-            sealAuthAccepted({ challenge, peerId: message.peerId }, nextKey),
-            (error) => {
-              if (
-                error ||
-                !isPending ||
-                candidate.readyState !== WEB_SOCKET_OPEN
-              ) {
-                closeWebSocketSafely(candidate, 1008, 'Authentication failed');
-                return;
-              }
-              candidate.removeListener('close', releasePending);
-              releasePending();
-              transport.attach(
-                message.peerId,
-                candidate,
-                sessionKey,
-                computerId
-                  ? `in:${computerId}`
-                  : `${remoteAddress}\n${message.deviceName}`,
-              );
-              candidate.removeListener('error', onPendingError);
-              peers.set(message.peerId, { computerId, joined: false });
-              emitSignal({
-                peerId: message.peerId,
-                signal: {
-                  kind: 'peer-ready',
-                  address: remoteAddress,
-                  deviceName: message.deviceName,
-                  ...(computerId ? { computerId } : {}),
-                },
-              });
-            },
-          );
-        } catch {
-          closeWebSocketSafely(candidate, 1008, 'Authentication failed');
-        }
-      };
-      candidate.on('message', authenticate);
-      candidate.send(sealAuthChallenge(challenge, nextKey), (error) => {
-        if (error) {
-          closeWebSocketSafely(candidate, 1008, 'Authentication failed');
-        }
-      });
+        peers.set(message.peerId, { computerId, joined: false });
+        emitSignal({
+          peerId: message.peerId,
+          signal: {
+            kind: 'peer-ready',
+            address: remoteAddress,
+            deviceName: message.deviceName,
+            ...(computerId ? { computerId } : {}),
+            ...(introduced ? { introduced: true } : {}),
+          },
+        });
+        group.connected(message.peerId, computerId);
+      },
     });
 
     let port: number;
@@ -505,40 +427,23 @@ const createRemoteAudioLan = (
       }
     });
 
-    const announcement = encodeDiscoveryAnnouncement(secret, port, deviceName);
     const nextDiscoverySocket = dgram.createSocket({
       type: 'udp4',
       reuseAddr: true,
     });
     discoverySocket = nextDiscoverySocket;
-    nextDiscoverySocket.on('message', (data, sender) => {
-      if (isDiscoveryQuery(data, secret)) {
-        // Straight back to whoever asked: a broadcast answer leaves through
-        // the default route alone and missed a computer on the other card.
-        try {
-          nextDiscoverySocket.send(
-            announcement,
-            sender.port,
-            sender.address,
-            () => undefined,
-          );
-        } catch {
-          // Gone mid-send; it asks again when it looks again.
+    configureLanDiscovery(nextDiscoverySocket, {
+      secret,
+      port,
+      deviceName,
+      pairSecrets: () => (book.groupLinks?.() ?? []).map((link) => link.secret),
+      heard: (data, address) => joins.heard(data, address),
+      closed: () => {
+        if (discoverySocket === nextDiscoverySocket) {
+          discoverySocket = undefined;
+          emitError();
         }
-        return;
-      }
-      joins.heard(data, sender.address);
-    });
-    nextDiscoverySocket.on('error', () => {
-      // A wildcard UDP socket remains usable when an adapter disappears and
-      // later returns. Closing it here permanently removed discovery after a
-      // sleep or Wi-Fi change, even though the listener server stayed alive.
-    });
-    nextDiscoverySocket.on('close', () => {
-      if (discoverySocket === nextDiscoverySocket) {
-        discoverySocket = undefined;
-        emitError();
-      }
+      },
     });
     try {
       await new Promise<void>((resolve, reject) => {
@@ -573,8 +478,6 @@ const createRemoteAudioLan = (
         throw new Error('LAN listener was stopped.');
       }
       nextDiscoverySocket.setBroadcast(true);
-      // Every computer still looking for this one hears it is back.
-      sendToEach(nextDiscoverySocket, announcement, discoveryTargets());
     } catch (error) {
       if (lifecycleGeneration === operation) {
         stop();
@@ -584,6 +487,8 @@ const createRemoteAudioLan = (
       throw error;
     }
     session = { port, secret };
+    (book.groupLinks?.() ?? []).forEach(restoreGroupLink);
+    announceSelf();
     return describe(session);
   };
 
@@ -642,6 +547,9 @@ const createRemoteAudioLan = (
     if (!isLanRemoteAudioSignal(value)) {
       throw new Error('Invalid remote audio control message.');
     }
+    if (value.signal.kind === 'stream-mode') {
+      announced.set(value.peerId, value.signal);
+    }
     transport.sendSignal(value);
   };
 
@@ -649,7 +557,10 @@ const createRemoteAudioLan = (
     start: startHost,
     join,
     unlink,
-    retry: () => joins.retry(),
+    retry: () => {
+      announceSelf();
+      joins.retry();
+    },
     sendSignal,
     sendAudio: (value) => transport.sendAudio(value),
     setStreamMode: (peerId, mode) => transport.setStreamMode(peerId, mode),

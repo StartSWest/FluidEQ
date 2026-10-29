@@ -47,7 +47,7 @@ const creator = {
   'creator.dialog.search': 'Search countries',
   'creator.dialog.choose': 'Choose a country',
   'creator.dialog.countryHint':
-    "Stripe can pay creators in the US, the UK, Canada, Switzerland and the European Economic Area, and it can't be changed later. Not in the list? Members can still buy your scenes, and each sale earns you a credit instead.",
+    "Stripe can pay creators in the US, the UK, Canada, Switzerland and the European Economic Area, and it can't be changed later. Not in the list? Members can still buy your scenes, and every two sales earn you a credit instead.",
   'creator.dialog.cancel': 'Cancel',
   'creator.dialog.go': 'Agree and continue to Stripe',
   'creator.dialog.opening': 'Opening Stripe…',
@@ -63,7 +63,7 @@ const creator = {
   'creator.terms.stripe':
     'Stripe asks for your identity, bank and tax details and shows you its own terms. Payouts stop if Stripe can no longer pay you.',
   'creator.terms.rights':
-    'Everything in your scenes must be yours to sell. Scenes are still reviewed, and one that breaks the Plus terms can be taken down.',
+    'Everything in your scenes must be yours to sell. Scenes are still reviewed, and one that breaks the terms can be taken down.',
   'creator.terms.taxes':
     'Taxes on what you earn are yours to declare where you live.',
   'creator.terms.changes':
@@ -81,45 +81,6 @@ const creator = {
   'creator.error.banned': "This account can't be paid for scenes.",
   'creator.error.server':
     'Something went wrong on our side. Nothing was changed; try again in a moment.',
-  'creator.admin.tab': 'Payouts',
-  'creator.admin.plan': 'Creators paid through Stripe',
-  'creator.admin.loading': 'Reading what creators are owed',
-  'creator.admin.creators': 'Creators: {count}',
-  'creator.admin.available': 'Available at Stripe',
-  'creator.admin.availableNote': 'what the transfers come out of',
-  'creator.admin.short':
-    "FluidEQ's available balance at Stripe is below what is due. Transfers past it fail and are sent again at the next run.",
-  'creator.admin.list': 'Who gets paid',
-  'creator.admin.none':
-    'Nobody is due yet. Creators appear here once Stripe can pay them and enough of their earnings is past its hold.',
-  'creator.admin.rules':
-    'Payouts go out by themselves on the 1st and the 16th: creators first, then your share to your bank. Each payout is sent once: a run that stopped halfway is finished by the next, never sent again.',
-  'creator.admin.lastPaid': 'Last paid {date}',
-  'creator.admin.neverPaid': 'No payout yet',
-  'creator.admin.nextDue': 'next automatic payout {date}',
-  'creator.notice.title': 'Creator payout on {date}',
-  'creator.notice.body':
-    '{amount} goes out automatically. Creators to pay: {count}.',
-  'creator.notice.later': 'Later',
-  'creator.notice.open': 'Open Payouts',
-  'creator.notice.shortTitle': 'Stripe is short for the {date} payout',
-  'creator.notice.shortBody':
-    'Due: {amount}. Creators to pay: {count}. Stripe holds {available}; transfers past it will fail and wait for the next payout.',
-  'creator.admin.owed': 'Owed to creators',
-  'creator.admin.owedNote': 'held {held} · ready {ready}',
-  'creator.admin.sending': 'sending {amount}',
-  'creator.admin.onItsWay': '+ {amount} on its way',
-  'creator.admin.yours': 'Yours',
-  'creator.admin.yoursNote':
-    'goes to your bank by itself after each run; {reserve} stays for refunds',
-  'creator.admin.lastToYou': 'last sent to your bank: {amount}, {date}',
-  'creator.admin.yoursShort':
-    'creators are owed {amount} more than Stripe holds',
-  'creator.admin.next': 'Next payout',
-  'creator.admin.manual':
-    "Stripe still sends your whole balance to your bank by itself, creators' money included, so FluidEQ holds your share back. In Stripe, Settings → Payouts, set the schedule to Manual once: FluidEQ then sends only your share, by itself, after each run.",
-  'creator.admin.pendingLine':
-    'Payouts an earlier run left unfinished: {count}. The next run finishes them first.',
 };
 
 export default creator;

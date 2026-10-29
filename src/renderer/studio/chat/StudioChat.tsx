@@ -10,6 +10,7 @@ import type { IStudioProject } from 'main/ipc/studioProjectTypes';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import StudioMaker from '../StudioMaker';
+import StudioStartHere from '../StudioStartHere';
 import StudioChatAccounts, { planName } from './StudioChatAccounts';
 import StudioChatAsk from './StudioChatAsk';
 import StudioChatComposer from './StudioChatComposer';
@@ -19,6 +20,11 @@ import StudioChatQueue from './StudioChatQueue';
 import StudioChatSetup from './StudioChatSetup';
 import StudioChatThread from './StudioChatThread';
 import useChatZoomWheel from './useChatZoomWheel';
+import {
+  setChatDraftStage,
+  setChatDraftText,
+  useChatDraft,
+} from './chatDraftStore';
 import {
   checkStudioChat,
   checkStudioChatCodex,
@@ -65,9 +71,15 @@ export default function StudioChat({
     'chat',
   );
   const otherAi = view === 'other';
-  // Held here, so an idea chosen in the thread lands in the message box.
-  const [draft, setDraft] = useState('');
   const projectId = project?.id;
+  // The project's own, kept until sent, so an idea chosen in the thread
+  // lands in its box and a restart gives the words back.
+  const draft = useChatDraft(projectId);
+  const setDraft = (text: string) => {
+    if (projectId) {
+      setChatDraftText(projectId, text);
+    }
+  };
 
   useEffect(() => {
     checkStudioChat().catch(() => undefined);
@@ -137,8 +149,10 @@ export default function StudioChat({
         )}
         <StudioChatQueue queued={chat?.queued ?? []} folder={project.path} />
         <StudioChatComposer
-          draft={draft}
+          draft={draft.text}
           onDraft={setDraft}
+          stage={draft.stage}
+          onStage={(stage) => setChatDraftStage(project.id, stage)}
           busy={chat?.busy ?? false}
           first={(chat?.entries.length ?? 0) === 0 && !sceneName}
           folder={project.path}
@@ -251,6 +265,14 @@ export default function StudioChat({
           </button>
         )}
       </header>
+      {/* A new project's guide, over the conversation it leads into; its
+          ideas go into the message box, where there is one. */}
+      {view === 'chat' && project && !project.official && (
+        <StudioStartHere
+          projectId={project.id}
+          onIdea={canChat ? setDraft : undefined}
+        />
+      )}
       {body}
     </section>
   );

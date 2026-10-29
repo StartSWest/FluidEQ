@@ -15,6 +15,7 @@ import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
 import { dspWorkletConfig } from './webpack.dspWorklet';
+import { rendererAddonEntries } from '../scripts/addons';
 import checkNodeEnv from '../scripts/check-node-env';
 import PUBLIC_ENV_DEFAULTS from './public-env';
 import contentSecurityPolicy from '../../src/main/contentSecurityPolicy';
@@ -126,7 +127,13 @@ const configuration: webpack.Configuration = {
     // target. Listing them here as well created two websocket clients in the
     // same renderer: one announced HMR enabled, the duplicate announced it
     // disabled, and both waited for updates for the lifetime of the window.
-    renderer: path.join(webpackPaths.srcRendererPath, 'index.tsx'),
+    // Add-ons from this checkout's own `addons/` folder first, so each has
+    // registered with `renderer/addons.ts` before the app renders. The
+    // release config builds index.tsx alone.
+    renderer: [
+      ...rendererAddonEntries(),
+      path.join(webpackPaths.srcRendererPath, 'index.tsx'),
+    ],
     wallpaper: path.join(webpackPaths.srcRendererPath, 'wallpaper/index.tsx'),
     'karaoke-whisper-worker': path.join(
       webpackPaths.srcRendererPath,

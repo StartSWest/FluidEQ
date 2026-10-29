@@ -28,7 +28,13 @@ import {
 } from '../../common/songEq';
 import { ISongIdentity } from '../../common/songIdentity';
 import { TError, TSuccess } from '../../renderer/utils/equalizerApi';
-import { loadSongEqSettings, saveSongEqSettings } from '../songEqStore';
+import {
+  keepSongEqSettings,
+  loadSongEqSettings,
+  readSongEqSettings,
+  saveSongEqSettings,
+} from '../songEqStore';
+import { storedSongIdentity } from '../songMemoryNames';
 import onWindowMessage from './windowMessages';
 
 /**
@@ -64,9 +70,25 @@ const replyInvalidParameter = (
 /**
  * A file on disk and four channels to reach it. No rules of its own: what a
  * lookup returns and what a write changes both live in `common/songEq.ts`, so
- * every handler here is validation plus a call across that boundary.
+ * every handler here is validation plus a call across that boundary — with
+ * the song as the file may name it (`storedSongIdentity`).
+ *
+ * Settles once the read just after launch has been taken in. Main does not
+ * wait for it; the tests do.
  */
-const registerSongEqHandlers = (userDataDir: string): void => {
+const registerSongEqHandlers = (userDataDir: string): Promise<void> => {
+  // Read once just after launch, off the main thread, rather than at the
+  // first song: a file written before 2026-10-26 names the songs in it, and
+  // reading it is what writes it again without them (`songMemoryNames.ts`).
+  // A lookup that lands first has read the file itself and written it then,
+  // and may have saved a song since, so this then leaves both alone.
+  const launchRead = readSongEqSettings(userDataDir).then((loaded) => {
+    if (cached === undefined) {
+      cached = keepSongEqSettings(userDataDir, loaded);
+    }
+    return undefined;
+  });
+
   onWindowMessage(ChannelEnum.LOOKUP_SONG_EQ, (event, arg) => {
     const channel = ChannelEnum.LOOKUP_SONG_EQ;
     const deviceId = arg?.[0];
@@ -76,7 +98,11 @@ const registerSongEqHandlers = (userDataDir: string): void => {
       return;
     }
     const reply: TSuccess<ISongEqEntry | undefined> = {
-      result: lookupSongEq(settingsOf(userDataDir), deviceId, identity),
+      result: lookupSongEq(
+        settingsOf(userDataDir),
+        deviceId,
+        storedSongIdentity(identity),
+      ),
     };
     event.reply(channel, reply);
   });
@@ -101,7 +127,7 @@ const registerSongEqHandlers = (userDataDir: string): void => {
       cached = apply(
         settingsOf(userDataDir),
         deviceId,
-        identity,
+        storedSongIdentity(identity),
         layer,
         Date.now(),
       );
@@ -124,11 +150,17 @@ const registerSongEqHandlers = (userDataDir: string): void => {
     }
     // The identity, not a key: which entry this actually removes is
     // `common/songEq.ts`'s decision, exactly as it is for a lookup.
-    cached = forgetSongEq(settingsOf(userDataDir), deviceId, identity);
+    cached = forgetSongEq(
+      settingsOf(userDataDir),
+      deviceId,
+      storedSongIdentity(identity),
+    );
     saveSongEqSettings(userDataDir, cached);
     const reply: TSuccess<void> = { result: undefined };
     event.reply(channel, reply);
   });
+
+  return launchRead;
 };
 
 export default registerSongEqHandlers;

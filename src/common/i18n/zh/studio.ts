@@ -127,8 +127,8 @@ const studio = {
   'studio.publish.goUpdate': '发布更新',
   'studio.publish.agree': '同意并发布',
   'studio.publish.running': '正在发布…',
-  'studio.publish.done': '{name} 已发布到图库。',
-  'studio.publish.updated': '图库中的 {name} 已是新版本。',
+  'studio.publish.done': '{name} 已发布到图库，并在你的图表上播放。',
+  'studio.publish.updated': '图库中的 {name} 已是新版本，你的图表也一样。',
   'studio.publish.noPicture': '无法截取图片。请让场景播放后再试。',
   'studio.publish.offline': '发布需要网络连接。请联网后重试。',
   'studio.publish.rateLimited': '一小时内发布次数太多。请稍后再试。',
@@ -209,11 +209,7 @@ const studio = {
     '{name} 是你的作品，已回到你的外观中，并在这里打开，方便你继续创作。',
   'studio.import.unreadable': '这个文件不是 FluidEQ 场景。',
   'studio.import.signedOut': '请登录后打开场景文件。',
-  'studio.draft.badge': '草稿',
-  'studio.draft.line': '发布后即可完整查看',
   'studio.new.signedOut': '登录以开始一个项目。',
-  'studio.notice.unpublished':
-    '请先发布：你自己的场景进入画廊后才会加入你的外观。',
   'studio.import.changed': '这个文件在导出后被修改过，FluidEQ 不会播放它。',
   'studio.import.blocked': '这个场景已被下架。',
 
@@ -499,9 +495,10 @@ const studio = {
   'studio.publish.goReviewUpdate': '提交更新审核',
   'studio.publish.agreeReview': '同意并提交审核',
   'studio.publish.runningReview': '正在提交…',
-  'studio.publish.submitted': '{name} 已提交审核。审核通过时会通知你。',
+  'studio.publish.submitted':
+    '{name} 已在你的图表上播放，并已提交审核。审核通过时会通知你。',
   'studio.publish.submittedUpdate':
-    '{name} 的新版本已提交审核。在它通过前，所有人保留当前版本。',
+    '{name} 的新版本已在你的图表上播放，并已提交审核。在它通过前，其他人保留当前版本。',
   // The switch that lets the member's own AI look at the stage over MCP, and
   // its one-time setup. The assistants' names are theirs, in every language.
   'studio.agent.title': '让你的 AI 看到舞台',

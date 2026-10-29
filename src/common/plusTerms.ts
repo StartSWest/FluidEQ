@@ -2,7 +2,7 @@
  * The FluidEQ Plus terms: which version is current, and the numbers the text
  * quotes.
  *
- * The words live in the `terms.*` dictionaries, all ten languages. The
+ * The words live in the `terms.*` dictionaries, every supported interface language. The
  * numbers live here, next to the version, because each one is also enforced
  * somewhere — the offline grace by the entitlement check, the scene-play
  * window and the daily cap by the server — and a promise in the
@@ -138,6 +138,12 @@
  * pack). And creators are paid for their scenes through Stripe (premium 0064):
  * a section quoting the creator terms the sign-up shows, word for word, with
  * the numbers below; what payouts send and keep; Stripe named as paying them.
+ *
+ * Amended again before its first release (2026-10-24): payouts are closed
+ * (`CREATOR_PAYOUTS_OPEN`, premium 0070), because Stripe Connect cannot be
+ * opened yet, so the document says nothing about paying creators and a sale
+ * earns the creator a credit. The payout text is kept (`termsLayout(true)`);
+ * opening payouts shows it, and is revision 12.
  */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.

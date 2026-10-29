@@ -66,6 +66,30 @@ const birds = {
 };
 
 describe('normalizeSceneAmbient', () => {
+  it('preserves the shipped script locale on ambient control names', () => {
+    const ambient = normalizeSceneAmbient({
+      elements: [gulls],
+      params: [
+        {
+          id: 'flock',
+          names: {
+            en: 'Birds',
+            ko: '새',
+            'zh-Hant': '飛鳥',
+            'zh-Hant-extra': 'drop',
+          },
+          value: 0.6,
+          targets: [{ element: 'gulls', field: 'count', min: 2, max: 10 }],
+        },
+      ],
+    });
+    expect(ambient?.params[0]?.names).toEqual({
+      en: 'Birds',
+      ko: '새',
+      'zh-Hant': '飛鳥',
+    });
+  });
+
   it('keeps a layer written within the bounds, as written', () => {
     const raw = {
       elements: [gulls],

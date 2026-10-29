@@ -11,6 +11,17 @@ it under the terms of the GNU General Public License version 3 or later.
  * big things, one slide each. Strings are per slide, prefixed by the slide.
  */
 const tour = {
+  'tour.karaokeBackground.title': 'Visualizers behind your lyrics',
+  'tour.karaokeBackground.subtitle': 'Your chosen look, on the Karaoke stage',
+  'tour.karaokeBackground.lead':
+    'Choose a visualizer or scene as your Karaoke background.',
+  'tour.karaokeBackground.how':
+    'Choose a look in {looks} on EQ, then press {showGraph} in Karaoke.',
+  'tour.karaokeBackground.open': 'Open Karaoke',
+  'tour.karaokeBackground.imageAlt':
+    'The Karaoke background control with a scene behind the lyrics.',
+  'tour.karaokeBackground.lyric': 'Let our song light up the night',
+
   'tour.contribute': 'Please contribute',
   'tour.eyebrow': 'NEW IN THIS VERSION',
   'tour.title': "What's new in FluidEQ",
@@ -29,29 +40,29 @@ const tour = {
   'tour.beta': 'Beta',
 
   'tour.player.kicker': 'THE COMPACT PLAYER',
-  'tour.player.title': 'FluidEQ, folded into a player',
-  'tour.player.subtitle': 'One switch turns the window into a player',
+  'tour.player.title': 'The whole app in one column',
+  'tour.player.subtitle': 'One player, the same in every window colour',
   'tour.player.lead':
-    'One switch in the title bar folds all of FluidEQ into a player. It is the classic amp, with its LED clock, its lamps and the whole equaliser; on the {backdrop}, over a Plus visualizer, it turns to glass. The same switch takes you back to the page you left.',
+    'One switch in the title bar folds FluidEQ into one column: the visualizer at the top with the song over it, the controls, your sound and what plays next. It is the same player in every window colour, and a scene you pick plays behind all of it, on the {backdrop}.',
   'tour.player.point1':
-    'The whole equaliser comes along: presets, band layouts, EQ mode, Smart EQ, Bass, Mid and Treble.',
+    '{sound} holds the Bass, Mid and Treble knobs or your EQ’s own bands, with the preset, Smart EQ and EQ mode beside them.',
   'tour.player.point2':
-    'Fold it to one line, keep it on top of other windows, or double-click the visualizer to fill the screen.',
+    '{upNext} and {playlists} wait at the foot. Fold either part away for a bigger picture, and drop music anywhere on the player to add it to the queue.',
   'tour.player.point3':
-    'A theme of its own, and songs dropped on Up Next join the Library and the queue.',
+    'It keeps one width, and its height is yours from the top or bottom edge. Fold it to one line, keep it on top, or double-click the picture to fill the screen.',
   'tour.player.how':
     'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.',
   'tour.player.open': 'Try the Compact player',
   'tour.player.imageAlt':
-    'The corner of the title bar with the {player} switch ringed, and the two players it opens: the classic amp with its LED clock, lamps, equaliser and queue, and the wider glass player over an aurora on the {backdrop}.',
-  'tour.player.classic': 'Classic amp',
-  'tour.player.glass': 'Glass, on {backdrop}',
+    'The corner of the title bar with the {player} switch ringed, and the Compact player twice: over a scene on the {backdrop} with its EQ bands open, and with a standard visualizer behind the song and the Tone knobs open.',
+  'tour.player.scene': 'With a scene, on {backdrop}',
+  'tour.player.standard': 'With a standard visualizer',
 
   'tour.look.kicker': 'A NEW LOOK',
   'tour.look.title': 'A new window, in new colours',
   'tour.look.subtitle': 'One theme slider, and a visualizer behind it all',
   'tour.look.lead':
-    'The panes stand on one open floor in the colours of the new icon, and one slider, {brightness}, takes the whole window from near-black to a light ocean blue. With a Plus visualizer on the graph, the window can take its colours, or let it play behind everything.',
+    'The panes stand on one open floor in the colours of the new icon, and one slider, {brightness}, takes the whole window from near-black to a light ocean blue. With a scene on the graph, the window can take its colours, or let it play behind everything.',
   'tour.look.point1':
     '{brightness} sits in the menu behind the pulse icon, and beside {transparency} under {windowColours}.',
   'tour.look.point2':
@@ -59,15 +70,15 @@ const tour = {
   'tour.look.point3':
     'Dialogs and menus share one material, and {rainbow} runs through the icon’s colours, or a visualizer’s own.',
   'tour.look.how':
-    'Move {brightness} in the menu behind the pulse icon at the top right. With a Plus visualizer on the graph, open {windowColours} from the graph’s bar and choose {backdrop}.',
+    'Move {brightness} in the menu behind the pulse icon at the top right. With a scene on the graph, open {windowColours} from the graph’s bar and choose {backdrop}.',
   'tour.look.open': 'Open EQ',
   'tour.look.imageAlt':
-    'FluidEQ in its own colours on the EQ page, the Analyzer drawing a song under the curves, and the menu behind the pulse icon open over its corner, with Brightness at half and Rainbow mode on.',
+    'FluidEQ in its own colours on the EQ page, the Analyzer drawing a song under the curves, and the menu behind the pulse icon open over its corner, with Brightness at half and Colourful mode on.',
   'tour.gpu.kicker': 'A NEW VISUALIZER ENGINE',
   'tour.gpu.title': 'Every visualizer on your graphics card',
   'tour.gpu.subtitle': "Forty looks at your screen's own speed, and 3D worlds",
   'tour.gpu.lead':
-    "The graph's forty looks now draw on the engine the Plus scenes run on: on your graphics card, at your screen's own refresh rate, so bars, particles and peaks glide where they used to step. And a Plus visualizer can now be a real 3D world.",
+    "The graph's forty looks now draw on the engine the scenes run on: on your graphics card, at your screen's own refresh rate, so bars, particles and peaks glide where they used to step. And a scene can now be a real 3D world.",
   'tour.gpu.point1':
     "Eighteen new looks under {scenes}, among them {synthwave}, {horizon}, {towers} and {ledwall}; a look with no colours of its own wears the window's.",
   'tour.gpu.point2':
@@ -78,13 +89,13 @@ const tour = {
     "Click the look's name on the graph and pick one under {scenes}.",
   'tour.gpu.open': 'Open EQ',
   'tour.gpu.imageAlt':
-    'A Plus visualizer that is a 3D city by night, and four new looks photographed on the graph — {synthwave}, {horizon}, {towers} and {ledwall} — with the look picker ringed on the first.',
+    'A scene that is a 3D city by night, and four new looks photographed on the graph — {synthwave}, {horizon}, {towers} and {ledwall} — with the look picker ringed on the first.',
   'tour.gpu.world': '3D world',
   'tour.sparks.kicker': 'POINTER SPARKS',
   'tour.sparks.title': 'Visualizers that answer your mouse',
   'tour.sparks.subtitle': 'Sparks, petals or snow from the pointer',
   'tour.sparks.lead':
-    'Move the mouse across a Plus visualizer and it throws what it is made of — sparks, petals, snow, embers — in a trail behind the pointer, and bursts wherever you click. In {ambient} and on the {backdrop}, its birds, petals and lights drift over the whole window too.',
+    'Move the mouse across a scene and it throws what it is made of — sparks, petals, snow, embers — in a trail behind the pointer, and bursts wherever you click. In {ambient} and on the {backdrop}, its birds, petals and lights drift over the whole window too.',
   'tour.sparks.point1':
     'Each visualizer throws its own: snow from a winter scene, embers from a campfire, petals from a garden.',
   'tour.sparks.point2':
@@ -92,7 +103,7 @@ const tour = {
   'tour.sparks.point3':
     'One switch for every visualizer: {sparks}, in {windowColours} under {rainbow}.',
   'tour.sparks.how':
-    'With a Plus visualizer on the graph, move the mouse over it and click. {sparks} is in {windowColours}, under {rainbow}.',
+    'With a scene on the graph, move the mouse over it and click. {sparks} is in {windowColours}, under {rainbow}.',
   'tour.sparks.open': 'Open EQ',
   'tour.sparks.imageAlt':
     'An aurora visualizer with a trail of glowing sparks behind the pointer and a burst where it clicked, and {windowColours} with its {sparks} switch ringed.',
@@ -198,17 +209,17 @@ const tour = {
     'Scenes can be real 3D worlds that step on the kick and leap at the drop.',
   'tour.studio.point3':
     'Copy the AI prompt and your AI assistant can see your scene and hear how the song moves.',
-  'tour.studio.how': 'Open Plus and choose Studio in its rail.',
-  'tour.studio.open': 'Open Plus',
+  'tour.studio.how': 'Open Visualizers and choose Studio in its rail.',
+  'tour.studio.open': 'Open Visualizers',
   'tour.studio.imageAlt':
     'The Studio playing Alpine on its stage, a lake under snowy peaks and an aurora, with the three steps to make a scene with your AI under it, and two notes: free for every account, and a published scene plays free for its maker.',
   'tour.studio.earned': 'Published: plays free for you',
 
   'tour.help.kicker': 'HELP',
   'tour.help.title': 'Ask the guide in your own words',
-  'tour.help.subtitle': 'Typos, plurals and ten languages',
+  'tour.help.subtitle': 'Typos, plurals and your language',
   'tour.help.lead':
-    'Search the guide the way you would ask a friend — “no sound”, “limiter”, “wallpaper” — in any of ten languages. The best chapter comes first, and the guide takes you to the control, ringed on the picture.',
+    'Search the guide the way you would ask a friend — “no sound”, “limiter”, “wallpaper” — in your language. The best chapter comes first, and the guide takes you to the control, ringed on the picture.',
   'tour.help.point1':
     'It forgives typos and plurals, and knows the words people use for things.',
   'tour.help.point2':
@@ -265,7 +276,7 @@ const tour = {
   'tour.room.imageAlt':
     'A room seen from above: seven speakers and a sub standing around a head in the middle, each with its path to the ears.',
 
-  'tour.plus.kicker': 'FLUIDEQ PLUS',
+  'tour.plus.kicker': 'VISUALIZERS',
   'tour.plus.title': 'Scenes that are yours for good',
   'tour.plus.subtitle': 'Visualizers, Studio, lighting and more',
   'tour.plus.lead':
@@ -277,10 +288,10 @@ const tour = {
   'tour.plus.point3':
     'Every scene can be watched first, and the ones you get play on every computer you sign in to.',
   'tour.plus.how':
-    'Open the Plus tab: Visualizers, the Studio and Dynamic lighting are down its left side.',
-  'tour.plus.open': 'Open Plus',
+    'Open the Visualizers tab: the Gallery, the Studio and Dynamic lighting are down its left side.',
+  'tour.plus.open': 'Open Visualizers',
   'tour.plus.imageAlt':
-    'The Plus tab: Visualizers, Studio and Dynamic lighting down the side, and the Visualizers gallery with Chrome, Bloom, Aurora, Alpine and Neon City.',
+    'The Visualizers tab: Gallery, Studio and Dynamic lighting down the side, and the Gallery with Chrome, Bloom, Aurora, Alpine and Neon City.',
   // The scenes the tour's pictures show, by the names they are published
   // under in each language.
   'tour.scene.alpine': 'Alpine',
@@ -293,24 +304,24 @@ const tour = {
   'tour.visualizers.title': 'Scenes that move with your music',
   'tour.visualizers.subtitle': 'Drawn on your graphics card',
   'tour.visualizers.lead':
-    'Plus visualizers are living scenes — mountains under the stars, curtains of aurora, a neon city — drawn on your graphics card under your EQ curves. The bass, the beat and the treble each move something different, and the window around them can take on their colours.',
+    'Scenes are living pictures — mountains under the stars, curtains of aurora, a neon city — drawn on your graphics card under your EQ curves. The bass, the beat and the treble each move something different, and the window around them can take on their colours.',
   'tour.visualizers.point1':
-    'One picker for everything: {styles} free styles to shape and colour, and Plus visualizers by category.',
+    'One picker for everything: {styles} free styles to shape and colour, and scenes by category.',
   'tour.visualizers.point2':
     'Browse the gallery, try FluidEQ’s samples for ten seconds, and add the scenes you like.',
   'tour.visualizers.point3':
     'Switch looks automatically, go full screen, and set a scene’s attack and release in View.',
   'tour.visualizers.how':
-    'Click the look’s name on the graph and choose a scene under Plus visualizers, or browse them all in Plus → Visualizers.',
+    'Click the look’s name on the graph and choose one under Visualizers, or browse them all in Visualizers → Gallery.',
   'tour.visualizers.open': 'Open EQ',
   'tour.visualizers.imageAlt':
-    'Alpine, a Plus visualizer of mountains over a lake at night, playing on the graph under the EQ curves, with four more scenes below it.',
+    'Alpine, a scene of mountains over a lake at night, playing on the graph under the EQ curves, with four more scenes below it.',
 
   'tour.desktop.kicker': 'DESKTOP VISUALIZER',
   'tour.desktop.title': 'Your music behind your desktop',
   'tour.desktop.subtitle': 'A scene on every monitor',
   'tour.desktop.lead':
-    'Put a Plus visualizer behind your desktop icons. It moves with whatever you are listening to, or calmly on its own, and every monitor can show a scene of its own.',
+    'Put a scene behind your desktop icons. It moves with whatever you are listening to, or calmly on its own, and every monitor can show a scene of its own.',
   'tour.desktop.point1':
     'Pick monitors on a map of your desk, each with its own visualizer.',
   'tour.desktop.point2':
@@ -318,16 +329,16 @@ const tour = {
   'tour.desktop.point3':
     'It comes back by itself the next time FluidEQ starts.',
   'tour.desktop.how':
-    'With a Plus visualizer on the graph, press the monitor button beside its name, or choose View → Set as desktop background.',
+    'With a scene on the graph, press the monitor button beside its name, or choose View → Set as desktop background.',
   'tour.desktop.open': 'Open EQ',
   'tour.desktop.imageAlt':
-    'Three monitors, each showing a Plus visualizer — Aurora, Alpine and Neon City — behind its desktop icons and taskbar.',
+    'Three monitors, each showing a scene — Aurora, Alpine and Neon City — behind its desktop icons and taskbar.',
 
   'tour.lighting.kicker': 'DYNAMIC LIGHTING',
   'tour.lighting.title': 'Your desk lights up with the scene',
   'tour.lighting.subtitle': 'Beta · your RGB devices follow the visualizer',
   'tour.lighting.lead':
-    'Your keyboard, mouse, mousepad, headset and stand take the colours and the rhythm of the Plus visualizer on the graph, through Windows Dynamic Lighting and Razer Chroma.',
+    'Your keyboard, mouse, mousepad, headset and stand take the colours and the rhythm of the scene on the graph, through Windows Dynamic Lighting and Razer Chroma.',
   'tour.lighting.point1':
     'Four styles for each visualizer: Scene, Colour wave, Spectrum and Beat ripple.',
   'tour.lighting.point2':
@@ -335,29 +346,30 @@ const tour = {
   'tour.lighting.point3':
     'A live preview draws your own desk as it lights. It is in beta: tell us how your devices behave.',
   'tour.lighting.how':
-    'Open Plus → Dynamic lighting and switch it on, then put a Plus visualizer on the graph.',
-  'tour.lighting.open': 'Open Plus',
+    'Open Visualizers → Dynamic lighting and switch it on, then put a scene on the graph.',
+  'tour.lighting.open': 'Open Visualizers',
   'tour.lighting.imageAlt':
     'A keyboard, mouse and mousepad lit in the pink, violet and cyan of Neon City.',
 
   'tour.share.kicker': 'EVERY PC, BOTH WAYS',
   'tour.share.title': 'Share audio between your computers',
-  'tour.share.subtitle': 'Hear both computers, whichever one you sit at',
+  'tour.share.subtitle':
+    'Hear every computer in the group, whichever one you sit at',
   'tour.share.lead':
-    'Your gaming PC and your laptop play into each other: whichever one you sit at, you hear both — over your own network, losslessly, encrypted, and through the EQ you tuned on that computer.',
+    'Your gaming PC, your laptop and any other computer on your network play into one group: whichever one you sit at, you hear the others, losslessly, encrypted and through that computer’s own EQ.',
   'tour.share.pairLabel': 'BOTH WAYS',
-  'tour.share.pairName': 'Each computer plays the other’s sound',
+  'tour.share.pairName': 'Each computer plays the others’ sound',
   'tour.share.wireLabel': 'Lossless · Encrypted · Private LAN',
   'tour.share.stepsTitle': 'Set it up in three steps',
   'tour.share.step1Title': 'On one computer, copy its code',
   'tour.share.step1':
-    'Open the Share Audio tab and press “Copy code”. The code stays the same every time.',
+    'Open the Share Audio tab, press “Add computer” and then “Copy code”. The code stays the same every time.',
   'tour.share.step2Title': 'On the other, paste it and link',
   'tour.share.step2':
-    'Open Share Audio there, paste the code under “The other computer’s code” and press “Link”. Both start playing each other right away, untouched: each one applies its own EQ to what it hears.',
+    'There, press “Add computer”, paste the code under “The other computer’s code” and press “Link”. Computers you link later join the whole group.',
   'tour.share.step3Title': 'Choose what goes where',
   'tour.share.step3':
-    'Each linked computer has two switches, “Play it here” and “Send my sound”: turn one off for one way only. The bar shows the other computer’s song, and its buttons work across the wire. A slider beside “Play it here” sets how loud it plays, and “Pause” stops both ways until “Resume”.',
+    'Each computer has “Receive” and “Send”, and “Share” turns your sound off for all of them. “Your mix” sets each level. Pause and Unlink are in each computer’s menu, and the bar’s buttons work across the wire.',
   'tour.share.fact1Title': 'Lossless',
   'tour.share.fact1':
     'Float32 PCM end to end. No media codec, no generation loss.',
@@ -366,9 +378,9 @@ const tour = {
     'AES-256-GCM on every packet. The code is the key; nobody without it can listen in.',
   'tour.share.fact3Title': 'Stays linked',
   'tour.share.fact3':
-    'The link survives app closes and reboots, from either side. Only “Unlink” ends it.',
+    'The group finds itself again after a restart, sleep, a network drop or an engine switch. Computers that are away stay listed.',
   'tour.share.tip':
-    'Start quietly: two computers playing at once add up. Lower your volume before the first link.',
+    'Start quietly: computers playing at once add up. Lower your volume before the first link.',
   'tour.share.open': 'Open Share Audio',
 
   'tour.library.kicker': 'YOUR MUSIC, YOUR PLAYER',
@@ -623,10 +635,10 @@ const tour = {
   'tour.chat.point2':
     '{attach} sends a picture of the scene with your message, and you can draw on it to show what you mean. Messages sent while it works wait in a queue and go together.',
   'tour.chat.point3':
-    'It runs on Claude Code installed on this computer, on your own plan, and shows how much of your limits is left. With ChatGPT connected it can paint pictures for the scene, asking you before each one.',
+    'It runs on Claude Code installed on this computer, on your own plan, and shows how much of your limits is left.',
   'tour.chat.how':
     'Open {plus}, choose {studio} in its rail, pick a scene or start one, and type in the box beside the stage.',
-  'tour.chat.open': 'Open Plus',
+  'tour.chat.open': 'Open Visualizers',
   'tour.chat.imageAlt':
     'The Studio’s stage beside its chat: a request to make the stage lights flash on the snare, the steps of the reply ticking in, version 2 kept with Bring back, and the stage’s lights starting to flash as version 2 plays.',
   'tour.chat.ask': 'Make the stage lights flash on the snare.',
@@ -641,7 +653,7 @@ const tour = {
   'tour.myCurves.point1':
     '{applyCurve} plays a curve as the headphone correction, with its own strength and switch; {applyEq} puts its bands in your EQ instead.',
   'tour.myCurves.point2':
-    '{squiglink} has a tab of its own, and {save} keeps what you bring in with one press.',
+    'The {squiglink} shortcut in {myCurves} opens the import preview; {save} keeps your curve for later.',
   'tour.myCurves.point3':
     '{exportList} writes the whole list to one file, to back it up or take it to another computer; {importList} reads it back and says what it leaves out.',
   'tour.myCurves.how':
@@ -735,6 +747,7 @@ const tour = {
     'Open the Online Media tab, pick a site from the row at the top, type in the search field and press Search. Back, Forward and Reload work as in a browser.',
   'tour.media.open': 'Open Online Media',
   'tour.studio.free': 'Free for every account',
+  'tour.film.englishAudio': 'English audio · translated captions',
 } as const;
 
 export default tour;

@@ -1,0 +1,111 @@
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The empty picker's scene montage and its fixed, native action row.
+@mixin styles {
+  .look-picker__discover {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: $spacing-s;
+    padding: $spacing-s;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    overflow-y: auto;
+
+    p {
+      margin: 0;
+    }
+
+    h4 {
+      flex: none;
+      color: $text-primary;
+      line-height: 1.3;
+
+      @media (max-height: 360px) {
+        font-size: $text-title;
+      }
+    }
+  }
+
+  .look-picker__list--discover {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .look-picker__discover-story {
+    display: grid;
+    min-height: 0;
+    flex: 1 1 auto;
+    align-content: start;
+    gap: $spacing-m;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .look-picker__discover-scenes {
+    margin-block: $spacing-xs;
+    gap: $spacing-xs;
+
+    .plus-welcome__scene {
+      border-color: $card-edge;
+      box-shadow: none;
+
+      figcaption {
+        padding: $spacing-m $spacing-xs $spacing-xs;
+        font-size: $text-micro;
+      }
+
+      &:first-of-type figcaption {
+        padding: $spacing-l $spacing-s $spacing-s;
+        font-size: $text-small;
+      }
+    }
+  }
+
+  .look-picker__discover-footer {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    flex: none;
+    gap: $spacing-s;
+    padding-top: $spacing-s;
+    border-top: 1px solid $menu-rule;
+  }
+
+  .look-picker__discover-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-s;
+
+    .button {
+      flex: 1 1 150px;
+      max-width: 100%;
+      justify-content: center;
+      white-space: normal;
+      text-align: start;
+    }
+  }
+
+  .look-picker__discover-fine {
+    display: flex;
+    align-items: start;
+    gap: $spacing-xs;
+    color: $text-muted;
+    font-size: $text-small;
+
+    svg {
+      width: 12px;
+      height: 12px;
+      flex: none;
+      margin-top: 2px;
+      color: $text-accent;
+    }
+  }
+}

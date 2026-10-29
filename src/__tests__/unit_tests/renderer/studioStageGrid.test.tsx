@@ -106,7 +106,6 @@ const stage = (isGridShown: boolean) => (
     serial={1}
     signal="live"
     size="graph"
-    draft={false}
     isPlayer={false}
     wave={wave}
     isGridShown={isGridShown}

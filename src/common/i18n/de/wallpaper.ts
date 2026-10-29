@@ -28,9 +28,9 @@ const wallpaper = {
     'Eine langsame, ruhige Animation, die die Musik ignoriert.',
   'wallpaper.follow': 'Diagramm folgen',
   'wallpaper.follow.hint':
-    'Zeigt den Plus-Visualizer des Diagramms und wechselt mit ihm – ob Sie ihn wählen oder der automatische Wechsel. Zeigt das Diagramm einen Visualizer ohne Plus, behält dieser Bildschirm den letzten Plus-Visualizer.',
+    'Zeigt die Szene des Diagramms und wechselt mit ihr – ob Sie sie wählen oder der automatische Wechsel. Zeigt das Diagramm stattdessen einen Stil, behält dieser Bildschirm die letzte Szene.',
   'wallpaper.follow.choice':
-    'Die gewählten Monitore wechseln mit dem Plus-Visualizer des Diagramms – ob Sie ihn wählen oder der automatische Wechsel – und behalten den letzten, solange das Diagramm einen Visualizer ohne Plus zeigt.',
+    'Die gewählten Monitore wechseln mit der Szene des Diagramms – ob Sie sie wählen oder der automatische Wechsel – und behalten die letzte, solange das Diagramm einen Stil zeigt.',
   'wallpaper.cancel': 'Abbrechen',
   'wallpaper.done': 'Fertig',
   'wallpaper.start': 'Hintergrund festlegen',
@@ -62,7 +62,7 @@ const wallpaper = {
   'wallpaper.error.unavailable':
     'Der Desktophintergrund ist nicht erreichbar. Versuchen Sie es erneut.',
   'wallpaper.error.notEntitled':
-    'Desktop-Visualizer sind in FluidEQ Plus enthalten.',
+    'Diese Szene gehört Ihnen noch nicht. Holen Sie sie in der Galerie, um sie auf Ihren Desktop zu legen.',
   'wallpaper.error.missingScene':
     'Dieser Visualizer ist nicht mehr installiert. Fügen Sie ihn erneut hinzu und versuchen Sie es wieder.',
   'wallpaper.error.refused':

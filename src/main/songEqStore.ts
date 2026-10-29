@@ -20,10 +20,19 @@ import fs from 'fs';
 import path from 'path';
 import log from 'electron-log';
 import {
+  ISongEqEntry,
   ISongEqOutput,
   ISongEqSettings,
   getDefaultSongEqSettings,
 } from '../common/songEq';
+import {
+  type ISongMemoryLoad,
+  type TParseSongMemory,
+  keepSongMemory,
+  readSongMemoryText,
+  readSongMemoryTextSoon,
+  settleSongMemory,
+} from './songMemoryFile';
 
 /**
  * Where remembered songs live. `device-profiles.json`'s neighbour, and read and
@@ -75,32 +84,6 @@ const normalizeOutputs = (
   return normalized;
 };
 
-export const loadSongEqSettings = (userDataDir: string): ISongEqSettings => {
-  const settingsPath = path.join(userDataDir, SETTINGS_FILENAME);
-  try {
-    const input: unknown = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    const outputs = (input as { outputs?: unknown } | null)?.outputs;
-    if (
-      typeof input !== 'object' ||
-      input === null ||
-      (input as { version?: unknown }).version !== 1 ||
-      typeof outputs !== 'object' ||
-      outputs === null
-    ) {
-      return getDefaultSongEqSettings();
-    }
-    return {
-      version: 1,
-      outputs: normalizeOutputs(outputs as Record<string, unknown>),
-    };
-  } catch {
-    // A missing file is the ordinary case at first launch, and a corrupt one
-    // is a half-written file after a power cut. Neither is worth stopping the
-    // app for: the worst it costs is a set of songs to learn again.
-    return getDefaultSongEqSettings();
-  }
-};
-
 export const saveSongEqSettings = (
   userDataDir: string,
   settings: ISongEqSettings,
@@ -117,3 +100,67 @@ export const saveSongEqSettings = (
     log.error('Failed to save song EQ settings', error);
   }
 };
+
+/**
+ * The file's contents as settings, or nothing for contents that are not this
+ * file — another version's, or not a song memory at all — which is then set
+ * aside rather than saved over (`keepSongMemory`).
+ */
+const parse: TParseSongMemory<ISongEqEntry> = (input) => {
+  const outputs = (input as { outputs?: unknown } | null)?.outputs;
+  if (
+    typeof input !== 'object' ||
+    input === null ||
+    (input as { version?: unknown }).version !== 1 ||
+    typeof outputs !== 'object' ||
+    outputs === null
+  ) {
+    return undefined;
+  }
+  return {
+    settings: {
+      version: 1,
+      outputs: normalizeOutputs(outputs as Record<string, unknown>),
+    },
+    dropped: 0,
+  };
+};
+
+const fileOf = (userDataDir: string) =>
+  path.join(userDataDir, SETTINGS_FILENAME);
+
+/**
+ * The file read just now, filed by fingerprints with every name of a song
+ * not the listener's own gone (`songMemoryNames.ts`), and what has to happen
+ * to it — see `ISongMemoryLoad`. A missing file is the ordinary case at first
+ * launch: no songs, and nothing to do.
+ */
+const settle = (text: string | undefined) =>
+  settleSongMemory(text, parse, getDefaultSongEqSettings);
+
+/** A read file taken in: set aside if damaged, written again if it names
+ * songs, and what to hold handed back. */
+export const keepSongEqSettings = (
+  userDataDir: string,
+  loaded: ISongMemoryLoad<ISongEqEntry>,
+): ISongEqSettings =>
+  keepSongMemory(fileOf(userDataDir), loaded, (settings) =>
+    saveSongEqSettings(userDataDir, settings),
+  );
+
+/** Read now, and taken in at once. */
+export const loadSongEqSettings = (userDataDir: string): ISongEqSettings =>
+  keepSongEqSettings(
+    userDataDir,
+    settle(readSongMemoryText(fileOf(userDataDir))),
+  );
+
+/**
+ * Read off the main thread, for the read just after launch
+ * (`ipc/songEq.ts`), which takes it in only if nothing has read the file
+ * since: by then a lookup may have read it and saved a song over it.
+ */
+export const readSongEqSettings = async (
+  userDataDir: string,
+): Promise<ISongMemoryLoad<ISongEqEntry>> =>
+  settle(await readSongMemoryTextSoon(fileOf(userDataDir)));

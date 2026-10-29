@@ -52,6 +52,9 @@ export interface IRemoteAudioValue {
   /** Whether this computer can play another's sound while it sends its own;
    * where it cannot, a link runs one way. */
   bothWays: boolean;
+  /** Local source gate; per-computer Send choices are preserved under it. */
+  sharing: boolean;
+  setSharing(sharing: boolean): Promise<void>;
   /** This computer's name on the network. */
   deviceName?: string;
   /** This computer's one code, the same for every computer it links with;

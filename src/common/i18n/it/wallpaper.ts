@@ -28,9 +28,9 @@ const wallpaper = {
     "Un'animazione lenta e tranquilla che ignora la musica.",
   'wallpaper.follow': 'Segui il grafico',
   'wallpaper.follow.hint':
-    'Mostra il visualizzatore Plus del grafico e cambia con esso, che lo scelga tu o il cambio automatico. Finché il grafico mostra un visualizzatore non Plus, questo schermo mantiene l’ultimo Plus.',
+    'Mostra la scena del grafico e cambia con essa, che la scelga tu o il cambio automatico. Finché il grafico mostra uno stile, questo schermo mantiene l’ultima scena.',
   'wallpaper.follow.choice':
-    'I monitor scelti cambiano con il visualizzatore Plus del grafico, che lo scelga tu o il cambio automatico, e mantengono l’ultimo finché il grafico ne mostra uno non Plus.',
+    'I monitor scelti cambiano con la scena del grafico, che la scelga tu o il cambio automatico, e mantengono l’ultima finché il grafico mostra uno stile.',
   'wallpaper.cancel': 'Annulla',
   'wallpaper.done': 'Fine',
   'wallpaper.start': 'Imposta sfondo',
@@ -61,7 +61,7 @@ const wallpaper = {
   'wallpaper.error.unavailable':
     'Impossibile raggiungere lo sfondo del desktop. Riprova.',
   'wallpaper.error.notEntitled':
-    'I visualizzatori del desktop sono inclusi in FluidEQ Plus.',
+    'Questa scena non è ancora tua. Ottienila nella Galleria per metterla sul desktop.',
   'wallpaper.error.missingScene':
     'Questo visualizzatore non è più installato. Aggiungilo di nuovo e riprova.',
   'wallpaper.error.refused':

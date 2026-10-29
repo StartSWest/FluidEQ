@@ -49,9 +49,9 @@ const app: Partial<Dictionary> = {
   'app.menu.resetSettings': 'Redefinir todas as configurações…',
   'settingsReset.title': 'Redefinir todas as configurações?',
   'settingsReset.body':
-    'O gráfico e os visualizadores, Cores da janela, o player, a Biblioteca, o idioma, Animações, Iniciar com o Windows, o fundo da área de trabalho e a Iluminação dinâmica voltam a ser como em uma nova instalação do FluidEQ.',
+    'O gráfico e os visualizadores, Cores da janela, o player, a Biblioteca, onde cada página ficou, Animações, Iniciar com o Windows, o fundo da área de trabalho e a Iluminação dinâmica voltam a ser como em uma nova instalação do FluidEQ.',
   'settingsReset.kept':
-    'Seu EQ, seus presets, curvas e DSP continuam como estão, assim como suas saídas, o mecanismo de áudio e tudo o que você salvou.',
+    'Seu EQ, seus presets, curvas e DSP continuam como estão, assim como suas saídas, o mecanismo de áudio, o idioma e tudo o que você salvou.',
   'settingsReset.action': 'Redefinir configurações',
   'settingsReset.failed':
     'Não foi possível redefinir as configurações. Tente novamente.',
@@ -75,7 +75,7 @@ const app: Partial<Dictionary> = {
   'app.processes.place.studio': 'Palco do Estúdio',
   'app.processes.name.window': 'Interface',
   'app.processes.what.window':
-    'A janela que você está vendo: a curva, a biblioteca, o player, todos os controles. Um processo por janela, para que um redesenho pesado não atrase o som. Os visualizadores Plus rodam aqui dentro em uma linha de execução própria, para que uma cena pesada não trave os controles.',
+    'A janela que você está vendo: a curva, a biblioteca, o player, todos os controles. Um processo por janela, para que um redesenho pesado não atrase o som. As cenas rodam aqui dentro em uma linha de execução própria, para que uma cena pesada não trave os controles.',
   'app.processes.name.core': 'Núcleo do app',
   'app.processes.what.core':
     'A parte sem janela. Armazena suas configurações, fala com os dispositivos de áudio e com o equalizador do sistema, procura atualizações e inicia todo o resto desta lista.',
@@ -84,10 +84,10 @@ const app: Partial<Dictionary> = {
     'O motor próprio do FluidEQ. Decodifica o que você reproduz e aplica o equalizador pelo caminho. É um programa à parte, por isso o Windows o coloca separado dos outros.',
   'app.processes.name.graphics': 'Gráficos',
   'app.processes.what.graphics':
-    'Desenha tudo o que está na tela na placa de vídeo: o espectro, a curva, cada animação e as cenas dos visualizadores Plus. Trabalha sempre que algo se move; nenhum modelo roda aqui.',
+    'Desenha tudo o que está na tela na placa de vídeo: o espectro, a curva, cada animação e as cenas. Trabalha sempre que algo se move; nenhum modelo roda aqui.',
   'app.processes.name.desktop': 'Visualizador da área de trabalho',
   'app.processes.what.desktop':
-    'Um visualizador Plus desenhado como fundo da área de trabalho de um monitor, à parte desta janela: um para cada monitor que o mostra. Pausa enquanto as janelas cobrem esse monitor ou o PC está bloqueado.',
+    'Uma cena desenhada como fundo da área de trabalho de um monitor, à parte desta janela: uma para cada monitor que a mostra. Pausa enquanto as janelas cobrem esse monitor ou o PC está bloqueado.',
   'app.processes.name.desktopHost':
     'Ajudante do visualizador da área de trabalho',
   'app.processes.what.desktopHost':
@@ -260,7 +260,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'Mídia online',
   'tabs.mediaShort': 'Mídia',
   'tabs.karaoke': 'Karaokê',
-  'tabs.plus': 'Plus',
+  'tabs.plus': 'Visualizadores',
   'tabs.scrollBack': 'Rolar abas para trás',
   'tabs.scrollForward': 'Rolar abas para a frente',
   'notice.apoReconfigured':
@@ -319,7 +319,6 @@ const app: Partial<Dictionary> = {
   'sidebar.preampAuto':
     'É ajustado sozinho. Desligue Normalizar automaticamente para mudar.',
   'sidebar.autoPreamp': 'Normalizar automaticamente',
-  'sidebar.visualizer': 'VISUALIZADOR',
   'sidebar.graphView': 'Gráfico de resposta',
   'sidebar.output': 'Saída',
   'config.eyebrow': 'O QUE O MOTOR LÊ',

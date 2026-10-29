@@ -35,6 +35,8 @@ const TERMS = {
   minimumCents: 1000,
   agreementVersion: 1,
   payoutDays: 15,
+  // The card's own rules, once FluidEQ can pay creators (premium 0070).
+  payoutsOpen: true,
 };
 const base: ICreatorStatus = {
   terms: TERMS,
@@ -81,6 +83,22 @@ it('leaves the card out while the server cannot say', async () => {
   const { container } = render(<CreatorPayoutsCard accountId="me" />);
   await waitFor(() => expect(mockStatus).toHaveBeenCalled());
   expect(container).toBeEmptyDOMElement();
+});
+
+it('leaves the card out while the server has payouts closed', async () => {
+  mockStatus.mockResolvedValue({
+    ok: true,
+    status: { ...base, terms: { ...TERMS, payoutsOpen: false } },
+  });
+  const { container, unmount } = render(<CreatorPayoutsCard accountId="me" />);
+  await waitFor(() => expect(mockStatus).toHaveBeenCalled());
+  expect(container).toBeEmptyDOMElement();
+  // The positive control: the same answer with payouts open is a card.
+  unmount();
+  showing(base);
+  expect(
+    await screen.findByRole('button', { name: 'creator.setUp' }),
+  ).toBeInTheDocument();
 });
 
 it('invites, and signs up in the country chosen with the terms agreed', async () => {

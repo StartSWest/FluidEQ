@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import fs from 'fs';
 import path from 'path';
-import { HELP_CHAPTERS } from '../../../common/helpGuide';
+import { HELP_CHAPTERS, isLiveFigure } from '../../../common/helpGuide';
 
 /**
  * Every help figure's declared size against the screenshot actually on disk.
@@ -34,7 +34,16 @@ const pngSize = (file: string): { width: number; height: number } => {
   return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
 };
 
-const figures = HELP_CHAPTERS.flatMap((chapter) => chapter.figures);
+// The captures the guide draws its circles on. A live figure draws its own
+// panel and measures it (`HelpLiveFigure`); its still is only shown plain.
+const figures = HELP_CHAPTERS.flatMap((chapter) =>
+  chapter.figures.flatMap((figure) => (isLiveFigure(figure) ? [] : [figure])),
+);
+const stills = HELP_CHAPTERS.flatMap((chapter) =>
+  chapter.figures.flatMap((figure) =>
+    isLiveFigure(figure) ? [figure.still] : [],
+  ),
+);
 
 describe('help figures', () => {
   it('declares the size the screenshot on disk actually is', () => {
@@ -82,5 +91,14 @@ describe('help figures', () => {
         .map((control) => `${figure.image}: ${control.name}`),
     );
     expect(outside).toEqual([]);
+  });
+
+  // The exported guide shows a live figure's still until pictures are drawn
+  // from the live figures by script, and fails without the file.
+  it('keeps the still every live figure names in docs', () => {
+    expect(stills.length).toBeGreaterThan(0);
+    expect(
+      stills.filter((still) => !fs.existsSync(path.join(DOCS, still))),
+    ).toEqual([]);
   });
 });

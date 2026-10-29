@@ -28,6 +28,7 @@ import { registerProcessIpc } from '../../../main/ipc/processes';
 import {
   LIBRARY_SCAN_PROCESS_NAME,
   MODEL_PROCESS_NAME,
+  SHARE_AUDIO_PROCESS_NAME,
 } from '../../../main/utilityProcessNames';
 
 const metric = (over: Record<string, unknown>) => ({
@@ -180,5 +181,24 @@ describe('process diagnostics IPC', () => {
   it("hands on each Electron process's running CPU total", async () => {
     const [row] = await rowsFor([metric({ pid: 1, type: 'Tab' })]);
     expect(row).toMatchObject({ cpuSeconds: 1.5, memoryMb: 10 });
+  });
+
+  it('counts the separate shared-audio owner under shared audio rather than browser sound', async () => {
+    const rows = await rowsFor([
+      metric({
+        pid: 24,
+        type: 'Utility',
+        serviceName: 'node.mojom.NodeService',
+        name: SHARE_AUDIO_PROCESS_NAME,
+      }),
+    ]);
+    expect(rows).toEqual([
+      expect.objectContaining({
+        pid: 24,
+        role: 'sharePlayback',
+        memoryMb: 10,
+        cpuSeconds: 1.5,
+      }),
+    ]);
   });
 });

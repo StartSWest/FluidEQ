@@ -30,7 +30,18 @@ describe("the Studio chat's brief", () => {
 
   it('says what the chat cannot do: run scripts or download', () => {
     expect(brief).toContain('You cannot run programs or reach the internet');
-    expect(brief).toContain('make_picture');
+    expect(brief).toContain('pack_artwork');
+  });
+
+  // ChatGPT pictures are closed for 2.1 (`studioChatPictures.ts`): Claude is
+  // never told of a tool it is not given, nor that FluidEQ reaches the
+  // member's ChatGPT. (The art section every AI gets still says to use an
+  // image tool of its own, if it has one; Claude in the chat has none.)
+  it('says nothing of make_picture or of ChatGPT through Codex while pictures are closed', () => {
+    expect(brief).not.toContain('make_picture');
+    expect(brief).not.toContain('PICTURES FROM CHATGPT');
+    expect(brief).not.toContain("the member's own\n  Codex");
+    expect(brief).toContain('You draw everything');
   });
 
   it('ends on the chat and its craft, with no idea left open', () => {

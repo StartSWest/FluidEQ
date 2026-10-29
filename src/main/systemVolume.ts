@@ -21,13 +21,13 @@ import type { BrowserWindow } from 'electron';
 import log from 'electron-log';
 import {
   ISystemVolume,
-  parseSystemVolumeLine,
   SYSTEM_VOLUME_CHANGED,
   SYSTEM_VOLUME_CHANNEL,
   systemVolumeCommand,
 } from '../common/systemVolume';
 import { createHelperReplacement } from './helperReplacement';
 import onWindowMessage from './ipc/windowMessages';
+import createSystemVolumeCommands from './systemVolumeCommands';
 
 const volumeExecutables: Partial<Record<NodeJS.Platform, string>> = {
   win32: 'FluidEQ-Volume.exe',
@@ -62,8 +62,8 @@ export interface ISystemVolumeWatch {
   /** Start following, or keep following; the level arrives at once. */
   start: () => void;
   stop: () => void;
-  set: (level: number) => void;
-  mute: (isMuted: boolean) => void;
+  set: (level: number, requestId?: string) => void;
+  mute: (isMuted: boolean, requestId?: string) => void;
 }
 
 /**
@@ -90,6 +90,7 @@ export const createSystemVolumeWatch = (
     const running = child;
     child = undefined;
     buffered = '';
+    commands.reset();
     running?.stdin.end();
   };
 
@@ -100,6 +101,7 @@ export const createSystemVolumeWatch = (
   };
 
   const run = (executable: string) => {
+    commands.reset();
     const started = spawn(executable, [], { windowsHide: true });
     const helper = replacement.run();
     started.stdout.setEncoding('utf8');
@@ -111,12 +113,15 @@ export const createSystemVolumeWatch = (
       let end = buffered.indexOf('\n');
       while (end >= 0) {
         const line = buffered.slice(0, end);
-        const said = parseSystemVolumeLine(line);
         buffered = buffered.slice(end + 1);
-        if (said !== undefined) {
-          helper.heard(line);
-          last = said;
-          onChange(said);
+        if (commands.accept(line)) {
+          // Capability headers and an unchanged applied reply are not proof
+          // that the helper followed an OS change. Keep replacement bounded.
+          if (line !== 'ready\t2') {
+            helper.heard(
+              line.startsWith('applied\t') ? `volume\t${line.slice(8)}` : line,
+            );
+          }
         }
         end = buffered.indexOf('\n');
       }
@@ -149,6 +154,11 @@ export const createSystemVolumeWatch = (
     child = started;
   };
 
+  const commands = createSystemVolumeCommands(write, (volume) => {
+    last = volume;
+    onChange(volume);
+  });
+
   const start = () => {
     replacement.asked();
     if (child) {
@@ -169,13 +179,18 @@ export const createSystemVolumeWatch = (
   return {
     start,
     stop,
-    set: (level) => {
+    set: (level, requestId) => {
       const command = systemVolumeCommand(level);
       if (command) {
-        write(command);
+        commands.enqueue({ kind: 'set', line: command, requestId });
       }
     },
-    mute: (isMuted) => write(isMuted ? 'mute 1' : 'mute 0'),
+    mute: (isMuted, requestId) =>
+      commands.enqueue({
+        kind: 'mute',
+        line: isMuted ? 'mute 1' : 'mute 0',
+        requestId,
+      }),
   };
 };
 
@@ -196,7 +211,9 @@ export const registerSystemVolumeIpc = (
     if (event.sender !== getMainWindow()?.webContents || !Array.isArray(arg)) {
       return;
     }
-    const [command, value] = arg as unknown[];
+    const [command, value, token] = arg as unknown[];
+    const requestId =
+      typeof token === 'string' && token.length <= 64 ? token : undefined;
     if (command === 'watch') {
       if (value === true) {
         watch.start();
@@ -206,11 +223,11 @@ export const registerSystemVolumeIpc = (
       return;
     }
     if (command === 'set' && typeof value === 'number') {
-      watch.set(value);
+      watch.set(value, requestId);
       return;
     }
     if (command === 'mute' && typeof value === 'boolean') {
-      watch.mute(value);
+      watch.mute(value, requestId);
     }
   });
   return {

@@ -100,6 +100,10 @@ describe('groupPlaysMatched', () => {
 });
 
 describe('the engine this tree builds', () => {
+  it('includes live Normalizer retargeting and measured output LUFS', () => {
+    expect(engineAtLeast(binaryVersion('FILEVERSION'), [1, 24])).toBe(true);
+    expect(engineAtLeast(binaryVersion('PRODUCTVERSION'), [1, 24])).toBe(true);
+  });
   it('supports Game mode while older and unknown engines do not', () => {
     expect(engineSupportsGameMode(binaryVersion('FILEVERSION'))).toBe(true);
     expect(engineSupportsGameMode('1.9.0.0')).toBe(false);

@@ -33,7 +33,7 @@ import { app, BrowserWindow, powerMonitor } from 'electron';
 import log from 'electron-log';
 import path from 'path';
 import fs from 'fs';
-import { fetchSettings } from './flush';
+import { fetchSettings, save } from './flush';
 import { flushPendingWrites, scheduleWrite } from './asyncWriter';
 import {
   getConfigPath,
@@ -68,6 +68,7 @@ import {
   destroyTray,
   isAppQuitting,
   revealMainWindow,
+  setTrayTintedIcon,
   setUpTray,
 } from './tray';
 import { consumeUnattendedRestart } from './unattendedUpdate';
@@ -113,6 +114,7 @@ import { registerGamesIpc } from './ipc/games';
 import { registerSystemVolumeIpc } from './systemVolume';
 import { registerStartWithWindowsIpc } from './ipc/startWithWindows';
 import { registerSettingsResetIpc } from './ipc/settingsReset';
+import { registerTaskbarIconIpc } from './taskbarIcon';
 import { DEFAULT_LIGHTING_SETTINGS } from '../common/lighting/lightingModel';
 import { MOTION_SWITCHES, readMotionPreference } from './motionPreference';
 import {
@@ -434,10 +436,6 @@ const { apoGuard } = registerEngineServices({
     ]).catch((error: unknown) =>
       log.error('Could not move output processing to the new engine', error),
     );
-    // The admin's engine count follows a switch now, not at the next event.
-    members.sceneTasteIpc
-      .uploadIfDue('an engine switch')
-      .catch(() => undefined);
   },
 });
 
@@ -694,7 +692,6 @@ registerSystemVolumeIpc(getMainWindow);
 const members = registerMemberServices({
   getMainWindow,
   userDataDir,
-  getEngine: () => session.audioEngine,
 });
 
 // The tools menu's animations row: the saved choice, and the one this launch
@@ -791,7 +788,7 @@ const lighting = registerLightingIpc({
   userDataDir,
   appVersion: appVersion(),
   getMainWindow,
-  entitled: () => members.sceneOwnership.ownsAnything(),
+  entitled: () => members.ownsAnyScene(),
 });
 // The helper's exit hands every Windows lamp back; Razer's session is ended
 // rather than left to lapse.
@@ -811,7 +808,28 @@ registerSettingsResetIpc({
       windowModes.setPinned(mainWindow, false);
     }
   },
+  // The window reads the state again as it reloads after the reset, so the
+  // switch is right in memory at once; the file follows on the writer's own
+  // schedule, as after any edit.
+  showGraph: () => {
+    state.isGraphViewOn = true;
+    save(state, userDataDir).catch((error) =>
+      log.error('Settings reset: could not save the graph switch', error),
+    );
+  },
   logger: log,
+});
+// The taskbar button in the window's colours; the installed icon while it
+// wears the app's own (`taskbarIcon.ts`). The same .ico the window is made
+// with (`mainWindow.ts`), found the same way.
+registerTaskbarIconIpc({
+  userDataDir,
+  stockIconPath: app.isPackaged
+    ? path.join(process.resourcesPath, 'assets', 'icon.ico')
+    : path.join(__dirname, '../../assets/icon.ico'),
+  getWindow: () => mainWindow,
+  logger: log,
+  onIcon: setTrayTintedIcon,
 });
 // The process list, which needs the host's pid to include it as a row — the
 // DSP engine is our own child rather than Electron's, so `getAppMetrics` has
@@ -887,9 +905,8 @@ const comeBack = createComeBackWatch({
     plusGallery: members.plusGalleryIpc,
     sceneReviews: members.plusReviewIpc,
     plusTermsNotice: members.plusTermsNoticeIpc,
-    sceneTaste: members.sceneTasteIpc,
-    listening: members.listeningIpc,
     sceneAnnouncements: members.sceneAnnouncementsIpc,
+    addons: members.addons,
   }),
   getActiveAutoUpdater: updates.getActiveAutoUpdater,
   applyUpdateIfUnattended: updates.applyUpdateIfUnattended,
@@ -989,14 +1006,6 @@ app.on('before-quit', (event) => {
   // quit — so without this line a Windows shutdown would be refused by a
   // window trying to hide itself into the tray.
   beginQuit();
-  destroyTray();
-  stopRemoteAudioLan();
-  stopOutputMirrors();
-  // The forum's GitHub sign-in holds a loopback socket for the same reason.
-  forumIpc.dispose();
-  motionPreferenceIpc.dispose();
-  startWithWindowsIpc.dispose();
-  graphicsPreferenceIpc.dispose();
   // Here rather than in `will-quit`, which is already too late to wait for
   // anything asynchronous. A host left running holds an audio endpoint open,
   // and an endpoint held by a process whose parent has gone is one Windows
@@ -1006,11 +1015,26 @@ app.on('before-quit', (event) => {
   diskSync.stop();
 });
 
-// Renderers report their final listening fragment while their windows close.
-// Removing these handlers in before-quit rejected that last report on every
-// dev restart. will-quit runs after the windows are gone, while synchronous
-// disposal can still close the account's sockets and native resources.
-app.on('will-quit', () => members.dispose());
+// What only a quit that is going ahead may take down: the account and every
+// service on it, the forum, the tray, the network links. `before-quit` can
+// still be called off after it runs — the windows close only after it, and a
+// close that does not happen ends the quit with the process alive — and these
+// used to be disposed there: on 2026-10-24 a quit that never finished left the
+// dev window running with every one of their channels unregistered, so Sign
+// out, the credits and the forum each answered "No handler registered".
+// `will-quit` comes once every window has closed, when nothing can call the
+// quit off. The forum's GitHub sign-in holds a loopback socket, which this
+// still closes on every real quit, Windows' own included.
+app.on('will-quit', () => {
+  destroyTray();
+  stopRemoteAudioLan();
+  stopOutputMirrors();
+  members.dispose();
+  forumIpc.dispose();
+  motionPreferenceIpc.dispose();
+  startWithWindowsIpc.dispose();
+  graphicsPreferenceIpc.dispose();
+});
 
 const isTheOnlyCopy = claimTheOnlyCopy({ userDataDir, getMainWindow });
 // `fluideq://` links, before `ready`: macOS delivers one at launch as an event.

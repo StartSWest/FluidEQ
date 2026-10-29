@@ -242,25 +242,38 @@ const useShellFullScreen = ({
     setMediaFullScreenOwner(undefined);
   }, []);
 
-  // Ctrl+F and Ctrl+S always mean graph fullscreen and expanded mode in a
-  // playback workspace. This listener also covers Library and Karaoke when
-  // their normal per-tab graph is hidden, where FrequencyResponseChart has no
-  // mounted listener of its own to hear either shortcut. The player's explicit
-  // fullscreen controls use the shared media surface instead; separate
-  // commands, separate visible results, all App-owned.
+  // Graph shortcuts belong to the graph enabled on the current page. A
+  // decorative Karaoke background does not enable them. Capture the hidden
+  // case here because an unmounted chart cannot suppress native Save/Find.
   useEffect(() => {
     const isMediaTab = isFullscreenMediaTab(activeWorkspaceTab);
-    if (!isMediaTab && !isMediaFullScreen) {
-      return undefined;
-    }
     const onKeyDown = (event: KeyboardEvent) => {
+      // The Amp has its own shortcuts, independent of the page behind it.
+      if (
+        (event.target as HTMLElement | null)?.closest?.('.mini-player-host')
+      ) {
+        return;
+      }
+      const shortcut = event.key.toLowerCase();
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        !event.altKey &&
+        !showsGraph &&
+        (shortcut === 's' ||
+          shortcut === 'f' ||
+          (activeWorkspaceTab === 'karaoke' && shortcut === 'w'))
+      ) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
       // Reading help must not toggle the playback surface behind its modal.
       if (document.querySelector('dialog.help-guide[open]')) {
         return;
       }
-      const shortcut = event.key.toLowerCase();
       const wantsToggle =
         isMediaTab &&
+        showsGraph &&
         (event.ctrlKey || event.metaKey) &&
         !event.altKey &&
         !event.repeat &&
@@ -272,7 +285,7 @@ const useShellFullScreen = ({
       if (
         wantsExit &&
         (document.querySelector(
-          '[role="dialog"]:not(.karaoke-maker), .dropdown--open',
+          '[role="dialog"]:not(.karaoke-maker), [role="alertdialog"], .dropdown--open',
         ) ||
           (event.target as HTMLElement | null)?.closest?.(
             'input, textarea, [contenteditable]',
@@ -309,6 +322,7 @@ const useShellFullScreen = ({
     isMediaFullScreen,
     releaseMediaSurface,
     setActiveTabGraphVisibility,
+    showsGraph,
   ]);
 
   /**

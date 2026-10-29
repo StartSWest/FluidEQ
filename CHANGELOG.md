@@ -13,12 +13,15 @@ they sound the way you tuned them; switch to the speakers and their preset,
 DSP rack and Room come back with them. Any band can now be tuned for each ear
 on its own, the DSP rack gains a De-esser that turns down only a voice's
 sharp S, a second output plays straight from the FluidEQ Engine, Share Audio
-works both ways between two computers, songs can remember how you like them,
-and the graph shows every band's numbers right on the curve.
+links a whole group of computers both ways, songs can remember how you like them,
+and the graph shows every band's numbers right on the curve. And the
+visualizers are yours for good: a scene costs one credit and stays yours,
+with no subscription, and the Studio is open to every account.
 
-This release brings FluidEQ Engine 1.23. FluidEQ offers the update after it
-starts, with one Windows prompt; until then each ear plays both ears' bands
-and the De-esser is not heard, and everything else plays as before.
+This release brings FluidEQ Engine 1.24. FluidEQ offers the update after it
+starts, with one Windows prompt; until then each ear plays both ears' bands,
+the De-esser is not heard and the leveling's output loudness is not shown,
+and everything else plays as before.
 
 ### Outputs
 
@@ -33,12 +36,17 @@ and the De-esser is not heard, and everything else plays as before.
 - **The second output keeps time by itself**, and every delay is shown in
   milliseconds, the network's included when the sound comes from another
   computer.
-- **Share Audio works both ways.** Link two computers once, from either side,
-  and each can send its sound and play the other's, each direction on its own
-  switch. Each link can be paused and resumed and has a volume of its own,
-  and a link no longer stays stuck after either computer restarts. The sound
-  arriving shows the rate it comes in at, the incoming line no longer goes
-  blank after a pause, and a new connection always starts playing.
+- **Share Audio links a whole group, both ways.** Link a computer once, from
+  either side, and it joins the group: every computer sends its own sound
+  straight to the others and plays theirs, with **Receive** and **Send** on
+  their own switches for each one. **Your mix** holds this computer's volume
+  and a volume of its own for every computer you hear. **Add computer** opens
+  the pairing whenever you need it, computers that are away stay listed, and
+  the group finds itself again by itself after a restart, a sleep, a
+  network drop or a switch of audio engine. Each computer can be paused and resumed, the sound arriving
+  shows the rate it comes in at, and a new connection always starts playing.
+  The bar shows only the computers whose sound reaches you, and **This
+  computer** says when sound is playing that no player names, such as a game.
 - **Bluetooth headphones show their battery** beside the output, and beside
   the second output.
 
@@ -64,6 +72,13 @@ and the De-esser is not heard, and everything else plays as before.
   names whatever it leaves out, and never overwrites a name you already have
   without asking: keep both, replace or skip. Your curves are kept in a file
   of their own in FluidEQ's data folder.
+- **The OPRA list draws every measurement's curve** beside its name, so the
+  measurements of one headphone are told apart by eye, and **Save to My
+  curves** stands beside **Apply**, ready before anything is applied. The
+  curve playing is marked Applied in every tab, whichever tab applied it, and
+  the correction's chip calls it by its name in My curves. The headphone
+  picked links to its page on fluideq.com, where every correction for it is
+  drawn and credited.
 - **Switch corrections in one press.** The EQ mode card's Corrections tab has
   a **Correction** picker: your curves first, then the OPRA curves for the
   headphone playing, with arrows either side to step through them, so
@@ -97,6 +112,11 @@ and the De-esser is not heard, and everything else plays as before.
   Reset in EQ mode goes back there. Off is still one press away.
 - **The curve follows a slider at once.** Moving a band's slider redraws the
   curve in the same frame, as dragging the curve already moved the slider.
+- **The Tone knobs and a band's controls change places smoothly.** Selecting
+  a band fades the Tone row out and brings the band's controls in from left
+  to right; clicking off brings the Tone knobs back the same way, and moving
+  from one band to another does too. Each change plays once, dragging a band
+  moves nothing, and Animations off makes it instant.
 - **The handles and knobs work from the keyboard**: the arrow keys step a
   fader, a knob or a point's gain, and a screen reader names each point by its
   band and frequency. While the EQ is switched off its controls are dimmed and
@@ -135,6 +155,10 @@ and the De-esser is not heard, and everything else plays as before.
   your choice. Oversampling now takes far less work than before, which is what
   made the sound cut out on some computers with High on.
 - The pop-style genre chains add their brightness with the Exciter.
+- **Live leveling follows your target at once.** Changing its loudness target
+  or its peak ceiling glides the level to the new one in the middle of a song,
+  without forgetting what it learned of the song. The panel shows the loudness
+  going in and the loudness coming out, each over the last three seconds.
 - **Save on every filter.** Denoise, De-esser, Exciter, Bass Forge, Bass
   Punch, Dimension, Maximizer and Master each keep profiles of your own,
   listed first under Yours, saved and deleted the way the EQ's are.
@@ -150,15 +174,80 @@ and the De-esser is not heard, and everything else plays as before.
   during a song comes back whenever that song plays here, with a notice that
   says so and an Undo. It starts switched off. **One player at a time** starts
   switched on.
+- **A playlist stays in Up next.** Playing a playlist, from the Library or the
+  Compact player, keeps that playlist in Up next whatever you browse next;
+  **Add to up next** puts songs at the bottom, each once, even when the same
+  playlist is added twice. With Keep playing on, **More like this** appears
+  only when the last song is playing, as its own part below the list. Music
+  dropped on the Compact player's Up next goes in where you let go.
+- **A Library scan can be put out of the way.** Its notice has a × that hides
+  it while the scan carries on, and a small Stop; the Rescan chip says how far
+  the scan has got and brings the notice back.
+
+### The Compact player
+
+- **One Compact player, the same in every window colour.** It is one column:
+  the visualizer at the top with the song over it, the transport, the Sound
+  with its Tone knobs or your EQ's bands, and Up next and Playlists below,
+  each folding away when you want the room. Drop music anywhere on it and it
+  goes on the end of Up next. With a scene from Visualizers it is always the
+  Backdrop, and the scene follows Brightness as the full app does. It has one
+  width; its height is yours, from its top edge or its bottom one, and nothing
+  in it scrolls but the list. It replaces the classic amp and the Stage.
+- **It opens and folds with a motion of its own.** From the full app or from
+  the strip folded to one line, the column opens down out of its header, and
+  folding to one line plays it back up into it. The full app switches without
+  motion, to stay light, and Animations off makes both instant. Coming back
+  from it puts the full app where it was, at its own size.
+- **Folded to one line, it has room to breathe.** The strip is a little
+  taller, with even margins, a soft play key, quieter window buttons and a
+  thin line for the song's position that never glows; its knob shows when you
+  point at it. A standard visualizer moves faintly behind the song, as a
+  scene already does.
 
 ### Visualizers
 
+- **Any colour for the window with a standard visualizer.** A Tint slider
+  beside Brightness, in Window colours, the main menu and the Compact
+  player's menu, turns the whole window to the colour you pick, the graph and
+  the faders with it. Double-click it to go back to the usual colour; Reset
+  all settings does the same.
+- **Rainbow mode is now Colourful mode**, and it plays in the window's own
+  colours — the Tint you picked or a scene's — instead of a fixed rainbow.
+  Its share card is new too.
+- **Tint app icon.** A switch under Colourful mode, in the main menu, Window
+  colours and the Compact player's menu, draws FluidEQ's taskbar button, its
+  tray icon and the icon in the tray's menu in the window's colours, and
+  follows them as they change. It starts off.
+- **The name in the title bar stands alone**, on one line in one sweep of
+  colour, with the version coming in last.
+- **What a scene's time of day follows is one choice of three**, Off,
+  Brightness or Clock, right under its Daylight slider, in Window colours and
+  in the Compact player's menu. Daylight always reads as a whole percent.
+
+- **Scenes are yours for good, one credit each.** Open a scene in
+  **Visualizers → Gallery**, watch it for 10 seconds, and **Get** keeps it in
+  your looks for good — on the graph, your desktop and your lights, on every
+  computer you sign in to, with every update its maker publishes. Credits come
+  in packs paid once on Stripe in your browser — 5 for $4.99, 12 for $9.99,
+  30 for $19.99 — and nothing renews; a confirmed account gets 3 credits free
+  to start. Credits you have not spent are refunded if you ask within 14 days.
+  Checkout opens in your language, and credits paid in the browser reach
+  FluidEQ by themselves, through **Back to FluidEQ** on the page after paying.
+- **No more subscription.** The Plus membership is no longer sold, and the
+  tab it opened is now **Visualizers**. A membership already running keeps
+  working until FluidEQ moves its members to credits; then every scene a
+  member added stays theirs, and every account that paid for it gets at least
+  5 credits.
+- **FluidEQ can make some of its own scenes free for everyone**: while one is
+  free it plays for every account signed in.
+- **The leaderboard is gone.**
 - **Tune the wave where you put a visualizer on the desktop.** The Desktop
   background dialog has Wave height and Wave position, drawn at once on the
   monitor that will play it, and opens on the wave a monitor already plays it
   with.
-- **Standard looks have their own graphics settings**, apart from Plus
-  visualizers: full resolution and plain scaling to start with.
+- **Standard looks have their own graphics settings**, apart from the
+  scenes: full resolution and plain scaling to start with.
 - **Tap a 3D world's birds or fish and they fly off the way they face**,
   larger near the bottom of the screen and smaller towards the top, as they
   would be nearer or farther away. They used to spin like petals and fly on
@@ -171,12 +260,15 @@ and the De-esser is not heard, and everything else plays as before.
   scenes framed and Try them now to play the first on the graph.
 - **Hearts on members' scenes.** Like a scene in the gallery and its maker
   sees it; FluidEQ's own scenes carry no counts.
-- **Your account shows how long each scene has played**, your own scenes
-  included, down to the second under a minute. Counting starts only once you
-  have seen the revised Plus terms, which say what is kept: how long each
-  scene is on screen, per scene and day, and which audio engine you use.
 
 ### The Studio
+
+- **The Studio is free for every account.** Make scenes with your AI, export
+  them and publish them to the gallery, with no membership. A scene you
+  publish is read by FluidEQ's maker first, and plays free for you everywhere
+  once it is approved; each time an account gets it with a paid credit, you
+  earn half a credit, and every two make a credit to get other members' scenes
+  or FluidEQ's. The account panel says when half a credit is waiting.
 
 - **Ask for a change and watch it on the stage.** The Studio has a chat beside
   its stage: say what should change — how a scene looks, how it moves with the
@@ -194,8 +286,9 @@ and the De-esser is not heard, and everything else plays as before.
   - Pick the model and how hard it thinks; a ring shows how much of the
     conversation's room is used, **Compact** makes more, and the accounts
     card shows how much of your 5-hour and weekly limits is left.
-  - With ChatGPT connected through Codex, it can paint pictures for the scene,
-    asking you before each one.
+- **The message you are writing is kept.** Each scene keeps its unsent chat
+  message, and the stage picture attached with your drawings on it, through a
+  restart, until you send it.
 - **The Studio says which versions you have**: the bench's, the copy in your
   looks (and whether it is behind), and the gallery's.
 - **While the Studio is open, the scenes' time of day follows its
@@ -207,6 +300,20 @@ and the De-esser is not heard, and everything else plays as before.
 
 ### Account
 
+- **The account panel is your profile.** It stands you on the scene the graph
+  is playing, with how many scenes you own, have published and the hearts on
+  them; then your credits, your newest scenes, each a press from the graph,
+  and what you have published with where each one stands.
+- **Nothing about how you use FluidEQ is sent.** Signed in or not, FluidEQ no
+  longer tells its maker how long each scene is on your screen or which audio
+  engine you use, and what was sent before is deleted. What the service keeps
+  is what you do on purpose: the scenes you get, like and publish.
+- **What another player played is not kept.** A browser tab or another
+  player's song shows on the bar only while that player is playing it, and
+  is gone once it closes, on this computer and on every computer in a Share
+  Audio group; it no longer comes back when FluidEQ starts. Songs whose sound
+  you keep are filed by a fingerprint, never by their title, and the Media
+  page's download log no longer names the files.
 - **Sign in with Google.** Continue with Google opens Google in your own
   browser, where you are usually signed in already, and FluidEQ finishes the
   sign-in when Google sends you back; the panel says it is waiting and keeps
@@ -215,6 +322,11 @@ and the De-esser is not heard, and everything else plays as before.
 
 ### What's New and Help
 
+- **Help is drawn from the app itself.** Its pictures of the title bar, the
+  Compact player, Share Audio, the look picker, the Forum and the Visualizers
+  pages are FluidEQ's own parts, in your language and your window's colours,
+  so they always show the app you have. The downloadable guide carries the
+  same text.
 - **Films of the real app.** Fourteen of What's New's slides, and the Help
   topics they belong to, now have a short film of the feature being used,
   with a voice saying what it is and how to use it, in your language, and the
@@ -251,6 +363,12 @@ and the De-esser is not heard, and everything else plays as before.
 
 ### Fixes
 
+- Output names in any language read right: a name in Chinese or any other
+  script came out as question marks and boxes.
+- A Share Audio group of one says "1 computer", in every language.
+- **Reset all settings** also sends every page back to where a new install
+  opens it and turns the graph back on, and it no longer changes your
+  language. The window keeps its size and place.
 - Dragging a band is heard as it moves again. Each step used to wait until
   every output's settings had been written, so with many outputs the sound
   trailed the hand by seconds.

@@ -13,6 +13,7 @@ import {
 } from 'common/creatorPayouts';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import { pluralCategory } from '../utils/pluralCategory';
 import { CREATOR_ERRORS } from './creatorErrors';
 import CreatorSignUpDialog from './CreatorSignUpDialog';
 import { loadCreator, refreshCreator, useCreator } from './creatorStore';
@@ -42,16 +43,8 @@ const LINES: Record<TStage, TranslationKey> = {
   paid: 'creator.paidLine',
 };
 
-type TCategory = 'one' | 'few' | 'many' | 'other';
-
-const salesKey = (count: number, locale: string): TranslationKey => {
-  const category = new Intl.PluralRules(locale).select(count);
-  const known: TCategory =
-    category === 'one' || category === 'few' || category === 'many'
-      ? category
-      : 'other';
-  return `creator.sales.${known}`;
-};
+const salesKey = (count: number, locale: string): TranslationKey =>
+  `creator.sales.${pluralCategory(count, locale)}`;
 
 interface ICreatorPayoutsCardProps {
   /** Whose payouts these are. A different account starts the read again. */
@@ -80,7 +73,9 @@ export default function CreatorPayoutsCard({
     loadCreator(accountId).catch(() => undefined);
   }, [accountId]);
 
-  if (!status || asked !== accountId) {
+  // A server whose switch is closed (premium 0070) refuses every sign-up, so
+  // the card would only offer a button that cannot work.
+  if (!status || asked !== accountId || !status.terms.payoutsOpen) {
     return null;
   }
 

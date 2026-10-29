@@ -286,7 +286,7 @@ later, with less context.
   failure the code prevents — never what the next line does.
 - Reusable, but never flag-driven: a component that needs mode flags to behave
   two ways is two components.
-- Every user-facing string goes through i18n, all ten locales in the same
+- Every user-facing string goes through i18n, every supported locale in the same
   commit.
 
 ## Never read the built binaries
@@ -789,7 +789,9 @@ Everything worth knowing about them is available through commands:
   room the level recovers 0.15 dB/s toward 0 dB. Ivan's own design ("don't
   touch my auto normalizer", "recover to 0 dB"); 0.3 dB/s after 3 s made a
   jazz track 10 dB dirtier in its worst second, which is how the rate was
-  chosen on five songs.
+  chosen on five songs. Starting at 0 dB, and a 0.3 dB/s climb, were tried on
+  2026-10-26 and both taken back the same day at his word ("when I change to
+  another song it suddenly rises the volume", "keep as it was").
 - **An edit's level is predicted, never climbed to** (engine 1.16, Ivan
   2026-09-23: "jump straight to it and then the auto normalize just
   finetune"). The engine keeps the last 10 s of music as it leaves the rack
@@ -1641,7 +1643,7 @@ available in both the installer and the uninstaller pass; the plug-in hard-codes
 one with no window ever shows nothing, rather than the console flash an
 earlier build had.
 
-The ten translations live in `assets/nsis/engine-strings.nsh`, pulled in with
+The installer translations live in `assets/nsis/engine-strings.nsh`, pulled in with
 `!include /CHARSET=UTF8`. That is load-bearing: electron-builder passes
 `-INPUTCHARSET UTF8` for the main script only, so a BOM-less include is read
 in the machine's ANSI code page and every non-ASCII character arrives mangled.

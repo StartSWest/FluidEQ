@@ -24,6 +24,7 @@ import type { IHelpHandlers } from 'renderer/help/helpMenuActions';
 import { setWindowMode } from 'renderer/player/windowModeStore';
 import { getThemeShade, setTheme } from 'renderer/utils/theme';
 import { OCEAN_SHADE, THEME_SHADE_MAX } from 'renderer/utils/themeShade';
+import { setWindowTint } from 'renderer/utils/windowTint';
 
 // Whether the titlebar has given up Help and the compact-player switch for
 // want of room, which the bar decides by measuring (`titlebarRoom.test.ts`).
@@ -41,6 +42,7 @@ afterEach(() => {
   cleanup();
   jest.restoreAllMocks();
   setTheme('black');
+  setWindowTint(undefined);
   mockToolsShed = false;
 });
 
@@ -410,6 +412,24 @@ describe('the settings tray', () => {
       screen.getByRole('menu', { name: 'FluidEQ actions' }),
     ).toBeInTheDocument();
   });
+
+  // Any colour for the window with a standard look, beside Brightness (Ivan,
+  // 2026-10-25: "a color tint option for the standard app so they choose any
+  // color with an slider next to the brightness", "make sure to do it here
+  // too").
+  it('offers the window’s Tint with a standard look, and remembers the hue chosen', async () => {
+    const { trigger } = show('ready');
+    open(trigger);
+    const tint = screen.getByRole('slider', { name: en['graph.windowTint'] });
+    fireEvent.change(tint, { target: { value: '330' } });
+    expect(tint).toHaveValue('330');
+    await waitFor(() =>
+      expect(window.localStorage.getItem('fluideq.windowTint')).toBe('330'),
+    );
+    expect(
+      screen.getByRole('menu', { name: 'FluidEQ actions' }),
+    ).toBeInTheDocument();
+  });
 });
 
 describe('opening and closing the actions menu', () => {
@@ -446,9 +466,23 @@ describe('opening and closing the actions menu', () => {
       expect(shape).toHaveFocus();
     });
 
+    // "Tint app icon" under Colourful mode, off as a new install has it.
+    fireEvent.keyDown(menu, { key: 'ArrowUp' });
+    const appIcon = screen.getByRole('checkbox', {
+      name: en['graph.sceneTint.appIcon'],
+    });
+    expect(appIcon).toHaveFocus();
+    expect(appIcon).not.toBeChecked();
+
     fireEvent.keyDown(menu, { key: 'ArrowUp' });
     expect(
       screen.getByRole('checkbox', { name: en['graph.sceneTint.rainbow'] }),
+    ).toHaveFocus();
+
+    // The window's Tint beside Brightness, with a standard look on.
+    fireEvent.keyDown(menu, { key: 'ArrowUp' });
+    expect(
+      screen.getByRole('slider', { name: en['graph.windowTint'] }),
     ).toHaveFocus();
 
     fireEvent.keyDown(menu, { key: 'ArrowUp' });

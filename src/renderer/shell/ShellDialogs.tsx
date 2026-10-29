@@ -33,13 +33,11 @@ import FeatureTour from '../components/featureTour/FeatureTour';
 import { featureTourFor } from '../components/featureTour/slides';
 import MandatoryUpdateModal from '../components/MandatoryUpdateModal';
 import PlusTermsNotice from '../components/PlusTermsNotice';
-import ListeningNotice from '../components/ListeningNotice';
 import SceneAnnouncementDialog from '../components/SceneAnnouncementDialog';
+import { AppNewsHost, AppNewsNotice } from '../components/AppNews';
 import ProcessesDialog from '../components/ProcessesDialog';
 import RestartAudioDialog from '../components/RestartAudioDialog';
 import SceneReviewNotice from '../components/SceneReviewNotice';
-import ServerLimitNotice from '../components/ServerLimitNotice';
-import PayoutDueNotice from '../components/PayoutDueNotice';
 import SongEqNotice from '../components/SongEqNotice';
 import SongSoundNotice from '../components/SongSoundNotice';
 import SongSoundSaveNotice from '../components/SongSoundSaveNotice';
@@ -56,6 +54,7 @@ import { useFluidEqShell } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { resetRhythmRun } from '../utils/rhythmRun';
 import type { TWorkspaceTab } from '../workspaceTabs';
+import { rendererAddons } from '../addons';
 import { ImportNotice, RecoverableErrorNotice } from './ShellNotices';
 import {
   FEATURE_TOUR_DISMISSED_KEY,
@@ -74,6 +73,7 @@ export interface IShellDialogsProps {
    * rather than by the red banner every other blocking failure raises.
    */
   isEngineUnchosen: boolean;
+  isNewsObscured?: boolean;
   selectTopWorkspaceTab: (tab: TWorkspaceTab) => void;
 }
 
@@ -85,6 +85,7 @@ const ShellDialogs = ({
   dialogs,
   engine,
   isEngineUnchosen,
+  isNewsObscured = false,
   selectTopWorkspaceTab,
 }: IShellDialogsProps) => {
   const { globalError, isBlockingError, isLoading, setGlobalError } =
@@ -244,23 +245,21 @@ const ShellDialogs = ({
       {/* Here too: the terms promise that the app tells a member when they
           change, and a member need never open the Plus tab to use Plus. */}
       <PlusTermsNotice />
-      {/* And every signed-in account's, member or not: whether its
-          listening time is counted is asked once, on whichever tab is open. */}
-      <ListeningNotice />
-      {/* Here for the same reason: a scene waiting for the admin, or a
-          maker's scene approved or not, is news on whichever tab is open. */}
+      {/* Here for the same reason: a maker's scene approved or not is news
+          on whichever tab is open. */}
       <SceneReviewNotice />
-      {/* The admin's alone: the server nearing a limit of its plan, which
-          has to be paid for before it fills, on whichever tab is open. */}
-      <ServerLimitNotice />
-      {/* The admin's too: creators owed their payout, every 15 days. */}
-      <PayoutDueNotice />
+      {/* An add-on's own corner notices (`renderer/addons.ts`). */}
+      {rendererAddons().map(
+        ({ name, Notices }) => Notices && <Notices key={name} />,
+      )}
       {/* A scene reported from the looks: the menu it was asked from
           closes under the dialog, so the dialog lives here. */}
       <SceneReportHost />
       {/* New scenes announced, once, on whichever tab is open: the set's
           first scene plays on the graph from its button. */}
       <SceneAnnouncementDialog />
+      <AppNewsNotice obscured={isNewsObscured} />
+      <AppNewsHost />
       {showFeatureTour && (
         <FeatureTour
           version={PRODUCT_VERSION}

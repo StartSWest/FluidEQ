@@ -286,6 +286,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-left: 1px solid rgba($edge-tint, 0.14);
 }
 
+// A scan running with its notice put away, on the Rescan chip ("Scanning
+// 26%"): kept at every width — the bar drops only unclassed words — and in
+// even figures, so the chip does not twitch as the number climbs.
+.library-toolbar__chip-status {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 // `.video-browser__site`'s pill, under this file's own name so the two can
 // diverge later without one silently restyling the other.
 .library-toolbar__chip {
@@ -680,9 +688,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid $border-field;
   border-radius: $radius-l;
 
-  > button {
+  > .button {
     min-height: 30px;
   }
+}
+
+// Two rows: what is being read with the way to put the notice away at its
+// end, then the bar with Stop at its end, as the bar's own key. Stop after
+// a bar spanning both columns used to fall to a row of its own and stretch
+// across the whole card.
+// In the corner whatever Stop's word makes of the column's width: at its
+// start, a long "Остановить" put it halfway along the card.
+.dialog-close.library-scan-progress__close {
+  position: static;
+  justify-self: end;
+  margin: -6px -6px 0 0;
+}
+
+.library-scan-progress__stop {
+  align-self: center;
 }
 
 .library-scan-progress__copy {
@@ -713,7 +737,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   position: relative;
   width: 100%;
   height: 5px;
-  grid-column: 1 / -1;
+  align-self: center;
   overflow: hidden;
   background: $track-well;
   border-radius: $radius-pill;

@@ -34,6 +34,7 @@ const PUBLISH_FAILURES: Record<string, TranslationKey> = {
   'too-many-scenes': 'studio.publish.tooManyScenes',
   refused: 'studio.export.refused',
   'signed-out': 'studio.publish.signedOut',
+  forbidden: 'plus.gallery.error.forbidden',
   unconfirmed: 'store.error.unconfirmed',
   'no-build': 'studio.export.refused',
   'no-picture': 'studio.publish.noPicture',

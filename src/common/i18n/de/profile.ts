@@ -1,5 +1,4 @@
 const profile = {
-  'profile.role.admin': 'Macher',
   'profile.name.title': 'Wählen Sie, wie die Galerie Sie zeigt',
   'profile.name.body':
     'Ein Kürzel und ein Name. Die Galerie „Visualizer“ nennt sie bei Ihren Szenen. Alle Angemeldeten sehen sie; Ihre E-Mail sieht niemand.',

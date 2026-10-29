@@ -50,6 +50,25 @@ const STROKED = {
     'M4.5 15.5v-3a7.5 7.5 0 0 1 15 0v3M5.1 13.8h.8a1.6 1.6 0 0 1 1.6 1.6v3.2a1.6 1.6 0 0 1-1.6 1.6h-.8a1.6 1.6 0 0 1-1.6-1.6v-3.2a1.6 1.6 0 0 1 1.6-1.6zM18.1 13.8h.8a1.6 1.6 0 0 1 1.6 1.6v3.2a1.6 1.6 0 0 1-1.6 1.6h-.8a1.6 1.6 0 0 1-1.6-1.6v-3.2a1.6 1.6 0 0 1 1.6-1.6z',
   speakers:
     'M8.6 3h6.8A2.6 2.6 0 0 1 18 5.6v12.8a2.6 2.6 0 0 1-2.6 2.6H8.6A2.6 2.6 0 0 1 6 18.4V5.6A2.6 2.6 0 0 1 8.6 3zM12 10.8a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8zM12 6.1a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z',
+  // A song in Favourites; filled by its button while it is (`is-on`).
+  heart:
+    'M12 19.6s-7.3-4.4-7.3-9.8A4.1 4.1 0 0 1 12 7.3a4.1 4.1 0 0 1 7.3 2.5c0 5.4-7.3 9.8-7.3 9.8z',
+  // Sound: two sliders on their rails, the amp's equalizer folded away.
+  sound:
+    'M4 7.5h9M17.5 7.5H20M4 16.5h2.5M11 16.5h9M15.2 5.3a2.2 2.2 0 1 0 0 4.4 2.2 2.2 0 0 0 0-4.4zM8.8 14.3a2.2 2.2 0 1 0 0 4.4 2.2 2.2 0 0 0 0-4.4z',
+  // Playlists: records on a shelf, one leaning.
+  playlists: 'M5 5v14M9 5v14M13.2 5.4l5.3 13.2',
+  // FluidEQ on or off: the power sign.
+  power: 'M12 4.2v7.3M7.3 7a7 7 0 1 0 9.4 0',
+  // A row that can be dragged to another place: two columns of dots, drawn
+  // by its key with a stroke as wide as a dot (`.player-queue__grip`).
+  grip: 'M8 5h.01M16 5h.01M8 12h.01M16 12h.01M8 19h.01M16 19h.01',
+  // Up next: the queue's lines and one being added to its end.
+  upNext: 'M3.75 6h12M3.75 12h12M3.75 18h7.5M18.75 15v6M15.75 18h6',
+  // Kept: a card with a plus on it, what Save as playlist makes.
+  save: 'M5.25 3.75h10.5l3 3v13.5H5.25zM12 9.75v6M9 12.75h6',
+  // The folded line's way back to the whole amp: two carets up.
+  unfoldLine: 'M6.75 10.5L12 5.25l5.25 5.25M6.75 18.75L12 13.5l5.25 5.25',
   // Game mode: the feature tour's gamepad.
   gamepad:
     'M7.2 8.5h9.6a4.2 4.2 0 0 1 4.1 5.2l-.7 3a2.3 2.3 0 0 1-3.9 1.1l-1.8-1.9H9.5l-1.8 1.9a2.3 2.3 0 0 1-3.9-1.1l-.7-3a4.2 4.2 0 0 1 4.1-5.2zM8 11.4v3.2M6.4 13h3.2M15.6 11.3a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8zM17.4 13.1a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8z',

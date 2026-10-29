@@ -1,5 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
-import log from 'electron-log';
+import { audioWorkerEnabled } from './shareAudio/host';
+import { startWorkerCapture } from './shareAudio/nativeAdapters';
 import type { ILanRemoteAudioChunk } from '../common/remoteAudio';
 import {
   startNativeCaptureProcess,
@@ -30,6 +31,13 @@ interface ISession {
 }
 const sessions = new Map<TCaptureMode, ISession>();
 let nextId = 0;
+const logMirrorStopFailure = (error: unknown) => {
+  // A Node audio worker cannot load Electron's logger. Only a main-side
+  // mirror stop uses this diagnostic; cleanup itself never waits on logging.
+  import('electron-log')
+    .then((log) => log.default.error('Could not stop the second output', error))
+    .catch(() => undefined);
+};
 const allocateId = () => {
   nextId = nextId === 0xffff_ffff ? 1 : nextId + 1;
   return nextId;
@@ -115,6 +123,9 @@ export const startNetworkCapture = async (
   onAudio: (chunk: ILanRemoteAudioChunk) => void,
   onFailure: () => void,
 ): Promise<IRemoteAudioCapture> => {
+  if (audioWorkerEnabled()) {
+    return startWorkerCapture(onAudio, onFailure);
+  }
   const lease = acquire('lan', { audio: onAudio, failure: onFailure });
   try {
     await lease.ready;
@@ -211,7 +222,7 @@ const startOnHelper = async (
         current.mirrors.delete(id);
         closing = command('stop')
           .catch((error: unknown) => {
-            log.error('Could not stop the second output', error);
+            logMirrorStopFailure(error);
             // A failed stop must never leave an unowned speaker playing.
             failSession(current);
           })

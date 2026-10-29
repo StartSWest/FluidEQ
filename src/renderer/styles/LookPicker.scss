@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'color' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
+@use 'lookPickerDiscover';
 
 // The graph's style picker (`LookPicker.tsx`): one search over two columns,
 // the standard styles and the Plus visualizers.
@@ -399,6 +400,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   font-size: $text-small;
   text-align: center;
 }
+
+@include lookPickerDiscover.styles;
 
 // A look that changed since it was last played here: a small mark beside it,
 // the same accent the Plus badge wears, until it is played again.

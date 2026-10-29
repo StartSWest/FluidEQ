@@ -49,9 +49,9 @@ const app: Partial<Dictionary> = {
   'app.menu.resetSettings': 'Réinitialiser tous les réglages…',
   'settingsReset.title': 'Réinitialiser tous les réglages ?',
   'settingsReset.body':
-    'Le graphique et les visualiseurs, Couleurs de la fenêtre, le lecteur, la Bibliothèque, la langue, les Animations, Démarrer avec Windows, l’arrière-plan du Bureau et l’Éclairage dynamique reviennent à l’état d’une nouvelle installation de FluidEQ.',
+    'Le graphique et les visualiseurs, Couleurs de la fenêtre, le lecteur, la Bibliothèque, l’endroit où chaque page était restée, les Animations, Démarrer avec Windows, l’arrière-plan du Bureau et l’Éclairage dynamique reviennent à l’état d’une nouvelle installation de FluidEQ.',
   'settingsReset.kept':
-    'Votre EQ, vos préréglages, courbes et DSP restent tels quels, tout comme vos sorties, le moteur audio et tout ce que vous avez enregistré.',
+    'Votre EQ, vos préréglages, courbes et DSP restent tels quels, tout comme vos sorties, le moteur audio, la langue et tout ce que vous avez enregistré.',
   'settingsReset.action': 'Réinitialiser les réglages',
   'settingsReset.failed':
     'Impossible de réinitialiser les réglages. Réessayez.',
@@ -76,7 +76,7 @@ const app: Partial<Dictionary> = {
   'app.processes.place.studio': 'Aperçu du Studio',
   'app.processes.name.window': 'Interface',
   'app.processes.what.window':
-    "La fenêtre que vous regardez : la courbe, la bibliothèque, le lecteur, toutes les commandes. Un processus par fenêtre, pour qu'un redessin lourd ne freine pas le son. Les visualiseurs Plus y tournent dans un fil d'exécution à part, pour qu'une scène lourde ne bloque pas les commandes.",
+    "La fenêtre que vous regardez : la courbe, la bibliothèque, le lecteur, toutes les commandes. Un processus par fenêtre, pour qu'un redessin lourd ne freine pas le son. Les scènes y tournent dans un fil d'exécution à part, pour qu'une scène lourde ne bloque pas les commandes.",
   'app.processes.name.core': "Cœur de l'application",
   'app.processes.what.core':
     "La partie sans fenêtre. Conserve vos réglages, dialogue avec les périphériques audio et l'égaliseur du système, cherche les mises à jour et démarre tout le reste de cette liste.",
@@ -85,10 +85,10 @@ const app: Partial<Dictionary> = {
     "Le moteur propre à FluidEQ. Décode ce que vous écoutez et applique l'égaliseur au passage. C'est un programme distinct, d'où son classement à part par Windows.",
   'app.processes.name.graphics': 'Graphismes',
   'app.processes.what.graphics':
-    "Dessine tout ce qui est à l'écran sur la carte graphique : le spectre, la courbe, chaque animation et les scènes des visualiseurs Plus. Occupé dès que quelque chose bouge ; aucun modèle ne tourne ici.",
+    "Dessine tout ce qui est à l'écran sur la carte graphique : le spectre, la courbe, chaque animation et les scènes. Occupé dès que quelque chose bouge ; aucun modèle ne tourne ici.",
   'app.processes.name.desktop': 'Visualiseur du Bureau',
   'app.processes.what.desktop':
-    "Un visualiseur Plus dessiné en arrière-plan du Bureau d'un écran, à l'écart de cette fenêtre : un pour chaque écran qui en affiche un. Il se met en pause tant que des fenêtres couvrent cet écran ou que le PC est verrouillé.",
+    "Une scène dessinée en arrière-plan du Bureau d'un écran, à l'écart de cette fenêtre : une pour chaque écran qui en affiche une. Elle se met en pause tant que des fenêtres couvrent cet écran ou que le PC est verrouillé.",
   'app.processes.name.desktopHost': 'Assistant du visualiseur du Bureau',
   'app.processes.what.desktopHost':
     "Place le visualiseur du Bureau de cet écran derrière les icônes et le prévient quand des fenêtres couvrent l'écran. Un pour chaque écran qui en affiche un.",
@@ -260,7 +260,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'Médias en ligne',
   'tabs.mediaShort': 'Médias',
   'tabs.karaoke': 'Karaoké',
-  'tabs.plus': 'Plus',
+  'tabs.plus': 'Visualiseurs',
   'tabs.scrollBack': 'Faire défiler les onglets vers la gauche',
   'tabs.scrollForward': 'Faire défiler les onglets vers la droite',
   'notice.apoReconfigured':
@@ -320,7 +320,6 @@ const app: Partial<Dictionary> = {
   'sidebar.preampAuto':
     'Réglé pour vous. Désactivez la normalisation auto pour y toucher.',
   'sidebar.autoPreamp': 'Normalisation auto',
-  'sidebar.visualizer': 'VISUALISEUR',
   'sidebar.graphView': 'Courbe de réponse',
   'sidebar.output': 'Sortie',
   'config.eyebrow': 'CE QUE LIT LE MOTEUR',

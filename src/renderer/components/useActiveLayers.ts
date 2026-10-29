@@ -35,6 +35,8 @@ import {
 import { useSmartEqMode } from '../utils/smartEqMode';
 import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
 import { presetLayerName } from '../dsp/dspPresetCatalog';
+import { keptCurveName } from '../eq/appliedCurve';
+import { useMyCurves } from '../eq/myCurvesStore';
 import { collectLayers } from './activeLayerList';
 import type { IActiveLayer } from './activeLayerList';
 
@@ -79,6 +81,9 @@ const useActiveLayers = () => {
     setGlobalError,
   } = useFluidEqContext();
   const { t } = useTranslation();
+  // A correction kept in My curves goes by the name it has there, read from
+  // the list each time, so renaming it renames the chip (Ivan, 2026-10-25).
+  const keptCorrectionName = keptCurveName(useMyCurves(), headphone);
   /*
    * The model's name, asked for by id.
    *
@@ -238,6 +243,7 @@ const useActiveLayers = () => {
     headphone,
     headset,
     headsetName,
+    keptCorrectionName,
     setHeadphone,
     setHeadphoneStrength,
     hasShapedBands: hasShapedBands === true,

@@ -1,13 +1,23 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import '@testing-library/jest-dom';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
 import { ANALYSIS_STYLES, isAnalysisStyle } from 'common/graphAnalysis';
 import { SELECTABLE_GRAPH_STYLES } from 'common/graphStyles';
 import FeatureTour from 'renderer/components/featureTour/FeatureTour';
 import { featureTourFor } from 'renderer/components/featureTour/slides';
 import { requestHelpGuide } from 'renderer/help/helpGuideRequests';
 import { setWindowMode } from 'renderer/player/windowModeStore';
+import {
+  readKaraokeBackground,
+  writeKaraokeBackground,
+} from 'renderer/karaoke/karaokeWorkspacePrefs';
 
 jest.mock('renderer/player/windowModeStore', () => ({
   setWindowMode: jest.fn(() => Promise.resolve()),
@@ -40,6 +50,49 @@ const showTour = (version = '2.0.0') => {
 /** The rail entry whose title is `title` (its name also holds its number). */
 const goTo = (title: string) =>
   fireEvent.click(screen.getByRole('button', { name: new RegExp(title) }));
+
+describe('the 2.2 Karaoke background entry', () => {
+  afterEach(() => {
+    window.localStorage.removeItem('fluideq-karaoke-stage-background');
+  });
+
+  it('shows the real lyric renderer and selected background control as an inert picture', () => {
+    showTour('2.2.0');
+    expect(
+      screen.getByRole('heading', { name: 'Visualizers behind your lyrics' }),
+    ).toBeInTheDocument();
+    const picture = screen.getByRole('img', {
+      name: 'The Karaoke background control with a scene behind the lyrics.',
+    });
+    expect(
+      picture.querySelector('.karaoke-lyrics__canvas'),
+    ).toBeInTheDocument();
+    expect(picture.querySelector('[inert]')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
+    expect(
+      picture.querySelector('.karaoke-workspace__graph-background-toggle'),
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      screen.queryByRole('button', { name: 'Turn off visualizer background' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('opens Karaoke by the existing action without silently changing the background', () => {
+    writeKaraokeBackground('cover');
+    const { onOpenTab } = showTour('2.2.0');
+    expect(
+      screen.getByText(
+        'Choose a look in Styles and visualizers on EQ, then press Use current visualizer as background in Karaoke.',
+      ),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Open Karaoke' }));
+    expect(onOpenTab).toHaveBeenCalledTimes(1);
+    expect(onOpenTab).toHaveBeenCalledWith('karaoke');
+    expect(readKaraokeBackground()).toBe('cover');
+  });
+});
 
 it('heads each release it shows as new with its own number, then the rest', () => {
   showTour();
@@ -132,7 +185,7 @@ it('shows My curves with the page’s own parts and lands on EQ Presets', () => 
   ).toBeInTheDocument();
   expect(
     screen.getByText(
-      'Squiglink has a tab of its own, and Save to My curves keeps what you bring in with one press.',
+      'The Squiglink shortcut in My curves opens the import preview; Save to My curves keeps your curve for later.',
     ),
   ).toBeInTheDocument();
   // The picture is the page's own rows, each drawing its own curve: the
@@ -236,7 +289,7 @@ it('lists every view the look picker has under Analysis, by the picker’s names
 
 it('turns the window into the Compact player from its slide, closing the tour as not done', () => {
   const { onClose } = showTour();
-  goTo('FluidEQ, folded into a player');
+  goTo('The whole app in one column');
   fireEvent.click(
     screen.getByRole('button', { name: 'Try the Compact player' }),
   );
@@ -244,16 +297,62 @@ it('turns the window into the Compact player from its slide, closing the tour as
   expect(setWindowMode).toHaveBeenCalledWith('player');
 });
 
-it('shows both players the switch opens, the classic amp and the glass one', () => {
+// One player since 2.1 (Ivan, 2026-10-25), shown twice: over a scene and
+// with a standard visualizer, its parts named as the player names them.
+it('shows the one player the switch opens, over a scene and over a standard visualizer', () => {
   showTour();
-  goTo('FluidEQ, folded into a player');
-  expect(screen.getByText('Classic amp')).toBeInTheDocument();
-  // The glass player's mode is named as Window colours names it.
-  expect(screen.getByText('Glass, on Backdrop')).toBeInTheDocument();
+  goTo('The whole app in one column');
+  // The Backdrop is named as Window colours names it.
+  expect(screen.getByText('With a scene, on Backdrop')).toBeInTheDocument();
+  expect(screen.getByText('With a standard visualizer')).toBeInTheDocument();
+  expect(
+    screen.getByRole('img', { name: /and the Compact player twice:/ }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(/^Sound holds the Bass, Mid and Treble knobs/),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(/^Up next and Playlists wait at the foot\./),
+  ).toBeInTheDocument();
+  // No film: the one it had shows the two players this one replaced.
+  expect(screen.queryByRole('button', { name: 'Watch the video' })).toBeNull();
   // The switch it is made with, ringed where the title bar has it.
   expect(
     document.querySelector('.titlebar-corner__switch.is-ringed'),
   ).not.toBeNull();
+});
+
+// Drawn by the player's own parts, not photographed (Ivan, 2026-10-26:
+// "make help use the app code for UI instead of pictures so it's easy to
+// update"): its words are the reader's language and its levels its own
+// faders' and knobs', and nothing in it can be reached.
+it('draws the player from its own parts, out of reach of the keyboard and of screen readers', () => {
+  showTour();
+  goTo('The whole app in one column');
+  const amps = document.querySelector('.player-pair__amps') as HTMLElement;
+  expect(amps).toHaveAttribute('inert');
+  expect(amps).toHaveAttribute('aria-hidden', 'true');
+  const players = amps.querySelectorAll('.player-picture > .mini-player');
+  expect(players).toHaveLength(2);
+  // Over a scene on the Backdrop, and with a standard look in its panel.
+  expect(players[0]).toHaveClass('is-backdrop');
+  expect(players[1]).not.toHaveClass('is-backdrop');
+  const scene = within(players[0] as HTMLElement);
+  const look = within(players[1] as HTMLElement);
+  // The player's own words, as the player reads them out.
+  expect(scene.getByText('Sound')).toBeInTheDocument();
+  expect(scene.getByText('Up next')).toBeInTheDocument();
+  expect(scene.getByText('FluidEQ Engine on')).toBeInTheDocument();
+  // Its faders, printing their own levels, and its Tone knobs.
+  expect(scene.getByText('+3.5')).toBeInTheDocument();
+  expect(
+    scene.getByRole('slider', { hidden: true, name: '32 Hz' }),
+  ).toHaveAttribute('aria-valuenow', '3.5');
+  expect(look.getByText('Bass')).toBeInTheDocument();
+  expect(look.getByText('Treble')).toBeInTheDocument();
+  // The made-up song playing, in both.
+  expect(scene.getAllByText('Afterglow Avenue').length).toBeGreaterThan(0);
+  expect(look.getAllByText('Afterglow Avenue').length).toBeGreaterThan(0);
 });
 
 it('names the new looks on the visualizer engine slide as the picker does', () => {
@@ -276,7 +375,7 @@ it('sends the reader to the Pointer sparks switch by its own label', () => {
   goTo('Visualizers that answer your mouse');
   expect(
     screen.getByText(
-      'One switch for every visualizer: Pointer sparks, in Window colours under Rainbow mode.',
+      'One switch for every visualizer: Pointer sparks, in Window colours under Colourful mode.',
     ),
   ).toBeInTheDocument();
   expect(

@@ -2,16 +2,33 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.group.add': 'कंप्यूटर जोड़ें',
+  'remoteAudio.group.title': 'पूरा समूह',
+  'remoteAudio.group.mix': 'आपका मिक्स',
+  'remoteAudio.group.thisPC': 'यह PC',
+  'remoteAudio.group.receive': 'प्राप्त करें',
+  'remoteAudio.group.send': 'भेजें',
+  'remoteAudio.group.share': 'साझा करें',
+  'remoteAudio.group.options': '{name} के विकल्प',
+  'remoteAudio.group.count.one': '{count} कंप्यूटर',
+  'remoteAudio.group.count.few': '{count} कंप्यूटर',
+  'remoteAudio.group.count.many': '{count} कंप्यूटर',
+  'remoteAudio.group.count.other': '{count} कंप्यूटर',
+  'remoteAudio.group.sourceOff': 'साझा करना बंद है',
+  'remoteAudio.group.offline': 'ऑफ़लाइन',
+  'remoteAudio.group.unavailable': 'सिस्टम वॉल्यूम उपलब्ध नहीं है',
+  'remoteAudio.group.mute': 'इस PC को म्यूट करें',
+  'remoteAudio.group.unmute': 'इस PC का म्यूट हटाएँ',
+  'remoteAudio.group.output': 'आउटपुट',
+  'remoteAudio.group.hint':
+    'समूह में शामिल होने के लिए एक कंप्यूटर जोड़ें। हर कंप्यूटर अपनी आवाज़ सीधे दूसरों को भेजता है; अपने मिक्स में सुनाई देने वाली आवाज़ समायोजित करें।',
   'tabs.share': 'ऑडियो साझा करें',
   'remoteAudio.eyebrow': 'LAN ऑडियो लिंक',
   'remoteAudio.title': 'अपने दूसरे कंप्यूटर यहाँ सुनें',
-  'remoteAudio.subtitle':
-    'दो कंप्यूटर लिंक करें, और हर एक दूसरे की आवाज़ चलाएगा। हर कंप्यूटर अपनी आवाज़ बिना बदले भेजता है; जिस कंप्यूटर पर आप सुनते हैं, वह अपना EQ, कर्व और DSP लगाता है।',
   'remoteAudio.security': 'कनेक्शन की विशेषताएँ',
   'remoteAudio.badge.local': 'केवल निजी LAN',
   'remoteAudio.badge.lossless': 'लॉसलेस Float32 PCM ट्रांसपोर्ट',
   'remoteAudio.badge.encrypted': 'AES-256-GCM एन्क्रिप्टेड',
-  'remoteAudio.link.section': 'कंप्यूटर लिंक करें',
   'remoteAudio.link.thisComputer': 'यह कंप्यूटर',
   'remoteAudio.link.thisHint':
     'यह कोड दूसरे कंप्यूटर पर पेस्ट करें, या उस कंप्यूटर का कोड यहाँ पेस्ट करें। दोनों तरह से काम करता है।',
@@ -35,13 +52,11 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.rule.steadyTitle': 'स्थिर, बिना खिसके',
   'remoteAudio.rule.steady':
     'लगभग 30 ms पीछे, और वहीं बनी रहती है: दोनों कंप्यूटरों की घड़ियाँ साथ चलती हैं, न रुकावट, न धीरे-धीरे खिसकना।',
-  'remoteAudio.linked.section': 'लिंक किए गए',
   'remoteAudio.linked.cardLabel': '{name} के साथ लिंक',
   'remoteAudio.linked.bothWays': 'दोनों दिशाओं में',
   'remoteAudio.linked.incomingOnly': 'सिर्फ़ आने वाली',
   'remoteAudio.linked.outgoingOnly': 'सिर्फ़ जाने वाली',
   'remoteAudio.linked.paused': 'रुका हुआ',
-  'remoteAudio.linked.looking': 'आपके नेटवर्क पर {name} ढूँढ रहे हैं…',
   'remoteAudio.linked.lossless': 'लॉसलेस',
   'remoteAudio.linked.unlink': 'लिंक हटाएँ',
   'remoteAudio.linked.pause': 'रोकें',
@@ -77,6 +92,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOneWay':
     'दोनों दिशाओं में चलाने के लिए Windows, या Linux पर FluidEQ Engine चाहिए।',
   'remoteAudio.lane.outQuiet': 'इस कंप्यूटर पर कुछ नहीं चल रहा',
+  'remoteAudio.lane.outSounding': 'इस कंप्यूटर पर आवाज़ चल रही है',
   'remoteAudio.lane.outOff': 'नहीं भेज रहे। {name} इस कंप्यूटर को नहीं सुनता।',
   'remoteAudio.lane.outNotPlayed': '{name} पर “यहाँ चलाएँ” बंद है।',
   'remoteAudio.lane.outOld':
@@ -85,7 +101,6 @@ const remoteAudio: Partial<Dictionary> = {
     'दोनों दिशाओं में भेजने के लिए Windows, या Linux पर FluidEQ Engine चाहिए।',
   'remoteAudio.lane.outFailed':
     'इस कंप्यूटर की आवाज़ कैप्चर नहीं हो सकी। फिर से कोशिश करने के लिए “मेरी आवाज़ भेजें” को बंद करके फिर चालू करें।',
-  'remoteAudio.another.section': 'एक और कंप्यूटर लिंक करें',
   'remoteAudio.singlePlayer.title': 'एक समय पर एक प्लेयर',
   'remoteAudio.singlePlayer.body':
     'लिंक किए गए कंप्यूटरों पर भी लागू होता है: एक पर कुछ शुरू करने से दूसरे पर चल रहा रुक जाता है।',

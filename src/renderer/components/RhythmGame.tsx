@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  type CSSProperties,
   forwardRef,
   useCallback,
   useEffect,
@@ -73,6 +74,18 @@ const TARGET_PERCENT = 50;
 const EUPHORIA_AT = 1;
 
 const VIEW_HEIGHT = 44;
+/**
+ * The trace's gradient at the ceiling: five of the palette's seven stops, its
+ * ends and middle, and how much of each the fill carries — fuller in the
+ * middle, where the target line is.
+ */
+const TRACE_STOPS = [
+  { offset: 0, token: '--rainbow-1', fill: 0.3 },
+  { offset: 0.28, token: '--rainbow-3', fill: 0.4 },
+  { offset: 0.52, token: '--rainbow-4', fill: 0.45 },
+  { offset: 0.76, token: '--rainbow-5', fill: 0.4 },
+  { offset: 1, token: '--rainbow-7', fill: 0.3 },
+] as const;
 /** Mirrored about the middle, the way the titlebar meter draws. */
 const CENTRE = VIEW_HEIGHT / 2;
 /** Half-height of a full-scale hit, leaving a margin at both edges. */
@@ -391,22 +404,37 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
               focusable="false"
             >
               <defs>
-                {/* The same spectrum the titlebar meter runs, so the two waveforms
-                in this app are recognisably the same thing. Cyan through to
-                violet, left to right. */}
+                {/* The palette Colourful mode is in — the window's Tint, or the
+                visualizer's colours — left to right, as the titlebar meter
+                runs it, so the two waveforms in this app are recognisably the
+                same thing. Handed to the stylesheet as a custom property, which
+                paints it (`RhythmGame.scss`): a presentation attribute does
+                not resolve one. It was five fixed colours,
+                cyan to violet (Ivan, 2026-10-25: "remove all rainbow crap"). */}
                 <linearGradient id="rhythm-line" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0" stopColor="#00e5ff" />
-                  <stop offset="0.28" stopColor="#54ff8a" />
-                  <stop offset="0.52" stopColor="#ffe66d" />
-                  <stop offset="0.76" stopColor="#ff3cac" />
-                  <stop offset="1" stopColor="#8b5cff" />
+                  {TRACE_STOPS.map(({ offset, token }) => (
+                    <stop
+                      key={offset}
+                      offset={offset}
+                      style={
+                        { '--stop-colour': `var(${token})` } as CSSProperties
+                      }
+                    />
+                  ))}
                 </linearGradient>
                 <linearGradient id="rhythm-fill" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0" stopColor="#00e5ff" stopOpacity="0.3" />
-                  <stop offset="0.28" stopColor="#54ff8a" stopOpacity="0.4" />
-                  <stop offset="0.52" stopColor="#ffe66d" stopOpacity="0.45" />
-                  <stop offset="0.76" stopColor="#ff3cac" stopOpacity="0.4" />
-                  <stop offset="1" stopColor="#8b5cff" stopOpacity="0.3" />
+                  {TRACE_STOPS.map(({ offset, token, fill }) => (
+                    <stop
+                      key={offset}
+                      offset={offset}
+                      style={
+                        {
+                          '--stop-colour': `var(${token})`,
+                          '--stop-opacity': fill,
+                        } as CSSProperties
+                      }
+                    />
+                  ))}
                 </linearGradient>
               </defs>
               {path && <path d={path} />}
@@ -460,60 +488,73 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
           />
         </div>
 
-        <p className="rhythm-game__verdict" aria-live="polite">
-          {/* Both children are keyed on the tap so each one restarts its flash,
+        {/* The line keeps the height of its longest message — the hint or the
+          "listening" line, each drawn invisibly in the same place from these
+          two attributes — so swapping one message for another never moves the
+          share button under it. The hint wrapped to two lines and the verdict
+          that replaced it took one, and the button jumped on every tap (Ivan,
+          2026-10-25: "ui bug 2 lines push down"). */}
+        <p
+          className="rhythm-game__verdict"
+          aria-live="polite"
+          data-hint={t('support.game.hint')}
+          data-listening={t('support.game.listening')}
+        >
+          <span className="rhythm-game__verdict-row">
+            {/* Both children are keyed on the tap so each one restarts its flash,
             and the keys have to be DISTINCT from each other. Two siblings
             sharing a key is undefined behaviour in React: rather than replacing
             the previous verdict it left it mounted and appended the next, so a
             run of taps built a row of every verdict earned so far. */}
-          {/* Held while a tap's verdict is up: the hold is the verdict's
+            {/* Held while a tap's verdict is up: the hold is the verdict's
             moment, and its end is what takes the verdict down. It was a
             timer beside it, which ran on behind a covered window and cleared
             verdicts nobody had seen. */}
-          <span
-            key={`verdict-${hitSeq}`}
-            className={`rhythm-game__verdict-text rhythm-game__verdict-text--${
-              lastHit && hasPeaks ? lastHit.verdict : 'idle'
-            }${lastHit ? ' is-held' : ''}`}
-            onAnimationEnd={(event) => {
-              if (isOwnAnimationEnd(event, 'rhythm-verdict-hold')) {
-                setLastHit(undefined);
-              }
-            }}
-          >
-            {/* Tell the truth about why nothing is happening. A dead trace with a
+            <span
+              key={`verdict-${hitSeq}`}
+              className={`rhythm-game__verdict-text rhythm-game__verdict-text--${
+                lastHit && hasPeaks ? lastHit.verdict : 'idle'
+              }${lastHit ? ' is-held' : ''}`}
+              onAnimationEnd={(event) => {
+                if (isOwnAnimationEnd(event, 'rhythm-verdict-hold')) {
+                  setLastHit(undefined);
+                }
+              }}
+            >
+              {/* Tell the truth about why nothing is happening. A dead trace with a
               live score reads as broken; "put something on" does not. */}
-            {(() => {
-              // Silence says nothing here, because it is already saying it in
-              // the empty box above. Printing it twice, once inside the hole and
-              // once under it, reads as two separate complaints about the same
-              // quiet room.
-              if (!isListening || !hasSignal) {
-                return '';
-              }
-              if (!hasPeaks) {
-                return t('support.game.listening');
-              }
-              return lastHit
-                ? t(`support.game.${lastHit.verdict}`)
-                : t('support.game.hint');
-            })()}
-          </span>
-          {/* Beside the verdict, where the eye already is on a hit — the score row
+              {(() => {
+                // Silence says nothing here, because it is already saying it in
+                // the empty box above. Printing it twice, once inside the hole and
+                // once under it, reads as two separate complaints about the same
+                // quiet room.
+                if (!isListening || !hasSignal) {
+                  return '';
+                }
+                if (!hasPeaks) {
+                  return t('support.game.listening');
+                }
+                return lastHit
+                  ? t(`support.game.${lastHit.verdict}`)
+                  : t('support.game.hint');
+              })()}
+            </span>
+            {/* Beside the verdict, where the eye already is on a hit — the score row
             is the wrong place to learn what a tap was worth. Only shown once
             there is something to show, and keyed on the tap so consecutive
             perfects each flare rather than only the first. */}
-          {lastHit && hasPeaks && run.streak > 0 && (
-            <span
-              key={`multiplier-${hitSeq}`}
-              className="rhythm-game__verdict-multiplier"
-            >
-              ×
-              {getStreakMultiplier(run.streak)
-                .toFixed(2)
-                .replace(/\.?0+$/, '')}
-            </span>
-          )}
+            {lastHit && hasPeaks && run.streak > 0 && (
+              <span
+                key={`multiplier-${hitSeq}`}
+                className="rhythm-game__verdict-multiplier"
+              >
+                ×
+                {getStreakMultiplier(run.streak)
+                  .toFixed(2)
+                  .replace(/\.?0+$/, '')}
+              </span>
+            )}
+          </span>
         </p>
 
         {/* Under the verdict, because that is the line that says you just did
@@ -521,9 +562,10 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
           record — offering it at zero is an empty button and an invitation to
           post a score of nothing.
 
-          At the ceiling it stops being a quiet outline and turns into the
-          spectrum: the offer is made while the thing it captures is still on
-          screen, rather than as a footnote beside a number. */}
+          With Colourful mode on it stops being a quiet outline and is filled
+          with the mode's colours: the offer is made while the thing it
+          captures is still on screen, rather than as a footnote beside a
+          number. */}
         {shareScore > 0 && !isSharing && (
           <button
             type="button"

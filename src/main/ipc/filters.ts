@@ -40,6 +40,7 @@ import { planEarChange } from '../../common/bandEars';
 import { qualityForAddedBand } from '../../common/bandQuality';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
+import fitLayoutToCurve from '../../common/layoutFit';
 import { isFixedBandSizeEnumValue } from '../../common/utils';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import onWindowMessage from './windowMessages';
@@ -486,15 +487,17 @@ export const registerFiltersIpc = ({
       return;
     }
 
-    // A built-in layout starts fresh: its own frequencies, every band at the
-    // layout's Q, flat, on both ears, and the Band Q behaviour back to its
-    // default (Ivan, 2026-10-13: "switching built in layout needs to reset
-    // all bands and their freq", "the q too needs to reset"). It used to
-    // bring back a snapshot of the last time that count was used, or fit the
-    // current curve onto it, and the 15 Band button then showed some other
-    // layout's frequencies.
+    // A built-in layout keeps the sound and takes its own shape: its own
+    // frequencies, every band at the layout's Q, on both ears, the Band Q
+    // behaviour back to its default (Ivan, 2026-10-13: "switching built in
+    // layout needs to reset all bands and their freq", "the q too needs to
+    // reset") — and its gains fitted to the curve the bands played, never
+    // flat (Ivan, 2026-10-25: "each time I change band size it resets the
+    // EQ, can't happen"; `fitLayoutToCurve`). It once brought back a
+    // snapshot of the last time that count was used, and the 15 Band button
+    // then showed some other layout's frequencies.
     switchToParametricEditing();
-    state.filters = getDefaultFilters(size);
+    state.filters = fitLayoutToCurve(state.filters, getDefaultFilters(size));
     state.mainBandQ = undefined;
     state.eqBandDesign = undefined;
     state.isFlat = false;

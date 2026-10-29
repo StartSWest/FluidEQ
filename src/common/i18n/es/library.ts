@@ -86,6 +86,12 @@ const library: Partial<Dictionary> = {
   'library.scan.running': 'Leyendo {name}',
   'library.scan.counted': '{parsed} de {seen} archivos',
   'library.scan.cancel': 'Detener',
+  'library.scan.hide': 'Ocultar este aviso',
+  'library.scan.hideHint':
+    'Ocultar este aviso. La Biblioteca sigue leyendo tus archivos.',
+  'library.scan.chip': 'Leyendo {percent} %',
+  'library.scan.chipFinding': 'Leyendo…',
+  'library.scan.show': 'Volver a mostrar el progreso y Detener',
 
   'library.roots': 'Carpetas',
   'library.root.remove': 'Quitar esta carpeta',
@@ -179,6 +185,9 @@ const library: Partial<Dictionary> = {
   'library.karaoke.sending': 'Enviando a Karaoke…',
   'library.karaoke.failed':
     'No se pudo enviar este archivo a Karaoke: puede ser demasiado grande o ilegible.',
+  'library.drop.empty': 'No hay música en lo que soltaste',
+  'library.drop.already': 'Todo lo que soltaste ya está en «A continuación»',
+  'library.drop.failed': 'No se pudo añadir la música que soltaste',
 };
 
 export default library;

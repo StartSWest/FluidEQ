@@ -73,7 +73,9 @@ import usePublishedTransport from './usePublishedTransport';
 import {
   deckWindowIds,
   usePublishedLibraryDeck,
+  type TDroppedMusic,
 } from '../../player/libraryDeck';
+import { usePublishedPlaylistDeck } from '../../player/playlistDeck';
 import { useQueueControls } from './useQueueControls';
 import { useSessionMemory } from './useSessionMemory';
 import { useTrackAnalysis } from './useTrackAnalysis';
@@ -434,6 +436,7 @@ export const LibraryPlayerProvider = ({
     setAddedIds,
     addedIdsRef,
     continuedIdsRef,
+    isGuess,
   } = useUpNext({
     queue,
     trackId,
@@ -529,11 +532,13 @@ export const LibraryPlayerProvider = ({
   const {
     jumpToQueuePosition,
     appendToQueue,
+    insertIntoQueue,
     removeUpNextAt,
     moveUpNext,
     setShuffle,
     cycleRepeat,
     retargetQueue,
+    topUpQueue,
   } = useQueueControls({
     setQueue,
     queueRef,
@@ -555,6 +560,7 @@ export const LibraryPlayerProvider = ({
     publishedPositionMs,
     setPositionMs,
     setQueue,
+    isGuess,
   });
   /**
    * Telling the rest of the app what this player is doing, in the shape
@@ -585,13 +591,27 @@ export const LibraryPlayerProvider = ({
    * the rows would draw as their own identifiers.
    */
   const addFiles = useCallback(
-    async (paths: string[]) => {
+    async (paths: string[], at?: number): Promise<TDroppedMusic> => {
+      // Capture the gap before an asynchronous folder scan can move the queue.
+      const snapshot = queueRef.current;
+      const beforeIds =
+        at === undefined
+          ? undefined
+          : (snapshot?.order
+              .slice(at)
+              .map((index) => snapshot.trackIds[index])
+              .filter((id): id is string => id !== undefined) ?? []);
       const trackIds = await queueFiles(paths);
-      if (trackIds.length) {
-        appendToQueue(trackIds);
+      if (trackIds.length === 0) {
+        return 'empty';
       }
+      const joined =
+        beforeIds === undefined
+          ? appendToQueue(trackIds)
+          : insertIntoQueue(trackIds, beforeIds);
+      return joined > 0 ? 'added' : 'already';
     },
-    [appendToQueue, queueFiles],
+    [appendToQueue, insertIntoQueue, queueFiles],
   );
   usePublishedLibraryDeck({
     queue,
@@ -605,7 +625,11 @@ export const LibraryPlayerProvider = ({
     jumpToQueuePosition,
     addFiles,
     moveUpNext,
+    removeUpNextAt,
+    isGuess,
   });
+  // And its playlists and Favourites, for the amp's Playlists and its heart.
+  usePublishedPlaylistDeck(playTracks);
   // Publish the handoff lease before giving up audible ownership. Otherwise
   // the synchronous owner update can let another tab's paused bar flash for
   // one render between tracks. The next real play event/telemetry frame claims
@@ -639,6 +663,7 @@ export const LibraryPlayerProvider = ({
       closeVideo,
       toggle,
       retargetQueue,
+      topUpQueue,
       upNext,
       isContinuationOn,
       setIsContinuationOn,
@@ -663,6 +688,7 @@ export const LibraryPlayerProvider = ({
       closeVideo,
       toggle,
       retargetQueue,
+      topUpQueue,
       upNext,
       isContinuationOn,
       setIsContinuationOn,

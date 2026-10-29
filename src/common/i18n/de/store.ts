@@ -19,9 +19,10 @@ const store: Partial<Dictionary> = {
   'store.credits.buyTitle': 'Credits holen',
   'store.credits.lead':
     'Ein Credit behält eine Szene für immer. Sie zahlen einmal, nichts verlängert sich.',
-  'store.credits.owned': 'Ihre Szenen: {count}',
   'store.credits.what':
     'Jeder Credit behält eine Szene aus der Galerie für immer: im Diagramm, auf Ihrem Desktop und an Ihren Lichtern.',
+  'store.credits.half':
+    'Ein halber Credit wartet: Die nächste Ihrer Szenen, die jemand mit einem bezahlten Credit holt, macht ihn voll.',
   'store.credits.buy': 'Credits holen',
   'store.credits.getFree': 'Gratis-Credits holen',
   'store.error.offline':
@@ -89,11 +90,6 @@ const store: Partial<Dictionary> = {
   'store.like.ownersOnly':
     '{count} „Gefällt mir“. Holen Sie die Szene, um sie zu markieren.',
   'store.scene.free': 'Für alle kostenlos',
-  'store.admin.freeTitle': 'Für alle kostenlos',
-  'store.admin.freeOn':
-    'Jedes angemeldete Konto nutzt sie, ohne einen Credit auszugeben.',
-  'store.admin.freeOff':
-    'Ein Credit, wie jede andere Szene. Schalten Sie es ein, um sie allen zu geben.',
   'store.error.termsOutdated':
     'Die Bedingungen haben sich geändert. Aktualisieren Sie FluidEQ, um die neue Fassung zu lesen, bevor Sie Credits kaufen.',
 };

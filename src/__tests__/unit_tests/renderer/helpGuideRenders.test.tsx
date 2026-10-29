@@ -15,8 +15,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, within } from '@testing-library/react';
+import { isLiveFigure } from 'common/helpChapters/model';
+import { HELP_CHAPTERS } from 'common/helpGuide';
 import HelpGuide from 'renderer/help/HelpGuide';
 import { I18nProvider } from 'renderer/utils/I18nContext';
+
+/**
+ * Every capture the chapters show, each drawn by `HelpFigure`. Counted from
+ * the chapters rather than written down: each panel Help draws live takes a
+ * capture away, and the Visualizers chapters took the guide under the thirty
+ * this said.
+ */
+const CAPTURES = HELP_CHAPTERS.flatMap(({ figures }) => figures).filter(
+  (figure) => !isLiveFigure(figure),
+).length;
 
 let mockFigureRenders = 0;
 
@@ -93,8 +105,9 @@ const openGuide = () => {
 
 it('re-renders no chapter for a key that changes no answer', () => {
   const { search } = openGuide();
-  // The control: the guide drew its captures.
-  expect(mockFigureRenders).toBeGreaterThan(30);
+  // The control: the guide drew its captures, every one of them.
+  expect(CAPTURES).toBeGreaterThan(0);
+  expect(mockFigureRenders).toBeGreaterThanOrEqual(CAPTURES);
   const settled = mockFigureRenders;
   fireEvent.change(search, { target: { value: ' ' } });
   expect(search).toHaveValue(' ');

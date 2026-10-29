@@ -62,24 +62,36 @@ const useRemoteAudioPcmSender = ({
   peerIds,
   sendInputId,
   publishMeter,
+  onSending,
   onFailure,
+  recoveryAttempt = 0,
 }: {
   peerIds: readonly string[];
   /** Linux with the engine's "FluidEQ Send": sent from there rather than
    * from the window's live capture, which is after the EQ. */
   sendInputId?: string;
   publishMeter: TRemoteAudioMeterListener;
+  onSending(active: boolean): void;
   onFailure(): void;
+  recoveryAttempt?: number;
 }) => {
-  const { capture: liveCapture } = useLiveAudioControl();
+  const { capture: liveCapture, error: captureError } = useLiveAudioControl();
   const active = window.electron?.platform !== 'win32' && peerIds.length > 0;
   useLiveAudioCapture(active && sendInputId === undefined, 'work');
-  const callbacksRef = useRef({ publishMeter, onFailure });
-  callbacksRef.current = { publishMeter, onFailure };
+  const callbacksRef = useRef({ publishMeter, onSending, onFailure });
+  callbacksRef.current = { publishMeter, onSending, onFailure };
   // Read as each block goes out, so a computer joining or leaving the list
   // never restarts the capture the others are hearing.
   const peerIdsRef = useRef(peerIds);
   peerIdsRef.current = peerIds;
+
+  useEffect(() => {
+    // A live-capture refusal never creates a capture object, so waiting for
+    // that object silently left Share Audio looking ready while sending none.
+    if (active && !sendInputId && !liveCapture && captureError) {
+      callbacksRef.current.onFailure();
+    }
+  }, [active, captureError, liveCapture, sendInputId]);
 
   useEffect(() => {
     if (!active || (!liveCapture && sendInputId === undefined)) {
@@ -87,14 +99,23 @@ const useRemoteAudioPcmSender = ({
     }
     let cancelled = false;
     let close: (() => void) | undefined;
+    let own: ICaptureSource | undefined;
+    let started = false;
     const open = async () => {
-      const own = sendInputId ? await openSendInput(sendInputId) : undefined;
+      own = sendInputId ? await openSendInput(sendInputId) : undefined;
       const capture = own ?? liveCapture;
       if (cancelled || !capture) {
         own?.close();
         return;
       }
       const sender = await createPcmSender(capture, (chunk) => {
+        if (cancelled) {
+          return;
+        }
+        if (!started) {
+          started = true;
+          callbacksRef.current.onSending(true);
+        }
         callbacksRef.current.publishMeter(measureRemoteAudioChunk(chunk));
         peerIdsRef.current.forEach((peerId) =>
           window.electron.ipcRenderer.sendRemoteAudioLanAudio({
@@ -114,15 +135,18 @@ const useRemoteAudioPcmSender = ({
       };
     };
     open().catch(() => {
+      own?.close();
       if (!cancelled) {
+        callbacksRef.current.onSending(false);
         callbacksRef.current.onFailure();
       }
     });
     return () => {
       cancelled = true;
       close?.();
+      callbacksRef.current.onSending(false);
     };
-  }, [active, liveCapture, sendInputId]);
+  }, [active, liveCapture, sendInputId, recoveryAttempt]);
 };
 
 export default useRemoteAudioPcmSender;

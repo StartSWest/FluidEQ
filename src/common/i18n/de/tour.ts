@@ -2,6 +2,17 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
+  'tour.karaokeBackground.title': 'Visualizer hinter Ihrem Liedtext',
+  'tour.karaokeBackground.subtitle': 'Ihr gewählter Look auf der Karaoke-Bühne',
+  'tour.karaokeBackground.lead':
+    'Wählen Sie einen Visualizer oder eine Szene als Karaoke-Hintergrund.',
+  'tour.karaokeBackground.how':
+    'Wählen Sie unter {looks} im EQ einen Look und drücken Sie dann in Karaoke auf {showGraph}.',
+  'tour.karaokeBackground.open': 'Karaoke öffnen',
+  'tour.karaokeBackground.imageAlt':
+    'Die Karaoke-Hintergrundtaste mit einer Szene hinter dem Liedtext.',
+  'tour.karaokeBackground.lyric': 'Unser Lied erhellt die Nacht',
+
   'tour.contribute': 'Bitte unterstützen Sie uns',
   'tour.eyebrow': 'NEU IN DIESER VERSION',
   'tour.title': 'Neu in FluidEQ',
@@ -19,46 +30,46 @@ const tour: Partial<Dictionary> = {
   'tour.howTitle': 'So geht es los',
   'tour.beta': 'Beta',
   'tour.player.kicker': 'KOMPAKTER PLAYER',
-  'tour.player.title': 'FluidEQ, zum Player zusammengeklappt',
-  'tour.player.subtitle': 'Ein Schalter macht aus dem Fenster einen Player',
+  'tour.player.title': 'Die ganze App in einer Spalte',
+  'tour.player.subtitle': 'Ein Player, gleich in allen Fensterfarben',
   'tour.player.lead':
-    'Ein Schalter in der Titelleiste macht aus ganz FluidEQ einen Player. Er ist der klassische Verstärker mit LED-Uhr, Lämpchen und dem ganzen Equalizer; im Modus {backdrop}, über einem Plus-Visualizer, wird er zu Glas. Derselbe Schalter bringt Sie zurück auf die Seite, die Sie verlassen haben.',
+    'Ein Schalter in der Titelleiste klappt FluidEQ zu einer Spalte zusammen: oben der Visualizer mit dem Song, darunter die Bedienung, Ihr Klang und was als Nächstes läuft. Derselbe Player in allen Fensterfarben, und eine gewählte Szene läuft hinter allem, im Modus {backdrop}.',
   'tour.player.point1':
-    'Der ganze Equalizer kommt mit: Presets, Band-Layouts, EQ-Modus, Smart-EQ, Bass, Mitten und Höhen.',
+    'Unter {sound}: Regler für Bass, Mitten und Höhen oder Ihre EQ-Bänder, daneben Preset, Smart-EQ und EQ-Modus.',
   'tour.player.point2':
-    'Klappen Sie den Player auf eine Zeile ein, halten Sie ihn über anderen Fenstern oder doppelklicken Sie auf den Visualizer für Vollbild.',
+    '„{upNext}“ und {playlists} stehen unten; klappen Sie sie für ein größeres Bild ein. Musik, die Sie irgendwo auf dem Player ablegen, kommt in die Warteschlange.',
   'tour.player.point3':
-    'Ein eigenes Design, und Songs, die Sie auf „Als Nächstes“ ablegen, kommen in die Bibliothek und in die Warteschlange.',
+    'Feste Breite, die Höhe ziehen Sie am oberen oder unteren Rand. Auf eine Zeile einklappen, über anderen Fenstern halten oder per Doppelklick aufs Bild als Vollbild.',
   'tour.player.how':
     'Drücken Sie in der Titelleiste neben Hilfe den Schalter Kompakter Player. Im Player holt derselbe Schalter die vollständige App zurück.',
   'tour.player.open': 'Kompakter Player ausprobieren',
   'tour.player.imageAlt':
-    'Die Ecke der Titelleiste mit markiertem Schalter {player} und die beiden Player, die er öffnet: der klassische Verstärker mit LED-Uhr, Lämpchen, Equalizer und Warteschlange, und der breitere Glas-Player über einem Polarlicht im Modus {backdrop}.',
-  'tour.player.classic': 'Klassischer Verstärker',
-  'tour.player.glass': 'Glas, im Modus {backdrop}',
+    'Die Ecke der Titelleiste mit markiertem Schalter {player} und zweimal der Kompakte Player: über einer Szene im Modus {backdrop} mit geöffneten EQ-Bändern und mit einem Standard-Visualizer hinter dem Song und geöffneten Klangreglern.',
+  'tour.player.scene': 'Mit einer Szene, im Modus {backdrop}',
+  'tour.player.standard': 'Mit einem Standard-Visualizer',
   'tour.look.kicker': 'NEUES AUSSEHEN',
   'tour.look.title': 'Ein neues Fenster in neuen Farben',
   'tour.look.subtitle':
     'Ein Regler für das Design und ein Visualizer hinter allem',
   'tour.look.lead':
-    'Die Bereiche stehen auf einer offenen Fläche in den Farben des neuen Symbols, und ein einziger Regler, {brightness}, führt das ganze Fenster von fast Schwarz bis zu einem hellen Ozeanblau. Mit einem Plus-Visualizer im Diagramm kann das Fenster seine Farben annehmen oder ihn hinter allem abspielen.',
+    'Die Bereiche stehen auf einer offenen Fläche in den Farben des neuen Symbols, und ein einziger Regler, {brightness}, führt das ganze Fenster von fast Schwarz bis zu einem hellen Ozeanblau. Mit einer Szene im Diagramm kann das Fenster ihre Farben annehmen oder sie hinter allem abspielen.',
   'tour.look.point1':
     '{brightness} steht im Menü hinter dem Puls-Symbol und unter {windowColours} neben {transparency}.',
   'tour.look.point2':
     '{windowColours} bietet {original}, {colours}, {ambient} und {backdrop}, jeweils mit einer Zeile dazu, was es mit dem Fenster macht.',
   'tour.look.point3':
-    'Dialoge und Menüs sind aus einem Material, und der {rainbow} läuft durch die Farben des Symbols oder die eines Visualizers.',
+    'Dialoge und Menüs sind aus einem Material, und „{rainbow}“ läuft durch die Farben des Symbols oder die eines Visualizers.',
   'tour.look.how':
-    'Verschieben Sie {brightness} im Aktionsmenü hinter dem Puls-Symbol oben rechts. Mit einem Plus-Visualizer im Diagramm öffnen Sie {windowColours} über die Leiste des Diagramms und wählen {backdrop}.',
+    'Verschieben Sie {brightness} im Aktionsmenü hinter dem Puls-Symbol oben rechts. Mit einer Szene im Diagramm öffnen Sie {windowColours} über die Leiste des Diagramms und wählen {backdrop}.',
   'tour.look.open': 'EQ öffnen',
   'tour.look.imageAlt':
-    'FluidEQ in seinen eigenen Farben auf der EQ-Seite, der Analyzer zeichnet einen Song unter den Kurven, und das Menü hinter dem Puls-Symbol ist über seiner Ecke geöffnet, mit Helligkeit auf halber Höhe und eingeschaltetem Regenbogenmodus.',
+    'FluidEQ in seinen eigenen Farben auf der EQ-Seite, der Analyzer zeichnet einen Song unter den Kurven, und das Menü hinter dem Puls-Symbol ist über seiner Ecke geöffnet, mit Helligkeit auf halber Höhe und eingeschaltetem „Bunter Modus“.',
   'tour.gpu.kicker': 'EINE NEUE VISUALIZER-ENGINE',
   'tour.gpu.title': 'Jeder Visualizer auf Ihrer Grafikkarte',
   'tour.gpu.subtitle':
     'Vierzig Darstellungen im Takt Ihres Bildschirms, und 3D-Welten',
   'tour.gpu.lead':
-    'Die vierzig Darstellungen des Diagramms laufen jetzt auf der Engine der Plus-Szenen: auf Ihrer Grafikkarte, mit der Bildwiederholrate Ihres Bildschirms, sodass Balken, Partikel und Spitzen gleiten, wo sie früher ruckelten. Und ein Plus-Visualizer kann jetzt eine echte 3D-Welt sein.',
+    'Die vierzig Darstellungen des Diagramms laufen jetzt auf der Engine der Szenen: auf Ihrer Grafikkarte, mit der Bildwiederholrate Ihres Bildschirms, sodass Balken, Partikel und Spitzen gleiten, wo sie früher ruckelten. Und eine Szene kann jetzt eine echte 3D-Welt sein.',
   'tour.gpu.point1':
     'Achtzehn neue Darstellungen unter {scenes}, darunter {synthwave}, {horizon}, {towers} und {ledwall}; eine Darstellung ohne eigene Farben trägt die des Fensters.',
   'tour.gpu.point2':
@@ -69,13 +80,13 @@ const tour: Partial<Dictionary> = {
     'Klicken Sie im Diagramm auf den Namen der Darstellung und wählen Sie eine unter {scenes}.',
   'tour.gpu.open': 'EQ öffnen',
   'tour.gpu.imageAlt':
-    'Ein Plus-Visualizer als nächtliche 3D-Stadt und vier neue Darstellungen, im Diagramm fotografiert – {synthwave}, {horizon}, {towers} und {ledwall} –, bei der ersten die Auswahl der Darstellung markiert.',
+    'Eine Szene als nächtliche 3D-Stadt und vier neue Darstellungen, im Diagramm fotografiert – {synthwave}, {horizon}, {towers} und {ledwall} –, bei der ersten die Auswahl der Darstellung markiert.',
   'tour.gpu.world': '3D-Welt',
   'tour.sparks.kicker': 'ZEIGER-FUNKEN',
   'tour.sparks.title': 'Visualizer, die auf Ihre Maus antworten',
   'tour.sparks.subtitle': 'Funken, Blüten oder Schnee am Mauszeiger',
   'tour.sparks.lead':
-    'Bewegen Sie die Maus über einen Plus-Visualizer, und er wirft, woraus er gemacht ist – Funken, Blüten, Schnee, Glut – als Spur hinter dem Zeiger her und sprüht, wo Sie klicken. In den Modi {ambient} und {backdrop} ziehen seine Vögel, Blüten und Lichter außerdem über das ganze Fenster.',
+    'Bewegen Sie die Maus über eine Szene, und sie wirft, woraus sie gemacht ist – Funken, Blüten, Schnee, Glut – als Spur hinter dem Zeiger her und sprüht, wo Sie klicken. In den Modi {ambient} und {backdrop} ziehen ihre Vögel, Blüten und Lichter außerdem über das ganze Fenster.',
   'tour.sparks.point1':
     'Jeder Visualizer wirft sein Eigenes: Schnee aus einer Winterszene, Glut aus einem Lagerfeuer, Blüten aus einem Garten.',
   'tour.sparks.point2':
@@ -83,7 +94,7 @@ const tour: Partial<Dictionary> = {
   'tour.sparks.point3':
     'Ein Schalter für alle Visualizer: {sparks}, in {windowColours} unter {rainbow}.',
   'tour.sparks.how':
-    'Fahren Sie mit einem Plus-Visualizer im Diagramm mit der Maus darüber und klicken Sie. {sparks} finden Sie in {windowColours} unter {rainbow}.',
+    'Fahren Sie mit einer Szene im Diagramm mit der Maus darüber und klicken Sie. {sparks} finden Sie in {windowColours} unter {rainbow}.',
   'tour.sparks.open': 'EQ öffnen',
   'tour.sparks.imageAlt':
     'Ein Polarlicht-Visualizer mit einer Spur leuchtender Funken hinter dem Mauszeiger und einem Funkenregen, wo geklickt wurde, dazu {windowColours} mit markiertem Schalter {sparks}.',
@@ -190,16 +201,16 @@ const tour: Partial<Dictionary> = {
   'tour.studio.point3':
     'Kopieren Sie den KI-Prompt, und Ihr KI-Assistent kann Ihre Szene sehen und hören, wie sich der Song bewegt.',
   'tour.studio.how':
-    'Öffnen Sie Plus und wählen Sie Studio in der Seitenleiste.',
-  'tour.studio.open': 'Plus öffnen',
+    'Öffnen Sie Visualizer und wählen Sie Studio in der Seitenleiste.',
+  'tour.studio.open': 'Visualizer öffnen',
   'tour.studio.imageAlt':
     'Das Studio mit Alpine auf der Bühne, ein See unter verschneiten Gipfeln und ein Polarlicht, darunter die drei Schritte, mit Ihrer KI eine Szene zu erstellen, und zwei Hinweise: kostenlos für jedes Konto, und eine veröffentlichte Szene läuft für ihren Macher kostenlos.',
   'tour.studio.earned': 'Veröffentlicht: läuft für Sie kostenlos',
   'tour.help.kicker': 'HILFE',
   'tour.help.title': 'Fragen Sie das Handbuch mit eigenen Worten',
-  'tour.help.subtitle': 'Tippfehler, Pluralformen und zehn Sprachen',
+  'tour.help.subtitle': 'Tippfehler, Pluralformen und Ihre Sprache',
   'tour.help.lead':
-    'Durchsuchen Sie das Handbuch so, wie Sie einen Freund fragen würden – „kein Ton“, „Limiter“, „Hintergrundbild“ – in jeder der zehn Sprachen. Das beste Kapitel steht ganz oben, und das Handbuch führt Sie zum Bedienelement, auf dem Bild eingekreist.',
+    'Durchsuchen Sie das Handbuch so, wie Sie einen Freund fragen würden – „kein Ton“, „Limiter“, „Hintergrundbild“ – in Ihrer Sprache. Das beste Kapitel steht ganz oben, und das Handbuch führt Sie zum Bedienelement, auf dem Bild eingekreist.',
   'tour.help.point1':
     'Es verzeiht Tippfehler und Pluralformen und kennt die Wörter, die Menschen für die Dinge verwenden.',
   'tour.help.point2':
@@ -256,7 +267,7 @@ const tour: Partial<Dictionary> = {
   'tour.room.imageAlt':
     'Ein Raum von oben: sieben Lautsprecher und ein Sub um einen Kopf in der Mitte, jeder mit seinem Weg zu den Ohren.',
 
-  'tour.plus.kicker': 'FLUIDEQ PLUS',
+  'tour.plus.kicker': 'VISUALIZER',
   'tour.plus.title': 'Szenen, die Ihnen für immer gehören',
   'tour.plus.subtitle': 'Visualizer, Studio, Beleuchtung und mehr',
   'tour.plus.lead':
@@ -268,10 +279,10 @@ const tour: Partial<Dictionary> = {
   'tour.plus.point3':
     'Jede Szene lässt sich zuerst ansehen, und die geholten laufen auf jedem Computer, auf dem Sie sich anmelden.',
   'tour.plus.how':
-    'Öffnen Sie den Tab Plus: Links untereinander stehen Visualizer, Studio und Dynamische Beleuchtung.',
-  'tour.plus.open': 'Plus öffnen',
+    'Öffnen Sie den Tab Visualizer: Links untereinander stehen Galerie, Studio und Dynamische Beleuchtung.',
+  'tour.plus.open': 'Visualizer öffnen',
   'tour.plus.imageAlt':
-    'Der Tab Plus: Visualizer, Studio und Dynamische Beleuchtung seitlich untereinander und die Visualizer-Galerie mit Chrom, Blüte, Aurora, Alpin und Neonstadt.',
+    'Der Tab Visualizer: Galerie, Studio und Dynamische Beleuchtung seitlich untereinander und die Galerie mit Chrom, Blüte, Aurora, Alpin und Neonstadt.',
   'tour.scene.alpine': 'Alpin',
   'tour.scene.aurora': 'Aurora',
   'tour.scene.bloom': 'Blüte',
@@ -282,24 +293,24 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.title': 'Szenen, die sich mit Ihrer Musik bewegen',
   'tour.visualizers.subtitle': 'Auf Ihrer Grafikkarte gezeichnet',
   'tour.visualizers.lead':
-    'Plus-Visualizer sind lebendige Szenen – Berge unter dem Sternenhimmel, Vorhänge aus Polarlicht, eine Neonstadt –, die auf Ihrer Grafikkarte unter Ihren EQ-Kurven gezeichnet werden. Bass, Beat und Höhen bewegen jeweils etwas anderes, und das Fenster um sie herum kann ihre Farben annehmen.',
+    'Szenen sind lebendige Bilder – Berge unter dem Sternenhimmel, Vorhänge aus Polarlicht, eine Neonstadt –, die auf Ihrer Grafikkarte unter Ihren EQ-Kurven gezeichnet werden. Bass, Beat und Höhen bewegen jeweils etwas anderes, und das Fenster um sie herum kann ihre Farben annehmen.',
   'tour.visualizers.point1':
-    'Eine Auswahl für alles: {styles} kostenlose Stile zum Formen und Einfärben, dazu Plus-Visualizer nach Kategorien.',
+    'Eine Auswahl für alles: {styles} kostenlose Stile zum Formen und Einfärben, dazu Szenen nach Kategorien.',
   'tour.visualizers.point2':
     'Stöbern Sie in der Galerie, testen Sie Kostproben zehn Sekunden lang und fügen Sie Ihre Lieblingsszenen hinzu.',
   'tour.visualizers.point3':
     'Lassen Sie Darstellungen automatisch wechseln, schalten Sie auf Vollbild und stellen Sie unter Ansicht Attack und Release einer Szene ein.',
   'tour.visualizers.how':
-    'Klicken Sie im Diagramm auf den Namen der Darstellung und wählen Sie unter Plus-Visualizer eine Szene – alle finden Sie unter Plus → Visualizer.',
+    'Klicken Sie im Diagramm auf den Namen der Darstellung und wählen Sie unter Visualizer eine Szene – alle finden Sie unter Visualizer → Galerie.',
   'tour.visualizers.open': 'EQ öffnen',
   'tour.visualizers.imageAlt':
-    'Alpin, ein Plus-Visualizer mit Bergen über einem See bei Nacht, läuft im Diagramm unter den EQ-Kurven, darunter vier weitere Szenen.',
+    'Alpin, eine Szene mit Bergen über einem See bei Nacht, läuft im Diagramm unter den EQ-Kurven, darunter vier weitere Szenen.',
 
   'tour.desktop.kicker': 'DESKTOP-VISUALIZER',
   'tour.desktop.title': 'Ihre Musik hinter Ihrem Desktop',
   'tour.desktop.subtitle': 'Eine Szene auf jedem Monitor',
   'tour.desktop.lead':
-    'Legen Sie einen Plus-Visualizer hinter Ihre Desktopsymbole. Er bewegt sich zu allem, was Sie gerade hören, oder ruhig für sich, und jeder Monitor kann eine eigene Szene zeigen.',
+    'Legen Sie eine Szene hinter Ihre Desktopsymbole. Sie bewegt sich zu allem, was Sie gerade hören, oder ruhig für sich, und jeder Monitor kann eine eigene Szene zeigen.',
   'tour.desktop.point1':
     'Wählen Sie Monitore auf einer Karte Ihres Schreibtischs, jeden mit seinem eigenen Visualizer.',
   'tour.desktop.point2':
@@ -307,16 +318,16 @@ const tour: Partial<Dictionary> = {
   'tour.desktop.point3':
     'Beim nächsten Start von FluidEQ kommt er von selbst zurück.',
   'tour.desktop.how':
-    'Läuft ein Plus-Visualizer im Diagramm, drücken Sie den Monitor-Knopf neben seinem Namen oder wählen Sie Ansicht → Als Desktophintergrund festlegen.',
+    'Läuft eine Szene im Diagramm, drücken Sie den Monitor-Knopf neben ihrem Namen oder wählen Sie Ansicht → Als Desktophintergrund festlegen.',
   'tour.desktop.open': 'EQ öffnen',
   'tour.desktop.imageAlt':
-    'Drei Monitore, jeder mit einem Plus-Visualizer – Aurora, Alpin und Neonstadt – hinter seinen Desktopsymbolen und seiner Taskleiste.',
+    'Drei Monitore, jeder mit einer Szene – Aurora, Alpin und Neonstadt – hinter seinen Desktopsymbolen und seiner Taskleiste.',
 
   'tour.lighting.kicker': 'DYNAMISCHE BELEUCHTUNG',
   'tour.lighting.title': 'Ihr Schreibtisch leuchtet mit der Szene',
   'tour.lighting.subtitle': 'Beta · Ihre RGB-Geräte folgen dem Visualizer',
   'tour.lighting.lead':
-    'Tastatur, Maus, Mauspad, Headset und Ständer übernehmen die Farben und den Rhythmus des Plus-Visualizers im Diagramm, über Windows Dynamic Lighting und Razer Chroma.',
+    'Tastatur, Maus, Mauspad, Headset und Ständer übernehmen die Farben und den Rhythmus der Szene im Diagramm, über Windows Dynamic Lighting und Razer Chroma.',
   'tour.lighting.point1':
     'Vier Stile für jeden Visualizer: Szene, Farbwelle, Spektrum und Beat-Welle.',
   'tour.lighting.point2':
@@ -324,29 +335,30 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.point3':
     'Eine Live-Vorschau zeichnet Ihren eigenen Schreibtisch, während er leuchtet. Die Funktion ist in der Betaphase: Sagen Sie uns, wie sich Ihre Geräte verhalten.',
   'tour.lighting.how':
-    'Öffnen Sie Plus → Dynamische Beleuchtung und schalten Sie sie ein; lassen Sie dann einen Plus-Visualizer im Diagramm laufen.',
-  'tour.lighting.open': 'Plus öffnen',
+    'Öffnen Sie Visualizer → Dynamische Beleuchtung und schalten Sie sie ein; lassen Sie dann eine Szene im Diagramm laufen.',
+  'tour.lighting.open': 'Visualizer öffnen',
   'tour.lighting.imageAlt':
     'Eine Tastatur, eine Maus und ein Mauspad, beleuchtet im Pink, Violett und Cyan von Neonstadt.',
 
   'tour.share.kicker': 'JEDER PC, IN BEIDE RICHTUNGEN',
   'tour.share.title': 'Audio zwischen Ihren Computern teilen',
-  'tour.share.subtitle': 'Hören Sie beide Computer, egal an welchem Sie sitzen',
+  'tour.share.subtitle':
+    'Hören Sie jeden Computer der Gruppe, egal an welchem Sie sitzen',
   'tour.share.lead':
-    'Ihr Gaming-PC und Ihr Laptop spielen ineinander: An welchem Sie auch sitzen, Sie hören beide – über Ihr eigenes Netzwerk, verlustfrei, verschlüsselt und durch den EQ, den Sie an diesem Computer eingestellt haben.',
+    'Ihr Gaming-PC, Ihr Laptop und jeder andere Computer in Ihrem Netzwerk spielen in eine Gruppe: Egal an welchem Sie sitzen, Sie hören die anderen – verlustfrei, verschlüsselt und durch den EQ dieses Computers.',
   'tour.share.pairLabel': 'IN BEIDE RICHTUNGEN',
-  'tour.share.pairName': 'Jeder Computer spielt den Ton des anderen',
+  'tour.share.pairName': 'Jeder Computer spielt den Ton der anderen',
   'tour.share.wireLabel': 'Verlustfrei · Verschlüsselt · Privates LAN',
   'tour.share.stepsTitle': 'In drei Schritten eingerichtet',
   'tour.share.step1Title': 'Auf einem Computer den Code kopieren',
   'tour.share.step1':
-    'Öffnen Sie den Tab „Audio teilen“ und drücken Sie „Code kopieren“. Der Code bleibt jedes Mal derselbe.',
+    'Öffnen Sie „Audio teilen“, drücken Sie „Computer hinzufügen“ und dann „Code kopieren“. Der Code bleibt immer derselbe.',
   'tour.share.step2Title': 'Auf dem anderen einfügen und verbinden',
   'tour.share.step2':
-    'Öffnen Sie dort „Audio teilen“, fügen Sie den Code unter „Code des anderen Computers“ ein und drücken Sie „Verbinden“. Beide spielen sich sofort unverändert gegenseitig, jeder mit seinem eigenen EQ.',
+    'Drücken Sie dort „Computer hinzufügen“, fügen Sie den Code unter „Code des anderen Computers“ ein und drücken Sie „Verbinden“. Später verbundene Computer kommen in die ganze Gruppe.',
   'tour.share.step3Title': 'Festlegen, was wohin geht',
   'tour.share.step3':
-    'Jeder verbundene Computer hat zwei Schalter, „Hier abspielen“ und „Meinen Ton senden“; mit einem davon aus geht es nur in eine Richtung. Die Leiste zeigt den Song des anderen Computers und steuert ihn. Ein Regler neben „Hier abspielen“ bestimmt die Lautstärke, und „Pausieren“ hält beide Richtungen an, bis Sie „Fortsetzen“ drücken.',
+    'Jeder Computer hat „Empfangen“ und „Senden“, und „Teilen“ schaltet Ihren Ton für alle ab. „Ihr Mix“ regelt jede Lautstärke. Pausieren und Trennen stehen im Menü jedes Computers, und die Tasten der Leiste wirken über das Netzwerk.',
   'tour.share.fact1Title': 'Verlustfrei',
   'tour.share.fact1':
     'Float32-PCM von Ende zu Ende. Kein Codec, kein Generationsverlust.',
@@ -355,9 +367,9 @@ const tour: Partial<Dictionary> = {
     'AES-256-GCM auf jedem Paket. Der Code ist der Schlüssel; ohne ihn hört niemand mit.',
   'tour.share.fact3Title': 'Bleibt verbunden',
   'tour.share.fact3':
-    'Die Verbindung übersteht das Schließen der App und Neustarts, auf beiden Seiten. Nur „Trennen“ beendet sie.',
+    'Die Gruppe findet sich nach einem Neustart, dem Ruhezustand, einem Netzwerkausfall oder einem Engine-Wechsel von selbst wieder. Abwesende Computer bleiben aufgelistet.',
   'tour.share.tip':
-    'Leise anfangen: Zwei gleichzeitig spielende Computer addieren sich. Drehen Sie die Lautstärke vor der ersten Verbindung herunter.',
+    'Leise anfangen: Gleichzeitig spielende Computer addieren sich. Drehen Sie die Lautstärke vor der ersten Verbindung herunter.',
   'tour.share.open': 'Audio teilen öffnen',
 
   'tour.library.kicker': 'IHRE MUSIK, IHR PLAYER',
@@ -602,7 +614,7 @@ const tour: Partial<Dictionary> = {
   'tour.myCurves.point1':
     '{applyCurve} spielt eine Kurve als Kopfhörerkorrektur, mit eigener Stärke und eigenem Schalter; {applyEq} legt ihre Bänder stattdessen in Ihren EQ.',
   'tour.myCurves.point2':
-    '{squiglink} hat einen eigenen Tab, und {save} behält, was Sie mitbringen, mit einem Klick.',
+    'Der Zugang zu {squiglink} in {myCurves} öffnet die Importvorschau; {save} bewahrt Ihre Kurve für später auf.',
   'tour.myCurves.point3':
     '{exportList} schreibt die ganze Liste in eine Datei, als Sicherung oder für einen anderen Computer; {importList} liest sie wieder ein und sagt, was ausgelassen wird.',
   'tour.myCurves.how':
@@ -655,10 +667,10 @@ const tour: Partial<Dictionary> = {
   'tour.chat.point2':
     '{attach} schickt ein Bild der Szene mit, auf das Sie zeichnen können. Was Sie während der Arbeit senden, wartet in einer Schlange und geht gemeinsam hinaus.',
   'tour.chat.point3':
-    'Er läuft mit Claude Code auf diesem Computer, mit Ihrem eigenen Abo, und zeigt Ihre restlichen Limits. Mit ChatGPT malt er Bilder für die Szene und fragt vor jedem.',
+    'Er läuft mit Claude Code auf diesem Computer, mit Ihrem eigenen Abo, und zeigt Ihre restlichen Limits.',
   'tour.chat.how':
     'Öffnen Sie {plus}, wählen Sie in der Leiste {studio}, wählen oder beginnen Sie eine Szene und schreiben Sie in das Feld neben der Bühne.',
-  'tour.chat.open': 'Plus öffnen',
+  'tour.chat.open': 'Visualizer öffnen',
   'tour.chat.imageAlt':
     'Die Bühne des Studios neben seinem Chat: die Bitte, das Bühnenlicht auf der Snare blitzen zu lassen, die Schritte der Antwort nacheinander abgehakt, Version 2 mit Zurückholen behalten, und das Licht der Bühne, das zu blitzen beginnt, sobald Version 2 spielt.',
   'tour.chat.ask': 'Lass das Bühnenlicht auf der Snare blitzen.',
@@ -733,6 +745,7 @@ const tour: Partial<Dictionary> = {
     'Öffnen Sie den Tab Online-Medien, wählen Sie oben eine Seite, tippen Sie ins Suchfeld und drücken Sie Suchen. Zurück, Vorwärts und Neu laden funktionieren wie im Browser.',
   'tour.media.open': 'Online-Medien öffnen',
   'tour.studio.free': 'Kostenlos für jedes Konto',
+  'tour.film.englishAudio': 'Englischer Ton · übersetzte Untertitel',
 };
 
 export default tour;

@@ -42,7 +42,7 @@ const creator: Partial<Dictionary> = {
   'creator.dialog.search': '搜索国家或地区',
   'creator.dialog.choose': '选择国家或地区',
   'creator.dialog.countryHint':
-    'Stripe 可以向美国、英国、加拿大、瑞士和欧洲经济区的创作者付款，选定后无法更改。不在列表中？会员仍然可以购买你的场景，每笔销售会改为给你一个积分。',
+    'Stripe 可以向美国、英国、加拿大、瑞士和欧洲经济区的创作者付款，选定后无法更改。不在列表中？会员仍然可以购买你的场景，每两笔销售会改为给你 1 点数。',
   'creator.dialog.cancel': '取消',
   'creator.dialog.go': '同意并前往 Stripe',
   'creator.dialog.opening': '正在打开 Stripe…',
@@ -58,7 +58,7 @@ const creator: Partial<Dictionary> = {
   'creator.terms.stripe':
     'Stripe 会要求你提供身份、银行和税务信息，并向你展示其自身的条款。如果 Stripe 无法再向你付款，付款将停止。',
   'creator.terms.rights':
-    '场景中的所有内容都必须是你有权出售的。场景仍需审核，违反 Plus 条款的场景可能被下架。',
+    '场景中的所有内容都必须是你有权出售的。场景仍需审核，违反条款的场景可能被下架。',
   'creator.terms.taxes': '你的收益所涉及的税款，由你在居住地自行申报。',
   'creator.terms.changes':
     '这些条款可能会变更。变更会在应用内通知你，你需要接受新条款后才能再次收款。',
@@ -70,42 +70,6 @@ const creator: Partial<Dictionary> = {
   'creator.error.country': 'Stripe 目前还无法向该国家或地区的创作者付款。',
   'creator.error.banned': '此账户无法因场景获得付款。',
   'creator.error.server': '我们这边出了问题。没有任何更改；请稍后再试。',
-  'creator.admin.tab': '付款',
-  'creator.admin.plan': '通过 Stripe 付款的创作者',
-  'creator.admin.loading': '正在读取应付给创作者的金额',
-  'creator.admin.creators': '创作者：{count}',
-  'creator.admin.available': 'Stripe 可用余额',
-  'creator.admin.availableNote': '转账的资金来源',
-  'creator.admin.short':
-    'FluidEQ 在 Stripe 的可用余额低于应付金额。超出余额的转账会失败，并在下一次付款时重新发送。',
-  'creator.admin.list': '收款人',
-  'creator.admin.none':
-    '目前还没有应付的人。当 Stripe 可以向创作者付款且足够的收益已过暂扣期时，他们会出现在这里。',
-  'creator.admin.rules':
-    '每月 1 日和 16 日自动付款：先付给创作者，再把你的部分转到你的银行。每笔付款只发送一次：中途停止的付款由下一次完成，绝不重复发送。',
-  'creator.admin.lastPaid': '上次付款：{date}',
-  'creator.admin.neverPaid': '尚未付款',
-  'creator.admin.nextDue': '下次自动付款：{date}',
-  'creator.notice.title': '{date} 的创作者付款',
-  'creator.notice.body': '将自动发出 {amount}。待付款创作者：{count}。',
-  'creator.notice.later': '稍后',
-  'creator.notice.open': '打开付款',
-  'creator.notice.shortTitle': 'Stripe 余额不足以支付 {date} 的款项',
-  'creator.notice.shortBody':
-    '应付：{amount}。待付款创作者：{count}。Stripe 余额为 {available}；超出部分的转账会失败，并等待下一次付款。',
-  'creator.admin.owed': '欠创作者的款项',
-  'creator.admin.owedNote': '暂扣 {held} · 可支付 {ready}',
-  'creator.admin.sending': '发送中 {amount}',
-  'creator.admin.onItsWay': '+ {amount} 正在到账',
-  'creator.admin.yours': '你的部分',
-  'creator.admin.yoursNote': '每次付款后自动转到你的银行；{reserve} 留作退款',
-  'creator.admin.lastToYou': '上次转到你的银行：{amount}，{date}',
-  'creator.admin.yoursShort': '欠创作者的款项比 Stripe 余额多 {amount}',
-  'creator.admin.next': '下次付款',
-  'creator.admin.manual':
-    'Stripe 仍会自动把你的全部余额转到你的银行，包括创作者的钱，所以 FluidEQ 暂不转你的部分。请在 Stripe 的 Settings → Payouts 中把计划改为 Manual 一次：之后 FluidEQ 会在每次付款后自动只转你的部分。',
-  'creator.admin.pendingLine':
-    '上次执行未完成的付款：{count}。下一次执行会先完成它们。',
 };
 
 export default creator;

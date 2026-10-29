@@ -315,8 +315,8 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-small;
 }
 
-// Reporting a scene, on the frame (`DialogFrame`). Its own names: the
-// admin's queue of reports (`GalleryModeration.scss`) owns `gallery-report`.
+// Reporting a scene, on the frame (`DialogFrame`). Its own names, apart from
+// the list of reports that reads them (`gallery-report`).
 .dialog-frame.gallery-report-dialog {
   @include dialog.size(640px, 560px);
 }

@@ -100,6 +100,28 @@ describe('a scene’s time of day', () => {
     expect(next.setting.getSceneDaylightSetting().source).toBe('clock');
   });
 
+  // Leaving a follow keeps the scene where Brightness or the clock had put
+  // it, which is any fraction; the Daylight row printed every digit of one
+  // (Ivan, 2026-10-25: "look at this mess", 96.7334490740…%).
+  it('keeps a time of day of its own as a whole percent, and heals one stored before', () => {
+    const { setting } = launch();
+    setting.setDaylightSource('own', 96.7334490740741);
+    expect(setting.getSceneDaylightSetting()).toEqual({
+      source: 'own',
+      daylight: 97,
+    });
+    setting.setSceneDaylight(12.4);
+    expect(setting.getSceneDaylightSetting().daylight).toBe(12);
+    expect(
+      launch({
+        'fluideq.sceneDaylight': JSON.stringify({
+          source: 'own',
+          daylight: 96.7334490740741,
+        }),
+      }).setting.getSceneDaylightSetting().daylight,
+    ).toBe(97);
+  });
+
   // The first build of the choice stored `followsBrightness`; a choice made
   // then is read as the same choice.
   it('reads a choice stored by the first build of it', () => {

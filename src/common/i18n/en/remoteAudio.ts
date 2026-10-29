@@ -7,16 +7,33 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 const remoteAudio = {
+  'remoteAudio.group.add': 'Add computer',
+  'remoteAudio.group.title': 'The whole group',
+  'remoteAudio.group.mix': 'Your mix',
+  'remoteAudio.group.thisPC': 'This PC',
+  'remoteAudio.group.receive': 'Receive',
+  'remoteAudio.group.send': 'Send',
+  'remoteAudio.group.share': 'Share',
+  'remoteAudio.group.options': 'Options for {name}',
+  'remoteAudio.group.count.one': '{count} computer',
+  'remoteAudio.group.count.few': '{count} computers',
+  'remoteAudio.group.count.many': '{count} computers',
+  'remoteAudio.group.count.other': '{count} computers',
+  'remoteAudio.group.sourceOff': 'Sharing switched off',
+  'remoteAudio.group.offline': 'Offline',
+  'remoteAudio.group.unavailable': 'System volume unavailable',
+  'remoteAudio.group.mute': 'Mute this PC',
+  'remoteAudio.group.unmute': 'Unmute this PC',
+  'remoteAudio.group.output': 'Output',
+  'remoteAudio.group.hint':
+    'Link a computer to join its group. Each computer sends its own sound directly to the others; adjust what you hear in your mix.',
   'tabs.share': 'Share Audio',
   'remoteAudio.eyebrow': 'LAN AUDIO',
   'remoteAudio.title': 'Share audio between your computers',
-  'remoteAudio.subtitle':
-    'Link two computers and each one plays the other’s sound. Each sends its sound untouched; the computer you listen on applies its own EQ, curves and DSP.',
   'remoteAudio.security': 'Connection properties',
   'remoteAudio.badge.local': 'Private LAN only',
   'remoteAudio.badge.lossless': 'Lossless Float32 PCM transport',
   'remoteAudio.badge.encrypted': 'AES-256-GCM encrypted',
-  'remoteAudio.link.section': 'Link a computer',
   'remoteAudio.link.thisComputer': 'This computer',
   'remoteAudio.link.thisHint':
     'Paste this code on the other computer, or paste that computer’s code here. Either way works.',
@@ -40,13 +57,11 @@ const remoteAudio = {
   'remoteAudio.rule.steadyTitle': 'Steady, never drifting',
   'remoteAudio.rule.steady':
     'About 30 ms behind and held there: the two clocks are kept in step, so there are no dropouts and no slow drift.',
-  'remoteAudio.linked.section': 'Linked',
   'remoteAudio.linked.cardLabel': 'Link with {name}',
   'remoteAudio.linked.bothWays': 'Both ways',
   'remoteAudio.linked.incomingOnly': 'Incoming only',
   'remoteAudio.linked.outgoingOnly': 'Outgoing only',
   'remoteAudio.linked.paused': 'Paused',
-  'remoteAudio.linked.looking': 'Looking for {name} on your network…',
   'remoteAudio.linked.lossless': 'Lossless',
   'remoteAudio.linked.unlink': 'Unlink',
   'remoteAudio.linked.pause': 'Pause',
@@ -81,6 +96,7 @@ const remoteAudio = {
   'remoteAudio.lane.inOneWay':
     'Playing both ways needs Windows, or the FluidEQ Engine on Linux.',
   'remoteAudio.lane.outQuiet': 'Nothing playing on this computer',
+  'remoteAudio.lane.outSounding': 'Sound playing on this computer',
   'remoteAudio.lane.outOff': 'Not sending. {name} doesn’t hear this computer.',
   'remoteAudio.lane.outNotPlayed': '{name} has “Play it here” off.',
   'remoteAudio.lane.outOld':
@@ -89,7 +105,6 @@ const remoteAudio = {
     'Sending both ways needs Windows, or the FluidEQ Engine on Linux.',
   'remoteAudio.lane.outFailed':
     'This computer’s sound could not be captured. Switch “Send my sound” off and on to try again.',
-  'remoteAudio.another.section': 'Link another computer',
   'remoteAudio.singlePlayer.title': 'One player at a time',
   'remoteAudio.singlePlayer.body':
     'covers linked computers too: starting something on either one pauses what was playing on the other.',

@@ -101,8 +101,7 @@ export const fetchLikeStatus = async ({
     if (!isRecord(first) || typeof first.liked !== 'boolean') {
       return undefined;
     }
-    // The count is a `bigint`, which PostgREST hands back as a string — the
-    // leaderboard reads its counts the same way.
+    // The count is a `bigint`, which PostgREST hands back as a string.
     const likes =
       typeof first.likes === 'string' ? Number(first.likes) : first.likes;
     if (typeof likes !== 'number' || !Number.isInteger(likes) || likes < 0) {

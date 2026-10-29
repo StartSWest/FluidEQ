@@ -30,7 +30,7 @@ interface IRect {
  */
 const fakeWindow = () => {
   const events = new EventEmitter();
-  let bounds: IRect = { x: 100, y: 120, width: 520, height: 640 };
+  let bounds: IRect = { x: 100, y: 120, width: 480, height: 640 };
   let before: IRect | undefined;
   let isFullScreen = false;
   const minimum: Array<[number, number]> = [];
@@ -40,6 +40,8 @@ const fakeWindow = () => {
     once: events.once.bind(events),
     emit: events.emit.bind(events),
     isDestroyed: () => false,
+    isVisible: () => true,
+    isMinimized: () => false,
     isMaximized: () => false,
     isFullScreen: () => isFullScreen,
     getBounds: () => ({ ...bounds }),
@@ -69,6 +71,7 @@ const fakeWindow = () => {
       maximum.push([width, height]);
     },
     setMaximizable: () => undefined,
+    setResizable: () => undefined,
     setAlwaysOnTop: () => undefined,
     unmaximize: () => undefined,
     maximize: () => undefined,
@@ -95,8 +98,7 @@ const playerAt = () => {
     mode: 'player',
     isPinned: false,
     app: {},
-    amp: 'classic',
-    players: { classic: fake.bounds() },
+    player: fake.bounds(),
   });
   modes.followWindow(fake.win);
   // The page says the player is exactly its decks: held to 640.
@@ -126,7 +128,7 @@ describe('the player and full screen', () => {
     expect(bounds()).toEqual(DISPLAY);
     modes.setFullScreen(win, false);
     expect(bounds()).toEqual(left);
-    expect(modes.memory().players.classic).toEqual(left);
+    expect(modes.memory().player).toEqual(left);
   });
 
   it('takes nothing the page measures while the picture has the screen', () => {
@@ -136,10 +138,10 @@ describe('the player and full screen', () => {
     // and wants 2560 across — the numbers that used to hold the window at the
     // work area's full height for the rest of the session.
     modes.limitPlayerHeight(win, 1392, 1392);
-    modes.floorPlayerWidth(win, 2560);
+    modes.needPlayerWidth(win, 2560);
     modes.resizePlayer(win, 1392);
     modes.setFullScreen(win, false);
-    expect(bounds()).toEqual({ x: 100, y: 120, width: 520, height: 640 });
+    expect(bounds()).toEqual({ x: 100, y: 120, width: 480, height: 640 });
     expect(lastMinimum()).toEqual([expect.any(Number), 640]);
     expect(lastMaximum()[1]).toBe(640);
     expect(lastMinimum()[0]).toBeLessThan(2560);
@@ -147,15 +149,15 @@ describe('the player and full screen', () => {
 
   it('does not write the screen down as where the player was left', () => {
     const { modes, win } = playerAt();
-    const left = modes.memory().players.classic;
+    const left = modes.memory().player;
     modes.setFullScreen(win, true);
     // Windows reports the transition as the window having been moved and
     // resized, exactly as a drag would.
     win.emit('moved');
     win.emit('resized');
-    expect(modes.memory().players.classic).toEqual(left);
+    expect(modes.memory().player).toEqual(left);
     modes.setFullScreen(win, false);
-    expect(modes.memory().players.classic).toEqual(left);
+    expect(modes.memory().player).toEqual(left);
   });
 
   it('lifts the ceiling for a full screen it was not asked for', () => {
@@ -167,11 +169,31 @@ describe('the player and full screen', () => {
     expect(lastMaximum()[1]).toBe(NO_CEILING);
   });
 
-  it('is refused a switch of mode while full screen', async () => {
+  it('leaves full screen before switching back to the app', async () => {
     const { modes, win } = playerAt();
     modes.setFullScreen(win, true);
-    await expect(modes.setMode(win, 'app')).resolves.toBe('player');
+    await expect(modes.setMode(win, 'app')).resolves.toBe('app');
+    expect(win.isFullScreen()).toBe(false);
   });
+
+  it.each(['win32', 'linux'] as const)(
+    'switches fullscreen Karaoke to the amp and restores the app on %s',
+    async (platform) => {
+      const modes = createWindowModes(platform);
+      const { win, bounds } = fakeWindow();
+      const app = { x: 100, y: 90, width: 1200, height: 840 };
+      win.setBounds(app);
+      modes.followWindow(win);
+      modes.setFullScreen(win, true);
+      expect(bounds()).toEqual(DISPLAY);
+      await expect(modes.setMode(win, 'player')).resolves.toBe('player');
+      expect(win.isFullScreen()).toBe(false);
+      expect(bounds().width).toBeLessThan(app.width);
+      expect(modes.memory().app).toEqual({ ...app, isMaximized: false });
+      await modes.setMode(win, 'app');
+      expect(bounds()).toEqual(app);
+    },
+  );
 });
 
 describe('whose full screen it is', () => {

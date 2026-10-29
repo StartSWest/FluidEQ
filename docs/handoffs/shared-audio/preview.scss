@@ -1,0 +1,144 @@
+/* Browser harness geometry only. All appearance comes from the app cascade. */
+body {
+  height: auto;
+  min-height: 100vh;
+  overflow: auto;
+}
+#root {
+  height: auto;
+  min-height: 100vh;
+  padding: 0;
+  overflow: visible;
+}
+.group-preview {
+  max-width: 1400px;
+  margin: auto;
+  padding: 18px;
+}
+.group-preview.is-compact {
+  max-width: 600px;
+}
+.preview-content {
+  container-type: inline-size;
+  container-name: eq-panel;
+}
+.preview-toolbar {
+  margin-bottom: 18px;
+}
+.preview-perspective {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.preview-perspective .dropdown {
+  width: 260px;
+}
+.preview-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 18px;
+  align-items: start;
+}
+.preview-computer-row {
+  padding: 0;
+  gap: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.preview-computer-actions {
+  padding-right: 18px;
+}
+.preview-lanes {
+  grid-template-columns: minmax(170px, 0.8fr) minmax(75px, 1fr) auto;
+}
+.preview-lanes > .remote-audio__lane {
+  grid-template-columns: subgrid;
+  grid-template-areas: none;
+}
+.preview-lanes > .remote-audio__lane > * {
+  grid-area: auto;
+}
+.preview-lanes .remote-audio__lane-switch {
+  grid-column: 3;
+}
+.preview-lanes .remote-audio__lane-figures:empty {
+  display: none;
+}
+.preview-mix-fader {
+  display: block;
+}
+.preview-mix-label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+.preview-mix-label > input {
+  grid-column: 1 / -1;
+}
+.preview-output {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.preview-design-tools {
+  position: relative;
+}
+.preview-design-tools > div {
+  position: absolute;
+  z-index: 1001;
+  right: 0;
+  top: 100%;
+}
+.preview-design-tools summary {
+  list-style: none;
+}
+.preview-design-tools summary::-webkit-details-marker {
+  display: none;
+}
+.preview-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+}
+.preview-add label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+@container eq-panel (max-width: 950px) {
+  .preview-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@container eq-panel (max-width: 800px) {
+  .preview-computer-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .preview-computer-actions {
+    justify-content: flex-end;
+    padding-bottom: 16px;
+  }
+  .preview-lanes {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .preview-lanes .remote-audio__lane-direction {
+    grid-column: 1;
+  }
+  .preview-lanes .remote-audio__lane-body {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .preview-lanes .remote-audio__lane-switch {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .preview-perspective {
+    flex-wrap: wrap;
+  }
+  .preview-perspective .dropdown {
+    max-width: 100%;
+  }
+}

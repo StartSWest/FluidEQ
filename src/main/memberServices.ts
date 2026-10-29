@@ -21,25 +21,19 @@ import { app, BrowserWindow } from 'electron';
 import log from 'electron-log';
 import path from 'path';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
-import type { TAudioEngine } from '../common/audioEngine';
+import { startMainAddons } from './addons';
 import { appVersion } from './appVersion';
 import { registerAccountIpc } from './ipc/account';
-import { registerAccountDeletionIpc } from './ipc/accountDeletion';
-import { registerAdminInsightsIpc } from './ipc/adminInsights';
 import { registerCreatorIpc } from './ipc/creator';
 import { registerMemberScenesIpc } from './ipc/memberScenes';
 import { registerMemberSharingIpc } from './ipc/memberSharing';
 import { registerPlusGalleryIpc } from './ipc/plusGallery';
-import { registerPlusGiftsIpc } from './ipc/plusGifts';
-import { registerPlusModerationIpc } from './ipc/plusModeration';
 import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerPlusPublishingIpc } from './ipc/plusPublishing';
 import { registerPlusReviewIpc } from './ipc/plusReview';
 import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
 import { registerSceneAnnouncementsIpc } from './ipc/sceneAnnouncements';
 import { registerSceneStoreIpc } from './ipc/sceneStore';
-import { registerSceneTasteIpc } from './ipc/sceneTaste';
-import { registerListeningIpc } from './ipc/listening';
 import forgetListening from './usage/forgetListening';
 import { registerSceneVersionsIpc } from './ipc/sceneVersions';
 import { createVersionPins } from './keptVersions';
@@ -61,8 +55,6 @@ import { createWallpaperScenes } from './wallpaper/scenes';
 export interface IMemberServicesDeps {
   getMainWindow: () => BrowserWindow | null;
   userDataDir: string;
-  /** The engine this computer runs, reported with the scenes (premium 0049). */
-  getEngine: () => TAudioEngine | null;
 }
 
 /**
@@ -78,7 +70,6 @@ export interface IMemberServicesDeps {
 const registerMemberServices = ({
   getMainWindow,
   userDataDir,
-  getEngine,
 }: IMemberServicesDeps) => {
   // DEVELOPMENT ONLY, and compiled to nothing in a packaged build:
   // `isPackaged` is decided by the binary's name, which nothing here can
@@ -99,7 +90,7 @@ const registerMemberServices = ({
     developmentEntitlement,
   });
 
-  // The leaderboard's listening tally, gone with the board.
+  // The leaderboard's listening tally and computer id, gone with the board.
   forgetListening(userDataDir, log);
 
   // The Plus terms promise that a member is told when they change. Asks the
@@ -230,18 +221,14 @@ const registerMemberServices = ({
     // downloaded again (`plus/pictureDiskCache.ts`).
     pictureDir: path.join(userDataDir, 'gallery-pictures'),
   });
-  // Scenes under review (premium migration 0037): the admin's queue and
-  // answers, a maker's list of what they sent, and the corner notice telling
-  // either of them there is news. An approval puts a scene in the gallery.
-  // Signing out must take the notice away too, which the membership alone
-  // never says (`onIdentityChange`).
+  // Scenes under review (premium migration 0037): a maker's list of what
+  // they sent, and the corner notice telling them an answer came. Signing
+  // out must take the notice away too, which the membership alone never says
+  // (`onIdentityChange`).
   const plusReviewIpc = registerPlusReviewIpc({
     getMainWindow,
     userDataDir,
     access: galleryAccess,
-    onGalleryChanged: async () => {
-      await plusGalleryIpc.refreshIfDue(true);
-    },
     onAccountChange: (listener) => {
       const offMembership = accountIpc.entitlement.subscribe(listener);
       const offIdentity = accountIpc.onIdentityChange(listener);
@@ -279,14 +266,21 @@ const registerMemberServices = ({
     activeIsInspection: memberScenesIpc.activeIsInspection,
     mayPublishActive: memberScenesIpc.mayUseActive,
     onTermsAgreed: plusTermsNoticeIpc.agreed,
-    onPublished: () => {
+    onPublished: (author, pack) => {
+      memberScenesIpc.keepPublished(author, pack);
+      // The scene is the author's to play now: the store says so, the
+      // Studio's draft mark goes and the graph may show it.
+      sceneOwnership
+        .refreshNow()
+        .catch((error) =>
+          log.warn('Scene store refresh after publication failed', error),
+        );
       plusGalleryIpc
         .refreshIfDue(true)
         .catch((error) =>
           log.warn('Gallery refresh after publication failed', error),
         );
-      // A member's publication waits for review now: their list says so, and
-      // the admin's queue grew.
+      // A member's publication waits for review now: their list says so.
       plusReviewIpc.refreshNow().catch(() => undefined);
     },
   });
@@ -300,52 +294,7 @@ const registerMemberServices = ({
     logger: log,
   });
 
-  // The admin's queue of reported scenes. A takedown or a restore changes the
-  // block list, which this computer holds a copy of and the gallery reads; a
-  // deletion also takes away whatever the scene had waiting for review.
-  const plusModerationIpc = registerPlusModerationIpc({
-    access: galleryAccess,
-    onBlockListChanged: async () => {
-      await memberSharingIpc.refreshBlocked();
-      await plusGalleryIpc.refreshIfDue(true);
-      await plusReviewIpc.refreshNow();
-    },
-    logger: log,
-  });
-
-  // The admin's Plus gifts: addresses that count as paying without paying.
-  // The server decides who the admin is (premium migration 0021).
-  const plusGiftsIpc = registerPlusGiftsIpc({ access: galleryAccess });
-
-  // The admin's account deletion, as the Plus terms promise it: the account
-  // and everything tied to it, published files included (premium migration
-  // 0031).
-  const accountDeletionIpc = registerAccountDeletionIpc({
-    access: galleryAccess,
-  });
-
-  // What the admin reads of how members watch: each scene's time on screen
-  // and the engine, sent only once the member has been shown terms 10.
-  const sceneTasteIpc = registerSceneTasteIpc({
-    userDataDir,
-    access: galleryAccess,
-    toldOf: plusTermsNoticeIpc.toldOf,
-    getEngine,
-    logger: log,
-  });
-
-  // How long people listen, for the admin's statistics (premium 0068):
-  // counted only once the account has been told and has not switched it off.
-  const listeningIpc = registerListeningIpc({
-    getMainWindow,
-    userDataDir,
-    access: galleryAccess,
-    entitlement: accountIpc.entitlement,
-    logger: log,
-  });
-
-  // The big card announcing new scenes, and the admin's readings and
-  // composer behind it (premium migrations 0047, 0049, 0050).
+  // The big card announcing new scenes (premium migrations 0047, 0050).
   const sceneAnnouncementsIpc = registerSceneAnnouncementsIpc({
     getMainWindow,
     userDataDir,
@@ -360,20 +309,40 @@ const registerMemberServices = ({
     },
     logger: log,
   });
-  const adminInsightsIpc = registerAdminInsightsIpc({
-    access: galleryAccess,
-    onAnnouncementsChanged: () => {
-      sceneAnnouncementsIpc
-        .refreshIfDue('an announcement changed')
-        .catch(() => undefined);
-    },
-  });
-
   // The member's name in the gallery. Registering contacts
   // nothing; the Plus tab asks for it when it opens.
   const plusProfileIpc = registerPlusProfileIpc({
     config: ACCOUNT_CONFIG,
     session: accountIpc.session,
+  });
+
+  // Add-ons kept in this checkout's own `addons/` folder, loaded by
+  // development alone (`addons.ts`); none in any build that ships.
+  const addons = startMainAddons({
+    getMainWindow,
+    userDataDir,
+    config: ACCOUNT_CONFIG,
+    session: accountIpc.session,
+    access: galleryAccess,
+    onAccountChange: (listener) => {
+      const offMembership = accountIpc.entitlement.subscribe(listener);
+      const offIdentity = accountIpc.onIdentityChange(listener);
+      return () => {
+        offMembership();
+        offIdentity();
+      };
+    },
+    openExternal: openExternalIfSafe,
+    refresh: {
+      store: () => sceneOwnership.refreshNow(),
+      blockList: () => memberSharingIpc.refreshBlocked(),
+      gallery: async () => {
+        await plusGalleryIpc.refreshIfDue(true);
+      },
+      reviewNews: () => plusReviewIpc.refreshNow(),
+      announcements: (reason) => sceneAnnouncementsIpc.refreshIfDue(reason),
+    },
+    logger: log,
   });
 
   /** Everything above let go of, at quit. */
@@ -387,10 +356,7 @@ const registerMemberServices = ({
     creatorIpc.dispose();
     sceneOwnership.dispose();
     scenePacksIpc.dispose();
-    plusModerationIpc.dispose();
     plusReviewIpc.dispose();
-    plusGiftsIpc.dispose();
-    accountDeletionIpc.dispose();
     disposeStudioInspect();
     disposeSceneVersions();
     plusPublishingIpc.dispose();
@@ -403,24 +369,25 @@ const registerMemberServices = ({
     // once FluidEQ is gone.
     studioChat.dispose();
     plusProfileIpc.dispose();
-    sceneTasteIpc.dispose();
-    listeningIpc.dispose();
     sceneAnnouncementsIpc.dispose();
-    adminInsightsIpc.dispose();
+    addons.dispose();
   };
 
   return {
     accountIpc,
     sceneOwnership,
+    // What the lamps ask: the account's own scenes in its looks count, as
+    // they play on the graph, approved or not.
+    ownsAnyScene: () =>
+      sceneOwnership.ownsAnything(memberScenesIpc.heldLookIds()),
     plusTermsNoticeIpc,
     scenePacksIpc,
     memberSharingIpc,
     plusGalleryIpc,
     plusReviewIpc,
-    sceneTasteIpc,
-    listeningIpc,
     sceneAnnouncementsIpc,
     wallpaperIpc,
+    addons,
     dispose,
   };
 };

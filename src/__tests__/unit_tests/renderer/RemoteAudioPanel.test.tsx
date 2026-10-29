@@ -14,6 +14,8 @@
 
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
+
+import type { IRemoteAudioMeter } from '../../../renderer/remoteAudio/meter';
 import RemoteAudioPanel from '../../../renderer/remoteAudio/RemoteAudioPanel';
 import type { IRemoteAudioValue } from '../../../renderer/remoteAudio/remoteAudioState';
 import RemoteAudioContext from '../../../renderer/remoteAudio/remoteAudioValueContext';
@@ -21,6 +23,8 @@ import {
   remoteAudioLink,
   remoteAudioValue,
 } from '../../utils/remoteAudioValue';
+
+jest.mock('../../../renderer/remoteAudio/RemoteAudioOutput', () => () => null);
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
@@ -35,8 +39,15 @@ const renderPanel = (remote: IRemoteAudioValue) =>
     </RemoteAudioContext.Provider>,
   );
 
-const card = () =>
-  within(screen.getByRole('article', { name: 'remoteAudio.linked.cardLabel' }));
+const card = () => within(screen.getByRole('article', { name: 'SWEST-YOGA' }));
+
+// Pairing lives in its own dialog, opened from the page's header.
+const openAdd = () => {
+  fireEvent.click(
+    screen.getByRole('button', { name: 'remoteAudio.group.add' }),
+  );
+  return within(screen.getByRole('dialog', { name: 'remoteAudio.group.add' }));
+};
 
 describe('the Share Audio page before a link', () => {
   it("opens on this computer's code, and asks for it only once", () => {
@@ -55,35 +66,52 @@ describe('the Share Audio page before a link', () => {
 
   it('shows one code, however many networks this computer is on', () => {
     renderPanel(remoteAudioValue());
-    expect(screen.getAllByText('FLUIDEQ-LAN-2.mine')).toHaveLength(1);
+    const dialog = openAdd();
+    expect(dialog.getAllByText('FLUIDEQ-LAN-2.mine')).toHaveLength(1);
     expect(
-      screen.getAllByRole('button', { name: 'remoteAudio.code.copy' }),
+      dialog.getAllByRole('button', { name: 'remoteAudio.code.copy' }),
     ).toHaveLength(1);
   });
 
   it("links with the other computer's code, trimmed, and not without one", async () => {
     const remote = remoteAudioValue();
     renderPanel(remote);
-    const start = screen.getByRole('button', {
+    const dialog = openAdd();
+    const start = dialog.getByRole('button', {
       name: 'remoteAudio.link.start',
     });
     expect(start).toBeDisabled();
-    const paste = screen.getByRole('textbox', {
-      name: 'remoteAudio.link.codeLabel',
-    });
-    fireEvent.change(paste, { target: { value: '  FLUIDEQ-LAN-2.theirs  ' } });
+    fireEvent.change(
+      dialog.getByRole('textbox', { name: 'remoteAudio.link.codeLabel' }),
+      { target: { value: '  FLUIDEQ-LAN-2.theirs  ' } },
+    );
     await act(async () => {
       fireEvent.click(start);
     });
     expect(remote.link).toHaveBeenCalledWith('FLUIDEQ-LAN-2.theirs');
-    // Linked: the field is ready for the next computer's code.
-    expect(paste).toHaveValue('');
+    // Linked: the dialog has done its job and goes.
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('says why a pasted code did not link, beside the paste', () => {
-    renderPanel(remoteAudioValue({ error: 'code' }));
-    expect(screen.getByText('remoteAudio.error.code')).toBeInTheDocument();
+  it('keeps Add computer open on a code that did not link, and says why beside the paste', async () => {
+    const remote = remoteAudioValue({ error: 'code' });
+    jest.mocked(remote.link).mockResolvedValueOnce(false);
+    renderPanel(remote);
+    const dialog = openAdd();
+    expect(dialog.getByText('remoteAudio.error.code')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    fireEvent.change(
+      dialog.getByRole('textbox', { name: 'remoteAudio.link.codeLabel' }),
+      { target: { value: 'FLUIDEQ-LAN-2.wrong' } },
+    );
+    await act(async () => {
+      fireEvent.click(
+        dialog.getByRole('button', { name: 'remoteAudio.link.start' }),
+      );
+    });
+    expect(
+      screen.getByRole('dialog', { name: 'remoteAudio.group.add' }),
+    ).toBeInTheDocument();
   });
 
   it('says why it could not show a code, and tries again on request', () => {
@@ -109,13 +137,21 @@ describe('the Share Audio page before a link', () => {
     });
     renderPanel(remote);
     const away = screen
-      .getByText('remoteAudio.linked.looking')
+      .getByText('remoteAudio.group.offline', {
+        selector: '.remote-audio__lane-song',
+      })
       .closest('article');
     if (!away) {
       throw new Error('No card for the computer being looked for.');
     }
     fireEvent.click(
-      within(away).getByRole('button', { name: 'remoteAudio.linked.unlink' }),
+      within(away).getByRole('button', { name: 'remoteAudio.group.options' }),
+    );
+    expect(
+      screen.getByRole('menuitem', { name: 'remoteAudio.linked.unlink' }),
+    ).toHaveFocus();
+    fireEvent.click(
+      screen.getByRole('menuitem', { name: 'remoteAudio.linked.unlink' }),
     );
     expect(remote.unlink).toHaveBeenCalledWith({ computerId: 'away' });
   });
@@ -129,10 +165,15 @@ describe('a linked computer', () => {
       sending: true,
     });
     renderPanel(remote);
-    expect(card().getByText('remoteAudio.linked.bothWays')).toBeInTheDocument();
+    expect(
+      card().getByRole('checkbox', { name: 'remoteAudio.group.receive' }),
+    ).toBeChecked();
+    expect(
+      card().getByRole('checkbox', { name: 'remoteAudio.lane.to' }),
+    ).toBeChecked();
 
     fireEvent.click(
-      card().getByRole('checkbox', { name: 'remoteAudio.lane.playItHere' }),
+      card().getByRole('checkbox', { name: 'remoteAudio.group.receive' }),
     );
     expect(remote.setSwitches).toHaveBeenLastCalledWith('SWEST-YOGA', {
       send: true,
@@ -141,7 +182,7 @@ describe('a linked computer', () => {
       volume: 1,
     });
     fireEvent.click(
-      card().getByRole('checkbox', { name: 'remoteAudio.lane.sendMySound' }),
+      card().getByRole('checkbox', { name: 'remoteAudio.lane.to' }),
     );
     expect(remote.setSwitches).toHaveBeenLastCalledWith('SWEST-YOGA', {
       send: false,
@@ -166,22 +207,15 @@ describe('a linked computer', () => {
       networkStats: [stats('receive'), stats('send')],
     });
     renderPanel(remote);
-    // What the figure says, not the widest texts it keeps room for.
-    const figureOf = (caption: string) =>
-      card()
-        .getByText(caption)
-        .closest('.remote-audio__lane-figure')
-        ?.querySelector('.live-figure__text');
-    expect(figureOf('remoteAudio.lane.received')).toHaveTextContent(
-      'remoteAudio.lane.megabits',
-    );
-    expect(figureOf('remoteAudio.lane.sent')).toHaveTextContent(
-      'remoteAudio.lane.megabits',
-    );
-    // Each line has its rate; the head adds none of its own.
+    // The simplified group presents one source waveform per PC. The network
+    // counters remain transport state and no longer take space on this page.
+    expect(card().getByText('remoteAudio.lane.receiving')).toBeInTheDocument();
     expect(
-      card().getByText('remoteAudio.linked.lossless', { exact: false }),
-    ).not.toHaveTextContent('remoteAudio.lane.megabits');
+      card().getByRole('checkbox', { name: 'remoteAudio.lane.to' }),
+    ).toBeChecked();
+    expect(
+      screen.getByRole('region', { name: 'remoteAudio.group.mix' }),
+    ).toBeInTheDocument();
   });
 
   it('runs one way when the other computer switched a direction off', () => {
@@ -192,12 +226,101 @@ describe('a linked computer', () => {
       }),
     );
     expect(
-      card().getByText('remoteAudio.linked.incomingOnly'),
-    ).toBeInTheDocument();
+      card().getByRole('checkbox', { name: 'remoteAudio.group.receive' }),
+    ).toBeChecked();
     expect(
-      card().getByText('remoteAudio.lane.outNotPlayed'),
-    ).toBeInTheDocument();
+      card().getByRole('checkbox', { name: 'remoteAudio.lane.to' }),
+    ).toBeChecked();
   });
+
+  it('disables Receive while the peer stops sharing and restores the saved choice when it resumes', () => {
+    const link = remoteAudioLink();
+    const remote = remoteAudioValue({ links: [link] });
+    const view = renderPanel(remote);
+    const receive = () =>
+      card().getByRole('checkbox', { name: 'remoteAudio.group.receive' });
+    const send = () =>
+      card().getByRole('checkbox', { name: 'remoteAudio.lane.to' });
+    expect(receive()).toBeEnabled();
+    expect(receive()).toBeChecked();
+    view.rerender(
+      <RemoteAudioContext.Provider
+        value={{
+          ...remote,
+          links: [{ ...link, theirs: { sends: false, plays: true } }],
+        }}
+      >
+        <RemoteAudioPanel />
+      </RemoteAudioContext.Provider>,
+    );
+    expect(receive()).toBeDisabled();
+    expect(receive()).not.toBeChecked();
+    // A peer with its source off can still listen to this computer.
+    expect(send()).toBeEnabled();
+    expect(send()).toBeChecked();
+    fireEvent.click(receive());
+    expect(remote.setSwitches).not.toHaveBeenCalled();
+    view.rerender(
+      <RemoteAudioContext.Provider value={remote}>
+        <RemoteAudioPanel />
+      </RemoteAudioContext.Provider>,
+    );
+    expect(receive()).toBeEnabled();
+    expect(receive()).toBeChecked();
+    expect(remote.setSwitches).not.toHaveBeenCalled();
+  });
+
+  it('disables Send when this computer stops sharing while Receive stays available', () => {
+    const remote = remoteAudioValue({
+      sharing: false,
+      links: [remoteAudioLink()],
+    });
+    renderPanel(remote);
+    const send = card().getByRole('checkbox', {
+      name: 'remoteAudio.lane.to',
+    });
+    expect(send).toBeDisabled();
+    expect(send).not.toBeChecked();
+    expect(
+      card().getByRole('checkbox', { name: 'remoteAudio.group.receive' }),
+    ).toBeEnabled();
+    expect(
+      card().getByRole('checkbox', { name: 'remoteAudio.group.receive' }),
+    ).toBeChecked();
+    fireEvent.click(send);
+    expect(remote.setSwitches).not.toHaveBeenCalled();
+  });
+
+  it.each(['here', 'there'])(
+    'disables both directions while paused %s',
+    (side) => {
+      const remote = remoteAudioValue({
+        links: [
+          remoteAudioLink({
+            switches: {
+              send: true,
+              play: true,
+              paused: side === 'here',
+              volume: 1,
+            },
+            theirs: { sends: true, plays: true, paused: side === 'there' },
+          }),
+        ],
+      });
+      renderPanel(remote);
+      card()
+        .getAllByRole('checkbox')
+        .forEach((control) => {
+          expect(control).toBeDisabled();
+          expect(control).not.toBeChecked();
+          fireEvent.click(control);
+        });
+      expect(remote.setSwitches).not.toHaveBeenCalled();
+      expect(
+        card().getByRole('button', { name: 'remoteAudio.group.options' }),
+      ).toBeEnabled();
+    },
+  );
 
   it('keeps sending to an older FluidEQ it joined, which sends nothing back', () => {
     renderPanel(
@@ -208,8 +331,8 @@ describe('a linked computer', () => {
       }),
     );
     expect(
-      card().getByText('remoteAudio.linked.outgoingOnly'),
-    ).toBeInTheDocument();
+      card().getByRole('checkbox', { name: 'remoteAudio.lane.to' }),
+    ).toBeChecked();
     expect(card().getByText('remoteAudio.lane.inOld')).toBeInTheDocument();
   });
 
@@ -222,11 +345,11 @@ describe('a linked computer', () => {
       }),
     );
     expect(
-      card().getByRole('checkbox', { name: 'remoteAudio.lane.playItHere' }),
+      card().getByRole('checkbox', { name: 'remoteAudio.group.receive' }),
     ).toBeDisabled();
     expect(card().getByText('remoteAudio.lane.inOneWay')).toBeInTheDocument();
     expect(
-      card().getByRole('checkbox', { name: 'remoteAudio.lane.sendMySound' }),
+      card().getByRole('checkbox', { name: 'remoteAudio.lane.to' }),
     ).toBeEnabled();
   });
 
@@ -238,7 +361,33 @@ describe('a linked computer', () => {
         sendingFailed: true,
       }),
     );
-    expect(card().getByText('remoteAudio.lane.outFailed')).toBeInTheDocument();
+    expect(screen.getByText('remoteAudio.lane.outFailed')).toBeInTheDocument();
+  });
+
+  it('says sound is playing here when the wave moves and no player has said what', () => {
+    const meters: Array<(meter: IRemoteAudioMeter) => void> = [];
+    renderPanel(
+      remoteAudioValue({
+        phase: 'ready',
+        links: [remoteAudioLink()],
+        sending: true,
+        subscribeMeter: jest.fn((listener) => {
+          meters.push(listener);
+          return jest.fn();
+        }),
+      }),
+    );
+    expect(screen.getByText('remoteAudio.lane.outQuiet')).toBeInTheDocument();
+    // This computer's own sound on its way out carries no source.
+    act(() =>
+      meters.forEach((listener) =>
+        listener({ peak: 0.2, rms: 0.1, waveform: new Float32Array(64) }),
+      ),
+    );
+    expect(
+      screen.getByText('remoteAudio.lane.outSounding'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('remoteAudio.lane.outQuiet')).toBeNull();
   });
 
   it('asks for a press when the window may not play sound yet', () => {
@@ -258,16 +407,28 @@ describe('a linked computer', () => {
     });
     renderPanel(remote);
     fireEvent.click(
-      card().getByRole('button', { name: 'remoteAudio.linked.unlink' }),
+      card().getByRole('button', { name: 'remoteAudio.group.options' }),
+    );
+    const pause = screen.getByRole('menuitem', {
+      name: 'remoteAudio.linked.pause',
+    });
+    expect(pause).toHaveFocus();
+    fireEvent.keyDown(pause, { key: 'ArrowDown' });
+    expect(
+      screen.getByRole('menuitem', { name: 'remoteAudio.linked.unlink' }),
+    ).toHaveFocus();
+    fireEvent.click(
+      screen.getByRole('menuitem', { name: 'remoteAudio.linked.unlink' }),
     );
     expect(remote.unlink).toHaveBeenCalledWith({ peerId: 'peer-1' });
   });
 
-  it("offers this computer's code for another computer, whichever side pasted", () => {
+  it("offers this computer's code from Add computer, whichever side pasted", () => {
     renderPanel(
       remoteAudioValue({ links: [remoteAudioLink({ joined: true })] }),
     );
-    expect(screen.getByText('remoteAudio.another.section')).toBeInTheDocument();
-    expect(screen.getByText('FLUIDEQ-LAN-2.mine')).toBeInTheDocument();
+    // Pairing lives in the dialog, so a long group never pushes it out of reach.
+    expect(screen.queryByText('FLUIDEQ-LAN-2.mine')).not.toBeInTheDocument();
+    expect(openAdd().getByText('FLUIDEQ-LAN-2.mine')).toBeInTheDocument();
   });
 });

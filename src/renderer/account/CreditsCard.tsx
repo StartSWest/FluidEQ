@@ -66,10 +66,11 @@ function CreditsDialog({ onClose }: { onClose: () => void }) {
 }
 
 /**
- * The account's credits, in the account panel: how many there are, how many
- * scenes are already the account's, and the way to more. Shown once the
- * server has said; a store it cannot read yet is left out rather than drawn
- * as zero, which would read as credits gone.
+ * The account's credits, in the account panel: how many there are, half of
+ * one waiting when the account's scenes earned it, and the way to more. How
+ * many scenes are the account's is the rail's (`AccountStats`). Shown once
+ * the server has said; a store it cannot read yet is left out rather than
+ * drawn as zero, which would read as credits gone.
  */
 export default function CreditsCard() {
   const { t, locale } = useTranslation();
@@ -90,18 +91,17 @@ export default function CreditsCard() {
           <span className="credits-card__count">
             {numbers.format(store.balance)}
           </span>
+          {/* The half beside the whole ones, as the figure it adds to; the
+              line under says it in words for a screen reader. */}
+          {store.halfCredit && (
+            <span className="credits-card__fraction" aria-hidden="true">
+              ½
+            </span>
+          )}
           <span className="credits-card__unit">
             {creditsUnit(t, locale, store.balance)}
           </span>
         </span>
-        <span className="credits-card__owned">
-          {t('store.credits.owned', {
-            count: numbers.format(store.owned.length),
-          })}
-        </span>
-      </div>
-      <p className="plus-card__line">{t('store.credits.what')}</p>
-      <div className="credits-card__actions">
         {/* Loud only while there is nothing to spend: with credits left, more
             is not what the panel recommends. */}
         <button
@@ -116,6 +116,16 @@ export default function CreditsCard() {
           )}
         </button>
       </div>
+      {store.halfCredit && (
+        <p className="credits-card__half">
+          <span className="credits-card__coin" aria-hidden="true" />
+          {t('store.credits.half')}
+        </p>
+      )}
+      {/* What a credit is, for somebody who has not got a scene yet. */}
+      {store.owned.length === 0 && (
+        <p className="plus-card__line">{t('store.credits.what')}</p>
+      )}
       {buying && <CreditsDialog onClose={() => setBuying(false)} />}
     </section>
   );

@@ -87,6 +87,20 @@ describe('which pages the window fetches before its first frame', () => {
     expect(pages.isTabReady('dsp')).toBe(false);
   });
 
+  it('never fetches the Media tab for a page that played last', async () => {
+    // A launch that found the Media page last mounted it to describe itself
+    // on the bar: the previous session's video, by name, on the first frame.
+    // The test above is the control: a Karaoke session that played last is
+    // fetched.
+    window.localStorage.setItem('fluideq.workspaceTab', 'eq');
+    window.localStorage.setItem('fluideq.transport.lastOwner', 'media');
+    const pages = freshPages();
+
+    await pages.preloadLaunchPages();
+
+    expect(pages.isTabReady('video')).toBe(false);
+  });
+
   it('has nothing to fetch for the equaliser, which is in the main bundle', async () => {
     const pages = freshPages();
     expect(pages.isTabReady('eq')).toBe(true);

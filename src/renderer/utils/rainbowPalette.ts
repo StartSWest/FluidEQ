@@ -206,6 +206,25 @@ export const rainbowFromColours = (
 export const sceneColourHex = ({ lightness, chroma, hue }: ISceneColour) =>
   toHex(fromLch({ l: lightness, c: chroma, h: hue }));
 
+/**
+ * `palette` turned round the colour wheel by `by` degrees, every stop's
+ * lightness and chroma kept: Lagoon's rainbow in the listener's own tint
+ * (`windowTint.ts`), still a rainbow but of the colour chosen (Ivan,
+ * 2026-10-25: "make sure the graph and sliders also tint, keeping a rainbow
+ * effect if rainbow is on").
+ */
+export const turnedPalette = (
+  palette: readonly string[],
+  by: number,
+): string[] =>
+  palette.map((hex) => {
+    const parsedHex = parseCssColour(hex);
+    const lch = toLch(
+      parsedHex ? rgbToLab(parsedHex.rgb) : { l: 0, a: 0, b: 0 },
+    );
+    return toHex(fromLch({ ...lch, h: (((lch.h + by) % 360) + 360) % 360 }));
+  });
+
 // *** The palette in use ******************************************************
 
 let stops: readonly string[] = LAGOON;

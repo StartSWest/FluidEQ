@@ -2,18 +2,19 @@ import { useEffect } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount, useAccountKnown } from '../account/accountStore';
+import { useEntitlementKnown } from '../account/entitlementStore';
 import {
-  useEntitlement,
-  useEntitlementKnown,
-} from '../account/entitlementStore';
+  addonForPlace,
+  isAddonPlace,
+  refreshAddons,
+  rendererAddons,
+} from '../addons';
 import { useTranslation } from '../utils/I18nContext';
 import { runsOnLinux } from '../utils/platform';
 import Avatar from './Avatar';
 import Glyph, { type TCommunityGlyph } from './Glyph';
 import { identityStyle } from './identity';
-import AdminView from '../plus/AdminView';
 import { setGalleryNotice } from '../plus/galleryActions';
-import { refreshModeration, useModeration } from '../plus/moderationStore';
 import {
   openPlusPlace,
   usePlusNavigation,
@@ -47,9 +48,9 @@ interface IPlace {
 
 /**
  * The rail, top to bottom: visualizers, Studio, then dynamic lighting — the places that make scenes before the one that takes them off
- * the screen. The admin's place follows, under a rule, for the admin alone.
+ * the screen. An add-on's places follow (`renderer/addons.ts`), when there is one.
  */
-const PLACES: readonly IPlace[] = [
+export const PLACES: readonly IPlace[] = [
   {
     place: 'visualizers',
     glyph: 'looks',
@@ -84,15 +85,12 @@ export default function CommunityPanel({
   onSignIn,
   onShowGraph,
 }: ICommunityPanelProps) {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const account = useAccount();
   const accountKnown = useAccountKnown();
-  const entitlement = useEntitlement();
   const entitlementKnown = useEntitlementKnown();
   const { profile, loaded } = useProfile();
-  const moderation = useModeration();
   const signedIn = account.status === 'signed-in';
-  const entitled = entitlement.state !== 'none';
   const { place: view } = usePlusNavigation();
   const pinned = usePlusRailPinned();
   const accountId = signedIn ? account.identity?.id : undefined;
@@ -105,15 +103,15 @@ export default function CommunityPanel({
     }
   }, [accountId]);
 
-  // Whether this account is the admin, for the admin's place and the count
-  // on it: asked whenever the tab opens and whenever another account signs in.
+  // An add-on asks what it needs whenever the tab opens and whenever another
+  // account signs in.
   useEffect(() => {
-    refreshModeration(accountId).catch(() => undefined);
+    refreshAddons(accountId);
   }, [accountId]);
 
   // What a place said back under its head belongs to the tab's visit. Cleared
   // here, not by each place as it closes: a scene answered from its own page
-  // sends the admin back to the reported queue, and the answer goes along.
+  // sends somebody to another place, and the answer goes along.
   useEffect(() => () => setGalleryNotice(undefined), []);
 
   // Neither version of the tab until the main process has said which one is
@@ -140,23 +138,17 @@ export default function CommunityPanel({
 
   const pinLabel = t(pinned ? 'plus.rail.collapse' : 'plus.rail.pin');
 
-  // An answer about another account says nothing about this one.
-  const answered = moderation.accountId === accountId;
-  const isAdmin = answered && moderation.admin;
-  const adminKnown = answered && moderation.known;
-  // The admin's place is the admin's alone. Until the server has said whether
-  // this account is the admin it waits; told no, the gallery stands in, and
-  // the place is kept in case the answer was only the network failing.
   // Dynamic lighting works through Windows Dynamic Lighting and Razer
-  // Chroma's Windows service, so Linux has no such place, and a place kept
-  // from before opens on the gallery.
+  // Chroma's Windows service, so Linux has no such place. A place kept from
+  // before, like one remembered from an add-on that is not loaded, opens on
+  // the gallery.
   const isLinux = runsOnLinux();
   const places = isLinux
     ? PLACES.filter((entry) => entry.place !== 'lighting')
     : PLACES;
+  const addon = isAddonPlace(view) ? addonForPlace(view) : undefined;
   const shown: TPlusPlace =
-    (view === 'admin' && adminKnown && !isAdmin) ||
-    (view === 'lighting' && isLinux)
+    (isAddonPlace(view) && !addon) || (view === 'lighting' && isLinux)
       ? 'visualizers'
       : view;
 
@@ -214,43 +206,18 @@ export default function CommunityPanel({
                 </button>
               );
             })}
-            {isAdmin && (
-              <>
-                <span className="community__rail-rule" aria-hidden="true" />
-                <button
-                  type="button"
-                  className={`community__channel community__channel--admin${shown === 'admin' ? ' is-active' : ''}`}
-                  aria-current={shown === 'admin' ? 'true' : undefined}
-                  onClick={() => openPlace('admin')}
-                >
-                  <span className="community__channel-mark">
-                    <Glyph name="shield" />
-                    {/* Everything the admin has waiting: scenes to approve
-                        and scenes reported. Each tab inside says which. */}
-                    {moderation.open + moderation.review > 0 && (
-                      <span
-                        className="community__channel-count"
-                        aria-label={t('review.badge', {
-                          count: String(moderation.open + moderation.review),
-                        })}
-                      >
-                        {new Intl.NumberFormat(locale).format(
-                          moderation.open + moderation.review,
-                        )}
-                      </span>
-                    )}
-                  </span>
-                  <span className="community__channel-text">
-                    <span className="community__channel-name">
-                      {t('plus.admin.title')}
-                    </span>
-                    <span className="community__channel-blurb">
-                      {t('plus.admin.blurb')}
-                    </span>
-                  </span>
-                </button>
-              </>
-            )}
+            {accountId &&
+              rendererAddons().map(
+                ({ name, RailPlaces }) =>
+                  RailPlaces && (
+                    <RailPlaces
+                      key={name}
+                      accountId={accountId}
+                      activePlace={shown}
+                      openPlace={openPlace}
+                    />
+                  ),
+              )}
           </div>
 
           <div className="community__foot">
@@ -273,15 +240,9 @@ export default function CommunityPanel({
                   <span className="community__handle">
                     {profile ? `@${profile.handle}` : t('account.menu')}
                   </span>
-                  {profile?.role === 'admin' && (
-                    <span className="community__role community__role--admin">
-                      {t('profile.role.admin')}
-                    </span>
-                  )}
-                  {profile?.role !== 'admin' && entitled && (
-                    <span className="community__role">
-                      {t('graph.scene.badge')}
-                    </span>
+                  {rendererAddons().map(
+                    ({ name, AccountBadge }) =>
+                      AccountBadge && <AccountBadge key={name} />,
                   )}
                 </span>
               </span>
@@ -309,18 +270,9 @@ export default function CommunityPanel({
         )}
         {shown === 'studio' && <StudioPanel />}
         {shown === 'lighting' && <LightingPanel onShowGraph={onShowGraph} />}
-        {shown === 'admin' &&
-          (adminKnown ? (
-            <AdminView />
-          ) : (
-            <div
-              className="community__place-checking"
-              role="status"
-              aria-label={t('account.checking')}
-            >
-              <span className="gallery-preview__spinner" aria-hidden="true" />
-            </div>
-          ))}
+        {isAddonPlace(shown) && addon?.Place && accountId && (
+          <addon.Place place={shown} accountId={accountId} />
+        )}
       </section>
     </div>
   );

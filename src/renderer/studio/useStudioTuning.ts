@@ -14,6 +14,7 @@ import {
   type ISceneWave,
 } from 'common/sceneWave';
 import type { ISceneTuning } from '../graph/useSceneRunner';
+import { markStarterStep } from './studioStarterGuide';
 import type { IStudioBaseline } from './useStudioBaseline';
 
 /** What the last save came to, for the card's line under its sliders. */
@@ -148,12 +149,17 @@ export default function useStudioTuning(
     [values, response],
   );
 
-  const setParam = useCallback((id: string, value: number) => {
-    setPending((current) => ({
-      ...current,
-      params: { ...current.params, [id]: value },
-    }));
-  }, []);
+  const setParam = useCallback(
+    (id: string, value: number) => {
+      // "Move a dial", on a new project's guide (`studioStarterGuide.ts`).
+      markStarterStep(project, 'dial');
+      setPending((current) => ({
+        ...current,
+        params: { ...current.params, [id]: value },
+      }));
+    },
+    [project],
+  );
 
   const setWave = useCallback(
     (next: ISceneWave) => setPending((current) => ({ ...current, wave: next })),

@@ -27,6 +27,8 @@ import {
 } from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import { isAccountConfigured } from 'common/accountConfig';
+import { useKaraokeBackgroundChoice } from './karaoke/karaokeWorkspacePrefs';
+import KaraokeSceneAppearanceControls from './karaoke/KaraokeSceneAppearanceControls';
 import useMediaQuery from './utils/useMediaQuery';
 import {
   setSoundPaneFolded,
@@ -47,7 +49,6 @@ import SmartHeadroomEngine from './SmartHeadroomEngine';
 import showGalleryGraph from './plus/showGalleryGraph';
 import { subscribeGraphShowRequests } from './plus/graphShowRequest';
 import useStudioAgent from './studio/useStudioAgent';
-import UsageMeter from './usage/UsageMeter';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
 import HeardSongNames from './graph/HeardSongNames';
 import WallpaperAudio from './wallpaper/WallpaperAudio';
@@ -78,14 +79,9 @@ import Chevron from './icons/Chevron';
 import { type TEngineState } from './components/ActionsMenu';
 import type { IHelpHandlers } from './help/helpMenuActions';
 import MiniPlayer from './player/MiniPlayer';
-import usePlayerAmp from './player/usePlayerAmp';
 import type { TPlayerPage } from './player/PlayerTitleStrip';
 import { usePlayerVisFull } from './player/playerLayout';
-import {
-  reportPlayerAmp,
-  setWindowMode,
-  useWindowMode,
-} from './player/windowModeStore';
+import { setWindowMode, useWindowMode } from './player/windowModeStore';
 import { applyThemeScope } from './utils/theme';
 import { applyBackdropVeilScope } from './utils/backdropVeil';
 import { applySceneDaylightScope } from './utils/sceneDaylightSetting';
@@ -104,6 +100,7 @@ import SceneColumnLayer from './graph/SceneColumnLayer';
 import GraphScene from './graph/GraphScene';
 import SceneTint from './components/SceneTint';
 import RainbowSource from './components/RainbowSource';
+import TaskbarIconSource from './components/TaskbarIconSource';
 import { importConvolutionFile, importEqFile } from './utils/equalizerApi';
 import { AudioEngineContext } from './utils/audioEngineContext';
 import { startScenePrebuild } from './graph/scenePrebuild';
@@ -174,15 +171,6 @@ const AppContent = () => {
   // it onto one of the pages: the page is chosen while the app is still put
   // away, so it comes back already showing it.
   const { mode: windowMode } = useWindowMode();
-  // Which amp the switch will open, said while the window is the full app so
-  // the player opens at that amp's own size; the amp says it itself once it
-  // is on screen (`AmpMark`), ahead of its own limits.
-  const playerAmp = usePlayerAmp();
-  useEffect(() => {
-    if (windowMode === 'app') {
-      reportPlayerAmp(playerAmp);
-    }
-  }, [playerAmp, windowMode]);
   /**
    * THE AMP'S QUEUE DECK NEEDS THE LIBRARY'S PLAYER, whether or not anything
    * is playing (Ivan, 2026-09-22: "drag and drop into the up next doesn't
@@ -192,8 +180,8 @@ const AppContent = () => {
    * played, and as they
    * have never been on a fresh launch — the deck had nothing to list and a
    * drop went nowhere, silently. So while the window is the amp, the Library
-   * counts as opened and as active below: its queue is one tab of the amp's
-   * sheet away (the Stage, 2026-09-27), and its count names that tab.
+   * counts as opened and as active below: its queue is the amp's Up next
+   * (`PlayerQueue`), and its count names that tab.
    */
   const playerWantsLibrary = windowMode === 'player';
   /**
@@ -270,6 +258,8 @@ const AppContent = () => {
   // The EQ pages lock on all three ways a band cannot be heard, not only the
   // two the context knows about. See `eqReachesSound.ts`.
   const isEqReachingSound = eqReachesSound(isEngineUsable, isEngineOnOutput);
+
+  const karaokeBackground = useKaraokeBackgroundChoice();
 
   const { showsGraph, setActiveTabGraphVisibility, showGraphOn } = useTabGraph({
     activeWorkspaceTab,
@@ -599,10 +589,8 @@ const AppContent = () => {
         }${isMediaSurfaceFullScreen ? ' is-media-full' : ''}${
           isKaraokeSurfaceFullScreen ? ' is-karaoke-full' : ''
         }${isKaraokeGraphFullScreen ? ' has-karaoke-graph' : ''}${
-          isSoundDrawerOpen ? ' is-sound-drawer-open' : ''
-        }${isSoundPaneFolded ? ' is-sound-pane-folded' : ''}${
-          isSoundColumnNarrow ? ' is-sound-pane-narrow' : ''
-        }`}
+          isSoundPaneFolded ? ' is-sound-pane-folded' : ''
+        }${isSoundColumnNarrow ? ' is-sound-pane-narrow' : ''}`}
       >
         {engine.showAudioRestartRecommendation &&
           !engine.suppressAudioNotices && (
@@ -777,13 +765,20 @@ const AppContent = () => {
                 onEnd={resize.handleGraphResizeEnd}
               />
             )}
-            {showsGraph ? (
+            {showsGraph && (
               <FrequencyResponseChart
                 isVisible
                 hasLayersInHead={isGraphFirst && activeWorkspaceTab === 'eq'}
                 isGrown={isGraphGrown}
+                hasPlaybackBackdrop={mounts.showsKaraokeGraphBackdrop}
+                backdropControls={
+                  activeWorkspaceTab === 'karaoke' &&
+                  karaokeBackground === 'graph' ? (
+                    <KaraokeSceneAppearanceControls />
+                  ) : undefined
+                }
               />
-            ) : null}
+            )}
             {/* The graph's Plus visualizer, beside the graph and not in it:
                 on the plot, the EQ column or, on the EQ page, the Backdrop
                 (`GraphScene`). Renders only its canvas, wherever that is. */}
@@ -824,6 +819,7 @@ const AppContent = () => {
         <ShellDialogs
           dialogs={dialogs}
           engine={engine}
+          isNewsObscured={isSoundPaneOverPage && isSoundPaneShown}
           isEngineUnchosen={isEngineUnchosen}
           selectTopWorkspaceTab={selectTopWorkspaceTab}
         />
@@ -856,6 +852,8 @@ export default function App() {
             {/* Rainbow mode's palette: Aurora, or the chosen Plus
                 visualizer's colours. Renders nothing. */}
             <RainbowSource />
+            {/* The taskbar button in the window's colours. Renders nothing. */}
+            <TaskbarIconSource />
             {/* The back of the window, where that visualizer is drawn in the
                 Backdrop mode; an empty layer otherwise. */}
             <SceneCover />
@@ -865,9 +863,6 @@ export default function App() {
             {/* That visualizer's own elements — birds, petals, stars — faintly
                 over the window in the same mode; nothing in the page otherwise. */}
             <SceneAmbient />
-            {/* Counts listening while music plays. Renders nothing; main keeps
-                it only for an account that was told and kept it on. */}
-            <UsageMeter />
             {/* Dynamic lighting's loop: renders nothing, and lights nothing
                 unless a Plus member switched it on. */}
             <DynamicLightingLoop />

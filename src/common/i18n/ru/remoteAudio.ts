@@ -2,16 +2,33 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.group.add': 'Добавить компьютер',
+  'remoteAudio.group.title': 'Вся группа',
+  'remoteAudio.group.mix': 'Ваш микс',
+  'remoteAudio.group.thisPC': 'Этот ПК',
+  'remoteAudio.group.receive': 'Принимать',
+  'remoteAudio.group.send': 'Отправлять',
+  'remoteAudio.group.share': 'Делиться',
+  'remoteAudio.group.options': 'Параметры {name}',
+  'remoteAudio.group.count.one': '{count} компьютер',
+  'remoteAudio.group.count.few': '{count} компьютера',
+  'remoteAudio.group.count.many': '{count} компьютеров',
+  'remoteAudio.group.count.other': '{count} компьютера',
+  'remoteAudio.group.sourceOff': 'Передача выключена',
+  'remoteAudio.group.offline': 'Не в сети',
+  'remoteAudio.group.unavailable': 'Системная громкость недоступна',
+  'remoteAudio.group.mute': 'Выключить звук этого ПК',
+  'remoteAudio.group.unmute': 'Включить звук этого ПК',
+  'remoteAudio.group.output': 'Выход',
+  'remoteAudio.group.hint':
+    'Подключите компьютер, чтобы присоединиться к его группе. Каждый компьютер отправляет свой звук напрямую остальным. Настройте то, что слышите, в своём миксе.',
   'tabs.share': 'Поделиться аудио',
   'remoteAudio.eyebrow': 'АУДИОСВЯЗЬ ПО LAN',
   'remoteAudio.title': 'Слушайте другие компьютеры здесь',
-  'remoteAudio.subtitle':
-    'Свяжите два компьютера, и каждый будет воспроизводить звук другого. Каждый отправляет свой звук без изменений; компьютер, на котором вы слушаете, применяет свой EQ, кривые и DSP.',
   'remoteAudio.security': 'Свойства соединения',
   'remoteAudio.badge.local': 'Только частная LAN',
   'remoteAudio.badge.lossless': 'Передача Float32 PCM без потерь',
   'remoteAudio.badge.encrypted': 'Шифрование AES-256-GCM',
-  'remoteAudio.link.section': 'Связать компьютер',
   'remoteAudio.link.thisComputer': 'Этот компьютер',
   'remoteAudio.link.thisHint':
     'Вставьте этот код на другом компьютере или вставьте сюда код того компьютера. Подойдёт любой вариант.',
@@ -35,13 +52,11 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.rule.steadyTitle': 'Стабильно, без дрейфа',
   'remoteAudio.rule.steady':
     'Около 30 мс задержки, и она держится: часы двух компьютеров идут в такт, без пропусков и медленного дрейфа.',
-  'remoteAudio.linked.section': 'Связаны',
   'remoteAudio.linked.cardLabel': 'Связь с {name}',
   'remoteAudio.linked.bothWays': 'В обе стороны',
   'remoteAudio.linked.incomingOnly': 'Только входящий',
   'remoteAudio.linked.outgoingOnly': 'Только исходящий',
   'remoteAudio.linked.paused': 'Пауза',
-  'remoteAudio.linked.looking': 'Поиск {name} в вашей сети…',
   'remoteAudio.linked.lossless': 'Без потерь',
   'remoteAudio.linked.unlink': 'Разорвать связь',
   'remoteAudio.linked.pause': 'Пауза',
@@ -78,6 +93,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOneWay':
     'Воспроизведение в обе стороны требует Windows или FluidEQ Engine в Linux.',
   'remoteAudio.lane.outQuiet': 'На этом компьютере ничего не играет',
+  'remoteAudio.lane.outSounding': 'На этом компьютере играет звук',
   'remoteAudio.lane.outOff':
     'Отправка выключена. {name} не слышит этот компьютер.',
   'remoteAudio.lane.outNotPlayed':
@@ -88,7 +104,6 @@ const remoteAudio: Partial<Dictionary> = {
     'Отправка в обе стороны требует Windows или FluidEQ Engine в Linux.',
   'remoteAudio.lane.outFailed':
     'Не удалось захватить звук этого компьютера. Выключите и снова включите «Отправлять мой звук», чтобы попробовать ещё раз.',
-  'remoteAudio.another.section': 'Связать ещё один компьютер',
   'remoteAudio.singlePlayer.title': 'Только один проигрыватель',
   'remoteAudio.singlePlayer.body':
     'распространяется и на связанные компьютеры: запуск чего-то на одном ставит на паузу то, что играло на другом.',

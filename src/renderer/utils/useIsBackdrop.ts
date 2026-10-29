@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { isMemberLookId } from 'common/memberScenes';
 import { isPremiumLookId } from 'common/scenePacks';
 import { useSelectedLookId } from './graphStyle';
-import { useSceneTintMode } from './sceneTintStore';
+import { useAmpHoldsWindow, useSceneTintMode } from './sceneTintStore';
 
 /**
  * Whether the window wears the Backdrop: the mode chosen AND a Plus
@@ -16,16 +16,19 @@ import { useSceneTintMode } from './sceneTintStore';
  * 2026-09-26: "the transparency slider is enabled which is not right").
  *
  * The one answer to "are the panes floating over a picture": the
- * Transparency slider stands live by it, and the amp is the Stage by it and
- * the 2.0 amp otherwise (`MiniPlayer`). Asked of what is chosen, never of
- * whether the picture has loaded yet, or the amp would change shape while a
- * scene compiles.
+ * Transparency slider stands live by it, and the amp lays its glass out by
+ * it (`PlayerAmp`). Asked of what is chosen, never of whether the picture
+ * has loaded yet, or the amp would change shape while a scene compiles.
  */
 const useIsBackdrop = () => {
   const lookId = useSelectedLookId();
   const mode = useSceneTintMode();
+  // The amp is always the Backdrop, whatever the app's mode is
+  // (`setAmpHoldsWindow`).
+  const isAmp = useAmpHoldsWindow();
   return (
-    mode === 'cover' && (isPremiumLookId(lookId) || isMemberLookId(lookId))
+    (mode === 'cover' || isAmp) &&
+    (isPremiumLookId(lookId) || isMemberLookId(lookId))
   );
 };
 

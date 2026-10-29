@@ -1,23 +1,45 @@
 import '@testing-library/jest-dom';
 import { useCallback, useState } from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  createEvent,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import en from 'common/i18n/en';
 import { currentTrackId, type ILibraryQueue } from 'common/library/queue';
-import type { ILibraryTrack } from 'common/library/types';
+import type { ILibraryScanProgress, ILibraryTrack } from 'common/library/types';
 import {
   resetTransportSource,
   setTransportSource,
   type ITransportSource,
 } from 'renderer/audio/transportSource';
 import { LibraryProvider } from 'renderer/library/LibraryContext';
-import QueueDeck from 'renderer/player/QueueDeck';
-import { usePublishedLibraryDeck } from 'renderer/player/libraryDeck';
+import PlayerAmp from 'renderer/player/PlayerAmp';
+import {
+  usePublishedLibraryDeck,
+  type TDroppedMusic,
+} from 'renderer/player/libraryDeck';
 import createFakeLibraryStore, {
   type IFakeLibraryStore,
 } from '../../utils/fakeLibraryStore';
 
 jest.mock('renderer/library/LibraryCoverArt', () => () => null);
+// The amp around its queue, with everything above the queue stood in: the
+// queue, and the amp's own handling of what is dropped on it, are real.
+jest.mock('renderer/player/PlayerStage', () => () => null);
+jest.mock('renderer/player/PlayerTitleStrip', () => () => null);
+jest.mock('renderer/player/PlayerHero', () => () => null);
+jest.mock('renderer/player/PlayerDock', () => () => null);
+jest.mock('renderer/player/PlayerSound', () => () => null);
+jest.mock('renderer/player/PlayerFoot', () => () => null);
+jest.mock('renderer/player/PlayerHeightGrip', () => () => null);
+jest.mock('renderer/player/usePlayerHeightFloor', () => () => undefined);
+jest.mock('renderer/player/useGraphScenePack', () => () => ({
+  state: 'none',
+}));
 
 const ids = ['a', 'b', 'c', 'd', 'e'];
 const lengths = [60_000, 120_000, 180_000, 240_000, 300_000];
@@ -42,8 +64,10 @@ const startQueue: ILibraryQueue = {
 };
 
 const moveUpNext = jest.fn();
-const addFiles = jest.fn(() => Promise.resolve());
+const addFiles = jest.fn(() => Promise.resolve<TDroppedMusic>('added'));
 const jumpTo = jest.fn();
+const cancelScan = jest.fn();
+let reportProgress: (progress: ILibraryScanProgress) => void;
 let store: IFakeLibraryStore;
 
 /**
@@ -70,6 +94,9 @@ const Publisher = () => {
     jumpToQueuePosition,
     addFiles,
     moveUpNext,
+    removeUpNextAt: () => undefined,
+    // No song here was drawn by Keep playing.
+    isGuess: () => false,
   });
   return null;
 };
@@ -104,174 +131,373 @@ const transfer = (files: File[] = []) => ({
 const row = (title: string) =>
   screen.getByTitle(en['player.queue.play'].replace('{title}', title));
 
-/** The bars on the row of the song under the playhead. */
-const nowBars = () => row('Song B').querySelector('.player-queue__bars');
+/** The whole amp, where music from the computer may be let go anywhere. */
+const amp = () => screen.getByRole('region', { name: en['player.aria'] });
 
-beforeEach(async () => {
-  moveUpNext.mockClear();
-  addFiles.mockClear();
-  jumpTo.mockClear();
-  store = createFakeLibraryStore([], [...trackById.values()]);
-  Object.assign(window, {
-    electron: {
-      ipcRenderer: {
-        ...store.bridge,
-        getPathForFile: (file: File) => `D:\\music\\${file.name}`,
+const fileGesture = (
+  type: 'dragOver' | 'drop',
+  target: HTMLElement,
+  dataTransfer: ReturnType<typeof transfer>,
+  clientY: number,
+) => {
+  const event = createEvent[type](target, { dataTransfer });
+  Object.defineProperty(event, 'clientY', { value: clientY });
+  fireEvent(target, event);
+};
+
+// The amp's Up next, on the shelf it shares with Playlists (`PlayerQueue`).
+describe('the amp’s queue', () => {
+  beforeEach(async () => {
+    moveUpNext.mockClear();
+    addFiles.mockClear();
+    jumpTo.mockClear();
+    cancelScan.mockClear();
+    store = createFakeLibraryStore([], [...trackById.values()]);
+    Object.assign(window, {
+      electron: {
+        ipcRenderer: {
+          ...store.bridge,
+          onLibraryScanProgress: (listener: typeof reportProgress) => {
+            reportProgress = listener;
+            return () => undefined;
+          },
+          cancelLibraryScan: cancelScan,
+          getPathForFile: (file: File) => `D:\\music\\${file.name}`,
+          // The width the shelf's tabs need, told to the window, and the
+          // window's own word on a double press of its caption.
+          sendMessage: () => undefined,
+          on: () => () => undefined,
+        },
       },
-    },
-  });
-  render(
-    <LibraryProvider>
-      <Publisher />
-      <QueueDeck onOpenLibrary={() => undefined} />
-    </LibraryProvider>,
-  );
-  // The summary, and then how long is left: the store sums it, since the
-  // queue can run past the stretch the deck lists.
-  await store.settle();
-});
-
-afterEach(() => {
-  act(() => resetTransportSource());
-});
-
-describe('the head', () => {
-  // Where the playhead stands is said on the sheet's own tab (`PlayerSheet`);
-  // the head lights its line that far through the queue.
-  it('reads how long is still to come, and lights the queue as far as the playhead', () => {
-    const progress = document.querySelector<HTMLElement>(
-      '.player-queue__progress',
-    );
-    // The second song of five.
-    expect(progress?.style.getPropertyValue('--queue-progress')).toBe('0.4');
-    // This song and the three after it: 2 + 3 + 4 + 5 minutes.
-    expect(screen.getByTitle('14:00 left in the queue')).toHaveTextContent(
-      '14:00',
-    );
-  });
-});
-
-describe('reordering what is coming up', () => {
-  it('lets only the songs ahead of the playhead be dragged', () => {
-    expect(row('Song A')).toHaveAttribute('draggable', 'false');
-    expect(row('Song B')).toHaveAttribute('draggable', 'false');
-    expect(row('Song C')).toHaveAttribute('draggable', 'true');
-    expect(row('Song E')).toHaveAttribute('draggable', 'true');
-  });
-
-  it('drops a song before the row it lands on', () => {
-    fireEvent.dragStart(row('Song E'), { dataTransfer: transfer() });
-    fireEvent.dragOver(row('Song C'), { dataTransfer: transfer() });
-    expect(row('Song C')).toHaveClass('is-drop-before');
-    fireEvent.drop(row('Song C'), { dataTransfer: transfer() });
-    expect(moveUpNext).toHaveBeenCalledWith(4, 2);
-  });
-
-  it('drops a song on the list itself to put it last', () => {
-    const list = screen.getByRole('list');
-    fireEvent.dragStart(row('Song C'), { dataTransfer: transfer() });
-    fireEvent.dragOver(list, { dataTransfer: transfer() });
-    expect(list).toHaveClass('is-drop-after');
-    fireEvent.drop(list, { dataTransfer: transfer() });
-    expect(moveUpNext).toHaveBeenCalledWith(2, 5);
-  });
-});
-
-describe('music dropped in from the computer', () => {
-  it('takes the kinds the Library takes and nothing else', () => {
-    const deck = screen.getByRole('region', { name: en['library.upNext'] });
-    const files = [
-      new File([''], 'song.flac'),
-      new File([''], 'cover.jpg'),
-      new File([''], 'clip.mp4'),
-      new File([''], 'notes.txt'),
-    ];
-    fireEvent.dragOver(deck, { dataTransfer: transfer(files) });
-    expect(screen.getByText(en['player.queue.drop'])).toBeInTheDocument();
-    fireEvent.drop(deck, { dataTransfer: transfer(files) });
-    expect(addFiles).toHaveBeenCalledWith([
-      'D:\\music\\song.flac',
-      'D:\\music\\clip.mp4',
-    ]);
-  });
-
-  it('does not light up for a drag that carries no files', () => {
-    const deck = screen.getByRole('region', { name: en['library.upNext'] });
-    fireEvent.dragOver(deck, { dataTransfer: transfer() });
-    expect(screen.queryByText(en['player.queue.drop'])).not.toBeInTheDocument();
-  });
-});
-
-/**
- * The list is the Library's queue, so it answers to the Library's own
- * transport — never to whichever player the deck above happens to show. A
- * browser tab sounding is not the Library sounding, and a press on a song
- * here is a press on the Library.
- */
-describe('the Library’s own transport', () => {
-  it('holds the bars still while the Library is paused, whatever else is sounding', () => {
-    act(() => {
-      setTransportSource(libraryTransport({ isPlaying: false }));
-      setTransportSource({
-        owner: 'system',
-        title: 'A browser tab',
-        isPlaying: true,
-        positionMs: 0,
-        durationMs: 0,
-        toggle: jest.fn(),
-      });
     });
-    expect(nowBars()).toHaveClass('is-paused');
-
-    // The control: the same bars move once the Library itself sounds.
-    act(() => setTransportSource(libraryTransport({ isPlaying: true })));
-    expect(nowBars()).not.toHaveClass('is-paused');
+    render(
+      <LibraryProvider>
+        <Publisher />
+        <PlayerAmp onOpenPage={() => undefined} />
+      </LibraryProvider>,
+    );
+    // The summary, and then how long is left: the store sums it, since the
+    // queue can run past the stretch the deck lists.
+    await store.settle();
+    // Real pointer positions select gaps; jsdom has no layout of its own.
+    screen
+      .getByRole('list')
+      .querySelectorAll('li')
+      .forEach((element, index) => {
+        jest.spyOn(element, 'getBoundingClientRect').mockReturnValue({
+          top: index * 50,
+          bottom: (index + 1) * 50,
+          height: 50,
+          x: 0,
+          y: index * 50,
+          left: 0,
+          right: 400,
+          width: 400,
+          toJSON: () => undefined,
+        });
+      });
   });
 
-  it('starts the Library on a press, even with another player sounding', async () => {
-    const libraryToggle = jest.fn();
-    const tabToggle = jest.fn();
-    act(() => {
-      setTransportSource(libraryTransport({ toggle: libraryToggle }));
-      setTransportSource({
-        owner: 'system',
-        title: 'A browser tab',
-        isPlaying: true,
-        positionMs: 0,
-        durationMs: 0,
-        toggle: tabToggle,
-      });
+  afterEach(() => {
+    act(() => resetTransportSource());
+  });
+
+  describe('the shelf’s tabs', () => {
+    // How many songs Up next holds on its tab, and how long is still to come
+    // at the end of the row, where the queue's own head used to say it.
+    it('read how many songs there are and how long is still to come', () => {
+      expect(
+        screen.getByRole('tab', { name: `${en['library.upNext']} 5` }),
+      ).toHaveAttribute('aria-selected', 'true');
+      // This song and the three after it: 2 + 3 + 4 + 5 minutes.
+      expect(screen.getByTitle('14:00 left in the queue')).toHaveTextContent(
+        '14:00',
+      );
     });
 
-    await userEvent.click(row('Song C'));
-
-    expect(jumpTo).toHaveBeenCalledWith(2);
-    expect(libraryToggle).toHaveBeenCalledTimes(1);
-    expect(tabToggle).not.toHaveBeenCalled();
+    // Folded, the picture takes the room back (Ivan, 2026-10-25: "let's up
+    // next section be collapsible too"); a press on a tab opens it again.
+    it('fold the queue away, out of the keyboard’s reach, and a tab opens it again', async () => {
+      const page = screen.getByRole('tabpanel');
+      await userEvent.click(
+        screen.getByRole('button', { name: en['player.queue.fold'] }),
+      );
+      expect(page).toHaveAttribute('inert');
+      expect(
+        screen.getByRole('button', { name: en['player.queue.unfold'] }),
+      ).toHaveAttribute('aria-expanded', 'false');
+      await userEvent.click(
+        screen.getByRole('tab', { name: `${en['library.upNext']} 5` }),
+      );
+      expect(page).not.toHaveAttribute('inert');
+      expect(
+        screen.getByRole('button', { name: en['player.queue.fold'] }),
+      ).toHaveAttribute('aria-expanded', 'true');
+    });
   });
-});
 
-describe('a double press on a song', () => {
-  it('starts the song under the playhead again from the top', async () => {
-    const seek = jest.fn();
-    act(() => setTransportSource(libraryTransport({ isPlaying: true, seek })));
+  describe('reordering what is coming up', () => {
+    it('lets only the songs ahead of the playhead be dragged', () => {
+      expect(row('Song A')).toHaveAttribute('draggable', 'false');
+      expect(row('Song B')).toHaveAttribute('draggable', 'false');
+      expect(row('Song C')).toHaveAttribute('draggable', 'true');
+      expect(row('Song E')).toHaveAttribute('draggable', 'true');
+    });
 
-    await userEvent.dblClick(row('Song B'));
+    it('drops a song before the row it lands on', () => {
+      fireEvent.dragStart(row('Song E'), { dataTransfer: transfer() });
+      fireEvent.dragOver(row('Song C'), { dataTransfer: transfer() });
+      expect(row('Song C')).toHaveClass('is-drop-before');
+      fireEvent.drop(row('Song C'), { dataTransfer: transfer() });
+      expect(moveUpNext).toHaveBeenCalledWith(4, 2);
+    });
 
-    expect(seek).toHaveBeenCalledWith(0);
+    it('drops a song on the list itself to put it last', () => {
+      const list = screen.getByRole('list');
+      fireEvent.dragStart(row('Song C'), { dataTransfer: transfer() });
+      fireEvent.dragOver(list, { dataTransfer: transfer() });
+      expect(list).toHaveClass('is-drop-after');
+      fireEvent.drop(list, { dataTransfer: transfer() });
+      expect(moveUpNext).toHaveBeenCalledWith(2, 5);
+    });
   });
 
-  it('does not rewind a song its own first press has just started', async () => {
-    // The first press of the two moves the playhead onto this song and
-    // starts it from the top; by the second the song IS under the playhead,
-    // and seeking it to nought would replay what had already been heard.
-    const seek = jest.fn();
-    act(() => setTransportSource(libraryTransport({ isPlaying: true, seek })));
+  describe('music dropped in from the computer', () => {
+    it('shows folder scan progress and lets it be stopped from Amp', async () => {
+      act(() =>
+        reportProgress({
+          rootId: 'folder',
+          seen: 20,
+          parsed: 5,
+          karaokeSkipped: 0,
+          current: 'An album',
+          isDone: false,
+        }),
+      );
+      expect(screen.getByRole('progressbar')).toHaveAttribute(
+        'aria-valuenow',
+        '25',
+      );
+      await userEvent.click(
+        screen.getByRole('button', { name: en['library.scan.cancel'] }),
+      );
+      expect(cancelScan).toHaveBeenCalledTimes(1);
+      act(() =>
+        reportProgress({
+          rootId: 'folder',
+          seen: 20,
+          parsed: 5,
+          karaokeSkipped: 0,
+          isDone: true,
+        }),
+      );
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
+    // Anywhere on the amp, not only on the queue's page: in the one amp that
+    // is the last stretch of the column, and a file let go over the picture
+    // or the sound did nothing (Ivan, 2026-10-25: "still not working").
+    it('takes music let go anywhere on the amp, and hands its native paths to main', () => {
+      const files = [
+        new File([''], 'song.flac'),
+        new File([''], 'cover.jpg'),
+        new File([''], 'clip.mp4'),
+        new File([''], 'notes.txt'),
+      ];
+      fireEvent.dragOver(amp(), { dataTransfer: transfer(files) });
+      expect(screen.getByText(en['player.queue.drop'])).toBeInTheDocument();
+      fireEvent.drop(amp(), { dataTransfer: transfer(files) });
+      expect(
+        screen.queryByText(en['player.queue.drop']),
+      ).not.toBeInTheDocument();
+      // Main checks which are folders and which the Library plays.
+      expect(addFiles).toHaveBeenCalledWith([
+        'D:\\music\\song.flac',
+        'D:\\music\\cover.jpg',
+        'D:\\music\\clip.mp4',
+        'D:\\music\\notes.txt',
+      ]);
+    });
 
-    await userEvent.dblClick(row('Song D'));
+    it('accepts Explorer folders let go on a song, and moves no song for them', () => {
+      const dataTransfer = transfer([
+        new File([], 'Inna - Various'),
+        new File([], 'Album.2026'),
+      ]);
+      // Before the drop, Chromium protects the file list but exposes its type.
+      const hover = { ...dataTransfer, files: [] };
+      fileGesture('dragOver', row('Song C'), hover, 110);
+      expect(hover.dropEffect).toBe('copy');
+      expect(row('Song C')).toHaveClass('is-drop-before');
+      expect(
+        screen.queryByText(en['player.queue.drop']),
+      ).not.toBeInTheDocument();
+      fileGesture('drop', row('Song C'), dataTransfer, 110);
+      expect(addFiles).toHaveBeenCalledWith(
+        ['D:\\music\\Inna - Various', 'D:\\music\\Album.2026'],
+        2,
+      );
+      expect(row('Song C')).not.toHaveClass('is-drop-before');
+      expect(moveUpNext).not.toHaveBeenCalled();
+    });
 
-    expect(jumpTo).toHaveBeenCalledWith(3);
-    expect(row('Song D')).toHaveAttribute('aria-current', 'true');
-    expect(seek).not.toHaveBeenCalled();
+    it('inserts a batch after the pointed row without hiding the list', () => {
+      const files = transfer([
+        new File([], 'first.flac'),
+        new File([], 'second.mp3'),
+      ]);
+      fileGesture('dragOver', row('Song C'), files, 140);
+      expect(row('Song D')).toHaveClass('is-drop-before');
+      expect(
+        screen.queryByText(en['player.queue.drop']),
+      ).not.toBeInTheDocument();
+      fileGesture('drop', row('Song C'), files, 140);
+      expect(addFiles).toHaveBeenCalledTimes(1);
+      expect(addFiles).toHaveBeenCalledWith(
+        ['D:\\music\\first.flac', 'D:\\music\\second.mp3'],
+        3,
+      );
+      expect(row('Song D')).not.toHaveClass('is-drop-before');
+      expect(moveUpNext).not.toHaveBeenCalled();
+    });
+
+    it('accepts a drop over a row’s remove button at that row’s gap', () => {
+      const remove = row('Song D').parentElement?.querySelector(
+        'button.player-queue__remove',
+      );
+      if (!(remove instanceof HTMLElement)) {
+        throw new Error('Missing row remove button');
+      }
+      fileGesture('drop', remove, transfer([new File([], 'song.flac')]), 160);
+      expect(addFiles).toHaveBeenCalledWith(['D:\\music\\song.flac'], 3);
+    });
+
+    it('keeps a drop over played history ahead of the song playing', () => {
+      const files = transfer([new File([], 'song.flac')]);
+      fileGesture('dragOver', row('Song A'), files, 10);
+      expect(row('Song C')).toHaveClass('is-drop-before');
+      fileGesture('drop', row('Song A'), files, 10);
+      expect(addFiles).toHaveBeenCalledWith(['D:\\music\\song.flac'], 2);
+    });
+
+    it('marks the final gap and appends when the file lands below the rows', () => {
+      const files = transfer([new File([], 'song.flac')]);
+      fileGesture('dragOver', screen.getByRole('list'), files, 280);
+      expect(screen.getByRole('list')).toHaveClass(
+        'is-drop-after',
+        'is-file-drop',
+      );
+      fileGesture('drop', screen.getByRole('list'), files, 280);
+      expect(addFiles).toHaveBeenCalledWith(['D:\\music\\song.flac'], 5);
+      expect(screen.getByRole('list')).not.toHaveClass('is-drop-after');
+    });
+
+    it('switches between append-on-Amp and insertion-in-list feedback', () => {
+      const files = transfer([new File([], 'song.flac')]);
+      fireEvent.dragOver(amp(), { dataTransfer: files });
+      expect(screen.getByText(en['player.queue.drop'])).toBeInTheDocument();
+      fileGesture('dragOver', row('Song C'), files, 110);
+      expect(
+        screen.queryByText(en['player.queue.drop']),
+      ).not.toBeInTheDocument();
+      expect(row('Song C')).toHaveClass('is-drop-before');
+      fireEvent.dragOver(amp(), { dataTransfer: files });
+      expect(screen.getByText(en['player.queue.drop'])).toBeInTheDocument();
+      expect(row('Song C')).not.toHaveClass('is-drop-before');
+      fireEvent.dragLeave(amp(), { relatedTarget: null });
+      expect(
+        screen.queryByText(en['player.queue.drop']),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole('list')).not.toHaveClass('is-file-drop');
+    });
+
+    it('does not light up for a drag that carries no files', () => {
+      fireEvent.dragOver(amp(), { dataTransfer: transfer() });
+      expect(
+        screen.queryByText(en['player.queue.drop']),
+      ).not.toBeInTheDocument();
+      // The control: the same drag carrying a file does.
+      fireEvent.dragOver(amp(), {
+        dataTransfer: transfer([new File([''], 'song.flac')]),
+      });
+      expect(screen.getByText(en['player.queue.drop'])).toBeInTheDocument();
+    });
+
+    // Where what is dropped lands: the queue turns to Up next for it.
+    it('turns the shelf to Up next for music dropped while Playlists shows', async () => {
+      await userEvent.click(
+        screen.getByRole('tab', { name: en['library.browse.playlist'] }),
+      );
+      expect(
+        screen.queryByTitle(
+          en['player.queue.play'].replace('{title}', 'Song C'),
+        ),
+      ).not.toBeInTheDocument();
+      fireEvent.drop(amp(), {
+        dataTransfer: transfer([new File([''], 'song.flac')]),
+      });
+      expect(
+        screen.getByRole('tab', { name: `${en['library.upNext']} 5` }),
+      ).toHaveAttribute('aria-selected', 'true');
+      expect(row('Song C')).toBeInTheDocument();
+    });
+  });
+
+  /**
+   * The list is the Library's queue, so it answers to the Library's own
+   * transport — never to whichever player the deck above happens to show. A
+   * browser tab sounding is not the Library sounding, and a press on a song
+   * here is a press on the Library.
+   */
+  describe('the Library’s own transport', () => {
+    it('starts the Library on a press, even with another player sounding', async () => {
+      const libraryToggle = jest.fn();
+      const tabToggle = jest.fn();
+      act(() => {
+        setTransportSource(libraryTransport({ toggle: libraryToggle }));
+        setTransportSource({
+          owner: 'system',
+          title: 'A browser tab',
+          isPlaying: true,
+          positionMs: 0,
+          durationMs: 0,
+          toggle: tabToggle,
+        });
+      });
+
+      await userEvent.click(row('Song C'));
+
+      expect(jumpTo).toHaveBeenCalledWith(2);
+      expect(libraryToggle).toHaveBeenCalledTimes(1);
+      expect(tabToggle).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('a double press on a song', () => {
+    it('starts the song under the playhead again from the top', async () => {
+      const seek = jest.fn();
+      act(() =>
+        setTransportSource(libraryTransport({ isPlaying: true, seek })),
+      );
+
+      await userEvent.dblClick(row('Song B'));
+
+      expect(seek).toHaveBeenCalledWith(0);
+    });
+
+    it('does not rewind a song its own first press has just started', async () => {
+      // The first press of the two moves the playhead onto this song and
+      // starts it from the top; by the second the song IS under the playhead,
+      // and seeking it to nought would replay what had already been heard.
+      const seek = jest.fn();
+      act(() =>
+        setTransportSource(libraryTransport({ isPlaying: true, seek })),
+      );
+
+      await userEvent.dblClick(row('Song D'));
+
+      expect(jumpTo).toHaveBeenCalledWith(3);
+      expect(row('Song D')).toHaveAttribute('aria-current', 'true');
+      expect(seek).not.toHaveBeenCalled();
+    });
   });
 });

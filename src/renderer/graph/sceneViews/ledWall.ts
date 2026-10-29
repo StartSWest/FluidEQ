@@ -68,7 +68,10 @@ import {
 export const MIN_PITCH = 6;
 
 export interface ILedBoard {
+  /** The rows the level is measured over: a full reading lights them all. */
   rows: number;
+  /** The unlit rows printed, at least `rows` (`ledBoard`). */
+  drawn: number;
   foot: number;
   up: number;
 }
@@ -110,11 +113,20 @@ export const createLedWallState = (): ILedWallState => ({
  * One copy's board: how many rows of lamps its band holds, and its foot row.
  * A board stands on its floor and grows away from it: up, or down when the
  * wave is upside down. Shared with the look's GPU painting.
+ *
+ * The unlit glass runs on past the band to the top of the canvas, where the
+ * graph's lines start, its last row cut by that edge as a screen's would be
+ * (Ivan, 2026-10-25: "bg needs to reach this line", the line under the EQ
+ * page's title). The band's own rows are still what a reading lights, so a
+ * lamp stands where the level scale says it does. A hanging board keeps to
+ * its band.
  */
 export const ledBoard = (band: IAnalysisBand, pitch: number): ILedBoard => {
   const depth = band.bottom - band.top;
+  const rows = Math.max(2, Math.floor(depth / pitch));
   return {
-    rows: Math.max(2, Math.floor(depth / pitch)),
+    rows,
+    drawn: band.flipped ? rows : Math.max(rows, Math.ceil(band.bottom / pitch)),
     foot: band.flipped ? band.top + pitch / 2 : band.bottom - pitch / 2,
     up: band.flipped ? 1 : -1,
   };
@@ -142,7 +154,7 @@ const layoutFor = (frame: ISceneFrame, row: IPieceRow): ILedLayout => {
   const boards = bands.map((band: IAnalysisBand) => ledBoard(band, pitch));
   return {
     key: `${count}|${pitch.toFixed(2)}|${radius.toFixed(2)}|${boards
-      .map((board) => `${board.rows}@${Math.round(board.foot)}`)
+      .map((board) => `${board.rows}/${board.drawn}@${Math.round(board.foot)}`)
       .join(',')}|${frame.ratio}|${frame.colours.join(',')}|${
       look.filled ? 'fill' : `ring${look.lineWidth}`
     }`,
@@ -288,7 +300,7 @@ const printGhost = (
     const glass = new Path2D();
     for (let column = 0; column < layout.count; column += 1) {
       const x = lefts[column] + radius;
-      for (let row = 0; row < board.rows; row += 1) {
+      for (let row = 0; row < board.drawn; row += 1) {
         const y = board.foot + board.up * row * pitch;
         glass.moveTo(x + radius, y);
         glass.arc(x, y, radius, 0, Math.PI * 2);

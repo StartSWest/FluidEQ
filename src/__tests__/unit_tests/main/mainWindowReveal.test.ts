@@ -15,7 +15,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { EventEmitter } from 'events';
+import { ipcMain } from 'electron';
 import { RENDERER_READY_EVENT } from 'common/constants';
+import { GROUP_MEDIA_WATCH } from 'common/groupMediaTransport';
 import type { IMainWindowDeps } from '../../../main/mainWindow';
 import type { TWindowModes } from '../../../main/windowMode';
 
@@ -81,8 +83,6 @@ jest.mock('electron', () => {
     isDestroyed() {
       return this.destroyed;
     }
-
-    hookWindowMessage = jest.fn();
   }
   return {
     BrowserWindow: FakeWindow,
@@ -95,6 +95,8 @@ jest.mock('electron', () => {
       off: jest.fn(),
     },
     ipcMain: {
+      handle: jest.fn(),
+      removeHandler: jest.fn(),
       on: (channel: string, listener: TListener) => {
         const set = ipcListeners.get(channel) ?? new Set<TListener>();
         set.add(listener);
@@ -164,8 +166,8 @@ const deps = (): IMainWindowDeps => ({
 });
 
 /** The window built, with its first load still on its way. */
-const open = () => {
-  const done = createMainWindowFactory(deps())();
+const open = (overrides: Partial<IMainWindowDeps> = {}) => {
+  const done = createMainWindowFactory({ ...deps(), ...overrides })();
   const window = windows[windows.length - 1];
   return { window, done };
 };
@@ -178,6 +180,7 @@ beforeEach(() => {
   windows.length = 0;
   ipcListeners.clear();
   saveWindowState.mockClear();
+  jest.mocked(ipcMain.handle).mockClear();
 });
 
 afterEach(() => {
@@ -185,19 +188,19 @@ afterEach(() => {
 });
 
 describe('when the window appears', () => {
-  it.each([
-    ['linux', [{ mode: 'detach' }]],
-    ['win32', []],
-  ] as const)(
-    'keeps the %s development inspector from changing the intended app viewport',
-    async (platform, options) => {
+  // No developer tools at launch on any platform, in development either:
+  // docked they set the page's width rather than the window (`devTools.ts`),
+  // and Linux's switches wait for the page to reach the window's size.
+  it.each(['linux', 'win32'] as const)(
+    'opens no %s development inspector at launch',
+    async (platform) => {
       const original = Object.getOwnPropertyDescriptor(process, 'platform');
       Object.defineProperty(process, 'platform', { value: platform });
       try {
         const done = createMainWindowFactory({ ...deps(), isDebug: true })();
         const window = windows[windows.length - 1];
         say(RENDERER_READY_EVENT, window.webContents);
-        expect(window.webContents.openDevTools.mock.calls).toEqual([options]);
+        expect(window.webContents.openDevTools).not.toHaveBeenCalled();
         finishLoad();
         await done;
       } finally {
@@ -210,6 +213,10 @@ describe('when the window appears', () => {
 
   it('is not decided by ready-to-show, and no clock is started for it', () => {
     const { window } = open();
+    expect(ipcMain.handle).toHaveBeenCalledWith(
+      GROUP_MEDIA_WATCH,
+      expect.any(Function),
+    );
     window.emit('ready-to-show');
     expect(window.show).not.toHaveBeenCalled();
     expect(jest.getTimerCount()).toBe(0);
@@ -272,6 +279,30 @@ describe('when the window appears', () => {
   });
 });
 
+// No developer tools at launch, in development either. They opened docked
+// inside the window on every start, and docked they decide how wide the page
+// is: a restart into the amp drew it 1920px wide in a 475px window (Ivan,
+// 2026-10-25). The menu opens them in a window of their own
+// (`devToolsMenu.test.ts`).
+describe('a development launch', () => {
+  it('shows the window without opening the developer tools', () => {
+    const { window } = open({ isDebug: true });
+    say(RENDERER_READY_EVENT, window.webContents);
+    // POSITIVE CONTROL: the window was revealed, which is where they opened.
+    expect(window.show).toHaveBeenCalledTimes(1);
+    expect(window.webContents.openDevTools).not.toHaveBeenCalled();
+  });
+
+  it('keeps a window that starts hidden free of them too', () => {
+    const { window } = open({ isDebug: true, startsHidden: () => true });
+    say(RENDERER_READY_EVENT, window.webContents);
+    // POSITIVE CONTROL: the reveal ran and kept the window hidden.
+    expect(ipcListeners.get(RENDERER_READY_EVENT)?.size).toBe(0);
+    expect(window.show).not.toHaveBeenCalled();
+    expect(window.webContents.openDevTools).not.toHaveBeenCalled();
+  });
+});
+
 // A page's own full screen never moves the window (Ivan, 2026-09-29: YouTube's
 // full-screen press "cancels the action"). Electron takes the window full
 // screen for a webview's HTML full screen by the EMBEDDER's setting, so the
@@ -288,21 +319,41 @@ describe('a page going full screen', () => {
 });
 
 describe("the window's size and position", () => {
+  it('saves the startup placement before any move or resize', () => {
+    const { windowModes } = deps();
+    open({ windowModes });
+    expect(saveWindowState).toHaveBeenCalledTimes(1);
+    expect(
+      jest.mocked(windowModes.followWindow).mock.invocationCallOrder[0],
+    ).toBeLessThan(saveWindowState.mock.invocationCallOrder[0]);
+  });
+
+  it('seeds a full-app placement even when the first window is the amp', () => {
+    const { windowModes } = deps();
+    open({ loadWindowState: () => ({ mode: 'player' }), windowModes });
+    expect(windowModes.restore).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: 'player',
+        app: { x: 320, y: 90, width: 1280, height: 900, isMaximized: false },
+      }),
+    );
+  });
+
   it('are asked for on every move and resize, with no timer in between', () => {
     const { window } = open();
-    expect(saveWindowState).not.toHaveBeenCalled();
+    expect(saveWindowState).toHaveBeenCalledTimes(1);
     window.emit('resize');
     window.emit('resize');
     window.emit('move');
     window.emit('maximize');
     window.emit('unmaximize');
-    expect(saveWindowState).toHaveBeenCalledTimes(5);
+    expect(saveWindowState).toHaveBeenCalledTimes(6);
     expect(jest.getTimerCount()).toBe(0);
   });
 
   it('are written once more as the window closes', () => {
     const { window } = open();
     window.emit('close', { preventDefault: jest.fn() });
-    expect(saveWindowState).toHaveBeenCalledTimes(1);
+    expect(saveWindowState).toHaveBeenCalledTimes(2);
   });
 });

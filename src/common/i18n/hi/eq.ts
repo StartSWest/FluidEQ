@@ -159,27 +159,37 @@ const eq: Partial<Dictionary> = {
     'माहौल का सब कुछ, पूरी विंडो के पीछे विज़ुअलाइज़र के साथ।',
   'graph.editHint':
     'पॉइंट खींचें · Ctrl/Shift से चुनें · Ctrl+स्क्रॉल: Q · Ctrl+खींचें: बेल',
+  'graph.windowTint': 'रंगत',
+  'graph.windowTintHint':
+    'स्टैंडर्ड लुक में विंडो का रंग। मूल रंग पर लौटने के लिए डबल-क्लिक करें।',
   'graph.backdropVeil': 'पारदर्शिता',
   'graph.backdropVeilHint': 'पैनलों के पार विज़ुअलाइज़र कितना दिखे',
   'graph.sceneTint.brightness': 'चमक',
-  'graph.sceneTint.rainbow': 'इंद्रधनुष मोड',
+  'graph.sceneTint.rainbow': 'रंगीन मोड',
   'graph.sceneTint.rainbowHint':
-    'बैंड, शीर्षक और जले हुए नियंत्रण एक रंग के बजाय एक पैलेट में — Plus विज़ुअलाइज़र चुना हो तो उसी के रंगों में।',
+    'बैंड, शीर्षक और जले हुए नियंत्रण एक रंग के बजाय एक पैलेट में — कोई सीन चुना हो तो उसी के रंगों में।',
+  'graph.sceneTint.appIcon': 'ऐप आइकन रंगें',
+  'graph.sceneTint.appIconHint':
+    'टास्कबार बटन और ट्रे आइकन विंडो के रंगों में। बंद होने पर FluidEQ का अपना आइकन रहता है।',
   'graph.sceneTint.sparks': 'पॉइंटर की चिंगारियाँ',
   'graph.sceneTint.sparksHint':
     'विज़ुअलाइज़र माउस से जो उछालता है: तस्वीर पर से गुज़रते हुए एक लकीर, और जहाँ आप क्लिक करें वहाँ एक फुहार — चिंगारियाँ, पंखुड़ियाँ, बर्फ़, जो भी सीन में हो।',
   'graph.sceneTint.daylight': 'दिन का उजाला',
   'graph.sceneTint.daylightHint': 'विज़ुअलाइज़र का समय, रात से पूरे दिन तक',
   'graph.sceneTint.daylightFollowingHint':
-    'चमक के साथ चल रहा है। विज़ुअलाइज़र का समय अलग से चुनने के लिए “उजाला चमक के साथ” बंद करें',
-  'graph.sceneTint.daylightFollows': 'उजाला चमक के साथ',
+    'चमक का अनुसरण कर रहा है। यहाँ विज़ुअलाइज़र का समय सेट करने के लिए नीचे “कुछ नहीं” चुनें',
+  'graph.sceneTint.daylightSource': 'अनुसरण',
+  'graph.sceneTint.daylightSourceOwn': 'कुछ नहीं',
+  'graph.sceneTint.daylightSourceBrightness': 'चमक',
+  'graph.sceneTint.daylightSourceClock': 'घड़ी',
+  'graph.sceneTint.daylightOwnHint':
+    'विज़ुअलाइज़र ऊपर सेट की गई दिन की रोशनी बनाए रखता है।',
   'graph.sceneTint.daylightFollowsHint':
-    'चालू होने पर विज़ुअलाइज़र चमक के साथ रात से दिन में बदलता है। बंद होने पर वह ऊपर चुना गया उजाला रखता है, और चमक सिर्फ़ विंडो बदलती है।',
-  'graph.sceneTint.daylightClock': 'उजाला घड़ी के साथ',
+    'विज़ुअलाइज़र चमक के साथ रात से दिन में बदलता है।',
   'graph.sceneTint.daylightClockHint':
-    'चालू होने पर इस कंप्यूटर की घड़ी के अनुसार विज़ुअलाइज़र में रात को रात और दिन को दिन होता है। बंद होने पर वह ऊपर चुना गया उजाला रखता है।',
+    'विज़ुअलाइज़र इस कंप्यूटर की घड़ी के अनुसार रात में रात और दिन में दिन रहता है।',
   'graph.sceneTint.daylightFollowingClockHint':
-    'घड़ी के साथ चल रहा है। विज़ुअलाइज़र का समय अलग से चुनने के लिए “उजाला घड़ी के साथ” बंद करें',
+    'घड़ी का अनुसरण कर रहा है। यहाँ विज़ुअलाइज़र का समय सेट करने के लिए नीचे “कुछ नहीं” चुनें',
   'graph.sceneTint.daylightStudioHint':
     'स्टूडियो खुला होने पर चमक ही विज़ुअलाइज़र का समय तय करती है, ताकि सीन को रात से दिन तक परखा जा सके। स्टूडियो से निकलते ही यह चुनाव फिर लागू होता है',
   'graph.sceneTint.brightnessHint':
@@ -194,7 +204,7 @@ const eq: Partial<Dictionary> = {
   'graph.member.likeOffline': 'पसंद करने के लिए इंटरनेट कनेक्शन चाहिए',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.scene.badge': 'Plus',
+  'graph.scene.badge': 'सीन',
   'graph.scene.report': '{name} की रिपोर्ट करें',
   'graph.version.new': 'नया',
   'graph.version.caption': 'v{version} · {note}',
@@ -263,14 +273,19 @@ const eq: Partial<Dictionary> = {
   'graph.scene.gpu.auto': 'Windows तय करे',
   'graph.scene.gpu.high': 'उच्च प्रदर्शन',
   'graph.scene.gpu.restart': 'पुनः आरंभ के बाद',
-  'graph.scene.locked':
-    'FluidEQ Plus का हिस्सा। इसे चुनकर देखें कि इसे कैसे खोलें।',
+  'graph.scene.locked': 'अभी आपका नहीं है। इसे चुनकर देखें कि इसे कैसे पाएँ।',
   'graph.style.next': 'अगली शैली',
   'graph.style.previous': 'पिछली शैली',
   'graph.picker.label': 'शैलियाँ और विज़ुअलाइज़र',
   'graph.picker.search': 'शैलियाँ और विज़ुअलाइज़र खोजें',
   'graph.picker.styles': 'शैलियाँ',
-  'graph.picker.plus': 'Plus विज़ुअलाइज़र',
+  'graph.picker.plus': 'विज़ुअलाइज़र',
+  'graph.picker.discover.title': 'अपने संगीत को जीवंत बनाएँ',
+  'graph.picker.discover.body':
+    'एनिमेटेड सीन खरीदें और हमेशा अपने पास रखें, या Studio में अपने सीन मुफ़्त बनाएँ।',
+  'graph.picker.discover.explore': 'सीन देखें',
+  'graph.picker.discover.create': 'अपना सीन बनाएँ',
+  'graph.picker.discover.free': 'FluidEQ और इसके ऑडियो टूल मुफ़्त रहेंगे।',
   'graph.picker.all': 'सभी',
   'graph.picker.yours': 'आपके',
   'graph.picker.filterStyles': 'शैलियाँ फ़िल्टर करें',
@@ -532,9 +547,8 @@ const eq: Partial<Dictionary> = {
   'profiles.error.duplicate': 'यह नाम पहले से है, दूसरा चुनें।',
   'profiles.edit': 'प्रोफ़ाइल का नाम बदलें',
   'autoeq.page.eyebrow': 'अपने हेडफ़ोन से मिलाएँ',
-  'autoeq.page.title': 'हेडफ़ोन सुधार',
-  'autoeq.page.intro':
-    'बताइए आप किन हेडफ़ोन पर सुन रहे हैं और FluidEQ उनके लिए प्रकाशित सुधार लगा देगा। यह अपनी अलग परत के रूप में जुड़ता है, अपनी ताक़त और अपने स्विच के साथ, इसलिए आपके EQ बैंड कभी नहीं छुए जाते। यहाँ का हर माप असली रिग पर लिया गया है और किसी ने उसे प्रकाशित किया है — कुछ भी मॉडल के नाम से अंदाज़े में नहीं बनाया गया।',
+  'autoeq.page.title': 'EQ प्रीसेट',
+  'autoeq.page.intro': 'हेडफ़ोन सुधार खोजें या अपना कर्व जोड़ें।',
   'autoeq.model.hint':
     'ब्रांड या मॉडल से खोजें। अगर आपका मॉडल मापा नहीं गया है, तो उसी श्रेणी का नज़दीकी मॉडल आमतौर पर काफ़ी क़रीब ले आता है।',
   'autoeq.target.hint':
@@ -624,7 +638,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.balance.note': 'मापता रहे · चमक और गर्माहट भी बराबर करे',
   'eq.smart.mode.target': 'लक्ष्य',
   'eq.smart.mode.target.note': 'मापता रहता है · हर रिकॉर्डिंग को एक ही कर्व पर',
-  'eq.layers': 'यह भी लागू है',
   'eq.layers.aria': 'इस आउटपुट पर और क्या असर डाल रहा है',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} बैंड',
@@ -778,7 +791,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'सिर्फ़ आपके EQ बैंड, ऊपर कुछ नहीं',
   'voicing.strength': 'मात्रा',
   'waveform.style': 'मीटर की शैली बदलें',
-  'waveform.rainbow': 'इंद्रधनुष',
+  'waveform.rainbow': 'रंगीन',
   'waveform.live': 'लाइव आउटपुट',
   'waveform.signal': 'ऑडियो सिग्नल',
   'waveform.clip': 'क्लिप',
@@ -805,6 +818,23 @@ const eq: Partial<Dictionary> = {
   'eq.refused.externalEq':
     'बाहरी EQ में ऐसे चरण हैं जिन्हें FluidEQ सुरक्षित रूप से नहीं अपना सकता। उसकी फ़ाइलें नहीं बदली गईं।',
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.intro': 'आपकी सेव की हुई ध्वनि, जब चाहें तैयार।',
+  'myCurves.importSquiglink': 'Squiglink से आयात करें',
+  'myCurves.preview': 'कर्व का पूर्वावलोकन',
+  'myCurves.previewRange': 'EQ सुधार · 20 Hz–20 kHz',
+  'myCurves.previewEmpty': 'आपके कर्व का पूर्वावलोकन यहाँ दिखेगा',
+  'myCurves.filters': 'फ़िल्टर',
+  'myCurves.preamp': 'प्रीऐम्प',
+  'myCurves.correctionHint':
+    'हेडफ़ोन सुधार के रूप में लागू करें। आपका संपादन योग्य EQ बना रहता है।',
+  'myCurves.squiglinkGuide': 'Squiglink से आ रहे हैं?',
+  'myCurves.squiglinkSteps':
+    'हेडफ़ोन + लक्ष्य चुनें → EQ निर्यात करें → नीचे चिपकाएँ',
+  'myCurves.sourceLabel': 'स्रोत',
+  'myCurves.editableEq': 'इसके बजाय संपादन योग्य EQ पर लागू करें',
+  'myCurves.editableEqHint':
+    'आपके संपादन योग्य बैंड बदलता है। कान चुनें और पुष्टि के लिए फिर दबाएँ।',
+  'myCurves.saveReplaceEq': 'सेव करें और EQ बदलें',
   'myCurves.tab.opra': 'OPRA लाइब्रेरी',
   'myCurves.tab.mine': 'मेरे कर्व',
   'myCurves.tab.squiglink': 'Squiglink',
@@ -817,7 +847,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.export': 'सूची निर्यात करें',
   'myCurves.empty.title': 'अभी तक आपका कोई कर्व नहीं',
   'myCurves.empty.body':
-    'Squiglink एक्सपोर्ट या .txt फ़ाइल से एक जोड़ें, या Squiglink टैब से सेव करें। आपके कर्व इस कंप्यूटर पर रहते हैं, जब तक आप उन्हें निर्यात न करें।',
+    'Squiglink निर्यात, .txt फ़ाइल, मौजूदा EQ या OPRA सुधार जोड़ें। आपके कर्व निर्यात होने तक इस कंप्यूटर पर रहते हैं।',
   'myCurves.noMatch': 'किसी कर्व के नाम में यह नहीं है।',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': 'फ़ाइल',
@@ -840,8 +870,8 @@ const eq: Partial<Dictionary> = {
   'myCurves.cancel': 'रद्द करें',
   'myCurves.addTitle': 'कर्व जोड़ें',
   'myCurves.addIntro':
-    'यह मेरे कर्व में जाता है। जब तक आप इसे लागू न करें, कुछ नहीं बजता।',
-  'myCurves.textLabel': 'ParametricEQ टेक्स्ट',
+    'इस कर्व को बाद के लिए सेव करें, या अभी सेव करके लागू करें।',
+  'myCurves.textLabel': 'EQ टेक्स्ट',
   'myCurves.textPlaceholder':
     'यहाँ ParametricEQ या GraphicEQ एक्सपोर्ट पेस्ट करें',
   'myCurves.read': 'पढ़ा गया: {count} बैंड, प्रीऐम्प {preamp} dB',
@@ -853,7 +883,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.defaultName': 'Squiglink कर्व, {date}',
   'myCurves.chartAria': 'कर्व {name}, 20 Hz से 20 kHz तक',
   'myCurves.save': 'मेरे कर्व में सेव करें',
-  'myCurves.saveApply': 'सेव करें और कर्व के रूप में लागू करें',
+  'myCurves.saveApply': 'सेव करें और लागू करें',
   'myCurves.exportTitle': 'मेरे कर्व निर्यात करें',
   'myCurves.exportIntro':
     'सूची में कर्व: {count}। आपके आउटपुट या खाते के बारे में कुछ भी फ़ाइल में नहीं जाता।',
@@ -887,11 +917,11 @@ const eq: Partial<Dictionary> = {
   'myCurves.importNote':
     'आयात किए गए कर्व अपने आप कभी नहीं बजते; जो अभी बज रहा है वह बजता रहता है।',
   'myCurves.from': 'यह कहाँ से आता है',
-  'myCurves.from.paste': 'पेस्ट करें',
+  'myCurves.from.paste': 'EQ टेक्स्ट चिपकाएँ',
   'myCurves.from.pasteHint': 'Squiglink का ParametricEQ टेक्स्ट, या AutoEQ का',
-  'myCurves.from.file': 'एक .txt फ़ाइल',
+  'myCurves.from.file': 'टेक्स्ट फ़ाइल',
   'myCurves.from.fileHint': 'Equalizer APO या AutoEQ फ़ॉर्मैट',
-  'myCurves.from.eq': 'मेरा EQ अभी',
+  'myCurves.from.eq': 'मौजूदा EQ',
   'myCurves.from.eqHint': 'आपके सेट किए बैंड, जैसे वे बजते हैं',
   'myCurves.from.opra': 'OPRA से',
   'myCurves.from.opraHint':

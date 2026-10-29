@@ -31,7 +31,13 @@ import {
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
 import { MAX_CORRECTION_GAIN } from '../../common/correctionRange';
-import { getOpraLabel, getOpraPreset, getOpraProductList } from '../opra';
+import { curveTextOf } from '../../common/curveText';
+import {
+  getOpraLabel,
+  getOpraPreset,
+  getOpraPresets,
+  getOpraProductList,
+} from '../opra';
 import { checkOpraUpdate, updateOpraDatabase } from '../opraUpdater';
 import {
   downloadConvolution,
@@ -132,6 +138,34 @@ export const registerReferencesIpc = ({
       event.reply(channel, reply);
     } catch (error) {
       log.warn(`Unable to name OPRA product ${productId}`, error);
+      handleError(event, channel, ErrorCode.OPRA_READ_ERROR);
+    }
+  });
+
+  onWindowMessage(ChannelEnum.GET_OPRA_CURVES, async (event, arg) => {
+    const channel = ChannelEnum.GET_OPRA_CURVES;
+    const productId: unknown = arg?.[0];
+    if (typeof productId !== 'string') {
+      handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+      return;
+    }
+    try {
+      // Each as the correction layer would hold it once applied — shielded
+      // to a correction's range, no preamp — so the text is the very text
+      // "Save to My curves" keeps from an applied pick, and the two compare.
+      const texts = Object.fromEntries(
+        Object.entries(getOpraPresets(productId)).map(([curveId, preset]) => [
+          curveId,
+          curveTextOf({
+            preAmp: 0,
+            filters: shieldReferenceBands(preset.filters, MAX_CORRECTION_GAIN),
+          }),
+        ]),
+      );
+      const reply: TSuccess<Record<string, string>> = { result: texts };
+      event.reply(channel, reply);
+    } catch (error) {
+      log.warn(`Unable to read the curves of OPRA product ${productId}`, error);
       handleError(event, channel, ErrorCode.OPRA_READ_ERROR);
     }
   });

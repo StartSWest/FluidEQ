@@ -5,13 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * When the titlebar's tagline and creature leave, and when they come back.
+ * When the titlebar's creature leaves, and when she comes back.
  *
- * They leave the moment keeping them would cost the wave width — which is
+ * She leaves the moment keeping her would cost the wave width — which is
  * both ends down to their content, since the grid gives the wave its whole
- * width before either end gets a pixel beyond its own — and come back only
- * when the room both ends have spare covers what they would take back, with a
+ * width before either end gets a pixel beyond its own — and comes back only
+ * when the room both ends have spare covers what she would take back, with a
  * pixel over, so a window on the boundary does not flip between the two.
+ * The slogan under the name left with her until it left the bar (2026-10-25).
  * The layout itself is measured in the running window; this is the rule.
  */
 
@@ -24,7 +25,7 @@ import {
 } from '../../../renderer/utils/useTitlebarRoom';
 
 describe('the titlebar giving ground before the wave does', () => {
-  it('keeps the two while either end has room beside its content', () => {
+  it('keeps her while either end has room beside its content', () => {
     expect(
       isTitlebarCrowded(false, { leftSpare: 17, rightSpare: 0, comeback: 0 }),
     ).toBe(false);
@@ -33,7 +34,7 @@ describe('the titlebar giving ground before the wave does', () => {
     ).toBe(false);
   });
 
-  it('lets them go when both ends are down to their content', () => {
+  it('lets her go when both ends are down to their content', () => {
     // Measured at 1561px in English: both ends at their content, the wave
     // 22px short of its 420.
     expect(
@@ -41,26 +42,25 @@ describe('the titlebar giving ground before the wave does', () => {
     ).toBe(true);
   });
 
-  it('brings them back only once the room covers what they take back', () => {
-    // The tagline's excess over the name above it (88px in English) and the
-    // creature with her gap (50).
-    const comeback = 138;
+  it('brings her back only once the room covers what she takes back', () => {
+    // The creature and her gap (40 and 10).
+    const comeback = 50;
     expect(
-      isTitlebarCrowded(true, { leftSpare: 60, rightSpare: 70, comeback }),
+      isTitlebarCrowded(true, { leftSpare: 20, rightSpare: 29, comeback }),
     ).toBe(true);
     expect(
-      isTitlebarCrowded(true, { leftSpare: 69, rightSpare: 69, comeback }),
+      isTitlebarCrowded(true, { leftSpare: 25, rightSpare: 25, comeback }),
     ).toBe(true);
     expect(
-      isTitlebarCrowded(true, { leftSpare: 70, rightSpare: 69, comeback }),
+      isTitlebarCrowded(true, { leftSpare: 26, rightSpare: 25, comeback }),
     ).toBe(false);
   });
 
-  it('does not flip on the width where they have just come back', () => {
-    // Back with the least room that brings them: what is left beside the
+  it('does not flip on the width where she has just come back', () => {
+    // Back with the least room that brings her: what is left beside the
     // content afterwards is the pixel over, split between the ends however
     // the grid splits it, and that is not "no room".
-    const comeback = 138;
+    const comeback = 50;
     const spare = comeback + 1;
     expect(
       isTitlebarCrowded(true, { leftSpare: spare, rightSpare: 0, comeback }),
@@ -78,10 +78,10 @@ describe('the titlebar giving ground before the wave does', () => {
   });
 
   it('stays crowded after leaving, whatever the leaving freed', () => {
-    // They left because the wave was short by some amount; the room that
-    // leaving frees is what they would take back less that amount, which is
-    // never enough to bring them straight back.
-    const comeback = 138;
+    // She left because the wave was short by some amount; the room that
+    // leaving frees is what she would take back less that amount, which is
+    // never enough to bring her straight back.
+    const comeback = 50;
     [0, 1, 22, 47, 200].forEach((short) => {
       const freed = Math.max(0, comeback - short);
       expect(
@@ -160,7 +160,7 @@ describe('the titlebar measured again', () => {
 });
 
 /**
- * Past the tagline and the creature, the bar's own parts (Ivan, 2026-09-28:
+ * Past the creature, the bar's own parts (Ivan, 2026-09-28:
  * "shed small things"): zoomed in, the ends at their content and the meter at
  * its floor ran the window's buttons off its right edge. The meter goes when
  * the right end runs past the bar, then Help and the compact-player switch;
@@ -204,7 +204,6 @@ describe('the titlebar shedding its own parts', () => {
  */
 describe('the titlebar giving up its parts in order, and taking them back', () => {
   const NAME = 120;
-  const TAGLINE = 208;
   const PET = 40;
   const TABS = 300;
   const MENU = 32;
@@ -238,11 +237,8 @@ describe('the titlebar giving up its parts in order, and taking them back', () =
     const meter = document.createElement('nav');
     meter.className = 'titlebar-nav';
     const right = document.createElement('div');
-    const column = document.createElement('span');
-    const tagline = document.createElement('span');
-    tagline.className = 'workspace-header__tagline';
-    column.append(tagline);
-    left.append(column);
+    const identity = document.createElement('span');
+    left.append(identity);
     const tabs = document.createElement('span');
     const instrument = document.createElement('span');
     instrument.className = 'titlebar-instrument';
@@ -259,7 +255,8 @@ describe('the titlebar giving up its parts in order, and taking them back', () =
 
     const has = (name: string) => bar.hasAttribute(name);
     const crowded = () => has('data-crowded');
-    const leftContent = () => (crowded() ? NAME : TAGLINE);
+    // The name alone: nothing on the left comes and goes with crowding.
+    const leftContent = () => NAME;
     const toolsWidth = () => (has('data-shed-tools') ? 0 : HELP + SWITCH);
     const rightContent = () =>
       TABS + MENU + toolsWidth() + (crowded() ? 0 : PET);
@@ -278,8 +275,7 @@ describe('the titlebar giving up its parts in order, and taking them back', () =
       right: width + grid().overrun,
     }));
     stub(meter, () => ({ width: METER }));
-    stub(column, () => ({ width: leftContent() }));
-    stub(tagline, () => ({ width: TAGLINE }));
+    stub(identity, () => ({ width: NAME }));
     stub(tabs, () => ({ width: TABS }));
     stub(instrument, () => ({ width: MENU + toolsWidth() }));
     stub(help, () => ({ width: HELP }));
@@ -316,7 +312,7 @@ describe('the titlebar giving up its parts in order, and taking them back', () =
     resize = undefined;
   });
 
-  it('gives up the tagline and creature, then the meter, then Help and the switch, and takes them back last out first', () => {
+  it('gives up the creature, then the meter, then Help and the switch, and takes them back last out first', () => {
     width = 1400;
     const { bar, left, right, parts } = mount();
     const stop = watchTitlebarRoom(bar, left, right);
@@ -324,8 +320,8 @@ describe('the titlebar giving up its parts in order, and taking them back', () =
     const all = { crowded: false, meter: true, tools: true };
     expect(parts()).toEqual(all);
 
-    // Both ends down to their content: the two that say least go first.
-    resizeTo(1224.2);
+    // Both ends down to their content: she says least and goes first.
+    resizeTo(1136.2);
     const crowded = { crowded: true, meter: true, tools: true };
     expect(parts()).toEqual(crowded);
     // The wave narrowing to its floor takes nothing more.
@@ -348,14 +344,15 @@ describe('the titlebar giving up its parts in order, and taking them back', () =
     resizeTo(937);
     expect(parts()).toEqual(noMeter);
     expect(shed.result.current).toBe(false);
-    // Then the meter's 160, and the tagline and creature only after it.
+    // Then the meter's 160, and the creature only after it: her 40, with a
+    // pixel over.
     resizeTo(1096);
     expect(parts()).toEqual(noMeter);
     resizeTo(1097);
     expect(parts()).toEqual(crowded);
-    resizeTo(1224);
+    resizeTo(1136);
     expect(parts()).toEqual(crowded);
-    resizeTo(1225);
+    resizeTo(1137);
     expect(parts()).toEqual(all);
 
     stop();

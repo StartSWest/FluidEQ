@@ -13,10 +13,6 @@ jest.mock('renderer/eq/MyCurvesPanel', () => ({
   __esModule: true,
   default: () => <div data-testid="mine" />,
 }));
-jest.mock('renderer/SquiglinkImport', () => ({
-  __esModule: true,
-  default: () => <div data-testid="squiglink" />,
-}));
 jest.mock('renderer/components/OpraLibraryStatus', () => ({
   __esModule: true,
   default: () => null,
@@ -26,31 +22,37 @@ jest.mock('renderer/eq/myCurvesStore', () => ({
   useMyCurves: () => [],
 }));
 
-it('gives Squiglink a tab of its own, right after OPRA, never under a list that grows', async () => {
+it('offers OPRA and My curves as the two libraries, with their panels correctly labelled', async () => {
   render(<EqPresetsPanel />);
   await act(async () => undefined);
   expect(
     screen
       .getAllByRole('tab')
       .map((tab) => tab.textContent?.replace(/\d+$/, '')),
-  ).toEqual(['OPRA library', 'Squiglink', 'My curves']);
+  ).toEqual(['OPRA library', 'My curves']);
   // OPRA's library opens, and nothing else is on the page with it.
   expect(screen.getByTestId('opra')).toBeInTheDocument();
-  expect(screen.queryByTestId('squiglink')).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole('tab', { name: 'Squiglink' }));
-  expect(screen.getByRole('tab', { name: 'Squiglink' })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  );
-  expect(screen.getByTestId('squiglink')).toBeInTheDocument();
   expect(screen.getByRole('tabpanel')).toHaveAttribute(
     'aria-labelledby',
-    'autoeq-tab-squiglink',
+    'autoeq-tab-opra',
   );
-  expect(screen.queryByTestId('opra')).not.toBeInTheDocument();
   expect(screen.queryByTestId('mine')).not.toBeInTheDocument();
   // My curves is the list alone.
   fireEvent.click(screen.getByRole('tab', { name: /My curves/ }));
   expect(screen.getByTestId('mine')).toBeInTheDocument();
-  expect(screen.queryByTestId('squiglink')).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('tab', { name: 'Squiglink' }),
+  ).not.toBeInTheDocument();
+  expect(screen.getByRole('tab', { name: /My curves/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  expect(screen.getByRole('tabpanel')).toHaveAttribute(
+    'aria-labelledby',
+    'autoeq-tab-mine',
+  );
+  expect(screen.queryByTestId('opra')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('tab', { name: 'OPRA library' }));
+  expect(screen.getByTestId('opra')).toBeInTheDocument();
+  expect(screen.queryByTestId('mine')).not.toBeInTheDocument();
 });

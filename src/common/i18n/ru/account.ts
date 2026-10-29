@@ -11,7 +11,7 @@ const account = {
   'account.close': 'Закрыть',
 
   'account.optional':
-    'Вход необязателен. Без аккаунта FluidEQ работает точно так же, как всегда: всё выполняется на этом компьютере, и ничего не отслеживается. С аккаунтом время, которое вы слушаете, считается для статистики FluidEQ, если вы это не выключите. Аккаунт нужен только для тех частей, которым он действительно необходим.',
+    'Вход необязателен. Без аккаунта FluidEQ работает точно так же, как всегда: всё выполняется на этом компьютере, и ничего не отслеживается. Аккаунт нужен только для тех частей, которым он действительно необходим.',
 
   'account.signIn': 'Войти',
   'account.signUp': 'Создать аккаунт',
@@ -26,6 +26,17 @@ const account = {
   'account.signOut.detailPlus':
     'Ваши сцены останутся здесь заблокированными, пока вы снова не войдёте.',
   'account.signOut.kept': 'На этом компьютере ничего не удалится.',
+  'account.cover.onGraph': '{name} на графике',
+  'account.stats.owned': 'Ваши',
+  'account.stats.likes': 'Лайки',
+  'account.scenes.title': 'Ваша коллекция',
+  'account.scenes.openGallery': 'Открыть галерею',
+  'account.scenes.empty':
+    'Полученные сцены остаются вашими, и отсюда их можно включить на графике.',
+  'account.scenes.playing': 'Играет',
+  'account.scenes.play': 'Включить {name} на графике',
+  'account.published.title': 'Публикации',
+  'account.published.live': 'В галерее',
   'account.name.change': 'Изменить имя',
   'account.name.changeTitle': 'Измените, как вас видят',
   'account.name.changeBody':
@@ -83,7 +94,7 @@ const account = {
   'account.error.alreadyRegistered':
     'Аккаунт с этим адресом уже существует. Просто войдите.',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': 'Сцены, которые ваши навсегда, по кредиту за каждую.',
   'account.perk.visualizers':

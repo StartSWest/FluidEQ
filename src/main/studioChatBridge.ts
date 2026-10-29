@@ -16,6 +16,10 @@ import type {
   TStudioChatPackAnswer,
   TStudioChatRestore,
 } from '../common/studioChat';
+import type {
+  IStudioChatDraft,
+  IStudioChatDraftChange,
+} from './studioChat/chatDraft';
 
 /**
  * The window's side of the Studio's chat (`studioChat/studioChat.ts`). It
@@ -87,6 +91,12 @@ const studioChatBridge = {
       ipcRenderer.removeListener('studio-chat-limits', wrapped);
     };
   },
+  /** The message a project's box held when it was last left, kept on disk. */
+  studioChatDraft: (projectId: string): Promise<IStudioChatDraft | undefined> =>
+    ipcRenderer.invoke('studio-chat-draft', projectId),
+  /** The box as it now stands, written down at once (`chatDraft.ts`). */
+  studioChatDraftChange: (change: IStudioChatDraftChange): Promise<void> =>
+    ipcRenderer.invoke('studio-chat-draft-change', change),
   studioChatNew: (): Promise<IStudioChat | undefined> =>
     ipcRenderer.invoke('studio-chat-new'),
   studioChatRestore: (entryId: string): Promise<TStudioChatRestore> =>

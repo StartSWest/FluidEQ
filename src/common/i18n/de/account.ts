@@ -12,7 +12,7 @@ const account = {
   'account.close': 'Schließen',
 
   'account.optional':
-    'Die Anmeldung ist freiwillig. Ohne Konto funktioniert FluidEQ genau wie immer: Alles läuft auf diesem Rechner, und nichts wird erfasst. Mit Konto wird gezählt, wie lange Sie hören, für die Statistik von FluidEQ, sofern Sie es nicht ausschalten. Ein Konto gibt es nur für die Teile, die wirklich eines brauchen.',
+    'Die Anmeldung ist freiwillig. FluidEQ funktioniert ohne Konto genau wie immer – alles läuft auf diesem Rechner, und nichts wird erfasst. Ein Konto gibt es nur für die Teile, die wirklich eines brauchen.',
 
   'account.signIn': 'Anmelden',
   'account.signUp': 'Konto erstellen',
@@ -27,6 +27,17 @@ const account = {
   'account.signOut.detailPlus':
     'Ihre Szenen bleiben hier gesperrt, bis Sie sich wieder anmelden.',
   'account.signOut.kept': 'Auf diesem Computer wird nichts gelöscht.',
+  'account.cover.onGraph': '{name} im Diagramm',
+  'account.stats.owned': 'Eigene',
+  'account.stats.likes': 'Likes',
+  'account.scenes.title': 'Ihre Sammlung',
+  'account.scenes.openGallery': 'Galerie öffnen',
+  'account.scenes.empty':
+    'Szenen, die Sie holen, bleiben Ihre und laufen von hier aus im Diagramm.',
+  'account.scenes.playing': 'Läuft',
+  'account.scenes.play': '{name} im Diagramm abspielen',
+  'account.published.title': 'Veröffentlicht',
+  'account.published.live': 'In der Galerie',
   'account.name.change': 'Namen ändern',
   'account.name.changeTitle': 'Ändern, wie Sie erscheinen',
   'account.name.changeBody':
@@ -87,7 +98,7 @@ const account = {
   'account.error.alreadyRegistered':
     'Mit dieser Adresse gibt es bereits ein Konto. Melden Sie sich stattdessen an.',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks':
     'Szenen, die Ihnen für immer gehören, ein Credit pro Szene.',

@@ -19,9 +19,10 @@ const store: Partial<Dictionary> = {
   'store.credits.buyTitle': 'クレジットを入手',
   'store.credits.lead':
     '1 クレジットで 1 つのシーンをずっと持てます。支払いは 1 回きりで、更新はありません。',
-  'store.credits.owned': '持っているシーン：{count}',
   'store.credits.what':
     '各クレジットでギャラリーのシーンを 1 つずっと持てます。グラフでも、デスクトップでも、ライトでも。',
+  'store.credits.half':
+    '0.5 クレジットが待っています。支払い済みのクレジットであなたのシーンがもう 1 つ手に入れられると、1 クレジットになります。',
   'store.credits.buy': 'クレジットを入手',
   'store.credits.getFree': '無料クレジットを受け取る',
   'store.error.offline':
@@ -90,11 +91,6 @@ const store: Partial<Dictionary> = {
   'store.like.ownersOnly':
     'いいね：{count} 件。シーンを入手すると、いいねできます。',
   'store.scene.free': 'すべての人に無料',
-  'store.admin.freeTitle': 'すべての人に無料',
-  'store.admin.freeOn':
-    'サインインしているすべてのアカウントが、クレジットを使わずに再生できます。',
-  'store.admin.freeOff':
-    '他のシーンと同じく 1 クレジットです。オンにすると全員に提供します。',
   'store.error.termsOutdated':
     '利用条件が変わりました。クレジットを購入する前に、FluidEQ を更新して新しい版をお読みください。',
 };

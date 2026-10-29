@@ -29,7 +29,7 @@ const help: Record<keyof typeof en, string> = {
   'help.group.start': 'Erste Schritte',
   'help.group.sound': 'Ihren Klang formen',
   'help.group.visuals': 'Ihre Musik sehen',
-  'help.group.plus': 'FluidEQ Plus',
+  'help.group.plus': 'Visualizer und Ihr Konto',
   'help.group.listen': 'Hören, singen und teilen',
   'help.group.help': 'Wenn Sie Hilfe brauchen',
 
@@ -56,11 +56,11 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'Über die Kopfzeile wechseln Sie zwischen den Seiten von FluidEQ, und sie zeigt den Klang in Echtzeit. Die linke Leiste enthält den Schalter für den ganzen EQ, die Vorverstärkung und die Pegelanzeige; die rechte Leiste folgt Ihrem Ausgang und seinen Profilen.',
   'help.window.steps':
-    'Drücken Sie in der Kopfzeile auf eine Seite: Online-Medien, Audio teilen und EQ vor dem Signal, DSP, Bibliothek, Karaoke und Plus danach.\nSchalten Sie in der linken Leiste System-EQ ein und lassen Sie Automatisch normalisieren eingeschaltet, damit keine Anhebung übersteuern kann.\nDrücken Sie auf das Signal oder die Pegelanzeige, um zu ändern, wie sie gezeichnet werden, und auf Regenbogenmodus, damit sich Kurven und Pegelanzeigen mit der vollen Bildwiederholrate Ihres Bildschirms bewegen.',
+    'Drücken Sie in der Kopfzeile auf eine Seite: Online-Medien, Audio teilen und EQ vor dem Signal, DSP, Bibliothek, Karaoke und Visualizer danach.\nSchalten Sie in der linken Leiste System-EQ ein und lassen Sie Automatisch normalisieren eingeschaltet, damit keine Anhebung übersteuern kann.\nDrücken Sie auf die Pegelanzeige, um zu ändern, wie sie gezeichnet wird, und auf „Bunt“ am Signal, damit Bänder, Titel und leuchtende Bedienelemente in einer Palette statt in einer Farbe erscheinen.',
   'help.window.tip':
-    'Hilfe öffnet dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden. Hinter dem Puls-Knopf daneben finden Sie die Karte der Engine, Ihr Konto, den Import von EQ-Einstellungen oder einer Impulsantwort, den Neustart von Windows-Audio und Prozesse, wo Sie sehen, was jeder Teil von FluidEQ gerade nutzt; ganz unten stehen Helligkeit und Transparenz, die Animationen, Mit Windows starten und die Sprache. Mit dem Schalter danach wechselt das Fenster in die Ansicht Kompakter Player.',
+    'Hilfe öffnet dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden. Hinter dem Menüknopf mit den drei Linien daneben finden Sie die Karte der Engine, Ihr Konto, den Import von EQ-Einstellungen oder einer Impulsantwort, den Neustart von Windows-Audio, Prozesse, wo Sie sehen, was jeder Teil von FluidEQ gerade nutzt, und Alle Einstellungen zurücksetzen; ganz unten stehen Helligkeit, Farbton, Bunter Modus, App-Symbol einfärben (anfangs aus; färbt das Symbol in der Taskleiste, im Infobereich und in dessen Menü in den Farben des Fensters), die EQ-Schieberegler, die Animationen, Mit Windows starten und die Sprache. Mit dem Schalter danach wechselt das Fenster in die Ansicht Kompakter Player.',
   'help.window.keywords':
-    'oberfläche, benutzeroberfläche, übersicht, menüleiste, titelleiste, obere leiste, symbolleiste, seitenleiste, tabs, reiter, registerkarten, navigation, layout, untere leiste, pegelmesser, VU-meter, preamp, headroom, einschalten, ausschalten, design, theme, dunkles design, helles design, dunkelmodus, dunkler modus, dark mode, nachtmodus, heller modus, light mode, sprache, sprache ändern, mit windows starten, autostart, automatisch starten, beim hochfahren, konto, account',
+    'oberfläche, benutzeroberfläche, übersicht, menüleiste, titelleiste, obere leiste, symbolleiste, seitenleiste, tabs, reiter, registerkarten, navigation, layout, untere leiste, pegelmesser, VU-meter, bunter modus, regenbogen, preamp, headroom, einschalten, ausschalten, design, theme, dunkles design, helles design, dunkelmodus, dunkler modus, dark mode, nachtmodus, heller modus, light mode, sprache, sprache ändern, mit windows starten, autostart, automatisch starten, beim hochfahren, konto, account',
   'help.window.headerLeftCaption': 'Die Kopfzeile bis zum Signal',
   'help.window.headerRightCaption': 'Die Kopfzeile nach dem Signal',
   'help.window.railCaption': 'Die linke Leiste',
@@ -72,7 +72,7 @@ const help: Record<keyof typeof en, string> = {
     'Ihre Bänder, Presets, Kopfhörerkorrektur, Spiel-Presets und die Config der Engine.',
   'help.window.waveName': 'Audiosignal',
   'help.window.wave':
-    'Was gerade läuft, in Echtzeit. Drücken Sie darauf, um zu ändern, wie es gezeichnet wird.',
+    'Was gerade läuft, in Echtzeit, mit dem Spitzenpegel. „Bunt“ oben auf der Anzeige schaltet „Bunter Modus“ ein oder aus; ausblenden lässt sie sich im Menü „Ansicht“ des Graphen.',
   'help.window.dsp':
     'Das Effekt-Rack: Presets, der Raum und jede Stufe der Kette.',
   'help.window.library': 'Ihre Musikdateien, Alben und die Warteschlange.',
@@ -85,7 +85,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.help':
     'Dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden.',
   'help.window.actions':
-    'Die Engine, Ihr Konto, der Import von EQ-Einstellungen, der Neustart von Windows-Audio und Prozesse; Helligkeit und Transparenz, die Animationen, Mit Windows starten und die Sprache.',
+    'Die Engine, Ihr Konto, der Import von EQ-Einstellungen, der Neustart von Windows-Audio, Prozesse und Alle Einstellungen zurücksetzen; Helligkeit, Farbton, Bunter Modus und App-Symbol einfärben, die EQ-Schieberegler, die Animationen, Mit Windows starten und die Sprache.',
   'help.window.systemEq':
     'Schaltet die Verarbeitung von FluidEQ für alles, was der PC abspielt, ein oder aus.',
   'help.window.preamp':
@@ -98,34 +98,29 @@ const help: Record<keyof typeof en, string> = {
     'Der Ausgangspegel, links und rechts, in echten Dezibel. Drücken Sie darauf, um den Stil der Anzeige zu ändern.',
   'help.player.title': 'Kompakter Player',
   'help.player.intro':
-    'Mit einem Schalter wechselt das Fenster von FluidEQ in die Ansicht Kompakter Player: eine schmale Spalte mit dem Song, Ihrem Equalizer, einem Visualizer und „Als Nächstes“, in Bereichen, die Sie ein- und ausblenden. Was gerade läuft, läuft weiter, und derselbe Schalter bringt die vollständige App auf der Seite zurück, die Sie verlassen haben.',
+    'Mit einem Schalter wechselt das Fenster von FluidEQ in die Ansicht Kompakter Player: eine schmale Spalte, oben ein Visualizer mit dem Song darauf und der Wiedergabesteuerung darunter, dann Sound, Ihr Equalizer, dann „Als Nächstes“ und Ihre Playlists. Was gerade läuft, läuft weiter, und derselbe Schalter bringt die vollständige App auf der Seite zurück, die Sie verlassen haben.',
   'help.player.steps':
-    'Drücken Sie in der Titelleiste neben Hilfe den Schalter Kompakter Player. Im Player holt derselbe Schalter die vollständige App zurück.\nBlenden Sie die Bereiche mit EQ, Visual und Liste ein und aus. Das Fenster wächst und schrumpft um den Platz, den jeder braucht, und der Player merkt sich Größe und Position.\nDoppelklicken Sie auf die Leiste des Players oder wählen Sie in seinem Menü Auf eine Zeile einklappen, um ihn auf eine Zeile zu verkleinern; das FluidEQ-Logo klappt ihn wieder aus.\nStellen Sie im Menü des Players seine eigene Helligkeit ein und halten Sie ihn mit Immer im Vordergrund über anderen Fenstern.\nLegen Sie Musikdateien auf „Als Nächstes“ ab, und sie kommen in die Bibliothek und in die Warteschlange.',
+    'Drücken Sie in der Titelleiste neben Hilfe den Schalter Kompakter Player. Im Player holt derselbe Schalter die vollständige App zurück.\nKlappen Sie Sound oder „Als Nächstes“ und Playlists bis auf die Kopfzeile ein, und der Visualizer bekommt den Platz; ein Klick auf die Kopfzeile öffnet den Bereich wieder. Ziehen Sie den oberen oder unteren Rand des Players, um ihn höher oder niedriger zu machen.\nDoppelklicken Sie auf den Visualizer, damit er den ganzen Bildschirm füllt; Esc gibt ihn zurück. Ein Klick auf den Namen des Looks neben Zufallswiedergabe und Wiederholen zeigt alle Stile und Szenen zur Auswahl.\nWählen Sie im Menü des FluidEQ-Logos Auf eine Zeile einklappen, um den Player auf eine Zeile zu verkleinern; das Logo klappt ihn wieder aus.\nStellen Sie im selben Menü die eigene Helligkeit des Players ein, die Transparenz über einer Szene oder den Farbton des Fensters über einem Standardstil, und das Tageslicht einer Szene. Immer im Vordergrund, dort oder in der Kopfzeile, hält ihn über anderen Fenstern.\nLegen Sie Musikdateien irgendwo auf dem Player ab: Die Dateien kommen in die Bibliothek und ans Ende von „Als Nächstes“ – oder, über der Liste abgelegt, genau an diese Stelle.',
   'help.player.tip':
     'Die Lautstärke des Players ist die Ihres Computers, dieselbe wie in Windows, und regelt daher den Pegel von allem, was der Computer abspielt. Landet der Player außerhalb des Bildschirms, klicken Sie im Infobereich der Taskleiste mit der rechten Maustaste auf FluidEQ und wählen Sie Fenster wiederherstellen.',
   'help.player.keywords':
     'mini player, miniplayer, mini-player, kleiner player, kompakt, kompaktmodus, kompakte ansicht, winamp, amp, player-modus, immer im vordergrund, immer oben, always on top, anheften, pin, einklappen, zusammenklappen, eine zeile, warteschlange, als nächstes, dateien ablegen, drag and drop, design, theme, helles design, dunkles design, dark mode, dunkelmodus, light mode, kleines fenster, schwebender player, lautstärke',
   'help.player.topCaption': 'Der obere Teil: der Song und wie er läuft',
-  'help.player.eqCaption': 'Der Equalizer',
+  'help.player.eqCaption': 'Sound, Ihr Equalizer',
   'help.player.queueCaption': 'Als Nächstes',
   'help.player.menuCaption': 'Das Player-Menü',
   'help.player.foldedCaption': 'Auf eine Zeile eingeklappt',
   'help.player.menu':
-    'Zurück zur vollständigen App oder zu einer ihrer Seiten, die eigene Helligkeit des Players, Immer im Vordergrund und Auf eine Zeile einklappen.',
+    'Zurück zur vollständigen App oder zu einer ihrer Seiten; die eigene Helligkeit des Players, Transparenz oder Farbton, das Tageslicht einer Szene, der Bunte Modus, App-Symbol einfärben und die EQ-Schieberegler; Immer im Vordergrund und Auf eine Zeile einklappen.',
   'help.player.pin': 'Hält den Player über allen anderen Fenstern.',
   'help.player.switch':
     'Zurück zur vollständigen App, auf der Seite, die Sie verlassen haben.',
   'help.player.clock':
     'Gespielte Zeit. Klicken Sie darauf, um die verbleibende Zeit zu sehen.',
-  'help.player.well':
-    'Der Klang, während er läuft. Klicken Sie darauf, um zwischen Balken und Welle zu wechseln.',
   'help.player.level':
     'Der Pegel des Klangs, der FluidEQ verlässt, in Dezibel.',
   'help.player.volume':
     'Die Lautstärke Ihres Computers, dieselbe wie in Windows; sie regelt den Pegel von allem, was der Computer abspielt.',
-  'help.player.decksName': 'EQ, Visual und Liste',
-  'help.player.decks':
-    'Blenden Sie den Equalizer, den Visualizer und „Als Nächstes“ ein und aus. Das Fenster wächst und schrumpft um den Platz, den jeder braucht.',
   'help.player.seek': 'Wo der Song gerade steht. Ziehen Sie, um zu springen.',
   'help.player.playingName': 'Wiedergabesteuerung',
   'help.player.playing':
@@ -133,37 +128,54 @@ const help: Record<keyof typeof en, string> = {
   'help.player.orderName': 'Zufallswiedergabe und Wiederholen',
   'help.player.order':
     'Mischt „Als Nächstes“ und wiederholt nichts, alles oder diesen Song.',
-  'help.player.lookName': 'Nächster Look',
+  'help.player.lookName': 'Look',
   'help.player.look':
-    'Wechselt den Look des Visualizers. Strg+Klick geht einen zurück, und ein Rechtsklick zeigt alle.',
-  'help.player.screen':
-    'Was Sie hören, gezeichnet: Ihre Bänder, Smart-EQ und alles andere, was aktiv ist, über einem Visualizer-Look. Unter Ebenfalls aktiv stehen sie einzeln, und ein Chip schaltet seine Ebene aus, ohne sie zu entfernen.',
+    'Der Stil oder die Szene, die der Visualizer zeichnet. Klicken Sie darauf, um aus allen zu wählen.',
   'help.player.bands':
     'Ziehen Sie ein Band nach oben oder unten, um es anzuheben oder abzusenken. Seine Frequenz steht darunter.',
   'help.player.tone':
-    'Bänder zeigt jedes Band; Klang ersetzt sie durch die Regler Bass, Mitten und Höhen.',
+    'Klang zeigt die Regler Bass, Mitten und Höhen, der Reiter daneben jedes Band.',
   'help.player.upNext':
-    'Wo Sie in der Warteschlange stehen, wie viel Zeit darin noch bleibt und wie weit Sie schon sind.',
-  'help.player.library': 'Öffnet die Bibliothek in der vollständigen App.',
+    '„Als Nächstes“ und Playlists, jeweils mit ihrer Anzahl, und die Zeit, die in der Warteschlange noch bleibt.',
   'help.player.songsName': 'Die Songs',
   'help.player.songs':
-    'Was als Nächstes läuft. Doppelklicken Sie auf einen Song, um ihn abzuspielen, oder legen Sie Musikdateien hier ab, um sie hinzuzufügen.',
+    'Was als Nächstes läuft. Klicken Sie auf einen Song, um ihn abzuspielen, ziehen Sie ihn, um ihn zu verschieben, oder legen Sie Musikdateien hier ab, um sie an dieser Stelle einzufügen.',
   'help.player.openIn': 'Öffnet die vollständige App auf einer ihrer Seiten.',
   'help.player.theme':
-    'Die eigene Helligkeit des Players, unabhängig von der vollständigen App; Transparenz für den Glas-Player über einem Visualizer; und der Regenbogenmodus.',
-  'help.player.fold':
-    'Klappt den Player auf eine Zeile ein. Ein Doppelklick auf die Leiste tut dasselbe.',
+    'Die eigene Helligkeit des Players, unabhängig von der vollständigen App; Transparenz über einer Szene oder der Farbton des Fensters über einem Standardstil; das Tageslicht einer Szene; der Bunte Modus; und App-Symbol einfärben, anfangs aus, für das Symbol in der Taskleiste, im Infobereich und in dessen Menü in den Farben des Fensters.',
+  'help.player.fold': 'Klappt den Player auf eine Zeile ein.',
   'help.player.unfold':
     'Klappt den Player wieder aus. Der Pfeil am anderen Ende tut das auch.',
-  'help.player.foldedPlaying':
-    'Vorheriger Titel, Wiedergabe oder Pause, Nächster Titel und Stopp.',
-  'help.player.foldedClock': 'Die Zeit und wo der Song gerade steht.',
+  'help.player.foldedPlaying': 'Wiedergabe oder Pause.',
+  'help.player.fullScreen':
+    'Füllt den Bildschirm mit dem Visualizer. Ein Doppelklick auf das Bild tut dasselbe, und Esc gibt den Bildschirm zurück.',
+  'help.player.sourceName': 'Quelle',
+  'help.player.source':
+    'Woher der Song kommt: Bibliothek, Online-Medien, Karaoke, ein anderer Computer oder ein anderes Programm auf diesem PC. Ein Klick darauf öffnet diese Seite in der vollständigen App.',
+  'help.player.heart':
+    'Fügt einen Song aus der Bibliothek zu Ihren Favoriten hinzu oder entfernt ihn wieder.',
+  'help.player.soundFold':
+    'Klappt die Klangregler bis auf diese Zeile ein, in der Preset, Smart-EQ und der Schalter griffbereit bleiben, und öffnet sie wieder.',
+  'help.player.mode':
+    'Öffnet den EQ-Modus: wie stark Ihr EQ und die Kurven wirken, ihr Band-Q, ihre Phase und ihre Höhen.',
+  'help.player.save': 'Speichert „Als Nächstes“ als eigene Playlist.',
+  'help.player.queueFold':
+    'Klappt „Als Nächstes“ und Playlists bis auf ihre Reiter ein, und der Visualizer bekommt den Platz.',
+  'help.player.remove':
+    'Nimmt einen Song, der noch nicht gelaufen ist, aus „Als Nächstes“ heraus.',
+  'help.player.output':
+    'Wohin der Klang geht: die Ausgabe, über die Windows abspielt.',
+  'help.player.engineName': 'Engine',
+  'help.player.engine':
+    'Welche Engine den Klang formt; sie leuchtet, solange FluidEQ eingeschaltet ist.',
+  'help.player.sliders':
+    'Runde Griffe oder rechteckige Kappen auf den Schiebereglern des EQ, hier und auf der EQ-Seite.',
 
   'help.requirements.title': 'Was Ihr PC braucht',
   'help.requirements.intro':
-    'FluidEQ läuft auf jedem Windows-PC der letzten zehn Jahre. Zwei Teile verlangen mehr als der Rest: die Plus-Visualizer zeichnen auf der Grafikkarte, und die Karaoke-KI lädt ihre Modelle beim ersten Mal herunter.',
+    'FluidEQ läuft auf jedem Windows-PC der letzten zehn Jahre. Zwei Teile verlangen mehr als der Rest: die Szenen zeichnen auf der Grafikkarte, und die Karaoke-KI lädt ihre Modelle beim ersten Mal herunter.',
   'help.requirements.steps':
-    'Prüfen Sie Ihr Windows: Windows 10 Version 1803 oder neuer oder Windows 11, 64 Bit, 4 GB Arbeitsspeicher und rund 600 MB Festplatte. Damit alles verarbeitet wird, was der PC abspielt, braucht es die FluidEQ-Engine oder Equalizer APO; Windows fragt einmal nach der Erlaubnis, während sie installiert wird.\nÖffnen Sie einen Visualizer: jede Grafikkarte oder integrierte Grafik ab 2013. Bei 1080p genügt die integrierte Grafik; für 4K oder einen Desktop-Hintergrund auf mehreren Bildschirmen zugleich ist eine eigene Karte besser. Ist die Karte ausgelastet, zeichnet FluidEQ die Szene kleiner und gibt die Szenen frei, die Sie nicht sehen.\nProbieren Sie das Karaoke mit KI: Das Trennen der Stimme lädt beim ersten Mal ein Modell von 713 MB, das Tonhöhenmodell kommt mit etwa 180 MB dazu und die Rauschentfernung mit 11 MB. Mit einer Grafikkarte mit DirectX 12 ist ein vierminütiges Lied in etwa einer halben Minute getrennt; allein mit dem Prozessor dauert es rund vier Minuten. Halten Sie währenddessen 2 GB Arbeitsspeicher frei.\nStreben Sie das an, wenn es geht: Windows 11, 8 GB Arbeitsspeicher, Grafik ab 2018 und 3 GB freier Speicher, wenn Sie die KI-Funktionen nutzen.',
+    'Prüfen Sie Ihr Windows: Windows 10 Version 1803 oder neuer oder Windows 11, 64 Bit, 4 GB Arbeitsspeicher und rund 600 MB Festplatte. Damit alles verarbeitet wird, was der PC abspielt, braucht es die FluidEQ-Engine oder Equalizer APO; Windows fragt einmal nach der Erlaubnis, während sie installiert wird.\nÖffnen Sie einen Visualizer: jede Grafikkarte oder integrierte Grafik ab 2013. Bei 1080p genügt die integrierte Grafik; für 4K oder einen Desktop-Hintergrund auf mehreren Bildschirmen zugleich ist eine eigene Karte besser. Ist die Karte ausgelastet, zeichnet FluidEQ die Szene kleiner und gibt die Szenen frei, die Sie nicht sehen.\nProbieren Sie das Karaoke mit KI: Das Trennen der Stimme lädt beim ersten Mal ein Modell von 713 MB, das Tonhöhenmodell kommt mit etwa 360 MB dazu und die Rauschentfernung mit 11 MB. Mit einer Grafikkarte mit DirectX 12 ist ein vierminütiges Lied in etwa einer halben Minute getrennt; allein mit dem Prozessor dauert es rund vier Minuten. Halten Sie währenddessen 2 GB Arbeitsspeicher frei.\nStreben Sie das an, wenn es geht: Windows 11, 8 GB Arbeitsspeicher, Grafik ab 2018 und 3 GB freier Speicher, wenn Sie die KI-Funktionen nutzen.',
   'help.requirements.tip':
     'Alles außer den KI-Modellen steckt im Installationsprogramm, und die Modelle laden erst beim ersten Einsatz der Funktion. Prozesse im Aktionsmenü zeigt, was jeder Teil von FluidEQ auf Ihrem Rechner gerade benutzt.',
   'help.requirements.keywords':
@@ -296,7 +308,7 @@ const help: Record<keyof typeof en, string> = {
   'help.headphones.intro':
     'Eine Korrektur gleicht ein gemessenes Modell aus und ergänzt eigene Bänder und Presets. Prüfen Sie genaue Modellbezeichnung und Urheber der Messung.',
   'help.headphones.steps':
-    'Öffnen Sie EQ → EQ-Presets und suchen Sie nach Ihrem Kopfhörermodell. Sehen Sie sich die verfügbaren Messungen an und wählen Sie den passenden Eintrag.\nFür EQ-Text aus einem anderen Programm verwenden Sie EQ-Einstellungen importieren im Aktionsmenü. Prüfen Sie die erkannten Bänder und die Kurve, bevor Sie sie anwenden.\nFür Squiglink öffnen Sie den Tab Squiglink und fügen dessen Export ein. Als EQ anwenden ersetzt Ihre Bänder; Als Kurve anwenden fügt ihn als Kopfhörerkorrektur mit eigener Stärke hinzu; In Meine Kurven speichern behält ihn mit einem Klick.\nMeine Kurven ist Ihre eigene Liste neben der OPRA-Bibliothek: Kurve hinzufügen nimmt einen Squiglink-Export, eine .txt-Datei, Ihren aktuellen EQ oder eine OPRA-Auswahl. Jede Kurve hat Als Kurve anwenden und Als EQ anwenden; ihr Menü benennt sie um, bearbeitet ihre Bänder, dupliziert sie, kopiert sie als Text oder löscht sie. Liste exportieren und Liste importieren bringen die ganze Liste auf einen anderen Computer.\nImportieren in, neben Als EQ anwenden, wählt Beide Ohren, Linkes Ohr oder Rechtes Ohr: Ein Ohr ersetzt nur die Bänder dieses Ohrs und lässt das andere, wie es war.',
+    'Öffnen Sie EQ → EQ-Presets und suchen Sie nach Ihrem Kopfhörermodell. Sehen Sie sich die verfügbaren Messungen an und wählen Sie den passenden Eintrag.\nFür EQ-Text aus einem anderen Programm verwenden Sie EQ-Einstellungen importieren im Aktionsmenü. Prüfen Sie die erkannten Bänder und die Kurve, bevor Sie sie anwenden.\nÖffnen Sie für Squiglink Meine Kurven und wählen Sie Aus Squiglink importieren. Fügen Sie den Export ein und prüfen Sie die Kurvenvorschau. In Meine Kurven speichern bewahrt sie für später auf; Speichern und anwenden nutzt sie auch als Kopfhörerkorrektur. Stattdessen auf den bearbeitbaren EQ anwenden ersetzt Ihre Bänder nach Bestätigung.\nMeine Kurven ist Ihre eigene Liste neben der OPRA-Bibliothek: Kurve hinzufügen nimmt einen Squiglink-Export, eine .txt-Datei, Ihren aktuellen EQ oder eine OPRA-Auswahl. Jede Kurve hat Als Kurve anwenden und Als EQ anwenden; ihr Menü benennt sie um, bearbeitet ihre Bänder, dupliziert sie, kopiert sie als Text oder löscht sie. Liste exportieren und Liste importieren bringen die ganze Liste auf einen anderen Computer.\nImportieren in, neben Als EQ anwenden, wählt Beide Ohren, Linkes Ohr oder Rechtes Ohr: Ein Ohr ersetzt nur die Bänder dieses Ohrs und lässt das andere, wie es war.',
   'help.headphones.tip':
     'Eine als Nicht angewendet markierte Vorschau verändert keinen Ton. Vermeiden Sie versehentlich zwei vollständige Korrekturen für denselben Kopfhörer.',
   'help.headphones.keywords':
@@ -422,9 +434,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.graph.title': 'Das Diagramm und seine Bedienelemente',
   'help.graph.intro':
-    'Das Frequenzgangdiagramm zeichnet Ihre EQ-Kurven über den Live-Klang. Die Leiste darüber bestimmt, was und wie gezeichnet wird, und sie ändert sich mit der Darstellung: ein Standardstil oder ein Plus-Visualizer.',
+    'Das Frequenzgangdiagramm zeichnet Ihre EQ-Kurven über den Live-Klang. Die Leiste darüber bestimmt, was und wie gezeichnet wird, und sie ändert sich mit der Darstellung: ein Standardstil oder eine Szene.',
   'help.graph.steps':
-    'Klicken Sie auf den Namen der Darstellung, um einen Stil oder einen Visualizer zu wählen. Die Pfeile daneben, die Leertaste und Strg+Leertaste blättern durch sie.\nÖffnen Sie Ansicht für die Größe des Diagramms, für das, was es zeigt, und für Höhe und Position der Welle. EQ-Beschriftungen anzeigen schreibt Frequenz, Q und Verstärkung jedes Bands über seinen Punkt. Wie es gezeichnet wird legt die Bildrate fest — jedes Bild, das Ihr Bildschirm anbietet, oder 60 oder 30, und 60 im Akkubetrieb — sowie Auflösung und Glättung; Standardstile behalten ihre eigene Wahl, getrennt von Plus-Visualizern.\nEin Plus-Visualizer fügt Ansicht seine eigenen Regler hinzu — was sein Autor Ihnen überlassen hat — und Eigene Welle der Szene bringt die Welle auf Höhe und Position zurück, die dieser Autor gewählt hat.\nDoppelklicken Sie auf das Diagramm für Vollbild, mit Strg für die erweiterte Ansicht im Fenster; ein weiterer Doppelklick bringt es zurück. Ein einfacher Klick blendet die Leiste aus oder ein.\nTasten: Strg+F Vollbild, Strg+S erweiterte Ansicht, Esc zurück zur normalen Ansicht, Strg+G das Raster, Strg+W was das Diagramm zeigt, Bandbeschriftungen eingeschlossen, Strg+I die Richtung der Welle, Strg+A alle Bänder. Auf dem Punkt eines Bands verschieben Sie es durch Ziehen, verstellen es mit den Pfeiltasten schrittweise, und ein Rechtsklick öffnet sein Menü; Strg+Mausrad ändert das Q eines ausgewählten Punkts.',
+    'Klicken Sie auf den Namen der Darstellung, um einen Stil oder eine Szene zu wählen. Die Pfeile daneben, die Leertaste und Strg+Leertaste blättern durch sie.\nÖffnen Sie Ansicht für die Größe des Diagramms, für das, was es zeigt, und für Höhe und Position der Welle. EQ-Beschriftungen anzeigen schreibt Frequenz, Q und Verstärkung jedes Bands über seinen Punkt. Wie es gezeichnet wird legt die Bildrate fest — jedes Bild, das Ihr Bildschirm anbietet, oder 60 oder 30, und 60 im Akkubetrieb — sowie Auflösung und Glättung; Standardstile behalten ihre eigene Wahl, getrennt von Szenen.\nEine Szene fügt Ansicht ihre eigenen Regler hinzu — was ihr Autor Ihnen überlassen hat — und Eigene Welle der Szene bringt die Welle auf Höhe und Position zurück, die dieser Autor gewählt hat.\nDoppelklicken Sie auf das Diagramm für Vollbild, mit Strg für die erweiterte Ansicht im Fenster; ein weiterer Doppelklick bringt es zurück. Ein einfacher Klick blendet die Leiste aus oder ein.\nTasten: Strg+F Vollbild, Strg+S erweiterte Ansicht, Esc zurück zur normalen Ansicht, Strg+G das Raster, Strg+W was das Diagramm zeigt, Bandbeschriftungen eingeschlossen, Strg+I die Richtung der Welle, Strg+A alle Bänder. Auf dem Punkt eines Bands verschieben Sie es durch Ziehen, verstellen es mit den Pfeiltasten schrittweise, und ein Rechtsklick öffnet sein Menü; Strg+Mausrad ändert das Q eines ausgewählten Punkts.',
   'help.graph.tip':
     'Alles hier ändert nur, was gezeichnet wird, nie Ihren Klang.',
   'help.graph.keywords':
@@ -442,12 +454,12 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.bandsName': 'Hörbereiche',
   'help.graph.bands': 'Schattiert die Bereiche, die Sie am meisten hören.',
   'help.graph.bandsMenu':
-    'Dieselbe Schattierung; ausgegraut bei einem Plus-Visualizer, der sie nie zeichnet.',
+    'Dieselbe Schattierung; ausgegraut bei einer Szene, die sie nie zeichnet.',
   'help.graph.gridName': 'Raster',
   'help.graph.grid': 'Blendet Raster und Skalen ein oder aus.',
   'help.graph.viewName': 'Ansicht',
   'help.graph.view': 'Größe, was gezeichnet wird, und die Welle.',
-  'help.graph.plusCaption': 'Mit einem Plus-Visualizer',
+  'help.graph.plusCaption': 'Mit einer Szene',
   'help.graph.tintName': 'Fensterfarben',
   'help.graph.tint':
     'Das App-Design, die Farben des Visualizers, seine Farben mit Licht (Ambiente) oder der Visualizer hinter dem ganzen Fenster (Kulisse).',
@@ -471,16 +483,16 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.meterName': 'Pegelanzeige',
   'help.graph.meter': 'Die Ausgangsanzeige in der linken Leiste.',
   'help.graph.drawing':
-    'Bildrate, Auflösung und Glättung, getrennt für Standardstile und Plus-Visualizer.',
+    'Bildrate, Auflösung und Glättung, getrennt für Standardstile und Szenen.',
   'help.graph.waveHeight': 'Wie hoch die Welle gezeichnet wird.',
   'help.graph.wavePosition': 'Vom unteren Rand bis zur Mitte.',
-  'help.looks.title': 'Stile und Plus-Visualizer',
+  'help.looks.title': 'Stile und Szenen',
   'help.looks.intro':
-    'Standardstile sind kostenlose Zeichnungen des Live-Klangs, die Sie selbst einfärben und gestalten können: Linie und Fläche für eine klare Spur, LED-Blöcke und Spitzen für Wucht, Fachwerk, Skyline und Tanzende Flammen für ganze Szenen. Plus-Visualizer sind auf der Grafikkarte gezeichnete Szenen wie Alpin, Aurora, Blüte und Neonstadt, in denen Bass, Beat und Höhen jeweils etwas anderes bewegen.',
+    'Standardstile sind kostenlose Zeichnungen des Live-Klangs, die Sie selbst einfärben und gestalten können: Linie und Fläche für eine klare Spur, LED-Blöcke und Spitzen für Wucht, Fachwerk, Skyline und Tanzende Flammen für ganze Szenen. Szenen sind lebendige Bilder, auf der Grafikkarte gezeichnet, wie Alpin, Aurora, Blüte und Neonstadt, in denen Bass, Beat und Höhen jeweils etwas anderes bewegen.',
   'help.looks.steps':
-    'Klicken Sie im Diagramm auf den Namen der Darstellung. Suchen oder filtern Sie die Stile über Linien, Flächen, Balken, Punkte oder Szenen.\nWählen Sie rechts einen Plus-Visualizer. Ohne Plus ist er gesperrt, und wenn Sie ihn wählen, erfahren Sie, wie Sie ihn bekommen.\nDrücken Sie bei einem Standardstil Neue Darstellung, um Farben, Bewegung und Spitzen zu ändern, und speichern Sie sie dann; sie erscheint unter dem Filter Ihre.',
+    'Klicken Sie im Diagramm auf den Namen der Darstellung. Suchen oder filtern Sie die Stile über Linien, Flächen, Balken, Punkte oder Szenen.\nWählen Sie rechts eine Szene. Gehört sie Ihnen noch nicht, ist sie gesperrt, und wenn Sie sie wählen, erfahren Sie, wie Sie sie bekommen.\nDrücken Sie bei einem Standardstil Neue Darstellung, um Farben, Bewegung und Spitzen zu ändern, und speichern Sie sie dann; sie erscheint unter dem Filter Ihre.',
   'help.looks.tip':
-    'Ein Plus-Visualizer bringt seine eigenen Farben mit: Attack und Release stellen Sie unter Ansicht ein. Standardstile haben unter Ansicht eigene Grafikeinstellungen, getrennt von Plus-Visualizern: anfangs volle Auflösung und einfache Skalierung. Kann eine Szene auf diesem Computer nicht laufen, zeichnet das Diagramm statt einer leeren Fläche einen kostenlosen Stil.',
+    'Eine Szene bringt ihre eigenen Farben mit: Attack und Release stellen Sie unter Ansicht ein. Standardstile haben unter Ansicht eigene Grafikeinstellungen, getrennt von Szenen: anfangs volle Auflösung und einfache Skalierung. Kann eine Szene auf diesem Computer nicht laufen, zeichnet das Diagramm statt einer leeren Fläche einen kostenlosen Stil.',
   'help.looks.keywords':
     'visualisierung, aussehen, erscheinungsbild, skins, theme, look, farbschema, personalisieren, animationen, grafik, grafikeinstellungen, auflösung, qualität, grafikqualität',
   'help.looks.searchName': 'Suche',
@@ -496,11 +508,11 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.categoriesName': 'Kategorien',
   'help.looks.categories': 'Natur, Städte, Abstrakt und mehr.',
 
-  'help.plus.title': 'Ihr Konto, Credits und der Plus-Tab',
+  'help.plus.title': 'Ihr Konto, Credits und der Tab Visualizer',
   'help.plus.intro':
-    'Ein Konto ist optional: Alles, was kostenlos war, läuft auf diesem Computer auch ohne. Angemeldet bündelt der Plus-Tab „Visualizer“, das Studio, die dynamische Beleuchtung und den Desktop-Visualizer. Eine Szene aus „Visualizer“ kostet einen Credit und gehört Ihnen für immer; ein bestätigtes Konto erhält einige Credits gratis, und Credit-Pakete werden einmalig bezahlt.',
+    'Ein Konto ist optional: Alles, was kostenlos war, läuft auf diesem Computer auch ohne. Angemeldet bündelt der Tab Visualizer die Galerie, das Studio, die dynamische Beleuchtung und den Desktop-Visualizer. Eine Szene aus der Galerie kostet einen Credit und gehört Ihnen für immer; ein bestätigtes Konto erhält einige Credits gratis, und Credit-Pakete werden einmalig bezahlt.',
   'help.plus.steps':
-    'Öffnen Sie Konto im Aktionsmenü. Melden Sie sich an, oder erstellen Sie ein Konto und geben Sie den sechsstelligen Code ein, der an Ihre E-Mail-Adresse geschickt wurde.\nÖffnen Sie den Plus-Tab und wählen Sie „Visualizer“. Öffnen Sie eine Szene, sehen Sie sie an, und drücken Sie Holen, um einen Credit dafür einzusetzen.\nFür weitere Credits öffnen Sie Konto und wählen ein Paket. Es wird einmalig über Stripe in Ihrem Browser bezahlt.',
+    'Öffnen Sie Konto im Aktionsmenü. Melden Sie sich an, oder erstellen Sie ein Konto und geben Sie den sechsstelligen Code ein, der an Ihre E-Mail-Adresse geschickt wurde.\nÖffnen Sie den Tab Visualizer und wählen Sie Galerie. Öffnen Sie eine Szene, sehen Sie sie an, und drücken Sie Holen, um einen Credit dafür einzusetzen.\nFür weitere Credits öffnen Sie Konto und wählen ein Paket. Es wird einmalig über Stripe in Ihrem Browser bezahlt.',
   'help.plus.tip':
     'Die App sieht Ihre Karte nie, und nichts verlängert sich. Ein Konto bleibt auf bis zu fünf Computern angemeldet.',
   'help.plus.keywords':
@@ -516,7 +528,7 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.intro':
     '„Visualizer“ enthält die Szenen von FluidEQ selbst und die, die Mitglieder veröffentlichen. Jedes Konto kann sie durchstöbern und jede Szene zehn Sekunden lang ansehen; eine mit einem Credit geholte Szene läuft zu Ihrer Musik und bleibt für immer in Ihren Darstellungen.',
   'help.gallery.steps':
-    'Öffnen Sie Plus → Visualizer. Suchen Sie, sortieren Sie nach Beliebteste, Diese Woche oder Neueste, oder wählen Sie eine Kategorie.\nÖffnen Sie eine Szene und drücken Sie Holen, um sie mit einem Credit zu behalten, dann Im Diagramm abspielen. Die Pfeile oder ← und → wechseln zwischen den Szenen.\nGeben Sie Ihren Szenen mit dem Herz ein Like, und melden Sie eine, die nicht dorthin gehört.',
+    'Öffnen Sie Visualizer → Galerie. Suchen Sie, sortieren Sie nach Beliebteste, Diese Woche oder Neueste, oder wählen Sie eine Kategorie.\nÖffnen Sie eine Szene und drücken Sie Holen, um sie mit einem Credit zu behalten, dann Im Diagramm abspielen. Die Pfeile oder ← und → wechseln zwischen den Szenen.\nGeben Sie Ihren Szenen mit dem Herz ein Like, und melden Sie eine, die nicht dorthin gehört.',
   'help.gallery.tip':
     'Szenen in Ihren Darstellungen aktualisieren sich selbst, und die Seite einer Szene zeigt, was sich in jeder Version geändert hat. Eine Szene, die Sie veröffentlichen, erscheint, sobald der Macher von FluidEQ sie freigegeben hat. Im Studio öffnen zeigt, wie die eigenen Szenen von FluidEQ gemacht sind.',
   'help.gallery.keywords':
@@ -531,14 +543,14 @@ const help: Record<keyof typeof en, string> = {
     'Die Szenen, die Sie veröffentlicht haben, mit ihren „Gefällt mir“.',
   'help.gallery.cardName': 'Eine Szene',
   'help.gallery.card':
-    'Das Bild öffnet die Szene; Hinzufügen legt sie in Ihre Darstellungen.',
+    'Das Bild öffnet die Szene. Holen behält sie für einen Credit, und mit dem Herz zeigen Sie, dass sie Ihnen gefällt.',
   'help.gallery.manage': 'Was jeder Monitor als Desktophintergrund zeigt.',
   'help.gallery.stop': 'Beendet alle Desktophintergründe.',
   'help.gallery.sceneCaption': 'Die Seite einer Szene',
   'help.gallery.back':
     'Zurück zur Galerie, dorthin, wo Sie sie verlassen haben.',
   'help.gallery.play':
-    'Fügt die Szene Ihren Darstellungen hinzu oder spielt sie im Diagramm ab.',
+    'Spielt die Szene im Diagramm ab. Eine Szene, die Sie noch nicht haben, bietet Holen für einen Credit an.',
   'help.gallery.desktop': 'Legt die Szene hinter Ihre Desktopsymbole.',
   'help.gallery.inspect':
     'Öffnet die Szene von FluidEQ im Studio, damit Sie sehen, wie sie gemacht ist.',
@@ -547,7 +559,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.intro':
     'Das Studio macht aus einer Beschreibung einen Visualizer. Ihr eigener KI-Assistent schreibt die Szene in einen Projektordner, und FluidEQ spielt jede Version zu Ihrer Musik ab, sobald sie gespeichert ist. Das Studio ist für jedes Konto kostenlos.',
   'help.studio.steps':
-    'Öffnen Sie Plus → Studio und drücken Sie Neues Projekt…. Geben Sie ihm einen Namen; FluidEQ legt seinen Ordner mit einer Szene an, die sich schon bewegt.\nBeschreiben Sie Ihre Idee, öffnen Sie den Ordner in Ihrem KI-Assistenten und fügen Sie den Prompt aus KI-Prompt kopieren ein.\nOder schreiben Sie in den Chat neben der Bühne, was sich ändern soll: Claude Code auf diesem Computer, mit Ihrem eigenen Abo angemeldet, bearbeitet die Szene und spielt jede Version. Jede Antwort behält ihre Version, mit Zurückholen.\nBeobachten Sie die Bühne, während Dateien gespeichert werden, und probieren Sie die Testsignale aus. Dann Zu meinen Darstellungen, Veröffentlichen… oder Exportieren….',
+    'Öffnen Sie Visualizer → Studio und drücken Sie Neues Projekt…. Geben Sie ihm einen Namen; FluidEQ legt seinen Ordner mit einer Szene an, die sich schon bewegt.\nBeschreiben Sie Ihre Idee, öffnen Sie den Ordner in Ihrem KI-Assistenten und fügen Sie den Prompt aus KI-Prompt kopieren ein.\nOder schreiben Sie in den Chat neben der Bühne, was sich ändern soll: Claude Code auf diesem Computer, mit Ihrem eigenen Abo angemeldet, bearbeitet die Szene und spielt jede Version. Jede Antwort behält ihre Version, mit Zurückholen.\nBeobachten Sie die Bühne, während Dateien gespeichert werden, und probieren Sie die Testsignale aus. Dann Zu meinen Darstellungen, Veröffentlichen… oder Exportieren….',
   'help.studio.tip':
     'Doppelklicken Sie auf die Bühne für Vollbild. In eine FluidEQ-Szene hineinschauen… öffnet eine der eigenen Szenen von FluidEQ zum Lernen; sie kann nicht veröffentlicht werden. Szenen, die stark flackern oder zu aufwendig sind, werden zurückgehalten. Eine Szene, die Sie veröffentlichen, liest zuerst der Macher von FluidEQ, und sobald sie freigegeben ist, läuft sie für Sie überall kostenlos.',
   'help.studio.keywords':
@@ -556,20 +568,20 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.stageName': 'Bühne',
   'help.studio.stage':
     'Die Szene, live zu Ihrer Musik. Doppelklick für Vollbild.',
-  'help.studio.code':
-    'Der Code der Szene, live aktualisiert, sobald Ihre KI ihn speichert.',
   'help.studio.hears':
     'Was die Szene empfängt: Pegel, Schlag, Bass, Mitten, Höhen.',
+  'help.studio.tabs':
+    'Abstimmen testet die Welle und die eigenen Einstellungen der Szene, Code zeigt ihren Code, sobald Ihre KI ihn speichert, Leistung, wie sie hier läuft, und darunter ist „Was sie gerade hört“ geöffnet.',
+  'help.studio.chat':
+    'Bitten Sie Claude mit eigenen Worten um eine Änderung. Jede Antwort, die die Szene geändert hat, kann diese Version zurückholen.',
   'help.studio.signals': 'Testsignale, die nur diese Vorschau antreiben.',
   'help.studio.size': 'Testet die Szene im Vollbild.',
-  'help.studio.wave':
-    'Testet Höhe und Position der Welle, die Hörer einstellen können.',
 
   'help.desktop.title': 'Der Desktop-Visualizer',
   'help.desktop.intro':
-    'Der Desktop-Visualizer legt einen Plus-Visualizer hinter Ihre Desktopsymbole, auf einem Monitor oder auf jedem davon, solange FluidEQ läuft.',
+    'Der Desktop-Visualizer legt eine Szene hinter Ihre Desktopsymbole, auf einem Monitor oder auf jedem davon, solange FluidEQ läuft.',
   'help.desktop.steps':
-    'Lassen Sie einen Plus-Visualizer im Diagramm laufen und drücken Sie den Monitor-Knopf neben seinem Namen, oder wählen Sie Ansicht → Als Desktophintergrund festlegen.\nDrücken Sie die Monitore auf der Karte, wählen Sie Mit der Musik oder Ruhig und drücken Sie Hintergrund festlegen.\nZum Ändern oder Beenden öffnen Sie Plus → Visualizer und nutzen Sie oben Verwalten oder Beenden.',
+    'Lassen Sie eine Szene im Diagramm laufen und drücken Sie den Monitor-Knopf neben ihrem Namen, oder wählen Sie Ansicht → Als Desktophintergrund festlegen.\nDrücken Sie die Monitore auf der Karte, wählen Sie Mit der Musik oder Ruhig und drücken Sie Hintergrund festlegen.\nZum Ändern oder Beenden öffnen Sie Visualizer → Galerie und nutzen Sie oben Verwalten oder Beenden.',
   'help.desktop.tip':
     'Er pausiert, solange Fenster den Monitor verdecken, bei gesperrtem PC und, wenn Sie wollen, im Akkubetrieb, und kehrt zurück, wenn FluidEQ startet. Beim Beenden von FluidEQ stoppt er. Nur unter Windows.',
   'help.desktop.keywords':
@@ -580,29 +592,28 @@ const help: Record<keyof typeof en, string> = {
   'help.desktop.calm':
     'Eine langsame, ruhige Animation, die die Musik ignoriert.',
   'help.desktop.follow':
-    'Wechselt mit dem Plus-Visualizer im Diagramm, ob Sie ihn wählen oder er automatisch wechselt.',
+    'Wechselt mit der Szene im Diagramm, ob Sie sie wählen oder sie automatisch wechselt.',
   'help.desktop.battery':
     'Spart Energie, solange der Computer nicht am Stromnetz ist.',
   'help.desktop.start': 'Startet ihn auf den Monitoren, die Sie gewählt haben.',
 
   'help.lighting.title': 'Dynamische Beleuchtung (Beta)',
   'help.lighting.intro':
-    'Dynamische Beleuchtung lässt Tastatur, Maus, Mauspad, Headset und Ständer mit dem Plus-Visualizer im Diagramm leuchten, über Windows Dynamic Lighting und Razer Chroma. Die Funktion ist in der Betaphase, also sagen Sie uns, wie sich Ihre Geräte verhalten.',
+    'Dynamische Beleuchtung lässt Tastatur, Maus, Mauspad, Headset und Ständer mit der Szene im Diagramm leuchten, über Windows Dynamic Lighting und Razer Chroma. Die Funktion ist in der Betaphase, also sagen Sie uns, wie sich Ihre Geräte verhalten.',
   'help.lighting.steps':
-    'Öffnen Sie Plus → Dynamische Beleuchtung und schalten Sie sie ein, oder drücken Sie im Diagramm den Beleuchtungsknopf neben einem Plus-Visualizer.\nWählen Sie den Lichtstil dieses Visualizers – Szene, Farbwelle, Spektrum oder Beat-Welle – und stellen Sie seine Helligkeit ein und worauf er reagiert.\nKlicken Sie im Bereich Ihre Geräte auf ein Gerät, um es einzeln abzustimmen; mit Alle Geräte stimmen Sie wieder alle ab.',
+    'Öffnen Sie Visualizer → Dynamische Beleuchtung und schalten Sie sie ein, oder drücken Sie im Diagramm den Beleuchtungsknopf neben einer Szene.\nWählen Sie den Lichtstil dieser Szene – Szene, Farbwelle, Spektrum oder Beat-Welle – und stellen Sie ihre Helligkeit ein und worauf sie reagiert.\nKlicken Sie im Bereich Ihre Geräte auf ein Gerät, um es einzeln abzustimmen; mit Alle Geräte stimmen Sie wieder alle ab.',
   'help.lighting.tip':
     'Hält Windows ein Gerät für eine andere App zurück, nennt die Seite die Einstellung, die Sie ändern müssen, und öffnet sie für Sie. Razer-Geräte brauchen ein laufendes Razer Synapse, in dem Chroma Apps erlaubt sind.',
   'help.lighting.keywords':
     'RGB, RGB-beleuchtung, LED-beleuchtung, tastaturbeleuchtung, lichteffekte, lichtshow, ambientebeleuchtung, keyboard, RGB aktivieren, beleuchtung einschalten',
   'help.lighting.switch':
-    'Lässt Ihre Geräte leuchten, während ein Plus-Visualizer läuft.',
+    'Lässt Ihre Geräte leuchten, während eine Szene läuft.',
   'help.lighting.browse': 'Öffnet die Galerie, um einen Visualizer zu wählen.',
   'help.lighting.previewName': 'Live-Vorschau des Schreibtischs',
   'help.lighting.preview':
     'Ihr eigener Schreibtisch, beleuchtet mit den Farben, die an ihn gesendet werden.',
   'help.lighting.devices':
-    'Alle gefundenen Geräte. Klicken Sie auf eines, um es einzeln abzustimmen.',
-  'help.lighting.all': 'Zurück zum Abstimmen aller Geräte auf einmal.',
+    'Alle gefundenen Geräte. Klicken Sie auf eines, um es einzeln abzustimmen; „Alle Geräte“ über der Liste stimmt wieder alle auf einmal ab.',
   'help.lighting.style':
     'Szene, Farbwelle, Spektrum oder Beat-Welle, gespeichert für jeden Visualizer.',
 
@@ -707,13 +718,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.share.title': 'Audio zwischen Computern teilen',
   'help.share.intro':
-    'Audio teilen verbindet zwei Computer im selben privaten Netzwerk, und jeder spielt den Ton des anderen: An welchem Sie auch sitzen, Sie hören beide. Jeder Computer sendet seinen Ton unverändert und schickt nie zurück, was er empfängt, also gibt es kein Echo; der Computer, an dem Sie hören, wendet seinen eigenen EQ, seine Kurven und DSP an. Das ist etwas anderes als das Spiegeln auf ein zweites Gerät an einem Computer.',
+    'Audio teilen verbindet Computer im selben privaten Netzwerk zu einer Gruppe, und jeder spielt den Ton der anderen: Egal an welchem Sie sitzen, Sie hören die übrigen. Jeder Computer sendet seinen eigenen Ton unverändert direkt an die anderen und sendet nie zurück, was er empfängt, daher gibt es kein Echo; der Computer, an dem Sie hören, wendet seinen eigenen EQ, seine Kurven und sein DSP an. Das ist etwas anderes als das Spiegeln auf ein zweites Gerät an einem Computer.',
   'help.share.steps':
-    'Öffnen Sie auf einem Computer Audio teilen und drücken Sie Code kopieren. Beginnen Sie leise.\nÖffnen Sie auf dem anderen Computer Audio teilen, fügen Sie den Code unter Code des anderen Computers ein und drücken Sie Verbinden. Beide Computer spielen sich sofort gegenseitig.\nJeder verbundene Computer hat zwei Schalter: Hier abspielen und Meinen Ton senden. Schalten Sie einen aus, um nur in eine Richtung zu teilen. Der Schieberegler neben Hier abspielen bestimmt, wie laut dieser Computer hier spielt.\nPausieren hält beide Richtungen an, bis Sie Fortsetzen drücken; Trennen beendet die Verbindung endgültig.',
+    'Öffnen Sie auf einem Computer Audio teilen, drücken Sie Computer hinzufügen und dann Code kopieren. Beginnen Sie leise.\nDrücken Sie auf dem anderen Computer Computer hinzufügen, fügen Sie den Code unter Code des anderen Computers ein und drücken Sie Verbinden. Beide Computer spielen sich sofort gegenseitig. Verbinden Sie weitere Computer genauso: Jeder kommt in die ganze Gruppe, und Computer, die über einen anderen dazukommen, erscheinen mit ausgeschaltetem Empfangen, bis Sie es einschalten.\nIn Die ganze Gruppe hat jeder Computer zwei Schalter, Empfangen und Senden; Teilen schaltet den Ton dieses Computers für alle ab. Ihr Mix regelt die Lautstärke von Dieser PC und eine pro Computer.\nPausieren, Fortsetzen und Trennen stehen im Menü jedes Computers. Ein abwesender Computer bleibt als Offline aufgelistet, und die Gruppe findet sich nach einem Neustart, dem Ruhezustand, einem Netzwerkausfall oder einem Engine-Wechsel von selbst wieder.',
   'help.share.tip':
     'Halten Sie den Verbindungscode privat: Er erlaubt das Verbinden. Unter der FluidEQ-Engine bleibt das DSP dieses Computers beim Teilen an, und der Computer, der seinen Ton abspielt, wendet sein eigenes an. Gleichzeitig abspielen und senden erfordert Windows auf diesem Computer; anderswo läuft eine Verbindung in eine Richtung.',
   'help.share.keywords':
-    'LAN, WLAN, heimnetzwerk, lokales netzwerk, anderer PC, anderer rechner, audio streamen, audio übertragen, remote, koppeln, beide richtungen, zwei richtungen, verbinden, trennen, duplex, pausieren, pause, fortsetzen, lautstärke',
+    'LAN, WLAN, heimnetzwerk, lokales netzwerk, anderer PC, anderer rechner, audio streamen, audio übertragen, remote, koppeln, beide richtungen, zwei richtungen, verbinden, trennen, duplex, pausieren, pause, fortsetzen, lautstärke, gruppe, computer hinzufügen, empfangen, senden, teilen, mix, offline, mehrere computer',
 
   'help.trouble.title': 'Wenn etwas falsch klingt',
   'help.trouble.intro':
@@ -729,7 +740,7 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.intro':
     'Das Forum holt die GitHub Discussions von FluidEQ in die App: Ankündigungen, Ideen, Fragen und Klangeinstellungen, auf die Leute stolz sind. Lesen kann jeder; zum Schreiben nutzen Sie Ihr GitHub-Konto, kein FluidEQ-Konto.',
   'help.forum.steps':
-    'Öffnen Sie Hilfe → Forum und wählen Sie eine Kategorie: Ankündigungen, Allgemein, Ideen, Umfragen, Q&A oder Schaufenster.\nDurchsuchen Sie das Forum oder öffnen Sie ein Thema, um die Antworten zu lesen.\nDrücken Sie Mit GitHub anmelden, schließen Sie die Anmeldung im Browser ab und schreiben Sie dann ein Neues Thema oder eine Antwort.',
+    'Öffnen Sie Hilfe → Forum und wählen Sie eine Kategorie: Ankündigungen, Allgemein, Ideen, Umfragen, Q&A oder Schaufenster. Neu für Sie sammelt, was seit Ihrem letzten Besuch kam, und Issues listet die auf GitHub gemeldeten Probleme.\nDurchsuchen Sie das Forum oder öffnen Sie ein Thema, um die Antworten zu lesen.\nDrücken Sie Mit GitHub anmelden, schließen Sie die Anmeldung im Browser ab und schreiben Sie dann ein Neues Thema oder eine Antwort.',
   'help.forum.tip':
     'Alles, was Sie schreiben, ist auf GitHub unter Ihrem GitHub-Namen öffentlich. Markieren Sie in Q&A die Antwort, die geholfen hat, damit die nächste Person sie findet.',
   'help.forum.keywords':

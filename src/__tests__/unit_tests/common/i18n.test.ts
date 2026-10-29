@@ -70,6 +70,8 @@ describe('i18n', () => {
     expect(new Set(names).size).toBe(LOCALES.length);
     expect(names).toContain('Deutsch');
     expect(names).toContain('日本語');
+    expect(names).toContain('한국어');
+    expect(names).toContain('繁體中文');
   });
 
   it('matches a platform tag on its primary subtag', () => {
@@ -83,6 +85,38 @@ describe('i18n', () => {
     expect(resolveLocale('sv-SE')).toBe(DEFAULT_LOCALE);
     expect(resolveLocale(undefined)).toBe(DEFAULT_LOCALE);
     expect(resolveLocale('')).toBe(DEFAULT_LOCALE);
+  });
+
+  it.each([
+    ['ko', 'ko'],
+    ['ko-KR', 'ko'],
+    ['ko_KP', 'ko'],
+    ['KO-kr', 'ko'],
+    ['zh', 'zh'],
+    ['zh-CN', 'zh'],
+    ['zh-SG', 'zh'],
+    ['zh-MY', 'zh'],
+    ['zh-Hans', 'zh'],
+    ['zh-Hans-TW', 'zh'],
+    ['zh-Hans-HK', 'zh'],
+    ['zh-CHS', 'zh'],
+    ['zh_Hans_CN', 'zh'],
+    ['zh-Hant', 'zh-Hant'],
+    ['ZH_hant_tw', 'zh-Hant'],
+    ['zh-TW', 'zh-Hant'],
+    ['zh-HK', 'zh-Hant'],
+    ['zh-MO', 'zh-Hant'],
+    ['zh-Hant-CN', 'zh-Hant'],
+    ['zh-CHT', 'zh-Hant'],
+    ['zh-HK-u-nu-hanidec', 'zh-Hant'],
+    ['  zh_Hant  ', 'zh-Hant'],
+    ['zh--TW', 'en'],
+    ['not a locale', 'en'],
+    ['_', 'en'],
+    ['kr', 'en'],
+    ['yue-HK', 'en'],
+  ])('resolves the saved or OS tag %s to %s', (tag, expected) => {
+    expect(resolveLocale(tag)).toBe(expected);
   });
 
   it('substitutes placeholders by name', () => {
@@ -107,12 +141,12 @@ describe('i18n', () => {
     // menu that would have told them otherwise. Hindi was absent for exactly
     // that reason: it was added to the app and nobody thought about the setup.
     //
-    // Matched on the language part alone. The installer needs a region NSIS
-    // knows (`pt_BR`, not `pt`) and the app deliberately does not have one, so
-    // demanding the codes be equal would be demanding the wrong thing.
-    const offered = manifest.build.nsis.installerLanguages.map(
-      (code: string) => code.split('_')[0],
+    // Resolve the installer region too: matching the primary language alone
+    // would count zh_CN as Traditional Chinese and hide a missing zh_TW.
+    const offered = manifest.build.nsis.installerLanguages.map((code: string) =>
+      resolveLocale(code),
     );
+    expect([...offered].sort()).toEqual(LOCALES.map(({ code }) => code).sort());
     LOCALES.forEach(({ code, name }) => {
       expect(`${name} in the installer: ${offered.includes(code)}`).toBe(
         `${name} in the installer: true`,

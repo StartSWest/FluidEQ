@@ -115,7 +115,8 @@ const dsp = {
   'dsp.normalizer.liveDescription':
     'Measures external audio as it plays, adjusts both channels together, and protects peaks before the Exciter and EQ.',
   'dsp.normalizer.liveAnalysis': 'Live source analysis',
-  'dsp.normalizer.shortTerm': 'Short-term loudness',
+  'dsp.normalizer.inputLoudness': 'Input loudness (3 s)',
+  'dsp.normalizer.outputLoudness': 'Output loudness (3 s)',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'DSP processes audio tracks played from Library only. Received shared audio, karaoke, videos and other apps are not processed.',

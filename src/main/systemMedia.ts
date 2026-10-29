@@ -56,7 +56,7 @@ import path from 'path';
 import log from 'electron-log';
 import { APP_USER_MODEL_ID } from './appIdentity';
 import { createHelperReplacement } from './helperReplacement';
-import { POWERSHELL_PATH } from './powershell';
+import { POWERSHELL_PATH, utf8Command } from './powershell';
 import isBase64 from '../common/base64';
 import createLinuxMediaArtwork from './linux/linuxMediaArtwork';
 
@@ -190,7 +190,7 @@ const COVER_LINE = '{"cover":';
  * have *started* whatever was sitting there paused.
  */
 export type TSystemMediaCommand =
-  'next' | 'previous' | 'seek' | 'stop' | 'pause';
+  'next' | 'previous' | 'seek' | 'stop' | 'play' | 'pause';
 
 /**
  * Both platform helpers speak the same protocol: WinRT on Windows, the
@@ -589,9 +589,8 @@ export const sendLinuxSystemMediaCommand = async (
  * a command, and a command that had to travel down the watcher's stdin would
  * be a protocol between two programs where a one-line script does.
  *
- * Play and pause do NOT come through here — they go out as a media key (see
- * `mediaKeys`), which reaches every player on Windows including the ones that
- * never registered a session at all.
+ * Group commands use explicit Play/Pause rather than synthesizing a media
+ * key: a key we registered for the group would catch our own command again.
  *
  * The position is absolute and in milliseconds; the API takes ticks of 100ns,
  * which is the only unit conversion in this file and the reason it is written
@@ -614,6 +613,9 @@ export const sendSystemMediaCommand = async (
     }
     if (command === 'pause') {
       return 'Await ($session.TryPauseAsync()) ([bool]) | Out-Null';
+    }
+    if (command === 'play') {
+      return 'Await ($session.TryPlayAsync()) ([bool]) | Out-Null';
     }
     if (command === 'stop') {
       // Chrome pages and Spotify commonly expose pause and seek without
@@ -662,7 +664,7 @@ ${commandScript}
         '-ExecutionPolicy',
         'Bypass',
         '-Command',
-        script,
+        utf8Command(script),
       ],
       { windowsHide: true },
     );
@@ -740,7 +742,7 @@ foreach ($candidate in @($manager.GetSessions())) {
         '-ExecutionPolicy',
         'Bypass',
         '-Command',
-        script,
+        utf8Command(script),
       ],
       {
         windowsHide: true,

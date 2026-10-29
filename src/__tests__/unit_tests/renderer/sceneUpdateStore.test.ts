@@ -14,9 +14,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * look of its own.
  */
 
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import type { IGalleryScene } from '../../../common/plusGallery';
+import { findGalleryScene } from '../../../renderer/plus/galleryStore';
 import {
+  acknowledgeSceneUpdateNotice,
   reportScenePlayed,
   useSceneUpdateNotice,
 } from '../../../renderer/graph/sceneUpdateStore';
@@ -92,4 +94,59 @@ it('still names the scene when the gallery cannot be asked', async () => {
   expect(shown).toMatchObject({ version: 5, names: { en: 'Aurora' } });
   expect(shown).not.toHaveProperty('scene');
   expect(shown).not.toHaveProperty('note');
+});
+
+it('keeps stale gallery metadata out of the confirmed version notice', async () => {
+  const lookId = 'premium:stale-gallery';
+  jest.mocked(findGalleryScene).mockReturnValue(entry(lookId, 10));
+  listGallery.mockResolvedValue({ ok: true, scenes: [entry(lookId, 12)] });
+  const names = { en: 'Confirmed pack' };
+  await reportScenePlayed({ lookId, version: 10, names });
+  await reportScenePlayed({ lookId, version: 11, names });
+  expect(notice()).toEqual({ ok: true, version: 11, names });
+  expect(listGallery).toHaveBeenCalledTimes(1);
+  jest.mocked(findGalleryScene).mockReset();
+});
+
+it('does not replace version 12 with a late version 11 lookup', async () => {
+  const lookId = 'premium:out-of-order';
+  const names = { en: 'Neon Horizon' };
+  let finish: (value: unknown) => void = () => {
+    throw new Error('the gallery lookup did not start');
+  };
+  listGallery.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  await reportScenePlayed({ lookId, version: 10, names });
+  const older = reportScenePlayed({ lookId, version: 11, names });
+  await reportScenePlayed({ lookId, version: 12, names });
+  const newer = notice();
+  expect(newer?.version).toBe(12);
+  finish({ ok: true, scenes: [entry(lookId, 11)] });
+  await older;
+  expect(notice()).toBe(newer);
+});
+
+it('acknowledges only the notice delivered, preserving a newer pending one', async () => {
+  const lookId = 'premium:delivery-race';
+  const names = { en: 'Neon Horizon' };
+  await reportScenePlayed({ lookId, version: 10, names });
+  await reportScenePlayed({ lookId, version: 11, names });
+  const first = notice();
+  await act(async () => reportScenePlayed({ lookId, version: 12, names }));
+  const newer = notice();
+  if (!first || !newer) {
+    throw new Error('both update notices are required');
+  }
+  act(() => {
+    acknowledgeSceneUpdateNotice(first);
+  });
+  expect(notice()).toBe(newer);
+  act(() => {
+    acknowledgeSceneUpdateNotice(newer);
+  });
+  expect(notice()).toBeUndefined();
 });

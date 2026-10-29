@@ -161,27 +161,37 @@ const eq: Partial<Dictionary> = {
     '環境光に加えて、ウィンドウ全体の背後にビジュアライザー。',
   'graph.editHint':
     'ポイントをドラッグ · Ctrl/Shiftで選択 · Ctrl+ホイール: Q · Ctrl+ドラッグ: ベル',
+  'graph.windowTint': '色合い',
+  'graph.windowTintHint':
+    '標準のルックでのウィンドウの色。ダブルクリックで元の色に戻ります。',
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': 'パネル越しにビジュアライザーがどれだけ見えるか',
   'graph.sceneTint.brightness': '明るさ',
-  'graph.sceneTint.rainbow': 'レインボーモード',
+  'graph.sceneTint.rainbow': 'カラフルモード',
   'graph.sceneTint.rainbowHint':
-    'バンド、タイトル、点灯中のコントロールを単色ではなくパレットで表示します。Plus ビジュアライザーの選択中はその色で表示します。',
+    'バンド、タイトル、点灯中のコントロールを単色ではなくパレットで表示します。シーンの選択中はその色で表示します。',
+  'graph.sceneTint.appIcon': 'アプリアイコンを着色',
+  'graph.sceneTint.appIconHint':
+    'タスクバーのボタンと通知領域のアイコンをウィンドウの色にします。オフにすると FluidEQ 本来のアイコンのままです。',
   'graph.sceneTint.sparks': 'ポインターの火花',
   'graph.sceneTint.sparksHint':
     'ビジュアライザーがマウスから放つもの。画面の上を動かすと軌跡が残り、クリックした場所ではじけます。火花、花びら、雪など、シーンに合わせて。',
   'graph.sceneTint.daylight': '時間帯',
   'graph.sceneTint.daylightHint': 'ビジュアライザーの時間帯。夜から真昼まで',
   'graph.sceneTint.daylightFollowingHint':
-    '明るさに連動しています。「時間帯を明るさに連動」をオフにすると、ビジュアライザーの時間帯を個別に設定できます',
-  'graph.sceneTint.daylightFollows': '時間帯を明るさに連動',
+    '明るさに連動中。ここでビジュアライザーの時間帯を設定するには、下で「なし」を選びます',
+  'graph.sceneTint.daylightSource': '連動',
+  'graph.sceneTint.daylightSourceOwn': 'なし',
+  'graph.sceneTint.daylightSourceBrightness': '明るさ',
+  'graph.sceneTint.daylightSourceClock': '時計',
+  'graph.sceneTint.daylightOwnHint':
+    'ビジュアライザーは上で設定した昼の明るさを保ちます。',
   'graph.sceneTint.daylightFollowsHint':
-    'オンにすると、ビジュアライザーは明るさに合わせて夜から昼へ移ります。オフにすると上で設定した時間帯を保ち、明るさはウィンドウだけを変えます。',
-  'graph.sceneTint.daylightClock': '時間帯を時計に連動',
+    'ビジュアライザーは明るさに合わせて夜から昼へ変わります。',
   'graph.sceneTint.daylightClockHint':
-    'オンにすると、このコンピューターの時計に合わせて、ビジュアライザーは夜は夜に、昼は昼になります。オフにすると上で設定した時間帯を保ちます。',
+    'ビジュアライザーはこのコンピューターの時計に合わせて、夜は夜、昼は昼になります。',
   'graph.sceneTint.daylightFollowingClockHint':
-    '時計に連動しています。「時間帯を時計に連動」をオフにすると、ビジュアライザーの時間帯を個別に設定できます',
+    '時計に連動中。ここでビジュアライザーの時間帯を設定するには、下で「なし」を選びます',
   'graph.sceneTint.daylightStudioHint':
     'スタジオを開いている間は、明るさがビジュアライザーの時間帯を決めるので、シーンを夜から昼まで試せます。スタジオを離れると、ここでの選択に戻ります',
   'graph.sceneTint.brightnessHint':
@@ -196,7 +206,7 @@ const eq: Partial<Dictionary> = {
   'graph.member.likeOffline': 'いいねにはインターネット接続が必要です',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.scene.badge': 'Plus',
+  'graph.scene.badge': 'シーン',
   'graph.scene.report': '{name} を報告',
   'graph.version.new': '新着',
   'graph.version.caption': 'v{version} · {note}',
@@ -268,13 +278,20 @@ const eq: Partial<Dictionary> = {
   'graph.scene.gpu.high': '高パフォーマンス',
   'graph.scene.gpu.restart': '再起動後',
   'graph.scene.locked':
-    'FluidEQ Plus の一部です。選ぶと解除する方法が表示されます。',
+    'まだあなたのものではありません。選ぶと入手方法が表示されます。',
   'graph.style.next': '次のスタイル',
   'graph.style.previous': '前のスタイル',
   'graph.picker.label': 'スタイルとビジュアライザー',
   'graph.picker.search': 'スタイルとビジュアライザーを検索',
   'graph.picker.styles': 'スタイル',
-  'graph.picker.plus': 'Plus ビジュアライザー',
+  'graph.picker.plus': 'ビジュアライザー',
+  'graph.picker.discover.title': '音楽に彩りを',
+  'graph.picker.discover.body':
+    'アニメーションシーンを購入してずっと楽しむことも、Studio で自分のシーンを無料で作ることもできます。',
+  'graph.picker.discover.explore': 'シーンを探す',
+  'graph.picker.discover.create': '自分で作る',
+  'graph.picker.discover.free':
+    'FluidEQ とオーディオツールは引き続き無料です。',
   'graph.picker.all': 'すべて',
   'graph.picker.yours': 'あなたの',
   'graph.picker.filterStyles': 'スタイルを絞り込む',
@@ -534,9 +551,8 @@ const eq: Partial<Dictionary> = {
   'profiles.error.duplicate': '同じ名前があります。別の名前にしてください。',
   'profiles.edit': 'プロファイル名を編集',
   'autoeq.page.eyebrow': 'ヘッドホンに合わせる',
-  'autoeq.page.title': 'ヘッドホン補正',
-  'autoeq.page.intro':
-    '使っているヘッドホンを選ぶと、FluidEQ がその機種向けに公開されている補正を適用します。補正は独立したレイヤーとして入り、強さもオン・オフも別に持つので、あなたの EQ バンドには一切触れません。ここにある測定はすべて実際の測定装置で取られ、測った人が公開したものです。機種名から推測したものはひとつもありません。',
+  'autoeq.page.title': 'EQ プリセット',
+  'autoeq.page.intro': 'ヘッドホン補正を探すか、自分のカーブを追加できます。',
   'autoeq.model.hint':
     'メーカー名か機種名で検索します。手持ちの機種が測られていなくても、同じシリーズの近い機種でかなり近づきます。',
   'autoeq.target.hint':
@@ -624,7 +640,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.balance.note': '測定を続ける · 明るさと暖かさもそろえる',
   'eq.smart.mode.target': 'ターゲット',
   'eq.smart.mode.target.note': '測定を継続 · すべての音源を同じカーブへ',
-  'eq.layers': '同時に適用中',
   'eq.layers.aria': 'この出力に効いているその他の処理',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} バンド',
@@ -778,7 +793,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': '自分の EQ バンドだけ。上に重ねるものはありません',
   'voicing.strength': '強さ',
   'waveform.style': 'メーターのスタイルを変更',
-  'waveform.rainbow': 'レインボー',
+  'waveform.rainbow': 'カラフル',
   'waveform.live': 'ライブ出力',
   'waveform.signal': 'オーディオ信号',
   'waveform.clip': 'クリップ',
@@ -806,6 +821,23 @@ const eq: Partial<Dictionary> = {
   'eq.refused.externalEq':
     '外部の EQ に、FluidEQ が安全に引き継げない処理が含まれています。そのファイルは変更していません。',
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.intro': '保存したサウンドを、いつでも使えます。',
+  'myCurves.importSquiglink': 'Squiglink から読み込む',
+  'myCurves.preview': 'カーブのプレビュー',
+  'myCurves.previewRange': 'EQ 補正 · 20 Hz–20 kHz',
+  'myCurves.previewEmpty': 'ここにカーブのプレビューが表示されます',
+  'myCurves.filters': 'フィルター',
+  'myCurves.preamp': 'プリアンプ',
+  'myCurves.correctionHint':
+    'ヘッドホン補正として適用します。編集可能な EQ はそのままです。',
+  'myCurves.squiglinkGuide': 'Squiglink から読み込みますか？',
+  'myCurves.squiglinkSteps':
+    'ヘッドホンとターゲットを選択 → EQ を書き出す → 下に貼り付ける',
+  'myCurves.sourceLabel': 'ソース',
+  'myCurves.editableEq': '代わりに編集可能な EQ に適用',
+  'myCurves.editableEqHint':
+    '編集可能なバンドを置き換えます。更新する耳を選び、もう一度押して確定します。',
+  'myCurves.saveReplaceEq': '保存して EQ を置き換える',
   'myCurves.tab.opra': 'OPRAライブラリ',
   'myCurves.tab.mine': 'マイカーブ',
   'myCurves.tab.squiglink': 'Squiglink',
@@ -818,7 +850,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.export': 'リストを書き出す',
   'myCurves.empty.title': 'まだ自分のカーブがありません',
   'myCurves.empty.body':
-    'SquiglinkのエクスポートやTXTファイルから追加するか、Squiglinkタブから保存してください。カーブは書き出すまでこのパソコンに保存されます。',
+    'Squiglink の書き出し、.txt ファイル、現在の EQ、OPRA 補正を追加できます。カーブは書き出すまでこのパソコンに保存されます。',
   'myCurves.noMatch': 'その名前を含むカーブはありません。',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': 'ファイル',
@@ -840,8 +872,8 @@ const eq: Partial<Dictionary> = {
     'マイカーブから完全に消えます。書き出したリストには残ります。',
   'myCurves.cancel': 'キャンセル',
   'myCurves.addTitle': 'カーブを追加',
-  'myCurves.addIntro': 'マイカーブに入ります。適用するまで何も鳴りません。',
-  'myCurves.textLabel': 'ParametricEQテキスト',
+  'myCurves.addIntro': 'あとで使うために保存するか、保存して今すぐ適用します。',
+  'myCurves.textLabel': 'EQ テキスト',
   'myCurves.textPlaceholder':
     'ParametricEQまたはGraphicEQのエクスポートをここに貼り付けます',
   'myCurves.read': '読み込み：{count}バンド、プリアンプ{preamp} dB',
@@ -853,7 +885,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.defaultName': 'Squiglinkカーブ、{date}',
   'myCurves.chartAria': 'カーブ{name}、20 Hzから20 kHzまで',
   'myCurves.save': 'マイカーブに保存',
-  'myCurves.saveApply': '保存してカーブとして適用',
+  'myCurves.saveApply': '保存して適用',
   'myCurves.exportTitle': 'マイカーブを書き出す',
   'myCurves.exportIntro':
     'リストのカーブ：{count}。出力やアカウントの情報はファイルに入りません。',
@@ -887,11 +919,11 @@ const eq: Partial<Dictionary> = {
   'myCurves.importNote':
     '読み込んだカーブが勝手に鳴ることはありません。今鳴っているカーブはそのままです。',
   'myCurves.from': '取り込み元',
-  'myCurves.from.paste': '貼り付け',
+  'myCurves.from.paste': 'EQ テキストを貼り付け',
   'myCurves.from.pasteHint': 'SquiglinkまたはAutoEQのParametricEQテキスト',
-  'myCurves.from.file': '.txtファイル',
+  'myCurves.from.file': 'テキストファイル',
   'myCurves.from.fileHint': 'Equalizer APOまたはAutoEQ形式',
-  'myCurves.from.eq': '今のマイEQ',
+  'myCurves.from.eq': '現在の EQ',
   'myCurves.from.eqHint': '設定中のバンドを、鳴っているとおりに',
   'myCurves.from.opra': 'OPRAから',
   'myCurves.from.opraHint': '再生中の補正のコピー。名前の変更や編集ができます',

@@ -24,6 +24,7 @@ const frame = (
 ): IDspNormalizerMeter => ({
   inputTruePeakDb: -3.2,
   inputLufs: -14.1,
+  outputLufs: -16.4,
   levelState: 1,
   inputPeaks: [0.5, 0.5],
   outputPeaks: [0.4, 0.4],
@@ -76,4 +77,39 @@ it('draws a figure that did move, on the frame it moved', () => {
   expect(renders()).toBe(before + 1);
   expect(screen.getByText('-4.8 dB')).toBeInTheDocument();
   expect(screen.getByText('-3.2 dBTP')).toBeInTheDocument();
+});
+
+it('labels the measured input and output loudness separately', () => {
+  showStats();
+  expect(
+    screen.getByText('Input loudness (3 s)').parentElement,
+  ).toHaveTextContent('-14.1 LUFS');
+  expect(
+    screen.getByText('Output loudness (3 s)').parentElement,
+  ).toHaveTextContent('-16.4 LUFS');
+});
+
+it('updates output loudness independently of input loudness and gain', () => {
+  const renders = showStats();
+  const before = renders();
+  act(() => setDspNormalizerMeter(frame({ outputLufs: -18.2 })));
+  expect(renders()).toBe(before + 1);
+  expect(screen.getByText('-18.2 LUFS')).toBeInTheDocument();
+  expect(screen.getByText('-14.1 LUFS')).toBeInTheDocument();
+  expect(screen.getByText('-2.3 dB')).toBeInTheDocument();
+});
+
+it('does not invent output LUFS for an older engine or an incomplete window', () => {
+  act(() => setDspNormalizerMeter(frame({ outputLufs: undefined })));
+  showStats();
+  expect(
+    screen.getByText('Output loudness (3 s)').parentElement,
+  ).toHaveTextContent('—');
+  act(() =>
+    setDspNormalizerMeter(frame({ inputLufs: -120, outputLufs: -120 })),
+  );
+  expect(screen.queryByText('-120.0 LUFS')).not.toBeInTheDocument();
+  expect(
+    screen.getByText('Input loudness (3 s)').parentElement,
+  ).toHaveTextContent('—');
 });

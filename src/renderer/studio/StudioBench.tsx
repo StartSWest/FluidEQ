@@ -5,13 +5,12 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { TranslationKey } from 'common/i18n';
 import { memberLookId } from 'common/memberScenes';
 import { resolveSceneName } from 'common/scenePacks';
 import { useAccount } from '../account/accountStore';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import PlusToastStack from '../plus/PlusToastStack';
-import { useOwnsLook } from '../plus/sceneStore';
+import { setGraphLook } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
 import StudioChat from './chat/StudioChat';
 import StudioChatColumn from './chat/StudioChatColumn';
@@ -34,6 +33,11 @@ import StudioSettings from './StudioSettings';
 import StudioStageArea from './StudioStageArea';
 import StudioStageControls from './StudioStageControls';
 import StudioStageStart from './StudioStageStart';
+import StudioStarterLabels from './StudioStarterLabels';
+import StudioStarterLabelsToggle from './StudioStarterLabelsToggle';
+import { studioBenchCost, studioBenchStatus } from './studioBenchStatus';
+import { useStarterLabelsShown } from './studioStarterGuide';
+import useStudioStarter from './useStudioStarter';
 import StudioTune from './StudioTune';
 import StudioVersion from './StudioVersion';
 import StudioWork, { type TStudioWorkTab } from './StudioWork';
@@ -117,27 +121,27 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     setNotice(undefined);
   }, [serial, state.activeId]);
 
-  const { readingRef, stageReadingRef, onHeard, onDrawn } = useStudioReading(
-    feed,
-    setScale,
-  );
-
   const project = state.projects.find((entry) => entry.id === state.activeId);
   const folderName = project?.folderName;
   const name = pack ? resolveSceneName(pack, locale) : (folderName ?? '');
   const playing = Boolean(pack) && trouble?.kind !== 'heavy';
-  // Published is what lets the member's own scene play outside the Studio
-  // (`mayPlayLook`); until then the stage marks it a draft. FluidEQ's own,
-  // opened to look inside, is nobody's draft.
   const accountId = useAccount().identity?.id;
-  const published = useOwnsLook(
-    pack && accountId ? memberLookId(accountId, pack.id) : '',
+  const lookId = pack && accountId ? memberLookId(accountId, pack.id) : '';
+  const starter = useStudioStarter(state.activeId, pack?.id, view.source?.text);
+  const { readingRef, stageReadingRef, onHeard, onDrawn } = useStudioReading(
+    [feed, starter.hear],
+    setScale,
   );
-  const draft = Boolean(pack) && !project?.official && !published;
-  const onPublished = useCallback(
-    () => setPublications((count) => count + 1),
-    [],
-  );
+  const labelsShown = useStarterLabelsShown();
+  // A publication lands on the graph (Ivan, 2026-10-21: "after publishing an
+  // scene it needs to show in grahp"): main keeps what went out in the looks,
+  // and the graph is set to it here.
+  const onPublished = useCallback(() => {
+    setPublications((count) => count + 1);
+    if (lookId) {
+      setGraphLook(lookId);
+    }
+  }, [lookId]);
   const publishing = useStudioPublish(view, playing, name, onPublished);
   const unfit = !pack || Boolean(problems) || troubleHoldsBack(trouble);
   // The Publish dialog plays the scene itself, so the stage behind it stops:
@@ -162,30 +166,14 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const chatBusy = useStudioChat().chat?.busy === true;
   const captureStage = useStageCapture(playing ? pack : undefined, tuner.wave);
 
-  let status: TranslationKey = 'studio.status.waiting';
-  if (chatBusy) {
-    status = 'studioChat.status.working';
-  } else if (
-    pack &&
-    (problems ||
-      trouble?.kind === 'compile' ||
-      (trouble?.kind === 'world' && troubleHoldsBack(trouble)))
-  ) {
-    status = 'studio.status.problem';
-  } else if (pack) {
-    status = 'studio.status.live';
-  }
-
+  const status = studioBenchStatus({
+    chatBusy,
+    hasPack: Boolean(pack),
+    hasProblems: Boolean(problems),
+    trouble,
+  });
   const version = pack?.version;
-
-  let cost: TranslationKey | undefined;
-  if (trouble?.kind === 'heavy') {
-    cost = 'studio.cost.heavy';
-  } else if (trouble?.kind === 'unavailable') {
-    cost = 'studio.cost.unavailable';
-  } else if (playing) {
-    cost = scale < 1 ? 'studio.cost.scaled' : 'studio.cost.full';
-  }
+  const cost = studioBenchCost(trouble, playing, scale);
 
   const newProject = () => setNaming(true);
   const closeNaming = useCallback(() => setNaming(false), []);
@@ -202,7 +190,6 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   // than one with a flag; each stands at the end of the bar.
   let shipCard = (
     <StudioShipCard
-      published={published}
       unfit={unfit}
       onAdd={keeping.add}
       publishing={publishing.preparing}
@@ -248,7 +235,6 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         key={`stage:${state.activeId}`}
         identity={state.activeId ?? ''}
         pack={pack}
-        draft={draft}
         serial={serial}
         signal={signal}
         size={size}
@@ -265,12 +251,19 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         onExitFullscreen={exitFullscreen}
         onToggleFullscreen={toggleFullscreen}
         controls={
-          <StudioStageControls
-            isFullscreen={size === 'full'}
-            onFullscreen={toggleFullscreen}
-            isPlayer={isPlayer}
-            onPlayer={togglePlayer}
-          />
+          <>
+            <StudioStageControls
+              isFullscreen={size === 'full'}
+              onFullscreen={toggleFullscreen}
+              isPlayer={isPlayer}
+              onPlayer={togglePlayer}
+            />
+            {starter.untouched && <StudioStarterLabelsToggle />}
+          </>
+        }
+        labels={
+          starter.untouched &&
+          labelsShown && <StudioStarterLabels feed={starter.labels} />
         }
       />
     );

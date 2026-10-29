@@ -11,7 +11,7 @@ const account = {
   'account.close': 'Fechar',
 
   'account.optional':
-    'Entrar na conta é opcional. Sem conta, o FluidEQ funciona exatamente como sempre: tudo roda nesta máquina e nada é rastreado. Com conta, o tempo que você ouve é contado para as estatísticas do FluidEQ, a menos que você desative. A conta existe apenas para as partes que realmente precisam dela.',
+    'Entrar na conta é opcional. O FluidEQ funciona exatamente como sempre sem conta — tudo roda nesta máquina e nada é rastreado. A conta existe apenas para as partes que realmente precisam dela.',
 
   'account.signIn': 'Entrar',
   'account.signUp': 'Criar conta',
@@ -26,6 +26,17 @@ const account = {
   'account.signOut.detailPlus':
     'Suas cenas ficam bloqueadas aqui até você entrar de novo.',
   'account.signOut.kept': 'Nada é apagado deste computador.',
+  'account.cover.onGraph': '{name} no gráfico',
+  'account.stats.owned': 'Suas',
+  'account.stats.likes': 'Curtidas',
+  'account.scenes.title': 'Sua coleção',
+  'account.scenes.openGallery': 'Abrir a galeria',
+  'account.scenes.empty':
+    'As cenas que você obtiver ficam suas para sempre e tocam no gráfico a partir daqui.',
+  'account.scenes.playing': 'Tocando',
+  'account.scenes.play': 'Tocar {name} no gráfico',
+  'account.published.title': 'Publicadas',
+  'account.published.live': 'Na galeria',
   'account.name.change': 'Mudar nome',
   'account.name.changeTitle': 'Mude como você aparece',
   'account.name.changeBody':
@@ -83,7 +94,7 @@ const account = {
   'account.error.alreadyRegistered':
     'Já existe uma conta com esse endereço. Entre em vez disso.',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': 'Cenas que são suas para sempre, um crédito cada.',
   'account.perk.visualizers':

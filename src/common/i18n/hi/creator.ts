@@ -45,7 +45,7 @@ const creator: Partial<Dictionary> = {
   'creator.dialog.search': 'देश खोजें',
   'creator.dialog.choose': 'देश चुनें',
   'creator.dialog.countryHint':
-    'Stripe अमेरिका, यूके, कनाडा, स्विट्ज़रलैंड और यूरोपीय आर्थिक क्षेत्र के क्रिएटर को भुगतान कर सकता है, और देश बाद में बदला नहीं जा सकता। आपका देश सूची में नहीं है? सदस्य फिर भी आपके सीन खरीद सकते हैं, और हर बिक्री पर आपको इसके बदले एक क्रेडिट मिलता है।',
+    'Stripe अमेरिका, यूके, कनाडा, स्विट्ज़रलैंड और यूरोपीय आर्थिक क्षेत्र के क्रिएटर को भुगतान कर सकता है, और देश बाद में बदला नहीं जा सकता। आपका देश सूची में नहीं है? सदस्य फिर भी आपके सीन खरीद सकते हैं, और हर दो बिक्री पर आपको इसके बदले एक क्रेडिट मिलता है।',
   'creator.dialog.cancel': 'रद्द करें',
   'creator.dialog.go': 'स्वीकार करें और Stripe पर जाएँ',
   'creator.dialog.opening': 'Stripe खुल रहा है…',
@@ -61,7 +61,7 @@ const creator: Partial<Dictionary> = {
   'creator.terms.stripe':
     'Stripe आपकी पहचान, बैंक और टैक्स की जानकारी माँगता है और अपनी शर्तें दिखाता है। यदि Stripe आपको भुगतान नहीं कर सकता, तो भुगतान रुक जाते हैं।',
   'creator.terms.rights':
-    'आपके सीन में मौजूद हर चीज़ बेचने का अधिकार आपके पास होना चाहिए। सीन की समीक्षा अब भी होती है, और Plus शर्तें तोड़ने वाला सीन हटाया जा सकता है।',
+    'आपके सीन में मौजूद हर चीज़ बेचने का अधिकार आपके पास होना चाहिए। सीन की समीक्षा अब भी होती है, और शर्तें तोड़ने वाला सीन हटाया जा सकता है।',
   'creator.terms.taxes':
     'अपनी कमाई पर टैक्स आपको अपने निवास स्थान पर स्वयं घोषित करना है।',
   'creator.terms.changes':
@@ -81,45 +81,6 @@ const creator: Partial<Dictionary> = {
   'creator.error.banned': 'इस खाते को सीन के लिए भुगतान नहीं किया जा सकता।',
   'creator.error.server':
     'हमारी ओर से कुछ गड़बड़ हो गई। कुछ नहीं बदला; थोड़ी देर में फिर कोशिश करें।',
-  'creator.admin.tab': 'भुगतान',
-  'creator.admin.plan': 'Stripe से भुगतान पाने वाले क्रिएटर',
-  'creator.admin.loading': 'क्रिएटर को देय राशि पढ़ी जा रही है',
-  'creator.admin.creators': 'क्रिएटर: {count}',
-  'creator.admin.available': 'Stripe पर उपलब्ध',
-  'creator.admin.availableNote': 'जहाँ से ट्रांसफ़र होते हैं',
-  'creator.admin.short':
-    'Stripe पर FluidEQ का उपलब्ध बैलेंस देय राशि से कम है। उससे आगे के ट्रांसफ़र विफल होते हैं और अगले भुगतान में फिर भेजे जाते हैं।',
-  'creator.admin.list': 'किसे भुगतान होगा',
-  'creator.admin.none':
-    'अभी किसी को कुछ देय नहीं है। क्रिएटर यहाँ तब दिखते हैं जब Stripe उन्हें भुगतान कर सके और उनकी पर्याप्त कमाई होल्ड अवधि पार कर चुकी हो।',
-  'creator.admin.rules':
-    'भुगतान हर महीने 1 और 16 तारीख को अपने-आप जाते हैं: पहले क्रिएटर को, फिर आपका हिस्सा आपके बैंक में। हर भुगतान एक बार भेजा जाता है: बीच में रुका भुगतान अगला पूरा करता है, दोबारा कभी नहीं भेजा जाता।',
-  'creator.admin.lastPaid': 'पिछला भुगतान: {date}',
-  'creator.admin.neverPaid': 'अभी तक कोई भुगतान नहीं',
-  'creator.admin.nextDue': 'अगला स्वचालित भुगतान: {date}',
-  'creator.notice.title': '{date} को क्रिएटर भुगतान',
-  'creator.notice.body':
-    '{amount} अपने आप भेजा जाएगा। भुगतान पाने वाले क्रिएटर: {count}।',
-  'creator.notice.later': 'बाद में',
-  'creator.notice.open': 'भुगतान खोलें',
-  'creator.notice.shortTitle': '{date} के भुगतान के लिए Stripe में राशि कम है',
-  'creator.notice.shortBody':
-    'देय: {amount}। भुगतान पाने वाले क्रिएटर: {count}। Stripe में {available} है; उससे आगे के ट्रांसफ़र विफल होंगे और अगले भुगतान का इंतज़ार करेंगे।',
-  'creator.admin.owed': 'क्रिएटर का बकाया',
-  'creator.admin.owedNote': 'रोकी गई {held} · तैयार {ready}',
-  'creator.admin.sending': 'भेजा जा रहा {amount}',
-  'creator.admin.onItsWay': '+ {amount} आ रहा है',
-  'creator.admin.yours': 'आपका',
-  'creator.admin.yoursNote':
-    'हर भुगतान के बाद अपने-आप आपके बैंक में जाता है; {reserve} रिफ़ंड के लिए रुकते हैं',
-  'creator.admin.lastToYou': 'पिछली बार आपके बैंक में: {amount}, {date}',
-  'creator.admin.yoursShort':
-    'क्रिएटर का बकाया Stripe बैलेंस से {amount} अधिक है',
-  'creator.admin.next': 'अगला भुगतान',
-  'creator.admin.manual':
-    'Stripe अभी भी आपका पूरा बैलेंस अपने-आप आपके बैंक में भेजता है, क्रिएटर का पैसा भी, इसलिए FluidEQ आपका हिस्सा रोक कर रखता है। Stripe में Settings → Payouts में एक बार शेड्यूल Manual करें: फिर FluidEQ हर भुगतान के बाद अपने-आप सिर्फ़ आपका हिस्सा भेजेगा।',
-  'creator.admin.pendingLine':
-    'पिछले रन के अधूरे छोड़े भुगतान: {count}। अगला रन पहले इन्हें पूरा करेगा।',
 };
 
 export default creator;

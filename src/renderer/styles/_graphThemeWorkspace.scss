@@ -585,11 +585,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .app-workspace.is-app-full .live-output-controls {
-  // `right` with it: the bar steps out from under the sound panel in step
-  // with the drawer (`App.scss`, `.is-sound-drawer-open`).
-  transition:
-    top $motion-base ease,
-    right 180ms ease-out;
+  transition: top $motion-base ease;
 }
 
 // In full screen the same shade, across the whole window and from its top
@@ -873,6 +869,18 @@ it under the terms of the GNU General Public License version 3 or later.
       opacity: 0;
     }
   }
+}
+
+// Karaoke blurs its scenery itself so the words stay sharp. The scene painted
+// on this graph follows the same surface opacity, revealing that independent
+// stage instead of hiding the see-through slider behind an opaque canvas.
+.center-workspace.is-graph-full:has(
+    .workspace-tab-panel--karaoke.is-graph-overlay:not(.is-hidden)
+  )
+  > .graph-wrapper.has-playback-backdrop {
+  backdrop-filter: none;
+  --graph-scene-opacity: var(--graph-overlay-opacity, 1);
+  --graph-scene-visibility: var(--graph-overlay-scene-visibility, visible);
 }
 
 // Expanded on a page with no picture: the page folds away and the graph takes

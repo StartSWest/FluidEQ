@@ -21,9 +21,10 @@ const store = {
   'store.credits.buyTitle': 'Get credits',
   'store.credits.lead':
     'One credit keeps one scene for good. You pay once, and nothing renews.',
-  'store.credits.owned': 'Scenes you own: {count}',
   'store.credits.what':
     'Each credit keeps one scene from the gallery for good: on the graph, your desktop and your lights.',
+  'store.credits.half':
+    'Half a credit is waiting: the next scene of yours got with a paid credit makes it whole.',
   'store.credits.buy': 'Get credits',
   'store.credits.getFree': 'Claim free credits',
   'store.error.offline':
@@ -84,11 +85,6 @@ const store = {
     'Part of the FluidEQ collection: yours for good once you get it.',
   'store.like.ownersOnly': '{count} likes. Get the scene to like it.',
   'store.scene.free': 'Free for everyone',
-  'store.admin.freeTitle': 'Free for everyone',
-  'store.admin.freeOn':
-    'Every signed-in account plays it without spending a credit.',
-  'store.admin.freeOff':
-    'One credit, like every other scene. Switch it on to give it to everyone.',
   'store.error.termsOutdated':
     'The terms have changed. Update FluidEQ to read the new version before buying credits.',
 };

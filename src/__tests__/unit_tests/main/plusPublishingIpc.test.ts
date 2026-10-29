@@ -91,11 +91,13 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
   return typeof answer === 'function' ? answer(String(input)) : answer;
 }) as unknown as typeof fetch;
 
+let listAuthorization: IGalleryAccess['authorize'];
 const access = (): IGalleryAccess => ({
   accountId: () => (signedIn ? signedInAs : undefined),
   entitled: () => entitled && signedIn,
   // Plus owns every scene while it lasts (`sceneOwnership.ts`).
   owns: () => entitled && signedIn,
+  authorize: listAuthorization,
   auth: async () => {
     duringAuth?.();
     if (switchDuringAuth) {
@@ -156,6 +158,7 @@ beforeEach(async () => {
   });
   entitled = true;
   signedIn = true;
+  listAuthorization = undefined;
   signedInAs = ME;
   switchDuringAuth = false;
   duringAuth = undefined;
@@ -175,6 +178,18 @@ beforeEach(async () => {
 afterEach(() => {
   jest.restoreAllMocks();
   fs.rmSync(root, { recursive: true, force: true });
+});
+
+describe('the account publication list', () => {
+  it.each(['offline', 'signed-out', 'forbidden', 'server'] as const)(
+    'preserves a %s authorization failure before reading publications or version floors',
+    async (reason) => {
+      listAuthorization = async () => ({ ok: false, reason });
+      setup();
+      expect(await invoke('plus-gallery-mine')).toEqual({ ok: false, reason });
+      expect(calls).toEqual([]);
+    },
+  );
 });
 
 describe('what the open project was published as', () => {

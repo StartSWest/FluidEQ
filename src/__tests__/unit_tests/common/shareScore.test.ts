@@ -30,9 +30,12 @@ import { buildSupportConfig } from 'common/support';
 const REPO = 'https://github.com/StartSWest/FluidEQ';
 
 describe('buildShareText', () => {
-  it('names the rainbow once the ceiling has been reached', () => {
+  // Colourful mode by what it does: the interface lights up in colour. It
+  // said "went rainbow" until the mode was renamed (Ivan, 2026-10-25).
+  it('says the interface lit up once the ceiling has been reached', () => {
     const text = buildShareText(4200, 10);
-    expect(text).toContain('rainbow');
+    expect(text).toContain('lit up in colour');
+    expect(text).not.toMatch(/rainbow/i);
     expect(text).toContain('4200');
     // The app leads and the run follows, in every version: a stranger has to
     // know what this is before a number from it means anything, so the score

@@ -16,7 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CSSProperties, useEffect, useRef, useState } from 'react';
+import {
+  CSSProperties,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { OWN_GROUP_TITLE, SETTINGS_GROUP_TITLE } from 'common/settingsGroups';
 import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
@@ -41,6 +47,7 @@ import {
 import SceneParamMenu from './SceneParamMenu';
 import SceneResponseMenu from './SceneResponseMenu';
 import ScenePerformanceMenu from './ScenePerformanceMenu';
+import BackdropAppearanceControls from './BackdropAppearanceControls';
 import { PERCENT_SNAPS, snapPercent } from '../utils/percentSnaps';
 
 /**
@@ -123,6 +130,10 @@ interface IGraphViewMenuProps {
    * greys the listening bands, which are never drawn over one.
    */
   sceneLookId?: string;
+  /** Karaoke keeps its own picture behind even a Plus graph. */
+  hasPlaybackBackdrop?: boolean;
+  /** Appearance controls for an independent picture on the current page. */
+  backdropControls?: ReactNode;
 }
 
 /** Names the state the next press moves to, since three states cycle. */
@@ -175,6 +186,8 @@ const GraphViewMenu = ({
   hasTopBar,
   onToggleTopBar,
   sceneLookId,
+  hasPlaybackBackdrop = false,
+  backdropControls,
 }: IGraphViewMenuProps) => {
   const { t } = useTranslation();
   const bandLabelsHidden = useGraphBandLabelsHidden();
@@ -284,6 +297,7 @@ const GraphViewMenu = ({
               <kbd>Ctrl+F</kbd>
             </button>
 
+            {backdropControls}
             {view !== 'normal' && (
               <>
                 {/* One switch for the whole bar rather than one per piece. The
@@ -312,91 +326,18 @@ const GraphViewMenu = ({
                   </button>
                 )}
 
-                {/* Not with a Plus visualizer. A scene fills the graph edge to
-                    edge, so there is nothing of what lies behind it to see
-                    through to or blur — and it no longer lies over a video at
-                    all: in full screen it plays alone, and the video has its
-                    own full screen on a double-click (App.tsx). The standard
-                    visualizers keep both. */}
-                {!sceneLookId && (
-                  <>
-                    <label
-                      className="graph-view-menu__slider graph-view-menu__slider--overlay"
-                      htmlFor="graph-see-through"
-                      title={t('graph.seeThroughHint')}
-                    >
-                      <Icon>
-                        <path d="M8 3.5c3 0 5 2.3 5.5 4.5-.5 2.2-2.5 4.5-5.5 4.5S3 10.2 2.5 8C3 5.8 5 3.5 8 3.5z" />
-                        <path d="M8 6.2a1.8 1.8 0 100 3.6 1.8 1.8 0 100-3.6z" />
-                      </Icon>
-                      <span>{t('graph.seeThrough')}</span>
-                      <span className="graph-view-menu__track">
-                        {PERCENT_SNAPS.map((snap) => (
-                          <i
-                            key={snap}
-                            className="graph-view-menu__snap"
-                            style={
-                              { '--snap-frac': snap / 100 } as CSSProperties
-                            }
-                            aria-hidden
-                          />
-                        ))}
-                        <input
-                          id="graph-see-through"
-                          type="range"
-                          aria-label={t('graph.seeThrough')}
-                          min={minOverlayOpacity * 100}
-                          max={100}
-                          step={1}
-                          // Inverted, so right is more see-through. The stored value
-                          // is an opacity because that is what CSS wants; the slider
-                          // is a transparency because that is what the label says.
-                          value={Math.round((1 - overlayOpacity) * 100)}
-                          onChange={(event) =>
-                            onChangeOverlayOpacity(
-                              1 - snapPercent(Number(event.target.value)) / 100,
-                            )
-                          }
-                        />
-                      </span>
-                      <span className="graph-view-menu__value" aria-hidden>
-                        {t('graph.scene.percent', {
-                          percent: String(
-                            Math.round((1 - overlayOpacity) * 100),
-                          ),
-                        })}
-                      </span>
-                    </label>
-                    <label
-                      className="graph-view-menu__slider graph-view-menu__slider--overlay"
-                      htmlFor="graph-see-through-blur"
-                      title={t('graph.blurHint')}
-                    >
-                      <Icon>
-                        <path d="M8 2.5C5.5 5.4 4 7.3 4 9a4 4 0 008 0c0-1.7-1.5-3.6-4-6.5z" />
-                      </Icon>
-                      <span>{t('graph.blur')}</span>
-                      <input
-                        id="graph-see-through-blur"
-                        type="range"
-                        aria-label={t('graph.blur')}
-                        min={0}
-                        max={maxOverlayBlur}
-                        step={1}
-                        value={overlayBlur}
-                        onChange={(event) =>
-                          onChangeOverlayBlur(Number(event.target.value))
-                        }
-                      />
-                      <span className="graph-view-menu__value" aria-hidden>
-                        {t('graph.scene.percent', {
-                          percent: String(
-                            Math.round((overlayBlur / maxOverlayBlur) * 100),
-                          ),
-                        })}
-                      </span>
-                    </label>
-                  </>
+                {/* Karaoke keeps its independent scenery behind every look.
+                    Elsewhere a Plus scene plays alone, so there is no picture
+                    behind it to see through to or blur. */}
+                {!backdropControls && (!sceneLookId || hasPlaybackBackdrop) && (
+                  <BackdropAppearanceControls
+                    opacity={overlayOpacity}
+                    onChangeOpacity={onChangeOverlayOpacity}
+                    blur={overlayBlur}
+                    onChangeBlur={onChangeOverlayBlur}
+                    minOpacity={minOverlayOpacity}
+                    maxBlur={maxOverlayBlur}
+                  />
                 )}
               </>
             )}

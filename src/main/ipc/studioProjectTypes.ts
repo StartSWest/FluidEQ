@@ -89,16 +89,7 @@ export type TAddOutcome =
     }
   | {
       ok: false;
-      reason:
-        | 'signed-out'
-        /**
-         * The member's own scene goes into the looks once it is in the
-         * gallery: until then it is a draft, played on the Studio's stage.
-         */
-        | 'unpublished'
-        | 'no-build'
-        | 'refused'
-        | 'inspect-only';
+      reason: 'signed-out' | 'no-build' | 'refused' | 'inspect-only';
     };
 
 export type TRenameProjectResult =

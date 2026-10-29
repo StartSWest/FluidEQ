@@ -45,6 +45,12 @@ export interface ISceneStore {
   free?: string[];
   /** This account is the admin, who owns every scene there is (0061). */
   everything?: boolean;
+  /**
+   * Half a credit from this account's scenes waits for its pair (premium
+   * 0072: a scene got with a paid credit earns its creator half a credit).
+   * Absent from a server before 0072, and while nothing waits.
+   */
+  halfCredit?: boolean;
 }
 
 /** Every pack id the server sells, as the checkout takes it. */
@@ -54,9 +60,11 @@ export const CREDIT_PACK_ID = /^pack-[0-9]{1,4}$/;
 export const SCENE_PRICE_CREDITS = 1;
 
 /**
- * The languages a pack's checkout can be in: the app's ten. The server turns
+ * The languages the separate checkout service currently accepts. The server turns
  * one into Stripe's own language for its page and into the fluideq.com page
- * it returns to (`create-credit-checkout`).
+ * it returns to (`create-credit-checkout`). Korean and Traditional Chinese
+ * currently use the existing English fallback at the IPC boundary until
+ * the service and its return pages support them too.
  */
 export const CHECKOUT_LOCALES = [
   'en',
@@ -171,13 +179,14 @@ export const parseSceneStore = (value: unknown): ISceneStore | undefined => {
     const pack = readPack(row);
     return pack ? [pack] : [];
   });
-  const { published, free, everything } = value;
+  const { published, free, everything, halfCredit } = value;
   if (
     owned.length !== value.owned.length ||
     packs.length !== value.packs.length ||
     (published !== undefined && !isSceneIdList(published)) ||
     (free !== undefined && !isSceneIdList(free)) ||
-    (everything !== undefined && typeof everything !== 'boolean')
+    (everything !== undefined && typeof everything !== 'boolean') ||
+    (halfCredit !== undefined && typeof halfCredit !== 'boolean')
   ) {
     return undefined;
   }
@@ -189,6 +198,7 @@ export const parseSceneStore = (value: unknown): ISceneStore | undefined => {
     ...(published === undefined ? {} : { published }),
     ...(free === undefined ? {} : { free }),
     ...(everything === true ? { everything } : {}),
+    ...(halfCredit === true ? { halfCredit } : {}),
   };
 };
 
@@ -205,6 +215,7 @@ export const isSceneStore = (value: unknown): value is ISceneStore =>
   (value.published === undefined || isSceneIdList(value.published)) &&
   (value.free === undefined || isSceneIdList(value.free)) &&
   (value.everything === undefined || value.everything === true) &&
+  (value.halfCredit === undefined || value.halfCredit === true) &&
   Array.isArray(value.packs) &&
   value.packs.every((row: unknown) => readPack(row) !== undefined);
 
@@ -268,13 +279,13 @@ export const formatPackPrice = (priceCents: number, locale: string): string =>
  * alike, so the two cannot disagree about a scene.
  *
  * The admin plays every scene (Ivan, 2026-10-21: "always free for the
- * admin"). Anybody else: their own scene once it is published (2026-10-18:
- * "quien la hace la ve", "necesitan publicar para poder ver") — a draft
- * plays on the Studio's stage and nowhere else, Plus or not, and until the
- * server has said which are published a maker's own scenes play as they did
- * before, with Plus; a FluidEQ scene the admin made free; and any other
- * scene bought, or any while Plus lasts. A member's scene is never free for
- * anyone but its maker.
+ * admin"). Anybody else: their own scene, published or not — a maker tests a
+ * scene on the graph until it is done, and publishes it to earn from it
+ * (Ivan, 2026-10-21: "no need to publish to run on grahp", "they will publish
+ * to earn money when the scene is fully done and tested in the grahp"; this
+ * replaces 2026-10-18's "necesitan publicar para poder ver"); a FluidEQ scene
+ * the admin made free; and any other scene bought, or any while Plus lasts.
+ * A member's scene is never free for anyone but its maker.
  */
 export const mayPlayLook = ({
   lookId,
@@ -298,18 +309,36 @@ export const mayPlayLook = ({
   }
   const member = parseMemberLookId(lookId);
   if (member && member.authorId === accountId.toLowerCase()) {
-    return store?.published ? store.published.includes(member.packId) : plus;
+    return true;
   }
   return plus || (store?.owned.includes(lookId) ?? false);
 };
 
-/** Whether any scene at all plays for this account: what the lamps ask. */
-export const mayPlayAnything = (
-  plus: boolean,
-  store: ISceneStore | undefined,
-): boolean =>
-  plus ||
-  store?.everything === true ||
-  (store?.owned.length ?? 0) > 0 ||
-  (store?.published?.length ?? 0) > 0 ||
-  (store?.free?.length ?? 0) > 0;
+/**
+ * Whether any scene at all plays for this account: what the lamps ask, in
+ * main's gate (`sceneOwnership.ts`) and on the window's switch alike.
+ *
+ * `held` is every look id this computer holds for the account. A look held
+ * that `mayPlayLook` plays counts, which is how a maker's own scene does:
+ * the store's `published` lists only versions the admin approved, so a
+ * creator whose one scene was waiting for review had it on the graph while
+ * the lighting switch said no scene was theirs.
+ */
+export const mayPlayAnything = ({
+  accountId,
+  plus,
+  store,
+  held,
+}: {
+  accountId: string | undefined;
+  plus: boolean;
+  store: ISceneStore | undefined;
+  held: readonly string[];
+}): boolean =>
+  accountId !== undefined &&
+  (plus ||
+    store?.everything === true ||
+    (store?.owned.length ?? 0) > 0 ||
+    (store?.published?.length ?? 0) > 0 ||
+    (store?.free?.length ?? 0) > 0 ||
+    held.some((lookId) => mayPlayLook({ lookId, accountId, plus, store })));

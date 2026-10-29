@@ -11,7 +11,7 @@ const account = {
   'account.close': 'बंद करें',
 
   'account.optional':
-    'साइन इन करना वैकल्पिक है। बिना खाते के FluidEQ हमेशा की तरह ही काम करता है — सब कुछ इसी मशीन पर चलता है और कुछ भी ट्रैक नहीं होता। खाते के साथ, जब तक आप इसे बंद न करें, आप कितनी देर सुनते हैं यह FluidEQ के आँकड़ों के लिए गिना जाता है। खाता केवल उन हिस्सों के लिए है जिन्हें सच में इसकी ज़रूरत है।',
+    'साइन इन करना वैकल्पिक है। बिना खाते के भी FluidEQ हमेशा की तरह ही काम करता है — सब कुछ इसी मशीन पर चलता है और कुछ भी ट्रैक नहीं होता। खाता केवल उन हिस्सों के लिए है जिन्हें सच में इसकी ज़रूरत है।',
 
   'account.signIn': 'साइन इन',
   'account.signUp': 'खाता बनाएँ',
@@ -26,6 +26,17 @@ const account = {
   'account.signOut.detailPlus':
     'जब तक आप फिर से साइन इन नहीं करते, आपके सीन यहाँ लॉक रहते हैं।',
   'account.signOut.kept': 'इस कंप्यूटर से कुछ भी नहीं हटाया जाता।',
+  'account.cover.onGraph': 'ग्राफ़ पर: {name}',
+  'account.stats.owned': 'आपके',
+  'account.stats.likes': 'पसंद',
+  'account.scenes.title': 'आपका संग्रह',
+  'account.scenes.openGallery': 'गैलरी खोलें',
+  'account.scenes.empty':
+    'आपके पाए सीन हमेशा आपके रहते हैं, और यहीं से ग्राफ़ पर चलते हैं।',
+  'account.scenes.playing': 'चल रहा है',
+  'account.scenes.play': '{name} को ग्राफ़ पर चलाएँ',
+  'account.published.title': 'प्रकाशित',
+  'account.published.live': 'गैलरी में',
   'account.name.change': 'नाम बदलें',
   'account.name.changeTitle': 'बदलें कि आप कैसे दिखते हैं',
   'account.name.changeBody':
@@ -85,7 +96,7 @@ const account = {
   'account.error.alreadyRegistered':
     'इस पते से पहले से एक खाता है। इसके बजाय साइन इन करें।',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': 'हमेशा के लिए आपके सीन, हर एक एक क्रेडिट का।',
   'account.perk.visualizers':

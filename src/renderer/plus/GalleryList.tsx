@@ -11,6 +11,7 @@ const ERROR_KEYS: Record<TGalleryListFailure, TranslationKey> = {
   offline: 'plus.gallery.error.offline',
   'signed-out': 'plus.gallery.error.signedOut',
   server: 'plus.gallery.error.server',
+  forbidden: 'plus.gallery.error.forbidden',
 };
 
 interface IGalleryListProps {

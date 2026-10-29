@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
+  type RefObject,
   useCallback,
   useEffect,
   useRef,
@@ -12,75 +13,21 @@ import {
   useSyncExternalStore,
 } from 'react';
 import { PLAYER_DEFAULT_HEIGHT, PLAYER_FOLD_HEIGHT } from 'common/constants';
+import { foldSectionsAway, stripStepsAside } from './playerMotion';
 import {
-  floorPlayerWidth,
   holdPlayerHeight,
+  needPlayerWidth,
   resizePlayerWindow,
 } from './windowModeStore';
 
-const SHEET_KEY = 'fluideq.player.sheet';
-const UNFOLDED_KEY = 'fluideq.player.unfoldedHeight';
-const TIME_LEFT_KEY = 'fluideq.player.timeLeft';
-
 /**
- * Above this many bands the equalizer draws its small faders, which is the
- * same switch the stylesheet's `is-dense` makes.
+ * The amp's rows that never break onto a second line (`useRowNeed`), each
+ * with the width it needs on one: the widest of them is what the amp's one
+ * width rises to past its own (`needPlayerWidth`). Each says its own and
+ * withdraws it when it goes; nothing here guesses at what a row holds.
  */
-const DENSE_BANDS = 20;
+export type TWidthNeed = 'soundHead' | 'soundTabs' | 'soundFoot' | 'shelfTabs';
 
-/**
- * The least room one band may take, in CSS pixels: its cap plus the gap that
- * keeps it off its neighbour's — 13 + 4 for a wide layout, 10 + 3 for a
- * dense one. A wider window draws the caps bigger, up to the stylesheet's
- * `--player-fader-cap`; this is the floor.
- *
- * THESE ARE THE STYLESHEET'S NUMBERS (`--player-band-gap` and the dense
- * `--player-fader-cap` in `_miniPlayerEqFaders.scss`), and a band is drawn at a
- * whole number of pixels or not at all: fractions of a pixel per band put
- * two pixels of gap beside three and the row reads as uneven, which is what
- * it did at 31 bands (Ivan, 2026-09-21).
- */
-const BAND_STEP_PX = 17;
-const DENSE_BAND_STEP_PX = 13;
-/**
- * Everything on the equalizer's row that is not a band: the preamp (32), the
- * rule after it (1), the two gaps either side of the rule (12), the sheet's
- * padding (32) and its margin from the window's edge (20), and a pixel each
- * side so the outermost caps are not cut. `_miniPlayerEqFaders.scss` and
- * `_miniPlayerSheet.scss` hold the same numbers.
- */
-const BANDS_SIDE_PX = 99;
-
-/** Whether a band count is drawn with the small faders. */
-export const isDenseBands = (bands: number) => bands > DENSE_BANDS;
-
-/**
- * How wide the player has to be for a band layout to be worth reading.
- *
- * Every band gets the same whole number of pixels and the same gap (Ivan,
- * 2026-09-21), so the narrowest the window may be is the layout's own width:
- * thirty-one bands ask for 502, ten for the player's own floor. Main holds
- * the window to it (`floorPlayerWidth`).
- */
-export const playerWidthForBands = (bands: number) =>
-  BANDS_SIDE_PX +
-  Math.max(0, bands) *
-    (isDenseBands(bands) ? DENSE_BAND_STEP_PX : BAND_STEP_PX);
-
-/**
- * How wide the player must be, from every part of it that has a say — the
- * widest of them is what the window is held to (`floorPlayerWidth`).
- *
- * Three parts say something: the band layout (`PlayerBandFloor`, from the
- * arithmetic above), the equalizer's two rows of keys (`EqDeck`, measured
- * from the keys themselves with every word they can give up gone), and the
- * Stage's visualizer bar (`PlayerStageBar`, measured the same way). A control
- * the window can be narrowed past is a control that gets clipped (Ivan,
- * 2026-09-22: "we need a min width so this doesn't happen, so buttons enforce
- * min width naturally"). Each part states its own need and withdraws it when
- * it is not on screen; nothing here guesses at what a row holds.
- */
-type TWidthNeed = 'bands' | 'rows' | 'bar';
 const widthNeeds = new Map<TWidthNeed, number>();
 
 export const setPlayerWidthNeed = (
@@ -92,29 +39,11 @@ export const setPlayerWidthNeed = (
   } else {
     widthNeeds.set(part, Math.ceil(cssWidth));
   }
-  floorPlayerWidth(Math.max(0, ...widthNeeds.values()));
+  needPlayerWidth(Math.max(0, ...widthNeeds.values()));
 };
 
-/**
- * What the window needs across beside a row of the sheet: the sheet's own
- * padding round the row, and its margin from the window's edge on each side
- * — the right-hand one, which in a wide window is the only one the sheet
- * has, stands for both.
- *
- * FROM THE STYLESHEET, NEVER FROM WHERE THE SHEET STANDS. It was worked out
- * from the sheet's box, and while the picture takes the screen the sheet is
- * not drawn at all: a box of nothing put the window's whole width into the
- * need, main held the amp to the width of the screen, and that is the size
- * it was remembered at (Ivan, 2026-09-28: "it always starts in fullscreen").
- */
-export const sheetAllowance = (sheet: Element) => {
-  const style = getComputedStyle(sheet);
-  return (
-    parseFloat(style.paddingLeft) +
-    parseFloat(style.paddingRight) +
-    2 * parseFloat(style.marginRight)
-  );
-};
+const UNFOLDED_KEY = 'fluideq.player.unfoldedHeight';
+const TIME_LEFT_KEY = 'fluideq.player.timeLeft';
 
 /**
  * A window at most this tall is the folded player.
@@ -142,31 +71,10 @@ const writeJson = (key: string, value: unknown) => {
   }
 };
 
-/** Which of the sheet's two pages is up: the equalizer or the queue. */
-export type TPlayerSheetTab = 'eq' | 'queue';
-
-/**
- * The glass sheet along the foot of the amp (the Stage, Ivan 2026-09-27):
- * which page it shows, and whether it is open or lowered to its tabs, which
- * gives the picture the room. Remembered across launches; the first time it
- * opens on the equalizer.
- */
-export interface IPlayerSheet {
-  tab: TPlayerSheetTab;
-  isOpen: boolean;
-}
-
-let sheet: IPlayerSheet = (() => {
-  const saved = readJson<Partial<IPlayerSheet>>(SHEET_KEY);
-  return {
-    tab: saved?.tab === 'queue' ? 'queue' : 'eq',
-    isOpen: typeof saved?.isOpen === 'boolean' ? saved.isOpen : true,
-  };
-})();
-
 /**
  * One set of listeners for everything laid out here that the window reads:
- * the sheet, and the picture alone on the whole screen.
+ * the sound section, the queue's page, and the picture alone on the whole
+ * screen.
  */
 const layoutListeners = new Set<() => void>();
 
@@ -179,14 +87,91 @@ const subscribeLayout = (listener: () => void) => {
 
 const publishLayout = () => layoutListeners.forEach((listener) => listener());
 
-export const usePlayerSheet = () => {
-  const current = useSyncExternalStore(subscribeLayout, () => sheet);
-  const setSheet = useCallback((next: Partial<IPlayerSheet>) => {
-    sheet = { ...sheet, ...next };
-    writeJson(SHEET_KEY, sheet);
+/**
+ * The one amp's Sound section (Ivan, 2026-10-25): open or folded to its
+ * header, and which face it shows — the three tone knobs or the faders.
+ * Remembered across launches; the faders' face keeps the key the Stage's
+ * equalizer kept it under, so nobody's choice is lost to the new amp.
+ */
+export type TPlayerSoundFace = 'bands' | 'tone';
+
+export interface IPlayerSound {
+  isOpen: boolean;
+  face: TPlayerSoundFace;
+}
+
+const SOUND_OPEN_KEY = 'fluideq.player.soundOpen';
+const SOUND_FACE_KEY = 'fluideq.player.eqFace';
+
+let sound: IPlayerSound = {
+  isOpen: readJson<boolean>(SOUND_OPEN_KEY) !== false,
+  face: (() => {
+    try {
+      return window.localStorage.getItem(SOUND_FACE_KEY) === 'tone'
+        ? 'tone'
+        : 'bands';
+    } catch {
+      // Storage can be refused; the faders are the first face.
+      return 'bands';
+    }
+  })(),
+};
+
+export const usePlayerSound = () => {
+  const current = useSyncExternalStore(subscribeLayout, () => sound);
+  const setSound = useCallback((next: Partial<IPlayerSound>) => {
+    sound = { ...sound, ...next };
+    writeJson(SOUND_OPEN_KEY, sound.isOpen);
+    try {
+      window.localStorage.setItem(SOUND_FACE_KEY, sound.face);
+    } catch {
+      // Remembered where storage allows; the face shown does not depend on it.
+    }
     publishLayout();
   }, []);
-  return { sheet: current, setSheet };
+  return { sound: current, setSound };
+};
+
+/**
+ * Which page the one amp's queue shows: what plays next, or the Library's
+ * playlists. Both share one box, so a change of page never changes the
+ * amp's height (Ivan, 2026-10-25: "it cannot change app height").
+ */
+export type TPlayerQueuePage = 'next' | 'playlists';
+
+const QUEUE_PAGE_KEY = 'fluideq.player.queuePage';
+
+let queuePage: TPlayerQueuePage =
+  readJson<string>(QUEUE_PAGE_KEY) === 'playlists' ? 'playlists' : 'next';
+
+export const usePlayerQueuePage = () => {
+  const current = useSyncExternalStore(subscribeLayout, () => queuePage);
+  const setQueuePage = useCallback((next: TPlayerQueuePage) => {
+    queuePage = next;
+    writeJson(QUEUE_PAGE_KEY, next);
+    publishLayout();
+  }, []);
+  return { queuePage: current, setQueuePage };
+};
+
+/**
+ * Whether the queue's space is open or folded to its tabs (Ivan, 2026-10-25:
+ * "let's up next section be collapsible too"). Folded, the picture at the
+ * top of the amp takes the room it gives back. Remembered across launches;
+ * open the first time.
+ */
+const SHELF_OPEN_KEY = 'fluideq.player.shelfOpen';
+
+let isShelfOpen = readJson<boolean>(SHELF_OPEN_KEY) !== false;
+
+export const usePlayerShelfOpen = () => {
+  const current = useSyncExternalStore(subscribeLayout, () => isShelfOpen);
+  const setShelfOpen = useCallback((next: boolean) => {
+    isShelfOpen = next;
+    writeJson(SHELF_OPEN_KEY, next);
+    publishLayout();
+  }, []);
+  return { isShelfOpen: current, setShelfOpen };
 };
 
 /**
@@ -270,45 +255,74 @@ const recallUnfoldedHeight = (): number | undefined => {
 };
 
 /**
- * Folding the player to one line and back — from its menu, its strip's own
- * button, or a double-click on the header, which Windows keeps from the page
- * and main passes on (`player-caption-double-click`).
+ * Folding the player to one line and back, from its menu and its strip's own
+ * button.
+ *
+ * Not from a double-click on the header (Ivan, 2026-10-26: "this is not
+ * working the double click"). The header is the window's drag handle, so the
+ * page never sees a click there, and Windows sent the player's window no
+ * caption double-click at all: hooked in main and logged on his machine, two
+ * double-clicks on the header brought none. The only other way to have one
+ * is to time two presses, which is guessing at the listener's own
+ * double-click setting, so the fold is the menu's and the strip's.
+ *
+ * Folding plays the sections up into the header first and asks for the
+ * strip's height once they have gone; unfolding steps the strip's controls
+ * aside and asks for the remembered height, and the column opens down by
+ * itself as it appears (`playerMotion.ts`). With Animations off both ask at
+ * once, as before.
  */
-export const usePlayerFold = () => {
+export const usePlayerFold = (root: RefObject<HTMLElement | null>) => {
   const isFolded = useIsFolded();
+  // One fold or unfold at a time: a second press while the sections are
+  // moving would start a second motion over the first and ask for the same
+  // height twice.
+  const isMoving = useRef(false);
   const fold = useCallback(() => {
+    if (isMoving.current) {
+      return;
+    }
+    isMoving.current = true;
     rememberUnfoldedHeight(window.innerHeight);
-    // The player's own floor holds the window above the strip, so the hold
-    // goes first and the strip's own height is asked for after
-    // (`usePlayerHeightLimit`).
-    holdPlayerHeight(null, null);
-    resizePlayerWindow(PLAYER_FOLD_HEIGHT).catch(() => undefined);
-  }, []);
-  const unfold = useCallback(() => {
-    resizePlayerWindow(recallUnfoldedHeight() ?? PLAYER_DEFAULT_HEIGHT).catch(
-      () => undefined,
-    );
-  }, []);
-
-  // Read by a listener subscribed once, so it answers for the window as it
-  // is at the double-click and not as it was when it subscribed.
-  const isFoldedRef = useRef(isFolded);
-  isFoldedRef.current = isFolded;
-  useEffect(() => {
-    const stop = window.electron?.ipcRenderer.on(
-      'player-caption-double-click',
-      () => {
-        if (isFoldedRef.current) {
-          unfold();
-        } else {
-          fold();
+    const motion = foldSectionsAway(root.current);
+    motion.finished
+      .then(() => {
+        // Switched to the full app while the sections went up: the window
+        // is the app's now, and the strip's height is no longer the player's
+        // to ask for.
+        if (!root.current?.isConnected) {
+          return undefined;
         }
-      },
-    );
-    return () => {
-      stop?.();
-    };
-  }, [fold, unfold]);
+        // The player's own floor holds the window above the strip, so the
+        // hold goes first and the strip's own height is asked for after
+        // (`usePlayerHeightFloor`).
+        holdPlayerHeight(null, null);
+        return resizePlayerWindow(PLAYER_FOLD_HEIGHT);
+      })
+      // Main refused the height: the sections come back rather than leave an
+      // empty player standing at its old size.
+      .catch(() => motion.cancel())
+      .finally(() => {
+        isMoving.current = false;
+      });
+  }, [root]);
+  const unfold = useCallback(() => {
+    if (isMoving.current) {
+      return;
+    }
+    isMoving.current = true;
+    const motion = stripStepsAside(root.current);
+    motion.finished
+      .then(() =>
+        root.current?.isConnected
+          ? resizePlayerWindow(recallUnfoldedHeight() ?? PLAYER_DEFAULT_HEIGHT)
+          : undefined,
+      )
+      .catch(() => motion.cancel())
+      .finally(() => {
+        isMoving.current = false;
+      });
+  }, [root]);
 
   return { isFolded, fold, unfold };
 };

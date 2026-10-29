@@ -106,7 +106,8 @@ const dsp = {
   'dsp.normalizer.liveDescription':
     '实时测量正在播放的外部音频，同步调整双声道，并在激励器和均衡器之前保护峰值。',
   'dsp.normalizer.liveAnalysis': '实时音源分析',
-  'dsp.normalizer.shortTerm': '短时响度',
+  'dsp.normalizer.inputLoudness': '输入响度（3秒）',
+  'dsp.normalizer.outputLoudness': '输出响度（3秒）',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'DSP 仅处理从媒体库播放的音轨，不处理接收的共享音频、卡拉OK、视频或其他应用的音频。',

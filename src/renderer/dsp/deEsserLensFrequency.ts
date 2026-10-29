@@ -9,7 +9,8 @@ import {
   IDeEsserSettings,
   TDeEsserMode,
 } from '../../common/dsp/deEsser';
-import { cutAt, GRAPH_FONT, ITrebleNow } from './deEsserPlot';
+import { sampleCutCurve } from './deEsserCurve';
+import { GRAPH_FONT, ITrebleNow } from './deEsserPlot';
 import {
   bodyThresholdDb,
   distanceDb,
@@ -198,8 +199,8 @@ const drawVoiceBody = (
 };
 
 /**
- * Up to and Width: the cut one S gets, across the treble, on the dial's own
- * scale (0 to its deepest) so turning Up to moves the floor and turning
+ * Up to and Width: the cut one S gets, across the treble, with a scale that
+ * fits the full response so turning Up to moves the floor and turning
  * Width moves the skirts. A way of cutting being pointed at draws the same
  * S on an axis from 20 Hz, so Whole voice is seen taking the voice too.
  */
@@ -213,20 +214,29 @@ export const drawShape = (
   const low = wide ? WIDE_LOW_HZ : LOW_HZ;
   const top = box.y + 18;
   const bottom = box.y + box.height - 20;
-  const scaleDb = DE_ESSER_RANGES.rangeDb.max;
-  const yOf = (db: number) =>
-    top + (Math.min(scaleDb, -db) / scaleDb) * (bottom - top);
   const plot = { ...box, x: box.x + 30, width: box.width - 38 };
   const xOf = (hz: number) => xOfHz(plot, hz, low, HIGH_HZ);
   const sHz = Math.sqrt(settings.lowHz * settings.highHz);
   const shape = sCut(settings, sHz);
+  const steps = Math.max(48, Math.round(plot.width / 3));
+  const curve = sampleCutCurve(
+    shape,
+    mode,
+    settings.lowHz,
+    low,
+    HIGH_HZ,
+    steps,
+    DE_ESSER_RANGES.rangeDb.max,
+  );
+  const yOf = (db: number) => top + (db / curve.bottomDb) * (bottom - top);
+  const baseline = yOf(0);
 
   // dB down the left, kHz under.
   context.strokeStyle = 'rgba(255,255,255,0.06)';
-  for (let db = 0; db <= scaleDb; db += 6) {
-    const y = Math.round(yOf(-db)) + 0.5;
+  for (let db = 0; db >= curve.bottomDb; db -= 6) {
+    const y = Math.round(yOf(db)) + 0.5;
     line(context, plot.x, y, plot.x + plot.width, y);
-    label(context, signed(-db, 0), plot.x - 6, y, 'right', inks.text);
+    label(context, signed(db, 0), plot.x - 6, y, 'right', inks.text);
   }
   const grid = wide ? [100, 1000, 10000] : [3000, 5000, 10000, 15000];
   grid.forEach((hz) => {
@@ -245,22 +255,21 @@ export const drawShape = (
   }
 
   // The cut itself.
-  const steps = Math.max(48, Math.round(plot.width / 3));
   const trace = () => {
     context.beginPath();
-    for (let step = 0; step <= steps; step += 1) {
-      const hz = low * (HIGH_HZ / low) ** (step / steps);
-      const y = yOf(Math.min(0, cutAt(hz, shape, mode, settings.lowHz)));
+    curve.points.forEach((db, step) => {
+      const y = yOf(db);
+      const x = plot.x + (step / steps) * plot.width;
       if (step === 0) {
-        context.moveTo(xOf(hz), y);
+        context.moveTo(x, y);
       } else {
-        context.lineTo(xOf(hz), y);
+        context.lineTo(x, y);
       }
-    }
+    });
   };
   trace();
-  context.lineTo(plot.x + plot.width, top);
-  context.lineTo(plot.x, top);
+  context.lineTo(plot.x + plot.width, baseline);
+  context.lineTo(plot.x, baseline);
   context.closePath();
   const fill = context.createLinearGradient(0, top, 0, yOf(-settings.rangeDb));
   fill.addColorStop(0, `rgba(${inks.cut},0.08)`);

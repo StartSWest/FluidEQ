@@ -86,6 +86,12 @@ const library: Partial<Dictionary> = {
   'library.scan.running': 'Lendo {name}',
   'library.scan.counted': '{parsed} de {seen} arquivos',
   'library.scan.cancel': 'Parar',
+  'library.scan.hide': 'Ocultar este aviso',
+  'library.scan.hideHint':
+    'Ocultar este aviso. A Biblioteca continua lendo seus arquivos.',
+  'library.scan.chip': 'Lendo {percent}%',
+  'library.scan.chipFinding': 'Lendo…',
+  'library.scan.show': 'Mostrar de novo o progresso e Parar',
 
   'library.roots': 'Pastas',
   'library.root.remove': 'Remover esta pasta',
@@ -176,6 +182,9 @@ const library: Partial<Dictionary> = {
   'library.karaoke.sending': 'Enviando para o Karaokê…',
   'library.karaoke.failed':
     'Não foi possível enviar este arquivo para o Karaokê — ele pode ser grande demais ou ilegível.',
+  'library.drop.empty': 'Não há música no que você soltou',
+  'library.drop.already': 'Tudo o que você soltou já está em “A seguir”',
+  'library.drop.failed': 'Não foi possível adicionar a música que você soltou',
 };
 
 export default library;

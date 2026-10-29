@@ -86,6 +86,12 @@ const library: Partial<Dictionary> = {
   'library.scan.running': '{name} wird eingelesen',
   'library.scan.counted': '{parsed} von {seen} Dateien',
   'library.scan.cancel': 'Stopp',
+  'library.scan.hide': 'Hinweis ausblenden',
+  'library.scan.hideHint':
+    'Hinweis ausblenden. Die Bibliothek liest Ihre Dateien weiter ein.',
+  'library.scan.chip': 'Einlesen {percent} %',
+  'library.scan.chipFinding': 'Einlesen…',
+  'library.scan.show': 'Fortschritt und Stopp wieder anzeigen',
 
   'library.roots': 'Ordner',
   'library.root.remove': 'Diesen Ordner entfernen',
@@ -176,6 +182,10 @@ const library: Partial<Dictionary> = {
   'library.karaoke.sending': 'Wird an Karaoke gesendet…',
   'library.karaoke.failed':
     'Diese Datei konnte nicht an Karaoke gesendet werden — sie ist vielleicht zu groß oder nicht lesbar.',
+  'library.drop.empty': 'In dem, was Sie abgelegt haben, ist keine Musik',
+  'library.drop.already':
+    'Alles, was Sie abgelegt haben, steht schon in „Als Nächstes“',
+  'library.drop.failed': 'Die abgelegte Musik konnte nicht hinzugefügt werden',
 };
 
 export default library;

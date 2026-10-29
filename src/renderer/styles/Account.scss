@@ -23,7 +23,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The profile is a portrait object: two sections and a line under them.
 .dialog-frame.account.account--profile {
-  @include dialog.size(780px, 780px);
+  @include dialog.size(900px, 780px);
 }
 
 // One page of the panel. The front page stays mounted while the terms are
@@ -154,20 +154,330 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1;
 }
 
+// The half waiting from the account's own scenes, drawn as the figure it adds
+// to: "2 ½".
+.credits-card__fraction {
+  margin-left: -2px;
+  color: $secondary-light;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  line-height: 1;
+}
+
 .credits-card__unit {
   color: $text-muted;
   font-size: $text-body;
 }
 
-.credits-card__owned {
+// Half a credit from the account's own scenes, waiting for its pair (premium
+// 0072): a coin filled to its middle, in the balance's accent, beside what
+// makes it whole.
+.credits-card__half {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+.credits-card__coin {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  border: 1px solid color-mix(in srgb, $secondary-default 70%, transparent);
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $secondary-light 75%, transparent) 50%,
+    transparent 50%
+  );
+}
+
+// *** The profile (Ivan, 2026-10-24, "go with A") ****************************
+// The rail stands the person on the scene the graph is playing
+// (`AccountCover`) with three numbers under the links (`AccountStats`); the
+// page is the credits, the scenes the account has (`AccountScenes`) and what
+// it published (`AccountPublished`).
+
+// The tile is the person's face here, larger than a dialog's glyph and ringed
+// in the rail's ground so it reads as standing on the picture.
+.account--profile .dialog-frame__tile {
+  width: 4.5rem;
+  height: 4.5rem;
+  border: 2px solid $surface-panel;
+  border-radius: $radius-l * 1.5;
+  box-shadow: 0 8px 22px rgba($black, 0.45);
+
+  > .account__avatar {
+    font-size: 1.55rem;
+  }
+}
+
+.account-cover {
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  .account-cover__picture {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+  }
+}
+
+// What the picture is, in its corner, on a ground of its own so it reads on
+// the brightest frame.
+.account-cover__playing {
+  position: absolute;
+  top: 14px;
+  left: 18px;
+  display: inline-flex;
+  max-width: calc(100% - 64px);
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  overflow: hidden;
+  color: $text-primary;
+  border-radius: 999px;
+  background: color-mix(in srgb, $surface-base 62%, transparent);
+  font-size: $text-small;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: $secondary-light;
+    stroke-linecap: round;
+    stroke-width: 1.6;
+  }
+}
+
+// Number over label, three abreast, on the rail's hairline. Each as wide as
+// its own word: equal thirds cut Russian's "Опубликованы" to "ОПУБЛИК…",
+// and a row that cannot hold all three wraps the last under the first.
+.account-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding-top: 14px;
+  border-top: dialog.$seam;
+}
+
+.account-stats__item {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 5px;
+
+  dt {
+    color: $text-faint;
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+    @include tracking(0.1em);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  dd {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-title * 1.15;
+    font-weight: $weight-bold;
+    line-height: 1;
+  }
+}
+
+.account-scenes,
+.account-published {
+  @include account-section;
+}
+
+// A section's name on the left, where it leads on the right.
+.account-section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.account-scenes__empty {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.55;
+}
+
+// One row of the four newest, always four across: tracks that wrapped by
+// width left three in a row and the fourth alone under them, and the
+// tiles stay readable down to the narrowest panel.
+.account-scenes__tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.account-tile {
+  display: grid;
+  width: 100%;
+  gap: 5px;
+  padding: 0;
+  color: inherit;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+
+    .account-tile__art {
+      @include focus-ring;
+    }
+  }
+}
+
+.account-tile__art {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, $edge-tint 12%, transparent);
+  border-radius: $radius-m;
+  transition: border-color 160ms ease;
+
+  .account-tile:hover & {
+    border-color: color-mix(in srgb, $secondary-light 55%, transparent);
+  }
+
+  .account-tile.is-playing & {
+    border-color: color-mix(in srgb, $secondary-light 85%, transparent);
+  }
+}
+
+.account-tile__playing {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  color: $secondary-light;
+  border-radius: 999px;
+  background: color-mix(in srgb, $surface-base 72%, transparent);
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+
+  svg {
+    width: 8px;
+    height: 8px;
+    fill: currentColor;
+  }
+}
+
+.account-tile__name,
+.account-tile__by {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-tile__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.account-tile__by {
+  margin-top: -3px;
   color: $text-faint;
   font-size: $text-small;
 }
 
-.credits-card__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.account-published__rows {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.account-published__row {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+
+  & + & {
+    border-top: dialog.$seam;
+  }
+}
+
+.account-published__picture {
+  border-radius: $radius-s;
+}
+
+.account-published__text {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.account-published__name {
+  overflow: hidden;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-published__meta {
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.account-published__state {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+
+  &.is-live {
+    color: $secondary-light;
+    border: 1px solid color-mix(in srgb, $secondary-default 45%, transparent);
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
+  }
+
+  &.is-blocked {
+    color: $amber;
+    border: 1px solid color-mix(in srgb, $amber 40%, transparent);
+  }
+}
+
+.account-published__likes {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: $text-muted;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+
+  svg {
+    width: 13px;
+    height: 13px;
+    fill: color-mix(in srgb, $red 70%, $white);
+  }
 }
 
 // Getting paid for scenes (`CreatorPayoutsCard`): a section like the others,

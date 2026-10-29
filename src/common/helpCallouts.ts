@@ -1,6 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { HELP_CAPTURE_SCALE, type IHelpFigure } from './helpGuide';
+import { HELP_CAPTURE_SCALE, type THelpBox } from './helpGuide';
 import {
   clamp,
   HELP_CALLOUT_BADGE,
@@ -34,6 +34,32 @@ import {
  */
 
 export type THelpSide = 'top' | 'right' | 'bottom' | 'left';
+
+/**
+ * What the call-outs are laid out from: a picture's own size and where its
+ * controls are on it. A capture is one as it is written in its chapter; a
+ * live figure is one once it has been drawn and its controls measured
+ * (`HelpLiveFigure`).
+ */
+export interface IHelpLayout {
+  readonly width: number;
+  readonly height: number;
+  readonly controls?: readonly { readonly box: THelpBox }[];
+  /**
+   * The largest it is drawn, as a share of its own size. A capture's pixels
+   * are the screen's two to one, and it is drawn at most `1 / 1.5` of them,
+   * which is what it was on screen and a third more; a live figure is laid
+   * out in CSS pixels, so it gives its own figure for the same size.
+   */
+  readonly maxScale?: number;
+  /**
+   * How its controls are numbered: across the picture in reading order, for
+   * a capture whose controls are listed in any order, or in the order they
+   * are listed, for a live figure — which is numbered before it is drawn and
+   * in the exported guide, where nothing of it is measured.
+   */
+  readonly numbering?: 'reading' | 'listed';
+}
 
 export interface IHelpCallout {
   /** In the circle and beside the control's line in the list; from 1. */
@@ -215,12 +241,12 @@ const assignSides = (
 };
 
 const captureSize = (
-  figure: IHelpFigure,
+  figure: IHelpLayout,
   room: IHelpCalloutRoom,
   margins: number,
 ) => {
   const scale = Math.min(
-    1 / HELP_CAPTURE_SCALE,
+    figure.maxScale ?? 1 / HELP_CAPTURE_SCALE,
     Math.max(1, room.width - margins) / figure.width,
     Math.max(1, room.maxImageHeight) / figure.height,
   );
@@ -277,7 +303,7 @@ const worstCrossing = (plan: IHelpCalloutPlan): IHelpCallout | undefined => {
  * anything or the offender has no side left to try.
  */
 export const planHelpCallouts = (
-  figure: IHelpFigure,
+  figure: IHelpLayout,
   room: IHelpCalloutRoom,
 ): IHelpCalloutPlan => {
   const controls = figure.controls ?? [];
@@ -313,7 +339,7 @@ export const planHelpCallouts = (
  * choices still fit.
  */
 function layOut(
-  figure: IHelpFigure,
+  figure: IHelpLayout,
   room: IHelpCalloutRoom,
   banned: readonly ReadonlySet<THelpSide>[],
 ): IHelpCalloutPlan {
@@ -415,11 +441,12 @@ function layOut(
   };
 
   const numbers = new Array<number>(controls.length);
-  readingOrder(controls.map((control) => control.box)).forEach(
-    (index, position) => {
-      numbers[index] = position + 1;
-    },
-  );
+  (figure.numbering === 'listed'
+    ? controls.map((_, index) => index)
+    : readingOrder(controls.map((control) => control.box))
+  ).forEach((index, position) => {
+    numbers[index] = position + 1;
+  });
 
   return {
     width: frameWidth,

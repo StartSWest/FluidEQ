@@ -12,6 +12,7 @@ import {
   type IDeviceProfileSettings,
   type IPresetV2,
 } from '../../../common/constants';
+import { buildSongIdentity } from '../../../common/songIdentity';
 import type { ISongSound } from '../../../common/songSound';
 import { flushPendingWrites } from '../../../main/asyncWriter';
 import { fetchPreset, savePreset } from '../../../main/flush';
@@ -231,6 +232,32 @@ describe('SongSound IPC ownership and profile persistence', () => {
     },
   );
 
+  it('keeps no name of another program’s song in its file, and still finds it', async () => {
+    const identity = buildSongIdentity(
+      'system',
+      'chrome.exe',
+      'A private title',
+      'A private channel',
+    );
+    const saved = await fire(ChannelEnum.SAVE_SONG_SOUND, [
+      'main',
+      identity,
+      song,
+    ]);
+    expect(saved).toHaveBeenCalledWith(ChannelEnum.SAVE_SONG_SOUND, {
+      result: undefined,
+    });
+    await flushPendingWrites();
+
+    const text = fs.readFileSync(path.join(root, 'song-sound.json'), 'utf8');
+    expect(text).not.toMatch(/private|chrome/i);
+    // The control: what was filed is still found by the song playing.
+    const found = await fire(ChannelEnum.LOOKUP_SONG_SOUND, ['main', identity]);
+    expect(found).toHaveBeenCalledWith(ChannelEnum.LOOKUP_SONG_SOUND, {
+      result: expect.objectContaining({ plays: 1 }),
+    });
+  });
+
   it('plays a lent song through a live override while saving only owned sound to both profile and restart state', async () => {
     const reply = await apply();
     await flushPendingWrites();
@@ -321,5 +348,63 @@ describe('SongSound IPC ownership and profile persistence', () => {
     expect(read('main').filters).toEqual(own(1).filters);
     expect(read('second').filters).toEqual(own(2).filters);
     expect(mockFlush).not.toHaveBeenCalled();
+  });
+});
+
+describe('the song sound memory just after launch', () => {
+  it('writes a file of names again without them, and still finds the song', async () => {
+    // As builds before 2026-10-26 wrote it: the song by name, in the key,
+    // the alias, the title and the artist.
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-song-sound-'));
+    const identity = buildSongIdentity(
+      'system',
+      'chrome.exe',
+      'A private title',
+      'A private channel',
+    );
+    if (!identity) {
+      throw new Error('test fixture produced no identity');
+    }
+    fs.writeFileSync(
+      path.join(dir, 'song-sound.json'),
+      JSON.stringify({
+        version: 1,
+        outputs: {
+          main: {
+            entries: {
+              [identity.key]: {
+                sound: song,
+                title: identity.title,
+                artist: identity.artist,
+                alias: identity.alias,
+                plays: 2,
+                updatedAt: 1,
+              },
+            },
+            aliases: { [identity.alias ?? '']: identity.key },
+          },
+        },
+      }),
+      'utf8',
+    );
+    handlers.clear();
+
+    await registerSongSoundIpc({
+      state: getDefaultState(),
+      userDataDir: dir,
+      handleUpdateHelper: jest.fn(async () => undefined),
+      getOutputEditor: () => undefined,
+    });
+    await flushPendingWrites();
+
+    const text = fs.readFileSync(path.join(dir, 'song-sound.json'), 'utf8');
+    expect(text).not.toMatch(/private|chrome/i);
+    const lookup = handlers.get(ChannelEnum.LOOKUP_SONG_SOUND);
+    const reply = jest.fn();
+    await lookup?.({ reply }, ['main', identity]);
+    expect(reply).toHaveBeenCalledWith(ChannelEnum.LOOKUP_SONG_SOUND, {
+      result: expect.objectContaining({ plays: 2 }),
+    });
+    fs.rmSync(dir, { recursive: true, force: true });
   });
 });

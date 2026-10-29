@@ -9,7 +9,8 @@ import { hasKaraokeStageArt } from './KaraokeStageMedia';
 import MenuIcon from '../icons/MenuIcon';
 import {
   writePitchGuideVisibility,
-  writeStageArtVisibility,
+  writeKaraokeBackground,
+  type TKaraokeBackground,
 } from './karaokeWorkspacePrefs';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import { KaraokeLiveValue } from './karaokeLiveValue';
@@ -19,10 +20,12 @@ import { type useKaraokeSession } from './useKaraokeSession';
 import { type useKaraokeMicrophoneInput } from './useKaraokeMicrophone';
 import { type IKaraokeSong } from '../../common/karaoke/types';
 import { useTranslation } from '../utils/I18nContext';
+import KaraokeClearButton from './KaraokeClearButton';
+import KaraokeGraphBackgroundButton from './KaraokeGraphBackgroundButton';
 
 interface IKaraokeWorkspaceActionsProps {
   song: IKaraokeSong | undefined;
-  isStageArtVisible: boolean;
+  background: TKaraokeBackground;
   isFullScreen: boolean;
   isChromeIdle: boolean;
   playlist: IKaraokePlaylistItem[];
@@ -36,7 +39,7 @@ interface IKaraokeWorkspaceActionsProps {
   fileInputRef: RefObject<HTMLInputElement | null>;
   isPitchGuideVisible: boolean;
   setIsPitchGuideVisible: Dispatch<SetStateAction<boolean>>;
-  setIsStageArtVisible: Dispatch<SetStateAction<boolean>>;
+  setBackground: Dispatch<SetStateAction<TKaraokeBackground>>;
   microphoneMenuButtonRef: RefObject<HTMLButtonElement | null>;
   microphone: ReturnType<typeof useKaraokeMicrophoneInput>;
   isMicrophoneMenuOpen: boolean;
@@ -54,7 +57,7 @@ interface IKaraokeWorkspaceActionsProps {
  */
 const KaraokeWorkspaceActions = ({
   song,
-  isStageArtVisible,
+  background,
   isFullScreen,
   isChromeIdle,
   playlist,
@@ -68,7 +71,7 @@ const KaraokeWorkspaceActions = ({
   fileInputRef,
   isPitchGuideVisible,
   setIsPitchGuideVisible,
-  setIsStageArtVisible,
+  setBackground,
   microphoneMenuButtonRef,
   microphone,
   isMicrophoneMenuOpen,
@@ -83,7 +86,7 @@ const KaraokeWorkspaceActions = ({
     if (!hasStageArt) {
       return 'karaoke.stage.noArt';
     }
-    return isStageArtVisible
+    return background === 'cover'
       ? 'karaoke.stage.hideArt'
       : 'karaoke.stage.showArt';
   })();
@@ -100,16 +103,7 @@ const KaraokeWorkspaceActions = ({
       role="toolbar"
       aria-label={t('karaoke.actions')}
     >
-      {playlist.length > 0 && (
-        <button
-          type="button"
-          className="button small subtle karaoke-workspace__action"
-          onClick={clearPlaylist}
-        >
-          <MenuIcon name="clear" className="karaoke-button__icon" />
-          <span>{t('karaoke.import.clear')}</span>
-        </button>
-      )}
+      {playlist.length > 0 && <KaraokeClearButton onClear={clearPlaylist} />}
       <button
         type="button"
         className="button small subtle karaoke-workspace__action"
@@ -197,13 +191,13 @@ const KaraokeWorkspaceActions = ({
           className="button small subtle karaoke-workspace__icon-action karaoke-workspace__stage-art-toggle"
           aria-label={t(stageArtActionKey)}
           title={t(stageArtActionKey)}
-          aria-pressed={isStageArtVisible}
+          aria-pressed={background === 'cover'}
           disabled={!hasStageArt}
           aria-disabled={!hasStageArt}
           onClick={() => {
-            setIsStageArtVisible((visible) => {
-              const next = !visible;
-              writeStageArtVisibility(next);
+            setBackground((current) => {
+              const next = current === 'cover' ? 'none' : 'cover';
+              writeKaraokeBackground(next);
               return next;
             });
           }}
@@ -218,6 +212,17 @@ const KaraokeWorkspaceActions = ({
           </svg>
         </button>
       )}
+      <KaraokeGraphBackgroundButton
+        isSelected={background === 'graph'}
+        onClick={() => {
+          // One choice prevents the cover/video and live graph from competing.
+          setBackground((current) => {
+            const next = current === 'graph' ? 'none' : 'graph';
+            writeKaraokeBackground(next);
+            return next;
+          });
+        }}
+      />
       <button
         ref={microphoneMenuButtonRef}
         type="button"
@@ -265,9 +270,9 @@ const KaraokeWorkspaceActions = ({
         aria-label={t(
           isFullScreen ? 'karaoke.fullscreen.exit' : 'karaoke.fullscreen.enter',
         )}
-        title={`${t(
+        title={t(
           isFullScreen ? 'karaoke.fullscreen.exit' : 'karaoke.fullscreen.enter',
-        )} (Ctrl+F)`}
+        )}
         aria-pressed={isFullScreen}
         onClick={onToggleFullScreen}
       >

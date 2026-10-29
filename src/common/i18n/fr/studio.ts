@@ -139,8 +139,9 @@ const studio = {
   'studio.publish.goUpdate': 'Publier la mise à jour',
   'studio.publish.agree': 'Accepter et publier',
   'studio.publish.running': 'Publication…',
-  'studio.publish.done': '{name} est dans la galerie.',
-  'studio.publish.updated': 'La galerie a la nouvelle version de {name}.',
+  'studio.publish.done': '{name} est dans la galerie et sur votre graphique.',
+  'studio.publish.updated':
+    'La galerie a la nouvelle version de {name}, et votre graphique aussi.',
   'studio.publish.noPicture':
     'L’image n’a pas pu être prise. Laissez la scène tourner, puis réessayez.',
   'studio.publish.offline':
@@ -238,11 +239,7 @@ const studio = {
     '{name} est à vous. Elle est de retour dans vos styles et ouverte ici pour continuer à y travailler.',
   'studio.import.unreadable': 'Ce fichier n’est pas une scène FluidEQ.',
   'studio.import.signedOut': 'Connectez-vous pour ouvrir un fichier de scène.',
-  'studio.draft.badge': 'Brouillon',
-  'studio.draft.line': 'Publiez-la pour la voir en entier',
   'studio.new.signedOut': 'Connectez-vous pour commencer un projet.',
-  'studio.notice.unpublished':
-    'Publiez-la d’abord : votre propre scène rejoint vos looks une fois dans la galerie.',
   'studio.import.changed':
     'Ce fichier a été modifié après son exportation, FluidEQ ne le jouera donc pas.',
   'studio.import.blocked': 'Cette scène a été retirée.',
@@ -572,9 +569,9 @@ const studio = {
   'studio.publish.agreeReview': 'Accepter et envoyer pour examen',
   'studio.publish.runningReview': 'Envoi…',
   'studio.publish.submitted':
-    '{name} a été envoyée pour examen. Vous serez prévenu quand elle sera approuvée.',
+    '{name} est sur votre graphique et a été envoyée pour examen. Vous serez prévenu quand elle sera approuvée.',
   'studio.publish.submittedUpdate':
-    'La nouvelle version de {name} a été envoyée pour examen. Chacun garde la version actuelle jusqu’à son approbation.',
+    'La nouvelle version de {name} est sur votre graphique et a été envoyée pour examen. Les autres gardent la version actuelle jusqu’à son approbation.',
   // The switch that lets the member's own AI look at the stage over MCP, and
   // its one-time setup. The assistants' names are theirs, in every language.
   'studio.agent.title': 'Laissez votre IA voir la scène',

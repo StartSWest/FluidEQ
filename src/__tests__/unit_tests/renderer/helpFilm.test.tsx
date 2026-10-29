@@ -1,10 +1,12 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import '@testing-library/jest-dom';
+import fs from 'fs';
+import path from 'path';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import HelpChapter from 'renderer/help/HelpChapter';
 import HelpFilm from 'renderer/help/HelpFilm';
-import HELP_FILMS from 'renderer/help/helpFilms';
+import HELP_FILMS, { FILMS_AWAY } from 'renderer/help/helpFilms';
 import FILM_POSTERS from 'renderer/components/featureTour/filmPosters';
 import {
   FEATURE_FILMS,
@@ -67,9 +69,43 @@ it('places only films that exist, under topics the guide has', () => {
       expect(FILM_POSTERS[id]).toBeTruthy();
     });
   });
-  // Every film is somewhere in Help.
+  // Every film is somewhere in Help, unless it is held away until it is
+  // recorded again.
   const placed = new Set(Object.values(HELP_FILMS).flat());
-  Object.keys(FEATURE_FILMS).forEach((id) => expect(placed.has(id)).toBe(true));
+  Object.keys(FEATURE_FILMS).forEach((id) =>
+    expect(placed.has(id) || FILMS_AWAY.includes(id)).toBe(true),
+  );
+});
+
+// A film of something the app no longer has plays nowhere: not under a Help
+// topic, and not on a What's New slide, whose films are named in its source.
+it('plays a film held away nowhere, until it is recorded again', () => {
+  expect(FILMS_AWAY).toContain('compact-player');
+  const placed = new Set(Object.values(HELP_FILMS).flat());
+  const slides = path.join(
+    __dirname,
+    '../../../renderer/components/featureTour',
+  );
+  const onSlides = new Set(
+    fs
+      .readdirSync(slides)
+      .filter((file) => file.endsWith('.tsx'))
+      .flatMap((file) =>
+        Array.from(
+          fs
+            .readFileSync(path.join(slides, file), 'utf8')
+            .matchAll(/\bfilm="([a-z0-9-]+)"/g),
+          (match) => match[1],
+        ),
+      ),
+  );
+  // The positive control: the slides do name their films this way.
+  expect(onSlides.has('every-output')).toBe(true);
+  FILMS_AWAY.forEach((id) => {
+    expect(FEATURE_FILMS[id]).toBeDefined();
+    expect(placed.has(id)).toBe(false);
+    expect(onSlides.has(id)).toBe(false);
+  });
 });
 
 it("comes after the topic's pictures and before its steps, so a film the site cannot send leaves the topic whole", () => {

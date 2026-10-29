@@ -20,7 +20,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import path from 'path';
 import { BrowserWindow, app, desktopCapturer, screen } from 'electron';
 import log from 'electron-log';
-import { openWindowDevTools } from './devTools';
 import { PRODUCT_NAME } from '../common/branding';
 import { RENDERER_READY_EVENT } from '../common/constants';
 import {
@@ -33,7 +32,7 @@ import {
   playerMinimumSize,
   WINDOW_MODE_PARAM,
 } from '../common/windowMode';
-import type { IRect, TPlayerAmp, TWindowMode } from '../common/windowMode';
+import type { IRect, TWindowMode } from '../common/windowMode';
 import type { TWindowModes } from './windowMode';
 import { resolveHtmlPath } from './util';
 import openExternalIfSafe from './safeExternal';
@@ -47,6 +46,7 @@ import { macWindowOptions } from './macWindowChrome';
 import { shutdownDspHost } from './ipc/dspHost';
 import { shutdownNativeInference } from './nativeInference';
 import installTaskbarTransport from './taskbarTransport';
+import installGroupMediaKeys from './groupMediaKeys';
 import onWindowMessage from './ipc/windowMessages';
 
 /**
@@ -71,10 +71,6 @@ import onWindowMessage from './ipc/windowMessages';
  * window itself, at whatever radius that release of macOS draws, so the page
  * draws no edge of its own there.
  */
-
-/** A double-click on a window's non-client area, and the caption hit code. */
-const WM_NCLBUTTONDBLCLK = 0x00a3;
-const HTCAPTION = 2;
 
 /**
  * Building the window, and everything that has to be true before it opens.
@@ -109,8 +105,6 @@ export interface IMainWindowDeps {
     isMaximized?: boolean;
     mode?: TWindowMode;
     player?: IRect;
-    stagePlayer?: IRect;
-    amp?: TPlayerAmp;
     isPinned?: boolean;
   };
   /**
@@ -201,44 +195,51 @@ export const createMainWindowFactory = ({
     const isFirstRun = restored.width === undefined;
     const firstRun = firstRunPlacement();
     // Closed as the player, it opens as the player — where it was, pulled
-    // back onto a screen if that one has gone. With nowhere remembered, or a
-    // player remembered as the whole screen, which nobody sized
-    // (`isPlayerRect`), it opens at its own narrow size in the middle of the
-    // screen, and the record is forgotten. Each amp's record is its own, and
-    // it opens as the amp it closed as; the page says straight away if that
-    // has changed, and the window moves to the other amp's place (`setAmp`).
-    const amp = restored.amp ?? 'classic';
-    const playerOnScreen = (rect: IRect | undefined) =>
-      rect && isPlayerRect(rect, screen.getDisplayMatching(rect).workArea)
-        ? rect
-        : undefined;
-    const players = {
-      classic: playerOnScreen(restored.player),
-      stage: playerOnScreen(restored.stagePlayer),
-    };
-    const remembered = amp === 'stage' ? restored.stagePlayer : restored.player;
+    // back onto a screen if that one has gone, at the amp's one width. With
+    // nowhere remembered, or a player remembered as the whole screen, which
+    // nobody sized (`isPlayerRect`), it opens at its own size in the middle
+    // of the screen, and the record is forgotten.
+    const remembered = restored.player;
     const rememberedArea = remembered
       ? screen.getDisplayMatching(remembered).workArea
       : screen.getPrimaryDisplay().workArea;
-    const playerRect = players[amp];
+    const playerRect =
+      remembered && isPlayerRect(remembered, rememberedArea)
+        ? remembered
+        : undefined;
     let player: IRect | undefined;
     if (restored.mode === 'player') {
       player = playerRect
-        ? clampInto(playerRect, rememberedArea)
+        ? clampInto(
+            { ...playerRect, width: playerFirstSize(1).width },
+            rememberedArea,
+          )
         : centreIn(playerFirstSize(1), rememberedArea);
     }
+    // Even a first launch into the amp needs a full app to return to. Its
+    // real initial bounds replace this seed when the app window is created.
+    const appArea = isUsableRect(restored)
+      ? screen.getDisplayMatching(restored).workArea
+      : screen.getPrimaryDisplay().workArea;
+    const appPlacement = {
+      ...centreIn(
+        {
+          width: restored.width ?? firstRun.width,
+          height: restored.height ?? firstRun.height,
+        },
+        appArea,
+      ),
+      ...(restored.x !== undefined && restored.y !== undefined
+        ? { x: restored.x, y: restored.y }
+        : {}),
+      isMaximized:
+        restored.isMaximized === true || (isFirstRun && firstRun.maximize),
+    };
     windowModes.restore({
       mode: player ? 'player' : 'app',
       isPinned: restored.isPinned === true,
-      app: {
-        x: restored.x,
-        y: restored.y,
-        width: restored.width,
-        height: restored.height,
-        isMaximized: restored.isMaximized,
-      },
-      amp,
-      players,
+      app: appPlacement,
+      player: playerRect ?? {},
     });
     // The floor for the mode it opens in. The player's is scaled by the
     // page's zoom, which is not known until the page has loaded — this is the
@@ -349,6 +350,7 @@ export const createMainWindowFactory = ({
     // right between drags of the window's edge, never during one — and
     // where the player is left standing, so it opens there next time.
     windowModes.followWindow(created);
+    saveWindowState();
     created.on('moved', keepFloor);
     created.webContents.on('did-finish-load', keepFloor);
     screen.on('display-metrics-changed', keepFloor);
@@ -357,21 +359,6 @@ export const createMainWindowFactory = ({
       screen.off('display-metrics-changed', keepFloor);
       screen.off('display-removed', keepFloor);
     });
-    if (process.platform === 'win32') {
-      // The player's strips are the window's drag handle, and Windows keeps
-      // every click on a drag handle to itself: the page is never told of a
-      // double-click there, so the player hears of it from here and folds
-      // to one line or back. Only the caption itself; a double-click on a
-      // resizing edge is Windows' own.
-      created.hookWindowMessage(WM_NCLBUTTONDBLCLK, (wParam) => {
-        if (
-          windowModes.mode() === 'player' &&
-          wParam.readUInt32LE(0) === HTCAPTION
-        ) {
-          created.webContents.send('player-caption-double-click');
-        }
-      });
-    }
     // The material, from the first frame: it is what Windows rounds the
     // window's corners around, so a window without it is square from the
     // moment it opens.
@@ -542,11 +529,8 @@ export const createMainWindowFactory = ({
         // update, permanently. So it waits for the tray to open the window and
         // happens then, one frame late and visible as a snap, which is the
         // cost of not flashing a window at somebody who put it away.
-        if (restored.isMaximized && !player) {
+        if (appPlacement.isMaximized && !player) {
           created.once('show', () => created.maximize());
-        }
-        if (isDebug) {
-          openWindowDevTools(created.webContents);
         }
         return;
       }
@@ -558,19 +542,16 @@ export const createMainWindowFactory = ({
         // size and then visibly snap outward. A first run on a screen below 2K
         // takes the same path, for the same reason.
         // Never the player: `isMaximized` is the app's, kept for going back.
-        if (
-          !player &&
-          (restored.isMaximized || (isFirstRun && firstRun.maximize))
-        ) {
+        if (!player && appPlacement.isMaximized) {
           created.maximize();
         }
         created.show();
       }
-
-      if (isDebug) {
-        // When in debug mode, show dev tools after the app loads.
-        openWindowDevTools(created.webContents);
-      }
+      // No developer tools at launch, in development either. They opened
+      // docked here on every start, and docked they set the page's width
+      // themselves rather than the window (`devTools.ts`): a restart into the
+      // amp drew it for a window four times its width (Ivan, 2026-10-25).
+      // The menu and Inspect element open them in a window of their own.
     };
 
     /**
@@ -585,8 +566,7 @@ export const createMainWindowFactory = ({
      *  - the page finishing its load — `await firstLoad` below, which is
      *    `did-finish-load`. A bundle that threw before it could draw anything
      *    still finishes loading, so this is what shows a crashed bundle's
-     *    window, with whatever it managed to put up and, in development, its
-     *    devtools;
+     *    window, with whatever it managed to put up;
      *  - the page failing: its load refused (`did-fail-load`), its process
      *    gone (`render-process-gone`), its preload thrown (`preload-error`),
      *    or the window no longer answering (`unresponsive`). Recovery
@@ -735,6 +715,7 @@ export const createMainWindowFactory = ({
     // load, so its IPC handler is registered before the page can have run a
     // line of script to send to.
     installTaskbarTransport(created, RESOURCES_PATH);
+    installGroupMediaKeys(created);
     await firstLoad;
     if (created.isDestroyed() || isAppQuitting()) {
       return;

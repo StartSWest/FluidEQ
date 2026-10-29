@@ -2,16 +2,33 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.group.add': 'Añadir ordenador',
+  'remoteAudio.group.title': 'Todo el grupo',
+  'remoteAudio.group.mix': 'Tu mezcla',
+  'remoteAudio.group.thisPC': 'Este PC',
+  'remoteAudio.group.receive': 'Recibir',
+  'remoteAudio.group.send': 'Enviar',
+  'remoteAudio.group.share': 'Compartir',
+  'remoteAudio.group.options': 'Opciones de {name}',
+  'remoteAudio.group.count.one': '{count} equipo',
+  'remoteAudio.group.count.few': '{count} equipos',
+  'remoteAudio.group.count.many': '{count} de equipos',
+  'remoteAudio.group.count.other': '{count} equipos',
+  'remoteAudio.group.sourceOff': 'Envío desactivado',
+  'remoteAudio.group.offline': 'Sin conexión',
+  'remoteAudio.group.unavailable': 'Volumen del sistema no disponible',
+  'remoteAudio.group.mute': 'Silenciar este PC',
+  'remoteAudio.group.unmute': 'Activar sonido de este PC',
+  'remoteAudio.group.output': 'Salida',
+  'remoteAudio.group.hint':
+    'Vincula un equipo para unirte a su grupo. Cada equipo envía su propio sonido directamente a los demás; ajusta lo que escuchas en tu mezcla.',
   'tabs.share': 'Compartir audio',
   'remoteAudio.eyebrow': 'ENLACE DE AUDIO LAN',
   'remoteAudio.title': 'Escucha aquí tus otros ordenadores',
-  'remoteAudio.subtitle':
-    'Enlaza dos ordenadores y cada uno reproduce el sonido del otro. Cada uno envía su sonido intacto; el ordenador en el que escuchas aplica su propio EQ, curvas y DSP.',
   'remoteAudio.security': 'Propiedades de la conexión',
   'remoteAudio.badge.local': 'Solo LAN privada',
   'remoteAudio.badge.lossless': 'Transporte PCM Float32 sin pérdidas',
   'remoteAudio.badge.encrypted': 'Cifrado AES-256-GCM',
-  'remoteAudio.link.section': 'Enlazar un ordenador',
   'remoteAudio.link.thisComputer': 'Este ordenador',
   'remoteAudio.link.thisHint':
     'Pega este código en el otro ordenador, o pega aquí el código de ese ordenador. Funciona de las dos maneras.',
@@ -35,13 +52,11 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.rule.steadyTitle': 'Estable, sin desfase',
   'remoteAudio.rule.steady':
     'Unos 30 ms por detrás y ahí se queda: los dos relojes van al compás, sin cortes y sin desfase lento.',
-  'remoteAudio.linked.section': 'Enlazados',
   'remoteAudio.linked.cardLabel': 'Enlace con {name}',
   'remoteAudio.linked.bothWays': 'En las dos direcciones',
   'remoteAudio.linked.incomingOnly': 'Solo entrante',
   'remoteAudio.linked.outgoingOnly': 'Solo saliente',
   'remoteAudio.linked.paused': 'En pausa',
-  'remoteAudio.linked.looking': 'Buscando {name} en tu red…',
   'remoteAudio.linked.lossless': 'Sin pérdida',
   'remoteAudio.linked.unlink': 'Desenlazar',
   'remoteAudio.linked.pause': 'Pausar',
@@ -78,6 +93,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOneWay':
     'Reproducir en las dos direcciones necesita Windows, o el FluidEQ Engine en Linux.',
   'remoteAudio.lane.outQuiet': 'No suena nada en este ordenador',
+  'remoteAudio.lane.outSounding': 'Suena algo en este ordenador',
   'remoteAudio.lane.outOff': 'Sin enviar. {name} no oye este ordenador.',
   'remoteAudio.lane.outNotPlayed': '{name} tiene «Reproducir aquí» apagado.',
   'remoteAudio.lane.outOld':
@@ -86,7 +102,6 @@ const remoteAudio: Partial<Dictionary> = {
     'Enviar en las dos direcciones necesita Windows, o el FluidEQ Engine en Linux.',
   'remoteAudio.lane.outFailed':
     'No se pudo capturar el sonido de este ordenador. Apaga y vuelve a encender «Enviar mi sonido» para intentarlo de nuevo.',
-  'remoteAudio.another.section': 'Enlazar otro ordenador',
   'remoteAudio.singlePlayer.title': 'Un solo reproductor',
   'remoteAudio.singlePlayer.body':
     'también abarca los ordenadores enlazados: empezar algo en uno pausa lo que sonaba en el otro.',

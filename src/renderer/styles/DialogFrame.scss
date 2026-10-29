@@ -347,6 +347,33 @@ $rail-width: 16.5rem;
   inset: 0;
 }
 
+// A picture across the rail's top, edge to edge (`cover`): the Account
+// panel's scene (Ivan, 2026-10-24, "go with A"). It fades out by a mask, not
+// a gradient of the rail's colour laid over it: the rail is translucent, and
+// a colour fade drew a seam where its own ground showed through. The tile
+// rises into the picture's lower edge.
+.dialog-frame__rail--covered {
+  padding-top: 0;
+}
+
+.dialog-frame__cover {
+  position: relative;
+  height: 9.5rem;
+  flex: 0 0 auto;
+  margin: 0 -22px -3.4rem -24px;
+  overflow: hidden;
+  mask-image: linear-gradient(180deg, $black 45%, transparent 100%);
+
+  > * {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.dialog-frame__rail--covered > .dialog-frame__identity {
+  position: relative;
+}
+
 // Rainbow mode marks the kicker, as it did on the old header, and nothing
 // else: no edge round the dialog ("quítale el rainbow border a todos").
 .is-euphoric .dialog-frame__eyebrow {
@@ -357,9 +384,16 @@ $rail-width: 16.5rem;
 // A narrow window, the 200% UI on a laptop included: the rail becomes the
 // head — tile beside the title — and what the rail held follows it, so
 // nothing is squeezed into a column a word wide. On the window, because every
-// dialog is portalled to it and sized against it.
+// dialog is portalled to it and sized against it — except a dialog drawn in
+// Help (`help/live`), which is drawn at its own width and scaled to its
+// figure: on a window under this width the guide's desktop dialog came out as
+// the narrow head on a 900px sheet, a layout no window ever shows, and its
+// last setting scrolled out from under its own call-out. `:where` adds
+// nothing to the weight.
+$on-the-window: ':where(:not(.help-live *))';
+
 @media (max-width: $bp-md) {
-  .dialog-frame {
+  .dialog-frame#{$on-the-window} {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr) auto;
     grid-template-areas:
@@ -368,7 +402,7 @@ $rail-width: 16.5rem;
       'foot';
   }
 
-  .dialog-frame__rail {
+  .dialog-frame__rail#{$on-the-window} {
     max-height: 40vh;
     gap: 12px;
     padding: 16px 52px 14px 18px;
@@ -376,32 +410,37 @@ $rail-width: 16.5rem;
     border-bottom: dialog.$seam;
   }
 
-  .dialog-frame__identity {
+  .dialog-frame__identity#{$on-the-window} {
     flex-direction: row;
     align-items: center;
   }
 
-  .dialog-frame__tile {
+  .dialog-frame__tile#{$on-the-window} {
     width: 40px;
     height: 40px;
   }
 
   // The rail is the head here: a scene behind it would put a picture under a
   // title and push what the dialog holds off the first screen.
-  .dialog-frame__scene,
-  .dialog-frame__rail:has(> .dialog-frame__scene)::after {
+  .dialog-frame__scene#{$on-the-window},
+  .dialog-frame__rail#{$on-the-window}:has(> .dialog-frame__scene)::after,
+  .dialog-frame__cover#{$on-the-window} {
     display: none;
   }
 
-  .dialog-frame__title {
+  .dialog-frame__rail--covered#{$on-the-window} {
+    padding-top: 16px;
+  }
+
+  .dialog-frame__title#{$on-the-window} {
     font-size: 1.05rem;
   }
 
-  .dialog-frame__body {
+  .dialog-frame__body#{$on-the-window} {
     padding: 18px;
   }
 
-  .dialog-frame__foot {
+  .dialog-frame__foot#{$on-the-window} {
     padding: 12px 14px 14px 18px;
   }
 }

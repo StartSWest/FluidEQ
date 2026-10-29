@@ -84,6 +84,12 @@ const library = {
   'library.scan.running': 'Reading {name}',
   'library.scan.counted': '{parsed} of {seen} files',
   'library.scan.cancel': 'Stop',
+  'library.scan.hide': 'Hide this notice',
+  'library.scan.hideHint':
+    'Hide this notice. The Library keeps reading your files.',
+  'library.scan.chip': 'Scanning {percent}%',
+  'library.scan.chipFinding': 'Scanning…',
+  'library.scan.show': 'Show the scan again, with Stop',
 
   'library.roots': 'Folders',
   'library.root.remove': 'Remove this folder',
@@ -172,6 +178,9 @@ const library = {
   'library.karaoke.sending': 'Sending to Karaoke…',
   'library.karaoke.failed':
     'This file could not be sent to Karaoke — it may be too large or unreadable.',
+  'library.drop.empty': 'No music in what you dropped',
+  'library.drop.already': 'Everything you dropped is already in Up next',
+  'library.drop.failed': 'The music you dropped could not be added',
 } as const;
 
 export default library;

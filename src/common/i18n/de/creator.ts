@@ -48,7 +48,7 @@ const creator: Partial<Dictionary> = {
   'creator.dialog.search': 'Länder suchen',
   'creator.dialog.choose': 'Land wählen',
   'creator.dialog.countryHint':
-    'Stripe kann Creator in den USA, im Vereinigten Königreich, in Kanada, der Schweiz und dem Europäischen Wirtschaftsraum bezahlen, und das Land lässt sich später nicht ändern. Nicht in der Liste? Mitglieder können Ihre Szenen trotzdem kaufen, und jeder Verkauf bringt Ihnen stattdessen ein Guthaben.',
+    'Stripe kann Creator in den USA, im Vereinigten Königreich, in Kanada, der Schweiz und dem Europäischen Wirtschaftsraum bezahlen, und das Land lässt sich später nicht ändern. Nicht in der Liste? Mitglieder können Ihre Szenen trotzdem kaufen, und je zwei Verkäufe bringen Ihnen stattdessen einen Credit.',
   'creator.dialog.cancel': 'Abbrechen',
   'creator.dialog.go': 'Zustimmen und weiter zu Stripe',
   'creator.dialog.opening': 'Stripe wird geöffnet…',
@@ -64,7 +64,7 @@ const creator: Partial<Dictionary> = {
   'creator.terms.stripe':
     'Stripe fragt nach Ihren Identitäts-, Bank- und Steuerdaten und zeigt Ihnen seine eigenen Bedingungen. Auszahlungen enden, wenn Stripe Sie nicht mehr bezahlen kann.',
   'creator.terms.rights':
-    'Alles in Ihren Szenen muss Ihnen gehören, damit Sie es verkaufen dürfen. Szenen werden weiterhin geprüft, und eine, die gegen die Plus-Bedingungen verstößt, kann entfernt werden.',
+    'Alles in Ihren Szenen muss Ihnen gehören, damit Sie es verkaufen dürfen. Szenen werden weiterhin geprüft, und eine, die gegen die Bedingungen verstößt, kann entfernt werden.',
   'creator.terms.taxes':
     'Steuern auf Ihre Einnahmen müssen Sie dort angeben, wo Sie leben.',
   'creator.terms.changes':
@@ -84,46 +84,6 @@ const creator: Partial<Dictionary> = {
   'creator.error.banned': 'Dieses Konto kann nicht für Szenen bezahlt werden.',
   'creator.error.server':
     'Bei uns ist etwas schiefgelaufen. Nichts wurde geändert; versuchen Sie es gleich noch einmal.',
-  'creator.admin.tab': 'Auszahlungen',
-  'creator.admin.plan': 'Über Stripe bezahlte Creator',
-  'creator.admin.loading': 'Ermittle, was Creatorn zusteht',
-  'creator.admin.creators': 'Creator: {count}',
-  'creator.admin.available': 'Verfügbar bei Stripe',
-  'creator.admin.availableNote': 'woraus die Überweisungen kommen',
-  'creator.admin.short':
-    'Das verfügbare Guthaben von FluidEQ bei Stripe liegt unter dem fälligen Betrag. Überweisungen darüber hinaus scheitern und werden beim nächsten Lauf erneut gesendet.',
-  'creator.admin.list': 'Wer bezahlt wird',
-  'creator.admin.none':
-    'Noch ist niemand fällig. Creator erscheinen hier, sobald Stripe sie bezahlen kann und genug ihrer Einnahmen die Haltefrist hinter sich hat.',
-  'creator.admin.rules':
-    'Auszahlungen gehen am 1. und 16. von selbst raus: zuerst an Creator, dann Ihr Anteil auf Ihr Konto. Jede Auszahlung wird einmal gesendet: Ein Lauf, der mittendrin stoppte, wird vom nächsten beendet, nie doppelt gesendet.',
-  'creator.admin.lastPaid': 'Zuletzt ausgezahlt: {date}',
-  'creator.admin.neverPaid': 'Noch keine Auszahlung',
-  'creator.admin.nextDue': 'nächste automatische Auszahlung: {date}',
-  'creator.notice.title': 'Creator-Auszahlung am {date}',
-  'creator.notice.body':
-    '{amount} gehen automatisch raus. Zu bezahlende Creator: {count}.',
-  'creator.notice.later': 'Später',
-  'creator.notice.open': 'Auszahlungen öffnen',
-  'creator.notice.shortTitle':
-    'Zu wenig Guthaben bei Stripe für die Auszahlung am {date}',
-  'creator.notice.shortBody':
-    'Fällig: {amount}. Zu bezahlende Creator: {count}. Stripe hält {available}; Überweisungen darüber hinaus scheitern und warten auf die nächste Auszahlung.',
-  'creator.admin.owed': 'Creatorn geschuldet',
-  'creator.admin.owedNote': 'zurückgehalten {held} · bereit {ready}',
-  'creator.admin.sending': 'wird gesendet {amount}',
-  'creator.admin.onItsWay': '+ {amount} unterwegs',
-  'creator.admin.yours': 'Ihr Anteil',
-  'creator.admin.yoursNote':
-    'geht nach jedem Lauf von selbst auf Ihr Konto; {reserve} bleiben für Erstattungen',
-  'creator.admin.lastToYou': 'zuletzt auf Ihr Konto: {amount}, {date}',
-  'creator.admin.yoursShort':
-    'Creatorn stehen {amount} mehr zu, als Stripe hält',
-  'creator.admin.next': 'Nächste Auszahlung',
-  'creator.admin.manual':
-    'Stripe überweist noch Ihr ganzes Guthaben von selbst auf Ihr Konto, das Geld der Creator inklusive, deshalb hält FluidEQ Ihren Anteil zurück. Stellen Sie in Stripe unter Settings → Payouts den Zeitplan einmal auf Manual: Dann sendet FluidEQ nach jedem Lauf von selbst nur Ihren Anteil.',
-  'creator.admin.pendingLine':
-    'Von einem früheren Lauf unvollendete Auszahlungen: {count}. Der nächste Lauf schließt sie zuerst ab.',
 };
 
 export default creator;

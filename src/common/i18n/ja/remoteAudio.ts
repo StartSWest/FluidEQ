@@ -2,16 +2,33 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.group.add': 'コンピューターを追加',
+  'remoteAudio.group.title': 'グループ全体',
+  'remoteAudio.group.mix': '自分のミックス',
+  'remoteAudio.group.thisPC': 'このPC',
+  'remoteAudio.group.receive': '受信',
+  'remoteAudio.group.send': '送信',
+  'remoteAudio.group.share': '共有',
+  'remoteAudio.group.options': '{name} のオプション',
+  'remoteAudio.group.count.one': '{count} 台のコンピューター',
+  'remoteAudio.group.count.few': '{count} 台のコンピューター',
+  'remoteAudio.group.count.many': '{count} 台のコンピューター',
+  'remoteAudio.group.count.other': '{count} 台のコンピューター',
+  'remoteAudio.group.sourceOff': '共有はオフです',
+  'remoteAudio.group.offline': 'オフライン',
+  'remoteAudio.group.unavailable': 'システム音量を利用できません',
+  'remoteAudio.group.mute': 'このPCをミュート',
+  'remoteAudio.group.unmute': 'このPCのミュートを解除',
+  'remoteAudio.group.output': '出力',
+  'remoteAudio.group.hint':
+    'コンピューターを接続してグループに参加します。各コンピューターは自分の音声を他のコンピューターに直接送信します。聞く音量は自分のミックスで調整できます。',
   'tabs.share': '音声を共有',
   'remoteAudio.eyebrow': 'LAN オーディオリンク',
   'remoteAudio.title': 'ほかのコンピューターの音をここで聴く',
-  'remoteAudio.subtitle':
-    '2 台のコンピューターをリンクすると、互いの音を再生します。それぞれ自分の音を手を加えずに送り、聴いている側のコンピューターが自分の EQ・カーブ・DSP をかけます。',
   'remoteAudio.security': '接続の特性',
   'remoteAudio.badge.local': 'プライベート LAN のみ',
   'remoteAudio.badge.lossless': 'ロスレス Float32 PCM 伝送',
   'remoteAudio.badge.encrypted': 'AES-256-GCM 暗号化',
-  'remoteAudio.link.section': 'コンピューターをリンク',
   'remoteAudio.link.thisComputer': 'このコンピューター',
   'remoteAudio.link.thisHint':
     'このコードをもう一方のコンピューターに貼り付けるか、そのコンピューターのコードをここに貼り付けます。どちらでも構いません。',
@@ -35,13 +52,11 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.rule.steadyTitle': '安定、ずれなし',
   'remoteAudio.rule.steady':
     '遅れは約 30 ms で一定です。2 台のクロックを揃えるので、音切れも、じわじわとしたずれもありません。',
-  'remoteAudio.linked.section': 'リンク中',
   'remoteAudio.linked.cardLabel': '{name} とのリンク',
   'remoteAudio.linked.bothWays': '双方向',
   'remoteAudio.linked.incomingOnly': '受信のみ',
   'remoteAudio.linked.outgoingOnly': '送信のみ',
   'remoteAudio.linked.paused': '一時停止',
-  'remoteAudio.linked.looking': 'ネットワーク上で {name} を探しています…',
   'remoteAudio.linked.lossless': 'ロスレス',
   'remoteAudio.linked.unlink': 'リンク解除',
   'remoteAudio.linked.pause': '一時停止',
@@ -77,6 +92,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOneWay':
     '双方向の再生には Windows、または Linux の FluidEQ Engine が必要です。',
   'remoteAudio.lane.outQuiet': 'このコンピューターでは何も再生されていません',
+  'remoteAudio.lane.outSounding': 'このコンピューターで音が再生されています',
   'remoteAudio.lane.outOff':
     '送信していません。{name} にはこのコンピューターの音は聞こえません。',
   'remoteAudio.lane.outNotPlayed': '{name} は「ここで再生する」がオフです。',
@@ -86,7 +102,6 @@ const remoteAudio: Partial<Dictionary> = {
     '双方向の送信には Windows、または Linux の FluidEQ Engine が必要です。',
   'remoteAudio.lane.outFailed':
     'このコンピューターの音をキャプチャできませんでした。「自分の音を送る」をオフにしてからオンにし直してください。',
-  'remoteAudio.another.section': 'ほかのコンピューターをリンク',
   'remoteAudio.singlePlayer.title': '再生はひとつだけ',
   'remoteAudio.singlePlayer.body':
     'はリンクしたコンピューターにも及びます。片方で再生を始めると、もう片方で再生中のものが一時停止します。',

@@ -6,9 +6,9 @@ const plus = {
   'plus.official.author': 'FluidEQ · Officiel',
   'plus.official.included': 'Un crédit par scène, à vous pour de bon',
   'plus.official.badge': 'Officiel',
-  'plus.visualizers.title': 'Visualiseurs',
+  'plus.visualizers.title': 'Galerie',
   'plus.visualizers.description':
-    'Des scènes de FluidEQ et de la communauté Plus, prêtes pour votre musique',
+    'Des scènes de FluidEQ et de sa communauté, prêtes pour votre musique',
   'plus.visualizers.blurb': 'Scènes des membres',
   'plus.rail.pin': 'Épingler la barre latérale',
   'plus.rail.collapse': 'Replier la barre latérale',
@@ -35,6 +35,8 @@ const plus = {
   'plus.gallery.error.signedOut': 'Reconnectez-vous pour voir la galerie.',
   'plus.gallery.error.server': 'La galerie n’a pas pu être chargée. Réessayez.',
   'plus.gallery.moreError': 'Impossible de charger plus de scènes. Réessayez.',
+  'plus.gallery.error.forbidden':
+    'Ce compte n’a pas l’autorisation de charger ces scènes.',
   'plus.gallery.retry': 'Réessayer',
 
   'plus.category.nature': 'Nature',
@@ -49,7 +51,7 @@ const plus = {
 
   'plus.card.by': 'par {name}',
   'plus.card.byYou': 'par vous',
-  'plus.card.anonymous': 'un membre Plus',
+  'plus.card.anonymous': 'un membre',
   'plus.card.adds': 'ajoutée {count} fois',
   'plus.card.add': 'Ajouter',
   'plus.card.added': 'Ajoutée',
@@ -114,7 +116,7 @@ const plus = {
   'plus.scene.play': 'Lancer sur le graphique',
   'plus.scene.inLooks': 'Dans vos styles, sous « Créés par des membres »',
   'plus.scene.inLooksOwn': 'Dans vos styles, sous « Créés par vous »',
-  'plus.scene.inLooksPlus': 'Dans vos styles, sous « FluidEQ Plus »',
+  'plus.scene.inLooksPlus': 'Dans vos styles, sous « FluidEQ »',
   'plus.scene.report': 'Signaler cette scène',
   'plus.scene.reported': 'Signalée. Merci.',
   'plus.scene.moreBy': 'Plus de {name}',
@@ -141,202 +143,6 @@ const plus = {
   'plus.mine.unpublished': '{name} n’est plus dans la galerie.',
   'plus.mine.failed': 'Elle n’a pas pu être dépubliée. Réessayez.',
 
-  'plus.gallery.reported': 'Signalées',
-  'plus.gallery.reportedOpen': '{count} à examiner',
-  'plus.moderation.title': 'Scènes signalées',
-  'plus.moderation.hint':
-    'Les scènes signalées par les membres. Vous seul voyez cette page, et personne ne sait qui a signalé. Retirer une scène l’enlève de la galerie et des styles de tous ceux qui l’ont ajoutée.',
-  'plus.moderation.list.open': 'À examiner',
-  'plus.moderation.list.takenDown': 'Retirées',
-  'plus.moderation.reason.rights': 'Sans autorisation',
-  'plus.moderation.reason.flashing': 'Clignotements',
-  'plus.moderation.reason.offensive': 'Offensante',
-  'plus.moderation.reason.broken': 'Ne se lance pas',
-  'plus.moderation.reports': 'Signalements',
-  'plus.moderation.cardTitle': 'Signalements de cette scène',
-  'plus.moderation.lastReport': 'Dernier signalement {date}',
-  'plus.moderation.takenDownOn': 'Retirée {date}',
-  'plus.moderation.makerBanned': 'Créateur banni',
-  'plus.moderation.view': 'Voir',
-  'plus.moderation.dismiss': 'Classer',
-  'plus.moderation.takeDown': 'Retirer',
-  'plus.moderation.confirm':
-    'La retirer pour tout le monde ? Elle quitte la galerie et les styles de tous ceux qui l’ont ajoutée.',
-  'plus.moderation.confirmNo': 'La garder',
-  'plus.moderation.restore': 'Rétablir',
-  'plus.moderation.empty.open': 'Rien à examiner',
-  'plus.moderation.empty.openHint':
-    'Quand un membre signale une scène, elle attend ici votre réponse.',
-  'plus.moderation.empty.takenDown': 'Aucune scène retirée.',
-  'plus.moderation.done.takenDown': '{name} a été retirée.',
-  'plus.moderation.done.dismissed':
-    'Les signalements de {name} ont été classés.',
-  'plus.moderation.done.restored': '{name} est de retour dans la galerie.',
-  'plus.moderation.failed': 'Cela n’a pas abouti. Réessayez.',
-  'plus.moderation.forbidden':
-    'Seul l’administrateur de FluidEQ peut examiner les signalements.',
-  'plus.gallery.gifts': 'Plus offert',
-  'plus.gifts.title': 'Plus offert',
-  'plus.gifts.hint':
-    'Offrez Plus à qui vous voulez avec son adresse e-mail. La personne a tout Plus sans payer dès qu’un compte confirme cette adresse, jusqu’à ce que vous le repreniez ou à la date choisie.',
-  'plus.gifts.field.email': 'Adresse e-mail',
-  'plus.gifts.field.note': 'Note',
-  'plus.gifts.field.notePlaceholder': 'Qui c’est, facultatif',
-  'plus.gifts.field.until': 'Se termine',
-  'plus.gifts.field.untilHint':
-    'Laissez la fin vide pour qu’il dure jusqu’à ce que vous le repreniez.',
-  'plus.gifts.give': 'Offrir Plus',
-  'plus.gifts.save': 'Enregistrer le cadeau',
-  'plus.gifts.empty': 'Personne n’a encore Plus en cadeau',
-  'plus.gifts.emptyHint':
-    'Les adresses à qui vous offrez Plus apparaissent ici.',
-  'plus.gifts.status.active': 'A Plus',
-  'plus.gifts.status.waiting': 'En attente d’un compte',
-  'plus.gifts.status.ended': 'Terminé',
-  'plus.gifts.untilDate': 'Jusqu’au {date}',
-  'plus.gifts.forever': 'Jusqu’à ce qu’il soit repris',
-  'plus.gifts.since': 'Offert le {date}',
-  'plus.gifts.edit': 'Modifier',
-  'plus.gifts.takeBack': 'Reprendre',
-  'plus.gifts.keep': 'Garder',
-  'plus.gifts.confirmTakeBack': 'Reprendre Plus à {email} ?',
-  'plus.gifts.done.given': 'Plus offert à {email}',
-  'plus.gifts.done.updated': 'Cadeau pour {email} enregistré',
-  'plus.gifts.done.takenBack': 'Plus repris à {email}',
-  'plus.gifts.error.invalid':
-    'Vérifiez l’adresse et que la date de fin est à venir.',
-  'plus.gifts.error.forbidden': 'Seul l’admin de FluidEQ peut offrir Plus.',
-  'plus.gifts.error.failed': 'Cela n’a pas abouti. Réessayez.',
-
-  'plus.gallery.accounts': 'Comptes',
-  'plus.accounts.title': 'Comptes',
-  'plus.admin.title': 'Administration',
-  'plus.admin.blurb': 'Comptes, cadeaux et signalements',
-  'plus.admin.description':
-    'Visible par vous seulement : les scènes qui attendent votre approbation, les scènes signalées par les membres, tous les comptes et le Plus que vous offrez',
-  'plus.accounts.listHint':
-    'Les plus récents d’abord. Cliquez sur un compte pour voir ce qu’il contient, et supprimez-le définitivement quand son titulaire le demande.',
-  'plus.accounts.search': 'Rechercher par e-mail, identifiant ou nom',
-  'plus.accounts.refresh': 'Actualiser',
-  'plus.accounts.filter': 'Afficher les comptes',
-  'plus.accounts.filter.all': 'Tous les comptes',
-  'plus.accounts.filter.plus': 'Avec Plus',
-  'plus.accounts.filter.free': 'Sans Plus',
-  'plus.accounts.filter.trial': 'En essai gratuit',
-  'plus.accounts.admin': 'Admin',
-  'plus.accounts.loading': 'Chargement des comptes…',
-  'plus.accounts.shown': '{shown} sur {total} affichés',
-  'plus.accounts.empty.none': 'Aucun compte pour l’instant',
-  'plus.accounts.empty.search': 'Aucun compte ne correspond à {query}',
-  'plus.accounts.empty.plus': 'Aucun de ces comptes n’a Plus',
-  'plus.accounts.empty.free': 'Tous ces comptes ont Plus',
-  'plus.accounts.empty.trial': 'Aucun de ces comptes n’est en essai gratuit',
-  'plus.accounts.trial.thisWeek': '{count} se terminent cette semaine',
-  'plus.accounts.trial.today': 'L’essai se termine aujourd’hui',
-  'plus.accounts.trial.tomorrow': 'L’essai se termine demain',
-  'plus.accounts.trial.inDays': 'L’essai se termine dans {days} jours',
-  'plus.accounts.trial.ends': 'L’essai gratuit se termine le {date}.',
-  'plus.accounts.filter.lapsed': 'Essai fini, sans Plus',
-  'plus.accounts.empty.lapsed':
-    'Aucun essai gratuit ne s’est terminé sans Plus.',
-  'plus.accounts.empty.joined': 'Aucun compte créé pendant cette période.',
-  'plus.accounts.joined.label': 'Inscrits',
-  'plus.accounts.joined.ever': 'Depuis toujours',
-  'plus.accounts.joined.today': 'Aujourd’hui',
-  'plus.accounts.joined.week': 'Cette semaine',
-  'plus.accounts.joined.month': 'Ce mois-ci',
-  'plus.accounts.trial.ended': 'Essai fini {when}',
-  'plus.accounts.trial.endedOn':
-    'L’essai gratuit s’est terminé le {date}, sans Plus.',
-  'plus.accounts.exit.title': 'Pourquoi ils n’ont pas pris Plus',
-  'plus.accounts.exit.summary': '{said} sur {total} ont dit pourquoi',
-  'plus.accounts.exit.empty':
-    'Aucun essai gratuit de cette liste ne s’est terminé sans Plus.',
-  'plus.accounts.exit.said': 'Raison donnée : {reason}',
-  'plus.accounts.exit.notSaid': 'N’a pas encore dit pourquoi.',
-  'plus.accounts.exit.price': 'Le prix',
-  'plus.accounts.exit.not-enough': 'Pas assez dedans',
-  'plus.accounts.exit.free-is-enough': 'Le gratuit suffit',
-  'plus.accounts.exit.no-time': 'Pas le temps d’essayer',
-  'plus.accounts.exit.problems': 'Marchait mal chez lui',
-  'plus.accounts.exit.payment': 'N’a pas pu payer comme voulu',
-  'plus.accounts.exit.other': 'Autre chose',
-  'plus.accounts.exit.none': 'N’a rien dit',
-  'plus.accounts.engine.title': 'Moteur',
-  'plus.accounts.engine.fluid': 'Moteur FluidEQ',
-  'plus.accounts.engine.apo': 'Equalizer APO',
-  'plus.accounts.engine.unknown': 'Non signalé {count}',
-  'plus.accounts.engine.summary':
-    'Moteur FluidEQ {fluid}, Equalizer APO {apo}, non signalé {unknown}',
-  'plus.accounts.moreError':
-    'Impossible de charger plus de comptes. Réessayez.',
-  'plus.accounts.error.offline':
-    'La liste des comptes a besoin d’une connexion. Réessayez en ligne.',
-  'plus.accounts.error.signedOut': 'Reconnectez-vous pour voir les comptes.',
-  'plus.accounts.error.server':
-    'Les comptes n’ont pas pu être chargés. Réessayez.',
-  'plus.accounts.error.list':
-    'Seul l’administrateur de FluidEQ peut voir les comptes.',
-  'plus.accounts.error.notDeployed':
-    'Le serveur n’est pas encore à jour pour la liste des comptes.',
-  'plus.accounts.noName': 'Aucun nom choisi',
-  'plus.accounts.joined': 'Inscription le {date}',
-  'plus.accounts.unconfirmed': 'Adresse non confirmée',
-  'plus.accounts.online': 'En ligne',
-  'plus.accounts.lastSeen': 'Vu le {date}',
-  'plus.accounts.appVersion': 'FluidEQ {version}',
-  'plus.accounts.plan.none': 'Sans Plus',
-  'plus.accounts.plan.paid': 'Plus jusqu’au {date}',
-  'plus.accounts.plan.trial': 'Essai gratuit',
-  'plus.accounts.plan.gift': 'Plus offert',
-  'plus.accounts.plan.giftUntil': 'Offert jusqu’au {date}',
-  'plus.accounts.goes': 'Supprimé avec le compte',
-  'plus.accounts.fact.published': 'Scènes publiées',
-  'plus.accounts.fact.likes': 'J’aime donnés',
-  'plus.accounts.fact.adds': 'Scènes ajoutées',
-  'plus.accounts.fact.reports': 'Signalements envoyés',
-  'plus.accounts.note.admin':
-    'C’est un compte admin, et les comptes admin ne se suppriment pas d’ici.',
-  'plus.accounts.note.gone':
-    'Ce compte est déjà supprimé, mais la suppression n’est pas allée au bout : des fichiers publiés peuvent encore être stockés. Terminer la suppression les retire.',
-  'plus.accounts.note.deleting':
-    'Une suppression précédente de ce compte s’est arrêtée en route. Terminer la suppression la mène au bout.',
-  'plus.accounts.note.gift':
-    'Le Plus offert à cette adresse reste en place, comme le disent les conditions. Reprenez-le ici ou dans Plus offert si cela a aussi été demandé.',
-  'plus.accounts.give': 'Offrir Plus',
-  'plus.accounts.giveConfirm':
-    'Offrir Plus à {name} ? Cela dure jusqu’à ce que vous le repreniez.',
-  'plus.accounts.giving': 'Plus est offert à {name}…',
-  'plus.accounts.giveYes': 'Offrir Plus',
-  'plus.accounts.giveNo': 'Pas maintenant',
-  'plus.accounts.takeBack': 'Reprendre Plus',
-  'plus.accounts.takeBackPaid':
-    'Reprendre le Plus offert à {name} ? Le Plus qu’il paie continue.',
-  'plus.accounts.takeBackPlain':
-    'Reprendre le Plus offert à {name} ? Il prend fin maintenant.',
-  'plus.accounts.takingBack': 'Plus est repris à {name}…',
-  'plus.accounts.delete': 'Supprimer le compte',
-  'plus.accounts.finish': 'Terminer la suppression',
-  'plus.accounts.confirm':
-    'Supprimer définitivement le compte de {name} ? C’est irréversible.',
-  'plus.accounts.working':
-    'Suppression du compte de {name} et de tout ce qui s’y rattache…',
-  'plus.accounts.confirmYes': 'Supprimer définitivement',
-  'plus.accounts.keep': 'Garder',
-  'plus.accounts.done.title': 'Compte supprimé : {email}',
-  'plus.accounts.done.body':
-    'Le compte et tout ce qui s’y rattache ont disparu. Fichiers publiés retirés : {count}.',
-  'plus.accounts.error.invalid':
-    'Saisissez l’adresse complète, comme nom@exemple.com.',
-  'plus.accounts.error.forbidden':
-    'Seul l’admin de FluidEQ peut supprimer des comptes.',
-  'plus.accounts.error.noAccount':
-    'Ce compte n’existe plus, et il ne restait rien à supprimer.',
-  'plus.accounts.error.unfinished':
-    'La suppression s’est arrêtée en route. Appuyez sur Terminer la suppression pour la mener au bout.',
-  'plus.accounts.error.failed':
-    'Cela n’a pas abouti. Réessayez : une suppression déjà commencée est menée au bout, pas recommencée.',
-
   'plus.report.title': 'Signaler {name}',
   'plus.report.lead':
     'Quel est le problème ? Seul le créateur de FluidEQ lit les signalements.',
@@ -357,11 +163,6 @@ const plus = {
   'plus.welcome.scene.reefLight': 'Lumière du récif',
   'plus.welcome.scene.lanternLake': 'Lac aux lanternes',
   'plus.welcome.scene.prismBloom': 'Fleur de prisme',
-  'plus.moderation.delete': 'Supprimer',
-  'plus.moderation.deleteConfirm':
-    'La supprimer définitivement ? Elle quitte la galerie et les styles de tous les membres, ses fichiers sont effacés et elle ne pourra plus jamais être publiée.',
-  'plus.moderation.deleteForGood': 'Supprimer définitivement',
-  'plus.moderation.done.deleted': '{name} a été supprimée.',
   'plus.add.notOwned':
     'Obtenez d’abord {name} : cela coûte un crédit, puis elle rejoint vos styles.',
 } as const;

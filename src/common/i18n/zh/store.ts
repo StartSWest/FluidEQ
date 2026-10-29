@@ -18,9 +18,10 @@ const store: Partial<Dictionary> = {
   'store.credits.title': '点数',
   'store.credits.buyTitle': '获取点数',
   'store.credits.lead': '每 1 点数可永久保留一个场景。只付一次，不会续费。',
-  'store.credits.owned': '你拥有的场景：{count}',
   'store.credits.what':
     '每 1 点数都能永久保留画廊中的一个场景：在图表、桌面和你的灯光上。',
+  'store.credits.half':
+    '有 0.5 点数在等待：你的下一个场景被人用付费点数获取后，就会凑成 1 点数。',
   'store.credits.buy': '获取点数',
   'store.credits.getFree': '领取免费点数',
   'store.error.offline': '无法连接到 FluidEQ。请检查网络连接后重试。',
@@ -74,9 +75,6 @@ const store: Partial<Dictionary> = {
   'store.official.fine': 'FluidEQ 合集的一部分：获取后永久归你。',
   'store.like.ownersOnly': '{count} 个赞。获取场景后即可点赞。',
   'store.scene.free': '对所有人免费',
-  'store.admin.freeTitle': '对所有人免费',
-  'store.admin.freeOn': '每个已登录的账户都能播放，无需花费点数。',
-  'store.admin.freeOff': '与其他场景一样需要 1 点数。打开即可送给所有人。',
   'store.error.termsOutdated':
     '条款已更新。请先更新 FluidEQ 并阅读新版本，再购买点数。',
 };

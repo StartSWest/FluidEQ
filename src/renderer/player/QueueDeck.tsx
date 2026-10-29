@@ -4,15 +4,18 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef, useState } from 'react';
-import type { CSSProperties, DragEvent } from 'react';
-import { libraryFileKind } from 'common/library/files';
+import { Fragment, useLayoutEffect, useRef, useState } from 'react';
+import type { DragEvent } from 'react';
 import { useTransportSources } from '../audio/transportSource';
 import LibraryCoverArt from '../library/LibraryCoverArt';
+import LibraryScanProgress from '../library/LibraryScanProgress';
 import { formatDuration } from '../library/player/NowPlayingBar';
 import { useTranslation } from '../utils/I18nContext';
 import PlayerIcon from './PlayerIcon';
+import QueueDropNotice from './QueueDropNotice';
+import QueueNaming from './QueueSave';
 import { useLibraryDeck } from './libraryDeck';
+import type { TMusicDrop } from './useMusicDrop';
 
 /**
  * The drag type a queue row carries, so a song being reordered and music
@@ -20,51 +23,85 @@ import { useLibraryDeck } from './libraryDeck';
  */
 const ROW_TYPE = 'application/x-fluideq-queue-row';
 
-/** A queue's length, which runs past an hour where a song's never does. */
-const formatTotal = (ms: number) => {
-  const whole = Math.max(0, Math.floor(ms / 1000));
-  const hours = Math.floor(whole / 3600);
-  if (hours === 0) {
-    return formatDuration(ms);
-  }
-  const minutes = String(Math.floor((whole % 3600) / 60)).padStart(2, '0');
-  const seconds = String(whole % 60).padStart(2, '0');
-  return `${hours}:${minutes}:${seconds}`;
-};
-
 /**
  * The Library's play order, around the song playing: a few already played,
- * then what comes next. A press plays that song.
+ * then what comes next. A press plays that song; the cross beside one still
+ * to come takes it out, and while the queue's save key is pressed a line
+ * over the list asks the name to keep the whole order under as a playlist.
  *
  * The queue is the Library's — online media, another program and another
  * computer have no list here to show — and before the Library has been
  * opened this session there is none, which the deck says, with the way to
  * the Library, rather than drawing an empty box.
+ *
+ * Each row has the grip it is dragged by, its cover, the song, its length
+ * and the cross that takes it out (Ivan, 2026-10-25, the one amp); the song
+ * playing is tinted and ringed in the accent.
  */
-const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
+const QueueDeck = ({
+  isNaming,
+  onNamed,
+  onOpenLibrary,
+  musicDrop,
+}: {
+  isNaming: boolean;
+  onNamed: () => void;
+  onOpenLibrary: () => void;
+  musicDrop: TMusicDrop;
+}) => {
   const { t } = useTranslation();
   const library = useLibraryDeck();
   // THE LIBRARY'S OWN TRANSPORT, not whichever player the deck above is
-  // showing. This list is the Library's queue, so its bars say whether the
-  // Library is sounding — not the player's source, which is whatever else is
-  // making sound when a video or a browser tab plays over a paused Library —
-  // and a press starts the Library: asking the deck's player instead, a press
-  // with a browser tab playing moved the Library's playhead and started
-  // nothing.
+  // showing. This list is the Library's queue, so a press starts the Library:
+  // asking the deck's player instead, a press with a browser tab playing
+  // moved the Library's playhead and started nothing.
   const transport = useTransportSources().library;
-  const isSounding = transport?.isPlaying === true;
   const listRef = useRef<HTMLOListElement>(null);
   // The song under the playhead when the latest press began; see `restart`.
   const positionAtPressRef = useRef<number | undefined>(undefined);
-  // True while a drag carrying files is over the deck, so it can say it will
-  // take them.
-  const [isDropTarget, setIsDropTarget] = useState(false);
+  // Whether the list has been put at the song playing once since it was
+  // drawn: the first time it is placed at once, every later time it glides.
+  const isPlacedRef = useRef(false);
   // The row being dragged, and the row it would land before.
   const [draggingAt, setDraggingAt] = useState<number>();
   const [dropAt, setDropAt] = useState<number>();
   const nowRef = useRef<HTMLButtonElement>(null);
   const position = library?.position;
   const hasQueue = library !== undefined && library.total > 0;
+  const fileDropAt = musicDrop.isOver ? musicDrop.dropAt : undefined;
+  const markerAt = fileDropAt ?? dropAt;
+  const lastShown = library?.items[library.items.length - 1]?.position;
+  const markerEnd =
+    fileDropAt !== undefined && lastShown !== undefined
+      ? lastShown + 1
+      : (library?.total ?? 0);
+
+  // The upper/lower half of a row means before/after it, including a drop
+  // on its cover, remove button, or the space after the last visible row.
+  // History stays history: the earliest gap is after the song playing.
+  const filePosition = (event: DragEvent<HTMLElement>) => {
+    if (!library || !hasQueue) {
+      return undefined;
+    }
+    const first = library.position + 1;
+    const rows = listRef.current?.querySelectorAll<HTMLElement>(
+      '[data-queue-position]',
+    );
+    const before = Array.from(rows ?? []).find((row) => {
+      const { top, height } = row.getBoundingClientRect();
+      return event.clientY < top + height / 2;
+    });
+    return Math.max(
+      first,
+      before
+        ? Number(before.dataset.queuePosition)
+        : (lastShown ?? library.position) + 1,
+    );
+  };
+  /** Where Keep playing's songs still to come begin, if any are listed. */
+  const firstGuessAhead = library?.items.find(
+    (item) => item.isContinued === true && item.position > library.position,
+  )?.position;
 
   /**
    * A press on a song plays it.
@@ -108,58 +145,82 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
     }
   };
 
-  // The song playing stays in view as the queue moves on under it. The list
-  // is scrolled and nothing else: `scrollIntoView` scrolls every box around
-  // it as well, and a new song would pull the player's own body away from
-  // the equalizer somebody was using.
-  useEffect(() => {
+  // The song playing stays in view as the queue moves on under it, and
+  // otherwise the list stays exactly where it was scrolled to (Ivan,
+  // 2026-10-25: "it needs to keep same scroll position, and if the song is
+  // at the bottom, sure, scroll a bit further to show more below"): a row
+  // that has come within a row and a half of the foot is brought that far
+  // up, so what plays after it shows too; one above the top is brought down
+  // into view with as much over it; a row anywhere else moves nothing. The
+  // list is scrolled and nothing else: `scrollIntoView` scrolls every box
+  // around it as well, and a new song would pull the player's own body away
+  // from the equalizer somebody was using.
+  //
+  // MEASURED AGAINST THE LIST, never with `offsetTop`: that is measured from
+  // the row's positioned parent, which is its own line in the list now (the
+  // remove cross stands in it), so every row read as standing at the top and
+  // a press on any song scrolled the list to the top ("when selecting an
+  // item in the up next it is scrolling top").
+  //
+  // THE FIRST TIME THE LIST IS DRAWN it is simply there, at the song playing
+  // with the one before it over it, whole — no glide from the top of the
+  // queue to it (Ivan, 2026-10-25: "when the app opens in amp ui it animates
+  // scroll to that current song, I don't want that, it needs to show
+  // directly that position, also make sure it's on screen, not cut on top").
+  //
+  // WHOLE IN A SHORT LIST TOO. On a laptop's screen the list can be a row and
+  // a half tall (`--player-shelf-least`): the row before the playing one goes
+  // first, and no nudge takes the playing row past either edge. And a list
+  // drawn folded has no height to place anything in, so it is placed the
+  // moment it is given one.
+  useLayoutEffect(() => {
     const list = listRef.current;
     const row = nowRef.current;
     if (!list || !row) {
-      return;
+      return undefined;
     }
-    const top = row.offsetTop;
-    const bottom = top + row.offsetHeight;
-    if (top < list.scrollTop) {
-      list.scrollTop = top;
-    } else if (bottom > list.scrollTop + list.clientHeight) {
-      list.scrollTop = bottom - list.clientHeight;
-    }
-  }, [position, hasQueue]);
-
-  /**
-   * Music dragged in from the computer.
-   *
-   * `webUtils.getPathForFile` is the only source of a dropped file's path —
-   * `File.path` was removed from Electron — and what comes back is handed
-   * across. ONLY THE KINDS THE LIBRARY TAKES (Ivan, 2026-09-22: "the same we
-   * allow in the library"): the same audio and video extensions its scan
-   * admits (`libraryFileKind`), decided here by name so a folder's stray
-   * cover art and text never leave the page, and again in main, which is
-   * where a path is checked for being local, real and a file.
-   */
-  const droppedPaths = (event: DragEvent<HTMLElement>) =>
-    Array.from(event.dataTransfer.files)
-      .filter((file) => libraryFileKind(file.name) !== undefined)
-      .map((file) => {
-        try {
-          return window.electron?.ipcRenderer.getPathForFile?.(file) ?? '';
-        } catch {
-          return '';
+    const measure = () => {
+      const listBox = list.getBoundingClientRect();
+      const rowBox = row.getBoundingClientRect();
+      const top = rowBox.top - listBox.top + list.scrollTop;
+      return { top, bottom: top + rowBox.height, height: rowBox.height };
+    };
+    if (!isPlacedRef.current) {
+      const place = () => {
+        const { top, bottom, height } = measure();
+        if (list.clientHeight < height) {
+          return false;
         }
-      })
-      .filter((path) => path.length > 0);
-
-  const onDragOver = (event: DragEvent<HTMLElement>) => {
-    // Without this the browser refuses the drop outright. Only for a drag
-    // carrying files: a row being dragged within the queue carries `ROW_TYPE`
-    // instead, and a drag of selected text should not light the deck up.
-    if (!event.dataTransfer.types.includes('Files')) {
-      return;
+        isPlacedRef.current = true;
+        list.scrollTop = Math.max(0, bottom - list.clientHeight, top - height);
+        return true;
+      };
+      if (place() || typeof ResizeObserver === 'undefined') {
+        return undefined;
+      }
+      const observer = new ResizeObserver(() => {
+        if (place()) {
+          observer.disconnect();
+        }
+      });
+      observer.observe(list);
+      return () => observer.disconnect();
     }
-    event.preventDefault();
-    setIsDropTarget(true);
-  };
+    const { top, bottom, height } = measure();
+    const margin = height * 1.5;
+    if (top < list.scrollTop) {
+      list.scrollTo({
+        top: Math.max(0, bottom - list.clientHeight, top - margin),
+        behavior: 'smooth',
+      });
+    } else if (bottom + margin > list.scrollTop + list.clientHeight) {
+      list.scrollTo({
+        top: Math.min(top, bottom + margin - list.clientHeight),
+        behavior: 'smooth',
+      });
+    }
+    return undefined;
+  }, [position, hasQueue]);
 
   /**
    * A song being dragged to a different place in what is coming up.
@@ -185,7 +246,11 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
   };
 
   const onRowDragOver = (event: DragEvent<HTMLElement>, at: number) => {
-    if (draggingAt === undefined || !canMove(at)) {
+    if (
+      event.dataTransfer.types.includes('Files') ||
+      draggingAt === undefined ||
+      !canMove(at)
+    ) {
       return;
     }
     event.preventDefault();
@@ -197,7 +262,10 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
   };
 
   const onRowDrop = (event: DragEvent<HTMLElement>, at: number) => {
-    if (draggingAt === undefined) {
+    if (
+      event.dataTransfer.types.includes('Files') ||
+      draggingAt === undefined
+    ) {
       return;
     }
     // Stopped here, or the deck's own drop handler clears the file overlay
@@ -217,7 +285,11 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
    */
   const end = library?.total ?? 0;
   const onListDragOver = (event: DragEvent<HTMLElement>) => {
-    if (draggingAt === undefined || !canMove(end)) {
+    if (
+      event.dataTransfer.types.includes('Files') ||
+      draggingAt === undefined ||
+      !canMove(end)
+    ) {
       return;
     }
     event.preventDefault();
@@ -226,7 +298,10 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
   };
 
   const onListDrop = (event: DragEvent<HTMLElement>) => {
-    if (draggingAt === undefined) {
+    if (
+      event.dataTransfer.types.includes('Files') ||
+      draggingAt === undefined
+    ) {
       return;
     }
     event.preventDefault();
@@ -241,85 +316,29 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
     setDropAt(undefined);
   };
 
-  const onDragLeave = (event: DragEvent<HTMLElement>) => {
-    // The pointer crossing onto a row inside the deck is not leaving it.
-    if (!event.currentTarget.contains(event.relatedTarget as Node)) {
-      setIsDropTarget(false);
-    }
-  };
-
-  const onDrop = (event: DragEvent<HTMLElement>) => {
-    event.preventDefault();
-    setIsDropTarget(false);
-    const paths = droppedPaths(event);
-    if (paths.length && library) {
-      library.addFiles(paths).catch(() => undefined);
-    }
-  };
-
   return (
     <section
-      className={`player-queue${isDropTarget ? ' is-drop-target' : ''}`}
+      className="player-queue"
       aria-label={t('library.upNext')}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
+      onDragOver={(event) => musicDrop.onDragOver(event, filePosition(event))}
+      onDragLeave={musicDrop.onDragLeave}
+      onDrop={(event) => musicDrop.onDrop(event, filePosition(event))}
     >
-      {/* Over the deck rather than in its flow: a message that pushed the
-          list down would move the rows out from under the pointer that is
-          about to let go of them. */}
-      {isDropTarget && (
-        <div className="player-queue__drop" aria-hidden="true">
-          <PlayerIcon name="chevronRight" />
-          <span>{t('player.queue.drop')}</span>
-        </div>
+      {hasQueue && isNaming && <QueueNaming onDone={onNamed} />}
+      {library?.scanProgress ? (
+        <LibraryScanProgress
+          progress={library.scanProgress}
+          onCancel={library.cancelScan}
+          onHide={library.hideScanNotice}
+        />
+      ) : (
+        <QueueDropNotice position={position} total={library?.total} />
       )}
-      {/* How much is still to come, and a thin line lit as far through the
-          queue as the playhead has got, with the way to the Library at the
-          end. Where the playhead stands is on the sheet's own tab
-          (`PlayerSheet`), which names this page. */}
-      <div className="player-queue__head">
-        {hasQueue && (
-          <>
-            <span
-              className="player-readout player-queue__readout"
-              title={t('player.queue.leftHint', {
-                duration: formatTotal(library.leftDurationMs),
-              })}
-            >
-              <PlayerIcon
-                name="clock"
-                className="player-icon player-icon--readout"
-              />
-              <b>{formatTotal(library.leftDurationMs)}</b>
-            </span>
-            <span
-              className="player-queue__progress"
-              aria-hidden="true"
-              style={
-                {
-                  '--queue-progress':
-                    (library.position + 1) / Math.max(1, library.total),
-                } as CSSProperties
-              }
-            />
-          </>
-        )}
-        <button
-          type="button"
-          className="button small subtle player-queue__open"
-          title={t('player.queue.openLibraryHint')}
-          onClick={onOpenLibrary}
-        >
-          {t('tabs.library')}
-          <PlayerIcon name="chevronRight" />
-        </button>
-      </div>
       {hasQueue ? (
         <ol
           className={`player-queue__list${
-            dropAt === end && draggingAt !== undefined ? ' is-drop-after' : ''
-          }`}
+            markerAt === markerEnd ? ' is-drop-after' : ''
+          }${fileDropAt !== undefined ? ' is-file-drop' : ''}`}
           ref={listRef}
           onDragOver={onListDragOver}
           onDrop={onListDrop}
@@ -333,68 +352,88 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
         >
           {library.items.map((item) => {
             const isNow = item.position === library.position;
+            // "MORE LIKE THIS" STANDS APART from the listener's own list, as
+            // it does in the Library's Up Next (Ivan, 2026-10-25: "as a
+            // different section"): a heading over the first of Keep
+            // playing's songs still to come. They only exist once the last
+            // song queued is playing, so the heading only appears then.
+            const startsGuesses =
+              item.isContinued === true &&
+              canMove(item.position) &&
+              item.position === firstGuessAhead;
             return (
-              <li key={`${item.position}:${item.trackId}`}>
-                <button
-                  type="button"
-                  ref={isNow ? nowRef : undefined}
-                  className={`player-queue__row${isNow ? ' is-now' : ''}${
-                    item.position < library.position ? ' is-played' : ''
-                  }${draggingAt === item.position ? ' is-dragging' : ''}${
-                    dropAt === item.position && draggingAt !== item.position
-                      ? ' is-drop-before'
-                      : ''
-                  }`}
-                  aria-current={isNow ? 'true' : undefined}
-                  title={t('player.queue.play', { title: item.title })}
-                  draggable={canMove(item.position)}
-                  onClick={() => play(item.position)}
-                  onDoubleClick={() => restart(item.position)}
-                  onDragStart={(event) => onRowDragStart(event, item.position)}
-                  onDragOver={(event) => onRowDragOver(event, item.position)}
-                  onDrop={(event) => onRowDrop(event, item.position)}
-                  onDragEnd={endRowDrag}
+              <Fragment key={`${item.position}:${item.trackId}`}>
+                {startsGuesses && (
+                  <li className="player-queue__section" aria-hidden="true">
+                    <span>{t('library.upNext.continued')}</span>
+                  </li>
+                )}
+                <li
+                  className={canMove(item.position) ? 'is-ahead' : undefined}
+                  data-queue-position={item.position}
                 >
-                  <span className="player-queue__number" aria-hidden="true">
-                    {/* Still while the song is paused: the bars say "this is
-                        sounding", and a paused song is not (Ivan,
-                        2026-09-23). They stop where they stood rather than
-                        leaving, so the song under the playhead keeps its
-                        mark, and pick up from there when it plays again. */}
-                    {isNow ? (
-                      <span
-                        className={`player-queue__bars${
-                          isSounding ? '' : ' is-paused'
-                        }`}
-                      >
-                        <span />
-                        <span />
-                        <span />
-                      </span>
-                    ) : (
-                      item.position + 1
-                    )}
-                  </span>
-                  <span className="player-queue__art">
-                    <LibraryCoverArt
-                      artId={item.artId}
-                      label={item.title}
-                      size="row"
+                  <button
+                    type="button"
+                    ref={isNow ? nowRef : undefined}
+                    className={`player-queue__row${isNow ? ' is-now' : ''}${
+                      item.position < library.position ? ' is-played' : ''
+                    }${draggingAt === item.position ? ' is-dragging' : ''}${
+                      markerAt === item.position && draggingAt !== item.position
+                        ? ' is-drop-before'
+                        : ''
+                    }`}
+                    aria-current={isNow ? 'true' : undefined}
+                    title={t('player.queue.play', { title: item.title })}
+                    draggable={canMove(item.position)}
+                    onClick={() => play(item.position)}
+                    onDoubleClick={() => restart(item.position)}
+                    onDragStart={(event) =>
+                      onRowDragStart(event, item.position)
+                    }
+                    onDragOver={(event) => onRowDragOver(event, item.position)}
+                    onDrop={(event) => onRowDrop(event, item.position)}
+                    onDragEnd={endRowDrag}
+                  >
+                    <PlayerIcon
+                      name="grip"
+                      className="player-icon player-queue__grip"
                     />
-                  </span>
-                  <span className="player-queue__song">
-                    <span className="player-queue__title">{item.title}</span>
-                    {item.artist && (
-                      <span className="player-queue__artist">
-                        {item.artist}
-                      </span>
-                    )}
-                  </span>
-                  <span className="player-queue__time">
-                    {item.durationMs ? formatDuration(item.durationMs) : ''}
-                  </span>
-                </button>
-              </li>
+                    <span className="player-queue__art">
+                      <LibraryCoverArt
+                        artId={item.artId}
+                        label={item.title}
+                        size="row"
+                      />
+                    </span>
+                    <span className="player-queue__song">
+                      <span className="player-queue__title">{item.title}</span>
+                      {item.artist && (
+                        <span className="player-queue__artist">
+                          {item.artist}
+                        </span>
+                      )}
+                    </span>
+                    <span className="player-queue__time">
+                      {item.durationMs ? formatDuration(item.durationMs) : ''}
+                    </span>
+                  </button>
+                  {/* Beside the row and not in it, so a press on it is never a
+                    press on the song. Only on what is still to come: what has
+                    played is a record of what happened, and the song playing
+                    is stopped from the transport. */}
+                  {canMove(item.position) && (
+                    <button
+                      type="button"
+                      className="player-queue__remove"
+                      aria-label={t('library.queue.remove')}
+                      title={t('library.queue.remove')}
+                      onClick={() => library.remove(item.position)}
+                    >
+                      <PlayerIcon name="remove" />
+                    </button>
+                  )}
+                </li>
+              </Fragment>
             );
           })}
         </ol>
@@ -402,6 +441,15 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
         <div className="player-queue__empty">
           <strong>{t('player.queue.emptyTitle')}</strong>
           <span>{t('player.queue.emptyNote')}</span>
+          <button
+            type="button"
+            className="button small subtle player-queue__open"
+            title={t('player.queue.openLibraryHint')}
+            onClick={onOpenLibrary}
+          >
+            {t('tabs.library')}
+            <PlayerIcon name="chevronRight" />
+          </button>
         </div>
       )}
     </section>

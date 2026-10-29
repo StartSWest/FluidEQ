@@ -17,13 +17,18 @@ import DialogClose from '../components/DialogClose';
 import MenuIcon from '../icons/MenuIcon';
 import DialogIdentity from '../components/DialogIdentity';
 import HelpChapter, {
-  type IHelpCapture,
   type IHelpShownChapter,
+  type THelpCapture,
 } from './HelpChapter';
-import { HelpColumnContext, type IHelpColumn } from './HelpColumn';
+import {
+  HelpColumnContext,
+  HelpScrollContext,
+  type IHelpColumn,
+} from './HelpColumn';
 import HelpContentsEntry from './HelpContentsEntry';
 import { HelpFoundContext, type IHelpFound } from './HelpMarks';
 import { buildHelpIndex, searchHelp } from './helpSearch';
+import HelpLiveEnlarged from './live/HelpLiveEnlarged';
 import holdFocusReturn from '../utils/focusReturn';
 import '../styles/FeatureTour.scss';
 
@@ -104,7 +109,10 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
   const [column, setColumn] = useState<IHelpColumn>();
   const [query, setQuery] = useState('');
   const [activeChapter, setActiveChapter] = useState<string>();
-  const [capture, setCapture] = useState<IHelpCapture>();
+  const [capture, setCapture] = useState<THelpCapture>();
+  // The article, for the live figures that are drawn as it nears them.
+  const [scroller, setScroller] = useState<Element | null>(null);
+  useLayoutEffect(() => setScroller(article.current), []);
   /**
    * What the search answers: the query as typed, a render behind.
    *
@@ -323,144 +331,156 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
   // provide focus containment and make the live audio controls inert underneath.
   return createPortal(
     <HelpColumnContext.Provider value={column}>
-      <HelpFoundContext.Provider value={foundInGuide}>
-        {/* The dialog frame's own parts, on the native `<dialog>` the guide
+      <HelpScrollContext.Provider value={scroller}>
+        <HelpFoundContext.Provider value={foundInGuide}>
+          {/* The dialog frame's own parts, on the native `<dialog>` the guide
             needs for `showModal` (which a `DialogFrame` cannot be): the rail
             with the head every dialog has, then the search and the contents;
             the article on the right. */}
-        <dialog
-          ref={dialog}
-          className="dialog-frame help-guide"
-          aria-labelledby="help-title"
-          onCancel={(event) => {
-            event.preventDefault();
-            onClose();
-          }}
-        >
-          <aside className="dialog-frame__rail help-guide__rail">
-            <DialogIdentity
-              icon={<MenuIcon name="guide" />}
-              eyebrow={PRODUCT_NAME}
-              title={t('help.title')}
-              titleId="help-title"
-            />
-            <label htmlFor="help-search">{t('help.search')}</label>
-            <input
-              ref={searchBox}
-              id="help-search"
-              type="search"
-              value={query}
-              placeholder={t('help.searchHint')}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                article.current?.scrollTo({ top: 0 });
-              }}
-              // Capture, not bubble: the dialog stops every key on its way
-              // out, so that the app's own shortcuts stay behind the guide,
-              // and a bubbling handler here would never hear one.
-              onKeyDownCapture={(event) => {
-                if (event.key === 'Enter' && article.current) {
-                  event.preventDefault();
-                  stepThroughMarks(article.current, event.shiftKey ? -1 : 1);
-                }
-              }}
-            />
-            <span className="help-guide__count" aria-live="polite">
-              {t(matches.length === 1 ? 'help.resultsOne' : 'help.results', {
-                count: matches.length,
-              })}
-            </span>
-            <nav aria-label={t('help.contents')}>
+          <dialog
+            ref={dialog}
+            className="dialog-frame help-guide"
+            aria-labelledby="help-title"
+            onCancel={(event) => {
+              event.preventDefault();
+              onClose();
+            }}
+          >
+            <aside className="dialog-frame__rail help-guide__rail">
+              <DialogIdentity
+                icon={<MenuIcon name="guide" />}
+                eyebrow={PRODUCT_NAME}
+                title={t('help.title')}
+                titleId="help-title"
+              />
+              <label htmlFor="help-search">{t('help.search')}</label>
+              <input
+                ref={searchBox}
+                id="help-search"
+                type="search"
+                value={query}
+                placeholder={t('help.searchHint')}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  article.current?.scrollTo({ top: 0 });
+                }}
+                // Capture, not bubble: the dialog stops every key on its way
+                // out, so that the app's own shortcuts stay behind the guide,
+                // and a bubbling handler here would never hear one.
+                onKeyDownCapture={(event) => {
+                  if (event.key === 'Enter' && article.current) {
+                    event.preventDefault();
+                    stepThroughMarks(article.current, event.shiftKey ? -1 : 1);
+                  }
+                }}
+              />
+              <span className="help-guide__count" aria-live="polite">
+                {t(matches.length === 1 ? 'help.resultsOne' : 'help.results', {
+                  count: matches.length,
+                })}
+              </span>
+              <nav aria-label={t('help.contents')}>
+                {matches.map((chapter, index) => (
+                  <HelpContentsEntry
+                    key={chapter.id}
+                    chapter={chapter}
+                    groupLabel={searching ? undefined : groupLabelAt(index)}
+                    isActive={activeChapter === `help-${chapter.id}`}
+                    onOpen={openChapter}
+                  />
+                ))}
+              </nav>
+              <span className="help-guide__offline">{t('help.offline')}</span>
+            </aside>
+            <DialogClose label={t('help.close')} onClose={onClose} />
+            <div
+              className="dialog-frame__body help-guide__article"
+              ref={article}
+            >
+              <div
+                className="help-guide__column"
+                ref={columnEdge}
+                aria-hidden="true"
+              />
+              {!searching && (
+                <header className="help-guide__hero">
+                  <h1>{t('help.subtitle')}</h1>
+                  <p>{t('help.intro')}</p>
+                  <p className="help-guide__capture-note">
+                    {t('help.captureNote')}
+                  </p>
+                </header>
+              )}
+              {matches.length === 0 && (
+                <div className="help-guide__empty">
+                  <p>{t('help.empty')}</p>
+                  <button
+                    className="button small"
+                    type="button"
+                    onClick={() => {
+                      setQuery('');
+                      searchBox.current?.focus();
+                    }}
+                  >
+                    {t('help.clear')}
+                  </button>
+                </div>
+              )}
               {matches.map((chapter, index) => (
-                <HelpContentsEntry
+                <HelpChapter
                   key={chapter.id}
                   chapter={chapter}
-                  groupLabel={searching ? undefined : groupLabelAt(index)}
-                  isActive={activeChapter === `help-${chapter.id}`}
-                  onOpen={openChapter}
+                  groupLabel={groupLabelAt(index)}
+                  onEnlarge={setCapture}
                 />
               ))}
-            </nav>
-            <span className="help-guide__offline">{t('help.offline')}</span>
-          </aside>
-          <DialogClose label={t('help.close')} onClose={onClose} />
-          <div className="dialog-frame__body help-guide__article" ref={article}>
-            <div
-              className="help-guide__column"
-              ref={columnEdge}
-              aria-hidden="true"
-            />
-            {!searching && (
-              <header className="help-guide__hero">
-                <h1>{t('help.subtitle')}</h1>
-                <p>{t('help.intro')}</p>
-                <p className="help-guide__capture-note">
-                  {t('help.captureNote')}
-                </p>
-              </header>
-            )}
-            {matches.length === 0 && (
-              <div className="help-guide__empty">
-                <p>{t('help.empty')}</p>
+              {matches.length > 0 && (
                 <button
-                  className="button small"
+                  className="button small subtle"
                   type="button"
                   onClick={() => {
-                    setQuery('');
+                    article.current?.scrollTo({ top: 0 });
                     searchBox.current?.focus();
                   }}
                 >
-                  {t('help.clear')}
+                  {t('help.back')}
                 </button>
-              </div>
-            )}
-            {matches.map((chapter, index) => (
-              <HelpChapter
-                key={chapter.id}
-                chapter={chapter}
-                groupLabel={groupLabelAt(index)}
-                onEnlarge={setCapture}
-              />
-            ))}
-            {matches.length > 0 && (
-              <button
-                className="button small subtle"
-                type="button"
-                onClick={() => {
-                  article.current?.scrollTo({ top: 0 });
-                  searchBox.current?.focus();
-                }}
-              >
-                {t('help.back')}
-              </button>
-            )}
-          </div>
-        </dialog>
-        {/* A picture viewer: the picture takes the whole width, so no rail —
-            its name over it and the one close button every dialog has. */}
-        {capture && (
-          <dialog
-            ref={lightbox}
-            className="help-lightbox"
-            aria-labelledby="help-capture-title"
-            onCancel={(event) => {
-              event.preventDefault();
-              setCapture(undefined);
-            }}
-          >
-            <h2 id="help-capture-title" className="help-lightbox__title">
-              {capture.title}
-            </h2>
-            <DialogClose
-              label={t('help.closeImage')}
-              onClose={() => setCapture(undefined)}
-            />
-            <div className="help-lightbox__image">
-              <img src={capture.src} alt={capture.title} />
+              )}
             </div>
           </dialog>
-        )}
-      </HelpFoundContext.Provider>
+          {/* A picture viewer: the picture takes the whole width, so no rail —
+            its name over it and the one close button every dialog has. */}
+          {capture && (
+            <dialog
+              ref={lightbox}
+              className="help-lightbox"
+              aria-labelledby="help-capture-title"
+              onCancel={(event) => {
+                event.preventDefault();
+                setCapture(undefined);
+              }}
+            >
+              <h2 id="help-capture-title" className="help-lightbox__title">
+                {capture.title}
+              </h2>
+              <DialogClose
+                label={t('help.closeImage')}
+                onClose={() => setCapture(undefined)}
+              />
+              <div className="help-lightbox__image">
+                {'live' in capture ? (
+                  <HelpLiveEnlarged
+                    figure={capture.live}
+                    title={capture.title}
+                  />
+                ) : (
+                  <img src={capture.src} alt={capture.title} />
+                )}
+              </div>
+            </dialog>
+          )}
+        </HelpFoundContext.Provider>
+      </HelpScrollContext.Provider>
     </HelpColumnContext.Provider>,
     document.body,
   );

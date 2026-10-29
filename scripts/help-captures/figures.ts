@@ -363,22 +363,24 @@ export const FIGURES: readonly IFigureSpec[] = [
     ],
   },
   {
-    // Share Audio with one computer linked. Its code and every network
-    // address are blurred, as they always have been in the guide.
+    // Share Audio with one computer linked, as a group: this computer and the
+    // one it links with, and Your mix beside them. The connection code now
+    // lives in the Add computer dialog, which stays shut, so no code is in
+    // the picture; any address the page shows is still blurred.
     image: '14-share-audio-roles.png',
     settings: {},
     steps: [
       `await until(() => $('.top-tabs, header'))`,
       `click(byText(document.body, 'Share Audio').closest('button, [role=tab], a'))`,
-      `await until(() => $('.remote-audio__code-row'))`,
-      `window.__harnessEmit('remote-audio-lan-signal', { peerId: 'harness-peer', signal: { kind: 'peer-ready', deviceName: 'Studio PC', address: '192.168.1.42', joined: false } })`,
-      `await until(() => $('.remote-audio__link:not(.is-looking)'))`,
+      `await until(() => $('.remote-audio__group'))`,
+      `window.__harnessEmit('remote-audio-lan-signal', { peerId: 'harness-peer', signal: { kind: 'peer-ready', deviceName: 'Studio PC', address: '192.168.1.42', joined: false, computerId: 'harness-studio-pc' } })`,
+      `await until(() => $('.remote-audio__group-row[aria-label="Studio PC"]'))`,
       // The other computer says what it does: sends its sound, plays ours.
       `window.__harnessEmit('remote-audio-lan-signal', { peerId: 'harness-peer', signal: { kind: 'stream-mode', mode: 'music', duplex: { sends: true, plays: true } } })`,
-      `await until(() => !byText($('.remote-audio__link'), 'Studio PC needs'))`,
+      `await until(() => byText($('.remote-audio__group-row[aria-label="Studio PC"]'), 'Nothing playing on Studio PC'))`,
     ],
     crop: 'window',
-    blur: `.remote-audio__code-value, .remote-audio__link-name > span, .remote-audio__code-row [class*=address]`,
+    blur: `.remote-audio__code-value, .remote-audio__link-name > span, [class*=address]`,
     controls: [],
   },
 ];

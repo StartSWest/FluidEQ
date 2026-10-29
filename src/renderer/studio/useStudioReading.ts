@@ -20,8 +20,11 @@ export const widestStudioReadings = (t: Translate) => [
  * the stage's own corner.
  */
 export default function useStudioReading(
-  /** The meters' own writer (`StudioMeters.tsx`), handed every frame first. */
-  feed: RefObject<TStageHeard | undefined>,
+  /**
+   * Who is handed every frame first, in this order: the meters' own writer
+   * (`StudioMeters.tsx`), and the starter's guides (`useStudioStarter`).
+   */
+  feeds: ReadonlyArray<RefObject<TStageHeard | undefined>>,
   /** The ladder's scale, whenever it changes: the cost line says what it is. */
   onScale: (scale: number) => void,
 ) {
@@ -46,9 +49,16 @@ export default function useStudioReading(
   // frame the GPU skipped did not move them at all (Ivan, 2026-09-24: "the
   // indicators need to be seen in the UI at the same time the sound hits my
   // ears").
+  // Read through a ref: the list is written out on every render, and the
+  // stage must keep one callback.
+  const feedsRef = useRef(feeds);
+  feedsRef.current = feeds;
   const onHeard = useCallback<TStageHeard>(
-    (frame, heard, musicAccent) => feed.current?.(frame, heard, musicAccent),
-    [feed],
+    (frame, heard, musicAccent) =>
+      feedsRef.current.forEach((feed) =>
+        feed.current?.(frame, heard, musicAccent),
+      ),
+    [],
   );
   const onDrawn = useCallback<TStageDrawn>(
     (_frame, drawnScale, _musicAccent, _heard, report) => {

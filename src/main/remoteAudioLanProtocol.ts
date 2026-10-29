@@ -34,6 +34,10 @@ const AUDIO_ZSTD = 1;
 export const MAX_PACKET_BYTES = 512 * 1024;
 
 export interface ILanPairingPayload {
+  /** Introduced pair: the stable ID belongs to the endpoint, not this
+   * scoped secret. Never encoded in a public pairing code. */
+  computerId?: string;
+  introduced?: boolean;
   /** The first of `addresses`. */
   address: string;
   /** Every address the code names, best first; tried all at once. */

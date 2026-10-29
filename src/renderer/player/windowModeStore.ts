@@ -6,14 +6,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useSyncExternalStore } from 'react';
 import {
-  PLAYER_AMP_CHANNEL,
   PLAYER_HEIGHT_LIMIT_CHANNEL,
-  PLAYER_WIDTH_FLOOR_CHANNEL,
+  PLAYER_RESIZE_TOP_CHANNEL,
+  PLAYER_WIDTH_NEED_CHANNEL,
   WINDOW_HIDE_FOR_SWITCH_CHANNEL,
   WINDOW_MODE_PARAM,
   WINDOW_REVEAL_CHANNEL,
 } from 'common/windowMode';
-import type { IWindowState, TPlayerAmp, TWindowMode } from 'common/windowMode';
+import type { IWindowState, TWindowMode } from 'common/windowMode';
 import { runsOnLinux } from '../utils/platform';
 import untilLinuxViewportIsWindow from './linuxViewport';
 
@@ -79,10 +79,8 @@ let stopListening: (() => void) | undefined;
 /** What main was last told about the player's height, so it is told once. */
 let heldHeight: number | null | undefined;
 let floorHeight: number | null | undefined;
-/** The same for the width its equalizer needs. */
-let floorWidth: number | undefined;
-/** Which amp main was last told the player is. */
-let reportedAmp: TPlayerAmp | undefined;
+/** The same for the width the amp's rows need. */
+let neededWidth: number | undefined;
 // Linux sends intermediate restore sizes before its final configure. Keep
 // the old layout until the viewport reaches the requested mode's size, or
 // the player measures the wide app and saves that layout as its own size.
@@ -105,7 +103,7 @@ const publish = (state: Partial<IWindowState> | undefined) => {
     // the next player has to say it again even if it comes to the same number.
     heldHeight = undefined;
     floorHeight = undefined;
-    floorWidth = undefined;
+    neededWidth = undefined;
   }
   snapshot = next;
   listeners.forEach((listener) => listener());
@@ -159,13 +157,6 @@ const FADE_IN_MS = 170;
 /** The fade-out, held at nothing while the window changes size. */
 let held: Animation | undefined;
 
-/**
- * Which change of amp is the newest (`handOverAmp`). One that finds a newer
- * change begun — another change of amp, or a switch of mode — leaves the
- * window to it: bringing it back as well would show the newer one half done.
- */
-let ampChange = 0;
-
 /** Whether the page can be held dark at all: not in a test's document. */
 const canHold = () =>
   typeof document !== 'undefined' &&
@@ -194,6 +185,17 @@ const markSwitching = (isSwitching: boolean) => {
     'data-window-switching',
     isSwitching,
   );
+};
+
+/**
+ * Marks the stretch of a switch in which the window cannot be seen — cloaked
+ * on Windows, faded out elsewhere — and lifts it as the window is shown
+ * again. The amp's opening is held while it stands (`_playerMotion.scss`):
+ * played from the moment the column mounts, most of it ran behind the cloak
+ * while the window changed size, and what showed was the end of it.
+ */
+const markWindowHidden = (isHidden: boolean) => {
+  document.documentElement.toggleAttribute('data-window-hidden', isHidden);
 };
 
 const fadeOut = async () => {
@@ -278,12 +280,15 @@ const rise = async () => {
 
 const fadeIn = async () => {
   if (!canHold()) {
+    markWindowHidden(false);
     return;
   }
   // Only once the page has drawn the new mode at the window's new size, so
   // the first frame to show is that one and not the stretched one before it.
   await untilViewportIsWindow();
   await afterNextFrame();
+  // The amp opens with the rise rather than after it.
+  markWindowHidden(false);
   await rise();
 };
 
@@ -297,19 +302,17 @@ export const hidesWindow = () =>
 
 /**
  * Ask main for the other mode. What the page draws follows main's answer,
- * never the request: in full screen the switch is refused. Main answers once
- * the window has the new mode's size.
+ * never the request. Main leaves full screen first when needed and answers
+ * once the window has the new mode's size.
  *
  * The window goes before the question is asked — main hears the two in the
  * order they are sent — and comes back, in a `finally`, whatever the answer:
  * a switch refused or failed must not leave it off the screen.
  */
 export const setWindowMode = async (mode: TWindowMode): Promise<void> => {
-  // Any change of amp still coming back is this switch's now: it brings the
-  // window back itself, drawn as the other mode.
-  ampChange += 1;
   linuxModeSwitching = runsOnLinux();
   const isHidden = hidesWindow();
+  markWindowHidden(true);
   if (isHidden) {
     window.electron.ipcRenderer.sendMessage(WINDOW_HIDE_FOR_SWITCH_CHANNEL, []);
   } else {
@@ -328,6 +331,7 @@ export const setWindowMode = async (mode: TWindowMode): Promise<void> => {
       await untilViewportIsWindow();
       await afterNextFrame();
       window.electron.ipcRenderer.sendMessage(WINDOW_REVEAL_CHANNEL, []);
+      markWindowHidden(false);
     } else {
       await fadeIn();
     }
@@ -346,6 +350,15 @@ export const setWindowPinned = (isPinned: boolean): Promise<void> =>
  */
 export const resizePlayerWindow = (cssHeight: number): Promise<void> =>
   window.electron.ipcRenderer.resizePlayerWindow(Math.round(cssHeight));
+
+/**
+ * The player's window height dragged by its top edge, in this page's CSS
+ * pixels: its foot stays where it is (`PLAYER_RESIZE_TOP_CHANNEL`).
+ */
+export const resizePlayerWindowFromTop = (cssHeight: number) =>
+  window.electron?.ipcRenderer.sendMessage(PLAYER_RESIZE_TOP_CHANNEL, [
+    Math.round(cssHeight),
+  ]);
 
 /**
  * What the player's window may do about its height: the one it is held to,
@@ -377,103 +390,15 @@ export const holdPlayerHeight = (
 };
 
 /**
- * The width the player's equalizer needs, under which the window may not be
- * dragged: the band layout decides it (`playerWidthForBands`), so it changes
- * only when the listener chooses another one.
+ * The width the amp's rows need to stand on one line, in this page's CSS
+ * pixels: the amp's one width rises to it where it is more than its own
+ * (`PLAYER_WIDTH_NEED_CHANNEL`). Said only when it changes.
  */
-export const floorPlayerWidth = (cssWidth: number) => {
+export const needPlayerWidth = (cssWidth: number) => {
   const next = Math.ceil(cssWidth);
-  if (next === floorWidth) {
+  if (next === neededWidth) {
     return;
   }
-  floorWidth = next;
-  window.electron?.ipcRenderer.sendMessage(PLAYER_WIDTH_FLOOR_CHANNEL, [next]);
-};
-
-/**
- * Which amp the player is, told to main whenever it changes, in either mode,
- * so the window opens at that amp's own size and moves to it when the amp
- * changes under it (`setAmp`). Main forgets the height and width the old amp
- * held the window to, so the new one has to say them again even where they
- * come to the same numbers.
- */
-export const reportPlayerAmp = (amp: TPlayerAmp) => {
-  if (amp === reportedAmp) {
-    return;
-  }
-  reportedAmp = amp;
-  heldHeight = undefined;
-  floorHeight = undefined;
-  floorWidth = undefined;
-  window.electron?.ipcRenderer.sendMessage(PLAYER_AMP_CHANNEL, [amp]);
-};
-
-/**
- * The window back on the screen once the new amp is drawn at its size — in a
- * `finally`, as the switch of mode does, because nothing may leave it hidden —
- * unless a newer change has begun, which brings it back itself.
- */
-const comeBackAsAmp = async (change: number, isHidden: boolean) => {
-  const isNewest = () => change === ampChange;
-  try {
-    if (isHidden) {
-      // Main hears the page in order, so once it has answered a question
-      // asked after the hide the window is off the screen, and the page can
-      // let go of its own hold and draw the new amp there.
-      await window.electron.ipcRenderer.getWindowState().catch(() => undefined);
-      if (!isNewest()) {
-        return;
-      }
-      held?.cancel();
-      held = undefined;
-      markSwitching(false);
-    } else if (!canHold()) {
-      return;
-    }
-    await untilViewportIsWindow();
-    await afterNextFrame();
-  } finally {
-    if (isNewest() && isHidden) {
-      window.electron.ipcRenderer.sendMessage(WINDOW_REVEAL_CHANNEL, []);
-    } else if (isNewest() && canHold()) {
-      await rise();
-    }
-  }
-};
-
-/**
- * One amp giving way to the other out of sight, the way the full app and the
- * amp trade places (Ivan, 2026-09-28: "hide one completely and then show the
- * other when ready, similar to what we do for full vs amp"). The window colours
- * turned to the Backdrop, or a Plus look picked or left in it, changes the amp
- * and the window's size at once, and in view that was the new amp drawn at the
- * old amp's size, then stretched to the new one, then laid out again.
- *
- * Called in the layout pass that put the new amp in, BEFORE it is painted —
- * what the listener picked has already changed the picture behind the amp in
- * the same pass, so there is no moment before it to hide in. The page is held
- * at nothing on the spot, so its first frame is the window's floor whatever
- * else happens; on Windows the window then leaves the screen whole and the
- * page draws the new amp there; everywhere it comes back once the page has
- * drawn the new amp at the window's new size (`comeBackAsAmp`). Main moves the
- * window to the new amp's own bounds when it hears which amp this is
- * (`reportPlayerAmp`), which is sent after the hide so it happens out of sight.
- */
-export const handOverAmp = (amp: TPlayerAmp) => {
-  ampChange += 1;
-  const change = ampChange;
-  const isHidden = hidesWindow();
-  if (canHold()) {
-    markSwitching(true);
-    held?.cancel();
-    held = document.body.animate([{ opacity: 0 }, { opacity: 0 }], {
-      duration: 0,
-      fill: 'forwards',
-    });
-  }
-  if (isHidden) {
-    window.electron.ipcRenderer.sendMessage(WINDOW_HIDE_FOR_SWITCH_CHANNEL, []);
-  }
-  reportPlayerAmp(amp);
-  comeBackAsAmp(change, isHidden).catch(() => undefined);
+  neededWidth = next;
+  window.electron?.ipcRenderer.sendMessage(PLAYER_WIDTH_NEED_CHANNEL, [next]);
 };

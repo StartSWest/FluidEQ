@@ -166,15 +166,21 @@ const eq = {
     'Drag points · Ctrl/Shift select · Ctrl+scroll: Q · Ctrl+drag: bell',
   // The window-colours menu's sliders. The Backdrop's: how much of the scene
   // shows through the panes.
+  'graph.windowTint': 'Tint',
+  'graph.windowTintHint':
+    "The window's colour while a standard look is on. Double-click for the original colour.",
   'graph.backdropVeil': 'Transparency',
   'graph.backdropVeilHint':
     'How much of the visualizer shows through the panels',
   // The window-colours menu's Brightness: the theme's own slider, which also
   // sets how light a visualizer's colours stand.
   'graph.sceneTint.brightness': 'Brightness',
-  'graph.sceneTint.rainbow': 'Rainbow mode',
+  'graph.sceneTint.rainbow': 'Colourful mode',
   'graph.sceneTint.rainbowHint':
-    'The bands, the title and the lit controls in a palette instead of one colour — a Plus visualizer’s own colours while one is chosen.',
+    'The bands, the title and the lit controls in a palette instead of one colour — a scene’s own colours while one is chosen.',
+  'graph.sceneTint.appIcon': 'Tint app icon',
+  'graph.sceneTint.appIconHint':
+    'The taskbar button and the tray icon in the window’s colours. Off keeps FluidEQ’s own icon.',
   'graph.sceneTint.sparks': 'Pointer sparks',
   'graph.sceneTint.sparksHint':
     'What the visualizer throws from the mouse: a trail as it crosses the picture and a burst where you click - sparks, petals, snow, whatever the scene is made of.',
@@ -182,15 +188,19 @@ const eq = {
   'graph.sceneTint.daylightHint':
     "The visualizer's time of day, from night to full day",
   'graph.sceneTint.daylightFollowingHint':
-    "Following Brightness. Turn off Daylight follows Brightness to set the visualizer's time of day on its own",
-  'graph.sceneTint.daylightFollows': 'Daylight follows Brightness',
+    "Following Brightness. Choose Off below to set the visualizer's time of day here",
+  'graph.sceneTint.daylightSource': 'Follows',
+  'graph.sceneTint.daylightSourceOwn': 'Off',
+  'graph.sceneTint.daylightSourceBrightness': 'Brightness',
+  'graph.sceneTint.daylightSourceClock': 'Clock',
+  'graph.sceneTint.daylightOwnHint':
+    'The visualizer keeps the Daylight set above.',
   'graph.sceneTint.daylightFollowsHint':
-    'On, the visualizer turns from night to day with Brightness. Off, it keeps the Daylight set above, and Brightness changes only the window.',
-  'graph.sceneTint.daylightClock': 'Daylight follows the clock',
+    'The visualizer turns from night to day with Brightness.',
   'graph.sceneTint.daylightClockHint':
-    "On, the visualizer is night at night and day by day, by this computer's clock. Off, it keeps the Daylight set above.",
+    "The visualizer is night at night and day by day, by this computer's clock.",
   'graph.sceneTint.daylightFollowingClockHint':
-    "Following the clock. Turn off Daylight follows the clock to set the visualizer's time of day on its own",
+    "Following the clock. Choose Off below to set the visualizer's time of day here",
   'graph.sceneTint.daylightStudioHint':
     "While the Studio is open, Brightness sets the visualizer's time of day, so a scene can be tried from night to day. This choice comes back when you leave the Studio",
   'graph.sceneTint.brightnessHint':
@@ -211,7 +221,7 @@ const eq = {
   'graph.member.likeOffline': 'Likes need a connection',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.scene.badge': 'Plus',
+  'graph.scene.badge': 'Scene',
   'graph.scene.report': 'Report {name}',
   'graph.version.new': 'New',
   'graph.version.caption': 'v{version} · {note}',
@@ -280,14 +290,19 @@ const eq = {
   'graph.scene.gpu.auto': 'Windows decides',
   'graph.scene.gpu.high': 'High performance',
   'graph.scene.gpu.restart': 'after restart',
-  'graph.scene.locked':
-    'Part of FluidEQ Plus. Choose it to see how to unlock it.',
+  'graph.scene.locked': 'Not yours yet. Choose it to see how to get it.',
   'graph.style.next': 'Next style',
   'graph.style.previous': 'Previous style',
   'graph.picker.label': 'Styles and visualizers',
   'graph.picker.search': 'Search styles and visualizers',
   'graph.picker.styles': 'Styles',
-  'graph.picker.plus': 'Plus visualizers',
+  'graph.picker.plus': 'Visualizers',
+  'graph.picker.discover.title': 'Bring your music to life',
+  'graph.picker.discover.body':
+    'Discover animated scenes to buy and keep, or create your own for free in the Studio.',
+  'graph.picker.discover.explore': 'Explore scenes',
+  'graph.picker.discover.create': 'Create your own',
+  'graph.picker.discover.free': 'FluidEQ and its audio tools stay free.',
   'graph.picker.all': 'All',
   'graph.picker.yours': 'Yours',
   'graph.picker.filterStyles': 'Filter styles',
@@ -549,9 +564,8 @@ const eq = {
   'profiles.error.duplicate': 'Duplicate name found, please use another.',
   'profiles.edit': 'Edit profile name',
   'autoeq.page.eyebrow': 'MATCH YOUR HEADPHONES',
-  'autoeq.page.title': 'Headphone correction',
-  'autoeq.page.intro':
-    'Say which headphones you are listening on and FluidEQ applies the correction published for them. It goes in as a layer of its own, with its own strength and its own switch, so your EQ bands are never touched. Every measurement here was taken on a real rig and published — none of it is guessed from the model name.',
+  'autoeq.page.title': 'EQ presets',
+  'autoeq.page.intro': 'Find a headphone correction, or bring your own curve.',
   'autoeq.model.hint':
     'Search by brand or model. If yours is not measured, a close relation from the same range usually gets you most of the way.',
   'autoeq.target.hint':
@@ -642,7 +656,6 @@ const eq = {
   'eq.smart.mode.target': 'Target',
   'eq.smart.mode.target.note':
     'Keeps measuring · every record to the same curve',
-  'eq.layers': 'Also applied',
   'eq.layers.aria': 'Also shaping this output',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} bands',
@@ -798,7 +811,7 @@ const eq = {
   'voicing.none.hint': 'Your EQ bands only, nothing layered on top',
   'voicing.strength': 'Strength',
   'waveform.style': 'Change the meter style',
-  'waveform.rainbow': 'Rainbow',
+  'waveform.rainbow': 'Colourful',
   'waveform.live': 'LIVE OUTPUT',
   'waveform.signal': 'AUDIO SIGNAL',
   'waveform.clip': 'CLIP',
@@ -828,6 +841,23 @@ const eq = {
   'eq.refused.externalEq':
     'The external EQ contains stages FluidEQ cannot safely adopt. Its files were left unchanged.',
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.intro': 'Your saved sound, ready whenever you need it.',
+  'myCurves.importSquiglink': 'Import from Squiglink',
+  'myCurves.preview': 'Curve preview',
+  'myCurves.previewRange': 'EQ correction · 20 Hz–20 kHz',
+  'myCurves.previewEmpty': 'Your curve preview will appear here',
+  'myCurves.filters': 'Filters',
+  'myCurves.preamp': 'Preamp',
+  'myCurves.correctionHint':
+    'Apply as a headphone correction. Your editable EQ stays in place.',
+  'myCurves.squiglinkGuide': 'Coming from Squiglink?',
+  'myCurves.squiglinkSteps':
+    'Choose headphones + target → Export EQ → Paste below',
+  'myCurves.sourceLabel': 'Source',
+  'myCurves.editableEq': 'Apply to editable EQ instead',
+  'myCurves.editableEqHint':
+    'Replaces your editable bands. Choose which ears to update. Press again to confirm replacement.',
+  'myCurves.saveReplaceEq': 'Save and replace EQ',
   'myCurves.tab.opra': 'OPRA library',
   'myCurves.tab.mine': 'My curves',
   'myCurves.tab.squiglink': 'Squiglink',
@@ -840,7 +870,7 @@ const eq = {
   'myCurves.export': 'Export list',
   'myCurves.empty.title': 'No curves of your own yet',
   'myCurves.empty.body':
-    'Add one from a Squiglink export or a .txt file, or save one from the Squiglink tab. Your curves stay on this computer until you export them.',
+    'Add a Squiglink export, a .txt file, your current EQ or an OPRA correction. Your curves stay on this computer until you export them.',
   'myCurves.noMatch': 'No curve has that in its name.',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': 'File',
@@ -862,9 +892,8 @@ const eq = {
     'It leaves My curves for good. A list you exported still has it.',
   'myCurves.cancel': 'Cancel',
   'myCurves.addTitle': 'Add a curve',
-  'myCurves.addIntro':
-    'It goes into My curves. Nothing plays until you apply it.',
-  'myCurves.textLabel': 'ParametricEQ text',
+  'myCurves.addIntro': 'Save this curve for later, or save and apply it now.',
+  'myCurves.textLabel': 'EQ text',
   'myCurves.textPlaceholder': 'Paste a ParametricEQ or GraphicEQ export here',
   'myCurves.read': 'Read: {count} bands, preamp {preamp} dB',
   'myCurves.readNothing':
@@ -875,7 +904,7 @@ const eq = {
   'myCurves.defaultName': 'Squiglink curve, {date}',
   'myCurves.chartAria': 'The curve {name}, from 20 Hz to 20 kHz',
   'myCurves.save': 'Save to My curves',
-  'myCurves.saveApply': 'Save and apply as curve',
+  'myCurves.saveApply': 'Save and apply',
   'myCurves.exportTitle': 'Export My curves',
   'myCurves.exportIntro':
     'Curves in the list: {count}. Nothing about your outputs or account goes into the file.',
@@ -908,11 +937,11 @@ const eq = {
   'myCurves.importNote':
     'Imported curves never play by themselves; the one playing now keeps playing.',
   'myCurves.from': 'Where it comes from',
-  'myCurves.from.paste': 'Paste',
+  'myCurves.from.paste': 'Paste EQ text',
   'myCurves.from.pasteHint': 'Squiglink’s ParametricEQ text, or AutoEQ’s',
-  'myCurves.from.file': 'A .txt file',
+  'myCurves.from.file': 'Text file',
   'myCurves.from.fileHint': 'Equalizer APO or AutoEQ format',
-  'myCurves.from.eq': 'My EQ now',
+  'myCurves.from.eq': 'Current EQ',
   'myCurves.from.eqHint': 'The bands you have set, as they play',
   'myCurves.from.opra': 'From OPRA',
   'myCurves.from.opraHint':

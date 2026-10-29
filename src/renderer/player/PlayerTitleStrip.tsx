@@ -25,23 +25,21 @@ interface IPlayerTitleStripProps {
  * The amp's header, and the handle the window is dragged by (the Stage, Ivan
  * 2026-09-27: "we need a nicer header with title and handler look").
  *
- * Nothing in its middle but a grab bar over the name, which says "drag
- * here" and is all header — the visualizer's controls went onto the picture
- * (`PlayerStageBar`) so the strip stays clean to drag. At its ends two glass
- * pieces hold the only buttons in it: the FluidEQ mark, which opens the menu
- * that stands in for the app's tab strip (`PlayerMarkMenu`), and the window's
- * own — Always on top and the switch back to the full app, then minimise and
- * close.
+ * Nothing in its middle but the name between two double rules, which says
+ * "drag here" the way the ridges on a piece of hardware do (the one amp, Ivan
+ * 2026-10-25), and is all header — the visualizer's controls are on the
+ * picture (`PlayerHero`) so the strip stays clean to drag. At its ends the
+ * only buttons in it: the FluidEQ mark, which opens the menu that stands in
+ * for the app's tab strip (`PlayerMarkMenu`), and the window's own — Always
+ * on top and the switch back to the full app, then minimise and close.
  *
- * A double-click on the header folds the player to one line, where the app's
- * titlebar would maximise — a player has nothing to maximise into. Windows
- * keeps that double-click to itself, so it arrives from main
- * (`usePlayerFold`), not as a page event.
+ * A double-click on the header does nothing: a player has nothing to
+ * maximise into, and the page is never told of one on a drag handle (why the
+ * fold is not there, `usePlayerFold`). Folding is the mark menu's.
  *
  * On a Mac the window's own traffic lights open the header and the two
  * window buttons are not drawn. A Mac keeps a double-click on a drag handle
- * to itself as well, and answers it with the listener's own setting, so the
- * fold is the mark menu's there.
+ * to itself too, and answers it with the listener's own setting.
  */
 const PlayerTitleStrip = ({ onFold, onOpenPage }: IPlayerTitleStripProps) => {
   const { t } = useTranslation();
@@ -55,8 +53,9 @@ const PlayerTitleStrip = ({ onFold, onOpenPage }: IPlayerTitleStripProps) => {
         <PlayerMarkMenu onFold={onFold} onOpenPage={onOpenPage} />
       </div>
       <span className="player-title__handle" aria-hidden="true">
-        <span className="player-title__grabber" />
+        <span className="player-title__line" />
         <span className="player-title__name">{PRODUCT_NAME}</span>
+        <span className="player-title__line" />
       </span>
       <div className="player-title__controls">
         <button
@@ -72,7 +71,6 @@ const PlayerTitleStrip = ({ onFold, onOpenPage }: IPlayerTitleStripProps) => {
         <WindowModeSwitch />
         {!isMac && (
           <>
-            <span className="player-title__rule" aria-hidden="true" />
             <button
               type="button"
               className="player-title__button"

@@ -86,12 +86,13 @@ describe('following the outputs Windows reported', () => {
   let guardAgainstApo: jest.Mock;
   let adoptExistingApoConfig: jest.Mock;
   let profiles: ReturnType<typeof registerProfilesIpc>;
+  let settings: IDeviceProfileSettings;
 
   beforeEach(() => {
     handlers.clear();
     mockDiscover.mockReset();
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-follow-outputs-'));
-    const settings: IDeviceProfileSettings = { version: 1, assignments: {} };
+    settings = { version: 1, assignments: {} };
     session = {
       ...createMainSession(),
       configPath: root,
@@ -208,6 +209,55 @@ describe('following the outputs Windows reported', () => {
     expect(send).toHaveBeenCalledWith(ChannelEnum.AUDIO_DEVICES_CHANGED, {
       errorCode: ErrorCode.FAILURE,
     });
+  });
+
+  /**
+   * GitHub issue 39: an output Windows names in Chinese was read through the
+   * console's code page, and the broken name was saved beside its profile
+   * and written into its config file's comment line. Fixing the reading has
+   * to put the real name back in both, with no switch of output to carry it.
+   */
+  it('puts the name Windows uses now back beside the profile and into the config', async () => {
+    // U+FFFD, the character a misread byte becomes, built rather than typed.
+    const replacement = String.fromCharCode(0xfffd);
+    const named = { ...speakers, name: '扬声器 (USB Audio Device)' };
+    // A config folder has its config.txt; the flush refuses one without.
+    fs.writeFileSync(path.join(root, 'config.txt'), '');
+    fs.mkdirSync(path.join(root, 'presets', speakers.id), { recursive: true });
+    fs.writeFileSync(
+      path.join(root, 'presets', speakers.id, 'Studio'),
+      JSON.stringify({ preAmp: 0, filters: {} }),
+    );
+    settings.assignments[speakers.id] = {
+      deviceId: speakers.id,
+      deviceName: `${replacement.repeat(6)} (USB Audio Device)`,
+      deviceGuid: speakers.guid,
+      presetName: 'Studio',
+    };
+
+    await profiles.followOutputs([named], jest.fn());
+    await flushPendingWrites();
+
+    // Still the same output: nothing switched, and the name came in anyway.
+    expect(applyDeviceState).not.toHaveBeenCalled();
+    expect(settings.assignments[speakers.id].deviceName).toBe(named.name);
+    const saved = JSON.parse(
+      fs.readFileSync(path.join(root, 'device-profiles.json'), 'utf8'),
+    ) as IDeviceProfileSettings;
+    expect(saved.assignments[speakers.id].deviceName).toBe(named.name);
+    const written = fs
+      .readdirSync(root)
+      .filter((name) => name.endsWith('.txt'))
+      .map((name) => fs.readFileSync(path.join(root, name), 'utf8'))
+      .join('\n');
+    expect(written).toContain('# 扬声器 (USB Audio Device) -> Studio');
+    expect(written).not.toContain(replacement);
+
+    // Positive control: a reading that renames nothing writes nothing.
+    fs.rmSync(path.join(root, 'device-profiles.json'));
+    await profiles.followOutputs([named], jest.fn());
+    await flushPendingWrites();
+    expect(fs.existsSync(path.join(root, 'device-profiles.json'))).toBe(false);
   });
 
   it("follows the window's own request the same way, and a later push does not switch again", async () => {

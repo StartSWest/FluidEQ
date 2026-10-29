@@ -10,80 +10,31 @@ import {
   isAnalysisStyle,
   levelAxisSuitsLook,
 } from 'common/graphAnalysis';
-import type { IMarginLike } from '../graph/ChartController';
 
-/**
- * The ruled paper under a measuring view in the player's own visualizer deck
- * (Ivan, 2026-09-24: "we need to show the grid on standard viz on mini player
- * in that 2 row mode").
- *
- * The main graph's grid, with the main graph's rules about it: shown while
- * the graph's grid switch is on, and each scale only where it names what is
- * drawn (`frequencyAxisSuitsLook`, `levelAxisSuitsLook`). Only on the
- * measuring views: a scene is a picture, and the deck gives it the whole
- * surface as before. In full screen too (Ivan, 2026-09-24: "the grid also in
- * fullscreen for those meter ones"): a measuring view on the whole screen is
- * still an instrument, and its numbers are what it is there to be read by.
- */
 export interface IPlayerPaper {
-  /** Frequencies along the bottom, with their rules. */
+  /** The frequency rules, down the drawing. */
   frequency: boolean;
-  /** The analyser's decibels down the right, with their rules. */
+  /** The analyser's decibel rules, across it. */
   level: boolean;
-  /** The gutters the labels stand in, around the drawing. */
-  padding: IMarginLike;
 }
 
 /**
- * Room for the labels, in CSS pixels.
+ * The ruled paper under a measuring view in the amp's top panel: the main
+ * graph's own rules, faint, and nothing else — no numbers and no gutter round
+ * the drawing, which runs to the panel's edges (Ivan, 2026-10-25: "the real
+ * graph lines but subtle and no paddings", "no numbers"). The song is read
+ * over the picture; the picture is not an instrument to read figures off.
  *
- * The bottom gutter is the main graph's own (`graphPaper.ts`): "10k Hz"
- * under the plot. The right is the main graph's 48 for "-80 dB" and 8 more:
- * the main graph's card keeps its own padding around the plot, and the
- * player's picture runs to the deck's edge, so at 48 the numbers ended
- * against it (Ivan, 2026-09-24: "bit right padding for the numbers of the
- * grid"). The left is half a frequency label, so "10 Hz" is not cut in half
- * at the edge. The top is half a level label, so the top number is not cut
- * at the drawing's edge: the visualizer's bar stands under the drawing now
- * (the Stage, 2026-09-27), not across its top.
+ * The main graph's rules about the grid still hold: shown while the graph's
+ * grid switch is on, and each set of rules only where it names what is drawn
+ * (`frequencyAxisSuitsLook`, `levelAxisSuitsLook`). Only on the measuring
+ * views: a scene is a picture, and the panel gives it the whole surface.
  */
-const FREQUENCY_BOTTOM = 30;
-const FREQUENCY_SIDE = 20;
-const LEVEL_RIGHT = 56;
-const LEVEL_TOP = 8;
-
-// Module constants, so a deck that re-renders keeps the same padding object
-// and the scales built from it are not rebuilt every frame.
-const BARE: IPlayerPaper = {
-  frequency: false,
-  level: false,
-  padding: { left: 0, top: 0, right: 0, bottom: 0 },
-};
-const FREQUENCY_ONLY: IPlayerPaper = {
-  frequency: true,
-  level: false,
-  padding: {
-    left: FREQUENCY_SIDE,
-    top: 0,
-    right: FREQUENCY_SIDE,
-    bottom: FREQUENCY_BOTTOM,
-  },
-};
-const LEVEL_ONLY: IPlayerPaper = {
-  frequency: false,
-  level: true,
-  padding: { left: 0, top: LEVEL_TOP, right: LEVEL_RIGHT, bottom: 0 },
-};
-const BOTH: IPlayerPaper = {
-  frequency: true,
-  level: true,
-  padding: {
-    left: FREQUENCY_SIDE,
-    top: LEVEL_TOP,
-    right: LEVEL_RIGHT,
-    bottom: FREQUENCY_BOTTOM,
-  },
-};
+// Module constants, so a panel that re-renders keeps the same object.
+const BARE: IPlayerPaper = { frequency: false, level: false };
+const FREQUENCY_ONLY: IPlayerPaper = { frequency: true, level: false };
+const LEVEL_ONLY: IPlayerPaper = { frequency: false, level: true };
+const BOTH: IPlayerPaper = { frequency: true, level: true };
 
 export const playerPaperFor = (
   style: GraphStyle,

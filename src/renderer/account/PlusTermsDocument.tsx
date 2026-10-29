@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
 import { OFFICIAL_SITE_URL } from 'common/branding';
 import { REPORT_EMAIL } from 'common/bugReport';
-import { formatDollars } from 'common/creatorPayouts';
+import { CREATOR_PAYOUTS_OPEN, formatDollars } from 'common/creatorPayouts';
 import {
   CREATOR_HOLD_DAYS,
   CREATOR_MINIMUM_CENTS,
@@ -21,18 +21,9 @@ import {
   termsEffectiveDate,
 } from 'common/plusTerms';
 import { PLUS_MOVE_CREDITS, STARTER_CREDITS } from 'common/sceneStore';
-import { SCENE_PLAY_WINDOW_DAYS } from 'common/sceneTaste';
-import {
-  LISTENING_DAY_CAP_HOURS,
-  LISTENING_WINDOW_DAYS,
-} from 'common/listening';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
-import {
-  TERMS_HIGHLIGHTS,
-  TERMS_SECTIONS,
-  TERMS_SENT_ROWS,
-} from './plusTermsContent';
+import { TERMS_HIGHLIGHTS, termsLayout } from './plusTermsContent';
 import '../styles/PlusTerms.scss';
 
 /**
@@ -55,11 +46,6 @@ export const termsValues = (
   sharesPerHour: PLUS_SHARES_PER_HOUR,
   maxPublished: PLUS_MAX_PUBLISHED_SCENES,
   takedownDays: PLUS_TAKEDOWN_PAUSE_DAYS,
-  // How long a computer keeps scene plays the server has not been sent.
-  windowDays: SCENE_PLAY_WINDOW_DAYS,
-  // The listening statistics' window and daily cap (premium 0068).
-  listeningDays: LISTENING_WINDOW_DAYS,
-  listeningHours: LISTENING_DAY_CAP_HOURS,
   contact: REPORT_EMAIL || new URL(OFFICIAL_SITE_URL).host,
   refundDays: CREDIT_REFUND_DAYS,
   share: CREATOR_SHARE_PERCENT,
@@ -67,6 +53,9 @@ export const termsValues = (
   amount: formatDollars(CREATOR_MINIMUM_CENTS, locale),
   every: CREATOR_PAYOUT_EVERY_DAYS,
 });
+
+/** The document this build carries: payouts in it only while creators can be paid. */
+const LAYOUT = termsLayout(CREATOR_PAYOUTS_OPEN);
 
 /**
  * The Plus terms, as a document.
@@ -99,7 +88,7 @@ export default function PlusTermsDocument() {
         <span className="plus-terms__meta">
           {t('terms.meta', { version: PLUS_TERMS_EDITION, date: effective })}
         </span>
-        <p className="plus-terms__intro">{t('terms.intro')}</p>
+        <p className="plus-terms__intro">{t(LAYOUT.intro)}</p>
       </header>
 
       <section className="plus-terms__short" aria-labelledby="plus-terms-short">
@@ -124,7 +113,7 @@ export default function PlusTermsDocument() {
       </section>
 
       <ol className="plus-terms__sections">
-        {TERMS_SECTIONS.map((section, index) => (
+        {LAYOUT.sections.map((section, index) => (
           <li
             key={section.id}
             className={`plus-terms__section plus-terms__section--${section.id}`}
@@ -155,7 +144,7 @@ export default function PlusTermsDocument() {
 
             {section.body === 'sent' && (
               <ul className="plus-terms__sent">
-                {TERMS_SENT_ROWS.map((row) => (
+                {LAYOUT.sentRows.map((row) => (
                   <li key={row.id} className="plus-terms__sent-row">
                     <span className="plus-terms__sent-mark" aria-hidden="true">
                       <Glyph name={row.glyph} />

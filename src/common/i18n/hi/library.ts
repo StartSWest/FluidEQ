@@ -86,6 +86,12 @@ const library: Partial<Dictionary> = {
   'library.scan.running': '{name} पढ़ा जा रहा है',
   'library.scan.counted': '{seen} में से {parsed} फ़ाइलें',
   'library.scan.cancel': 'रोकें',
+  'library.scan.hide': 'यह सूचना छिपाएँ',
+  'library.scan.hideHint':
+    'यह सूचना छिपाएँ। लाइब्रेरी आपकी फ़ाइलें पढ़ती रहेगी।',
+  'library.scan.chip': 'पढ़ा जा रहा है {percent}%',
+  'library.scan.chipFinding': 'पढ़ा जा रहा है…',
+  'library.scan.show': 'प्रगति और “रोकें” फिर से दिखाएँ',
 
   'library.roots': 'फ़ोल्डर',
   'library.root.remove': 'यह फ़ोल्डर हटाएँ',
@@ -174,6 +180,9 @@ const library: Partial<Dictionary> = {
   'library.karaoke.sending': 'कराओके में भेजा जा रहा है…',
   'library.karaoke.failed':
     'यह फ़ाइल कराओके में नहीं भेजी जा सकी — शायद यह बहुत बड़ी है या पढ़ी नहीं जा सकती।',
+  'library.drop.empty': 'आपने जो छोड़ा, उसमें कोई संगीत नहीं है',
+  'library.drop.already': 'आपने जो कुछ छोड़ा, वह सब पहले से “आगे” में है',
+  'library.drop.failed': 'छोड़ा गया संगीत जोड़ा नहीं जा सका',
 };
 
 export default library;

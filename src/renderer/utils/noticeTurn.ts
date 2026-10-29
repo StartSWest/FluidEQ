@@ -35,8 +35,8 @@ import { useLayoutEffect, useReducer, useSyncExternalStore } from 'react';
  *   toasts that share the corner (the Smart EQ one before the song's own
  *   sound, one card at a time), and full screen, which takes away the
  *   titlebar the corner is placed under. Then the Plus terms notice, then
- *   the listening notice, then news of a scene reviewed, then the admin's own two — the server nearing
- *   a limit, then creators owed their payout — then new scenes announced.
+ *   news of a scene reviewed, then an add-on's own corner notices in the
+ *   add-on's order (`renderer/addons.ts`), then new scenes announced.
  *
  * Everything not named as waiting for something above never waits.
  */
@@ -55,15 +55,17 @@ export type TNoticeClaim =
   /** A song's own sound put back on (`SongSoundNotice`). */
   | 'songSound'
   | 'plusTerms'
-  /** A signed-in account told its listening time is counted (`ListeningNotice`). */
-  | 'listening'
   | 'sceneReview'
-  /** The admin told the server nears a free-plan limit (`ServerLimitNotice`). */
-  | 'serverLimit'
-  /** The admin told creators are owed their payout (`PayoutDueNotice`). */
-  | 'payoutDue'
+  /**
+   * An add-on's corner notices, first to last (`renderer/addons.ts`). Three
+   * places in the order rather than a name each: the app knows no add-on.
+   */
+  | 'addonA'
+  | 'addonB'
+  | 'addonC'
   /** New scenes announced, big (`SceneAnnouncementDialog`). */
   | 'sceneAnnouncement'
+  | 'appNews'
   /** The window is full screen: graph or media (`useAppFullMark`). */
   | 'appFull'
   /**
@@ -101,30 +103,30 @@ export const NOTICE_WAITS_FOR: Readonly<
   songEq: [],
   songSound: ['songEq'],
   plusTerms: CORNER_WAITS_FOR,
-  // An answer the account owes, after the terms it would read it beside.
-  listening: [...CORNER_WAITS_FOR, 'plusTerms'],
-  sceneReview: [...CORNER_WAITS_FOR, 'plusTerms', 'listening'],
-  // The admin's alone, after the news about scenes: a limit fills over days.
-  serverLimit: [...CORNER_WAITS_FOR, 'plusTerms', 'listening', 'sceneReview'],
-  // Money owed to people goes after the server's own room, never on top.
-  payoutDue: [
-    ...CORNER_WAITS_FOR,
-    'plusTerms',
-    'listening',
-    'sceneReview',
-    'serverLimit',
-  ],
+  sceneReview: [...CORNER_WAITS_FOR, 'plusTerms'],
+  addonA: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview'],
+  addonB: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview', 'addonA'],
+  addonC: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview', 'addonA', 'addonB'],
   // Waits for every notice that carries something to do or to know first:
   // an announcement is news, never urgent.
   sceneAnnouncement: [
     ...CORNER_WAITS_FOR,
     'plusTerms',
-    'listening',
     'sceneReview',
-    'serverLimit',
-    'payoutDue',
+    'addonA',
+    'addonB',
+    'addonC',
   ],
   appFull: [],
+  appNews: [
+    ...CORNER_WAITS_FOR,
+    'plusTerms',
+    'sceneReview',
+    'addonA',
+    'addonB',
+    'addonC',
+    'sceneAnnouncement',
+  ],
   modal: [],
 };
 

@@ -11,7 +11,7 @@ const account = {
   'account.close': '关闭',
 
   'account.optional':
-    '登录是可选的。没有账户时，FluidEQ 和往常完全一样——一切都在这台电脑上运行，不会追踪任何内容。有账户时，除非你关闭，你的收听时长会计入 FluidEQ 的统计。账户只用于确实需要它的功能。',
+    '登录是可选的。没有账户，FluidEQ 也和往常完全一样——一切都在这台电脑上运行，不会追踪任何内容。账户只用于确实需要它的功能。',
 
   'account.signIn': '登录',
   'account.signUp': '创建账户',
@@ -24,6 +24,16 @@ const account = {
   'account.signOut.detail': '你可以随时重新登录。',
   'account.signOut.detailPlus': '在你重新登录之前，你的场景在这里会保持锁定。',
   'account.signOut.kept': '这台电脑上的任何内容都不会被删除。',
+  'account.cover.onGraph': '图表上：{name}',
+  'account.stats.owned': '拥有',
+  'account.stats.likes': '赞',
+  'account.scenes.title': '你的收藏',
+  'account.scenes.openGallery': '打开画廊',
+  'account.scenes.empty': '你获取的场景永久归你，可以从这里在图表上播放。',
+  'account.scenes.playing': '播放中',
+  'account.scenes.play': '在图表上播放 {name}',
+  'account.published.title': '已发布',
+  'account.published.live': '在画廊中',
   'account.name.change': '更改名字',
   'account.name.changeTitle': '更改你的显示方式',
   'account.name.changeBody':
@@ -73,7 +83,7 @@ const account = {
   'account.error.invalidEmail': '这看起来不像一个邮箱地址。',
   'account.error.alreadyRegistered': '该地址已有账户。请直接登录。',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': '永久归你的场景，每个一点。',
   'account.perk.visualizers': '“可视化”：会员创作的场景，向所有账户开放。',

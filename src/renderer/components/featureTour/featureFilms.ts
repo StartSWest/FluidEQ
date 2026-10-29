@@ -33,11 +33,29 @@ export interface IFeatureFilm {
 }
 
 /**
- * Where a film is served, by the slide id it plays on and the language its
- * voice speaks: every film is made in all ten.
+ * Voices are published independently of interface dictionaries. A new UI
+ * locale must not create a URL for a film nobody recorded. Until Korean and
+ * Traditional Chinese films are supplied, use the existing English film
+ * with translated on-screen captions; its opener states the audio language.
  */
+const FILM_LOCALES: readonly LocaleCode[] = [
+  'en',
+  'es',
+  'pt',
+  'fr',
+  'de',
+  'it',
+  'ru',
+  'zh',
+  'ja',
+  'hi',
+];
+
+export const featureFilmLocale = (locale: LocaleCode): LocaleCode =>
+  FILM_LOCALES.includes(locale) ? locale : 'en';
+
 export const featureFilmUrl = (id: string, locale: LocaleCode) =>
-  `${OFFICIAL_SITE_URL}/video/whatsnew/${id}.${locale}.mp4`;
+  `${OFFICIAL_SITE_URL}/video/whatsnew/${id}.${featureFilmLocale(locale)}.mp4`;
 
 /**
  * Lines as the rig timed them (`<film>.cues.json`), keyed by the film's id,

@@ -36,10 +36,10 @@ import about from './about';
 import account from './account';
 import forum from './forum';
 import profile from './profile';
-import listening from './listening';
 import terms from './terms';
 import studio from './studio';
 import studioChat from './studioChat';
+import studioStarter from './studioStarter';
 import plus from './plus';
 import trial from './trial';
 import store from './store';
@@ -52,7 +52,6 @@ import lighting from './lighting';
 import wallpaper from './wallpaper';
 import bugReport from './bugReport';
 import review from './review';
-import insights from './insights';
 import announce from './announce';
 import player from './player';
 import genre from './genre';
@@ -87,10 +86,10 @@ const zh: Partial<Dictionary> = {
   ...account,
   ...forum,
   ...profile,
-  ...listening,
   ...terms,
   ...studio,
   ...studioChat,
+  ...studioStarter,
   ...plus,
   ...trial,
   ...store,
@@ -103,7 +102,6 @@ const zh: Partial<Dictionary> = {
   ...wallpaper,
   ...bugReport,
   ...review,
-  ...insights,
   ...announce,
   ...player,
   ...genre,

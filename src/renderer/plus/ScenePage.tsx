@@ -8,10 +8,10 @@ import {
 } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IGalleryScene } from 'common/plusGallery';
-import type { IReportedScene } from 'common/plusModeration';
 import { sceneMakerOf } from 'common/sceneMaker';
 import { resolveSceneName, type IScenePack } from 'common/scenePacks';
 import type { TGallerySceneFailure } from 'main/ipc/plusGallery';
+import { addonsHideSceneReport, rendererAddons } from '../addons';
 import Avatar from '../community/Avatar';
 import Glyph from '../community/Glyph';
 import type { ISceneFrame } from '../graph/sceneGl';
@@ -36,13 +36,10 @@ import {
   useGalleryScene,
   type TListQuery,
 } from './galleryStore';
-import { useModeration } from './moderationStore';
 import { openGalleryPage, type IMakerRef } from './plusNavigation';
 import ReportDialog from './ReportDialog';
-import SceneFreeSwitch from './SceneFreeSwitch';
 import SceneGet, { officialLine, SceneLockedVeil } from './SceneGet';
 import SceneInspectButton from './SceneInspectButton';
-import SceneModerationCard from './SceneModerationCard';
 import ScenePreview, { type TPreviewTrouble } from './ScenePreview';
 import SceneSteps from './SceneSteps';
 import SceneTaste from './SceneTaste';
@@ -79,8 +76,8 @@ interface IScenePageProps {
   scene: IGalleryScene;
   /** The list it was opened from, for stepping to the next one. */
   from?: TListQuery;
-  /** Opened by the admin from the queue of reported scenes. */
-  report?: IReportedScene;
+  /** What an add-on opened the page with (`TGalleryPage.context`). */
+  context?: unknown;
   me: string | undefined;
   onShowGraph: () => void;
 }
@@ -100,12 +97,11 @@ interface IScenePageProps {
 export default function ScenePage({
   scene: opened,
   from: openedFrom,
-  report,
+  context,
   me,
   onShowGraph,
 }: IScenePageProps) {
   const { t, locale } = useTranslation();
-  const moderation = useModeration();
   const scene = useGalleryScene(opened);
   const owned = useOwnsLook(scene.lookId);
   const free = useSceneStore().store?.free?.includes(scene.sceneId) ?? false;
@@ -412,8 +408,16 @@ export default function ScenePage({
           </div>
         </header>
 
-        {report && moderation.admin && (
-          <SceneModerationCard entry={report} name={name} />
+        {rendererAddons().map(
+          ({ name: addon, SceneHeadExtras }) =>
+            SceneHeadExtras && (
+              <SceneHeadExtras
+                key={addon}
+                scene={scene}
+                name={name}
+                context={context}
+              />
+            ),
         )}
 
         <SceneVersions scene={scene} />
@@ -466,15 +470,23 @@ export default function ScenePage({
         {scene.official && owned && (
           <SceneInspectButton sceneId={scene.sceneId} />
         )}
-        {scene.official && moderation.admin && (
-          <SceneFreeSwitch sceneId={scene.sceneId} />
+        {rendererAddons().map(
+          ({ name: addon, SceneActionExtras }) =>
+            SceneActionExtras && (
+              <SceneActionExtras
+                key={addon}
+                scene={scene}
+                name={name}
+                context={context}
+              />
+            ),
         )}
         <footer className="gallery-scene__foot">
           <p className="gallery-fine">
             {t(scene.official ? 'store.official.fine' : 'store.scene.fine')}
           </p>
-          {/* Not for the admin reviewing it: the reports are already theirs. */}
-          {!own && !scene.official && !(report && moderation.admin) && (
+          {/* Not on a page an add-on opened to deal with its reports. */}
+          {!own && !scene.official && !addonsHideSceneReport(context) && (
             <button
               type="button"
               className="gallery-scene__report"

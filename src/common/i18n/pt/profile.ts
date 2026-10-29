@@ -1,5 +1,4 @@
 const profile = {
-  'profile.role.admin': 'Criador',
   'profile.name.title': 'Escolha como a galeria mostra você',
   'profile.name.body':
     'Um nome de usuário e um nome visível. A galeria de Visualizadores os mostra como autor das suas cenas. Ficam visíveis para quem está conectado; ninguém vê seu email.',

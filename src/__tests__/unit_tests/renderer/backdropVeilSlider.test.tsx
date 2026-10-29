@@ -15,10 +15,11 @@ import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import BackdropVeilSlider from '../../../renderer/graph/BackdropVeilSlider';
 
-const state = { mode: 'cover', lookId: 'premium:bloom' };
+const state = { mode: 'cover', lookId: 'premium:bloom', isAmp: false };
 
 jest.mock('../../../renderer/utils/sceneTintStore', () => ({
   useSceneTintMode: () => state.mode,
+  useAmpHoldsWindow: () => state.isAmp,
 }));
 jest.mock('../../../renderer/utils/graphStyle', () => ({
   useSelectedLookId: () => state.lookId,
@@ -47,5 +48,13 @@ describe('the Transparency slider', () => {
     state.lookId = 'premium:bloom';
     state.mode = 'pulse';
     expect(slider()).toBeDisabled();
+  });
+
+  // The amp has no colour modes: with a Plus visualizer it is always the
+  // Backdrop (Ivan, 2026-10-25: "always backdrop only on the amp ui").
+  it('is live in the amp with a Plus visualizer, whatever mode the full app is in', () => {
+    state.mode = 'pulse';
+    state.isAmp = true;
+    expect(slider()).toBeEnabled();
   });
 });

@@ -22,7 +22,7 @@ import { execFile } from 'child_process';
 import fs from 'fs';
 import type { IAudioRestartOutcome } from '../../common/audioEngine';
 import { getEngineSetupPath, runEngineSetup } from '../engineSetup';
-import { POWERSHELL_PATH } from '../powershell';
+import { POWERSHELL_PATH, utf8Command } from '../powershell';
 
 /** Restarting Windows audio, which the trouble cards offer. */
 const registerWindowsAudioIpc = () => {
@@ -100,7 +100,7 @@ const registerWindowsAudioIpc = () => {
             '-ExecutionPolicy',
             'Bypass',
             '-Command',
-            elevateCommand,
+            utf8Command(elevateCommand),
           ],
           { windowsHide: true },
           (error) => {

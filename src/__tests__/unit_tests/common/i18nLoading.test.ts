@@ -45,3 +45,18 @@ it('shares one load between two asks for the same language', async () => {
   await first;
   expect(isLocaleLoaded('fr')).toBe(true);
 });
+
+it.each([
+  ['ko', '전체 화면'],
+  ['zh-Hant', '全螢幕'],
+] as const)(
+  'loads %s independently and keeps English as its unloaded fallback',
+  async (code, native) => {
+    expect(isLocaleLoaded(code)).toBe(false);
+    expect(translate(code, 'graph.view.fullscreen')).toBe('Full screen');
+    const first = loadLocale(code);
+    expect(loadLocale(code)).toBe(first);
+    await first;
+    expect(translate(code, 'graph.view.fullscreen')).toBe(native);
+  },
+);

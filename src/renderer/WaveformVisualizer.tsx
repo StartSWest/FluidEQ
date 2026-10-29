@@ -121,7 +121,7 @@ const FLUID_BAR_ALPHA = 0.34;
 type TWaveformCycleStyle = WaveformStyle | 'off';
 
 /** The held peak at its widest: it is let go below `SILENCE_DB`, -70. */
-const PEAK_WIDEST = ['-00.0 dB', '—'];
+export const PEAK_WIDEST = ['-00.0 dB', '—'];
 
 /** The keyframes that hold the style's name up (WaveformVisualizer.scss). */
 const ANNOUNCEMENT_HOLD = 'waveform-visualizer-announcement-hold';
@@ -857,7 +857,7 @@ const WaveformVisualizer = () => {
         // one from the next without cycling through the whole set. The style
         // keys ('line', 'spectrum', …) are technical identifiers rather than
         // prose, so they pass through the label as-is rather than each
-        // needing an entry in ten locales.
+        // needing an entry in every registered locale.
         aria-label={`${t('waveform.style')} — ${style}`}
         title={`${t('waveform.style')} — ${style}`}
         onClick={cycleStyle}

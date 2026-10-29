@@ -161,12 +161,18 @@ const eq: Partial<Dictionary> = {
     'Всё из «Атмосферы», и визуализатор за всем окном.',
   'graph.editHint':
     'Перетаскивайте точки · Ctrl/Shift — выбор · Ctrl+колесо: Q · Ctrl+перетаскивание: колокол',
+  'graph.windowTint': 'Оттенок',
+  'graph.windowTintHint':
+    'Цвет окна при стандартном виде. Двойной щелчок возвращает исходный цвет.',
   'graph.backdropVeil': 'Прозрачность',
   'graph.backdropVeilHint': 'Насколько визуализатор виден сквозь панели',
   'graph.sceneTint.brightness': 'Яркость',
-  'graph.sceneTint.rainbow': 'Режим «Радуга»',
+  'graph.sceneTint.rainbow': 'Цветной режим',
   'graph.sceneTint.rainbowHint':
-    'Полосы, заголовок и включённые элементы — палитрой вместо одного цвета; с визуализатором Plus — его собственными цветами.',
+    'Полосы, заголовок и включённые элементы — палитрой вместо одного цвета; с выбранной сценой — её собственными цветами.',
+  'graph.sceneTint.appIcon': 'Окрасить значок',
+  'graph.sceneTint.appIconHint':
+    'Кнопка на панели задач и значок в области уведомлений в цветах окна. Если выключено, остаётся значок FluidEQ.',
   'graph.sceneTint.sparks': 'Искры от указателя',
   'graph.sceneTint.sparksHint':
     'То, что визуализатор бросает от мыши: след, когда она проходит над картинкой, и всплеск там, где вы щёлкнете, — искры, лепестки, снег, из чего сделана сцена.',
@@ -174,15 +180,19 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.daylightHint':
     'Время суток визуализатора — от ночи до яркого дня',
   'graph.sceneTint.daylightFollowingHint':
-    'Следует за яркостью. Выключите «Время суток по яркости», чтобы задать время суток визуализатора отдельно',
-  'graph.sceneTint.daylightFollows': 'Время суток по яркости',
+    'Следует яркости. Выберите «Ничему» ниже, чтобы задать время суток визуализатора здесь',
+  'graph.sceneTint.daylightSource': 'Следует',
+  'graph.sceneTint.daylightSourceOwn': 'Ничему',
+  'graph.sceneTint.daylightSourceBrightness': 'Яркости',
+  'graph.sceneTint.daylightSourceClock': 'Часам',
+  'graph.sceneTint.daylightOwnHint':
+    'Визуализатор сохраняет дневной свет, заданный выше.',
   'graph.sceneTint.daylightFollowsHint':
-    'Включено — визуализатор переходит от ночи к дню вместе с яркостью. Выключено — он сохраняет время суток, заданное выше, а яркость меняет только окно.',
-  'graph.sceneTint.daylightClock': 'Время суток по часам',
+    'Визуализатор переходит от ночи к дню вместе с яркостью.',
   'graph.sceneTint.daylightClockHint':
-    'Включено — у визуализатора ночью ночь, а днём день, по часам этого компьютера. Выключено — он сохраняет время суток, заданное выше.',
+    'Визуализатор показывает ночь ночью и день днём — по часам этого компьютера.',
   'graph.sceneTint.daylightFollowingClockHint':
-    'Следует за часами. Выключите «Время суток по часам», чтобы задать время суток визуализатора отдельно',
+    'Следует часам. Выберите «Ничему» ниже, чтобы задать время суток визуализатора здесь',
   'graph.sceneTint.daylightStudioHint':
     'Пока открыта Студия, время суток визуализатора задаёт Яркость, чтобы проверить сцену от ночи до дня. Этот выбор вернётся, когда вы выйдете из Студии',
   'graph.sceneTint.brightnessHint':
@@ -197,7 +207,7 @@ const eq: Partial<Dictionary> = {
   'graph.member.likeOffline': 'Для лайков нужно подключение',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.scene.badge': 'Plus',
+  'graph.scene.badge': 'Сцена',
   'graph.scene.report': 'Пожаловаться на {name}',
   'graph.version.new': 'Новое',
   'graph.version.caption': 'v{version} · {note}',
@@ -267,13 +277,20 @@ const eq: Partial<Dictionary> = {
   'graph.scene.gpu.high': 'Высокая производительность',
   'graph.scene.gpu.restart': 'после перезапуска',
   'graph.scene.locked':
-    'Входит в FluidEQ Plus. Выберите, чтобы узнать, как открыть доступ.',
+    'Пока не ваша. Выберите, чтобы узнать, как её получить.',
   'graph.style.next': 'Следующий стиль',
   'graph.style.previous': 'Предыдущий стиль',
   'graph.picker.label': 'Стили и визуализаторы',
   'graph.picker.search': 'Поиск стилей и визуализаторов',
   'graph.picker.styles': 'Стили',
-  'graph.picker.plus': 'Визуализаторы Plus',
+  'graph.picker.plus': 'Визуализаторы',
+  'graph.picker.discover.title': 'Оживите свою музыку',
+  'graph.picker.discover.body':
+    'Покупайте анимированные сцены навсегда или бесплатно создавайте свои в Studio.',
+  'graph.picker.discover.explore': 'Посмотреть сцены',
+  'graph.picker.discover.create': 'Создать свою',
+  'graph.picker.discover.free':
+    'FluidEQ и его инструменты для звука остаются бесплатными.',
   'graph.picker.all': 'Все',
   'graph.picker.yours': 'Ваши',
   'graph.picker.filterStyles': 'Фильтр стилей',
@@ -535,9 +552,9 @@ const eq: Partial<Dictionary> = {
   'profiles.error.duplicate': 'Такое имя уже есть, выберите другое.',
   'profiles.edit': 'Изменить имя профиля',
   'autoeq.page.eyebrow': 'НАСТРОЙТЕ ПОД СВОИ НАУШНИКИ',
-  'autoeq.page.title': 'Коррекция наушников',
+  'autoeq.page.title': 'Пресеты EQ',
   'autoeq.page.intro':
-    'Укажите, в каких наушниках вы слушаете, и FluidEQ применит опубликованную для них коррекцию. Она ложится отдельным слоем, со своей силой и своим выключателем, так что ваши полосы эквалайзера не трогаются. Каждое измерение сделано на настоящем стенде и кем-то опубликовано — ничего не угадывается по названию модели.',
+    'Найдите коррекцию для наушников или добавьте свою кривую.',
   'autoeq.model.hint':
     'Ищите по марке или модели. Если вашей нет, близкий родственник из той же линейки обычно даёт почти то же самое.',
   'autoeq.target.hint':
@@ -629,7 +646,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target': 'Цель',
   'eq.smart.mode.target.note':
     'Продолжает измерять · каждую запись к одной кривой',
-  'eq.layers': 'Также применено',
   'eq.layers.aria': 'Что ещё влияет на этот выход',
   'eq.layers.eq': 'Эквалайзер',
   'eq.layers.eq.bands': 'полос: {count}',
@@ -782,7 +798,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Только ваши полосы, ничего сверху',
   'voicing.strength': 'Сила',
   'waveform.style': 'Сменить стиль индикатора',
-  'waveform.rainbow': 'Радуга',
+  'waveform.rainbow': 'Цветной',
   'waveform.live': 'ВЫХОД В РЕАЛЬНОМ ВРЕМЕНИ',
   'waveform.signal': 'АУДИОСИГНАЛ',
   'waveform.clip': 'ПЕРЕГРУЗКА',
@@ -810,6 +826,23 @@ const eq: Partial<Dictionary> = {
   'eq.refused.externalEq':
     'Во внешнем эквалайзере есть ступени, которые FluidEQ не может безопасно перенять. Его файлы не изменены.',
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.intro': 'Ваш сохранённый звук всегда под рукой.',
+  'myCurves.importSquiglink': 'Импорт из Squiglink',
+  'myCurves.preview': 'Предпросмотр кривой',
+  'myCurves.previewRange': 'Коррекция EQ · 20 Гц–20 кГц',
+  'myCurves.previewEmpty': 'Здесь появится предпросмотр вашей кривой',
+  'myCurves.filters': 'Фильтры',
+  'myCurves.preamp': 'Предусиление',
+  'myCurves.correctionHint':
+    'Применить как коррекцию наушников. Ваш редактируемый EQ останется прежним.',
+  'myCurves.squiglinkGuide': 'Кривая из Squiglink?',
+  'myCurves.squiglinkSteps':
+    'Выберите наушники и цель → Экспортируйте EQ → Вставьте ниже',
+  'myCurves.sourceLabel': 'Источник',
+  'myCurves.editableEq': 'Применить к редактируемому EQ',
+  'myCurves.editableEqHint':
+    'Заменяет редактируемые полосы. Выберите уши. Нажмите ещё раз для подтверждения.',
+  'myCurves.saveReplaceEq': 'Сохранить и заменить EQ',
   'myCurves.tab.opra': 'Библиотека OPRA',
   'myCurves.tab.mine': 'Мои кривые',
   'myCurves.tab.squiglink': 'Squiglink',
@@ -822,7 +855,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.export': 'Экспорт списка',
   'myCurves.empty.title': 'Своих кривых пока нет',
   'myCurves.empty.body':
-    'Добавьте кривую из экспорта Squiglink или файла .txt либо сохраните её на вкладке Squiglink. Ваши кривые хранятся на этом компьютере, пока вы их не экспортируете.',
+    'Добавьте экспорт Squiglink, файл .txt, текущий EQ или коррекцию OPRA. Кривые остаются на этом компьютере до экспорта.',
   'myCurves.noMatch': 'Ни в одном названии кривой этого нет.',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': 'Файл',
@@ -845,8 +878,8 @@ const eq: Partial<Dictionary> = {
   'myCurves.cancel': 'Отмена',
   'myCurves.addTitle': 'Добавить кривую',
   'myCurves.addIntro':
-    'Она попадёт в «Мои кривые». Ничего не зазвучит, пока вы её не примените.',
-  'myCurves.textLabel': 'Текст ParametricEQ',
+    'Сохраните кривую на потом или сохраните и примените сейчас.',
+  'myCurves.textLabel': 'Текст EQ',
   'myCurves.textPlaceholder':
     'Вставьте сюда экспорт ParametricEQ или GraphicEQ',
   'myCurves.read': 'Прочитано: полос {count}, предусиление {preamp} дБ',
@@ -858,7 +891,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.defaultName': 'Кривая Squiglink, {date}',
   'myCurves.chartAria': 'Кривая {name}, от 20 Гц до 20 кГц',
   'myCurves.save': 'Сохранить в «Мои кривые»',
-  'myCurves.saveApply': 'Сохранить и применить как кривую',
+  'myCurves.saveApply': 'Сохранить и применить',
   'myCurves.exportTitle': 'Экспорт «Моих кривых»',
   'myCurves.exportIntro':
     'Кривых в списке: {count}. Ничего о ваших выходах или аккаунте в файл не попадает.',
@@ -893,11 +926,11 @@ const eq: Partial<Dictionary> = {
   'myCurves.importNote':
     'Импортированные кривые никогда не включаются сами; та, что звучит сейчас, продолжает звучать.',
   'myCurves.from': 'Откуда она',
-  'myCurves.from.paste': 'Вставить',
+  'myCurves.from.paste': 'Вставить текст EQ',
   'myCurves.from.pasteHint': 'Текст ParametricEQ из Squiglink или AutoEQ',
-  'myCurves.from.file': 'Файл .txt',
+  'myCurves.from.file': 'Текстовый файл',
   'myCurves.from.fileHint': 'Формат Equalizer APO или AutoEQ',
-  'myCurves.from.eq': 'Мой EQ сейчас',
+  'myCurves.from.eq': 'Текущий EQ',
   'myCurves.from.eqHint': 'Ваши полосы такими, как они звучат',
   'myCurves.from.opra': 'Из OPRA',
   'myCurves.from.opraHint':

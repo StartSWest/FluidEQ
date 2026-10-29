@@ -7,9 +7,9 @@ const plus = {
   'plus.official.author': 'FluidEQ · Offiziell',
   'plus.official.included': 'Ein Credit pro Szene, für immer Ihre',
   'plus.official.badge': 'Offiziell',
-  'plus.visualizers.title': 'Visualizer',
+  'plus.visualizers.title': 'Galerie',
   'plus.visualizers.description':
-    'Szenen von FluidEQ und der Plus-Community, bereit für Ihre Musik',
+    'Szenen von FluidEQ und seiner Community, bereit für Ihre Musik',
   'plus.visualizers.blurb': 'Szenen von Mitgliedern',
   'plus.rail.pin': 'Seitenleiste anheften',
   'plus.rail.collapse': 'Seitenleiste einklappen',
@@ -39,6 +39,8 @@ const plus = {
     'Die Galerie konnte nicht geladen werden. Versuchen Sie es erneut.',
   'plus.gallery.moreError':
     'Weitere Szenen konnten nicht geladen werden. Versuchen Sie es erneut.',
+  'plus.gallery.error.forbidden':
+    'Dieses Konto hat keine Berechtigung, diese Szenen zu laden.',
   'plus.gallery.retry': 'Erneut versuchen',
 
   'plus.category.nature': 'Natur',
@@ -53,7 +55,7 @@ const plus = {
 
   'plus.card.by': 'von {name}',
   'plus.card.byYou': 'von Ihnen',
-  'plus.card.anonymous': 'einem Plus-Mitglied',
+  'plus.card.anonymous': 'einem Mitglied',
   'plus.card.adds': '{count}× hinzugefügt',
   'plus.card.add': 'Hinzufügen',
   'plus.card.added': 'Hinzugefügt',
@@ -120,7 +122,7 @@ const plus = {
   'plus.scene.inLooks':
     'In Ihren Darstellungen, unter „Von Mitgliedern erstellt“',
   'plus.scene.inLooksOwn': 'In Ihren Darstellungen, unter „Von Ihnen erstellt“',
-  'plus.scene.inLooksPlus': 'In Ihren Darstellungen, unter „FluidEQ Plus“',
+  'plus.scene.inLooksPlus': 'In Ihren Darstellungen, unter „FluidEQ“',
   'plus.scene.report': 'Diese Szene melden',
   'plus.scene.reported': 'Gemeldet. Danke.',
   'plus.scene.moreBy': 'Mehr von {name}',
@@ -148,200 +150,6 @@ const plus = {
   'plus.mine.failed':
     'Sie konnte nicht zurückgezogen werden. Versuchen Sie es erneut.',
 
-  'plus.gallery.reported': 'Gemeldet',
-  'plus.gallery.reportedOpen': '{count} zu prüfen',
-  'plus.moderation.title': 'Gemeldete Szenen',
-  'plus.moderation.hint':
-    'Szenen, die Mitglieder gemeldet haben. Nur Sie sehen diese Seite, und niemand erfährt, wer gemeldet hat. Eine entfernte Szene verschwindet aus der Galerie und aus den Darstellungen aller, die sie hinzugefügt haben.',
-  'plus.moderation.list.open': 'Zu prüfen',
-  'plus.moderation.list.takenDown': 'Entfernt',
-  'plus.moderation.reason.rights': 'Ohne Erlaubnis',
-  'plus.moderation.reason.flashing': 'Flackern',
-  'plus.moderation.reason.offensive': 'Anstößig',
-  'plus.moderation.reason.broken': 'Läuft nicht',
-  'plus.moderation.reports': 'Meldungen',
-  'plus.moderation.cardTitle': 'Meldungen zu dieser Szene',
-  'plus.moderation.lastReport': 'Letzte Meldung {date}',
-  'plus.moderation.takenDownOn': 'Entfernt {date}',
-  'plus.moderation.makerBanned': 'Ersteller gesperrt',
-  'plus.moderation.view': 'Ansehen',
-  'plus.moderation.dismiss': 'Verwerfen',
-  'plus.moderation.takeDown': 'Entfernen',
-  'plus.moderation.confirm':
-    'Für alle entfernen? Sie verschwindet aus der Galerie und aus den Darstellungen aller, die sie hinzugefügt haben.',
-  'plus.moderation.confirmNo': 'Behalten',
-  'plus.moderation.restore': 'Wiederherstellen',
-  'plus.moderation.empty.open': 'Nichts zu prüfen',
-  'plus.moderation.empty.openHint':
-    'Meldet ein Mitglied eine Szene, wartet sie hier, bis Sie antworten.',
-  'plus.moderation.empty.takenDown': 'Keine Szene ist entfernt.',
-  'plus.moderation.done.takenDown': '{name} wurde entfernt.',
-  'plus.moderation.done.dismissed': 'Die Meldungen zu {name} wurden verworfen.',
-  'plus.moderation.done.restored': '{name} ist wieder in der Galerie.',
-  'plus.moderation.failed': 'Das hat nicht geklappt. Versuchen Sie es erneut.',
-  'plus.moderation.forbidden':
-    'Nur der FluidEQ-Administrator kann Meldungen prüfen.',
-  'plus.gallery.gifts': 'Plus-Geschenke',
-  'plus.gifts.title': 'Plus-Geschenke',
-  'plus.gifts.hint':
-    'Verschenken Sie Plus an eine beliebige E-Mail-Adresse. Die Person erhält alles, was Plus bietet, ohne zu zahlen – sobald ein Konto diese Adresse bestätigt, bis Sie es zurücknehmen oder das gewählte Datum erreicht ist.',
-  'plus.gifts.field.email': 'E-Mail-Adresse',
-  'plus.gifts.field.note': 'Notiz',
-  'plus.gifts.field.notePlaceholder': 'Wer es ist, optional',
-  'plus.gifts.field.until': 'Endet',
-  'plus.gifts.field.untilHint':
-    'Lassen Sie das Ende leer, damit es gilt, bis Sie es zurücknehmen.',
-  'plus.gifts.give': 'Plus verschenken',
-  'plus.gifts.save': 'Geschenk speichern',
-  'plus.gifts.empty': 'Noch hat niemand Plus geschenkt bekommen',
-  'plus.gifts.emptyHint': 'Adressen, denen Sie Plus schenken, erscheinen hier.',
-  'plus.gifts.status.active': 'Hat Plus',
-  'plus.gifts.status.waiting': 'Wartet auf ein Konto',
-  'plus.gifts.status.ended': 'Beendet',
-  'plus.gifts.untilDate': 'Bis {date}',
-  'plus.gifts.forever': 'Bis zur Rücknahme',
-  'plus.gifts.since': 'Geschenkt am {date}',
-  'plus.gifts.edit': 'Bearbeiten',
-  'plus.gifts.takeBack': 'Zurücknehmen',
-  'plus.gifts.keep': 'Behalten',
-  'plus.gifts.confirmTakeBack': 'Plus von {email} zurücknehmen?',
-  'plus.gifts.done.given': 'Plus an {email} verschenkt',
-  'plus.gifts.done.updated': 'Geschenk für {email} gespeichert',
-  'plus.gifts.done.takenBack': 'Plus von {email} zurückgenommen',
-  'plus.gifts.error.invalid':
-    'Prüfen Sie die Adresse und dass das Enddatum noch in der Zukunft liegt.',
-  'plus.gifts.error.forbidden': 'Nur der FluidEQ-Admin kann Plus verschenken.',
-  'plus.gifts.error.failed': 'Das hat nicht geklappt. Versuchen Sie es erneut.',
-
-  'plus.gallery.accounts': 'Konten',
-  'plus.accounts.title': 'Konten',
-  'plus.admin.title': 'Verwaltung',
-  'plus.admin.blurb': 'Konten, Geschenke und Meldungen',
-  'plus.admin.description':
-    'Nur für Sie sichtbar: Szenen, die auf Ihre Genehmigung warten, die Szenen, die Mitglieder melden, alle Konten und das Plus, das Sie verschenken',
-  'plus.accounts.listHint':
-    'Die neuesten zuerst. Klicken Sie auf ein Konto, um zu sehen, was dazugehört, und löschen Sie es endgültig, wenn der Inhaber darum bittet.',
-  'plus.accounts.search': 'Nach E-Mail, Kürzel oder Name suchen',
-  'plus.accounts.refresh': 'Aktualisieren',
-  'plus.accounts.filter': 'Konten anzeigen',
-  'plus.accounts.filter.all': 'Alle Konten',
-  'plus.accounts.filter.plus': 'Mit Plus',
-  'plus.accounts.filter.free': 'Ohne Plus',
-  'plus.accounts.filter.trial': 'In der Gratis-Testphase',
-  'plus.accounts.admin': 'Admin',
-  'plus.accounts.loading': 'Konten werden geladen …',
-  'plus.accounts.shown': '{shown} von {total} angezeigt',
-  'plus.accounts.empty.none': 'Noch keine Konten',
-  'plus.accounts.empty.search': 'Kein Konto passt zu {query}',
-  'plus.accounts.empty.plus': 'Keines dieser Konten hat Plus',
-  'plus.accounts.empty.free': 'Alle diese Konten haben Plus',
-  'plus.accounts.empty.trial':
-    'Keines dieser Konten ist in der Gratis-Testphase',
-  'plus.accounts.trial.thisWeek': '{count} enden diese Woche',
-  'plus.accounts.trial.today': 'Testphase endet heute',
-  'plus.accounts.trial.tomorrow': 'Testphase endet morgen',
-  'plus.accounts.trial.inDays': 'Testphase endet in {days} Tagen',
-  'plus.accounts.trial.ends': 'Die Gratis-Testphase endet am {date}.',
-  'plus.accounts.filter.lapsed': 'Testphase ohne Plus',
-  'plus.accounts.empty.lapsed':
-    'Keine Gratis-Testphase ist ohne Plus abgelaufen.',
-  'plus.accounts.empty.joined': 'In diesem Zeitraum wurde kein Konto erstellt.',
-  'plus.accounts.joined.label': 'Beigetreten',
-  'plus.accounts.joined.ever': 'Gesamt',
-  'plus.accounts.joined.today': 'Heute',
-  'plus.accounts.joined.week': 'Diese Woche',
-  'plus.accounts.joined.month': 'Diesen Monat',
-  'plus.accounts.trial.ended': 'Testphase vorbei {when}',
-  'plus.accounts.trial.endedOn':
-    'Die Gratis-Testphase endete am {date}, ohne Plus.',
-  'plus.accounts.exit.title': 'Warum sie Plus nicht genommen haben',
-  'plus.accounts.exit.summary': '{said} von {total} haben den Grund genannt',
-  'plus.accounts.exit.empty':
-    'Keine Gratis-Testphase in dieser Liste ist ohne Plus abgelaufen.',
-  'plus.accounts.exit.said': 'Grund: {reason}',
-  'plus.accounts.exit.notSaid': 'Hat noch keinen Grund genannt.',
-  'plus.accounts.exit.price': 'Der Preis',
-  'plus.accounts.exit.not-enough': 'Zu wenig dabei',
-  'plus.accounts.exit.free-is-enough': 'Kostenlos reicht',
-  'plus.accounts.exit.no-time': 'Keine Zeit zum Ausprobieren',
-  'plus.accounts.exit.problems': 'Lief schlecht',
-  'plus.accounts.exit.payment': 'Konnte nicht wie gewünscht zahlen',
-  'plus.accounts.exit.other': 'Etwas anderes',
-  'plus.accounts.exit.none': 'Keine Angabe',
-  'plus.accounts.engine.title': 'Engine',
-  'plus.accounts.engine.fluid': 'FluidEQ-Engine',
-  'plus.accounts.engine.apo': 'Equalizer APO',
-  'plus.accounts.engine.unknown': 'Nicht gemeldet {count}',
-  'plus.accounts.engine.summary':
-    'FluidEQ-Engine {fluid}, Equalizer APO {apo}, nicht gemeldet {unknown}',
-  'plus.accounts.moreError':
-    'Weitere Konten konnten nicht geladen werden. Versuchen Sie es erneut.',
-  'plus.accounts.error.offline':
-    'Die Kontenliste braucht eine Verbindung. Versuchen Sie es online erneut.',
-  'plus.accounts.error.signedOut':
-    'Melden Sie sich erneut an, um die Konten zu sehen.',
-  'plus.accounts.error.server':
-    'Die Konten konnten nicht geladen werden. Versuchen Sie es erneut.',
-  'plus.accounts.error.list': 'Nur der FluidEQ-Admin kann Konten sehen.',
-  'plus.accounts.error.notDeployed':
-    'Der Server ist für die Kontenliste noch nicht aktualisiert.',
-  'plus.accounts.noName': 'Kein Name gewählt',
-  'plus.accounts.joined': 'Dabei seit {date}',
-  'plus.accounts.unconfirmed': 'Adresse nicht bestätigt',
-  'plus.accounts.online': 'Online',
-  'plus.accounts.lastSeen': 'Zuletzt am {date}',
-  'plus.accounts.appVersion': 'FluidEQ {version}',
-  'plus.accounts.plan.none': 'Kein Plus',
-  'plus.accounts.plan.paid': 'Plus bis {date}',
-  'plus.accounts.plan.trial': 'Gratis-Testphase',
-  'plus.accounts.plan.gift': 'Plus als Geschenk',
-  'plus.accounts.plan.giftUntil': 'Geschenk bis {date}',
-  'plus.accounts.goes': 'Wird mitgelöscht',
-  'plus.accounts.fact.published': 'Veröffentlichte Szenen',
-  'plus.accounts.fact.likes': 'Vergebene „Gefällt mir“',
-  'plus.accounts.fact.adds': 'Hinzugefügte Szenen',
-  'plus.accounts.fact.reports': 'Gesendete Meldungen',
-  'plus.accounts.note.admin':
-    'Dies ist ein Admin-Konto, und Admin-Konten werden hier nicht gelöscht.',
-  'plus.accounts.note.gone':
-    'Dieses Konto ist bereits gelöscht, aber die Löschung wurde nicht abgeschlossen: Veröffentlichte Dateien können noch gespeichert sein. „Löschung abschließen“ entfernt sie.',
-  'plus.accounts.note.deleting':
-    'Eine frühere Löschung dieses Kontos ist mittendrin stehen geblieben. „Löschung abschließen“ bringt sie zu Ende.',
-  'plus.accounts.note.gift':
-    'Ein Plus-Geschenk an diese Adresse bleibt bestehen, wie es die Bedingungen sagen. Nehmen Sie es hier oder unter Plus-Geschenke zurück, falls auch das gewünscht wurde.',
-  'plus.accounts.give': 'Plus schenken',
-  'plus.accounts.giveConfirm':
-    '{name} Plus schenken? Es gilt, bis Sie es zurücknehmen.',
-  'plus.accounts.giving': '{name} wird Plus geschenkt …',
-  'plus.accounts.giveYes': 'Plus schenken',
-  'plus.accounts.giveNo': 'Jetzt nicht',
-  'plus.accounts.takeBack': 'Plus zurücknehmen',
-  'plus.accounts.takeBackPaid':
-    'Das geschenkte Plus von {name} zurücknehmen? Das bezahlte Plus läuft weiter.',
-  'plus.accounts.takeBackPlain':
-    'Das geschenkte Plus von {name} zurücknehmen? Es endet sofort.',
-  'plus.accounts.takingBack': 'Plus von {name} wird zurückgenommen …',
-  'plus.accounts.delete': 'Konto löschen',
-  'plus.accounts.finish': 'Löschung abschließen',
-  'plus.accounts.confirm':
-    'Das Konto von {name} endgültig löschen? Das lässt sich nicht rückgängig machen.',
-  'plus.accounts.working':
-    'Das Konto von {name} und alles, was dazugehört, wird gelöscht …',
-  'plus.accounts.confirmYes': 'Endgültig löschen',
-  'plus.accounts.keep': 'Behalten',
-  'plus.accounts.done.title': 'Konto gelöscht: {email}',
-  'plus.accounts.done.body':
-    'Das Konto und alles, was dazugehört, ist weg. Entfernte veröffentlichte Dateien: {count}.',
-  'plus.accounts.error.invalid':
-    'Geben Sie die vollständige Adresse ein, etwa name@beispiel.de.',
-  'plus.accounts.error.forbidden': 'Nur der FluidEQ-Admin kann Konten löschen.',
-  'plus.accounts.error.noAccount':
-    'Dieses Konto gibt es nicht mehr, und es war nichts mehr davon zu löschen.',
-  'plus.accounts.error.unfinished':
-    'Die Löschung ist mittendrin stehen geblieben. Drücken Sie „Löschung abschließen“, um sie zu Ende zu bringen.',
-  'plus.accounts.error.failed':
-    'Das hat nicht geklappt. Versuchen Sie es erneut: Eine bereits begonnene Löschung wird zu Ende gebracht, nicht neu begonnen.',
-
   'plus.report.title': '{name} melden',
   'plus.report.lead':
     'Was stimmt damit nicht? Nur der Macher von FluidEQ liest Meldungen.',
@@ -363,11 +171,6 @@ const plus = {
   'plus.welcome.scene.reefLight': 'Rifflicht',
   'plus.welcome.scene.lanternLake': 'Laternensee',
   'plus.welcome.scene.prismBloom': 'Prismenblüte',
-  'plus.moderation.delete': 'Löschen',
-  'plus.moderation.deleteConfirm':
-    'Endgültig löschen? Sie verschwindet aus der Galerie und aus den Darstellungen aller Mitglieder, ihre Dateien werden gelöscht, und sie kann nie wieder veröffentlicht werden.',
-  'plus.moderation.deleteForGood': 'Endgültig löschen',
-  'plus.moderation.done.deleted': '{name} wurde gelöscht.',
   'plus.add.notOwned':
     'Holen Sie sich {name} zuerst: Das kostet einen Credit, danach kommt sie zu Ihren Darstellungen.',
 } as const;

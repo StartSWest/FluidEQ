@@ -30,6 +30,8 @@ export const remoteAudioValue = (
   overrides: Partial<IRemoteAudioValue> = {},
 ): IRemoteAudioValue => ({
   bothWays: true,
+  sharing: true,
+  setSharing: jest.fn(() => Promise.resolve()),
   deviceName: 'SWEST-GAMING',
   code: 'FLUIDEQ-LAN-2.mine',
   links: [],

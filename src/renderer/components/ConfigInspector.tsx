@@ -564,7 +564,7 @@ const ConfigInspector = () => {
                 </span>
                 {/* One arrow each, and they point at the difference.
                     Side by side these are a mirrored pair of words, and in
-                    several of the ten languages the words for export and import
+                    several supported languages the words for export and import
                     differ by a syllable. The tray tells them apart before the
                     label is read: out of the machine, or into it. Hidden from
                     anything that reads rather than looks, because the label

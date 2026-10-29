@@ -43,6 +43,7 @@ import { ErrorCode } from '../../../common/errors';
 import { FilterTypeEnum, ISmartEqSettings } from '../../../common/constants';
 import { ISongEqSettings } from '../../../common/songEq';
 import { ISongIdentity, buildSongIdentity } from '../../../common/songIdentity';
+import { storedSongIdentity } from '../../../main/songMemoryNames';
 
 type THandler = (event: { reply: jest.Mock }, arg: unknown) => void;
 
@@ -80,16 +81,29 @@ const mustBuild = (identity: ISongIdentity | undefined): ISongIdentity => {
 
 const DEVICE = 'device-a';
 
-/** A fresh module with a fresh `cached`, registered against `userDataDir`. */
-const register = (userDataDir: string): void => {
+/**
+ * A fresh module with a fresh `cached`, registered against `userDataDir`,
+ * and its read just after launch, which settles when it has been taken in.
+ */
+const registerAndKeep = (userDataDir: string): Promise<void> => {
   handlers.clear();
+  let launchRead: Promise<void> = Promise.resolve();
   jest.isolateModules(() => {
     const fresh =
       // eslint-disable-next-line global-require -- an uncached copy per test is the whole point: `cached` in main/ipc/songEq.ts is module state
       require('../../../main/ipc/songEq') as typeof import('../../../main/ipc/songEq');
-    fresh.default(userDataDir);
+    launchRead = fresh.default(userDataDir);
   });
+  return launchRead;
 };
+
+const register = (userDataDir: string): void => {
+  registerAndKeep(userDataDir).catch(() => undefined);
+};
+
+/** Registered, with the read just after launch taken in. */
+const registerAndRead = (userDataDir: string): Promise<void> =>
+  registerAndKeep(userDataDir);
 
 /**
  * Fire one channel and hand back the single reply it made.
@@ -144,10 +158,104 @@ describe('the song memory channels', () => {
     ).toEqual({ result: undefined });
 
     const stored = onDisk(dir).outputs[DEVICE];
-    expect(stored.entries[identity.key].plays).toBe(1);
-    expect(
-      stored.entries[identity.key].settings.filters['smart-1000'].gain,
-    ).toBe(3);
+    const { key } = storedSongIdentity(identity);
+    expect(stored.entries[key].plays).toBe(1);
+    expect(stored.entries[key].settings.filters['smart-1000'].gain).toBe(3);
+  });
+
+  it('keeps no name of another program’s song on disk, and still finds it', () => {
+    const dir = tempDir();
+    register(dir);
+    const identity = mustBuild(
+      buildSongIdentity(
+        'system',
+        'chrome.exe',
+        'A private title',
+        'A private channel',
+      ),
+    );
+
+    fire(ChannelEnum.COMMIT_SONG_EQ, [DEVICE, identity, layerOf(3)]);
+
+    const text = fs.readFileSync(path.join(dir, 'song-eq.json'), 'utf8');
+    expect(text).not.toMatch(/private|chrome/i);
+    // The control: what was filed is still found by the song playing.
+    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, identity])).toEqual({
+      result: expect.objectContaining({ plays: 1 }),
+    });
+  });
+
+  it('writes a file of names again without them at launch', async () => {
+    // As builds before 2026-10-26 wrote it: the song by name, in the key,
+    // the alias, the title and the artist.
+    const dir = tempDir();
+    const spotify = mustBuild(
+      buildSongIdentity('system', 'Spotify.exe', 'Private Song', 'Somebody'),
+    );
+    fs.writeFileSync(
+      path.join(dir, 'song-eq.json'),
+      JSON.stringify({
+        version: 1,
+        outputs: {
+          [DEVICE]: {
+            entries: {
+              [spotify.key]: {
+                settings: layerOf(4),
+                title: spotify.title,
+                artist: spotify.artist,
+                alias: spotify.alias,
+                plays: 2,
+                updatedAt: 1,
+              },
+            },
+            aliases: { [spotify.alias ?? '']: spotify.key },
+          },
+        },
+      }),
+      'utf8',
+    );
+
+    await registerAndRead(dir);
+
+    const text = fs.readFileSync(path.join(dir, 'song-eq.json'), 'utf8');
+    expect(text).not.toMatch(/private|somebody|spotify/i);
+    // Found again by the same song, and through the alias by your own copy.
+    const fromLibrary = mustBuild(
+      buildSongIdentity('library', 'x', 'Private Song', 'Somebody'),
+    );
+    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, spotify])).toEqual({
+      result: expect.objectContaining({ plays: 2 }),
+    });
+    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, fromLibrary])).toEqual({
+      result: expect.objectContaining({ plays: 2 }),
+    });
+  });
+
+  it('leaves a song saved before the launch read lands where it was', async () => {
+    // A song can be saved before the read just after launch has come back.
+    // That read is of the file as it was, and taking it in would put the
+    // song's memory back to before it was saved. The read is held here until
+    // the save is done, and then answers with the file from before it.
+    const dir = tempDir();
+    const before = JSON.stringify({ version: 1, outputs: {} });
+    let answer: (text: string) => void = () => {};
+    const read = jest.spyOn(fs.promises, 'readFile').mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          answer = resolve;
+        }) as ReturnType<typeof fs.promises.readFile>,
+    );
+    const identity = mustBuild(buildSongIdentity('library', 'abc', 'Song'));
+    const launchRead = registerAndKeep(dir);
+    fire(ChannelEnum.COMMIT_SONG_EQ, [DEVICE, identity, layerOf(3)]);
+
+    answer(before);
+    await launchRead;
+    read.mockRestore();
+
+    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, identity])).toEqual({
+      result: expect.objectContaining({ plays: 1 }),
+    });
   });
 
   it('refuses a payload that is not what the channel takes, and still answers', () => {

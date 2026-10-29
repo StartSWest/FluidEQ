@@ -311,6 +311,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-rows: auto;
   align-items: end;
 
+  > .autoeq-actions {
+    align-self: end;
+  }
+}
+
+// Apply and Save to My curves on one line while it fits, and Save wraps
+// under Apply rather than squeezing it (Ivan, 2026-10-25: "add to my curves
+// in same line").
+.autoeq-actions {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
   > .button {
     min-width: 104px;
     // The small button's own height, like every other button in the app. It
@@ -318,7 +333,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // sidebar and the import row all use — so the one button on this page
     // stood half a row taller than every button beside it.
     height: $control-height-sm;
-    align-self: end;
   }
 }
 
@@ -363,7 +377,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
 
   .eq-device-option,
-  .autoeq-response-option {
+  .autoeq-response-option__text {
     display: grid;
     min-width: 0;
     gap: 1px;
@@ -381,8 +395,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.eq-device-option,
+// A measurement with its curve beside it, as a row of My curves draws one, so
+// the measurements of one headphone are told apart by eye before one is
+// applied (Ivan, 2026-10-25: "so the user tell which is which visually").
 .autoeq-response-option {
+  display: flex;
+  // The whole row, in the list as in the closed picker, so every drawing
+  // stands at the same right edge and they compare line by line.
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  .my-curve__spark {
+    width: 96px;
+    height: 29px;
+  }
+}
+
+.eq-device-option,
+.autoeq-response-option__text {
   display: grid;
   min-width: 0;
   gap: 2px;
@@ -443,8 +476,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @container autoeq-workspace (max-width: 520px) {
-  .auto-eq > .button {
-    width: 100%;
+  .autoeq-actions > .button {
+    flex: 1 1 auto;
   }
 }
 

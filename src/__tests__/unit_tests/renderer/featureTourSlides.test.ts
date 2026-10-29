@@ -7,12 +7,39 @@ const idsOf = (version: string, release?: string) =>
     .filter((slide) => slide.release === release)
     .map((slide) => slide.id);
 
+describe("What's new in 2.2", () => {
+  it('introduces exactly the Karaoke background entry without changing 2.1', () => {
+    expect(featureTourFor('2.2.0')[0].id).toBe('karaoke-background');
+    expect(idsOf('2.2.0', '2.2')).toEqual(['karaoke-background']);
+    expect(idsOf('2.1.0', '2.2')).toEqual([]);
+    expect(idsOf('2.2.0', '2.1')).toEqual(idsOf('2.1.0', '2.1'));
+  });
+
+  it('keeps every earlier feature once, without relabeling it as new in 2.2', () => {
+    const slides = featureTourFor('2.2.0');
+    const ids = slides.map((slide) => slide.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    featureTourFor('2.1.0').forEach((slide) => expect(ids).toContain(slide.id));
+    const groups = slides.map((slide) => slide.release ?? 'always');
+    expect(
+      groups.filter(
+        (group, index) => index === 0 || group !== groups[index - 1],
+      ),
+    ).toEqual(['2.2', '2.1', 'always']);
+  });
+
+  it('keeps the same content on a 2.2 patch', () => {
+    expect(featureTourFor('2.2.8')).toEqual(featureTourFor('2.2.0'));
+  });
+});
+
 describe("What's new in 2.1", () => {
   it('opens on what 2.1 brought, every output first', () => {
     expect(idsOf('2.1.0', '2.1')).toEqual([
       'every-output',
       'each-ear',
       'share-audio',
+      'compact-player',
       'band-labels',
       'my-curves',
       'song-sound',
@@ -22,7 +49,12 @@ describe("What's new in 2.1", () => {
   });
 
   it('keeps showing 2.0 as new under its own number, and 1.7 no longer', () => {
-    expect(idsOf('2.1.0', '2.0')).toEqual(idsOf('2.0.0', '2.0'));
+    // All of it but the Compact player, whose slide 2.1 moved up: the one
+    // player replaced 2.0's two (Ivan, 2026-10-25).
+    expect(idsOf('2.1.0', '2.0')).toEqual(
+      idsOf('2.0.0', '2.0').filter((id) => id !== 'compact-player'),
+    );
+    expect(idsOf('2.0.0', '2.0')).toContain('compact-player');
     expect(idsOf('2.1.0', '1.7')).toEqual([]);
   });
 

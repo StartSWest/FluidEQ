@@ -401,6 +401,12 @@ int main() {
   check(fallen_in[0] > 0.3f,
         "but at the release it was tuned to, not instantly");
 
+  float live_values[5]{};
+  feq_meters_publish_live_input(meters, -3, -16, -14, 4, -21);
+  feq_meters_read_live_input(meters, live_values);
+  check(live_values[0] == -3 && live_values[1] == -16 && live_values[2] == -14 &&
+            live_values[3] == 4 && live_values[4] == -21,
+        "live Normalizer input and measured output LUFS retain their five-word order");
   feq_meters_destroy(meters);
 
   if (g_failures > 0) {

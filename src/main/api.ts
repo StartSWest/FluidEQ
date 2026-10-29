@@ -36,7 +36,12 @@ import {
   TTaskbarTransportAction,
 } from '../common/taskbarTransport';
 import type { IAudioRestartOutcome } from '../common/audioEngine';
+import {
+  TASKBAR_ICON_CHANNEL,
+  type TTaskbarIconRequest,
+} from '../common/taskbarIcon';
 import { VIDEO_DOWNLOAD_REVEAL } from '../common/videoDownloads';
+import { addonBridge } from './addonBridge';
 import { dspHostBridge } from './dspHost/bridge';
 import karaokeBridge from './karaokeBridge';
 import libraryBridge from './libraryBridge';
@@ -176,6 +181,13 @@ const setStartWithWindows = (wanted: boolean) =>
 const resetSettings = () =>
   ipcRenderer.invoke('settings-reset') as Promise<void>;
 
+/**
+ * The taskbar button in the window's colours (`main/taskbarIcon.ts`):
+ * answered once the icon is set, which is when the window sends the next.
+ */
+const setTaskbarIcon = (request: TTaskbarIconRequest) =>
+  ipcRenderer.invoke(TASKBAR_ICON_CHANNEL, request) as Promise<void>;
+
 /** Which graphics card the whole app runs on; applies from the next start. */
 const graphicsPreference = () =>
   ipcRenderer.invoke(
@@ -280,11 +292,11 @@ const watchSystemMedia = (enabled: boolean) =>
  * Skip and seek are buttons, drawn only where the session said it takes them
  * — the flags travel with each snapshot. `pause` is not a button: it is sent
  * when a player of this app's starts, so the machine's sound gets out of the
- * way exactly as one of our own players would. Play still goes out as a media
- * key, which reaches players that never registered a session at all.
+ * way exactly as one of our own players would. Group playback uses explicit
+ * Play too, so the globally registered media key cannot catch its own output.
  */
 const sendSystemMediaCommand = (
-  command: 'next' | 'previous' | 'seek' | 'stop' | 'pause',
+  command: 'next' | 'previous' | 'seek' | 'stop' | 'play' | 'pause',
   positionMs?: number,
 ) =>
   ipcRenderer.invoke(
@@ -371,6 +383,7 @@ export default {
     graphicsPreference,
     setGraphicsPreference,
     resetSettings,
+    setTaskbarIcon,
     getChangelog,
     installUpdate,
     isWindowMaximized,
@@ -411,5 +424,8 @@ export default {
     ...engineHealthBridge,
     ...lightingBridge,
     ...wallpaperBridge,
+    // An add-on kept in a developer's own checkout, never shipped
+    // (`main/addons.ts`): `addon:` channels and nothing else.
+    ...addonBridge,
   },
 };

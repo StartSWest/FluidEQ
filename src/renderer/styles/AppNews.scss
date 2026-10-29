@@ -1,0 +1,67 @@
+/* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
+@use 'theme' as *;
+@use 'spacing' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+
+.compact-frame.app-news-notice {
+  position: fixed;
+  z-index: 990;
+  top: calc($title-bar-height + 16px);
+  right: calc(var(--sound-pane-width, 0px) + 18px);
+  min-width: 0;
+  width: min(420px, calc(100vw - var(--sound-pane-width, 0px) - 36px));
+  background: linear-gradient(dialog.$sheet, dialog.$sheet), $surface-base;
+  max-height: calc(
+    100vh - $title-bar-height - 16px - var(--now-playing-bar-height, 0px) - 12px
+  );
+  grid-template-rows: minmax(0, 1fr);
+
+  .compact-frame__main {
+    grid-template-rows: auto auto auto;
+    min-height: 0;
+    overflow-y: auto;
+    @include slim-scrollbar;
+  }
+
+  .compact-frame__title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .compact-frame__actions {
+    justify-content: flex-start;
+    margin-top: 0;
+  }
+
+  .compact-frame__message {
+    min-width: 0;
+  }
+}
+
+// Below the dock breakpoint the shell keeps only its rail, even when the
+// remembered desktop column width is still 330px. Keep that handle reachable.
+@media (max-width: $bp-three-column) {
+  .compact-frame.app-news-notice {
+    right: calc($sound-pane-rail + 18px);
+    width: min(420px, calc(100vw - $sound-pane-rail - 36px));
+  }
+}
+
+.app-news-notice__label {
+  display: block;
+  color: $text-muted;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+}
+
+.app-news-notice__summary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-news__body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

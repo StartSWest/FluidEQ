@@ -19,9 +19,10 @@ const store: Partial<Dictionary> = {
   'store.credits.buyTitle': 'Obter créditos',
   'store.credits.lead':
     'Um crédito guarda uma cena para sempre. Você paga uma vez e nada é renovado.',
-  'store.credits.owned': 'Cenas suas: {count}',
   'store.credits.what':
     'Cada crédito guarda para sempre uma cena da galeria: no gráfico, na sua área de trabalho e nas suas luzes.',
+  'store.credits.half':
+    'Você tem meio crédito à espera: a próxima cena sua obtida com um crédito pago o completa.',
   'store.credits.buy': 'Obter créditos',
   'store.credits.getFree': 'Pegar créditos grátis',
   'store.error.offline':
@@ -85,10 +86,6 @@ const store: Partial<Dictionary> = {
     'Parte da coleção do FluidEQ: sua para sempre assim que você a obtiver.',
   'store.like.ownersOnly': '{count} curtidas. Obtenha a cena para curti-la.',
   'store.scene.free': 'Grátis para todos',
-  'store.admin.freeTitle': 'Grátis para todos',
-  'store.admin.freeOn': 'Toda conta conectada a toca sem gastar um crédito.',
-  'store.admin.freeOff':
-    'Um crédito, como as outras cenas. Ative para dá-la a todos.',
   'store.error.termsOutdated':
     'Os termos mudaram. Atualize o FluidEQ para ler a nova versão antes de comprar créditos.',
 };

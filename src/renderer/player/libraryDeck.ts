@@ -6,8 +6,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import type { ILibraryQueue, TLibraryRepeat } from 'common/library/queue';
-import type { ILibraryTrack } from 'common/library/types';
+import type { ILibraryScanProgress, ILibraryTrack } from 'common/library/types';
 import { useLibrary } from '../library/LibraryContext';
+
+/**
+ * What a drop of music files put on Up next: songs, nothing that was music,
+ * or nothing that was not already coming (`dropNotice.ts` says the last two).
+ */
+export type TDroppedMusic = 'added' | 'empty' | 'already';
 
 /** One song of the Library's play order, as the player's queue lists it. */
 export interface ILibraryDeckItem {
@@ -18,6 +24,12 @@ export interface ILibraryDeckItem {
   artist?: string;
   durationMs?: number;
   artId?: string;
+  /**
+   * Drawn by the Library's Keep playing once the last song queued began, and
+   * not picked since: the amp heads these as "More like this", apart from
+   * the listener's own list, as the Library's Up Next does.
+   */
+  isContinued?: boolean;
 }
 
 /**
@@ -40,18 +52,32 @@ export interface ILibraryDeck {
   cycleRepeat: () => void;
   jumpTo: (position: number) => void;
   /**
-   * Music files dragged onto the queue from the computer: they join the
-   * library and go on the end of the play order, in the order they were
-   * dropped. Resolves once they are in the queue — tags and durations arrive
-   * afterwards, as the scan reaches them.
+   * Music files or folders dragged onto the queue from the computer: they join the
+   * library and join at the chosen gap, or the end when no gap is named,
+   * in drop order. Folders wait for the cancellable Library scan.
    */
-  addFiles: (paths: string[]) => Promise<void>;
+  addFiles: (paths: string[], at?: number) => Promise<TDroppedMusic>;
+  /** A scan under way, unless its notice was put away (`hideScanNotice`). */
+  scanProgress?: ILibraryScanProgress;
+  cancelScan: () => void;
+  hideScanNotice: () => void;
   /**
    * Drag a song to a different place in what is coming up. Only what is
    * still ahead of the playhead can move, and only to somewhere ahead of it:
    * a song already played is a record of what happened.
    */
   move: (from: number, to: number) => void;
+  /**
+   * Take a song out of what is coming up, by its place: the same song can
+   * stand in the play order more than once. What has played stays.
+   */
+  remove: (position: number) => void;
+  /**
+   * The whole play order's songs, first to last, for saving it as a
+   * playlist. Asked for when it is wanted rather than kept in the deck: a
+   * queue built from a whole library is thousands long.
+   */
+  playOrder: () => string[];
   /** The play order around the current song — see `QUEUE_WINDOW`. */
   items: ILibraryDeckItem[];
   /** The current song's place in the play order, and how many there are. */
@@ -136,8 +162,11 @@ interface IPublishedLibraryDeck {
   setShuffle: (isShuffled: boolean) => void;
   cycleRepeat: () => void;
   jumpToQueuePosition: (position: number) => void;
-  addFiles: (paths: string[]) => Promise<void>;
+  addFiles: ILibraryDeck['addFiles'];
   moveUpNext: (from: number, to: number) => void;
+  removeUpNextAt: (position: number) => void;
+  /** Whether a song stands in the queue as a continuation draw. */
+  isGuess: (trackId: string) => boolean;
 }
 
 /**
@@ -156,8 +185,17 @@ export const usePublishedLibraryDeck = ({
   jumpToQueuePosition,
   addFiles,
   moveUpNext,
+  removeUpNextAt,
+  isGuess,
 }: IPublishedLibraryDeck) => {
-  const { summary } = useLibrary();
+  const {
+    summary,
+    isScanning,
+    progress,
+    cancelScan,
+    isScanNoticeHidden,
+    hideScanNotice,
+  } = useLibrary();
   /**
    * How long is still to come, summed by the store over every id from the
    * playhead on — the queue can run past the window the deck lists, and the
@@ -221,6 +259,7 @@ export const usePublishedLibraryDeck = ({
         artist: song?.artist,
         durationMs: song?.durationMs,
         artId: song?.artId,
+        ...(isGuess(id) ? { isContinued: true } : {}),
       });
     });
     setDeck({
@@ -232,7 +271,15 @@ export const usePublishedLibraryDeck = ({
       cycleRepeat,
       jumpTo: jumpToQueuePosition,
       addFiles,
+      scanProgress: isScanning && !isScanNoticeHidden ? progress : undefined,
+      cancelScan,
+      hideScanNotice,
       move: moveUpNext,
+      remove: removeUpNextAt,
+      playOrder: () =>
+        (queue?.order ?? [])
+          .map((index) => queue?.trackIds[index])
+          .filter((id): id is string => id !== undefined),
       items,
       position,
       total: order.length,
@@ -240,8 +287,15 @@ export const usePublishedLibraryDeck = ({
     });
   }, [
     addFiles,
+    isScanning,
+    progress,
+    cancelScan,
+    isScanNoticeHidden,
+    hideScanNotice,
     cycleRepeat,
     moveUpNext,
+    removeUpNextAt,
+    isGuess,
     isShuffled,
     jumpToQueuePosition,
     leftDurationMs,

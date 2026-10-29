@@ -44,11 +44,15 @@ export default function SaveToMyCurves({
     ? curves.find((entry) => entry.text.trim() === text)
     : undefined;
 
+  // The words are in a label of their own, which a row short of room hides
+  // down to the icon (`useRowFit`); the tooltip and the accessible name keep
+  // them.
   if (kept) {
+    const said = t('myCurves.inList', { name: kept.name });
     return (
-      <span className="my-curve-kept" role="status">
+      <span className="my-curve-kept" role="status" title={said}>
         <MenuIcon name="check" />
-        {t('myCurves.inList', { name: kept.name })}
+        <span className="my-curve-save__label">{said}</span>
       </span>
     );
   }
@@ -59,7 +63,12 @@ export default function SaveToMyCurves({
       type="button"
       className="button small subtle"
       disabled={isDisabled || !curve || !isLoaded || isSaving || isFull}
-      title={isFull ? t('myCurves.full', { count: CURVE_LIST_MAX }) : undefined}
+      aria-label={t('myCurves.save')}
+      title={
+        isFull
+          ? t('myCurves.full', { count: CURVE_LIST_MAX })
+          : t('myCurves.save')
+      }
       onClick={() => {
         if (!curve) {
           return;
@@ -71,7 +80,7 @@ export default function SaveToMyCurves({
       }}
     >
       <MenuIcon name="save" />
-      {t('myCurves.save')}
+      <span className="my-curve-save__label">{t('myCurves.save')}</span>
     </button>
   );
 }

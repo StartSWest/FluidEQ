@@ -1,6 +1,5 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import CAPTURED from './captured';
 import { type IHelpChapter, WINDOW } from './model';
 
 /** Listening, singing and sharing, and where to turn when something is wrong. */
@@ -181,9 +180,19 @@ const LISTEN_CHAPTERS = [
   {
     id: 'share',
     group: 'listen',
-    // Taken by `scripts/help-captures` (`captured.ts`), the connection code
-    // and every network address blurred.
-    figures: [CAPTURED['14-share-audio-roles.png']],
+    // The page drawn by its own parts (`help/live/shareFigures`) with a
+    // made-up group of four, laid out at a laptop window's width, where the
+    // group and the mix still stand side by side. Its still is the capture
+    // from before the group, one computer linked, the connection code and
+    // every network address blurred, for the exported guide.
+    figures: [
+      {
+        live: 'share-page',
+        width: 1040,
+        height: 830,
+        still: '14-share-audio-roles.png',
+      },
+    ],
   },
   {
     id: 'trouble',
@@ -193,7 +202,17 @@ const LISTEN_CHAPTERS = [
   {
     id: 'forum',
     group: 'help',
-    figures: [{ image: '30-forum.png', width: 2560, height: 1392 }],
+    // The page drawn by its own rail and list (`help/live/forumFigures`)
+    // from a made-up forum, on All topics with two topics new; its still is
+    // the 2.0 capture of the window, for the exported guide.
+    figures: [
+      {
+        live: 'forum-page',
+        width: 1120,
+        height: 640,
+        still: '30-forum.png',
+      },
+    ],
   },
 ] as const satisfies readonly IHelpChapter[];
 

@@ -6,9 +6,9 @@ const plus = {
   'plus.official.author': 'FluidEQ · Официально',
   'plus.official.included': 'Один кредит за сцену, ваша навсегда',
   'plus.official.badge': 'Официально',
-  'plus.visualizers.title': 'Визуализаторы',
+  'plus.visualizers.title': 'Галерея',
   'plus.visualizers.description':
-    'Сцены от FluidEQ и сообщества Plus для вашей музыки',
+    'Сцены от FluidEQ и его сообщества для вашей музыки',
   'plus.visualizers.blurb': 'Сцены участников',
   'plus.rail.pin': 'Закрепить боковую панель',
   'plus.rail.collapse': 'Свернуть боковую панель',
@@ -36,6 +36,8 @@ const plus = {
     'Не удалось загрузить галерею. Попробуйте ещё раз.',
   'plus.gallery.moreError':
     'Не удалось загрузить больше сцен. Попробуйте ещё раз.',
+  'plus.gallery.error.forbidden':
+    'У этого аккаунта нет разрешения на загрузку этих сцен.',
   'plus.gallery.retry': 'Повторить',
 
   'plus.category.nature': 'Природа',
@@ -50,7 +52,7 @@ const plus = {
 
   'plus.card.by': 'автор: {name}',
   'plus.card.byYou': 'ваша',
-  'plus.card.anonymous': 'участник Plus',
+  'plus.card.anonymous': 'участник',
   'plus.card.adds': 'добавлено: {count}',
   'plus.card.add': 'Добавить',
   'plus.card.added': 'Добавлено',
@@ -112,7 +114,7 @@ const plus = {
   'plus.scene.play': 'Запустить на графике',
   'plus.scene.inLooks': 'В ваших оформлениях, в разделе «Созданы участниками»',
   'plus.scene.inLooksOwn': 'В ваших оформлениях, в разделе «Созданы вами»',
-  'plus.scene.inLooksPlus': 'В ваших оформлениях, в разделе «FluidEQ Plus»',
+  'plus.scene.inLooksPlus': 'В ваших оформлениях, в разделе «FluidEQ»',
   'plus.scene.report': 'Пожаловаться на сцену',
   'plus.scene.reported': 'Жалоба отправлена. Спасибо.',
   'plus.scene.moreBy': 'Ещё от {name}',
@@ -139,202 +141,6 @@ const plus = {
   'plus.mine.unpublished': '«{name}» больше нет в галерее.',
   'plus.mine.failed': 'Не удалось снять с публикации. Попробуйте ещё раз.',
 
-  'plus.gallery.reported': 'Жалобы',
-  'plus.gallery.reportedOpen': 'На проверке: {count}',
-  'plus.moderation.title': 'Сцены с жалобами',
-  'plus.moderation.hint':
-    'Сцены, на которые пожаловались участники. Эту страницу видите только вы, и никто не узнает, кто пожаловался. Снятая сцена исчезает из галереи и из оформлений всех, кто её добавил.',
-  'plus.moderation.list.open': 'На проверке',
-  'plus.moderation.list.takenDown': 'Сняты',
-  'plus.moderation.reason.rights': 'Без разрешения',
-  'plus.moderation.reason.flashing': 'Мерцание',
-  'plus.moderation.reason.offensive': 'Оскорбительна',
-  'plus.moderation.reason.broken': 'Не запускается',
-  'plus.moderation.reports': 'Жалобы',
-  'plus.moderation.cardTitle': 'Жалобы на эту сцену',
-  'plus.moderation.lastReport': 'Последняя жалоба {date}',
-  'plus.moderation.takenDownOn': 'Снята {date}',
-  'plus.moderation.makerBanned': 'Автор заблокирован',
-  'plus.moderation.view': 'Открыть',
-  'plus.moderation.dismiss': 'Отклонить',
-  'plus.moderation.takeDown': 'Снять',
-  'plus.moderation.confirm':
-    'Снять для всех? Сцена исчезнет из галереи и из оформлений всех, кто её добавил.',
-  'plus.moderation.confirmNo': 'Оставить',
-  'plus.moderation.restore': 'Вернуть',
-  'plus.moderation.empty.open': 'Проверять нечего',
-  'plus.moderation.empty.openHint':
-    'Когда участник пожалуется на сцену, она будет ждать здесь вашего решения.',
-  'plus.moderation.empty.takenDown': 'Снятых сцен нет.',
-  'plus.moderation.done.takenDown': '{name} снята.',
-  'plus.moderation.done.dismissed': 'Жалобы на {name} отклонены.',
-  'plus.moderation.done.restored': '{name} снова в галерее.',
-  'plus.moderation.failed': 'Не получилось. Попробуйте ещё раз.',
-  'plus.moderation.forbidden':
-    'Проверять жалобы может только администратор FluidEQ.',
-  'plus.gallery.gifts': 'Plus в подарок',
-  'plus.gifts.title': 'Plus в подарок',
-  'plus.gifts.hint':
-    'Дарите Plus кому угодно по адресу почты. Всё, что есть в Plus, человек получит без оплаты, как только аккаунт подтвердит этот адрес, — пока вы не отзовёте подарок или не наступит выбранная дата.',
-  'plus.gifts.field.email': 'Адрес почты',
-  'plus.gifts.field.note': 'Заметка',
-  'plus.gifts.field.notePlaceholder': 'Кто это, необязательно',
-  'plus.gifts.field.until': 'До',
-  'plus.gifts.field.untilHint':
-    'Оставьте дату пустой, чтобы подарок действовал, пока вы его не отзовёте.',
-  'plus.gifts.give': 'Подарить Plus',
-  'plus.gifts.save': 'Сохранить подарок',
-  'plus.gifts.empty': 'Пока никому не подарен Plus',
-  'plus.gifts.emptyHint': 'Здесь появятся адреса, которым вы подарили Plus.',
-  'plus.gifts.status.active': 'Plus активен',
-  'plus.gifts.status.waiting': 'Ждёт аккаунт',
-  'plus.gifts.status.ended': 'Закончился',
-  'plus.gifts.untilDate': 'До {date}',
-  'plus.gifts.forever': 'Пока не отозван',
-  'plus.gifts.since': 'Подарен {date}',
-  'plus.gifts.edit': 'Изменить',
-  'plus.gifts.takeBack': 'Отозвать',
-  'plus.gifts.keep': 'Оставить',
-  'plus.gifts.confirmTakeBack': 'Отозвать Plus у {email}?',
-  'plus.gifts.done.given': 'Plus подарен {email}',
-  'plus.gifts.done.updated': 'Подарок для {email} сохранён',
-  'plus.gifts.done.takenBack': 'Plus отозван у {email}',
-  'plus.gifts.error.invalid':
-    'Проверьте адрес и то, что дата окончания ещё не наступила.',
-  'plus.gifts.error.forbidden':
-    'Дарить Plus может только администратор FluidEQ.',
-  'plus.gifts.error.failed': 'Не получилось. Попробуйте ещё раз.',
-
-  'plus.gallery.accounts': 'Аккаунты',
-  'plus.accounts.title': 'Аккаунты',
-  'plus.admin.title': 'Управление',
-  'plus.admin.blurb': 'Аккаунты, подарки и жалобы',
-  'plus.admin.description':
-    'Это видите только вы: сцены, ждущие вашего одобрения, сцены, на которые жалуются участники, все аккаунты и Plus, который вы дарите',
-  'plus.accounts.listHint':
-    'Сначала новые. Нажмите на аккаунт, чтобы увидеть, что в нём есть, и удалить его навсегда, когда владелец об этом попросит.',
-  'plus.accounts.search': 'Поиск по почте, нику или имени',
-  'plus.accounts.refresh': 'Обновить',
-  'plus.accounts.filter': 'Показать аккаунты',
-  'plus.accounts.filter.all': 'Все аккаунты',
-  'plus.accounts.filter.plus': 'С Plus',
-  'plus.accounts.filter.free': 'Без Plus',
-  'plus.accounts.filter.trial': 'В бесплатном периоде',
-  'plus.accounts.admin': 'Админ',
-  'plus.accounts.loading': 'Загрузка аккаунтов…',
-  'plus.accounts.shown': 'Показано {shown} из {total}',
-  'plus.accounts.empty.none': 'Аккаунтов пока нет',
-  'plus.accounts.empty.search': 'Нет аккаунтов по запросу {query}',
-  'plus.accounts.empty.plus': 'Ни у одного из этих аккаунтов нет Plus',
-  'plus.accounts.empty.free': 'У всех этих аккаунтов есть Plus',
-  'plus.accounts.empty.trial':
-    'Ни один из этих аккаунтов не в бесплатном периоде',
-  'plus.accounts.trial.thisWeek': 'Заканчиваются на этой неделе: {count}',
-  'plus.accounts.trial.today': 'Бесплатный период заканчивается сегодня',
-  'plus.accounts.trial.tomorrow': 'Бесплатный период заканчивается завтра',
-  'plus.accounts.trial.inDays':
-    'Бесплатный период заканчивается через {days} дн.',
-  'plus.accounts.trial.ends': 'Бесплатный период заканчивается {date}.',
-  'plus.accounts.filter.lapsed': 'Пробный без Plus',
-  'plus.accounts.empty.lapsed':
-    'Ни один бесплатный период не закончился без Plus.',
-  'plus.accounts.empty.joined': 'За это время не создано ни одного аккаунта.',
-  'plus.accounts.joined.label': 'Регистрация',
-  'plus.accounts.joined.ever': 'За всё время',
-  'plus.accounts.joined.today': 'Сегодня',
-  'plus.accounts.joined.week': 'На этой неделе',
-  'plus.accounts.joined.month': 'В этом месяце',
-  'plus.accounts.trial.ended': 'Период закончился {when}',
-  'plus.accounts.trial.endedOn':
-    'Бесплатный период закончился {date}, без Plus.',
-  'plus.accounts.exit.title': 'Почему не взяли Plus',
-  'plus.accounts.exit.summary': 'Ответили {said} из {total}',
-  'plus.accounts.exit.empty':
-    'В этом списке ни один бесплатный период не закончился без Plus.',
-  'plus.accounts.exit.said': 'Причина: {reason}',
-  'plus.accounts.exit.notSaid': 'Пока не назвал причину.',
-  'plus.accounts.exit.price': 'Цена',
-  'plus.accounts.exit.not-enough': 'Мало полезного',
-  'plus.accounts.exit.free-is-enough': 'Хватает бесплатного',
-  'plus.accounts.exit.no-time': 'Не успел попробовать',
-  'plus.accounts.exit.problems': 'Плохо работало',
-  'plus.accounts.exit.payment': 'Не смог оплатить как хотел',
-  'plus.accounts.exit.other': 'Другое',
-  'plus.accounts.exit.none': 'Не ответил',
-  'plus.accounts.engine.title': 'Движок',
-  'plus.accounts.engine.fluid': 'Движок FluidEQ',
-  'plus.accounts.engine.apo': 'Equalizer APO',
-  'plus.accounts.engine.unknown': 'Не сообщили {count}',
-  'plus.accounts.engine.summary':
-    'Движок FluidEQ {fluid}, Equalizer APO {apo}, не сообщили {unknown}',
-  'plus.accounts.moreError':
-    'Не удалось загрузить больше аккаунтов. Попробуйте ещё раз.',
-  'plus.accounts.error.offline':
-    'Для списка аккаунтов нужно подключение. Попробуйте ещё раз онлайн.',
-  'plus.accounts.error.signedOut': 'Войдите снова, чтобы увидеть аккаунты.',
-  'plus.accounts.error.server':
-    'Не удалось загрузить аккаунты. Попробуйте ещё раз.',
-  'plus.accounts.error.list':
-    'Аккаунты может видеть только администратор FluidEQ.',
-  'plus.accounts.error.notDeployed':
-    'Сервер ещё не обновлён для списка аккаунтов.',
-  'plus.accounts.noName': 'Имя не выбрано',
-  'plus.accounts.joined': 'Зарегистрирован {date}',
-  'plus.accounts.unconfirmed': 'Адрес не подтверждён',
-  'plus.accounts.online': 'В сети',
-  'plus.accounts.lastSeen': 'Был {date}',
-  'plus.accounts.appVersion': 'FluidEQ {version}',
-  'plus.accounts.plan.none': 'Без Plus',
-  'plus.accounts.plan.paid': 'Plus до {date}',
-  'plus.accounts.plan.trial': 'Бесплатный период',
-  'plus.accounts.plan.gift': 'Plus в подарок',
-  'plus.accounts.plan.giftUntil': 'Подарок до {date}',
-  'plus.accounts.goes': 'Удаляется вместе с ним',
-  'plus.accounts.fact.published': 'Опубликованные сцены',
-  'plus.accounts.fact.likes': 'Поставленные лайки',
-  'plus.accounts.fact.adds': 'Добавленные сцены',
-  'plus.accounts.fact.reports': 'Отправленные жалобы',
-  'plus.accounts.note.admin':
-    'Это аккаунт администратора, а такие аккаунты здесь не удаляются.',
-  'plus.accounts.note.gone':
-    'Этот аккаунт уже удалён, но удаление не завершилось: опубликованные файлы могут ещё храниться. «Завершить удаление» уберёт их.',
-  'plus.accounts.note.deleting':
-    'Прежнее удаление этого аккаунта остановилось на полпути. «Завершить удаление» доведёт его до конца.',
-  'plus.accounts.note.gift':
-    'Plus, подаренный на этот адрес, остаётся, как сказано в условиях. Отзовите подарок здесь или в разделе «Plus в подарок», если об этом тоже просили.',
-  'plus.accounts.give': 'Подарить Plus',
-  'plus.accounts.giveConfirm':
-    'Подарить Plus пользователю {name}? Он будет действовать, пока вы его не заберёте.',
-  'plus.accounts.giving': 'Дарим Plus пользователю {name}…',
-  'plus.accounts.giveYes': 'Подарить Plus',
-  'plus.accounts.giveNo': 'Не сейчас',
-  'plus.accounts.takeBack': 'Отозвать Plus',
-  'plus.accounts.takeBackPaid':
-    'Отозвать Plus, подаренный пользователю {name}? Оплаченный Plus продолжит действовать.',
-  'plus.accounts.takeBackPlain':
-    'Отозвать Plus, подаренный пользователю {name}? Он закончится сейчас.',
-  'plus.accounts.takingBack': 'Отзываем Plus у пользователя {name}…',
-  'plus.accounts.delete': 'Удалить аккаунт',
-  'plus.accounts.finish': 'Завершить удаление',
-  'plus.accounts.confirm':
-    'Удалить аккаунт {name} навсегда? Отменить это нельзя.',
-  'plus.accounts.working': 'Удаляются аккаунт {name} и всё, что с ним связано…',
-  'plus.accounts.confirmYes': 'Удалить навсегда',
-  'plus.accounts.keep': 'Оставить',
-  'plus.accounts.done.title': 'Аккаунт удалён: {email}',
-  'plus.accounts.done.body':
-    'Аккаунт и всё, что с ним связано, удалены. Убрано опубликованных файлов: {count}.',
-  'plus.accounts.error.invalid':
-    'Введите адрес полностью, например name@example.com.',
-  'plus.accounts.error.forbidden':
-    'Удалять аккаунты может только администратор FluidEQ.',
-  'plus.accounts.error.noAccount':
-    'Этого аккаунта больше нет, и удалять от него было уже нечего.',
-  'plus.accounts.error.unfinished':
-    'Удаление остановилось на полпути. Нажмите «Завершить удаление», чтобы довести его до конца.',
-  'plus.accounts.error.failed':
-    'Не получилось. Попробуйте ещё раз: уже начатое удаление будет доведено до конца, а не начато заново.',
-
   'plus.report.title': 'Пожаловаться на «{name}»',
   'plus.report.lead':
     'Что с ней не так? Жалобы читает только создатель FluidEQ.',
@@ -355,11 +161,6 @@ const plus = {
   'plus.welcome.scene.reefLight': 'Свет рифа',
   'plus.welcome.scene.lanternLake': 'Озеро фонариков',
   'plus.welcome.scene.prismBloom': 'Цветок-призма',
-  'plus.moderation.delete': 'Удалить',
-  'plus.moderation.deleteConfirm':
-    'Удалить насовсем? Сцена исчезнет из галереи и из оформлений всех участников, её файлы будут стёрты, и опубликовать её снова будет нельзя.',
-  'plus.moderation.deleteForGood': 'Удалить насовсем',
-  'plus.moderation.done.deleted': '{name} удалена.',
   'plus.add.notOwned':
     'Сначала получите «{name}»: это стоит один кредит, и после этого она попадёт в ваши оформления.',
 } as const;

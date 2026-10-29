@@ -630,6 +630,14 @@ describe('KaraokeWorkspace sessions and layout', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    expect(clearKaraokeSession).not.toHaveBeenCalled();
+    fireEvent.click(
+      within(
+        screen.getByRole('alertdialog', {
+          name: 'Unload all karaoke songs?',
+        }),
+      ).getByRole('button', { name: 'Clear' }),
+    );
     expect(clearKaraokeSession).toHaveBeenCalledTimes(1);
   });
 

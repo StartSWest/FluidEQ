@@ -24,9 +24,9 @@ const wallpaper = {
   'wallpaper.motion.calm.hint': '缓慢安静的动画，不受音乐影响。',
   'wallpaper.follow': '跟随图表',
   'wallpaper.follow.hint':
-    '显示图表上的 Plus 可视化效果并随之切换，无论是你手动选择还是自动切换。当图表显示非 Plus 可视化效果时，此屏幕保留最后一个 Plus 可视化效果。',
+    '显示图表上的场景并随之切换，无论是你手动选择还是自动切换。当图表显示样式时，此屏幕保留最后一个场景。',
   'wallpaper.follow.choice':
-    '所选显示器会随图表上的 Plus 可视化效果切换，无论是你手动选择还是自动切换；图表显示非 Plus 可视化效果时，它们保留最后一个。',
+    '所选显示器会随图表上的场景切换，无论是你手动选择还是自动切换；图表显示样式时，它们保留最后一个场景。',
   'wallpaper.cancel': '取消',
   'wallpaper.done': '完成',
   'wallpaper.start': '设置背景',
@@ -53,7 +53,8 @@ const wallpaper = {
   'wallpaper.pause.covered': '窗口遮住这台显示器时已暂停',
   'wallpaper.error.unsupported': '桌面背景可在 Windows 上使用。',
   'wallpaper.error.unavailable': '无法连接桌面背景。请重试。',
-  'wallpaper.error.notEntitled': '桌面可视化效果包含在 FluidEQ Plus 中。',
+  'wallpaper.error.notEntitled':
+    '这个场景还不属于你。在图库中获取后即可设为桌面背景。',
   'wallpaper.error.missingScene': '此可视化效果已不再安装。请重新添加后再试。',
   'wallpaper.error.refused':
     '此可视化效果在这台电脑的图形上出错。重新设置即可再试一次。',

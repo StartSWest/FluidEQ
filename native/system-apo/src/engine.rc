@@ -87,6 +87,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        (`ENGINE_DEESSER_SINCE`): an older engine plays the rack without it
  *        rather than refusing it. It also reports the De-esser in its
  *        stages, its delay and its readings for the page.
+ *   1.24 honors live Normalizer target and ceiling edits while holding a song,
+ *        and appends the measured post-Normalizer short-term LUFS reading.
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -98,8 +100,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 23, 0, 0
-PRODUCTVERSION 1, 23, 0, 0
+FILEVERSION 1, 24, 0, 0
+PRODUCTVERSION 1, 24, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

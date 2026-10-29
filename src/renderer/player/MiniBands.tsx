@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   IFilter,
   MAX_GAIN,
@@ -27,8 +27,9 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import { sortHelper, useLatestCall } from '../utils/utils';
 import PlayerFader from './PlayerFader';
+import PlayerIcon from './PlayerIcon';
+import useFaderRow from './useFaderRow';
 import useAutoPreAmp from '../components/useAutoPreAmp';
-import { isDenseBands } from './playerLayout';
 
 /** The preamp's key among the faders, for the screen's read-out. */
 export const PREAMP_FOCUS = 'preamp';
@@ -42,14 +43,17 @@ export const bandLabel = (hz: number) => {
   return String(Math.round(hz));
 };
 
-/** Which fader is held, for the screen to read out; nothing on release. */
+/**
+ * Which fader is held, for a screen that reads it out; nothing on release.
+ * The one amp draws none (its figures stand under the faders), so optional.
+ */
 type TFocus = (key: string | undefined) => void;
 
 interface IMiniBandProps {
   band: IFilter;
   progress: number;
   isDisabled: boolean;
-  onFocus: TFocus;
+  onFocus?: TFocus;
 }
 
 /** One band: the player's own fader in the band's colour, its frequency. */
@@ -97,7 +101,7 @@ const MiniBand = ({ band, progress, isDisabled, onFocus }: IMiniBandProps) => {
       colour={`var(--player-band-tint, ${getBandColor(progress, rainbow).color})`}
       isDisabled={isDisabled}
       isOff={!isBandEnabled(band)}
-      onHold={(isHeld) => onFocus(isHeld ? band.id : undefined)}
+      onHold={(isHeld) => onFocus?.(isHeld ? band.id : undefined)}
       onChange={(gain) => {
         setValue(gain).catch(() => undefined);
       }}
@@ -113,7 +117,7 @@ const MiniBand = ({ band, progress, isDisabled, onFocus }: IMiniBandProps) => {
  * listener, drawn where it stands and not draggable, with the sidebar's
  * sentence saying why.
  */
-const MiniBands = ({ onFocus }: { onFocus: TFocus }) => {
+const MiniBands = ({ onFocus }: { onFocus?: TFocus }) => {
   const { t } = useTranslation();
   const {
     filters,
@@ -140,64 +144,31 @@ const MiniBands = ({ onFocus }: { onFocus: TFocus }) => {
   const auto = useAutoPreAmp();
   const fadersRef = useRef<HTMLDivElement>(null);
   const count = bands.length;
-
-  /**
-   * The faders across the whole row, every one the same width, with the
-   * same gap between them — IN THE PIXELS THE SCREEN HAS (Ivan,
-   * 2026-09-21: fill the space, and keep a minimum between the bands).
-   *
-   * Shared out by the browser, each band gets a fraction of a pixel and the
-   * caps land two apart in one place and three in the next, which reads as
-   * a bunched row however equal the numbers are. Whole CSS pixels are not
-   * enough either — the page can be zoomed, this window sits at about 0.91,
-   * and a whole CSS pixel is then a fraction of a real one. So the row is
-   * measured in device pixels and cut into equal steps there, the gap is a
-   * whole number of them and never less than the deck asks for, the row is
-   * pushed to the next whole device pixel, and the few left over are split
-   * between its two ends.
-   *
-   * Written straight onto the row, so a window being dragged does not
-   * re-render the equalizer on every frame of it.
-   */
-  useLayoutEffect(() => {
+  // Whether the row runs on past either edge: the arrow on that side is
+  // there to press only then. Read from the row on every scroll and change
+  // of size — never from a guess at how far a smooth scroll has got.
+  const [pages, setPages] = useState({ canBack: false, canOn: false });
+  const readPages = useCallback(() => {
     const row = fadersRef.current;
-    if (!row || typeof ResizeObserver === 'undefined') {
-      return undefined;
+    if (!row) {
+      return;
     }
-    const fit = () => {
-      const deck = row.parentElement ?? row;
-      // From the deck, never from the row: the row is where the snapped
-      // lengths are written, and reading those back would snap them again.
-      const deckStyle = getComputedStyle(deck);
-      const base =
-        parseFloat(deckStyle.getPropertyValue('--player-band-gap')) || 4;
-      const band =
-        parseFloat(deckStyle.getPropertyValue('--player-fader-cap')) || 13;
-      const ratio = window.devicePixelRatio || 1;
-      const box = row.getBoundingClientRect();
-      const gap = Math.max(1, Math.round(base * ratio));
-      const widest = Math.max(2, Math.round(band * ratio));
-      const room = Math.floor(box.width * ratio);
-      // The row shared out in whole pixels, with the gap taken off the top:
-      // whatever is left is the band, and the cap is never wider than that,
-      // or the caps eat the gap the row was measured out to keep.
-      const step = Math.max(
-        gap + 2,
-        Math.floor((room + gap) / Math.max(1, count)),
-      );
-      const cap = Math.min(widest, step - gap);
-      const spare = Math.max(0, room - (count * step - gap));
-      const edge = Math.ceil(box.left * ratio) - box.left * ratio;
-      row.style.setProperty('--player-band-gap', `${gap / ratio}px`);
-      row.style.setProperty('--player-band-width', `${(step - gap) / ratio}px`);
-      row.style.setProperty('--player-fader-cap', `${cap / ratio}px`);
-      row.style.paddingLeft = `${(edge + Math.floor(spare / 2)) / ratio}px`;
-    };
-    fit();
-    const observer = new ResizeObserver(fit);
-    observer.observe(row);
-    return () => observer.disconnect();
-  }, [count]);
+    const canBack = row.scrollLeft > 1;
+    const canOn = row.scrollLeft + row.clientWidth < row.scrollWidth - 1;
+    setPages((shown) =>
+      shown.canBack === canBack && shown.canOn === canOn
+        ? shown
+        : { canBack, canOn },
+    );
+  }, []);
+
+  useFaderRow(fadersRef, count, readPages);
+
+  /** A page of ten bands on, or back, as far as the row goes. */
+  const turnPage = (direction: -1 | 1) => {
+    const row = fadersRef.current;
+    row?.scrollBy({ left: direction * row.clientWidth, behavior: 'smooth' });
+  };
   const setPreamp = useCallback(
     async (gain: number) => {
       setPreAmp(gain);
@@ -211,7 +182,7 @@ const MiniBands = ({ onFocus }: { onFocus: TFocus }) => {
   );
 
   return (
-    <div className={`player-bands${isDenseBands(count) ? ' is-dense' : ''}`}>
+    <div className="player-bands">
       {/* The preamp stands apart from the bands, before the rule: its own
           grid column, which is what `.player-bands > .player-band` styles. */}
       <PlayerFader
@@ -250,7 +221,7 @@ const MiniBands = ({ onFocus }: { onFocus: TFocus }) => {
         zero={0}
         colour="var(--player-lamp)"
         isDisabled={isLocked || isAutoPreAmpOn}
-        onHold={(isHeld) => onFocus(isHeld ? PREAMP_FOCUS : undefined)}
+        onHold={(isHeld) => onFocus?.(isHeld ? PREAMP_FOCUS : undefined)}
         onChange={(gain) => {
           setPreamp(gain).catch(() => undefined);
         }}
@@ -260,16 +231,44 @@ const MiniBands = ({ onFocus }: { onFocus: TFocus }) => {
           figure under it now (the refined amp, 2026-09-26), which says more
           than a +20 / 0 / −20 column did and takes the column's width back
           for the bands. */}
-      <div className="player-bands__faders" ref={fadersRef}>
-        {bands.map((band, i) => (
-          <MiniBand
-            key={band.id}
-            band={band}
-            progress={i / Math.max(1, bands.length - 1)}
-            isDisabled={isLocked}
-            onFocus={onFocus}
-          />
-        ))}
+      <div
+        className={`player-bands__window${pages.canBack ? ' can-back' : ''}${
+          pages.canOn ? ' can-on' : ''
+        }`}
+      >
+        <div className="player-bands__faders" ref={fadersRef}>
+          {bands.map((band, i) => (
+            <MiniBand
+              key={band.id}
+              band={band}
+              progress={i / Math.max(1, bands.length - 1)}
+              isDisabled={isLocked}
+              onFocus={onFocus}
+            />
+          ))}
+        </div>
+        {pages.canBack && (
+          <button
+            type="button"
+            className="player-bands__page is-back"
+            aria-label={t('player.eq.pageBack')}
+            title={t('player.eq.pageBack')}
+            onClick={() => turnPage(-1)}
+          >
+            <PlayerIcon name="chevronLeft" />
+          </button>
+        )}
+        {pages.canOn && (
+          <button
+            type="button"
+            className="player-bands__page is-on"
+            aria-label={t('player.eq.pageOn')}
+            title={t('player.eq.pageOn')}
+            onClick={() => turnPage(1)}
+          >
+            <PlayerIcon name="chevronRight" />
+          </button>
+        )}
       </div>
     </div>
   );

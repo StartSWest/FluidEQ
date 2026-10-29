@@ -33,7 +33,7 @@ const help = {
   'help.group.start': 'Get started',
   'help.group.sound': 'Shape your sound',
   'help.group.visuals': 'See your music',
-  'help.group.plus': 'FluidEQ Plus',
+  'help.group.plus': 'Visualizers and your account',
   'help.group.listen': 'Listen, sing and share',
   'help.group.help': 'When you need help',
 
@@ -60,11 +60,11 @@ const help = {
   'help.window.intro':
     'The header takes you between FluidEQ’s pages and shows the sound as it plays. The left rail holds the switch for the whole EQ, the preamp and the level meter; the right rail follows your output and its profiles.',
   'help.window.steps':
-    'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Plus after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the signal or the level meter to change how it is drawn, and Rainbow mode to have the curves and meters move at your screen’s full rate.',
+    'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Visualizers after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the level meter to change how it is drawn, and Colourful on the signal to have the bands, the title and the lit controls in a palette instead of one colour.',
   'help.window.tip':
-    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The pulse button beside it holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio and Processes, which shows what each part of FluidEQ is using; at its foot are Brightness and Transparency, animations, Start with Windows and the language. The switch after them turns the window into the Compact player.',
+    'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The menu button beside it, three lines, holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio, Processes, which shows what each part of FluidEQ is using, and Reset all settings; at its foot are Brightness, Tint, Colourful mode, Tint app icon (off at first; it puts the taskbar icon, the tray icon and the icon in the tray’s menu in the window’s colours), the EQ sliders, animations, Start with Windows and the language. The switch after them turns the window into the Compact player.',
   'help.window.keywords':
-    'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, rainbow, theme, dark mode, light mode, dark theme, light theme, language, start with windows, autostart, startup, account',
+    'header, tabs, pages, menu, navigation, interface, layout, toolbar, sidebar, top bar, bottom bar, player bar, meter, rainbow, colourful mode, colorful mode, theme, dark mode, light mode, dark theme, light theme, language, start with windows, autostart, startup, account',
   'help.window.headerLeftCaption': 'The header, up to the signal',
   'help.window.headerRightCaption': 'The header, after the signal',
   'help.window.railCaption': 'The left rail',
@@ -76,7 +76,7 @@ const help = {
     'Your bands, presets, headphone correction, game presets and the engine’s config.',
   'help.window.waveName': 'Audio signal',
   'help.window.wave':
-    'What is playing, as it plays. Press it to change how it is drawn.',
+    'What is playing, as it plays, with its peak level. Colourful, at its top, turns Colourful mode on or off; the graph’s View menu can hide it.',
   'help.window.dsp':
     'The effects rack: presets, the Room and every stage of the chain.',
   'help.window.library': 'Your music files, albums and play queue.',
@@ -87,7 +87,7 @@ const help = {
   'help.window.help':
     'This guide, What’s new, the audio troubleshooter and Report a problem.',
   'help.window.actions':
-    'The engine, your account, importing EQ settings, restarting Windows audio and Processes; Brightness and Transparency, animations, Start with Windows and the language.',
+    'The engine, your account, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint, Colourful mode and Tint app icon, the EQ sliders, animations, Start with Windows and the language.',
   'help.window.systemEq':
     'Turns FluidEQ’s processing on or off for everything the PC plays.',
   'help.window.preamp':
@@ -100,31 +100,26 @@ const help = {
     'The output level, left and right, in real decibels. Press it to change its style.',
   'help.player.title': 'The Compact player',
   'help.player.intro':
-    'One switch turns FluidEQ’s window into the Compact player: a narrow column with the song, your equaliser, a visualizer and Up Next, in decks you open and close. Whatever is playing keeps playing, and the same switch brings the full app back on the page you left.',
+    'One switch turns FluidEQ’s window into the Compact player, a single narrow column: a visualizer at the top with the song over it and the play controls under it, then Sound, your equaliser, then Up next and your playlists. Whatever is playing keeps playing, and the same switch brings the full app back on the page you left.',
   'help.player.steps':
-    'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.\nOpen and close the decks with EQ, Vis and Queue. The window grows and shrinks by what each takes, and the player remembers its size and place.\nDouble-click the player’s strip, or choose Fold to one line in its menu, to fold it down to one line; the FluidEQ mark unfolds it.\nSet the player’s own Brightness in its menu, and keep it above other windows with Always on top.\nDrop music files on Up Next: they join the Library and the queue.',
+    'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.\nFold Sound, or Up next and Playlists, down to its header, and the visualizer takes the room; press the header to open it again. Drag the player’s top or bottom edge to make it taller or shorter.\nDouble-click the visualizer to fill the screen with it; Escape gives it back. Press the look’s name beside shuffle and repeat to choose from every style and scene.\nChoose Fold to one line in the FluidEQ mark’s menu to fold the player down to one line; the mark unfolds it.\nIn the same menu, set the player’s own Brightness, the Transparency over a scene or the window’s Tint over a standard style, and a scene’s Daylight. Always on top, there or in the header, keeps it above other windows.\nDrop music files anywhere on the player: they join the Library and the end of Up next or, over the list, the place where you let go.',
   'help.player.tip':
     'The player’s volume is your computer’s own, the same as in Windows, so it sets the level of everything the computer plays. If the player ends up off the screen, right-click FluidEQ in the taskbar’s tray and choose Recover the window.',
   'help.player.keywords':
     'mini player, small player, compact, compact mode, winamp, amp, player mode, always on top, pin, fold, one line, queue, up next, drop files, theme, light theme, dark theme, dark mode, light mode, small window, floating player, volume',
   'help.player.topCaption': 'The top: the song, and how it plays',
-  'help.player.eqCaption': 'The equaliser',
-  'help.player.queueCaption': 'Up Next',
+  'help.player.eqCaption': 'Sound, your equaliser',
+  'help.player.queueCaption': 'Up next',
   'help.player.menuCaption': 'The player’s menu',
   'help.player.foldedCaption': 'Folded to one line',
   'help.player.menu':
-    'Back to the full app or to one of its pages, the player’s own Brightness, Always on top and Fold to one line.',
+    'Back to the full app or to one of its pages; the player’s own Brightness, Transparency or Tint, a scene’s Daylight, Colourful mode, Tint app icon and the EQ sliders; Always on top and Fold to one line.',
   'help.player.pin': 'Keeps the player above every other window.',
   'help.player.switch': 'Back to the full app, on the page you left.',
   'help.player.clock': 'Time played. Click it for the time left.',
-  'help.player.well':
-    'The sound as it plays. Click it to switch between bars and the wave.',
   'help.player.level': 'The level of the sound leaving FluidEQ, in decibels.',
   'help.player.volume':
     'Your computer’s volume, the same as in Windows: it sets the level of everything the computer plays.',
-  'help.player.decksName': 'EQ, Vis and Queue',
-  'help.player.decks':
-    'Open and close the equaliser, the visualizer and Up Next. The window grows and shrinks by what each takes.',
   'help.player.seek': 'Where the song is. Drag to jump.',
   'help.player.playingName': 'Play controls',
   'help.player.playing':
@@ -132,36 +127,53 @@ const help = {
   'help.player.orderName': 'Shuffle and repeat',
   'help.player.order':
     'Shuffles Up Next, and repeats nothing, everything or this song.',
-  'help.player.lookName': 'Next look',
+  'help.player.lookName': 'Look',
   'help.player.look':
-    'Changes the visualizer’s look. Ctrl+click goes back one, and right-click lists them all.',
-  'help.player.screen':
-    'What you hear, drawn: your bands, Smart EQ and anything else applied, over a visualizer look. Also applied lists them, and a tag switches one off without removing it.',
+    'The style or scene the visualizer is drawing. Press it to choose from all of them.',
   'help.player.bands':
     'Drag a band up or down to boost or cut it. Its frequency is written under it.',
   'help.player.tone':
-    'Bands shows every band; Tone swaps them for the Bass, Mid and Treble dials.',
+    'Tone shows the Bass, Mid and Treble dials; the tab beside it, every band.',
   'help.player.upNext':
-    'Where you are in the queue, the time left in it, and how far through it you are.',
-  'help.player.library': 'Opens the Library in the full app.',
+    'Up next and Playlists, each with how many it holds, and the time left in the queue.',
   'help.player.songsName': 'The songs',
   'help.player.songs':
-    'What plays next. Double-click a song to play it, or drop music files here to add them.',
+    'What plays next. Click a song to play it, drag it to move it, or drop music files here to add them where you let go.',
   'help.player.openIn': 'Opens the full app on one of its pages.',
   'help.player.theme':
-    'The player’s own Brightness, apart from the full app’s; Transparency, for the glass player over a visualizer; and Rainbow mode.',
-  'help.player.fold':
-    'Folds the player to one line. Double-clicking its strip does the same.',
+    'The player’s own Brightness, apart from the full app’s; Transparency over a scene, or the window’s Tint over a standard style; a scene’s Daylight; Colourful mode; and Tint app icon, off at first, for the taskbar icon, the tray icon and the icon in the tray’s menu in the window’s colours.',
+  'help.player.fold': 'Folds the player to one line.',
   'help.player.unfold':
     'Unfolds the player. The arrow at the other end does too.',
-  'help.player.foldedPlaying': 'Previous, play or pause, next and stop.',
-  'help.player.foldedClock': 'The time, and where the song is.',
+  'help.player.foldedPlaying': 'Play or pause.',
+  'help.player.fullScreen':
+    'Fills the screen with the visualizer. Double-clicking the picture does the same, and Escape gives the screen back.',
+  'help.player.sourceName': 'Source',
+  'help.player.source':
+    'Where the song is coming from: the Library, Online Media, Karaoke, another computer or another program on this PC. Pressing it opens that page in the full app.',
+  'help.player.heart':
+    'Adds a song from the Library to your Favourites, or takes it out.',
+  'help.player.soundFold':
+    'Folds the sound controls down to this row, which keeps the preset, Smart EQ and the switch at hand, and opens them again.',
+  'help.player.mode':
+    'Opens EQ mode: how strongly your EQ and the curves apply, their band Q, phase and treble.',
+  'help.player.save': 'Keeps Up next as a playlist of its own.',
+  'help.player.queueFold':
+    'Folds Up next and Playlists down to their tabs, and the visualizer takes the room.',
+  'help.player.remove': 'Takes a song that has not played yet out of Up next.',
+  'help.player.output':
+    'Where the sound is going: the output Windows plays through.',
+  'help.player.engineName': 'Engine',
+  'help.player.engine':
+    'Which engine is shaping the sound, lit while FluidEQ is on.',
+  'help.player.sliders':
+    'Round handles or rectangular caps on the EQ’s sliders, here and on the EQ page.',
 
   'help.requirements.title': 'What your PC needs',
   'help.requirements.intro':
-    'FluidEQ runs on any Windows PC of the last ten years. Two parts ask for more than the rest: the Plus visualizers draw on the graphics card, and the karaoke AI downloads its models the first time you use it.',
+    'FluidEQ runs on any Windows PC of the last ten years. Two parts ask for more than the rest: the scenes draw on the graphics card, and the karaoke AI downloads its models the first time you use it.',
   'help.requirements.steps':
-    'Check your Windows: Windows 10 version 1803 or later, or Windows 11, 64-bit, 4 GB of memory and about 600 MB of disk. Processing everything the PC plays needs the FluidEQ Engine or Equalizer APO, and Windows asks for permission once while it installs.\nLook at a visualizer: any graphics card or built-in graphics from 2013 onwards. At 1080p built-in graphics are enough; 4K, or a desktop background on several screens at once, is happier with a dedicated card. On a busy card FluidEQ draws the scene smaller and lets go of the ones you cannot see.\nTry the karaoke AI: separating a voice downloads a 713 MB model the first time, the pitch model adds about 180 MB, and noise removal 11 MB. With a DirectX 12 graphics card a four-minute song separates in around half a minute; on the processor alone it takes about four minutes. Keep 2 GB of memory free while it works.\nAim for this if you can: Windows 11, 8 GB of memory, graphics from 2018 onwards, and 3 GB of disk free if you use the AI features.',
+    'Check your Windows: Windows 10 version 1803 or later, or Windows 11, 64-bit, 4 GB of memory and about 600 MB of disk. Processing everything the PC plays needs the FluidEQ Engine or Equalizer APO, and Windows asks for permission once while it installs.\nLook at a visualizer: any graphics card or built-in graphics from 2013 onwards. At 1080p built-in graphics are enough; 4K, or a desktop background on several screens at once, is happier with a dedicated card. On a busy card FluidEQ draws the scene smaller and lets go of the ones you cannot see.\nTry the karaoke AI: separating a voice downloads a 713 MB model the first time, the pitch model adds about 360 MB, and noise removal 11 MB. With a DirectX 12 graphics card a four-minute song separates in around half a minute; on the processor alone it takes about four minutes. Keep 2 GB of memory free while it works.\nAim for this if you can: Windows 11, 8 GB of memory, graphics from 2018 onwards, and 3 GB of disk free if you use the AI features.',
   'help.requirements.tip':
     'Everything but the AI models is in the installer, and those download only when you first use the feature. Processes, in the actions menu, shows what each part of FluidEQ is using on your machine right now.',
   'help.requirements.keywords':
@@ -285,7 +297,7 @@ const help = {
   'help.headphones.intro':
     'A headphone correction compensates for a measured model. It is a starting point you can combine with your own bands and presets. Check the exact model and the measurement author before applying a result.',
   'help.headphones.steps':
-    'Open EQ → EQ presets and search for your headphone model. Review the available measurements and choose the matching entry.\nFor EQ text from another tool, use Import EQ settings in the actions menu. Review the parsed bands and curve before applying.\nFor Squiglink, open the Squiglink tab and paste its export. Apply as EQ replaces your bands; Apply as curve adds it as a headphone correction with its own strength; Save to My curves keeps it with one press.\nMy curves is your own list beside the OPRA library: Add curve takes a Squiglink export, a .txt file, your EQ as it is now or an OPRA pick. Each curve has Apply as curve and Apply as EQ, and its menu renames it, edits its bands, duplicates it, copies it as text or deletes it. Export list and Import list carry the whole list to another computer.\nImport into, beside Apply as EQ, picks Both ears, Left ear or Right ear: one ear replaces only that ear’s bands and leaves the other ear as it was.',
+    'Open EQ → EQ presets and search for your headphone model. Review the available measurements and choose the matching entry.\nFor EQ text from another tool, use Import EQ settings in the actions menu. Review the parsed bands and curve before applying.\nFor Squiglink, open My curves and choose Import from Squiglink. Paste its export and review the live curve preview. Save to My curves keeps it for later; Save and apply also uses it as a headphone correction. Apply to editable EQ instead replaces your bands after confirmation.\nMy curves is your own list beside the OPRA library: Add curve takes a Squiglink export, a .txt file, your EQ as it is now or an OPRA pick. Each curve has Apply as curve and Apply as EQ, and its menu renames it, edits its bands, duplicates it, copies it as text or deletes it. Export list and Import list carry the whole list to another computer.\nImport into, beside Apply as EQ, picks Both ears, Left ear or Right ear: one ear replaces only that ear’s bands and leaves the other ear as it was.',
   'help.headphones.tip':
     'A preview marked not applied is not changing your sound. Avoid stacking two full corrections for the same headphones unless that is deliberate; compare with the headphone layer switched off.',
   'help.headphones.keywords':
@@ -408,9 +420,9 @@ const help = {
 
   'help.graph.title': 'The graph and its controls',
   'help.graph.intro':
-    'The response graph draws your EQ curves over the live sound. The strip above it chooses what is drawn and how, and it changes with the look: a standard style or a Plus visualizer.',
+    'The response graph draws your EQ curves over the live sound. The strip above it chooses what is drawn and how, and it changes with the look: a standard style or a scene.',
   'help.graph.steps':
-    'Click the look’s name to choose a style or visualizer. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for the graph’s size, what it shows, and the wave’s height and position. Show EQ labels writes each band’s frequency, Q and gain over its point. How it is drawn sets the frame rate — every frame your display offers, or 60 or 30, held at 60 on battery — and the resolution and smoothing; standard styles keep their own choices, apart from Plus visualizers.\nA Plus visualizer adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.\nDouble-click the plot for full screen, or Ctrl+double-click to expand it over the window; double-click again to come back. A single click hides or shows the strip.\nKeys: Ctrl+F full screen, Ctrl+S expanded, Esc back to the normal view, Ctrl+G the grid, Ctrl+W what the graph shows, band labels included, Ctrl+I which way the wave faces, Ctrl+A every band. On a band’s point, drag to move it, use the arrow keys to step it, and right-click for its menu; Ctrl+scroll changes the Q of a selected point.',
+    'Click the look’s name to choose a style or scene. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for the graph’s size, what it shows, and the wave’s height and position. Show EQ labels writes each band’s frequency, Q and gain over its point. How it is drawn sets the frame rate — every frame your display offers, or 60 or 30, held at 60 on battery — and the resolution and smoothing; standard styles keep their own choices, apart from scenes.\nA scene adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.\nDouble-click the plot for full screen, or Ctrl+double-click to expand it over the window; double-click again to come back. A single click hides or shows the strip.\nKeys: Ctrl+F full screen, Ctrl+S expanded, Esc back to the normal view, Ctrl+G the grid, Ctrl+W what the graph shows, band labels included, Ctrl+I which way the wave faces, Ctrl+A every band. On a band’s point, drag to move it, use the arrow keys to step it, and right-click for its menu; Ctrl+scroll changes the Q of a selected point.',
   'help.graph.tip':
     'Everything here changes only the drawing, never your sound.',
   'help.graph.keywords':
@@ -428,12 +440,12 @@ const help = {
   'help.graph.bandsName': 'Listening bands',
   'help.graph.bands': 'Shades the bands you hear most.',
   'help.graph.bandsMenu':
-    'The same shading; greyed over a Plus visualizer, which never draws it.',
+    'The same shading; greyed over a scene, which never draws it.',
   'help.graph.gridName': 'Grid',
   'help.graph.grid': 'Shows or hides the grid and scales.',
   'help.graph.viewName': 'View',
   'help.graph.view': 'Size, what is drawn, and the wave.',
-  'help.graph.plusCaption': 'With a Plus visualizer',
+  'help.graph.plusCaption': 'With a scene',
   'help.graph.tintName': 'Window colours',
   'help.graph.tint':
     "The app's theme, the visualizer's colours, its colours with light (Ambient), or the visualizer behind the whole window (Backdrop).",
@@ -456,17 +468,17 @@ const help = {
   'help.graph.meterName': 'Level meter',
   'help.graph.meter': 'The output meter in the left rail.',
   'help.graph.drawing':
-    'Frame rate, resolution and smoothing, kept apart for standard styles and Plus visualizers.',
+    'Frame rate, resolution and smoothing, kept apart for standard styles and scenes.',
   'help.graph.waveHeight': 'How tall the wave is drawn.',
   'help.graph.wavePosition': 'From the bottom edge up to the middle.',
 
-  'help.looks.title': 'Styles and Plus visualizers',
+  'help.looks.title': 'Styles and scenes',
   'help.looks.intro':
-    'Standard styles are free drawings of the live sound that you can colour and design yourself: Line and Area for a clean trace, LED blocks and Spikes for punch, Truss, Skyline and Dancing flames for whole scenes. Plus visualizers are scenes drawn on the graphics card, such as Alpine, Aurora, Bloom and Neon City, where the bass, the beat and the treble each move something different.',
+    'Standard styles are free drawings of the live sound that you can colour and design yourself: Line and Area for a clean trace, LED blocks and Spikes for punch, Truss, Skyline and Dancing flames for whole scenes. Scenes are living pictures drawn on the graphics card, such as Alpine, Aurora, Bloom and Neon City, where the bass, the beat and the treble each move something different.',
   'help.looks.steps':
-    'Click the look’s name on the graph. Search, or filter the styles by Lines, Fills, Bars, Points or Scenes.\nChoose a Plus visualizer on the right. Without Plus it is locked, and choosing it explains how to get it.\nOn a standard style, press New look to change its colours, motion and peaks, then save it; it appears under Yours.',
+    'Click the look’s name on the graph. Search, or filter the styles by Lines, Fills, Bars, Points or Scenes.\nChoose a scene on the right. One that is not yours yet is locked, and choosing it explains how to get it.\nOn a standard style, press New look to change its colours, motion and peaks, then save it; it appears under Yours.',
   'help.looks.tip':
-    'A Plus visualizer brings its own colours: set its attack and release in View. Standard styles have graphics settings of their own in View, apart from Plus visualizers: full resolution and plain scaling to start with. If a scene cannot run on this computer, the graph draws a free style instead of a blank plot.',
+    'A scene brings its own colours: set its attack and release in View. Standard styles have graphics settings of their own in View, apart from scenes: full resolution and plain scaling to start with. If a scene cannot run on this computer, the graph draws a free style instead of a blank plot.',
   'help.looks.keywords':
     'styles, style, skins, skin, appearance, visualizer, visualiser, visualization, colours, colors, look, customize, customise, animation, graphics, graphics settings, resolution, quality',
   'help.looks.searchName': 'Search',
@@ -481,11 +493,11 @@ const help = {
   'help.looks.categoriesName': 'Categories',
   'help.looks.categories': 'Nature, Cities, Abstract and more.',
 
-  'help.plus.title': 'Your account, credits and the Plus tab',
+  'help.plus.title': 'Your account, credits and the Visualizers tab',
   'help.plus.intro':
-    'An account is optional: everything that was free runs on this computer without one. Signed in, the Plus tab holds Visualizers, the Studio, Dynamic lighting and the desktop visualizer. A scene from Visualizers costs one credit and is yours for good; a confirmed account gets some credits free, and packs of credits are paid once.',
+    'An account is optional: everything that was free runs on this computer without one. Signed in, the Visualizers tab holds the Gallery, the Studio, Dynamic lighting and the desktop visualizer. A scene from the Gallery costs one credit and is yours for good; a confirmed account gets some credits free, and packs of credits are paid once.',
   'help.plus.steps':
-    'Open Account in the actions menu. Sign in, or create an account and type the six-digit code sent to your email.\nOpen the Plus tab and choose Visualizers. Open a scene, watch it, and press Get to spend a credit on it.\nFor more credits, open Account and choose a pack. It is paid once on Stripe, in your browser.',
+    'Open Account in the actions menu. Sign in, or create an account and type the six-digit code sent to your email.\nOpen the Visualizers tab and choose Gallery. Open a scene, watch it, and press Get to spend a credit on it.\nFor more credits, open Account and choose a pack. It is paid once on Stripe, in your browser.',
   'help.plus.tip':
     'The app never sees your card, and nothing renews. An account stays signed in on up to five computers.',
   'help.plus.keywords':
@@ -500,7 +512,7 @@ const help = {
   'help.gallery.intro':
     'Visualizers holds FluidEQ’s own scenes and the ones members publish. Any account can browse them and watch any scene for ten seconds; a scene you get with a credit plays on your music and stays in your looks, for good.',
   'help.gallery.steps':
-    'Open Plus → Visualizers. Search, sort by Most liked, This week or Newest, or pick a category.\nOpen a scene and press Get to keep it with a credit, then Play on the graph. The arrows, or ← and →, step between scenes.\nLike the scenes you have with the heart, and report one that should not be there.',
+    'Open Visualizers → Gallery. Search, sort by Most liked, This week or Newest, or pick a category.\nOpen a scene and press Get to keep it with a credit, then Play on the graph. The arrows, or ← and →, step between scenes.\nLike the scenes you have with the heart, and report one that should not be there.',
   'help.gallery.tip':
     'Scenes in your looks update themselves, and a scene’s page says what changed in each version. A scene you publish appears once FluidEQ’s maker has approved it. Open in Studio shows how FluidEQ’s own scenes are made.',
   'help.gallery.keywords':
@@ -513,13 +525,13 @@ const help = {
   'help.gallery.mine': 'The scenes you published, with their likes.',
   'help.gallery.cardName': 'A scene',
   'help.gallery.card':
-    'Its picture opens the scene; Add puts it in your looks.',
+    'Its picture opens the scene. Get keeps it with a credit, and the heart likes it.',
   'help.gallery.manage': 'What each monitor shows as a desktop background.',
   'help.gallery.stop': 'Stops every desktop background.',
   'help.gallery.sceneCaption': "A scene's page",
   'help.gallery.back': 'Back to the gallery, where you left it.',
   'help.gallery.play':
-    'Adds the scene to your looks, or plays it on the graph.',
+    'Plays the scene on the graph. A scene you do not have yet offers Get, for one credit.',
   'help.gallery.desktop': 'Puts the scene behind your desktop icons.',
   'help.gallery.inspect':
     'Opens FluidEQ’s scene in the Studio to see how it is made.',
@@ -528,7 +540,7 @@ const help = {
   'help.studio.intro':
     'The Studio turns a description into a visualizer. Your own AI assistant writes the scene in a project folder, and FluidEQ plays each version on your music the moment it is saved. The Studio is free for every account.',
   'help.studio.steps':
-    'Open Plus → Studio and press New project…. Give it a name; FluidEQ makes its folder with a scene that already moves.\nDescribe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.\nOr type what should change in the chat beside the stage: Claude Code on this computer, signed in with your own plan, edits the scene and plays each version. Every reply keeps its version, with Bring back.\nWatch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….',
+    'Open Visualizers → Studio and press New project…. Give it a name; FluidEQ makes its folder with a scene that already moves.\nDescribe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.\nOr type what should change in the chat beside the stage: Claude Code on this computer, signed in with your own plan, edits the scene and plays each version. Every reply keeps its version, with Bring back.\nWatch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….',
   'help.studio.tip':
     'Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by FluidEQ’s maker first, and once it is approved it plays free for you everywhere.',
   'help.studio.keywords':
@@ -537,18 +549,20 @@ const help = {
   'help.studio.stageName': 'Stage',
   'help.studio.stage':
     'The scene, playing on your music. Double-click for full screen.',
-  'help.studio.code': 'The scene’s code, live, updated as your AI saves it.',
   'help.studio.hears':
     'What the scene receives: level, beat, bass, mids, treble.',
+  'help.studio.tabs':
+    'Tune tries the wave and the scene’s own settings, Code shows its code as your AI saves it, Performance how it runs here, and What it hears now is open below.',
+  'help.studio.chat':
+    'Ask Claude for a change in your own words. Each reply that changed the scene can bring that version back.',
   'help.studio.signals': 'Test signals that drive only this preview.',
   'help.studio.size': 'Tries the scene full screen.',
-  'help.studio.wave': 'Tries the wave height and position listeners can set.',
 
   'help.desktop.title': 'The desktop visualizer',
   'help.desktop.intro':
-    'The desktop visualizer puts a Plus visualizer behind your desktop icons, on one monitor or on each of them, for as long as FluidEQ runs.',
+    'The desktop visualizer puts a scene behind your desktop icons, on one monitor or on each of them, for as long as FluidEQ runs.',
   'help.desktop.steps':
-    'Put a Plus visualizer on the graph and press the monitor button beside its name, or choose View → Set as desktop background.\nPress the monitors on the map, choose With the music or Calm, and press Set background.\nTo change or stop it, open Plus → Visualizers and use Manage or Stop at the top.',
+    'Put a scene on the graph and press the monitor button beside its name, or choose View → Set as desktop background.\nPress the monitors on the map, choose With the music or Calm, and press Set background.\nTo change or stop it, open Visualizers → Gallery and use Manage or Stop at the top.',
   'help.desktop.tip':
     'It pauses while windows cover the monitor, while the PC is locked and, if you choose, on battery power, and returns when FluidEQ starts. Quitting FluidEQ stops it. Windows only.',
   'help.desktop.keywords':
@@ -558,25 +572,25 @@ const help = {
   'help.desktop.music': 'Moves to whatever is playing.',
   'help.desktop.calm': 'A slow, quiet animation that ignores the music.',
   'help.desktop.follow':
-    'Changes with the Plus visualizer on the graph, whether you pick it or automatic switching does.',
+    'Changes with the scene on the graph, whether you pick it or automatic switching does.',
   'help.desktop.battery': 'Saves power while the computer is unplugged.',
   'help.desktop.start': 'Starts it on the monitors you chose.',
 
   'help.lighting.title': 'Dynamic lighting (beta)',
   'help.lighting.intro':
-    'Dynamic lighting lights your keyboard, mouse, mousepad, headset and stand with the Plus visualizer on the graph, through Windows Dynamic Lighting and Razer Chroma. It is in beta, so tell us how your devices behave.',
+    'Dynamic lighting lights your keyboard, mouse, mousepad, headset and stand with the scene on the graph, through Windows Dynamic Lighting and Razer Chroma. It is in beta, so tell us how your devices behave.',
   'help.lighting.steps':
-    'Open Plus → Dynamic lighting and switch it on, or press the lighting button beside a Plus visualizer on the graph.\nChoose this visualizer’s lighting style — Scene, Colour wave, Spectrum or Beat ripple — and set its brightness and what it responds to.\nClick a device under Your devices to tune it alone; All devices goes back to every device.',
+    'Open Visualizers → Dynamic lighting and switch it on, or press the lighting button beside a scene on the graph.\nChoose this scene’s lighting style — Scene, Colour wave, Spectrum or Beat ripple — and set its brightness and what it responds to.\nClick a device under Your devices to tune it alone; All devices goes back to every device.',
   'help.lighting.tip':
     'If Windows keeps a device for another app, the page names the setting to change and opens it for you. Razer devices need Razer Synapse running, with Chroma Apps allowed.',
   'help.lighting.keywords':
     'rgb, razer, chroma, synapse, keyboard lights, keyboard, mouse, headset, led, leds, ambient lighting, lights, windows dynamic lighting',
-  'help.lighting.switch': 'Lights your devices while a Plus visualizer plays.',
+  'help.lighting.switch': 'Lights your devices while a scene plays.',
   'help.lighting.browse': 'Opens the gallery to choose a visualizer.',
   'help.lighting.previewName': 'Live desk preview',
   'help.lighting.preview': 'Your own desk, lit with the colours sent to it.',
-  'help.lighting.devices': 'Every device found. Click one to tune it alone.',
-  'help.lighting.all': 'Back to tuning every device at once.',
+  'help.lighting.devices':
+    'Every device found. Click one to tune it alone; All devices, above the list, tunes them all at once again.',
   'help.lighting.style':
     'Scene, Colour wave, Spectrum or Beat ripple, kept for each visualizer.',
 
@@ -678,13 +692,13 @@ const help = {
 
   'help.share.title': 'Share audio between computers',
   'help.share.intro':
-    'Share Audio links two computers on the same private network, and each plays the other’s sound: whichever one you sit at, you hear both. Each computer sends its sound untouched and never sends back what it receives, so there is no echo; the computer you listen on applies its own EQ, curves and DSP. This is separate from mirroring to a second device on one computer.',
+    'Share Audio links computers on the same private network into one group, and each one plays the others’ sound: whichever one you sit at, you hear the rest. Each computer sends its own sound straight to the others, untouched, and never sends back what it receives, so there is no echo; the computer you listen on applies its own EQ, curves and DSP. This is separate from mirroring to a second device on one computer.',
   'help.share.steps':
-    'On one computer, open Share Audio and press Copy code. Start at a low volume.\nOn the other computer, open Share Audio, paste the code under The other computer’s code and press Link. Both computers play each other right away.\nEach linked computer has two switches: Play it here and Send my sound. Turn one off to share one way only. The slider beside Play it here sets how loud that computer plays here.\nPause stops both directions until you press Resume; Unlink ends the link for good.',
+    'On one computer, open Share Audio, press Add computer and then Copy code. Start at a low volume.\nOn the other computer, press Add computer, paste the code under The other computer’s code and press Link. Both computers play each other right away. Link more computers the same way: each one joins the whole group, and computers that join through another one appear with Receive off until you turn it on.\nIn The whole group, each computer has two switches, Receive and Send; Share turns this computer’s sound off for all of them. Your mix sets This PC’s volume and a level for each computer.\nPause, Resume and Unlink are in each computer’s menu. A computer that is away stays listed as Offline, and the group finds itself again after a restart, sleep, a network drop or an engine switch.',
   'help.share.tip':
     'Keep the connection code private: it authorizes linking. Under the FluidEQ Engine this computer keeps its DSP on while it shares, and the computer playing its sound applies its own. Playing and sending at once needs Windows on that computer; elsewhere a link runs one way.',
   'help.share.keywords':
-    'network, lan, wifi, local network, stream audio, send audio, another pc, another computer, second computer, remote, receiver, sender, connection code, pair, both ways, two way, link, unlink, duplex, pause, resume, volume',
+    'network, lan, wifi, local network, stream audio, send audio, another pc, another computer, second computer, remote, receiver, sender, connection code, pair, both ways, two way, link, unlink, duplex, pause, resume, volume, group, add computer, receive, send, share, mix, offline, several computers',
 
   'help.trouble.title': 'When something sounds wrong',
   'help.trouble.intro':
@@ -700,7 +714,7 @@ const help = {
   'help.forum.intro':
     'The Forum brings FluidEQ’s GitHub Discussions into the app: announcements, ideas, questions and tunings people are proud of. Anyone can read; posting uses your GitHub account, not a FluidEQ one.',
   'help.forum.steps':
-    'Open Help → Forum and pick a board: Announcements, General, Ideas, Polls, Q&A or Show and tell.\nSearch the forum, or open a topic to read the replies.\nPress Sign in with GitHub, finish in your browser, then post a New topic or a reply.',
+    'Open Help → Forum and pick a board: Announcements, General, Ideas, Polls, Q&A or Show and tell. New for you gathers what came in since you last looked, and Issues lists the problems reported on GitHub.\nSearch the forum, or open a topic to read the replies.\nPress Sign in with GitHub, finish in your browser, then post a New topic or a reply.',
   'help.forum.tip':
     'Everything posted is public on GitHub under your GitHub name. On Q&A, mark the answer that worked so the next person finds it.',
   'help.forum.keywords':

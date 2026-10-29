@@ -2,16 +2,33 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.group.add': '添加电脑',
+  'remoteAudio.group.title': '整个群组',
+  'remoteAudio.group.mix': '你的混音',
+  'remoteAudio.group.thisPC': '本机',
+  'remoteAudio.group.receive': '接收',
+  'remoteAudio.group.send': '发送',
+  'remoteAudio.group.share': '共享',
+  'remoteAudio.group.options': '{name} 的选项',
+  'remoteAudio.group.count.one': '{count} 台电脑',
+  'remoteAudio.group.count.few': '{count} 台电脑',
+  'remoteAudio.group.count.many': '{count} 台电脑',
+  'remoteAudio.group.count.other': '{count} 台电脑',
+  'remoteAudio.group.sourceOff': '共享已关闭',
+  'remoteAudio.group.offline': '离线',
+  'remoteAudio.group.unavailable': '系统音量不可用',
+  'remoteAudio.group.mute': '静音本机',
+  'remoteAudio.group.unmute': '取消本机静音',
+  'remoteAudio.group.output': '输出',
+  'remoteAudio.group.hint':
+    '连接一台电脑即可加入其群组。每台电脑将自己的声音直接发送给其他电脑；在混音中调整你听到的声音。',
   'tabs.share': '共享音频',
   'remoteAudio.eyebrow': '局域网音频连接',
   'remoteAudio.title': '在这里收听其他电脑',
-  'remoteAudio.subtitle':
-    '链接两台电脑，每台都会播放对方的声音。每台都原样发送自己的声音；你收听的那台电脑会套用自己的 EQ、曲线和 DSP。',
   'remoteAudio.security': '连接属性',
   'remoteAudio.badge.local': '仅限私有局域网',
   'remoteAudio.badge.lossless': '无损 Float32 PCM 传输',
   'remoteAudio.badge.encrypted': 'AES-256-GCM 加密',
-  'remoteAudio.link.section': '链接一台电脑',
   'remoteAudio.link.thisComputer': '这台电脑',
   'remoteAudio.link.thisHint':
     '把这个连接码粘贴到另一台电脑上，或者把那台电脑的连接码粘贴到这里，两种方式都可以。',
@@ -35,13 +52,11 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.rule.steadyTitle': '稳定，不漂移',
   'remoteAudio.rule.steady':
     '延迟约 30 毫秒并保持不变：两台电脑的时钟保持同步，没有断音，也不会慢慢漂移。',
-  'remoteAudio.linked.section': '已链接',
   'remoteAudio.linked.cardLabel': '与 {name} 的链接',
   'remoteAudio.linked.bothWays': '双向',
   'remoteAudio.linked.incomingOnly': '仅接收',
   'remoteAudio.linked.outgoingOnly': '仅发送',
   'remoteAudio.linked.paused': '已暂停',
-  'remoteAudio.linked.looking': '正在你的网络中查找 {name}…',
   'remoteAudio.linked.lossless': '无损',
   'remoteAudio.linked.unlink': '取消链接',
   'remoteAudio.linked.pause': '暂停',
@@ -73,6 +88,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOneWay':
     '双向播放需要 Windows，或 Linux 上的 FluidEQ Engine。',
   'remoteAudio.lane.outQuiet': '这台电脑上没有在播放',
+  'remoteAudio.lane.outSounding': '这台电脑上正在播放声音',
   'remoteAudio.lane.outOff': '未发送。{name} 听不到这台电脑。',
   'remoteAudio.lane.outNotPlayed': '{name} 关闭了“在此播放”。',
   'remoteAudio.lane.outOld':
@@ -81,7 +97,6 @@ const remoteAudio: Partial<Dictionary> = {
     '双向发送需要 Windows，或 Linux 上的 FluidEQ Engine。',
   'remoteAudio.lane.outFailed':
     '无法捕获这台电脑的声音。关闭再打开“发送我的声音”即可重试。',
-  'remoteAudio.another.section': '链接另一台电脑',
   'remoteAudio.singlePlayer.title': '同时只播放一处',
   'remoteAudio.singlePlayer.body':
     '同样适用于已链接的电脑：在其中一台开始播放，会暂停另一台正在播放的内容。',

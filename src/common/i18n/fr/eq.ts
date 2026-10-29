@@ -164,13 +164,19 @@ const eq: Partial<Dictionary> = {
     'Tout Ambiance, avec le visualiseur derrière toute la fenêtre.',
   'graph.editHint':
     'Faites glisser les points · Ctrl/Maj pour sélectionner · Ctrl+molette : Q · Ctrl+glisser : cloche',
+  'graph.windowTint': 'Teinte',
+  'graph.windowTintHint':
+    'La couleur de la fenêtre avec un aspect standard. Double-cliquez pour revenir à la couleur d’origine.',
   'graph.backdropVeil': 'Transparence',
   'graph.backdropVeilHint':
     'Quelle part du visualiseur transparaît à travers les panneaux',
   'graph.sceneTint.brightness': 'Luminosité',
-  'graph.sceneTint.rainbow': 'Mode arc-en-ciel',
+  'graph.sceneTint.rainbow': 'Mode coloré',
   'graph.sceneTint.rainbowHint':
-    'Les bandes, le titre et les commandes allumées dans une palette plutôt qu’une seule couleur — avec un visualiseur Plus, dans ses propres couleurs.',
+    'Les bandes, le titre et les commandes allumées dans une palette plutôt qu’une seule couleur — avec une scène choisie, dans ses propres couleurs.',
+  'graph.sceneTint.appIcon': 'Teinter l’icône',
+  'graph.sceneTint.appIconHint':
+    'Le bouton de la barre des tâches et l’icône de la zone de notification aux couleurs de la fenêtre. Désactivé, l’icône de FluidEQ reste.',
   'graph.sceneTint.sparks': 'Étincelles du pointeur',
   'graph.sceneTint.sparksHint':
     'Ce que le visualiseur lance depuis la souris : une traînée quand elle traverse l’image et une gerbe là où vous cliquez - étincelles, pétales, neige, ce dont la scène est faite.',
@@ -178,15 +184,19 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.daylightHint':
     'L’heure du jour du visualiseur, de la nuit au plein jour',
   'graph.sceneTint.daylightFollowingHint':
-    'Suit la luminosité. Désactivez « Le jour suit la luminosité » pour régler à part l’heure du jour du visualiseur',
-  'graph.sceneTint.daylightFollows': 'Le jour suit la luminosité',
+    'Suit la luminosité. Choisissez Rien en dessous pour régler ici l’heure du visualiseur',
+  'graph.sceneTint.daylightSource': 'Suit',
+  'graph.sceneTint.daylightSourceOwn': 'Rien',
+  'graph.sceneTint.daylightSourceBrightness': 'Luminosité',
+  'graph.sceneTint.daylightSourceClock': 'Horloge',
+  'graph.sceneTint.daylightOwnHint':
+    'Le visualiseur garde la lumière du jour réglée au-dessus.',
   'graph.sceneTint.daylightFollowsHint':
-    'Activé, le visualiseur passe de la nuit au jour avec la luminosité. Désactivé, il garde la lumière du jour réglée au-dessus, et la luminosité ne change que la fenêtre.',
-  'graph.sceneTint.daylightClock': 'Le jour suit l’horloge',
+    'Le visualiseur passe de la nuit au jour avec la luminosité.',
   'graph.sceneTint.daylightClockHint':
-    'Activé, le visualiseur est de nuit la nuit et de jour le jour, selon l’horloge de cet ordinateur. Désactivé, il garde la lumière du jour réglée au-dessus.',
+    'Le visualiseur est de nuit la nuit et de jour le jour, selon l’horloge de cet ordinateur.',
   'graph.sceneTint.daylightFollowingClockHint':
-    'Suit l’horloge. Désactivez « Le jour suit l’horloge » pour régler à part l’heure du jour du visualiseur',
+    'Suit l’horloge. Choisissez Rien en dessous pour régler ici l’heure du visualiseur',
   'graph.sceneTint.daylightStudioHint':
     'Tant que le Studio est ouvert, la Luminosité règle l’heure du jour du visualiseur, pour essayer une scène de la nuit au jour. Ce choix revient quand vous quittez le Studio',
   'graph.sceneTint.brightnessHint':
@@ -201,7 +211,7 @@ const eq: Partial<Dictionary> = {
   'graph.member.likeOffline': 'Les J’aime demandent une connexion',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.scene.badge': 'Plus',
+  'graph.scene.badge': 'Scène',
   'graph.scene.report': 'Signaler {name}',
   'graph.version.new': 'Nouveau',
   'graph.version.caption': 'v{version} · {note}',
@@ -271,13 +281,19 @@ const eq: Partial<Dictionary> = {
   'graph.scene.gpu.high': 'Hautes performances',
   'graph.scene.gpu.restart': 'après redémarrage',
   'graph.scene.locked':
-    'Inclus dans FluidEQ Plus. Choisissez-le pour voir comment le débloquer.',
+    'Pas encore à vous. Choisissez-la pour voir comment l’obtenir.',
   'graph.style.next': 'Style suivant',
   'graph.style.previous': 'Style précédent',
   'graph.picker.label': 'Styles et visualiseurs',
   'graph.picker.search': 'Rechercher des styles et des visualiseurs',
   'graph.picker.styles': 'Styles',
-  'graph.picker.plus': 'Visualiseurs Plus',
+  'graph.picker.plus': 'Visualiseurs',
+  'graph.picker.discover.title': 'Donnez vie à votre musique',
+  'graph.picker.discover.body':
+    'Découvrez des scènes animées à acheter et à garder, ou créez les vôtres gratuitement dans le Studio.',
+  'graph.picker.discover.explore': 'Explorer les scènes',
+  'graph.picker.discover.create': 'Créer ma scène',
+  'graph.picker.discover.free': 'FluidEQ et ses outils audio restent gratuits.',
   'graph.picker.all': 'Tous',
   'graph.picker.yours': 'Les vôtres',
   'graph.picker.filterStyles': 'Filtrer les styles',
@@ -541,9 +557,9 @@ const eq: Partial<Dictionary> = {
   'profiles.error.duplicate': 'Ce nom existe déjà, choisissez-en un autre.',
   'profiles.edit': 'Modifier le nom du profil',
   'autoeq.page.eyebrow': 'ADAPTEZ VOTRE CASQUE',
-  'autoeq.page.title': 'Correction du casque',
+  'autoeq.page.title': 'Préréglages EQ',
   'autoeq.page.intro':
-    'Indiquez le casque que vous utilisez et FluidEQ applique la correction publiée pour lui. Elle s’écrit dans sa propre couche, avec son intensité et son interrupteur, vos bandes d’égalisation ne sont donc jamais touchées. Chaque mesure a été prise sur un vrai banc et publiée par quelqu’un ; rien n’est deviné à partir du nom du modèle.',
+    'Trouvez une correction pour votre casque ou ajoutez votre propre courbe.',
   'autoeq.model.hint':
     'Cherchez par marque ou par modèle. Si le vôtre n’est pas mesuré, un proche parent de la même gamme vous en rapproche souvent beaucoup.',
   'autoeq.target.hint':
@@ -636,7 +652,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target': 'Cible',
   'eq.smart.mode.target.note':
     'Continue à mesurer · chaque enregistrement sur la même courbe',
-  'eq.layers': 'Également appliqué',
   'eq.layers.aria': 'Autres traitements appliqués à cette sortie',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.bands': '{count} bandes',
@@ -792,7 +807,7 @@ const eq: Partial<Dictionary> = {
   'voicing.none.hint': 'Vos bandes d’égalisation seules, rien par-dessus',
   'voicing.strength': 'Intensité',
   'waveform.style': "Changer le style de l'indicateur",
-  'waveform.rainbow': 'Arc-en-ciel',
+  'waveform.rainbow': 'Coloré',
   'waveform.live': 'SORTIE EN DIRECT',
   'waveform.signal': 'SIGNAL AUDIO',
   'waveform.clip': 'SATURATION',
@@ -820,6 +835,23 @@ const eq: Partial<Dictionary> = {
   'eq.refused.externalEq':
     'L’égaliseur externe contient des étapes que FluidEQ ne peut pas reprendre sans risque. Ses fichiers n’ont pas été modifiés.',
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.intro': 'Votre son enregistré, prêt quand vous en avez besoin.',
+  'myCurves.importSquiglink': 'Importer depuis Squiglink',
+  'myCurves.preview': 'Aperçu de la courbe',
+  'myCurves.previewRange': 'Correction EQ · 20 Hz–20 kHz',
+  'myCurves.previewEmpty': 'L’aperçu de votre courbe apparaîtra ici',
+  'myCurves.filters': 'Filtres',
+  'myCurves.preamp': 'Préamplification',
+  'myCurves.correctionHint':
+    'Appliquer comme correction du casque. Votre EQ modifiable reste en place.',
+  'myCurves.squiglinkGuide': 'Vous venez de Squiglink ?',
+  'myCurves.squiglinkSteps':
+    'Choisir casque + cible → Exporter l’EQ → Coller ci-dessous',
+  'myCurves.sourceLabel': 'Source',
+  'myCurves.editableEq': 'Appliquer plutôt à l’EQ modifiable',
+  'myCurves.editableEqHint':
+    'Remplace vos bandes modifiables. Choisissez les oreilles à modifier. Appuyez à nouveau pour confirmer.',
+  'myCurves.saveReplaceEq': 'Enregistrer et remplacer l’EQ',
   'myCurves.tab.opra': 'Bibliothèque OPRA',
   'myCurves.tab.mine': 'Mes courbes',
   'myCurves.tab.squiglink': 'Squiglink',
@@ -832,7 +864,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.export': 'Exporter la liste',
   'myCurves.empty.title': 'Pas encore de courbes à vous',
   'myCurves.empty.body':
-    'Ajoutez-en une depuis un export Squiglink ou un fichier .txt, ou enregistrez-en une depuis l’onglet Squiglink. Vos courbes restent sur cet ordinateur jusqu’à ce que vous les exportiez.',
+    'Ajoutez un export Squiglink, un fichier .txt, votre EQ actuel ou une correction OPRA. Vos courbes restent sur cet ordinateur jusqu’à leur exportation.',
   'myCurves.noMatch': 'Aucune courbe n’a cela dans son nom.',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': 'Fichier',
@@ -855,8 +887,8 @@ const eq: Partial<Dictionary> = {
   'myCurves.cancel': 'Annuler',
   'myCurves.addTitle': 'Ajouter une courbe',
   'myCurves.addIntro':
-    'Elle va dans Mes courbes. Rien ne joue tant que vous ne l’appliquez pas.',
-  'myCurves.textLabel': 'Texte ParametricEQ',
+    'Enregistrez cette courbe pour plus tard, ou enregistrez-la et appliquez-la maintenant.',
+  'myCurves.textLabel': 'Texte EQ',
   'myCurves.textPlaceholder': 'Collez ici un export ParametricEQ ou GraphicEQ',
   'myCurves.read': 'Lu : {count} bandes, préampli {preamp} dB',
   'myCurves.readNothing':
@@ -867,7 +899,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.defaultName': 'Courbe Squiglink, {date}',
   'myCurves.chartAria': 'La courbe {name}, de 20 Hz à 20 kHz',
   'myCurves.save': 'Enregistrer dans Mes courbes',
-  'myCurves.saveApply': 'Enregistrer et appliquer comme courbe',
+  'myCurves.saveApply': 'Enregistrer et appliquer',
   'myCurves.exportTitle': 'Exporter Mes courbes',
   'myCurves.exportIntro':
     'Courbes dans la liste : {count}. Rien sur vos sorties ni votre compte n’entre dans le fichier.',
@@ -902,12 +934,12 @@ const eq: Partial<Dictionary> = {
   'myCurves.importNote':
     'Les courbes importées ne jouent jamais d’elles-mêmes ; celle qui joue maintenant continue.',
   'myCurves.from': 'D’où elle vient',
-  'myCurves.from.paste': 'Coller',
+  'myCurves.from.paste': 'Coller du texte EQ',
   'myCurves.from.pasteHint':
     'Le texte ParametricEQ de Squiglink, ou celui d’AutoEQ',
-  'myCurves.from.file': 'Un fichier .txt',
+  'myCurves.from.file': 'Fichier texte',
   'myCurves.from.fileHint': 'Format Equalizer APO ou AutoEQ',
-  'myCurves.from.eq': 'Mon EQ actuel',
+  'myCurves.from.eq': 'EQ actuel',
   'myCurves.from.eqHint': 'Vos bandes, telles qu’elles jouent',
   'myCurves.from.opra': 'Depuis OPRA',
   'myCurves.from.opraHint':

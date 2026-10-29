@@ -1,0 +1,125 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'miniPlayerParts' as *;
+
+// The amp's foot (`PlayerFoot`): the output, and the engine shaping the
+// sound, lit while FluidEQ is on. Under the column and never scrolled with
+// it, as the title strip is over it.
+.player-foot {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 7px 14px;
+  // Ruled off from the queue like every other section (Ivan, 2026-10-25:
+  // "let's try a divider line on the bottom too").
+  border-top: 1px solid var(--player-rule);
+  background: color-mix(in srgb, var(--surface-base) 88%, transparent);
+  color: var(--player-text-soft);
+  font-size: 11.5px;
+  font-weight: $weight-semibold;
+}
+
+// The panes' own glass over the Backdrop's picture, the same see-through and
+// the same blur (Ivan, 2026-10-25: "bottom part needs to be same deal as the
+// app pane, same blur and transparent") — and no rule over it, a touch darker
+// than the panes instead ("no divider on the bottom" in the Backdrop, "some
+// colour there always a bit darker than the pane, but just a bit", "the
+// bottom part nicer"). The darker tint eases in over the queue's last few
+// pixels rather than starting on a line, as the header's shade eases out at
+// the top. The rule stays in every other mode ("divider is fine for all
+// other modes").
+.mini-player.is-backdrop .player-foot {
+  position: relative;
+  border-top: 0;
+  background: var(--player-pane);
+  backdrop-filter: blur(24px) saturate(1.15);
+
+  &::before {
+    position: absolute;
+    z-index: -1;
+    inset: -18px 0 0;
+    background: linear-gradient(
+      180deg,
+      eased-ramp($black, 0, 18px, 0, 0.14),
+      rgba($black, 0.14) 100%
+    );
+    content: '';
+    pointer-events: none;
+  }
+}
+
+.player-foot__output,
+.player-foot__engine {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.player-foot__output .player-icon {
+  flex: none;
+  width: 14px;
+  height: 14px;
+}
+
+.player-foot__words {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// The engine keeps its words whole; the output's name gives way to it.
+.player-foot__engine {
+  flex: none;
+}
+
+.player-foot__lamp {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--player-lamp-off);
+}
+
+// The amp's height, dragged by its bottom or top edge (`PlayerHeightGrip`):
+// a strip where the system's own edge would be, with the up-and-down cursor
+// alone. The top one lies over the header's edge, out of the handle the
+// window is moved by, so the header keeps the rest of its height for that.
+.player-height-grip {
+  position: absolute;
+  z-index: 20;
+  right: 0;
+  left: 0;
+  height: 6px;
+  cursor: ns-resize;
+  touch-action: none;
+  -webkit-app-region: no-drag;
+}
+
+.player-height-grip--bottom {
+  bottom: 0;
+}
+
+.player-height-grip--top {
+  top: 0;
+  height: 5px;
+}
+
+.player-foot__engine.is-on {
+  color: var(--player-ink-bright);
+
+  .player-foot__lamp {
+    background: var(--player-lamp);
+    box-shadow: 0 0 8px var(--player-lamp);
+  }
+}

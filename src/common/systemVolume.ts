@@ -21,6 +21,10 @@ export interface ISystemVolume {
   /** 0 to 1, as the taskbar's volume slider reads it. */
   level: number;
   isMuted: boolean;
+  /** Native v2 acknowledges commands after querying the real output. */
+  canAcknowledge?: boolean;
+  sessionId?: string;
+  appliedRequestId?: string;
 }
 
 /**

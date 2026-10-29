@@ -22,6 +22,7 @@ import { app, BrowserWindow, Menu, nativeImage, Tray } from 'electron';
 import log from 'electron-log';
 import { PRODUCT_NAME } from '../common/branding';
 import { DEFAULT_LOCALE, LocaleCode, translate } from '../common/i18n';
+import type { ITaskbarIconImage } from '../common/taskbarIcon';
 
 /**
  * The notification-area icon, and the window closing into it.
@@ -182,7 +183,104 @@ const applyTrayIcon = () => {
   if (!tray || tray.isDestroyed() || !trayIcons) {
     return;
   }
-  tray.setImage(isUpdateReady ? trayIcons.update : trayIcons.plain);
+  tray.setImage(
+    isUpdateReady ? trayIcons.update : (tintedIcon ?? trayIcons.plain),
+  );
+};
+
+/**
+ * The taskbar button's icon drawn in the window's colours, the same .ico
+ * (`taskbarIcon.ts`), while "Tint app icon" is on; undefined for the
+ * installed one (Ivan, 2026-10-26: "also I am not seeing the systray tints").
+ * The update badge still wins: that mark is the only sign in the tray that
+ * an update is waiting, and it exists as the installed icon alone.
+ */
+let tintedIcon: string | undefined;
+
+/**
+ * The same drawing for the menu the tray opens, whose "Open FluidEQ" item
+ * kept the installed mark while the tray above it wore the drawn one (Ivan,
+ * 2026-10-26: "in the systry the icon is now tinet but not inside th emenu
+ * that opens"). Null while the switch is off.
+ */
+let tintedMenuIcon: Electron.NativeImage | null = null;
+
+/** What `setUpTray` was handed, so a change of icon can rebuild the menu. */
+let menuWindow: (() => BrowserWindow | null) | null = null;
+
+/** The display scales a menu icon carries a drawing for, by its size. */
+const MENU_ICON_SCALES = [1, 1.25, 1.5, 2] as const;
+
+/**
+ * One drawing as Chromium holds a bitmap: BGRA with each colour already
+ * multiplied by its alpha, which is what `createFromBitmap` reads. The
+ * drawings are straight RGBA (`ITaskbarIconImage`); read as they are, red and
+ * blue would trade places and every soft edge would carry a light fringe.
+ */
+const nativeBitmap = ({ rgba }: ITaskbarIconImage): Buffer => {
+  const out = Buffer.alloc(rgba.length);
+  for (let at = 0; at < rgba.length; at += 4) {
+    const alpha = rgba[at + 3];
+    out[at] = Math.round((rgba[at + 2] * alpha) / 255);
+    out[at + 1] = Math.round((rgba[at + 1] * alpha) / 255);
+    out[at + 2] = Math.round((rgba[at] * alpha) / 255);
+    out[at + 3] = alpha;
+  }
+  return out;
+};
+
+/**
+ * The menu's icon from the drawings themselves, one per display scale the
+ * menu is drawn at, exactly as the .ico holds them: never one bitmap the
+ * shell resamples, the smudge `loadMenuIcon` exists to avoid. Null without
+ * the 16px drawing the menu asks for at 100%.
+ */
+export const menuIconFromDrawings = (
+  drawings: readonly ITaskbarIconImage[],
+): Electron.NativeImage | null => {
+  const drawingAt = (scale: number) =>
+    drawings.find(({ size }) => size === MENU_ICON_PX * scale);
+  const base = drawingAt(1);
+  if (!base) {
+    return null;
+  }
+  const icon = nativeImage.createFromBitmap(nativeBitmap(base), {
+    width: base.size,
+    height: base.size,
+  });
+  MENU_ICON_SCALES.slice(1).forEach((scaleFactor) => {
+    const drawing = drawingAt(scaleFactor);
+    if (drawing) {
+      icon.addRepresentation({
+        scaleFactor,
+        buffer: nativeImage
+          .createFromBitmap(nativeBitmap(drawing), {
+            width: drawing.size,
+            height: drawing.size,
+          })
+          .toPNG(),
+      });
+    }
+  });
+  return icon;
+};
+
+export interface ITrayTintedIcon {
+  /** The drawn .ico, every size, for the notification area. */
+  file: string;
+  /** The drawings in it, for the menu's icon. */
+  drawings: readonly ITaskbarIconImage[];
+}
+
+export const setTrayTintedIcon = (icon: ITrayTintedIcon | undefined) => {
+  tintedIcon = icon?.file;
+  tintedMenuIcon = icon ? menuIconFromDrawings(icon.drawings) : null;
+  applyTrayIcon();
+  // The menu is built once and handed to the tray, so it follows a colour
+  // change only by being built again, as the image above does by being set.
+  if (tray && !tray.isDestroyed() && menuWindow) {
+    tray.setContextMenu(buildMenu(menuWindow));
+  }
 };
 
 /** Read by the window's `close` handler; see the note on the flag. */
@@ -294,7 +392,9 @@ const buildMenu = (getMainWindow: () => BrowserWindow | null) => {
   // iconography in the app that nothing else uses.
   template.push({
     label: translate(locale, 'app.tray.open', { product: PRODUCT_NAME }),
-    icon: menuIcons?.plain,
+    // The tray's own mark, drawn or installed, so the menu matches the icon
+    // it opened from.
+    icon: tintedMenuIcon ?? menuIcons?.plain,
     click: () => revealWindow(getMainWindow),
   });
 
@@ -418,6 +518,7 @@ export const setUpTray = (deps: ITrayDeps) => {
   const { getMainWindow, onInstallUpdate, onCheckForUpdates, onRecoverWindow } =
     deps;
   updateActions = { onInstallUpdate, onCheckForUpdates, onRecoverWindow };
+  menuWindow = getMainWindow;
   if (tray) {
     return;
   }

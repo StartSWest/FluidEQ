@@ -29,7 +29,6 @@ import {
   VisualizersSlide,
 } from './release17';
 import {
-  CompactPlayerSlide,
   GamePresetsSlide,
   GraphViewsSlide,
   GuideSearchSlide,
@@ -45,6 +44,7 @@ import {
 } from './release20';
 import {
   BandsSlide,
+  CompactPlayerSlide,
   DeEsserSlide,
   EarsSlide,
   MyCurvesSlide,
@@ -52,6 +52,7 @@ import {
   SongsSlide,
   StudioChatSlide,
 } from './release21';
+import KaraokeBackgroundSlide from './release22';
 
 /**
  * The workspace tabs a slide can send the user to. `community` is Plus;
@@ -113,6 +114,17 @@ const ROOM: TSlideEntry = {
   titleKey: 'tour.room.title',
   subtitleKey: 'tour.room.subtitle',
   Body: RoomSlide,
+};
+
+/**
+ * 2.0 announced the Compact player as two players; 2.1 made them one (Ivan,
+ * 2026-10-25), and the slide moves up to say so, as the Room's did.
+ */
+const COMPACT_PLAYER: TSlideEntry = {
+  id: 'compact-player',
+  titleKey: 'tour.player.title',
+  subtitleKey: 'tour.player.subtitle',
+  Body: CompactPlayerSlide,
 };
 
 /**
@@ -203,12 +215,7 @@ const RELEASE_20: TSlideEntry[] = [
     subtitleKey: 'tour.games.subtitle',
     Body: GamePresetsSlide,
   },
-  {
-    id: 'compact-player',
-    titleKey: 'tour.player.title',
-    subtitleKey: 'tour.player.subtitle',
-    Body: CompactPlayerSlide,
-  },
+  COMPACT_PLAYER,
   {
     id: 'graph-views',
     titleKey: 'tour.graph.title',
@@ -238,9 +245,10 @@ const RELEASE_20: TSlideEntry[] = [
 /**
  * 2.1, in the order of what a listener meets first: every output keeping its
  * own sound, a band tuned for each ear, Share Audio both ways (its slide says
- * so now; it was a standing one), the bands read out on the graph with EQ
- * mode beside it, the listener's own list of curves beside OPRA's, songs
- * that remember their sound, the DSP rack's De-esser, and the Studio's chat.
+ * so now; it was a standing one), the one Compact player in place of 2.0's
+ * two (its slide moved up), the bands read out on the graph with EQ mode
+ * beside it, the listener's own list of curves beside OPRA's, songs that
+ * remember their sound, the DSP rack's De-esser, and the Studio's chat.
  */
 const RELEASE_21: TSlideEntry[] = [
   {
@@ -256,6 +264,7 @@ const RELEASE_21: TSlideEntry[] = [
     Body: EarsSlide,
   },
   SHARE_AUDIO,
+  COMPACT_PLAYER,
   {
     id: 'band-labels',
     titleKey: 'tour.bands.title',
@@ -304,6 +313,19 @@ const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
  * from decides what is new to them, not the version they are going to.
  */
 const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
+  '2.2': [
+    ...announced('2.2', [
+      {
+        id: 'karaoke-background',
+        titleKey: 'tour.karaokeBackground.title',
+        subtitleKey: 'tour.karaokeBackground.subtitle',
+        Body: KaraokeBackgroundSlide,
+      },
+    ]),
+    ...announced('2.1', RELEASE_21),
+    // Earlier features remain discoverable without being announced again.
+    ...RELEASE_20.filter((entry) => !RELEASE_21.includes(entry)),
+  ],
   '1.6': announced('1.6', [SECOND_OUTPUT, SHARE_AUDIO]),
   '1.7': announced('1.7', RELEASE_17),
   '2.0': [
@@ -313,7 +335,14 @@ const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
       RELEASE_17.filter((entry) => !RELEASE_20.includes(entry)),
     ),
   ],
-  '2.1': [...announced('2.1', RELEASE_21), ...announced('2.0', RELEASE_20)],
+  // A slide 2.1 moved up is new under 2.1 alone, as the Room is under 2.0.
+  '2.1': [
+    ...announced('2.1', RELEASE_21),
+    ...announced(
+      '2.0',
+      RELEASE_20.filter((entry) => !RELEASE_21.includes(entry)),
+    ),
+  ],
 };
 
 /**

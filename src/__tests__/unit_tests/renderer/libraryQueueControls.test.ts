@@ -13,22 +13,23 @@ import {
 import { useQueueControls } from '../../../renderer/library/player/useQueueControls';
 
 /**
- * The queue is re-aimed on every track change as well as on a real change of
- * shelf, and rebuilding the run from the shelf's order on a track change put
- * the shelf's order back — so a row dragged in Up Next went home the moment
- * the song ended. What a listener adds by hand already survived that rebuild
- * by name; the order they put the rest in did not.
+ * A press aims the queue at the list it was made in (`retargetQueue`), and a
+ * change of song only tops it up from that same list (`topUpQueue`) — never
+ * from whatever list is on screen, which replaced a playlist started from the
+ * amp with the Library's Songs shelf (Ivan, 2026-10-25).
  *
- * The library then began handing its list over as a window around the playing
- * song, which slides on with every song once the list is longer than it, and
- * the same bug came back on every long list: a slid window compared as a
- * changed shelf. The list is named now, and the same list only tops up.
+ * The list is handed over as a window around the playing song, which slides
+ * on with every song once the list is longer than it. Rebuilt from each slid
+ * window, the shelf's order came back over the listener's — a row dragged in
+ * Up Next went home the moment the song ended — so the list is named, and
+ * the same list only tops up.
  */
 const shelf = ['a', 'b', 'c', 'd'];
 
 const controls = (
   start: ILibraryQueue = buildQueue(shelf, 'a', false),
   continued: readonly string[] = [],
+  added: readonly string[] = [],
 ) => {
   let queue: ILibraryQueue | undefined = start;
   const held = {
@@ -52,7 +53,7 @@ const controls = (
           queue = next;
         },
       },
-      addedIdsRef: { current: new Set<string>() },
+      addedIdsRef: { current: new Set<string>(added) },
       continuedIdsRef: { current: new Set<string>(continued) },
       setAddedIds: () => undefined,
       playTracks: () => undefined,
@@ -121,7 +122,7 @@ describe('a long list handed over as a sliding window', () => {
   const nextSong = ({ held, api }: ReturnType<typeof controls>) => {
     api().jumpToQueuePosition((held.queue?.position ?? 0) + 1);
     const playing = held.queue ? currentTrackId(held.queue) : undefined;
-    api().retargetQueue(windowAround(playing ?? ''), 'songs');
+    api().topUpQueue(windowAround(playing ?? ''), 'songs');
   };
 
   it('keeps the order the listener made as the window slides on', () => {
@@ -149,14 +150,21 @@ describe('a long list handed over as a sliding window', () => {
     expect(upNext(made.held.queue)).toEqual(['f', 'g']);
   });
 
-  it('keeps what continuation drew after all of the list', () => {
+  // Keep playing's draws belong after the LAST song queued, once it plays
+  // (Ivan, 2026-10-25). The list growing again under them means it has not
+  // run out, so they go, and are drawn again when its new last song plays.
+  it('drops what continuation drew once the list brings more songs', () => {
     const start = buildQueue([...windowAround('c'), 'x', 'y'], 'c', false);
     const made = controls(start, ['x', 'y']);
-    made.api().retargetQueue([...windowAround('c'), 'x', 'y'], 'songs');
+    made.api().topUpQueue(windowAround('c'), 'songs');
+    // Nothing aimed yet, so a top-up asks nothing of it.
     expect(upNext(made.held.queue)).toEqual(['d', 'e', 'x', 'y']);
+    made.api().retargetQueue(windowAround('c'), 'songs');
+    // A press aiming the queue at its list drops draws made before it.
+    expect(upNext(made.held.queue)).toEqual(['d', 'e']);
 
     nextSong(made);
-    expect(upNext(made.held.queue)).toEqual(['e', 'f', 'x', 'y']);
+    expect(upNext(made.held.queue)).toEqual(['e', 'f']);
   });
 
   it('tops a shuffled queue up without reshuffling what it held', () => {
@@ -190,5 +198,90 @@ describe('a long list handed over as a sliding window', () => {
     const before = made.held.queue;
     made.api().retargetQueue(windowAround('c'), 'songs');
     expect(made.held.queue).toBe(before);
+  });
+});
+
+describe('adding to Up next', () => {
+  it('inserts dropped songs before their anchor without changing the playing song', () => {
+    const { held, api } = controls();
+    expect(api().insertIntoQueue(['x', 'c', 'y', 'x'], ['c', 'd'])).toBe(2);
+    expect(upNext(held.queue)).toEqual(['b', 'x', 'y', 'c', 'd']);
+    expect(held.queue && currentTrackId(held.queue)).toBe('a');
+    expect(api().insertIntoQueue(['x', 'a'], ['b'])).toBe(0);
+    expect(upNext(held.queue)).toEqual(['b', 'x', 'y', 'c', 'd']);
+  });
+
+  it('retains a drop’s target across intervening playback and queue edits', () => {
+    const { held, api } = controls();
+    // Captured when a folder was dropped before c; its scan resolves later.
+    const beforeIds = ['c', 'd'];
+    api().moveUpNext(3, 1);
+    api().jumpToQueuePosition(1);
+    api().removeUpNextAt(3);
+    expect(api().insertIntoQueue(['x', 'y'], beforeIds)).toBe(2);
+    expect(upNext(held.queue)).toEqual(['b', 'x', 'y']);
+    expect(held.queue && currentTrackId(held.queue)).toBe('d');
+  });
+
+  it('puts the songs at the end, says how many joined, and never twice', () => {
+    const { held, api } = controls();
+    expect(api().appendToQueue(['x', 'c', 'y', 'x'])).toBe(2);
+    expect(upNext(held.queue)).toEqual(['b', 'c', 'd', 'x', 'y']);
+    // The same songs again, and the one playing: nothing joins.
+    expect(api().appendToQueue(['x', 'y', 'a'])).toBe(0);
+    expect(upNext(held.queue)).toEqual(['b', 'c', 'd', 'x', 'y']);
+  });
+
+  it('lands after the last song, taking Keep playing’s draws away', () => {
+    const start = buildQueue(['a', 'b', 'x', 'y'], 'b', false);
+    const { held, api } = controls(start, ['x', 'y']);
+    api().appendToQueue(['z']);
+    expect(upNext(held.queue)).toEqual(['z']);
+  });
+});
+
+describe('a press re-aiming the queue', () => {
+  it('keeps what the listener added, at the end, after the new list', () => {
+    const start = buildQueue(['a', 'p', 'q'], 'a', false);
+    const { held, api } = controls(start, [], ['p', 'q']);
+    api().retargetQueue(['z', 'a', 'b', 'c'], 'album');
+    expect(upNext(held.queue)).toEqual(['b', 'c', 'p', 'q']);
+  });
+
+  it('takes the same list twice in the list once', () => {
+    const { held, api } = controls(buildQueue(['a'], 'a', false));
+    api().retargetQueue(['a', 'b', 'a', 'c', 'b'], 'playlist');
+    expect(upNext(held.queue)).toEqual(['b', 'c']);
+  });
+});
+
+describe('a change of song', () => {
+  it('tops up only the list the queue plays, never another one', () => {
+    const made = controls();
+    made.api().retargetQueue(shelf, 'playlist');
+    const aimed = made.held.queue;
+    // The Library showing another shelf: Up next stays the playlist.
+    made.api().topUpQueue(['z', 'a', 'y'], 'songs');
+    expect(made.held.queue).toBe(aimed);
+    // The playlist itself, grown: what is new joins.
+    made.api().topUpQueue([...shelf, 'e'], 'playlist');
+    expect(upNext(made.held.queue)).toEqual(['b', 'c', 'd', 'e']);
+  });
+});
+
+describe('moving the playhead back', () => {
+  it('drops Keep playing’s draws once the listener’s songs are ahead again', () => {
+    const start = buildQueue(['a', 'b', 'x', 'y'], 'b', false);
+    const { held, api } = controls(start, ['x', 'y']);
+    expect(upNext(held.queue)).toEqual(['x', 'y']);
+    api().jumpToQueuePosition(0);
+    expect(upNext(held.queue)).toEqual(['b']);
+  });
+
+  it('keeps them for a jump within them', () => {
+    const start = buildQueue(['a', 'b', 'x', 'y', 'w'], 'b', false);
+    const { held, api } = controls(start, ['x', 'y', 'w']);
+    api().jumpToQueuePosition(at(held.queue, 'x'));
+    expect(upNext(held.queue)).toEqual(['y', 'w']);
   });
 });

@@ -174,7 +174,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .signal-name__suffix {
   display: inline-block;
   color: transparent;
-  background: $secondary-default var(--accent-fill);
+  // The sweep's last stretch (below): from the accent, where "d" ends, to
+  // the bluer end of the window's span.
+  background: $secondary-default
+    linear-gradient(90deg, var(--accent), var(--accent-end));
   background-clip: text;
   opacity: 0;
   transform: translateY(5px);
@@ -193,24 +196,82 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// ONE SWEEP (Ivan, 2026-10-25, picking "2 · One sweep" with "glow on EQ"):
+// the whole name is one light, the theme's white on the left melting through
+// a pale accent into the accent by the end of "Fluid", and "EQ" carrying it
+// on to the window's bluer end. Each letter is its own box, for its rise, and
+// a clip paints only the box it is on, so each takes its own stretch of the
+// sweep: its left and right edges at the sweep's colour there, sevenths of
+// the name apart. White to pale over the first four tenths, pale to the
+// accent by the end of "d".
+$sweep-pale: color-mix(in oklab, $secondary-light 60%, $text-primary);
+
+@mixin sweep-stretch($from, $to) {
+  color: transparent;
+  background: linear-gradient(90deg, $from, $to);
+  background-clip: text;
+}
+
+.signal-name > .signal-name__letter {
+  &:nth-child(1) {
+    @include sweep-stretch(
+      $text-primary,
+      color-mix(in oklab, $sweep-pale 36%, $text-primary)
+    );
+  }
+
+  &:nth-child(2) {
+    @include sweep-stretch(
+      color-mix(in oklab, $sweep-pale 36%, $text-primary),
+      color-mix(in oklab, $sweep-pale 71%, $text-primary)
+    );
+  }
+
+  &:nth-child(3) {
+    @include sweep-stretch(
+      color-mix(in oklab, $sweep-pale 71%, $text-primary),
+      color-mix(in oklab, var(--accent) 9%, $sweep-pale)
+    );
+  }
+
+  &:nth-child(4) {
+    @include sweep-stretch(
+      color-mix(in oklab, var(--accent) 9%, $sweep-pale),
+      color-mix(in oklab, var(--accent) 55%, $sweep-pale)
+    );
+  }
+
+  &:nth-child(5) {
+    @include sweep-stretch(
+      color-mix(in oklab, var(--accent) 55%, $sweep-pale),
+      var(--accent)
+    );
+  }
+}
+
 // The glow of a clipped word: a text shadow would be drawn through its
 // transparent letters and tint them, so the light is a drop shadow round the
-// painted word instead, on the pulse's clock.
+// painted word instead. Steady, so "EQ" always reads as lit, and brighter
+// each time the pulse arrives, on the pulse's clock.
+$eq-glow: drop-shadow(
+  0 0 6px color-mix(in srgb, $secondary-default 55%, transparent)
+);
+
 @keyframes signal-glow-lit {
   0%,
   16% {
-    filter: none;
+    filter: $eq-glow;
   }
 
   22% {
     filter: drop-shadow(
-      0 0 7px color-mix(in srgb, $secondary-default 80%, transparent)
+      0 0 9px color-mix(in srgb, $secondary-default 85%, transparent)
     );
   }
 
   40%,
   100% {
-    filter: none;
+    filter: $eq-glow;
   }
 }
 
@@ -239,5 +300,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     animation: none;
     opacity: 1;
     transform: none;
+    // Lit all the same, without the pulse.
+    filter: $eq-glow;
   }
 }
