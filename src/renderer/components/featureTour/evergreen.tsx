@@ -32,7 +32,6 @@ export function LibrarySlide({ actions }: ISlideProps) {
   return (
     <FeatureSlide
       prefix="tour.library"
-      film="library"
       tab="library"
       art={<LibraryArt />}
       actions={actions}
@@ -44,7 +43,6 @@ export function DspSlide({ actions }: ISlideProps) {
   return (
     <FeatureSlide
       prefix="tour.dsp"
-      film="dsp"
       tab="dsp"
       art={<DspArt />}
       actions={actions}
@@ -86,7 +84,6 @@ export function KaraokeSlide({ actions }: ISlideProps) {
   return (
     <FeatureSlide
       prefix="tour.karaoke"
-      film="karaoke"
       tab="karaoke"
       art={<KaraokeArt />}
       actions={actions}
@@ -98,7 +95,6 @@ export function KaraokeMakerSlide({ actions }: ISlideProps) {
   return (
     <FeatureSlide
       prefix="tour.maker"
-      film="karaoke-maker"
       tab="karaoke"
       art={<KaraokeMakerArt />}
       actions={actions}

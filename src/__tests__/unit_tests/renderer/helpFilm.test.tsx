@@ -7,6 +7,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import HelpChapter from 'renderer/help/HelpChapter';
 import HelpFilm from 'renderer/help/HelpFilm';
 import HELP_FILMS, { FILMS_AWAY } from 'renderer/help/helpFilms';
+import { WALKTHROUGH_FILM } from 'renderer/components/featureTour/WalkthroughSlide';
 import FILM_POSTERS from 'renderer/components/featureTour/filmPosters';
 import {
   FEATURE_FILMS,
@@ -70,10 +71,13 @@ it('places only films that exist, under topics the guide has', () => {
     });
   });
   // Every film is somewhere in Help, unless it is held away until it is
-  // recorded again.
+  // recorded again, or is What's New's first page, which Help has no topic
+  // for.
   const placed = new Set(Object.values(HELP_FILMS).flat());
   Object.keys(FEATURE_FILMS).forEach((id) =>
-    expect(placed.has(id) || FILMS_AWAY.includes(id)).toBe(true),
+    expect(
+      placed.has(id) || FILMS_AWAY.includes(id) || id === WALKTHROUGH_FILM,
+    ).toBe(true),
   );
 });
 
@@ -100,7 +104,7 @@ it('plays a film held away nowhere, until it is recorded again', () => {
       ),
   );
   // The positive control: the slides do name their films this way.
-  expect(onSlides.has('every-output')).toBe(true);
+  expect(onSlides.has('custom-looks')).toBe(true);
   FILMS_AWAY.forEach((id) => {
     expect(FEATURE_FILMS[id]).toBeDefined();
     expect(placed.has(id)).toBe(false);
@@ -109,19 +113,19 @@ it('plays a film held away nowhere, until it is recorded again', () => {
 });
 
 it("comes after the topic's pictures and before its steps, so a film the site cannot send leaves the topic whole", () => {
-  const eq = HELP_CHAPTERS.find((chapter) => chapter.id === 'eq');
-  if (!eq) {
-    throw new Error('the guide has no EQ topic');
+  const topic = HELP_CHAPTERS.find((chapter) => chapter.id === 'looks');
+  if (!topic) {
+    throw new Error('the guide has no custom looks topic');
   }
-  expect(eq.figures.length).toBeGreaterThan(0);
+  expect(topic.figures.length).toBeGreaterThan(0);
   const { container } = render(
     <HelpChapter
       chapter={{
-        id: eq.id,
-        group: eq.group,
-        figures: eq.figures,
+        id: topic.id,
+        group: topic.group,
+        figures: topic.figures,
         number: 6,
-        title: 'Shape your sound',
+        title: 'Custom looks',
         intro: 'Intro',
         steps: ['A step'],
         tip: 'A tip',
@@ -139,7 +143,7 @@ it("comes after the topic's pictures and before its steps, so a film the site ca
     }
     return child.tagName.toLowerCase();
   });
-  const films = HELP_FILMS.eq.map((id) => `film:${id}`);
+  const films = HELP_FILMS.looks.map((id) => `film:${id}`);
   const firstFilm = order.indexOf(films[0]);
   expect(order.slice(firstFilm, firstFilm + films.length)).toEqual(films);
   expect(order.lastIndexOf('picture')).toBeLessThan(firstFilm);

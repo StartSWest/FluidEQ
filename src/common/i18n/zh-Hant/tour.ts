@@ -506,6 +506,62 @@ const tour = {
     '接著調整造型。「區塊數」決定長條數量，顏色、間距與動態也都由您決定。',
   'tour.film.looks.save':
     '按下儲存，即可保留為自己的樣式，也可以透過檔案分享。',
+  'tour.walkthrough.kicker': '完整導覽',
+  'tour.walkthrough.title': '一部影片看完 FluidEQ',
+  'tour.walkthrough.subtitle': '從頭到尾看一遍',
+  'tour.walkthrough.lead':
+    '從你拖曳的第一個頻段到視覺化工具，帶你看完 FluidEQ 的全部功能，並有語音講解每個部分怎麼用。',
+  'tour.film.walkthrough.intro':
+    '這就是 FluidEQ 2.2：一個等化器，管好您電腦上播放的一切聲音。我們來看看吧。',
+  'tour.film.walkthrough.graph':
+    '拖曳圖表上的任意一點來塑造聲音。每個頻段的頻率與增益都直接顯示在曲線上。',
+  'tour.film.walkthrough.sliders':
+    '滑桿調整的是同樣的頻段，曲線會立刻跟上。您碰到的頻段，會在下方打開它自己的控制項。',
+  'tour.film.walkthrough.tone':
+    '按一下空白處，音色就回來了：低音、中音與高音，兩側還有低切與高切。',
+  'tour.film.walkthrough.ears':
+    '在頻段上按右鍵，選擇「左+右」，就能分別調整左右耳。實線是左耳，虛線是右耳。',
+  'tour.film.walkthrough.eqmode':
+    'EQ 模式就在圖表旁邊。它決定曲線作用的強度，而「精確」會照畫出的樣子精準還原高音。',
+  'tour.film.walkthrough.headphones':
+    '在「EQ 預設組」中，從數千款實測型號裡找到您的耳機，一鍵套用它的校正。',
+  'tour.film.walkthrough.mycurves':
+    '把它存進「我的曲線」，這是您自己的清單，就在 OPRA 旁邊，隨用隨取。',
+  'tour.film.walkthrough.outputs':
+    '每個輸出都保留自己的聲音。切換到耳機，它會回到您上次設定的樣子。第二輸出還能在另一台裝置上播放同樣的音樂。',
+  'tour.film.walkthrough.songs':
+    '開啟「記住每首歌的聲音」，每首歌都會帶著您給它的聲音回來。',
+  'tour.film.walkthrough.games':
+    '遊戲預設組會在遊戲切到前景的那一刻切換聲音，關閉遊戲時再切回來。',
+  'tour.film.walkthrough.dsp':
+    'DSP 效果器機架是一串錄音室效果，作用於您聽到的一切。為整個機架選一個預設，從音樂風格到電影與遊戲都有。',
+  'tour.film.walkthrough.deesser':
+    '新的齒音消除器只壓低人聲中刺耳的齒音，不碰鈸聲。',
+  'tour.film.walkthrough.character':
+    '激勵器增添光澤，Bass Forge 增加厚度，立體聲擴展讓立體聲更寬。',
+  'tour.film.walkthrough.room':
+    '聆聽室讓您置身真實空間的喇叭之間，戴耳機也一樣。',
+  'tour.film.walkthrough.maximizer':
+    '而響度最大化器讓一切響亮又乾淨，永不削波。',
+  'tour.film.walkthrough.library':
+    '媒體庫用同樣的聲音播放您自己的音樂，還有專輯、播放清單與「接下來播放」。',
+  'tour.film.walkthrough.compact':
+    '輕巧播放器把這一切裝進一個小視窗：歌曲、控制項與您的 EQ。',
+  'tour.film.walkthrough.oneline':
+    '把它摺成一行，就不會擋路，歌曲後方還有視覺化效果輕輕律動。',
+  'tour.film.walkthrough.looks':
+    '圖表本身就能變成視覺化效果。選一種外觀，或一整個場景，視窗也會換上它的顏色。',
+  'tour.film.walkthrough.gallery':
+    '在「視覺化效果」的畫廊裡，有 FluidEQ 與社群創作的場景。每個只需 1 點，永久屬於您。',
+  'tour.film.walkthrough.studio':
+    '在工作室裡，用您自己的話描述想要的改動，就能看著它在舞臺上實現。',
+  'tour.film.walkthrough.karaoke':
+    '卡拉 OK 讓您的歌都能跟著唱，歌詞按時出現，您的音高也顯示在螢幕上。',
+  'tour.film.walkthrough.share':
+    '分享音訊把您家中網路裡的電腦連起來，讓音樂在它們之間雙向流動。',
+  'tour.film.walkthrough.help':
+    '這些內容都在使用者指南裡，圖示直接取自應用程式本身。',
+  'tour.film.walkthrough.outro': '這就是 FluidEQ。讓它的聲音和樣子都屬於您。',
   'tour.film.engine.intro':
     'FluidEQ 擁有自己的音訊引擎，讓電腦播放的所有聲音都能使用 EQ 與 DSP 效果器機架。',
   'tour.film.engine.choose':
@@ -521,6 +577,7 @@ const tour = {
   'tour.film.soundOff': '關閉聲音',
   'tour.film.watch': '觀看影片',
   'tour.film.close': '關閉影片',
+  'tour.film.unavailable': '這部影片暫時無法播放，請稍後再試。',
   'tour.deesser.kicker': '較軟的S',
   'tour.deesser.title': 'DSP 效果器機架 中的 齒音消除器',
   'tour.deesser.subtitle': '尖銳的 S 聲音下降，鈸獨自一人',

@@ -546,6 +546,63 @@ const tour = {
     '그런 다음 모양을 다듬으세요. 조각 수로 막대 개수를 정하고 색상, 간격, 움직임도 직접 설정할 수 있습니다.',
   'tour.film.looks.save':
     '저장을 누르면 내 스타일로 보관할 수 있고 파일로 공유할 수도 있습니다.',
+  'tour.walkthrough.kicker': '전체 둘러보기',
+  'tour.walkthrough.title': '비디오 하나로 보는 FluidEQ의 모든 것',
+  'tour.walkthrough.subtitle': '처음부터 끝까지 보기',
+  'tour.walkthrough.lead':
+    '처음 끌어 보는 밴드부터 비주얼라이저까지, FluidEQ가 하는 모든 것을 안내합니다. 각 부분을 쓰는 방법은 음성으로 설명합니다.',
+  'tour.film.walkthrough.intro':
+    'FluidEQ 2.2입니다. 컴퓨터에서 재생되는 모든 소리를 위한 하나의 이퀄라이저입니다. 함께 둘러보겠습니다.',
+  'tour.film.walkthrough.graph':
+    '그래프의 아무 점이나 끌어 소리를 다듬으세요. 각 밴드의 주파수와 게인이 곡선 위에 바로 표시됩니다.',
+  'tour.film.walkthrough.sliders':
+    '슬라이더는 같은 밴드를 움직이고, 곡선이 즉시 따라옵니다. 만진 밴드는 아래에 자체 컨트롤을 엽니다.',
+  'tour.film.walkthrough.tone':
+    '빈 곳을 클릭하면 톤이 돌아옵니다. 베이스, 미드, 트레블, 그리고 양쪽에 로우 컷과 하이 컷이 있습니다.',
+  'tour.film.walkthrough.ears':
+    '밴드를 마우스 오른쪽 버튼으로 클릭하고 왼쪽 + 오른쪽을 고르면 양쪽 귀를 따로 조정할 수 있습니다. 실선은 왼쪽 귀, 점선은 오른쪽 귀입니다.',
+  'tour.film.walkthrough.eqmode':
+    'EQ 모드는 그래프 옆에 있습니다. 곡선이 얼마나 강하게 재생될지 정하며, 정밀은 고음을 그린 그대로 재생합니다.',
+  'tour.film.walkthrough.headphones':
+    'EQ 프리셋에서 측정된 수천 개의 모델 중 내 헤드폰을 찾아, 한 번에 보정을 적용하세요.',
+  'tour.film.walkthrough.mycurves':
+    '내 곡선에 저장하세요. OPRA 옆에 있는 나만의 목록이라, 필요할 때 언제든 쓸 수 있습니다.',
+  'tour.film.walkthrough.outputs':
+    '출력마다 자체 사운드를 유지합니다. 헤드폰으로 바꾸면 두고 간 그대로 돌아옵니다. 두 번째 출력은 다른 장치에서 같은 음악을 재생할 수 있습니다.',
+  'tour.film.walkthrough.songs':
+    '각 노래의 사운드 기억을 켜면, 모든 노래가 내가 정한 사운드로 돌아옵니다.',
+  'tour.film.walkthrough.games':
+    '게임 프리셋은 게임이 앞으로 나오는 순간 사운드를 바꾸고, 게임을 닫으면 되돌립니다.',
+  'tour.film.walkthrough.dsp':
+    'DSP 랙은 듣는 모든 소리를 위한 스튜디오 효과 체인입니다. 음악 장르부터 영화와 게임까지, 랙 전체의 프리셋을 고르세요.',
+  'tour.film.walkthrough.deesser':
+    '새로운 디에서는 목소리의 날카로운 치찰음만 줄이고 심벌은 그대로 둡니다.',
+  'tour.film.walkthrough.character':
+    '익사이터는 반짝임을, Bass Forge는 무게감을 더하고, 스테레오 확장은 스테레오를 넓힙니다.',
+  'tour.film.walkthrough.room':
+    '룸은 헤드폰으로도 실제 공간의 스피커들 사이에 있는 듯한 소리를 들려줍니다.',
+  'tour.film.walkthrough.maximizer':
+    '그리고 맥시마이저가 클리핑 없이 모든 소리를 크고 깨끗하게 유지합니다.',
+  'tour.film.walkthrough.library':
+    '라이브러리는 같은 사운드로 내 음악을 재생하며, 앨범과 재생목록, 다음 곡도 있습니다.',
+  'tour.film.walkthrough.compact':
+    '컴팩트 플레이어는 노래, 컨트롤, EQ를 작은 창 하나에 담습니다.',
+  'tour.film.walkthrough.oneline':
+    '한 줄로 접으면 방해가 되지 않고, 노래 뒤에서 비주얼라이저가 은은하게 재생됩니다.',
+  'tour.film.walkthrough.looks':
+    '그래프는 그 자체로 비주얼라이저가 될 수 있습니다. 룩이나 장면 하나를 고르면 창이 그 색을 입습니다.',
+  'tour.film.walkthrough.gallery':
+    '비주얼라이저의 갤러리에는 FluidEQ와 커뮤니티가 만든 장면이 있습니다. 각 장면은 1크레딧이면 영원히 내 것입니다.',
+  'tour.film.walkthrough.studio':
+    '스튜디오에서 원하는 변경을 내 말로 설명하고, 무대에서 그대로 이루어지는 것을 보세요.',
+  'tour.film.walkthrough.karaoke':
+    '노래방은 내 노래를 함께 부를 수 있게 바꿔 줍니다. 시간에 맞춘 가사와 내 음정이 화면에 나옵니다.',
+  'tour.film.walkthrough.share':
+    '오디오 공유는 집 네트워크의 컴퓨터들을 연결해, 음악이 양방향으로 오가게 합니다.',
+  'tour.film.walkthrough.help':
+    '그리고 여기 있는 모든 것은 앱에서 직접 가져온 그림과 함께 사용자 가이드에 있습니다.',
+  'tour.film.walkthrough.outro':
+    '이것이 FluidEQ입니다. 소리도, 모습도 내 것처럼 만드세요.',
   'tour.film.engine.intro':
     'FluidEQ에는 자체 오디오 엔진이 있습니다. 컴퓨터에서 재생되는 모든 소리에 EQ와 DSP 랙을 적용합니다.',
   'tour.film.engine.choose':
@@ -562,6 +619,8 @@ const tour = {
   'tour.film.soundOff': '소리 끄기',
   'tour.film.watch': '비디오 보기',
   'tour.film.close': '비디오 닫기',
+  'tour.film.unavailable':
+    '지금은 이 동영상을 재생할 수 없습니다. 나중에 다시 시도해 주세요.',
   'tour.deesser.kicker': '더 부드러운 S',
   'tour.deesser.title': 'DSP 랙의 디에서',
   'tour.deesser.subtitle':

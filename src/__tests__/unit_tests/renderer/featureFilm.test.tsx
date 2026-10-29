@@ -11,8 +11,10 @@ import {
 import FeatureFilm from 'renderer/components/featureTour/FeatureFilm';
 import {
   FEATURE_FILMS,
+  featureFilmTimingUrl,
   featureFilmUrl,
   filmCueAt,
+  siteCues,
 } from 'renderer/components/featureTour/featureFilms';
 import FILM_POSTERS from 'renderer/components/featureTour/filmPosters';
 import en from 'common/i18n/en';
@@ -154,13 +156,133 @@ it('closes alone on Escape and gives the focus back to the key', () => {
   document.removeEventListener('keydown', tourEscape);
 });
 
-it('closes when the site cannot send the film, and the slide is as it was', () => {
+it('says so when the site cannot send the film, and its key puts the slide back as it was', () => {
   render(<FeatureFilm id="each-ear">{drawing}</FeatureFilm>);
-  const { video } = openFilm();
+  const { dialog, video } = openFilm();
   fireEvent.error(video);
+  // Still open, on the film's own frame: a press that shut again at once
+  // looked like Watch had done nothing.
+  expect(screen.getByRole('dialog')).toBe(dialog);
+  expect(screen.getByRole('status')).toHaveTextContent(
+    en['tour.film.unavailable'],
+  );
+  expect(video).toHaveAttribute('poster', FILM_POSTERS['each-ear']);
+  // Nothing to hear, so no sound key; the close key has the focus.
+  expect(
+    screen.queryByRole('button', { name: en['tour.film.soundOff'] }),
+  ).toBeNull();
+  const close = screen.getByRole('button', { name: en['tour.film.close'] });
+  expect(close).toHaveFocus();
+
+  fireEvent.click(close);
   expect(screen.queryByRole('dialog')).toBeNull();
   expect(screen.getByTestId('drawing')).toBeInTheDocument();
-  expect(watchKey()).toBeInTheDocument();
+  expect(watchKey()).toHaveFocus();
+});
+
+describe('a film timed on the site', () => {
+  const { walkthrough } = FEATURE_FILMS;
+  const timingTrack = (video: HTMLVideoElement) =>
+    video.querySelector('track') as HTMLTrackElement;
+  /** The track as the browser hands it over once loaded. */
+  const loadTrack = (
+    track: HTMLTrackElement,
+    cues: { id: string; startTime: number; endTime: number }[],
+  ) => {
+    Object.defineProperty(track, 'track', { value: { cues } });
+    fireEvent.load(track);
+  };
+
+  it('asks the site for its timings beside the film, across origins', () => {
+    render(<FeatureFilm id="walkthrough">{drawing}</FeatureFilm>);
+    const { video } = openFilm();
+    const track = timingTrack(video);
+    expect(track).toHaveAttribute('kind', 'metadata');
+    expect(track).toHaveAttribute(
+      'src',
+      featureFilmTimingUrl('walkthrough', 'en'),
+    );
+    expect(track.getAttribute('src')).toBe(
+      'https://fluideq.com/video/whatsnew/walkthrough.en.cues.vtt',
+    );
+    expect(track).toHaveAttribute('default');
+    // Without it the browser refuses a track from another origin.
+    expect(video).toHaveAttribute('crossorigin', 'anonymous');
+  });
+
+  it('says its lines on the site’s timings once they arrive, and on its own until then', () => {
+    render(<FeatureFilm id="walkthrough">{drawing}</FeatureFilm>);
+    const { dialog, video } = openFilm();
+    fireEvent.playing(video);
+    const subtitle = () => dialog.querySelector('.feature-film__subtitle');
+    const [intro] = walkthrough.cues;
+    const late = intro.to + 40;
+    const bundled = filmCueAt(walkthrough.cues, late);
+    if (!bundled) {
+      throw new Error('the walkthrough says nothing at that moment');
+    }
+
+    playTo(video, late);
+    paint();
+    expect(subtitle()).toHaveTextContent(en[bundled.key]);
+
+    // The recording put the opening line later than the build knew.
+    loadTrack(timingTrack(video), [
+      { id: intro.key, startTime: late - 1, endTime: late + 1 },
+    ]);
+    paint();
+    expect(subtitle()).toHaveTextContent(en[intro.key]);
+  });
+
+  it('keeps its own timings when the track has nothing it knows', () => {
+    render(<FeatureFilm id="walkthrough">{drawing}</FeatureFilm>);
+    const { dialog, video } = openFilm();
+    fireEvent.playing(video);
+    const [intro] = walkthrough.cues;
+    loadTrack(timingTrack(video), [
+      { id: 'tour.film.walkthrough.secret', startTime: 0, endTime: 300 },
+    ]);
+    playTo(video, (intro.from + intro.to) / 2);
+    paint();
+    expect(dialog.querySelector('.feature-film__subtitle')).toHaveTextContent(
+      en[intro.key],
+    );
+  });
+
+  it('is the only kind that asks: a film timed in the build fetches no track', () => {
+    render(<FeatureFilm id="each-ear">{drawing}</FeatureFilm>);
+    const { video } = openFilm();
+    expect(video.querySelector('track')).toBeNull();
+    expect(video).not.toHaveAttribute('crossorigin');
+  });
+});
+
+describe('the timings a site track gives', () => {
+  const { walkthrough } = FEATURE_FILMS;
+  const [intro, graph] = walkthrough.cues;
+
+  it('times only lines the film has, in the order they are said', () => {
+    expect(
+      siteCues(walkthrough, [
+        { id: graph.key, startTime: 9, endTime: 19 },
+        { id: 'tour.film.walkthrough.secret', startTime: 1, endTime: 2 },
+        { id: intro.key, startTime: 0.4, endTime: 9 },
+        // A cue with no length is no line.
+        { id: intro.key, startTime: 30, endTime: 30 },
+      ]),
+    ).toEqual([
+      { key: intro.key, from: 0.4, to: 9 },
+      { key: graph.key, from: 9, to: 19 },
+    ]);
+  });
+
+  it('gives nothing for a track that is missing or says nothing usable', () => {
+    expect(siteCues(walkthrough, null)).toBeUndefined();
+    expect(siteCues(walkthrough, [])).toBeUndefined();
+    expect(
+      siteCues(walkthrough, [{ id: 'not.a.line', startTime: 0, endTime: 5 }]),
+    ).toBeUndefined();
+  });
 });
 
 describe('every film in the catalogue', () => {

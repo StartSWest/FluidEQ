@@ -18,6 +18,11 @@ import type { IFeatureFilm } from './featureFilms';
  * dialog — the dialog's frosted backdrop makes it the box anything fixed in
  * it is placed in, and a film there could never be larger than the dialog.
  * Escape, the close key or a press beside the film puts the slide back.
+ *
+ * A film the site cannot send stays open on its bundled frame and says so,
+ * with the close key: it used to close again at once, so a press on Watch
+ * looked like it had done nothing — and the walkthrough shipped before its
+ * film was on the site.
  */
 export default function FeatureFilmLarge({
   id,
@@ -34,13 +39,16 @@ export default function FeatureFilmLarge({
   const video = useRef<HTMLVideoElement>(null);
   const close = useRef<HTMLButtonElement>(null);
   const [isShown, setShown] = useState(false);
+  const [isFailed, setFailed] = useState(false);
+  const hasKeys = isShown || isFailed;
 
-  // The close key is drawn with the film's other keys, once it plays.
+  // The close key is drawn with the film's other keys, once it plays or
+  // once it is known that it will not.
   useEffect(() => {
-    if (isShown) {
+    if (hasKeys) {
       close.current?.focus();
     }
-  }, [isShown]);
+  }, [hasKeys]);
 
   useEffect(() => {
     // In the capture phase and stopped there: the What's New dialog closes on
@@ -75,11 +83,12 @@ export default function FeatureFilmLarge({
         film={film}
         video={video}
         className="feature-film__frame feature-film-large__frame"
-        isShown={isShown}
+        isShown={hasKeys}
         isSoundOnAtStart
         startAt={startAt}
         onPlaying={() => setShown(true)}
-        onFailed={onClose}
+        onFailed={() => setFailed(true)}
+        notice={isFailed ? t('tour.film.unavailable') : undefined}
       >
         <button
           ref={close}

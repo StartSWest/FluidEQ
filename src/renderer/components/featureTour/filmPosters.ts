@@ -14,6 +14,7 @@ import headphonePresets from './filmPosters/headphone-presets.jpg';
 import karaoke from './filmPosters/karaoke.jpg';
 import karaokeMaker from './filmPosters/karaoke-maker.jpg';
 import library from './filmPosters/library.jpg';
+import walkthrough from './filmPosters/walkthrough.jpg';
 
 /**
  * A frame of each film, bundled with the app, by film id: what a film's
@@ -35,6 +36,7 @@ const FILM_POSTERS: Readonly<Record<string, string>> = {
   karaoke,
   'karaoke-maker': karaokeMaker,
   library,
+  walkthrough,
 };
 
 export default FILM_POSTERS;

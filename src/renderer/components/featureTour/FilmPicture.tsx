@@ -9,11 +9,18 @@ import {
   type ReactNode,
   type RefObject,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 import PlayerIcon from '../../player/PlayerIcon';
 import { useTranslation } from '../../utils/I18nContext';
-import { featureFilmUrl, type IFeatureFilm } from './featureFilms';
+import {
+  featureFilmTimingUrl,
+  featureFilmUrl,
+  type IFeatureFilm,
+  type IFilmCue,
+  siteCues,
+} from './featureFilms';
 import FILM_POSTERS from './filmPosters';
 import useFilmLine from './useFilmLine';
 
@@ -33,6 +40,7 @@ export default function FilmPicture({
   startAt = 0,
   onPlaying,
   onFailed,
+  notice,
   children,
 }: {
   id: string;
@@ -47,11 +55,21 @@ export default function FilmPicture({
   startAt?: number;
   onPlaying: () => void;
   onFailed: () => void;
+  /**
+   * Said under the picture in place of the voice's lines: why there is no
+   * film to watch. Nothing is heard then, so there is no sound key either.
+   */
+  notice?: string;
   /** Controls drawn over the picture, beside its sound key. */
   children?: ReactNode;
 }) {
   const { t, locale } = useTranslation();
-  const cue = useFilmLine(video, film.cues, isShown);
+  const timing = film.timedOnSite
+    ? featureFilmTimingUrl(id, locale)
+    : undefined;
+  const track = useRef<HTMLTrackElement>(null);
+  const [timed, setTimed] = useState<readonly IFilmCue[] | undefined>();
+  const cue = useFilmLine(video, timed ?? film.cues, isShown);
   const [isSoundOn, setSoundOn] = useState(isSoundOnAtStart);
 
   // Set on the element, not as an attribute: React writes `muted` once, when
@@ -61,6 +79,18 @@ export default function FilmPicture({
       video.current.muted = !isSoundOn;
     }
   }, [video, isSoundOn]);
+
+  // A metadata track marked default loads by itself, hidden; its cues are
+  // read once it has.
+  useEffect(() => {
+    const element = track.current;
+    if (!element) {
+      return undefined;
+    }
+    const read = () => setTimed(siteCues(film, element.track.cues));
+    element.addEventListener('load', read);
+    return () => element.removeEventListener('load', read);
+  }, [film, timing]);
 
   return (
     <div
@@ -75,6 +105,10 @@ export default function FilmPicture({
         <video
           ref={video}
           src={featureFilmUrl(id, locale)}
+          // A track from the site is read across origins only with the site's
+          // grant, which /video/ sends; without the attribute the browser
+          // refuses the track and the film plays on its own timings.
+          crossOrigin={timing ? 'anonymous' : undefined}
           // A frame of the film, bundled, until the site's first picture.
           poster={FILM_POSTERS[id]}
           muted={!isSoundOn}
@@ -92,30 +126,40 @@ export default function FilmPicture({
           }}
           onPlaying={onPlaying}
           onError={onFailed}
-        />
+        >
+          {timing && <track ref={track} kind="metadata" src={timing} default />}
+        </video>
         {isShown && (
           <div className="feature-film__controls">
             {children}
-            <button
-              type="button"
-              className="button small subtle feature-film__key"
-              aria-pressed={isSoundOn}
-              aria-label={t(
-                isSoundOn ? 'tour.film.soundOff' : 'tour.film.soundOn',
-              )}
-              title={t(isSoundOn ? 'tour.film.soundOff' : 'tour.film.soundOn')}
-              onClick={() => {
-                setSoundOn(!isSoundOn);
-              }}
-            >
-              <PlayerIcon name={isSoundOn ? 'speaker' : 'mute'} />
-            </button>
+            {notice === undefined && (
+              <button
+                type="button"
+                className="button small subtle feature-film__key"
+                aria-pressed={isSoundOn}
+                aria-label={t(
+                  isSoundOn ? 'tour.film.soundOff' : 'tour.film.soundOn',
+                )}
+                title={t(
+                  isSoundOn ? 'tour.film.soundOff' : 'tour.film.soundOn',
+                )}
+                onClick={() => {
+                  setSoundOn(!isSoundOn);
+                }}
+              >
+                <PlayerIcon name={isSoundOn ? 'speaker' : 'mute'} />
+              </button>
+            )}
           </div>
         )}
       </div>
       {/* Always there, so a line arriving never moves the picture above. */}
       <p className="feature-film__subtitle">
-        {cue && <span key={cue.key}>{t(cue.key)}</span>}
+        {notice !== undefined ? (
+          <span role="status">{notice}</span>
+        ) : (
+          cue && <span key={cue.key}>{t(cue.key)}</span>
+        )}
       </p>
     </div>
   );

@@ -30,6 +30,21 @@ export interface IFeatureFilm {
   width: number;
   height: number;
   cues: readonly IFilmCue[];
+  /**
+   * The languages its voice was recorded in, when they are fewer than every
+   * film's: a film recorded in English alone must not ask the site for a
+   * Spanish file nobody made.
+   */
+  locales?: readonly LocaleCode[];
+  /**
+   * Its lines' timings come from the site, beside the film
+   * (`featureFilmTimingUrl`), and `cues` are what plays until they arrive or
+   * if they never do. For a film recorded after the build that shows it: the
+   * walkthrough shipped before its recording was finished (Ivan, 2026-10-29:
+   * "upload the video later and the app should be able to pick up"), and two
+   * recordings of the same tour timed its lines up to a second apart.
+   */
+  timedOnSite?: boolean;
 }
 
 /**
@@ -50,12 +65,6 @@ const FILM_LOCALES: readonly LocaleCode[] = [
   'ja',
   'hi',
 ];
-
-export const featureFilmLocale = (locale: LocaleCode): LocaleCode =>
-  FILM_LOCALES.includes(locale) ? locale : 'en';
-
-export const featureFilmUrl = (id: string, locale: LocaleCode) =>
-  `${OFFICIAL_SITE_URL}/video/whatsnew/${id}.${featureFilmLocale(locale)}.mp4`;
 
 /**
  * Lines as the rig timed them (`<film>.cues.json`), keyed by the film's id,
@@ -208,6 +217,91 @@ export const FEATURE_FILMS: Readonly<Record<string, IFeatureFilm>> = {
       { key: 'tour.film.library.play', from: 17.93, to: 26.63 },
     ],
   },
+  // The whole app, on What's New's first page (`WalkthroughSlide`), voiced in
+  // English alone so far; every language reads its lines as subtitles.
+  walkthrough: {
+    width: 1920,
+    height: 1080,
+    locales: ['en'],
+    timedOnSite: true,
+    cues: [
+      { key: 'tour.film.walkthrough.intro', from: 0.5, to: 8.7 },
+      { key: 'tour.film.walkthrough.graph', from: 8.7, to: 18.63 },
+      { key: 'tour.film.walkthrough.sliders', from: 18.63, to: 29 },
+      { key: 'tour.film.walkthrough.tone', from: 29, to: 39.23 },
+      { key: 'tour.film.walkthrough.ears', from: 39.23, to: 53.3 },
+      { key: 'tour.film.walkthrough.eqmode', from: 53.3, to: 62.63 },
+      { key: 'tour.film.walkthrough.headphones', from: 62.63, to: 78.23 },
+      { key: 'tour.film.walkthrough.mycurves', from: 78.23, to: 88.6 },
+      { key: 'tour.film.walkthrough.outputs', from: 88.6, to: 105.67 },
+      { key: 'tour.film.walkthrough.songs', from: 105.67, to: 113.63 },
+      { key: 'tour.film.walkthrough.games', from: 113.63, to: 131.9 },
+      { key: 'tour.film.walkthrough.dsp', from: 131.9, to: 142.57 },
+      { key: 'tour.film.walkthrough.deesser', from: 142.57, to: 149.87 },
+      { key: 'tour.film.walkthrough.character', from: 149.87, to: 159.73 },
+      { key: 'tour.film.walkthrough.room', from: 159.73, to: 166.17 },
+      { key: 'tour.film.walkthrough.maximizer', from: 166.17, to: 173.5 },
+      { key: 'tour.film.walkthrough.library', from: 173.5, to: 185.23 },
+      { key: 'tour.film.walkthrough.compact', from: 185.23, to: 200.73 },
+      { key: 'tour.film.walkthrough.oneline', from: 200.73, to: 229.13 },
+      { key: 'tour.film.walkthrough.looks', from: 229.13, to: 251.17 },
+      { key: 'tour.film.walkthrough.gallery', from: 251.17, to: 264.77 },
+      { key: 'tour.film.walkthrough.studio', from: 264.77, to: 278.53 },
+      { key: 'tour.film.walkthrough.karaoke', from: 278.53, to: 286.87 },
+      { key: 'tour.film.walkthrough.share', from: 286.87, to: 300.03 },
+      { key: 'tour.film.walkthrough.help', from: 300.03, to: 309.8 },
+      { key: 'tour.film.walkthrough.outro', from: 309.8, to: 317.2 },
+    ],
+  },
+};
+
+/** The language a film's voice is heard in: the reader's, or English. */
+export const featureFilmLocale = (
+  locale: LocaleCode,
+  film?: IFeatureFilm,
+): LocaleCode =>
+  (film?.locales ?? FILM_LOCALES).includes(locale) ? locale : 'en';
+
+export const featureFilmUrl = (id: string, locale: LocaleCode) =>
+  `${OFFICIAL_SITE_URL}/video/whatsnew/${id}.${featureFilmLocale(locale, FEATURE_FILMS[id])}.mp4`;
+
+/**
+ * Where a film timed on the site keeps its timings: WebVTT beside the film,
+ * one cue per line, each cue's id the line's key. Served from the same
+ * folder, so the same cross-origin grant that lets the window read the film
+ * lets it read these.
+ */
+export const featureFilmTimingUrl = (id: string, locale: LocaleCode) =>
+  `${OFFICIAL_SITE_URL}/video/whatsnew/${id}.${featureFilmLocale(locale, FEATURE_FILMS[id])}.cues.vtt`;
+
+/** What a timing track's cue offers, as the browser's `TextTrackCue` does. */
+interface ITimedCue {
+  id: string;
+  startTime: number;
+  endTime: number;
+}
+
+/**
+ * The lines a film's timing track times, in the order they are said. Only
+ * lines the film already has: the site can move a line, never put up one the
+ * app does not know. Nothing usable, and the film keeps its own timings.
+ */
+export const siteCues = (
+  film: IFeatureFilm,
+  track: ArrayLike<ITimedCue> | null | undefined,
+): readonly IFilmCue[] | undefined => {
+  const lines = new Map<string, TranslationKey>(
+    film.cues.map((cue) => [cue.key, cue.key]),
+  );
+  const timed = Array.from(track ?? []).flatMap((cue) => {
+    const key = lines.get(cue.id);
+    return key && cue.endTime > cue.startTime
+      ? [{ key, from: cue.startTime, to: cue.endTime }]
+      : [];
+  });
+  return timed.length > 0
+    ? timed.sort((one, other) => one.from - other.from)
+    : undefined;
 };
 
 /** The line being said at `seconds` into a film, if any. */
