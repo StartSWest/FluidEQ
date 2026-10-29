@@ -13,6 +13,15 @@ import { subscribeAccountPanelRequests } from 'renderer/account/accountPanel';
 import { subscribePlusTabRequests } from 'renderer/plus/plusTabRequest';
 import { resetPlusNavigation, plusPlace } from 'renderer/plus/plusNavigation';
 
+// Under the reader's scenes the column counts what is new in the gallery,
+// from its newest page, which loads after the picker mounts — after these
+// synchronous cases end, as an update outside act. These cases are about
+// discovery; `lookPickerMore.test.tsx` holds the count.
+jest.mock('renderer/plus/galleryStore', () => ({
+  ...jest.requireActual<object>('renderer/plus/galleryStore'),
+  useGalleryList: () => ({ list: { scenes: [] } }),
+}));
+
 const renderPicker = (rows: IPlusRow[] = [], query = '') => {
   const onQuery = jest.fn();
   const onLeave = jest.fn();

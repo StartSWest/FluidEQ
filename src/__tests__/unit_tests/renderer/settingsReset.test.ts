@@ -82,6 +82,9 @@ const KEPT = [
   'fluideq.disclaimerAccepted',
   'fluideq.featureTourDismissed',
   'fluideq.seenSceneVersions',
+  // When the gallery was last opened, which the look picker counts new
+  // scenes from: a reset is not a reason to call the whole gallery new.
+  'fluideq.gallery.seenAt',
   'fluideq.hasContributed',
   'fluideq-euphoria-reached',
   // The Studio's door for an AI: a member who shut it keeps it shut.
