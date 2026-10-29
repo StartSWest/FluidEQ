@@ -49,6 +49,7 @@ import SmartEqEngine from './SmartEqEngine';
 import SmartHeadroomEngine from './SmartHeadroomEngine';
 import showGalleryGraph from './plus/showGalleryGraph';
 import { subscribeGraphShowRequests } from './plus/graphShowRequest';
+import { subscribePlusTabRequests } from './plus/plusTabRequest';
 import useStudioAgent from './studio/useStudioAgent';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
 import HeardSongNames from './graph/HeardSongNames';
@@ -280,6 +281,19 @@ const AppContent = () => {
         }),
       ),
     [showGraphOn, selectTopWorkspaceTab],
+  );
+
+  // A request to see the Visualizers tab is a request to see it, and the
+  // Compact player does not show the app's tabs: from there it comes back to
+  // the full app on that tab, the way its own menu opens a page. The look
+  // picker's Explore scenes only switched the tab behind the player (Ivan,
+  // 2026-10-29: "explorar escenes while open amp ui need to go to full app").
+  useEffect(
+    () =>
+      windowMode === 'player'
+        ? subscribePlusTabRequests(() => openPageFromPlayer('plus'))
+        : undefined,
+    [windowMode, openPageFromPlayer],
   );
 
   /**
