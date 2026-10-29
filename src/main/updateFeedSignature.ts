@@ -42,7 +42,10 @@ export const UPDATE_FEED_KEYS: Readonly<Record<string, string>> = {
  * machine can never sign an update a Windows copy would take. Written by
  * `pnpm update-feed-keys linux`.
  */
-export const LINUX_UPDATE_FEED_KEYS: Readonly<Record<string, string>> = {};
+export const LINUX_UPDATE_FEED_KEYS: Readonly<Record<string, string>> = {
+  'fluideq-linux-feed-2026-10-29':
+    'MCowBQYDK2VwAyEAZCqQYBVmHwQ8AZq6pnHQ4eb7dRKtiO1W9dJMYpcEXfQ=',
+};
 
 /** The keys this platform's build trusts. */
 export const platformFeedKeys = (
