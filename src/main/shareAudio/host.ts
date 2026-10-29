@@ -76,16 +76,20 @@ export const createAudioWorkerHost = (
         worker.unref();
       }
       if (message.error) {
-        // Which step failed and the system's code for it, so a log can say
-        // "lan.start (EADDRINUSE listen)" where it said "operation failed".
-        const detail = [
-          request?.method,
-          message.reason && `(${message.reason})`,
-        ]
+        // The failure as main knew it before the link moved out of it: the
+        // system's code on the error, which the port fallback reads, and the
+        // step and code in its text, where the log said "operation failed".
+        const { code, syscall } = message;
+        const system = [code, syscall].filter(Boolean).join(' ');
+        const detail = [request?.method, system && `(${system})`]
           .filter(Boolean)
           .join(' ');
         request?.reject(
-          new Error(detail ? `${message.error} ${detail}` : message.error),
+          Object.assign(
+            new Error(detail ? `${message.error} ${detail}` : message.error),
+            code ? { code } : {},
+            syscall ? { syscall } : {},
+          ),
         );
       } else {
         request?.resolve(message.value);

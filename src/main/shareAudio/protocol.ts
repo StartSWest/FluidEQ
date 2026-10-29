@@ -83,7 +83,9 @@ export type TAudioResponse =
       id: number;
       value?: unknown;
       error?: string;
-      /** The system's own code for a failure (`failureReason`), never its text. */
-      reason?: string;
+      /** The system's own code for a failure (`failureCode`), never its text. */
+      code?: string;
+      /** The call that raised it: listen, bind. */
+      syscall?: string;
     }
   | { type: 'event'; event: TAudioEvent; credit?: string };

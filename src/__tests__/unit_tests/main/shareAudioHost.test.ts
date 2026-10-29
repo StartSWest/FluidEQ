@@ -7,6 +7,9 @@ import {
   audioWorkerEnabled,
   stopAudioWorker,
 } from '../../../main/shareAudio/host';
+import startRemoteAudioHostSession from '../../../main/remoteAudioHostSession';
+import type { IRemoteAudioCredentialStore } from '../../../main/remoteAudioCredentials';
+import type { IRemoteAudioLan } from '../../../main/remoteAudioLanTypes';
 
 const mockWorkers: EventEmitter[] = [];
 jest.mock('worker_threads', () => ({
@@ -126,11 +129,16 @@ it("says which step failed and the system's code for it", async () => {
     type: 'answer',
     id: 1,
     error: 'Share Audio operation failed.',
-    reason: 'EADDRINUSE listen',
+    code: 'EADDRINUSE',
+    syscall: 'listen',
   });
   await expect(started).rejects.toThrow(
     'Share Audio operation failed. lan.retry (EADDRINUSE listen)',
   );
+  await expect(started).rejects.toMatchObject({
+    code: 'EADDRINUSE',
+    syscall: 'listen',
+  });
   // The control: with no code, the step alone.
   const retried = host.request('lan.retry');
   worker.emit('message', {
@@ -142,4 +150,79 @@ it("says which step failed and the system's code for it", async () => {
     /^Share Audio operation failed\. lan\.retry$/,
   );
   host.stop();
+});
+
+/**
+ * Ivan, 2026-10-28: the Share Audio page could not open its local link, twice
+ * in a row. The saved port was taken, which main answers by listening on a
+ * fresh one; once the link ran in its own service the failure arrived with
+ * no code, and the fallback never ran.
+ */
+describe('a taken saved port through the Share Audio service', () => {
+  const session = {
+    credentials: { port: 50123, secret: 'kept' },
+    details: { code: 'code', deviceName: 'PC', computerId: 'pc' },
+  };
+  const saved = { identity: { port: 49000, secret: 'kept' } };
+  const startThrough = async (refusal: string) => {
+    const host = createAudioWorkerHost('fixture');
+    const worker = mockWorkers[0] as EventEmitter & {
+      postMessage: jest.Mock;
+    };
+    const asked: (number | undefined)[] = [];
+    worker.postMessage.mockImplementation(
+      (message: {
+        type: string;
+        id: number;
+        args: [{ port: number } | undefined];
+      }) => {
+        if (message.type !== 'request') {
+          return;
+        }
+        const port = message.args[0]?.port;
+        asked.push(port);
+        queueMicrotask(() =>
+          worker.emit(
+            'message',
+            port === saved.identity.port
+              ? {
+                  type: 'answer',
+                  id: message.id,
+                  error: 'Share Audio operation failed.',
+                  code: refusal,
+                  syscall: 'listen',
+                }
+              : { type: 'answer', id: message.id, value: session },
+          ),
+        );
+      },
+    );
+    const lan = {
+      start: (credentials?: { port: number; secret: string }) =>
+        host.request('lan.start', credentials, { revoked: [], links: [] }),
+    } as unknown as IRemoteAudioLan;
+    const credentials = {
+      read: () => saved,
+    } as unknown as IRemoteAudioCredentialStore;
+    try {
+      return {
+        result: await startRemoteAudioHostSession(lan, credentials),
+        asked,
+      };
+    } finally {
+      host.stop();
+    }
+  };
+
+  it('listens on a fresh port with the same secret', async () => {
+    const { result, asked } = await startThrough('EADDRINUSE');
+    expect(asked).toEqual([49000, 0]);
+    expect(result).toEqual(session);
+  });
+
+  it('still fails on anything but a taken port', async () => {
+    await expect(startThrough('EACCES')).rejects.toMatchObject({
+      code: 'EACCES',
+    });
+  });
 });

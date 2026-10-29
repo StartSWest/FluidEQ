@@ -2,7 +2,7 @@
 /** @jest-environment node */
 import {
   createAudioRuntime,
-  failureReason,
+  failureCode,
   type IAudioRuntimeDeps,
 } from '../../../main/shareAudio/runtime';
 import { createAudioTelemetry } from '../../../main/shareAudio/telemetry';
@@ -437,7 +437,7 @@ it("names a failed start by the system's code alone, never by its text", async (
     (message) => message.type === 'answer' && message.error,
   );
   expect(failed).toEqual([
-    expect.objectContaining({ reason: 'EADDRINUSE listen' }),
+    expect.objectContaining({ code: 'EADDRINUSE', syscall: 'listen' }),
   ]);
   expect(JSON.stringify(failed)).not.toContain('s3cr3t');
   // The control: a failure with no system code carries nothing more.
@@ -448,14 +448,16 @@ it("names a failed start by the system's code alone, never by its text", async (
   const plain = fixture.messages.filter(
     (message) => message.type === 'answer' && message.error,
   );
-  expect(plain[1]).not.toHaveProperty('reason', expect.anything());
+  expect(plain[1]).not.toHaveProperty('code');
+  expect(plain[1]).not.toHaveProperty('syscall');
   expect(JSON.stringify(plain)).not.toContain('s3cr3t');
 });
 
-it('keeps a code that could carry text out of the reason', () => {
-  expect(failureReason({ code: 'EACCES', syscall: 'bind' })).toBe(
-    'EACCES bind',
-  );
-  expect(failureReason({ code: 'not a code: s3cr3t' })).toBeUndefined();
-  expect(failureReason('EADDRINUSE')).toBeUndefined();
+it('keeps a code that could carry text out of what it forwards', () => {
+  expect(failureCode({ code: 'EACCES', syscall: 'bind' })).toEqual({
+    code: 'EACCES',
+    syscall: 'bind',
+  });
+  expect(failureCode({ code: 'not a code: s3cr3t' })).toEqual({});
+  expect(failureCode('EADDRINUSE')).toEqual({});
 });
