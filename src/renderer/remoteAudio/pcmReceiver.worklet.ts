@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   IRemoteAudioPlaybackProfile,
   REMOTE_AUDIO_PLAYBACK_PROFILES,
+  UNANNOUNCED_PLAYBACK_PROFILE,
 } from './remoteAudioPlaybackProfiles';
 import {
   advanceStream,
@@ -197,9 +198,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
   }
 
   private profileFor(peerId: string): IRemoteAudioPlaybackProfile {
-    return (
-      this.peerProfiles.get(peerId) ?? REMOTE_AUDIO_PLAYBACK_PROFILES.music
-    );
+    return this.peerProfiles.get(peerId) ?? UNANNOUNCED_PLAYBACK_PROFILE;
   }
 
   private push(message: IPushMessage) {
