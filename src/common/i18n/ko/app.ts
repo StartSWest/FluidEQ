@@ -379,6 +379,10 @@ const app = {
   'startup.label': 'Windows 시작 시 실행',
   'startup.blocked': 'Windows의 시작 앱에서 이 기능이 꺼져 있습니다.',
   'startup.failed': 'Windows에서 설정을 변경하지 못했습니다.',
+  'startup.labelMac': '로그인 시 열기',
+  'startup.failedMac': 'macOS에서 설정을 변경하지 못했습니다.',
+  'startup.approvalMac':
+    '시스템 설정 → 일반 → 로그인 항목에서 FluidEQ를 허용하세요.',
   'settings.group.picture': '화면',
   'settings.group.visualizer': '비주얼라이저',
   'settings.group.drawing': '렌더링 방식',

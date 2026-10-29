@@ -404,6 +404,10 @@ const app: Partial<Dictionary> = {
   'startup.label': 'Mit Windows starten',
   'startup.blocked': 'Windows hat das unter Autostart-Apps deaktiviert',
   'startup.failed': 'Windows ließ die Änderung nicht zu',
+  'startup.labelMac': 'Beim Anmelden öffnen',
+  'startup.failedMac': 'macOS ließ die Änderung nicht zu',
+  'startup.approvalMac':
+    'Erlaube FluidEQ in Systemeinstellungen → Allgemein → Anmeldeobjekte',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'Das Bild',

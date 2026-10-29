@@ -39,6 +39,11 @@ export interface IStartWithWindows {
    * the row is not shown (`isStartableByWindows`).
    */
   unavailable?: boolean;
+  /**
+   * macOS only: the login item is registered and waits for the person to
+   * allow it in System Settings → General → Login Items (`openAtLoginMac.ts`).
+   */
+  needsApproval?: boolean;
 }
 
 /**

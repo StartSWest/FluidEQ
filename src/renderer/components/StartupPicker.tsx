@@ -12,12 +12,12 @@ import MenuPreferenceIcon from './MenuPreferenceIcon';
 
 const bridge = () => window.electron?.ipcRenderer;
 
-// Windows only. Electron reports Windows' own Startup apps switch on Windows
-// alone, so on a Mac the row was labelled Start with Windows and, once turned
-// on, said Windows had it switched off; Linux has no login items in Electron
-// at all. A Mac's "Open at login" would be a row of its own, with its own
-// words.
-const onWindows = () => window.electron?.platform === 'win32';
+// Windows and Mac. Linux has no login items in Electron at all. The Mac's row
+// is "Open at login", in macOS's own words, and its notes are macOS's: it has
+// no Startup apps switch (Electron reports that on Windows alone), and a new
+// login item can wait for approval in System Settings (`openAtLoginMac.ts`).
+const onMac = () => window.electron?.platform === 'darwin';
+const hasRow = () => window.electron?.platform === 'win32' || onMac();
 
 // The last answer from main, kept while the menu is closed, so reopening it
 // shows the state straight away rather than a frame of "off".
@@ -43,7 +43,7 @@ const StartupPicker = () => {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!onWindows()) {
+    if (!hasRow()) {
       return undefined;
     }
     let current = true;
@@ -64,9 +64,9 @@ const StartupPicker = () => {
 
   // A window whose bridge predates this row has no answer to show, and a
   // switch that cannot be read is worse than no row at all. A development
-  // build is one Windows cannot start (Ivan, 2026-10-29: "que no salga en dev
-  // time la opcion").
-  if (!state || state.unavailable || !onWindows()) {
+  // build is one the system cannot start at login (Ivan, 2026-10-29: "que no
+  // salga en dev time la opcion").
+  if (!state || state.unavailable || !hasRow()) {
     return null;
   }
 
@@ -83,9 +83,14 @@ const StartupPicker = () => {
       .finally(() => setBusy(false));
   };
 
+  const mac = onMac();
+  const label = t(mac ? 'startup.labelMac' : 'startup.label');
   const note = (() => {
     if (state.failed) {
-      return t('startup.failed');
+      return t(mac ? 'startup.failedMac' : 'startup.failed');
+    }
+    if (mac) {
+      return state.needsApproval ? t('startup.approvalMac') : undefined;
     }
     return state.blockedByWindows ? t('startup.blocked') : undefined;
   })();
@@ -94,7 +99,7 @@ const StartupPicker = () => {
     <div className="menu-preference">
       <MenuPreferenceIcon name="startup" />
       <label htmlFor={switchId} className="menu-preference__label">
-        {t('startup.label')}
+        {label}
       </label>
       <span className="menu-preference__switch">
         <Switch
@@ -102,7 +107,7 @@ const StartupPicker = () => {
           isOn={state.on}
           isDisabled={busy}
           handleToggle={() => choose(!state.on)}
-          ariaLabel={t('startup.label')}
+          ariaLabel={label}
         />
       </span>
       {note && (

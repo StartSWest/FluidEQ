@@ -377,6 +377,9 @@ const app: Partial<Dictionary> = {
   'startup.label': '随 Windows 启动',
   'startup.blocked': 'Windows 已在“启动应用”中关闭它',
   'startup.failed': 'Windows 不允许更改',
+  'startup.labelMac': '登录时打开',
+  'startup.failedMac': 'macOS 不允许更改',
+  'startup.approvalMac': '请在系统设置 → 通用 → 登录项中允许 FluidEQ',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': '画面',

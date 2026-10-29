@@ -399,6 +399,10 @@ const app: Partial<Dictionary> = {
   'startup.label': 'Запускать вместе с Windows',
   'startup.blocked': 'Windows отключил это в «Автозагрузке приложений»',
   'startup.failed': 'Windows не разрешил это изменить',
+  'startup.labelMac': 'Открывать при входе',
+  'startup.failedMac': 'macOS не разрешила это изменить',
+  'startup.approvalMac':
+    'Разрешите FluidEQ в Системных настройках → Основные → Объекты входа',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'Картинка',

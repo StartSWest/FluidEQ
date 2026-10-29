@@ -395,6 +395,10 @@ const app: Partial<Dictionary> = {
   'startup.label': 'Windows के साथ शुरू करें',
   'startup.blocked': 'Windows ने इसे स्टार्टअप ऐप्स में बंद कर रखा है',
   'startup.failed': 'Windows ने यह बदलने नहीं दिया',
+  'startup.labelMac': 'लॉग इन पर खोलें',
+  'startup.failedMac': 'macOS ने यह बदलने नहीं दिया',
+  'startup.approvalMac':
+    'सिस्टम सेटिंग्स → सामान्य → लॉग इन आइटम में FluidEQ को अनुमति दें',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'तस्वीर',

@@ -10,6 +10,7 @@ import {
   writeStartWithWindows,
   type IStartWithWindows,
 } from '../startWithWindows';
+import { readOpenAtLoginMac, writeOpenAtLoginMac } from '../openAtLoginMac';
 
 const CHANNELS = ['start-with-windows-get', 'start-with-windows-set'] as const;
 
@@ -29,16 +30,17 @@ export const registerStartWithWindowsIpc = ({
 }: {
   logger?: { error(message: string, ...details: unknown[]): void };
 } = {}) => {
-  ipcMain.handle('start-with-windows-get', (): IStartWithWindows =>
-    readStartWithWindows(),
-  );
+  // The same row on a Mac is "Open at login", answered by macOS.
+  const onMac = process.platform === 'darwin';
+  const read = onMac ? readOpenAtLoginMac : readStartWithWindows;
+  const write = onMac ? writeOpenAtLoginMac : writeStartWithWindows;
+
+  ipcMain.handle('start-with-windows-get', (): IStartWithWindows => read());
 
   ipcMain.handle(
     'start-with-windows-set',
     (_event, wanted: unknown): IStartWithWindows =>
-      typeof wanted === 'boolean'
-        ? writeStartWithWindows(wanted, logger)
-        : readStartWithWindows(),
+      typeof wanted === 'boolean' ? write(wanted, logger) : read(),
   );
 
   return {

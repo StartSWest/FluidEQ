@@ -112,6 +112,7 @@ import { registerMotionPreferenceIpc } from './ipc/motionPreference';
 import { registerGamesIpc } from './ipc/games';
 import { registerSystemVolumeIpc } from './systemVolume';
 import { registerStartWithWindowsIpc } from './ipc/startWithWindows';
+import { wasOpenedAtMacLogin } from './openAtLoginMac';
 import {
   moveStartWithWindowsIntoTray,
   START_IN_TRAY_ARG,
@@ -974,7 +975,8 @@ const createMainWindow = createMainWindowFactory({
   setUpAutoUpdates: updates.setUpAutoUpdates,
   setUpMemoryTraceTrigger: memoryTrace.setUpMemoryTraceTrigger,
   startMemoryProbe: memoryTrace.startMemoryProbe,
-  startsHidden: () => didRestartForUnattendedUpdate || startedInTray,
+  startsHidden: () =>
+    didRestartForUnattendedUpdate || startedInTray || wasOpenedAtMacLogin(),
   syncDatabasesOnStartup,
 });
 

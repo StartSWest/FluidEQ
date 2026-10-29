@@ -404,6 +404,10 @@ const app: Partial<Dictionary> = {
   'startup.label': 'Avvia con Windows',
   'startup.blocked': 'Windows lo ha disattivato in App di avvio',
   'startup.failed': 'Windows non ha permesso la modifica',
+  'startup.labelMac': 'Apri al login',
+  'startup.failedMac': 'macOS non ha permesso la modifica',
+  'startup.approvalMac':
+    'Consenti FluidEQ in Impostazioni di Sistema → Generali → Elementi login',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'L’immagine',

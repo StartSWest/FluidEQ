@@ -5,10 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * "Start with Windows" in the actions menu's settings tray is a Windows row.
- * On a Mac it used to show under that name and, once switched on, say Windows
- * had it switched off in Startup apps — Electron reports that switch on
- * Windows only — and on Ubuntu Electron has no login items for it to write.
+ * The actions menu's startup row: "Start with Windows" on Windows, "Open at
+ * login" on a Mac, in each system's own words. A Mac once showed the Windows
+ * row and, switched on, said Windows had it off in Startup apps — Electron
+ * reports that switch on Windows only. On Ubuntu Electron has no login items
+ * for it to write, so there is no row.
  */
 
 import '@testing-library/jest-dom';
@@ -67,30 +68,53 @@ it('shows the switch on Windows, as Windows answers it', async () => {
   expect(startWithWindows).toHaveBeenCalledTimes(1);
 });
 
-it.each(['darwin', 'linux'])(
-  'has no row on %s, and never asks for one',
-  async (platform) => {
-    onPlatform(platform);
-    const fresh = await rendered();
-
-    expect(
-      fresh.screen.queryByRole('checkbox', { name: en['startup.label'] }),
-    ).not.toBeInTheDocument();
-    expect(startWithWindows).not.toHaveBeenCalled();
-  },
-);
-
-it('has no row in a development build, which Windows cannot start', async () => {
-  onPlatform('win32');
-  startWithWindows.mockResolvedValueOnce({
-    on: false,
-    blockedByWindows: false,
-    unavailable: true,
-  });
+it("is Open at login on a Mac, in macOS's own words", async () => {
+  onPlatform('darwin');
   const fresh = await rendered();
 
-  expect(startWithWindows).toHaveBeenCalledTimes(1);
+  expect(
+    fresh.screen.getByRole('checkbox', { name: en['startup.labelMac'] }),
+  ).not.toBeChecked();
   expect(
     fresh.screen.queryByRole('checkbox', { name: en['startup.label'] }),
   ).not.toBeInTheDocument();
+  expect(startWithWindows).toHaveBeenCalledTimes(1);
 });
+
+it('says when macOS is waiting for the login item to be allowed', async () => {
+  onPlatform('darwin');
+  startWithWindows.mockResolvedValueOnce({
+    on: true,
+    blockedByWindows: false,
+    needsApproval: true,
+  });
+  const fresh = await rendered();
+
+  expect(fresh.screen.getByRole('status')).toHaveTextContent(
+    en['startup.approvalMac'],
+  );
+});
+
+it('has no row on linux, and never asks for one', async () => {
+  onPlatform('linux');
+  const fresh = await rendered();
+
+  expect(fresh.screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  expect(startWithWindows).not.toHaveBeenCalled();
+});
+
+it.each(['win32', 'darwin'])(
+  'has no row in a development build on %s, which the system cannot start',
+  async (platform) => {
+    onPlatform(platform);
+    startWithWindows.mockResolvedValueOnce({
+      on: false,
+      blockedByWindows: false,
+      unavailable: true,
+    });
+    const fresh = await rendered();
+
+    expect(startWithWindows).toHaveBeenCalledTimes(1);
+    expect(fresh.screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  },
+);

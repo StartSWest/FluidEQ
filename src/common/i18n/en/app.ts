@@ -390,6 +390,10 @@ const app = {
   'startup.label': 'Start with Windows',
   'startup.blocked': 'Windows has this switched off in Startup apps',
   'startup.failed': 'Windows would not change this',
+  'startup.labelMac': 'Open at login',
+  'startup.failedMac': 'macOS would not change this',
+  'startup.approvalMac':
+    'Allow FluidEQ in System Settings → General → Login Items',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'The picture',
