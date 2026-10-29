@@ -44,6 +44,8 @@ it('reports native Mac visibility from the isolated preload without expanding th
       'drawn',
       'failed',
       'onState',
+      // A value, not a capability: the page lays itself out for the Mac.
+      'platform',
       'requestAudio',
     ]);
   } finally {

@@ -22,10 +22,12 @@ afterAll(() =>
   Object.defineProperty(process, 'platform', { value: originalPlatform }),
 );
 
-it('puts the picture above the OS wallpaper, below icons and normal apps', () => {
+// Directly under Finder's icons, not just over the wallpaper: on Tahoe the
+// Dock owns a full-screen surface at desktop + 1 that hid the picture there.
+it('puts the picture directly below the icons, above the OS wallpaper', () => {
   const level = macDesktopLevel();
+  expect(level).toBe(-81);
   expect(level).toBeGreaterThan(-100);
-  expect(level).toBeLessThan(-80);
   expect(level).toBeLessThan(0);
   expect(mockLoad).toHaveBeenCalledWith(
     '/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics',
@@ -40,7 +42,7 @@ it('uses the OS normal level as the origin for Electron’s relative offset', ()
       [18, -400],
     ]).get(key),
   );
-  expect(macDesktopLevel() + 10).toBe(-499);
+  expect(macDesktopLevel() + 10).toBe(-401);
 });
 
 it.each([
@@ -48,7 +50,7 @@ it.each([
   [0, 20, 0],
   [Number.NaN, -80, 0],
   [-100.5, -80, 0],
-  [-2_147_483_648, -80, 20],
+  [-2_147_483_648, -2_147_483_647, 20],
 ])(
   'refuses unsafe wallpaper/icon/app levels %s / %s / %s',
   (desktop, icons, normal) => {
