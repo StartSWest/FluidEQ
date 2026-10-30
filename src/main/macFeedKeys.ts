@@ -13,6 +13,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * (`UPDATE_FEED_KEYS`), which no Mac copy trusts and this does not change.
  */
 const MAC_OWN_FEED_KEYS: Readonly<Record<string, string>> = {
+  'fluideq-mac-feed-2026-10-30':
+    'MCowBQYDK2VwAyEAdbG3vX1VBiG3u+9KVjvdRvCl3b3vBactCA8saapPNEk=',
   // mac-feed-key: new keys go above this line
 };
 
