@@ -25,6 +25,7 @@ import {
 } from 'electron';
 import { PRODUCT_NAME, REPOSITORY_URL } from '../common/branding';
 import { inspectDetached, toggleDetachedDevTools } from './devTools';
+import openInBrowser from './openInBrowser';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -371,7 +372,7 @@ export default class MenuBuilder {
           {
             label: 'Documentation',
             click() {
-              shell.openExternal(REPOSITORY_URL);
+              openInBrowser(REPOSITORY_URL).catch(() => undefined);
             },
           },
         ],

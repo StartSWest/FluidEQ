@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { shell } from 'electron';
 import log from 'electron-log';
 import { isSupportMailto } from '../common/bugReport';
+import openInBrowser from './openInBrowser';
 
 /**
  * Hand a URL to the user's browser, or refuse it.
@@ -72,7 +73,7 @@ const openExternalIfSafe = (url: string): boolean => {
     return false;
   }
 
-  shell.openExternal(url).catch(() => {
+  openInBrowser(url).catch(() => {
     // The OS refused to open it; there is nothing useful to say about that.
   });
   return true;
@@ -97,7 +98,7 @@ export const openSupportEmail = async (url: string): Promise<boolean> => {
     return false;
   }
   try {
-    await shell.openExternal(url);
+    await openInBrowser(url);
     return true;
   } catch (error) {
     // The message only: the link carries the report, which does not belong in

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import {
   loadLocale,
   resolveLocale,
@@ -10,6 +10,7 @@ import {
   isAccountConfigured,
 } from '../../common/accountConfig';
 import { createAccountCredentialStore } from '../accountCredentials';
+import openInBrowser from '../openInBrowser';
 import { createEncryptedJsonStore } from '../encryptedJsonStore';
 import { setClientAgent } from '../account/clientAgent';
 import { appVersion } from '../appVersion';
@@ -148,7 +149,7 @@ export const registerAccountIpc = ({
     store: createAccountCredentialStore(userDataDir),
     // Google's own page, in the person's own browser: never a web view of
     // ours, where a password typed into Google would pass through FluidEQ.
-    openExternal: (url) => shell.openExternal(url),
+    openExternal: (url) => openInBrowser(url),
     onState: (state: IAccountState) => {
       send('account-state-changed', state);
       if (state.status === 'signed-out' || state.status === 'unavailable') {

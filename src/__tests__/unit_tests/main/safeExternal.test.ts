@@ -19,6 +19,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 const openExternal = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('electron', () => ({ shell: { openExternal } }));
+// The opener is the operating system's, through `openInBrowser`, whose own
+// test pins how it gets there; here it stands in, so no browser ever starts.
+jest.mock('../../../main/openInBrowser', () => ({
+  __esModule: true,
+  default: (url: string) => openExternal(url),
+}));
 
 // eslint-disable-next-line import/first
 import openExternalIfSafe from '../../../main/safeExternal';
