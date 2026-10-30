@@ -6,6 +6,19 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ---
 
+## 2.2.1
+
+A Mac-only update, and the first one a Mac installs by itself. Windows and
+Linux stay on 2.2.0, with nothing to install.
+
+### macOS
+
+- **FluidEQ for Mac updates itself.** It looks for a new version when you
+  come back to the Mac, downloads it in the background and installs it when
+  you are not using FluidEQ, or straight away from the banner or the menu
+  bar icon — and only ever an update FluidEQ's maker signed. It needs to be
+  in your Applications folder for that.
+
 ## 2.2.0
 
 FluidEQ 2.2 speaks Korean and Traditional Chinese, tells you what is new
