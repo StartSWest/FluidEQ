@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { app, BrowserWindow, Notification } from 'electron';
 import log from 'electron-log';
 import type { AppUpdater } from 'electron-updater';
+import installDebsOutsideApp from './linux/linuxDebInstall';
 import linuxPackageOf from './linux/linuxPackage';
 import { APP_UPDATE_EVENT } from '../common/constants';
 import { translate } from '../common/i18n';
@@ -203,9 +204,16 @@ const createAppUpdates = ({
       onManualCheckResult: (result, version) =>
         nativeUpdatePrompt?.notifyManualCheckResult(result, version),
       linuxPackage: linuxPackageOf(),
-      loadUpdater: () =>
+      loadUpdater: () => {
         // eslint-disable-next-line global-require -- loaded only once updates are switched on, never on a build that has none
-        require('electron-updater').autoUpdater as AppUpdater,
+        const updater = require('electron-updater').autoUpdater as AppUpdater;
+        // A .deb's dpkg needs root, which no FluidEQ process can gain
+        // (`linux/linuxDebInstall.ts`).
+        if (linuxPackageOf() === 'deb') {
+          installDebsOutsideApp(updater);
+        }
+        return updater;
+      },
       sendStatus: (payload) => {
         // The native surfaces first — a user with the window hidden into the
         // tray must see something regardless of whether the renderer is alive.
