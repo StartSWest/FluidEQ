@@ -61,6 +61,9 @@ interface IJoin {
   authenticating: Set<string>;
   /** A newer authenticated announcement arrived during this attempt. */
   rediscovered: Set<string>;
+  /** One saved public code can name another reachable endpoint than the pair
+   * book. Neither snapshot has a clock; retain both bounded candidate sets. */
+  restored?: Pick<ILanPairingPayload, 'addresses' | 'port'>;
   socket?: WebSocket;
   lastAddress?: string;
 }
@@ -249,6 +252,12 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
       ),
     );
     candidates.forEach((address) => tryAddress(join, address, join.port));
+    const { restored } = join;
+    if (restored) {
+      restored.addresses.forEach((address) =>
+        tryAddress(join, address, restored.port),
+      );
+    }
     deps.askWhoIsThere(join.pairing.secret);
   };
 
@@ -266,29 +275,42 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
       const existing = joins.get(computerId);
       if (existing) {
         existing.fresh = existing.fresh || fresh;
+        if (fresh) {
+          existing.restored = undefined;
+        } else if (pairing.computerId === undefined) {
+          existing.restored = {
+            addresses: [...pairing.addresses],
+            port: pairing.port,
+          };
+        }
         const credentialChanged =
           existing.pairing.computerId !== undefined &&
           existing.pairing.secret !== pairing.secret;
+        // Startup replays the originally pasted code after loading the pair
+        // book. Its old address/port must not replace a newer saved endpoint.
+        // A deliberate paste or an authenticated scoped link can refresh it.
+        const endpoint =
+          fresh || pairing.computerId !== undefined
+            ? pairing
+            : existing.pairing;
         const endpointChanged =
-          existing.pairing.port !== pairing.port ||
-          existing.pairing.addresses.join(',') !== pairing.addresses.join(',');
+          existing.pairing.port !== endpoint.port ||
+          existing.pairing.addresses.join(',') !== endpoint.addresses.join(',');
         if (credentialChanged) {
           // A concurrent introduction chose another scoped credential. Keep
           // the authenticated session alive while both computers learn it;
           // closing here could cut off delivery of the winning credential.
-          existing.pairing = pairing;
           existing.pairingKey = keyFromSecret(pairing.secret);
-        } else {
-          existing.pairing = {
-            ...existing.pairing,
-            address: pairing.address,
-            addresses: pairing.addresses,
-            port: pairing.port,
-            deviceName: pairing.deviceName,
-          };
         }
+        existing.pairing = {
+          ...(credentialChanged ? pairing : existing.pairing),
+          address: endpoint.address,
+          addresses: endpoint.addresses,
+          port: endpoint.port,
+          deviceName: endpoint.deviceName,
+        };
         if (endpointChanged) {
-          existing.port = pairing.port;
+          existing.port = endpoint.port;
         }
         if (existing.state === 'looking') {
           // Re-pasting today's code must replace yesterday's endpoint and

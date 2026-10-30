@@ -275,6 +275,50 @@ describe('joining every computer whose code was pasted', () => {
     joins.closeAll();
   });
 
+  it.each([false, true])(
+    'retains both saved endpoint sources without discarding the pair book (scoped: %s)',
+    (scoped) => {
+      const original = pairing('b'.repeat(43));
+      const current = {
+        ...original,
+        address: '192.168.1.99',
+        addresses: ['192.168.1.99'],
+        port: 49_900,
+        ...(scoped
+          ? {
+              computerId: computerIdOf(original.secret),
+              secret: 'c'.repeat(43),
+            }
+          : {}),
+      };
+      const { joins } = joinsAs('m'.repeat(32));
+      joins.join(current, false);
+      joins.join(original, false);
+      const beforeRetry = mockJoinAt.mock.calls.length;
+      joins.retry();
+      const attempts = mockJoinAt.mock.calls
+        .slice(beforeRetry)
+        .map(([at]) => at);
+      expect(attempts[0]).toMatchObject({
+        address: current.address,
+        port: current.port,
+        fresh: false,
+        ticket: false,
+      });
+      expect(attempts).toContainEqual(
+        expect.objectContaining({
+          address: original.address,
+          port: original.port,
+          fresh: false,
+          ticket: false,
+        }),
+      );
+      expect(attempts).toHaveLength(3);
+      expect(joins.has(computerIdOf(original.secret))).toBe(true);
+      joins.closeAll();
+    },
+  );
+
   it('keeps a live connection while learning an endpoint for its next reconnect', async () => {
     let answer: (value: unknown) => void = () => undefined;
     mockJoinAt.mockImplementationOnce(() => ({
