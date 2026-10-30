@@ -8,8 +8,8 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ## 2.2.1
 
-A Mac-only update, and the first one a Mac installs by itself. Windows and
-Linux stay on 2.2.0, with nothing to install.
+The first update a Mac installs by itself. Windows stays on 2.2.0, with
+nothing to install.
 
 ### macOS
 
