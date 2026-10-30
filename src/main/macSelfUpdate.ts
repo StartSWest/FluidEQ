@@ -14,6 +14,7 @@ import type {
   ManualCheckResult,
 } from './signedAutoUpdates';
 import { UNSIGNED_GITHUB_UPDATE_FEED } from './signedAutoUpdates';
+import MAC_OWN_FEED_KEYS from './macFeedKeys';
 import { verifyUpdateFeedSignature } from './updateFeedSignature';
 
 /**
@@ -23,11 +24,16 @@ import { verifyUpdateFeedSignature } from './updateFeedSignature';
  * an update whose code signature satisfies the running app's designated
  * requirement. An ad-hoc signature's requirement is its own code hash, so no
  * later build can ever satisfy it: with no Developer ID, Squirrel refuses
- * every update. The trust comes from the same place as the Windows GitHub
- * channel's instead — the release's `latest-mac.yml` must carry the maker's
- * feed signature (`updateFeedSignature.ts`), the zip must hash to the SHA-512
- * that signature covers, and the app inside must be FluidEQ, at that version,
- * with a signature `codesign` accepts.
+ * every update. The trust is a feed signature instead, made with the Mac's
+ * own key (`macFeedKeys.ts`: kept on the Mac that builds the release, and
+ * trusted by no Windows or Linux copy) — the release's `latest-mac.yml` must
+ * carry it (`updateFeedSignature.ts`), the zip must hash to the SHA-512 it
+ * covers, and the app inside must be FluidEQ, at that version, with a
+ * signature `codesign` accepts. A build with no Mac key pinned has no updater.
+ *
+ * Mac releases are releases of their own. The updater takes the newest
+ * published release that carries a `latest-mac.yml`, so a Mac release never
+ * has to be GitHub's "latest", and a Windows or Linux release never hides one.
  *
  * The new bundle is unpacked beside the running one, so the swap is two
  * renames on one volume, and the swap happens on Electron's `quit` — after
@@ -37,10 +43,53 @@ import { verifyUpdateFeedSignature } from './updateFeedSignature';
  * no updater: nothing could be put in its place.
  */
 
-const FEED_URL = `https://github.com/${UNSIGNED_GITHUB_UPDATE_FEED.owner}/${UNSIGNED_GITHUB_UPDATE_FEED.repo}/releases/latest/download/latest-mac.yml`;
+const REPO = `${UNSIGNED_GITHUB_UPDATE_FEED.owner}/${UNSIGNED_GITHUB_UPDATE_FEED.repo}`;
+const RELEASES_API = `https://api.github.com/repos/${REPO}/releases?per_page=30`;
+const DOWNLOADS = `https://github.com/${REPO}/releases/download/`;
+const MAC_FEED = 'latest-mac.yml';
 
-const releaseAsset = (version: string, file: string) =>
-  `https://github.com/${UNSIGNED_GITHUB_UPDATE_FEED.owner}/${UNSIGNED_GITHUB_UPDATE_FEED.repo}/releases/download/v${encodeURIComponent(version)}/${encodeURIComponent(file)}`;
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+/** A release's downloads by file name, the feed among them. */
+export interface IMacRelease {
+  feedUrl: string;
+  assets: Readonly<Record<string, string>>;
+}
+
+/**
+ * The newest published release (GitHub lists them newest first) that
+ * carries a Mac update file. Only this repository's own download links are
+ * taken, whatever else the answer holds.
+ */
+export const newestMacRelease = (json: string): IMacRelease | undefined => {
+  const releases: unknown = JSON.parse(json);
+  if (!Array.isArray(releases)) {
+    return undefined;
+  }
+  const assetsOf = (release: unknown): Record<string, string> => {
+    if (
+      !isRecord(release) ||
+      release.draft === true ||
+      release.prerelease === true ||
+      !Array.isArray(release.assets)
+    ) {
+      return {};
+    }
+    return Object.fromEntries(
+      release.assets.flatMap((asset: unknown) =>
+        isRecord(asset) &&
+        typeof asset.name === 'string' &&
+        typeof asset.browser_download_url === 'string' &&
+        asset.browser_download_url.startsWith(DOWNLOADS)
+          ? [[asset.name, asset.browser_download_url]]
+          : [],
+      ),
+    );
+  };
+  const assets = releases.map(assetsOf).find((found) => found[MAC_FEED]);
+  return assets ? { feedUrl: assets[MAC_FEED], assets } : undefined;
+};
 
 /**
  * How stale a check must be before another is worth making: four hours, as
@@ -169,7 +218,7 @@ export interface IMacSelfUpdateDeps {
   relaunch: () => void;
   quit: () => void;
   now?: () => number;
-  /** The feed keys to trust; the build's own unless a test hands in its own. */
+  /** The feed keys to trust; the Mac's own unless a test hands in its own. */
   feedKeys?: Readonly<Record<string, string>>;
 }
 
@@ -221,7 +270,14 @@ export const setUpMacSelfUpdates = async (
   deps: IMacSelfUpdateDeps,
 ): Promise<IAuthorizedAutoUpdater | undefined> => {
   const { logger, sendStatus, now = Date.now } = deps;
+  const keys = deps.feedKeys ?? MAC_OWN_FEED_KEYS;
   if (deps.platform !== 'darwin') {
+    return undefined;
+  }
+  if (Object.keys(keys).length === 0) {
+    // An empty list would make every feed "valid"; with no key there is
+    // nothing to trust, so there is no updater.
+    logger.info('Updates disabled: this Mac build trusts no update feed key.');
     return undefined;
   }
   if (!deps.isPackaged) {
@@ -293,13 +349,14 @@ export const setUpMacSelfUpdates = async (
   const fetchAndStage = async (
     version: string,
     file: IFeedFile,
+    url: string,
   ): Promise<string> => {
     const staging = path.join(folder, `${STAGING_PREFIX}${version}`);
     await fs.promises.rm(staging, { recursive: true, force: true });
     await fs.promises.mkdir(staging, { recursive: true });
     const zip = path.join(staging, 'update.zip');
     let lastPercent = -1;
-    await deps.download(releaseAsset(version, file.url), zip, (got, total) => {
+    await deps.download(url, zip, (got, total) => {
       const size = total ?? file.size;
       if (!size) {
         return;
@@ -340,8 +397,13 @@ export const setUpMacSelfUpdates = async (
 
   const check = async () => {
     verdict = undefined;
-    const info = parseMacFeed(await deps.fetchText(FEED_URL));
-    const feed = verifyUpdateFeedSignature(info, deps.feedKeys);
+    const release = newestMacRelease(await deps.fetchText(RELEASES_API));
+    if (!release) {
+      settleManualCheck('up-to-date');
+      return;
+    }
+    const info = parseMacFeed(await deps.fetchText(release.feedUrl));
+    const feed = verifyUpdateFeedSignature(info, keys);
     if (!feed.valid) {
       fail(feed.reason || 'the update feed is not trusted');
       return;
@@ -365,7 +427,8 @@ export const setUpMacSelfUpdates = async (
         (entry) =>
           entry.url.endsWith('-mac.zip') && entry.url.includes(deps.arch),
       ) ?? files.find((entry) => entry.url.endsWith('-mac.zip'));
-    if (!file) {
+    const url = file ? release.assets[file.url] : undefined;
+    if (!file || !url) {
       fail(`release ${version} has no Mac zip`);
       return;
     }
@@ -377,7 +440,7 @@ export const setUpMacSelfUpdates = async (
       ...(isMandatoryPending ? { isMandatory: true } : {}),
     });
     try {
-      const app = await fetchAndStage(version, file);
+      const app = await fetchAndStage(version, file, url);
       ready = { version, app };
       logger.info(`Mac update ${version} downloaded and verified`);
       sendStatus({
@@ -430,7 +493,7 @@ export const setUpMacSelfUpdates = async (
 
   let lastCheckAt = now();
   checkForUpdates().catch(() => undefined);
-  logger.info(`Mac updates enabled from GitHub Releases: ${FEED_URL}`);
+  logger.info(`Mac updates enabled from GitHub Releases: ${REPO}`);
 
   return {
     quitAndInstall() {

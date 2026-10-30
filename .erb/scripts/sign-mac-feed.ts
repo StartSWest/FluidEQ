@@ -3,13 +3,14 @@
  *
  * Every Mac copy refuses an update from a feed this key did not sign
  * (`macSelfUpdate.ts`), so a Mac release whose feed cannot be signed is not
- * a release: this fails the build instead. The key is the one Windows and
- * Linux sign with, kept on the Mac in the login Keychain (`mac-feed-key.ts`).
+ * a release: this fails the build instead. The key is the Mac's own, kept
+ * in this Mac's login Keychain (`mac-feed-key.ts`), apart from the key
+ * Windows and Linux sign with.
  */
 
 import fs from 'fs';
 import path from 'path';
-import { UPDATE_FEED_KEYS } from '../../src/main/updateFeedSignature';
+import MAC_OWN_FEED_KEYS from '../../src/main/macFeedKeys';
 import { readMacFeedKey, type IMacKeychain } from './mac-feed-key';
 import { signFeed } from './sign-update-feed';
 import { signsForTrustedKey } from './update-feed-key';
@@ -17,7 +18,7 @@ import { signsForTrustedKey } from './update-feed-key';
 export const signMacFeed = ({
   feedPath = path.join(__dirname, '../../release/build/latest-mac.yml'),
   keychain,
-  keys = UPDATE_FEED_KEYS,
+  keys = MAC_OWN_FEED_KEYS,
 }: {
   feedPath?: string;
   keychain?: IMacKeychain;
@@ -27,7 +28,7 @@ export const signMacFeed = ({
   if (!key) {
     console.error(
       'latest-mac.yml is NOT signed: this Mac holds no update feed key. ' +
-        'Run `pnpm mac-feed-key import` with the key from your password manager on the clipboard.',
+        'Run `pnpm mac-feed-key new` to make one.',
     );
     return false;
   }

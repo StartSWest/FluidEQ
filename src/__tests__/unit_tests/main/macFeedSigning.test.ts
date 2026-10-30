@@ -18,6 +18,7 @@ import path from 'path';
 import { parseMacFeed } from '../../../main/macSelfUpdate';
 import { verifyUpdateFeedSignature } from '../../../main/updateFeedSignature';
 import {
+  createMacFeedKey,
   importMacFeedKey,
   readMacFeedKey,
   type IMacKeychain,
@@ -123,4 +124,53 @@ it('stores nothing from a clipboard that holds no trusted key', () => {
     'not one this app trusts',
   );
   expect(keychain.secret).toBeUndefined();
+});
+
+describe('making the Mac’s own key', () => {
+  const MARKER = '  // mac-feed-key: new keys go above this line';
+  const keysFile = () => {
+    const file = path.join(path.dirname(feedPath), 'macFeedKeys.ts');
+    fs.writeFileSync(
+      file,
+      `export const MAC_OWN_FEED_KEYS = {\n${MARKER}\n};\n`,
+    );
+    return file;
+  };
+
+  it('keeps the private half in the Keychain and pins the public half, and they sign a feed the updater trusts', () => {
+    const keychain = memoryKeychain();
+    const file = keysFile();
+    const keyId = createMacFeedKey({
+      keychain,
+      keysFile: file,
+      today: new Date('2026-10-30T00:00:00Z'),
+    });
+
+    expect(keyId).toBe('fluideq-mac-feed-2026-10-30');
+    const pinned = new RegExp(`'${keyId}':\\s*'([A-Za-z0-9+/=]+)'`).exec(
+      fs.readFileSync(file, 'utf8'),
+    );
+    expect(pinned).not.toBeNull();
+    expect(fs.readFileSync(file, 'utf8')).toContain(MARKER);
+    const keys = { [keyId]: pinned?.[1] ?? '' };
+    expect(signMacFeed({ feedPath, keychain, keys })).toBe(true);
+    expect(
+      verifyUpdateFeedSignature(
+        parseMacFeed(fs.readFileSync(feedPath, 'utf8')),
+        keys,
+      ),
+    ).toEqual({ valid: true });
+  });
+
+  it('refuses to make a second key on a Mac that holds one', () => {
+    const file = keysFile();
+    const before = fs.readFileSync(file, 'utf8');
+    expect(() =>
+      createMacFeedKey({
+        keychain: memoryKeychain(`test-key:${trusted.privateKey}`),
+        keysFile: file,
+      }),
+    ).toThrow('already holds');
+    expect(fs.readFileSync(file, 'utf8')).toBe(before);
+  });
 });

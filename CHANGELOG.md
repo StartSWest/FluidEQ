@@ -8,16 +8,18 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ## 2.2.1
 
-The first update a Mac installs by itself. Windows stays on 2.2.0, with
-nothing to install.
+FluidEQ for Mac now updates itself, trusting a key of its own. Windows and
+Linux are unchanged.
 
 ### macOS
 
 - **FluidEQ for Mac updates itself.** It looks for a new version when you
   come back to the Mac, downloads it in the background and installs it when
   you are not using FluidEQ, or straight away from the banner or the menu
-  bar icon — and only ever an update FluidEQ's maker signed. It needs to be
-  in your Applications folder for that.
+  bar icon — and only ever an update signed with FluidEQ for Mac's own key.
+  It needs to be in your Applications folder for that.
+- **On 2.2.0 for Mac?** Install this one by hand, once: 2.2.0 cannot check
+  that key. From 2.2.1 on, updates arrive by themselves.
 
 ## 2.2.0
 

@@ -18,6 +18,7 @@ import path from 'path';
 import {
   bundleOf,
   isNewerVersion,
+  newestMacRelease,
   parseMacFeed,
   setUpMacSelfUpdates,
   type IMacSelfUpdateDeps,
@@ -69,6 +70,37 @@ const feedText = ({
   }
   return `${body.join('\n')}\n`;
 };
+
+const DOWNLOADS = 'https://github.com/StartSWest/FluidEQ/releases/download';
+
+/** GitHub's release list, newest first: a Linux release, then the Mac one. */
+const releasesJson = (version = '2.3.0') =>
+  JSON.stringify([
+    {
+      draft: false,
+      prerelease: false,
+      assets: [
+        {
+          name: 'latest-linux.yml',
+          browser_download_url: `${DOWNLOADS}/v9.9.9/latest-linux.yml`,
+        },
+      ],
+    },
+    {
+      draft: false,
+      prerelease: false,
+      assets: [
+        {
+          name: 'latest-mac.yml',
+          browser_download_url: `${DOWNLOADS}/mac-v${version}/latest-mac.yml`,
+        },
+        {
+          name: `FluidEQ-${version}-arm64-mac.zip`,
+          browser_download_url: `${DOWNLOADS}/mac-v${version}/FluidEQ-${version}-arm64-mac.zip`,
+        },
+      ],
+    },
+  ]);
 
 let root: string;
 let bundle: string;
@@ -123,7 +155,9 @@ const depsFor = (
         finish();
       }
     },
-    fetchText: jest.fn(async () => feed),
+    fetchText: jest.fn(async (url: string) =>
+      url.startsWith('https://api.github.com/') ? releasesJson() : feed,
+    ),
     download: jest.fn(async (_url, file, onBytes) => {
       fs.writeFileSync(file, ZIP_BYTES);
       onBytes(ZIP_BYTES.length, ZIP_BYTES.length);
@@ -192,6 +226,66 @@ describe('reading the feed', () => {
   });
 });
 
+describe('finding the Mac release', () => {
+  it('takes the newest release with a Mac feed, past a newer Linux one', () => {
+    expect(newestMacRelease(releasesJson())?.feedUrl).toBe(
+      `${DOWNLOADS}/mac-v2.3.0/latest-mac.yml`,
+    );
+  });
+
+  it('skips drafts, prereleases and links that are not this repository’s', () => {
+    const json = JSON.stringify([
+      {
+        draft: true,
+        prerelease: false,
+        assets: [
+          {
+            name: 'latest-mac.yml',
+            browser_download_url: `${DOWNLOADS}/a/latest-mac.yml`,
+          },
+        ],
+      },
+      {
+        draft: false,
+        prerelease: true,
+        assets: [
+          {
+            name: 'latest-mac.yml',
+            browser_download_url: `${DOWNLOADS}/b/latest-mac.yml`,
+          },
+        ],
+      },
+      {
+        draft: false,
+        prerelease: false,
+        assets: [
+          {
+            name: 'latest-mac.yml',
+            browser_download_url: 'https://example.com/latest-mac.yml',
+          },
+        ],
+      },
+      {
+        draft: false,
+        prerelease: false,
+        assets: [
+          {
+            name: 'latest-mac.yml',
+            browser_download_url: `${DOWNLOADS}/c/latest-mac.yml`,
+          },
+        ],
+      },
+    ]);
+    expect(newestMacRelease(json)?.feedUrl).toBe(
+      `${DOWNLOADS}/c/latest-mac.yml`,
+    );
+  });
+
+  it('finds nothing when no release carries a Mac feed', () => {
+    expect(newestMacRelease('[]')).toBeUndefined();
+  });
+});
+
 describe('where a Mac can update', () => {
   it('turns on for an installed copy it can replace', async () => {
     expect(await setUpMacSelfUpdates(depsFor().deps)).toBeDefined();
@@ -212,6 +306,7 @@ describe('where a Mac can update', () => {
       },
     ],
     ['where this account cannot write', { canWrite: async () => false }],
+    ['in a build that trusts no Mac key', { feedKeys: {} }],
   ])('stays off %s', async (_where, override) => {
     const { deps } = depsFor(override);
     expect(await setUpMacSelfUpdates(deps)).toBeUndefined();
@@ -228,7 +323,7 @@ describe('an update', () => {
     expect(updater?.isReadyToInstall()).toBe(true);
     expect(sent).toContainEqual({ phase: 'ready', version: '2.3.0' });
     expect(deps.download).toHaveBeenCalledWith(
-      'https://github.com/StartSWest/FluidEQ/releases/download/v2.3.0/FluidEQ-2.3.0-arm64-mac.zip',
+      `${DOWNLOADS}/mac-v2.3.0/FluidEQ-2.3.0-arm64-mac.zip`,
       expect.any(String),
       expect.any(Function),
     );
