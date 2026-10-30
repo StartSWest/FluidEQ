@@ -59,6 +59,8 @@ interface IJoin {
   peerId: string;
   attempts: Map<string, () => void>;
   authenticating: Set<string>;
+  /** A newer authenticated announcement arrived during this attempt. */
+  rediscovered: Set<string>;
   socket?: WebSocket;
   lastAddress?: string;
 }
@@ -81,6 +83,7 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
     join.attempts.forEach((cancel) => cancel());
     join.attempts.clear();
     join.authenticating.clear();
+    join.rediscovered.clear();
   };
 
   const leave = (computerId: string) => {
@@ -192,31 +195,47 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
         }
         // A cancelled round may finish after a retry has opened the same
         // address again. It must not remove or put that newer round to sleep.
+        const rediscovered = join.rediscovered.delete(at);
+        const authenticating = join.authenticating.delete(at);
         join.attempts.delete(at);
-        join.authenticating.delete(at);
-        if (!(error instanceof LanJoinClosed)) {
-          // Nobody there, or not this computer: the next announcement says
-          // where it is.
-          return;
-        }
-        if (error.code === CLOSE_FORGET) {
-          log.info(
-            'Share Audio peer refused a connection; saved pairing retained',
-            {
-              computerId: join.computerId,
-              code: error.code,
-            },
-          );
-        }
+        const code =
+          typeof error === 'object' && error !== null && 'code' in error
+            ? error.code
+            : undefined;
+        log.info('Share Audio peer connection failed; saved pairing retained', {
+          computerId: join.computerId,
+          address,
+          port,
+          stage: authenticating ? 'authentication' : 'connection',
+          ...(error instanceof LanJoinClosed ? { closeCode: error.code } : {}),
+          ...(typeof code === 'string' && /^[A-Z][A-Z0-9_]{0,39}$/.test(code)
+            ? { code }
+            : {}),
+        });
         // Old builds used 4001 for duplicate connections as well as unlink.
         // A bare WebSocket close is not an authenticated unlink instruction.
         // Keep the pairing; only an encrypted stop/forget removes it in LAN.
         if (
+          error instanceof LanJoinClosed &&
           (error.code === CLOSE_FORGET ||
             error.code === CLOSE_ALREADY_LINKED) &&
           deps.inboundLive(join.computerId)
         ) {
           sleep(join);
+          return;
+        }
+        // A peer can announce its return before an older connect error is
+        // delivered. Dropping that authenticated event left it offline until
+        // another lifecycle event. Consume one hint after failure, without a
+        // timed retry loop or retrying an explicit authentication refusal.
+        if (
+          rediscovered &&
+          !(
+            error instanceof LanJoinClosed &&
+            [1008, CLOSE_FORGET, CLOSE_ALREADY_LINKED].includes(error.code)
+          )
+        ) {
+          tryAddress(join, address, port);
         }
       });
   };
@@ -247,22 +266,38 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
       const existing = joins.get(computerId);
       if (existing) {
         existing.fresh = existing.fresh || fresh;
-        if (
-          existing.pairing.computerId &&
-          existing.pairing.secret !== pairing.secret
-        ) {
+        const credentialChanged =
+          existing.pairing.computerId !== undefined &&
+          existing.pairing.secret !== pairing.secret;
+        const endpointChanged =
+          existing.pairing.port !== pairing.port ||
+          existing.pairing.addresses.join(',') !== pairing.addresses.join(',');
+        if (credentialChanged) {
           // A concurrent introduction chose another scoped credential. Keep
           // the authenticated session alive while both computers learn it;
           // closing here could cut off delivery of the winning credential.
           existing.pairing = pairing;
           existing.pairingKey = keyFromSecret(pairing.secret);
-          if (existing.state === 'looking') {
-            look(existing);
-          }
-          return computerId;
+        } else {
+          existing.pairing = {
+            ...existing.pairing,
+            address: pairing.address,
+            addresses: pairing.addresses,
+            port: pairing.port,
+            deviceName: pairing.deviceName,
+          };
+        }
+        if (endpointChanged) {
+          existing.port = pairing.port;
         }
         if (existing.state === 'looking') {
-          probe(existing);
+          // Re-pasting today's code must replace yesterday's endpoint and
+          // pending handshake; the row used to stay offline on its old port.
+          if (credentialChanged || endpointChanged || fresh) {
+            look(existing);
+          } else {
+            probe(existing);
+          }
         }
         return computerId;
       }
@@ -276,6 +311,7 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
         peerId: '',
         attempts: new Map(),
         authenticating: new Set(),
+        rediscovered: new Set(),
       };
       joins.set(computerId, join);
       if (deps.inboundLive(computerId)) {
@@ -338,7 +374,12 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
           join.pairing.secret,
         );
         if (announcement) {
-          tryAddress(join, address, announcement.port);
+          const at = `${address}:${announcement.port}`;
+          if (join.attempts.has(at)) {
+            join.rediscovered.add(at);
+          } else {
+            tryAddress(join, address, announcement.port);
+          }
         }
       });
     },

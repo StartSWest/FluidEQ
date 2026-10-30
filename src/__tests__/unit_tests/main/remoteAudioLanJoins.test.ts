@@ -1,5 +1,6 @@
 /** @jest-environment node */
 /* FluidEQ — GPL-3.0-or-later */
+import log from 'electron-log';
 
 const mockJoinAt = jest.fn();
 
@@ -22,6 +23,8 @@ import {
   decodePairingCode,
   encodePairingCode,
 } from '../../../main/remoteAudioLanProtocol';
+// eslint-disable-next-line import/first -- keep the mocked join boundary above
+import { encodeDiscoveryAnnouncement } from '../../../main/remoteAudioDiscovery';
 
 const pairing = (secret: string) =>
   decodePairingCode(
@@ -213,5 +216,212 @@ describe('joining every computer whose code was pasted', () => {
     expect(cancels[3]).not.toHaveBeenCalled();
     joins.join(target, false);
     expect(mockJoinAt).toHaveBeenCalledTimes(4);
+  });
+
+  const pendingAttempts = () => {
+    const rejects: ((error: Error) => void)[] = [];
+    mockJoinAt.mockImplementation(() => ({
+      joined: new Promise((_resolve, reject) => {
+        rejects.push(reject);
+      }),
+      cancel: jest.fn(),
+    }));
+    return rejects;
+  };
+
+  it.each([false, true])(
+    'refreshes an offline endpoint from its current code or scoped link (scoped: %s)',
+    (scoped) => {
+      const target = pairing('b'.repeat(43));
+      const first = scoped
+        ? { ...target, computerId: computerIdOf(target.secret) }
+        : target;
+      const { joins } = joinsAs('m'.repeat(32));
+      joins.join(first, false);
+      const cancels = mockJoinAt.mock.results.map(
+        (result) => result.value.cancel,
+      );
+      joins.join(
+        {
+          ...first,
+          address: '192.168.1.99',
+          addresses: ['192.168.1.99'],
+          port: 49_900,
+        },
+        true,
+      );
+      cancels.forEach((cancel) => expect(cancel).toHaveBeenCalled());
+      expect(mockJoinAt).toHaveBeenCalledTimes(3);
+      expect(mockJoinAt.mock.calls[2][0]).toMatchObject({
+        address: '192.168.1.99',
+        port: 49_900,
+        fresh: true,
+        ticket: scoped,
+      });
+      joins.closeAll();
+    },
+  );
+
+  it('sends deliberate re-pairing through a new handshake even on the same endpoint', () => {
+    const target = pairing('b'.repeat(43));
+    const { joins } = joinsAs('m'.repeat(32));
+    joins.join(target, false);
+    joins.join(target, true);
+    expect(mockJoinAt).toHaveBeenCalledTimes(4);
+    expect(mockJoinAt.mock.calls[2][0].fresh).toBe(true);
+    expect(mockJoinAt.mock.calls[2][0].peerId).not.toBe(
+      mockJoinAt.mock.calls[0][0].peerId,
+    );
+    joins.closeAll();
+  });
+
+  it('keeps a live connection while learning an endpoint for its next reconnect', async () => {
+    let answer: (value: unknown) => void = () => undefined;
+    mockJoinAt.mockImplementationOnce(() => ({
+      joined: new Promise((resolve) => {
+        answer = resolve;
+      }),
+      cancel: jest.fn(),
+    }));
+    const target = pairing('b'.repeat(43));
+    const { joins, deps } = joinsAs('m'.repeat(32));
+    const id = joins.join(target, false);
+    const socket = { once: jest.fn(), close: jest.fn() };
+    answer({ address: target.address, socket, sessionKey: Buffer.alloc(32) });
+    await Promise.resolve();
+    await Promise.resolve();
+    joins.join({ ...target, port: 49_900 }, true);
+    expect(joins.peerOf(id)).toBeDefined();
+    expect(deps.attach).toHaveBeenCalledTimes(1);
+    expect(mockJoinAt).toHaveBeenCalledTimes(2);
+    expect(socket.close).not.toHaveBeenCalled();
+    const closed = socket.once.mock.calls.find(([event]) => event === 'close');
+    closed?.[1](1006);
+    expect(mockJoinAt.mock.calls[2][0].port).toBe(49_900);
+    joins.closeAll();
+  });
+
+  it('retains one authenticated rediscovery while an older connection fails', async () => {
+    const rejects = pendingAttempts();
+    const target = pairing('b'.repeat(43));
+    const { joins, deps } = joinsAs('m'.repeat(32));
+    joins.join(target, false);
+    const announcement = encodeDiscoveryAnnouncement(
+      target.secret,
+      target.port,
+      target.deviceName,
+    );
+    joins.heard(announcement, target.address);
+    joins.heard(announcement, target.address);
+    rejects[0](Object.assign(new Error('Refused'), { code: 'ECONNREFUSED' }));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(mockJoinAt).toHaveBeenCalledTimes(3);
+    expect(mockJoinAt.mock.calls[2][0].address).toBe(target.address);
+    expect(deps.emitSignal).not.toHaveBeenCalled();
+    // A fresh hint buys one attempt, not an unbounded retry loop.
+    rejects[2](new Error('Still unreachable'));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(mockJoinAt).toHaveBeenCalledTimes(3);
+    joins.closeAll();
+  });
+
+  it('never retries on a forged rediscovery or without a new announcement', async () => {
+    const rejects = pendingAttempts();
+    const target = pairing('b'.repeat(43));
+    const { joins } = joinsAs('m'.repeat(32));
+    joins.join(target, false);
+    joins.heard(
+      encodeDiscoveryAnnouncement(
+        'wrong-secret',
+        target.port,
+        target.deviceName,
+      ),
+      target.address,
+    );
+    rejects.forEach((reject) => reject(new Error('Refused')));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(mockJoinAt).toHaveBeenCalledTimes(2);
+    joins.closeAll();
+  });
+
+  it.each([1008, CLOSE_FORGET, CLOSE_ALREADY_LINKED])(
+    'keeps an explicit peer refusal (%s) authoritative despite rediscovery',
+    async (code) => {
+      const rejects = pendingAttempts();
+      const target = pairing('b'.repeat(43));
+      const { joins } = joinsAs('m'.repeat(32));
+      const id = joins.join(target, false);
+      joins.heard(
+        encodeDiscoveryAnnouncement(
+          target.secret,
+          target.port,
+          target.deviceName,
+        ),
+        target.address,
+      );
+      rejects[0](new LanJoinClosed(code));
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(mockJoinAt).toHaveBeenCalledTimes(2);
+      expect(joins.has(id)).toBe(true);
+      expect(joins.peerOf(id)).toBeUndefined();
+      joins.closeAll();
+    },
+  );
+
+  it('discards rediscovery hints from a cancelled connection round', async () => {
+    const rejects = pendingAttempts();
+    const target = pairing('b'.repeat(43));
+    const { joins } = joinsAs('m'.repeat(32));
+    joins.join(target, false);
+    joins.heard(
+      encodeDiscoveryAnnouncement(
+        target.secret,
+        target.port,
+        target.deviceName,
+      ),
+      target.address,
+    );
+    joins.retry();
+    rejects[0](new Error('Old connection failed'));
+    rejects[2](new Error('New connection failed without a fresh hint'));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(mockJoinAt).toHaveBeenCalledTimes(4);
+    joins.closeAll();
+  });
+
+  it('logs the failing endpoint and system code without secret-bearing error text', async () => {
+    const info = jest.spyOn(log, 'info').mockImplementation(() => undefined);
+    const rejects = pendingAttempts();
+    const target = pairing('b'.repeat(43));
+    const { joins } = joinsAs('m'.repeat(32));
+    try {
+      const id = joins.join(target, false);
+      rejects[0](
+        Object.assign(new Error(`Secret error: ${target.secret}`), {
+          code: 'ECONNREFUSED',
+        }),
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(info).toHaveBeenCalledWith(
+        'Share Audio peer connection failed; saved pairing retained',
+        {
+          computerId: id,
+          address: target.address,
+          port: target.port,
+          stage: 'connection',
+          code: 'ECONNREFUSED',
+        },
+      );
+      expect(JSON.stringify(info.mock.calls)).not.toContain(target.secret);
+    } finally {
+      joins.closeAll();
+      info.mockRestore();
+    }
   });
 });

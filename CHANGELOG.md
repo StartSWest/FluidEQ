@@ -77,6 +77,10 @@ the Studio.
 
 ### Share Audio and Forum
 
+- **Fixed a reconnect race that left paired computers offline.** A returning
+  computer's announcement now survives an older failed connection attempt,
+  so the link can reconnect and resume transmitting audio. Pasting its current
+  code also refreshes an old address or port instead of keeping the stale one.
 - **Share Audio holds steady under load.** Capture and the network link
   run in their own service, so a busy window no longer stalls the sound.
 - **Fluid, for music over Wi-Fi.** A switch beside Share plays every link
