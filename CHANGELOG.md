@@ -6,6 +6,11 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ---
 
+## 2.2.2
+
+The first update FluidEQ for Mac brings in by itself. Nothing else
+changes; Windows and Linux are unchanged.
+
 ## 2.2.1
 
 FluidEQ for Mac now updates itself, trusting a key of its own. Windows and
