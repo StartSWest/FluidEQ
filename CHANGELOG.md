@@ -110,6 +110,25 @@ the Studio.
   languages**, each with the real control. The tour reopens only for a new
   feature release, never for a fix release of the same one.
 
+### Linux
+
+- **FluidEQ on Linux, for the first time.** The equalizer, presets, the
+  DSP rack, the Library, Karaoke, visualizers and Share Audio run on Linux
+  through FluidEQ's own engine, on PipeWire or PulseAudio. Desktop
+  backgrounds need GNOME and the FluidEQ Desktop extension. Equalizer APO
+  and Dynamic lighting are Windows only, and so is the tray slide in What's
+  New.
+- **Your volume stays your volume.** The system volume, balance and mute
+  of the output you listen on are the only ones that count, so FluidEQ
+  never turns the sound down twice.
+- **Starts in the tray.** With Start when you sign in on, FluidEQ starts in
+  the top bar's tray on desktops that show tray icons (Ubuntu's GNOME, KDE,
+  Cinnamon); on one that does not, it opens its window as before.
+- **Updates itself.** FluidEQ for Linux finds new versions on GitHub and
+  downloads them by itself, taking only an update signed by FluidEQ's own
+  key. The AppImage installs it by itself; the .deb installs when you press
+  Restart now and enter your password.
+
 ## 2.1.0
 
 FluidEQ 2.1 gives every output a sound of its own. Put your headphones on and
