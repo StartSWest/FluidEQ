@@ -127,11 +127,17 @@ export const isNewerVersion = (candidate: string, current: string): boolean => {
   return false;
 };
 
-/** The running bundle, from the executable inside it. */
-export const bundleOf = (executablePath: string): string | undefined => {
-  const bundle = path.resolve(executablePath, '..', '..', '..');
-  return bundle.endsWith('.app') ? bundle : undefined;
-};
+/**
+ * The running bundle, from the executable inside it: `<bundle>.app/Contents/
+ * MacOS/<name>`. Read from the path as written, either separator, so the
+ * tests that run on Windows read a Mac path the way a Mac does.
+ */
+export const bundleOf = (executablePath: string): string | undefined =>
+  /^(.+\.app)[\\/]Contents[\\/]MacOS[\\/][^\\/]+$/.exec(executablePath)?.[1];
+
+/** Where macOS runs a copy that cannot be replaced: a disk image or App Translocation. */
+const isUnreplaceable = (bundle: string) =>
+  bundle.startsWith('/Volumes/') || bundle.includes('/AppTranslocation/');
 
 export interface IMacSelfUpdateDeps {
   executablePath: string;
@@ -227,7 +233,7 @@ export const setUpMacSelfUpdates = async (
     logger.warn('Updates disabled: FluidEQ is not running from an app bundle.');
     return undefined;
   }
-  if (bundle.includes('/AppTranslocation/') || bundle.startsWith('/Volumes/')) {
+  if (isUnreplaceable(bundle)) {
     logger.info(
       'Updates disabled: FluidEQ is running from a disk image or a translocated copy; move it to Applications.',
     );
