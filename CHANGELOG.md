@@ -6,6 +6,20 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ---
 
+## 2.2.1
+
+A Linux-only release that tests FluidEQ updating itself on Linux.
+
+### Linux
+
+- **Updates itself.** FluidEQ 2.2.0 for Linux finds this version on its own
+  and downloads it. The AppImage installs it by itself; the .deb installs
+  when you press Restart now and enter your password.
+
+Nothing else changes, and Windows stays on 2.2.0.
+
+---
+
 ## 2.2.0
 
 FluidEQ 2.2 speaks Korean and Traditional Chinese, tells you what is new
