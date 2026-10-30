@@ -234,50 +234,59 @@ describe('finding the Mac release', () => {
   });
 
   it('skips drafts, prereleases and links that are not this repository’s', () => {
+    // Each skipped one carries a higher version than the one taken, so a
+    // check that let it through would pick it.
+    const release = (
+      tag: string,
+      version: string,
+      { draft = false, prerelease = false, host = DOWNLOADS } = {},
+    ) => ({
+      draft,
+      prerelease,
+      assets: [
+        {
+          name: 'latest-mac.yml',
+          browser_download_url: `${host}/${tag}/latest-mac.yml`,
+        },
+        {
+          name: `FluidEQ-${version}-arm64-mac.zip`,
+          browser_download_url: `${host}/${tag}/FluidEQ-${version}-arm64-mac.zip`,
+        },
+      ],
+    });
     const json = JSON.stringify([
-      {
-        draft: true,
-        prerelease: false,
-        assets: [
-          {
-            name: 'latest-mac.yml',
-            browser_download_url: `${DOWNLOADS}/a/latest-mac.yml`,
-          },
-        ],
-      },
-      {
-        draft: false,
-        prerelease: true,
-        assets: [
-          {
-            name: 'latest-mac.yml',
-            browser_download_url: `${DOWNLOADS}/b/latest-mac.yml`,
-          },
-        ],
-      },
-      {
-        draft: false,
-        prerelease: false,
-        assets: [
-          {
-            name: 'latest-mac.yml',
-            browser_download_url: 'https://example.com/latest-mac.yml',
-          },
-        ],
-      },
-      {
-        draft: false,
-        prerelease: false,
-        assets: [
-          {
-            name: 'latest-mac.yml',
-            browser_download_url: `${DOWNLOADS}/c/latest-mac.yml`,
-          },
-        ],
-      },
+      release('a', '9.0.0', { draft: true }),
+      release('b', '9.0.0', { prerelease: true }),
+      release('x', '9.0.0', { host: 'https://example.com/releases/download' }),
+      release('c', '2.3.0'),
     ]);
     expect(newestMacRelease(json)?.feedUrl).toBe(
       `${DOWNLOADS}/c/latest-mac.yml`,
+    );
+  });
+
+  it('takes the highest Mac version, not the first release listed', () => {
+    const release = (tag: string, version: string) => ({
+      draft: false,
+      prerelease: false,
+      assets: [
+        {
+          name: 'latest-mac.yml',
+          browser_download_url: `${DOWNLOADS}/${tag}/latest-mac.yml`,
+        },
+        {
+          name: `FluidEQ-${version}-arm64-mac.zip`,
+          browser_download_url: `${DOWNLOADS}/${tag}/FluidEQ-${version}-arm64-mac.zip`,
+        },
+      ],
+    });
+    const json = JSON.stringify([
+      release('mac-v2.2.1', '2.2.1'),
+      release('mac-v2.10.0', '2.10.0'),
+      release('mac-v2.9.0', '2.9.0'),
+    ]);
+    expect(newestMacRelease(json)?.feedUrl).toBe(
+      `${DOWNLOADS}/mac-v2.10.0/latest-mac.yml`,
     );
   });
 

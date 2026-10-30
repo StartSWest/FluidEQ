@@ -58,8 +58,8 @@ export interface IMacRelease {
 }
 
 /**
- * The newest published release (GitHub lists them newest first) that
- * carries a Mac update file. Only this repository's own download links are
+ * The published release with the highest Mac version that carries a Mac
+ * update file. Only this repository's own download links are
  * taken, whatever else the answer holds.
  */
 export const newestMacRelease = (json: string): IMacRelease | undefined => {
@@ -87,8 +87,25 @@ export const newestMacRelease = (json: string): IMacRelease | undefined => {
       ),
     );
   };
-  const assets = releases.map(assetsOf).find((found) => found[MAC_FEED]);
-  return assets ? { feedUrl: assets[MAC_FEED], assets } : undefined;
+  // The Mac version a release carries, from its zip's name
+  // (FluidEQ-<version>-<arch>-mac.zip). GitHub's list is not ordered by
+  // version — Linux's 2.2.1 came before the Mac's 2.2.2 — so the highest
+  // version wins, not the first one listed.
+  const versionOf = (assets: Record<string, string>) =>
+    Object.keys(assets)
+      .map((name) => /^FluidEQ-(\d+\.\d+\.\d+)-.*mac\.zip$/.exec(name)?.[1])
+      .find((version): version is string => Boolean(version));
+  const candidates = releases
+    .map(assetsOf)
+    .filter((found) => found[MAC_FEED] && versionOf(found));
+  const newest = candidates.reduce<Record<string, string> | undefined>(
+    (best, found) =>
+      !best || isNewerVersion(versionOf(found) ?? '', versionOf(best) ?? '')
+        ? found
+        : best,
+    undefined,
+  );
+  return newest ? { feedUrl: newest[MAC_FEED], assets: newest } : undefined;
 };
 
 /**
