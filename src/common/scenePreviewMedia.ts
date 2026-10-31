@@ -6,7 +6,16 @@ import { readScenePreviewMp4 } from './scenePreviewMp4';
 export const SCENE_PREVIEW_MIME = 'video/webm';
 export const SCENE_PREVIEW_CODEC = 'video/webm;codecs=vp8';
 export const SCENE_PREVIEW_MP4_CODEC = 'video/mp4;codecs=avc1.42001F';
-export const MAX_PREVIEW_BYTES = 3 * 1024 * 1024;
+// Every published scene keeps one clip, so storage grows with the catalogue
+// and each view downloads the whole file. Recorded through Chromium's own
+// MediaRecorder from real scenes (2026-10-31, a full-screen city and the
+// campfire): 960x540 at 1.8 Mbit/s came to 1.5 MB, 854x480 at 700 kbit/s to
+// 0.6 MB with the trees and stones still as sharp, where 640x360 at the same
+// size was visibly softer. The cap leaves an encoder 2.5x its target on the
+// busiest scene and refuses anything larger from any client.
+export const MAX_PREVIEW_BYTES = 1.5 * 1024 * 1024;
+export const PREVIEW_MAX_WIDTH = 854;
+export const PREVIEW_MAX_HEIGHT = 480;
 export const PREVIEW_DURATION_MS = 10000;
 
 export interface IScenePreviewMetadata {
@@ -159,7 +168,11 @@ export const readScenePreviewMedia = (
     return invalid();
   }
   if (mimeType.split(';')[0].trim() === 'video/mp4') {
-    return readScenePreviewMp4(bytes);
+    const mp4 = readScenePreviewMp4(bytes);
+    if (mp4.width > PREVIEW_MAX_WIDTH || mp4.height > PREVIEW_MAX_HEIGHT) {
+      return invalid();
+    }
+    return mp4;
   }
   if (
     mimeType.split(';')[0].trim() !== SCENE_PREVIEW_MIME ||
@@ -256,7 +269,12 @@ export const readScenePreviewMedia = (
     bytes,
     dimensions.find((item) => item.id === 0xba),
   );
-  if (width < 2 || height < 2 || width > 960 || height > 540) {
+  if (
+    width < 2 ||
+    height < 2 ||
+    width > PREVIEW_MAX_WIDTH ||
+    height > PREVIEW_MAX_HEIGHT
+  ) {
     return invalid();
   }
   let frames = 0;

@@ -74,13 +74,12 @@ export const readScenePreviewMp4 = (bytes: Uint8Array) => {
   const tkhd = one(trak, 'tkhd');
   const width = u32(tkhd.end - 8) / 65536;
   const height = u32(tkhd.end - 4) / 65536;
+  // The box a clip must fit is readScenePreviewMedia's, for both formats.
   if (
     !Number.isInteger(width) ||
     !Number.isInteger(height) ||
     width < 2 ||
-    height < 2 ||
-    width > 960 ||
-    height > 540
+    height < 2
   ) {
     return invalid();
   }

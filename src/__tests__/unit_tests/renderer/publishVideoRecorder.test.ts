@@ -29,7 +29,10 @@ class Recorder {
     this.state = 'inactive';
   });
 
-  constructor() {
+  options: MediaRecorderOptions | undefined;
+
+  constructor(_stream: MediaStream, options?: MediaRecorderOptions) {
+    this.options = options;
     Recorder.instances.push(this);
   }
 
@@ -106,7 +109,24 @@ beforeEach(() => {
     });
 });
 
+// A recording a test leaves open keeps its visibility listener on the shared
+// document, and a later test's visibilitychange fails it with nobody waiting:
+// an unhandled rejection that ends the run instead of reporting the
+// assertion that left it open.
+const open: ReturnType<typeof createPreviewVideoRecorder>[] = [];
+const record = (
+  ...args: Parameters<typeof createPreviewVideoRecorder>
+): ReturnType<typeof createPreviewVideoRecorder> => {
+  const recording = createPreviewVideoRecorder(...args);
+  open.push(recording);
+  return recording;
+};
+
 afterEach(() => {
+  open.splice(0).forEach((recording) => {
+    recording.result.catch(() => undefined);
+    recording.cancel();
+  });
   jest.restoreAllMocks();
   Object.defineProperty(globalThis, 'MediaRecorder', {
     configurable: true,
@@ -123,10 +143,7 @@ const source = () => {
 
 it('starts on a real canvas frame without waiting for the recorder start event', async () => {
   const progress = jest.fn();
-  const recording = createPreviewVideoRecorder(
-    'FluidEQ Plus · Preview',
-    progress,
-  );
+  const recording = record('FluidEQ Plus · Preview', progress);
   expect(Recorder.instances).toHaveLength(0);
   recording.frame(source(), 2000);
   expect(requestFrame).toHaveBeenCalledTimes(1);
@@ -134,13 +151,18 @@ it('starts on a real canvas frame without waiting for the recorder start event',
     phase: 'recording',
     elapsedMs: 0,
   });
+  // A 1920x1080 stage fits 854x480 at most, the width kept even: 852x480.
   expect(context.drawImage).toHaveBeenCalledWith(
     expect.any(HTMLCanvasElement),
     0,
     0,
-    960,
-    540,
+    852,
+    480,
   );
+  // About 0.6 MB a clip, which one clip per published scene is sized for.
+  expect(Recorder.instances[0].options).toMatchObject({
+    videoBitsPerSecond: 700000,
+  });
   expect(context.fillText).toHaveBeenCalledWith(
     'FluidEQ Plus · Preview',
     expect.any(Number),
@@ -152,7 +174,7 @@ it('starts on a real canvas frame without waiting for the recorder start event',
 
 it('finishes after ten seconds of captured frames, then waits for stop and decoding', async () => {
   const progress = jest.fn();
-  const recording = createPreviewVideoRecorder('Preview', progress);
+  const recording = record('Preview', progress);
   const canvas = source();
   recording.frame(canvas, 5000);
   recording.frame(canvas, 5000 + PREVIEW_DURATION_MS - 1);
@@ -182,7 +204,7 @@ it('finishes after ten seconds of captured frames, then waits for stop and decod
 it.each(['cancel', 'error', 'ended'] as const)(
   'stops tracks and rejects on %s',
   async (cause) => {
-    const recording = createPreviewVideoRecorder('Preview', jest.fn());
+    const recording = record('Preview', jest.fn());
     recording.frame(source(), 1000);
     const [encoder] = Recorder.instances;
     if (cause === 'cancel') {
@@ -205,7 +227,7 @@ it.each(['cancel', 'error', 'ended'] as const)(
 );
 
 it('refuses oversized encoder output and releases every capture track', async () => {
-  const recording = createPreviewVideoRecorder('Preview', jest.fn());
+  const recording = record('Preview', jest.fn());
   recording.frame(source(), 1000);
   recording.frame(source(), 11000);
   Recorder.instances[0].finish(
@@ -216,7 +238,7 @@ it('refuses oversized encoder output and releases every capture track', async ()
 });
 
 it('refuses interruption by page visibility instead of counting unseen time', async () => {
-  const recording = createPreviewVideoRecorder('Preview', jest.fn());
+  const recording = record('Preview', jest.fn());
   recording.frame(source(), 1000);
   const visibility = jest
     .spyOn(document, 'hidden', 'get')

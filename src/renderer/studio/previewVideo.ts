@@ -1,6 +1,8 @@
 import {
   MAX_PREVIEW_BYTES,
   PREVIEW_DURATION_MS,
+  PREVIEW_MAX_HEIGHT as MAX_HEIGHT,
+  PREVIEW_MAX_WIDTH as MAX_WIDTH,
   SCENE_PREVIEW_CODEC,
   SCENE_PREVIEW_MP4_CODEC,
 } from 'common/scenePreviewMedia';
@@ -10,9 +12,9 @@ export {
   MAX_PREVIEW_BYTES,
   PREVIEW_DURATION_MS,
 } from 'common/scenePreviewMedia';
-const MAX_WIDTH = 960;
-const MAX_HEIGHT = 540;
 const FRAME_MS = 1000 / 30;
+// About 0.6 MB for ten seconds; see MAX_PREVIEW_BYTES for the measurement.
+const BITS_PER_SECOND = 700000;
 
 export interface IPreviewVideo {
   blob: Blob;
@@ -203,7 +205,7 @@ export const createPreviewVideoRecorder = (
     };
     recorder = new MediaRecorder(stream, {
       mimeType: mimeTypeOf(),
-      videoBitsPerSecond: 1800000,
+      videoBitsPerSecond: BITS_PER_SECOND,
     });
     recorder.onerror = () => fail(new Error('Preview encoder failed'));
     recorder.ondataavailable = (event) => {
