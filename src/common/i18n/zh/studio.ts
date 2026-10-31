@@ -85,6 +85,27 @@ const studio = {
   'studio.new.invalid': '这个名字不能用作文件夹名。请使用字母和数字。',
   'studio.new.failed': '无法在那里创建文件夹。请用“更改”选择其他位置。',
 
+  'studio.publish.videoUploading': '正在上传预览…',
+  'studio.publish.videoChanged':
+    '录制后场景发生了变化。请打开发布界面，录制当前版本。',
+  'studio.publish.videoUploadFailed': '无法附加预览。请打开发布界面重试。',
+  'studio.publish.videoTitle': '视频预览',
+  'studio.publish.videoHint':
+    '这段场景视频长 10 秒，无声并带有水印。发布前可在此观看。',
+  'studio.publish.videoPreparing': '正在准备录制场景…',
+  'studio.publish.videoRecording': '正在录制预览 · {seconds} / 10 秒',
+  'studio.publish.videoEncoding': '正在完成视频…',
+  'studio.publish.videoChecking': '正在检查视频播放…',
+  'studio.publish.videoReady': '预览已就绪。请在下方播放。',
+  'studio.publish.videoFailed': '无法录制或播放预览。请重新录制。',
+  'studio.publish.videoCancelled': '录制已取消。请录制预览以继续。',
+  'studio.publish.videoCancel': '取消录制',
+  'studio.publish.videoAgain': '重新录制',
+  'studio.publish.videoRetry': '重试录制',
+  'studio.publish.videoPlay': '播放场景预览',
+  'studio.publish.videoRequired': '请先完成可播放的预览录制',
+  'studio.publish.videoWatermark': 'FluidEQ Plus · 预览',
+
   'studio.publish.title': '发布 {name}',
   'studio.publish.titleUpdate': '在图库中更新 {name}',
   'studio.publish.version': '版本 {version}',

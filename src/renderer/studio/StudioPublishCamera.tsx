@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, type RefObject } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IScenePack } from 'common/scenePacks';
 import Glyph from '../community/Glyph';
@@ -7,6 +7,8 @@ import type { ISceneTuning } from '../graph/useSceneRunner';
 import ScenePreview, { type TPreviewTrouble } from '../plus/ScenePreview';
 import { useTranslation } from '../utils/I18nContext';
 import { createMomentRecorder } from './momentRecorder';
+import StudioPublishVideo from './StudioPublishVideo';
+import usePublishVideo, { type IPublishPreview } from './usePublishVideo';
 import {
   createStudioSignalBuffers,
   shapeStudioFrame,
@@ -55,6 +57,9 @@ interface IStudioPublishCameraProps {
   /** The Studio's settings: the cover is the scene as it was tuned. */
   tuning: ISceneTuning;
   onCapture: (frames: ISceneFrame[]) => void;
+  source: string;
+  onPreview: (preview: IPublishPreview | undefined) => void;
+  initialFocusRef?: RefObject<HTMLButtonElement | null>;
 }
 
 /**
@@ -74,6 +79,9 @@ export default function StudioPublishCamera({
   locked,
   tuning,
   onCapture,
+  source,
+  onPreview,
+  initialFocusRef,
 }: IStudioPublishCameraProps) {
   const { t } = useTranslation();
   const [signal, setSignal] = useState<TCameraSignal>('live');
@@ -82,6 +90,30 @@ export default function StudioPublishCamera({
   const [quiet, setQuiet] = useState(false);
   const [flashes, setFlashes] = useState(0);
   const recorder = useMemo(createMomentRecorder, []);
+  const previewChanged = useCallback(
+    (preview: IPublishPreview | undefined) => {
+      onPreview(preview ? { ...preview, source } : undefined);
+    },
+    [source, onPreview],
+  );
+  const {
+    state: videoState,
+    frame: videoFrame,
+    fail: videoFail,
+    cancel: videoCancel,
+    retry: videoRetry,
+  } = usePublishVideo(
+    `${source}\n${signal}`,
+    t('studio.publish.videoWatermark'),
+    previewChanged,
+  );
+  const stageTrouble = useCallback(
+    (problem: TPreviewTrouble) => {
+      setTrouble(problem);
+      videoFail();
+    },
+    [videoFail],
+  );
 
   const buffers = useMemo(createStudioSignalBuffers, []);
   const signalRef = useRef(signal);
@@ -97,8 +129,13 @@ export default function StudioPublishCamera({
   const quietRef = useRef(false);
   const readyRef = useRef(false);
   const onDrawn = useCallback(
-    (frame: ISceneFrame) => {
+    (frame: ISceneFrame, canvas?: HTMLCanvasElement) => {
       recorder.record(frame);
+      // The runner's fade approaches one asymptotically. Capture once its
+      // real rendered frame is visible, so the video's opening is the scene.
+      if (canvas && frame.fade >= 0.99) {
+        videoFrame(canvas);
+      }
       if (!readyRef.current) {
         readyRef.current = true;
         setReady(true);
@@ -113,7 +150,7 @@ export default function StudioPublishCamera({
         setQuiet(nowQuiet);
       }
     },
-    [recorder],
+    [recorder, videoFrame],
   );
 
   const shoot = () => {
@@ -123,6 +160,10 @@ export default function StudioPublishCamera({
     }
     setFlashes((count) => count + 1);
     onCapture(frames);
+  };
+  const retryVideo = () => {
+    setTrouble(undefined);
+    videoRetry();
   };
 
   return (
@@ -139,7 +180,7 @@ export default function StudioPublishCamera({
             identity={`publish:${identity}`}
             pack={pack}
             label={t('studio.stage.label', { name })}
-            onTrouble={setTrouble}
+            onTrouble={stageTrouble}
             onDrawn={onDrawn}
             shapeFrame={shapeFrame}
             tuning={tuning}
@@ -181,7 +222,7 @@ export default function StudioPublishCamera({
               type="button"
               className="studio-segment"
               aria-pressed={signal === entry.signal}
-              disabled={trouble !== undefined}
+              disabled={locked || trouble !== undefined}
               onClick={() => setSignal(entry.signal)}
             >
               {t(entry.key)}
@@ -198,6 +239,13 @@ export default function StudioPublishCamera({
           {t('studio.publish.capture')}
         </button>
       </div>
+      <StudioPublishVideo
+        initialFocusRef={initialFocusRef}
+        state={videoState}
+        locked={locked}
+        onCancel={videoCancel}
+        onRetry={retryVideo}
+      />
     </div>
   );
 }

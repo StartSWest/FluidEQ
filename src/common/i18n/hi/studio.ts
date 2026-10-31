@@ -91,6 +91,32 @@ const studio = {
     'यह नाम फ़ोल्डर का नाम नहीं हो सकता। अक्षर और अंक आज़माएँ।',
   'studio.new.failed': 'वहाँ फ़ोल्डर नहीं बन सका। "बदलें" से कोई और जगह चुनें।',
 
+  'studio.publish.videoUploading': 'प्रीव्यू अपलोड हो रहा है…',
+  'studio.publish.videoChanged':
+    'रिकॉर्डिंग के बाद दृश्य बदल गया है। मौजूदा संस्करण रिकॉर्ड करने के लिए प्रकाशित करें खोलें।',
+  'studio.publish.videoUploadFailed':
+    'प्रीव्यू जोड़ा नहीं जा सका। प्रकाशित करें खोलें और फिर कोशिश करें।',
+  'studio.publish.videoTitle': 'वीडियो प्रीव्यू',
+  'studio.publish.videoHint':
+    'इस दृश्य का वॉटरमार्क वाला 10 सेकंड का मूक वीडियो। प्रकाशित करने से पहले इसे यहीं देखें।',
+  'studio.publish.videoPreparing': 'दृश्य की रिकॉर्डिंग की तैयारी हो रही है…',
+  'studio.publish.videoRecording':
+    'प्रीव्यू रिकॉर्ड हो रहा है · {seconds} / 10 सेकंड',
+  'studio.publish.videoEncoding': 'वीडियो तैयार किया जा रहा है…',
+  'studio.publish.videoChecking': 'वीडियो का प्लेबैक जाँचा जा रहा है…',
+  'studio.publish.videoReady': 'आपका प्रीव्यू तैयार है। इसे नीचे चलाएँ।',
+  'studio.publish.videoFailed':
+    'प्रीव्यू रिकॉर्ड या प्ले नहीं हो सका। फिर से रिकॉर्ड करें।',
+  'studio.publish.videoCancelled':
+    'रिकॉर्डिंग रद्द कर दी गई। आगे बढ़ने के लिए प्रीव्यू रिकॉर्ड करें।',
+  'studio.publish.videoCancel': 'रिकॉर्डिंग रद्द करें',
+  'studio.publish.videoAgain': 'फिर से रिकॉर्ड करें',
+  'studio.publish.videoRetry': 'रिकॉर्डिंग फिर आज़माएँ',
+  'studio.publish.videoPlay': 'दृश्य का प्रीव्यू चलाएँ',
+  'studio.publish.videoRequired':
+    'पहले चलने योग्य प्रीव्यू की रिकॉर्डिंग पूरी करें',
+  'studio.publish.videoWatermark': 'FluidEQ Plus · पूर्वावलोकन',
+
   'studio.publish.title': '{name} प्रकाशित करें',
   'studio.publish.titleUpdate': 'गैलरी में {name} अपडेट करें',
   'studio.publish.version': 'संस्करण {version}',

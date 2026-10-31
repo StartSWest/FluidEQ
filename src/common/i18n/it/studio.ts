@@ -93,6 +93,31 @@ const studio = {
   'studio.new.failed':
     'Non è stato possibile creare la cartella lì. Scegli un altro posto con Cambia.',
 
+  'studio.publish.videoUploading': 'Caricamento dell’anteprima…',
+  'studio.publish.videoChanged':
+    'La scena è cambiata dopo la registrazione. Apri Pubblica per registrare la versione attuale.',
+  'studio.publish.videoUploadFailed':
+    'Impossibile allegare l’anteprima. Apri Pubblica e riprova.',
+  'studio.publish.videoTitle': 'Anteprima video',
+  'studio.publish.videoHint':
+    'Un video silenzioso di 10 secondi di questa scena, con filigrana. Guardalo qui prima di pubblicare.',
+  'studio.publish.videoPreparing':
+    'Preparazione della scena per la registrazione…',
+  'studio.publish.videoRecording': 'Registrazione anteprima · {seconds} / 10 s',
+  'studio.publish.videoEncoding': 'Completamento del video…',
+  'studio.publish.videoChecking': 'Verifica della riproduzione…',
+  'studio.publish.videoReady': 'L’anteprima è pronta. Riproducila qui sotto.',
+  'studio.publish.videoFailed':
+    'Impossibile registrare o riprodurre l’anteprima. Prova a registrarla di nuovo.',
+  'studio.publish.videoCancelled':
+    'Registrazione annullata. Registra un’anteprima per continuare.',
+  'studio.publish.videoCancel': 'Annulla registrazione',
+  'studio.publish.videoAgain': 'Registra di nuovo',
+  'studio.publish.videoRetry': 'Riprova a registrare',
+  'studio.publish.videoPlay': 'Riproduci anteprima della scena',
+  'studio.publish.videoRequired': 'Prima completa un’anteprima riproducibile',
+  'studio.publish.videoWatermark': 'FluidEQ Plus · Anteprima',
+
   'studio.publish.title': 'Pubblica {name}',
   'studio.publish.titleUpdate': 'Aggiorna {name} nella galleria',
   'studio.publish.version': 'Versione {version}',

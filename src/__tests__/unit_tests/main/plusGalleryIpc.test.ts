@@ -101,6 +101,9 @@ let rows: unknown[];
 const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
   const parsed = new URL(String(input));
   const url = `${parsed.origin}${parsed.pathname}`;
+  if (url.endsWith('/rpc/published_scene_file')) {
+    return fakeResponse(404, {});
+  }
   calls.push({
     url,
     search: parsed.search,

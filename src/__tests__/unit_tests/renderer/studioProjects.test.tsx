@@ -22,8 +22,30 @@ import type { IPublishDraft } from '../../../renderer/studio/useStudioPublish';
 import type { IScenePack } from '../../../common/scenePacks';
 import { MAX_VERSION_NOTE } from '../../../common/sceneVersionNote';
 
-// The camera owns WebGL; these tests exercise the dialog and real cover list.
-jest.mock('../../../renderer/studio/StudioPublishCamera', () => () => null);
+// The recorder's own tests cover media/lifecycle. Dialog cases receive a
+// completed camera result while exercising the real category/note/cover gates.
+jest.mock('../../../renderer/studio/StudioPublishCamera', () => {
+  const { useLayoutEffect } =
+    jest.requireActual<typeof import('react')>('react');
+  return function Camera({
+    source,
+    onPreview,
+  }: {
+    source: string;
+    onPreview: (value: unknown) => void;
+  }) {
+    useLayoutEffect(() => {
+      onPreview({
+        source,
+        blob: new Blob(['clip']),
+        durationMs: 10000,
+        width: 640,
+        height: 360,
+      });
+    }, [source, onPreview]);
+    return null;
+  };
+});
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
@@ -283,7 +305,12 @@ describe('the publish dialog', () => {
     );
     expect(go).toBeEnabled();
     await userEvent.click(go);
-    expect(onPublish).toHaveBeenCalledWith('space', undefined, undefined);
+    expect(onPublish).toHaveBeenCalledWith(
+      'space',
+      undefined,
+      undefined,
+      expect.objectContaining({ durationMs: 10000, blob: expect.any(Blob) }),
+    );
   });
 
   // An add-on (`renderer/addons.ts`) can say this account's publications go
@@ -336,7 +363,12 @@ describe('the publish dialog', () => {
       screen.getByRole('button', { name: 'plus.category.space' }),
     );
     await userEvent.click(go);
-    expect(onPublish).toHaveBeenCalledWith('space', undefined, undefined);
+    expect(onPublish).toHaveBeenCalledWith(
+      'space',
+      undefined,
+      undefined,
+      expect.objectContaining({ durationMs: 10000, blob: expect.any(Blob) }),
+    );
   });
 
   it('asks what is new only of an update, and sends it with the publication', async () => {
@@ -374,6 +406,7 @@ describe('the publish dialog', () => {
       'cities',
       undefined,
       'The peaks stay whole',
+      expect.objectContaining({ durationMs: 10000, blob: expect.any(Blob) }),
     );
   });
 
@@ -408,13 +441,23 @@ describe('the publish dialog', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'studio.publish.goReview' }),
     );
-    expect(onPublish).toHaveBeenLastCalledWith('cities', 'space', undefined);
+    expect(onPublish).toHaveBeenLastCalledWith(
+      'cities',
+      'space',
+      undefined,
+      expect.objectContaining({ durationMs: 10000, blob: expect.any(Blob) }),
+    );
     // Unpicking the first moves the second up.
     await userEvent.click(chip('cities'));
     await userEvent.click(
       screen.getByRole('button', { name: 'studio.publish.goReview' }),
     );
-    expect(onPublish).toHaveBeenLastCalledWith('space', undefined, undefined);
+    expect(onPublish).toHaveBeenLastCalledWith(
+      'space',
+      undefined,
+      undefined,
+      expect.objectContaining({ durationMs: 10000, blob: expect.any(Blob) }),
+    );
   });
 
   // The number shown is the number the press sends: above what the scene was
@@ -571,6 +614,7 @@ describe('the publish dialog', () => {
       'water',
       'cities',
       'the peaks no longer get cut on wide panels',
+      expect.objectContaining({ durationMs: 10000, blob: expect.any(Blob) }),
     );
   });
 
@@ -618,6 +662,7 @@ describe('the publish dialog', () => {
       'cities',
       undefined,
       'the rain falls behind the signs now',
+      expect.objectContaining({ durationMs: 10000, blob: expect.any(Blob) }),
     );
   });
 });

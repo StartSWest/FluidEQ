@@ -87,6 +87,7 @@ export const fakeResponse = (status: number, body: unknown): Response => {
   return {
     ok: status >= 200 && status < 300,
     status,
+    clone: () => fakeResponse(status, body),
     headers: { get: () => null },
     json: async () => body,
     arrayBuffer: async () =>

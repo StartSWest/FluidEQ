@@ -477,11 +477,12 @@ export default function StudioBench({ view }: IStudioBenchProps) {
           name={name}
           draft={publishing.draft}
           running={publishing.publishing}
+          phase={publishing.phase}
           tuning={tuner.tuning}
           onCapture={publishing.capture}
           onChoose={publishing.choose}
           onPublish={publishing.publish}
-          onCancel={publishing.cancel}
+          onCancel={publishing.requestCancel}
         />
       )}
     </div>

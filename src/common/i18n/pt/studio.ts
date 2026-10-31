@@ -92,6 +92,31 @@ const studio = {
   'studio.new.failed':
     'Não foi possível criar a pasta ali. Escolha outro lugar em Alterar.',
 
+  'studio.publish.videoUploading': 'Enviando prévia…',
+  'studio.publish.videoChanged':
+    'A cena mudou após a gravação. Abra Publicar para gravar a versão atual.',
+  'studio.publish.videoUploadFailed':
+    'Não foi possível anexar a prévia. Abra Publicar e tente novamente.',
+  'studio.publish.videoTitle': 'Prévia em vídeo',
+  'studio.publish.videoHint':
+    'Um vídeo silencioso de 10 segundos desta cena, com marca d’água. Assista aqui antes de publicar.',
+  'studio.publish.videoPreparing': 'Preparando a cena para gravar…',
+  'studio.publish.videoRecording': 'Gravando prévia · {seconds} / 10 s',
+  'studio.publish.videoEncoding': 'Finalizando o vídeo…',
+  'studio.publish.videoChecking': 'Verificando a reprodução…',
+  'studio.publish.videoReady': 'Sua prévia está pronta. Reproduza abaixo.',
+  'studio.publish.videoFailed':
+    'Não foi possível gravar ou reproduzir a prévia. Grave novamente.',
+  'studio.publish.videoCancelled':
+    'Gravação cancelada. Grave uma prévia para continuar.',
+  'studio.publish.videoCancel': 'Cancelar gravação',
+  'studio.publish.videoAgain': 'Gravar novamente',
+  'studio.publish.videoRetry': 'Tentar gravar novamente',
+  'studio.publish.videoPlay': 'Reproduzir prévia da cena',
+  'studio.publish.videoRequired':
+    'Primeiro termine de gravar uma prévia que possa ser reproduzida',
+  'studio.publish.videoWatermark': 'FluidEQ Plus · Prévia',
+
   'studio.publish.title': 'Publicar {name}',
   'studio.publish.titleUpdate': 'Atualizar {name} na galeria',
   'studio.publish.version': 'Versão {version}',

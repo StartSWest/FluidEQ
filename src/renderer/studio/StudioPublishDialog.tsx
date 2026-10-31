@@ -1,7 +1,16 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { PLUS_CATEGORIES, type TPlusCategory } from 'common/plusGallery';
 import type { IScenePack } from 'common/scenePacks';
+import { normalizeScenePack } from 'common/scenePacks';
+import { NEUTRAL_RESPONSE } from 'common/sceneResponse';
 import { MAX_VERSION_NOTE, versionToPublish } from 'common/sceneVersionNote';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
@@ -15,8 +24,12 @@ import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import StudioPublishCamera from './StudioPublishCamera';
 import StudioPublishCovers from './StudioPublishCovers';
-import type { IPublishDraft } from './useStudioPublish';
+import type {
+  IPublishDraft,
+  IPreparedPublishPreview,
+} from './useStudioPublish';
 import { useStudioAgentHold } from './studioAgentHold';
+import type { IPublishPreview } from './usePublishVideo';
 import '../styles/Gallery.scss';
 import '../styles/StudioDialogs.scss';
 import '../styles/StudioPublish.scss';
@@ -28,6 +41,7 @@ interface IStudioPublishDialogProps {
   name: string;
   draft: IPublishDraft;
   running: boolean;
+  phase?: import('common/scenePreviewMedia').TScenePublishPhase;
   /** The Studio's settings, so the scene plays here as it does on the stage. */
   tuning: ISceneTuning;
   onCapture: (frames: ISceneFrame[]) => void;
@@ -38,8 +52,9 @@ interface IStudioPublishDialogProps {
    */
   onPublish: (
     category: TPlusCategory,
-    category2?: TPlusCategory,
-    note?: string,
+    category2: TPlusCategory | undefined,
+    note: string | undefined,
+    preview: IPreparedPublishPreview,
   ) => void;
   onCancel: () => void;
 }
@@ -68,6 +83,7 @@ export default function StudioPublishDialog({
   name,
   draft,
   running,
+  phase,
   tuning,
   onCapture,
   onChoose,
@@ -79,6 +95,32 @@ export default function StudioPublishDialog({
   useStudioAgentHold(true);
   const { publishesWithoutReview } = useAddonCapabilities();
   const me = useAccount().identity?.id;
+  const publicationPack = useMemo(
+    () =>
+      normalizeScenePack({
+        ...pack,
+        version: versionToPublish(pack.version, draft.held),
+        params: pack.params.map((param) => ({
+          ...param,
+          value: tuning.params?.[param.id] ?? param.value,
+        })),
+        response: { ...NEUTRAL_RESPONSE, ...pack.response, ...tuning.response },
+      }) ?? pack,
+    [pack, tuning, draft.held],
+  );
+  const source = useMemo(
+    () =>
+      JSON.stringify([
+        identity,
+        me,
+        pack,
+        tuning,
+        versionToPublish(pack.version, draft.held),
+      ]),
+    [identity, me, pack, tuning, draft.held],
+  );
+  const [preview, setPreview] = useState<IPublishPreview>();
+  const previewReady = preview?.source === source;
   // Asked again on opening: an answer that failed earlier — offline at
   // launch — would say this account's scene waits for review when it does
   // not. The reply lands while the covers are drawn.
@@ -114,7 +156,8 @@ export default function StudioPublishDialog({
       return current.length < 2 ? [...current, entry] : [current[0], entry];
     });
   const cancel = useCallback(() => onCancel(), [onCancel]);
-  useModalKeys(surfaceRef, firstRef, { busy: running, onCancel: cancel });
+  const canCancel = !running || phase === 'preparing' || phase === 'uploading';
+  useModalKeys(surfaceRef, firstRef, { busy: !canCancel, onCancel: cancel });
 
   const update = draft.published !== undefined;
   // A new version people already have goes out with a line saying what
@@ -128,6 +171,12 @@ export default function StudioPublishDialog({
   // what that means. An account whose publications go straight out
   // (`useAddonCapabilities`) is told so.
   const reviewed = !publishesWithoutReview;
+  let publishHint: string | undefined;
+  if (!previewReady) {
+    publishHint = t('studio.publish.videoRequired');
+  } else if (!category) {
+    publishHint = t('studio.publish.pickCategory');
+  }
   let go: string;
   if (!draft.agreed) {
     go = t(reviewed ? 'studio.publish.agreeReview' : 'studio.publish.agree');
@@ -138,13 +187,22 @@ export default function StudioPublishDialog({
   } else {
     go = t(reviewed ? 'studio.publish.goReview' : 'studio.publish.go');
   }
+  let buttonLabel = go;
+  if (running) {
+    buttonLabel = t(
+      reviewed ? 'studio.publish.runningReview' : 'studio.publish.running',
+    );
+    if (phase === 'preparing' || phase === 'uploading') {
+      buttonLabel = t('studio.publish.videoUploading');
+    }
+  }
 
   return createPortal(
     <div
       className="gallery-dialog-backdrop"
       role="presentation"
       onClick={(event) => {
-        if (event.target === event.currentTarget && !running) {
+        if (event.target === event.currentTarget && canCancel) {
           cancel();
         }
       }}
@@ -181,7 +239,7 @@ export default function StudioPublishDialog({
         aria-busy={running}
         closeLabel={t('support.close')}
         // Away while the scene is being sent, as Escape and the backdrop are.
-        onClose={running ? undefined : cancel}
+        onClose={canCancel ? cancel : undefined}
         // What publishing means, in the rail: read once and the same every
         // time, so the body is left to what is being decided now.
         rail={
@@ -229,7 +287,7 @@ export default function StudioPublishDialog({
               <button
                 type="button"
                 className="button small subtle"
-                disabled={running}
+                disabled={!canCancel}
                 onClick={cancel}
               >
                 {t('studio.publish.cancel')}
@@ -238,10 +296,10 @@ export default function StudioPublishDialog({
                 type="button"
                 className={`button small${running ? ' is-running' : ''}`}
                 aria-busy={running}
-                disabled={!category}
-                title={category ? undefined : t('studio.publish.pickCategory')}
+                disabled={!category || !previewReady || running}
+                title={publishHint}
                 onClick={() => {
-                  if (!category || running) {
+                  if (!category || running || !preview || !previewReady) {
                     return;
                   }
                   if (needsNote) {
@@ -249,16 +307,14 @@ export default function StudioPublishDialog({
                     noteRef.current?.focus();
                     return;
                   }
-                  onPublish(category, category2, update ? note : undefined);
+                  onPublish(category, category2, update ? note : undefined, {
+                    ...preview,
+                    pack: publicationPack,
+                    sourceVersion: pack.version,
+                  });
                 }}
               >
-                {running
-                  ? t(
-                      reviewed
-                        ? 'studio.publish.runningReview'
-                        : 'studio.publish.running',
-                    )
-                  : go}
+                {buttonLabel}
               </button>
             </div>
           </>
@@ -266,12 +322,16 @@ export default function StudioPublishDialog({
       >
         <div className="studio-publish__body">
           <StudioPublishCamera
+            initialFocusRef={firstRef}
+            key={source}
             identity={identity}
             pack={pack}
             name={name}
             locked={running}
             tuning={tuning}
             onCapture={onCapture}
+            source={source}
+            onPreview={setPreview}
           />
 
           <StudioPublishCovers
@@ -297,10 +357,9 @@ export default function StudioPublishDialog({
               role="group"
               aria-labelledby="studio-publish-category"
             >
-              {PLUS_CATEGORIES.map((entry, index) => (
+              {PLUS_CATEGORIES.map((entry) => (
                 <button
                   key={entry}
-                  ref={index === 0 ? firstRef : undefined}
                   type="button"
                   aria-pressed={categories.includes(entry)}
                   className="gallery-chip"
