@@ -130,6 +130,9 @@ export interface ISceneRunnerOptions {
    * comes back on the first frame drawn once let go.
    */
   held?: boolean;
+  /** A scene-only recording needs complete frames even when its view is
+   * scrolled away. Document hiding still stops all drawing. */
+  captureFrames?: boolean;
   /**
    * How the scene's first frames come in. `fade`, the default, rises from
    * nothing over a quarter second — a scene arriving on an empty panel.

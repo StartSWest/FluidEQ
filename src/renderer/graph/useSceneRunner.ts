@@ -132,6 +132,7 @@ export default function useSceneRunner({
   performance: chosenPerformance,
   asleep,
   held,
+  captureFrames = false,
   arrival = 'fade',
   onHeard,
   onDrawn,
@@ -646,14 +647,18 @@ export default function useSceneRunner({
       const top = Math.max(0, -box.top);
       const right = Math.min(box.width, window.innerWidth - box.left);
       const bottom = Math.min(box.height, window.innerHeight - box.top);
-      visibleRef.current = shownRef.current && right > left && bottom > top;
+      const capturing = captureFrames && !document.hidden;
+      visibleRef.current =
+        capturing || (shownRef.current && right > left && bottom > top);
       if (visibleRef.current) {
-        clipRef.current = [
-          left / box.width,
-          top / box.height,
-          right / box.width,
-          bottom / box.height,
-        ];
+        clipRef.current = capturing
+          ? [0, 0, 1, 1]
+          : [
+              left / box.width,
+              top / box.height,
+              right / box.width,
+              bottom / box.height,
+            ];
         kick();
       } else {
         drawnAtRef.current = undefined;
@@ -670,8 +675,9 @@ export default function useSceneRunner({
      * it again beside nothing and fades it in.
      */
     const stopObserving = observeShown(host, (shown) => {
-      shownRef.current = shown;
-      if (!shown && rendererRef.current) {
+      const active = shown || (captureFrames && !document.hidden);
+      shownRef.current = active;
+      if (!active && rendererRef.current) {
         shelvedRef.current = wantedRef.current ?? packRef.current;
         generationRef.current += 1;
         buildingRef.current = false;
@@ -684,7 +690,7 @@ export default function useSceneRunner({
         if (shelvedRef.current) {
           setWaiting(true);
         }
-      } else if (shown && shelvedRef.current) {
+      } else if (active && shelvedRef.current) {
         const pack = shelvedRef.current;
         shelvedRef.current = null;
         fadeRef.current = arrivalFadeRef.current;
@@ -712,7 +718,7 @@ export default function useSceneRunner({
       window.removeEventListener('scroll', measure, true);
       window.removeEventListener('resize', measure);
     };
-  }, [width, height, placement, kick, dropProgram, setWaiting]);
+  }, [width, height, placement, kick, dropProgram, setWaiting, captureFrames]);
 
   const startRenderer = useCallback(() => {
     const host = hostRef.current;

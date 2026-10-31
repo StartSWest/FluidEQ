@@ -175,6 +175,10 @@ export default function StudioPublishCamera({
           </p>
         ) : (
           <ScenePreview
+            captureFrames={
+              videoState.phase === 'preparing' ||
+              videoState.phase === 'recording'
+            }
             // The member's own work, on its way to the gallery.
             madeBy="listener"
             identity={`publish:${identity}`}
