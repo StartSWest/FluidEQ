@@ -7,7 +7,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import '@testing-library/jest-dom';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { IGalleryScene } from '../../../common/plusGallery';
+import {
+  FLUIDEQ_CREATOR_ID,
+  type IGalleryScene,
+} from '../../../common/plusGallery';
 import { resetGalleryActions } from '../../../renderer/plus/galleryActions';
 import { resetGalleryStore } from '../../../renderer/plus/galleryStore';
 import { resetPlusNavigation } from '../../../renderer/plus/plusNavigation';
@@ -233,7 +236,7 @@ describe('Visualizers', () => {
     expect(bridge.addGalleryScene).not.toHaveBeenCalled();
   });
 
-  it('plays a scene for ten seconds before it is owned, then offers to get it', async () => {
+  it('shows only the photograph before ownership, even when a bridge could return a pack', async () => {
     mockEntitled = false;
     bridge.previewGalleryScene.mockResolvedValue({
       ok: true,
@@ -244,24 +247,10 @@ describe('Visualizers', () => {
     await userEvent.click(
       await screen.findByRole('button', { name: 'Neon City' }),
     );
-    expect(await screen.findByTestId('scene-preview')).toBeInTheDocument();
-    expect(screen.getByText('plus.scene.taste:10')).toBeInTheDocument();
-    await userEvent.click(
-      screen.getByRole('button', { name: 'draw eleven seconds' }),
-    );
-    // Over: the picture, what owning it does, and the way to get it right
-    // there on the stage as well as beside it.
-    expect(
-      await screen.findByText('store.scene.tasted:10'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('store.scene.locked')).toBeInTheDocument();
     expect(screen.queryByTestId('scene-preview')).not.toBeInTheDocument();
-    const veil = screen
-      .getByText('store.scene.tasted:10')
-      .closest('.gallery-preview__plus');
-    expect(veil).not.toBeNull();
-    expect(
-      within(veil as HTMLElement).getByRole('button', { name: /^store.get:/ }),
-    ).toBeInTheDocument();
+    expect(bridge.previewGalleryScene).not.toHaveBeenCalled();
+    expect(await pageGet()).toHaveLength(1);
     expect(screen.queryByText('trial.free.title')).not.toBeInTheDocument();
     expect(bridge.addGalleryScene).not.toHaveBeenCalled();
   });
@@ -365,33 +354,50 @@ describe('Visualizers', () => {
 
   // A member's scene runs nowhere its viewer did not ask it to: a card whose
   // picture did not arrive shows the placeholder, and nothing is compiled.
-  it('never draws a member scene for its card, even when its picture is missing', async () => {
-    const pack = { id: 'neon-city', version: 1, names: { en: 'Neon City' } };
-    bridge.previewGalleryScene.mockResolvedValue({
-      ok: true,
-      own: false,
-      pack,
-    });
-    mockRenderSceneStill.mockResolvedValue(new Blob(['frame']));
-    const { container } = renderGallery();
-    await screen.findByRole('button', { name: 'Neon City' });
-    // The published picture was asked for first, and there was none.
-    await waitFor(() =>
-      expect(bridge.galleryPicture).toHaveBeenCalledWith(
-        SOMEONE,
-        'neon-city',
-        1,
-        '2026-09-10T12:00:00Z',
-      ),
-    );
-    await waitFor(() =>
-      expect(
-        container.querySelectorAll('.gallery-picture__none').length,
-      ).toBeGreaterThan(0),
-    );
-    expect(bridge.previewGalleryScene).not.toHaveBeenCalled();
-    expect(mockRenderSceneStill).not.toHaveBeenCalled();
-  });
+  it.each([false, true])(
+    'never downloads a full scene for a missing photo (official: %s)',
+    async (official) => {
+      if (official) {
+        bridge.listGallery.mockResolvedValue({
+          ok: true,
+          scenes: [
+            {
+              ...scene(),
+              official: true,
+              authorId: FLUIDEQ_CREATOR_ID,
+              lookId: 'premium:neon-city',
+            },
+          ],
+          more: false,
+        });
+      }
+      const pack = { id: 'neon-city', version: 1, names: { en: 'Neon City' } };
+      bridge.previewGalleryScene.mockResolvedValue({
+        ok: true,
+        own: false,
+        pack,
+      });
+      mockRenderSceneStill.mockResolvedValue(new Blob(['frame']));
+      const { container } = renderGallery();
+      await screen.findByRole('button', { name: 'Neon City' });
+      // The published picture was asked for first, and there was none.
+      await waitFor(() =>
+        expect(bridge.galleryPicture).toHaveBeenCalledWith(
+          official ? FLUIDEQ_CREATOR_ID : SOMEONE,
+          'neon-city',
+          1,
+          '2026-09-10T12:00:00Z',
+        ),
+      );
+      await waitFor(() =>
+        expect(
+          container.querySelectorAll('.gallery-picture__none').length,
+        ).toBeGreaterThan(0),
+      );
+      expect(bridge.previewGalleryScene).not.toHaveBeenCalled();
+      expect(mockRenderSceneStill).not.toHaveBeenCalled();
+    },
+  );
 
   it('shows a published picture as it is, and draws nothing', async () => {
     bridge.galleryPicture.mockResolvedValue(

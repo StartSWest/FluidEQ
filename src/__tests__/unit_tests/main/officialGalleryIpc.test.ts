@@ -79,16 +79,35 @@ beforeEach(() => {
 });
 afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
 
-it('previews a genuine official pack for a signed-in free account without installing it', async () => {
+it('never requests an unowned official pack for a signed-in account', async () => {
   paid = false;
   expect(
     await invoke('plus-gallery-preview', FLUIDEQ_CREATOR_ID, 'neon-city', 1),
-  ).toMatchObject({ ok: true, own: false, pack: { id: 'neon-city' } });
+  ).toEqual({ ok: false, reason: 'not-entitled' });
   expect(store.list()).toEqual([]);
   expect(
     await invoke('plus-gallery-add', FLUIDEQ_CREATOR_ID, 'neon-city', 1),
   ).toEqual({ ok: false, reason: 'not-entitled' });
+  expect(fetchImpl).not.toHaveBeenCalled();
+});
+
+it('previews a verified official pack for its owner without installing it', async () => {
+  expect(
+    await invoke('plus-gallery-preview', FLUIDEQ_CREATOR_ID, 'neon-city', 1),
+  ).toMatchObject({ ok: true, own: false, pack: { id: 'neon-city' } });
+  expect(store.list()).toEqual([]);
   expect(fetchImpl).toHaveBeenCalledTimes(1);
+});
+
+it('keeps server refusal distinct from an unavailable owner download', async () => {
+  fetchImpl.mockResolvedValue(fakeResponse(403, {}));
+  expect(
+    await invoke('plus-gallery-preview', FLUIDEQ_CREATOR_ID, 'neon-city', 1),
+  ).toEqual({ ok: false, reason: 'not-entitled' });
+  fetchImpl.mockResolvedValue(fakeResponse(503, {}));
+  expect(
+    await invoke('plus-gallery-preview', FLUIDEQ_CREATOR_ID, 'neon-city', 1),
+  ).toEqual({ ok: false, reason: 'unavailable' });
 });
 
 // The cross-surface refusal record this preview used to be checked against
