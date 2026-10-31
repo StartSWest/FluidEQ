@@ -42,7 +42,6 @@ import SceneGet, { officialLine, SceneLockedVeil } from './SceneGet';
 import SceneInspectButton from './SceneInspectButton';
 import ScenePreview, { type TPreviewTrouble } from './ScenePreview';
 import SceneSteps from './SceneSteps';
-import SceneTaste from './SceneTaste';
 import SceneVersions from './SceneVersions';
 import { useOwnsLook, useSceneStore } from './sceneStore';
 
@@ -63,13 +62,8 @@ const PREVIEW_FAILURES: Record<
 type TPreview =
   | { state: 'loading' }
   | { state: 'ready'; pack: IScenePack }
-  /** Not this account's yet: the scene plays for a taste of it. */
-  | { state: 'taste'; pack: IScenePack }
   | { state: 'failed'; key: TranslationKey }
-  /**
-   * Not this account's: the picture, and the way to get it — once the taste
-   * is over, or when there was none to give.
-   */
+  /** Not this account's: only the captured picture and the way to get it. */
   | { state: 'locked'; tasted: boolean };
 
 interface IScenePageProps {
@@ -90,9 +84,8 @@ interface IScenePageProps {
  * of it reaches here, exactly as Add would verify it; the page then plays the
  * pack it was handed and nothing else. Add reuses that same download.
  *
- * A scene this account does not own plays for ten seconds (see
- * `SceneTaste`) so the member sees what it does, then its picture stays with
- * "Get · 1 credit" beside it; the one loud button on the page is that one.
+ * An unowned scene shows its captured picture without requesting its pack.
+ * Owners keep the real live scene; the server independently enforces access.
  */
 export default function ScenePage({
   scene: opened,
@@ -136,12 +129,12 @@ export default function ScenePage({
     let cancelled = false;
     setReported(false);
     setPreview({ state: 'loading' });
+    if (!owned) {
+      setPreview({ state: 'locked', tasted: false });
+      return undefined;
+    }
     if (!isSceneRenderingAvailable()) {
-      setPreview(
-        owned
-          ? { state: 'failed', key: 'plus.scene.cannotDraw' }
-          : { state: 'locked', tasted: false },
-      );
+      setPreview({ state: 'failed', key: 'plus.scene.cannotDraw' });
       return undefined;
     }
     window.electron?.ipcRenderer
@@ -157,7 +150,7 @@ export default function ScenePage({
         }
         if (outcome.ok) {
           setPreview({
-            state: owned ? 'ready' : 'taste',
+            state: 'ready',
             pack: outcome.pack,
           });
         } else if (outcome.reason === 'not-entitled') {
@@ -184,13 +177,14 @@ export default function ScenePage({
     opened.version,
     opened.updatedAt,
     owned,
+    me,
   ]);
 
   // The scene playing on the stage, by version, and whether it has drawn a
   // frame yet. Kept by identity so stepping to the next scene starts from its
   // picture again instead of inheriting this one's "live".
   const playing =
-    preview.state === 'ready' || preview.state === 'taste'
+    owned && preview.state === 'ready'
       ? `${scene.lookId}@${preview.pack.version}`
       : undefined;
   // The ground this scene waits on, measured the last time anybody watched it.
@@ -303,7 +297,7 @@ export default function ScenePage({
             scene={scene}
             className={`gallery-preview__still${live ? ' is-behind' : ''}`}
           />
-          {preview.state === 'ready' && (
+          {owned && preview.state === 'ready' && (
             <ScenePreview
               identity={playing ?? ''}
               madeBy={madeBy}
@@ -313,18 +307,6 @@ export default function ScenePage({
                 setPreview({ state: 'failed', key: PREVIEW_FAILURES[trouble] })
               }
               onDrawn={markLive}
-            />
-          )}
-          {preview.state === 'taste' && (
-            <SceneTaste
-              identity={playing ?? ''}
-              madeBy={madeBy}
-              pack={preview.pack}
-              onTrouble={(trouble) =>
-                setPreview({ state: 'failed', key: PREVIEW_FAILURES[trouble] })
-              }
-              onDrawn={markLive}
-              onOver={() => setPreview({ state: 'locked', tasted: true })}
             />
           )}
           {/* ONE wait, from the first byte to the first frame.

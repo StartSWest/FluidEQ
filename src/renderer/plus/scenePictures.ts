@@ -1,24 +1,12 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { FLUIDEQ_CREATOR_ID, type IGalleryScene } from 'common/plusGallery';
-import { isSceneRenderingAvailable } from '../graph/sceneHealth';
-import { blobAsDataUrl, renderSceneStill } from '../graph/sceneStill';
+import type { IGalleryScene } from 'common/plusGallery';
 
 /**
  * Every picture in the gallery is the real scene.
  *
- * A published scene carries the picture its maker took in the Studio, and
- * that is what a card shows. One of FluidEQ's own scenes without one, or
- * whose picture would not download, gets a frame drawn here from the scene
- * itself, under the same showcase signal the Studio uses, so the gallery
- * never shows a drawing standing in for a scene. Those are drawn one at a
- * time, on one shared context, and only for cards near the screen.
- *
- * A member's scene is never drawn for its card. Nobody reads it before it
- * runs, and a card is drawn by scrolling past it: a picture that failed to
- * download — or was made to fail — would otherwise compile somebody's
- * shader on the machine of everybody browsing, which is where a scene built
- * to reset the graphics driver does the most harm. Its card shows the
- * placeholder instead; its page plays it on request.
+ * Only the captured photograph is requested. A missing/failed photo never
+ * falls back to downloading and rendering the full scene, including official
+ * scenes. That would hand unowned source to clients merely browsing cards.
  */
 
 export type TScenePicture =
@@ -52,40 +40,11 @@ const keep = (key: string, picture: string | null) => {
   }
 };
 const inFlight = new Map<string, Promise<string | null | undefined>>();
-/** Frames are drawn one after another; this is the end of the line. */
-let drawing: Promise<unknown> = Promise.resolve();
 
 const bridge = () => window.electron?.ipcRenderer;
 
 const pictureKey = (scene: TSceneRef) =>
   `${scene.lookId}@${scene.version}:${scene.updatedAt ?? ''}`;
-
-/**
- * A frame of the scene itself, drawn in turn. Undefined when the scene could
- * not be had — worth asking again later; null when it came and would not
- * draw, which the same scene will not do differently this session.
- */
-const drawFrame = (scene: TSceneRef): Promise<string | null | undefined> => {
-  const turn = drawing.then(async () => {
-    const outcome = await bridge()?.previewGalleryScene?.(
-      scene.authorId,
-      scene.sceneId,
-      scene.version,
-      scene.updatedAt,
-    );
-    if (!outcome?.ok) {
-      return undefined;
-    }
-    if (!isSceneRenderingAvailable()) {
-      return null;
-    }
-    const blob = await renderSceneStill(outcome.pack);
-    return blob ? blobAsDataUrl(blob) : null;
-  });
-  const settled = turn.catch(() => undefined);
-  drawing = settled;
-  return settled;
-};
 
 const pictureOf = (scene: TSceneRef) => {
   const key = pictureKey(scene);
@@ -105,7 +64,7 @@ const pictureOf = (scene: TSceneRef) => {
     if (published !== undefined) {
       return published;
     }
-    return scene.authorId === FLUIDEQ_CREATOR_ID ? drawFrame(scene) : null;
+    return undefined;
   })().then((result) => {
     inFlight.delete(key);
     if (result !== undefined) {
@@ -200,5 +159,4 @@ export const useScenePicture = (
 export const resetScenePictures = () => {
   pictures.clear();
   inFlight.clear();
-  drawing = Promise.resolve();
 };

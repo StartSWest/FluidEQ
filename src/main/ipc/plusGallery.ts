@@ -47,11 +47,10 @@ import { createGalleryRefresh } from '../plus/galleryRefresh';
  * The Plus gallery, over IPC: listing it, its pictures, a scene's page, Add
  * and Report. The member's own publishing is in `plusPublishing.ts`.
  *
- * Browsing is for every account: the list, the pictures, a scene playing on
- * its page and a report need somebody signed in and nothing more, so a
- * member without Plus sees what Plus members make — the page gives them ten
- * seconds of it. Keeping a scene — Add — needs Plus, asked afresh on every
- * call. A scene from the gallery comes in through the same door as a file
+ * Browsing the list and captured pictures is for every signed-in account.
+ * Downloading a scene, playing it and Add require ownership of that scene,
+ * asked afresh before cached content and after each asynchronous download.
+ * A scene from the gallery comes in through the same door as a file
  * somebody sent: the signature against the member key, every rule on the
  * pack, then the block list — so neither the page nor Add can take in
  * something "Open a scene file" would refuse.
@@ -438,27 +437,39 @@ export const registerPlusGalleryIpc = ({
       version: unknown,
       rawRevision: unknown,
     ): Promise<TGalleryPreviewOutcome> => {
-      // Anyone signed in may open a scene's page and play it: for as long as
-      // they like once it is theirs, for the page's taste until then. The
-      // server hands every signed-in account the file (0056) — the whole
-      // scene reaches the machine that plays it, and a rebuilt app keeps
-      // whatever it is given.
       const ref = sceneRefOf(authorId, sceneId);
       const previewAccount = access.accountId();
-      if (!ref || !signedIn()) {
+      // Check before fetchScene can reuse a cached envelope, and after every
+      // await: a previous account's cached/downloaded bytes are not access.
+      const mayPreview = () =>
+        ref !== undefined &&
+        previewAccount !== undefined &&
+        access.accountId() === previewAccount &&
+        (ref.authorId === previewAccount ||
+          access.owns(
+            ref.authorId === FLUIDEQ_CREATOR_ID
+              ? premiumLookId(ref.packId)
+              : memberLookId(ref.authorId, ref.packId),
+          ));
+      if (!ref || !mayPreview()) {
         return { ok: false, reason: 'not-entitled' };
       }
       if (ref.authorId === FLUIDEQ_CREATOR_ID) {
-        const me = access.accountId();
         const auth = await access.auth();
+        if (!mayPreview()) {
+          return { ok: false, reason: 'not-entitled' };
+        }
         const fetched = auth
           ? await fetchOfficialScene(auth, ref.packId)
           : undefined;
+        if (!mayPreview()) {
+          return { ok: false, reason: 'not-entitled' };
+        }
         if (fetched === 'plus-required') {
           return { ok: false, reason: 'not-entitled' };
         }
         const pack = fetched?.pack;
-        if (!pack || me !== access.accountId()) {
+        if (!pack) {
           return { ok: false, reason: 'unavailable' };
         }
         return { ok: true, pack, own: false };
@@ -472,11 +483,11 @@ export const registerPlusGalleryIpc = ({
         typeof version === 'number' ? version : undefined,
         readRevision(rawRevision),
       );
+      if (!mayPreview()) {
+        return { ok: false, reason: 'not-entitled' };
+      }
       if (typeof fetched === 'string') {
         return { ok: false, reason: fetched };
-      }
-      if (access.accountId() !== previewAccount || !signedIn()) {
-        return { ok: false, reason: 'not-entitled' };
       }
       return {
         ok: true,
