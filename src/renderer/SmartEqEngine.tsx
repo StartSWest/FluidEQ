@@ -26,7 +26,6 @@ import {
   isSmartEqWrote,
 } from 'common/smartEqCore';
 import { useFluidEqContext } from './utils/FluidEqContext';
-import { noteSmartEqWrite } from './audio/songEqSession';
 import { showSmartEqMeasurement } from './audio/smartEqMeasurement';
 import { useContinuousEq } from './utils/continuousEq';
 import { useCorrectionLimit } from './utils/correctionLimit';
@@ -56,7 +55,7 @@ const send = (channel: string, args: unknown[]) =>
  * (`utils/smartEqRun`), and draws what the core says: the status bubble, the
  * graph's presence marks, and each layer it writes — a one-shot's answer
  * climbing onto the graph a band at a time, a running mode's refinement
- * lighting the ranges it moved.
+ * lighting the ranges it moved, and a song's remembered layer as it is.
  */
 const SmartEqEngine = () => {
   const { setSmartEq, getBandSetGeneration } = useFluidEqContext();
@@ -114,10 +113,14 @@ const SmartEqEngine = () => {
       const write = lastWrite;
       const context = contextRef.current;
       if (kind === 'refined') {
-        // Ours, so the song recorder keeps its loan through this refinement.
-        noteSmartEqWrite(layer);
         context.setSmartEq(layer);
         flashCorrection(moved);
+        return;
+      }
+      if (kind === 'remembered') {
+        // A song's remembered layer, or the one it was lent over: drawn as
+        // it is, because nothing was measured to be watched arriving.
+        context.setSmartEq(layer);
         return;
       }
       // The same reveal the AutoEQ panel uses, pointed at the layer: its

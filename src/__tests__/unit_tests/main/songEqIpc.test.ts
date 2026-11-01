@@ -1,362 +1,103 @@
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The four song-memory channels, fired at the real handlers.
- *
- * `common/songEq.ts` and `main/songEqStore.ts` each have their own suite and
- * both were green while Forget deleted nothing at all: what neither can see is
- * the handler between them — which arguments it accepts, what it hands across
- * the boundary, and whether it always replies.
- *
- * Always replying is the point of several of these. `songEqStore.ts` carries a
- * comment about it: a throw inside an `ipcMain` handler that has already
- * committed to replying sends no reply at all, and `sendRequest` on the
- * renderer side then waits forever on a promise nothing will ever settle.
- * Every test below asserts a reply, not merely an absence of exceptions.
- *
- * Each test gets a fresh copy of the module, because `cached` is module state:
- * without isolation the first test's store answers the second test's lookups
- * out of a temporary directory that has nothing to do with it.
+ * The window's side of the Smart EQ song memory the core runs: the status
+ * now, the clock while the core cannot hear, and the buttons — from the
+ * app's own top frame only, and checked as anything from a page is.
  */
+import type { BrowserWindow, IpcMainEvent } from 'electron';
+import { SONG_EQ_CHANNEL } from 'common/songEqStatus';
+import registerSongEqIpc from 'main/ipc/songEq';
+import onWindowMessage from 'main/ipc/windowMessages';
 
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
-import ChannelEnum from '../../../common/channels';
-import { ErrorCode } from '../../../common/errors';
-import { FilterTypeEnum, ISmartEqSettings } from '../../../common/constants';
-import { ISongEqSettings } from '../../../common/songEq';
-import { ISongIdentity, buildSongIdentity } from '../../../common/songIdentity';
-import { storedSongIdentity } from '../../../main/songMemoryNames';
-
-type THandler = (event: { reply: jest.Mock }, arg: unknown) => void;
-
-const handlers = new Map<string, THandler>();
-
-jest.mock('electron', () => ({
-  ipcMain: {
-    on: (channel: string, handler: THandler) => {
-      handlers.set(channel, handler);
-    },
-  },
+jest.mock('main/ipc/windowMessages', () => ({
+  __esModule: true,
+  default: jest.fn(() => () => undefined),
 }));
 
-const tempDir = () =>
-  fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-song-eq-ipc-'));
+const mainFrame = {};
+const webContents = { mainFrame, send: jest.fn() };
+const window = { webContents } as unknown as BrowserWindow;
+const STATUS = {
+  isSaveOn: false,
+  listenedMs: 0,
+  willSave: false,
+  needsClock: false,
+};
 
-const layerOf = (gain: number): ISmartEqSettings => ({
-  filters: {
-    'smart-1000': {
-      id: 'smart-1000',
-      frequency: 1000,
-      gain,
-      quality: 1.4,
-      type: FilterTypeEnum.PK,
-    },
-  },
+const setUp = () => {
+  (onWindowMessage as jest.Mock).mockClear();
+  webContents.send.mockClear();
+  const memory = {
+    status: jest.fn(() => STATUS),
+    tick: jest.fn(),
+    act: jest.fn(),
+  };
+  registerSongEqIpc({ getMainWindow: () => window, memory });
+  const listeners = new Map(
+    (onWindowMessage as jest.Mock).mock.calls.map(([channel, listener]) => [
+      channel,
+      listener as (event: IpcMainEvent, arg: unknown) => void,
+    ]),
+  );
+  const send = (
+    channel: string,
+    arg: unknown,
+    sender: unknown = webContents,
+    frame: unknown = mainFrame,
+  ) =>
+    listeners.get(channel)?.(
+      { sender, senderFrame: frame } as unknown as IpcMainEvent,
+      arg,
+    );
+  return { memory, send };
+};
+
+it('answers the window that asks with the status now', () => {
+  const { send } = setUp();
+  send(SONG_EQ_CHANNEL.ask, []);
+  expect(webContents.send).toHaveBeenCalledWith(SONG_EQ_CHANNEL.status, STATUS);
 });
 
-const mustBuild = (identity: ISongIdentity | undefined): ISongIdentity => {
-  if (!identity) {
-    throw new Error('test fixture produced no identity');
-  }
-  return identity;
-};
+it('routes each button, and nothing that is not one', () => {
+  const { memory, send } = setUp();
+  const asked = [
+    { kind: 'undo' },
+    { kind: 'forget' },
+    { kind: 'endNotice', id: 4 },
+    { kind: 'setSaveOn', isSaveOn: true },
+  ];
+  asked.forEach((action) => send(SONG_EQ_CHANNEL.action, [action]));
+  [
+    { kind: 'endNotice', id: 'four' },
+    { kind: 'endNotice', id: 1.5 },
+    { kind: 'setSaveOn', isSaveOn: 'yes' },
+    { kind: 'erase' },
+    'undo',
+    null,
+  ].forEach((action) => send(SONG_EQ_CHANNEL.action, [action]));
+  expect(memory.act.mock.calls.map(([action]) => action)).toEqual(asked);
+});
 
-const DEVICE = 'device-a';
+it('takes the clock from the window', () => {
+  const { memory, send } = setUp();
+  send(SONG_EQ_CHANNEL.tick, []);
+  expect(memory.tick).toHaveBeenCalledTimes(1);
+});
 
-/**
- * A fresh module with a fresh `cached`, registered against `userDataDir`,
- * and its read just after launch, which settles when it has been taken in.
- */
-const registerAndKeep = (userDataDir: string): Promise<void> => {
-  handlers.clear();
-  let launchRead: Promise<void> = Promise.resolve();
-  jest.isolateModules(() => {
-    const fresh =
-      // eslint-disable-next-line global-require -- an uncached copy per test is the whole point: `cached` in main/ipc/songEq.ts is module state
-      require('../../../main/ipc/songEq') as typeof import('../../../main/ipc/songEq');
-    launchRead = fresh.default(userDataDir);
-  });
-  return launchRead;
-};
-
-const register = (userDataDir: string): void => {
-  registerAndKeep(userDataDir).catch(() => undefined);
-};
-
-/** Registered, with the read just after launch taken in. */
-const registerAndRead = (userDataDir: string): Promise<void> =>
-  registerAndKeep(userDataDir);
-
-/**
- * Fire one channel and hand back the single reply it made.
- *
- * "Single" is asserted here rather than in each test: a handler that replies
- * none of the times it should is the failure mode this whole suite is about,
- * and one that replies twice would resolve a promise with the wrong answer.
- * The channel it names is checked too — `sendRequest` listens on the
- * channel it sent, so a reply on any other is a reply nobody hears.
- */
-const fire = (channel: ChannelEnum, arg: unknown): unknown => {
-  const handler = handlers.get(channel);
-  if (!handler) {
-    throw new Error(`nothing registered for ${channel}`);
-  }
-  const reply = jest.fn();
-  handler({ reply }, arg);
-  expect(reply).toHaveBeenCalledTimes(1);
-  expect(reply.mock.calls[0][0]).toBe(channel);
-  return reply.mock.calls[0][1];
-};
-
-const onDisk = (dir: string): ISongEqSettings =>
-  JSON.parse(
-    fs.readFileSync(path.join(dir, 'song-eq.json'), 'utf8'),
-  ) as ISongEqSettings;
-
-describe('the song memory channels', () => {
-  afterEach(() => {
-    jest.resetModules();
-  });
-
-  it('registers every channel the renderer will call', () => {
-    register(tempDir());
-    [
-      ChannelEnum.LOOKUP_SONG_EQ,
-      ChannelEnum.CHECKPOINT_SONG_EQ,
-      ChannelEnum.COMMIT_SONG_EQ,
-      ChannelEnum.FORGET_SONG_EQ,
-    ].forEach((channel) => expect(handlers.has(channel)).toBe(true));
-  });
-
-  it('writes a commit to disk and replies that it did', () => {
-    const dir = tempDir();
-    register(dir);
-    const identity = mustBuild(
-      buildSongIdentity('library', 'abc', 'Black Dog', 'Led Zeppelin'),
-    );
-
-    expect(
-      fire(ChannelEnum.COMMIT_SONG_EQ, [DEVICE, identity, layerOf(3)]),
-    ).toEqual({ result: undefined });
-
-    const stored = onDisk(dir).outputs[DEVICE];
-    const { key } = storedSongIdentity(identity);
-    expect(stored.entries[key].plays).toBe(1);
-    expect(stored.entries[key].settings.filters['smart-1000'].gain).toBe(3);
-  });
-
-  it('keeps no name of another program’s song on disk, and still finds it', () => {
-    const dir = tempDir();
-    register(dir);
-    const identity = mustBuild(
-      buildSongIdentity(
-        'system',
-        'chrome.exe',
-        'A private title',
-        'A private channel',
-      ),
-    );
-
-    fire(ChannelEnum.COMMIT_SONG_EQ, [DEVICE, identity, layerOf(3)]);
-
-    const text = fs.readFileSync(path.join(dir, 'song-eq.json'), 'utf8');
-    expect(text).not.toMatch(/private|chrome/i);
-    // The control: what was filed is still found by the song playing.
-    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, identity])).toEqual({
-      result: expect.objectContaining({ plays: 1 }),
-    });
-  });
-
-  it('writes a file of names again without them at launch', async () => {
-    // As builds before 2026-10-26 wrote it: the song by name, in the key,
-    // the alias, the title and the artist.
-    const dir = tempDir();
-    const spotify = mustBuild(
-      buildSongIdentity('system', 'Spotify.exe', 'Private Song', 'Somebody'),
-    );
-    fs.writeFileSync(
-      path.join(dir, 'song-eq.json'),
-      JSON.stringify({
-        version: 1,
-        outputs: {
-          [DEVICE]: {
-            entries: {
-              [spotify.key]: {
-                settings: layerOf(4),
-                title: spotify.title,
-                artist: spotify.artist,
-                alias: spotify.alias,
-                plays: 2,
-                updatedAt: 1,
-              },
-            },
-            aliases: { [spotify.alias ?? '']: spotify.key },
-          },
-        },
-      }),
-      'utf8',
-    );
-
-    await registerAndRead(dir);
-
-    const text = fs.readFileSync(path.join(dir, 'song-eq.json'), 'utf8');
-    expect(text).not.toMatch(/private|somebody|spotify/i);
-    // Found again by the same song, and through the alias by your own copy.
-    const fromLibrary = mustBuild(
-      buildSongIdentity('library', 'x', 'Private Song', 'Somebody'),
-    );
-    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, spotify])).toEqual({
-      result: expect.objectContaining({ plays: 2 }),
-    });
-    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, fromLibrary])).toEqual({
-      result: expect.objectContaining({ plays: 2 }),
-    });
-  });
-
-  it('leaves a song saved before the launch read lands where it was', async () => {
-    // A song can be saved before the read just after launch has come back.
-    // That read is of the file as it was, and taking it in would put the
-    // song's memory back to before it was saved. The read is held here until
-    // the save is done, and then answers with the file from before it.
-    const dir = tempDir();
-    const before = JSON.stringify({ version: 1, outputs: {} });
-    let answer: (text: string) => void = () => {};
-    const read = jest.spyOn(fs.promises, 'readFile').mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          answer = resolve;
-        }) as ReturnType<typeof fs.promises.readFile>,
-    );
-    const identity = mustBuild(buildSongIdentity('library', 'abc', 'Song'));
-    const launchRead = registerAndKeep(dir);
-    fire(ChannelEnum.COMMIT_SONG_EQ, [DEVICE, identity, layerOf(3)]);
-
-    answer(before);
-    await launchRead;
-    read.mockRestore();
-
-    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, identity])).toEqual({
-      result: expect.objectContaining({ plays: 1 }),
-    });
-  });
-
-  it('refuses a payload that is not what the channel takes, and still answers', () => {
-    // The reply is the assertion. A handler that returned without one — or
-    // threw its way out — leaves `sendRequest` waiting on a promise
-    // nothing will ever settle, which is a renderer that has silently stopped
-    // remembering songs rather than one that reported a problem.
-    const dir = tempDir();
-    register(dir);
-    const identity = mustBuild(buildSongIdentity('library', 'abc', 'Song'));
-    const invalid: Array<[ChannelEnum, unknown]> = [
-      // No identity at all.
-      [ChannelEnum.LOOKUP_SONG_EQ, [DEVICE]],
-      // An identity with no key.
-      [ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, { title: 'Song' }]],
-      // A device id that is not a string.
-      [ChannelEnum.CHECKPOINT_SONG_EQ, [7, identity, layerOf(1)]],
-      // A layer that is not a layer.
-      [ChannelEnum.COMMIT_SONG_EQ, [DEVICE, identity, 'nope']],
-      // The pre-fix Forget payload: a bare key string where the identity goes.
-      [ChannelEnum.FORGET_SONG_EQ, [DEVICE, identity.key]],
-    ];
-
-    invalid.forEach(([channel, arg]) => {
-      expect(fire(channel, arg)).toEqual({
-        errorCode: ErrorCode.INVALID_PARAMETER,
-      });
-    });
-
-    // Positive control for the whole table: the same channels accept a
-    // well-formed payload, so these refusals are the validation and not a
-    // handler that refuses everything.
-    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, identity])).toEqual({
-      result: undefined,
-    });
-  });
-
-  it('forgets a song it has never heard of without complaint', () => {
-    const dir = tempDir();
-    register(dir);
-    expect(
-      fire(ChannelEnum.FORGET_SONG_EQ, [
-        DEVICE,
-        mustBuild(buildSongIdentity('library', 'never-saved', 'Nobody')),
-      ]),
-    ).toEqual({ result: undefined });
-  });
-
-  /**
-   * Critical 1 through the real channels: the cross-source Forget that used to
-   * report success and delete nothing.
-   *
-   * Fails if `FORGET_SONG_EQ` goes back to taking a bare key, or if the pure
-   * `forgetSongEq` stops resolving through the alias index.
-   */
-  it('forgets a library entry asked for by the identity Spotify is playing', () => {
-    const dir = tempDir();
-    register(dir);
-    const fromLibrary = mustBuild(
-      buildSongIdentity('library', 'abc', 'Black Dog', 'Led Zeppelin'),
-    );
-    const fromSpotify = mustBuild(
-      buildSongIdentity(
-        'system',
-        'Spotify.exe',
-        'Black Dog (Official Video)',
-        'Led Zeppelin',
-      ),
-    );
-    fire(ChannelEnum.COMMIT_SONG_EQ, [DEVICE, fromLibrary, layerOf(3)]);
-    // Positive control: the match this Forget is answering really does land.
-    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, fromSpotify])).toEqual({
-      result: expect.objectContaining({ title: 'Black Dog' }),
-    });
-
-    fire(ChannelEnum.FORGET_SONG_EQ, [DEVICE, fromSpotify]);
-
-    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, fromSpotify])).toEqual({
-      result: undefined,
-    });
-    expect(onDisk(dir).outputs[DEVICE].entries).toEqual({});
-  });
-
-  it('answers a lookup from what it holds in memory, not from the file', () => {
-    // The file is read once and rewritten whole — a song ending is not a
-    // moment to spend on a disk read. Fails if `settingsOf` re-reads: the
-    // emptied file below would then answer instead of the write that just
-    // happened.
-    const dir = tempDir();
-    register(dir);
-    const identity = mustBuild(buildSongIdentity('library', 'abc', 'Song'));
-    fire(ChannelEnum.COMMIT_SONG_EQ, [DEVICE, identity, layerOf(3)]);
-
-    fs.writeFileSync(
-      path.join(dir, 'song-eq.json'),
-      JSON.stringify({ version: 1, outputs: {} }),
-      'utf8',
-    );
-
-    expect(fire(ChannelEnum.LOOKUP_SONG_EQ, [DEVICE, identity])).toEqual({
-      result: expect.objectContaining({ title: 'Song' }),
-    });
-  });
+it('takes nothing from another page or a frame inside the window', () => {
+  const { memory, send } = setUp();
+  send(SONG_EQ_CHANNEL.action, [{ kind: 'undo' }], webContents, {});
+  send(SONG_EQ_CHANNEL.tick, [], { mainFrame: {} });
+  send(SONG_EQ_CHANNEL.ask, [], { mainFrame: {} });
+  expect(memory.act).not.toHaveBeenCalled();
+  expect(memory.tick).not.toHaveBeenCalled();
+  expect(webContents.send).not.toHaveBeenCalled();
+  // POSITIVE CONTROL: the same from the app's own top frame is taken.
+  send(SONG_EQ_CHANNEL.action, [{ kind: 'undo' }]);
+  expect(memory.act).toHaveBeenCalledTimes(1);
 });

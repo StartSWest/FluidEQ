@@ -63,8 +63,8 @@ import '../styles/SongEqNotice.scss';
  * sooner: it ends the notice as the linger's end would, and hands nothing
  * back.
  *
- * Forget is not a milder Undo — it is a strict superset, by design (see
- * `forgetCurrentSongEq`'s own comment in `songEqSession.ts`): deleting a
+ * Forget is not a milder Undo — it is a strict superset, by design (see the
+ * reducer's `forget` case in `common/songEqRecorder.ts`): deleting a
  * song's memory also hands back whatever of it is currently applied, because
  * leaving a curve running for an entry that no longer exists is the
  * incoherent outcome, not the safe one.

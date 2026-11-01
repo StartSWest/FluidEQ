@@ -60,7 +60,11 @@ import startEngineAnalysisPipe, {
 } from './engineAnalysisPipe';
 import { createProcessMeter } from './processMeter';
 import ChannelEnum from '../common/channels';
-import { IState, OUTPUT_STATE_CHANGED_EVENT } from '../common/constants';
+import {
+  IState,
+  OUTPUT_STATE_CHANGED_EVENT,
+  type ISmartEqSettings,
+} from '../common/constants';
 import { TSuccess } from '../renderer/utils/equalizerApi';
 import { syncOpraDatabase } from './opraUpdater';
 import { setUpVideoBrowser } from './videoBrowser';
@@ -85,7 +89,11 @@ import { createWindowModes } from './windowMode';
 import { registerFiltersIpc } from './ipc/filters';
 import registerBandDesignsIpc from './ipc/bandDesigns';
 import { registerLayersIpc } from './ipc/layers';
-import registerSongEqHandlers from './ipc/songEq';
+import registerSongEqIpc from './ipc/songEq';
+import { createSongEqMemory } from './songEqMemory';
+import { createSongEqEntries } from './songEqEntries';
+import { SONG_EQ_CHANNEL } from '../common/songEqStatus';
+import { isContinuousMode } from '../common/smartEqMode';
 import { registerPreampIpc } from './ipc/preamp';
 import registerVideoIpc from './ipc/video';
 import { registerKaraokeSeparation } from './karaokeSeparation';
@@ -614,8 +622,6 @@ registerLayersIpc({
   applyingLayer: profiles.applyingLayer,
 });
 
-registerSongEqHandlers(userDataDir);
-
 onWindowMessage(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {
   const channel = ChannelEnum.SET_WINDOW_SIZE;
   placement.setWindowDimension(arg[0]);
@@ -794,15 +800,36 @@ const rawSourceTaps: IRawSourceTaps = {
   listenToHost: listenToDspHostAnalysis,
   hostSampleRate: dspHostSampleRate,
 };
+/** The edited output's Smart EQ layer, written as the window's edit was. */
+const writeSmartEqLayer = (layer: ISmartEqSettings | undefined) => {
+  profiles.applyingLayer('smart');
+  state.smartEq = sanitizeSmartEqSettings(layer);
+  return landUpdate(ChannelEnum.SET_SMART_EQ);
+};
+/**
+ * Each song's Smart EQ layer, filed while a running mode refines it and lent
+ * back the next time the song plays (`songEqMemory.ts`).
+ */
+const songEq = createSongEqMemory({
+  entries: createSongEqEntries(userDataDir),
+  writeLayer: writeSmartEqLayer,
+  editedDevice: () => session.activeAudioDeviceId,
+  tellWindowLayer: (layer) =>
+    sendToWindow(SMART_EQ_CHANNEL.wrote, {
+      kind: 'remembered',
+      layer,
+      from: undefined,
+      moved: [],
+    }),
+  tellWindowStatus: (status) => sendToWindow(SONG_EQ_CHANNEL.status, status),
+  systemSound,
+});
+registerSongEqIpc({ getMainWindow, memory: songEq });
 const smartEq = createSmartEqRunner({
   settings: smartEqSettings.read,
   layer: () => state.smartEq,
   isBypassed: () => Boolean(state.bypassed?.includes('smart')),
-  write: (layer) => {
-    profiles.applyingLayer('smart');
-    state.smartEq = sanitizeSmartEqSettings(layer);
-    return landUpdate(ChannelEnum.SET_SMART_EQ);
-  },
+  write: writeSmartEqLayer,
   openSource: (kind, onFrame, onLost) =>
     openRawSourceFrames(rawSourceTaps, { kind, onFrame, onLost }),
   text: mainText,
@@ -817,8 +844,27 @@ const smartEq = createSmartEqRunner({
     }
   },
   tellWrote: (wrote) => sendToWindow(SMART_EQ_CHANNEL.wrote, wrote),
+  // As the update path will keep it, so the song memory knows it as ours.
+  onRefined: (layer) => songEq.ownWrite(sanitizeSmartEqSettings(layer)),
 });
-smartEqSettings.onChange(() => smartEq.follow());
+/**
+ * Smart EQ's two jobs, after every update and every change of its settings:
+ * whether the running mode runs, and what the song memory follows — the
+ * edited output, its layer, and whether a running mode refines it.
+ */
+const followSmartEq = () => {
+  smartEq.follow();
+  const { continuous, mode } = smartEqSettings.read();
+  songEq.follow({
+    deviceId: session.activeAudioDeviceId,
+    layer: state.smartEq,
+    isAutoEqRunning:
+      continuous &&
+      isContinuousMode(mode) &&
+      !state.bypassed?.includes('smart'),
+  });
+};
+smartEqSettings.onChange(followSmartEq);
 registerSmartEqIpc({
   getMainWindow,
   runner: smartEq,
@@ -830,6 +876,7 @@ registerNowPlayingIpc({
   getMainWindow,
   onNowPlaying: ({ identity, isPlaying, isLibrary }) => {
     songMemory.nowPlaying(identity, isPlaying);
+    songEq.nowPlaying(identity, isPlaying);
     smartEq.nowPlaying({
       songKey: identity?.key,
       isPlaying,
@@ -894,7 +941,7 @@ function followTheSound(): void {
   lastChain = { parts, texts };
   songMemory.soundMayHaveChanged();
   gameSound.soundMayHaveChanged();
-  smartEq.follow();
+  followSmartEq();
 }
 
 /**
@@ -1349,10 +1396,15 @@ app.on('before-quit', (event) => {
     // a memory trace still recording is written rather than lost.
     placement.saveWindowState();
     // A song edited while it played is filed before the writes drain, and
-    // its own sound handed back, so the state file holds the listener's.
+    // its own sound handed back, so the state file holds the listener's —
+    // its Smart EQ layer too.
     songMemory
       .close()
       .catch((error) => log.error('The song memory could not close', error))
+      .then(() => songEq.close())
+      .catch((error) =>
+        log.error('The Smart EQ song memory could not close', error),
+      )
       .then(() =>
         Promise.all([flushPendingWrites(), memoryTrace.stopMemoryTrace()]),
       )

@@ -52,11 +52,12 @@ export const isSmartEqRunState = (value: unknown): value is ISmartEqRunState =>
 
 /**
  * A layer the core wrote: a one-shot's answer, which the graph reveals a
- * band at a time from where the layer was, or a running mode's refinement,
- * whose moved ranges it lights.
+ * band at a time from where the layer was; a running mode's refinement,
+ * whose moved ranges it lights; or a song's remembered layer, or the one it
+ * was lent over, given back (`main/songEqMemory.ts`).
  */
 export interface ISmartEqWrote {
-  kind: 'measured' | 'refined';
+  kind: 'measured' | 'refined' | 'remembered';
   layer: ISmartEqSettings | undefined;
   from: ISmartEqSettings | undefined;
   moved: IBalanceRegionReport[];
@@ -65,7 +66,9 @@ export interface ISmartEqWrote {
 /** A layer the core wrote, as the window receives it. */
 export const isSmartEqWrote = (value: unknown): value is ISmartEqWrote =>
   isRecord(value) &&
-  (value.kind === 'measured' || value.kind === 'refined') &&
+  (value.kind === 'measured' ||
+    value.kind === 'refined' ||
+    value.kind === 'remembered') &&
   (value.layer === undefined || isRecord(value.layer)) &&
   (value.from === undefined || isRecord(value.from)) &&
   Array.isArray(value.moved);

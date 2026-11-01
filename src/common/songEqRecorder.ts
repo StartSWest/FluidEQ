@@ -62,8 +62,8 @@ export type {
  * written in; the match/undo/layerChanged decisions and whether saving is
  * permitted at all live here.
  *
- * `songEqSession.ts` in the renderer owns the subscriptions, the interval and
- * the performing of effects. It holds no rules.
+ * `main/songEqMemory.ts` in the core hears the world, keeps the clock and
+ * performs the effects. It holds no rules.
  */
 
 const open = (identity: ISongIdentity, now: number): ISongEqSession => ({

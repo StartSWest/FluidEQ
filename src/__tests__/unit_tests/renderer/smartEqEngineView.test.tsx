@@ -15,7 +15,6 @@ import { act, render, renderHook } from '@testing-library/react';
 import type { ISmartEqSettings } from 'common/constants';
 import { type ISmartEqWrote, SMART_EQ_CHANNEL } from 'common/smartEqCore';
 import SmartEqEngine from 'renderer/SmartEqEngine';
-import { noteSmartEqWrite } from 'renderer/audio/songEqSession';
 import { flashCorrection } from 'renderer/utils/correctionFlash';
 import { planBandReveal } from 'renderer/utils/bandReveal';
 import { FluidEqProviderWrapper } from 'renderer/utils/FluidEqContext';
@@ -31,9 +30,6 @@ import {
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import installFakeIpcRenderer from '__tests__/utils/fakeIpcRenderer';
 
-jest.mock('renderer/audio/songEqSession', () => ({
-  noteSmartEqWrite: jest.fn(),
-}));
 jest.mock('renderer/utils/correctionFlash', () => ({
   flashCorrection: jest.fn(),
 }));
@@ -144,10 +140,9 @@ it('reveals a one-shot’s answer from where the layer was', async () => {
   );
   expect(drawn).toEqual([0, 4, 4]);
   expect(setSmartEq).toHaveBeenLastCalledWith(LAYER);
-  expect(noteSmartEqWrite).not.toHaveBeenCalled();
 });
 
-it('shows a refinement at once, lights what moved, and keeps the song’s loan', async () => {
+it('shows a refinement at once and lights what moved', async () => {
   const { setSmartEq, push } = setUp();
   const moved = [{ label: 'bass' }] as unknown as ISmartEqWrote['moved'];
   await push(SMART_EQ_CHANNEL.wrote, {
@@ -156,7 +151,6 @@ it('shows a refinement at once, lights what moved, and keeps the song’s loan',
     from: FROM,
     moved,
   });
-  expect(noteSmartEqWrite).toHaveBeenCalledWith(LAYER);
   expect(setSmartEq).toHaveBeenCalledTimes(1);
   expect(setSmartEq).toHaveBeenCalledWith(LAYER);
   expect(flashCorrection).toHaveBeenCalledWith(moved);
@@ -184,4 +178,17 @@ it('ignores anything from the core that is not one of its messages', async () =>
     moved: [],
   });
   expect(setSmartEq).toHaveBeenCalledWith(LAYER);
+});
+
+it('draws a song’s remembered layer as it is, with nothing revealed or lit', async () => {
+  const { setSmartEq, push } = setUp();
+  await push(SMART_EQ_CHANNEL.wrote, {
+    kind: 'remembered',
+    layer: LAYER,
+    moved: [],
+  });
+  expect(setSmartEq).toHaveBeenCalledTimes(1);
+  expect(setSmartEq).toHaveBeenCalledWith(LAYER);
+  expect(planBandReveal).not.toHaveBeenCalled();
+  expect(flashCorrection).not.toHaveBeenCalled();
 });

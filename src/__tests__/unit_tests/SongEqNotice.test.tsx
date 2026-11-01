@@ -26,9 +26,9 @@ import SongEqNotice from 'renderer/components/SongEqNotice';
 import * as session from 'renderer/audio/songEqSession';
 
 /**
- * Everything this module's own reducer and timer already own —
+ * Everything the core's song memory owns —
  * whether a match happened, when the toast fades, what Undo and Forget
- * actually do underneath — is proven in `songEqSession.test.tsx`. This suite
+ * actually do underneath — is proven in `main/songEqMemory.test.ts`. This suite
  * only proves the one thing that lives here instead: given a notice, does
  * the component draw the right sentence and wire the right button to the
  * right call.

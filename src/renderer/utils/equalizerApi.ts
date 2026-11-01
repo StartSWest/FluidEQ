@@ -32,11 +32,6 @@ import {
 import { IConvolutionCatalogEntry } from 'common/convolution';
 import { IApoConfigTree } from 'common/apoConfig';
 import { IChainImport } from 'common/chainBundle';
-// Types only. `lookupSongEq`, `checkpointSongEq`, `commitSongEq` and
-// `forgetSongEq` below share names with the pure functions in
-// `common/songEq.ts` on purpose — thin wrappers over channels of the same
-// name — and `import type` erases this so nothing here can resolve to the
-// pure implementation by accident.
 
 import type { IOutputFormat, IOutputFormatChange } from 'main/outputFormat';
 import coalesceRequests from 'common/coalescedRequest';
@@ -52,13 +47,9 @@ import type { TError, TSuccess } from './ipcRequest';
 
 export {
   addEqualizerSlider,
-  checkpointSongEq,
   clearGains,
-  commitSongEq,
-  forgetSongEq,
   getMainPreAmp,
   getType,
-  lookupSongEq,
   pickDspPreset,
   removeEqualizerSlider,
   resetEqMode,

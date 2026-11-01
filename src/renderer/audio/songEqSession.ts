@@ -17,101 +17,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useEffect, useSyncExternalStore } from 'react';
-import { ISmartEqSettings } from 'common/constants';
-import type { ISongEqEntry } from 'common/songEq';
-import type { ISongIdentity } from 'common/songIdentity';
 import {
-  ISongEqRecorderState,
-  TSongEqEffect,
-  TSongEqEvent,
-  getInitialRecorderState,
-  reduceSongEq,
-} from 'common/songEqRecorder';
-import { willSongEqSave } from 'common/songEqTiming';
-import {
-  checkpointSongEq,
-  commitSongEq,
-  forgetSongEq,
-  lookupSongEq,
-  setSmartEq as setSmartEqApi,
-} from 'renderer/utils/equalizerApi';
-import { useFluidEqLayers } from 'renderer/utils/FluidEqContext';
-import useIsAutoEqRunning from 'renderer/utils/autoEqRunning';
-import { useNowPlayingIdentity } from './nowPlayingIdentity';
+  type ISongEqNotice,
+  type ISongEqStatus,
+  NO_SONG_EQ_STATUS,
+  SONG_EQ_CHANNEL,
+  type TSongEqAction,
+} from 'common/songEqStatus';
 import { useTransportSources } from './transportSource';
 
 /**
- * Drives Task 3's reducer from the real world, and decides nothing.
- *
- * Every rule about when a song is recorded, saved or restored already lives
- * in `reduceSongEq` (and `songEqTiming.ts` underneath it, which
- * `willSongEqSave` is pulled from rather than re-derived here). This file's
- * only job is the three things a pure reducer cannot do for itself: notice
- * that the world changed (a song started, the output switched, somebody
- * moved a slider), carry the clock forward while a song plays (`useSongEqClock`),
- * and perform the effects the reducer hands back. Anywhere this file appears to be
- * making a feature decision, that decision belongs in the reducer instead.
- *
- * Plain module state rather than a component, for the same reason
- * `smartEqRun.ts` is one: a recording must not end because a tab holding the
- * hook happened to unmount. `useSongEqSessionHost` is mounted once, above the
- * workspace tabs, and everything else here is how the rest of the app reaches
- * what it is doing.
- *
- * ONE THING ONLY THIS FILE CAN KNOW: which effect belongs to which lookup. A
- * lookup answers after an `await`, by which time an entirely different song
- * can be playing; the `matched` event this module dispatches always carries
- * the identity the *lookup* was asked about, never whatever
- * `useNowPlayingIdentity` returns at the moment the answer lands. The
- * reducer rejects a mismatch, and passing the wrong identity would defeat
- * that guard silently.
- *
- * `applyLayer` mirrors the matched layer into `FluidEqContext.setSmartEq` —
- * the same pairing with the IPC write every other Smart EQ writer in this
- * app uses (see `SmartEqEngine.tsx`, `useActiveLayers.ts`) — so the applied
- * curve is visible in the graph and the layer chips, not just audible. That
- * mirrored value comes back around as the next `smartEq` this module reads
- * out of context, indistinguishable on the face of it from somebody loading
- * a different profile; `reduceSongEq`'s own `layerChanged` case is what
- * recognises it as this module's own write (by comparing it, field by
- * field, against the exact layer the session remembers writing) rather than
- * dropping the loan. That recognition belongs in the reducer and nowhere
- * else — a second, shell-side copy of the same comparison would only be
- * able to agree with it or be wrong.
+ * The window's view of the Smart EQ song memory, which runs in the app's
+ * core (`main/songEqMemory.ts`): the badge's count, the switch and the "we
+ * remembered this" card as the core says them, and the buttons that answer
+ * them. What plays the core hears from the window's players
+ * (`SongSoundHost`), and the layer and the running mode it reads for itself.
  */
 
-export interface ISongEqRecordingStatus {
-  isSaveOn: boolean;
-  /** Wall-clock ms accumulated on the song now open, including the run in
-   * progress. Zero with nothing open. */
-  listenedMs: number;
-  title?: string;
-  /** Whether continuing to listen, exactly as things stand, ends in a saved
-   * entry — `willSongEqSave` itself, so a song with saving on but no Smart
-   * EQ layer at all reports honestly that nothing here can ever be saved. */
-  willSave: boolean;
-}
-
-/**
- * The "we remembered this" notice, and which one it is.
- *
- * How long it stays up is the notice's own animation (`song-eq-notice-linger`
- * in `SongEqNotice.scss`); the component reports its end back through
- * `endSongEqNotice`, by `id`, so a notice raised while another is still up is
- * not taken down by the earlier one's end.
- */
-type TSongEqNotice = {
-  id: number;
-  identity: ISongIdentity;
-  entry: ISongEqEntry;
-};
-
-/* --- subscriptions: one set feeds every hook below, exactly as
-   smartEqRun.ts's single `listeners` set feeds its several published
-   fields --- */
+let status: ISongEqStatus = NO_SONG_EQ_STATUS;
 
 const listeners = new Set<() => void>();
-const emit = (): void => listeners.forEach((listener) => listener());
 const subscribe = (listener: () => void): (() => void) => {
   listeners.add(listener);
   return () => {
@@ -119,404 +44,95 @@ const subscribe = (listener: () => void): (() => void) => {
   };
 };
 
-/* --- the recorder itself --- */
+/** Optional, like every bridge call: a test's partial bridge has none. */
+const send = (channel: string, args: unknown[]): void =>
+  window.electron?.ipcRenderer?.sendMessage?.(channel, args);
 
-/**
- * One source of truth for whether saving is on, not two.
- *
- * A second, module-level `saveOn` variable used to sit beside this and feed
- * `getSongEqSaveOn`/`useSongEqSaveOn` directly, while `state.isSaveOn` — the
- * value the reducer actually gates every checkpoint and commit on — only ever
- * changed on a `saveToggled` dispatch. The two could disagree, and did:
- * everything the badge read said "on" while the one place that mattered
- * stayed `false`, so no checkpoint and no commit ever happened. There is only
- * the one value left to ask.
- *
- * Not persisted, and that is the rule rather than an omission: saving belongs
- * to the run of automatic EQ it is measured by, and every one of those starts
- * with it off (see `autoEqChanged` in the reducer). A preference restored at
- * launch would be a promise made before there was any measurement to keep it
- * with — and would be refused the moment it was asked for anyway.
- */
-let state: ISongEqRecorderState = getInitialRecorderState();
-let notice: TSongEqNotice | undefined;
-let lastNoticeId = 0;
+const act = (action: TSongEqAction): void =>
+  send(SONG_EQ_CHANNEL.action, [action]);
 
-/**
- * Registered by the host as it mounts, mirroring `registerSmartEqControl` in
- * `smartEqRun.ts`: this module performs effects outside any component, so it
- * needs a live handle onto the context setter rather than one frozen at
- * import time. Absent for the instant before the host is up, in which case an
- * `applyLayer` effect simply has nowhere to land on screen yet — the IPC
- * write below still reaches Equalizer APO regardless.
- */
-let liveSmartEqSetter:
-  ((settings: ISmartEqSettings | undefined) => void) | undefined;
+const isStatus = (value: unknown): value is ISongEqStatus =>
+  typeof value === 'object' &&
+  value !== null &&
+  typeof (value as ISongEqStatus).isSaveOn === 'boolean' &&
+  typeof (value as ISongEqStatus).listenedMs === 'number' &&
+  typeof (value as ISongEqStatus).willSave === 'boolean' &&
+  typeof (value as ISongEqStatus).needsClock === 'boolean';
 
-const DEFAULT_RECORDING_STATUS: ISongEqRecordingStatus = {
-  isSaveOn: false,
-  listenedMs: 0,
-  willSave: false,
-};
-
-const computeRecording = (
-  recorderState: ISongEqRecorderState,
-  at: number,
-): ISongEqRecordingStatus => {
-  const { session } = recorderState;
-  return {
-    isSaveOn: recorderState.isSaveOn,
-    listenedMs: session
-      ? session.listenedMs +
-        (session.playingSince === undefined ? 0 : at - session.playingSince)
-      : 0,
-    title: session?.identity.title,
-    willSave: session ? willSongEqSave(recorderState, session, at) : false,
-  };
-};
-
-let recordingSnapshot: ISongEqRecordingStatus = computeRecording(
-  state,
-  Date.now(),
-);
-
-/**
- * Whether two statuses would draw the same.
- *
- * Every report of a playing song's position is a tick now, twenty a second
- * from Karaoke, and each one recomputes the status. The badge, the chip and
- * the player's screen draw the listened time to the second, so a status that
- * moved by less than that is not news, and telling them would redraw all three
- * twenty times a second to say nothing new — where the interval that used to
- * drive this said it once.
- */
-const drawsTheSame = (
-  a: ISongEqRecordingStatus,
-  b: ISongEqRecordingStatus,
-): boolean =>
-  a.isSaveOn === b.isSaveOn &&
-  a.title === b.title &&
-  a.willSave === b.willSave &&
-  Math.floor(a.listenedMs / 1000) === Math.floor(b.listenedMs / 1000);
-
-const showNotice = (identity: ISongIdentity, entry: ISongEqEntry): void => {
-  lastNoticeId += 1;
-  notice = { id: lastNoticeId, identity, entry };
-  emit();
-};
-
-/** Every effect the reducer can hand back, and nothing it did not ask for. */
-const performEffects = (effects: TSongEqEffect[]): void => {
-  effects.forEach((effect) => {
-    switch (effect.kind) {
-      case 'lookup': {
-        const { identity, deviceId } = effect;
-        lookupSongEq(deviceId, identity)
-          .then((entry) =>
-            // The identity the LOOKUP was asked about, never whatever is
-            // playing when the answer lands: a track change in between must
-            // not let a stale answer apply the wrong song's curve, and the
-            // reducer's own mismatch guard depends on being handed the same
-            // identity it was asked to look up.
-            dispatchSongEq({ kind: 'matched', identity, entry }, Date.now()),
-          )
-          .catch(() => {
-            // No answer is the same as no memory of this song for our
-            // purposes: a 'matched' with no entry is already a no-op in the
-            // reducer, so there is nothing worth dispatching here.
-          });
-        break;
+/** Follow what the core says from now on: asked once, then told. */
+const followSongEq = (): (() => void) => {
+  const off = window.electron?.ipcRenderer?.on?.(
+    SONG_EQ_CHANNEL.status,
+    (payload) => {
+      if (isStatus(payload)) {
+        status = payload;
+        listeners.forEach((listener) => listener());
       }
-      case 'applyLayer': {
-        const { settings } = effect;
-        // Mirrored into context, matching every other Smart EQ writer (see
-        // the module comment), and written over IPC. The running mode needs
-        // no warning: it measures the source, so a remembered curve landing
-        // under it is neither in what it hears nor in what it solves, and its
-        // next solve of the same song lands on the same curve.
-        liveSmartEqSetter?.(settings);
-        setSmartEqApi(settings).catch(() => {
-          // Reported nowhere on purpose, matching every other Smart EQ write
-          // in this app (see SmartEqEngine): a background write failing here
-          // has no banner to raise it to, and the next checkpoint or match
-          // tries again.
-        });
-        break;
-      }
-      case 'checkpoint':
-        checkpointSongEq(effect.deviceId, effect.identity, effect.layer).catch(
-          () => {
-            // Best-effort: the commit that follows when the song ends makes
-            // the same write again, with the same or better information.
-          },
-        );
-        break;
-      case 'commit':
-        commitSongEq(effect.deviceId, effect.identity, effect.layer).catch(
-          () => {
-            // Best-effort, matching every background Smart EQ write here:
-            // there is no banner to raise a background failure to.
-          },
-        );
-        break;
-      case 'notice':
-        showNotice(effect.identity, effect.entry);
-        break;
-      case 'forget':
-        forgetSongEq(effect.deviceId, effect.identity).catch(() => {
-          // Best-effort: a failed forget leaves the old entry standing,
-          // which is the safe direction to fail in — the alternative is
-          // claiming it is gone when it is not.
-        });
-        break;
-      default: {
-        // TSongEqEffect is a fully-covered discriminated union; see the
-        // matching guard in songEqRecorder.ts for why this still has to
-        // exist for the compiler and for eslint's exhaustiveness rules.
-        const exhaustive: never = effect;
-        throw new Error(
-          `Unhandled songEq effect: ${JSON.stringify(exhaustive)}`,
-        );
-      }
-    }
-  });
+    },
+  );
+  send(SONG_EQ_CHANNEL.ask, []);
+  return () => off?.();
 };
 
-const dispatchSongEq = (event: TSongEqEvent, at: number): void => {
-  const [nextState, effects] = reduceSongEq(state, event, at);
-  const nextRecording = computeRecording(nextState, at);
-  // A tick that moved nothing the reducer keeps and nothing anybody draws is
-  // time passing and nothing more — see `drawsTheSame`.
-  const isNews =
-    event.kind !== 'tick' ||
-    nextState !== state ||
-    effects.length > 0 ||
-    !drawsTheSame(recordingSnapshot, nextRecording);
-  state = nextState;
-  if (isNews) {
-    recordingSnapshot = nextRecording;
-  }
-  performEffects(effects);
-  if (isNews) {
-    emit();
-  }
-};
+const read = () => status;
 
-/**
- * Announces a Smart EQ layer written by the continuous engine.
- *
- * The counterpart to `liveSmartEqSetter` above: that one lets this module
- * write into the app, this one lets the app tell this module that a write was
- * the engine's own. Called by `SmartEqEngine.tsx` at the moment it writes a
- * measured layer, and by nothing else — a caller that has NOT just written to
- * the chain would be telling the recorder to keep a loan through somebody
- * else's edit.
- *
- * Without it every continuous refinement reached `layerChanged` looking like a
- * preset load, dropped the loan seconds after each match, and left the
- * borrowed curve in the chain after the song ended — where the next song
- * inherited it.
- */
-export const noteSmartEqWrite = (layer?: ISmartEqSettings): void => {
-  dispatchSongEq({ kind: 'ownWrite', layer }, Date.now());
-};
+export const useSongEqRecording = (): ISongEqStatus =>
+  useSyncExternalStore(subscribe, read, () => NO_SONG_EQ_STATUS);
 
-/* --- the notice toast --- */
-
-export const useSongEqNotice = (): TSongEqNotice | undefined =>
+export const useSongEqNotice = (): ISongEqNotice | undefined =>
   useSyncExternalStore(
     subscribe,
-    () => notice,
+    () => status.notice,
     () => undefined,
   );
 
-export const dismissSongEqNotice = (): void => {
-  if (notice === undefined) {
-    return;
-  }
-  notice = undefined;
-  emit();
-};
-
-/**
- * The notice named by `id` has been on screen for its whole moment.
- *
- * Reported by the notice itself, at the end of its own linger animation. A
- * timer used to take it down six seconds after the match, whether or not the
- * window was painting — so a song matched behind a minimised window put up a
- * notice nobody could have seen, and took it away again.
- *
- * Fading is not undoing: this only stops saying it. The loaned layer keeps
- * playing, exactly as if neither button had been pressed.
- */
-export const endSongEqNotice = (id: number): void => {
-  if (notice?.id !== id) {
-    return;
-  }
-  notice = undefined;
-  emit();
-};
-
-export const undoSongEqLoan = (): void => {
-  dispatchSongEq({ kind: 'undo' }, Date.now());
-  // The toast that offered Undo has nothing left to say once it has been
-  // pressed.
-  dismissSongEqNotice();
-};
-
-/**
- * Forgets whatever this output remembers about the song the notice names.
- *
- * The precedence between "the song the notice names" and "the session that is
- * open" is the reducer's to decide, per its own comment on the `forget`
- * event — this only ever hands over the notice's identity, never the
- * session's, because the session is the reducer's own state and the reducer
- * can read it directly. The reducer is also what stops the session
- * re-committing this song at track end; the shell has no session interaction
- * to perform here at all beyond the IPC delete its `forget` effect asks for.
- */
-export const forgetCurrentSongEq = (): void => {
-  dispatchSongEq({ kind: 'forget', identity: notice?.identity }, Date.now());
-  dismissSongEqNotice();
-};
-
-/* --- the recording status the tick and the badge draw --- */
-
-export const useSongEqRecording = (): ISongEqRecordingStatus =>
+export const useSongEqSaveOn = (): boolean =>
   useSyncExternalStore(
     subscribe,
-    () => recordingSnapshot,
-    () => DEFAULT_RECORDING_STATUS,
+    () => status.isSaveOn,
+    () => false,
   );
 
-export const getSongEqSaveOn = (): boolean => state.isSaveOn;
-
 /**
- * The switch, and nothing more than the switch.
- *
- * Whether the request is honoured is the reducer's — `saveToggled` refuses it
- * without an automatic mode running. This used to START one instead, calling
- * `setSmartEqMode('detail')`, which was silently a no-op whenever a continuous
- * mode was already the one CHOSEN but switched off: saving then sat on with no
- * loop behind it, counted out its two minutes and committed nothing, which is
- * the "it will not save" this feature was reported for.
+ * The switch, and nothing more than the switch: whether it is honoured is
+ * the core's — saving is refused without a running mode to file.
  */
-export const setSongEqSaveOn = (isSaveOn: boolean): void => {
-  if (isSaveOn === state.isSaveOn) {
-    return;
-  }
-  dispatchSongEq({ kind: 'saveToggled', isSaveOn }, Date.now());
-};
+export const setSongEqSaveOn = (isSaveOn: boolean): void =>
+  act({ kind: 'setSaveOn', isSaveOn });
 
-export const useSongEqSaveOn = (): boolean =>
-  useSyncExternalStore(subscribe, getSongEqSaveOn, () => false);
+export const undoSongEqLoan = (): void => act({ kind: 'undo' });
+
+/** Forgets the song the card names, on this output. */
+export const forgetCurrentSongEq = (): void => act({ kind: 'forget' });
 
 /**
- * Test seam. Module state outlives a render the same way `playbackOwner.ts`'s
- * and `transportSource.ts`'s stores do — see `resetPlaybackOwner` — so a
- * suite that opens a session would otherwise leak it into whichever test runs
- * next.
+ * The card named by `id` has been on screen for its whole moment, reported
+ * by the card itself at the end of its own linger. Fading is not undoing:
+ * the loaned layer keeps playing.
  */
-export const resetSongEqSession = (): void => {
-  notice = undefined;
-  state = getInitialRecorderState();
-  recordingSnapshot = computeRecording(state, Date.now());
-  emit();
-};
-
-/* --- the host --- */
-
-export const useSongEqSessionHost = (): void => {
-  const {
-    smartEq,
-    activeDeviceId,
-    setSmartEq: setLiveSmartEq,
-  } = useFluidEqLayers();
-  const { identity, isPlaying } = useNowPlayingIdentity();
-  const isAutoEqRunning = useIsAutoEqRunning();
-
-  // Registered once: `setSmartEq` from context is a plain useState setter and
-  // is stable for the life of the provider, so there is nothing to re-run
-  // this effect over.
-  useEffect(() => {
-    liveSmartEqSetter = setLiveSmartEq;
-    return () => {
-      if (liveSmartEqSetter === setLiveSmartEq) {
-        liveSmartEqSetter = undefined;
-      }
-    };
-  }, [setLiveSmartEq]);
-
-  useEffect(() => {
-    dispatchSongEq(
-      { kind: 'deviceChanged', deviceId: activeDeviceId },
-      Date.now(),
-    );
-  }, [activeDeviceId]);
-
-  useEffect(() => {
-    dispatchSongEq({ kind: 'nowPlaying', identity, isPlaying }, Date.now());
-  }, [identity, isPlaying]);
-
-  useEffect(() => {
-    dispatchSongEq({ kind: 'layerChanged', layer: smartEq }, Date.now());
-  }, [smartEq]);
-
-  // What it means is the reducer's, per this file's own rule — see
-  // `autoEqChanged`. The dependency is the running state itself rather than
-  // the three switches behind it, so this reports once per real change and
-  // not once per press of something that did not change the answer.
-  useEffect(() => {
-    dispatchSongEq(
-      { kind: 'autoEqChanged', isRunning: isAutoEqRunning },
-      Date.now(),
-    );
-  }, [isAutoEqRunning]);
-
-  useEffect(() => {
-    // This fires as the window is already on its way out. Nothing here waits
-    // for the dispatch to finish, and nothing downstream may assume it does:
-    // the promises a 'closing' checkpoint or hand-back kicks off have no time
-    // left to settle before the process is gone. The two-minute checkpoint
-    // already on disk is the actual guarantee that a song is not lost — this
-    // is a best-effort top-up for whatever was learned since, not a save this
-    // shell can be relied on to complete.
-    const onBeforeUnload = () => {
-      dispatchSongEq({ kind: 'closing' }, Date.now());
-    };
-    window.addEventListener('beforeunload', onBeforeUnload);
-    return () => window.removeEventListener('beforeunload', onBeforeUnload);
-  }, []);
-};
+export const endSongEqNotice = (id: number): void =>
+  act({ kind: 'endNotice', id });
 
 /**
- * The recorder's clock: time passing while something plays.
+ * The window's half of the song memory, for the component that lives as long
+ * as the window: it follows what the core says, and — only while the core
+ * asks, because it cannot hear the output — says when time passes for the
+ * players: every position a player reports while it plays is time passing.
  *
- * What the reducer calls a `tick` is a moment at which time has passed — a
- * song holding still long enough to settle and be looked up, the two-minute
- * floor reached and checkpointed, the countdown on the chip. A one-second
- * interval stood in for all of it and ran for the life of the window, playing
- * or not, throttled to once a minute behind a minimised one. What it stood for
- * is a song playing, and every player already says so: each publishes its
- * position to the bar several times a second while it plays
- * (`setTransportSource`). Each of those reports is the tick now, stamped with
- * the time it arrived; when nothing plays, nothing reports, and nothing here
- * runs.
- *
- * A paused song's one-minute grace therefore ends at the next thing that
- * happens — the same song back, another one, a different output, the window
- * closing — rather than on the minute. Nothing is lost by it: listened time
- * stops at the pause, so what that close commits is the same whenever it
- * comes, and until it comes nothing plays through the loaned curve.
- *
- * A hook of its own, for a component of its own: `useTransportSources` changes
- * with every position, and in the host — which lives in the window's root —
- * that would redraw the whole window several times a second. The component
- * that calls this draws nothing (`SongEqNotice`'s clock).
+ * `useTransportSources` changes with every position, so the component that
+ * calls this draws nothing (`SongEqNotice`'s clock).
  */
 export const useSongEqClock = (): void => {
   const sources = useTransportSources();
+  const needsClock = useSyncExternalStore(
+    subscribe,
+    () => status.needsClock,
+    () => false,
+  );
+  useEffect(() => followSongEq(), []);
   useEffect(() => {
-    dispatchSongEq({ kind: 'tick' }, Date.now());
-  }, [sources]);
+    if (needsClock) {
+      send(SONG_EQ_CHANNEL.tick, []);
+    }
+  }, [sources, needsClock]);
 };
