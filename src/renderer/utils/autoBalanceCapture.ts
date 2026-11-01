@@ -66,74 +66,15 @@ export type { IBalanceListenBounds } from './autoBalanceReport';
  * exactly why the first can be a state machine and the second cannot.
  */
 /* -------------------------------------------------------------------------
- * FFT cells
+ * FFT cells: the same cells the core reads the desktop's frames through, so
+ * shared (`common/liveFrames.ts`).
  * ---------------------------------------------------------------------- */
 
-/** Inclusive FFT bin range backing one point of the analysis axis. */
-export interface IAxisCell {
-  firstBin: number;
-  lastBin: number;
-}
-
-/**
- * Map each axis point to every FFT bin inside its cell.
- *
- * Reading a single nearest bin per point — which is fine for a display trace —
- * looks at barely a tenth of the spectrum: at 48 kHz with a 4096-point FFT the
- * 1536 bins between 2 kHz and 20 kHz are represented by ~107 single-bin
- * samples, so ~93% of the treble energy is never seen and what is left is a
- * noisy lottery. Averaging the whole cell is what makes the treble reading
- * stable enough to drive an EQ.
- */
-export const createAxisCells = (
-  axis: readonly number[],
-  sampleRate: number,
-  fftSize: number,
-): IAxisCell[] => {
-  const binWidth = sampleRate / fftSize;
-  const maxBin = Math.max(1, fftSize / 2 - 1);
-
-  return axis.map((frequency, index) => {
-    // Cell edges are the geometric midpoints to the neighbouring points, so
-    // cells tile the axis without gaps or overlap.
-    const lower =
-      index === 0 ? frequency : Math.sqrt(axis[index - 1] * frequency);
-    const upper =
-      index === axis.length - 1
-        ? frequency
-        : Math.sqrt(frequency * axis[index + 1]);
-
-    // Bin 0 is DC and carries no musical information.
-    const firstBin = clamp(Math.round(lower / binWidth), 1, maxBin);
-    const lastBin = clamp(Math.round(upper / binWidth), firstBin, maxBin);
-    return { firstBin, lastBin };
-  });
-};
-
-/**
- * Power mean of each cell, in absolute dBFS. Writes into `out` to avoid
- * allocating a new array on every analyser frame.
- */
-export const readAbsoluteLevels = (
-  frequencyData: Float32Array,
-  cells: IAxisCell[],
-  out: Float64Array,
-): Float64Array => {
-  cells.forEach((cell, index) => {
-    let power = 0;
-    let count = 0;
-    const last = Math.min(cell.lastBin, frequencyData.length - 1);
-    for (let bin = cell.firstBin; bin <= last; bin += 1) {
-      const level = frequencyData[bin];
-      if (Number.isFinite(level)) {
-        power += 10 ** (level / 10);
-        count += 1;
-      }
-    }
-    out[index] = count > 0 ? 10 * Math.log10(power / count) : -Infinity;
-  });
-  return out;
-};
+export {
+  createAxisCells,
+  readAbsoluteLevels,
+  type IAxisCell,
+} from '../../common/liveFrames';
 
 /* -------------------------------------------------------------------------
  * Capture accumulator

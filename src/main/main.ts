@@ -109,6 +109,7 @@ import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import registerSystemSoundPort from './ipc/systemSoundPort';
 import { createSystemSound } from '../core/systemSound/systemSound';
 import { createPlatformSystemSoundSource } from '../core/platform/systemSoundSource';
+import { createDesktopSound } from '../core/liveFrames/desktopSound';
 import { registerForumIpc } from './ipc/forum';
 import { registerMotionPreferenceIpc } from './ipc/motionPreference';
 import { registerGamesIpc } from './ipc/games';
@@ -607,6 +608,12 @@ const systemSound = createSystemSound(
   }),
 );
 registerSystemSoundPort(getMainWindow, systemSound);
+/**
+ * The same sound, made into the desktop backgrounds' frames by the core
+ * itself, so a background behind a minimised FluidEQ needs nothing of the
+ * window (`desktopSound.ts`).
+ */
+const desktopSound = createDesktopSound(systemSound);
 
 /**
  * Which song the machine is playing, for the FluidEQ Engine's live leveling
@@ -714,6 +721,7 @@ registerSystemVolumeIpc(getMainWindow);
 const members = registerMemberServices({
   getMainWindow,
   userDataDir,
+  desktopSound,
 });
 
 // The tools menu's animations row: the saved choice, and the one this launch
@@ -1208,12 +1216,16 @@ const onAppReady = async () => {
   }
   if (process.platform === 'win32') {
     outputWatch = startOutputWatch({
-      onOutputs: (devices) =>
-        profilesIpc.followOutputs(devices, (channel, payload) => {
+      onOutputs: (devices) => {
+        // A core that could not hear the backgrounds' music may hear it on
+        // the output Windows has moved to.
+        desktopSound.outputChanged();
+        return profilesIpc.followOutputs(devices, (channel, payload) => {
           if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send(channel, payload);
           }
-        }),
+        });
+      },
     });
     // Stopped at the first quit pass, before the engine is reset: the
     // helper's last report would otherwise rewrite a config being neutralised.

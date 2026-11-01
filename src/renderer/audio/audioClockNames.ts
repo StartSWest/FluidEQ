@@ -17,5 +17,5 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 export const AUDIO_CLOCK_PROCESSOR = 'fluideq-audio-clock';
 
-/** Ticks per second of audio. */
-export const AUDIO_CLOCK_TICKS_PER_SECOND = 30;
+/** Ticks per second of audio, shared with the core's desktop frames. */
+export { AUDIO_CLOCK_TICKS_PER_SECOND } from '../../common/audioClockRate';
