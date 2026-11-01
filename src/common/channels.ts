@@ -25,15 +25,12 @@ enum ChannelEnum {
   SET_ENABLE = 'setEnable',
   SET_AUTO_PREAMP = 'setAutoPreAmp',
   /**
-   * What the capture has heard, handed to the writer that owns the preamp.
-   *
-   * The renderer is a sensor on this channel and nothing more: it sends the
-   * measured spectrum and the supervisor's trim, never a preamp. Sending a
-   * finished number would make it the second writer of a value the config
-   * writer derives, which is the arrangement this file's preamp channels were
-   * split out to end.
+   * The preamp Auto normalize on Equalizer APO settled on, told to the window
+   * for its slider. The core measures and the writer derives it
+   * (`core/headroom`, `ipc/preamp.ts`); the window only shows it, and is
+   * never the second writer of a value the config writer derives.
    */
-  SET_SMART_HEADROOM_MEASUREMENT = 'setSmartHeadroomMeasurement',
+  AUTO_PREAMP_SETTLED = 'autoPreAmpSettled',
   SET_GRAPH_VIEW = 'setGraphView',
   GET_PREAMP = 'getPreAmp',
   SET_PREAMP = 'setPreAmp',

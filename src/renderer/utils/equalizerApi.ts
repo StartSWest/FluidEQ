@@ -828,39 +828,6 @@ export const disableAutoPreAmp = (): Promise<number> => {
 };
 
 /**
- * Report what the capture has heard to the process that owns the preamp.
- *
- * Only one report is in flight. A correlated reply confirms the config write;
- * cancellation removes the listener when the capture or engine changes.
- */
-export const sendSmartHeadroomMeasurement = (
-  programme: Array<{ frequency: number; gain: number }>,
-  trimDb: number,
-  onApplied: (applied: boolean) => void,
-): (() => void) => {
-  const requestId = crypto.randomUUID();
-  const unsubscribe = window.electron.ipcRenderer.on(
-    ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
-    (reply: unknown) => {
-      if (!reply || typeof reply !== 'object' || !('result' in reply)) {
-        return;
-      }
-      const result = reply.result as { requestId?: unknown; applied?: unknown };
-      if (!result || result.requestId !== requestId) {
-        return;
-      }
-      unsubscribe();
-      onApplied(result.applied === true);
-    },
-  );
-  window.electron.ipcRenderer.sendMessage(
-    ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
-    [programme, trimDb, requestId],
-  );
-  return unsubscribe;
-};
-
-/**
  * Enable Graph View
  * @returns { Promise<void> } exception if failed.
  */

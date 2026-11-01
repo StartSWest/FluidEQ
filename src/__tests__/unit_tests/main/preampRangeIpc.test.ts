@@ -33,6 +33,7 @@ const setup = () => {
     state,
     canMeasureHeadroom: () => false,
     usesNativeHeadroom: () => false,
+    tellWindowPreAmp: jest.fn(),
     handleUpdate: jest.fn().mockResolvedValue(undefined),
     handleUpdateHelper: jest.fn().mockResolvedValue(undefined),
     handleError,

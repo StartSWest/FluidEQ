@@ -47,7 +47,6 @@ import './styles/App.scss';
 // win against the cyan ones they replace without reaching for `!important`.
 import './styles/Rainbow.scss';
 import SmartEqEngine from './SmartEqEngine';
-import SmartHeadroomEngine from './SmartHeadroomEngine';
 import showGalleryGraph from './plus/showGalleryGraph';
 import { subscribeGraphShowRequests } from './plus/graphShowRequest';
 import usePlusTabOpensApp from './player/usePlusTabOpensApp';
@@ -737,12 +736,10 @@ const AppContent = () => {
                 tab. Mounted once and never unmounted, a continuous measurement
                 keeps its evidence for as long as the window is open. */}
               <SmartEqEngine />
-              {/* Headless, and mounted beside its sibling for the same reason:
-                the measurement has to run wherever the user happens to be, not
-                only where the response graph is. */}
-              <SmartHeadroomEngine />
-              {/* And the third, for the same reason spelled out again because it
-                is the one that surprises: a game profile switches the sound
+              {/* (Auto normalize on Equalizer APO measured here too; the app's
+                core hears and decides it now, `core/headroom`.) And the next,
+                for the same reason spelled out again because it is the one
+                that surprises: a game profile switches the sound
                 while FluidEQ is BEHIND the game. On the Games page it would
                 only ever work with the page open, which is the one moment
                 nobody is playing. */}

@@ -635,12 +635,13 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
    * whatever was true at that click and then froze: measured live, the config
    * carried -4.36 dB while the sidebar sat at -20.00 dB and stayed there.
    *
-   * The measurement channel already answers with the value the writer settled
-   * on. Nothing was listening. This listens.
+   * Main tells the window the value the writer settled on each time the core
+   * writes a trim. This listened on the measurement's own channel before,
+   * whose answer was an object and never the number looked for here.
    */
   useEffect(() => {
     const unsubscribe = window.electron.ipcRenderer.on(
-      ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
+      ChannelEnum.AUTO_PREAMP_SETTLED,
       (payload) => {
         const applied = (payload as { result?: unknown } | undefined)?.result;
         if (typeof applied === 'number' && Number.isFinite(applied)) {

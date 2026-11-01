@@ -1,3 +1,16 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/**
+ * What Auto normalize does to the Equalizer APO preamp, from the output's
+ * sample peaks over each tenth of a second (`apoHeadroom.ts`): down at once to
+ * keep a decibel under full scale, back up slowly after ten quiet seconds,
+ * sooner after an edit to the chain, and never more than half a decibel per
+ * write, nor a write sooner than the last one has landed.
+ */
 export default class ApoHeadroomSupervisor {
   private trimDb: number;
 

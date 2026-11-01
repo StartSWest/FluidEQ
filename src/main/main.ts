@@ -111,6 +111,7 @@ import { createSystemSound } from '../core/systemSound/systemSound';
 import { createPlatformSystemSoundSource } from '../core/platform/systemSoundSource';
 import { createDesktopSound } from '../core/liveFrames/desktopSound';
 import { createKeptFile } from '../core/files/keptFile';
+import { createApoHeadroom } from '../core/headroom/apoHeadroom';
 import {
   NO_KEPT_GAMES,
   parseKeptDspPresets,
@@ -291,6 +292,9 @@ const DATABASES_SYNCED_EVENT = 'databases-synced';
  * the previous device's settings until something else happens to refresh them.
  */
 const notifyOutputStateChanged = () => {
+  // Another output's sound is the one edited now, which may start or stop
+  // what the core's jobs do — with or without a window to tell.
+  followTheSound();
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;
   }
@@ -381,6 +385,9 @@ const {
   getCurrentPreset: profiles.getCurrentPreset,
   sessionHeadroom: profiles.sessionHeadroom,
   attachPresetToActiveDevice: profiles.attachPresetToActiveDevice,
+  // Read lazily: the core's jobs are made further down, and nothing is
+  // updated before the window or the health check asks.
+  onUpdated: () => followTheSound(),
 });
 
 registerDiagnosticsIpc({
@@ -523,13 +530,22 @@ registerTransferIpc({
   state,
 });
 
-registerPreampIpc({
+/** Equalizer APO plays, and the output being edited is the one it plays. */
+const canMeasureHeadroom = () =>
+  session.audioEngine === 'apo' &&
+  !session.engineSwitching &&
+  session.activeAudioDeviceId === session.playbackAudioDevice?.id;
+const preamp = registerPreampIpc({
   state,
-  canMeasureHeadroom: () =>
-    session.audioEngine === 'apo' &&
-    !session.engineSwitching &&
-    session.activeAudioDeviceId === session.playbackAudioDevice?.id,
+  canMeasureHeadroom,
   usesNativeHeadroom: () => session.audioEngine === 'fluid',
+  tellWindowPreAmp: (preAmp) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(ChannelEnum.AUTO_PREAMP_SETTLED, {
+        result: preAmp,
+      });
+    }
+  },
   handleUpdate,
   handleUpdateHelper,
   handleError,
@@ -644,6 +660,62 @@ registerCoreCopies({
   games: keptGames,
   dspPresets: keptDspPresets,
 });
+
+/** Auto normalize on Equalizer APO, heard and decided by the core. */
+const apoHeadroom = createApoHeadroom({
+  systemSound,
+  applyTrim: preamp.applyHeadroomTrim,
+});
+
+/**
+ * The parts of the chain an edit to which makes Auto normalize look again,
+ * each with its text at the last look: a part is read as text only when it
+ * has been replaced, and compared as text before it counts, because a profile
+ * read again hands every part a new object whether anything in it changed.
+ */
+const chainParts = () => [
+  state.filters,
+  state.graphicEq,
+  state.eqMode,
+  state.curveEqMode,
+  state.mainBandQ,
+  state.eqBandQ,
+  state.curveBandQ,
+  state.curveSmoothing,
+  state.isEqDoubleOn,
+  state.driver,
+  state.headphone,
+  state.voicing,
+  state.smartEq,
+  state.convolution,
+  state.customFx,
+  state.bypassed,
+];
+let lastChain: { parts: unknown[]; texts: string[] } | undefined;
+
+/**
+ * After every change to the sound, the core's jobs that follow it are told:
+ * whether Auto normalize on Equalizer APO listens, and whether the chain it
+ * keeps under full scale was edited.
+ */
+function followTheSound(): void {
+  apoHeadroom.follow({
+    enabled: state.isAutoPreAmpOn && state.isEnabled && canMeasureHeadroom(),
+    trimDb: state.smartHeadroomTrimDb ?? 0,
+    hasLegacyProgramme: Boolean(state.smartHeadroomProgramme?.length),
+  });
+  const parts = chainParts();
+  const last = lastChain;
+  const texts = parts.map((part, at) =>
+    last && Object.is(part, last.parts[at])
+      ? last.texts[at]
+      : (JSON.stringify(part) ?? 'null'),
+  );
+  if (last && texts.some((text, at) => text !== last.texts[at])) {
+    apoHeadroom.edited();
+  }
+  lastChain = { parts, texts };
+}
 
 /**
  * Which song the machine is playing, for the FluidEQ Engine's live leveling
@@ -1247,9 +1319,10 @@ const onAppReady = async () => {
   if (process.platform === 'win32') {
     outputWatch = startOutputWatch({
       onOutputs: (devices) => {
-        // A core that could not hear the backgrounds' music may hear it on
-        // the output Windows has moved to.
+        // A core that could not hear the backgrounds' music, or Auto
+        // normalize's, may hear it on the output Windows has moved to.
         desktopSound.outputChanged();
+        apoHeadroom.outputChanged();
         return profilesIpc.followOutputs(devices, (channel, payload) => {
           if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send(channel, payload);
