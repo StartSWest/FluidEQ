@@ -25,6 +25,7 @@ import {
   LIGHTING_STATE_CHANGED_CHANNEL,
   LIGHTING_STATE_CHANNEL,
   LIGHTING_WATCH_CHANNEL,
+  type ILightingState,
 } from '../../common/lighting/lightingModel';
 import { lightingDemoScene } from '../lighting/lightingDemoScene';
 import {
@@ -40,6 +41,12 @@ export interface ILightingIpcDeps {
   getMainWindow: () => BrowserWindow | null;
   /** Asked on every frame, never remembered. */
   entitled: () => boolean;
+  /**
+   * Whether the lamps need the window loaded: they are lit from the scene the
+   * window draws, so a window in the tray is kept while they are switched on
+   * (`windowUnload.ts`). Told at registration and at every change.
+   */
+  holdWindow?: (isHeld: boolean) => void;
 }
 
 /**
@@ -65,6 +72,10 @@ export const razerAppEngine = (): string | undefined => {
  * thirty a second, with nothing to answer. The window's state is pushed on
  * change, and read once when the page mounts.
  */
+/** Switched on where the lamps can be lit at all. */
+const lightsNeedWindow = (state: ILightingState): boolean =>
+  state.supported && state.settings.enabled;
+
 export const registerLightingIpc = (
   deps: ILightingIpcDeps,
 ): ILightingService => {
@@ -77,6 +88,7 @@ export const registerLightingIpc = (
     entitled: deps.entitled,
     canOpenRazerChroma: () => razerAppEngine() !== undefined,
     push: (state) => {
+      deps.holdWindow?.(lightsNeedWindow(state));
       const window = deps.getMainWindow();
       // Renderer teardown can publish release before its window is destroyed.
       if (
@@ -88,6 +100,7 @@ export const registerLightingIpc = (
       }
     },
   });
+  deps.holdWindow?.(lightsNeedWindow(service.state()));
 
   // The window whose frames and open page the service is counting. A reload,
   // a crashed renderer or a closed window ends both without a word from the

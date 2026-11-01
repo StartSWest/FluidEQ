@@ -14,6 +14,7 @@ jest.mock('electron', () => ({
   ipcMain: {
     handle: (channel: string, handler: THandler) =>
       handlers.set(channel, handler),
+    on: jest.fn(),
   },
 }));
 jest.mock('../../../main/groupMediaKeys', () => ({
@@ -45,7 +46,10 @@ describe.each(['darwin', 'win32'] as const)(
       jest.clearAllMocks();
       handlers.clear();
       jest.mocked(forwardGroupMediaCommand).mockReturnValue(false);
-      registerSystemMediaIpc({ onMedia: async () => undefined });
+      registerSystemMediaIpc({
+        onMedia: async () => undefined,
+        getMainWindow: () => null,
+      });
     });
     afterEach(() => {
       Object.defineProperty(process, 'platform', { value: originalPlatform });

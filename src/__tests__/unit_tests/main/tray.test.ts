@@ -444,3 +444,48 @@ describe('the tray icon in the window colours', () => {
     expect(lastImage()).toBe(FILE);
   });
 });
+
+// A window let go in the tray (`windowUnload.ts`) is built again from every
+// way back the tray offers, and only where there is no window to show.
+describe('opening a window that was let go', () => {
+  const trayClick = () =>
+    (
+      currentTray().on.mock.calls.find(([event]) => event === 'click')?.[1] as
+        (() => void) | undefined
+    )?.();
+
+  it('builds it from the icon, its Open item and the notifications', () => {
+    const tray = loadTray();
+    const onWindowMissing = jest.fn();
+    tray.setUpTray({ ...deps, onWindowMissing });
+
+    trayClick();
+    expect(onWindowMissing).toHaveBeenCalledTimes(1);
+    const openItem = (builtMenus[builtMenus.length - 1] ?? []).find(
+      (item) => item.type !== 'separator' && item.label !== undefined,
+    );
+    openItem?.click?.();
+    expect(onWindowMissing).toHaveBeenCalledTimes(2);
+    tray.revealMainWindow(() => null);
+    expect(onWindowMissing).toHaveBeenCalledTimes(3);
+  });
+
+  it('shows a window that is there instead of building another', () => {
+    const tray = loadTray();
+    const onWindowMissing = jest.fn();
+    const window = {
+      isDestroyed: () => false,
+      isMinimized: () => false,
+      show: jest.fn(),
+      focus: jest.fn(),
+    };
+    tray.setUpTray({
+      ...deps,
+      getMainWindow: () => window as unknown as BrowserWindow,
+      onWindowMissing,
+    });
+    trayClick();
+    expect(window.show).toHaveBeenCalledTimes(1);
+    expect(onWindowMissing).not.toHaveBeenCalled();
+  });
+});

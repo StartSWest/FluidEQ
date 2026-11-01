@@ -41,6 +41,7 @@ import {
   type TTaskbarIconRequest,
 } from '../common/taskbarIcon';
 import { VIDEO_DOWNLOAD_REVEAL } from '../common/videoDownloads';
+import { SINGLE_PLAYER_CHANNEL } from '../common/singlePlayer';
 import { addonBridge } from './addonBridge';
 import { dspHostBridge } from './dspHost/bridge';
 import karaokeBridge from './karaokeBridge';
@@ -307,24 +308,24 @@ const sendSystemMediaCommand = (
   ) as Promise<void>;
 
 /**
- * Quieten every program playing on this machine, sparing the one named.
- *
- * One player at a time, whoever the players are. With a name it is two
- * programs that are both somebody else's — a Netflix tab started over a
- * Spotify album — and the one that just started is spared. With no name it is
- * this app taking the sound: a song started here, or a computer sending over
- * the LAN link, and everything on this machine gets out of the way.
+ * Quieten every program playing on this machine: this app taking the sound —
+ * a song started here, or a computer sending over the LAN link — and
+ * everything else on this machine getting out of the way.
  *
  * This app's own players are never among them: they are stopped through the
  * register, which knows how, and Windows would only be asked about a session
- * they might not even have.
+ * they might not even have. Two programs that are both somebody else's are
+ * main's to separate, beside the watcher that reads them
+ * (`systemMediaRule.ts`).
  *
- * Sent only while the "one player at a time" switch is on, and for another
- * program only when it has just gone from silent to playing — one that was
- * already playing is not somebody pressing play.
+ * Sent only while the "one player at a time" switch is on.
  */
-const pauseOtherSystemPlayers = (exceptApp?: string) =>
-  ipcRenderer.invoke('system-media-pause-others', exceptApp) as Promise<void>;
+const pauseOtherSystemPlayers = () =>
+  ipcRenderer.invoke('system-media-pause-others') as Promise<void>;
+
+/** The "one player at a time" switch, for main's half of the rule. */
+const tellSinglePlayer = (isOn: boolean) =>
+  ipcRenderer.send(SINGLE_PLAYER_CHANNEL, [isOn]);
 
 /**
  * The picture for the cover id a reading of the machine's player carried, or
@@ -400,6 +401,7 @@ export default {
     getSystemMediaCover,
     sendSystemMediaCommand,
     pauseOtherSystemPlayers,
+    tellSinglePlayer,
     onSystemMedia,
     getPathForFile,
     revealVideoDownload,

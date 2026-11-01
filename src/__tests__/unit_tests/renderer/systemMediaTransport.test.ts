@@ -85,6 +85,7 @@ describe('the transport for another Windows player', () => {
     ((snapshot: ISystemMediaSnapshot | undefined) => void) | undefined;
   const sendSystemMediaCommand = jest.fn(() => Promise.resolve());
   const pauseOtherSystemPlayers = jest.fn(() => Promise.resolve());
+  const tellSinglePlayer = jest.fn();
   /** Each asked-for cover, answered when a test says so. */
   const coverAnswers = new Map<string, (url: string | undefined) => void>();
   const getSystemMediaCover = jest.fn(
@@ -100,6 +101,7 @@ describe('the transport for another Windows player', () => {
     publishSnapshot = undefined;
     sendSystemMediaCommand.mockClear();
     pauseOtherSystemPlayers.mockClear();
+    tellSinglePlayer.mockClear();
     getSystemMediaCover.mockClear();
     coverAnswers.clear();
     setSinglePlayer(true);
@@ -114,6 +116,7 @@ describe('the transport for another Windows player', () => {
         },
         sendSystemMediaCommand,
         pauseOtherSystemPlayers,
+        tellSinglePlayer,
         getSystemMediaCover,
         sendMediaTransport: () => Promise.resolve(),
       },
@@ -157,12 +160,26 @@ describe('the transport for another Windows player', () => {
     hook.unmount();
   });
 
-  it('quietens the album when a video is started over it', () => {
-    // One player at a time where neither player is this app's: Spotify going,
-    // a Netflix tab clicked, and nothing used to stop either of them.
+  it('tells main the one-player switch, now and at every change', () => {
+    // Two programs that are both somebody else's are main's to separate
+    // (`systemMediaRule.ts`), so it holds with the window let go in the
+    // tray; the switch is this window's.
     const hook = renderHook(() => useSystemMediaSource(), { wrapper: withApp });
-    const reading = (app: string, playing: string[]): ISystemMediaSnapshot => ({
-      app,
+    expect(tellSinglePlayer).toHaveBeenLastCalledWith(true);
+
+    act(() => setSinglePlayer(false));
+    expect(tellSinglePlayer).toHaveBeenLastCalledWith(false);
+
+    hook.unmount();
+    tellSinglePlayer.mockClear();
+    act(() => setSinglePlayer(true));
+    expect(tellSinglePlayer).not.toHaveBeenCalled();
+  });
+
+  it('leaves two other programs to main', () => {
+    const hook = renderHook(() => useSystemMediaSource(), { wrapper: withApp });
+    const reading = (playing: string[]): ISystemMediaSnapshot => ({
+      app: 'Spotify.exe',
       title: 'Song',
       artist: 'Band',
       isPlaying: true,
@@ -175,18 +192,8 @@ describe('the transport for another Windows player', () => {
       coverId: '',
     });
 
-    act(() => publishSnapshot?.(reading('Spotify.exe', ['Spotify.exe'])));
-    expect(pauseOtherSystemPlayers).not.toHaveBeenCalled();
-
-    act(() =>
-      publishSnapshot?.(reading('Spotify.exe', ['Spotify.exe', 'Chrome'])),
-    );
-    expect(pauseOtherSystemPlayers).toHaveBeenCalledWith('Chrome');
-
-    // And not again while the same one keeps playing: the watcher reports a
-    // moving position, and every one of those readings still says playing.
-    pauseOtherSystemPlayers.mockClear();
-    act(() => publishSnapshot?.(reading('Chrome', ['Spotify.exe', 'Chrome'])));
+    act(() => publishSnapshot?.(reading(['Spotify.exe'])));
+    act(() => publishSnapshot?.(reading(['Spotify.exe', 'Chrome'])));
     expect(pauseOtherSystemPlayers).not.toHaveBeenCalled();
 
     hook.unmount();

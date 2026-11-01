@@ -121,6 +121,12 @@ export interface IStudioAgentDoorDeps {
     info(message: string): void;
     warn(message: string): void;
   };
+  /**
+   * Whether the door is open. A look is drawn by the window's page, so a
+   * window in the tray is kept while an assistant may ask for one
+   * (`windowUnload.ts`).
+   */
+  onOpen?: (isOpen: boolean) => void;
 }
 
 const INSTRUCTIONS =
@@ -132,6 +138,7 @@ export const createStudioAgentDoor = ({
   agentProject,
   appVersion,
   logger,
+  onOpen,
 }: IStudioAgentDoorDeps) => {
   const file = path.join(userDataDir, DOOR_FILE);
   let settings = readSettings(file);
@@ -329,7 +336,9 @@ export const createStudioAgentDoor = ({
    */
   let changing: Promise<void> = Promise.resolve();
   const follow = () => {
-    changing = changing.then(() => (settings.open ? listen() : shut()));
+    changing = changing
+      .then(() => (settings.open ? listen() : shut()))
+      .finally(() => onOpen?.(listeningOn !== undefined));
     return changing;
   };
 

@@ -50,6 +50,7 @@ import usePlusTabOpensApp from './player/usePlusTabOpensApp';
 import useStudioAgent from './studio/useStudioAgent';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
 import HeardSongNames from './graph/HeardSongNames';
+import WindowHolds from './shell/WindowHolds';
 import WallpaperAudio from './wallpaper/WallpaperAudio';
 import WallpaperGraphLook from './wallpaper/WallpaperGraphLook';
 import WallpaperTuning from './wallpaper/WallpaperTuning';
@@ -876,6 +877,11 @@ export default function App() {
                 a single route stood here, and its package shipped in the
                 window's script for it. */}
             <AppContent />
+            {/* What only this page can do while it runs, told to main so a
+                window hidden in the tray is let go when it holds nothing
+                (`useWindowHold.ts`). Renders nothing; after everything else,
+                so its first word comes once the rest have registered. */}
+            <WindowHolds />
           </RemoteAudioProvider>
         </LiveAudioProvider>
       </FluidEqProvider>

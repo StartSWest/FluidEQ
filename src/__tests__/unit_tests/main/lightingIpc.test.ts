@@ -9,10 +9,11 @@ import {
 import type { ILightingServiceDeps } from 'main/lighting/lightingService';
 
 let mockPush: ILightingServiceDeps['push'];
+let mockState: ILightingState | undefined;
 jest.mock('main/lighting/lightingService', () => ({
   createLightingService: (deps: ILightingServiceDeps) => {
     mockPush = deps.push;
-    return {};
+    return { state: () => mockState };
   },
 }));
 jest.mock('main/ipc/windowMessages', () => ({
@@ -56,4 +57,28 @@ it('publishes to a live renderer and stops when contents are destroyed before th
   contentsDestroyed = true;
   mockPush(state);
   expect(send).not.toHaveBeenCalled();
+});
+
+it('holds a window in the tray while the lamps are switched on', () => {
+  // The lamps are lit from the scene the window draws, so a window let go in
+  // the tray would leave them dark (`windowUnload.ts`).
+  const holdWindow = jest.fn();
+  const on = { ...state, settings: { ...state.settings, enabled: true } };
+  mockState = on;
+  registerLightingIpc({
+    userDataDir: 'unused',
+    appVersion: '1.0.0',
+    getMainWindow: () => null,
+    entitled: () => true,
+    holdWindow,
+  });
+  expect(holdWindow).toHaveBeenLastCalledWith(true);
+
+  mockPush({ ...on, settings: { ...on.settings, enabled: false } });
+  expect(holdWindow).toHaveBeenLastCalledWith(false);
+  mockPush(on);
+  expect(holdWindow).toHaveBeenLastCalledWith(true);
+  // Where they cannot be lit at all, nothing holds it.
+  mockPush({ ...on, supported: false });
+  expect(holdWindow).toHaveBeenLastCalledWith(false);
 });

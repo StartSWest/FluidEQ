@@ -22,6 +22,7 @@ import log from 'electron-log';
 import path from 'path';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
 import type { IDesktopSoundClient } from './coreProcess/coreClient';
+import type { TMainWindowHold } from './windowUnload';
 import { startMainAddons } from './addons';
 import { appVersion } from './appVersion';
 import { registerAccountIpc } from './ipc/account';
@@ -58,6 +59,8 @@ export interface IMemberServicesDeps {
   userDataDir: string;
   /** The music the desktop backgrounds move to, heard by the core. */
   desktopSound: IDesktopSoundClient;
+  /** What of these keeps a window in the tray loaded (`windowUnload.ts`). */
+  holdWindow: (reason: TMainWindowHold, isHeld: boolean) => void;
 }
 
 /**
@@ -74,6 +77,7 @@ const registerMemberServices = ({
   getMainWindow,
   userDataDir,
   desktopSound,
+  holdWindow,
 }: IMemberServicesDeps) => {
   // DEVELOPMENT ONLY, and compiled to nothing in a packaged build:
   // `isPackaged` is decided by the binary's name, which nothing here can
@@ -185,6 +189,7 @@ const registerMemberServices = ({
     ownership: sceneOwnership,
     arrangement: createArrangementStore(userDataDir, log),
     desktopSound,
+    holdWindow: (isHeld) => holdWindow('desktop-sound', isHeld),
     ...createWallpaperScenes(scenePacksIpc, memberScenesIpc),
   });
 
@@ -252,6 +257,7 @@ const registerMemberServices = ({
     agentProject: memberScenesIpc.agentProject,
     appVersion: appVersion(),
     logger: log,
+    onOpen: (isOpen) => holdWindow('studio-agent', isOpen),
   });
   // The Studio's chat: the member's own Claude Code, working in the open
   // project, looking and hearing as the door above does, and making
@@ -263,6 +269,7 @@ const registerMemberServices = ({
     door: { look: studioAgentDoor.look, hear: studioAgentDoor.hear },
     version: appVersion(),
     logger: log,
+    onBusy: (isBusy) => holdWindow('studio-chat', isBusy),
   });
   const plusPublishingIpc = registerPlusPublishingIpc({
     access: galleryAccess,
