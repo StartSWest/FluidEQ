@@ -269,7 +269,10 @@ describe('the window behind the amp', () => {
     expect(outputMirrorResetListeners.size).toBeGreaterThan(0);
     await act(async () => unmount());
     expect(outputMirrorResetListeners.size).toBe(0);
-  });
+    // The whole app, mounted, folded into the amp and built again: about 2 s
+    // alone and past five with the suite's twenty files beside it, where it
+    // timed out on every full run. A budget that fits what it does.
+  }, 30_000);
 
   it('leaves the Karaoke page as it was, so a Maker job keeps running behind it', async () => {
     // Hidden, the Karaoke page renders only its audio host: an open Maker
