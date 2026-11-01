@@ -288,20 +288,12 @@ const gamePrograms = (): Promise<unknown> =>
 const watchGames = (wanted: boolean): void =>
   ipcRenderer.send('game-watch', [wanted]);
 
-/** Say on the desktop that a game loaded a sound: main draws the card. */
-const showGameToast = (said: {
-  what: string;
-  game: string;
-  icon?: string;
-}): void => ipcRenderer.send('game-toast', [said]);
+/** The window's colours, for the card the core puts on the desktop. */
+const keepCardColoursForCore = (colours: Record<string, string>): void =>
+  ipcRenderer.send('game-card-colours', [colours]);
 
-/** One of this listener's own games is in front, or has left it. */
-const setGamePlaying = (playing: boolean): void =>
-  ipcRenderer.send('game-playing', [playing]);
-
-/** Be told when this game ends, which is what puts the sound back; 0 none. */
-const holdGameProcess = (pid: number): void =>
-  ipcRenderer.send('game-hold', [pid]);
+/** Which game's sound the core has on, answered on `game-sounding`. */
+const askGameSounding = (): void => ipcRenderer.send('game-sounding-ask', []);
 
 /** A program no launcher knows about, pointed at by hand. */
 const chooseGameProgram = (): Promise<unknown> =>
@@ -353,9 +345,8 @@ export const dspHostBridge = {
   keepGamesForCore,
   keepDspPresetsForCore,
   handRackHoldToCore,
-  showGameToast,
-  setGamePlaying,
-  holdGameProcess,
+  keepCardColoursForCore,
+  askGameSounding,
 
   getDspHostStatus,
   startDspHost,

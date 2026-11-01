@@ -5,45 +5,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The sound a game puts on, and keeps until the game is over.
+ * What the window shows of the game profiles: the list, the program in
+ * front, and the game whose sound is on.
  *
- * Main says which program Windows put in front; this decides what that means
- * and selects the chain, through the same path the picker uses, so a switch
- * made by a game is a switch made by the app — Equalizer APO's layer
- * included. The rules themselves are `common/games.ts`, as values in and a
- * step out, so they are tested without a window or a game.
- *
- * A game's sound goes on when it comes forward and stays on until that
- * program ends. It used to go away the moment the game lost the front, and
- * alt-tabbing to a browser, to Discord or to FluidEQ itself — which happens
- * constantly while somebody plays — took the game's sound away mid-match.
- * What the app waits on is the game's own process: it asks main to hold it
- * (`holdGameProcess`) and is told when it ends, by Windows rather than by
- * anything timed.
- *
- * It runs for the life of the window rather than the page: a profile matches
- * while somebody is playing, which is exactly when the Games page is not the
- * one on screen.
+ * The sound a game puts on is the app's core's to switch (`main/gameSound.ts`):
+ * a game comes to the front while FluidEQ is behind it, minimised or closed,
+ * and the core is what is there. The window is told what the core did, and
+ * keeps the list it hands the core (`CoreCopies`).
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  IGameProfile,
-  IGameProgram,
-  IGameSoundMemory,
-  IGameSoundStep,
-  gameProfileFor,
-  gameSoundEndStep,
-  gameSoundStep,
-} from '../../common/games';
+import { useEffect, useState } from 'react';
+import { IGameProfile, IGameProgram, gameProfileFor } from '../../common/games';
 import { useDspSettings } from '../dsp/store';
 import { activeDspPresetId } from '../dsp/dspPresetCatalog';
-import { useDspPresetSelection } from '../dsp/useDspPresetSelection';
-import { ownPresetId, yieldSongSound } from '../audio/songSoundSession';
 import { useFluidEqLayers } from '../utils/FluidEqContext';
-import { reportError } from '../utils/logger';
-import useMainOutputEditor from '../utils/useMainOutputEditor';
-import { useIsMainEdited } from '../utils/useMainEditorWhile';
 import {
   GAME_PROFILES_CHANGED,
   readGameProfiles,
@@ -52,47 +27,58 @@ import {
 import { requestGameWatch } from './gameWatchRequest';
 
 export const GAME_FOREGROUND_CHANNEL = 'game-foreground';
-export const GAME_ENDED_CHANNEL = 'game-ended';
+export const GAME_SOUNDING_CHANNEL = 'game-sounding';
 
-interface IGameHoldBridge {
-  holdGameProcess?: (pid: number) => void;
+interface IGameSoundingBridge {
+  askGameSounding?: () => void;
+}
+
+/** The game whose sound the core has on, and the chain it put on. */
+interface ISounding {
+  gameId: string;
+  presetId: string;
 }
 
 /**
- * Which game's sound is on, and which chain it put on — shared by every
- * caller of this hook, the way the profiles themselves are.
- *
- * Only the window's own caller switches anything, so only it can say; the
- * Games page has to be able to read it, because under this rule a game's
- * sound is on for most of the time the page is being looked at — the page is
- * what somebody alt-tabbed to. The chain is kept beside the game so any
- * caller can see whether that sound is still the one playing.
+ * What the core last said, shared by every caller: the Games page and the
+ * bar at the foot of the window both show it. Heard once for the window,
+ * from the first caller on.
  */
 const GAME_SOUNDING_CHANGED = 'fluideq-game-sounding-changed';
+let sounding: ISounding | undefined;
+let isFollowing = false;
 
-let sounding: { gameId: string; presetId: string } | undefined;
+const isSounding = (value: unknown): value is ISounding =>
+  typeof value === 'object' &&
+  value !== null &&
+  typeof (value as ISounding).gameId === 'string' &&
+  typeof (value as ISounding).presetId === 'string';
 
-const saySounding = (now: typeof sounding): void => {
-  if (
-    sounding?.gameId === now?.gameId &&
-    sounding?.presetId === now?.presetId
-  ) {
+const followSounding = (): void => {
+  const bridge = window.electron?.ipcRenderer;
+  if (isFollowing || !bridge?.on) {
     return;
   }
-  sounding = now;
-  window.dispatchEvent(new Event(GAME_SOUNDING_CHANGED));
+  isFollowing = true;
+  bridge.on(GAME_SOUNDING_CHANNEL, (payload) => {
+    sounding = isSounding(payload) ? payload : undefined;
+    window.dispatchEvent(new Event(GAME_SOUNDING_CHANGED));
+  });
+  (bridge as IGameSoundingBridge).askGameSounding?.();
 };
 
 /** For a test that starts from nothing, as a fresh window would. */
 export const resetGameSounding = (): void => {
   sounding = undefined;
+  isFollowing = false;
 };
 
-const useSounding = (): typeof sounding => {
+const useSounding = (): ISounding | undefined => {
   const [now, setNow] = useState(sounding);
   useEffect(() => {
     const changed = () => setNow(sounding);
     window.addEventListener(GAME_SOUNDING_CHANGED, changed);
+    followSounding();
     changed();
     return () => window.removeEventListener(GAME_SOUNDING_CHANGED, changed);
   }, []);
@@ -135,10 +121,13 @@ export const useGameProfiles = (): IGameProfile[] => {
 };
 
 /**
- * The game whose sound is on, for anything outside this hook that has to say
- * so — the bar at the foot of the window, which speaks for the machine's own
- * sound and had nothing to say about a game, because a game registers no
- * player with Windows the way Spotify and a browser do.
+ * The game whose sound is on, for anything outside the Games page that has
+ * to say so — the bar at the foot of the window, which speaks for the
+ * machine's own sound and had nothing to say about a game, because a game
+ * registers no player with Windows the way Spotify and a browser do.
+ *
+ * Only while the chain playing is still the one that game put on: a chain
+ * the listener picked afterwards is theirs.
  */
 export const useSoundingGame = (): IGameProfile | undefined => {
   const profiles = useGameProfiles();
@@ -153,38 +142,11 @@ export const useSoundingGame = (): IGameProfile | undefined => {
     : undefined;
 };
 
-/** A sound a game just put on — or took back off — for the card that says so. */
-export interface IGameSwitch {
-  /** New each time, so the same game twice is announced twice. */
-  id: number;
-  game: string;
-  presetId: string;
-  icon?: string;
-  /**
-   * Which of the two happened: the game's sound going on, or the sound from
-   * before it coming back because the game has ended.
-   *
-   * Both are worth a card now. Only the way in used to be, because the way
-   * out was every alt-tab — a card each time somebody looked at their
-   * browser. The way out is the game closing, once.
-   */
-  kind: 'loaded' | 'restored';
-}
-
 export interface IGameSound {
   profiles: IGameProfile[];
-  /** The last sound a game loaded, until whoever shows it says it is done. */
-  switched?: IGameSwitch;
-  forgetSwitch: () => void;
   /** The profile whose game is in front, while one is. */
   playing?: IGameProfile;
-  /**
-   * The profile whose sound is on, which outlasts its game being in front.
-   *
-   * It is the game being waited on, and only while the chain playing is still
-   * the one that game put on: a chain the listener picked afterwards is
-   * theirs, and a page saying the game's sound is on would be wrong about it.
-   */
+  /** The profile whose sound is on, which outlasts its game being in front. */
   sounding?: IGameProfile;
   /** Whether the page's switch has game presets running at all. */
   enabled: boolean;
@@ -193,218 +155,23 @@ export interface IGameSound {
 }
 
 /**
- * The sound, and what is in front.
- *
- * `applies` belongs to exactly one caller — the window's own, which lives as
- * long as the window does, so a game switches the sound whatever page is
- * open and whether or not one is. The Games page asks for the same news
- * without it: two callers applying the same step would each remember half of
- * what the other did and put back the wrong chain.
+ * The Games page's view: what is in front, watched while the page is open
+ * so the line at its top can say so while a profile is being made for it.
+ * The core watches for its own profiles whether or not the page is open.
  */
-export const useGameSound = ({
-  applies = false,
-  always = false,
-}: { applies?: boolean; always?: boolean } = {}): IGameSound => {
+export const useGameSound = (): IGameSound => {
   const profiles = useGameProfiles();
-  const settings = useDspSettings();
-  const { voicing } = useFluidEqLayers();
-  // Under Equalizer APO a picked preset's rack is off and its curve is what
-  // plays, so the rack alone would name no preset there.
-  const presetNow = activeDspPresetId(settings, voicing) ?? '';
-  const { apply } = useDspPresetSelection(true);
-  // A game's sound is the machine's, so it goes on the output that plays.
-  // With a second output left in "Edit sound" the editor goes back to the
-  // main output first, and what the game did is taken once the window has
-  // it — the preset to put back is then the main output's own. Through a
-  // ref: the handlers below are made once.
-  const isMainEdited = useIsMainEdited();
-  const isMainEditedRef = useRef(isMainEdited);
-  isMainEditedRef.current = isMainEdited;
-  const enterMainEditor = useMainOutputEditor();
-  const owed = useRef<Array<() => void>>([]);
-  const owe = useCallback(
-    (step: () => void) => {
-      owed.current.push(step);
-      enterMainEditor().catch((error: unknown) => {
-        owed.current = [];
-        reportError('Could not put a game’s sound on the main output', error);
-      });
-    },
-    [enterMainEditor],
-  );
-  const [front, setFront] = useState<IGameProgram | undefined>(undefined);
-  const [switched, setSwitched] = useState<IGameSwitch | undefined>(undefined);
-  const soundNow = useSounding();
-  const switches = useRef(0);
-  const memory = useRef<IGameSoundMemory>({});
-  /** The game being waited on the end of, so a stale end changes nothing. */
-  const held = useRef(0);
-  // The pieces the foreground handler needs, read at the moment it fires: a
-  // listener changes chains and profiles while a game runs, and a handler
-  // holding a copy from when it subscribed would put back a chain from an
-  // hour ago.
   const enabled = useGamesEnabled();
-  const latest = useRef({ profiles, presetId: '', apply, enabled });
-  latest.current = {
-    profiles,
-    presetId: presetNow,
-    apply,
-    enabled,
-  };
+  const sounding = useSoundingGame();
+  const [front, setFront] = useState<IGameProgram | undefined>(undefined);
 
-  // Switched off, nothing watches: main stops asking Windows what is in
-  // front, so no game can reach the sound whatever the list says.
-  const wanted = enabled && (always || profiles.length > 0);
-  useEffect(() => (wanted ? requestGameWatch() : undefined), [wanted]);
-
-  /** Remember the step, and put on what it chose. An empty chain is none. */
-  const take = useCallback((step: IGameSoundStep) => {
-    memory.current = step.memory;
-    if (step.select === undefined) {
-      return;
-    }
-    // Nothing here waits on the switch: the chain it selects is the app's
-    // own, and a failure has already told the window in its own words. A
-    // song's own sound comes off first (`songSoundSession.ts`), so the game's
-    // lands on the listener's and nothing hands the song's back over it.
-    const id = step.select === '' ? 'none' : step.select;
-    yieldSongSound()
-      .then(() => latest.current.apply(id))
-      .catch(() => undefined);
-  }, []);
-
-  const heard = useCallback(
-    (program: IGameProgram) => {
-      // A front reported just before the watcher stopped is still news
-      // from a feature that is now off.
-      if (!latest.current.enabled) {
-        return;
-      }
-      setFront(program);
-      if (!applies) {
-        return;
-      }
-      if (!isMainEditedRef.current) {
-        owe(() => heard(program));
-        return;
-      }
-      const { profiles: known, presetId } = latest.current;
-      const profile = gameProfileFor(known, program.path);
-      // The listener's own preset is what goes back at the game's end, never
-      // a song's that is only lent to it.
-      const step = gameSoundStep(
-        memory.current,
-        profile?.presetId,
-        ownPresetId(presetId),
-      );
-      // Ask to be told when this game ends, because that — and not losing
-      // the front — is what puts the sound back. Asked every time it comes
-      // forward, not only when the chain changes: after a reload the watcher
-      // is new and holds nothing, and the game may already be running.
-      //
-      // One process is held, the one whose window came forward. A launcher
-      // that lives inside the game's own folder, shows a window, and quits
-      // before the game's window appears therefore ends the hold early: the
-      // old sound for a moment and a second card, then the game's sound
-      // again when its window comes forward. Waiting on every process under
-      // the folder would need Windows to announce process starts, which it
-      // does not do without a service; this is the honest edge of the rule.
-      if (profile?.presetId && program.pid) {
-        held.current = program.pid;
-        saySounding({ gameId: profile.id, presetId: profile.presetId });
-        const bridge = window.electron?.ipcRenderer as
-          IGameHoldBridge | undefined;
-        bridge?.holdGameProcess?.(program.pid);
-      }
-      // A card for the switch itself, never for a game whose sound was
-      // already the one playing: nothing changed, so there is nothing to say.
-      if (step.select !== undefined && profile) {
-        switches.current += 1;
-        setSwitched({
-          kind: 'loaded',
-          id: switches.current,
-          game: profile.name,
-          presetId: step.select,
-          ...(profile.icon ? { icon: profile.icon } : {}),
-        });
-      }
-      take(step);
-    },
-    [applies, take, owe],
-  );
-
-  /** The game whose sound is on has ended, so the sound before it goes back. */
-  const ended = useCallback(
-    (pid: number) => {
-      if (!applies || pid !== held.current) {
-        return;
-      }
-      if (!isMainEditedRef.current) {
-        owe(() => ended(pid));
-        return;
-      }
-      held.current = 0;
-      const over = sounding
-        ? latest.current.profiles.find((one) => one.id === sounding?.gameId)
-        : undefined;
-      saySounding(undefined);
-      const step = gameSoundEndStep(memory.current, latest.current.presetId);
-      // The same card the way out as the way in, and only where something
-      // actually went back: a listener who chose their own chain mid-game
-      // keeps it, and there is nothing to announce.
-      if (step.select !== undefined && over) {
-        switches.current += 1;
-        setSwitched({
-          kind: 'restored',
-          id: switches.current,
-          game: over.name,
-          presetId: step.select,
-          ...(over.icon ? { icon: over.icon } : {}),
-        });
-      }
-      take(step);
-    },
-    [applies, take, owe],
-  );
-
-  /**
-   * The switch went off while a game's sound was on: the sound from before
-   * goes back now, as it would have when the game closed. Left on, it would
-   * stay a game's with nothing left to ever take it back. No card: the
-   * listener is in this window, pressing the switch that did it.
-   */
-  const letGo = useCallback(() => {
-    if (!applies || held.current === 0 || latest.current.enabled) {
-      return;
-    }
-    if (!isMainEditedRef.current) {
-      owe(() => letGo());
-      return;
-    }
-    held.current = 0;
-    const bridge = window.electron?.ipcRenderer as IGameHoldBridge | undefined;
-    bridge?.holdGameProcess?.(0);
-    saySounding(undefined);
-    take(gameSoundEndStep(memory.current, latest.current.presetId));
-  }, [applies, take, owe]);
-
+  // Switched off, nothing is watched for the page either.
+  useEffect(() => (enabled ? requestGameWatch() : undefined), [enabled]);
   useEffect(() => {
     if (!enabled) {
       setFront(undefined);
-      letGo();
     }
-  }, [enabled, letGo]);
-
-  // What a game did while the editor was on another output, taken now that
-  // the main output is the one being edited.
-  useEffect(() => {
-    if (!isMainEdited || owed.current.length === 0) {
-      return;
-    }
-    const steps = owed.current;
-    owed.current = [];
-    steps.forEach((step) => step());
-  }, [isMainEdited, presetNow]);
+  }, [enabled]);
 
   useEffect(() => {
     const listen = window.electron?.ipcRenderer?.on;
@@ -413,38 +180,22 @@ export const useGameSound = ({
     }
     const off = listen(GAME_FOREGROUND_CHANNEL, (...args: unknown[]) => {
       const [program] = args;
-      if (isProgram(program)) {
-        heard(program);
-      }
-    });
-    const offEnded = listen(GAME_ENDED_CHANNEL, (...args: unknown[]) => {
-      const [pid] = args;
-      if (typeof pid === 'number') {
-        ended(pid);
+      // A front reported just before the watcher stopped is still news
+      // from a feature that is now off.
+      if (isProgram(program) && readGamesEnabled()) {
+        setFront(program);
       }
     });
     return () => {
       off();
-      offEnded();
     };
-  }, [heard, ended]);
-
-  const forgetSwitch = useCallback(() => setSwitched(undefined), []);
-
-  // Judged rather than remembered: the chain playing is what says whether the
-  // sound is still the game's, and it changes the moment the listener picks
-  // another one — which is a render, so this is answered again with it.
-  const ourSound = soundNow !== undefined && soundNow.presetId === presetNow;
+  }, []);
 
   return {
     profiles,
     enabled,
     front,
-    switched,
-    forgetSwitch,
     playing: front ? gameProfileFor(profiles, front.path) : undefined,
-    sounding: ourSound
-      ? profiles.find((profile) => profile.id === soundNow.gameId)
-      : undefined,
+    sounding,
   };
 };

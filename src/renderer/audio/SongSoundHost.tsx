@@ -4,104 +4,45 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useMemo, useRef } from 'react';
-import { useDspSettings } from '../dsp/store';
-import { useSoundingGame } from '../games/useGameSound';
-import { useFluidEqContext } from '../utils/FluidEqContext';
-import { useOutputEditor } from '../utils/outputEditor';
-import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
+import { useEffect } from 'react';
 import { useNowPlayingIdentity } from './nowPlayingIdentity';
 import {
-  feedSongSound,
-  holdSongSound,
-  registerSongSoundHost,
-  returnLeftoverSongSound,
+  followSongMemory,
+  reportNowPlaying,
+  reportTick,
+  useSongMemoryNeedsClock,
 } from './songSoundSession';
-import songSoundOf from './songSoundOf';
 import { useTransportSources } from './transportSource';
 
 /**
- * Tells the song sound memory (`songSoundSession.ts`) what plays, what is
- * heard and that time passes, and draws nothing.
+ * Tells the song memory, which runs in the app's core (`main/songMemory.ts`),
+ * what the window's players play, and draws nothing. The sound, the output
+ * and the switch the core knows for itself.
  *
  * A component of its own beside the notices rather than a hook in the
- * window's root: it reads the bands, which change with every step of a band
- * being dragged, and every position a player reports, several a second — a
- * redraw of nothing here, of the whole window there.
- *
- * The output is told before the sound it brings, by the order of the effects
- * below and of the window's own updates (the output's id lands a render
- * before main's state does): a song filed as an output switch closes it must
- * be filed with the sound heard on the output it was played on.
+ * window's root: the players report positions several times a second, a
+ * redraw of nothing here and of the whole window there.
  */
 const SongSoundHost = () => {
-  const { isLoading, filters, tone, voicing, eqFormat, refreshState } =
-    useFluidEqContext();
-  const { editor } = useOutputEditor();
-  const rack = useDspSettings();
-  const status = useKnownAudioEngineStatus();
   const { identity, isPlaying } = useNowPlayingIdentity();
   const sources = useTransportSources();
-  const game = useSoundingGame();
+  const needsClock = useSongMemoryNeedsClock();
 
-  // Read when a sound is put on, never captured at registration: the engine
-  // can change while the window runs.
-  const isApoRef = useRef(false);
-  useEffect(() => {
-    isApoRef.current = status?.engine === 'apo';
-  }, [status]);
+  useEffect(() => followSongMemory(), []);
 
   useEffect(() => {
-    registerSongSoundHost({
-      isApo: () => isApoRef.current,
-      refresh: () => refreshState(),
-    });
-  }, [refreshState]);
-
-  // A game's own sound holds the memory off for as long as it plays.
-  const isGameSounding = game !== undefined;
-  useEffect(() => {
-    holdSongSound(isGameSounding);
-  }, [isGameSounding]);
-
-  useEffect(() => {
-    feedSongSound({ kind: 'deviceChanged', deviceId: editor?.device.id ?? '' });
-    returnLeftoverSongSound();
-  }, [editor?.device.id, editor?.generation]);
-
-  useEffect(() => {
-    feedSongSound({ kind: 'nowPlaying', identity, isPlaying });
+    reportNowPlaying(identity, isPlaying);
   }, [identity, isPlaying]);
 
-  // Nothing while the window is still reading main's state: the defaults it
-  // shows meanwhile are nobody's sound, and a song opened on them would read
-  // the real one arriving as an edit.
-  const sound = useMemo(
-    () =>
-      isLoading
-        ? undefined
-        : songSoundOf({ filters, tone, voicing, eqFormat }, rack),
-    [isLoading, filters, tone, voicing, eqFormat, rack],
-  );
+  // The clock, only while the core asks for it — a song waiting to settle
+  // or paused, on a machine where the core cannot hear the output: every
+  // position a player reports is time passing while it plays, the same
+  // clock the Smart EQ memory keeps (`useSongEqClock`).
   useEffect(() => {
-    feedSongSound({ kind: 'soundChanged', sound });
-  }, [sound]);
-
-  // The clock: every position a player reports is time passing while it
-  // plays, which is all the settle and the pause grace need — the same clock
-  // the Smart EQ memory keeps (`useSongEqClock`).
-  useEffect(() => {
-    feedSongSound({ kind: 'tick' });
-  }, [sources]);
-
-  useEffect(() => {
-    // Best effort, as the window is already on its way out: what an edited
-    // song files here may not land. Nothing lent can outlive it — main and the
-    // rack write the listener's own sound down while a song's plays.
-    const onBeforeUnload = () => feedSongSound({ kind: 'closing' });
-    window.addEventListener('beforeunload', onBeforeUnload);
-    return () => window.removeEventListener('beforeunload', onBeforeUnload);
-  }, []);
+    if (needsClock) {
+      reportTick();
+    }
+  }, [sources, needsClock]);
 
   return null;
 };

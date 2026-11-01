@@ -86,6 +86,7 @@ describe('resetting the settings main keeps', () => {
       resetLighting: jest.fn(),
       unpinWindow: jest.fn(),
       showGraph: jest.fn(),
+      stopSongMemory: jest.fn(),
       logger: { error: jest.fn() },
     };
     ({ dispose } = registerSettingsResetIpc(deps));
@@ -106,6 +107,8 @@ describe('resetting the settings main keeps', () => {
     expect(deps.unpinWindow).toHaveBeenCalledTimes(1);
     // The graph's on/off switch, from the checklist (Ivan, 2026-10-26).
     expect(deps.showGraph).toHaveBeenCalledTimes(1);
+    // The song memory's switch, which the window kept before the core did.
+    expect(deps.stopSongMemory).toHaveBeenCalledTimes(1);
     expect(deps.logger.error).not.toHaveBeenCalled();
   });
 
@@ -180,6 +183,8 @@ const RESET_FILES = [
   'motion.json',
   'desktop-backgrounds.json',
   'lighting.json',
+  // The song memory's switch: off until the listener opts in.
+  'song-sound-switch.json',
 ];
 
 /** Kept on purpose, with why. */

@@ -12,6 +12,30 @@ import {
   readGameProfiles,
   readGamesEnabled,
 } from './games/gameProfiles';
+import { subscribeRoot } from './utils/theme';
+
+/**
+ * The five colours the core's game card is painted with, as this window
+ * wears them now (`main/gameSound.ts`). The card is a file on disk with none
+ * of this app's stylesheets, so the colours travel; read from the page, they
+ * are the theme the listener picked with any scene's tint over it.
+ */
+export const windowColours = (): Record<string, string> => {
+  const style = getComputedStyle(document.documentElement);
+  const found: Record<string, string> = {};
+  const take = (name: string, token: string) => {
+    const value = style.getPropertyValue(token).trim();
+    if (value !== '') {
+      found[name] = value;
+    }
+  };
+  take('accent', '--accent');
+  take('panel', '--surface-panel');
+  take('base', '--surface-base');
+  take('text', '--text-primary');
+  take('muted', '--text-muted');
+  return found;
+};
 
 /**
  * Where a window from before the core kept it wrote down which preset's rack
@@ -46,7 +70,8 @@ const handOverRackHold = (api: TCoreCopiesBridge): void => {
 
 /**
  * The window's lists, handed whole to the app's core: the game profiles and
- * the Games page's switch, and the saved chains (`common/coreCopies.ts`).
+ * the Games page's switch, and the saved chains (`common/coreCopies.ts`) —
+ * and its colours, whenever the theme or a scene's tint changes them.
  *
  * This window is where they are made and changed. The core keeps a copy so a
  * game's sound can be put on with the window minimised or not open at all:
@@ -71,10 +96,34 @@ export default function CoreCopies() {
     };
     sendBoth();
     handOverRackHold(api);
+    // Read once a frame at most, with the frame that paints them: a tint
+    // that moves changes the root's colours on every one.
+    let lastColours = '';
+    let frame = 0;
+    const sendColours = () => {
+      frame = 0;
+      const colours = windowColours();
+      const text = JSON.stringify(colours);
+      if (text !== lastColours) {
+        lastColours = text;
+        api?.keepCardColoursForCore?.(colours);
+      }
+    };
+    const coloursChanged = () => {
+      if (frame === 0) {
+        frame = window.requestAnimationFrame(sendColours);
+      }
+    };
+    sendColours();
+    const stopColours = subscribeRoot(coloursChanged);
     window.addEventListener(GAME_PROFILES_CHANGED, sendGames);
     window.addEventListener(DSP_PRESETS_CHANGED, sendPresets);
     window.addEventListener('storage', sendBoth);
     return () => {
+      stopColours();
+      if (frame !== 0) {
+        window.cancelAnimationFrame(frame);
+      }
       window.removeEventListener(GAME_PROFILES_CHANGED, sendGames);
       window.removeEventListener(DSP_PRESETS_CHANGED, sendPresets);
       window.removeEventListener('storage', sendBoth);

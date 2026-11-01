@@ -4,11 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { AutoEqFormat } from 'common/constants';
-import type { IDspSettings } from 'common/dsp/chain';
-import type { ISongSound, TSongSoundLanded } from 'common/songSound';
-import { toTone } from 'common/tone';
-import { NONE_CHAIN_ID, activeDspPresetId } from '../dsp/dspPresetCatalog';
+import { AutoEqFormat } from './constants';
+import type { IDspSettings } from './dsp/chain';
+import { NONE_CHAIN_ID, activeDspPresetId } from './dsp/presetPick';
+import type { ISongSound, TSongSoundLanded } from './songSound';
+import { toTone } from './tone';
 
 /**
  * The sound playing, as the song memory reads it (`songSound.ts`): the

@@ -37,7 +37,6 @@ import {
   useSoundPaneFolded,
   useSoundPaneSlide,
 } from './utils/soundPane';
-import GameSound from './games/GameSound';
 import CoreCopies from './CoreCopies';
 import useMainEditorWhile from './utils/useMainEditorWhile';
 import PresetToneFeed from './dsp/PresetToneFeed';
@@ -735,16 +734,12 @@ const AppContent = () => {
                 tab. Mounted once and never unmounted, a continuous measurement
                 keeps its evidence for as long as the window is open. */}
               <SmartEqEngine />
-              {/* (Auto normalize on Equalizer APO measured here too; the app's
-                core hears and decides it now, `core/headroom`.) And the next,
-                for the same reason spelled out again because it is the one
-                that surprises: a game profile switches the sound
-                while FluidEQ is BEHIND the game. On the Games page it would
-                only ever work with the page open, which is the one moment
-                nobody is playing. */}
-              <GameSound />
-              {/* The game profiles and the saved chains, handed to the app's
-                core, which keeps a copy to act on without this window. */}
+              {/* (Auto normalize on Equalizer APO measured here too, and a
+                game's sound switched here; the app's core hears and decides
+                both now, `core/headroom` and `main/gameSound.ts`.) The game
+                profiles, the saved chains and the window's colours, handed
+                to the core, which keeps a copy to act on without this
+                window. */}
               <CoreCopies />
               {/* A preset's curve, told to the rack's Maximizer from wherever
                 the curve changes: a preset, its chip, the EQ mode menu. */}

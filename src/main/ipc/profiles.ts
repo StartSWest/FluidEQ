@@ -186,6 +186,14 @@ export interface IProfilesIpcDeps {
   notifyOutputStateChanged: () => void;
   onPlaybackOutputChanged?: () => Promise<void>;
   /**
+   * A song's own sound comes off before a profile is put on, so the profile
+   * lands on the listener's sound and nothing hands the song's back over it
+   * later (`songMemory.ts`). Absent where no song memory runs.
+   */
+  yieldSongSound?: () => Promise<void>;
+  /** The sound playing is about to be saved as a profile: it stays. */
+  keepSongSound?: () => Promise<void>;
+  /**
    * Given the outputs just read, keeps one engine in Windows' effect lists —
    * `createApoGuard`. Here because this is the one place in the app that
    * learns what is registered on every output — whenever Windows says an
@@ -290,6 +298,7 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
     log.info(`Loading preset: ${presetName}`);
 
     try {
+      await deps.yieldSongSound?.();
       const presetSettings: IPresetV2 = fetchPreset(
         presetName,
         owner.presetDir,
@@ -359,6 +368,7 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
       const channel = ChannelEnum.RESTORE_PRESET_BASELINE;
       const presetName = arg[0] as string;
       try {
+        await deps.yieldSongSound?.();
         const baseline = fetchPresetBaseline(presetName, owner.baselineDir);
         if (!baseline) {
           handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
@@ -475,6 +485,8 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
         return;
       }
 
+      // Saved as heard, a song's own sound included, which then stays.
+      await deps.keepSongSound?.();
       const preset = structuredClone(getCurrentPreset());
       await savePreset(presetName, preset, owner.presetDir, 'manual-save');
       // This is the copy the user chose to keep. Later edits auto-save over the
@@ -509,6 +521,9 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
       }
 
       const targetName = availableProfileNameForActiveDevice(requestedName);
+      // What plays is what the profile is made of, a song's own sound
+      // included, so that sound stays rather than being handed back.
+      await deps.keepSongSound?.();
       const preset = structuredClone(getCurrentPreset());
       await savePreset(targetName, preset, owner.presetDir, 'profile-created');
       await savePresetBaseline(targetName, preset, owner.baselineDir);

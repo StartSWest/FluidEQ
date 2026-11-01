@@ -388,44 +388,16 @@ export const applyDspSettings = (next: IDspSettings): void => {
 };
 
 /**
- * The listener's own rack while a song's preset is lent to it
- * (`songSoundSession.ts`), and what is written down meanwhile: a song's rack
- * never outlives its song, not even through an app that ends while it plays.
- * Main keeps the preset's curve the same way (`songSoundLoan.ts`).
+ * The listener's own rack while a song's is lent to the output by the core
+ * (`main/songMemory.ts`), as the core's snapshot says it, and what an edit
+ * here writes down meanwhile: a song's rack never outlives its song, not
+ * even through an app that ends while it plays.
  */
 let ownRack: IDspSettings | undefined;
 
 /** Write whatever is currently applied. Called when a gesture ends. */
 export const persistDspSettings = (): void => {
   pushSystemChain(true);
-};
-
-/**
- * Play a song's rack. The listener's own is kept aside the first time; a
- * song following a song keeps the rack the first one took.
- */
-export const lendDspSettings = (next: IDspSettings): void => {
-  ownRack = ownRack ?? readDspSettings();
-  applyDspSettings(next);
-};
-
-/** Whether a song's rack is playing in place of the listener's own. */
-export const isDspLent = (): boolean => ownRack !== undefined;
-
-/**
- * End a loan: the listener's own rack back on (`restore`), or what plays kept
- * as theirs; written down either way.
- */
-export const endDspLoan = (restore: boolean): void => {
-  const own = ownRack;
-  if (!own) {
-    return;
-  }
-  ownRack = undefined;
-  if (restore) {
-    applyDspSettings(own);
-  }
-  persistDspSettings();
 };
 
 /** Game mode is an output preference, independent of the selected sound. */

@@ -85,7 +85,6 @@ import { registerFiltersIpc } from './ipc/filters';
 import registerBandDesignsIpc from './ipc/bandDesigns';
 import { registerLayersIpc } from './ipc/layers';
 import registerSongEqHandlers from './ipc/songEq';
-import registerSongSoundIpc from './ipc/songSound';
 import { registerPreampIpc } from './ipc/preamp';
 import registerVideoIpc from './ipc/video';
 import { registerKaraokeSeparation } from './karaokeSeparation';
@@ -121,6 +120,15 @@ import {
 import registerCoreCopies from './ipc/coreCopies';
 import { createPresetPicks } from './presetPicks';
 import registerPresetPicksIpc from './ipc/presetPicks';
+import { createSongMemory } from './songMemory';
+import { createGameSound } from './gameSound';
+import mainText from './mainText';
+import { createSongSoundMemory } from './songSoundMemory';
+import registerSongMemoryIpc from './ipc/songMemory';
+import {
+  SONG_MEMORY_CHANNEL,
+  parseSongMemorySwitch,
+} from '../common/songMemoryStatus';
 import { outputRackLine } from './outputDsp';
 import { registerForumIpc } from './ipc/forum';
 import { registerMotionPreferenceIpc } from './ipc/motionPreference';
@@ -166,7 +174,7 @@ import {
   shieldReferenceBands,
 } from './profileStore';
 import createApoDiskSync from './apoDiskSync';
-import { createUpdatePath, handleError } from './updatePath';
+import { createUpdatePath, handleError, isErrorReply } from './updatePath';
 import registerDiagnosticsIpc from './ipc/diagnostics';
 import { registerPerformanceLog } from './ipc/performance';
 import registerApoConfigIpc from './ipc/apoConfig';
@@ -460,6 +468,7 @@ const { apoGuard, writeLegacyRack } = registerEngineServices({
       log.error('Could not move output processing to the new engine', error),
     );
   },
+  onRackChanged: () => songMemory.soundMayHaveChanged(),
 });
 
 // Two dozen dependencies, and the list is worth reading rather than skipping:
@@ -492,6 +501,8 @@ const profilesIpc = registerProfilesIpc({
   notifyOutputStateChanged,
   guardAgainstApo: apoGuard.check,
   onPlaybackOutputChanged: () => sourceAnalysis.reflush(),
+  yieldSongSound: () => songMemory.yieldSound(),
+  keepSongSound: () => songMemory.keepSound(),
 });
 
 registerApoConfigIpc({
@@ -588,12 +599,6 @@ registerLayersIpc({
 });
 
 registerSongEqHandlers(userDataDir);
-registerSongSoundIpc({
-  state,
-  userDataDir,
-  handleUpdateHelper,
-  getOutputEditor: () => outputEditorOf(session),
-});
 
 onWindowMessage(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {
   const channel = ChannelEnum.SET_WINDOW_SIZE;
@@ -671,6 +676,13 @@ registerCoreCopies({
   rackHold,
 });
 
+/** The core changed the edited output's sound by itself: the window reads it. */
+const tellWindowSoundChanged = () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(ChannelEnum.OUTPUT_SOUND_CHANGED);
+  }
+};
+
 /** Presets put on by the core: every picker's, and at a switch of engine. */
 const presetPicks = createPresetPicks({
   state,
@@ -693,13 +705,48 @@ const presetPicks = createPresetPicks({
         version,
       }),
     ),
-  tellWindow: () => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send(ChannelEnum.OUTPUT_SOUND_CHANGED);
-    }
-  },
+  tellWindow: tellWindowSoundChanged,
 });
 registerPresetPicksIpc(presetPicks);
+
+/**
+ * Which sound each song is played with, remembered and put back by the
+ * core (`songMemory.ts`), its switch kept here beside it.
+ */
+const songMemory = createSongMemory({
+  state,
+  session,
+  memory: createSongSoundMemory(userDataDir),
+  savedChains: keptDspPresets.read,
+  isOn: createKeptFile<boolean | undefined>({
+    filePath: path.join(userDataDir, 'song-sound-switch.json'),
+    parse: parseSongMemorySwitch,
+    empty: undefined,
+    log,
+  }),
+  update: async (label) => {
+    let landed = false;
+    await handleUpdate(
+      {
+        reply: (_channel, payload) => {
+          landed = !isErrorReply(payload);
+        },
+      },
+      label,
+      false,
+      true,
+    );
+    return landed;
+  },
+  tellWindowSound: tellWindowSoundChanged,
+  tellWindowStatus: (status) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(SONG_MEMORY_CHANNEL.status, status);
+    }
+  },
+  systemSound,
+});
+registerSongMemoryIpc({ getMainWindow, memory: songMemory });
 
 /** Auto normalize on Equalizer APO, heard and decided by the core. */
 const apoHeadroom = createApoHeadroom({
@@ -755,6 +802,8 @@ function followTheSound(): void {
     apoHeadroom.edited();
   }
   lastChain = { parts, texts };
+  songMemory.soundMayHaveChanged();
+  gameSound.soundMayHaveChanged();
 }
 
 /**
@@ -844,15 +893,56 @@ const secondOutputs = createSecondOutputs({
 });
 const stopOutputMirrors = registerOutputMirrorIpc(getMainWindow, secondOutputs);
 
-// Game profiles: what the launchers have installed, and which program
-// Windows has put in front. The watcher behind it runs only while the window
-// asks for it — see `ipc/games.ts`.
-registerGamesIpc({
+// Game profiles: what the launchers have installed, which program Windows
+// has put in front, and the sound a game puts on, decided by the core
+// (`gameSound.ts`). The watcher runs while the core has profiles to match or
+// the Games page asks — see `ipc/games.ts`.
+const gamesIpc = registerGamesIpc({
   getMainWindow,
+  onFront: (program) => {
+    gameSound.heard(program).catch(() => undefined);
+  },
+  onGone: (pid) => {
+    gameSound.ended(pid).catch(() => undefined);
+  },
+  coreWantsWatch: () => {
+    const { enabled, profiles: kept } = keptGames.read();
+    return enabled && kept.length > 0;
+  },
+  sounding: () => gameSound.sounding(),
+});
+const gameSound = createGameSound({
+  state,
+  session,
+  games: keptGames,
+  savedChains: keptDspPresets.read,
+  openPlayingOutput: async () => {
+    let opened = false;
+    await profiles.runProfileMutation(async () => {
+      opened = await profilesIpc.openPlayingOutput();
+    });
+    return opened;
+  },
+  pick: (presetId) =>
+    presetPicks.pick(
+      { id: presetId, quick: true, deviceId: session.activeAudioDeviceId },
+      // A refusal is the update path's to log; there is nobody to answer.
+      { reply: () => undefined },
+      'gameSound',
+    ),
+  songMemory,
+  holdProcess: gamesIpc.hold,
+  showCard: gamesIpc.showCard,
+  tellWindow: gamesIpc.tellSounding,
   // A game in front holds the desktop backgrounds still: they and the game
   // draw on the same graphics card, and the one being played is the one that
   // matters.
   onPlaying: (playing) => members.wallpaperIpc.setGameInFront(playing),
+  t: mainText,
+});
+keptGames.onChange(() => {
+  gamesIpc.refreshWatch();
+  gameSound.gamesChanged().catch(() => undefined);
 });
 
 // The system volume, for the compact player's slider when what is playing is
@@ -989,6 +1079,7 @@ registerSettingsResetIpc({
       log.error('Settings reset: could not save the graph switch', error),
     );
   },
+  stopSongMemory: () => songMemory.setOn(false),
   logger: log,
 });
 // The taskbar button in the window's colours; the installed icon while it
@@ -1165,7 +1256,14 @@ app.on('before-quit', (event) => {
     // handler asks for later finds it on disk and has nothing left to do; and
     // a memory trace still recording is written rather than lost.
     placement.saveWindowState();
-    Promise.all([flushPendingWrites(), memoryTrace.stopMemoryTrace()])
+    // A song edited while it played is filed before the writes drain, and
+    // its own sound handed back, so the state file holds the listener's.
+    songMemory
+      .close()
+      .catch((error) => log.error('The song memory could not close', error))
+      .then(() =>
+        Promise.all([flushPendingWrites(), memoryTrace.stopMemoryTrace()]),
+      )
       .catch(() => undefined)
       .then(resetActiveEngineForQuit)
       .catch((error) => log.error('Resetting the audio engine failed', error))
@@ -1363,6 +1461,7 @@ const onAppReady = async () => {
         // normalize's, may hear it on the output Windows has moved to.
         desktopSound.outputChanged();
         apoHeadroom.outputChanged();
+        songMemory.outputChanged();
         return profilesIpc.followOutputs(devices, (channel, payload) => {
           if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send(channel, payload);

@@ -17,8 +17,7 @@ import { dspPresetSettings } from 'common/dsp/presets';
 import {
   adoptEditedRack,
   adoptOutputDsp,
-  endDspLoan,
-  isDspLent,
+  applyDspSettings,
   readDspSettings,
   useDspSettings,
 } from 'renderer/dsp/store';
@@ -59,19 +58,25 @@ it('keeps the window’s rack on a read of the same editor, and takes the core�
   act(() => adoptEditedRack({ ...snapshot, dsp: GAMING }));
   expect(shown.result.current).toEqual(GAMING);
   expect(readDspSettings()).toEqual(GAMING);
-  expect(isDspLent()).toBe(false);
   // Written by the core already.
   expect(sendSystemDspChain).not.toHaveBeenCalled();
 });
 
-it('keeps a song’s lent rack lent, with the listener’s own kept to come back', () => {
+/** What the next turn of a knob here asks the core to keep as the output's. */
+const keptByAnEdit = () => {
+  jest.mocked(sendSystemDspChain).mockClear();
+  applyDspSettings({ ...readDspSettings(), gameMode: true });
+  return jest.mocked(sendSystemDspChain).mock.calls[0]?.[1]?.savedSettings;
+};
+
+it('keeps a song’s lent rack lent: an edit during it saves the listener’s own', () => {
   const snapshot = editing();
   adoptEditedRack({ ...snapshot, dsp: GAMING, ownedDsp: MUSIC });
   expect(readDspSettings()).toEqual(GAMING);
-  expect(isDspLent()).toBe(true);
-
-  endDspLoan(true);
-  expect(readDspSettings()).toEqual(MUSIC);
+  expect(keptByAnEdit()).toEqual(MUSIC);
+  // POSITIVE CONTROL: with no song lending one, an edit saves nothing aside.
+  adoptEditedRack({ ...snapshot, dsp: GAMING });
+  expect(keptByAnEdit()).toBeUndefined();
 });
 
 it('takes nothing without an editor to take it for', () => {

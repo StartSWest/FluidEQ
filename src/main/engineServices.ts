@@ -110,6 +110,8 @@ export interface IEngineServicesDeps {
   reflush: () => Promise<TReflushResult>;
   /** A switch of engine finished — `IAudioEngineIpcDeps.onSwitched`. */
   onEngineSwitched: (from: TAudioEngine | null) => void;
+  /** The window changed the edited output's rack: what it plays now. */
+  onRackChanged: () => void;
 }
 
 /**
@@ -124,6 +126,7 @@ export const registerEngineServices = ({
   presetDirForDevice,
   reflush,
   onEngineSwitched,
+  onRackChanged,
 }: IEngineServicesDeps) => {
   const outputSound = createOutputSoundStore(
     state,
@@ -215,7 +218,13 @@ export const registerEngineServices = ({
           }
         : undefined,
     getPlaybackGuid: () => session.playbackAudioDevice?.guid,
-    saveOutputDsp: outputSound.saveDsp,
+    // Told once the edit is recorded — the save's synchronous part — and
+    // not after the disk: what plays changed at the edit.
+    saveOutputDsp: (edit) => {
+      const saving = outputSound.saveDsp(edit);
+      onRackChanged();
+      return saving;
+    },
     isOutputDspCurrent: (edit) =>
       session.outputDspOverrides?.get(edit.deviceId) === edit.settings,
     writeOutputDsp: (configDirPath, edit) => {

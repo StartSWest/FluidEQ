@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { IDspSettings, IEqSettings } from '../../common/dsp/chain';
-import { DSP_PRESETS, IDspPreset } from '../../common/dsp/presets';
+import { DSP_PRESETS } from '../../common/dsp/presets';
+import { dspPresetName } from '../../common/dsp/presetName';
 import {
   NONE_CHAIN_ID,
   activeDspPresetId,
@@ -12,7 +13,6 @@ import {
 import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
 import type { IVoicingSettings } from '../../common/constants';
 import type { Translate } from '../../common/i18n';
-import type { TranslationKey } from '../../common/i18n/en';
 import {
   DSP_PRESETS_CHANGED,
   readFavouriteDspPresets,
@@ -64,16 +64,7 @@ export { NONE_CHAIN_ID, activeDspPresetId };
 /** What the rack's Reset puts on: the chain the picker calls Default. */
 export const DEFAULT_CHAIN_ID = 'balanced';
 
-/**
- * A factory chain's name. A Room copy is named as the chain it copies plus
- * what tells it apart — "Gaming · Room", "Gaming · Competitive" — so the
- * copies read as that chain's in every language without a second set of names
- * to translate.
- */
-export const dspPresetName = (preset: IDspPreset, t: Translate): string =>
-  preset.copyLabelKey === undefined
-    ? t(preset.labelKey as TranslationKey)
-    : `${t(preset.labelKey as TranslationKey)} · ${t(preset.copyLabelKey as TranslationKey)}`;
+export { dspPresetName };
 
 export interface IDspCatalogEntry {
   id: string;
