@@ -67,6 +67,7 @@ const remoteAudio = {
   'remoteAudio.linked.paused': 'Paused',
   'remoteAudio.linked.lossless': 'Lossless',
   'remoteAudio.linked.unlink': 'Unlink',
+  'remoteAudio.linked.reconnect': 'Reconnect',
   'remoteAudio.linked.pause': 'Pause',
   'remoteAudio.linked.resume': 'Resume',
   'remoteAudio.lane.inPaused': 'Paused. Nothing plays here until you resume.',
@@ -91,6 +92,8 @@ const remoteAudio = {
   'remoteAudio.lane.receiving': 'Receiving',
   'remoteAudio.lane.paused': 'Paused',
   'remoteAudio.lane.inQuiet': 'Nothing playing on {name}',
+  'remoteAudio.lane.reconnecting': 'Reconnecting…',
+  'remoteAudio.lane.unreachable': '{name} not found on this network',
   'remoteAudio.lane.inOff':
     'Switched off: {name}’s sound doesn’t play on this computer.',
   'remoteAudio.lane.inNotSent': '{name} has “Send my sound” off.',

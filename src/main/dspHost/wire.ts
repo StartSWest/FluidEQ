@@ -21,6 +21,7 @@ import {
   ANALYSIS_BASS_FORGE_BANDS,
   ANALYSIS_BINS,
   ANALYSIS_DEESSER_BANDS,
+  ANALYSIS_DEESSER_HEADER_BYTES,
   ANALYSIS_EQ_DETAIL_BINS,
   ANALYSIS_EQ_DETAIL_WINDOW,
   ANALYSIS_HEADER_BYTES,
@@ -31,6 +32,7 @@ import {
 import type {
   IHostAnalysis,
   IHostAnalysisDeEsser,
+  IHostAnalysisFootsteps,
   TAnalysisStage,
 } from '../../common/dsp/analysisWire';
 import { CHAIN_PARAM_LEAD } from '../../common/dsp/chainWire';
@@ -450,7 +452,8 @@ const processingLatencyOf = (view: DataView): IEngineLatency | undefined => {
     'headroom',
     'deEsser',
   ];
-  // The bits of `feq_chain_active_stages`, the De-esser's appended last.
+  // The bits of `feq_chain_active_stages`, the De-esser's and Footsteps'
+  // appended last.
   const active: TLatencyStage[] = [
     'leveler',
     'restoration',
@@ -464,6 +467,7 @@ const processingLatencyOf = (view: DataView): IEngineLatency | undefined => {
     'headroom',
     'master',
     'deEsser',
+    'footsteps',
   ];
   const mask = view.getUint32(148, true);
   const counts = delayed.map((stage, index) => ({
@@ -505,6 +509,19 @@ const decodeDeEsser = (view: DataView): IHostAnalysisDeEsser => {
     bandCutDb: run(592 + ANALYSIS_DEESSER_BANDS * 12),
   };
 };
+
+/** Footsteps' window, offsets 784 to 811 (`feq_wire_footsteps_report`). */
+const decodeFootsteps = (view: DataView): IHostAnalysisFootsteps => ({
+  levelDb: view.getFloat32(784, true),
+  cueDb: view.getFloat32(788, true),
+  bedDb: view.getFloat32(792, true),
+  liftDb: [
+    view.getFloat32(796, true),
+    view.getFloat32(800, true),
+    view.getFloat32(804, true),
+  ],
+  calmDb: view.getFloat32(808, true),
+});
 
 export const decodeTelemetry = (frame: Buffer): IHostTelemetry | undefined => {
   if (frame.length < TELEMETRY_BYTES) {
@@ -638,9 +655,10 @@ export const analysisFrameLength = (
 
 /**
  * One analysis frame. `headerBytes` is the header the writer was built with:
- * the Library host's is always this build's, and an engine before the
- * De-esser (`ENGINE_DEESSER_SINCE`) writes the 560 bytes before it, which
- * `engineAnalysis.ts` tries when this build's does not fit.
+ * the Library host's is always this build's, an engine before Footsteps
+ * (`ENGINE_FOOTSTEPS_SINCE`) writes the 784 bytes before it, and one before
+ * the De-esser (`ENGINE_DEESSER_SINCE`) the 560 before those, which
+ * `engineAnalysis.ts` tries in turn when this build's does not fit.
  */
 export const decodeAnalysis = (
   frame: Buffer,
@@ -818,8 +836,13 @@ export const decodeAnalysis = (
     },
     // Appended after the complete 560-byte header, and only in a frame that
     // has it: an engine before the De-esser has nothing to say about it.
-    ...(headerBytes >= ANALYSIS_HEADER_BYTES
+    ...(headerBytes >= ANALYSIS_DEESSER_HEADER_BYTES
       ? { deEsser: decodeDeEsser(view) }
+      : {}),
+    // After the 784 bytes that end with the De-esser, from an engine that has
+    // Footsteps.
+    ...(headerBytes >= ANALYSIS_HEADER_BYTES
+      ? { footsteps: decodeFootsteps(view) }
       : {}),
     // From a writer whose EQ spectrum is the live one; offsets 84 and 88 were
     // two of the retired guard's zeros, which is what every writer before

@@ -179,6 +179,12 @@ add_executable(fluideq-engine-dsp-chain-test tests/dsp_chain_test.cpp)
 target_link_libraries(fluideq-engine-dsp-chain-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-dsp-chain COMMAND fluideq-engine-dsp-chain-test)
+# Footsteps' trailer, from lines the TypeScript encoder wrote: read where it
+# stands, refused whole when it is one the engine does not know.
+add_executable(fluideq-engine-footsteps-line-test tests/footsteps_line_test.cpp)
+target_link_libraries(fluideq-engine-footsteps-line-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-footsteps-line COMMAND fluideq-engine-footsteps-line-test)
 add_executable(fluideq-engine-graph-crossing-test tests/graph_crossing_test.cpp)
 target_link_libraries(fluideq-engine-graph-crossing-test
   PRIVATE fluideq-engine-dsp feq_strict)

@@ -1,0 +1,240 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'dspTokens' as *;
+
+// Footsteps' picture, on the card above its three groups. Claims the whole
+// row the way every stage's display does.
+.dsp-footsteps-display {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+// Definite, as every DSP canvas is: its backing store follows this box, so an
+// intrinsic height would feed the measurement into itself.
+.dsp-footsteps-canvas {
+  width: 100%;
+  height: 260px;
+}
+
+@media (max-height: $bp-laptop-height) {
+  .dsp-footsteps-canvas {
+    height: 210px;
+  }
+}
+
+// Each chip in its own trace's ink, so the row is the plot's key: the lift in
+// the violet it stands up in, the calm in the amber it hangs in.
+.dsp-footsteps-status {
+  > span {
+    display: inline-flex;
+    gap: 6px;
+    align-items: baseline;
+  }
+
+  .is-lift,
+  .is-isolate {
+    border-color: color-mix(in srgb, var(--dsp-applied) 34%, transparent);
+    color: color-mix(in srgb, var(--dsp-applied) 92%, transparent);
+  }
+
+  .is-calm {
+    border-color: rgba($amber, 0.3);
+    color: rgba($amber, 0.92);
+  }
+
+  .is-bed {
+    border-color: rgba($white, 0.14);
+  }
+
+  b {
+    color: inherit;
+    font-weight: $weight-bold;
+  }
+}
+
+.dsp-footsteps-legend {
+  .is-everything {
+    color: rgba($white, 0.9);
+  }
+
+  // `CUE_INK` in `DspFootstepsGraph.tsx`.
+  .is-steps {
+    color: rgb(206 218 228 / 85%);
+  }
+
+  .is-lifted {
+    color: var(--dsp-applied);
+    opacity: 0.7;
+  }
+
+  .is-calmed {
+    color: $amber;
+    opacity: 0.6;
+  }
+
+  .is-dashed {
+    color: rgba($white, 0.6);
+  }
+}
+
+// THREE GROUPS ON ONE GRID, EVERY ROW ON A LINE.
+//
+// Lift and Calm side by side with the bands on a row of their own under
+// them, and all three in one row from a medium card — never one dial alone
+// on a row, and never a hole beside the last group. Each group lays itself
+// out on four rows of the grid (`subgrid`) — its name, its note, its control,
+// what the control reaches — so groups standing side by side start every row
+// on one line whatever a language makes of the words.
+.dsp-footsteps-controls {
+  display: grid;
+  flex: 1 1 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+
+  > .dsp-band {
+    display: grid;
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+    row-gap: 6px;
+    align-items: start;
+  }
+
+  > .dsp-band:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@container dsp-card (min-width: #{$bp-md}) {
+  .dsp-footsteps-controls {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr);
+
+    > .dsp-band:last-child {
+      grid-column: auto;
+    }
+  }
+
+  // In a column the three stack: two side by side over one left a hole.
+  // Under the controls' class, to win over the lamps' own rule further down.
+  .dsp-footsteps-controls .dsp-footsteps-lamps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// What the dial reaches, in the dial's own terms: the decibels a step comes
+// up by at most, under the percentage the knob shows.
+.dsp-footsteps-reach {
+  margin: 0;
+  color: color-mix(in srgb, var(--dsp-applied) 88%, transparent);
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+
+  &.is-calm {
+    color: rgba($amber, 0.9);
+  }
+}
+
+// The bands, each a lamp that fills by as much as its band is lifted. Spans
+// the control's row and the reach's, which this group has no use for.
+// On a row of their own the three stand side by side; in a column, stacked.
+.dsp-footsteps-lamps {
+  display: grid;
+  grid-row: span 2;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 10px 16px;
+  align-self: center;
+  margin: 0;
+  padding: 2px 0 6px;
+  list-style: none;
+}
+
+.dsp-footsteps-lamp {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'name figure'
+    'track track'
+    'where where';
+  gap: 3px 8px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.dsp-footsteps-lamp-name {
+  grid-area: name;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: $text-primary;
+  font-size: $text-small;
+}
+
+.dsp-footsteps-lamp-where {
+  grid-area: where;
+  color: $text-faint;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+}
+
+.dsp-footsteps-lamp-figure {
+  grid-area: figure;
+  color: color-mix(in srgb, var(--dsp-applied) 92%, transparent);
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+  font-weight: $weight-bold;
+}
+
+// The track is the most the band can be lifted at a Lift of one; the fill
+// grows from its left edge by the share being used now.
+.dsp-footsteps-lamp-track {
+  grid-area: track;
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba($white, 0.07);
+}
+
+.dsp-footsteps-lamp-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--dsp-applied) 55%, transparent),
+    var(--dsp-applied)
+  );
+  box-shadow: 0 0 10px color-mix(in srgb, var(--dsp-applied) 45%, transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+// The old engine's notice: amber, the rack's colour for a fact rather than a
+// fault — the rest of the rack is playing, this one stage is not yet.
+.dsp-footsteps-engine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 7px 10px;
+  border: 1px solid rgba($amber, 0.4);
+  border-radius: $radius-xs;
+  background: rgba($amber, 0.07);
+
+  > p {
+    flex: 1 1 320px;
+    margin: 0;
+    color: $amber;
+    font-size: $text-body;
+    line-height: 1.4;
+  }
+}

@@ -35,6 +35,10 @@ export interface IAudioMethods {
   };
   'lan.signal': { args: [unknown]; result: void };
   'lan.audio': { args: [unknown]; result: void };
+  'lan.reconnect': {
+    args: [{ peerId?: string; computerId?: string }];
+    result: boolean;
+  };
   'lan.retry': { args: []; result: void };
   'lan.stop': { args: []; result: void };
   routing: { args: [IAudioRouting]; result: void };

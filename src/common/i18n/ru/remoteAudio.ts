@@ -62,6 +62,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.linked.paused': 'Пауза',
   'remoteAudio.linked.lossless': 'Без потерь',
   'remoteAudio.linked.unlink': 'Разорвать связь',
+  'remoteAudio.linked.reconnect': 'Переподключить',
   'remoteAudio.linked.pause': 'Пауза',
   'remoteAudio.linked.resume': 'Продолжить',
   'remoteAudio.lane.inPaused':
@@ -88,6 +89,8 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.receiving': 'Приём',
   'remoteAudio.lane.paused': 'Пауза',
   'remoteAudio.lane.inQuiet': 'На {name} ничего не играет',
+  'remoteAudio.lane.reconnecting': 'Переподключение…',
+  'remoteAudio.lane.unreachable': '{name} не найден в этой сети',
   'remoteAudio.lane.inOff':
     'Выключено: звук {name} не воспроизводится на этом компьютере.',
   'remoteAudio.lane.inNotSent': 'На {name} выключено «Отправлять мой звук».',

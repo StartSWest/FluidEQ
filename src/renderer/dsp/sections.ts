@@ -19,6 +19,7 @@ export type TDspSection =
   | 'deEsser'
   | 'crossfade'
   | 'eq'
+  | 'footsteps'
   | 'exciter'
   | 'bassForge'
   | 'bassPunch'
@@ -50,6 +51,10 @@ export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   // rack's two synthesis stages just made.
   { id: 'bassForge', labelKey: 'dsp.bassForge.title' },
   { id: 'eq', labelKey: 'dsp.eq.title' },
+  // After the EQ and before Bass Punch, where the audio runs
+  // (`chain_process_footsteps`): what is quiet is decided on the sound as the
+  // EQ voiced it, and lifted before the level stages and the Room.
+  { id: 'footsteps', labelKey: 'dsp.footsteps.title' },
   // After the EQ rather than beside Forge, because that is where the audio
   // runs: `chain_process_bass_punch` sits between the EQ and Dimension so the
   // envelope it shapes is the one the EQ has already voiced, not one the EQ

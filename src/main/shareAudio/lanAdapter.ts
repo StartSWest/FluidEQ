@@ -77,6 +77,9 @@ export const createWorkerLan = (
     unlink: (target) => {
       host.request('lan.unlink', target).catch(failed);
     },
+    // A service that has gone cannot have reached the computer.
+    reconnect: (target) =>
+      host.request('lan.reconnect', target).catch(() => false),
     retry: () => {
       host.request('lan.retry').catch(failed);
     },

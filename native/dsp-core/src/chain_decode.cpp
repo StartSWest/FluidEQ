@@ -79,9 +79,10 @@ int feq_chain_settings_decode(const double* values,
   // A trailer leaves every existing band offset intact. Older saved snapshots
   // still decode with the normalizer off instead of shifting their EQ bands.
   // After the normalizer's three comes game mode's one — written only when it
-  // is on, or when a tagged trailer follows it — then the Room's trailer and
-  // the tone's, each recognised by its tag and each only where the one before
-  // it may stand. Anything else is a line this engine does not know.
+  // is on, or when a tagged trailer follows it — then the Room's trailer,
+  // Footsteps' and the tone's, each recognised by its tag and each only where
+  // the one before it may stand. Anything else is a line this engine does
+  // not know.
   const uint32_t tail = count - legacy_count;
   if (count < legacy_count || tail == 1 || tail == 2) {
     return 0;
@@ -95,6 +96,22 @@ int feq_chain_settings_decode(const double* values,
   if (extended_room) {
     if (count < trailer_at + FEQ_CHAIN_ROOM_TRAILER) return 0;
     trailer_at += FEQ_CHAIN_ROOM_TRAILER;
+  }
+  const bool has_footsteps =
+      has_low_latency && count > trailer_at &&
+      values[trailer_at] == FEQ_CHAIN_FOOTSTEPS_TAG;
+  if (has_footsteps) {
+    if (count < trailer_at + FEQ_CHAIN_FOOTSTEPS_TRAILER) return 0;
+    // Its switch and Isolate are flags, Lift and Calm fractions: anything
+    // else is a Footsteps this engine does not know.
+    const double* foot = values + trailer_at;
+    if (foot[1] != FEQ_CHAIN_FOOTSTEPS_SCHEMA ||
+        foot[2] != FEQ_CHAIN_FOOTSTEPS_FIELDS ||
+        (foot[3] != 0 && foot[3] != 1) || (foot[4] != 0 && foot[4] != 1) ||
+        foot[5] < 0 || foot[5] > 1 || foot[6] < 0 || foot[6] > 1) {
+      return 0;
+    }
+    trailer_at += FEQ_CHAIN_FOOTSTEPS_TRAILER;
   }
   const bool has_tone = has_low_latency && count > trailer_at;
   uint32_t tone_bands = 0;
@@ -387,6 +404,13 @@ int feq_chain_settings_decode(const double* values,
     out->room.preserve_position = flag();
     out->room.compare_original = flag();
     out->room.source_already_spatial = flag();
+  }
+  if (has_footsteps) {
+    at += 3;  // validated tag, schema and field count
+    out->footsteps.enabled = flag();
+    out->footsteps.isolate = flag();
+    out->footsteps.lift = next();
+    out->footsteps.calm = next();
   }
   if (has_tone) {
     at += 3; // validated tag, schema and band count

@@ -289,6 +289,8 @@ export const createAudioRuntime = ({
       case 'lan.unlink':
         network().unlink(...request.args);
         return undefined;
+      case 'lan.reconnect':
+        return network().reconnect(...request.args);
       case 'lan.signal':
         network().sendSignal(...request.args);
         return undefined;

@@ -125,6 +125,7 @@ export const dspPresetHint = (
     settings.exciter.enabled ? t('dsp.exciter.title') : '',
     settings.bassForge.enabled ? t('dsp.bassForge.title') : '',
     settings.eq.enabled || curve ? t('dsp.eq.title') : '',
+    settings.footsteps.enabled ? t('dsp.footsteps.title') : '',
     settings.bassPunch.enabled ? t('dsp.bassPunch.title') : '',
     settings.room.enabled ? t('dsp.room.title') : '',
     settings.dimension.enabled ? t('dsp.dimension.title') : '',

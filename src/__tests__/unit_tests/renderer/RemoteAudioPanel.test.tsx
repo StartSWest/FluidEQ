@@ -147,13 +147,59 @@ describe('the Share Audio page before a link', () => {
     fireEvent.click(
       within(away).getByRole('button', { name: 'remoteAudio.group.options' }),
     );
+    // Nothing to pause on a computer that is away: Reconnect comes first.
     expect(
-      screen.getByRole('menuitem', { name: 'remoteAudio.linked.unlink' }),
+      screen.getByRole('menuitem', { name: 'remoteAudio.linked.reconnect' }),
     ).toHaveFocus();
     fireEvent.click(
       screen.getByRole('menuitem', { name: 'remoteAudio.linked.unlink' }),
     );
     expect(remote.unlink).toHaveBeenCalledWith({ computerId: 'away' });
+  });
+
+  it('reconnects a computer that is away with its saved code, and says when it was not found', async () => {
+    let answer: (linked: boolean) => void = () => undefined;
+    const reconnect = jest.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          answer = resolve;
+        }),
+    );
+    const bridged = window as unknown as { electron?: unknown };
+    const before = bridged.electron;
+    bridged.electron = { ipcRenderer: { reconnectRemoteAudioLan: reconnect } };
+    try {
+      const remote = remoteAudioValue({
+        links: [remoteAudioLink({ computerId: 'here' })],
+        looking: [{ computerId: 'away', deviceName: 'SWEST-DESK' }],
+      });
+      renderPanel(remote);
+      const away = () => {
+        const row = screen.getByRole('article', { name: 'SWEST-DESK' });
+        return within(row);
+      };
+      fireEvent.click(
+        away().getByRole('button', { name: 'remoteAudio.group.options' }),
+      );
+      fireEvent.click(
+        screen.getByRole('menuitem', { name: 'remoteAudio.linked.reconnect' }),
+      );
+      expect(reconnect).toHaveBeenCalledWith({ computerId: 'away' });
+      expect(away().getByText('remoteAudio.lane.reconnecting')).toBeVisible();
+      // A second press while it is tried is not offered.
+      fireEvent.click(
+        away().getByRole('button', { name: 'remoteAudio.group.options' }),
+      );
+      expect(
+        screen.getByRole('menuitem', { name: 'remoteAudio.linked.reconnect' }),
+      ).toBeDisabled();
+
+      await act(async () => answer(false));
+      expect(away().getByText('remoteAudio.lane.unreachable')).toBeVisible();
+      expect(remote.unlink).not.toHaveBeenCalled();
+    } finally {
+      bridged.electron = before;
+    }
   });
 });
 
@@ -414,6 +460,20 @@ describe('a linked computer', () => {
     });
     expect(pause).toHaveFocus();
     fireEvent.keyDown(pause, { key: 'ArrowDown' });
+    const reconnect = screen.getByRole('menuitem', {
+      name: 'remoteAudio.linked.reconnect',
+    });
+    expect(reconnect).toHaveFocus();
+    fireEvent.keyDown(reconnect, { key: 'End' });
+    expect(
+      screen.getByRole('menuitem', { name: 'remoteAudio.linked.unlink' }),
+    ).toHaveFocus();
+    fireEvent.keyDown(
+      screen.getByRole('menuitem', { name: 'remoteAudio.linked.unlink' }),
+      { key: 'ArrowDown' },
+    );
+    expect(pause).toHaveFocus();
+    fireEvent.keyDown(pause, { key: 'ArrowUp' });
     expect(
       screen.getByRole('menuitem', { name: 'remoteAudio.linked.unlink' }),
     ).toHaveFocus();

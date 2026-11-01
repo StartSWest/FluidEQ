@@ -279,7 +279,7 @@ const help = {
   'help.games.steps':
     'Open EQ → Game presets and press Add a game. Pick one from your launchers, a program that is open now, or choose its program yourself.\nPick the sound it should get in the picker on its row: a Gaming preset, or any other.\nStart the game. A card on the desktop says what FluidEQ switched to, and another says what came back when you close it.',
   'help.games.tip':
-    'While a game holds the sound, the bar at the foot of the window names it. Pick another sound while you play and it stays: FluidEQ only puts back what it put on. Gaming presets also turn on Game mode.',
+    'While a game holds the sound, the bar at the foot of the window names it. Pick another sound while you play and it stays: FluidEQ only puts back what it put on. Gaming presets also turn on Game mode and Footsteps, which brings up quiet steps and reloads as they happen.',
   'help.games.keywords':
     'gaming, game profile, per game, per-game, per app, automatic, auto switch, steam, epic, launcher, fps, shooter, footsteps, competitive, alt-tab, game mode',
   'help.games.tab': 'Your games and the sound each one gets.',
@@ -356,11 +356,11 @@ const help = {
   'help.dsp.intro':
     'The DSP rack is a chain of studio stages. Under the FluidEQ Engine it processes everything the PC plays; under Equalizer APO it processes Library audio tracks. It is off while FluidEQ is switched off.',
   'help.dsp.steps':
-    'Open DSP. Pick a chain under Presets, or select a stage in the rail and switch it On.\nChange one control at a time and compare with the stage bypassed at a similar volume. Isolate lets you hear only what a stage adds.\nSave a rack you like, and use Export and Import to share it.\nThe De-esser turns down the sharp S, T and SH of a voice only while they sound, and leaves cymbals alone; Speech, Podcast and Audiobook switch it on. Every stage can keep profiles of your own: set it, then press Save.',
+    'Open DSP. Pick a chain under Presets, or select a stage in the rail and switch it On.\nChange one control at a time and compare with the stage bypassed at a similar volume. Isolate lets you hear only what a stage adds.\nSave a rack you like, and use Export and Import to share it.\nThe De-esser turns down the sharp S, T and SH of a voice only while they sound, and leaves cymbals alone; Speech, Podcast and Audiobook switch it on. Every stage can keep profiles of your own: set it, then press Save.\nFootsteps brings up the quiet sounds of a game, like steps and reloads, as they happen, and leaves gunfire, explosions and echoes alone; the Gaming presets switch it on.',
   'help.dsp.tip':
     'Louder often sounds better simply because it is louder, so compare at matched levels. Ctrl-click a dial to return it to its default.',
   'help.dsp.keywords':
-    'effects, fx, audio effects, rack, chain, plugins, limiter, loudness, normalizer, leveler, volume leveling, exciter, harmonics, enhancer, stereo widener, widen, stereo width, bass enhancer, sub bass, subharmonic, punch, transient, mastering, clipping, peak limiter, crossfade, gapless, de-esser, deesser, sibilance, harsh s, sharp s, ess, voice, speech, podcast, profiles, save profile',
+    'effects, fx, audio effects, rack, chain, plugins, limiter, loudness, normalizer, leveler, volume leveling, exciter, harmonics, enhancer, stereo widener, widen, stereo width, bass enhancer, sub bass, subharmonic, punch, transient, mastering, clipping, peak limiter, crossfade, gapless, de-esser, deesser, sibilance, harsh s, sharp s, ess, voice, speech, podcast, profiles, save profile, footsteps, footstep, hear footsteps, steps, gaming, game audio, reloads, loudness equalization',
   'help.dsp.normalizer':
     'Evens out loudness. On live audio it levels song by song.',
   'help.dsp.denoise':

@@ -62,6 +62,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.linked.paused': 'Pausado',
   'remoteAudio.linked.lossless': 'Sem perdas',
   'remoteAudio.linked.unlink': 'Desvincular',
+  'remoteAudio.linked.reconnect': 'Reconectar',
   'remoteAudio.linked.pause': 'Pausar',
   'remoteAudio.linked.resume': 'Retomar',
   'remoteAudio.lane.inPaused': 'Pausado. Nada toca aqui até você retomar.',
@@ -85,6 +86,8 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.receiving': 'Recebendo',
   'remoteAudio.lane.paused': 'Pausado',
   'remoteAudio.lane.inQuiet': 'Nada tocando em {name}',
+  'remoteAudio.lane.reconnecting': 'Reconectando…',
+  'remoteAudio.lane.unreachable': '{name} não encontrado nesta rede',
   'remoteAudio.lane.inOff':
     'Desligado: o som de {name} não toca neste computador.',
   'remoteAudio.lane.inNotSent': '{name} está com “Enviar meu som” desligado.',

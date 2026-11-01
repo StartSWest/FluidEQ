@@ -289,7 +289,7 @@ const help: Record<keyof typeof en, string> = {
   'help.games.steps':
     'Öffnen Sie EQ → Spiel-Presets und drücken Sie Spiel hinzufügen. Nehmen Sie eines aus Ihren Launchern, ein Programm, das gerade offen ist, oder wählen Sie sein Programm selbst aus.\nWählen Sie in seiner Zeile aus, welchen Klang es bekommen soll: ein Gaming-Preset oder ein beliebiges anderes.\nStarten Sie das Spiel. Eine Karte auf dem Desktop zeigt, zu welchem Klang FluidEQ gewechselt hat, und eine weitere, welcher zurückkommt, wenn Sie es beenden.',
   'help.games.tip':
-    'Solange ein Spiel den Klang hält, zeigt die Leiste am unteren Fensterrand seinen Namen. Wählen Sie beim Spielen einen anderen Klang, bleibt er: FluidEQ nimmt nur zurück, was es selbst gesetzt hat. Gaming-Presets schalten außerdem den Spielmodus ein.',
+    'Solange ein Spiel den Klang hält, zeigt die Leiste am unteren Fensterrand seinen Namen. Wählen Sie beim Spielen einen anderen Klang, bleibt er: FluidEQ nimmt nur zurück, was es selbst gesetzt hat. Gaming-Presets schalten außerdem den Spielmodus und Schritte ein, das leise Schritte und Nachladen anhebt, während sie erklingen.',
   'help.games.keywords':
     'games, zocken, spielprofil, pro app, automatisch umschalten, ego-shooter, FPS, schritte hören, footsteps, gamemode',
   'help.games.tab': 'Ihre Spiele und der Klang, den jedes bekommt.',
@@ -367,11 +367,11 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'Das DSP-Rack ist eine Kette aus Studiostufen. Unter der FluidEQ-Engine verarbeitet es alles, was der PC abspielt; unter Equalizer APO die Audiotitel der Bibliothek. Solange FluidEQ ausgeschaltet ist, ist es aus.',
   'help.dsp.steps':
-    'Öffnen Sie DSP. Suchen Sie sich unter Presets eine Kette aus oder wählen Sie in der Seitenleiste eine Stufe und schalten Sie sie auf Ein.\nÄndern Sie jeweils nur einen Regler und vergleichen Sie bei ähnlicher Lautstärke mit umgangener Stufe. Mit Isolieren hören Sie nur, was eine Stufe hinzufügt.\nSpeichern Sie ein Rack, das Ihnen gefällt, und teilen Sie es mit Exportieren und Importieren.\nDer De-Esser senkt die scharfen S-, T- und Sch-Laute einer Stimme nur, während sie klingen, und lässt Becken unberührt; Sprache, Podcast und Hörbuch schalten ihn ein. Jede Stufe kann eigene Profile behalten: Stellen Sie sie ein und drücken Sie Speichern.',
+    'Öffnen Sie DSP. Suchen Sie sich unter Presets eine Kette aus oder wählen Sie in der Seitenleiste eine Stufe und schalten Sie sie auf Ein.\nÄndern Sie jeweils nur einen Regler und vergleichen Sie bei ähnlicher Lautstärke mit umgangener Stufe. Mit Isolieren hören Sie nur, was eine Stufe hinzufügt.\nSpeichern Sie ein Rack, das Ihnen gefällt, und teilen Sie es mit Exportieren und Importieren.\nDer De-Esser senkt die scharfen S-, T- und Sch-Laute einer Stimme nur, während sie klingen, und lässt Becken unberührt; Sprache, Podcast und Hörbuch schalten ihn ein. Jede Stufe kann eigene Profile behalten: Stellen Sie sie ein und drücken Sie Speichern.\nSchritte hebt die leisen Geräusche eines Spiels an, etwa Schritte und Nachladen, während sie erklingen, und lässt Schüsse, Explosionen und Echos in Ruhe; die Gaming-Presets schalten es ein.',
   'help.dsp.tip':
     'Lauter klingt oft nur deshalb besser, weil es lauter ist; vergleichen Sie also bei angeglichenem Pegel. Strg+Klick auf einen Drehregler setzt ihn auf seinen Standardwert zurück.',
   'help.dsp.keywords':
-    'audioeffekte, effektkette, voreinstellungen, limiter, peak-limiter, begrenzer, loudness, normalisieren, lautstärke angleichen, lautstärkeausgleich, lautstärkeschwankungen, enhancer, stereobreite, stereoverbreiterung, subbass, tiefbass, transienten, mastering, clipping, crossfade, überblenden, gapless, lückenlos, De-Esser, Zischlaute, scharfes S, Sibilanten, Stimme, Sprache, Podcast, Profile, Profil speichern',
+    'audioeffekte, effektkette, voreinstellungen, limiter, peak-limiter, begrenzer, loudness, normalisieren, lautstärke angleichen, lautstärkeausgleich, lautstärkeschwankungen, enhancer, stereobreite, stereoverbreiterung, subbass, tiefbass, transienten, mastering, clipping, crossfade, überblenden, gapless, lückenlos, De-Esser, Zischlaute, scharfes S, Sibilanten, Stimme, Sprache, Podcast, Profile, Profil speichern, schritte, schritte hören, footsteps, gaming, spielsound, nachladen, lautstärkeausgleich',
   'help.dsp.normalizer':
     'Gleicht die Lautheit an. Bei Live-Audio regelt sie Song für Song.',
   'help.dsp.denoise':

@@ -166,6 +166,7 @@ export const LATENCY_STAGES = [
   'exciter',
   'bassForge',
   'linearEq',
+  'footsteps',
   'bassPunch',
   'room',
   'dimension',
@@ -331,6 +332,16 @@ export const engineRackKeepsEars = (dllVersion: string | undefined): boolean =>
 export const ENGINE_DEESSER_SINCE: readonly [number, number] = [1, 23];
 export const engineRunsDeEsser = (dllVersion: string | undefined): boolean =>
   engineAtLeast(dllVersion, ENGINE_DEESSER_SINCE);
+
+/**
+ * The first engine that runs Footsteps (`footsteps.h`). Its settings ride a
+ * trailer an older engine refuses whole, so main takes the trailer off for
+ * one (`withoutFootsteps`) and the page says the engine needs updating. The
+ * Library's host is built with the app and always has it.
+ */
+export const ENGINE_FOOTSTEPS_SINCE: readonly [number, number] = [1, 25];
+export const engineRunsFootsteps = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_FOOTSTEPS_SINCE);
 
 /** Versioned Room commands and truthful comparison telemetry. */
 export const ENGINE_ROOM_SINCE: readonly [number, number] = [1, 11];

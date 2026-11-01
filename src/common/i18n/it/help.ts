@@ -285,7 +285,7 @@ const help: Record<keyof typeof en, string> = {
   'help.games.steps':
     'Apri EQ → Preset di gioco e premi Aggiungi un gioco. Scegline uno dai tuoi launcher o tra i programmi aperti ora, oppure indica tu il suo programma.\nNel selettore sulla sua riga scegli il suono che deve avere: un preset Gaming o qualsiasi altro.\nAvvia il gioco. Una scheda sul desktop dice a quale suono è passato FluidEQ e, quando lo chiudi, un’altra dice quale è tornato.',
   'help.games.tip':
-    'Finché il suono di un gioco è attivo, la barra in fondo alla finestra ne mostra il nome. Se scegli un altro suono mentre giochi, resta: FluidEQ annulla solo le proprie modifiche. I preset Gaming attivano anche Modalità gioco.',
+    'Finché il suono di un gioco è attivo, la barra in fondo alla finestra ne mostra il nome. Se scegli un altro suono mentre giochi, resta: FluidEQ annulla solo le proprie modifiche. I preset Gaming attivano anche Modalità gioco e Passi, che alza passi e ricariche deboli mentre accadono.',
   'help.games.keywords':
     'videogiochi, EQ per giochi, giocare, aggiungere gioco, profilo gioco, cambio automatico, sparatutto, FPS, competitivo, passi dei nemici, sentire i passi, game mode',
   'help.games.tab': 'I tuoi giochi e il suono che riceve ciascuno.',
@@ -362,11 +362,11 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'Il rack DSP è una catena di stadi da studio. Con il motore FluidEQ elabora tutto ciò che il PC riproduce; con Equalizer APO elabora le tracce audio della Libreria. Resta spento mentre FluidEQ è spento.',
   'help.dsp.steps':
-    'Apri DSP. Scegli una catena in Preset, oppure seleziona uno stadio nella colonna laterale e mettilo su Attivo.\nCambia un controllo alla volta e confronta disattivando lo stadio a volume simile. Isola ti fa sentire solo ciò che uno stadio aggiunge.\nSalva un rack che ti piace e usa Esporta e Importa per condividerlo.\nIl de-esser abbassa le S, T e SC taglienti di una voce solo mentre suonano e lascia intatti i piatti; Voce, Podcast e Audiolibro lo attivano. Ogni stadio può tenere profili tuoi: regolalo, poi premi Salva.',
+    'Apri DSP. Scegli una catena in Preset, oppure seleziona uno stadio nella colonna laterale e mettilo su Attivo.\nCambia un controllo alla volta e confronta disattivando lo stadio a volume simile. Isola ti fa sentire solo ciò che uno stadio aggiunge.\nSalva un rack che ti piace e usa Esporta e Importa per condividerlo.\nIl de-esser abbassa le S, T e SC taglienti di una voce solo mentre suonano e lascia intatti i piatti; Voce, Podcast e Audiolibro lo attivano. Ogni stadio può tenere profili tuoi: regolalo, poi premi Salva.\nPassi alza i suoni deboli di un gioco, come passi e ricariche, mentre accadono, e lascia come sono spari, esplosioni ed echi; i preset Gaming lo attivano.',
   'help.dsp.tip':
     'Un suono più forte spesso sembra migliore solo perché è più forte, quindi confronta a parità di livello. Ctrl+click su una manopola la riporta al valore predefinito.',
   'help.dsp.keywords':
-    'effetti, FX, limiter, limitatore, loudness, normalizzazione volume, normalizzare, livellamento, volume costante, enhancer, allargamento stereo, stereo widener, sub bass, subarmoniche, transienti, mastering, crossfade, gapless, aumentare volume, alzare volume, amplificatore di volume, de-esser, sibilanti, sibilanza, s tagliente, voce, podcast, profili, salva profilo',
+    'effetti, FX, limiter, limitatore, loudness, normalizzazione volume, normalizzare, livellamento, volume costante, enhancer, allargamento stereo, stereo widener, sub bass, subarmoniche, transienti, mastering, crossfade, gapless, aumentare volume, alzare volume, amplificatore di volume, de-esser, sibilanti, sibilanza, s tagliente, voce, podcast, profili, salva profilo, passi, sentire i passi, footsteps, gaming, audio di gioco, ricariche, equalizzazione del volume',
   'help.dsp.normalizer':
     'Uniforma la sonorità. Sull’audio dal vivo livella un brano alla volta.',
   'help.dsp.denoise':
