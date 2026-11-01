@@ -874,4 +874,8 @@ export const registerAudioEngineIpc = ({
       refuse(event, channel, ErrorCode.FAILURE);
     }
   });
+
+  // The flushes write every output's rack too, and must ask the same cached
+  // read as this file's own writes (`IMainSession.installedEngineVersion`).
+  return { installedEngineVersion };
 };

@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import log from 'electron-log';
 import {
   getDefaultState,
   IAudioDevice,
@@ -11,11 +12,7 @@ import {
   IState,
 } from '../common/constants';
 import { clampDspSettings, IDspSettings } from '../common/dsp/chain';
-import {
-  appendPresetTone,
-  encodeChainSettings,
-  withoutFootsteps,
-} from '../common/dsp/chainWire';
+import { appendPresetTone, encodeChainSettings } from '../common/dsp/chainWire';
 import { presetToneOf } from '../common/dsp/presetTone';
 import { engineRunsFootsteps } from '../common/engineHealth';
 import { groupPlaysMatched } from '../common/filterDesign';
@@ -39,7 +36,13 @@ export interface IOutputDspFlush {
   /** Include the playback output, routed receivers and other known endpoints. */
   outputs?: readonly IAudioDevice[];
   isEnabled?: boolean;
+  /** The file layout to prepare: never below 1.19, whatever is installed. */
   dllVersion?: string;
+  /**
+   * The engine actually installed (`IMainSession.installedEngineVersion`).
+   * Footsteps' trailer is written only where it answers 1.25 or later.
+   */
+  engineVersion?: () => Promise<string | undefined>;
   /** Latest audible rack: a song loan, live drag or the Library's rack gate. */
   dspOverrides?: ReadonlyMap<string, IDspSettings>;
   /** Audible EQ/layers for outputs whose editor is no longer selected. */
@@ -54,6 +57,26 @@ interface IOutputSound {
 }
 
 /**
+ * Whether the installed engine runs Footsteps. Answered no where its version
+ * cannot be read, as the rack message's own path answers: an older engine
+ * plays the rest of the rack without the trailer, and none of it with one.
+ *
+ * Decided from the engine installed, never from `dllVersion`, the layout
+ * prepared: that is 1.19 on every flush, so every output's rack lost
+ * Footsteps and Isolate on an engine that runs both (2026-11-01).
+ */
+const installedRunsFootsteps = async (
+  engineVersion: IOutputDspFlush['engineVersion'],
+): Promise<boolean> => {
+  try {
+    return engineRunsFootsteps(await engineVersion?.());
+  } catch (error) {
+    log.warn('Writing the racks without Footsteps: no engine version', error);
+    return false;
+  }
+};
+
+/**
  * Rebuild every endpoint from its own sound on launch, engine switch or flush.
  * A missing rack is explicitly bypassed until migration supplies its value;
  * the old shared rack is never an implicit default for another output.
@@ -66,6 +89,7 @@ export const flushOutputDsp = async ({
   outputs = [],
   isEnabled = true,
   dllVersion = '1.19',
+  engineVersion,
   dspOverrides,
   stateOverrides,
   systemRackEnabled,
@@ -145,12 +169,10 @@ export const flushOutputDsp = async ({
         )
       : line;
     // An engine before Footsteps refuses the line with its trailer and
-    // bypasses the whole rack; without the trailer it plays the rest.
-    return writeSystemDspChain(
-      configDirPath,
-      engineRunsFootsteps(dllVersion) ? values : withoutFootsteps(values),
-      guid,
-      designs,
+    // bypasses the whole rack; without the trailer it plays the rest. Asked
+    // in the write's own turn, so this call registers before any await.
+    return writeSystemDspChain(configDirPath, values, guid, designs, () =>
+      installedRunsFootsteps(engineVersion),
     );
   });
   await Promise.all(writes);
