@@ -68,8 +68,15 @@ int main() {
   max.insert(max.begin() + static_cast<std::ptrdiff_t>(base),
              (FEQ_CHAIN_MAX_EQ_BANDS - settings.eq.band_count) * FEQ_CHAIN_BAND_PARAMS, 0);
   max[FEQ_CHAIN_PARAM_LEAD - 1] = FEQ_CHAIN_MAX_EQ_BANDS;
-  // And the preset's curve at its longest after the Room's trailer, which is
-  // the longest line there is.
+  // And Footsteps' trailer and the preset's curve at its longest after the
+  // Room's trailer, which is the longest line there is.
+  max.push_back(FEQ_CHAIN_FOOTSTEPS_TAG);
+  max.push_back(FEQ_CHAIN_FOOTSTEPS_SCHEMA);
+  max.push_back(FEQ_CHAIN_FOOTSTEPS_FIELDS);
+  max.push_back(1);
+  max.push_back(0);
+  max.push_back(0.85);
+  max.push_back(0.5);
   max.push_back(FEQ_CHAIN_TONE_TAG);
   max.push_back(FEQ_CHAIN_TONE_SCHEMA);
   max.push_back(FEQ_CHAIN_MAX_TONE_BANDS);
@@ -81,8 +88,9 @@ int main() {
     max.push_back(1);
   }
   check(max.size() == FEQ_CHAIN_MAX_PARAMS && decode(max, &settings) &&
-            settings.tone.band_count == FEQ_CHAIN_MAX_TONE_BANDS,
-        "the longest payload, 64 bands, the Room and a whole curve, fits the "
-        "shared host/APO bound");
+            settings.tone.band_count == FEQ_CHAIN_MAX_TONE_BANDS &&
+            settings.footsteps.enabled == 1,
+        "the longest payload, 64 bands, the Room, Footsteps and a whole curve, "
+        "fits the shared host/APO bound");
   return feq_test::finish();
 }

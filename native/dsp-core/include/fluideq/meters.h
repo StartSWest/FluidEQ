@@ -56,6 +56,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/deesser.h"
 #include "fluideq/denoise.h"
+#include "fluideq/footsteps.h"
 #include "fluideq/loudness_meter.h"
 #include "fluideq/room.h"
 
@@ -419,6 +420,17 @@ void feq_meters_publish_deesser(FeqMeters* meters,
 
 /** The folded window, cleared as it is taken. **Control thread.** */
 void feq_meters_read_deesser(FeqMeters* meters, FeqDeEsserReport* out);
+
+/**
+ * What Footsteps lifted and calmed, and what it heard. **Audio thread.**
+ * Folded over the window: the largest lifts, the deepest calm, the loudest
+ * levels, the bed as last measured.
+ */
+void feq_meters_publish_footsteps(FeqMeters* meters,
+                                  const FeqFootstepsReport* report);
+
+/** The folded window, cleared as it is taken. **Control thread.** */
+void feq_meters_read_footsteps(FeqMeters* meters, FeqFootstepsReport* out);
 
 /** The published exciter activity. **Control thread.** */
 void feq_meters_read_exciter(FeqMeters* meters,

@@ -285,7 +285,7 @@ const help: Record<keyof typeof en, string> = {
   'help.games.steps':
     'Abre EQ → Presets de juego y pulsa Añadir un juego. Escoge uno de tus lanzadores o un programa que esté abierto ahora, o elige su programa a mano.\nEn el selector de su fila, elige el sonido que debe recibir: un preset de Juegos o cualquier otro.\nInicia el juego. Una tarjeta en el escritorio indica a qué ha cambiado FluidEQ, y otra, qué ha vuelto al cerrarlo.',
   'help.games.tip':
-    'Mientras un juego mantiene su sonido, la barra de la parte inferior de la ventana muestra el nombre del juego. Si eliges otro sonido mientras juegas, se queda: FluidEQ solo devuelve lo que puso. Los presets de Juegos también activan el Modo juego.',
+    'Mientras un juego mantiene su sonido, la barra de la parte inferior de la ventana muestra el nombre del juego. Si eliges otro sonido mientras juegas, se queda: FluidEQ solo devuelve lo que puso. Los presets de Juegos también activan el Modo juego y Pasos, que sube los pasos y las recargas bajos en el momento en que suenan.',
   'help.games.keywords':
     'gaming, gamer, videojuegos, agregar juego, perfiles de juego, por aplicación, automático, launcher, FPS, shooter, competitivo, pasos, pisadas, escuchar pasos, oír pasos',
   'help.games.tab': 'Tus juegos y el sonido que recibe cada uno.',
@@ -362,11 +362,11 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'El rack DSP es una cadena de etapas de estudio. Con el Motor FluidEQ procesa todo lo que suena en el PC; con Equalizer APO, las pistas de audio de la Biblioteca. Mientras FluidEQ está apagado, el rack también lo está.',
   'help.dsp.steps':
-    'Abre DSP. Elige una cadena en Presets, o selecciona una etapa en las pestañas laterales y actívala.\nCambia un control cada vez y compara con la etapa desactivada a un volumen parecido. Aislar te permite oír solo lo que añade una etapa.\nGuarda un rack que te guste y usa Exportar e Importar para compartirlo.\nEl De-esser baja las S, T y CH agudas de una voz solo mientras suenan y deja los platillos intactos; Voz, Pódcast y Audiolibro lo activan. Cada etapa puede guardar perfiles propios: ajústala y pulsa Guardar.',
+    'Abre DSP. Elige una cadena en Presets, o selecciona una etapa en las pestañas laterales y actívala.\nCambia un control cada vez y compara con la etapa desactivada a un volumen parecido. Aislar te permite oír solo lo que añade una etapa.\nGuarda un rack que te guste y usa Exportar e Importar para compartirlo.\nEl De-esser baja las S, T y CH agudas de una voz solo mientras suenan y deja los platillos intactos; Voz, Pódcast y Audiolibro lo activan. Cada etapa puede guardar perfiles propios: ajústala y pulsa Guardar.\nPasos sube los sonidos bajos de un juego, como pasos y recargas, en el momento en que suenan, y deja los disparos, las explosiones y los ecos como están; los presets de Juegos lo activan.',
   'help.dsp.tip':
     'Lo que suena más fuerte suele parecer mejor solo por sonar más fuerte, así que compara con niveles igualados. Haz Ctrl+clic en un mando para devolverlo a su valor predeterminado.',
   'help.dsp.keywords':
-    'efectos de sonido, limitador, limiter, loudness, LUFS, normalizar volumen, normalización, nivelador de volumen, volumen entre canciones, exciter, amplitud estéreo, ancho estéreo, stereo widener, subgraves, subarmónicos, punch, transitorios, masterización, mastering, clipping, crossfade, gapless, subir volumen, de-esser, desesador, sibilancia, eses, s aguda, voz, pódcast, perfiles, guardar perfil',
+    'efectos de sonido, limitador, limiter, loudness, LUFS, normalizar volumen, normalización, nivelador de volumen, volumen entre canciones, exciter, amplitud estéreo, ancho estéreo, stereo widener, subgraves, subarmónicos, punch, transitorios, masterización, mastering, clipping, crossfade, gapless, subir volumen, de-esser, desesador, sibilancia, eses, s aguda, voz, pódcast, perfiles, guardar perfil, pasos, oír pasos, footsteps, juegos, sonido de juegos, recargas, ecualización de sonoridad',
   'help.dsp.normalizer':
     'Iguala la sonoridad. Con audio en directo, nivela canción a canción.',
   'help.dsp.denoise':

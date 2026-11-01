@@ -592,8 +592,8 @@ it('decodes the tagged Room report without changing legacy meter framing', () =>
 
 it('decodes the actual native meter-to-host/APO encoder fixture', () => {
   const bytes = Buffer.from(ROOM_REPORT_NATIVE_FRAME, 'base64');
-  expect(bytes.length).toBe(784);
-  expect(decodeAnalysis(bytes)?.room).toEqual({
+  expect(bytes.length).toBe(816);
+  const room = {
     active: true,
     original: true,
     matchAvailable: true,
@@ -601,7 +601,10 @@ it('decodes the actual native meter-to-host/APO encoder fixture', () => {
     conventionalFoldDown: true,
     positionProtected: true,
     sourceBypassed: false,
-  });
+  };
+  expect(decodeAnalysis(bytes)?.room).toEqual(room);
+  // The 784 bytes an engine from before Footsteps writes carry it the same.
+  expect(decodeAnalysis(bytes.subarray(0, 784), 784)?.room).toEqual(room);
 });
 
 it('accepts inactive and explicit bypass reports and refuses contradictory states', () => {

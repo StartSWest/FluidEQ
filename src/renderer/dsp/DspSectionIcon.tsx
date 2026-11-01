@@ -54,6 +54,16 @@ const GLYPHS: Record<TDspSection, { frame: string; accent: string }> = {
     frame: 'M2 13.5 C4.6 13.5 4.6 8 7.2 8 C9.8 8 9.8 13.5 12.4 13.5',
     accent: 'M16 3.5 V8.5 M13.5 6 H18.5',
   },
+  // Two footprints, the second the accent: the step this stage brings
+  // forward. Named by what a player listens for, as the De-esser's S is.
+  footsteps: {
+    frame:
+      'M5 5.5 a2 3.2 0 1 0 4 0 a2 3.2 0 1 0 -4 0 ' +
+      'M5.6 11 a1.4 1.4 0 1 0 2.8 0 a1.4 1.4 0 1 0 -2.8 0',
+    accent:
+      'M11 9 a2 3.2 0 1 0 4 0 a2 3.2 0 1 0 -4 0 ' +
+      'M11.6 14.6 a1.4 1.4 0 1 0 2.8 0 a1.4 1.4 0 1 0 -2.8 0',
+  },
   // Two cycles of the source bass, and one cycle of the octave this stage
   // makes from it. The accent is deliberately half the frequency and twice
   // the swing of the frame: that IS the divider, and it is the one picture

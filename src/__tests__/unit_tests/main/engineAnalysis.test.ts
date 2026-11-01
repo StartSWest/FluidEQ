@@ -12,6 +12,7 @@ import {
 import decodeEngineAnalysis from '../../../main/dspHost/engineAnalysis';
 import {
   ANALYSIS_DEESSER_BANDS,
+  ANALYSIS_DEESSER_HEADER_BYTES,
   ANALYSIS_EQ_DETAIL_BINS,
   ANALYSIS_EQ_DETAIL_WINDOW,
   ANALYSIS_LEGACY_HEADER_BYTES,
@@ -124,11 +125,61 @@ describe('an engine with the De-esser and one without', () => {
   });
 
   it('never reads one length as the other', () => {
-    expect(ANALYSIS_HEADER_BYTES - ANALYSIS_LEGACY_HEADER_BYTES).toBe(224);
+    expect(ANALYSIS_DEESSER_HEADER_BYTES - ANALYSIS_LEGACY_HEADER_BYTES).toBe(
+      224,
+    );
     const frame = packet();
     // Cut to a length neither header explains: refused, not misread.
     expect(decodeEngineAnalysis(frame.subarray(0, frame.length - 100))).toBe(
       undefined,
+    );
+  });
+});
+
+/**
+ * And of an engine from before Footsteps: 32 bytes shorter than this
+ * build's, the De-esser's window in it and nothing of Footsteps.
+ */
+describe('an engine with Footsteps and one without', () => {
+  it('reads Footsteps’ window where the engine writes it', () => {
+    const frame = packet([-6, -18]);
+    [-12, -38, -55, 2.5, 7.25, 4, -3.5].forEach((value, index) =>
+      frame.writeFloatLE(value, 784 + index * 4),
+    );
+    const read = decodeEngineAnalysis(frame);
+    expect(read?.footsteps).toEqual({
+      levelDb: -12,
+      cueDb: -38,
+      bedDb: -55,
+      liftDb: [2.5, 7.25, 4],
+      calmDb: -3.5,
+    });
+    expect(read?.normalizer.inputLufs).toBe(-18);
+  });
+
+  it('reads a De-esser engine’s frame, with no Footsteps in it', () => {
+    const older = packet([-6, -18], ANALYSIS_DEESSER_HEADER_BYTES);
+    older.writeFloatLE(-4.5, 560);
+    const read = decodeEngineAnalysis(older);
+    expect(read?.deEsser?.reductionDb).toBe(-4.5);
+    expect(read?.footsteps).toBeUndefined();
+    expect(read?.normalizer.inputLufs).toBe(-18);
+  });
+
+  it('reads none of either from the oldest', () => {
+    const read = decodeEngineAnalysis(
+      packet([-6, -18], ANALYSIS_LEGACY_HEADER_BYTES),
+    );
+    expect(read).toBeDefined();
+    expect(read?.deEsser).toBeUndefined();
+    expect(read?.footsteps).toBeUndefined();
+  });
+
+  it('cannot take the 32 bytes between the two for a live extension', () => {
+    expect(ANALYSIS_HEADER_BYTES - ANALYSIS_DEESSER_HEADER_BYTES).toBe(32);
+    // The extensions are 8, 16 or 20 bytes: no two differ by 32.
+    [0, 8, 16, 20].forEach((one) =>
+      [0, 8, 16, 20].forEach((other) => expect(one - other).not.toBe(32)),
     );
   });
 });

@@ -18,6 +18,7 @@ import { TDeEsserPresetId } from './deEsserPresets';
 import { TDenoisePresetId } from './denoisePresets';
 import { TDimensionPresetId } from './dimensionPresets';
 import { TExciterPresetId } from './exciterPresets';
+import { TFootstepsPresetId } from './footstepsPresets';
 import { TMasterPresetId } from './masterPresets';
 import { TMaximizerPresetId } from './maximizerPresets';
 import { TRoomPresetId } from './roomPresets';
@@ -36,6 +37,8 @@ export interface IDspPresetRecipe {
    */
   deEsser?: TDeEsserPresetId;
   eq?: string;
+  /** Footsteps' profile. Only the Gaming chains: it is for a game's mix. */
+  footsteps?: TFootstepsPresetId;
   /** A former Voicing curve, now processed inside this DSP preset only. */
   voicing?: string;
   exciter?: TExciterPresetId;
@@ -305,11 +308,16 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // after each, the footsteps after an explosion with it. The Normalizer's
     // peak guard at the input stays off: a limiter in front of the game, and
     // 2 ms of delay.
+    //
+    // The curve lifts every sound in the cue band alike, so a quiet step
+    // stays as far under a shot as it was; Footsteps lifts the quiet ones as
+    // they arrive and leaves the loud ones (`footsteps.h`), at no delay.
     id: 'gaming',
     labelKey: 'dsp.eqPreset.gaming',
     group: 'scene',
     normalizer: 'off',
     eq: 'gaming',
+    footsteps: 'competitive',
     gameMode: true,
     maximizer: 'gaming',
   },
@@ -326,6 +334,9 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'scene',
     normalizer: 'off',
     eq: 'gaming',
+    // Before the Room in the rack: a step is lifted on its own speaker and
+    // the Room's walls are never lifted with it.
+    footsteps: 'competitive',
     gameMode: true,
     room: 'gameWorldV2',
     // WITH the ceiling, as Music's Room copy has it: a full-scale stereo
@@ -345,6 +356,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     group: 'scene',
     normalizer: 'off',
     eq: 'gaming',
+    footsteps: 'competitive',
     gameMode: true,
     room: 'competitiveV2',
     // The same ceiling, for the same reason as Gaming's other Room copy.

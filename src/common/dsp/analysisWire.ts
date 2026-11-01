@@ -60,7 +60,8 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * gains, which is 76 bytes onto 320 and lands on 396 — rounded to 400 by one
  * explicit pad float, for the same alignment reason. The forty actual hiss
  * gain bands append 160 bytes after that complete layout, taking it to 560,
- * and the De-esser's fifty-six words 224 more, to 784.
+ * the De-esser's fifty-six words 224 more, to 784, and Footsteps' seven and
+ * one pad float 32 more, to 816.
  * Every pre-existing offset is untouched on purpose: this constant, the
  * publisher in `meters.cpp` and the reader in `dspHost/wire.ts` all have to
  * move in one commit, and new fields go after everything already decoded,
@@ -74,7 +75,14 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * believed: three separate readers of it set out to add a check that has been
  * there since the graphs were first fed from the engine.
  */
-export const ANALYSIS_HEADER_BYTES = 784;
+export const ANALYSIS_HEADER_BYTES = 816;
+
+/**
+ * The header the engines from the De-esser to before Footsteps write
+ * (`ENGINE_FOOTSTEPS_SINCE`): everything above, without Footsteps' 32 bytes.
+ * Read at this length too, for the reason the one below is.
+ */
+export const ANALYSIS_DEESSER_HEADER_BYTES = 784;
 
 /**
  * The header every engine before the De-esser writes (`ENGINE_DEESSER_SINCE`):
@@ -170,6 +178,8 @@ export interface IHostAnalysis {
   bassPunch: IHostAnalysisBassPunch;
   /** Absent from an engine before the De-esser. */
   deEsser?: IHostAnalysisDeEsser;
+  /** Absent from an engine before Footsteps. */
+  footsteps?: IHostAnalysisFootsteps;
   /**
    * Said by an engine whose EQ spectrum is the live one: the window ending
    * now, unsmoothed, with a long window for the bass beside it every few
@@ -209,6 +219,26 @@ export interface IHostAnalysisDeEsser {
   bandLevelDb: readonly number[];
   bandThresholdDb: readonly number[];
   bandCutDb: readonly number[];
+}
+
+/**
+ * What Footsteps heard, lifted and calmed since the last frame.
+ *
+ * Measured, never derived from the dials: whether anything is lifted depends
+ * on whether a sound is quiet, arriving and standing out of the bed. Levels
+ * are the stage's own readings in dB, a full-scale sine at 0.
+ */
+export interface IHostAnalysisFootsteps {
+  /** The loudest the whole signal was. */
+  levelDb: number;
+  /** The loudest the steps band was. */
+  cueDb: number;
+  /** The steps band's learnt floor: the rain, the wind, the music. */
+  bedDb: number;
+  /** Each band's largest lift, dB: weight, steps, detail. */
+  liftDb: readonly [number, number, number];
+  /** The rumble's deepest cut, dB, never positive. */
+  calmDb: number;
 }
 
 /**

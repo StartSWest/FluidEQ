@@ -14,6 +14,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/bass_forge.h"
 #include "meters_deesser.h"
 #include "meters_eq_live.h"
+#include "meters_footsteps.h"
 #include "meters_transform.h"
 
 /*
@@ -269,6 +270,8 @@ struct FeqMeters {
   std::atomic<float> bass_punch_duck_db{0.0f};
   /** The De-esser's window (`meters_deesser.h`). */
   DeEsserMeterWindow deesser;
+  /** Footsteps' window (`meters_footsteps.h`). */
+  FootstepsMeterWindow footsteps;
   /**
    * The EQ tap (`meters_eq_live.h`). Its slot in `stages` is never filled:
    * the EQ graph reads the newest audio, not windows in a row.
@@ -754,6 +757,22 @@ void feq_meters_read_deesser(FeqMeters* meters, FeqDeEsserReport* out) {
     return;
   }
   deesser_window_take(meters->deesser, out);
+}
+
+void feq_meters_publish_footsteps(FeqMeters* meters,
+                                  const FeqFootstepsReport* report) {
+  if (meters == nullptr || report == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) {
+    return;
+  }
+  footsteps_window_fold(meters->footsteps, *report);
+}
+
+void feq_meters_read_footsteps(FeqMeters* meters, FeqFootstepsReport* out) {
+  if (meters == nullptr || out == nullptr) {
+    return;
+  }
+  footsteps_window_take(meters->footsteps, out);
 }
 
 void feq_meters_publish_master(FeqMeters* meters,

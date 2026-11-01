@@ -221,6 +221,7 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   settings->normalizer.target_lufs = -14;
   feq_denoise_settings_defaults(&settings->denoise);
   feq_deesser_settings_defaults(&settings->deesser);
+  feq_footsteps_settings_defaults(&settings->footsteps);
   settings->eq.model_amount = 1.0;
   settings->eq.oversample = 1;
   // The cookbook, which is what every test and fixture was built against;
@@ -420,6 +421,8 @@ FeqChain* feq_chain_create(double sample_rate,
   // Skipped rather than fatal for the same reason: a rack missing its
   // De-esser still plays.
   chain->deesser = feq_deesser_create(sample_rate, chain->channels);
+  // And for the same reason a rack missing Footsteps still plays.
+  chain->footsteps = feq_footsteps_create(sample_rate, chain->channels);
 
   // Both sets, so the first published one is complete and the spare is not a
   // half-built rack waiting to be swapped in.
@@ -471,6 +474,8 @@ void feq_chain_destroy(FeqChain* chain) {
   chain->denoise = nullptr;
   feq_deesser_destroy(chain->deesser);
   chain->deesser = nullptr;
+  feq_footsteps_destroy(chain->footsteps);
+  chain->footsteps = nullptr;
   delete chain;
 }
 
@@ -527,6 +532,7 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
   // After the tone is in `settings`, which the De-esser hears its bands
   // through.
   chain_configure_deesser(chain);
+  feq_footsteps_configure(chain->footsteps, &chain->settings.footsteps);
   {
     FeqRoomSettings room{};
     feq_room_settings_defaults(&room);
@@ -584,6 +590,7 @@ void feq_chain_set_lfe_channel(FeqChain* chain, int channel) {
           : -1;
   feq_room_set_layout(chain->room, chain->room_speakers, chain->lfe_channel);
   chain_apply_deesser_layout(chain);
+  feq_footsteps_set_lfe(chain->footsteps, chain->lfe_channel);
 }
 
 void feq_chain_set_room_head(FeqChain* chain, const float* left,
@@ -712,6 +719,8 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
   // Its look-ahead line is delayed audio, and its bands' beds belong to
   // the passage before.
   feq_deesser_reset(chain->deesser);
+  // A new passage has a new bed, learnt again before anything is lifted.
+  feq_footsteps_reset(chain->footsteps);
 
   if (reason != FEQ_CHAIN_RESET_SEEK) {
     /**
@@ -823,9 +832,10 @@ uint32_t feq_chain_active_stages(const FeqChain* chain) {
       settings.master.enabled != 0 && settings.master.loudness_maximize != 0,
       settings.master.enabled != 0,
       settings.deesser.enabled != 0 && chain->deesser != nullptr,
+      settings.footsteps.enabled != 0 && chain->footsteps != nullptr,
   };
   uint32_t mask = 0;
-  for (uint32_t stage = 0; stage < 12u; ++stage) {
+  for (uint32_t stage = 0; stage < 13u; ++stage) {
     if (active[stage]) mask |= 1u << stage;
   }
   return mask;

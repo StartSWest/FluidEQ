@@ -34,6 +34,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/denoise.h"
 #include "fluideq/eq.h"
 #include "fluideq/exciter_oversample.h"
+#include "fluideq/footsteps.h"
 #include "fluideq/meters.h"
 #include "fluideq/live_normalizer.h"
 #include "fluideq/room.h"
@@ -217,6 +218,15 @@ typedef struct FeqChainSettings {
   FeqDeEsserSettings deesser;
   FeqChainExciterSettings exciter;
   FeqChainEqSettings eq;
+  /**
+   * Footsteps, after the EQ and before Bass Punch (`footsteps.h`).
+   *
+   * On the wire in a tagged trailer of its own (`FEQ_CHAIN_FOOTSTEPS_TAG`),
+   * written only while the stage is on: every rack without it is the line it
+   * always was, and the app leaves the trailer off for an engine older than
+   * the stage, which would refuse a line longer than it knows.
+   */
+  FeqFootstepsSettings footsteps;
   /**
    * Stereo width per band. Touches the side signal only, so the mono sum is
    * unchanged at every setting — `dimension_test.cpp` asserts that as equality.
@@ -431,20 +441,32 @@ typedef struct FeqChainSettings {
 #define FEQ_CHAIN_ROOM_FIELDS 8
 #define FEQ_CHAIN_ROOM_TRAILER 11
 /**
+ * FOOT tag, schema version, field count, then Footsteps' switch, Isolate,
+ * Lift and Calm. After the low-latency word and the Room's trailer when there
+ * is one, before the tone; written only while the stage is on
+ * (`footstepsTrailer` in `chainWire.ts`). An engine before 1.25 refuses the
+ * line, so the app takes the trailer off for one (`withoutFootsteps`).
+ */
+#define FEQ_CHAIN_FOOTSTEPS_TAG 1179602772
+#define FEQ_CHAIN_FOOTSTEPS_SCHEMA 1
+#define FEQ_CHAIN_FOOTSTEPS_FIELDS 4
+#define FEQ_CHAIN_FOOTSTEPS_TRAILER 7
+/**
  * TONE tag, schema version, band count and design, then each band's type,
- * frequency, gain and Q. Last on the line, after the low-latency word and
- * the Room's trailer when there is one: `appendPresetTone` in `chainWire.ts`.
+ * frequency, gain and Q. Last on the line, after the low-latency word, the
+ * Room's trailer and Footsteps' when there are those: `appendPresetTone` in
+ * `chainWire.ts`.
  */
 #define FEQ_CHAIN_TONE_TAG 1414483525
 #define FEQ_CHAIN_TONE_SCHEMA 1
 #define FEQ_CHAIN_TONE_HEADER 4
 #define FEQ_CHAIN_TONE_BAND_PARAMS 4
 /**
- * Normalizer (3), explicit low latency (1), tagged Room (11), and the tone
- * at its longest.
+ * Normalizer (3), explicit low latency (1), tagged Room (11), tagged
+ * Footsteps (7), and the tone at its longest.
  */
 #define FEQ_CHAIN_MAX_TRAILER                                        \
-  (15 + FEQ_CHAIN_TONE_HEADER +                                      \
+  (15 + FEQ_CHAIN_FOOTSTEPS_TRAILER + FEQ_CHAIN_TONE_HEADER +        \
    FEQ_CHAIN_MAX_TONE_BANDS * FEQ_CHAIN_TONE_BAND_PARAMS)
 #define FEQ_CHAIN_MAX_PARAMS (FEQ_CHAIN_PARAM_LEAD + FEQ_CHAIN_MAX_EQ_BANDS * FEQ_CHAIN_BAND_PARAMS + FEQ_CHAIN_MAX_TRAILER)
 
@@ -637,8 +659,8 @@ void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out);
 
 /** Active processors, including those with no fixed buffering. Bit order is
  * leveler, restoration, exciter, bass forge, EQ, bass punch, room, dimension,
- * maximizer, headroom, master, de-esser — the last appended, so every bit an
- * older reader knows keeps its place. CONTROL planning snapshot,
+ * maximizer, headroom, master, de-esser, footsteps — the last two appended, so
+ * every bit an older reader knows keeps its place. CONTROL planning snapshot,
  * read before publishing a prepared chain. Room protection reflects the planned
  * configuration, not an audio-owned Room report during a handover. */
 uint32_t feq_chain_active_stages(const FeqChain* chain);

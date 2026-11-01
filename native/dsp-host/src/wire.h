@@ -33,6 +33,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /* For the profile's band and partial counts, which size its payload. */
 #include "fluideq/deesser.h"
 #include "fluideq/denoise.h"
+#include "fluideq/footsteps.h"
 /* For FEQ_BASS_FORGE_BANDS, which sizes the two runs in the analysis frame. */
 #include "fluideq/bass_forge.h"
 
@@ -584,6 +585,24 @@ typedef struct FeqWireAnalysisFrame {
   float deesser_band_level_db[FEQ_DEESSER_MAX_BANDS];
   float deesser_band_threshold_db[FEQ_DEESSER_MAX_BANDS];
   float deesser_band_cut_db[FEQ_DEESSER_MAX_BANDS];
+  /*
+   * Footsteps, appended after the complete previous header: the loudest the
+   * whole signal and the steps band were, the steps band's bed, each band's
+   * largest lift and the rumble's deepest calm (`FeqFootstepsReport`).
+   * Measured, not settings. Seven words, 28 bytes, onto 784: 812, rounded
+   * to the struct's eight-byte alignment by `footsteps_reserved_tail`.
+   */
+  float footsteps_level_db;
+  float footsteps_cue_db;
+  float footsteps_bed_db;
+  float footsteps_lift_db[FEQ_FOOTSTEPS_BANDS];
+  float footsteps_calm_db;
+  /**
+   * Padding the compiler would insert anyway, spelled out for the reason
+   * `bass_reserved_tail` is: the TypeScript constant has to be derivable by
+   * reading this file. Written 0.
+   */
+  float footsteps_reserved_tail;
 } FeqWireAnalysisFrame;
 
 #ifdef __cplusplus
@@ -615,6 +634,17 @@ inline void feq_wire_deesser_report(FeqWireAnalysisFrame& frame,
     frame.deesser_band_cut_db[band] = report.band_cut_db[band];
   }
 }
+/** Footsteps' window into the frame; both writers call this. */
+inline void feq_wire_footsteps_report(FeqWireAnalysisFrame& frame,
+                                      const FeqFootstepsReport& report) {
+  frame.footsteps_level_db = report.level_db;
+  frame.footsteps_cue_db = report.cue_db;
+  frame.footsteps_bed_db = report.bed_db;
+  for (int band = 0; band < FEQ_FOOTSTEPS_BANDS; ++band) {
+    frame.footsteps_lift_db[band] = report.lift_db[band];
+  }
+  frame.footsteps_calm_db = report.calm_db;
+}
 inline void feq_wire_room_report(FeqWireAnalysisFrame& frame,
                                  const FeqRoomReport& room) {
   frame.reserved_tail = room.flags;
@@ -638,12 +668,15 @@ static_assert(sizeof(FeqWireStatsFrame) == 24, "stats frame size");
  * to 160 and its forty floor bands to 320. The two bass stages add sixteen
  * floats for Forge and three for Punch — 76 bytes, which lands on 396 and is
  * rounded to 400 by the explicit `bass_reserved_tail`. Denoise's forty live
- * hiss-gain bands append 160 bytes, for a 560-byte header, and the De-esser's
- * fifty-six words 224 more, for 784.
+ * hiss-gain bands append 160 bytes, for a 560-byte header, the De-esser's
+ * fifty-six words 224 more, for 784, and Footsteps' seven and its pad 32
+ * more, for 816.
  */
-static_assert(sizeof(FeqWireAnalysisFrame) == 784, "analysis frame size");
+static_assert(sizeof(FeqWireAnalysisFrame) == 816, "analysis frame size");
 static_assert(offsetof(FeqWireAnalysisFrame, deesser_reduction_db) == 560,
               "De-esser offset");
+static_assert(offsetof(FeqWireAnalysisFrame, footsteps_level_db) == 784,
+              "Footsteps offset");
 #endif
 
 #endif /* FLUIDEQ_HOST_WIRE_H */

@@ -156,6 +156,11 @@ void drain_analysis(HostState& state) {
     feq_meters_read_deesser(state.meters, &deesser);
     feq_wire_deesser_report(frame, deesser);
   }
+  {
+    FeqFootstepsReport footsteps{};
+    feq_meters_read_footsteps(state.meters, &footsteps);
+    feq_wire_footsteps_report(frame, footsteps);
+  }
   frame.correlation = correlation;
   frame.peak_left = peaks[0];
   frame.peak_right = peaks[1];
