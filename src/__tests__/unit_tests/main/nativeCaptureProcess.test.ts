@@ -36,10 +36,9 @@ jest.mock('../../../main/lanAudioHelper', () => ({
 }));
 
 // eslint-disable-next-line import/first
-import {
-  createCaptureFrameReader,
-  startNativeCaptureProcess,
-} from '../../../main/nativeCaptureProcess';
+import { startNativeCaptureProcess } from '../../../main/nativeCaptureProcess';
+// eslint-disable-next-line import/first
+import { createCaptureFrameReader } from '../../../core/platform/windows/captureFrames';
 
 const MAGIC = 0x314e414c;
 

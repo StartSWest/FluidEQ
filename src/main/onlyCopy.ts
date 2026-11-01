@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { app, BrowserWindow } from 'electron';
 import log from 'electron-log';
 import { sweepAbandonedWrites } from './asyncWriter';
+import { devSandbox } from './devSandbox';
 import { appLinkInArgs, deliverAppLink } from './appLinks';
 import { karaokeMakerDraftDir } from './karaokeMakerStorage';
 import { karaokeStemsDir } from './karaokeSeparation';
@@ -61,9 +62,13 @@ const claimTheOnlyCopy = ({
   /**
    * Named for the folder both data directories sit in rather than either one,
    * because the whole point is that development and the installed build do
-   * not share one (`singleInstance.ts`).
+   * not share one (`singleInstance.ts`). A development sandbox has a lock of
+   * its own: it shares no engine and no data with the copy it runs beside
+   * (`devSandbox.ts`), so one of each may run.
    */
-  const lockPath = instanceLockPath(app.getPath('appData'));
+  const lockPath = instanceLockPath(
+    devSandbox?.instanceLockDir ?? app.getPath('appData'),
+  );
 
   let releaseInstanceLock: (() => void) | undefined;
 

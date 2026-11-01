@@ -43,6 +43,7 @@ import {
 import { isEqualizerAPOInstalled, noteFluidEngineRegistered } from './registry';
 import { getEngineSetupPath } from './engineSetup';
 import { planEngineUpdate } from './engineUpdate';
+import { devSandbox } from './devSandbox';
 
 /**
  * Windows 10 build 17134 (version 1803, "April 2018 Update") is the first to
@@ -543,7 +544,9 @@ export const readFluidEngineUpdateReady = async (
   fluid: IFluidEngineStatus,
   bundleDir: string = path.dirname(getEngineSetupPath()),
 ): Promise<boolean> => {
-  if (!fluid.installed || !fluid.dllPath) {
+  // A development sandbox never installs an engine (`devSandbox.ts`), so it
+  // has none to offer: the card would only lead to a refusal.
+  if (devSandbox || !fluid.installed || !fluid.dllPath) {
     return false;
   }
   try {

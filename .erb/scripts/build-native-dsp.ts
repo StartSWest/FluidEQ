@@ -529,5 +529,11 @@ if (isWindows) {
   if (!existsSync(mediaWatchPath)) {
     fail(`the media helper was not produced at ${mediaWatchPath}`);
   }
+  // What the speakers play, packaged beside them: without it every live
+  // display falls back to Chromium's screen-share capture and its process.
+  const listenPath = path.join(BUILD_DIR, 'bin', 'FluidEQ-Listen.exe');
+  if (!existsSync(listenPath)) {
+    fail(`the listening helper was not produced at ${listenPath}`);
+  }
 }
 console.log(`native dsp build: ${hostPath}`);

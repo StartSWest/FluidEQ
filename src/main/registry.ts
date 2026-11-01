@@ -21,6 +21,7 @@ import fs from 'fs';
 import { app } from 'electron';
 import { promisified as regedit, setExternalVBSLocation } from 'regedit';
 import { TAudioEngine } from '../common/audioEngine';
+import { devSandbox } from './devSandbox';
 
 // app will only be defined in the electron main process environment.
 // in the test environment, we expect it to be undefined.
@@ -180,14 +181,25 @@ export const isEqualizerAPOInstalled = async (): Promise<boolean> =>
  * directory directly, the same way Equalizer APO watches its own. Nothing
  * installs it into the registry, so this is a plain, computed path rather
  * than a lookup.
+ *
+ * A development sandbox's own folder instead, which no engine reads
+ * (`devSandbox.ts`): every engine write, the owner marker and the quit reset
+ * all go through here, and the statuses are read from beside it.
  */
 export const getFluidEngineConfigDir = (): string =>
-  path.join(
-    process.env.ProgramData ?? 'C:\\ProgramData',
-    'FluidEQ',
-    'engine',
-    'config',
-  );
+  devSandbox?.engineConfigDir ?? path.join(getFluidEngineRootDir(), 'config');
+
+/**
+ * `%ProgramData%\FluidEQ\engine` — where the engine says what it is doing:
+ * its statuses and its log.
+ *
+ * The real one in a development sandbox too, which only ever reads them. Its
+ * own empty folder made every output read as one Windows had never started
+ * the engine on, and the trouble cards and the automatic repairs that follow
+ * from that came up for an engine that was playing perfectly well.
+ */
+export const getFluidEngineRootDir = (): string =>
+  path.join(process.env.ProgramData ?? 'C:\\ProgramData', 'FluidEQ', 'engine');
 
 export const getFluidEngineDllPath = (): string =>
   path.join(
@@ -248,9 +260,11 @@ export const getConfigPath = async (engine: TAudioEngine): Promise<string> => {
     );
   }
 
-  if (engine === 'fluid') {
+  if (engine === 'fluid' || devSandbox) {
     // The engine's directory is never in the registry — see
-    // `getFluidEngineConfigDir` — so no APO probe belongs on this path.
+    // `getFluidEngineConfigDir` — so no APO probe belongs on this path. A
+    // sandbox writes Equalizer APO's configs there too: APO's real folder is
+    // the one the listener's own copy of FluidEQ writes.
     return ensureConfigDirWithEmptyConfigFile(getFluidEngineConfigDir());
   }
 

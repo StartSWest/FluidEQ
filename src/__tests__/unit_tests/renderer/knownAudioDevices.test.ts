@@ -112,3 +112,62 @@ it('keeps what the output panel read last', async () => {
   await expect(readKnownAudioDevices()).resolves.toEqual([headphones]);
   expect(mockSend).toHaveBeenCalledTimes(1);
 });
+
+/*
+ * Merely listening for Chromium's `devicechange` starts its audio service and
+ * its 66 MB video capture service, and keeps them running. On Windows main
+ * hears every output change itself and pushes the list, so the window never
+ * listens; anywhere else it still does, and that copy is the control.
+ */
+describe('where main follows the outputs itself', () => {
+  type TEqualizerApi = typeof import('renderer/utils/equalizerApi');
+
+  const freshCopy = (platform: string): TEqualizerApi => {
+    Object.defineProperty(window, 'electron', {
+      configurable: true,
+      value: { platform },
+    });
+    let api: TEqualizerApi | undefined;
+    jest.isolateModules(() => {
+      api = jest.requireActual<TEqualizerApi>('renderer/utils/equalizerApi');
+    });
+    if (!api) {
+      throw new Error('equalizerApi did not load');
+    }
+    return api;
+  };
+
+  const deviceChangeListenersAdded = async (platform: string) => {
+    const added = jest.spyOn(navigator.mediaDevices, 'addEventListener');
+    try {
+      const api = freshCopy(platform);
+      await api.readKnownAudioDevices();
+      return added.mock.calls.filter(([type]) => type === 'devicechange')
+        .length;
+    } finally {
+      added.mockRestore();
+      Reflect.deleteProperty(window, 'electron');
+    }
+  };
+
+  it('never listens for Chromium’s device changes on Windows', async () => {
+    await expect(deviceChangeListenersAdded('win32')).resolves.toBe(0);
+    await expect(deviceChangeListenersAdded('linux')).resolves.toBe(1);
+  });
+
+  it('still asks main again when an output change is announced', async () => {
+    const api = freshCopy('win32');
+    try {
+      await api.getAudioDevices();
+      await api.readKnownAudioDevices();
+      mockSend.mockClear();
+
+      window.dispatchEvent(new CustomEvent('fluideq-output-changed'));
+      await api.readKnownAudioDevices();
+
+      expect(mockSend).toHaveBeenCalledTimes(1);
+    } finally {
+      Reflect.deleteProperty(window, 'electron');
+    }
+  });
+});

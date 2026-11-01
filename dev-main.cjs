@@ -2,6 +2,14 @@ const { app } = require('electron');
 
 app.setName('FluidEQ');
 require('ts-node/register/transpile-only');
+
+// A development sandbox keeps its data out of the development window's
+// (`src/main/devSandbox.ts`). Here, before any module asks where userData is.
+const { devSandbox } = require('./src/main/devSandbox');
+
+if (devSandbox) {
+  app.setPath('userData', devSandbox.userData);
+}
 const {
   exitDevSessionOnAppQuit,
 } = require('./.erb/scripts/exit-dev-session-on-app-quit');

@@ -106,6 +106,9 @@ import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
 import { registerEngineHealthIpc } from './ipc/engineHealth';
 import { registerLightingIpc } from './ipc/lighting';
 import { registerRemoteAudioIpc } from './ipc/remoteAudio';
+import registerSystemSoundPort from './ipc/systemSoundPort';
+import { createSystemSound } from '../core/systemSound/systemSound';
+import { createPlatformSystemSoundSource } from '../core/platform/systemSoundSource';
 import { registerForumIpc } from './ipc/forum';
 import { registerMotionPreferenceIpc } from './ipc/motionPreference';
 import { registerGamesIpc } from './ipc/games';
@@ -159,6 +162,7 @@ import registerWindowsAudioIpc from './ipc/windowsAudio';
 import registerSystemMediaIpc from './ipc/systemMedia';
 import registerMemberServices from './memberServices';
 import { applyLaunchSwitches, isDebug } from './launchSwitches';
+import { devSandbox } from './devSandbox';
 import claimTheOnlyCopy from './onlyCopy';
 import { registerAppLinks } from './appLinks';
 import { chooseLaunchEngine, registerEngineServices } from './engineServices';
@@ -587,6 +591,22 @@ registerUpdatesIpc({ getActiveAutoUpdater: updates.getActiveAutoUpdater });
 
 registerNativeDialogsIpc();
 registerWindowsAudioIpc();
+
+/**
+ * What the speakers play, heard by the core (`src/core/systemSound`) and
+ * handed to the window's live displays over a port the window opens — in
+ * place of the screen-share capture Chromium needed a process of its own for.
+ */
+const systemSound = createSystemSound(
+  createPlatformSystemSoundSource({
+    nativeDirs: [
+      path.join(process.resourcesPath, 'native'),
+      path.join(__dirname, '../../native/.build/bin'),
+    ],
+    log,
+  }),
+);
+registerSystemSoundPort(getMainWindow, systemSound);
 
 /**
  * Which song the machine is playing, for the FluidEQ Engine's live leveling
@@ -1080,7 +1100,10 @@ const onAppReady = async () => {
     // which is why it is written once, in branding; the development build
     // has one of its own, or the taskbar draws it with the installed app's
     // icon (`appIdentity.ts`).
-    app.setAppUserModelId(APP_USER_MODEL_ID);
+    // A sandbox groups apart from the development window it runs beside.
+    app.setAppUserModelId(
+      devSandbox ? `${APP_USER_MODEL_ID}.sandbox` : APP_USER_MODEL_ID,
+    );
     // After the id, which is the startup entry's name: read before it, the
     // entry would be looked for under Electron's own.
     moveStartWithWindowsIntoTray(log);
@@ -1097,8 +1120,24 @@ const onAppReady = async () => {
   // FluidEQ Engine only applies one while this process holds its pipe open,
   // which is how a FluidEQ ended from Task Manager stops shaping the audio.
   // See `engineOwnerPipe.ts`. Never rejects.
-  await startEngineAnalysisPipe(getMainWindow);
-  await startEngineOwnerPipe();
+  //
+  // Neither of the engine's pipes in a development sandbox (`devSandbox.ts`):
+  // an engine that found the sandbox's owner pipe instead of the listener's
+  // FluidEQ would stop applying the EQ the moment the sandbox quit. The
+  // display pipe is served under a name no engine knows, so its readouts are
+  // answered — with nothing — rather than refused many times a second.
+  if (devSandbox) {
+    log.info(
+      `Development sandbox in ${devSandbox.root}: the engine's pipes are left to the real FluidEQ.`,
+    );
+    await startEngineAnalysisPipe(
+      getMainWindow,
+      `\\\\.\\pipe\\FluidEQ-Sandbox-Analysis-${process.pid}`,
+    );
+  } else {
+    await startEngineAnalysisPipe(getMainWindow);
+    await startEngineOwnerPipe();
+  }
   try {
     await createMainWindow();
     // AFTER THE WINDOW, NOT BEFORE IT.

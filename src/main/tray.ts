@@ -22,6 +22,7 @@ import { app, BrowserWindow, Menu, nativeImage, Tray } from 'electron';
 import log from 'electron-log';
 import { PRODUCT_NAME } from '../common/branding';
 import { DEFAULT_LOCALE, LocaleCode, translate } from '../common/i18n';
+import { sandboxProductName } from './devSandbox';
 import type { ITaskbarIconImage } from '../common/taskbarIcon';
 
 /**
@@ -391,7 +392,9 @@ const buildMenu = (getMainWindow: () => BrowserWindow | null) => {
   // either in this project, and a made-up one would be the first piece of
   // iconography in the app that nothing else uses.
   template.push({
-    label: translate(locale, 'app.tray.open', { product: PRODUCT_NAME }),
+    label: translate(locale, 'app.tray.open', {
+      product: sandboxProductName(PRODUCT_NAME),
+    }),
     // The tray's own mark, drawn or installed, so the menu matches the icon
     // it opened from.
     icon: tintedMenuIcon ?? menuIcons?.plain,
@@ -430,7 +433,9 @@ const buildMenu = (getMainWindow: () => BrowserWindow | null) => {
   // two or three items there are no groups to divide — it only added a rule
   // across a menu short enough to read in one glance.
   template.push({
-    label: translate(locale, 'app.tray.quit', { product: PRODUCT_NAME }),
+    label: translate(locale, 'app.tray.quit', {
+      product: sandboxProductName(PRODUCT_NAME),
+    }),
     click: () => {
       beginQuit();
       app.quit();
@@ -444,7 +449,7 @@ const currentTooltip = () =>
   translate(
     locale,
     isUpdateReady ? 'app.tray.tooltip.updateReady' : 'app.tray.tooltip',
-    { product: PRODUCT_NAME },
+    { product: sandboxProductName(PRODUCT_NAME) },
   );
 
 /**

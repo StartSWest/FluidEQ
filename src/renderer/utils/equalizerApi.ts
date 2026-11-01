@@ -509,6 +509,14 @@ export const subscribeAudioDevices = (
 };
 
 /**
+ * Whether main follows the outputs itself and pushes each change
+ * (`outputWatch.ts`, Windows only), so nothing here needs Chromium's own
+ * `devicechange` — which costs two Chromium services just to be listened to.
+ */
+export const windowsWatchesOutputs = (): boolean =>
+  window.electron?.platform === 'win32';
+
+/**
  * The list the window already holds, asked for only when it may have moved.
  *
  * The output panel reads the list when it mounts and when the window is come
@@ -547,7 +555,13 @@ export const readKnownAudioDevices = (): Promise<IAudioDevice[]> => {
       true,
     );
     document.addEventListener('visibilitychange', forget, true);
-    navigator.mediaDevices?.addEventListener?.('devicechange', forget, true);
+    // Not on Windows, where main hears Windows itself (`outputWatch.ts`) and
+    // pushes every new list (`subscribeAudioDevices`). Listening for
+    // Chromium's `devicechange` is enough on its own to start Chromium's audio
+    // service and its 66 MB video capture service, and keep them running.
+    if (!windowsWatchesOutputs()) {
+      navigator.mediaDevices?.addEventListener?.('devicechange', forget, true);
+    }
   }
   return knownDevices ? Promise.resolve(knownDevices) : getAudioDevices();
 };

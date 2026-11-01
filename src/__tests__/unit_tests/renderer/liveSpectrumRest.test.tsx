@@ -53,6 +53,13 @@ jest.mock('renderer/graph/liveGraphBand', () => ({
   ...jest.requireActual('renderer/graph/liveGraphBand'),
   createLiveGraphBand: () => ({}),
 }));
+// Chromium's capture, which is what these cases are about: the core's is the
+// one a visible window tries first (`liveSpectrumCore.test.tsx`), and left to
+// these stand-ins it opened a context of its own before failing over.
+jest.mock('renderer/audio/coreSystemOutput', () => ({
+  __esModule: true,
+  default: () => Promise.reject(new Error('No core in this test.')),
+}));
 
 interface IPublished {
   atMs: number;

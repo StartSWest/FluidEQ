@@ -110,6 +110,7 @@ export const readEngineProcesses = (): IEngineProcessStats[] => {
 // per endpoint bounds both IPC traffic and the pipe's queue under backpressure.
 const startEngineAnalysisPipe = (
   getWindow: () => { webContents: WebContents } | null,
+  pipePath: string = PIPE,
 ): Promise<void> => {
   if (process.platform !== 'win32') {
     return Promise.resolve();
@@ -338,7 +339,7 @@ const startEngineAnalysisPipe = (
     // to write measurements; the default Windows pipe ACL grants only reads.
     // This pipe accepts bounded analysis records and sends only demand bytes.
     server.listen(
-      { path: PIPE, readableAll: true, writableAll: true },
+      { path: pipePath, readableAll: true, writableAll: true },
       resolve,
     );
   });

@@ -88,6 +88,9 @@ const app = {
   'app.processes.name.desktopHost': 'Desktop visualizer helper',
   'app.processes.what.desktopHost':
     'Puts that monitor’s desktop visualizer behind the icons and tells it when windows cover the screen. One for each monitor showing one.',
+  'app.processes.name.listening': 'Live listening',
+  'app.processes.what.listening':
+    'Hears what this PC plays, after the equalizer, for the graph, the meters and the visualizers. Runs only while one of them is on screen.',
   'app.processes.name.shareCapture': 'Audio capture',
   'app.processes.what.shareCapture':
     'Captures what this PC plays, before the equalizer, for the Share Audio tab, a second output and Smart EQ. Runs only while one of them is in use.',

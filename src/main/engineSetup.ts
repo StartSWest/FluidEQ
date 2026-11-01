@@ -33,6 +33,7 @@ import { existsSync } from 'fs';
 import path from 'path';
 import log from 'electron-log';
 import { IFluidEngineEndpoint } from '../common/audioEngine';
+import { devSandbox } from './devSandbox';
 import { windowsAudioRestarted } from './windowsAudioRestarts';
 
 /**
@@ -236,10 +237,10 @@ const MAX_OUTPUT_BYTES = 1024 * 1024;
  * below, which is what lets an `ENOENT` resolve as `ok: false` instead of
  * throwing out of an `await`.
  */
-export const runEngineSetup = (
+const runHelper = (
   command: TEngineSetupCommand,
   args: string[],
-  exePath: string = getEngineSetupPath(),
+  exePath: string,
 ): Promise<IEngineSetupResult> =>
   new Promise((resolve) => {
     let stdout = '';
@@ -350,3 +351,28 @@ export const runEngineSetup = (
       resolve(result);
     });
   });
+
+/**
+ * A development sandbox runs no setup command at all (`devSandbox.ts`): each
+ * of them changes the engine the listener's own FluidEQ is playing through,
+ * and most restart Windows audio. Said in the log, so a sandbox whose engine
+ * card stays unrepaired says why.
+ */
+const refusedInSandbox = (
+  command: TEngineSetupCommand,
+): Promise<IEngineSetupResult> => {
+  log.info(`FluidEQ Engine Setup (${command}) refused: development sandbox`);
+  return Promise.resolve({
+    ok: false,
+    declined: false,
+    error: 'A development sandbox does not change the installed engine.',
+    endpoints: [],
+  });
+};
+
+export const runEngineSetup = (
+  command: TEngineSetupCommand,
+  args: string[],
+  exePath: string = getEngineSetupPath(),
+): Promise<IEngineSetupResult> =>
+  devSandbox ? refusedInSandbox(command) : runHelper(command, args, exePath);
