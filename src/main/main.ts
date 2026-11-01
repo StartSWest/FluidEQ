@@ -128,6 +128,8 @@ import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import registerSystemSoundPort from './ipc/systemSoundPort';
 import { createSystemSound } from '../core/systemSound/systemSound';
 import { createPlatformSystemSoundSource } from '../core/platform/systemSoundSource';
+import { createMacMonitorSource } from '../core/platform/macos/monitorTapSource';
+import { startMacMonitorCapture } from './macEngine/macNetworkCapture';
 import { createDesktopSound } from '../core/liveFrames/desktopSound';
 import { createKeptFile } from '../core/files/keptFile';
 import { createApoHeadroom } from '../core/headroom/apoHeadroom';
@@ -683,13 +685,16 @@ registerWindowsAudioIpc();
  * place of the screen-share capture Chromium needed a process of its own for.
  */
 const systemSound = createSystemSound(
-  createPlatformSystemSoundSource({
-    nativeDirs: [
-      path.join(process.resourcesPath, 'native'),
-      path.join(__dirname, '../../native/.build/bin'),
-    ],
-    log,
-  }),
+  // The Mac hears through its helper's tap, which main holds the lease on.
+  process.platform === 'darwin'
+    ? createMacMonitorSource(startMacMonitorCapture, log)
+    : createPlatformSystemSoundSource({
+        nativeDirs: [
+          path.join(process.resourcesPath, 'native'),
+          path.join(__dirname, '../../native/.build/bin'),
+        ],
+        log,
+      }),
 );
 registerSystemSoundPort(getMainWindow, systemSound);
 /**
@@ -1007,7 +1012,7 @@ registerSystemMediaIpc({ onMedia: songProgramme.onMedia });
 const macEngine = createMacEngine();
 app.on('will-quit', () => macEngine.stop());
 registerMacPermissionIpc();
-registerMacMonitorIpc(getMainWindow);
+registerMacMonitorIpc(getMainWindow, systemSound);
 registerMacKeychainIpc(getMainWindow);
 
 // Every switch between the app and the player is written down at once — a
