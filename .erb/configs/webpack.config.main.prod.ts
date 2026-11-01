@@ -57,6 +57,12 @@ const configuration: webpack.Configuration = {
       webpackPaths.srcMainPath,
       'library/scanWorker.ts',
     ),
+    // The core's own process, "FluidEQ Core" (`core/process/coreProcess.ts`):
+    // a real file for `utilityProcess.fork`, as the scan worker is.
+    'core-process': path.join(
+      webpackPaths.srcPath,
+      'core/process/coreProcess.ts',
+    ),
   },
 
   output: {

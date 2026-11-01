@@ -11,6 +11,8 @@ const NODE_PROGRAMS = [
   'share-audio-worker',
   'inference-worker',
   'library-scan-worker',
+  // The core's own process (`core/process/coreProcess.ts`).
+  'core-process',
 ];
 
 const entriesOf = (config: webpack.Configuration) =>
