@@ -8,7 +8,6 @@ import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import { DSP_DEFAULTS, IDspSettings } from '../../common/dsp/chain';
-import { DSP_PRESETS } from '../../common/dsp/presets';
 import { FluidEqProviderWrapper } from '../../renderer/utils/FluidEqContext';
 import DspPanel from '../../renderer/dsp/DspPanel';
 import { DSP_OPEN_SECTION_KEY } from '../../renderer/dsp/openSection';
@@ -38,15 +37,17 @@ jest.mock('../../renderer/utils/audioEngineApi', () => ({
 }));
 
 /**
- * The main EQ's side of a pick. A preset's tone is its Preset layer there
- * (`presetCurve.ts`), sent before the rack is set, so a pick finishes a
- * moment after the click rather than inside it.
+ * A whole preset is put on by the core (`main/presetPicks.ts`): its tone in
+ * the main EQ's Preset layer and its rack here, by the rules
+ * `presetPick.test.ts` holds, so a pick finishes a moment after the click
+ * rather than inside it, and the page reads the rack back.
  */
-const mockSetVoicing = jest.fn();
+const mockPickDspPreset = jest.fn();
 jest.mock('../../renderer/utils/equalizerApi', () => ({
   ...jest.requireActual('../../renderer/utils/equalizerApi'),
-  setVoicing: (...args: unknown[]) => mockSetVoicing(...args),
+  pickDspPreset: (...args: unknown[]) => mockPickDspPreset(...args),
 }));
+const mockRefreshState = jest.fn(async () => undefined);
 
 const APO_STATUS: IAudioEngineStatus = {
   engine: 'apo',
@@ -69,7 +70,11 @@ const renderPanel = (
   const onCommit = jest.fn();
   const view = render(
     <FluidEqProviderWrapper
-      value={{ ...defaultFluidEqContext, isEnabled: true }}
+      value={{
+        ...defaultFluidEqContext,
+        isEnabled: true,
+        refreshState: mockRefreshState,
+      }}
     >
       <DspPanel
         settings={settings}
@@ -180,45 +185,23 @@ describe('DspPanel presets, isolates and monitors', () => {
     });
   });
 
-  it('applies a preset whole when one is chosen: its tone to the main EQ, its rack here', async () => {
-    mockSetVoicing.mockResolvedValue(undefined);
-    const { onChange, onCommit } = renderPanel();
+  it('asks the core for a preset whole — this page’s own pick, never held for APO — and reads the rack back', async () => {
+    mockPickDspPreset.mockResolvedValue(undefined);
+    const { onChange } = renderPanel();
     fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
     await act(async () => {
       fireEvent.click(
         screen.getByRole('menuitemradio', { name: /Repair compressed/i }),
       );
     });
-    const repair = DSP_PRESETS.find((preset) => preset.id === 'lossy-repair');
-    expect(repair?.curve).toBeDefined();
-    expect(mockSetVoicing).toHaveBeenCalledWith(
-      'dsp:lossy-repair',
-      1,
-      repair?.curve,
+    expect(mockPickDspPreset).toHaveBeenCalledWith(
+      'lossy-repair',
+      false,
+      expect.any(String),
     );
-    expect(onChange).toHaveBeenCalledWith(repair?.settings);
-    expect(onCommit).toHaveBeenCalled();
-  });
-
-  it('does not change Crossfade when a DSP preset is chosen', async () => {
-    mockSetVoicing.mockResolvedValue(undefined);
-    const active: IDspSettings = {
-      ...DSP_DEFAULTS,
-      crossfade: {
-        ...DSP_DEFAULTS.crossfade,
-        enabled: true,
-        durationMs: 7_250,
-        curve: 'smooth',
-      },
-    };
-    const { onChange } = renderPanel(active);
-    fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
-    await act(async () => {
-      fireEvent.click(screen.getByRole('menuitemradio', { name: /^Rock\s/i }));
-    });
-    const next = onChange.mock.calls[0][0] as IDspSettings;
-    expect(next.presetId).toBe('rock');
-    expect(next.crossfade).toEqual(active.crossfade);
+    expect(mockRefreshState).toHaveBeenCalledWith({ adoptRack: true });
+    // The page's own edits go through `onChange`; a pick is the core's.
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   /**
@@ -274,39 +257,24 @@ describe('DspPanel presets, isolates and monitors', () => {
   });
 
   /**
-   * The surround switch says which channels of THIS output the rack runs on,
-   * so it belongs to the machine and not to a recipe — the same rule the
-   * crossfade above follows. Every recipe is built from the defaults, where
-   * the rack runs on all of them, so without this the switch flipped itself
-   * back on the way through a preset or the rack's own Reset.
+   * The rack's Reset is the Default chain, picked (Ivan, 2026-09-22: "reset
+   * set default profile"), where it was the bare defaults, which sounded like
+   * None — put on by the core as any pick of this page's is, which keeps the
+   * listener's surround switch and crossfade through it (`presetPick.test.ts`).
    */
-  it('keeps the surround switch through a preset and through Reset', async () => {
-    mockSetVoicing.mockResolvedValue(undefined);
-    const pair: IDspSettings = {
-      ...DSP_DEFAULTS,
-      eq: { ...DSP_DEFAULTS.eq, enabled: true },
-      surround: { allChannels: false },
-    };
-    const { container, onChange } = renderPanel(pair);
+  it('resets to the Default chain through the core', async () => {
+    mockPickDspPreset.mockResolvedValue(undefined);
+    const { container, onChange } = renderPanel();
     const rack = within(container.querySelector('.dsp-presets') as HTMLElement);
-    fireEvent.click(rack.getByRole('button', { name: 'Presets' }));
-    await act(async () => {
-      fireEvent.click(screen.getByRole('menuitemradio', { name: /^Rock\s/i }));
-    });
-    const chosen = onChange.mock.calls[0][0] as IDspSettings;
-    expect(chosen.surround).toEqual({ allChannels: false });
-
-    onChange.mockClear();
     await act(async () => {
       fireEvent.click(rack.getByRole('button', { name: 'Reset' }));
     });
-    const reset = onChange.mock.calls[0][0] as IDspSettings;
-    expect(reset.surround).toEqual({ allChannels: false });
-    // POSITIVE CONTROL: Reset did its job on everything that IS the sound —
-    // it is the Default chain, picked (Ivan, 2026-09-22: "reset set default
-    // profile"), where it was the bare defaults, which sounded like None.
-    expect(reset.presetId).toBe('balanced');
-    expect(reset.enabled).toBe(true);
+    expect(mockPickDspPreset).toHaveBeenCalledWith(
+      'balanced',
+      false,
+      expect.any(String),
+    );
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   /*

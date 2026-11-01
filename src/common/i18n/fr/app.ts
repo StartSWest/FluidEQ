@@ -92,6 +92,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktopHost': 'Assistant du visualiseur du Bureau',
   'app.processes.what.desktopHost':
     "Place le visualiseur du Bureau de cet écran derrière les icônes et le prévient quand des fenêtres couvrent l'écran. Un pour chaque écran qui en affiche un.",
+  'app.processes.name.listening': 'Écoute en direct',
+  'app.processes.what.listening':
+    "Écoute ce que joue ce PC, après l'égaliseur, pour le graphique, les vumètres et les visualiseurs. Ne tourne que pendant que l'un d'eux est à l'écran.",
   'app.processes.name.shareCapture': 'Capture audio',
   'app.processes.what.shareCapture':
     "Capture ce que joue ce PC, avant l'égaliseur, pour l'onglet Partager l’audio, une deuxième sortie et l'Égalisation auto. Ne tourne que pendant que l'un d'eux est utilisé.",

@@ -8,6 +8,7 @@ import {
 import log from 'electron-log';
 import {
   WALLPAPER,
+  screenFollowsMusic,
   wallpaperPauseReason,
   type IWallpaperAudio,
   type IWallpaperChoice,
@@ -22,6 +23,7 @@ import {
   sameScenePerformance,
   type IScenePerformance,
 } from '../../common/scenePerformance';
+import type { IDesktopSound } from '../../core/liveFrames/desktopSound';
 import type { ISceneOwnership } from '../plus/sceneOwnership';
 import { isSceneFailure } from '../scenePackStore';
 import {
@@ -45,6 +47,11 @@ export interface IWallpaperDeps extends IWallpaperScenes {
   ownership: Pick<ISceneOwnership, 'owns' | 'subscribe'>;
   /** Where each monitor's background is remembered between launches. */
   arrangement: IArrangementStore;
+  /**
+   * The music the backgrounds move to, heard by the core; the window is
+   * asked only when the core cannot hear it (`desktopSound.ts`).
+   */
+  desktopSound: IDesktopSound;
 }
 
 /** Failures a monitor changing shape may clear. */
@@ -97,6 +104,10 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   // (a number, or the clock): what every monitor following the graph draws
   // its scene at. Not kept either; the window says it again as it opens.
   let graphDaylight: TWallpaperDaylight | undefined;
+  // The window shows what this computer sends to another computer, and the
+  // backgrounds show the same, so it answers them; the core hears only the
+  // output (`WALLPAPER.soundFromWindow`).
+  let soundFromWindow = false;
   const relay = createWallpaperAudioRelay();
   const cleanups: (() => void)[] = [];
   const hookedOwners = new WeakSet<WebContents>();
@@ -138,20 +149,29 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     onEmpty: () => relay.cancel(),
   });
 
+  const heardByCore = () => deps.desktopSound.serves() && !soundFromWindow;
+
   const state = (): IWallpaperState => ({
     supported: supported(),
     displays: connectedDisplays(),
     screens: backgrounds.screens(),
     pauseOnBattery,
+    heardByCore: heardByCore(),
   });
 
   const publish = () => {
+    // The core listens exactly while a background follows the music, and the
+    // window holds nothing for them while it does.
+    deps.desktopSound.want(
+      !soundFromWindow && backgrounds.screens().some(screenFollowsMusic),
+    );
     const owner = ownerContents();
     if (owner && !owner.isDestroyed()) {
       owner.send(WALLPAPER.changed, state());
     }
   };
   backgrounds.onChange(publish);
+  cleanups.push(deps.desktopSound.onServesChanged(() => publish()));
 
   const save = () => {
     try {
@@ -721,18 +741,29 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     ownerContents,
     surfaceFor: backgrounds.surfaceFor,
     /**
-     * One read serves every monitor asking for the same frame. A calm
-     * background is never given the music, whatever its page asks for.
+     * The core's newest frame, or, where it cannot hear, the window's: one
+     * read of the window serves every monitor asking for the same frame. A
+     * calm background is never given the music, whatever its page asks for.
      */
     requestAudio: (
       surface: IDesktopSurface,
     ): Promise<IWallpaperAudio | undefined> | undefined => {
+      if (surface.phase() === 'paused' || surface.choice().motion !== 'music') {
+        return undefined;
+      }
+      if (heardByCore()) {
+        return Promise.resolve(deps.desktopSound.read());
+      }
       const owner = ownerContents();
-      return surface.phase() !== 'paused' &&
-        surface.choice().motion === 'music' &&
-        owner
-        ? relay.request(owner)
-        : undefined;
+      return owner ? relay.request(owner) : undefined;
+    },
+    /** What the window shows is what this computer sends to another. */
+    setSoundFromWindow: (next: boolean) => {
+      if (next === soundFromWindow) {
+        return;
+      }
+      soundFromWindow = next;
+      publish();
     },
     acceptAudio: (raw: unknown) => relay.accept(raw),
     /** Reads sent before the page was listening were never answered. */
@@ -742,6 +773,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
         return;
       }
       disposed = true;
+      deps.desktopSound.want(false);
       backgrounds.dispose();
       cleanups.forEach((cleanup) => cleanup());
     },

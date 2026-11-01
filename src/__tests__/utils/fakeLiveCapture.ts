@@ -17,7 +17,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The analysers are the only part a test file has to mock itself — the
  * drawing's reader and the graph band take nodes these do not model — so
  * each file also carries the two `jest.mock` calls that `liveSpectrumRest`
- * does.
+ * does. And a third that says which capture it is about: these stand in for
+ * Chromium's, and a visible window tries the core's first, so a file about
+ * Chromium's capture mocks `coreSystemOutput` to refuse
+ * (`liveSpectrumEvents`), and one about the core's hands back a stream of its
+ * own (`liveSpectrumCore`).
  */
 
 /** What every analyser hears: one amplitude, on every sample of both channels. */
@@ -151,6 +155,7 @@ export interface IFakeMediaDevices extends EventTarget {
   /** While set, every capture is refused, as Windows does mid-switch. */
   isRefusing: boolean;
   getDisplayMedia: jest.Mock;
+  enumerateDevices: jest.Mock;
   /** A device arriving or leaving, as Chromium announces it. */
   changeDevices: () => void;
 }

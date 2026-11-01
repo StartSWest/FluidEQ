@@ -4,7 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import vm from 'vm';
-import type { ISenderSpectrum } from '../../../renderer/remoteAudio/senderSpectrum';
+import type { ISenderSpectrum } from '../../../common/senderSpectrum';
 
 it('runs the shipped spectrum worker on demand and clears idle capture', () => {
   const frames: ISenderSpectrum[] = [];

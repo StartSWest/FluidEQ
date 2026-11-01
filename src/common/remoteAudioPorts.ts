@@ -2,15 +2,14 @@
 
 export const REMOTE_AUDIO_PORT_CHANNEL = 'remote-audio-port';
 /**
- * `playback` carries a remote sender's audio to the listener's worklet,
- * `analysis` the outgoing LAN capture to its spectrum worker, and `source` the
- * same process-loopback capture to Smart EQ's measurement — a port of its own,
- * because a port kind holds one MessagePort and the LAN meter and the
- * measurement can both be open at once.
+ * `playback` carries a remote sender's audio to the listener's worklet, and
+ * `analysis` the outgoing LAN capture to its spectrum worker. Smart EQ's
+ * measurement hears the same process-loopback capture in the core, where it
+ * runs (`main/smartEq/rawSourceFrames.ts`).
  */
-export type TRemoteAudioPortKind = 'playback' | 'analysis' | 'source';
+export type TRemoteAudioPortKind = 'playback' | 'analysis';
 
 export const isRemoteAudioPortKind = (
   value: unknown,
 ): value is TRemoteAudioPortKind =>
-  value === 'playback' || value === 'analysis' || value === 'source';
+  value === 'playback' || value === 'analysis';

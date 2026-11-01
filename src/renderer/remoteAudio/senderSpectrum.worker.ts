@@ -5,11 +5,11 @@ import {
   createSenderSpectrum,
   SENDER_SPECTRUM_SIZE,
   type ISenderSpectrum,
-} from './senderSpectrum';
+} from '../../common/senderSpectrum';
 
 const scope = globalThis as unknown as {
   onmessage: (
-    event: MessageEvent<{ kind: string; port?: MessagePort; stream?: boolean }>,
+    event: MessageEvent<{ kind: string; port?: MessagePort }>,
   ) => void;
   postMessage(value: ISenderSpectrum, transfer: Transferable[]): void;
 };
@@ -18,19 +18,6 @@ let requested = false;
 let fresh = false;
 let format: { sampleRate: number; channels: number } | undefined;
 let input: MessagePort | undefined;
-/**
- * Whether a window of fresh audio is published as soon as it is complete,
- * rather than when a display asks.
- *
- * The LAN meter pulls: a display request consumes the latest window and a
- * hidden window asks for nothing. A measurement is the opposite case — it
- * wants every window the audio produces, whether or not anything is drawn,
- * and it wants them at the audio's own pace. So the audio is the clock here:
- * once `SENDER_SPECTRUM_SIZE` new samples have arrived since the last frame,
- * the next one goes out, and nothing samples on a timer.
- */
-let stream = false;
-let sinceLast = 0;
 const publish = () => {
   if (!requested) {
     return;
@@ -50,7 +37,6 @@ const publish = () => {
   if (frame) {
     requested = false;
     fresh = false;
-    sinceLast = 0;
     format = { sampleRate: frame.sampleRate, channels: frame.peaks.length };
     scope.postMessage(frame, [frame.frequency.buffer]);
   }
@@ -60,8 +46,6 @@ scope.onmessage = ({ data }) => {
   if (data.kind === 'attach' && data.port) {
     input?.close();
     input = data.port;
-    stream = data.stream === true;
-    sinceLast = 0;
     input.onmessage = ({
       data: chunk,
     }: MessageEvent<ILanRemoteAudioChunk | { kind: 'reset' }>) => {
@@ -69,14 +53,9 @@ scope.onmessage = ({ data }) => {
         spectrum.reset();
         fresh = false;
         format = undefined;
-        sinceLast = 0;
       } else {
         spectrum.push(chunk);
         fresh = true;
-        sinceLast += chunk.frames;
-        if (stream && sinceLast >= SENDER_SPECTRUM_SIZE) {
-          requested = true;
-        }
         publish();
       }
     };

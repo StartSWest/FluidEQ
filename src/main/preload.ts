@@ -23,6 +23,7 @@ import {
   isRemoteAudioPortKind,
   REMOTE_AUDIO_PORT_CHANNEL,
 } from '../common/remoteAudioPorts';
+import { SYSTEM_SOUND_PORT_CHANNEL } from '../common/systemSound';
 
 // Keep exposure after the API import: if that dependency graph cannot load,
 // there is no partial bridge for the renderer to mistake for a usable one.
@@ -42,5 +43,11 @@ window.addEventListener('message', (event: MessageEvent<unknown>) => {
     event.ports.length === 1
   ) {
     ipcRenderer.postMessage(data.channel, data.kind, [event.ports[0]]);
+  } else if (
+    event.source === window &&
+    data?.channel === SYSTEM_SOUND_PORT_CHANNEL &&
+    event.ports.length === 1
+  ) {
+    ipcRenderer.postMessage(SYSTEM_SOUND_PORT_CHANNEL, null, [event.ports[0]]);
   }
 });

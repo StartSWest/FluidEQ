@@ -12,7 +12,7 @@ import {
   readLightingSettings,
   type ILightingSettings,
 } from '../../common/lighting/lightingModel';
-import writeFileAtomically from '../atomicWrite';
+import writeFileAtomically from '../../core/files/atomicWrite';
 
 /**
  * `lighting.json` in the user data folder: whether the devices follow the

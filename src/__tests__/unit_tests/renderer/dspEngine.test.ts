@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { DSP_DEFAULTS } from '../../../common/dsp/chain';
-import { useDspEngine } from '../../../renderer/dsp/useDspEngine';
+import useDspEngine from '../../../renderer/dsp/useDspEngine';
 
 interface IFakeNode {
   connect: jest.Mock;

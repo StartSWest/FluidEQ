@@ -20,7 +20,7 @@ import { IFilter } from 'common/constants';
 import { gainAtFrequency, getTFCoefficients } from 'common/response';
 import { getReferenceShape } from 'common/referenceCurve';
 import { getSmartEqBands, getSmartEqLayout } from 'common/smartEq';
-import { buildBalancedGains } from 'renderer/utils/autoBalance';
+import { buildBalancedGains } from 'common/autoBalance';
 
 /**
  * THE SAME SOUND GIVES THE SAME LAYER, whatever was applied before it.

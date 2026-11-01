@@ -6,7 +6,7 @@ import {
   parseAnnouncements,
   type IAnnouncement,
 } from '../../common/sceneAnnouncements';
-import writeFileAtomically from '../atomicWrite';
+import writeFileAtomically from '../../core/files/atomicWrite';
 import type { IGalleryAccess } from '../plus/galleryAccess';
 import { rpc } from '../plus/galleryApi';
 import { registerAppNewsIpc } from './appNews';

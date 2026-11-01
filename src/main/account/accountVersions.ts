@@ -1,5 +1,5 @@
 import fs from 'fs';
-import writeFileAtomically from '../atomicWrite';
+import writeFileAtomically from '../../core/files/atomicWrite';
 
 /**
  * The highest version of something each account on this computer has

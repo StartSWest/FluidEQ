@@ -616,6 +616,30 @@ if(WIN32)
   )
 endif()
 
+# What the speakers play, for the app's live displays (`system-listen`): the
+# default output's own loopback, after every endpoint effect, in the capture
+# helper's wire. Replaces Chromium's screen-share capture and the process it
+# kept running.
+if(WIN32)
+  add_executable(fluideq-system-listen
+    system-listen/src/main.cpp
+    remote-audio-capture/src/capture_queue.cpp
+    remote-audio-capture/src/capture_writer.cpp)
+  target_include_directories(fluideq-system-listen PRIVATE
+    remote-audio-capture/src)
+  target_link_libraries(fluideq-system-listen PRIVATE feq_strict ole32 avrt)
+  set_target_properties(fluideq-system-listen PROPERTIES
+    OUTPUT_NAME "FluidEQ-Listen"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
+  )
+  add_executable(fluideq-float-mix-format-test
+    system-listen/tests/float_mix_format_test.cpp)
+  target_link_libraries(fluideq-float-mix-format-test PRIVATE feq_strict)
+  add_test(NAME float-mix-format COMMAND fluideq-float-mix-format-test)
+endif()
+
 add_subdirectory(remote-audio-playback)
 if(APPLE)
   add_subdirectory(mac-remote-audio)

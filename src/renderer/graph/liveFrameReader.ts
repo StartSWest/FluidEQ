@@ -4,15 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import {
-  type IAxisCell,
-  readAbsoluteLevels,
-} from '../utils/autoBalanceCapture';
+import { type IAxisCell, readAbsoluteLevels } from 'common/autoBalanceCapture';
 import type { IChartPointData } from './ChartController';
 import {
   FFT_SIZE,
   NO_POINTS,
-  SPECTRUM_SMOOTHING,
+  DRAW_SMOOTHING,
   TRACK_REFERENCE_RELEASE_DB,
   UPDATE_INTERVAL_MS,
   createFrameBuffers,
@@ -119,21 +116,6 @@ export interface ILiveFrameReaderOptions {
   /** The capture's sound, handed on with every frame. */
   sound?: ILiveSound;
 }
-
-/**
- * The drawing's averaging, per `UPDATE_INTERVAL_MS`: the pump's, squared.
- *
- * The pump's 0.2 is a coefficient per 33 ms read, so a reader at display rate
- * rescales it by the audio that actually passed, or a 144 Hz screen would
- * average four times as hard as a 30 Hz one. Squared is half the time
- * constant, and that is measured, not chosen. Replaying a recorded track
- * through this pipeline, keeping the pump's constant flickered less than the
- * pump does today (1.30 dB of frame-to-frame curvature against 2.17 at 100 Hz)
- * but put the bass 10 to 15 ms behind where half of it does. Half flickers as
- * today does — 2.13 dB at 100 Hz, 3.95 against 3.61 at 60 Hz. None at all
- * flickered 75% more again at 100 Hz, which is a look nobody asked for.
- */
-const DRAW_SMOOTHING = SPECTRUM_SMOOTHING ** 2;
 
 /**
  * Keyed to the AUDIO clock, not the display's.

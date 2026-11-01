@@ -21,6 +21,7 @@ import { useMemo } from 'react';
 import * as d3 from 'd3';
 import { MAX_GAIN, MIN_GAIN, type TBandChannel } from 'common/constants';
 import { SelectionMode } from 'common/bandSelection';
+import type { IChartPointData } from 'common/liveFrames';
 import { Color } from 'renderer/styles/color';
 
 /**
@@ -75,10 +76,7 @@ export interface IMarginLike {
   bottom: number;
 }
 
-export interface IChartPointData {
-  x: number;
-  y: number;
-}
+export type { IChartPointData };
 
 export interface IChartGradientStop {
   offset: number;

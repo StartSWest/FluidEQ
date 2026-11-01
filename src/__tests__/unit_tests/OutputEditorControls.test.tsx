@@ -256,7 +256,7 @@ describe('useMainOutputEditor', () => {
 
 /**
  * The amp's faders, game mode and preset pick edit whatever output is being
- * edited, and the notice that says which sleeps behind it. Entering the amp
+ * edited, and the notice that says which is not there behind it. Entering the amp
  * — or any surface that speaks for the machine's sound — ends a second
  * output's edit, the way Done does.
  */

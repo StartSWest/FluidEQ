@@ -16,7 +16,10 @@ import {
   DspNormalizerLiveState,
   DspNormalizerStats,
 } from './DspNormalizerReadouts';
-import { normalizerGainBreakdown, TNormalizerLimit } from './inputNormalizer';
+import {
+  normalizerGainBreakdown,
+  TNormalizerLimit,
+} from '../../common/dsp/trackGains';
 import { IDspInputAnalysisState } from './store';
 import { useRackGate } from './rackPlacement';
 

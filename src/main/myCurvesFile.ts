@@ -8,7 +8,7 @@ import {
   fromCurveStore,
   toCurveStore,
 } from '../common/myCurvesFile';
-import writeFileAtomically from './atomicWrite';
+import writeFileAtomically from '../core/files/atomicWrite';
 
 interface ILogger {
   error(message: string, ...details: unknown[]): void;

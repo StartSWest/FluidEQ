@@ -55,6 +55,11 @@ export type TProcessRole =
   /** `FluidEQ-LAN-Capture.exe`: captures this PC's sound while it is shared. */
   | 'shareCapture'
   /**
+   * `FluidEQ-Listen.exe`: hears what the speakers play, after the EQ, for the
+   * live displays, while one of them is on screen (`src/core/systemSound`).
+   */
+  | 'listening'
+  /**
    * `FluidEQ-LAN-Playback.exe`: plays what another FluidEQ shares with this
    * PC, while it is being listened to.
    */
@@ -244,6 +249,7 @@ export const roleFor = (
 export const EXECUTABLE_ROLES: Readonly<Record<string, TProcessRole>> = {
   'fluideq-wallpaper.exe': 'desktopHost',
   'fluideq-lan-capture.exe': 'shareCapture',
+  'fluideq-listen.exe': 'listening',
   'fluideq-lan-playback.exe': 'sharePlayback',
   'fluideq-volume.exe': 'volume',
   'fluideq-outputs.exe': 'outputs',
@@ -300,6 +306,7 @@ const ROLE_ORDER: readonly TProcessRole[] = [
   'desktopHost',
   'models',
   'libraryScan',
+  'listening',
   'shareCapture',
   'sharePlayback',
   'volume',

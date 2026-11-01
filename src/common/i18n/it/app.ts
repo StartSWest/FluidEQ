@@ -91,6 +91,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktopHost': 'Assistente del visualizzatore del desktop',
   'app.processes.what.desktopHost':
     'Mette il visualizzatore del desktop di quel monitor dietro le icone e lo avvisa quando le finestre coprono lo schermo. Uno per ogni monitor che ne mostra uno.',
+  'app.processes.name.listening': 'Ascolto dal vivo',
+  'app.processes.what.listening':
+    "Ascolta ciò che suona su questo PC, dopo l'equalizzatore, per il grafico, gli indicatori e i visualizzatori. È attivo solo mentre uno di questi è sullo schermo.",
   'app.processes.name.shareCapture': 'Acquisizione audio',
   'app.processes.what.shareCapture':
     "Acquisisce ciò che suona su questo PC, prima dell'equalizzatore, per la scheda Condividi audio, una seconda uscita ed EQ intelligente. È attivo solo mentre uno di questi è in uso.",

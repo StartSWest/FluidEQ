@@ -10,7 +10,7 @@ import Switch from '../widgets/Switch';
 import { Dial, ProcessorCard } from './DspControls';
 import DspMasterBar from './DspMasterBar';
 import DspMasterGraph from './DspMasterGraph';
-import { IMasterLoudnessBreakdown } from './inputNormalizer';
+import { IMasterLoudnessBreakdown } from '../../common/dsp/trackGains';
 
 interface IDspMasterCardProps {
   master: IMasterSettings;

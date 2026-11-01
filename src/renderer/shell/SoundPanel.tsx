@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Activity, type ComponentProps, type RefObject, useRef } from 'react';
+import { type ComponentProps, type RefObject, useRef } from 'react';
 import type { TAudioEngine } from 'common/audioEngine';
 import { OFFICIAL_SITE_URL } from 'common/branding';
 import DriverPicker from '../components/DriverPicker';
@@ -48,8 +48,8 @@ export interface ISoundPanelProps {
   isSliding: boolean;
   /** Its button: the drawer opened or shut, or the column folded. */
   onToggle: () => void;
-  /** Asleep behind the amp, like the pages. */
-  behindAmp: 'hidden' | 'visible';
+  /** The window is the amp: its cards are not built, like the pages. */
+  isBehindAmp: boolean;
   engine: TAudioEngine | null;
   isNoticeHidden: boolean;
   onConfigureApo: TDeviceProfilesProps['onConfigureApo'];
@@ -66,7 +66,7 @@ const SoundPanel = ({
   isShown,
   isSliding,
   onToggle,
-  behindAmp,
+  isBehindAmp,
   engine,
   isNoticeHidden,
   onConfigureApo,
@@ -110,15 +110,15 @@ const SoundPanel = ({
           {/* The EQ mode menu, pinned beside the graph it changes: first,
               because it is the one card here that belongs to the page beside
               it. Only on the EQ page (`eqModePin.ts`). */}
-          <Activity mode={behindAmp}>
+          {!isBehindAmp && (
             <EqModeCard isPaneShown={isShown} scrollRef={scrollRef} />
-          </Activity>
+          )}
           {/* One card: the output you listen on, and under it the profiles
               that play through it. They were two cards, and the ON pill on
               a profile sat a card away from the output it was on. */}
-          {/* Asleep behind the amp. Each reads what it shows again when it
-              wakes: the preset list, the outputs and their profiles. */}
-          <Activity mode={behindAmp}>
+          {/* Not built behind the amp. Each reads what it shows when it is
+              built: the preset list, the outputs and their profiles. */}
+          {!isBehindAmp && (
             <DeviceProfiles
               engine={engine}
               isNoticeHidden={isNoticeHidden}
@@ -136,19 +136,17 @@ const SoundPanel = ({
               />
               <SongSoundSwitch />
             </DeviceProfiles>
-          </Activity>
+          )}
           {/* Directly under the output picker: it is the same question asked
               twice over — that one chooses where the sound goes, this one
               adds a second somewhere. */}
-          {/* Awake behind the amp: it plays the mirror to the second output
-              (`useOutputMirror`), and asleep it would silence that output
+          {/* Kept behind the amp: it plays the mirror to the second output
+              (`useOutputMirror`), and taken down it would silence that output
               the moment the window became the amp. */}
           <ExtraOutputs engine={engine} isPaneShown={isShown} />
           {/* Sits with the output device because it answers the same question:
               what is this sound coming out of. */}
-          <Activity mode={behindAmp}>
-            <DriverPicker />
-          </Activity>
+          {!isBehindAmp && <DriverPicker />}
         </div>
         <footer className="right-content__footer" inert={!isShown}>
           <a

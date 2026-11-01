@@ -4,6 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+/**
+ * The Games page: the list, what Windows has in front, and the game whose
+ * sound the core has on. Switching the sound is the core's
+ * (`main/gameSound.ts`, held by `gameSound.test.ts`); the page shows what
+ * the core says and changes nothing itself.
+ */
 import '@testing-library/jest-dom';
 import {
   act,
@@ -13,10 +19,10 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import { DSP_DEFAULTS } from 'common/dsp/chain';
+import { DSP_DEFAULTS, IDspSettings } from 'common/dsp/chain';
+import { dspPresetSettings } from 'common/dsp/presets';
 import { IGameProgram } from 'common/games';
 import en from 'common/i18n/en';
-import GameSound from 'renderer/games/GameSound';
 import GamesPanel from 'renderer/games/GamesPanel';
 import {
   readGameProfiles,
@@ -30,13 +36,6 @@ import {
   useTransportSources,
 } from 'renderer/audio/transportSource';
 import { applyDspSettings, readDspSettings } from 'renderer/dsp/store';
-import { activateAudioDeviceProfile } from 'renderer/utils/equalizerApi';
-import { readOutputEditor } from 'renderer/utils/outputEditor';
-import {
-  mainOutput,
-  secondOutput,
-  showOutputEditor,
-} from '__tests__/utils/outputEditorFixture';
 import { toggleFavouriteDspPreset } from 'renderer/dsp/favouriteDspPresets';
 
 jest.mock('renderer/dsp/systemChain', () => ({
@@ -48,8 +47,7 @@ jest.mock('renderer/utils/useAudioEngineStatus', () => ({
   useKnownAudioEngineStatus: () => ({ engine: 'fluid' }),
 }));
 jest.mock('renderer/utils/equalizerApi', () => ({
-  setVoicing: jest.fn(),
-  activateAudioDeviceProfile: jest.fn(),
+  pickDspPreset: jest.fn(),
 }));
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('__tests__/utils/fluidEqHookMocks').eqHooksFrom(() => ({
@@ -97,8 +95,7 @@ const bridge = {
   ),
   watchGames: jest.fn(),
   chooseGameProgram: jest.fn(),
-  showGameToast: jest.fn(),
-  holdGameProcess: jest.fn(),
+  askGameSounding: jest.fn(),
   watchSystemMedia: jest.fn(() => Promise.resolve()),
   onSystemMedia: (listener: (snapshot: unknown) => void) => {
     saySession = listener;
@@ -122,25 +119,34 @@ const tell = (channel: string, ...args: unknown[]) =>
       .forEach((one) => one.listener(...args));
   });
 
-/** What main would send when Windows puts a program in front. */
+/** What main sends when Windows puts a program in front. */
 const comesToTheFront = (program: IGameProgram) =>
   tell('game-foreground', program);
 
-/** What main would send when the program it was holding has ended. */
-const theGameEnds = (pid: number) => tell('game-ended', pid);
+const rack = (id: string): IDspSettings => ({
+  ...(dspPresetSettings(id, DSP_DEFAULTS) as IDspSettings),
+  enabled: true,
+});
 
 /**
- * The page and the window's own switcher, as the app mounts them: the page
- * shows and edits, `GameSound` is the one that applies. They are separate
- * because a game comes to the front while FluidEQ is behind it.
+ * What the core does when Overwatch comes forward: Gaming on the rack, and
+ * the window told whose sound it is. `null` when the game has ended.
  */
-const show = async () => {
-  render(
-    <>
-      <GameSound />
-      <GamesPanel />
-    </>,
+const coreSays = (presetId: string | null) => {
+  const [overwatch] = readGameProfiles();
+  act(() => {
+    if (presetId !== null) {
+      applyDspSettings(rack(presetId));
+    }
+  });
+  tell(
+    'game-sounding',
+    presetId === null ? null : { gameId: overwatch.id, presetId },
   );
+};
+
+const show = async () => {
+  render(<GamesPanel />);
   await waitFor(() =>
     expect(screen.getByRole('button', { name: en['games.add'] })).toBeEnabled(),
   );
@@ -150,6 +156,20 @@ const addFromMenu = (name: string) => {
   fireEvent.click(screen.getByRole('button', { name: en['games.add'] }));
   fireEvent.click(
     screen.getByRole('menuitemradio', { name: new RegExp(name) }),
+  );
+};
+
+/** Overwatch on the list, playing the Gaming chain. */
+const overwatchOnGaming = async () => {
+  await show();
+  addFromMenu('Overwatch');
+  fireEvent.click(
+    screen.getByRole('button', {
+      name: en['games.row.sound'].replace('{name}', 'Overwatch'),
+    }),
+  );
+  fireEvent.click(
+    screen.getByRole('menuitemradio', { name: /^Gaming(?!\s·)/ }),
   );
 };
 
@@ -195,39 +215,17 @@ describe('the Games page', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('plays a game’s sound until the game ends, not until it loses the front', async () => {
-    await show();
-    addFromMenu('Overwatch');
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: en['games.row.sound'].replace('{name}', 'Overwatch'),
-      }),
-    );
-    fireEvent.click(
-      screen.getByRole('menuitemradio', { name: /^Gaming(?!\s·)/ }),
-    );
+  it('shows the game in front, and the game whose sound the core has on for as long as its chain plays', async () => {
+    await overwatchOnGaming();
+    // Asked once which game's sound is on: a window opened mid-game shows it.
+    expect(bridge.askGameSounding).toHaveBeenCalledTimes(1);
 
     comesToTheFront(OVERWATCH_RUNNING);
-    await waitFor(() => expect(readDspSettings().presetId).toBe('gaming'));
     expect(screen.getByText(en['games.row.inFront'])).toBeInTheDocument();
-    // Main is asked to be told the end of that very process.
-    expect(bridge.holdGameProcess).toHaveBeenCalledWith(4242);
-    // And it says so where somebody playing can see it: on the desktop,
-    // drawn by main, because this window is behind the game by then.
-    await waitFor(() =>
-      expect(bridge.showGameToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          what: en['games.toast.loaded'].replace('{preset}', 'Gaming'),
-          game: en['games.toast.forGame'].replace('{game}', 'Overwatch'),
-          icon: OVERWATCH_ICON,
-        }),
-      ),
-    );
+    coreSays('gaming');
 
-    // Alt-tabbing out changes nothing: the sound is still the game's, and
-    // the row says so rather than going dark.
+    // Tabbed out of it, the row still says the sound is the game's.
     comesToTheFront(CHROME);
-    expect(readDspSettings().presetId).toBe('gaming');
     expect(screen.getByText(en['games.row.sounding'])).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -235,24 +233,22 @@ describe('the Games page', () => {
       ),
     ).toBeInTheDocument();
 
-    // The end of some other program is not the end of the game.
-    theGameEnds(5150);
-    expect(readDspSettings().presetId).toBe('gaming');
-
-    // The game closing is what puts the sound back — and says so.
-    theGameEnds(4242);
-    await waitFor(() => expect(readDspSettings().presetId).toBe('music'));
+    // The listener picks their own chain mid-game: no longer the game's.
+    act(() => {
+      applyDspSettings({ ...readDspSettings(), presetId: 'late-night' });
+    });
     expect(
       screen.queryByText(en['games.row.sounding']),
     ).not.toBeInTheDocument();
-    await waitFor(() =>
-      expect(bridge.showGameToast).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          game: en['games.toast.afterGame'].replace('{game}', 'Overwatch'),
-          icon: OVERWATCH_ICON,
-        }),
-      ),
-    );
+
+    // POSITIVE CONTROL: the game's chain back, and the core saying the game
+    // ended, which is what takes the claim away.
+    act(() => applyDspSettings(rack('gaming')));
+    expect(screen.getByText(en['games.row.sounding'])).toBeInTheDocument();
+    coreSays(null);
+    expect(
+      screen.queryByText(en['games.row.sounding']),
+    ).not.toBeInTheDocument();
   });
 
   /**
@@ -269,23 +265,12 @@ describe('the Games page', () => {
       );
     };
     render(<BarTitle />);
-    await show();
-    addFromMenu('Overwatch');
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: en['games.row.sound'].replace('{name}', 'Overwatch'),
-      }),
-    );
-    fireEvent.click(
-      screen.getByRole('menuitemradio', { name: /^Gaming(?!\s·)/ }),
-    );
+    await overwatchOnGaming();
     comesToTheFront(OVERWATCH_RUNNING);
+    coreSays('gaming');
     await waitFor(() =>
       expect(screen.getByTestId('bar')).toHaveTextContent('Overwatch'),
     );
-    // Still the game's while somebody is tabbed out of it.
-    comesToTheFront(CHROME);
-    expect(screen.getByTestId('bar')).toHaveTextContent('Overwatch');
 
     const song = {
       title: 'Kind of Blue',
@@ -302,132 +287,29 @@ describe('the Games page', () => {
     act(() => saySession?.({ ...song, isPlaying: false, playing: [] }));
     expect(screen.getByTestId('bar')).toHaveTextContent('Overwatch');
 
-    theGameEnds(4242);
+    coreSays(null);
     await waitFor(() =>
       expect(screen.getByTestId('bar')).toHaveTextContent('Kind of Blue'),
     );
   });
 
-  /**
-   * Somebody with the rack switched off starts a game: its sound goes on,
-   * and when the game ends the rack goes back off. That has no chain name,
-   * so the card says what happened instead of inventing one.
-   */
-  /**
-   * A game's sound is the machine's. With a second output left in "Edit
-   * sound" it was put on that output and kept there for good — the main
-   * output played on without it, and the end of the game, judged against
-   * the main output's preset, never put the second one back.
-   */
-  it('puts a game’s sound on the main output when a second output is being edited', async () => {
-    await show();
-    addFromMenu('Overwatch');
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: en['games.row.sound'].replace('{name}', 'Overwatch'),
-      }),
-    );
-    fireEvent.click(
-      screen.getByRole('menuitemradio', { name: /^Gaming(?!\s·)/ }),
-    );
-    act(() => showOutputEditor(mainOutput, secondOutput));
-    // Going back to the main output is what main answers with a state read.
-    jest.mocked(activateAudioDeviceProfile).mockImplementation(async () => {
-      showOutputEditor(mainOutput, mainOutput);
-    });
-    // The rack the second output had is not what the game changes.
-    const secondOutputsRack = readDspSettings();
-
-    comesToTheFront(OVERWATCH_RUNNING);
-    expect(readDspSettings()).toBe(secondOutputsRack);
-    expect(activateAudioDeviceProfile).toHaveBeenCalledWith(mainOutput.id);
-    await waitFor(() => expect(readDspSettings().presetId).toBe('gaming'));
-    expect(readOutputEditor().editor?.device.id).toBe(mainOutput.id);
-  });
-
-  it('puts the rack back off after the game, and says so without naming a chain', async () => {
-    applyDspSettings({ ...DSP_DEFAULTS, enabled: false, presetId: 'music' });
-    await show();
-    addFromMenu('Overwatch');
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: en['games.row.sound'].replace('{name}', 'Overwatch'),
-      }),
-    );
-    fireEvent.click(
-      screen.getByRole('menuitemradio', { name: /^Gaming(?!\s·)/ }),
-    );
-    comesToTheFront(OVERWATCH_RUNNING);
-    await waitFor(() => expect(readDspSettings().enabled).toBe(true));
-
-    theGameEnds(4242);
-    await waitFor(() => expect(readDspSettings().enabled).toBe(false));
-    await waitFor(() =>
-      expect(bridge.showGameToast).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          what: en['games.toast.restoredNone'],
-          game: en['games.toast.afterGame'].replace('{game}', 'Overwatch'),
-        }),
-      ),
-    );
-  });
-
-  it('leaves a chain chosen during the game alone when the game ends, and says nothing', async () => {
-    await show();
-    addFromMenu('Overwatch');
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: en['games.row.sound'].replace('{name}', 'Overwatch'),
-      }),
-    );
-    fireEvent.click(
-      screen.getByRole('menuitemradio', { name: /^Gaming(?!\s·)/ }),
-    );
-    comesToTheFront(OVERWATCH_RUNNING);
-    await waitFor(() => expect(readDspSettings().presetId).toBe('gaming'));
-    await waitFor(() => expect(bridge.showGameToast).toHaveBeenCalledTimes(1));
-    comesToTheFront(CHROME);
-    // The control: while the sound is the game's, the row says so.
-    expect(screen.getByText(en['games.row.sounding'])).toBeInTheDocument();
-
-    // The listener picks their own chain mid-game.
-    act(() => {
-      applyDspSettings({ ...readDspSettings(), presetId: 'late-night' });
-    });
-    // No longer the game's sound, so the row no longer claims it is.
-    expect(
-      screen.queryByText(en['games.row.sounding']),
-    ).not.toBeInTheDocument();
-
-    theGameEnds(4242);
-    expect(readDspSettings().presetId).toBe('late-night');
-    expect(bridge.showGameToast).toHaveBeenCalledTimes(1);
-  });
-
-  it('leaves the sound alone for a program with no profile, and says nothing about it', async () => {
+  it('says nothing about a program with no profile', async () => {
     await show();
     addFromMenu('Overwatch');
     comesToTheFront(CHROME);
-    expect(readDspSettings().presetId).toBe('music');
     // The line at the top is for this listener's own games. Narrating every
     // window somebody opens is noise on a page nobody has asked a question.
     expect(screen.queryByText(/Google Chrome/)).not.toBeInTheDocument();
   });
 
-  it('leaves the sound alone with the page open and nothing else mounted', async () => {
-    render(<GamesPanel />);
-    await waitFor(() =>
-      expect(
-        screen.getByRole('button', { name: en['games.add'] }),
-      ).toBeEnabled(),
-    );
-    addFromMenu('Overwatch');
-    comesToTheFront(OVERWATCH);
-    // The page is a page: it says what is in front and changes nothing.
+  it('changes nothing about the sound itself', async () => {
+    await overwatchOnGaming();
+    comesToTheFront(OVERWATCH_RUNNING);
+    // The page is a page: it says what is in front; the core switches.
     expect(readDspSettings().presetId).toBe('music');
   });
 
-  it('watches only while there is something to match, and stops with the page', async () => {
+  it('watches while the page is open, and stops with the page', async () => {
     const { unmount } = render(<GamesPanel />);
     await waitFor(() => expect(bridge.watchGames).toHaveBeenCalledWith(true));
     unmount();
@@ -474,63 +356,27 @@ describe('the Games page’s own switch', () => {
   const gamesSwitch = () =>
     screen.getByRole('checkbox', { name: en['tabs.games'] });
 
-  /** Overwatch on the list, playing the Gaming chain. */
-  const overwatchOnGaming = async () => {
-    await show();
-    addFromMenu('Overwatch');
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: en['games.row.sound'].replace('{name}', 'Overwatch'),
-      }),
-    );
-    fireEvent.click(
-      screen.getByRole('menuitemradio', { name: /^Gaming(?!\s·)/ }),
-    );
-  };
-
-  it('switched off, no game reaches the sound and nothing watches what is in front, and the list stays', async () => {
+  it('switched off, the page watches nothing and shows no front, and the list stays', async () => {
     await overwatchOnGaming();
     expect(gamesSwitch()).toBeChecked();
 
     fireEvent.click(gamesSwitch());
     expect(gamesSwitch()).not.toBeChecked();
     expect(screen.getByText(en['games.front.off'])).toBeInTheDocument();
-    // Main stops asking Windows what is in front.
     expect(bridge.watchGames).toHaveBeenLastCalledWith(false);
-    // A front reported anyway — one already on its way — changes nothing.
+    // A front reported anyway — one already on its way — is not shown.
     comesToTheFront(OVERWATCH_RUNNING);
-    expect(readDspSettings().presetId).toBe('music');
-    expect(bridge.holdGameProcess).not.toHaveBeenCalled();
-    expect(bridge.showGameToast).not.toHaveBeenCalled();
+    expect(screen.queryByText(en['games.row.inFront'])).not.toBeInTheDocument();
     // The games somebody set up are still theirs.
     expect(readGameProfiles()).toEqual([
       expect.objectContaining({ name: 'Overwatch' }),
     ]);
 
-    // On again, the list plays as it did.
+    // On again, the page watches and shows what is in front.
     fireEvent.click(gamesSwitch());
     expect(bridge.watchGames).toHaveBeenLastCalledWith(true);
     comesToTheFront(OVERWATCH_RUNNING);
-    await waitFor(() => expect(readDspSettings().presetId).toBe('gaming'));
-  });
-
-  it('puts the sound from before back when it goes off during a game, with no card', async () => {
-    await overwatchOnGaming();
-    comesToTheFront(OVERWATCH_RUNNING);
-    await waitFor(() => expect(readDspSettings().presetId).toBe('gaming'));
-    await waitFor(() => expect(bridge.showGameToast).toHaveBeenCalledTimes(1));
-
-    fireEvent.click(gamesSwitch());
-    // Left on, the sound would stay the game's with nothing to take it back.
-    await waitFor(() => expect(readDspSettings().presetId).toBe('music'));
-    expect(bridge.holdGameProcess).toHaveBeenLastCalledWith(0);
-    expect(
-      screen.queryByText(
-        en['games.front.sounding'].replace('{name}', 'Overwatch'),
-      ),
-    ).not.toBeInTheDocument();
-    // The listener pressed the switch in this window: no desktop card.
-    expect(bridge.showGameToast).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(en['games.row.inFront'])).toBeInTheDocument();
   });
 
   it('stays off after a restart, and is on for every list saved before it existed', async () => {
@@ -543,31 +389,5 @@ describe('the Games page’s own switch', () => {
     await show();
     expect(gamesSwitch()).not.toBeChecked();
     expect(screen.getByText(en['games.front.off'])).toBeInTheDocument();
-  });
-});
-
-/*
- * The switcher is mounted for the life of the window and re-renders with it.
- * It held the chain catalogue for the card a game raises, and holding it read
- * every saved chain and the stars out of storage on each of those renders.
- */
-describe('the window’s own switcher', () => {
-  it('reads no saved chain while it only renders', () => {
-    const view = render(<GameSound />);
-    const getItem = jest.spyOn(Storage.prototype, 'getItem');
-
-    view.rerender(<GameSound />);
-    view.rerender(<GameSound />);
-
-    expect(
-      getItem.mock.calls.filter(([key]) =>
-        [
-          'fluideq.dsp.userChainPresets.v1',
-          'fluideq.dsp.favouritePresets.v1',
-        ].includes(key),
-      ),
-    ).toEqual([]);
-    getItem.mockRestore();
-    view.unmount();
   });
 });

@@ -25,15 +25,12 @@ enum ChannelEnum {
   SET_ENABLE = 'setEnable',
   SET_AUTO_PREAMP = 'setAutoPreAmp',
   /**
-   * What the capture has heard, handed to the writer that owns the preamp.
-   *
-   * The renderer is a sensor on this channel and nothing more: it sends the
-   * measured spectrum and the supervisor's trim, never a preamp. Sending a
-   * finished number would make it the second writer of a value the config
-   * writer derives, which is the arrangement this file's preamp channels were
-   * split out to end.
+   * The preamp Auto normalize on Equalizer APO settled on, told to the window
+   * for its slider. The core measures and the writer derives it
+   * (`core/headroom`, `ipc/preamp.ts`); the window only shows it, and is
+   * never the second writer of a value the config writer derives.
    */
-  SET_SMART_HEADROOM_MEASUREMENT = 'setSmartHeadroomMeasurement',
+  AUTO_PREAMP_SETTLED = 'autoPreAmpSettled',
   SET_GRAPH_VIEW = 'setGraphView',
   GET_PREAMP = 'getPreAmp',
   SET_PREAMP = 'setPreAmp',
@@ -131,34 +128,24 @@ enum ChannelEnum {
   CLEAR_GAINS = 'clearGains',
   SET_FIXED_BAND = 'setFixedBand',
   SET_VOICING = 'setVoicing',
+  /**
+   * Put a preset on the output being edited — its curve in the main EQ, its
+   * rack in the rack — decided by the core as for a game or an engine switch
+   * (`common/dsp/presetPick.ts`, `main/presetPicks.ts`).
+   */
+  PICK_DSP_PRESET = 'pickDspPreset',
+  /**
+   * The core changed the edited output's sound by itself — a game's preset,
+   * a rack following an engine switch — and the window reads it again.
+   * Not `output-state-changed`: the output is the same one, and that news
+   * makes the window ask the engine helper about it again.
+   */
+  OUTPUT_SOUND_CHANGED = 'outputSoundChanged',
   SET_DRIVER = 'setDriver',
   SET_HEADPHONE = 'setHeadphone',
   // The measured correction, stored as its own layer. An empty payload removes
   // it; nothing here ever touches the user's bands.
   SET_SMART_EQ = 'setSmartEq',
-  // What this output remembers about a song. Read on every settled track, so
-  // it is a lookup and not a snapshot of the whole store.
-  LOOKUP_SONG_EQ = 'lookupSongEq',
-  // Written the moment two minutes have been listened to, so the song survives
-  // the app being killed mid-track. Does not count a play.
-  CHECKPOINT_SONG_EQ = 'checkpointSongEq',
-  // Written when the song ends. Counts the play.
-  COMMIT_SONG_EQ = 'commitSongEq',
-  FORGET_SONG_EQ = 'forgetSongEq',
-  // The sound each song was played with — its preset, Tone and bands — per
-  // output (`songSound.ts`). Looked up on every settled track.
-  LOOKUP_SONG_SOUND = 'lookupSongSound',
-  // Filed when a song the listener changed ends. Counts the play.
-  SAVE_SONG_SOUND = 'saveSongSound',
-  FORGET_SONG_SOUND = 'forgetSongSound',
-  // Put a song's sound on: lent for the song, or the listener's own handed
-  // back (`songSoundLoan.ts`).
-  APPLY_SONG_SOUND = 'applySongSound',
-  // End a loan with what plays: it is the listener's own from here.
-  KEEP_SONG_SOUND = 'keepSongSound',
-  // A window that starts lending nothing: put back what a loan took, if one
-  // is held from before it reloaded.
-  RETURN_SONG_SOUND = 'returnSongSound',
   // Switch a layer out of the config without disturbing a single one of its
   // settings — the A/B switch on each chip. Takes a feature name and whether it
   // should be off, and moves nothing else.

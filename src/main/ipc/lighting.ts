@@ -31,6 +31,7 @@ import {
   createLightingService,
   type ILightingService,
 } from '../lighting/lightingService';
+import { devSandbox } from '../devSandbox';
 import onWindowMessage from './windowMessages';
 
 export interface ILightingIpcDeps {
@@ -70,7 +71,9 @@ export const registerLightingIpc = (
   const service = createLightingService({
     userDataDir: deps.userDataDir,
     appVersion: deps.appVersion,
-    supported: process.platform === 'win32',
+    // Not in a development sandbox: the lamps belong to the FluidEQ it runs
+    // beside, and Windows hands them to one app at a time (`devSandbox.ts`).
+    supported: process.platform === 'win32' && !devSandbox,
     entitled: deps.entitled,
     canOpenRazerChroma: () => razerAppEngine() !== undefined,
     push: (state) => {

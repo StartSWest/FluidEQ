@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import fs from 'fs';
 import { FilterTypeEnum, IFilter, IFiltersMap } from '../common/constants';
-import writeFileAtomically from './atomicWrite';
+import writeFileAtomically from '../core/files/atomicWrite';
 
 const SAMPLE_RATE = 48000;
 const IMPULSE_LENGTH = 16384;

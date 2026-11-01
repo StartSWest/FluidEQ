@@ -90,6 +90,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktopHost': '桌面可视化效果助手',
   'app.processes.what.desktopHost':
     '把该显示器的桌面可视化效果放在图标后面，并在窗口盖住屏幕时通知它。每个显示它的显示器各一个。',
+  'app.processes.name.listening': '实时监听',
+  'app.processes.what.listening':
+    '在均衡器之后监听这台电脑播放的声音，供图表、电平表和可视化效果使用。只在其中之一显示在屏幕上时运行。',
   'app.processes.name.shareCapture': '音频采集',
   'app.processes.what.shareCapture':
     '在均衡器之前采集这台电脑播放的声音，供“共享音频”标签页、第二路输出和智能均衡使用。只在其中之一使用时运行。',

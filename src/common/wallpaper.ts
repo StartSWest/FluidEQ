@@ -21,6 +21,11 @@ export const WALLPAPER = {
   readAudio: 'wallpaper-read-audio',
   audio: 'wallpaper-audio',
   audioReady: 'wallpaper-audio-ready',
+  /**
+   * The window shows what this computer sends to another, and the
+   * backgrounds show it too, so the window answers them (`heardByCore`).
+   */
+  soundFromWindow: 'wallpaper-sound-from-window',
   /** The window's frame rate and resolution choice, for every monitor. */
   performance: 'wallpaper-performance',
   /** What the listener set for each visualizer: its controls and its timing. */
@@ -173,7 +178,28 @@ export interface IWallpaperState {
   /** Every monitor with a background set, including one that failed. */
   screens: IWallpaperScreen[];
   pauseOnBattery: boolean;
+  /**
+   * The backgrounds' music is heard by the app's core
+   * (`core/liveFrames/desktopSound.ts`), and the window holds no capture for
+   * them. False where the core cannot hear the output, and while the window
+   * shows what this computer sends to another (`soundFromWindow`): the
+   * window answers then, as it always did — and absent, from a main started
+   * before there was a core to ask.
+   */
+  heardByCore?: boolean;
 }
+
+/**
+ * Whether a monitor's background is listening to the music: following it,
+ * and drawing, starting, or paused behind FluidEQ's own window — minimising
+ * the window is what brings that monitor back, and a background let go of
+ * there would come back deaf for a second or two.
+ */
+export const screenFollowsMusic = (screen: IWallpaperScreen): boolean =>
+  screen.motion === 'music' &&
+  (screen.phase === 'starting' ||
+    screen.phase === 'running' ||
+    (screen.phase === 'paused' && screen.pauseReason === 'window'));
 
 /**
  * All a desktop surface is told: whether to draw, which drawing is current,
@@ -449,7 +475,8 @@ export const isWallpaperState = (raw: unknown): raw is IWallpaperState =>
   raw.displays.every(isWallpaperDisplay) &&
   Array.isArray(raw.screens) &&
   raw.screens.every(isWallpaperScreen) &&
-  typeof raw.pauseOnBattery === 'boolean';
+  typeof raw.pauseOnBattery === 'boolean' &&
+  (raw.heardByCore === undefined || typeof raw.heardByCore === 'boolean');
 
 export const wallpaperPauseReason = (conditions: {
   locked: boolean;

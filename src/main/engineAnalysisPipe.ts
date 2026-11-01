@@ -115,6 +115,7 @@ export const readEngineProcesses = (): IEngineProcessStats[] => {
 // per endpoint bounds both IPC traffic and the pipe's queue under backpressure.
 const startEngineAnalysisPipe = (
   getWindow: () => { webContents: WebContents } | null,
+  pipePath: string = PIPE,
 ): Promise<void> => {
   // Windows' effect connects to the pipe below; the Mac's engine, part of the
   // app, to a socket with the same protocol (`macEngine/analysisSocket.ts`).
@@ -349,7 +350,7 @@ const startEngineAnalysisPipe = (
     // This pipe accepts bounded analysis records and sends only demand bytes.
     server.listen(
       process.platform === 'win32'
-        ? { path: PIPE, readableAll: true, writableAll: true }
+        ? { path: pipePath, readableAll: true, writableAll: true }
         : macAnalysisListenOptions(),
       resolve,
     );

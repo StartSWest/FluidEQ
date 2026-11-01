@@ -12,7 +12,7 @@ import type {
   TStudioChatEntry,
   TStudioChatFailure,
 } from '../../common/studioChat';
-import writeFileAtomically from '../atomicWrite';
+import writeFileAtomically from '../../core/files/atomicWrite';
 import { readChatContext } from './chatUsage';
 
 /**

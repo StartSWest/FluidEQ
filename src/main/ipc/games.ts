@@ -5,17 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Game profiles' two questions and one answer.
+ * Game profiles' questions, and the program Windows puts in front.
  *
- * The window keeps the profiles and decides what to play — it is the only
- * sender of the rack, and a decision made anywhere else would race it — so
- * main does the two things the window cannot: it reads what the launchers
- * have installed, and it says which program Windows has put in front.
+ * Main reads what the launchers have installed, watches which program is in
+ * front, and hands that to the core's game sound (`gameSound.ts`), which
+ * decides what it means; the window is told the front program only to show
+ * it on the Games page.
  *
- * The watcher runs only while the window asks for it, and the window asks
- * only while it has a profile to match or the page is open. FluidEQ's own
- * window is never reported as a change: alt-tabbing to it to move a dial is
- * not leaving the game.
+ * The watcher runs while the core has a profile to match with the feature
+ * on, or while the window asks — the Games page lists what is in front.
+ * FluidEQ's own window is never reported as a change: alt-tabbing to it to
+ * move a dial is not leaving the game.
  */
 
 import {
@@ -28,6 +28,7 @@ import {
 import path from 'path';
 import log from 'electron-log';
 import { IGameProgram } from '../../common/games';
+import type { IGameCard, IGameSounding } from '../gameSound';
 import { gameIconSource, isGameFolder, scanGameLibraries } from '../gameScan';
 import { createGameToasts, IGameToast } from '../gameToast';
 import { createGameWatch, IGameWatch } from '../gameWatch';
@@ -38,10 +39,11 @@ export const GAME_FOREGROUND_CHANNEL = 'game-foreground';
 export const GAME_PROGRAMS_CHANNEL = 'game-programs';
 export const GAME_WATCH_CHANNEL = 'game-watch';
 export const GAME_CHOOSE_CHANNEL = 'game-choose';
-export const GAME_TOAST_CHANNEL = 'game-toast';
-export const GAME_PLAYING_CHANNEL = 'game-playing';
-export const GAME_HOLD_CHANNEL = 'game-hold';
-export const GAME_ENDED_CHANNEL = 'game-ended';
+/** Main to window: the game whose sound is on, or null; asked on `…-ask`. */
+export const GAME_SOUNDING_CHANNEL = 'game-sounding';
+export const GAME_SOUNDING_ASK_CHANNEL = 'game-sounding-ask';
+/** Window to main: the window's colours, which the card on the desktop wears. */
+export const GAME_CARD_COLOURS_CHANNEL = 'game-card-colours';
 
 /** "Overwatch" from "Overwatch.exe": the name a player would have typed. */
 const programName = (file: string): string =>
@@ -110,11 +112,28 @@ export interface IGamesIpcDeps {
     onGone: (pid: number) => void,
   ) => IGameWatch;
   toasts?: { show: (toast: IGameToast) => void; close: () => void };
-  /** Told whenever one of this listener's own games comes to the front. */
-  onPlaying?: (playing: boolean) => void;
+  /** Windows put a program in front: the core decides what it means. */
+  onFront?: (program: IGameProgram) => void;
+  /** The process the watcher held has ended. */
+  onGone?: (pid: number) => void;
+  /** Whether the core watches for its own profiles, window or no window. */
+  coreWantsWatch?: () => boolean;
+  /** The game whose sound is on, for the window that asks. */
+  sounding?: () => IGameSounding | undefined;
 }
 
-export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
+export interface IGamesIpc {
+  stop: () => void;
+  /** Be told when this process ends; 0 for none (`IGameWatch.hold`). */
+  hold: (pid: number) => void;
+  /** The card on the desktop, where the game is, in the window's colours. */
+  showCard: (card: IGameCard) => void;
+  /** The core's want or the window's changed: start or stop the watcher. */
+  refreshWatch: () => void;
+  tellSounding: (sounding: IGameSounding | undefined) => void;
+}
+
+export const registerGamesIpc = (deps: IGamesIpcDeps): IGamesIpc => {
   const scan = deps.scan ?? scanGameLibraries;
   const ours = app?.getPath ? app.getPath('exe').toLowerCase() : '';
   // The card goes to the screen this window is on, so it is told the window.
@@ -130,6 +149,11 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
     }
   };
 
+  // The window's colours, as it last said them: the card is a file on disk
+  // with none of the app's stylesheets behind it.
+  let colours: Record<string, string> | undefined;
+  let windowWants = false;
+
   const watch = (deps.makeWatch ?? createGameWatch)(
     (program) => {
       // Our own window coming forward says nothing about the game behind it.
@@ -138,12 +162,19 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
       }
       lastRect = program.rect;
       toWindow(GAME_FOREGROUND_CHANNEL, program);
+      deps.onFront?.(program);
     },
-    // The game the window was holding has ended, which is the only thing that
-    // puts the sound back: losing the front is somebody alt-tabbing, not
-    // somebody finishing.
-    (pid) => toWindow(GAME_ENDED_CHANNEL, pid),
+    // The game held has ended, which is the only thing that puts the sound
+    // back: losing the front is somebody alt-tabbing, not somebody finishing.
+    (pid) => deps.onGone?.(pid),
   );
+  const refreshWatch = () => {
+    if (windowWants || deps.coreWantsWatch?.()) {
+      watch.start();
+    } else {
+      watch.stop();
+    }
+  };
 
   const icons = new Map<string, string>();
   /**
@@ -196,11 +227,8 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
     if (event.sender !== deps.getMainWindow()?.webContents) {
       return;
     }
-    if (Array.isArray(arg) && arg[0] === true) {
-      watch.start();
-    } else {
-      watch.stop();
-    }
+    windowWants = Array.isArray(arg) && arg[0] === true;
+    refreshWatch();
   });
 
   /**
@@ -235,79 +263,49 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
   );
 
   /**
-   * The window has the profiles and the chains' names, so it says what the
-   * card reads; main knows where the game is, so it says where it goes.
+   * The window's colours, read whenever its theme or a scene's tint changes
+   * (`CoreCopies`): the only reading that includes both. Which of them the
+   * card admits, and what counts as a colour at all, is `gameToast`'s.
    */
-  onWindowMessage(GAME_TOAST_CHANNEL, (event, arg: unknown) => {
+  onWindowMessage(GAME_CARD_COLOURS_CHANNEL, (event, arg: unknown) => {
     if (event.sender !== deps.getMainWindow()?.webContents) {
       return;
     }
     const [said] = Array.isArray(arg) ? arg : [];
-    if (
-      typeof said !== 'object' ||
-      said === null ||
-      typeof (said as IGameToast).what !== 'string'
-    ) {
-      return;
+    if (typeof said === 'object' && said !== null) {
+      colours = Object.fromEntries(
+        Object.entries(said).filter(
+          (entry): entry is [string, string] => typeof entry[1] === 'string',
+        ),
+      );
     }
-    const card = said as IGameToast;
-    // The window's own colours travel as they were read; which of them the
-    // card admits, and what counts as a colour at all, is `gameToast`'s.
-    const colors =
-      typeof card.colors === 'object' && card.colors !== null
-        ? Object.fromEntries(
-            Object.entries(card.colors).filter(
-              ([, value]) => typeof value === 'string',
-            ),
-          )
-        : undefined;
-    toasts.show({
-      what: card.what,
-      game: typeof card.game === 'string' ? card.game : '',
-      ...(typeof card.icon === 'string' ? { icon: card.icon } : {}),
-      ...(colors ? { colors } : {}),
-      ...(lastRect ? { rect: lastRect } : {}),
-    });
   });
 
-  /**
-   * A game of this listener's own is in front, or has left it.
-   *
-   * Only the window can say: the profiles that decide what counts as a game
-   * are the window's. Main passes it to the desktop backgrounds, which hold
-   * every screen still while somebody is playing.
-   */
-  onWindowMessage(GAME_PLAYING_CHANNEL, (event, arg: unknown) => {
-    if (event.sender !== deps.getMainWindow()?.webContents) {
-      return;
-    }
-    deps.onPlaying?.(Array.isArray(arg) && arg[0] === true);
-  });
-
-  /**
-   * The game whose sound is on, to be told the end of; 0 for none.
-   *
-   * Only the window can name it: which program counts as a game is the
-   * profiles' answer, and those are the window's. Main passes it to the
-   * watcher, which waits on that process rather than on anything timed.
-   */
-  onWindowMessage(GAME_HOLD_CHANNEL, (event, arg: unknown) => {
-    if (event.sender !== deps.getMainWindow()?.webContents) {
-      return;
-    }
-    const [pid] = Array.isArray(arg) ? arg : [];
-    if (typeof pid === 'number' && Number.isInteger(pid) && pid >= 0) {
-      watch.hold(pid);
+  onWindowMessage(GAME_SOUNDING_ASK_CHANNEL, (event) => {
+    if (event.sender === deps.getMainWindow()?.webContents) {
+      toWindow(GAME_SOUNDING_CHANNEL, deps.sounding?.() ?? null);
     }
   });
 
   const stop = () => {
     watch.stop();
     toasts.close();
-    deps.onPlaying?.(false);
   };
   app?.on?.('will-quit', stop);
-  return { stop };
+  refreshWatch();
+  return {
+    stop,
+    hold: (pid) => watch.hold(pid),
+    showCard: (card) =>
+      toasts.show({
+        ...card,
+        ...(colours ? { colors: colours } : {}),
+        ...(lastRect ? { rect: lastRect } : {}),
+      }),
+    refreshWatch,
+    tellSounding: (sounding) =>
+      toWindow(GAME_SOUNDING_CHANNEL, sounding ?? null),
+  };
 };
 
 export default registerGamesIpc;

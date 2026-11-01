@@ -27,6 +27,15 @@ export interface ISettingsResetDeps {
   unpinWindow: () => void;
   /** The graph's on/off switch, on: it is kept in the state file beside the EQ. */
   showGraph: () => void;
+  /** The song memory's switch, off: off until the listener opts in. */
+  stopSongMemory: () => void;
+  /**
+   * Smart EQ's mode, running switch, limit and presence lines as new, so a
+   * running mode stops at the reset rather than when the window reloads.
+   */
+  resetSmartEq: () => void;
+  /** Keep playing back on; the queue it plays is the listener's and stays. */
+  resetKeepPlaying: () => void;
   logger: ILogger;
 }
 
@@ -39,8 +48,9 @@ export interface ISettingsResetDeps {
  *
  * What main keeps that is a setting: the animations, the graphics card,
  * whether Windows starts FluidEQ, the desktop backgrounds, the desk lights,
- * the compact player's Always on top, and the graph's on/off switch (Ivan,
- * 2026-10-26, from the reset checklist: "do it"). What it keeps that is not,
+ * the compact player's Always on top, the graph's on/off switch (Ivan,
+ * 2026-10-26, from the reset checklist: "do it"), and the song memory's
+ * switch, which the core keeps now and the window kept before. What it keeps that is not,
  * and so is left alone: the engine and the outputs, the EQ in every profile,
  * the song EQs, the band layouts, the account, the Library and the Studio —
  * and, by the same checklist, the window's size, place and mode, because a
@@ -73,6 +83,9 @@ export const registerSettingsResetIpc = (deps: ISettingsResetDeps) => {
     ['desk lights', deps.resetLighting],
     ['always on top', deps.unpinWindow],
     ['graph switch', deps.showGraph],
+    ['song memory', deps.stopSongMemory],
+    ['smart eq', deps.resetSmartEq],
+    ['keep playing', deps.resetKeepPlaying],
   ];
 
   ipcMain.handle(SETTINGS_RESET_CHANNEL, (event) => {

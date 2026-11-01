@@ -24,8 +24,6 @@ import {
   NATIVE_DSP_PARAMETERS,
   isNativeParameterId,
 } from '../../common/dsp/nativeParameters';
-import { isChainWirePayload } from '../../common/dsp/chainWire';
-import { NOISE_PROFILE_WIRE_LENGTH } from '../../common/dsp/noiseProfile';
 import {
   cancelDenoiseModelDownload,
   denoiseModelPath,
@@ -33,11 +31,13 @@ import {
   isDenoiseModelPresent,
   onnxRuntimeLibraryPath,
 } from '../denoiseModel';
-import { CROSSFADE_TABLE_POINTS } from '../../common/dsp/crossfadeShape';
 import { findDspHostExecutable } from '../dspHost/hostPath';
 import { DspHostSupervisor, TDspHostState } from '../dspHost/supervisor';
-import { createDspHostPublisher } from '../dspHost/windowPublisher';
-import { IHostAnalysis, IHostStats } from '../dspHost/wire';
+import {
+  createDspHostPublisher,
+  IDspHostPublisher,
+} from '../dspHost/windowPublisher';
+import { IHostAnalysis, IHostStats, IHostTelemetry } from '../dspHost/wire';
 
 export interface IDspHostIpcDeps {
   getMainWindow: () => BrowserWindow | null;
@@ -65,6 +65,45 @@ let supervisor: DspHostSupervisor | undefined;
 let isHostPlaying = false;
 let rawSharing = false;
 let rawLibrary = false;
+
+/**
+ * Who wants the host's analysis frames: the window's DSP panels, and the
+ * core's Smart EQ, which hears the Library through the rack's input tap
+ * (`main/smartEq/rawSourceFrames.ts`). The host sends while either does, and
+ * the window is sent frames only while it asked — twelve kilobytes about
+ * twenty-three times a second is not a thing to post to a page that did not.
+ */
+let windowWantsAnalysis = false;
+const analysisListeners = new Set<(analysis: IHostAnalysis) => void>();
+/** The rate the host plays at, from its telemetry; 0 before any. */
+let hostSampleRate = 0;
+
+const applyAnalysis = async (): Promise<boolean> =>
+  supervisor
+    ? supervisor.setAnalysis(windowWantsAnalysis || analysisListeners.size > 0)
+    : false;
+
+/**
+ * Hear the host's analysis frames until the returned stop is called, or
+ * undefined where the host cannot send them (not running, or refusing).
+ */
+export const listenToDspHostAnalysis = async (
+  listener: (analysis: IHostAnalysis) => void,
+): Promise<(() => void) | undefined> => {
+  analysisListeners.add(listener);
+  if (await applyAnalysis().catch(() => false)) {
+    return () => {
+      if (analysisListeners.delete(listener)) {
+        applyAnalysis().catch(() => false);
+      }
+    };
+  }
+  analysisListeners.delete(listener);
+  await applyAnalysis().catch(() => false);
+  return undefined;
+};
+
+export const dspHostSampleRate = (): number => hostSampleRate;
 
 /** Main enforces raw Library output before capture; renderer settings cannot
  * re-enable effects while sharing, including across host restarts. */
@@ -114,138 +153,154 @@ const statusOf = (): IDspHostStatus =>
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value);
 
+/** Everyone who reads the host's telemetry in main: the core's Library player. */
+const telemetryListeners = new Set<(telemetry: IHostTelemetry) => void>();
+
+/** How the host's messages reach the window; set when the channels register. */
+let publisher: IDspHostPublisher | undefined;
+
+/** The supervisor while it is up and answering, or undefined. */
+export const readyDspHost = (): DspHostSupervisor | undefined =>
+  supervisor?.getState() === 'ready' ? supervisor : undefined;
+
+/** Whether this machine has a host to start at all. */
+export const dspHostAvailable = (): boolean =>
+  findDspHostExecutable() !== undefined;
+
+/** Hear the host's telemetry until the returned stop is called. */
+export const listenToDspHostTelemetry = (
+  listener: (telemetry: IHostTelemetry) => void,
+): (() => void) => {
+  telemetryListeners.add(listener);
+  return () => {
+    telemetryListeners.delete(listener);
+  };
+};
+
+/** The transport the player last set, for the updater's question. */
+export const noteDspHostPlaying = (playing: boolean): void => {
+  isHostPlaying = playing;
+};
+
+export const stopDspHost = async (): Promise<void> => {
+  await supervisor?.stop();
+};
+
+const ensureSupervisor = (): DspHostSupervisor | undefined => {
+  if (supervisor) {
+    return supervisor;
+  }
+  const executablePath = findDspHostExecutable();
+  if (!executablePath) {
+    // Not an error worth a dialog: a checkout that has never built the
+    // native target is an ordinary state. Browser playback remains available
+    // unchanged, and the renderer marks the DSP rack unavailable.
+    log.info('dsp host: no executable found; native engine unavailable');
+    return undefined;
+  }
+  supervisor = new DspHostSupervisor({
+    executablePath,
+    expectedParameterCount: NATIVE_DSP_PARAMETERS.length,
+    onTelemetry: (telemetry) => {
+      hostSampleRate = telemetry.sampleRate;
+      publisher?.publishTelemetry(telemetry);
+      telemetryListeners.forEach((listener) => listener(telemetry));
+    },
+    /**
+     * Forwarded raw, and only sent at all while somebody has asked for it.
+     *
+     * Twelve kilobytes about twenty-three times a second is the largest thing
+     * on this channel by two orders of magnitude, which is exactly why the
+     * host stays silent until `setAnalysis` turns it on.
+     */
+    onAnalysis: (analysis: IHostAnalysis) => {
+      if (windowWantsAnalysis) {
+        publisher?.publish('dsp-host-analysis', analysis);
+      }
+      analysisListeners.forEach((listener) => listener(analysis));
+    },
+    onStateChange: (state: TDspHostState) =>
+      publisher?.publish('dsp-host-state', state),
+    onLifecycle: (event) => {
+      const entry = { event: event.event, ...event.values };
+      if (event.event === 'stderr') {
+        const line = String(event.values.line ?? '').toLowerCase();
+        if (/failed|could not|\berror\b|no default|unsupported/.test(line)) {
+          log.warn('dsp host native', entry);
+        } else {
+          log.info('dsp host native', entry);
+        }
+      } else {
+        log.info('dsp host lifecycle', entry);
+      }
+    },
+    onDiagnostic: (event: IDspDiagnosticEvent) => {
+      // Logged as well as forwarded. A window that has already gone is
+      // exactly the case where the reason it went is worth keeping.
+      switch (event.severity) {
+        case 'debug':
+          log.debug('dsp host diagnostic', event);
+          break;
+        case 'info':
+          log.info('dsp host diagnostic', event);
+          break;
+        case 'warn':
+          log.warn('dsp host diagnostic', event);
+          break;
+        default:
+          log.error('dsp host diagnostic', event);
+          break;
+      }
+      publisher?.publish('dsp-host-diagnostic', event);
+    },
+  });
+  return supervisor;
+};
+
+/**
+ * Bring the host up, with what it has to have before it plays: raw sharing as
+ * Share Audio last asked, and the voice model downloaded in an earlier
+ * session. True once it is ready.
+ */
+export const startDspHost = async (): Promise<boolean> => {
+  const host = ensureSupervisor();
+  if (!host) {
+    return false;
+  }
+  await host.start();
+  if (!(await host.setRawSharing(rawSharing || rawLibrary))) {
+    throw new Error('Could not restore raw sharing on the Library engine.');
+  }
+  /*
+   * A model downloaded in an earlier session has to be handed over here.
+   *
+   * Nothing else does it. `loadVoiceModel` was only ever called from the
+   * download handler, so the model engaged exactly once — in the session it
+   * was fetched — and every launch after that started with the file sitting
+   * on disk, the card offering no download because it was present, and the
+   * module reporting itself unavailable forever.
+   */
+  if (host.getState() === 'ready' && isDenoiseModelPresent()) {
+    const runtime = onnxRuntimeLibraryPath();
+    if (runtime) {
+      try {
+        await host.loadVoiceModel(denoiseModelPath(), runtime);
+      } catch {
+        // The stage reports itself unavailable, which is already correct.
+      }
+    }
+  }
+  return host.getState() === 'ready';
+};
+
 export const registerDspHostIpc = ({
   getMainWindow,
   onVoiceModelChanged,
 }: IDspHostIpcDeps): void => {
-  // Telemetry has its own rule behind a minimised window, because the Library
-  // player runs on it. See `windowPublisher`.
-  const { publish, publishTelemetry } = createDspHostPublisher(getMainWindow);
-
-  const ensureSupervisor = (): DspHostSupervisor | undefined => {
-    if (supervisor) {
-      return supervisor;
-    }
-    const executablePath = findDspHostExecutable();
-    if (!executablePath) {
-      // Not an error worth a dialog: a checkout that has never built the
-      // native target is an ordinary state. Browser playback remains available
-      // unchanged, and the renderer marks the DSP rack unavailable.
-      log.info('dsp host: no executable found; native engine unavailable');
-      return undefined;
-    }
-    supervisor = new DspHostSupervisor({
-      executablePath,
-      expectedParameterCount: NATIVE_DSP_PARAMETERS.length,
-      onTelemetry: publishTelemetry,
-      /**
-       * Forwarded raw, and only sent at all while the panel has asked for it.
-       *
-       * Twelve kilobytes about twenty-three times a second is the largest thing
-       * on this channel by two orders of magnitude, which is exactly why the
-       * host stays silent until `setAnalysis` turns it on.
-       */
-      onAnalysis: (analysis: IHostAnalysis) =>
-        publish('dsp-host-analysis', analysis),
-      onStateChange: (state: TDspHostState) => publish('dsp-host-state', state),
-      onLifecycle: (event) => {
-        const entry = { event: event.event, ...event.values };
-        if (event.event === 'stderr') {
-          const line = String(event.values.line ?? '').toLowerCase();
-          if (/failed|could not|\berror\b|no default|unsupported/.test(line)) {
-            log.warn('dsp host native', entry);
-          } else {
-            log.info('dsp host native', entry);
-          }
-        } else {
-          log.info('dsp host lifecycle', entry);
-        }
-      },
-      onDiagnostic: (event: IDspDiagnosticEvent) => {
-        // Logged as well as forwarded. A window that has already gone is
-        // exactly the case where the reason it went is worth keeping.
-        switch (event.severity) {
-          case 'debug':
-            log.debug('dsp host diagnostic', event);
-            break;
-          case 'info':
-            log.info('dsp host diagnostic', event);
-            break;
-          case 'warn':
-            log.warn('dsp host diagnostic', event);
-            break;
-          default:
-            log.error('dsp host diagnostic', event);
-            break;
-        }
-        publish('dsp-host-diagnostic', event);
-      },
-    });
-    return supervisor;
-  };
+  // Telemetry has its own rule behind a minimised window. See `windowPublisher`.
+  publisher = createDspHostPublisher(getMainWindow);
 
   ipcMain.handle('dsp-host-status', (): IDspHostStatus => statusOf());
-
-  ipcMain.handle('dsp-host-start', async (): Promise<IDspHostStatus> => {
-    const host = ensureSupervisor();
-    if (!host) {
-      return unavailable;
-    }
-    await host.start();
-    if (!(await host.setRawSharing(rawSharing || rawLibrary))) {
-      throw new Error('Could not restore raw sharing on the Library engine.');
-    }
-    /*
-     * A model downloaded in an earlier session has to be handed over here.
-     *
-     * Nothing else does it. `loadVoiceModel` was only ever called from the
-     * download handler, so the model engaged exactly once — in the session it
-     * was fetched — and every launch after that started with the file sitting
-     * on disk, the card offering no download because it was present, and the
-     * module reporting itself unavailable forever.
-     */
-    if (host.getState() === 'ready' && isDenoiseModelPresent()) {
-      const runtime = onnxRuntimeLibraryPath();
-      if (runtime) {
-        try {
-          await host.loadVoiceModel(denoiseModelPath(), runtime);
-        } catch {
-          // The stage reports itself unavailable, which is already correct.
-        }
-      }
-    }
-    return statusOf();
-  });
-
-  ipcMain.handle('dsp-host-stop', async (): Promise<IDspHostStatus> => {
-    await supervisor?.stop();
-    return statusOf();
-  });
-
-  ipcMain.handle('dsp-host-device-open', async (): Promise<boolean> => {
-    if (!supervisor || supervisor.getState() !== 'ready') {
-      return false;
-    }
-    try {
-      return await supervisor.openDevice();
-    } catch {
-      // The supervisor has already reported why through its diagnostic
-      // channel; a rejection here would only reach a `.catch` in the renderer
-      // that could say nothing more specific.
-      return false;
-    }
-  });
-
-  ipcMain.handle('dsp-host-device-close', async (): Promise<boolean> => {
-    if (!supervisor || supervisor.getState() !== 'ready') {
-      return false;
-    }
-    try {
-      return await supervisor.closeDevice();
-    } catch {
-      return false;
-    }
-  });
 
   ipcMain.handle(
     'dsp-host-snapshot',
@@ -266,71 +321,6 @@ export const registerDspHostIpc = ({
       }
       try {
         return await supervisor.applySnapshot(values, revision as number);
-      } catch {
-        return false;
-      }
-    },
-  );
-
-  /**
-   * The whole chain, arrays included.
-   *
-   * Separate from `dsp-host-snapshot` because they carry different shapes: the
-   * snapshot is the flat parameter table, and this is the one that can hold
-   * sixty-four EQ bands. `isChainWirePayload` checks the length against the
-   * band count the payload itself declares, so a truncated message is refused
-   * rather than decoded into a shorter rack.
-   */
-  ipcMain.handle(
-    'dsp-host-chain',
-    async (_event, values: unknown): Promise<boolean> => {
-      if (!supervisor || supervisor.getState() !== 'ready') {
-        return false;
-      }
-      if (!isChainWirePayload(values)) {
-        return false;
-      }
-      try {
-        return await supervisor.applyChain(values);
-      } catch {
-        return false;
-      }
-    },
-  );
-
-  /**
-   * The measured noise floor for the track now playing, or null to clear it.
-   *
-   * Validated here rather than trusted: the renderer is the only sender and
-   * main the only forwarder, but the boundary is where a malformed message
-   * stops, and "the only caller is ours" is a property of today's code rather
-   * than of the channel. A wrong length reaching the host would be read as
-   * band levels shifted into the hum partials.
-   */
-  ipcMain.handle(
-    'dsp-host-noise-profile',
-    async (_event, values: unknown): Promise<boolean> => {
-      if (!supervisor || supervisor.getState() !== 'ready') {
-        return false;
-      }
-      if (values === null || values === undefined) {
-        try {
-          return await supervisor.setNoiseProfile(undefined);
-        } catch {
-          return false;
-        }
-      }
-      if (
-        !Array.isArray(values) ||
-        values.length !== NOISE_PROFILE_WIRE_LENGTH ||
-        !values.every(
-          (entry) => typeof entry === 'number' && Number.isFinite(entry),
-        )
-      ) {
-        return false;
-      }
-      try {
-        return await supervisor.setNoiseProfile(values);
       } catch {
         return false;
       }
@@ -401,167 +391,28 @@ export const registerDspHostIpc = ({
   );
 
   /**
-   * The Custom crossfade curve, as 128 gains: outgoing then incoming.
-   *
-   * Its own channel rather than a transport verb because the verb channel
-   * carries four numbers and this is an array, and because a shape that
-   * arrives truncated must be refused here rather than half-applied to a
-   * fade the listener is in the middle of.
-   */
-  ipcMain.handle(
-    'dsp-host-crossfade-table',
-    async (_event, values: unknown): Promise<boolean> => {
-      if (!supervisor || supervisor.getState() !== 'ready') {
-        return false;
-      }
-      if (
-        !Array.isArray(values) ||
-        values.length !== CROSSFADE_TABLE_POINTS * 2 ||
-        !values.every(isFiniteNumber)
-      ) {
-        return false;
-      }
-      try {
-        return await supervisor.setCrossfadeTable(values);
-      } catch {
-        return false;
-      }
-    },
-  );
-
-  /**
-   * The transport, as one channel with a verb rather than eight channels.
-   *
-   * Eight would each need their own validation and their own name in the
-   * preload, for messages that differ only in which of two numbers matters.
-   * The verb is checked against a closed list, so an unknown one is refused
-   * here rather than reaching the host as a command it would have to reject.
+   * The host's analysis frames, for the DSP page's graphs: the window's one
+   * transport verb left. Everything else the window used to send here — load,
+   * play, seek, the fade, the rack — the core's Library player now asks of
+   * the supervisor itself (`libraryHostPort`).
    */
   ipcMain.handle(
     'dsp-host-transport',
-    async (
-      _event,
-      verb: unknown,
-      deck: unknown,
-      value: unknown,
-      extra: unknown,
-    ): Promise<boolean> => {
-      if (!supervisor || supervisor.getState() !== 'ready') {
-        return false;
-      }
-      const slot = Number.isInteger(deck) ? (deck as number) : -1;
-      if (slot < 0 || slot > 1) {
-        return false;
-      }
-      try {
-        switch (verb) {
-          case 'play': {
-            const applied = await supervisor.setPlaying(true);
-            isHostPlaying = applied;
-            return applied;
-          }
-          case 'pause':
-            isHostPlaying = false;
-            return await supervisor.setPlaying(false);
-          case 'select':
-            return await supervisor.selectDeck(slot);
-          case 'unload':
-            // An unload while playing is a stop by another name; the renderer
-            // does not always pause first.
-            isHostPlaying = false;
-            return await supervisor.unloadDeck(slot);
-          case 'seek':
-            return isFiniteNumber(value)
-              ? await supervisor.seekDeck(slot, value)
-              : false;
-          case 'crossfade':
-            return isFiniteNumber(value) && Number.isInteger(extra)
-              ? await supervisor.crossfade(slot, value, extra as number)
-              : false;
-          case 'volume':
-            // Clamped again in the host; a renderer is the half of this app
-            // that loads remote content.
-            return isFiniteNumber(value)
-              ? await supervisor.setVolume(Math.min(1, Math.max(0, value)))
-              : false;
-          case 'analysis':
-            // The panel mounting and unmounting, which is the only caller.
-            return await supervisor.setAnalysis(value !== 0);
-          case 'gains':
-            return isFiniteNumber(value) && isFiniteNumber(extra)
-              ? await supervisor.setTrackGains(value, extra, true)
-              : false;
-          default:
-            return false;
-        }
-      } catch {
-        return false;
-      }
-    },
-  );
-
-  /**
-   * A path, and the one channel that takes one.
-   *
-   * Main owns the executable and never accepts a path for it; this accepts a
-   * path for a MEDIA file, which is a different thing and still needs saying:
-   * the host opens it read-only through a decoder that knows two container
-   * formats, and anything it cannot parse is refused rather than played as
-   * silence.
-   */
-  ipcMain.handle(
-    'dsp-host-load',
-    async (_event, deck: unknown, mediaPath: unknown): Promise<boolean> => {
-      if (!supervisor || supervisor.getState() !== 'ready') {
-        return false;
-      }
-      const slot = Number.isInteger(deck) ? (deck as number) : -1;
-      if (slot < 0 || slot > 1 || typeof mediaPath !== 'string' || !mediaPath) {
-        return false;
-      }
-      try {
-        return await supervisor.loadDeck(slot, mediaPath);
-      } catch {
-        return false;
-      }
-    },
-  );
-
-  /**
-   * A file onto the deck the host chooses (`HOST_DECKS`): the track about to
-   * be faded or cut to, answered with its deck, or the next track, which the
-   * host readies when a deck is free. Null when there is no deck to name.
-   */
-  ipcMain.handle(
-    'dsp-host-load-for',
-    async (
-      _event,
-      purpose: unknown,
-      mediaPath: unknown,
-      startSeconds: unknown,
-    ): Promise<number | null> => {
-      if (!supervisor || supervisor.getState() !== 'ready') {
-        return null;
-      }
+    async (_event, verb: unknown, _deck: unknown, value: unknown) => {
       if (
-        (purpose !== 'handoff' && purpose !== 'spare') ||
-        typeof mediaPath !== 'string' ||
-        !mediaPath
+        !supervisor ||
+        supervisor.getState() !== 'ready' ||
+        verb !== 'analysis'
       ) {
-        return null;
+        return false;
       }
-      const start =
-        typeof startSeconds === 'number' &&
-        Number.isFinite(startSeconds) &&
-        startSeconds > 0
-          ? startSeconds
-          : 0;
       try {
-        const deck = await supervisor.loadDeckFor(purpose, mediaPath, start);
-        // Held to the two decks there are, whatever the host said.
-        return deck === 0 || deck === 1 ? deck : null;
+        // The panel mounting and unmounting, which is the window's only
+        // caller; the core's Smart EQ may be listening too.
+        windowWantsAnalysis = value !== 0;
+        return await applyAnalysis();
       } catch {
-        return null;
+        return false;
       }
     },
   );

@@ -32,11 +32,6 @@ import {
 import { IConvolutionCatalogEntry } from 'common/convolution';
 import { IApoConfigTree } from 'common/apoConfig';
 import { IChainImport } from 'common/chainBundle';
-// Types only. `lookupSongEq`, `checkpointSongEq`, `commitSongEq` and
-// `forgetSongEq` below share names with the pure functions in
-// `common/songEq.ts` on purpose — thin wrappers over channels of the same
-// name — and `import type` erases this so nothing here can resolve to the
-// pure implementation by accident.
 
 import type { IOutputFormat, IOutputFormatChange } from 'main/outputFormat';
 import coalesceRequests from 'common/coalescedRequest';
@@ -52,13 +47,10 @@ import type { TError, TSuccess } from './ipcRequest';
 
 export {
   addEqualizerSlider,
-  checkpointSongEq,
   clearGains,
-  commitSongEq,
-  forgetSongEq,
   getMainPreAmp,
   getType,
-  lookupSongEq,
+  pickDspPreset,
   removeEqualizerSlider,
   resetEqMode,
   setDriver,
@@ -509,6 +501,14 @@ export const subscribeAudioDevices = (
 };
 
 /**
+ * Whether main follows the outputs itself and pushes each change
+ * (`outputWatch.ts`, Windows only), so nothing here needs Chromium's own
+ * `devicechange` — which costs two Chromium services just to be listened to.
+ */
+export const windowsWatchesOutputs = (): boolean =>
+  window.electron?.platform === 'win32';
+
+/**
  * The list the window already holds, asked for only when it may have moved.
  *
  * The output panel reads the list when it mounts and when the window is come
@@ -547,7 +547,13 @@ export const readKnownAudioDevices = (): Promise<IAudioDevice[]> => {
       true,
     );
     document.addEventListener('visibilitychange', forget, true);
-    navigator.mediaDevices?.addEventListener?.('devicechange', forget, true);
+    // Not on Windows, where main hears Windows itself (`outputWatch.ts`) and
+    // pushes every new list (`subscribeAudioDevices`). Listening for
+    // Chromium's `devicechange` is enough on its own to start Chromium's audio
+    // service and its 66 MB video capture service, and keep them running.
+    if (!windowsWatchesOutputs()) {
+      navigator.mediaDevices?.addEventListener?.('devicechange', forget, true);
+    }
   }
   return knownDevices ? Promise.resolve(knownDevices) : getAudioDevices();
 };
@@ -811,39 +817,6 @@ export const enableAutoPreAmp = (): Promise<number> => {
 export const disableAutoPreAmp = (): Promise<number> => {
   const channel = ChannelEnum.SET_AUTO_PREAMP;
   return sendRequest(channel, [false], simpleResponseHandler<number>());
-};
-
-/**
- * Report what the capture has heard to the process that owns the preamp.
- *
- * Only one report is in flight. A correlated reply confirms the config write;
- * cancellation removes the listener when the capture or engine changes.
- */
-export const sendSmartHeadroomMeasurement = (
-  programme: Array<{ frequency: number; gain: number }>,
-  trimDb: number,
-  onApplied: (applied: boolean) => void,
-): (() => void) => {
-  const requestId = crypto.randomUUID();
-  const unsubscribe = window.electron.ipcRenderer.on(
-    ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
-    (reply: unknown) => {
-      if (!reply || typeof reply !== 'object' || !('result' in reply)) {
-        return;
-      }
-      const result = reply.result as { requestId?: unknown; applied?: unknown };
-      if (!result || result.requestId !== requestId) {
-        return;
-      }
-      unsubscribe();
-      onApplied(result.applied === true);
-    },
-  );
-  window.electron.ipcRenderer.sendMessage(
-    ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
-    [programme, trimDb, requestId],
-  );
-  return unsubscribe;
 };
 
 /**

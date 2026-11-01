@@ -188,6 +188,14 @@ const SINGLE_PLATFORM_PROGRAMS = new Map<string, string>([
     'the MMCSS audio task both WASAPI Share Audio programs above join; included by those two alone',
   ],
   [
+    'native/system-listen/',
+    "the app core's ear on Windows: WASAPI loopback of the default output (the Mac core hears through its own tap)",
+  ],
+  [
+    'native/common/float_mix_format.h',
+    'the WASAPI float mix-format check; included by the Windows listener and the Windows Share Audio capture alone',
+  ],
+  [
     'native/foreground-watch/',
     "game profiles' watcher, which asks Windows which program is in front",
   ],

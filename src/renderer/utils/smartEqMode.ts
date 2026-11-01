@@ -17,6 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useSyncExternalStore } from 'react';
+import {
+  type TSmartEqMode,
+  isContinuousMode,
+  parseSmartEqMode,
+} from 'common/smartEqMode';
 import { setContinuousEq } from './continuousEq';
 
 /**
@@ -27,18 +32,12 @@ import { setContinuousEq } from './continuousEq';
  *
  * Remembered, because it is a way of working rather than a moment's choice.
  */
-export type TSmartEqMode = 'smart' | 'detail' | 'balance' | 'target';
-
-/** The three that keep running, so callers can ask "is this a continuous one". */
-export const CONTINUOUS_MODES: TSmartEqMode[] = ['detail', 'balance', 'target'];
-
-export const isContinuousMode = (mode: TSmartEqMode) => mode !== 'smart';
-
-/** Every mode, in the order the menus list them: the one-off first. */
-export const SMART_EQ_MODES: readonly TSmartEqMode[] = [
-  'smart',
-  ...CONTINUOUS_MODES,
-];
+export {
+  type TSmartEqMode,
+  CONTINUOUS_MODES,
+  isContinuousMode,
+  SMART_EQ_MODES,
+} from 'common/smartEqMode';
 
 /**
  * Each mode's name and the line under it in a menu, in the words the EQ
@@ -63,16 +62,7 @@ const STORAGE_KEY = 'fluideq.smartEqMode';
 
 const read = (): TSmartEqMode => {
   try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    // 'continuous' is what the single continuous mode was called before there
-    // were three; it is the one that fits a line to the record, which is now
-    // 'detail'.
-    if (stored === 'continuous') {
-      return 'detail';
-    }
-    return CONTINUOUS_MODES.includes(stored as TSmartEqMode)
-      ? (stored as TSmartEqMode)
-      : 'smart';
+    return parseSmartEqMode(window.localStorage.getItem(STORAGE_KEY));
   } catch {
     // Storage can be unavailable. The one-shot measurement is the safe default:
     // it does something once and stops.

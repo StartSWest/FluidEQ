@@ -102,6 +102,14 @@ export interface IRefreshStateOptions {
    * edit would write the flat one back.
    */
   revealBands?: boolean;
+  /**
+   * Take the rack the core put on the output being edited — a preset it
+   * picked (`main/presetPicks.ts`) — although the editor is the same one.
+   * Otherwise a rack is taken only from an editor newly opened, and the
+   * window's own edits are the newer: the core changes the same editor's
+   * rack only through a pick.
+   */
+  adoptRack?: boolean;
 }
 
 export interface IFluidEqContext extends IState {

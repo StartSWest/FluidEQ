@@ -91,6 +91,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktopHost': 'デスクトップ ビジュアライザーの補助',
   'app.processes.what.desktopHost':
     'そのモニターのデスクトップ ビジュアライザーをアイコンの後ろに置き、ウィンドウが画面を覆ったことを知らせます。表示しているモニターごとに 1 つです。',
+  'app.processes.name.listening': 'ライブ受聴',
+  'app.processes.what.listening':
+    'この PC で鳴っている音をイコライザーの後で聴き取り、グラフ、メーター、ビジュアライザーに渡します。これらのどれかが画面に出ている間だけ動作します。',
   'app.processes.name.shareCapture': '音声のキャプチャ',
   'app.processes.what.shareCapture':
     'この PC で鳴っている音をイコライザーの前でキャプチャし、「音声を共有」タブ、2 つめの出力、スマート EQ に渡します。これらのどれかを使っている間だけ動作します。',

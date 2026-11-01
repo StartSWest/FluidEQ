@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { app } from 'electron';
+import { devSandbox } from './devSandbox';
 
 /** The development build, or the one production build with source maps. */
 export const isDebug =
@@ -67,7 +68,11 @@ export const applyLaunchSwitches = () => {
    * the browser, not merely a diagnostic.
    */
   if (process.env.NODE_ENV === 'development') {
-    app.commandLine.appendSwitch('remote-debugging-port', '9222');
+    // A sandbox's own, so a probe of 9222 always reaches the real window.
+    app.commandLine.appendSwitch(
+      'remote-debugging-port',
+      String(devSandbox?.cdpPort ?? 9222),
+    );
     app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1');
   }
 
@@ -143,7 +148,15 @@ export const applyLaunchSwitches = () => {
    * do this stops helping and the answer becomes Electron implementing FedCM.
    * The warning in the page log is the countdown.
    */
-  app.commandLine.appendSwitch('disable-features', 'FedCm');
+  // A development sandbox also keeps a window covered by other windows counted
+  // as shown (`CalculateNativeWinOcclusion`): it runs behind the listener's own
+  // FluidEQ and everything else on the desk, and covered, every live display
+  // in it stood still. Minimised is still hidden. One switch for both, because
+  // a second `disable-features` replaces the first.
+  app.commandLine.appendSwitch(
+    'disable-features',
+    devSandbox ? 'FedCm,CalculateNativeWinOcclusion' : 'FedCm',
+  );
 
   if (isDebug) {
     /*

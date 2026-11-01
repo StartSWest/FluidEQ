@@ -221,6 +221,58 @@ describe('what a scene throws from the hand', () => {
     expect(drawnShapes).toEqual([]);
   });
 
+  it('holds pixels only while something is in the air', () => {
+    const { source, tell } = hand();
+    const { container } = layer(source);
+    const canvas = container.querySelector('canvas');
+    expect(canvas?.width).toBe(0);
+    tell({ kind: 'tap', x: 300, y: 150 });
+    // Sized to its box (400 by 200 at a ratio of 1) for the burst.
+    expect(canvas?.width).toBe(400);
+    expect(canvas?.height).toBe(200);
+    while (nextFrame(100)) {
+      // Until the last piece lands.
+    }
+    expect(canvas?.width).toBe(0);
+    expect(canvas?.height).toBe(0);
+  });
+
+  it('takes a new size of its box only while something is in the air', () => {
+    let boxChanged: () => void = () => undefined;
+    const original = globalThis.ResizeObserver;
+    globalThis.ResizeObserver = jest.fn((callback: () => void) => {
+      boxChanged = callback;
+      return {
+        observe: () => undefined,
+        unobserve: () => undefined,
+        disconnect: () => undefined,
+      };
+    }) as unknown as typeof ResizeObserver;
+    try {
+      const { source, tell } = hand();
+      const { container } = layer(source);
+      const canvas = container.querySelector('canvas');
+      boxChanged();
+      // Idle: a box that changes allocates nothing.
+      expect(canvas?.width).toBe(0);
+      tell({ kind: 'tap', x: 300, y: 150 });
+      jest
+        .spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect')
+        .mockReturnValue({
+          left: 100,
+          top: 50,
+          width: 500,
+          height: 300,
+        } as DOMRect);
+      boxChanged();
+      // In the air: sized to the new box at once, not stretched over it.
+      expect(canvas?.width).toBe(500);
+      expect(canvas?.height).toBe(300);
+    } finally {
+      globalThis.ResizeObserver = original;
+    }
+  });
+
   it('stops listening to the hand when it goes', () => {
     const { source, listening } = hand();
     const { unmount } = layer(source);

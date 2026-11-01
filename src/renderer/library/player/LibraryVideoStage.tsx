@@ -21,11 +21,8 @@ import { libraryMediaUrl } from '../../../common/library/mediaUrl';
 import { useTranslation } from '../../utils/I18nContext';
 import { useGraphFullScreen } from '../../utils/graphStyle';
 import { useLibraryPlayerSession } from './LibraryPlayerContext';
-import {
-  readVideoPosition,
-  restorablePositionMs,
-  writeVideoPosition,
-} from './playbackMemory';
+import { restorablePositionMs } from '../../../common/library/playbackMemory';
+import { readVideoPosition, writeVideoPosition } from './playbackMemory';
 import '../../styles/NowPlayingBar.scss';
 
 /**

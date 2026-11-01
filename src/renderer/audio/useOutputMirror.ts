@@ -222,7 +222,10 @@ const useOutputMirror = () => {
     refresh();
     window.addEventListener('fluideq-output-changed', refresh);
     window.addEventListener('fluideq-presets-changed', refresh);
-    if (!navigator.mediaDevices?.addEventListener) {
+    // Where main follows the outputs and pushes each change (Windows, above),
+    // Chromium's `devicechange` adds nothing but its audio and video capture
+    // services, which listening for it starts and keeps running.
+    if (native || !navigator.mediaDevices?.addEventListener) {
       return () => {
         window.removeEventListener('fluideq-output-changed', refresh);
         window.removeEventListener('fluideq-presets-changed', refresh);
@@ -236,7 +239,7 @@ const useOutputMirror = () => {
       window.removeEventListener('fluideq-output-changed', refresh);
       window.removeEventListener('fluideq-presets-changed', refresh);
     };
-  }, [refresh]);
+  }, [native, refresh]);
 
   /** The endpoint the loopback is capturing, which can never be a target. */
   const captureSourceGuid = useMemo(

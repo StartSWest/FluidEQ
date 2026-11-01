@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   MAX_NAMED_RANGES,
   describeCorrectionShape,
-} from 'renderer/utils/autoBalanceNarration';
+} from 'common/autoBalanceNarration';
 
 import { FilterTypeEnum, IFilter } from 'common/constants';
 import {
@@ -28,7 +28,7 @@ import {
   sampleSpectrumAt,
   tiltLevelAt,
   ISpectrumSample,
-} from 'renderer/utils/autoBalance';
+} from 'common/autoBalance';
 import {
   REFERENCE_SLOPE_DB_PER_DECADE,
   getReferenceShape,

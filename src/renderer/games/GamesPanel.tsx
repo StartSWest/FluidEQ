@@ -50,11 +50,9 @@ const sourceKey = (source: TGameSource): TranslationKey =>
  */
 const GamesPanel = () => {
   const { t } = useTranslation();
-  // Watching while the page is open as well, so the line at the top can say
-  // what is in front while a profile is being made for it.
-  const { profiles, enabled, playing, sounding } = useGameSound({
-    always: true,
-  });
+  // Watched while the page is open, so the line at the top can say what is
+  // in front while a profile is being made for it.
+  const { profiles, enabled, playing, sounding } = useGameSound();
   const switchId = useId();
   const { catalog, favorites } = useDspPresetCatalog(t);
   const [known, setKnown] = useState<IGameProgram[]>([]);

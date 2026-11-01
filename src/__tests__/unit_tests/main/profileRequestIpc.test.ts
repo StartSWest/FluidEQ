@@ -482,4 +482,44 @@ describe('profile request ownership', () => {
       expect(errors).toEqual([]);
     },
   );
+
+  /*
+   * The core puts a preset on the output Windows plays — a game's sound, the
+   * rack following an engine switch — with a second output perhaps left in
+   * "Edit sound": the editor goes back to the playing output first, by the
+   * same steps the window's own request takes (`presetPicks.ts`).
+   */
+  describe('the playing output, put back in the editor by the core', () => {
+    it('opens it with its own sound, under a new generation, and tells the window', async () => {
+      session.activeAudioDeviceId = second.id;
+      session.activeAudioDevice = second;
+      session.editingAudioDeviceId = second.id;
+      Object.assign(state, preset(2));
+      const opened = await registerProfilesIpc(deps).openPlayingOutput();
+      expect(opened).toBe(true);
+      expect(session.activeAudioDeviceId).toBe(main.id);
+      expect(session.editingAudioDeviceId).toBeUndefined();
+      expect(session.outputEditGeneration).toBe(8);
+      expect(state.filters.a.gain).toBe(1);
+      expect(notify).toHaveBeenCalledTimes(1);
+      // The second output's own sound stays its own.
+      expect(read(second).filters.a.gain).toBe(2);
+    });
+
+    it('changes nothing where the playing output is the one edited', async () => {
+      const opened = await registerProfilesIpc(deps).openPlayingOutput();
+      expect(opened).toBe(true);
+      expect(session.outputEditGeneration).toBe(7);
+      expect(notify).not.toHaveBeenCalled();
+    });
+
+    it('answers no where no output is known to play', async () => {
+      session.playbackAudioDevice = undefined;
+      session.activeAudioDeviceId = second.id;
+      const opened = await registerProfilesIpc(deps).openPlayingOutput();
+      expect(opened).toBe(false);
+      expect(session.activeAudioDeviceId).toBe(second.id);
+      expect(session.outputEditGeneration).toBe(7);
+    });
+  });
 });

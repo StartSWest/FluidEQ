@@ -92,6 +92,9 @@ const app: Partial<Dictionary> = {
     'Ajudante do visualizador da área de trabalho',
   'app.processes.what.desktopHost':
     'Coloca o visualizador da área de trabalho desse monitor atrás dos ícones e o avisa quando as janelas cobrem a tela. Um para cada monitor que o mostra.',
+  'app.processes.name.listening': 'Escuta ao vivo',
+  'app.processes.what.listening':
+    'Ouve o que este PC toca, depois do equalizador, para o gráfico, os medidores e os visualizadores. Só roda enquanto um deles está na tela.',
   'app.processes.name.shareCapture': 'Captura de áudio',
   'app.processes.what.shareCapture':
     'Captura o que este PC toca, antes do equalizador, para a aba Compartilhar áudio, uma segunda saída e o EQ inteligente. Só roda enquanto um deles está em uso.',

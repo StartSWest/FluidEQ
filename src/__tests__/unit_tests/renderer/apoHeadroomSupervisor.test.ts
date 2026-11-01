@@ -1,4 +1,4 @@
-import ApoHeadroomSupervisor from 'renderer/utils/apoHeadroomSupervisor';
+import ApoHeadroomSupervisor from 'core/headroom/apoHeadroomSupervisor';
 import { shouldPushMeasurement } from 'renderer/utils/headroomCapture';
 
 describe('file-safe APO headroom', () => {

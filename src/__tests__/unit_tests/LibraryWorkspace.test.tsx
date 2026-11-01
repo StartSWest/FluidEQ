@@ -35,7 +35,7 @@ import {
   openLibraryStoreBridge,
 } from '../utils/libraryStoreBridge';
 
-import { createSourceAnalysisBridge } from '../utils/sourceAnalysisBridge';
+import { createCorePlayerBridge } from '../utils/corePlayerBridge';
 
 // jsdom's own `HTMLMediaElement.prototype.play` returns `undefined` rather
 // than the Promise every real engine (including Electron's Chromium) hands
@@ -110,7 +110,8 @@ const renderWorkspace = ({
     ...opened.channels,
     addLibraryRoot,
     cancelLibraryScan,
-    ...createSourceAnalysisBridge(),
+    // The player is the core's: the real one, over the same songs.
+    ...createCorePlayerBridge({ tracks: () => tracks }).bridge,
   });
   render(
     <I18nProvider>
@@ -410,23 +411,21 @@ describe('handing a click off to the player', () => {
     window.localStorage.setItem('fluideq.library.browseMode', 'video');
     // `renderWorkspace`'s own set-up, with the tree kept so it can be drawn
     // again in and out of full screen.
-    const opened = openLibraryStoreBridge({
-      roots: [VIDEOS],
-      tracks: [
-        track({
-          id: 'v1',
-          title: 'Live at the Roxy',
-          kind: 'video',
-          path: 'C:\\Videos\\Live\\show.mp4',
-        }),
-      ],
-    });
+    const videos = [
+      track({
+        id: 'v1',
+        title: 'Live at the Roxy',
+        kind: 'video',
+        path: 'C:\\Videos\\Live\\show.mp4',
+      }),
+    ];
+    const opened = openLibraryStoreBridge({ roots: [VIDEOS], tracks: videos });
     bridge = opened;
     installIpcRenderer({
       ...opened.channels,
       addLibraryRoot: jest.fn(() => Promise.resolve(opened.summary())),
       cancelLibraryScan,
-      ...createSourceAnalysisBridge(),
+      ...createCorePlayerBridge({ tracks: () => videos }).bridge,
     });
     const tree = (isFullScreen: boolean) => (
       <I18nProvider>

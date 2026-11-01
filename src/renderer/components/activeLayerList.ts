@@ -25,9 +25,11 @@ import { hasSmartEqCorrection } from 'common/smartEq';
 import { hasHeadphoneCorrection } from '../../common/headphone';
 import type { IFluidEqContext } from '../utils/FluidEqContext';
 import { setContinuousEq } from '../utils/continuousEq';
+import { readOutputEditor } from '../utils/outputEditor';
 import {
   clearConvolution,
   clearGains,
+  pickDspPreset,
   setDriver as setDriverApi,
   setHeadphone as setHeadphoneApi,
   setSmartEq as setSmartEqApi,
@@ -37,7 +39,6 @@ import {
 } from '../utils/equalizerApi';
 import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
 import { hasTone } from '../../common/tone';
-import switchPresetRackOff from '../dsp/presetRackOff';
 import type { MenuIconName } from '../icons/MenuIcon';
 import { TONE_CONTROLS } from '../eq/useTone';
 
@@ -436,15 +437,24 @@ export const collectLayers = ({
       isInactive: !isVoicingActive(voicing),
       onStrength: setVoicingStrength,
       onClear: async () => {
-        // A preset's pill takes the whole preset away: its rack goes off with
-        // its curve, as None in the picker does. Any other voicing is only
-        // this layer, and the DSP page is none of its business.
-        const isPreset = dspVoicingPresetId(voicing) !== undefined;
+        // A preset's pill takes the whole preset away, as None in the picker
+        // does: its curve, and its rack — None on the rack and the rack off,
+        // so the DSP page names None rather than the chain that went, and
+        // the hold Equalizer APO put on it goes too, or the next switch to
+        // the FluidEQ Engine would put back the rack of a preset that had
+        // been taken away. Any other voicing is only this layer, and the DSP
+        // page is none of its business.
+        if (dspVoicingPresetId(voicing) !== undefined) {
+          await pickDspPreset(
+            'none',
+            false,
+            readOutputEditor().editor?.device.id ?? '',
+          );
+          await refreshState({ adoptRack: true });
+          return;
+        }
         setVoicing({ profileId: '', intensity: voicing?.intensity ?? 1 });
         await setVoicingApi('', voicing?.intensity ?? 1);
-        if (isPreset) {
-          switchPresetRackOff();
-        }
         await refreshState();
       },
       feature: 'voicing',

@@ -16,17 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { BALANCE_FRAME_INTERVAL_MS } from 'renderer/utils/autoBalanceTuning';
+import { BALANCE_FRAME_INTERVAL_MS } from 'common/autoBalanceTuning';
 import {
   IBalanceFrame,
   accumulateBalanceFrame,
   createBalanceCaptureState,
   evaluateBalanceCapture,
-} from 'renderer/utils/autoBalanceCapture';
-import {
-  advanceFullBandGate,
-  createFullBandState,
-} from 'renderer/utils/fullBandGate';
+} from 'common/autoBalanceCapture';
+import { advanceFullBandGate, createFullBandState } from 'common/fullBandGate';
 
 /* --- harness ----------------------------------------------------------- */
 

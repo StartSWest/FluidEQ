@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import '@testing-library/jest-dom';
+import { useEffect } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { FilterTypeEnum, ISmartEqSettings } from 'common/constants';
 import { translate } from 'common/i18n';
@@ -25,13 +26,12 @@ import {
   SONG_EQ_SETTLE_MS,
 } from 'common/songEqRecorder';
 import { buildSongIdentity } from 'common/songIdentity';
+import { sanitizeSmartEqSettings } from 'common/smartEq';
+import { SONG_EQ_CHANNEL, type TSongEqAction } from 'common/songEqStatus';
+import { createSongEqMemory } from 'main/songEqMemory';
 import { useNowPlayingIdentity } from 'renderer/audio/nowPlayingIdentity';
-import {
-  resetSongEqSession,
-  setSongEqSaveOn,
-  useSongEqClock,
-  useSongEqSessionHost,
-} from 'renderer/audio/songEqSession';
+import { setSongEqSaveOn, useSongEqClock } from 'renderer/audio/songEqSession';
+import useIsAutoEqRunning from 'renderer/utils/autoEqRunning';
 import { resetTransportSource } from 'renderer/audio/transportSource';
 import playFor from '__tests__/utils/playerReports';
 import { formatDuration } from 'renderer/library/player/NowPlayingBar';
@@ -122,10 +122,6 @@ jest.mock('renderer/utils/equalizerApi', () => ({
   removeEqualizerSlider: jest.fn(),
   setFilterValues: jest.fn(),
   setFixedBand: jest.fn(),
-  lookupSongEq: jest.fn(() => Promise.resolve(undefined)),
-  checkpointSongEq: jest.fn(() => Promise.resolve(undefined)),
-  commitSongEq: jest.fn(() => Promise.resolve(undefined)),
-  forgetSongEq: jest.fn(() => Promise.resolve(undefined)),
   setSmartEq: jest.fn(() => Promise.resolve(undefined)),
   // The output's rate beside the page's name reads the output list.
   getAudioDevices: jest.fn(() => Promise.resolve([])),
@@ -158,10 +154,87 @@ const layerOf = (gain: number): ISmartEqSettings => ({
  * beside `MainContent` here for the same reason `SmartEqRun.test.tsx` mounts
  * `SmartEqEngine` beside it — the panel under test does not run its own
  * session, so nothing updates without this. */
+/**
+ * The song memory the core runs (`main/songEqMemory.ts`), behind a bridge
+ * that carries each message at once, as main.ts wires it: the edited
+ * output's layer and the running mode followed, what plays reported, and a
+ * core that cannot hear the output — so the window's players are its clock.
+ */
+const startCore = () => {
+  const windowListeners = new Map<string, Set<(payload: unknown) => void>>();
+  const memory = createSongEqMemory({
+    entries: {
+      lookup: () => undefined,
+      checkpoint: jest.fn(),
+      commit: jest.fn(),
+      forget: jest.fn(),
+    },
+    writeLayer: async (layer) => {
+      mockLive.smartEq = sanitizeSmartEqSettings(layer);
+      return true;
+    },
+    editedDevice: () => 'device-a',
+    tellWindowLayer: jest.fn(),
+    tellWindowStatus: (status) =>
+      windowListeners
+        .get(SONG_EQ_CHANNEL.status)
+        ?.forEach((listener) => listener(status)),
+    systemSound: {
+      listen: (listener) => {
+        listener.lost();
+        return () => undefined;
+      },
+    },
+  });
+  Object.defineProperty(window, 'electron', {
+    configurable: true,
+    value: {
+      ipcRenderer: {
+        sendMessage: (channel: string, args: unknown[]) => {
+          if (channel === SONG_EQ_CHANNEL.ask) {
+            windowListeners
+              .get(SONG_EQ_CHANNEL.status)
+              ?.forEach((listener) => listener(memory.status()));
+          } else if (channel === SONG_EQ_CHANNEL.tick) {
+            memory.tick();
+          } else if (channel === SONG_EQ_CHANNEL.action) {
+            memory.act(args[0] as TSongEqAction);
+          }
+        },
+        on: (channel: string, listener: (payload: unknown) => void) => {
+          const listeners = windowListeners.get(channel) ?? new Set();
+          listeners.add(listener);
+          windowListeners.set(channel, listeners);
+          return () => listeners.delete(listener);
+        },
+      },
+    },
+  });
+  return memory;
+};
+let core: ReturnType<typeof startCore>;
+
+/** What main follows after every update, and what the players report. */
+const CoreFollows = () => {
+  const isAutoEqRunning = useIsAutoEqRunning();
+  const { identity, isPlaying } = useNowPlayingIdentity();
+  useEffect(() => {
+    core.follow({
+      deviceId: 'device-a',
+      layer: mockLive.smartEq,
+      isAutoEqRunning,
+    });
+  }, [isAutoEqRunning]);
+  useEffect(() => {
+    core.nowPlaying(identity, isPlaying);
+  }, [identity, isPlaying]);
+  return null;
+};
+
 const Harness = () => {
-  useSongEqSessionHost();
   return (
     <>
+      <CoreFollows />
       <SongEqClock />
       <MainContent />
     </>
@@ -204,7 +277,7 @@ describe('the save-for-this-song tick', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(0);
-    resetSongEqSession();
+    core = startCore();
     resetTransportSource();
     setSmartEqMode('smart');
     mockLive.smartEq = undefined;
@@ -223,6 +296,7 @@ describe('the save-for-this-song tick', () => {
       setSmartEqMode('smart');
     });
     jest.useRealTimers();
+    Reflect.deleteProperty(window, 'electron');
   });
 
   /**

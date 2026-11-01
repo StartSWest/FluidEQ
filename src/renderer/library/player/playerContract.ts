@@ -16,33 +16,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { ILibraryQueue, TLibraryRepeat } from '../../../common/library/queue';
 import { ILibraryTrack } from '../../../common/library/types';
 
-export const REPEAT_CYCLE: readonly TLibraryRepeat[] = ['off', 'all', 'one'];
-
-export const nextRepeat = (repeat: TLibraryRepeat): TLibraryRepeat =>
-  REPEAT_CYCLE[(REPEAT_CYCLE.indexOf(repeat) + 1) % REPEAT_CYCLE.length];
-
 export const clampVolume = (value: number): number =>
   Math.min(1, Math.max(0, value));
-
-export const normalizationChanged = (
-  previous: ILibraryTrack['normalization'],
-  next: NonNullable<ILibraryTrack['normalization']>,
-): boolean =>
-  !previous ||
-  previous.version !== next.version ||
-  Math.abs(previous.truePeakDbtp - next.truePeakDbtp) >= 0.01 ||
-  Math.abs(previous.integratedLufs - next.integratedLufs) >= 0.01 ||
-  previous.edges?.leadInMs !== next.edges?.leadInMs ||
-  previous.edges?.endMs !== next.edges?.endMs;
-
-/**
- * How much leading silence is worth a seek.
- *
- * Below this the jump costs a decoder re-sync for something nobody could hear
- * missing, and the incoming deck is better off simply starting at the file's
- * first sample.
- */
-export const MIN_LEAD_IN_TRIM_MS = 250;
 
 /**
  * How long the level takes to come back after a seek.
@@ -56,8 +31,6 @@ export const MIN_LEAD_IN_TRIM_MS = 250;
 export const SEEK_FADE_MS = 70;
 /** Pop-free source handoff; longer than a seek because the decoder is new. */
 export const TRACK_FADE_IN_MS = 80;
-/** Past this point Previous restarts first; inside it, Previous changes track. */
-export const PREVIOUS_RESTART_THRESHOLD_MS = 10_000;
 
 export interface ILibraryPlayerContextValue {
   queue: ILibraryQueue | undefined;
@@ -170,10 +143,10 @@ export interface ILibraryPlayerContextValue {
    * With nothing playing it starts the list instead, because "add to up next"
    * on an empty player means the same thing as pressing play and there is no
    * sense in a queue nobody is listening to. Tracks already queued are left
-   * where they are rather than duplicated. Answers how many joined, so a
-   * drop that added nothing can say so.
+   * where they are rather than duplicated. A file drop, which has to say
+   * whether anything joined, asks the core for the count itself.
    */
-  appendToQueue: (trackIds: readonly string[]) => number;
+  appendToQueue: (trackIds: readonly string[]) => void;
   /** Takes one entry back out of what is queued ahead, by its place in the
    * run — the same song can be in the list more than once. */
   removeUpNextAt: (position: number) => void;

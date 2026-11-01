@@ -2,6 +2,8 @@ const airbnbRestrictedProperties =
   require('eslint-config-airbnb-base/rules/best-practices').rules[
     'no-restricted-properties'
   ];
+const airbnbRestrictedSyntax = require('eslint-config-airbnb-base/rules/style')
+  .rules['no-restricted-syntax'];
 
 module.exports = {
   // Stop here. This is the project root, and there is no configuration above
@@ -114,6 +116,56 @@ module.exports = {
               'Stop listening through the function onWindowMessage returned: Electron holds its wrapper, not your handler, so removing the handler removes nothing.',
           })),
         ],
+      },
+    },
+    {
+      // The app's core: everything that keeps the sound working, written so it
+      // can run without a window and, later, without Electron at all. It may
+      // not reach into Electron, the main process or the renderer, and only
+      // `src/core/platform/` may ask which operating system it is on — every
+      // difference between Windows, macOS and Linux lives behind a seam there.
+      files: ['src/core/**'],
+      rules: {
+        '@typescript-eslint/no-restricted-imports': [
+          'error',
+          {
+            paths: [
+              {
+                name: 'electron',
+                message:
+                  'The core runs without Electron. Take what it needs as an argument from src/main, which hosts it.',
+              },
+              {
+                name: 'electron-log',
+                message:
+                  'The core writes through the ICoreLog it is handed (src/core/coreLog.ts).',
+              },
+            ],
+            patterns: [
+              {
+                group: ['**/main/**', 'main/*', '**/renderer/**', 'renderer/*'],
+                message:
+                  'The core may use src/common and itself only. The main process and the window are its hosts, never its dependencies.',
+              },
+            ],
+          },
+        ],
+        // Added to airbnb's own list, which a rule set here replaces.
+        'no-restricted-syntax': [
+          ...airbnbRestrictedSyntax,
+          {
+            selector:
+              "MemberExpression[object.name='process'][property.name='platform']",
+            message:
+              'Only src/core/platform/ may know which operating system it is on. Put the difference behind a seam there.',
+          },
+        ],
+      },
+    },
+    {
+      files: ['src/core/platform/**'],
+      rules: {
+        'no-restricted-syntax': airbnbRestrictedSyntax,
       },
     },
     {

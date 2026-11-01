@@ -20,7 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { type PointerEvent, useRef } from 'react';
 import type { AxisScale, NumberValue } from 'd3';
 import { MIN_GAIN } from 'common/constants';
-import { balanceRangeName } from '../utils/autoBalanceNarration';
+import { balanceRangeName } from 'common/autoBalanceNarration';
 import { useSmartEqMeasurement } from '../audio/smartEqMeasurement';
 import { useGraphCoverageHidden } from '../utils/graphStyle';
 import {

@@ -55,6 +55,7 @@ import { existsSync } from 'fs';
 import path from 'path';
 import log from 'electron-log';
 import { APP_USER_MODEL_ID } from './appIdentity';
+import { ownAppUserModelId } from './devSandbox';
 import { createHelperReplacement } from './helperReplacement';
 import { POWERSHELL_PATH, utf8Command } from './powershell';
 import isBase64 from '../common/base64';
@@ -79,11 +80,14 @@ import isBase64 from '../common/base64';
  *
  * The watcher is native now, and applies this same rule in its own words
  * (`choose` in native/media-watch/src/main.cpp), told this process's id
- * (`APP_USER_MODEL_ID`, never the installed app's) as its one argument so the
+ * (`SELF_ID`, never the installed app's) as its one argument so the
  * id is written down once. Change the two together.
  */
+/** This process's own id, as Windows files its sessions (a sandbox's own). */
+const SELF_ID = ownAppUserModelId(APP_USER_MODEL_ID);
+
 const SELF_SKIP = `
-$selfId = '${APP_USER_MODEL_ID}'
+$selfId = '${SELF_ID}'
 function Select-OtherSession($manager) {
   $sessions = @($manager.GetSessions() | Where-Object {
     $_.SourceAppUserModelId -ne $selfId
@@ -383,7 +387,7 @@ const startWatcher = (executable: string): void => {
   // The app's own id is the helper's one argument, so the rule that looks
   // past this app's sessions (`SELF_SKIP`) reads the same id on both sides.
   // Nobody reads its stderr, so it is not a pipe that could fill.
-  const started = spawn(executable, [APP_USER_MODEL_ID], {
+  const started = spawn(executable, [SELF_ID], {
     stdio: ['pipe', 'pipe', 'ignore'],
     windowsHide: true,
   });
@@ -663,7 +667,7 @@ function Await($op, $type) {
 $managerType = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager, Windows.Media.Control, ContentType = WindowsRuntime]
 $manager = Await ($managerType::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager])
 if (-not $manager) { exit 1 }
-$selfId = '${APP_USER_MODEL_ID}'
+$selfId = '${SELF_ID}'
 $except = [string]$env:FLUIDEQ_MEDIA_EXCEPT
 foreach ($candidate in @($manager.GetSessions())) {
   try {

@@ -15,7 +15,7 @@ import type {
   TStudioAgentHeardAnswer,
   TStudioAgentSong,
 } from '../../common/studioAgent';
-import writeFileAtomically from '../atomicWrite';
+import writeFileAtomically from '../../core/files/atomicWrite';
 import { readProject } from '../memberScenes/project';
 import type { TAgentProject } from './agentProject';
 import { AGENT_HOST, AGENT_PATH, createAgentServer } from './agentServer';

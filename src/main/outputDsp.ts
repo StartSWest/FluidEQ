@@ -147,33 +147,56 @@ export const flushOutputDsp = async ({
       // been captured while it was off and cannot keep their own stale copy.
       isEnabled,
     };
-    const audibleDsp = dspOverrides?.get(output.deviceId) ?? state.dsp;
-    const rack = clampDspSettings(audibleDsp ?? { enabled: false });
-    rack.enabled =
-      state.isEnabled &&
-      audibleDsp !== undefined &&
-      rack.enabled &&
-      (systemRackEnabled?.(output.deviceId) ?? true);
-    const designs = outputDesignsOf(state);
-    const line = encodeChainSettings(rack);
-    const values = rack.enabled
-      ? appendPresetTone(
-          line,
-          presetToneOf(state, {
-            eq: groupPlaysMatched(outputVersion, designs.trebleDesigns.eq),
-            curves: groupPlaysMatched(
-              outputVersion,
-              designs.trebleDesigns.curves,
-            ),
-          }),
-        )
-      : line;
+    const values = outputRackLine({
+      state,
+      audibleDsp: dspOverrides?.get(output.deviceId) ?? state.dsp,
+      rackHere: systemRackEnabled?.(output.deviceId) ?? true,
+      version: outputVersion,
+    });
     // An engine before Footsteps refuses the line with its trailer and
     // bypasses the whole rack; without the trailer it plays the rest. Asked
     // in the write's own turn, so this call registers before any await.
-    return writeSystemDspChain(configDirPath, values, guid, designs, () =>
-      installedRunsFootsteps(engineVersion),
+    return writeSystemDspChain(
+      configDirPath,
+      values,
+      guid,
+      outputDesignsOf(state),
+      () => installedRunsFootsteps(engineVersion),
     );
   });
   await Promise.all(writes);
+};
+
+/**
+ * The rack line an output plays: its audible rack — off while FluidEQ is
+ * off, where the output has no rack saved, and where the rack runs elsewhere
+ * (`rackHere`: the Library's host) — carrying the Preset layer's curve as an
+ * engine of `version` plays it, so the rack limits through what is heard.
+ */
+export const outputRackLine = ({
+  state,
+  audibleDsp,
+  rackHere,
+  version,
+}: {
+  state: IState;
+  audibleDsp: IDspSettings | undefined;
+  rackHere: boolean;
+  version: string;
+}): number[] => {
+  const rack = clampDspSettings(audibleDsp ?? { enabled: false });
+  rack.enabled =
+    state.isEnabled && audibleDsp !== undefined && rack.enabled && rackHere;
+  const line = encodeChainSettings(rack);
+  if (!rack.enabled) {
+    return line;
+  }
+  const designs = outputDesignsOf(state);
+  return appendPresetTone(
+    line,
+    presetToneOf(state, {
+      eq: groupPlaysMatched(version, designs.trebleDesigns.eq),
+      curves: groupPlaysMatched(version, designs.trebleDesigns.curves),
+    }),
+  );
 };

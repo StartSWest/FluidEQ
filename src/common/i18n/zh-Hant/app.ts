@@ -73,6 +73,9 @@ const app = {
   'app.processes.name.desktopHost': '桌面視覺化助手',
   'app.processes.what.desktopHost':
     '將顯示器的桌面視覺化工具放在圖示後面，並在視窗覆蓋螢幕時通知它。每臺顯示器顯示一個。',
+  'app.processes.name.listening': '即時監聽',
+  'app.processes.what.listening':
+    '在等化器之後監聽這台電腦播放的聲音，供圖表、音量表和視覺化效果使用。僅在其中之一顯示於螢幕上時執行。',
   'app.processes.name.shareCapture': '音訊捕捉',
   'app.processes.what.shareCapture':
     '擷取該電腦在等化器之前播放的內容，用於「共享音訊」標籤、第二個輸出和 Smart EQ。僅當其中之一正在使用時執行。',

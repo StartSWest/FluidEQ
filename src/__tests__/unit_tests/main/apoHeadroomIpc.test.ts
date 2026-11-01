@@ -2,6 +2,7 @@ import { ipcMain } from 'electron';
 import ChannelEnum from 'common/channels';
 import { getDefaultState } from 'common/constants';
 import { registerPreampIpc } from 'main/ipc/preamp';
+import type { TReplySink } from 'main/updatePath';
 
 jest.mock('electron', () => ({ ipcMain: { on: jest.fn() } }));
 jest.mock('main/flush', () => ({ getResolvedPreAmp: jest.fn(() => -4) }));
@@ -16,6 +17,7 @@ describe('APO measurement write boundary', () => {
         state,
         usesNativeHeadroom: () => native,
         canMeasureHeadroom: () => !native,
+        tellWindowPreAmp: jest.fn(),
         handleUpdate: jest.fn(),
         handleUpdateHelper: jest.fn(),
         handleError: jest.fn(),
@@ -38,73 +40,82 @@ describe('APO measurement write boundary', () => {
       expect(state.preAmp).toBe(native ? 0 : -4);
     },
   );
-  const setup = (allowed: boolean, enabled = true) => {
+
+  /** The writer, standing in for the update path; `refuse` answers an error. */
+  const setup = (allowed: boolean, enabled = true, refuse = false) => {
     const state = {
       ...getDefaultState(),
       isAutoPreAmpOn: enabled,
       isEnabled: true,
     };
-    const update = jest.fn().mockResolvedValue(undefined);
+    const update = jest.fn(async (sink: TReplySink, channel: string) => {
+      sink.reply(
+        channel,
+        refuse ? { error: 'failure' } : { result: undefined },
+      );
+    });
+    const tellWindowPreAmp = jest.fn();
     jest.mocked(ipcMain.on).mockClear();
-    registerPreampIpc({
+    const { applyHeadroomTrim } = registerPreampIpc({
       state,
       canMeasureHeadroom: () => allowed,
       usesNativeHeadroom: () => false,
-      handleUpdate: update,
+      tellWindowPreAmp,
+      handleUpdate: jest.fn(),
       handleUpdateHelper: update,
       handleError: jest.fn(),
     });
-    const handler = jest
-      .mocked(ipcMain.on)
-      .mock.calls.find(
-        ([channel]) => channel === ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
-      )?.[1];
-    if (!handler) {
-      throw new Error('Measurement handler missing');
-    }
-    return { state, update, handler };
+    return { state, update, tellWindowPreAmp, applyHeadroomTrim };
   };
 
   it.each([
     [false, true],
     [true, false],
   ])(
-    'rejects a late report when engine eligible=%s and auto=%s',
+    'refuses a late trim when engine eligible=%s and auto=%s',
     async (allowed, enabled) => {
-      const { state, update, handler } = setup(allowed, enabled);
+      const { state, update, tellWindowPreAmp, applyHeadroomTrim } = setup(
+        allowed,
+        enabled,
+      );
       const before = { ...state };
-      const event = { reply: jest.fn() };
-      await handler(event as unknown as Electron.IpcMainEvent, [
-        [],
-        -0.5,
-        'request',
-      ]);
+
+      await expect(applyHeadroomTrim(-0.5)).resolves.toBe(false);
       expect(state).toEqual(before);
       expect(update).not.toHaveBeenCalled();
-      expect(event.reply).toHaveBeenCalledWith(
-        ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
-        { result: { requestId: 'request', applied: false } },
-      );
+      expect(tellWindowPreAmp).not.toHaveBeenCalled();
     },
   );
 
-  it('writes one bounded trim without saving profiles and correlates its acknowledgment', async () => {
-    const { state, update, handler } = setup(true);
-    const event = { reply: jest.fn() };
-    await handler(event as unknown as Electron.IpcMainEvent, [
-      [],
-      -0.5,
-      'request',
-    ]);
+  it('writes one bounded trim without saving profiles, and tells the window its preamp', async () => {
+    const { state, update, tellWindowPreAmp, applyHeadroomTrim } = setup(true);
+    state.smartHeadroomProgramme = [{ frequency: 100, gain: -3 }];
+
+    await expect(applyHeadroomTrim(-0.5)).resolves.toBe(true);
     expect(state.smartHeadroomTrimDb).toBe(-0.5);
     expect(state.smartHeadroomProgramme).toBeUndefined();
     expect(update).toHaveBeenCalledTimes(1);
     expect(update).toHaveBeenCalledWith(
-      event,
-      ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
-      { requestId: 'request', applied: true },
+      expect.anything(),
+      'apoHeadroom',
+      undefined,
       false,
       false,
     );
+    expect(tellWindowPreAmp).toHaveBeenCalledWith(-4);
+  });
+
+  it('never writes a trim that adds level', async () => {
+    const { state, applyHeadroomTrim } = setup(true);
+
+    await applyHeadroomTrim(3);
+    expect(state.smartHeadroomTrimDb).toBe(0);
+  });
+
+  it('says a refused write was not applied, and tells the window nothing', async () => {
+    const { tellWindowPreAmp, applyHeadroomTrim } = setup(true, true, true);
+
+    await expect(applyHeadroomTrim(-1)).resolves.toBe(false);
+    expect(tellWindowPreAmp).not.toHaveBeenCalled();
   });
 });
