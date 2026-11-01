@@ -109,6 +109,9 @@ import libraryHostPort from './libraryPlayer/hostPort';
 import { createPlaybackSession } from './libraryPlayer/playbackSession';
 import { createSourcePublication } from './libraryPlayer/sourcePublication';
 import watchWindowSeen from './windowSeen';
+import { createWindowUnload } from './windowUnload';
+import { createNowPlayingFeed } from './nowPlayingFeed';
+import { followWindowPage, registerWindowHoldsIpc } from './ipc/windowHolds';
 import { LIBRARY_PLAYER_CHANNEL } from '../common/library/playerWire';
 import {
   dspHostPid,
@@ -236,6 +239,31 @@ declineDefaultMenu();
 
 let mainWindow: BrowserWindow | null = null;
 const getMainWindow = () => mainWindow;
+
+/**
+ * A window hidden in the tray, let go when nothing holds it and built again
+ * when it is opened (`windowUnload.ts`). The flag is set from the moment it
+ * is let go until a window is built again, so its close goes through rather
+ * than hiding, and its going is not taken for every window being closed.
+ *
+ * Closed, never destroyed: a destroyed page runs nothing on its way out, and
+ * the page saves things as it goes — the Karaoke session, the Maker's view,
+ * where a video stood (`pagehide`).
+ */
+let isWindowLetGo = false;
+const windowUnload = createWindowUnload({
+  unload: () => {
+    const window = mainWindow;
+    if (window && !window.isDestroyed()) {
+      isWindowLetGo = true;
+      window.close();
+    }
+  },
+  log: (message) => log.info(message),
+});
+registerWindowHoldsIpc(getMainWindow, windowUnload);
+/** The window, unless it is on its way out from the tray. */
+const usableWindow = () => (isWindowLetGo ? null : mainWindow);
 
 /**
  * Windows' own output notifications, followed by a helper for as long as the
@@ -753,6 +781,19 @@ const presetPicks = createPresetPicks({
 registerPresetPicksIpc(presetPicks);
 
 /**
+ * The song memories count a song's time on the core's hearing of the
+ * output; where the core cannot hear it (no source on this platform yet),
+ * the window's players tick their clock (`needsClock`), so a window in the
+ * tray is kept while either asks for that. The songs themselves main names
+ * without a window (`nowPlayingFeed.ts`).
+ */
+const clocksAsked = { memory: false, smartEq: false };
+const holdForSongs = (change: Partial<typeof clocksAsked>) => {
+  Object.assign(clocksAsked, change);
+  windowUnload.hold('songs', clocksAsked.memory || clocksAsked.smartEq);
+};
+
+/**
  * Which sound each song is played with, remembered and put back by the
  * core (`songMemory.ts`), its switch kept here beside it.
  */
@@ -770,12 +811,14 @@ const songMemory = createSongMemory({
   update: landUpdate,
   tellWindowSound: tellWindowSoundChanged,
   tellWindowStatus: (status) => {
+    holdForSongs({ memory: status.needsClock });
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send(SONG_MEMORY_CHANNEL.status, status);
     }
   },
   createClock: core.createClock,
 });
+holdForSongs({ memory: songMemory.status().needsClock });
 registerSongMemoryIpc({ getMainWindow, memory: songMemory });
 
 /**
@@ -823,9 +866,13 @@ const songEq = createSongEqMemory({
       from: undefined,
       moved: [],
     }),
-  tellWindowStatus: (status) => sendToWindow(SONG_EQ_CHANNEL.status, status),
+  tellWindowStatus: (status) => {
+    holdForSongs({ smartEq: status.needsClock });
+    sendToWindow(SONG_EQ_CHANNEL.status, status);
+  },
   createClock: core.createClock,
 });
+holdForSongs({ smartEq: songEq.status().needsClock });
 registerSongEqIpc({ getMainWindow, memory: songEq });
 const smartEq = createSmartEqRunner({
   settings: smartEqSettings.read,
@@ -873,10 +920,13 @@ registerSmartEqIpc({
   settings: smartEqSettings,
 });
 
-/** What the window's players play, for the core's jobs that follow songs. */
-registerNowPlayingIpc({
-  getMainWindow,
-  onNowPlaying: ({ identity, isPlaying, isLibrary }) => {
+/**
+ * What is played, for the core's jobs that follow songs: named by the
+ * window's players while there is a window, and by main from the Library's
+ * host and the media watcher while there is none (`nowPlayingFeed.ts`).
+ */
+const nowPlayingFeed = createNowPlayingFeed(
+  ({ identity, isPlaying, isLibrary }) => {
     songMemory.nowPlaying(identity, isPlaying);
     songEq.nowPlaying(identity, isPlaying);
     smartEq.nowPlaying({
@@ -885,6 +935,10 @@ registerNowPlayingIpc({
       source: isLibrary ? 'host' : 'process',
     });
   },
+);
+registerNowPlayingIpc({
+  getMainWindow,
+  onNowPlaying: nowPlayingFeed.pageSaid,
 });
 
 /** Auto normalize on Equalizer APO, heard and decided by the core. */
@@ -965,7 +1019,13 @@ const songProgramme = createSongProgramme({
   watchEngine: () => engineHealth.read(),
 });
 
-registerSystemMediaIpc({ onMedia: songProgramme.onMedia });
+registerSystemMediaIpc({
+  onMedia: (snapshot) => {
+    nowPlayingFeed.systemSaid(snapshot);
+    return songProgramme.onMedia(snapshot);
+  },
+  getMainWindow,
+});
 
 // Every switch between the app and the player is written down at once — a
 // window closed straight after one must open in the mode it was left in — and
@@ -991,6 +1051,7 @@ registerWindowIpc({
 const stopRemoteAudioLan = registerRemoteAudioIpc({
   getMainWindow,
   userDataDir,
+  holdWindow: (isHeld) => windowUnload.hold('share-audio', isHeld),
 });
 
 // Second outputs, played straight from the FluidEQ Engine where it can and
@@ -1091,6 +1152,7 @@ const members = registerMemberServices({
   getMainWindow,
   userDataDir,
   desktopSound,
+  holdWindow: windowUnload.hold,
 });
 
 // The tools menu's animations row: the saved choice, and the one this launch
@@ -1191,6 +1253,7 @@ const lighting = registerLightingIpc({
   appVersion: appVersion(),
   getMainWindow,
   entitled: () => members.ownsAnyScene(),
+  holdWindow: (isHeld) => windowUnload.hold('lighting', isHeld),
 });
 // The helper's exit hands every Windows lamp back; Razer's session is ended
 // rather than left to lapse.
@@ -1276,7 +1339,10 @@ const libraryPlayer = createLibraryPlayer({
   sources: createSourcePublication(sourceAnalysis),
   session: createPlaybackSession(userDataDir, log),
   window: {
-    view: (view) => sendToWindow(LIBRARY_PLAYER_CHANNEL.view, view),
+    view: (view) => {
+      nowPlayingFeed.libraryViewed(view);
+      sendToWindow(LIBRARY_PLAYER_CHANNEL.view, view);
+    },
     // The bar's clock, four times a second while a song plays: a window
     // nobody can see is not woken for it, and asks again when it is back.
     clock: (clock) => {
@@ -1370,6 +1436,13 @@ const createMainWindow = createMainWindowFactory({
     // window event: Electron sends no `before-quit` for it on Windows.
     next?.on('session-end', resetActiveEngineAtSessionEnd);
     if (next) {
+      isWindowLetGo = false;
+      followWindowPage(next, next.webContents, getMainWindow, {
+        pageLeft: () => {
+          windowUnload.pageLeft();
+          nowPlayingFeed.pageLeft();
+        },
+      });
       comeBack.watchWindow(next);
       libraryIpc.watchWindow(next);
       // A paused Library song lets its host go while nobody can see the
@@ -1381,8 +1454,50 @@ const createMainWindow = createMainWindowFactory({
   setUpMemoryTraceTrigger: memoryTrace.setUpMemoryTraceTrigger,
   startMemoryProbe: memoryTrace.startMemoryProbe,
   startsHidden: () => didRestartForUnattendedUpdate || startedInTray,
+  onHiddenInTray: windowUnload.hiddenInTray,
+  isLettingGo: () => isWindowLetGo,
   syncDatabasesOnStartup,
 });
+
+/**
+ * The window back from wherever it went: shown if it is there, built again
+ * if it was let go in the tray (`windowUnload.ts`). A new window shows itself
+ * once its page has painted, as the launch's does; one build at a time, so
+ * a double click on the tray builds one window. Nothing before the launch's
+ * own window has been started: a second launch arriving while this one is
+ * still starting would otherwise build a second window beside it. And a
+ * window still closing on its way out of the tray is waited for, then built
+ * again: shown, it would vanish under the hand that opened it.
+ */
+let isLaunchWindowStarted = false;
+let windowBuilding: Promise<void> | undefined;
+let isWaitingForClose = false;
+const bringBackWindow = () => {
+  const window = mainWindow;
+  if (window && !window.isDestroyed()) {
+    if (!isWindowLetGo) {
+      revealMainWindow(getMainWindow);
+    } else if (!isWaitingForClose) {
+      isWaitingForClose = true;
+      window.once('closed', () => {
+        isWaitingForClose = false;
+        bringBackWindow();
+      });
+    }
+    return;
+  }
+  if (!isLaunchWindowStarted || windowBuilding || isAppQuitting()) {
+    return;
+  }
+  log.info('Building the window again: it was let go in the tray.');
+  windowBuilding = createMainWindow()
+    .catch((error) => {
+      log.error(`Failed to create the ${PRODUCT_NAME} window`, error);
+    })
+    .finally(() => {
+      windowBuilding = undefined;
+    });
+};
 
 // At module scope rather than inside `whenReady`: the window that never opens
 // is exactly the failure worth catching (`crashRecovery.ts`).
@@ -1409,6 +1524,13 @@ app.on('window-all-closed', () => {
   // window and this never fires. What is left is the real closes — the tray's
   // Quit, the disclaimer gate, an installer replacing the app — and for those
   // quitting is the right answer, which is why the branch is unchanged.
+  //
+  // Except a window let go in the tray (`windowUnload.ts`): that is the app
+  // putting its window down, not anybody closing it, and the tray builds it
+  // again.
+  if (isWindowLetGo) {
+    return;
+  }
   if (process.platform !== 'darwin') {
     // Said out loud for the same reason as the launch line above: this is one
     // of the ways the app can end with nothing else in the log after it.
@@ -1500,7 +1622,7 @@ app.on('will-quit', () => {
   graphicsPreferenceIpc.dispose();
 });
 
-const isTheOnlyCopy = claimTheOnlyCopy({ userDataDir, getMainWindow });
+const isTheOnlyCopy = claimTheOnlyCopy({ userDataDir, bringBackWindow });
 // `fluideq://` links, before `ready`: macOS delivers one at launch as an event.
 registerAppLinks();
 
@@ -1576,6 +1698,7 @@ const onAppReady = async () => {
     await startEngineOwnerPipe();
   }
   try {
+    isLaunchWindowStarted = true;
     await createMainWindow();
     // AFTER THE WINDOW, NOT BEFORE IT.
     //
@@ -1592,7 +1715,10 @@ const onAppReady = async () => {
     // quit is armed, which is the correct answer for every close that can
     // happen in the milliseconds before this runs.
     setUpTray({
-      getMainWindow,
+      // A window on its way out of the tray is no window to show: the tray
+      // waits for it to go and builds another (`bringBackWindow`).
+      getMainWindow: usableWindow,
+      onWindowMissing: bringBackWindow,
       // The full app, in the middle of the screen. Both halves matter: a
       // player that cannot be reached cannot be switched back from its own
       // titlebar, and a window put back in the middle as a player is still a
@@ -1666,9 +1792,7 @@ const onAppReady = async () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (mainWindow === null) {
-      createMainWindow().catch((error) => {
-        log.error(`Failed to create the ${PRODUCT_NAME} window`, error);
-      });
+      bringBackWindow();
     }
   });
 };

@@ -135,8 +135,23 @@ export interface IMainWindowDeps {
    * it works exactly as it does for any hidden window.
    */
   startsHidden: () => boolean;
+  /**
+   * The window went into the tray (true) — closed, or never shown at a
+   * launch that starts hidden — or came out of it (false). Main lets a
+   * window go from the tray when nothing holds it (`windowUnload.ts`).
+   */
+  onHiddenInTray: (isHidden: boolean) => void;
+  /**
+   * Main is letting the window go from the tray: its close goes through
+   * rather than hiding, so the page runs what it runs on its way out.
+   */
+  isLettingGo: () => boolean;
 
-  /** Started only once a window exists — see the note on the interface. */
+  /**
+   * Started only once a window exists — see the note on the interface — and
+   * only for the first: a window built again after one was let go in the
+   * tray finds them running.
+   */
   syncDatabasesOnStartup: () => Promise<void>;
   setUpAutoUpdates: () => Promise<void>;
   startMemoryProbe: () => void;
@@ -156,9 +171,16 @@ export const createMainWindowFactory = ({
   setUpMemoryTraceTrigger,
   startMemoryProbe,
   startsHidden,
+  onHiddenInTray,
+  isLettingGo,
   syncDatabasesOnStartup,
   windowModes,
 }: IMainWindowDeps) => {
+  // The launch's window, as against one built again after the last was let
+  // go in the tray: only the first may start hidden or start the launch's
+  // jobs. A window built from the tray is one somebody asked to see.
+  let hasBuiltWindow = false;
+
   const installExtensions = async () => {
     // Required lazily on purpose, and only in the debug branch that calls this:
     // the installer pulls in a chunk of dependency on import, and a packaged
@@ -178,9 +200,15 @@ export const createMainWindowFactory = ({
   };
 
   const createMainWindow = async () => {
+    const isLaunchWindow = !hasBuiltWindow;
+    hasBuiltWindow = true;
     // React DevTools are optional. Keeping them opt-in avoids invoking the
     // installer's legacy session APIs on every development launch.
-    if (isDebug && process.env.INSTALL_EXTENSIONS === 'true') {
+    if (
+      isLaunchWindow &&
+      isDebug &&
+      process.env.INSTALL_EXTENSIONS === 'true'
+    ) {
       await installExtensions();
     }
 
@@ -259,8 +287,16 @@ export const createMainWindowFactory = ({
         ? { x: restored.x, y: restored.y }
         : undefined);
 
+    // A launch into the tray paints nothing until it is opened, and its page
+    // knows it is hidden. Chromium otherwise reports a window that has never
+    // been shown as visible, and the page took it at its word: it claimed the
+    // capture as if on screen and started Chromium's video-capture helper,
+    // which outlived the page by tens of megabytes. Every other window paints
+    // before it is shown, so it appears drawn.
+    const startsInTray = isLaunchWindow && startsHidden();
     const created = new BrowserWindow({
       show: false,
+      paintWhenInitiallyHidden: !startsInTray,
       width: player?.width ?? restored.width ?? firstRun.width,
       minWidth: floor.width,
       height: player?.height ?? restored.height ?? firstRun.height,
@@ -526,7 +562,9 @@ export const createMainWindowFactory = ({
       hasRevealedMainWindow = true;
       stopWaitingForPaint?.();
 
-      if (startsHidden()) {
+      if (startsInTray) {
+        // In the tray from its first frame, as if closed into it.
+        onHiddenInTray(true);
         // Nothing at all: no show, no minimize. A minimized window would still
         // put an entry on the taskbar and flash it, which is the same
         // interruption in a smaller font.
@@ -666,12 +704,15 @@ export const createMainWindowFactory = ({
 
       // THE CLOSE BUTTON HIDES; IT DOES NOT QUIT. See tray.ts for why, and for
       // what sets the flag — every genuine quit arms it first, so this cancels
-      // only the ones that came from somebody pressing the X.
-      if (!isAppQuitting()) {
+      // only the ones that came from somebody pressing the X. A window main
+      // is letting go from the tray closes for real, as a quit's does.
+      if (!isAppQuitting() && !isLettingGo()) {
         event.preventDefault();
         created.hide();
+        onHiddenInTray(true);
       }
     });
+    created.on('show', () => onHiddenInTray(false));
 
     created.on('closed', () => {
       setMainWindow(null);
@@ -737,13 +778,6 @@ export const createMainWindowFactory = ({
     // above.
     revealMainWindow();
 
-    // Keep both public measurement databases current without blocking the first
-    // paint. The renderer receives an event when the background sync finishes
-    // and refreshes whichever source is currently selected.
-    syncDatabasesOnStartup().catch((error) => {
-      log.warn('Database startup synchronization failed', error);
-    });
-
     // Zoom moves the player's floor, and it moves the radius the page draws
     // the window's edge at — everything in the page is measured in the zoom's
     // pixels and Windows clips the corner in the system's.
@@ -752,6 +786,17 @@ export const createMainWindowFactory = ({
       sendWindowState();
     });
     menuBuilder.buildMenu();
+
+    if (!isLaunchWindow) {
+      return;
+    }
+
+    // Keep both public measurement databases current without blocking the first
+    // paint. The renderer receives an event when the background sync finishes
+    // and refreshes whichever source is currently selected.
+    syncDatabasesOnStartup().catch((error) => {
+      log.warn('Database startup synchronization failed', error);
+    });
 
     setUpAutoUpdates().catch((error) => {
       // A setup failure is still a disabled updater. Never recover by loading it

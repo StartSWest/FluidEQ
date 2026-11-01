@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { type Dispatch, type SetStateAction, useEffect } from 'react';
 import { type IKaraokeMakerProject } from '../../common/karaoke/makerProject';
+import { useWindowHold } from '../shell/useWindowHold';
 
 interface IMakerJobControlsInput {
   cancelSeparation: () => void;
@@ -99,6 +100,9 @@ const useMakerJobControls = ({
   useEffect(() => {
     onModelWorkChange(isModelWorking);
   }, [isModelWorking, onModelWorkChange]);
+  // The models run in this page, so a window closed to the tray mid-run is
+  // kept loaded until they finish; let go, it would take the run with it.
+  useWindowHold('maker', isModelWorking);
   useEffect(
     () => () => {
       onModelWorkChange(false);

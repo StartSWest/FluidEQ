@@ -41,7 +41,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * one was missing for the life of the feature, because the rule was written
  * as "ours against theirs" and asked only about the single session on the
  * bar — which with two programs playing is as likely to be the one that was
- * already going.
+ * already going. That third case is main's (`main/systemMediaRule.ts`), beside
+ * the watcher, so it holds with the window let go in the tray; this tells it
+ * the switch.
  *
  * The bar's play/pause button goes out as a media key rather than through the
  * session: the key is the one transport command that reaches every player on
@@ -66,7 +68,10 @@ import {
   isTransportPlaying,
   setTransportSource,
 } from './transportSource';
-import { isSinglePlayerEnabled } from '../utils/singlePlayer';
+import {
+  isSinglePlayerEnabled,
+  onSinglePlayerChange,
+} from '../utils/singlePlayer';
 
 /** What the bar shows for a player that has published no artist. */
 const subtitleFor = (snapshot: ISystemMediaSnapshot): string | undefined =>
@@ -135,39 +140,6 @@ export const shouldYieldToSystem = (
   somethingStarted &&
   (appOwner !== undefined || remotePlaying);
 
-/**
- * The program that just started over another that was already playing, if
- * that is what happened — the one that keeps the sound while the rest are
- * asked to stop.
- *
- * The rule had a hole the size of the machine: it was always "ours against
- * theirs", so a Netflix tab started over a playing Spotify was two programs
- * at once through one curve and nothing stopped either. Both are somebody
- * else's and neither is on this app's register, so the only thing that can
- * separate them is which one just started.
- *
- * A TRANSITION, for the reason the rest of this rule is one: Windows
- * republishes a player's state when nothing has happened, and a list read as
- * a state would stop the album somebody is listening to because the app
- * blinked.
- *
- * AND NOTHING WHEN EVERY PLAYER IS NEW TO US, which is what the first reading
- * after this app opens looks like. Two programs found already playing is not
- * somebody pressing play — nobody pressed anything, which of them is the
- * newer is not knowable from here, and silencing one of them for opening an
- * equaliser would be the app taking a decision it was never asked for.
- */
-export const startedOverOthers = (
-  known: ReadonlySet<string>,
-  playing: readonly string[],
-): string | undefined => {
-  const started = playing.filter((app) => !known.has(app));
-  if (started.length === 0 || started.length === playing.length) {
-    return undefined;
-  }
-  return started[started.length - 1];
-};
-
 export const useSystemMediaSource = (): void => {
   const playingOwner = usePlaybackOwner();
   /**
@@ -230,6 +202,18 @@ export const useSystemMediaSource = (): void => {
     [],
   );
 
+  // Main keeps the rule between two other programs (`systemMediaRule.ts`),
+  // so it is told the switch: as it stands now, before the watcher's first
+  // reading, and at every change after.
+  useEffect(() => {
+    const tellSinglePlayer = window.electron?.ipcRenderer?.tellSinglePlayer;
+    if (!tellSinglePlayer) {
+      return undefined;
+    }
+    tellSinglePlayer(isSinglePlayerEnabled());
+    return onSinglePlayerChange((isOn) => tellSinglePlayer(isOn));
+  }, []);
+
   // THE WATCHER STAYS UP WHILE THIS APP IS PLAYING, and that is the price of
   // the rule working both ways: a browser tab starting is a thing that has to
   // be noticed, and it cannot be noticed by something that was switched off
@@ -273,20 +257,12 @@ export const useSystemMediaSource = (): void => {
             }
           });
       }
-      // Who is playing out there, and who of them has just started. Both
-      // questions are asked of the whole machine rather than of the one
-      // session on the bar — see `startedOverOthers`.
+      // Whether any of the machine's programs has just started, asked of the
+      // whole machine rather than of the one session on the bar.
       const playingApps = snapshot?.playing ?? [];
       const known = knownPlayingAppsRef.current;
       const started = playingApps.some((app) => !known.has(app));
-      const winner = startedOverOthers(known, playingApps);
       knownPlayingAppsRef.current = new Set(playingApps);
-      // One player at a time between two programs that are both somebody
-      // else's. The one that just started keeps the sound and the rest are
-      // asked to stop, while the switch is on.
-      if (winner !== undefined && isSinglePlayerEnabled()) {
-        bridge.pauseOtherSystemPlayers(winner).catch(() => undefined);
-      }
       if (
         shouldYieldToSystem(
           started,

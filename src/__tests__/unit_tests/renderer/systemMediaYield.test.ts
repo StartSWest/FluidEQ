@@ -27,10 +27,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * to stop each other, with no clock involved either way.
  */
 
-import {
-  shouldYieldToSystem,
-  startedOverOthers,
-} from '../../../renderer/audio/useSystemMediaSource';
+import { shouldYieldToSystem } from '../../../renderer/audio/useSystemMediaSource';
 
 describe('yielding to the machine’s own player', () => {
   it('stops ours when any program out there starts', () => {
@@ -61,49 +58,5 @@ describe('yielding to the machine’s own player', () => {
     // breaking a setup it cannot see. The switch lives on the card where the
     // second output is chosen — see `singlePlayer`.
     expect(shouldYieldToSystem(true, 'library', false)).toBe(false);
-  });
-});
-
-describe('one of the machine’s own programs at a time', () => {
-  const playing = (...apps: string[]) => new Set(apps);
-
-  it('is the one that started over what was already playing', () => {
-    // Spotify going, a Netflix tab clicked: the tab keeps the sound and
-    // Spotify is asked to stop. Neither of them is this app's, which is why
-    // nothing stopped either of them before.
-    expect(
-      startedOverOthers(playing('Spotify.exe'), ['Spotify.exe', 'Chrome']),
-    ).toBe('Chrome');
-  });
-
-  it('is nobody while the same programs keep playing', () => {
-    // Windows republishes a player's state when nothing has happened. Read as
-    // a state rather than a change, that stops the album somebody is
-    // listening to because the app blinked.
-    expect(
-      startedOverOthers(playing('Spotify.exe', 'Chrome'), [
-        'Spotify.exe',
-        'Chrome',
-      ]),
-    ).toBeUndefined();
-  });
-
-  it('is nobody when one program starts with nothing to stop', () => {
-    expect(startedOverOthers(playing(), ['Spotify.exe'])).toBeUndefined();
-  });
-
-  it('is nobody for what was already going when this app opened', () => {
-    // The first reading of the machine: two programs playing, nobody having
-    // pressed anything, and no way to tell which is the newer. Silencing one
-    // of them for opening an equaliser is a decision nobody asked for.
-    expect(
-      startedOverOthers(playing(), ['Spotify.exe', 'Chrome']),
-    ).toBeUndefined();
-  });
-
-  it('is nobody when a program stops', () => {
-    expect(
-      startedOverOthers(playing('Spotify.exe', 'Chrome'), ['Chrome']),
-    ).toBeUndefined();
   });
 });

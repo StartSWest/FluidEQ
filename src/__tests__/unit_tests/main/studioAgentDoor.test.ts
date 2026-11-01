@@ -50,12 +50,16 @@ afterEach(async () => {
   fs.rmSync(folder, { recursive: true, force: true });
 });
 
+const onOpen = jest.fn();
+
 const open = () => {
+  onOpen.mockClear();
   door = createStudioAgentDoor({
     userDataDir: folder,
     getMainWindow: () => window as never,
     agentProject: () => ({ ok: false, reason: 'none-open' }),
     appVersion: '1',
+    onOpen,
   });
 };
 
@@ -93,6 +97,16 @@ test('opened, it listens on this computer with a key; shut, nothing listens', as
     open: false,
   });
   expect(await listening(port)).toBe(false);
+});
+
+test('it says when it opens and shuts, for the window in the tray', async () => {
+  // A look is drawn by the window's page, so a window in the tray is kept
+  // while an assistant may ask for one (`windowUnload.ts`).
+  open();
+  await invoke('studio-agent-door-set', fromWindow, true);
+  expect(onOpen).toHaveBeenLastCalledWith(true);
+  await invoke('studio-agent-door-set', fromWindow, false);
+  expect(onOpen).toHaveBeenLastCalledWith(false);
 });
 
 test('a quick on and off ends shut', async () => {

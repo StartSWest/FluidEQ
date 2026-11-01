@@ -10,6 +10,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Games page asks, FluidEQ's own window never counted, and the card drawn
  * where the game is in the window's colours.
  */
+import { EventEmitter } from 'events';
 import type { BrowserWindow, IpcMainEvent } from 'electron';
 import type { IGameProgram } from 'common/games';
 import { registerGamesIpc } from 'main/ipc/games';
@@ -57,7 +58,12 @@ const setUp = (coreWants = false) => {
     isWatching: () => false,
   };
   const send = jest.fn();
-  const webContents = { send, isDestroyed: () => false };
+  // A page's own events: a page that asked for the watcher and goes without
+  // a word stops it (`games.ts`).
+  const webContents = Object.assign(new EventEmitter(), {
+    send,
+    isDestroyed: () => false,
+  });
   const window = {
     webContents,
     isDestroyed: () => false,
@@ -80,8 +86,11 @@ const setUp = (coreWants = false) => {
     sounding: jest.fn(() => ({ gameId: 'overwatch', presetId: 'gaming' })),
   };
   const games = registerGamesIpc(deps);
-  const message = (channel: string, arg: unknown, sender = webContents) =>
-    mockMessages.get(channel)?.({ sender } as unknown as IpcMainEvent, arg);
+  const message = (
+    channel: string,
+    arg: unknown,
+    sender: unknown = webContents,
+  ) => mockMessages.get(channel)?.({ sender } as unknown as IpcMainEvent, arg);
   return {
     deps,
     games,

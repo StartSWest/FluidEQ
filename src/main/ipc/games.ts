@@ -24,6 +24,7 @@ import {
   app,
   dialog,
   ipcMain,
+  type WebContents,
 } from 'electron';
 import path from 'path';
 import log from 'electron-log';
@@ -223,11 +224,35 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): IGamesIpc => {
     },
   );
 
+  // A page that goes — reloaded, crashed, or let go in the tray
+  // (`windowUnload.ts`) — never says it stopped wanting the watcher; its own
+  // events say so instead, hooked once per page.
+  const hookedPages = new WeakSet<WebContents>();
+  const pageLeft = (page: WebContents) => {
+    if (page === wantingPage) {
+      wantingPage = undefined;
+      windowWants = false;
+      refreshWatch();
+    }
+  };
+  let wantingPage: WebContents | undefined;
   onWindowMessage(GAME_WATCH_CHANNEL, (event, arg: unknown) => {
-    if (event.sender !== deps.getMainWindow()?.webContents) {
+    const page = event.sender;
+    if (page !== deps.getMainWindow()?.webContents) {
       return;
     }
     windowWants = Array.isArray(arg) && arg[0] === true;
+    wantingPage = windowWants ? page : undefined;
+    if (!hookedPages.has(page)) {
+      hookedPages.add(page);
+      page.on('render-process-gone', () => pageLeft(page));
+      page.on('did-start-navigation', (_event, _url, inPlace, mainFrame) => {
+        if (mainFrame && !inPlace) {
+          pageLeft(page);
+        }
+      });
+      page.once('destroyed', () => pageLeft(page));
+    }
     refreshWatch();
   });
 
