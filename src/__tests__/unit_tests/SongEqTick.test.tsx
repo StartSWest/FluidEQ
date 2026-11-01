@@ -42,6 +42,7 @@ import {
   setSmartEqMode,
 } from 'renderer/utils/smartEqMode';
 import { refreshTrebleDesigns } from 'renderer/utils/useTrebleDesigns';
+import createHeardClock from 'core/systemSound/heardClock';
 
 /**
  * The tick's own toolbar, rendered the way `SmartEqRun.test.tsx` renders
@@ -179,12 +180,17 @@ const startCore = () => {
       windowListeners
         .get(SONG_EQ_CHANNEL.status)
         ?.forEach((listener) => listener(status)),
-    systemSound: {
-      listen: (listener) => {
-        listener.lost();
-        return () => undefined;
-      },
-    },
+    // A core that cannot hear the output: the window ticks the clock.
+    createClock: (options) =>
+      createHeardClock({
+        systemSound: {
+          listen: (listener) => {
+            listener.lost();
+            return () => undefined;
+          },
+        },
+        ...options,
+      }),
   });
   Object.defineProperty(window, 'electron', {
     configurable: true,

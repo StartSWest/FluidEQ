@@ -125,11 +125,8 @@ import { registerEngineHealthIpc } from './ipc/engineHealth';
 import { registerLightingIpc } from './ipc/lighting';
 import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import registerSystemSoundPort from './ipc/systemSoundPort';
-import { createSystemSound } from '../core/systemSound/systemSound';
-import { createPlatformSystemSoundSource } from '../core/platform/systemSoundSource';
-import { createDesktopSound } from '../core/liveFrames/desktopSound';
 import { createKeptFile } from '../core/files/keptFile';
-import { createApoHeadroom } from '../core/headroom/apoHeadroom';
+import createCoreClient from './coreProcess/coreHost';
 import {
   NO_KEPT_GAMES,
   parseKeptDspPresets,
@@ -653,26 +650,24 @@ registerNativeDialogsIpc();
 registerWindowsAudioIpc();
 
 /**
- * What the speakers play, heard by the core (`src/core/systemSound`) and
- * handed to the window's live displays over a port the window opens — in
- * place of the screen-share capture Chromium needed a process of its own for.
+ * What the speakers play, heard by the core in a process of its own —
+ * "FluidEQ Core", running only while something needs to hear the output
+ * (`coreProcess/coreClient.ts`). It feeds the window's live displays over a
+ * port the window opens, in place of the screen-share capture Chromium needed
+ * a process of its own for; the desktop backgrounds' frames, so a background
+ * behind a minimised FluidEQ needs nothing of the window; the song memories'
+ * clocks; and Auto normalize on Equalizer APO, whose trims main writes.
  */
-const systemSound = createSystemSound(
-  createPlatformSystemSoundSource({
-    nativeDirs: [
-      path.join(process.resourcesPath, 'native'),
-      path.join(__dirname, '../../native/.build/bin'),
-    ],
-    log,
-  }),
-);
-registerSystemSoundPort(getMainWindow, systemSound);
-/**
- * The same sound, made into the desktop backgrounds' frames by the core
- * itself, so a background behind a minimised FluidEQ needs nothing of the
- * window (`desktopSound.ts`).
- */
-const desktopSound = createDesktopSound(systemSound);
+const core = createCoreClient({
+  nativeDirs: [
+    path.join(process.resourcesPath, 'native'),
+    path.join(__dirname, '../../native/.build/bin'),
+  ],
+  applyTrim: preamp.applyHeadroomTrim,
+  log,
+});
+registerSystemSoundPort(getMainWindow, core.attachWindowPort);
+const { desktopSound } = core;
 
 /**
  * The window's lists the core acts on with no window to ask: the game
@@ -779,7 +774,7 @@ const songMemory = createSongMemory({
       mainWindow.webContents.send(SONG_MEMORY_CHANNEL.status, status);
     }
   },
-  systemSound,
+  createClock: core.createClock,
 });
 registerSongMemoryIpc({ getMainWindow, memory: songMemory });
 
@@ -829,7 +824,7 @@ const songEq = createSongEqMemory({
       moved: [],
     }),
   tellWindowStatus: (status) => sendToWindow(SONG_EQ_CHANNEL.status, status),
-  systemSound,
+  createClock: core.createClock,
 });
 registerSongEqIpc({ getMainWindow, memory: songEq });
 const smartEq = createSmartEqRunner({
@@ -893,10 +888,7 @@ registerNowPlayingIpc({
 });
 
 /** Auto normalize on Equalizer APO, heard and decided by the core. */
-const apoHeadroom = createApoHeadroom({
-  systemSound,
-  applyTrim: preamp.applyHeadroomTrim,
-});
+const { apoHeadroom } = core;
 
 /**
  * The parts of the chain an edit to which makes Auto normalize look again,
@@ -1457,6 +1449,8 @@ app.on('before-quit', (event) => {
       // engine is turned off underneath it.
       .then(() => libraryPlayer.close())
       .catch((error) => log.error('The Library player could not close', error))
+      // Its listening helper goes with it.
+      .then(() => core.close())
       .then(() =>
         Promise.all([flushPendingWrites(), memoryTrace.stopMemoryTrace()]),
       )

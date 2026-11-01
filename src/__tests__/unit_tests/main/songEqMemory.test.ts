@@ -21,6 +21,7 @@ import {
   SONG_EQ_SETTLE_MS,
 } from 'common/songEqRecorder';
 import type { ISongEqStatus } from 'common/songEqStatus';
+import createHeardClock from 'core/systemSound/heardClock';
 import type {
   ISystemSound,
   ISystemSoundListener,
@@ -107,7 +108,7 @@ const setUp = ({ canHear = true } = {}) => {
     editedDevice: () => output.deviceId,
     tellWindowLayer: (layer) => shown.push(layer),
     tellWindowStatus: (status) => statuses.push(status),
-    systemSound,
+    createClock: (options) => createHeardClock({ systemSound, ...options }),
   });
   /** Time passing, heard as sound by the core's clock. */
   const hear = (ms: number) => {
