@@ -122,11 +122,16 @@ export interface IStudioAgentDoorDeps {
     warn(message: string): void;
   };
   /**
-   * Whether the door is open. A look is drawn by the window's page, so a
-   * window in the tray is kept while an assistant may ask for one
-   * (`windowUnload.ts`).
+   * Bring the window back when it was let go in the tray, and settle once it
+   * is there or will not be. A look is drawn by the window's page; an open
+   * door used to keep the window loaded for as long as it stayed open, which
+   * for a member who leaves it open was for good (2026-11-01: the experimental
+   * build's window was never let go). Absent, an ask with no window answers
+   * that there is none.
    */
-  onOpen?: (isOpen: boolean) => void;
+  wakeWindow?: () => Promise<void>;
+  /** Whether an ask is being answered, so the window is kept until it is. */
+  holdWindow?: (isHeld: boolean) => void;
 }
 
 const INSTRUCTIONS =
@@ -138,7 +143,8 @@ export const createStudioAgentDoor = ({
   agentProject,
   appVersion,
   logger,
-  onOpen,
+  wakeWindow,
+  holdWindow,
 }: IStudioAgentDoorDeps) => {
   const file = path.join(userDataDir, DOOR_FILE);
   let settings = readSettings(file);
@@ -162,6 +168,10 @@ export const createStudioAgentDoor = ({
   >();
   /** The ready page said it can be asked to hear (`useStudioAgent.ts`). */
   let readyHears = false;
+  /** Told when a page says it is ready, for asks waiting on a woken window. */
+  const whenReady = new Set<() => void>();
+  /** Asks being answered; the window is held while there are any. */
+  let asking = 0;
 
   const save = () => {
     try {
@@ -186,44 +196,98 @@ export const createStudioAgentDoor = ({
     return window && !window.isDestroyed() ? window.webContents : undefined;
   };
 
+  const readyNow = () => {
+    const page = pageOf();
+    return page && page === readyPage && !page.isDestroyed() ? page : undefined;
+  };
+
+  /**
+   * The page to ask, waking the window for it when there is none: main
+   * builds it again (`wakeWindow`), and its page says it can answer once its
+   * listeners are in place. Undefined when no window comes, or when the page
+   * that came goes before it says so — never a wait on a page that is gone.
+   */
+  const pageToAsk = async (): Promise<Electron.WebContents | undefined> => {
+    const ready = readyNow();
+    if (ready || !wakeWindow || pageOf()) {
+      return ready;
+    }
+    await wakeWindow();
+    const page = pageOf();
+    if (!page || page.isDestroyed()) {
+      return undefined;
+    }
+    if (page !== readyPage) {
+      await new Promise<void>((resolve) => {
+        const settle = () => {
+          whenReady.delete(settle);
+          page.removeListener('destroyed', settle);
+          page.removeListener('render-process-gone', settle);
+          resolve();
+        };
+        whenReady.add(settle);
+        page.on('destroyed', settle);
+        page.on('render-process-gone', settle);
+      });
+    }
+    return readyNow();
+  };
+
+  /** `answer`, with the window held from the first wake until it is given. */
+  const whileAsking = async <T>(answer: () => Promise<T>): Promise<T> => {
+    asking += 1;
+    if (asking === 1) {
+      holdWindow?.(true);
+    }
+    try {
+      return await answer();
+    } finally {
+      asking -= 1;
+      if (asking === 0) {
+        holdWindow?.(false);
+      }
+    }
+  };
+
   const draw = (
     ask: Omit<IStudioAgentDrawAsk, 'id'>,
-  ): Promise<TStudioAgentDrawAnswer | 'no-window'> => {
-    const page = pageOf();
-    if (!page || page !== readyPage || page.isDestroyed()) {
-      return Promise.resolve('no-window');
-    }
-    nextAsk += 1;
-    const full: IStudioAgentDrawAsk = { ...ask, id: nextAsk };
-    return new Promise((resolve) => {
-      waiting.set(full.id, { ask: full, resolve });
-      page.send('studio-agent-draw', full);
+  ): Promise<TStudioAgentDrawAnswer | 'no-window'> =>
+    whileAsking(async () => {
+      const page = await pageToAsk();
+      if (!page) {
+        return 'no-window' as const;
+      }
+      nextAsk += 1;
+      const full: IStudioAgentDrawAsk = { ...ask, id: nextAsk };
+      return new Promise<TStudioAgentDrawAnswer | 'no-window'>((resolve) => {
+        waiting.set(full.id, { ask: full, resolve });
+        page.send('studio-agent-draw', full);
+      });
     });
-  };
 
   const hear = (
     song: TStudioAgentSong,
-  ): Promise<TStudioAgentHeardAnswer | 'no-window'> => {
-    const page = pageOf();
-    if (!page || page !== readyPage || !readyHears || page.isDestroyed()) {
-      return Promise.resolve('no-window');
-    }
-    nextAsk += 1;
-    const ask: IStudioAgentHearAsk = { id: nextAsk, song };
-    return new Promise((resolve) => {
-      hearing.set(ask.id, resolve);
-      page.send('studio-agent-hear', ask);
+  ): Promise<TStudioAgentHeardAnswer | 'no-window'> =>
+    whileAsking(async () => {
+      const page = await pageToAsk();
+      if (!page || !readyHears) {
+        return 'no-window' as const;
+      }
+      nextAsk += 1;
+      const ask: IStudioAgentHearAsk = { id: nextAsk, song };
+      return new Promise<TStudioAgentHeardAnswer | 'no-window'>((resolve) => {
+        hearing.set(ask.id, resolve);
+        page.send('studio-agent-hear', ask);
+      });
     });
-  };
 
   const look = async (request: ILookRequest): Promise<TLookOutcome> => {
     const project = agentProject(request.folder);
     if (!project.ok) {
       return project;
     }
-    if (readyPage && !readyPage.isDestroyed()) {
-      readyPage.send('studio-agent-show', project.id);
-    }
+    const shownOn = readyNow();
+    shownOn?.send('studio-agent-show', project.id);
     const build = await readProject(project.folder);
     if (!build.ok) {
       return { ok: false, reason: 'problems', problems: build.problems };
@@ -266,6 +330,11 @@ export const createStudioAgentDoor = ({
       // stage (`sceneDaylight.ts`), and would draw over the slider's value.
       ...(chosenDaylight === undefined ? {} : { daylight: chosenDaylight }),
     });
+    // A window woken for this look comes up on the project as well.
+    const drawnOn = readyNow();
+    if (drawnOn && drawnOn !== shownOn) {
+      drawnOn.send('studio-agent-show', project.id);
+    }
     if (answer === 'no-window') {
       return { ok: false, reason: 'no-window' };
     }
@@ -336,9 +405,7 @@ export const createStudioAgentDoor = ({
    */
   let changing: Promise<void> = Promise.resolve();
   const follow = () => {
-    changing = changing
-      .then(() => (settings.open ? listen() : shut()))
-      .finally(() => onOpen?.(listeningOn !== undefined));
+    changing = changing.then(() => (settings.open ? listen() : shut()));
     return changing;
   };
 
@@ -409,6 +476,7 @@ export const createStudioAgentDoor = ({
     const page = event.sender;
     readyPage = page;
     readyHears = hears;
+    [...whenReady].forEach((settle) => settle());
     // A reload, a crash or a closed window answers nothing it was asked
     // before; the page that loads next says it is ready again itself. Only
     // the main frame leaving counts: a frame inside the page loading is not
@@ -500,6 +568,7 @@ export const createStudioAgentDoor = ({
       ].forEach((channel) => ipcMain.removeHandler(channel));
       forgetPage?.();
       giveUpWaiting();
+      [...whenReady].forEach((settle) => settle());
       settings = { ...settings, open: false };
       await follow();
     },

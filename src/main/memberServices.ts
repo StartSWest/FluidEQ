@@ -61,6 +61,11 @@ export interface IMemberServicesDeps {
   desktopSound: IDesktopSoundClient;
   /** What of these keeps a window in the tray loaded (`windowUnload.ts`). */
   holdWindow: (reason: TMainWindowHold, isHeld: boolean) => void;
+  /**
+   * Build the window again after it was let go in the tray, settling once it
+   * is there or will not be (`bringBackWindow` in `main.ts`).
+   */
+  wakeWindow: () => Promise<void>;
 }
 
 /**
@@ -78,6 +83,7 @@ const registerMemberServices = ({
   userDataDir,
   desktopSound,
   holdWindow,
+  wakeWindow,
 }: IMemberServicesDeps) => {
   // DEVELOPMENT ONLY, and compiled to nothing in a packaged build:
   // `isPackaged` is decided by the binary's name, which nothing here can
@@ -257,7 +263,8 @@ const registerMemberServices = ({
     agentProject: memberScenesIpc.agentProject,
     appVersion: appVersion(),
     logger: log,
-    onOpen: (isOpen) => holdWindow('studio-agent', isOpen),
+    wakeWindow,
+    holdWindow: (isHeld) => holdWindow('studio-agent', isHeld),
   });
   // The Studio's chat: the member's own Claude Code, working in the open
   // project, looking and hearing as the door above does, and making

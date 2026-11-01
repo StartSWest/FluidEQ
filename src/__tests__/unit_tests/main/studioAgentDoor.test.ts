@@ -18,6 +18,7 @@ jest.mock('electron', () => ({
 }));
 
 /* eslint-disable import/first -- the electron mock must be installed first */
+import { EventEmitter } from 'events';
 import fs from 'fs';
 import net from 'net';
 import os from 'os';
@@ -50,16 +51,16 @@ afterEach(async () => {
   fs.rmSync(folder, { recursive: true, force: true });
 });
 
-const onOpen = jest.fn();
+const holdWindow = jest.fn();
 
 const open = () => {
-  onOpen.mockClear();
+  holdWindow.mockClear();
   door = createStudioAgentDoor({
     userDataDir: folder,
     getMainWindow: () => window as never,
     agentProject: () => ({ ok: false, reason: 'none-open' }),
     appVersion: '1',
-    onOpen,
+    holdWindow,
   });
 };
 
@@ -99,14 +100,101 @@ test('opened, it listens on this computer with a key; shut, nothing listens', as
   expect(await listening(port)).toBe(false);
 });
 
-test('it says when it opens and shuts, for the window in the tray', async () => {
-  // A look is drawn by the window's page, so a window in the tray is kept
-  // while an assistant may ask for one (`windowUnload.ts`).
+test('an open door keeps no window loaded in the tray', async () => {
+  // Left open, it used to hold the window for good (2026-11-01).
   open();
   await invoke('studio-agent-door-set', fromWindow, true);
-  expect(onOpen).toHaveBeenLastCalledWith(true);
-  await invoke('studio-agent-door-set', fromWindow, false);
-  expect(onOpen).toHaveBeenLastCalledWith(false);
+  expect(holdWindow).not.toHaveBeenCalled();
+});
+
+/**
+ * An ask with no window wakes it: main builds it again, its page says it can
+ * answer, and the ask is put to that page. The window is held from the wake
+ * until the answer, and never waited on once it is gone.
+ */
+describe('an ask while the window is let go in the tray', () => {
+  const fakePage = () =>
+    Object.assign(new EventEmitter(), {
+      send: jest.fn(),
+      isDestroyed: () => false,
+    });
+  let shown: { isDestroyed: () => boolean; webContents: unknown } | null;
+  /** Every promise the ask has chained so far, run to where it waits. */
+  const settled = async () => {
+    for (let hop = 0; hop < 20; hop += 1) {
+      // eslint-disable-next-line no-await-in-loop -- one microtask per hop
+      await Promise.resolve();
+    }
+  };
+
+  const openLetGo = (wakeWindow: () => Promise<void>) => {
+    holdWindow.mockClear();
+    shown = null;
+    door = createStudioAgentDoor({
+      userDataDir: folder,
+      getMainWindow: () => shown as never,
+      agentProject: () => ({ ok: false, reason: 'none-open' }),
+      appVersion: '1',
+      wakeWindow,
+      holdWindow,
+    });
+    return door;
+  };
+
+  it('wakes the window, waits for its page and asks it', async () => {
+    const woken = fakePage();
+    const wake = jest.fn(async () => {
+      shown = { isDestroyed: () => false, webContents: woken };
+    });
+    const { hear } = openLetGo(wake);
+
+    const heard = hear('now');
+    await settled();
+    expect(wake).toHaveBeenCalledTimes(1);
+    expect(holdWindow).toHaveBeenLastCalledWith(true);
+    // Nothing is asked before the page can answer.
+    expect(woken.send).not.toHaveBeenCalled();
+
+    await handlers.get('studio-agent-ready')?.(
+      { sender: woken },
+      { hears: true },
+    );
+    await settled();
+    const [[channel, ask]] = woken.send.mock.calls as [
+      [string, { id: number }],
+    ];
+    expect(channel).toBe('studio-agent-hear');
+    await handlers.get('studio-agent-heard')?.({ sender: woken }, ask.id, {
+      ok: false,
+      reason: 'no-sound',
+      otherSeconds: 0,
+    });
+    expect(await heard).toEqual({
+      ok: false,
+      reason: 'no-sound',
+      otherSeconds: 0,
+    });
+    expect(holdWindow).toHaveBeenLastCalledWith(false);
+  });
+
+  it('answers that there is no window when none comes', async () => {
+    const { hear } = openLetGo(async () => undefined);
+    expect(await hear('now')).toBe('no-window');
+    expect(holdWindow.mock.calls).toEqual([[true], [false]]);
+  });
+
+  it('stops waiting when the woken page goes before it can answer', async () => {
+    const woken = fakePage();
+    const { hear } = openLetGo(async () => {
+      shown = { isDestroyed: () => false, webContents: woken };
+    });
+    const heard = hear('now');
+    await settled();
+    woken.emit('destroyed');
+    expect(await heard).toBe('no-window');
+    expect(woken.send).not.toHaveBeenCalled();
+    expect(holdWindow).toHaveBeenLastCalledWith(false);
+  });
 });
 
 test('a quick on and off ends shut', async () => {

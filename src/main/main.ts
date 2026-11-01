@@ -1153,6 +1153,9 @@ const members = registerMemberServices({
   userDataDir,
   desktopSound,
   holdWindow: windowUnload.hold,
+  // Only a window let go in the tray is built again; one that is there, shown
+  // or hidden, is left as it is.
+  wakeWindow: () => (usableWindow() ? Promise.resolve() : bringBackWindow()),
 });
 
 // The tools menu's animations row: the saved choice, and the one this launch
@@ -1468,26 +1471,34 @@ const createMainWindow = createMainWindowFactory({
  * still starting would otherwise build a second window beside it. And a
  * window still closing on its way out of the tray is waited for, then built
  * again: shown, it would vanish under the hand that opened it.
+ *
+ * Settles once the window is there, or once it will not be (quitting, or
+ * before the launch's window), so a caller that needs its page — the
+ * Studio's agent door — can wait on it rather than on a guess.
  */
 let isLaunchWindowStarted = false;
 let windowBuilding: Promise<void> | undefined;
-let isWaitingForClose = false;
-const bringBackWindow = () => {
+let windowComingBack: Promise<void> | undefined;
+const bringBackWindow = (): Promise<void> => {
   const window = mainWindow;
   if (window && !window.isDestroyed()) {
     if (!isWindowLetGo) {
       revealMainWindow(getMainWindow);
-    } else if (!isWaitingForClose) {
-      isWaitingForClose = true;
-      window.once('closed', () => {
-        isWaitingForClose = false;
-        bringBackWindow();
-      });
+      return Promise.resolve();
     }
-    return;
+    windowComingBack ??= new Promise<void>((resolve) => {
+      window.once('closed', () => resolve());
+    }).then(() => {
+      windowComingBack = undefined;
+      return bringBackWindow();
+    });
+    return windowComingBack;
   }
-  if (!isLaunchWindowStarted || windowBuilding || isAppQuitting()) {
-    return;
+  if (windowBuilding) {
+    return windowBuilding;
+  }
+  if (!isLaunchWindowStarted || isAppQuitting()) {
+    return Promise.resolve();
   }
   log.info('Building the window again: it was let go in the tray.');
   windowBuilding = createMainWindow()
@@ -1497,6 +1508,7 @@ const bringBackWindow = () => {
     .finally(() => {
       windowBuilding = undefined;
     });
+  return windowBuilding;
 };
 
 // At module scope rather than inside `whenReady`: the window that never opens
