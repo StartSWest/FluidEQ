@@ -39,7 +39,6 @@ import {
 } from './utils/soundPane';
 import GameSound from './games/GameSound';
 import CoreCopies from './CoreCopies';
-import RackFollowsEngine from './dsp/RackFollowsEngine';
 import useMainEditorWhile from './utils/useMainEditorWhile';
 import PresetToneFeed from './dsp/PresetToneFeed';
 import './styles/App.scss';
@@ -747,11 +746,8 @@ const AppContent = () => {
               {/* The game profiles and the saved chains, handed to the app's
                 core, which keeps a copy to act on without this window. */}
               <CoreCopies />
-              {/* A preset's rack across an engine switch, which is made in a
-                dialog over whichever page is open. */}
-              <RackFollowsEngine />
-              {/* And its curve, told to the rack's Maximizer from wherever the
-                curve changes: a preset, its chip, the EQ mode menu. */}
+              {/* A preset's curve, told to the rack's Maximizer from wherever
+                the curve changes: a preset, its chip, the EQ mode menu. */}
               <PresetToneFeed />
             </MiddleContent>
           </EqTitleSlotContext.Provider>

@@ -14,6 +14,37 @@ import {
 } from './games/gameProfiles';
 
 /**
+ * Where a window from before the core kept it wrote down which preset's rack
+ * Equalizer APO held off. The core keeps that now (`main/presetPicks.ts`).
+ */
+const OLD_RACK_HOLD_KEY = 'fluideq.dsp.rackHeldForApo.v1';
+
+type TCoreCopiesBridge = Window['electron']['ipcRenderer'] | undefined;
+
+/**
+ * The hold from before, handed to the core once and forgotten here, so a
+ * switch to the FluidEQ Engine after an update still puts back the rack it
+ * held off. Read and removed before it is sent: a store that will not give
+ * it up would hand an old hold over at every launch, over the core's own.
+ */
+const handOverRackHold = (api: TCoreCopiesBridge): void => {
+  if (!api?.handRackHoldToCore) {
+    return;
+  }
+  let held: string | null;
+  try {
+    held = window.localStorage.getItem(OLD_RACK_HOLD_KEY);
+    window.localStorage.removeItem(OLD_RACK_HOLD_KEY);
+  } catch {
+    // A store that cannot be read holds nothing to hand over.
+    return;
+  }
+  if (held) {
+    api.handRackHoldToCore(held);
+  }
+};
+
+/**
  * The window's lists, handed whole to the app's core: the game profiles and
  * the Games page's switch, and the saved chains (`common/coreCopies.ts`).
  *
@@ -39,6 +70,7 @@ export default function CoreCopies() {
       sendPresets();
     };
     sendBoth();
+    handOverRackHold(api);
     window.addEventListener(GAME_PROFILES_CHANGED, sendGames);
     window.addEventListener(DSP_PRESETS_CHANGED, sendPresets);
     window.addEventListener('storage', sendBoth);

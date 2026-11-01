@@ -212,6 +212,13 @@ export interface IProfilesIpc {
     devices: IAudioDevice[],
     send: (channel: string, payload: unknown) => void,
   ) => Promise<void>;
+  /**
+   * Put the output Windows plays in the editor, as the window's own request
+   * does, and say whether it is there: a game's sound and an engine switch
+   * change the sound that plays, with a second output perhaps left in "Edit
+   * sound". Run inside a profile mutation, like every editor change.
+   */
+  openPlayingOutput: () => Promise<boolean>;
 }
 
 /**
@@ -246,6 +253,36 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
   } = deps;
   const followOutputs = createOutputFollower(deps);
   const onProfileMutation = createProfileMutationListener(deps);
+
+  /**
+   * Open `device` in the editor: its saved sound becomes the state every edit
+   * changes, under a new generation so nothing sent for the editor before it
+   * lands here. This selects an editor only — Windows' main output and every
+   * running receiver keep their streams and their own settings. Whether it is
+   * still the one open once its state is written down.
+   */
+  const openOutputEditor = async (device: IAudioDevice): Promise<boolean> => {
+    session.editingAudioDeviceId = device.isDefault ? undefined : device.id;
+    session.activeAudioDeviceId = device.id;
+    session.activeAudioDevice = device;
+    session.outputEditGeneration = (session.outputEditGeneration ?? 0) + 1;
+    applyDeviceState(
+      getStateForAudioDevice(
+        deviceProfileSettings,
+        device.id,
+        presetDirForDevice,
+      ),
+    );
+    if (!deviceProfileSettings.assignments[device.id]) {
+      createEmptyProfileForActiveDevice();
+    }
+    const generation = session.outputEditGeneration;
+    await save(state, userDataDir);
+    return (
+      session.activeAudioDeviceId === device.id &&
+      session.outputEditGeneration === generation
+    );
+  };
 
   onProfileMutation(ChannelEnum.LOAD_PRESET, 1, async (event, arg, owner) => {
     const channel = ChannelEnum.LOAD_PRESET;
@@ -755,32 +792,8 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
             handleError(event, channel, ErrorCode.INVALID_PARAMETER);
             return;
           }
-          // This selects an editor only. Windows' main output and every running
-          // receiver keep their streams and their own settings.
-          session.editingAudioDeviceId = device.isDefault
-            ? undefined
-            : device.id;
           session.playbackAudioDevice = devices.find((one) => one.isDefault);
-          session.activeAudioDeviceId = device.id;
-          session.activeAudioDevice = device;
-          session.outputEditGeneration =
-            (session.outputEditGeneration ?? 0) + 1;
-          applyDeviceState(
-            getStateForAudioDevice(
-              deviceProfileSettings,
-              device.id,
-              presetDirForDevice,
-            ),
-          );
-          if (!deviceProfileSettings.assignments[device.id]) {
-            createEmptyProfileForActiveDevice();
-          }
-          const generation = session.outputEditGeneration;
-          await save(state, userDataDir);
-          if (
-            session.activeAudioDeviceId !== device.id ||
-            session.outputEditGeneration !== generation
-          ) {
+          if (!(await openOutputEditor(device))) {
             handleError(event, channel, ErrorCode.INVALID_PARAMETER);
             return;
           }
@@ -944,6 +957,20 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
         log.error('Failed to follow the outputs Windows reported', e);
         handleError(sink, channel, ErrorCode.FAILURE);
       }
+    },
+    openPlayingOutput: async () => {
+      const playing = session.playbackAudioDevice;
+      if (!playing) {
+        return false;
+      }
+      if (session.activeAudioDeviceId === playing.id) {
+        return true;
+      }
+      const opened = await openOutputEditor(playing);
+      if (opened) {
+        notifyOutputStateChanged();
+      }
+      return opened;
     },
   };
 };

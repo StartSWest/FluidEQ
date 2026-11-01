@@ -24,6 +24,7 @@ import {
   getDefaultState,
   IFiltersMap,
   IState,
+  OUTPUT_STATE_CHANGED_EVENT,
 } from 'common/constants';
 import {
   ErrorCode,
@@ -32,6 +33,10 @@ import {
 } from 'common/errors';
 import { getEqualizerState } from 'renderer/utils/equalizerApi';
 import { readRackGate, resetRackGate } from 'renderer/dsp/rackPlacement';
+import { readDspSettings } from 'renderer/dsp/store';
+import ChannelEnum from 'common/channels';
+import { DSP_DEFAULTS } from 'common/dsp/chain';
+import { dspPresetSettings } from 'common/dsp/presets';
 import {
   FilterActionEnum,
   FluidEqProvider,
@@ -568,5 +573,89 @@ describe('the error banner', () => {
       context().setGlobalError(undefined);
     });
     expect(context().globalError).toBeUndefined();
+  });
+});
+
+/*
+ * The core puts a preset on the output being edited by itself — the rack
+ * following a switch of engine (`presetPicks.ts`) — and says so on a channel
+ * of its own. The window reads the curve again and takes the rack the core
+ * put on, though the editor is the same one; the news that another output
+ * is edited is the control, and keeps the window's own rack.
+ */
+describe('the core’s own change to the edited output’s sound', () => {
+  const device = {
+    id: 'speakers',
+    name: 'Speakers',
+    guid: '{speakers}',
+    isDefault: true,
+    isActive: true,
+  };
+  // The rack's store outlives a case: each opens an editor of its own, as a
+  // window that read another output's state would.
+  let generation = 0;
+  let editor = { device, generation };
+  const music = dspPresetSettings('music', DSP_DEFAULTS);
+  const gaming = dspPresetSettings('gaming', DSP_DEFAULTS);
+  let pushes: Map<string, (...args: unknown[]) => void>;
+
+  beforeEach(() => {
+    latest = undefined;
+    pushes = new Map();
+    generation += 1;
+    editor = { device, generation };
+    mockedGetEqualizerState.mockReset();
+    Object.defineProperty(window, 'electron', {
+      configurable: true,
+      get: () => ({
+        ipcRenderer: {
+          on: (channel: string, listener: (...args: unknown[]) => void) => {
+            pushes.set(channel, listener);
+            return () => pushes.delete(channel);
+          },
+        },
+      }),
+    });
+  });
+
+  const mountOn = async () => {
+    mockedGetEqualizerState.mockResolvedValue({
+      ...getDefaultState(),
+      outputEditor: editor,
+      dsp: music,
+    });
+    await act(async () => {
+      render(
+        <FluidEqProvider>
+          <Probe />
+        </FluidEqProvider>,
+      );
+    });
+    expect(readDspSettings()).toEqual(music);
+    mockedGetEqualizerState.mockResolvedValue({
+      ...getDefaultState(),
+      outputEditor: editor,
+      dsp: gaming,
+      voicing: { profileId: 'dsp:gaming', intensity: 1 },
+    });
+  };
+
+  it('takes the rack and the curve the core put on', async () => {
+    await mountOn();
+    await act(async () => {
+      pushes.get(ChannelEnum.OUTPUT_SOUND_CHANGED)?.();
+    });
+    expect(readDspSettings()).toEqual(gaming);
+    expect(context().voicing?.profileId).toBe('dsp:gaming');
+  });
+
+  it('keeps its own rack when told only that the output was read again', async () => {
+    await mountOn();
+    await act(async () => {
+      pushes.get(OUTPUT_STATE_CHANGED_EVENT)?.({ deviceId: 'speakers' });
+    });
+    // The curve is read again either way; the rack only on the core's word.
+    expect(context().voicing?.profileId).toBe('dsp:gaming');
+    expect(readDspSettings()).toEqual(music);
   });
 });

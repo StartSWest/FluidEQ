@@ -5,8 +5,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The window handing the core its game profiles and saved chains: taken from
- * the window's own top frame only, checked, capped, and kept whole.
+ * The window handing the core its game profiles and saved chains, and once
+ * the rack hold an older window kept: taken from the window's own top frame
+ * only, checked, capped, and kept whole.
  */
 import type { BrowserWindow, IpcMainEvent } from 'electron';
 import { CORE_COPY_CHANNEL } from 'common/coreCopyChannels';
@@ -23,11 +24,21 @@ const mainFrame = {};
 const webContents = { mainFrame };
 const window = { webContents } as unknown as BrowserWindow;
 
-const setUp = () => {
+const setUp = (held = '') => {
   (onWindowMessage as jest.Mock).mockClear();
   const games = { read: jest.fn(), keep: jest.fn(), onChange: jest.fn() };
   const dspPresets = { read: jest.fn(), keep: jest.fn(), onChange: jest.fn() };
-  registerCoreCopies({ getMainWindow: () => window, games, dspPresets });
+  const rackHold = {
+    read: jest.fn(() => held),
+    keep: jest.fn(),
+    onChange: jest.fn(),
+  };
+  registerCoreCopies({
+    getMainWindow: () => window,
+    games,
+    dspPresets,
+    rackHold,
+  });
   const listeners = new Map(
     (onWindowMessage as jest.Mock).mock.calls.map(([channel, listener]) => [
       channel,
@@ -39,7 +50,7 @@ const setUp = () => {
       { sender, senderFrame: sender.mainFrame } as unknown as IpcMainEvent,
       arg,
     );
-  return { games, dspPresets, send };
+  return { games, dspPresets, rackHold, send };
 };
 
 const profile = (id: string) => ({
@@ -92,14 +103,31 @@ describe('the window’s lists, kept by the core', () => {
     );
   });
 
+  it('keeps the rack hold an older window handed over, checked, only where the core holds none', () => {
+    const fresh = setUp();
+    fresh.send(CORE_COPY_CHANNEL.rackHold, ['gaming']);
+    expect(fresh.rackHold.keep).toHaveBeenCalledWith('gaming');
+
+    const tooLong = setUp();
+    tooLong.send(CORE_COPY_CHANNEL.rackHold, ['x'.repeat(200)]);
+    expect(tooLong.rackHold.keep).toHaveBeenCalledWith('');
+
+    // What the core holds is newer than anything a window kept before it.
+    const holding = setUp('movie');
+    holding.send(CORE_COPY_CHANNEL.rackHold, ['gaming']);
+    expect(holding.rackHold.keep).not.toHaveBeenCalled();
+  });
+
   it('takes nothing from anything but the window’s own top frame', () => {
-    const { games, dspPresets, send } = setUp();
+    const { games, dspPresets, rackHold, send } = setUp();
     const stranger = { mainFrame: {} };
     send(CORE_COPY_CHANNEL.games, [{ profiles: [profile('a')] }], stranger);
     send(CORE_COPY_CHANNEL.dspPresets, [[]], stranger);
+    send(CORE_COPY_CHANNEL.rackHold, ['gaming'], stranger);
 
     expect(games.keep).not.toHaveBeenCalled();
     expect(dspPresets.keep).not.toHaveBeenCalled();
+    expect(rackHold.keep).not.toHaveBeenCalled();
   });
 
   it('takes nothing from a frame inside the window', () => {

@@ -55,7 +55,7 @@ import ChannelEnum from '../../common/channels';
 
 import { SelectionMode, nextBandSelection } from '../../common/bandSelection';
 import { getEqualizerState } from './equalizerApi';
-import { adoptOutputDsp, setDspRackGate } from '../dsp/store';
+import { adoptEditedRack, adoptOutputDsp, setDspRackGate } from '../dsp/store';
 import { updateOutputEditor } from './outputEditor';
 import { IBandRevealBand, planBandReveal, revealBands } from './bandReveal';
 import {
@@ -507,6 +507,9 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         updateOutputEditor(state);
         setActiveDeviceId(state.outputEditor?.device.id ?? '');
         adoptOutputDsp(state);
+        if (options?.adoptRack) {
+          adoptEditedRack(state);
+        }
         setIsEnabled(state.isEnabled);
         // The rack's gate hears the saved switch here, with the news that it
         // is the saved one, in one step. The shell follows every later change
@@ -675,6 +678,20 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         // The profile card and the output picker key off this to re-read which
         // profile is attached where.
         window.dispatchEvent(new CustomEvent('fluideq-output-changed'));
+      },
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, [refreshState]);
+
+  // The core put a preset on this output by itself — the rack following a
+  // switch of engine — so the curve and the rack on screen are read again.
+  useEffect(() => {
+    const unsubscribe = window.electron.ipcRenderer.on(
+      ChannelEnum.OUTPUT_SOUND_CHANGED,
+      () => {
+        refreshState({ adoptRack: true });
       },
     );
     return () => {

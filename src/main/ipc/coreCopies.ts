@@ -9,6 +9,7 @@ import { CORE_COPY_CHANNEL } from '../../common/coreCopyChannels';
 import {
   parseKeptDspPresets,
   parseKeptGames,
+  parseRackHold,
   type IKeptGames,
 } from '../../common/coreCopies';
 import type { IUserDspPreset } from '../../common/dsp/userPresets';
@@ -24,10 +25,12 @@ const registerCoreCopies = ({
   getMainWindow,
   games,
   dspPresets,
+  rackHold,
 }: {
   getMainWindow: () => BrowserWindow | null;
   games: IKeptFile<IKeptGames>;
   dspPresets: IKeptFile<IUserDspPreset[]>;
+  rackHold: IKeptFile<string>;
 }): (() => void) => {
   const fromWindow = (event: IpcMainEvent) => {
     const window = getMainWindow();
@@ -48,6 +51,13 @@ const registerCoreCopies = ({
     onWindowMessage(CORE_COPY_CHANNEL.dspPresets, (event, arg: unknown) => {
       if (fromWindow(event)) {
         dspPresets.keep(parseKeptDspPresets(first(arg)));
+      }
+    }),
+    // The hold a window from before the core kept it wrote down, handed over
+    // once. Only where the core holds none: what the core holds is newer.
+    onWindowMessage(CORE_COPY_CHANNEL.rackHold, (event, arg: unknown) => {
+      if (fromWindow(event) && rackHold.read() === '') {
+        rackHold.keep(parseRackHold(first(arg)));
       }
     }),
   ];

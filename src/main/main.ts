@@ -116,8 +116,12 @@ import {
   NO_KEPT_GAMES,
   parseKeptDspPresets,
   parseKeptGames,
+  parseRackHold,
 } from '../common/coreCopies';
 import registerCoreCopies from './ipc/coreCopies';
+import { createPresetPicks } from './presetPicks';
+import registerPresetPicksIpc from './ipc/presetPicks';
+import { outputRackLine } from './outputDsp';
 import { registerForumIpc } from './ipc/forum';
 import { registerMotionPreferenceIpc } from './ipc/motionPreference';
 import { registerGamesIpc } from './ipc/games';
@@ -152,6 +156,7 @@ import registerDevMemoryTrace from './devMemoryTrace';
 import createAppUpdates from './appUpdates';
 import { createWindowPlacement, firstRunPlacement } from './windowPlacement';
 import createMainSession, { outputEditorOf } from './mainSession';
+import { ownsTemporaryRack } from './outputRack';
 import { getStateForAudioDevice } from './deviceProfiles';
 import { createSourceAnalysisPublisher } from './sourceAnalysis';
 import { registerSourceAnalysisIpc } from './ipc/sourceAnalysis';
@@ -420,14 +425,10 @@ registerEngineStateIpc({
     const audibleDsp = session.outputDspOverrides?.get(
       session.activeAudioDeviceId,
     );
-    const ownsTemporaryRack =
-      audibleDsp !== undefined &&
-      (state.songSoundLoan !== undefined ||
-        JSON.stringify(audibleDsp) !== JSON.stringify(state.dsp));
     return {
       ...state,
       dsp: audibleDsp ?? state.dsp,
-      ownedDsp: ownsTemporaryRack ? state.dsp : undefined,
+      ownedDsp: ownsTemporaryRack(state, audibleDsp) ? state.dsp : undefined,
       outputEditor: outputEditorOf(session),
       playbackOutput: main,
       playbackState,
@@ -442,18 +443,19 @@ registerEngineStateIpc({
   syncCustomFxFromConfig,
 });
 
-const { apoGuard } = registerEngineServices({
+const { apoGuard, writeLegacyRack } = registerEngineServices({
   userDataDir,
   state,
   session,
   deviceProfileSettings,
   presetDirForDevice: profiles.presetDirForDevice,
   reflush: reflushCurrentState,
-  onEngineSwitched: () => {
+  onEngineSwitched: (from) => {
     Promise.all([
       secondOutputs.reroute(),
       songProgramme.reflush(),
       sourceAnalysis.reflush(),
+      presetPicks.followEngineSwitch(from),
     ]).catch((error: unknown) =>
       log.error('Could not move output processing to the new engine', error),
     );
@@ -655,11 +657,49 @@ const keptDspPresets = createKeptFile({
   empty: [],
   log,
 });
+/** Which preset's rack is off only because Equalizer APO cannot run it. */
+const rackHold = createKeptFile({
+  filePath: path.join(userDataDir, 'rack-held-for-apo.json'),
+  parse: parseRackHold,
+  empty: '',
+  log,
+});
 registerCoreCopies({
   getMainWindow,
   games: keptGames,
   dspPresets: keptDspPresets,
+  rackHold,
 });
+
+/** Presets put on by the core: every picker's, and at a switch of engine. */
+const presetPicks = createPresetPicks({
+  state,
+  session,
+  savedChains: keptDspPresets.read,
+  rackHold,
+  applyingLayer: profiles.applyingLayer,
+  update: (sink, label) => handleUpdate(sink, label, false, true),
+  runProfileMutation: profiles.runProfileMutation,
+  openPlayingOutput: profilesIpc.openPlayingOutput,
+  writeLegacyRack: () =>
+    writeLegacyRack((version) =>
+      outputRackLine({
+        state,
+        audibleDsp:
+          session.outputDspOverrides?.get(session.activeAudioDeviceId) ??
+          state.dsp,
+        rackHere:
+          session.systemRackEnabled?.(session.activeAudioDeviceId) ?? true,
+        version,
+      }),
+    ),
+  tellWindow: () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(ChannelEnum.OUTPUT_SOUND_CHANGED);
+    }
+  },
+});
+registerPresetPicksIpc(presetPicks);
 
 /** Auto normalize on Equalizer APO, heard and decided by the core. */
 const apoHeadroom = createApoHeadroom({

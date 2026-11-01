@@ -282,6 +282,24 @@ export const adoptOutputDsp = (state: IEqualizerSnapshot): void => {
 };
 
 /**
+ * Take the rack the core put on the output being edited — a preset it
+ * picked — though the editor is the same one, which `adoptOutputDsp` alone
+ * leaves as it holds it. Never sent back: the core has written it already.
+ * A song's lent rack stays lent, with the listener's own kept beside it.
+ */
+export const adoptEditedRack = (state: IEqualizerSnapshot): void => {
+  const target = state.outputEditor;
+  if (!target) {
+    return;
+  }
+  ownRack = state.ownedDsp ? clampDspSettings(state.ownedDsp) : undefined;
+  settings = clampDspSettings(state.dsp ?? DSP_DEFAULTS);
+  outputRacks.set(target.device.id, settings);
+  loaded = true;
+  emit();
+};
+
+/**
  * The curve the Preset layer plays after the rack (`presetToneStore.ts`),
  * and the engine's copy of the rack sent again with it. The player's copy
  * follows through `usePresetTone`.

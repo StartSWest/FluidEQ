@@ -1,18 +1,14 @@
 /* FluidEQ — GPL-3.0-or-later */
 
 import { useEffect, useMemo, useState } from 'react';
+import { IDspSettings, IEqSettings } from '../../common/dsp/chain';
+import { DSP_PRESETS, IDspPreset } from '../../common/dsp/presets';
 import {
-  IDspSettings,
-  IEqSettings,
-  clampDspSettings,
-} from '../../common/dsp/chain';
-import {
-  DSP_PRESETS,
-  IDspPreset,
-  chainRoom,
-  dspPresetCurve,
-  dspPresetSettings,
-} from '../../common/dsp/presets';
+  NONE_CHAIN_ID,
+  activeDspPresetId,
+  resolveDspPreset as resolveSharedPreset,
+  resolveDspPresetCurve as resolveSharedCurve,
+} from '../../common/dsp/presetPick';
 import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
 import type { IVoicingSettings } from '../../common/constants';
 import type { Translate } from '../../common/i18n';
@@ -63,14 +59,7 @@ export const inListOrder = <T extends { id: string }>(
   ...list.filter((one) => !QUICK_DSP_PRESETS.includes(one.id)),
 ];
 
-/**
- * The None chain: every stage off, the Normalizer included, and no curve
- * (`presetRecipes.ts`). It stands first in both pickers, above the starred
- * ones, and takes no star, being the absence of a choice (Ivan, 2026-09-22:
- * "none is on top of all even fav"). Not `none`, which is the pick that takes
- * a preset away — and which lands here, with the rack off.
- */
-export const NONE_CHAIN_ID = 'empty';
+export { NONE_CHAIN_ID, activeDspPresetId };
 
 /** What the rack's Reset puts on: the chain the picker calls Default. */
 export const DEFAULT_CHAIN_ID = 'balanced';
@@ -152,57 +141,12 @@ export const dspPresetRowHint = (
 export const resolveDspPreset = (
   id: string,
   current: IDspSettings,
-): IDspSettings | undefined => {
-  if (id === 'none') {
-    // Taking a preset away puts None on the rack, and the rack off. The DSP
-    // page's picker then says None rather than naming the chain that was
-    // taken away, and switching the rack back on plays nothing rather than
-    // bringing that chain back unasked (Ivan, 2026-09-22: "when I select
-    // none in main eq it set none in DSP too"). Off, not on: an empty rack
-    // still holds the sound back by its limiters' look-ahead.
-    const none = dspPresetSettings(NONE_CHAIN_ID, current);
-    return none && { ...none, enabled: false, gameMode: false };
-  }
-  const saved = findUserDspPreset(id);
-  return saved
-    ? clampDspSettings({
-        ...saved.settings,
-        enabled: true,
-        presetId: saved.id,
-        gameMode: saved.settings.gameMode,
-        crossfade: current.crossfade,
-        surround: current.surround,
-        eq: { ...saved.settings.eq, treble: current.eq.treble },
-        // Its oversampling as it was saved: the listener chose it.
-        room: chainRoom(current.room, saved.settings.room),
-      })
-    : dspPresetSettings(id, current);
-};
-
-/**
- * The preset on now, or undefined for none.
- *
- * The rack names it while it runs. While it is off — which under Equalizer
- * APO is always, APO having no rack — the Preset layer does: its curve is
- * that preset's sound on either engine. Asked by the equaliser's picker and
- * by a game's sound, which puts back what it finds here when the game ends;
- * reading the rack alone, it put back nothing under APO and took the curve
- * away with it.
- */
-export const activeDspPresetId = (
-  settings: IDspSettings,
-  voicing: IVoicingSettings | undefined,
-): string | undefined =>
-  settings.enabled ? settings.presetId : dspVoicingPresetId(voicing);
+): IDspSettings | undefined =>
+  resolveSharedPreset(id, current, readUserDspPresets());
 
 /** The tone a pick plays in the main EQ, or undefined for none. */
-export const resolveDspPresetCurve = (id: string): IEqSettings | undefined => {
-  if (id === 'none') {
-    return undefined;
-  }
-  const saved = findUserDspPreset(id);
-  return saved ? saved.curve : dspPresetCurve(id);
-};
+export const resolveDspPresetCurve = (id: string): IEqSettings | undefined =>
+  resolveSharedCurve(id, readUserDspPresets());
 
 /**
  * The preset a Preset layer came from, by the name its picker gives it, or

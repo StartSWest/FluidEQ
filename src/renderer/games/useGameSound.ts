@@ -36,11 +36,7 @@ import {
   gameSoundEndStep,
   gameSoundStep,
 } from '../../common/games';
-import {
-  applyDspSettings,
-  persistDspSettings,
-  useDspSettings,
-} from '../dsp/store';
+import { useDspSettings } from '../dsp/store';
 import { activeDspPresetId } from '../dsp/dspPresetCatalog';
 import { useDspPresetSelection } from '../dsp/useDspPresetSelection';
 import { ownPresetId, yieldSongSound } from '../audio/songSoundSession';
@@ -215,12 +211,7 @@ export const useGameSound = ({
   // Under Equalizer APO a picked preset's rack is off and its curve is what
   // plays, so the rack alone would name no preset there.
   const presetNow = activeDspPresetId(settings, voicing) ?? '';
-  const { apply } = useDspPresetSelection(
-    settings,
-    applyDspSettings,
-    persistDspSettings,
-    true,
-  );
+  const { apply } = useDspPresetSelection(true);
   // A game's sound is the machine's, so it goes on the output that plays.
   // With a second output left in "Edit sound" the editor goes back to the
   // main output first, and what the game did is taken once the window has

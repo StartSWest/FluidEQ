@@ -109,7 +109,7 @@ export interface IEngineServicesDeps {
   /** Rewrites the current state into whichever engine is chosen now. */
   reflush: () => Promise<TReflushResult>;
   /** A switch of engine finished — `IAudioEngineIpcDeps.onSwitched`. */
-  onEngineSwitched: () => void;
+  onEngineSwitched: (from: TAudioEngine | null) => void;
 }
 
 /**
@@ -180,7 +180,7 @@ export const registerEngineServices = ({
     getConfigPath: () => getConfigPath('fluid'),
   });
 
-  registerAudioEngineIpc({
+  const engineIpc = registerAudioEngineIpc({
     userDataDir,
     getEngine: () => session.audioEngine,
     setEngine: (engine) => {
@@ -273,5 +273,5 @@ export const registerEngineServices = ({
     onSwitched: onEngineSwitched,
   });
 
-  return { apoGuard };
+  return { apoGuard, writeLegacyRack: engineIpc.writeLegacyRack };
 };

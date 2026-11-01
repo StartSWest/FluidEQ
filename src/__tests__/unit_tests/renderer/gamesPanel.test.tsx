@@ -30,6 +30,7 @@ import {
   useTransportSources,
 } from 'renderer/audio/transportSource';
 import { applyDspSettings, readDspSettings } from 'renderer/dsp/store';
+import { pickDspPreset as decidePick } from 'common/dsp/presetPick';
 import { activateAudioDeviceProfile } from 'renderer/utils/equalizerApi';
 import { readOutputEditor } from 'renderer/utils/outputEditor';
 import {
@@ -47,9 +48,12 @@ jest.mock('renderer/dsp/systemChain', () => ({
 jest.mock('renderer/utils/useAudioEngineStatus', () => ({
   useKnownAudioEngineStatus: () => ({ engine: 'fluid' }),
 }));
+/** The core's preset pick (`main/presetPicks.ts`), stood in for below. */
+const mockCorePick = jest.fn();
 jest.mock('renderer/utils/equalizerApi', () => ({
   setVoicing: jest.fn(),
   activateAudioDeviceProfile: jest.fn(),
+  pickDspPreset: (...args: unknown[]) => mockCorePick(...args),
 }));
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('__tests__/utils/fluidEqHookMocks').eqHooksFrom(() => ({
@@ -166,6 +170,21 @@ beforeEach(() => {
     ipcRenderer: bridge,
   };
   applyDspSettings({ ...DSP_DEFAULTS, enabled: true, presetId: 'music' });
+  // By the core's own rules, put straight on the window's rack, as the
+  // window reading the core's answer back would.
+  mockCorePick.mockImplementation(async (id: string, quick: boolean) => {
+    const picked = decidePick({
+      id,
+      rack: readDspSettings(),
+      voicing: undefined,
+      saved: [],
+      engine: 'fluid',
+      quick,
+    });
+    if (picked) {
+      applyDspSettings(picked.rack);
+    }
+  });
 });
 
 describe('the Games page', () => {

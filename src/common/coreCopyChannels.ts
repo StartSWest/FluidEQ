@@ -12,4 +12,5 @@ SPDX-License-Identifier: GPL-3.0-or-later
 export const CORE_COPY_CHANNEL = {
   games: 'core-copy-games',
   dspPresets: 'core-copy-dsp-presets',
+  rackHold: 'core-copy-rack-hold',
 } as const;

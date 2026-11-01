@@ -149,11 +149,7 @@ const DspChainPresetBar = ({
   ];
   const ordered = entries.map((entry) => entry.id);
 
-  const { apply: selectPreset, selecting } = useDspPresetSelection(
-    settings,
-    onChange,
-    onCommit,
-  );
+  const { apply: selectPreset, selecting } = useDspPresetSelection();
   const applyPreset = (id: string) => {
     setNotice('');
     selectPreset(id);

@@ -317,6 +317,8 @@ const keepGamesForCore = (kept: {
 }): void => ipcRenderer.send(CORE_COPY_CHANNEL.games, [kept]);
 const keepDspPresetsForCore = (presets: readonly unknown[]): void =>
   ipcRenderer.send(CORE_COPY_CHANNEL.dspPresets, [presets]);
+const handRackHoldToCore = (presetId: string): void =>
+  ipcRenderer.send(CORE_COPY_CHANNEL.rackHold, [presetId]);
 
 export const dspHostBridge = {
   readEnginePreamp: (
@@ -350,6 +352,7 @@ export const dspHostBridge = {
   chooseGameProgram,
   keepGamesForCore,
   keepDspPresetsForCore,
+  handRackHoldToCore,
   showGameToast,
   setGamePlaying,
   holdGameProcess,

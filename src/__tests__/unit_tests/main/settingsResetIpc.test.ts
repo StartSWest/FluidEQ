@@ -196,6 +196,9 @@ const KEPT_FILES = [
   // The engine and the outputs.
   'audio-engine.json',
   'output-formats.json',
+  // Which preset's rack Equalizer APO holds off for the FluidEQ Engine, as
+  // the window kept it before the core did: the sound, not a setting.
+  'rack-held-for-apo.json',
   'remote-audio-lan.json',
   'remote-audio-links.json',
   // Share Audio's Fluid switch: how the linked computers' sound plays, a

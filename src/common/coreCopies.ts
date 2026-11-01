@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { isPresetId } from './dsp/presetPick';
 import { parseUserDspPresets, type IUserDspPreset } from './dsp/userPresets';
 import { parseGameProfiles, type IGameProfile } from './games';
 
@@ -39,3 +40,11 @@ export const parseKeptGames = (raw: unknown): IKeptGames => {
 
 export const parseKeptDspPresets = (raw: unknown): IUserDspPreset[] =>
   parseUserDspPresets(raw).slice(0, MAX_COPIED_ENTRIES);
+
+/**
+ * Which preset's rack is off only because Equalizer APO cannot run it, or ''
+ * for none (`pickDspPreset`). The core keeps it; a window from before it did
+ * hands over the one it kept, once.
+ */
+export const parseRackHold = (raw: unknown): string =>
+  isPresetId(raw) ? raw : '';

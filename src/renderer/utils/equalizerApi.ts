@@ -59,6 +59,7 @@ export {
   getMainPreAmp,
   getType,
   lookupSongEq,
+  pickDspPreset,
   removeEqualizerSlider,
   resetEqMode,
   setDriver,

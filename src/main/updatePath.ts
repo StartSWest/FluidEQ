@@ -80,7 +80,7 @@ export const handleError = (
  * `errorCode` is the whole distinction — the same test `ipcRequest.ts` makes
  * on the window's side of the same wire.
  */
-const isErrorReply = (payload: unknown): payload is TError =>
+export const isErrorReply = (payload: unknown): payload is TError =>
   typeof payload === 'object' &&
   payload !== null &&
   'errorCode' in payload &&

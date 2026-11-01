@@ -7,11 +7,7 @@ import {
   dspPresetRowHint,
   useDspPresetCatalog,
 } from '../dsp/dspPresetCatalog';
-import {
-  applyDspSettings,
-  persistDspSettings,
-  useDspSettings,
-} from '../dsp/store';
+import { useDspSettings } from '../dsp/store';
 import { useDspPresetSelection } from '../dsp/useDspPresetSelection';
 import { toggleFavouriteDspPreset } from '../dsp/favouriteDspPresets';
 import GenreNotesPreview from '../dsp/GenreNotesPreview';
@@ -47,12 +43,7 @@ const VoicingQuickPick = memo(() => {
   const chosen = activeDspPresetId(settings, voicing);
   const activeId =
     chosen === undefined || chosen === NONE_CHAIN_ID ? 'none' : chosen;
-  const { apply, selecting } = useDspPresetSelection(
-    settings,
-    applyDspSettings,
-    persistDspSettings,
-    true,
-  );
+  const { apply, selecting } = useDspPresetSelection(true);
   const active = catalog.find((preset) => preset.id === activeId);
   const favoritesIds = new Set(favorites.map((preset) => preset.id));
   const entries = [

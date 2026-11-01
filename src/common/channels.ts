@@ -128,6 +128,19 @@ enum ChannelEnum {
   CLEAR_GAINS = 'clearGains',
   SET_FIXED_BAND = 'setFixedBand',
   SET_VOICING = 'setVoicing',
+  /**
+   * Put a preset on the output being edited — its curve in the main EQ, its
+   * rack in the rack — decided by the core as for a game or an engine switch
+   * (`common/dsp/presetPick.ts`, `main/presetPicks.ts`).
+   */
+  PICK_DSP_PRESET = 'pickDspPreset',
+  /**
+   * The core changed the edited output's sound by itself — a game's preset,
+   * a rack following an engine switch — and the window reads it again.
+   * Not `output-state-changed`: the output is the same one, and that news
+   * makes the window ask the engine helper about it again.
+   */
+  OUTPUT_SOUND_CHANGED = 'outputSoundChanged',
   SET_DRIVER = 'setDriver',
   SET_HEADPHONE = 'setHeadphone',
   // The measured correction, stored as its own layer. An empty payload removes

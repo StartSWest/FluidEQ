@@ -17,14 +17,23 @@ import { DSP_DEFAULTS } from 'common/dsp/chain';
 
 const keepGamesForCore = jest.fn();
 const keepDspPresetsForCore = jest.fn();
+const handRackHoldToCore = jest.fn();
+const OLD_RACK_HOLD_KEY = 'fluideq.dsp.rackHeldForApo.v1';
 
 beforeEach(() => {
   window.localStorage.clear();
   keepGamesForCore.mockClear();
   keepDspPresetsForCore.mockClear();
+  handRackHoldToCore.mockClear();
   Object.defineProperty(window, 'electron', {
     configurable: true,
-    value: { ipcRenderer: { keepGamesForCore, keepDspPresetsForCore } },
+    value: {
+      ipcRenderer: {
+        keepGamesForCore,
+        keepDspPresetsForCore,
+        handRackHoldToCore,
+      },
+    },
   });
 });
 
@@ -69,5 +78,38 @@ describe('the window’s lists, handed to the core', () => {
     expect(keepDspPresetsForCore).toHaveBeenLastCalledWith([
       expect.objectContaining({ name: 'Night' }),
     ]);
+  });
+});
+
+/*
+ * Which preset's rack Equalizer APO held off was the window's to keep, and is
+ * the core's now (`main/presetPicks.ts`): an update hands the old one over
+ * once, so a switch to the FluidEQ Engine still puts that rack back.
+ */
+describe('the rack hold an older window kept', () => {
+  it('is handed to the core once and forgotten here', () => {
+    window.localStorage.setItem(OLD_RACK_HOLD_KEY, 'gaming');
+    const { unmount } = render(<CoreCopies />);
+    expect(handRackHoldToCore).toHaveBeenCalledWith('gaming');
+    expect(window.localStorage.getItem(OLD_RACK_HOLD_KEY)).toBeNull();
+
+    unmount();
+    render(<CoreCopies />);
+    expect(handRackHoldToCore).toHaveBeenCalledTimes(1);
+  });
+
+  it('hands over nothing where nothing was held', () => {
+    render(<CoreCopies />);
+    expect(handRackHoldToCore).not.toHaveBeenCalled();
+  });
+
+  it('stays where it is while there is no core to take it', () => {
+    window.localStorage.setItem(OLD_RACK_HOLD_KEY, 'gaming');
+    Object.defineProperty(window, 'electron', {
+      configurable: true,
+      value: { ipcRenderer: { keepGamesForCore, keepDspPresetsForCore } },
+    });
+    render(<CoreCopies />);
+    expect(window.localStorage.getItem(OLD_RACK_HOLD_KEY)).toBe('gaming');
   });
 });

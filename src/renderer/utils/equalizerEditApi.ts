@@ -235,6 +235,24 @@ export const setVoicing = (
 };
 
 /**
+ * Put a preset on — its curve and its rack — decided and written by the
+ * core (`main/presetPicks.ts`). `quick` is a pick for the whole machine;
+ * `deviceId` the output the picker shows, refused once another is edited.
+ */
+export const pickDspPreset = (
+  presetId: string,
+  quick: boolean,
+  deviceId: string,
+): Promise<void> => {
+  const channel = ChannelEnum.PICK_DSP_PRESET;
+  return sendRequest(
+    channel,
+    [presetId, quick, deviceId],
+    setterResponseHandler,
+  );
+};
+
+/**
  * Select the driver-family correction layer.
  * @param {string} profileId - profile to apply, or '' for none
  * @param {number} intensity - 0..1 scale over the profile's gains
