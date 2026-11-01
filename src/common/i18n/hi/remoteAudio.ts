@@ -62,6 +62,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.linked.paused': 'रुका हुआ',
   'remoteAudio.linked.lossless': 'लॉसलेस',
   'remoteAudio.linked.unlink': 'लिंक हटाएँ',
+  'remoteAudio.linked.reconnect': 'फिर से जोड़ें',
   'remoteAudio.linked.pause': 'रोकें',
   'remoteAudio.linked.resume': 'फिर शुरू करें',
   'remoteAudio.lane.inPaused':
@@ -88,6 +89,8 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.receiving': 'मिल रही है',
   'remoteAudio.lane.paused': 'रुका हुआ',
   'remoteAudio.lane.inQuiet': '{name} पर कुछ नहीं चल रहा',
+  'remoteAudio.lane.reconnecting': 'फिर से जोड़ रहे हैं…',
+  'remoteAudio.lane.unreachable': '{name} इस नेटवर्क पर नहीं मिला',
   'remoteAudio.lane.inOff': 'बंद: {name} की आवाज़ इस कंप्यूटर पर नहीं चलती।',
   'remoteAudio.lane.inNotSent': '{name} पर “मेरी आवाज़ भेजें” बंद है।',
   'remoteAudio.lane.inOld':

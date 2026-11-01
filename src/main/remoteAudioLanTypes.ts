@@ -18,6 +18,9 @@ export interface IRemoteAudioLan {
   join(code: unknown, fresh: boolean): ILanSavedJoin;
   /** Ends the link with one computer, and only that one. */
   unlink(target: { peerId?: string; computerId?: string }): void;
+  /** Links one computer again by hand, with its saved code: true when it is
+   * linked again, false when it could not be reached. */
+  reconnect(target: { peerId?: string; computerId?: string }): Promise<boolean>;
   /** The network is back: every computer still away is looked for now. */
   retry(): void;
   sendSignal(message: unknown): void;

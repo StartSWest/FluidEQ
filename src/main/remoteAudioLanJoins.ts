@@ -81,6 +81,16 @@ export interface ILanJoinsDeps {
 
 export const createLanJoins = (deps: ILanJoinsDeps) => {
   const joins = new Map<string, IJoin>();
+  /** Who asked by hand to reconnect a join, and is told how the round that
+   * follows ends: linked, or every address it tried gone without an answer. */
+  const waiters = new Map<IJoin, ((linked: boolean) => void)[]>();
+  const settle = (join: IJoin, linked: boolean) => {
+    const waiting = waiters.get(join);
+    if (waiting) {
+      waiters.delete(join);
+      waiting.forEach((resolve) => resolve(linked));
+    }
+  };
 
   const cancelAttempts = (join: IJoin) => {
     join.attempts.forEach((cancel) => cancel());
@@ -96,6 +106,7 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
     }
     joins.delete(computerId);
     cancelAttempts(join);
+    settle(join, false);
     if (join.socket) {
       closeWebSocketSafely(join.socket);
     }
@@ -104,6 +115,8 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
   const sleep = (join: IJoin) => {
     join.state = 'asleep';
     cancelAttempts(join);
+    // Asleep is linked: the other computer's connection is the one kept.
+    settle(join, true);
     const { socket } = join;
     join.socket = undefined;
     if (socket) {
@@ -164,6 +177,7 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
         join.lastAddress = address;
         join.port = port;
         join.fresh = false;
+        settle(join, true);
         socket.once('close', (code) => {
           if (joins.get(join.computerId) === join && join.socket === socket) {
             log.info('Share Audio connection closed; keeping pairing', {
@@ -240,6 +254,12 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
         ) {
           tryAddress(join, address, port);
         }
+        if (join.attempts.size === 0) {
+          // Every address of this round has answered no. A later
+          // announcement still starts another attempt; a reconnect asked for
+          // by hand is told now that this one found nobody.
+          settle(join, false);
+        }
       });
   };
 
@@ -266,6 +286,9 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
     join.state = 'looking';
     join.peerId = crypto.randomUUID();
     probe(join);
+    if (join.attempts.size === 0) {
+      settle(join, false);
+    }
   };
 
   return {
@@ -345,6 +368,26 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
     },
     leave,
     has: (computerId: string) => joins.has(computerId),
+    /**
+     * Reconnect by hand, with the code saved for that computer: true once it
+     * is linked again, false when no address answered. A join still looking
+     * starts a new round now; a linked one starts it when the caller closes
+     * its connection (`remoteAudioLan`'s `reconnect`), which is why the
+     * answer is waited for from here and not from the round.
+     */
+    reconnect(computerId: string): Promise<boolean> {
+      const join = joins.get(computerId);
+      if (!join) {
+        return Promise.resolve(false);
+      }
+      const outcome = new Promise<boolean>((resolve) => {
+        waiters.set(join, [...(waiters.get(join) ?? []), resolve]);
+      });
+      if (join.state === 'looking') {
+        look(join);
+      }
+      return outcome;
+    },
     /** The peer id of the open connection to that computer, if any. */
     peerOf(computerId: string): string | undefined {
       const join = joins.get(computerId);
