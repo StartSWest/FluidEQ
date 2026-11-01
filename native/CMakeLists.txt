@@ -122,6 +122,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/deesser_process.cpp
   dsp-core/src/deesser_decide.cpp
   dsp-core/src/footsteps.cpp
+  dsp-core/src/footsteps_decide.cpp
   dsp-core/src/meters.cpp
   dsp-core/src/meters_deesser.cpp
   dsp-core/src/meters_footsteps.cpp
@@ -206,6 +207,12 @@ add_test(NAME deesser-modes COMMAND fluideq-deesser-modes-test)
 add_executable(fluideq-footsteps-test dsp-core/tests/footsteps_test.cpp)
 target_link_libraries(fluideq-footsteps-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME footsteps COMMAND fluideq-footsteps-test)
+
+# Footsteps in mixes the way games play them: loud, paused, heavy in the bass
+# — where judging against fixed levels lifted a match's steps 0.4 dB.
+add_executable(fluideq-footsteps-mix-test dsp-core/tests/footsteps_mix_test.cpp)
+target_link_libraries(fluideq-footsteps-mix-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME footsteps-mix COMMAND fluideq-footsteps-mix-test)
 
 # The three-band split every multiband stage shares, held to the response of
 # the bands put back together rather than to any one of them.

@@ -11,25 +11,33 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * where the gunfire is bearable and the steps around the corner go faint.
  * A tone curve cannot help: it lifts the step and the shot by the same
  * amount, and the step stays exactly as far under. This lifts a sound only
- * when four things are all true of it, each measured in its own band:
+ * when four things are all true of it, each measured in its own band and
+ * against the programme — how loud the mix has been over the last few
+ * seconds — never against a fixed level, because a game, or a video of one,
+ * sits wherever its mixer and its volume put it:
  *
- * - **It is quiet.** The lift is an upward ratio of 2.5 under a band level
- *   of -24 dB, never past it, judged on the fastest reading there is — so a
- *   shot landing while a step is lifted does not inherit the lift for the
- *   length of its release.
- * - **It is arriving.** The level against a follower 30 ms behind it: a
- *   step's front stands out of that follower and its echo falls below it,
- *   so the step comes up and its reverb does not. Fast compression that lifts
- *   the reverb with the sound is what makes a direction go vague in a room
- *   (Hassager et al., JASA 2017: compression driven by the direct sound keeps
- *   the spatial image; compression that lifts reverberant energy blurs it).
+ * - **It is quiet.** The lift is an upward ratio of 2.5 under the
+ *   programme's level (never under -24 dB), never past it, judged on the
+ *   fastest reading there is — so a shot landing while a step is lifted does
+ *   not inherit the lift for the length of its release.
+ * - **It is arriving.** The level against a follower 30 ms behind it and
+ *   against the bed: a step's front stands out of both and its echo falls
+ *   below them, so the step comes up and its reverb does not. The front is
+ *   held for a step's length (200 ms) while the band still stands over its
+ *   bed. Fast compression that lifts the reverb with the sound is what makes
+ *   a direction go vague in a room (Hassager et al., JASA 2017: compression
+ *   driven by the direct sound keeps the spatial image; compression that
+ *   lifts reverberant energy blurs it).
  * - **It stands out of the bed.** Rain, wind and music are learnt as a floor
- *   that rises slowly and falls quickly, and only what stands 3 to 8 dB above
+ *   that rises slowly and falls quickly, and only what stands 2 to 6 dB above
  *   it is lifted. A 2 ms raindrop reaches a third of its height through the
- *   5 ms attack and is not taken for a step.
- * - **Nothing around it is loud.** While the whole signal is above -22 dBFS
- *   nothing is lifted: an explosion's own quiet treble would come up with it,
- *   and a cue under it is masked anyway.
+ *   5 ms attack and is not taken for a step. The band is heard through its
+ *   filter twice for this, so a game's bass does not fill the steps band's
+ *   bed; silence teaches the bed nothing.
+ * - **Nothing around it is loud.** While the whole signal stands 3 to 9 dB
+ *   over the programme and over -30 to -20 dBFS — a shot, a blast — nothing
+ *   is lifted: an explosion's own quiet treble would come up with it, and a
+ *   cue under it is masked anyway.
  *
  * Every channel but the LFE shares one decision and one gain per band, so a
  * sound keeps its place: compression that differs between the ears moves a
@@ -43,9 +51,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * up to 6 dB, wide enough to scale the ear's notches rather than fill them).
  *
  * Calm is a first-order low shelf at 250 Hz, the Regalia-Mitra form, that
- * comes down under a loud rumble — up to 9 dB, two thirds of whatever the
- * band stands over -16 dB — and lets go with a 110 ms release, so the step
- * after an explosion is heard at its own level.
+ * comes down under a rumble that jumps out of the mix — up to 9 dB, two
+ * thirds of whatever the band stands over the programme plus 3 dB — and lets
+ * go with a 110 ms release, so the step after an explosion is heard at its
+ * own level, and a game that is bass all along keeps its bass.
  *
  * There is no look-ahead and no delay: the stage fits game mode as it is.
  */

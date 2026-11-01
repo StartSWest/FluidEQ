@@ -520,11 +520,26 @@ Everything worth knowing about them is available through commands:
   before Bass Punch and the Room, one gain per band from a detector linked
   across every channel but the LFE: a gain per side moves and splits the
   image, and the LFE is never touched. A band comes up only while a sound
-  stands over its own 30 ms past AND over the bed, only while the whole
-  signal is quiet, and never past -24 dB on the very sample — a shot landing
-  in a step's lift loses it there, not at the next decision. Lifting a tail
-  blurs where it came from, which is the whole of what a step is worth. It
-  has no latency; Calm is a 250 Hz first-order shelf on the rumble. Its
+  stands over its own 30 ms past AND over the bed (held for a step's 200 ms
+  while it still stands over the bed), never during a shot or a blast, and
+  never past the target on the very sample — a shot landing in a step's lift
+  loses it there, not at the next decision. Lifting a tail blurs where it
+  came from, which is the whole of what a step is worth. **Every level is
+  judged against the programme, never a fixed one** (`footsteps_decide.cpp`):
+  the target is the mix's own level over the last seconds (never under
+  -24 dB), a loud event is the whole signal 3-9 dB over that AND over -30 to
+  -20 dBFS, and Calm cuts what jumps 3 dB over it. The first version used
+  -24, -22 and -16 dB fixed, and Ivan heard nothing in his games
+  (2026-11-01): replayed through it, real matches recorded from YouTube lifted
+  a distant step 0.1-1.6 dB, because a game sits over -22 dBFS most of the
+  time. **The band is heard through its filter twice** for the decisions
+  (`detect_history`): one pass leaks a game's bass into the steps band and
+  read a bed above the steps. Now 2.5-5.1 dB on nine of eleven games' matches
+  (CS2 1.8, Overwatch 2 0.9: wall-to-wall music and abilities), shots and
+  background around 1 dB. `footsteps_mix_test.cpp` holds the game-like mixes
+  (loud, paused, bass-heavy, steps louder than -24 dB under a louder
+  programme), each beside the control the first version failed. It has no
+  latency; Calm is a 250 Hz first-order shelf on the rumble. Its
   settings ride a FOOT trailer of their own (`footstepsWire.ts`), after the
   game word and the Room's and before the curve, written only while the
   stage is on, and stripped for an engine before 1.25
