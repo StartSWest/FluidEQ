@@ -88,6 +88,7 @@ describe('resetting the settings main keeps', () => {
       showGraph: jest.fn(),
       stopSongMemory: jest.fn(),
       resetSmartEq: jest.fn(),
+      resetKeepPlaying: jest.fn(),
       logger: { error: jest.fn() },
     };
     ({ dispose } = registerSettingsResetIpc(deps));
@@ -112,6 +113,8 @@ describe('resetting the settings main keeps', () => {
     expect(deps.stopSongMemory).toHaveBeenCalledTimes(1);
     // Smart EQ's settings, which the core keeps a copy of to measure by.
     expect(deps.resetSmartEq).toHaveBeenCalledTimes(1);
+    // The Library's Keep playing switch, in the core's session file.
+    expect(deps.resetKeepPlaying).toHaveBeenCalledTimes(1);
     expect(deps.logger.error).not.toHaveBeenCalled();
   });
 
@@ -191,6 +194,9 @@ const RESET_FILES = [
   // The core's copy of Smart EQ's settings, which the window resets too and
   // hands over again as it reloads.
   'smart-eq-settings.json',
+  // The Library's session: its Keep playing switch is put back on; the
+  // queue beside it is the listener's and stays, as it did in the window.
+  'library-playback.json',
 ];
 
 /** Kept on purpose, with why. */

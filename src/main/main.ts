@@ -102,6 +102,13 @@ import { registerProfilesIpc } from './ipc/profiles';
 import { IOutputWatch, startOutputWatch } from './outputWatch';
 import { registerUpdatesIpc } from './ipc/updates';
 import { registerLibraryIpc } from './ipc/library';
+import registerLibraryPlayerIpc from './ipc/libraryPlayer';
+import createLibraryPlayer from './libraryPlayer/libraryPlayer';
+import { createHostEngine } from './libraryPlayer/hostEngine';
+import libraryHostPort from './libraryPlayer/hostPort';
+import { createPlaybackSession } from './libraryPlayer/playbackSession';
+import { createSourcePublication } from './libraryPlayer/sourcePublication';
+import { LIBRARY_PLAYER_CHANNEL } from '../common/library/playerWire';
 import {
   dspHostPid,
   dspHostSampleRate,
@@ -191,7 +198,6 @@ import createMainSession, { outputEditorOf } from './mainSession';
 import { ownsTemporaryRack } from './outputRack';
 import { getStateForAudioDevice } from './deviceProfiles';
 import { createSourceAnalysisPublisher } from './sourceAnalysis';
-import { registerSourceAnalysisIpc } from './ipc/sourceAnalysis';
 import {
   createProfileStore,
   isAutomaticPresetName,
@@ -208,7 +214,7 @@ import registerWindowsAudioIpc from './ipc/windowsAudio';
 import registerSystemMediaIpc from './ipc/systemMedia';
 import registerMemberServices from './memberServices';
 import { applyLaunchSwitches, isDebug } from './launchSwitches';
-import { devSandbox } from './devSandbox';
+import { devSandbox, ownAppUserModelId } from './devSandbox';
 import claimTheOnlyCopy from './onlyCopy';
 import { registerAppLinks } from './appLinks';
 import { chooseLaunchEngine, registerEngineServices } from './engineServices';
@@ -1147,7 +1153,11 @@ const sourceAnalysis = createSourceAnalysisPublisher({
   },
   resolveSourceEndpoint: async () => session.playbackAudioDevice?.guid,
   write: scheduleWrite,
-  readHealth: () => engineHealth.read(),
+  // A sandbox's source goes into its own folder, which no engine reads (see
+  // `devSandbox.ts`), so no engine's status may answer for it: read the real
+  // ones and every Play waited for an acknowledgement that could not come.
+  readHealth: () =>
+    devSandbox ? Promise.resolve({ outputs: [] }) : engineHealth.read(),
   setRawLibrary: setDspHostRawLibrary,
   prepareEngine: async () => {
     const result = await reflushCurrentState();
@@ -1175,7 +1185,6 @@ session.systemRackEnabled = (deviceId) => {
     )
   );
 };
-registerSourceAnalysisIpc(getMainWindow, sourceAnalysis);
 registerDspHostIpc({
   getMainWindow,
   onVoiceModelChanged: () => sourceAnalysis.refreshVoice(),
@@ -1219,6 +1228,9 @@ registerSettingsResetIpc({
   },
   stopSongMemory: () => songMemory.setOn(false),
   resetSmartEq: () => smartEqSettings.keep(DEFAULT_SMART_EQ_SETTINGS),
+  resetKeepPlaying: () => {
+    libraryPlayer.command({ kind: 'continuation', isOn: true });
+  },
   logger: log,
 });
 // The taskbar button in the window's colours; the installed icon while it
@@ -1254,6 +1266,36 @@ const libraryIpc = registerLibraryIpc({
   getMainWindow,
 });
 
+/**
+ * The Library player, in the core: the queue, the songs moving on and fading
+ * into each other, the session kept across restarts, all driving the native
+ * host directly (`libraryPlayer/`). The window draws it and sends presses,
+ * and its own element plays what the host cannot — a video, or every song on
+ * a machine without a host. Before any window exists, so a launch puts the
+ * last session back cued whether or not a window ever opens.
+ */
+const libraryHost = libraryHostPort();
+const libraryPlayer = createLibraryPlayer({
+  library: libraryIpc,
+  ...(libraryHost
+    ? { createHost: (events) => createHostEngine(libraryHost, events) }
+    : {}),
+  sources: createSourcePublication(sourceAnalysis),
+  session: createPlaybackSession(userDataDir, log),
+  window: {
+    view: (view) => sendToWindow(LIBRARY_PLAYER_CHANNEL.view, view),
+    // The bar's clock, four times a second while a song plays: a window
+    // nobody can see is not woken for it, and asks again when it is back.
+    clock: (clock) => {
+      if (mainWindow?.isVisible() && !mainWindow.isMinimized()) {
+        sendToWindow(LIBRARY_PLAYER_CHANNEL.clock, clock);
+      }
+    },
+  },
+});
+libraryIpc.onTracksChanged(libraryPlayer.tracksChanged);
+registerLibraryPlayerIpc({ getMainWindow, player: libraryPlayer });
+
 registerLibraryPlaylistsIpc({
   userDataDir,
   getMainWindow,
@@ -1267,7 +1309,9 @@ const engineHealth = registerEngineHealthIpc({
   onHealth: (health) => {
     songProgramme.onHealth(health);
     secondOutputs.onHealth(health);
-    sourceAnalysis.onHealth(health);
+    if (!devSandbox) {
+      sourceAnalysis.onHealth(health);
+    }
   },
 });
 
@@ -1405,6 +1449,10 @@ app.on('before-quit', (event) => {
       .catch((error) =>
         log.error('The Smart EQ song memory could not close', error),
       )
+      // The Library's session is kept, and its host let go, before the
+      // engine is turned off underneath it.
+      .then(() => libraryPlayer.close())
+      .catch((error) => log.error('The Library player could not close', error))
       .then(() =>
         Promise.all([flushPendingWrites(), memoryTrace.stopMemoryTrace()]),
       )
@@ -1494,9 +1542,7 @@ const onAppReady = async () => {
     // has one of its own, or the taskbar draws it with the installed app's
     // icon (`appIdentity.ts`).
     // A sandbox groups apart from the development window it runs beside.
-    app.setAppUserModelId(
-      devSandbox ? `${APP_USER_MODEL_ID}.sandbox` : APP_USER_MODEL_ID,
-    );
+    app.setAppUserModelId(ownAppUserModelId(APP_USER_MODEL_ID));
     // After the id, which is the startup entry's name: read before it, the
     // entry would be looked for under Electron's own.
     moveStartWithWindowsIntoTray(log);

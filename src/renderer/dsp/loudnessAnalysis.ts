@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { ABSOLUTE_GATE_LUFS, SILENCE_DB } from '../../common/dsp/loudnessGates';
 import { IBiquadCoefficients, IBiquadState, createBiquadState } from './biquad';
 import { oversampleFactorForSampleRate } from './oversample';
 import { createTruePeakState, truePeakOfSample } from './truePeak';
@@ -25,8 +26,6 @@ import { createTruePeakState, truePeakOfSample } from './truePeak';
  * all the state lives here.
  */
 
-export const SILENCE_DB = -120;
-export const ABSOLUTE_GATE_LUFS = -70;
 const RELATIVE_GATE_LU = -10;
 /**
  * BS.1770's calibration offset. A constant of the standard, not a tuning value.

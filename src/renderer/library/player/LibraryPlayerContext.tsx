@@ -17,24 +17,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /**
- * The player, held above the tab switch: its state, and the wiring between the
- * hooks that do the work.
+ * The Library player, as the window sees it.
  *
- * Nearly everything that used to be here now lives beside it — the decks, the
- * loader, the analysis, the queue, the transport, the session, the native
- * engine — and each says what it is for at the top of its own file. What is
- * left is the state those parts share, the order they have to run in, and the
- * value the rest of the app reads.
+ * The player runs in the app's core (`main/libraryPlayer/`): the queue, the
+ * songs moving on and fading into each other, the session kept across
+ * restarts, the native host that makes the sound. This provider draws what
+ * the core says, sends the presses, and does the three things only a window
+ * can: plays a video on the stage's element, plays on its own element what
+ * the host cannot (`useWindowDeck`), and measures songs with the decoder it
+ * has (`useTrackAnalysis`). Every surface reads the same contract it always
+ * did (`playerContract.ts`).
  *
- * Deliberately NOT wired to `mediaKeys.ts` / `TitlebarMediaTransport`. That
- * transport presses a Windows virtual key for whatever application is
- * currently playing system-wide and is told nothing back — see its own doc
- * comment. Routing this player's transport into it as well would make one
- * press of Play/Pause act on two players when only one was asked for, and
- * `sendMediaTransportKey` has no way to target this one specifically. The two
- * transports stay independent on purpose.
+ * Deliberately NOT wired to `mediaKeys.ts` / `TitlebarMediaTransport`, which
+ * press a Windows virtual key for whatever application is playing and are
+ * told nothing back: routed here as well, one press of Play/Pause would act
+ * on two players when only one was asked for.
  */
-
 import {
   createContext,
   ReactNode,
@@ -45,45 +43,42 @@ import {
   useRef,
   useState,
 } from 'react';
-import {
-  advanceQueue,
-  currentTrackId,
-  ILibraryQueue,
-} from '../../../common/library/queue';
+import { advanceQueue, currentTrackId } from '../../../common/library/queue';
 import type { ILibraryTrack } from '../../../common/library/types';
-import { useDspEngine } from '../../dsp/useDspEngine';
 import { usePlaybackDspSettings } from '../../dsp/store';
-import { usePlaybackHandoff } from '../../audio/playbackHandoff';
-import { claimPlayback, releasePlayback } from '../../audio/playbackOwner';
-import { useLibrary } from '../LibraryContext';
-import { useLibraryTracks } from '../useLibraryTracks';
+import useDspEngine from '../../dsp/useDspEngine';
 import {
-  ILibraryPlayerClock,
-  ILibraryPlayerContextValue,
-  ILibraryPlayerSession,
-} from './playerContract';
-import { useDeckAudio } from './useDeckAudio';
-import useDeckBookkeeping from './useDeckBookkeeping';
-import useDeckLifecycle from './useDeckLifecycle';
-import { useMediaEvents } from './useMediaEvents';
-import { usePlaybackCommands } from './usePlaybackCommands';
-import { usePlayerDecks } from './usePlayerDecks';
-import { usePlayerEngine } from './usePlayerEngine';
-import usePublishedTransport from './usePublishedTransport';
+  claimPlayback,
+  registerPlayer,
+  releasePlayback,
+} from '../../audio/playbackOwner';
 import {
   deckWindowIds,
   usePublishedLibraryDeck,
   type TDroppedMusic,
 } from '../../player/libraryDeck';
 import { usePublishedPlaylistDeck } from '../../player/playlistDeck';
-import { useQueueControls } from './useQueueControls';
-import { useSessionMemory } from './useSessionMemory';
-import { useTrackAnalysis } from './useTrackAnalysis';
-import { useTransportControls } from './useTransportControls';
-import { useUpNext } from './useUpNext';
-import { useVideoElement } from './useVideoElement';
-import useTrackEnd from './useTrackEnd';
-import { useTrackLoader } from './useTrackLoader';
+import { useLibrary } from '../LibraryContext';
+import { useLibraryTracks } from '../useLibraryTracks';
+import {
+  addToCoreQueue,
+  followCorePlayer,
+  handLegacyPlayback,
+  pressPlayer,
+  useCorePlayerClock,
+  useCorePlayerView,
+} from './corePlayer';
+import { takeLegacyPlayback } from './playbackMemory';
+import {
+  ILibraryPlayerClock,
+  ILibraryPlayerContextValue,
+  ILibraryPlayerSession,
+} from './playerContract';
+import usePublishedTransport from './usePublishedTransport';
+import { usePlayerDecks } from './usePlayerDecks';
+import usePlayerRackHandover from './usePlayerRackHandover';
+import useTrackAnalysis from './useTrackAnalysis';
+import { useWindowDeck } from './useWindowDeck';
 
 // Re-exported so every existing importer keeps working: the contract moved,
 // the module that serves it did not.
@@ -102,90 +97,29 @@ export const LibraryPlayerProvider = ({
 }: {
   children: ReactNode;
 }) => {
-  // The queue carries ids only; what they name is asked of the library, and
-  // only for the songs the player is holding (`useLibraryTracks`).
-  // `LibraryPlayerProvider` has to sit inside `LibraryProvider` for that,
-  // which `App.tsx` already arranges the same way it nests every other
-  // library-scoped provider.
   const { queueFiles } = useLibrary();
-  // Non-null while `LibraryVideoStage` has a `<video>` registered — the
-  // element every transport command reaches instead, for exactly as long as
-  // the current track is a video.
-  const videoElementRef = useRef<HTMLVideoElement | null>(null);
-  // The app's fader, not this player's: karaoke and the Media tab read the
-  // same number, so the level does not change when the tab does. Read from
-  // storage rather than defaulted and corrected afterwards — the decks below
-  // are built at the stored level, and a state that disagreed with them for
-  // one render would put a burst of full-scale audio through them.
-  // Two hidden decks, built once, kept at the listener's level. See
-  // `usePlayerDecks` for why they are never rendered.
-  const { audioElements } = usePlayerDecks(videoElementRef);
-  const audioElementRef = useRef<HTMLAudioElement | undefined>(
-    audioElements[0],
-  );
-  const isDisposedRef = useRef(false);
-  // The DSP chain attaches here rather than in the panel that configures it,
-  // because `createMediaElementSource` binds to THIS element and may be called
-  // for it exactly once, ever. The panel writes settings into a store; the
-  // engine reads them. Nothing about the chain is rebuilt when they change.
-  //
-  // Only the audio element. The video element below keeps its direct path —
-  // routing it through Web Audio as well would mean a second source node and a
-  // second chain for a track type the DSP was never asked to colour.
-  const dspSettings = usePlaybackDspSettings();
-  useDspEngine(audioElements, dspSettings);
-  const dspSettingsRef = useRef(dspSettings);
-  dspSettingsRef.current = dspSettings;
-
-  const [queue, setQueue] = useState<ILibraryQueue | undefined>(undefined);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [retainWhenHidden, setRetainWhenHidden] = usePlaybackHandoff();
-  const [positionMs, setPositionMs] = useState(0);
-  const [durationMs, setDurationMs] = useState(0);
-  const [isUnplayable, setIsUnplayable] = useState(false);
-
-  // Re-runs the loader when Play targets the already-cued track after Stop or
-  // session restore. A direct src assignment here used to bypass every piece
-  // of preparation the normal track loader owns.
-  const [loadRequest, setLoadRequest] = useState(0);
-
-  // The `ended` handler is attached once per media element and must never go
-  // stale, so it reads the queue through a ref rather than closing over the
-  // `queue` state directly.
-  const queueRef = useRef<ILibraryQueue | undefined>(queue);
+  useEffect(() => followCorePlayer(), []);
+  // The window's old copy of the session, handed to the core once.
   useEffect(() => {
-    queueRef.current = queue;
-  }, [queue]);
+    const legacy = takeLegacyPlayback();
+    if (legacy) {
+      handLegacyPlayback(legacy);
+    }
+  }, []);
+  const view = useCorePlayerView();
+  const coreClock = useCorePlayerClock();
+  const { queue, track, isPlaying, isUnplayable } = view;
 
-  const queuedTrackId = queue ? currentTrackId(queue) : undefined;
-  const nextQueuedId = queue
-    ? currentTrackId(advanceQueue(queue, 1))
-    : undefined;
   /**
-   * THE SONG ON THE DECK CHANGES ONCE THE LIBRARY HAS READ THE NEXT ONE.
-   *
-   * The queue moves the moment a song is pressed; what that id names comes
-   * back from the store a moment later. Until it has, the player goes on
-   * being the song it was — the one still sounding — rather than a song with
-   * nothing known about it: the loader, keyed on the id, would otherwise run
-   * for a song it could not load, silence the deck, and never run again once
-   * the answer landed. A song the store says it has not got (`null`) is
-   * settled too, as missing, which is what stops a removed folder's song.
+   * The songs around the playhead, for the mini player's list, and the next
+   * one, to be measured before it plays. The song playing comes with the
+   * view itself.
    */
-  const settledTrackIdRef = useRef<string | undefined>(undefined);
+  const nextId = queue ? currentTrackId(advanceQueue(queue, 1)) : undefined;
   const lookup = useLibraryTracks([
-    ...(queuedTrackId === undefined ? [] : [queuedTrackId]),
-    ...(nextQueuedId === undefined ? [] : [nextQueuedId]),
-    ...(settledTrackIdRef.current === undefined
-      ? []
-      : [settledTrackIdRef.current]),
+    ...(nextId === undefined ? [] : [nextId]),
     ...deckWindowIds(queue),
   ]);
-  if (queuedTrackId === undefined || lookup.has(queuedTrackId)) {
-    settledTrackIdRef.current = queuedTrackId;
-  }
-  const trackId = settledTrackIdRef.current;
-  /** The songs read, without the ones the store has said are gone. */
   const trackById = useMemo(() => {
     const found = new Map<string, ILibraryTrack>();
     lookup.forEach((entry, id) => {
@@ -193,406 +127,211 @@ export const LibraryPlayerProvider = ({
         found.set(id, entry);
       }
     });
+    if (track) {
+      found.set(track.id, track);
+    }
     return found;
-  }, [lookup]);
-  const track = trackId ? trackById.get(trackId) : undefined;
+  }, [lookup, track]);
+  const next =
+    nextId !== undefined && nextId !== track?.id
+      ? trackById.get(nextId)
+      : undefined;
 
-  const analysisJobRef = useRef<
-    | {
-        trackId: string;
-        controller: AbortController;
-      }
-    | undefined
-  >(undefined);
-
-  /**
-   * The native engine, and the clock it hands back. See `usePlayerEngine`:
-   * while a deck holds a track the position comes from the engine making the
-   * sound, and the element is muted, paused and held only as a fallback.
-   */
-  /**
-   * The track the queue moves to next, for the host to hold primed on its
-   * spare deck (`upcoming` in `nativeMirror.ts`) so a fade or a press on Next
-   * starts on the cue and not after a load. Nothing when the queue ends or
-   * repeats this track, and nothing for a video or a file that cannot play.
-   */
-  const upcoming = useMemo(() => {
-    if (!queue || !track) {
-      return undefined;
-    }
-    const nextId = currentTrackId(advanceQueue(queue, 1));
-    const next =
-      nextId !== undefined && nextId !== track.id
-        ? trackById.get(nextId)
-        : undefined;
-    if (!next || next.kind !== 'audio' || !next.isPlayable) {
-      return undefined;
-    }
-    return {
-      path: next.path,
-      leadInMs: next.normalization?.edges?.leadInMs ?? 0,
-    };
-  }, [queue, track, trackById]);
-  const {
-    hostOwnsTransport,
-    hostOwnsTransportRef,
-    seekHost,
-    hostEnded,
-    publishedPositionMs,
-    publishedDurationMs,
-    endedTrackRef,
-  } = usePlayerEngine({
-    dspSettings,
+  // Two hidden elements for the window's own deck, built once (see
+  // `usePlayerDecks`), and the element graph their fades run through.
+  const videoElementRef = useRef<HTMLVideoElement | null>(null);
+  const { audioElements } = usePlayerDecks(videoElementRef);
+  const dspSettings = usePlaybackDspSettings();
+  useDspEngine(audioElements, dspSettings);
+  const { bindVideo } = useWindowDeck({
+    want: view.windowDeck,
+    track: view.deck === 'window' ? track : undefined,
     audioElements,
-    track,
-    isPlaying,
-    positionMs,
-    durationMs,
-    upcoming,
+    videoElementRef,
   });
-  // The element claims fallback playback from its own `play` event. A native
-  // deck has no DOM event, so its first non-ended telemetry frame is the real
-  // signal that a queued handoff has begun making sound again.
+  usePlayerRackHandover({
+    settings: dspSettings,
+    libraryGate: view.libraryGate,
+    host: view.host,
+  });
+  useTrackAnalysis({ track, next, settings: dspSettings });
+
+  /**
+   * One player at a time across the app: the Library starting stops Karaoke
+   * and Online Media, and either of them starting pauses the Library — in the
+   * core, which is where it plays.
+   */
+  useEffect(
+    () =>
+      registerPlayer('library', () =>
+        pressPlayer({ kind: 'setPlaying', isPlaying: false }),
+      ),
+    [],
+  );
   useEffect(() => {
-    if (isPlaying && hostOwnsTransport && !hostEnded) {
+    if (isPlaying) {
       claimPlayback('library');
-      setRetainWhenHidden(false);
+    } else {
+      releasePlayback('library');
     }
-  }, [hostEnded, hostOwnsTransport, isPlaying, setRetainWhenHidden]);
-  /** Read inside continuations that outlive the render which started them —
-   * the disk read, the decode — where a captured `trackId` would name a track
-   * that has since changed. */
-  const trackIdRef = useRef(trackId);
-  trackIdRef.current = trackId;
+  }, [isPlaying]);
 
   /**
-   * Levels and sources: the fades, the overlap and the swap to an in-memory
-   * blob. One subject, and they share the state that makes them safe — see
-   * `useDeckAudio`.
+   * The picture put away, with the queue left as it was. Not stop: stopping
+   * rewinds, and the stage writes down where the reader got to as it closes,
+   * so a rewind first remembered every video at nought. Paused before it is
+   * hidden, so the pause reaches the picture's own element.
    */
-  const {
-    fadeIn,
-    seekQuietly,
-    startCrossfade,
-    releaseBlob,
-    swapBufferToBlob,
-    fadeInRef,
-    finishCrossfadeRef,
-    naturalCrossfadeTrackRef,
-    fadeFrameRef,
-  } = useDeckAudio({ trackIdRef });
-  /**
-   * What each deck is currently doing, keyed by the deck itself. See
-   * `useDeckBookkeeping` for why element and not track id.
-   */
-  const { elementTrackRef, freshLoadRef, programmeEdgesRef, leadInSeekRef } =
-    useDeckBookkeeping();
-  /**
-   * Remembering what was playing, and putting it back — a cued track with
-   * its playhead offered to the loader, never a window that starts making
-   * noise on its own. See `useSessionMemory`.
-   */
-  const { pendingRestore } = useSessionMemory({
-    queue,
-    queueRef,
-    positionMs,
-    setQueue,
-    setPositionMs,
-  });
-  /**
-   * A track running out — what to do about it, when the host says it has,
-   * and when to start an overlap before it does. See `useTrackEnd`.
-   */
-  const handleEnded = useTrackEnd({
-    queueRef,
-    setQueue,
-    setIsPlaying,
-    setRetainWhenHidden,
-    trackIdRef,
-    audioElementRef,
-    endedTrackRef,
-    naturalCrossfadeTrackRef,
-    programmeEdgesRef,
-    hostOwnsTransportRef,
-    seekHost,
-    hostEnded,
-    dspSettings,
-    publishedPositionMs,
-    publishedDurationMs,
-  });
-  /**
-   * What the player learns by listening to a deck. See `useMediaEvents`,
-   * which is also where the reasoning about which of those statements
-   * still counts now that the host owns the transport lives.
-   */
-  const bindMediaEvents = useMediaEvents({
-    audioElementRef,
-    videoElementRef,
-    elementTrackRef,
-    trackIdRef,
-    hostOwnsTransportRef,
-    freshLoadRef,
-    leadInSeekRef,
-    pendingRestore,
-    fadeInRef,
-    handleEnded,
-    setPositionMs,
-    setDurationMs,
-    setIsPlaying,
-    setRetainWhenHidden,
-    setIsUnplayable,
-  });
-
-  /**
-   * Video is drawn by `LibraryVideoStage`, which owns a real element; the
-   * player redirects transport at it while a video is current. See
-   * `useVideoElement`.
-   */
-  const {
-    videoTrackId,
-    closeVideo: hideVideoStage,
-    openVideo,
-    reopenVideo,
-    registerVideoElement,
-    activeElement,
-  } = useVideoElement({
-    track,
-    videoElementRef,
-    audioElementRef,
-    bindMediaEvents,
-    setIsPlaying,
-  });
-
-  /**
-   * Putting a track on a deck. The largest single thing the player does,
-   * and the one with the widest reach into its state — see
-   * `useTrackLoader`, where that surface is named rather than implied.
-   */
-  /**
-   * A deck's life inside this provider: bound, reachable, and torn down.
-   * See `useDeckLifecycle` — the teardown is why a hot reload does not leave
-   * a second song playing over the top of the first.
-   */
-  useDeckLifecycle({
-    audioElements,
-    isDisposedRef,
-    finishCrossfadeRef,
-    bindMediaEvents,
-  });
-  useTrackLoader({
-    trackId,
-    track,
-    loadRequest,
-    audioElements,
-    audioElementRef,
-    dspSettingsRef,
-    elementTrackRef,
-    programmeEdgesRef,
-    freshLoadRef,
-    leadInSeekRef,
-    naturalCrossfadeTrackRef,
-    finishCrossfadeRef,
-    fadeFrameRef,
-    isDisposedRef,
-    analysisJobRef,
-    pendingRestore,
-    fadeIn,
-    releaseBlob,
-    swapBufferToBlob,
-    startCrossfade,
-    setPositionMs,
-    setDurationMs,
-    setIsPlaying,
-    setIsUnplayable,
-  });
-  /**
-   * Measuring tracks in the background — the one coming next, and the one
-   * already playing when a setting asks for a number it does not have.
-   * See `useTrackAnalysis`, including why they share one job.
-   */
-  useTrackAnalysis({
-    track,
-    trackId,
-    queue,
-    trackById,
-    dspSettings,
-    dspSettingsRef,
-    trackIdRef,
-    audioElementRef,
-    elementTrackRef,
-    programmeEdgesRef,
-    analysisJobRef,
-  });
-
-  /**
-   * What is coming, and where each of it came from — the record being
-   * played through, what was added by hand, and what continuation guessed.
-   * See `useUpNext`.
-   */
-  const {
-    upNext,
-    isContinuationOn,
-    setIsContinuationOn,
-    setAddedIds,
-    addedIdsRef,
-    continuedIdsRef,
-    isGuess,
-  } = useUpNext({
-    queue,
-    trackId,
-    trackById,
-    setQueue,
-  });
-  /**
-   * Start, stop and suspend — the three commands that decide whether there
-   * is anything playing at all. See `usePlaybackCommands`.
-   */
-  const {
-    stop,
-    pausePlayback,
-    playTracks: playTracksCommand,
-    toggle: toggleElement,
-  } = usePlaybackCommands({
-    activeElement,
-    audioElements,
-    queueRef,
-    hostOwnsTransportRef,
-    setQueue,
-    setIsPlaying,
-    setRetainWhenHidden,
-    setAddedIds,
-    finishCrossfadeRef,
-    fadeFrameRef,
-    seekHost,
-    setPositionMs,
-    endedTrackRef,
-    naturalCrossfadeTrackRef,
-    setLoadRequest,
-    pendingRestore,
-    audioElementRef,
-  });
-
-  /**
-   * Play/pause, with one thing to check before it reaches an element.
-   *
-   * A video the reader closed has no element to reach — `closeVideo` takes
-   * the stage down and its own teardown releases the decoder — so the press
-   * would land on a hidden audio deck holding no file, and the bar's play
-   * button would be dead on a track it is still showing. Asking a closed
-   * video to play means show it again, so that is what happens; everything
-   * else is the ordinary command, unchanged.
-   */
-  const toggle = useCallback(() => {
-    if (reopenVideo()) {
-      return;
-    }
-    toggleElement();
-  }, [reopenVideo, toggleElement]);
-
-  /**
-   * Play these, and never mind what was put away.
-   *
-   * Pressing the same video again after Back produces the same track id, and
-   * the picture is remembered as closed BY that id — so the command loaded
-   * it, marked the row as playing and showed nothing, which is a worse
-   * failure than the one closing was added to fix. Asking for a track is the
-   * end of any decision to hide it.
-   */
-  const playTracks = useCallback(
-    (trackIds: readonly string[], startTrackId: string) => {
-      openVideo();
-      playTracksCommand(trackIds, startTrackId);
+  const [closedVideoId, setClosedVideoId] = useState<string | undefined>();
+  const videoTrackId =
+    track?.kind === 'video' && track.isPlayable && track.id !== closedVideoId
+      ? track.id
+      : undefined;
+  const closeVideo = useCallback(() => {
+    pressPlayer({ kind: 'setPlaying', isPlaying: false });
+    setClosedVideoId(track?.id);
+  }, [track?.id]);
+  const registerVideoElement = useCallback(
+    (element: HTMLVideoElement | null): (() => void) => {
+      videoElementRef.current = element;
+      if (!element) {
+        return () => undefined;
+      }
+      const unbind = bindVideo(element);
+      return () => {
+        unbind();
+        element.pause();
+        element.removeAttribute('src');
+        if (videoElementRef.current === element) {
+          videoElementRef.current = null;
+        }
+      };
     },
-    [openVideo, playTracksCommand],
+    [bindVideo],
   );
 
-  /**
-   * The Back button over a picture: silence it, then put it away.
-   *
-   * PAUSE AND NOT STOP, because stopping rewinds — and the stage writes down
-   * where the reader got to as it unmounts, so a rewind first meant every
-   * video was remembered at nought and came back to its own beginning.
-   * Measured: closed at 3:25, stored as 0.
-   *
-   * Pausing before hiding, and that order matters too. Hiding first unmounts
-   * the element, and the pause resolves the element it acts on at the moment
-   * it runs — it would find the hidden audio deck instead, leaving the
-   * video's own decoder to be torn down mid-play by the unmount.
-   */
-  const closeVideo = useCallback(() => {
-    pausePlayback();
-    hideVideoStage();
-  }, [hideVideoStage, pausePlayback]);
+  /** Asking a closed video to play means showing it again. */
+  const toggle = useCallback(() => {
+    if (closedVideoId !== undefined && track?.id === closedVideoId) {
+      setClosedVideoId(undefined);
+      pressPlayer({ kind: 'setPlaying', isPlaying: true });
+      return;
+    }
+    pressPlayer({ kind: 'toggle' });
+  }, [closedVideoId, track?.id]);
 
-  /**
-   * Rearranging what is coming, none of which can make a sound. See
-   * `useQueueControls` for why that is a boundary rather than a filing
-   * decision.
-   */
-  const {
-    jumpToQueuePosition,
-    appendToQueue,
-    insertIntoQueue,
-    removeUpNextAt,
-    moveUpNext,
-    setShuffle,
-    cycleRepeat,
-    retargetQueue,
-    topUpQueue,
-  } = useQueueControls({
-    setQueue,
-    queueRef,
-    addedIdsRef,
-    continuedIdsRef,
-    setAddedIds,
-    playTracks,
-  });
-  /**
-   * Next/Previous, the scrubber and the fader — the controls that move the
-   * listener rather than the list. See `useTransportControls`.
-   */
-  const { skip, seek } = useTransportControls({
-    activeElement,
-    seekQuietly,
-    finishCrossfadeRef,
-    hostOwnsTransportRef,
-    seekHost,
-    publishedPositionMs,
-    setPositionMs,
-    setQueue,
-    isGuess,
-  });
-  /**
-   * Telling the rest of the app what this player is doing, in the shape
-   * every source can answer with. See `usePublishedTransport`.
-   */
+  /** Playing a song is the end of any decision to hide its picture. */
+  const playTracks = useCallback(
+    (trackIds: readonly string[], startTrackId: string) => {
+      setClosedVideoId(undefined);
+      pressPlayer({ kind: 'play', trackIds, startTrackId });
+    },
+    [],
+  );
+  const stop = useCallback(() => pressPlayer({ kind: 'stop' }), []);
+  const skip = useCallback(
+    (direction: 1 | -1) => pressPlayer({ kind: 'skip', direction }),
+    [],
+  );
+  const seek = useCallback(
+    (positionMs: number) => pressPlayer({ kind: 'seek', positionMs }),
+    [],
+  );
+  const jumpToQueuePosition = useCallback(
+    (position: number) => pressPlayer({ kind: 'jump', position }),
+    [],
+  );
+  const appendToQueue = useCallback((trackIds: readonly string[]) => {
+    addToCoreQueue(trackIds).catch(() => undefined);
+  }, []);
+  const removeUpNextAt = useCallback(
+    (position: number) => pressPlayer({ kind: 'remove', position }),
+    [],
+  );
+  const moveUpNext = useCallback(
+    (from: number, to: number) => pressPlayer({ kind: 'move', from, to }),
+    [],
+  );
+  const setShuffle = useCallback(
+    (isShuffled: boolean) => pressPlayer({ kind: 'shuffle', isShuffled }),
+    [],
+  );
+  const cycleRepeat = useCallback(() => pressPlayer({ kind: 'repeat' }), []);
+  const retargetQueue = useCallback(
+    (trackIds: readonly string[], listKey: string) =>
+      pressPlayer({ kind: 'retarget', trackIds, listKey }),
+    [],
+  );
+  const topUpQueue = useCallback(
+    (trackIds: readonly string[], listKey: string) =>
+      pressPlayer({ kind: 'topUp', trackIds, listKey }),
+    [],
+  );
+  const setIsContinuationOn = useCallback(
+    (isOn: boolean) => pressPlayer({ kind: 'continuation', isOn }),
+    [],
+  );
+
+  /** Up Next: everything still ahead, and where each of it came from. */
+  const added = useMemo(() => new Set(view.added), [view.added]);
+  const continued = useMemo(() => new Set(view.continued), [view.continued]);
+  const isGuess = useCallback(
+    (trackId: string) => continued.has(trackId) && !added.has(trackId),
+    [added, continued],
+  );
+  const upNext = useMemo(
+    () =>
+      queue
+        ? queue.order
+            .slice(queue.position + 1)
+            .map((index, offset) => ({
+              position: queue.position + 1 + offset,
+              trackId: queue.trackIds[index],
+            }))
+            .filter(
+              (entry): entry is { position: number; trackId: string } =>
+                entry.trackId !== undefined,
+            )
+            .map((entry) => ({
+              ...entry,
+              isAdded: added.has(entry.trackId),
+              isContinued: continued.has(entry.trackId),
+            }))
+        : [],
+    [added, continued, queue],
+  );
+
+  // The bar's clock belongs to the song it was sent for.
+  const clock = useMemo<ILibraryPlayerClock>(
+    () =>
+      coreClock.trackId !== undefined && coreClock.trackId === track?.id
+        ? { positionMs: coreClock.positionMs, durationMs: coreClock.durationMs }
+        : { positionMs: 0, durationMs: track?.durationMs ?? 0 },
+    [coreClock, track?.id, track?.durationMs],
+  );
+
   usePublishedTransport({
     track,
     isPlaying,
-    retainWhenHidden,
-    publishedPositionMs,
-    publishedDurationMs,
+    retainWhenHidden: false,
+    publishedPositionMs: clock.positionMs,
+    publishedDurationMs: clock.durationMs,
     toggle,
     skip,
     isUnplayable,
     seek,
   });
+
   /**
-   * And what only this player has, for the mini player: its cover and
-   * format, shuffle and repeat, stop, and the queue. See `libraryDeck.ts`.
+   * Music files dragged onto the player's queue: they join the library
+   * first, which gives each a row and its id, and only then the queue — the
+   * other way round the queue would hold ids nothing could resolve yet.
    */
-  /**
-   * Music files dragged onto the player's queue from the computer.
-   *
-   * Two steps, in this order and no other: the files join the library first
-   * (main gives each one a provisional row and its id — see
-   * `library-queue-files`), and only then does the queue take those ids. The
-   * other way round the queue would hold ids nothing could resolve yet and
-   * the rows would draw as their own identifiers.
-   */
+  const queueRef = useRef(queue);
+  queueRef.current = queue;
   const addFiles = useCallback(
     async (paths: string[], at?: number): Promise<TDroppedMusic> => {
-      // Capture the gap before an asynchronous folder scan can move the queue.
+      // The gap, before an asynchronous folder scan can move the queue.
       const snapshot = queueRef.current;
       const beforeIds =
         at === undefined
@@ -605,13 +344,10 @@ export const LibraryPlayerProvider = ({
       if (trackIds.length === 0) {
         return 'empty';
       }
-      const joined =
-        beforeIds === undefined
-          ? appendToQueue(trackIds)
-          : insertIntoQueue(trackIds, beforeIds);
+      const joined = await addToCoreQueue(trackIds, beforeIds);
       return joined > 0 ? 'added' : 'already';
     },
-    [appendToQueue, insertIntoQueue, queueFiles],
+    [queueFiles],
   );
   usePublishedLibraryDeck({
     queue,
@@ -628,26 +364,12 @@ export const LibraryPlayerProvider = ({
     removeUpNextAt,
     isGuess,
   });
-  // And its playlists and Favourites, for the amp's Playlists and its heart.
   usePublishedPlaylistDeck(playTracks);
-  // Publish the handoff lease before giving up audible ownership. Otherwise
-  // the synchronous owner update can let another tab's paused bar flash for
-  // one render between tracks. The next real play event/telemetry frame claims
-  // ownership again; expiry leaves it released for cleanup.
-  useEffect(() => {
-    if (retainWhenHidden) {
-      releasePlayback('library');
-    }
-  }, [retainWhenHidden]);
 
   /**
-   * The session and the clock travel separately.
-   *
-   * Native playback publishes the playhead four times a second. Keeping those
-   * two numbers in this value invalidated LibraryWorkspace, Up Next, the video
-   * stage and the full-screen artwork on every tick even though none of them
-   * read either number. The clock has one visual consumer; the session has the
-   * rest, so their context boundaries now match their actual update rates.
+   * The session and the clock travel separately: the playhead moves four
+   * times a second and has one visual consumer, and keeping it in this value
+   * invalidated every Library surface on every tick.
    */
   const value = useMemo<ILibraryPlayerSession>(
     () => ({
@@ -665,7 +387,7 @@ export const LibraryPlayerProvider = ({
       retargetQueue,
       topUpQueue,
       upNext,
-      isContinuationOn,
+      isContinuationOn: view.isContinuationOn,
       setIsContinuationOn,
       jumpToQueuePosition,
       appendToQueue,
@@ -690,7 +412,7 @@ export const LibraryPlayerProvider = ({
       retargetQueue,
       topUpQueue,
       upNext,
-      isContinuationOn,
+      view.isContinuationOn,
       setIsContinuationOn,
       jumpToQueuePosition,
       appendToQueue,
@@ -702,13 +424,6 @@ export const LibraryPlayerProvider = ({
       cycleRepeat,
       registerVideoElement,
     ],
-  );
-  const clock = useMemo<ILibraryPlayerClock>(
-    () => ({
-      positionMs: publishedPositionMs,
-      durationMs: publishedDurationMs,
-    }),
-    [publishedDurationMs, publishedPositionMs],
   );
 
   return (

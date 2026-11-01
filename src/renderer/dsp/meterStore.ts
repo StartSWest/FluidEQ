@@ -19,7 +19,6 @@ import { TDspAnalyserStage } from './monitorOutputs';
 import { setDspDeEsserReport } from './deEsserTelemetry';
 import { setDspFootstepsReport } from './footstepsTelemetry';
 import { setDspRoomReport } from './roomTelemetry';
-import { publishDspSourceAnalysis } from './sourceAnalysis';
 import {
   setDspBandAmounts,
   setDspBandLevels,
@@ -99,7 +98,6 @@ const subscribeInputAnalysis = (listener: () => void) => {
 
 export const setDspInputAnalysis = (next: IDspInputAnalysisState): void => {
   inputAnalysis = next;
-  publishDspSourceAnalysis(next);
   inputAnalysisListeners.forEach((listener) => listener());
 };
 

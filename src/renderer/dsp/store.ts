@@ -7,7 +7,6 @@ import { useSyncExternalStore } from 'react';
 import type { IEqualizerSnapshot } from '../../common/outputSettings';
 import { readOutputEditor } from '../utils/outputEditor';
 import { presetToneOf } from '../../common/dsp/presetTone';
-import { setDspSourcePlayback } from './sourceAnalysis';
 
 import {
   DSP_DEFAULTS,
@@ -320,22 +319,11 @@ export const setDspPresetTone = (next: IPresetTone | undefined): void => {
  * Tell the rack where it may run, and send the engine what that leaves it.
  *
  * Called by the shell with the engine, FluidEQ's switch and whether the engine
- * is off, and by the Library player with whether it is playing. The player's
- * own copy follows the same gate through `useRackGate`.
+ * is off, and with the Library player's half as its view says (the player
+ * runs in the core and sends its host's copy of the rack itself).
  */
 export const setDspRackGate = (patch: Partial<IRackGate>): void => {
-  const changed = updateRackGate(patch);
-  if (
-    patch.libraryAudible !== undefined ||
-    patch.sendingRawAudio !== undefined
-  ) {
-    const gate = readRackGate();
-    setDspSourcePlayback({
-      libraryAudible: gate.libraryAudible,
-      sendingRawAudio: gate.sendingRawAudio,
-    });
-  }
-  if (changed) {
+  if (updateRackGate(patch)) {
     pushSystemChain();
   }
 };
@@ -439,17 +427,16 @@ export const useDspSampleRate = (): number =>
  *
  * A host that fails to spawn, a platform with no device backend compiled in, or
  * a binary missing from the package all mean the same thing: nothing native is
- * running. The media elements are muted only after this reaches `engaged`.
- * Otherwise browser playback stays audible and the rack is visibly unavailable
- * instead of becoming a silent failure.
+ * running. The Library then plays on the window's element, unprocessed, and
+ * the rack is visibly unavailable instead of becoming a silent failure.
  *
  * Three states rather than a boolean, for exactly the reason `TDspEngineState`
  * above has three: the boolean version cannot tell "has not tried yet" from
- * "tried and failed". The engine lives inside `LibraryPlayerProvider`, which
- * only mounts once the Library has been opened, so before that there is no host
- * and no failure either — and a warning shown then would be a warning about
- * nothing, on a machine that is fine. That precise bug has already shipped once
- * in this file.
+ * "tried and failed". The host is the core's Library player's, brought up
+ * only while it has a song to play, so before that there is no host and no
+ * failure either — and a warning shown then would be a warning about nothing,
+ * on a machine that is fine. That precise bug has already shipped once in
+ * this file. The window learns the state from the player's view.
  */
 export type TDspNativeState = 'idle' | 'engaged' | 'failed';
 
@@ -465,140 +452,8 @@ export const setDspNativeState = (next: TDspNativeState): void => {
 
 export const readDspNativeState = (): TDspNativeState => nativeState;
 
-/**
- * Which endpoint the host is currently playing to, as a counter.
- *
- * Bumped whenever the host reopens the device — following the default output
- * to a new endpoint, or recovering one that went away. It matters because a
- * reopen rebuilds the player, and a rebuilt player has no decks: the endpoint
- * is right and every deck is empty, so the device change is handled and the
- * music has still stopped.
- *
- * The renderer is the only side that knows what was playing and where, so this
- * is what tells it to cue that again.
- */
-let nativeDeviceGeneration = 0;
-
-export const setDspNativeDeviceGeneration = (next: number): void => {
-  if (!Number.isInteger(next) || next === nativeDeviceGeneration) {
-    return;
-  }
-  nativeDeviceGeneration = next;
-  emit();
-};
-
-export const readDspNativeDeviceGeneration = (): number =>
-  nativeDeviceGeneration;
-
-/** What the engine making the sound says about where it is. */
-export interface IDspNativeTransport {
-  /** False until a deck has been loaded, so nothing reads a position of zero
-   * as "the track is at its beginning" while there is no track. */
-  hasSource: boolean;
-  positionSeconds: number;
-  /** Zero when the decoder could not say, which is legal for some streams. */
-  durationSeconds: number;
-  /** The deck reached the end of its file, which is end-of-track. */
-  ended: boolean;
-}
-
-const IDLE_TRANSPORT: IDspNativeTransport = {
-  hasSource: false,
-  positionSeconds: 0,
-  durationSeconds: 0,
-  ended: false,
-};
-
-/**
- * The transport, from the host rather than from a second decoder.
- *
- * The seek bar and end-of-track used to come from a muted `<audio>` element
- * decoding every track a second time purely to have a clock. Two clocks that
- * could disagree, and did: a deck cued at the position the PREVIOUS track had
- * reached played from the middle while the bar read zero, because each was
- * telling the truth about a different player.
- *
- * Published from telemetry, which already arrives about forty times a second.
- */
-let nativeTransport: IDspNativeTransport = IDLE_TRANSPORT;
-
-export const setDspNativeTransport = (next: IDspNativeTransport): void => {
-  const current = nativeTransport;
-  if (
-    current.hasSource === next.hasSource &&
-    current.ended === next.ended &&
-    current.positionSeconds === next.positionSeconds &&
-    current.durationSeconds === next.durationSeconds
-  ) {
-    return;
-  }
-  nativeTransport = next;
-  emit();
-};
-
-/**
- * A deck has the track — said by the mirror, a frame before telemetry says it.
- *
- * `hasSource` is what the player means by "the host is the engine playing
- * this", and every guard built on it runs at element speed while the fact
- * itself arrived at telemetry speed. The gap is small and it was fatal: the
- * mirror pauses the elements the instant a deck is loaded and selected, the
- * element fires `pause`, and `onPause` asked this question one frame too
- * early — got `false`, read a deliberate stand-down as the listener pressing
- * pause, and set `isPlaying` false. That flag gates the native engine, so the
- * engine tore itself down 120 ms after engaging, every single track.
- *
- * The load, select and play were all acknowledged by the host before this is
- * called, so the deck genuinely holds the file: every telemetry frame that
- * follows agrees, and nothing here can flap.
- */
-export const claimDspNativeSource = (positionSeconds: number): void => {
-  if (nativeTransport.hasSource) {
-    return;
-  }
-  // Carrying the position the deck was cued to, because the bar switches to
-  // the host's clock on the same tick this flag turns true. Left at the stored
-  // zero, a rack engaged mid-track showed 0:00 until the first frame arrived.
-  setDspNativeTransport({
-    ...nativeTransport,
-    hasSource: true,
-    positionSeconds,
-  });
-};
-
-export const readDspNativeTransport = (): IDspNativeTransport =>
-  nativeTransport;
-
-/** Forgotten when the engine lets go, so nothing reads a stale position. */
-export const clearDspNativeTransport = (): void => {
-  setDspNativeTransport(IDLE_TRANSPORT);
-};
-
-export const useDspNativeDeviceGeneration = (): number =>
-  useSyncExternalStore(
-    subscribe,
-    readDspNativeDeviceGeneration,
-    readDspNativeDeviceGeneration,
-  );
-
 export const useDspNativeState = (): TDspNativeState =>
   useSyncExternalStore(subscribe, readDspNativeState, readDspNativeState);
-
-/**
- * Safe to return by reference: `setDspNativeTransport` compares every field
- * and keeps the previous object when nothing moved, so `useSyncExternalStore`
- * is not handed a new identity forty times a second for a position that has
- * not changed.
- */
-export const useDspNativeTransport = (): IDspNativeTransport =>
-  useSyncExternalStore(
-    subscribe,
-    readDspNativeTransport,
-    readDspNativeTransport,
-  );
-
-/** The one question the worklet asks: is something else making the sound? */
-export const readDspNativeEngaged = (): boolean => nativeState === 'engaged';
 
 /**
  * Which of the phase block’s three views is showing, if any.

@@ -15,6 +15,7 @@ import {
   dspHostSampleRate,
   listenToDspHostAnalysis,
   registerDspHostIpc,
+  startDspHost,
 } from 'main/ipc/dspHost';
 
 type THandler = (...args: unknown[]) => Promise<unknown>;
@@ -76,7 +77,8 @@ it('hears the host only once it runs, and then shares its frames as each reader 
   // No host yet: nothing to hear.
   expect(await listenToDspHostAnalysis(jest.fn())).toBeUndefined();
 
-  await mockHandlers.get('dsp-host-start')?.({});
+  // The core's Library player starts it now; the window has no channel to.
+  await startDspHost();
   const core = jest.fn();
   const stop = await listenToDspHostAnalysis(core);
   expect(stop).toBeDefined();

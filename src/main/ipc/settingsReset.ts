@@ -34,6 +34,8 @@ export interface ISettingsResetDeps {
    * running mode stops at the reset rather than when the window reloads.
    */
   resetSmartEq: () => void;
+  /** Keep playing back on; the queue it plays is the listener's and stays. */
+  resetKeepPlaying: () => void;
   logger: ILogger;
 }
 
@@ -83,6 +85,7 @@ export const registerSettingsResetIpc = (deps: ISettingsResetDeps) => {
     ['graph switch', deps.showGraph],
     ['song memory', deps.stopSongMemory],
     ['smart eq', deps.resetSmartEq],
+    ['keep playing', deps.resetKeepPlaying],
   ];
 
   ipcMain.handle(SETTINGS_RESET_CHANNEL, (event) => {

@@ -25,8 +25,12 @@ import {
 } from 'electron';
 import fs from 'fs';
 import type { ILibrarySummary } from '../../common/library/query';
-import type { ILibraryNormalizationAnalysis } from '../../common/library/types';
+import type {
+  ILibraryNormalizationAnalysis,
+  ILibraryTrack,
+} from '../../common/library/types';
 import { createLibraryQueries } from '../library/libraryQuery';
+import { createTrackQuestions } from '../library/libraryTrackQuestions';
 import { buildRoot, queueLibraryFiles } from '../library/libraryQueueFiles';
 import parseLibraryRequest from '../library/libraryRequestGuard';
 import { createLibraryScanRunner } from '../library/libraryScanRunner';
@@ -112,6 +116,21 @@ export interface ILibraryIpc {
    * with the first paint.
    */
   readonly watchWindow: (window: BrowserWindow) => void;
+  /** The songs of these ids the library has, for the core's player. */
+  readonly tracks: (ids: readonly string[]) => ILibraryTrack[];
+  /** More of a song's genre, never one of `exclude` (`pickContinuation`). */
+  readonly continuation: (
+    seedId: string,
+    exclude: readonly string[],
+    count: number,
+  ) => string[];
+  /**
+   * Told when songs change: these ids (a measurement kept), or any of them
+   * (undefined: a scan, a folder removed).
+   */
+  readonly onTracksChanged: (
+    listener: (trackIds?: readonly string[]) => void,
+  ) => void;
 }
 
 /**
@@ -127,6 +146,8 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): ILibraryIpc => {
   const { userDataDir, getMainWindow } = deps;
   const { store, wasReset } = openLibraryStore(userDataDir);
   const queries = createLibraryQueries(store);
+  // The two questions the core's player asks, asked directly.
+  const songs = createTrackQuestions(store.database);
 
   const summary = (): ILibrarySummary => ({
     version: store.version(),
@@ -141,8 +162,12 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): ILibraryIpc => {
    * asks again for whatever it is showing. Never the songs themselves — the
    * whole index used to come down this way, every twenty-five files of a scan.
    */
-  const announce = (): void => {
+  const tracksChanged = new Set<(trackIds?: readonly string[]) => void>();
+  const noteTracksChanged = (trackIds?: readonly string[]): void =>
+    tracksChanged.forEach((listener) => listener(trackIds));
+  const announce = (trackIds?: readonly string[]): void => {
     getMainWindow()?.webContents.send('library-changed', summary());
+    noteTracksChanged(trackIds);
   };
 
   const scans = createLibraryScanRunner({
@@ -150,7 +175,7 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): ILibraryIpc => {
     userDataDir,
     sendProgress: (progress) =>
       getMainWindow()?.webContents.send('library-scan-progress', progress),
-    announce,
+    announce: () => announce(),
   });
 
   /**
@@ -225,6 +250,9 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): ILibraryIpc => {
   ipcMain.handle('library-root-remove', (_event, rawRootId: unknown) => {
     if (typeof rawRootId === 'string') {
       store.removeRoot(rawRootId);
+      // The window asks again from the summary it gets back; the core's
+      // player has to hear that a song it holds may be gone.
+      noteTracksChanged();
     }
     return summary();
   });
@@ -346,7 +374,7 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): ILibraryIpc => {
       if (updated === undefined) {
         return false;
       }
-      announce();
+      announce([rawTrackId]);
       return true;
     },
   );
@@ -372,6 +400,11 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): ILibraryIpc => {
   };
   return {
     trackPath: store.trackPath,
+    tracks: songs.tracks,
+    continuation: songs.continuation,
+    onTracksChanged: (listener) => {
+      tracksChanged.add(listener);
+    },
     watchWindow: (window) => {
       if (launchRescanStarted) {
         return;

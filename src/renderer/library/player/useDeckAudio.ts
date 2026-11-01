@@ -61,8 +61,6 @@ export interface IDeckAudio {
   >;
   /** Ends the running overlap early, or does nothing if there is none. */
   finishCrossfadeRef: MutableRefObject<(() => void) | undefined>;
-  /** Which track already triggered its own end, so it cannot do so twice. */
-  naturalCrossfadeTrackRef: MutableRefObject<string | undefined>;
   /**
    * The running frame ramp, so a cancel from outside can stop it. A cancel
    * sets it back to zero, which is how a hidden page knows none is pending.
@@ -94,8 +92,6 @@ export const useDeckAudio = (options: {
   const fadeFrameRef = useRef(0);
   /** The element that ramp is moving, for as long as it is. */
   const rampingElementRef = useRef<HTMLMediaElement | undefined>(undefined);
-  /** Prevents one track end advancing the queue more than once. */
-  const naturalCrossfadeTrackRef = useRef<string | undefined>(undefined);
 
   const fadeIn = useCallback(
     (element: HTMLMediaElement, durationMs = SEEK_FADE_MS) => {
@@ -232,8 +228,8 @@ export const useDeckAudio = (options: {
    * Every blob URL this player made goes when the player does.
    *
    * `useIdlePlayerMount` in `App.tsx` unmounts the provider once nothing on
-   * screen uses it and nothing is playing, and `useDeckLifecycle`'s teardown
-   * empties the decks without reaching this map. The paused track's URL
+   * screen uses it and nothing is playing, and the window deck's teardown
+   * (`useWindowDeck`) empties the decks without reaching this map. The paused track's URL
    * stayed registered with nothing left that could revoke it: a whole audio
    * file pinned for the rest of the session, once per visit. `releaseBlob`
    * also takes a swap still waiting for its metadata off its deck.
@@ -412,7 +408,6 @@ export const useDeckAudio = (options: {
     swapBufferToBlob,
     fadeInRef,
     finishCrossfadeRef,
-    naturalCrossfadeTrackRef,
     fadeFrameRef,
   };
 };

@@ -82,3 +82,13 @@ export const devSandbox: IDevSandbox | undefined = app
  */
 export const sandboxProductName = (product: string): string =>
   devSandbox ? `${product} (test copy)` : product;
+
+/**
+ * The id Windows files this process's windows and media sessions under: a
+ * sandbox's own, so it neither shares a taskbar button with the FluidEQ it
+ * runs beside nor reads its own players as somebody else's — the system
+ * media watcher skips exactly this id, and a sandbox that told it the
+ * ordinary one had its own Library video stop itself as another app's.
+ */
+export const ownAppUserModelId = (id: string): string =>
+  devSandbox ? `${id}.sandbox` : id;
