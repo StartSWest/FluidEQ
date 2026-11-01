@@ -56,6 +56,12 @@ export interface IWallpaperDeps extends IWallpaperScenes {
    * asked only when the core cannot hear it (`desktopSound.ts`).
    */
   desktopSound: IDesktopSoundClient;
+  /**
+   * Whether the backgrounds need the window loaded: one follows the music
+   * and only the window can hear it for them. Told at every change, so a
+   * window in the tray is kept for them and let go after (`windowUnload.ts`).
+   */
+  holdWindow?: (isHeld: boolean) => void;
 }
 
 /** Failures a monitor changing shape may clear. */
@@ -171,9 +177,9 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   const publish = () => {
     // The core listens exactly while a background follows the music, and the
     // window holds nothing for them while it does.
-    deps.desktopSound.want(
-      !soundFromWindow && backgrounds.screens().some(screenFollowsMusic),
-    );
+    const followsMusic = backgrounds.screens().some(screenFollowsMusic);
+    deps.desktopSound.want(!soundFromWindow && followsMusic);
+    deps.holdWindow?.(followsMusic && !heardByCore());
     const owner = ownerContents();
     if (owner && !owner.isDestroyed()) {
       owner.send(WALLPAPER.changed, state());
@@ -774,6 +780,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       }
       disposed = true;
       deps.desktopSound.want(false);
+      deps.holdWindow?.(false);
       backgrounds.dispose();
       cleanups.forEach((cleanup) => cleanup());
     },

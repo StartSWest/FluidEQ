@@ -11,7 +11,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * window it was told to keep closed.
  */
 
-import type { BrowserWindow } from 'electron';
 import claimTheOnlyCopy from '../../../main/onlyCopy';
 
 const mockHandlers = new Map<string, (...args: unknown[]) => void>();
@@ -50,42 +49,34 @@ jest.mock('../../../main/karaokeSeparation', () => ({
   karaokeStemsDir: () => 'stems',
 }));
 
-const hiddenWindow = () => ({
-  isDestroyed: () => false,
-  isMinimized: () => false,
-  restore: jest.fn(),
-  show: jest.fn(),
-  focus: jest.fn(),
-});
-
 const secondLaunch = async (argv: string[]) => {
-  const window = hiddenWindow();
+  const bringBackWindow = jest.fn();
   mockHandlers.clear();
   await claimTheOnlyCopy({
     userDataDir: 'C:/Users/Ana/AppData/Roaming/fluideq-app',
-    getMainWindow: () => window as unknown as BrowserWindow,
+    bringBackWindow,
   });
   const handOver = mockHandlers.get('second-instance');
   if (!handOver) {
     throw new Error('no second-instance handler was registered');
   }
   handOver({}, argv);
-  return window;
+  return bringBackWindow;
 };
 
 describe('a second launch reaching the copy already running', () => {
   it('opens the window for somebody who launched FluidEQ again', async () => {
-    const window = await secondLaunch(['C:/FluidEQ/FluidEQ.exe']);
-    expect(window.show).toHaveBeenCalled();
-    expect(window.focus).toHaveBeenCalled();
+    // Shown where it is, or built again where it was let go in the tray —
+    // which of the two is main's (`bringBackWindow`).
+    const bringBackWindow = await secondLaunch(['C:/FluidEQ/FluidEQ.exe']);
+    expect(bringBackWindow).toHaveBeenCalledTimes(1);
   });
 
   it('keeps it closed for Windows starting FluidEQ in the tray', async () => {
-    const window = await secondLaunch([
+    const bringBackWindow = await secondLaunch([
       'C:/FluidEQ/FluidEQ.exe',
       '--start-in-tray',
     ]);
-    expect(window.show).not.toHaveBeenCalled();
-    expect(window.focus).not.toHaveBeenCalled();
+    expect(bringBackWindow).not.toHaveBeenCalled();
   });
 });

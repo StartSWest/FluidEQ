@@ -29,6 +29,7 @@ interface IFakeWindow extends EventEmitter {
   options: { webPreferences?: Record<string, unknown> } | undefined;
   webContents: EventEmitter & { openDevTools: jest.Mock };
   show: jest.Mock;
+  hide: jest.Mock;
   minimize: jest.Mock;
   maximize: jest.Mock;
   destroyed: boolean;
@@ -159,6 +160,8 @@ const deps = (): IMainWindowDeps => ({
     mode: () => 'app',
   } as unknown as TWindowModes,
   startsHidden: () => false,
+  onHiddenInTray: jest.fn(),
+  isLettingGo: () => false,
   syncDatabasesOnStartup: () => Promise.resolve(),
   setUpAutoUpdates: () => Promise.resolve(),
   startMemoryProbe: jest.fn(),
@@ -355,5 +358,90 @@ describe("the window's size and position", () => {
     const { window } = open();
     window.emit('close', { preventDefault: jest.fn() });
     expect(saveWindowState).toHaveBeenCalledTimes(2);
+  });
+});
+
+// A window in the tray is let go when nothing holds it, and built again when
+// it is opened (`windowUnload.ts`). This file's part: saying when the window
+// goes into the tray and comes out, and building a second window as one
+// somebody asked to see, without the launch's jobs.
+describe('a window in the tray', () => {
+  it('says it went in when closed, and came out when shown', () => {
+    const onHiddenInTray = jest.fn();
+    const { window } = open({ onHiddenInTray });
+    window.emit('close', { preventDefault: jest.fn() });
+    expect(window.hide).toHaveBeenCalledTimes(1);
+    expect(onHiddenInTray).toHaveBeenLastCalledWith(true);
+
+    window.emit('show');
+    expect(onHiddenInTray).toHaveBeenLastCalledWith(false);
+  });
+
+  it('closes for real when main lets it go, so the page saves on its way out', () => {
+    const onHiddenInTray = jest.fn();
+    let isLettingGo = false;
+    const { window } = open({ onHiddenInTray, isLettingGo: () => isLettingGo });
+    const hidden = { preventDefault: jest.fn() };
+    window.emit('close', hidden);
+    expect(hidden.preventDefault).toHaveBeenCalled();
+
+    isLettingGo = true;
+    onHiddenInTray.mockClear();
+    const letGo = { preventDefault: jest.fn() };
+    window.emit('close', letGo);
+    expect(letGo.preventDefault).not.toHaveBeenCalled();
+    expect(window.hide).toHaveBeenCalledTimes(1);
+    expect(onHiddenInTray).not.toHaveBeenCalled();
+  });
+
+  it('is in the tray from its first frame at a launch that starts hidden', () => {
+    const onHiddenInTray = jest.fn();
+    const { window } = open({ onHiddenInTray, startsHidden: () => true });
+    // Painting nothing until opened, so its page knows it is hidden: Chromium
+    // calls a window never shown visible, and the page captured as if seen.
+    expect(window.options).toMatchObject({ paintWhenInitiallyHidden: false });
+    expect(open().window.options).toMatchObject({
+      paintWhenInitiallyHidden: true,
+    });
+    expect(onHiddenInTray).not.toHaveBeenCalled();
+    say(RENDERER_READY_EVENT, window.webContents);
+    expect(window.show).not.toHaveBeenCalled();
+    expect(onHiddenInTray).toHaveBeenCalledWith(true);
+  });
+
+  it('builds a second window shown, and starts the launch jobs once', async () => {
+    const setUpAutoUpdates = jest.fn(() => Promise.resolve());
+    const syncDatabasesOnStartup = jest.fn(() => Promise.resolve());
+    const startMemoryProbe = jest.fn();
+    const setUpMemoryTraceTrigger = jest.fn();
+    const create = createMainWindowFactory({
+      ...deps(),
+      startsHidden: () => true,
+      setUpAutoUpdates,
+      syncDatabasesOnStartup,
+      startMemoryProbe,
+      setUpMemoryTraceTrigger,
+    });
+
+    const first = create();
+    const launch = windows[windows.length - 1];
+    finishLoad();
+    await first;
+    // POSITIVE CONTROL: the launch's window started hidden and ran the jobs.
+    expect(launch.show).not.toHaveBeenCalled();
+    expect(setUpAutoUpdates).toHaveBeenCalledTimes(1);
+
+    const second = create();
+    const rebuilt = windows[windows.length - 1];
+    expect(rebuilt).not.toBe(launch);
+    expect(rebuilt.options).toMatchObject({ paintWhenInitiallyHidden: true });
+    say(RENDERER_READY_EVENT, rebuilt.webContents);
+    expect(rebuilt.show).toHaveBeenCalledTimes(1);
+    finishLoad();
+    await second;
+    expect(setUpAutoUpdates).toHaveBeenCalledTimes(1);
+    expect(syncDatabasesOnStartup).toHaveBeenCalledTimes(1);
+    expect(startMemoryProbe).toHaveBeenCalledTimes(1);
+    expect(setUpMemoryTraceTrigger).toHaveBeenCalledTimes(1);
   });
 });

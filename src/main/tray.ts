@@ -95,6 +95,13 @@ let updateActions: {
 } = {};
 
 /**
+ * Builds the window again when there is none to show: one let go in the tray
+ * (`windowUnload.ts`). Kept beside the actions above, so every way back —
+ * the icon, its menu and the update notifications — builds it the same way.
+ */
+let buildWindow: (() => void) | undefined;
+
+/**
  * Whether this build can actually update itself.
  *
  * FALSE UNTIL PROVEN, and that is the whole point. The updater is built
@@ -337,11 +344,14 @@ export interface ITrayDeps {
    * (Ivan, 2026-09-22).
    */
   onRecoverWindow?: () => void;
+  /** Builds a window when there is none: one let go in the tray. */
+  onWindowMissing?: () => void;
 }
 
 const revealWindow = (getMainWindow: () => BrowserWindow | null) => {
   const mainWindow = getMainWindow();
   if (!mainWindow || mainWindow.isDestroyed()) {
+    buildWindow?.();
     return;
   }
   // Three different ways of being out of sight, and each needs its own call.
@@ -520,9 +530,15 @@ export const setTrayUpdateReady = (
 };
 
 export const setUpTray = (deps: ITrayDeps) => {
-  const { getMainWindow, onInstallUpdate, onCheckForUpdates, onRecoverWindow } =
-    deps;
+  const {
+    getMainWindow,
+    onInstallUpdate,
+    onCheckForUpdates,
+    onRecoverWindow,
+    onWindowMissing,
+  } = deps;
   updateActions = { onInstallUpdate, onCheckForUpdates, onRecoverWindow };
+  buildWindow = onWindowMissing;
   menuWindow = getMainWindow;
   if (tray) {
     return;

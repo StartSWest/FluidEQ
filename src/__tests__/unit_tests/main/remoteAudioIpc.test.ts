@@ -275,6 +275,40 @@ describe('Share Audio all to all: one code, every link kept', () => {
     )) as { links: unknown[] };
     expect(after.links).toEqual([]);
   });
+
+  it('holds a window in the tray while another computer is linked', async () => {
+    // The window answers a link — what plays here, the one-player switch, a
+    // press made over there — so it is kept loaded (`windowUnload.ts`).
+    const holdWindow = jest.fn();
+    credentials.read.mockReturnValue({
+      joins: [codeOf('e'.repeat(43), 'DESK')],
+      revoked: [],
+    });
+    handlers.clear();
+    jest.mocked(createRemoteAudioLan).mockClear();
+    registerRemoteAudioIpc({
+      getMainWindow: () => window as unknown as BrowserWindow,
+      userDataDir: 'C:\\FluidEQ-test',
+      holdWindow,
+    });
+    await handlers.get('remote-audio-lan-start')?.({}, true);
+    const [onSignal] = jest.mocked(createRemoteAudioLan).mock.calls[0];
+    expect(holdWindow).not.toHaveBeenLastCalledWith(true);
+
+    onSignal({
+      peerId: 'desk',
+      signal: { kind: 'peer-ready', deviceName: 'DESK', computerId: 'd' },
+    });
+    onSignal({
+      peerId: 'laptop',
+      signal: { kind: 'peer-ready', deviceName: 'LAPTOP', computerId: 'l' },
+    });
+    expect(holdWindow).toHaveBeenLastCalledWith(true);
+    onSignal({ peerId: 'desk', signal: { kind: 'stop' } });
+    expect(holdWindow).toHaveBeenLastCalledWith(true);
+    onSignal({ peerId: 'laptop', signal: { kind: 'stop' } });
+    expect(holdWindow).toHaveBeenLastCalledWith(false);
+  });
 });
 
 /**

@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { app, BrowserWindow } from 'electron';
+import { app } from 'electron';
 import log from 'electron-log';
 import { sweepAbandonedWrites } from './asyncWriter';
 import { devSandbox } from './devSandbox';
@@ -33,7 +33,11 @@ import {
 
 export interface IOnlyCopyDeps {
   userDataDir: string;
-  getMainWindow: () => BrowserWindow | null;
+  /**
+   * The window brought forward — restored, shown and focused — or built
+   * again if it was let go in the tray (`windowUnload.ts`).
+   */
+  bringBackWindow: () => void;
 }
 
 /**
@@ -57,7 +61,7 @@ export interface IOnlyCopyDeps {
  */
 const claimTheOnlyCopy = ({
   userDataDir,
-  getMainWindow,
+  bringBackWindow,
 }: IOnlyCopyDeps): Promise<boolean> => {
   /**
    * Named for the folder both data directories sit in rather than either one,
@@ -133,16 +137,10 @@ const claimTheOnlyCopy = ({
   const isTheOnlyCopy = becomesTheOnlyCopy();
 
   app.on('second-instance', (_event, argv) => {
-    const mainWindow = getMainWindow();
     // Windows' sign-in launch finding FluidEQ already running asks for the
     // tray, which it already has: the window stays where it is.
-    const wantsWindow = !argv.includes(START_IN_TRAY_ARG);
-    if (wantsWindow && mainWindow && !mainWindow.isDestroyed()) {
-      if (mainWindow.isMinimized()) {
-        mainWindow.restore();
-      }
-      mainWindow.show();
-      mainWindow.focus();
+    if (!argv.includes(START_IN_TRAY_ARG)) {
+      bringBackWindow();
     }
     // A `fluideq://` link a page opened arrives as the second launch's
     // argument (`appLinks.ts`): handed on whether or not a window exists.

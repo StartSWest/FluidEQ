@@ -53,11 +53,18 @@ const LAN_JOINS_CHANNEL = 'remote-audio-lan-joins';
 export interface IRemoteAudioIpcDeps {
   getMainWindow: () => BrowserWindow | null;
   userDataDir: string;
+  /**
+   * Whether another computer is linked. The window answers a link — what
+   * plays here, the one-player switch and a press made over there — so a
+   * window in the tray is kept while one is open (`windowUnload.ts`).
+   */
+  holdWindow?: (isHeld: boolean) => void;
 }
 
 export const registerRemoteAudioIpc = ({
   getMainWindow,
   userDataDir,
+  holdWindow,
 }: IRemoteAudioIpcDeps): (() => void) => {
   if (process.platform === 'win32' && typeof app?.isPackaged === 'boolean') {
     enableAudioWorker();
@@ -123,14 +130,17 @@ export const registerRemoteAudioIpc = ({
    * (`singlePlayer`), which happened once and are not to happen again.
    */
   const told = new Map<string, Map<string, ILanRemoteAudioSignal>>();
+  const linksChanged = () => holdWindow?.(told.size > 0);
   const remember = (message: ILanRemoteAudioSignal) => {
     const { peerId, signal } = message;
     if (signal.kind === 'stop') {
       told.delete(peerId);
+      linksChanged();
       return;
     }
     if (signal.kind === 'peer-ready') {
       told.set(peerId, new Map([['peer-ready', message]]));
+      linksChanged();
       return;
     }
     const kept = told.get(peerId);
@@ -373,6 +383,7 @@ export const registerRemoteAudioIpc = ({
   let started: Promise<ILanHostDetails> | undefined;
   const resetSession = () => {
     told.clear();
+    linksChanged();
     smoothLinks.clear();
     ports.reset();
     streaming.clear();

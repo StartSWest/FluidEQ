@@ -17,8 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { app, ipcMain } from 'electron';
+import { app, ipcMain, type BrowserWindow } from 'electron';
+import {
+  parseSinglePlayer,
+  SINGLE_PLAYER_CHANNEL,
+} from '../../common/singlePlayer';
 import { sendMediaTransportKey } from '../mediaKeys';
+import { createExternalPlayerRule } from '../systemMediaRule';
+import onWindowMessage from './windowMessages';
 import { forwardGroupMediaCommand } from '../groupMediaKeys';
 import {
   getSystemMediaCover,
@@ -36,10 +42,29 @@ export interface ISystemMediaIpcDeps {
    * (`songProgramme.ts`).
    */
   onMedia: (snapshot: ISystemMediaSnapshot | undefined) => Promise<void>;
+  /** The app's window, the one whose "one player at a time" switch counts. */
+  getMainWindow: () => BrowserWindow | null;
 }
 
 /** What the rest of the machine is playing, and its transport. */
-const registerSystemMediaIpc = ({ onMedia }: ISystemMediaIpcDeps) => {
+const registerSystemMediaIpc = ({
+  onMedia,
+  getMainWindow,
+}: ISystemMediaIpcDeps) => {
+  const rule = createExternalPlayerRule(pauseOtherSystemPlayers);
+  onWindowMessage(SINGLE_PLAYER_CHANNEL, (event, raw: unknown) => {
+    const window = getMainWindow();
+    const isOn = parseSinglePlayer(raw);
+    if (
+      isOn !== undefined &&
+      window &&
+      !window.isDestroyed() &&
+      event.sender === window.webContents
+    ) {
+      rule.setSinglePlayer(isOn);
+    }
+  });
+
   /**
    * The titlebar's transport buttons, pressed on behalf of the whole machine.
    *
@@ -83,6 +108,11 @@ const registerSystemMediaIpc = ({ onMedia }: ISystemMediaIpcDeps) => {
    * playing" was wrong every time the sound was coming from a browser tab. The
    * watcher is a PowerShell child — see `systemMedia` for why — and one that
    * is not needed is one that should not be running.
+   *
+   * Asked off, it stops; the window going away does not stop it. A window
+   * let go in the tray (`windowUnload.ts`) says nothing as it goes, and the
+   * engine's song names and the rule between two other programs read this
+   * watcher whether a window is there to show it or not.
    */
   ipcMain.handle('system-media-watch', (event, enabled: unknown) => {
     if (enabled !== true) {
@@ -90,6 +120,7 @@ const registerSystemMediaIpc = ({ onMedia }: ISystemMediaIpcDeps) => {
       return;
     }
     watchSystemMedia((snapshot) => {
+      rule.heard(snapshot);
       onMedia(snapshot).catch(() => undefined);
       if (!event.sender.isDestroyed()) {
         event.sender.send('system-media-changed', snapshot);
@@ -128,29 +159,14 @@ const registerSystemMediaIpc = ({ onMedia }: ISystemMediaIpcDeps) => {
   );
 
   /**
-   * Quieten every program that is playing, sparing the one named.
-   *
-   * One player at a time, whoever the players are: two of somebody else's —
-   * Spotify and a Netflix tab — with the one that just started spared, or all
-   * of them when this app has taken the sound itself. The window decides,
-   * because whether the rule is on at all is its switch ("Plays in two
-   * places"); this only carries it out.
-   *
-   * A name is bounded here and never put inside a script: it is an app id that
-   * came from Windows, went to a window, and came back, and text from a window
-   * that reached a PowerShell script would be a window writing PowerShell.
+   * Quieten every program that is playing: this app has taken the sound
+   * itself. The window decides, because whether the rule is on at all is its
+   * switch ("Plays in two places"), and which of its players started is its
+   * to know; this only carries it out. Two programs that are both somebody
+   * else's are separated above, by `rule`.
    */
-  ipcMain.handle(
-    'system-media-pause-others',
-    async (_event, exceptApp: unknown) => {
-      if (
-        exceptApp !== undefined &&
-        (typeof exceptApp !== 'string' || exceptApp.length > 256)
-      ) {
-        return;
-      }
-      await pauseOtherSystemPlayers(exceptApp ?? '');
-    },
+  ipcMain.handle('system-media-pause-others', () =>
+    pauseOtherSystemPlayers(''),
   );
 
   // The child outlives nothing. A window that has gone cannot be told what is

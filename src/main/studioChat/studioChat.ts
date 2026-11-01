@@ -41,6 +41,7 @@ import { createPastChats } from './pastChats';
 import { createTranscripts } from './chatTranscript';
 import createTranscriptCache from './transcriptCache';
 import { findClaudeCode, startClaudeCode, systemEnv } from './claudeCode';
+import createChatBusy from './chatBusy';
 
 /**
  * The Studio's chat (Ivan, 2026-10-09: "they connect their claude sub account
@@ -66,6 +67,12 @@ export interface IStudioChatDeps {
   door: IStudioLook;
   version: string;
   logger?: { info(message: string): void; warn(message: string): void };
+  /**
+   * Whether Claude is answering in any project. Its looks are drawn by the
+   * window's page, so a window in the tray is kept until every reply has
+   * finished (`windowUnload.ts`).
+   */
+  onBusy?: (isBusy: boolean) => void;
 }
 
 export const createStudioChat = ({
@@ -75,6 +82,7 @@ export const createStudioChat = ({
   door,
   version,
   logger,
+  onBusy,
 }: IStudioChatDeps) => {
   const root = path.join(userDataDir, 'studio-chat');
   const transcripts = createTranscripts(root);
@@ -106,13 +114,13 @@ export const createStudioChat = ({
   const isBusy = (projectId: string) =>
     turns.isWorking(projectId, sessions.get(projectId));
 
+  const busyChanged = createChatBusy(onBusy);
+
   /** One entry changed: the window upserts it by id. */
   const tell = (projectId: string, entry: TStudioChatEntry) => {
-    pageOf()?.send('studio-chat-entry', {
-      projectId,
-      entry,
-      busy: isBusy(projectId),
-    });
+    const busy = isBusy(projectId);
+    busyChanged(projectId, busy);
+    pageOf()?.send('studio-chat-entry', { projectId, entry, busy });
   };
 
   const usage = createChatUsage({

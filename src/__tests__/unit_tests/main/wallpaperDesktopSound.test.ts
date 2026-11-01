@@ -136,6 +136,34 @@ describe('the music a background hears, from the core', () => {
     expect(manager.state().heardByCore).toBe(true);
   });
 
+  it('holds a window in the tray only while it hears for a background', () => {
+    // A window let go in the tray hears nothing (`windowUnload.ts`): kept for
+    // the backgrounds exactly while the core cannot hear for them.
+    const holdWindow = jest.fn();
+    const { deps } = withCore(true);
+    const manager = createWallpaperManager({ ...deps, holdWindow });
+    manager.start(request({ displayIds: [2], motion: 'music' }));
+    expect(holdWindow).toHaveBeenLastCalledWith(false);
+
+    manager.setSoundFromWindow(true);
+    expect(holdWindow).toHaveBeenLastCalledWith(true);
+    manager.setSoundFromWindow(false);
+    expect(holdWindow).toHaveBeenLastCalledWith(false);
+
+    const deaf = withCore(false);
+    const holdDeaf = jest.fn();
+    const without = createWallpaperManager({
+      ...deaf.deps,
+      holdWindow: holdDeaf,
+    });
+    without.start(request({ displayIds: [2], motion: 'calm' }));
+    expect(holdDeaf).toHaveBeenLastCalledWith(false);
+    without.start(request({ displayIds: [2], motion: 'music' }));
+    expect(holdDeaf).toHaveBeenLastCalledWith(true);
+    without.stop([2]);
+    expect(holdDeaf).toHaveBeenLastCalledWith(false);
+  });
+
   it('takes that word from FluidEQ’s own window only, and only a yes or a no', () => {
     const { deps, owner, runs } = withCore(true);
     registerWallpaperIpc(deps);

@@ -14,22 +14,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * is kept until the window has lost the front.
  */
 
-import type { BrowserWindow } from 'electron';
+import { EventEmitter } from 'events';
+import type { BrowserWindow, WebContents } from 'electron';
 import log from 'electron-log';
 import type { IGameProgram } from 'common/games';
-import { registerGamesIpc, type IGameProgramsAnswer } from 'main/ipc/games';
+import {
+  GAME_WATCH_CHANNEL,
+  registerGamesIpc,
+  type IGameProgramsAnswer,
+} from 'main/ipc/games';
 import type { IGameWatch } from 'main/gameWatch';
 
 type THandler = () => Promise<IGameProgramsAnswer>;
 const mockHandlers = new Map<string, THandler>();
 const mockAppListeners = new Map<string, (...args: unknown[]) => void>();
+const mockMessages = new Map<string, (...args: unknown[]) => void>();
 const mockGetFileIcon = jest.fn();
 
 jest.mock('electron', () => ({
   ipcMain: {
     handle: (channel: string, handler: THandler) =>
       mockHandlers.set(channel, handler),
-    on: () => undefined,
+    on: (channel: string, listener: (...args: unknown[]) => void) =>
+      mockMessages.set(channel, listener),
   },
   app: {
     on: (event: string, listener: (...args: unknown[]) => void) =>
@@ -162,4 +169,55 @@ it('does not keep an icon that could not be read', async () => {
     'icon',
     'data:image/png;base64,AAAA',
   );
+});
+
+describe('the watcher the Games page asked for', () => {
+  const pageWithWatch = () => {
+    const page = new EventEmitter() as unknown as WebContents;
+    const window = { webContents: page } as unknown as BrowserWindow;
+    const watch: IGameWatch = {
+      start: jest.fn(),
+      stop: jest.fn(),
+      running: jest.fn(async () => []),
+      hold: jest.fn(),
+      isWatching: () => false,
+    };
+    registerGamesIpc({
+      getMainWindow: () => window,
+      scan,
+      makeWatch: () => watch,
+      toasts: { show: jest.fn(), close: jest.fn() },
+    });
+    const say = (wants: boolean) =>
+      mockMessages.get(GAME_WATCH_CHANNEL)?.({ sender: page }, [wants]);
+    return { page, watch, say };
+  };
+
+  it('stops when the page that asked goes without a word', () => {
+    // A window let go in the tray, reloaded or crashed says nothing as it
+    // goes, and the watcher it asked for ran on with nobody to tell.
+    const { page, watch, say } = pageWithWatch();
+    say(true);
+    expect(watch.start).toHaveBeenCalled();
+    (watch.stop as jest.Mock).mockClear();
+
+    (page as unknown as EventEmitter).emit('destroyed');
+    expect(watch.stop).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps it through a move inside the same page', () => {
+    // The control: the same document changing its address is not a page
+    // leaving, and a frame inside it loading is not either.
+    const { page, watch, say } = pageWithWatch();
+    say(true);
+    (watch.stop as jest.Mock).mockClear();
+
+    const emitter = page as unknown as EventEmitter;
+    emitter.emit('did-start-navigation', {}, 'app://x#y', true, true);
+    emitter.emit('did-start-navigation', {}, 'app://frame', false, false);
+    expect(watch.stop).not.toHaveBeenCalled();
+
+    emitter.emit('did-start-navigation', {}, 'app://x', false, true);
+    expect(watch.stop).toHaveBeenCalledTimes(1);
+  });
 });
