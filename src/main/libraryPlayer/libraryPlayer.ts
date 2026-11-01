@@ -35,6 +35,7 @@ import {
   mayCrossfadeOut,
   playingTrackId,
   restoreCued,
+  restoredState,
   setPlaying,
   trackEnded,
   trackFailed,
@@ -83,8 +84,9 @@ const createLibraryPlayer = (deps: ILibraryPlayerDeps): ILibraryPlayer => {
   /** The deck the song before this one played on. */
   let previousOwner: TLibraryDeckOwner | undefined;
   let refusedTrackId: string | undefined;
-  /** The window's Library player is out; see `hostWanted`. */
+  /** The window's Library player is out, on a window that is seen. */
   let windowHasPlayer = false;
+  let isWindowSeen = false;
   let host: IHostEngine | undefined;
   let hostState: THostEngineState = 'idle';
   /** The file the host's playing deck holds, so its clock is that song's. */
@@ -267,6 +269,7 @@ const createLibraryPlayer = (deps: ILibraryPlayerDeps): ILibraryPlayer => {
         hasRack: rack.copy() !== undefined,
         isPlaying: state.isPlaying,
         windowHasPlayer,
+        isWindowSeen,
       }),
     );
     host?.sync(hostWant());
@@ -386,20 +389,8 @@ const createLibraryPlayer = (deps: ILibraryPlayerDeps): ILibraryPlayer => {
     wantAfterReopen: hostWant,
   });
 
-  /** Where the last session left off: cued, never started. */
   const restore = (): void => {
-    const restored = session.restore(library.tracks);
-    if (restored) {
-      state = {
-        ...state,
-        queue: restored.queue,
-        isPlaying: false,
-        restore: {
-          trackId: restored.trackId,
-          positionMs: restored.positionMs,
-        },
-      };
-    }
+    state = restoredState(state, session.restore(library.tracks));
   };
   restore();
   settle();
@@ -454,6 +445,11 @@ const createLibraryPlayer = (deps: ILibraryPlayerDeps): ILibraryPlayer => {
 
     away: () => {
       windowHasPlayer = false;
+      settle();
+    },
+
+    windowSeen: (isSeen) => {
+      isWindowSeen = isSeen;
       settle();
     },
 

@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
-  Activity,
   useCallback,
   useEffect,
   useEffectEvent,
@@ -226,30 +225,30 @@ const AppContent = () => {
     [lastEqTab, selectTopWorkspaceTab],
   );
   /**
-   * What sleeps while the window is the amp.
+   * What is taken down while the window is the amp.
    *
    * The app behind the amp was only `display: none` (`_miniPlayerShell.scss`),
    * so every page, the graph and the panels kept their effects, their frame
    * loops and their store subscriptions running for a window nobody could
-   * see. Inside `<Activity mode="hidden">` they keep their state and their
-   * DOM, lose their effects, and render only when nothing else wants the
-   * thread; switching back runs the effects again, the same way opening a tab
-   * does.
+   * see. Then they slept under `<Activity mode="hidden">`: effects off, but
+   * every node, every canvas and every piece of state kept, for as long as
+   * the amp was up. Now they are not there at all, and are built again on the
+   * way back, while the window is still dark for the switch: main's answer is
+   * published, the page renders the full app at once, and the window is only
+   * shown once that has been drawn at its new size (`setWindowMode`).
    *
-   * Only what is already mounted and unmounted in ordinary use goes inside:
-   * the pages (a tab switch unmounts each), the graph (hiding it on a tab
+   * Only what is already mounted and unmounted in ordinary use goes: the
+   * pages (a tab switch unmounts each), the graph (hiding it on a tab
    * unmounts it), and the preset, output and driver panels. What has to keep
-   * going for the amp stays outside and awake — see the markup below for each
-   * one and why.
+   * going for the amp stays — see the markup below for each one and why.
    */
   const isAmp = windowMode === 'player';
-  const behindAmp = isAmp ? 'hidden' : 'visible';
   // The amp's faders, game mode and preset pick edit whatever output is
-  // being edited, and the notice that says which sleeps behind it: entering
-  // the amp ends a second output's edit (`useMainEditorWhile`).
+  // being edited, and the notice that says which is not there behind it:
+  // entering the amp ends a second output's edit (`useMainEditorWhile`).
   useMainEditorWhile(isAmp);
   // Entering the amp and leaving it move the live capture's owners in one
-  // commit: the sleeping pages let go and the amp takes hold, or the other
+  // commit: the pages go and let go and the amp takes hold, or the other
   // way round. Without a bridge the capture closed and reopened in between.
   useCaptureBridge(windowMode);
 
@@ -697,7 +696,7 @@ const AppContent = () => {
                 see `AppTitlebar`. */}
               <WorkspacePages
                 activeTab={activeWorkspaceTab}
-                behindAmp={behindAmp}
+                isBehindAmp={isAmp}
                 isEqReachingSound={isEqReachingSound}
                 isGraphFirst={isGraphFirst}
                 eqGroupPills={eqGroupPills}
@@ -744,38 +743,40 @@ const AppContent = () => {
           {/* One divider, both tabs, always in the same place: the seam between
               whatever is above and the graph. In full screen there is nothing
               above the graph, so there is nothing to divide. */}
-          {/* Asleep behind the amp, like the pages: hiding the graph on a tab
-              already unmounts it, so its loops and its claim on the capture
-              are known to stop and start cleanly. */}
-          <Activity mode={behindAmp}>
-            {showsGraph && !isGraphFullScreen && (
-              <GraphPaneResizer
-                paneKey={paneKey}
-                ariaLabel={t('graph.resize')}
-                onStart={resize.handleGraphResizeStart}
-                onDrag={resize.handleGraphResizeDrag}
-                onEnd={resize.handleGraphResizeEnd}
-              />
-            )}
-            {showsGraph && (
-              <FrequencyResponseChart
-                isVisible
-                hasLayersInHead={isGraphFirst && activeWorkspaceTab === 'eq'}
-                isGrown={isGraphGrown}
-                hasPlaybackBackdrop={mounts.showsKaraokeGraphBackdrop}
-                backdropControls={
-                  activeWorkspaceTab === 'karaoke' &&
-                  karaokeBackground === 'graph' ? (
-                    <KaraokeSceneAppearanceControls />
-                  ) : undefined
-                }
-              />
-            )}
-            {/* The graph's Plus visualizer, beside the graph and not in it:
+          {/* Taken down behind the amp, like the pages: hiding the graph on a
+              tab already unmounts it, so its loops and its claim on the
+              capture are known to stop and start cleanly. */}
+          {!isAmp && (
+            <>
+              {showsGraph && !isGraphFullScreen && (
+                <GraphPaneResizer
+                  paneKey={paneKey}
+                  ariaLabel={t('graph.resize')}
+                  onStart={resize.handleGraphResizeStart}
+                  onDrag={resize.handleGraphResizeDrag}
+                  onEnd={resize.handleGraphResizeEnd}
+                />
+              )}
+              {showsGraph && (
+                <FrequencyResponseChart
+                  isVisible
+                  hasLayersInHead={isGraphFirst && activeWorkspaceTab === 'eq'}
+                  isGrown={isGraphGrown}
+                  hasPlaybackBackdrop={mounts.showsKaraokeGraphBackdrop}
+                  backdropControls={
+                    activeWorkspaceTab === 'karaoke' &&
+                    karaokeBackground === 'graph' ? (
+                      <KaraokeSceneAppearanceControls />
+                    ) : undefined
+                  }
+                />
+              )}
+              {/* The graph's Plus visualizer, beside the graph and not in it:
                 on the plot, the EQ column or, on the EQ page, the Backdrop
                 (`GraphScene`). Renders only its canvas, wherever that is. */}
-            <GraphScene page={activeWorkspaceTab} />
-          </Activity>
+              <GraphScene page={activeWorkspaceTab} />
+            </>
+          )}
         </div>
         {/* One backdrop for both drawers, and pressing it shuts both. Two of
             them stacked, each closing only its own, meant a press outside
@@ -802,7 +803,7 @@ const AppContent = () => {
               ? setRightPaneOpen((open) => !open)
               : setSoundPaneFolded(!isSoundPaneFolded)
           }
-          behindAmp={behindAmp}
+          isBehindAmp={isAmp}
           engine={engineStatus?.engine ?? null}
           isNoticeHidden={engine.suppressAudioNotices}
           onConfigureApo={engine.handleConfigureEqualizerApo}

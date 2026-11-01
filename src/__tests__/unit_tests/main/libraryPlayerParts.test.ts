@@ -123,12 +123,18 @@ describe('whether the host should be up', () => {
       hasRack: true,
       isPlaying: false,
       windowHasPlayer: true,
+      isWindowSeen: true,
       ...overrides,
     });
 
   it('is up for a song it can play while the Library is in use', () => {
     expect(ask()).toBe(true);
     expect(ask({ windowHasPlayer: false, isPlaying: true })).toBe(true);
+    expect(ask({ isWindowSeen: false, isPlaying: true })).toBe(true);
+  });
+
+  it('is down for a paused song behind a window nobody can see', () => {
+    expect(ask({ isWindowSeen: false })).toBe(false);
   });
 
   it('is down without the rack, for a paused song with the Library away, and for a video', () => {

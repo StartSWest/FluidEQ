@@ -19,6 +19,7 @@ import {
   nextRepeat,
   playTracks,
   restoreCued,
+  restoredState,
   setPlaying,
   skip,
   trackEnded,
@@ -227,6 +228,20 @@ describe('Keep playing', () => {
 });
 
 describe('a restored session', () => {
+  it('is put back cued where it was, and never started', () => {
+    const queue = buildQueue(['a', 'b'], 'b', false);
+    const restored = restoredState(playing(['x'], 'x'), {
+      queue,
+      trackId: 'b',
+      positionMs: 30_000,
+    });
+    expect(restored.queue).toBe(queue);
+    expect(restored.isPlaying).toBe(false);
+    expect(restored.restore).toEqual({ trackId: 'b', positionMs: 30_000 });
+    const state = playing(['x'], 'x');
+    expect(restoredState(state, undefined)).toBe(state);
+  });
+
   it('lets go of its place once the deck has the song cued', () => {
     const restored = playing(['a'], 'a', {
       isPlaying: false,

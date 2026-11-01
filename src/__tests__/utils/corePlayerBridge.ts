@@ -103,6 +103,8 @@ export const createCorePlayerBridge = (options: {
       clock: (clock) => emit(LIBRARY_PLAYER_CHANNEL.clock, clock),
     },
   });
+  // The window a rendered test draws is the one on screen.
+  player.windowSeen(true);
   const first = (args: unknown[]) => args[0];
   const on = (channel: string, listener: TListener) => {
     const set = listeners.get(channel) ?? new Set<TListener>();

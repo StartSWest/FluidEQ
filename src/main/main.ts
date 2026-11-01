@@ -108,6 +108,7 @@ import { createHostEngine } from './libraryPlayer/hostEngine';
 import libraryHostPort from './libraryPlayer/hostPort';
 import { createPlaybackSession } from './libraryPlayer/playbackSession';
 import { createSourcePublication } from './libraryPlayer/sourcePublication';
+import watchWindowSeen from './windowSeen';
 import { LIBRARY_PLAYER_CHANNEL } from '../common/library/playerWire';
 import {
   dspHostPid,
@@ -1379,6 +1380,9 @@ const createMainWindow = createMainWindowFactory({
     if (next) {
       comeBack.watchWindow(next);
       libraryIpc.watchWindow(next);
+      // A paused Library song lets its host go while nobody can see the
+      // window (`hostWanted`).
+      watchWindowSeen(next, libraryPlayer.windowSeen);
     }
   },
   setUpAutoUpdates: updates.setUpAutoUpdates,

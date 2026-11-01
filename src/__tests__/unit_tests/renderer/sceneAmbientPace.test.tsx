@@ -8,7 +8,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The ambient layer is drawn by the page, on one canvas the size of the
  * window, and is held to the 2D graph's budget: thirty frames a second, and
  * every frame the display offers while the window is euphoric. It used to
- * draw on every frame the display offered — up to 144 a second.
+ * draw on every frame the display offered — up to 144 a second. And it holds
+ * no pixels while the window is hidden.
  */
 
 import '@testing-library/jest-dom';
@@ -146,3 +147,53 @@ it.each([false, true])(
     expect(paintAmbient).toHaveBeenCalledTimes(5);
   },
 );
+
+/** Says the window is hidden (true) or shown again, as Chromium does. */
+const setHidden = (hidden: boolean) => {
+  Object.defineProperty(document, 'hidden', {
+    configurable: true,
+    get: () => hidden,
+  });
+  act(() => {
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+};
+
+// A hidden window draws no frames, and its canvas held the whole window in
+// pixels all the same, in the tray all day.
+it('holds no pixels while the window is hidden, and draws on when it is back', async () => {
+  window.innerWidth = 800;
+  window.innerHeight = 600;
+  // A cancelled frame never runs: the layer has one loop at a time.
+  jest.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {
+    frames = [];
+  });
+  await layerDrawn();
+  const canvas = document.body.querySelector<HTMLCanvasElement>(
+    'canvas.scene-ambient',
+  );
+  frameAt(1000);
+  expect(canvas?.width).toBeGreaterThan(0);
+  try {
+    setHidden(true);
+    expect(canvas?.width).toBe(0);
+    expect(canvas?.height).toBe(0);
+    // Grown while hidden: sized to the window as it is when it comes back.
+    window.innerWidth = 1000;
+    window.dispatchEvent(new Event('resize'));
+    expect(canvas?.width).toBe(0);
+    setHidden(false);
+    expect(canvas?.width).toBe(
+      1000 * Math.min(1.5, window.devicePixelRatio || 1),
+    );
+    jest.mocked(paintAmbient).mockClear();
+    frameAt(60_000);
+    expect(paintAmbient).toHaveBeenCalledTimes(1);
+    // The minute it was hidden is not counted as time: the fade-in carries
+    // on by one frame's worth rather than jumping to the end.
+    expect(jest.mocked(paintAmbient).mock.calls[0][0].fade).toBeLessThan(0.5);
+  } finally {
+    setHidden(false);
+    Reflect.deleteProperty(document, 'hidden');
+  }
+});

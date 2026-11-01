@@ -54,6 +54,8 @@ export interface ILibraryPlayer {
   legacy: (raw: unknown) => void;
   /** The window put its Library player away; see `hostWanted`. */
   away: () => void;
+  /** The window is on screen (true), or in the tray or minimised (false). */
+  windowSeen: (isSeen: boolean) => void;
   /** These songs changed in the library, or every one may have (undefined). */
   tracksChanged: (trackIds?: readonly string[]) => void;
   /** The window wants the view and the clock again. */

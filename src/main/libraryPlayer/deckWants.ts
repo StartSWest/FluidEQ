@@ -62,20 +62,24 @@ export const deckOwnerFor = (options: {
  * the same file twice, a few milliseconds apart.
  *
  * In use: playing, or the window's Library player out — opened, or put back
- * at launch because the Library was the last thing played. The host opens an
- * audio device, and opening one wakes the hardware, so a launch that never
- * touches the Library starts none; and a player put away while paused lets it
- * go, as it always did. Not before the window has handed the rack over — the
- * chain goes in before the device.
+ * at launch because the Library was the last thing played — on a window
+ * somebody can see. The host opens an audio device, and opening one wakes the
+ * hardware, so a launch that never touches the Library starts none; a player
+ * put away while paused lets it go, as it always did; and so does a paused
+ * song behind a window gone to the tray or the taskbar, which held the
+ * process, its decoders and its device all day (about 57 MB) for a Play that
+ * brings it straight back up. Not before the window has handed the rack over
+ * — the chain goes in before the device.
  */
 export const hostWanted = (options: {
   track: ILibraryTrack | undefined;
   hasRack: boolean;
   isPlaying: boolean;
   windowHasPlayer: boolean;
+  isWindowSeen: boolean;
 }): boolean =>
   options.hasRack &&
-  (options.isPlaying || options.windowHasPlayer) &&
+  (options.isPlaying || (options.windowHasPlayer && options.isWindowSeen)) &&
   options.track?.kind === 'audio' &&
   options.track.isPlayable;
 

@@ -198,6 +198,8 @@ const setup = (
       clock: (clock) => clocks.push(clock),
     },
   });
+  // A window on screen, unless a test sends it away.
+  player.windowSeen(true);
   return {
     player,
     host,
@@ -563,6 +565,31 @@ describe('the session across a restart', () => {
   it('keeps a playing host when the window goes', () => {
     const { player, host } = playingA();
     player.away();
+    player.windowSeen(false);
+    expect(host.engaged[host.engaged.length - 1]).toBe(true);
+  });
+
+  it('lets a paused host go behind a window nobody can see, and brings it back on Play', () => {
+    const { player, host } = setup({ memory });
+    player.rackCopy(rackWith());
+    expect(host.engaged[host.engaged.length - 1]).toBe(true);
+    player.windowSeen(false);
+    expect(host.engaged[host.engaged.length - 1]).toBe(false);
+    // Play from the tray or a media key: up again, cued where it was.
+    player.command({ kind: 'toggle' });
+    expect(host.engaged[host.engaged.length - 1]).toBe(true);
+    expect(host.lastWant()).toMatchObject({
+      mediaPath: 'C:/music/b.flac',
+      isPlaying: true,
+      positionMs: 42_000,
+    });
+  });
+
+  it('brings a paused host back when the window is seen again', () => {
+    const { player, host } = setup({ memory });
+    player.rackCopy(rackWith());
+    player.windowSeen(false);
+    player.windowSeen(true);
     expect(host.engaged[host.engaged.length - 1]).toBe(true);
   });
 

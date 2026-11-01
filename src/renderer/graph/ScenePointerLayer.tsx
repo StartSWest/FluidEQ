@@ -98,7 +98,8 @@ interface IScenePointerLayerProps {
  * Drawn only while something is in the air: the loop is started by a gesture
  * and ends with its last piece, so a still mouse costs nothing; each frame
  * clears only the rectangle the last one drew in, and the canvas is held to
- * a budget of pixels however large the window. Nothing is thrown for someone
+ * a budget of pixels however large the window — and to none at all between
+ * bursts. Nothing is thrown for someone
  * who asked the app for less motion.
  */
 export default function ScenePointerLayer({
@@ -324,6 +325,16 @@ export default function ScenePointerLayer({
       ];
     };
 
+    // Nothing in the air: no pixels held. Sized to the scene's box, the
+    // canvas kept up to 16 MB for as long as the scene was up — hidden in the
+    // tray included — to draw a burst that lasts a second or two.
+    const release = () => {
+      canvas.width = 0;
+      canvas.height = 0;
+      dirty = undefined;
+    };
+    release();
+
     const step = (now: number) => {
       const dt = Math.min(0.1, Math.max(0, (now - last) / 1000));
       last = now;
@@ -355,6 +366,9 @@ export default function ScenePointerLayer({
       }
       draw();
       frame = pieces.length > 0 ? requestAnimationFrame(step) : 0;
+      if (frame === 0) {
+        release();
+      }
     };
 
     const onGesture = (gesture: TSceneGesture) => {
@@ -409,13 +423,16 @@ export default function ScenePointerLayer({
     // Backdrop's panes moving — kept the canvas at its old size stretched
     // over the new box until the last piece landed (Ivan, 2026-09-29: "the
     // sparks get stretched for a few seconds when the UI updates"). A new
-    // size empties the canvas, so the next frame clears it all.
+    // size empties the canvas, so the next frame clears it all. Only while
+    // pieces fly: an idle canvas holds nothing, and the next burst sizes it.
     const resized =
       typeof ResizeObserver === 'undefined'
         ? undefined
         : new ResizeObserver(() => {
-            fit();
-            dirty = [0, 0, canvas.width, canvas.height];
+            if (frame !== 0) {
+              fit();
+              dirty = [0, 0, canvas.width, canvas.height];
+            }
           });
     resized?.observe(canvas);
 
@@ -424,8 +441,7 @@ export default function ScenePointerLayer({
       resized?.disconnect();
       stop();
       cancelAnimationFrame(frame);
-      context.setTransform(1, 0, 0, 1, 0, 0);
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      release();
     };
   }, [gestures, pointer, ambient, pictures]);
 

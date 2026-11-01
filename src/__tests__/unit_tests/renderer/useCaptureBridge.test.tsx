@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { act, cleanup, render } from '@testing-library/react';
-import { Activity, useEffect } from 'react';
+import { useEffect } from 'react';
 import useCaptureBridge from '../../../renderer/audio/useCaptureBridge';
 import { useLiveAudioControl } from '../../../renderer/audio/LiveAudioContext';
 
@@ -51,12 +51,10 @@ const Owner = () => {
   return null;
 };
 
-/** The shell's shape: pages asleep behind the amp, the amp drawn over them. */
+/** The shell's shape: no pages behind the amp, the amp drawn in their place. */
 const Shell = ({ isAmp }: { isAmp: boolean }) => (
   <>
-    <Activity mode={isAmp ? 'hidden' : 'visible'}>
-      <Owner />
-    </Activity>
+    {!isAmp && <Owner />}
     {isAmp && <Owner />}
   </>
 );

@@ -66,12 +66,13 @@ const emptyLibraryAnswer = (
 };
 
 /**
- * What the window does behind the amp: the pages sleep, the players do not.
+ * What the window does behind the amp: the pages are taken down, the players
+ * are not.
  *
  * The EQ page and the karaoke player are probes that say when their effects
- * run and stop, and hold a count of their own, so "asleep" can be told from
- * "thrown away" — a page that sleeps keeps its state, one that is unmounted
- * comes back at zero.
+ * run and stop, and hold a count of their own, so "taken down" can be told
+ * from "asleep" — a page that slept kept its state, one that is taken down
+ * comes back at zero, as it does from a tab switch.
  */
 const mockLog: string[] = [];
 
@@ -116,6 +117,15 @@ jest.mock('../../renderer/karaoke/KaraokeWorkspace', () => {
         'karaoke player',
       );
     },
+  };
+});
+
+// The graph's visualizer stands beside the graph, taken down with it.
+jest.mock('../../renderer/graph/GraphScene', () => {
+  const React = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: () => React.createElement('div', { 'data-testid': 'graph-scene' }),
   };
 });
 
@@ -212,7 +222,7 @@ afterEach(async () => {
 });
 
 describe('the window behind the amp', () => {
-  it('puts the page to sleep and keeps the player playing, then wakes the page as it was', async () => {
+  it('takes the page down and keeps the player playing, then builds the page again', async () => {
     const { unmount } = render(<App />);
     await act(async () => Promise.resolve());
 
@@ -241,14 +251,20 @@ describe('the window behind the amp', () => {
       'true',
     );
 
+    // Not there at all, rather than kept asleep with all it held — the page
+    // and the graph's visualizer alike.
+    expect(screen.queryByRole('button', { name: /eq presses/ })).toBeNull();
+    expect(screen.queryByTestId('graph-scene')).toBeNull();
+
     mockLog.length = 0;
     await announceWindowMode('app');
     expect(screen.queryByTestId('amp')).toBeNull();
     expect(mockLog).toEqual(['eq page awake']);
-    // Woken, not rebuilt: the count it had before the amp is still there.
+    // Built again, as a tab switch builds it: its own count starts over.
     expect(
-      screen.getByRole('button', { name: 'eq presses 1' }),
+      screen.getByRole('button', { name: 'eq presses 0' }),
     ).toBeInTheDocument();
+    expect(screen.getByTestId('graph-scene')).toBeInTheDocument();
     expect(screen.getByTestId('karaoke-player')).toBeInTheDocument();
     expect(outputMirrorResetListeners.size).toBeGreaterThan(0);
     await act(async () => unmount());

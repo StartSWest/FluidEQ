@@ -25,6 +25,7 @@ import {
   currentTrackId,
   queueAtEnd,
 } from './queue';
+import type { IRestoredSession } from './playbackMemory';
 import { isOnLastSong, settleGuesses, uniqueTrackIds } from './upNextRules';
 
 const REPEAT_CYCLE: readonly TLibraryRepeat[] = ['off', 'all', 'one'];
@@ -218,6 +219,24 @@ export const crossfadeDue = (
   state: ILibraryPlayerState,
 ): ILibraryPlayerState =>
   state.queue ? withQueue(state, advanceQueue(state.queue, 1)) : state;
+
+/**
+ * Where the last session left off, put back cued and never started: a
+ * launch, or the window's old copy handed over, must not start music on its
+ * own. Nothing to put back leaves the state as it is.
+ */
+export const restoredState = (
+  state: ILibraryPlayerState,
+  restored: IRestoredSession | undefined,
+): ILibraryPlayerState =>
+  restored
+    ? {
+        ...state,
+        queue: restored.queue,
+        isPlaying: false,
+        restore: { trackId: restored.trackId, positionMs: restored.positionMs },
+      }
+    : state;
 
 /** The deck has the restored song cued; the place it was cued at is spent. */
 export const restoreCued = (
