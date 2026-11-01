@@ -83,6 +83,14 @@ const startRemoteAudioLan = (replay = false) =>
 const joinRemoteAudioLan = (code: string) =>
   ipcRenderer.invoke('remote-audio-lan-join', code) as Promise<ILanSavedJoin>;
 
+/** Links one computer again by hand, with its saved code: true when it is
+ * linked again, false when it could not be reached. */
+const reconnectRemoteAudioLan = (target: {
+  peerId?: string;
+  computerId?: string;
+}) =>
+  ipcRenderer.invoke('remote-audio-lan-reconnect', target) as Promise<boolean>;
+
 /** Ends the link with one computer: by its open link, or by its id. */
 const unlinkRemoteAudioLan = (target: {
   peerId?: string;
@@ -239,6 +247,7 @@ const remoteAudioBridge = {
   startRemoteAudioLan,
   joinRemoteAudioLan,
   unlinkRemoteAudioLan,
+  reconnectRemoteAudioLan,
   retryRemoteAudioLan,
   onRemoteAudioLanResume,
   watchGroupMediaKeys,

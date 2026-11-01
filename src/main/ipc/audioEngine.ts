@@ -16,13 +16,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 import log from 'electron-log';
-import { engineSupportsRoomUpgrade } from '../../common/engineHealth';
+import {
+  engineRunsFootsteps,
+  engineSupportsRoomUpgrade,
+} from '../../common/engineHealth';
 import { engineTakesOutputConfig } from '../../common/outputConfigFiles';
 import {
+  hasFootsteps,
   hasPresetTone,
   hasRoomTrailer,
   legacyChainWithoutInactiveRoom,
   isChainWirePayload,
+  withoutFootsteps,
   withoutPresetTone,
 } from '../../common/dsp/chainWire';
 import { engineTakesPresetTone } from '../../common/dsp/presetTone';
@@ -280,6 +285,19 @@ export const registerAudioEngineIpc = ({
       return engineTakesPresetTone(await installedEngineVersion());
     } catch (error) {
       log.warn('Sending the rack without its curve: no engine version', error);
+      return false;
+    }
+  };
+  /**
+   * Whether the installed engine runs Footsteps. Answered no where the
+   * version cannot be read, for the curve's reason: a line without the
+   * stage plays the rest of the rack, a line refused plays none of it.
+   */
+  const takesFootsteps = async (): Promise<boolean> => {
+    try {
+      return engineRunsFootsteps(await installedEngineVersion());
+    } catch (error) {
+      log.warn('Sending the rack without Footsteps: no engine version', error);
       return false;
     }
   };
@@ -780,6 +798,9 @@ export const registerAudioEngineIpc = ({
         return;
       }
       let supportedValues = values;
+      if (hasFootsteps(supportedValues) && !(await takesFootsteps())) {
+        supportedValues = withoutFootsteps(supportedValues);
+      }
       if (hasPresetTone(supportedValues) && !(await takesPresetTone())) {
         supportedValues = withoutPresetTone(supportedValues);
       }
@@ -853,4 +874,8 @@ export const registerAudioEngineIpc = ({
       refuse(event, channel, ErrorCode.FAILURE);
     }
   });
+
+  // The flushes write every output's rack too, and must ask the same cached
+  // read as this file's own writes (`IMainSession.installedEngineVersion`).
+  return { installedEngineVersion };
 };

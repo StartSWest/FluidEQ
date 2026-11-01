@@ -29,6 +29,7 @@ import {
   IMaximizerSettings,
 } from './chainStageSettings';
 import type { IDeEsserSettings } from './deEsser';
+import type { IFootstepsSettings } from './footsteps';
 
 // The rest of the rack's settings - the Master, the EQ and its bands, the
 // Room, surround - and IDspSettings, the whole rack as one value. chain.ts
@@ -397,6 +398,8 @@ export interface IDspSettings {
   deEsser: IDeEsserSettings;
   crossfade: ICrossfadeSettings;
   eq: IEqSettings;
+  /** Footsteps, between the EQ and Bass Punch (`footsteps.ts`). */
+  footsteps: IFootstepsSettings;
   exciter: IExciterSettings;
   bassForge: IBassForgeSettings;
   bassPunch: IBassPunchSettings;

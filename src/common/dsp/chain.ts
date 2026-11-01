@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import clampDeEsserSettings from './deEsserClamp';
+import clampFootstepsSettings from './footstepsClamp';
 import { clampCrossfadeShape } from './crossfadeShape';
 
 import { isTrebleDesign } from '../filterDesign';
@@ -68,6 +69,7 @@ import {
 export { DSP_DEFAULTS, EQ_RACK_SIZES, buildEqRack } from './chainDefaults';
 export { DE_ESSER_MODES } from './deEsser';
 export type { IDeEsserSettings, TDeEsserMode } from './deEsser';
+export type { IFootstepsSettings } from './footsteps';
 export {
   EQ_BAND_COUNT,
   EQ_ENGINES,
@@ -660,6 +662,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       ),
     },
     deEsser: clampDeEsserSettings(value.deEsser),
+    footsteps: clampFootstepsSettings(value.footsteps),
     bassPunch: {
       enabled: clampBoolean(bassPunch.enabled, DSP_DEFAULTS.bassPunch.enabled),
       isolate: clampBoolean(bassPunch.isolate, DSP_DEFAULTS.bassPunch.isolate),

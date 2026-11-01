@@ -45,6 +45,7 @@ std::vector<std::pair<std::string, unsigned>> latency_parts_of(
       {"exciter", 0u},
       {"bassForge", 0u},
       {"linearEq", parts.rack.eq},
+      {"footsteps", 0u},
       {"bassPunch", parts.rack.bass_punch},
       {"room", parts.rack.room},
       {"dimension", 0u},

@@ -62,6 +62,7 @@ const remoteAudio = {
   'remoteAudio.linked.paused': '已暫停',
   'remoteAudio.linked.lossless': '無損',
   'remoteAudio.linked.unlink': '取消連結',
+  'remoteAudio.linked.reconnect': '重新連線',
   'remoteAudio.linked.pause': '暫停',
   'remoteAudio.linked.resume': '繼續',
   'remoteAudio.lane.inPaused': '暫停了。在您恢復之前，這裡不會播放任何內容。',
@@ -85,6 +86,8 @@ const remoteAudio = {
   'remoteAudio.lane.receiving': '接收',
   'remoteAudio.lane.paused': '已暫停',
   'remoteAudio.lane.inQuiet': '{name} 上沒有播放任何內容',
+  'remoteAudio.lane.reconnecting': '正在重新連線…',
+  'remoteAudio.lane.unreachable': '在此網路中找不到 {name}',
   'remoteAudio.lane.inOff': '關閉：{name} 的聲音在此電腦上不播放。',
   'remoteAudio.lane.inNotSent': '{name} 已關閉「傳送我的聲音」。',
   'remoteAudio.lane.inOld':

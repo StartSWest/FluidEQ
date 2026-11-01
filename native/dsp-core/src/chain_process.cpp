@@ -160,6 +160,10 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
                                   : FEQ_METER_MAX_BANDS));
   }
 
+  // Footsteps after the EQ and before Punch and the Room: see
+  // `chain_footsteps.cpp` for why it stands exactly there.
+  chain_process_footsteps(chain, channels, frames);
+
   /**
    * Punch after the EQ and before the level stages: shaped, then controlled.
    *

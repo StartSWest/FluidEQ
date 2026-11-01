@@ -40,6 +40,12 @@ import {
 } from './deEsserPresets';
 import type { IDeEsserSettings } from './deEsser';
 import {
+  FOOTSTEPS_PRESETS,
+  IFootstepsPreset,
+  footstepsSettingsOf,
+} from './footstepsPresets';
+import type { IFootstepsSettings } from './footsteps';
+import {
   DIMENSION_PRESETS,
   IDimensionPreset,
   dimensionSettingsOf,
@@ -138,3 +144,9 @@ export const DE_ESSER_CATALOGUE: IStageCatalogue<
   IDeEsserPreset,
   IDeEsserSettings
 > = catalogue(DE_ESSER_PRESETS, [], deEsserSettingsOf);
+
+/** Nor does Footsteps: it is for a game, which no genre rack is. */
+export const FOOTSTEPS_CATALOGUE: IStageCatalogue<
+  IFootstepsPreset,
+  IFootstepsSettings
+> = catalogue(FOOTSTEPS_PRESETS, [], footstepsSettingsOf);

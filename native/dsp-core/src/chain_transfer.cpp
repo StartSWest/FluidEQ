@@ -114,6 +114,10 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   // What the De-esser is hearing, holding and cutting; the prepared chain
   // keeps the layout it was configured with (`feq_deesser_transfer`).
   feq_deesser_transfer(prepared.deesser, previous.deesser);
+  // What Footsteps has learnt of the bed and is lifting now: an edit of any
+  // dial in the rack must not start it learning again, or every turn of a
+  // knob would hold the lift off for 0.4 s.
+  feq_footsteps_transfer(prepared.footsteps, previous.footsteps);
   swap(prepared.bass_punch_low, previous.bass_punch_low);
   swap(prepared.bass_punch_bloom, previous.bass_punch_bloom);
   swap(prepared.bass_punch_bloom_pointers, previous.bass_punch_bloom_pointers);

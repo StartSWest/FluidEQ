@@ -18,6 +18,7 @@ import { denoisePresetSettings } from './denoisePresets';
 import { dimensionPresetSettings } from './dimensionPresets';
 import { EQ_PRESETS, eqSettingsForPreset } from './eqPresets';
 import { exciterPresetSettings } from './exciterPresets';
+import { footstepsPresetSettings } from './footstepsPresets';
 import { IGenreRack, TGenreStage, inGenreChain } from './genreRack';
 import { GENRE_RACKS, genreChainId, genreLabelKey } from './genres';
 import { TMasterPresetId, masterPresetSettings } from './masterPresets';
@@ -149,6 +150,9 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
     deEsser: recipe.deEsser
       ? deEsserPresetSettings(recipe.deEsser, true)
       : DSP_DEFAULTS.deEsser,
+    footsteps: recipe.footsteps
+      ? footstepsPresetSettings(recipe.footsteps, true)
+      : DSP_DEFAULTS.footsteps,
     exciter: recipe.exciter
       ? exciterPresetSettings(recipe.exciter, true)
       : DSP_DEFAULTS.exciter,

@@ -63,6 +63,7 @@ const remoteAudio = {
   'remoteAudio.linked.paused': '일시중지됨',
   'remoteAudio.linked.lossless': '무손실',
   'remoteAudio.linked.unlink': '연결 해제',
+  'remoteAudio.linked.reconnect': '다시 연결',
   'remoteAudio.linked.pause': '일시 정지',
   'remoteAudio.linked.resume': '계속',
   'remoteAudio.lane.inPaused':
@@ -89,6 +90,8 @@ const remoteAudio = {
   'remoteAudio.lane.receiving': '수신',
   'remoteAudio.lane.paused': '일시중지됨',
   'remoteAudio.lane.inQuiet': '{name}에서 재생 중인 항목이 없습니다.',
+  'remoteAudio.lane.reconnecting': '다시 연결하는 중…',
+  'remoteAudio.lane.unreachable': '이 네트워크에서 {name}을(를) 찾을 수 없음',
   'remoteAudio.lane.inOff':
     '꺼짐: {name}의 사운드가 이 컴퓨터에서 재생되지 않습니다.',
   'remoteAudio.lane.inNotSent': '{name}에는 "내 소리 보내기"가 꺼져 있습니다.',
