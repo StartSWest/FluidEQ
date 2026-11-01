@@ -480,7 +480,10 @@ const isAudioDevicesReply = (
 export const subscribeAudioDevices = (
   listener: (reading: Promise<IAudioDevice[]>) => void,
 ): (() => void) => {
-  const off = window.electron?.ipcRenderer.on(
+  // Optional like the bridge's other calls: a partial bridge (a test's, a
+  // preload from before this push) has no `on`, and calling it anyway threw
+  // out of whichever effect subscribed — Share Audio's whole provider with it.
+  const off = window.electron?.ipcRenderer?.on?.(
     ChannelEnum.AUDIO_DEVICES_CHANGED,
     (payload: unknown) => {
       // Main builds this in one place (`followOutputs`) with the reply's own
