@@ -1,20 +1,58 @@
 /* FluidEQ — GPL-3.0-or-later */
 
 import { app, type BrowserWindow, type MessagePortMain } from 'electron';
-import log from 'electron-log';
-import {
-  MAC_AUDIO_CAPTURE_PORT,
-  type TMacAudioCaptureMessage,
-} from '../../common/macAudioCapture';
-import type { ISystemSound } from '../../core/systemSound/systemSound';
+import { MAC_AUDIO_CAPTURE_PORT } from '../../common/macAudioCapture';
+import type { ICorePort } from '../../core/process/coreServices';
 import onWindowMessage from '../ipc/windowMessages';
+
+/** The name the window's Mac capture configures its receiver with. */
+const MAC_LOOPBACK_PEER = 'mac-loopback';
+
+interface IMacPort extends ICorePort {
+  /** Main ends it: replaced by a newer port, or the app quitting. */
+  end(): void;
+}
+
+/**
+ * The window's Mac port as the core's services see it: every block named as
+ * the Mac's own loopback, which is the peer the window's receiver is
+ * configured for (`macSystemOutputCapture.ts`), and ended either by the
+ * window's end going or by main.
+ */
+const macPort = (port: MessagePortMain): IMacPort => {
+  const closers = new Set<() => void>();
+  let isEnded = false;
+  const end = () => {
+    if (isEnded) {
+      return;
+    }
+    isEnded = true;
+    closers.forEach((close) => close());
+  };
+  port.on('close', end);
+  return {
+    postMessage: (message) => {
+      const push = message as { kind?: unknown };
+      port.postMessage(
+        push?.kind === 'push'
+          ? { ...push, peerId: MAC_LOOPBACK_PEER }
+          : message,
+      );
+    },
+    on: (_event, listener) => closers.add(listener),
+    start: () => port.start(),
+    close: () => port.close(),
+    end,
+  };
+};
 
 /**
  * The window's live displays on the Mac, through a port the window hands
  * over. What it carries is the core's sound — the one tap every listener
- * shares (`core/platform/macos/monitorTapSource.ts`) — so the graph never
- * opens a second tap beside the one the desktop backgrounds and the song
- * memories' clock already hear.
+ * shares (`core/platform/macos/monitorTapSource.ts`), heard by the core's
+ * services in main because main holds the lease on the Mac helper — so the
+ * graph never opens a second tap beside the one the desktop backgrounds and
+ * the song memories' clock already hear.
  *
  * The transferred port owns its listening, including renderer loss and
  * reloads: a new port replaces the old, and a port that closes stops
@@ -22,12 +60,12 @@ import onWindowMessage from '../ipc/windowMessages';
  */
 const registerMacMonitorIpc = (
   getWindow: () => BrowserWindow | null,
-  systemSound: ISystemSound,
+  attach: (port: ICorePort, gone: () => void) => void,
 ) => {
   if (process.platform !== 'darwin') {
     return;
   }
-  let active: { port: MessagePortMain; close(): void } | undefined;
+  let active: IMacPort | undefined;
   onWindowMessage(MAC_AUDIO_CAPTURE_PORT, (event) => {
     const window = getWindow();
     const [port] = event.ports;
@@ -42,64 +80,16 @@ const registerMacMonitorIpc = (
       event.ports.forEach((candidate) => candidate.close());
       return;
     }
-    let closed = false;
-    let heard = false;
-    let stopListening: (() => void) | undefined;
-    const close = () => {
-      if (closed) {
-        return;
-      }
-      closed = true;
-      if (active?.port === port) {
+    active?.end();
+    const wrapped = macPort(port);
+    active = wrapped;
+    attach(wrapped, () => {
+      if (active === wrapped) {
         active = undefined;
       }
-      stopListening?.();
-      stopListening = undefined;
-    };
-    const post = (value: TMacAudioCaptureMessage) => {
-      if (closed) {
-        return;
-      }
-      try {
-        port.postMessage(value);
-      } catch (error) {
-        log.warn('Mac analyser port closed during delivery', error);
-        close();
-        port.close();
-      }
-    };
-    const previous = active;
-    previous?.close();
-    previous?.port.close();
-    active = { port, close };
-    port.on('close', close);
-    port.start();
-    const listening = systemSound.listen({
-      ready: () => {
-        heard = true;
-        post({ kind: 'ready' });
-      },
-      audio: (block) =>
-        post({ kind: 'push', ...block, peerId: 'mac-loopback' }),
-      // Before any sound, the tap could not open; after, it stopped.
-      lost: () => {
-        post({ kind: heard ? 'lost' : 'failed' });
-        close();
-        port.close();
-      },
     });
-    // Lost before `listen` returned: nothing is left to stop.
-    if (closed) {
-      listening();
-    } else {
-      stopListening = listening;
-    }
   });
-  app.once('will-quit', () => {
-    const current = active;
-    current?.close();
-    current?.port.close();
-  });
+  app.once('will-quit', () => active?.end());
 };
 
 export default registerMacMonitorIpc;

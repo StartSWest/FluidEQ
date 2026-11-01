@@ -126,13 +126,12 @@ import { registerEngineHealthIpc } from './ipc/engineHealth';
 import { registerLightingIpc } from './ipc/lighting';
 import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import registerSystemSoundPort from './ipc/systemSoundPort';
-import { createSystemSound } from '../core/systemSound/systemSound';
-import { createPlatformSystemSoundSource } from '../core/platform/systemSoundSource';
 import { createMacMonitorSource } from '../core/platform/macos/monitorTapSource';
+import { createCoreServices } from '../core/process/coreServices';
 import { startMacMonitorCapture } from './macEngine/macNetworkCapture';
-import { createDesktopSound } from '../core/liveFrames/desktopSound';
+import { createLocalCoreClient } from './coreProcess/coreClient';
 import { createKeptFile } from '../core/files/keptFile';
-import { createApoHeadroom } from '../core/headroom/apoHeadroom';
+import createCoreClient from './coreProcess/coreHost';
 import {
   NO_KEPT_GAMES,
   parseKeptDspPresets,
@@ -680,29 +679,37 @@ registerNativeDialogsIpc();
 registerWindowsAudioIpc();
 
 /**
- * What the speakers play, heard by the core (`src/core/systemSound`) and
- * handed to the window's live displays over a port the window opens — in
- * place of the screen-share capture Chromium needed a process of its own for.
+ * What the speakers play, heard by the core in a process of its own —
+ * "FluidEQ Core", running only while something needs to hear the output
+ * (`coreProcess/coreClient.ts`). It feeds the window's live displays over a
+ * port the window opens, in place of the screen-share capture Chromium needed
+ * a process of its own for; the desktop backgrounds' frames, so a background
+ * behind a minimised FluidEQ needs nothing of the window; the song memories'
+ * clocks; and Auto normalize on Equalizer APO, whose trims main writes.
  */
-const systemSound = createSystemSound(
-  // The Mac hears through its helper's tap, which main holds the lease on.
+// The Mac hears through its helper's tap, which main holds the lease on, so
+// its core's services run in main, on that tap; every other platform's in a
+// process of their own.
+const macCore =
   process.platform === 'darwin'
-    ? createMacMonitorSource(startMacMonitorCapture, log)
-    : createPlatformSystemSoundSource({
-        nativeDirs: [
-          path.join(process.resourcesPath, 'native'),
-          path.join(__dirname, '../../native/.build/bin'),
-        ],
+    ? createCoreServices({
+        source: createMacMonitorSource(startMacMonitorCapture, log),
         log,
-      }),
-);
-registerSystemSoundPort(getMainWindow, systemSound);
-/**
- * The same sound, made into the desktop backgrounds' frames by the core
- * itself, so a background behind a minimised FluidEQ needs nothing of the
- * window (`desktopSound.ts`).
- */
-const desktopSound = createDesktopSound(systemSound);
+        applyTrim: preamp.applyHeadroomTrim,
+      })
+    : undefined;
+const core = macCore
+  ? createLocalCoreClient(macCore)
+  : createCoreClient({
+      nativeDirs: [
+        path.join(process.resourcesPath, 'native'),
+        path.join(__dirname, '../../native/.build/bin'),
+      ],
+      applyTrim: preamp.applyHeadroomTrim,
+      log,
+    });
+registerSystemSoundPort(getMainWindow, core.attachWindowPort);
+const { desktopSound } = core;
 
 /**
  * The window's lists the core acts on with no window to ask: the game
@@ -809,7 +816,7 @@ const songMemory = createSongMemory({
       mainWindow.webContents.send(SONG_MEMORY_CHANNEL.status, status);
     }
   },
-  systemSound,
+  createClock: core.createClock,
 });
 registerSongMemoryIpc({ getMainWindow, memory: songMemory });
 
@@ -859,7 +866,7 @@ const songEq = createSongEqMemory({
       moved: [],
     }),
   tellWindowStatus: (status) => sendToWindow(SONG_EQ_CHANNEL.status, status),
-  systemSound,
+  createClock: core.createClock,
 });
 registerSongEqIpc({ getMainWindow, memory: songEq });
 const smartEq = createSmartEqRunner({
@@ -923,10 +930,7 @@ registerNowPlayingIpc({
 });
 
 /** Auto normalize on Equalizer APO, heard and decided by the core. */
-const apoHeadroom = createApoHeadroom({
-  systemSound,
-  applyTrim: preamp.applyHeadroomTrim,
-});
+const { apoHeadroom } = core;
 
 /**
  * The parts of the chain an edit to which makes Auto normalize look again,
@@ -1012,7 +1016,9 @@ registerSystemMediaIpc({ onMedia: songProgramme.onMedia });
 const macEngine = createMacEngine();
 app.on('will-quit', () => macEngine.stop());
 registerMacPermissionIpc();
-registerMacMonitorIpc(getMainWindow, systemSound);
+registerMacMonitorIpc(getMainWindow, (port, gone) =>
+  macCore?.attachWindowPort(port, gone),
+);
 registerMacKeychainIpc(getMainWindow);
 
 // Every switch between the app and the player is written down at once — a
@@ -1498,6 +1504,8 @@ app.on('before-quit', (event) => {
       // engine is turned off underneath it.
       .then(() => libraryPlayer.close())
       .catch((error) => log.error('The Library player could not close', error))
+      // Its listening helper goes with it.
+      .then(() => core.close())
       .then(() =>
         Promise.all([flushPendingWrites(), memoryTrace.stopMemoryTrace()]),
       )

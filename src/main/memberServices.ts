@@ -21,7 +21,7 @@ import { app, BrowserWindow } from 'electron';
 import log from 'electron-log';
 import path from 'path';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
-import type { IDesktopSound } from '../core/liveFrames/desktopSound';
+import type { IDesktopSoundClient } from './coreProcess/coreClient';
 import { startMainAddons } from './addons';
 import { appVersion } from './appVersion';
 import { registerAccountIpc } from './ipc/account';
@@ -57,7 +57,7 @@ export interface IMemberServicesDeps {
   getMainWindow: () => BrowserWindow | null;
   userDataDir: string;
   /** The music the desktop backgrounds move to, heard by the core. */
-  desktopSound: IDesktopSound;
+  desktopSound: IDesktopSoundClient;
 }
 
 /**

@@ -21,8 +21,7 @@ import type {
   ISongEqStatus,
   TSongEqAction,
 } from '../common/songEqStatus';
-import createHeardClock from '../core/systemSound/heardClock';
-import type { ISystemSound } from '../core/systemSound/systemSound';
+import type { TCreateHeardClock } from '../core/process/coreServices';
 import type { ISongEqEntries } from './songEqEntries';
 
 /**
@@ -52,7 +51,8 @@ export interface ISongEqMemoryDeps {
   /** A remembered layer, or the one it was lent over, is on: draw it. */
   tellWindowLayer: (layer: ISmartEqSettings | undefined) => void;
   tellWindowStatus: (status: ISongEqStatus) => void;
-  systemSound: ISystemSound;
+  /** A clock of the output's sound, heard only to count time while a song waits. */
+  createClock: TCreateHeardClock;
 }
 
 /** What the core reads after every update. */
@@ -69,7 +69,7 @@ export const createSongEqMemory = ({
   editedDevice,
   tellWindowLayer,
   tellWindowStatus,
-  systemSound,
+  createClock,
 }: ISongEqMemoryDeps) => {
   let recorder: ISongEqRecorderState = getInitialRecorderState();
   let followed: ISongEqFollowed | undefined;
@@ -87,8 +87,7 @@ export const createSongEqMemory = ({
   // Declared before the clock, which answers through it.
   let dispatch: (event: TSongEqEvent) => void;
 
-  const clock = createHeardClock({
-    systemSound,
+  const clock = createClock({
     secondsPerStep: SECONDS_PER_TICK,
     onStep: () => dispatch({ kind: 'tick' }),
     onLost: () => sayStatus(),

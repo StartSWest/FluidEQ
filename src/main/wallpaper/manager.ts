@@ -23,7 +23,7 @@ import {
   sameScenePerformance,
   type IScenePerformance,
 } from '../../common/scenePerformance';
-import type { IDesktopSound } from '../../core/liveFrames/desktopSound';
+import type { IDesktopSoundClient } from '../coreProcess/coreClient';
 import type { ISceneOwnership } from '../plus/sceneOwnership';
 import { isSceneFailure } from '../scenePackStore';
 import {
@@ -51,7 +51,7 @@ export interface IWallpaperDeps extends IWallpaperScenes {
    * The music the backgrounds move to, heard by the core; the window is
    * asked only when the core cannot hear it (`desktopSound.ts`).
    */
-  desktopSound: IDesktopSound;
+  desktopSound: IDesktopSoundClient;
 }
 
 /** Failures a monitor changing shape may clear. */
@@ -752,7 +752,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
         return undefined;
       }
       if (heardByCore()) {
-        return Promise.resolve(deps.desktopSound.read());
+        return deps.desktopSound.read();
       }
       const owner = ownerContents();
       return owner ? relay.request(owner) : undefined;

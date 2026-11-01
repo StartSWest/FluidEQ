@@ -57,7 +57,10 @@ const workerEntry = (): string | undefined => {
   const candidates = app.isPackaged
     ? [path.join(__dirname, 'library-scan-worker.js')]
     : [
-        path.join(__dirname, '../../.erb/dll/library-scan-worker.js'),
+        // Three folders up from `src/main/library`: written two up, as
+        // `mainWindow.ts` one level higher writes it, it named a folder that
+        // does not exist, and every scan in development ran inside main.
+        path.join(__dirname, '../../../.erb/dll/library-scan-worker.js'),
         path.join(__dirname, 'library-scan-worker.js'),
       ];
   return candidates.find((candidate) => fs.existsSync(candidate));

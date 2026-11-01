@@ -37,6 +37,7 @@ jest.mock('../../../main/wallpaper/surface', () => mockSurfaceModule());
 
 /* eslint-disable import/first -- install the mocks first */
 import { createDesktopSound } from '../../../core/liveFrames/desktopSound';
+import { desktopSoundClientOf } from '../../../main/coreProcess/coreClient';
 import { createWallpaperManager } from '../../../main/wallpaper/manager';
 import registerWallpaperIpc from '../../../main/wallpaper/register';
 /* eslint-enable import/first */
@@ -58,7 +59,9 @@ const withCore = (canHear: boolean) => {
     },
   };
   const harness = setup();
-  harness.deps.desktopSound = createDesktopSound(systemSound);
+  harness.deps.desktopSound = desktopSoundClientOf(
+    createDesktopSound(systemSound),
+  );
   return { ...harness, runs };
 };
 

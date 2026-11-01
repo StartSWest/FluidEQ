@@ -23,8 +23,7 @@ import type {
   TSongMemoryNoticeContent,
 } from '../common/songMemoryStatus';
 import type { IKeptFile } from '../core/files/keptFile';
-import createHeardClock from '../core/systemSound/heardClock';
-import type { ISystemSound } from '../core/systemSound/systemSound';
+import type { TCreateHeardClock } from '../core/process/coreServices';
 import { IMainSession, outputEditorOf } from './mainSession';
 import { createSongSoundLending } from './songSoundLending';
 import type { ISongSoundMemory } from './songSoundMemory';
@@ -42,8 +41,8 @@ export interface ISongMemoryDeps {
   /** The window reads the edited output's sound again. */
   tellWindowSound: () => void;
   tellWindowStatus: (status: ISongMemoryStatus) => void;
-  /** The output's sound, heard only to count time while a song waits. */
-  systemSound: ISystemSound;
+  /** A clock of the output's sound, heard only to count time while a song waits. */
+  createClock: TCreateHeardClock;
 }
 
 /** How much heard time is one step of the memory's clock. */
@@ -82,7 +81,7 @@ export const createSongMemory = ({
   update,
   tellWindowSound,
   tellWindowStatus,
-  systemSound,
+  createClock,
 }: ISongMemoryDeps) => {
   let isChosenOn = isOn.read() ?? false;
   let isHeld = false;
@@ -129,8 +128,7 @@ export const createSongMemory = ({
     }
   };
 
-  const clock = createHeardClock({
-    systemSound,
+  const clock = createClock({
     secondsPerStep: SECONDS_PER_TICK,
     onStep: () => {
       dispatch({ kind: 'tick' }).catch(() => undefined);

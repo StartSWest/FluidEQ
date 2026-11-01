@@ -272,7 +272,7 @@ export const setup = (stored?: IWallpaperArrangement) => {
       want: jest.fn(),
       outputChanged: jest.fn(),
       serves: () => false,
-      read: () => ({ points: [], waveform: [] }),
+      read: () => Promise.resolve({ points: [], waveform: [] }),
       onServesChanged: () => () => undefined,
     },
     ...scenes,

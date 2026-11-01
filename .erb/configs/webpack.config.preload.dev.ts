@@ -109,6 +109,10 @@ const workers: webpack.Configuration = {
       webpackPaths.srcMainPath,
       'library/scanWorker.ts',
     ),
+    'core-process': path.join(
+      webpackPaths.srcPath,
+      'core/process/coreProcess.ts',
+    ),
   },
 };
 

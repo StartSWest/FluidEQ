@@ -27,6 +27,7 @@ import { dspPresetSettings } from '../../../common/dsp/presets';
 import { buildSongIdentity } from '../../../common/songIdentity';
 import type { ISongSound } from '../../../common/songSound';
 import type { ISongMemoryStatus } from '../../../common/songMemoryStatus';
+import createHeardClock from '../../../core/systemSound/heardClock';
 import type {
   ISystemSound,
   ISystemSoundListener,
@@ -215,7 +216,7 @@ describe('the song memory in the core', () => {
       },
       tellWindowSound,
       tellWindowStatus: (status) => statuses.push(status),
-      systemSound,
+      createClock: (options) => createHeardClock({ systemSound, ...options }),
     });
   };
 
