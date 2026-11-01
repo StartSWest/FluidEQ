@@ -141,6 +141,7 @@ export interface IProfilesIpcDeps {
     outputDspOverrides?: IMainSession['outputDspOverrides'];
     outputStateOverrides?: IMainSession['outputStateOverrides'];
     systemRackEnabled?: IMainSession['systemRackEnabled'];
+    installedEngineVersion?: IMainSession['installedEngineVersion'];
     secondOutputDevices?: IAudioDevice[];
     hasActiveSessionOverride: boolean;
     audioEngine: TAudioEngine | null;

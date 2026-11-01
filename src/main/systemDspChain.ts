@@ -42,9 +42,11 @@ import {
 } from '../common/outputConfigFiles';
 import {
   gameModeOnWire,
+  hasFootsteps,
   hasPresetTone,
   hasRoomTrailer,
   roomHeadOnWire,
+  withoutFootsteps,
 } from '../common/dsp/chainWire';
 import { scheduleWrite, scheduleWriteOperation } from './asyncWriter';
 import { writeRoomHead, writeLegacyRoomHead } from './roomHead';
@@ -73,12 +75,14 @@ export const formatSystemDspChain = (
   const gaming = gameModeOnWire(values);
   // A Room-capable engine requires the fixed Game word before its trailer,
   // and so does one that reads the preset's curve (only ever sent to one,
-  // `SET_SYSTEM_DSP_CHAIN`). Only the legacy optional word may be removed for
-  // old engines.
+  // `SET_SYSTEM_DSP_CHAIN`) or Footsteps. Only the legacy optional word may
+  // be removed for old engines: with a trailer behind it, the last value is
+  // the trailer's, and cutting it made a line the engine refuses whole.
   const compatible =
     gaming &&
     !acceptsGameWord &&
     !hasRoomTrailer(values) &&
+    !hasFootsteps(values) &&
     !hasPresetTone(values)
       ? values.slice(0, -1)
       : values;
@@ -101,6 +105,10 @@ export const formatSystemDspChain = (
  * The room's head goes beside it, from the same message. An output's whole
  * snapshot is serialized, including its asynchronous asset/capability reads,
  * so a slower earlier request cannot replace either half of a newer one.
+ * `keepFootsteps` is one of those reads: asked inside the operation, after
+ * the request is registered, never before the call — a flush that waited on
+ * it first could register after a newer one and write over it. It must not
+ * reject; a line without the trailer is the answer when nothing is known.
  */
 const pendingWrites = new Map<string, object>();
 
@@ -110,6 +118,7 @@ const writeChainFile = async (
   values: number[],
   writeHead: () => Promise<void>,
   endpoint?: string,
+  keepFootsteps?: () => Promise<boolean>,
 ): Promise<void> => {
   const target = path.resolve(configDirPath, filename);
   const filePath = process.platform === 'win32' ? target.toLowerCase() : target;
@@ -121,11 +130,14 @@ const writeChainFile = async (
       if (pendingWrites.get(filePath) !== request) {
         return;
       }
-      const [, health] = await Promise.all([
+      const [, health, footsteps] = await Promise.all([
         writeHead(),
         gameModeOnWire(snapshot)
           ? readEngineHealth(path.dirname(configDirPath))
           : Promise.resolve(undefined),
+        keepFootsteps && hasFootsteps(snapshot)
+          ? keepFootsteps()
+          : Promise.resolve(true),
       ]);
       if (pendingWrites.get(filePath) !== request) {
         return;
@@ -142,7 +154,10 @@ const writeChainFile = async (
         ) ?? false;
       await scheduleWrite(
         filePath,
-        formatSystemDspChain(snapshot, acceptsGameWord),
+        formatSystemDspChain(
+          footsteps ? snapshot : withoutFootsteps(snapshot),
+          acceptsGameWord,
+        ),
       );
     });
   } finally {
@@ -152,11 +167,17 @@ const writeChainFile = async (
   }
 };
 
+/**
+ * `keepFootsteps` decides, in the write's own turn, whether the installed
+ * engine takes Footsteps' trailer (`writeChainFile`); without it the line
+ * is written as given.
+ */
 export const writeSystemDspChain = async (
   configDirPath: string,
   values: number[],
   endpoint?: string,
   designs?: IOutputDesigns,
+  keepFootsteps?: () => Promise<boolean>,
 ): Promise<void> => {
   const guid = outputConfigGuid(endpoint ?? '');
   const filename = outputConfigFileName('dsp', endpoint ?? '');
@@ -178,6 +199,7 @@ export const writeSystemDspChain = async (
       ]);
     },
     guid,
+    keepFootsteps,
   );
 };
 

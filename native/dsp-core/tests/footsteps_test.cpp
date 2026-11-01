@@ -24,72 +24,28 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/chain.h"
 #include "fluideq/footsteps.h"
 #include "footsteps_scene.h"
+#include "footsteps_test_support.h"
 
 namespace {
 
 using feq_footsteps_test::band_gain_db;
-using feq_footsteps_test::Event;
+using feq_footsteps_test::competitive;
+using feq_footsteps_test::front_gain;
 using feq_footsteps_test::Kind;
+using feq_footsteps_test::kDirectS;
+using feq_footsteps_test::kStepsHz;
+using feq_footsteps_test::kStepsQ;
+using feq_footsteps_test::kTailFromS;
+using feq_footsteps_test::kTailToS;
 using feq_footsteps_test::make_scene;
 using feq_footsteps_test::Parts;
+using feq_footsteps_test::quiet_steps;
+using feq_footsteps_test::run;
 using feq_footsteps_test::Scene;
+using feq_footsteps_test::starts;
 using feq_test::check;
 using feq_test::identical;
 using feq_test::Signal;
-
-constexpr double kStepsHz = 2400.0;
-constexpr double kStepsQ = 0.75;
-/** Where a sound's front is measured, and where its echo is. */
-constexpr double kDirectS = 0.06;
-constexpr double kTailFromS = 0.2;
-constexpr double kTailToS = 0.34;
-
-FeqFootstepsSettings competitive() {
-  FeqFootstepsSettings settings{};
-  feq_footsteps_settings_defaults(&settings);
-  settings.enabled = 1;
-  return settings;
-}
-
-uint32_t block_for(double rate) {
-  return static_cast<uint32_t>(480.0 * rate / 48000.0);
-}
-
-/** A signal through a stage, a block at a time; what came out. */
-Signal run(const Signal& in, double rate, const FeqFootstepsSettings& settings) {
-  FeqFootsteps* stage = feq_footsteps_create(rate, 2);
-  feq_footsteps_configure(stage, &settings);
-  Signal out = in;
-  const uint32_t block = block_for(rate);
-  for (size_t at = 0; at + block <= out.left.size(); at += block) {
-    float* channels[2] = {out.left.data() + at, out.right.data() + at};
-    feq_footsteps_process(stage, channels, block);
-  }
-  feq_footsteps_destroy(stage);
-  return out;
-}
-
-std::vector<double> starts(const Scene& scene, Kind kind) {
-  std::vector<double> at;
-  for (const Event& event : scene.events) {
-    if (event.kind == kind) at.push_back(event.at);
-  }
-  return at;
-}
-
-double front_gain(const Scene& scene, const Signal& out, double at) {
-  return band_gain_db(scene.mix, out, scene.rate, kStepsHz, kStepsQ, at,
-                      at + kDirectS);
-}
-
-/** The first run of steps, in the rain and nothing else, 0.7 to 3 s. */
-std::vector<double> quiet_steps(const Scene& scene) {
-  std::vector<double> at;
-  for (const double t : starts(scene, Kind::kStep)) {
-    if (t < 3.0) at.push_back(t);
-  }
-  return at;
-}
 
 void steps_come_up_and_loud_sounds_do_not() {
   std::printf("steps come up, shots and the blast do not\n");

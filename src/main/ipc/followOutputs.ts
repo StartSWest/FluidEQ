@@ -105,6 +105,7 @@ export const createOutputFollower = ({
           dspOverrides: session.outputDspOverrides,
           stateOverrides: session.outputStateOverrides,
           systemRackEnabled: session.systemRackEnabled,
+          engineVersion: session.installedEngineVersion,
         },
       );
     } catch (error) {

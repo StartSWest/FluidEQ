@@ -263,6 +263,7 @@ export const registerEngineServices = ({
         dspOverrides: new Map([[edit.deviceId, edit.settings]]),
         stateOverrides: session.outputStateOverrides,
         systemRackEnabled: session.systemRackEnabled,
+        engineVersion: session.installedEngineVersion,
       });
     },
     isApoOnAnyOutput,
@@ -281,6 +282,7 @@ export const registerEngineServices = ({
     automatic: automaticSetup,
     onSwitched: onEngineSwitched,
   });
+  session.installedEngineVersion = engineIpc.installedEngineVersion;
 
   return { apoGuard, writeLegacyRack: engineIpc.writeLegacyRack };
 };

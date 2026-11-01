@@ -223,6 +223,8 @@ export const flushDeviceProfiles = (
         /** APO needs the live EQ states too, but never writes native rack files. */
         writeDsp?: boolean;
         dllVersion?: string;
+        /** The installed engine, for Footsteps (`IOutputDspFlush`). */
+        engineVersion?: () => Promise<string | undefined>;
         systemRackEnabled?: (deviceId: string) => boolean;
       }
     | undefined = undefined,

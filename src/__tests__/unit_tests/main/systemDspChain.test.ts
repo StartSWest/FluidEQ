@@ -135,6 +135,30 @@ describe('the system-wide DSP chain file', () => {
     expect(numbers.split(' ').map(Number)).toEqual(values);
   });
 
+  it("keeps all of Footsteps' trailer behind a Game word an idle output cannot vouch for", async () => {
+    // The old optional word is dropped by cutting the line's last value; with
+    // Footsteps behind it that value is Calm, and the engine refuses the
+    // whole rack of a line cut short.
+    const values = encodeChainSettings({
+      ...DSP_DEFAULTS,
+      gameMode: true,
+      footsteps: { ...DSP_DEFAULTS.footsteps, enabled: true },
+    });
+    await writeSystemDspChain(configDir, values, ENDPOINT);
+    await flushPendingWrites();
+    const numbers = fs
+      .readFileSync(path.join(configDir, DSP_FILENAME), 'utf8')
+      .split('\r\n')
+      .filter((line) => line && !line.startsWith('#'))
+      .join(' ');
+    expect(numbers.split(' ').map(Number)).toEqual(values);
+    // Control: the same Gaming rack without it still loses the bare word.
+    const bare = encodeChainSettings({ ...DSP_DEFAULTS, gameMode: true });
+    expect(formatSystemDspChain(bare)).not.toContain(
+      bare.map((value) => String(value)).join(' '),
+    );
+  });
+
   it.each(['active', 'rack-off', 'room-off', 'source-bypass'])(
     'preserves Room and Game mode through the actual writer for %s',
     async (mode) => {

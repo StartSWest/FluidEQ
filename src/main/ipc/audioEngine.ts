@@ -211,6 +211,8 @@ export interface IAudioEngineIpc {
    * line for the version found. Nothing on any other engine.
    */
   writeLegacyRack: (lineFor: (version: string) => number[]) => Promise<void>;
+  /** The engine actually installed, read once and cached. */
+  installedEngineVersion: () => Promise<string | undefined>;
 }
 
 export const registerAudioEngineIpc = ({
@@ -902,6 +904,10 @@ export const registerAudioEngineIpc = ({
   });
 
   return {
+    // The flushes write every output's rack too, and must ask the same
+    // cached read as this file's own writes
+    // (`IMainSession.installedEngineVersion`).
+    installedEngineVersion,
     writeLegacyRack: async (lineFor) => {
       if (
         getEngine() !== 'fluid' ||

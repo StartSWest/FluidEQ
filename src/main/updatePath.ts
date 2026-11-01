@@ -333,6 +333,7 @@ export const createUpdatePath = ({
             dspOverrides: session.outputDspOverrides,
             stateOverrides: session.outputStateOverrides,
             systemRackEnabled: session.systemRackEnabled,
+            engineVersion: session.installedEngineVersion,
           },
         );
         lastFlush.catch((error: unknown) => {
