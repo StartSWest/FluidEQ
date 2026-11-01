@@ -66,6 +66,45 @@ let isHostPlaying = false;
 let rawSharing = false;
 let rawLibrary = false;
 
+/**
+ * Who wants the host's analysis frames: the window's DSP panels, and the
+ * core's Smart EQ, which hears the Library through the rack's input tap
+ * (`main/smartEq/rawSourceFrames.ts`). The host sends while either does, and
+ * the window is sent frames only while it asked — twelve kilobytes about
+ * twenty-three times a second is not a thing to post to a page that did not.
+ */
+let windowWantsAnalysis = false;
+const analysisListeners = new Set<(analysis: IHostAnalysis) => void>();
+/** The rate the host plays at, from its telemetry; 0 before any. */
+let hostSampleRate = 0;
+
+const applyAnalysis = async (): Promise<boolean> =>
+  supervisor
+    ? supervisor.setAnalysis(windowWantsAnalysis || analysisListeners.size > 0)
+    : false;
+
+/**
+ * Hear the host's analysis frames until the returned stop is called, or
+ * undefined where the host cannot send them (not running, or refusing).
+ */
+export const listenToDspHostAnalysis = async (
+  listener: (analysis: IHostAnalysis) => void,
+): Promise<(() => void) | undefined> => {
+  analysisListeners.add(listener);
+  if (await applyAnalysis().catch(() => false)) {
+    return () => {
+      if (analysisListeners.delete(listener)) {
+        applyAnalysis().catch(() => false);
+      }
+    };
+  }
+  analysisListeners.delete(listener);
+  await applyAnalysis().catch(() => false);
+  return undefined;
+};
+
+export const dspHostSampleRate = (): number => hostSampleRate;
+
 /** Main enforces raw Library output before capture; renderer settings cannot
  * re-enable effects while sharing, including across host restarts. */
 export const setDspHostRawSharing = async (enabled: boolean): Promise<void> => {
@@ -137,16 +176,23 @@ export const registerDspHostIpc = ({
     supervisor = new DspHostSupervisor({
       executablePath,
       expectedParameterCount: NATIVE_DSP_PARAMETERS.length,
-      onTelemetry: publishTelemetry,
+      onTelemetry: (telemetry) => {
+        hostSampleRate = telemetry.sampleRate;
+        publishTelemetry(telemetry);
+      },
       /**
-       * Forwarded raw, and only sent at all while the panel has asked for it.
+       * Forwarded raw, and only sent at all while somebody has asked for it.
        *
        * Twelve kilobytes about twenty-three times a second is the largest thing
        * on this channel by two orders of magnitude, which is exactly why the
        * host stays silent until `setAnalysis` turns it on.
        */
-      onAnalysis: (analysis: IHostAnalysis) =>
-        publish('dsp-host-analysis', analysis),
+      onAnalysis: (analysis: IHostAnalysis) => {
+        if (windowWantsAnalysis) {
+          publish('dsp-host-analysis', analysis);
+        }
+        analysisListeners.forEach((listener) => listener(analysis));
+      },
       onStateChange: (state: TDspHostState) => publish('dsp-host-state', state),
       onLifecycle: (event) => {
         const entry = { event: event.event, ...event.values };
@@ -485,8 +531,10 @@ export const registerDspHostIpc = ({
               ? await supervisor.setVolume(Math.min(1, Math.max(0, value)))
               : false;
           case 'analysis':
-            // The panel mounting and unmounting, which is the only caller.
-            return await supervisor.setAnalysis(value !== 0);
+            // The panel mounting and unmounting, which is the window's only
+            // caller; the core's Smart EQ may be listening too.
+            windowWantsAnalysis = value !== 0;
+            return await applyAnalysis();
           case 'gains':
             return isFiniteNumber(value) && isFiniteNumber(extra)
               ? await supervisor.setTrackGains(value, extra, true)

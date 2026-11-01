@@ -1,10 +1,11 @@
 /* FluidEQ — GPL-3.0-or-later */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createAxisCells, readAbsoluteLevels } from 'common/autoBalanceCapture';
 import {
-  createAxisCells,
-  readAbsoluteLevels,
-} from '../utils/autoBalanceCapture';
+  SENDER_SPECTRUM_SIZE,
+  type ISenderSpectrum,
+} from 'common/senderSpectrum';
 import {
   createFrequencyAxis,
   getPeakLevel,
@@ -24,7 +25,6 @@ import {
 import type { IChartPointData } from '../graph/ChartController';
 import { reportError } from '../utils/logger';
 import openRemoteAudioPort from './openRemoteAudioPort';
-import { SENDER_SPECTRUM_SIZE, type ISenderSpectrum } from './senderSpectrum';
 
 export interface ISenderFrame {
   points: IChartPointData[];

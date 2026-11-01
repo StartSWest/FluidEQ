@@ -29,8 +29,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * constants, and nothing in the capture reads this.
  */
 
-import { IFilter } from '../../common/constants';
-import { Translate, TranslationKey } from '../../common/i18n';
+import { IFilter } from './constants';
+import { Translate, TranslationKey } from './i18n';
 import {
   BALANCE_REGION_EDGES,
   BALANCE_REGION_LABELS,

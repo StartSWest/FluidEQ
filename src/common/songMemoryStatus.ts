@@ -50,8 +50,6 @@ export const SONG_MEMORY_CHANNEL = {
   status: 'song-memory-status',
   /** Window to main: the status now, answered on `status`. */
   ask: 'song-memory-ask',
-  /** Window to main: what the window's players play. */
-  nowPlaying: 'song-memory-now-playing',
   /** Window to main: time passed, while the status asks for a clock. */
   tick: 'song-memory-tick',
   /** Window to main: a `TSongMemoryAction`. */

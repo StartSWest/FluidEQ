@@ -3,7 +3,7 @@ import {
   createRemoteAudioPreview,
   REMOTE_AUDIO_ANALYSIS_FRAMES,
 } from '../../../common/remoteAudioPreview';
-import { createSenderSpectrum } from '../../../renderer/remoteAudio/senderSpectrum';
+import { createSenderSpectrum } from '../../../common/senderSpectrum';
 import type { ILanRemoteAudioChunk } from '../../../common/remoteAudio';
 
 const chunk = (sequence: number, frames = 240): ILanRemoteAudioChunk => {

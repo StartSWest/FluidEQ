@@ -57,7 +57,6 @@ jest.mock('../../../main/remoteAudioCredentials', () => ({
 }));
 jest.mock('../../../main/remoteAudioCapture', () => ({
   startNetworkCapture: (...args: unknown[]) => mockCapture(...args),
-  startRawSourceCapture: jest.fn(),
 }));
 jest.mock('../../../main/remoteAudioHostSession', () => ({
   __esModule: true,

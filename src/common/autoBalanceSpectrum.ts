@@ -16,11 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-  FilterTypeEnum,
-  IFilter,
-  NO_GAIN_FILTER_TYPES,
-} from 'common/constants';
+import { FilterTypeEnum, IFilter, NO_GAIN_FILTER_TYPES } from './constants';
 
 // The measured spectrum as the balance reads it: a sample's weight, the
 // filter shapes, the tilt fitted through it, its smoothing and its value at

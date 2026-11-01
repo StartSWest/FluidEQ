@@ -49,6 +49,7 @@ import { createSecondOutputs } from './secondOutputRoute';
 import {
   startNativeOutputHold,
   startNativeOutputMirror,
+  startRawSourceCapture,
 } from './remoteAudioCapture';
 import { createSongLevelStore } from './songLevels';
 import { createSongProgramme } from './songProgramme';
@@ -95,7 +96,9 @@ import { registerUpdatesIpc } from './ipc/updates';
 import { registerLibraryIpc } from './ipc/library';
 import {
   dspHostPid,
+  dspHostSampleRate,
   dspHostStats,
+  listenToDspHostAnalysis,
   registerDspHostIpc,
   shutdownDspHost,
   setDspHostRawLibrary,
@@ -125,6 +128,19 @@ import { createGameSound } from './gameSound';
 import mainText from './mainText';
 import { createSongSoundMemory } from './songSoundMemory';
 import registerSongMemoryIpc from './ipc/songMemory';
+import registerNowPlayingIpc from './ipc/nowPlaying';
+import registerSmartEqIpc from './ipc/smartEq';
+import { createSmartEqRunner } from './smartEq/smartEqRunner';
+import {
+  type IRawSourceTaps,
+  openRawSourceFrames,
+} from './smartEq/rawSourceFrames';
+import {
+  DEFAULT_SMART_EQ_SETTINGS,
+  SMART_EQ_CHANNEL,
+  parseSmartEqCoreSettings,
+} from '../common/smartEqCore';
+import { sanitizeSmartEqSettings } from '../common/smartEq';
 import {
   SONG_MEMORY_CHANNEL,
   parseSongMemorySwitch,
@@ -676,6 +692,25 @@ registerCoreCopies({
   rackHold,
 });
 
+/**
+ * A change the core made to the edited output's state, through the same
+ * update path the window's edits take; whether it landed.
+ */
+const landUpdate = async (label: string): Promise<boolean> => {
+  let landed = false;
+  await handleUpdate(
+    {
+      reply: (_channel, payload) => {
+        landed = !isErrorReply(payload);
+      },
+    },
+    label,
+    false,
+    true,
+  );
+  return landed;
+};
+
 /** The core changed the edited output's sound by itself: the window reads it. */
 const tellWindowSoundChanged = () => {
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -724,20 +759,7 @@ const songMemory = createSongMemory({
     empty: undefined,
     log,
   }),
-  update: async (label) => {
-    let landed = false;
-    await handleUpdate(
-      {
-        reply: (_channel, payload) => {
-          landed = !isErrorReply(payload);
-        },
-      },
-      label,
-      false,
-      true,
-    );
-    return landed;
-  },
+  update: landUpdate,
   tellWindowSound: tellWindowSoundChanged,
   tellWindowStatus: (status) => {
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -747,6 +769,74 @@ const songMemory = createSongMemory({
   systemSound,
 });
 registerSongMemoryIpc({ getMainWindow, memory: songMemory });
+
+/**
+ * Smart EQ's measurements, run by the core (`smartEq/smartEqRunner.ts`) on
+ * the settings the window keeps and hands over, hearing the sound before
+ * FluidEQ touches it.
+ */
+const smartEqSettings = createKeptFile({
+  filePath: path.join(userDataDir, 'smart-eq-settings.json'),
+  parse: parseSmartEqCoreSettings,
+  empty: DEFAULT_SMART_EQ_SETTINGS,
+  log,
+});
+const sendToWindow = (channel: string, payload: unknown) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(channel, payload);
+  }
+};
+const rawSourceTaps: IRawSourceTaps = {
+  startProcessCapture:
+    process.platform === 'win32'
+      ? startRawSourceCapture
+      : () => Promise.reject(new Error('eq.smart.error.noSource')),
+  listenToHost: listenToDspHostAnalysis,
+  hostSampleRate: dspHostSampleRate,
+};
+const smartEq = createSmartEqRunner({
+  settings: smartEqSettings.read,
+  layer: () => state.smartEq,
+  isBypassed: () => Boolean(state.bypassed?.includes('smart')),
+  write: (layer) => {
+    profiles.applyingLayer('smart');
+    state.smartEq = sanitizeSmartEqSettings(layer);
+    return landUpdate(ChannelEnum.SET_SMART_EQ);
+  },
+  openSource: (kind, onFrame, onLost) =>
+    openRawSourceFrames(rawSourceTaps, { kind, onFrame, onLost }),
+  text: mainText,
+  now: () => performance.now(),
+  tellState: (runState) => sendToWindow(SMART_EQ_CHANNEL.state, runState),
+  tellRemark: (remark) => sendToWindow(SMART_EQ_CHANNEL.remark, remark),
+  // What the graph draws moves with every frame heard, ten times a second
+  // or so: a window nobody can see is not woken for it.
+  tellView: (view) => {
+    if (mainWindow?.isVisible() && !mainWindow.isMinimized()) {
+      sendToWindow(SMART_EQ_CHANNEL.view, view);
+    }
+  },
+  tellWrote: (wrote) => sendToWindow(SMART_EQ_CHANNEL.wrote, wrote),
+});
+smartEqSettings.onChange(() => smartEq.follow());
+registerSmartEqIpc({
+  getMainWindow,
+  runner: smartEq,
+  settings: smartEqSettings,
+});
+
+/** What the window's players play, for the core's jobs that follow songs. */
+registerNowPlayingIpc({
+  getMainWindow,
+  onNowPlaying: ({ identity, isPlaying, isLibrary }) => {
+    songMemory.nowPlaying(identity, isPlaying);
+    smartEq.nowPlaying({
+      songKey: identity?.key,
+      isPlaying,
+      source: isLibrary ? 'host' : 'process',
+    });
+  },
+});
 
 /** Auto normalize on Equalizer APO, heard and decided by the core. */
 const apoHeadroom = createApoHeadroom({
@@ -804,6 +894,7 @@ function followTheSound(): void {
   lastChain = { parts, texts };
   songMemory.soundMayHaveChanged();
   gameSound.soundMayHaveChanged();
+  smartEq.follow();
 }
 
 /**
@@ -1080,6 +1171,7 @@ registerSettingsResetIpc({
     );
   },
   stopSongMemory: () => songMemory.setOn(false),
+  resetSmartEq: () => smartEqSettings.keep(DEFAULT_SMART_EQ_SETTINGS),
   logger: log,
 });
 // The taskbar button in the window's colours; the installed icon while it
@@ -1299,6 +1391,7 @@ app.on('before-quit', (event) => {
 // quit off. The forum's GitHub sign-in holds a loopback socket, which this
 // still closes on every real quit, Windows' own included.
 app.on('will-quit', () => {
+  smartEq.close();
   destroyTray();
   stopRemoteAudioLan();
   stopOutputMirrors();

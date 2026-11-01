@@ -4,10 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import {
-  type IAxisCell,
-  readAbsoluteLevels,
-} from '../utils/autoBalanceCapture';
+import { type IAxisCell, readAbsoluteLevels } from 'common/autoBalanceCapture';
 import type { IChartPointData } from './ChartController';
 import {
   FFT_SIZE,

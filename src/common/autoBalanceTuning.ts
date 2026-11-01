@@ -16,8 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { SMART_EQ_MAX_FREQUENCY, SMART_EQ_MIN_FREQUENCY } from 'common/smartEq';
-import { MAX_GAIN } from 'common/constants';
+import { SMART_EQ_MAX_FREQUENCY, SMART_EQ_MIN_FREQUENCY } from './smartEq';
+import { MAX_GAIN } from './constants';
 
 /**
  * Every number auto balance was tuned to, and why each one is that number.

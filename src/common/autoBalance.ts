@@ -16,14 +16,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-  IFilter,
-  MAX_GAIN,
-  MIN_GAIN,
-  NO_GAIN_FILTER_TYPES,
-} from 'common/constants';
-import { IReferenceShape } from 'common/referenceCurve';
-import { clamp } from './utils';
+import { IFilter, MAX_GAIN, MIN_GAIN, NO_GAIN_FILTER_TYPES } from './constants';
+import { IReferenceShape } from './referenceCurve';
+import clamp from './clamp';
 import {
   BALANCE_MAX_FREQUENCY,
   BALANCE_MIN_FREQUENCY,

@@ -1,8 +1,8 @@
 /* FluidEQ — GPL-3.0-or-later */
 
-import fftInPlace from '../../common/dsp/fft';
-import type { ILanRemoteAudioChunk } from '../../common/remoteAudio';
-import { REMOTE_AUDIO_ANALYSIS_FRAMES } from '../../common/remoteAudioPreview';
+import fftInPlace from './dsp/fft';
+import type { ILanRemoteAudioChunk } from './remoteAudio';
+import { REMOTE_AUDIO_ANALYSIS_FRAMES } from './remoteAudioPreview';
 
 export const SENDER_SPECTRUM_SIZE = REMOTE_AUDIO_ANALYSIS_FRAMES;
 

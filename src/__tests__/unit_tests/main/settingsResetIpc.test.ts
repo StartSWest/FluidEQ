@@ -87,6 +87,7 @@ describe('resetting the settings main keeps', () => {
       unpinWindow: jest.fn(),
       showGraph: jest.fn(),
       stopSongMemory: jest.fn(),
+      resetSmartEq: jest.fn(),
       logger: { error: jest.fn() },
     };
     ({ dispose } = registerSettingsResetIpc(deps));
@@ -109,6 +110,8 @@ describe('resetting the settings main keeps', () => {
     expect(deps.showGraph).toHaveBeenCalledTimes(1);
     // The song memory's switch, which the window kept before the core did.
     expect(deps.stopSongMemory).toHaveBeenCalledTimes(1);
+    // Smart EQ's settings, which the core keeps a copy of to measure by.
+    expect(deps.resetSmartEq).toHaveBeenCalledTimes(1);
     expect(deps.logger.error).not.toHaveBeenCalled();
   });
 
@@ -185,6 +188,9 @@ const RESET_FILES = [
   'lighting.json',
   // The song memory's switch: off until the listener opts in.
   'song-sound-switch.json',
+  // The core's copy of Smart EQ's settings, which the window resets too and
+  // hands over again as it reloads.
+  'smart-eq-settings.json',
 ];
 
 /** Kept on purpose, with why. */

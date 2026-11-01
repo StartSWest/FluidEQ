@@ -29,6 +29,11 @@ export interface ISettingsResetDeps {
   showGraph: () => void;
   /** The song memory's switch, off: off until the listener opts in. */
   stopSongMemory: () => void;
+  /**
+   * Smart EQ's mode, running switch, limit and presence lines as new, so a
+   * running mode stops at the reset rather than when the window reloads.
+   */
+  resetSmartEq: () => void;
   logger: ILogger;
 }
 
@@ -77,6 +82,7 @@ export const registerSettingsResetIpc = (deps: ISettingsResetDeps) => {
     ['always on top', deps.unpinWindow],
     ['graph switch', deps.showGraph],
     ['song memory', deps.stopSongMemory],
+    ['smart eq', deps.resetSmartEq],
   ];
 
   ipcMain.handle(SETTINGS_RESET_CHANNEL, (event) => {

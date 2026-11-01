@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { clamp } from './utils';
+import clamp from './clamp';
 import {
   ABS_FLOOR_DBFS,
   BALANCE_FRAME_INTERVAL_MS,
@@ -74,7 +74,7 @@ export {
   createAxisCells,
   readAbsoluteLevels,
   type IAxisCell,
-} from '../../common/liveFrames';
+} from './liveFrames';
 
 /* -------------------------------------------------------------------------
  * Capture accumulator

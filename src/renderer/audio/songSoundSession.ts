@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useSyncExternalStore } from 'react';
-import type { ISongIdentity } from 'common/songIdentity';
 import {
   ISongMemoryStatus,
   NO_SONG_MEMORY_STATUS,
@@ -19,8 +18,7 @@ export type TSongSoundNotice = TSongMemoryNotice;
 /**
  * The window's view of the song memory, which runs in the app's core
  * (`main/songMemory.ts`): its switch and its cards as the core says them,
- * the buttons that answer them, and what the window's own players play —
- * the one thing about a song only the window knows.
+ * and the buttons that answer them.
  */
 
 let status: ISongMemoryStatus = NO_SONG_MEMORY_STATUS;
@@ -91,12 +89,6 @@ export const followSongMemory = (): (() => void) => {
   send(SONG_MEMORY_CHANNEL.ask, []);
   return () => off?.();
 };
-
-/** What the window's players play, for the core to remember songs by. */
-export const reportNowPlaying = (
-  identity: ISongIdentity | undefined,
-  isPlaying: boolean,
-): void => send(SONG_MEMORY_CHANNEL.nowPlaying, [identity ?? null, isPlaying]);
 
 /** Time passed for the window's players, while the core cannot hear it. */
 export const reportTick = (): void => send(SONG_MEMORY_CHANNEL.tick, []);
