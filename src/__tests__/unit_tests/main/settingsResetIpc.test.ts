@@ -98,6 +98,9 @@ describe('resetting the settings main keeps', () => {
       resetLighting: jest.fn(),
       unpinWindow: jest.fn(),
       showGraph: jest.fn(),
+      stopSongMemory: jest.fn(),
+      resetSmartEq: jest.fn(),
+      resetKeepPlaying: jest.fn(),
       logger: { error: jest.fn() },
     };
     ({ dispose } = registerSettingsResetIpc(deps));
@@ -118,6 +121,12 @@ describe('resetting the settings main keeps', () => {
     expect(deps.unpinWindow).toHaveBeenCalledTimes(1);
     // The graph's on/off switch, from the checklist (Ivan, 2026-10-26).
     expect(deps.showGraph).toHaveBeenCalledTimes(1);
+    // The song memory's switch, which the window kept before the core did.
+    expect(deps.stopSongMemory).toHaveBeenCalledTimes(1);
+    // Smart EQ's settings, which the core keeps a copy of to measure by.
+    expect(deps.resetSmartEq).toHaveBeenCalledTimes(1);
+    // The Library's Keep playing switch, in the core's session file.
+    expect(deps.resetKeepPlaying).toHaveBeenCalledTimes(1);
     expect(deps.logger.error).not.toHaveBeenCalled();
   });
 
@@ -192,6 +201,14 @@ const RESET_FILES = [
   'motion.json',
   'desktop-backgrounds.json',
   'lighting.json',
+  // The song memory's switch: off until the listener opts in.
+  'song-sound-switch.json',
+  // The core's copy of Smart EQ's settings, which the window resets too and
+  // hands over again as it reloads.
+  'smart-eq-settings.json',
+  // The Library's session: its Keep playing switch is put back on; the
+  // queue beside it is the listener's and stays, as it did in the window.
+  'library-playback.json',
 ];
 
 /** Kept on purpose, with why. */
@@ -208,6 +225,9 @@ const KEPT_FILES = [
   // The engine and the outputs.
   'audio-engine.json',
   'output-formats.json',
+  // Which preset's rack Equalizer APO holds off for the FluidEQ Engine, as
+  // the window kept it before the core did: the sound, not a setting.
+  'rack-held-for-apo.json',
   'remote-audio-lan.json',
   'remote-audio-links.json',
   // Share Audio's Fluid switch: how the linked computers' sound plays, a
@@ -221,6 +241,12 @@ const KEPT_FILES = [
   'library-playlists.json',
   '.migrated.json',
   'karaoke-session.json',
+  // The core's copies of the game profiles and the saved chains, which the
+  // window keeps through a reset; the Games page's switch beside the
+  // profiles is the window's to reset, and the window hands it over again
+  // as it reloads after one (`CoreCopies`).
+  'game-profiles.json',
+  'dsp-presets.json',
   'studio.json',
   'studio-notes.json',
   'studio-agent.json',

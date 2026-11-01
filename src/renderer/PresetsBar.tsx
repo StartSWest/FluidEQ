@@ -33,7 +33,6 @@ import {
 } from 'common/constants';
 import { isRestrictedPresetName } from 'common/utils';
 import type { TranslationKey } from 'common/i18n/en';
-import { keepSongSound, yieldSongSound } from './audio/songSoundSession';
 import { useFluidEqShell } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { readOutputEditor } from './utils/outputEditor';
@@ -303,10 +302,10 @@ const PresetsBar = ({
       // have one until you press something else.
       // Main has the last word on the name: it numbers it against the folder on
       // disk, so what comes back may differ from what was asked for. What
-      // plays is what the profile is made of, a song's own sound included,
-      // so that sound stays rather than being handed back at the song's end.
+      // plays is what the profile is made of, a song's own sound included:
+      // the core keeps that sound rather than handing it back at the song's
+      // end (`songMemory.ts`).
       await enterMainEditor(activeDeviceId);
-      await keepSongSound();
       const saved = (await createPreset(name, activeDeviceId)) || name;
       // The write can finish after Windows selects another main. Its result
       // must never become that new output's selected profile.
@@ -348,9 +347,9 @@ const PresetsBar = ({
     }
 
     try {
-      // Saved as heard, a song's own sound included, which then stays.
+      // Saved as heard, a song's own sound included, which then stays: the
+      // core keeps it before it saves.
       await enterMainEditor(activeDeviceId);
-      await keepSongSound();
       await savePreset(presetName, activeDeviceId);
       if (profileOutputKey() !== activeDeviceId) {
         return;
@@ -388,10 +387,9 @@ const PresetsBar = ({
     async (presetToLoad = presetName) => {
       if (presetToLoad && visiblePresetNames.includes(presetToLoad)) {
         try {
-          // A song's own sound comes off first, so the profile lands on the
-          // listener's and nothing hands the song's back over it later.
+          // The core takes a song's own sound off first, so the profile
+          // lands on the listener's and nothing hands the song's back over it.
           await enterMainEditor(activeDeviceId);
-          await yieldSongSound();
           await loadPreset(presetToLoad, activeDeviceId);
           await refreshOutputProfiles();
           await refreshState();
@@ -470,7 +468,6 @@ const PresetsBar = ({
     setIsRestoring(true);
     try {
       await enterMainEditor(activeDeviceId);
-      await yieldSongSound();
       await restorePresetBaseline(restoreTarget, activeDeviceId);
       await refreshOutputProfiles();
       await refreshState();

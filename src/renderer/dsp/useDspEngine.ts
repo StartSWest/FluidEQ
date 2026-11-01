@@ -5,24 +5,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef, useState } from 'react';
-import {
-  IDspSettings,
-  MASTER_LOUDNESS_GAIN_MAX_DB,
-  MASTER_LOUDNESS_GAIN_MIN_DB,
-} from '../../common/dsp/chain';
+import { IDspSettings } from '../../common/dsp/chain';
 import {
   DSP_DIAGNOSTIC_CODES,
   DSP_DIAGNOSTIC_SCHEMA_VERSION,
 } from '../../common/dsp/diagnostics';
-import { INoiseProfile } from '../../common/dsp/noiseProfile';
 import { IAudioNodeLike, IDspGraph, buildDspGraph } from './graph';
-import {
-  TDspEngineState,
-  setDspEngineState,
-  setDspSampleRate,
-  useDspInputAnalysis,
-} from './store';
-import { masterLoudnessGainDb, normalizerGainDb } from './inputNormalizer';
+import { TDspEngineState, setDspEngineState, setDspSampleRate } from './store';
 import { DSP_OUTPUT_COUNT } from './monitorOutputs';
 import { registerDspDeckMixer } from './deckCrossfade';
 import { dspErrorValues, reportDspDiagnostic } from './diagnostics';
@@ -37,92 +26,6 @@ const workletUrl = (): URL =>
       : '/dsp-worklet.dev.js',
     window.location.href,
   );
-
-/**
- * Where the same gains go when the native engine is the audible one.
- *
- * A registration rather than an import, because this module must not know
- * about the host: it is loaded by tests that have no preload and by the worklet
- * harness that has no Electron. The native side registers on engage and clears
- * on release, so a gain computed while nothing is engaged simply has nowhere to
- * go, which is correct.
- *
- * It exists at all because this function is the ONE funnel every track-level
- * gain passes through, and until it forwarded, auto-normalize and the LUFS
- * makeup reached the worklet and nothing else — so on the native engine both
- * features were silently inert.
- */
-let nativeTrackGainSink:
-  ((inputGainDb: number, masterLoudnessGainDb: number) => void) | undefined;
-
-export const setDspNativeTrackGainSink = (
-  sink:
-    ((inputGainDb: number, masterLoudnessGainDb: number) => void) | undefined,
-): void => {
-  nativeTrackGainSink = sink;
-};
-/**
- * The same arrangement for the noise floor, and it is registered and cleared
- * with the controller so it never points at a host that has gone.
- */
-let nativeNoiseProfileSink:
-  ((profile: INoiseProfile | undefined) => void) | undefined;
-
-export const setDspNativeNoiseProfileSink = (
-  sink: ((profile: INoiseProfile | undefined) => void) | undefined,
-): void => {
-  nativeNoiseProfileSink = sink;
-  // Replayed on registration, because the engine can engage after the track
-  // has already been measured. Without it, switching to the native engine
-  // mid-song leaves Denoise following the live floor on a track whose profile
-  // the renderer is holding.
-  if (sink) {
-    sink(pendingNoiseProfile);
-  }
-};
-
-let pendingInputGainDb = 0;
-let pendingMasterLoudnessGainDb = 0;
-let pendingNoiseProfile: INoiseProfile | undefined;
-/**
- * Update the source normalizer and its final LUFS compensation atomically.
- *
- * They describe one track-level decision. Sending them independently lets an
- * audio quantum observe only half of that decision and, more importantly,
- * gives two different-size dB ramps different finish times.
- */
-export const setDspTrackLevelGains = (
-  inputGainDb: number,
-  masterLoudnessGainDb: number,
-): void => {
-  pendingInputGainDb = Number.isFinite(inputGainDb)
-    ? Math.min(12, Math.max(-48, inputGainDb))
-    : 0;
-  pendingMasterLoudnessGainDb = Number.isFinite(masterLoudnessGainDb)
-    ? Math.min(
-        MASTER_LOUDNESS_GAIN_MAX_DB,
-        Math.max(MASTER_LOUDNESS_GAIN_MIN_DB, masterLoudnessGainDb),
-      )
-    : 0;
-  nativeTrackGainSink?.(pendingInputGainDb, pendingMasterLoudnessGainDb);
-};
-
-/**
- * The measured noise floor, published the same way the track gains are.
- *
- * Nothing is sent to the worklet: Denoise exists only in the native engine, so
- * there is no second consumer of this and inventing one would be a message the
- * worklet ignores. `undefined` clears the host's copy, which is what a track
- * with no scan sends — a profile left in place from the previous song
- * subtracts that recording's hiss from this one, and nothing on screen would
- * explain the result.
- */
-export const setDspNoiseProfile = (
-  profile: INoiseProfile | undefined,
-): void => {
-  pendingNoiseProfile = profile;
-  nativeNoiseProfileSink?.(profile);
-};
 
 interface IEngineState {
   /** True only while the graph is built and audio is flowing through it. */
@@ -155,21 +58,11 @@ interface IEngineState {
  * playback completely untouched, and the one irreversible step is the last
  * one. Past that point, `fallBackToDirectOutput` is the safety net.
  */
-export const useDspEngine = (
+const useDspEngine = (
   elements: readonly HTMLAudioElement[],
   settings: IDspSettings,
 ): IEngineState => {
   const [active, setActive] = useState(false);
-  const inputAnalysis = useDspInputAnalysis();
-  const inputGainDb = normalizerGainDb(
-    settings.normalizer,
-    inputAnalysis.analysis,
-  );
-  const loudnessGainDb = masterLoudnessGainDb(
-    settings.master,
-    settings.normalizer,
-    inputAnalysis.analysis,
-  );
   const contextRef = useRef<AudioContext | undefined>(undefined);
   const sourcesRef = useRef<MediaElementAudioSourceNode[]>([]);
   const deckGainsRef = useRef<GainNode[]>([]);
@@ -455,9 +348,7 @@ export const useDspEngine = (
     }
   }, [settings.enabled]);
 
-  useEffect(() => {
-    setDspTrackLevelGains(inputGainDb, loudnessGainDb);
-  }, [inputGainDb, loudnessGainDb]);
-
   return { active };
 };
+
+export default useDspEngine;

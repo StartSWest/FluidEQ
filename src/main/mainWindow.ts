@@ -35,6 +35,7 @@ import {
 import type { IRect, TWindowMode } from '../common/windowMode';
 import type { TWindowModes } from './windowMode';
 import { resolveHtmlPath } from './util';
+import { devSandbox, sandboxProductName } from './devSandbox';
 import openExternalIfSafe from './safeExternal';
 import contentSecurityPolicy from './contentSecurityPolicy';
 import MenuBuilder from './menu';
@@ -341,6 +342,15 @@ export const createMainWindowFactory = ({
     });
     setMainWindow(created);
     windowModes.applyPin(created);
+    // A development sandbox's window says so on the taskbar and in Alt+Tab
+    // (`sandboxProductName`): the page names itself FluidEQ, as the real one
+    // beside it does.
+    if (devSandbox) {
+      created.on('page-title-updated', (event, title) => {
+        event.preventDefault();
+        created.setTitle(sandboxProductName(title));
+      });
+    }
     // The floor follows the window. The app's is its screen's (1024×800, or
     // all of a smaller screen), so it is set again when the window lands on
     // another screen or the screens change; the player's is scaled by the

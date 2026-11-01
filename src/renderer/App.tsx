@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
-  Activity,
   useCallback,
   useEffect,
   useEffectEvent,
@@ -37,8 +36,7 @@ import {
   useSoundPaneFolded,
   useSoundPaneSlide,
 } from './utils/soundPane';
-import GameSound from './games/GameSound';
-import RackFollowsEngine from './dsp/RackFollowsEngine';
+import CoreCopies from './CoreCopies';
 import useMainEditorWhile from './utils/useMainEditorWhile';
 import PresetToneFeed from './dsp/PresetToneFeed';
 import './styles/App.scss';
@@ -46,7 +44,6 @@ import './styles/App.scss';
 // win against the cyan ones they replace without reaching for `!important`.
 import './styles/Rainbow.scss';
 import SmartEqEngine from './SmartEqEngine';
-import SmartHeadroomEngine from './SmartHeadroomEngine';
 import showGalleryGraph from './plus/showGalleryGraph';
 import { subscribeGraphShowRequests } from './plus/graphShowRequest';
 import usePlusTabOpensApp from './player/usePlusTabOpensApp';
@@ -67,7 +64,6 @@ import {
 } from './utils/graphStyle';
 import { reportError } from './utils/logger';
 import { useSystemMediaSource } from './audio/useSystemMediaSource';
-import { useSongEqSessionHost } from './audio/songEqSession';
 import useCaptureBridge from './audio/useCaptureBridge';
 import usePageMark from './utils/usePageMark';
 import { useNoticeClaim } from './utils/noticeTurn';
@@ -229,30 +225,30 @@ const AppContent = () => {
     [lastEqTab, selectTopWorkspaceTab],
   );
   /**
-   * What sleeps while the window is the amp.
+   * What is taken down while the window is the amp.
    *
    * The app behind the amp was only `display: none` (`_miniPlayerShell.scss`),
    * so every page, the graph and the panels kept their effects, their frame
    * loops and their store subscriptions running for a window nobody could
-   * see. Inside `<Activity mode="hidden">` they keep their state and their
-   * DOM, lose their effects, and render only when nothing else wants the
-   * thread; switching back runs the effects again, the same way opening a tab
-   * does.
+   * see. Then they slept under `<Activity mode="hidden">`: effects off, but
+   * every node, every canvas and every piece of state kept, for as long as
+   * the amp was up. Now they are not there at all, and are built again on the
+   * way back, while the window is still dark for the switch: main's answer is
+   * published, the page renders the full app at once, and the window is only
+   * shown once that has been drawn at its new size (`setWindowMode`).
    *
-   * Only what is already mounted and unmounted in ordinary use goes inside:
-   * the pages (a tab switch unmounts each), the graph (hiding it on a tab
+   * Only what is already mounted and unmounted in ordinary use goes: the
+   * pages (a tab switch unmounts each), the graph (hiding it on a tab
    * unmounts it), and the preset, output and driver panels. What has to keep
-   * going for the amp stays outside and awake — see the markup below for each
-   * one and why.
+   * going for the amp stays — see the markup below for each one and why.
    */
   const isAmp = windowMode === 'player';
-  const behindAmp = isAmp ? 'hidden' : 'visible';
   // The amp's faders, game mode and preset pick edit whatever output is
-  // being edited, and the notice that says which sleeps behind it: entering
-  // the amp ends a second output's edit (`useMainEditorWhile`).
+  // being edited, and the notice that says which is not there behind it:
+  // entering the amp ends a second output's edit (`useMainEditorWhile`).
   useMainEditorWhile(isAmp);
   // Entering the amp and leaving it move the live capture's owners in one
-  // commit: the sleeping pages let go and the amp takes hold, or the other
+  // commit: the pages go and let go and the amp takes hold, or the other
   // way round. Without a bridge the capture closed and reopened in between.
   useCaptureBridge(windowMode);
 
@@ -377,10 +373,6 @@ const AppContent = () => {
   // the sound is Spotify's or a browser's, and the curve on screen is shaping
   // it just the same.
   useSystemMediaSource();
-  // The Smart EQ song-memory recorder: same lifetime and the same reason as
-  // the line above it. A recording must not end because somebody switched
-  // tabs, so this is hosted here rather than inside the EQ page.
-  useSongEqSessionHost();
 
   // What Help's entries open: its own menu's, and the actions menu's while
   // the titlebar has no room for Help's button.
@@ -704,7 +696,7 @@ const AppContent = () => {
                 see `AppTitlebar`. */}
               <WorkspacePages
                 activeTab={activeWorkspaceTab}
-                behindAmp={behindAmp}
+                isBehindAmp={isAmp}
                 isEqReachingSound={isEqReachingSound}
                 isGraphFirst={isGraphFirst}
                 eqGroupPills={eqGroupPills}
@@ -736,59 +728,55 @@ const AppContent = () => {
                 tab. Mounted once and never unmounted, a continuous measurement
                 keeps its evidence for as long as the window is open. */}
               <SmartEqEngine />
-              {/* Headless, and mounted beside its sibling for the same reason:
-                the measurement has to run wherever the user happens to be, not
-                only where the response graph is. */}
-              <SmartHeadroomEngine />
-              {/* And the third, for the same reason spelled out again because it
-                is the one that surprises: a game profile switches the sound
-                while FluidEQ is BEHIND the game. On the Games page it would
-                only ever work with the page open, which is the one moment
-                nobody is playing. */}
-              <GameSound />
-              {/* A preset's rack across an engine switch, which is made in a
-                dialog over whichever page is open. */}
-              <RackFollowsEngine />
-              {/* And its curve, told to the rack's Maximizer from wherever the
-                curve changes: a preset, its chip, the EQ mode menu. */}
+              {/* (Auto normalize on Equalizer APO measured here too, and a
+                game's sound switched here; the app's core hears and decides
+                both now, `core/headroom` and `main/gameSound.ts`.) The game
+                profiles, the saved chains and the window's colours, handed
+                to the core, which keeps a copy to act on without this
+                window. */}
+              <CoreCopies />
+              {/* A preset's curve, told to the rack's Maximizer from wherever
+                the curve changes: a preset, its chip, the EQ mode menu. */}
               <PresetToneFeed />
             </MiddleContent>
           </EqTitleSlotContext.Provider>
           {/* One divider, both tabs, always in the same place: the seam between
               whatever is above and the graph. In full screen there is nothing
               above the graph, so there is nothing to divide. */}
-          {/* Asleep behind the amp, like the pages: hiding the graph on a tab
-              already unmounts it, so its loops and its claim on the capture
-              are known to stop and start cleanly. */}
-          <Activity mode={behindAmp}>
-            {showsGraph && !isGraphFullScreen && (
-              <GraphPaneResizer
-                paneKey={paneKey}
-                ariaLabel={t('graph.resize')}
-                onStart={resize.handleGraphResizeStart}
-                onDrag={resize.handleGraphResizeDrag}
-                onEnd={resize.handleGraphResizeEnd}
-              />
-            )}
-            {showsGraph && (
-              <FrequencyResponseChart
-                isVisible
-                hasLayersInHead={isGraphFirst && activeWorkspaceTab === 'eq'}
-                isGrown={isGraphGrown}
-                hasPlaybackBackdrop={mounts.showsKaraokeGraphBackdrop}
-                backdropControls={
-                  activeWorkspaceTab === 'karaoke' &&
-                  karaokeBackground === 'graph' ? (
-                    <KaraokeSceneAppearanceControls />
-                  ) : undefined
-                }
-              />
-            )}
-            {/* The graph's Plus visualizer, beside the graph and not in it:
+          {/* Taken down behind the amp, like the pages: hiding the graph on a
+              tab already unmounts it, so its loops and its claim on the
+              capture are known to stop and start cleanly. */}
+          {!isAmp && (
+            <>
+              {showsGraph && !isGraphFullScreen && (
+                <GraphPaneResizer
+                  paneKey={paneKey}
+                  ariaLabel={t('graph.resize')}
+                  onStart={resize.handleGraphResizeStart}
+                  onDrag={resize.handleGraphResizeDrag}
+                  onEnd={resize.handleGraphResizeEnd}
+                />
+              )}
+              {showsGraph && (
+                <FrequencyResponseChart
+                  isVisible
+                  hasLayersInHead={isGraphFirst && activeWorkspaceTab === 'eq'}
+                  isGrown={isGraphGrown}
+                  hasPlaybackBackdrop={mounts.showsKaraokeGraphBackdrop}
+                  backdropControls={
+                    activeWorkspaceTab === 'karaoke' &&
+                    karaokeBackground === 'graph' ? (
+                      <KaraokeSceneAppearanceControls />
+                    ) : undefined
+                  }
+                />
+              )}
+              {/* The graph's Plus visualizer, beside the graph and not in it:
                 on the plot, the EQ column or, on the EQ page, the Backdrop
                 (`GraphScene`). Renders only its canvas, wherever that is. */}
-            <GraphScene page={activeWorkspaceTab} />
-          </Activity>
+              <GraphScene page={activeWorkspaceTab} />
+            </>
+          )}
         </div>
         {/* One backdrop for both drawers, and pressing it shuts both. Two of
             them stacked, each closing only its own, meant a press outside
@@ -815,7 +803,7 @@ const AppContent = () => {
               ? setRightPaneOpen((open) => !open)
               : setSoundPaneFolded(!isSoundPaneFolded)
           }
-          behindAmp={behindAmp}
+          isBehindAmp={isAmp}
           engine={engineStatus?.engine ?? null}
           isNoticeHidden={engine.suppressAudioNotices}
           onConfigureApo={engine.handleConfigureEqualizerApo}

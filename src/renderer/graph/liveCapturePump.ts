@@ -17,12 +17,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import type { Dispatch, SetStateAction } from 'react';
-import { announceOutputSignal, createSignalEdge } from '../audio/outputSignal';
 import {
   createAxisCells,
   IAxisCell,
   readAbsoluteLevels,
-} from '../utils/autoBalanceCapture';
+} from 'common/autoBalanceCapture';
+import { announceOutputSignal, createSignalEdge } from '../audio/outputSignal';
 import { IChartPointData } from './ChartController';
 import type { ICaptureNodes } from './liveCaptureGraph';
 import {

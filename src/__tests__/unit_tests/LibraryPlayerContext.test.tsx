@@ -16,16 +16,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+/**
+ * The window's Library player over the core's real one (`main/
+ * libraryPlayer/`), with no native host — every song plays on the window's
+ * element, which is what a machine without the host does and what videos
+ * always do. The element cases the window's player was held to before the
+ * player moved are held here, now driven by the core.
+ */
 import '@testing-library/jest-dom';
 import { act, cleanup, render } from '@testing-library/react';
 import log from 'electron-log/renderer';
 import { resetDspDiagnosticsForTests } from '../../renderer/dsp/diagnostics';
 import type { ILibraryRoot, ILibraryTrack } from '../../common/library/types';
+import type { IPlaybackMemory } from '../../common/library/playbackMemory';
 import { DSP_DEFAULTS } from '../../common/dsp/chain';
-import {
-  applyDspSettings,
-  readDspInputAnalysis,
-} from '../../renderer/dsp/store';
+import { applyDspSettings } from '../../renderer/dsp/store';
 import { LibraryProvider } from '../../renderer/library/LibraryContext';
 import {
   ILibraryPlayerContextValue,
@@ -33,16 +38,22 @@ import {
   useLibraryPlayer,
 } from '../../renderer/library/player/LibraryPlayerContext';
 import LibraryVideoStage from '../../renderer/library/player/LibraryVideoStage';
+import {
+  claimPlayback,
+  registerPlayer,
+  resetPlaybackOwner,
+} from '../../renderer/audio/playbackOwner';
 import { I18nProvider } from '../../renderer/utils/I18nContext';
 import createFakeLibraryStore, {
   IFakeLibraryStore,
 } from '../utils/fakeLibraryStore';
-
-import { createSourceAnalysisBridge } from '../utils/sourceAnalysisBridge';
+import {
+  createCorePlayerBridge,
+  type ICorePlayerBridge,
+} from '../utils/corePlayerBridge';
 
 // The engine's copy of the rack goes nowhere here, as on an Equalizer APO
-// machine. None of these cases is about that send, and with no preload
-// every rack change reported a TypeError from it instead.
+// machine. None of these cases is about that send.
 jest.mock('renderer/utils/audioEngineApi', () => ({
   ...jest.requireActual('renderer/utils/audioEngineApi'),
   setSystemDspChain: jest.fn(() => Promise.resolve('not-fluid')),
@@ -88,31 +99,18 @@ const secondAudioTrack: ILibraryTrack = {
   mtimeMs: 3,
 };
 
-// jsdom's `HTMLMediaElement.prototype.play` returns `undefined` rather than
-// the Promise every real engine hands back, and never toggles `.paused` --
-// `KaraokeWorkspace.test.tsx` stubs the same two for the same reason.
-// `.paused` staying `true` regardless of what is called on the element is
-// exactly why the assertions below check the `pause` mock and the `src`
-// attribute directly rather than `.paused`: a probe against this exact jsdom
-// confirmed `.paused` reads `true` before the fix, after `playTracks`, and
-// after `skip` alike, which would make it a null test here.
+// jsdom's `play` returns `undefined` rather than a Promise and never moves
+// `.paused`, so these record what is asked of the elements instead.
 const mediaPlay = jest.fn().mockResolvedValue(undefined);
 const mediaPause = jest.fn();
-
-/** Every `currentTime` assignment any media element receives, in order — see
- * the test that reads it for what an entry during the load would mean. */
+/** Every `currentTime` assignment any media element receives, in order. */
 const currentTimeSets: number[] = [];
 
 let latestPlayer: ILibraryPlayerContextValue | undefined;
-/** The library as main holds it. The player reads songs from it by id and
- * only once it answers, so every step that hands the player a song it has
- * not read yet is followed by `store.settle()`. */
 let store: IFakeLibraryStore;
+let tracks: ILibraryTrack[];
+let core: ICorePlayerBridge;
 
-/** Reads the context so the test can drive it directly, and renders the
- * stage so a real `<video>` element exists to assert on — the same pairing
- * `App.tsx` mounts, `LibraryPlayerProvider` and `LibraryVideoStage` side by
- * side under it. */
 const Harness = () => {
   latestPlayer = useLibraryPlayer();
   return (
@@ -129,8 +127,6 @@ beforeAll(() => {
     configurable: true,
     value: mediaPause,
   });
-  // jsdom leaves `currentTime` a plain data property, so recording it needs a
-  // real accessor rather than a spy.
   let held = 0;
   Object.defineProperty(HTMLMediaElement.prototype, 'currentTime', {
     configurable: true,
@@ -142,24 +138,33 @@ beforeAll(() => {
   });
 });
 
+/** The core behind the window, reading the same songs the window's store has. */
+const install = (memory?: IPlaybackMemory) => {
+  store = createFakeLibraryStore([mediaRoot], tracks);
+  core = createCorePlayerBridge({
+    tracks: () => tracks,
+    ...(memory ? { memory } : {}),
+  });
+  window.electron = {
+    ipcRenderer: {
+      ...store.bridge,
+      ...core.bridge,
+      libraryTrackBytes: () => Promise.resolve(undefined),
+      libraryTrackSignature: () => Promise.resolve(undefined),
+      setLibraryTrackNormalization: () => Promise.resolve(false),
+    },
+  } as unknown as typeof window.electron;
+};
+
 beforeEach(() => {
   latestPlayer = undefined;
   mediaPlay.mockClear();
   mediaPause.mockClear();
   currentTimeSets.length = 0;
-  // The player writes its queue here as it goes; a case that inherited the
-  // previous case's queue would start from a restore nobody set up.
-  window.localStorage.removeItem('fluideq.library.playback');
-  store = createFakeLibraryStore([mediaRoot], [videoTrack, audioTrack]);
-  window.electron = {
-    ipcRenderer: {
-      ...store.bridge,
-      libraryTrackBytes: () => Promise.resolve(undefined),
-      libraryTrackSignature: () => Promise.resolve(undefined),
-      setLibraryTrackNormalization: () => Promise.resolve(false),
-      ...createSourceAnalysisBridge(),
-    },
-  } as unknown as typeof window.electron;
+  resetPlaybackOwner();
+  window.localStorage.clear();
+  tracks = [videoTrack, audioTrack];
+  install();
 });
 
 afterEach(async () => {
@@ -169,11 +174,6 @@ afterEach(async () => {
   });
 });
 
-/**
- * Mounts the player and lets the library answer what it asks at launch: the
- * summary first, without which no song is looked up at all, and then
- * whatever that answer leads to.
- */
 const renderHarness = async () => {
   const view = render(
     <I18nProvider>
@@ -188,7 +188,6 @@ const renderHarness = async () => {
   return view;
 };
 
-/** Play these, and let the library read the songs the queue now names. */
 const playTracks = async (trackIds: readonly string[], startId: string) => {
   act(() => {
     latestPlayer?.playTracks(trackIds, startId);
@@ -196,14 +195,7 @@ const playTracks = async (trackIds: readonly string[], startId: string) => {
   await store.settle();
 };
 
-/**
- * Every hidden deck the player builds with `new Audio()`, in the order it
- * builds them — installed before the player mounts, which is when it does.
- *
- * jsdom never loads a source, so no deck announces `loadedmetadata` on its
- * own, and that is the event a deck waits for before it plays. A test that
- * needs a deck to get that far has to hold it to speak for it.
- */
+/** Every hidden deck the player builds with `new Audio()`, as it builds them. */
 const captureDecks = () => {
   const decks: HTMLAudioElement[] = [];
   const audioConstructor = jest
@@ -227,7 +219,15 @@ const announceMetadata = async (decks: readonly HTMLAudioElement[]) => {
   });
 };
 
-describe('leaving a video behind (Task 19 fix-round)', () => {
+/** An element the test can say is playing, which jsdom never says itself. */
+const markPlaying = (element: HTMLMediaElement | null) => {
+  Object.defineProperty(element, 'paused', {
+    configurable: true,
+    get: () => false,
+  });
+};
+
+describe('leaving a video behind', () => {
   it('pauses the video element and clears its src the instant the queue moves off it', async () => {
     await renderHarness();
     await playTracks([videoTrack.id, audioTrack.id], videoTrack.id);
@@ -235,36 +235,20 @@ describe('leaving a video behind (Task 19 fix-round)', () => {
     const videoElement = document.querySelector('video');
     expect(videoElement).not.toBeNull();
     expect(videoElement).toHaveAttribute('src');
-
-    // `pause` is stubbed on the shared `HTMLMediaElement.prototype` above, so
-    // the hidden `Audio()` element calls the very same method on its own
-    // unconditional `audio.pause()` at the top of every track change — a
-    // global call count would pass whether or not the *video* element was
-    // ever touched. `jest.spyOn` on an inherited method patches the
-    // prototype it actually finds the descriptor on rather than shadowing
-    // the instance, so it does not isolate the two elements either — a real
-    // own-property override on this one instance, via `defineProperty`
-    // rather than `spyOn`, is what actually attributes a call to this
-    // element specifically.
+    // An own-property override on this one instance, so a call is this
+    // element's and not the hidden audio deck's.
     const videoPause = jest.fn();
     Object.defineProperty(videoElement, 'pause', {
       configurable: true,
       value: videoPause,
     });
 
-    // The exact move the brief requires never overlap: the queue's current
-    // track stops being the video and becomes the audio track in the same
-    // `skip` call. No answer from the library in between — the song after
-    // the playhead was read along with the one on it.
     act(() => {
       latestPlayer?.skip(1);
     });
 
     expect(videoPause).toHaveBeenCalled();
     expect(videoElement).not.toHaveAttribute('src');
-    // The stage itself is gone too -- confirms `videoTrackId` genuinely
-    // moved off the video rather than one stray element happening to get
-    // cleaned up while another still renders.
     expect(document.querySelector('video')).toBeNull();
     await act(async () => Promise.resolve());
   });
@@ -273,24 +257,17 @@ describe('leaving a video behind (Task 19 fix-round)', () => {
 describe('the shared Stop contract', () => {
   it('pauses and rewinds a video without discarding its loaded queue', async () => {
     await renderHarness();
-
-    // A queue built from the video alone, exactly what the Videos shelf's
-    // own folder-grouped queue looks like once every other track in it has
-    // already played.
     await playTracks([videoTrack.id], videoTrack.id);
     expect(document.querySelector('video')).not.toBeNull();
 
-    // `repeat` defaults to 'off' and `advanceQueue` holds position at the
-    // last track. Stop must therefore act on the loaded video in place, just
-    // as Karaoke and Online Media do, rather than using queue deletion as a
-    // different meaning for the same icon.
+    // Next on the last song holds it.
     act(() => {
       latestPlayer?.skip(1);
     });
     expect(latestPlayer?.videoTrackId).toBe(videoTrack.id);
 
     const videoElement = document.querySelector('video');
-    expect(videoElement).not.toBeNull();
+    markPlaying(videoElement);
     const videoPause = jest.fn();
     Object.defineProperty(videoElement, 'pause', {
       configurable: true,
@@ -305,7 +282,7 @@ describe('the shared Stop contract', () => {
       latestPlayer?.stop();
     });
 
-    expect(videoPause).toHaveBeenCalledTimes(1);
+    expect(videoPause).toHaveBeenCalled();
     expect(currentTimeSets[currentTimeSets.length - 1]).toBe(0);
     expect(latestPlayer?.isPlaying).toBe(false);
     expect(latestPlayer?.videoTrackId).toBe(videoTrack.id);
@@ -316,17 +293,7 @@ describe('the shared Stop contract', () => {
 });
 
 describe('the Back button over a video', () => {
-  /**
-   * The queue, the track and the playhead all survive; only the picture goes.
-   *
-   * Stop was the button's first implementation, and Stop rewinds — so the
-   * picture stayed up (a stopped video is still the current track) and, once
-   * closing was added, the position written on the way out was nought. Both
-   * are asserted against here: the stage must leave, the element must be
-   * paused and NOT rewound, and the stored position must be the real one.
-   */
   it('closes the picture, pauses in place and remembers where it was', async () => {
-    window.localStorage.removeItem('fluideq.library.videoPositions');
     const { getByRole } = await renderHarness();
     await playTracks([videoTrack.id, audioTrack.id], videoTrack.id);
     const videoElement = document.querySelector('video');
@@ -343,16 +310,12 @@ describe('the Back button over a video', () => {
     expect(document.querySelector('video')).toBeNull();
     expect(latestPlayer?.videoTrackId).toBeUndefined();
     expect(latestPlayer?.isPlaying).toBe(false);
-    // No rewind: the only write to `currentTime` is the teardown's own, and
-    // it must not be a nought before the position was read.
     expect(currentTimeSets).not.toContain(0);
-    // The queue is intact — Back is not "throw away what is queued".
     expect(latestPlayer?.track?.id).toBe(videoTrack.id);
     expect(latestPlayer?.queue?.trackIds).toEqual([
       videoTrack.id,
       audioTrack.id,
     ]);
-    // And the place it was left is on record, for that video by id.
     const stored = JSON.parse(
       window.localStorage.getItem('fluideq.library.videoPositions') ?? '{}',
     ) as Record<string, number>;
@@ -367,9 +330,6 @@ describe('the Back button over a video', () => {
     });
     expect(document.querySelector('video')).toBeNull();
 
-    // The same id, from the same shelf: closing is remembered by id, and
-    // this is the press that used to land on a video still marked closed —
-    // no picture, no sound, a row lit up as playing.
     await playTracks([videoTrack.id], videoTrack.id);
     expect(latestPlayer?.videoTrackId).toBe(videoTrack.id);
     expect(document.querySelector('video')).not.toBeNull();
@@ -384,9 +344,6 @@ describe('the Back button over a video', () => {
     });
     expect(document.querySelector('video')).toBeNull();
 
-    // The transport's play button. With the picture closed there is no
-    // element for it to reach, so its ordinary route was a dead press on a
-    // track the bar was still showing.
     act(() => {
       latestPlayer?.toggle();
     });
@@ -396,79 +353,32 @@ describe('the Back button over a video', () => {
   });
 });
 
-describe('a root removed while its track is playing (blocker 2)', () => {
-  it('pauses the hidden audio element and hides the bar even though trackId never changes', async () => {
-    await renderHarness();
-    await playTracks([audioTrack.id], audioTrack.id);
-    expect(latestPlayer?.track?.id).toBe(audioTrack.id);
-    // Clears the calls the loader effect above already made on its own
-    // unconditional `audio.pause()` at the top of every track change, so
-    // the assertion below can only pass if the new, separate effect is what
-    // paused it a second time.
-    mediaPause.mockClear();
-
-    // `library-root-remove` deletes every track under the removed root and
-    // broadcasts the same `library-changed` summary a rescan does; the player
-    // asks for its songs again and the store answers that it has none by
-    // that id. The queue itself is untouched -- `trackId` still names
-    // `audioTrack.id` -- only what that id resolves to has changed, which is
-    // exactly the case the `[trackId]`-keyed loader effect cannot see.
-    act(() => {
-      store.removeRoot(mediaRoot.id);
-    });
-    await store.settle();
-
-    // The queue's own `trackIds` never moved -- confirms this really is the
-    // "trackId unchanged, track gone" case and not an incidental skip.
-    expect(latestPlayer?.queue?.trackIds).toEqual([audioTrack.id]);
-    expect(latestPlayer?.track).toBeUndefined();
-    expect(mediaPause).toHaveBeenCalled();
-    await act(async () => Promise.resolve());
-  });
-});
-
-/**
- * A song the library has not answered for yet is not a song that is gone.
- *
- * The queue moves the moment something is pressed; the songs it names are
- * read from the store a moment later. Taking "not read yet" for "removed"
- * stopped the player on every start, and loading a song nothing is known
- * about yet silenced the deck and never loaded it once the answer landed.
- */
-describe('a song the library has not read yet', () => {
-  it('keeps the song that is playing until the library has read the next one', async () => {
+describe('a root removed while its track is playing', () => {
+  it('empties the hidden audio element and hides the bar', async () => {
     const { decks, release } = captureDecks();
     try {
       await renderHarness();
       await playTracks([audioTrack.id], audioTrack.id);
-      act(() => {
-        store.setTracks([videoTrack, audioTrack, secondAudioTrack]);
-      });
-      await store.settle();
-      mediaPause.mockClear();
-
-      // A new queue, so its song was never read along with the old one.
-      act(() => {
-        latestPlayer?.playTracks([secondAudioTrack.id], secondAudioTrack.id);
-      });
-      expect(latestPlayer?.queue?.trackIds).toEqual([secondAudioTrack.id]);
       expect(latestPlayer?.track?.id).toBe(audioTrack.id);
-      expect(mediaPause).not.toHaveBeenCalled();
-      expect(decks.some((deck) => deck.src.includes(audioTrack.id))).toBe(true);
-
-      // The control: once the library answers, the pressed song is the one
-      // loaded — which pauses the deck first, the pause that would have been
-      // seen above had the deck changed songs — and the one that starts.
-      await store.settle();
-      expect(latestPlayer?.track?.id).toBe(secondAudioTrack.id);
-      expect(mediaPause).toHaveBeenCalled();
-      const incoming = decks.find((deck) =>
-        deck.src.includes(secondAudioTrack.id),
+      expect(decks.some((deck) => deck.getAttribute('src') !== null)).toBe(
+        true,
       );
-      expect(incoming).toBeDefined();
-      mediaPlay.mockClear();
-      await announceMetadata(decks);
-      expect(mediaPlay.mock.instances).toEqual([incoming]);
+
+      // Main deletes the root's songs and tells the core; the queue itself
+      // still names the song, which no longer resolves.
+      act(() => {
+        tracks = [videoTrack];
+        store.removeRoot(mediaRoot.id);
+        core.player.tracksChanged(undefined);
+      });
+      await store.settle();
+
+      expect(latestPlayer?.queue?.trackIds).toEqual([audioTrack.id]);
+      expect(latestPlayer?.track).toBeUndefined();
+      expect(latestPlayer?.isPlaying).toBe(false);
+      expect(decks.every((deck) => deck.getAttribute('src') === null)).toBe(
+        true,
+      );
     } finally {
       release();
     }
@@ -477,76 +387,65 @@ describe('a song the library has not read yet', () => {
 
 describe('loading a track', () => {
   it('never assigns a position on the same tick as the source', async () => {
-    // This is what made seeking impossible, and it cost a long hunt to find
-    // because every layer above it looked right: the bar reported the correct
-    // value, `seek` was called with it, and `element.currentTime = 101.7` ran
-    // — and the element silently refused it and stayed at zero.
-    //
-    // Measured against the real thing in the running window, three elements
-    // pointed at one file:
-    //
-    //   src, currentTime = 0, play()  ->  seekable.end = 0,      seek lands at 0.87
-    //   src, play()                   ->  seekable.end = 168.88, seek lands at 100.91
-    //   src, preload = "metadata"     ->  seekable.end = 168.88, seek lands at 100
-    //
-    // A position assigned while the element is still at `HAVE_NOTHING` leaves
-    // its seekable range empty for the whole of that load, and every later
-    // seek is dropped. jsdom has no such behaviour to reproduce, so what is
-    // asserted here is the cause rather than the symptom: the loader must not
-    // touch `currentTime` at all.
-    await renderHarness();
-    await playTracks([audioTrack.id], audioTrack.id);
-    expect(latestPlayer?.track?.id).toBe(audioTrack.id);
+    // An element given a position while still at `HAVE_NOTHING` keeps its
+    // seekable range empty for the whole load and refuses every seek after
+    // it. jsdom cannot show that, so the cause is what is asserted: no
+    // `currentTime` at all while the song loads.
+    const { decks, release } = captureDecks();
+    try {
+      await renderHarness();
+      await playTracks([audioTrack.id], audioTrack.id);
+      expect(latestPlayer?.track?.id).toBe(audioTrack.id);
+      expect(decks.some((deck) => deck.getAttribute('src') !== null)).toBe(
+        true,
+      );
+      expect(currentTimeSets).toEqual([]);
 
-    expect(currentTimeSets).toEqual([]);
-
-    // The control the assertion above needs: proof the recorder is wired to
-    // the property the loader would have used, so an empty list means "the
-    // loader did not assign one" rather than "nothing here can see it".
-    act(() => {
-      latestPlayer?.seek(101_700);
-    });
-    expect(currentTimeSets).toEqual([101.7]);
+      // The control: the recorder sees the property a seek uses.
+      act(() => {
+        latestPlayer?.seek(101_700);
+      });
+      expect(currentTimeSets).toEqual([101.7]);
+    } finally {
+      release();
+    }
   });
 });
 
-describe('crossfade transport ownership', () => {
-  it('keeps navigation on the working deck until the incoming song is playing', async () => {
-    resetDspDiagnosticsForTests();
-    const warning = jest.spyOn(log, 'warn').mockImplementation(() => undefined);
-    const { decks: createdAudio, release: releaseDecks } = captureDecks();
+describe('crossfade on the window’s element', () => {
+  const fading = () =>
     applyDspSettings({
       ...DSP_DEFAULTS,
+      enabled: true,
       normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'off' },
       crossfade: { ...DSP_DEFAULTS.crossfade, enabled: true },
     });
 
+  it('keeps navigation on the working deck until the incoming song is playing', async () => {
+    resetDspDiagnosticsForTests();
+    const warning = jest.spyOn(log, 'warn').mockImplementation(() => undefined);
+    const { decks: createdAudio, release: releaseDecks } = captureDecks();
+    tracks = [videoTrack, audioTrack, secondAudioTrack];
+    install();
+    fading();
+
     try {
       await renderHarness();
-      act(() => {
-        store.setTracks([videoTrack, audioTrack, secondAudioTrack]);
-      });
       await playTracks([audioTrack.id, secondAudioTrack.id], audioTrack.id);
-      await act(async () => {
-        await Promise.resolve();
-      });
+      await announceMetadata(createdAudio);
 
       const [outgoing, incoming] = createdAudio;
       expect(outgoing).toBeDefined();
       expect(incoming).toBeDefined();
-      Object.defineProperty(outgoing, 'paused', {
-        configurable: true,
-        get: () => false,
-      });
+      markPlaying(outgoing);
       const outgoingPause = jest.fn();
       Object.defineProperty(outgoing, 'pause', {
         configurable: true,
         value: outgoingPause,
       });
-      const trackBytes = jest
+      window.electron.ipcRenderer.libraryTrackBytes = jest
         .fn<Promise<ArrayBuffer | undefined>, [string]>()
         .mockResolvedValue(new ArrayBuffer(8));
-      window.electron.ipcRenderer.libraryTrackBytes = trackBytes;
       const outgoingSeeks: number[] = [];
       const incomingSeeks: number[] = [];
       Object.defineProperty(outgoing, 'currentTime', {
@@ -575,8 +474,6 @@ describe('crossfade transport ownership', () => {
         latestPlayer?.skip(1);
       });
       expect(latestPlayer?.track?.id).toBe(secondAudioTrack.id);
-      // A deck holds until its source announces itself, which jsdom never does
-      // on its own. A real element fires this before it can render a sample.
       await act(async () => {
         incoming.dispatchEvent(new Event('loadedmetadata'));
         await Promise.resolve();
@@ -587,9 +484,8 @@ describe('crossfade transport ownership', () => {
         await Promise.resolve();
         await Promise.resolve();
       });
-      // A fast byte-cache read must not replace the source while the incoming
-      // deck's first play promise is pending. Chromium rejects that promise as
-      // AbortError, which was why Next left the old song playing forever.
+      // The file's bytes do not replace a source whose first play is still
+      // pending: Chromium rejects it, and Next left the old song playing.
       expect(incoming.src).toContain(secondAudioTrack.id);
       expect(incoming.src).not.toMatch(/^blob:/);
       expect(outgoingPause).not.toHaveBeenCalled();
@@ -611,10 +507,9 @@ describe('crossfade transport ownership', () => {
         latestPlayer?.seek(7_000);
       });
       expect(incomingSeeks).toEqual([7]);
-      expect(warning).toHaveBeenCalledTimes(1);
       expect(warning).toHaveBeenCalledWith('[dsp:renderer] code=2001', {
-        durationMs: 2000,
-        curve: 'equalPower',
+        durationMs: DSP_DEFAULTS.crossfade.durationMs,
+        curve: DSP_DEFAULTS.crossfade.curve,
       });
     } finally {
       warning.mockRestore();
@@ -622,41 +517,20 @@ describe('crossfade transport ownership', () => {
     }
   });
 
-  /**
-   * The seek bar during a handoff, which had three writers and no owner.
-   *
-   * A crossfade runs both elements at once, so for the length of the overlap
-   * the outgoing one is still playing a track that is no longer current — and
-   * its `timeupdate` kept writing the position. Between the reset to zero on
-   * the track change, the outgoing element reporting the middle of the previous
-   * song, and the incoming one starting from nothing, the thumb jumped to the
-   * start, back out to where the old track was, and to the start again.
-   */
   it('does not let the outgoing deck drive the seek bar once the track changed', async () => {
     const { decks: createdAudio, release: releaseDecks } = captureDecks();
-    applyDspSettings({
-      ...DSP_DEFAULTS,
-      normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'off' },
-      crossfade: { ...DSP_DEFAULTS.crossfade, enabled: true },
-    });
+    tracks = [videoTrack, audioTrack, secondAudioTrack];
+    install();
+    fading();
 
     try {
       await renderHarness();
-      act(() => {
-        store.setTracks([videoTrack, audioTrack, secondAudioTrack]);
-      });
       await playTracks([audioTrack.id, secondAudioTrack.id], audioTrack.id);
-      await act(async () => {
-        await Promise.resolve();
-      });
+      await announceMetadata(createdAudio);
 
       const outgoing = createdAudio[0];
       expect(outgoing).toBeDefined();
-      // Playing, so the track change is a crossfade handoff rather than a cut.
-      Object.defineProperty(outgoing, 'paused', {
-        configurable: true,
-        get: () => false,
-      });
+      markPlaying(outgoing);
       let outgoingTime = 0;
       Object.defineProperty(outgoing, 'currentTime', {
         configurable: true,
@@ -666,7 +540,7 @@ describe('crossfade transport ownership', () => {
         },
       });
 
-      // The control: while it IS the current track, its ticks must be heard.
+      // The control: while it IS the current song, its ticks are heard.
       outgoingTime = 42;
       act(() => {
         outgoing.dispatchEvent(new Event('timeupdate'));
@@ -679,8 +553,7 @@ describe('crossfade transport ownership', () => {
       expect(latestPlayer?.track?.id).toBe(secondAudioTrack.id);
       expect(latestPlayer?.positionMs).toBe(0);
 
-      // The overlap: the outgoing element is still playing, still ticking, and
-      // still one hundred and twenty seconds into a song nobody is showing.
+      // Still ticking, a hundred and twenty seconds into a song nobody shows.
       outgoingTime = 120;
       act(() => {
         outgoing.dispatchEvent(new Event('timeupdate'));
@@ -690,93 +563,9 @@ describe('crossfade transport ownership', () => {
       releaseDecks();
     }
   });
-  it('keeps the outgoing track-level gain until the overlap is finished', async () => {
-    resetDspDiagnosticsForTests();
-    const warning = jest.spyOn(log, 'warn').mockImplementation(() => undefined);
-    jest.useFakeTimers();
-    const { decks: createdAudio, release: releaseDecks } = captureDecks();
-    const first = {
-      ...audioTrack,
-      normalization: {
-        version: 2 as const,
-        truePeakDbtp: -2,
-        integratedLufs: -18,
-      },
-    };
-    const next = {
-      ...secondAudioTrack,
-      normalization: {
-        version: 2 as const,
-        truePeakDbtp: -0.5,
-        integratedLufs: -8,
-      },
-    };
-    applyDspSettings({
-      ...DSP_DEFAULTS,
-      crossfade: {
-        ...DSP_DEFAULTS.crossfade,
-        enabled: true,
-        durationMs: 250,
-      },
-    });
-
-    try {
-      await renderHarness();
-      act(() => {
-        store.setTracks([first, next]);
-      });
-      await playTracks([first.id, next.id], first.id);
-      await act(async () => {
-        await Promise.resolve();
-      });
-      expect(readDspInputAnalysis().trackId).toBe(first.id);
-
-      const outgoing = createdAudio[0];
-      expect(outgoing).toBeDefined();
-      Object.defineProperty(outgoing, 'paused', {
-        configurable: true,
-        get: () => false,
-      });
-      act(() => {
-        latestPlayer?.skip(1);
-      });
-      await announceMetadata(createdAudio);
-
-      expect(latestPlayer?.track?.id).toBe(next.id);
-      expect(readDspInputAnalysis().trackId).toBe(first.id);
-
-      // The overlap ends when the incoming deck's own playhead has played the
-      // fade's length, not on a clock: time alone hands nothing over.
-      act(() => {
-        jest.advanceTimersByTime(301);
-      });
-      expect(readDspInputAnalysis().trackId).toBe(first.id);
-      act(() => {
-        createdAudio
-          .filter((element) => element !== outgoing)
-          .forEach((incoming) => {
-            Object.defineProperty(incoming, 'currentTime', {
-              configurable: true,
-              get: () => 0.3,
-            });
-            incoming.dispatchEvent(new Event('timeupdate'));
-          });
-      });
-      expect(readDspInputAnalysis().trackId).toBe(next.id);
-      expect(warning).toHaveBeenCalledTimes(1);
-      expect(warning).toHaveBeenCalledWith('[dsp:renderer] code=2001', {
-        durationMs: 250,
-        curve: 'equalPower',
-      });
-    } finally {
-      warning.mockRestore();
-      releaseDecks();
-      jest.useRealTimers();
-    }
-  });
 });
 
-describe('Previous button behavior', () => {
+describe('Previous', () => {
   it('restarts after ten seconds, then changes to the previous song', async () => {
     await renderHarness();
     await playTracks([videoTrack.id, audioTrack.id], audioTrack.id);
@@ -796,64 +585,25 @@ describe('Previous button behavior', () => {
     expect(latestPlayer?.track?.id).toBe(videoTrack.id);
   });
 
-  /**
-   * NEXT IS NOT PREVIOUS, AND THE FIRST SECOND IS WHERE THAT WENT WRONG.
-   *
-   * Restarting the track instead of leaving it is Previous's rule, and it is
-   * correctly gated on `direction === -1`. What was not gated was settling the
-   * crossfade: only Previous did that, and the first second of a track is
-   * exactly when a fade from the change before is still running.
-   *
-   * So Next pressed early advanced the queue while an overlap still owned both
-   * decks, and the handoff completed against a queue that had already moved —
-   * heard as the track starting over rather than the next one playing.
-   *
-   * Pressed twice in a row with no time in between, Next must land two tracks
-   * on, never back on the one it started from.
-   */
-  /**
-   * WHAT THIS PINS, AND WHAT IT DOES NOT.
-   *
-   * It pins the asymmetry: at position zero, Previous restarts and Next
-   * advances. That is the rule the report was about — "next on the first second
-   * makes the sound start; that feature is only for prev".
-   *
-   * It does NOT reproduce the mechanism. The fix is that Next now settles an
-   * in-flight crossfade before advancing, and this harness has no live overlap
-   * to settle, so it would pass without that change. The collision needs two
-   * real decks mid-fade and is a listening test, not a jsdom one. Said plainly
-   * here rather than left for someone to assume this covers it.
-   */
-  it('advances on an early Next where Previous would restart', async () => {
+  it('is not what an early Next does: Next advances', async () => {
     await renderHarness();
     await playTracks([videoTrack.id, audioTrack.id], videoTrack.id);
-    expect(latestPlayer?.track?.id).toBe(videoTrack.id);
-
-    // Position zero, which is where Previous's restart rule lives. Next has no
-    // business honouring it.
     act(() => {
       latestPlayer?.skip(1);
     });
     expect(latestPlayer?.track?.id).toBe(audioTrack.id);
-    expect(latestPlayer?.track?.id).not.toBe(videoTrack.id);
     await act(async () => Promise.resolve());
   });
 });
 
 describe('the length of the playing track', () => {
   it('is learned once and never unlearned', async () => {
-    // `durationchange` does not fire only with the answer: it fires again
-    // mid-playback and Chromium reports `Infinity` on some of those. Writing
-    // that through as zero collapsed the seek bar in the middle of a song —
-    // `NowPlayingBar` clamps both its value and its `max` to
-    // `max(1, durationMs)`, so at zero the thumb lands on the far left and
-    // the control disables itself. That is what "it goes back to the start
-    // when I try to seek" was.
+    // Chromium reports `Infinity` on some `durationchange`s mid-playback;
+    // written through as nought it collapsed the seek bar mid-song.
     await renderHarness();
     await playTracks([videoTrack.id], videoTrack.id);
     const element = document.querySelector('video');
     expect(element).not.toBeNull();
-
     const setDuration = (value: number) => {
       Object.defineProperty(element as HTMLVideoElement, 'duration', {
         configurable: true,
@@ -867,15 +617,13 @@ describe('the length of the playing track', () => {
     });
     expect(latestPlayer?.durationMs).toBeCloseTo(212_500);
 
-    // The one that used to wipe it.
     setDuration(Number.POSITIVE_INFINITY);
     act(() => {
       element?.dispatchEvent(new Event('durationchange'));
     });
     expect(latestPlayer?.durationMs).toBeCloseTo(212_500);
 
-    // The control: a real, different length still gets through, so this is
-    // "ignores nonsense" rather than "ignores everything after the first".
+    // The control: a real, different length still gets through.
     setDuration(180);
     act(() => {
       element?.dispatchEvent(new Event('durationchange'));
@@ -884,53 +632,30 @@ describe('the length of the playing track', () => {
   });
 });
 
-describe('a track whose file will not load (blocker 4)', () => {
-  it('surfaces the same unplayable message the codec-unplayable path uses', async () => {
+describe('a track whose file will not load', () => {
+  it('says it cannot be played, and stops', async () => {
     await renderHarness();
     await playTracks([videoTrack.id], videoTrack.id);
     expect(latestPlayer?.isUnplayable).toBe(false);
-
-    // The hidden `Audio()` element lives in a ref, never the DOM, so a real
-    // 404 from the protocol handler cannot be dispatched at it from here --
-    // the video element `LibraryVideoStage` mounts is bound through the
-    // exact same `bindMediaEvents` call, so firing `error` on it exercises
-    // the identical listener under test.
     const videoElement = document.querySelector('video');
-    expect(videoElement).not.toBeNull();
     act(() => {
       videoElement?.dispatchEvent(new Event('error'));
     });
-
     expect(latestPlayer?.isUnplayable).toBe(true);
     expect(latestPlayer?.isPlaying).toBe(false);
   });
 });
 
-/**
- * Coming back to the app must never start making noise.
- *
- * The line between "where you were" and "what you asked for": the last track
- * is cued with its playhead where it was, and it waits for Play.
- */
 describe('restoring the last session', () => {
-  const seedMemory = (positionMs: number) => {
-    window.localStorage.setItem(
-      'fluideq.library.playback',
-      JSON.stringify({
-        trackIds: [audioTrack.id],
-        order: [0],
-        position: 0,
-        repeat: 'off',
-        isShuffled: false,
-        positionMs,
-      }),
-    );
-  };
+  const memoryAt = (positionMs: number): IPlaybackMemory => ({
+    trackIds: [audioTrack.id],
+    order: [0],
+    position: 0,
+    repeat: 'off',
+    isShuffled: false,
+    positionMs,
+  });
 
-  // Each case mounts with its decks held, and every deck announces what it
-  // holds before anything is asserted: a deck that never heard from its file
-  // never plays either, so without that the three cases below would agree
-  // for a reason none of them is about.
   let decks: HTMLAudioElement[] = [];
   let releaseDecks: () => void = () => undefined;
   beforeEach(() => {
@@ -940,48 +665,74 @@ describe('restoring the last session', () => {
     releaseDecks();
   });
 
-  it('cues the last track without playing it', async () => {
-    seedMemory(90_000);
+  it('cues the last track where it was without playing it', async () => {
+    install(memoryAt(90_000));
     await renderHarness();
     await announceMetadata(decks);
-
     expect(latestPlayer?.track?.id).toBe(audioTrack.id);
     expect(mediaPlay).not.toHaveBeenCalled();
+    expect(currentTimeSets).toContain(90);
   });
 
-  /**
-   * The gap this test exists for.
-   *
-   * `restorablePositionMs` declines to restore a playhead under five seconds,
-   * and the loader read that same absence as "this is not a restore" — so a
-   * session that ended two seconds into a track fell through to `play()` and
-   * the app started playing on its own at launch. Whether to resume a POSITION
-   * is a judgement; whether to start playing unasked is not.
-   */
   it('still refuses to play when the position was too early to restore', async () => {
-    seedMemory(2_000);
+    install(memoryAt(2_000));
     await renderHarness();
     await announceMetadata(decks);
-
     expect(latestPlayer?.track?.id).toBe(audioTrack.id);
     expect(mediaPlay).not.toHaveBeenCalled();
   });
 
-  /**
-   * POSITIVE CONTROL. Without it, both assertions above would pass just as
-   * well if nothing in this harness could ever reach `play()`.
-   *
-   * Through the loader, from nothing cued. It used to pass through a leak
-   * instead: the case before it wrote its queue back to storage as it
-   * unmounted, this one restored that queue cued, and the press then took
-   * the "already cued" shortcut straight to `play()`.
-   */
   it('POSITIVE CONTROL: a track the user picks does play', async () => {
     await renderHarness();
     expect(latestPlayer?.queue).toBeUndefined();
     await playTracks([audioTrack.id], audioTrack.id);
     await announceMetadata(decks);
-
     expect(mediaPlay).toHaveBeenCalled();
+  });
+});
+
+describe('the window’s part beside the core', () => {
+  it('hands its old copy of the session to the core once, and forgets it', async () => {
+    window.localStorage.setItem(
+      'fluideq.library.playback',
+      '{"trackIds":["a1"]}',
+    );
+    window.localStorage.setItem('fluideq.library.keepPlaying', 'off');
+    await renderHarness();
+    const legacy = core.sent.filter(
+      ({ channel }) => channel === 'library-player-legacy',
+    );
+    expect(legacy).toHaveLength(1);
+    expect(legacy[0]?.args[0]).toEqual({
+      memory: { trackIds: ['a1'] },
+      keepPlaying: 'off',
+    });
+    expect(window.localStorage.getItem('fluideq.library.playback')).toBeNull();
+    expect(
+      window.localStorage.getItem('fluideq.library.keepPlaying'),
+    ).toBeNull();
+  });
+
+  it('hands the rack over, and says when the player is put away', async () => {
+    const view = await renderHarness();
+    expect(
+      core.sent.some(({ channel }) => channel === 'library-player-rack'),
+    ).toBe(true);
+    view.unmount();
+    expect(core.sent[core.sent.length - 1]?.channel).toBe(
+      'library-player-away',
+    );
+  });
+
+  it('stops the other players when the Library starts, and pauses in the core when one starts', async () => {
+    const stopMedia = jest.fn();
+    registerPlayer('media', stopMedia);
+    await renderHarness();
+    await playTracks([audioTrack.id], audioTrack.id);
+    expect(stopMedia).toHaveBeenCalled();
+    act(() => {
+      claimPlayback('media');
+    });
+    expect(latestPlayer?.isPlaying).toBe(false);
   });
 });

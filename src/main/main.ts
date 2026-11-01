@@ -49,6 +49,7 @@ import { createSecondOutputs } from './secondOutputRoute';
 import {
   startNativeOutputHold,
   startNativeOutputMirror,
+  startRawSourceCapture,
 } from './remoteAudioCapture';
 import { createSongLevelStore } from './songLevels';
 import { createSongProgramme } from './songProgramme';
@@ -59,7 +60,11 @@ import startEngineAnalysisPipe, {
 } from './engineAnalysisPipe';
 import { createProcessMeter } from './processMeter';
 import ChannelEnum from '../common/channels';
-import { IState, OUTPUT_STATE_CHANGED_EVENT } from '../common/constants';
+import {
+  IState,
+  OUTPUT_STATE_CHANGED_EVENT,
+  type ISmartEqSettings,
+} from '../common/constants';
 import { TSuccess } from '../renderer/utils/equalizerApi';
 import { syncOpraDatabase } from './opraUpdater';
 import { setUpVideoBrowser } from './videoBrowser';
@@ -84,8 +89,11 @@ import { createWindowModes } from './windowMode';
 import { registerFiltersIpc } from './ipc/filters';
 import registerBandDesignsIpc from './ipc/bandDesigns';
 import { registerLayersIpc } from './ipc/layers';
-import registerSongEqHandlers from './ipc/songEq';
-import registerSongSoundIpc from './ipc/songSound';
+import registerSongEqIpc from './ipc/songEq';
+import { createSongEqMemory } from './songEqMemory';
+import { createSongEqEntries } from './songEqEntries';
+import { SONG_EQ_CHANNEL } from '../common/songEqStatus';
+import { isContinuousMode } from '../common/smartEqMode';
 import { registerPreampIpc } from './ipc/preamp';
 import registerVideoIpc from './ipc/video';
 import { registerKaraokeSeparation } from './karaokeSeparation';
@@ -97,9 +105,19 @@ import startLinuxOutputWatch from './linux/linuxOutputWatch';
 import linuxTrayIsShown from './linux/linuxTrayHost';
 import { registerUpdatesIpc } from './ipc/updates';
 import { registerLibraryIpc } from './ipc/library';
+import registerLibraryPlayerIpc from './ipc/libraryPlayer';
+import createLibraryPlayer from './libraryPlayer/libraryPlayer';
+import { createHostEngine } from './libraryPlayer/hostEngine';
+import libraryHostPort from './libraryPlayer/hostPort';
+import { createPlaybackSession } from './libraryPlayer/playbackSession';
+import { createSourcePublication } from './libraryPlayer/sourcePublication';
+import watchWindowSeen from './windowSeen';
+import { LIBRARY_PLAYER_CHANNEL } from '../common/library/playerWire';
 import {
   dspHostPid,
+  dspHostSampleRate,
   dspHostStats,
+  listenToDspHostAnalysis,
   registerDspHostIpc,
   shutdownDspHost,
   setDspHostRawLibrary,
@@ -109,6 +127,44 @@ import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
 import { registerEngineHealthIpc } from './ipc/engineHealth';
 import { registerLightingIpc } from './ipc/lighting';
 import { registerRemoteAudioIpc } from './ipc/remoteAudio';
+import registerSystemSoundPort from './ipc/systemSoundPort';
+import { createSystemSound } from '../core/systemSound/systemSound';
+import { createPlatformSystemSoundSource } from '../core/platform/systemSoundSource';
+import { createDesktopSound } from '../core/liveFrames/desktopSound';
+import { createKeptFile } from '../core/files/keptFile';
+import { createApoHeadroom } from '../core/headroom/apoHeadroom';
+import {
+  NO_KEPT_GAMES,
+  parseKeptDspPresets,
+  parseKeptGames,
+  parseRackHold,
+} from '../common/coreCopies';
+import registerCoreCopies from './ipc/coreCopies';
+import { createPresetPicks } from './presetPicks';
+import registerPresetPicksIpc from './ipc/presetPicks';
+import { createSongMemory } from './songMemory';
+import { createGameSound } from './gameSound';
+import mainText from './mainText';
+import { createSongSoundMemory } from './songSoundMemory';
+import registerSongMemoryIpc from './ipc/songMemory';
+import registerNowPlayingIpc from './ipc/nowPlaying';
+import registerSmartEqIpc from './ipc/smartEq';
+import { createSmartEqRunner } from './smartEq/smartEqRunner';
+import {
+  type IRawSourceTaps,
+  openRawSourceFrames,
+} from './smartEq/rawSourceFrames';
+import {
+  DEFAULT_SMART_EQ_SETTINGS,
+  SMART_EQ_CHANNEL,
+  parseSmartEqCoreSettings,
+} from '../common/smartEqCore';
+import { sanitizeSmartEqSettings } from '../common/smartEq';
+import {
+  SONG_MEMORY_CHANNEL,
+  parseSongMemorySwitch,
+} from '../common/songMemoryStatus';
+import { outputRackLine } from './outputDsp';
 import { registerForumIpc } from './ipc/forum';
 import { registerMotionPreferenceIpc } from './ipc/motionPreference';
 import { registerGamesIpc } from './ipc/games';
@@ -143,16 +199,16 @@ import registerDevMemoryTrace from './devMemoryTrace';
 import createAppUpdates from './appUpdates';
 import { createWindowPlacement, firstRunPlacement } from './windowPlacement';
 import createMainSession, { outputEditorOf } from './mainSession';
+import { ownsTemporaryRack } from './outputRack';
 import { getStateForAudioDevice } from './deviceProfiles';
 import { createSourceAnalysisPublisher } from './sourceAnalysis';
-import { registerSourceAnalysisIpc } from './ipc/sourceAnalysis';
 import {
   createProfileStore,
   isAutomaticPresetName,
   shieldReferenceBands,
 } from './profileStore';
 import createApoDiskSync from './apoDiskSync';
-import { createUpdatePath, handleError } from './updatePath';
+import { createUpdatePath, handleError, isErrorReply } from './updatePath';
 import registerDiagnosticsIpc from './ipc/diagnostics';
 import { registerPerformanceLog } from './ipc/performance';
 import registerApoConfigIpc from './ipc/apoConfig';
@@ -163,6 +219,7 @@ import registerSystemMediaIpc from './ipc/systemMedia';
 import registerMemberServices from './memberServices';
 import { applyLaunchSwitches, isDebug } from './launchSwitches';
 import applyLinuxIdentity from './linuxIdentity';
+import { devSandbox, ownAppUserModelId } from './devSandbox';
 import claimTheOnlyCopy from './onlyCopy';
 import { registerAppLinks } from './appLinks';
 import { chooseLaunchEngine, registerEngineServices } from './engineServices';
@@ -292,6 +349,9 @@ const DATABASES_SYNCED_EVENT = 'databases-synced';
  * the previous device's settings until something else happens to refresh them.
  */
 const notifyOutputStateChanged = () => {
+  // Another output's sound is the one edited now, which may start or stop
+  // what the core's jobs do — with or without a window to tell.
+  followTheSound();
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;
   }
@@ -382,6 +442,9 @@ const {
   getCurrentPreset: profiles.getCurrentPreset,
   sessionHeadroom: profiles.sessionHeadroom,
   attachPresetToActiveDevice: profiles.attachPresetToActiveDevice,
+  // Read lazily: the core's jobs are made further down, and nothing is
+  // updated before the window or the health check asks.
+  onUpdated: () => followTheSound(),
 });
 
 registerDiagnosticsIpc({
@@ -414,14 +477,10 @@ registerEngineStateIpc({
     const audibleDsp = session.outputDspOverrides?.get(
       session.activeAudioDeviceId,
     );
-    const ownsTemporaryRack =
-      audibleDsp !== undefined &&
-      (state.songSoundLoan !== undefined ||
-        JSON.stringify(audibleDsp) !== JSON.stringify(state.dsp));
     return {
       ...state,
       dsp: audibleDsp ?? state.dsp,
-      ownedDsp: ownsTemporaryRack ? state.dsp : undefined,
+      ownedDsp: ownsTemporaryRack(state, audibleDsp) ? state.dsp : undefined,
       outputEditor: outputEditorOf(session),
       playbackOutput: main,
       playbackState,
@@ -436,22 +495,24 @@ registerEngineStateIpc({
   syncCustomFxFromConfig,
 });
 
-const { apoGuard } = registerEngineServices({
+const { apoGuard, writeLegacyRack } = registerEngineServices({
   userDataDir,
   state,
   session,
   deviceProfileSettings,
   presetDirForDevice: profiles.presetDirForDevice,
   reflush: reflushCurrentState,
-  onEngineSwitched: () => {
+  onEngineSwitched: (from) => {
     Promise.all([
       secondOutputs.reroute(),
       songProgramme.reflush(),
       sourceAnalysis.reflush(),
+      presetPicks.followEngineSwitch(from),
     ]).catch((error: unknown) =>
       log.error('Could not move output processing to the new engine', error),
     );
   },
+  onRackChanged: () => songMemory.soundMayHaveChanged(),
 });
 
 // Two dozen dependencies, and the list is worth reading rather than skipping:
@@ -484,6 +545,8 @@ const profilesIpc = registerProfilesIpc({
   notifyOutputStateChanged,
   guardAgainstApo: apoGuard.check,
   onPlaybackOutputChanged: () => sourceAnalysis.reflush(),
+  yieldSongSound: () => songMemory.yieldSound(),
+  keepSongSound: () => songMemory.keepSound(),
 });
 
 registerApoConfigIpc({
@@ -524,13 +587,22 @@ registerTransferIpc({
   state,
 });
 
-registerPreampIpc({
+/** Equalizer APO plays, and the output being edited is the one it plays. */
+const canMeasureHeadroom = () =>
+  session.audioEngine === 'apo' &&
+  !session.engineSwitching &&
+  session.activeAudioDeviceId === session.playbackAudioDevice?.id;
+const preamp = registerPreampIpc({
   state,
-  canMeasureHeadroom: () =>
-    session.audioEngine === 'apo' &&
-    !session.engineSwitching &&
-    session.activeAudioDeviceId === session.playbackAudioDevice?.id,
+  canMeasureHeadroom,
   usesNativeHeadroom: () => session.audioEngine === 'fluid',
+  tellWindowPreAmp: (preAmp) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(ChannelEnum.AUTO_PREAMP_SETTLED, {
+        result: preAmp,
+      });
+    }
+  },
   handleUpdate,
   handleUpdateHelper,
   handleError,
@@ -570,14 +642,6 @@ registerLayersIpc({
   applyingLayer: profiles.applyingLayer,
 });
 
-registerSongEqHandlers(userDataDir);
-registerSongSoundIpc({
-  state,
-  userDataDir,
-  handleUpdateHelper,
-  getOutputEditor: () => outputEditorOf(session),
-});
-
 onWindowMessage(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {
   const channel = ChannelEnum.SET_WINDOW_SIZE;
   placement.setWindowDimension(arg[0]);
@@ -600,6 +664,305 @@ registerUpdatesIpc({ getActiveAutoUpdater: updates.getActiveAutoUpdater });
 
 registerNativeDialogsIpc();
 registerWindowsAudioIpc();
+
+/**
+ * What the speakers play, heard by the core (`src/core/systemSound`) and
+ * handed to the window's live displays over a port the window opens — in
+ * place of the screen-share capture Chromium needed a process of its own for.
+ */
+const systemSound = createSystemSound(
+  createPlatformSystemSoundSource({
+    nativeDirs: [
+      path.join(process.resourcesPath, 'native'),
+      path.join(__dirname, '../../native/.build/bin'),
+    ],
+    log,
+  }),
+);
+registerSystemSoundPort(getMainWindow, systemSound);
+/**
+ * The same sound, made into the desktop backgrounds' frames by the core
+ * itself, so a background behind a minimised FluidEQ needs nothing of the
+ * window (`desktopSound.ts`).
+ */
+const desktopSound = createDesktopSound(systemSound);
+
+/**
+ * The window's lists the core acts on with no window to ask: the game
+ * profiles and the saved chains, handed over at launch and on every change
+ * (`ipc/coreCopies.ts`).
+ */
+const keptGames = createKeptFile({
+  filePath: path.join(userDataDir, 'game-profiles.json'),
+  parse: parseKeptGames,
+  empty: NO_KEPT_GAMES,
+  log,
+});
+const keptDspPresets = createKeptFile({
+  filePath: path.join(userDataDir, 'dsp-presets.json'),
+  parse: parseKeptDspPresets,
+  empty: [],
+  log,
+});
+/** Which preset's rack is off only because Equalizer APO cannot run it. */
+const rackHold = createKeptFile({
+  filePath: path.join(userDataDir, 'rack-held-for-apo.json'),
+  parse: parseRackHold,
+  empty: '',
+  log,
+});
+registerCoreCopies({
+  getMainWindow,
+  games: keptGames,
+  dspPresets: keptDspPresets,
+  rackHold,
+});
+
+/**
+ * A change the core made to the edited output's state, through the same
+ * update path the window's edits take; whether it landed.
+ */
+const landUpdate = async (label: string): Promise<boolean> => {
+  let landed = false;
+  await handleUpdate(
+    {
+      reply: (_channel, payload) => {
+        landed = !isErrorReply(payload);
+      },
+    },
+    label,
+    false,
+    true,
+  );
+  return landed;
+};
+
+/** The core changed the edited output's sound by itself: the window reads it. */
+const tellWindowSoundChanged = () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(ChannelEnum.OUTPUT_SOUND_CHANGED);
+  }
+};
+
+/** Presets put on by the core: every picker's, and at a switch of engine. */
+const presetPicks = createPresetPicks({
+  state,
+  session,
+  savedChains: keptDspPresets.read,
+  rackHold,
+  applyingLayer: profiles.applyingLayer,
+  update: (sink, label) => handleUpdate(sink, label, false, true),
+  runProfileMutation: profiles.runProfileMutation,
+  openPlayingOutput: profilesIpc.openPlayingOutput,
+  writeLegacyRack: () =>
+    writeLegacyRack((version) =>
+      outputRackLine({
+        state,
+        audibleDsp:
+          session.outputDspOverrides?.get(session.activeAudioDeviceId) ??
+          state.dsp,
+        rackHere:
+          session.systemRackEnabled?.(session.activeAudioDeviceId) ?? true,
+        version,
+      }),
+    ),
+  tellWindow: tellWindowSoundChanged,
+});
+registerPresetPicksIpc(presetPicks);
+
+/**
+ * Which sound each song is played with, remembered and put back by the
+ * core (`songMemory.ts`), its switch kept here beside it.
+ */
+const songMemory = createSongMemory({
+  state,
+  session,
+  memory: createSongSoundMemory(userDataDir),
+  savedChains: keptDspPresets.read,
+  isOn: createKeptFile<boolean | undefined>({
+    filePath: path.join(userDataDir, 'song-sound-switch.json'),
+    parse: parseSongMemorySwitch,
+    empty: undefined,
+    log,
+  }),
+  update: landUpdate,
+  tellWindowSound: tellWindowSoundChanged,
+  tellWindowStatus: (status) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(SONG_MEMORY_CHANNEL.status, status);
+    }
+  },
+  systemSound,
+});
+registerSongMemoryIpc({ getMainWindow, memory: songMemory });
+
+/**
+ * Smart EQ's measurements, run by the core (`smartEq/smartEqRunner.ts`) on
+ * the settings the window keeps and hands over, hearing the sound before
+ * FluidEQ touches it.
+ */
+const smartEqSettings = createKeptFile({
+  filePath: path.join(userDataDir, 'smart-eq-settings.json'),
+  parse: parseSmartEqCoreSettings,
+  empty: DEFAULT_SMART_EQ_SETTINGS,
+  log,
+});
+const sendToWindow = (channel: string, payload: unknown) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(channel, payload);
+  }
+};
+const rawSourceTaps: IRawSourceTaps = {
+  startProcessCapture:
+    process.platform === 'win32'
+      ? startRawSourceCapture
+      : () => Promise.reject(new Error('eq.smart.error.noSource')),
+  listenToHost: listenToDspHostAnalysis,
+  hostSampleRate: dspHostSampleRate,
+};
+/** The edited output's Smart EQ layer, written as the window's edit was. */
+const writeSmartEqLayer = (layer: ISmartEqSettings | undefined) => {
+  profiles.applyingLayer('smart');
+  state.smartEq = sanitizeSmartEqSettings(layer);
+  return landUpdate(ChannelEnum.SET_SMART_EQ);
+};
+/**
+ * Each song's Smart EQ layer, filed while a running mode refines it and lent
+ * back the next time the song plays (`songEqMemory.ts`).
+ */
+const songEq = createSongEqMemory({
+  entries: createSongEqEntries(userDataDir),
+  writeLayer: writeSmartEqLayer,
+  editedDevice: () => session.activeAudioDeviceId,
+  tellWindowLayer: (layer) =>
+    sendToWindow(SMART_EQ_CHANNEL.wrote, {
+      kind: 'remembered',
+      layer,
+      from: undefined,
+      moved: [],
+    }),
+  tellWindowStatus: (status) => sendToWindow(SONG_EQ_CHANNEL.status, status),
+  systemSound,
+});
+registerSongEqIpc({ getMainWindow, memory: songEq });
+const smartEq = createSmartEqRunner({
+  settings: smartEqSettings.read,
+  layer: () => state.smartEq,
+  isBypassed: () => Boolean(state.bypassed?.includes('smart')),
+  write: writeSmartEqLayer,
+  openSource: (kind, onFrame, onLost) =>
+    openRawSourceFrames(rawSourceTaps, { kind, onFrame, onLost }),
+  text: mainText,
+  now: () => performance.now(),
+  tellState: (runState) => sendToWindow(SMART_EQ_CHANNEL.state, runState),
+  tellRemark: (remark) => sendToWindow(SMART_EQ_CHANNEL.remark, remark),
+  // What the graph draws moves with every frame heard, ten times a second
+  // or so: a window nobody can see is not woken for it.
+  tellView: (view) => {
+    if (mainWindow?.isVisible() && !mainWindow.isMinimized()) {
+      sendToWindow(SMART_EQ_CHANNEL.view, view);
+    }
+  },
+  tellWrote: (wrote) => sendToWindow(SMART_EQ_CHANNEL.wrote, wrote),
+  // As the update path will keep it, so the song memory knows it as ours.
+  onRefined: (layer) => songEq.ownWrite(sanitizeSmartEqSettings(layer)),
+});
+/**
+ * Smart EQ's two jobs, after every update and every change of its settings:
+ * whether the running mode runs, and what the song memory follows — the
+ * edited output, its layer, and whether a running mode refines it.
+ */
+const followSmartEq = () => {
+  smartEq.follow();
+  const { continuous, mode } = smartEqSettings.read();
+  songEq.follow({
+    deviceId: session.activeAudioDeviceId,
+    layer: state.smartEq,
+    isAutoEqRunning:
+      continuous &&
+      isContinuousMode(mode) &&
+      !state.bypassed?.includes('smart'),
+  });
+};
+smartEqSettings.onChange(followSmartEq);
+registerSmartEqIpc({
+  getMainWindow,
+  runner: smartEq,
+  settings: smartEqSettings,
+});
+
+/** What the window's players play, for the core's jobs that follow songs. */
+registerNowPlayingIpc({
+  getMainWindow,
+  onNowPlaying: ({ identity, isPlaying, isLibrary }) => {
+    songMemory.nowPlaying(identity, isPlaying);
+    songEq.nowPlaying(identity, isPlaying);
+    smartEq.nowPlaying({
+      songKey: identity?.key,
+      isPlaying,
+      source: isLibrary ? 'host' : 'process',
+    });
+  },
+});
+
+/** Auto normalize on Equalizer APO, heard and decided by the core. */
+const apoHeadroom = createApoHeadroom({
+  systemSound,
+  applyTrim: preamp.applyHeadroomTrim,
+});
+
+/**
+ * The parts of the chain an edit to which makes Auto normalize look again,
+ * each with its text at the last look: a part is read as text only when it
+ * has been replaced, and compared as text before it counts, because a profile
+ * read again hands every part a new object whether anything in it changed.
+ */
+const chainParts = () => [
+  state.filters,
+  state.graphicEq,
+  state.eqMode,
+  state.curveEqMode,
+  state.mainBandQ,
+  state.eqBandQ,
+  state.curveBandQ,
+  state.curveSmoothing,
+  state.isEqDoubleOn,
+  state.driver,
+  state.headphone,
+  state.voicing,
+  state.smartEq,
+  state.convolution,
+  state.customFx,
+  state.bypassed,
+];
+let lastChain: { parts: unknown[]; texts: string[] } | undefined;
+
+/**
+ * After every change to the sound, the core's jobs that follow it are told:
+ * whether Auto normalize on Equalizer APO listens, and whether the chain it
+ * keeps under full scale was edited.
+ */
+function followTheSound(): void {
+  apoHeadroom.follow({
+    enabled: state.isAutoPreAmpOn && state.isEnabled && canMeasureHeadroom(),
+    trimDb: state.smartHeadroomTrimDb ?? 0,
+    hasLegacyProgramme: Boolean(state.smartHeadroomProgramme?.length),
+  });
+  const parts = chainParts();
+  const last = lastChain;
+  const texts = parts.map((part, at) =>
+    last && Object.is(part, last.parts[at])
+      ? last.texts[at]
+      : (JSON.stringify(part) ?? 'null'),
+  );
+  if (last && texts.some((text, at) => text !== last.texts[at])) {
+    apoHeadroom.edited();
+  }
+  lastChain = { parts, texts };
+  songMemory.soundMayHaveChanged();
+  gameSound.soundMayHaveChanged();
+  followSmartEq();
+}
 
 /**
  * Which song the machine is playing, for the FluidEQ Engine's live leveling
@@ -688,15 +1051,56 @@ const secondOutputs = createSecondOutputs({
 });
 const stopOutputMirrors = registerOutputMirrorIpc(getMainWindow, secondOutputs);
 
-// Game profiles: what the launchers have installed, and which program
-// Windows has put in front. The watcher behind it runs only while the window
-// asks for it — see `ipc/games.ts`.
-registerGamesIpc({
+// Game profiles: what the launchers have installed, which program Windows
+// has put in front, and the sound a game puts on, decided by the core
+// (`gameSound.ts`). The watcher runs while the core has profiles to match or
+// the Games page asks — see `ipc/games.ts`.
+const gamesIpc = registerGamesIpc({
   getMainWindow,
+  onFront: (program) => {
+    gameSound.heard(program).catch(() => undefined);
+  },
+  onGone: (pid) => {
+    gameSound.ended(pid).catch(() => undefined);
+  },
+  coreWantsWatch: () => {
+    const { enabled, profiles: kept } = keptGames.read();
+    return enabled && kept.length > 0;
+  },
+  sounding: () => gameSound.sounding(),
+});
+const gameSound = createGameSound({
+  state,
+  session,
+  games: keptGames,
+  savedChains: keptDspPresets.read,
+  openPlayingOutput: async () => {
+    let opened = false;
+    await profiles.runProfileMutation(async () => {
+      opened = await profilesIpc.openPlayingOutput();
+    });
+    return opened;
+  },
+  pick: (presetId) =>
+    presetPicks.pick(
+      { id: presetId, quick: true, deviceId: session.activeAudioDeviceId },
+      // A refusal is the update path's to log; there is nobody to answer.
+      { reply: () => undefined },
+      'gameSound',
+    ),
+  songMemory,
+  holdProcess: gamesIpc.hold,
+  showCard: gamesIpc.showCard,
+  tellWindow: gamesIpc.tellSounding,
   // A game in front holds the desktop backgrounds still: they and the game
   // draw on the same graphics card, and the one being played is the one that
   // matters.
   onPlaying: (playing) => members.wallpaperIpc.setGameInFront(playing),
+  t: mainText,
+});
+keptGames.onChange(() => {
+  gamesIpc.refreshWatch();
+  gameSound.gamesChanged().catch(() => undefined);
 });
 
 // The system volume, for the compact player's slider when what is playing is
@@ -707,6 +1111,7 @@ registerSystemVolumeIpc(getMainWindow);
 const members = registerMemberServices({
   getMainWindow,
   userDataDir,
+  desktopSound,
 });
 
 // The tools menu's animations row: the saved choice, and the one this launch
@@ -762,7 +1167,11 @@ const sourceAnalysis = createSourceAnalysisPublisher({
   },
   resolveSourceEndpoint: async () => session.playbackAudioDevice?.guid,
   write: scheduleWrite,
-  readHealth: () => engineHealth.read(),
+  // A sandbox's source goes into its own folder, which no engine reads (see
+  // `devSandbox.ts`), so no engine's status may answer for it: read the real
+  // ones and every Play waited for an acknowledgement that could not come.
+  readHealth: () =>
+    devSandbox ? Promise.resolve({ outputs: [] }) : engineHealth.read(),
   setRawLibrary: setDspHostRawLibrary,
   prepareEngine: async () => {
     const result = await reflushCurrentState();
@@ -790,7 +1199,6 @@ session.systemRackEnabled = (deviceId) => {
     )
   );
 };
-registerSourceAnalysisIpc(getMainWindow, sourceAnalysis);
 registerDspHostIpc({
   getMainWindow,
   onVoiceModelChanged: () => sourceAnalysis.refreshVoice(),
@@ -832,6 +1240,11 @@ registerSettingsResetIpc({
       log.error('Settings reset: could not save the graph switch', error),
     );
   },
+  stopSongMemory: () => songMemory.setOn(false),
+  resetSmartEq: () => smartEqSettings.keep(DEFAULT_SMART_EQ_SETTINGS),
+  resetKeepPlaying: () => {
+    libraryPlayer.command({ kind: 'continuation', isOn: true });
+  },
   logger: log,
 });
 // The taskbar button in the window's colours; the installed icon while it
@@ -867,6 +1280,36 @@ const libraryIpc = registerLibraryIpc({
   getMainWindow,
 });
 
+/**
+ * The Library player, in the core: the queue, the songs moving on and fading
+ * into each other, the session kept across restarts, all driving the native
+ * host directly (`libraryPlayer/`). The window draws it and sends presses,
+ * and its own element plays what the host cannot — a video, or every song on
+ * a machine without a host. Before any window exists, so a launch puts the
+ * last session back cued whether or not a window ever opens.
+ */
+const libraryHost = libraryHostPort();
+const libraryPlayer = createLibraryPlayer({
+  library: libraryIpc,
+  ...(libraryHost
+    ? { createHost: (events) => createHostEngine(libraryHost, events) }
+    : {}),
+  sources: createSourcePublication(sourceAnalysis),
+  session: createPlaybackSession(userDataDir, log),
+  window: {
+    view: (view) => sendToWindow(LIBRARY_PLAYER_CHANNEL.view, view),
+    // The bar's clock, four times a second while a song plays: a window
+    // nobody can see is not woken for it, and asks again when it is back.
+    clock: (clock) => {
+      if (mainWindow?.isVisible() && !mainWindow.isMinimized()) {
+        sendToWindow(LIBRARY_PLAYER_CHANNEL.clock, clock);
+      }
+    },
+  },
+});
+libraryIpc.onTracksChanged(libraryPlayer.tracksChanged);
+registerLibraryPlayerIpc({ getMainWindow, player: libraryPlayer });
+
 registerLibraryPlaylistsIpc({
   userDataDir,
   getMainWindow,
@@ -880,7 +1323,9 @@ const engineHealth = registerEngineHealthIpc({
   onHealth: (health) => {
     songProgramme.onHealth(health);
     secondOutputs.onHealth(health);
-    sourceAnalysis.onHealth(health);
+    if (!devSandbox) {
+      sourceAnalysis.onHealth(health);
+    }
   },
 });
 
@@ -965,6 +1410,9 @@ const createMainWindow = createMainWindowFactory({
     if (next) {
       comeBack.watchWindow(next);
       libraryIpc.watchWindow(next);
+      // A paused Library song lets its host go while nobody can see the
+      // window (`hostWanted`).
+      watchWindowSeen(next, libraryPlayer.windowSeen);
     }
   },
   setUpAutoUpdates: updates.setUpAutoUpdates,
@@ -1025,7 +1473,23 @@ app.on('before-quit', (event) => {
     // handler asks for later finds it on disk and has nothing left to do; and
     // a memory trace still recording is written rather than lost.
     placement.saveWindowState();
-    Promise.all([flushPendingWrites(), memoryTrace.stopMemoryTrace()])
+    // A song edited while it played is filed before the writes drain, and
+    // its own sound handed back, so the state file holds the listener's —
+    // its Smart EQ layer too.
+    songMemory
+      .close()
+      .catch((error) => log.error('The song memory could not close', error))
+      .then(() => songEq.close())
+      .catch((error) =>
+        log.error('The Smart EQ song memory could not close', error),
+      )
+      // The Library's session is kept, and its host let go, before the
+      // engine is turned off underneath it.
+      .then(() => libraryPlayer.close())
+      .catch((error) => log.error('The Library player could not close', error))
+      .then(() =>
+        Promise.all([flushPendingWrites(), memoryTrace.stopMemoryTrace()]),
+      )
       .catch(() => undefined)
       .then(resetActiveEngineForQuit)
       .catch((error) => log.error('Resetting the audio engine failed', error))
@@ -1061,6 +1525,7 @@ app.on('before-quit', (event) => {
 // quit off. The forum's GitHub sign-in holds a loopback socket, which this
 // still closes on every real quit, Windows' own included.
 app.on('will-quit', () => {
+  smartEq.close();
   destroyTray();
   stopRemoteAudioLan();
   stopOutputMirrors();
@@ -1110,7 +1575,8 @@ const onAppReady = async () => {
     // which is why it is written once, in branding; the development build
     // has one of its own, or the taskbar draws it with the installed app's
     // icon (`appIdentity.ts`).
-    app.setAppUserModelId(APP_USER_MODEL_ID);
+    // A sandbox groups apart from the development window it runs beside.
+    app.setAppUserModelId(ownAppUserModelId(APP_USER_MODEL_ID));
     // After the id, which is the startup entry's name: read before it, the
     // entry would be looked for under Electron's own.
     moveStartWithWindowsIntoTray(log);
@@ -1127,12 +1593,32 @@ const onAppReady = async () => {
   // FluidEQ Engine only applies one while this process holds its pipe open,
   // which is how a FluidEQ ended from Task Manager stops shaping the audio.
   // See `engineOwnerPipe.ts`. Never rejects.
-  await startEngineAnalysisPipe(getMainWindow);
-  await startEngineOwnerPipe();
+  //
+  // Neither of the engine's pipes in a development sandbox (`devSandbox.ts`):
+  // an engine that found the sandbox's owner pipe instead of the listener's
+  // FluidEQ would stop applying the EQ the moment the sandbox quit. The
+  // display pipe is served under a name no engine knows, so its readouts are
+  // answered — with nothing — rather than refused many times a second.
+  if (devSandbox) {
+    log.info(
+      `Development sandbox in ${devSandbox.root}: the engine's pipes are left to the real FluidEQ.`,
+    );
+    await startEngineAnalysisPipe(
+      getMainWindow,
+      `\\\\.\\pipe\\FluidEQ-Sandbox-Analysis-${process.pid}`,
+    );
+  } else {
+    await startEngineAnalysisPipe(getMainWindow);
+    await startEngineOwnerPipe();
+  }
   if (process.platform === 'linux') {
     // Linux's engine is this app's child, started before the window as the
     // Windows engine's pipe is served before it (`linux/linuxEngineProcess`).
-    linuxEngine().start();
+    // Not by a development sandbox, for the same reason as the pipes: it
+    // would take the output from the listener's own FluidEQ.
+    if (!devSandbox) {
+      linuxEngine().start();
+    }
     // An autostart entry from before the tray's word opens the window at
     // every sign-in; the Windows one is moved above, after the app's id.
     moveStartWithWindowsIntoTray(log);
@@ -1211,12 +1697,18 @@ const onAppReady = async () => {
   }
   if (process.platform === 'win32') {
     outputWatch = startOutputWatch({
-      onOutputs: (devices) =>
-        profilesIpc.followOutputs(devices, (channel, payload) => {
+      onOutputs: (devices) => {
+        // A core that could not hear the backgrounds' music, or Auto
+        // normalize's, may hear it on the output Windows has moved to.
+        desktopSound.outputChanged();
+        apoHeadroom.outputChanged();
+        songMemory.outputChanged();
+        return profilesIpc.followOutputs(devices, (channel, payload) => {
           if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send(channel, payload);
           }
-        }),
+        });
+      },
     });
     // Stopped at the first quit pass, before the engine is reset: the
     // helper's last report would otherwise rewrite a config being neutralised.

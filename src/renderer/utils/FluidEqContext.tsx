@@ -55,7 +55,7 @@ import ChannelEnum from '../../common/channels';
 
 import { SelectionMode, nextBandSelection } from '../../common/bandSelection';
 import { getEqualizerState } from './equalizerApi';
-import { adoptOutputDsp, setDspRackGate } from '../dsp/store';
+import { adoptEditedRack, adoptOutputDsp, setDspRackGate } from '../dsp/store';
 import { updateOutputEditor } from './outputEditor';
 import { IBandRevealBand, planBandReveal, revealBands } from './bandReveal';
 import {
@@ -507,6 +507,9 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         updateOutputEditor(state);
         setActiveDeviceId(state.outputEditor?.device.id ?? '');
         adoptOutputDsp(state);
+        if (options?.adoptRack) {
+          adoptEditedRack(state);
+        }
         setIsEnabled(state.isEnabled);
         // The rack's gate hears the saved switch here, with the news that it
         // is the saved one, in one step. The shell follows every later change
@@ -635,12 +638,13 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
    * whatever was true at that click and then froze: measured live, the config
    * carried -4.36 dB while the sidebar sat at -20.00 dB and stayed there.
    *
-   * The measurement channel already answers with the value the writer settled
-   * on. Nothing was listening. This listens.
+   * Main tells the window the value the writer settled on each time the core
+   * writes a trim. This listened on the measurement's own channel before,
+   * whose answer was an object and never the number looked for here.
    */
   useEffect(() => {
     const unsubscribe = window.electron.ipcRenderer.on(
-      ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
+      ChannelEnum.AUTO_PREAMP_SETTLED,
       (payload) => {
         const applied = (payload as { result?: unknown } | undefined)?.result;
         if (typeof applied === 'number' && Number.isFinite(applied)) {
@@ -674,6 +678,20 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         // The profile card and the output picker key off this to re-read which
         // profile is attached where.
         window.dispatchEvent(new CustomEvent('fluideq-output-changed'));
+      },
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, [refreshState]);
+
+  // The core put a preset on this output by itself — the rack following a
+  // switch of engine — so the curve and the rack on screen are read again.
+  useEffect(() => {
+    const unsubscribe = window.electron.ipcRenderer.on(
+      ChannelEnum.OUTPUT_SOUND_CHANGED,
+      () => {
+        refreshState({ adoptRack: true });
       },
     );
     return () => {

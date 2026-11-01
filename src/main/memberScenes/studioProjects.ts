@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import writeFileAtomically from '../atomicWrite';
+import writeFileAtomically from '../../core/files/atomicWrite';
 
 /**
  * The Studio's projects: every folder a member has worked on here, and which

@@ -28,7 +28,12 @@ import {
 import { ErrorCode } from '../../../common/errors';
 import ChannelEnum from '../../../common/channels';
 import type { IEngineSetupResult } from '../../../main/engineSetup';
-import { encodeChainSettings } from '../../../common/dsp/chainWire';
+import {
+  appendPresetTone,
+  encodeChainSettings,
+  hasPresetTone,
+} from '../../../common/dsp/chainWire';
+import { FilterTypeEnum } from '../../../common/constants';
 import { DSP_DEFAULTS } from '../../../common/dsp/chain';
 import setUpPlatform from '../../utils/setUpPlatform';
 
@@ -925,5 +930,164 @@ describe('the audio engine channels', () => {
     expect(getConfigPath).not.toHaveBeenCalled();
     expect(writeSystemDspChain).not.toHaveBeenCalled();
     expect(replied(reply)).toEqual({ result: 'not-installed' });
+  });
+});
+
+/**
+ * The playing output's rack for an engine older than the per-output files:
+ * it reads one rack for every output, and only the window's edits wrote it,
+ * so a preset the core put on reached every newer engine and not that one
+ * (`presetPicks.ts`). The line is built for the version found, and cut to
+ * what that version takes, as the window's own write is.
+ */
+describe('the rack the core writes for an engine older than per-output files', () => {
+  let userDataDir: string;
+  let engine: TAudioEngine | null;
+  let switching: boolean;
+  let installed: boolean;
+  let writeLegacySystemDspChain: jest.Mock;
+  let readAudioEngineStatus: jest.Mock;
+
+  const register = () =>
+    registerAudioEngineIpc({
+      userDataDir,
+      getEngine: () => engine,
+      setEngine: jest.fn(),
+      setSwitching: jest.fn(),
+      isSwitching: () => switching,
+      getConfigPath: jest.fn(async () => path.join(userDataDir, 'config')),
+      isEngineInstalled: jest.fn(async () => installed),
+      reflush: jest.fn(async () => ({ ok: true }) as const),
+      runEngineSetup: jest.fn(async () => OK),
+      readAudioEngineStatus,
+      neutraliseEngine: jest.fn(async () => 'written' as const),
+      writeSystemDspChain: jest.fn(async () => undefined),
+      writeLegacySystemDspChain,
+      isApoOnAnyOutput: jest.fn(async () => false),
+      isApoSwitchedOff: jest.fn(async () => false),
+      repairEngineLoading: async () => undefined,
+      repairEngineOutput: jest.fn(async () => ({ ok: true, declined: false })),
+      automatic: createAutomaticSetup(),
+    });
+
+  const installedVersion = (dllVersion: string) =>
+    readAudioEngineStatus.mockResolvedValue({
+      ...STATUS,
+      engine: 'fluid',
+      fluid: { installed: true, endpoints: [], dllVersion },
+    });
+
+  const ON = encodeChainSettings({ ...DSP_DEFAULTS, enabled: true });
+  const WITH_TONE = appendPresetTone(ON, {
+    bands: [{ type: FilterTypeEnum.PK, frequency: 1000, gain: 3, quality: 1 }],
+    matched: true,
+  });
+
+  beforeEach(() => {
+    handlers.clear();
+    userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-legacy-'));
+    engine = 'fluid';
+    switching = false;
+    installed = true;
+    writeLegacySystemDspChain = jest.fn(async () => undefined);
+    readAudioEngineStatus = jest.fn();
+  });
+
+  afterEach(() => {
+    fs.rmSync(userDataDir, { recursive: true, force: true });
+  });
+
+  it('writes the line built for the version found, curve and all where it takes one', async () => {
+    installedVersion('1.18.0.0');
+    const lineFor = jest.fn(() => WITH_TONE);
+    await register().writeLegacyRack(lineFor);
+    expect(lineFor).toHaveBeenCalledWith('1.18.0.0');
+    expect(writeLegacySystemDspChain).toHaveBeenCalledWith(
+      path.join(userDataDir, 'config'),
+      WITH_TONE,
+      '1.18.0.0',
+    );
+  });
+
+  it('leaves the curve off for an engine older than the curve on the wire', async () => {
+    installedVersion('1.15.0.0');
+    await register().writeLegacyRack(() => WITH_TONE);
+    const written = writeLegacySystemDspChain.mock.calls[0]?.[1] as number[];
+    expect(hasPresetTone(written)).toBe(false);
+    // POSITIVE CONTROL: the line handed in carried one.
+    expect(hasPresetTone(WITH_TONE)).toBe(true);
+  });
+
+  it.each([
+    [
+      'an engine that reads every output’s own file',
+      () => installedVersion('1.19.0.0'),
+    ],
+    [
+      'Equalizer APO',
+      () => {
+        installedVersion('1.18.0.0');
+        engine = 'apo';
+      },
+    ],
+    [
+      'a switch of engine under way',
+      () => {
+        installedVersion('1.18.0.0');
+        switching = true;
+      },
+    ],
+    [
+      'no engine installed',
+      () => {
+        installedVersion('1.18.0.0');
+        installed = false;
+      },
+    ],
+  ])('writes nothing for %s', async (_what, arrange) => {
+    arrange();
+    await register().writeLegacyRack(() => ON);
+    expect(writeLegacySystemDspChain).not.toHaveBeenCalled();
+  });
+
+  /*
+   * Asking the engine's version can run the setup helper: not for a write
+   * that is not going to happen.
+   */
+  it.each([
+    [
+      'Equalizer APO',
+      () => {
+        engine = 'apo';
+      },
+    ],
+    [
+      'a switch under way',
+      () => {
+        switching = true;
+      },
+    ],
+  ])('asks the engine nothing under %s', async (_what, arrange) => {
+    installedVersion('1.18.0.0');
+    arrange();
+    await register().writeLegacyRack(() => ON);
+    expect(readAudioEngineStatus).not.toHaveBeenCalled();
+  });
+
+  /*
+   * A switch begun while the version is read empties this folder; the rack
+   * written after it would bring the engine left behind back.
+   */
+  it('writes nothing once a switch has begun while it asked', async () => {
+    readAudioEngineStatus.mockImplementation(async () => {
+      switching = true;
+      return {
+        ...STATUS,
+        engine: 'fluid',
+        fluid: { installed: true, endpoints: [], dllVersion: '1.18.0.0' },
+      };
+    });
+    await register().writeLegacyRack(() => ON);
+    expect(writeLegacySystemDspChain).not.toHaveBeenCalled();
   });
 });

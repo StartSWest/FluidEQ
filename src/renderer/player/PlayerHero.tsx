@@ -77,8 +77,8 @@ const PlayerHero = ({ scene, isLoading, onOpenPage }: IPlayerHeroProps) => {
     : undefined;
   const [box, setBox] = useState({ width: 0, height: 0 });
   // Auto changes the look here too. The graph's toolbar runs the cycle in the
-  // full app, and the whole app sleeps behind the player (`App.tsx`'s
-  // Activity), effects and their frame loops with it, so with only the
+  // full app, and the graph is not there behind the player (`App.tsx`'s
+  // `isAmp`), its frame loops with it, so with only the
   // graph's the look never moved while the window was the player (Ivan,
   // 2026-10-29: "I toggle auto in the app and in the amp ui is not cycling
   // the viz"). The same interval and holds: the picker open or a scene still

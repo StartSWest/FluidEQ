@@ -117,7 +117,6 @@ const NOT_STORED = [
   // Audio worklets.
   'fluideq-audio-clock',
   'fluideq-dsp',
-  'fluideq-headroom-meter',
   'fluideq-karaoke-pitch',
   'fluideq-remote-audio',
   'fluideq-remote-audio-capture',

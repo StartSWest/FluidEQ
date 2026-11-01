@@ -21,7 +21,7 @@ import {
 } from '../../../renderer/graph/liveGraphBand';
 import { GRAPH_START } from '../../../renderer/graph/ChartController';
 import { MAX_GAIN, MIN_GAIN } from '../../../common/constants';
-import { createAxisCells } from '../../../renderer/utils/autoBalanceCapture';
+import { createAxisCells } from '../../../common/autoBalanceCapture';
 
 const RATE = 48_000;
 const axis = createFrequencyAxis(RATE);

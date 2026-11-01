@@ -41,17 +41,6 @@ jest.mock('../../renderer/utils/audioEngineApi', () => ({
   getAudioEngineStatus: jest.fn(),
 }));
 
-/**
- * The main EQ's side of a pick. A preset's tone is its Preset layer there
- * (`presetCurve.ts`), sent before the rack is set, so a pick finishes a
- * moment after the click rather than inside it.
- */
-const mockSetVoicing = jest.fn();
-jest.mock('../../renderer/utils/equalizerApi', () => ({
-  ...jest.requireActual('../../renderer/utils/equalizerApi'),
-  setVoicing: (...args: unknown[]) => mockSetVoicing(...args),
-}));
-
 const APO_STATUS: IAudioEngineStatus = {
   engine: 'apo',
   apo: { installed: true },

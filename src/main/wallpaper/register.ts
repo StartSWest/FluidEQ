@@ -125,6 +125,11 @@ const registerWallpaperIpc = (
         manager.audioReady();
       }
     }),
+    onWindowMessage(WALLPAPER.soundFromWindow, (event, raw: unknown) => {
+      if (fromOwner(event) && typeof raw === 'boolean') {
+        manager.setSoundFromWindow(raw);
+      }
+    }),
     onWindowMessage(WALLPAPER.failed, (event, reason: unknown) => {
       const surface = surfaceOf(event);
       if (surface) {

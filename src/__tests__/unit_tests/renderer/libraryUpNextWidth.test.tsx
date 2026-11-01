@@ -24,7 +24,7 @@ import {
   type ILibraryStoreBridge,
 } from '../../utils/libraryStoreBridge';
 
-import { createSourceAnalysisBridge } from '../../utils/sourceAnalysisBridge';
+import { createCorePlayerBridge } from '../../utils/corePlayerBridge';
 
 const WIDTH_KEY = 'fluideq.library.upNextWidth';
 
@@ -55,19 +55,23 @@ beforeAll(() => {
 
 beforeEach(() => {
   window.localStorage.clear();
+  const tracks = [
+    libraryTrack({
+      id: 'blue',
+      title: 'Blue',
+      album: 'Kind',
+      artist: 'Miles',
+      path: 'C:\\Music\\blue.mp3',
+    }),
+  ];
   bridge = openLibraryStoreBridge({
     roots: [libraryRoot('r1', 'C:\\Music')],
-    tracks: [
-      libraryTrack({
-        id: 'blue',
-        title: 'Blue',
-        album: 'Kind',
-        artist: 'Miles',
-        path: 'C:\\Music\\blue.mp3',
-      }),
-    ],
+    tracks,
   });
-  installIpcRenderer({ ...bridge.channels, ...createSourceAnalysisBridge() });
+  installIpcRenderer({
+    ...bridge.channels,
+    ...createCorePlayerBridge({ tracks: () => tracks }).bridge,
+  });
 });
 
 afterEach(() => {

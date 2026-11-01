@@ -22,6 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "capture_args.h"
 #include "mirror_control.h"
 #include "capture_writer.h"
+#include "../../common/float_mix_format.h"
 
 namespace {
 
@@ -94,26 +95,6 @@ class ActivationHandler final
 CaptureWriter* reply_writer = nullptr;
 bool mirror_reply(std::uint32_t kind, std::uint32_t id, HRESULT result) {
   return reply_writer != nullptr && reply_writer->reply(kind, id, result);
-}
-
-[[nodiscard]] bool is_float_mix_format(const WAVEFORMATEX* format) {
-  if (format == nullptr || format->nChannels < 1 ||
-      format->nChannels > kMaxChannels || format->nSamplesPerSec < 8'000 ||
-      format->nSamplesPerSec > 384'000 || format->wBitsPerSample != 32 ||
-      format->nBlockAlign != format->nChannels * sizeof(float)) {
-    return false;
-  }
-  if (format->wFormatTag == WAVE_FORMAT_IEEE_FLOAT) {
-    return true;
-  }
-  if (format->wFormatTag != WAVE_FORMAT_EXTENSIBLE ||
-      format->cbSize < sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX)) {
-    return false;
-  }
-  const auto* extensible =
-      reinterpret_cast<const WAVEFORMATEXTENSIBLE*>(format);
-  return IsEqualGUID(extensible->SubFormat, KSDATAFORMAT_SUBTYPE_IEEE_FLOAT) !=
-         FALSE;
 }
 
 [[nodiscard]] HRESULT default_render_mix_format(WAVEFORMATEX** format) {
@@ -256,7 +237,7 @@ struct Loopback {
   if (FAILED(result)) {
     result = default_render_mix_format(&mix_format);
   }
-  if (FAILED(result) || !is_float_mix_format(mix_format)) {
+  if (FAILED(result) || !feq::is_float_mix_format(mix_format, kMaxChannels)) {
     CoTaskMemFree(mix_format);
     *step = "the process mix is not Float32 PCM";
     return FAILED(result) ? result : E_FAIL;

@@ -12,7 +12,7 @@ import type {
   IStudioChatLimit,
   IStudioChatLimits,
 } from '../../common/studioChat';
-import writeFileAtomically from '../atomicWrite';
+import writeFileAtomically from '../../core/files/atomicWrite';
 
 /**
  * What the chat shows of the member's use (Ivan, 2026-10-14: "show the

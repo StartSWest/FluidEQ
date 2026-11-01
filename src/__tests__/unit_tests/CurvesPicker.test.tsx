@@ -6,8 +6,8 @@ import {
   getDefaultFilterWithId,
 } from 'common/constants';
 import CurvesPicker from 'renderer/components/CurvesPicker';
-import { holdRackForApo, rackHeldForApo } from 'renderer/dsp/rackHeldForApo';
-import { applyDspSettings, readDspSettings } from 'renderer/dsp/store';
+import type { IEqualizerSnapshot } from 'common/outputSettings';
+import { updateOutputEditor } from 'renderer/utils/outputEditor';
 import {
   FluidEqProviderWrapper,
   IFluidEqContext,
@@ -18,6 +18,7 @@ const mockWriteApoConfigFile = jest.fn();
 const mockClearGains = jest.fn();
 const mockRefreshState = jest.fn();
 const mockSetVoicing = jest.fn();
+const mockPickDspPreset = jest.fn();
 const mockSetTone = jest.fn();
 
 // The engine's copy of the rack goes nowhere here, as on an Equalizer APO
@@ -38,6 +39,7 @@ jest.mock('renderer/eq/myCurvesStore', () => ({
 jest.mock('renderer/utils/equalizerApi', () => ({
   clearConvolution: jest.fn(),
   clearGains: (...args: unknown[]) => mockClearGains(...args),
+  pickDspPreset: (...args: unknown[]) => mockPickDspPreset(...args),
   setDriver: jest.fn(),
   setHeadphone: jest.fn(),
   setLayerBypass: jest.fn(),
@@ -376,41 +378,53 @@ describe('Curves, the applied layers', () => {
    * A Preset pill is the whole preset: its curve here, its rack on the DSP
    * page. Taking the curve alone left the rack playing a preset nothing on the
    * EQ page named any more — and a rack Equalizer APO was holding off would
-   * have come back at the next switch to the FluidEQ Engine. Any other
-   * voicing's pill is that layer only, and is the control: the rack stays.
+   * have come back at the next switch to the FluidEQ Engine. So its × is the
+   * picker's None, which the core puts on (`presetPicks.ts`) for the output
+   * shown, and the window reads the rack back. Any other voicing's pill is
+   * that layer only, and is the control: no pick, the rack untouched.
    */
-  it.each([
-    ['a preset', 'dsp:pop', false, undefined],
-    ['any other voicing', 'music', true, 'pop'],
-  ])(
-    'takes the DSP rack off with %s only',
-    async (_what, profileId, rackStaysOn, holdAfter) => {
-      mockSetVoicing.mockResolvedValue(undefined);
-      applyDspSettings({
-        ...readDspSettings(),
-        enabled: true,
-        presetId: 'pop',
-      });
-      holdRackForApo('pop');
-      renderCurves({
-        ...defaultFluidEqContext,
-        voicing: { profileId, intensity: 1, apoOverride: { filters: {} } },
-        refreshState: mockRefreshState,
-      });
-      openCurves();
+  /** The Curves menu on the output shown, its Preset pill's × pressed. */
+  const removePresetPill = async (profileId: string) => {
+    mockSetVoicing.mockResolvedValue(undefined);
+    mockPickDspPreset.mockResolvedValue(undefined);
+    updateOutputEditor({
+      outputEditor: {
+        device: {
+          id: 'speakers',
+          name: 'Speakers',
+          guid: '{speakers}',
+          isDefault: true,
+          isActive: true,
+        },
+        generation: 3,
+      },
+    } as IEqualizerSnapshot);
+    renderCurves({
+      ...defaultFluidEqContext,
+      voicing: { profileId, intensity: 1, apoOverride: { filters: {} } },
+      refreshState: mockRefreshState,
+    });
+    openCurves();
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Remove the Preset layer' }),
+      );
+    });
+  };
 
-      await act(async () => {
-        fireEvent.click(
-          screen.getByRole('button', { name: 'Remove the Preset layer' }),
-        );
-      });
+  it('takes a preset away whole: the core puts None on for the output shown', async () => {
+    await removePresetPill('dsp:pop');
+    expect(mockPickDspPreset).toHaveBeenCalledWith('none', false, 'speakers');
+    expect(mockSetVoicing).not.toHaveBeenCalled();
+    expect(mockRefreshState).toHaveBeenCalledWith({ adoptRack: true });
+  });
 
-      expect(mockSetVoicing).toHaveBeenCalledWith('', 1);
-      expect(readDspSettings().enabled).toBe(rackStaysOn);
-      expect(rackHeldForApo()).toBe(holdAfter);
-      expect(mockRefreshState).toHaveBeenCalled();
-    },
-  );
+  it('takes any other voicing away alone, the rack untouched', async () => {
+    await removePresetPill('music');
+    expect(mockSetVoicing).toHaveBeenCalledWith('', 1);
+    expect(mockPickDspPreset).not.toHaveBeenCalled();
+    expect(mockRefreshState).toHaveBeenCalledWith();
+  });
 
   it('hides cleared bands even with editing enabled, and returns on a gain edit', async () => {
     const band = shapedBand();

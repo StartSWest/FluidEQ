@@ -20,7 +20,7 @@ import {
   describeBalanceProgress,
   describeBalanceResult,
   formatBalanceFrequency,
-} from 'renderer/utils/autoBalanceNarration';
+} from 'common/autoBalanceNarration';
 
 import {
   FIXED_BAND_FREQUENCIES,
@@ -35,7 +35,7 @@ import {
   MIN_LISTEN_MS,
   buildBalancedGains,
   filterShapeAt,
-} from 'renderer/utils/autoBalance';
+} from 'common/autoBalance';
 import {
   IBalanceFrame,
   IBalanceListenBounds,
@@ -52,7 +52,7 @@ import {
   readAbsoluteLevels,
   resetBalanceRegion,
   shouldFinishBalanceCapture,
-} from 'renderer/utils/autoBalanceCapture';
+} from 'common/autoBalanceCapture';
 import { Translate, translate } from 'common/i18n';
 
 /* --- harness ----------------------------------------------------------- */

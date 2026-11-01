@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import path from 'path';
 import { nativeImage } from 'electron';
-import writeFileAtomically from '../atomicWrite';
+import writeFileAtomically from '../../core/files/atomicWrite';
 import type { IMcpTool, IMcpToolResult } from '../studioAgent/mcpProtocol';
 import {
   ART_DIR,

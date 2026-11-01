@@ -21,6 +21,7 @@ import { app, BrowserWindow } from 'electron';
 import log from 'electron-log';
 import path from 'path';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
+import type { IDesktopSound } from '../core/liveFrames/desktopSound';
 import { startMainAddons } from './addons';
 import { appVersion } from './appVersion';
 import { registerAccountIpc } from './ipc/account';
@@ -55,6 +56,8 @@ import { createWallpaperScenes } from './wallpaper/scenes';
 export interface IMemberServicesDeps {
   getMainWindow: () => BrowserWindow | null;
   userDataDir: string;
+  /** The music the desktop backgrounds move to, heard by the core. */
+  desktopSound: IDesktopSound;
 }
 
 /**
@@ -70,6 +73,7 @@ export interface IMemberServicesDeps {
 const registerMemberServices = ({
   getMainWindow,
   userDataDir,
+  desktopSound,
 }: IMemberServicesDeps) => {
   // DEVELOPMENT ONLY, and compiled to nothing in a packaged build:
   // `isPackaged` is decided by the binary's name, which nothing here can
@@ -180,6 +184,7 @@ const registerMemberServices = ({
     getMainWindow,
     ownership: sceneOwnership,
     arrangement: createArrangementStore(userDataDir, log),
+    desktopSound,
     ...createWallpaperScenes(scenePacksIpc, memberScenesIpc),
   });
 

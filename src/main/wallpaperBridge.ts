@@ -65,6 +65,12 @@ const wallpaperBridge = {
   },
   sendWallpaperAudio: (requestId: number, frame: IWallpaperAudio) =>
     ipcRenderer.send(WALLPAPER.audio, { requestId, frame }),
+  /**
+   * Whether the window shows what this computer sends to another, which the
+   * backgrounds then show too, answered by the window and not the core.
+   */
+  setWallpaperSoundFromWindow: (fromWindow: boolean) =>
+    ipcRenderer.send(WALLPAPER.soundFromWindow, fromWindow),
 };
 
 export default wallpaperBridge;

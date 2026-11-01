@@ -34,6 +34,7 @@ import path from 'path';
 import log from 'electron-log';
 import { IFluidEngineEndpoint } from '../common/audioEngine';
 import { runLinuxEngineSetup } from './linux/linuxEngineStatus';
+import { devSandbox } from './devSandbox';
 import { windowsAudioRestarted } from './windowsAudioRestarts';
 
 /**
@@ -352,14 +353,36 @@ const runHelper = (
     });
   });
 
+/**
+ * A development sandbox runs no setup command at all (`devSandbox.ts`): each
+ * of them changes the engine the listener's own FluidEQ is playing through,
+ * and most restart Windows audio. Said in the log, so a sandbox whose engine
+ * card stays unrepaired says why.
+ */
+const refusedInSandbox = (
+  command: TEngineSetupCommand,
+): Promise<IEngineSetupResult> => {
+  log.info(`FluidEQ Engine Setup (${command}) refused: development sandbox`);
+  return Promise.resolve({
+    ok: false,
+    declined: false,
+    error: 'A development sandbox does not change the installed engine.',
+    endpoints: [],
+  });
+};
+
 export const runEngineSetup = (
   command: TEngineSetupCommand,
   args: string[],
   exePath?: string,
-): Promise<IEngineSetupResult> =>
+): Promise<IEngineSetupResult> => {
+  if (devSandbox) {
+    return refusedInSandbox(command);
+  }
   // Linux has no setup helper: nothing to install or attach, and "restart
   // Windows audio" restarts the engine (`linux/linuxEngineStatus.ts`). A
   // helper the caller names is always the one run.
-  process.platform === 'linux' && exePath === undefined
+  return process.platform === 'linux' && exePath === undefined
     ? runLinuxEngineSetup(command)
     : runHelper(command, args, exePath ?? getEngineSetupPath());
+};

@@ -22,6 +22,7 @@ import {
   loadAudioClock,
   startAudioClock,
 } from '../audio/audioClock';
+import captureCoreSystemOutput from '../audio/coreSystemOutput';
 import { subscribeAudioDevices } from '../utils/equalizerApi';
 import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData } from './ChartController';
@@ -108,6 +109,26 @@ const useLiveOutputSpectrum = () => {
    * read it just before the capture was asked for.
    */
   const boundOutputKeyRef = useRef('');
+  /**
+   * How to let go of the running capture when it is the core's
+   * (`coreSystemOutput.ts`), and `undefined` when it is Chromium's own.
+   *
+   * The core's follows the default output by itself and starts no capture
+   * process of Chromium's, so it is taken while the window can be seen. Not
+   * while it cannot: a hidden window keeps its normal priority only while it
+   * holds a Chromium capture, and the desk lights and a desktop background
+   * that hold one through a minimise lag by seconds without it (measured,
+   * `hidden-window-worklet-bursts`). Hiding and showing the window trade one
+   * for the other.
+   */
+  const coreReleaseRef = useRef<(() => void) | undefined>(undefined);
+  /**
+   * The core could not hear the output, or lost it: Chromium's capture until
+   * the output changes, rather than asking the core again at every start.
+   */
+  const skipCoreRef = useRef(false);
+  /** Chromium's capture is running or being tried: see the `devicechange` effect. */
+  const [usesChromiumCapture, setUsesChromiumCapture] = useState(false);
   /**
    * A device came or went and the capture has heard no sound since.
    *
@@ -209,6 +230,8 @@ const useLiveOutputSpectrum = () => {
     frameReaderRef.current = undefined;
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = undefined;
+    coreReleaseRef.current?.();
+    coreReleaseRef.current = undefined;
     audioContextRef.current?.close().catch(() => undefined);
     audioContextRef.current = undefined;
     // Withdrawn before the context closes, so a mirror cannot be left holding
@@ -273,6 +296,7 @@ const useLiveOutputSpectrum = () => {
         if (!isCaptureWanted()) {
           isRetryPendingRef.current = false;
           stop();
+          setUsesChromiumCapture(false);
         }
       };
     },
@@ -312,13 +336,28 @@ const useLiveOutputSpectrum = () => {
     setError('');
     let stream: MediaStream | undefined;
     let audioContext: AudioContext | undefined;
+    let releaseCore: (() => void) | undefined;
     try {
+      // The core's capture while the window can be seen (see
+      // `coreReleaseRef`); Chromium's when it is hidden, or when the core
+      // cannot hear the output.
+      const core =
+        isHiddenRef.current || skipCoreRef.current
+          ? undefined
+          : await captureCoreSystemOutput(tRef.current).catch(() => {
+              skipCoreRef.current = true;
+              return undefined;
+            });
+      releaseCore = core?.release;
+      setUsesChromiumCapture(!core);
       // Read BEFORE the capture is asked for, never after. The loopback binds
       // to whatever Windows plays through when it is granted; a key read
       // afterwards could already name an output the capture missed, and the
       // `devicechange` that should have moved it would then compare equal.
-      const outputKey = await readDefaultOutputKey();
-      stream = await captureSystemOutput(tRef.current);
+      // The core's follows the output itself and asks for no key: reading one
+      // lists the devices, which is what starts Chromium's capture process.
+      const outputKey = core ? '' : await readDefaultOutputKey();
+      stream = core?.stream ?? (await captureSystemOutput(tRef.current));
       // STOPPED, not disabled — and the difference is gigabytes.
       //
       // Windows only hands out loopback audio through `getDisplayMedia`, so a
@@ -355,6 +394,7 @@ const useLiveOutputSpectrum = () => {
       // would install exactly the stream that release was asking to avoid.
       if (!autoStartRef.current || !isCaptureWanted()) {
         stream.getTracks().forEach((track) => track.stop());
+        releaseCore?.();
         return false;
       }
 
@@ -398,6 +438,7 @@ const useLiveOutputSpectrum = () => {
       // ever close.
       if (!autoStartRef.current || !isCaptureWanted()) {
         stream.getTracks().forEach((track) => track.stop());
+        releaseCore?.();
         activeAudioContext.close().catch(() => undefined);
         return false;
       }
@@ -409,6 +450,7 @@ const useLiveOutputSpectrum = () => {
       splitterNodeRef.current = nodes.splitter;
 
       streamRef.current = stream;
+      coreReleaseRef.current = releaseCore;
       audioContextRef.current = activeAudioContext;
       audioTrackRef.current = audioTrack;
       boundOutputKeyRef.current = outputKey;
@@ -452,6 +494,11 @@ const useLiveOutputSpectrum = () => {
       audioTrack.addEventListener(
         'ended',
         () => {
+          // The core's capture ends only when the core lost the output
+          // (`coreSystemOutput.ts`); Chromium's hears it until it changes.
+          if (releaseCore) {
+            skipCoreRef.current = true;
+          }
           stop();
           // After any start in flight has settled, which is what the
           // zero-millisecond timer here stood for: a start still negotiating
@@ -513,6 +560,7 @@ const useLiveOutputSpectrum = () => {
       return true;
     } catch (captureError) {
       stream?.getTracks().forEach((track) => track.stop());
+      releaseCore?.();
       audioContext?.close().catch(() => undefined);
       stop();
       setError(
@@ -558,7 +606,8 @@ const useLiveOutputSpectrum = () => {
    */
   const followDefaultOutput = useCallback(() => {
     const stream = streamRef.current;
-    if (!stream) {
+    // The core's capture follows the output itself.
+    if (!stream || coreReleaseRef.current) {
       return;
     }
     const boundKey = boundOutputKeyRef.current;
@@ -662,6 +711,15 @@ const useLiveOutputSpectrum = () => {
     const trackVisibility = () => {
       isHiddenRef.current = document.hidden;
       if (isCaptureWanted()) {
+        // Work that goes on behind the window trades the core's capture for
+        // Chromium's as it hides, and back as it shows (`coreReleaseRef`).
+        const isCore = coreReleaseRef.current !== undefined;
+        if (
+          streamRef.current &&
+          (document.hidden ? isCore : !isCore && !skipCoreRef.current)
+        ) {
+          stop();
+        }
         // A window coming back is somebody asking, exactly as a fresh mount is.
         retriesRef.current = 0;
         scheduleStartRef.current();
@@ -669,6 +727,7 @@ const useLiveOutputSpectrum = () => {
       }
       isRetryPendingRef.current = false;
       stop();
+      setUsesChromiumCapture(false);
     };
     // The window's own focus, not a control's: focus does not bubble but it
     // is captured, so only an event whose target is the window itself is
@@ -715,12 +774,18 @@ const useLiveOutputSpectrum = () => {
    */
   useEffect(() => {
     const rebind = () => {
+      // A new output is a new chance for the core to hear it.
+      skipCoreRef.current = false;
       // Nothing running is nothing to move. A capture that failed and is
       // waiting for its next try gets it now — a new output is one of the
       // things it was waiting for — and one that gave up is not restarted by
       // somebody changing device.
       if (!streamRef.current) {
         retryStart();
+        return;
+      }
+      // The core's capture has already followed it.
+      if (coreReleaseRef.current) {
         return;
       }
       stop();
@@ -772,10 +837,15 @@ const useLiveOutputSpectrum = () => {
    * - A capture on the output Windows has just moved away from: taken again
    *   on the new one (`followDefaultOutput`).
    * - A failed start waiting for its next try: tried again.
+   *
+   * Only while Chromium's capture is the one in use or being tried. Listening
+   * for `devicechange` at all starts Chromium's audio and video capture
+   * services and keeps them running — 66 MB for the second alone — and the
+   * core's capture needs none of it.
    */
   useEffect(() => {
     const { mediaDevices } = navigator;
-    if (!mediaDevices?.addEventListener) {
+    if (!usesChromiumCapture || !mediaDevices?.addEventListener) {
       return undefined;
     }
     const onDeviceChange = () => {
@@ -794,7 +864,13 @@ const useLiveOutputSpectrum = () => {
     mediaDevices.addEventListener('devicechange', onDeviceChange);
     return () =>
       mediaDevices.removeEventListener('devicechange', onDeviceChange);
-  }, [followDefaultOutput, restartCapture, retryStart, stop]);
+  }, [
+    followDefaultOutput,
+    restartCapture,
+    retryStart,
+    stop,
+    usesChromiumCapture,
+  ]);
 
   useEffect(() => {
     autoStartRef.current = true;

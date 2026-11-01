@@ -43,7 +43,7 @@ interface ISongEqSaveSwitchProps {
  * `saveToggled` in the reducer refuses it from the other side.
  *
  * Every rule about whether a song is worth saving already lives behind
- * `willSave` (see `songEqSession.ts`'s own comment on it, and
+ * `willSave` (see `common/songEqStatus.ts`'s own comment on it, and
  * `songEqTiming.ts`'s `willSongEqSave` underneath): the floor, whether a
  * Smart EQ layer exists at all, whether the song was forgotten. This
  * component reads that one answer and picks a sentence; it must never grow a
@@ -58,8 +58,8 @@ export default function SongEqSaveSwitch({ id }: ISongEqSaveSwitchProps) {
     setSongEqSaveOn(!isSaveOn);
   }, [isSaveOn]);
 
-  // `title` is only ever set while a session is open (`computeRecording` in
-  // songEqSession.ts sets it from `session?.identity.title`), so its absence
+  // `title` is only ever set while a session is open (the core's status sets
+  // it from the open song, `main/songEqMemory.ts`), so its absence
   // is the one honest way to tell "nothing playing" apart from "playing, but
   // not yet past the floor" — checking `listenedMs` instead would misread a
   // session that just opened (still zero) as nothing playing at all.

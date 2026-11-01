@@ -11,7 +11,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The close button hides the window into the tray rather than minimising it,
  * and hidden was not treated as out of sight: a Library playing from the tray
  * still sent telemetry forty times a second, and the DSP page's analysis
- * frames too if it had been left open.
+ * frames too if it had been left open. Out of sight now gets nothing, and the
+ * newest of each state when it is back.
  */
 
 import { EventEmitter } from 'events';
@@ -115,7 +116,13 @@ it('sends everything to a window somebody can see', () => {
   expect(channelsOf(fake.sent)).toHaveLength(41);
 });
 
-it('sends a window hidden into the tray no analysis, and only the telemetry the player moves on', () => {
+/**
+ * Nothing at all, not even the end of a song: the Library player is the
+ * core's and reads the host itself (`main/libraryPlayer/hostEngine.ts`). The
+ * window used to be sent every frame that moved the playhead, because it was
+ * the player and the next song waited on it.
+ */
+it('sends a window hidden into the tray nothing, the end of a song included', () => {
   const fake = fakeWindow();
   const { publish, publishTelemetry } = createDspHostPublisher(
     () => fake.window,
@@ -130,9 +137,13 @@ it('sends a window hidden into the tray no analysis, and only the telemetry the 
   }
   publishTelemetry(telemetry(11, DECK_ENDED));
 
-  // A playhead crossing four quarter seconds, and the end of the track.
-  expect(channelsOf(fake.sent)).toEqual(Array(5).fill('dsp-host-telemetry'));
-  expect(fake.sent[4][1]).toMatchObject({ deckState: DECK_ENDED });
+  expect(fake.sent).toEqual([]);
+  // And the newest of it when the window is back.
+  fake.show();
+  expect(fake.sent).toEqual([
+    ['dsp-host-analysis', { frame: 22 }],
+    ['dsp-host-telemetry', telemetry(11, DECK_ENDED)],
+  ]);
 });
 
 it('hands a window coming back from the tray the newest of what it missed, once', () => {

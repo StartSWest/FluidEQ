@@ -91,6 +91,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktopHost': 'Desktop-Visualizer-Helfer',
   'app.processes.what.desktopHost':
     'Legt den Desktop-Visualizer dieses Monitors hinter die Symbole und meldet ihm, wenn Fenster den Bildschirm verdecken. Einer für jeden Monitor, der einen zeigt.',
+  'app.processes.name.listening': 'Live-Mithören',
+  'app.processes.what.listening':
+    'Hört, was dieser PC abspielt, nach dem Equalizer – für den Graphen, die Pegelanzeigen und die Visualizer. Läuft nur, solange eines davon auf dem Bildschirm ist.',
   'app.processes.name.shareCapture': 'Audioaufnahme',
   'app.processes.what.shareCapture':
     'Nimmt auf, was dieser PC abspielt, vor dem Equalizer – für den Tab „Audio teilen“, eine zweite Ausgabe und Smart-EQ. Läuft nur, solange eines davon genutzt wird.',

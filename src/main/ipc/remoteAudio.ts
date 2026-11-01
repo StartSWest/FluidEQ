@@ -17,7 +17,6 @@ import {
 import {
   IRemoteAudioCapture,
   startNetworkCapture,
-  startRawSourceCapture,
 } from '../remoteAudioCapture';
 import { createRemoteAudioCredentialStore } from '../remoteAudioCredentials';
 import startRemoteAudioHostSession from '../remoteAudioHostSession';
@@ -50,8 +49,6 @@ const LAN_SENDING_CHANNEL = 'remote-audio-lan-sending';
 /** The codes pasted here, as they change: the computers this one goes back
  * to, linked now or not. */
 const LAN_JOINS_CHANNEL = 'remote-audio-lan-joins';
-/** The raw-source capture stopped on its own — see `startRawSourceCapture`. */
-const RAW_SOURCE_LOST_CHANNEL = 'raw-source-lost';
 
 export interface IRemoteAudioIpcDeps {
   getMainWindow: () => BrowserWindow | null;
@@ -577,66 +574,12 @@ export const registerRemoteAudioIpc = ({
       // rather than clearing the whole renderer group on Linux/macOS.
     }
   });
-  /*
-   * Smart EQ's capture of the sound before FluidEQ processes it.
-   *
-   * Its own lease on the second output's capture, separate from the
-   * network's and from every mirror's, so measuring never starts or stops the
-   * sharing and sharing never starts or stops a measurement. One at a time: a
-   * second "on" while it is open is the same capture, and "off" from anyone
-   * closes it — the window has one Smart EQ and asks once.
-   */
-  let rawSource: IRemoteAudioCapture | undefined;
-  let rawSourceOpening: Promise<boolean> | undefined;
-  const closeRawSource = () => {
-    rawSource?.close();
-    rawSource = undefined;
-    rawSourceOpening = undefined;
-  };
-  ipcMain.handle('raw-source-capture', (event, enabled: unknown) => {
-    if (event.sender !== getMainWindow()?.webContents) {
-      return false;
-    }
-    if (enabled !== true) {
-      closeRawSource();
-      return false;
-    }
-    if (rawSource) {
-      return true;
-    }
-    if (process.platform !== 'win32') {
-      return false;
-    }
-    rawSourceOpening ??= startRawSourceCapture(
-      (chunk) => ports.source(chunk),
-      () => {
-        closeRawSource();
-        sendToWindow(RAW_SOURCE_LOST_CHANNEL, undefined);
-      },
-    )
-      .then((capture) => {
-        if (rawSourceOpening === undefined) {
-          // Closed while it was opening: the answer is no capture.
-          capture.close();
-          return false;
-        }
-        rawSource = capture;
-        return true;
-      })
-      .catch(() => {
-        rawSourceOpening = undefined;
-        return false;
-      });
-    return rawSourceOpening;
-  });
-
   return () => {
     powerMonitor.removeListener('resume', wake);
     stopHearingRestarts();
     started = undefined;
     told.clear();
     resetSession();
-    closeRawSource();
     // A link never built has nothing to stop, and quitting is no reason to
     // load it.
     link?.stop();

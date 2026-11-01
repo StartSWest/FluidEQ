@@ -15,6 +15,7 @@ import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
 import { dspWorkletConfig } from './webpack.dspWorklet';
+import watchIgnored from './watchIgnored';
 import { rendererAddonEntries } from '../scripts/addons';
 import checkNodeEnv from '../scripts/check-node-env';
 import PUBLIC_ENV_DEFAULTS from './public-env';
@@ -103,8 +104,9 @@ const configuration: webpack.Configuration = {
     // Also every embedded worktree: Claude sessions and the IDE both park
     // whole checkouts (with their own node_modules) inside the repo, and a
     // stale one with a locked file once killed the entire dev process with
-    // an unhandled EPERM from the watcher's scan.
-    ignored: /node_modules|[\\/]\.claude[\\/]|[\\/]\.gigaide[\\/]/,
+    // an unhandled EPERM from the watcher's scan. Only directly under this
+    // checkout's root (`watchIgnored.ts`).
+    ignored: watchIgnored(String(webpackPaths.rootPath)),
   },
 
   target: ['web', 'electron-renderer'],

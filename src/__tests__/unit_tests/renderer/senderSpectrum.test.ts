@@ -1,6 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 
-import { createSenderSpectrum } from '../../../renderer/remoteAudio/senderSpectrum';
+import { createSenderSpectrum } from '../../../common/senderSpectrum';
 
 const fill = (opposite: boolean, silent = false) => {
   const spectrum = createSenderSpectrum();

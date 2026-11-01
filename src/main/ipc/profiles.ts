@@ -187,6 +187,14 @@ export interface IProfilesIpcDeps {
   notifyOutputStateChanged: () => void;
   onPlaybackOutputChanged?: () => Promise<void>;
   /**
+   * A song's own sound comes off before a profile is put on, so the profile
+   * lands on the listener's sound and nothing hands the song's back over it
+   * later (`songMemory.ts`). Absent where no song memory runs.
+   */
+  yieldSongSound?: () => Promise<void>;
+  /** The sound playing is about to be saved as a profile: it stays. */
+  keepSongSound?: () => Promise<void>;
+  /**
    * Given the outputs just read, keeps one engine in Windows' effect lists —
    * `createApoGuard`. Here because this is the one place in the app that
    * learns what is registered on every output — whenever Windows says an
@@ -213,6 +221,13 @@ export interface IProfilesIpc {
     devices: IAudioDevice[],
     send: (channel: string, payload: unknown) => void,
   ) => Promise<void>;
+  /**
+   * Put the output Windows plays in the editor, as the window's own request
+   * does, and say whether it is there: a game's sound and an engine switch
+   * change the sound that plays, with a second output perhaps left in "Edit
+   * sound". Run inside a profile mutation, like every editor change.
+   */
+  openPlayingOutput: () => Promise<boolean>;
 }
 
 /**
@@ -248,12 +263,43 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
   const followOutputs = createOutputFollower(deps);
   const onProfileMutation = createProfileMutationListener(deps);
 
+  /**
+   * Open `device` in the editor: its saved sound becomes the state every edit
+   * changes, under a new generation so nothing sent for the editor before it
+   * lands here. This selects an editor only — Windows' main output and every
+   * running receiver keep their streams and their own settings. Whether it is
+   * still the one open once its state is written down.
+   */
+  const openOutputEditor = async (device: IAudioDevice): Promise<boolean> => {
+    session.editingAudioDeviceId = device.isDefault ? undefined : device.id;
+    session.activeAudioDeviceId = device.id;
+    session.activeAudioDevice = device;
+    session.outputEditGeneration = (session.outputEditGeneration ?? 0) + 1;
+    applyDeviceState(
+      getStateForAudioDevice(
+        deviceProfileSettings,
+        device.id,
+        presetDirForDevice,
+      ),
+    );
+    if (!deviceProfileSettings.assignments[device.id]) {
+      createEmptyProfileForActiveDevice();
+    }
+    const generation = session.outputEditGeneration;
+    await save(state, userDataDir);
+    return (
+      session.activeAudioDeviceId === device.id &&
+      session.outputEditGeneration === generation
+    );
+  };
+
   onProfileMutation(ChannelEnum.LOAD_PRESET, 1, async (event, arg, owner) => {
     const channel = ChannelEnum.LOAD_PRESET;
     const presetName = arg[0];
     log.info(`Loading preset: ${presetName}`);
 
     try {
+      await deps.yieldSongSound?.();
       const presetSettings: IPresetV2 = fetchPreset(
         presetName,
         owner.presetDir,
@@ -323,6 +369,7 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
       const channel = ChannelEnum.RESTORE_PRESET_BASELINE;
       const presetName = arg[0] as string;
       try {
+        await deps.yieldSongSound?.();
         const baseline = fetchPresetBaseline(presetName, owner.baselineDir);
         if (!baseline) {
           handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
@@ -439,6 +486,8 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
         return;
       }
 
+      // Saved as heard, a song's own sound included, which then stays.
+      await deps.keepSongSound?.();
       const preset = structuredClone(getCurrentPreset());
       await savePreset(presetName, preset, owner.presetDir, 'manual-save');
       // This is the copy the user chose to keep. Later edits auto-save over the
@@ -473,6 +522,9 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
       }
 
       const targetName = availableProfileNameForActiveDevice(requestedName);
+      // What plays is what the profile is made of, a song's own sound
+      // included, so that sound stays rather than being handed back.
+      await deps.keepSongSound?.();
       const preset = structuredClone(getCurrentPreset());
       await savePreset(targetName, preset, owner.presetDir, 'profile-created');
       await savePresetBaseline(targetName, preset, owner.baselineDir);
@@ -756,32 +808,8 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
             handleError(event, channel, ErrorCode.INVALID_PARAMETER);
             return;
           }
-          // This selects an editor only. Windows' main output and every running
-          // receiver keep their streams and their own settings.
-          session.editingAudioDeviceId = device.isDefault
-            ? undefined
-            : device.id;
           session.playbackAudioDevice = devices.find((one) => one.isDefault);
-          session.activeAudioDeviceId = device.id;
-          session.activeAudioDevice = device;
-          session.outputEditGeneration =
-            (session.outputEditGeneration ?? 0) + 1;
-          applyDeviceState(
-            getStateForAudioDevice(
-              deviceProfileSettings,
-              device.id,
-              presetDirForDevice,
-            ),
-          );
-          if (!deviceProfileSettings.assignments[device.id]) {
-            createEmptyProfileForActiveDevice();
-          }
-          const generation = session.outputEditGeneration;
-          await save(state, userDataDir);
-          if (
-            session.activeAudioDeviceId !== device.id ||
-            session.outputEditGeneration !== generation
-          ) {
+          if (!(await openOutputEditor(device))) {
             handleError(event, channel, ErrorCode.INVALID_PARAMETER);
             return;
           }
@@ -945,6 +973,20 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
         log.error('Failed to follow the outputs Windows reported', e);
         handleError(sink, channel, ErrorCode.FAILURE);
       }
+    },
+    openPlayingOutput: async () => {
+      const playing = session.playbackAudioDevice;
+      if (!playing) {
+        return false;
+      }
+      if (session.activeAudioDeviceId === playing.id) {
+        return true;
+      }
+      const opened = await openOutputEditor(playing);
+      if (opened) {
+        notifyOutputStateChanged();
+      }
+      return opened;
     },
   };
 };

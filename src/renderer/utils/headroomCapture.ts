@@ -16,11 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { ABS_FLOOR_DBFS, FRAME_MIN_PEAK_DBFS } from 'common/autoBalanceTuning';
 import {
   IProgrammePoint,
   SMART_HEADROOM_REGION_EDGES,
 } from '../../common/smartHeadroom';
-import { ABS_FLOOR_DBFS, FRAME_MIN_PEAK_DBFS } from './autoBalanceTuning';
 
 /**
  * What the music itself is doing, per frequency range, over a listening

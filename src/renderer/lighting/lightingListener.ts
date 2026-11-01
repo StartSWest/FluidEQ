@@ -9,13 +9,10 @@ import { SCENE_TIME_WRAP_S } from 'common/sceneUniformContract';
 import { getEaseFactor } from 'common/smoothing';
 import { HOP_MS, soundHistorySamples } from 'common/soundHops';
 import { holdEnergy, type ISpectrumEnergy } from 'common/spectrumEnergy';
+import { createAxisCells, readAbsoluteLevels } from 'common/autoBalanceCapture';
 import { CAPTURE_PROCESSOR } from '../audio/outputMirror';
 import { keepNewestSamples, readCaptureBlock } from '../audio/captureBlocks';
 import workletUrl from '../remoteAudio/workletUrl';
-import {
-  createAxisCells,
-  readAbsoluteLevels,
-} from '../utils/autoBalanceCapture';
 import { createSoundHearing } from '../graph/liveSound';
 import {
   FFT_SIZE,

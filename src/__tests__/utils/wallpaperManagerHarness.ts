@@ -265,6 +265,16 @@ export const setup = (stored?: IWallpaperArrangement) => {
       },
     },
     arrangement,
+    // A core that cannot hear the output, so the window answers the
+    // backgrounds as it always did; `wallpaperDesktopSound.test.ts` is the
+    // core's own case.
+    desktopSound: {
+      want: jest.fn(),
+      outputChanged: jest.fn(),
+      serves: () => false,
+      read: () => ({ points: [], waveform: [] }),
+      onServesChanged: () => () => undefined,
+    },
     ...scenes,
   };
   return {

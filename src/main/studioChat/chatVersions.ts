@@ -10,7 +10,7 @@ import type {
   TStudioChatEntry,
   TStudioChatRestore,
 } from '../../common/studioChat';
-import writeFileAtomically from '../atomicWrite';
+import writeFileAtomically from '../../core/files/atomicWrite';
 
 /**
  * Each version a chat reply made, kept so the member can bring it back from

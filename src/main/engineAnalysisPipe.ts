@@ -122,6 +122,7 @@ export const readEngineProcesses = (): IEngineProcessStats[] => {
 // per endpoint bounds both IPC traffic and the pipe's queue under backpressure.
 const startEngineAnalysisPipe = (
   getWindow: () => { webContents: WebContents } | null,
+  pipePath: string = PIPE,
 ): Promise<void> => {
   // Linux's engine speaks the same protocol over a local socket.
   if (process.platform !== 'win32' && process.platform !== 'linux') {
@@ -361,7 +362,7 @@ const startEngineAnalysisPipe = (
       return;
     }
     server.listen(
-      { path: PIPE, readableAll: true, writableAll: true },
+      { path: pipePath, readableAll: true, writableAll: true },
       resolve,
     );
   });

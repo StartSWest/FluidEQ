@@ -10,15 +10,16 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { getDefaultFilterWithId } from 'common/constants';
+import type { TranslationKey } from 'common/i18n';
+import {
+  DEFAULT_SMART_EQ_SETTINGS,
+  SMART_EQ_CHANNEL,
+  parseSmartEqCoreSettings,
+} from 'common/smartEqCore';
+import { createSmartEqRunner } from 'main/smartEq/smartEqRunner';
 import MainContent from 'renderer/MainContent';
 import SmartEqEngine from 'renderer/SmartEqEngine';
-import {
-  measureSource,
-  type IMeasurementOptions,
-} from 'renderer/audio/smartEqMeasurement';
-import type { IBalanceResult } from 'renderer/utils/autoBalanceCapture';
 import { setContinuousEq } from 'renderer/utils/continuousEq';
-import { setSmartEq as writeSmartEq } from 'renderer/utils/equalizerApi';
 import { FluidEqProviderWrapper } from 'renderer/utils/FluidEqContext';
 import {
   getSmartEqMode,
@@ -28,9 +29,14 @@ import {
 import { setSmartEqRunning } from 'renderer/utils/smartEqRun';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 
-jest.mock('renderer/audio/smartEqMeasurement', () => ({
-  measureSource: jest.fn(),
-}));
+/**
+ * The EQ page's Smart EQ button and the window's Smart EQ host, against the
+ * core's real runner (`main/smartEq/smartEqRunner.ts`) behind a bridge that
+ * carries each message at once, as Electron's would a moment later. What the
+ * core hears is a tap per measurement that a case can fail, and what it
+ * writes is recorded.
+ */
+
 jest.mock('renderer/audio/nowPlayingIdentity', () => ({
   useNowPlayingIdentity: () => ({ identity: undefined, isPlaying: true }),
 }));
@@ -52,15 +58,76 @@ jest.mock('renderer/components/BandLayoutMenu', () => () => null);
 jest.mock('renderer/components/OutputRate', () => () => null);
 
 const MENU = 'Choose how Smart EQ measures';
-const mockMeasureSource = jest.mocked(measureSource);
-const measurements: {
-  options: IMeasurementOptions;
-  fail: (reason: Error) => void;
-}[] = [];
+
+/** Every tap the core opened, in order. */
+interface ITap {
+  isOneShot: boolean;
+  isClosed: boolean;
+  lose: (reason: TranslationKey) => void;
+}
+const taps: ITap[] = [];
+const write = jest.fn(() => Promise.resolve(true));
+
+/** The core's runner behind a bridge, as `main.ts` wires it. */
+const startCore = (isBypassed: boolean) => {
+  let settings = DEFAULT_SMART_EQ_SETTINGS;
+  const windowListeners = new Map<string, Set<(payload: unknown) => void>>();
+  const tell = (channel: string) => (payload: unknown) =>
+    windowListeners.get(channel)?.forEach((listener) => listener(payload));
+  const runner = createSmartEqRunner({
+    settings: () => settings,
+    layer: () => undefined,
+    isBypassed: () => isBypassed,
+    write,
+    openSource: (_kind, _onFrame, onLost) => {
+      const tap: ITap = {
+        isOneShot: runner.state().isRunning,
+        isClosed: false,
+        lose: onLost,
+      };
+      taps.push(tap);
+      return Promise.resolve(() => {
+        tap.isClosed = true;
+      });
+    },
+    text: (key) => key,
+    now: () => 0,
+    tellState: tell(SMART_EQ_CHANNEL.state),
+    tellRemark: tell(SMART_EQ_CHANNEL.remark),
+    tellView: tell(SMART_EQ_CHANNEL.view),
+    tellWrote: tell(SMART_EQ_CHANNEL.wrote),
+  });
+  const ipcRenderer = {
+    sendMessage: (channel: string, args: unknown[]) => {
+      if (channel === SMART_EQ_CHANNEL.settings) {
+        settings = parseSmartEqCoreSettings(args[0]);
+        runner.follow();
+      } else if (channel === SMART_EQ_CHANNEL.run) {
+        runner.run();
+      } else if (channel === SMART_EQ_CHANNEL.cancel) {
+        runner.cancel();
+      } else if (channel === SMART_EQ_CHANNEL.ask) {
+        tell(SMART_EQ_CHANNEL.state)(runner.state());
+      }
+    },
+    on: (channel: string, listener: (payload: unknown) => void) => {
+      const listeners = windowListeners.get(channel) ?? new Set();
+      listeners.add(listener);
+      windowListeners.set(channel, listeners);
+      return () => listeners.delete(listener);
+    },
+  };
+  Object.defineProperty(window, 'electron', {
+    configurable: true,
+    value: { ipcRenderer },
+  });
+  return runner;
+};
 
 const renderToolbar = (bypassed: 'smart'[] = []) => {
+  const runner = startCore(bypassed.includes('smart'));
   const band = { ...getDefaultFilterWithId(), gain: -3 };
-  return render(
+  const view = render(
     <FluidEqProviderWrapper
       value={{
         ...defaultFluidEqContext,
@@ -73,6 +140,7 @@ const renderToolbar = (bypassed: 'smart'[] = []) => {
       <MainContent />
     </FluidEqProviderWrapper>,
   );
+  return { ...view, runner };
 };
 
 const openModes = () => {
@@ -88,19 +156,7 @@ beforeEach(() => {
   setContinuousEq(false);
   setSmartEqRunning(false);
   jest.clearAllMocks();
-  measurements.length = 0;
-  mockMeasureSource.mockImplementation((options) => ({
-    done: new Promise<IBalanceResult>((_resolve, reject) => {
-      measurements.push({ options, fail: reject });
-      options.signal?.addEventListener(
-        'abort',
-        () => reject(new DOMException('Stopped', 'AbortError')),
-        { once: true },
-      );
-    }),
-    setSilent: jest.fn(),
-    restart: jest.fn(),
-  }));
+  taps.length = 0;
 });
 
 afterEach(async () => {
@@ -110,13 +166,14 @@ afterEach(async () => {
     setSmartEqMode('smart');
     setSmartEqRunning(false);
   });
+  Reflect.deleteProperty(window, 'electron');
 });
 
 it('opens all four modes from the idle button without starting a measurement', () => {
   renderToolbar();
   const menu = openModes();
   expect(within(menu).getAllByRole('menuitemradio')).toHaveLength(4);
-  expect(mockMeasureSource).not.toHaveBeenCalled();
+  expect(taps).toHaveLength(0);
   expect(screen.getByRole('button', { name: MENU })).toHaveAttribute(
     'aria-expanded',
     'true',
@@ -128,8 +185,8 @@ it('opens all four modes from the idle button without starting a measurement', (
 it('starts the remembered one-shot from its menu and stops without clearing the curve', async () => {
   renderToolbar();
   chooseMode(/^Smart EQ /);
-  expect(mockMeasureSource).toHaveBeenCalledTimes(1);
-  expect(measurements[0].options.isContinuous).not.toBe(true);
+  expect(taps).toHaveLength(1);
+  expect(taps[0].isOneShot).toBe(true);
   expect(screen.queryByRole('button', { name: MENU })).not.toBeInTheDocument();
   expect(
     screen.getByRole('button', { name: 'Stop Smart EQ' }),
@@ -138,15 +195,15 @@ it('starts the remembered one-shot from its menu and stops without clearing the 
   await act(async () => {
     fireEvent.click(screen.getByRole('button', { name: 'Stop Smart EQ' }));
   });
-  expect(measurements[0].options.signal?.aborted).toBe(true);
+  expect(taps[0].isClosed).toBe(true);
   expect(screen.getByRole('button', { name: MENU })).toHaveTextContent(
     'Smart EQ',
   );
-  expect(writeSmartEq).not.toHaveBeenCalled();
+  expect(write).not.toHaveBeenCalled();
 
   chooseMode(/^Smart EQ /);
-  expect(mockMeasureSource).toHaveBeenCalledTimes(2);
-  expect(measurements[1].options.signal?.aborted).toBe(false);
+  expect(taps).toHaveLength(2);
+  expect(taps[1].isClosed).toBe(false);
 });
 
 it.each<[TSmartEqMode, RegExp, string]>([
@@ -159,8 +216,8 @@ it.each<[TSmartEqMode, RegExp, string]>([
     renderToolbar();
     chooseMode(name);
     expect(getSmartEqMode()).toBe(mode);
-    expect(mockMeasureSource).toHaveBeenCalledTimes(1);
-    expect(measurements[0].options.isContinuous).toBe(true);
+    expect(taps).toHaveLength(1);
+    expect(taps[0].isOneShot).toBe(false);
     expect(
       screen.queryByRole('button', { name: MENU }),
     ).not.toBeInTheDocument();
@@ -171,11 +228,11 @@ it.each<[TSmartEqMode, RegExp, string]>([
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Stop Smart EQ' }));
     });
-    expect(measurements[0].options.signal?.aborted).toBe(true);
+    expect(taps[0].isClosed).toBe(true);
     chooseMode(name);
-    expect(mockMeasureSource).toHaveBeenCalledTimes(2);
-    expect(measurements[1].options.signal?.aborted).toBe(false);
-    expect(writeSmartEq).not.toHaveBeenCalled();
+    expect(taps).toHaveLength(2);
+    expect(taps[1].isClosed).toBe(false);
+    expect(write).not.toHaveBeenCalled();
   },
 );
 
@@ -185,14 +242,14 @@ it('starts one one-shot when choosing it after stopping a continuous mode', asyn
   renderToolbar();
   chooseMode(/^Smart EQ /);
   expect(getSmartEqMode()).toBe('smart');
-  expect(mockMeasureSource).toHaveBeenCalledTimes(1);
-  expect(measurements[0].options.signal?.aborted).toBe(false);
+  expect(taps).toHaveLength(1);
+  expect(taps[0].isOneShot).toBe(true);
   expect(
     screen.getByRole('button', { name: 'Stop Smart EQ' }),
   ).toBeInTheDocument();
 
   await act(async () => {
-    measurements[0].fail(new Error('The source is unavailable'));
+    taps[0].lose('eq.smart.error.noSource');
   });
   expect(screen.getByRole('button', { name: MENU })).toBeInTheDocument();
 });
@@ -200,7 +257,7 @@ it('starts one one-shot when choosing it after stopping a continuous mode', asyn
 it('keeps Stop available for a continuous mode whose layer is bypassed', async () => {
   setSmartEqMode('detail');
   renderToolbar(['smart']);
-  expect(mockMeasureSource).not.toHaveBeenCalled();
+  expect(taps).toHaveLength(0);
   await act(async () => {
     fireEvent.click(screen.getByRole('button', { name: 'Stop Smart EQ' }));
   });
@@ -220,10 +277,10 @@ it('supports keyboard activation for the chooser, mode, and Stop', async () => {
     ),
   ).toHaveFocus();
   await user.keyboard(' ');
-  expect(mockMeasureSource).toHaveBeenCalledTimes(1);
+  expect(taps).toHaveLength(1);
   expect(screen.getByRole('button', { name: 'Stop Smart EQ' })).toHaveFocus();
   await user.keyboard('{Enter}');
-  expect(measurements[0].options.signal?.aborted).toBe(true);
+  expect(taps[0].isClosed).toBe(true);
   expect(screen.getByRole('button', { name: MENU })).toHaveFocus();
 });
 
@@ -253,7 +310,7 @@ it('focuses the remembered mode, wraps arrow navigation, and returns on Escape',
   await user.keyboard('{Escape}');
   expect(screen.queryByRole('menu', { name: MENU })).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: MENU })).toHaveFocus();
-  expect(mockMeasureSource).not.toHaveBeenCalled();
+  expect(taps).toHaveLength(0);
 });
 
 it('keeps keyboard focus through a continuous run and a different mode afterward', async () => {
@@ -269,7 +326,8 @@ it('keeps keyboard focus through a continuous run and a different mode afterward
   expect(screen.getByRole('menuitemradio', { name: /^Detail / })).toHaveFocus();
   await user.keyboard('{ArrowUp}{Enter}');
   expect(getSmartEqMode()).toBe('smart');
-  expect(mockMeasureSource).toHaveBeenCalledTimes(2);
-  expect(measurements[1].options.signal?.aborted).toBe(false);
+  expect(taps).toHaveLength(2);
+  expect(taps[1].isOneShot).toBe(true);
+  expect(taps[1].isClosed).toBe(false);
   expect(screen.getByRole('button', { name: 'Stop Smart EQ' })).toHaveFocus();
 });

@@ -195,9 +195,24 @@ export interface IAudioEngineIpcDeps {
   getPlaybackGuid?: () => string | undefined;
   /**
    * A switch of engine has finished: everything that plays differently
-   * under each engine moves now — the second outputs (`secondOutputRoute.ts`).
+   * under each engine moves now — the second outputs (`secondOutputRoute.ts`),
+   * the playing output's rack (`presetPicks.ts`). Told the engine it left,
+   * none where no engine was chosen before.
    */
-  onSwitched?: () => void;
+  onSwitched?: (from: TAudioEngine | null) => void;
+}
+
+export interface IAudioEngineIpc {
+  /**
+   * The playing output's rack, for an installed engine older than the
+   * per-output files (`ENGINE_OUTPUT_CONFIG_SINCE`): it reads one rack for
+   * every output, and only the window's edits wrote it — so a preset the core
+   * put on reached every newer engine and not that one. `lineFor` builds the
+   * line for the version found. Nothing on any other engine.
+   */
+  writeLegacyRack: (lineFor: (version: string) => number[]) => Promise<void>;
+  /** The engine actually installed, read once and cached. */
+  installedEngineVersion: () => Promise<string | undefined>;
 }
 
 export const registerAudioEngineIpc = ({
@@ -225,7 +240,7 @@ export const registerAudioEngineIpc = ({
   repairEngineOutput,
   automatic,
   onSwitched,
-}: IAudioEngineIpcDeps) => {
+}: IAudioEngineIpcDeps): IAudioEngineIpc => {
   let statusRead: Promise<IAudioEngineStatus> | undefined;
   let statusFailed = false;
   const readAudioEngineStatus = (
@@ -320,6 +335,29 @@ export const registerAudioEngineIpc = ({
     channel: ChannelEnum,
     errorCode: ErrorCode,
   ) => replyError(event, channel, { errorCode });
+
+  /**
+   * A rack line as the installed engine can take it: Footsteps' and the
+   * preset's curve's trailers off where the engine predates them, an
+   * inactive Room's trailer off where it
+   * predates the Room — or undefined where the Room is on and the engine
+   * cannot play it, because a line it refuses bypasses the whole rack.
+   */
+  const supportedByEngine = async (
+    values: number[],
+  ): Promise<number[] | undefined> => {
+    let supported = values;
+    if (hasFootsteps(supported) && !(await takesFootsteps())) {
+      supported = withoutFootsteps(supported);
+    }
+    if (hasPresetTone(supported) && !(await takesPresetTone())) {
+      supported = withoutPresetTone(supported);
+    }
+    if (hasRoomTrailer(supported) && !(await ensureRoomCapability())) {
+      return legacyChainWithoutInactiveRoom(supported);
+    }
+    return supported;
+  };
 
   const succeed = <T>(
     event: Electron.IpcMainEvent,
@@ -486,7 +524,7 @@ export const registerAudioEngineIpc = ({
     });
     if (outcome.ok) {
       await alignEqualizerApo(next);
-      onSwitched?.();
+      onSwitched?.(current);
       succeed(event, channel, undefined);
     } else {
       replyError(event, channel, outcome.error);
@@ -797,20 +835,10 @@ export const registerAudioEngineIpc = ({
         await answer('not-installed');
         return;
       }
-      let supportedValues = values;
-      if (hasFootsteps(supportedValues) && !(await takesFootsteps())) {
-        supportedValues = withoutFootsteps(supportedValues);
-      }
-      if (hasPresetTone(supportedValues) && !(await takesPresetTone())) {
-        supportedValues = withoutPresetTone(supportedValues);
-      }
-      if (hasRoomTrailer(supportedValues) && !(await ensureRoomCapability())) {
-        const legacy = legacyChainWithoutInactiveRoom(supportedValues);
-        if (!legacy) {
-          await answer('update-required');
-          return;
-        }
-        supportedValues = legacy;
+      const supportedValues = await supportedByEngine(values);
+      if (!supportedValues) {
+        await answer('update-required');
+        return;
       }
       // Resolved here rather than read off the session, because the session's
       // cached path is empty until the first flush of the launch and the rack
@@ -875,7 +903,32 @@ export const registerAudioEngineIpc = ({
     }
   });
 
-  // The flushes write every output's rack too, and must ask the same cached
-  // read as this file's own writes (`IMainSession.installedEngineVersion`).
-  return { installedEngineVersion };
+  return {
+    // The flushes write every output's rack too, and must ask the same
+    // cached read as this file's own writes
+    // (`IMainSession.installedEngineVersion`).
+    installedEngineVersion,
+    writeLegacyRack: async (lineFor) => {
+      if (
+        getEngine() !== 'fluid' ||
+        isSwitching() ||
+        !writeLegacySystemDspChain ||
+        !(await isEngineInstalled('fluid'))
+      ) {
+        return;
+      }
+      const version = await installedEngineVersion();
+      if (!version || engineTakesOutputConfig(version)) {
+        return;
+      }
+      const values = await supportedByEngine(lineFor(version));
+      const configDirPath = await getConfigPath('fluid');
+      // Asked again after the awaits, as the window's write is: a switch
+      // begun meanwhile empties this folder, and the rack must not return.
+      if (!values || getEngine() !== 'fluid' || isSwitching()) {
+        return;
+      }
+      await writeLegacySystemDspChain(configDirPath, values, version);
+    },
+  };
 };

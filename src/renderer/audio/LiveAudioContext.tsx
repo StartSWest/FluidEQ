@@ -53,6 +53,8 @@ const LiveAudioFrameContext = createContext<
 const LiveAudioControlContext = createContext<
   | (LiveAudioValue['control'] & {
       setSharingAudio(active: boolean): void;
+      /** What this computer sends to another is what the visualizers show. */
+      isSharingAudio: boolean;
       readBackgroundFrame(): Promise<
         Pick<ILiveFrame, 'points' | 'waveform' | 'stereo'> | undefined
       >;
@@ -86,8 +88,14 @@ export const LiveAudioProvider = ({ children }: { children: ReactNode }) => {
     [sharingAudio, readSenderFrame, readLocalFrame],
   );
   const controls = useMemo(
-    () => ({ ...control, readFrame, readBackgroundFrame, setSharingAudio }),
-    [control, readFrame, readBackgroundFrame],
+    () => ({
+      ...control,
+      readFrame,
+      readBackgroundFrame,
+      setSharingAudio,
+      isSharingAudio: sharingAudio,
+    }),
+    [control, readFrame, readBackgroundFrame, sharingAudio],
   );
   const sceneAudio = useMemo(
     () => ({

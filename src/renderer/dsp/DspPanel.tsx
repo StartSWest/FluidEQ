@@ -53,7 +53,7 @@ import {
   useDspInputAnalysis,
 } from './store';
 import '../styles/Dsp.scss';
-import { masterLoudnessBreakdown } from './inputNormalizer';
+import { masterLoudnessBreakdown } from '../../common/dsp/trackGains';
 import { readOpenDspSection, writeOpenDspSection } from './openSection';
 import useNativeMeters from './useNativeMeters';
 import { usePlaybackOwner } from '../audio/playbackOwner';

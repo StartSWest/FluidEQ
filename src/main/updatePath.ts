@@ -80,7 +80,7 @@ export const handleError = (
  * `errorCode` is the whole distinction — the same test `ipcRequest.ts` makes
  * on the window's side of the same wire.
  */
-const isErrorReply = (payload: unknown): payload is TError =>
+export const isErrorReply = (payload: unknown): payload is TError =>
   typeof payload === 'object' &&
   payload !== null &&
   'errorCode' in payload &&
@@ -96,6 +96,11 @@ export interface IUpdatePathDeps {
   getCurrentPreset: () => IPresetV2;
   sessionHeadroom: () => ISessionHeadroom;
   attachPresetToActiveDevice: (presetName: string) => boolean;
+  /**
+   * After every change this path completes: the core's jobs that follow the
+   * sound read it from here (Auto normalize on Equalizer APO, `main.ts`).
+   */
+  onUpdated?: () => void;
 }
 
 /**
@@ -112,6 +117,7 @@ export const createUpdatePath = ({
   getCurrentPreset,
   sessionHeadroom,
   attachPresetToActiveDevice,
+  onUpdated,
 }: IUpdatePathDeps) => {
   /** The newest flush asked for: what a caller that must see it land waits on. */
   let lastFlush: Promise<void> = Promise.resolve();
@@ -345,6 +351,7 @@ export const createUpdatePath = ({
     // Return a success message of undefined
     const reply: TSuccess<T> = { result: response };
     event.reply(channel, reply);
+    onUpdated?.();
 
     // Flush changes to our local state file after informing UI that the
     // changes have been applied

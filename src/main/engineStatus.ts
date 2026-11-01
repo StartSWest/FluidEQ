@@ -44,6 +44,7 @@ import { isEqualizerAPOInstalled, noteFluidEngineRegistered } from './registry';
 import { getEngineSetupPath } from './engineSetup';
 import { planEngineUpdate } from './engineUpdate';
 import { readLinuxEngineStatus } from './linux/linuxEngineStatus';
+import { devSandbox } from './devSandbox';
 
 /**
  * Windows 10 build 17134 (version 1803, "April 2018 Update") is the first to
@@ -552,8 +553,15 @@ export const readFluidEngineUpdateReady = async (
   fluid: IFluidEngineStatus,
   bundleDir: string = path.dirname(getEngineSetupPath()),
 ): Promise<boolean> => {
-  // Linux runs the engine from where the app is: there is no other copy.
-  if (process.platform === 'linux' || !fluid.installed || !fluid.dllPath) {
+  // Linux runs the engine from where the app is: there is no other copy. A
+  // development sandbox never installs an engine (`devSandbox.ts`), so it
+  // has none to offer: the card would only lead to a refusal.
+  if (
+    process.platform === 'linux' ||
+    devSandbox ||
+    !fluid.installed ||
+    !fluid.dllPath
+  ) {
     return false;
   }
   try {

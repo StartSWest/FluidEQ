@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { screenFollowsMusic } from '../../common/wallpaper';
 import {
   useLiveAudioCapture,
   useLiveAudioControl,
@@ -6,29 +7,38 @@ import {
 import { useWallpaperState } from './wallpaperStore';
 import { reportError } from '../utils/logger';
 
-/** IPC is event-driven even when the main window's animation frames stop. */
+/**
+ * The desktop backgrounds' music, where the window is the one to answer.
+ *
+ * The app's core hears it for them and makes their frames itself
+ * (`core/liveFrames/desktopSound.ts`), so a background behind a minimised
+ * FluidEQ keeps nothing of this window awake. The window answers only where
+ * the core cannot — a platform with no way to hear the output, a helper that
+ * failed — and while it shows what this computer sends to another computer,
+ * which the backgrounds show too and only this window has.
+ *
+ * IPC is event-driven even when the main window's animation frames stop.
+ */
 export default function WallpaperAudio() {
   const state = useWallpaperState();
+  const control = useLiveAudioControl();
+  const { isSharingAudio } = control;
   // Only a background following the music holds the capture: a calm one never
   // hears it, and one left holding it would keep the analyser running for
-  // nothing while FluidEQ sits hidden.
-  //
-  // One paused behind FluidEQ's own window holds it too, because minimising
-  // the window is what brings that monitor back. Let go with the window, the
-  // capture had to be opened again from behind it as the monitor came back:
-  // a second or two of a background deaf to the music at best, and far longer
-  // on a busy machine, where Windows runs a hidden window's page last.
-  const wanted = state.screens.some(
-    (screen) =>
-      screen.motion === 'music' &&
-      (screen.phase === 'starting' ||
-        screen.phase === 'running' ||
-        (screen.phase === 'paused' && screen.pauseReason === 'window')),
-  );
+  // nothing while FluidEQ sits hidden. One paused behind FluidEQ's own window
+  // holds it too (`screenFollowsMusic`). And none at all while the core hears
+  // for them: a capture held here for a background is Chromium's, and the
+  // whole of this window kept awake behind a minimise with it.
+  const wanted = !state.heardByCore && state.screens.some(screenFollowsMusic);
   useLiveAudioCapture(wanted, 'work');
-  const control = useLiveAudioControl();
   const latest = useRef({ control, wanted });
   latest.current = { control, wanted };
+
+  useEffect(() => {
+    // Optional, like every bridge call: a test's partial bridge has none.
+    window.electron?.ipcRenderer?.setWallpaperSoundFromWindow?.(isSharingAudio);
+  }, [isSharingAudio]);
+
   useEffect(() => {
     const api = window.electron?.ipcRenderer;
     if (!api?.onWallpaperAudioRequest) {

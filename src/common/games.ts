@@ -83,6 +83,48 @@ export interface IGameProfile extends IGameProgram {
   presetId: string;
 }
 
+/** Longer names are cut; the Games page shows them on one line. */
+export const GAME_NAME_MAX = 60;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const asSource = (value: unknown): TGameSource =>
+  GAME_SOURCES.find((source) => source === value) ?? 'file';
+
+/**
+ * A list of game profiles read from anywhere it is kept — the window's
+ * storage, or the copy the core keeps so a game's sound switches without the
+ * window (`core/games`). Anything that is not a profile is dropped, never the
+ * list: a profile from a newer build keeps every field this one knows.
+ */
+export const parseGameProfiles = (raw: unknown): IGameProfile[] =>
+  Array.isArray(raw)
+    ? raw.flatMap((entry): IGameProfile[] => {
+        if (
+          !isRecord(entry) ||
+          typeof entry.id !== 'string' ||
+          typeof entry.name !== 'string' ||
+          typeof entry.path !== 'string' ||
+          entry.path === ''
+        ) {
+          return [];
+        }
+        return [
+          {
+            id: entry.id,
+            name: entry.name.slice(0, GAME_NAME_MAX),
+            path: entry.path,
+            presetId: typeof entry.presetId === 'string' ? entry.presetId : '',
+            source: asSource(entry.source),
+            ...(typeof entry.icon === 'string' && entry.icon.startsWith('data:')
+              ? { icon: entry.icon }
+              : {}),
+          },
+        ];
+      })
+    : [];
+
 /** Windows paths differ by case and by trailing separator, and mean one file. */
 const asKey = (value: string): string =>
   value

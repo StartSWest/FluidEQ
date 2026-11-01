@@ -4,7 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import path from 'path';
 import { ipcMain, type BrowserWindow } from 'electron';
 import log from 'electron-log';
 import {
@@ -17,7 +16,7 @@ import {
   createEngineHealthMonitor,
   type IEngineHealthMonitor,
 } from '../engineHealth';
-import { getFluidEngineConfigDir } from '../registry';
+import { getFluidEngineRootDir } from '../registry';
 
 /**
  * What the FluidEQ Engine says about each output, over IPC: a fresh read on
@@ -65,7 +64,7 @@ export const summariseEngineHealth = (health: IEngineHealth): string[] =>
 
 export const registerEngineHealthIpc = ({
   getMainWindow,
-  root = path.dirname(getFluidEngineConfigDir()),
+  root = getFluidEngineRootDir(),
   onHealth,
 }: IEngineHealthIpcDeps): IEngineHealthIpc => {
   // Lives as long as the process: the window can ask again after any reload.

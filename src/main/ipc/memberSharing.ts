@@ -11,7 +11,7 @@ import { likedSceneOf } from '../../common/plusGallery';
 import type { IScenePack } from '../../common/scenePacks';
 import type { IAccountSession } from '../account/session';
 import type { ISceneOwnership } from '../plus/sceneOwnership';
-import writeFileAtomically from '../atomicWrite';
+import writeFileAtomically from '../../core/files/atomicWrite';
 import type { TProjectRestore } from './memberScenes';
 import { readProject } from '../memberScenes/project';
 import {

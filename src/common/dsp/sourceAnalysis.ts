@@ -2,7 +2,6 @@
 import type { ILibraryNormalizationAnalysis } from '../library/types';
 import { isNoiseProfile } from './noiseProfile';
 
-export const SOURCE_ANALYSIS_CHANNEL = 'dsp-source-analysis';
 export const SOURCE_ANALYSIS_FILE = 'fluideq-source-analysis.txt';
 export const SOURCE_ANALYSIS_VERSION = 1;
 

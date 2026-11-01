@@ -8,15 +8,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * How the host's messages reach the window, and which of them still do while
  * nobody can see it.
  *
- * Out of `ipc/dspHost.ts` because the two rules differ and the difference is
- * the part worth testing: a meter frame nobody can see is waste, and a
- * transport frame nobody can see is still what the Library player runs on.
+ * Out of `ipc/dspHost.ts` because what a window away is owed is the part
+ * worth testing: a frame nobody can see is waste, a window that comes back is
+ * owed the newest of each state, and an event delivered late is a lie.
  */
 import { BrowserWindow } from 'electron';
-import {
-  INativeTransportFrame,
-  transportFrameMoves,
-} from '../../common/dsp/nativeTransport';
 import { IHostTelemetry } from './wire';
 
 export interface IDspHostPublisher {
@@ -57,7 +53,6 @@ export const createDspHostPublisher = (
   getMainWindow: () => BrowserWindow | null,
 ): IDspHostPublisher => {
   /** The last frame the window was sent, which is what its player now holds. */
-  let told: INativeTransportFrame | undefined;
 
   /**
    * The newest message of each state channel, and the newest telemetry frame,
@@ -83,7 +78,6 @@ export const createDspHostPublisher = (
     );
     held.clear();
     if (heldTelemetry) {
-      told = heldTelemetry;
       window.webContents.send('dsp-host-telemetry', heldTelemetry);
       heldTelemetry = undefined;
     }
@@ -144,41 +138,29 @@ export const createDspHostPublisher = (
   };
 
   /**
-   * Telemetry is the Library player's clock, not only a meter.
+   * Telemetry is a meter for the window now, and nothing more.
    *
-   * The renderer advances the queue on the frame that says a deck ended,
-   * starts a crossfade off the playhead, and re-cues a track after a device
-   * reopen from the generation. It went through `publish` with everything
-   * else, so behind a minimised window the song played out, the frame saying
-   * so was never sent, and the next track waited for the window to come back.
-   *
-   * A window out of sight is therefore still sent every frame that changes
-   * what the player reads — `transportFrameMoves` — which is one per quarter
-   * second of playhead while a song plays and none while it is paused. The
-   * frames in between change nothing it reads and stay behind, the newest of
-   * them sent when the window is back.
-   *
-   * Only while out of sight. A visible window keeps the full stream, because
-   * the renderer's transport store is written by more than telemetry — the
-   * mirror claims a deck the moment one loads, and a released engine clears
-   * it — and the steady stream is what corrects either within a frame.
+   * It was the Library player's clock while the player lived in the window,
+   * so a window out of sight was still sent every frame that moved the
+   * playhead, or the next song waited for the window to come back. The
+   * player is the core's now and reads the host directly
+   * (`main/libraryPlayer/hostEngine.ts`), so out of sight the frames stay
+   * behind like any other state, the newest sent when the window is back.
    */
   const publishTelemetry = (telemetry: IHostTelemetry) => {
     const window = getMainWindow();
     if (!window || window.isDestroyed()) {
       return;
     }
-    const outOfSight = isOutOfSight(window);
-    if (outOfSight && !transportFrameMoves(told, telemetry)) {
+    if (isOutOfSight(window)) {
       heldTelemetry = telemetry;
       awaitReturn(window);
       return;
     }
     heldTelemetry = undefined;
-    if (!outOfSight && awaiting) {
+    if (awaiting) {
       sendHeld(window);
     }
-    told = telemetry;
     window.webContents.send('dsp-host-telemetry', telemetry);
   };
 

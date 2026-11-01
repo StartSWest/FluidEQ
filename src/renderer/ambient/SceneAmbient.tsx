@@ -79,7 +79,8 @@ const prefersReducedMotion = () =>
  * reduced motion.
  *
  * One canvas over the window, drawn by animation frames, which the browser
- * stops for a hidden window: nothing counts time here. Each shape is copied
+ * stops for a hidden window: nothing counts time here, and the canvas holds
+ * no pixels while the window is hidden. Each shape is copied
  * from a small picture made once (`ambientSprites.ts`).
  *
  * One mode for the whole app decides whether it is drawn, and the same
@@ -234,7 +235,6 @@ export default function SceneAmbient() {
       canvas.width = Math.max(1, Math.round(width * ratio));
       canvas.height = Math.max(1, Math.round(height * ratio));
     };
-    fit();
 
     let field: IAmbientField | undefined;
     let playing: IAmbientElement[] | undefined;
@@ -250,6 +250,9 @@ export default function SceneAmbient() {
     };
 
     const onResize = () => {
+      if (document.hidden) {
+        return;
+      }
       fit();
       if (field) {
         field = resizeAmbientField(field, width, height);
@@ -315,10 +318,29 @@ export default function SceneAmbient() {
       });
       animation = requestAnimationFrame(draw);
     };
-    animation = requestAnimationFrame(draw);
+
+    // A hidden window draws no frames, and its canvas held the whole window
+    // in pixels all the same: 14 MB at 2560×1392, in the tray all day. It is
+    // given back while hidden and sized again on the way back, to the window
+    // as it is then; the shapes carry on from where they were, and the gap
+    // is not counted as time.
+    const onVisibility = () => {
+      cancelAnimationFrame(animation);
+      if (document.hidden) {
+        canvas.width = 0;
+        canvas.height = 0;
+        return;
+      }
+      onResize();
+      last = undefined;
+      animation = requestAnimationFrame(draw);
+    };
+    onVisibility();
+    document.addEventListener('visibilitychange', onVisibility);
     return () => {
       cancelAnimationFrame(animation);
       window.removeEventListener('resize', onResize);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [running]);
 
