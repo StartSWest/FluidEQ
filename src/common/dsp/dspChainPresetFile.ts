@@ -62,6 +62,7 @@ export const portableDspChainSettings = (
     denoise: { ...settings.denoise, isolate: false },
     deEsser: { ...settings.deEsser, isolate: false },
     eq: { ...settings.eq, isolate: false },
+    footsteps: { ...settings.footsteps, isolate: false },
     exciter: { ...settings.exciter, isolate: false },
     bassForge: { ...settings.bassForge, isolate: false },
     bassPunch: { ...settings.bassPunch, isolate: false },

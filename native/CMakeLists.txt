@@ -121,8 +121,10 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/deesser.cpp
   dsp-core/src/deesser_process.cpp
   dsp-core/src/deesser_decide.cpp
+  dsp-core/src/footsteps.cpp
   dsp-core/src/meters.cpp
   dsp-core/src/meters_deesser.cpp
+  dsp-core/src/meters_footsteps.cpp
   dsp-core/src/meters_eq_live.cpp
   dsp-core/src/meters_transform.cpp
   dsp-core/src/chain.cpp
@@ -140,6 +142,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/chain_tone.cpp
   dsp-core/src/chain_decode.cpp
   dsp-core/src/chain_deesser.cpp
+  dsp-core/src/chain_footsteps.cpp
   dsp-core/src/resampler.cpp
   dsp-core/src/player.cpp
   dsp-core/src/player_roles.cpp
@@ -195,6 +198,14 @@ add_test(NAME deesser COMMAND fluideq-deesser-test)
 add_executable(fluideq-deesser-modes-test dsp-core/tests/deesser_modes_test.cpp)
 target_link_libraries(fluideq-deesser-modes-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME deesser-modes COMMAND fluideq-deesser-modes-test)
+
+# Footsteps on a match: steps up, shots, blast, rain and echoes left alone, a
+# shot inside a lift at its own peak, one lift on every side, the LFE
+# untouched, Calm's let-go, a handover, every rate — and the input to the bit
+# with nothing to do.
+add_executable(fluideq-footsteps-test dsp-core/tests/footsteps_test.cpp)
+target_link_libraries(fluideq-footsteps-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME footsteps COMMAND fluideq-footsteps-test)
 
 # The three-band split every multiband stage shares, held to the response of
 # the bands put back together rather than to any one of them.

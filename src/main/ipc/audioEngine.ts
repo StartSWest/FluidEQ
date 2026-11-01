@@ -16,13 +16,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 import log from 'electron-log';
-import { engineSupportsRoomUpgrade } from '../../common/engineHealth';
+import {
+  engineRunsFootsteps,
+  engineSupportsRoomUpgrade,
+} from '../../common/engineHealth';
 import { engineTakesOutputConfig } from '../../common/outputConfigFiles';
 import {
+  hasFootsteps,
   hasPresetTone,
   hasRoomTrailer,
   legacyChainWithoutInactiveRoom,
   isChainWirePayload,
+  withoutFootsteps,
   withoutPresetTone,
 } from '../../common/dsp/chainWire';
 import { engineTakesPresetTone } from '../../common/dsp/presetTone';
@@ -297,6 +302,19 @@ export const registerAudioEngineIpc = ({
     }
   };
   /**
+   * Whether the installed engine runs Footsteps. Answered no where the
+   * version cannot be read, for the curve's reason: a line without the
+   * stage plays the rest of the rack, a line refused plays none of it.
+   */
+  const takesFootsteps = async (): Promise<boolean> => {
+    try {
+      return engineRunsFootsteps(await installedEngineVersion());
+    } catch (error) {
+      log.warn('Sending the rack without Footsteps: no engine version', error);
+      return false;
+    }
+  };
+  /**
    * The same reply shape main.ts's `handleError` builds, rebuilt here because
    * that one is not exported. Kept to one place in this file so the two
    * cannot drift apart line by line.
@@ -317,8 +335,9 @@ export const registerAudioEngineIpc = ({
   ) => replyError(event, channel, { errorCode });
 
   /**
-   * A rack line as the installed engine can take it: the preset's curve off
-   * where the engine predates it, an inactive Room's trailer off where it
+   * A rack line as the installed engine can take it: Footsteps' and the
+   * preset's curve's trailers off where the engine predates them, an
+   * inactive Room's trailer off where it
    * predates the Room — or undefined where the Room is on and the engine
    * cannot play it, because a line it refuses bypasses the whole rack.
    */
@@ -326,6 +345,9 @@ export const registerAudioEngineIpc = ({
     values: number[],
   ): Promise<number[] | undefined> => {
     let supported = values;
+    if (hasFootsteps(supported) && !(await takesFootsteps())) {
+      supported = withoutFootsteps(supported);
+    }
     if (hasPresetTone(supported) && !(await takesPresetTone())) {
       supported = withoutPresetTone(supported);
     }

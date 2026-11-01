@@ -281,7 +281,7 @@ const help: Record<keyof typeof en, string> = {
   'help.games.steps':
     'Abra EQ → Presets de jogo e pressione Adicionar um jogo. Escolha um jogo dos seus lançadores, um programa aberto agora, ou escolha você mesmo o programa dele.\nNo seletor da linha dele, escolha o som que ele deve receber: um preset de jogo ou qualquer outro.\nInicie o jogo. Um cartão na tela diz para qual som o FluidEQ mudou, e outro diz qual som voltou quando você o fecha.',
   'help.games.tip':
-    'Enquanto um jogo estiver no comando do som, a barra na parte de baixo da janela mostra o nome dele. Se você escolher outro som enquanto joga, ele é mantido: o FluidEQ só desfaz o que ele mesmo aplicou. Os presets de jogo também ativam o Modo jogo.',
+    'Enquanto um jogo estiver no comando do som, a barra na parte de baixo da janela mostra o nome dele. Se você escolher outro som enquanto joga, ele é mantido: o FluidEQ só desfaz o que ele mesmo aplicou. Os presets de jogo também ativam o Modo jogo e o Passos, que aumenta passos e recargas baixos no momento em que acontecem.',
   'help.games.keywords':
     'games, gaming, perfil de jogo, por aplicativo, troca automática, launcher, FPS, jogo de tiro, passos dos inimigos, competitivo, latência',
   'help.games.tab': 'Seus jogos e o som que cada um recebe.',
@@ -358,11 +358,11 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'O rack DSP é uma cadeia de estágios de estúdio. Com o Motor FluidEQ, ele processa tudo o que o PC toca; com o Equalizer APO, processa as faixas de áudio da Biblioteca. Ele fica desligado enquanto o FluidEQ está desligado.',
   'help.dsp.steps':
-    'Abra a aba DSP. Escolha uma cadeia em Presets, ou selecione um estágio na barra lateral e ligue-o.\nMude um controle por vez e compare desativando o estágio, em um volume parecido. Isolar permite ouvir só o que um estágio acrescenta.\nSalve um rack de que você gosta e use Exportar e Importar para compartilhá-lo.\nO De-esser abaixa os S, T e CH agudos de uma voz só enquanto soam e deixa os pratos intactos; Voz, Podcast e Audiolivro o ativam. Cada estágio pode guardar perfis seus: ajuste-o e clique em Salvar.',
+    'Abra a aba DSP. Escolha uma cadeia em Presets, ou selecione um estágio na barra lateral e ligue-o.\nMude um controle por vez e compare desativando o estágio, em um volume parecido. Isolar permite ouvir só o que um estágio acrescenta.\nSalve um rack de que você gosta e use Exportar e Importar para compartilhá-lo.\nO De-esser abaixa os S, T e CH agudos de uma voz só enquanto soam e deixa os pratos intactos; Voz, Podcast e Audiolivro o ativam. Cada estágio pode guardar perfis seus: ajuste-o e clique em Salvar.\nO Passos aumenta os sons baixos de um jogo, como passos e recargas, no momento em que acontecem, e deixa tiros, explosões e ecos como estão; os presets de jogo o ativam.',
   'help.dsp.tip':
     'Mais alto costuma soar melhor só por ser mais alto, então compare em níveis equivalentes. Ctrl+clique em um controle giratório para voltar ao valor padrão.',
   'help.dsp.keywords':
-    'efeitos, FX, plugins, limiter, limitador, loudness, LUFS, normalização de volume, nivelamento, exciter, abertura estéreo, subgrave, subharmônico, transientes, masterização, crossfade, gapless, de-esser, sibilância, s agudo, chiado, voz, podcast, perfis, salvar perfil',
+    'efeitos, FX, plugins, limiter, limitador, loudness, LUFS, normalização de volume, nivelamento, exciter, abertura estéreo, subgrave, subharmônico, transientes, masterização, crossfade, gapless, de-esser, sibilância, s agudo, chiado, voz, podcast, perfis, salvar perfil, passos, ouvir passos, footsteps, jogos, som de jogo, recargas, equalização de volume',
   'help.dsp.normalizer':
     'Uniformiza a sonoridade. No áudio ao vivo, nivela música por música.',
   'help.dsp.denoise':

@@ -330,6 +330,8 @@ struct FeqChain {
   FeqDenoise* denoise = nullptr;
   /** The De-esser, owned and made with the chain; null leaves it out. */
   FeqDeEsser* deesser = nullptr;
+  /** Footsteps, owned and made with the chain; null leaves it out. */
+  FeqFootsteps* footsteps = nullptr;
 
   ChainEqSlot slots[FEQ_CHAIN_MAX_CHANNELS];
   ChainExciterPath paths[kExciterPaths];
@@ -860,6 +862,12 @@ void chain_apply_deesser_layout(FeqChain* chain);
 /** Run it on the block and report what it did. AUDIO thread. */
 void chain_process_deesser(FeqChain* chain, float* const* channels,
                            uint32_t frames);
+
+/* --- Footsteps, from `chain_footsteps.cpp` ------------------------------- */
+
+/** Run it on the block and report what it did. AUDIO thread. */
+void chain_process_footsteps(FeqChain* chain, float* const* channels,
+                             uint32_t frames);
 
 /** The mono maker after the EQ, and its return to a stream's start. */
 void chain_process_mono_maker(FeqChain* chain, float* const* channels,

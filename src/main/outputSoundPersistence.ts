@@ -57,6 +57,7 @@ export const restoreOutputSound = (value: unknown): IOutputSound => {
     sound.dsp.bassPunch.isolate = false;
     sound.dsp.denoise.isolate = false;
     sound.dsp.deEsser.isolate = false;
+    sound.dsp.footsteps.isolate = false;
   }
   return sound;
 };

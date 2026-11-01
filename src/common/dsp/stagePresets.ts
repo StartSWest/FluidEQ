@@ -18,6 +18,7 @@ export const PRESET_STAGES = [
   'deEsser',
   'exciter',
   'bassForge',
+  'footsteps',
   'bassPunch',
   'dimension',
   'maximizer',

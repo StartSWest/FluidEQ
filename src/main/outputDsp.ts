@@ -11,8 +11,13 @@ import {
   IState,
 } from '../common/constants';
 import { clampDspSettings, IDspSettings } from '../common/dsp/chain';
-import { appendPresetTone, encodeChainSettings } from '../common/dsp/chainWire';
+import {
+  appendPresetTone,
+  encodeChainSettings,
+  withoutFootsteps,
+} from '../common/dsp/chainWire';
 import { presetToneOf } from '../common/dsp/presetTone';
+import { engineRunsFootsteps } from '../common/engineHealth';
 import { groupPlaysMatched } from '../common/filterDesign';
 import {
   engineTakesOutputConfig,
@@ -124,9 +129,11 @@ export const flushOutputDsp = async ({
       rackHere: systemRackEnabled?.(output.deviceId) ?? true,
       version: outputVersion,
     });
+    // An engine before Footsteps refuses the line with its trailer and
+    // bypasses the whole rack; without the trailer it plays the rest.
     return writeSystemDspChain(
       configDirPath,
-      values,
+      engineRunsFootsteps(dllVersion) ? values : withoutFootsteps(values),
       guid,
       outputDesignsOf(state),
     );

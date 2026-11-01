@@ -507,12 +507,35 @@ Everything worth knowing about them is available through commands:
   everything down: measured over the catalogue, 0.85 LU louder than not told,
   no overs, no more pumping. A new curve glides in over 20 ms and the old one
   out (a hard switch clicked at -49 dBFS; now under -104). The trailer stands
-  after the game word and the Room trailer; an engine older than 1.16 refuses a
-  longer line and bypasses the whole rack, so main strips it for one
+  after the game word, the Room trailer and Footsteps'; an engine older than
+  1.16 refuses a longer line and bypasses the whole rack, so main strips it for one
   (`ENGINE_PRESET_TONE_SINCE`), and a switched-off rack carries none. Only bells
   and shelves travel; a preset curve's subsonic high pass is in the rack, in
   front of the Maximizer. Change how the Preset layer is written and
   `presetToneOf` changes with it, or the rack limits a curve nobody hears.
+- **Footsteps lifts what arrives, never what lingers, with one gain for
+  every side** (Ivan, 2026-10-31: "so they can hear the footsteps"). Three
+  parallel bells (`footsteps.cpp`: 300 Hz, 2.4 kHz, 7 kHz, each
+  `x + (g-1)·bandpass`, so 0 dB is the input to the bit) after the EQ and
+  before Bass Punch and the Room, one gain per band from a detector linked
+  across every channel but the LFE: a gain per side moves and splits the
+  image, and the LFE is never touched. A band comes up only while a sound
+  stands over its own 30 ms past AND over the bed, only while the whole
+  signal is quiet, and never past -24 dB on the very sample — a shot landing
+  in a step's lift loses it there, not at the next decision. Lifting a tail
+  blurs where it came from, which is the whole of what a step is worth. It
+  has no latency; Calm is a 250 Hz first-order shelf on the rumble. Its
+  settings ride a FOOT trailer of their own (`footstepsWire.ts`), after the
+  game word and the Room's and before the curve, written only while the
+  stage is on, and stripped for an engine before 1.25
+  (`ENGINE_FOOTSTEPS_SINCE`, `withoutFootsteps`), which would refuse the line
+  and bypass the whole rack. The analysis header is 816 bytes from 1.25; the
+  reader still takes 784 and 560 (`engineAnalysis.ts`). Only the Gaming
+  chains turn it on, and its profiles are named by kind of game, never by
+  title: nothing has been measured on one game's mix. Held by
+  `footsteps_test.cpp` against a synthetic match (steps up 5 dB or more,
+  shots and the blast under 0.1 dB, the same at all eight rates) and
+  `footsteps_line_test.cpp` against lines the app's encoder wrote.
 - **The Preset layer writes each band at its curve's model Q** (`eqModel.ts`,
   `presetVoicing.ts`): the main EQ has no Wide or Proportional model, and the
   genre curves were fitted through theirs. From 09-21 to 09-23 every Wide

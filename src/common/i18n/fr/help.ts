@@ -285,7 +285,7 @@ const help: Record<keyof typeof en, string> = {
   'help.games.steps':
     'Ouvrez Égaliseur → Préréglages de jeu et appuyez sur Ajouter un jeu. Prenez-en un dans vos lanceurs ou parmi les programmes ouverts en ce moment, ou choisissez vous-même son programme.\nDans le sélecteur de sa ligne, choisissez le son qu’il doit recevoir : un préréglage Jeux, ou n’importe quel autre.\nLancez le jeu. Une carte sur le Bureau indique sur quoi FluidEQ a basculé, et une autre, ce qui est revenu quand vous le fermez.',
   'help.games.tip':
-    'Tant qu’un jeu a la main sur le son, la barre en bas de la fenêtre affiche son nom. Choisissez un autre son en cours de partie et il reste : FluidEQ ne défait que ce qu’il a fait lui-même. Les préréglages Jeux activent aussi le Mode jeu.',
+    'Tant qu’un jeu a la main sur le son, la barre en bas de la fenêtre affiche son nom. Choisissez un autre son en cours de partie et il reste : FluidEQ ne défait que ce qu’il a fait lui-même. Les préréglages Jeux activent aussi le Mode jeu et Bruits de pas, qui fait ressortir les pas et les rechargements discrets au moment où ils se produisent.',
   'help.games.keywords':
     'jeux vidéo, profil de jeu, par application, changement automatique, jeu de tir, bruits de pas, pas des ennemis, compétitif, gaming, gamer, launcher, Epic Games, FPS, shooter, esport, presets',
   'help.games.tab': 'Vos jeux et le son que reçoit chacun.',
@@ -363,11 +363,11 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'Le rack DSP est une chaîne d’étages de studio. Avec le moteur FluidEQ, il traite tout ce que joue le PC ; avec Equalizer APO, il traite les pistes audio de la Bibliothèque. Il est coupé tant que FluidEQ est désactivé.',
   'help.dsp.steps':
-    'Ouvrez l’onglet DSP. Choisissez une chaîne sous Préréglages, ou sélectionnez un étage dans la colonne latérale et activez-le.\nChangez un réglage à la fois et comparez avec l’étage contourné, à volume similaire. Isoler vous fait entendre uniquement ce qu’un étage ajoute.\nEnregistrez un rack qui vous plaît, et utilisez Exporter et Importer pour le partager.\nLe dé-esseur baisse les S, T et CH aigus d’une voix seulement quand ils sonnent, et laisse les cymbales intactes ; Voix, Podcast et Livre audio l’activent. Chaque étage peut garder vos propres profils : réglez-le, puis appuyez sur Enregistrer.',
+    'Ouvrez l’onglet DSP. Choisissez une chaîne sous Préréglages, ou sélectionnez un étage dans la colonne latérale et activez-le.\nChangez un réglage à la fois et comparez avec l’étage contourné, à volume similaire. Isoler vous fait entendre uniquement ce qu’un étage ajoute.\nEnregistrez un rack qui vous plaît, et utilisez Exporter et Importer pour le partager.\nLe dé-esseur baisse les S, T et CH aigus d’une voix seulement quand ils sonnent, et laisse les cymbales intactes ; Voix, Podcast et Livre audio l’activent. Chaque étage peut garder vos propres profils : réglez-le, puis appuyez sur Enregistrer.\nBruits de pas fait ressortir les sons discrets d’un jeu, comme les pas et les rechargements, au moment où ils se produisent, et laisse les tirs, les explosions et les échos tels quels ; les préréglages Jeux l’activent.',
   'help.dsp.tip':
     'Plus fort paraît souvent meilleur simplement parce que c’est plus fort : comparez donc à niveaux égaux. Faites Ctrl+clic sur un bouton rotatif pour le ramener à sa valeur par défaut.',
   'help.dsp.keywords':
-    'effets audio, limiteur, normalisation du volume, volume constant, élargisseur, largeur stéréo, renforcement des basses, infrabasses, transitoires, écrêtage, FX, plugins, loudness, LUFS, sub-bass, mastering, crossfade, gapless, bypass, presets, dé-esseur, de-esser, sifflantes, sibilance, s aigus, voix, podcast, profils, enregistrer un profil',
+    'effets audio, limiteur, normalisation du volume, volume constant, élargisseur, largeur stéréo, renforcement des basses, infrabasses, transitoires, écrêtage, FX, plugins, loudness, LUFS, sub-bass, mastering, crossfade, gapless, bypass, presets, dé-esseur, de-esser, sifflantes, sibilance, s aigus, voix, podcast, profils, enregistrer un profil, bruits de pas, pas, entendre les pas, footsteps, jeux, son de jeu, rechargement, égalisation du volume',
   'help.dsp.normalizer':
     'Uniformise la sonie. Sur l’audio en direct, il la nivelle morceau par morceau.',
   'help.dsp.denoise':

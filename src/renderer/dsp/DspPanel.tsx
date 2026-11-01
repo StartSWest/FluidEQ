@@ -10,6 +10,7 @@ import { TranslationKey } from '../../common/i18n/en';
 import DspBassForgeCard from './DspBassForgeCard';
 import DspBassPunchCard from './DspBassPunchCard';
 import DspDeEsserCard from './DspDeEsserCard';
+import DspFootstepsCard from './DspFootstepsCard';
 import { ProcessorCard } from './DspControls';
 import DspEqBar from './DspEqBar';
 import DspEqCard from './DspEqCard';
@@ -100,6 +101,7 @@ const ISOLATING_SECTIONS = [
   'denoise',
   'deEsser',
   'eq',
+  'footsteps',
   'exciter',
   'bassForge',
   'bassPunch',
@@ -118,6 +120,7 @@ const withoutIsolate = (from: IDspSettings): IDspSettings => ({
   denoise: { ...from.denoise, isolate: false },
   deEsser: { ...from.deEsser, isolate: false },
   eq: { ...from.eq, isolate: false },
+  footsteps: { ...from.footsteps, isolate: false },
   exciter: { ...from.exciter, isolate: false },
   bassForge: { ...from.bassForge, isolate: false },
   bassPunch: { ...from.bassPunch, isolate: false },
@@ -186,6 +189,7 @@ const DspPanel = ({
     deEsser,
     crossfade,
     eq,
+    footsteps,
     exciter,
     bassForge,
     bassPunch,
@@ -592,6 +596,7 @@ const DspPanel = ({
             deEsser: deEsser.enabled,
             crossfade: crossfade.enabled,
             eq: eq.enabled,
+            footsteps: footsteps.enabled,
             exciter: exciter.enabled,
             bassForge: bassForge.enabled,
             bassPunch: bassPunch.enabled,
@@ -702,6 +707,14 @@ const DspPanel = ({
                 onCommit={onCommit}
               />
             </ProcessorCard>
+          )}
+
+          {section === 'footsteps' && (
+            <DspFootstepsCard
+              footsteps={footsteps}
+              onPatch={(next) => patch({ footsteps: next })}
+              onCommit={onCommit}
+            />
           )}
 
           {section === 'exciter' && (

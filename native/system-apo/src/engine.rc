@@ -89,6 +89,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        stages, its delay and its readings for the page.
  *   1.24 honors live Normalizer target and ceiling edits while holding a song,
  *        and appends the measured post-Normalizer short-term LUFS reading.
+ *   1.25 runs Footsteps (`footsteps.h`) from a tagged trailer on the rack's
+ *        line, which an older engine refuses whole, so the app leaves the
+ *        trailer off for one (`ENGINE_FOOTSTEPS_SINCE`). It reports the stage
+ *        in its stages and its readings for the page, in a header 28 bytes
+ *        longer.
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -100,8 +105,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 24, 0, 0
-PRODUCTVERSION 1, 24, 0, 0
+FILEVERSION 1, 25, 0, 0
+PRODUCTVERSION 1, 25, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32
