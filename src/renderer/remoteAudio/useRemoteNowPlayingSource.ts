@@ -76,6 +76,7 @@ import { useEffect, useRef, useState } from 'react';
 import { buildSongIdentity } from 'common/songIdentity';
 import { REMOTE_NUDGE_LIMIT_MS } from '../../common/remoteAudio';
 import type { TRemoteTransportCommand } from '../../common/remoteAudio';
+import { nowPlayingSenders } from '../../common/remoteNowPlaying';
 import {
   getPlaybackOwner,
   registerPlayer,
@@ -101,14 +102,6 @@ export const pickRemoteNowPlaying = (
   ) ??
   computers.find((computer) => computer.nowPlaying?.isPlaying === true) ??
   computers.find((computer) => computer.nowPlaying !== undefined);
-
-/** Which senders have turned up playing since this end last looked. Used for
- * one thing only — deciding who to pause — and never for deciding whether
- * anything here should stop; see the direction rule above. */
-export const nowPlayingSenders = (
-  known: ReadonlySet<string>,
-  playing: readonly string[],
-): string[] => playing.filter((id) => !known.has(id));
 
 const sendTransport = (peerId: string, command: TRemoteTransportCommand) => {
   window.electron.ipcRenderer

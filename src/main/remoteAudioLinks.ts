@@ -9,6 +9,7 @@ import {
   type ILinkSwitches,
   type IRemoteDuplex,
 } from '../common/remoteAudio';
+import type { IWindowlessPeer } from './shareAudio/windowlessShare';
 
 /**
  * Share Audio both ways: who this computer sends its sound to, and whose
@@ -267,6 +268,22 @@ export const createRemoteAudioLinks = ({
       return (
         peer !== undefined && switches(peer).play && peer.heard?.sends !== false
       );
+    },
+    /**
+     * Every link as Share Audio's rule for a window let go in the tray reads
+     * it (`shareAudio/windowlessShare.ts`): paused on either side, its sound
+     * heard here — the window's `heardHere`, which also waits for a computer
+     * this one joined to say what it does — and which side pasted the code.
+     */
+    windowless(): IWindowlessPeer[] {
+      return [...peers.entries()].map(([id, peer]) => ({
+        id,
+        paused:
+          remembered.get(peer.key)?.paused === true ||
+          peer.heard?.paused === true,
+        heardHere: this.hears(id) && !(peer.joined && peer.heard === undefined),
+        joined: peer.joined,
+      }));
     },
     /** How loud the sound arriving from `peerId` plays here, 0 to 1. */
     volume(peerId: string): number {

@@ -195,3 +195,32 @@ describe('a computer that cannot do both', () => {
     expect(links.hears('spoke')).toBe(true);
   });
 });
+
+/**
+ * Every link as Share Audio's rule reads it with the window let go in the
+ * tray (`windowlessShare.ts`): the same three answers the window's own link
+ * records give (`linkPaused`, `heardHere`, `joined`).
+ */
+describe('the links, for main’s rule with no page', () => {
+  it('says paused on either side, heard here, and who joined whom', () => {
+    const { links } = create();
+    links.connected('hub', 'HUB', true);
+    links.connected('spoke', 'SPOKE', false);
+    // A computer this one joined is not heard until it says what it does.
+    expect(links.windowless()).toEqual([
+      { id: 'hub', paused: false, heardHere: false, joined: true },
+      { id: 'spoke', paused: false, heardHere: true, joined: false },
+    ]);
+
+    links.heard('hub', { sends: true, plays: true });
+    links.heard('spoke', { sends: false, plays: false, paused: true });
+    expect(links.windowless()).toEqual([
+      { id: 'hub', paused: false, heardHere: true, joined: true },
+      { id: 'spoke', paused: true, heardHere: false, joined: false },
+    ]);
+
+    // Paused here, by this computer's own Pause on the link.
+    links.choose('HUB', { send: true, play: true, paused: true, volume: 1 });
+    expect(links.windowless()[0]).toMatchObject({ paused: true });
+  });
+});

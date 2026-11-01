@@ -66,6 +66,8 @@ const listeners = {
   sending: new Set<TListener<boolean>>(),
   streaming: new Set<TListener<string>>(),
 };
+/** Main's word for a switch changed over there while this window was gone. */
+const fromLink = new Set<(isOn: boolean, peerId: string) => void>();
 const subscribe =
   <T,>(set: Set<TListener<T>>) =>
   (listener: TListener<T>) => {
@@ -93,6 +95,14 @@ const bridge = {
   onRemoteAudioLanSignal: subscribe(listeners.signal),
   onRemoteAudioLanSending: subscribe(listeners.sending),
   onRemoteAudioLanStreaming: subscribe(listeners.streaming),
+  onSinglePlayerFromLink: (
+    listener: (isOn: boolean, peerId: string) => void,
+  ) => {
+    fromLink.add(listener);
+    return () => {
+      fromLink.delete(listener);
+    };
+  },
 };
 
 let latest: IRemoteAudioValue | undefined;
@@ -345,6 +355,15 @@ describe('the picture of a link', () => {
       peerId: 'peer',
       signal: { kind: 'now-playing', singlePlayer: false },
     });
+    expect(isSinglePlayerEnabled()).toBe(false);
+  });
+
+  it('takes up the switch a linked computer changed while this window was gone', async () => {
+    // Main answered the link meanwhile (`windowlessShare.ts`) and hands the
+    // change over once the page is back.
+    await renderProvider();
+    expect(fromLink.size).toBe(1);
+    act(() => fromLink.forEach((listener) => listener(false, 'peer')));
     expect(isSinglePlayerEnabled()).toBe(false);
   });
 

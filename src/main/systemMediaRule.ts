@@ -59,6 +59,8 @@ export interface IExternalPlayerRule {
   /** Every reading the watcher makes, in order. */
   heard: (snapshot: ISystemMediaSnapshot | undefined) => void;
   setSinglePlayer: (isOn: boolean) => void;
+  /** The switch as the window last said it, for Share Audio's rule. */
+  isSinglePlayer: () => boolean;
 }
 
 export const createExternalPlayerRule = (
@@ -81,5 +83,6 @@ export const createExternalPlayerRule = (
     setSinglePlayer: (isOn) => {
       isSinglePlayer = isOn;
     },
+    isSinglePlayer: () => isSinglePlayer,
   };
 };

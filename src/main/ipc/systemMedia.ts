@@ -173,6 +173,14 @@ const registerSystemMediaIpc = ({
   // playing, and a PowerShell left running after the app closed is a process
   // somebody finds in Task Manager with this app's name on it.
   app.on('will-quit', stopWatchingSystemMedia);
+
+  // The one-player switch, for Share Audio's rule while no page decides it
+  // (`windowlessShare.ts`): read as the window last said it, and changed by a
+  // linked computer the way the window's own copy would be.
+  return {
+    isSinglePlayer: rule.isSinglePlayer,
+    setSinglePlayer: rule.setSinglePlayer,
+  };
 };
 
 export default registerSystemMediaIpc;

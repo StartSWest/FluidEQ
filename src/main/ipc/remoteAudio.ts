@@ -30,6 +30,12 @@ import { onWindowsAudioRestarted } from '../windowsAudioRestarts';
 import onWindowMessage from './windowMessages';
 import { registerRemoteAudioPlayback } from './remoteAudioPlayback';
 import { setDspHostRawSharing } from './dspHost';
+import { SINGLE_PLAYER_FROM_LINK_CHANNEL } from '../../common/singlePlayer';
+import {
+  createWindowlessShare,
+  type IWindowlessShare,
+  type IWindowlessShareDeps,
+} from '../shareAudio/windowlessShare';
 import {
   audioWorkerEnabled,
   enableAudioWorker,
@@ -54,18 +60,33 @@ export interface IRemoteAudioIpcDeps {
   getMainWindow: () => BrowserWindow | null;
   userDataDir: string;
   /**
-   * Whether another computer is linked. The window answers a link — what
-   * plays here, the one-player switch and a press made over there — so a
-   * window in the tray is kept while one is open (`windowUnload.ts`).
+   * Whether another computer is linked, off Windows, where the sound arriving
+   * plays in the window (`ports.audio`); a window in the tray is kept while
+   * one is open there (`windowUnload.ts`). On Windows it plays in the native
+   * helper, and what the window answered for a link — what plays here, the
+   * one-player switch and a press made over there — main answers itself while
+   * no page does (`windowlessShare.ts`).
    */
   holdWindow?: (isHeld: boolean) => void;
+  /** This computer's players, for that rule. */
+  players: Omit<IWindowlessShareDeps, 'send'>;
+}
+
+export interface IRemoteAudioIpc {
+  stop: () => void;
+  /** What Share Audio's rule hears of this computer and of its page. */
+  windowless: Pick<
+    IWindowlessShare,
+    'pageSaid' | 'pageLeft' | 'libraryViewed' | 'libraryClock' | 'systemSaid'
+  >;
 }
 
 export const registerRemoteAudioIpc = ({
   getMainWindow,
   userDataDir,
   holdWindow,
-}: IRemoteAudioIpcDeps): (() => void) => {
+  players,
+}: IRemoteAudioIpcDeps): IRemoteAudioIpc => {
   if (process.platform === 'win32' && typeof app?.isPackaged === 'boolean') {
     enableAudioWorker();
   }
@@ -130,7 +151,8 @@ export const registerRemoteAudioIpc = ({
    * (`singlePlayer`), which happened once and are not to happen again.
    */
   const told = new Map<string, Map<string, ILanRemoteAudioSignal>>();
-  const linksChanged = () => holdWindow?.(told.size > 0);
+  const linksChanged = () =>
+    holdWindow?.(process.platform !== 'win32' && told.size > 0);
   const remember = (message: ILanRemoteAudioSignal) => {
     const { peerId, signal } = message;
     if (signal.kind === 'stop') {
@@ -199,6 +221,8 @@ export const registerRemoteAudioIpc = ({
             playback.remove(peerId);
             streaming.delete(peerId);
           }
+          followLinks();
+          share.heard(signal);
           ports.signal(signal);
           sendToWindow(LAN_SIGNAL_CHANNEL, signal);
           syncRouting();
@@ -373,6 +397,18 @@ export const registerRemoteAudioIpc = ({
     bothWays: process.platform === 'win32',
     userDataDir,
   });
+
+  const share = createWindowlessShare({
+    ...players,
+    send: (message) => {
+      try {
+        lan.sendSignal(message);
+      } catch {
+        // Gone already; a computer that comes back is told again.
+      }
+    },
+  });
+  const followLinks = () => share.linked(links.windowless());
 
   /**
    * Share Audio's network, started once and kept: this computer listening on
@@ -551,6 +587,7 @@ export const registerRemoteAudioIpc = ({
         throw new Error('Invalid Share Audio switches.');
       }
       links.choose(name, switches);
+      followLinks();
       syncRouting();
       [...streaming].forEach((peerId) => {
         if (!links.hears(peerId)) {
@@ -582,18 +619,39 @@ export const registerRemoteAudioIpc = ({
       sendToWindow(LAN_ERROR_CHANNEL, undefined);
     }
   });
-  return () => {
-    powerMonitor.removeListener('resume', wake);
-    stopHearingRestarts();
-    started = undefined;
-    told.clear();
-    resetSession();
-    // A link never built has nothing to stop, and quitting is no reason to
-    // load it.
-    link?.stop();
-    ports.close();
-    playback.close().catch(() => undefined);
-    stopWorkerEvents?.();
-    stopAudioWorker();
+  return {
+    stop: () => {
+      powerMonitor.removeListener('resume', wake);
+      stopHearingRestarts();
+      started = undefined;
+      told.clear();
+      resetSession();
+      // A link never built has nothing to stop, and quitting is no reason to
+      // load it.
+      link?.stop();
+      ports.close();
+      playback.close().catch(() => undefined);
+      stopWorkerEvents?.();
+      stopAudioWorker();
+    },
+    windowless: {
+      pageSaid: () => {
+        share.pageSaid();
+        // A switch a linked computer changed while no page was there: the
+        // page's own copy of it (`singlePlayer.ts`) takes it up as it would
+        // have from that computer.
+        const changed = share.takeSwitchFromLink();
+        if (changed) {
+          sendToWindow(SINGLE_PLAYER_FROM_LINK_CHANNEL, [
+            changed.isOn,
+            changed.peerId,
+          ]);
+        }
+      },
+      pageLeft: share.pageLeft,
+      libraryViewed: share.libraryViewed,
+      libraryClock: share.libraryClock,
+      systemSaid: share.systemSaid,
+    },
   };
 };

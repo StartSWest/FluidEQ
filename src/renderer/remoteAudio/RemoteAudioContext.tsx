@@ -89,6 +89,13 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       bridge?.setRemoteAudioBothWays?.(bothWays).catch(() => undefined);
     }
   }, [bothWays, bridge, platform]);
+  // A linked computer changed the one-player switch while this window was let
+  // go in the tray (main answered for it then, `windowlessShare.ts`): taken
+  // up as if that computer had just said it.
+  useEffect(
+    () => bridge?.onSinglePlayerFromLink?.(setSinglePlayerFromLink),
+    [bridge],
+  );
   const [phase, setPhaseState] = useState<TRemoteAudioPhase>('idle');
   const phaseRef = useRef<TRemoteAudioPhase>('idle');
   const setPhase = useCallback((next: TRemoteAudioPhase) => {

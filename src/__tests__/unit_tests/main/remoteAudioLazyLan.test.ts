@@ -60,6 +60,14 @@ jest.mock('../../../main/ipc/dspHost', () => ({
 // eslint-disable-next-line import/first -- the mocks above must be in place first
 import { registerRemoteAudioIpc } from '../../../main/ipc/remoteAudio';
 
+const players = {
+  library: jest.fn(),
+  system: jest.fn(),
+  pauseOtherPlayers: jest.fn(),
+  isSinglePlayer: () => true,
+  setSinglePlayer: jest.fn(),
+};
+
 beforeEach(() => {
   handlers.clear();
   jest.clearAllMocks();
@@ -70,7 +78,8 @@ it('builds no LAN link while nothing has asked for one, not even to quit', () =>
   const stopAll = registerRemoteAudioIpc({
     getMainWindow: () => null,
     userDataDir: 'C:\\FluidEQ-test',
-  });
+    players,
+  }).stop;
 
   expect(handlers.size).toBeGreaterThan(0);
   expect(mockCreateLan).not.toHaveBeenCalled();
@@ -84,7 +93,8 @@ it('builds it once, for the first thing that needs it, and keeps it', async () =
   const stopAll = registerRemoteAudioIpc({
     getMainWindow: () => null,
     userDataDir: 'C:\\FluidEQ-test',
-  });
+    players,
+  }).stop;
   lan.start.mockResolvedValue({
     credentials: { port: 49_100, secret: 'secret' },
     details: { deviceName: 'HEADSET-PC', computerId: 'x'.repeat(32) },

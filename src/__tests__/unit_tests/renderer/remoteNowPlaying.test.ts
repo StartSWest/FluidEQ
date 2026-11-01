@@ -28,15 +28,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import type { IRemoteNowPlaying } from 'common/remoteAudio';
 import type { ITransportSource } from 'renderer/audio/transportSource';
 import type { TPlaybackOwner } from 'renderer/audio/playbackOwner';
+import { nowPlayingSenders, startedHere } from 'common/remoteNowPlaying';
 import {
   describeForRemote,
   pickSourceForRemote,
-  startedHere,
 } from 'renderer/remoteAudio/useRemoteNowPlayingBroadcast';
-import {
-  nowPlayingSenders,
-  pickRemoteNowPlaying,
-} from 'renderer/remoteAudio/useRemoteNowPlayingSource';
+import { pickRemoteNowPlaying } from 'renderer/remoteAudio/useRemoteNowPlayingSource';
 
 const playing = (isPlaying: boolean): IRemoteNowPlaying => ({
   title: 'Song',

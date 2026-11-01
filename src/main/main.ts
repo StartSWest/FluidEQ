@@ -213,6 +213,7 @@ import registerEngineStateIpc from './ipc/engineState';
 import registerNativeDialogsIpc from './ipc/nativeDialogs';
 import registerWindowsAudioIpc from './ipc/windowsAudio';
 import registerSystemMediaIpc from './ipc/systemMedia';
+import { pauseOtherSystemPlayers, sendSystemMediaCommand } from './systemMedia';
 import registerMemberServices from './memberServices';
 import { applyLaunchSwitches, isDebug } from './launchSwitches';
 import { devSandbox, isSealedSandbox, ownAppUserModelId } from './devSandbox';
@@ -261,7 +262,13 @@ const windowUnload = createWindowUnload({
   },
   log: (message) => log.info(message),
 });
-registerWindowHoldsIpc(getMainWindow, windowUnload);
+registerWindowHoldsIpc(getMainWindow, {
+  pageSaid: (holds) => {
+    windowUnload.pageSaid(holds);
+    // The page is there: Share Audio's links are its to answer again.
+    remoteAudio.windowless.pageSaid();
+  },
+});
 /** The window, unless it is on its way out from the tray. */
 const usableWindow = () => (isWindowLetGo ? null : mainWindow);
 
@@ -1019,9 +1026,10 @@ const songProgramme = createSongProgramme({
   watchEngine: () => engineHealth.read(),
 });
 
-registerSystemMediaIpc({
+const singlePlayerSwitch = registerSystemMediaIpc({
   onMedia: (snapshot) => {
     nowPlayingFeed.systemSaid(snapshot);
+    remoteAudio.windowless.systemSaid(snapshot);
     return songProgramme.onMedia(snapshot);
   },
   getMainWindow,
@@ -1048,10 +1056,29 @@ registerWindowIpc({
   windowModes,
 });
 
-const stopRemoteAudioLan = registerRemoteAudioIpc({
+const remoteAudio = registerRemoteAudioIpc({
   getMainWindow,
   userDataDir,
   holdWindow: (isHeld) => windowUnload.hold('share-audio', isHeld),
+  // What a linked computer's press and the one-player rule reach while the
+  // window is let go in the tray: the players main runs or hears.
+  players: {
+    library: (command) => libraryPlayer.command(command),
+    system: (command, positionMs) => {
+      sendSystemMediaCommand(command, positionMs).catch((error) =>
+        log.warn(
+          `A linked computer's press did not reach the player: ${String(error)}`,
+        ),
+      );
+    },
+    pauseOtherPlayers: () => {
+      pauseOtherSystemPlayers('').catch((error) =>
+        log.warn(`The other players could not be paused: ${String(error)}`),
+      );
+    },
+    isSinglePlayer: singlePlayerSwitch.isSinglePlayer,
+    setSinglePlayer: singlePlayerSwitch.setSinglePlayer,
+  },
 });
 
 // Second outputs, played straight from the FluidEQ Engine where it can and
@@ -1344,11 +1371,13 @@ const libraryPlayer = createLibraryPlayer({
   window: {
     view: (view) => {
       nowPlayingFeed.libraryViewed(view);
+      remoteAudio.windowless.libraryViewed(view);
       sendToWindow(LIBRARY_PLAYER_CHANNEL.view, view);
     },
     // The bar's clock, four times a second while a song plays: a window
     // nobody can see is not woken for it, and asks again when it is back.
     clock: (clock) => {
+      remoteAudio.windowless.libraryClock(clock);
       if (mainWindow?.isVisible() && !mainWindow.isMinimized()) {
         sendToWindow(LIBRARY_PLAYER_CHANNEL.clock, clock);
       }
@@ -1444,6 +1473,7 @@ const createMainWindow = createMainWindowFactory({
         pageLeft: () => {
           windowUnload.pageLeft();
           nowPlayingFeed.pageLeft();
+          remoteAudio.windowless.pageLeft();
         },
       });
       comeBack.watchWindow(next);
@@ -1625,7 +1655,7 @@ app.on('before-quit', (event) => {
 app.on('will-quit', () => {
   smartEq.close();
   destroyTray();
-  stopRemoteAudioLan();
+  remoteAudio.stop();
   stopOutputMirrors();
   members.dispose();
   forumIpc.dispose();

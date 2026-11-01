@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ipcRenderer, IpcRendererEvent } from 'electron';
+import { SINGLE_PLAYER_FROM_LINK_CHANNEL } from '../common/singlePlayer';
 import {
   GROUP_MEDIA_COMMAND,
   GROUP_MEDIA_WATCH,
@@ -110,6 +111,23 @@ const onRemoteAudioLanResume = (listener: () => void) => {
   const wrapped = () => listener();
   ipcRenderer.on('remote-audio-lan-resume', wrapped);
   return () => ipcRenderer.removeListener('remote-audio-lan-resume', wrapped);
+};
+
+/** The one-player switch a linked computer changed while the window was let
+ * go in the tray, and which computer changed it. */
+const onSinglePlayerFromLink = (
+  listener: (isOn: boolean, peerId: string) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, value: unknown) => {
+    const [isOn, peerId] = Array.isArray(value) ? value : [];
+    if (typeof isOn === 'boolean' && typeof peerId === 'string') {
+      listener(isOn, peerId);
+    }
+  };
+  ipcRenderer.on(SINGLE_PLAYER_FROM_LINK_CHANNEL, wrapped);
+  return () => {
+    ipcRenderer.removeListener(SINGLE_PLAYER_FROM_LINK_CHANNEL, wrapped);
+  };
 };
 
 const watchGroupMediaKeys = (enabled: boolean): Promise<void> =>
@@ -250,6 +268,7 @@ const remoteAudioBridge = {
   reconnectRemoteAudioLan,
   retryRemoteAudioLan,
   onRemoteAudioLanResume,
+  onSinglePlayerFromLink,
   watchGroupMediaKeys,
   onGroupMediaCommand,
   setRemoteAudioBothWays,
