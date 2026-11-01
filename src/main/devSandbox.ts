@@ -12,17 +12,33 @@ export const SANDBOX_DIR_VARIABLE = 'FLUIDEQ_SANDBOX_DIR';
 /** Its DevTools port, which must not be the 9222 of the development window. */
 export const SANDBOX_CDP_PORT_VARIABLE = 'FLUIDEQ_SANDBOX_CDP_PORT';
 export const SANDBOX_DEFAULT_CDP_PORT = 9244;
+/**
+ * `live`: the sandbox drives the real engine instead of sitting beside the
+ * FluidEQ that does, so a build under test can be heard (Ivan, 2026-11-01:
+ * "the whole sound engine needs to run ... can switch between one or the
+ * other"). It keeps its own data, and it takes the real single-copy lock, so
+ * it and the listener's FluidEQ never run at the same time.
+ */
+export const SANDBOX_ENGINE_VARIABLE = 'FLUIDEQ_SANDBOX_ENGINE';
 
 export interface IDevSandbox {
   /** Everything the sandbox writes lives under this folder. */
   root: string;
   /** Its own settings, profiles, caches and logs. */
   userData: string;
-  /** Stands in for `%ProgramData%\FluidEQ\engine\config` and APO's config. */
-  engineConfigDir: string;
-  /** Where its cross-build single-copy lock lives. */
-  instanceLockDir: string;
+  /**
+   * Stands in for `%ProgramData%\FluidEQ\engine\config` and APO's config;
+   * `undefined` for a live sandbox, which writes the real ones.
+   */
+  engineConfigDir: string | undefined;
+  /**
+   * Where its cross-build single-copy lock lives; `undefined` for a live
+   * sandbox, which takes the real lock.
+   */
+  instanceLockDir: string | undefined;
   cdpPort: number;
+  /** Drives the real engine and its pipes (`SANDBOX_ENGINE_VARIABLE`). */
+  drivesEngine: boolean;
 }
 
 const portOf = (value: string | undefined): number => {
@@ -56,12 +72,16 @@ export const sandboxFor = (
     return undefined;
   }
   const root = path.resolve(dir);
+  const drivesEngine = env[SANDBOX_ENGINE_VARIABLE] === 'live';
   return {
     root,
     userData: path.join(root, 'userData'),
-    engineConfigDir: path.join(root, 'engine', 'config'),
-    instanceLockDir: path.join(root, 'lock'),
+    engineConfigDir: drivesEngine
+      ? undefined
+      : path.join(root, 'engine', 'config'),
+    instanceLockDir: drivesEngine ? undefined : path.join(root, 'lock'),
     cdpPort: portOf(env[SANDBOX_CDP_PORT_VARIABLE]),
+    drivesEngine,
   };
 };
 
@@ -74,14 +94,27 @@ export const devSandbox: IDevSandbox | undefined = app
   : undefined;
 
 /**
+ * A sandbox sealed off from the sound: one that runs beside the listener's
+ * FluidEQ, writes no engine config anyone reads and serves none of the
+ * engine's pipes. A live sandbox is not sealed; it is FluidEQ while it runs.
+ */
+export const isSealedSandbox = devSandbox?.drivesEngine === false;
+
+/**
  * The product's name where a person picks a window or a tray icon: marked in a
  * sandbox, which otherwise looks exactly like the FluidEQ it runs beside — two
  * identical tray icons, two windows called FluidEQ, and a Quit meant for the
  * test copy landing on the real one, which takes the EQ off with it. English
  * only: a sandbox is a development tool and never reaches a listener.
  */
-export const sandboxProductName = (product: string): string =>
-  devSandbox ? `${product} (test copy)` : product;
+export const sandboxProductName = (product: string): string => {
+  if (!devSandbox) {
+    return product;
+  }
+  return devSandbox.drivesEngine
+    ? `${product} (experimental)`
+    : `${product} (test copy)`;
+};
 
 /**
  * The id Windows files this process's windows and media sessions under: a

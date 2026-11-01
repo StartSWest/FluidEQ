@@ -21,7 +21,7 @@ import fs from 'fs';
 import { app } from 'electron';
 import { promisified as regedit, setExternalVBSLocation } from 'regedit';
 import { TAudioEngine } from '../common/audioEngine';
-import { devSandbox } from './devSandbox';
+import { devSandbox, isSealedSandbox } from './devSandbox';
 
 // app will only be defined in the electron main process environment.
 // in the test environment, we expect it to be undefined.
@@ -182,9 +182,10 @@ export const isEqualizerAPOInstalled = async (): Promise<boolean> =>
  * installs it into the registry, so this is a plain, computed path rather
  * than a lookup.
  *
- * A development sandbox's own folder instead, which no engine reads
+ * A sealed development sandbox's own folder instead, which no engine reads
  * (`devSandbox.ts`): every engine write, the owner marker and the quit reset
- * all go through here, and the statuses are read from beside it.
+ * all go through here, and the statuses are read from beside it. A live
+ * sandbox writes the real one.
  */
 export const getFluidEngineConfigDir = (): string =>
   devSandbox?.engineConfigDir ?? path.join(getFluidEngineRootDir(), 'config');
@@ -260,11 +261,11 @@ export const getConfigPath = async (engine: TAudioEngine): Promise<string> => {
     );
   }
 
-  if (engine === 'fluid' || devSandbox) {
+  if (engine === 'fluid' || isSealedSandbox) {
     // The engine's directory is never in the registry — see
     // `getFluidEngineConfigDir` — so no APO probe belongs on this path. A
-    // sandbox writes Equalizer APO's configs there too: APO's real folder is
-    // the one the listener's own copy of FluidEQ writes.
+    // sealed sandbox writes Equalizer APO's configs there too: APO's real
+    // folder is the one the listener's own copy of FluidEQ writes.
     return ensureConfigDirWithEmptyConfigFile(getFluidEngineConfigDir());
   }
 

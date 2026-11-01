@@ -215,7 +215,7 @@ import registerWindowsAudioIpc from './ipc/windowsAudio';
 import registerSystemMediaIpc from './ipc/systemMedia';
 import registerMemberServices from './memberServices';
 import { applyLaunchSwitches, isDebug } from './launchSwitches';
-import { devSandbox, ownAppUserModelId } from './devSandbox';
+import { devSandbox, isSealedSandbox, ownAppUserModelId } from './devSandbox';
 import claimTheOnlyCopy from './onlyCopy';
 import { registerAppLinks } from './appLinks';
 import { chooseLaunchEngine, registerEngineServices } from './engineServices';
@@ -1208,11 +1208,11 @@ const sourceAnalysis = createSourceAnalysisPublisher({
   },
   resolveSourceEndpoint: async () => session.playbackAudioDevice?.guid,
   write: scheduleWrite,
-  // A sandbox's source goes into its own folder, which no engine reads (see
-  // `devSandbox.ts`), so no engine's status may answer for it: read the real
-  // ones and every Play waited for an acknowledgement that could not come.
+  // A sealed sandbox's source goes into its own folder, which no engine reads
+  // (see `devSandbox.ts`), so no engine's status may answer for it: read the
+  // real ones and every Play waited for an acknowledgement that could not come.
   readHealth: () =>
-    devSandbox ? Promise.resolve({ outputs: [] }) : engineHealth.read(),
+    isSealedSandbox ? Promise.resolve({ outputs: [] }) : engineHealth.read(),
   setRawLibrary: setDspHostRawLibrary,
   prepareEngine: async () => {
     const result = await reflushCurrentState();
@@ -1368,7 +1368,7 @@ const engineHealth = registerEngineHealthIpc({
   onHealth: (health) => {
     songProgramme.onHealth(health);
     secondOutputs.onHealth(health);
-    if (!devSandbox) {
+    if (!isSealedSandbox) {
       sourceAnalysis.onHealth(health);
     }
   },
@@ -1680,12 +1680,13 @@ const onAppReady = async () => {
   // which is how a FluidEQ ended from Task Manager stops shaping the audio.
   // See `engineOwnerPipe.ts`. Never rejects.
   //
-  // Neither of the engine's pipes in a development sandbox (`devSandbox.ts`):
-  // an engine that found the sandbox's owner pipe instead of the listener's
-  // FluidEQ would stop applying the EQ the moment the sandbox quit. The
-  // display pipe is served under a name no engine knows, so its readouts are
-  // answered — with nothing — rather than refused many times a second.
-  if (devSandbox) {
+  // Neither of the engine's pipes in a sealed development sandbox
+  // (`devSandbox.ts`): an engine that found the sandbox's owner pipe instead
+  // of the listener's FluidEQ would stop applying the EQ the moment the
+  // sandbox quit. The display pipe is served under a name no engine knows, so
+  // its readouts are answered — with nothing — rather than refused many times
+  // a second. A live sandbox serves both: it is FluidEQ while it runs.
+  if (devSandbox && isSealedSandbox) {
     log.info(
       `Development sandbox in ${devSandbox.root}: the engine's pipes are left to the real FluidEQ.`,
     );

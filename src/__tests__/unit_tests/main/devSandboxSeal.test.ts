@@ -17,7 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
 import os from 'os';
 import path from 'path';
-import { SANDBOX_DIR_VARIABLE } from 'main/devSandbox';
+import { SANDBOX_DIR_VARIABLE, SANDBOX_ENGINE_VARIABLE } from 'main/devSandbox';
 import type * as EngineSetup from 'main/engineSetup';
 import type * as EngineStatus from 'main/engineStatus';
 import type * as Registry from 'main/registry';
@@ -32,13 +32,18 @@ beforeEach(() => {
 
 afterEach(() => {
   delete process.env[SANDBOX_DIR_VARIABLE];
+  delete process.env[SANDBOX_ENGINE_VARIABLE];
   rmSync(scratch, { recursive: true, force: true });
 });
 
-/** A fresh copy of `modulePath`, loaded in a sandbox or out of one. */
+/**
+ * A fresh copy of `modulePath`, loaded in a sandbox or out of one; `live`
+ * for the experimental build, which drives the real engine.
+ */
 const load = <T extends object>(
   modulePath: string,
   inSandbox: boolean,
+  live = false,
 ): { module: T; execFile: jest.Mock } => {
   const execFile = jest.fn();
   let loaded: T | undefined;
@@ -54,6 +59,11 @@ const load = <T extends object>(
       process.env[SANDBOX_DIR_VARIABLE] = path.join(scratch, 'sandbox');
     } else {
       delete process.env[SANDBOX_DIR_VARIABLE];
+    }
+    if (live) {
+      process.env[SANDBOX_ENGINE_VARIABLE] = 'live';
+    } else {
+      delete process.env[SANDBOX_ENGINE_VARIABLE];
     }
     loaded = jest.requireActual<T>(modulePath);
   });
@@ -147,5 +157,64 @@ describe('a development sandbox', () => {
 
     expect(await sandbox.readFluidEngineUpdateReady(fluid, bundle)).toBe(false);
     expect(await ordinary.readFluidEngineUpdateReady(fluid, bundle)).toBe(true);
+  });
+});
+
+// The experimental build (`FLUIDEQ_SANDBOX_ENGINE=live`): heard, because it
+// drives the real engine, and still never trusted with the engine itself.
+describe('the experimental build', () => {
+  it('says so where a person picks a window or a tray icon', () => {
+    const live = load<typeof DevSandbox>('main/devSandbox', true, true).module;
+    expect(live.sandboxProductName('FluidEQ')).toBe('FluidEQ (experimental)');
+    expect(live.isSealedSandbox).toBe(false);
+    // POSITIVE CONTROL: the sealed copy is sealed.
+    const sealed = load<typeof DevSandbox>('main/devSandbox', true).module;
+    expect(sealed.isSealedSandbox).toBe(true);
+  });
+
+  it('writes the real engine folder, where the engine reads', () => {
+    const { platform } = process;
+    Object.defineProperty(process, 'platform', { value: 'win32' });
+    try {
+      const live = load<typeof Registry>('main/registry', true, true).module;
+      expect(live.getFluidEngineConfigDir()).toBe(
+        path.join(live.getFluidEngineRootDir(), 'config'),
+      );
+    } finally {
+      Object.defineProperty(process, 'platform', { value: platform });
+    }
+  });
+
+  it('still runs no engine setup command and offers no engine update', async () => {
+    const live = load<typeof EngineSetup>('main/engineSetup', true, true);
+    const result = await live.module.runEngineSetup(
+      'install',
+      ['--restart-audio'],
+      path.join(scratch, 'FluidEQ-Engine-Setup.exe'),
+    );
+    expect(live.execFile).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ ok: false, declined: false });
+
+    const bundle = path.join(scratch, 'bundle');
+    const installed = path.join(scratch, 'installed');
+    mkdirSync(bundle);
+    mkdirSync(installed);
+    writeFileSync(path.join(bundle, 'FluidEQ-Engine.dll'), 'this build');
+    writeFileSync(path.join(installed, 'FluidEQ-Engine.dll'), 'newer build');
+    const status = load<typeof EngineStatus>(
+      'main/engineStatus',
+      true,
+      true,
+    ).module;
+    expect(
+      await status.readFluidEngineUpdateReady(
+        {
+          installed: true,
+          dllPath: path.join(installed, 'FluidEQ-Engine.dll'),
+          endpoints: [],
+        },
+        bundle,
+      ),
+    ).toBe(false);
   });
 });

@@ -16,6 +16,7 @@ import {
   SANDBOX_CDP_PORT_VARIABLE,
   SANDBOX_DEFAULT_CDP_PORT,
   SANDBOX_DIR_VARIABLE,
+  SANDBOX_ENGINE_VARIABLE,
   devSandbox,
   sandboxFor,
   sandboxProductName,
@@ -31,7 +32,37 @@ describe('which run is a development sandbox', () => {
       engineConfigDir: path.join(ROOT, 'engine', 'config'),
       instanceLockDir: path.join(ROOT, 'lock'),
       cdpPort: SANDBOX_DEFAULT_CDP_PORT,
+      drivesEngine: false,
     });
+  });
+
+  it('drives the real engine and takes the real lock only when told live', () => {
+    const live = sandboxFor(
+      { [SANDBOX_DIR_VARIABLE]: ROOT, [SANDBOX_ENGINE_VARIABLE]: 'live' },
+      false,
+    );
+    expect(live).toEqual({
+      root: ROOT,
+      userData: path.join(ROOT, 'userData'),
+      engineConfigDir: undefined,
+      instanceLockDir: undefined,
+      cdpPort: SANDBOX_DEFAULT_CDP_PORT,
+      drivesEngine: true,
+    });
+    // Anything else is the sealed sandbox, whose folders are its own.
+    expect(
+      sandboxFor(
+        { [SANDBOX_DIR_VARIABLE]: ROOT, [SANDBOX_ENGINE_VARIABLE]: 'LIVE' },
+        false,
+      )?.drivesEngine,
+    ).toBe(false);
+    // And never a packaged build, live or not.
+    expect(
+      sandboxFor(
+        { [SANDBOX_DIR_VARIABLE]: ROOT, [SANDBOX_ENGINE_VARIABLE]: 'live' },
+        true,
+      ),
+    ).toBeUndefined();
   });
 
   it('is never a packaged build', () => {
