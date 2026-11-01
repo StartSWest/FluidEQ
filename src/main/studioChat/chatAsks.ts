@@ -12,7 +12,7 @@ import type {
   TStudioChatAsk,
   TStudioChatCodex,
 } from '../../common/studioChat';
-import writeFileAtomically from '../atomicWrite';
+import writeFileAtomically from '../../core/files/atomicWrite';
 
 /**
  * What the chat asks the member before Claude uses their ChatGPT (Ivan,

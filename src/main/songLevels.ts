@@ -24,7 +24,7 @@ import path from 'path';
 import log from 'electron-log';
 import type { IFinishedSong } from '../common/engineHealth';
 import { outputConfigGuid } from '../common/outputConfigFiles';
-import writeFileAtomically from './atomicWrite';
+import writeFileAtomically from '../core/files/atomicWrite';
 
 export const SONG_LEVELS_FILENAME = 'song-levels.json';
 

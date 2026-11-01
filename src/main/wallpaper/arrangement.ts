@@ -16,7 +16,7 @@ import {
   type IWallpaperDisplay,
   type IWallpaperTuning,
 } from '../../common/wallpaper';
-import writeFileAtomically from '../atomicWrite';
+import writeFileAtomically from '../../core/files/atomicWrite';
 
 const FILE_NAME = 'desktop-backgrounds.json';
 

@@ -23,6 +23,7 @@ import type { IDspHostStatus } from '../ipc/dspHost';
 import type { IHostAnalysis, IHostTelemetry } from './wire';
 import { ENGINE_ANALYSIS_CHANNEL } from '../../common/dsp/engineAnalysis';
 import type { IEngineAnalysis } from '../../common/dsp/engineAnalysis';
+import { CORE_COPY_CHANNEL } from '../../common/coreCopyChannels';
 
 export type { IDspHostStatus };
 
@@ -306,6 +307,17 @@ const holdGameProcess = (pid: number): void =>
 const chooseGameProgram = (): Promise<unknown> =>
   ipcRenderer.invoke('game-choose');
 
+/**
+ * The window's game profiles and its saved chains, handed whole to the core,
+ * which keeps a copy to act on without the window (`common/coreCopies.ts`).
+ */
+const keepGamesForCore = (kept: {
+  enabled: boolean;
+  profiles: readonly unknown[];
+}): void => ipcRenderer.send(CORE_COPY_CHANNEL.games, [kept]);
+const keepDspPresetsForCore = (presets: readonly unknown[]): void =>
+  ipcRenderer.send(CORE_COPY_CHANNEL.dspPresets, [presets]);
+
 export const dspHostBridge = {
   readEnginePreamp: (
     endpoint: string,
@@ -336,6 +348,8 @@ export const dspHostBridge = {
   gamePrograms,
   watchGames,
   chooseGameProgram,
+  keepGamesForCore,
+  keepDspPresetsForCore,
   showGameToast,
   setGamePlaying,
   holdGameProcess,

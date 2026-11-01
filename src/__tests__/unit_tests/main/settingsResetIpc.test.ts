@@ -209,6 +209,12 @@ const KEPT_FILES = [
   'library-playlists.json',
   '.migrated.json',
   'karaoke-session.json',
+  // The core's copies of the game profiles and the saved chains, which the
+  // window keeps through a reset; the Games page's switch beside the
+  // profiles is the window's to reset, and the window hands it over again
+  // as it reloads after one (`CoreCopies`).
+  'game-profiles.json',
+  'dsp-presets.json',
   'studio.json',
   'studio-notes.json',
   'studio-agent.json',

@@ -13,7 +13,7 @@ import {
   type TStudioChatFailure,
   type TStudioChatModel,
 } from '../../common/studioChat';
-import writeFileAtomically from '../atomicWrite';
+import writeFileAtomically from '../../core/files/atomicWrite';
 import {
   createLineReader,
   DOOR_SERVER,

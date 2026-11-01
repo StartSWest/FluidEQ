@@ -38,6 +38,7 @@ import {
   useSoundPaneSlide,
 } from './utils/soundPane';
 import GameSound from './games/GameSound';
+import CoreCopies from './CoreCopies';
 import RackFollowsEngine from './dsp/RackFollowsEngine';
 import useMainEditorWhile from './utils/useMainEditorWhile';
 import PresetToneFeed from './dsp/PresetToneFeed';
@@ -746,6 +747,9 @@ const AppContent = () => {
                 only ever work with the page open, which is the one moment
                 nobody is playing. */}
               <GameSound />
+              {/* The game profiles and the saved chains, handed to the app's
+                core, which keeps a copy to act on without this window. */}
+              <CoreCopies />
               {/* A preset's rack across an engine switch, which is made in a
                 dialog over whichever page is open. */}
               <RackFollowsEngine />

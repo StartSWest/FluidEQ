@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import fs from 'fs';
 import path from 'path';
-import writeFileAtomically from './atomicWrite';
+import writeFileAtomically from '../core/files/atomicWrite';
 
 /**
  * Which publication of each FluidEQ scene this computer last took.

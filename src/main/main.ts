@@ -110,6 +110,13 @@ import registerSystemSoundPort from './ipc/systemSoundPort';
 import { createSystemSound } from '../core/systemSound/systemSound';
 import { createPlatformSystemSoundSource } from '../core/platform/systemSoundSource';
 import { createDesktopSound } from '../core/liveFrames/desktopSound';
+import { createKeptFile } from '../core/files/keptFile';
+import {
+  NO_KEPT_GAMES,
+  parseKeptDspPresets,
+  parseKeptGames,
+} from '../common/coreCopies';
+import registerCoreCopies from './ipc/coreCopies';
 import { registerForumIpc } from './ipc/forum';
 import { registerMotionPreferenceIpc } from './ipc/motionPreference';
 import { registerGamesIpc } from './ipc/games';
@@ -614,6 +621,29 @@ registerSystemSoundPort(getMainWindow, systemSound);
  * window (`desktopSound.ts`).
  */
 const desktopSound = createDesktopSound(systemSound);
+
+/**
+ * The window's lists the core acts on with no window to ask: the game
+ * profiles and the saved chains, handed over at launch and on every change
+ * (`ipc/coreCopies.ts`).
+ */
+const keptGames = createKeptFile({
+  filePath: path.join(userDataDir, 'game-profiles.json'),
+  parse: parseKeptGames,
+  empty: NO_KEPT_GAMES,
+  log,
+});
+const keptDspPresets = createKeptFile({
+  filePath: path.join(userDataDir, 'dsp-presets.json'),
+  parse: parseKeptDspPresets,
+  empty: [],
+  log,
+});
+registerCoreCopies({
+  getMainWindow,
+  games: keptGames,
+  dspPresets: keptDspPresets,
+});
 
 /**
  * Which song the machine is playing, for the FluidEQ Engine's live leveling

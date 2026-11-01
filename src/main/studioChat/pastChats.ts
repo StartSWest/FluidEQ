@@ -9,7 +9,7 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import { ipcMain, type IpcMainInvokeEvent } from 'electron';
 import type { IStudioChat, IStudioChatPast } from '../../common/studioChat';
-import writeFileAtomically from '../atomicWrite';
+import writeFileAtomically from '../../core/files/atomicWrite';
 import type { TAgentProject } from '../studioAgent/agentProject';
 import type { TTranscripts } from './chatTranscript';
 import { listClaudeHistory, loadClaudeHistory, titleOf } from './claudeHistory';

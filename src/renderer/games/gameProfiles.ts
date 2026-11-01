@@ -7,65 +7,33 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * The game profiles this listener has made, as they are kept and read back.
  *
- * Beside the saved chains and the starred ones, in the window's own storage:
- * they are a listener's list rather than a setting of the sound, and nothing
- * outside the window needs them — main watches what is in front and the
- * window decides what that means.
+ * Beside the saved chains and the starred ones, in the window's own storage,
+ * where the Games page makes and changes them. The core keeps a copy of each
+ * change (`CoreCopies`), because a game's sound is switched there now, with
+ * the window minimised or not open at all.
  */
 
 import {
-  GAME_SOURCES,
+  GAME_NAME_MAX,
   IGameProfile,
   IGameProgram,
-  TGameSource,
+  parseGameProfiles,
 } from '../../common/games';
+
+export { GAME_NAME_MAX };
 
 const STORAGE_KEY = 'fluideq.games.profiles.v1';
 
 export const GAME_PROFILES_CHANGED = 'fluideq-game-profiles-changed';
 
-export const GAME_NAME_MAX = 60;
-
 /** A picture worth keeping in storage: a 32px icon is a few kilobytes. */
 const ICON_MAX = 24 * 1024;
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null;
-
-const asSource = (value: unknown): TGameSource =>
-  GAME_SOURCES.find((source) => source === value) ?? 'file';
 
 /** Read only complete rows: one malformed save cannot empty the list. */
 export const readGameProfiles = (): IGameProfile[] => {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    const parsed: unknown = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    return parsed.flatMap((entry): IGameProfile[] => {
-      if (
-        !isRecord(entry) ||
-        typeof entry.id !== 'string' ||
-        typeof entry.name !== 'string' ||
-        typeof entry.path !== 'string' ||
-        entry.path === ''
-      ) {
-        return [];
-      }
-      return [
-        {
-          id: entry.id,
-          name: entry.name.slice(0, GAME_NAME_MAX),
-          path: entry.path,
-          presetId: typeof entry.presetId === 'string' ? entry.presetId : '',
-          source: asSource(entry.source),
-          ...(typeof entry.icon === 'string' && entry.icon.startsWith('data:')
-            ? { icon: entry.icon }
-            : {}),
-        },
-      ];
-    });
+    return parseGameProfiles(raw ? JSON.parse(raw) : []);
   } catch {
     return [];
   }
