@@ -6,6 +6,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "desktop_painter.h"
 
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <Windows.h>
+
 #include <algorithm>
 #include <cmath>
 #include <utility>
@@ -40,6 +48,7 @@ bool DesktopPainter::open(void* window, int width, int height,
     return false;
   }
   context_ = std::move(context);
+  window_ = window;
   window_width_ = std::max(1, width);
   window_height_ = std::max(1, height);
   return true;
@@ -196,6 +205,15 @@ bool DesktopPainter::paint(HeardLampFrame heard, double daylight) {
   if (!program_ || !tuner_) {
     return true;
   }
+  // The desktop helper stretches the window over the whole monitor once it
+  // is placed, so its size is read where it is drawn, every frame.
+  RECT client{};
+  if (window_ != nullptr &&
+      GetClientRect(static_cast<HWND>(window_), &client) != FALSE &&
+      client.right > 0 && client.bottom > 0) {
+    window_width_ = client.right;
+    window_height_ = client.bottom;
+  }
   const Api& gl = context_->gl();
   SceneFrame& frame = heard.frame;
   tuner_->apply(frame, heard.delta_ms, daylight_.next(daylight, heard.delta_ms));
@@ -267,6 +285,7 @@ void DesktopPainter::close() {
   retiring_.clear();
   release_target();
   context_.reset();
+  window_ = nullptr;
   told_drawn_ = 0;
 }
 

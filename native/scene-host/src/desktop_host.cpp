@@ -211,6 +211,9 @@ void read_main(Desktop& desktop) {
 }  // namespace
 
 int run_desktop(const std::wstring& angle_dir, HANDLE parent) {
+  // Each monitor in its own physical pixels: the windows are made over
+  // them, and the desktop helper places them by them.
+  SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
   // Shared with the stdin reader, which is never joined: a blocked pipe read
   // is let go of only by the process ending under it.
   const auto desktop = std::make_shared<Desktop>(angle_dir);

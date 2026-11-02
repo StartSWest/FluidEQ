@@ -170,6 +170,15 @@ int main() {
     painter.paint(frame_at(0.2), 50.0);
     check(heard.drawn == std::vector<std::uint32_t>{1},
           "its first frame is told, once");
+    // The desktop helper stretches the window over the whole monitor once it
+    // has placed it: the next frame is drawn at that size.
+    SetWindowPos(window, nullptr, 0, 0, 800, 400,
+                 SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+    painter.paint(frame_at(0.2), 50.0);
+    check(painter.frame_width() == 400 && painter.frame_height() == 200,
+          "a window made larger is drawn at its new size");
+    SetWindowPos(window, nullptr, 0, 0, 640, 360,
+                 SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
     check(close_to(middle(painter)[0], 51), "the next frame moves with the music");
 
     // Another scene: the first keeps the monitor until it links.

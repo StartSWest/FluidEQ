@@ -124,6 +124,8 @@ class DesktopPainter {
   std::wstring angle_dir_;
   Output output_;
   std::unique_ptr<gl::Context> context_;
+  /** The HWND drawn into, read for its size at every frame. */
+  void* window_ = nullptr;
   int window_width_ = 0;
   int window_height_ = 0;
   double scale_ = 1.0;
