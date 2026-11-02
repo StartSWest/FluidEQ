@@ -30,6 +30,7 @@ import { lampFixture } from '../../src/renderer/lighting/lampFixture';
 import { lampFrameFixture } from '../../src/renderer/lighting/lampFrameFixture';
 import { sceneSizingFixture } from '../../src/renderer/graph/sceneSizingFixture';
 import { sceneFinishHeader } from '../../src/renderer/graph/sceneFinishHeader';
+import { songProgrammeFixture } from '../../src/main/songProgrammeFixture';
 
 const write = (where: string, text: string) => {
   const out = path.resolve(process.cwd(), where);
@@ -48,6 +49,7 @@ write('native/scene-core/tests/lamp_frame_fixture.h', lampFrameFixture());
 write('native/scene-host/tests/lamp_wire_fixture.h', lampWireFixture());
 write('native/scene-core/tests/scene_sizing_fixture.h', sceneSizingFixture());
 write('native/scene-host/src/scene_finish_sources.h', sceneFinishHeader());
+write('native/tray-host/tests/song_programme_fixture.h', songProgrammeFixture());
 // Squeezing the audio is asynchronous in Node, so this one is awaited.
 shareWireFixture()
   .then((header) => write('native/share-core/tests/share_wire_fixture.h', header))
