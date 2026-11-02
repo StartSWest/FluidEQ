@@ -15,8 +15,14 @@ import type { IScenePack } from '../../../common/scenePacks';
 import { SCENE_VIEW_VERTEX_SOURCE } from '../../../common/sceneView';
 import { sceneSpectrumRect } from '../../../common/sceneWave';
 import {
+  DEFAULT_SCENE_PERFORMANCE,
+  DEFAULT_STANDARD_PERFORMANCE,
+} from '../../../common/scenePerformance';
+import {
   desktopHostSceneOf,
   drawnByDesktopHost,
+  measuredByFluidEq,
+  monitorDrawChoiceOf,
 } from '../../../main/wallpaper/desktopScene';
 
 const pack = {
@@ -125,5 +131,46 @@ describe("a desktop background's scene on the C++ host", () => {
         'music',
       ),
     ).toBe(false);
+  });
+
+  it('is drawn from full size only when FluidEQ made it', () => {
+    expect(
+      (['fluideq', 'listener', 'member'] as const).map((madeBy) =>
+        measuredByFluidEq({ pack, madeBy }),
+      ),
+    ).toEqual([true, false, false]);
+  });
+
+  it("is drawn by the listener's performance choice, as the page drew it", () => {
+    expect(monitorDrawChoiceOf(DEFAULT_SCENE_PERFORMANCE, false)).toEqual({
+      autoFloor: 0.35,
+      fsr: true,
+      smoothing: 'best',
+      paceMs: 0,
+    });
+    // Standard looks: full size, the plain scaler, no smoothing.
+    expect(monitorDrawChoiceOf(DEFAULT_STANDARD_PERFORMANCE, false)).toEqual({
+      pinned: 1,
+      autoFloor: 0.35,
+      fsr: false,
+      smoothing: 'off',
+      paceMs: 0,
+    });
+    expect(
+      monitorDrawChoiceOf(
+        {
+          ...DEFAULT_SCENE_PERFORMANCE,
+          resolution: 'balanced',
+          frameRate: 'thirty',
+        },
+        false,
+      ),
+    ).toMatchObject({ pinned: 0.67, paceMs: 1000 / 30 });
+  });
+
+  it('holds every refresh to sixty on battery, as the page did', () => {
+    expect(monitorDrawChoiceOf(DEFAULT_SCENE_PERFORMANCE, true).paceMs).toBe(
+      1000 / 60,
+    );
   });
 });

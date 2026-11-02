@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { screenFollowsMusic } from '../../common/wallpaper';
+import { screenNeedsSound } from '../../common/wallpaper';
 import {
   useLiveAudioCapture,
   useLiveAudioControl,
@@ -28,8 +28,9 @@ export default function WallpaperAudio() {
   // nothing while FluidEQ sits hidden. One paused behind FluidEQ's own window
   // holds it too (`screenFollowsMusic`). And none at all while the core hears
   // for them: a capture held here for a background is Chromium's, and the
-  // whole of this window kept awake behind a minimise with it.
-  const wanted = !state.heardByCore && state.screens.some(screenFollowsMusic);
+  // whole of this window kept awake behind a minimise with it. Nor for one
+  // the C++ host draws, which hears the output itself (`screenNeedsSound`).
+  const wanted = !state.heardByCore && state.screens.some(screenNeedsSound);
   useLiveAudioCapture(wanted, 'work');
   const latest = useRef({ control, wanted });
   latest.current = { control, wanted };

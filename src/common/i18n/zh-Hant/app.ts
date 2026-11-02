@@ -70,6 +70,9 @@ const app = {
   'app.processes.name.desktop': '桌面視覺化工具',
   'app.processes.what.desktop':
     '除此視窗外，繪製為顯示器桌面背景的場景：每個顯示器顯示一個場景。當視窗覆蓋顯示器或 PC 被鎖定時，它會暫停。',
+  'app.processes.name.desktopScenes': '桌面視覺化工具',
+  'app.processes.what.desktopScenes':
+    '在你的顯示器桌面背景上繪製場景，所有顯示器都在一個獨立於此視窗的程式中，並為此聆聽這台電腦正在播放的聲音，關閉視窗後它們也會繼續動。被視窗遮住的顯示器會暫停，螢幕關閉時不繪製任何內容。',
   'app.processes.name.desktopHost': '桌面視覺化助手',
   'app.processes.what.desktopHost':
     '將顯示器的桌面視覺化工具放在圖示後面，並在視窗覆蓋螢幕時通知它。每臺顯示器顯示一個。',

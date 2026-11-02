@@ -165,6 +165,11 @@ export interface IWallpaperScreen extends IWallpaperChoice {
   phase: TWallpaperPhase;
   pauseReason?: TWallpaperPause;
   error?: TWallpaperError;
+  /**
+   * Drawn by the C++ host (`nativeSurface.ts`), which hears the output
+   * itself; absent on a background a page draws.
+   */
+  drawnByHost?: true;
 }
 
 export interface IWallpaperState {
@@ -195,6 +200,14 @@ export const screenFollowsMusic = (screen: IWallpaperScreen): boolean =>
   (screen.phase === 'starting' ||
     screen.phase === 'running' ||
     (screen.phase === 'paused' && screen.pauseReason === 'window'));
+
+/**
+ * Whether a background needs the app to listen for it: one following the
+ * music on a page. The C++ host hears the output itself (`output_ear.h`),
+ * so the core listening or the window capturing for it would be for nobody.
+ */
+export const screenNeedsSound = (screen: IWallpaperScreen): boolean =>
+  screenFollowsMusic(screen) && screen.drawnByHost !== true;
 
 /**
  * All a desktop surface is told: whether to draw, which drawing is current,
@@ -450,7 +463,8 @@ const isWallpaperScreen = (raw: unknown): raw is IWallpaperScreen =>
   (raw.pauseReason === undefined ||
     WALLPAPER_PAUSES.some((pause) => pause === raw.pauseReason)) &&
   (raw.error === undefined ||
-    WALLPAPER_ERRORS.some((error) => error === raw.error));
+    WALLPAPER_ERRORS.some((error) => error === raw.error)) &&
+  (raw.drawnByHost === undefined || raw.drawnByHost === true);
 
 /**
  * The window checks what main sends. A main process started before a change

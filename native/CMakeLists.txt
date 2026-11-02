@@ -817,7 +817,11 @@ add_library(fluideq-scene-core STATIC
   scene-core/src/lamp_listener.cpp
   scene-core/src/scene_tuner.cpp
   scene-core/src/lamp_pacing.cpp
-  scene-core/src/lamp_atmosphere.cpp)
+  scene-core/src/lamp_atmosphere.cpp
+  scene-core/src/size_ladder.cpp
+  scene-core/src/warmup_ladder.cpp
+  scene-core/src/frame_pacing.cpp
+  scene-core/src/draw_plan.cpp)
 target_include_directories(fluideq-scene-core PUBLIC scene-core/include)
 target_link_libraries(fluideq-scene-core PRIVATE feq_strict)
 add_executable(fluideq-sound-hops-parity-test
@@ -840,6 +844,13 @@ add_executable(fluideq-lamp-frame-parity-test
 target_link_libraries(fluideq-lamp-frame-parity-test
   PRIVATE fluideq-scene-core feq_strict)
 add_test(NAME lamp-frame-parity COMMAND fluideq-lamp-frame-parity-test)
+# The desktop scenes' size ladders, pacing and draw sizes, against the
+# window's own (`scene_sizing_fixture.h`).
+add_executable(fluideq-scene-sizing-parity-test
+  scene-core/tests/scene_sizing_parity_test.cpp)
+target_link_libraries(fluideq-scene-sizing-parity-test
+  PRIVATE fluideq-scene-core feq_strict)
+add_test(NAME scene-sizing-parity COMMAND fluideq-scene-sizing-parity-test)
 
 # The scenes drawn by C++ on the ANGLE Electron ships (`scene-host`): Windows
 # first, where ANGLE runs on Direct3D 11 as Chromium's own WebGL2 does.
@@ -850,6 +861,9 @@ if(WIN32)
     scene-host/src/flash_guard.cpp
     scene-host/src/lamp_painter.cpp
     scene-host/src/desktop_painter.cpp
+    scene-host/src/gpu_clock.cpp
+    scene-host/src/scene_finish.cpp
+    scene-host/src/desktop_sizing.cpp
     scene-host/src/desktop_messages.cpp
     scene-host/src/lamp_messages.cpp
     scene-host/src/artwork_decode.cpp)
@@ -865,9 +879,10 @@ if(WIN32)
     scene-host/src/output_ear.cpp
     scene-host/src/desktop_host.cpp
     scene-host/src/desktop_monitor.cpp
+    scene-host/src/display_beat.cpp
     dsp-host/src/platform/windows/device_watch.cpp)
   target_link_libraries(fluideq-scene-host PRIVATE
-    fluideq-scene-host-gl feq_strict ole32 avrt advapi32 shell32)
+    fluideq-scene-host-gl feq_strict ole32 avrt advapi32 shell32 dxgi dwmapi)
   set_target_properties(fluideq-scene-host PROPERTIES
     OUTPUT_NAME "FluidEQ-Scenes"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
@@ -918,6 +933,18 @@ if(WIN32)
   target_link_libraries(fluideq-desktop-messages-test
     PRIVATE fluideq-scene-host-gl feq_strict)
   add_test(NAME desktop-messages COMMAND fluideq-desktop-messages-test)
+  # The finishing passes and the GPU clock the desktop scenes are drawn through,
+  # and how a monitor's scene is sized and paced frame by frame.
+  add_executable(fluideq-scene-finish-test scene-host/tests/scene_finish_test.cpp)
+  target_link_libraries(fluideq-scene-finish-test
+    PRIVATE fluideq-scene-host-gl feq_strict)
+  target_compile_definitions(fluideq-scene-finish-test PRIVATE
+    FEQ_TEST_ANGLE_DIR=L"${CMAKE_SOURCE_DIR}/../node_modules/electron/dist")
+  add_test(NAME scene-finish COMMAND fluideq-scene-finish-test)
+  add_executable(fluideq-desktop-sizing-test scene-host/tests/desktop_sizing_test.cpp)
+  target_link_libraries(fluideq-desktop-sizing-test
+    PRIVATE fluideq-scene-host-gl feq_strict)
+  add_test(NAME desktop-sizing COMMAND fluideq-desktop-sizing-test)
 endif()
 
 add_subdirectory(remote-audio-playback)

@@ -39,7 +39,7 @@ export interface IWallpaperScene {
   madeBy: TSceneMaker;
 }
 
-interface IDesktopSurfaceOptions {
+export interface IDesktopSurfaceOptions {
   displayId: number;
   bounds: Rectangle;
   choice: IWallpaperChoice;
@@ -74,6 +74,8 @@ interface IDesktopSurfaceOptions {
 
 export interface IDesktopSurface {
   readonly displayId: number;
+  /** What draws it: a hidden page, or the C++ host (`nativeSurface.ts`). */
+  readonly drawnBy: 'page' | 'host';
   /** The monitor's rectangle this window was made for; another needs another window. */
   readonly bounds: Rectangle;
   /** What it shows now: `changeScene` moves both. */
@@ -322,6 +324,7 @@ export const createDesktopSurface = (
 
   return {
     displayId,
+    drawnBy: 'page',
     bounds,
     get lookId() {
       return lookId;

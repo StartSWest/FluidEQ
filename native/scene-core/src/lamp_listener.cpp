@@ -8,6 +8,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
 
+#include "fluideq/scene/frame_pacing.h"
+
 namespace feq::scene {
 namespace {
 
@@ -138,6 +140,7 @@ void LampListener::make_frame() {
   scene.voice = {heard.voice.open, heard.voice.pitch, heard.voice.sure};
   frame_.delta_ms = delta_ms;
   frame_.silent = !peak.has_value();
+  frame_.quiet = frame_.silent || is_silent_waveform(waveform_points_);
 }
 
 }  // namespace feq::scene

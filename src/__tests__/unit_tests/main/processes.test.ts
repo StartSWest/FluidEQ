@@ -115,6 +115,23 @@ describe('process diagnostics IPC', () => {
     }
   });
 
+  it('lists the C++ desktop visualizers by the pid main knows them by', async () => {
+    getAppMetrics.mockReturnValue([]);
+    registerProcessIpc({
+      getMainWindow: () => null,
+      getNativeHostPid: () => undefined,
+      getNativeHostStats: () => undefined,
+      // The lamps run the same program: the pid is what tells them apart.
+      getDesktopScenesPid: () => 77,
+    });
+    const rows = (await handlers.get('app-processes')?.()) as Array<
+      Record<string, unknown>
+    >;
+    expect(rows).toEqual([
+      expect.objectContaining({ pid: 77, role: 'desktopScenes' }),
+    ]);
+  });
+
   it("names the app's own forks by the name they were given, not their shared service", async () => {
     const rows = await rowsFor([
       metric({

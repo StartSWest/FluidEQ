@@ -17,6 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace feq::scene::gl {
 
@@ -28,6 +29,9 @@ using GLfloat = float;
 using GLboolean = unsigned char;
 using GLbitfield = unsigned int;
 using GLchar = char;
+using GLuint64 = std::uint64_t;
+/** A fence: opaque, and only ever handed back to the calls that made it. */
+using GLsync = struct GLsyncObject*;
 
 inline constexpr GLenum kFragmentShader = 0x8B30;
 inline constexpr GLenum kVertexShader = 0x8B31;
@@ -63,6 +67,15 @@ inline constexpr GLenum kExtensions = 0x1F03;
 inline constexpr GLenum kCompletionStatus = 0x91B1;
 /** `glGetError` once Direct3D has reset the device under the context. */
 inline constexpr GLenum kContextLost = 0x0507;
+inline constexpr GLenum kSyncGpuCommandsComplete = 0x9117;
+inline constexpr GLenum kSyncStatus = 0x9114;
+inline constexpr GLint kSignaled = 0x9119;
+inline constexpr GLenum kQueryResult = 0x8866;
+inline constexpr GLenum kQueryResultAvailable = 0x8867;
+/** `EXT_disjoint_timer_query`: the GPU's own time between begin and end. */
+inline constexpr GLenum kTimeElapsed = 0x88BF;
+/** `EXT_disjoint_timer_query`: the clock was disturbed; read once, cleared. */
+inline constexpr GLenum kGpuDisjoint = 0x8FBB;
 
 struct Api {
   GLuint (*CreateShader)(GLenum);
@@ -113,6 +126,21 @@ struct Api {
   void (*BlitFramebuffer)(GLint, GLint, GLint, GLint, GLint, GLint, GLint,
                           GLint, GLbitfield, GLenum);
   const unsigned char* (*GetString)(GLenum);
+  void (*GetIntegerv)(GLenum, GLint*);
+  void (*Flush)();
+  GLsync (*FenceSync)(GLenum, GLbitfield);
+  void (*DeleteSync)(GLsync);
+  void (*GetSynciv)(GLsync, GLenum, GLsizei, GLsizei*, GLint*);
+  void (*GenQueries)(GLsizei, GLuint*);
+  void (*DeleteQueries)(GLsizei, const GLuint*);
+  void (*BeginQuery)(GLenum, GLuint);
+  void (*EndQuery)(GLenum);
+  void (*GetQueryObjectuiv)(GLuint, GLenum, GLuint*);
+  /**
+   * `EXT_disjoint_timer_query`, null where ANGLE does not offer it: a
+   * frame's cost is then judged by the frames still on the GPU alone.
+   */
+  void (*GetQueryObjectui64v)(GLuint, GLenum, GLuint64*) = nullptr;
   /**
    * `KHR_parallel_shader_compile`, null where ANGLE does not offer it: a
    * scene then links in one blocking call, as before.
@@ -126,6 +154,9 @@ struct Api {
  * current on the calling thread. Built from the two libraries in
  * `angle_dir`; `why` says what failed when it is not.
  */
+/** Whether the context offers `name`: a whole name in the list, never part of one. */
+bool has_extension(const Api& gl, std::string_view name);
+
 class Context {
  public:
   static Context* create(const std::wstring& angle_dir, int width, int height,
@@ -140,6 +171,8 @@ class Context {
   bool draw_into(void* window);
   /** Shows what was drawn into the window; waits for the monitor's refresh. */
   bool present();
+  /** The window drawn into, for the vertical blank the loop paces itself on. */
+  void* window() const { return window_; }
 
   /** The EGL calls, from this context's own libEGL.dll; opaque outside. */
   struct Egl;
@@ -154,6 +187,7 @@ class Context {
   void* config_ = nullptr;
   void* surface_ = nullptr;
   void* context_ = nullptr;
+  void* window_ = nullptr;
 };
 
 }  // namespace feq::scene::gl

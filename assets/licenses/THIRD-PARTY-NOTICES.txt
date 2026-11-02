@@ -180,14 +180,17 @@ loaded only when such a visualizer is shown (src/renderer/graph/world).
 FidelityFX Super Resolution 1.0 is the pair of filters (EASU and RCAS) that
 bring a visualizer drawn smaller than its panel up to size. They are ported to
 the app's shading language in src/renderer/graph/sceneUpscale.ts, which
-carries the notice; the original is published by AMD at
+carries the notice, and the same programs reach the desktop backgrounds drawn
+by the scene host through native/scene-host/src/scene_finish_sources.h, which
+carries it too; the original is published by AMD at
 https://github.com/GPUOpen-Effects/FidelityFX-FSR.
 
 FXAA 3.11  Copyright (c) 2014, NVIDIA CORPORATION. All rights reserved.
 
 FXAA (Fast Approximate Anti-Aliasing) by Timothy Lottes is the "Fast" edge
 smoothing of a visualizer, ported to the app's shading language in
-src/renderer/graph/scenePost.ts from the copy of Fxaa3_11.h that Intel ships
+src/renderer/graph/scenePost.ts (and carried to the scene host in
+native/scene-host/src/scene_finish_sources.h) from the copy of Fxaa3_11.h that Intel ships
 inside its CMAA2 sample (https://github.com/GameTechDev/CMAA2), NVIDIA's own
 header intact. It is used under the following licence:
 

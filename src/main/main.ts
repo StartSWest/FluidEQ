@@ -1196,10 +1196,22 @@ keptGames.onChange(() => {
 // that slider — see `systemVolume.ts`.
 registerSystemVolumeIpc(getMainWindow);
 
+/** `FluidEQ-Scenes.exe` beside the app, and the ANGLE beside this executable. */
+const sceneHostExecutable =
+  process.platform === 'win32' ? findSceneHost(nativeDirs) : undefined;
 const members = registerMemberServices({
   getMainWindow,
   userDataDir,
   desktopSound,
+  // The desktop backgrounds it draws without a hidden page per monitor.
+  ...(sceneHostExecutable
+    ? {
+        sceneHost: {
+          executable: sceneHostExecutable,
+          angleDir: path.dirname(process.execPath),
+        },
+      }
+    : {}),
   holdWindow: windowUnload.hold,
   // Only a window let go in the tray is built again; one that is there, shown
   // or hidden, is left as it is.
@@ -1308,8 +1320,7 @@ const lighting = registerLightingIpc({
   // executable, from the window's last choice, kept so a launch in the tray
   // lights the desk before any window has spoken.
   lampScenes: {
-    executable:
-      process.platform === 'win32' ? findSceneHost(nativeDirs) : undefined,
+    executable: sceneHostExecutable,
     angleDir: path.dirname(process.execPath),
     log,
     ...members.lampScenes,
@@ -1375,6 +1386,7 @@ const processList = registerProcessIpc({
   getNativeHostPid: dspHostPid,
   getNativeHostStats: dspHostStats,
   getLightingHelperPid: () => lighting.helperPid(),
+  getDesktopScenesPid: () => members.wallpaperIpc.desktopScenesPid(),
   getSystemEngineProcesses: readEngineProcesses,
   meter: createProcessMeter(),
 });

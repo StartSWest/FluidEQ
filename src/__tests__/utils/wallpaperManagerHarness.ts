@@ -182,6 +182,7 @@ export const mockSurfaceModule = () => ({
       ready: () => options.onReady(),
     };
     Object.assign(surface, {
+      drawnBy: 'page',
       bounds: options.bounds,
       scene: { pack: { version: 1, source: 'void main() {}' } },
       phase: () => 'running',

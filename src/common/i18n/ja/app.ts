@@ -88,6 +88,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktop': 'デスクトップ ビジュアライザー',
   'app.processes.what.desktop':
     'モニターのデスクトップの背景として描かれるシーンで、このウィンドウとは別に動きます。表示しているモニターごとに 1 つです。ウィンドウがそのモニターを覆っている間や PC がロックされている間は一時停止します。',
+  'app.processes.name.desktopScenes': 'デスクトップ ビジュアライザー',
+  'app.processes.what.desktopScenes':
+    'モニターのデスクトップ背景にシーンを描き、そのためにこの PC で再生中の音を聴きます。すべてのモニターの分をこのウィンドウとは別の 1 つのプログラムで動かすので、ウィンドウを閉じても動き続けます。ウィンドウに覆われているモニターは休み、画面がオフの間は何も描きません。',
   'app.processes.name.desktopHost': 'デスクトップ ビジュアライザーの補助',
   'app.processes.what.desktopHost':
     'そのモニターのデスクトップ ビジュアライザーをアイコンの後ろに置き、ウィンドウが画面を覆ったことを知らせます。表示しているモニターごとに 1 つです。',

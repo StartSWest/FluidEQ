@@ -28,6 +28,8 @@ struct HeardLampFrame {
   SceneFrame frame;
   double delta_ms = 0.0;
   double activity = 0.0;
+  /** No music for a scene to answer (`LampFrame::quiet`). */
+  bool quiet = true;
 };
 
 class LampEar {
@@ -63,6 +65,7 @@ class LampEar {
                       heard_.frame = heard.scene;
                       heard_.frame.accent = accent_;
                       heard_.delta_ms = heard.delta_ms;
+                      heard_.quiet = heard.quiet;
                       atmosphere_.apply(heard_.frame, heard.delta_ms,
                                         heard.silent, profile_);
                       heard_.activity = atmosphere_.activity();

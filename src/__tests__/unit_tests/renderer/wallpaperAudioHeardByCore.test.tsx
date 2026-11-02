@@ -83,6 +83,15 @@ describe('the window’s part in the backgrounds’ music', () => {
     expect(mockCapture).toHaveBeenLastCalledWith(true, 'work');
   });
 
+  it('holds none for a background the C++ host draws, which hears for itself', () => {
+    mockState = {
+      ...stateWith(false),
+      screens: [{ ...following, drawnByHost: true }],
+    };
+    render(<WallpaperAudio />);
+    expect(mockCapture).toHaveBeenLastCalledWith(false, 'work');
+  });
+
   it('tells main whether it shows what this computer sends', () => {
     mockState = stateWith(true);
     mockSharing = true;

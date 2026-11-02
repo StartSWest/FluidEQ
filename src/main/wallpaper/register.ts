@@ -28,6 +28,8 @@ const registerWallpaperIpc = (
   dispose: () => void;
   setGameInFront: (playing: boolean) => void;
   reset: () => void;
+  /** The C++ host drawing backgrounds, while it runs (`processes.ts`). */
+  desktopScenesPid: () => number | undefined;
 } => {
   const manager = createWallpaperManager(deps);
 
@@ -173,6 +175,7 @@ const registerWallpaperIpc = (
     setGameInFront: manager.setGameInFront,
     // "Reset all settings", which main's own handler runs.
     reset: manager.reset,
+    desktopScenesPid: manager.desktopScenesPid,
   };
 };
 

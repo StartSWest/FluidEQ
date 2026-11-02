@@ -60,6 +60,8 @@ export interface IMemberServicesDeps {
   userDataDir: string;
   /** The music the desktop backgrounds move to, heard by the core. */
   desktopSound: IDesktopSoundClient;
+  /** The C++ host that draws backgrounds without a page, where it is. */
+  sceneHost?: { executable: string; angleDir: string };
   /** What of these keeps a window in the tray loaded (`windowUnload.ts`). */
   holdWindow: (reason: TMainWindowHold, isHeld: boolean) => void;
   /**
@@ -83,6 +85,7 @@ const registerMemberServices = ({
   getMainWindow,
   userDataDir,
   desktopSound,
+  sceneHost,
   holdWindow,
   wakeWindow,
 }: IMemberServicesDeps) => {
@@ -196,6 +199,7 @@ const registerMemberServices = ({
     ownership: sceneOwnership,
     arrangement: createArrangementStore(userDataDir, log),
     desktopSound,
+    ...(sceneHost ? { sceneHost } : {}),
     holdWindow: (isHeld) => holdWindow('desktop-sound', isHeld),
     ...createWallpaperScenes(scenePacksIpc, memberScenesIpc),
   });

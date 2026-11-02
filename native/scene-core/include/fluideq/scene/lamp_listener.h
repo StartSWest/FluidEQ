@@ -35,6 +35,11 @@ struct LampFrame {
   double delta_ms = 0.0;
   /** Nothing was heard over the silence floor this frame. */
   bool silent = true;
+  /**
+   * No music for a scene to answer: nothing over the floor, or a waveform
+   * under −50 dBFS (`sceneRest.ts`). A scene rests on a run of these.
+   */
+  bool quiet = true;
 };
 
 class LampListener {

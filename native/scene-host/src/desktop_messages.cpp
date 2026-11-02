@@ -26,6 +26,42 @@ bool read_monitor(std::span<const std::uint8_t> payload, ForMonitor& out) {
   return true;
 }
 
+namespace {
+
+/** The slowest pace a listener can choose is thirty a second; a second is absurd. */
+constexpr double kLongestPaceMs = 1000.0;
+
+/**
+ * f64 pinned share (negative: the ladder decides), f64 auto floor, u32 FSR,
+ * u32 smoothing (0 off, 1 fast, 2 best), f64 pace ms.
+ */
+bool read_choice_from(Reader& reader, DrawChoice& choice) {
+  const double pinned = reader.f64();
+  choice.auto_floor = reader.f64();
+  const std::uint32_t fsr = reader.u32();
+  const std::uint32_t smoothing = reader.u32();
+  choice.pace_ms = reader.f64();
+  if (!reader.ok() || !std::isfinite(pinned) ||
+      !std::isfinite(choice.auto_floor) || !std::isfinite(choice.pace_ms) ||
+      fsr > 1 || smoothing > 2 || choice.auto_floor < 0.0 ||
+      choice.auto_floor > 1.0 || choice.pace_ms < 0.0 ||
+      choice.pace_ms > kLongestPaceMs) {
+    return false;
+  }
+  if (pinned < 0.0) {
+    choice.pinned.reset();
+  } else if (pinned >= 0.25 && pinned <= 1.0) {
+    choice.pinned = pinned;
+  } else {
+    return false;
+  }
+  choice.fsr = fsr == 1;
+  choice.smoothing = static_cast<Smoothing>(smoothing);
+  return true;
+}
+
+}  // namespace
+
 bool read_monitor_open(std::span<const std::uint8_t> payload, MonitorOpen& out) {
   Reader reader(payload);
   out.monitor = reader.u32();
@@ -33,17 +69,25 @@ bool read_monitor_open(std::span<const std::uint8_t> payload, MonitorOpen& out) 
   out.y = static_cast<std::int32_t>(reader.u32());
   out.width = reader.u32();
   out.height = reader.u32();
-  out.scale = reader.f64();
-  return reader.ok() && reader.at_end() && out.width > 0 && out.height > 0 &&
-         out.width <= kLargestSide && out.height <= kLargestSide &&
-         std::isfinite(out.scale) && out.scale >= 0.25 && out.scale <= 1.0;
+  return read_choice_from(reader, out.choice) && reader.at_end() &&
+         out.width > 0 && out.height > 0 && out.width <= kLargestSide &&
+         out.height <= kLargestSide;
 }
 
-bool read_scale(std::span<const std::uint8_t> payload, double& scale) {
+bool read_choice(std::span<const std::uint8_t> payload, DrawChoice& choice) {
   Reader reader(payload);
-  scale = reader.f64();
-  return reader.ok() && reader.at_end() && std::isfinite(scale) &&
-         scale >= 0.25 && scale <= 1.0;
+  return read_choice_from(reader, choice) && reader.at_end();
+}
+
+bool read_monitor_show(std::span<const std::uint8_t> payload, bool& measured,
+                       Show& show) {
+  Reader reader(payload);
+  const std::uint32_t flag = reader.u32();
+  if (!reader.ok() || flag > 1) {
+    return false;
+  }
+  measured = flag == 1;
+  return read_show(payload.subspan(4), show) && show.scene.has_value();
 }
 
 std::vector<std::uint8_t> monitor_window_message(std::uint32_t monitor,

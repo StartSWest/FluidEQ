@@ -13,12 +13,13 @@ import type {
 } from '../lighting/sceneHostWire';
 import {
   createDesktopHostReader,
+  encodeMonitorChoice,
   encodeMonitorClose,
   encodeMonitorDaylight,
   encodeMonitorOpen,
   encodeMonitorPause,
-  encodeMonitorScale,
   encodeMonitorShow,
+  type IMonitorDrawChoice,
   type IMonitorRect,
 } from './desktopHostWire';
 
@@ -35,9 +36,10 @@ export interface IDesktopMonitorEvents {
 
 /** One monitor on the host, for as long as it is open. */
 export interface IDesktopMonitor {
-  show(id: number, scene: ISceneHostScene): void;
+  /** `measured`: FluidEQ's own, drawn from full size (`encodeMonitorShow`). */
+  show(id: number, scene: ISceneHostScene, measured: boolean): void;
   daylight(daylight: { clock: true } | { clock: false; value: number }): void;
-  scale(scale: number): void;
+  choose(choice: IMonitorDrawChoice): void;
   pause(paused: boolean): void;
   close(): void;
   /** The host's process: the desktop helper checks the window is its. */
@@ -47,7 +49,7 @@ export interface IDesktopMonitor {
 export interface IDesktopHost {
   open(
     rect: IMonitorRect,
-    scale: number,
+    choice: IMonitorDrawChoice,
     events: IDesktopMonitorEvents,
   ): IDesktopMonitor;
   pid(): number | undefined;
@@ -151,13 +153,13 @@ export const createDesktopHost = ({
   };
 
   return {
-    open: (rect, scale, events) => {
+    open: (rect, choice, events) => {
       run ??= start();
       const host = run;
       const monitor = nextMonitor;
       nextMonitor += 1;
       monitors.set(monitor, events);
-      host.send(encodeMonitorOpen(monitor, rect, scale));
+      host.send(encodeMonitorOpen(monitor, rect, choice));
       let closed = false;
       const send = (message: Uint8Array) => {
         if (!closed && run === host) {
@@ -165,9 +167,10 @@ export const createDesktopHost = ({
         }
       };
       return {
-        show: (id, scene) => send(encodeMonitorShow(monitor, id, scene)),
+        show: (id, scene, measured) =>
+          send(encodeMonitorShow(monitor, id, scene, measured)),
         daylight: (daylight) => send(encodeMonitorDaylight(monitor, daylight)),
-        scale: (next) => send(encodeMonitorScale(monitor, next)),
+        choose: (next) => send(encodeMonitorChoice(monitor, next)),
         pause: (paused) => send(encodeMonitorPause(monitor, paused)),
         close: () => {
           send(encodeMonitorClose(monitor));

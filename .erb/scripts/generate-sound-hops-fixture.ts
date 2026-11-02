@@ -11,7 +11,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * as `sceneFlashGuardGpu.ts` links them (`native/scene-host/src`), and the
  * lamps' atmosphere, time of day and swatch (`lampFixture.ts`), and the
  * lamp host's messages (`lampWireFixture.ts`), and Share Audio's wire
- * (`shareWireFixture.ts`). Run it after changing any of
+ * (`shareWireFixture.ts`), and the size ladders, pacing and draw sizes of
+ * the desktop scenes (`sceneSizingFixture.ts`) and the passes that finish
+ * them (`sceneFinishHeader.ts`). Run it after changing any of
  * those; `soundHopsFixture.test.ts`, `sceneEnergyFixture.test.ts`,
  * `flashGuardHeader.test.ts`, `lampFixture.test.ts`, `sceneHostWire.test.ts`
  * and `shareWireFixture.test.ts` fail until the headers on disk are what
@@ -26,6 +28,8 @@ import { lampWireFixture } from '../../src/main/lighting/lampWireFixture';
 import { shareWireFixture } from '../../src/main/shareAudio/shareWireFixture';
 import { lampFixture } from '../../src/renderer/lighting/lampFixture';
 import { lampFrameFixture } from '../../src/renderer/lighting/lampFrameFixture';
+import { sceneSizingFixture } from '../../src/renderer/graph/sceneSizingFixture';
+import { sceneFinishHeader } from '../../src/renderer/graph/sceneFinishHeader';
 
 const write = (where: string, text: string) => {
   const out = path.resolve(process.cwd(), where);
@@ -42,6 +46,8 @@ write('native/scene-host/src/flash_guard_sources.h', flashGuardHeader());
 write('native/scene-core/tests/lamp_fixture.h', lampFixture());
 write('native/scene-core/tests/lamp_frame_fixture.h', lampFrameFixture());
 write('native/scene-host/tests/lamp_wire_fixture.h', lampWireFixture());
+write('native/scene-core/tests/scene_sizing_fixture.h', sceneSizingFixture());
+write('native/scene-host/src/scene_finish_sources.h', sceneFinishHeader());
 // Squeezing the audio is asynchronous in Node, so this one is awaited.
 shareWireFixture()
   .then((header) => write('native/share-core/tests/share_wire_fixture.h', header))

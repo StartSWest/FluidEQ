@@ -38,10 +38,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // The desktop backgrounds (`--mode desktop`, `desktop_messages.h`), each
 // message naming its monitor first; kAccent and kProfile as above:
 //   kMonitorOpen     u32 monitor, i32 x, i32 y, u32 width, u32 height,
-//                    f64 scale: a window over that rectangle.
-//   kMonitorShow     u32 monitor, then kShow's payload (no swatch drawn).
+//                    then kMonitorChoice's payload: a window over that
+//                    rectangle, and how its scenes are drawn.
+//   kMonitorShow     u32 monitor, u32 1 when FluidEQ measured the scene
+//                    before release, then kShow's payload (no swatch drawn).
 //   kMonitorDaylight u32 monitor, then kDaylight's payload.
-//   kMonitorScale    u32 monitor, f64 the share of its pixels drawn.
+//   kMonitorChoice   u32 monitor, then how its scenes are drawn: f64 the
+//                    share a preset pins (negative: the ladder decides), f64
+//                    the smallest share the ladder may take, u32 FSR, u32
+//                    smoothing (0 off, 1 fast, 2 best), f64 the least ms
+//                    between frames (0: every refresh).
 //   kMonitorPause    u32 monitor, u32 0 or 1.
 //   kMonitorClose    u32 monitor.
 //   kMonitorWindow   u32 monitor, u64 its window (HWND), to be placed.
@@ -75,7 +81,7 @@ enum class Kind : std::uint32_t {
   kMonitorOpen = 20,
   kMonitorShow = 21,
   kMonitorDaylight = 22,
-  kMonitorScale = 23,
+  kMonitorChoice = 23,
   kMonitorPause = 24,
   kMonitorClose = 25,
   kGrid = 101,

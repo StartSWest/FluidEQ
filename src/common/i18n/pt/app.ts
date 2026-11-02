@@ -88,6 +88,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktop': 'Visualizador da área de trabalho',
   'app.processes.what.desktop':
     'Uma cena desenhada como fundo da área de trabalho de um monitor, à parte desta janela: uma para cada monitor que a mostra. Pausa enquanto as janelas cobrem esse monitor ou o PC está bloqueado.',
+  'app.processes.name.desktopScenes': 'Visualizadores da área de trabalho',
+  'app.processes.what.desktopScenes':
+    'Desenha as cenas nos fundos da área de trabalho dos seus monitores, todas em um programa separado desta janela, e ouve o que este PC toca para elas, para que se movam com a janela fechada. Um monitor descansa enquanto janelas o cobrem, e nada é desenhado com as telas desligadas.',
   'app.processes.name.desktopHost':
     'Ajudante do visualizador da área de trabalho',
   'app.processes.what.desktopHost':

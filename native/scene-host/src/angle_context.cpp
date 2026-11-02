@@ -13,7 +13,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <windows.h>
 
 #include <array>
-#include <cstring>
 
 namespace feq::scene::gl {
 namespace {
@@ -143,7 +142,17 @@ bool load_gles(HMODULE m, Api& a) {
          take(m, "glCheckFramebufferStatus", a.CheckFramebufferStatus) &&
          take(m, "glDeleteFramebuffers", a.DeleteFramebuffers) &&
          take(m, "glBlitFramebuffer", a.BlitFramebuffer) &&
-         take(m, "glGetString", a.GetString);
+         take(m, "glGetString", a.GetString) &&
+         take(m, "glGetIntegerv", a.GetIntegerv) &&
+         take(m, "glFlush", a.Flush) &&
+         take(m, "glFenceSync", a.FenceSync) &&
+         take(m, "glDeleteSync", a.DeleteSync) &&
+         take(m, "glGetSynciv", a.GetSynciv) &&
+         take(m, "glGenQueries", a.GenQueries) &&
+         take(m, "glDeleteQueries", a.DeleteQueries) &&
+         take(m, "glBeginQuery", a.BeginQuery) &&
+         take(m, "glEndQuery", a.EndQuery) &&
+         take(m, "glGetQueryObjectuiv", a.GetQueryObjectuiv);
 }
 
 HMODULE load_from(const std::wstring& dir, const wchar_t* name) {
@@ -156,6 +165,28 @@ HMODULE load_from(const std::wstring& dir, const wchar_t* name) {
 }
 
 }  // namespace
+
+bool has_extension(const Api& gl, std::string_view name) {
+  const auto* list = reinterpret_cast<const char*>(gl.GetString(kExtensions));
+  if (list == nullptr) {
+    return false;
+  }
+  // Space-separated names: one is a match only whole, or the timer query
+  // would be found inside a longer name that is not it.
+  const std::string_view names(list);
+  std::size_t at = 0;
+  while (at < names.size()) {
+    std::size_t end = names.find(' ', at);
+    if (end == std::string_view::npos) {
+      end = names.size();
+    }
+    if (names.substr(at, end - at) == name) {
+      return true;
+    }
+    at = end + 1;
+  }
+  return false;
+}
 
 Context::Context() : egl_(std::make_unique<Egl>()) {}
 
@@ -216,15 +247,19 @@ Context* Context::create(const std::wstring& angle_dir, int width, int height,
   // A scene links on ANGLE's own threads while the one on the lamps keeps
   // drawing, as the window links one (`sceneCompile.ts`): the extension is
   // asked for by name and switched on with as many threads as ANGLE likes.
-  const auto* extensions = reinterpret_cast<const char*>(
-      context->api_.GetString(kExtensions));
-  if (extensions != nullptr &&
-      std::strstr(extensions, "GL_KHR_parallel_shader_compile") != nullptr &&
+  if (has_extension(context->api_, "GL_KHR_parallel_shader_compile") &&
       take(static_cast<HMODULE>(gles_module), "glMaxShaderCompilerThreadsKHR",
            context->api_.MaxShaderCompilerThreads)) {
     context->api_.MaxShaderCompilerThreads(0xFFFFFFFFU);
   } else {
     context->api_.MaxShaderCompilerThreads = nullptr;
+  }
+  // What a frame cost the GPU, timed by the GPU (`gpu_clock.h`), as the
+  // window times its scenes where Direct3D offers it.
+  if (!has_extension(context->api_, "GL_EXT_disjoint_timer_query") ||
+      !take(static_cast<HMODULE>(gles_module), "glGetQueryObjectui64vEXT",
+            context->api_.GetQueryObjectui64v)) {
+    context->api_.GetQueryObjectui64v = nullptr;
   }
   return context.release();
 }
@@ -246,6 +281,7 @@ bool Context::resize(int width, int height) {
     egl.DestroySurface(display_, surface_);
   }
   surface_ = next;
+  window_ = nullptr;
   return true;
 }
 
@@ -263,6 +299,7 @@ bool Context::draw_into(void* window) {
     egl.DestroySurface(display_, surface_);
   }
   surface_ = next;
+  window_ = window;
   // One frame per refresh of the monitor: the present waits for it, which
   // is what paces a desktop scene — never a clock of its own.
   egl.SwapInterval(display_, 1);

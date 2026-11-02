@@ -54,8 +54,10 @@ class HeardNow {
 /**
  * One monitor's background on a thread of its own: its window — over the
  * monitor, never shown here; the desktop helper places and shows it behind
- * the icons — and the scene drawn into it at every refresh while it plays.
- * What happens is said to main through `mouth`, naming the monitor.
+ * the icons — and the scene drawn into it on the monitor's own beat, at the
+ * pace the listener's choice and the scene allow, while it plays and while
+ * Windows has the display on. What happens is said to main through
+ * `mouth`, naming the monitor.
  */
 class DesktopMonitor {
  public:
@@ -68,17 +70,15 @@ class DesktopMonitor {
 
   void show(DesktopScene scene);
   void daylight(const wire::Daylight& daylight);
-  void scale(double scale);
+  void choose(const DrawChoice& choice);
   void pause(bool paused);
 
  private:
-  struct Scale {
-    double value;
-  };
   struct Pause {
     bool paused;
   };
-  using Command = std::variant<DesktopScene, wire::Daylight, Scale, Pause>;
+  using Command =
+      std::variant<DesktopScene, wire::Daylight, DrawChoice, Pause>;
 
   void command(Command next);
   void run();

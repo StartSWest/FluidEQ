@@ -10,9 +10,11 @@ import type {
   TWallpaperError,
   TWallpaperPause,
 } from '../../common/wallpaper';
+import { drawnByDesktopHost } from './desktopScene';
 import {
   createDesktopSurface,
   type IDesktopSurface,
+  type IDesktopSurfaceOptions,
   type IWallpaperScene,
 } from './surface';
 
@@ -37,6 +39,11 @@ interface IMonitorBackgroundsOptions {
   daylight(): TWallpaperDaylight | undefined;
   /** The last surface has gone. */
   onEmpty(): void;
+  /**
+   * A background drawn by the C++ host (`nativeSurface.ts`), for what it
+   * draws as the page would; absent where the host cannot run.
+   */
+  nativeSurface?: (options: IDesktopSurfaceOptions) => IDesktopSurface;
 }
 
 /**
@@ -59,6 +66,14 @@ export const createMonitorBackgrounds = (
   const failures = new Map<number, IMonitorFailure>();
   // Set once by the owner, which publishes the state these maps make up.
   let changed: () => void = () => undefined;
+  /** What should draw `scene` set with `choice`: the host where it can. */
+  const drawerFor = (
+    choice: IWallpaperChoice,
+    scene: IWallpaperScene,
+  ): IDesktopSurface['drawnBy'] =>
+    options.nativeSurface && drawnByDesktopHost(scene, choice.motion)
+      ? 'host'
+      : 'page';
 
   const letGo = (displayId: number) => {
     const surface = leaving.get(displayId);
@@ -114,7 +129,11 @@ export const createMonitorBackgrounds = (
     }
     let surface: IDesktopSurface | undefined;
     try {
-      surface = createDesktopSurface({
+      const create =
+        drawerFor(choice, scene) === 'host' && options.nativeSurface
+          ? options.nativeSurface
+          : createDesktopSurface;
+      surface = create({
         displayId: display.id,
         bounds: display.bounds,
         choice,
@@ -175,7 +194,9 @@ export const createMonitorBackgrounds = (
       playing.bounds.x === x &&
       playing.bounds.y === y &&
       playing.bounds.width === width &&
-      playing.bounds.height === height
+      playing.bounds.height === height &&
+      // The host and the page cannot take each other's scenes.
+      playing.drawnBy === drawerFor(choice, scene)
     ) {
       playing.changeScene(choice, scene, options.tuning(choice.lookId));
       return;
@@ -205,6 +226,9 @@ export const createMonitorBackgrounds = (
       return running.length > 0;
     },
     surfaceOn: (displayId: number) => surfaces.get(displayId),
+    /** Whether `surface` can take `choice` as it is drawn now. */
+    drawsAlike: (surface: IDesktopSurface, choice: IWallpaperChoice): boolean =>
+      surface.drawnBy === drawerFor(choice, surface.scene),
     lookOn: (displayId: number) => surfaces.get(displayId)?.lookId,
     surfaces: () => [...surfaces.values()],
     failures: () => [...failures],
@@ -246,6 +270,7 @@ export const createMonitorBackgrounds = (
         ...surface.choice(),
         phase: surface.phase(),
         pauseReason: surface.pauseReason(),
+        ...(surface.drawnBy === 'host' ? { drawnByHost: true as const } : {}),
       })),
       ...[...failures].map(([displayId, failure]): IWallpaperScreen => ({
         displayId,

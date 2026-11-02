@@ -15,23 +15,27 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "angle_api.h"
+#include "desktop_sizing.h"
 #include "flash_guard.h"
+#include "gpu_clock.h"
 #include "fluideq/scene/lamp_atmosphere.h"
 #include "fluideq/scene/lamp_ear.h"
 #include "fluideq/scene/live_frames.h"
 #include "fluideq/scene/scene_tuner.h"
+#include "scene_finish.h"
 #include "scene_program.h"
 #include "scene_wire.h"
 
 /*
  * One monitor's background, drawn by C++ instead of a hidden Electron page
- * (`src/main/wallpaper/surface.ts` and the desktop page it ran): the scene
- * drawn at the resolution the window's performance choice asks for, scaled
- * to the monitor, and presented once per refresh — the present waits for the
- * refresh, which is what paces it. A member's scene is drawn through the
- * flash limiter or not at all, as on the lamps. Another scene asked for
- * links beside the one being drawn, which keeps the monitor until the new one
- * can take over: the desktop never shows a blank between them.
+ * (`src/main/wallpaper/surface.ts` and the desktop page it ran), on the
+ * page's own rules: the size the listener's choice and the GPU's own clock
+ * allow (`desktop_sizing.h`), finished by FSR, the supersample average and
+ * FXAA (`scene_finish.h`), and a frame skipped rather than queued while the
+ * GPU still holds two. A member's scene is drawn through the flash limiter or
+ * not at all, as on the lamps. Another scene asked for links beside the one
+ * being drawn, which keeps the monitor until the new one can take over: the
+ * desktop never shows a blank between them.
  *
  * One thread owns a painter and its GL context; the window it draws into is
  * made by whoever runs it, and placed behind the icons by the desktop helper
@@ -48,6 +52,8 @@ struct DesktopScene {
   std::vector<SceneParam> params;
   /** Somebody's own scene: drawn through the flash limiter. */
   bool guarded = false;
+  /** FluidEQ's own, measured before release: drawn from full size. */
+  bool measured = false;
 };
 
 class DesktopPainter {
@@ -73,8 +79,10 @@ class DesktopPainter {
    * False, with `why`, when there is no GPU to draw with.
    */
   bool open(void* window, int width, int height, std::string& why);
-  /** The share of the monitor's pixels a scene is drawn at, 0.25 to 1. */
-  void set_scale(double scale);
+  /** How the listener asked for scenes to be drawn here. */
+  void choose(const DrawChoice& choice) { sizing_.choose(choice); }
+  /** The least time to leave between frames now: the choice, a slow scene, a rest. */
+  double pace_ms() const { return sizing_.pace_ms(); }
   /** Draw this scene once it links; the one drawn keeps the monitor till then. */
   void load(DesktopScene scene);
   /** A finished link taken over, and abandoned ones freed. */
@@ -97,18 +105,21 @@ class DesktopPainter {
   /** Whether a scene asked for is still linking. */
   bool linking() const { return pending_.has_value(); }
   /**
-   * One frame: `heard` as the music is now, at the time of day `daylight`
-   * asks, scaled to the monitor and presented. Returns once the monitor has
-   * taken it. False when the GPU went from under it; reported, and nothing
-   * is drawn until the next `open`.
+   * One frame at `now_ms`: `heard` as the music is now, at the time of day
+   * `daylight` asks, finished to the monitor and presented — or nothing,
+   * while the GPU still holds two frames. False when the GPU went from under
+   * it; reported, and nothing is drawn until the next `open`.
    */
-  bool paint(HeardLampFrame heard, double daylight);
+  bool paint(HeardLampFrame heard, double daylight, double now_ms);
   /** Everything let go, the context last; on the thread that drew. */
   void close();
 
  private:
   struct Pending {
     std::uint32_t id = 0;
+    bool measured = false;
+    /** The program, by its sources: the size it proves is kept by this. */
+    std::size_t program = 0;
     SceneResponse response;
     std::vector<SceneParam> params;
     std::unique_ptr<SceneLink> link;
@@ -120,6 +131,8 @@ class DesktopPainter {
   void release_target();
   void fail(std::uint32_t id, wire::FailReason reason,
             const std::string& words);
+  /** The GPU went: everything let go, and main told. */
+  bool lose();
 
   std::wstring angle_dir_;
   Output output_;
@@ -128,8 +141,11 @@ class DesktopPainter {
   void* window_ = nullptr;
   int window_width_ = 0;
   int window_height_ = 0;
-  double scale_ = 1.0;
-  /** The scene drawn at its own resolution, then scaled to the monitor. */
+  DesktopSizing sizing_;
+  std::unique_ptr<GpuClock> clock_;
+  /** Null where a pass does not link: the picture is then only stretched. */
+  std::unique_ptr<SceneFinish> finish_;
+  /** The scene drawn at its own resolution, then finished to the monitor. */
   gl::GLuint target_texture_ = 0;
   gl::GLuint target_ = 0;
   int target_width_ = 0;

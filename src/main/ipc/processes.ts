@@ -71,6 +71,11 @@ export interface IProcessIpcDeps {
   getNativeHostStats: () => IHostStats | undefined;
   /** Dynamic lighting's helper, only while it runs. */
   getLightingHelperPid?: () => number | undefined;
+  /**
+   * The C++ host drawing the desktop visualizers, only while it runs: the
+   * same program as the lamps' scene host, so its pid is what tells them apart.
+   */
+  getDesktopScenesPid?: () => number | undefined;
   /** The processes the FluidEQ Engine runs in, once each, as it measured them. */
   getSystemEngineProcesses?: () => IEngineProcessStats[];
   /**
@@ -179,6 +184,10 @@ export const registerProcessIpc = (
     const lightingPid = deps.getLightingHelperPid?.();
     if (lightingPid !== undefined) {
       rows.push({ pid: lightingPid, role: 'lighting' });
+    }
+    const desktopScenesPid = deps.getDesktopScenesPid?.();
+    if (desktopScenesPid !== undefined) {
+      rows.push({ pid: desktopScenesPid, role: 'desktopScenes' });
     }
 
     deps.getSystemEngineProcesses?.().forEach((engine) => {

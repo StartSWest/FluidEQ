@@ -11,6 +11,7 @@ import {
   isWallpaperState,
   isWallpaperStop,
   isWallpaperTuningMap,
+  screenNeedsSound,
   wallpaperPauseReason,
   type IWallpaperStart,
   type IWallpaperState,
@@ -182,6 +183,41 @@ describe('what the window accepts back from main', () => {
         screens: [{ ...screen, phase: 'dancing' }],
       }),
     ).toBe(false);
+  });
+
+  it('takes a monitor the C++ host draws, and nothing else in its place', () => {
+    const [screen] = state.screens;
+    expect(
+      isWallpaperState({
+        ...state,
+        screens: [{ ...screen, drawnByHost: true }],
+      }),
+    ).toBe(true);
+    expect(
+      isWallpaperState({
+        ...state,
+        screens: [{ ...screen, drawnByHost: false }],
+      }),
+    ).toBe(false);
+  });
+});
+
+describe('who listens for a background', () => {
+  const playing = {
+    displayId: 2,
+    lookId: 'premium:alpine',
+    wave: { height: 1, position: 0 },
+    motion: 'music' as const,
+    phase: 'running' as const,
+  };
+
+  it('the app, for one following the music on a page', () => {
+    expect(screenNeedsSound(playing)).toBe(true);
+    expect(screenNeedsSound({ ...playing, motion: 'calm' })).toBe(false);
+  });
+
+  it('nobody, for one the C++ host draws: it hears the output itself', () => {
+    expect(screenNeedsSound({ ...playing, drawnByHost: true })).toBe(false);
   });
 });
 

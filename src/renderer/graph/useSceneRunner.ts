@@ -7,12 +7,7 @@ import {
 } from 'react';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import type { IScenePack } from 'common/scenePacks';
-import {
-  SCENE_SUPERSAMPLE,
-  scenePaceMs,
-  scenePinnedScale,
-  type IScenePerformance,
-} from 'common/scenePerformance';
+import { scenePaceMs, type IScenePerformance } from 'common/scenePerformance';
 import { SCENE_TIME_WRAP_S } from 'common/sceneUniformContract';
 import { getEaseFactor } from 'common/smoothing';
 import {
@@ -31,6 +26,13 @@ import { useSceneMotionSpeed } from './sceneMotionSpeed';
 import { useSceneAudio } from '../audio/SceneAudioContext';
 import { createFrameCadence, judgedIntervalMs } from './frameCadence';
 import { NO_POINTS, NO_WAVEFORM } from './liveSpectrumFrames';
+import {
+  sceneChosenScale,
+  sceneDrawnSize,
+  sceneFinishFor,
+  sceneLadderTop,
+  sceneOutputSize,
+} from './sceneDrawSizes';
 import type { ISceneFrame } from './sceneGl';
 import {
   SCENE_SLOW_FRAMES_TO_STEP,
@@ -347,29 +349,10 @@ export default function useSceneRunner({
       // who chose full resolution or a preset is never drawn by the ladder —
       // it still watches, so a scene too slow even for that is handed over.
       const ratio = Math.min(2, window.devicePixelRatio || 1);
-      const { resolution, smoothing, upscaler } = performanceRef.current;
+      const { resolution, smoothing } = performanceRef.current;
       const { width: cssWidth, height: cssHeight } = sizeRef.current;
-      const pixelCap = Math.min(
-        1,
-        Math.sqrt(
-          (3840 * 2160) / Math.max(1, cssWidth * cssHeight * ratio * ratio),
-        ),
-      );
-      const output = {
-        width: Math.max(1, Math.round(cssWidth * ratio * pixelCap)),
-        height: Math.max(1, Math.round(cssHeight * ratio * pixelCap)),
-      };
-      // `best` smoothing draws larger than the panel and averages down, within
-      // the same pixel budget: twice each way at 1080p, what fits at 1440p,
-      // nothing at 4K, where FXAA alone is left to do the smoothing.
-      const supersample =
-        smoothing === 'best'
-          ? Math.min(
-              SCENE_SUPERSAMPLE,
-              Math.sqrt((3840 * 2160) / (output.width * output.height)),
-            )
-          : 1;
-      const top = supersample > 1.05 ? supersample : 1;
+      const output = sceneOutputSize(cssWidth * ratio, cssHeight * ratio);
+      const top = sceneLadderTop(smoothing, output);
       const { autoFloor } = performanceRef.current;
       if (top !== ladderTopRef.current) {
         ladderTopRef.current = top;
@@ -389,27 +372,17 @@ export default function useSceneRunner({
         ladderFloorRef.current = autoFloor;
         ladderRef.current.refloor(autoFloor);
       }
-      const pinned = scenePinnedScale(resolution);
-      let scale = ladderRef.current.scale();
-      if (pinned !== undefined) {
-        scale = resolution === 'native' ? top : pinned;
-      }
-      const drawn = {
-        width: Math.max(1, Math.round(output.width * scale)),
-        height: Math.max(1, Math.round(output.height * scale)),
-      };
-      // A picture drawn at the full supersample is four samples a pixel,
-      // averaged: its edges are already resolved, and FXAA over it only
-      // softens what is there — measured on Crystal at 1460x567, a third of
-      // a millisecond for a picture no cleaner. FXAA stays wherever the
-      // supersample is partial or absent, which is most panels at 4K.
-      const supersampled = scale >= SCENE_SUPERSAMPLE - 0.05;
-      const finish = {
-        // The plain scaler for good once the FSR passes have proved too dear
-        // for this GPU at this size (`SCENE_FINISH_SHARE`).
-        fsr: upscaler === 'fsr' && !ladderRef.current.cheapFinish(),
-        fxaa: smoothing !== 'off' && !supersampled,
-      };
+      const scale = sceneChosenScale(
+        resolution,
+        top,
+        ladderRef.current.scale(),
+      );
+      const drawn = sceneDrawnSize(output, scale);
+      const finish = sceneFinishFor(
+        performanceRef.current,
+        scale,
+        ladderRef.current.cheapFinish(),
+      );
 
       const heardGapMs =
         heardAtRef.current === undefined

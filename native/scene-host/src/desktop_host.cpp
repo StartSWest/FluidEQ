@@ -110,8 +110,9 @@ bool hear(Desktop& desktop, wire::Kind kind, std::span<const std::uint8_t> paylo
   DesktopMonitor* const monitor = monitor_of(desktop, addressed.monitor);
   switch (kind) {
     case wire::Kind::kMonitorShow: {
+      bool measured = false;
       wire::Show show;
-      if (!wire::read_show(addressed.rest, show) || !show.scene) {
+      if (!wire::read_monitor_show(addressed.rest, measured, show)) {
         return false;
       }
       std::vector<std::uint8_t> artwork;
@@ -126,8 +127,10 @@ bool hear(Desktop& desktop, wire::Kind kind, std::span<const std::uint8_t> paylo
         return true;
       }
       if (monitor != nullptr) {
-        monitor->show(scene_of<DesktopScene>(show.id, std::move(*show.scene),
-                                             std::move(artwork)));
+        DesktopScene scene = scene_of<DesktopScene>(
+            show.id, std::move(*show.scene), std::move(artwork));
+        scene.measured = measured;
+        monitor->show(std::move(scene));
       }
       return true;
     }
@@ -141,13 +144,13 @@ bool hear(Desktop& desktop, wire::Kind kind, std::span<const std::uint8_t> paylo
       }
       return true;
     }
-    case wire::Kind::kMonitorScale: {
-      double scale = 1.0;
-      if (!wire::read_scale(addressed.rest, scale)) {
+    case wire::Kind::kMonitorChoice: {
+      DrawChoice choice;
+      if (!wire::read_choice(addressed.rest, choice)) {
         return false;
       }
       if (monitor != nullptr) {
-        monitor->scale(scale);
+        monitor->choose(choice);
       }
       return true;
     }

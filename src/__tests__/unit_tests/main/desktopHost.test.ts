@@ -46,6 +46,12 @@ const events = () => ({
 });
 
 const RECT = { x: 0, y: 0, width: 1920, height: 1080 };
+const CHOICE = {
+  autoFloor: 0.35,
+  fsr: true,
+  smoothing: 'best' as const,
+  paceMs: 0,
+};
 
 describe("the desktop backgrounds' host", () => {
   it('starts with the first monitor and routes each answer to its own', () => {
@@ -65,8 +71,8 @@ describe("the desktop backgrounds' host", () => {
     });
     const left = events();
     const right = events();
-    const one = host.open(RECT, 1, left);
-    host.open({ ...RECT, x: 1920 }, 0.5, right);
+    const one = host.open(RECT, CHOICE, left);
+    host.open({ ...RECT, x: 1920 }, { ...CHOICE, pinned: 0.5 }, right);
     expect(spawnHost).toHaveBeenCalledTimes(1);
     expect(one.pid()).toBe(4242);
 
@@ -92,7 +98,7 @@ describe("the desktop backgrounds' host", () => {
         return fake.child as unknown as TSceneHostChild;
       },
     });
-    const first = host.open(RECT, 1, events());
+    const first = host.open(RECT, CHOICE, events());
     first.close();
     expect(fakes[0].written).toEqual([
       DESKTOP_HOST_KIND.open,
@@ -102,7 +108,7 @@ describe("the desktop backgrounds' host", () => {
     expect(fakes[0].child.stdin.writableEnded).toBe(true);
     // Nothing more reaches a monitor once it is closed.
     first.pause(true);
-    host.open(RECT, 1, events());
+    host.open(RECT, CHOICE, events());
     expect(fakes).toHaveLength(2);
   });
 
@@ -115,8 +121,8 @@ describe("the desktop backgrounds' host", () => {
     });
     const left = events();
     const right = events();
-    host.open(RECT, 1, left);
-    host.open(RECT, 1, right);
+    host.open(RECT, CHOICE, left);
+    host.open(RECT, CHOICE, right);
     fake.child.stderr.write('FluidEQ-Scenes: waiting failed\n');
     fake.child.emit('exit', 1);
     expect(left.failed).toHaveBeenCalledWith(0, 'lost', expect.any(String));

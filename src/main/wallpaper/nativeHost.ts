@@ -38,17 +38,22 @@ const REPORTS: readonly TWallpaperHostEvent[] = [
   'paused-owner',
 ];
 
-/** Windows supplies lifecycle/foreground events; there is no polling clock. */
+/**
+ * Windows supplies lifecycle/foreground events; there is no polling clock.
+ * `ownerPid` is the process that made the window: this one for a page's,
+ * the C++ host's for a background it draws (`desktopHost.ts`).
+ */
 export const startWallpaperHost = (
   executable: string,
   handle: Buffer,
   onEvent: (event: TWallpaperHostEvent) => void,
+  ownerPid: number = process.pid,
 ): IWallpaperHost => {
   const hwnd =
     handle.length === 8
       ? handle.readBigUInt64LE().toString()
       : handle.readUInt32LE().toString();
-  const child = spawn(executable, [hwnd, String(process.pid)], {
+  const child = spawn(executable, [hwnd, String(ownerPid)], {
     windowsHide: true,
     stdio: ['pipe', 'pipe', 'pipe'],
   });

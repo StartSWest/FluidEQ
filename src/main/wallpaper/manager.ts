@@ -8,7 +8,7 @@ import {
 import log from 'electron-log';
 import {
   WALLPAPER,
-  screenFollowsMusic,
+  screenNeedsSound,
   wallpaperPauseReason,
   type IWallpaperAudio,
   type IWallpaperChoice,
@@ -33,13 +33,15 @@ import {
   type IArrangementStore,
   type ISavedScreen,
 } from './arrangement';
+import { createDesktopHost } from './desktopHost';
+import { createNativeDesktopSurface } from './nativeSurface';
+import type { IDesktopSurfaceOptions, IDesktopSurface } from './surface';
 import createWallpaperAudioRelay from './audioRelay';
 import { createMonitorBackgrounds } from './backgrounds';
 import { watchDesktopConditions, type IDesktopConditions } from './conditions';
 import { toWallpaperDisplays } from './displays';
 import { wallpaperHostPath } from './nativeHost';
 import type { IWallpaperScenes } from './scenes';
-import type { IDesktopSurface } from './surface';
 
 export interface IWallpaperDeps extends IWallpaperScenes {
   getMainWindow(): BrowserWindow | null;
@@ -52,6 +54,12 @@ export interface IWallpaperDeps extends IWallpaperScenes {
    * asked only when the core cannot hear it (`desktopSound.ts`).
    */
   desktopSound: IDesktopSoundClient;
+  /**
+   * `FluidEQ-Scenes.exe` and the ANGLE it draws with, where they are: the
+   * backgrounds it can draw as their page would are drawn by it
+   * (`desktopHost.ts`), with no hidden page per monitor.
+   */
+  sceneHost?: { executable: string; angleDir: string };
   /**
    * Whether the backgrounds need the window loaded: one follows the music
    * and only the window can hear it for them. Told at every change, so a
@@ -136,6 +144,10 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
         )
       : [];
 
+  const desktopHost =
+    deps.sceneHost && supported()
+      ? createDesktopHost(deps.sceneHost)
+      : undefined;
   const backgrounds = createMonitorBackgrounds({
     executable: wallpaperHostPath,
     pauseReason: (cover) =>
@@ -149,6 +161,17 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     tuning: (lookId) => tuning[lookId],
     daylight: () => graphDaylight,
     onEmpty: () => relay.cancel(),
+    ...(desktopHost
+      ? {
+          nativeSurface: (surfaceOptions: IDesktopSurfaceOptions) =>
+            createNativeDesktopSurface({
+              ...surfaceOptions,
+              rect: screen.dipToScreenRect(null, surfaceOptions.bounds),
+              host: desktopHost,
+              onBattery: () => conditions.battery,
+            }),
+        }
+      : {}),
   });
 
   const heardByCore = () => deps.desktopSound.serves() && !soundFromWindow;
@@ -163,8 +186,9 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
 
   const publish = () => {
     // The core listens exactly while a background follows the music, and the
-    // window holds nothing for them while it does.
-    const followsMusic = backgrounds.screens().some(screenFollowsMusic);
+    // window holds nothing for them while it does. One the C++ host draws
+    // hears for itself and asks neither.
+    const followsMusic = backgrounds.screens().some(screenNeedsSound);
     deps.desktopSound.want(!soundFromWindow && followsMusic);
     deps.holdWindow?.(followsMusic && !heardByCore());
     const owner = ownerContents();
@@ -499,7 +523,10 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
           return;
         }
         const playing = backgrounds.surfaceOn(id);
-        if (playing?.lookId === lookId) {
+        if (
+          playing?.lookId === lookId &&
+          backgrounds.drawsAlike(playing, chosen)
+        ) {
           // Set again with another wave or motion, or to follow the graph or
           // not: the one already playing takes it, with no restart and no
           // blink.
@@ -759,6 +786,8 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       publish();
     },
     acceptAudio: (raw: unknown) => relay.accept(raw),
+    /** The C++ host drawing backgrounds, while it runs: a row of its own. */
+    desktopScenesPid: () => desktopHost?.pid(),
     /** Reads sent before the page was listening were never answered. */
     audioReady: () => relay.cancel(),
     dispose: () => {

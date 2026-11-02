@@ -43,6 +43,12 @@ export type TProcessRole =
    */
   | 'desktop'
   /**
+   * `FluidEQ-Scenes.exe --mode desktop`: every monitor's desktop visualizer
+   * drawn by C++ in one program, which hears the output for them. Known by
+   * its pid, because the lamps run the same program (`lampScene`).
+   */
+  | 'desktopScenes'
+  /**
    * `FluidEQ-Wallpaper.exe`, one per monitor: places that monitor's desktop
    * visualizer behind the icons and says when a full-screen app covers it.
    */
@@ -322,6 +328,7 @@ const ROLE_ORDER: readonly TProcessRole[] = [
   'lampScene',
   'graphics',
   'desktop',
+  'desktopScenes',
   'desktopHost',
   'models',
   'libraryScan',

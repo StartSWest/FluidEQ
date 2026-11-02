@@ -16,6 +16,7 @@ import { spawn } from 'child_process';
 import path from 'path';
 import {
   createDesktopHostReader,
+  encodeMonitorChoice,
   encodeMonitorClose,
   encodeMonitorOpen,
   encodeMonitorPause,
@@ -110,7 +111,11 @@ const main = async () => {
   );
 
   child.stdin.write(
-    encodeMonitorOpen(3, { x: -320, y: 0, width: 320, height: 180 }, 0.5),
+    encodeMonitorOpen(
+      3,
+      { x: -320, y: 0, width: 320, height: 180 },
+      { pinned: 0.5, autoFloor: 0.35, fsr: true, smoothing: 'best', paceMs: 0 },
+    ),
   );
   await log.until('window 3');
   assert.notEqual(window, BigInt(0), 'the monitor has a window');
@@ -123,9 +128,20 @@ precision highp float;
 out vec4 fragColor;
 void main() { fragColor = vec4(0.1, 0.6, 0.9, 1.0); }
 `),
+      true,
     ),
   );
   await log.until('drawn 3 11');
+  // The ladder's own choice, held to thirty: a message the host reads, or the
+  // broken scene below would never be answered.
+  child.stdin.write(
+    encodeMonitorChoice(3, {
+      autoFloor: 0.35,
+      fsr: true,
+      smoothing: 'fast',
+      paceMs: 1000 / 30,
+    }),
+  );
   child.stdin.write(
     encodeMonitorShow(
       3,
@@ -135,6 +151,7 @@ precision highp float;
 out vec4 fragColor;
 void main() { fragColor = notDeclaredAnywhere; }
 `),
+      false,
     ),
   );
   await log.until('failed 3 12 compile');

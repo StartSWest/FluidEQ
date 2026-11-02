@@ -88,6 +88,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktop': 'Visualizador de escritorio',
   'app.processes.what.desktop':
     'Una escena dibujada como fondo de escritorio de un monitor, aparte de esta ventana: una por cada monitor que la muestra. Se pausa mientras las ventanas cubren ese monitor o el PC está bloqueado.',
+  'app.processes.name.desktopScenes': 'Visualizadores de escritorio',
+  'app.processes.what.desktopScenes':
+    'Dibuja las escenas de los fondos de escritorio de tus monitores, todas en un programa aparte de esta ventana, y escucha lo que reproduce este PC para ellas, así se mueven con la ventana cerrada. Un monitor descansa mientras lo cubren otras ventanas, y no se dibuja nada con las pantallas apagadas.',
   'app.processes.name.desktopHost': 'Ayudante del visualizador de escritorio',
   'app.processes.what.desktopHost':
     'Coloca el visualizador de escritorio de ese monitor detrás de los iconos y le avisa cuando las ventanas cubren la pantalla. Uno por cada monitor que lo muestra.',

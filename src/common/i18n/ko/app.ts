@@ -70,6 +70,9 @@ const app = {
   'app.processes.name.desktop': '데스크탑 비주얼라이저',
   'app.processes.what.desktop':
     '이 창을 제외하고 모니터의 바탕 화면 배경으로 그려진 장면: 각 모니터마다 하나씩 표시됩니다. 모니터가 창을 가리거나 PC가 잠겨 있는 동안에는 일시 정지됩니다.',
+  'app.processes.name.desktopScenes': '데스크탑 비주얼라이저',
+  'app.processes.what.desktopScenes':
+    '모니터의 데스크탑 배경에 장면을 그리고, 이를 위해 이 PC에서 재생되는 소리를 듣습니다. 모든 모니터를 이 창과 따로 하나의 프로그램에서 그리므로 창을 닫아도 계속 움직입니다. 창에 가려진 모니터는 쉬고, 화면이 꺼져 있는 동안에는 아무것도 그리지 않습니다.',
   'app.processes.name.desktopHost': '데스크탑 시각화 도우미',
   'app.processes.what.desktopHost':
     '해당 모니터의 데스크탑 시각화 도우미를 아이콘 뒤에 배치하고 창이 화면을 덮을 때 이를 알려줍니다. 각 모니터마다 하나씩 표시됩니다.',

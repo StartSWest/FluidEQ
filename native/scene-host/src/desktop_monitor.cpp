@@ -10,9 +10,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
 #include <chrono>
+#include <cstring>
 #include <iterator>
 #include <utility>
 
+#include "display_beat.h"
+#include "fluideq/scene/frame_pacing.h"
 #include "shown_scene.h"
 
 namespace feq::scene {
@@ -23,6 +26,15 @@ constexpr wchar_t kWindowClass[] = L"FluidEQ-Desktop-Background";
 /** A frame's own time is never more than this: a pause is not a jump. */
 constexpr double kLongestFrameMs = 100.0;
 
+/** `GUID_CONSOLE_DISPLAY_STATE`: the displays off, on, or dimmed. */
+constexpr GUID kConsoleDisplayState{
+    0x6fe69556, 0x704a, 0x47a0, {0x8f, 0x24, 0xc2, 0x8d, 0x93, 0x6f, 0xda, 0x47}};
+
+// What Windows said to this thread's window: each monitor's window is made,
+// pumped and destroyed on its own thread, so each has its own.
+thread_local bool display_on = true;
+thread_local bool display_changed = false;
+
 LRESULT CALLBACK background_procedure(HWND window, UINT message, WPARAM w,
                                       LPARAM l) {
   // Nothing to erase: every frame covers the window, and an erase between a
@@ -30,7 +42,28 @@ LRESULT CALLBACK background_procedure(HWND window, UINT message, WPARAM w,
   if (message == WM_ERASEBKGND) {
     return 1;
   }
+  if (message == WM_DISPLAYCHANGE) {
+    display_changed = true;
+  }
+  // Said once when the registration is made, then at every change: a
+  // display that is off has no beat, and nobody to draw for.
+  if (message == WM_POWERBROADCAST && w == PBT_POWERSETTINGCHANGE) {
+    const auto* setting = reinterpret_cast<const POWERBROADCAST_SETTING*>(l);
+    if (setting != nullptr && setting->PowerSetting == kConsoleDisplayState &&
+        setting->DataLength >= sizeof(DWORD)) {
+      DWORD state = 0;
+      std::memcpy(&state, setting->Data, sizeof(state));
+      display_on = state != 0;
+    }
+    return TRUE;
+  }
   return DefWindowProcW(window, message, w, l);
+}
+
+double now_ms() {
+  return std::chrono::duration<double, std::milli>(
+             std::chrono::steady_clock::now().time_since_epoch())
+      .count();
 }
 
 ATOM window_class() {
@@ -95,7 +128,7 @@ void DesktopMonitor::command(Command next) {
 
 void DesktopMonitor::show(DesktopScene scene) { command(std::move(scene)); }
 void DesktopMonitor::daylight(const wire::Daylight& daylight) { command(daylight); }
-void DesktopMonitor::scale(double scale) { command(Scale{scale}); }
+void DesktopMonitor::choose(const DrawChoice& choice) { command(choice); }
 void DesktopMonitor::pause(bool paused) { command(Pause{paused}); }
 
 void DesktopMonitor::run() {
@@ -144,12 +177,24 @@ void DesktopMonitor::run() {
                                               wire::FailReason::kNoContext, why),
                  false);
     }
-    painter.set_scale(open_.scale);
+    painter.choose(open_.choice);
+  }
+  HPOWERNOTIFY display_power =
+      window == nullptr
+          ? nullptr
+          : RegisterPowerSettingNotification(window, &kConsoleDisplayState,
+                                             DEVICE_NOTIFY_WINDOW_HANDLE);
+  DisplayBeat beat;
+  if (window != nullptr) {
+    beat.follow(window);
   }
 
   wire::Daylight daylight;
   bool paused = false;
-  std::optional<std::chrono::steady_clock::time_point> last_paint;
+  std::optional<double> last_paint;
+  std::optional<double> last_beat;
+  /** The display's frame, measured between beats: sixty until two. */
+  double tick_ms = 1000.0 / 60.0;
   for (;;) {
     // The desktop helper moves this window from its own process, and those
     // calls wait until this thread has taken their messages.
@@ -161,6 +206,11 @@ void DesktopMonitor::run() {
     if (WaitForSingleObject(stop_, 0) == WAIT_OBJECT_0) {
       break;
     }
+    if (display_changed && window != nullptr) {
+      display_changed = false;
+      beat.follow(window);
+      last_beat.reset();
+    }
     std::deque<Command> commands;
     {
       const std::lock_guard lock(mutex_);
@@ -171,8 +221,8 @@ void DesktopMonitor::run() {
         painter.load(std::move(*scene));
       } else if (auto* set = std::get_if<wire::Daylight>(&next)) {
         daylight = *set;
-      } else if (const auto* scale = std::get_if<Scale>(&next)) {
-        painter.set_scale(scale->value);
+      } else if (const auto* choice = std::get_if<DrawChoice>(&next)) {
+        painter.choose(*choice);
       } else if (const auto* pause = std::get_if<Pause>(&next)) {
         paused = pause->paused;
         last_paint.reset();
@@ -184,31 +234,43 @@ void DesktopMonitor::run() {
       painter.finish_link();
     }
     const auto heard = heard_.latest();
-    if (open && !paused && painter.drawing() && heard) {
-      HeardLampFrame frame = *heard;
-      const auto now = std::chrono::steady_clock::now();
-      frame.delta_ms =
-          last_paint ? std::clamp(std::chrono::duration<double, std::milli>(
-                                      now - *last_paint)
-                                      .count(),
-                                  0.0, kLongestFrameMs)
-                     : 0.0;
-      last_paint = now;
-      // Presenting waits for the monitor's refresh: that is the pace.
-      if (!painter.paint(std::move(frame), daylight_now(daylight))) {
-        // The GPU went from under it, as said; main opens it afresh.
-        open = false;
+    if (open && !paused && display_on && painter.drawing() && heard) {
+      const double now = now_ms();
+      // Drawn on the turns its pace says are due, as the page drew on the
+      // animation frames its pace said were (`framePace.ts`).
+      if (!last_paint ||
+          is_frame_due(now - *last_paint, painter.pace_ms(), tick_ms)) {
+        HeardLampFrame frame = *heard;
+        frame.delta_ms =
+            last_paint ? std::clamp(now - *last_paint, 0.0, kLongestFrameMs)
+                       : 0.0;
+        last_paint = now;
+        if (!painter.paint(std::move(frame), daylight_now(daylight), now)) {
+          // The GPU went from under it, as said; main opens it afresh.
+          open = false;
+        }
       }
-      continue;
+      if (beat.wait()) {
+        const double at = now_ms();
+        tick_ms = display_tick_ms(at, last_beat, tick_ms);
+        last_beat = at;
+        continue;
+      }
     }
-    // Nothing to draw: wait for a word from main, the first sound, or the
-    // window's own messages.
-    const bool waits_for_sound = open && !paused && painter.drawing() && !heard;
+    // Nothing to draw, or no beat to draw on: wait for a word from main, the
+    // first sound, or the window's own messages — a display coming back on
+    // among them.
+    last_beat.reset();
+    const bool waits_for_sound =
+        open && !paused && display_on && painter.drawing() && !heard;
     const HANDLE waits[]{stop_, commands_ready_, heard_.first_heard()};
     MsgWaitForMultipleObjects(waits_for_sound ? 3 : 2, waits, FALSE, INFINITE,
                               QS_ALLINPUT);
   }
   painter.close();
+  if (display_power != nullptr) {
+    UnregisterPowerSettingNotification(display_power);
+  }
   if (window != nullptr) {
     DestroyWindow(window);
   }

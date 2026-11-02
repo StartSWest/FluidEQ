@@ -85,6 +85,9 @@ const app = {
   'app.processes.name.desktop': 'Desktop visualizer',
   'app.processes.what.desktop':
     'A scene drawn as a monitor’s desktop background, apart from this window: one for each monitor showing one. It pauses while windows cover that monitor or the PC is locked.',
+  'app.processes.name.desktopScenes': 'Desktop visualizers',
+  'app.processes.what.desktopScenes':
+    'Draws the scenes on your monitors’ desktop backgrounds, every monitor’s in one program apart from this window, and hears what this PC plays for them, so they move with the window closed. A monitor rests while windows cover it, and nothing is drawn while the screens are off.',
   'app.processes.name.desktopHost': 'Desktop visualizer helper',
   'app.processes.what.desktopHost':
     'Puts that monitor’s desktop visualizer behind the icons and tells it when windows cover the screen. One for each monitor showing one.',

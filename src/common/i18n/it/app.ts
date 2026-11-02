@@ -88,6 +88,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktop': 'Visualizzatore del desktop',
   'app.processes.what.desktop':
     'Una scena disegnata come sfondo del desktop di un monitor, separata da questa finestra: una per ogni monitor che ne mostra una. Va in pausa mentre le finestre coprono quel monitor o il PC è bloccato.',
+  'app.processes.name.desktopScenes': 'Visualizzatori del desktop',
+  'app.processes.what.desktopScenes':
+    'Disegna le scene sugli sfondi del desktop dei tuoi monitor, tutte in un programma separato da questa finestra, e ascolta ciò che riproduce questo PC per loro, così si muovono anche a finestra chiusa. Un monitor riposa finché lo coprono altre finestre, e a schermi spenti non si disegna nulla.',
   'app.processes.name.desktopHost': 'Assistente del visualizzatore del desktop',
   'app.processes.what.desktopHost':
     'Mette il visualizzatore del desktop di quel monitor dietro le icone e lo avvisa quando le finestre coprono lo schermo. Uno per ogni monitor che ne mostra uno.',

@@ -89,6 +89,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktop': 'Visualiseur du Bureau',
   'app.processes.what.desktop':
     "Une scène dessinée en arrière-plan du Bureau d'un écran, à l'écart de cette fenêtre : une pour chaque écran qui en affiche une. Elle se met en pause tant que des fenêtres couvrent cet écran ou que le PC est verrouillé.",
+  'app.processes.name.desktopScenes': 'Visualiseurs du Bureau',
+  'app.processes.what.desktopScenes':
+    'Dessine les scènes des fonds du Bureau de vos moniteurs, toutes dans un programme à part de cette fenêtre, et écoute ce que joue ce PC pour elles, pour qu’elles bougent fenêtre fermée. Un moniteur se repose tant que des fenêtres le couvrent, et rien n’est dessiné écrans éteints.',
   'app.processes.name.desktopHost': 'Assistant du visualiseur du Bureau',
   'app.processes.what.desktopHost':
     "Place le visualiseur du Bureau de cet écran derrière les icônes et le prévient quand des fenêtres couvrent l'écran. Un pour chaque écran qui en affiche un.",

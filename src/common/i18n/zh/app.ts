@@ -87,6 +87,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktop': '桌面可视化效果',
   'app.processes.what.desktop':
     '作为某个显示器桌面背景绘制的场景，与此窗口分开运行：每个显示它的显示器各一个。当窗口盖住该显示器或电脑锁定时会暂停。',
+  'app.processes.name.desktopScenes': '桌面可视化效果',
+  'app.processes.what.desktopScenes':
+    '在你的显示器桌面背景上绘制场景，所有显示器都在一个独立于此窗口的程序中，并为此收听这台电脑正在播放的声音，关闭窗口后它们也会继续动。被窗口遮住的显示器会暂停，屏幕关闭时不绘制任何内容。',
   'app.processes.name.desktopHost': '桌面可视化效果助手',
   'app.processes.what.desktopHost':
     '把该显示器的桌面可视化效果放在图标后面，并在窗口盖住屏幕时通知它。每个显示它的显示器各一个。',

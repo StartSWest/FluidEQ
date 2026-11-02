@@ -8,7 +8,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
 #include <cmath>
-#include <cstring>
 
 #include "flash_guard_sources.h"
 
@@ -72,11 +71,6 @@ GLuint link(const Api& gl, const char* fragment) {
     return 0;
   }
   return program;
-}
-
-bool has_extension(const Api& gl, const char* name) {
-  const auto* list = reinterpret_cast<const char*>(gl.GetString(kExtensions));
-  return list != nullptr && std::strstr(list, name) != nullptr;
 }
 
 }  // namespace

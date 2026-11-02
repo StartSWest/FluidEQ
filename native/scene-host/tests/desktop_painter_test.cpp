@@ -6,7 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // A monitor's background drawn by C++ into a window that is never shown:
 // the scene answers the frame (level, slider, time of day), drawn at the
-// share of the monitor the performance choice asks for; its first frame is
+// share of the monitor a preset asks for, or where the size ladder starts
+// the scene's maker; its first frame is
 // told once; a scene asked for over one on the monitor takes over only once
 // it has linked, and a broken one leaves the old one there; and a member's
 // strobing scene is held down by the limiter where the same scene unguarded
@@ -104,10 +105,11 @@ scene::DesktopPainter::Output output_to(Heard& heard) {
 }
 
 scene::DesktopScene scene_of(std::uint32_t id, const char* fragment,
-                             bool guarded = false) {
+                             bool guarded = false, bool measured = false) {
   scene::DesktopScene made;
   made.id = id;
   made.guarded = guarded;
+  made.measured = measured;
   made.pack.vertex_source = kVertex;
   made.pack.fragment_source = fragment;
   made.params = {{"glow", 0.25, 0.0, 1.0}, {"daylight", 0.0, 0.0, 100.0}};
@@ -137,6 +139,22 @@ HWND hidden_window(int width, int height) {
                          height, nullptr, nullptr, type.hInstance, nullptr);
 }
 
+/** A preset at half the monitor, stretched plainly, with no smoothing. */
+scene::DrawChoice half_size() {
+  scene::DrawChoice choice;
+  choice.pinned = 0.5;
+  choice.fsr = false;
+  choice.smoothing = scene::Smoothing::kOff;
+  return choice;
+}
+
+/** A display frame later than the last one asked for. */
+double next_ms() {
+  static double now = 0.0;
+  now += 1000.0 / 60.0;
+  return now;
+}
+
 std::array<std::uint8_t, 4> middle(const scene::DesktopPainter& painter) {
   std::array<std::uint8_t, 4> pixel{};
   painter.frame_pixel(painter.frame_width() / 2, painter.frame_height() / 2,
@@ -156,25 +174,25 @@ int main() {
     scene::DesktopPainter painter(angle, output_to(heard));
     std::string why;
     check(painter.open(window, 640, 360, why), "the painter opens on the window");
-    painter.set_scale(0.5);
+    painter.choose(half_size());
     painter.load(scene_of(1, kLevels));
     painter.finish_link();
     check(heard.loaded == std::vector<std::uint32_t>{1}, "the scene loads");
-    check(painter.paint(frame_at(0.6), 50.0), "a frame is painted and presented");
+    check(painter.paint(frame_at(0.6), 50.0, next_ms()), "a frame is painted and presented");
     check(painter.frame_width() == 320 && painter.frame_height() == 180,
           "drawn at the share of the monitor asked for");
     const auto pixel = middle(painter);
     check(close_to(pixel[0], 153) && close_to(pixel[1], 64) &&
               close_to(pixel[2], 128),
           "the scene answers the level, its slider and the time of day");
-    painter.paint(frame_at(0.2), 50.0);
+    painter.paint(frame_at(0.2), 50.0, next_ms());
     check(heard.drawn == std::vector<std::uint32_t>{1},
           "its first frame is told, once");
     // The desktop helper stretches the window over the whole monitor once it
     // has placed it: the next frame is drawn at that size.
     SetWindowPos(window, nullptr, 0, 0, 800, 400,
                  SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
-    painter.paint(frame_at(0.2), 50.0);
+    painter.paint(frame_at(0.2), 50.0, next_ms());
     check(painter.frame_width() == 400 && painter.frame_height() == 200,
           "a window made larger is drawn at its new size");
     SetWindowPos(window, nullptr, 0, 0, 640, 360,
@@ -183,10 +201,10 @@ int main() {
 
     // Another scene: the first keeps the monitor until it links.
     painter.load(scene_of(2, kBlue));
-    painter.paint(frame_at(0.6), 50.0);
+    painter.paint(frame_at(0.6), 50.0, next_ms());
     check(painter.drawing(), "the monitor is never blank between scenes");
     painter.finish_link();
-    painter.paint(frame_at(0.6), 50.0);
+    painter.paint(frame_at(0.6), 50.0, next_ms());
     const auto blue = middle(painter);
     check(blue[2] == 255 && blue[0] == 0, "the new scene takes over once linked");
     check(heard.drawn == std::vector<std::uint32_t>({1, 2}),
@@ -195,7 +213,7 @@ int main() {
     // A broken one: reported, and what is on the monitor stays.
     painter.load(scene_of(3, kBroken));
     painter.finish_link();
-    painter.paint(frame_at(0.6), 50.0);
+    painter.paint(frame_at(0.6), 50.0, next_ms());
     check(heard.failed.size() == 1 && heard.failed[0].first == 3 &&
               heard.failed[0].second == wire::FailReason::kCompile,
           "a scene that does not compile is reported");
@@ -215,7 +233,7 @@ int main() {
     int lowest = 255;
     int highest = 0;
     for (int at = 0; at < 30; ++at) {
-      painter.paint(frame_at(at % 2 == 0 ? 1.0 : 0.0), 0.0);
+      painter.paint(frame_at(at % 2 == 0 ? 1.0 : 0.0), 0.0, next_ms());
       if (at >= 10) {
         const int red = middle(painter)[0];
         lowest = std::min(lowest, red);
@@ -230,6 +248,32 @@ int main() {
   std::printf("strobe swing on the desktop: bare %d, guarded %d\n", bare, guarded);
   check(bare > 200, "the bare strobe swings the whole way (the control)");
   check(guarded < bare / 4, "a member's strobe is held down by the limiter");
+
+  {
+    // The listener's defaults: the size ladder decides, from the top for
+    // FluidEQ's own scene and from the smallest size for anybody else's.
+    Heard heard;
+    scene::DesktopPainter painter(angle, output_to(heard));
+    std::string why;
+    painter.open(window, 640, 360, why);
+    painter.load(scene_of(6, kLevels, false, true));
+    painter.finish_link();
+    painter.paint(frame_at(0.6), 50.0, next_ms());
+    check(painter.frame_width() == 1280 && painter.frame_height() == 720,
+          "FluidEQ's own scene starts at best smoothing's supersample");
+    check(close_to(middle(painter)[0], 153), "and is drawn there");
+    check(painter.pace_ms() == 0.0, "at every refresh the monitor offers");
+    painter.load(scene_of(7, kLevels));
+    painter.finish_link();
+    painter.paint(frame_at(0.6), 50.0, next_ms());
+    check(painter.frame_width() == 224 && painter.frame_height() == 126,
+          "anybody else's starts at the smallest size the listener allows");
+    scene::DrawChoice thirty;
+    thirty.pace_ms = 1000.0 / 30.0;
+    painter.choose(thirty);
+    check(painter.pace_ms() == 1000.0 / 30.0, "thirty a second when asked");
+    painter.close();
+  }
 
   {
     Heard heard;

@@ -16,6 +16,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
+#include <string_view>
 #include <utility>
 
 namespace feq::scene {
@@ -25,8 +27,12 @@ using namespace gl;
 
 /** `glGetError` is drained this far at most: a lost context answers each. */
 constexpr int kErrorsRead = 8;
-/** The smallest share of the monitor a scene is drawn at (`scenePerformance.ts`). */
-constexpr double kSmallestScale = 0.25;
+
+/** A program by its sources: what a size it proves is remembered under. */
+std::size_t program_of(const ScenePack& pack) {
+  const std::hash<std::string_view> hash;
+  return hash(pack.vertex_source) ^ (hash(pack.fragment_source) << 1U);
+}
 
 }  // namespace
 
@@ -48,14 +54,15 @@ bool DesktopPainter::open(void* window, int width, int height,
     return false;
   }
   context_ = std::move(context);
+  clock_ = std::make_unique<GpuClock>(context_->gl());
+  std::string unfinished;
+  // Without the finishing passes a scene is still drawn: stretched, as the
+  // page's canvas was when its own passes would not link.
+  finish_ = SceneFinish::create(context_->gl(), unfinished);
   window_ = window;
   window_width_ = std::max(1, width);
   window_height_ = std::max(1, height);
   return true;
-}
-
-void DesktopPainter::set_scale(double scale) {
-  scale_ = std::clamp(scale, kSmallestScale, 1.0);
 }
 
 void DesktopPainter::fail(std::uint32_t id, wire::FailReason reason,
@@ -94,6 +101,8 @@ void DesktopPainter::load(DesktopScene scene) {
   }
   Pending next;
   next.id = scene.id;
+  next.measured = scene.measured;
+  next.program = program_of(scene.pack);
   next.response = scene.response;
   next.params = std::move(scene.params);
   next.guard = std::move(guard);
@@ -129,6 +138,7 @@ void DesktopPainter::finish_link() {
   program_ = std::move(program);
   guard_ = std::move(next.guard);
   tuner_.emplace(next.response, std::move(next.params));
+  sizing_.start(next.program, next.measured);
   slow_ = {};
   slow_started_ = false;
   drawn_id_ = next.id;
@@ -198,7 +208,22 @@ void DesktopPainter::release_target() {
   target_height_ = 0;
 }
 
-bool DesktopPainter::paint(HeardLampFrame heard, double daylight) {
+bool DesktopPainter::lose() {
+  // Sleep, a driver update, another program's crash: reported, and main
+  // starts this monitor afresh, which builds a new context.
+  drop();
+  pending_.reset();
+  retiring_.clear();
+  release_target();
+  finish_.reset();
+  clock_.reset();
+  context_.reset();
+  fail(0, wire::FailReason::kLost, "the GPU was reset");
+  return false;
+}
+
+bool DesktopPainter::paint(HeardLampFrame heard, double daylight,
+                           double now_ms) {
   if (!context_) {
     return false;
   }
@@ -214,7 +239,8 @@ bool DesktopPainter::paint(HeardLampFrame heard, double daylight) {
     window_width_ = client.right;
     window_height_ = client.bottom;
   }
-  const Api& gl = context_->gl();
+  // The music moves on whether or not this frame reaches the monitor, as the
+  // page's does when its worker skips one.
   SceneFrame& frame = heard.frame;
   tuner_->apply(frame, heard.delta_ms, daylight_.next(daylight, heard.delta_ms));
   // `frameStepMs`: nothing on the program's first frame, then the frame's
@@ -224,12 +250,20 @@ bool DesktopPainter::paint(HeardLampFrame heard, double daylight) {
   slow_started_ = true;
   frame.spectrum_slow = slow_.bytes();
 
-  const int width =
-      std::max(1, static_cast<int>(std::lround(window_width_ * scale_)));
-  const int height =
-      std::max(1, static_cast<int>(std::lround(window_height_ * scale_)));
-  bool lost = !ensure_target(width, height);
-  if (!lost) {
+  const CostReading reading = clock_->poll();
+  // Two frames still on the GPU: a third is skipped, never queued — a queue
+  // is latency, and the picture would lag the music.
+  const bool draws = reading.behind < kFramesInFlight;
+  const FramePlan plan =
+      sizing_.plan({std::max(1, window_width_), std::max(1, window_height_)});
+  if (draws) {
+    const Api& gl = context_->gl();
+    const int width = plan.drawn.width;
+    const int height = plan.drawn.height;
+    if (!ensure_target(width, height)) {
+      return lose();
+    }
+    clock_->begin();
     if (guard_) {
       guard_->begin(width, height);
     } else {
@@ -240,16 +274,28 @@ bool DesktopPainter::paint(HeardLampFrame heard, double daylight) {
     // A guard that cannot limit the frame is a guard that is not there: a
     // stranger's scene is never on the desktop unlimited.
     if (guard_ && !guard_->end(heard.delta_ms, target_)) {
+      clock_->end();
       drop();
       fail(0, wire::FailReason::kNoGuard, "the flash limiter could not run");
       return true;
     }
-    // Drawn at its own resolution, scaled to the whole monitor.
-    gl.BindFramebuffer(kReadFramebuffer, target_);
-    gl.BindFramebuffer(kDrawFramebuffer, 0);
-    gl.BlitFramebuffer(0, 0, width, height, 0, 0, window_width_, window_height_,
-                       kColorBufferBit, static_cast<GLenum>(kLinear));
-    gl.BindFramebuffer(kFramebuffer, 0);
+    clock_->mark();
+    const DrawSize window{window_width_, window_height_};
+    const bool finished =
+        finish_ != nullptr &&
+        finish_->present({target_texture_, target_, plan.drawn}, plan.canvas,
+                         window, plan.steps);
+    if (!finished) {
+      // No passes here, or none could be made: the picture stretched.
+      gl.BindFramebuffer(kReadFramebuffer, target_);
+      gl.BindFramebuffer(kDrawFramebuffer, 0);
+      gl.BlitFramebuffer(0, 0, width, height, 0, 0, window_width_,
+                         window_height_, kColorBufferBit,
+                         static_cast<GLenum>(kLinear));
+      gl.BindFramebuffer(kFramebuffer, 0);
+    }
+    clock_->end();
+    bool lost = false;
     for (int read = 0; read < kErrorsRead; ++read) {
       const GLenum error = gl.GetError();
       if (error == 0) {
@@ -257,19 +303,19 @@ bool DesktopPainter::paint(HeardLampFrame heard, double daylight) {
       }
       lost = lost || error == kContextLost;
     }
+    if (lost || !context_->present()) {
+      return lose();
+    }
   }
-  if (lost || !context_->present()) {
-    // Sleep, a driver update, another program's crash: reported, and main
-    // starts this monitor afresh, which builds a new context.
+  if (sizing_.judged(reading, now_ms, draws, heard.quiet)) {
+    // Too slow even at the smallest size the listener allows: handed over,
+    // as the page hands its scene over, rather than a slide show.
     drop();
-    pending_.reset();
-    retiring_.clear();
-    release_target();
-    context_.reset();
-    fail(0, wire::FailReason::kLost, "the GPU was reset");
-    return false;
+    fail(0, wire::FailReason::kTooHeavy,
+         "the scene ran too slowly even at its smallest size");
+    return true;
   }
-  if (told_drawn_ != drawn_id_) {
+  if (draws && told_drawn_ != drawn_id_) {
     told_drawn_ = drawn_id_;
     if (output_.drawn) {
       output_.drawn(drawn_id_);
@@ -284,6 +330,14 @@ void DesktopPainter::close() {
   pending_.reset();
   retiring_.clear();
   release_target();
+  if (finish_) {
+    finish_->release();
+    finish_.reset();
+  }
+  if (clock_) {
+    clock_->release();
+    clock_.reset();
+  }
   context_.reset();
   window_ = nullptr;
   told_drawn_ = 0;

@@ -4,12 +4,14 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { TSceneSmoothing } from '../../common/scenePerformance';
 import {
   createSceneHostFrameReader,
   encodeDaylight,
   encodeShow,
   messageWriter,
   SCENE_HOST_FAILURES,
+  type IMessageWriter,
   type ISceneHostScene,
   type TSceneHostFailure,
 } from '../lighting/sceneHostWire';
@@ -26,7 +28,7 @@ export const DESKTOP_HOST_KIND = {
   open: 20,
   show: 21,
   daylight: 22,
-  scale: 23,
+  choice: 23,
   pause: 24,
   close: 25,
   window: 120,
@@ -56,27 +58,70 @@ export interface IMonitorRect {
 const asSigned32 = (value: number): number =>
   value < 0 ? value + 2 ** 32 : value;
 
-/** A window over `rect`, in physical pixels, drawn at `scale` of them. */
+/**
+ * How a monitor's scenes are drawn: the listener's performance choice as the
+ * host's size ladder and finishing read it (`DrawChoice` in `draw_plan.h`).
+ */
+export interface IMonitorDrawChoice {
+  /** The share a preset pins the picture to, 1 for full size; none for the ladder. */
+  pinned?: number;
+  /** The smallest share the ladder may draw at. */
+  autoFloor: number;
+  /** A smaller picture brought up by FSR rather than a plain stretch. */
+  fsr: boolean;
+  smoothing: TSceneSmoothing;
+  /** The least time between frames; 0 for every refresh the monitor offers. */
+  paceMs: number;
+}
+
+const SMOOTHING_CODES: Record<TSceneSmoothing, number> = {
+  off: 0,
+  fast: 1,
+  best: 2,
+};
+
+const withChoice = (
+  writer: IMessageWriter,
+  choice: IMonitorDrawChoice,
+): IMessageWriter =>
+  writer
+    .f64(choice.pinned ?? -1)
+    .f64(choice.autoFloor)
+    .u32(choice.fsr ? 1 : 0)
+    .u32(SMOOTHING_CODES[choice.smoothing])
+    .f64(choice.paceMs);
+
+/** A window over `rect`, in physical pixels, its scenes drawn as `choice` says. */
 export const encodeMonitorOpen = (
   monitor: number,
   rect: IMonitorRect,
-  scale: number,
+  choice: IMonitorDrawChoice,
 ): Uint8Array =>
-  messageWriter(DESKTOP_HOST_KIND.open)
-    .u32(monitor)
-    .u32(asSigned32(rect.x))
-    .u32(asSigned32(rect.y))
-    .u32(rect.width)
-    .u32(rect.height)
-    .f64(scale)
-    .finish();
+  withChoice(
+    messageWriter(DESKTOP_HOST_KIND.open)
+      .u32(monitor)
+      .u32(asSigned32(rect.x))
+      .u32(asSigned32(rect.y))
+      .u32(rect.width)
+      .u32(rect.height),
+    choice,
+  ).finish();
 
+/**
+ * A scene for the monitor, and whether FluidEQ made it and measured it
+ * before release: drawn from full size then, climbed to otherwise.
+ */
 export const encodeMonitorShow = (
   monitor: number,
   id: number,
   scene: ISceneHostScene,
+  measured: boolean,
 ): Uint8Array =>
-  forMonitor(DESKTOP_HOST_KIND.show, monitor, encodeShow(id, [], scene));
+  messageWriter(DESKTOP_HOST_KIND.show)
+    .u32(monitor)
+    .u32(measured ? 1 : 0)
+    .raw(encodeShow(id, [], scene).subarray(HEADER_BYTES))
+    .finish();
 
 export const encodeMonitorDaylight = (
   monitor: number,
@@ -84,11 +129,14 @@ export const encodeMonitorDaylight = (
 ): Uint8Array =>
   forMonitor(DESKTOP_HOST_KIND.daylight, monitor, encodeDaylight(daylight));
 
-export const encodeMonitorScale = (
+export const encodeMonitorChoice = (
   monitor: number,
-  scale: number,
+  choice: IMonitorDrawChoice,
 ): Uint8Array =>
-  messageWriter(DESKTOP_HOST_KIND.scale).u32(monitor).f64(scale).finish();
+  withChoice(
+    messageWriter(DESKTOP_HOST_KIND.choice).u32(monitor),
+    choice,
+  ).finish();
 
 export const encodeMonitorPause = (
   monitor: number,

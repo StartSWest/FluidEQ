@@ -88,6 +88,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.desktop': 'Desktop-Visualizer',
   'app.processes.what.desktop':
     'Eine Szene als Desktophintergrund eines Monitors, getrennt von diesem Fenster: eine für jeden Monitor, der eine zeigt. Sie pausiert, solange Fenster diesen Monitor verdecken oder der PC gesperrt ist.',
+  'app.processes.name.desktopScenes': 'Desktop-Visualizer',
+  'app.processes.what.desktopScenes':
+    'Zeichnet die Szenen auf den Desktop-Hintergründen Ihrer Monitore, alle in einem Programm getrennt von diesem Fenster, und hört dafür, was dieser PC abspielt, damit sie sich auch bei geschlossenem Fenster bewegen. Ein Monitor ruht, solange Fenster ihn verdecken, und bei ausgeschalteten Bildschirmen wird nichts gezeichnet.',
   'app.processes.name.desktopHost': 'Desktop-Visualizer-Helfer',
   'app.processes.what.desktopHost':
     'Legt den Desktop-Visualizer dieses Monitors hinter die Symbole und meldet ihm, wenn Fenster den Bildschirm verdecken. Einer für jeden Monitor, der einen zeigt.',

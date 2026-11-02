@@ -93,7 +93,7 @@ export const needsPresent = (
   options: Omit<IPresentOptions, 'scissor'>,
 ): boolean => presentPlan(options).some((step) => step !== 'copy');
 
-const DOWNSAMPLE_SOURCE = `#version 300 es
+export const DOWNSAMPLE_SOURCE = `#version 300 es
 precision highp float;
 uniform sampler2D uInput;
 // Input texels per output pixel, each way.
@@ -131,7 +131,7 @@ void main() {
  * luma channel; the reference's texture reads are the sampler's own bilinear
  * ones, which the search relies on.
  */
-const FXAA_SOURCE = `#version 300 es
+export const FXAA_SOURCE = `#version 300 es
 precision highp float;
 uniform sampler2D uInput;
 uniform vec2 uRcpFrame;

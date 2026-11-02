@@ -538,6 +538,24 @@ Everything worth knowing about them is available through commands:
   `job:listening`), so today it never leaves: a job's hold goes only when
   the job has left Electron or says exactly when it runs — never before, or
   FluidEQ stops doing that job with no window open.
+- **A desktop background moving with the music is drawn by C++ where it can
+  be** (`FluidEQ-Scenes --mode desktop`, `nativeSurface.ts`): a thread and a
+  window per monitor, placed by the same desktop helper, with no hidden page.
+  Worlds (three.js) and the calm motion stay on the page (`drawnByDesktopHost`),
+  and a surface never takes the other kind's scene (`drawsAlike`). It draws
+  on the page's rules, held to the page's own code rather than to a copy of
+  it: the size ladders, pacing, rest in silence and draw sizes answer
+  `sceneSizingFixture.ts` frame by frame (`scene_sizing_parity_test.cpp`),
+  and FSR, FXAA and the supersample average are the page's own GLSL
+  (`scene_finish_sources.h`, from `sceneFinishHeader.ts`) — change any of
+  `sceneHealth.ts`, `sceneWarmup.ts`, `frameCadence.ts`, `framePace.ts`,
+  `sceneRest.ts`, `sceneDrawSizes.ts`, `scenePost.ts` or `sceneUpscale.ts`
+  and regenerate in the same commit. Frames are timed by Direct3D through
+  ANGLE's timer queries and paced on the monitor's own vertical blank
+  (`display_beat.h`), never on a clock; while Windows has the displays off
+  nothing is drawn. The host hears the output itself, so a background it
+  draws keeps neither the core listening nor the window loaded
+  (`screenNeedsSound`).
 - **Your bands have their own Band Q, apart from the layers' group**
   (`mainBandQ`, `getMainBandQ` in `eqMode.ts`): changing how your bands widen
   with gain reshapes neither a preset nor a correction. Absent, it falls back

@@ -87,7 +87,7 @@ export const easuConstants = (
   (0.5 * inputHeight) / outputHeight - 0.5,
 ];
 
-const EASU_SOURCE = `#version 300 es
+export const EASU_SOURCE = `#version 300 es
 precision highp float;
 precision highp int;
 uniform sampler2D uInput;
@@ -243,7 +243,7 @@ void main() {
 }
 `;
 
-const RCAS_SOURCE = `#version 300 es
+export const RCAS_SOURCE = `#version 300 es
 precision highp float;
 precision highp int;
 uniform sampler2D uInput;
