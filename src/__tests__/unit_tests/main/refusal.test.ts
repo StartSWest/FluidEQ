@@ -20,20 +20,18 @@ import { setTrayLocale } from 'main/tray';
  * as English sentences and relayed to the window as they were.
  */
 
-const noWindow = { getMainWindow: () => null };
-
 beforeAll(async () => {
   await loadLocale('de');
 });
 
 afterEach(() => {
-  setTrayLocale('en', noWindow);
+  setTrayLocale('en');
 });
 
 describe("main's own words", () => {
   it("are in the window's language, and English until it says one", () => {
     expect(mainText('files.title.importEq')).toBe(en['files.title.importEq']);
-    setTrayLocale('de', noWindow);
+    setTrayLocale('de');
     expect(mainText('files.title.importEq')).toBe(
       translate('de', 'files.title.importEq'),
     );
@@ -43,7 +41,7 @@ describe("main's own words", () => {
   });
 
   it('fill their numbers in', () => {
-    setTrayLocale('de', noWindow);
+    setTrayLocale('de');
     expect(mainText('eq.refused.bandLimit', { max: 64 })).toBe(
       translate('de', 'eq.refused.bandLimit', { max: 64 }),
     );
@@ -53,7 +51,7 @@ describe("main's own words", () => {
 
 describe('a refusal', () => {
   it('reaches the user in their language and the log in English', () => {
-    setTrayLocale('de', noWindow);
+    setTrayLocale('de');
     const refusal = new Refusal('files.wav.rate', {
       rate: 22050,
       rates: '44100, 48000',
@@ -67,7 +65,7 @@ describe('a refusal', () => {
   });
 
   it('is told apart from a fault, which reaches the user as the system worded it', () => {
-    setTrayLocale('de', noWindow);
+    setTrayLocale('de');
     expect(userMessageOf(new Error('EACCES: permission denied'))).toBe(
       'EACCES: permission denied',
     );
@@ -87,7 +85,7 @@ describe("the importer's refusals", () => {
   });
 
   it('say in German that a text file holds no EQ', () => {
-    setTrayLocale('de', noWindow);
+    setTrayLocale('de');
     const file = path.join(dir, 'notes.txt');
     fs.writeFileSync(file, 'not an equaliser at all');
     let caught: unknown;
@@ -101,7 +99,7 @@ describe("the importer's refusals", () => {
   });
 
   it('say in German that a file is not a WAV', () => {
-    setTrayLocale('de', noWindow);
+    setTrayLocale('de');
     const file = path.join(dir, 'impulse.wav');
     fs.writeFileSync(file, Buffer.from('this is not a RIFF file at all, no'));
     let caught: unknown;

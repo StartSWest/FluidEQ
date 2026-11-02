@@ -163,8 +163,7 @@ const createAppUpdates = ({
     nativeUpdatePrompt = createNativeUpdatePrompt({
       getMainWindow,
       installNow: installActiveUpdate,
-      setTrayUpdateReady: (isReady) =>
-        setTrayUpdateReady(isReady, { getMainWindow }),
+      setTrayUpdateReady,
       revealWindow: () => revealMainWindow(getMainWindow),
       translate: (key, params) => translate(getTrayLocale(), key, params),
       createNotification: ({ title, body }) =>
@@ -219,7 +218,7 @@ const createAppUpdates = ({
     // The tray asks before it offers anything. An updater that failed its
     // Authenticode or feed check leaves this false, and the menu then shows
     // only Open and Quit rather than an item whose click goes nowhere.
-    setTrayUpdatesEnabled(Boolean(activeAutoUpdater), { getMainWindow });
+    setTrayUpdatesEnabled(Boolean(activeAutoUpdater));
     // No events are wired here: the ones that check for updates are wired with
     // the window, and ask for `activeAutoUpdater` when they fire
     // (`comeBackSignals.ts`).

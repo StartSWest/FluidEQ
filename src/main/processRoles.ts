@@ -52,6 +52,11 @@ export type TProcessRole =
   /** Our library scan, forked for one scan and closed when it finishes. */
   | 'libraryScan'
   /**
+   * `FluidEQ-Tray.exe`: the notification-area icon and its menu, and the
+   * FluidEQ Engine's line to FluidEQ, for as long as FluidEQ runs.
+   */
+  | 'tray'
+  /**
    * `FluidEQ-Share.exe`: Share Audio's link to the other computers, and the
    * owner of the playback and capture helpers, from the first time Share
    * Audio or a second output is used until the app quits.
@@ -257,6 +262,7 @@ export const roleFor = (
  */
 export const EXECUTABLE_ROLES: Readonly<Record<string, TProcessRole>> = {
   'fluideq-wallpaper.exe': 'desktopHost',
+  'fluideq-tray.exe': 'tray',
   'fluideq-share.exe': 'shareLink',
   'fluideq-lan-capture.exe': 'shareCapture',
   'fluideq-listen.exe': 'listening',
@@ -311,6 +317,7 @@ const ROLE_ORDER: readonly TProcessRole[] = [
   'core',
   'engine',
   'systemEngine',
+  'tray',
   'lighting',
   'lampScene',
   'graphics',

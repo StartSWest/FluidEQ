@@ -17,7 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "link_error.h"
-#include "loop.h"
+#include "io.h"
 #include "runtime_parts.h"
 #include "share_ports.h"
 #include "share_runtime.h"

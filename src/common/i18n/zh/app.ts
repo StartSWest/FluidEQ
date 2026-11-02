@@ -99,6 +99,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.sharePlayback': '共享音频播放',
   'app.processes.what.sharePlayback':
     '播放另一个 FluidEQ 共享给这台电脑的声音，并启动音频采集，确保这台电脑发出的声音中绝不会带回那个声音。只在其中之一使用时运行。',
+  'app.processes.name.tray': '通知区域图标',
+  'app.processes.what.tray':
+    '在时钟旁显示 FluidEQ 的图标及其菜单，并告诉 FluidEQ Engine FluidEQ 正在运行；即使 FluidEQ 意外结束，均衡器也会从每个输出上移除。在 FluidEQ 运行期间一直运行。',
   'app.processes.name.shareLink': '共享音频连接',
   'app.processes.what.shareLink':
     '查找与你共享声音的其他电脑，与它们配对，并加密地双向传送声音。在第一次使用共享音频或第二输出时启动，一直运行到 FluidEQ 关闭。',

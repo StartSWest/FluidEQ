@@ -19,6 +19,11 @@ it under the terms of the GNU General Public License version 3 or later.
  * until FluidEQ is back.
  *
  * Nothing is sent either way. The connection existing is the whole message.
+ *
+ * On Windows FluidEQ-Tray serves it (`nativeTray/`): it outlives a main that
+ * crashed or was ended long enough to take the EQ off every output, which
+ * this process cannot do for itself. This is where it is served when that
+ * program cannot run.
  */
 
 import fs from 'fs';
@@ -72,6 +77,31 @@ const wakeEngine = (configDir: string): void => {
 };
 
 /**
+ * Once the pipe is served, by main or by FluidEQ-Tray (`nativeTray/`): the
+ * engine's folder swept of what an earlier run left half-written, and the
+ * marker that makes the engine look for the pipe again.
+ */
+export const announceEngineOwner = (
+  configDir: string = getFluidEngineConfigDir(),
+): void => {
+  // Once per launch, and not waited for: temporary files an earlier run
+  // was killed in the middle of writing collect in the engine's folder —
+  // twenty-five of them in a week on one machine — and the engine opens
+  // what is in that folder every time anything there changes.
+  sweepAbandonedWrites(configDir)
+    .then((swept) => {
+      if (swept > 0) {
+        log.info(
+          `Swept ${swept} unfinished engine write(s) left by an earlier run.`,
+        );
+      }
+      return swept;
+    })
+    .catch(() => undefined);
+  wakeEngine(configDir);
+};
+
+/**
  * Serve the pipe; resolve once it is being served.
  *
  * Awaited before the window is made, and so before anything writes an engine
@@ -114,21 +144,7 @@ export const startEngineOwnerPipe = (
       settle(NOTHING_TO_CLOSE);
     });
     server.listen(pipePath, () => {
-      // Once per launch, and not waited for: temporary files an earlier run
-      // was killed in the middle of writing collect in the engine's folder —
-      // twenty-five of them in a week on one machine — and the engine opens
-      // what is in that folder every time anything there changes.
-      sweepAbandonedWrites(configDir)
-        .then((swept) => {
-          if (swept > 0) {
-            log.info(
-              `Swept ${swept} unfinished engine write(s) left by an earlier run.`,
-            );
-          }
-          return swept;
-        })
-        .catch(() => undefined);
-      wakeEngine(configDir);
+      announceEngineOwner(configDir);
       settle({ close: () => closeServer(server) });
     });
   });

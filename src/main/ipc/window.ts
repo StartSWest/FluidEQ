@@ -131,7 +131,7 @@ export const registerWindowIpc = ({
       log.warn(`Could not load the ${locale} dictionary for the tray`, error);
     });
     if (ask === localeAsks) {
-      setTrayLocale(locale, { getMainWindow });
+      setTrayLocale(locale);
     }
   });
 

@@ -19,7 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <string>
 #include <utility>
 
-#include "loop.h"
+#include "io.h"
 
 namespace feq::share::service {
 

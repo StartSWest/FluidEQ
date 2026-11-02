@@ -16,7 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "audio_helper.h"
 #include "fluideq/share/crypto.h"
 #include "link_error.h"
-#include "pipes.h"
+#include "io.h"
 
 namespace feq::share::service {
 namespace {

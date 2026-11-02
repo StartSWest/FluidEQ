@@ -18,12 +18,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import fs from 'fs';
 import path from 'path';
-import { app, BrowserWindow, Menu, nativeImage, Tray } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import log from 'electron-log';
-import { PRODUCT_NAME } from '../common/branding';
-import { DEFAULT_LOCALE, LocaleCode, translate } from '../common/i18n';
-import { sandboxProductName } from './devSandbox';
-import type { ITaskbarIconImage } from '../common/taskbarIcon';
+import { DEFAULT_LOCALE, LocaleCode } from '../common/i18n';
+import { createElectronTraySurface } from './trayElectron';
+import { trayMenuEntries, trayTooltip } from './trayMenu';
+import type {
+  ITraySurface,
+  ITrayTintedIcon,
+  TTrayAction,
+  TTraySurfaceFactory,
+} from './trayView';
 
 /**
  * The notification-area icon, and the window closing into it.
@@ -38,18 +43,18 @@ import type { ITaskbarIconImage } from '../common/taskbarIcon';
  * So the close button hides, and this is where the app goes when it does.
  * Quitting is still one click away — the tray menu has it — and it is now a
  * deliberate one rather than the thing that happens by default.
+ *
+ * This decides what the tray shows and what a press does; a surface draws it
+ * (`trayView.ts`): FluidEQ-Tray where it runs, Electron's own tray elsewhere.
  */
 
 /**
- * Held at module scope because the tray dies with its last reference.
- *
- * `new Tray()` returns an object whose icon disappears from the notification
- * area the moment it is collected, and a local inside a setup function is
- * collectable as soon as that function returns. This is the documented shape
- * of the bug and it presents as "the tray icon vanishes after a while", which
- * looks like a Windows problem and is not.
+ * Held at module scope because the tray dies with its last reference: an
+ * Electron `Tray` whose object is collected takes its icon with it, which
+ * presents as "the tray icon vanishes after a while" and looks like a
+ * Windows problem when it is not.
  */
-let tray: Tray | null = null;
+let surface: ITraySurface | undefined;
 
 /**
  * Whether a quit is genuinely under way.
@@ -78,7 +83,7 @@ let locale: LocaleCode = DEFAULT_LOCALE;
 let isUpdateReady = false;
 
 /**
- * The two update actions the tray offers, captured once at setup.
+ * The update actions the tray offers, captured once at setup.
  *
  * Held at module scope rather than passed on every menu rebuild, because a
  * language change and a "check now" click both rebuild the menu and neither
@@ -100,6 +105,9 @@ let updateActions: {
  * the icon, its menu and the update notifications — builds it the same way.
  */
 let buildWindow: (() => void) | undefined;
+
+/** What `setUpTray` was handed, for the presses that bring the window back. */
+let windowOf: () => BrowserWindow | null = () => null;
 
 /**
  * Whether this build can actually update itself.
@@ -125,76 +133,8 @@ let areUpdatesEnabled = false;
  */
 let trayIcons: { plain: string; update: string } | null = null;
 
-/** What a Windows menu asks for at 100%; the 2x representation covers 200%. */
-const MENU_ICON_PX = 16;
-
-/**
- * The same two marks again, sized for the menu itself.
- *
- * NativeImages rather than paths, because a menu icon has to carry both
- * scalings: Windows asks for these in device pixels, and a lone 16px bitmap
- * on the 150% display most laptops run gets scaled up by the shell into the
- * same resampled smudge the multi-resolution .ico exists to avoid. Null when
- * the assets cannot be read — see `loadMenuIcon`.
- */
-let menuIcons: {
-  plain: Electron.NativeImage;
-  update: Electron.NativeImage;
-} | null = null;
-
-/**
- * A menu-sized mark from `base`, with `retina` as its 2x representation.
- *
- * Null rather than an empty image when the asset is unreadable: Electron
- * accepts an empty NativeImage on a menu item without complaint, and it
- * reserves the icon gutter and paints nothing into it — an item that looks
- * like its icon failed to load rather than one that never had one.
- */
-const loadMenuIcon = (
-  base: string,
-  retina: string,
-): Electron.NativeImage | null => {
-  const source = nativeImage.createFromPath(base);
-  if (source.isEmpty()) {
-    return null;
-  }
-  const icon = source.resize({
-    width: MENU_ICON_PX,
-    height: MENU_ICON_PX,
-    quality: 'best',
-  });
-  const large = nativeImage.createFromPath(retina);
-  if (!large.isEmpty()) {
-    icon.addRepresentation({
-      scaleFactor: 2,
-      buffer: large
-        .resize({
-          width: MENU_ICON_PX * 2,
-          height: MENU_ICON_PX * 2,
-          quality: 'best',
-        })
-        .toPNG(),
-    });
-  }
-  return icon;
-};
-
-/**
- * Put the right mark in the notification area for the current state.
- *
- * THE ONLY PART OF THIS THE USER SEES WITHOUT DOING ANYTHING. The tooltip
- * needs a hover and the menu item needs a right-click, so before this the
- * whole "an update is waiting" state was invisible to somebody glancing at
- * their taskbar — and the toast that announced it is gone within seconds.
- */
-const applyTrayIcon = () => {
-  if (!tray || tray.isDestroyed() || !trayIcons) {
-    return;
-  }
-  tray.setImage(
-    isUpdateReady ? trayIcons.update : (tintedIcon ?? trayIcons.plain),
-  );
-};
+/** Where the shipped icons are, for a surface built after setup. */
+let assetsPath = '';
 
 /**
  * The taskbar button's icon drawn in the window's colours, the same .ico
@@ -203,93 +143,7 @@ const applyTrayIcon = () => {
  * The update badge still wins: that mark is the only sign in the tray that
  * an update is waiting, and it exists as the installed icon alone.
  */
-let tintedIcon: string | undefined;
-
-/**
- * The same drawing for the menu the tray opens, whose "Open FluidEQ" item
- * kept the installed mark while the tray above it wore the drawn one (Ivan,
- * 2026-10-26: "in the systry the icon is now tinet but not inside th emenu
- * that opens"). Null while the switch is off.
- */
-let tintedMenuIcon: Electron.NativeImage | null = null;
-
-/** What `setUpTray` was handed, so a change of icon can rebuild the menu. */
-let menuWindow: (() => BrowserWindow | null) | null = null;
-
-/** The display scales a menu icon carries a drawing for, by its size. */
-const MENU_ICON_SCALES = [1, 1.25, 1.5, 2] as const;
-
-/**
- * One drawing as Chromium holds a bitmap: BGRA with each colour already
- * multiplied by its alpha, which is what `createFromBitmap` reads. The
- * drawings are straight RGBA (`ITaskbarIconImage`); read as they are, red and
- * blue would trade places and every soft edge would carry a light fringe.
- */
-const nativeBitmap = ({ rgba }: ITaskbarIconImage): Buffer => {
-  const out = Buffer.alloc(rgba.length);
-  for (let at = 0; at < rgba.length; at += 4) {
-    const alpha = rgba[at + 3];
-    out[at] = Math.round((rgba[at + 2] * alpha) / 255);
-    out[at + 1] = Math.round((rgba[at + 1] * alpha) / 255);
-    out[at + 2] = Math.round((rgba[at] * alpha) / 255);
-    out[at + 3] = alpha;
-  }
-  return out;
-};
-
-/**
- * The menu's icon from the drawings themselves, one per display scale the
- * menu is drawn at, exactly as the .ico holds them: never one bitmap the
- * shell resamples, the smudge `loadMenuIcon` exists to avoid. Null without
- * the 16px drawing the menu asks for at 100%.
- */
-export const menuIconFromDrawings = (
-  drawings: readonly ITaskbarIconImage[],
-): Electron.NativeImage | null => {
-  const drawingAt = (scale: number) =>
-    drawings.find(({ size }) => size === MENU_ICON_PX * scale);
-  const base = drawingAt(1);
-  if (!base) {
-    return null;
-  }
-  const icon = nativeImage.createFromBitmap(nativeBitmap(base), {
-    width: base.size,
-    height: base.size,
-  });
-  MENU_ICON_SCALES.slice(1).forEach((scaleFactor) => {
-    const drawing = drawingAt(scaleFactor);
-    if (drawing) {
-      icon.addRepresentation({
-        scaleFactor,
-        buffer: nativeImage
-          .createFromBitmap(nativeBitmap(drawing), {
-            width: drawing.size,
-            height: drawing.size,
-          })
-          .toPNG(),
-      });
-    }
-  });
-  return icon;
-};
-
-export interface ITrayTintedIcon {
-  /** The drawn .ico, every size, for the notification area. */
-  file: string;
-  /** The drawings in it, for the menu's icon. */
-  drawings: readonly ITaskbarIconImage[];
-}
-
-export const setTrayTintedIcon = (icon: ITrayTintedIcon | undefined) => {
-  tintedIcon = icon?.file;
-  tintedMenuIcon = icon ? menuIconFromDrawings(icon.drawings) : null;
-  applyTrayIcon();
-  // The menu is built once and handed to the tray, so it follows a colour
-  // change only by being built again, as the image above does by being set.
-  if (tray && !tray.isDestroyed() && menuWindow) {
-    tray.setContextMenu(buildMenu(menuWindow));
-  }
-};
+let tintedIcon: ITrayTintedIcon | undefined;
 
 /** Read by the window's `close` handler; see the note on the flag. */
 export const isAppQuitting = () => isQuitting;
@@ -346,6 +200,11 @@ export interface ITrayDeps {
   onRecoverWindow?: () => void;
   /** Builds a window when there is none: one let go in the tray. */
   onWindowMissing?: () => void;
+  /**
+   * FluidEQ-Tray, where it runs (`nativeTray/`); Electron's own tray draws
+   * the same thing wherever it does not.
+   */
+  nativeSurface?: TTraySurfaceFactory;
 }
 
 const revealWindow = (getMainWindow: () => BrowserWindow | null) => {
@@ -369,98 +228,71 @@ const revealWindow = (getMainWindow: () => BrowserWindow | null) => {
 /**
  * Bring the window back, from anywhere in the main process.
  *
- * The tray's own click handlers use the local `revealWindow`; this is the
- * same act exposed for the update notifications, whose whole premise is that
- * there may be no window on screen to talk to.
+ * The tray's own presses go through `press`; this is the same act exposed
+ * for the update notifications, whose whole premise is that there may be no
+ * window on screen to talk to.
  */
 export const revealMainWindow = (getMainWindow: () => BrowserWindow | null) => {
   revealWindow(getMainWindow);
 };
 
-const buildMenu = (getMainWindow: () => BrowserWindow | null) => {
-  const { onInstallUpdate, onCheckForUpdates, onRecoverWindow } = updateActions;
-  const template: Electron.MenuItemConstructorOptions[] = [];
-
-  // AT THE TOP WHEN THERE IS AN UPDATE TO INSTALL. Position carries the
-  // emphasis: Electron's menu template has no weight or colour for a default
-  // item on Windows, so first-with-a-separator-under-it is what makes it read
-  // as the thing to press, and the mark beside it is the badged one the
-  // notification area is already showing. The whole point of raising the tray
-  // badge is to draw the eye here, and burying the action underneath Open
-  // would waste the notification that got the user to this menu.
-  if (areUpdatesEnabled && isUpdateReady && onInstallUpdate) {
-    template.push({
-      label: translate(locale, 'app.tray.installUpdate'),
-      icon: menuIcons?.update,
-      click: () => onInstallUpdate(),
-    });
-    template.push({ type: 'separator' });
-  }
-
-  // The only two items that stand for the app itself get its mark. Quit and
-  // "check for updates" are left bare on purpose: there is no drawn glyph for
-  // either in this project, and a made-up one would be the first piece of
-  // iconography in the app that nothing else uses.
-  template.push({
-    label: translate(locale, 'app.tray.open', {
-      product: sandboxProductName(PRODUCT_NAME),
-    }),
-    // The tray's own mark, drawn or installed, so the menu matches the icon
-    // it opened from.
-    icon: tintedMenuIcon ?? menuIcons?.plain,
-    click: () => revealWindow(getMainWindow),
-  });
-
-  // THE WAY BACK FROM A WINDOW NOBODY CAN REACH. Open brings the window
-  // forward as it is, which is no help when "as it is" is a player three
-  // quarters of the way off the side of the screen, one left on a display
-  // that has since been unplugged, or one whose own controls cannot be got
-  // at. This is the full app, in the middle of the screen, and it is in the
-  // tray because the tray is the only surface left when the window is the
-  // problem (Ivan, 2026-09-22).
-  if (onRecoverWindow) {
-    template.push({
-      label: translate(locale, 'app.tray.recoverWindow'),
-      click: () => {
-        revealWindow(getMainWindow);
-        onRecoverWindow();
-      },
-    });
-  }
-
-  if (areUpdatesEnabled && onCheckForUpdates && !isUpdateReady) {
-    // Only when there is not one already staged. With "Install update and
-    // restart" already at the top, offering a check as well reads as "did
-    // you mean this or that" for the same subject; picking it would also
-    // discard the download that is ready to go.
-    template.push({
-      label: translate(locale, 'app.tray.checkForUpdates'),
-      click: () => onCheckForUpdates(),
-    });
-  }
-
-  // No separator above Quit. Grouping is what a separator is for, and with
-  // two or three items there are no groups to divide — it only added a rule
-  // across a menu short enough to read in one glance.
-  template.push({
-    label: translate(locale, 'app.tray.quit', {
-      product: sandboxProductName(PRODUCT_NAME),
-    }),
-    click: () => {
+/** What a press on the icon or one of its items does. */
+const press = (action: TTrayAction) => {
+  switch (action) {
+    case 'open':
+      revealWindow(windowOf);
+      break;
+    case 'recover-window':
+      revealWindow(windowOf);
+      updateActions.onRecoverWindow?.();
+      break;
+    case 'install-update':
+      updateActions.onInstallUpdate?.();
+      break;
+    case 'check-updates':
+      updateActions.onCheckForUpdates?.();
+      break;
+    case 'quit':
       beginQuit();
       app.quit();
-    },
-  });
-
-  return Menu.buildFromTemplate(template);
+      break;
+    default:
+      break;
+  }
 };
 
-const currentTooltip = () =>
-  translate(
-    locale,
-    isUpdateReady ? 'app.tray.tooltip.updateReady' : 'app.tray.tooltip',
-    { product: sandboxProductName(PRODUCT_NAME) },
-  );
+/** The surface shown what the tray is now; nothing before setup. */
+const render = () => {
+  if (!surface || !trayIcons) {
+    return;
+  }
+  surface.show({
+    icon: isUpdateReady
+      ? trayIcons.update
+      : (tintedIcon?.file ?? trayIcons.plain),
+    tooltip: trayTooltip({ locale, updateReady: isUpdateReady }),
+    menu: trayMenuEntries({
+      locale,
+      updatesEnabled: areUpdatesEnabled,
+      updateReady: isUpdateReady,
+      can: {
+        installUpdate: Boolean(updateActions.onInstallUpdate),
+        checkForUpdates: Boolean(updateActions.onCheckForUpdates),
+        recoverWindow: Boolean(updateActions.onRecoverWindow),
+      },
+    }),
+    marks: {
+      plain: trayIcons.plain,
+      update: trayIcons.update,
+      tinted: tintedIcon,
+    },
+  });
+};
+
+export const setTrayTintedIcon = (icon: ITrayTintedIcon | undefined) => {
+  tintedIcon = icon;
+  render();
+};
 
 /**
  * Rebuild the menu in the language the window is using.
@@ -471,16 +303,9 @@ const currentTooltip = () =>
  * changes it, so the tray never sits in a language the rest of the app has
  * left behind.
  */
-export const setTrayLocale = (
-  next: LocaleCode,
-  { getMainWindow }: Pick<ITrayDeps, 'getMainWindow'>,
-) => {
+export const setTrayLocale = (next: LocaleCode) => {
   locale = next;
-  if (!tray || tray.isDestroyed()) {
-    return;
-  }
-  tray.setToolTip(currentTooltip());
-  tray.setContextMenu(buildMenu(getMainWindow));
+  render();
 };
 
 /**
@@ -491,18 +316,12 @@ export const setTrayLocale = (
  * assuming it can be read at setup. Until it is called, and forever in a
  * build that cannot update, the tray offers only Open and Quit.
  */
-export const setTrayUpdatesEnabled = (
-  next: boolean,
-  { getMainWindow }: Pick<ITrayDeps, 'getMainWindow'>,
-) => {
+export const setTrayUpdatesEnabled = (next: boolean) => {
   if (areUpdatesEnabled === next) {
     return;
   }
   areUpdatesEnabled = next;
-  if (!tray || tray.isDestroyed()) {
-    return;
-  }
-  tray.setContextMenu(buildMenu(getMainWindow));
+  render();
 };
 
 /**
@@ -513,20 +332,30 @@ export const setTrayUpdatesEnabled = (
  * "install update and restart" item without having to close and reopen it.
  * A no-op when the tray has failed to initialize — nothing to update.
  */
-export const setTrayUpdateReady = (
-  next: boolean,
-  { getMainWindow }: Pick<ITrayDeps, 'getMainWindow'>,
-) => {
+export const setTrayUpdateReady = (next: boolean) => {
   if (isUpdateReady === next) {
     return;
   }
   isUpdateReady = next;
-  if (!tray || tray.isDestroyed()) {
+  render();
+};
+
+/**
+ * Electron's tray in place of the one that drew until now: FluidEQ-Tray
+ * ended while FluidEQ runs (`nativeTray/`), and the icon must not go with it.
+ */
+export const fallBackToElectronTray = () => {
+  if (!trayIcons) {
     return;
   }
-  applyTrayIcon();
-  tray.setToolTip(currentTooltip());
-  tray.setContextMenu(buildMenu(getMainWindow));
+  surface?.destroy();
+  surface = createElectronTraySurface(assetsPath, trayIcons.plain, press);
+  if (!surface) {
+    // As at setup: with nowhere to hide the window, closing it closes FluidEQ.
+    isQuitting = true;
+    return;
+  }
+  render();
 };
 
 export const setUpTray = (deps: ITrayDeps) => {
@@ -536,15 +365,16 @@ export const setUpTray = (deps: ITrayDeps) => {
     onCheckForUpdates,
     onRecoverWindow,
     onWindowMissing,
+    nativeSurface,
   } = deps;
   updateActions = { onInstallUpdate, onCheckForUpdates, onRecoverWindow };
   buildWindow = onWindowMissing;
-  menuWindow = getMainWindow;
-  if (tray) {
+  windowOf = getMainWindow;
+  if (surface) {
     return;
   }
 
-  const assetsPath = app.isPackaged
+  assetsPath = app.isPackaged
     ? path.join(process.resourcesPath, 'assets')
     : path.join(__dirname, '../../assets');
 
@@ -560,11 +390,11 @@ export const setUpTray = (deps: ITrayDeps) => {
 
   // The same mark with the update dot on it, built by
   // .erb/scripts/make-tray-badge-icon.ts. Resolved once here rather than at
-  // each swap, and only if it is really on disk: `setImage` with a path
-  // Electron cannot read does not throw, it sets an empty image — so a
-  // missing asset would make the tray icon disappear entirely, which is a
-  // great deal worse than not having a badge. Windows only, because the
-  // generator emits an .ico and nothing else needs one.
+  // each swap, and only if it is really on disk: an icon path that cannot be
+  // read sets an empty image rather than throwing — so a missing asset would
+  // make the tray icon disappear entirely, which is a great deal worse than
+  // not having a badge. Windows only, because the generator emits an .ico
+  // and nothing else needs one.
   const badgedPath = path.join(assetsPath, 'icon-update.ico');
   trayIcons = {
     plain: iconPath,
@@ -579,31 +409,14 @@ export const setUpTray = (deps: ITrayDeps) => {
     );
   }
 
-  // The drawn 16px art rather than the app icon resampled down to it, for the
-  // reason the tray takes the .ico: 16px is where a mark either survives or
-  // turns to mush, and assets/icons holds a frame drawn at exactly that size.
-  // Falling back to the tray's own icon keeps the item iconless-but-working
-  // rather than gutter-with-a-hole if that directory ever stops shipping.
-  const plainMenuIcon =
-    loadMenuIcon(
-      path.join(assetsPath, 'icons', '16x16.png'),
-      path.join(assetsPath, 'icons', '32x32.png'),
-    ) ?? loadMenuIcon(iconPath, iconPath);
-  // Same source as the notification area is showing, badge and all, so the
-  // menu that opens off a badged icon is not wearing the plain one.
-  const updateMenuIcon = loadMenuIcon(trayIcons.update, trayIcons.update);
-  menuIcons = plainMenuIcon
-    ? { plain: plainMenuIcon, update: updateMenuIcon ?? plainMenuIcon }
-    : null;
-
-  try {
-    tray = new Tray(iconPath);
-  } catch (error) {
+  surface =
+    nativeSurface?.(press) ??
+    createElectronTraySurface(assetsPath, iconPath, press);
+  if (!surface) {
     // A missing or unreadable icon must not take the app down with it. Without
     // a tray the close button has nowhere to hide the window, which is why
     // `isAppQuitting` reports true from here on: the window goes back to
     // closing for real rather than vanishing with no way to bring it back.
-    log.error(`Could not create the ${PRODUCT_NAME} tray icon`, error);
     isQuitting = true;
     return;
   }
@@ -611,28 +424,11 @@ export const setUpTray = (deps: ITrayDeps) => {
   // Before the first paint, because a download can finish before the tray
   // is built — setUpTray runs after createMainWindow resolves, and the
   // updater starts inside it.
-  applyTrayIcon();
-  tray.setToolTip(currentTooltip());
-  tray.setContextMenu(buildMenu(getMainWindow));
-
-  // Windows convention: left click opens the thing, right click opens the menu
-  // (which Electron wires to the context menu by itself). On macOS a left
-  // click opens the menu instead, so this only ever fires where it is wanted.
-  tray.on('click', () => revealWindow(getMainWindow));
-  // Double click is the older Windows habit and still what a lot of people do.
-  tray.on('double-click', () => revealWindow(getMainWindow));
+  render();
 };
 
-/**
- * Let the icon go on the way out.
- *
- * Windows keeps a dead tray icon on screen until something makes it repaint,
- * so a process that exits without this leaves a ghost the user can click on
- * and get nothing from.
- */
+/** Let the icon go on the way out. */
 export const destroyTray = () => {
-  if (tray && !tray.isDestroyed()) {
-    tray.destroy();
-  }
-  tray = null;
+  surface?.destroy();
+  surface = undefined;
 };

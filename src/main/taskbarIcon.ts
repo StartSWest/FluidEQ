@@ -17,7 +17,7 @@ import {
   TASKBAR_ICON_SIZES,
   type TTaskbarIconRequest,
 } from '../common/taskbarIcon';
-import type { ITrayTintedIcon } from './tray';
+import type { ITrayTintedIcon } from './trayView';
 
 /**
  * THE TASKBAR BUTTON IN THE WINDOW'S COLOURS (Ivan, 2026-10-26: "change the

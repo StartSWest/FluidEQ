@@ -1,0 +1,48 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/*
+ * What Windows shows for the tray: its name in Task Manager and in the
+ * notification-area settings, where a program is listed by its description
+ * and its icon when somebody chooses which icons stay on the taskbar.
+ */
+
+#include <winver.h>
+
+#ifndef FEQ_TRAY_VERSION_STRING
+#define FEQ_TRAY_VERSION_STRING "0.0.0"
+#endif
+
+1 ICON "../../../assets/icon.ico"
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION 1, 0, 0, 0
+PRODUCTVERSION 1, 0, 0, 0
+FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+FILEFLAGS 0
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "Ivan Carmenates Garcia"
+      VALUE "FileDescription", "FluidEQ"
+      VALUE "FileVersion", FEQ_TRAY_VERSION_STRING
+      VALUE "InternalName", "FluidEQ-Tray"
+      VALUE "LegalCopyright", "Copyright (C) 2026 Ivan Carmenates Garcia. GPL-3.0-or-later."
+      VALUE "OriginalFilename", "FluidEQ-Tray.exe"
+      VALUE "ProductName", "FluidEQ"
+      VALUE "ProductVersion", FEQ_TRAY_VERSION_STRING
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

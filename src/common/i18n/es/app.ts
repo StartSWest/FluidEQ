@@ -100,6 +100,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.sharePlayback': 'Reproducción del audio compartido',
   'app.processes.what.sharePlayback':
     'Reproduce el sonido que otro FluidEQ comparte con este PC y arranca las capturas de audio, para que lo que envía este PC nunca devuelva ese sonido. Solo funciona mientras alguno de ellos está en uso.',
+  'app.processes.name.tray': 'Icono de la bandeja',
+  'app.processes.what.tray':
+    'Muestra el icono de FluidEQ junto al reloj y su menú, y le dice al FluidEQ Engine que FluidEQ está en marcha, para que, si FluidEQ se cierra de forma inesperada, el ecualizador se quite de todas las salidas. Funciona mientras FluidEQ funciona.',
   'app.processes.name.shareLink': 'Enlace para compartir audio',
   'app.processes.what.shareLink':
     'Encuentra los otros ordenadores con los que compartes sonido, se empareja con ellos y lleva el sonido en ambos sentidos, cifrado. Arranca la primera vez que se usa Compartir audio o una segunda salida, y funciona hasta que FluidEQ se cierra.',

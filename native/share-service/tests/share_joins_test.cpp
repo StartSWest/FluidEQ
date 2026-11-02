@@ -22,7 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/share/discovery.h"
 #include "fluideq/share/lan_protocol.h"
 #include "lan_joins.h"
-#include "loop.h"
+#include "io.h"
 #include "service_log.h"
 
 namespace {

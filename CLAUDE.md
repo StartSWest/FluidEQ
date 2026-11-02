@@ -396,10 +396,16 @@ Everything worth knowing about them is available through commands:
   the rack, which the DSP page alone would only send once it was opened. The
   uninstaller does the same to both engines' roots (`NeutraliseEngineConfigs`).
   End task, a crash or a power cut run none of that, so the FluidEQ Engine
-  also refuses to apply anything unless FluidEQ is alive: the app serves
-  `\\.\pipe\FluidEQ-Engine-Owner` from startup (`engineOwnerPipe.ts`, awaited
-  before the window exists) and the DLL holds one connection to it per
-  process (`owner_link.h`); the pipe breaking is the signal, no heartbeat.
+  also refuses to apply anything unless FluidEQ is alive: FluidEQ-Tray serves
+  `\\.\pipe\FluidEQ-Engine-Owner` from startup (`native/tray-host`, started
+  by `nativeTray/` and awaited before the window exists; main serves it
+  itself through `engineOwnerPipe.ts` only where that program cannot run)
+  and the DLL holds one connection to it per process (`owner_link.h`); the
+  pipe breaking is the signal, no heartbeat. When main's own line to the tray
+  ends without main's quit — a crash, End task — the tray carries out that
+  quit for it, from the recipe main keeps it told of (`quitRecipe`, held to
+  `removedOnQuit` by `engineQuitReset.test.ts`), so Equalizer APO's outputs
+  lose the EQ too.
   The engine only looks for the pipe again when its config folder changes,
   which is why the app writes `fluideq-owner.txt` there once it is serving.
   Every DLL test serves that pipe (`OwnerPipe` in `dll_test_support.h`) — a
@@ -501,9 +507,24 @@ Everything worth knowing about them is available through commands:
   (`share_main_wire_test.cpp`), and the two links to each other live
   (`smoke-share-service.ts`, in `test:native-dsp`): change the link in one
   and change it in the other, in the same commit. The service is one I/O
-  completion port (`loop.h`) and nothing in it waits on a clock. Its first
-  listen raises Windows' firewall question for `FluidEQ-Share.exe`, which
-  its version resource names "FluidEQ Share Audio".
+  completion port (`native/io`, `loop.h`) and nothing in it waits on a
+  clock. Its first listen raises Windows' firewall question for
+  `FluidEQ-Share.exe`, which its version resource names "FluidEQ Share
+  Audio".
+- **The tray is `FluidEQ-Tray.exe` on Windows, and Electron's `Tray` where
+  that cannot run.** `tray.ts` decides the icon, the tooltip and the menu
+  (`trayView.ts`) and a surface draws it: the C++ program
+  (`native/tray-host`, over `native/io`) or `trayElectron.ts`, which also
+  takes over if the program ends while FluidEQ runs (`nativeTrayLost` in
+  main, which writes the sound back too: a tray that loses main's line takes
+  the EQ off). One tray per data folder — its key is a hash of userData — so
+  the installed app, `pnpm dev` and a sandbox never share one; a second start
+  waits on the first's ready event, says `ready` for it and ends. It is
+  spawned detached on purpose: in libuv's job it would die with main, and
+  main ending is the moment it exists for. Its menu follows Windows' dark
+  mode through uxtheme's unnamed exports 135 and 136, as Electron's did; a
+  new menu item is a new `TTrayAction`, read on both sides
+  (`readTrayHostLine`, and the id the tray sends back is whatever main named).
 - **Your bands have their own Band Q, apart from the layers' group**
   (`mainBandQ`, `getMainBandQ` in `eqMode.ts`): changing how your bands widen
   with gain reshapes neither a preset nor a correction. Absent, it falls back

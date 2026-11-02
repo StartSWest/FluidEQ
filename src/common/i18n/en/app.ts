@@ -97,6 +97,9 @@ const app = {
   'app.processes.name.sharePlayback': 'Shared audio playback',
   'app.processes.what.sharePlayback':
     'Plays the sound another FluidEQ shares with this PC, and starts the audio captures, so what this PC sends never carries that sound back. Runs only while one of them is in use.',
+  'app.processes.name.tray': 'Tray icon',
+  'app.processes.what.tray':
+    'Draws FluidEQ’s icon beside the clock and its menu, and tells the FluidEQ Engine that FluidEQ is running, so if FluidEQ ever ends unexpectedly the equalizer comes off every output. Runs while FluidEQ runs.',
   'app.processes.name.shareLink': 'Share Audio link',
   'app.processes.what.shareLink':
     'Finds the other computers you share sound with, pairs with them and carries the sound both ways, encrypted. Starts the first time Share Audio or a second output is used, and runs until FluidEQ closes.',

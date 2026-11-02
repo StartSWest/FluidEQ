@@ -32,8 +32,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <variant>
 #include <vector>
 
-#include "emitter.h"
-#include "loop.h"
+#include "io.h"
+#include "io.h"
 #include "tcp.h"
 #include "ws_frames.h"
 

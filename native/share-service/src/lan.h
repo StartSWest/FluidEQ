@@ -31,7 +31,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "lan_group.h"
 #include "lan_joins.h"
 #include "lan_transport.h"
-#include "loop.h"
+#include "io.h"
 #include "share_ports.h"
 #include "udp.h"
 #include "websocket.h"

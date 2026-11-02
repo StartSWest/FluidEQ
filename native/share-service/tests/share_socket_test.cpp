@@ -18,7 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <string>
 #include <vector>
 
-#include "loop.h"
+#include "io.h"
 #include "tcp.h"
 #include "websocket.h"
 #include "ws_frames.h"

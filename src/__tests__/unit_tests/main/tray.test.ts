@@ -25,6 +25,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * badge, does a missing asset degrade instead of blanking the icon.
  */
 import type { BrowserWindow } from 'electron';
+import type {
+  ITrayView,
+  TTrayAction,
+  TTraySurfaceFactory,
+} from '../../../main/trayView';
 
 interface IMenuItem {
   label?: string;
@@ -153,7 +158,7 @@ const loadTray = (options?: { withBadgeAsset?: boolean }): TrayModule => {
  */
 const setUpWorkingTray = (tray: TrayModule) => {
   tray.setUpTray(deps);
-  tray.setTrayUpdatesEnabled(true, deps);
+  tray.setTrayUpdatesEnabled(true);
 };
 
 const deps = {
@@ -190,7 +195,7 @@ describe('the tray icon and what it advertises', () => {
     const tray = loadTray();
     setUpWorkingTray(tray);
 
-    tray.setTrayUpdateReady(true, deps);
+    tray.setTrayUpdateReady(true);
 
     // THE POINT OF THE WHOLE CHANGE: something visible without hovering or
     // right-clicking, because the toast is gone within seconds.
@@ -204,9 +209,9 @@ describe('the tray icon and what it advertises', () => {
   it('goes back to the plain mark when the update stops being ready', () => {
     const tray = loadTray();
     setUpWorkingTray(tray);
-    tray.setTrayUpdateReady(true, deps);
+    tray.setTrayUpdateReady(true);
 
-    tray.setTrayUpdateReady(false, deps);
+    tray.setTrayUpdateReady(false);
 
     expect(pathEndsWith(lastImage(), PLAIN)).toBe(true);
     expect(labels()).not.toContain('Install update and restart');
@@ -216,7 +221,7 @@ describe('the tray icon and what it advertises', () => {
     const tray = loadTray({ withBadgeAsset: false });
     setUpWorkingTray(tray);
 
-    tray.setTrayUpdateReady(true, deps);
+    tray.setTrayUpdateReady(true);
 
     // setImage with an unreadable path does not throw, it sets an empty
     // image — so the failure mode being guarded against is the tray icon
@@ -230,7 +235,7 @@ describe('the tray icon and what it advertises', () => {
   it('does not lose the update item when the language changes', async () => {
     const tray = loadTray();
     setUpWorkingTray(tray);
-    tray.setTrayUpdateReady(true, deps);
+    tray.setTrayUpdateReady(true);
     // Loaded before it is spoken, as the language picker's IPC does: every
     // language but English is a chunk of its own. Required after `loadTray`,
     // from the registry the tray was loaded into.
@@ -238,7 +243,7 @@ describe('the tray icon and what it advertises', () => {
       require('../../../common/i18n') as typeof import('../../../common/i18n')
     ).loadLocale('es');
 
-    tray.setTrayLocale('es', deps);
+    tray.setTrayLocale('es');
 
     // The language picker's IPC passes only getMainWindow, so a rebuild that
     // read the callbacks from its argument would silently drop both update
@@ -254,7 +259,7 @@ describe('the tray icon and what it advertises', () => {
     const tray = loadTray();
     setUpWorkingTray(tray);
 
-    tray.setTrayUpdateReady(true, deps);
+    tray.setTrayUpdateReady(true);
 
     // Running a fresh check would discard the download sitting ready to go.
     expect(labels()).not.toContain('Check for updates');
@@ -264,7 +269,7 @@ describe('the tray icon and what it advertises', () => {
     const tray = loadTray();
     tray.setUpTray({ getMainWindow: () => null });
 
-    tray.setTrayUpdateReady(true, deps);
+    tray.setTrayUpdateReady(true);
 
     // A development or unsigned build has no controller, and a menu item that
     // cannot do anything is worse than no menu item.
@@ -288,8 +293,8 @@ describe('the tray icon and what it advertises', () => {
 
     // What main.ts sends when setUpReleaseAutoUpdates returns undefined: an
     // unsigned fork, a bad publisher pin, an unreachable feed.
-    tray.setTrayUpdatesEnabled(false, deps);
-    tray.setTrayUpdateReady(true, deps);
+    tray.setTrayUpdatesEnabled(false);
+    tray.setTrayUpdateReady(true);
 
     // Before the gate this showed "Check for updates", and clicking it hit a
     // bare `return` and a log line — the click that visibly does nothing.
@@ -303,7 +308,7 @@ describe('the tray icon and what it advertises', () => {
 
     // The signal arrives after the tray already exists, so it has to rebuild
     // the menu rather than be read once at setup.
-    tray.setTrayUpdatesEnabled(true, deps);
+    tray.setTrayUpdatesEnabled(true);
 
     expect(labels()).toEqual([
       'Open FluidEQ',
@@ -387,8 +392,10 @@ describe('the tray icon in the window colours', () => {
   });
 
   it('hands Chromium the drawing as it holds a bitmap: BGRA, premultiplied', () => {
-    const tray = loadTray();
-    const icon = tray.menuIconFromDrawings(drawn([255, 0, 0, 128]).drawings);
+    loadTray();
+    const { menuIconFromDrawings } =
+      require('../../../main/trayElectron') as typeof import('../../../main/trayElectron');
+    const icon = menuIconFromDrawings(drawn([255, 0, 0, 128]).drawings);
     expect([...(icon as unknown as IFakeImage).bitmap.subarray(0, 4)]).toEqual([
       0, 0, 128, 128,
     ]);
@@ -399,14 +406,14 @@ describe('the tray icon in the window colours', () => {
     setUpWorkingTray(tray);
     tray.setTrayTintedIcon(drawn([200, 150, 255, 255]));
 
-    tray.setTrayUpdateReady(true, deps);
+    tray.setTrayUpdateReady(true);
     expect(pathEndsWith(lastImage(), BADGED)).toBe(true);
     const install = (builtMenus[builtMenus.length - 1] ?? []).find(
       (item) => item.label === 'Install update and restart',
     );
     expect(pathEndsWith(install?.icon?.source, BADGED)).toBe(true);
 
-    tray.setTrayUpdateReady(false, deps);
+    tray.setTrayUpdateReady(false);
     expect(lastImage()).toBe(FILE);
   });
 });
@@ -453,5 +460,90 @@ describe('opening a window that was let go', () => {
     trayClick();
     expect(window.show).toHaveBeenCalledTimes(1);
     expect(onWindowMissing).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * FluidEQ-Tray draws the same tray where it runs (`nativeTray/`); Electron's
+ * tray is made only where it does not, and takes over if it ends.
+ */
+describe('the tray drawn by FluidEQ-Tray', () => {
+  const nativeTray = () => {
+    const views: ITrayView[] = [];
+    const destroy = jest.fn();
+    let press: ((action: TTrayAction) => void) | undefined;
+    const factory: TTraySurfaceFactory = (pressed) => {
+      press = pressed;
+      return { show: (view) => views.push(view), destroy };
+    };
+    return {
+      factory,
+      views,
+      destroy,
+      press: (action: TTrayAction) => press?.(action),
+    };
+  };
+
+  it('is drawn there, with the same menu, and no Electron tray beside it', () => {
+    const tray = loadTray();
+    const native = nativeTray();
+    tray.setUpTray({ ...deps, nativeSurface: native.factory });
+    tray.setTrayUpdatesEnabled(true);
+    tray.setTrayUpdateReady(true);
+
+    expect(trayInstances).toHaveLength(0);
+    const last = native.views[native.views.length - 1];
+    expect(pathEndsWith(last.icon, BADGED)).toBe(true);
+    expect(last.tooltip).toBe('FluidEQ — update ready to install');
+    expect(last.menu.map(({ id }) => id)).toEqual([
+      'install-update',
+      'open',
+      'quit',
+    ]);
+    expect(last.menu[0]).toMatchObject({
+      mark: 'update',
+      separatorAfter: true,
+    });
+    expect(last.menu[1].mark).toBe('app');
+  });
+
+  it("acts on the tray's presses as on Electron's clicks", () => {
+    const tray = loadTray();
+    const native = nativeTray();
+    const onWindowMissing = jest.fn();
+    tray.setUpTray({ ...deps, nativeSurface: native.factory, onWindowMissing });
+    tray.setTrayUpdatesEnabled(true);
+
+    native.press('open');
+    expect(onWindowMissing).toHaveBeenCalledTimes(1);
+    native.press('check-updates');
+    expect(deps.onCheckForUpdates).toHaveBeenCalledTimes(1);
+    native.press('install-update');
+    expect(deps.onInstallUpdate).toHaveBeenCalledTimes(1);
+  });
+
+  it('hands over to Electron when FluidEQ-Tray ends, menu and all', () => {
+    const tray = loadTray();
+    const native = nativeTray();
+    tray.setUpTray({ ...deps, nativeSurface: native.factory });
+    tray.setTrayUpdatesEnabled(true);
+
+    tray.fallBackToElectronTray();
+
+    expect(native.destroy).toHaveBeenCalled();
+    expect(trayInstances).toHaveLength(1);
+    expect(pathEndsWith(lastImage(), PLAIN)).toBe(true);
+    expect(labels()).toEqual([
+      'Open FluidEQ',
+      'Check for updates',
+      'Quit FluidEQ',
+    ]);
+    expect(tray.isAppQuitting()).toBe(false);
+  });
+
+  it("is Electron's where FluidEQ-Tray could not start", () => {
+    const tray = loadTray();
+    tray.setUpTray({ ...deps, nativeSurface: () => undefined });
+    expect(trayInstances).toHaveLength(1);
   });
 });

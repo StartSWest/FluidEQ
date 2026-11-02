@@ -25,7 +25,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <thread>
 
 #include "audio_helper.h"
-#include "loop.h"
+#include "io.h"
 #include "main_wire.h"
 #include "share_runtime.h"
 #include "tcp.h"

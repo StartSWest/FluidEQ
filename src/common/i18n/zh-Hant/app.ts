@@ -82,6 +82,9 @@ const app = {
   'app.processes.name.sharePlayback': '共享音訊播放',
   'app.processes.what.sharePlayback':
     '播放另一個 FluidEQ 與該 PC 共享的聲音，並開始音訊捕獲，因此該 PC 傳送的內容永遠不會帶回該聲音。僅當其中之一正在使用時執行。',
+  'app.processes.name.tray': '托盤圖示',
+  'app.processes.what.tray':
+    '在時鐘旁顯示 FluidEQ 的圖示及其選單，並告訴 FluidEQ Engine FluidEQ 正在執行；即使 FluidEQ 意外結束，等化器也會從每個輸出上移除。在 FluidEQ 執行期間持續執行。',
   'app.processes.name.shareLink': '分享音訊連線',
   'app.processes.what.shareLink':
     '尋找與你分享聲音的其他電腦，與它們配對，並以加密方式雙向傳送聲音。在第一次使用分享音訊或第二輸出時啟動，並持續執行直到 FluidEQ 關閉。',

@@ -56,14 +56,18 @@ export const outputConfigFileName = (
     : `${OUTPUT_CONFIG_BASENAMES[kind].slice(0, -4)}-${guid}.txt`;
 };
 
+/** What every endpoint file's name starts with, before its endpoint id. */
+export const OUTPUT_CONFIG_PREFIXES: readonly string[] = Object.values(
+  OUTPUT_CONFIG_BASENAMES,
+).map((basename) => `${basename.slice(0, -4)}-`);
+
 /** Only our canonical endpoint files; used when neutralising an engine. */
 export const isOutputConfigFileName = (filename: string): boolean => {
   const lower = filename.toLowerCase();
   if (!lower.endsWith('.txt')) {
     return false;
   }
-  return Object.values(OUTPUT_CONFIG_BASENAMES).some((basename) => {
-    const prefix = `${basename.slice(0, -4)}-`;
+  return OUTPUT_CONFIG_PREFIXES.some((prefix) => {
     const guid = lower.slice(prefix.length, -4);
     return (
       lower.startsWith(prefix) &&

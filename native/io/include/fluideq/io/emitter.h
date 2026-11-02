@@ -19,7 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <utility>
 #include <vector>
 
-namespace feq::share::service {
+namespace feq::io {
 
 template <class... Args>
 class Emitter {
@@ -68,4 +68,4 @@ class Emitter {
   int next_ = 0;
 };
 
-}  // namespace feq::share::service
+}  // namespace feq::io

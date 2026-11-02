@@ -4,14 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-#include "pipes.h"
+#include "fluideq/io/pipes.h"
+
+#include <bcrypt.h>
 
 #include <algorithm>
 #include <array>
+#include <cstdlib>
 
-#include "fluideq/share/crypto.h"
-
-namespace feq::share::service {
+namespace feq::io {
 namespace {
 
 constexpr DWORD kPipeBytes = 64 * 1024;
@@ -69,7 +70,12 @@ HANDLE new_instance(const std::wstring& name, bool first) {
 
 std::wstring unique_pipe_name(const std::wstring& prefix) {
   std::array<std::uint8_t, 16> bytes{};
-  crypto::random_bytes(bytes);
+  if (BCryptGenRandom(nullptr, bytes.data(), static_cast<ULONG>(bytes.size()),
+                      BCRYPT_USE_SYSTEM_PREFERRED_RNG) < 0) {
+    // A name nobody can guess is the pipe's whole lock; without the
+    // system's randomness there is no safe name to give.
+    std::abort();
+  }
   constexpr std::wstring_view kHex = L"0123456789abcdef";
   std::wstring name = L"\\\\.\\pipe\\" + prefix;
   for (const std::uint8_t byte : bytes) {
@@ -429,4 +435,4 @@ void PipeServer::close() {
   waiting_.clear();
 }
 
-}  // namespace feq::share::service
+}  // namespace feq::io

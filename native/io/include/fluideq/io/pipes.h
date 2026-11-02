@@ -24,9 +24,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <variant>
 #include <vector>
 
-#include "loop.h"
+#include "fluideq/io/loop.h"
 
-namespace feq::share::service {
+namespace feq::io {
 
 using Bytes = std::vector<std::uint8_t>;
 
@@ -148,4 +148,4 @@ class PipeServer : public std::enable_shared_from_this<PipeServer> {
 /** `"\\.\pipe\" + prefix + 32 random hex digits`. */
 std::wstring unique_pipe_name(const std::wstring& prefix);
 
-}  // namespace feq::share::service
+}  // namespace feq::io

@@ -82,6 +82,9 @@ const app = {
   'app.processes.name.sharePlayback': '공유 오디오 재생',
   'app.processes.what.sharePlayback':
     '다른 FluidEQ가 이 PC와 공유하는 사운드를 재생하고 오디오 캡처를 시작하므로 이 PC가 전송하는 내용은 해당 사운드를 다시 전달하지 않습니다. 둘 중 하나가 사용 중인 동안에만 실행됩니다.',
+  'app.processes.name.tray': '트레이 아이콘',
+  'app.processes.what.tray':
+    '시계 옆에 FluidEQ 아이콘과 메뉴를 표시하고, FluidEQ가 실행 중임을 FluidEQ Engine에 알려 FluidEQ가 예기치 않게 종료되더라도 모든 출력에서 이퀄라이저가 해제되도록 합니다. FluidEQ가 실행되는 동안 실행됩니다.',
   'app.processes.name.shareLink': '오디오 공유 연결',
   'app.processes.what.shareLink':
     '사운드를 공유하는 다른 컴퓨터를 찾아 페어링하고, 사운드를 암호화하여 양방향으로 전달합니다. 오디오 공유나 두 번째 출력을 처음 사용할 때 시작되며 FluidEQ를 닫을 때까지 실행됩니다.',

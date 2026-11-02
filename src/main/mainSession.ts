@@ -108,14 +108,34 @@ export const outputEditorOf = (
       }
     : undefined;
 
-/** The session a launch starts with: no output, no engine, no folder. */
-const createMainSession = (): IMainSession => ({
-  configPath: '',
-  activeAudioDeviceId: '',
-  activeAudioDevice: undefined,
-  hasActiveSessionOverride: false,
-  audioEngine: null,
-  engineSwitching: false,
-});
+/**
+ * The session a launch starts with: no output, no engine, no folder.
+ *
+ * `onConfigPath` hears every change of the engine's folder, from whichever
+ * of the places that resolve it: FluidEQ-Tray has to know the folder before
+ * main is gone, never after (`nativeTray/`).
+ */
+const createMainSession = (
+  onConfigPath?: (configPath: string) => void,
+): IMainSession => {
+  let configPath = '';
+  return {
+    get configPath() {
+      return configPath;
+    },
+    set configPath(next: string) {
+      if (next === configPath) {
+        return;
+      }
+      configPath = next;
+      onConfigPath?.(next);
+    },
+    activeAudioDeviceId: '',
+    activeAudioDevice: undefined,
+    hasActiveSessionOverride: false,
+    audioEngine: null,
+    engineSwitching: false,
+  };
+};
 
 export default createMainSession;

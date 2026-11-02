@@ -19,10 +19,12 @@ import {
   writeFileNow,
 } from '../../../main/asyncWriter';
 import {
+  quitRecipe,
   resetEngineAtSessionEnd,
   resetEngineForQuit,
 } from '../../../main/engineQuitReset';
 import { DISABLED_ROOT_TEXT } from '../../../main/deviceProfiles';
+import { OUTPUT_CONFIG_PREFIXES } from '../../../common/outputConfigFiles';
 import { readApoDeviceChain } from '../../../main/apoConfigReader';
 
 const DEVICE = '{0.0.0.00000000}.{11111111-2222-3333-4444-555555555555}';
@@ -107,6 +109,75 @@ describe('resetting the engine as FluidEQ goes', () => {
     fs.rmSync(rack());
     await expect(resetEngineForQuit(directory)).resolves.toBeUndefined();
     expect(fs.readFileSync(root(), 'utf8')).toBe(DISABLED_ROOT_TEXT);
+  });
+});
+
+/**
+ * FluidEQ-Tray does the reset once main has gone (`tray_model.cpp`), from a
+ * recipe main hands it; a file the recipe left out would keep an EQ on an
+ * output after a crash that main's own quit would have taken off.
+ */
+describe('the quit as a recipe for the tray', () => {
+  const GUID = '0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d';
+  let directory: string;
+
+  beforeEach(() => {
+    directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-recipe-'));
+    [
+      'fluideq.txt',
+      'fluideq-dsp.txt',
+      'fluideq-source-analysis.txt',
+      'fluideq-programme.txt',
+      'fluideq-split.txt',
+      'fluideq-owner.txt',
+      'fluideq-device-0123456789ab.txt',
+      'config.txt',
+      `fluideq-dsp-${GUID.slice(1)}.txt`,
+      `fluideq-dsp-${GUID}0.txt`,
+      ...OUTPUT_CONFIG_PREFIXES.map((prefix) => `${prefix}${GUID}.txt`),
+    ].forEach((name) => fs.writeFileSync(path.join(directory, name), 'x'));
+  });
+
+  afterEach(async () => {
+    await flushPendingWrites().catch(() => undefined);
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+
+  /** The tray's reading of a recipe: its names, and a prefix and an id. */
+  const recipeTakes = (name: string) => {
+    const recipe = quitRecipe(directory);
+    const lower = name.toLowerCase();
+    return (
+      recipe.removeNames.includes(name) ||
+      recipe.removePrefixes.some(
+        (prefix) =>
+          lower.startsWith(prefix) &&
+          lower.endsWith('.txt') &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
+            lower.slice(prefix.length, -4),
+          ),
+      )
+    );
+  };
+
+  it("names exactly the files main's own quit takes away", () => {
+    const before = fs.readdirSync(directory);
+    resetEngineAtSessionEnd(directory);
+    const after = new Set(fs.readdirSync(directory));
+    const removed = before.filter((name) => !after.has(name)).sort();
+
+    // A positive control: the quit really does take files away.
+    expect(removed.length).toBeGreaterThan(5);
+    expect(before.filter(recipeTakes).sort()).toEqual(removed);
+  });
+
+  it('writes the same root the quit writes', () => {
+    const recipe = quitRecipe(directory);
+    expect(recipe.configDir).toBe(directory);
+    expect(path.join(recipe.configDir, recipe.rootName)).toBe(
+      path.join(directory, 'fluideq.txt'),
+    );
+    expect(recipe.rootText).toBe(DISABLED_ROOT_TEXT);
   });
 });
 

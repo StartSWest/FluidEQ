@@ -36,10 +36,16 @@ import {
   FLUID_ENGINE_PROGRAMME_FILENAME,
   FLUID_ENGINE_SPLIT_FILENAME,
 } from '../common/audioEngine';
+import { OUTPUT_CONFIG_PREFIXES } from '../common/outputConfigFiles';
 import { flushPendingWrites, sealDirectory, writeFileNow } from './asyncWriter';
 import { DISABLED_ROOT_TEXT } from './deviceProfiles';
 import { FLUIDEQ_CONFIG_FILENAME } from './flush';
-import { forgetOutputSoundFile, outputSoundFiles } from './outputConfigCleanup';
+import type { ITrayQuitRecipe } from './nativeTray/trayHostWire';
+import {
+  forgetOutputSoundFile,
+  outputSoundFiles,
+  SHARED_OUTPUT_SOUND_FILES,
+} from './outputConfigCleanup';
 import { forgetRoomHead } from './roomHead';
 
 const describe = (error: unknown): string =>
@@ -73,6 +79,23 @@ const removedOnQuit = (configDirPath: string) => [
   { file: programmePath(configDirPath), what: 'the playing song' },
   { file: splitPath(configDirPath), what: 'the second outputs' },
 ];
+
+/**
+ * The same reset as data, for FluidEQ-Tray to carry out once main has gone
+ * (`nativeTray/`): a crash and End task run nothing here, and the tray then
+ * still takes the EQ off every output. The same files `removedOnQuit` names.
+ */
+export const quitRecipe = (configDirPath: string): ITrayQuitRecipe => ({
+  configDir: configDirPath,
+  rootName: FLUIDEQ_CONFIG_FILENAME,
+  rootText: DISABLED_ROOT_TEXT,
+  removeNames: [
+    ...SHARED_OUTPUT_SOUND_FILES,
+    FLUID_ENGINE_PROGRAMME_FILENAME,
+    FLUID_ENGINE_SPLIT_FILENAME,
+  ],
+  removePrefixes: [...OUTPUT_CONFIG_PREFIXES],
+});
 
 /**
  * For a quit from inside the app: the tray's Quit, an update restarting it.

@@ -19,7 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <string>
 
 #include "fluideq/share/lan_protocol.h"
-#include "loop.h"
+#include "io.h"
 #include "websocket.h"
 
 namespace feq::share::service {

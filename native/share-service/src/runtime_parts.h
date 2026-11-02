@@ -26,7 +26,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/share/lan_protocol.h"
 #include "link_error.h"
-#include "loop.h"
+#include "io.h"
 #include "main_wire.h"
 
 namespace feq::share::service {

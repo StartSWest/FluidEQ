@@ -662,11 +662,19 @@ if(WIN32)
     PRIVATE fluideq-share-core feq_strict)
   add_test(NAME share-wire COMMAND fluideq-share-wire-test)
 
-  # The service that carries the link (`share-service`, FluidEQ-Share):
-  # one thread on an I/O completion port, as Node's own loop is on Windows,
-  # with TCP, UDP and WebSocket as `ws` speaks it on top.
+  # The helpers' event loop (`io`): one thread on an I/O completion port,
+  # as Node's own loop is on Windows, with promises, pipes and child
+  # processes. Share Audio's service and the tray are built on it.
+  add_library(fluideq-io STATIC
+    io/src/loop.cpp
+    io/src/pipes.cpp)
+  target_include_directories(fluideq-io PUBLIC io/include)
+  target_compile_definitions(fluideq-io PUBLIC NOMINMAX WIN32_LEAN_AND_MEAN)
+  target_link_libraries(fluideq-io PUBLIC ntdll bcrypt PRIVATE feq_strict)
+
+  # The service that carries the link (`share-service`, FluidEQ-Share),
+  # with TCP, UDP and WebSocket as `ws` speaks it on the loop.
   add_library(fluideq-share-net STATIC
-    share-service/src/loop.cpp
     share-service/src/tcp.cpp
     share-service/src/udp.cpp
     share-service/src/ws_frames.cpp
@@ -682,7 +690,6 @@ if(WIN32)
     share-service/src/lan_group.cpp
     share-service/src/lan.cpp
     share-service/src/lan_listen.cpp
-    share-service/src/pipes.cpp
     share-service/src/audio_helper.cpp
     share-service/src/native_playback.cpp
     share-service/src/network_capture.cpp
@@ -697,7 +704,7 @@ if(WIN32)
   target_compile_definitions(fluideq-share-net
     PUBLIC NOMINMAX WIN32_LEAN_AND_MEAN)
   target_link_libraries(fluideq-share-net
-    PUBLIC fluideq-share-core ws2_32 mswsock ntdll iphlpapi
+    PUBLIC fluideq-share-core fluideq-io ws2_32 mswsock iphlpapi
     PRIVATE feq_strict)
   add_executable(fluideq-share-service
     share-service/src/main.cpp
@@ -747,6 +754,42 @@ if(WIN32)
   target_link_libraries(fluideq-share-fake-helper PRIVATE feq_strict)
   set_target_properties(fluideq-share-fake-helper PROPERTIES
     OUTPUT_NAME "share-fake-playback-helper")
+endif()
+
+# The notification-area icon and the engine's line to FluidEQ, out of
+# Electron (`tray-host`, FluidEQ-Tray).
+if(WIN32)
+  add_library(fluideq-tray-core STATIC
+    tray-host/src/tray_model.cpp
+    tray-host/src/links.cpp
+    tray-host/src/tray_host.cpp)
+  target_include_directories(fluideq-tray-core PUBLIC tray-host/src)
+  target_link_libraries(fluideq-tray-core
+    PUBLIC fluideq-io fluideq-share-core PRIVATE feq_strict)
+  add_executable(fluideq-tray-host WIN32
+    tray-host/src/main.cpp
+    tray-host/src/tray_window.cpp
+    tray-host/src/icon_images.cpp
+    tray-host/src/tray.rc)
+  target_link_libraries(fluideq-tray-host
+    PRIVATE fluideq-tray-core shell32 shcore ole32 windowscodecs feq_strict)
+  set_source_files_properties(tray-host/src/tray.rc
+    PROPERTIES COMPILE_DEFINITIONS
+      "FEQ_TRAY_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
+  set_target_properties(fluideq-tray-host PROPERTIES
+    OUTPUT_NAME "FluidEQ-Tray"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
+  )
+  add_executable(fluideq-tray-model-test tray-host/tests/tray_model_test.cpp)
+  target_link_libraries(fluideq-tray-model-test
+    PRIVATE fluideq-tray-core feq_strict)
+  add_test(NAME tray-model COMMAND fluideq-tray-model-test)
+  add_executable(fluideq-tray-links-test tray-host/tests/tray_links_test.cpp)
+  target_link_libraries(fluideq-tray-links-test
+    PRIVATE fluideq-tray-core feq_strict)
+  add_test(NAME tray-links COMMAND fluideq-tray-links-test)
 endif()
 
 # The music as the scenes and the lamps hear it, in C++ (`scene-core`): the

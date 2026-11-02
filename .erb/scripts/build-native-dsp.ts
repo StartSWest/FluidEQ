@@ -541,11 +541,17 @@ if (isWindows) {
   if (!existsSync(scenesPath)) {
     fail(`the lamps' scene host was not produced at ${scenesPath}`);
   }
-  // Share Audio's link, packaged beside them: without it the link runs in
-  // main instead, where a stall of the window's process is a stall of it.
+  // Share Audio's link, packaged beside them: without it there is no
+  // Share Audio and no second output.
   const sharePath = path.join(BUILD_DIR, 'bin', 'FluidEQ-Share.exe');
   if (!existsSync(sharePath)) {
     fail(`Share Audio's link was not produced at ${sharePath}`);
+  }
+  // The tray and the engine's line, packaged beside them: without it
+  // Electron draws the tray, and a FluidEQ that crashes leaves its EQ on.
+  const trayPath = path.join(BUILD_DIR, 'bin', 'FluidEQ-Tray.exe');
+  if (!existsSync(trayPath)) {
+    fail(`the tray was not produced at ${trayPath}`);
   }
 }
 console.log(`native dsp build: ${hostPath}`);

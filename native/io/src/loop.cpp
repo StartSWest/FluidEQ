@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-#include "loop.h"
+#include "fluideq/io/loop.h"
 
 #include <winsock2.h>
 #include <winternl.h>
@@ -13,7 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstdio>
 #include <exception>
 
-namespace feq::share::service {
+namespace feq::io {
 namespace {
 
 Loop* current_loop = nullptr;
@@ -210,4 +210,4 @@ void Loop::stop(int code) {
   code_ = code;
 }
 
-}  // namespace feq::share::service
+}  // namespace feq::io

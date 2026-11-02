@@ -7,11 +7,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 /**
- * The Share Audio service's one thread of work: an I/O completion port, the
- * way Node's own loop is one on Windows. Every socket, pipe and child of the
- * service completes here, and everything the service decides runs on this
- * thread, in order — so the link logic ported from TypeScript keeps the
- * ordering it was written against, with no lock anywhere in it.
+ * A FluidEQ helper's one thread of work: an I/O completion port, the way
+ * Node's own loop is one on Windows. Every socket, pipe and child of the
+ * helper completes here, and everything it decides runs on this thread, in
+ * order — so logic ported from TypeScript keeps the ordering it was written
+ * against, with no lock anywhere in it. Share Audio's service and the tray
+ * each run one.
  *
  * `defer` is JavaScript's microtask: work that runs once the event being
  * handled has finished, before the next one is taken. The TypeScript leans on
@@ -42,7 +43,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <variant>
 #include <vector>
 
-namespace feq::share::service {
+namespace feq::io {
 
 /**
  * Why something failed, as much as may leave the service: `code` and
@@ -222,4 +223,4 @@ Future<U> chain(const Future<T>& future,
   return out;
 }
 
-}  // namespace feq::share::service
+}  // namespace feq::io

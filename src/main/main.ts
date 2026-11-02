@@ -54,7 +54,13 @@ import {
 import { createSongLevelStore } from './songLevels';
 import { createSongProgramme } from './songProgramme';
 import { resetEngineAtSessionEnd, resetEngineForQuit } from './engineQuitReset';
-import { startEngineOwnerPipe } from './engineOwnerPipe';
+import {
+  announceEngineOwner,
+  ENGINE_OWNER_PIPE,
+  startEngineOwnerPipe,
+} from './engineOwnerPipe';
+import { INativeTray, startNativeTray } from './nativeTray/startNativeTray';
+import { forgetRoomHead } from './roomHead';
 import startEngineAnalysisPipe, {
   readEngineProcesses,
 } from './engineAnalysisPipe';
@@ -71,6 +77,7 @@ import { setUpVideoBrowser } from './videoBrowser';
 import {
   beginQuit,
   destroyTray,
+  fallBackToElectronTray,
   isAppQuitting,
   revealMainWindow,
   setTrayTintedIcon,
@@ -359,7 +366,11 @@ const placement = createWindowPlacement({
 
 const state: IState = fetchSettings(userDataDir);
 const deviceProfileSettings = loadDeviceProfileSettings(userDataDir);
-const session = createMainSession();
+/** FluidEQ-Tray, once it runs (`nativeTray/`); undefined where it cannot. */
+let nativeTray: INativeTray | undefined;
+const session = createMainSession((configPath) =>
+  nativeTray?.setConfigPath(configPath),
+);
 
 const DATABASES_SYNCED_EVENT = 'databases-synced';
 
@@ -1447,6 +1458,38 @@ const resetActiveEngineForQuit = async (): Promise<void> => {
   }
 };
 
+/**
+ * FluidEQ-Tray ended while FluidEQ runs. Electron's tray takes the icon and
+ * main the engine's line, as where the program cannot run at all. A tray
+ * that lost its line to main took the EQ off every output on the way out —
+ * it cannot tell main ending from the line breaking — so the sound is
+ * written back too, as after an engine switch.
+ */
+const nativeTrayLost = (servedEngineLine: boolean): void => {
+  nativeTray = undefined;
+  if (isAppQuitting()) {
+    return;
+  }
+  log.warn(
+    'FluidEQ-Tray ended while FluidEQ runs; the tray icon and the engine line come back to this process.',
+  );
+  fallBackToElectronTray();
+  if (servedEngineLine) {
+    startEngineOwnerPipe().catch(() => undefined);
+  }
+  if (session.configPath) {
+    forgetRoomHead(session.configPath);
+  }
+  Promise.all([
+    reflushCurrentState(),
+    secondOutputs.reroute(),
+    songProgramme.reflush(),
+    sourceAnalysis.reflush(),
+  ]).catch((error: unknown) =>
+    log.error('Could not write the sound back after FluidEQ-Tray ended', error),
+  );
+};
+
 const resetActiveEngineAtSessionEnd = (): void => {
   outputWatch?.stop();
   if (session.configPath) {
@@ -1740,9 +1783,9 @@ const onAppReady = async () => {
   // this one answers its requests and has to run after.
   handleLibraryMedia({ userDataDir, getTrackPath: libraryIpc.trackPath });
   // Before the window, so before anything writes an engine configuration: the
-  // FluidEQ Engine only applies one while this process holds its pipe open,
-  // which is how a FluidEQ ended from Task Manager stops shaping the audio.
-  // See `engineOwnerPipe.ts`. Never rejects.
+  // FluidEQ Engine only applies one while FluidEQ holds its pipe open, which
+  // is how a FluidEQ ended from Task Manager stops shaping the audio. See
+  // `engineOwnerPipe.ts`. Never rejects.
   //
   // Neither of the engine's pipes in a sealed development sandbox
   // (`devSandbox.ts`): an engine that found the sandbox's owner pipe instead
@@ -1760,7 +1803,23 @@ const onAppReady = async () => {
     );
   } else {
     await startEngineAnalysisPipe(getMainWindow);
-    await startEngineOwnerPipe();
+  }
+  // FluidEQ-Tray holds the engine's line where it runs, and takes the EQ off
+  // every output if this process ends without its own quit; main holds the
+  // line itself only where the program cannot run.
+  const servesEngineLine = !(devSandbox && isSealedSandbox);
+  nativeTray = await startNativeTray({
+    userDataDir,
+    ownerPipe: servesEngineLine ? ENGINE_OWNER_PIPE : undefined,
+    configPath: session.configPath,
+    onLost: () => nativeTrayLost(servesEngineLine),
+  });
+  if (servesEngineLine) {
+    if (nativeTray) {
+      announceEngineOwner();
+    } else {
+      await startEngineOwnerPipe();
+    }
   }
   try {
     isLaunchWindowStarted = true;
@@ -1784,6 +1843,7 @@ const onAppReady = async () => {
       // waits for it to go and builds another (`bringBackWindow`).
       getMainWindow: usableWindow,
       onWindowMissing: bringBackWindow,
+      nativeSurface: nativeTray?.surface,
       // The full app, in the middle of the screen. Both halves matter: a
       // player that cannot be reached cannot be switched back from its own
       // titlebar, and a window put back in the middle as a player is still a
