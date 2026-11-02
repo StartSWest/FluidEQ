@@ -138,6 +138,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.lighting': '动态灯效',
   'app.processes.what.lighting':
     '把场景的颜色传给支持 Windows Dynamic Lighting 的设备。仅在灯效开启或其页面打开时运行。',
+  'app.processes.name.lampScene': '灯效场景',
+  'app.processes.what.lampScene':
+    '绘制点亮你设备的场景，并为此收听这台电脑正在播放的声音。它独立于此窗口运行，关闭窗口后桌面灯光也会继续。仅在动态灯效以你自己的场景开启时运行。',
   'app.processes.name.helper': '辅助服务',
   'app.processes.what.helper':
     '按需启动的 Chromium 服务。FluidEQ 从不按名称请求它。',

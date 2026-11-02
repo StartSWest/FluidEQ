@@ -112,6 +112,11 @@ export type TProcessRole =
   | 'meter'
   /** Dynamic lighting's helper, which reaches Windows Dynamic Lighting. */
   | 'lighting'
+  /**
+   * `FluidEQ-Scenes.exe`: draws the scene the desk lights play and hears the
+   * output for it, apart from the window, while dynamic lighting is on.
+   */
+  | 'lampScene'
   /** Something Chromium started that we have no app-level sentence for. */
   | 'helper';
 
@@ -258,6 +263,7 @@ export const EXECUTABLE_ROLES: Readonly<Record<string, TProcessRole>> = {
   'fluideq-media.exe': 'mediaWatch',
   'fluideq-dsp.exe': 'engine',
   'fluideq-lighting.exe': 'lighting',
+  'fluideq-scenes.exe': 'lampScene',
   'fluideq-meter.exe': 'meter',
 };
 
@@ -301,6 +307,7 @@ const ROLE_ORDER: readonly TProcessRole[] = [
   'engine',
   'systemEngine',
   'lighting',
+  'lampScene',
   'graphics',
   'desktop',
   'desktopHost',

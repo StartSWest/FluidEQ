@@ -121,6 +121,9 @@ const app = {
   'app.processes.name.lighting': '動態照明',
   'app.processes.what.lighting':
     '將場景的顏色傳遞給使用 Windows 動態照明的裝置。僅在燈光開啟或頁面開啟時執行。',
+  'app.processes.name.lampScene': '照明場景',
+  'app.processes.what.lampScene':
+    '繪製點亮你裝置的場景，並為此聆聽這台電腦正在播放的聲音。它獨立於此視窗執行，關閉視窗後桌面燈光也會繼續。僅在動態照明以你自己的場景開啟時執行。',
   'app.processes.name.helper': '輔助程式',
   'app.processes.what.helper':
     'Chromium 服務按需啟動。 FluidEQ 從不要求提供該名稱。',

@@ -9,6 +9,7 @@ import {
 import { createPortal } from 'react-dom';
 import { sceneMakerOf } from 'common/sceneMaker';
 import type { IScenePack } from 'common/scenePacks';
+import { FULL_VIEW, sceneViewOf, type TSceneView } from 'common/sceneView';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { reportOwnParams, useListenerParams } from '../utils/sceneParamStore';
 import {
@@ -41,7 +42,6 @@ import { usePointerSparks } from '../utils/pointerSparksStore';
 import { createSceneInteraction } from './sceneInteraction';
 import ScenePointerLayer from './ScenePointerLayer';
 import windowGestures from './windowGestures';
-import { FULL_VIEW, sceneViewOf, type TSceneView } from './sceneView';
 import { publishGraphSceneRun, type IScenePlot } from './graphScenePlace';
 import { useGraphArriving } from './graphArrival';
 

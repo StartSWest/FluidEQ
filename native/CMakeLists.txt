@@ -599,6 +599,106 @@ if(WIN32)
   add_test(NAME float-mix-format COMMAND fluideq-float-mix-format-test)
 endif()
 
+# The music as the scenes and the lamps hear it, in C++ (`scene-core`): the
+# twin of `src/common/soundHops.ts` and what follows it, so the lights and the
+# desktop can be drawn with no Electron running. Portable, and held to the
+# TypeScript's own numbers on fixtures that module writes.
+add_library(fluideq-scene-core STATIC
+  scene-core/src/sound_hops.cpp
+  scene-core/src/energy_levels.cpp
+  scene-core/src/rhythm_drums.cpp
+  scene-core/src/rhythm_kit.cpp
+  scene-core/src/rhythm_spectrum.cpp
+  scene-core/src/rhythm_tempo.cpp
+  scene-core/src/rhythm_clock.cpp
+  scene-core/src/rhythm_section.cpp
+  scene-core/src/scene_rhythm.cpp
+  scene-core/src/spectrum_energy.cpp
+  scene-core/src/analyser.cpp
+  scene-core/src/live_frames.cpp
+  scene-core/src/lamp_listener.cpp
+  scene-core/src/scene_tuner.cpp
+  scene-core/src/lamp_pacing.cpp
+  scene-core/src/lamp_atmosphere.cpp)
+target_include_directories(fluideq-scene-core PUBLIC scene-core/include)
+target_link_libraries(fluideq-scene-core PRIVATE feq_strict)
+add_executable(fluideq-sound-hops-parity-test
+  scene-core/tests/sound_hops_parity_test.cpp)
+target_link_libraries(fluideq-sound-hops-parity-test
+  PRIVATE fluideq-scene-core feq_strict)
+add_test(NAME sound-hops-parity COMMAND fluideq-sound-hops-parity-test)
+add_executable(fluideq-scene-energy-parity-test
+  scene-core/tests/scene_energy_parity_test.cpp)
+target_link_libraries(fluideq-scene-energy-parity-test
+  PRIVATE fluideq-scene-core feq_strict)
+add_test(NAME scene-energy-parity COMMAND fluideq-scene-energy-parity-test)
+add_executable(fluideq-lamp-atmosphere-parity-test
+  scene-core/tests/lamp_atmosphere_parity_test.cpp)
+target_link_libraries(fluideq-lamp-atmosphere-parity-test
+  PRIVATE fluideq-scene-core feq_strict)
+add_test(NAME lamp-atmosphere-parity COMMAND fluideq-lamp-atmosphere-parity-test)
+add_executable(fluideq-lamp-frame-parity-test
+  scene-core/tests/lamp_frame_parity_test.cpp)
+target_link_libraries(fluideq-lamp-frame-parity-test
+  PRIVATE fluideq-scene-core feq_strict)
+add_test(NAME lamp-frame-parity COMMAND fluideq-lamp-frame-parity-test)
+
+# The scenes drawn by C++ on the ANGLE Electron ships (`scene-host`): Windows
+# first, where ANGLE runs on Direct3D 11 as Chromium's own WebGL2 does.
+if(WIN32)
+  add_library(fluideq-scene-host-gl STATIC
+    scene-host/src/angle_context.cpp
+    scene-host/src/scene_program.cpp
+    scene-host/src/flash_guard.cpp
+    scene-host/src/lamp_painter.cpp
+    scene-host/src/lamp_messages.cpp
+    scene-host/src/artwork_decode.cpp)
+  target_include_directories(fluideq-scene-host-gl PUBLIC scene-host/src)
+  target_link_libraries(fluideq-scene-host-gl
+    PUBLIC fluideq-scene-core windowscodecs ole32 PRIVATE feq_strict)
+  # The lamps with no window (`scene-host/src/main.cpp`): the default
+  # output heard, the scene drawn, the grid handed to main. It reopens its
+  # output on the DSP host's own device watch, so an outage ends on what
+  # Windows says rather than on a retry.
+  add_executable(fluideq-scene-host
+    scene-host/src/main.cpp
+    dsp-host/src/platform/windows/device_watch.cpp)
+  target_link_libraries(fluideq-scene-host PRIVATE
+    fluideq-scene-host-gl feq_strict ole32 avrt advapi32 shell32)
+  set_target_properties(fluideq-scene-host PROPERTIES
+    OUTPUT_NAME "FluidEQ-Scenes"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
+  )
+  add_executable(fluideq-scene-program-test
+    scene-host/tests/scene_program_test.cpp)
+  target_link_libraries(fluideq-scene-program-test
+    PRIVATE fluideq-scene-host-gl feq_strict)
+  # The ANGLE the development Electron carries, as the app's own folder
+  # carries it once packaged.
+  target_compile_definitions(fluideq-scene-program-test PRIVATE
+    FEQ_TEST_ANGLE_DIR=L"${CMAKE_SOURCE_DIR}/../node_modules/electron/dist")
+  add_test(NAME scene-program COMMAND fluideq-scene-program-test)
+  add_executable(fluideq-flash-guard-test scene-host/tests/flash_guard_test.cpp)
+  target_link_libraries(fluideq-flash-guard-test
+    PRIVATE fluideq-scene-host-gl feq_strict)
+  target_compile_definitions(fluideq-flash-guard-test PRIVATE
+    FEQ_TEST_ANGLE_DIR=L"${CMAKE_SOURCE_DIR}/../node_modules/electron/dist")
+  add_test(NAME flash-guard COMMAND fluideq-flash-guard-test)
+  add_executable(fluideq-lamp-painter-test scene-host/tests/lamp_painter_test.cpp)
+  target_link_libraries(fluideq-lamp-painter-test
+    PRIVATE fluideq-scene-host-gl feq_strict)
+  target_compile_definitions(fluideq-lamp-painter-test PRIVATE
+    FEQ_TEST_ANGLE_DIR=L"${CMAKE_SOURCE_DIR}/../node_modules/electron/dist")
+  add_test(NAME lamp-painter COMMAND fluideq-lamp-painter-test)
+  add_executable(fluideq-lamp-messages-test
+    scene-host/tests/lamp_messages_test.cpp)
+  target_link_libraries(fluideq-lamp-messages-test
+    PRIVATE fluideq-scene-host-gl feq_strict)
+  add_test(NAME lamp-messages COMMAND fluideq-lamp-messages-test)
+endif()
+
 add_subdirectory(remote-audio-playback)
 add_executable(fluideq-capture-queue-test
   remote-audio-capture/tests/capture_queue_test.cpp

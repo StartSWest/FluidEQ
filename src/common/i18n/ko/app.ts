@@ -121,6 +121,9 @@ const app = {
   'app.processes.name.lighting': '동적 조명',
   'app.processes.what.lighting':
     'Windows 동적 조명과 함께 작동하는 장치에 장면의 색상을 전달합니다. 조명이 켜져 있거나 해당 페이지가 열려 있는 동안에만 실행됩니다.',
+  'app.processes.name.lampScene': '조명 장면',
+  'app.processes.what.lampScene':
+    '장치를 밝히는 장면을 그리고, 이를 위해 이 PC에서 재생되는 소리를 듣습니다. 이 창과 따로 실행되므로 창을 닫아도 책상 조명이 계속됩니다. 동적 조명이 내 장면으로 켜져 있는 동안에만 실행됩니다.',
   'app.processes.name.helper': '도우미',
   'app.processes.what.helper':
     '요청 시 Chromium 서비스가 시작되었습니다. FluidEQ는 절대로 이름을 물어보지 않습니다.',

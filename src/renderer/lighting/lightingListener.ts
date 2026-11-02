@@ -4,38 +4,16 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { MAX_GAIN, MIN_GAIN } from 'common/constants';
-import { SCENE_TIME_WRAP_S } from 'common/sceneUniformContract';
-import { getEaseFactor } from 'common/smoothing';
 import { HOP_MS, soundHistorySamples } from 'common/soundHops';
-import { holdEnergy, type ISpectrumEnergy } from 'common/spectrumEnergy';
-import { createAxisCells, readAbsoluteLevels } from 'common/autoBalanceCapture';
 import { CAPTURE_PROCESSOR } from '../audio/outputMirror';
 import { keepNewestSamples, readCaptureBlock } from '../audio/captureBlocks';
 import workletUrl from '../remoteAudio/workletUrl';
 import { createSoundHearing } from '../graph/liveSound';
-import {
-  FFT_SIZE,
-  NO_POINTS,
-  TRACK_REFERENCE_RELEASE_DB,
-  UPDATE_INTERVAL_MS,
-  WAVEFORM_POINT_COUNT,
-  createFrameBuffers,
-  createFrequencyAxis,
-  getPeakLevel,
-  writeChannelWaveformPoints,
-  writeFrequencyPoints,
-} from '../graph/liveSpectrumFrames';
-import {
-  createSpectrumTexels,
-  createWaveformTexels,
-  fillSpectrumTexels,
-  fillWaveformTexels,
-} from '../graph/sceneUniforms';
-import {
-  LIGHTING_TICKS_PER_SECOND,
-  type ILightingSceneFrame,
-} from './lightingSceneMessages';
+import { FFT_SIZE } from '../graph/liveSpectrumFrames';
+import { createLampFrameMaker, type IHeardFrame } from './lampFrames';
+import { LIGHTING_TICKS_PER_SECOND } from './lightingSceneMessages';
+
+export type { IHeardFrame };
 
 /**
  * What the scene hears, measured for the lamps on the audio clock.
@@ -70,19 +48,13 @@ export interface ILightingListener {
 }
 
 /**
- * What the lamps listen to, and whose audio clock draws them: the output's
- * capture, or a silent sound of their own while there is none
- * (`lampIdleClock.ts`).
+ * What the page's demo listens to, and whose audio clock draws it: the
+ * output's capture. The member's own lamps are heard by the scene host
+ * (`main/lighting/lampScenes.ts`).
  */
 export interface ILampSound {
   context: AudioContext;
   source: AudioNode;
-}
-
-export interface IHeardFrame {
-  frame: ILightingSceneFrame;
-  /** Nothing is playing: the output measured below the silence floor. */
-  silent: boolean;
 }
 
 /** About one hop of sound a block: 480 frames at 48 kHz, 960 at 96. */
@@ -155,19 +127,9 @@ export const startLightingListener = async (
   const hearing = createSoundHearing(rate);
   const tickFrames = Math.round(rate / LIGHTING_TICKS_PER_SECOND);
 
-  const frequencyData = new Float32Array(analyser.frequencyBinCount);
-  const samples = new Float32Array(FFT_SIZE);
-  const axis = createFrequencyAxis(rate);
-  const cells = createAxisCells(axis, rate, FFT_SIZE);
-  const levels = new Float64Array(axis.length);
-  const buffers = createFrameBuffers();
-  const waveformPoints = new Array<number>(WAVEFORM_POINT_COUNT).fill(0);
-  const spectrum = createSpectrumTexels();
-  const waveform = createWaveformTexels();
-  let last: ISpectrumEnergy | undefined;
-  let reference: number | undefined;
-  let timeSeconds = 0;
-  let fade = 0;
+  const makeFrame = createLampFrameMaker(rate, accent, analyser, () =>
+    hearing.music(),
+  );
   let closed = false;
   /** Frames of sound handed over so far, and where the last picture was made. */
   let heardFrames = 0;
@@ -182,62 +144,6 @@ export const startLightingListener = async (
   let handover: number | undefined;
   /** The first frame put off for a waiting block, and how far behind it was. */
   let skipped: { at: number; ahead: number } | undefined;
-
-  const makeFrame = () => {
-    const deltaMs = ((heardFrames - framedAt) / rate) * 1_000;
-    framedAt = heardFrames;
-    let points = NO_POINTS;
-    let peak: number | undefined;
-    if (!isPaused()) {
-      analyser.getFloatFrequencyData(frequencyData);
-      readAbsoluteLevels(frequencyData, cells, levels);
-      peak = getPeakLevel(frequencyData);
-      if (peak !== undefined) {
-        // The pump's follower, scaled from its tick to this frame.
-        const release =
-          (TRACK_REFERENCE_RELEASE_DB * deltaMs) / UPDATE_INTERVAL_MS;
-        reference =
-          reference === undefined ? peak : Math.max(peak, reference - release);
-        points = writeFrequencyPoints(
-          buffers.points[0],
-          axis,
-          levels,
-          reference,
-        );
-      }
-      analyser.getFloatTimeDomainData(samples);
-      writeChannelWaveformPoints(waveformPoints, [samples]);
-    } else {
-      waveformPoints.fill(0);
-    }
-
-    // Paused, the lamps hold what they last showed, as the picture does.
-    const heard = isPaused() && last ? holdEnergy(last) : hearing.music();
-    last = heard;
-    fillSpectrumTexels(points, spectrum, MIN_GAIN, MAX_GAIN);
-    fillWaveformTexels(waveformPoints, waveform);
-    timeSeconds = (timeSeconds + deltaMs / 1000) % SCENE_TIME_WRAP_S;
-    fade += (1 - fade) * getEaseFactor(deltaMs, 80);
-
-    onHeard({
-      frame: {
-        timeSeconds,
-        deltaMs,
-        level: heard.level,
-        beat: heard.beat,
-        bands: [heard.bass, heard.mid, heard.treble],
-        musicAccent: [heard.accent, heard.accentSerial],
-        musicRun: [heard.run, heard.runSpeed],
-        rhythm: heard.rhythm,
-        voice: [heard.voice.open, heard.voice.pitch, heard.voice.sure],
-        accent,
-        fade,
-        spectrum,
-        waveform,
-      },
-      silent: peak === undefined,
-    });
-  };
 
   blocks.port2.onmessage = ({ data }: MessageEvent<unknown>) => {
     const block = closed ? undefined : readCaptureBlock(data);
@@ -270,7 +176,9 @@ export const startLightingListener = async (
       handover = ahead;
     }
     skipped = undefined;
-    makeFrame();
+    const deltaMs = ((heardFrames - framedAt) / rate) * 1_000;
+    framedAt = heardFrames;
+    onHeard(makeFrame(deltaMs, isPaused()));
   };
 
   /**

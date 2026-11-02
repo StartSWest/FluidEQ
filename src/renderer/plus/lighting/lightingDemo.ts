@@ -11,6 +11,7 @@ import {
   type ILightingFrame,
 } from 'common/lighting/lightingModel';
 import { DEFAULT_LIGHTING_PROFILE } from 'common/lighting/lightingProfiles';
+import { fillSwatchGrid, swatchColours } from 'common/lighting/swatchGrid';
 import type { IScenePack } from 'common/scenePacks';
 import {
   useLiveAudioCapture,
@@ -21,7 +22,6 @@ import {
   type ILampPlayer,
 } from '../../lighting/lampScenePlay';
 import { publishLightingPreview } from '../../lighting/lightingPreview';
-import { fillSwatchGrid, swatchColours } from '../../lighting/swatchGrid';
 
 /**
  * The scene that lights the desk on the Dynamic lighting page of an account

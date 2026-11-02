@@ -136,6 +136,9 @@ const app = {
   'app.processes.name.lighting': 'Dynamic lighting',
   'app.processes.what.lighting':
     "Hands the scene's colours to devices that work with Windows Dynamic Lighting. Runs only while lighting is on or its page is open.",
+  'app.processes.name.lampScene': 'Lighting scene',
+  'app.processes.what.lampScene':
+    'Draws the scene your devices light up with, and hears what this PC plays for it, apart from this window, so your desk stays lit with the window closed. Runs only while dynamic lighting is on with a scene of your own.',
   'app.processes.name.helper': 'Helper',
   'app.processes.what.helper':
     'A Chromium service started on demand. FluidEQ never asks for this one by name.',

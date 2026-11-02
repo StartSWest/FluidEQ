@@ -286,9 +286,7 @@ export interface ILightingFrame {
 export const LIGHTING_GRID_WIDTH = 48;
 export const LIGHTING_GRID_HEIGHT = 27;
 
-/** Main ← window: a frame, fire-and-forget. */
-export const LIGHTING_FRAME_CHANNEL = 'lighting-frame';
-/** Main ← window: no Plus scene, silence, or switched off — give the lamps back. */
+/** Main ← window: the page's demo stopped — give the lamps back. */
 export const LIGHTING_RELEASE_CHANNEL = 'lighting-release';
 export const LIGHTING_STATE_CHANNEL = 'lighting-state';
 export const LIGHTING_STATE_CHANGED_CHANNEL = 'lighting-state-changed';

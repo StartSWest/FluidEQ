@@ -9,9 +9,9 @@ import type {
   WebGLRenderer,
   WebGLRenderTarget,
 } from 'three';
+import { FULL_VIEW, isFullView, panelSize } from 'common/sceneView';
 import type { ISceneFrame, ISceneProgram } from '../sceneGl';
 import { walkBands } from '../sceneStillBands';
-import { FULL_VIEW, isFullView, panelSize } from '../sceneView';
 import type { IWorldComposite } from './worldComposite';
 import type { IWorldInputs } from './worldInputs';
 import type { IWorldPass } from './worldPasses';

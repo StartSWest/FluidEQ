@@ -7,9 +7,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { ipcRenderer, type IpcRendererEvent } from 'electron';
 import type { IScenePack } from '../common/scenePacks';
 import {
+  LIGHTING_PREVIEW_CHANNEL,
+  LIGHTING_SCENE_CHANNEL,
+  type ILampPreview,
+  type ILampSceneChoice,
+} from '../common/lighting/lampSceneChoice';
+import {
   LIGHTING_DEMO_FRAME_CHANNEL,
   LIGHTING_DEMO_SCENE_CHANNEL,
-  LIGHTING_FRAME_CHANNEL,
   LIGHTING_OPEN_RAZER_CHROMA_CHANNEL,
   LIGHTING_OPEN_WINDOWS_SETTINGS_CHANNEL,
   LIGHTING_RELEASE_CHANNEL,
@@ -41,9 +46,19 @@ export const lightingBridge = {
       ipcRenderer.removeListener(LIGHTING_STATE_CHANGED_CHANNEL, receive);
     };
   },
-  /** Fire-and-forget, thirty times a second while a Plus scene plays. */
-  sendLightingFrame: (frame: ILightingFrame) =>
-    ipcRenderer.send(LIGHTING_FRAME_CHANNEL, frame),
+  /** What the desk lights play, whenever the window's part of it moves. */
+  chooseLampScene: (choice: ILampSceneChoice) =>
+    ipcRenderer.send(LIGHTING_SCENE_CHANNEL, choice),
+  /** Each frame the lamps showed, while the Lighting page is open. */
+  onLampPreview: (listener: (preview: ILampPreview) => void) => {
+    const receive = (_event: IpcRendererEvent, preview: ILampPreview) =>
+      listener(preview);
+    ipcRenderer.on(LIGHTING_PREVIEW_CHANNEL, receive);
+    return () => {
+      ipcRenderer.removeListener(LIGHTING_PREVIEW_CHANNEL, receive);
+    };
+  },
+  /** The demo's lamps given back, as its page closes. */
   releaseLighting: () => ipcRenderer.send(LIGHTING_RELEASE_CHANNEL),
   /**
    * Without Plus: a frame of the page's one scene, fire-and-forget. Main

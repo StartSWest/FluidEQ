@@ -43,6 +43,7 @@ import { registerScenePacksIpc } from './ipc/scenePacks';
 import { registerStudioInspectIpc } from './ipc/studioInspect';
 import { createEncryptedJsonStore } from './encryptedJsonStore';
 import { createGalleryAccess } from './plus/galleryAccess';
+import { createLampSceneSource } from './lighting/lampSceneSource';
 import {
   createSceneOwnership,
   isSceneStoreRecord,
@@ -399,6 +400,12 @@ const registerMemberServices = ({
     // they play on the graph, approved or not.
     ownsAnyScene: () =>
       sceneOwnership.ownsAnything(memberScenesIpc.heldLookIds()),
+    // The scene the desk lights play, which main's scene host draws.
+    lampScenes: createLampSceneSource(
+      scenePacksIpc,
+      memberScenesIpc,
+      sceneOwnership,
+    ),
     plusTermsNoticeIpc,
     scenePacksIpc,
     memberSharingIpc,

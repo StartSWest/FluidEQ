@@ -8,9 +8,9 @@ import {
   uniformNameForParam,
   WAVEFORM_TEXELS,
 } from 'common/sceneUniformContract';
+import { FULL_VIEW, panelSize, type TSceneView } from 'common/sceneView';
 import { createSlowSpectrum, frameSignals, frameStepMs } from './sceneSignals';
 import { framedFrame } from './sceneFramingView';
-import { FULL_VIEW, panelSize, type TSceneView } from './sceneView';
 import { SCENE_CONTEXT_ATTRIBUTES } from './sceneHealth';
 import { linkSceneProgram } from './sceneCompile';
 import compileWorldScene from './sceneWorldLoader';

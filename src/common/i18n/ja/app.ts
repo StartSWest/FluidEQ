@@ -139,6 +139,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.lighting': 'ダイナミック ライティング',
   'app.processes.what.lighting':
     'シーンの色を Windows Dynamic Lighting 対応デバイスに渡します。ライティングがオンのときか、そのページを開いているときだけ動作します。',
+  'app.processes.name.lampScene': 'ライティング シーン',
+  'app.processes.what.lampScene':
+    'デバイスを光らせるシーンを描き、そのためにこの PC で再生中の音を聴きます。このウィンドウとは別に動くので、ウィンドウを閉じてもデスクは光り続けます。ダイナミック ライティングが自分のシーンでオンのときだけ動作します。',
   'app.processes.name.helper': '補助サービス',
   'app.processes.what.helper':
     '必要に応じて起動する Chromium のサービスです。FluidEQ が名前を指定して求めることはありません。',

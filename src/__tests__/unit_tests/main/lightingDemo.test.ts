@@ -182,3 +182,35 @@ it('drops a demo frame it cannot read', () => {
   expect(service.state().live).toBe(false);
   service.dispose();
 });
+
+/*
+ * The member's lamps are drawn by main's scene host and outlive the window
+ * (`lampScenes.ts`); the demo is drawn by the window's page and ends with it.
+ * The window going used to give every lamp back, which a window let go in
+ * the tray now does on every hide.
+ */
+it('gives the demo’s lamps back when the window goes', () => {
+  const { service, chroma } = setup(false);
+  service.demoFrame(frame);
+  expect(service.state().live).toBe(true);
+  service.windowGone();
+  expect(chroma.release).toHaveBeenCalledTimes(1);
+  expect(service.state().live).toBe(false);
+  service.dispose();
+});
+
+it('keeps the member’s own lamps lit when the window goes', () => {
+  const { service, chroma, host } = setup(true);
+  service.setSettings({ ...service.state().settings, enabled: true });
+  service.frame(frame);
+  expect(service.state().live).toBe(true);
+  service.windowGone();
+  expect(chroma.release).not.toHaveBeenCalled();
+  expect(host.close).not.toHaveBeenCalled();
+  expect(service.state().live).toBe(true);
+  // CONTROL: the scene host letting go does give them back.
+  service.release();
+  expect(chroma.release).toHaveBeenCalledTimes(1);
+  expect(service.state().live).toBe(false);
+  service.dispose();
+});

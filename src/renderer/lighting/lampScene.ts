@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useSyncExternalStore } from 'react';
+import type { ILampScene } from 'common/lighting/lampSceneChoice';
 import { isMemberLookId } from 'common/memberScenes';
 import {
   isPremiumLookId,
@@ -37,16 +38,8 @@ import {
  * the member's look is not a Plus one, or the account cannot play it.
  */
 
-export interface ILampScene {
-  /** The look the frames are stamped with; its lighting profile is kept under it. */
-  lookId: string;
-  /** The look at the content it is at now: a new version is loaded when this moves. */
-  identity: string;
-  /** Its colours, for the frames it cannot be drawn for. */
-  swatch: readonly string[];
-  /** Somebody's own scene, drawn through the flash limiter. */
-  guarded: boolean;
-}
+/** What main is told the desk plays (`common/lighting/lampSceneChoice.ts`). */
+export type { ILampScene };
 
 const subscribeListings = (listener: () => void) => {
   const stopPacks = subscribeScenePacks(listener);

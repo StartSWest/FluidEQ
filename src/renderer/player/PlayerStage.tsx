@@ -5,8 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { FULL_VIEW, sceneViewOf, type TSceneView } from 'common/sceneView';
 import type { ISceneFrame } from '../graph/sceneGl';
-import { FULL_VIEW, sceneViewOf, type TSceneView } from '../graph/sceneView';
 import ScenePreview from '../plus/ScenePreview';
 import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
 import type { IGraphScenePack } from './useGraphScenePack';

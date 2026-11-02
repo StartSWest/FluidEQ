@@ -21,12 +21,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * (`common/windowHold.ts`): a web player or Karaoke playing, the Library heard
  * from it or from the host whose rack it hands back, the Maker's models.
  * Main holds it for what main learns first: the song memories' clock where
- * the core cannot hear the output (the window's players tick it), the desk
- * lights drawn by the page, Share Audio's links that it answers, the
- * desktop's backgrounds that hear the music through it where the core
- * cannot, and the Studio's door and chat, whose scenes it draws. Any one of
- * them keeps the window. The songs themselves main names while there is no
- * window (`nowPlayingFeed.ts`).
+ * the core cannot hear the output (the window's players tick it), Share
+ * Audio's links that it answers, the desktop's backgrounds that hear the
+ * music through it where the core cannot, and the Studio's door and chat,
+ * whose scenes it draws. Any one of them keeps the window. The songs
+ * themselves main names while there is no window (`nowPlayingFeed.ts`), and
+ * the desk lights are drawn by main's scene host (`lighting/lampScenes.ts`).
  *
  * A PAGE THAT HAS NOT SPOKEN HOLDS IT. Until the page loading says what it
  * holds, it is not idle — it is starting — so a window hidden at launch
@@ -37,12 +37,7 @@ import type { TWindowHold } from '../common/windowHold';
 
 /** What main keeps the window loaded for; see the note above. */
 export type TMainWindowHold =
-  | 'songs'
-  | 'lighting'
-  | 'share-audio'
-  | 'desktop-sound'
-  | 'studio-chat'
-  | 'studio-agent';
+  'songs' | 'share-audio' | 'desktop-sound' | 'studio-chat' | 'studio-agent';
 
 export interface IWindowUnload {
   /** The page's holds, every time they change. */

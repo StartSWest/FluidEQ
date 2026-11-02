@@ -140,6 +140,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.lighting': 'Éclairage dynamique',
   'app.processes.what.lighting':
     'Transmet les couleurs de la scène aux appareils compatibles avec Windows Dynamic Lighting. Ne tourne que lorsque l’éclairage est activé ou que sa page est ouverte.',
+  'app.processes.name.lampScene': 'Scène d’éclairage',
+  'app.processes.what.lampScene':
+    'Dessine la scène qui allume vos appareils et écoute ce que joue ce PC, à part de cette fenêtre, pour que votre bureau reste éclairé fenêtre fermée. Ne tourne que lorsque l’éclairage dynamique est activé avec une scène à vous.',
   'app.processes.name.helper': 'Service auxiliaire',
   'app.processes.what.helper':
     'Un service Chromium démarré à la demande. FluidEQ ne le réclame jamais par son nom.',

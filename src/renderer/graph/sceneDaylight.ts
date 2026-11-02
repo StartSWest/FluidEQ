@@ -8,9 +8,11 @@ import { useSyncExternalStore } from 'react';
 import {
   clampDaylight,
   clockDaylight,
+  followDaylight,
   SCENE_DAYLIGHT_MAX,
   SCENE_DAYLIGHT_MIN,
   SCENE_DAYLIGHT_PARAM,
+  type IDaylightFollower,
 } from 'common/sceneDaylight';
 import type { IScenePack } from 'common/scenePacks';
 import {
@@ -114,41 +116,9 @@ export const authoredDaylight = (pack: Pick<IScenePack, 'params'>): number =>
       SCENE_DAYLIGHT_MIN,
   );
 
-/**
- * How long a playing scene takes to go most of the way (63%) to a new time
- * of day. Dragging the Brightness is followed with no lag worth seeing; a
- * jump - the amp and the app keep a Brightness each - dims or brightens the
- * scene over about a second instead of cutting.
- */
-const FOLLOW_MS = 350;
-/** Closer than this, the scene is at the time of day it was asked for. */
-const ARRIVED = 0.01;
+export type { IDaylightFollower };
 
-export interface IDaylightFollower {
-  /** The time of day to draw this frame at, `deltaMs` after the last. */
-  next(deltaMs: number): number;
-}
-
-/**
- * The time of day a playing scene is drawn at, frame by frame: where the
- * Brightness is on its first frame, and eased after that, by the frames'
- * own time and never a clock of its own.
- */
+/** `followDaylight`, reading the window's own time of day unless told another. */
 export const createDaylightFollower = (
   read: () => number = pageDaylight,
-): IDaylightFollower => {
-  let value: number | undefined;
-  return {
-    next: (deltaMs) => {
-      const target = read();
-      if (value === undefined || Math.abs(value - target) < ARRIVED) {
-        value = target;
-      } else {
-        value =
-          target +
-          (value - target) * Math.exp(-Math.max(deltaMs, 0) / FOLLOW_MS);
-      }
-      return value;
-    },
-  };
-};
+): IDaylightFollower => followDaylight(read);

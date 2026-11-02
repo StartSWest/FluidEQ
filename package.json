@@ -290,6 +290,7 @@
           "FluidEQ-LAN-Capture*",
           "FluidEQ-LAN-Playback*",
           "FluidEQ-Listen.exe",
+          "FluidEQ-Scenes.exe",
           "FluidEQ-Engine*",
           "FluidEQ-Lighting.exe",
           "lighting-identity/**",

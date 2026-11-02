@@ -138,6 +138,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.lighting': 'डायनेमिक लाइटिंग',
   'app.processes.what.lighting':
     'सीन के रंग Windows Dynamic Lighting के साथ काम करने वाले डिवाइस तक पहुँचाता है। सिर्फ़ तभी चलता है जब लाइटिंग चालू हो या उसका पेज खुला हो।',
+  'app.processes.name.lampScene': 'लाइटिंग सीन',
+  'app.processes.what.lampScene':
+    'वह सीन बनाता है जिससे आपके डिवाइस जगमगाते हैं, और उसके लिए यह PC जो बजाता है उसे सुनता है, इस विंडो से अलग, ताकि विंडो बंद होने पर भी आपकी डेस्क रोशन रहे। सिर्फ़ तभी चलता है जब डायनेमिक लाइटिंग आपके अपने सीन के साथ चालू हो।',
   'app.processes.name.helper': 'सहायक सेवा',
   'app.processes.what.helper':
     'ज़रूरत पड़ने पर शुरू होने वाली Chromium सेवा। FluidEQ इसे कभी नाम लेकर नहीं माँगता।',

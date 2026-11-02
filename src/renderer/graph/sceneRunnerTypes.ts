@@ -3,11 +3,11 @@ import type { IScenePack } from 'common/scenePacks';
 import type { IScenePerformance } from 'common/scenePerformance';
 import type { IWorldReport } from 'common/worldNotes';
 import type { TSceneFailure } from 'main/scenePackStore';
+import type { TSceneView } from 'common/sceneView';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneInteraction } from './sceneInteraction';
 import type { ISceneTuning } from './sceneTuner';
 import type { ISceneShownFrames } from './sceneWorkerMessages';
-import type { TSceneView } from './sceneView';
 
 /**
  * What drawing is costing, after every frame: for the Studio's readout and

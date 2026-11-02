@@ -235,6 +235,10 @@ const KEPT_FILES = [
   // as it reloads after one (`CoreCopies`).
   'game-profiles.json',
   'dsp-presets.json',
+  // The core's copy of what the desk lights play — the look, the window's
+  // pause, time of day and accent — which the window hands over again as it
+  // reloads after a reset (`DynamicLightingLoop`).
+  'lamp-scene.json',
   'studio.json',
   'studio-notes.json',
   'studio-agent.json',

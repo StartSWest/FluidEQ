@@ -15,9 +15,14 @@ import { existsSync } from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import {
+  LIGHTING_PREVIEW_CHANNEL,
+  LIGHTING_SCENE_CHANNEL,
+  readLampSceneChoice,
+  type ILampPreview,
+} from '../../common/lighting/lampSceneChoice';
+import {
   LIGHTING_DEMO_FRAME_CHANNEL,
   LIGHTING_DEMO_SCENE_CHANNEL,
-  LIGHTING_FRAME_CHANNEL,
   LIGHTING_OPEN_RAZER_CHROMA_CHANNEL,
   LIGHTING_OPEN_WINDOWS_SETTINGS_CHANNEL,
   LIGHTING_RELEASE_CHANNEL,
@@ -25,9 +30,13 @@ import {
   LIGHTING_STATE_CHANGED_CHANNEL,
   LIGHTING_STATE_CHANNEL,
   LIGHTING_WATCH_CHANNEL,
-  type ILightingState,
 } from '../../common/lighting/lightingModel';
 import { lightingDemoScene } from '../lighting/lightingDemoScene';
+import {
+  createLampScenes,
+  type ILampScenes,
+  type ILampScenesDeps,
+} from '../lighting/lampScenes';
 import {
   createLightingService,
   type ILightingService,
@@ -42,11 +51,14 @@ export interface ILightingIpcDeps {
   /** Asked on every frame, never remembered. */
   entitled: () => boolean;
   /**
-   * Whether the lamps need the window loaded: they are lit from the scene the
-   * window draws, so a window in the tray is kept while they are switched on
-   * (`windowUnload.ts`). Told at registration and at every change.
+   * What the lamps' scene host needs from the rest of main
+   * (`lampScenes.ts`): it draws the desk with no window, so a window in the
+   * tray is let go whether the lamps are lit or not.
    */
-  holdWindow?: (isHeld: boolean) => void;
+  lampScenes: Pick<
+    ILampScenesDeps,
+    'executable' | 'angleDir' | 'log' | 'loadScene' | 'subscribeScenes' | 'kept'
+  >;
 }
 
 /**
@@ -68,17 +80,16 @@ export const razerAppEngine = (): string | undefined => {
 };
 
 /**
- * Dynamic lighting's channels. Frames and releases arrive fire-and-forget:
- * thirty a second, with nothing to answer. The window's state is pushed on
- * change, and read once when the page mounts.
+ * Dynamic lighting's channels. The member's lamps are drawn by main's scene
+ * host from what the window chose (`LIGHTING_SCENE_CHANNEL`); the page's
+ * demo frames and releases arrive fire-and-forget. The window's state is
+ * pushed on change, and read once when the page mounts.
  */
-/** Switched on where the lamps can be lit at all. */
-const lightsNeedWindow = (state: ILightingState): boolean =>
-  state.supported && state.settings.enabled;
-
 export const registerLightingIpc = (
   deps: ILightingIpcDeps,
 ): ILightingService => {
+  // Assigned once the service exists; the service may publish before then.
+  let lamps: ILampScenes | undefined;
   const service = createLightingService({
     userDataDir: deps.userDataDir,
     appVersion: deps.appVersion,
@@ -89,7 +100,7 @@ export const registerLightingIpc = (
     entitled: deps.entitled,
     canOpenRazerChroma: () => razerAppEngine() !== undefined,
     push: (state) => {
-      deps.holdWindow?.(lightsNeedWindow(state));
+      lamps?.stateChanged(state);
       const window = deps.getMainWindow();
       // Renderer teardown can publish release before its window is destroyed.
       if (
@@ -101,7 +112,23 @@ export const registerLightingIpc = (
       }
     },
   });
-  deps.holdWindow?.(lightsNeedWindow(service.state()));
+  const sceneHost = createLampScenes({
+    ...deps.lampScenes,
+    frame: (frame) => service.frame(frame),
+    release: () => service.release(),
+    preview: (preview: ILampPreview) => {
+      const window = deps.getMainWindow();
+      if (
+        window &&
+        !window.isDestroyed() &&
+        !window.webContents.isDestroyed()
+      ) {
+        window.webContents.send(LIGHTING_PREVIEW_CHANNEL, preview);
+      }
+    },
+  });
+  lamps = sceneHost;
+  sceneHost.stateChanged(service.state());
 
   // The window whose frames and open page the service is counting. A reload,
   // a crashed renderer or a closed window ends both without a word from the
@@ -117,6 +144,7 @@ export const registerLightingIpc = (
     }
     owner = undefined;
     service.windowGone();
+    sceneHost.watch(false);
   };
   const fromOwner = (sender: WebContents): boolean => {
     const window = deps.getMainWindow();
@@ -137,9 +165,10 @@ export const registerLightingIpc = (
     return true;
   };
 
-  onWindowMessage(LIGHTING_FRAME_CHANNEL, (event, frame: unknown) => {
-    if (fromOwner(event.sender)) {
-      service.frame(frame);
+  onWindowMessage(LIGHTING_SCENE_CHANNEL, (event, raw: unknown) => {
+    const choice = readLampSceneChoice(raw);
+    if (choice && fromOwner(event.sender)) {
+      sceneHost.choose(choice);
     }
   });
   onWindowMessage(LIGHTING_DEMO_FRAME_CHANNEL, (event, frame: unknown) => {
@@ -156,6 +185,7 @@ export const registerLightingIpc = (
   onWindowMessage(LIGHTING_WATCH_CHANNEL, (event, open: unknown) => {
     if (typeof open === 'boolean' && fromOwner(event.sender)) {
       service.watch(open);
+      sceneHost.watch(open);
     }
   });
   // Razer Chroma started or stopped, or Developer Mode turned on, while FluidEQ
@@ -202,5 +232,11 @@ export const registerLightingIpc = (
     return true;
   });
 
-  return service;
+  return {
+    ...service,
+    dispose: () => {
+      sceneHost.dispose();
+      service.dispose();
+    },
+  };
 };

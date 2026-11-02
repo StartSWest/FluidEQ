@@ -48,11 +48,11 @@ describe('letting a window in the tray go', () => {
 
   it('keeps it while main holds it, for as long as any one does', () => {
     const { unload, windowUnload } = controller();
-    windowUnload.hold('lighting', true);
+    windowUnload.hold('share-audio', true);
     windowUnload.hold('songs', true);
     windowUnload.pageSaid([]);
     windowUnload.hiddenInTray(true);
-    windowUnload.hold('lighting', false);
+    windowUnload.hold('share-audio', false);
     expect(unload).not.toHaveBeenCalled();
     // Said again as it stands: still held.
     windowUnload.hold('songs', true);
@@ -80,7 +80,7 @@ describe('letting a window in the tray go', () => {
     windowUnload.pageLeft();
     windowUnload.hiddenInTray(true);
     expect(unload).not.toHaveBeenCalled();
-    windowUnload.hold('lighting', false);
+    windowUnload.hold('share-audio', false);
     expect(unload).not.toHaveBeenCalled();
     windowUnload.pageSaid([]);
     expect(unload).toHaveBeenCalledTimes(1);

@@ -72,7 +72,7 @@ float flashTravel(float last, float swing, float decay) {
 }
 `;
 
-const STATE_SOURCE = `#version 300 es
+export const STATE_SOURCE = `#version 300 es
 precision highp float;
 uniform sampler2D uCurrent;
 uniform sampler2D uLastFrame;
@@ -147,7 +147,7 @@ const FLAG_LOD = 2;
  * neighbours do — which is the whole of the protection, and why it holds at
  * any size of field.
  */
-const CALM_SOURCE = `#version 300 es
+export const CALM_SOURCE = `#version 300 es
 precision highp float;
 uniform sampler2D uCurrent;
 uniform sampler2D uCalm;
@@ -173,7 +173,7 @@ void main() {
 }
 `;
 
-const COMPOSITE_SOURCE = `#version 300 es
+export const COMPOSITE_SOURCE = `#version 300 es
 precision highp float;
 uniform sampler2D uCurrent;
 uniform sampler2D uCalm;

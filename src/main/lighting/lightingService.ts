@@ -51,12 +51,12 @@ import {
  * Dynamic lighting in the main process: the settings, the devices, and every
  * frame mapped onto every lamp and sent.
  *
- * The window decides WHEN — it sends frames only while a scene the account
- * owns is on the graph, including its idle movement, and releases when that
- * producer stops. This decides WHERE and WHETHER: ownership is asked again on
- * every frame, so a lapsed membership or a window that owns nothing lights
- * nothing. Which owned scene it is the window's to say: the frame is drawn
- * there, from a scene the window holds whole either way.
+ * The scene host decides WHEN — main's `lampScenes.ts` sends its frames only
+ * while a scene the account owns is chosen and lighting is on, including its
+ * idle movement, and releases when that stops; the page's demo is the
+ * window's own. This decides WHERE and WHETHER: ownership is asked again on
+ * every frame, so a lapsed membership or an account that owns nothing lights
+ * nothing.
  *
  * Giving the lamps back is concrete on both routes. Razer's session is ended.
  * The lighting helper is ended — Windows returns a device to the next app in
@@ -94,7 +94,11 @@ export interface ILightingService {
    */
   demoFrame(raw: unknown): void;
   release(): void;
-  /** The window reloaded or went away without saying so. */
+  /**
+   * The window reloaded or went away without saying so: its page is closed,
+   * and its demo with it. The member's own lamps are drawn by the scene
+   * host and stay lit.
+   */
   windowGone(): void;
   /**
    * The member came back to the window, where whatever they changed outside
@@ -469,7 +473,9 @@ export const createLightingService = (
     release,
     windowGone: () => {
       watchers = 0;
-      release();
+      if (demoLit) {
+        release();
+      }
       if (!wantsHelper()) {
         stopHelper();
       }

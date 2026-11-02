@@ -126,6 +126,11 @@ import { registerProcessIpc } from './ipc/processes';
 import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
 import { registerEngineHealthIpc } from './ipc/engineHealth';
 import { registerLightingIpc } from './ipc/lighting';
+import { findSceneHost } from './lighting/lampSceneHost';
+import {
+  readLampSceneChoice,
+  type ILampSceneChoice,
+} from '../common/lighting/lampSceneChoice';
 import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import registerSystemSoundPort from './ipc/systemSoundPort';
 import { createKeptFile } from '../core/files/keptFile';
@@ -693,11 +698,13 @@ registerWindowsAudioIpc();
  * behind a minimised FluidEQ needs nothing of the window; the song memories'
  * clocks; and Auto normalize on Equalizer APO, whose trims main writes.
  */
+/** Where the native helpers are: packaged, then where development builds them. */
+const nativeDirs = [
+  path.join(process.resourcesPath, 'native'),
+  path.join(__dirname, '../../native/.build/bin'),
+];
 const core = createCoreClient({
-  nativeDirs: [
-    path.join(process.resourcesPath, 'native'),
-    path.join(__dirname, '../../native/.build/bin'),
-  ],
+  nativeDirs,
   applyTrim: preamp.applyHeadroomTrim,
   log,
 });
@@ -1283,7 +1290,22 @@ const lighting = registerLightingIpc({
   appVersion: appVersion(),
   getMainWindow,
   entitled: () => members.ownsAnyScene(),
-  holdWindow: (isHeld) => windowUnload.hold('lighting', isHeld),
+  // The desk lights drawn by `FluidEQ-Scenes.exe` on the ANGLE beside this
+  // executable, from the window's last choice, kept so a launch in the tray
+  // lights the desk before any window has spoken.
+  lampScenes: {
+    executable:
+      process.platform === 'win32' ? findSceneHost(nativeDirs) : undefined,
+    angleDir: path.dirname(process.execPath),
+    log,
+    ...members.lampScenes,
+    kept: createKeptFile<ILampSceneChoice | null>({
+      filePath: path.join(userDataDir, 'lamp-scene.json'),
+      parse: (raw) => readLampSceneChoice(raw) ?? null,
+      empty: null,
+      log,
+    }),
+  },
 });
 // The helper's exit hands every Windows lamp back; Razer's session is ended
 // rather than left to lapse.

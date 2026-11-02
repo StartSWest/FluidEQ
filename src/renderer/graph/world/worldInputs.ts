@@ -33,10 +33,10 @@ import type {
   IExpressionRuntime,
   IExpressionScope,
 } from 'common/worldExpression';
+import { FULL_VIEW, panelSize } from 'common/sceneView';
 import type { ISceneFrame } from '../sceneGl';
 import { HOME_CAMERA, NO_POINTER, NO_TAP } from '../sceneFrameRest';
 import { createSlowSpectrum, frameSignals, frameStepMs } from '../sceneSignals';
-import { FULL_VIEW, panelSize } from '../sceneView';
 import { createFormula, type IWorldFormula } from './worldFormula';
 
 /**

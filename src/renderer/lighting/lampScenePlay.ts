@@ -10,6 +10,7 @@ import {
   type ILightingFrame,
 } from 'common/lighting/lightingModel';
 import type { ILightingProfile } from 'common/lighting/lightingProfiles';
+import { fillSwatchGrid, swatchColours } from 'common/lighting/swatchGrid';
 import type { IScenePack } from 'common/scenePacks';
 import { parseAccent } from '../graph/sceneUniforms';
 import { createLightingAtmosphere } from './lightingAtmosphere';
@@ -20,7 +21,6 @@ import {
   type ILightingListener,
 } from './lightingListener';
 import { createLightingScene } from './lightingSceneClient';
-import { fillSwatchGrid, swatchColours } from './swatchGrid';
 
 /**
  * A scene drawn small on the audio clock, frame by frame, for whoever wants

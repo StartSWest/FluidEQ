@@ -1,4 +1,4 @@
-import { SCENE_VIEW_VERTEX_SOURCE } from './sceneView';
+import { SCENE_VIEW_VERTEX_SOURCE } from 'common/sceneView';
 
 /**
  * Programs whose link was given up on, each deleted once its link has

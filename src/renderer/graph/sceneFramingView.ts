@@ -5,8 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { framedPanel, framedPoint } from 'common/sceneFraming';
+import { FULL_VIEW } from 'common/sceneView';
 import type { ISceneFrame } from './sceneGl';
-import { FULL_VIEW } from './sceneView';
 
 /**
  * A frame as its scene's framing draws it on a canvas `width` by `height`

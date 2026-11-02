@@ -281,7 +281,7 @@ export const GAP_MARGIN_S = 0.008;
  * four seconds, which is the scene staying dim long after a flash that Ivan
  * reported seeing.
  */
-const FLASHING_MEMORY_S = 0.5;
+export const FLASHING_MEMORY_S = 0.5;
 
 /** What the flashing flag is multiplied by over a frame of `deltaMs`. */
 export const flashingDecay = (deltaMs: number): number =>
@@ -312,7 +312,7 @@ export const FLASH_PRESSURE_MEMORY_SOURCE = `flashTravel(lastSwing, swing, uDeca
  * to be remembered for the fall after it to count as a turn, and it has to
  * outlast the slowest pair worth catching.
  */
-const TRAVEL_SECONDS = 4;
+export const TRAVEL_SECONDS = 4;
 
 /** What the travel memory is multiplied by over a frame of `deltaMs`. */
 export const flashTravelDecay = (deltaMs: number): number =>

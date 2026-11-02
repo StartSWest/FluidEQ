@@ -535,5 +535,11 @@ if (isWindows) {
   if (!existsSync(listenPath)) {
     fail(`the listening helper was not produced at ${listenPath}`);
   }
+  // The desk lights' scene, packaged beside them: without it dynamic lighting
+  // has nothing to draw the lamps with.
+  const scenesPath = path.join(BUILD_DIR, 'bin', 'FluidEQ-Scenes.exe');
+  if (!existsSync(scenesPath)) {
+    fail(`the lamps' scene host was not produced at ${scenesPath}`);
+  }
 }
 console.log(`native dsp build: ${hostPath}`);
