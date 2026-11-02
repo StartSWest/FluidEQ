@@ -17,6 +17,7 @@ import type { ILampScenesDeps } from 'main/lighting/lampScenes';
 import onWindowMessage from 'main/ipc/windowMessages';
 
 let mockPush: ILightingServiceDeps['push'];
+let mockHelperPid: ILightingServiceDeps['onHelperPid'];
 let mockState: ILightingState | undefined;
 const mockService = {
   state: () => mockState,
@@ -29,6 +30,7 @@ const mockService = {
 jest.mock('main/lighting/lightingService', () => ({
   createLightingService: (deps: ILightingServiceDeps) => {
     mockPush = deps.push;
+    mockHelperPid = deps.onHelperPid;
     return mockService;
   },
 }));
@@ -213,4 +215,19 @@ it('ends the scene host with the service', () => {
   lighting.dispose();
   expect(mockLamps.dispose).toHaveBeenCalled();
   expect(mockService.dispose).toHaveBeenCalled();
+});
+
+it('says when the lighting helper runs, for main to stay while it does', () => {
+  const running: boolean[] = [];
+  registerLightingIpc({
+    userDataDir: 'unused',
+    appVersion: '1.0.0',
+    getMainWindow: () => null,
+    entitled: () => true,
+    lampScenes,
+    onRunning: (isRunning) => running.push(isRunning),
+  });
+  mockHelperPid?.(4242);
+  mockHelperPid?.(undefined);
+  expect(running).toEqual([true, false]);
 });

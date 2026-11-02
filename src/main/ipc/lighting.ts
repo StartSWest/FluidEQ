@@ -59,6 +59,11 @@ export interface ILightingIpcDeps {
     ILampScenesDeps,
     'executable' | 'angleDir' | 'log' | 'loadScene' | 'subscribeScenes' | 'kept'
   >;
+  /**
+   * Told when the lighting helper starts and ends: it is main's child, so
+   * main stays while it runs (`appLeave.ts`).
+   */
+  onRunning?: (running: boolean) => void;
 }
 
 /**
@@ -99,6 +104,7 @@ export const registerLightingIpc = (
     supported: process.platform === 'win32' && !isSealedSandbox,
     entitled: deps.entitled,
     canOpenRazerChroma: () => razerAppEngine() !== undefined,
+    onHelperPid: (pid) => deps.onRunning?.(pid !== undefined),
     push: (state) => {
       lamps?.stateChanged(state);
       const window = deps.getMainWindow();

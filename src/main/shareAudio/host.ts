@@ -174,6 +174,28 @@ export const audioWorkerHelperPid = () => current?.helperPid();
 /** The service itself, whose children are the LAN audio helper. */
 export const shareServicePid = () => current?.servicePid();
 
+const runningListeners = new Set<(running: boolean) => void>();
+/**
+ * Told whenever the service starts or ends. It is main's child and ends with
+ * it, so main stays while it runs (`appLeave.ts`): a link, or a computer
+ * waiting to be found, would otherwise drop with Electron.
+ */
+export const onShareServiceRunning = (listener: (running: boolean) => void) => {
+  runningListeners.add(listener);
+  return () => {
+    runningListeners.delete(listener);
+  };
+};
+let toldRunning = false;
+/** Said once per change: a stop that ends the service twice says so once. */
+const tellRunning = () => {
+  const running = current !== undefined;
+  if (running !== toldRunning) {
+    toldRunning = running;
+    runningListeners.forEach((listener) => listener(running));
+  }
+};
+
 // Set by Electron's IPC registration on Windows, where the link runs in
 // `FluidEQ-Share.exe`. Node fixtures and the other platforms keep the link in
 // this process until they explicitly enable the service.
@@ -192,20 +214,25 @@ export const stopAudioWorker = () => {
   current = undefined;
   enabled = false;
   decided = false;
+  tellRunning();
 };
-export const getAudioWorker = (): TAudioWorkerHost => {
+export const getAudioWorker = (
+  spawn?: (entry: string) => IAudioWorkerTransport,
+): TAudioWorkerHost => {
   if (!current) {
     const entry = findShareService();
     if (!entry) {
       throw new Error('Share Audio worker is unavailable.');
     }
-    current = createAudioWorkerHost(entry);
+    current = createAudioWorkerHost(entry, spawn);
     current.listen((event) =>
       workerListeners.forEach((listener) => listener(event)),
     );
     current.onFailure(() => {
       current = undefined;
+      tellRunning();
     });
+    tellRunning();
   }
   return current;
 };

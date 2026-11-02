@@ -5,6 +5,8 @@ import {
   createAudioWorkerHost,
   enableAudioWorker,
   audioWorkerEnabled,
+  getAudioWorker,
+  onShareServiceRunning,
   stopAudioWorker,
 } from '../../../main/shareAudio/host';
 import startRemoteAudioHostSession from '../../../main/remoteAudioHostSession';
@@ -40,6 +42,25 @@ it('keeps the link in main when the native build has not made the service', () =
   stopAudioWorker();
   enableAudioWorker();
   expect(audioWorkerEnabled()).toBe(true);
+});
+
+it('says when the service starts and ends, for main to stay while it runs', () => {
+  jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+  enableAudioWorker();
+  const running: boolean[] = [];
+  const stopListening = onShareServiceRunning((isRunning) =>
+    running.push(isRunning),
+  );
+  getAudioWorker(spawnFixture);
+  getAudioWorker(spawnFixture);
+  expect(running).toEqual([true]);
+  // Ended by itself: said, and a new one says so again.
+  mockWorkers[0].emit('exit', 1);
+  expect(running).toEqual([true, false]);
+  getAudioWorker(spawnFixture);
+  stopAudioWorker();
+  expect(running).toEqual([true, false, true, false]);
+  stopListening();
 });
 
 it('acknowledges telemetry only after consumers process it', () => {

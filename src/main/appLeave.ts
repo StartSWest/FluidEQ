@@ -30,6 +30,12 @@ export type TAppHold =
 
 export interface IAppLeave {
   hold: (reason: TAppHold, isHeld: boolean) => void;
+  /**
+   * A hold that is a question, asked whenever main would leave: for a job
+   * whose need is a setting changed in the window, which is always followed
+   * by the window going before main can leave.
+   */
+  holdWhile: (reason: TAppHold, isHeld: () => boolean) => void;
   /** What holds it now, for the log and a bug report. */
   holding: () => TAppHold[];
 }
@@ -50,10 +56,19 @@ export const createAppLeave = ({
   // The launch's own window holds it from the first moment: nothing may
   // leave before there has been a window to put away.
   const holds = new Set<TAppHold>(['window']);
+  const questions = new Map<TAppHold, () => boolean>();
   let isLeaving = false;
 
+  /** Every hold, the questions answered now. */
+  const holding = () => [
+    ...holds,
+    ...[...questions]
+      .filter(([reason, isHeld]) => !holds.has(reason) && isHeld())
+      .map(([reason]) => reason),
+  ];
+
   const decide = () => {
-    if (isLeaving || holds.size > 0 || !canLeave()) {
+    if (isLeaving || holding().length > 0 || !canLeave()) {
       return;
     }
     isLeaving = true;
@@ -67,14 +82,23 @@ export const createAppLeave = ({
         holds.add(reason);
         return;
       }
-      if (holds.delete(reason) && reason === 'window' && holds.size > 0) {
+      const held = holding();
+      if (holds.delete(reason) && reason === 'window' && held.length > 1) {
         // Said once, as the window goes, so a report can tell why FluidEQ
         // kept its Electron process with nothing on screen.
-        log(`This process stays for: ${[...holds].join(', ')}.`);
+        log(
+          `This process stays for: ${held
+            .filter((other) => other !== 'window')
+            .join(', ')}.`,
+        );
       }
       decide();
     },
-    holding: () => [...holds],
+    holdWhile: (reason, isHeld) => {
+      questions.set(reason, isHeld);
+      decide();
+    },
+    holding,
   };
 };
 

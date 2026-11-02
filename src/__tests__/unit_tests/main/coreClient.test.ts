@@ -300,3 +300,18 @@ it('ends the core when main closes', () => {
   client.close();
   expect(latest().child.kill).toHaveBeenCalled();
 });
+
+describe('what keeps main for the core', () => {
+  it('says when the core is needed and when it no longer is, once each', () => {
+    const { client } = setUp();
+    const told: boolean[] = [];
+    client.onNeeded((needed) => told.push(needed));
+    // Said at once: nothing needs it yet.
+    expect(told).toEqual([false]);
+    client.desktopSound.want(true);
+    client.desktopSound.want(true);
+    expect(told).toEqual([false, true]);
+    client.desktopSound.want(false);
+    expect(told).toEqual([false, true, false]);
+  });
+});

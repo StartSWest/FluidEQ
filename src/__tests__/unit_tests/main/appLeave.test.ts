@@ -44,6 +44,21 @@ describe('when main leaves', () => {
     expect(leave).toHaveBeenCalledTimes(1);
   });
 
+  it('asks a question hold when it would leave, and leaves once it is no', () => {
+    const { leave, log, appLeave } = setUp();
+    let needed = true;
+    appLeave.holdWhile('job:media', () => needed);
+    appLeave.hold('window', false);
+    expect(leave).not.toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith('This process stays for: job:media.');
+    expect(appLeave.holding()).toEqual(['job:media']);
+    needed = false;
+    // A setting changed in the window: the window goes again after it.
+    appLeave.hold('window', true);
+    appLeave.hold('window', false);
+    expect(leave).toHaveBeenCalledTimes(1);
+  });
+
   it('stays while a window comes back, and leaves again only when it goes', () => {
     const { leave, appLeave } = setUp();
     appLeave.hold('job:library', true);

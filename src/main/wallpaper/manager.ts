@@ -66,6 +66,12 @@ export interface IWallpaperDeps extends IWallpaperScenes {
    * window in the tray is kept for them and let go after (`windowUnload.ts`).
    */
   holdWindow?: (isHeld: boolean) => void;
+  /**
+   * Whether any monitor has a background set, playing or waiting for its
+   * cable, told at every change: what draws them is main's child, so main
+   * stays while one is set (`appLeave.ts`).
+   */
+  onBusy?: (busy: boolean) => void;
 }
 
 /** Failures a monitor changing shape may clear. */
@@ -200,6 +206,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   cleanups.push(deps.desktopSound.onServesChanged(() => publish()));
 
   const save = () => {
+    deps.onBusy?.(saved.size > 0);
     try {
       deps.arrangement.write({
         pauseOnBattery,
@@ -211,6 +218,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       log.warn(`Desktop backgrounds could not be remembered: ${error}`);
     }
   };
+  deps.onBusy?.(saved.size > 0);
 
   /**
    * The window's performance choice for visualizers — the frame rate, the

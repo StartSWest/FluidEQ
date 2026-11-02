@@ -58,6 +58,12 @@ export interface ICoreClient {
     onLost: () => void;
   }): IHeardClock;
   apoHeadroom: IApoHeadroom;
+  /**
+   * Told whether anything needs the core now, at once and at every change:
+   * its process is main's child and ends with it, so main stays while it is
+   * needed (`appLeave.ts`).
+   */
+  onNeeded(listener: (needed: boolean) => void): () => void;
   close(): void;
 }
 
@@ -91,6 +97,11 @@ export const createLocalCoreClient = (
   desktopSound: desktopSoundClientOf(services.desktop),
   createClock: (options) => services.clock(options),
   apoHeadroom: services.headroom,
+  // In this process, whatever it hears for is main's own work: said once.
+  onNeeded: (listener) => {
+    listener(true);
+    return () => undefined;
+  },
   close: () => undefined,
 });
 
@@ -290,8 +301,19 @@ export const createProcessCoreClient = ({
   /** Ended by main, so its exit is no crash. */
   const dismissed = new WeakSet<ICoreChild>();
 
+  const neededListeners = new Set<(needed: boolean) => void>();
+  let toldNeeded: boolean | undefined;
+  const tellNeeded = () => {
+    const needed = isNeeded();
+    if (needed !== toldNeeded) {
+      toldNeeded = needed;
+      neededListeners.forEach((listener) => listener(needed));
+    }
+  };
+
   /** The process runs exactly while something needs it. */
   const settle = (): void => {
+    tellNeeded();
     if (!isNeeded()) {
       if (child) {
         const ending = child;
@@ -334,6 +356,13 @@ export const createProcessCoreClient = ({
   };
 
   return {
+    onNeeded: (listener) => {
+      neededListeners.add(listener);
+      listener(isNeeded());
+      return () => {
+        neededListeners.delete(listener);
+      };
+    },
     attachWindowPort: (port) => {
       if (isBroken || isClosed) {
         port.postMessage({ kind: 'failed' });

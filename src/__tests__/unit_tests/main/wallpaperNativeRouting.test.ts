@@ -153,4 +153,16 @@ describe('backgrounds drawn by the C++ host', () => {
     expect(want).toHaveBeenCalledWith(true);
     expect(manager.state().screens[0].drawnByHost).toBeUndefined();
   });
+
+  it('holds main while a background is set on any monitor, and lets it go with the last', () => {
+    const { deps } = desk();
+    const busy: boolean[] = [];
+    deps.onBusy = (isBusy) => busy.push(isBusy);
+    const manager = createWallpaperManager(deps);
+    expect(busy).toEqual([false]);
+    manager.start(request({ displayIds: [2], motion: 'music' }));
+    expect(busy[busy.length - 1]).toBe(true);
+    manager.stop([2]);
+    expect(busy[busy.length - 1]).toBe(false);
+  });
 });

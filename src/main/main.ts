@@ -119,6 +119,7 @@ import { createSourcePublication } from './libraryPlayer/sourcePublication';
 import watchWindowSeen from './windowSeen';
 import { createWindowUnload } from './windowUnload';
 import { createAppLeave, leaveToTray, relaunchCommand } from './appLeave';
+import { onShareServiceRunning } from './shareAudio/host';
 import { createNowPlayingFeed } from './nowPlayingFeed';
 import { followWindowPage, registerWindowHoldsIpc } from './ipc/windowHolds';
 import { LIBRARY_PLAYER_CHANNEL } from '../common/library/playerWire';
@@ -277,6 +278,65 @@ const windowUnload = createWindowUnload({
   },
   log: (message) => log.info(message),
 });
+/**
+ * Electron leaving with FluidEQ going on from its tray (`appLeave.ts`):
+ * only while FluidEQ-Tray holds FluidEQ, and never on the way to a quit.
+ */
+const appLeave = createAppLeave({
+  canLeave: () => nativeTray !== undefined && !isAppQuitting(),
+  leave: () => {
+    leaveToTray({
+      showTrayForLeaving,
+      // And what the quit's second pass lets go: the output watch, the disk
+      // sync and the DSP host, whose endpoint Windows reclaims only when it
+      // notices a parent gone.
+      windDown: () =>
+        windDown()
+          .then(() => {
+            outputWatch?.stop();
+            diskSync.stop();
+            return shutdownDspHost();
+          })
+          .catch(() => undefined),
+      tellTray: () =>
+        nativeTray
+          ? nativeTray.leave(
+              relaunchCommand(
+                {
+                  execPath: process.execPath,
+                  argv: process.argv,
+                  cwd: process.cwd(),
+                },
+                [START_IN_TRAY_ARG, '--updated'],
+              ),
+            )
+          : Promise.resolve(false),
+      exit: () => app.exit(0),
+      restart: () => {
+        app.relaunch({
+          args: [
+            ...process.argv.slice(1).filter((arg) => arg !== START_IN_TRAY_ARG),
+            START_IN_TRAY_ARG,
+          ],
+        });
+        app.exit(0);
+      },
+      log: (message, error) =>
+        error === undefined ? log.warn(message) : log.error(message, error),
+    }).catch((error: unknown) =>
+      log.error('Leaving to the tray failed', error),
+    );
+  },
+  log: (message) => log.info(message),
+});
+// Main's jobs with no window, each held exactly while it runs (the core
+// split's step 6): the Library playing, Share Audio's service, the desk
+// lights' helper, a background set on any monitor, the core hearing for
+// something, a game watched for and the media watcher are said where they
+// start and stop. Following Windows' outputs holds nothing: every output's
+// sound is written to its own files on both engines (`deviceProfiles.ts`,
+// `outputConfigFiles.ts`), a new one plays neutral until it is saved as it
+// would with main here, and a launch reads the outputs afresh.
 registerWindowHoldsIpc(getMainWindow, {
   pageSaid: (holds) => {
     windowUnload.pageSaid(holds);
@@ -724,6 +784,8 @@ const core = createCoreClient({
 });
 registerSystemSoundPort(getMainWindow, core.attachWindowPort);
 const { desktopSound } = core;
+core.onNeeded((needed) => appLeave.hold('job:listening', needed));
+onShareServiceRunning((running) => appLeave.hold('job:share', running));
 
 /**
  * The window's lists the core acts on with no window to ask: the game
@@ -1056,6 +1118,13 @@ const singlePlayerSwitch = registerSystemMediaIpc({
   getMainWindow,
 });
 
+// The media watcher names the song for the FluidEQ Engine's leveling and
+// keeps one player at a time; with neither wanted it can go with main.
+appLeave.holdWhile(
+  'job:media',
+  () => session.audioEngine === 'fluid' || singlePlayerSwitch.isSinglePlayer(),
+);
+
 // Every switch between the app and the player is written down at once — a
 // window closed straight after one must open in the mode it was left in — and
 // the page is told, because what it draws is the mode.
@@ -1186,9 +1255,16 @@ const gameSound = createGameSound({
   onPlaying: (playing) => members.wallpaperIpc.setGameInFront(playing),
   t: mainText,
 });
+/** A game watched for, by its kept profiles: the watcher is main's child. */
+const holdForGames = () => {
+  const { enabled, profiles: kept } = keptGames.read();
+  appLeave.hold('job:games', enabled && kept.length > 0);
+};
+holdForGames();
 keptGames.onChange(() => {
   gamesIpc.refreshWatch();
   gameSound.gamesChanged().catch(() => undefined);
+  holdForGames();
 });
 
 // The system volume, for the compact player's slider when what is playing is
@@ -1203,6 +1279,7 @@ const members = registerMemberServices({
   getMainWindow,
   userDataDir,
   desktopSound,
+  desktopBusy: (busy) => appLeave.hold('job:desktop', busy),
   // The desktop backgrounds it draws without a hidden page per monitor.
   ...(sceneHostExecutable
     ? {
@@ -1315,6 +1392,7 @@ const lighting = registerLightingIpc({
   userDataDir,
   appVersion: appVersion(),
   getMainWindow,
+  onRunning: (running) => appLeave.hold('job:lighting', running),
   entitled: () => members.ownsAnyScene(),
   // The desk lights drawn by `FluidEQ-Scenes.exe` on the ANGLE beside this
   // executable, from the window's last choice, kept so a launch in the tray
@@ -1418,6 +1496,8 @@ const libraryPlayer = createLibraryPlayer({
   session: createPlaybackSession(userDataDir, log),
   window: {
     view: (view) => {
+      // Its host and its queue are main's: the Library playing holds it.
+      appLeave.hold('job:library', view.isPlaying);
       nowPlayingFeed.libraryViewed(view);
       remoteAudio.windowless.libraryViewed(view);
       sendToWindow(LIBRARY_PLAYER_CHANNEL.view, view);
@@ -1528,76 +1608,6 @@ const windDown = (): Promise<void> =>
     )
     .then(() => undefined)
     .catch(() => undefined);
-
-/**
- * Electron leaving with FluidEQ going on from its tray (`appLeave.ts`):
- * only while FluidEQ-Tray holds FluidEQ, and never on the way to a quit.
- */
-const appLeave = createAppLeave({
-  canLeave: () => nativeTray !== undefined && !isAppQuitting(),
-  leave: () => {
-    leaveToTray({
-      showTrayForLeaving,
-      // And what the quit's second pass lets go: the output watch, the disk
-      // sync and the DSP host, whose endpoint Windows reclaims only when it
-      // notices a parent gone.
-      windDown: () =>
-        windDown()
-          .then(() => {
-            outputWatch?.stop();
-            diskSync.stop();
-            return shutdownDspHost();
-          })
-          .catch(() => undefined),
-      tellTray: () =>
-        nativeTray
-          ? nativeTray.leave(
-              relaunchCommand(
-                {
-                  execPath: process.execPath,
-                  argv: process.argv,
-                  cwd: process.cwd(),
-                },
-                [START_IN_TRAY_ARG, '--updated'],
-              ),
-            )
-          : Promise.resolve(false),
-      exit: () => app.exit(0),
-      restart: () => {
-        app.relaunch({
-          args: [
-            ...process.argv.slice(1).filter((arg) => arg !== START_IN_TRAY_ARG),
-            START_IN_TRAY_ARG,
-          ],
-        });
-        app.exit(0);
-      },
-      log: (message, error) =>
-        error === undefined ? log.warn(message) : log.error(message, error),
-    }).catch((error: unknown) =>
-      log.error('Leaving to the tray failed', error),
-    );
-  },
-  log: (message) => log.info(message),
-});
-// Everything main still does with no window, each held until it leaves
-// Electron or says when it runs (the core split's step 6): following
-// Windows' outputs into each one's profile, the games and media watchers,
-// the Library's player, Share Audio and second outputs, the desk lights, the
-// desktop's backgrounds and the listening helper. Until then FluidEQ keeps
-// this process as it always did.
-(
-  [
-    'job:outputs',
-    'job:games',
-    'job:media',
-    'job:library',
-    'job:share',
-    'job:lighting',
-    'job:desktop',
-    'job:listening',
-  ] as const
-).forEach((job) => appLeave.hold(job, true));
 
 const resetActiveEngineAtSessionEnd = (): void => {
   outputWatch?.stop();

@@ -533,11 +533,20 @@ Everything worth knowing about them is available through commands:
   icon and the engine's line, answers a menu main left at Open and Quit, and
   starts FluidEQ again on Open (`AppLaunch`, once per attempt); a main that
   ends without saying so is still FluidEQ ending. Every job main still does
-  with no window holds it by name (`job:outputs`, `job:games`, `job:media`,
-  `job:library`, `job:share`, `job:lighting`, `job:desktop`,
-  `job:listening`), so today it never leaves: a job's hold goes only when
-  the job has left Electron or says exactly when it runs — never before, or
-  FluidEQ stops doing that job with no window open.
+  with no window holds it by name, exactly while it runs, said where it
+  starts and stops: `job:library` while the Library plays, `job:share` while
+  Share Audio's service runs (`onShareServiceRunning`), `job:lighting` while
+  the lighting helper does, `job:desktop` while any monitor has a background
+  set, `job:listening` while the core is needed (`onNeeded`), `job:games`
+  while kept game profiles are watched for, and `job:media` — a question
+  asked when main would leave (`holdWhile`) — while the FluidEQ Engine is
+  chosen (its leveling is told the song, `songProgramme.ts`) or one player
+  at a time is on. Following Windows' outputs holds nothing: every output's
+  sound is in its own files on both engines, a new output plays neutral as
+  it would with main here, and a launch reads the outputs afresh. Each of
+  those processes is main's child and ends with it, so a hold goes only when
+  its job has left Electron or truly stops — never before, or FluidEQ stops
+  doing that job with no window open.
 - **A desktop background moving with the music is drawn by C++ where it can
   be** (`FluidEQ-Scenes --mode desktop`, `nativeSurface.ts`): a thread and a
   window per monitor, placed by the same desktop helper, with no hidden page.
