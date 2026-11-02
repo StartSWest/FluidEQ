@@ -764,7 +764,9 @@ if(WIN32)
     tray-host/src/links.cpp
     tray-host/src/tray_host.cpp
     tray-host/src/app_launch.cpp
-    tray-host/src/song_programme.cpp)
+    tray-host/src/song_programme.cpp
+    tray-host/src/song_levels.cpp
+    tray-host/src/song_teller.cpp)
   target_include_directories(fluideq-tray-core PUBLIC tray-host/src)
   target_link_libraries(fluideq-tray-core
     PUBLIC fluideq-io fluideq-share-core icu bcrypt PRIVATE feq_strict)
@@ -802,6 +804,10 @@ if(WIN32)
   target_link_libraries(fluideq-song-programme-test
     PRIVATE fluideq-tray-core feq_strict)
   add_test(NAME song-programme COMMAND fluideq-song-programme-test)
+  add_executable(fluideq-song-teller-test tray-host/tests/song_teller_test.cpp)
+  target_link_libraries(fluideq-song-teller-test
+    PRIVATE fluideq-tray-core feq_strict)
+  add_test(NAME song-teller COMMAND fluideq-song-teller-test)
 endif()
 
 # The music as the scenes and the lamps hear it, in C++ (`scene-core`): the
