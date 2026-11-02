@@ -30,8 +30,19 @@ struct WriteOperation : Operation {
   Bytes bytes;
 };
 
-/** Windows' own rules for one argument on a command line. */
-std::wstring quoted(const std::wstring& argument) {
+HANDLE new_instance(const std::wstring& name, bool first) {
+  return CreateNamedPipeW(
+      name.c_str(),
+      PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED |
+          (first ? FILE_FLAG_FIRST_PIPE_INSTANCE : 0),
+      PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT |
+          PIPE_REJECT_REMOTE_CLIENTS,
+      PIPE_UNLIMITED_INSTANCES, kPipeBytes, kPipeBytes, 0, nullptr);
+}
+
+}  // namespace
+
+std::wstring quoted_argument(const std::wstring& argument) {
   if (!argument.empty() &&
       argument.find_first_of(L" \t\n\v\"") == std::wstring::npos) {
     return argument;
@@ -55,18 +66,6 @@ std::wstring quoted(const std::wstring& argument) {
   out.push_back(L'"');
   return out;
 }
-
-HANDLE new_instance(const std::wstring& name, bool first) {
-  return CreateNamedPipeW(
-      name.c_str(),
-      PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED |
-          (first ? FILE_FLAG_FIRST_PIPE_INSTANCE : 0),
-      PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT |
-          PIPE_REJECT_REMOTE_CLIENTS,
-      PIPE_UNLIMITED_INSTANCES, kPipeBytes, kPipeBytes, 0, nullptr);
-}
-
-}  // namespace
 
 std::wstring unique_pipe_name(const std::wstring& prefix) {
   std::array<std::uint8_t, 16> bytes{};
@@ -303,9 +302,9 @@ std::variant<std::shared_ptr<ChildProcess>, Failure> ChildProcess::spawn(
   startup.StartupInfo.hStdOutput = output;
   startup.StartupInfo.hStdError = error;
   startup.lpAttributeList = attributes;
-  std::wstring command = quoted(executable);
+  std::wstring command = quoted_argument(executable);
   for (const auto& argument : arguments) {
-    command += L" " + quoted(argument);
+    command += L" " + quoted_argument(argument);
   }
   PROCESS_INFORMATION process{};
   const BOOL started = CreateProcessW(

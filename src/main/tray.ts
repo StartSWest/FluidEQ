@@ -22,7 +22,7 @@ import { app, BrowserWindow } from 'electron';
 import log from 'electron-log';
 import { DEFAULT_LOCALE, LocaleCode } from '../common/i18n';
 import { createElectronTraySurface } from './trayElectron';
-import { trayMenuEntries, trayTooltip } from './trayMenu';
+import { ITrayMenuState, trayMenuEntries, trayTooltip } from './trayMenu';
 import type {
   ITraySurface,
   ITrayTintedIcon,
@@ -262,25 +262,16 @@ const press = (action: TTrayAction) => {
 };
 
 /** The surface shown what the tray is now; nothing before setup. */
-const render = () => {
+const showWith = (menu: ITrayMenuState) => {
   if (!surface || !trayIcons) {
     return;
   }
   surface.show({
-    icon: isUpdateReady
+    icon: menu.updateReady
       ? trayIcons.update
       : (tintedIcon?.file ?? trayIcons.plain),
-    tooltip: trayTooltip({ locale, updateReady: isUpdateReady }),
-    menu: trayMenuEntries({
-      locale,
-      updatesEnabled: areUpdatesEnabled,
-      updateReady: isUpdateReady,
-      can: {
-        installUpdate: Boolean(updateActions.onInstallUpdate),
-        checkForUpdates: Boolean(updateActions.onCheckForUpdates),
-        recoverWindow: Boolean(updateActions.onRecoverWindow),
-      },
-    }),
+    tooltip: trayTooltip(menu),
+    menu: trayMenuEntries(menu),
     marks: {
       plain: trayIcons.plain,
       update: trayIcons.update,
@@ -288,6 +279,31 @@ const render = () => {
     },
   });
 };
+
+const render = () =>
+  showWith({
+    locale,
+    updatesEnabled: areUpdatesEnabled,
+    updateReady: isUpdateReady,
+    can: {
+      installUpdate: Boolean(updateActions.onInstallUpdate),
+      checkForUpdates: Boolean(updateActions.onCheckForUpdates),
+      recoverWindow: Boolean(updateActions.onRecoverWindow),
+    },
+  });
+
+/**
+ * The tray as main leaves it to FluidEQ-Tray (`appLeave.ts`): Open and Quit,
+ * which the tray answers by itself. Updates and the window's recovery are
+ * main's to do, and come back with it.
+ */
+export const showTrayForLeaving = () =>
+  showWith({
+    locale,
+    updatesEnabled: false,
+    updateReady: false,
+    can: { installUpdate: false, checkForUpdates: false, recoverWindow: false },
+  });
 
 export const setTrayTintedIcon = (icon: ITrayTintedIcon | undefined) => {
   tintedIcon = icon;

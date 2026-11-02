@@ -178,7 +178,7 @@ void Loop::drain_deferred() {
 
 int Loop::run() {
   std::array<OVERLAPPED_ENTRY, 64> entries{};
-  // An exception nothing caught ends the service, as an uncaught one ended
+  // An exception nothing caught ends the helper, as an uncaught one ended
   // the Node service: main sees it exit and fails what it was waiting on.
   try {
     drain_deferred();
@@ -199,7 +199,7 @@ int Loop::run() {
       }
     }
   } catch (const std::exception& error) {
-    std::fprintf(stderr, "Share Audio service stopped: %s\n", error.what());
+    std::fprintf(stderr, "Stopped on an error nothing caught: %s\n", error.what());
     return 1;
   }
   return code_;

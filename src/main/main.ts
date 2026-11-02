@@ -79,6 +79,7 @@ import {
   destroyTray,
   fallBackToElectronTray,
   isAppQuitting,
+  showTrayForLeaving,
   revealMainWindow,
   setTrayTintedIcon,
   setUpTray,
@@ -117,6 +118,7 @@ import { createPlaybackSession } from './libraryPlayer/playbackSession';
 import { createSourcePublication } from './libraryPlayer/sourcePublication';
 import watchWindowSeen from './windowSeen';
 import { createWindowUnload } from './windowUnload';
+import { createAppLeave, leaveToTray, relaunchCommand } from './appLeave';
 import { createNowPlayingFeed } from './nowPlayingFeed';
 import { followWindowPage, registerWindowHoldsIpc } from './ipc/windowHolds';
 import { LIBRARY_PLAYER_CHANNEL } from '../common/library/playerWire';
@@ -269,6 +271,7 @@ const windowUnload = createWindowUnload({
     const window = mainWindow;
     if (window && !window.isDestroyed()) {
       isWindowLetGo = true;
+      window.once('closed', () => appLeave.hold('window', false));
       window.close();
     }
   },
@@ -1490,6 +1493,100 @@ const nativeTrayLost = (servedEngineLine: boolean): void => {
   );
 };
 
+/**
+ * What a quit winds down before it turns the engines off, and what leaving
+ * FluidEQ to its tray winds down instead: a song edited while it played
+ * filed, its own sound handed back, the Library's session kept and its host
+ * let go, the listening helper with it, and every write on its way landed.
+ * Never rejects; each part's failure is logged and the next goes on.
+ */
+const windDown = (): Promise<void> =>
+  songMemory
+    .close()
+    .catch((error) => log.error('The song memory could not close', error))
+    .then(() => songEq.close())
+    .catch((error) =>
+      log.error('The Smart EQ song memory could not close', error),
+    )
+    .then(() => libraryPlayer.close())
+    .catch((error) => log.error('The Library player could not close', error))
+    .then(() => core.close())
+    .then(() =>
+      Promise.all([flushPendingWrites(), memoryTrace.stopMemoryTrace()]),
+    )
+    .then(() => undefined)
+    .catch(() => undefined);
+
+/**
+ * Electron leaving with FluidEQ going on from its tray (`appLeave.ts`):
+ * only while FluidEQ-Tray holds FluidEQ, and never on the way to a quit.
+ */
+const appLeave = createAppLeave({
+  canLeave: () => nativeTray !== undefined && !isAppQuitting(),
+  leave: () => {
+    leaveToTray({
+      showTrayForLeaving,
+      // And what the quit's second pass lets go: the output watch, the disk
+      // sync and the DSP host, whose endpoint Windows reclaims only when it
+      // notices a parent gone.
+      windDown: () =>
+        windDown()
+          .then(() => {
+            outputWatch?.stop();
+            diskSync.stop();
+            return shutdownDspHost();
+          })
+          .catch(() => undefined),
+      tellTray: () =>
+        nativeTray
+          ? nativeTray.leave(
+              relaunchCommand(
+                {
+                  execPath: process.execPath,
+                  argv: process.argv,
+                  cwd: process.cwd(),
+                },
+                [START_IN_TRAY_ARG, '--updated'],
+              ),
+            )
+          : Promise.resolve(false),
+      exit: () => app.exit(0),
+      restart: () => {
+        app.relaunch({
+          args: [
+            ...process.argv.slice(1).filter((arg) => arg !== START_IN_TRAY_ARG),
+            START_IN_TRAY_ARG,
+          ],
+        });
+        app.exit(0);
+      },
+      log: (message, error) =>
+        error === undefined ? log.warn(message) : log.error(message, error),
+    }).catch((error: unknown) =>
+      log.error('Leaving to the tray failed', error),
+    );
+  },
+  log: (message) => log.info(message),
+});
+// Everything main still does with no window, each held until it leaves
+// Electron or says when it runs (the core split's step 6): following
+// Windows' outputs into each one's profile, the games and media watchers,
+// the Library's player, Share Audio and second outputs, the desk lights, the
+// desktop's backgrounds and the listening helper. Until then FluidEQ keeps
+// this process as it always did.
+(
+  [
+    'job:outputs',
+    'job:games',
+    'job:media',
+    'job:library',
+    'job:share',
+    'job:lighting',
+    'job:desktop',
+    'job:listening',
+  ] as const
+).forEach((job) => appLeave.hold(job, true));
+
 const resetActiveEngineAtSessionEnd = (): void => {
   outputWatch?.stop();
   if (session.configPath) {
@@ -1596,6 +1693,7 @@ const bringBackWindow = (): Promise<void> => {
     return Promise.resolve();
   }
   log.info('Building the window again: it was let go in the tray.');
+  appLeave.hold('window', true);
   windowBuilding = createMainWindow()
     .catch((error) => {
       log.error(`Failed to create the ${PRODUCT_NAME} window`, error);
@@ -1664,26 +1762,9 @@ app.on('before-quit', (event) => {
     // handler asks for later finds it on disk and has nothing left to do; and
     // a memory trace still recording is written rather than lost.
     placement.saveWindowState();
-    // A song edited while it played is filed before the writes drain, and
-    // its own sound handed back, so the state file holds the listener's —
-    // its Smart EQ layer too.
-    songMemory
-      .close()
-      .catch((error) => log.error('The song memory could not close', error))
-      .then(() => songEq.close())
-      .catch((error) =>
-        log.error('The Smart EQ song memory could not close', error),
-      )
-      // The Library's session is kept, and its host let go, before the
-      // engine is turned off underneath it.
-      .then(() => libraryPlayer.close())
-      .catch((error) => log.error('The Library player could not close', error))
-      // Its listening helper goes with it.
-      .then(() => core.close())
-      .then(() =>
-        Promise.all([flushPendingWrites(), memoryTrace.stopMemoryTrace()]),
-      )
-      .catch(() => undefined)
+    // A song edited while it played is filed, its own sound handed back and
+    // every write landed before the engine is turned off (`windDown`).
+    windDown()
       .then(resetActiveEngineForQuit)
       .catch((error) => log.error('Resetting the audio engine failed', error))
       .finally(() => {

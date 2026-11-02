@@ -9,13 +9,15 @@ import { quitRecipe } from '../engineQuitReset';
 import type { TTraySurfaceFactory } from '../trayView';
 import { nativeTraySurface } from './nativeTray';
 import { findTrayHost, ITrayHostParts, startTrayHost } from './trayHostProcess';
-import { trayHostKey } from './trayHostWire';
+import { ITrayRelaunch, trayHostKey } from './trayHostWire';
 
 export interface INativeTray {
   /** For `setUpTray`: the icon and its menu, drawn by FluidEQ-Tray. */
   surface: TTraySurfaceFactory;
   /** The engine's folder changed: what a quit would have to undo. */
   setConfigPath: (configPath: string) => void;
+  /** Main ends with FluidEQ going on; the tray starts it with `relaunch`. */
+  leave: (relaunch: ITrayRelaunch) => Promise<boolean>;
 }
 
 export interface INativeTrayOptions {
@@ -72,5 +74,9 @@ export const startNativeTray = async ({
     host.setRecipe(next ? quitRecipe(next) : undefined);
   setConfigPath(configPath);
   host.onLost(onLost);
-  return { surface: nativeTraySurface(host), setConfigPath };
+  return {
+    surface: nativeTraySurface(host),
+    setConfigPath,
+    leave: (relaunch) => host.leave(relaunch),
+  };
 };

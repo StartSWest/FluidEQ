@@ -68,6 +68,21 @@ struct RecipeMessage {
 /** A `recipe` message from main; nothing for one that is not. */
 std::optional<RecipeMessage> parse_recipe(const share::json::Value& message);
 
+/** How main asked to be started again once it has left (`appLeave.ts`). */
+struct Relaunch {
+  std::wstring file;
+  std::vector<std::wstring> args;
+  /** Its working folder; empty for the tray's own. */
+  std::wstring cwd;
+};
+
+/**
+ * A `leaving` message: main is ending with FluidEQ going on, and this is how
+ * to start it again. Nothing for another message, or for one that names no
+ * program — a tray told that could never open FluidEQ again.
+ */
+std::optional<Relaunch> parse_leaving(const share::json::Value& message);
+
 /** `isOutputConfigFileName` for one of the recipe's prefixes. */
 bool is_output_file(std::wstring_view name,
                     const std::vector<std::wstring>& prefixes);

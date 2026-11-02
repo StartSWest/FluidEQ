@@ -525,6 +525,19 @@ Everything worth knowing about them is available through commands:
   mode through uxtheme's unnamed exports 135 and 136, as Electron's did; a
   new menu item is a new `TTrayAction`, read on both sides
   (`readTrayHostLine`, and the id the tray sends back is whatever main named).
+- **Electron leaves only when nothing holds it, and the tray stays**
+  (`appLeave.ts`). With the window let go, main may tell the tray it is
+  leaving (a `leaving` line carrying how to start it again), wind down what a
+  quit winds down WITHOUT turning the engines off, and `app.exit` — never
+  `app.quit`, whose `before-quit` resets the engines. The tray then keeps the
+  icon and the engine's line, answers a menu main left at Open and Quit, and
+  starts FluidEQ again on Open (`AppLaunch`, once per attempt); a main that
+  ends without saying so is still FluidEQ ending. Every job main still does
+  with no window holds it by name (`job:outputs`, `job:games`, `job:media`,
+  `job:library`, `job:share`, `job:lighting`, `job:desktop`,
+  `job:listening`), so today it never leaves: a job's hold goes only when
+  the job has left Electron or says exactly when it runs — never before, or
+  FluidEQ stops doing that job with no window open.
 - **Your bands have their own Band Q, apart from the layers' group**
   (`mainBandQ`, `getMainBandQ` in `eqMode.ts`): changing how your bands widen
   with gain reshapes neither a preset nor a correction. Absent, it falls back

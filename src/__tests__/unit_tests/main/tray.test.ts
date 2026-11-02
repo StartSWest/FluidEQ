@@ -541,6 +541,27 @@ describe('the tray drawn by FluidEQ-Tray', () => {
     expect(tray.isAppQuitting()).toBe(false);
   });
 
+  it('is left at Open and Quit when main leaves it to FluidEQ-Tray', () => {
+    const tray = loadTray();
+    const native = nativeTray();
+    tray.setUpTray({
+      ...deps,
+      nativeSurface: native.factory,
+      onRecoverWindow: jest.fn(),
+    });
+    tray.setTrayUpdatesEnabled(true);
+    tray.setTrayUpdateReady(true);
+
+    tray.showTrayForLeaving();
+
+    // The tray answers these two alone; an update and the window's recovery
+    // are main's, and come back with it.
+    const last = native.views[native.views.length - 1];
+    expect(last.menu.map(({ id }) => id)).toEqual(['open', 'quit']);
+    expect(pathEndsWith(last.icon, PLAIN)).toBe(true);
+    expect(last.tooltip).toBe('FluidEQ — still running');
+  });
+
   it("is Electron's where FluidEQ-Tray could not start", () => {
     const tray = loadTray();
     tray.setUpTray({ ...deps, nativeSurface: () => undefined });

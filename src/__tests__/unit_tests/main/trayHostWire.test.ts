@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import {
+  leavingLine,
   readTrayHostLine,
   recipeLine,
   stateLine,
@@ -67,6 +68,17 @@ describe("FluidEQ-Tray's wire", () => {
     };
     expect(JSON.parse(recipeLine(recipe))).toEqual({ type: 'recipe', recipe });
     expect(JSON.parse(recipeLine(undefined))).toEqual({ type: 'recipe' });
+  });
+
+  it('says main leaves, with how to start it again', () => {
+    const relaunch = {
+      file: 'C:\\Program Files\\FluidEQ\\FluidEQ.exe',
+      args: ['--lang=es'],
+      cwd: 'C:\\Windows\\System32',
+    };
+    const line = leavingLine(relaunch);
+    expect(line.indexOf('\n')).toBe(line.length - 1);
+    expect(JSON.parse(line)).toEqual({ type: 'leaving', relaunch });
   });
 
   it('names one tray per data folder, in letters and digits', () => {

@@ -48,6 +48,12 @@ const fakeSocket = () => {
         socket.emit('close');
       }
     },
+    /** As a net socket ends: the last line written, then gone. */
+    end: (text: string, done: (error?: Error | null) => void) => {
+      socket.written.push(text);
+      done(null);
+      socket.destroy();
+    },
     say: (text: string) => socket.emit('data', Buffer.from(text, 'utf8')),
     messages: () =>
       socket.written.flatMap((chunk) =>
@@ -217,5 +223,36 @@ describe('speaking to FluidEQ-Tray', () => {
     const { socket } = await greeted();
     socket.say('x'.repeat(64 * 1024 + 1));
     expect(socket.destroyed).toBe(true);
+  });
+
+  const RELAUNCH = { file: 'C:\\app\\FluidEQ.exe', args: [], cwd: 'C:\\app' };
+
+  it('leaves with the relaunch as its last line, and is not lost by it', async () => {
+    const { host, socket } = await greeted();
+    const lost = jest.fn();
+    host.onLost(lost);
+    await expect(host.leave(RELAUNCH)).resolves.toBe(true);
+    expect(socket.messages()).toEqual([
+      { type: 'leaving', relaunch: RELAUNCH },
+    ]);
+    expect(socket.destroyed).toBe(true);
+    expect(lost).not.toHaveBeenCalled();
+  });
+
+  it('says it could not tell a tray whose line had ended', async () => {
+    const { host, socket } = await greeted();
+    socket.emit('close');
+    await expect(host.leave(RELAUNCH)).resolves.toBe(false);
+  });
+
+  it('says it could not tell a tray whose line ends on the way', async () => {
+    const { host, socket } = await greeted();
+    // The line goes before the last line has: no `finish`, only `close`.
+    socket.end = () => socket.destroy();
+    await expect(host.leave(RELAUNCH)).resolves.toBe(false);
+
+    const failing = await greeted();
+    failing.socket.end = (_text, done) => done(new Error('EPIPE'));
+    await expect(failing.host.leave(RELAUNCH)).resolves.toBe(false);
   });
 });

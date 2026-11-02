@@ -78,6 +78,13 @@ TrayHost::TrayHost(std::shared_ptr<QuitDuty> duty, HostParts parts)
     : duty_(std::move(duty)), parts_(std::move(parts)) {}
 
 void TrayHost::arrived() {
+  // A FluidEQ that came back, from the tray's Open or any other way: the
+  // tray is its again, and nothing asked of the one before is still due.
+  main_here_ = true;
+  leaving_.reset();
+  launching_ = false;
+  open_wanted_ = false;
+  quit_wanted_ = false;
   link_->send(json::Value::object({
       {"type", json::Value::string("hello")},
       {"pid", json::Value::number(static_cast<double>(GetCurrentProcessId()))},
@@ -95,20 +102,70 @@ void TrayHost::heard(const json::Value& message) {
   }
   if (auto recipe = parse_recipe(message)) {
     duty_->set(std::move(recipe->recipe));
+    return;
+  }
+  if (auto leaving = parse_leaving(message)) {
+    leaving_ = std::move(*leaving);
   }
 }
 
 void TrayHost::pressed(const std::string& id) {
-  link_->send(json::Value::object({
-      {"type", json::Value::string("pressed")},
-      {"id", json::Value::string(id)},
-  }));
+  if (ending_) {
+    return;
+  }
+  if (main_here_ && !leaving_) {
+    link_->send(json::Value::object({
+        {"type", json::Value::string("pressed")},
+        {"id", json::Value::string(id)},
+    }));
+    return;
+  }
+  // Main is gone or going: the menu it left holds Open and Quit, and every
+  // press but Quit opens FluidEQ.
+  if (id == "quit") {
+    if (main_here_) {
+      quit_wanted_ = true;
+    } else {
+      finish();
+    }
+    return;
+  }
+  if (main_here_) {
+    open_wanted_ = true;
+  } else {
+    open_fluideq();
+  }
 }
 
 void TrayHost::main_gone() {
   if (ending_) {
     return;
   }
+  main_here_ = false;
+  if (leaving_ && !quit_wanted_) {
+    // FluidEQ goes on without it.
+    if (open_wanted_) {
+      open_wanted_ = false;
+      open_fluideq();
+    }
+    return;
+  }
+  finish();
+}
+
+void TrayHost::open_fluideq() {
+  if (launching_ || !leaving_ || !parts_.launch) {
+    return;
+  }
+  std::weak_ptr<TrayHost> weak = shared_from_this();
+  launching_ = parts_.launch(*leaving_, [weak] {
+    if (const auto self = weak.lock()) {
+      self->launching_ = false;
+    }
+  });
+}
+
+void TrayHost::finish() {
   ending_ = true;
   // First, so a FluidEQ starting this instant starts a tray of its own
   // instead of connecting to this one on its way out.

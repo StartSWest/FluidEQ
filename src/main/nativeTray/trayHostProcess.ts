@@ -13,6 +13,8 @@ import type { TTrayAction } from '../trayView';
 import {
   ITrayHostState,
   ITrayQuitRecipe,
+  ITrayRelaunch,
+  leavingLine,
   readTrayHostLine,
   recipeLine,
   stateLine,
@@ -52,6 +54,8 @@ export interface ITrayHostChild {
 /** Only what is used of the connection, likewise. */
 export interface ITrayHostSocket {
   write(text: string): unknown;
+  /** Writes the last line, and calls back once it has gone or failed. */
+  end(text: string, done: (error?: Error | null) => void): unknown;
   destroy(): void;
   on(event: 'data', listener: (bytes: Buffer) => void): unknown;
   on(event: 'error', listener: (error: Error) => void): unknown;
@@ -89,6 +93,12 @@ export interface ITrayHost {
   onLost: (listener: () => void) => void;
   /** Main's end of the line, which the tray hears as FluidEQ ending. */
   close: () => void;
+  /**
+   * Main's end of the line, with FluidEQ going on (`appLeave.ts`): settles
+   * true once the tray has been told how to start it again, false when its
+   * line ended first.
+   */
+  leave: (relaunch: ITrayRelaunch) => Promise<boolean>;
 }
 
 /** The tray's first line, `ready`; false once its output ends without it. */
@@ -137,6 +147,17 @@ const linkTo = (socket: ITrayHostSocket): Promise<ITrayHost | undefined> =>
         closing = true;
         socket.destroy();
       },
+      leave: (relaunch) =>
+        new Promise<boolean>((resolve) => {
+          closing = true;
+          if (ended) {
+            resolve(false);
+            return;
+          }
+          // Whichever comes first: the line written, or the line gone.
+          socket.on('close', () => resolve(false));
+          socket.end(leavingLine(relaunch), (error) => resolve(!error));
+        }),
     });
     socket.on('data', (bytes: Buffer) => {
       pending += bytes.toString('utf8');

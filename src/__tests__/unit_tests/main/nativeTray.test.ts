@@ -108,6 +108,10 @@ const answeringParts = (ownerPipe: boolean) => {
   const written: string[] = [];
   const socket = Object.assign(new EventEmitter(), {
     write: (text: string) => written.push(text),
+    end: (text: string, done: (error?: Error | null) => void) => {
+      written.push(text);
+      done(null);
+    },
     destroy: () => undefined,
   });
   const parts: ITrayHostParts = {
@@ -195,6 +199,21 @@ describe('starting FluidEQ-Tray from main', () => {
     });
     socket.emit('close');
     expect(onLost).toHaveBeenCalledTimes(1);
+  });
+
+  it('hands the tray the relaunch as main leaves', async () => {
+    onPlatform('win32');
+    const { parts, messages } = answeringParts(true);
+    const tray = await startNativeTray({
+      userDataDir: 'C:\\data',
+      configPath: '',
+      onLost: () => undefined,
+      find: () => 'tray.exe',
+      parts,
+    });
+    const relaunch = { file: 'C:\\app\\FluidEQ.exe', args: [], cwd: 'C:\\app' };
+    await expect(tray?.leave(relaunch)).resolves.toBe(true);
+    expect(messages().pop()).toEqual({ type: 'leaving', relaunch });
   });
 
   it('leaves the tray to Electron off Windows and where the program is missing', async () => {

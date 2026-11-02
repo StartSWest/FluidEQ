@@ -5,7 +5,9 @@
  * started and greeted; a second start finding it already serving and handing
  * main to it; the engine's line held; the quit recipe carried out in a folder
  * of its own the moment main's end of the line goes, before the engine's line
- * breaks; and the next start serving again once it has gone.
+ * breaks; the next start serving again once it has gone; and a main that
+ * leaves it with FluidEQ going on, the tray keeping everything as it was
+ * until the next FluidEQ comes back to it and quits.
  *
  * Shows no icon (no state names one), serves its engine line under a name no
  * engine knows, and touches nothing outside its temporary folder. Every wait
@@ -96,10 +98,40 @@ const main = async () => {
   const third = await started();
   assert.notEqual(third.pid, first.pid, 'a fresh tray serves after it');
   const again = await engineLine();
-  third.close();
+
+  // Main leaves with FluidEQ going on: the tray stays, holding the line,
+  // and undoes nothing.
+  [`fluideq-dsp-${GUID}.txt`, 'fluideq.txt'].forEach((name) =>
+    fs.writeFileSync(at(name), 'live'),
+  );
+  third.setRecipe({
+    configDir: folder,
+    rootName: 'fluideq.txt',
+    rootText: '# nothing to do\r\n',
+    removeNames: [],
+    removePrefixes: ['fluideq-dsp-'],
+  });
+  const told = await third.leave({
+    file: process.execPath,
+    args: ['--version'],
+    cwd: folder,
+  });
+  assert.equal(told, true, 'the tray is told main leaves');
+  // The next FluidEQ finds the same tray, which kept everything as it was.
+  const fourth = await started();
+  assert.equal(fourth.pid, third.pid, 'the tray main left is still there');
+  assert.equal(fs.readFileSync(at('fluideq.txt'), 'utf8'), 'live');
+  assert.equal(fs.existsSync(at(`fluideq-dsp-${GUID}.txt`)), true);
+
+  // And a quit from there is FluidEQ's end, sound and all.
+  fourth.close();
   await again.broken;
+  assert.equal(fs.readFileSync(at('fluideq.txt'), 'utf8'), '# nothing to do\r\n');
+  assert.equal(fs.existsSync(at(`fluideq-dsp-${GUID}.txt`)), false);
   fs.rmSync(folder, { recursive: true, force: true });
-  console.log('tray host: started, shared, held the line, undid the quit, served again');
+  console.log(
+    'tray host: started, shared, held the line, undid the quit, served again, outlived main and came back to it',
+  );
 };
 
 main().catch((error: unknown) => {

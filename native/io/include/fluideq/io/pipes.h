@@ -145,6 +145,9 @@ class PipeServer : public std::enable_shared_from_this<PipeServer> {
   bool closed_ = false;
 };
 
+/** One argument as `CommandLineToArgvW` reads it back: Windows' own rules. */
+std::wstring quoted_argument(const std::wstring& argument);
+
 /** `"\\.\pipe\" + prefix + 32 random hex digits`. */
 std::wstring unique_pipe_name(const std::wstring& prefix);
 

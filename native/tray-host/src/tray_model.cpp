@@ -207,6 +207,23 @@ std::optional<RecipeMessage> parse_recipe(const json::Value& message) {
   return out;
 }
 
+std::optional<Relaunch> parse_leaving(const json::Value& message) {
+  const std::string* type = json::string_at(message, "type");
+  const json::Value* relaunch = message.get("relaunch");
+  if (type == nullptr || *type != "leaving" || relaunch == nullptr ||
+      !relaunch->is_object()) {
+    return std::nullopt;
+  }
+  Relaunch out;
+  out.file = wide_at(*relaunch, "file");
+  out.args = wide_list(*relaunch, "args");
+  out.cwd = wide_at(*relaunch, "cwd");
+  if (out.file.empty()) {
+    return std::nullopt;
+  }
+  return out;
+}
+
 bool is_output_file(std::wstring_view name,
                     const std::vector<std::wstring>& prefixes) {
   const std::wstring low = lower(name);

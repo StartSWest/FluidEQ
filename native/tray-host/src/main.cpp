@@ -13,10 +13,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 //
 // One tray an install. A second one started while the first runs waits for
 // the first to be ready, says `ready` for it and ends; one started while the
-// first is on its way out waits for it to go, then serves in its place.
+// first is on its way out waits for it to go, then serves in its place. A
+// tray main has left (`appLeave.ts`) is still ready: the FluidEQ it starts
+// again, or any other launch, connects to it.
 //
 // Two threads: the window's, which owns the icon and the menu and hears the
-// session end, and the loop's, which owns both pipes.
+// session end, and the loop's, which owns both pipes and the FluidEQ it
+// starts again.
 
 #include <combaseapi.h>
 #include <shellapi.h>
@@ -26,6 +29,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <string>
 #include <thread>
 
+#include "app_launch.h"
 #include "tray_host.h"
 #include "tray_window.h"
 
@@ -138,6 +142,8 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
   io::set_loop(&loop);
   const auto duty = std::make_shared<tray::QuitDuty>();
   std::shared_ptr<tray::TrayHost> host;
+  /** The FluidEQ last started from here, watched until it ends. Loop thread. */
+  std::shared_ptr<tray::AppLaunch> launched;
 
   auto window = tray::TrayWindow::create(
       instance,
@@ -170,7 +176,11 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
               loop.stop(0);
             },
             [&ready] { ResetEvent(ready.get()); },
-            [](const tray::QuitRecipe& recipe) { tray::apply_recipe(recipe); }});
+            [](const tray::QuitRecipe& recipe) { tray::apply_recipe(recipe); },
+            [&launched](const tray::Relaunch& relaunch, std::function<void()> ended) {
+              launched = tray::AppLaunch::start(relaunch, std::move(ended));
+              return launched != nullptr;
+            }});
     if (started.index() == 1) {
       serving.set_value(false);
       return;
@@ -179,6 +189,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
     serving.set_value(true);
     loop.run();
     host.reset();
+    launched.reset();
   });
 
   if (!served.get()) {

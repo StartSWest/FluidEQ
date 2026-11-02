@@ -13,10 +13,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Main connects and is told the tray's pid; main sends what to show, and the
  * quit recipe whenever its engine folder changes; a press on the icon or the
  * menu goes back to main.
+ *
  * Main's connection ending is FluidEQ ending — a quit, a crash, End task —
  * and the tray then does what main's own quit does (`engineQuitReset.ts`),
  * which a crash and End task never ran, and ends: the engine hears its line
  * break, and passes every output through.
+ *
+ * Unless main said it was leaving (`appLeave.ts`): then FluidEQ goes on
+ * without it — the engine's line held, nothing undone — and the tray answers
+ * its own menu, which main left at Open and Quit. Open starts FluidEQ again
+ * with the command main handed over, once however often it is pressed until
+ * that process connects or ends; Quit does what main's quit would have.
  */
 
 #include <functional>
@@ -56,6 +63,11 @@ struct HostParts {
   /** No longer the tray a new FluidEQ may connect to (`main.cpp`). */
   std::function<void()> stop_answering;
   std::function<void(const QuitRecipe&)> apply;
+  /**
+   * FluidEQ started again; `ended` runs on the loop once that process has
+   * ended. False when it could not be started.
+   */
+  std::function<bool(const Relaunch&, std::function<void()> ended)> launch;
 };
 
 class TrayHost : public std::enable_shared_from_this<TrayHost> {
@@ -71,20 +83,35 @@ class TrayHost : public std::enable_shared_from_this<TrayHost> {
 
   TrayHost(std::shared_ptr<QuitDuty> duty, HostParts parts);
 
-  /** A press, to main. Loop thread. */
+  /** A press: main's while it is there, the tray's once it has left. */
   void pressed(const std::string& id);
   bool serving_owner_pipe() const { return owner_ != nullptr; }
+  /** Main is connected (it may have said it leaves). */
+  bool main_is_here() const { return main_here_; }
+  /** Main said it leaves; true until another main connects. */
+  bool main_is_leaving() const { return leaving_.has_value(); }
 
  private:
   void arrived();
   void heard(const share::json::Value& message);
   void main_gone();
+  void open_fluideq();
+  /** What main's quit does, then the tray's own end. */
+  void finish();
 
   std::shared_ptr<QuitDuty> duty_;
   HostParts parts_;
   std::shared_ptr<OwnerPipe> owner_;
   std::shared_ptr<AppLink> link_;
   bool ending_ = false;
+  bool main_here_ = false;
+  /** Main said it leaves, and how to start it again. */
+  std::optional<Relaunch> leaving_;
+  /** A FluidEQ started from here that has neither connected nor ended. */
+  bool launching_ = false;
+  /** Pressed while main was on its way out: done once it has gone. */
+  bool open_wanted_ = false;
+  bool quit_wanted_ = false;
 };
 
 }  // namespace feq::tray

@@ -65,6 +65,17 @@ export const stateLine = (state: ITrayHostState): string =>
 export const recipeLine = (recipe: ITrayQuitRecipe | undefined): string =>
   `${JSON.stringify(recipe ? { type: 'recipe', recipe } : { type: 'recipe' })}\n`;
 
+/** How the tray starts FluidEQ again once main has left (`appLeave.ts`). */
+export interface ITrayRelaunch {
+  file: string;
+  args: string[];
+  cwd: string;
+}
+
+/** Main is ending with FluidEQ going on; `parse_leaving` in the tray. */
+export const leavingLine = (relaunch: ITrayRelaunch): string =>
+  `${JSON.stringify({ type: 'leaving', relaunch })}\n`;
+
 /** A line from the tray; undefined for anything that is not one of its words. */
 export const readTrayHostLine = (line: string): TTrayHostEvent | undefined => {
   let message: unknown;

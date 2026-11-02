@@ -762,7 +762,8 @@ if(WIN32)
   add_library(fluideq-tray-core STATIC
     tray-host/src/tray_model.cpp
     tray-host/src/links.cpp
-    tray-host/src/tray_host.cpp)
+    tray-host/src/tray_host.cpp
+    tray-host/src/app_launch.cpp)
   target_include_directories(fluideq-tray-core PUBLIC tray-host/src)
   target_link_libraries(fluideq-tray-core
     PUBLIC fluideq-io fluideq-share-core PRIVATE feq_strict)
@@ -790,6 +791,10 @@ if(WIN32)
   target_link_libraries(fluideq-tray-links-test
     PRIVATE fluideq-tray-core feq_strict)
   add_test(NAME tray-links COMMAND fluideq-tray-links-test)
+  add_executable(fluideq-tray-leave-test tray-host/tests/tray_leave_test.cpp)
+  target_link_libraries(fluideq-tray-leave-test
+    PRIVATE fluideq-tray-core shell32 feq_strict)
+  add_test(NAME tray-leave COMMAND fluideq-tray-leave-test)
 endif()
 
 # The music as the scenes and the lamps hear it, in C++ (`scene-core`): the
