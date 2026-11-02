@@ -9,6 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 /*
  * The song the FluidEQ Engine's leveling is told is playing, named and
@@ -42,6 +43,15 @@ std::optional<std::string> song_identity(std::string_view app,
  * larger n; a negative zero written as zero.
  */
 std::string js_to_fixed2(double value);
+
+/**
+ * `startedOverOthers` (`systemMediaRule.ts`): the player that started while
+ * others already played — the newest of them — or none when nothing started
+ * or everything playing just did.
+ */
+std::optional<std::string> started_over_others(
+    const std::vector<std::string>& known,
+    const std::vector<std::string>& playing);
 
 /** `formatSongProgramme`: the file the engine reads, CRLF, ending in one. */
 std::string song_programme_text(const std::optional<std::string>& id,

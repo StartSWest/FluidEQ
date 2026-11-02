@@ -230,6 +230,7 @@ import registerWindowsAudioIpc from './ipc/windowsAudio';
 import registerSystemMediaIpc from './ipc/systemMedia';
 import {
   findSystemMediaExecutable,
+  pauseOthersCommand,
   pauseOtherSystemPlayers,
   sendSystemMediaCommand,
   SYSTEM_MEDIA_SELF_ID,
@@ -316,6 +317,8 @@ const appLeave = createAppLeave({
           selfId: SYSTEM_MEDIA_SELF_ID,
           userDataDir,
           mainEndpoint: session.playbackAudioDevice?.guid,
+          singlePlayer: singlePlayerSwitch.isSinglePlayer(),
+          pauseOthers: pauseOthersCommand(),
         }).catch(() => undefined);
         return tray.leave(
           relaunchCommand(
@@ -1141,15 +1144,18 @@ const singlePlayerSwitch = registerSystemMediaIpc({
 });
 
 // The media watcher names the song for the FluidEQ Engine's leveling and
-// keeps one player at a time. The song goes on from the tray while main is
-// gone (`songHandover.ts`); one player at a time does not yet, and holds it.
-const trayCarriesSongs = () =>
-  nativeTray !== undefined && findSystemMediaExecutable() !== undefined;
+// keeps one player at a time. Under that engine both go on from the tray
+// while main is gone (`songHandover.ts`); under Equalizer APO there is no
+// song to tell, nothing is handed over, and one player at a time holds main.
+const trayCarriesMedia = () =>
+  session.audioEngine === 'fluid' &&
+  nativeTray !== undefined &&
+  findSystemMediaExecutable() !== undefined;
 appLeave.holdWhile(
   'job:media',
   () =>
-    singlePlayerSwitch.isSinglePlayer() ||
-    (session.audioEngine === 'fluid' && !trayCarriesSongs()),
+    !trayCarriesMedia() &&
+    (session.audioEngine === 'fluid' || singlePlayerSwitch.isSinglePlayer()),
 );
 
 // Every switch between the app and the player is written down at once — a

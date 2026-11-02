@@ -251,6 +251,13 @@ std::optional<SongsHandover> parse_leaving_songs(const json::Value& message) {
   out.root_name = *root;
   out.per_output_prefix = *prefix;
   out.main_endpoint = main == nullptr ? std::string() : *main;
+  const json::Value* single = songs->get("singlePlayer");
+  out.single_player = single != nullptr && single->is_bool() && single->as_bool();
+  const json::Value* pause = songs->get("pauseOthers");
+  if (pause != nullptr && pause->is_object()) {
+    out.pause_file = wide_at(*pause, "file");
+    out.pause_args = wide_list(*pause, "args");
+  }
   return out;
 }
 

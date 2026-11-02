@@ -102,6 +102,10 @@ struct SongsHandover {
   std::string per_output_prefix;
   /** The output Windows played through as main left; empty for none. */
   std::string main_endpoint;
+  /** One player at a time, and main's own command that pauses the others. */
+  bool single_player = false;
+  std::wstring pause_file;
+  std::vector<std::wstring> pause_args;
 };
 
 /** The handover in a `leaving` message; nothing when main sent none. */

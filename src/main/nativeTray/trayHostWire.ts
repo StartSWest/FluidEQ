@@ -85,6 +85,9 @@ export interface ITraySongsHandover {
   rootName: string;
   perOutputPrefix: string;
   mainEndpoint?: string;
+  /** One player at a time, as the window last said it, and how to pause. */
+  singlePlayer: boolean;
+  pauseOthers: { file: string; args: string[] };
 }
 
 /**

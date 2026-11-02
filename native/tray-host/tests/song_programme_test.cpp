@@ -54,6 +54,18 @@ int main() {
   check(feq::tray::song_programme_text(std::nullopt, std::nullopt) ==
             fx::kNoSong,
         "no song at all");
+
+  // The one-player rule's winner, as `startedOverOthers` picks it.
+  using feq::tray::started_over_others;
+  check(!started_over_others({}, {"A"}), "one player starting alone wins nothing");
+  check(started_over_others({"A"}, {"A", "B"}) == std::optional<std::string>("B"),
+        "a player starting over another is the winner");
+  check(!started_over_others({"A"}, {"A"}), "nothing new started");
+  check(started_over_others({"A", "B"}, {"B", "C", "D"}) ==
+            std::optional<std::string>("D"),
+        "of two starting over one, the newest");
+  check(!started_over_others({"A"}, {"B", "C"}),
+        "everything playing just started: nothing to pause");
   if (failures != 0) {
     std::printf("%d failure(s)\n", failures);
     return 1;

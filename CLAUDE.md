@@ -539,11 +539,14 @@ Everything worth knowing about them is available through commands:
   the lighting helper does, `job:desktop` while any monitor has a background
   set, `job:listening` while the core is needed (`onNeeded`), `job:games`
   while kept game profiles are watched for, and `job:media` — a question
-  asked when main would leave (`holdWhile`) — while one player at a time is
-  on, or under the FluidEQ Engine where the tray cannot carry the song.
-  Otherwise main hands the song job to FluidEQ-Tray in its `leaving` line
-  (`songHandover.ts`) and the tray runs it until a FluidEQ connects again
-  (`song_watch.h`): the same `FluidEQ-Media.exe`, songs named as main names
+  asked when main would leave (`holdWhile`) — wherever the tray cannot carry
+  it: under Equalizer APO with one player at a time on, or under the FluidEQ
+  Engine with no tray or no media helper. Otherwise main hands the media job
+  to FluidEQ-Tray in its `leaving` line (`songHandover.ts`) and the tray
+  runs it until a FluidEQ connects again (`song_watch.h`): one player at a
+  time kept with main's own pause command (`pauseOthersCommand`, the player
+  spared in its environment, the winner picked as `startedOverOthers` picks
+  it), the same `FluidEQ-Media.exe`, songs named as main names
   them (`song_programme.cpp`: ICU's lowercase, which is V8's, and JavaScript's
   trim and `toFixed`), the engine told as main tells it (`song_teller.cpp`)
   and `song-levels.json` kept in main's shape (`song_levels.cpp`). Held to

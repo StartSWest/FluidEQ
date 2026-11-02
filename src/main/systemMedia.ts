@@ -652,9 +652,13 @@ ${commandScript}
  * quotes an environment variable wrong. An empty one spares nobody, which no
  * real app id can be.
  */
-export const pauseOtherSystemPlayers = async (
-  exceptApp: string,
-): Promise<void> => {
+/**
+ * How the players are paused for the one-player rule: PowerShell, its
+ * arguments, and the one player spared in `FLUIDEQ_MEDIA_EXCEPT`. A value,
+ * so the tray runs the very same command while main is gone
+ * (`songHandover.ts`).
+ */
+export const pauseOthersCommand = (): { file: string; args: string[] } => {
   const script = `
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Runtime.WindowsRuntime | Out-Null
@@ -683,22 +687,28 @@ foreach ($candidate in @($manager.GetSessions())) {
 }
 `;
 
+  return {
+    file: POWERSHELL_PATH,
+    args: [
+      '-NoProfile',
+      '-NonInteractive',
+      '-ExecutionPolicy',
+      'Bypass',
+      '-Command',
+      utf8Command(script),
+    ],
+  };
+};
+
+export const pauseOtherSystemPlayers = async (
+  exceptApp: string,
+): Promise<void> => {
   await new Promise<void>((resolve) => {
-    const runner = spawn(
-      POWERSHELL_PATH,
-      [
-        '-NoProfile',
-        '-NonInteractive',
-        '-ExecutionPolicy',
-        'Bypass',
-        '-Command',
-        utf8Command(script),
-      ],
-      {
-        windowsHide: true,
-        env: { ...process.env, FLUIDEQ_MEDIA_EXCEPT: exceptApp },
-      },
-    );
+    const { file, args } = pauseOthersCommand();
+    const runner = spawn(file, args, {
+      windowsHide: true,
+      env: { ...process.env, FLUIDEQ_MEDIA_EXCEPT: exceptApp },
+    });
     // Same as every command here: a player that refuses, or one that has gone
     // between the reading and the asking, is not something a window could act
     // on.

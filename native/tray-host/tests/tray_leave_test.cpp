@@ -130,7 +130,8 @@ constexpr char kLeavingWithSongs[] =
     R"("songs":{"mediaExe":"C:\\app\\FluidEQ-Media.exe","selfId":"FluidEQ",)"
     R"("configDir":"C:\\engine\\config","statusDir":"C:\\engine",)"
     R"("levelsFile":"C:\\data\\song-levels.json","rootName":"fluideq-programme.txt",)"
-    R"("perOutputPrefix":"fluideq-programme-","mainEndpoint":"{AB}"}})"
+    R"("perOutputPrefix":"fluideq-programme-","mainEndpoint":"{AB}",)"
+    R"("singlePlayer":true,"pauseOthers":{"file":"C:\\ps.exe","args":["-Command","x"]}}})"
     "\n";
 
 /** A tray whose launches and endings are written down, not done. */
@@ -463,7 +464,9 @@ void reads_the_song_handover() {
             songs->levels_file == L"C:\\data\\song-levels.json" &&
             songs->root_name == "fluideq-programme.txt" &&
             songs->per_output_prefix == "fluideq-programme-" &&
-            songs->main_endpoint == "{AB}",
+            songs->main_endpoint == "{AB}" && songs->single_player &&
+            songs->pause_file == L"C:\\ps.exe" && songs->pause_args.size() == 2 &&
+            songs->pause_args[1] == L"x",
         "a leaving hands the song job over whole");
   const auto without = json::parse(std::string_view(kLeaving).substr(
       std::string_view(kLeaving).find('\n') + 1));

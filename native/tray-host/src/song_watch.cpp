@@ -401,7 +401,77 @@ class Watch final : public SongWatch, public std::enable_shared_from_this<Watch>
         continue;
       }
       write(teller_.media(song_of_line(line)));
+      keep_one_player(line);
     }
+  }
+
+  /**
+   * The one-player rule (`createExternalPlayerRule`): a player that starts
+   * while others play pauses them, through main's own command.
+   */
+  void keep_one_player(const std::string& line) {
+    const auto parsed = json::parse(json::trim(line));
+    std::vector<std::string> playing;
+    if (parsed && json::is_record(&*parsed)) {
+      const json::Value* value = parsed->get("playing");
+      // `playingApps`: one id may come as a bare string.
+      if (value != nullptr && value->is_string() &&
+          !value->as_string().empty()) {
+        playing.push_back(value->as_string());
+      } else if (value != nullptr && value->is_array()) {
+        for (const auto& entry : value->items()) {
+          if (entry.is_string() && !entry.as_string().empty()) {
+            playing.push_back(entry.as_string());
+          }
+        }
+      }
+    }
+    const auto winner = started_over_others(known_playing_, playing);
+    known_playing_ = playing;
+    if (!winner || !handover_.single_player || handover_.pause_file.empty()) {
+      return;
+    }
+    // The player spared goes in the environment, never into the command.
+    const std::wstring spared = widen(*winner);
+    SetEnvironmentVariableW(L"FLUIDEQ_MEDIA_EXCEPT", spared.c_str());
+    const auto input = io::child_pipe(false);
+    const auto output = io::child_pipe(true);
+    if (input && output) {
+      auto spawned = io::ChildProcess::spawn(
+          handover_.pause_file, handover_.pause_args, input->theirs,
+          output->theirs, output->theirs, [](DWORD) {});
+      CloseHandle(input->theirs);
+      CloseHandle(output->theirs);
+      input->ours->destroy();
+      // Nobody reads what it says; read so its pipe never fills.
+      output->ours->start(io::PipeStream::Events{
+          [](std::span<const std::uint8_t>) {}, [] {},
+          [](const std::optional<io::Failure>&) {}});
+      // The runs that have ended are let go as the next one starts.
+      std::erase_if(pausers_, [](const auto& stream) { return stream->destroyed(); });
+      pausers_.push_back(output->ours);
+    } else {
+      for (const auto& pipe : {input, output}) {
+        if (pipe) {
+          CloseHandle(pipe->theirs);
+          pipe->ours->destroy();
+        }
+      }
+    }
+    SetEnvironmentVariableW(L"FLUIDEQ_MEDIA_EXCEPT", nullptr);
+  }
+
+  static std::wstring widen(const std::string& narrow_text) {
+    if (narrow_text.empty()) {
+      return {};
+    }
+    const int size = MultiByteToWideChar(
+        CP_UTF8, 0, narrow_text.data(), static_cast<int>(narrow_text.size()),
+        nullptr, 0);
+    std::wstring out(static_cast<std::size_t>(std::max(0, size)), L'\0');
+    MultiByteToWideChar(CP_UTF8, 0, narrow_text.data(),
+                        static_cast<int>(narrow_text.size()), out.data(), size);
+    return out;
   }
 
   io::Loop& loop_;
@@ -420,6 +490,10 @@ class Watch final : public SongWatch, public std::enable_shared_from_this<Watch>
   std::shared_ptr<io::PipeStream> output_;
   std::shared_ptr<io::PipeStream> errors_;
   std::string pending_;
+  /** The players playing at the last reading. */
+  std::vector<std::string> known_playing_;
+  /** What each pause run says, read until it ends. */
+  std::vector<std::shared_ptr<io::PipeStream>> pausers_;
 };
 
 HRESULT DefaultOutput::OnDefaultDeviceChanged(EDataFlow flow, ERole role,

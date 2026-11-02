@@ -139,9 +139,23 @@ const main = async () => {
   fs.mkdirSync(engineConfig, { recursive: true });
   const media = at('media.js');
   const song = { app: 'Spotify.exe', title: 'Smoke Song', artist: 'Band' };
+  // Another player first, then this one starting over it: the one-player
+  // rule pauses the other with main's command — a stand-in that writes down
+  // which player it was told to spare.
+  const before = JSON.stringify({ ...song, isPlaying: true, playing: ['Other'] });
+  const over = JSON.stringify({
+    ...song,
+    isPlaying: true,
+    playing: ['Other', 'Spotify.exe'],
+  });
   fs.writeFileSync(
     media,
-    `process.stdout.write(${JSON.stringify(JSON.stringify({ ...song, isPlaying: true }))} + '\\n');\nprocess.stdin.resume();\n`,
+    `process.stdout.write(${JSON.stringify(`${before}\n${over}\n`)});\nprocess.stdin.resume();\n`,
+  );
+  const pauser = at('pause.js');
+  fs.writeFileSync(
+    pauser,
+    `require('fs').writeFileSync(${JSON.stringify(at('spared.txt'))}, process.env.FLUIDEQ_MEDIA_EXCEPT ?? '');\n`,
   );
   const id = songIdentity(song);
   const told = await third.leave(
@@ -155,9 +169,13 @@ const main = async () => {
       rootName: 'fluideq-programme.txt',
       perOutputPrefix: 'fluideq-programme-',
       mainEndpoint: `{${GUID.toUpperCase()}}`,
+      singlePlayer: true,
+      pauseOthers: { file: process.execPath, args: [pauser] },
     },
   );
   assert.equal(told, true, 'the tray is told main leaves');
+  // The player that started over the other is spared; the other paused.
+  await whenFile(folder, 'spared.txt', (text) => text === 'Spotify.exe');
   // With main gone, the tray tells the engine the song main would have.
   await whenFile(engineConfig, 'fluideq-programme.txt', (text) =>
     text.includes(`song=${id}`),

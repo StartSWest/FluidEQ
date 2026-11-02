@@ -23,6 +23,9 @@ export interface ISongHandoverDeps {
   userDataDir: string;
   /** The output Windows plays through now, as main follows it. */
   mainEndpoint: string | undefined;
+  /** The one-player switch, and the command that pauses the others. */
+  singlePlayer: boolean;
+  pauseOthers: { file: string; args: string[] };
 }
 
 /**
@@ -38,6 +41,8 @@ export const songHandover = async ({
   selfId,
   userDataDir,
   mainEndpoint,
+  singlePlayer,
+  pauseOthers,
 }: ISongHandoverDeps): Promise<ITraySongsHandover | undefined> => {
   if (!mediaExecutable) {
     return undefined;
@@ -56,5 +61,7 @@ export const songHandover = async ({
     // `outputConfigFileName`'s own prefix: the GUID and `.txt` follow it.
     perOutputPrefix: `${OUTPUT_CONFIG_BASENAMES.programme.slice(0, -4)}-`,
     ...(mainEndpoint ? { mainEndpoint } : {}),
+    singlePlayer,
+    pauseOthers,
   };
 };

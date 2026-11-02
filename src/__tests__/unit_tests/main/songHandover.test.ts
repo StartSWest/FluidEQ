@@ -25,6 +25,8 @@ const deps = {
   selfId: 'FluidEQ',
   userDataDir: DATA,
   mainEndpoint: '{6C1F5A7E-2B3D-4E5F-8A9B-0C1D2E3F4A5B}',
+  singlePlayer: true,
+  pauseOthers: { file: 'powershell.exe', args: ['-Command', 'pause'] },
 };
 
 describe('the song job main hands the tray', () => {
@@ -39,6 +41,8 @@ describe('the song job main hands the tray', () => {
       rootName: 'fluideq-programme.txt',
       perOutputPrefix: 'fluideq-programme-',
       mainEndpoint: deps.mainEndpoint,
+      singlePlayer: true,
+      pauseOthers: deps.pauseOthers,
     });
     // The prefix and a GUID make the very name main writes for that output.
     const guid = '6c1f5a7e-2b3d-4e5f-8a9b-0c1d2e3f4a5b';

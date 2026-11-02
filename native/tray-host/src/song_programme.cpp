@@ -16,6 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <bcrypt.h>
 #include <icu.h>
 
+#include <algorithm>
 #include <array>
 #include <charconv>
 #include <cmath>
@@ -189,6 +190,21 @@ std::string js_to_fixed2(double value) {
     cents = all.substr(all.size() - 2);
   }
   return (negative ? "-" : "") + whole + "." + cents;
+}
+
+std::optional<std::string> started_over_others(
+    const std::vector<std::string>& known,
+    const std::vector<std::string>& playing) {
+  std::vector<std::string> started;
+  for (const auto& app : playing) {
+    if (std::find(known.begin(), known.end(), app) == known.end()) {
+      started.push_back(app);
+    }
+  }
+  if (started.empty() || started.size() == playing.size()) {
+    return std::nullopt;
+  }
+  return started.back();
 }
 
 std::string song_programme_text(const std::optional<std::string>& id,
