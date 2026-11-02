@@ -57,6 +57,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "lamp_painter.h"
 #include "mouth.h"
 #include "output_ear.h"
+#include "desktop_host.h"
+#include "shown_scene.h"
 #include "scene_wire.h"
 
 namespace {
@@ -86,6 +88,8 @@ int fail(const char* message, HRESULT result) {
 struct Arguments {
   DWORD parent_pid = 0;
   std::wstring angle_dir;
+  /** `desktop`: the desktop backgrounds (`desktop_host.h`); the lamps otherwise. */
+  bool desktop = false;
 };
 
 bool parse_arguments(Arguments& out) {
@@ -107,6 +111,8 @@ bool parse_arguments(Arguments& out) {
       out.parent_pid = static_cast<DWORD>(pid);
     } else if (name == L"--angle-dir") {
       out.angle_dir = value;
+    } else if (name == L"--mode" && std::wstring(value) == L"desktop") {
+      out.desktop = true;
     } else {
       LocalFree(argv);
       return false;
@@ -169,38 +175,6 @@ struct Desk {
   }
 };
 
-/** The time of day to draw at now: the clock's or the one main set. */
-double daylight_now(const wire::Daylight& daylight) {
-  if (daylight.mode != wire::DaylightMode::kClock) {
-    return daylight.value;
-  }
-  SYSTEMTIME local{};
-  GetLocalTime(&local);
-  return scene::clock_daylight(local.wHour, local.wMinute, local.wSecond);
-}
-
-scene::LampScene scene_of(std::uint32_t id, wire::ShownScene shown,
-                          std::vector<std::uint8_t> artwork) {
-  scene::LampScene made;
-  made.id = id;
-  made.guarded = shown.guarded;
-  made.response = shown.response;
-  made.pack.vertex_source = std::move(shown.vertex_source);
-  made.pack.fragment_source = std::move(shown.fragment_source);
-  for (const auto& param : shown.params) {
-    // `uniformNameForParam`.
-    made.pack.params.emplace_back("uParam_" + param.id, param.value);
-  }
-  made.params = std::move(shown.params);
-  made.pack.artwork = std::move(artwork);
-  made.pack.artwork_width = made.pack.artwork.empty() ? 0 : shown.artwork_width;
-  made.pack.artwork_height =
-      made.pack.artwork.empty() ? 0 : shown.artwork_height;
-  made.pack.view = shown.view;
-  made.pack.spectrum_rect = shown.spectrum_rect;
-  return made;
-}
-
 /** One message from main, acted on; false when it is not one. */
 bool hear_message(Desk& desk, wire::Kind kind,
                   std::span<const std::uint8_t> payload) {
@@ -230,7 +204,8 @@ bool hear_message(Desk& desk, wire::Kind kind,
           return true;
         }
       }
-      desk.command(scene_of(show.id, std::move(*show.scene), std::move(artwork)));
+      desk.command(scene::scene_of<scene::LampScene>(
+          show.id, std::move(*show.scene), std::move(artwork)));
       return true;
     }
     case wire::Kind::kDaylight: {
@@ -390,7 +365,7 @@ void draw(Desk& desk, Mouth& mouth, scene::LampPainter& painter) {
     }
     painter.settle();
     if (frame) {
-      painter.paint(std::move(*frame), daylight_now(daylight));
+      painter.paint(std::move(*frame), scene::daylight_now(daylight));
     }
   }
 }
@@ -460,7 +435,7 @@ int listen(Desk& desk, Mouth& mouth, const scene::LampPainter& painter,
 int main() {
   Arguments arguments;
   if (!parse_arguments(arguments)) {
-    say("expected --parent-pid <pid> --angle-dir <folder>");
+    say("expected --parent-pid <pid> --angle-dir <folder> [--mode desktop]");
     return kBadArguments;
   }
   const UniqueHandle parent(OpenProcess(SYNCHRONIZE, FALSE, arguments.parent_pid));
@@ -471,6 +446,11 @@ int main() {
   const HRESULT com = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
   if (FAILED(com)) {
     return fail("COM could not start", com);
+  }
+  if (arguments.desktop) {
+    const int desktop_code = scene::run_desktop(arguments.angle_dir, parent.get());
+    CoUninitialize();
+    return desktop_code;
   }
   int code = kFailed;
   {

@@ -94,6 +94,8 @@ class DesktopPainter {
   int frame_height() const { return target_height_; }
   /** Whether a scene is there to draw. */
   bool drawing() const { return program_ != nullptr; }
+  /** Whether a scene asked for is still linking. */
+  bool linking() const { return pending_.has_value(); }
   /**
    * One frame: `heard` as the music is now, at the time of day `daylight`
    * asks, scaled to the monitor and presented. Returns once the monitor has

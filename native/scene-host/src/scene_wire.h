@@ -34,6 +34,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
 //   kLoaded   u32 id: that scene now draws.
 //   kFailed   u32 id (0: the scene being drawn), u32 `FailReason`,
 //             u32 n + what went wrong.
+//
+// The desktop backgrounds (`--mode desktop`, `desktop_messages.h`), each
+// message naming its monitor first; kAccent and kProfile as above:
+//   kMonitorOpen     u32 monitor, i32 x, i32 y, u32 width, u32 height,
+//                    f64 scale: a window over that rectangle.
+//   kMonitorShow     u32 monitor, then kShow's payload (no swatch drawn).
+//   kMonitorDaylight u32 monitor, then kDaylight's payload.
+//   kMonitorScale    u32 monitor, f64 the share of its pixels drawn.
+//   kMonitorPause    u32 monitor, u32 0 or 1.
+//   kMonitorClose    u32 monitor.
+//   kMonitorWindow   u32 monitor, u64 its window (HWND), to be placed.
+//   kMonitorLoaded   u32 monitor, u32 id.
+//   kMonitorDrawn    u32 monitor, u32 id: its first frame is on screen.
+//   kMonitorFailed   u32 monitor, then kFailed's payload.
 
 #include <cmath>
 #include <cstddef>
@@ -58,10 +72,20 @@ enum class Kind : std::uint32_t {
   kProfile = 4,
   kAccent = 5,
   kPreview = 6,
+  kMonitorOpen = 20,
+  kMonitorShow = 21,
+  kMonitorDaylight = 22,
+  kMonitorScale = 23,
+  kMonitorPause = 24,
+  kMonitorClose = 25,
   kGrid = 101,
   kPicture = 102,
   kLoaded = 103,
   kFailed = 104,
+  kMonitorWindow = 120,
+  kMonitorLoaded = 121,
+  kMonitorDrawn = 122,
+  kMonitorFailed = 123,
 };
 
 enum class DaylightMode : std::uint32_t {

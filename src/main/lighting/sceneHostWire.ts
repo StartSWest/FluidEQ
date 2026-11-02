@@ -47,7 +47,7 @@ export const SCENE_HOST_FAILURES = [
 export type TSceneHostFailure =
   (typeof SCENE_HOST_FAILURES)[number] | 'unknown';
 
-interface IMessageWriter {
+export interface IMessageWriter {
   u32(value: number): IMessageWriter;
   f64(value: number): IMessageWriter;
   raw(bytes: Uint8Array): IMessageWriter;
@@ -57,7 +57,8 @@ interface IMessageWriter {
 }
 
 /** Appends little-endian values to a message of `kind`, growing as it goes. */
-const messageWriter = (kind: number): IMessageWriter => {
+/** One message of `kind`, its payload written field by field. */
+export const messageWriter = (kind: number): IMessageWriter => {
   let bytes = new Uint8Array(256);
   let view = new DataView(bytes.buffer);
   let at = HEADER_BYTES;
@@ -318,9 +319,14 @@ const readMessage = (
   return false;
 };
 
-/** Reads the host's stdout chunk by chunk, handing on each whole message. */
-export const createSceneHostReader = (
-  handlers: ISceneHostHandlers,
+/**
+ * The host's stdout read chunk by chunk, each whole message handed to
+ * `read` by its kind; a message `read` refuses, or a stream without the
+ * header, is the stream broken, and nothing more is read from it.
+ */
+export const createSceneHostFrameReader = (
+  read: (kind: number, payload: Uint8Array) => boolean,
+  invalid: (why: string) => void,
 ): ((chunk: Uint8Array) => void) => {
   let pending = new Uint8Array(0);
   let broken = false;
@@ -339,7 +345,7 @@ export const createSceneHostReader = (
       const length = header.getUint32(8, true);
       if (magic !== SCENE_HOST_MAGIC || length > MAX_PAYLOAD_BYTES) {
         broken = true;
-        handlers.invalid('a message without the scene host header');
+        invalid('a message without the scene host header');
         return;
       }
       if (joined.length - at < HEADER_BYTES + length) {
@@ -350,12 +356,21 @@ export const createSceneHostReader = (
         at + HEADER_BYTES + length,
       );
       at += HEADER_BYTES + length;
-      if (!readMessage(kind, payload, handlers)) {
+      if (!read(kind, payload)) {
         broken = true;
-        handlers.invalid(`a message of kind ${kind} that is not one`);
+        invalid(`a message of kind ${kind} that is not one`);
         return;
       }
     }
     pending = joined.slice(at);
   };
 };
+
+/** Reads the host's stdout chunk by chunk, handing on each whole message. */
+export const createSceneHostReader = (
+  handlers: ISceneHostHandlers,
+): ((chunk: Uint8Array) => void) =>
+  createSceneHostFrameReader(
+    (kind, payload) => readMessage(kind, payload, handlers),
+    handlers.invalid,
+  );

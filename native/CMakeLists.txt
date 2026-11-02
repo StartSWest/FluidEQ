@@ -850,6 +850,7 @@ if(WIN32)
     scene-host/src/flash_guard.cpp
     scene-host/src/lamp_painter.cpp
     scene-host/src/desktop_painter.cpp
+    scene-host/src/desktop_messages.cpp
     scene-host/src/lamp_messages.cpp
     scene-host/src/artwork_decode.cpp)
   target_include_directories(fluideq-scene-host-gl PUBLIC scene-host/src)
@@ -862,6 +863,8 @@ if(WIN32)
   add_executable(fluideq-scene-host
     scene-host/src/main.cpp
     scene-host/src/output_ear.cpp
+    scene-host/src/desktop_host.cpp
+    scene-host/src/desktop_monitor.cpp
     dsp-host/src/platform/windows/device_watch.cpp)
   target_link_libraries(fluideq-scene-host PRIVATE
     fluideq-scene-host-gl feq_strict ole32 avrt advapi32 shell32)
@@ -910,6 +913,11 @@ if(WIN32)
   target_link_libraries(fluideq-lamp-messages-test
     PRIVATE fluideq-scene-host-gl feq_strict)
   add_test(NAME lamp-messages COMMAND fluideq-lamp-messages-test)
+  add_executable(fluideq-desktop-messages-test
+    scene-host/tests/desktop_messages_test.cpp)
+  target_link_libraries(fluideq-desktop-messages-test
+    PRIVATE fluideq-scene-host-gl feq_strict)
+  add_test(NAME desktop-messages COMMAND fluideq-desktop-messages-test)
 endif()
 
 add_subdirectory(remote-audio-playback)
