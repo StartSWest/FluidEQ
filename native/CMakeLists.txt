@@ -849,6 +849,7 @@ if(WIN32)
     scene-host/src/scene_program.cpp
     scene-host/src/flash_guard.cpp
     scene-host/src/lamp_painter.cpp
+    scene-host/src/desktop_painter.cpp
     scene-host/src/lamp_messages.cpp
     scene-host/src/artwork_decode.cpp)
   target_include_directories(fluideq-scene-host-gl PUBLIC scene-host/src)
@@ -896,6 +897,13 @@ if(WIN32)
   target_compile_definitions(fluideq-lamp-painter-test PRIVATE
     FEQ_TEST_ANGLE_DIR=L"${CMAKE_SOURCE_DIR}/../node_modules/electron/dist")
   add_test(NAME lamp-painter COMMAND fluideq-lamp-painter-test)
+  add_executable(fluideq-desktop-painter-test
+    scene-host/tests/desktop_painter_test.cpp)
+  target_link_libraries(fluideq-desktop-painter-test
+    PRIVATE fluideq-scene-host-gl feq_strict ole32)
+  target_compile_definitions(fluideq-desktop-painter-test PRIVATE
+    FEQ_TEST_ANGLE_DIR=L"${CMAKE_SOURCE_DIR}/../node_modules/electron/dist")
+  add_test(NAME desktop-painter COMMAND fluideq-desktop-painter-test)
   add_executable(fluideq-lamp-messages-test
     scene-host/tests/lamp_messages_test.cpp)
   target_link_libraries(fluideq-lamp-messages-test
