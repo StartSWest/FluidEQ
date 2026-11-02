@@ -94,6 +94,15 @@ Digest sha256(std::span<const std::uint8_t> data) {
   return out;
 }
 
+std::array<std::uint8_t, 20> sha1(std::span<const std::uint8_t> data) {
+  std::array<std::uint8_t, 20> out{};
+  if (!ok(BCryptHash(BCRYPT_SHA1_ALG_HANDLE, nullptr, 0, raw(data),
+                     size_of(data), out.data(), static_cast<ULONG>(out.size())))) {
+    std::abort();
+  }
+  return out;
+}
+
 Digest hmac_sha256(std::span<const std::uint8_t> key,
                    std::span<const std::uint8_t> data) {
   Digest out{};

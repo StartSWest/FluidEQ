@@ -82,6 +82,9 @@ const app = {
   'app.processes.name.sharePlayback': '공유 오디오 재생',
   'app.processes.what.sharePlayback':
     '다른 FluidEQ가 이 PC와 공유하는 사운드를 재생하고 오디오 캡처를 시작하므로 이 PC가 전송하는 내용은 해당 사운드를 다시 전달하지 않습니다. 둘 중 하나가 사용 중인 동안에만 실행됩니다.',
+  'app.processes.name.shareLink': '오디오 공유 연결',
+  'app.processes.what.shareLink':
+    '사운드를 공유하는 다른 컴퓨터를 찾아 페어링하고, 사운드를 암호화하여 양방향으로 전달합니다. 오디오 공유나 두 번째 출력을 처음 사용할 때 시작되며 FluidEQ를 닫을 때까지 실행됩니다.',
   'app.processes.name.volume': '시스템 볼륨',
   'app.processes.what.volume':
     'Windows의 볼륨을 따르고 FluidEQ의 볼륨 슬라이더에 대한 음소거를 수행하고 움직일 때 설정합니다. 슬라이더가 화면에 있는 동안에만 실행됩니다.',

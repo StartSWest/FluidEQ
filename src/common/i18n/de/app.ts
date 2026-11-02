@@ -100,6 +100,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.sharePlayback': 'Wiedergabe des geteilten Audios',
   'app.processes.what.sharePlayback':
     'Spielt den Klang ab, den ein anderes FluidEQ mit diesem PC teilt, und startet die Audioaufnahmen, damit das, was dieser PC sendet, diesen Klang nie zurückträgt. Läuft nur, solange eines davon genutzt wird.',
+  'app.processes.name.shareLink': 'Verbindung zum Audio-Teilen',
+  'app.processes.what.shareLink':
+    'Findet die anderen Computer, mit denen Sie Klang teilen, koppelt sich mit ihnen und überträgt den Klang verschlüsselt in beide Richtungen. Startet, sobald Audio teilen oder eine zweite Ausgabe zum ersten Mal genutzt wird, und läuft, bis FluidEQ geschlossen wird.',
   'app.processes.name.volume': 'Systemlautstärke',
   'app.processes.what.volume':
     'Folgt der Lautstärke und Stummschaltung von Windows für die Lautstärkeregler von FluidEQ und stellt sie ein, wenn Sie einen bewegen. Läuft nur, solange ein Regler zu sehen ist.',

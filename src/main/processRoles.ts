@@ -15,7 +15,6 @@ import type { IMeterReading } from './processMeter';
 import {
   LIBRARY_SCAN_PROCESS_NAME,
   MODEL_PROCESS_NAME,
-  SHARE_AUDIO_PROCESS_NAME,
 } from './utilityProcessNames';
 
 /**
@@ -52,6 +51,12 @@ export type TProcessRole =
   | 'models'
   /** Our library scan, forked for one scan and closed when it finishes. */
   | 'libraryScan'
+  /**
+   * `FluidEQ-Share.exe`: Share Audio's link to the other computers, and the
+   * owner of the playback and capture helpers, from the first time Share
+   * Audio or a second output is used until the app quits.
+   */
+  | 'shareLink'
   /** `FluidEQ-LAN-Capture.exe`: captures this PC's sound while it is shared. */
   | 'shareCapture'
   /**
@@ -182,7 +187,6 @@ const UTILITY_ROLES: Record<string, TProcessRole> = {
  * listed the karaoke models and a library scan as two identical helpers.
  */
 const OWN_UTILITY_ROLES: Record<string, TProcessRole> = {
-  [SHARE_AUDIO_PROCESS_NAME]: 'sharePlayback',
   [MODEL_PROCESS_NAME]: 'models',
   [LIBRARY_SCAN_PROCESS_NAME]: 'libraryScan',
 };
@@ -253,6 +257,7 @@ export const roleFor = (
  */
 export const EXECUTABLE_ROLES: Readonly<Record<string, TProcessRole>> = {
   'fluideq-wallpaper.exe': 'desktopHost',
+  'fluideq-share.exe': 'shareLink',
   'fluideq-lan-capture.exe': 'shareCapture',
   'fluideq-listen.exe': 'listening',
   'fluideq-lan-playback.exe': 'sharePlayback',
@@ -314,6 +319,7 @@ const ROLE_ORDER: readonly TProcessRole[] = [
   'models',
   'libraryScan',
   'listening',
+  'shareLink',
   'shareCapture',
   'sharePlayback',
   'volume',

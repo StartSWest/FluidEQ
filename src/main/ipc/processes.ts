@@ -43,6 +43,7 @@ import type { IHostStats } from '../dspHost/wire';
 import type { IEngineProcessStats } from '../engineAnalysisPipe';
 import type { IProcessMeter } from '../processMeter';
 import { lanAudioHelperPid } from '../lanAudioHelper';
+import { shareServicePid } from '../shareAudio/host';
 import {
   IAppProcess,
   applyReadings,
@@ -209,13 +210,16 @@ export const registerProcessIpc = (
     watchWindow(window);
     // The LAN audio helper starts the capture helpers itself, as its own
     // children — that is how the capture sent to another computer leaves
-    // its sound out (`lanAudioHelper.ts`) — so its children are asked for
-    // too, or the captures would be missing from the list and its total.
-    const helperPid = lanAudioHelperPid();
-    const readings = await deps.meter?.read(
-      [...listed],
-      [process.pid, ...(helperPid === undefined ? [] : [helperPid])],
-    );
+    // its sound out (`lanAudioHelper.ts`) — and on Windows the Share Audio
+    // service starts the helper, so the children of both are asked for too,
+    // or the helper and its captures would be missing from the list and its
+    // total.
+    const parents = [
+      process.pid,
+      shareServicePid(),
+      lanAudioHelperPid(),
+    ].filter((pid): pid is number => pid !== undefined);
+    const readings = await deps.meter?.read([...listed], parents);
     if (!readings) {
       return unique.sort(byRole);
     }

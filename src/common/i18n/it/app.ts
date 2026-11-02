@@ -100,6 +100,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.sharePlayback': 'Riproduzione dell’audio condiviso',
   'app.processes.what.sharePlayback':
     'Riproduce il suono che un altro FluidEQ condivide con questo PC e avvia le acquisizioni audio, così ciò che questo PC invia non riporta mai indietro quel suono. È attivo solo mentre uno di questi è in uso.',
+  'app.processes.name.shareLink': 'Collegamento per condividere l’audio',
+  'app.processes.what.shareLink':
+    'Trova gli altri computer con cui condividi il suono, si abbina a loro e porta il suono in entrambe le direzioni, cifrato. Si avvia la prima volta che si usa Condividi audio o una seconda uscita e resta attivo finché FluidEQ non si chiude.',
   'app.processes.name.volume': 'Volume di sistema',
   'app.processes.what.volume':
     'Segue il volume e il muto di Windows per i cursori del volume di FluidEQ, e lo imposta quando ne sposti uno. È attivo solo mentre un cursore è sullo schermo.',

@@ -8,7 +8,6 @@ import devConfigs from '../../../../.erb/configs/webpack.config.preload.dev';
 
 /** The programs main starts in Node: utility processes and workers. */
 const NODE_PROGRAMS = [
-  'share-audio-worker',
   'inference-worker',
   'library-scan-worker',
   // The core's own process (`core/process/coreProcess.ts`).

@@ -93,7 +93,10 @@ export type TAudioResponse =
       id: number;
       value?: unknown;
       error?: string;
-      /** The system's own code for a failure (`failureCode`), never its text. */
+      /**
+       * The system's own code for a failure (`system_word` in the service's
+       * `share_runtime.cpp`), never its text.
+       */
       code?: string;
       /** The call that raised it: listen, bind. */
       syscall?: string;

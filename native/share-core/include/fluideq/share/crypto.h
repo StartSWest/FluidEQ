@@ -35,6 +35,8 @@ inline std::span<const std::uint8_t> bytes_of(std::string_view text) {
 }
 
 Digest sha256(std::span<const std::uint8_t> data);
+/** SHA-1, for the one place a protocol requires it: the WebSocket handshake. */
+std::array<std::uint8_t, 20> sha1(std::span<const std::uint8_t> data);
 Digest hmac_sha256(std::span<const std::uint8_t> key,
                    std::span<const std::uint8_t> data);
 /** `crypto.hkdfSync('sha256', ikm, salt, info, length)`, RFC 5869. */
@@ -65,5 +67,7 @@ bool timing_safe_equal(std::span<const std::uint8_t> left,
 std::string base64url(std::span<const std::uint8_t> data);
 /** `Buffer.from(text, 'base64url')` (and 'base64': Node reads both alike). */
 Bytes from_base64(std::string_view text);
+/** Standard base64 with its padding (`Buffer.toString('base64')`). */
+std::string base64(std::span<const std::uint8_t> data);
 
 }  // namespace feq::share::crypto

@@ -97,10 +97,6 @@ const workers: webpack.Configuration = {
   ...configuration,
   target: 'electron-main',
   entry: {
-    'share-audio-worker': path.join(
-      webpackPaths.srcMainPath,
-      'shareAudio/worker.ts',
-    ),
     'inference-worker': path.join(
       webpackPaths.srcMainPath,
       'inferenceWorker.ts',

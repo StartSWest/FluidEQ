@@ -1,8 +1,9 @@
 /* FluidEQ — GPL-3.0-or-later */
-import fs from 'fs';
-import path from 'path';
-import { isMainThread, Worker } from 'worker_threads';
-import { createAudioProcess } from './processHost';
+import { isMainThread } from 'worker_threads';
+import {
+  createShareServiceProcess,
+  findShareService,
+} from './shareServiceProcess';
 import type {
   IAudioMethods,
   TAudioEvent,
@@ -16,19 +17,15 @@ export interface IAudioWorkerTransport {
   on(event: 'error', listener: (error: Error) => void): unknown;
   on(event: 'exit', listener: (code: number) => void): unknown;
   postMessage(message: unknown): void;
-  ref(): void;
-  unref(): void;
   terminate(): Promise<number>;
+  /** The service's process id while it runs, for the Processes list. */
+  readonly pid?: number;
 }
 export const createAudioWorkerHost = (
   entry: string,
-  resourcesPath?: string,
-  spawn: (entry: string, resourcesPath?: string) => IAudioWorkerTransport = (
-    file,
-    resources,
-  ) => new Worker(file, { workerData: { resourcesPath: resources } }),
+  spawn: (entry: string) => IAudioWorkerTransport = createShareServiceProcess,
 ) => {
-  const worker = spawn(entry, resourcesPath);
+  const worker = spawn(entry);
   const pending = new Map<
     number,
     {
@@ -72,9 +69,6 @@ export const createAudioWorkerHost = (
     if (message.type === 'answer') {
       const request = pending.get(message.id);
       pending.delete(message.id);
-      if (pending.size === 0) {
-        worker.unref();
-      }
       if (message.error) {
         // The failure as main knew it before the link moved out of it: the
         // system's code on the error, which the port fallback reads, and the
@@ -115,9 +109,9 @@ export const createAudioWorkerHost = (
       }
     }
   });
-  worker.unref();
   return {
     helperPid: () => helperPid,
+    servicePid: () => (ended ? undefined : worker.pid),
     request<K extends TAudioMethod>(
       method: K,
       ...args: IAudioMethods[K]['args']
@@ -130,7 +124,6 @@ export const createAudioWorkerHost = (
       }
       nextId += 1;
       const id = nextId;
-      worker.ref();
       return new Promise<IAudioMethods[K]['result']>((resolve, reject) => {
         pending.set(id, {
           method,
@@ -178,24 +171,20 @@ export const listenAudioWorker = (listener: (event: TAudioEvent) => void) => {
   };
 };
 export const audioWorkerHelperPid = () => current?.helperPid();
+/** The service itself, whose children are the LAN audio helper. */
+export const shareServicePid = () => current?.servicePid();
 
-// Set by Electron's IPC registration. Node fixtures and platform branches keep
-// using their existing adapters until they explicitly enable this owner.
-const workerEntry = (): string | undefined =>
-  [
-    path.join(__dirname, 'share-audio-worker.js'),
-    path.join(__dirname, '../../../.erb/dll/share-audio-worker.js'),
-    path.join(__dirname, '../share-audio-worker.js'),
-  ].find((candidate) => fs.existsSync(candidate));
-
+// Set by Electron's IPC registration on Windows, where the link runs in
+// `FluidEQ-Share.exe`. Node fixtures and the other platforms keep the link in
+// this process until they explicitly enable the service.
 export const enableAudioWorker = () => {
   if (!isMainThread || decided) {
     return;
   }
   decided = true;
-  // A running dev compiler may predate a new entry. Until its bundle exists,
-  // retain the working audio path; source hot reload must never disable LAN.
-  enabled = workerEntry() !== undefined;
+  // A development tree whose native build predates the service keeps the
+  // link in this process, which works on every platform, rather than none.
+  enabled = findShareService() !== undefined;
 };
 export const audioWorkerEnabled = () => enabled && isMainThread;
 export const stopAudioWorker = () => {
@@ -206,13 +195,11 @@ export const stopAudioWorker = () => {
 };
 export const getAudioWorker = (): TAudioWorkerHost => {
   if (!current) {
-    const entry = workerEntry();
+    const entry = findShareService();
     if (!entry) {
       throw new Error('Share Audio worker is unavailable.');
     }
-    const resources = (process as NodeJS.Process & { resourcesPath?: string })
-      .resourcesPath;
-    current = createAudioWorkerHost(entry, resources, createAudioProcess);
+    current = createAudioWorkerHost(entry);
     current.listen((event) =>
       workerListeners.forEach((listener) => listener(event)),
     );

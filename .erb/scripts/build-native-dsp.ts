@@ -541,5 +541,11 @@ if (isWindows) {
   if (!existsSync(scenesPath)) {
     fail(`the lamps' scene host was not produced at ${scenesPath}`);
   }
+  // Share Audio's link, packaged beside them: without it the link runs in
+  // main instead, where a stall of the window's process is a stall of it.
+  const sharePath = path.join(BUILD_DIR, 'bin', 'FluidEQ-Share.exe');
+  if (!existsSync(sharePath)) {
+    fail(`Share Audio's link was not produced at ${sharePath}`);
+  }
 }
 console.log(`native dsp build: ${hostPath}`);

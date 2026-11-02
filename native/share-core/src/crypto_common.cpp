@@ -99,6 +99,21 @@ std::string base64url(std::span<const std::uint8_t> data) {
   return out;
 }
 
+std::string base64(std::span<const std::uint8_t> data) {
+  std::string out = base64url(data);
+  for (char& c : out) {
+    if (c == '-') {
+      c = '+';
+    } else if (c == '_') {
+      c = '/';
+    }
+  }
+  while (out.size() % 4 != 0) {
+    out.push_back('=');
+  }
+  return out;
+}
+
 Bytes from_base64(std::string_view text) {
   // Node's decoder: what is in neither alphabet is passed over, and the
   // bits left at the end make whole bytes only.

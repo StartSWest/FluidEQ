@@ -97,6 +97,9 @@ const app = {
   'app.processes.name.sharePlayback': 'Shared audio playback',
   'app.processes.what.sharePlayback':
     'Plays the sound another FluidEQ shares with this PC, and starts the audio captures, so what this PC sends never carries that sound back. Runs only while one of them is in use.',
+  'app.processes.name.shareLink': 'Share Audio link',
+  'app.processes.what.shareLink':
+    'Finds the other computers you share sound with, pairs with them and carries the sound both ways, encrypted. Starts the first time Share Audio or a second output is used, and runs until FluidEQ closes.',
   'app.processes.name.volume': 'System volume',
   'app.processes.what.volume':
     'Follows Windows’ volume and mute for FluidEQ’s volume sliders, and sets it when you move one. Runs only while a slider is on screen.',

@@ -81,4 +81,13 @@ describe('the Processes list and the programs the app ships', () => {
       'sharePlayback',
     );
   });
+
+  // Share Audio's link left its Node utility process for this program; the
+  // row it had there must follow it, or the link's memory falls out of the
+  // total and the list explains nothing about it.
+  it("gives Share Audio's link its own row", () => {
+    expect(roleForExecutable('FluidEQ-Share.exe', 'FluidEQ.exe')).toBe(
+      'shareLink',
+    );
+  });
 });

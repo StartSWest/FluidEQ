@@ -489,6 +489,21 @@ Everything worth knowing about them is available through commands:
   another account (`split_object_owned_by`), and builds a resampling kernel
   only for a rate an output runs at — the rate is read from memory another
   process writes, and a new table per block grew audiodg without end.
+- **Share Audio's link runs in `FluidEQ-Share.exe` on Windows, and in main
+  everywhere else.** The C++ service (`native/share-service` over
+  `native/share-core`) is the twin of `remoteAudioLan*.ts`,
+  `remoteAudioTransport.ts`, `remoteAudioGroup.ts` and the Node service it
+  replaced; macOS, Linux and a development tree whose native build predates
+  it still run the TypeScript link in main (`enableAudioWorker`,
+  `findShareService`). Any computer on a network may be either, so the wire
+  is held to the TypeScript's own bytes (`share_wire_fixture.h`, written by
+  `shareWireFixture.ts`), main's frames to the service's
+  (`share_main_wire_test.cpp`), and the two links to each other live
+  (`smoke-share-service.ts`, in `test:native-dsp`): change the link in one
+  and change it in the other, in the same commit. The service is one I/O
+  completion port (`loop.h`) and nothing in it waits on a clock. Its first
+  listen raises Windows' firewall question for `FluidEQ-Share.exe`, which
+  its version resource names "FluidEQ Share Audio".
 - **Your bands have their own Band Q, apart from the layers' group**
   (`mainBandQ`, `getMainBandQ` in `eqMode.ts`): changing how your bands widen
   with gain reshapes neither a preset nor a correction. Absent, it falls back

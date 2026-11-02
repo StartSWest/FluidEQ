@@ -29,6 +29,7 @@ import {
   normalizeAudioChunk,
   sealPacket,
 } from '../remoteAudioLanProtocol';
+import { encodeShareFrame } from './shareServiceWire';
 
 /**
  * Share Audio's wire as this side writes and reads it, written by
@@ -75,6 +76,26 @@ const cText = (value: string | Buffer) => {
 
 const cBytes = (value: Uint8Array) =>
   value.length === 0 ? '{}' : `{${[...value].join(', ')}}`;
+
+/**
+ * A request as main writes it to the service: every kind of binary part,
+ * an empty slot (`undefined` in an argument list) and text past ASCII.
+ */
+const MAIN_WIRE_MESSAGE = {
+  type: 'request',
+  id: 7,
+  method: 'helper.request',
+  args: [
+    3,
+    99,
+    8,
+    Buffer.from('pipe token lan'),
+    new Float32Array([0.5, -0.25]),
+    new Uint8Array([1, 2, 3]).buffer,
+    undefined,
+    'ñandú',
+  ],
+};
 
 const ivOf = (seed: number) =>
   Buffer.from(
@@ -648,6 +669,16 @@ export const shareWireFixture = async (): Promise<string> => {
       .map((t) => `{${cText(t)}}`)
       .join(', ')}};`,
   );
+
+  add(
+    '',
+    '// Main and the service: one frame as main writes it, and its JSON with',
+    '// the markers its binary parts left (`shareServiceWire.ts`).',
+  );
+  const frame = encodeShareFrame(MAIN_WIRE_MESSAGE);
+  add(`inline const unsigned char kMainWireFrame[] = ${cBytes(frame)};`);
+  const marked = frame.subarray(8, 8 + frame.readUInt32LE(4)).toString('utf8');
+  add(`inline const char kMainWireJson[] = ${cText(marked)};`);
   add('', '}  // namespace feq::share::fixture', '');
   return lines.join('\n');
 };

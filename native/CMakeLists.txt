@@ -661,6 +661,92 @@ if(WIN32)
   target_link_libraries(fluideq-share-wire-test
     PRIVATE fluideq-share-core feq_strict)
   add_test(NAME share-wire COMMAND fluideq-share-wire-test)
+
+  # The service that carries the link (`share-service`, FluidEQ-Share):
+  # one thread on an I/O completion port, as Node's own loop is on Windows,
+  # with TCP, UDP and WebSocket as `ws` speaks it on top.
+  add_library(fluideq-share-net STATIC
+    share-service/src/loop.cpp
+    share-service/src/tcp.cpp
+    share-service/src/udp.cpp
+    share-service/src/ws_frames.cpp
+    share-service/src/ws_handshake.cpp
+    share-service/src/websocket.cpp
+    share-service/src/websocket_server.cpp
+    share-service/src/service_log.cpp
+    share-service/src/system_adapters.cpp
+    share-service/src/lan_transport.cpp
+    share-service/src/lan_join.cpp
+    share-service/src/lan_joins.cpp
+    share-service/src/lan_peers.cpp
+    share-service/src/lan_group.cpp
+    share-service/src/lan.cpp
+    share-service/src/lan_listen.cpp
+    share-service/src/pipes.cpp
+    share-service/src/audio_helper.cpp
+    share-service/src/native_playback.cpp
+    share-service/src/network_capture.cpp
+    share-service/src/capture_frames.cpp
+    share-service/src/main_wire.cpp
+    share-service/src/share_runtime.cpp
+    share-service/src/share_runtime_requests.cpp
+    share-service/src/system_ports.cpp)
+  target_include_directories(fluideq-share-net PUBLIC share-service/src)
+  # Winsock's header pulls in windows.h; without these its min and max
+  # macros break the standard library wherever both are seen.
+  target_compile_definitions(fluideq-share-net
+    PUBLIC NOMINMAX WIN32_LEAN_AND_MEAN)
+  target_link_libraries(fluideq-share-net
+    PUBLIC fluideq-share-core ws2_32 mswsock ntdll iphlpapi
+    PRIVATE feq_strict)
+  add_executable(fluideq-share-service
+    share-service/src/main.cpp
+    share-service/src/share-service.rc)
+  target_link_libraries(fluideq-share-service
+    PRIVATE fluideq-share-net avrt feq_strict)
+  set_source_files_properties(share-service/src/share-service.rc
+    PROPERTIES COMPILE_DEFINITIONS
+      "FEQ_SHARE_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
+  set_target_properties(fluideq-share-service PROPERTIES
+    OUTPUT_NAME "FluidEQ-Share"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
+  )
+  add_executable(fluideq-share-socket-test
+    share-service/tests/share_socket_test.cpp)
+  target_link_libraries(fluideq-share-socket-test
+    PRIVATE fluideq-share-net feq_strict)
+  add_test(NAME share-socket COMMAND fluideq-share-socket-test)
+  add_executable(fluideq-share-runtime-test
+    share-service/tests/share_runtime_test.cpp)
+  target_link_libraries(fluideq-share-runtime-test
+    PRIVATE fluideq-share-net feq_strict)
+  add_test(NAME share-runtime COMMAND fluideq-share-runtime-test)
+  add_executable(fluideq-share-runtime-parts-test
+    share-service/tests/share_runtime_parts_test.cpp)
+  target_link_libraries(fluideq-share-runtime-parts-test
+    PRIVATE fluideq-share-net feq_strict)
+  add_test(NAME share-runtime-parts COMMAND fluideq-share-runtime-parts-test)
+  add_executable(fluideq-share-main-wire-test
+    share-service/tests/share_main_wire_test.cpp)
+  target_include_directories(fluideq-share-main-wire-test
+    PRIVATE share-core/tests)
+  target_link_libraries(fluideq-share-main-wire-test
+    PRIVATE fluideq-share-net feq_strict)
+  add_test(NAME share-main-wire COMMAND fluideq-share-main-wire-test)
+  add_executable(fluideq-share-joins-test
+    share-service/tests/share_joins_test.cpp)
+  target_link_libraries(fluideq-share-joins-test
+    PRIVATE fluideq-share-net feq_strict)
+  add_test(NAME share-joins COMMAND fluideq-share-joins-test)
+  # The LAN audio helper's stand-in for the service's live test; never
+  # shipped, and named apart from the programs that are.
+  add_executable(fluideq-share-fake-helper
+    share-service/tests/fake_playback_helper.cpp)
+  target_link_libraries(fluideq-share-fake-helper PRIVATE feq_strict)
+  set_target_properties(fluideq-share-fake-helper PROPERTIES
+    OUTPUT_NAME "share-fake-playback-helper")
 endif()
 
 # The music as the scenes and the lamps hear it, in C++ (`scene-core`): the

@@ -11,22 +11,18 @@ import startRemoteAudioHostSession from '../../../main/remoteAudioHostSession';
 import type { IRemoteAudioCredentialStore } from '../../../main/remoteAudioCredentials';
 import type { IRemoteAudioLan } from '../../../main/remoteAudioLanTypes';
 
+jest.mock('worker_threads', () => ({ isMainThread: true }));
+
+/** The service as the host sees it: messages in, frames out, an exit. */
 const mockWorkers: EventEmitter[] = [];
-jest.mock('worker_threads', () => ({
-  isMainThread: true,
-  Worker: jest.fn().mockImplementation(() => {
-    const { EventEmitter: MockEvents } =
-      jest.requireActual<typeof import('events')>('events');
-    const worker = Object.assign(new MockEvents(), {
-      postMessage: jest.fn(),
-      terminate: jest.fn(async () => 0),
-      unref: jest.fn(),
-      ref: jest.fn(),
-    });
-    mockWorkers.push(worker);
-    return worker;
-  }),
-}));
+const spawnFixture = () => {
+  const worker = Object.assign(new EventEmitter(), {
+    postMessage: jest.fn(),
+    terminate: jest.fn(async () => 0),
+  });
+  mockWorkers.push(worker);
+  return worker;
+};
 
 afterEach(() => {
   stopAudioWorker();
@@ -34,7 +30,7 @@ afterEach(() => {
   mockWorkers.length = 0;
 });
 
-it('retains the working connection path when a running dev compiler has no worker bundle', () => {
+it('keeps the link in main when the native build has not made the service', () => {
   jest.spyOn(fs, 'existsSync').mockReturnValue(false);
   enableAudioWorker();
   expect(audioWorkerEnabled()).toBe(false);
@@ -47,7 +43,7 @@ it('retains the working connection path when a running dev compiler has no worke
 });
 
 it('acknowledges telemetry only after consumers process it', () => {
-  const host = createAudioWorkerHost('fixture');
+  const host = createAudioWorkerHost('fixture', spawnFixture);
   const worker = mockWorkers[0] as EventEmitter & { postMessage: jest.Mock };
   const order: string[] = [];
   worker.postMessage.mockImplementation(() => order.push('acknowledged'));
@@ -62,7 +58,7 @@ it('acknowledges telemetry only after consumers process it', () => {
 });
 
 it('bounds pending controls and rejects every pending operation when the worker exits', async () => {
-  const host = createAudioWorkerHost('fixture');
+  const host = createAudioWorkerHost('fixture', spawnFixture);
   const pending = Array.from({ length: 128 }, () =>
     host.request('lan.retry').catch((error: Error) => error.message),
   );
@@ -75,7 +71,7 @@ it('bounds pending controls and rejects every pending operation when the worker 
 });
 
 it('ends audio ownership if durable pairing persistence fails', () => {
-  const host = createAudioWorkerHost('fixture');
+  const host = createAudioWorkerHost('fixture', spawnFixture);
   const failed = jest.fn();
   host.onFailure(failed);
   host.listen(() => {
@@ -89,7 +85,7 @@ it('ends audio ownership if durable pairing persistence fails', () => {
 });
 
 it('turns a lost telemetry acknowledgement into cleanup rather than an uncaught UI-thread error', () => {
-  const host = createAudioWorkerHost('fixture');
+  const host = createAudioWorkerHost('fixture', spawnFixture);
   const worker = mockWorkers[0] as EventEmitter & {
     postMessage: jest.Mock;
     terminate: jest.Mock;
@@ -111,7 +107,7 @@ it('turns a lost telemetry acknowledgement into cleanup rather than an uncaught 
 });
 
 it('ends ownership after a control cannot be sent and rejects the other pending operations', async () => {
-  const host = createAudioWorkerHost('fixture');
+  const host = createAudioWorkerHost('fixture', spawnFixture);
   const pending = host.request('status').catch((error: Error) => error.message);
   const worker = mockWorkers[0] as EventEmitter & { postMessage: jest.Mock };
   worker.postMessage.mockImplementation(() => {
@@ -122,7 +118,7 @@ it('ends ownership after a control cannot be sent and rejects the other pending 
 });
 
 it("says which step failed and the system's code for it", async () => {
-  const host = createAudioWorkerHost('fixture');
+  const host = createAudioWorkerHost('fixture', spawnFixture);
   const worker = mockWorkers[0];
   const started = host.request('lan.retry');
   worker.emit('message', {
@@ -165,7 +161,7 @@ describe('a taken saved port through the Share Audio service', () => {
   };
   const saved = { identity: { port: 49000, secret: 'kept' } };
   const startThrough = async (refusal: string) => {
-    const host = createAudioWorkerHost('fixture');
+    const host = createAudioWorkerHost('fixture', spawnFixture);
     const worker = mockWorkers[0] as EventEmitter & {
       postMessage: jest.Mock;
     };

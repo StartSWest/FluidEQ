@@ -100,6 +100,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.sharePlayback': '共有された音声の再生',
   'app.processes.what.sharePlayback':
     '別の FluidEQ がこの PC に共有している音を再生し、音声キャプチャを起動します。これにより、この PC が送る音にその音が戻って混ざることはありません。これらのどれかを使っている間だけ動作します。',
+  'app.processes.name.shareLink': '音声共有の接続',
+  'app.processes.what.shareLink':
+    '音を共有するほかのコンピューターを見つけてペアリングし、音を暗号化して双方向に運びます。音声を共有または 2 つ目の出力を初めて使ったときに起動し、FluidEQ を閉じるまで動作します。',
   'app.processes.name.volume': 'システムの音量',
   'app.processes.what.volume':
     'FluidEQ の音量スライダーのために Windows の音量とミュートを追い、スライダーを動かすと音量を設定します。スライダーが画面にある間だけ動作します。',

@@ -82,6 +82,9 @@ const app = {
   'app.processes.name.sharePlayback': '共享音訊播放',
   'app.processes.what.sharePlayback':
     '播放另一個 FluidEQ 與該 PC 共享的聲音，並開始音訊捕獲，因此該 PC 傳送的內容永遠不會帶回該聲音。僅當其中之一正在使用時執行。',
+  'app.processes.name.shareLink': '分享音訊連線',
+  'app.processes.what.shareLink':
+    '尋找與你分享聲音的其他電腦，與它們配對，並以加密方式雙向傳送聲音。在第一次使用分享音訊或第二輸出時啟動，並持續執行直到 FluidEQ 關閉。',
   'app.processes.name.volume': '系統音量',
   'app.processes.what.volume':
     'FluidEQ 的音量滑桿遵循 Windows 的音量和靜音，並在移動滑桿時進行設定。僅當滑桿位於螢幕上時執行。',
