@@ -49,36 +49,28 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "../../common/loopback_capture.h"
-#include "../../dsp-host/src/platform/windows/device_watch.h"
 #include "artwork_decode.h"
 #include "fluideq/scene/lamp_atmosphere.h"
 #include "fluideq/scene/lamp_ear.h"
 #include "fluideq/scene/lamp_pacing.h"
 #include "lamp_messages.h"
 #include "lamp_painter.h"
+#include "mouth.h"
+#include "output_ear.h"
 #include "scene_wire.h"
 
 namespace {
 
 namespace scene = feq::scene;
 namespace wire = feq::scene::wire;
-using feq::listen::fill_silence;
-using feq::listen::Loopback;
-using feq::listen::Silence;
-using feq::listen::start_loopback;
-using feq::listen::start_silence;
 using feq::listen::UniqueHandle;
-using Microsoft::WRL::ComPtr;
+using feq::scene::Mouth;
 
 constexpr int kStopped = 0;
 constexpr int kFailed = 1;
 constexpr int kBadArguments = 2;
 constexpr int kBrokenWire = 4;
 
-/** Up to 7.1: the lamps hear the front pair of anything wider. */
-constexpr std::uint16_t kMaxChannels = 8;
-/** Grids and pictures waiting for stdout past this are dropped, oldest first. */
-constexpr std::size_t kMostWaiting = 8;
 /** The app's accent before main says otherwise (`--accent` default). */
 constexpr std::array<double, 3> kDefaultAccent{0.0, 229.0 / 255.0,
                                                207.0 / 255.0};
@@ -124,77 +116,6 @@ bool parse_arguments(Arguments& out) {
   LocalFree(argv);
   return whole && out.parent_pid != 0 && !out.angle_dir.empty();
 }
-
-/**
- * stdout, written on a thread of its own. Loaded and failed messages are
- * kept whatever happens; a grid or picture is the newest of a stream, and
- * when main falls behind the oldest waiting ones are the ones dropped.
- */
-class Mouth {
- public:
-  Mouth() : thread_([this] { run(); }) {}
-  ~Mouth() {
-    {
-      const std::lock_guard lock(mutex_);
-      stopping_ = true;
-    }
-    ready_.notify_one();
-    thread_.join();
-  }
-  Mouth(const Mouth&) = delete;
-  Mouth& operator=(const Mouth&) = delete;
-
-  void say(std::vector<std::uint8_t> message, bool droppable) {
-    {
-      const std::lock_guard lock(mutex_);
-      waiting_.push_back({std::move(message), droppable});
-      for (auto at = waiting_.begin();
-           waiting_.size() > kMostWaiting && at != waiting_.end();) {
-        at = at->droppable ? waiting_.erase(at) : std::next(at);
-      }
-    }
-    ready_.notify_one();
-  }
-
- private:
-  struct Waiting {
-    std::vector<std::uint8_t> bytes;
-    bool droppable;
-  };
-
-  void run() {
-    const HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
-    for (;;) {
-      Waiting next;
-      {
-        std::unique_lock lock(mutex_);
-        ready_.wait(lock, [this] { return stopping_ || !waiting_.empty(); });
-        if (stopping_) {
-          return;
-        }
-        next = std::move(waiting_.front());
-        waiting_.pop_front();
-      }
-      std::size_t sent = 0;
-      while (sent < next.bytes.size()) {
-        DWORD wrote = 0;
-        if (WriteFile(out, next.bytes.data() + sent,
-                      static_cast<DWORD>(next.bytes.size() - sent), &wrote,
-                      nullptr) == FALSE) {
-          // Main has gone; stdin closing ends the program.
-          return;
-        }
-        sent += wrote;
-      }
-    }
-  }
-
-  std::mutex mutex_;
-  std::condition_variable ready_;
-  std::deque<Waiting> waiting_;
-  bool stopping_ = false;
-  std::thread thread_;
-};
 
 /** What the ear is to hear with, set by main between blocks. */
 struct EarSettings {
@@ -506,8 +427,6 @@ void heard(Desk& desk, Mouth& mouth, const scene::LampPainter& painter,
   mouth.say(wire::grid_message(rgb, reading), true);
 }
 
-void on_outputs_changed(void* reopen) { SetEvent(static_cast<HANDLE>(reopen)); }
-
 /** The ear's settings, taken when main has changed them. */
 void tune_ear(Desk& desk, scene::LampEar& ear) {
   const std::lock_guard lock(desk.mutex);
@@ -521,151 +440,19 @@ void tune_ear(Desk& desk, scene::LampEar& ear) {
 }
 
 /**
- * The default output heard until the desk stops: opened again whenever
- * Windows moves the default or the one heard goes, and while none can be
- * opened, tried again on each change Windows reports — never on a clock.
+ * The default output heard until the desk stops (`output_ear.h`), each frame
+ * drawn as the scene or lit with the scene's colours.
  */
 int listen(Desk& desk, Mouth& mouth, const scene::LampPainter& painter,
            HANDLE parent) {
-  const UniqueHandle sample_event(CreateEventW(nullptr, FALSE, FALSE, nullptr));
-  const UniqueHandle silence_event(CreateEventW(nullptr, FALSE, FALSE, nullptr));
-  const UniqueHandle reopen_event(CreateEventW(nullptr, FALSE, FALSE, nullptr));
-  if (!sample_event.valid() || !silence_event.valid() || !reopen_event.valid()) {
-    return fail("events could not be made", HRESULT_FROM_WIN32(GetLastError()));
-  }
-  ComPtr<IMMDeviceEnumerator> enumerator;
-  HRESULT result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr,
-                                    CLSCTX_ALL, IID_PPV_ARGS(&enumerator));
-  if (FAILED(result)) {
-    return fail("the outputs could not be listed", result);
-  }
-  DeviceWatch watch(on_outputs_changed, reopen_event.get());
-  scene::LampEar ear(kDefaultAccent);
-  Loopback loopback;
-  Silence silence;
-  std::vector<float> zeros;
   std::vector<std::uint8_t> rgb;
-  const auto on_frame = [&](const scene::HeardLampFrame& frame) {
-    heard(desk, mouth, painter, frame, rgb);
-  };
-  const auto close = [&] {
-    if (loopback.client) {
-      loopback.client->Stop();
-    }
-    if (silence.client) {
-      silence.client->Stop();
-    }
-    loopback = {};
-    silence = {};
-  };
-  const auto open = [&] {
-    close();
-    watch.await_endpoint();
-    ComPtr<IMMDevice> endpoint;
-    if (FAILED(enumerator->GetDefaultAudioEndpoint(eRender, eConsole,
-                                                   &endpoint))) {
-      say("no default output yet; waiting for one");
-      return;
-    }
-    const char* step = "";
-    const HRESULT heard_result = start_loopback(
-        endpoint.Get(), sample_event.get(), kMaxChannels, &loopback, &step);
-    if (FAILED(heard_result)) {
-      std::fprintf(stderr, "FluidEQ-Scenes: %s (0x%08lx)\n", step,
-                   static_cast<unsigned long>(heard_result));
-      loopback = {};
-    }
-    // Keeps a quiet output sending silence, and is the desk's clock when the
-    // output cannot be heard at all (`lampIdleClock.ts`).
-    const HRESULT quiet =
-        start_silence(endpoint.Get(), silence_event.get(), &silence);
-    if (FAILED(quiet)) {
-      silence = {};
-    }
-    if (loopback.client) {
-      ear.listen_at(loopback.rate);
-      watch.endpoint_open();
-    } else if (silence.client) {
-      ear.listen_at(silence.rate);
-      watch.endpoint_open();
-    }
-  };
-  open();
-
-  const auto drain = [&]() -> bool {
-    for (;;) {
-      UINT32 frames = 0;
-      HRESULT got = loopback.capture->GetNextPacketSize(&frames);
-      if (FAILED(got)) {
-        return false;
-      }
-      if (frames == 0) {
-        return true;
-      }
-      BYTE* data = nullptr;
-      DWORD flags = 0;
-      got = loopback.capture->GetBuffer(&data, &frames, &flags, nullptr,
-                                        nullptr);
-      if (FAILED(got)) {
-        return false;
-      }
-      tune_ear(desk, ear);
-      const std::size_t samples =
-          static_cast<std::size_t>(frames) * loopback.channels;
-      const float* samples_at = reinterpret_cast<const float*>(data);
-      if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) != 0) {
-        // A silent packet's buffer holds nothing to read: silence is zeros.
-        zeros.assign(samples, 0.0F);
-        samples_at = zeros.data();
-      }
-      ear.push(samples_at, frames, loopback.channels, on_frame);
-      if (FAILED(loopback.capture->ReleaseBuffer(frames))) {
-        return false;
-      }
-    }
-  };
-
-  DWORD task_index = 0;
-  const HANDLE task = AvSetMmThreadCharacteristicsW(L"Audio", &task_index);
-  int code = -1;
-  while (code < 0) {
-    const HANDLE waits[]{sample_event.get(), silence_event.get(),
-                         reopen_event.get(), desk.stop.get(), parent};
-    const DWORD woke = WaitForMultipleObjects(
-        static_cast<DWORD>(std::size(waits)), waits, FALSE, INFINITE);
-    if (woke == WAIT_OBJECT_0) {
-      if (loopback.capture && !drain()) {
-        say("the output went; opening the default again");
-        open();
-      }
-    } else if (woke == WAIT_OBJECT_0 + 1) {
-      UINT32 written = 0;
-      if (!silence.client || FAILED(fill_silence(&silence, &written))) {
-        open();
-      } else if (!loopback.client && written > 0) {
-        // Nothing to hear: the desk rests on the output's own clock.
-        tune_ear(desk, ear);
-        zeros.assign(static_cast<std::size_t>(written) * 2, 0.0F);
-        ear.push(zeros.data(), written, 2, on_frame);
-      }
-    } else if (woke == WAIT_OBJECT_0 + 2) {
-      open();
-    } else if (woke == WAIT_OBJECT_0 + 3) {
-      code = kStopped;
-    } else if (woke == WAIT_OBJECT_0 + 4) {
-      desk.end(kStopped);
-      code = kStopped;
-    } else {
-      code = fail("waiting failed", HRESULT_FROM_WIN32(GetLastError()));
-      desk.end(code);
-    }
-  }
-  if (task != nullptr) {
-    AvRevertMmThreadCharacteristics(task);
-  }
-  close();
-  watch.endpoint_closed();
-  return code;
+  return scene::hear_default_output(
+      desk.stop.get(), parent, kDefaultAccent,
+      scene::EarHooks{
+          [&desk](scene::LampEar& ear) { tune_ear(desk, ear); },
+          [&](const scene::HeardLampFrame& frame) {
+            heard(desk, mouth, painter, frame, rgb);
+          }});
 }
 
 }  // namespace

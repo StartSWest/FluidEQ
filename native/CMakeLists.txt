@@ -861,6 +861,7 @@ if(WIN32)
   # Windows says rather than on a retry.
   add_executable(fluideq-scene-host
     scene-host/src/main.cpp
+    scene-host/src/output_ear.cpp
     dsp-host/src/platform/windows/device_watch.cpp)
   target_link_libraries(fluideq-scene-host PRIVATE
     fluideq-scene-host-gl feq_strict ole32 avrt advapi32 shell32)
