@@ -4,6 +4,9 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { IScenePack } from './scenePacks';
+import { getWaveTransform } from './waveTransform';
+
 /**
  * Where the wave stands: how tall it is drawn and how far its floor is
  * lifted from the bottom edge.
@@ -70,4 +73,36 @@ export const readSceneWave = (raw: unknown): ISceneWave | undefined => {
     height: tidyWave(clampWave(height, MIN_SCENE_WAVE_HEIGHT, 1)),
     position: tidyWave(clampWave(position, 0, 1)),
   };
+};
+
+/**
+ * The band `pack` is handed on a stage with no gutters — `[left, right,
+ * bottom, top]`, from the bottom — under `wave`, worked out by the same
+ * transform the graph applies to its own wave so the two cannot drift.
+ */
+export const sceneSpectrumRect = (
+  pack: Pick<IScenePack, 'spectrumRange'>,
+  wave: ISceneWave,
+): readonly [number, number, number, number] => {
+  // The plot, or the scene's own band, measured from the top as the graph
+  // measures it: the loudest reading at its top, the quietest at its bottom.
+  // In thousandths: the transform works in pixels and treats a plot less
+  // than one deep as one deep, which would shrink a band 0.39 tall to 0.15.
+  const [bottom, top] = pack.spectrumRange ?? [0, 1];
+  const plotTop = (1 - top) * 1000;
+  const plotBottom = (1 - bottom) * 1000;
+  const { translateY, scaleY } = getWaveTransform(
+    {
+      isFlipped: false,
+      isHalfHeight: false,
+      isFromCentre: false,
+      heightScale: wave.height,
+      verticalPosition: wave.position,
+    },
+    plotBottom,
+    plotTop,
+  );
+  const quietest = (translateY + scaleY * plotBottom) / 1000;
+  const loudest = (translateY + scaleY * plotTop) / 1000;
+  return [0, 1, 1 - quietest, 1 - loudest];
 };
