@@ -122,8 +122,9 @@ struct Api {
 
 /**
  * A context of OpenGL ES 3.0 on ANGLE's Direct3D 11, drawing off screen into
- * a surface of `width` by `height`, current on the calling thread. Built from
- * the two libraries in `angle_dir`; `why` says what failed when it is not.
+ * a surface of `width` by `height` — or, after `draw_into`, into a window —
+ * current on the calling thread. Built from the two libraries in
+ * `angle_dir`; `why` says what failed when it is not.
  */
 class Context {
  public:
@@ -132,6 +133,13 @@ class Context {
   ~Context();
   const Api& gl() const { return api_; }
   bool resize(int width, int height);
+  /**
+   * Draws into `window` (an HWND) from now on instead of off screen, its
+   * frames presented once per refresh of the monitor it is on.
+   */
+  bool draw_into(void* window);
+  /** Shows what was drawn into the window; waits for the monitor's refresh. */
+  bool present();
 
   /** The EGL calls, from this context's own libEGL.dll; opaque outside. */
   struct Egl;

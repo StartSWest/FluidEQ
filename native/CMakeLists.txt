@@ -878,6 +878,12 @@ if(WIN32)
   target_compile_definitions(fluideq-scene-program-test PRIVATE
     FEQ_TEST_ANGLE_DIR=L"${CMAKE_SOURCE_DIR}/../node_modules/electron/dist")
   add_test(NAME scene-program COMMAND fluideq-scene-program-test)
+  add_executable(fluideq-angle-window-test scene-host/tests/angle_window_test.cpp)
+  target_link_libraries(fluideq-angle-window-test
+    PRIVATE fluideq-scene-host-gl feq_strict)
+  target_compile_definitions(fluideq-angle-window-test PRIVATE
+    FEQ_TEST_ANGLE_DIR=L"${CMAKE_SOURCE_DIR}/../node_modules/electron/dist")
+  add_test(NAME angle-window COMMAND fluideq-angle-window-test)
   add_executable(fluideq-flash-guard-test scene-host/tests/flash_guard_test.cpp)
   target_link_libraries(fluideq-flash-guard-test
     PRIVATE fluideq-scene-host-gl feq_strict)

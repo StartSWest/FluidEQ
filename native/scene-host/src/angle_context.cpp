@@ -33,6 +33,7 @@ constexpr EGLint kEglBlueSize = 0x3022;
 constexpr EGLint kEglAlphaSize = 0x3021;
 constexpr EGLint kEglSurfaceType = 0x3033;
 constexpr EGLint kEglPbufferBit = 0x0001;
+constexpr EGLint kEglWindowBit = 0x0004;
 constexpr EGLint kEglRenderableType = 0x3040;
 constexpr EGLint kEglOpenglEs3Bit = 0x0040;
 constexpr EGLint kEglWidth = 0x3057;
@@ -55,6 +56,10 @@ struct Context::Egl {
   EGLBoolean (*BindAPI)(EGLenum) = nullptr;
   EGLSurface (*CreatePbufferSurface)(EGLDisplay, EGLConfig,
                                      const EGLint*) = nullptr;
+  EGLSurface (*CreateWindowSurface)(EGLDisplay, EGLConfig, void*,
+                                    const EGLint*) = nullptr;
+  EGLBoolean (*SwapBuffers)(EGLDisplay, EGLSurface) = nullptr;
+  EGLBoolean (*SwapInterval)(EGLDisplay, EGLint) = nullptr;
   EGLContext (*CreateContext)(EGLDisplay, EGLConfig, EGLContext,
                               const EGLint*) = nullptr;
   EGLBoolean (*MakeCurrent)(EGLDisplay, EGLSurface, EGLSurface,
@@ -79,6 +84,9 @@ bool load_egl(HMODULE m, Context::Egl& e) {
       !take(m, "eglChooseConfig", e.ChooseConfig) ||
       !take(m, "eglBindAPI", e.BindAPI) ||
       !take(m, "eglCreatePbufferSurface", e.CreatePbufferSurface) ||
+      !take(m, "eglCreateWindowSurface", e.CreateWindowSurface) ||
+      !take(m, "eglSwapBuffers", e.SwapBuffers) ||
+      !take(m, "eglSwapInterval", e.SwapInterval) ||
       !take(m, "eglCreateContext", e.CreateContext) ||
       !take(m, "eglMakeCurrent", e.MakeCurrent) ||
       !take(m, "eglDestroySurface", e.DestroySurface) ||
@@ -184,7 +192,8 @@ Context* Context::create(const std::wstring& angle_dir, int width, int height,
   const std::array<EGLint, 13> config_attributes{
       kEglRedSize,   8, kEglGreenSize,      8, kEglBlueSize,
       8,             kEglAlphaSize,      8, kEglSurfaceType,
-      kEglPbufferBit, kEglRenderableType, kEglOpenglEs3Bit, kEglNone};
+      kEglPbufferBit | kEglWindowBit, kEglRenderableType, kEglOpenglEs3Bit,
+      kEglNone};
   EGLint found = 0;
   if (egl.ChooseConfig(context->display_, config_attributes.data(),
                        &context->config_, 1, &found) == 0 ||
@@ -238,6 +247,30 @@ bool Context::resize(int width, int height) {
   }
   surface_ = next;
   return true;
+}
+
+bool Context::draw_into(void* window) {
+  Egl& egl = *egl_;
+  void* next = egl.CreateWindowSurface(display_, config_, window, nullptr);
+  if (next == nullptr ||
+      egl.MakeCurrent(display_, next, next, context_) == 0) {
+    if (next != nullptr) {
+      egl.DestroySurface(display_, next);
+    }
+    return false;
+  }
+  if (surface_ != nullptr) {
+    egl.DestroySurface(display_, surface_);
+  }
+  surface_ = next;
+  // One frame per refresh of the monitor: the present waits for it, which
+  // is what paces a desktop scene — never a clock of its own.
+  egl.SwapInterval(display_, 1);
+  return true;
+}
+
+bool Context::present() {
+  return egl_->SwapBuffers(display_, surface_) != 0;
 }
 
 Context::~Context() {
