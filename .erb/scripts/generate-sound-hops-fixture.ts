@@ -10,11 +10,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * hears in them (`native/scene-core/tests`), and the flash limiter's programs
  * as `sceneFlashGuardGpu.ts` links them (`native/scene-host/src`), and the
  * lamps' atmosphere, time of day and swatch (`lampFixture.ts`), and the
- * lamp host's messages (`lampWireFixture.ts`). Run it after changing any of
+ * lamp host's messages (`lampWireFixture.ts`), and Share Audio's wire
+ * (`shareWireFixture.ts`). Run it after changing any of
  * those; `soundHopsFixture.test.ts`, `sceneEnergyFixture.test.ts`,
- * `flashGuardHeader.test.ts`, `lampFixture.test.ts` and
- * `sceneHostWire.test.ts` fail until the headers on disk are what this
- * writes.
+ * `flashGuardHeader.test.ts`, `lampFixture.test.ts`, `sceneHostWire.test.ts`
+ * and `shareWireFixture.test.ts` fail until the headers on disk are what
+ * this writes.
  */
 import { renameSync, writeFileSync } from 'fs';
 import path from 'path';
@@ -22,6 +23,7 @@ import { sceneEnergyFixture } from '../../src/common/sceneEnergyFixture';
 import { soundHopsFixture } from '../../src/common/soundHopsFixture';
 import { flashGuardHeader } from '../../src/renderer/graph/flashGuardHeader';
 import { lampWireFixture } from '../../src/main/lighting/lampWireFixture';
+import { shareWireFixture } from '../../src/main/shareAudio/shareWireFixture';
 import { lampFixture } from '../../src/renderer/lighting/lampFixture';
 import { lampFrameFixture } from '../../src/renderer/lighting/lampFrameFixture';
 
@@ -40,3 +42,10 @@ write('native/scene-host/src/flash_guard_sources.h', flashGuardHeader());
 write('native/scene-core/tests/lamp_fixture.h', lampFixture());
 write('native/scene-core/tests/lamp_frame_fixture.h', lampFrameFixture());
 write('native/scene-host/tests/lamp_wire_fixture.h', lampWireFixture());
+// Squeezing the audio is asynchronous in Node, so this one is awaited.
+shareWireFixture()
+  .then((header) => write('native/share-core/tests/share_wire_fixture.h', header))
+  .catch((error: unknown) => {
+    console.error('The Share Audio wire fixture could not be written:', error);
+    process.exitCode = 1;
+  });

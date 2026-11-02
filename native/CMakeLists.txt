@@ -6,7 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 cmake_minimum_required(VERSION 3.21)
 
-project(fluideq_native LANGUAGES CXX)
+# C for the libraries carried in `third_party` (Zstandard), and only those.
+project(fluideq_native LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -597,6 +598,69 @@ if(WIN32)
     system-listen/tests/float_mix_format_test.cpp)
   target_link_libraries(fluideq-float-mix-format-test PRIVATE feq_strict)
   add_test(NAME float-mix-format COMMAND fluideq-float-mix-format-test)
+endif()
+
+# Zstandard 1.5.7 (`third_party/zstd`, its README says where from): Share
+# Audio squeezes the sound one computer sends another with it, and the link in
+# C++ has to read and write what every FluidEQ sends. Its own C, untouched, so
+# none of this tree's warnings apply; the assembly decoder is left out on every
+# platform so all of them build the same code.
+add_library(fluideq-zstd STATIC
+  third_party/zstd/lib/common/debug.c
+  third_party/zstd/lib/common/entropy_common.c
+  third_party/zstd/lib/common/error_private.c
+  third_party/zstd/lib/common/fse_decompress.c
+  third_party/zstd/lib/common/pool.c
+  third_party/zstd/lib/common/threading.c
+  third_party/zstd/lib/common/xxhash.c
+  third_party/zstd/lib/common/zstd_common.c
+  third_party/zstd/lib/compress/fse_compress.c
+  third_party/zstd/lib/compress/hist.c
+  third_party/zstd/lib/compress/huf_compress.c
+  third_party/zstd/lib/compress/zstd_compress.c
+  third_party/zstd/lib/compress/zstd_compress_literals.c
+  third_party/zstd/lib/compress/zstd_compress_sequences.c
+  third_party/zstd/lib/compress/zstd_compress_superblock.c
+  third_party/zstd/lib/compress/zstd_double_fast.c
+  third_party/zstd/lib/compress/zstd_fast.c
+  third_party/zstd/lib/compress/zstd_lazy.c
+  third_party/zstd/lib/compress/zstd_ldm.c
+  third_party/zstd/lib/compress/zstd_opt.c
+  third_party/zstd/lib/compress/zstd_preSplit.c
+  third_party/zstd/lib/compress/zstdmt_compress.c
+  third_party/zstd/lib/decompress/huf_decompress.c
+  third_party/zstd/lib/decompress/zstd_ddict.c
+  third_party/zstd/lib/decompress/zstd_decompress.c
+  third_party/zstd/lib/decompress/zstd_decompress_block.c)
+target_include_directories(fluideq-zstd PUBLIC third_party/zstd/lib)
+target_compile_definitions(fluideq-zstd PUBLIC ZSTD_DISABLE_ASM)
+if(MSVC)
+  target_compile_options(fluideq-zstd PRIVATE /W0)
+else()
+  target_compile_options(fluideq-zstd PRIVATE -w)
+endif()
+
+# Share Audio's link in C++ (`share-core`): the wire every FluidEQ that links
+# speaks — JSON as JavaScript reads it, the pairing code, AES-256-GCM packets,
+# the authentication, audio squeezed with Zstandard, discovery — held to the
+# TypeScript's own bytes (`share_wire_test.cpp`). Portable but for its
+# cryptography, which each platform supplies (CNG on Windows).
+add_library(fluideq-share-core STATIC
+  share-core/src/json.cpp
+  share-core/src/crypto_common.cpp
+  share-core/src/signals.cpp
+  share-core/src/lan_protocol.cpp
+  share-core/src/discovery.cpp
+  share-core/src/addresses.cpp)
+target_include_directories(fluideq-share-core PUBLIC share-core/include)
+target_link_libraries(fluideq-share-core PUBLIC fluideq-zstd PRIVATE feq_strict)
+if(WIN32)
+  target_sources(fluideq-share-core PRIVATE share-core/src/crypto_windows.cpp)
+  target_link_libraries(fluideq-share-core PUBLIC bcrypt)
+  add_executable(fluideq-share-wire-test share-core/tests/share_wire_test.cpp)
+  target_link_libraries(fluideq-share-wire-test
+    PRIVATE fluideq-share-core feq_strict)
+  add_test(NAME share-wire COMMAND fluideq-share-wire-test)
 endif()
 
 # The music as the scenes and the lamps hear it, in C++ (`scene-core`): the

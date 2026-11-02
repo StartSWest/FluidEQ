@@ -142,6 +142,11 @@ export const lanAddresses = (): string[] =>
  * the default route only, and each LAN's own broadcast, so a computer on the
  * second network card is asked too.
  */
-export const discoveryTargets = (): string[] => [
-  ...new Set(['255.255.255.255', ...lanInterfaces().map((e) => e.broadcast)]),
+export const discoveryTargets = (
+  interfaces: NodeJS.Dict<os.NetworkInterfaceInfo[]> = os.networkInterfaces(),
+): string[] => [
+  ...new Set([
+    '255.255.255.255',
+    ...lanInterfaces(interfaces).map((e) => e.broadcast),
+  ]),
 ];

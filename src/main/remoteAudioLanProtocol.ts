@@ -226,12 +226,17 @@ const asBuffer = (data: RawData): Buffer => {
 const packetAad = (kind: number): Buffer =>
   Buffer.concat([PACKET_AAD, Buffer.from([kind])]);
 
+/**
+ * `iv` is fresh for every packet on the wire; only the fixture the C++ link
+ * is held to (`shareWireFixture.ts`) gives one, so the same bytes come out
+ * of both.
+ */
 export const sealPacket = (
   kind: number,
   clear: Buffer,
   key: Buffer,
+  iv: Buffer = crypto.randomBytes(12),
 ): Buffer => {
-  const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
   cipher.setAAD(packetAad(kind));
   const ciphertext = Buffer.concat([cipher.update(clear), cipher.final()]);
