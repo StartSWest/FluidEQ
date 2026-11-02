@@ -72,9 +72,30 @@ export interface ITrayRelaunch {
   cwd: string;
 }
 
-/** Main is ending with FluidEQ going on; `parse_leaving` in the tray. */
-export const leavingLine = (relaunch: ITrayRelaunch): string =>
-  `${JSON.stringify({ type: 'leaving', relaunch })}\n`;
+/**
+ * The song job the tray carries on while main is gone (`songHandover.ts`,
+ * `parse_leaving_songs` in the tray).
+ */
+export interface ITraySongsHandover {
+  mediaExe: string;
+  selfId: string;
+  configDir: string;
+  statusDir: string;
+  levelsFile: string;
+  rootName: string;
+  perOutputPrefix: string;
+  mainEndpoint?: string;
+}
+
+/**
+ * Main is ending with FluidEQ going on; `parse_leaving` in the tray. With
+ * the song job, when there is one to hand over.
+ */
+export const leavingLine = (
+  relaunch: ITrayRelaunch,
+  songs?: ITraySongsHandover,
+): string =>
+  `${JSON.stringify({ type: 'leaving', relaunch, ...(songs ? { songs } : {}) })}\n`;
 
 /** A line from the tray; undefined for anything that is not one of its words. */
 export const readTrayHostLine = (line: string): TTrayHostEvent | undefined => {

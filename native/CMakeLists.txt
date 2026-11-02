@@ -766,10 +766,11 @@ if(WIN32)
     tray-host/src/app_launch.cpp
     tray-host/src/song_programme.cpp
     tray-host/src/song_levels.cpp
-    tray-host/src/song_teller.cpp)
+    tray-host/src/song_teller.cpp
+    tray-host/src/song_watch.cpp)
   target_include_directories(fluideq-tray-core PUBLIC tray-host/src)
   target_link_libraries(fluideq-tray-core
-    PUBLIC fluideq-io fluideq-share-core icu bcrypt PRIVATE feq_strict)
+    PUBLIC fluideq-io fluideq-share-core icu bcrypt ole32 PRIVATE feq_strict)
   add_executable(fluideq-tray-host WIN32
     tray-host/src/main.cpp
     tray-host/src/tray_window.cpp

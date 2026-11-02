@@ -82,6 +82,9 @@ void TrayHost::arrived() {
   // tray is its again, and nothing asked of the one before is still due.
   main_here_ = true;
   leaving_.reset();
+  // It takes its own song job back.
+  stop_songs();
+  songs_.reset();
   launching_ = false;
   open_wanted_ = false;
   quit_wanted_ = false;
@@ -106,6 +109,7 @@ void TrayHost::heard(const json::Value& message) {
   }
   if (auto leaving = parse_leaving(message)) {
     leaving_ = std::move(*leaving);
+    songs_ = parse_leaving_songs(message);
   }
 }
 
@@ -143,7 +147,10 @@ void TrayHost::main_gone() {
   }
   main_here_ = false;
   if (leaving_ && !quit_wanted_) {
-    // FluidEQ goes on without it.
+    // FluidEQ goes on without it, the engine still told the song.
+    if (songs_ && parts_.start_songs && !stop_songs_) {
+      stop_songs_ = parts_.start_songs(*songs_);
+    }
     if (open_wanted_) {
       open_wanted_ = false;
       open_fluideq();
@@ -165,8 +172,17 @@ void TrayHost::open_fluideq() {
   });
 }
 
+void TrayHost::stop_songs() {
+  if (stop_songs_) {
+    const auto stop = std::move(stop_songs_);
+    stop_songs_ = nullptr;
+    stop();
+  }
+}
+
 void TrayHost::finish() {
   ending_ = true;
+  stop_songs();
   // First, so a FluidEQ starting this instant starts a tray of its own
   // instead of connecting to this one on its way out.
   parts_.stop_answering();

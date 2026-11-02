@@ -83,6 +83,31 @@ struct Relaunch {
  */
 std::optional<Relaunch> parse_leaving(const share::json::Value& message);
 
+/**
+ * What the tray needs to tell the FluidEQ Engine the playing song while main
+ * is gone (`song_watch.h`), handed over in main's `leaving` message when
+ * the engine is the FluidEQ Engine and installed.
+ */
+struct SongsHandover {
+  /** `FluidEQ-Media.exe`, and the app's own id, its one argument. */
+  std::wstring media_exe;
+  std::wstring self_id;
+  /** Where the programme files are written, and the engine's statuses read. */
+  std::wstring config_dir;
+  std::wstring status_dir;
+  /** Main's `song-levels.json`. */
+  std::wstring levels_file;
+  /** The main output's file, and what starts each output's own. */
+  std::string root_name;
+  std::string per_output_prefix;
+  /** The output Windows played through as main left; empty for none. */
+  std::string main_endpoint;
+};
+
+/** The handover in a `leaving` message; nothing when main sent none. */
+std::optional<SongsHandover> parse_leaving_songs(
+    const share::json::Value& message);
+
 /** `isOutputConfigFileName` for one of the recipe's prefixes. */
 bool is_output_file(std::wstring_view name,
                     const std::vector<std::wstring>& prefixes);

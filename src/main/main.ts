@@ -228,7 +228,13 @@ import registerEngineStateIpc from './ipc/engineState';
 import registerNativeDialogsIpc from './ipc/nativeDialogs';
 import registerWindowsAudioIpc from './ipc/windowsAudio';
 import registerSystemMediaIpc from './ipc/systemMedia';
-import { pauseOtherSystemPlayers, sendSystemMediaCommand } from './systemMedia';
+import {
+  findSystemMediaExecutable,
+  pauseOtherSystemPlayers,
+  sendSystemMediaCommand,
+  SYSTEM_MEDIA_SELF_ID,
+} from './systemMedia';
+import { songHandover } from './nativeTray/songHandover';
 import registerMemberServices from './memberServices';
 import { applyLaunchSwitches, isDebug } from './launchSwitches';
 import { devSandbox, isSealedSandbox, ownAppUserModelId } from './devSandbox';
@@ -298,19 +304,31 @@ const appLeave = createAppLeave({
             return shutdownDspHost();
           })
           .catch(() => undefined),
-      tellTray: () =>
-        nativeTray
-          ? nativeTray.leave(
-              relaunchCommand(
-                {
-                  execPath: process.execPath,
-                  argv: process.argv,
-                  cwd: process.cwd(),
-                },
-                [START_IN_TRAY_ARG, '--updated'],
-              ),
-            )
-          : Promise.resolve(false),
+      tellTray: async () => {
+        if (!nativeTray) {
+          return false;
+        }
+        const tray = nativeTray;
+        // The song the engine is told goes on from the tray.
+        const songs = await songHandover({
+          resolveConfigDir: songConfigDir,
+          mediaExecutable: findSystemMediaExecutable(),
+          selfId: SYSTEM_MEDIA_SELF_ID,
+          userDataDir,
+          mainEndpoint: session.playbackAudioDevice?.guid,
+        }).catch(() => undefined);
+        return tray.leave(
+          relaunchCommand(
+            {
+              execPath: process.execPath,
+              argv: process.argv,
+              cwd: process.cwd(),
+            },
+            [START_IN_TRAY_ARG, '--updated'],
+          ),
+          songs,
+        );
+      },
       exit: () => app.exit(0),
       restart: () => {
         app.relaunch({
@@ -1092,20 +1110,24 @@ function followTheSound(): void {
  * — see `songProgramme.ts`. Fed by the same media watcher as the bar, and
  * by the engine's statuses for the songs it finished learning.
  */
+/**
+ * The FluidEQ Engine's folder for the song programme, here and from the tray
+ * (`songHandover.ts`): the rack write's refusals (`ipc/audioEngine.ts`) — not
+ * this engine, or mid-switch — and installed before the path is asked for,
+ * because asking creates it.
+ */
+const songConfigDir = async (): Promise<string | undefined> =>
+  session.audioEngine === 'fluid' &&
+  !session.engineSwitching &&
+  (await isEngineInstalled('fluid'))
+    ? getConfigPath('fluid')
+    : undefined;
 const songProgramme = createSongProgramme({
   store: createSongLevelStore(userDataDir),
   mainEndpoint: () => session.playbackAudioDevice?.guid,
   fileName: FLUID_ENGINE_PROGRAMME_FILENAME,
   write: scheduleWrite,
-  // The rack write's refusals (`ipc/audioEngine.ts`): not this engine, or
-  // mid-switch. And installed before the path is asked for, because asking
-  // creates the directory.
-  resolveConfigDir: async () =>
-    session.audioEngine === 'fluid' &&
-    !session.engineSwitching &&
-    (await isEngineInstalled('fluid'))
-      ? getConfigPath('fluid')
-      : undefined,
+  resolveConfigDir: songConfigDir,
   watchEngine: () => engineHealth.read(),
 });
 
@@ -1119,10 +1141,15 @@ const singlePlayerSwitch = registerSystemMediaIpc({
 });
 
 // The media watcher names the song for the FluidEQ Engine's leveling and
-// keeps one player at a time; with neither wanted it can go with main.
+// keeps one player at a time. The song goes on from the tray while main is
+// gone (`songHandover.ts`); one player at a time does not yet, and holds it.
+const trayCarriesSongs = () =>
+  nativeTray !== undefined && findSystemMediaExecutable() !== undefined;
 appLeave.holdWhile(
   'job:media',
-  () => session.audioEngine === 'fluid' || singlePlayerSwitch.isSinglePlayer(),
+  () =>
+    singlePlayerSwitch.isSinglePlayer() ||
+    (session.audioEngine === 'fluid' && !trayCarriesSongs()),
 );
 
 // Every switch between the app and the player is written down at once — a

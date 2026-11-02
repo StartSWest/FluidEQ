@@ -14,6 +14,7 @@ import {
   ITrayHostState,
   ITrayQuitRecipe,
   ITrayRelaunch,
+  ITraySongsHandover,
   leavingLine,
   readTrayHostLine,
   recipeLine,
@@ -98,7 +99,10 @@ export interface ITrayHost {
    * true once the tray has been told how to start it again, false when its
    * line ended first.
    */
-  leave: (relaunch: ITrayRelaunch) => Promise<boolean>;
+  leave: (
+    relaunch: ITrayRelaunch,
+    songs?: ITraySongsHandover,
+  ) => Promise<boolean>;
 }
 
 /** The tray's first line, `ready`; false once its output ends without it. */
@@ -147,7 +151,7 @@ const linkTo = (socket: ITrayHostSocket): Promise<ITrayHost | undefined> =>
         closing = true;
         socket.destroy();
       },
-      leave: (relaunch) =>
+      leave: (relaunch, songs) =>
         new Promise<boolean>((resolve) => {
           closing = true;
           if (ended) {
@@ -156,7 +160,7 @@ const linkTo = (socket: ITrayHostSocket): Promise<ITrayHost | undefined> =>
           }
           // Whichever comes first: the line written, or the line gone.
           socket.on('close', () => resolve(false));
-          socket.end(leavingLine(relaunch), (error) => resolve(!error));
+          socket.end(leavingLine(relaunch, songs), (error) => resolve(!error));
         }),
     });
     socket.on('data', (bytes: Buffer) => {

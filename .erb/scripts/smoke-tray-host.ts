@@ -19,6 +19,7 @@ import fs from 'fs';
 import net from 'net';
 import os from 'os';
 import path from 'path';
+import { songIdentity } from '../../src/main/songProgramme';
 import {
   startTrayHost,
   type ITrayHost,
@@ -47,6 +48,26 @@ const engineLine = () =>
     socket.on('error', () => undefined);
     socket.once('connect', () => resolve({ broken }));
     socket.once('error', reject);
+  });
+
+/** `name` in `dir` once it says what `says` wants, told by the folder. */
+const whenFile = (dir: string, name: string, says: (text: string) => boolean) =>
+  new Promise<string>((resolve) => {
+    let watcher: fs.FSWatcher | undefined;
+    const check = () => {
+      let text = '';
+      try {
+        text = fs.readFileSync(path.join(dir, name), 'utf8');
+      } catch {
+        return;
+      }
+      if (says(text)) {
+        watcher?.close();
+        resolve(text);
+      }
+    };
+    watcher = fs.watch(dir, check);
+    check();
   });
 
 const main = async () => {
@@ -111,12 +132,58 @@ const main = async () => {
     removeNames: [],
     removePrefixes: ['fluideq-dsp-'],
   });
-  const told = await third.leave({
-    file: process.execPath,
-    args: ['--version'],
-    cwd: folder,
-  });
+  // The song job goes with it: a stand-in media helper naming one song, the
+  // engine's folder and its statuses in the smoke's own folder.
+  const engineRoot = at('engine');
+  const engineConfig = path.join(engineRoot, 'config');
+  fs.mkdirSync(engineConfig, { recursive: true });
+  const media = at('media.js');
+  const song = { app: 'Spotify.exe', title: 'Smoke Song', artist: 'Band' };
+  fs.writeFileSync(
+    media,
+    `process.stdout.write(${JSON.stringify(JSON.stringify({ ...song, isPlaying: true }))} + '\\n');\nprocess.stdin.resume();\n`,
+  );
+  const id = songIdentity(song);
+  const told = await third.leave(
+    { file: process.execPath, args: ['--version'], cwd: folder },
+    {
+      mediaExe: process.execPath,
+      selfId: media,
+      configDir: engineConfig,
+      statusDir: engineRoot,
+      levelsFile: at('song-levels.json'),
+      rootName: 'fluideq-programme.txt',
+      perOutputPrefix: 'fluideq-programme-',
+      mainEndpoint: `{${GUID.toUpperCase()}}`,
+    },
+  );
   assert.equal(told, true, 'the tray is told main leaves');
+  // With main gone, the tray tells the engine the song main would have.
+  await whenFile(engineConfig, 'fluideq-programme.txt', (text) =>
+    text.includes(`song=${id}`),
+  );
+  // The engine finishes learning it: the tray remembers the level and tells
+  // that output's file, as main would.
+  fs.writeFileSync(
+    path.join(engineRoot, `status-{${GUID.toUpperCase()}}.json`),
+    JSON.stringify({
+      version: 1,
+      endpoint: `{${GUID.toUpperCase()}}`,
+      pid: process.pid,
+      locked: true,
+      processing: true,
+      owner: true,
+      problems: [],
+      lastSong: { id, level: -11.5, peak: -1, seconds: 120 },
+    }),
+  );
+  await whenFile(engineConfig, `fluideq-programme-${GUID}.txt`, (text) =>
+    text.includes('level=-11.50'),
+  );
+  const levels = JSON.parse(fs.readFileSync(at('song-levels.json'), 'utf8')) as {
+    songs: Record<string, { levelLufs: number }>;
+  };
+  assert.equal(levels.songs[`${GUID}:${id}`]?.levelLufs, -11.5);
   // The next FluidEQ finds the same tray, which kept everything as it was.
   const fourth = await started();
   assert.equal(fourth.pid, third.pid, 'the tray main left is still there');
@@ -130,7 +197,7 @@ const main = async () => {
   assert.equal(fs.existsSync(at(`fluideq-dsp-${GUID}.txt`)), false);
   fs.rmSync(folder, { recursive: true, force: true });
   console.log(
-    'tray host: started, shared, held the line, undid the quit, served again, outlived main and came back to it',
+    'tray host: started, shared, held the line, undid the quit, served again, outlived main telling the engine the song, and came back to it',
   );
 };
 

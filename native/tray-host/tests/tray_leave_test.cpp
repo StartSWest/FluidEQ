@@ -125,6 +125,14 @@ constexpr char kLeaving[] =
     R"({"type":"leaving","relaunch":{"file":"C:\\app\\FluidEQ.exe","args":[]}})"
     "\n";
 
+constexpr char kLeavingWithSongs[] =
+    R"({"type":"leaving","relaunch":{"file":"C:\\app\\FluidEQ.exe","args":[]},)"
+    R"("songs":{"mediaExe":"C:\\app\\FluidEQ-Media.exe","selfId":"FluidEQ",)"
+    R"("configDir":"C:\\engine\\config","statusDir":"C:\\engine",)"
+    R"("levelsFile":"C:\\data\\song-levels.json","rootName":"fluideq-programme.txt",)"
+    R"("perOutputPrefix":"fluideq-programme-","mainEndpoint":"{AB}"}})"
+    "\n";
+
 /** A tray whose launches and endings are written down, not done. */
 struct LeaveRun {
   std::vector<std::string> log;
@@ -152,6 +160,10 @@ struct LeaveRun {
           log.push_back("launch " + tray::narrow(relaunch.file));
           launched_ended = std::move(ended);
           return true;
+        },
+        [this](const tray::SongsHandover& handover) -> std::function<void()> {
+          log.push_back("songs start " + tray::narrow(handover.config_dir));
+          return [this] { log.push_back("songs stop"); };
         }};
   }
 
@@ -181,14 +193,15 @@ void once(const std::function<bool()>& ready, std::function<void()> then) {
   });
 }
 
-/** Main connects, says it leaves, and goes; then `after` runs. */
-void main_leaves(LeaveRun& run, std::function<void()> after) {
+/** Main connects, says it leaves (`said`), and goes; then `after` runs. */
+void main_leaves(LeaveRun& run, std::function<void()> after,
+                 const char* said = kLeaving) {
   auto main_end = connect_to(run.link);
-  on_line(main_end, [&run, main_end, after](const std::string& line) {
+  on_line(main_end, [&run, main_end, after, said](const std::string& line) {
     if (line.find("\"hello\"") == std::string::npos) {
       return;
     }
-    main_end->write(bytes(kLeaving), [&run, main_end, after](const auto&) {
+    main_end->write(bytes(said), [&run, main_end, after](const auto&) {
       once([&run] { return run.host->main_is_leaving(); },
            [&run, main_end, after] {
              main_end->destroy();
@@ -405,6 +418,65 @@ void starts_fluideq_as_it_was_started() {
         "a program that is not there is not started");
 }
 
+void carries_the_song_job_while_main_is_gone() {
+  io::Loop loop;
+  io::set_loop(&loop);
+  LeaveRun run;
+  if (!run.start()) {
+    check(false, "the host starts");
+    return;
+  }
+  main_leaves(
+      run,
+      [&run] {
+        run.log.push_back("main gone");
+        // A FluidEQ connects again: the job is its own once more.
+        const auto again = connect_to(run.link);
+        on_line(again, [&run, again](const std::string& line) {
+          if (line.find("\"hello\"") != std::string::npos) {
+            run.log.push_back("hello again");
+            again->destroy();
+            once([&run] { return !run.host->main_is_here(); },
+                 [&run] { run.host->pressed("quit"); });
+          }
+        });
+      },
+      kLeavingWithSongs);
+  loop.run();
+  const std::vector<std::string> expected{
+      "songs start C:\\engine\\config", "main gone", "songs stop",
+      "hello again", "stop answering", "close"};
+  check(run.log == expected,
+        "the song job runs from main's leaving to the next FluidEQ, and once");
+  if (run.log != expected) {
+    print(run.log);
+  }
+}
+
+void reads_the_song_handover() {
+  const auto with = json::parse(std::string_view(kLeavingWithSongs));
+  const auto songs = with ? tray::parse_leaving_songs(*with) : std::nullopt;
+  check(songs && songs->media_exe == L"C:\\app\\FluidEQ-Media.exe" &&
+            songs->self_id == L"FluidEQ" &&
+            songs->config_dir == L"C:\\engine\\config" &&
+            songs->status_dir == L"C:\\engine" &&
+            songs->levels_file == L"C:\\data\\song-levels.json" &&
+            songs->root_name == "fluideq-programme.txt" &&
+            songs->per_output_prefix == "fluideq-programme-" &&
+            songs->main_endpoint == "{AB}",
+        "a leaving hands the song job over whole");
+  const auto without = json::parse(std::string_view(kLeaving).substr(
+      std::string_view(kLeaving).find('\n') + 1));
+  check(without && !tray::parse_leaving_songs(*without),
+        "a leaving with no song job hands none over");
+  const auto partial = json::parse(
+      R"({"type":"leaving","relaunch":{"file":"x"},"songs":{"mediaExe":"m",)"
+      R"("selfId":"s","statusDir":"d","levelsFile":"l","rootName":"r",)"
+      R"("perOutputPrefix":"p"}})");
+  check(partial && !tray::parse_leaving_songs(*partial),
+        "a handover missing the engine's folder is no job at all");
+}
+
 int wmain(int count, wchar_t** values) {
   if (count >= 3 && std::wstring(values[1]) == L"--relaunched") {
     return as_relaunched(count, values);
@@ -416,6 +488,8 @@ int wmain(int count, wchar_t** values) {
   a_quit_while_main_is_leaving_waits_for_it();
   an_open_while_main_is_leaving_opens_once_it_has();
   starts_fluideq_as_it_was_started();
+  reads_the_song_handover();
+  carries_the_song_job_while_main_is_gone();
   if (failures != 0) {
     std::printf("%d failure(s)\n", failures);
     return 1;

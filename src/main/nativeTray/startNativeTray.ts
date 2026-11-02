@@ -9,7 +9,7 @@ import { quitRecipe } from '../engineQuitReset';
 import type { TTraySurfaceFactory } from '../trayView';
 import { nativeTraySurface } from './nativeTray';
 import { findTrayHost, ITrayHostParts, startTrayHost } from './trayHostProcess';
-import { ITrayRelaunch, trayHostKey } from './trayHostWire';
+import { ITrayRelaunch, ITraySongsHandover, trayHostKey } from './trayHostWire';
 
 export interface INativeTray {
   /** For `setUpTray`: the icon and its menu, drawn by FluidEQ-Tray. */
@@ -17,7 +17,10 @@ export interface INativeTray {
   /** The engine's folder changed: what a quit would have to undo. */
   setConfigPath: (configPath: string) => void;
   /** Main ends with FluidEQ going on; the tray starts it with `relaunch`. */
-  leave: (relaunch: ITrayRelaunch) => Promise<boolean>;
+  leave: (
+    relaunch: ITrayRelaunch,
+    songs?: ITraySongsHandover,
+  ) => Promise<boolean>;
 }
 
 export interface INativeTrayOptions {
@@ -77,6 +80,6 @@ export const startNativeTray = async ({
   return {
     surface: nativeTraySurface(host),
     setConfigPath,
-    leave: (relaunch) => host.leave(relaunch),
+    leave: (relaunch, songs) => host.leave(relaunch, songs),
   };
 };

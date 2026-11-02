@@ -85,6 +85,8 @@ import isBase64 from '../common/base64';
  */
 /** This process's own id, as Windows files its sessions (a sandbox's own). */
 const SELF_ID = ownAppUserModelId(APP_USER_MODEL_ID);
+/** The helper's one argument, for the tray that runs it while main is gone. */
+export const SYSTEM_MEDIA_SELF_ID = SELF_ID;
 
 const SELF_SKIP = `
 $selfId = '${SELF_ID}'

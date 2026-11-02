@@ -58,6 +58,8 @@ class SongTeller {
   std::vector<ProgrammeWrite> health(const std::vector<OutputReport>& outputs);
   /** What to write so the engine hears the song again (`reflush`). */
   std::vector<ProgrammeWrite> reflush();
+  /** A write that did not land: said again by the next telling. */
+  void unsent(const std::string& name) { told_.erase(name); }
 
  private:
   std::vector<ProgrammeWrite> tell();

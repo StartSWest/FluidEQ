@@ -224,6 +224,36 @@ std::optional<Relaunch> parse_leaving(const json::Value& message) {
   return out;
 }
 
+std::optional<SongsHandover> parse_leaving_songs(const json::Value& message) {
+  if (!parse_leaving(message)) {
+    return std::nullopt;
+  }
+  const json::Value* songs = message.get("songs");
+  if (songs == nullptr || !songs->is_object()) {
+    return std::nullopt;
+  }
+  SongsHandover out;
+  out.media_exe = wide_at(*songs, "mediaExe");
+  out.self_id = wide_at(*songs, "selfId");
+  out.config_dir = wide_at(*songs, "configDir");
+  out.status_dir = wide_at(*songs, "statusDir");
+  out.levels_file = wide_at(*songs, "levelsFile");
+  const std::string* root = json::string_at(*songs, "rootName");
+  const std::string* prefix = json::string_at(*songs, "perOutputPrefix");
+  const std::string* main = json::string_at(*songs, "mainEndpoint");
+  // Every part names something on disk: one missing is no job at all,
+  // rather than programme files written into the tray's own folder.
+  if (out.media_exe.empty() || out.config_dir.empty() ||
+      out.status_dir.empty() || out.levels_file.empty() || root == nullptr ||
+      root->empty() || prefix == nullptr || prefix->empty()) {
+    return std::nullopt;
+  }
+  out.root_name = *root;
+  out.per_output_prefix = *prefix;
+  out.main_endpoint = main == nullptr ? std::string() : *main;
+  return out;
+}
+
 bool is_output_file(std::wstring_view name,
                     const std::vector<std::wstring>& prefixes) {
   const std::wstring low = lower(name);

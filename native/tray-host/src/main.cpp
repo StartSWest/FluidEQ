@@ -30,6 +30,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <thread>
 
 #include "app_launch.h"
+#include "song_watch.h"
 #include "tray_host.h"
 #include "tray_window.h"
 
@@ -180,6 +181,13 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
             [&launched](const tray::Relaunch& relaunch, std::function<void()> ended) {
               launched = tray::AppLaunch::start(relaunch, std::move(ended));
               return launched != nullptr;
+            },
+            [&loop](const tray::SongsHandover& handover) -> std::function<void()> {
+              auto watch = tray::SongWatch::start(loop, handover);
+              if (!watch) {
+                return {};
+              }
+              return [watch] { watch->stop(); };
             }});
     if (started.index() == 1) {
       serving.set_value(false);

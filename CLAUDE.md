@@ -539,9 +539,18 @@ Everything worth knowing about them is available through commands:
   the lighting helper does, `job:desktop` while any monitor has a background
   set, `job:listening` while the core is needed (`onNeeded`), `job:games`
   while kept game profiles are watched for, and `job:media` — a question
-  asked when main would leave (`holdWhile`) — while the FluidEQ Engine is
-  chosen (its leveling is told the song, `songProgramme.ts`) or one player
-  at a time is on. Following Windows' outputs holds nothing: every output's
+  asked when main would leave (`holdWhile`) — while one player at a time is
+  on, or under the FluidEQ Engine where the tray cannot carry the song.
+  Otherwise main hands the song job to FluidEQ-Tray in its `leaving` line
+  (`songHandover.ts`) and the tray runs it until a FluidEQ connects again
+  (`song_watch.h`): the same `FluidEQ-Media.exe`, songs named as main names
+  them (`song_programme.cpp`: ICU's lowercase, which is V8's, and JavaScript's
+  trim and `toFixed`), the engine told as main tells it (`song_teller.cpp`)
+  and `song-levels.json` kept in main's shape (`song_levels.cpp`). Held to
+  main's own code by `song_programme_test.cpp` and `song_teller_test.cpp`
+  (fixtures written by playing main's functions), and live by
+  `smoke-tray-host.ts`; change how main names, tells or remembers a song and
+  regenerate in the same commit. Following Windows' outputs holds nothing: every output's
   sound is in its own files on both engines, a new output plays neutral as
   it would with main here, and a launch reads the outputs afresh. Each of
   those processes is main's child and ends with it, so a hold goes only when

@@ -68,6 +68,11 @@ struct HostParts {
    * ended. False when it could not be started.
    */
   std::function<bool(const Relaunch&, std::function<void()> ended)> launch;
+  /**
+   * Main's song job, carried on while it is gone (`song_watch.h`): what
+   * stops it, or nothing when it could not start.
+   */
+  std::function<std::function<void()>(const SongsHandover&)> start_songs;
 };
 
 class TrayHost : public std::enable_shared_from_this<TrayHost> {
@@ -96,6 +101,7 @@ class TrayHost : public std::enable_shared_from_this<TrayHost> {
   void heard(const share::json::Value& message);
   void main_gone();
   void open_fluideq();
+  void stop_songs();
   /** What main's quit does, then the tray's own end. */
   void finish();
 
@@ -107,6 +113,9 @@ class TrayHost : public std::enable_shared_from_this<TrayHost> {
   bool main_here_ = false;
   /** Main said it leaves, and how to start it again. */
   std::optional<Relaunch> leaving_;
+  /** The song job main left with, if any, and what stops it once started. */
+  std::optional<SongsHandover> songs_;
+  std::function<void()> stop_songs_;
   /** A FluidEQ started from here that has neither connected nor ended. */
   bool launching_ = false;
   /** Pressed while main was on its way out: done once it has gone. */
