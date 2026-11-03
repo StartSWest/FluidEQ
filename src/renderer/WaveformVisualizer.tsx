@@ -451,10 +451,22 @@ const WaveformVisualizer = () => {
     // shape function so those three styles read real frequency bands.
     let spectrumMagnitudes: number[] | undefined;
     const stylesUsingFftBars = FFT_WAVEFORM_STYLES.has(styleRef.current);
-    if (stylesUsingFftBars && framePoints.length > 0) {
+    const bandCount = 48;
+    const bufferForShape = spectrumMagnitudesRef.current;
+    // Once the bands are up they stay the figure, and a frame with no
+    // spectrum lets them fall rather than handing the style to its
+    // waveform fallback. The spectrum calls a frame silent when no band
+    // passes -95 dB (`LIVE_SILENCE_DB`), the wave only under -70 dBFS
+    // peak (`WAVE_SILENCE_AMPLITUDE`), and quiet speech spreads its energy
+    // thin enough to sit between the two: every other frame swapped 48
+    // spectrum bars for a hundred narrow bars of the raw wave scaled to
+    // fill the pane, which is what read as the bars glitching and changing
+    // width as a voice trailed off.
+    if (
+      stylesUsingFftBars &&
+      (framePoints.length > 0 || bufferForShape.length === bandCount)
+    ) {
       const source = framePoints;
-      const bandCount = 48;
-      const bufferForShape = spectrumMagnitudesRef.current;
       if (bufferForShape.length !== bandCount) {
         bufferForShape.length = bandCount;
         bufferForShape.fill(0);

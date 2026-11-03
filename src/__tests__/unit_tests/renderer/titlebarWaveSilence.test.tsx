@@ -23,6 +23,7 @@ import {
 import {
   WAVEFORM_AMPLITUDE_MAX,
   WAVEFORM_HEIGHT,
+  WAVEFORM_STYLE_KEY,
 } from 'renderer/waveformPaint';
 import WaveformVisualizer from 'renderer/WaveformVisualizer';
 
@@ -34,6 +35,8 @@ const mockAudio = {
   },
   /** What the analyser holds now; read by the drawing on its own clock. */
   capture: [] as number[],
+  /** The spectrum the analyser holds now; none unless a case gives one. */
+  capturePoints: [] as IChartPointData[],
 };
 
 jest.mock('renderer/audio/LiveAudioContext', () => ({
@@ -43,7 +46,7 @@ jest.mock('renderer/audio/LiveAudioContext', () => ({
     isPaused: false,
     // The reader's audio clock runs with the (fake) wall clock here.
     readFrame: () => ({
-      points: [],
+      points: mockAudio.capturePoints,
       graphPoints: [],
       waveform: mockAudio.capture,
       audioMs: performance.now(),
@@ -117,6 +120,7 @@ let realResizeObserver: unknown;
 beforeEach(() => {
   jest.useFakeTimers();
   paths.length = 0;
+  mockAudio.capturePoints = [];
   window.localStorage.clear();
   jest
     .spyOn(HTMLCanvasElement.prototype, 'getContext')
@@ -191,5 +195,62 @@ describe('the titlebar wave', () => {
     view.rerender(<WaveformVisualizer />);
     advance(50);
     expect(drawnHeight()).toBeGreaterThan(WAVEFORM_AMPLITUDE_MAX * 0.9);
+  });
+});
+
+/**
+ * Ivan, 2026-11-03: talking, the bars "glitch when the volume is reaching 0"
+ * and "it changes the band width". Quiet speech sits between the spectrum's
+ * silence (no band over -95 dB) and the wave's (-70 dBFS peak), so frames
+ * alternated between the analyser's 48 bands and the bars style's fallback:
+ * a narrow bar per sample of the raw wave, scaled to fill the pane.
+ */
+describe('the titlebar bars on a voice trailing off', () => {
+  const SPECTRUM: IChartPointData[] = Array.from(
+    { length: 64 },
+    (_value, index) => ({ x: 20 * 1.1 ** index, y: -30 }),
+  );
+
+  /** Paths the bars style drew from the raw wave rather than the spectrum. */
+  const waveBarsSince = (from: number) =>
+    paths.slice(from).filter((data) => data.includes(' Z'));
+
+  const playBars = () => {
+    window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'bars');
+    mockAudio.capture = flatAt(-55);
+    publish(flatAt(-55));
+    return render(<WaveformVisualizer />);
+  };
+
+  it('keeps the spectrum bars when a quiet frame brings no spectrum', () => {
+    let cleared = 0;
+    drawing.clearRect = () => {
+      cleared += 1;
+    };
+    mockAudio.capturePoints = SPECTRUM;
+    const view = playBars();
+    advance(200);
+    const from = paths.length;
+    const clearedBefore = cleared;
+    // Still over the wave's silence, under the spectrum's; a voice keeps
+    // sending blocks, each a little different, so the drawing stays awake.
+    mockAudio.capturePoints = [];
+    for (let step = 0; step < 6; step += 1) {
+      mockAudio.capture = flatAt(-55 - step);
+      publish(flatAt(-55 - step));
+      view.rerender(<WaveformVisualizer />);
+      advance(50);
+    }
+    // Drawn all the while, so "no wave bars" is not a stopped loop.
+    expect(cleared).toBeGreaterThan(clearedBefore + 5);
+    expect(waveBarsSince(from)).toEqual([]);
+    Reflect.deleteProperty(drawing, 'clearRect');
+  });
+
+  it('draws the wave as bars where no spectrum ever came (the control)', () => {
+    playBars();
+    const from = paths.length;
+    advance(200);
+    expect(waveBarsSince(from).length).toBeGreaterThan(0);
   });
 });
