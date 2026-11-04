@@ -10,7 +10,10 @@ import {
   IDynamicsBand,
   IDynamicsSettings,
 } from '../../common/dsp/dynamicsStage';
-import { engineRunsDynamics } from '../../common/engineHealth';
+import {
+  engineRunsDynamics,
+  engineReportsDynamics,
+} from '../../common/engineHealth';
 import { TranslationKey } from '../../common/i18n/en';
 import { requestEngineUpdate } from '../utils/engineUpdateRequest';
 import { useTranslation } from '../utils/I18nContext';
@@ -48,6 +51,10 @@ const DspDynamicsCard = ({
   const isHeard =
     status?.engine !== 'fluid' || engineRunsDynamics(status.fluid?.dllVersion);
   const isOff = !dynamics.enabled;
+  const needsLiveUpdate =
+    isHeard &&
+    status?.engine === 'fluid' &&
+    !engineReportsDynamics(status.fluid?.dllVersion);
   const r = DYNAMICS_RANGES;
 
   /** A sound edit stops a profile being that profile. */
@@ -81,9 +88,15 @@ const DspDynamicsCard = ({
         />
       }
     >
-      {!isHeard ? (
+      {!isHeard || needsLiveUpdate ? (
         <div className="dsp-footsteps-engine">
-          <p>{t('dsp.dynamics.engineOld')}</p>
+          <p>
+            {t(
+              needsLiveUpdate
+                ? 'dsp.dynamics.engineLiveOld'
+                : 'dsp.dynamics.engineOld',
+            )}
+          </p>
           {status?.fluidUpdateReady === true ? (
             <button
               type="button"

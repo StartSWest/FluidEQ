@@ -253,5 +253,17 @@ void feq_compander_block_report(FeqCompander* state,
     return;
   }
   *report = state->report;
+  report->active = state->active ? 1u : 0u;
+  for (int band = 0; band < FEQ_COMPANDER_BANDS; ++band) {
+    // Read the gain already applied by the audio loop. No second detector,
+    // no settings-derived target: the display follows attack and release too.
+    const double wet = std::pow(
+        10.0, (state->gain_db[band] + state->settings.makeup_db) / 20.0);
+    report->gain_db[band] = state->active
+        ? static_cast<float>(20.0 * std::log10(
+              1.0 - state->settings.mix + state->settings.mix * wet))
+        : 0.0f;
+    if (!state->active) report->level_db[band] = -120.0f;
+  }
   start_report(state->report);
 }

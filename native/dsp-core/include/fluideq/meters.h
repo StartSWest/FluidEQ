@@ -55,6 +55,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <stdint.h>
 
 #include "fluideq/deesser.h"
+#include "fluideq/compander.h"
 #include "fluideq/denoise.h"
 #include "fluideq/footsteps.h"
 #include "fluideq/loudness_meter.h"
@@ -93,10 +94,9 @@ extern "C" {
 /**
  * The taps, in the order the audible chain passes them.
  *
- * Three rather than the six `DSP_OUTPUT_INDEX` names, because three are all the
- * renderer ever reads: `DspEqGraph` and `DspPhaseMeter` want `eq`,
- * `DspExciterGraph` wants `exciter`, `DspMasterGraph` wants `master`. Capturing
- * the other three would be work done every block for a picture nobody draws.
+ * Only taps the renderer reads are captured. Dynamics adds its own input and
+ * output: the master spectrum cannot describe a change made before the
+ * Maximizer and Master. Transform work stays on the control thread.
  */
 /*
  * These are bit positions in `stage_mask`, so `denoise` is appended rather
@@ -110,7 +110,9 @@ typedef enum FeqMeterStage {
   FEQ_METER_STAGE_EQ = 1,
   FEQ_METER_STAGE_MASTER = 2,
   FEQ_METER_STAGE_DENOISE = 3,
-  FEQ_METER_STAGE_COUNT = 4
+  FEQ_METER_STAGE_DYNAMICS_IN = 4,
+  FEQ_METER_STAGE_DYNAMICS_OUT = 5,
+  FEQ_METER_STAGE_COUNT = 6
 } FeqMeterStage;
 
 /**
@@ -132,6 +134,10 @@ typedef enum FeqMeterStage {
 #define FEQ_METER_BASS_FORGE_BANDS 8
 
 typedef struct FeqMeters FeqMeters;
+void feq_meters_publish_dynamics(FeqMeters* meters,
+                                const FeqCompanderReport* report);
+void feq_meters_read_dynamics(const FeqMeters* meters,
+                             FeqCompanderReport* report);
 void feq_meters_publish_room(FeqMeters* meters, const FeqRoomReport* report);
 void feq_meters_read_room(const FeqMeters* meters, FeqRoomReport* report);
 

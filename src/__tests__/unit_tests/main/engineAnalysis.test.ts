@@ -16,6 +16,9 @@ import {
   ANALYSIS_EQ_DETAIL_BINS,
   ANALYSIS_EQ_DETAIL_WINDOW,
   ANALYSIS_LEGACY_HEADER_BYTES,
+  ANALYSIS_FOOTSTEPS_HEADER_BYTES,
+  ANALYSIS_GAME_HEADER_BYTES,
+  ANALYSIS_DYNAMICS_TAG,
 } from '../../../common/dsp/analysisWire';
 
 const packet = (
@@ -34,6 +37,69 @@ const packet = (
   );
   return frame;
 };
+describe('Dynamics stage measurements', () => {
+  it.each([[], [-6, -32], [-6, -32, -18, 3], [-6, -32, -18, 3, -22]])(
+    'reads tagged band gains and both stage spectra with tail %p',
+    (...tail) => {
+      const base = packet(tail);
+      const frame = Buffer.concat([
+        base.subarray(0, ANALYSIS_HEADER_BYTES),
+        Buffer.alloc(ANALYSIS_BINS * 8),
+        base.subarray(ANALYSIS_HEADER_BYTES + ANALYSIS_BINS * 4),
+      ]);
+      frame.writeUInt32LE(48, 8);
+      frame.writeUInt32LE(ANALYSIS_DYNAMICS_TAG, 840);
+      frame.writeUInt32LE(1, 844);
+      [-50, -20, -40, 7, -4, 2].forEach((db, index) =>
+        frame.writeFloatLE(db, 848 + index * 4),
+      );
+      for (let bin = 0; bin < ANALYSIS_BINS; bin += 1) {
+        frame.writeFloatLE(-50, ANALYSIS_HEADER_BYTES + bin * 4);
+        frame.writeFloatLE(
+          -43,
+          ANALYSIS_HEADER_BYTES + ANALYSIS_BINS * 4 + bin * 4,
+        );
+      }
+      const read = decodeEngineAnalysis(frame);
+      expect(read?.dynamics).toEqual({
+        active: true,
+        levelDb: [-50, -20, -40],
+        gainDb: [7, -4, 2],
+      });
+      expect(read?.spectra.dynamicsIn?.[100]).toBe(-50);
+      expect(read?.spectra.dynamicsOut?.[100]).toBe(-43);
+      expect(read?.spectra.master).toBeUndefined();
+      expect(read?.normalizer.inputLufs).toBe(tail.length ? -32 : undefined);
+    },
+  );
+  it.each([
+    ANALYSIS_GAME_HEADER_BYTES,
+    ANALYSIS_FOOTSTEPS_HEADER_BYTES,
+    ANALYSIS_DEESSER_HEADER_BYTES,
+    ANALYSIS_LEGACY_HEADER_BYTES,
+  ])(
+    'still reads older header %s with no invented Dynamics report',
+    (header) => {
+      const read = decodeEngineAnalysis(packet([-6, -18, -18, 3, -20], header));
+      expect(read).toBeDefined();
+      expect(read?.dynamics).toBeUndefined();
+      expect(read?.normalizer.outputLufs).toBe(-20);
+    },
+  );
+  it('ignores unknown or malformed Dynamics reports', () => {
+    const frame = packet();
+    expect(decodeEngineAnalysis(frame)?.dynamics).toBeUndefined();
+    frame.writeUInt32LE(ANALYSIS_DYNAMICS_TAG, 840);
+    frame.writeUInt32LE(1, 844);
+    expect(decodeEngineAnalysis(frame)?.dynamics).toBeDefined();
+    frame.writeFloatLE(Number.NaN, 864);
+    expect(decodeEngineAnalysis(frame)?.dynamics).toBeUndefined();
+    frame.writeFloatLE(0, 864);
+    frame.writeUInt32LE(2, 844);
+    expect(decodeEngineAnalysis(frame)?.dynamics).toBeUndefined();
+  });
+});
+
 describe('external engine analysis', () => {
   it('accepts the original spectrum frame and both live extensions', () => {
     expect(decodeEngineAnalysis(packet())).toBeDefined();
@@ -176,7 +242,9 @@ describe('an engine with Footsteps and one without', () => {
   });
 
   it('cannot take the 32 bytes between the two for a live extension', () => {
-    expect(ANALYSIS_HEADER_BYTES - ANALYSIS_DEESSER_HEADER_BYTES).toBe(32);
+    expect(
+      ANALYSIS_FOOTSTEPS_HEADER_BYTES - ANALYSIS_DEESSER_HEADER_BYTES,
+    ).toBe(32);
     // The extensions are 8, 16 or 20 bytes: no two differ by 32.
     [0, 8, 16, 20].forEach((one) =>
       [0, 8, 16, 20].forEach((other) => expect(one - other).not.toBe(32)),

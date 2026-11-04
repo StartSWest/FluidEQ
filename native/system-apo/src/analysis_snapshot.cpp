@@ -99,6 +99,9 @@ std::vector<unsigned char> AnalysisLink::snapshot() {
     feq_wire_footsteps_report(frame, footsteps);
   }
   const size_t spectrum_bytes = sizeof(float) * present * FEQ_METER_BINS;
+  FeqCompanderReport dynamics{};
+  feq_meters_read_dynamics(meters_, &dynamics);
+  feq_wire_dynamics_report(frame, dynamics);
   const size_t scope_bytes = sizeof(float) * frame.pairs * 2;
   const size_t band_bytes = sizeof(float) * frame.bands;
   const size_t detail_bytes = sizeof(float) * detail_bins;

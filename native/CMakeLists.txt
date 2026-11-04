@@ -219,6 +219,10 @@ add_executable(fluideq-compander-test dsp-core/tests/compander_test.cpp)
 target_link_libraries(fluideq-compander-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME compander COMMAND fluideq-compander-test)
 
+add_executable(fluideq-dynamics-meters-test dsp-core/tests/dynamics_meters_test.cpp)
+target_link_libraries(fluideq-dynamics-meters-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME dynamics-meters COMMAND fluideq-dynamics-meters-test)
+
 # The three-band split every multiband stage shares, held to the response of
 # the bands put back together rather than to any one of them.
 add_executable(fluideq-crossover-test dsp-core/tests/crossover_test.cpp)

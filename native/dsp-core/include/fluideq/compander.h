@@ -95,6 +95,9 @@ typedef struct FeqCompanderReport {
   float lift_db[FEQ_COMPANDER_BANDS];
   /** The deepest hold in the block, never positive. */
   float hold_db[FEQ_COMPANDER_BANDS];
+  /** Current applied gain, including make-up and the dry/wet blend. */
+  float gain_db[FEQ_COMPANDER_BANDS];
+  uint32_t active;
 } FeqCompanderReport;
 
 typedef struct FeqCompander FeqCompander;

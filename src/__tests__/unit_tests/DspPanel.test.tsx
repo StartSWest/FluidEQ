@@ -225,7 +225,7 @@ describe('DspPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /Dynamics/i }));
     const card = screen.getByRole('region', { name: /Dynamics/i });
     expect(
-      container.querySelector('.dsp-dynamics-spectrum canvas'),
+      container.querySelector('.dsp-dynamics-graph canvas'),
     ).toBeInTheDocument();
     fireEvent.click(within(card).getByRole('button', { name: 'Preset' }));
     fireEvent.click(screen.getByRole('menuitemradio', { name: /^Punch/i }));

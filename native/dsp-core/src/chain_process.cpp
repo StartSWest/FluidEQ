@@ -209,7 +209,14 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
                                feq_dimension_guard(&chain->dimension));
   // Dynamics after every stage that shapes the sound and before the ceiling,
   // for the Maximizer's own reason: what it lifts too far is still caught.
+  feq_meters_capture(chain->meters, FEQ_METER_STAGE_DYNAMICS_IN, channels, frames);
   feq_compander_process(chain->compander, channels, frames);
+  feq_meters_capture(chain->meters, FEQ_METER_STAGE_DYNAMICS_OUT, channels, frames);
+  if (feq_meters_enabled(chain->meters)) {
+    FeqCompanderReport dynamics{};
+    feq_compander_block_report(chain->compander, &dynamics);
+    feq_meters_publish_dynamics(chain->meters, &dynamics);
+  }
   chain_process_maximizer(chain, channels, frames);
   // What it is holding down, which the spectrum cannot show either: a limiter
   // that is working looks exactly like one that is not until you see the

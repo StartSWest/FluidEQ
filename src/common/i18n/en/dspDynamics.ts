@@ -10,14 +10,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * past the size this project allows.
  */
 export default {
+  'dsp.dynamics.appliedGain': 'Applied gain',
+  'dsp.dynamics.graphHint':
+    'Music before and after Dynamics. The gain curve rises for lift and dips for hold.',
+  'dsp.dynamics.engineLiveOld':
+    'Update the Engine to see live Dynamics movement. The sound is already being processed.',
   'dsp.dynamics.title': 'Dynamics',
   'dsp.dynamics.description':
     'Lifts what is quiet and holds what is loud, in three bands, so a whisper and an explosion meet in the middle. It adds no delay.',
   'dsp.dynamics.engineOld':
     'Dynamics needs the newest FluidEQ Engine. The rest of the rack is playing; this filter starts once the engine is updated.',
   'dsp.dynamics.graphLabel': 'What each band does to its level',
-  'dsp.dynamics.graphIn': 'In',
-  'dsp.dynamics.graphOut': 'Out',
   'dsp.dynamics.band.low': 'Lows',
   'dsp.dynamics.band.lowHint':
     'Under 150 Hz: the boom of a blast, a kick, an engine.',

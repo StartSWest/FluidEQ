@@ -5,14 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 export default {
+  'dsp.dynamics.appliedGain': '적용 게인',
+  'dsp.dynamics.graphHint':
+    'Dynamics 처리 전후의 음악입니다. 게인 곡선은 소리를 키울 때 올라가고 압축할 때 내려갑니다.',
+  'dsp.dynamics.engineLiveOld':
+    'Dynamics의 실시간 움직임을 보려면 엔진을 업데이트하세요. 소리는 이미 처리되고 있습니다.',
   'dsp.dynamics.title': '다이내믹스',
   'dsp.dynamics.description':
     '작은 소리는 올리고 큰 소리는 붙잡습니다. 세 개의 대역에서 작동해 속삭임과 폭발이 중간에서 만납니다. 지연은 더하지 않습니다.',
   'dsp.dynamics.engineOld':
     '다이내믹스에는 최신 FluidEQ Engine이 필요합니다. 랙의 나머지는 재생 중이며, 엔진을 업데이트하면 이 필터가 시작됩니다.',
   'dsp.dynamics.graphLabel': '각 대역이 레벨에 하는 일',
-  'dsp.dynamics.graphIn': '입력',
-  'dsp.dynamics.graphOut': '출력',
   'dsp.dynamics.band.low': '저역',
   'dsp.dynamics.band.lowHint': '150 Hz 미만: 폭발의 울림, 킥, 엔진.',
   'dsp.dynamics.band.mid': '중역',

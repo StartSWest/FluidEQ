@@ -162,6 +162,9 @@ void drain_analysis(HostState& state) {
     feq_wire_footsteps_report(frame, footsteps);
   }
   frame.correlation = correlation;
+  FeqCompanderReport dynamics{};
+  feq_meters_read_dynamics(state.meters, &dynamics);
+  feq_wire_dynamics_report(frame, dynamics);
   frame.peak_left = peaks[0];
   frame.peak_right = peaks[1];
 

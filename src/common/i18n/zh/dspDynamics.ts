@@ -5,14 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 export default {
+  'dsp.dynamics.appliedGain': '实际增益',
+  'dsp.dynamics.graphHint':
+    'Dynamics 处理前后的音乐。增益曲线在提升时上升，在压缩时下降。',
+  'dsp.dynamics.engineLiveOld':
+    '更新引擎以查看 Dynamics 的实时变化。声音处理已经在运行。',
   'dsp.dynamics.title': '动态',
   'dsp.dynamics.description':
     '提升安静的声音、压住响亮的声音，分三个频段工作，让耳语和爆炸在中间相遇。不增加延迟。',
   'dsp.dynamics.engineOld':
     '动态需要最新的 FluidEQ Engine。机架的其余部分正在工作；引擎更新后此滤镜即开始工作。',
   'dsp.dynamics.graphLabel': '每个频段对其电平的作用',
-  'dsp.dynamics.graphIn': '输入',
-  'dsp.dynamics.graphOut': '输出',
   'dsp.dynamics.band.low': '低频',
   'dsp.dynamics.band.lowHint': '150 Hz 以下：爆炸的轰鸣、底鼓、引擎。',
   'dsp.dynamics.band.mid': '中频',

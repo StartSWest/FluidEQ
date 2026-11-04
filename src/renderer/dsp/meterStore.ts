@@ -17,6 +17,7 @@ import { ANALYSIS_BASS_FORGE_BANDS } from '../../common/dsp/analysisWire';
 import { ILibraryNormalizationAnalysis } from '../../common/library/types';
 import { TDspAnalyserStage } from './monitorOutputs';
 import { setDspDeEsserReport } from './deEsserTelemetry';
+import { setDspDynamicsReport } from './dynamicsTelemetry';
 import { setDspFootstepsReport } from './footstepsTelemetry';
 import { setDspRoomReport } from './roomTelemetry';
 import { publishDspSourceAnalysis } from './sourceAnalysis';
@@ -423,6 +424,7 @@ export const clearDspMeterTelemetry = (): void => {
   setDspBassPunchActivity(0, 0, 0);
   setDspDeEsserReport(undefined);
   setDspFootstepsReport(undefined);
+  setDspDynamicsReport(undefined);
   setDspLoudness({
     momentaryLufs: -120,
     shortTermLufs: -120,

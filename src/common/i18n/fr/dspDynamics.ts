@@ -5,14 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 export default {
+  'dsp.dynamics.appliedGain': 'Gain appliqué',
+  'dsp.dynamics.graphHint':
+    'Musique avant et après Dynamics. La courbe monte lors du renforcement et descend lors de la compression.',
+  'dsp.dynamics.engineLiveOld':
+    'Mettez le moteur à jour pour voir Dynamics en direct. Le son est déjà traité.',
   'dsp.dynamics.title': 'Dynamique',
   'dsp.dynamics.description':
     'Remonte ce qui est faible et retient ce qui est fort, sur trois bandes, pour qu’un murmure et une explosion se rejoignent au milieu. Aucun retard ajouté.',
   'dsp.dynamics.engineOld':
     'Dynamique demande le FluidEQ Engine le plus récent. Le reste du rack joue ; ce filtre démarre une fois le moteur mis à jour.',
   'dsp.dynamics.graphLabel': 'Ce que chaque bande fait de son niveau',
-  'dsp.dynamics.graphIn': 'Entrée',
-  'dsp.dynamics.graphOut': 'Sortie',
   'dsp.dynamics.band.low': 'Graves',
   'dsp.dynamics.band.lowHint':
     'Sous 150 Hz : le grondement d’une explosion, une grosse caisse, un moteur.',

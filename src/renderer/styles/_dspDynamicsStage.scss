@@ -33,15 +33,13 @@ $dynamics-high: $neon-yellow;
   }
 }
 
-// The transfer curves, across the card above the bands, never taller than a
-// third of a laptop's window: drawn at a fixed 2:1 and capped in width.
+// One shared frequency plot, with readable band gains above it.
 .dsp-dynamics-graph {
-  display: grid;
   flex: 1 1 100%;
-  justify-items: center;
-  gap: 6px;
+  width: 100%;
+  min-width: 0;
   margin: 0;
-  padding: 10px 12px 8px;
+  padding: 12px 12px 10px;
   border: 1px solid $card-edge;
   border-radius: $radius-s;
   background: $surface-plot;
@@ -51,82 +49,33 @@ $dynamics-high: $neon-yellow;
     opacity: 0.45;
   }
 
-  svg {
-    width: 100%;
-    max-width: 640px;
-    height: auto;
-  }
-}
-
-.dsp-dynamics-grid {
-  stroke: rgba($white, 0.06);
-  vector-effect: non-scaling-stroke;
-}
-
-.dsp-dynamics-unity {
-  stroke: rgba($white, 0.28);
-  stroke-dasharray: 4 4;
-  vector-effect: non-scaling-stroke;
-}
-
-.dsp-dynamics-tick,
-.dsp-dynamics-axis {
-  fill: $text-faint;
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
-}
-
-.dsp-dynamics-curve {
-  fill: none;
-  stroke-width: 2;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-
-  @include band-ink(stroke);
-}
-
-// The heard output gets its own frequency axis; putting it under the transfer
-// curves would confuse hertz with input dB. Both keep the same band colours.
-.dsp-dynamics-spectrum {
-  position: relative;
-  width: 100%;
-  min-width: 0;
-  color: $text-faint;
-  font-size: $text-small;
-
-  > span {
-    position: absolute;
-    top: 0;
-    left: 36px;
-  }
-
-  canvas {
+  > canvas {
     display: block;
     width: 100%;
-    height: 180px;
+    height: 260px;
+  }
+
+  > figcaption {
+    padding: 4px 4px 0;
+    color: $text-faint;
+    font-size: $text-small;
+    line-height: 1.5;
   }
 }
 
-@container dsp-card (min-width: 800px) {
-  .dsp-dynamics-graph {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: center;
-  }
-
-  .dsp-dynamics-spectrum canvas {
-    height: 240px;
-  }
-
-  .dsp-dynamics-key {
-    grid-column: 1 / -1;
-  }
+.dsp-dynamics-graph-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 18px;
+  padding: 0 4px 12px;
 }
 
 .dsp-dynamics-key {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px 18px;
+  gap: 6px 16px;
   color: $text-faint;
   font-size: $text-small;
 }
@@ -137,22 +86,62 @@ $dynamics-high: $neon-yellow;
   gap: 6px;
 
   &::before {
-    width: 14px;
+    width: 16px;
     height: 3px;
     border-radius: 2px;
     content: '';
   }
 
-  &.is-band-0::before {
-    background: $dynamics-low;
+  &.is-input::before {
+    height: 0;
+    border-top: 1px dashed $text-faint;
   }
 
-  &.is-band-1::before {
-    background: var(--dsp-applied);
+  &.is-output::before {
+    height: 8px;
+    background: rgba($dynamics-low, 0.3);
+    border-top: 1px solid $dynamics-low;
   }
 
-  &.is-band-2::before {
-    background: $dynamics-high;
+  &.is-gain::before {
+    background: linear-gradient(
+      90deg,
+      $dynamics-low,
+      var(--dsp-applied),
+      $dynamics-high
+    );
+  }
+}
+
+.dsp-dynamics-readouts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dsp-dynamics-readout {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 5px 9px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  font-size: $text-small;
+  @include band-ink(color);
+
+  > output {
+    display: inline-block;
+    width: 7ch;
+    color: $text-primary;
+    font-family: $font-mono;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@container dsp-card (min-width: 800px) {
+  .dsp-dynamics-graph > canvas {
+    height: 310px;
   }
 }
 

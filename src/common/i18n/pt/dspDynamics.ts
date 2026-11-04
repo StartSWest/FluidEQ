@@ -5,14 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 export default {
+  'dsp.dynamics.appliedGain': 'Ganho aplicado',
+  'dsp.dynamics.graphHint':
+    'Música antes e depois de Dynamics. A curva sobe ao elevar e desce ao comprimir.',
+  'dsp.dynamics.engineLiveOld':
+    'Atualize o motor para ver Dynamics em movimento. O som já está sendo processado.',
   'dsp.dynamics.title': 'Dinâmica',
   'dsp.dynamics.description':
     'Sobe o que é baixo e segura o que é alto, em três bandas, para que um sussurro e uma explosão se encontrem no meio. Não adiciona atraso.',
   'dsp.dynamics.engineOld':
     'Dinâmica precisa do FluidEQ Engine mais recente. O resto do rack está tocando; este filtro começa assim que o motor for atualizado.',
   'dsp.dynamics.graphLabel': 'O que cada banda faz com o seu nível',
-  'dsp.dynamics.graphIn': 'Entrada',
-  'dsp.dynamics.graphOut': 'Saída',
   'dsp.dynamics.band.low': 'Graves',
   'dsp.dynamics.band.lowHint':
     'Abaixo de 150 Hz: o estrondo de uma explosão, um bumbo, um motor.',

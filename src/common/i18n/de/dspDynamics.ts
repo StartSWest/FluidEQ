@@ -5,14 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 export default {
+  'dsp.dynamics.appliedGain': 'Angewandte Verstärkung',
+  'dsp.dynamics.graphHint':
+    'Musik vor und nach Dynamics. Die Kurve steigt beim Anheben und sinkt beim Absenken.',
+  'dsp.dynamics.engineLiveOld':
+    'Aktualisiere die Engine, um Dynamics live zu sehen. Der Klang wird bereits verarbeitet.',
   'dsp.dynamics.title': 'Dynamik',
   'dsp.dynamics.description':
     'Hebt an, was leise ist, und hält zurück, was laut ist, in drei Bändern, sodass ein Flüstern und eine Explosion sich in der Mitte treffen. Es fügt keine Verzögerung hinzu.',
   'dsp.dynamics.engineOld':
     'Dynamik braucht die neueste FluidEQ Engine. Der Rest des Racks spielt; dieser Filter startet, sobald die Engine aktualisiert ist.',
   'dsp.dynamics.graphLabel': 'Was jedes Band mit seinem Pegel macht',
-  'dsp.dynamics.graphIn': 'Ein',
-  'dsp.dynamics.graphOut': 'Aus',
   'dsp.dynamics.band.low': 'Tiefen',
   'dsp.dynamics.band.lowHint':
     'Unter 150 Hz: das Dröhnen einer Explosion, eine Kick, ein Motor.',

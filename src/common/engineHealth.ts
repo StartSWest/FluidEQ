@@ -351,6 +351,11 @@ export const engineRunsFootsteps = (dllVersion: string | undefined): boolean =>
 export const ENGINE_DYNAMICS_SINCE: readonly [number, number] = [1, 27];
 export const engineRunsDynamics = (dllVersion: string | undefined): boolean =>
   engineAtLeast(dllVersion, ENGINE_DYNAMICS_SINCE);
+/** The next engine adds measurements only; the audio algorithm is unchanged. */
+export const ENGINE_DYNAMICS_METERS_SINCE: readonly [number, number] = [1, 28];
+export const engineReportsDynamics = (
+  dllVersion: string | undefined,
+): boolean => engineAtLeast(dllVersion, ENGINE_DYNAMICS_METERS_SINCE);
 
 /** Versioned Room commands and truthful comparison telemetry. */
 export const ENGINE_ROOM_SINCE: readonly [number, number] = [1, 11];

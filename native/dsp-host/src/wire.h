@@ -34,6 +34,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/deesser.h"
 #include "fluideq/denoise.h"
 #include "fluideq/footsteps.h"
+#include "fluideq/compander.h"
 /* For FEQ_BASS_FORGE_BANDS, which sizes the two runs in the analysis frame. */
 #include "fluideq/bass_forge.h"
 
@@ -65,7 +66,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * refuse that host and silence the Library to protect a frame that was never
  * at risk.
  */
-#define FEQ_WIRE_PROTOCOL_VERSION 8
+#define FEQ_WIRE_PROTOCOL_VERSION 9
 
 /**
  * `FEQ_CMD_LOAD_DECK` with the deck left to the host.
@@ -603,6 +604,13 @@ typedef struct FeqWireAnalysisFrame {
    * reading this file. Written 0.
    */
   float footsteps_reserved_tail;
+  /** Retain the 840-byte development layout's stage slots, offsets 816-839. */
+  float reserved_game[6];
+  /** DYN1: measured current gains, not the configured transfer curves. */
+  uint32_t dynamics_tag;
+  uint32_t dynamics_active;
+  float dynamics_level_db[FEQ_COMPANDER_BANDS];
+  float dynamics_gain_db[FEQ_COMPANDER_BANDS];
 } FeqWireAnalysisFrame;
 
 #ifdef __cplusplus
@@ -645,6 +653,15 @@ inline void feq_wire_footsteps_report(FeqWireAnalysisFrame& frame,
   }
   frame.footsteps_calm_db = report.calm_db;
 }
+inline void feq_wire_dynamics_report(FeqWireAnalysisFrame& frame,
+                                     const FeqCompanderReport& report) {
+  frame.dynamics_tag = 0x314e5944u;  // DYN1
+  frame.dynamics_active = report.active;
+  for (int band = 0; band < FEQ_COMPANDER_BANDS; ++band) {
+    frame.dynamics_level_db[band] = report.level_db[band];
+    frame.dynamics_gain_db[band] = report.gain_db[band];
+  }
+}
 inline void feq_wire_room_report(FeqWireAnalysisFrame& frame,
                                  const FeqRoomReport& room) {
   frame.reserved_tail = room.flags;
@@ -670,9 +687,12 @@ static_assert(sizeof(FeqWireStatsFrame) == 24, "stats frame size");
  * rounded to 400 by the explicit `bass_reserved_tail`. Denoise's forty live
  * hiss-gain bands append 160 bytes, for a 560-byte header, the De-esser's
  * fifty-six words 224 more, for 784, and Footsteps' seven and its pad 32
- * more, for 816.
+ * more, for 816. Reserved stage slots retain the 840-byte development layout;
+ * Dynamics appends 32 tagged bytes, for 872.
  */
-static_assert(sizeof(FeqWireAnalysisFrame) == 816, "analysis frame size");
+static_assert(sizeof(FeqWireAnalysisFrame) == 872, "analysis frame size");
+static_assert(offsetof(FeqWireAnalysisFrame, dynamics_tag) == 840,
+              "Dynamics offset");
 static_assert(offsetof(FeqWireAnalysisFrame, deesser_reduction_db) == 560,
               "De-esser offset");
 static_assert(offsetof(FeqWireAnalysisFrame, footsteps_level_db) == 784,

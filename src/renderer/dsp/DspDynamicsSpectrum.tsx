@@ -5,23 +5,36 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import { useTranslation } from '../utils/I18nContext';
-import { readTextInk } from '../utils/theme';
-import { appliedInk } from './dspInks';
+import { readDspDynamicsReport } from './dynamicsTelemetry';
+import { createDynamicsMotion } from './dynamicsResponse';
 import createDynamicsSpectrum from './dynamicsSpectrum';
 import { startGraphLoop } from './graphLoop';
-import { readDspAnalyser, readDspSampleRate } from './store';
+import paintDynamicsGraph from './paintDynamicsGraph';
+import {
+  readDspAnalyser,
+  readDspAnalysisLive,
+  readDspSampleRate,
+} from './store';
 import useCanvasSize from './useCanvasSize';
 
-/** Actual heard music, split by colour at the stage's 150 Hz and 4 kHz corners. */
-export default function DspDynamicsSpectrum() {
-  const { t } = useTranslation();
+interface IProps {
+  enabled: boolean;
+  onReading: (gains: readonly number[] | undefined) => void;
+}
+
+export default function DspDynamicsSpectrum({ enabled, onReading }: IProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const redraw = useRef<(() => void) | undefined>(undefined);
+  const options = useRef({ enabled, onReading });
+  options.current = { enabled, onReading };
   const size = useCanvasSize(canvasRef, () => redraw.current?.());
 
   useEffect(() => {
-    const spectrum = createDynamicsSpectrum();
+    const input = createDynamicsSpectrum();
+    const output = createDynamicsSpectrum();
+    const motion = createDynamicsMotion();
+    let labelledAt = Number.NEGATIVE_INFINITY;
+    let wasMeasured = false;
     const paint = () => {
       const canvas = canvasRef.current;
       const context = canvas?.getContext('2d');
@@ -38,94 +51,54 @@ export default function DspDynamicsSpectrum() {
         canvas.height = Math.round(height * ratio);
       }
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      context.clearRect(0, 0, width, height);
-      const left = 36;
-      const top = 26;
-      const bottom = height - 22;
-      const right = width - 12;
-      const highHz = Math.min(20_000, readDspSampleRate() / 2);
-      const x = (hz: number) =>
-        left + (Math.log(hz / 20) / Math.log(highHz / 20)) * (right - left);
-      const y = (db: number) =>
-        bottom - Math.min(1, Math.max(0, (db + 72) / 72)) * (bottom - top);
-      // The curve, band panels and legend use these same low/high theme tokens.
-      const colors = ['122, 149, 255', appliedInk(), '255, 230, 109'];
-      const edges = [20, 150, 4_000, highHz];
-      const analyser = readDspAnalyser('master');
-      const reading = analyser
-        ? spectrum.read(analyser, readDspSampleRate(), performance.now())
-        : undefined;
-      colors.forEach((ink, band) => {
-        const bandLeft = x(Math.min(highHz, edges[band]));
-        const bandRight = x(Math.min(highHz, edges[band + 1]));
-        context.fillStyle = `rgba(${ink},0.035)`;
-        context.fillRect(bandLeft, top, bandRight - bandLeft, bottom - top);
-        if (!reading) {
-          return;
-        }
-        context.save();
-        context.beginPath();
-        context.rect(bandLeft, top, bandRight - bandLeft, bottom - top);
-        context.clip();
-        context.beginPath();
-        context.moveTo(left, bottom);
-        reading.axis.forEach((hz, index) => {
-          context.lineTo(x(hz), y(reading.levels[index]));
-        });
-        context.lineTo(right, bottom);
-        context.closePath();
-        const fill = context.createLinearGradient(0, top, 0, bottom);
-        fill.addColorStop(0, `rgba(${ink},0.55)`);
-        fill.addColorStop(1, `rgba(${ink},0.04)`);
-        context.fillStyle = fill;
-        context.fill();
-        context.strokeStyle = `rgba(${ink},0.95)`;
-        context.lineWidth = 1.5;
-        context.stroke();
-        context.restore();
-      });
-      context.font =
-        '10px -apple-system, "Segoe UI", Ubuntu, Cantarell, "Noto Sans", "DejaVu Sans", sans-serif';
-      context.fillStyle = readTextInk();
-      context.textAlign = 'right';
-      [-60, -48, -36, -24, -12, 0].forEach((db) => {
-        context.fillText(`${db}`, left - 6, y(db) + 3);
-        context.strokeStyle = 'rgba(255,255,255,0.06)';
-        context.beginPath();
-        context.moveTo(left, y(db));
-        context.lineTo(right, y(db));
-        context.stroke();
-      });
-      [20, 150, 1_000, 4_000, 20_000]
-        .filter((hz) => hz <= highHz)
-        .forEach((hz, index, ticks) => {
-          context.textAlign = 'center';
-          if (index === 0) {
-            context.textAlign = 'left';
-          } else if (index === ticks.length - 1) {
-            context.textAlign = 'right';
-          }
-          context.fillText(
-            hz >= 1000 ? `${hz / 1000}k` : `${hz}`,
-            x(hz),
-            height - 6,
-          );
-        });
+      const now = performance.now();
+      const rate = readDspSampleRate();
+      const live = readDspAnalysisLive();
+      const report = live ? readDspDynamicsReport() : undefined;
+      const before = live ? readDspAnalyser('dynamicsIn') : undefined;
+      const after = live ? readDspAnalyser('dynamicsOut') : undefined;
+      const active = options.current.enabled && report?.active;
+      let gains: readonly number[] | undefined;
+      if (report) {
+        gains = active ? motion.read(report.gainDb, now) : [0, 0, 0];
+      }
+      if (!active) {
+        motion.reset();
+      }
+      if (!!report !== wasMeasured || !active || now - labelledAt >= 250) {
+        options.current.onReading(gains);
+        labelledAt = now;
+        wasMeasured = !!report;
+      }
+      // Older engines still show their real output; never invent band motion.
+      const fallback = !report && live ? readDspAnalyser('master') : undefined;
+      const audibleAfter = after ?? fallback;
+      paintDynamicsGraph(
+        context,
+        width,
+        height,
+        rate,
+        before ? input.read(before, rate, now) : undefined,
+        audibleAfter ? output.read(audibleAfter, rate, now) : undefined,
+        gains,
+      );
     };
-    const loop = startGraphLoop(paint, {
-      onEngineGone: () => spectrum.reset(),
-    });
+    const reset = () => {
+      input.reset();
+      output.reset();
+      motion.reset();
+      options.current.onReading(undefined);
+      labelledAt = Number.NEGATIVE_INFINITY;
+    };
+    const loop = startGraphLoop(paint, { onEngineGone: reset });
     redraw.current = loop.schedule;
     return () => {
       redraw.current = undefined;
       loop.stop();
     };
   }, [size]);
-
-  return (
-    <div className="dsp-dynamics-spectrum">
-      <span>{t('dsp.eq.legend.spectrum')} · dBFS / Hz</span>
-      <canvas ref={canvasRef} aria-hidden="true" />
-    </div>
-  );
+  useEffect(() => {
+    redraw.current?.();
+  }, [enabled]);
+  return <canvas ref={canvasRef} aria-hidden="true" />;
 }

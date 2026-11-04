@@ -61,7 +61,8 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * explicit pad float, for the same alignment reason. The forty actual hiss
  * gain bands append 160 bytes after that complete layout, taking it to 560,
  * the De-esser's fifty-six words 224 more, to 784, and Footsteps' seven and
- * one pad float 32 more, to 816.
+ * one pad float 32 more, to 816. Reserved stage-report slots retain the
+ * 840-byte development layout; Dynamics appends 32 tagged bytes, to 872.
  * Every pre-existing offset is untouched on purpose: this constant, the
  * publisher in `meters.cpp` and the reader in `dspHost/wire.ts` all have to
  * move in one commit, and new fields go after everything already decoded,
@@ -75,7 +76,11 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * believed: three separate readers of it set out to add a check that has been
  * there since the graphs were first fed from the engine.
  */
-export const ANALYSIS_HEADER_BYTES = 816;
+export const ANALYSIS_HEADER_BYTES = 872;
+/** Layouts before Dynamics telemetry; keep installed older engines readable. */
+export const ANALYSIS_GAME_HEADER_BYTES = 840;
+export const ANALYSIS_FOOTSTEPS_HEADER_BYTES = 816;
+export const ANALYSIS_DYNAMICS_TAG = 0x314e5944;
 
 /**
  * The header the engines from the De-esser to before Footsteps write
@@ -116,6 +121,8 @@ export const ANALYSIS_STAGES = [
   // actually runs — would renumber the three taps a running host already
   // publishes and feed each graph its neighbour's spectrum.
   'denoise',
+  'dynamicsIn',
+  'dynamicsOut',
 ] as const;
 
 export type TAnalysisStage = (typeof ANALYSIS_STAGES)[number];
@@ -131,6 +138,8 @@ export interface IHostAnalysisRoom {
 }
 
 export interface IHostAnalysis {
+  /** Only engines publishing the Dynamics stage's own measurements. */
+  dynamics?: IHostAnalysisDynamics;
   /** Absent on older native writers or malformed/unknown report versions. */
   room?: IHostAnalysisRoom;
   sequence: number;
@@ -187,6 +196,13 @@ export interface IHostAnalysis {
    * spectrum is one smoothed window in every 2048 samples.
    */
   eqLive?: IHostAnalysisEqLive;
+}
+
+export interface IHostAnalysisDynamics {
+  active: boolean;
+  levelDb: readonly [number, number, number];
+  /** Current gains after attack/release, make-up and the amplitude dry/wet mix. */
+  gainDb: readonly [number, number, number];
 }
 
 export interface IHostAnalysisEqLive {

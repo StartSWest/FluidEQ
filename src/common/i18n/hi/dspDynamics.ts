@@ -5,14 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 export default {
+  'dsp.dynamics.appliedGain': 'लागू गेन',
+  'dsp.dynamics.graphHint':
+    'Dynamics से पहले और बाद का संगीत। बढ़ाने पर गेन कर्व ऊपर और दबाने पर नीचे जाता है।',
+  'dsp.dynamics.engineLiveOld':
+    'Dynamics की लाइव हलचल देखने के लिए इंजन अपडेट करें। ध्वनि पहले से प्रोसेस हो रही है।',
   'dsp.dynamics.title': 'डायनेमिक्स',
   'dsp.dynamics.description':
     'धीमी आवाज़ को उठाता है और तेज़ आवाज़ को थामता है, तीन बैंड में, ताकि एक फुसफुसाहट और एक धमाका बीच में मिलें। यह कोई देरी नहीं जोड़ता।',
   'dsp.dynamics.engineOld':
     'डायनेमिक्स को सबसे नया FluidEQ Engine चाहिए। रैक का बाकी हिस्सा चल रहा है; इंजन अपडेट होते ही यह फ़िल्टर शुरू होगा।',
   'dsp.dynamics.graphLabel': 'हर बैंड अपने स्तर के साथ क्या करता है',
-  'dsp.dynamics.graphIn': 'इनपुट',
-  'dsp.dynamics.graphOut': 'आउटपुट',
   'dsp.dynamics.band.low': 'लो',
   'dsp.dynamics.band.lowHint': '150 Hz से नीचे: धमाके की गूंज, किक, इंजन।',
   'dsp.dynamics.band.mid': 'मिड',

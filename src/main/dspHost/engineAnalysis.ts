@@ -5,6 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 import {
   ANALYSIS_DEESSER_HEADER_BYTES,
+  ANALYSIS_GAME_HEADER_BYTES,
+  ANALYSIS_FOOTSTEPS_HEADER_BYTES,
   ANALYSIS_HEADER_BYTES,
   ANALYSIS_LEGACY_HEADER_BYTES,
   IHostAnalysis,
@@ -77,6 +79,8 @@ const decodeAt = (
  */
 const decodeEngineAnalysis = (payload: Buffer): IHostAnalysis | undefined =>
   decodeAt(payload, ANALYSIS_HEADER_BYTES) ??
+  decodeAt(payload, ANALYSIS_GAME_HEADER_BYTES) ??
+  decodeAt(payload, ANALYSIS_FOOTSTEPS_HEADER_BYTES) ??
   decodeAt(payload, ANALYSIS_DEESSER_HEADER_BYTES) ??
   decodeAt(payload, ANALYSIS_LEGACY_HEADER_BYTES);
 export default decodeEngineAnalysis;

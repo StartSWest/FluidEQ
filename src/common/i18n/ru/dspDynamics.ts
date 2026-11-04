@@ -5,14 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 export default {
+  'dsp.dynamics.appliedGain': 'Применённое усиление',
+  'dsp.dynamics.graphHint':
+    'Музыка до и после Dynamics. Кривая поднимается при усилении и опускается при сжатии.',
+  'dsp.dynamics.engineLiveOld':
+    'Обновите движок, чтобы видеть работу Dynamics. Звук уже обрабатывается.',
   'dsp.dynamics.title': 'Динамика',
   'dsp.dynamics.description':
     'Поднимает тихое и придерживает громкое в трёх полосах, чтобы шёпот и взрыв встретились посередине. Задержки не добавляет.',
   'dsp.dynamics.engineOld':
     'Для «Динамики» нужен новейший FluidEQ Engine. Остальная часть рэка играет; этот фильтр заработает после обновления движка.',
   'dsp.dynamics.graphLabel': 'Что каждая полоса делает со своим уровнем',
-  'dsp.dynamics.graphIn': 'Вход',
-  'dsp.dynamics.graphOut': 'Выход',
   'dsp.dynamics.band.low': 'Низы',
   'dsp.dynamics.band.lowHint': 'Ниже 150 Гц: гул взрыва, бочка, мотор.',
   'dsp.dynamics.band.mid': 'Середина',

@@ -22,6 +22,8 @@ import {
   ANALYSIS_BINS,
   ANALYSIS_DEESSER_BANDS,
   ANALYSIS_DEESSER_HEADER_BYTES,
+  ANALYSIS_FOOTSTEPS_HEADER_BYTES,
+  ANALYSIS_DYNAMICS_TAG,
   ANALYSIS_EQ_DETAIL_BINS,
   ANALYSIS_EQ_DETAIL_WINDOW,
   ANALYSIS_HEADER_BYTES,
@@ -33,6 +35,7 @@ import type {
   IHostAnalysis,
   IHostAnalysisDeEsser,
   IHostAnalysisFootsteps,
+  IHostAnalysisDynamics,
   TAnalysisStage,
 } from '../../common/dsp/analysisWire';
 import { CHAIN_PARAM_LEAD } from '../../common/dsp/chainWire';
@@ -52,7 +55,7 @@ import {
  * changes, so a stale host is refused at the handshake with a legible reason
  * rather than desynchronising on its first frame of that kind.
  */
-export const HOST_WIRE_PROTOCOL_VERSION = 8;
+export const HOST_WIRE_PROTOCOL_VERSION = 9;
 
 export const HANDSHAKE_BYTES = 104;
 export const COMMAND_BYTES = 32;
@@ -502,6 +505,28 @@ const decodeFootsteps = (view: DataView): IHostAnalysisFootsteps => ({
   calmDb: view.getFloat32(808, true),
 });
 
+/** The tagged current Dynamics readings, appended at offset 840. */
+const decodeDynamics = (view: DataView): IHostAnalysisDynamics | undefined => {
+  if (view.getUint32(840, true) !== ANALYSIS_DYNAMICS_TAG) {
+    return undefined;
+  }
+  const active = view.getUint32(844, true);
+  const levelDb: [number, number, number] = [
+    view.getFloat32(848, true),
+    view.getFloat32(852, true),
+    view.getFloat32(856, true),
+  ];
+  const gainDb: [number, number, number] = [
+    view.getFloat32(860, true),
+    view.getFloat32(864, true),
+    view.getFloat32(868, true),
+  ];
+  if (active > 1 || ![...levelDb, ...gainDb].every(Number.isFinite)) {
+    return undefined;
+  }
+  return { active: active === 1, levelDb, gainDb };
+};
+
 export const decodeTelemetry = (frame: Buffer): IHostTelemetry | undefined => {
   if (frame.length < TELEMETRY_BYTES) {
     return undefined;
@@ -820,8 +845,11 @@ export const decodeAnalysis = (
       : {}),
     // After the 784 bytes that end with the De-esser, from an engine that has
     // Footsteps.
-    ...(headerBytes >= ANALYSIS_HEADER_BYTES
+    ...(headerBytes >= ANALYSIS_FOOTSTEPS_HEADER_BYTES
       ? { footsteps: decodeFootsteps(view) }
+      : {}),
+    ...(headerBytes >= ANALYSIS_HEADER_BYTES
+      ? { dynamics: decodeDynamics(view) }
       : {}),
     // From a writer whose EQ spectrum is the live one; offsets 84 and 88 were
     // two of the retired guard's zeros, which is what every writer before

@@ -5,14 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 export default {
+  'dsp.dynamics.appliedGain': '適用ゲイン',
+  'dsp.dynamics.graphHint':
+    'Dynamics処理前後の音楽です。ゲイン曲線は持ち上げると上がり、抑えると下がります。',
+  'dsp.dynamics.engineLiveOld':
+    'Dynamicsの動きを表示するにはエンジンを更新してください。音声の処理はすでに動作しています。',
   'dsp.dynamics.title': 'ダイナミクス',
   'dsp.dynamics.description':
     '小さな音を持ち上げ、大きな音を抑えます。3つの帯域で働き、ささやきと爆発が真ん中で出会います。遅延は加えません。',
   'dsp.dynamics.engineOld':
     'ダイナミクスには最新の FluidEQ Engine が必要です。ラックの他の部分は鳴っています。エンジンを更新するとこのフィルターが動き始めます。',
   'dsp.dynamics.graphLabel': '各帯域がレベルに何をするか',
-  'dsp.dynamics.graphIn': '入力',
-  'dsp.dynamics.graphOut': '出力',
   'dsp.dynamics.band.low': '低域',
   'dsp.dynamics.band.lowHint': '150 Hz 未満：爆発の轟き、キック、エンジン。',
   'dsp.dynamics.band.mid': '中域',
