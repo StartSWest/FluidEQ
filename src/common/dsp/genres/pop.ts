@@ -28,10 +28,9 @@ import {
  */
 const POP_RACKS: readonly IGenreRack[] = [
   {
-    // Body alone from the Exciter: a finished Pop vocal already has sheen.
-    // The high generator plus the presence lift sounded harsh in listening
-    // on 2026-11-04. Keep the mid return small and leave the treble clean.
-    // Forge stays offered: the sub is in the master.
+    // Retain the small body return from the approved 2026-11-04 voicing.
+    // Removing it and reducing the bass together lost the requested punch.
+    // The high-band generator stays off; de-essing is light and Dynamics off.
     id: 'pop',
     // A common input level, then seven decibels into the final ceiling:
     // approximately -11 LUFS for Pop, with the song's dynamics kept between
@@ -39,6 +38,26 @@ const POP_RACKS: readonly IGenreRack[] = [
     // reduction: Why? lost 2.51 LU before the output correction. Normalizing
     // to -18 first leaves room for the curve and its generated harmonics.
     normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    // A finished mix, not an isolated vocal: narrow spectral cuts in the
+    // centre spare the bass and the sides. iZotope's mastering de-essing
+    // guide recommends mid-only processing, and FabFilter's Pro-DS manual
+    // recommends frequency-selective processing for full mixes:
+    // https://www.izotope.com/community/blog/de-essing-a-master-tools-tips-and-tricks
+    // https://www.fabfilter.com/help/pro-ds/using/advancedcontrols
+    // These dials are FluidEQ's calibrated starting point, not an industry
+    // standard or a translation of another processor's threshold.
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     exciter: exciterProfile(
       [
         { enabled: false },

@@ -28,6 +28,7 @@ interface IDspDeEsserBarProps {
 const GROUP_KEYS: Record<TDeEsserPresetGroup, TranslationKey> = {
   music: 'dsp.deEsserPresetGroup.music',
   speech: 'dsp.deEsserPresetGroup.speech',
+  genre: 'dsp.eqPresetGroup.genre',
 };
 
 export const DE_ESSER_MODE_KEYS: Record<TDeEsserMode, TranslationKey> = {
@@ -62,7 +63,7 @@ const DspDeEsserBar = ({
   const profileHint = (preset: IDeEsserPreset): string =>
     [
       t('dsp.deEsser.upTo', {
-        db: `−${preset.settings.rangeDb.toFixed(0)} dB`,
+        db: `−${Number(preset.settings.rangeDb.toFixed(1)).toString()} dB`,
       }),
       t(DE_ESSER_MODE_KEYS[preset.settings.mode]),
       preset.settings.centreOnly

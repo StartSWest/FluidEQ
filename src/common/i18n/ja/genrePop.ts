@@ -13,6 +13,8 @@ export default {
   'genre.pop.pin.5000': '存在感と艶',
   'genre.pop.pin.5000.why':
     'ボーカルの磨き。耳に痛くなる一歩手前で止めています。',
+  'genre.pop.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.pop.stage.exciter':
     'ボーカルに少しの厚みとあたたかさを加えます。高域バンドのエキサイターはオフにして、録音が持つ艶を生かします。',
   'genre.pop.stage.bassPunch':

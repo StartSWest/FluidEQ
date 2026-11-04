@@ -14,6 +14,8 @@ const genrePop = {
   'genre.pop.pin.5000': 'Presence and sheen',
   'genre.pop.pin.5000.why':
     'The polish on the vocal, kept just short of harsh.',
+  'genre.pop.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.pop.stage.exciter':
     'A small amount of vocal body and warmth. The treble-band exciter stays off, keeping the record’s own sheen.',
   'genre.pop.stage.bassPunch':

@@ -13,6 +13,8 @@ export default {
   'genre.pop.pin.5000': 'Presenza e lucentezza',
   'genre.pop.pin.5000.why':
     'La rifinitura sulla voce, tenuta a un passo dall’aspro.',
+  'genre.pop.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.pop.stage.exciter':
     'Un tocco di corpo e calore sulla voce. L’exciter della banda alta resta spento per mantenere la brillantezza originale del disco.',
   'genre.pop.stage.bassPunch':

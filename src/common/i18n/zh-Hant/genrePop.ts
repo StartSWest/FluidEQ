@@ -12,6 +12,8 @@ const genrePop = {
   'genre.pop.pin.315.why': '去掉後，主唱就可以從混音中脫穎而出。',
   'genre.pop.pin.5000': '存在感和光澤',
   'genre.pop.pin.5000.why': '人聲的潤色，不致於刺耳。',
+  'genre.pop.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
   'genre.pop.stage.exciter':
     '為人聲增添少量厚度與溫暖。高頻段激勵器保持關閉，保留錄音原有的光澤。',
   'genre.pop.stage.bassPunch':

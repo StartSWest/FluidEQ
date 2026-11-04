@@ -145,11 +145,15 @@ export const MAXIMIZER_CATALOGUE: IStageCatalogue<
   maximizerSettingsOf,
 );
 
-/** The De-esser has no genre profiles: no genre rack sets the stage. */
+/** Genres that de-ess carry their own profile, as Pop does. */
 export const DE_ESSER_CATALOGUE: IStageCatalogue<
   IDeEsserPreset,
   IDeEsserSettings
-> = catalogue(DE_ESSER_PRESETS, [], deEsserSettingsOf);
+> = catalogue(
+  DE_ESSER_PRESETS,
+  genreStageProfiles('deEsser'),
+  deEsserSettingsOf,
+);
 
 /** Nor does Footsteps: it is for a game, which no genre rack is. */
 export const FOOTSTEPS_CATALOGUE: IStageCatalogue<

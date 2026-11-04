@@ -13,6 +13,8 @@ export default {
   'genre.pop.pin.5000': 'Presencia y brillo',
   'genre.pop.pin.5000.why':
     'El pulido de la voz, justo antes de volverse áspero.',
+  'genre.pop.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.pop.stage.exciter':
     'Un toque de cuerpo y calidez en la voz. El excitador de la banda aguda queda apagado para conservar el brillo propio de la grabación.',
   'genre.pop.stage.bassPunch':

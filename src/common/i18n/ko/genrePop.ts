@@ -14,6 +14,8 @@ const genrePop = {
   'genre.pop.pin.5000': '존재감과 광택',
   'genre.pop.pin.5000.why':
     '보컬의 광택은 거칠지 않은 수준으로 유지되었습니다.',
+  'genre.pop.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.pop.stage.exciter':
     '보컬에 약간의 두께와 따뜻함을 더합니다. 고역 밴드 익사이터는 꺼서 녹음 본래의 윤기를 유지합니다.',
   'genre.pop.stage.bassPunch':

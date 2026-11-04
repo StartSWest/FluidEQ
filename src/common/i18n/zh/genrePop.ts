@@ -10,6 +10,8 @@ export default {
   'genre.pop.pin.315.why': '削掉它，让主唱清楚地站在混音之上。',
   'genre.pop.pin.5000': '临场感与光泽',
   'genre.pop.pin.5000.why': '人声上的打磨，停在刺耳之前。',
+  'genre.pop.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
   'genre.pop.stage.exciter':
     '给人声少量厚度和温暖。高频段激励器保持关闭，保留录音原有的光泽。',
   'genre.pop.stage.bassPunch':

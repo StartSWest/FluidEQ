@@ -13,6 +13,8 @@ export default {
   'genre.pop.pin.5000': 'Präsenz und Glanz',
   'genre.pop.pin.5000.why':
     'Der Schliff auf der Stimme, knapp vor dem Scharfen gehalten.',
+  'genre.pop.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.pop.stage.exciter':
     'Etwas Körper und Wärme für die Stimme. Der Hochton-Exciter bleibt aus, damit der eigene Glanz der Aufnahme erhalten bleibt.',
   'genre.pop.stage.bassPunch':

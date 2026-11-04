@@ -105,6 +105,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     // -3.5 dB while the upper bands added another 2 dB of edge. A small
     // presence lift and a shallow low-mid cut keep Pop clear without that
     // hollow, over-processed contrast on its finished reference recordings.
+    // Custom playback voicing, not an international Pop EQ standard.
+    // These are the values approved in listening before the De-esser was added.
     id: 'pop',
     labelKey: 'dsp.eqPreset.pop',
     group: 'genre',

@@ -14,6 +14,8 @@ export default {
   'genre.pop.pin.5000': 'Présence et éclat',
   'genre.pop.pin.5000.why':
     'Le poli de la voix, gardé juste en deçà de l’agressif.',
+  'genre.pop.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.pop.stage.exciter':
     'Une touche de corps et de chaleur pour la voix. L’excitateur de la bande aiguë reste désactivé pour garder l’éclat propre au disque.',
   'genre.pop.stage.bassPunch':

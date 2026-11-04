@@ -42,6 +42,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IBassForgePresetSettings } from './bassForgePresets';
 import type { IBassPunchPresetSettings } from './bassPunchPresets';
+import type { IDeEsserPresetSettings } from './deEsserPresets';
 import type { IDimensionPresetSettings } from './dimensionPresets';
 import type { IExciterPresetSettings } from './exciterProfile';
 import type { IMaximizerPresetSettings } from './maximizerPresets';
@@ -49,6 +50,7 @@ import type { IInputNormalizerSettings } from './chain';
 
 /** The stages a genre sets. Its EQ is its curve, played as a layer. */
 export const GENRE_STAGES = [
+  'deEsser',
   'exciter',
   'bassForge',
   'bassPunch',
@@ -59,6 +61,7 @@ export const GENRE_STAGES = [
 export type TGenreStage = (typeof GENRE_STAGES)[number];
 
 export interface IGenreStageSettings {
+  deEsser: IDeEsserPresetSettings;
   exciter: IExciterPresetSettings;
   bassForge: IBassForgePresetSettings;
   bassPunch: IBassPunchPresetSettings;

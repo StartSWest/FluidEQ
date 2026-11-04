@@ -35,6 +35,7 @@ import { withRoomTone } from './roomTone';
 import {
   BASS_FORGE_CATALOGUE,
   BASS_PUNCH_CATALOGUE,
+  DE_ESSER_CATALOGUE,
   DIMENSION_CATALOGUE,
   EXCITER_CATALOGUE,
   IStageCatalogue,
@@ -252,6 +253,12 @@ const materializeGenre = (rack: IGenreRack): IDspSettings =>
     presetId: genreChainId(rack),
     normalizer: rack.normalizer ?? { ...DSP_DEFAULTS.normalizer, mode: 'off' },
     eq: presetSupport(eqProfile(rack.id)),
+    deEsser: genreStage(
+      rack,
+      'deEsser',
+      DE_ESSER_CATALOGUE,
+      DSP_DEFAULTS.deEsser,
+    ),
     exciter: genreStage(
       rack,
       'exciter',
