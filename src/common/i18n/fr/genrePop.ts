@@ -15,7 +15,7 @@ export default {
   'genre.pop.pin.5000.why':
     'Le poli de la voix, gardé juste en deçà de l’agressif.',
   'genre.pop.stage.exciter':
-    'Du corps autour de 1 kHz, un éclat sur la voix et de la chaleur sous les deux.',
+    'Une touche de corps et de chaleur pour la voix. L’excitateur de la bande aiguë reste désactivé pour garder l’éclat propre au disque.',
   'genre.pop.stage.bassPunch':
     'Resserre plutôt que frapper : une queue de grosse caisse plus courte sous la ligne de basse, l’attaque à peine relevée.',
   'genre.pop.stage.dimension':

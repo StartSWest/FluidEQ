@@ -15,7 +15,7 @@ const genrePop = {
   'genre.pop.pin.5000.why':
     'The polish on the vocal, kept just short of harsh.',
   'genre.pop.stage.exciter':
-    'Body around 1 kHz, a sheen on the vocal and warmth under both.',
+    'A small amount of vocal body and warmth. The treble-band exciter stays off, keeping the record’s own sheen.',
   'genre.pop.stage.bassPunch':
     'Tightens rather than hits: a shorter kick tail under the bass line, the attack only just lifted.',
   'genre.pop.stage.dimension':

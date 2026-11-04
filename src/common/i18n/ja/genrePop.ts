@@ -14,7 +14,7 @@ export default {
   'genre.pop.pin.5000.why':
     'ボーカルの磨き。耳に痛くなる一歩手前で止めています。',
   'genre.pop.stage.exciter':
-    '1 kHz付近に厚み、ボーカルに艶、その両方の下にあたたかさ。',
+    'ボーカルに少しの厚みとあたたかさを加えます。高域バンドのエキサイターはオフにして、録音が持つ艶を生かします。',
   'genre.pop.stage.bassPunch':
     '叩くより引き締める。ベースラインの下でキックの余韻を短くし、アタックはほんの少し持ち上げるだけです。',
   'genre.pop.stage.dimension':

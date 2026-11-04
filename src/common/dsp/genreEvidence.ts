@@ -99,13 +99,15 @@ export const genreSources = (id: string): string | undefined =>
  * complete Blinding Lights recording and Apple's 30-second Levitating
  * preview. Only its rack and preset curve, with no headphone correction,
  * other EQ or system Auto normalize. Its input is levelled to -18 LUFS;
- * output measured -10.55 and -10.79 LUFS, both under the -1 dBTP ceiling.
+ * output measured -10.71 and -10.77 LUFS after the gentler tonal pass, both
+ * under the -1 dBTP ceiling. Rendering opens no output device and reads no
+ * live application settings, so a listener's on/off comparison cannot alter it.
  * Its count below is two, not the older catalogue's twenty-five.
  */
 export const GENRE_MEASURED: Readonly<
   Record<string, readonly [number, number]>
 > = {
-  pop: [-3.29, -1],
+  pop: [-3.36, -1],
   indiePop: [0.69, -0.86],
   synthPop: [0.28, -0.88],
   newWave: [0.35, -0.86],

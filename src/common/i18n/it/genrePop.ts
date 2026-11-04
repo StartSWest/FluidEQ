@@ -14,7 +14,7 @@ export default {
   'genre.pop.pin.5000.why':
     'La rifinitura sulla voce, tenuta a un passo dall’aspro.',
   'genre.pop.stage.exciter':
-    'Corpo intorno a 1 kHz, lucentezza sulla voce e calore sotto entrambi.',
+    'Un tocco di corpo e calore sulla voce. L’exciter della banda alta resta spento per mantenere la brillantezza originale del disco.',
   'genre.pop.stage.bassPunch':
     'Stringe invece di colpire: una coda della cassa più corta sotto la linea di basso, l’attacco appena sollevato.',
   'genre.pop.stage.dimension':

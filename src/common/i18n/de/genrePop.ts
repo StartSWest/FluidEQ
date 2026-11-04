@@ -14,7 +14,7 @@ export default {
   'genre.pop.pin.5000.why':
     'Der Schliff auf der Stimme, knapp vor dem Scharfen gehalten.',
   'genre.pop.stage.exciter':
-    'Körper um 1 kHz, Glanz auf der Stimme und Wärme unter beidem.',
+    'Etwas Körper und Wärme für die Stimme. Der Hochton-Exciter bleibt aus, damit der eigene Glanz der Aufnahme erhalten bleibt.',
   'genre.pop.stage.bassPunch':
     'Strafft, statt zu schlagen: ein kürzerer Kick-Ausklang unter der Basslinie, der Anschlag nur leicht angehoben.',
   'genre.pop.stage.dimension':

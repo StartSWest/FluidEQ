@@ -14,7 +14,7 @@ export default {
   'genre.pop.pin.5000.why':
     'O polimento da voz, mantido pouco antes de ficar áspero.',
   'genre.pop.stage.exciter':
-    'Corpo em torno de 1 kHz, brilho na voz e calor sob os dois.',
+    'Um toque de corpo e calor na voz. O excitador da banda aguda fica desligado para preservar o brilho original da gravação.',
   'genre.pop.stage.bassPunch':
     'Firma em vez de bater: uma cauda de bumbo mais curta sob a linha de baixo, o ataque só levemente realçado.',
   'genre.pop.stage.dimension':

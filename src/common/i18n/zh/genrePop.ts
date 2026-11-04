@@ -10,7 +10,8 @@ export default {
   'genre.pop.pin.315.why': '削掉它，让主唱清楚地站在混音之上。',
   'genre.pop.pin.5000': '临场感与光泽',
   'genre.pop.pin.5000.why': '人声上的打磨，停在刺耳之前。',
-  'genre.pop.stage.exciter': '1 kHz 附近加厚度，人声加光泽，两者之下加温暖。',
+  'genre.pop.stage.exciter':
+    '给人声少量厚度和温暖。高频段激励器保持关闭，保留录音原有的光泽。',
   'genre.pop.stage.bassPunch':
     '收紧而不是猛击：贝斯线下的底鼓尾音更短，起音只略微抬起。',
   'genre.pop.stage.dimension':

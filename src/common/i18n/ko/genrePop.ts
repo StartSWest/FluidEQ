@@ -15,7 +15,7 @@ const genrePop = {
   'genre.pop.pin.5000.why':
     '보컬의 광택은 거칠지 않은 수준으로 유지되었습니다.',
   'genre.pop.stage.exciter':
-    '1kHz 부근의 바디, 보컬의 윤기, 둘 다 아래의 따뜻함.',
+    '보컬에 약간의 두께와 따뜻함을 더합니다. 고역 밴드 익사이터는 꺼서 녹음 본래의 윤기를 유지합니다.',
   'genre.pop.stage.bassPunch':
     '타격보다는 조임: 베이스 라인 아래의 킥 테일이 짧아지고 어택이 방금 들어 올려졌습니다.',
   'genre.pop.stage.dimension':

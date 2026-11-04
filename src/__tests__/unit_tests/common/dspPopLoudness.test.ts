@@ -2,7 +2,8 @@
 import { GENRE_RACKS, genreChainId } from '../../../common/dsp/genres';
 import { genreMeasuredSongs } from '../../../common/dsp/genreEvidence';
 import { GENRE_NOTES } from '../../../common/dsp/genreNotes';
-import { dspPresetSettings } from '../../../common/dsp/presets';
+import { DSP_PRESETS, dspPresetSettings } from '../../../common/dsp/presets';
+import { curveGainDb } from '../../../renderer/dsp/genreNotesModel';
 import { normalizerGainDb } from '../../../renderer/dsp/inputNormalizer';
 
 const pop = () => {
@@ -65,6 +66,22 @@ describe('Pop source loudness', () => {
     expect(settings.maximizer.enabled).toBe(true);
     expect(settings.maximizer.ceilingDb).toBe(-1);
     expect(settings.master.enabled).toBe(false);
+  });
+
+  it('keeps vocal body and uses a small presence lift without treble excitation', () => {
+    const curve = DSP_PRESETS.find((preset) => preset.id === 'pop')?.curve;
+    if (!curve) {
+      throw new Error('Pop curve is missing');
+    }
+    expect(curveGainDb(curve, 315)).toBeGreaterThan(-2);
+    expect(curveGainDb(curve, 500)).toBeGreaterThan(-1.5);
+    [3150, 5000, 8000].forEach((frequency) => {
+      expect(curveGainDb(curve, frequency)).toBeGreaterThan(0);
+      expect(curveGainDb(curve, frequency)).toBeLessThan(1);
+    });
+    const settings = pop();
+    expect(settings.exciter.bands[2].enabled).toBe(false);
+    expect(settings.dimension.decorrelation).toBe(0);
   });
 
   it('does not carry Pop normalization into another genre', () => {

@@ -28,13 +28,10 @@ import {
  */
 const POP_RACKS: readonly IGenreRack[] = [
   {
-    // 100-130 BPM, or half time around 90. Its Exciter plays: body around
-    // 1 kHz, sheen on the vocal and Organic's warmth under both. It was
-    // offered and left off until 2026-10-15 for fear of grit on a vocal this
-    // bright; the Exciter's High oversampling keeps what its harmonics fold
-    // back from the top 125 dB down, and Ivan, listening, asked for it in
-    // pop. Like every chain this leaves oversampling off — the listener's
-    // to switch on. Forge stays offered: the sub is in the master.
+    // Body alone from the Exciter: a finished Pop vocal already has sheen.
+    // The high generator plus the presence lift sounded harsh in listening
+    // on 2026-11-04. Keep the mid return small and leave the treble clean.
+    // Forge stays offered: the sub is in the master.
     id: 'pop',
     // A common input level, then seven decibels into the final ceiling:
     // approximately -11 LUFS for Pop, with the song's dynamics kept between
@@ -45,18 +42,19 @@ const POP_RACKS: readonly IGenreRack[] = [
     exciter: exciterProfile(
       [
         { enabled: false },
-        { freqHz: 1_250, mix: 0.19, texture: 0.2 },
-        { freqHz: 7_200, drive: 2.65, mix: 0.32, texture: 0.62 },
+        { freqHz: 1_250, mix: 0.12, texture: 0.2 },
+        { enabled: false },
       ],
-      { enabled: true, amount: 0.13, focusHz: 500, range: 0.28 },
+      { enabled: true, amount: 0.08, focusHz: 500, range: 0.28 },
     ),
     bassForge: forge(90, 1, 0.9, 0.9, 0.8, 0.3),
     // Tightens rather than hits: a shorter tail under the bass line, and an
     // attack only just lifted, because the master's kick is already shaped.
     bassPunch: punch(110, 0.2, -0.35, 0, 60, 0),
     // Mono under 140 Hz as pop masters are made, the centre left alone, and
-    // the air a little wider than the record.
-    dimension: width(0.6, 1, 1.15, 140, 3_200, 0.15),
+    // the air a little wider than the record. No synthetic side from the
+    // centre: the lead stays as focused as it was mixed.
+    dimension: width(0.6, 1, 1.08, 140, 3_200, 0),
     maximizer: ceiling(7, -1, 3, sixteenthMs(116)),
     offered: ['bassForge'],
   },

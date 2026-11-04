@@ -101,14 +101,15 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     setup: { ...PROTECTED, model: 'proportional' },
   },
   {
-    // Vocal-forward over a punchy low end: the 3-8k lift is presence and
-    // sheen, the 250-500 cut is the boxiness that hides a lead voice.
+    // Keep the lead's body: the former overlapping 315/500 Hz cuts reached
+    // -3.5 dB while the upper bands added another 2 dB of edge. A small
+    // presence lift and a shallow low-mid cut keep Pop clear without that
+    // hollow, over-processed contrast on its finished reference recordings.
     id: 'pop',
     labelKey: 'dsp.eqPreset.pop',
     group: 'genre',
     gains: [
-      2.1, 1.2, 1.5, 0.6, -1.3, -2.9, -2.4, -0.9, -0.4, 0.3, 1.3, 1.6, 1.5, 1,
-      0.3,
+      1, 0.8, 1, 0.4, -0.6, -1.3, -0.8, -0.2, 0, 0.2, 0.5, 0.5, 0.4, 0.3, 0.1,
     ],
     // Mono under 140 Hz, as pop masters are made (the research's "side mono
     // <140 Hz"): Dimension's low width alone only narrows the side there, and
