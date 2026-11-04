@@ -240,18 +240,17 @@ const genreStage = <S>(
  * A genre's chain: its curve, played in the main EQ, and every stage its row
  * sets, each at the genre's own profile.
  *
- * The Normalizer is off because the Maximizer ends every one of these chains
- * and holds the ceiling itself. With both on, a record mastered over full
- * scale was limited twice, at the input and again at the end, and measured
- * on twelve records the chain played 0.15-0.25 dB quieter and pumped more for
- * the first pass than it did with only the last (2026-09-23).
+ * A row may level the source before processing. This is constant song gain,
+ * not a second beat-by-beat limiter: Pop first sets -18 LUFS and its own
+ * Maximizer brings that up towards -11, holding the final peaks at -1 dBTP.
+ * Other genres keep their existing input behaviour until individually tuned.
  */
 const materializeGenre = (rack: IGenreRack): IDspSettings =>
   clampDspSettings({
     ...DSP_DEFAULTS,
     enabled: true,
     presetId: genreChainId(rack),
-    normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'off' },
+    normalizer: rack.normalizer ?? { ...DSP_DEFAULTS.normalizer, mode: 'off' },
     eq: presetSupport(eqProfile(rack.id)),
     exciter: genreStage(
       rack,

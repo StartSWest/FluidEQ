@@ -45,6 +45,7 @@ import type { IBassPunchPresetSettings } from './bassPunchPresets';
 import type { IDimensionPresetSettings } from './dimensionPresets';
 import type { IExciterPresetSettings } from './exciterProfile';
 import type { IMaximizerPresetSettings } from './maximizerPresets';
+import type { IInputNormalizerSettings } from './chain';
 
 /** The stages a genre sets. Its EQ is its curve, played as a layer. */
 export const GENRE_STAGES = [
@@ -75,6 +76,12 @@ export interface IGenreRack extends Partial<
   id: string;
   /** The chain's id, where an older one than the genre's is already stored. */
   chainId?: string;
+  /**
+   * A source level before the creative stages, independent of the final
+   * ceiling. Pop uses constant song gain here so its Maximizer sees the same
+   * level on a quiet file and a loud master, without compressing each beat.
+   */
+  normalizer?: IInputNormalizerSettings;
   /**
    * Every genre chain ends in its own ceiling: its curve plays after the
    * rack, and a chain with nothing at its end can be pushed past full scale

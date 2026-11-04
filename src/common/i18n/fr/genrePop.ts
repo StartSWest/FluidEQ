@@ -3,7 +3,7 @@
 export default {
   'genre.pop.hook': 'Le disque le plus fini qui soit',
   'genre.pop.story':
-    'La pop tourne entre 100 et 130 BPM, ou en demi-tempo autour de 90, sur une 808 ou une basse synthé, avec une voix brillante jusqu’à la limite de l’agressif. Les masters arrivent limités à environ −8 LUFS avec des crêtes au-delà de la pleine échelle : tout ce qu’un étage de lecture pourrait ajouter y est déjà. Le préréglage n’ajoute que ce qu’un master ne peut pas avoir.',
+    'La pop contemporaine place une voix principale claire sur une basse précise et un mix brillant et ouvert. Les morceaux sont d’abord amenés à −18 LUFS pour que les masters forts et les enregistrements plus faibles entrent dans le traitement au même niveau. Le Maximizer remonte ensuite le résultat vers −11 LUFS, en retenant les crêtes à −1 dBTP et en préservant les contrastes entre couplets, refrains et frappes de batterie.',
   'genre.pop.pin.50':
     'Le sub et la grosse caisse sur lesquels la pop est bâtie',
   'genre.pop.pin.50.why':
@@ -21,7 +21,7 @@ export default {
   'genre.pop.stage.dimension':
     'Les basses en mono sous 140 Hz, comme se font les masters pop, et l’air un peu plus large que sur le disque.',
   'genre.pop.stage.maximizer':
-    'Un plafond léger qui pousse à peine : le master est déjà limité.',
+    'Ajoute 7 dB après la normalisation d’entrée pour viser environ −11 LUFS, avec un plafond à −1 dBTP. Master reste désactivé : un seul limiteur final préserve l’impact.',
   'genre.pop.off':
     'La Forge de basses est proposée sous le nom de Pop et reste désactivée : le sub est dans le master.',
 

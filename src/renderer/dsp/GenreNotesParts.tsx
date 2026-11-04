@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { GENRE_MEASURED_SONGS } from '../../common/dsp/genreEvidence';
+import { genreMeasuredSongs } from '../../common/dsp/genreEvidence';
 import { useTranslation } from '../utils/I18nContext';
 import {
   IGenreNotes,
@@ -138,7 +138,7 @@ export const GenreFigures = ({ notes, asTiles }: IGenreFiguresProps) => {
   return (
     <section className="dialog-frame__section">
       <h3 className="dialog-frame__section-title">
-        {t('genre.notes.measured', { count: GENRE_MEASURED_SONGS })}
+        {t('genre.notes.measured', { count: genreMeasuredSongs(notes.id) })}
       </h3>
       <div className="genre-tiles">
         {figures.map(([value, label]) => (

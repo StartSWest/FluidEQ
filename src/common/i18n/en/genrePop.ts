@@ -4,7 +4,7 @@
 const genrePop = {
   'genre.pop.hook': 'The most finished record there is',
   'genre.pop.story':
-    'Pop runs at 100 to 130 BPM, or half time around 90, over an 808 or a synth bass, with a vocal bright to just short of harsh. The masters arrive limited to about −8 LUFS with peaks over full scale, so everything a playback stage could add is in them already. The preset adds only what a master cannot have.',
+    'Contemporary pop puts a clear lead vocal over a tight bass and a bright, open mix. Songs first meet at −18 LUFS so a loud master and a quieter recording reach the processing at a common level. The Maximizer then raises the result towards −11 LUFS, catching peaks at −1 dBTP while keeping the contrast between verses, choruses and drum hits.',
   'genre.pop.pin.50': 'The sub and kick pop is built on',
   'genre.pop.pin.50.why':
     'Felt more than heard: the weight a small speaker loses first.',
@@ -21,7 +21,7 @@ const genrePop = {
   'genre.pop.stage.dimension':
     'Bass in mono under 140 Hz, as pop masters are made, and the air a little wider than the record.',
   'genre.pop.stage.maximizer':
-    'A light ceiling that barely drives: the master is limited already.',
+    'Adds 7 dB after input normalization, aiming near −11 LUFS with a −1 dBTP ceiling. Master stays off: one final limiter keeps the punch.',
   'genre.pop.off':
     'Bass Forge is offered under Pop’s name and left off: the sub is in the master.',
 

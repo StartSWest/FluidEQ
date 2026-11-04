@@ -36,6 +36,12 @@ const POP_RACKS: readonly IGenreRack[] = [
     // pop. Like every chain this leaves oversampling off — the listener's
     // to switch on. Forge stays offered: the sub is in the master.
     id: 'pop',
+    // A common input level, then seven decibels into the final ceiling:
+    // approximately -11 LUFS for Pop, with the song's dynamics kept between
+    // its peaks. The former +0.75 dB fed unnormalised masters into continuous
+    // reduction: Why? lost 2.51 LU before the output correction. Normalizing
+    // to -18 first leaves room for the curve and its generated harmonics.
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
     exciter: exciterProfile(
       [
         { enabled: false },
@@ -51,7 +57,7 @@ const POP_RACKS: readonly IGenreRack[] = [
     // Mono under 140 Hz as pop masters are made, the centre left alone, and
     // the air a little wider than the record.
     dimension: width(0.6, 1, 1.15, 140, 3_200, 0.15),
-    maximizer: ceiling(0.75, -1, 3, sixteenthMs(116)),
+    maximizer: ceiling(7, -1, 3, sixteenthMs(116)),
     offered: ['bassForge'],
   },
   {

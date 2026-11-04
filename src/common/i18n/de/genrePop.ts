@@ -3,7 +3,7 @@
 export default {
   'genre.pop.hook': 'Die fertigste Platte, die es gibt',
   'genre.pop.story':
-    'Pop läuft mit 100 bis 130 BPM oder im Halftime um 90, über einer 808 oder einem Synth-Bass, mit einer Stimme, die hell ist bis knapp vor scharf. Die Master kommen auf etwa −8 LUFS limitiert und mit Spitzen über Vollaussteuerung, also steckt alles, was eine Wiedergabestufe hinzufügen könnte, schon darin. Das Preset fügt nur hinzu, was ein Master nicht haben kann.',
+    'Moderner Pop stellt eine klare Hauptstimme über einen straffen Bass und einen hellen, offenen Mix. Zuerst werden die Songs auf −18 LUFS gebracht, damit laute Master und leisere Aufnahmen die Bearbeitung mit einem gemeinsamen Pegel erreichen. Der Maximizer hebt das Ergebnis dann in Richtung −11 LUFS und begrenzt Spitzen auf −1 dBTP, während die Unterschiede zwischen Strophen, Refrains und Schlagzeugimpulsen erhalten bleiben.',
   'genre.pop.pin.50': 'Sub und Kick, auf denen Pop gebaut ist',
   'genre.pop.pin.50.why':
     'Mehr gefühlt als gehört: das Gewicht, das ein kleiner Lautsprecher zuerst verliert.',
@@ -20,7 +20,7 @@ export default {
   'genre.pop.stage.dimension':
     'Bass unter 140 Hz in Mono, wie Pop-Master gemacht werden, und die Luft etwas breiter als auf der Platte.',
   'genre.pop.stage.maximizer':
-    'Eine leichte Obergrenze, die kaum antreibt: Der Master ist schon limitiert.',
+    'Hebt nach der Eingangsnormalisierung um 7 dB an: Ziel etwa −11 LUFS bei einer Grenze von −1 dBTP. Master bleibt aus, damit nur ein finaler Limiter den Druck erhält.',
   'genre.pop.off':
     'Die Bass-Schmiede wird unter dem Namen Pop angeboten und bleibt aus: Der Sub steckt im Master.',
 

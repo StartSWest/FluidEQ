@@ -5,7 +5,7 @@ import type { Dictionary } from '../en';
 const genrePop = {
   'genre.pop.hook': '目前完成最多的紀錄是',
   'genre.pop.story':
-    '流行音樂的執行速度為 100 至 130 BPM，或半時速度約為 90，超過 808 或合成貝斯，聲音明亮到略顯刺耳。母帶到達時限制為大約 −8 LUFS，峰值超過全尺寸，因此播放階段可以新增的所有內容都已經在其中了。預設僅新增母版無法擁有的內容。',
+    '現代流行音樂以紮實的低音和明亮開闊的混音襯托清晰的主唱。歌曲先統一至 −18 LUFS，讓響亮的母帶和較輕的錄音以相同電平進入處理。隨後最大化器將結果提升至約 −11 LUFS，把峰值限制在 −1 dBTP，同時保留主歌、副歌和鼓點之間的強弱對比。',
   'genre.pop.pin.50': '重低音和大鼓流行音樂是建立在',
   'genre.pop.pin.50.why': '感受到的比聽到的要多：小型喇叭首先減輕的重量。',
   'genre.pop.pin.315': '隱藏聲音的四四方方',
@@ -18,7 +18,7 @@ const genrePop = {
   'genre.pop.stage.dimension':
     '單聲道低音低於 140 Hz，就像流行音樂大師的作品一樣，空氣比唱片寬一點。',
   'genre.pop.stage.maximizer':
-    '一個幾乎無法驅動的輕型天花板：主人已經受到限制。',
+    '輸入響度統一後提升 7 dB，以約 −11 LUFS 為目標，峰值上限為 −1 dBTP。Master 保持關閉，只用一個最終限制器保留衝擊力。',
   'genre.pop.off':
     'Bass Forge 以 Pop 的名義提供，並保留下來：低音砲位於母帶中。',
   'genre.indiePop.hook': '比圖表更輕更溫暖',

@@ -3,7 +3,7 @@
 export default {
   'genre.pop.hook': 'Il disco più rifinito che esista',
   'genre.pop.story':
-    'Il pop va da 100 a 130 BPM, o a metà tempo intorno a 90, su una 808 o un basso synth, con una voce brillante fino a un passo dall’aspro. I master arrivano limitati a circa −8 LUFS con picchi oltre il fondo scala, quindi tutto ciò che uno stadio di riproduzione potrebbe aggiungere c’è già. Il preset aggiunge solo ciò che un master non può avere.',
+    'Il pop contemporaneo mette una voce principale chiara sopra un basso preciso e un mix brillante e aperto. I brani vengono prima portati a −18 LUFS, così master forti e registrazioni più basse arrivano al trattamento allo stesso livello. Il Maximizer alza poi il risultato verso −11 LUFS, fermando i picchi a −1 dBTP e mantenendo il contrasto tra strofe, ritornelli e colpi di batteria.',
   'genre.pop.pin.50': 'Il sub e la cassa su cui il pop è costruito',
   'genre.pop.pin.50.why':
     'Più sentito che udito: il peso che un piccolo altoparlante perde per primo.',
@@ -20,7 +20,7 @@ export default {
   'genre.pop.stage.dimension':
     'Bassi in mono sotto i 140 Hz, come si fanno i master pop, e l’aria un po’ più ampia che nel disco.',
   'genre.pop.stage.maximizer':
-    'Un tetto leggero che spinge appena: il master è già limitato.',
+    'Aggiunge 7 dB dopo la normalizzazione in ingresso, puntando a circa −11 LUFS con un tetto di −1 dBTP. Master resta spento: un solo limiter finale mantiene l’impatto.',
   'genre.pop.off':
     'La Fucina dei bassi è offerta con il nome di Pop e resta spenta: il sub è nel master.',
 

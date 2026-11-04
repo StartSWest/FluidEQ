@@ -3,7 +3,7 @@
 export default {
   'genre.pop.hook': 'O disco mais bem-acabado que existe',
   'genre.pop.story':
-    'O pop roda entre 100 e 130 BPM, ou em meio tempo perto de 90, sobre uma 808 ou um baixo de sintetizador, com uma voz brilhante até pouco antes de ficar áspera. Os masters chegam limitados a cerca de −8 LUFS com picos acima da escala cheia, então tudo o que uma etapa de reprodução poderia acrescentar já está neles. O preset acrescenta só o que um master não pode ter.',
+    'O pop contemporâneo coloca uma voz principal clara sobre um baixo firme e uma mistura brilhante e aberta. As músicas são primeiro ajustadas para −18 LUFS, para que masters altos e gravações mais baixas entrem no processamento ao mesmo nível. O Maximizador eleva depois o resultado para perto de −11 LUFS, segurando os picos em −1 dBTP e preservando o contraste entre versos, refrões e ataques da bateria.',
   'genre.pop.pin.50': 'O sub e o bumbo sobre os quais o pop é construído',
   'genre.pop.pin.50.why':
     'Mais sentido do que ouvido: o peso que uma caixa pequena perde primeiro.',
@@ -20,7 +20,7 @@ export default {
   'genre.pop.stage.dimension':
     'Graves em mono abaixo de 140 Hz, como os masters de pop são feitos, e o ar um pouco mais aberto que no disco.',
   'genre.pop.stage.maximizer':
-    'Um teto leve que mal empurra: o master já vem limitado.',
+    'Acrescenta 7 dB após a normalização de entrada, visando cerca de −11 LUFS com teto em −1 dBTP. Master fica desligado: um único limitador final preserva o impacto.',
   'genre.pop.off':
     'A Forja de graves é oferecida com o nome de Pop e fica desligada: o sub está no master.',
 

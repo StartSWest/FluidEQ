@@ -71,6 +71,7 @@ const FAMILY_SOURCES: readonly (readonly [readonly IGenreRack[], string])[] = [
  * pop digest used.
  */
 const GENRE_OWN_SOURCES: Readonly<Record<string, string>> = {
+  pop: 'iZotope · FabFilter · The Weeknd — Blinding Lights · Dua Lipa — Levitating (Apple preview)',
   ballad:
     'Sound On Sound · Mix · Waves · Elowsson & Friberg (KTH) · DR Database',
 };
@@ -93,11 +94,18 @@ export const genreSources = (id: string): string | undefined =>
  * rack, a curve or the Maximizer and measure again — with Auto normalize
  * after both, or every figure comes out about 1.2 LU lower than the ones
  * beside it.
+ *
+ * Pop was remeasured on 2026-11-04 against its two named references: the
+ * complete Blinding Lights recording and Apple's 30-second Levitating
+ * preview. Only its rack and preset curve, with no headphone correction,
+ * other EQ or system Auto normalize. Its input is levelled to -18 LUFS;
+ * output measured -10.55 and -10.79 LUFS, both under the -1 dBTP ceiling.
+ * Its count below is two, not the older catalogue's twenty-five.
  */
 export const GENRE_MEASURED: Readonly<
   Record<string, readonly [number, number]>
 > = {
-  pop: [0.41, -0.88],
+  pop: [-3.29, -1],
   indiePop: [0.69, -0.86],
   synthPop: [0.28, -0.88],
   newWave: [0.35, -0.86],
@@ -184,3 +192,9 @@ export const GENRE_MEASURED: Readonly<
 
 /** How many songs `GENRE_MEASURED` was measured on. */
 export const GENRE_MEASURED_SONGS = 25;
+
+/** A retuned genre states the size of its own measurement, not the old corpus. */
+const UPDATED_MEASURED_SONGS: Readonly<Record<string, number>> = { pop: 2 };
+
+export const genreMeasuredSongs = (id: string): number =>
+  UPDATED_MEASURED_SONGS[id] ?? GENRE_MEASURED_SONGS;
