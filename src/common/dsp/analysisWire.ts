@@ -127,6 +127,16 @@ export const ANALYSIS_STAGES = [
 
 export type TAnalysisStage = (typeof ANALYSIS_STAGES)[number];
 
+/** Every tap, scope, EQ band, detail bin and five-float live Normalizer tail. */
+export const ANALYSIS_MAX_FRAME_BYTES =
+  ANALYSIS_HEADER_BYTES +
+  (ANALYSIS_STAGES.length * ANALYSIS_BINS +
+    ANALYSIS_SCOPE_PAIRS * 2 +
+    ANALYSIS_MAX_BANDS * 2 +
+    ANALYSIS_EQ_DETAIL_BINS +
+    5) *
+    Float32Array.BYTES_PER_ELEMENT;
+
 export interface IHostAnalysisRoom {
   active: boolean;
   original: boolean;
