@@ -16,20 +16,23 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 import log from 'electron-log';
-import {
-  engineRunsFootsteps,
-  engineSupportsRoomUpgrade,
-} from '../../common/engineHealth';
+import { engineSupportsRoomUpgrade } from '../../common/engineHealth';
 import { engineTakesOutputConfig } from '../../common/outputConfigFiles';
 import {
+  hasDynamics,
   hasFootsteps,
   hasPresetTone,
   hasRoomTrailer,
   legacyChainWithoutInactiveRoom,
   isChainWirePayload,
-  withoutFootsteps,
   withoutPresetTone,
 } from '../../common/dsp/chainWire';
+import {
+  ENGINE_READS_NONE,
+  engineReadsOf,
+  IEngineReads,
+  lineForEngine,
+} from '../../common/dsp/engineLine';
 import { engineTakesPresetTone } from '../../common/dsp/presetTone';
 
 /**
@@ -289,16 +292,20 @@ export const registerAudioEngineIpc = ({
     }
   };
   /**
-   * Whether the installed engine runs Footsteps. Answered no where the
-   * version cannot be read, for the curve's reason: a line without the
-   * stage plays the rest of the rack, a line refused plays none of it.
+   * Which of the rack's newer trailers the installed engine reads — Footsteps
+   * and Dynamics (`engineLine.ts`). Answered none where the version
+   * cannot be read, for the curve's reason: a line without a stage plays the
+   * rest of the rack, a line refused plays none of it.
    */
-  const takesFootsteps = async (): Promise<boolean> => {
+  const engineReads = async (): Promise<IEngineReads> => {
     try {
-      return engineRunsFootsteps(await installedEngineVersion());
+      return engineReadsOf(await installedEngineVersion());
     } catch (error) {
-      log.warn('Sending the rack without Footsteps: no engine version', error);
-      return false;
+      log.warn(
+        'Sending the rack without its newer stages: no engine version',
+        error,
+      );
+      return ENGINE_READS_NONE;
     }
   };
   /**
@@ -798,8 +805,8 @@ export const registerAudioEngineIpc = ({
         return;
       }
       let supportedValues = values;
-      if (hasFootsteps(supportedValues) && !(await takesFootsteps())) {
-        supportedValues = withoutFootsteps(supportedValues);
+      if (hasFootsteps(supportedValues) || hasDynamics(supportedValues)) {
+        supportedValues = lineForEngine(supportedValues, await engineReads());
       }
       if (hasPresetTone(supportedValues) && !(await takesPresetTone())) {
         supportedValues = withoutPresetTone(supportedValues);

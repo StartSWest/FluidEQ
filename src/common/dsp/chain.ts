@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import clampDeEsserSettings from './deEsserClamp';
 import clampFootstepsSettings from './footstepsClamp';
+import { clampDynamicsSettings } from './dynamicsStage';
 import { clampCrossfadeShape } from './crossfadeShape';
 
 import { isTrebleDesign } from '../filterDesign';
@@ -663,6 +664,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     },
     deEsser: clampDeEsserSettings(value.deEsser),
     footsteps: clampFootstepsSettings(value.footsteps),
+    dynamics: clampDynamicsSettings(value.dynamics),
     bassPunch: {
       enabled: clampBoolean(bassPunch.enabled, DSP_DEFAULTS.bassPunch.enabled),
       isolate: clampBoolean(bassPunch.isolate, DSP_DEFAULTS.bassPunch.isolate),

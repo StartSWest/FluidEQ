@@ -156,6 +156,11 @@ add_executable(fluideq-engine-footsteps-line-test tests/footsteps_line_test.cpp)
 target_link_libraries(fluideq-engine-footsteps-line-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-footsteps-line COMMAND fluideq-engine-footsteps-line-test)
+# Dynamics' trailer, from lines the TypeScript encoder wrote, likewise.
+add_executable(fluideq-engine-dynamics-line-test tests/dynamics_line_test.cpp)
+target_link_libraries(fluideq-engine-dynamics-line-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-dynamics-line COMMAND fluideq-engine-dynamics-line-test)
 add_executable(fluideq-engine-graph-crossing-test tests/graph_crossing_test.cpp)
 target_link_libraries(fluideq-engine-graph-crossing-test
   PRIVATE fluideq-engine-dsp feq_strict)

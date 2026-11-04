@@ -41,11 +41,17 @@ import {
 import { DE_ESSER_MODES, IDeEsserSettings } from './deEsser';
 import {
   CHAIN_FOOTSTEPS_TAG,
-  CHAIN_FOOTSTEPS_TRAILER,
   dropFootsteps,
   footstepsTrailer,
+  CHAIN_FOOTSTEPS_TRAILER,
   isFootstepsTrailer,
 } from './footstepsWire';
+import {
+  CHAIN_DYNAMICS_TAG,
+  CHAIN_DYNAMICS_TRAILER,
+  dynamicsTrailer,
+  isDynamicsTrailer,
+} from './dynamicsWire';
 import { roomMuteWire } from './roomSpeakers';
 
 /**
@@ -434,6 +440,13 @@ export const encodeChainSettings = (settings: IDspSettings): number[] => {
     }
     values.push(...footstepsTrailer(settings.footsteps));
   }
+  // Dynamics after Footsteps, on the same terms (`dynamicsWire.ts`).
+  if (settings.dynamics.enabled) {
+    if (values.length === gameWord) {
+      values.push(0);
+    }
+    values.push(...dynamicsTrailer(settings.dynamics));
+  }
   return values;
 };
 
@@ -578,6 +591,12 @@ export const isChainWirePayload = (value: unknown): value is number[] => {
     }
     at += CHAIN_FOOTSTEPS_TRAILER;
   }
+  if (value[at] === CHAIN_DYNAMICS_TAG) {
+    if (!isDynamicsTrailer(value, at)) {
+      return false;
+    }
+    at += CHAIN_DYNAMICS_TRAILER;
+  }
   if (value.length > at && !isToneTrailer(value, at)) {
     return false;
   }
@@ -620,11 +639,39 @@ export const withoutFootsteps = (values: number[]): number[] =>
     ? dropFootsteps(values, footstepsSlot(values), gameWordAt(values))
     : values;
 
+/** Where Dynamics' trailer would start: after Footsteps' when there is one. */
+const dynamicsSlot = (values: readonly number[]): number =>
+  footstepsSlot(values) + (hasFootsteps(values) ? CHAIN_FOOTSTEPS_TRAILER : 0);
+
+/** Call only after isChainWirePayload at the IPC boundary. */
+export const hasDynamics = (values: readonly number[]): boolean =>
+  values[dynamicsSlot(values)] === CHAIN_DYNAMICS_TAG;
+
+/**
+ * The line without Dynamics' trailer, the preset's curve after it kept, for
+ * an engine older than the stage (`ENGINE_DYNAMICS_SINCE`), which refuses a
+ * line longer than it knows. The game word goes too where it was written,
+ * off, only for the trailer to stand after.
+ */
+export const withoutDynamics = (values: number[]): number[] => {
+  if (!hasDynamics(values)) {
+    return values;
+  }
+  const at = dynamicsSlot(values);
+  const line = [
+    ...values.slice(0, at),
+    ...values.slice(at + CHAIN_DYNAMICS_TRAILER),
+  ];
+  const gameWord = gameWordAt(line);
+  return line.length === gameWord + 1 && line[gameWord] === 0
+    ? line.slice(0, -1)
+    : line;
+};
+
 /** Where the preset's curve starts on a line, or -1 for none. */
 const toneAt = (values: readonly number[]): number => {
   const at =
-    footstepsSlot(values) +
-    (hasFootsteps(values) ? CHAIN_FOOTSTEPS_TRAILER : 0);
+    dynamicsSlot(values) + (hasDynamics(values) ? CHAIN_DYNAMICS_TRAILER : 0);
   return values.length > at && values[at] === CHAIN_TONE_TAG ? at : -1;
 };
 
@@ -707,12 +754,13 @@ export const gameModeOnWire = (values: readonly number[]): boolean =>
 /**
  * With Room disabled its extended settings are inaudible, so older racks
  * remain usable. An engine that cannot read the Room's trailer is older than
- * the preset's curve and Footsteps on the wire too, so both go with it.
+ * the preset's curve, Footsteps and Dynamics on the wire too, so all three
+ * go with it.
  */
 export const legacyChainWithoutInactiveRoom = (
   values: number[],
 ): number[] | undefined => {
-  const line = withoutFootsteps(withoutPresetTone(values));
+  const line = withoutFootsteps(withoutDynamics(withoutPresetTone(values)));
   if (!hasRoomTrailer(line)) {
     return line;
   }

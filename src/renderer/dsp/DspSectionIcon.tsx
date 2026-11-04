@@ -97,6 +97,12 @@ const GLYPHS: Record<TDspSection, { frame: string; accent: string }> = {
     accent:
       'M4.2 6.2 A6.4 6.4 0 0 0 4.2 13.8 M15.8 6.2 A6.4 6.4 0 0 1 15.8 13.8',
   },
+  // A transfer curve: the diagonal it starts from, bent up at the quiet end
+  // and down at the loud one.
+  dynamics: {
+    frame: 'M3 17 L17 3',
+    accent: 'M3 13 C6 11 8 10.5 10 10 C12 9.5 14 8 17 7',
+  },
   maximizer: {
     frame: 'M3 4.5 H17',
     accent: 'M10 17 V8 M6.6 11.4 L10 8 L13.4 11.4',

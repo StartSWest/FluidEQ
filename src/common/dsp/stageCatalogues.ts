@@ -46,6 +46,12 @@ import {
 } from './footstepsPresets';
 import type { IFootstepsSettings } from './footsteps';
 import {
+  DYNAMICS_PRESETS,
+  IDynamicsPreset,
+  dynamicsSettingsOf,
+} from './dynamicsPresets';
+import type { IDynamicsSettings } from './dynamicsStage';
+import {
   DIMENSION_PRESETS,
   IDimensionPreset,
   dimensionSettingsOf,
@@ -150,3 +156,9 @@ export const FOOTSTEPS_CATALOGUE: IStageCatalogue<
   IFootstepsPreset,
   IFootstepsSettings
 > = catalogue(FOOTSTEPS_PRESETS, [], footstepsSettingsOf);
+
+/** Nor Dynamics: a genre rack keeps its level with the Maximizer. */
+export const DYNAMICS_CATALOGUE: IStageCatalogue<
+  IDynamicsPreset,
+  IDynamicsSettings
+> = catalogue(DYNAMICS_PRESETS, [], dynamicsSettingsOf);

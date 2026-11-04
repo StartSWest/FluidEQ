@@ -14,7 +14,11 @@ import {
 import { clampDspSettings, IDspSettings } from '../common/dsp/chain';
 import { appendPresetTone, encodeChainSettings } from '../common/dsp/chainWire';
 import { presetToneOf } from '../common/dsp/presetTone';
-import { engineRunsFootsteps } from '../common/engineHealth';
+import {
+  ENGINE_READS_NONE,
+  engineReadsOf,
+  IEngineReads,
+} from '../common/dsp/engineLine';
 import { groupPlaysMatched } from '../common/filterDesign';
 import {
   engineTakesOutputConfig,
@@ -40,7 +44,8 @@ export interface IOutputDspFlush {
   dllVersion?: string;
   /**
    * The engine actually installed (`IMainSession.installedEngineVersion`).
-   * Footsteps' trailer is written only where it answers 1.25 or later.
+   * Footsteps needs 1.25; Dynamics needs 1.27. Unknown trailers are omitted
+   * so an older engine can still run every stage it understands.
    */
   engineVersion?: () => Promise<string | undefined>;
   /** Latest audible rack: a song loan, live drag or the Library's rack gate. */
@@ -57,22 +62,26 @@ interface IOutputSound {
 }
 
 /**
- * Whether the installed engine runs Footsteps. Answered no where its version
- * cannot be read, as the rack message's own path answers: an older engine
- * plays the rest of the rack without the trailer, and none of it with one.
+ * Which of the rack's newer trailers the installed engine reads — Footsteps
+ * and Dynamics. Answered none where its version cannot be read, as the
+ * rack message's own path answers: an older engine plays the rest of the
+ * rack without a trailer, and none of it with one.
  *
  * Decided from the engine installed, never from `dllVersion`, the layout
  * prepared: that is 1.19 on every flush, so every output's rack lost
  * Footsteps and Isolate on an engine that runs both (2026-11-01).
  */
-const installedRunsFootsteps = async (
+const installedEngineReads = async (
   engineVersion: IOutputDspFlush['engineVersion'],
-): Promise<boolean> => {
+): Promise<IEngineReads> => {
   try {
-    return engineRunsFootsteps(await engineVersion?.());
+    return engineReadsOf(await engineVersion?.());
   } catch (error) {
-    log.warn('Writing the racks without Footsteps: no engine version', error);
-    return false;
+    log.warn(
+      'Writing the racks without their newer stages: no engine version',
+      error,
+    );
+    return ENGINE_READS_NONE;
   }
 };
 
@@ -168,11 +177,11 @@ export const flushOutputDsp = async ({
           }),
         )
       : line;
-    // An engine before Footsteps refuses the line with its trailer and
+    // An engine before a stage refuses the line with its trailer and
     // bypasses the whole rack; without the trailer it plays the rest. Asked
     // in the write's own turn, so this call registers before any await.
     return writeSystemDspChain(configDirPath, values, guid, designs, () =>
-      installedRunsFootsteps(engineVersion),
+      installedEngineReads(engineVersion),
     );
   });
   await Promise.all(writes);

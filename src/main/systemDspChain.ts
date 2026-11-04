@@ -42,12 +42,17 @@ import {
 } from '../common/outputConfigFiles';
 import {
   gameModeOnWire,
+  hasDynamics,
   hasFootsteps,
   hasPresetTone,
   hasRoomTrailer,
   roomHeadOnWire,
-  withoutFootsteps,
 } from '../common/dsp/chainWire';
+import {
+  ENGINE_READS_ALL,
+  IEngineReads,
+  lineForEngine,
+} from '../common/dsp/engineLine';
 import { scheduleWrite, scheduleWriteOperation } from './asyncWriter';
 import { writeRoomHead, writeLegacyRoomHead } from './roomHead';
 import { readEngineHealth } from './engineHealth';
@@ -83,6 +88,7 @@ export const formatSystemDspChain = (
     !acceptsGameWord &&
     !hasRoomTrailer(values) &&
     !hasFootsteps(values) &&
+    !hasDynamics(values) &&
     !hasPresetTone(values)
       ? values.slice(0, -1)
       : values;
@@ -105,9 +111,9 @@ export const formatSystemDspChain = (
  * The room's head goes beside it, from the same message. An output's whole
  * snapshot is serialized, including its asynchronous asset/capability reads,
  * so a slower earlier request cannot replace either half of a newer one.
- * `keepFootsteps` is one of those reads: asked inside the operation, after
- * the request is registered, never before the call — a flush that waited on
- * it first could register after a newer one and write over it. It must not
+ * `engineReads` is one of those reads: asked inside the operation, after the
+ * request is registered, never before the call — a flush that waited on it
+ * first could register after a newer one and write over it. It must not
  * reject; a line without the trailer is the answer when nothing is known.
  */
 const pendingWrites = new Map<string, object>();
@@ -118,7 +124,7 @@ const writeChainFile = async (
   values: number[],
   writeHead: () => Promise<void>,
   endpoint?: string,
-  keepFootsteps?: () => Promise<boolean>,
+  engineReads?: () => Promise<IEngineReads>,
 ): Promise<void> => {
   const target = path.resolve(configDirPath, filename);
   const filePath = process.platform === 'win32' ? target.toLowerCase() : target;
@@ -130,14 +136,14 @@ const writeChainFile = async (
       if (pendingWrites.get(filePath) !== request) {
         return;
       }
-      const [, health, footsteps] = await Promise.all([
+      const [, health, wire] = await Promise.all([
         writeHead(),
         gameModeOnWire(snapshot)
           ? readEngineHealth(path.dirname(configDirPath))
           : Promise.resolve(undefined),
-        keepFootsteps && hasFootsteps(snapshot)
-          ? keepFootsteps()
-          : Promise.resolve(true),
+        engineReads && (hasFootsteps(snapshot) || hasDynamics(snapshot))
+          ? engineReads()
+          : Promise.resolve(ENGINE_READS_ALL),
       ]);
       if (pendingWrites.get(filePath) !== request) {
         return;
@@ -154,10 +160,7 @@ const writeChainFile = async (
         ) ?? false;
       await scheduleWrite(
         filePath,
-        formatSystemDspChain(
-          footsteps ? snapshot : withoutFootsteps(snapshot),
-          acceptsGameWord,
-        ),
+        formatSystemDspChain(lineForEngine(snapshot, wire), acceptsGameWord),
       );
     });
   } finally {
@@ -168,16 +171,16 @@ const writeChainFile = async (
 };
 
 /**
- * `keepFootsteps` decides, in the write's own turn, whether the installed
- * engine takes Footsteps' trailer (`writeChainFile`); without it the line
- * is written as given.
+ * `engineReads` decides, in the write's own turn, which of the rack's newer
+ * trailers the installed engine reads (`writeChainFile`, `lineForEngine`);
+ * without it the line is written as given.
  */
 export const writeSystemDspChain = async (
   configDirPath: string,
   values: number[],
   endpoint?: string,
   designs?: IOutputDesigns,
-  keepFootsteps?: () => Promise<boolean>,
+  engineReads?: () => Promise<IEngineReads>,
 ): Promise<void> => {
   const guid = outputConfigGuid(endpoint ?? '');
   const filename = outputConfigFileName('dsp', endpoint ?? '');
@@ -199,7 +202,7 @@ export const writeSystemDspChain = async (
       ]);
     },
     guid,
-    keepFootsteps,
+    engineReads,
   );
 };
 

@@ -118,6 +118,7 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   // dial in the rack must not start it learning again, or every turn of a
   // knob would hold the lift off for 0.4 s.
   feq_footsteps_transfer(prepared.footsteps, previous.footsteps);
+  feq_compander_transfer(prepared.compander, previous.compander);
   swap(prepared.bass_punch_low, previous.bass_punch_low);
   swap(prepared.bass_punch_bloom, previous.bass_punch_bloom);
   swap(prepared.bass_punch_bloom_pointers, previous.bass_punch_bloom_pointers);

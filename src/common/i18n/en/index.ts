@@ -50,6 +50,7 @@ import songSound from './songSound';
 import dsp from './dsp';
 import dspDeEsser from './dspDeEsser';
 import dspFootsteps from './dspFootsteps';
+import dspDynamics from './dspDynamics';
 import dspStageSave from './dspStageSave';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
@@ -101,6 +102,7 @@ const en = {
   ...dsp,
   ...dspDeEsser,
   ...dspFootsteps,
+  ...dspDynamics,
   ...dspStageSave,
   ...remoteAudio,
   ...tour,

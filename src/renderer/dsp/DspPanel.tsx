@@ -19,6 +19,7 @@ import DspExciterCard from './DspExciterCard';
 import DspDimensionCard from './DspDimensionCard';
 import DspMasterCard from './DspMasterCard';
 import DspMaximizerCard from './DspMaximizerCard';
+import DspDynamicsCard from './DspDynamicsCard';
 import DspDenoiseCard, { IDspVoiceModelState } from './DspDenoiseCard';
 import DspNormalizerCard from './DspNormalizerCard';
 import DspRoomCard from './DspRoomCard';
@@ -602,6 +603,7 @@ const DspPanel = ({
             bassPunch: bassPunch.enabled,
             dimension: dimension.enabled,
             room: room.enabled,
+            dynamics: settings.dynamics.enabled,
             maximizer: maximizer.enabled,
             master: master.enabled,
           }}
@@ -754,6 +756,14 @@ const DspPanel = ({
               room={room}
               live={roomLive}
               onPatch={(next) => patch({ room: next })}
+              onCommit={onCommit}
+            />
+          )}
+
+          {section === 'dynamics' && (
+            <DspDynamicsCard
+              dynamics={settings.dynamics}
+              onPatch={(next) => patch({ dynamics: next })}
               onCommit={onCommit}
             />
           )}

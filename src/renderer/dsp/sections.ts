@@ -25,6 +25,7 @@ export type TDspSection =
   | 'bassPunch'
   | 'dimension'
   | 'room'
+  | 'dynamics'
   | 'maximizer'
   | 'master';
 
@@ -66,6 +67,7 @@ export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   // then widens the binaural pair like any stereo mix. Listed here because
   // the page reads as "shape the stereo picture, then put it in a room".
   { id: 'room', labelKey: 'dsp.room.title' },
+  { id: 'dynamics', labelKey: 'dsp.dynamics.title' },
   { id: 'maximizer', labelKey: 'dsp.maximizer.title' },
   { id: 'master', labelKey: 'dsp.master.title' },
 ];

@@ -20,6 +20,7 @@ export const PRESET_STAGES = [
   'bassForge',
   'footsteps',
   'bassPunch',
+  'dynamics',
   'dimension',
   'maximizer',
   'master',

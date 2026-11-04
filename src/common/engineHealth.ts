@@ -343,6 +343,15 @@ export const ENGINE_FOOTSTEPS_SINCE: readonly [number, number] = [1, 25];
 export const engineRunsFootsteps = (dllVersion: string | undefined): boolean =>
   engineAtLeast(dllVersion, ENGINE_FOOTSTEPS_SINCE);
 
+/**
+ * Dynamics, the upward and downward compressor, from its own DYNA trailer.
+ * An older engine refuses a line carrying it and bypasses the whole rack, so
+ * the app takes the trailer off for one (`withoutDynamics`).
+ */
+export const ENGINE_DYNAMICS_SINCE: readonly [number, number] = [1, 27];
+export const engineRunsDynamics = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_DYNAMICS_SINCE);
+
 /** Versioned Room commands and truthful comparison telemetry. */
 export const ENGINE_ROOM_SINCE: readonly [number, number] = [1, 11];
 export const engineSupportsRoomUpgrade = (

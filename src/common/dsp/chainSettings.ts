@@ -29,6 +29,7 @@ import {
   IMaximizerSettings,
 } from './chainStageSettings';
 import type { IDeEsserSettings } from './deEsser';
+import type { IDynamicsSettings } from './dynamicsStage';
 import type { IFootstepsSettings } from './footsteps';
 
 // The rest of the rack's settings - the Master, the EQ and its bands, the
@@ -400,6 +401,8 @@ export interface IDspSettings {
   eq: IEqSettings;
   /** Footsteps, between the EQ and Bass Punch (`footsteps.ts`). */
   footsteps: IFootstepsSettings;
+  /** Dynamics, just before the Maximizer (`dynamicsStage.ts`). */
+  dynamics: IDynamicsSettings;
   exciter: IExciterSettings;
   bassForge: IBassForgeSettings;
   bassPunch: IBassPunchSettings;

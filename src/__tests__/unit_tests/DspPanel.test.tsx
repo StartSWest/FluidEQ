@@ -184,6 +184,7 @@ describe('DspPanel', () => {
       'Bass Forge',
       'Equaliser',
       'Bass Punch',
+      'Dynamics',
       'Maximizer',
       'Master',
     ].forEach((name) => {
@@ -217,6 +218,27 @@ describe('DspPanel', () => {
       screen.queryByRole('tablist', { name: /bands/i }),
     ).not.toBeInTheDocument();
     expect(screen.queryByText(/invents them/i)).not.toBeInTheDocument();
+  });
+
+  it('opens the Dynamics music graph and applies its Punch preset', () => {
+    const { container, onChange } = renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Dynamics/i }));
+    const card = screen.getByRole('region', { name: /Dynamics/i });
+    expect(
+      container.querySelector('.dsp-dynamics-spectrum canvas'),
+    ).toBeInTheDocument();
+    fireEvent.click(within(card).getByRole('button', { name: 'Preset' }));
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /^Punch/i }));
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        dynamics: expect.objectContaining({
+          enabled: true,
+          presetId: 'punch',
+          attackMs: 40,
+          releaseMs: 100,
+        }),
+      }),
+    );
   });
 
   /**

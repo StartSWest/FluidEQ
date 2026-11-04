@@ -222,6 +222,7 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   feq_denoise_settings_defaults(&settings->denoise);
   feq_deesser_settings_defaults(&settings->deesser);
   feq_footsteps_settings_defaults(&settings->footsteps);
+  feq_compander_settings_defaults(&settings->compander);
   settings->eq.model_amount = 1.0;
   settings->eq.oversample = 1;
   // The cookbook, which is what every test and fixture was built against;
@@ -423,6 +424,7 @@ FeqChain* feq_chain_create(double sample_rate,
   chain->deesser = feq_deesser_create(sample_rate, chain->channels);
   // And for the same reason a rack missing Footsteps still plays.
   chain->footsteps = feq_footsteps_create(sample_rate, chain->channels);
+  chain->compander = feq_compander_create(sample_rate, chain->channels);
 
   // Both sets, so the first published one is complete and the spare is not a
   // half-built rack waiting to be swapped in.
@@ -476,6 +478,8 @@ void feq_chain_destroy(FeqChain* chain) {
   chain->deesser = nullptr;
   feq_footsteps_destroy(chain->footsteps);
   chain->footsteps = nullptr;
+  feq_compander_destroy(chain->compander);
+  chain->compander = nullptr;
   delete chain;
 }
 
@@ -533,6 +537,7 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
   // through.
   chain_configure_deesser(chain);
   feq_footsteps_configure(chain->footsteps, &chain->settings.footsteps);
+  feq_compander_configure(chain->compander, &chain->settings.compander);
   {
     FeqRoomSettings room{};
     feq_room_settings_defaults(&room);
@@ -591,6 +596,7 @@ void feq_chain_set_lfe_channel(FeqChain* chain, int channel) {
   feq_room_set_layout(chain->room, chain->room_speakers, chain->lfe_channel);
   chain_apply_deesser_layout(chain);
   feq_footsteps_set_lfe(chain->footsteps, chain->lfe_channel);
+  feq_compander_set_lfe(chain->compander, chain->lfe_channel);
 }
 
 void feq_chain_set_room_head(FeqChain* chain, const float* left,
@@ -721,6 +727,7 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
   feq_deesser_reset(chain->deesser);
   // A new passage has a new bed, learnt again before anything is lifted.
   feq_footsteps_reset(chain->footsteps);
+  feq_compander_reset(chain->compander);
 
   if (reason != FEQ_CHAIN_RESET_SEEK) {
     /**
