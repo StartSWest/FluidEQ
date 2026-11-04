@@ -190,6 +190,7 @@ describe("the Dimension card's guard", () => {
 
 describe('the Maximizer and Bass Punch strips', () => {
   it('draw the Maximizer without reading its box in the frame', () => {
+    const clock = jest.spyOn(performance, 'now').mockReturnValue(0);
     const widthRead = jest.spyOn(Element.prototype, 'clientWidth', 'get');
     const heightRead = jest.spyOn(Element.prototype, 'clientHeight', 'get');
     engineStarts();
@@ -203,6 +204,7 @@ describe('the Maximizer and Bass Punch strips', () => {
       />,
     );
     runFrame();
+    clock.mockReturnValue(250);
     runFrame();
 
     expect(cleared).toHaveBeenCalled();
@@ -219,6 +221,7 @@ describe('the Maximizer and Bass Punch strips', () => {
   });
 
   it("show the Maximizer's output as a lone dash while nothing plays", () => {
+    const clock = jest.spyOn(performance, 'now').mockReturnValue(0);
     engineStarts();
     act(() => setDspPeak(0));
     const { container } = render(
@@ -235,6 +238,9 @@ describe('the Maximizer and Bass Punch strips', () => {
     expect(reading.closest('[hidden]')).not.toBeNull();
 
     act(() => setDspPeak(0.25));
+    runFrame();
+    expect(reading.closest('[hidden]')).not.toBeNull();
+    clock.mockReturnValue(250);
     runFrame();
     expect(reading.closest('[hidden]')).toBeNull();
     expect(reading).toHaveTextContent('-12.0 dBFS');

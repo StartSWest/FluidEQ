@@ -139,7 +139,7 @@ $dynamics-high: $neon-yellow;
   }
 }
 
-@container dsp-card (min-width: 800px) {
+@container dsp-card (min-width: #{$bp-md}) {
   .dsp-dynamics-graph > canvas {
     height: 310px;
   }
