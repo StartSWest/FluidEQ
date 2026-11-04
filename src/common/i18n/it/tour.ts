@@ -643,10 +643,14 @@ const tour: Partial<Dictionary> = {
     'La Stanza ti mette tra gli altoparlanti di uno spazio vero, anche in cuffia.',
   'tour.film.walkthrough.maximizer':
     'E il Maximizer tiene tutto forte e pulito, senza mai distorcere.',
+  'tour.film.walkthrough.footsteps':
+    'Novità nel rack: Passi fa emergere i suoni più deboli di un gioco, come passi e ricariche, nel momento in cui avvengono.',
   'tour.film.walkthrough.library':
     'La Libreria riproduce la tua musica con lo stesso suono, con album, playlist e In coda.',
   'tour.film.walkthrough.compact':
     'Il Lettore compatto mette tutto in una piccola finestra: il brano, i comandi e il tuo EQ.',
+  'tour.film.walkthrough.desktop':
+    'Dietro, qualsiasi visualizzatore può animare il tuo desktop, muovendosi con la tua musica.',
   'tour.film.walkthrough.oneline':
     'Piegalo su una riga e non ti intralcia, con un visualizzatore che si muove piano dietro il brano.',
   'tour.film.walkthrough.looks':
@@ -657,8 +661,16 @@ const tour: Partial<Dictionary> = {
     'Nello Studio descrivi una modifica con parole tue, e guardala prendere forma sul palco.',
   'tour.film.walkthrough.karaoke':
     'Karaoke trasforma i tuoi brani in canzoni da cantare, con testi sincronizzati e la tua intonazione sullo schermo.',
+  'tour.film.walkthrough.karaokeplay':
+    'Apri un brano con il suo testo e premi Riproduci. Ogni parola si illumina mentre viene cantata, e la guida dell’intonazione sotto mostra ogni nota da prendere.',
+  'tour.film.walkthrough.karaokestage':
+    'E dietro il testo, il palco può mostrare qualsiasi visualizzatore, che si muove con il brano.',
   'tour.film.walkthrough.share':
     'Condividi audio collega i computer della tua rete di casa, così la musica scorre tra loro, in entrambe le direzioni.',
+  'tour.film.walkthrough.sharelink':
+    'Ogni computer invia solo ciò che riproduce lui stesso, così non torna nessun eco, e quello su cui ascolti applica il proprio EQ.',
+  'tour.film.walkthrough.sharemix':
+    'Ogni collegamento ha il suo volume, e il suono arriva senza perdita e a tempo, senza interruzioni.',
   'tour.film.walkthrough.help':
     'E tutto questo è nella Guida utente, disegnata dall’app stessa.',
   'tour.film.walkthrough.outro':

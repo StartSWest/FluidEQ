@@ -9,23 +9,13 @@ import {
   type ReactNode,
   type RefObject,
   useEffect,
-  useRef,
   useState,
 } from 'react';
 import PlayerIcon from '../../player/PlayerIcon';
 import { useTranslation } from '../../utils/I18nContext';
-import {
-  featureFilmTimingUrl,
-  featureFilmUrl,
-  type IFeatureFilm,
-  type IFilmCue,
-  siteCues,
-} from './featureFilms';
+import type { IFeatureFilm } from './featureFilms';
 import FILM_POSTERS from './filmPosters';
-import useFilmLine from './useFilmLine';
-
-/** A stand-in's lines are its own captions, on the picture. */
-const NO_LINES: readonly IFilmCue[] = [];
+import useFilmPlayback from './useFilmPlayback';
 
 /**
  * A film's picture and the line its voice is saying, in the reader's
@@ -66,46 +56,9 @@ export default function FilmPicture({
   /** Controls drawn over the picture, beside its sound key. */
   children?: ReactNode;
 }) {
-  const { t, locale } = useTranslation();
-  // Set once the film itself could not be loaded and it has a stand-in; a
-  // stand-in that fails too is the film failing.
-  const [isStandIn, setStandIn] = useState(false);
-  const standIn = isStandIn ? film.standIn : undefined;
-  const timing =
-    film.timedOnSite && !standIn ? featureFilmTimingUrl(id, locale) : undefined;
-  const track = useRef<HTMLTrackElement>(null);
-  const [timed, setTimed] = useState<readonly IFilmCue[] | undefined>();
-  const cue = useFilmLine(
-    video,
-    standIn ? NO_LINES : (timed ?? film.cues),
-    isShown,
-  );
+  const { t } = useTranslation();
+  const playback = useFilmPlayback(id, film, video, isShown, onFailed);
   const [isSoundOn, setSoundOn] = useState(isSoundOnAtStart);
-  const standInTrack = useRef<HTMLTrackElement>(null);
-  const [standInLine, setStandInLine] = useState('');
-
-  // A stand-in's captions are said in the line under the picture, as every
-  // film's lines are, not drawn over it: kept hidden, read as each cue
-  // starts and ends (the track element hears `cuechange` as its track does).
-  useEffect(() => {
-    const element = standInTrack.current;
-    if (!element) {
-      return undefined;
-    }
-    if (element.track) {
-      element.track.mode = 'hidden';
-    }
-    const read = () =>
-      setStandInLine(
-        Array.from(element.track?.activeCues ?? [])
-          .map((cue) =>
-            'text' in cue && typeof cue.text === 'string' ? cue.text : '',
-          )
-          .join(' '),
-      );
-    element.addEventListener('cuechange', read);
-    return () => element.removeEventListener('cuechange', read);
-  }, [standIn]);
 
   // Set on the element, not as an attribute: React writes `muted` once, when
   // the video is made, and a press must reach the film already playing.
@@ -114,18 +67,6 @@ export default function FilmPicture({
       video.current.muted = !isSoundOn;
     }
   }, [video, isSoundOn]);
-
-  // A metadata track marked default loads by itself, hidden; its cues are
-  // read once it has.
-  useEffect(() => {
-    const element = track.current;
-    if (!element) {
-      return undefined;
-    }
-    const read = () => setTimed(siteCues(film, element.track.cues));
-    element.addEventListener('load', read);
-    return () => element.removeEventListener('load', read);
-  }, [film, timing]);
 
   return (
     <div
@@ -139,11 +80,11 @@ export default function FilmPicture({
         {/* eslint-disable-next-line jsx-a11y/media-has-caption -- the voice's lines are the subtitle drawn under the film, in the reader's language, from the same dictionary the voice was read from */}
         <video
           ref={video}
-          src={standIn?.src ?? featureFilmUrl(id, locale)}
+          src={playback.src}
           // A track from the site is read across origins only with the site's
           // grant, which /video/ sends; without the attribute the browser
           // refuses the track and the film plays on its own timings.
-          crossOrigin={timing || standIn ? 'anonymous' : undefined}
+          crossOrigin={playback.crossOrigin}
           // A frame of the film, bundled, until the site's first picture.
           poster={FILM_POSTERS[id]}
           muted={!isSoundOn}
@@ -160,25 +101,9 @@ export default function FilmPicture({
             }
           }}
           onPlaying={onPlaying}
-          onError={() => {
-            if (film.standIn && !isStandIn) {
-              setStandIn(true);
-            } else {
-              onFailed();
-            }
-          }}
+          onError={playback.onError}
         >
-          {standIn ? (
-            <track
-              ref={standInTrack}
-              kind="captions"
-              src={standIn.captions}
-              srcLang="en"
-              default
-            />
-          ) : (
-            timing && <track ref={track} kind="metadata" src={timing} default />
-          )}
+          {playback.tracks}
         </video>
         {isShown && (
           <div className="feature-film__controls">
@@ -207,11 +132,8 @@ export default function FilmPicture({
       {/* Always there, so a line arriving never moves the picture above. */}
       <p className="feature-film__subtitle">
         {notice !== undefined && <span role="status">{notice}</span>}
-        {notice === undefined && standIn && standInLine && (
-          <span key={standInLine}>{standInLine}</span>
-        )}
-        {notice === undefined && !standIn && cue && (
-          <span key={cue.key}>{t(cue.key)}</span>
+        {notice === undefined && playback.subtitle && (
+          <span key={playback.subtitle}>{playback.subtitle}</span>
         )}
       </p>
     </div>

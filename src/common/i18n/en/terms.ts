@@ -214,7 +214,7 @@ const terms = {
   'terms.elsewhere.p2':
     'Headphone presets: when FluidEQ opens, it checks GitHub for new headphone presets, and the Convolution tab downloads AutoEq files from GitHub when you open it or choose a headphone.',
   'terms.elsewhere.p10':
-    'The “First steps with FluidEQ” video in the User guide: nothing is fetched until you press play; then the video and its English captions stream from fluideq.com, FluidEQ’s own site. The request carries no cookie and nothing about you or your account, and the site keeps no record of it. If it cannot play, “Open on fluideq.com” shows it in your browser instead. The short films on What’s new slides come from fluideq.com in the same way, starting by themselves when a slide opens: no cookie, nothing about you or your account, and no record kept. Without a connection, a slide shows its drawing instead.',
+    "Films in User guide and What's new: nothing is fetched until you press Play or Watch. Then the video and its timing or caption track stream from fluideq.com, FluidEQ’s own site. Requests carry no cookie and nothing about you or your account, and the site keeps no record of them. The walkthrough uses the older tutorial if its recording cannot load. If neither loads, Try again asks again; the written guide and the tour’s drawings remain available offline.",
   'terms.elsewhere.p3':
     'Models you use: the Karaoke Maker downloads its speech, vocal and melody models from Hugging Face, and the voice denoiser its model from GitHub. Your audio is processed on your computer.',
   'terms.elsewhere.p9':

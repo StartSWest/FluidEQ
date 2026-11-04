@@ -645,10 +645,14 @@ const tour: Partial<Dictionary> = {
     'La Sala te sitúa entre altavoces en un espacio real, incluso con auriculares.',
   'tour.film.walkthrough.maximizer':
     'Y el Maximizador lo mantiene todo fuerte y limpio, sin saturar nunca.',
+  'tour.film.walkthrough.footsteps':
+    'Nuevo en el rack: Pasos realza los sonidos discretos de un juego, como pisadas y recargas, justo cuando ocurren.',
   'tour.film.walkthrough.library':
     'La Biblioteca reproduce tu propia música con el mismo sonido, con álbumes, listas y A continuación.',
   'tour.film.walkthrough.compact':
     'El Reproductor compacto lo reúne todo en una ventana pequeña: la canción, los controles y tu EQ.',
+  'tour.film.walkthrough.desktop':
+    'Detrás, cualquier visualizador puede reproducirse en tu escritorio, moviéndose con tu música.',
   'tour.film.walkthrough.oneline':
     'Pliégalo en una sola línea y no te estorba, con un visualizador moviéndose suave detrás de la canción.',
   'tour.film.walkthrough.looks':
@@ -659,8 +663,16 @@ const tour: Partial<Dictionary> = {
     'En el Estudio, describe un cambio con tus propias palabras y míralo ocurrir en el escenario.',
   'tour.film.walkthrough.karaoke':
     'Karaoke hace que tus canciones se puedan cantar, con letras sincronizadas y tu afinación en pantalla.',
+  'tour.film.walkthrough.karaokeplay':
+    'Abre una canción con su letra y pulsa reproducir. Cada palabra se ilumina mientras se canta, y la guía de afinación de abajo muestra cada nota que hay que dar.',
+  'tour.film.walkthrough.karaokestage':
+    'Y detrás de la letra, el escenario puede mostrar cualquier visualizador, moviéndose con la canción.',
   'tour.film.walkthrough.share':
     'Compartir audio conecta los ordenadores de tu red doméstica para que la música fluya entre ellos, en ambos sentidos.',
+  'tour.film.walkthrough.sharelink':
+    'Cada ordenador envía solo lo que reproduce él mismo, así que nada vuelve en eco, y el que escuchas aplica su propio EQ.',
+  'tour.film.walkthrough.sharemix':
+    'Cada enlace tiene su propio volumen, y el sonido llega sin pérdida y sincronizado, sin cortes.',
   'tour.film.walkthrough.help':
     'Y todo esto está en la Guía de usuario, dibujada a partir de la propia aplicación.',
   'tour.film.walkthrough.outro':

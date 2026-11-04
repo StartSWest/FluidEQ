@@ -35,22 +35,18 @@ const help: Record<keyof typeof en, string> = {
 
   'help.start.title': 'Tus primeros cinco minutos',
   'help.start.intro':
-    'Empieza con una canción conocida a un volumen cómodo. El panel izquierdo tiene el interruptor de FluidEQ y la preamplificación; el centro es tu espacio de trabajo; el panel derecho sigue a tu salida y sus perfiles. La barra de la parte inferior de la ventana controla lo que esté sonando.',
+    'Empieza con una canción conocida a un volumen cómodo. El panel izquierdo tiene el interruptor de FluidEQ y la preamplificación; el centro es tu espacio de trabajo; el panel derecho sigue a tu salida y sus perfiles. La barra de la parte inferior de la ventana controla lo que esté sonando. El recorrido grabado de la versión 2.2 dura unos nueve minutos y medio y solo se descarga al pulsar Reproducir. Para la nueva página de juegos de la 2.3, consulta Laboratorio gaming.',
   'help.start.steps':
     'Instala FluidEQ y deja seleccionado el Motor FluidEQ cuando el instalador pregunte cómo procesar tu sonido. Windows pide permiso una sola vez, sin reiniciar.\nElige tu dispositivo de escucha en Dispositivo de salida. Activa EQ del sistema y deja Normalizar automáticamente activado.\nReproduce una canción, abre EQ → Bandas, cambia algo ligeramente y compara activando y desactivando EQ del sistema.',
   'help.start.tip':
     'El EQ para todo el sistema necesita Windows y un motor de audio: el Motor FluidEQ o Equalizer APO. En macOS y Linux la app muestra salidas de demostración, así que ahí una gráfica en movimiento no demuestra que se esté procesando nada.',
   'help.start.keywords':
     'instalación, primeros pasos, empezar, comenzar, inicio rápido, guía rápida, tutorial, cómo usar, principiante, novato, básico, introducción, configurar, configuración inicial, manual',
-  'help.start.videoTitle': 'Primeros pasos con FluidEQ',
-  'help.start.videoNote':
-    'Unos cuatro minutos, narrado en inglés. Se reproduce desde fluideq.com cuando pulsas play.',
   'help.video.play': 'Reproducir el vídeo: {title}',
   'help.video.loading': 'Cargando desde fluideq.com…',
   'help.video.failed':
     'No se pudo cargar el vídeo. Se reproduce desde fluideq.com, así que necesita conexión a internet.',
   'help.video.retry': 'Reintentar',
-  'help.video.open': 'Abrir en fluideq.com',
 
   'help.window.title': 'Un recorrido por la ventana',
   'help.window.intro':

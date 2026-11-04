@@ -590,10 +590,14 @@ const tour: Partial<Dictionary> = {
   'tour.film.walkthrough.room':
     '房间让你置身真实空间的音箱之间，戴耳机也一样。',
   'tour.film.walkthrough.maximizer': '最大化器则让一切响亮又干净，永不削波。',
+  'tour.film.walkthrough.footsteps':
+    '效果架新增“脚步声”：游戏里的细小声响一出现，就把它们凸显出来，比如脚步声和换弹声。',
   'tour.film.walkthrough.library':
     '媒体库用同样的声音播放你自己的音乐，还有专辑、播放列表和“接下来播放”。',
   'tour.film.walkthrough.compact':
     '迷你播放器把这一切装进一个小窗口：歌曲、控制和你的 EQ。',
+  'tour.film.walkthrough.desktop':
+    '在它后面，任何可视化效果都能在你的桌面上播放，随着音乐律动。',
   'tour.film.walkthrough.oneline':
     '把它折叠成一行，就不会挡路，歌曲后面还有可视化效果轻轻律动。',
   'tour.film.walkthrough.looks':
@@ -604,8 +608,16 @@ const tour: Partial<Dictionary> = {
     '在工作室里，用你自己的话描述想要的改动，就能看着它在舞台上实现。',
   'tour.film.walkthrough.karaoke':
     '卡拉OK 让你的歌都能跟着唱，歌词按时出现，你的音高也显示在屏幕上。',
+  'tour.film.walkthrough.karaokeplay':
+    '打开一首带歌词的歌，点击播放。每个词会在唱到时亮起，下方的音高引导会显示每个要唱准的音。',
+  'tour.film.walkthrough.karaokestage':
+    '歌词后面的舞台还能播放任意可视化效果，随着歌曲律动。',
   'tour.film.walkthrough.share':
     '共享音频把你家庭网络里的电脑连起来，让音乐在它们之间双向流动。',
+  'tour.film.walkthrough.sharelink':
+    '每台电脑只发送它自己播放的声音，所以不会有回声，而你用来收听的那台会套用它自己的 EQ。',
+  'tour.film.walkthrough.sharemix':
+    '每条链接都有自己的音量，声音无损送达，保持同步，也不会断断续续。',
   'tour.film.walkthrough.help':
     '这些内容都在用户指南里，图示直接取自应用本身。',
   'tour.film.walkthrough.outro': '这就是 FluidEQ。让它的声音和样子都属于你。',

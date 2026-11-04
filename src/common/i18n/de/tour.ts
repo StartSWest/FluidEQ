@@ -653,10 +653,14 @@ const tour: Partial<Dictionary> = {
     'Der Raum stellt Sie zwischen Lautsprecher in einem echten Raum, sogar mit Kopfhörern.',
   'tour.film.walkthrough.maximizer':
     'Und der Maximizer hält alles laut und sauber, ohne je zu übersteuern.',
+  'tour.film.walkthrough.footsteps':
+    'Neu im Rack: Schritte hebt die leisen Geräusche eines Spiels hervor, etwa Schritte und Nachladen, genau in dem Moment, in dem sie passieren.',
   'tour.film.walkthrough.library':
     'Die Bibliothek spielt Ihre eigene Musik mit demselben Klang, mit Alben, Playlists und Als Nächstes.',
   'tour.film.walkthrough.compact':
     'Der Kompakte Player bringt alles in ein kleines Fenster: den Song, die Steuerung und Ihren EQ.',
+  'tour.film.walkthrough.desktop':
+    'Dahinter kann jeder Visualizer auf Ihrem Desktop laufen und sich mit Ihrer Musik bewegen.',
   'tour.film.walkthrough.oneline':
     'Falten Sie ihn auf eine Zeile, und er ist Ihnen nicht im Weg, mit einem Visualizer, der sanft hinter dem Song spielt.',
   'tour.film.walkthrough.looks':
@@ -667,8 +671,16 @@ const tour: Partial<Dictionary> = {
     'Im Studio beschreiben Sie eine Änderung in Ihren eigenen Worten und sehen zu, wie sie auf der Bühne entsteht.',
   'tour.film.walkthrough.karaoke':
     'Karaoke macht Ihre Songs zum Mitsingen, mit getimten Texten und Ihrer Tonhöhe auf dem Bildschirm.',
+  'tour.film.walkthrough.karaokeplay':
+    'Öffnen Sie einen Song mit seinem Text und drücken Sie auf Wiedergabe. Jedes Wort leuchtet auf, während es gesungen wird, und die Tonhöhenanzeige darunter zeigt jede Note, die Sie treffen sollen.',
+  'tour.film.walkthrough.karaokestage':
+    'Und hinter dem Text kann die Bühne jeden Visualizer zeigen, der sich mit dem Song bewegt.',
   'tour.film.walkthrough.share':
     'Audio teilen verbindet die Computer in Ihrem Heimnetz, sodass Musik zwischen ihnen fließt, in beide Richtungen.',
+  'tour.film.walkthrough.sharelink':
+    'Jeder Computer sendet nur, was er selbst abspielt, sodass nichts zurückhallt, und der Computer, an dem Sie zuhören, wendet seinen eigenen EQ an.',
+  'tour.film.walkthrough.sharemix':
+    'Jede Verbindung hat ihre eigene Lautstärke, und der Ton kommt verlustfrei und im Takt an, ohne Aussetzer.',
   'tour.film.walkthrough.help':
     'Und alles hier steht im Benutzerhandbuch, gezeichnet aus der App selbst.',
   'tour.film.walkthrough.outro':

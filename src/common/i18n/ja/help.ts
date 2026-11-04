@@ -35,22 +35,18 @@ const help: Record<keyof typeof en, string> = {
 
   'help.start.title': '最初の5分間',
   'help.start.intro':
-    '聴き慣れた曲を快適な音量で流しましょう。左側では FluidEQ をオンにでき、プリアンプもここにあります。中央は作業領域です。右側は出力とそのプロファイルに追従します。ウィンドウ下部のバーでは、再生中のものを操作できます。',
+    '聴き慣れた曲を快適な音量で流しましょう。左側では FluidEQ をオンにでき、プリアンプもここにあります。中央は作業領域です。右側は出力とそのプロファイルに追従します。ウィンドウ下部のバーでは、再生中のものを操作できます。 下の録画済みの2.2ツアーは約9分半です。再生を押すまで動画を読み込みません。2.3の新しいゲーム画面は「ゲーミングラボ」をご覧ください。',
   'help.start.steps':
     'FluidEQ をインストールし、音の処理方法を尋ねられたら「FluidEQ エンジン」を選んだままにします。Windows の許可を求められるのは一度だけで、再起動は不要です。\n「出力デバイス」で聴く機器を選びます。「システム EQ」をオンにし、「自動ノーマライズ」はオンのままにします。\n曲を再生し、「EQ → バンド」で少し調整してから、「システム EQ」のオンとオフを比較します。',
   'help.start.tip':
     'システム全体の EQ には、Windows とオーディオエンジン（FluidEQ エンジンまたは Equalizer APO）が必要です。macOS と Linux ではデモ用の出力が表示されるため、グラフが動いていても何かが処理されている証拠にはなりません。',
   'help.start.keywords':
     '使い方, 始め方, はじめに, 初めて, 初心者, 入門, 導入方法, セットアップ, 初期設定, インストーラー, インストール方法, チュートリアル, クイックスタート, スタートガイド, 基本操作',
-  'help.start.videoTitle': 'FluidEQ はじめの一歩',
-  'help.start.videoNote':
-    '約 4 分、英語のナレーション付き。再生を押すと fluideq.com から再生されます。',
   'help.video.play': '動画を再生: {title}',
   'help.video.loading': 'fluideq.com から読み込んでいます…',
   'help.video.failed':
     '動画を読み込めませんでした。fluideq.com から再生するため、インターネット接続が必要です。',
   'help.video.retry': '再試行',
-  'help.video.open': 'fluideq.com で開く',
 
   'help.window.title': 'ウィンドウの各部',
   'help.window.intro':

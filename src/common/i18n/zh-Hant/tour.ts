@@ -543,10 +543,14 @@ const tour = {
     '聆聽室讓您置身真實空間的喇叭之間，戴耳機也一樣。',
   'tour.film.walkthrough.maximizer':
     '而響度最大化器讓一切響亮又乾淨，永不削波。',
+  'tour.film.walkthrough.footsteps':
+    '機架新增的「腳步聲」會在腳步、換彈等輕微的遊戲聲音出現時，將它們提高。',
   'tour.film.walkthrough.library':
     '媒體庫用同樣的聲音播放您自己的音樂，還有專輯、播放清單與「接下來播放」。',
   'tour.film.walkthrough.compact':
     '輕巧播放器把這一切裝進一個小視窗：歌曲、控制項與您的 EQ。',
+  'tour.film.walkthrough.desktop':
+    '在它後方，任何視覺化效果都能在您的桌面上隨音樂律動。',
   'tour.film.walkthrough.oneline':
     '把它摺成一行，就不會擋路，歌曲後方還有視覺化效果輕輕律動。',
   'tour.film.walkthrough.looks':
@@ -557,8 +561,16 @@ const tour = {
     '在工作室裡，用您自己的話描述想要的改動，就能看著它在舞臺上實現。',
   'tour.film.walkthrough.karaoke':
     '卡拉 OK 讓您的歌都能跟著唱，歌詞按時出現，您的音高也顯示在螢幕上。',
+  'tour.film.walkthrough.karaokeplay':
+    '開啟附歌詞的歌曲並按下播放。每個字會隨演唱亮起，下方的音高指南則顯示您要唱準的每個音。',
+  'tour.film.walkthrough.karaokestage':
+    '歌詞後方的舞臺也能播放任何視覺化效果，隨歌曲律動。',
   'tour.film.walkthrough.share':
     '分享音訊把您家中網路裡的電腦連起來，讓音樂在它們之間雙向流動。',
+  'tour.film.walkthrough.sharelink':
+    '每台電腦只傳送自己播放的聲音，因此不會迴傳形成回音；您聆聽的那台則套用自己的 EQ。',
+  'tour.film.walkthrough.sharemix':
+    '每條連線都有獨立音量，聲音以無損方式同步送達，不會中斷。',
   'tour.film.walkthrough.help':
     '這些內容都在使用者指南裡，圖示直接取自應用程式本身。',
   'tour.film.walkthrough.outro': '這就是 FluidEQ。讓它的聲音和樣子都屬於您。',

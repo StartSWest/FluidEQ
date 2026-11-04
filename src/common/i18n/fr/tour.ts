@@ -649,10 +649,14 @@ const tour: Partial<Dictionary> = {
     'La Salle vous place parmi des enceintes dans un vrai espace, même au casque.',
   'tour.film.walkthrough.maximizer':
     'Et le Maximiseur garde le tout fort et propre, sans jamais saturer.',
+  'tour.film.walkthrough.footsteps':
+    'Nouveau dans le rack : Bruits de pas fait ressortir les sons discrets d’un jeu, comme les pas et les rechargements, au moment où ils se produisent.',
   'tour.film.walkthrough.library':
     'La Bibliothèque joue votre propre musique avec le même son, avec les albums, les playlists et À suivre.',
   'tour.film.walkthrough.compact':
     'Le Lecteur compact réunit tout dans une petite fenêtre : le morceau, les commandes et votre EQ.',
+  'tour.film.walkthrough.desktop':
+    'Derrière, n’importe quel visualiseur peut animer votre Bureau, au rythme de votre musique.',
   'tour.film.walkthrough.oneline':
     'Repliez-le sur une ligne, et il ne vous gêne plus, avec un visualiseur qui joue doucement derrière le morceau.',
   'tour.film.walkthrough.looks':
@@ -663,8 +667,16 @@ const tour: Partial<Dictionary> = {
     'Dans le Studio, décrivez un changement avec vos propres mots, et regardez-le prendre forme sur la scène.',
   'tour.film.walkthrough.karaoke':
     'Karaoké transforme vos chansons en moments à chanter, avec les paroles synchronisées et votre justesse à l’écran.',
+  'tour.film.walkthrough.karaokeplay':
+    'Ouvrez une chanson avec ses paroles et appuyez sur Lecture. Chaque mot s’allume au moment où il est chanté, et le guide de hauteur en dessous montre chaque note à atteindre.',
+  'tour.film.walkthrough.karaokestage':
+    'Et derrière les paroles, la scène peut afficher n’importe quel visualiseur, au rythme de la chanson.',
   'tour.film.walkthrough.share':
     'Partager l’audio relie les ordinateurs de votre réseau domestique, pour que la musique circule entre eux, dans les deux sens.',
+  'tour.film.walkthrough.sharelink':
+    'Chaque ordinateur n’envoie que ce qu’il joue lui-même, donc rien ne revient en écho, et celui sur lequel vous écoutez applique son propre EQ.',
+  'tour.film.walkthrough.sharemix':
+    'Chaque liaison a son propre volume, et le son arrive sans perte et en phase, sans coupures.',
   'tour.film.walkthrough.help':
     'Et tout cela se trouve dans le Guide utilisateur, dessiné à partir de l’application elle-même.',
   'tour.film.walkthrough.outro':

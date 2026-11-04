@@ -313,3 +313,13 @@ it('follows the reading position down and up, including the final short chapter'
   fireEvent.scroll(viewport);
   expectCurrent(1);
 });
+
+it('opens with the new walkthrough poster and one Play card for the first chapter', () => {
+  openGuide();
+  const first = screen
+    .getByRole('heading', { name: 'Your first five minutes' })
+    .closest('section');
+  expect(first?.querySelectorAll('[data-film="walkthrough"]')).toHaveLength(1);
+  expect(first?.querySelector('video')).toBeNull();
+  expect(first?.querySelector('.help-video')).toBeNull();
+});

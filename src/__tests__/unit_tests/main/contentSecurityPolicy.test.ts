@@ -157,7 +157,7 @@ describe('the app window content security policy', () => {
     expect(directives(true)['img-src']).toContain('fluideq-media:');
   });
 
-  it("streams Help's first-steps film from FluidEQ's own site, and from no other", () => {
+  it("streams Help's walkthrough, timing track and tutorial fallback from FluidEQ's own site alone", () => {
     // Without the site on media-src the film's card says it cannot load on a
     // machine that is online; with any other host there, a page the window
     // shows could play media from anywhere.

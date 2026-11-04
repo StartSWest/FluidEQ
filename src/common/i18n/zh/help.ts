@@ -34,20 +34,17 @@ const help: Record<keyof typeof en, string> = {
 
   'help.start.title': '上手的前五分钟',
   'help.start.intro':
-    '先用舒适的音量播放一首熟悉的歌曲。左侧栏用于开启 FluidEQ，并提供前级增益；中间是你的工作区；右侧栏跟随你的输出及其配置。窗口底部的播放栏可以控制正在播放的任何内容。',
+    '先用舒适的音量播放一首熟悉的歌曲。左侧栏用于开启 FluidEQ，并提供前级增益；中间是你的工作区；右侧栏跟随你的输出及其配置。窗口底部的播放栏可以控制正在播放的任何内容。 下方录制的 2.2 导览约九分半钟，只有按下播放才会加载。2.3 的新游戏页面请参阅“游戏实验室”。',
   'help.start.steps':
     '安装 FluidEQ，当安装程序询问如何处理你的声音时，保持选中“FluidEQ 引擎”。Windows 只会请求一次授权，无需重启电脑。\n在“输出设备”中选择你的聆听设备。开启“系统均衡”，并保持“自动归一化”开启。\n播放一首歌曲，打开“均衡器 → 频段”，做一点小调整，再对比“系统均衡”关闭与开启时的声音。',
   'help.start.tip':
     '系统级 EQ 需要 Windows 和一个音频引擎：FluidEQ 引擎或 Equalizer APO。在 macOS 和 Linux 上，应用显示的是演示输出设备，因此那里的图表在动并不能证明有任何声音被处理。',
   'help.start.keywords':
     '新手教程, 使用教程, 安装教程, 快速入门, 快速上手, 怎么用, 怎么使用, 如何使用, 使用方法, 使用说明, 第一次使用, 初次使用, 开始使用, 初始设置, 基础教程, 小白',
-  'help.start.videoTitle': 'FluidEQ 入门',
-  'help.start.videoNote': '约四分钟，英语解说。按下播放后从 fluideq.com 播放。',
   'help.video.play': '播放视频：{title}',
   'help.video.loading': '正在从 fluideq.com 加载…',
   'help.video.failed': '无法加载视频。它从 fluideq.com 播放，因此需要联网。',
   'help.video.retry': '重试',
-  'help.video.open': '在 fluideq.com 上打开',
 
   'help.window.title': '窗口导览',
   'help.window.intro':

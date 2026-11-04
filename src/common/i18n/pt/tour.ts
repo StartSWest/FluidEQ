@@ -646,10 +646,14 @@ const tour: Partial<Dictionary> = {
     'A Sala coloca você entre caixas de som em um espaço real, mesmo nos fones.',
   'tour.film.walkthrough.maximizer':
     'E o Maximizador mantém tudo alto e limpo, sem nunca distorcer.',
+  'tour.film.walkthrough.footsteps':
+    'Novo no rack: Passos realça os sons baixos de um jogo, como passos e recargas, no momento em que acontecem.',
   'tour.film.walkthrough.library':
     'A Biblioteca toca a sua própria música com o mesmo som, com álbuns, playlists e A seguir.',
   'tour.film.walkthrough.compact':
     'O Player compacto reúne tudo em uma janela pequena: a música, os controles e o seu EQ.',
+  'tour.film.walkthrough.desktop':
+    'Atrás dele, qualquer visualizador pode tocar na sua área de trabalho, acompanhando a sua música.',
   'tour.film.walkthrough.oneline':
     'Dobre em uma linha só, e ele sai do seu caminho, com um visualizador tocando suave atrás da música.',
   'tour.film.walkthrough.looks':
@@ -660,8 +664,16 @@ const tour: Partial<Dictionary> = {
     'No Estúdio, descreva uma mudança com suas próprias palavras e veja ela acontecer no palco.',
   'tour.film.walkthrough.karaoke':
     'O Karaokê transforma suas músicas em sessões de cantoria, com letras sincronizadas e a sua afinação na tela.',
+  'tour.film.walkthrough.karaokeplay':
+    'Abra uma música com a letra e pressione Reproduzir. Cada palavra acende enquanto é cantada, e o guia de afinação abaixo mostra cada nota a alcançar.',
+  'tour.film.walkthrough.karaokestage':
+    'E atrás da letra, o palco pode mostrar qualquer visualizador, acompanhando a música.',
   'tour.film.walkthrough.share':
     'Compartilhar áudio conecta os computadores da sua rede de casa, para a música fluir entre eles, nos dois sentidos.',
+  'tour.film.walkthrough.sharelink':
+    'Cada computador envia só o que ele mesmo toca, então nada volta como eco, e aquele em que você ouve aplica o próprio EQ.',
+  'tour.film.walkthrough.sharemix':
+    'Cada vínculo tem o próprio volume, e o som chega sem perdas e sincronizado, sem falhas.',
   'tour.film.walkthrough.help':
     'E tudo isso está no Guia do usuário, desenhado a partir do próprio app.',
   'tour.film.walkthrough.outro':

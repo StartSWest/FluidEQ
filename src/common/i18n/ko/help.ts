@@ -34,22 +34,18 @@ const help = {
   'help.group.help': '도움이 필요할 때',
   'help.start.title': '처음 5분',
   'help.start.intro':
-    '익숙한 노래를 편안한 볼륨으로 시작하세요. 왼쪽 레일은 FluidEQ를 켜고 프리앰프를 고정합니다. 중앙은 작업 공간입니다. 오른쪽 레일은 출력과 해당 프로필을 따릅니다. 창 밑에 있는 막대는 재생 중인 모든 항목을 제어합니다.',
+    '익숙한 노래를 편안한 볼륨으로 시작하세요. 왼쪽 레일은 FluidEQ를 켜고 프리앰프를 고정합니다. 중앙은 작업 공간입니다. 오른쪽 레일은 출력과 해당 프로필을 따릅니다. 창 밑에 있는 막대는 재생 중인 모든 항목을 제어합니다. 아래에 녹화된 2.2 둘러보기는 약 9분 30초이며 재생을 누를 때만 불러옵니다. 2.3의 새 게임 페이지는 게이밍 랩을 참고하세요.',
   'help.start.steps':
     'FluidEQ를 설치하고 설정에서 사운드 처리 방법을 물을 때 FluidEQ 엔진을 선택된 상태로 유지하세요. Windows는 다시 시작하지 않고 한 번 권한을 요청합니다.\n출력 장치에서 청취 장치를 선택하십시오. 시스템 EQ를 켜고 자동 정규화를 켜진 상태로 둡니다.\n노래를 재생하고 EQ → 밴드를 열고 약간 변경한 후 System EQ를 껐다가 켜서 비교해 보세요.',
   'help.start.tip':
     '시스템 전체 EQ에는 Windows와 오디오 엔진(FluidEQ 엔진 또는 Equalizer APO)이 필요합니다. macOS 및 Linux에서 앱은 데모 출력을 표시하므로 움직이는 그래프에는 아무것도 처리되었다는 증거가 없습니다.',
   'help.start.keywords':
     '설치, 설치 프로그램, 설정, 설정, 시작하기, 첫 번째 단계, 빠른 시작, 초보자, 기본, 튜토리얼, 사용 방법, 시작',
-  'help.start.videoTitle': 'FluidEQ의 첫 번째 단계',
-  'help.start.videoNote':
-    '약 4분 분량의 영어 영상이며 영어 자막이 제공됩니다. 재생 버튼을 누르면 fluideq.com에서 불러옵니다.',
   'help.video.play': '비디오 재생: {title}',
   'help.video.loading': 'fluideq.com에서 로딩 중…',
   'help.video.failed':
     '동영상을 로드할 수 없습니다. fluideq.com에서 재생되므로 인터넷 연결이 필요합니다.',
   'help.video.retry': '다시 시도',
-  'help.video.open': 'fluideq.com에서 열기',
   'help.window.title': '창의 각 부분',
   'help.window.intro':
     '헤더는 FluidEQ의 페이지 사이를 이동하며 재생되는 사운드를 보여줍니다. 왼쪽 레일에는 전체 EQ, 프리앰프 및 레벨 미터용 스위치가 있습니다. 오른쪽 레일은 출력과 해당 프로필을 따릅니다.',

@@ -35,22 +35,18 @@ const help: Record<keyof typeof en, string> = {
 
   'help.start.title': 'Ihre ersten fünf Minuten',
   'help.start.intro':
-    'Beginnen Sie mit einem vertrauten Lied bei angenehmer Lautstärke. Die linke Leiste schaltet FluidEQ ein und enthält die Vorverstärkung; die Mitte ist Ihr Arbeitsbereich; die rechte Leiste folgt Ihrem Ausgang und seinen Profilen. Die Leiste am unteren Fensterrand steuert, was gerade läuft.',
+    'Beginnen Sie mit einem vertrauten Lied bei angenehmer Lautstärke. Die linke Leiste schaltet FluidEQ ein und enthält die Vorverstärkung; die Mitte ist Ihr Arbeitsbereich; die rechte Leiste folgt Ihrem Ausgang und seinen Profilen. Die Leiste am unteren Fensterrand steuert, was gerade läuft. Der aufgezeichnete Rundgang durch 2.2 dauert etwa neuneinhalb Minuten und wird erst nach Wiedergabe gestreamt. Die neue Spieleseite von 2.3 finden Sie unter Gaming-Labor.',
   'help.start.steps':
     'Installieren Sie FluidEQ und lassen Sie die FluidEQ-Engine ausgewählt, wenn die Installation fragt, wie FluidEQ Ihren Ton verarbeiten soll. Windows fragt einmal um Erlaubnis, ohne Neustart.\nWählen Sie unter Ausgabegerät das Gerät, über das Sie hören. Aktivieren Sie System-EQ und lassen Sie Automatisch normalisieren eingeschaltet.\nSpielen Sie ein Lied, öffnen Sie EQ → Bänder, ändern Sie etwas leicht und vergleichen Sie mit ein- und ausgeschaltetem System-EQ.',
   'help.start.tip':
     'Systemweiter EQ braucht Windows und eine Audio-Engine: die FluidEQ-Engine oder Equalizer APO. Unter macOS und Linux zeigt die App Demonstrationsausgänge, ein bewegtes Diagramm ist dort also kein Beweis, dass etwas verarbeitet wird.',
   'help.start.keywords':
     'erste schritte, einstieg, einsteiger, einführung, schnellstart, kurzanleitung, anleitung, bedienungsanleitung, tutorial, anfänger, grundlagen, setup, installer, einrichten, ersteinrichtung, loslegen, benutzen, installieren, installation',
-  'help.start.videoTitle': 'Erste Schritte mit FluidEQ',
-  'help.start.videoNote':
-    'Etwa vier Minuten, auf Englisch gesprochen. Es wird beim Abspielen von fluideq.com geladen.',
   'help.video.play': 'Video abspielen: {title}',
   'help.video.loading': 'Wird von fluideq.com geladen…',
   'help.video.failed':
     'Das Video konnte nicht geladen werden. Es wird von fluideq.com abgespielt und braucht deshalb eine Internetverbindung.',
   'help.video.retry': 'Erneut versuchen',
-  'help.video.open': 'Auf fluideq.com öffnen',
 
   'help.window.title': 'Rund ums Fenster',
   'help.window.intro':

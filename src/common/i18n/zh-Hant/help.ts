@@ -33,22 +33,18 @@ const help = {
   'help.group.help': '當你需要幫助時',
   'help.start.title': '你的前五分鐘',
   'help.start.intro':
-    '以舒適的音量播放一首熟悉的歌曲開始。左側導軌開啟 FluidEQ 並保持 前級增益；中心是您的工作空間；右軌跟隨您的輸出及其設定檔。視窗底部的欄控制正在播放的內容。',
+    '以舒適的音量播放一首熟悉的歌曲開始。左側導軌開啟 FluidEQ 並保持 前級增益；中心是您的工作空間；右軌跟隨您的輸出及其設定檔。視窗底部的欄控制正在播放的內容。 下方錄製的 2.2 導覽約九分半鐘，只有按下播放才會載入。2.3 的新遊戲頁面請參閱「遊戲實驗室」。',
   'help.start.steps':
     '安裝 FluidEQ 並在安裝程式詢問如何處理聲音時保持選擇 FluidEQ 引擎。 Windows 會要求一次許可，無須重新啟動。\n在輸出裝置下選擇您的收聽裝置。開啟系統等化器並保持自動標準化。\n播放一首歌曲，開啟 EQ → Bands，進行小的更改，然後與系統 EQ 進行比較。',
   'help.start.tip':
     '系統範圍的 EQ 需要 Windows 和音訊引擎：FluidEQ 引擎或 Equalizer APO。在 macOS 和 Linux 上，該應用程式顯示演示輸出，因此移動圖表並不能證明任何內容都已處理。',
   'help.start.keywords':
     '安裝、安裝程式、設定、設定、入門、第一步、快速入門、初學者、基礎知識、教學、如何使用、開始',
-  'help.start.videoTitle': '使用 FluidEQ 的第一步',
-  'help.start.videoNote':
-    '約四分鐘，提供英語語音與英語字幕。按下播放後會從 fluideq.com 載入。',
   'help.video.play': '播放影片：{title}',
   'help.video.loading': '從 fluideq.com 載入...',
   'help.video.failed':
     '影片無法載入。它從 fluideq.com 播放，因此需要網路連線。',
   'help.video.retry': '再試一次',
-  'help.video.open': '在 fluideq.com 上開啟',
   'help.window.title': '認識視窗介面',
   'help.window.intro':
     '標題將帶您在 FluidEQ 的頁面之間切換，並顯示播放時的聲音。左側導軌容納整個 EQ、前級增益 和電平表的開關；右軌跟隨您的輸出及其設定檔。',

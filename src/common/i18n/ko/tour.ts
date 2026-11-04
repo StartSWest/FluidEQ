@@ -583,10 +583,14 @@ const tour = {
     '룸은 헤드폰으로도 실제 공간의 스피커들 사이에 있는 듯한 소리를 들려줍니다.',
   'tour.film.walkthrough.maximizer':
     '그리고 맥시마이저가 클리핑 없이 모든 소리를 크고 깨끗하게 유지합니다.',
+  'tour.film.walkthrough.footsteps':
+    '랙에 새로 추가된 발소리는 발걸음과 재장전 같은 게임의 조용한 소리를 발생하는 순간에 올려 줍니다.',
   'tour.film.walkthrough.library':
     '라이브러리는 같은 사운드로 내 음악을 재생하며, 앨범과 재생목록, 다음 곡도 있습니다.',
   'tour.film.walkthrough.compact':
     '컴팩트 플레이어는 노래, 컨트롤, EQ를 작은 창 하나에 담습니다.',
+  'tour.film.walkthrough.desktop':
+    '그 뒤에서는 어떤 시각화든 바탕 화면에서 음악에 맞춰 움직일 수 있습니다.',
   'tour.film.walkthrough.oneline':
     '한 줄로 접으면 방해가 되지 않고, 노래 뒤에서 비주얼라이저가 은은하게 재생됩니다.',
   'tour.film.walkthrough.looks':
@@ -597,8 +601,16 @@ const tour = {
     '스튜디오에서 원하는 변경을 내 말로 설명하고, 무대에서 그대로 이루어지는 것을 보세요.',
   'tour.film.walkthrough.karaoke':
     '노래방은 내 노래를 함께 부를 수 있게 바꿔 줍니다. 시간에 맞춘 가사와 내 음정이 화면에 나옵니다.',
+  'tour.film.walkthrough.karaokeplay':
+    '가사가 있는 곡을 열고 재생을 누르세요. 노래에 맞춰 단어가 빛나고, 아래의 음정 가이드는 불러야 할 모든 음을 보여 줍니다.',
+  'tour.film.walkthrough.karaokestage':
+    '가사 뒤의 무대에서는 어떤 시각화든 곡에 맞춰 움직일 수 있습니다.',
   'tour.film.walkthrough.share':
     '오디오 공유는 집 네트워크의 컴퓨터들을 연결해, 음악이 양방향으로 오가게 합니다.',
+  'tour.film.walkthrough.sharelink':
+    '각 컴퓨터는 자신이 재생하는 소리만 보내므로 소리가 되돌아오지 않고, 듣는 컴퓨터는 자기 EQ를 적용합니다.',
+  'tour.film.walkthrough.sharemix':
+    '연결마다 볼륨을 따로 조절할 수 있고, 소리는 끊김 없이 무손실로 동기화되어 도착합니다.',
   'tour.film.walkthrough.help':
     '그리고 여기 있는 모든 것은 앱에서 직접 가져온 그림과 함께 사용자 가이드에 있습니다.',
   'tour.film.walkthrough.outro':

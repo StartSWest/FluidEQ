@@ -9,6 +9,7 @@
  * nothing is fetched before that.
  */
 const HELP_FILMS: Readonly<Record<string, readonly string[]>> = {
+  start: ['walkthrough'],
   looks: ['custom-looks'],
 };
 

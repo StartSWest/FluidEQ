@@ -359,11 +359,9 @@ describe('the Plus terms', () => {
   });
 
   /**
-   * The User guide's video, the first steps, is the app's one connection to
-   * fluideq.com from Help (the Plus tour left with Plus's sale). The terms
-   * name it by the title its card wears and the button that opens it in a
-   * browser, so a reader can find it; a card renamed in one place and not
-   * the other points them at something that is not there.
+   * Help and What's New fetch films only after a press. Their disclosure
+   * names the guide and its retry action, which remains available when
+   * neither the walkthrough nor its older tutorial can be reached.
    */
   it('name the Help video and its button as the guide shows them, in every language', () => {
     expect(SHOWN.sections.flatMap((section) => section.lines)).toContain(
@@ -373,8 +371,8 @@ describe('the Plus terms', () => {
       code: (typeof LOCALES)[number]['code'],
       key: 'terms.elsewhere.p10' | 'terms.elsewhere.p2',
     ) =>
-      translate(code, key).includes(translate(code, 'help.start.videoTitle')) &&
-      translate(code, key).includes(translate(code, 'help.video.open'));
+      translate(code, key).includes(translate(code, 'help.title')) &&
+      translate(code, key).includes(translate(code, 'help.video.retry'));
     const unnamed = LOCALES.filter(
       ({ code }) => !namesTheVideo(code, 'terms.elsewhere.p10'),
     ).map(({ code }) => code);

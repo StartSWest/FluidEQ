@@ -39,22 +39,18 @@ const help = {
 
   'help.start.title': 'Your first five minutes',
   'help.start.intro':
-    'Start with a familiar song at a comfortable volume. The left rail switches FluidEQ on and holds the preamp; the centre is your workspace; the right rail follows your output and its profiles. The bar at the foot of the window controls whatever is playing.',
+    'Start with a familiar song at a comfortable volume. The left rail switches FluidEQ on and holds the preamp; the centre is your workspace; the right rail follows your output and its profiles. The bar at the foot of the window controls whatever is playing. The recorded 2.2 tour below runs about nine and a half minutes and streams only when you press Play. For the new 2.3 gaming page, see Gaming Lab.',
   'help.start.steps':
     'Install FluidEQ and keep the FluidEQ Engine selected when setup asks how to process your sound. Windows asks for permission once, with no restart.\nChoose your listening device under Output device. Turn on System EQ and leave Auto normalize on.\nPlay a song, open EQ → Bands, make a small change, and compare with System EQ off and on.',
   'help.start.tip':
     'System-wide EQ needs Windows and an audio engine: the FluidEQ Engine or Equalizer APO. On macOS and Linux the app shows demonstration outputs, so a moving graph there is not proof that anything is processed.',
   'help.start.keywords':
     'install, installer, setup, set up, getting started, first steps, quick start, beginner, basics, tutorial, how to use, begin',
-  'help.start.videoTitle': 'First steps with FluidEQ',
-  'help.start.videoNote':
-    'About four minutes. It plays from fluideq.com when you press play.',
   'help.video.play': 'Play the video: {title}',
   'help.video.loading': 'Loading from fluideq.com…',
   'help.video.failed':
     'The video could not be loaded. It plays from fluideq.com, so it needs an internet connection.',
   'help.video.retry': 'Try again',
-  'help.video.open': 'Open on fluideq.com',
 
   'help.window.title': 'Around the window',
   'help.window.intro':

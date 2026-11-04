@@ -35,22 +35,18 @@ const help: Record<keyof typeof en, string> = {
 
   'help.start.title': 'Vos cinq premières minutes',
   'help.start.intro':
-    'Commencez avec un morceau familier à un volume confortable. La colonne de gauche active FluidEQ et contient le préampli ; le centre est votre espace de travail ; la colonne de droite suit votre sortie et ses profils. La barre en bas de la fenêtre contrôle tout ce qui est en lecture.',
+    'Commencez avec un morceau familier à un volume confortable. La colonne de gauche active FluidEQ et contient le préampli ; le centre est votre espace de travail ; la colonne de droite suit votre sortie et ses profils. La barre en bas de la fenêtre contrôle tout ce qui est en lecture. La visite enregistrée de la version 2.2 dure environ neuf minutes et demie et ne se charge qu’après Lecture. Pour la nouvelle page de jeu de la 2.3, consultez le Labo gaming.',
   'help.start.steps':
     'Installez FluidEQ et gardez le moteur FluidEQ sélectionné quand l’installation demande comment traiter votre son. Windows demande une autorisation une seule fois, sans redémarrage.\nChoisissez votre appareil d’écoute sous Périphérique de sortie. Activez l’Égaliseur système et laissez la Normalisation auto activée.\nLancez un morceau, ouvrez Égaliseur → Bandes, faites une petite modification et comparez en désactivant puis en réactivant l’Égaliseur système.',
   'help.start.tip':
     'L’EQ système nécessite Windows et un moteur audio : le moteur FluidEQ ou Equalizer APO. Sous macOS et Linux, l’application affiche des sorties de démonstration : un graphique animé n’y prouve donc aucun traitement.',
   'help.start.keywords':
     "premiers pas, prise en main, démarrage rapide, bien démarrer, mise en route, premier lancement, débutant, débuter, tutoriel, mode d'emploi, comment utiliser, comment ça marche, installer, setup",
-  'help.start.videoTitle': 'Premiers pas avec FluidEQ',
-  'help.start.videoNote':
-    'Environ quatre minutes, commentées en anglais. Elle est lue depuis fluideq.com quand vous appuyez sur lecture.',
   'help.video.play': 'Lire la vidéo : {title}',
   'help.video.loading': 'Chargement depuis fluideq.com…',
   'help.video.failed':
     'La vidéo n’a pas pu être chargée. Elle est lue depuis fluideq.com et demande donc une connexion à internet.',
   'help.video.retry': 'Réessayer',
-  'help.video.open': 'Ouvrir sur fluideq.com',
 
   'help.window.title': 'Se repérer dans la fenêtre',
   'help.window.intro':

@@ -655,10 +655,14 @@ const tour = {
     'The Room puts you among speakers in a real space, even on headphones.',
   'tour.film.walkthrough.maximizer':
     'And the Maximizer keeps it all loud and clean, without ever clipping.',
+  'tour.film.walkthrough.footsteps':
+    'New in the rack, Footsteps brings up the quiet sounds of a game, like steps and reloads, as they happen.',
   'tour.film.walkthrough.library':
     'The Library plays your own music through the same sound, with albums, playlists and Up next.',
   'tour.film.walkthrough.compact':
     'The Compact player puts all of it in one small window: the song, the controls and your EQ.',
+  'tour.film.walkthrough.desktop':
+    'Behind it, any visualizer can play on your desktop, moving with your music.',
   'tour.film.walkthrough.oneline':
     'Fold it to one line, and it stays out of your way, with a visualizer playing softly behind the song.',
   'tour.film.walkthrough.looks':
@@ -669,8 +673,16 @@ const tour = {
     'In the Studio, describe a change in your own words, and watch it happen on the stage.',
   'tour.film.walkthrough.karaoke':
     'Karaoke turns your songs into a sing-along, with timed lyrics and your pitch on screen.',
+  'tour.film.walkthrough.karaokeplay':
+    'Open a song with its lyrics and press Play. Each word lights up as it is sung, and the pitch guide below shows every note to hit.',
+  'tour.film.walkthrough.karaokestage':
+    'And behind the words, the stage can play any visualizer, moving with the song.',
   'tour.film.walkthrough.share':
     'Share Audio links the computers on your home network, so music flows between them, both ways.',
+  'tour.film.walkthrough.sharelink':
+    'Each computer sends only what it plays itself, so nothing echoes back, and the one you listen on applies its own EQ.',
+  'tour.film.walkthrough.sharemix':
+    'Each link has its own volume, and the sound arrives lossless and in step, with no dropouts.',
   'tour.film.walkthrough.help':
     'And everything here is in the User guide, drawn from the app itself.',
   'tour.film.walkthrough.outro':

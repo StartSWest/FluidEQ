@@ -204,7 +204,7 @@ const terms = {
   'terms.elsewhere.p2':
     'Presets de fones de ouvido: quando o FluidEQ abre, ele procura no GitHub novos presets de fones de ouvido, e a aba Convolução baixa arquivos AutoEq do GitHub quando você a abre ou escolhe um fone de ouvido.',
   'terms.elsewhere.p10':
-    'O vídeo “Primeiros passos com o FluidEQ” do Guia do usuário: nada é baixado até você apertar o play; aí o vídeo e as legendas em inglês chegam de fluideq.com, o site do próprio FluidEQ. A solicitação não leva nenhum cookie nem nada sobre você ou sua conta, e o site não guarda registro dela. Se ele não puder ser reproduzido, “Abrir em fluideq.com” o mostra no seu navegador. Os vídeos curtos dos slides de Novidades chegam de fluideq.com do mesmo jeito e começam sozinhos quando um slide abre: sem cookie, nada sobre você ou sua conta, e sem guardar registro. Sem conexão, o slide mostra o desenho dele.',
+    'Filmes em Guia do usuário e Novidades: nada é baixado até você pressionar Reproduzir ou Assistir. Então o vídeo e sua faixa de tempos ou legendas vêm de fluideq.com, o site do FluidEQ. As solicitações não levam cookies nem dados sobre você ou sua conta, e o site não guarda registros delas. O tutorial anterior entra no lugar do passeio se ele não carregar. Se nenhum carregar, Tentar de novo tenta de novo; o guia escrito e as ilustrações continuam disponíveis offline.',
   'terms.elsewhere.p3':
     'Modelos que você usa: o Criador de karaokê baixa do Hugging Face os modelos de fala, de vocais e de melodia dele, e a redução de ruído de voz baixa o modelo dela do GitHub. Seu áudio é processado no seu computador.',
   'terms.elsewhere.p9':

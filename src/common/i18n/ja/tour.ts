@@ -636,10 +636,14 @@ const tour: Partial<Dictionary> = {
     'ルームは、ヘッドホンでも、本物の空間でスピーカーに囲まれているような音にします。',
   'tour.film.walkthrough.maximizer':
     'そしてマキシマイザーが、音割れさせることなく、すべてを大きくクリアに保ちます。',
+  'tour.film.walkthrough.footsteps':
+    'ラックの新機能「足音」は、足音やリロードのようなゲームの小さな音を、鳴ったその瞬間に引き立てます。',
   'tour.film.walkthrough.library':
     'ライブラリでは、手持ちの音楽を同じサウンドで再生できます。アルバム、プレイリスト、「次に再生」もそろっています。',
   'tour.film.walkthrough.compact':
     'コンパクトプレーヤーなら、曲も操作も EQ も、小さなウィンドウひとつにまとまります。',
+  'tour.film.walkthrough.desktop':
+    'その後ろでは、どのビジュアライザーもデスクトップで再生でき、音楽に合わせて動きます。',
   'tour.film.walkthrough.oneline':
     '1 行にたたむと邪魔にならず、曲の後ろではビジュアライザーが静かに動き続けます。',
   'tour.film.walkthrough.looks':
@@ -650,8 +654,16 @@ const tour: Partial<Dictionary> = {
     'スタジオでは、変えたいことを自分の言葉で伝えると、その変化がステージ上で形になっていきます。',
   'tour.film.walkthrough.karaoke':
     'カラオケでは、手持ちの曲で歌えます。タイミングの合った歌詞と、あなたの音程が画面に表示されます。',
+  'tour.film.walkthrough.karaokeplay':
+    '曲を歌詞と一緒に開いて再生を押すと、歌われている言葉が順に光り、下のピッチガイドには出すべき音がすべて表示されます。',
+  'tour.film.walkthrough.karaokestage':
+    '歌詞の後ろのステージには、曲に合わせて動くどのビジュアライザーでも映せます。',
   'tour.film.walkthrough.share':
     '「音声を共有」を使えば、家のネットワーク上のパソコン同士がつながり、音楽が双方向に行き来します。',
+  'tour.film.walkthrough.sharelink':
+    '各コンピューターは自分で再生している音だけを送るので、音がこだまして戻ることはなく、聴いている側のコンピューターが自分の EQ をかけます。',
+  'tour.film.walkthrough.sharemix':
+    'リンクごとに音量を調整でき、音はロスレスで、ずれも途切れもなく届きます。',
   'tour.film.walkthrough.help':
     'そして、ここで紹介したすべてがユーザーガイドにまとまっています。図はアプリそのものから描かれています。',
   'tour.film.walkthrough.outro':
