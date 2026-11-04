@@ -321,12 +321,31 @@ $notes-ink: $secondary-default;
   list-style: none;
 
   li {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  a {
+    display: block;
     padding: 3px 10px;
     border: 1px solid $card-edge;
     border-radius: $radius-xs;
     background: $surface-field;
     color: $text-muted;
     font-size: $text-small;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      border-color: $secondary-light;
+      color: $secondary-light;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $secondary-light;
+      outline-offset: 2px;
+    }
   }
 }
 

@@ -29,10 +29,10 @@ export interface IGenreNote {
    */
   pins: readonly number[];
   /** Records that show the sound, as "Title — Artist". Names, not translated. */
-  listen: readonly string[];
+  listen: readonly GenreRecording[];
 }
 
-export const GENRE_NOTES: Readonly<Record<string, IGenreNote>> = {
+const GENRE_NOTES_DATA = {
   // Pop and its cousins.
   pop: {
     pins: [50, 315, 5000],
@@ -458,4 +458,10 @@ export const GENRE_NOTES: Readonly<Record<string, IGenreNote>> = {
       'How Great Is Our God — Chris Tomlin',
     ],
   },
-};
+} as const;
+
+export type GenreRecording =
+  (typeof GENRE_NOTES_DATA)[keyof typeof GENRE_NOTES_DATA]['listen'][number];
+
+export const GENRE_NOTES: Readonly<Record<string, IGenreNote>> =
+  GENRE_NOTES_DATA;

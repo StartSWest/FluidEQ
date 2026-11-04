@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { TranslationKey } from '../../common/i18n/en';
+import genreRecordingUrl from '../../common/dsp/genreRecordings';
 import { useTranslation } from '../utils/I18nContext';
 import holdFocusReturn from '../utils/focusReturn';
 import MenuIcon from '../icons/MenuIcon';
@@ -155,7 +156,16 @@ const GenreNotesDialog = ({ chainId, onClose }: IGenreNotesDialogProps) => {
             </h3>
             <ul className="genre-listen">
               {notes.note.listen.map((record) => (
-                <li key={record}>{record}</li>
+                <li key={record}>
+                  <a
+                    href={genreRecordingUrl(record)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`${t('video.openInBrowser')} · YouTube`}
+                  >
+                    {record}
+                  </a>
+                </li>
               ))}
             </ul>
           </section>
