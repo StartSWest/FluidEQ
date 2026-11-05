@@ -62,7 +62,73 @@ describe('installing a .deb update', () => {
     installDebsOutsideApp(updater, run);
     updater.runCommandWithSudoIfNeeded(['dpkg', '-i', '/x.deb']);
 
-    expect(run).toHaveBeenCalledWith(['dpkg', '-i', '/x.deb']);
+    expect(run).toHaveBeenCalledWith([
+      'apt-get',
+      'install',
+      '--assume-yes',
+      '--',
+      '/x.deb',
+    ]);
     expect(own).not.toHaveBeenCalled();
+  });
+
+  it('keeps a downgrade/password refusal from becoming a successful dependency repair', () => {
+    const updater = { runCommandWithSudoIfNeeded: (_command: string[]) => '' };
+    const failure = new Error('apt refused the downgrade');
+    const run = jest.fn().mockImplementation(() => {
+      throw failure;
+    });
+    installDebsOutsideApp(updater, run);
+    expect(() =>
+      updater.runCommandWithSudoIfNeeded(['dpkg', '-i', '/old.deb']),
+    ).toThrow(failure);
+    expect(() =>
+      updater.runCommandWithSudoIfNeeded(['apt-get', 'install', '-f', '-y']),
+    ).toThrow(failure);
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it('removes electron-updater’s apt downgrade and authentication bypass flags', () => {
+    const updater = { runCommandWithSudoIfNeeded: (_command: string[]) => '' };
+    const run = jest.fn().mockReturnValue('installed');
+    installDebsOutsideApp(updater, run);
+    expect(
+      updater.runCommandWithSudoIfNeeded([
+        'apt',
+        'install',
+        '-y',
+        '--allow-downgrades',
+        '--allow-unauthenticated',
+        '/new.deb',
+      ]),
+    ).toBe('installed');
+    expect(run).toHaveBeenCalledWith([
+      'apt-get',
+      'install',
+      '--assume-yes',
+      '--',
+      '/new.deb',
+    ]);
+  });
+
+  it('lets a new install attempt succeed after the previous password was cancelled', () => {
+    const updater = { runCommandWithSudoIfNeeded: (_command: string[]) => '' };
+    const run = jest
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error('cancelled');
+      })
+      .mockReturnValue('installed');
+    installDebsOutsideApp(updater, run);
+    expect(() =>
+      updater.runCommandWithSudoIfNeeded(['dpkg', '-i', '/new.deb']),
+    ).toThrow('cancelled');
+    expect(() =>
+      updater.runCommandWithSudoIfNeeded(['apt-get', 'install', '-f', '-y']),
+    ).toThrow('cancelled');
+    expect(updater.runCommandWithSudoIfNeeded(['dpkg', '-i', '/new.deb'])).toBe(
+      'installed',
+    );
+    expect(run).toHaveBeenCalledTimes(2);
   });
 });

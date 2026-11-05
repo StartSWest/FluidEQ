@@ -55,7 +55,37 @@ const installDebsOutsideApp = (
   updater: object,
   run: TRunAsRoot = runOutsideApp,
 ): void => {
-  Object.assign(updater, { runCommandWithSudoIfNeeded: run });
+  let installationError: unknown;
+  const install = (command: string[]) => {
+    // An apt upgrade may have installed a newer release while this running
+    // copy downloaded its update. apt's locked transaction refuses a
+    // downgrade with --assume-yes unless --allow-downgrades is present.
+    // Also let apt resolve the renamed package's Breaks/Replaces together.
+    if (command[0] === 'apt-get' && installationError) {
+      throw installationError;
+    }
+    const installer = command[command.length - 1];
+    if (
+      !['dpkg', 'apt'].includes(command[0]) ||
+      !installer?.startsWith('/') ||
+      !installer.endsWith('.deb')
+    ) {
+      throw new Error('The Linux update does not name a Debian installer.');
+    }
+    // A new user attempt may follow a cancelled password prompt. Only the
+    // dependency-repair fallback from the same failed attempt is suppressed.
+    installationError = undefined;
+    try {
+      return run(['apt-get', 'install', '--assume-yes', '--', installer]);
+    } catch (error) {
+      // DebUpdater catches a failed dpkg call and invokes apt-get -f alone.
+      // That repair can succeed without installing this update; keep the
+      // original refusal instead of reporting a successful replacement.
+      installationError = error;
+      throw error;
+    }
+  };
+  Object.assign(updater, { runCommandWithSudoIfNeeded: install });
 };
 
 export default installDebsOutsideApp;
