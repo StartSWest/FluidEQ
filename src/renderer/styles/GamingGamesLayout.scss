@@ -97,8 +97,8 @@
     }
   }
 
-  // A heading is not an action bar. Only the little chevron is a control,
-  // as on the Karaoke playlist; the count stays quiet beside the game rows.
+  // Keep the list pin beside its heading, with the same accent as other
+  // active controls; the count stays quiet beside the game rows.
   .gaming-games__list-toggle {
     flex: 0 0 auto;
     width: 26px;
@@ -109,6 +109,12 @@
     background: transparent;
     box-shadow: none;
 
+    &[aria-expanded='true'] {
+      color: $secondary-default;
+      border-color: $border-field;
+      background: $hover-accent;
+    }
+
     &:hover,
     &:focus-visible {
       color: $secondary-light;
@@ -116,10 +122,10 @@
       background: $hover-accent;
     }
 
-    > .chevron {
+    > .menu-icon {
       flex: 0 0 auto;
-      transform: rotate(90deg);
-      transition: transform var(--gaming-fold) $ease-out;
+      width: 16px;
+      height: 16px;
     }
   }
 
@@ -142,10 +148,6 @@
 
     .gaming-games__divider {
       visibility: hidden;
-    }
-
-    .gaming-games__list-toggle > .chevron {
-      transform: rotate(-90deg);
     }
   }
 
@@ -180,16 +182,8 @@
       grid-row: 4;
     }
 
-    .gaming-games__list-toggle > .chevron {
-      transform: rotate(180deg);
-    }
-
     &.is-list-collapsed {
       grid-template-rows: 34px minmax(0, 0px) 0px minmax(0, 1fr);
-
-      .gaming-games__list-toggle > .chevron {
-        transform: rotate(0deg);
-      }
     }
   }
 

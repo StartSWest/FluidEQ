@@ -3,7 +3,7 @@
 import { CSSProperties, ReactNode, useId } from 'react';
 import ColumnResizer from '../components/ColumnResizer';
 import PaneResizer from '../components/PaneResizer';
-import Chevron from '../icons/Chevron';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useGamingGamesLayout from './useGamingGamesLayout';
 import '../styles/GamingGamesLayout.scss';
@@ -37,7 +37,7 @@ export const GamingGamesListToggle = ({
         aria-controls={controls}
         onClick={onToggle}
       >
-        <Chevron />
+        <MenuIcon name="pin" />
       </button>
     </div>
   );
