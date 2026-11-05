@@ -37,6 +37,11 @@ constexpr uint32_t kBlock = 480;
 FeqDeEsserSettings vocal_music() {
   FeqDeEsserSettings settings{};
   feq_deesser_settings_defaults(&settings);
+  // Stable strong reference for the algorithm contracts; factory defaults
+  // are intentionally gentler for finished music.
+  settings.sensitivity = 0.55;
+  settings.range_db = 6.0;
+  settings.keep_cymbals = 0.7;
   settings.enabled = 1;
   return settings;
 }
@@ -253,9 +258,22 @@ void every_rate_the_same() {
   }
 }
 
+void factory_music_is_restrained() {
+  FeqDeEsserSettings settings{};
+  feq_deesser_settings_defaults(&settings);
+  settings.enabled = 1;
+  const double s = s_loss(SceneOptions{}, settings);
+  const double hat = hat_loss(SceneOptions{}, settings);
+  std::printf("  factory music: S %.2f dB, lone hi-hats %.2f dB\n", s, hat);
+  check(settings.range_db <= 3.0, "music defaults cap each spectral cut at 3 dB");
+  check(s >= 0.75 && s <= 3.0, "factory de-essing is audible but restrained");
+  check(hat <= 0.1, "factory de-essing preserves lone cymbals");
+}
+
 }  // namespace
 
 int main() {
+  factory_music_is_restrained();
   at_rest_it_is_its_delay();
   vowels_are_barely_touched();
   the_s_comes_down_and_the_hat_does_not();

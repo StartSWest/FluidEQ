@@ -29,6 +29,10 @@ import {
  * tape hiss — and the 60s stereo mixes, panned hard left, centre and right,
  * are narrowed a shade rather than widened.
  */
+// 2026-11-04 reference calibration: constant input normalization precedes
+// the creative stages and one final Maximizer. Drive is makeup from that
+// working level, not a ranking of limiting strength. Exact settings and
+// measured limits: docs/dsp/music-reference-audit.json.
 const URBAN_RACKS: readonly IGenreRack[] = [
   {
     // Boom bap at 85-95 BPM, a hard short kick and the voice on top, older
@@ -37,6 +41,19 @@ const URBAN_RACKS: readonly IGenreRack[] = [
     // the vinyl and the 808s are saturated already, and its octave and
     // harmonics came to 16% of a bass note (2026-09-23).
     id: 'hiphop',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     exciter: exciterProfile(
       [
         { freqHz: 65, drive: 2.15, mix: 0.26, texture: 0.03 },
@@ -48,8 +65,8 @@ const URBAN_RACKS: readonly IGenreRack[] = [
     ),
     bassForge: forge(100, 0, 0.5, 0.8, 0.9, 0.35),
     bassPunch: punch(110, 0.65, 0.15, 0.15, 100, 0.45),
-    dimension: width(0.5, 1, 1, 180, 3_500, 0.05),
-    maximizer: ceiling(0.75, -1, 3, sixteenthMs(92)),
+    dimension: width(0.5, 1, 1, 180, 3_500, 0),
+    maximizer: ceiling(4.75, -1, 3, sixteenthMs(92)),
     offered: ['exciter', 'bassForge', 'bassPunch'],
   },
   {
@@ -58,9 +75,22 @@ const URBAN_RACKS: readonly IGenreRack[] = [
     // left off: the harmonics of a bass land on the chest of the voice,
     // which is the one place bass may not go.
     id: 'rap',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     bassForge: forge(100, 0, 0.35, 0.7, 0.9, 0.3),
-    dimension: width(0.5, 0.95, 1, 180, 3_500, 0.05),
-    maximizer: ceiling(0.75, -1, 3, sixteenthMs(95)),
+    dimension: width(0.5, 0.95, 1, 180, 3_500, 0),
+    maximizer: ceiling(6.75, -1, 3, sixteenthMs(95)),
     offered: ['bassForge'],
   },
   {
@@ -70,23 +100,49 @@ const URBAN_RACKS: readonly IGenreRack[] = [
     // note — which is presence, not sub, so Forge's octave below is at
     // nought. Everything under 120 Hz mono.
     id: 'trap',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     bassForge: forge(80, 0, 0, 1, 0.95, 0.4),
-    dimension: width(0.5, 1, 1.1, 120, 3_000, 0.1),
-    maximizer: ceiling(0.5, -1, 3, sixteenthMs(140)),
+    dimension: width(0.5, 1, 1.1, 120, 3_000, 0),
+    maximizer: ceiling(6.75, -1, 3, sixteenthMs(140)),
   },
   {
     // A silky top and a centred, intimate voice over a round bottom. Warmth
     // only — an exciter on this vocal lands on its breaths — and the pads a
     // little wider than the voice, which is how the genre is mixed.
     id: 'rnb',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     // Offered under its name and not played: no exciter on the vocal, which is
     // the record.
     exciter: exciterProfile(
       [{ enabled: false }, { enabled: false }, { enabled: false }],
       { enabled: true, amount: 0.12, focusHz: 350, range: 0.32 },
     ),
-    dimension: width(0.6, 1, 1.15, 160, 3_400, 0.12),
-    maximizer: ceiling(1, -1, 5, sixteenthMs(90)),
+    dimension: width(0.6, 1, 1.15, 160, 3_400, 0),
+    maximizer: ceiling(5.25, -1, 5, sixteenthMs(90)),
     offered: ['exciter'],
   },
   {
@@ -94,6 +150,19 @@ const URBAN_RACKS: readonly IGenreRack[] = [
     // Warmth, a shade of narrowing, and a slow ceiling for masters that were
     // never limited.
     id: 'soul',
+    normalizer: { mode: 'loudness', targetLufs: -19, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     // Offered under its name and not played: tape and tube are the sound, and
     // an exciter raises their hiss.
     exciter: exciterProfile(
@@ -101,21 +170,34 @@ const URBAN_RACKS: readonly IGenreRack[] = [
       { enabled: true, amount: 0.15, focusHz: 380, range: 0.32 },
     ),
     dimension: width(0.8, 0.92, 0.95, 180, 3_400, 0),
-    maximizer: ceiling(1.25, -1, 10, beatMs(96)),
+    maximizer: ceiling(5.5, -1, 10, beatMs(96)),
     offered: ['exciter'],
   },
   {
     // A live, drunk-feeling pocket of ghost notes and Rhodes: warm, nothing
     // added to the hits, and nothing squeezing them.
     id: 'neoSoul',
+    normalizer: { mode: 'loudness', targetLufs: -22, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     // Offered under its name and not played: warm and dark is the brief, and no
     // exciter keeps it so.
     exciter: exciterProfile(
       [{ enabled: false }, { enabled: false }, { enabled: false }],
       { enabled: true, amount: 0.12, focusHz: 330, range: 0.32 },
     ),
-    dimension: width(0.75, 1, 1, 170, 3_400, 0.05),
-    maximizer: ceiling(1, -1, 8, beatMs(80)),
+    dimension: width(0.75, 1, 1, 170, 3_400, 0),
+    maximizer: ceiling(3.5, -1, 8, beatMs(80)),
     offered: ['exciter'],
   },
   {
@@ -123,18 +205,44 @@ const URBAN_RACKS: readonly IGenreRack[] = [
     // under slapped bass and a muffled kick, with no bloom to smear the
     // articulation. Dry and mid-forward, never brightened.
     id: 'funk',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     bassPunch: punch(110, 0.2, -0.4, 0, 50, 0),
-    dimension: width(0.75, 1, 1.05, 170, 3_200, 0.05),
-    maximizer: ceiling(1, -1, 6, sixteenthMs(112)),
+    dimension: width(0.75, 1, 1.05, 170, 3_200, 0),
+    maximizer: ceiling(5.25, -1, 6, sixteenthMs(112)),
   },
   {
     // Four on the floor at about 122 BPM under a wall of strings that is
     // wide already. A little weight in the kick, its tail kept short of the
     // next beat, and no widening of what the orchestra spread.
     id: 'disco',
+    normalizer: { mode: 'loudness', targetLufs: -18.5, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     bassPunch: punch(110, 0.25, -0.2, 0.08, 90, 0.2),
-    dimension: width(0.7, 1, 1, 170, 3_200, 0.05),
-    maximizer: ceiling(1, -1, 6, sixteenthMs(122)),
+    dimension: width(0.7, 1, 1, 170, 3_200, 0),
+    maximizer: ceiling(4.75, -1, 6, sixteenthMs(122)),
   },
 ];
 

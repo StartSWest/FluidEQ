@@ -12,9 +12,10 @@ const genreElectronic = {
   'genre.electronic.pin.315.why': '踢拳的空間。',
   'genre.electronic.pin.8000': '帽子和空氣',
   'genre.electronic.pin.8000.why': '明亮混合的頂部。',
-  'genre.electronic.stage.dimension': '單聲道低於 150 Hz，中頻上方稍寬。',
+  'genre.electronic.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
   'genre.electronic.stage.maximizer':
-    '明亮的天花板比旁邊的俱樂部風格高出半分貝，這使它與它們處於同一水平。',
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.electronic.off':
     '它的激勵器 Bass Forge 和 Bass Punch 已提供並保留：激勵器使該面板很快變得刺耳，而重低音喇叭不需要在其下產生任何東西。',
   'genre.edm.hook': '大房間：大鼓是低音',
@@ -26,8 +27,10 @@ const genreElectronic = {
   'genre.edm.pin.315.why': '踢球的空間。',
   'genre.edm.pin.5000': '超級鋸齒咬合',
   'genre.edm.pin.5000.why': '領先優勢。',
-  'genre.edm.stage.dimension': '單底，沒有別的。',
-  'genre.edm.stage.maximizer': '天花板幾乎無法壓在剪裁的母版上。',
+  'genre.edm.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.edm.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.edm.off':
     '它的激勵器被提供並被取消：沒有子升壓，沒有加寬，也沒有諧波，在一個擁有一切的下降中。',
   'genre.house.hook': '泵是凹槽',
@@ -39,8 +42,12 @@ const genreElectronic = {
   'genre.house.pin.500.why': '它將底鼓和低音分開。',
   'genre.house.pin.12500': '溫暖，不明亮',
   'genre.house.pin.12500.why': '頂部緩和了。',
-  'genre.house.stage.dimension': '單聲道低於 150 Hz，收窄至 200，頂部稍寬。',
-  'genre.house.stage.maximizer': '輕型天花板使幫浦不受幹擾。',
+  'genre.house.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.house.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.house.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.house.off':
     '沒有 Bass Punch，因為沒有任何東西可以重新計時踢球；無激勵器或 Bass Forge。',
   'genre.techno.hook': '持續隆隆聲中的壓縮踢腿',
@@ -53,8 +60,10 @@ const genreElectronic = {
   'genre.techno.pin.5000': '無提亮效果',
   'genre.techno.pin.5000.why': '頂部幾乎沒有觸及。',
   'genre.techno.stage.bassPunch': '至多踢腿收緊了，這樣隆隆聲就不會掩蓋它。',
-  'genre.techno.stage.dimension': '單底；在最窄的風格中沒有任何東西被加寬。',
-  'genre.techno.stage.maximizer': '淺色天花板。',
+  'genre.techno.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.techno.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.techno.off': '無激勵器且無 Bass Forge：無子升壓且無諧波。',
   'genre.trance.hook': '超級鋸和基於對比的水滴',
   'genre.trance.story':
@@ -65,8 +74,10 @@ const genreElectronic = {
   'genre.trance.pin.315.why': '200 至 350 Hz，其中有混合雲。',
   'genre.trance.pin.3150': '脆帶得到緩解',
   'genre.trance.pin.3150.why': '大約 3 kHz，鋸子變成玻璃狀。',
-  'genre.trance.stage.dimension': '單聲道低於 120 Hz，僅此而已。',
-  'genre.trance.stage.maximizer': '天花板幾乎不驅動，因此下降保持其對比。',
+  'genre.trance.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.trance.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.trance.off': '沒有激勵器或 Bass Forge：超級鋸已經產生了大量的頂部。',
   'genre.drumBass.hook': '單聲道重低音突破 174',
   'genre.drumBass.story':
@@ -78,9 +89,10 @@ const genreElectronic = {
   'genre.drumBass.pin.5000': '小鼓和斷裂的劈啪聲',
   'genre.drumBass.pin.5000.why': '流派的身份。',
   'genre.drumBass.stage.bassPunch': '腳踢得更緊，卻始終沒有抬起。',
-  'genre.drumBass.stage.dimension': '亞單聲道。',
+  'genre.drumBass.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
   'genre.drumBass.stage.maximizer':
-    '一個輕質的天花板，可以進入十六分之一，這樣軍鼓就可以保持其裂痕。',
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.drumBass.off': '無激勵器或 Bass Forge：神經低音上無諧波。',
   'genre.dubstep.hook': '咆哮下的正弦重低音喇叭',
   'genre.dubstep.story':
@@ -91,8 +103,10 @@ const genreElectronic = {
   'genre.dubstep.pin.80.why': '主體位於子上方。',
   'genre.dubstep.pin.500': '小鼓和咆哮的空間',
   'genre.dubstep.pin.500.why': '中間清了。',
-  'genre.dubstep.stage.dimension': '120 Hz 以下的亞單聲道。',
-  'genre.dubstep.stage.maximizer': '幾乎無法驅動的天花板。',
+  'genre.dubstep.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.dubstep.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.dubstep.off':
     '無激勵器、Bass Punch 或 Bass Forge：咆哮聲已經嘶嘶作響。',
   'genre.downtempo.hook': '深低音下的緩慢斷裂',
@@ -105,7 +119,10 @@ const genreElectronic = {
   'genre.downtempo.pin.12500': '穀物留下灰塵',
   'genre.downtempo.pin.12500.why': '沒有變亮。',
   'genre.downtempo.stage.dimension': '氣氛更寬廣，低音更窄。',
-  'genre.downtempo.stage.maximizer': '緩慢而輕盈的天花板。',
+  'genre.downtempo.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.downtempo.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.downtempo.off': 'Bass Forge 已提供並停止：低音已經很深了。',
   'genre.chillout.hook': '光滑寬敞',
   'genre.chillout.story':
@@ -118,7 +135,10 @@ const genreElectronic = {
   'genre.chillout.pin.12500.why': '上面有閃光。',
   'genre.chillout.stage.exciter': '僅輕空氣。',
   'genre.chillout.stage.dimension': '更寬的頂部：這裡的寬度是受歡迎的。',
-  'genre.chillout.stage.maximizer': '整個節拍上的緩慢天花板：沒有任何壓力。',
+  'genre.chillout.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.chillout.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.chillout.off': '沒有 Bass Punch 或 Bass Forge：沒什麼重的。',
   'genre.lofi.hook': '故意黑暗和灰塵',
   'genre.lofi.story':
@@ -129,9 +149,10 @@ const genreElectronic = {
   'genre.lofi.pin.200.why': '它所採取的唯一方向。',
   'genre.lofi.pin.3150': '故意黑暗',
   'genre.lofi.pin.3150.why': '沒有什麼比唱片更耀眼的了。',
-  'genre.lofi.stage.dimension': '略有收窄，底部單聲道低於 120 Hz。',
+  'genre.lofi.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
   'genre.lofi.stage.maximizer':
-    '比它的兄弟姐妹有更多的驅動力，因為錄製時更安靜。',
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.lofi.off': '它的 Exciter 被提供並停止：唱片已經在磁帶上飽和了。',
   'genre.ambient.hook': '專為低水位設計的無人機和海浪',
   'genre.ambient.story':
@@ -144,7 +165,8 @@ const genreElectronic = {
   'genre.ambient.pin.12500.why': '墊的頂部。',
   'genre.ambient.stage.dimension':
     '寬幅，所有型別中最寬的，並且在單聲道中仍然安全。',
-  'genre.ambient.stage.maximizer': '天花板只與隆起的頂部相接。',
+  'genre.ambient.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.ambient.off': '它的激勵器被提供並關閉：沒有任何東西壓縮或平衡安靜。',
   'genre.newAge.hook': '鋼琴、長笛與長混響',
   'genre.newAge.story':
@@ -156,7 +178,10 @@ const genreElectronic = {
   'genre.newAge.pin.12500': '一點空氣',
   'genre.newAge.pin.12500.why': '超過混響。',
   'genre.newAge.stage.dimension': '氣氛寬廣。',
-  'genre.newAge.stage.maximizer': '沒有什麼能打破安靜。',
+  'genre.newAge.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.newAge.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.newAge.off': '它的激勵器被提供並保留：透明是簡單的。',
 } satisfies Partial<Dictionary>;
 

@@ -3,7 +3,7 @@
 export default {
   'genre.pop.hook': 'Il disco più rifinito che esista',
   'genre.pop.story':
-    'Il pop va da 100 a 130 BPM, o a metà tempo intorno a 90, su una 808 o un basso synth, con una voce brillante fino a un passo dall’aspro. I master arrivano limitati a circa −8 LUFS con picchi oltre il fondo scala, quindi tutto ciò che uno stadio di riproduzione potrebbe aggiungere c’è già. Il preset aggiunge solo ciò che un master non può avere.',
+    'Il pop contemporaneo mette una voce principale chiara sopra un basso preciso e un mix brillante e aperto. I brani vengono prima portati a −18 LUFS, così master forti e registrazioni più basse arrivano al trattamento allo stesso livello. Il Maximizer alza poi il risultato verso −11 LUFS, fermando i picchi a −1 dBTP e mantenendo il contrasto tra strofe, ritornelli e colpi di batteria.',
   'genre.pop.pin.50': 'Il sub e la cassa su cui il pop è costruito',
   'genre.pop.pin.50.why':
     'Più sentito che udito: il peso che un piccolo altoparlante perde per primo.',
@@ -13,14 +13,16 @@ export default {
   'genre.pop.pin.5000': 'Presenza e lucentezza',
   'genre.pop.pin.5000.why':
     'La rifinitura sulla voce, tenuta a un passo dall’aspro.',
+  'genre.pop.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.pop.stage.exciter':
-    'Corpo intorno a 1 kHz, lucentezza sulla voce e calore sotto entrambi.',
+    'Un tocco di corpo e calore sulla voce. L’exciter della banda alta resta spento per mantenere la brillantezza originale del disco.',
   'genre.pop.stage.bassPunch':
     'Stringe invece di colpire: una coda della cassa più corta sotto la linea di basso, l’attacco appena sollevato.',
   'genre.pop.stage.dimension':
     'Bassi in mono sotto i 140 Hz, come si fanno i master pop, e l’aria un po’ più ampia che nel disco.',
   'genre.pop.stage.maximizer':
-    'Un tetto leggero che spinge appena: il master è già limitato.',
+    'Aggiunge 7 dB dopo la normalizzazione in ingresso, puntando a circa −11 LUFS con un tetto di −1 dBTP. Master resta spento: un solo limiter finale mantiene l’impatto.',
   'genre.pop.off':
     'La Fucina dei bassi è offerta con il nome di Pop e resta spenta: il sub è nel master.',
 
@@ -42,9 +44,11 @@ export default {
   'genre.indiePop.stage.exciter':
     'Solo calore, nei medio-bassi: mai più brillante.',
   'genre.indiePop.stage.dimension':
-    'Il basso più stretto e l’aria un filo più ampia: le armonie si aprono senza spostare la voce.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.indiePop.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.indiePop.stage.maximizer':
-    'Un tetto leggero che conserva la morbidezza.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.indiePop.off':
     'Nessuno stadio lo schiarisce o aggiunge bassi: il calore lo-fi è il punto.',
 
@@ -63,9 +67,11 @@ export default {
   'genre.synthPop.stage.exciter':
     'Solo calore, nei medio-bassi: niente armoniche su acuti brillanti.',
   'genre.synthPop.stage.dimension':
-    'Il basso più stretto e i pad un po’ più ampi, come si mixava il genere.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.synthPop.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.synthPop.stage.maximizer':
-    'Un tetto lento che lascia la dinamica degli anni ’80.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.synthPop.off':
     'Niente Punch dei bassi e niente Fucina dei bassi: la cassa di una drum machine è esattamente come è stata programmata.',
 
@@ -81,31 +87,36 @@ export default {
   'genre.newWave.pin.1250': 'Le chitarre spezzate',
   'genre.newWave.pin.1250.why': 'Dove vive il mordente della chitarra ritmica.',
   'genre.newWave.stage.exciter':
-    'Un po’ di corpo e un po’ d’aria, che un originale sottile accoglie volentieri.',
+    'Solo un poco di calore nei medio-bassi. Tutte e tre le bande armoniche restano spente per mantenere chiare le voci sovrapposte.',
   'genre.newWave.stage.dimension':
-    'Vicino al disco: il basso più stretto, gli acuti appena più ampi.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.newWave.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.newWave.stage.maximizer':
-    'Un tetto che si limita a contenere: lo scatto è il genere.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.newWave.off':
     'Niente Punch dei bassi né Fucina dei bassi: il fondo asciutto è voluto.',
 
-  'genre.kPop.hook': 'Tra i dischi più forti e rifiniti che si facciano',
+  'genre.kPop.hook': 'Voci chiare, bassi compatti e un drop potente',
   'genre.kPop.story':
-    'Brani dance di girl group a 115–130 BPM e canzoni di boy band più vicine a 80–100, con una cassa costruita per la spinta del sub e una voce già sollevata tra 3 e 5 kHz e a 12 kHz. I master stanno tra −10 e −6 LUFS con picchi oltre il fondo scala.',
+    'Dynamite dei BTS propone un basso disco-pop; How You Like That delle BLACKPINK, un drop hip-hop incisivo. Entrambi richiedono voci chiare, corpo e contrasto. Prima del trattamento, l’ingresso viene uniformato a −18 LUFS. Questo preset d’ascolto è stato calibrato sulle anteprime ufficiali Apple, senza correzione delle cuffie.',
   'genre.kPop.pin.80': 'La spinta della cassa, non il sub',
   'genre.kPop.pin.80.why':
     'Dove arriva la cassa; niente viene alzato sotto i 50 Hz.',
   'genre.kPop.pin.315': 'Spazio sotto un arrangiamento denso',
   'genre.kPop.pin.315.why':
-    'Medio-bassi liberati perché gli strati non si impastino.',
+    'Un taglio delicato nei medio-bassi separa gli strati e conserva il corpo della voce.',
   'genre.kPop.pin.12500': 'Nessuna aria in più',
-  'genre.kPop.pin.12500.why': 'La voce porta già la sua a 12 kHz.',
+  'genre.kPop.pin.12500.why':
+    'Conserva l’aria della registrazione senza aggiungere enfasi sugli alti.',
+  'genre.kPop.stage.deEsser':
+    'De-essing spettrale delicato sulla voce centrale da 5 a 10 kHz, limitato a 1,5 dB, con protezione dei piatti e senza ridurre i bassi.',
   'genre.kPop.stage.exciter':
-    'Corpo e presenza sotto le enfasi della voce stessa, e niente sugli acuti.',
+    'Solo un poco di calore nei medio-bassi. Tutte e tre le bande armoniche restano spente per mantenere chiare le voci sovrapposte.',
   'genre.kPop.stage.dimension':
-    'Il basso più stretto, e raddoppi e pad un po’ più ampi di come sono stati mixati.',
+    'Restringe i bassi e apre leggermente i lati alti già presenti, senza allargare la voce principale al centro.',
   'genre.kPop.stage.maximizer':
-    'Un tetto che spinge appena: questi master sono forti quanto un master può esserlo.',
+    'Aggiunge 7 dB dopo la normalizzazione a −18 LUFS, puntando a circa −11 LUFS con picchi a −1 dBTP. Dynamics e Master restano disattivati.',
   'genre.kPop.off':
     'Niente Punch dei bassi né Fucina dei bassi: il punch della cassa e il sub sono già nel disco.',
 
@@ -120,9 +131,12 @@ export default {
   'genre.jPop.pin.3150.why': 'Già brillanti e in avanti; mai spinti.',
   'genre.jPop.stage.exciter':
     'Solo calore, nei medio-bassi: niente su acuti così brillanti.',
-  'genre.jPop.stage.dimension': 'Niente viene allargato: il muro è già ampio.',
+  'genre.jPop.stage.dimension':
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.jPop.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.jPop.stage.maximizer':
-    'Un tetto che spinge appena su master già in clipping.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.jPop.off':
     'Niente Punch dei bassi né Fucina dei bassi: il muro arriva denso e forte.',
 
@@ -138,8 +152,11 @@ export default {
     'Un piccolo sollevamento sopra le consonanti, non su di esse.',
   'genre.cPop.stage.exciter': 'Solo calore: niente armoniche sulle sibilanti.',
   'genre.cPop.stage.dimension':
-    'I medi un filo più stretti perché la voce tenga il centro, archi e riverberi un po’ più ampi.',
-  'genre.cPop.stage.maximizer': 'Un tetto lento per la dinamica delle ballate.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.cPop.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
+  'genre.cPop.stage.maximizer':
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.cPop.off':
     'Niente Punch dei bassi né Fucina dei bassi: nessun sub inventato sotto una ballata al pianoforte.',
 
@@ -159,9 +176,11 @@ export default {
   'genre.ballad.pin.8000.why':
     'Una voce vicina porta qui le sue esse, e un’esaltazione le affilerebbe tutte.',
   'genre.ballad.stage.dimension':
-    'I bassi stretti verso il centro, dove le ballate li mixano; voce, pianoforte e archi lasciati larghi come sono stati posizionati.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.ballad.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.ballad.stage.maximizer':
-    'Un tetto leggero e lento che rilascia lungo un intero tempo, così le strofe piano restano piano e l’ultimo ritornello cresce ancora.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.ballad.off':
     'Niente Exciter, Fucina dei bassi né Punch dei bassi: le armoniche cadrebbero sulle sibilanti, una ballata ha un sub solo dove il produttore l’ha messo, e raramente c’è una cassa da modellare.',
 };

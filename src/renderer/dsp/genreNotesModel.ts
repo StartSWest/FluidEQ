@@ -91,6 +91,7 @@ export const genreHookKey = (chainId: string): TranslationKey | undefined => {
 
 /** What the DSP page calls each stage, so the notes use the same names. */
 export const STAGE_TITLE: Readonly<Record<TGenreStage, TranslationKey>> = {
+  deEsser: 'dsp.deEsser.title',
   exciter: 'dsp.exciter.title',
   bassForge: 'dsp.bassForge.title',
   bassPunch: 'dsp.bassPunch.title',

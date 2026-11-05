@@ -44,6 +44,7 @@ import type { ICurveComparisonStatus } from 'common/curveComparison';
 import type { ITrebleDesigns } from 'common/filterDesign';
 import type { IBandDesign } from 'common/bandDesigns';
 import type { IMyCurve } from 'common/myCurves';
+import type { IGameSoundState, IYoursGamingProfile } from 'common/gaming';
 import type {
   IAudioEngineStatus,
   IAudioRestartOutcome,
@@ -244,6 +245,9 @@ export const buildResponseHandler = <
     | IAudioRestartOutcome
     | IEngineSetupResult
     | IMyCurve[]
+    | IGameSoundState
+    | IYoursGamingProfile
+    | IYoursGamingProfile[]
     | Record<string, string>,
 >(
   resultEvaluator: (
@@ -307,6 +311,9 @@ export const simpleResponseHandler = <
     | IAudioRestartOutcome
     | IEngineSetupResult
     | IMyCurve[]
+    | IGameSoundState
+    | IYoursGamingProfile
+    | IYoursGamingProfile[]
     | Record<string, string>,
 >() =>
   buildResponseHandler<Type>((result, resolve) => {

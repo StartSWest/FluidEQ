@@ -14,6 +14,7 @@ import { Translate } from '../../common/i18n';
 import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
 import { IRichPickEntry } from '../widgets/RichPick';
+import { scopedGroups, TDspPresetScope } from './presetScope';
 import { IUserPreset } from './userPresets';
 
 /** Where the user's own presets file. Above every factory group, always. */
@@ -71,6 +72,7 @@ export const presetHint = (preset: IEqPreset, t: Translate): string => {
 export const eqPresetEntries = (
   userPresets: readonly IUserPreset[],
   t: Translate,
+  scope: TDspPresetScope,
 ): IRichPickEntry[] => [
   // Theirs first. These are the ones somebody made on purpose, and a list that
   // puts them under forty-seven factory curves is a list that hides them.
@@ -81,7 +83,7 @@ export const eqPresetEntries = (
     group: SAVED_GROUP,
     icon: <VoicingIcon className="rich-pick__glyph" />,
   })),
-  ...EQ_PRESET_GROUPS.flatMap((group) =>
+  ...scopedGroups(EQ_PRESET_GROUPS, scope).flatMap((group) =>
     EQ_PRESETS.filter((preset) => preset.group === group).map((preset) => ({
       id: preset.id,
       name: t(preset.labelKey as TranslationKey),

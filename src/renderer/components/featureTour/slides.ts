@@ -30,7 +30,6 @@ import {
   VisualizersSlide,
 } from './release17';
 import {
-  GamePresetsSlide,
   GraphViewsSlide,
   GuideSearchSlide,
   LookSlide,
@@ -54,11 +53,12 @@ import {
   StudioChatSlide,
 } from './release21';
 import KaraokeBackgroundSlide, { LanguagesSlide, TraySlide } from './release22';
+import GamingLabSlide from './release23';
 import WalkthroughSlide, { WALKTHROUGH_FILM } from './WalkthroughSlide';
 
 /**
  * The workspace tabs a slide can send the user to. `community` is Plus;
- * `games` is the Game presets page behind EQ, and `presets` its EQ Presets.
+ * `games` is the Gaming Lab, and `presets` the EQ's Presets.
  */
 export type TTourTab =
   | 'eq'
@@ -127,6 +127,19 @@ const COMPACT_PLAYER: TSlideEntry = {
   titleKey: 'tour.player.title',
   subtitleKey: 'tour.player.subtitle',
   Body: CompactPlayerSlide,
+};
+
+/**
+ * 2.0 announced a game's own sound as presets switched by the game in front;
+ * 2.3's Gaming Lab gives each game its own copy, tuned on one page (Ivan,
+ * 2026-11-04), and the slide moves up to say so. Its id stays the one 2.0
+ * gave it, so a reader who has seen 2.0's is not shown two games slides.
+ */
+const GAMING_LAB: TSlideEntry = {
+  id: 'game-presets',
+  titleKey: 'tour.games.title',
+  subtitleKey: 'tour.games.subtitle',
+  Body: GamingLabSlide,
 };
 
 /**
@@ -211,12 +224,7 @@ const RELEASE_20: TSlideEntry[] = [
     Body: EngineSoundSlide,
   },
   ROOM,
-  {
-    id: 'game-presets',
-    titleKey: 'tour.games.title',
-    subtitleKey: 'tour.games.subtitle',
-    Body: GamePresetsSlide,
-  },
+  GAMING_LAB,
   COMPACT_PLAYER,
   {
     id: 'graph-views',
@@ -299,6 +307,40 @@ const RELEASE_21: TSlideEntry[] = [
   },
 ];
 
+/**
+ * 2.2: the walkthrough of the whole app first, then Karaoke's backdrop,
+ * starting in the tray and the two new languages.
+ */
+const RELEASE_22: TSlideEntry[] = [
+  {
+    id: WALKTHROUGH_FILM,
+    titleKey: 'tour.walkthrough.title',
+    subtitleKey: 'tour.walkthrough.subtitle',
+    Body: WalkthroughSlide,
+  },
+  {
+    id: 'karaoke-background',
+    titleKey: 'tour.karaokeBackground.title',
+    subtitleKey: 'tour.karaokeBackground.subtitle',
+    Body: KaraokeBackgroundSlide,
+  },
+  {
+    id: 'tray-start',
+    titleKey: 'tour.tray.title',
+    subtitleKey: 'tour.tray.subtitle',
+    Body: TraySlide,
+  },
+  {
+    id: 'languages',
+    titleKey: 'tour.languages.title',
+    subtitleKey: 'tour.languages.subtitle',
+    Body: LanguagesSlide,
+  },
+];
+
+/** 2.3: the Gaming Lab. */
+const RELEASE_23: TSlideEntry[] = [GAMING_LAB];
+
 const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
   entries.map((entry) => ({ ...entry, release }));
 
@@ -315,33 +357,18 @@ const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
  * from decides what is new to them, not the version they are going to.
  */
 const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
+  '2.3': [
+    ...announced('2.3', RELEASE_23),
+    ...announced('2.2', RELEASE_22),
+    // Earlier features remain discoverable without being announced again;
+    // the games slide 2.0 announced is 2.3's now.
+    ...RELEASE_21.filter((entry) => !RELEASE_23.includes(entry)),
+    ...RELEASE_20.filter(
+      (entry) => !RELEASE_21.includes(entry) && !RELEASE_23.includes(entry),
+    ),
+  ],
   '2.2': [
-    ...announced('2.2', [
-      {
-        id: WALKTHROUGH_FILM,
-        titleKey: 'tour.walkthrough.title',
-        subtitleKey: 'tour.walkthrough.subtitle',
-        Body: WalkthroughSlide,
-      },
-      {
-        id: 'karaoke-background',
-        titleKey: 'tour.karaokeBackground.title',
-        subtitleKey: 'tour.karaokeBackground.subtitle',
-        Body: KaraokeBackgroundSlide,
-      },
-      {
-        id: 'tray-start',
-        titleKey: 'tour.tray.title',
-        subtitleKey: 'tour.tray.subtitle',
-        Body: TraySlide,
-      },
-      {
-        id: 'languages',
-        titleKey: 'tour.languages.title',
-        subtitleKey: 'tour.languages.subtitle',
-        Body: LanguagesSlide,
-      },
-    ]),
+    ...announced('2.2', RELEASE_22),
     ...announced('2.1', RELEASE_21),
     // Earlier features remain discoverable without being announced again.
     ...RELEASE_20.filter((entry) => !RELEASE_21.includes(entry)),

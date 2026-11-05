@@ -615,6 +615,9 @@ const NowPlayingBar = ({
             max={1}
             step={0.01}
             value={fader.level}
+            onPointerDown={fader.beginChange}
+            onKeyDown={fader.onKeyDown}
+            onBlur={fader.endChange}
             style={
               {
                 '--now-playing-progress': `${fader.level * 100}%`,
@@ -624,7 +627,7 @@ const NowPlayingBar = ({
             onChange={(event) => fader.setLevel(Number(event.target.value))}
           />
           <span className="now-playing-bar__volume-value" aria-hidden="true">
-            {Math.round(fader.level * 100)}%
+            {Math.round((fader.confirmedLevel ?? fader.level) * 100)}%
           </span>
         </div>
       )}

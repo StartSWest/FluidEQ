@@ -1,0 +1,336 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'sass:list';
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'dspTokens' as *;
+
+// The Game filter's environment, in the first of the lagoon's blues: the
+// colour of water and air, apart from the lift's violet and the voice's gold.
+$environment-ink: list.nth($lagoon, 1);
+
+// Footsteps' picture, on the card above its three groups. Claims the whole
+// row the way every stage's display does.
+.dsp-footsteps-display {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+// Definite, as every DSP canvas is: its backing store follows this box, so an
+// intrinsic height would feed the measurement into itself.
+.dsp-footsteps-canvas {
+  width: 100%;
+  height: 260px;
+}
+
+@media (max-height: $bp-laptop-height) {
+  .dsp-footsteps-canvas {
+    height: 210px;
+  }
+}
+
+// Each chip in its own trace's ink, so the row is the plot's key: the lift in
+// the violet it stands up in, the calm in the amber it hangs in.
+.dsp-footsteps-status {
+  > span {
+    display: inline-flex;
+    gap: 6px;
+    align-items: baseline;
+  }
+
+  .is-lift,
+  .is-isolate {
+    border-color: color-mix(in srgb, var(--dsp-applied) 34%, transparent);
+    color: color-mix(in srgb, var(--dsp-applied) 92%, transparent);
+  }
+
+  .is-calm {
+    border-color: rgba($amber, 0.3);
+    color: rgba($amber, 0.92);
+  }
+
+  .is-bed {
+    border-color: rgba($white, 0.14);
+  }
+
+  b {
+    color: inherit;
+    font-weight: $weight-bold;
+  }
+}
+
+.dsp-footsteps-legend {
+  .is-everything {
+    color: rgba($white, 0.9);
+  }
+
+  // `CUE_INK` in `DspFootstepsGraph.tsx`.
+  .is-steps {
+    color: rgb(206 218 228 / 85%);
+  }
+
+  .is-lifted {
+    color: var(--dsp-applied);
+    opacity: 0.7;
+  }
+
+  .is-calmed {
+    color: $amber;
+    opacity: 0.6;
+  }
+
+  .is-dashed {
+    color: rgba($white, 0.6);
+  }
+}
+
+// THREE PARTS, NO HOLE.
+//
+// One column on a narrow card. Two from a medium one: Footsteps across the
+// card, its three lamps in a row, then Dialogue beside Environment — one
+// dial and one meter each, so the two stand the same height with their
+// meters level. Three from a wide one: all three on a row. The Room had a
+// part here and is the Room filter's alone now (Ivan, 2026-11-03).
+.dsp-game-parts {
+  display: grid;
+  flex: 1 1 100%;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+
+  > .dsp-band {
+    flex: none;
+    gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  // The three bands' lamps on one row across their part, the way each other
+  // part's one meter spans its own: stacked and centred they left Footsteps
+  // twice the height of the part beside it.
+  .dsp-footsteps-lamps {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 104px), 1fr));
+    align-self: stretch;
+    margin-top: auto;
+    padding: 4px 0 0;
+  }
+}
+
+@container dsp-card (min-width: #{$bp-md}) {
+  .dsp-game-parts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    > .is-footsteps {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+@container dsp-card (min-width: #{$bp-xl}) {
+  .dsp-game-parts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+    > .is-footsteps {
+      grid-column: auto;
+    }
+  }
+}
+
+// What each dial reaches, under the dials, side by side as they are.
+.dsp-game-reach {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 18px;
+}
+
+// A switch with what it does: its name and a line under it on the left, the
+// switch on the right, held to the top of the words so a long line in German
+// wraps under the name rather than pushing the switch away.
+.dsp-game-toggle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0 2px;
+  border-top: 1px solid rgba($white, 0.06);
+}
+
+.dsp-game-toggle-words {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dsp-game-toggle-name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.dsp-game-figure {
+  color: color-mix(in srgb, $neon-yellow 90%, transparent);
+  font-variant-numeric: tabular-nums;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+}
+
+// The live readings stand under their part's controls, the lamp's own grid
+// without the line for a frequency.
+.dsp-game-meter {
+  margin-top: auto;
+  padding-top: 4px;
+  grid-template-areas:
+    'name figure'
+    'track track';
+
+  &.is-voice {
+    .dsp-footsteps-lamp-fill {
+      background: linear-gradient(90deg, rgba($neon-yellow, 0.5), $neon-yellow);
+      box-shadow: 0 0 10px rgba($neon-yellow, 0.4);
+    }
+
+    .dsp-footsteps-lamp-figure {
+      color: rgba($neon-yellow, 0.92);
+    }
+  }
+
+  &.is-ambience {
+    .dsp-footsteps-lamp-fill {
+      background: linear-gradient(
+        90deg,
+        rgba($environment-ink, 0.45),
+        $environment-ink
+      );
+      box-shadow: 0 0 10px rgba($environment-ink, 0.35);
+    }
+
+    .dsp-footsteps-lamp-figure {
+      color: rgba($environment-ink, 0.92);
+    }
+  }
+}
+
+// What the dial reaches, in the dial's own terms: the decibels a step comes
+// up by at most, under the percentage the knob shows.
+.dsp-footsteps-reach {
+  margin: 0;
+  color: color-mix(in srgb, var(--dsp-applied) 88%, transparent);
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+
+  &.is-calm {
+    color: rgba($amber, 0.9);
+  }
+
+  &.is-voice {
+    color: rgba($neon-yellow, 0.9);
+  }
+
+  &.is-environment {
+    color: rgba($environment-ink, 0.9);
+  }
+}
+
+// The bands, each a lamp that fills by as much as its band is lifted. Spans
+// the control's row and the reach's, which this group has no use for.
+// On a row of their own the three stand side by side; in a column, stacked.
+.dsp-footsteps-lamps {
+  display: grid;
+  grid-row: span 2;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 10px 16px;
+  align-self: center;
+  margin: 0;
+  padding: 2px 0 6px;
+  list-style: none;
+}
+
+.dsp-footsteps-lamp {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'name figure'
+    'track track'
+    'where where';
+  gap: 3px 8px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.dsp-footsteps-lamp-name {
+  grid-area: name;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: $text-primary;
+  font-size: $text-small;
+}
+
+.dsp-footsteps-lamp-where {
+  grid-area: where;
+  color: $text-faint;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+}
+
+.dsp-footsteps-lamp-figure {
+  grid-area: figure;
+  color: color-mix(in srgb, var(--dsp-applied) 92%, transparent);
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+  font-weight: $weight-bold;
+}
+
+// The track is the most the band can be lifted at a Lift of one; the fill
+// grows from its left edge by the share being used now.
+.dsp-footsteps-lamp-track {
+  grid-area: track;
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba($white, 0.07);
+}
+
+.dsp-footsteps-lamp-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--dsp-applied) 55%, transparent),
+    var(--dsp-applied)
+  );
+  box-shadow: 0 0 10px color-mix(in srgb, var(--dsp-applied) 45%, transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+// The old engine's notice: amber, the rack's colour for a fact rather than a
+// fault — the rest of the rack is playing, this one stage is not yet.
+.dsp-footsteps-engine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 7px 10px;
+  border: 1px solid rgba($amber, 0.4);
+  border-radius: $radius-xs;
+  background: rgba($amber, 0.07);
+
+  > p {
+    flex: 1 1 320px;
+    margin: 0;
+    color: $amber;
+    font-size: $text-body;
+    line-height: 1.4;
+  }
+}

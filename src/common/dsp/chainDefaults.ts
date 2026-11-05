@@ -34,6 +34,8 @@ import { defaultCrossfadeShape } from './crossfadeShape';
 import { DEFAULT_TREBLE_DESIGN } from '../filterDesign';
 import { BASS_PUNCH_PRESET_BY_ID } from './bassPunchPresets';
 import { DE_ESSER_DEFAULTS } from './deEsser';
+import { DYNAMICS_DEFAULTS } from './dynamicsStage';
+import { FOOTSTEPS_DEFAULTS } from './footsteps';
 
 // The rack as it starts - DSP_DEFAULTS and the EQ rack it is built on - and
 // the ranges every setting is held to when it is read (clampDspSettings, in
@@ -489,6 +491,8 @@ export const DSP_DEFAULTS: IDspSettings = {
     mix: 0,
   },
   deEsser: DE_ESSER_DEFAULTS,
+  footsteps: FOOTSTEPS_DEFAULTS,
+  dynamics: DYNAMICS_DEFAULTS,
   bassPunch: {
     enabled: false,
     isolate: false,

@@ -90,7 +90,7 @@ const dsp = {
   'dsp.denoise.voiceLibraryOnly':
     'Neural Voice는 라이브러리 재생에만 사용할 수 있습니다. 히스, 허밍 및 클릭 감소는 외부 오디오에서 작동합니다.',
   'dsp.normalizer.liveDescription':
-    '외부 오디오가 재생되는 동안 측정하여 두 채널을 함께 조절하고, 익사이터와 EQ 앞에서 피크를 보호합니다.',
+    '외부 오디오가 재생되는 동안 측정하여 익사이터와 EQ 앞에서 두 채널에 하나의 볼륨을 적용하며, 음악을 짓누르지 않습니다. 트루피크는 곡의 가장 큰 피크가 피크 상한에 닿을 때까지 볼륨만 낮춥니다.',
   'dsp.normalizer.liveAnalysis': '실시간 음원 분석',
   'dsp.normalizer.inputLoudness': '입력 음량(3초)',
   'dsp.normalizer.outputLoudness': '출력 음량(3초)',

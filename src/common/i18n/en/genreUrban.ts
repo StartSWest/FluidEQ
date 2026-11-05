@@ -13,8 +13,11 @@ const genreUrban = {
   'genre.hiphop.pin.12500.why':
     'The way a beat built from sampled records sounds.',
   'genre.hiphop.stage.dimension':
-    'Mono under 120 Hz and narrowed up to 180, the narrow picture kept.',
-  'genre.hiphop.stage.maximizer': 'A ceiling that barely drives.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.hiphop.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.hiphop.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.hiphop.off':
     'Its Exciter, Bass Forge and Bass Punch are offered and left off: the samples are saturated already, and Bass Forge added 16% of new sound to a bass note.',
 
@@ -28,8 +31,11 @@ const genreUrban = {
   'genre.rap.pin.2000': 'The consonants',
   'genre.rap.pin.2000.why': 'Intelligibility, a little forward.',
   'genre.rap.stage.dimension':
-    'The mids a shade narrower than the record, to hold the voice still.',
-  'genre.rap.stage.maximizer': 'A ceiling that barely drives.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.rap.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.rap.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.rap.off':
     'Bass Forge is offered and left off: the harmonics of a bass land on the chest of the voice.',
 
@@ -46,8 +52,11 @@ const genreUrban = {
   'genre.trap.stage.bassForge':
     'The 808’s overtones (80, 120 and 160 Hz of a 40 Hz note), so a small speaker can play it; no octave below.',
   'genre.trap.stage.dimension':
-    'Everything under 120 Hz mono, the hats and synths wide.',
-  'genre.trap.stage.maximizer': 'A ceiling that barely drives.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.trap.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.trap.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.trap.off':
     'No Exciter and no Bass Punch: the 808 is distorted already.',
 
@@ -61,8 +70,11 @@ const genreUrban = {
   'genre.rnb.pin.12500': 'A silky top',
   'genre.rnb.pin.12500.why': 'Air above the voice.',
   'genre.rnb.stage.dimension':
-    'The pads a little wider than the voice, as the genre is mixed.',
-  'genre.rnb.stage.maximizer': 'A light ceiling.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.rnb.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.rnb.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.rnb.off':
     'Its Exciter is offered and left off: harmonics on this vocal land on its breaths.',
 
@@ -76,9 +88,11 @@ const genreUrban = {
   'genre.soul.pin.5000': 'No air',
   'genre.soul.pin.5000.why': 'Taken down: air lifts the tape hiss.',
   'genre.soul.stage.dimension':
-    'A shade of narrowing, which brings hard-panned 60s mixes together.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.soul.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.soul.stage.maximizer':
-    'A slow ceiling for masters that were never limited.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.soul.off':
     'Its Exciter is offered and left off: tape and tubes are the sound, and an exciter raises their hiss.',
 
@@ -92,8 +106,11 @@ const genreUrban = {
   'genre.neoSoul.pin.12500': 'No sparkle',
   'genre.neoSoul.pin.12500.why': 'Warm and dark is the brief.',
   'genre.neoSoul.stage.dimension':
-    'The live-band picture kept, only the bass narrowed.',
-  'genre.neoSoul.stage.maximizer': 'A slow ceiling that squeezes nothing.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.neoSoul.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.neoSoul.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.neoSoul.off':
     'Its Exciter is offered and left off: without one it stays warm and dark.',
 
@@ -110,8 +127,12 @@ const genreUrban = {
   'genre.funk.pin.12500.why': 'Eased, never brightened.',
   'genre.funk.stage.bassPunch':
     'A tight low end with no bloom to smear the articulation.',
-  'genre.funk.stage.dimension': 'Close to the record, the bottom narrowed.',
-  'genre.funk.stage.maximizer': 'A light ceiling.',
+  'genre.funk.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.funk.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.funk.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.funk.off':
     'No Exciter or Bass Forge: dry and mid-forward is the sound.',
 
@@ -127,9 +148,11 @@ const genreUrban = {
   'genre.disco.stage.bassPunch':
     'A little weight in the kick, its tail kept short of the next beat.',
   'genre.disco.stage.dimension':
-    'No widening of what the orchestra spread already.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.disco.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.disco.stage.maximizer':
-    'A light ceiling, quick to let go under the kick.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.disco.off':
     'No Exciter or Bass Forge: the hats and strings turn brittle under one.',
 };

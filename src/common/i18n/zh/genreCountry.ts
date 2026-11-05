@@ -13,8 +13,11 @@ export default {
   'genre.country.stage.exciter':
     '辅音上的临场感，加上琴弦之上一个八度的空气感，两者都很轻。',
   'genre.country.stage.dimension':
-    '几乎保持录音原样：低频收窄，两侧加一点空气感。',
-  'genre.country.stage.maximizer': '一个轻上限。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.country.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.country.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.country.off':
     '不用低音冲击，也不用低音熔炉：底鼓和贝斯保持演奏时的样子。',
 
@@ -28,9 +31,11 @@ export default {
   'genre.modernCountry.pin.3150': '人声临场感',
   'genre.modernCountry.pin.3150.why': '稍微抬一点，同时留意刺耳。',
   'genre.modernCountry.stage.dimension':
-    '低频收窄，两侧稍宽一点，和它的混法一样。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.modernCountry.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
   'genre.modernCountry.stage.maximizer':
-    '一个几乎不推的上限，面对的是已经很响的母带。',
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.modernCountry.off':
     '不生成任何东西：已经填满超低音的 808 下面，不用激励器、低音冲击或低音熔炉。',
 
@@ -45,8 +50,11 @@ export default {
   'genre.americana.pin.3150.why': '稍微往前。',
   'genre.americana.stage.exciter': '温暖，再加一点琴弦上的空气感。',
   'genre.americana.stage.dimension':
-    '保留单个房间的声像：不加宽，低音只收窄一丝。',
-  'genre.americana.stage.maximizer': '一个跨越整拍的缓慢上限。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.americana.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.americana.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.americana.off':
     '不用低音冲击，也不用低音熔炉：没有东西去重塑鼓刷打的鼓或低音提琴。',
 
@@ -61,8 +69,12 @@ export default {
   'genre.bluegrass.pin.12500.why': '乐队周围的房间。',
   'genre.bluegrass.stage.exciter':
     '在班卓琴和曼陀林之上加空气感，比它们自身高一个八度。',
-  'genre.bluegrass.stage.dimension': '保持录音原样，近距离拾音，自然。',
-  'genre.bluegrass.stage.maximizer': '一个缓慢的上限，绝不压扁拨片的起音。',
+  'genre.bluegrass.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.bluegrass.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.bluegrass.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.bluegrass.off':
     '不用低音冲击，也不用低音熔炉：没有底鼓要塑造，也没有超低音要编造。',
 
@@ -77,8 +89,12 @@ export default {
   'genre.folk.pin.12500.why': '7 kHz 以上，轻轻地。',
   'genre.folk.stage.exciter':
     '2 kHz 附近柔和的临场感，7 kHz 以上的空气感，以及民谣母带会用的那一小份谐波。',
-  'genre.folk.stage.dimension': '房间保持录音原样。',
-  'genre.folk.stage.maximizer': '一个缓慢的上限，从不抹平安静的部分。',
+  'genre.folk.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.folk.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.folk.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.folk.off':
     '不用低音冲击，也不用低音熔炉：一把吉他一个人声，下面不夸大低音。',
 
@@ -92,8 +108,12 @@ export default {
   'genre.acoustic.pin.12500': '一层空气感搁架',
   'genre.acoustic.pin.12500.why': '10 kHz 以上，琴弦闪烁的地方。',
   'genre.acoustic.stage.exciter': '面板处的厚度，以及 10 kHz 以上的空气感。',
-  'genre.acoustic.stage.dimension': '立体声对保持录音原样。',
-  'genre.acoustic.stage.maximizer': '一个缓慢的上限，用一整拍松开。',
+  'genre.acoustic.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.acoustic.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.acoustic.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.acoustic.off':
     '它的低音冲击配置有提供但保持关闭：吉他没有底鼓可塑造。',
 
@@ -107,8 +127,12 @@ export default {
   'genre.singerSongwriter.pin.12500': '轻柔的空气感',
   'genre.singerSongwriter.pin.12500.why': '人声之上的一口气。',
   'genre.singerSongwriter.stage.exciter': '只加厚度，绝不在齿音上加谐波。',
-  'genre.singerSongwriter.stage.dimension': '中频稍微收窄，让人声保持居中。',
-  'genre.singerSongwriter.stage.maximizer': '一个缓慢的上限。',
+  'genre.singerSongwriter.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.singerSongwriter.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.singerSongwriter.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.singerSongwriter.off':
     '不用低音冲击，也不用低音熔炉：没有东西去挤一个人声和一件乐器。',
 };

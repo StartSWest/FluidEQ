@@ -39,6 +39,20 @@ import {
   TRoomHead,
 } from './chain';
 import { DE_ESSER_MODES, IDeEsserSettings } from './deEsser';
+import {
+  CHAIN_FOOTSTEPS_TAG,
+  dropFootsteps,
+  footstepsAlone,
+  footstepsTrailer,
+  footstepsTrailerLength,
+  isFootstepsTrailer,
+} from './footstepsWire';
+import {
+  CHAIN_DYNAMICS_TAG,
+  CHAIN_DYNAMICS_TRAILER,
+  dynamicsTrailer,
+  isDynamicsTrailer,
+} from './dynamicsWire';
 import { roomMuteWire } from './roomSpeakers';
 
 /**
@@ -398,6 +412,7 @@ export const encodeChainSettings = (settings: IDspSettings): number[] => {
   // mode refuses a line one value longer than it knows, and a line that does
   // not ask for game mode has no reason to be one it cannot read — so every
   // rack but a gaming one is the line it always was, on every engine.
+  const gameWord = values.length;
   const extendedRoom = ROOM_WIRE_KEYS.some(
     (key) => (room[key] ?? DSP_DEFAULTS.room[key]) !== DSP_DEFAULTS.room[key],
   );
@@ -416,6 +431,22 @@ export const encodeChainSettings = (settings: IDspSettings): number[] => {
     );
   } else if (settings.gameMode) {
     values.push(1);
+  }
+  // Footsteps after the Room, and only while it is on: a rack without it is
+  // the line it always was, on every engine (`footstepsWire.ts`). Its trailer
+  // stands after the game word, written off where the line had none.
+  if (settings.footsteps.enabled) {
+    if (values.length === gameWord) {
+      values.push(0);
+    }
+    values.push(...footstepsTrailer(settings.footsteps));
+  }
+  // Dynamics after Footsteps, on the same terms (`dynamicsWire.ts`).
+  if (settings.dynamics.enabled) {
+    if (values.length === gameWord) {
+      values.push(0);
+    }
+    values.push(...dynamicsTrailer(settings.dynamics));
   }
   return values;
 };
@@ -546,13 +577,26 @@ export const isChainWirePayload = (value: unknown): value is number[] => {
     return false;
   }
   // After the normalizer's three, in the only order they can stand: the game
-  // word, the Room's trailer, the preset's curve (`appendPresetTone`).
+  // word, the Room's trailer, Footsteps', the preset's curve
+  // (`appendPresetTone`).
   if (value.length > length && value[length] !== 0 && value[length] !== 1) {
     return false;
   }
   let at = length + 1;
   if (isRoomTrailer(value, at)) {
     at += CHAIN_ROOM_TRAILER;
+  }
+  if (value[at] === CHAIN_FOOTSTEPS_TAG) {
+    if (!isFootstepsTrailer(value, at)) {
+      return false;
+    }
+    at += footstepsTrailerLength(value, at);
+  }
+  if (value[at] === CHAIN_DYNAMICS_TAG) {
+    if (!isDynamicsTrailer(value, at)) {
+      return false;
+    }
+    at += CHAIN_DYNAMICS_TRAILER;
   }
   if (value.length > at && !isToneTrailer(value, at)) {
     return false;
@@ -577,10 +621,66 @@ const gameWordAt = (values: readonly number[]): number =>
 export const hasRoomTrailer = (values: readonly number[]): boolean =>
   isRoomTrailer(values, gameWordAt(values) + 1);
 
+/** Where Footsteps' trailer would start: after the game word and Room's. */
+const footstepsSlot = (values: readonly number[]): number =>
+  gameWordAt(values) + 1 + (hasRoomTrailer(values) ? CHAIN_ROOM_TRAILER : 0);
+
+/** Call only after isChainWirePayload at the IPC boundary. */
+export const hasFootsteps = (values: readonly number[]): boolean =>
+  values[footstepsSlot(values)] === CHAIN_FOOTSTEPS_TAG;
+
+/**
+ * The line without Footsteps' trailer, the preset's curve after it kept —
+ * for an engine older than the stage (`ENGINE_FOOTSTEPS_SINCE`), which
+ * refuses a line longer than it knows and bypasses the whole rack. The rack
+ * then plays without Footsteps rather than not at all.
+ */
+export const withoutFootsteps = (values: number[]): number[] =>
+  hasFootsteps(values)
+    ? dropFootsteps(values, footstepsSlot(values), gameWordAt(values))
+    : values;
+
+/**
+ * The line with the Game filter written as Footsteps alone, for engine 1.25
+ * (`ENGINE_GAME_SINCE`), which refuses the whole rack over a trailer of the
+ * filter's later schema and plays the lift without its other parts.
+ */
+export const asFootstepsAlone = (values: number[]): number[] =>
+  hasFootsteps(values) ? footstepsAlone(values, footstepsSlot(values)) : values;
+
+/** Where Dynamics' trailer would start: after Footsteps' when there is one. */
+const dynamicsSlot = (values: readonly number[]): number =>
+  footstepsSlot(values) + footstepsTrailerLength(values, footstepsSlot(values));
+
+/** Call only after isChainWirePayload at the IPC boundary. */
+export const hasDynamics = (values: readonly number[]): boolean =>
+  values[dynamicsSlot(values)] === CHAIN_DYNAMICS_TAG;
+
+/**
+ * The line without Dynamics' trailer, the preset's curve after it kept, for
+ * an engine older than the stage (`ENGINE_DYNAMICS_SINCE`), which refuses a
+ * line longer than it knows. The game word goes too where it was written,
+ * off, only for the trailer to stand after.
+ */
+export const withoutDynamics = (values: number[]): number[] => {
+  if (!hasDynamics(values)) {
+    return values;
+  }
+  const at = dynamicsSlot(values);
+  const line = [
+    ...values.slice(0, at),
+    ...values.slice(at + CHAIN_DYNAMICS_TRAILER),
+  ];
+  const gameWord = gameWordAt(line);
+  return line.length === gameWord + 1 && line[gameWord] === 0
+    ? line.slice(0, -1)
+    : line;
+};
+
 /** Where the preset's curve starts on a line, or -1 for none. */
 const toneAt = (values: readonly number[]): number => {
   const at =
-    gameWordAt(values) + 1 + (hasRoomTrailer(values) ? CHAIN_ROOM_TRAILER : 0);
+    dynamicsSlot(values) + (hasDynamics(values) ? CHAIN_DYNAMICS_TRAILER : 0);
   return values.length > at && values[at] === CHAIN_TONE_TAG ? at : -1;
 };
 
@@ -663,12 +763,13 @@ export const gameModeOnWire = (values: readonly number[]): boolean =>
 /**
  * With Room disabled its extended settings are inaudible, so older racks
  * remain usable. An engine that cannot read the Room's trailer is older than
- * the preset's curve on the wire too, so the curve goes with it.
+ * the preset's curve, Footsteps and Dynamics on the wire too, so all three
+ * go with it.
  */
 export const legacyChainWithoutInactiveRoom = (
   values: number[],
 ): number[] | undefined => {
-  const line = withoutPresetTone(values);
+  const line = withoutFootsteps(withoutDynamics(withoutPresetTone(values)));
   if (!hasRoomTrailer(line)) {
     return line;
   }

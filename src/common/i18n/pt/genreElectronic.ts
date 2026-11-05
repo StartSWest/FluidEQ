@@ -11,9 +11,9 @@ export default {
   'genre.electronic.pin.8000': 'Chimbais e ar',
   'genre.electronic.pin.8000.why': 'O topo de uma mixagem brilhante.',
   'genre.electronic.stage.dimension':
-    'Mono abaixo de 150 Hz, e um pouco de abertura acima dos médios.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
   'genre.electronic.stage.maximizer':
-    'Um teto leve com meio decibel a mais de empurrão que as variantes de clube, o que o deixa no mesmo nível delas.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.electronic.off':
     'O Excitador, a Forja de graves e o Punch dos graves dele são oferecidos e ficam desligados: um excitador deixa esse agudo áspero rapidinho, e nada precisa ser gerado embaixo do sub.',
 
@@ -26,8 +26,10 @@ export default {
   'genre.edm.pin.315.why': 'Espaço para o bumbo.',
   'genre.edm.pin.5000': 'A mordida do supersaw',
   'genre.edm.pin.5000.why': 'A aspereza do lead.',
-  'genre.edm.stage.dimension': 'Uma base em mono, e mais nada.',
-  'genre.edm.stage.maximizer': 'Um teto que mal empurra num master clipado.',
+  'genre.edm.stage.dimension':
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.edm.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.edm.off':
     'O Excitador dele é oferecido e fica desligado: nada de reforço no sub, alargamento ou harmônicos num drop que já tem tudo.',
 
@@ -41,8 +43,11 @@ export default {
   'genre.house.pin.12500': 'Quente, não brilhante',
   'genre.house.pin.12500.why': 'Os agudos aliviados.',
   'genre.house.stage.dimension':
-    'Mono abaixo de 150 Hz e mais estreito até 200, o topo um pouco mais aberto.',
-  'genre.house.stage.maximizer': 'Um teto leve que deixa o bombeamento em paz.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.house.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.house.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.house.off':
     'Sem Punch dos graves, porque nada pode mexer no tempo do bumbo; sem Excitador nem Forja de graves.',
 
@@ -58,8 +63,9 @@ export default {
   'genre.techno.stage.bassPunch':
     'No máximo o bumbo apertado, para o ronco não borrá-lo.',
   'genre.techno.stage.dimension':
-    'Uma base em mono; nada alargado no estilo mais estreito que existe.',
-  'genre.techno.stage.maximizer': 'Um teto leve.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.techno.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.techno.off':
     'Sem Excitador e sem Forja de graves: nem reforço no sub, nem harmônicos.',
 
@@ -73,9 +79,10 @@ export default {
   'genre.trance.pin.3150': 'A faixa quebradiça aliviada',
   'genre.trance.pin.3150.why':
     'Por volta de 3 kHz, onde os saws ficam vítreos.',
-  'genre.trance.stage.dimension': 'Mono abaixo de 120 Hz, e nada mais.',
+  'genre.trance.stage.dimension':
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
   'genre.trance.stage.maximizer':
-    'Um teto que mal empurra, para o drop manter o contraste.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.trance.off':
     'Sem Excitador nem Forja de graves: os supersaws já geram agudo de sobra.',
 
@@ -89,9 +96,10 @@ export default {
   'genre.drumBass.pin.5000': 'O estalo da caixa e do break',
   'genre.drumBass.pin.5000.why': 'A identidade do gênero.',
   'genre.drumBass.stage.bassPunch': 'O bumbo apertado, nunca realçado.',
-  'genre.drumBass.stage.dimension': 'O sub em mono.',
+  'genre.drumBass.stage.dimension':
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
   'genre.drumBass.stage.maximizer':
-    'Um teto leve que solta em menos de uma semicolcheia, para a caixa manter o estalo.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.drumBass.off':
     'Sem Excitador nem Forja de graves: nada de harmônicos nos baixos neuro.',
 
@@ -104,8 +112,10 @@ export default {
   'genre.dubstep.pin.80.why': 'O corpo acima do sub.',
   'genre.dubstep.pin.500': 'Espaço para a caixa e o rosnado',
   'genre.dubstep.pin.500.why': 'O meio limpo.',
-  'genre.dubstep.stage.dimension': 'O sub em mono abaixo de 120 Hz.',
-  'genre.dubstep.stage.maximizer': 'Um teto que mal empurra.',
+  'genre.dubstep.stage.dimension':
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.dubstep.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.dubstep.off':
     'Sem Excitador, Punch dos graves ou Forja de graves: o rosnado já é chiado.',
 
@@ -120,7 +130,10 @@ export default {
   'genre.downtempo.pin.12500.why': 'Sem abrilhantar.',
   'genre.downtempo.stage.dimension':
     'As atmosferas mais abertas, os graves mais estreitos.',
-  'genre.downtempo.stage.maximizer': 'Um teto lento e leve.',
+  'genre.downtempo.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.downtempo.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.downtempo.off':
     'A Forja de graves é oferecida e fica desligada: o baixo já é profundo.',
 
@@ -136,8 +149,10 @@ export default {
   'genre.chillout.stage.exciter': 'Só ar leve.',
   'genre.chillout.stage.dimension':
     'Um topo mais aberto: aqui a largura é bem-vinda.',
+  'genre.chillout.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.chillout.stage.maximizer':
-    'Um teto lento, ao longo de um tempo inteiro: nada apertado.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.chillout.off':
     'Sem Punch dos graves nem Forja de graves: nada pesado.',
 
@@ -151,9 +166,9 @@ export default {
   'genre.lofi.pin.3150': 'Escuro de propósito',
   'genre.lofi.pin.3150.why': 'Nada mais brilhante que o disco.',
   'genre.lofi.stage.dimension':
-    'Um leve estreitamento, a base em mono abaixo de 120 Hz.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
   'genre.lofi.stage.maximizer':
-    'Um pouco mais de empurrão que os irmãos, para discos masterizados mais baixo.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.lofi.off':
     'O Excitador dele é oferecido e fica desligado: o disco já vem saturado em fita.',
 
@@ -169,7 +184,7 @@ export default {
   'genre.ambient.stage.dimension':
     'Largo, o mais largo de todos os gêneros, e ainda seguro em mono.',
   'genre.ambient.stage.maximizer':
-    'Um teto que só chega a encostar no topo de uma onda.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.ambient.off':
     'O Excitador dele é oferecido e fica desligado: nada comprime nem achata o silêncio.',
 
@@ -183,7 +198,10 @@ export default {
   'genre.newAge.pin.12500': 'Um pouco de ar',
   'genre.newAge.pin.12500.why': 'Acima dos reverbs.',
   'genre.newAge.stage.dimension': 'Ambiência ampla.',
-  'genre.newAge.stage.maximizer': 'Nada achata o silêncio.',
+  'genre.newAge.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.newAge.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.newAge.off':
     'O Excitador dele é oferecido e fica desligado: transparência é a proposta.',
 };

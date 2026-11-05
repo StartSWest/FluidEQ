@@ -2,9 +2,140 @@
 
 Every released version, newest first. The first time you run a new version,
 FluidEQ opens its **What's new** tour, and the tour's **Full release notes**
-link brings you here. **Help → What's new** opens the tour again any time.
+link brings you here. **Help → What's new** opens the tour again any time; **Help → Full release notes** opens these notes directly.
 
 ---
+
+## 2.3.0
+
+FluidEQ 2.3 brings the Gaming Lab: every game gets a sound of its own,
+tuned on one page, that comes on when the game comes to the front and
+hands your music sound back when you close it. A new Game filter brings
+up footsteps and voices as they happen, a new Dynamics stage lifts what is
+quiet and holds what is loud, and every stage of the DSP rack has presets
+made for games.
+
+### Gaming Lab
+
+- **A tab of its own.** The Gaming Lab sits in the title bar. Press
+  **Add a game** and pick it from the games found on this PC (Steam, Epic
+  Games, EA, GOG, Ubisoft, Battle.net and Xbox), from a program that is
+  open, or browse for its program.
+- **Every game starts from a Gaming profile** made for its kind of game
+  (Competitive, Battle royale, Tactical survival, Story and horror, Top-down,
+  Worlds, Speed, Impact, or any game) or for the title itself: more than
+  thirty games have one. The game gets its own copy, so whatever you tune
+  stays with that game and the profile never changes.
+- **Its sound comes on by itself.** With **Switch when a game is in front**
+  on, a game coming to the front puts its own sound on, keeps it however
+  often you alt-tab, and brings your music sound back when the game closes.
+  **Try it now** and **Unload** do the same by hand.
+- **Game mode comes on with it**, for the lowest delay while you play, and
+  goes back to how you had it with the music.
+- **Every part tuned on one page:** the Game filter, the EQ, the curve and
+  every DSP stage, each right beside the list of parts. A part you changed
+  is marked tuned, and a line under the game says what you changed.
+- **A curve for every kind of game.** Each Gaming profile plays its own
+  curve on the Preset layer — seven of them, drawn for competitive
+  shooters, battle royales, tactical games, MOBAs, RPGs, story games and
+  any game — and your EQ stays yours on top of it.
+- **Keep it, or start again.** **Save as profile** keeps a game's tuning as
+  a Gaming profile of your own that other games can start from; the same
+  menu resets a game to its profile, renames its copy or deletes it.
+- **You can always see what is playing.** The Lab's top line and the EQ
+  page's preset button name the game and its preset, with "(custom)" once
+  you have tuned it, and a card on your desktop says when a game's sound
+  goes on and when your music is back.
+- **Find a Gaming profile.** Search by profile, game, curve or chain; the
+  filters stay on one line and each kind of game has its own colour. Your
+  saved profiles show their curve, Game filter levels and chain too.
+- **Add a game** scrolls while keeping its action buttons in view.
+- **A film of the Lab** in Help's Gaming Lab chapter and in What's New,
+  voiced in ten languages.
+
+### Game filter
+
+- **Footsteps.** Quiet sounds are brought up as they arrive — a step, a
+  reload, a door — and anything already loud is left as it is. Every level
+  is judged against the game's own mix, so it works in a loud match as in
+  a quiet one, and it adds no delay.
+- **Environment** turns a game's background down or up, the rain, the
+  wind, the hum of a level, and lets go the moment something stands out of
+  it, so a step keeps its level while the rain under it drops.
+- **Dialogue** brings voices forward and can make room for them by
+  lowering everything else a little while someone speaks.
+- **Hooves and heavy steps** lift the weight of horses, boots and
+  vehicles for the games that need it.
+- The Game filter lives in the Gaming Lab, and its profiles are the Gaming
+  profiles; the shooters, tactical and story games among them were tuned
+  on recordings of their own play.
+
+### DSP
+
+- **Dynamics, a new stage.** It lifts what is quiet and holds what is
+  loud, in three bands, so a whisper and an explosion meet in the middle.
+  It adds no delay. Nine everyday presets cover music, films and speech,
+  with five more for games. Its live graph shows the sound before and after
+  processing and the gain actually applied in each band.
+- **Presets made for games on every stage**, offered in the Gaming Lab,
+  and ten gaming chains — Pinpoint, Survive the blast, Stealth, Cinematic,
+  Dread, Top-down, Worlds, Speed, Impact and Night play — levelled to play
+  as loud as each other. The DSP page keeps showing your music presets.
+- **A cleaner Maximizer.** Its separate bass limiter is gone: it bent the
+  shape of bass notes and cut a kick's low end. Every chain now plays with
+  far less distortion, its level moves less, and the rack adds 3 ms less
+  delay.
+- **The Normalizer's True Peak mode** now sets one clean gain for each
+  song instead of limiting all the way through, and the Normalizer is off
+  in every preset until you turn it on.
+- These need the FluidEQ Engine 1.27. FluidEQ offers the engine update
+  after you install it.
+
+### Share Audio, Forum and more
+
+- **Reconnect** in each computer's ••• menu links it again with its saved
+  code, without forgetting the pairing.
+- **Saved computers come back more reliably**: a computer returning while
+  an older connection attempt was still failing is no longer left offline,
+  pasting its current code replaces an old address or port, and both of its
+  saved addresses are kept when FluidEQ starts.
+- **The Forum keeps what you were writing.** A reply or a new topic you
+  leave half-written is still there when you come back to it.
+- **Every Forum board counts unseen activity.** Its yellow number shows
+  topics with something you have not read. The Issues board counts only
+  open issues.
+- **Pictures in Forum posts open right in FluidEQ**, in a viewer you can
+  enlarge.
+- **The installer speaks German with "Sie"** and Portuguese as it is spoken
+  in Brazil, like the app.
+- **The title bar's bars stay bars** while a voice trails off, instead of
+  flickering into a different shape near silence.
+
+### Help and the window
+
+- **Choose an On/off key** from the ≡ menu to switch all FluidEQ processing
+  off and on while another app is in front. No shortcut is assigned until
+  you choose one. A card above the other windows confirms **FluidEQ off**
+  or **FluidEQ on**.
+- **Help → Full release notes** opens all the notes directly, beneath
+  What's New in the Help menu.
+- **Your first five minutes** now plays the recorded 2.2 walkthrough, about
+  nine and a half minutes, with English audio and translated subtitles.
+  Nothing streams until you press Play. If the film cannot load, the older
+  tutorial stands in; if neither can load, Help offers Try again and the
+  written guide remains available offline.
+- **Help covers the newer sound tools**, with full how-to chapters for Dynamics,
+  De-esser, the Normalizer and live level control, custom crossfades, the Game
+  filter, each song’s saved sound and My Curves, in all twelve languages.
+  Playback, sharing, Karaoke and saving instructions are up to date too.
+- **Help’s DSP and Gaming Lab illustrations** use the app’s own controls and
+  profile cards, following your language and window colours. The exported
+  guide includes fresh pictures of the same examples.
+- **About FluidEQ** has links to each of its sections and a Buy Me a Coffee
+  card with a QR code in builds where that support link is available.
+- **The Compact player's game button** shows just the game name so it stays
+  short. Scrollbars on Gaming Lab, DSP, Visualizers, Dynamic lighting and
+  Forum sit against the right edge of their pages.
 
 ## 2.2.2
 

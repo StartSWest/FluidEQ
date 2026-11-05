@@ -765,10 +765,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   width: 168px;
   min-width: 0;
-  // The reading is as wide as the reading, not a reserved column: a fader
-  // in the bar has a window's worth of neighbours and no room to hold empty
-  // space open. The copies in the mix menu keep their column, where the
-  // readings line up under each other and want to.
+  // The reading below reserves room for 100%: growing it while dragging
+  // resized the track and changed the volume under the same pointer.
   grid-template-columns: 26px minmax(56px, 1fr) auto;
   align-items: center;
   gap: 7px;
@@ -782,6 +780,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // somebody notices where the fader is.
 .now-playing-bar__volume-value {
   @include truncate;
+  width: 5ch;
   color: $text-muted;
   font-size: $text-micro;
   font-variant-numeric: tabular-nums;

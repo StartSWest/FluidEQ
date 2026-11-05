@@ -543,6 +543,41 @@ const createRemoteAudioLan = (
     links.forEach((id) => transport.close(id));
   };
 
+  /**
+   * Links one computer again by hand, with the code saved for it: an open
+   * link is closed first — a plain close, never the encrypted stop that
+   * unlinks — and this computer announces itself, so a computer that holds
+   * this one's code finds it at once too. True when it linked again, or when
+   * only the other computer holds a code and its link was handed back to it
+   * to dial; false when no address answered.
+   */
+  const reconnect = ({
+    peerId,
+    computerId: named,
+  }: {
+    peerId?: string;
+    computerId?: string;
+  }): Promise<boolean> => {
+    const computerId =
+      named ??
+      (peerId === undefined ? undefined : peers.get(peerId)?.computerId);
+    const links =
+      computerId === undefined
+        ? [peerId].filter((id): id is string => id !== undefined)
+        : [...peers.entries()]
+            .filter(([, peer]) => peer.computerId === computerId)
+            .map(([id]) => id);
+    // Waited for before the links close, so the round their close starts is
+    // the one that answers.
+    const outcome =
+      computerId !== undefined && joins.has(computerId)
+        ? joins.reconnect(computerId)
+        : Promise.resolve(links.length > 0);
+    announceSelf();
+    links.forEach((id) => transport.close(id));
+    return outcome;
+  };
+
   const sendSignal = (value: unknown) => {
     if (!isLanRemoteAudioSignal(value)) {
       throw new Error('Invalid remote audio control message.');
@@ -557,6 +592,7 @@ const createRemoteAudioLan = (
     start: startHost,
     join,
     unlink,
+    reconnect,
     retry: () => {
       announceSelf();
       joins.retry();

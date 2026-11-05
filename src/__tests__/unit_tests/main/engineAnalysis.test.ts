@@ -12,8 +12,12 @@ import {
 import decodeEngineAnalysis from '../../../main/dspHost/engineAnalysis';
 import {
   ANALYSIS_DEESSER_BANDS,
+  ANALYSIS_DEESSER_HEADER_BYTES,
   ANALYSIS_EQ_DETAIL_BINS,
   ANALYSIS_EQ_DETAIL_WINDOW,
+  ANALYSIS_FOOTSTEPS_HEADER_BYTES,
+  ANALYSIS_GAME_HEADER_BYTES,
+  ANALYSIS_DYNAMICS_TAG,
   ANALYSIS_LEGACY_HEADER_BYTES,
 } from '../../../common/dsp/analysisWire';
 
@@ -33,6 +37,69 @@ const packet = (
   );
   return frame;
 };
+describe('Dynamics stage measurements', () => {
+  it.each([[], [-6, -32], [-6, -32, -18, 3], [-6, -32, -18, 3, -22]])(
+    'reads tagged band gains and both stage spectra with tail %p',
+    (...tail) => {
+      const base = packet(tail);
+      const frame = Buffer.concat([
+        base.subarray(0, ANALYSIS_HEADER_BYTES),
+        Buffer.alloc(ANALYSIS_BINS * 8),
+        base.subarray(ANALYSIS_HEADER_BYTES + ANALYSIS_BINS * 4),
+      ]);
+      frame.writeUInt32LE(48, 8);
+      frame.writeUInt32LE(ANALYSIS_DYNAMICS_TAG, 840);
+      frame.writeUInt32LE(1, 844);
+      [-50, -20, -40, 7, -4, 2].forEach((db, index) =>
+        frame.writeFloatLE(db, 848 + index * 4),
+      );
+      for (let bin = 0; bin < ANALYSIS_BINS; bin += 1) {
+        frame.writeFloatLE(-50, ANALYSIS_HEADER_BYTES + bin * 4);
+        frame.writeFloatLE(
+          -43,
+          ANALYSIS_HEADER_BYTES + ANALYSIS_BINS * 4 + bin * 4,
+        );
+      }
+      const read = decodeEngineAnalysis(frame);
+      expect(read?.dynamics).toEqual({
+        active: true,
+        levelDb: [-50, -20, -40],
+        gainDb: [7, -4, 2],
+      });
+      expect(read?.spectra.dynamicsIn?.[100]).toBe(-50);
+      expect(read?.spectra.dynamicsOut?.[100]).toBe(-43);
+      expect(read?.spectra.master).toBeUndefined();
+      expect(read?.normalizer.inputLufs).toBe(tail.length ? -32 : undefined);
+    },
+  );
+  it.each([
+    ANALYSIS_GAME_HEADER_BYTES,
+    ANALYSIS_FOOTSTEPS_HEADER_BYTES,
+    ANALYSIS_DEESSER_HEADER_BYTES,
+    ANALYSIS_LEGACY_HEADER_BYTES,
+  ])(
+    'still reads older header %s with no invented Dynamics report',
+    (header) => {
+      const read = decodeEngineAnalysis(packet([-6, -18, -18, 3, -20], header));
+      expect(read).toBeDefined();
+      expect(read?.dynamics).toBeUndefined();
+      expect(read?.normalizer.outputLufs).toBe(-20);
+    },
+  );
+  it('ignores unknown or malformed Dynamics reports', () => {
+    const frame = packet();
+    expect(decodeEngineAnalysis(frame)?.dynamics).toBeUndefined();
+    frame.writeUInt32LE(ANALYSIS_DYNAMICS_TAG, 840);
+    frame.writeUInt32LE(1, 844);
+    expect(decodeEngineAnalysis(frame)?.dynamics).toBeDefined();
+    frame.writeFloatLE(Number.NaN, 864);
+    expect(decodeEngineAnalysis(frame)?.dynamics).toBeUndefined();
+    frame.writeFloatLE(0, 864);
+    frame.writeUInt32LE(2, 844);
+    expect(decodeEngineAnalysis(frame)?.dynamics).toBeUndefined();
+  });
+});
+
 describe('external engine analysis', () => {
   it('accepts the original spectrum frame and both live extensions', () => {
     expect(decodeEngineAnalysis(packet())).toBeDefined();
@@ -124,11 +191,81 @@ describe('an engine with the De-esser and one without', () => {
   });
 
   it('never reads one length as the other', () => {
-    expect(ANALYSIS_HEADER_BYTES - ANALYSIS_LEGACY_HEADER_BYTES).toBe(224);
+    expect(ANALYSIS_DEESSER_HEADER_BYTES - ANALYSIS_LEGACY_HEADER_BYTES).toBe(
+      224,
+    );
     const frame = packet();
     // Cut to a length neither header explains: refused, not misread.
     expect(decodeEngineAnalysis(frame.subarray(0, frame.length - 100))).toBe(
       undefined,
+    );
+  });
+});
+
+/**
+ * And of an engine from before Footsteps: 32 bytes shorter than this
+ * build's, the De-esser's window in it and nothing of Footsteps.
+ */
+describe('an engine with Footsteps and one without', () => {
+  it('reads Footsteps’ window where the engine writes it', () => {
+    const frame = packet([-6, -18]);
+    [-12, -38, -55, 2.5, 7.25, 4, -3.5].forEach((value, index) =>
+      frame.writeFloatLE(value, 784 + index * 4),
+    );
+    const read = decodeEngineAnalysis(frame);
+    expect(read?.footsteps).toEqual({
+      levelDb: -12,
+      cueDb: -38,
+      bedDb: -55,
+      liftDb: [2.5, 7.25, 4],
+      calmDb: -3.5,
+    });
+    expect(read?.normalizer.inputLufs).toBe(-18);
+  });
+
+  it('reads a De-esser engine’s frame, with no Footsteps in it', () => {
+    const older = packet([-6, -18], ANALYSIS_DEESSER_HEADER_BYTES);
+    older.writeFloatLE(-4.5, 560);
+    const read = decodeEngineAnalysis(older);
+    expect(read?.deEsser?.reductionDb).toBe(-4.5);
+    expect(read?.footsteps).toBeUndefined();
+    expect(read?.normalizer.inputLufs).toBe(-18);
+  });
+
+  it('reads none of either from the oldest', () => {
+    const read = decodeEngineAnalysis(
+      packet([-6, -18], ANALYSIS_LEGACY_HEADER_BYTES),
+    );
+    expect(read).toBeDefined();
+    expect(read?.deEsser).toBeUndefined();
+    expect(read?.footsteps).toBeUndefined();
+  });
+
+  it('cannot take the bytes between any two headers for a live extension', () => {
+    // A frame is tried at each header in turn, newest first, and its whole
+    // length follows from the header plus an extension of 0, 8, 16 or 20
+    // bytes. Were one header plus one extension the length of another header
+    // plus another, a frame would decode at the wrong header as numbers that
+    // look right.
+    const headers = [
+      ANALYSIS_HEADER_BYTES,
+      ANALYSIS_GAME_HEADER_BYTES,
+      ANALYSIS_FOOTSTEPS_HEADER_BYTES,
+      ANALYSIS_DEESSER_HEADER_BYTES,
+      ANALYSIS_LEGACY_HEADER_BYTES,
+    ];
+    const extensions = [0, 8, 16, 20];
+    expect(new Set(headers).size).toBe(headers.length);
+    headers.forEach((one) =>
+      headers
+        .filter((other) => other !== one)
+        .forEach((other) =>
+          extensions.forEach((mine) =>
+            extensions.forEach((theirs) =>
+              expect(one + mine).not.toBe(other + theirs),
+            ),
+          ),
+        ),
     );
   });
 });

@@ -30,6 +30,7 @@ jest.mock('electron', () => ({
 import {
   catalogRateFor,
   downloadConvolution,
+  getConvolutionCatalog,
 } from '../../../main/convolutionCatalog';
 
 const MODEL = 'Razer Kraken V4 Pro';
@@ -115,6 +116,17 @@ describe('the impulse file a download picks', () => {
     expect(catalogRateFor(undefined)).toBe(48000);
     expect(catalogRateFor(null)).toBe(48000);
     expect(catalogRateFor(0)).toBe(48000);
+  });
+
+  it('finds a model without spaces and by words in either order', async () => {
+    global.fetch = serve([48000]) as unknown as typeof fetch;
+    await Promise.all(
+      ['razerkrakenv4pro', 'v4pro RAZER'].map(async (query) => {
+        const found = await getConvolutionCatalog(query);
+        expect(found.map((entry) => entry.name)).toEqual([MODEL]);
+      }),
+    );
+    expect(await getConvolutionCatalog('v5pro')).toEqual([]);
   });
 
   it('downloads the 44.1 kHz file for an output at 44.1 kHz', async () => {

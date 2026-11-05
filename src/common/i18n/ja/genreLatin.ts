@@ -12,8 +12,12 @@ export default {
   'genre.latin.pin.3150.why': '存在感を、少し前へ。',
   'genre.latin.pin.12500': 'ブラスの高域は押さない',
   'genre.latin.pin.12500.why': 'すでに倍音が豊かです。',
-  'genre.latin.stage.dimension': '音像はミックスのまま、低域だけ狭めます。',
-  'genre.latin.stage.maximizer': 'パーカッションのアタックを残す天井。',
+  'genre.latin.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.latin.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.latin.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.latin.off':
     'エキサイターは用意されていますがオフです。ブラスとグイラがきつくなるからです。',
 
@@ -29,8 +33,12 @@ export default {
   'genre.latinPop.stage.exciter':
     'ボーカルの下にあたたかさと厚み。高域には何も足しません。',
   'genre.latinPop.stage.bassPunch': 'サブを少し引き締めます。',
-  'genre.latinPop.stage.dimension': '150 Hz以下はモノラル。',
-  'genre.latinPop.stage.maximizer': 'ほとんど押し込まない天井。',
+  'genre.latinPop.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.latinPop.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.latinPop.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.latinPop.off':
     'ベースフォージはなし。サブはすでにキックと噛み合っています。',
 
@@ -43,9 +51,12 @@ export default {
   'genre.reggaeton.pin.315.why': 'デンボウのための余白。',
   'genre.reggaeton.pin.5000': 'スネアの破裂音',
   'genre.reggaeton.pin.5000.why': 'キレよく。',
-  'genre.reggaeton.stage.dimension': '150 Hz以下はモノラル。',
+  'genre.reggaeton.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.reggaeton.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.reggaeton.stage.maximizer':
-    'これほど大きなマスターを、ほとんど押さない天井。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.reggaeton.off':
     'ベースフォージは用意されていますがオフです。すでに歪んだ808の下では、そのオクターブと倍音が音の13%に達していました。',
 
@@ -63,9 +74,11 @@ export default {
   'genre.salsa.stage.exciter':
     'トゥンバオの下にやさしくあたたかさだけ。ブラスには何もしません。',
   'genre.salsa.stage.dimension':
-    'バンドは置かれた場所のまま、低域だけ狭めます。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.salsa.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.salsa.stage.maximizer':
-    'コンガの一打一打をすべて通す、ゆっくりした天井。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.salsa.off':
     'ベースパンチもベースフォージもなし、高域にも何もしません。ブラスとカウベルはすでに倍音が豊かです。',
 
@@ -79,8 +92,11 @@ export default {
   'genre.bachata.pin.8000': '3〜8 kHzは決して持ち上げない',
   'genre.bachata.pin.8000.why': 'グイラとレキントはすぐに耳を疲れさせます。',
   'genre.bachata.stage.dimension':
-    'ミックスどおり2本のギターは離したまま、低域だけ狭めます。',
-  'genre.bachata.stage.maximizer': 'グイラのアタックを残す軽い天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.bachata.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.bachata.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.bachata.off':
     'エキサイターは用意されていますがオフです。レキントとグイラをきつくしてしまいます。',
 
@@ -95,8 +111,11 @@ export default {
   'genre.merengue.pin.5000.why': 'グイラとサックスはすでに明るい音です。',
   'genre.merengue.stage.bassPunch': 'タンボーラのパンチをタイトに保ちます。',
   'genre.merengue.stage.dimension':
-    'オルケスタはミックスのまま、低域だけ狭めます。',
-  'genre.merengue.stage.maximizer': 'グイラをにじませない軽い天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.merengue.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.merengue.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.merengue.off':
     'エキサイターもベースフォージもなし。サックスとグイラに高域を足しません。',
 
@@ -110,9 +129,12 @@ export default {
   'genre.cumbia.pin.12500': 'スクレイパーを尖らせない',
   'genre.cumbia.pin.12500.why': 'その脈動には触れません。',
   'genre.cumbia.stage.exciter': 'ベースにあたたかさを。高域には何もしません。',
-  'genre.cumbia.stage.dimension': 'バンドはミックスのまま、低域だけ狭めます。',
+  'genre.cumbia.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.cumbia.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.cumbia.stage.maximizer':
-    'スクレイパーの脈動に触れない、ゆっくりした天井。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.cumbia.off':
     'ベースパンチもベースフォージもなし。スクレイプとベースは演奏したままです。',
 
@@ -126,8 +148,12 @@ export default {
   'genre.bossaNova.pin.5000': '声に少しの空気感',
   'genre.bossaNova.pin.5000.why': '存在感を、やさしく。',
   'genre.bossaNova.stage.exciter': 'ギターにあたたかさを、声に少しの空気感を。',
-  'genre.bossaNova.stage.dimension': '録ったとおり、親密に、中央寄りに。',
-  'genre.bossaNova.stage.maximizer': '受け止めるだけの天井。',
+  'genre.bossaNova.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.bossaNova.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.bossaNova.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.bossaNova.off':
     'ベースパンチもベースフォージもなし。圧縮もサブの追加もしません。',
 
@@ -142,8 +168,11 @@ export default {
   'genre.samba.pin.5000.why': 'キレよく、金属的に。',
   'genre.samba.stage.bassPunch': 'スルドはブーミーにせず、引き締めます。',
   'genre.samba.stage.dimension':
-    'アンサンブル本来の広がりのまま、低域だけ狭めます。',
-  'genre.samba.stage.maximizer': 'パーカッションのアタックを急かさない天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.samba.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.samba.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.samba.off':
     'すでに明るい高域に、エキサイターもベースフォージも使いません。',
 
@@ -157,8 +186,12 @@ export default {
   'genre.flamenco.pin.12500': '高域を少し引く',
   'genre.flamenco.pin.12500.why': 'もともと明るいので、何も足しません。',
   'genre.flamenco.stage.exciter': '厚みだけ。高域は決して足しません。',
-  'genre.flamenco.stage.dimension': '録ったとおり、ギターと歌い手を中央に。',
-  'genre.flamenco.stage.maximizer': 'できる限りすべてのピークを残す天井。',
+  'genre.flamenco.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.flamenco.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.flamenco.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.flamenco.off':
     'ベースパンチもベースフォージもなし。リズムを圧縮するものはありません。',
 
@@ -176,8 +209,11 @@ export default {
   'genre.regionalMexican.stage.bassPunch':
     'タンボーラのパンチをタイトに保ちます。',
   'genre.regionalMexican.stage.dimension':
-    '生のアンサンブルはミックスのまま、低域だけ狭めます。',
-  'genre.regionalMexican.stage.maximizer': '軽い天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.regionalMexican.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.regionalMexican.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.regionalMexican.off':
     'エキサイターは用意されていますがオフです。ブラス、アコーディオン、ヴァイオリンはすでに明るい音です。',
 
@@ -191,8 +227,11 @@ export default {
   'genre.corridos.pin.12500': 'スチール弦レキントは明るくしない',
   'genre.corridos.pin.12500.why': 'すでに粒立ちがはっきりしています。',
   'genre.corridos.stage.dimension':
-    '120 Hz以下のサブはモノラル。レキントとリズムギターはミックスが置いた場所のままです。',
-  'genre.corridos.stage.maximizer': '先読みでピッキングのアタックを残す天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.corridos.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.corridos.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.corridos.off':
     'ベースフォージは用意されていますがオフです。808が自前のサブを持ち込みます。',
 };

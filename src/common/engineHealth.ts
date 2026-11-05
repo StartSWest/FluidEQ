@@ -166,6 +166,7 @@ export const LATENCY_STAGES = [
   'exciter',
   'bassForge',
   'linearEq',
+  'footsteps',
   'bassPunch',
   'room',
   'dimension',
@@ -331,6 +332,40 @@ export const engineRackKeepsEars = (dllVersion: string | undefined): boolean =>
 export const ENGINE_DEESSER_SINCE: readonly [number, number] = [1, 23];
 export const engineRunsDeEsser = (dllVersion: string | undefined): boolean =>
   engineAtLeast(dllVersion, ENGINE_DEESSER_SINCE);
+
+/**
+ * The first engine that runs Footsteps (`footsteps.h`). Its settings ride a
+ * trailer an older engine refuses whole, so main takes the trailer off for
+ * one (`withoutFootsteps`) and the page says the engine needs updating. The
+ * Library's host is built with the app and always has it.
+ */
+export const ENGINE_FOOTSTEPS_SINCE: readonly [number, number] = [1, 25];
+export const engineRunsFootsteps = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_FOOTSTEPS_SINCE);
+
+/**
+ * The first engine that runs the whole Game filter — Environment, Dialogue
+ * and Heavy beside the lift — from the trailer's schema 2, which 1.25
+ * refuses whole; for that engine main writes the lift alone
+ * (`asFootstepsAlone`) and the page says the rest needs the update.
+ */
+export const ENGINE_GAME_SINCE: readonly [number, number] = [1, 26];
+export const engineRunsGame = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_GAME_SINCE);
+
+/**
+ * Dynamics, the upward and downward compressor, from its own DYNA trailer.
+ * An older engine refuses a line carrying it and bypasses the whole rack, so
+ * the app takes the trailer off for one (`withoutDynamics`).
+ */
+export const ENGINE_DYNAMICS_SINCE: readonly [number, number] = [1, 27];
+export const engineRunsDynamics = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_DYNAMICS_SINCE);
+/** The next engine adds measurements only; the audio algorithm is unchanged. */
+export const ENGINE_DYNAMICS_METERS_SINCE: readonly [number, number] = [1, 28];
+export const engineReportsDynamics = (
+  dllVersion: string | undefined,
+): boolean => engineAtLeast(dllVersion, ENGINE_DYNAMICS_METERS_SINCE);
 
 /** Versioned Room commands and truthful comparison telemetry. */
 export const ENGINE_ROOM_SINCE: readonly [number, number] = [1, 11];

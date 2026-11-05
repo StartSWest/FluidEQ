@@ -547,10 +547,13 @@ int main(int argc, char** argv) {
   wire.magic = FEQ_MAGIC_ANALYSIS;
   wire.bins = FEQ_METER_BINS;
   feq_wire_room_report(wire, read);
-  // 784 since the De-esser's window joined the header (`wire.h`); the app
-  // reads a 560-byte header too, from an engine installed before it.
+  FeqCompanderReport dynamics{};
+  feq_meters_read_dynamics(meters, &dynamics);
+  feq_wire_dynamics_report(wire, dynamics);
+  // 872 since Dynamics followed the Game filter's window (`wire.h`); the
+  // app also reads the 840-, 816-, 784- and 560-byte legacy headers.
   check(wire.reserved_tail == report.flags && wire.bass_reserved_tail == -3 &&
-            sizeof(wire) == 784,
+            sizeof(wire) == 872,
         "actual meter and shared host/APO encoder preserve tagged fields and "
         "framing");
   if (argc > 1) {

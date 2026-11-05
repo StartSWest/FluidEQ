@@ -104,7 +104,7 @@ const dsp = {
   'dsp.denoise.voiceLibraryOnly':
     'Der neuronale Stimmreiniger ist nur bei der Bibliothekswiedergabe verfügbar. Rausch-, Brumm- und Klickreduzierung funktionieren mit externem Audio.',
   'dsp.normalizer.liveDescription':
-    'Misst externes Audio während der Wiedergabe, regelt beide Kanäle gemeinsam und schützt Spitzen vor Exciter und EQ.',
+    'Misst externes Audio während der Wiedergabe und setzt vor Exciter und EQ eine gemeinsame Lautstärke für beide Kanäle, ohne die Musik zu komprimieren: True Peak senkt einen Song nur so weit ab, bis seine lauteste Spitze die Peak-Grenze erreicht.',
   'dsp.normalizer.liveAnalysis': 'Live-Analyse der Quelle',
   'dsp.normalizer.inputLoudness': 'Eingangslautheit (3 s)',
   'dsp.normalizer.outputLoudness': 'Ausgangslautheit (3 s)',

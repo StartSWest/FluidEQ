@@ -12,6 +12,7 @@ import {
   IEngineAnalysis,
 } from '../common/dsp/engineAnalysis';
 import decodeEngineAnalysis from './dspHost/engineAnalysis';
+import { ANALYSIS_MAX_FRAME_BYTES } from '../common/dsp/analysisWire';
 import { ENGINE_PREAMP_CHANNEL, IEnginePreamp } from '../common/enginePreamp';
 import {
   capabilitiesFor,
@@ -20,7 +21,7 @@ import {
 import { macAnalysisListenOptions } from './macEngine/analysisSocket';
 
 const PIPE = '\\\\.\\pipe\\FluidEQ-Engine-Analysis';
-const MAX_FRAME = 32_768;
+const MAX_FRAME = ANALYSIS_MAX_FRAME_BYTES;
 const GUID = /^\{?[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\}?$/i;
 /** "FEQS", the process-stats reply's magic in `analysis_link.cpp`. */
 const STATS_MAGIC = 0x53514546;

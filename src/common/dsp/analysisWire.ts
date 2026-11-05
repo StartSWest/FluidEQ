@@ -60,7 +60,9 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * gains, which is 76 bytes onto 320 and lands on 396 — rounded to 400 by one
  * explicit pad float, for the same alignment reason. The forty actual hiss
  * gain bands append 160 bytes after that complete layout, taking it to 560,
- * and the De-esser's fifty-six words 224 more, to 784.
+ * the De-esser's fifty-six words 224 more, to 784, Footsteps' seven and one
+ * pad float 32 more, to 816, and the Game filter's five and one pad 24 more,
+ * to 840.
  * Every pre-existing offset is untouched on purpose: this constant, the
  * publisher in `meters.cpp` and the reader in `dspHost/wire.ts` all have to
  * move in one commit, and new fields go after everything already decoded,
@@ -74,7 +76,22 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * believed: three separate readers of it set out to add a check that has been
  * there since the graphs were first fed from the engine.
  */
-export const ANALYSIS_HEADER_BYTES = 784;
+export const ANALYSIS_HEADER_BYTES = 872;
+export const ANALYSIS_GAME_HEADER_BYTES = 840;
+export const ANALYSIS_DYNAMICS_TAG = 0x314e5944;
+
+/**
+ * The header the engines with Footsteps and before the rest of the Game
+ * filter write (`ENGINE_GAME_SINCE`): everything above, without its 24 bytes.
+ */
+export const ANALYSIS_FOOTSTEPS_HEADER_BYTES = 816;
+
+/**
+ * The header the engines from the De-esser to before Footsteps write
+ * (`ENGINE_FOOTSTEPS_SINCE`): everything above, without Footsteps' 32 bytes.
+ * Read at this length too, for the reason the one below is.
+ */
+export const ANALYSIS_DEESSER_HEADER_BYTES = 784;
 
 /**
  * The header every engine before the De-esser writes (`ENGINE_DEESSER_SINCE`):
@@ -108,9 +125,21 @@ export const ANALYSIS_STAGES = [
   // actually runs — would renumber the three taps a running host already
   // publishes and feed each graph its neighbour's spectrum.
   'denoise',
+  'dynamicsIn',
+  'dynamicsOut',
 ] as const;
 
 export type TAnalysisStage = (typeof ANALYSIS_STAGES)[number];
+
+/** Every tap, scope, EQ band, detail bin and five-float live Normalizer tail. */
+export const ANALYSIS_MAX_FRAME_BYTES =
+  ANALYSIS_HEADER_BYTES +
+  (ANALYSIS_STAGES.length * ANALYSIS_BINS +
+    ANALYSIS_SCOPE_PAIRS * 2 +
+    ANALYSIS_MAX_BANDS * 2 +
+    ANALYSIS_EQ_DETAIL_BINS +
+    5) *
+    Float32Array.BYTES_PER_ELEMENT;
 
 export interface IHostAnalysisRoom {
   active: boolean;
@@ -123,6 +152,8 @@ export interface IHostAnalysisRoom {
 }
 
 export interface IHostAnalysis {
+  /** The actual Dynamics detector and applied gains, when the engine reports them. */
+  dynamics?: IHostAnalysisDynamics;
   /** Absent on older native writers or malformed/unknown report versions. */
   room?: IHostAnalysisRoom;
   sequence: number;
@@ -170,6 +201,10 @@ export interface IHostAnalysis {
   bassPunch: IHostAnalysisBassPunch;
   /** Absent from an engine before the De-esser. */
   deEsser?: IHostAnalysisDeEsser;
+  /** Absent from an engine before Footsteps. */
+  footsteps?: IHostAnalysisFootsteps;
+  /** Absent from an engine before the rest of the Game filter. */
+  game?: IHostAnalysisGame;
   /**
    * Said by an engine whose EQ spectrum is the live one: the window ending
    * now, unsmoothed, with a long window for the bass beside it every few
@@ -177,6 +212,13 @@ export interface IHostAnalysis {
    * spectrum is one smoothed window in every 2048 samples.
    */
   eqLive?: IHostAnalysisEqLive;
+}
+
+export interface IHostAnalysisDynamics {
+  active: boolean;
+  levelDb: readonly [number, number, number];
+  /** Current gains after attack/release, make-up and the amplitude dry/wet mix. */
+  gainDb: readonly [number, number, number];
 }
 
 export interface IHostAnalysisEqLive {
@@ -209,6 +251,43 @@ export interface IHostAnalysisDeEsser {
   bandLevelDb: readonly number[];
   bandThresholdDb: readonly number[];
   bandCutDb: readonly number[];
+}
+
+/**
+ * What Footsteps heard, lifted and calmed since the last frame.
+ *
+ * Measured, never derived from the dials: whether anything is lifted depends
+ * on whether a sound is quiet, arriving and standing out of the bed. Levels
+ * are the stage's own readings in dB, a full-scale sine at 0.
+ */
+export interface IHostAnalysisFootsteps {
+  /** The loudest the whole signal was. */
+  levelDb: number;
+  /** The loudest the steps band was. */
+  cueDb: number;
+  /** The steps band's learnt floor: the rain, the wind, the music. */
+  bedDb: number;
+  /** Each band's largest lift, dB: weight, steps, detail. */
+  liftDb: readonly [number, number, number];
+  /** The rumble's deepest cut, dB, never positive. */
+  calmDb: number;
+}
+
+/**
+ * What the Game filter's other two parts did since the last frame: measured,
+ * like the lift's, never derived from the dials.
+ */
+export interface IHostAnalysisGame {
+  /** The bed's gain, dB: the band moved furthest, a lowered bed negative. */
+  environmentDb: number;
+  /** 0 to 1: how much of what was heard was environment. */
+  ambience: number;
+  /** 0 to 1: how sure the stage was that a voice was speaking. */
+  voice: number;
+  /** The voice band's largest lift, dB. */
+  voiceDb: number;
+  /** How far everything else stepped back for a voice, dB, never positive. */
+  duckDb: number;
 }
 
 /**

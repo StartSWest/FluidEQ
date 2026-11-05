@@ -27,12 +27,29 @@ import {
  * records, the dynamics their original masters had (DR 11-14, against 9 for
  * the remasters).
  */
+// 2026-11-04 reference calibration: constant input normalization precedes
+// the creative stages and one final Maximizer. Drive is makeup from that
+// working level, not a ranking of limiting strength. Exact settings and
+// measured limits: docs/dsp/music-reference-audit.json.
 const ROCK_RACKS: readonly IGenreRack[] = [
   {
     // 110-140 BPM on a backbeat. Its Exciter and Forge are offered under
     // Rock's name and left off: the guitars have harmonics enough, and the
     // bass guitar has a real bottom.
     id: 'rock',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     exciter: exciterProfile(
       [
         { freqHz: 90, range: 0.3, drive: 2, mix: 0.25 },
@@ -45,8 +62,8 @@ const ROCK_RACKS: readonly IGenreRack[] = [
     bassForge: forge(90, 2.5, 0.85, 0.8, 0.7, 0.4),
     // The kick's own hit kept, its tail shortened under the bass guitar.
     bassPunch: punch(100, 0.3, -0.3, 0, 60, 0),
-    dimension: width(0.65, 1, 1, 160, 3_000, 0.05),
-    maximizer: ceiling(1, -1, 4, sixteenthMs(125)),
+    dimension: width(0.65, 1, 1, 160, 3_000, 0),
+    maximizer: ceiling(5.75, -1, 4, sixteenthMs(125)),
     offered: ['exciter', 'bassForge'],
   },
   {
@@ -60,9 +77,22 @@ const ROCK_RACKS: readonly IGenreRack[] = [
     // pop's under a bass line that moves, the bottom narrowed, and the ceiling
     // only catches.
     id: 'popRock',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     bassPunch: punch(105, 0.25, -0.35, 0, 60, 0),
-    dimension: width(0.6, 1, 1, 150, 3_000, 0.05),
-    maximizer: ceiling(0.75, -1, 4, sixteenthMs(120)),
+    dimension: width(0.6, 1, 1, 150, 3_000, 0),
+    maximizer: ceiling(6.75, -1, 4, sixteenthMs(120)),
   },
   {
     // Played without a click and mastered with room to breathe: -18 to -13
@@ -70,45 +100,110 @@ const ROCK_RACKS: readonly IGenreRack[] = [
     // is welcome; the 60s mixes panned hard, and a shade of narrowing is what
     // brings those back together on headphones.
     id: 'classicRock',
+    normalizer: { mode: 'loudness', targetLufs: -19.5, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     exciter: exciterProfile(
       [{ enabled: false }, { enabled: false }, { enabled: false }],
       { enabled: true, amount: 0.1, focusHz: 300, range: 0.3 },
     ),
     dimension: width(0.8, 0.92, 0.95, 180, 3_200, 0),
-    maximizer: ceiling(1.25, -1, 10, beatMs(120)),
+    maximizer: ceiling(5.5, -1, 10, beatMs(120)),
   },
   {
     // Loud and quiet in the same song, fuzz on the guitars, and the late-90s
     // masters among the most clipped ever released. The verse-to-chorus
     // contrast is the form, so the ceiling barely drives.
     id: 'alternativeRock',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     bassPunch: punch(100, 0.2, -0.35, 0, 60, 0),
-    dimension: width(0.65, 1, 1.05, 160, 3_000, 0.05),
-    maximizer: ceiling(0.75, -1, 5, sixteenthMs(120)),
+    dimension: width(0.65, 1, 1.05, 160, 3_000, 0),
+    maximizer: ceiling(4.5, -1, 5, sixteenthMs(120)),
   },
   {
     // A live kit in a room, warm and often deliberately dark. The room is
     // the record, so nothing narrows it but the bass and nothing shapes the
     // drums.
     id: 'indieRock',
-    dimension: width(0.8, 1, 1, 170, 3_200, 0.08),
-    maximizer: ceiling(1, -1, 6, sixteenthMs(115)),
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
+    dimension: width(0.8, 1, 1, 170, 3_200, 0),
+    maximizer: ceiling(5.75, -1, 6, sixteenthMs(115)),
   },
   {
     // Long pieces that build from near silence (DR 10-14), panned in detail.
     // A slow ceiling that touches only the climax, and the picture as mixed
     // above the bass.
     id: 'progressiveRock',
-    dimension: width(0.85, 1, 1.05, 170, 3_200, 0.05),
-    maximizer: ceiling(1, -1, 12, beatMs(110)),
+    normalizer: { mode: 'loudness', targetLufs: -20.5, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
+    dimension: width(0.85, 1, 1.05, 170, 3_200, 0),
+    maximizer: ceiling(6.5, -1, 12, beatMs(110)),
   },
   {
     // A big kick in a live room and valve crunch: the punch kept, the low
     // mids under it tightened a little, as the genre is mixed.
     id: 'hardRock',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     bassPunch: punch(110, 0.25, -0.4, 0, 60, 0),
-    dimension: width(0.7, 1, 1, 170, 3_000, 0.05),
-    maximizer: ceiling(1, -1, 4, sixteenthMs(120)),
+    dimension: width(0.7, 1, 1, 170, 3_000, 0),
+    maximizer: ceiling(6, -1, 4, sixteenthMs(120)),
   },
   {
     // Double-kick runs at up to 220 BPM, each hit wanted on its own: a
@@ -119,6 +214,19 @@ const ROCK_RACKS: readonly IGenreRack[] = [
     // The loudest genre there is (-8.4 LUFS median), so the ceiling barely
     // drives. Its Exciter is offered and left off, for the fizz.
     id: 'metal',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     exciter: exciterProfile(
       [
         { mix: 0.18 },
@@ -130,32 +238,71 @@ const ROCK_RACKS: readonly IGenreRack[] = [
     ),
     bassPunch: punch(100, 0, -0.6, 0, 40, 0),
     dimension: width(0.6, 1, 1, 150, 3_000, 0),
-    maximizer: ceiling(0.5, -1, 2.5, sixteenthMs(170)),
+    maximizer: ceiling(7, -1, 2.5, sixteenthMs(170)),
     offered: ['exciter'],
   },
   {
     // Dry, mid-heavy and fast (150-200 BPM). Only the kick tightened, and
     // nothing brighter or wider than the band played it.
     id: 'punk',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     bassPunch: punch(100, 0.15, -0.45, 0, 40, 0),
     dimension: width(0.65, 1, 1, 160, 3_000, 0),
-    maximizer: ceiling(0.5, -1, 3, sixteenthMs(180)),
+    maximizer: ceiling(6.25, -1, 3, sixteenthMs(180)),
   },
   {
     // A tight, clicky kick and glossy guitars, on masters crushed to DR 4-6.
     // A tighter kick, never a deeper one, and a ceiling that hardly drives.
     id: 'popPunk',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     bassPunch: punch(110, 0.2, -0.5, 0, 40, 0),
     dimension: width(0.6, 1, 1, 150, 3_000, 0),
-    maximizer: ceiling(0.25, -1, 3, sixteenthMs(170)),
+    maximizer: ceiling(6.75, -1, 3, sixteenthMs(170)),
   },
   {
     // Sludgy, soft-then-loud, with a thick middle and a rolled-off top that
     // is meant to be there. Nothing brightens it, and a slow ceiling keeps
     // the loud half loud and the soft half soft.
     id: 'grunge',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     dimension: width(0.75, 1, 1, 170, 3_000, 0),
-    maximizer: ceiling(1, -1, 8, beatMs(110)),
+    maximizer: ceiling(6.5, -1, 8, beatMs(110)),
   },
 ];
 

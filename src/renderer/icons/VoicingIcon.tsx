@@ -23,6 +23,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * stay legible from the 14px chip in the EQ toolbar up to the card in the
  * Voicing tab. `currentColor` lets each usage inherit its own state colour.
  */
+
+import { gameCurveOfVoicing } from '../../common/dsp/gameCurves';
+
 const PATHS: Record<string, string> = {
   // Musical note.
   music:
@@ -292,6 +295,21 @@ const ALIASES: Record<string, string> = {
 /** The strip of sliders that stands for voicing as a whole. */
 const GENERIC = 'M4 8h6M14 8h6M4 16h10M18 16h2M11 5v6M15 13v6';
 
+/**
+ * A game curve (`gameCurves.ts`) drawn as the Gaming chain it plays over:
+ * the crosshair where a match is about where a sound is, the controller
+ * everywhere else.
+ */
+const gameCurveGlyph = (profileId: string): string | undefined => {
+  const curve = gameCurveOfVoicing(profileId);
+  if (!curve) {
+    return undefined;
+  }
+  return curve.curveId === 'competitive' || curve.curveId === 'battle'
+    ? 'crosshair'
+    : 'games';
+};
+
 interface IVoicingIconProps {
   /** Profile id, or omitted for the generic voicing glyph. */
   profileId?: string;
@@ -305,7 +323,9 @@ export default function VoicingIcon({
   // Falls back rather than rendering nothing. `PATHS[unknown]` is `undefined`
   // and a path with no `d` draws an empty glyph, so a profile added without one
   // would leave a hole in the list that looks like a failed load.
-  const key = profileId ? (ALIASES[profileId] ?? profileId) : '';
+  const key = profileId
+    ? (ALIASES[profileId] ?? gameCurveGlyph(profileId) ?? profileId)
+    : '';
   const path = (key ? PATHS[key] : GENERIC) ?? GENERIC;
 
   return (

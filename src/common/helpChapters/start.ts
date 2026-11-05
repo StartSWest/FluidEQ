@@ -1,6 +1,5 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { OFFICIAL_SITE_URL } from '../branding';
 import { type IHelpChapter, WINDOW } from './model';
 
 /** Getting started: the first session, the window, what a PC needs and the engine. */
@@ -11,20 +10,6 @@ const START_CHAPTERS = [
     figures: [
       { image: '03-eq-parametric-bands-and-live-response.png', ...WINDOW },
     ],
-    // The first-steps film, where the site shows it (Ivan, 2026-09-30: "put
-    // it on the site and be able to be streamed by the app"). Its poster is
-    // the chapter's own capture until the film's first frame replaces it.
-    video: {
-      src: `${OFFICIAL_SITE_URL}/video/first-steps.mp4`,
-      captions: {
-        src: `${OFFICIAL_SITE_URL}/video/first-steps.en.vtt`,
-        lang: 'en',
-      },
-      page: `${OFFICIAL_SITE_URL}/#first-steps`,
-      title: 'help.start.videoTitle',
-      note: 'help.start.videoNote',
-      poster: '03-eq-parametric-bands-and-live-response.png',
-    },
   },
   {
     // The window's frame. The title bar is drawn by its own parts
@@ -63,6 +48,11 @@ const START_CHAPTERS = [
           },
           {
             target: '.window-titlebar__left .workspace-tab:nth-of-type(3)',
+            name: 'gaming.tab',
+            text: 'help.window.gaming',
+          },
+          {
+            target: '.window-titlebar__left .workspace-tab:nth-of-type(4)',
             name: 'tabs.eq',
             text: 'help.window.eq',
           },

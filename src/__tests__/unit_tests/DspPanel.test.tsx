@@ -151,13 +151,14 @@ describe('DspPanel', () => {
       container.querySelector('.dsp-presets') as HTMLElement,
     );
     fireEvent.click(presets.getByRole('button', { name: 'Presets' }));
+    // Every chain but the Gaming tab's, which stay on that tab.
     expect(screen.getAllByRole('menuitemradio')).toHaveLength(
-      DSP_PRESETS.length,
+      DSP_PRESETS.filter((preset) => preset.group !== 'gaming').length,
     );
     // Include the new worldwide genre chains; the literal is here so that
     // a chain added without a row in the menu is a failure
     // rather than a menu quietly one short.
-    expect(DSP_PRESETS).toHaveLength(108);
+    expect(DSP_PRESETS).toHaveLength(118);
     expect(
       screen.getByRole('menuitemradio', { name: /Repair compressed/i }),
     ).toBeInTheDocument();
@@ -184,6 +185,7 @@ describe('DspPanel', () => {
       'Bass Forge',
       'Equaliser',
       'Bass Punch',
+      'Dynamics',
       'Maximizer',
       'Master',
     ].forEach((name) => {
@@ -217,6 +219,27 @@ describe('DspPanel', () => {
       screen.queryByRole('tablist', { name: /bands/i }),
     ).not.toBeInTheDocument();
     expect(screen.queryByText(/invents them/i)).not.toBeInTheDocument();
+  });
+
+  it('opens the Dynamics music graph and applies its Punch preset', () => {
+    const { container, onChange } = renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Dynamics/i }));
+    const card = screen.getByRole('region', { name: /Dynamics/i });
+    expect(
+      container.querySelector('.dsp-dynamics-graph canvas'),
+    ).toBeInTheDocument();
+    fireEvent.click(within(card).getByRole('button', { name: 'Preset' }));
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /^Punch/i }));
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        dynamics: expect.objectContaining({
+          enabled: true,
+          presetId: 'punch',
+          attackMs: 40,
+          releaseMs: 100,
+        }),
+      }),
+    );
   });
 
   /**

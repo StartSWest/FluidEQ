@@ -17,9 +17,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { PointerEvent, useMemo, useRef, useState } from 'react';
+import {
+  PointerEvent,
+  useCallback,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { levelAxisSuitsLook } from 'common/graphAnalysis';
 import Axis from './Axis';
+import { ChartIdsContext, TChartIdOf } from './chartIds';
 import GridLine from './GridLine';
 import useController, {
   GRAPH_END,
@@ -35,13 +43,10 @@ import useController, {
 } from './ChartController';
 import LiveOutputCurve from './LiveOutputCurve';
 import {
-  getGraphView,
-  setGraphView,
   useGraphGridHidden,
   useGraphLook,
   useSceneLook,
 } from '../utils/graphStyle';
-import viewAfterPlotDoubleClick from './plotDoubleClick';
 import { toggleChromeNow } from '../utils/idleChrome';
 import CoverageOverlay from './CoverageOverlay';
 import Curve from './Curve';
@@ -116,6 +121,12 @@ interface IChartProps {
    * (`graphScenePlace.ts`).
    */
   isPlotPartOfWindow?: boolean;
+  /**
+   * A double-click on the plot, off a band's handle, and whether it asked for
+   * the window rather than the screen (Ctrl). Absent, a double-click does
+   * nothing.
+   */
+  onPlotDoubleClick?: (toWindow: boolean) => void;
 }
 
 const Chart = ({
@@ -127,8 +138,15 @@ const Chart = ({
   onMarqueeSelect,
   outputOffset,
   isPlotPartOfWindow = false,
+  onPlotDoubleClick,
 }: IChartProps) => {
   const { width, height, margins } = dimensions;
+  // This chart's own ids for its clips and its spectrum (`chartIds.ts`).
+  const instance = useId().replace(/[^a-zA-Z0-9_-]/g, '');
+  const idOf = useCallback<TChartIdOf>(
+    (name) => `${name}-${instance}`,
+    [instance],
+  );
   const svgWidth = useMemo(
     () => Math.max(width - margins.left - margins.right, 0),
     [width, margins],
@@ -349,7 +367,7 @@ const Chart = ({
   };
 
   return (
-    <>
+    <ChartIdsContext.Provider value={idOf}>
       {/* The live trace, on its own canvas behind the drawing.
 
           A sibling of the SVG rather than a layer inside it, because that is
@@ -423,16 +441,18 @@ const Chart = ({
         // On a band handle it does nothing — those have their own handlers and
         // stop the event — so dragging a point and accidentally double-tapping it
         // does not throw the window into full screen.
+        //
+        // The main graph's alone (`onPlotDoubleClick`): a chart drawn
+        // elsewhere is a picture of the curves, and a double-click there
+        // throwing the main graph into full screen would be a surprise.
         onDoubleClick={(event) => {
-          if ((event.target as Element).closest?.('.graph-edit-point')) {
+          if (
+            !onPlotDoubleClick ||
+            (event.target as Element).closest?.('.graph-edit-point')
+          ) {
             return;
           }
-          setGraphView(
-            viewAfterPlotDoubleClick(
-              getGraphView(),
-              event.ctrlKey || event.metaKey,
-            ),
-          );
+          onPlotDoubleClick(event.ctrlKey || event.metaKey);
         }}
         // A single click on the drawing shows the chrome or puts it away.
         //
@@ -462,7 +482,7 @@ const Chart = ({
               sides when the range is trimmed, so each colour stays over the
               band it belongs to. */}
           <linearGradient
-            id="chart-eq-spectrum-gradient"
+            id={idOf('chart-eq-spectrum-gradient')}
             gradientUnits="userSpaceOnUse"
             x1={xScaleFreq(GRAPH_START)}
             x2={xScaleFreq(GRAPH_END)}
@@ -492,7 +512,9 @@ const Chart = ({
             Red at the bottom, green at the top, and the whole point is what is
             in between: the ramp over which a range earns its correction. Object
             bounding box units rather than user space, so one definition serves
-            nine bands whose ramps sit at nine different heights and widths.
+            nine bands whose ramps sit at nine different heights and widths —
+            and every chart in the window alike, which is why it keeps a fixed
+            id the stylesheet names (`_graphThemeChart.scss`).
           */}
           <linearGradient id="chart-presence-ramp" x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor="#54ff8a" stopOpacity="0.3" />
@@ -620,14 +642,14 @@ const Chart = ({
             yScale={yScaleEq}
           />
         ))}
-        <clipPath id="chart-clip-path">
+        <clipPath id={idOf('chart-clip-path')}>
           <rect x={padding.left} y={0} width={plotWidth} height={plotHeight} />
         </clipPath>
         {/* The halo's clip reaches twelve pixels past the plot on each side —
           the halo's own half-width — so a curve that runs to the edge tails
           off into the gutter instead of being cut square at the axis. The
           line itself keeps the exact clip above. */}
-        <clipPath id="chart-halo-clip-path">
+        <clipPath id={idOf('chart-halo-clip-path')}>
           <rect
             x={padding.left - 12}
             y={0}
@@ -654,8 +676,10 @@ const Chart = ({
             and the stereo meters are their own instruments — a decibel scale
             beside either is a ruler measuring the wrong thing, which is
             exactly how it was read (Ivan, 2026-09-23: "why the espectrograma
-            is bottom up ... matching those?"). */}
-          {levelAxisSuitsLook(look.style) ? (
+            is bottom up ... matching those?"). Absent too while no wave is
+            drawn — hidden, or a chart of the layers alone (the Gaming Lab's
+            Curve stage) — when there is nothing on the plot it measures. */}
+          {levelAxisSuitsLook(look.style) && liveCurves.length > 0 ? (
             <Axis
               type="right"
               scale={liveLevelScale}
@@ -674,7 +698,7 @@ const Chart = ({
           />
         </g>
       </svg>
-    </>
+    </ChartIdsContext.Provider>
   );
 };
 

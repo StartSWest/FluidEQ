@@ -248,6 +248,10 @@ const KaraokeWorkspaceView = ({
                     id: 'master',
                     label: t('library.volume'),
                     value: fader.level,
+                    valueText: `${Math.round((fader.confirmedLevel ?? fader.level) * 100)}%`,
+                    onBeginChange: fader.beginChange,
+                    onKeyDown: fader.onKeyDown,
+                    onCommit: fader.endChange,
                     onChange: fader.setLevel,
                     // The master has a real output mute. Zeroing a stem and
                     // restoring its level cannot release that separate mute.

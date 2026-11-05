@@ -240,6 +240,7 @@ export const registerRemoteAudioIpc = ({
     start: (identity) => lanLink().start(identity),
     join: (code, fresh) => lanLink().join(code, fresh),
     unlink: (target) => lanLink().unlink(target),
+    reconnect: (target) => lanLink().reconnect(target),
     retry: () => lanLink().retry(),
     sendSignal: (message) => lanLink().sendSignal(message),
     sendAudio: (chunk) => lanLink().sendAudio(chunk),
@@ -467,6 +468,23 @@ export const registerRemoteAudioIpc = ({
     });
     publishJoins();
   });
+  ipcMain.handle(
+    'remote-audio-lan-reconnect',
+    async (_event, target: unknown) => {
+      if (typeof target !== 'object' || target === null) {
+        throw new Error('Invalid Share Audio reconnect.');
+      }
+      if (!started) {
+        // Share Audio is not on the network: nothing can be reached.
+        return false;
+      }
+      const { peerId, computerId } = target as Record<string, unknown>;
+      return lan.reconnect({
+        ...(typeof peerId === 'string' ? { peerId } : {}),
+        ...(typeof computerId === 'string' ? { computerId } : {}),
+      });
+    },
+  );
   ipcMain.handle('remote-audio-lan-both-ways', (_event, value: unknown) => {
     // Windows always plays both ways; Linux only once the window has found
     // the engine's own Share Audio endpoints.

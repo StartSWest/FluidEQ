@@ -16,8 +16,12 @@ const genreRock = {
   'genre.rock.pin.12500.why': '扭曲已經充滿了頂部。',
   'genre.rock.stage.bassPunch':
     '底鼓保持其自身的打擊力，其尾部在低音吉他下方縮短。',
-  'genre.rock.stage.dimension': '低音在160Hz以下收窄；堅硬的吉他原封未動。',
-  'genre.rock.stage.maximizer': '天花板很輕，速度夠快，可以進行反拍。',
+  'genre.rock.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.rock.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.rock.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.rock.off':
     '它的 Exciter 和 Bass Forge 提供並保留：失真吉他產生自己的和聲，而低音吉他有真正的底部。',
   'genre.popRock.hook': '搖滾樂團，聲音在前面',
@@ -34,8 +38,11 @@ const genreRock = {
   'genre.popRock.stage.bassPunch':
     '保持大鼓的打擊力並在移動的低音線下縮短其尾部。',
   'genre.popRock.stage.dimension':
-    '低音在150Hz以下收窄；吉他留在混音放置的地方。',
-  'genre.popRock.stage.maximizer': '僅捕獲峰值並在十六分音符內釋放。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.popRock.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.popRock.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.popRock.off':
     '已經很明亮的聲音上沒有激勵器，真正的低音吉他下也沒有 Bass Forge。',
   'genre.classicRock.hook': '無需點選即可暢玩，有喘息的空間',
@@ -50,8 +57,11 @@ const genreRock = {
   'genre.classicRock.stage.exciter':
     '有點中低溫暖，磁帶的聲音，頂部沒有任何東西。',
   'genre.classicRock.stage.dimension':
-    '色調更窄，將 60 年代的硬調混音在耳機上融合在一起。',
-  'genre.classicRock.stage.maximizer': '緩慢的天花板保持了原作的動態。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.classicRock.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.classicRock.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.classicRock.off':
     '無 Bass Punch 或 Bass Forge：寬敞的大鼓和磁帶溫暖的低音保持錄製時的狀態。',
   'genre.alternativeRock.hook': '同一首歌大聲安靜',
@@ -66,9 +76,12 @@ const genreRock = {
   'genre.alternativeRock.pin.8000': '頂部有一個陰影',
   'genre.alternativeRock.pin.8000.why': '它軟化了 90 年代大師剪裁的粗糙感。',
   'genre.alternativeRock.stage.bassPunch': '踢擊繼續，尾巴也縮短了。',
-  'genre.alternativeRock.stage.dimension': '低音變窄，吉他離開了平移的位置。',
+  'genre.alternativeRock.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.alternativeRock.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
   'genre.alternativeRock.stage.maximizer':
-    '天花板幾乎無法驅動，因此大聲的部分比安靜的部分更響亮。',
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.alternativeRock.off':
     '沒有激勵器，也沒有 Bass Forge：法茲產生自己的和聲。',
   'genre.indieRock.hook': '房間裡的現場套件，溫暖而黑暗',
@@ -80,8 +93,12 @@ const genreRock = {
   'genre.indieRock.pin.1250.why': '樂隊聽起來像樂隊。',
   'genre.indieRock.pin.8000': '根據記錄，溫暖和黑暗',
   'genre.indieRock.pin.8000.why': '頂部保持柔軟。',
-  'genre.indieRock.stage.dimension': '房間本身的寬度，只有底部變窄了。',
-  'genre.indieRock.stage.maximizer': '輕盈的天花板，可在十六分音符內釋放。',
+  'genre.indieRock.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.indieRock.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.indieRock.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.indieRock.off':
     '無激勵器、Bass Punch 或 Bass Forge：沒有任何東西可以塑造鼓或為房間增添色彩。',
   'genre.progressiveRock.hook': '近乎沉默的長作品',
@@ -94,9 +111,11 @@ const genreRock = {
   'genre.progressiveRock.pin.12500': '全音域高傳真頂級音響',
   'genre.progressiveRock.pin.12500.why': '這些唱片所用的空氣。',
   'genre.progressiveRock.stage.dimension':
-    '這張圖片混合在低音之上，帶有一絲深度。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.progressiveRock.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
   'genre.progressiveRock.stage.maximizer':
-    '搖滾家族中最長的前瞻和完整的釋放節拍：它只觸及高潮。',
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.progressiveRock.off':
     '無激勵器、Bass Punch 或 Bass Forge：沒有任何快速調整安靜通道。',
   'genre.hardRock.hook': '直播間裡的一腳大踢',
@@ -111,8 +130,12 @@ const genreRock = {
   'genre.hardRock.pin.12500': '嘶嘶聲減輕',
   'genre.hardRock.pin.12500.why': '超速裝置的頂部，未抬起。',
   'genre.hardRock.stage.bassPunch': '踢擊繼續，尾巴也變短了一些。',
-  'genre.hardRock.stage.dimension': '低音變窄；吉他保持平移狀態。',
-  'genre.hardRock.stage.maximizer': '適合客廳踢球的淺色天花板。',
+  'genre.hardRock.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.hardRock.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.hardRock.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.hardRock.off': '無激勵器或 Bass Forge：閥門嘎吱聲就足夠諧波了。',
   'genre.metal.hook': '每一次雙踢都是獨立的',
   'genre.metal.story':
@@ -123,12 +146,16 @@ const genreRock = {
   'genre.metal.pin.80.why': '能夠提升它的頻段可以提升 75 Hz 以下的一切。',
   'genre.metal.pin.315': '調低吉他的泥漿',
   'genre.metal.pin.315.why':
-    '任何型別中最深刻的剪輯，以及為什麼連複段保持清晰。',
+    '適度削減中低頻，讓密集的吉他樂句保持清晰，同時保留吉他的厚度。',
   'genre.metal.pin.3150': '點選即可閱讀',
   'genre.metal.pin.3150.why': '為什麼雙踢跑聽起來像是單獨的擊球。',
   'genre.metal.stage.bassPunch': '尾巴較短，攻擊力較強，因此奔跑時保持分開。',
-  'genre.metal.stage.dimension': '150 Hz 以下低音變窄，沒有任何變寬。',
-  'genre.metal.stage.maximizer': '它幾乎不開車：這是最響亮的型別。',
+  'genre.metal.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.metal.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.metal.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.metal.off':
     '它的激勵器被提供並停止：更多的諧波會落在嘶嘶聲中。在調低調音的吉他下沒有 Bass Forge。',
   'genre.punk.hook': '乾、中重度、快速',
@@ -141,8 +168,12 @@ const genreRock = {
   'genre.punk.pin.5000': '沒有空氣，乾燥',
   'genre.punk.pin.5000.why': '被記下來：沒有什麼比樂團演奏的更明亮的了。',
   'genre.punk.stage.bassPunch': '只是腳踢得更緊了。',
-  'genre.punk.stage.dimension': '低音變窄了，沒有任何變寬。',
-  'genre.punk.stage.maximizer': '保持攻擊的輕型天花板。',
+  'genre.punk.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.punk.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.punk.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.punk.off': '沒有激勵器，也沒有 Bass Forge：原始的聲音。',
   'genre.popPunk.hook': '緊緻、有咔嗒聲的底鼓和光滑的吉他',
   'genre.popPunk.story':
@@ -154,8 +185,12 @@ const genreRock = {
   'genre.popPunk.pin.3150': '只有一點點邊緣',
   'genre.popPunk.pin.3150.why': '這些大師都是光明正大的，也都已經被壓垮了。',
   'genre.popPunk.stage.bassPunch': '踢得更緊，而不是更深。',
-  'genre.popPunk.stage.dimension': '150 Hz 以下低音變窄，沒有任何變寬。',
-  'genre.popPunk.stage.maximizer': '搖滾家族中最輕的天花板：主人已經很大聲了。',
+  'genre.popPunk.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.popPunk.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.popPunk.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.popPunk.off': '如此明亮、如此響亮的母帶上沒有激勵器或 Bass Forge。',
   'genre.grunge.hook': '泥濘的、柔和的、響亮的、故意黑暗的',
   'genre.grunge.story':
@@ -167,9 +202,11 @@ const genreRock = {
   'genre.grunge.pin.12500': '捲起的頂部',
   'genre.grunge.pin.12500.why': '再往下看：記錄是黑暗的。',
   'genre.grunge.stage.dimension':
-    '寬闊的吉他和居中的聲音，混合在一起；只是底部變窄了。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.grunge.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
   'genre.grunge.stage.maximizer':
-    '一個緩慢的天花板，使柔和的一半柔和，大聲的一半大聲。',
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.grunge.off':
     '無激勵器、Bass Punch 或 Bass Forge：沒有任何東西可以照亮它。',
 } satisfies Partial<Dictionary>;

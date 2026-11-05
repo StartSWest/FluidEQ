@@ -18,8 +18,11 @@ const genreWorld = {
     '아날로그 마스터를 위한 따뜻함과 약간의 공기.',
   'genre.afrobeat.stage.bassPunch': '베이스가 조금 조여졌습니다.',
   'genre.afrobeat.stage.dimension':
-    '빅밴드는 녹음대로 퍼졌고, 베이스만 좁아졌다.',
-  'genre.afrobeat.stage.maximizer': '역동성을 유지하는 느린 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.afrobeat.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.afrobeat.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.afrobeat.off':
     'Bass Forge도 없고 밴드를 압박하는 것도 없습니다. 천장만 잡아줍니다.',
   'genre.afrobeats.hook': '라운드 킥과 사인 서브',
@@ -32,8 +35,11 @@ const genreWorld = {
   'genre.afrobeats.pin.12500': '셰이커와 보컬 에어',
   'genre.afrobeats.pin.12500.why': '빛, 위에.',
   'genre.afrobeats.stage.dimension':
-    '150Hz 미만의 모노에서는 셰이커가 약간 더 넓어집니다.',
-  'genre.afrobeats.stage.maximizer': '그네를 지켜주는 가벼운 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.afrobeats.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.afrobeats.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.afrobeats.off':
     'Bass Forge가 제공되고 중단되었습니다. 사인 서브는 깨끗하고 그 아래에 옥타브나 그릿이 필요하지 않습니다.',
   'genre.amapiano.hook': '통나무 드럼은 에너지입니다',
@@ -46,9 +52,11 @@ const genreWorld = {
   'genre.amapiano.pin.8000': '브라이트 셰이커',
   'genre.amapiano.pin.8000.why': '약간의 리프트.',
   'genre.amapiano.stage.dimension':
-    '120Hz 이하의 서브 모노와 통나무 드럼의 몸체가 200으로 좁아져 중앙에 유지됩니다. 폭은 3kHz 이상입니다.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.amapiano.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.amapiano.stage.maximizer':
-    '통나무 드럼의 공격을 막아주는 가벼운 천장.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.amapiano.off':
     'Bass Forge가 제공되고 중단되었습니다. 통나무 드럼에 대한 한 가지 규칙은 포화되지 않는다는 것입니다.',
   'genre.highlife.hook': '감미로운 기타와 재즈 호른',
@@ -62,8 +70,12 @@ const genreWorld = {
   'genre.highlife.pin.3150.why': '명확하고 밝습니다.',
   'genre.highlife.stage.exciter':
     '오래된 녹음에는 약간의 따뜻함과 공기가 있습니다.',
-  'genre.highlife.stage.dimension': '녹음된 패닝 기타.',
-  'genre.highlife.stage.maximizer': '느린 천장.',
+  'genre.highlife.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.highlife.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.highlife.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.highlife.off':
     'Bass Punch 또는 Bass Forge 없음: 깨끗한 기타는 깨끗하게 유지됩니다.',
   'genre.world.hook': '체인이 할 수 있는 최소한의 일',
@@ -75,7 +87,10 @@ const genreWorld = {
   'genre.world.pin.3150.why': '데시벨 미만.',
   'genre.world.pin.12500': '약간의 공기',
   'genre.world.pin.12500.why': '온화한.',
-  'genre.world.stage.maximizer': '잡기만 하는 천장.',
+  'genre.world.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.world.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.world.off':
     'No Dimension, Exciter, Bass Punch 또는 Bass Forge: 사진이 그대로 남아 있습니다.',
   'genre.bollywood.hook': '재생 음성 주변의 무성한 배경',
@@ -89,8 +104,11 @@ const genreWorld = {
   'genre.bollywood.pin.2000.why': '앞으로 깨끗합니다.',
   'genre.bollywood.stage.bassPunch': '서브가 조여졌습니다.',
   'genre.bollywood.stage.dimension':
-    '사진은 나온 것만큼 넓게 남았습니다. 저음만 좁아졌습니다.',
-  'genre.bollywood.stage.maximizer': '거의 움직이지 않는 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.bollywood.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.bollywood.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.bollywood.off': '음성에 Exciter가 없고 Bass Forge가 없습니다.',
   'genre.bhangra.hook': '돌(Dhol)이 장르다.',
   'genre.bhangra.story':
@@ -103,9 +121,12 @@ const genreWorld = {
   'genre.bhangra.pin.2000.why': '밝고 펀치감이 있습니다.',
   'genre.bhangra.stage.bassPunch':
     '붐의 꼬리가 조여졌고 결코 올라가지 않았습니다.',
-  'genre.bhangra.stage.dimension': '저음이 좁아져서 돌의 붐이 중간을 잡습니다.',
+  'genre.bhangra.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.bhangra.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.bhangra.stage.maximizer':
-    '균열이 통과할 수 있을 만큼 충분히 긴 미리보기입니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.bhangra.off':
     'Exciter 또는 Bass Forge 없음: 상단이 추가되지 않았습니다.',
   'genre.indianClassical.hook': '드론 위에서 측정되지 않은 랩',
@@ -118,7 +139,7 @@ const genreWorld = {
   'genre.indianClassical.pin.12500': '탄푸라의 반짝임',
   'genre.indianClassical.pin.12500.why': '드론의 후광.',
   'genre.indianClassical.stage.maximizer':
-    '천장만 해당: 레벨러가 드론을 동시에 들어올립니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.indianClassical.off':
     'No Dimension, Exciter 또는 Bass Punch: jivari의 고조파가 내장되어 있습니다.',
   'genre.arabicPop.hook': '막섬 위에 장식된 목소리',
@@ -136,8 +157,11 @@ const genreWorld = {
     '목소리 아래 따뜻함; 현과 텍은 그대로 밝게 남아 있습니다.',
   'genre.arabicPop.stage.bassPunch': '하단이 조여졌습니다.',
   'genre.arabicPop.stage.dimension':
-    '문자열은 녹음된 너비만큼 남았습니다. 저음만 좁아졌습니다.',
-  'genre.arabicPop.stage.maximizer': '다르부카의 공격을 막아주는 가벼운 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.arabicPop.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.arabicPop.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.arabicPop.off':
     'Bass Forge 없음: doum 아래에 아무것도 생성되지 않습니다.',
   'genre.turkishPop.hook': '터키 컬러가 가미된 세련된 팝',
@@ -154,8 +178,12 @@ const genreWorld = {
   'genre.turkishPop.stage.exciter':
     '목소리 아래에는 따뜻함이 있지만 다르부카에는 아무것도 없습니다.',
   'genre.turkishPop.stage.bassPunch': '단단한 바닥.',
-  'genre.turkishPop.stage.dimension': '믹스되면서 저음만 좁아졌습니다.',
-  'genre.turkishPop.stage.maximizer': '거의 밀리지 않는 천장.',
+  'genre.turkishPop.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.turkishPop.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.turkishPop.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.turkishPop.off': '이렇게 다듬어진 음반에는 Bass Forge가 없습니다.',
   'genre.gospel.hook': '몇 분 동안 만들어지는 합창단과 뱀프',
   'genre.gospel.story':
@@ -166,8 +194,12 @@ const genreWorld = {
   'genre.gospel.pin.315.why': '완전한 사운드를 제공하는 공간.',
   'genre.gospel.pin.2000': '리드 보이스',
   'genre.gospel.pin.2000.why': '앞으로.',
-  'genre.gospel.stage.dimension': '합창단은 녹음된 만큼 넓게 떠났다.',
-  'genre.gospel.stage.maximizer': '뱀프를 만들 수 있는 느린 천장.',
+  'genre.gospel.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.gospel.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.gospel.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.gospel.off':
     'Exciter가 제공되고 중단됩니다. 합창단에는 흥분이 없습니다.',
   'genre.christian.hook': '큰 다리에 조용한 구절 건물',
@@ -180,8 +212,11 @@ const genreWorld = {
   'genre.christian.pin.3150': '가사가 명확해',
   'genre.christian.pin.3150.why': '단어가 있는 곳.',
   'genre.christian.stage.dimension':
-    '저음이 좁아졌습니다. 기타는 넓게 남았습니다.',
-  'genre.christian.stage.maximizer': '호를 유지할 만큼 느린 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.christian.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.christian.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.christian.off':
     'Exciter 없음, Bass Punch 또는 Bass Forge: 빌드가 노래입니다.',
 } satisfies Partial<Dictionary>;

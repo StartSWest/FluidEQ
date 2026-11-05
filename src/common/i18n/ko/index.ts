@@ -28,10 +28,14 @@ import songEq from './songEq';
 import songSound from './songSound';
 import dsp from './dsp';
 import dspDeEsser from './dspDeEsser';
+import dspFootsteps from './dspFootsteps';
+import dspDynamics from './dspDynamics';
 import dspStageSave from './dspStageSave';
+import gaming from './gaming';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
 import help from './help';
+import helpDetails from './helpDetails';
 import about from './about';
 import account from './account';
 import forum from './forum';
@@ -78,10 +82,14 @@ const ko: Dictionary = {
   ...songSound,
   ...dsp,
   ...dspDeEsser,
+  ...dspFootsteps,
+  ...dspDynamics,
   ...dspStageSave,
+  ...gaming,
   ...remoteAudio,
   ...tour,
   ...help,
+  ...helpDetails,
   ...about,
   ...account,
   ...forum,

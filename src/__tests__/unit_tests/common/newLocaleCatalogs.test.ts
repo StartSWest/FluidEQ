@@ -3,6 +3,7 @@
 import en, { type Dictionary, type TranslationKey } from 'common/i18n/en';
 import ko from 'common/i18n/ko';
 import zhHant from 'common/i18n/zh-Hant';
+import { GENRE_NOTES } from 'common/dsp/genreNotes';
 
 const catalogs: [string, Dictionary][] = [
   ['ko', ko],
@@ -11,6 +12,43 @@ const catalogs: [string, Dictionary][] = [
 const keys = Object.keys(en) as TranslationKey[];
 const normalizeNumber = (value: string) =>
   value.replace(/\s/g, '').replace(/−/g, '-');
+
+const englishResidual = (key: string, value: string): string[] => {
+  let text = value.replace(/\bThe Killers\b/g, '').replace(/https?:\S+/g, '');
+  const genre = /^genre\.([^.]+)\./.exec(key)?.[1];
+  // Reference titles and credited artists keep their canonical spelling in
+  // every locale. "How You Like That" is a recording, not echoed English
+  // prose. Protect only the names actually listed for this genre; the rest
+  // of the paragraph must still pass the untranslated-sentence check.
+  const recordings = genre ? (GENRE_NOTES[genre]?.listen ?? []) : [];
+  recordings.forEach((recording) => {
+    recording.split(' — ').forEach((name) => {
+      text = text.split(name).join('');
+    });
+  });
+  const phrases = text.match(/\b[A-Za-z]+(?:[\s,;:]+[A-Za-z]+){3,}\b/g) ?? [];
+  return phrases.filter((phrase) =>
+    /\b(?:the|your|is|are|was|were|this|that|each|every|when|then|press|open|ready|listen|say|could|will)\b/i.test(
+      phrase,
+    ),
+  );
+};
+
+it('keeps known reference names while still detecting untranslated prose beside them', () => {
+  expect(
+    englishResidual('genre.kPop.story', '한국어 How You Like That 한국어'),
+  ).toEqual([]);
+  expect(
+    englishResidual(
+      'genre.kPop.story',
+      '한국어 How You Like That 한국어 This sentence is not translated',
+    ),
+  ).toEqual(['This sentence is not translated']);
+  // A reference name is not a blanket phrase exemption elsewhere in the app.
+  expect(englishResidual('unrelated.key', 'How You Like That')).toEqual([
+    'How You Like That',
+  ]);
+});
 
 describe.each(catalogs)('%s catalog contracts', (_code, dictionary) => {
   it('has exactly the canonical keys, including concurrently added features', () => {
@@ -65,18 +103,9 @@ describe.each(catalogs)('%s catalog contracts', (_code, dictionary) => {
     // Check paragraphs too: exact-value comparison misses a translated opening
     // followed by an echoed English sentence. Product names are not prose.
     const residual = keys.flatMap((key) => {
-      const text = dictionary[key]
-        .replace(/\bThe Killers\b/g, '')
-        .replace(/https?:\S+/g, '');
-      const phrases =
-        text.match(/\b[A-Za-z]+(?:[\s,;:]+[A-Za-z]+){3,}\b/g) ?? [];
-      return phrases
-        .filter((phrase) =>
-          /\b(?:the|your|is|are|was|were|this|that|each|every|when|then|press|open|ready|listen|say|could|will)\b/i.test(
-            phrase,
-          ),
-        )
-        .map((phrase) => `${key}: ${phrase}`);
+      return englishResidual(key, dictionary[key]).map(
+        (phrase) => `${key}: ${phrase}`,
+      );
     });
     expect(residual).toEqual([]);
   });

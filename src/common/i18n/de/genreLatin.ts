@@ -13,9 +13,11 @@ export default {
   'genre.latin.pin.12500': 'Die Höhen der Bläser nicht angeschoben',
   'genre.latin.pin.12500.why': 'Schon reich an Obertönen.',
   'genre.latin.stage.dimension':
-    'Das Bild bleibt, wie gemischt, nur unten schmaler.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.latin.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.latin.stage.maximizer':
-    'Eine Obergrenze, die den Anschlag der Percussion bewahrt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.latin.off':
     'Sein Exciter wird angeboten und bleibt aus: Bläser und Güira werden darunter scharf.',
 
@@ -31,8 +33,12 @@ export default {
   'genre.latinPop.stage.exciter':
     'Wärme und Körper unter der Stimme, nichts in den Höhen.',
   'genre.latinPop.stage.bassPunch': 'Der Sub etwas gestrafft.',
-  'genre.latinPop.stage.dimension': 'Mono unter 150 Hz.',
-  'genre.latinPop.stage.maximizer': 'Eine Obergrenze, die kaum antreibt.',
+  'genre.latinPop.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.latinPop.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
+  'genre.latinPop.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.latinPop.off':
     'Keine Bass-Schmiede: Der Sub ist schon an die Kick gebunden.',
 
@@ -45,9 +51,12 @@ export default {
   'genre.reggaeton.pin.315.why': 'Platz für den Dembow.',
   'genre.reggaeton.pin.5000': 'Das Knallen der Snare',
   'genre.reggaeton.pin.5000.why': 'Knackig.',
-  'genre.reggaeton.stage.dimension': 'Mono unter 150 Hz.',
+  'genre.reggaeton.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.reggaeton.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.reggaeton.stage.maximizer':
-    'Eine Obergrenze, die einen so lauten Master kaum anschiebt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.reggaeton.off':
     'Die Bass-Schmiede wird angeboten und bleibt aus: Ihre Oktave und ihre Obertöne unter einer schon verzerrten 808 machten 13 % des Tons aus.',
 
@@ -65,9 +74,11 @@ export default {
   'genre.salsa.stage.exciter':
     'Nur Wärme, sanft unter dem Tumbao, und nichts auf den Bläsern.',
   'genre.salsa.stage.dimension':
-    'Die Band bleibt, wo sie platziert wurde, nur unten schmaler.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.salsa.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.salsa.stage.maximizer':
-    'Eine langsame Obergrenze, die jeden Conga-Schlag durchlässt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.salsa.off':
     'Kein Bass-Punch und keine Bass-Schmiede, und nichts in den Höhen: Bläser und Cowbell sind schon reich an Obertönen.',
 
@@ -81,9 +92,11 @@ export default {
   'genre.bachata.pin.8000': '3 bis 8 kHz nie angehoben',
   'genre.bachata.pin.8000.why': 'Güira und Requinto ermüden das Ohr schnell.',
   'genre.bachata.stage.dimension':
-    'Wie gemischt, die beiden Gitarren getrennt; nur unten schmaler.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.bachata.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.bachata.stage.maximizer':
-    'Eine leichte Obergrenze, die den Anschlag der Güira bewahrt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.bachata.off':
     'Sein Exciter wird angeboten und bleibt aus: Er macht Requinto und Güira scharf.',
 
@@ -98,9 +111,11 @@ export default {
   'genre.merengue.pin.5000.why': 'Güira und Saxofone sind schon hell.',
   'genre.merengue.stage.bassPunch': 'Der Druck der Tambora straff gehalten.',
   'genre.merengue.stage.dimension':
-    'Die Orquesta wie gemischt, nur unten schmaler.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.merengue.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.merengue.stage.maximizer':
-    'Eine leichte Obergrenze, die die Güira nicht verschmiert.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.merengue.off':
     'Kein Exciter und keine Bass-Schmiede: keine zusätzlichen Höhen auf Saxofonen und Güira.',
 
@@ -114,9 +129,12 @@ export default {
   'genre.cumbia.pin.12500': 'Der Schaber nicht geschärft',
   'genre.cumbia.pin.12500.why': 'Sein Puls in Ruhe gelassen.',
   'genre.cumbia.stage.exciter': 'Wärme für den Bass, und nichts in den Höhen.',
-  'genre.cumbia.stage.dimension': 'Die Band wie gemischt, nur unten schmaler.',
+  'genre.cumbia.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.cumbia.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.cumbia.stage.maximizer':
-    'Eine langsame Obergrenze, die den Puls des Schabers in Ruhe lässt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.cumbia.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Schaben und Bass bleiben, wie sie gespielt wurden.',
 
@@ -132,8 +150,11 @@ export default {
   'genre.bossaNova.stage.exciter':
     'Wärme für die Gitarre und ein wenig Luft für die Stimme.',
   'genre.bossaNova.stage.dimension':
-    'Intim und nahe der Mitte, wie aufgenommen.',
-  'genre.bossaNova.stage.maximizer': 'Eine Obergrenze, die nur abfängt.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.bossaNova.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
+  'genre.bossaNova.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.bossaNova.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Nichts komprimiert sie oder fügt Sub hinzu.',
 
@@ -149,9 +170,11 @@ export default {
   'genre.samba.stage.bassPunch':
     'Die Surdo gestrafft statt zum Dröhnen gebracht.',
   'genre.samba.stage.dimension':
-    'Die natürliche Breite des Ensembles, nur unten schmaler.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.samba.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.samba.stage.maximizer':
-    'Eine Obergrenze, die den Anschlag der Percussion nicht hetzt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.samba.off':
     'Kein Exciter und keine Bass-Schmiede auf Höhen, die schon hell sind.',
 
@@ -166,9 +189,11 @@ export default {
   'genre.flamenco.pin.12500.why': 'Schon hell: Nichts wird hinzugefügt.',
   'genre.flamenco.stage.exciter': 'Körper, und nie Höhen.',
   'genre.flamenco.stage.dimension':
-    'Gitarre und Sänger in der Mitte, wie aufgenommen.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.flamenco.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.flamenco.stage.maximizer':
-    'Eine Obergrenze, die jede Spitze behält, die sie kann.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.flamenco.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Nichts komprimiert den Rhythmus.',
 
@@ -186,8 +211,11 @@ export default {
   'genre.regionalMexican.stage.bassPunch':
     'Der Druck der Tambora straff gehalten.',
   'genre.regionalMexican.stage.dimension':
-    'Das Live-Ensemble wie gemischt, nur unten schmaler.',
-  'genre.regionalMexican.stage.maximizer': 'Eine leichte Obergrenze.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.regionalMexican.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
+  'genre.regionalMexican.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.regionalMexican.off':
     'Sein Exciter wird angeboten und bleibt aus: Bläser, Akkordeon und Violinen sind schon hell.',
 
@@ -201,9 +229,11 @@ export default {
   'genre.corridos.pin.12500': 'Das Stahl-Requinto nicht aufgehellt',
   'genre.corridos.pin.12500.why': 'Schon artikuliert genug.',
   'genre.corridos.stage.dimension':
-    'Der Sub unter 120 Hz in Mono; Requinto und Rhythmusgitarren bleiben, wo der Mix sie hingestellt hat.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.corridos.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.corridos.stage.maximizer':
-    'Eine Obergrenze, deren Vorausschau den Plektrumanschlag bewahrt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.corridos.off':
     'Die Bass-Schmiede wird angeboten und bleibt aus: Die 808 bringt ihren eigenen Sub mit.',
 };

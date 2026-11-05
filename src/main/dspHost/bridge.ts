@@ -306,6 +306,23 @@ const holdGameProcess = (pid: number): void =>
 const chooseGameProgram = (): Promise<unknown> =>
   ipcRenderer.invoke('game-choose');
 
+/** The on/off key held now (`common/engineKey.ts`); '' for none. */
+const readEngineKey = (): Promise<unknown> =>
+  ipcRenderer.invoke('engine-key-get');
+
+/** Hold another on/off key, or none (''); answers whether it could. */
+const setEngineKey = (accelerator: string): Promise<unknown> =>
+  ipcRenderer.invoke('engine-key-set', accelerator);
+
+/** The on/off key was pressed, wherever the listener was. */
+const onEngineKeyPressed = (listener: () => void): (() => void) => {
+  const wrapped = () => listener();
+  ipcRenderer.on('engine-key-pressed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('engine-key-pressed', wrapped);
+  };
+};
+
 export const dspHostBridge = {
   readEnginePreamp: (
     endpoint: string,
@@ -339,6 +356,9 @@ export const dspHostBridge = {
   showGameToast,
   setGamePlaying,
   holdGameProcess,
+  readEngineKey,
+  setEngineKey,
+  onEngineKeyPressed,
 
   getDspHostStatus,
   startDspHost,

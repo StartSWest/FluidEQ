@@ -122,6 +122,33 @@ describe('reading signed out, from the feed', () => {
     expect(page.topics.map((item) => item.number)).toEqual([2]);
   });
 
+  it('finds feed topics without punctuation, accents or spaces', async () => {
+    const permissive = createForumService({
+      config: CONFIG,
+      session: session({ status: 'signed-out' }),
+      feed: {
+        load: () =>
+          Promise.resolve({
+            boards: [],
+            topics: [
+              topic(7, 'general', '2026-09-01T00:00:00Z', {
+                title: 'K-pop — Déjà Café',
+              }),
+              topic(8, 'general', '2026-09-01T00:00:00Z', {
+                title: 'Classical',
+              }),
+            ],
+          }),
+      },
+    });
+    const page = await permissive.topics({
+      board: '',
+      filter: 'all',
+      search: 'dejacafe kpop',
+    });
+    expect(page.topics.map((item) => item.number)).toEqual([7]);
+  });
+
   it('pages in 25s with an offset cursor', async () => {
     const many: IForumFeed = {
       boards: [],

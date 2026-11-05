@@ -6,7 +6,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IDeEsserSettings } from './deEsser';
 
-export const DE_ESSER_PRESET_GROUPS = ['music', 'speech'] as const;
+export const DE_ESSER_PRESET_GROUPS = [
+  'music',
+  'speech',
+  'genre',
+  'gaming',
+] as const;
 
 export type TDeEsserPresetGroup = (typeof DE_ESSER_PRESET_GROUPS)[number];
 
@@ -34,16 +39,16 @@ export interface IDeEsserPreset {
  * `deEsserPresets.test.ts` holds the two equal.
  */
 const vocalMusic: IDeEsserPresetSettings = {
-  sensitivity: 0.55,
+  sensitivity: 0.35,
   lowHz: 4500,
   highHz: 11000,
-  rangeDb: 6,
+  rangeDb: 3,
   widthOct: 0.67,
   mode: 'spectral',
   attackMs: 1,
   releaseMs: 60,
   centreOnly: true,
-  keepCymbals: 0.7,
+  keepCymbals: 0.85,
 };
 
 /**
@@ -53,7 +58,7 @@ const vocalMusic: IDeEsserPresetSettings = {
  * in the middle of the mix and anything panned beside it is more likely a
  * hi-hat; the speech ones listen everywhere, because a podcast's second
  * voice is often panned and there are no cymbals to spare. `rangeDb` is the
- * figure each one is known by ("up to −6 dB"), so it is the one the hint
+ * figure each one is known by ("up to −3 dB"), so it is the one the hint
  * prints.
  */
 export const DE_ESSER_PRESET_BY_ID = {
@@ -65,13 +70,14 @@ export const DE_ESSER_PRESET_BY_ID = {
     // never thins the voice around it.
     settings: {
       ...vocalMusic,
-      sensitivity: 0.45,
+      sensitivity: 0.15,
       lowHz: 5000,
       highHz: 10000,
-      rangeDb: 3,
+      rangeDb: 1.5,
+      widthOct: 0.5,
       attackMs: 1.5,
       releaseMs: 80,
-      keepCymbals: 0.8,
+      keepCymbals: 0.9,
     },
   },
   vocalMusic: {
@@ -89,10 +95,10 @@ export const DE_ESSER_PRESET_BY_ID = {
     // a narrower cut placed there takes the peak's share without the air.
     settings: {
       ...vocalMusic,
-      sensitivity: 0.6,
+      sensitivity: 0.35,
       lowHz: 5500,
       highHz: 10000,
-      rangeDb: 8,
+      rangeDb: 3,
       widthOct: 0.5,
       releaseMs: 50,
     },
@@ -105,12 +111,12 @@ export const DE_ESSER_PRESET_BY_ID = {
     // this listens higher and cuts wider.
     settings: {
       ...vocalMusic,
-      sensitivity: 0.6,
+      sensitivity: 0.35,
       lowHz: 5000,
       highHz: 12000,
-      widthOct: 1,
+      widthOct: 0.67,
       releaseMs: 70,
-      keepCymbals: 0.6,
+      keepCymbals: 0.85,
     },
   },
   live: {
@@ -122,13 +128,13 @@ export const DE_ESSER_PRESET_BY_ID = {
     // the other tells to spare the kit.
     settings: {
       ...vocalMusic,
-      sensitivity: 0.5,
+      sensitivity: 0.3,
       lowHz: 4000,
       highHz: 10000,
-      rangeDb: 5,
+      rangeDb: 3,
       releaseMs: 70,
       centreOnly: false,
-      keepCymbals: 0.85,
+      keepCymbals: 0.95,
     },
   },
   podcast: {
@@ -163,10 +169,33 @@ export const DE_ESSER_PRESET_BY_ID = {
       sensitivity: 0.5,
       lowHz: 4500,
       highHz: 10000,
+      rangeDb: 6,
       attackMs: 2,
       releaseMs: 120,
       centreOnly: false,
       keepCymbals: 0.3,
+    },
+  },
+
+  // Gaming. Squad callouts and voice chat come out of the same output as
+  // the game, and a cheap microphone's S cuts through a headset at 6-9 kHz.
+  // Steps and gear live there too, so this listens only to the centre,
+  // where a voice stands, and keeps transients like a cymbal's.
+  gameCallouts: {
+    id: 'gameCallouts',
+    labelKey: 'dsp.gamingPreset.callouts',
+    group: 'gaming',
+    settings: {
+      ...vocalMusic,
+      sensitivity: 0.5,
+      lowHz: 5500,
+      highHz: 9000,
+      rangeDb: 5,
+      widthOct: 0.5,
+      attackMs: 1,
+      releaseMs: 45,
+      centreOnly: true,
+      keepCymbals: 0.9,
     },
   },
 } satisfies Record<string, IDeEsserPreset>;

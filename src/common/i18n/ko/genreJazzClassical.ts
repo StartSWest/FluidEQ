@@ -14,9 +14,9 @@ const genreJazzClassical = {
   'genre.jazz.pin.12500': '라이드 심벌즈의 공기',
   'genre.jazz.pin.12500.why': '키트 상단을 엽니다.',
   'genre.jazz.stage.dimension':
-    '좀 더 좁은 형태로 하드 패닝된 1950년대 스테레오를 헤드폰에 결합했습니다.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
   'genre.jazz.stage.maximizer':
-    '전체 비트에 걸쳐 길 잃은 봉우리에만 닿는 천장.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.jazz.off':
     'Exciter가 제공되고 중단됩니다. 고조파 색상 호른과 피아노가 청각적으로 추가됩니다. 저음을 압축하거나 넓히거나 생성하는 것은 없습니다.',
   'genre.smoothJazz.hook': '일부러 윤기나고 부드러워요',
@@ -29,8 +29,9 @@ const genreJazzClassical = {
   'genre.smoothJazz.pin.12500': '글로시한 탑',
   'genre.smoothJazz.pin.12500.why': '스튜디오의 광택이 유지되었습니다.',
   'genre.smoothJazz.stage.dimension':
-    '광택있는 스테레오가 혼합되어 저음만 좁아졌습니다.',
-  'genre.smoothJazz.stage.maximizer': '느린 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.smoothJazz.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.smoothJazz.off':
     'Exciter는 제공되고 중단되었으며 Bass Punch는 없습니다. 장르는 의도적으로 부드럽습니다.',
   'genre.fusion.hook': '일렉트릭하고 밝고 기교적인',
@@ -43,8 +44,9 @@ const genreJazzClassical = {
   'genre.fusion.pin.12500': '녹음된 대로 밝게',
   'genre.fusion.pin.12500.why': '이 기록이 최고였습니다.',
   'genre.fusion.stage.dimension':
-    '멀티트랙은 녹음된 대로 퍼지고 베이스만 좁아졌습니다.',
-  'genre.fusion.stage.maximizer': '채우기만 남겨둔 느린 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.fusion.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.fusion.off':
     '자극기 없음, Bass Punch 또는 Bass Forge: 자체 고조파를 만드는 악기에는 아무것도 추가되지 않습니다.',
   'genre.blues.hook': '로우와 미드포워드',
@@ -57,8 +59,11 @@ const genreJazzClassical = {
   'genre.blues.pin.5000': '날것의, 밝지 않은',
   'genre.blues.pin.5000.why': '상단이 완화되었습니다.',
   'genre.blues.stage.dimension':
-    '좁아지는 그늘; 모노 레코드는 모노로 유지됩니다.',
-  'genre.blues.stage.maximizer': '느린 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.blues.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.blues.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.blues.off':
     'Exciter는 제공되고 꺼집니다. 오버드라이브는 사운드이며 아무것도 추가되지 않습니다.',
   'genre.classical.hook': '홀은 녹음이다',
@@ -72,7 +77,7 @@ const genreJazzClassical = {
   'genre.classical.pin.12500': '홀의 공기',
   'genre.classical.pin.12500.why': '녹음이 이루어진 공간.',
   'genre.classical.stage.maximizer':
-    '모든 장르 중 가장 긴 미리보기와 릴리스가 있는 천장만 있으므로 크레센도는 결코 억제할 수 없습니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.classical.off':
     '차원이 전혀 없습니다. 홀이 녹음입니다. Exciter 및 Bass Punch가 제공되고 중단되었습니다.',
   'genre.orchestra.hook': '전체 오케스트라의 다이내믹을 그대로 유지',
@@ -85,7 +90,7 @@ const genreJazzClassical = {
   'genre.orchestra.pin.12500': '홀의 공기',
   'genre.orchestra.pin.12500.why': '오케스트라 주변 공간.',
   'genre.orchestra.stage.maximizer':
-    '모든 장르 중 가장 긴 미리보기와 릴리스가 있는 천장만 있으므로 투티는 절대 펌핑되지 않습니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.orchestra.off':
     'No Dimension, Exciter, Bass Punch 또는 Bass Forge: 팀파니가 과부하할 정도로 베이스를 강화하는 것은 없습니다.',
   'genre.opera.hook': '이미 오케스트라를 압도하는 목소리',
@@ -98,7 +103,10 @@ const genreJazzClassical = {
   'genre.opera.pin.3150': '홀로 남겨진 포먼트',
   'genre.opera.pin.3150.why':
     '그것은 이미 투영되어 있습니다. 들어올리면 목소리가 날카로워진다.',
-  'genre.opera.stage.maximizer': '천장만 밝으면 목소리가 압축되지 않습니다.',
+  'genre.opera.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.opera.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.opera.off':
     'No Dimension, Exciter 또는 Bass Punch: 목소리를 넓히거나 자극하거나 재구성하는 것은 없습니다.',
   'genre.piano.hook': '가장 공개적인 출처 중 하나는 다음과 같습니다.',
@@ -110,7 +118,8 @@ const genreJazzClassical = {
   'genre.piano.pin.315.why': '뚜껑이 아닌 사운드보드입니다.',
   'genre.piano.pin.5000': '망치의 공격',
   'genre.piano.pin.5000.why': '메모가 시작되는 곳.',
-  'genre.piano.stage.maximizer': '천장만.',
+  'genre.piano.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.piano.off':
     'No Dimension, Exciter 또는 Bass Punch: 그 어떤 것도 피아노를 포화시키거나 모양을 바꾸지 않습니다.',
   'genre.strings.hook': '이미 고조파가 풍부함',
@@ -123,7 +132,8 @@ const genreJazzClassical = {
     '철거: 여기에서 활을 휘두르는 현이 거슬리게 변합니다.',
   'genre.strings.pin.12500': '단면 주변의 공기',
   'genre.strings.pin.12500.why': '활 위의 홀.',
-  'genre.strings.stage.maximizer': '천장만.',
+  'genre.strings.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.strings.off':
     '차원 없음 및 익사이터 없음: 익사이터는 활을 휘감은 현을 강렬하게 만듭니다.',
 } satisfies Partial<Dictionary>;

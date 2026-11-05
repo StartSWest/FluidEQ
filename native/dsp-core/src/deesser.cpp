@@ -181,16 +181,16 @@ void feq_deesser_settings_defaults(FeqDeEsserSettings* settings) {
   }
   *settings = FeqDeEsserSettings{};
   settings->enabled = 0;
-  settings->sensitivity = 0.55;
+  settings->sensitivity = 0.35;
   settings->low_hz = 4500.0;
   settings->high_hz = 11000.0;
-  settings->range_db = 6.0;
+  settings->range_db = 3.0;
   settings->width_oct = 0.67;
   settings->mode = FEQ_DEESSER_SPECTRAL;
   settings->attack_ms = 1.0;
   settings->release_ms = 60.0;
   settings->centre_only = 1;
-  settings->keep_cymbals = 0.7;
+  settings->keep_cymbals = 0.85;
 }
 
 FeqDeEsser* feq_deesser_create(double sample_rate, uint32_t channels) {

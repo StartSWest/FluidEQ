@@ -16,8 +16,10 @@ import { bassPunchPresetSettings } from './bassPunchPresets';
 import { deEsserPresetSettings } from './deEsserPresets';
 import { denoisePresetSettings } from './denoisePresets';
 import { dimensionPresetSettings } from './dimensionPresets';
+import { dynamicsPresetSettings } from './dynamicsPresets';
 import { EQ_PRESETS, eqSettingsForPreset } from './eqPresets';
 import { exciterPresetSettings } from './exciterPresets';
+import { footstepsPresetSettings } from './footstepsPresets';
 import { IGenreRack, TGenreStage, inGenreChain } from './genreRack';
 import { GENRE_RACKS, genreChainId, genreLabelKey } from './genres';
 import { TMasterPresetId, masterPresetSettings } from './masterPresets';
@@ -34,6 +36,7 @@ import { withRoomTone } from './roomTone';
 import {
   BASS_FORGE_CATALOGUE,
   BASS_PUNCH_CATALOGUE,
+  DE_ESSER_CATALOGUE,
   DIMENSION_CATALOGUE,
   EXCITER_CATALOGUE,
   IStageCatalogue,
@@ -149,6 +152,13 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
     deEsser: recipe.deEsser
       ? deEsserPresetSettings(recipe.deEsser, true)
       : DSP_DEFAULTS.deEsser,
+    // A Room copy is chosen by somebody on headphones: the Game filter may
+    // then switch the Room on for a game with no 3D sound of its own.
+    footsteps: recipe.footsteps
+      ? footstepsPresetSettings(recipe.footsteps, true, {
+          useRoom: recipe.room !== undefined,
+        })
+      : DSP_DEFAULTS.footsteps,
     exciter: recipe.exciter
       ? exciterPresetSettings(recipe.exciter, true)
       : DSP_DEFAULTS.exciter,
@@ -169,6 +179,9 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
     master: recipe.master
       ? masterProfile(recipe.master, recipe.masterGainMatch)
       : DSP_DEFAULTS.master,
+    dynamics: recipe.dynamics
+      ? dynamicsPresetSettings(recipe.dynamics, true)
+      : DSP_DEFAULTS.dynamics,
     room: recipe.room
       ? { ...roomPresetSettings(DSP_DEFAULTS.room, recipe.room), enabled: true }
       : DSP_DEFAULTS.room,
@@ -236,19 +249,24 @@ const genreStage = <S>(
  * A genre's chain: its curve, played in the main EQ, and every stage its row
  * sets, each at the genre's own profile.
  *
- * The Normalizer is off because the Maximizer ends every one of these chains
- * and holds the ceiling itself. With both on, a record mastered over full
- * scale was limited twice, at the input and again at the end, and measured
- * on twelve records the chain played 0.15-0.25 dB quieter and pumped more for
- * the first pass than it did with only the last (2026-09-23).
+ * A row may level the source before processing. This is constant song gain,
+ * not a second beat-by-beat limiter: Pop first sets -18 LUFS and its own
+ * Maximizer brings that up towards -11, holding the final peaks at -1 dBTP.
+ * Other genres keep their existing input behaviour until individually tuned.
  */
 const materializeGenre = (rack: IGenreRack): IDspSettings =>
   clampDspSettings({
     ...DSP_DEFAULTS,
     enabled: true,
     presetId: genreChainId(rack),
-    normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'off' },
+    normalizer: rack.normalizer ?? { ...DSP_DEFAULTS.normalizer, mode: 'off' },
     eq: presetSupport(eqProfile(rack.id)),
+    deEsser: genreStage(
+      rack,
+      'deEsser',
+      DE_ESSER_CATALOGUE,
+      DSP_DEFAULTS.deEsser,
+    ),
     exciter: genreStage(
       rack,
       'exciter',
@@ -363,5 +381,14 @@ export const dspPresetSettings = (
     // of the rack, a chain that does not use it switches it off, and the
     // chains that do are offered as copies — "Gaming · Room".)
     room: chainRoom(current?.room, preset.settings.room),
+    // The Game filter's Room for games follows the chain where the chain is
+    // a Room copy (somebody on headphones chose it), and stays as it was
+    // otherwise: it is about the listener's headphones, not the chain.
+    footsteps: {
+      ...preset.settings.footsteps,
+      useRoom: preset.settings.room.enabled
+        ? true
+        : (current?.footsteps.useRoom ?? false),
+    },
   });
 };

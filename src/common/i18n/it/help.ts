@@ -6,7 +6,7 @@ const help: Record<keyof typeof en, string> = {
   'help.title': 'Guida utente',
   'help.subtitle': 'Trova il tuo suono. Sentiti a casa.',
   'help.intro':
-    'Una guida pratica a FluidEQ con schermate reali. Inizia dal primo ascolto ed esplora ogni parte dell’app con calma.',
+    'Una guida pratica a FluidEQ, illustrata con i comandi dell’app e vere catture della finestra. Parti dal tuo primo ascolto, poi esplora al tuo ritmo.',
   'help.offline': 'Disponibile offline',
   'help.search': 'Cerca nella guida',
   'help.searchHint': 'Prova motore, bassi, visualizzatore…',
@@ -21,7 +21,7 @@ const help: Record<keyof typeof en, string> = {
   'help.closeImage': 'Chiudi schermata',
   'help.controlsOf': 'Cosa fa ogni controllo: {title}',
   'help.captureNote':
-    'Schermate reali della finestra di FluidEQ. Colori, nomi e posizioni possono variare nella tua versione. Le impostazioni sono esempi, non preset consigliati.',
+    'Le illustrazioni dal vivo seguono la tua lingua e i colori della finestra. Le catture meno recenti possono mostrare nomi o posizioni diversi. Le impostazioni di esempio spiegano i comandi; non sono preset consigliati.',
   'help.steps': 'Prova',
   'help.tip': 'Da sapere',
   'help.back': 'Torna in alto',
@@ -35,28 +35,24 @@ const help: Record<keyof typeof en, string> = {
 
   'help.start.title': 'I tuoi primi cinque minuti',
   'help.start.intro':
-    'Inizia con un brano familiare a un volume comodo. La colonna di sinistra accende FluidEQ e ospita la preamplificazione; al centro c’è lo spazio di lavoro; la colonna di destra segue l’uscita e i suoi profili. La barra in fondo alla finestra controlla ciò che è in riproduzione.',
+    'Inizia con un brano familiare a un volume comodo. La colonna di sinistra accende FluidEQ e ospita la preamplificazione; al centro c’è lo spazio di lavoro; la colonna di destra segue l’uscita e i suoi profili. La barra in fondo alla finestra controlla ciò che è in riproduzione. Il tour registrato della 2.2 dura circa nove minuti e mezzo e si carica solo quando premi Riproduci. Per la nuova pagina dei giochi della 2.3, consulta Laboratorio gaming.',
   'help.start.steps':
     'Installa FluidEQ e, quando l’installazione chiede come elaborare il suono, lascia selezionato il motore FluidEQ. Windows chiede il permesso una sola volta, senza riavvio.\nScegli il tuo dispositivo d’ascolto in Dispositivo di uscita. Attiva EQ di sistema e lascia attivo Normalizza automaticamente.\nRiproduci un brano, apri EQ → Bande, modifica leggermente e confronta attivando e disattivando EQ di sistema.',
   'help.start.tip':
     'L’EQ di sistema richiede Windows e un motore audio: il motore FluidEQ o Equalizer APO. Su macOS e Linux l’app mostra uscite dimostrative, quindi lì un grafico in movimento non prova che venga elaborato qualcosa.',
   'help.start.keywords':
     'installare, installer, setup, primi passi, primo avvio, come iniziare, come usare, guida rapida, guida introduttiva, avvio rapido, introduzione, tutorial, principianti',
-  'help.start.videoTitle': 'Primi passi con FluidEQ',
-  'help.start.videoNote':
-    'Circa quattro minuti, narrato in inglese. Viene riprodotto da fluideq.com quando premi play.',
   'help.video.play': 'Riproduci il video: {title}',
   'help.video.loading': 'Caricamento da fluideq.com…',
   'help.video.failed':
     'Non è stato possibile caricare il video. Viene riprodotto da fluideq.com, quindi serve una connessione a internet.',
   'help.video.retry': 'Riprova',
-  'help.video.open': 'Apri su fluideq.com',
 
   'help.window.title': 'Orientarsi nella finestra',
   'help.window.intro':
     'L’intestazione ti porta da una pagina all’altra di FluidEQ e mostra il suono in tempo reale. La colonna di sinistra ospita l’interruttore generale dell’EQ, la preamplificazione e il misuratore di livello; la colonna di destra segue l’uscita e i suoi profili.',
   'help.window.steps':
-    'Premi una pagina nell’intestazione: Media online, Condividi audio ed EQ stanno prima del segnale; DSP, Libreria, Karaoke e Visualizzatori dopo.\nAttiva EQ di sistema nella colonna di sinistra e lascia attivo Normalizza automaticamente, così nessun rinforzo va in saturazione.\nPremi il misuratore di livello per cambiare come viene disegnato, e Colorata, sul segnale, per vedere le bande, il titolo e i controlli accesi in una tavolozza invece che in un solo colore.',
+    'Apri una pagina dall’intestazione: Media online, Condividi audio, Laboratorio gaming, EQ, DSP, Libreria, Karaoke o Visualizzatori.\nAttiva EQ di sistema nella colonna di sinistra e lascia attivo Normalizza automaticamente, così nessun rinforzo va in saturazione.\nPremi il misuratore di livello per cambiare come viene disegnato, e Colorata, sul segnale, per vedere le bande, il titolo e i controlli accesi in una tavolozza invece che in un solo colore.\nPer attivare o disattivare da un’altra app, apri ≡ → Tasto acceso/spento e scegli una combinazione. All’inizio non ne è assegnata nessuna; l’avviso sopra le finestre conferma lo stato di FluidEQ.',
   'help.window.tip':
     'Il menu Aiuto apre questa guida, Novità, la risoluzione dei problemi audio e Segnala un problema. Il pulsante del menu a tre linee accanto ad Aiuto contiene la scheda del motore, il tuo account, l’importazione di impostazioni EQ o di una risposta all’impulso, il riavvio dell’audio di Windows, Processi, che mostra cosa sta usando ogni parte di FluidEQ, e Ripristina tutte le impostazioni; in fondo al menu ci sono Luminosità, Tinta, Modalità colorata, Colora l’icona (spenta all’inizio; dà all’icona della barra delle applicazioni, a quella dell’area di notifica e a quella del suo menu i colori della finestra), i cursori dell’EQ, le animazioni, Avvia con Windows (FluidEQ parte allora nell’area di notifica e modella il tuo suono senza aprire finestre) e la lingua. L’interruttore dopo questi due pulsanti trasforma la finestra nel Lettore compatto.',
   'help.window.keywords':
@@ -68,8 +64,10 @@ const help: Record<keyof typeof en, string> = {
     'YouTube, YouTube Music, Bandcamp, Twitch e Suno, riprodotti dentro FluidEQ con il tuo EQ applicato.',
   'help.window.share':
     'Invia il suono di questo computer a un altro, o riproduce qui quello di un altro.',
+  'help.window.gaming':
+    'I tuoi giochi, ognuno con un suono tutto suo, regolato per quel gioco.',
   'help.window.eq':
-    'Le tue bande, i preset, la correzione delle cuffie, i preset di gioco e la configurazione del motore.',
+    'Le tue bande, i preset, la correzione delle cuffie e la configurazione del motore.',
   'help.window.waveName': 'Segnale audio',
   'help.window.wave':
     'Ciò che è in riproduzione, in tempo reale, con il suo livello di picco. Colorata, in alto, attiva o disattiva la Modalità colorata; il menu Vista del grafico può nasconderlo.',
@@ -83,9 +81,9 @@ const help: Record<keyof typeof en, string> = {
     'Visualizzatori, la galleria, lo Studio e l’Illuminazione dinamica.',
   'help.window.support': 'Modi per sostenere il lavoro su FluidEQ.',
   'help.window.help':
-    'Questa guida, Novità, la risoluzione dei problemi audio e Segnala un problema.',
+    'Questa guida, Novità, Note di rilascio complete, Forum, la risoluzione dei problemi audio, Segnala un problema e Informazioni su FluidEQ. Le note complete si aprono direttamente. Informazioni include collegamenti alle sezioni e, se il link di supporto è disponibile, una scheda Buy Me a Coffee con codice QR.',
   'help.window.actions':
-    'Il motore, il tuo account, l’importazione delle impostazioni EQ, il riavvio dell’audio di Windows, Processi e Ripristina tutte le impostazioni; Luminosità, Tinta, Modalità colorata e Colora l’icona, i cursori dell’EQ, le animazioni, Avvia con Windows e la lingua.',
+    'Il motore, il tuo account, l’importazione delle impostazioni EQ, il riavvio dell’audio di Windows, Processi e Ripristina tutte le impostazioni; Luminosità, Tinta, Modalità colorata e Colora l’icona, i cursori dell’EQ, le animazioni, Avvia con Windows e la lingua. Tasto acceso/spento… ti permette di scegliere una scorciatoia per disattivare e riattivare tutta l’elaborazione di FluidEQ mentre un’altra app è in primo piano. All’inizio non è assegnato alcun tasto. Una scheda sopra le altre finestre conferma ogni cambio.',
   'help.window.systemEq':
     'Attiva o disattiva l’elaborazione di FluidEQ per tutto ciò che il PC riproduce.',
   'help.window.preamp':
@@ -100,9 +98,9 @@ const help: Record<keyof typeof en, string> = {
   'help.player.intro':
     'Un interruttore trasforma la finestra di FluidEQ nel Lettore compatto, una sola colonna stretta: in alto un visualizzatore con il brano sopra e i comandi di riproduzione sotto; poi Suono, il tuo equalizzatore; poi In coda e le tue playlist. Ciò che è in riproduzione continua a suonare, e lo stesso interruttore riporta l’app completa sulla pagina che avevi lasciato.',
   'help.player.steps':
-    'Premi l’interruttore Lettore compatto nella barra del titolo, accanto ad Aiuto. Sul lettore, lo stesso interruttore riporta l’app completa.\nComprimi Suono, oppure In coda e Playlist, fino all’intestazione, e il visualizzatore prende lo spazio; fai clic sull’intestazione per riaprirli. Trascina il bordo superiore o inferiore del lettore per renderlo più alto o più basso.\nFai doppio clic sul visualizzatore perché riempia lo schermo; Esc lo riporta al suo posto. Premi il nome dello stile, accanto a riproduzione casuale e ripetizione, per scegliere tra tutti gli stili e le scene.\nPer ridurre il lettore a una riga, scegli Riduci a una riga nel menu del logo di FluidEQ; il logo lo espande di nuovo.\nNello stesso menu regola la Luminosità del lettore, la Trasparenza su una scena o la Tinta della finestra su uno stile standard, e la Luce del giorno di una scena. Sempre in primo piano, lì o nell’intestazione, lo tiene sopra le altre finestre.\nTrascina file musicali in qualunque punto del lettore: entrano nella Libreria e in fondo a In coda o, sopra l’elenco, nel punto in cui li rilasci.',
+    'Premi l’interruttore Lettore compatto nella barra del titolo, accanto ad Aiuto. Sul lettore, lo stesso interruttore riporta l’app completa.\nComprimi Suono, oppure In coda e Playlist, fino all’intestazione, e il visualizzatore prende lo spazio; fai clic sull’intestazione per riaprirli. Trascina il bordo superiore o inferiore del lettore per renderlo più alto o più basso.\nFai doppio clic sul visualizzatore perché riempia lo schermo; Esc lo riporta al suo posto. Premi il nome dello stile, accanto a riproduzione casuale e ripetizione, per scegliere tra tutti gli stili e le scene.\nPer ridurre il lettore a una riga, scegli Riduci a una riga nel menu del logo di FluidEQ; il logo lo espande di nuovo.\nNello stesso menu regola la Luminosità del lettore, la Trasparenza su una scena o la Tinta della finestra su uno stile standard, e la Luce del giorno di una scena. Sempre in primo piano, lì o nell’intestazione, lo tiene sopra le altre finestre.\nTrascina file musicali in qualunque punto del lettore: entrano nella Libreria e in fondo a In coda o, sopra l’elenco, nel punto in cui li rilasci.\nIn Suono, Tone offre bassi, medi e alti e Bande l’EQ completo. Preset e modalità EQ cambiano la stessa uscita dell’app completa. Esplora scene apre la galleria; anche il cambio automatico funziona nel lettore compatto.',
   'help.player.tip':
-    'Il volume del lettore è quello del tuo computer, lo stesso di Windows, quindi regola il livello di tutto ciò che il computer riproduce. Se il lettore finisce fuori dallo schermo, fai clic destro su FluidEQ nell’area di notifica della barra delle applicazioni e scegli Ripristina la finestra.',
+    'Il volume del lettore è quello del tuo computer, lo stesso di Windows, quindi regola il livello di tutto ciò che il computer riproduce. Se il lettore finisce fuori dallo schermo, fai clic destro su FluidEQ nell’area di notifica della barra delle applicazioni e scegli Ripristina la finestra. Quando il suono di un gioco è attivo, il suo pulsante mostra solo il nome per stare nel lettore compatto.',
   'help.player.keywords':
     'mini player, mini lettore, lettore piccolo, lettore compatto, modalità compatta, winamp, amp, modalità lettore, sempre in primo piano, always on top, in primo piano, ridurre a una riga, una riga, rimpicciolire, coda, prossimi brani, trascinare file, trascina e rilascia, tema, tema chiaro, tema scuro, modalità chiara, modalità scura, dark mode, finestra piccola, lettore fluttuante, volume',
   'help.player.topCaption': 'In alto: il brano e la sua riproduzione',
@@ -183,7 +181,7 @@ const help: Record<keyof typeof en, string> = {
   'help.engine.intro':
     'FluidEQ elabora il suono con il proprio motore o con Equalizer APO. Il motore FluidEQ gira dentro il servizio audio di Windows dopo gli effetti della tua scheda audio, applica il tuo EQ e il rack DSP a tutto ciò che il PC riproduce e si fa da parte appena FluidEQ si chiude.',
   'help.engine.steps':
-    'Apri il menu delle azioni (il pulsante a impulso in alto a destra) e fai clic sulla scheda del motore, in cima.\nScegli Motore FluidEQ e premi Applica. Windows chiede il permesso e l’audio si interrompe per qualche secondo mentre si riavvia.\nSe un’uscita mostra DISATT., premi Attiva nel suo avviso. Se un avviso dice che il motore non è in funzione, premi Riavvia l’audio di Windows.',
+    'Apri il menu delle azioni (≡) e premi la scheda del motore in alto.\nScegli Motore FluidEQ e premi Applica. Windows chiede il permesso e l’audio si interrompe per qualche secondo mentre si riavvia.\nSe un’uscita mostra DISATT., premi Attiva nel suo avviso. Se un avviso dice che il motore non è in funzione, premi Riavvia l’audio di Windows.',
   'help.engine.tip':
     'Equalizer APO resta disponibile per i comandi personalizzati di APO, Peace e i plugin VST. Quando un aggiornamento porta un motore più recente, un avviso propone Aggiorna il motore. Uscire da FluidEQ dall’area di notifica spegne l’EQ su tutte le uscite.',
   'help.engine.keywords':
@@ -199,7 +197,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.intro':
     'Frequenza sceglie dove agisce la banda; Guadagno, il rinforzo o taglio; Q, la larghezza: Q più alto significa banda più stretta. Senza bande selezionate, le manopole del Tono — Bassi, Medi e Alti, con Taglio bassi e Taglio alti ai lati — modellano il suono come una curva a sé e lasciano le tue bande come sono. Inizia con correzioni leggere e larghe e confronta spesso.',
   'help.eq.steps':
-    'Apri EQ → Bande. Senza selezionare nulla, ruota Bassi, Medi o Alti per cambiare rapidamente il tono, e Taglio bassi o Taglio alti per rifilare gli estremi. Nel grafico disegnano la propria linea del Tono.\nFai clic sulla frequenza di una banda, o sul suo punto nel grafico, per selezionarla. Ruota le manopole Frequenza, Guadagno e Fattore Q, scegli un Filtro o spegnila con l’interruttore Attiva. La curva segue il cursore mentre lo muovi.\nTutto funziona anche da tastiera: con Tab raggiungi un fader, una manopola o un punto del grafico, e le frecce lo spostano a piccoli passi; Pag su e Pag giù fanno passi più grandi.\nPer vedere frequenza, Q e guadagno di ogni banda sul grafico, apri Vista sopra di esso e premi Mostra etichette EQ, oppure premi Ctrl+W finché non mostra Tutto. Un’etichetta sta sopra o sotto il suo punto, mai di lato, e torna al suo posto appena c’è spazio.\nFai clic destro su una banda per ripristinarla, disattivarla o aggiungere una banda accanto. Premi Azzera l’EQ per portare ogni guadagno, e anche Bassi, Medi e Alti, a 0 dB mantenendo le bande. Prima chiede conferma.\nLo stesso menu ha Elimina banda, che chiede una seconda pressione prima di eliminare. Sinistro + destro trasforma una banda in una per ogni orecchio, alla stessa frequenza, così sposti ciascuna da sola: la curva dell’orecchio sinistro è continua, quella del destro tratteggiata. Entrambe le orecchie le riunisce nel loro punto medio, come fanno anche Ripristina banda e Azzera l’EQ.',
+    'Apri EQ → Bande. Senza selezionare nulla, ruota Bassi, Medi o Alti per cambiare rapidamente il tono, e Taglio bassi o Taglio alti per rifilare gli estremi. Nel grafico disegnano la propria linea del Tono.\nFai clic sulla frequenza di una banda, o sul suo punto nel grafico, per selezionarla. Ruota le manopole Frequenza, Guadagno e Fattore Q, scegli un Filtro o spegnila con l’interruttore Attiva. La curva segue il cursore mentre lo muovi.\nTutto funziona anche da tastiera: con Tab raggiungi un fader, una manopola o un punto del grafico, e le frecce lo spostano a piccoli passi; Pag su e Pag giù fanno passi più grandi.\nPer vedere frequenza, Q e guadagno di ogni banda sul grafico, apri Vista sopra di esso e premi Mostra etichette EQ, oppure premi Ctrl+W finché non mostra Tutto. Un’etichetta sta sopra o sotto il suo punto, mai di lato, e torna al suo posto appena c’è spazio.\nFai clic destro su una banda per ripristinarla, disattivarla o aggiungere una banda accanto. Premi Azzera l’EQ per portare ogni guadagno, e anche Bassi, Medi e Alti, a 0 dB mantenendo le bande. Prima chiede conferma.\nLo stesso menu ha Elimina banda, che chiede una seconda pressione prima di eliminare. Sinistro + destro trasforma una banda in una per ogni orecchio, alla stessa frequenza, così sposti ciascuna da sola: la curva dell’orecchio sinistro è continua, quella del destro tratteggiata. Entrambe le orecchie le riunisce nel loro punto medio, come fanno anche Ripristina banda e Azzera l’EQ.\nSeleziona più bande per spostarle insieme, oppure Ctrl+A sul grafico per selezionarle tutte. Passando da una banda all’altra, lo stesso editor aggiorna i valori senza spostarsi.',
   'help.eq.tip':
     'Curve elenca i livelli che modellano questa uscita oltre alle tue bande, ognuno con la sua intensità e la sua ×. Modalità gioco riduce il ritardo aggiunto da FluidEQ, per giochi e chiamate; i preset Gaming la attivano. Mentre l’EQ è spento, le sue bande appaiono attenuate e non si possono cambiare per errore; le manopole del Tono funzionano comunque.',
   'help.eq.keywords':
@@ -279,25 +277,34 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.save':
     'Salva con un nome le frequenze e i Q attuali come disposizione, elencata in Le mie disposizioni.',
 
-  'help.games.title': 'Preset di gioco',
+  'help.games.title': 'Laboratorio gaming',
   'help.games.intro':
-    'Dai a ogni gioco il suo suono. Quando il gioco passa in primo piano, FluidEQ attiva quel suono e lo mantiene finché non chiudi il gioco, anche se nel frattempo passi ad altro con Alt+Tab. Poi rimette quello che avevi.',
+    'Dai a ogni gioco il suo suono. Un gioco parte da un profilo gaming fatto per lui e riceve una copia tutta sua: regoli la copia nel Laboratorio gaming e il profilo non cambia mai. Quando il gioco passa in primo piano, FluidEQ mette il suo suono e lo tiene finché chiudi il gioco, qualunque cosa apri nel frattempo con Alt+Tab. Poi torna il tuo suono per la musica.',
   'help.games.steps':
-    'Apri EQ → Preset di gioco e premi Aggiungi un gioco. Scegline uno dai tuoi launcher o tra i programmi aperti ora, oppure indica tu il suo programma.\nNel selettore sulla sua riga scegli il suono che deve avere: un preset Gaming o qualsiasi altro.\nAvvia il gioco. Una scheda sul desktop dice a quale suono è passato FluidEQ e, quando lo chiudi, un’altra dice quale è tornato.',
+    'Apri il Laboratorio gaming nella barra del titolo e premi Aggiungi un gioco. Scegline uno dai tuoi launcher, un programma aperto ora, oppure cerca il suo programma. Parte dal profilo gaming suggerito per lui; scegline un altro nel suo elenco di profili gaming quando vuoi.\nPremi Provalo ora per mettere il suono del gioco. Scegli una parte a sinistra — il Filtro Gioco, EQ, Curva o qualsiasi stadio DSP — e regolala proprio lì. Ogni modifica resta nella copia di questo gioco.\nSalva come profilo tiene la copia come uno dei tuoi profili gaming per altri giochi, aggiorna il tuo, riporta la copia al suo profilo, la rinomina o la elimina.\nAvvia il gioco. Una scheda sul desktop dice che il suo suono è attivo, e un’altra che il tuo suono per la musica è tornato quando lo chiudi.',
   'help.games.tip':
-    'Finché il suono di un gioco è attivo, la barra in fondo alla finestra ne mostra il nome. Se scegli un altro suono mentre giochi, resta: FluidEQ annulla solo le proprie modifiche. I preset Gaming attivano anche Modalità gioco.',
+    'Finché il suono di un gioco è attivo, la pagina DSP mostra il tuo rack per la musica in pausa con un pulsante per regolare il gioco, e l’elenco dei profili resta fermo, così niente di quello che fai lì può sovrascrivere il tuo profilo musicale con il suono del gioco. Il Filtro Gioco alza passi e ricariche deboli mentre accadono e porta avanti le voci.',
   'help.games.keywords':
-    'videogiochi, EQ per giochi, giocare, aggiungere gioco, profilo gioco, cambio automatico, sparatutto, FPS, competitivo, passi dei nemici, sentire i passi, game mode',
-  'help.games.tab': 'I tuoi giochi e il suono che riceve ciascuno.',
+    'videogiochi, EQ per giochi, giocare, aggiungere gioco, profilo gioco, cambio automatico, sparatutto, FPS, competitivo, passi dei nemici, sentire i passi, game mode, game filter, dialogue, voices, ambience, environment, hooves, laboratorio gaming, gaming lab, profilo gaming, copia',
+  'help.games.switch':
+    'Lascia che un gioco in primo piano metta il suo suono. Spento, i tuoi giochi tengono il tuo suono per la musica.',
   'help.games.add':
     'Aggiunge un gioco da Steam, Epic, EA, GOG, Ubisoft, Battle.net o Xbox, oppure qualsiasi programma aperto ora.',
   'help.games.gameName': 'Un gioco',
-  'help.games.game': 'Il gioco e la cartella con cui FluidEQ lo riconosce.',
-  'help.games.soundName': 'Il suo suono',
-  'help.games.sound':
-    'Il suono che FluidEQ attiva quando questo gioco passa in primo piano, oppure Lascia com’è.',
-  'help.games.removeName': 'Rimuovi',
-  'help.games.remove': 'Dimentica il gioco. Il preset che usava resta.',
+  'help.games.game':
+    'Il gioco, il profilo da cui è partito il suo suono e se l’hai regolato. In gioco significa che è in primo piano ora.',
+  'help.games.profile':
+    'Il profilo gaming da cui parte la copia di questo gioco. Sceglierne un altro dà al gioco una copia nuova di quello.',
+  'help.games.save':
+    'Salva la copia come nuovo profilo o aggiorna uno dei tuoi, la riporta al suo profilo, la rinomina o la elimina. Il profilo in sé non cambia mai.',
+  'help.games.try':
+    'Mette adesso il suono del gioco, così senti quello che regoli. Finché è attivo, qui c’è Scarica, che riporta il tuo suono per la musica.',
+  'help.games.statusName': 'Cosa è stato regolato',
+  'help.games.status':
+    'Quali parti di questa copia sono diverse dal suo profilo.',
+  'help.games.railName': 'Le sue parti',
+  'help.games.rail':
+    'Ogni parte del suono del gioco, ognuna regolata nel proprio editor accanto all’elenco. Regolato indica cosa si è allontanato dal profilo.',
 
   'help.headphones.title': 'Correzione delle cuffie e importazione',
   'help.headphones.intro':
@@ -362,13 +369,13 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'Il rack DSP è una catena di stadi da studio. Con il motore FluidEQ elabora tutto ciò che il PC riproduce; con Equalizer APO elabora le tracce audio della Libreria. Resta spento mentre FluidEQ è spento.',
   'help.dsp.steps':
-    'Apri DSP. Scegli una catena in Preset, oppure seleziona uno stadio nella colonna laterale e mettilo su Attivo.\nCambia un controllo alla volta e confronta disattivando lo stadio a volume simile. Isola ti fa sentire solo ciò che uno stadio aggiunge.\nSalva un rack che ti piace e usa Esporta e Importa per condividerlo.\nIl de-esser abbassa le S, T e SC taglienti di una voce solo mentre suonano e lascia intatti i piatti; Voce, Podcast e Audiolibro lo attivano. Ogni stadio può tenere profili tuoi: regolalo, poi premi Salva.',
+    'Apri DSP e scegli una catena completa nei preset. Le informazioni di genere spiegano curva e trattamento; gli esempi musicali aprono YouTube.\nSeleziona e attiva uno stadio. Il suo selettore e Salva conservano solo le impostazioni di quello stadio.\nConfronta lo stadio bypassato a volume simile. L’isolamento, se presente, fa ascoltare il suo contributo; Ctrl+clic riporta un controllo al valore iniziale.\nSalva la catena intera per conservare la combinazione; Esporta e Importa la trasferiscono. Una catena può sostituire più stadi insieme.\nDinamica e De-esser hanno capitoli propri. Il filtro Gioco e i preset di gioco sono in Gaming Lab.\nCon il suono di un gioco caricato, il DSP musicale riposa per non sostituirlo. Regola in Gaming Lab ciò che stai ascoltando.',
   'help.dsp.tip':
     'Un suono più forte spesso sembra migliore solo perché è più forte, quindi confronta a parità di livello. Ctrl+click su una manopola la riporta al valore predefinito.',
   'help.dsp.keywords':
-    'effetti, FX, limiter, limitatore, loudness, normalizzazione volume, normalizzare, livellamento, volume costante, enhancer, allargamento stereo, stereo widener, sub bass, subarmoniche, transienti, mastering, crossfade, gapless, aumentare volume, alzare volume, amplificatore di volume, de-esser, sibilanti, sibilanza, s tagliente, voce, podcast, profili, salva profilo',
+    'effetti, FX, limiter, limitatore, loudness, normalizzazione volume, normalizzare, livellamento, volume costante, enhancer, allargamento stereo, stereo widener, sub bass, subarmoniche, transienti, mastering, crossfade, gapless, aumentare volume, alzare volume, amplificatore di volume, de-esser, sibilanti, sibilanza, s tagliente, voce, podcast, profili, salva profilo, passi, sentire i passi, footsteps, gaming, audio di gioco, ricariche, equalizzazione del volume, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    'Uniforma la sonorità. Sull’audio dal vivo livella un brano alla volta.',
+    'Uniforma il volume da un brano all’altro. True Peak imposta un guadagno per brano invece di limitarlo continuamente. I preset lasciano il Normalizzatore spento finché non lo attivi.',
   'help.dsp.denoise':
     'Ripara fruscio, ronzio e click. Il pulitore vocale neurale funziona sui brani della Libreria.',
   'help.dsp.exciter': 'Aggiunge armoniche per corpo e aria.',
@@ -421,7 +428,7 @@ const help: Record<keyof typeof en, string> = {
   'help.denoise.intro':
     'Riduzione del rumore attenua fruscio, ronzio di rete e click. Con il motore FluidEQ lavora dal vivo su qualsiasi cosa il PC riproduca; il pulitore vocale neurale e il rumore di fondo analizzato sono per i brani della Libreria. Una riduzione più forte non è automaticamente migliore.',
   'help.denoise.steps':
-    'Riproduci qualcosa con il rumore che vuoi ridurre e seleziona Riduzione del rumore in DSP.\nAttiva Fruscio, Ronzio o Click con un’impostazione leggera e ascolta i passaggi quieti e i dettagli musicali.\nAumenta gradualmente la riduzione, poi disattiva lo stadio per verificare che il miglioramento valga l’eventuale perdita di dettaglio.',
+    'Riproduci qualcosa con il rumore che vuoi ridurre e seleziona Riduzione del rumore in DSP.\nAttiva Fruscio, Ronzio o Click con un’impostazione leggera e ascolta i passaggi quieti e i dettagli musicali.\nAumenta gradualmente la riduzione, poi disattiva lo stadio per verificare che il miglioramento valga l’eventuale perdita di dettaglio.\nPer i file di Libreria, attendi l’analisi prima di confrontare il rumore misurato o la pulizia neurale della voce. L’audio di sistema usa riduzione di fruscio, ronzio e clic; la pulizia neurale è riservata a Libreria.',
   'help.denoise.tip':
     'Ascolta se i dettagli si ammorbidiscono o se compaiono suoni acquosi o effetti di pompaggio. Non serve a pulire il microfono. Se non senti differenze, verifica che rack e stadio siano entrambi attivi.',
   'help.denoise.keywords':
@@ -431,7 +438,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.intro':
     'Il grafico di risposta disegna le curve del tuo EQ sopra il suono dal vivo. La barra sopra il grafico sceglie cosa viene disegnato e come, e cambia con l’aspetto: uno stile standard o una scena.',
   'help.graph.steps':
-    'Fai clic sul nome dell’aspetto per scegliere uno stile o una scena. Le frecce accanto, Spazio e Ctrl+Spazio li scorrono.\nApri Vista per la dimensione del grafico, ciò che mostra e l’altezza e la posizione dell’onda. Mostra etichette EQ scrive frequenza, Q e guadagno di ogni banda sopra il suo punto. Come viene disegnato imposta la frequenza dei fotogrammi — tutti quelli che offre il tuo schermo, oppure 60 o 30, e 60 a batteria — la risoluzione e i bordi lisci; gli stili standard hanno scelte proprie, separate dalle scene.\nUna scena aggiunge a Vista i propri comandi — quello che il suo autore ti ha lasciato regolare — e Usa la sua onda originale riporta l’onda all’altezza e alla posizione scelte da quell’autore.\nFai doppio clic sul grafico per lo schermo intero, o Ctrl+doppio clic per espanderlo nella finestra; un altro doppio clic lo riporta indietro. Un clic singolo nasconde o mostra la barra.\nTasti: Ctrl+F schermo intero, Ctrl+S vista espansa, Esc torna alla vista normale, Ctrl+G la griglia, Ctrl+W ciò che mostra il grafico, etichette delle bande comprese, Ctrl+I il verso dell’onda, Ctrl+A tutte le bande. Sul punto di una banda, trascinalo per spostarla, usa i tasti freccia per spostarlo a piccoli passi e il clic destro apre il suo menu; Ctrl+rotellina cambia il Q di un punto selezionato.',
+    'Fai clic sul nome dell’aspetto per scegliere uno stile o una scena. Le frecce accanto, Spazio e Ctrl+Spazio li scorrono.\nApri Vista per la dimensione del grafico, ciò che mostra e l’altezza e la posizione dell’onda. Mostra etichette EQ scrive frequenza, Q e guadagno di ogni banda sopra il suo punto. Come viene disegnato imposta la frequenza dei fotogrammi — tutti quelli che offre il tuo schermo, oppure 60 o 30, e 60 a batteria — la risoluzione e i bordi lisci; gli stili standard hanno scelte proprie, separate dalle scene.\nUna scena aggiunge a Vista i propri comandi — quello che il suo autore ti ha lasciato regolare — e Usa la sua onda originale riporta l’onda all’altezza e alla posizione scelte da quell’autore.\nFai doppio clic sul grafico per lo schermo intero, o Ctrl+doppio clic per espanderlo nella finestra; un altro doppio clic lo riporta indietro. Un clic singolo nasconde o mostra la barra.\nTasti: Ctrl+F schermo intero, Ctrl+S vista espansa, Esc torna alla vista normale, Ctrl+G la griglia, Ctrl+W ciò che mostra il grafico, etichette delle bande comprese, Ctrl+I il verso dell’onda, Ctrl+A tutte le bande. Sul punto di una banda, trascinalo per spostarla, usa i tasti freccia per spostarlo a piccoli passi e il clic destro apre il suo menu; Ctrl+rotellina cambia il Q di un punto selezionato.\nPremi il nome di una curva nella legenda per nascondere o mostrare solo il disegno. Modifica o rimuovi il livello in Curve per cambiare il suono.',
   'help.graph.tip': 'Tutto qui cambia solo il disegno, mai il suono.',
   'help.graph.keywords':
     'analizzatore di spettro, analyzer, RTA, FPS, frame rate, frequenza di aggiornamento, waveform, fullscreen, scorciatoie, scorciatoie da tastiera, doppio clic, espansa, grafico, spettro, curva, schermo intero, fotogrammi, onda, griglia, vista, etichette, etichette bande, etichette EQ, tastiera, tasti freccia, grafica, risoluzione, bordi lisci, levigatura, anti-aliasing',
@@ -622,17 +629,17 @@ const help: Record<keyof typeof en, string> = {
   'help.library.intro':
     'Libreria raccoglie musica e video dai tuoi dischi. Sfoglia per album, artisti, generi, brani, cartelle, albero delle cartelle o playlist. Copertine e dettagli provengono dai file, quindi la stessa collezione può apparire diversa a seconda dei tag.',
   'help.library.steps':
-    'Apri Libreria e aggiungi la cartella multimediale. Lascia finire la scansione prima di valutare cosa manca.\nScegli artista o album oppure cerca un brano e avvialo dai risultati.\nUsa la barra in fondo alla finestra per mettere in pausa, cercare e saltare. Il suo volume è quello del tuo computer, lo stesso di Windows.',
+    'Apri Libreria e aggiungi la cartella multimediale. Lascia finire la scansione prima di valutare cosa manca.\nScegli artista o album oppure cerca un brano e avvialo dai risultati.\nUsa la barra in fondo alla finestra per mettere in pausa, cercare e saltare. Il suo volume è quello del tuo computer, lo stesso di Windows.\nGriglia, Elenco, Cover Flow e albero delle cartelle mostrano la stessa raccolta. Seleziona più brani o il menu di un album per metterli in coda o archiviarli insieme. Il menu di un singolo brano audio può inviarlo a Karaoke.',
   'help.library.tip':
     'Passa il mouse sul pulsante di FluidEQ nella barra delle applicazioni di Windows per Precedente, Riproduci e Successivo, anche quando è ridotto a icona. Libreria ha bisogno dei file originali: ricollega il disco o aggiungi di nuovo una cartella spostata.',
   'help.library.keywords':
-    'lettore musicale, player, canzoni, aggiungere musica, raccolta, metadati, MP3, FLAC, AAC, WAV',
+    'lettore musicale, player, canzoni, aggiungere musica, raccolta, metadati, MP3, FLAC, AAC, WAV, Playlist, Nuova playlist',
 
   'help.queue.title': 'Album e coda di riproduzione',
   'help.queue.intro':
     'La coda determina l’ordine d’ascolto. Aprire un altro album permette di esplorare senza cambiare il brano attuale. Il brano attivo e In coda aiutano a orientarti.',
   'help.queue.steps':
-    'Apri un album e avvia il brano desiderato.\nFai clic destro su un brano per Aggiungi alla coda, Aggiungi ai Preferiti o Aggiungi a una playlist.\nApri In coda per vedere cosa suona dopo e attiva Continua a suonare per proseguire con altra musica dello stesso genere.',
+    'Apri un album e avvia il brano desiderato.\nFai clic destro su un brano per Aggiungi alla coda, Aggiungi ai Preferiti o Aggiungi a una playlist.\nApri In coda per vedere cosa suona dopo e attiva Continua a suonare per proseguire con altra musica dello stesso genere.\nTrascina le righe di Prossimi per cambiare l’ordine e usa la loro azione di rimozione per toglierle dalla coda. Salva la coda come playlist per conservarla.\nIn Windows, file e cartelle musicali rilasciati sul lettore compatto vengono analizzati e aggiunti a Libreria e coda. Su una riga si inseriscono prima; sotto l’elenco finiscono in fondo. L’avviso segue l’analisi delle cartelle.',
   'help.queue.tip':
     'Avviare Libreria prende il posto degli altri lettori FluidEQ. Il brano attuale mostrato nella barra ti conferma quale sorgente ha la riproduzione.',
   'help.queue.keywords':
@@ -642,9 +649,9 @@ const help: Record<keyof typeof en, string> = {
   'help.karaoke.intro':
     'Karaoke abbina audio e testi locali. I testi temporizzati seguono la riproduzione; gli obiettivi d’intonazione richiedono note. Un microfono configurato aggiunge la tua intonazione dal vivo.',
   'help.karaoke.steps':
-    'Apri Karaoke e aggiungi file o cartella con audio e testi corrispondenti.\nScegli un brano, avvialo e controlla l’abbinamento.\nConfigura il microfono, regola la dimensione dei testi e usa lo schermo intero del palco.',
+    'Apri Karaoke e aggiungi file o cartella con audio e testi corrispondenti.\nScegli un brano, avvialo e controlla l’abbinamento.\nConfigura il microfono, regola la dimensione dei testi e usa lo schermo intero del palco.\nScegli lo sfondo con i pulsanti copertina e visualizzatore del palco. Trasparenza e sfocatura sono indipendenti dal grafico principale. Raggruppa la playlist per cartella e premi un’intestazione per ripiegarla.',
   'help.karaoke.tip':
-    'Un file con soli testi non contiene note obiettivo. Karaoke suona al volume del tuo computer; i livelli di melodia, base e voce guida sono in Impostazioni mix.',
+    'Un file con soli testi non contiene note obiettivo. Karaoke suona al volume del tuo computer; i livelli di melodia, base e voce guida sono in Impostazioni mix. Il microfono viene analizzato localmente per livello e intonazione: FluidEQ non lo riproduce dagli altoparlanti e non lo registra.',
   'help.karaoke.keywords':
     'cantare, canzoni, lyrics, pitch, punteggio, stonato, accordi chitarra, LRC, UltraStar, testi sincronizzati',
 
@@ -652,7 +659,7 @@ const help: Record<keyof typeof en, string> = {
   'help.maker.intro':
     'Il Creatore di karaoke trasforma audio in un progetto modificabile con testi e note sulla timeline. Controlla sempre parole e tempi generati automaticamente.',
   'help.maker.steps':
-    'Apri Crea da Karaoke e carica l’audio. Scegli gli strumenti di separazione o trascrizione necessari.\nSegui il progresso; al primo uso IA potrebbe scaricare modelli. Rivedi testi e note.\nAscolta brevi passaggi, correggi tempi e testo, salva il progetto ed esporta i file.',
+    'Apri Crea da Karaoke e carica l’audio. Scegli gli strumenti di separazione o trascrizione necessari.\nSegui il progresso; al primo uso IA potrebbe scaricare modelli. Rivedi testi e note.\nAscolta brevi passaggi, correggi tempi e testo, salva il progetto ed esporta i file.\nSe hai già il testo, incollalo completo comprese le ripetizioni. Registra gli ingressi delle righe ascoltando, poi rifinisci parole e note. Conserva un progetto modificabile ed esporta LRC o UltraStar per la riproduzione.',
 
   'help.maker.lyricsCaption': 'Il testo, e quando viene cantata ogni parola',
   'help.maker.referenceName': 'Testo di riferimento',
@@ -711,7 +718,7 @@ const help: Record<keyof typeof en, string> = {
   'help.share.intro':
     'Condividi audio unisce i computer della stessa rete privata in un gruppo, e ognuno riproduce il suono degli altri: a qualunque tu sia seduto, senti il resto. Ogni computer invia il proprio suono direttamente agli altri, intatto, e non rimanda mai ciò che riceve, quindi niente eco; il computer su cui ascolti applica il proprio EQ, le curve e il DSP. È diverso dal duplicare su un secondo dispositivo dello stesso computer.',
   'help.share.steps':
-    'Su un computer apri Condividi audio, premi Aggiungi computer e poi Copia codice. Inizia a volume basso.\nSull’altro computer premi Aggiungi computer, incolla il codice in Codice dell’altro computer e premi Collega. I due computer si riproducono subito a vicenda. Collega altri computer allo stesso modo: ognuno entra in tutto il gruppo, e quelli che arrivano tramite un altro compaiono con Ricevi spento finché non lo accendi.\nIn Tutto il gruppo ogni computer ha due interruttori, Ricevi e Invia; Condividi spegne il suono di questo computer per tutti. Il tuo mix regola il volume di Questo PC e un livello per computer.\nPausa, Riprendi e Scollega sono nel menu di ogni computer. Un computer assente resta in elenco come Offline, e il gruppo si ritrova da solo dopo un riavvio, la sospensione, un’interruzione di rete o un cambio di motore.',
+    'Su un computer apri Condividi audio, premi Aggiungi computer e poi Copia codice. Inizia a volume basso.\nSull’altro computer premi Aggiungi computer, incolla il codice in Codice dell’altro computer e premi Collega. I due computer si riproducono subito a vicenda. Collega altri computer allo stesso modo: ognuno entra in tutto il gruppo, e quelli che arrivano tramite un altro compaiono con Ricevi spento finché non lo accendi.\nIn Tutto il gruppo ogni computer ha due interruttori, Ricevi e Invia; Condividi spegne il suono di questo computer per tutti. Il tuo mix regola il volume di Questo PC e un livello per computer.\nPausa, Riprendi e Scollega sono nel menu di ogni computer. Un computer assente resta in elenco come Offline, e il gruppo si ritrova da solo dopo un riavvio, la sospensione, un’interruzione di rete o un cambio di motore.\nAttiva Fluid accanto a Condividi per musica su una connessione instabile. Aggiunge un piccolo buffer; disattivalo per ridurre il ritardo.\nSe un computer salvato resta offline, apri ••• e scegli Riconnetti. Riprova il codice salvato senza dimenticare il collegamento; se l’indirizzo è cambiato, incolla il codice attuale.',
   'help.share.tip':
     'Il codice di connessione autorizza il collegamento: tienilo privato. Con il motore FluidEQ, questo computer mantiene il suo DSP mentre condivide, e il computer che riproduce il suo suono applica il proprio. Riprodurre e inviare insieme richiede Windows su quel computer; altrove un collegamento funziona in una sola direzione.',
   'help.share.keywords':
@@ -733,7 +740,7 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.steps':
     'Apri Aiuto → Forum e scegli una categoria: Annunci, Generale, Idee, Sondaggi, Q&A o Vetrina. Novità per te raccoglie ciò che è arrivato dall’ultima visita, e Segnalazioni elenca i problemi segnalati su GitHub.\nCerca nel forum, oppure apri un argomento per leggere le risposte.\nPremi Accedi con GitHub, completa nel browser, poi pubblica un Nuovo argomento o una risposta.',
   'help.forum.tip':
-    'Tutto ciò che pubblichi è pubblico su GitHub con il tuo nome GitHub. In Q&A, segna la risposta che ha funzionato, così chi arriva dopo la trova.',
+    'Tutto ciò che pubblichi è pubblico su GitHub con il tuo nome GitHub. In Q&A, segna la risposta che ha funzionato, così chi arriva dopo la trova. Il numero giallo di ogni sezione indica le discussioni con attività che non hai visto; Problemi conta quelli aperti. Le discussioni e le risposte lasciate a metà restano salvate quando esci. Premi l’immagine di un post per ingrandirla dentro FluidEQ.',
   'help.forum.keywords':
     'community, comunità, suggerimenti, proposte, feedback, chiedere aiuto, supporto, contattare, sviluppatore, FAQ',
   // A Mac's own wording for the lines above that describe Windows' engine
@@ -748,6 +755,8 @@ const help: Record<keyof typeof en, string> = {
     'Il motore, il tuo account, l’importazione delle impostazioni EQ e Processi; Luminosità e Trasparenza, le animazioni e la lingua.',
   'help.trouble.steps.mac':
     'Nessun suono: verifica riproduzione, uscita, volume e collegamento. Un solo lettore potrebbe aver messo in pausa un’altra sorgente.\nL’EQ non cambia nulla: verifica che EQ di sistema sia attivo. Se un avviso dice che FluidEQ non sente l’audio del tuo Mac, premi Apri Impostazioni di Sistema e consenti FluidEQ in Registrazione schermo e audio di sistema.\nAncora nessun cambiamento: chiudi FluidEQ e riaprilo. Mentre è chiuso, l’audio va direttamente agli altoparlanti, e il motore riparte con lui.\nDistorsione o bassi eccessivi: lascia attivo Normalizza automaticamente, riduci i rinforzi e spegni un livello alla volta. Se persiste, usa Segnala un problema e rivedi la segnalazione prima di inviarla.',
+  'help.games.profiles':
+    'Apri Profili di gioco per cercare per profilo, gioco, curva o catena. I filtri restano su una riga e ogni tipo di gioco ha il suo colore. Anche i tuoi profili salvati mostrano curva, livelli del filtro Gioco e catena. Usa per un gioco crea una nuova copia.',
 };
 
 export default help;

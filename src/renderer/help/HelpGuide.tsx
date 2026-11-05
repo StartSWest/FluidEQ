@@ -136,11 +136,10 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
   );
   const chapters = useMemo<IHelpShownChapter[]>(() => {
     const line = (key: TranslationKey) => t(helpTextKey(key, isEngineBuiltIn));
-    return guideChapters.map(({ id, group, figures, video }, index) => ({
+    return guideChapters.map(({ id, group, figures }, index) => ({
       id,
       group,
       figures,
-      video,
       number: index + 1,
       title: line(`help.${id}.title`),
       intro: line(`help.${id}.intro`),

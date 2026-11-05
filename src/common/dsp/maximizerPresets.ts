@@ -13,6 +13,7 @@ export const MAXIMIZER_PRESET_GROUPS = [
   'scene',
   'character',
   'repair',
+  'gaming',
 ] as const;
 
 export type TMaximizerPresetGroup = (typeof MAXIMIZER_PRESET_GROUPS)[number];
@@ -295,6 +296,41 @@ export const MAXIMIZER_PRESET_BY_ID = {
     // limiter holding 0.75 dB on average, beside the other repairs
     // (2026-09-23, with its own curve, `lossyRestore`).
     settings: profile(0.5, -1, 5, 100),
+  },
+
+  // Gaming. Every one with a short look-ahead, because it is delay: the
+  // Gaming chains run Game mode, and a 14 ms look-ahead would undo it.
+  gameCleanCeiling: {
+    id: 'gameCleanCeiling',
+    labelKey: 'dsp.gamingPreset.cleanCeiling',
+    group: 'gaming',
+    // No drive at all: it catches the overs an EQ or a lift makes and never
+    // squashes, so how far away a shot sounds is the game's, not ours.
+    settings: profile(0, -1, 1, 80),
+  },
+  gameBattle: {
+    id: 'gameBattle',
+    labelKey: 'dsp.gamingPreset.battle',
+    group: 'gaming',
+    // Explosion after explosion: a few dB of drive so the loud moments stop
+    // jumping out, and a fast release so the far step after one is heard.
+    settings: profile(3, -1, 1.5, 60),
+  },
+  gameCinematic: {
+    id: 'gameCinematic',
+    labelKey: 'dsp.gamingPreset.cinematicPunch',
+    group: 'gaming',
+    // Weight without pumping: moderate drive and a release long enough to
+    // ride a score under a cutscene.
+    settings: profile(2, -1, 2, 120),
+  },
+  gameNight: {
+    id: 'gameNight',
+    labelKey: 'dsp.gamingPreset.night',
+    group: 'gaming',
+    // Midnight: loud moments held well down and a lower ceiling, slow enough
+    // not to breathe on a voice.
+    settings: profile(3, -3, 2, 200),
   },
 } satisfies Record<string, IMaximizerPreset>;
 

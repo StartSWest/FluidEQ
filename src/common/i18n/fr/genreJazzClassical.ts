@@ -12,9 +12,9 @@ export default {
   'genre.jazz.pin.12500': 'L’air de la cymbale ride',
   'genre.jazz.pin.12500.why': 'Le haut de la batterie, ouvert.',
   'genre.jazz.stage.dimension':
-    'Un soupçon plus étroit, ce qui rassemble au casque la stéréo des années 50 panoramiquée aux extrêmes.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
   'genre.jazz.stage.maximizer':
-    'Un plafond qui ne touche qu’une crête isolée, sur tout un temps.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.jazz.off':
     'Son Exciteur est proposé et reste désactivé : des harmoniques ajoutées colorent audiblement les cuivres et le piano. Rien ne compresse, n’élargit ni ne génère de basses.',
 
@@ -29,8 +29,9 @@ export default {
   'genre.smoothJazz.pin.12500': 'Un haut lustré',
   'genre.smoothJazz.pin.12500.why': 'Le lustre du studio, gardé.',
   'genre.smoothJazz.stage.dimension':
-    'La stéréo lustrée telle que mixée, seul le bas est resserré.',
-  'genre.smoothJazz.stage.maximizer': 'Un plafond lent.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.smoothJazz.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.smoothJazz.off':
     'Son Exciteur est proposé et reste désactivé, et il n’y a pas de Punch des basses : le genre est doux exprès.',
 
@@ -44,9 +45,9 @@ export default {
   'genre.fusion.pin.12500': 'Brillant, comme enregistré',
   'genre.fusion.pin.12500.why': 'Le haut que ces disques avaient.',
   'genre.fusion.stage.dimension':
-    'L’étalement multipiste tel qu’enregistré, seul le bas est resserré.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
   'genre.fusion.stage.maximizer':
-    'Un plafond lent qui laisse les fills tranquilles.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.fusion.off':
     'Ni Exciteur, ni Punch des basses, ni Forge de basses : rien n’est ajouté à des instruments qui font leurs propres harmoniques.',
 
@@ -60,8 +61,11 @@ export default {
   'genre.blues.pin.5000': 'Brut, pas brillant',
   'genre.blues.pin.5000.why': 'Le haut adouci.',
   'genre.blues.stage.dimension':
-    'Un soupçon plus étroit ; les disques mono restent mono.',
-  'genre.blues.stage.maximizer': 'Un plafond lent.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.blues.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.blues.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.blues.off':
     'Son Exciteur est proposé et reste désactivé : la saturation est le son, et rien n’y est ajouté.',
 
@@ -76,7 +80,7 @@ export default {
   'genre.classical.pin.12500': 'L’air de la salle',
   'genre.classical.pin.12500.why': 'L’espace où l’enregistrement a été fait.',
   'genre.classical.stage.maximizer':
-    'Un plafond seulement, avec l’anticipation et le relâchement les plus longs de tous les genres, pour qu’un crescendo ne soit jamais ce qu’il retient.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.classical.off':
     'Aucune Dimension : la salle est l’enregistrement. Son Exciteur et son Punch des basses sont proposés et restent désactivés.',
 
@@ -91,7 +95,7 @@ export default {
   'genre.orchestra.pin.12500': 'L’air de la salle',
   'genre.orchestra.pin.12500.why': 'L’espace autour de l’orchestre.',
   'genre.orchestra.stage.maximizer':
-    'Un plafond seulement, avec l’anticipation et le relâchement les plus longs de tous les genres, pour qu’un tutti ne pompe jamais.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.orchestra.off':
     'Ni Dimension, ni Exciteur, ni Punch des basses, ni Forge de basses : rien ne relève les basses que les timbales feraient saturer.',
 
@@ -105,8 +109,10 @@ export default {
   'genre.opera.pin.3150': 'Le formant laissé tel quel',
   'genre.opera.pin.3150.why':
     'Il porte déjà ; le relever rend une voix criarde.',
+  'genre.opera.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.opera.stage.maximizer':
-    'Un plafond léger seulement : rien ne compresse la voix.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.opera.off':
     'Ni Dimension, ni Exciteur, ni Punch des basses : rien n’élargit, n’excite ni ne remodèle la voix.',
 
@@ -119,7 +125,8 @@ export default {
   'genre.piano.pin.315.why': 'La table d’harmonie, pas le couvercle.',
   'genre.piano.pin.5000': 'L’attaque du marteau',
   'genre.piano.pin.5000.why': 'Là où commence une note.',
-  'genre.piano.stage.maximizer': 'Un plafond seulement.',
+  'genre.piano.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.piano.off':
     'Ni Dimension, ni Exciteur, ni Punch des basses : rien ne sature ni ne remodèle un piano.',
 
@@ -133,7 +140,8 @@ export default {
     'Abaissé : les cordes frottées deviennent stridentes ici.',
   'genre.strings.pin.12500': 'De l’air autour du pupitre',
   'genre.strings.pin.12500.why': 'La salle au-dessus des archets.',
-  'genre.strings.stage.maximizer': 'Un plafond seulement.',
+  'genre.strings.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.strings.off':
     'Ni Dimension ni Exciteur : un exciteur rend les cordes frottées stridentes.',
 };

@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import type { ReactNode } from 'react';
 import {
-  IFiltersMap,
   IFilter,
   isBandEnabled,
   MAX_FREQUENCY,
@@ -63,7 +62,6 @@ import {
 } from '../utils/enginePreamp';
 import Chart, { ChartDimensions } from './Chart';
 import {
-  IChartLineDataPointsById,
   IChartPointData,
   IEditableChartPoint,
   ILiveCurveData,
@@ -88,6 +86,7 @@ import {
   cycleGraphLook,
   cycleWaveOrientation,
   exitGraphFullScreen,
+  getGraphView,
   setGraphWaveHeight,
   setGraphWavePosition,
   setGraphLook,
@@ -129,6 +128,7 @@ import {
 } from '../utils/graphStyle';
 import { setChromeHeld } from '../utils/idleChrome';
 import useIsGraphChromeIdle from './graphChromeIdle';
+import viewAfterPlotDoubleClick from './plotDoubleClick';
 import {
   MAX_OVERLAY_BLUR,
   MIN_OVERLAY_OPACITY,
@@ -157,8 +157,8 @@ import GraphUpdateNotice from './GraphUpdateNotice';
 import GraphWallpaperToggle from './GraphWallpaperToggle';
 import LightingToggle from './LightingToggle';
 import GraphViewMenu from './GraphViewMenu';
-import useMatchedDesign from './useMatchedDesign';
-import useOutputRate from '../utils/useOutputRate';
+import useResponseCurves from './useResponseCurves';
+import shownCurves from './shownCurves';
 import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import LookPicker from './LookPicker';
 import liveTraceCurves from './liveTraceCurves';
@@ -168,11 +168,7 @@ import { hasSmartEqLayer } from '../../common/smartEq';
 import { hasCustomFxCurve } from '../../common/customFx';
 import { hasEqCut } from '../../common/eqCuts';
 import { hasTone } from '../../common/tone';
-import {
-  buildChartData,
-  IGraphData,
-  SUPPORTING_CURVE_OPACITY,
-} from './buildChartData';
+import { SUPPORTING_CURVE_OPACITY } from './buildChartData';
 import { RIGHT_EAR_CURVE_ID } from './chartCurves';
 import '../styles/MultiSelect.scss';
 import '../styles/GraphTheme.scss';
@@ -304,28 +300,6 @@ const LookAnnouncement = () => {
  * way up, whether the wave is shown. That changes when a control is used, and
  * the chart re-renders then, which is exactly when it should.
  */
-
-/**
- * Which stored curve each of the chart's curves is, so the legend and the store
- * can name the same line without either having to use the other's words.
- */
-const CURVE_BY_CHART_ID: Record<string, TGraphCurve> = {
-  'Headphone Convolution': 'convolution',
-  'EQ Response': 'eq',
-  // The two ears are one layer, shown and hidden together.
-  [RIGHT_EAR_CURVE_ID]: 'eq',
-  Voicing: 'voicing',
-  Driver: 'driver',
-  // Spelled out rather than left as `Headphone`, which would sit one line under
-  // the impulse response's `Headphone Convolution` and read as its abbreviation.
-  // They are different layers with different colours and either can hide the
-  // other's chip if the two ids are confused.
-  'Headphone Correction': 'headphone',
-  'Smart EQ': 'smart',
-  'Custom FX': 'custom',
-  Tone: 'tone',
-  'Total Response': 'total',
-};
 
 /**
  * One legend chip: the name of a curve, its colour, and the switch that shows
@@ -763,13 +737,10 @@ const FrequencyResponseChart = ({
     mainBandQ,
     eqBandQ,
     curveBandQ,
-    curveSmoothing,
     eqCuts,
 
     convolution,
     preAmp: configuredPreAmp,
-    eqFormat,
-    graphicEq,
     setGlobalError,
     setPreAmp,
     dispatchFilter,
@@ -787,15 +758,12 @@ const FrequencyResponseChart = ({
     customFx,
   } = useFluidEqContext();
   const currentEngine = useCurrentEngine();
-  const matchedDesign = useMatchedDesign();
-  const outputRate = useOutputRate('editor');
   // Under the FluidEQ Engine's automatic preamp the gain is live and moves at
   // display rate on loud passages, so it never enters this component's state:
   // the curves are built without it and `Chart` moves the output curve by it
   // (`liveEnginePreamp`). All this tree hears is whether it is non-zero.
   const isPreampLive = currentEngine === 'fluid' && isAutoPreAmpOn;
   const isLivePreampAudible = useEnginePreampAudible();
-  const preAmp = isPreampLive ? 0 : configuredPreAmp;
   const hasPreAmp = isPreampLive
     ? isLivePreampAudible
     : Math.abs(configuredPreAmp) > 0.01;
@@ -962,12 +930,10 @@ const FrequencyResponseChart = ({
     // the observer every render, and what actually changes the width is which
     // chips there are.
   }, [areChipsCollapsed, chipKey]);
-  const prevFilters = useRef<IFiltersMap>({});
   // Read by the window key handler, which is registered once and must not be
   // torn down and rebuilt every time a band moves.
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
-  const prevFilterLines = useRef<IChartLineDataPointsById>({});
   const pendingPointEdits = useRef<Record<string, PendingPointEdit>>({});
   /**
    * What a drag is measured from: the pointer, and every band's starting value.
@@ -1251,88 +1217,12 @@ const FrequencyResponseChart = ({
     [dispatchFilter, queuePointEdit, selectedFilterIds],
   );
 
-  // Rainbow mode's palette: the points and the curve's halo are drawn in it.
+  // Rainbow mode's palette: the points are drawn in it, and the curve's halo
+  // (`useResponseCurves`).
   const rainbow = useRainbowStops();
-  const { chartData, autoPreAmpValue }: IGraphData = useMemo(
-    () =>
-      buildChartData({
-        bypassed,
-        convolution,
-        customFx,
-        driver,
-        eqFormat,
-        filters,
-        graphicEq,
-        hasConvolution,
-        headphone,
-        isAutoPreAmpOn,
-        isEqDoubleOn,
-        eqMode,
-        curveEqMode,
-        mainBandQ,
-        eqBandQ,
-        curveBandQ,
-        curveSmoothing,
-        eqCuts,
-
-        isEqQuiet,
-        hasPreAmp,
-        matchedDesign,
-        preAmp,
-        prevFilterLines,
-        prevFilters,
-        rainbow,
-        sampleRate: outputRate,
-        smartEq,
-        t,
-        tone,
-        voicing,
-      }),
-    [
-      bypassed,
-      convolution,
-      customFx,
-      driver,
-      eqFormat,
-      filters,
-      graphicEq,
-      hasConvolution,
-      hasPreAmp,
-      headphone,
-      isAutoPreAmpOn,
-      isEqDoubleOn,
-      eqMode,
-      curveEqMode,
-      mainBandQ,
-      eqBandQ,
-      curveBandQ,
-      curveSmoothing,
-      eqCuts,
-      matchedDesign,
-      outputRate,
-
-      isEqQuiet,
-      preAmp,
-      smartEq,
-      t,
-      tone,
-      voicing,
-      rainbow,
-    ],
-  );
-
-  /**
-   * Curves that are actually in the audible Equalizer APO path.
-   *
-   * Keeping this separate from `chartData` matters: the builder still derives
-   * the editor's values while the engine is off, but those preview values must
-   * not reach either the plot or its scale and make an inactive tuning look
-   * applied. An empty scale also restores the graph's ordinary full range.
-   */
-  const appliedChartData = useMemo(
-    () => (isEngineUsable ? chartData : []),
-    [chartData, isEngineUsable],
-  );
+  // Every layer's curve, built where the Gaming Lab's Curve stage builds its
+  // own; `appliedChartData` is the ones in the audible chain.
+  const { chartData, autoPreAmpValue, appliedChartData } = useResponseCurves();
 
   useEffect(() => {
     // The config writer owns automatic gain staging. Every edit that changes a
@@ -1671,9 +1561,7 @@ const FrequencyResponseChart = ({
           // a curve does not rescale the axis under the ones left. A grid that
           // moves when you take a line off it makes the remaining lines look
           // like they changed.
-          appliedChartData.filter(
-            (curve) => !hiddenCurves.includes(CURVE_BY_CHART_ID[curve.id]),
-          ),
+          shownCurves(appliedChartData, hiddenCurves),
     [appliedChartData, hasRecentAudio, hiddenCurves, isClean, isSolo],
   );
 
@@ -2273,6 +2161,10 @@ const FrequencyResponseChart = ({
             liveCurves={liveCurves}
             isLiveOutputForeground={isLiveOutputForeground}
             isPlotPartOfWindow={isPlotPartOfWindow}
+            // This plot fills the screen on a double-click (see `Chart`).
+            onPlotDoubleClick={(toWindow) =>
+              setGraphView(viewAfterPlotDoubleClick(getGraphView(), toWindow))
+            }
             onMarqueeSelect={
               canEditEqCurve
                 ? (ids, additive) =>

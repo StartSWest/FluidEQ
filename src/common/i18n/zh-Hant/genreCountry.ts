@@ -14,8 +14,11 @@ const genreCountry = {
   'genre.country.pin.3150.why': '存在於子音處。',
   'genre.country.stage.exciter': '子音的存在和絃樂上的空氣八度，都很輕。',
   'genre.country.stage.dimension':
-    '幾乎與記錄的一樣：底部變窄，側面有一絲空氣。',
-  'genre.country.stage.maximizer': '淺色天花板。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.country.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.country.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.country.off': '無 Bass Punch 或 Bass Forge：大鼓和低音保持原樣演奏。',
   'genre.modernCountry.hook': '流行音樂製作中使用鋼吉他',
   'genre.modernCountry.story':
@@ -26,9 +29,12 @@ const genreCountry = {
   'genre.modernCountry.pin.500.why': '聲音和鋼吉他的空間。',
   'genre.modernCountry.pin.3150': '語音存在',
   'genre.modernCountry.pin.3150.why': '抬起一點，觀察是否刺耳。',
-  'genre.modernCountry.stage.dimension': '低音變窄，兩側變寬，因為它是混合的。',
+  'genre.modernCountry.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.modernCountry.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
   'genre.modernCountry.stage.maximizer':
-    '對於已經很響亮的母帶來說，天花板很難驅動。',
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.modernCountry.off':
     '沒有產生任何內容：在 808 下沒有已填充子的激勵器、Bass Punch 或 Bass Forge。',
   'genre.americana.hook': '一個房間裡有一支樂隊，剩下的動力',
@@ -42,8 +48,11 @@ const genreCountry = {
   'genre.americana.pin.3150.why': '向前一點。',
   'genre.americana.stage.exciter': '溫暖，還有琴絃上的一絲空氣。',
   'genre.americana.stage.dimension':
-    '單間房間的畫面保持不變：沒有變寬，低音稍微變窄。',
-  'genre.americana.stage.maximizer': '整個節拍的緩慢天花板。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.americana.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.americana.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.americana.off':
     '沒有 Bass Punch 或 Bass Forge：沒有任何東西可以重塑拉絲套件或立式貝斯。',
   'genre.bluegrass.hook': '沒有鼓：撥弦就是節奏',
@@ -57,8 +66,12 @@ const genreCountry = {
   'genre.bluegrass.pin.12500.why': '樂團周圍的房間。',
   'genre.bluegrass.stage.exciter':
     '空氣在班卓琴和曼陀林上方，比它們自己的音高八度。',
-  'genre.bluegrass.stage.dimension': '正如錄製的那樣，近距離拾音且自然。',
-  'genre.bluegrass.stage.maximizer': '緩慢的上限永遠不會削弱選秀攻擊。',
+  'genre.bluegrass.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.bluegrass.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.bluegrass.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.bluegrass.off':
     '沒有 Bass Punch 或 Bass Forge：無需塑造大鼓，也無需發明重低音。',
   'genre.folk.hook': '簡約自然',
@@ -72,8 +85,12 @@ const genreCountry = {
   'genre.folk.pin.12500.why': '7 kHz 以上，輕微。',
   'genre.folk.stage.exciter':
     '接近 2 kHz 的柔和存在，高於 7 kHz 的空氣，以及民間母帶使用的一小部分和聲。',
-  'genre.folk.stage.dimension': '房間如記錄。',
-  'genre.folk.stage.maximizer': '緩慢的天花板永遠不會消除安靜。',
+  'genre.folk.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.folk.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.folk.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.folk.off': '沒有 Bass Punch 或 Bass Forge：人聲和吉他上沒有低音炒作。',
   'genre.acoustic.hook': '吉他的琴身與琴絃',
   'genre.acoustic.story':
@@ -85,8 +102,12 @@ const genreCountry = {
   'genre.acoustic.pin.12500': '空氣架子',
   'genre.acoustic.pin.12500.why': '高於 10 kHz，琴絃會閃爍。',
   'genre.acoustic.stage.exciter': '琴體位於音板處，空氣頻率高於 10 kHz。',
-  'genre.acoustic.stage.dimension': '錄製的立體聲對。',
-  'genre.acoustic.stage.maximizer': '一個緩慢的天花板，可以讓整個節拍過去。',
+  'genre.acoustic.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.acoustic.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.acoustic.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.acoustic.off':
     '它的 Bass Punch 設定檔已提供並保留：吉他沒有底鼓形狀。',
   'genre.singerSongwriter.hook': '一種聲音、一種樂器，親密無間',
@@ -99,8 +120,12 @@ const genreCountry = {
   'genre.singerSongwriter.pin.12500': '溫柔的空氣',
   'genre.singerSongwriter.pin.12500.why': '聲音之上有一絲呼吸。',
   'genre.singerSongwriter.stage.exciter': '只有身體，沒有齒音上的和聲。',
-  'genre.singerSongwriter.stage.dimension': '中頻較窄，以保持聲音居中。',
-  'genre.singerSongwriter.stage.maximizer': '緩慢的天花板。',
+  'genre.singerSongwriter.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.singerSongwriter.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.singerSongwriter.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.singerSongwriter.off':
     '沒有 Bass Punch 或 Bass Forge：沒有任何東西會擠滿聲音和一臺樂器。',
 } satisfies Partial<Dictionary>;

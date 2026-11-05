@@ -22,46 +22,66 @@ import { IGenreRack, beatMs, ceiling, punch, width } from '../genreRack';
  * narrowing for the hard-panned stereo of 1950s-60s jazz, which crossfeed
  * exists to fix on headphones.
  */
+// 2026-11-04 reference calibration: constant input normalization precedes
+// the creative stages and one final Maximizer. Drive is makeup from that
+// working level, not a ranking of limiting strength. Exact settings and
+// measured limits: docs/dsp/music-reference-audit.json.
 const JAZZ_CLASSICAL_RACKS: readonly IGenreRack[] = [
   {
     // Upright bass, a feathered kick and the ride cymbal's air, panned hard
     // on the classic Blue Note records. Its old Exciter is offered, not
     // used: added harmonics colour horns and piano audibly.
     id: 'jazz',
+    normalizer: { mode: 'loudness', targetLufs: -22, truePeakDbtp: -3 },
     exciter: exciterProfile(
       [{ mix: 0.07 }, { mix: 0.11 }, { mix: 0.16, texture: 0.5 }],
       { enabled: true, amount: 0.16, focusHz: 450, range: 0.35 },
     ),
     dimension: width(0.95, 0.9, 0.9, 150, 3_000, 0),
-    maximizer: ceiling(0.75, -1, 12, beatMs(120)),
+    maximizer: ceiling(6.5, -1, 12, beatMs(120)),
     offered: ['exciter'],
   },
   {
     // Glossy studio stereo, a soft top and the saxophone in front. Warmth,
     // never presence on the sax, and no punch: the genre is soft on purpose.
     id: 'smoothJazz',
+    normalizer: { mode: 'loudness', targetLufs: -18.5, truePeakDbtp: -3 },
     // Offered under its name and not played: no presence or excitement on the
     // sax.
     exciter: exciterProfile(
       [{ enabled: false }, { enabled: false }, { enabled: false }],
       { enabled: true, amount: 0.1, focusHz: 350, range: 0.3 },
     ),
-    dimension: width(0.75, 1, 1, 170, 3_400, 0.05),
-    maximizer: ceiling(1.25, -1, 8, beatMs(98)),
+    dimension: width(0.75, 1, 1, 170, 3_400, 0),
+    maximizer: ceiling(4.25, -1, 8, beatMs(98)),
     offered: ['exciter'],
   },
   {
     // Electric, bright and virtuosic, its fills and unison runs the point.
     // Nothing added to the harmonics of instruments that make their own.
     id: 'fusion',
+    normalizer: { mode: 'loudness', targetLufs: -21, truePeakDbtp: -3 },
     dimension: width(0.85, 1, 1, 170, 3_200, 0),
-    maximizer: ceiling(1, -1, 10, beatMs(130)),
+    maximizer: ceiling(4.75, -1, 10, beatMs(130)),
   },
   {
     // Raw and mid-forward, the classic records mono. Body for a thin
     // transfer, a shade of narrowing, and no harmonics on overdrive that is
     // already the sound.
     id: 'blues',
+    normalizer: { mode: 'loudness', targetLufs: -20.5, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     // Offered under its name and not played: the overdrive is the sound;
     // nothing is added to it.
     exciter: exciterProfile(
@@ -69,23 +89,24 @@ const JAZZ_CLASSICAL_RACKS: readonly IGenreRack[] = [
       { enabled: true, amount: 0.12, focusHz: 300, range: 0.3 },
     ),
     dimension: width(0.85, 0.95, 0.95, 180, 3_200, 0),
-    maximizer: ceiling(1, -1, 10, beatMs(90)),
+    maximizer: ceiling(4.75, -1, 10, beatMs(90)),
     offered: ['exciter'],
   },
   {
     // The widest dynamics of any genre, peaks near -1 dBTP on a record whose
-    // average sits fifteen to twenty decibels below them. A ceiling and half
-    // a decibel, over the longest look-ahead and release the stage has, so a
+    // average sits fifteen to twenty decibels below them. Gentle final gain
+    // over the longest look-ahead and release the stage has, so a
     // crescendo is never what it holds down. Its Exciter and Bass Punch
     // profiles are offered and left off.
     id: 'classical',
+    normalizer: { mode: 'loudness', targetLufs: -19.5, truePeakDbtp: -3 },
     exciter: exciterProfile([
       { mix: 0.035 },
       { mix: 0.065 },
       { freqHz: 8_500, drive: 2.25, mix: 0.15, texture: 0.52 },
     ]),
     bassPunch: punch(90, -0.1, -0.25, 0.05, 80, 0.05),
-    maximizer: ceiling(0.5, -1, 16, beatMs(70)),
+    maximizer: ceiling(3, -1, 16, beatMs(70)),
     offered: ['exciter', 'bassPunch'],
   },
   {
@@ -93,25 +114,41 @@ const JAZZ_CLASSICAL_RACKS: readonly IGenreRack[] = [
     // recording's gain: they pass untouched, and nothing boosts the bass
     // they would overload.
     id: 'orchestra',
-    maximizer: ceiling(0.5, -1, 16, beatMs(66)),
+    normalizer: { mode: 'loudness', targetLufs: -21, truePeakDbtp: -3 },
+    maximizer: ceiling(4.25, -1, 16, beatMs(66)),
   },
   {
     // A voice whose formant already projects over an orchestra at 2.4-3.1
     // kHz, and Nilsson-loud top notes. Nothing lifted there, nothing held.
     id: 'opera',
-    maximizer: ceiling(0.5, -1, 16, beatMs(70)),
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
+    maximizer: ceiling(1.5, -1, 16, beatMs(70)),
   },
   {
     // One of the most revealing sources there is: a limiter flattens the
     // hammer and lifts the decay, and harmonics turn chords to grit.
     id: 'piano',
-    maximizer: ceiling(0.5, -1, 16, beatMs(76)),
+    normalizer: { mode: 'loudness', targetLufs: -21, truePeakDbtp: -3 },
+    maximizer: ceiling(4, -1, 16, beatMs(76)),
   },
   {
     // Bowed strings are rich in harmonics already, and hard with presence
     // added. A ceiling only.
     id: 'strings',
-    maximizer: ceiling(0.5, -1, 16, beatMs(72)),
+    normalizer: { mode: 'loudness', targetLufs: -20.5, truePeakDbtp: -3 },
+    maximizer: ceiling(3, -1, 16, beatMs(72)),
   },
 ];
 

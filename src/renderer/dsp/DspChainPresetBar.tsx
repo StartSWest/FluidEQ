@@ -31,6 +31,7 @@ import {
   toggleFavouriteDspPreset,
 } from './favouriteDspPresets';
 import { SAVED_GROUP, eqPresetGroupLabel } from './presetPickEntries';
+import { scopedGroups, useDspPresetScope } from './presetScope';
 import { useDspPresetSelection } from './useDspPresetSelection';
 import {
   DEFAULT_CHAIN_ID,
@@ -78,6 +79,7 @@ const DspChainPresetBar = ({
   onCommit,
 }: IDspChainPresetBarProps) => {
   const { t } = useTranslation();
+  const scope = useDspPresetScope();
   const { voicing } = useFluidEqLayers();
   const [notice, setNotice] = useState('');
   const [isImporting, setIsImporting] = useState(false);
@@ -105,7 +107,8 @@ const DspChainPresetBar = ({
       group: SAVED_GROUP,
       icon: <VoicingIcon className="rich-pick__glyph" />,
     })),
-    ...DSP_PRESET_GROUPS.flatMap((group) =>
+    // The Gaming tab's chains stay on the Gaming tab (`presetScope.tsx`).
+    ...scopedGroups(DSP_PRESET_GROUPS, scope).flatMap((group) =>
       DSP_PRESETS.filter((preset) => preset.group === group).map((preset) => ({
         id: preset.id,
         name: dspPresetName(preset, t),

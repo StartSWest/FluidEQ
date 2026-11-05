@@ -20,6 +20,7 @@ import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
 import { app } from 'electron';
+import { searchMatcher } from '../common/searchText';
 import {
   clampQuality,
   FilterTypeEnum,
@@ -144,21 +145,12 @@ const loadCatalog = async () => {
   return catalogPromise;
 };
 
-const normalizeSearch = (value: string) =>
-  value
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLocaleLowerCase();
-
 export const getConvolutionCatalog = async (query = '') => {
   const catalog = await loadCatalog();
-  const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
-  const filtered = terms.length
-    ? catalog.filter((entry) => {
-        const searchable = normalizeSearch(`${entry.name} ${entry.provider}`);
-        return terms.every((term) => searchable.includes(term));
-      })
-    : catalog;
+  const matchesQuery = searchMatcher(query);
+  const filtered = catalog.filter((entry) =>
+    matchesQuery(`${entry.name} ${entry.provider}`),
+  );
   return filtered.slice(0, 160);
 };
 

@@ -12,9 +12,9 @@ const genreElectronic = {
   'genre.electronic.pin.8000': 'Hats and air',
   'genre.electronic.pin.8000.why': 'The top of a bright mix.',
   'genre.electronic.stage.dimension':
-    'Mono under 150 Hz, and a little width above the mids.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
   'genre.electronic.stage.maximizer':
-    'A light ceiling, driven half a decibel harder than the club styles beside it, which brings it level with them.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.electronic.off':
     'Its Exciter, Bass Forge and Bass Punch are offered and left off: an exciter makes this top harsh quickly, and the sub needs nothing generated under it.',
 
@@ -27,9 +27,10 @@ const genreElectronic = {
   'genre.edm.pin.315.why': 'Space for the kick.',
   'genre.edm.pin.5000': 'Supersaw bite',
   'genre.edm.pin.5000.why': 'The lead’s edge.',
-  'genre.edm.stage.dimension': 'A mono bottom, and nothing else.',
+  'genre.edm.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
   'genre.edm.stage.maximizer':
-    'A ceiling that barely drives on a clipped master.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.edm.off':
     'Its Exciter is offered and left off: no sub boost, no widening and no harmonics on a drop that has everything.',
 
@@ -43,8 +44,11 @@ const genreElectronic = {
   'genre.house.pin.12500': 'Warm, not bright',
   'genre.house.pin.12500.why': 'The top eased.',
   'genre.house.stage.dimension':
-    'Mono under 150 Hz and narrowed up to 200, the top a little wider.',
-  'genre.house.stage.maximizer': 'A light ceiling that leaves the pump alone.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.house.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.house.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.house.off':
     'No Bass Punch, because nothing may re-time the kick; no Exciter or Bass Forge.',
 
@@ -60,8 +64,9 @@ const genreElectronic = {
   'genre.techno.stage.bassPunch':
     'At most the kick tightened, so the rumble does not smear it.',
   'genre.techno.stage.dimension':
-    'A mono bottom; nothing widened in the narrowest style there is.',
-  'genre.techno.stage.maximizer': 'A light ceiling.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.techno.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.techno.off':
     'No Exciter and no Bass Forge: no sub boost and no harmonics.',
 
@@ -74,9 +79,10 @@ const genreElectronic = {
   'genre.trance.pin.315.why': '200 to 350 Hz, where a mix clouds.',
   'genre.trance.pin.3150': 'The brittle band eased',
   'genre.trance.pin.3150.why': 'Around 3 kHz, where the saws turn glassy.',
-  'genre.trance.stage.dimension': 'Mono under 120 Hz, and nothing more.',
+  'genre.trance.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
   'genre.trance.stage.maximizer':
-    'A ceiling that barely drives, so the drop keeps its contrast.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.trance.off':
     'No Exciter or Bass Forge: supersaws already generate plenty of top.',
 
@@ -90,9 +96,10 @@ const genreElectronic = {
   'genre.drumBass.pin.5000': 'The crack of snare and break',
   'genre.drumBass.pin.5000.why': 'The genre’s identity.',
   'genre.drumBass.stage.bassPunch': 'The kick tightened, never lifted.',
-  'genre.drumBass.stage.dimension': 'The sub mono.',
+  'genre.drumBass.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
   'genre.drumBass.stage.maximizer':
-    'A light ceiling that lets go inside a sixteenth, so the snare keeps its crack.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.drumBass.off':
     'No Exciter or Bass Forge: no harmonics on neuro basses.',
 
@@ -105,8 +112,10 @@ const genreElectronic = {
   'genre.dubstep.pin.80.why': 'The body above the sub.',
   'genre.dubstep.pin.500': 'Room for the snare and the growl',
   'genre.dubstep.pin.500.why': 'The middle cleared.',
-  'genre.dubstep.stage.dimension': 'The sub mono under 120 Hz.',
-  'genre.dubstep.stage.maximizer': 'A ceiling that barely drives.',
+  'genre.dubstep.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.dubstep.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.dubstep.off':
     'No Exciter, Bass Punch or Bass Forge: the growl is fizz already.',
 
@@ -121,7 +130,10 @@ const genreElectronic = {
   'genre.downtempo.pin.12500.why': 'Not brightened.',
   'genre.downtempo.stage.dimension':
     'The atmospheres wider, the bass narrowed.',
-  'genre.downtempo.stage.maximizer': 'A slow, light ceiling.',
+  'genre.downtempo.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.downtempo.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.downtempo.off':
     'Bass Forge is offered and left off: the bass is deep already.',
 
@@ -136,8 +148,10 @@ const genreElectronic = {
   'genre.chillout.pin.12500.why': 'The shimmer on top.',
   'genre.chillout.stage.exciter': 'Light air only.',
   'genre.chillout.stage.dimension': 'A wider top: here width is welcome.',
+  'genre.chillout.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.chillout.stage.maximizer':
-    'A slow ceiling over a whole beat: nothing pressed.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.chillout.off': 'No Bass Punch or Bass Forge: nothing heavy.',
 
   'genre.lofi.hook': 'Dark and dusty on purpose',
@@ -150,9 +164,9 @@ const genreElectronic = {
   'genre.lofi.pin.3150': 'Deliberately dark',
   'genre.lofi.pin.3150.why': 'Nothing brighter than the record.',
   'genre.lofi.stage.dimension':
-    'A slight narrowing, the bottom mono under 120 Hz.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
   'genre.lofi.stage.maximizer':
-    'A little more drive than its siblings, for records mastered quieter.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.lofi.off':
     'Its Exciter is offered and left off: the record is saturated on tape already.',
 
@@ -168,7 +182,7 @@ const genreElectronic = {
   'genre.ambient.stage.dimension':
     'Wide, the widest of any genre, and still safe in mono.',
   'genre.ambient.stage.maximizer':
-    'A ceiling that only ever meets the top of a swell.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.ambient.off':
     'Its Exciter is offered and left off: nothing compresses or levels the quiet.',
 
@@ -182,7 +196,10 @@ const genreElectronic = {
   'genre.newAge.pin.12500': 'A little air',
   'genre.newAge.pin.12500.why': 'Over the reverbs.',
   'genre.newAge.stage.dimension': 'Wide ambience.',
-  'genre.newAge.stage.maximizer': 'Nothing levels the quiet.',
+  'genre.newAge.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.newAge.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.newAge.off':
     'Its Exciter is offered and left off: transparent is the brief.',
 };

@@ -41,6 +41,7 @@ import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import RichPick from '../widgets/RichPick';
 import SegmentedControl from '../widgets/SegmentedControl';
 import { eqPresetEntries, eqPresetGroupLabel } from './presetPickEntries';
+import { useDspPresetScope } from './presetScope';
 import DspPresetImportDialog from './DspPresetImportDialog';
 import ImportEarsPick from '../eq/ImportEarsPick';
 import { withImportedEars, type TImportEars } from '../../common/bandEars';
@@ -184,7 +185,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
    * to agree about what "next" means. Two lists in two places is how a button
    * and a list end up disagreeing about the same order.
    */
-  const entries = eqPresetEntries(userPresets, t);
+  const entries = eqPresetEntries(userPresets, t, useDspPresetScope());
   const ordered = entries.map((one) => one.id);
 
   const applyPreset = (id: string, enable = true) => {

@@ -21,6 +21,7 @@ import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import SegmentedControl from '../widgets/SegmentedControl';
 import useStagePresets from './useStagePresets';
+import { scopedGroups, useDspPresetScope } from './presetScope';
 
 interface IDspExciterBarProps {
   exciter: IExciterSettings;
@@ -96,19 +97,22 @@ const DspExciterBar = ({
 }: IDspExciterBarProps) => {
   const { t } = useTranslation();
   const saved = useStagePresets('exciter', exciter, onChange, onCommit);
-  const factoryEntries: IRichPickEntry[] = EXCITER_PRESET_GROUPS.flatMap(
-    (group) =>
-      EXCITER_CATALOGUE.profiles
-        .filter((preset) => preset.group === group)
-        .map((preset) => ({
-          id: preset.id,
-          name: t(preset.labelKey as TranslationKey),
-          hint: profileHint(preset, t),
-          group,
-          icon: (
-            <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
-          ),
-        })),
+  const scope = useDspPresetScope();
+  const factoryEntries: IRichPickEntry[] = scopedGroups(
+    EXCITER_PRESET_GROUPS,
+    scope,
+  ).flatMap((group) =>
+    EXCITER_CATALOGUE.profiles
+      .filter((preset) => preset.group === group)
+      .map((preset) => ({
+        id: preset.id,
+        name: t(preset.labelKey as TranslationKey),
+        hint: profileHint(preset, t),
+        group,
+        icon: (
+          <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
+        ),
+      })),
   );
   // Saved profiles first, as the EQ lists its own.
   const entries: IRichPickEntry[] = [...saved.entries, ...factoryEntries];

@@ -16,8 +16,11 @@ const genreCountry = {
   'genre.country.stage.exciter':
     'Presence at the consonants and air an octave over the strings, both light.',
   'genre.country.stage.dimension':
-    'Nearly as recorded: the bottom narrowed and a touch of air at the sides.',
-  'genre.country.stage.maximizer': 'A light ceiling.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.country.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.country.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.country.off':
     'No Bass Punch or Bass Forge: the kick and the bass stay as played.',
 
@@ -31,9 +34,11 @@ const genreCountry = {
   'genre.modernCountry.pin.3150': 'Voice presence',
   'genre.modernCountry.pin.3150.why': 'Lifted a little, watched for harshness.',
   'genre.modernCountry.stage.dimension':
-    'The bass narrowed and the sides a little wider, as it is mixed.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.modernCountry.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.modernCountry.stage.maximizer':
-    'A ceiling that hardly drives on masters that are loud already.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.modernCountry.off':
     'Nothing generated: no Exciter, Bass Punch or Bass Forge under 808s that fill the sub already.',
 
@@ -49,8 +54,11 @@ const genreCountry = {
   'genre.americana.stage.exciter':
     'Warmth, and a touch of air over the strings.',
   'genre.americana.stage.dimension':
-    'The one-room picture kept: no widening, the bass a shade narrower.',
-  'genre.americana.stage.maximizer': 'A slow ceiling over a whole beat.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.americana.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.americana.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.americana.off':
     'No Bass Punch or Bass Forge: nothing reshapes a brushed kit or an upright bass.',
 
@@ -65,9 +73,12 @@ const genreCountry = {
   'genre.bluegrass.pin.12500.why': 'The room around the band.',
   'genre.bluegrass.stage.exciter':
     'Air over the banjo and mandolin, an octave above their own.',
-  'genre.bluegrass.stage.dimension': 'As recorded, close-miked and natural.',
+  'genre.bluegrass.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.bluegrass.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.bluegrass.stage.maximizer':
-    'A slow ceiling that never flattens a pick attack.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.bluegrass.off':
     'No Bass Punch or Bass Forge: there is no kick to shape and no sub to invent.',
 
@@ -82,8 +93,12 @@ const genreCountry = {
   'genre.folk.pin.12500.why': 'Above 7 kHz, lightly.',
   'genre.folk.stage.exciter':
     'A gentle presence near 2 kHz, air above 7, and the small share of harmonics folk mastering uses.',
-  'genre.folk.stage.dimension': 'The room as recorded.',
-  'genre.folk.stage.maximizer': 'A slow ceiling that never levels the quiet.',
+  'genre.folk.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.folk.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.folk.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.folk.off':
     'No Bass Punch or Bass Forge: no bass hype on a voice and a guitar.',
 
@@ -98,9 +113,12 @@ const genreCountry = {
   'genre.acoustic.pin.12500.why': 'Above 10 kHz, where strings shimmer.',
   'genre.acoustic.stage.exciter':
     'Body at the soundboard and air above 10 kHz.',
-  'genre.acoustic.stage.dimension': 'The stereo pair as recorded.',
+  'genre.acoustic.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.acoustic.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.acoustic.stage.maximizer':
-    'A slow ceiling that lets go over a whole beat.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.acoustic.off':
     'Its Bass Punch profile is offered and left off: a guitar has no kick to shape.',
 
@@ -116,8 +134,11 @@ const genreCountry = {
   'genre.singerSongwriter.stage.exciter':
     'Only body, never harmonics on the sibilants.',
   'genre.singerSongwriter.stage.dimension':
-    'The mids a shade narrower to keep the voice centred.',
-  'genre.singerSongwriter.stage.maximizer': 'A slow ceiling.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.singerSongwriter.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.singerSongwriter.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.singerSongwriter.off':
     'No Bass Punch or Bass Forge: nothing crowds a voice and one instrument.',
 };

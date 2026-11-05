@@ -258,7 +258,6 @@ const app: Partial<Dictionary> = {
   'tabs.eqMain': 'Bande',
   'tabs.presets': 'Preset EQ',
   'tabs.convolution': 'Convoluzione',
-  'tabs.games': 'Preset di gioco',
   'tabs.config': 'Config',
   'tabs.media': 'Media online',
   'tabs.mediaShort': 'Media',
@@ -417,12 +416,6 @@ const app: Partial<Dictionary> = {
   'settings.group.studioOnly': 'Solo qui nello Studio',
 
   // Game profiles: the page, its list and what it says.
-  'games.add': 'Aggiungi un gioco',
-  'games.addHint':
-    'Scegli un gioco dai tuoi launcher, o un programma aperto adesso.',
-  'games.choose': 'Scegli un programma…',
-  'games.group.installed': 'Installati',
-  'games.group.running': 'Aperti ora',
   'games.source.steam': 'Steam',
   'games.source.epic': 'Epic Games',
   'games.source.ea': 'EA',
@@ -432,27 +425,8 @@ const app: Partial<Dictionary> = {
   'games.source.xbox': 'Xbox',
   'games.source.running': 'Aperto ora',
   'games.source.file': 'Scelto da te',
-  'games.front.playing': '{name} è in primo piano, e il suo suono è attivo.',
-  'games.front.sounding': '{name} è in esecuzione, e il suo suono è attivo.',
-  'games.front.off':
-    'I preset dei giochi sono disattivati. I tuoi giochi tengono il tuo suono.',
-  'games.switch.hint':
-    'Disattivato: nessun gioco cambia il tuo suono e FluidEQ smette di guardare quale programma è in primo piano. La tua lista resta com’è.',
-  'games.toast.loaded': '{preset} caricato',
   'games.toast.forGame': 'per {game}',
-  'games.toast.restored': 'Di nuovo {preset}',
-  'games.toast.restoredNone': 'Effetti di nuovo spenti',
   'games.toast.afterGame': 'dopo {game}',
-  'games.empty.title': 'Ancora nessun gioco',
-  'games.empty.more':
-    'Aggiungi un gioco, dagli un suono, e FluidEQ passa a quello appena il gioco è in primo piano — e torna indietro quando chiudi il gioco.',
-  'games.preset.none': 'Lascia com’è',
-  'games.preset.noneHint':
-    'Non cambia nulla quando questo gioco è in primo piano.',
-  'games.row.inFront': 'in primo piano',
-  'games.row.sounding': 'suono attivo',
-  'games.row.sound': 'Suono per {name}',
-  'games.row.remove': 'Rimuovi {name}',
   'error.apoMissing': 'Equalizer APO non è installato.',
   'error.apoMissing.action': 'Installa Equalizer APO e riprova.',
   'error.configMissing':

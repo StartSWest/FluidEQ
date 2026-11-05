@@ -121,25 +121,21 @@ const tour = {
   'tour.graph.open': '開啟等化器',
   'tour.graph.imageAlt':
     '此圖的分析器顯示正在播放的歌曲：即時頻譜深度為 80 dB，峰值位於其上方，EQ 曲線位於頂部，角落中是「分析」下的檢視清單。',
-  'tour.games.kicker': '遊戲預設',
+  'tour.games.kicker': '遊戲實驗室',
   'tour.games.title': '每個遊戲都有自己的聲音',
   'tour.games.subtitle': '當遊戲進行到前面時切換',
   'tour.games.lead':
-    '為每個遊戲選擇一次聲音。當遊戲來到前面時，FluidEQ 會切換到它並保留它，直到您關閉遊戲，無論您經常使用 alt-tab，然後放回您所擁有的內容。',
+    '每個遊戲都有一份遊戲設定檔的專屬副本，在遊戲實驗室裡調整。遊戲切到前景時會啟用它的聲音，無論按多少次 Alt+Tab 都保持；關閉遊戲，您的音樂聲音就會恢復。',
   'tour.games.point1':
     'Steam、Epic Games、EA、GOG、Ubisoft、Battle.net 和 Xbox 遊戲，或任何開放的程式。',
   'tour.games.point2':
-    '遊戲預設會開啟遊戲模式，這會減少 FluidEQ 新增的延遲，並且頁面會顯示測量到的延遲。',
-  'tour.games.point3':
-    '桌面上的一張卡片顯示了已切換的內容，另一張卡片則顯示了遊戲關閉後返回的內容。',
+    '在同一頁調整每個部分：用於腳步聲和人聲的遊戲濾鏡、EQ、曲線和每個 DSP 階段，並有為遊戲準備的預設組。',
+  'tour.games.point3': '實驗室和 EQ 頁面會顯示正在播放的遊戲及其預設組。',
   'tour.games.how':
-    '開啟 EQ，選擇遊戲預設，然後按下新增遊戲。然後在其行的選擇器中選擇它的聲音。',
-  'tour.games.open': '開啟遊戲預設',
+    '在標題列開啟遊戲實驗室，按「新增遊戲」。然後按「立即試聽」，就地調整它的聲音。',
+  'tour.games.open': '開啟遊戲實驗室',
   'tour.games.imageAlt':
-    '桌面上的三個時刻：遊戲在前面，FluidEQ 的卡顯示聲音已載入，同一個遊戲最小化，聲音仍然存在，遊戲關閉，卡顯示之前的聲音又回來了。',
-  'tour.games.stepFront': '前面：聲音負載',
-  'tour.games.stepAway': '最小化或 alt-tabbed：聲音保持開啟',
-  'tour.games.stepClosed': '關閉：你自己的聲音回來了',
+    '顯示 Counter-Strike 2 的遊戲實驗室：先播放您的音樂，然後啟用遊戲專屬的聲音，頂部顯示它的預設組名稱，遊戲模式開啟，「立即試聽」變為「卸載」。',
   'tour.presets.kicker': '新預設',
   'tour.presets.title': '聽起來像是音樂的預設',
   'tour.presets.subtitle': '整條鏈條，齊聲響亮',
@@ -445,11 +441,19 @@ const tour = {
     'EQ 模式選單中的高音設定為「精確」。每個頻段都會依照圖形處理，一直到二十千赫茲。',
   'tour.film.sound.classic':
     '選擇「經典」，即可使用 Equalizer APO 的方式建立頻段。',
-  'tour.film.games.intro': 'FluidEQ 可以為每款遊戲設定專屬音效。',
-  'tour.film.games.add': '按下「新增遊戲」，從啟動器已安裝的遊戲中選擇。',
-  'tour.film.games.sound': '接著選擇該遊戲要使用的音效。',
-  'tour.film.games.front': '遊戲切換至前景時，會自動載入它的音效設定。',
-  'tour.film.games.closed': '關閉遊戲後，會還原原本的音效。',
+  'tour.film.games.intro':
+    '遊戲實驗室讓每款遊戲都有自己的聲音，全部在同一處調整。',
+  'tour.film.games.add': '按下「新增遊戲」，從這台電腦上的遊戲中選擇。',
+  'tour.film.games.profile':
+    '它從一個遊戲設定檔開始：依遊戲類型的設定檔，或專為該遊戲打造的設定檔。',
+  'tour.film.games.try':
+    '按下「立即試聽」，就會播放它自己的聲音，並開啟遊戲模式以降低延遲。',
+  'tour.film.games.tune': '每個部分都能在這裡調整：遊戲濾鏡、EQ 和它的曲線。',
+  'tour.film.games.presets': '每個 DSP 階段都提供為遊戲調校的預設組。',
+  'tour.film.games.save': '把調整存成您自己的設定檔，或從原本的設定重新開始。',
+  'tour.film.games.front': '遊戲切換至前景時，它的聲音會自動開啟。',
+  'tour.film.games.eqPage': 'EQ 頁面會顯示正在播放的遊戲及其預設組。',
+  'tour.film.games.closed': '關閉遊戲後，您的音樂聲音就會恢復。',
   'tour.film.compact.intro':
     '只需要播放控制時，FluidEQ 可以收合為小巧的播放器。',
   'tour.film.compact.go': '按下頂端的播放器按鈕，視窗就會變成輕巧播放器。',
@@ -543,10 +547,14 @@ const tour = {
     '聆聽室讓您置身真實空間的喇叭之間，戴耳機也一樣。',
   'tour.film.walkthrough.maximizer':
     '而響度最大化器讓一切響亮又乾淨，永不削波。',
+  'tour.film.walkthrough.footsteps':
+    '機架新增的「腳步聲」會在腳步、換彈等輕微的遊戲聲音出現時，將它們提高。',
   'tour.film.walkthrough.library':
     '媒體庫用同樣的聲音播放您自己的音樂，還有專輯、播放清單與「接下來播放」。',
   'tour.film.walkthrough.compact':
     '輕巧播放器把這一切裝進一個小視窗：歌曲、控制項與您的 EQ。',
+  'tour.film.walkthrough.desktop':
+    '在它後方，任何視覺化效果都能在您的桌面上隨音樂律動。',
   'tour.film.walkthrough.oneline':
     '把它摺成一行，就不會擋路，歌曲後方還有視覺化效果輕輕律動。',
   'tour.film.walkthrough.looks':
@@ -557,8 +565,16 @@ const tour = {
     '在工作室裡，用您自己的話描述想要的改動，就能看著它在舞臺上實現。',
   'tour.film.walkthrough.karaoke':
     '卡拉 OK 讓您的歌都能跟著唱，歌詞按時出現，您的音高也顯示在螢幕上。',
+  'tour.film.walkthrough.karaokeplay':
+    '開啟附歌詞的歌曲並按下播放。每個字會隨演唱亮起，下方的音高指南則顯示您要唱準的每個音。',
+  'tour.film.walkthrough.karaokestage':
+    '歌詞後方的舞臺也能播放任何視覺化效果，隨歌曲律動。',
   'tour.film.walkthrough.share':
     '分享音訊把您家中網路裡的電腦連起來，讓音樂在它們之間雙向流動。',
+  'tour.film.walkthrough.sharelink':
+    '每台電腦只傳送自己播放的聲音，因此不會迴傳形成回音；您聆聽的那台則套用自己的 EQ。',
+  'tour.film.walkthrough.sharemix':
+    '每條連線都有獨立音量，聲音以無損方式同步送達，不會中斷。',
   'tour.film.walkthrough.help':
     '這些內容都在使用者指南裡，圖示直接取自應用程式本身。',
   'tour.film.walkthrough.outro': '這就是 FluidEQ。讓它的聲音和樣子都屬於您。',
@@ -745,6 +761,19 @@ const tour = {
   'tour.languages.how': '在選單（三條橫線）底部選擇：',
   'tour.languages.imageAlt':
     'FluidEQ 支援的十二種語言，每種都用自己的文字書寫，韓文和繁體中文標為新增。',
+  'tour.v23.also': '2.3 的其他更新',
+  'tour.v23.engineKey':
+    '在選單中選擇開關快捷鍵，即使其他應用程式在前景，也能切換 FluidEQ 的全部處理。卡片會確認每次切換。',
+  'tour.v23.profiles':
+    '依遊戲、曲線或效果鏈搜尋遊戲設定檔。儲存的設定檔也會顯示曲線和遊戲濾波器電平。',
+  'tour.v23.dsp':
+    '動態處理在三個頻段提高輕聲。改進的響度最大化器保留低頻；True Peak 正規化每首歌使用一個增益。',
+  'tour.v23.help':
+    '說明可播放錄製的 2.2 導覽，並直接開啟完整版本說明。「關於」增加章節連結，並在支援連結可用時顯示支援 QR 碼。',
+  'tour.v23.forum':
+    '論壇各看板顯示未讀動態數量，「問題」計算仍未關閉的問題，未寫完的主題與回覆也會儲存。',
+  'tour.v23.layout':
+    '輕巧播放器縮短遊戲名稱。新增遊戲時捲動仍能看到按鈕，各頁面捲軸緊貼右側邊緣。',
 } satisfies Partial<Dictionary>;
 
 export default tour;

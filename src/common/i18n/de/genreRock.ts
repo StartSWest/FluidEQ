@@ -16,9 +16,11 @@ export default {
   'genre.rock.stage.bassPunch':
     'Der Kick behält seinen eigenen Schlag, und sein Ausklang wird unter der Bassgitarre gekürzt.',
   'genre.rock.stage.dimension':
-    'Der Bass unter 160 Hz schmaler; die hart gepannten Gitarren unberührt.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.rock.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.rock.stage.maximizer':
-    'Eine leichte Obergrenze, schnell genug für einen Backbeat.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.rock.off':
     'Exciter und Bass-Schmiede werden angeboten und bleiben aus: Verzerrte Gitarren erzeugen ihre eigenen Obertöne, und die Bassgitarre hat ein echtes Fundament.',
 
@@ -38,9 +40,11 @@ export default {
   'genre.popRock.stage.bassPunch':
     'Behält den Schlag des Kicks und kürzt seinen Ausklang unter einer beweglichen Basslinie.',
   'genre.popRock.stage.dimension':
-    'Der Bass unter 150 Hz schmaler; die Gitarren bleiben, wo der Mix sie hingestellt hat.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.popRock.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.popRock.stage.maximizer':
-    'Fängt nur Spitzen ab und lässt innerhalb einer Sechzehntelnote wieder los.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.popRock.off':
     'Kein Exciter über einer Stimme, die schon hell ist, und keine Bass-Schmiede unter einer echten Bassgitarre.',
 
@@ -58,9 +62,11 @@ export default {
   'genre.classicRock.stage.exciter':
     'Etwas Wärme in den unteren Mitten, der Bandklang, und nichts in den Höhen.',
   'genre.classicRock.stage.dimension':
-    'Einen Hauch schmaler, was hart gepannte 60er-Mixe im Kopfhörer zusammenbringt.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.classicRock.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.classicRock.stage.maximizer':
-    'Eine langsame Obergrenze, die die Dynamik der Originale bewahrt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.classicRock.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Ein raumiger Kick und bandwarmer Bass bleiben, wie sie aufgenommen wurden.',
 
@@ -80,9 +86,11 @@ export default {
   'genre.alternativeRock.stage.bassPunch':
     'Der Schlag des Kicks bleibt, sein Ausklang wird gekürzt.',
   'genre.alternativeRock.stage.dimension':
-    'Unten schmaler, die Gitarren bleiben, wo sie gepannt wurden.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.alternativeRock.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.alternativeRock.stage.maximizer':
-    'Eine Obergrenze, die kaum antreibt, damit der laute Teil lauter bleibt als der leise.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.alternativeRock.off':
     'Kein Exciter und keine Bass-Schmiede: Der Fuzz erzeugt seine eigenen Obertöne.',
 
@@ -97,9 +105,11 @@ export default {
   'genre.indieRock.pin.8000': 'Warm und dunkel, wie aufgenommen',
   'genre.indieRock.pin.8000.why': 'Die Höhen bleiben weich.',
   'genre.indieRock.stage.dimension':
-    'Die Breite des Raums selbst, nur unten schmaler.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.indieRock.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.indieRock.stage.maximizer':
-    'Eine leichte Obergrenze, die innerhalb einer Sechzehntel loslässt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.indieRock.off':
     'Kein Exciter, kein Bass-Punch und keine Bass-Schmiede: Nichts formt das Schlagzeug oder färbt den Raum.',
 
@@ -115,9 +125,11 @@ export default {
   'genre.progressiveRock.pin.12500.why':
     'Die Luft, mit der diese Platten gemacht wurden.',
   'genre.progressiveRock.stage.dimension':
-    'Das Bild über dem Bass wie gemischt, mit einem Hauch Tiefe.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.progressiveRock.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.progressiveRock.stage.maximizer':
-    'Die längste Vorausschau der Rock-Familie und eine Rückstellzeit von einem ganzen Schlag: Sie berührt nur den Höhepunkt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.progressiveRock.off':
     'Kein Exciter, kein Bass-Punch und keine Bass-Schmiede: Nichts Schnelles ebnet eine leise Passage ein.',
 
@@ -136,9 +148,11 @@ export default {
   'genre.hardRock.stage.bassPunch':
     'Der Schlag des Kicks bleibt, sein Ausklang etwas kürzer.',
   'genre.hardRock.stage.dimension':
-    'Unten schmaler; die Gitarren bleiben wie gepannt.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.hardRock.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.hardRock.stage.maximizer':
-    'Eine leichte Obergrenze für einen Kick im Live-Raum.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.hardRock.off':
     'Kein Exciter und keine Bass-Schmiede: Röhren-Crunch ist Obertöne genug.',
 
@@ -153,16 +167,18 @@ export default {
     'Die Bänder, die es anheben könnten, höben alles unter 75 Hz mit an.',
   'genre.metal.pin.315': 'Matsch raus aus tief gestimmten Gitarren',
   'genre.metal.pin.315.why':
-    'Die tiefste Absenkung aller Genres, und der Grund, warum die Riffs klar bleiben.',
+    'Eine zurückhaltende Absenkung der unteren Mitten klärt dichte Riffs, ohne die Gitarren auszuhöhlen.',
   'genre.metal.pin.3150': 'Der Klick, der einen Schlag lesbar macht',
   'genre.metal.pin.3150.why':
     'Warum ein Doublebass-Lauf wie einzelne Schläge klingt.',
   'genre.metal.stage.bassPunch':
     'Ein kürzerer Ausklang statt eines härteren Anschlags, damit Läufe getrennt bleiben.',
   'genre.metal.stage.dimension':
-    'Der Bass unter 150 Hz schmaler, und nichts verbreitert.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.metal.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.metal.stage.maximizer':
-    'Treibt kaum an: Das ist das lauteste Genre überhaupt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.metal.off':
     'Sein Exciter wird angeboten und bleibt aus: Mehr Obertöne landeten im Britzeln. Keine Bass-Schmiede unter tief gestimmten Gitarren.',
 
@@ -177,9 +193,12 @@ export default {
   'genre.punk.pin.5000.why':
     'Abgesenkt: nichts heller, als die Band es gespielt hat.',
   'genre.punk.stage.bassPunch': 'Nur der Kick wird gestrafft.',
-  'genre.punk.stage.dimension': 'Unten schmaler, und nichts verbreitert.',
+  'genre.punk.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.punk.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.punk.stage.maximizer':
-    'Eine leichte Obergrenze, die den Anschlag bewahrt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.punk.off': 'Kein Exciter und keine Bass-Schmiede: Roh ist der Klang.',
 
   'genre.popPunk.hook': 'Ein straffer, klickender Kick und glänzende Gitarren',
@@ -194,9 +213,11 @@ export default {
     'Diese Master sind schon hell und zusammengepresst.',
   'genre.popPunk.stage.bassPunch': 'Ein straffer Kick, nie ein tieferer.',
   'genre.popPunk.stage.dimension':
-    'Der Bass unter 150 Hz schmaler, und nichts verbreitert.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.popPunk.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.popPunk.stage.maximizer':
-    'Die leichteste Obergrenze der Rock-Familie: Der Master ist schon laut.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.popPunk.off':
     'Kein Exciter und keine Bass-Schmiede auf Mastern, die so hell und so laut sind.',
 
@@ -212,9 +233,11 @@ export default {
   'genre.grunge.pin.12500': 'Die abgesenkten Höhen',
   'genre.grunge.pin.12500.why': 'Noch weiter abgesenkt: Dunkel ist die Platte.',
   'genre.grunge.stage.dimension':
-    'Breite Gitarren und eine mittige Stimme, wie gemischt; nur unten schmaler.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.grunge.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.grunge.stage.maximizer':
-    'Eine langsame Obergrenze, die die leise Hälfte leise und die laute laut lässt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.grunge.off':
     'Kein Exciter, kein Bass-Punch und keine Bass-Schmiede: Nichts macht es heller.',
 };

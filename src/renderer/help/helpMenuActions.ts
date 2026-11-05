@@ -10,6 +10,8 @@ import windowCapabilities from '../utils/windowCapabilities';
 /** What each of Help's entries opens; the app shell owns every one of them. */
 export interface IHelpHandlers {
   onTour: () => void;
+  /** Every version's notes, the window What's New opens from its button. */
+  onReleaseNotes: () => void;
   onTroubleshoot: () => void;
   onReport: () => void;
   /** Shows the Forum — the project's GitHub Discussions — in the workspace. */
@@ -22,6 +24,7 @@ export interface IHelpAction {
   id:
     | 'guide'
     | 'whatsNew'
+    | 'releaseNotes'
     | 'appNews'
     | 'fixAudio'
     | 'report'
@@ -45,11 +48,28 @@ export interface IHelpAction {
  */
 const helpMenuActions = (
   t: Translate,
-  { onTour, onTroubleshoot, onReport, onForum, onAbout }: IHelpHandlers,
+  {
+    onTour,
+    onReleaseNotes,
+    onTroubleshoot,
+    onReport,
+    onForum,
+    onAbout,
+  }: IHelpHandlers,
   onGuide: () => void,
 ): IHelpAction[] => [
   { id: 'guide', label: t('help.title'), run: onGuide, icon: 'guide' },
   { id: 'whatsNew', label: t('app.menu.whatsNew'), run: onTour, icon: 'gift' },
+  // Under What's New, which shows a version's highlights: these are every
+  // change of every version (Ivan, 2026-11-04: "a link to release notes in
+  // the menu under whats new"), reachable before only from What's New's own
+  // button. Named as that button is.
+  {
+    id: 'releaseNotes',
+    label: t('tour.releaseNotes'),
+    run: onReleaseNotes,
+    icon: 'notes',
+  },
   {
     id: 'appNews',
     label: t('announce.news.title'),

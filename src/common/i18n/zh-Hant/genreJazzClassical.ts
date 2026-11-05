@@ -13,8 +13,9 @@ const genreJazzClassical = {
   'genre.jazz.pin.12500': '鈸的空氣',
   'genre.jazz.pin.12500.why': '套件頂部開啟。',
   'genre.jazz.stage.dimension':
-    '燈罩較窄，將 20 世紀 50 年代的立體聲效果融入耳機中。',
-  'genre.jazz.stage.maximizer': '在整個節拍上，天花板只觸及一個雜散的山峰。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.jazz.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.jazz.off':
     '它的激勵器被提供並停止：新增和聲、彩色號角和鋼琴的聲音。沒有任何東西可以壓縮、加寬或產生低音。',
   'genre.smoothJazz.hook': '特意打造光澤、柔軟',
@@ -26,8 +27,10 @@ const genreJazzClassical = {
   'genre.smoothJazz.pin.2000.why': '放鬆，使鉛保持柔軟。',
   'genre.smoothJazz.pin.12500': '有光澤的上衣',
   'genre.smoothJazz.pin.12500.why': '工作室的光澤，得以保留。',
-  'genre.smoothJazz.stage.dimension': '光滑的立體聲混合在一起，只有低音變窄。',
-  'genre.smoothJazz.stage.maximizer': '緩慢的天花板。',
+  'genre.smoothJazz.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.smoothJazz.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.smoothJazz.off':
     '它的 Exciter 被提供並停止，並且沒有 Bass Punch：這種型別是故意柔和的。',
   'genre.fusion.hook': '電動、明亮、精湛',
@@ -39,8 +42,10 @@ const genreJazzClassical = {
   'genre.fusion.pin.315.why': '快速奔跑的空間。',
   'genre.fusion.pin.12500': '明亮，如記錄',
   'genre.fusion.pin.12500.why': '這些記錄都是頂級的。',
-  'genre.fusion.stage.dimension': '多音軌在錄製時傳播，只有低音變窄。',
-  'genre.fusion.stage.maximizer': '緩慢的天花板讓填充物不受幹擾。',
+  'genre.fusion.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.fusion.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.fusion.off':
     '無激勵器、Bass Punch 或 Bass Forge：不會為產生自己諧波的樂器新增任何內容。',
   'genre.blues.hook': '原始和中鋒',
@@ -52,8 +57,12 @@ const genreJazzClassical = {
   'genre.blues.pin.200.why': '舊唱片失去的溫暖。',
   'genre.blues.pin.5000': '原始，不明亮',
   'genre.blues.pin.5000.why': '頂部緩和了。',
-  'genre.blues.stage.dimension': '縮小的陰影；單聲道唱片保持單聲道。',
-  'genre.blues.stage.maximizer': '緩慢的天花板。',
+  'genre.blues.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.blues.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.blues.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.blues.off':
     '它的激勵器被提供並停止：過載是聲音，並且沒有新增任何東西。',
   'genre.classical.hook': '大廳是錄音室',
@@ -66,7 +75,7 @@ const genreJazzClassical = {
   'genre.classical.pin.12500': '大廳的空氣',
   'genre.classical.pin.12500.why': '進行錄音的空間。',
   'genre.classical.stage.maximizer':
-    '只有一個天花板，具有任何型別中最長的前瞻和發布，因此漸強永遠不會被它所抑制。',
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.classical.off':
     '根本沒有維度：大廳就是錄音。其 Exciter 和 Bass Punch 已提供並保留。',
   'genre.orchestra.hook': '完整保留管絃樂團的動態',
@@ -79,7 +88,7 @@ const genreJazzClassical = {
   'genre.orchestra.pin.12500': '大廳的空氣',
   'genre.orchestra.pin.12500.why': '管絃樂團周圍的空間。',
   'genre.orchestra.stage.maximizer':
-    '只有一個上限，具有任何型別中最長的前瞻和發布，因此永遠不會泵送合奏。',
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.orchestra.off':
     'No Dimension、Exciter、Bass Punch 或 Bass Forge：沒有任何東西可以增強定音鼓過載的低音。',
   'genre.opera.hook': '已經可以在管絃樂團中演奏的聲音',
@@ -91,7 +100,10 @@ const genreJazzClassical = {
   'genre.opera.pin.800.why': '向前一點。',
   'genre.opera.pin.3150': '共振峰單獨留下',
   'genre.opera.pin.3150.why': '它已經計劃了；舉起它會使聲音變得尖銳。',
-  'genre.opera.stage.maximizer': '只有輕質天花板：沒有任何東西可以壓縮聲音。',
+  'genre.opera.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.opera.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.opera.off':
     '無維度、激勵器或 Bass Punch：沒有任何東西可以拓寬、激勵或重塑聲音。',
   'genre.piano.hook': '最具啟發性的來源之一是',
@@ -103,7 +115,8 @@ const genreJazzClassical = {
   'genre.piano.pin.315.why': '音板，不是蓋子。',
   'genre.piano.pin.5000': '錘子的攻擊',
   'genre.piano.pin.5000.why': '註釋開始的地方。',
-  'genre.piano.stage.maximizer': '只有一個天花板。',
+  'genre.piano.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.piano.off':
     '無尺寸、激勵器或 Bass Punch：沒有任何東西可以使鋼琴飽和或重塑。',
   'genre.strings.hook': '諧波已經很豐富了',
@@ -115,7 +128,8 @@ const genreJazzClassical = {
   'genre.strings.pin.2000.why': '取下來：弓弦在這裡變得刺耳。',
   'genre.strings.pin.12500': '截面周圍的空氣',
   'genre.strings.pin.12500.why': '弓樓上方的大廳。',
-  'genre.strings.stage.maximizer': '只有一個天花板。',
+  'genre.strings.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.strings.off': '無維度，無激勵器：激勵器使弓弦變得刺耳。',
 } satisfies Partial<Dictionary>;
 

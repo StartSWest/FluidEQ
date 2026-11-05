@@ -26,6 +26,7 @@ interface IHelpMenuProps extends IHelpHandlers {
 
 export default function HelpMenu({
   onTour,
+  onReleaseNotes,
   onTroubleshoot,
   onReport,
   onForum,
@@ -98,7 +99,7 @@ export default function HelpMenu({
 
   const actions = helpMenuActions(
     t,
-    { onTour, onTroubleshoot, onReport, onForum, onAbout },
+    { onTour, onReleaseNotes, onTroubleshoot, onReport, onForum, onAbout },
     () => setShowGuide(true),
   );
   // "Help · New: 12" — two names the app already has in every language,

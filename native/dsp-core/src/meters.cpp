@@ -14,6 +14,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/bass_forge.h"
 #include "meters_deesser.h"
 #include "meters_eq_live.h"
+#include "meters_footsteps.h"
 #include "meters_transform.h"
 
 /*
@@ -269,6 +270,13 @@ struct FeqMeters {
   std::atomic<float> bass_punch_duck_db{0.0f};
   /** The De-esser's window (`meters_deesser.h`). */
   DeEsserMeterWindow deesser;
+  /** Footsteps' window (`meters_footsteps.h`). */
+  FootstepsMeterWindow footsteps;
+  // Current gains, not maxima: holding the largest lift would hide the next
+  // compression stroke. Each band may be at most one audio block apart.
+  std::atomic<float> dynamics_level_db[FEQ_COMPANDER_BANDS]{};
+  std::atomic<float> dynamics_gain_db[FEQ_COMPANDER_BANDS]{};
+  std::atomic<uint32_t> dynamics_active{0};
   /**
    * The EQ tap (`meters_eq_live.h`). Its slot in `stages` is never filled:
    * the EQ graph reads the newest audio, not windows in a row.
@@ -513,7 +521,10 @@ int feq_meters_read_spectrum(FeqMeters* meters,
                                  FEQ_METER_WINDOW, FEQ_METER_BINS,
                                  meters->magnitudes.data());
 
-    const double smoothing = smoothing_for(sample_rate);
+    // Dynamics draws its own time-based ballistics. Both taps must share the
+    // same window and smoothing so their gap describes the processor alone.
+    const double smoothing = stage >= FEQ_METER_STAGE_DYNAMICS_IN
+        ? 0.0 : smoothing_for(sample_rate);
     for (uint32_t bin = 0; bin < FEQ_METER_BINS; bin += 1) {
       const double previous = meters->stages[stage].smoothed[bin];
       const double blended =
@@ -754,6 +765,49 @@ void feq_meters_read_deesser(FeqMeters* meters, FeqDeEsserReport* out) {
     return;
   }
   deesser_window_take(meters->deesser, out);
+}
+
+void feq_meters_publish_footsteps(FeqMeters* meters,
+                                  const FeqFootstepsReport* report) {
+  if (meters == nullptr || report == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) {
+    return;
+  }
+  footsteps_window_fold(meters->footsteps, *report);
+}
+
+void feq_meters_read_footsteps(FeqMeters* meters, FeqFootstepsReport* out) {
+  if (meters == nullptr || out == nullptr) {
+    return;
+  }
+  footsteps_window_take(meters->footsteps, out);
+}
+
+void feq_meters_publish_dynamics(FeqMeters* meters,
+                                const FeqCompanderReport* report) {
+  if (meters == nullptr || report == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) return;
+  for (int band = 0; band < FEQ_COMPANDER_BANDS; ++band) {
+    meters->dynamics_level_db[band].store(report->level_db[band],
+                                         std::memory_order_relaxed);
+    meters->dynamics_gain_db[band].store(report->gain_db[band],
+                                        std::memory_order_relaxed);
+  }
+  meters->dynamics_active.store(report->active, std::memory_order_relaxed);
+}
+
+void feq_meters_read_dynamics(const FeqMeters* meters,
+                             FeqCompanderReport* report) {
+  if (meters == nullptr || report == nullptr) return;
+  *report = FeqCompanderReport{};
+  report->active = meters->dynamics_active.load(std::memory_order_relaxed);
+  for (int band = 0; band < FEQ_COMPANDER_BANDS; ++band) {
+    report->level_db[band] = report->active
+        ? meters->dynamics_level_db[band].load(std::memory_order_relaxed)
+        : kMeterFloorDb;
+    report->gain_db[band] = report->active
+        ? meters->dynamics_gain_db[band].load(std::memory_order_relaxed) : 0.0f;
+  }
 }
 
 void feq_meters_publish_master(FeqMeters* meters,

@@ -243,7 +243,7 @@ const LibraryDetail = ({
    * lit and lifted to the head of the table (`mark`). Folded the way
    * GROUPING folds, so "nsync" names a record whose artist reads `N'Sync`.
    */
-  const needle = normalizeForGrouping(query);
+  const needle = normalizeForGrouping(query).replace(/ /g, '');
   const isQueryTheContainer =
     needle === '' ||
     [
@@ -254,7 +254,8 @@ const LibraryDetail = ({
       folderPath ? folderDisplayName(folderPath) : undefined,
     ].some(
       (value) =>
-        value !== undefined && normalizeForGrouping(value).includes(needle),
+        value !== undefined &&
+        normalizeForGrouping(value).replace(/ /g, '').includes(needle),
     );
 
   /** The table: the record's songs, narrowed by the panel's own filter,

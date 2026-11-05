@@ -166,25 +166,22 @@ const tour: Partial<Dictionary> = {
   'tour.graph.imageAlt':
     'L’Analyseur du graphique sur un morceau en cours : le spectre en direct sur 80 dB avec ses crêtes au-dessus, les courbes de l’égaliseur par-dessus, et dans le coin la liste des vues sous Analyse.',
 
-  'tour.games.kicker': 'PRÉRÉGLAGES DE JEU',
+  'tour.games.kicker': 'LABO GAMING',
   'tour.games.title': 'À chaque jeu, un son bien à lui',
   'tour.games.subtitle': 'Appliqué dès que le jeu passe au premier plan',
   'tour.games.lead':
-    'Choisissez une fois pour toutes un son pour chaque jeu. Quand le jeu passe au premier plan, FluidEQ bascule sur ce son et le garde jusqu’à la fermeture du jeu, malgré tous vos Alt+Tab, puis remet ce que vous aviez.',
+    'Chaque jeu reçoit sa propre copie d’un profil gaming, ajustée dans le Labo gaming. Au premier plan, son son s’active et reste, aussi souvent que vous fassiez Alt+Tab ; fermez le jeu et votre son musique revient.',
   'tour.games.point1':
     'Les jeux Steam, Epic Games, EA, GOG, Ubisoft, Battle.net et Xbox, ou tout programme ouvert.',
   'tour.games.point2':
-    'Les préréglages Jeux activent le Mode jeu, qui réduit le délai qu’ajoute FluidEQ, et la page affiche ce délai tel qu’il est mesuré.',
+    'Chaque partie s’ajuste sur une seule page : le Filtre Jeu pour les pas et les voix, l’EQ, la courbe et chaque étape DSP, avec des préréglages faits pour les jeux.',
   'tour.games.point3':
-    'Une carte sur votre Bureau indique sur quoi FluidEQ a basculé, et une autre ce qui est revenu à la fermeture du jeu.',
+    'Le Labo et la page EQ montrent le jeu en cours et son préréglage.',
   'tour.games.how':
-    'Dans l’Égaliseur, ouvrez Préréglages de jeu et appuyez sur Ajouter un jeu, puis donnez-lui un son sur sa ligne.',
-  'tour.games.open': 'Ouvrir les Préréglages de jeu',
+    'Ouvrez le Labo gaming dans la barre de titre et cliquez sur Ajouter un jeu. Puis cliquez sur Essayer maintenant et ajustez son son sur place.',
+  'tour.games.open': 'Ouvrir le Labo gaming',
   'tour.games.imageAlt':
-    'Trois moments sur le bureau : un jeu au premier plan avec la carte de FluidEQ annonçant que son son est chargé, le même jeu réduit avec son son toujours actif, et le jeu fermé avec la carte annonçant le retour du son d’avant.',
-  'tour.games.stepFront': 'Au premier plan : son son se charge',
-  'tour.games.stepAway': 'Réduit ou quitté par Alt+Tab : son son reste',
-  'tour.games.stepClosed': 'Fermé : votre son revient',
+    'Le Labo gaming avec Counter-Strike 2, d’abord avec votre musique, puis avec le son propre du jeu : son préréglage nommé en haut, le Mode jeu activé et Décharger à la place d’Essayer maintenant.',
   'tour.presets.kicker': 'NOUVEAUX PRÉRÉGLAGES',
   'tour.presets.title': 'Des préréglages qui sonnent comme la musique',
   'tour.presets.subtitle': 'Des chaînes complètes, toutes au même niveau',
@@ -527,13 +524,24 @@ const tour: Partial<Dictionary> = {
   'tour.film.sound.classic':
     'Choisissez Classique pour construire les bandes comme le fait Equalizer APO.',
   'tour.film.games.intro':
-    'FluidEQ peut donner à chacun de vos jeux un son bien à lui.',
+    'Le Labo gaming donne à chacun de vos jeux un son bien à lui, réglé au même endroit.',
   'tour.film.games.add':
-    'Appuyez sur Ajouter un jeu, puis choisissez-le parmi les jeux installés par vos lanceurs.',
-  'tour.film.games.sound': 'Choisissez ensuite le son qu’il doit avoir.',
+    'Appuyez sur Ajouter un jeu et choisissez-le parmi les jeux de ce PC.',
+  'tour.film.games.profile':
+    'Il part d’un profil gaming : un pour son type de jeu, ou un fait pour ce titre.',
+  'tour.film.games.try':
+    'Appuyez sur Essayer maintenant. Son propre son se joue, avec le Mode jeu activé pour une faible latence.',
+  'tour.film.games.tune':
+    'Réglez chaque partie ici même : le Filtre Jeu, l’EQ et sa courbe.',
+  'tour.film.games.presets':
+    'Chaque étage DSP propose des préréglages pensés pour les jeux.',
+  'tour.film.games.save':
+    'Gardez le réglage comme un profil à vous, ou repartez de l’original.',
   'tour.film.games.front':
-    'Quand le jeu passe au premier plan, son son se charge tout seul.',
-  'tour.film.games.closed': 'Fermez le jeu, et votre propre son revient.',
+    'Quand le jeu passe au premier plan, son son s’active tout seul.',
+  'tour.film.games.eqPage':
+    'La page EQ indique quel jeu est en cours, avec son préréglage.',
+  'tour.film.games.closed': 'Fermez le jeu, et votre son de musique revient.',
   'tour.film.compact.intro':
     'Quand vous n’avez besoin que des commandes, FluidEQ se replie en un petit lecteur.',
   'tour.film.compact.go':
@@ -649,10 +657,14 @@ const tour: Partial<Dictionary> = {
     'La Salle vous place parmi des enceintes dans un vrai espace, même au casque.',
   'tour.film.walkthrough.maximizer':
     'Et le Maximiseur garde le tout fort et propre, sans jamais saturer.',
+  'tour.film.walkthrough.footsteps':
+    'Nouveau dans le rack : Bruits de pas fait ressortir les sons discrets d’un jeu, comme les pas et les rechargements, au moment où ils se produisent.',
   'tour.film.walkthrough.library':
     'La Bibliothèque joue votre propre musique avec le même son, avec les albums, les playlists et À suivre.',
   'tour.film.walkthrough.compact':
     'Le Lecteur compact réunit tout dans une petite fenêtre : le morceau, les commandes et votre EQ.',
+  'tour.film.walkthrough.desktop':
+    'Derrière, n’importe quel visualiseur peut animer votre Bureau, au rythme de votre musique.',
   'tour.film.walkthrough.oneline':
     'Repliez-le sur une ligne, et il ne vous gêne plus, avec un visualiseur qui joue doucement derrière le morceau.',
   'tour.film.walkthrough.looks':
@@ -663,8 +675,16 @@ const tour: Partial<Dictionary> = {
     'Dans le Studio, décrivez un changement avec vos propres mots, et regardez-le prendre forme sur la scène.',
   'tour.film.walkthrough.karaoke':
     'Karaoké transforme vos chansons en moments à chanter, avec les paroles synchronisées et votre justesse à l’écran.',
+  'tour.film.walkthrough.karaokeplay':
+    'Ouvrez une chanson avec ses paroles et appuyez sur Lecture. Chaque mot s’allume au moment où il est chanté, et le guide de hauteur en dessous montre chaque note à atteindre.',
+  'tour.film.walkthrough.karaokestage':
+    'Et derrière les paroles, la scène peut afficher n’importe quel visualiseur, au rythme de la chanson.',
   'tour.film.walkthrough.share':
     'Partager l’audio relie les ordinateurs de votre réseau domestique, pour que la musique circule entre eux, dans les deux sens.',
+  'tour.film.walkthrough.sharelink':
+    'Chaque ordinateur n’envoie que ce qu’il joue lui-même, donc rien ne revient en écho, et celui sur lequel vous écoutez applique son propre EQ.',
+  'tour.film.walkthrough.sharemix':
+    'Chaque liaison a son propre volume, et le son arrive sans perte et en phase, sans coupures.',
   'tour.film.walkthrough.help':
     'Et tout cela se trouve dans le Guide utilisateur, dessiné à partir de l’application elle-même.',
   'tour.film.walkthrough.outro':
@@ -834,6 +854,19 @@ const tour: Partial<Dictionary> = {
   'tour.media.open': 'Ouvrir Médias en ligne',
   'tour.studio.free': 'Gratuit pour tous les comptes',
   'tour.film.englishAudio': 'Audio en anglais · sous-titres traduits',
+  'tour.v23.also': 'Aussi dans la 2.3',
+  'tour.v23.engineKey':
+    'Choisissez une touche marche/arrêt dans le menu pour basculer tout le traitement de FluidEQ lorsqu’une autre app est au premier plan. Une carte confirme le changement.',
+  'tour.v23.profiles':
+    'Recherchez les profils de jeu par jeu, courbe ou chaîne. Vos profils enregistrés montrent aussi leurs courbes et les niveaux du filtre Jeu.',
+  'tour.v23.dsp':
+    'Dynamique relève les sons faibles dans trois bandes. Le Maximiseur préserve mieux les graves ; True Peak utilise un gain par morceau.',
+  'tour.v23.help':
+    'L’aide lit la visite enregistrée de la 2.2 et ouvre directement les notes complètes. À propos propose des liens de section et le QR de soutien lorsqu’il est disponible.',
+  'tour.v23.forum':
+    'Chaque rubrique du Forum compte l’activité non vue, Problèmes compte les problèmes ouverts, et vos sujets et réponses inachevés restent enregistrés.',
+  'tour.v23.layout':
+    'Le lecteur compact raccourcit les noms de jeu. Ajouter un jeu garde ses boutons visibles pendant le défilement, et les barres des pages longent le bord droit.',
 };
 
 export default tour;

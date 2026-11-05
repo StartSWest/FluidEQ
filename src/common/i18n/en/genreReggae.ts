@@ -12,9 +12,11 @@ const genreReggae = {
   'genre.reggae.pin.12500': 'A soft top',
   'genre.reggae.pin.12500.why': 'Vintage tape: nothing lifts the hiss.',
   'genre.reggae.stage.dimension':
-    'The bass mono under 80 Hz and narrowed above it; a mono record stays mono.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.reggae.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.reggae.stage.maximizer':
-    'A ceiling that only catches, and the soft kick stays soft.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.reggae.off':
     'Bass Forge is offered and left off: the bass carries its own harmonics. No Exciter on a tape-era top.',
 
@@ -28,9 +30,11 @@ const genreReggae = {
   'genre.dub.pin.8000': 'The shine of echo and spring',
   'genre.dub.pin.8000.why': 'The sparkle of the effects, kept.',
   'genre.dub.stage.dimension':
-    'The bottom mono under 150 Hz, as narrow as the originals; the echoes left where the mix threw them.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.dub.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.dub.stage.maximizer':
-    'A ceiling that only catches: the drops are the point.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.dub.off':
     'Bass Forge is offered and left off, there is no Exciter, and nothing levels the drops.',
 
@@ -43,9 +47,12 @@ const genreReggae = {
   'genre.dancehall.pin.315.why': 'Space for the voice.',
   'genre.dancehall.pin.1250': 'The vocal forward',
   'genre.dancehall.pin.1250.why': 'The deejay on top.',
-  'genre.dancehall.stage.dimension': 'Mono under 120 Hz, narrowed up to 150.',
+  'genre.dancehall.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.dancehall.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.dancehall.stage.maximizer':
-    'A ceiling quick enough to keep the percussion crisp.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.dancehall.off':
     'Bass Forge is offered and left off, and there is no Exciter on crisp percussion.',
 
@@ -60,8 +67,12 @@ const genreReggae = {
   'genre.ska.pin.315.why': 'Space for the horns.',
   'genre.ska.pin.2000': 'Horns and skank',
   'genre.ska.pin.2000.why': 'The offbeat, bright.',
-  'genre.ska.stage.dimension': 'A shade of narrowing rather than any width.',
-  'genre.ska.stage.maximizer': 'A light ceiling.',
+  'genre.ska.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.ska.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.ska.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.ska.off':
     'No Exciter, Bass Punch or Bass Forge: no invented bass under a vintage recording.',
 };

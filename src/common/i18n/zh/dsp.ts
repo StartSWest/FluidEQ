@@ -104,7 +104,7 @@ const dsp = {
   'dsp.denoise.voiceLibraryOnly':
     '神经网络人声清理器仅适用于媒体库播放。嘶声、哼声和爆音消减可用于外部音频。',
   'dsp.normalizer.liveDescription':
-    '实时测量正在播放的外部音频，同步调整双声道，并在激励器和均衡器之前保护峰值。',
+    '实时测量正在播放的外部音频，并在激励器和均衡器之前为双声道设定同一个音量，不会压扁音乐：真实峰值只会把歌曲调低，直到最响的峰值触及峰值上限。',
   'dsp.normalizer.liveAnalysis': '实时音源分析',
   'dsp.normalizer.inputLoudness': '输入响度（3秒）',
   'dsp.normalizer.outputLoudness': '输出响度（3秒）',

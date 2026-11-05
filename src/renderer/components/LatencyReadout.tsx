@@ -26,6 +26,8 @@ const STAGE_NAMES: Record<TLatencyStage, TranslationKey> = {
   exciter: 'dsp.exciter.title',
   bassForge: 'dsp.bassForge.title',
   linearEq: 'dsp.eq.title',
+  // Listed with 0 while it runs: it has no look-ahead and adds no delay.
+  footsteps: 'dsp.footsteps.title',
   bassPunch: 'dsp.bassPunch.title',
   room: 'dsp.room.title',
   dimension: 'dsp.dimension.title',

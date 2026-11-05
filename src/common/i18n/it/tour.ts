@@ -163,25 +163,22 @@ const tour: Partial<Dictionary> = {
   'tour.graph.imageAlt':
     'L’Analizzatore del grafico su un brano in riproduzione: lo spettro dal vivo a 80 dB di profondità con i picchi sopra, le curve dell’EQ in cima e, nell’angolo, l’elenco delle viste in Analisi.',
 
-  'tour.games.kicker': 'PRESET DI GIOCO',
+  'tour.games.kicker': 'LABORATORIO GAMING',
   'tour.games.title': 'Ogni gioco, il suo suono',
   'tour.games.subtitle': 'Attivato quando il gioco passa in primo piano',
   'tour.games.lead':
-    'Scegli una volta sola un suono per ogni gioco. Quando il gioco passa in primo piano, FluidEQ lo attiva e lo mantiene finché non chiudi il gioco, per quante volte tu faccia Alt+Tab, poi rimette quello che avevi.',
+    'Ogni gioco riceve una copia tutta sua di un profilo gaming, regolata nel Laboratorio gaming. In primo piano il suo suono si attiva e resta, per quante volte tu faccia Alt+Tab; chiudi il gioco e torna il tuo suono per la musica.',
   'tour.games.point1':
     'Giochi di Steam, Epic Games, EA, GOG, Ubisoft, Battle.net e Xbox, o qualsiasi programma aperto.',
   'tour.games.point2':
-    'I preset Gaming attivano Modalità gioco, che riduce il ritardo aggiunto da FluidEQ, e la pagina mostra il ritardo misurato.',
+    'Regola ogni parte in una sola pagina: il Filtro Gioco per passi e voci, l’EQ, la curva e ogni stadio DSP, con preset fatti per i giochi.',
   'tour.games.point3':
-    'Una scheda sul desktop dice a quale suono è passato FluidEQ, e un’altra quale è tornato quando il gioco si è chiuso.',
+    'Il Laboratorio e la pagina EQ mostrano il gioco in corso e il suo preset.',
   'tour.games.how':
-    'Apri EQ, scegli Preset di gioco e premi Aggiungi un gioco. Poi scegli il suo suono nel selettore sulla sua riga.',
-  'tour.games.open': 'Apri Preset di gioco',
+    'Apri il Laboratorio gaming nella barra del titolo e premi Aggiungi un gioco. Poi premi Provalo ora e regola il suo suono proprio lì.',
+  'tour.games.open': 'Apri il Laboratorio gaming',
   'tour.games.imageAlt':
-    'Tre momenti sul desktop: un gioco in primo piano con la scheda di FluidEQ che dice che il suo suono è caricato, lo stesso gioco ridotto a icona con il suono ancora attivo, e il gioco chiuso con la scheda che dice che il suono di prima è tornato.',
-  'tour.games.stepFront': 'In primo piano: si carica il suo suono',
-  'tour.games.stepAway': 'Ridotto a icona o con Alt+Tab: il suono resta',
-  'tour.games.stepClosed': 'Chiuso: torna il tuo suono',
+    'Il Laboratorio gaming con Counter-Strike 2, prima con la tua musica, poi con il suono del gioco: il suo preset nominato in alto, la Modalità gioco attiva e Scarica al posto di Provalo ora.',
   'tour.presets.kicker': 'NUOVI PRESET',
   'tour.presets.title': 'Preset che suonano come la musica',
   'tour.presets.subtitle': 'Catene complete, tutte allo stesso volume',
@@ -522,13 +519,25 @@ const tour: Partial<Dictionary> = {
   'tour.film.sound.classic':
     'Scegli Classico per costruire le bande come fa Equalizer APO.',
   'tour.film.games.intro':
-    'FluidEQ può dare a ciascuno dei tuoi giochi un suono tutto suo.',
+    'Il Laboratorio gaming dà a ciascuno dei tuoi giochi un suono tutto suo, regolato in un solo posto.',
   'tour.film.games.add':
-    'Premi Aggiungi un gioco e sceglilo tra i giochi installati dai tuoi launcher.',
-  'tour.film.games.sound': 'Poi scegli il suono che deve avere.',
+    'Premi Aggiungi un gioco e sceglilo tra i giochi di questo PC.',
+  'tour.film.games.profile':
+    'Parte da un profilo gaming: uno per il suo genere di gioco, o uno fatto per quel titolo.',
+  'tour.film.games.try':
+    'Premi Provalo ora. Suona il suo suono, con la Modalità gioco attiva per una bassa latenza.',
+  'tour.film.games.tune':
+    'Regola ogni parte proprio qui: il Filtro Gioco, l’EQ e la sua curva.',
+  'tour.film.games.presets':
+    'Ogni stadio DSP offre preset pensati per i giochi.',
+  'tour.film.games.save':
+    'Tieni la regolazione come un tuo profilo, o ricomincia dall’originale.',
   'tour.film.games.front':
-    'Quando il gioco passa in primo piano, il suo suono si carica da solo.',
-  'tour.film.games.closed': 'Chiudi il gioco e torna il tuo suono.',
+    'Quando il gioco passa in primo piano, il suo suono si attiva da solo.',
+  'tour.film.games.eqPage':
+    'La pagina EQ mostra quale gioco sta suonando, con il suo preset.',
+  'tour.film.games.closed':
+    'Chiudi il gioco e torna il suono della tua musica.',
   'tour.film.compact.intro':
     'Quando ti servono solo i comandi, FluidEQ si richiude in un piccolo lettore.',
   'tour.film.compact.go':
@@ -643,10 +652,14 @@ const tour: Partial<Dictionary> = {
     'La Stanza ti mette tra gli altoparlanti di uno spazio vero, anche in cuffia.',
   'tour.film.walkthrough.maximizer':
     'E il Maximizer tiene tutto forte e pulito, senza mai distorcere.',
+  'tour.film.walkthrough.footsteps':
+    'Novità nel rack: Passi fa emergere i suoni più deboli di un gioco, come passi e ricariche, nel momento in cui avvengono.',
   'tour.film.walkthrough.library':
     'La Libreria riproduce la tua musica con lo stesso suono, con album, playlist e In coda.',
   'tour.film.walkthrough.compact':
     'Il Lettore compatto mette tutto in una piccola finestra: il brano, i comandi e il tuo EQ.',
+  'tour.film.walkthrough.desktop':
+    'Dietro, qualsiasi visualizzatore può animare il tuo desktop, muovendosi con la tua musica.',
   'tour.film.walkthrough.oneline':
     'Piegalo su una riga e non ti intralcia, con un visualizzatore che si muove piano dietro il brano.',
   'tour.film.walkthrough.looks':
@@ -657,8 +670,16 @@ const tour: Partial<Dictionary> = {
     'Nello Studio descrivi una modifica con parole tue, e guardala prendere forma sul palco.',
   'tour.film.walkthrough.karaoke':
     'Karaoke trasforma i tuoi brani in canzoni da cantare, con testi sincronizzati e la tua intonazione sullo schermo.',
+  'tour.film.walkthrough.karaokeplay':
+    'Apri un brano con il suo testo e premi Riproduci. Ogni parola si illumina mentre viene cantata, e la guida dell’intonazione sotto mostra ogni nota da prendere.',
+  'tour.film.walkthrough.karaokestage':
+    'E dietro il testo, il palco può mostrare qualsiasi visualizzatore, che si muove con il brano.',
   'tour.film.walkthrough.share':
     'Condividi audio collega i computer della tua rete di casa, così la musica scorre tra loro, in entrambe le direzioni.',
+  'tour.film.walkthrough.sharelink':
+    'Ogni computer invia solo ciò che riproduce lui stesso, così non torna nessun eco, e quello su cui ascolti applica il proprio EQ.',
+  'tour.film.walkthrough.sharemix':
+    'Ogni collegamento ha il suo volume, e il suono arriva senza perdita e a tempo, senza interruzioni.',
   'tour.film.walkthrough.help':
     'E tutto questo è nella Guida utente, disegnata dall’app stessa.',
   'tour.film.walkthrough.outro':
@@ -825,6 +846,19 @@ const tour: Partial<Dictionary> = {
   'tour.media.open': 'Apri Media online',
   'tour.studio.free': 'Gratis per ogni account',
   'tour.film.englishAudio': 'Audio in inglese · sottotitoli tradotti',
+  'tour.v23.also': 'Anche nella 2.3',
+  'tour.v23.engineKey':
+    'Scegli un tasto di accensione/spegnimento nel menu per cambiare tutta l’elaborazione di FluidEQ mentre un’altra app è in primo piano. Una scheda conferma il cambio.',
+  'tour.v23.profiles':
+    'Cerca profili di gioco per gioco, curva o catena. I profili salvati mostrano anche le proprie curve e i livelli del filtro Gioco.',
+  'tour.v23.dsp':
+    'Dinamica alza i suoni deboli in tre bande. Il Maximizzer conserva i bassi; la normalizzazione True Peak usa un guadagno per brano.',
+  'tour.v23.help':
+    'La guida riproduce il tour registrato della 2.2 e apre le note complete direttamente. Informazioni include link alle sezioni e il QR di supporto, se disponibile.',
+  'tour.v23.forum':
+    'Ogni sezione del Forum conta l’attività non vista, Problemi conta quelli aperti e discussioni e risposte incomplete restano salvate.',
+  'tour.v23.layout':
+    'Il lettore compatto tiene brevi i nomi dei giochi. Aggiungi un gioco mantiene visibili i pulsanti durante lo scorrimento e le barre delle pagine restano sul bordo destro.',
 };
 
 export default tour;

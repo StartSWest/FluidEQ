@@ -70,6 +70,7 @@ import { createOutputFollower } from './followOutputs';
 import { IOutputFormatChange, createOutputFormats } from '../outputFormat';
 import { readRoomHeadText } from '../roomHead';
 import type { IMainSession } from '../mainSession';
+import putPresetInState from '../presetIntoState';
 import { ROOM_HEADS } from '../../common/dsp/chain';
 import {
   createProfileMutationListener,
@@ -141,6 +142,7 @@ export interface IProfilesIpcDeps {
     outputDspOverrides?: IMainSession['outputDspOverrides'];
     outputStateOverrides?: IMainSession['outputStateOverrides'];
     systemRackEnabled?: IMainSession['systemRackEnabled'];
+    installedEngineVersion?: IMainSession['installedEngineVersion'];
     secondOutputDevices?: IAudioDevice[];
     hasActiveSessionOverride: boolean;
     audioEngine: TAudioEngine | null;
@@ -257,46 +259,8 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
         presetName,
         owner.presetDir,
       );
-      state.dsp = presetSettings.dsp;
-      session.outputDspOverrides?.delete(session.activeAudioDeviceId);
-      session.outputStateOverrides?.delete(session.activeAudioDeviceId);
-      state.eqCuts = presetSettings.eqCuts;
-      state.trebleDesigns = presetSettings.trebleDesigns;
-      state.eqPhase = presetSettings.eqPhase;
-      state.curvePhase = presetSettings.curvePhase;
-      state.isAutoPreAmpOn = presetSettings.isAutoPreAmpOn ?? true;
-      session.outputEditGeneration = (session.outputEditGeneration ?? 0) + 1;
-      owner.generation = session.outputEditGeneration;
-      state.preAmp = presetSettings.preAmp;
-      state.filters = presetSettings.filters;
-      state.eqFormat = presetSettings.eqFormat;
-      state.graphicEq = presetSettings.graphicEq;
-      state.convolution = presetSettings.convolution;
-      state.isFlat = presetSettings.isFlat;
-      state.eqMode = getEqMode(presetSettings);
-      state.curveEqMode = getCurveEqMode(presetSettings);
-      state.mainBandQ = presetSettings.mainBandQ;
-      state.eqBandQ = presetSettings.eqBandQ;
-      state.curveBandQ = presetSettings.curveBandQ;
-      state.curveSmoothing = presetSettings.curveSmoothing;
-      state.eqBandDesign = normalizeBandDesign(presetSettings.eqBandDesign);
-      state.isEqDoubleOn = state.eqMode === 'double';
-      state.tone = toTone(presetSettings.tone);
-      state.voicing = presetSettings.voicing;
-      state.driver = presetSettings.driver;
-      state.smartEq = presetSettings.smartEq;
-      state.headphone = presetSettings.headphone;
-      state.headset = presetSettings.headset;
-      state.headsetTarget = presetSettings.headsetTarget;
-      state.headsetSource = presetSettings.headsetSource;
-      state.eqImport = presetSettings.eqImport;
-      // Which layers this profile has switched off comes with it, like the layers
-      // themselves. Keeping the previous profile's list would silence a layer this
-      // one never switched off.
-      state.bypassed = presetSettings.bypassed;
-      // A profile loaded is the listener's own sound; a song's lent one ends
-      // here (the window hands it back first, `songSoundSession.ts`).
-      state.songSoundLoan = undefined;
+      putPresetInState(state, session, presetSettings);
+      owner.generation = session.outputEditGeneration ?? 0;
       hydrateActiveConvolution();
       attachPresetToActiveDevice(presetName);
       await handleUpdate(event, channel, true);

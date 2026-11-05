@@ -5,14 +5,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Game profiles: a program, a sound, and what happens when it comes to the
- * front.
+ * The listener's games: a program, the Gaming profile its own sound started
+ * from, and which program a running one is.
  *
  * Both halves of the app read these rules — the window keeps the list and
- * applies the sound, main watches what Windows puts in front — so the
- * matching and the switching live here, as arithmetic over values, and are
- * tested as arithmetic.
+ * puts a game's sound on, main watches what Windows puts in front — so the
+ * matching lives here, as arithmetic over values, and is tested as
+ * arithmetic.
  */
+
+import { chainGamingProfileId, suggestGamingProfile } from './gaming';
 
 /** Where a program came from, which is all the row says about it. */
 export type TGameSource =
@@ -77,11 +79,37 @@ export interface IGameProgram {
 }
 
 export interface IGameProfile extends IGameProgram {
-  /** Stable across renames, so the row keeps its place when it is edited. */
+  /**
+   * Stable across renames, so the row keeps its place when it is edited — and
+   * what main names the game's copy of its sound by on each output.
+   */
   id: string;
-  /** The chain to play while it is in front; empty leaves the sound alone. */
+  /**
+   * The DSP chain a row from before the Gaming Lab played. Read once, as
+   * where that game's copy starts (`gamingProfileOf`); never written again.
+   */
   presetId: string;
+  /** The Gaming profile the game's copy starts from (`common/gaming.ts`). */
+  profileId?: string;
+  /** What the listener named the game's copy ("Rename this copy"). */
+  copyName?: string;
 }
+
+/**
+ * The Gaming profile a game's copy starts from: the one it was given, the
+ * chain an older row played, or the one made for its title.
+ */
+export const gamingProfileOf = (
+  game: Pick<IGameProfile, 'profileId' | 'presetId' | 'name'>,
+): string => {
+  if (game.profileId) {
+    return game.profileId;
+  }
+  if (game.presetId && game.presetId !== 'none') {
+    return chainGamingProfileId(game.presetId);
+  }
+  return suggestGamingProfile(game.name);
+};
 
 /** Windows paths differ by case and by trailing separator, and mean one file. */
 const asKey = (value: string): string =>
@@ -115,76 +143,3 @@ export const gameProfileFor = (
   profiles
     .filter((profile) => gamePathHolds(profile.path, programPath))
     .sort((a, b) => b.path.length - a.path.length)[0];
-
-/**
- * What the app remembers about a sound it switched for a game.
- *
- * `applied` is what it put on and `before` what was playing when it did.
- * Both are needed to put the sound back honestly: without `applied` a
- * listener who changed the chain by hand mid-game had it taken away again
- * when they alt-tabbed out.
- */
-export interface IGameSoundMemory {
-  before?: string;
-  applied?: string;
-}
-
-export interface IGameSoundStep {
-  memory: IGameSoundMemory;
-  /** The chain to select now, or none: nothing about the sound changes. */
-  select?: string;
-}
-
-/** Whether the sound playing now is the one a game put on. */
-const isOurs = (memory: IGameSoundMemory, current: string): boolean =>
-  memory.applied !== undefined && memory.applied === current;
-
-/**
- * The step to take now that `wanted` is in front and `current` is playing.
- *
- * - A game with a sound of its own puts it on and remembers what was playing.
- * - A game whose sound is already on changes nothing and still remembers, so
- *   the end of it is a step back to where they were.
- * - Anything else changes nothing at all, and forgets nothing: leaving the
- *   game's window is not leaving the game. Alt-tabbing to a browser, to
- *   Discord or to FluidEQ itself happens constantly while somebody plays, and
- *   putting the old sound back on each of those was the app taking the game's
- *   sound away mid-match. What puts it back is the game ending
- *   (`gameSoundEndStep`).
- */
-export const gameSoundStep = (
-  memory: IGameSoundMemory,
-  wanted: string | undefined,
-  current: string,
-): IGameSoundStep => {
-  if (wanted === undefined || wanted === '') {
-    return { memory };
-  }
-  // Inside one game already, the chain to go back to is the one from before
-  // that game, not the one it is playing.
-  const before = isOurs(memory, current) ? memory.before : current;
-  if (wanted === current) {
-    return { memory: { before, applied: wanted } };
-  }
-  return { memory: { before, applied: wanted }, select: wanted };
-};
-
-/**
- * The step to take now that the game whose sound is on has ended.
- *
- * What was playing before it goes back on, but only while the game's sound is
- * still the one playing: a chain the listener picked during the game is
- * theirs, and taking it away when the game closes is the app arguing.
- */
-export const gameSoundEndStep = (
-  memory: IGameSoundMemory,
-  current: string,
-): IGameSoundStep => {
-  if (!isOurs(memory, current) || memory.before === undefined) {
-    return { memory: {} };
-  }
-  return {
-    memory: {},
-    ...(memory.before === current ? {} : { select: memory.before }),
-  };
-};

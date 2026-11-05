@@ -815,3 +815,25 @@ taps. This page records the current implementation and its remaining limits.
   control. Native helpers only were executed; the existing FluidEQ app and
   processing engine were not launched or restarted. Temporary diagnostic
   hooks and analysis claims were released after measurement.
+
+## Main refresh — 2026-11-04
+
+- Inherited 31 main commits through `5835d25e6`: Dynamics, Gaming Lab,
+  current preset calibration and Help, and Share Audio reconnect behavior.
+  Both package manifests follow main's 2.3.0 version. The Mac updater, its
+  pinned signing key and Mac-only 2.2.1/2.2.2 historical notes are retained.
+- Merge resolution preserves Mac Help text in all twelve locales beside
+  the new Gaming profile guidance. The Mac guide uses the current shared
+  walkthrough instead of the retired per-chapter video field. The new
+  confirmed-volume readout keeps absent values for unsupported Mac device
+  capabilities, and the reconnect regression runs on both Windows and Mac.
+- TypeScript, changed-source ESLint, fourteen focused JS suites (181 cases),
+  six native Dynamics/Game-filter/Mac configuration checks, the complete
+  native/public production build, platform isolation and public add-on
+  exclusion pass. The local UDP reconnect fixture ran outside the sandbox
+  after the sandbox refused its bind; no native app or desktop was accessed.
+- The tracked worktree was clean before this sync: the earlier Mac changes
+  are already committed. All eight existing entries under `release/mac-release`
+  retain their original metadata; both older user stashes remain intact.
+  This sync does not repackage or publish a Mac release, and its build checks
+  do not establish visual or cross-PC runtime verification.

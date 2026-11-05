@@ -11,9 +11,11 @@ export default {
   'genre.reggae.pin.12500': 'Acuti morbidi',
   'genre.reggae.pin.12500.why': 'Nastro d’epoca: niente alza il fruscio.',
   'genre.reggae.stage.dimension':
-    'I bassi in mono sotto gli 80 Hz e più stretti sopra; un disco mono resta mono.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.reggae.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.reggae.stage.maximizer':
-    'Un tetto che si limita a contenere, e la cassa morbida resta morbida.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.reggae.off':
     'La Fucina dei bassi è offerta e resta spenta: il basso porta le proprie armoniche. Niente Exciter su acuti dell’era del nastro.',
 
@@ -27,9 +29,11 @@ export default {
   'genre.dub.pin.8000': 'La lucentezza di eco e molla',
   'genre.dub.pin.8000.why': 'Lo scintillio degli effetti, mantenuto.',
   'genre.dub.stage.dimension':
-    'Il fondo in mono sotto i 150 Hz, stretto come gli originali; gli echi lasciati dove li ha lanciati il mix.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.dub.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.dub.stage.maximizer':
-    'Un tetto che si limita a contenere: i drop sono il punto.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.dub.off':
     'La Fucina dei bassi è offerta e resta spenta, non c’è Exciter e niente appiattisce i drop.',
 
@@ -43,9 +47,11 @@ export default {
   'genre.dancehall.pin.1250': 'La voce in avanti',
   'genre.dancehall.pin.1250.why': 'Il deejay sopra.',
   'genre.dancehall.stage.dimension':
-    'Mono sotto i 120 Hz, più stretto fino a 150.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.dancehall.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.dancehall.stage.maximizer':
-    'Un tetto abbastanza rapido da tenere nitide le percussioni.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.dancehall.off':
     'La Fucina dei bassi è offerta e resta spenta, e non c’è Exciter sulle percussioni nitide.',
 
@@ -61,8 +67,11 @@ export default {
   'genre.ska.pin.2000': 'Fiati e skank',
   'genre.ska.pin.2000.why': 'Il levare, brillante.',
   'genre.ska.stage.dimension':
-    'Un filo di restringimento invece di qualsiasi ampiezza.',
-  'genre.ska.stage.maximizer': 'Un tetto leggero.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.ska.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
+  'genre.ska.stage.maximizer':
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.ska.off':
     'Niente Exciter, Punch dei bassi o Fucina dei bassi: nessun basso inventato sotto una registrazione d’epoca.',
 };

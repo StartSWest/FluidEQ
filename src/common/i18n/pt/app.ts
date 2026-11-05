@@ -258,7 +258,6 @@ const app: Partial<Dictionary> = {
   'tabs.eqMain': 'Bandas',
   'tabs.presets': 'Presets EQ',
   'tabs.convolution': 'Convolução',
-  'tabs.games': 'Presets de jogo',
   'tabs.config': 'Config',
   'tabs.media': 'Mídia online',
   'tabs.mediaShort': 'Mídia',
@@ -415,12 +414,6 @@ const app: Partial<Dictionary> = {
   'settings.group.studioOnly': 'Só aqui no Estúdio',
 
   // Game profiles: the page, its list and what it says.
-  'games.add': 'Adicionar um jogo',
-  'games.addHint':
-    'Escolha um jogo dos seus lançadores, ou um programa aberto agora.',
-  'games.choose': 'Escolher um programa…',
-  'games.group.installed': 'Instalados',
-  'games.group.running': 'Abertos agora',
   'games.source.steam': 'Steam',
   'games.source.epic': 'Epic Games',
   'games.source.ea': 'EA',
@@ -430,26 +423,8 @@ const app: Partial<Dictionary> = {
   'games.source.xbox': 'Xbox',
   'games.source.running': 'Aberto agora',
   'games.source.file': 'Escolhido por você',
-  'games.front.playing': '{name} está à frente, e o som dele está ligado.',
-  'games.front.sounding': '{name} está aberto, e o som dele está ligado.',
-  'games.front.off':
-    'Os presets de jogos estão desligados. Seus jogos mantêm o seu próprio som.',
-  'games.switch.hint':
-    'Desligado: nenhum jogo muda o seu som, e o FluidEQ deixa de observar qual programa está na frente. Sua lista fica como está.',
-  'games.toast.loaded': '{preset} carregado',
   'games.toast.forGame': 'para {game}',
-  'games.toast.restored': 'De volta a {preset}',
-  'games.toast.restoredNone': 'Efeitos desligados de novo',
   'games.toast.afterGame': 'depois de {game}',
-  'games.empty.title': 'Ainda não há jogos',
-  'games.empty.more':
-    'Adicione um jogo, dê um som a ele, e o FluidEQ muda para ele assim que o jogo estiver à frente — e volta quando você fechar o jogo.',
-  'games.preset.none': 'Deixar como está',
-  'games.preset.noneHint': 'Nada muda quando este jogo está à frente.',
-  'games.row.inFront': 'à frente',
-  'games.row.sounding': 'som ligado',
-  'games.row.sound': 'Som para {name}',
-  'games.row.remove': 'Remover {name}',
   'error.apoMissing': 'O Equalizer APO não está instalado.',
   'error.apoMissing.action': 'Instale o Equalizer APO e tente de novo.',
   'error.configMissing':

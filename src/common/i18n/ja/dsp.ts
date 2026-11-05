@@ -104,7 +104,7 @@ const dsp = {
   'dsp.denoise.voiceLibraryOnly':
     'ニューラル音声処理はライブラリ再生のみで利用できます。ヒスノイズ、ハム、クリックの低減は外部音声でも動作します。',
   'dsp.normalizer.liveDescription':
-    '再生中の外部音声を測定し、両チャンネルを同時に調整して、エキサイターとEQの前でピークを保護します。',
+    '再生中の外部音声を測定し、エキサイターとEQの前で両チャンネルに同じ音量を設定します。音楽を潰すことはありません。トゥルーピークは、曲の最大ピークがピーク上限に届くところまで音量を下げるだけです。',
   'dsp.normalizer.liveAnalysis': '入力音声のリアルタイム解析',
   'dsp.normalizer.inputLoudness': '入力ラウドネス（3秒）',
   'dsp.normalizer.outputLoudness': '出力ラウドネス（3秒）',

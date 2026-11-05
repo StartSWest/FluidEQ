@@ -15,7 +15,7 @@ jest.mock('../../../renderer/ConvolutionPanel', () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock('../../../renderer/games/GamesPanel', () => ({
+jest.mock('../../../renderer/games/GamingLab', () => ({
   __esModule: true,
   default: () => null,
 }));

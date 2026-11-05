@@ -16,8 +16,11 @@ export default {
     'Calor e um pouco de ar para os masters analógicos.',
   'genre.afrobeat.stage.bassPunch': 'O baixo um pouco mais firme.',
   'genre.afrobeat.stage.dimension':
-    'A abertura da grande banda como foi gravada, só a base mais estreita.',
-  'genre.afrobeat.stage.maximizer': 'Um teto lento que mantém a dinâmica.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.afrobeat.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.afrobeat.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.afrobeat.off':
     'Sem Forja de graves, e nada que aperte a banda: o teto dela só segura os picos.',
 
@@ -31,8 +34,11 @@ export default {
   'genre.afrobeats.pin.12500': 'Shakers e ar na voz',
   'genre.afrobeats.pin.12500.why': 'Leve, por cima.',
   'genre.afrobeats.stage.dimension':
-    'Mono abaixo de 150 Hz, os shakers um pouco mais abertos.',
-  'genre.afrobeats.stage.maximizer': 'Um teto leve que mantém o swing.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.afrobeats.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.afrobeats.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.afrobeats.off':
     'A Forja de graves é oferecida e fica desligada: um sub senoidal é limpo e não quer oitava nem sujeira embaixo.',
 
@@ -46,9 +52,11 @@ export default {
   'genre.amapiano.pin.8000': 'Shakers brilhantes',
   'genre.amapiano.pin.8000.why': 'Um pequeno realce.',
   'genre.amapiano.stage.dimension':
-    'O sub em mono abaixo de 120 Hz e o corpo do log drum mais estreito até 200, para ficar no centro; largura só acima de 3 kHz.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.amapiano.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.amapiano.stage.maximizer':
-    'Um teto leve que mantém o ataque do log drum.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.amapiano.off':
     'A Forja de graves é oferecida e fica desligada: a única regra para o log drum é nenhuma saturação nele.',
 
@@ -64,8 +72,11 @@ export default {
   'genre.highlife.stage.exciter':
     'Um pouco de calor e de ar para as gravações antigas.',
   'genre.highlife.stage.dimension':
-    'As guitarras panoramizadas como foram gravadas.',
-  'genre.highlife.stage.maximizer': 'Um teto lento.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.highlife.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.highlife.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.highlife.off':
     'Sem Punch dos graves nem Forja de graves: guitarras limpas continuam limpas.',
 
@@ -78,7 +89,10 @@ export default {
   'genre.world.pin.3150.why': 'Menos de um decibel.',
   'genre.world.pin.12500': 'Um pouco de ar',
   'genre.world.pin.12500.why': 'Delicado.',
-  'genre.world.stage.maximizer': 'Um teto que só segura.',
+  'genre.world.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.world.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.world.off':
     'Sem Dimensão, Excitador, Punch dos graves ou Forja de graves: a imagem fica como está.',
 
@@ -93,8 +107,11 @@ export default {
   'genre.bollywood.pin.2000.why': 'À frente e limpa.',
   'genre.bollywood.stage.bassPunch': 'O sub mais firme.',
   'genre.bollywood.stage.dimension':
-    'A imagem tão larga quanto chegou; só a base mais estreita.',
-  'genre.bollywood.stage.maximizer': 'Um teto que mal empurra.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.bollywood.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.bollywood.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.bollywood.off': 'Sem Excitador na voz e sem Forja de graves.',
 
   'genre.bhangra.hook': 'O dhol é o gênero',
@@ -109,9 +126,11 @@ export default {
   'genre.bhangra.stage.bassPunch':
     'A cauda do estrondo firmada, nunca realçada.',
   'genre.bhangra.stage.dimension':
-    'A base mais estreita, para o estrondo do dhol segurar o centro.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.bhangra.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.bhangra.stage.maximizer':
-    'Um look-ahead longo o bastante para deixar o estalo passar.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.bhangra.off':
     'Sem Excitador nem Forja de graves: nenhum agudo acrescentado.',
 
@@ -126,7 +145,7 @@ export default {
   'genre.indianClassical.pin.12500': 'O brilho da tanpura',
   'genre.indianClassical.pin.12500.why': 'O halo do bordão.',
   'genre.indianClassical.stage.maximizer':
-    'Só um teto: um nivelador levantaria o bordão no alap.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.indianClassical.off':
     'Sem Dimensão, Excitador ou Punch dos graves: os harmônicos da jivari já vêm embutidos.',
 
@@ -145,9 +164,11 @@ export default {
     'Calor sob a voz; as cordas e o tek ficam tão brilhantes quanto são.',
   'genre.arabicPop.stage.bassPunch': 'O grave mais firme.',
   'genre.arabicPop.stage.dimension':
-    'As cordas tão largas quanto foram gravadas; só a base mais estreita.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.arabicPop.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.arabicPop.stage.maximizer':
-    'Um teto leve que mantém o ataque da darbuka.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.arabicPop.off': 'Sem Forja de graves: nada gerado sob o doum.',
 
   'genre.turkishPop.hook': 'Pop polido com cor turca',
@@ -164,8 +185,11 @@ export default {
   'genre.turkishPop.stage.exciter': 'Calor sob a voz, nada na darbuka.',
   'genre.turkishPop.stage.bassPunch': 'Uma base firme.',
   'genre.turkishPop.stage.dimension':
-    'Como foi mixado, só a base mais estreita.',
-  'genre.turkishPop.stage.maximizer': 'Um teto que mal empurra.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.turkishPop.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.turkishPop.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.turkishPop.off': 'Sem Forja de graves num disco tão polido.',
 
   'genre.gospel.hook': 'Um coral, e vamps que crescem por minutos',
@@ -177,8 +201,12 @@ export default {
   'genre.gospel.pin.315.why': 'Espaço num som cheio.',
   'genre.gospel.pin.2000': 'A voz principal',
   'genre.gospel.pin.2000.why': 'À frente.',
-  'genre.gospel.stage.dimension': 'O coral tão largo quanto foi gravado.',
-  'genre.gospel.stage.maximizer': 'Um teto lento que deixa um vamp crescer.',
+  'genre.gospel.stage.dimension':
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.gospel.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.gospel.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.gospel.off':
     'O Excitador dele é oferecido e fica desligado: nada de brilho extra no coral.',
 
@@ -192,9 +220,11 @@ export default {
   'genre.christian.pin.3150': 'A letra, clara',
   'genre.christian.pin.3150.why': 'Onde estão as palavras.',
   'genre.christian.stage.dimension':
-    'A base mais estreita; as guitarras abertas.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.christian.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.christian.stage.maximizer':
-    'Um teto lento o bastante para manter o arco.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.christian.off':
     'Sem Excitador, Punch dos graves ou Forja de graves: o crescendo é a música.',
 };

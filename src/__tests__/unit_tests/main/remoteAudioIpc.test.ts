@@ -27,6 +27,7 @@ const lan = {
   start: jest.fn(),
   join: jest.fn(),
   unlink: jest.fn(),
+  reconnect: jest.fn(async () => true),
   retry: jest.fn(),
   sendAudio: jest.fn(),
   sendSignal: jest.fn(),
@@ -202,6 +203,29 @@ describe.each(['win32', 'darwin'])(
 
       expect(lan.unlink).toHaveBeenCalledWith({ peerId: 'peer-2' });
       expect(lan.stop).not.toHaveBeenCalled();
+    });
+
+    it('reconnects one computer by hand, only once Share Audio is on the network', async () => {
+      await expect(
+        handlers.get('remote-audio-lan-reconnect')?.(
+          {},
+          { computerId: 'c-id' },
+        ),
+      ).resolves.toBe(false);
+      expect(lan.reconnect).not.toHaveBeenCalled();
+
+      await handlers.get('remote-audio-lan-start')?.({}, true);
+      await expect(
+        handlers.get('remote-audio-lan-reconnect')?.(
+          {},
+          { computerId: 'c-id', extra: 'dropped' },
+        ),
+      ).resolves.toBe(true);
+      expect(lan.reconnect).toHaveBeenCalledWith({ computerId: 'c-id' });
+      expect(lan.unlink).not.toHaveBeenCalled();
+      await expect(
+        handlers.get('remote-audio-lan-reconnect')?.({}, 'c-id'),
+      ).rejects.toThrow('Invalid Share Audio reconnect.');
     });
 
     it('tells a new window about the links already up, but never a past press', async () => {

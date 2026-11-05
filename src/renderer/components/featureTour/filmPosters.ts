@@ -9,7 +9,7 @@ import eachEar from './filmPosters/each-ear.jpg';
 import engineSound from './filmPosters/engine-sound.jpg';
 import everyOutput from './filmPosters/every-output.jpg';
 import fluideqEngine from './filmPosters/fluideq-engine.jpg';
-import gamePresets from './filmPosters/game-presets.jpg';
+import gamingLab from './filmPosters/gaming-lab.jpg';
 import headphonePresets from './filmPosters/headphone-presets.jpg';
 import karaoke from './filmPosters/karaoke.jpg';
 import karaokeMaker from './filmPosters/karaoke-maker.jpg';
@@ -31,7 +31,7 @@ const FILM_POSTERS: Readonly<Record<string, string>> = {
   'engine-sound': engineSound,
   'every-output': everyOutput,
   'fluideq-engine': fluideqEngine,
-  'game-presets': gamePresets,
+  'gaming-lab': gamingLab,
   'headphone-presets': headphonePresets,
   karaoke,
   'karaoke-maker': karaokeMaker,

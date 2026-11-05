@@ -12,8 +12,12 @@ export default {
   'genre.latin.pin.3150.why': '临场感，稍微往前。',
   'genre.latin.pin.12500': '不推铜管的高频',
   'genre.latin.pin.12500.why': '本来就富含谐波。',
-  'genre.latin.stage.dimension': '声像保持混音原样，只收窄低频。',
-  'genre.latin.stage.maximizer': '一个保留打击乐起音的上限。',
+  'genre.latin.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.latin.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.latin.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.latin.off':
     '它的激励器有提供但保持关闭：铜管和 güira 会因此变得刺耳。',
 
@@ -28,8 +32,12 @@ export default {
   'genre.latinPop.pin.3150.why': '歌词所在的地方。',
   'genre.latinPop.stage.exciter': '人声之下加温暖和厚度，高频什么都不加。',
   'genre.latinPop.stage.bassPunch': '超低音稍微收紧。',
-  'genre.latinPop.stage.dimension': '150 Hz 以下单声道。',
-  'genre.latinPop.stage.maximizer': '一个几乎不推的上限。',
+  'genre.latinPop.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.latinPop.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.latinPop.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.latinPop.off': '不用低音熔炉：超低音已经和底鼓锁在一起。',
 
   'genre.reggaeton.hook': '调好音的 808 上每拍一下的底鼓',
@@ -41,8 +49,12 @@ export default {
   'genre.reggaeton.pin.315.why': '给 dembow 留空间。',
   'genre.reggaeton.pin.5000': '军鼓的爆裂声',
   'genre.reggaeton.pin.5000.why': '清脆。',
-  'genre.reggaeton.stage.dimension': '150 Hz 以下单声道。',
-  'genre.reggaeton.stage.maximizer': '一个对这么响的母带几乎不推的上限。',
+  'genre.reggaeton.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.reggaeton.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.reggaeton.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.reggaeton.off':
     '低音熔炉有提供但保持关闭：在本来就失真的 808 下面，它的八度和谐波占到了音的 13%。',
 
@@ -58,8 +70,12 @@ export default {
   'genre.salsa.pin.12500': '铜管和牛铃不提亮',
   'genre.salsa.pin.12500.why': '一抬就会刺耳。',
   'genre.salsa.stage.exciter': '只在 tumbao 下轻轻加温暖，铜管上什么都不加。',
-  'genre.salsa.stage.dimension': '乐队留在原来摆放的位置，只收窄低频。',
-  'genre.salsa.stage.maximizer': '一个缓慢的上限，让每一下康加拍击都通过。',
+  'genre.salsa.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.salsa.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.salsa.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.salsa.off':
     '不用低音冲击，也不用低音熔炉，高频也不动：铜管和牛铃本来就富含谐波。',
 
@@ -72,8 +88,12 @@ export default {
   'genre.bachata.pin.1250.why': '主奏吉他的声音。',
   'genre.bachata.pin.8000': '3 到 8 kHz 绝不抬高',
   'genre.bachata.pin.8000.why': 'güira 和 requinto 很快就会让耳朵疲劳。',
-  'genre.bachata.stage.dimension': '保持混音原样，两把吉他分开；只收窄低频。',
-  'genre.bachata.stage.maximizer': '一个保留 güira 起音的轻上限。',
+  'genre.bachata.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.bachata.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.bachata.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.bachata.off':
     '它的激励器有提供但保持关闭：它会让 requinto 和 güira 刺耳。',
 
@@ -87,8 +107,12 @@ export default {
   'genre.merengue.pin.5000': '高频放松',
   'genre.merengue.pin.5000.why': 'güira 和萨克斯本来就很亮。',
   'genre.merengue.stage.bassPunch': '保持 tambora 冲击的紧实。',
-  'genre.merengue.stage.dimension': '乐团保持混音原样，只收窄低频。',
-  'genre.merengue.stage.maximizer': '一个不会把 güira 糊掉的轻上限。',
+  'genre.merengue.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.merengue.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.merengue.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.merengue.off':
     '不用激励器，也不用低音熔炉：萨克斯和 güira 上不加高频。',
 
@@ -102,8 +126,12 @@ export default {
   'genre.cumbia.pin.12500': '刮板不削尖',
   'genre.cumbia.pin.12500.why': '它的脉动保持不动。',
   'genre.cumbia.stage.exciter': '给贝斯加温暖，高频什么都不加。',
-  'genre.cumbia.stage.dimension': '乐队保持混音原样，只收窄低频。',
-  'genre.cumbia.stage.maximizer': '一个不去碰刮板脉动的缓慢上限。',
+  'genre.cumbia.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.cumbia.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.cumbia.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.cumbia.off':
     '不用低音冲击，也不用低音熔炉：刮擦声和贝斯保持演奏时的样子。',
 
@@ -117,8 +145,12 @@ export default {
   'genre.bossaNova.pin.5000': '人声上一点空气感',
   'genre.bossaNova.pin.5000.why': '临场感，轻轻地。',
   'genre.bossaNova.stage.exciter': '给吉他加温暖，给人声加一点空气感。',
-  'genre.bossaNova.stage.dimension': '亲密而靠近中央，和录音一样。',
-  'genre.bossaNova.stage.maximizer': '一个只负责接住的上限。',
+  'genre.bossaNova.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.bossaNova.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.bossaNova.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.bossaNova.off':
     '不用低音冲击，也不用低音熔炉：不压缩它，也不加超低音。',
 
@@ -132,8 +164,12 @@ export default {
   'genre.samba.pin.5000': 'tamborim 和 pandeiro',
   'genre.samba.pin.5000.why': '清脆，带金属感。',
   'genre.samba.stage.bassPunch': '收紧 surdo，而不是让它轰鸣。',
-  'genre.samba.stage.dimension': '合奏本来的宽度，只收窄低频。',
-  'genre.samba.stage.maximizer': '一个不催促打击乐起音的上限。',
+  'genre.samba.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.samba.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.samba.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.samba.off': '高频本来就亮，不用激励器，也不用低音熔炉。',
 
   'genre.flamenco.hook': 'rasgueado、掌声和踢踏',
@@ -146,8 +182,12 @@ export default {
   'genre.flamenco.pin.12500': '高频稍微放缓',
   'genre.flamenco.pin.12500.why': '本来就明亮：什么都不加。',
   'genre.flamenco.stage.exciter': '只加厚度，绝不加高频。',
-  'genre.flamenco.stage.dimension': '吉他和歌手居中，和录音一样。',
-  'genre.flamenco.stage.maximizer': '一个尽可能保留每个峰值的上限。',
+  'genre.flamenco.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.flamenco.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.flamenco.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.flamenco.off': '不用低音冲击，也不用低音熔炉：没有东西去压缩节奏。',
 
   'genre.regionalMexican.hook': '大号、手风琴和小号',
@@ -162,8 +202,12 @@ export default {
   'genre.regionalMexican.pin.12500': '放松铜管的高频',
   'genre.regionalMexican.pin.12500.why': '本来就够响了。',
   'genre.regionalMexican.stage.bassPunch': '保持 tambora 冲击的紧实。',
-  'genre.regionalMexican.stage.dimension': '现场乐团保持混音原样，只收窄低频。',
-  'genre.regionalMexican.stage.maximizer': '一个轻上限。',
+  'genre.regionalMexican.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.regionalMexican.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.regionalMexican.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.regionalMexican.off':
     '它的激励器有提供但保持关闭：铜管、手风琴和小提琴本来就很亮。',
 
@@ -177,7 +221,10 @@ export default {
   'genre.corridos.pin.12500': '钢弦 requinto 不提亮',
   'genre.corridos.pin.12500.why': '颗粒感本来就很清楚。',
   'genre.corridos.stage.dimension':
-    '120 Hz 以下的超低音单声道；requinto 和节奏吉他留在混音放它们的位置。',
-  'genre.corridos.stage.maximizer': '一个靠预读保留拨弦起音的上限。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.corridos.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.corridos.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.corridos.off': '低音熔炉有提供但保持关闭：808 自带超低音。',
 };

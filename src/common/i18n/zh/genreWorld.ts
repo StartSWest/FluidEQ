@@ -14,8 +14,12 @@ export default {
   'genre.afrobeat.pin.3150.why': '放松一点，就像模拟母带的声音。',
   'genre.afrobeat.stage.exciter': '给模拟母带加温暖和一点空气感。',
   'genre.afrobeat.stage.bassPunch': '贝斯稍微收紧。',
-  'genre.afrobeat.stage.dimension': '大乐队的铺开保持录音原样，只收窄低频。',
-  'genre.afrobeat.stage.maximizer': '一个保留动态的缓慢上限。',
+  'genre.afrobeat.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.afrobeat.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.afrobeat.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.afrobeat.off':
     '不用低音熔炉，也没有任何挤压乐队的东西：它的上限只是接住峰值。',
 
@@ -28,8 +32,12 @@ export default {
   'genre.afrobeats.pin.800.why': '给摇摆感留位置。',
   'genre.afrobeats.pin.12500': '沙锤和人声的空气感',
   'genre.afrobeats.pin.12500.why': '轻盈，在上面。',
-  'genre.afrobeats.stage.dimension': '150 Hz 以下单声道，沙锤稍宽一点。',
-  'genre.afrobeats.stage.maximizer': '一个保留摇摆感的轻上限。',
+  'genre.afrobeats.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.afrobeats.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.afrobeats.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.afrobeats.off':
     '低音熔炉有提供但保持关闭：正弦超低音很干净，下面不需要八度，也不需要毛刺。',
 
@@ -43,8 +51,11 @@ export default {
   'genre.amapiano.pin.8000': '明亮的沙锤',
   'genre.amapiano.pin.8000.why': '稍微抬一点。',
   'genre.amapiano.stage.dimension':
-    '120 Hz 以下的超低音单声道，log drum 的鼓身在 200 以下收窄，让它保持居中；只在 3 kHz 以上加宽。',
-  'genre.amapiano.stage.maximizer': '一个保留 log drum 起音的轻上限。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.amapiano.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.amapiano.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.amapiano.off':
     '低音熔炉有提供但保持关闭：log drum 唯一的规矩就是不能给它加饱和。',
 
@@ -58,8 +69,12 @@ export default {
   'genre.highlife.pin.3150': '甜美的吉他',
   'genre.highlife.pin.3150.why': '清楚而明亮。',
   'genre.highlife.stage.exciter': '给老录音加一点温暖和空气感。',
-  'genre.highlife.stage.dimension': '左右分开的吉他保持录音原样。',
-  'genre.highlife.stage.maximizer': '一个缓慢的上限。',
+  'genre.highlife.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.highlife.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.highlife.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.highlife.off': '不用低音冲击，也不用低音熔炉：干净的吉他保持干净。',
 
   'genre.world.hook': '效果链能做的最少的事',
@@ -71,7 +86,10 @@ export default {
   'genre.world.pin.3150.why': '不到 1 dB。',
   'genre.world.pin.12500': '一点空气感',
   'genre.world.pin.12500.why': '轻轻地。',
-  'genre.world.stage.maximizer': '一个只负责接住的上限。',
+  'genre.world.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.world.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.world.off': '不用空间感、激励器、低音冲击或低音熔炉：声像保持原样。',
 
   'genre.bollywood.hook': '围绕幕后歌手人声的华丽背景',
@@ -84,8 +102,12 @@ export default {
   'genre.bollywood.pin.2000': '幕后歌手的人声',
   'genre.bollywood.pin.2000.why': '靠前而干净。',
   'genre.bollywood.stage.bassPunch': '收紧超低音。',
-  'genre.bollywood.stage.dimension': '声像保持来时的宽度；只收窄低频。',
-  'genre.bollywood.stage.maximizer': '一个几乎不推的上限。',
+  'genre.bollywood.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.bollywood.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.bollywood.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.bollywood.off': '人声上不用激励器，也不用低音熔炉。',
 
   'genre.bhangra.hook': 'dhol 鼓就是这个流派',
@@ -98,8 +120,12 @@ export default {
   'genre.bhangra.pin.2000': 'dhol 的爆裂声和 tumbi',
   'genre.bhangra.pin.2000.why': '明亮有冲击。',
   'genre.bhangra.stage.bassPunch': '收紧轰响的尾音，从不抬高。',
-  'genre.bhangra.stage.dimension': '低频收窄，让 dhol 的轰响守住中央。',
-  'genre.bhangra.stage.maximizer': '一个长到足以让爆裂声通过的预读。',
+  'genre.bhangra.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.bhangra.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.bhangra.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.bhangra.off': '不用激励器，也不用低音熔炉：不加高频。',
 
   'genre.indianClassical.hook': '持续音上无节拍的 alap',
@@ -112,7 +138,7 @@ export default {
   'genre.indianClassical.pin.12500': 'tanpura 的微光',
   'genre.indianClassical.pin.12500.why': '持续音的光晕。',
   'genre.indianClassical.stage.maximizer':
-    '只有上限：电平均衡器会在 alap 里把持续音抬起来。',
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.indianClassical.off':
     '不用空间感、激励器或低音冲击：jivari 的谐波本来就做在乐器里。',
 
@@ -130,8 +156,12 @@ export default {
   'genre.arabicPop.stage.exciter':
     '人声之下加温暖；弦乐和 tek 保持原本的明亮。',
   'genre.arabicPop.stage.bassPunch': '收紧低频。',
-  'genre.arabicPop.stage.dimension': '弦乐保持录音时的宽度；只收窄低频。',
-  'genre.arabicPop.stage.maximizer': '一个保留达布卡鼓起音的轻上限。',
+  'genre.arabicPop.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.arabicPop.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.arabicPop.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.arabicPop.off': '不用低音熔炉：doum 之下不生成任何东西。',
 
   'genre.turkishPop.hook': '带土耳其色彩的精致流行',
@@ -147,8 +177,12 @@ export default {
   'genre.turkishPop.pin.8000.why': '本来就很精致。',
   'genre.turkishPop.stage.exciter': '人声之下加温暖，达布卡鼓上什么都不加。',
   'genre.turkishPop.stage.bassPunch': '紧实的低频。',
-  'genre.turkishPop.stage.dimension': '保持混音原样，只收窄低频。',
-  'genre.turkishPop.stage.maximizer': '一个几乎不推的上限。',
+  'genre.turkishPop.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.turkishPop.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.turkishPop.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.turkishPop.off': '这么精致的唱片上，不用低音熔炉。',
 
   'genre.gospel.hook': '一个合唱团，和持续好几分钟推高的 vamp',
@@ -160,8 +194,12 @@ export default {
   'genre.gospel.pin.315.why': '在饱满的声音里腾出空间。',
   'genre.gospel.pin.2000': '领唱',
   'genre.gospel.pin.2000.why': '往前。',
-  'genre.gospel.stage.dimension': '合唱团保持录音时的宽度。',
-  'genre.gospel.stage.maximizer': '一个让 vamp 推得起来的缓慢上限。',
+  'genre.gospel.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.gospel.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.gospel.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.gospel.off': '它的激励器有提供但保持关闭：合唱团上不加激励。',
 
   'genre.christian.hook': '安静的主歌推向宏大的桥段',
@@ -173,7 +211,11 @@ export default {
   'genre.christian.pin.800.why': '给宽阔的吉他。',
   'genre.christian.pin.3150': '歌词清楚',
   'genre.christian.pin.3150.why': '歌词所在的地方。',
-  'genre.christian.stage.dimension': '低频收窄；吉他保持宽阔。',
-  'genre.christian.stage.maximizer': '一个慢到能保住起伏弧线的上限。',
+  'genre.christian.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.christian.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.christian.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.christian.off': '不用激励器、低音冲击或低音熔炉：推进本身就是这首歌。',
 };

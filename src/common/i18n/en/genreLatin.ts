@@ -14,9 +14,11 @@ const genreLatin = {
   'genre.latin.pin.12500': 'The brass top not pushed',
   'genre.latin.pin.12500.why': 'Rich in harmonics already.',
   'genre.latin.stage.dimension':
-    'The picture kept as mixed, only the bass narrowed.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.latin.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.latin.stage.maximizer':
-    'A ceiling that keeps the attack of the percussion.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.latin.off':
     'Its Exciter is offered and left off: brass and güira turn harsh under one.',
 
@@ -32,8 +34,12 @@ const genreLatin = {
   'genre.latinPop.stage.exciter':
     'Warmth and body under the vocal, nothing on the top.',
   'genre.latinPop.stage.bassPunch': 'The sub tightened a little.',
-  'genre.latinPop.stage.dimension': 'Mono under 150 Hz.',
-  'genre.latinPop.stage.maximizer': 'A ceiling that barely drives.',
+  'genre.latinPop.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.latinPop.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.latinPop.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.latinPop.off': 'No Bass Forge: the sub is locked to the kick already.',
 
   'genre.reggaeton.hook': 'A kick every beat over a tuned 808',
@@ -45,9 +51,12 @@ const genreLatin = {
   'genre.reggaeton.pin.315.why': 'Space for the dembow.',
   'genre.reggaeton.pin.5000': 'The crack of the snare',
   'genre.reggaeton.pin.5000.why': 'Crisp.',
-  'genre.reggaeton.stage.dimension': 'Mono under 150 Hz.',
+  'genre.reggaeton.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.reggaeton.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.reggaeton.stage.maximizer':
-    'A ceiling that hardly pushes a master this loud.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.reggaeton.off':
     'Bass Forge is offered and left off: its octave and harmonics under an 808 that is distorted already came to 13% of the note.',
 
@@ -65,9 +74,11 @@ const genreLatin = {
   'genre.salsa.stage.exciter':
     'Warmth only, gently under the tumbao, and nothing on the brass.',
   'genre.salsa.stage.dimension':
-    'The band left where it was placed, only the bass narrowed.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.salsa.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.salsa.stage.maximizer':
-    'A slow ceiling that lets every conga slap through.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.salsa.off':
     'No Bass Punch or Bass Forge, and nothing on the top: brass and cowbell are rich in harmonics already.',
 
@@ -81,9 +92,11 @@ const genreLatin = {
   'genre.bachata.pin.8000': '3 to 8 kHz never lifted',
   'genre.bachata.pin.8000.why': 'The güira and the requinto tire the ear fast.',
   'genre.bachata.stage.dimension':
-    'As mixed, the two guitars apart; only the bass narrowed.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.bachata.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.bachata.stage.maximizer':
-    'A light ceiling that keeps the attack of the güira.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.bachata.off':
     'Its Exciter is offered and left off: it makes the requinto and the güira harsh.',
 
@@ -98,9 +111,11 @@ const genreLatin = {
   'genre.merengue.pin.5000.why': 'The güira and the saxes are bright already.',
   'genre.merengue.stage.bassPunch': 'The tambora’s punch kept tight.',
   'genre.merengue.stage.dimension':
-    'The orquesta as mixed, only the bass narrowed.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.merengue.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.merengue.stage.maximizer':
-    'A light ceiling that does not smear the güira.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.merengue.off':
     'No Exciter or Bass Forge: no top added to saxes and güira.',
 
@@ -114,9 +129,12 @@ const genreLatin = {
   'genre.cumbia.pin.12500': 'The scraper not sharpened',
   'genre.cumbia.pin.12500.why': 'Its pulse left alone.',
   'genre.cumbia.stage.exciter': 'Warmth for the bass, and nothing on the top.',
-  'genre.cumbia.stage.dimension': 'The band as mixed, only the bass narrowed.',
+  'genre.cumbia.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.cumbia.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.cumbia.stage.maximizer':
-    'A slow ceiling that leaves the scraper’s pulse alone.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.cumbia.off':
     'No Bass Punch or Bass Forge: the scrape and the bass stay as played.',
 
@@ -132,8 +150,11 @@ const genreLatin = {
   'genre.bossaNova.stage.exciter':
     'Warmth for the guitar and a little air for the voice.',
   'genre.bossaNova.stage.dimension':
-    'Intimate and near the centre, as recorded.',
-  'genre.bossaNova.stage.maximizer': 'A ceiling that only catches.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.bossaNova.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.bossaNova.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.bossaNova.off':
     'No Bass Punch or Bass Forge: nothing compresses it or adds sub.',
 
@@ -149,9 +170,11 @@ const genreLatin = {
   'genre.samba.stage.bassPunch':
     'The surdo tightened rather than made to boom.',
   'genre.samba.stage.dimension':
-    'The ensemble’s natural width, only the bass narrowed.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.samba.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.samba.stage.maximizer':
-    'A ceiling that does not rush the attack of the percussion.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.samba.off':
     'No Exciter or Bass Forge on a top that is bright already.',
 
@@ -166,8 +189,11 @@ const genreLatin = {
   'genre.flamenco.pin.12500.why': 'Bright already: nothing added.',
   'genre.flamenco.stage.exciter': 'Body, and never top.',
   'genre.flamenco.stage.dimension':
-    'The guitar and the singer in the centre, as recorded.',
-  'genre.flamenco.stage.maximizer': 'A ceiling that keeps every peak it can.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.flamenco.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.flamenco.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.flamenco.off':
     'No Bass Punch or Bass Forge: nothing compresses the rhythm.',
 
@@ -184,8 +210,11 @@ const genreLatin = {
   'genre.regionalMexican.pin.12500.why': 'Loud enough already.',
   'genre.regionalMexican.stage.bassPunch': 'The tambora’s punch kept tight.',
   'genre.regionalMexican.stage.dimension':
-    'The live ensemble as mixed, only the bass narrowed.',
-  'genre.regionalMexican.stage.maximizer': 'A light ceiling.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.regionalMexican.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.regionalMexican.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.regionalMexican.off':
     'Its Exciter is offered and left off: brass, accordion and violins are bright already.',
 
@@ -199,9 +228,11 @@ const genreLatin = {
   'genre.corridos.pin.12500': 'The steel requinto not brightened',
   'genre.corridos.pin.12500.why': 'Articulate already.',
   'genre.corridos.stage.dimension':
-    'The sub mono under 120 Hz; the requinto and the rhythm guitars left where the mix put them.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.corridos.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.corridos.stage.maximizer':
-    'A ceiling whose look-ahead keeps the pick attack.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.corridos.off':
     'Bass Forge is offered and left off: the 808 brings its own sub.',
 };

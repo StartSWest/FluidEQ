@@ -12,6 +12,7 @@ import type { IRemoteAudioLink, IRemoteAudioValue } from './remoteAudioState';
 import { heardHere, linkControls } from './linkRecords';
 import useIncomingSounding, { THIS_COMPUTER } from './useIncomingSounding';
 import useRemoteAudioSmooth from './useRemoteAudioSmooth';
+import useRemoteAudioReconnect from './useRemoteAudioReconnect';
 
 /** The one sound the This computer row listens for. */
 const ONLY_THIS_COMPUTER: readonly string[] = [THIS_COMPUTER];
@@ -58,9 +59,13 @@ const RemoteAudioGroup = ({
   const { t, locale } = useTranslation();
   // This computer and every other one listed, counted in the language's own
   // plural: with nobody linked the header read "1 computers".
-  const computers = 1 + audioGroupRows(remote).length;
+  const rows = audioGroupRows(remote);
+  const computers = 1 + rows.length;
   const { sharing } = remote;
   const [smooth, setSmooth] = useRemoteAudioSmooth();
+  const { reconnecting, reconnect } = useRemoteAudioReconnect(
+    rows.filter((row) => row.link).map((row) => row.computerId),
+  );
   const thisComputerSounds =
     useIncomingSounding(remote.subscribeMeter, ONLY_THIS_COMPUTER)[
       THIS_COMPUTER
@@ -156,7 +161,7 @@ const RemoteAudioGroup = ({
         role="group"
         aria-label={t('remoteAudio.group.title')}
       >
-        {audioGroupRows(remote).map(({ name, computerId, link }) => {
+        {rows.map(({ name, computerId, link }) => {
           const paused = link?.switches.paused ?? false;
           const canPlay = !!link && (remote.bothWays || !link.joined);
           const controls = link && linkControls(link, remote.bothWays, sharing);
@@ -181,6 +186,15 @@ const RemoteAudioGroup = ({
             } else {
               line = t('remoteAudio.lane.inQuiet', { name });
             }
+          }
+          // A reconnect by hand says so over whatever the row said, for as
+          // long as it is tried, and an offline row says when it was not
+          // found instead of only "Offline".
+          const tried = reconnecting.get(computerId);
+          if (tried === 'trying') {
+            line = t('remoteAudio.lane.reconnecting');
+          } else if (tried === 'missed' && !link) {
+            line = t('remoteAudio.lane.unreachable', { name });
           }
           return (
             <article
@@ -233,11 +247,18 @@ const RemoteAudioGroup = ({
                   name={name}
                   paused={paused}
                   canPause={!!link}
+                  canReconnect={tried !== 'trying'}
                   onPause={() => {
                     if (link) {
                       choose(link, { paused: !paused });
                     }
                   }}
+                  onReconnect={() =>
+                    reconnect(
+                      computerId,
+                      link ? { peerId: link.id } : { computerId },
+                    )
+                  }
                   onUnlink={() => {
                     remote
                       .unlink(link ? { peerId: link.id } : { computerId })

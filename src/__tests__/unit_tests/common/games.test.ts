@@ -8,9 +8,14 @@ import {
   IGameProfile,
   gamePathHolds,
   gameProfileFor,
-  gameSoundEndStep,
-  gameSoundStep,
+  gamingProfileOf,
 } from '../../../common/games';
+import {
+  ANY_GAME_PROFILE,
+  chainGamingProfileId,
+  readyGamingProfileId,
+  suggestGamingProfile,
+} from '../../../common/gaming';
 import {
   epicGame,
   mergeGamePrograms,
@@ -79,79 +84,52 @@ describe('which profile a running program belongs to', () => {
   });
 });
 
-describe('what the sound does as games come and go', () => {
-  it('puts the game’s sound on and remembers what was playing', () => {
-    const step = gameSoundStep({}, 'gaming', 'music');
-    expect(step).toEqual({
-      memory: { before: 'music', applied: 'gaming' },
-      select: 'gaming',
-    });
+describe('which Gaming profile a game’s own sound starts from', () => {
+  it('is the one it was given, before anything else', () => {
+    expect(
+      gamingProfileOf({
+        name: 'Counter-Strike 2',
+        presetId: 'gaming',
+        profileId: 'yours:abc12345',
+      }),
+    ).toBe('yours:abc12345');
   });
 
   /**
-   * The rule this whole file turns on: leaving the game's window is not
-   * leaving the game. Somebody alt-tabs to a browser, to Discord, to FluidEQ
-   * itself a dozen times a match, and every one of those used to take the
-   * game's sound away. Nothing happens now, and nothing is forgotten either —
-   * what puts the sound back is the game ending.
+   * A row from before the Gaming Lab named a DSP chain, and its game kept
+   * playing that chain's rack; its copy starts from it rather than from a
+   * guess about the title.
    */
-  it('changes nothing, and forgets nothing, when anything else comes forward', () => {
-    const memory = { before: 'music', applied: 'gaming' };
-    expect(gameSoundStep(memory, undefined, 'gaming')).toEqual({ memory });
-    expect(gameSoundStep(memory, '', 'gaming')).toEqual({ memory });
-  });
-
-  it('puts back what was playing once the game has ended', () => {
+  it('is the chain an older row played', () => {
     expect(
-      gameSoundEndStep({ before: 'music', applied: 'gaming' }, 'gaming'),
-    ).toEqual({ memory: {}, select: 'music' });
+      gamingProfileOf({ name: 'Counter-Strike 2', presetId: 'gaming' }),
+    ).toBe(chainGamingProfileId('gaming'));
   });
 
-  /**
-   * The rule this exists for: a chain chosen during the game is the
-   * listener's, and taking it away when the game closes is the app arguing
-   * with them.
-   */
-  it('keeps a chain the listener chose while playing', () => {
-    expect(
-      gameSoundEndStep({ before: 'music', applied: 'gaming' }, 'late-night'),
-    ).toEqual({ memory: {} });
+  it('is the one made for its title, read from the program’s own name', () => {
+    expect(gamingProfileOf({ name: 'Counter-Strike 2', presetId: '' })).toBe(
+      readyGamingProfileId('cs2'),
+    );
+    expect(suggestGamingProfile('ELDEN RING™')).toBe(
+      readyGamingProfileId('eldenRing'),
+    );
+    // A series named in the preset is found from the game's own file either
+    // way round.
+    expect(suggestGamingProfile('Call of Duty®')).toBe(
+      readyGamingProfileId('cod'),
+    );
   });
 
-  it('goes from one game to another and still remembers the first sound', () => {
-    const first = gameSoundStep({}, 'gaming', 'music');
-    const second = gameSoundStep(first.memory, 'movie', 'gaming');
-    expect(second).toEqual({
-      memory: { before: 'music', applied: 'movie' },
-      select: 'movie',
-    });
-    expect(gameSoundEndStep(second.memory, 'movie')).toEqual({
-      memory: {},
-      select: 'music',
-    });
-  });
-
-  it('changes nothing for a game whose sound is already on, and still steps back', () => {
-    const step = gameSoundStep({}, 'gaming', 'gaming');
-    expect(step).toEqual({ memory: { before: 'gaming', applied: 'gaming' } });
-    expect(gameSoundEndStep(step.memory, 'gaming')).toEqual({
-      memory: {},
-    });
-  });
-
-  it('leaves everything alone for a game with no sound of its own', () => {
-    expect(gameSoundStep({}, '', 'music')).toEqual({ memory: {} });
-    expect(gameSoundStep({}, undefined, 'music')).toEqual({ memory: {} });
-  });
-
-  it('has nothing to put back when no game put anything on', () => {
-    expect(gameSoundEndStep({}, 'music')).toEqual({ memory: {} });
-    expect(gameSoundEndStep({ applied: 'gaming' }, 'gaming')).toEqual({
-      memory: {},
-    });
+  it('is the one for any game when no title matches', () => {
+    expect(suggestGamingProfile('Stardew Valley')).toBe(
+      readyGamingProfileId(ANY_GAME_PROFILE),
+    );
+    // A short word is not a title: "Rust" must not be heard in "Trust".
+    expect(suggestGamingProfile('Trust Issues')).toBe(
+      readyGamingProfileId(ANY_GAME_PROFILE),
+    );
   });
 });
-
 describe('reading the launchers’ own lists', () => {
   /** A real manifest, as Steam writes it. */
   const manifest = [

@@ -358,3 +358,12 @@ describe('every film in the catalogue', () => {
     },
   );
 });
+
+it('bundles all 32 lines of the approved nine-minute walkthrough, including the late subtitles', () => {
+  const { cues } = FEATURE_FILMS.walkthrough;
+  expect(cues).toHaveLength(32);
+  expect(cues[cues.length - 1].to).toBe(564.5);
+  expect(filmCueAt(cues, 362)?.key).toBe('tour.film.walkthrough.footsteps');
+  expect(filmCueAt(cues, 527)?.key).toBe('tour.film.walkthrough.sharelink');
+  expect(filmCueAt(cues, 560)?.key).toBe('tour.film.walkthrough.outro');
+});

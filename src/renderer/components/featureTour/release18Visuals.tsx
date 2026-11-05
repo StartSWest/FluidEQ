@@ -15,7 +15,7 @@ import { useTranslation } from '../../utils/I18nContext';
  * the shape the slide gives it beside the text. The presets picker, drawn
  * with the genre notes' own parts,
  * is in `PresetsVisual.tsx`; the Compact player's in
- * `CompactPlayerVisual.tsx`; games in `GameStoryVisual.tsx`; the new look,
+ * `CompactPlayerVisual.tsx`; the Gaming Lab in `GamingLabVisual.tsx`; the new look,
  * the graph's views and the Studio, photographed, in `release20Visuals.tsx`.
  */
 

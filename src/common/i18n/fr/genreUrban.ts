@@ -13,8 +13,11 @@ export default {
   'genre.hiphop.pin.12500.why':
     'Le son d’un beat construit à partir de disques samplés.',
   'genre.hiphop.stage.dimension':
-    'Mono sous 120 Hz et resserré jusqu’à 180, l’image étroite gardée.',
-  'genre.hiphop.stage.maximizer': 'Un plafond qui pousse à peine.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.hiphop.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.hiphop.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.hiphop.off':
     'Son Exciteur, sa Forge de basses et son Punch des basses sont proposés et restent désactivés : les samples sont déjà saturés, et la Forge de basses ajoutait 16 % de son nouveau à une note de basse.',
 
@@ -28,8 +31,11 @@ export default {
   'genre.rap.pin.2000': 'Les consonnes',
   'genre.rap.pin.2000.why': 'L’intelligibilité, un peu en avant.',
   'genre.rap.stage.dimension':
-    'Les médiums un soupçon plus étroits que sur le disque, pour tenir la voix immobile.',
-  'genre.rap.stage.maximizer': 'Un plafond qui pousse à peine.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.rap.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.rap.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.rap.off':
     'La Forge de basses est proposée et reste désactivée : les harmoniques d’une basse tombent sur la poitrine de la voix.',
 
@@ -46,8 +52,11 @@ export default {
   'genre.trap.stage.bassForge':
     'Les harmoniques de la 808 (80, 120 et 160 Hz d’une note à 40 Hz), pour qu’une petite enceinte puisse la jouer ; pas d’octave en dessous.',
   'genre.trap.stage.dimension':
-    'Tout sous 120 Hz en mono, les charlestons et les synthés larges.',
-  'genre.trap.stage.maximizer': 'Un plafond qui pousse à peine.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.trap.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.trap.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.trap.off':
     'Ni Exciteur ni Punch des basses : la 808 est déjà saturée.',
 
@@ -61,8 +70,11 @@ export default {
   'genre.rnb.pin.12500': 'Un haut soyeux',
   'genre.rnb.pin.12500.why': 'De l’air au-dessus de la voix.',
   'genre.rnb.stage.dimension':
-    'Les nappes un peu plus larges que la voix, comme le genre est mixé.',
-  'genre.rnb.stage.maximizer': 'Un plafond léger.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.rnb.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.rnb.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.rnb.off':
     'Son Exciteur est proposé et reste désactivé : des harmoniques sur cette voix tomberaient sur ses respirations.',
 
@@ -78,9 +90,11 @@ export default {
   'genre.soul.pin.5000.why':
     'Abaissé : l’air fait monter le souffle de la bande.',
   'genre.soul.stage.dimension':
-    'Un soupçon plus étroit, ce qui rassemble les mix des années 60 panoramiqués aux extrêmes.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.soul.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.soul.stage.maximizer':
-    'Un plafond lent pour des masters qui n’ont jamais été limités.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.soul.off':
     'Son Exciteur est proposé et reste désactivé : la bande et les lampes sont le son, et un exciteur fait monter leur souffle.',
 
@@ -94,8 +108,11 @@ export default {
   'genre.neoSoul.pin.12500': 'Pas d’étincelles',
   'genre.neoSoul.pin.12500.why': 'Chaud et sombre, c’est la consigne.',
   'genre.neoSoul.stage.dimension':
-    'L’image du groupe live gardée, seul le bas est resserré.',
-  'genre.neoSoul.stage.maximizer': 'Un plafond lent qui ne comprime rien.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.neoSoul.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.neoSoul.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.neoSoul.off':
     'Son Exciteur est proposé et reste désactivé : sans lui, cela reste chaud et sombre.',
 
@@ -113,8 +130,12 @@ export default {
   'genre.funk.pin.12500.why': 'Adouci, jamais éclairci.',
   'genre.funk.stage.bassPunch':
     'Un bas serré, sans traîne qui brouillerait l’articulation.',
-  'genre.funk.stage.dimension': 'Au plus près du disque, le bas resserré.',
-  'genre.funk.stage.maximizer': 'Un plafond léger.',
+  'genre.funk.stage.dimension':
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.funk.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.funk.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.funk.off':
     'Ni Exciteur ni Forge de basses : sec et en avant dans les médiums, c’est le son.',
 
@@ -130,9 +151,11 @@ export default {
   'genre.disco.stage.bassPunch':
     'Un peu de poids dans la grosse caisse, sa queue arrêtée avant le temps suivant.',
   'genre.disco.stage.dimension':
-    'Pas d’élargissement de ce que l’orchestre a déjà étalé.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.disco.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.disco.stage.maximizer':
-    'Un plafond léger qui relâche vite sous la grosse caisse.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.disco.off':
     'Ni Exciteur ni Forge de basses : les charlestons et les cordes deviendraient cassants.',
 };

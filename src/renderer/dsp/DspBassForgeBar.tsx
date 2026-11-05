@@ -16,6 +16,7 @@ import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
 import useStagePresets from './useStagePresets';
+import { scopedGroups, useDspPresetScope } from './presetScope';
 
 interface IDspBassForgeBarProps {
   bassForge: IBassForgeSettings;
@@ -67,19 +68,22 @@ const DspBassForgeBar = ({
 }: IDspBassForgeBarProps) => {
   const { t } = useTranslation();
   const saved = useStagePresets('bassForge', bassForge, onChange, onCommit);
-  const factoryEntries: IRichPickEntry[] = BASS_FORGE_PRESET_GROUPS.flatMap(
-    (group) =>
-      BASS_FORGE_CATALOGUE.profiles
-        .filter((preset) => preset.group === group)
-        .map((preset) => ({
-          id: preset.id,
-          name: t(preset.labelKey as TranslationKey),
-          hint: profileHint(preset),
-          group,
-          icon: (
-            <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
-          ),
-        })),
+  const scope = useDspPresetScope();
+  const factoryEntries: IRichPickEntry[] = scopedGroups(
+    BASS_FORGE_PRESET_GROUPS,
+    scope,
+  ).flatMap((group) =>
+    BASS_FORGE_CATALOGUE.profiles
+      .filter((preset) => preset.group === group)
+      .map((preset) => ({
+        id: preset.id,
+        name: t(preset.labelKey as TranslationKey),
+        hint: profileHint(preset),
+        group,
+        icon: (
+          <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
+        ),
+      })),
   );
   // Saved profiles first, as the EQ lists its own.
   const entries: IRichPickEntry[] = [...saved.entries, ...factoryEntries];

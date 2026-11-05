@@ -25,6 +25,7 @@ import {
   resolveSceneName,
 } from 'common/scenePacks';
 import foldForSearch from '../utils/foldForSearch';
+import { searchMatcher } from '../../common/searchText';
 import {
   loadMemberScene,
   type ILockedMemberScene,
@@ -292,10 +293,7 @@ export const buildPlusRows = ({
 
 /** Every word typed is somewhere in what the row is matched by. */
 export const matchesSearch = (search: string, query: string) =>
-  foldForSearch(query)
-    .split(/\s+/)
-    .filter(Boolean)
-    .every((word) => search.includes(word));
+  searchMatcher(query)(search);
 
 /**
  * Only the families something is filed under.

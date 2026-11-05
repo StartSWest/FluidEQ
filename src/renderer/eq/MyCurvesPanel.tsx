@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import type { IMyCurve } from 'common/myCurves';
 import type { ErrorDescription } from 'common/errors';
+import { searchMatcher } from 'common/searchText';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { importEqText } from '../utils/equalizerApi';
@@ -43,10 +44,8 @@ export default function MyCurvesPanel() {
   const [isApplying, setApplying] = useState(false);
 
   const shown = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    const found = needle
-      ? curves.filter((curve) => curve.name.toLowerCase().includes(needle))
-      : [...curves];
+    const matchesQuery = searchMatcher(query);
+    const found = curves.filter((curve) => matchesQuery(curve.name));
     return sort === 'name'
       ? found.sort((a, b) => a.name.localeCompare(b.name))
       : found;

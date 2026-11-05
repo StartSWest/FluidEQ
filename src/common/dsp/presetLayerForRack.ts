@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IVoicingSettings } from '../constants';
 import type { IDspSettings } from './chain';
+import { isGameCurveVoicing } from './gameCurves';
 import { dspPresetCurve, isDspPresetId } from './presets';
 import { dspPresetVoicing, dspVoicingPresetId } from './presetVoicing';
 
@@ -28,7 +29,10 @@ import { dspPresetVoicing, dspVoicingPresetId } from './presetVoicing';
  * taken off its chip stays off), any other voicing stays (it replaces the
  * Preset layer on purpose), and a rack switched off, edited away from its
  * preset, or saved by the listener — whose curve main cannot read — keeps
- * the layer as it is.
+ * the layer as it is. Nor is a game curve (`gameCurves.ts`): a game's own
+ * sound plays its Gaming profile's curve over a Gaming chain's rack on
+ * purpose, and replacing it here would put the chain's curve back the
+ * moment the game's copy was loaded.
  */
 const presetLayerForRack = (
   voicing: IVoicingSettings | undefined,
@@ -40,7 +44,8 @@ const presetLayerForRack = (
     playing === undefined ||
     !dsp?.enabled ||
     playing === dsp.presetId ||
-    !isDspPresetId(dsp.presetId)
+    !isDspPresetId(dsp.presetId) ||
+    isGameCurveVoicing(playing)
   ) {
     return voicing;
   }

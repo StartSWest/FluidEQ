@@ -17,8 +17,11 @@ export default {
     'De la chaleur et un peu d’air pour les masters analogiques.',
   'genre.afrobeat.stage.bassPunch': 'La basse un peu resserrée.',
   'genre.afrobeat.stage.dimension':
-    'L’étalement du grand orchestre tel qu’enregistré, seul le bas est resserré.',
-  'genre.afrobeat.stage.maximizer': 'Un plafond lent qui garde la dynamique.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.afrobeat.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.afrobeat.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.afrobeat.off':
     'Pas de Forge de basses, et rien qui serre l’orchestre : son plafond ne fait que rattraper.',
 
@@ -32,8 +35,11 @@ export default {
   'genre.afrobeats.pin.12500': 'Shakers et air sur la voix',
   'genre.afrobeats.pin.12500.why': 'Léger, par-dessus.',
   'genre.afrobeats.stage.dimension':
-    'Mono sous 150 Hz, les shakers un peu plus larges.',
-  'genre.afrobeats.stage.maximizer': 'Un plafond léger qui garde le swing.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.afrobeats.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.afrobeats.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.afrobeats.off':
     'La Forge de basses est proposée et reste désactivée : un sub sinusoïdal est propre et ne veut ni octave ni grain dessous.',
 
@@ -47,9 +53,11 @@ export default {
   'genre.amapiano.pin.8000': 'Des shakers brillants',
   'genre.amapiano.pin.8000.why': 'Un léger relèvement.',
   'genre.amapiano.stage.dimension':
-    'Le sub en mono sous 120 Hz et le corps de la log drum resserré jusqu’à 200, pour qu’elle reste au centre ; de la largeur seulement au-dessus de 3 kHz.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.amapiano.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.amapiano.stage.maximizer':
-    'Un plafond léger qui garde l’attaque de la log drum.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.amapiano.off':
     'La Forge de basses est proposée et reste désactivée : la seule règle pour la log drum, c’est aucune saturation dessus.',
 
@@ -65,8 +73,11 @@ export default {
   'genre.highlife.stage.exciter':
     'Un peu de chaleur et d’air pour les enregistrements anciens.',
   'genre.highlife.stage.dimension':
-    'Les guitares panoramiquées telles qu’enregistrées.',
-  'genre.highlife.stage.maximizer': 'Un plafond lent.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.highlife.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.highlife.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.highlife.off':
     'Ni Punch des basses ni Forge de basses : les guitares propres restent propres.',
 
@@ -79,7 +90,10 @@ export default {
   'genre.world.pin.3150.why': 'Moins d’un décibel.',
   'genre.world.pin.12500': 'Un peu d’air',
   'genre.world.pin.12500.why': 'En douceur.',
-  'genre.world.stage.maximizer': 'Un plafond qui ne fait que rattraper.',
+  'genre.world.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.world.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.world.off':
     'Ni Dimension, ni Exciteur, ni Punch des basses, ni Forge de basses : l’image est laissée telle quelle.',
 
@@ -94,8 +108,11 @@ export default {
   'genre.bollywood.pin.2000.why': 'En avant et nette.',
   'genre.bollywood.stage.bassPunch': 'Le sub resserré.',
   'genre.bollywood.stage.dimension':
-    'L’image aussi large qu’elle est arrivée ; seul le bas est resserré.',
-  'genre.bollywood.stage.maximizer': 'Un plafond qui pousse à peine.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.bollywood.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.bollywood.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.bollywood.off':
     'Pas d’Exciteur sur la voix et pas de Forge de basses.',
 
@@ -111,9 +128,11 @@ export default {
   'genre.bhangra.stage.bassPunch':
     'La queue du grondement resserrée, jamais relevée.',
   'genre.bhangra.stage.dimension':
-    'Le bas resserré, pour que le grondement du dhol tienne le centre.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.bhangra.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.bhangra.stage.maximizer':
-    'Une anticipation assez longue pour laisser passer le claquement.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.bhangra.off': 'Ni Exciteur ni Forge de basses : pas de haut ajouté.',
 
   'genre.indianClassical.hook': 'Un alap sans mesure sur un bourdon',
@@ -127,7 +146,7 @@ export default {
   'genre.indianClassical.pin.12500': 'Le chatoiement de la tanpura',
   'genre.indianClassical.pin.12500.why': 'Le halo du bourdon.',
   'genre.indianClassical.stage.maximizer':
-    'Un plafond seulement : un niveleur ferait monter le bourdon dans l’alap.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.indianClassical.off':
     'Ni Dimension, ni Exciteur, ni Punch des basses : les harmoniques du jivari sont intégrées.',
 
@@ -146,9 +165,11 @@ export default {
     'De la chaleur sous la voix ; les cordes et le tek restent aussi brillants qu’ils sont.',
   'genre.arabicPop.stage.bassPunch': 'Le bas resserré.',
   'genre.arabicPop.stage.dimension':
-    'Les cordes aussi larges qu’enregistrées ; seul le bas est resserré.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.arabicPop.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.arabicPop.stage.maximizer':
-    'Un plafond léger qui garde l’attaque de la darbouka.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.arabicPop.off':
     'Pas de Forge de basses : rien de généré sous le doum.',
 
@@ -166,8 +187,12 @@ export default {
   'genre.turkishPop.stage.exciter':
     'De la chaleur sous la voix, rien sur la darbouka.',
   'genre.turkishPop.stage.bassPunch': 'Un bas serré.',
-  'genre.turkishPop.stage.dimension': 'Tel que mixé, seul le bas est resserré.',
-  'genre.turkishPop.stage.maximizer': 'Un plafond qui pousse à peine.',
+  'genre.turkishPop.stage.dimension':
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.turkishPop.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.turkishPop.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.turkishPop.off': 'Pas de Forge de basses sur un disque aussi poli.',
 
   'genre.gospel.hook': 'Un chœur, et des vamps qui montent pendant des minutes',
@@ -179,8 +204,12 @@ export default {
   'genre.gospel.pin.315.why': 'De la place dans un son plein.',
   'genre.gospel.pin.2000': 'La voix principale',
   'genre.gospel.pin.2000.why': 'En avant.',
-  'genre.gospel.stage.dimension': 'Le chœur aussi large qu’enregistré.',
-  'genre.gospel.stage.maximizer': 'Un plafond lent qui laisse monter un vamp.',
+  'genre.gospel.stage.dimension':
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.gospel.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.gospel.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.gospel.off':
     'Son Exciteur est proposé et reste désactivé : pas d’éclat ajouté au chœur.',
 
@@ -194,8 +223,11 @@ export default {
   'genre.christian.pin.3150': 'Les paroles, nettes',
   'genre.christian.pin.3150.why': 'Là où sont les mots.',
   'genre.christian.stage.dimension':
-    'Le bas resserré ; les guitares laissées larges.',
-  'genre.christian.stage.maximizer': 'Un plafond assez lent pour garder l’arc.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.christian.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.christian.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.christian.off':
     'Ni Exciteur, ni Punch des basses, ni Forge de basses : la montée est la chanson.',
 };

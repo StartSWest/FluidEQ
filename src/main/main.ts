@@ -110,6 +110,12 @@ import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import { registerForumIpc } from './ipc/forum';
 import { registerMotionPreferenceIpc } from './ipc/motionPreference';
 import { registerGamesIpc } from './ipc/games';
+import { registerGameSoundIpc } from './ipc/gameSound';
+import {
+  createGameLoans,
+  createYoursGamingProfiles,
+  returnGameLoans,
+} from './gameSound';
 import { registerSystemVolumeIpc } from './systemVolume';
 import { registerStartWithWindowsIpc } from './ipc/startWithWindows';
 import { wasOpenedAtMacLogin } from './openAtLoginMac';
@@ -291,6 +297,17 @@ if (
   );
 }
 const session = createMainSession();
+
+// A game's sound left on by a quit, a crash or a power cut mid-game gives every
+// output its own profile back before the first output is read and played: a
+// game still running comes to the front again and is lent its sound again.
+const gameLoans = createGameLoans(userDataDir);
+if (returnGameLoans(gameLoans, deviceProfileSettings)) {
+  saveDeviceProfileSettings(deviceProfileSettings, userDataDir).catch((error) =>
+    log.error('Could not give an output its own sound back', error),
+  );
+}
+const yoursGamingProfiles = createYoursGamingProfiles(userDataDir);
 
 const DATABASES_SYNCED_EVENT = 'databases-synced';
 
@@ -580,6 +597,23 @@ registerLayersIpc({
   handleUpdate,
   handleError,
   applyingLayer: profiles.applyingLayer,
+});
+registerGameSoundIpc({
+  state,
+  session,
+  deviceProfileSettings,
+  userDataDir,
+  presetDirForDevice: profiles.presetDirForDevice,
+  loans: gameLoans,
+  yours: yoursGamingProfiles,
+  runProfileMutation: profiles.runProfileMutation,
+  attachPresetToActiveDevice: profiles.attachPresetToActiveDevice,
+  createEmptyProfileForActiveDevice: profiles.createEmptyProfileForActiveDevice,
+  getCurrentPreset: profiles.getCurrentPreset,
+  hydrateActiveConvolution: profiles.hydrateActiveConvolution,
+  notifyOutputStateChanged,
+  handleUpdate,
+  handleError,
 });
 
 registerSongEqHandlers(userDataDir);

@@ -13,8 +13,11 @@ const genreReggae = {
   'genre.reggae.pin.12500': '軟頂',
   'genre.reggae.pin.12500.why': '老式磁帶：沒有什麼可以消除嘶嘶聲。',
   'genre.reggae.stage.dimension':
-    '80 Hz 以下的低音單聲道並在 80 Hz 以上變窄；單聲道唱片保持單聲道。',
-  'genre.reggae.stage.maximizer': '天花板只會卡住，軟踢保持柔軟。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.reggae.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.reggae.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.reggae.off':
     'Bass Forge 已提供並保留：低音帶有自己的泛音。磁帶時代的陀螺儀上沒有激勵器。',
   'genre.dub.hook': '鼓、貝斯與滴奏',
@@ -27,8 +30,11 @@ const genreReggae = {
   'genre.dub.pin.8000': '迴聲與春天的光芒',
   'genre.dub.pin.8000.why': '保留了效果的閃光。',
   'genre.dub.stage.dimension':
-    '150Hz以下的底部單聲道，和原來一樣窄；迴聲離開了混音所投射的地方。',
-  'genre.dub.stage.maximizer': '唯一引人注目的天花板：水滴才是重點。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.dub.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.dub.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.dub.off':
     'Bass Forge 已提供並被關閉，沒有激勵器，並且沒有任何東西可以使水滴保持平衡。',
   'genre.dancehall.hook': '808 型重低音喇叭上的數字 Riddims',
@@ -40,8 +46,12 @@ const genreReggae = {
   'genre.dancehall.pin.315.why': '聲音的空間。',
   'genre.dancehall.pin.1250': '聲樂前鋒',
   'genre.dancehall.pin.1250.why': '上面是DJ。',
-  'genre.dancehall.stage.dimension': '單聲道低於 120 Hz，窄至 150。',
-  'genre.dancehall.stage.maximizer': '天花板夠快，可以保持敲擊聲清脆。',
+  'genre.dancehall.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.dancehall.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.dancehall.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.dancehall.off':
     'Bass Forge 被提供並停止，並且清脆的打擊樂沒有激勵器。',
   'genre.ska.hook': '另類的行走貝斯和法國號',
@@ -55,8 +65,12 @@ const genreReggae = {
   'genre.ska.pin.315.why': '為喇叭留出空間。',
   'genre.ska.pin.2000': '角和臭鼬',
   'genre.ska.pin.2000.why': '另類，明亮。',
-  'genre.ska.stage.dimension': '是一種縮小而不是任何寬度的陰影。',
-  'genre.ska.stage.maximizer': '淺色天花板。',
+  'genre.ska.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.ska.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.ska.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.ska.off':
     '無激勵器、Bass Punch 或 Bass Forge：在老式錄音下沒有發明低音。',
 } satisfies Partial<Dictionary>;
