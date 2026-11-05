@@ -228,6 +228,8 @@ const PATHS: Record<string, string> = {
     'M8.5 5H6.5a1 1 0 0 0-1 1v13.5a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2M9 3.5h6V7H9zM9 11.5h6M9 15h4',
   // A pushpin: kept on screen, beside what it is about.
   pin: 'M8 3.5h8M9.5 3.5V10L6 13.5h12L14.5 10V3.5M12 13.5V21',
+  // The pin struck through: release the panel kept on screen.
+  pinOff: 'M8 3.5h8M9.5 3.5V10L6 13.5h12L14.5 10V3.5M12 13.5V21M4 4l16 16',
   // A bell: a count that asks for attention.
   bell: 'M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5l1.5-1.5zM10 20.5h4',
   // The bell struck through: that count switched off.

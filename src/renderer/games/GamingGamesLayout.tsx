@@ -37,7 +37,7 @@ export const GamingGamesListToggle = ({
         aria-controls={controls}
         onClick={onToggle}
       >
-        <MenuIcon name="pin" />
+        <MenuIcon name={collapsed ? 'pin' : 'pinOff'} />
       </button>
     </div>
   );
