@@ -81,14 +81,16 @@
     top: 0;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    // The heading follows its contents, not the user-resized list column.
+    justify-self: start;
     gap: 8px;
     min-width: 0;
-    width: var(--gaming-list-width);
+    width: max-content;
     max-width: 100%;
     height: 26px;
 
     > .gaming-cap {
+      min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;

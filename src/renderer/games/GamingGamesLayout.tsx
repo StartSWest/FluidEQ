@@ -22,9 +22,12 @@ export const GamingGamesListToggle = ({
 }) => {
   const { t } = useTranslation();
   const label = t(collapsed ? 'gaming.list.show' : 'gaming.list.hide');
+  const heading = t('gaming.list.count', { count });
   return (
     <div className="gaming-games__list-head">
-      <span className="gaming-cap">{t('gaming.list.count', { count })}</span>
+      <span className="gaming-cap" title={heading}>
+        {heading}
+      </span>
       <button
         type="button"
         className="button small subtle gaming-games__list-toggle"
