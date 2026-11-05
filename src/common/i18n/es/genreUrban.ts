@@ -12,8 +12,11 @@ export default {
   'genre.hiphop.pin.12500.why':
     'Como suena un beat hecho con discos sampleados.',
   'genre.hiphop.stage.dimension':
-    'Mono por debajo de 120 Hz y más estrecho hasta 180; se conserva la imagen estrecha.',
-  'genre.hiphop.stage.maximizer': 'Un techo que apenas empuja.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.hiphop.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.hiphop.stage.maximizer':
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.hiphop.off':
     'Su Excitador, su Forja de graves y su Pegada de graves se ofrecen y quedan apagados: los samples ya vienen saturados, y la Forja de graves añadía un 16 % de sonido nuevo a una nota de bajo.',
 
@@ -27,8 +30,11 @@ export default {
   'genre.rap.pin.2000': 'Las consonantes',
   'genre.rap.pin.2000.why': 'Inteligibilidad, un poco hacia delante.',
   'genre.rap.stage.dimension':
-    'Los medios un pelín más estrechos que en el disco, para sujetar la voz.',
-  'genre.rap.stage.maximizer': 'Un techo que apenas empuja.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.rap.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.rap.stage.maximizer':
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.rap.off':
     'La Forja de graves se ofrece y queda apagada: los armónicos de un bajo caen sobre el pecho de la voz.',
 
@@ -45,8 +51,11 @@ export default {
   'genre.trap.stage.bassForge':
     'Los armónicos del 808 (80, 120 y 160 Hz de una nota de 40 Hz), para que un altavoz pequeño pueda reproducirlo; sin octava por debajo.',
   'genre.trap.stage.dimension':
-    'Todo por debajo de 120 Hz en mono; los hi-hats y los sintes, abiertos.',
-  'genre.trap.stage.maximizer': 'Un techo que apenas empuja.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.trap.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.trap.stage.maximizer':
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.trap.off':
     'Sin Excitador ni Pegada de graves: el 808 ya viene distorsionado.',
 
@@ -60,8 +69,11 @@ export default {
   'genre.rnb.pin.12500': 'Unos agudos sedosos',
   'genre.rnb.pin.12500.why': 'Aire por encima de la voz.',
   'genre.rnb.stage.dimension':
-    'Los pads un poco más abiertos que la voz, como se mezcla el género.',
-  'genre.rnb.stage.maximizer': 'Un techo ligero.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.rnb.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.rnb.stage.maximizer':
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.rnb.off':
     'Su Excitador se ofrece y queda apagado: los armónicos en esta voz caen sobre sus respiraciones.',
 
@@ -76,9 +88,11 @@ export default {
   'genre.soul.pin.5000': 'Sin aire',
   'genre.soul.pin.5000.why': 'Rebajado: el aire levanta el siseo de la cinta.',
   'genre.soul.stage.dimension':
-    'Un pelín más estrecho, lo que junta las mezclas de los 60 paneadas a tope.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.soul.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.soul.stage.maximizer':
-    'Un techo lento para másters que nunca se limitaron.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.soul.off':
     'Su Excitador se ofrece y queda apagado: la cinta y las válvulas son el sonido, y un excitador sube su siseo.',
 
@@ -92,8 +106,11 @@ export default {
   'genre.neoSoul.pin.12500': 'Sin destellos',
   'genre.neoSoul.pin.12500.why': 'Cálido y oscuro es el encargo.',
   'genre.neoSoul.stage.dimension':
-    'La imagen de la banda en vivo se conserva; solo se estrechan los graves.',
-  'genre.neoSoul.stage.maximizer': 'Un techo lento que no aprieta nada.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.neoSoul.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.neoSoul.stage.maximizer':
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.neoSoul.off':
     'Su Excitador se ofrece y queda apagado: sin él se mantiene cálido y oscuro.',
 
@@ -111,8 +128,11 @@ export default {
   'genre.funk.stage.bassPunch':
     'Unos graves ajustados sin cola que emborrone la articulación.',
   'genre.funk.stage.dimension':
-    'Cerca del disco, con los graves más estrechos.',
-  'genre.funk.stage.maximizer': 'Un techo ligero.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.funk.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.funk.stage.maximizer':
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.funk.off':
     'Sin Excitador ni Forja de graves: seco y con los medios delante es el sonido.',
 
@@ -127,9 +147,12 @@ export default {
   'genre.disco.pin.8000.why': 'El destello de la época.',
   'genre.disco.stage.bassPunch':
     'Un poco de peso en el bombo, con la cola corta antes del siguiente pulso.',
-  'genre.disco.stage.dimension': 'No se ensancha lo que la orquesta ya abrió.',
+  'genre.disco.stage.dimension':
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.disco.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.disco.stage.maximizer':
-    'Un techo ligero que suelta rápido bajo el bombo.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.disco.off':
     'Sin Excitador ni Forja de graves: los hi-hats y las cuerdas se vuelven quebradizos con ellos.',
 };

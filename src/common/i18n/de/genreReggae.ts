@@ -11,9 +11,11 @@ export default {
   'genre.reggae.pin.12500': 'Weiche Höhen',
   'genre.reggae.pin.12500.why': 'Altes Band: Nichts hebt das Rauschen an.',
   'genre.reggae.stage.dimension':
-    'Der Bass unter 80 Hz in Mono und darüber schmaler; eine Mono-Platte bleibt Mono.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.reggae.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.reggae.stage.maximizer':
-    'Eine Obergrenze, die nur abfängt, und der weiche Kick bleibt weich.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.reggae.off':
     'Die Bass-Schmiede wird angeboten und bleibt aus: Der Bass trägt seine eigenen Obertöne. Kein Exciter auf Höhen aus der Bandära.',
 
@@ -27,9 +29,11 @@ export default {
   'genre.dub.pin.8000': 'Der Glanz von Echo und Feder',
   'genre.dub.pin.8000.why': 'Das Funkeln der Effekte, bewahrt.',
   'genre.dub.stage.dimension':
-    'Unten Mono bis 150 Hz, so schmal wie die Originale; die Echos bleiben, wohin der Mix sie geworfen hat.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.dub.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.dub.stage.maximizer':
-    'Eine Obergrenze, die nur abfängt: Die Drops sind der Sinn.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.dub.off':
     'Die Bass-Schmiede wird angeboten und bleibt aus, es gibt keinen Exciter, und nichts ebnet die Drops ein.',
 
@@ -42,9 +46,12 @@ export default {
   'genre.dancehall.pin.315.why': 'Platz für die Stimme.',
   'genre.dancehall.pin.1250': 'Die Stimme vorn',
   'genre.dancehall.pin.1250.why': 'Der Deejay obenauf.',
-  'genre.dancehall.stage.dimension': 'Mono unter 120 Hz, schmaler bis 150.',
+  'genre.dancehall.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.dancehall.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.dancehall.stage.maximizer':
-    'Eine Obergrenze, schnell genug, um die Percussion knackig zu halten.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.dancehall.off':
     'Die Bass-Schmiede wird angeboten und bleibt aus, und es gibt keinen Exciter auf knackiger Percussion.',
 
@@ -59,8 +66,12 @@ export default {
   'genre.ska.pin.315.why': 'Platz für die Bläser.',
   'genre.ska.pin.2000': 'Bläser und Skank',
   'genre.ska.pin.2000.why': 'Der Offbeat, hell.',
-  'genre.ska.stage.dimension': 'Eher ein Hauch schmaler als irgendeine Breite.',
-  'genre.ska.stage.maximizer': 'Eine leichte Obergrenze.',
+  'genre.ska.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.ska.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
+  'genre.ska.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.ska.off':
     'Kein Exciter, kein Bass-Punch und keine Bass-Schmiede: kein erfundener Bass unter einer alten Aufnahme.',
 };

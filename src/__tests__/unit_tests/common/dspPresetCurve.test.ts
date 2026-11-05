@@ -110,15 +110,16 @@ describe('a preset’s tone and its rack’s support, split', () => {
       });
       expect(curve.bands.some((one) => one.dynamic)).toBe(false);
     });
-    // POSITIVE CONTROL: the split did not throw the tone away on its way
-    // out of the rack. Metal is the curve Ivan compared, lifted in the
-    // presence region and cut in the low mids.
-    const metal = DSP_PRESETS.find((preset) => preset.id === 'metal');
-    const at = (hz: number) =>
-      metal?.curve?.bands.find((one) => one.frequency === hz)?.gainDb ?? 0;
-    expect(at(5000)).toBeGreaterThan(2);
-    expect(at(315)).toBeLessThan(-2);
-    expect(metal?.settings.eq.subsonicHz).toBeGreaterThan(0);
+    // The split must preserve strong positive and negative tone exactly,
+    // independently of how restrained a measured factory curve becomes.
+    const control = eqOf([band(5000, 3), band(315, -3)], { subsonicHz: 25 });
+    expect(presetCurve(control)?.bands.map((one) => one.gainDb)).toEqual([
+      3, -3,
+    ]);
+    expect(presetSupport(control).bands.map((one) => one.gainDb)).toEqual([
+      0, 0,
+    ]);
+    expect(presetSupport(control).subsonicHz).toBe(25);
   });
 
   it('keeps the rack’s EQ on only for what supports the rest of the rack', () => {

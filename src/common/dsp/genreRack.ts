@@ -81,9 +81,11 @@ export interface IGenreRack extends Partial<
   chainId?: string;
   /**
    * A source level before the creative stages, independent of the final
-   * ceiling. Pop and K-pop use constant song gain here so the Maximizer sees
-   * the same level on a quiet file and a loud master, without compressing
-   * each beat.
+   * ceiling. Music genres use constant song gain here so the Maximizer sees
+   * a common working level on quiet files and loud masters, within the
+   * normalizer's gain and peak limits, without compressing each beat.
+   * Targets reserve reference peak headroom; docs/dsp/music-reference-audit.json
+   * records the rendered configuration and excerpt measurements.
    */
   normalizer?: IInputNormalizerSettings;
   /**

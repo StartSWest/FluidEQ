@@ -10,9 +10,10 @@ export default {
   'genre.electronic.pin.315.why': '给底鼓留出打出来的空间。',
   'genre.electronic.pin.8000': '踩镲和空气感',
   'genre.electronic.pin.8000.why': '明亮混音的顶端。',
-  'genre.electronic.stage.dimension': '150 Hz 以下单声道，中频以上稍微加宽。',
+  'genre.electronic.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
   'genre.electronic.stage.maximizer':
-    '一个轻上限，推动比俱乐部类预设多半分贝，让它和它们一样响。',
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.electronic.off':
     '它的激励器、低音熔炉和低音冲击有提供但保持关闭：激励器很快就会让这种高频刺耳，而超低音下面不需要再生成任何东西。',
 
@@ -25,8 +26,10 @@ export default {
   'genre.edm.pin.315.why': '给底鼓留空间。',
   'genre.edm.pin.5000': '超级锯齿波的咬劲',
   'genre.edm.pin.5000.why': '主旋律的边缘。',
-  'genre.edm.stage.dimension': '低频单声道，其余什么都不做。',
-  'genre.edm.stage.maximizer': '一个几乎不推的上限，面对的是已削波的母带。',
+  'genre.edm.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.edm.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.edm.off':
     '它的激励器有提供但保持关闭：一个什么都有的 drop，不加超低音、不加宽、不加谐波。',
 
@@ -40,8 +43,11 @@ export default {
   'genre.house.pin.12500': '温暖，不明亮',
   'genre.house.pin.12500.why': '高频放松。',
   'genre.house.stage.dimension':
-    '150 Hz 以下单声道，200 以下收窄，高频稍宽一点。',
-  'genre.house.stage.maximizer': '一个不去碰抽吸的轻上限。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.house.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.house.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.house.off':
     '不用低音冲击，因为什么都不能改变底鼓的时值；不用激励器，也不用低音熔炉。',
 
@@ -55,8 +61,10 @@ export default {
   'genre.techno.pin.5000': '不提亮',
   'genre.techno.pin.5000.why': '高频几乎不动。',
   'genre.techno.stage.bassPunch': '最多收紧底鼓，免得轰鸣把它糊掉。',
-  'genre.techno.stage.dimension': '低频单声道；在最窄的风格里什么都不加宽。',
-  'genre.techno.stage.maximizer': '一个轻上限。',
+  'genre.techno.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.techno.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.techno.off': '不用激励器，也不用低音熔炉：不提升超低音，也不加谐波。',
 
   'genre.trance.hook': '超级锯齿波，和靠反差搭起来的 drop',
@@ -68,8 +76,10 @@ export default {
   'genre.trance.pin.315.why': '200 到 350 Hz，混音变浊的地方。',
   'genre.trance.pin.3150': '放松脆硬的频段',
   'genre.trance.pin.3150.why': '3 kHz 左右，锯齿波变得像玻璃的地方。',
-  'genre.trance.stage.dimension': '120 Hz 以下单声道，其余不动。',
-  'genre.trance.stage.maximizer': '一个几乎不推的上限，让 drop 保住它的反差。',
+  'genre.trance.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.trance.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.trance.off':
     '不用激励器，也不用低音熔炉：超级锯齿波本来就产生大量高频。',
 
@@ -83,9 +93,10 @@ export default {
   'genre.drumBass.pin.5000': '军鼓和碎拍的爆裂声',
   'genre.drumBass.pin.5000.why': '这个流派的身份。',
   'genre.drumBass.stage.bassPunch': '收紧底鼓，绝不抬高。',
-  'genre.drumBass.stage.dimension': '超低音单声道。',
+  'genre.drumBass.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
   'genre.drumBass.stage.maximizer':
-    '一个轻上限，在一个十六分音符之内松开，让军鼓保留那一声脆响。',
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.drumBass.off': '不用激励器，也不用低音熔炉：neuro 贝斯上不加谐波。',
 
   'genre.dubstep.hook': '咆哮下面的正弦超低音',
@@ -97,8 +108,10 @@ export default {
   'genre.dubstep.pin.80.why': '超低音之上的厚度。',
   'genre.dubstep.pin.500': '给军鼓和咆哮留空间',
   'genre.dubstep.pin.500.why': '清理中频。',
-  'genre.dubstep.stage.dimension': '120 Hz 以下的超低音单声道。',
-  'genre.dubstep.stage.maximizer': '一个几乎不推的上限。',
+  'genre.dubstep.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.dubstep.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.dubstep.off':
     '不用激励器、低音冲击或低音熔炉：咆哮本来就已经嘶嘶作响。',
 
@@ -112,7 +125,10 @@ export default {
   'genre.downtempo.pin.12500': '颗粒感保留灰尘',
   'genre.downtempo.pin.12500.why': '不提亮。',
   'genre.downtempo.stage.dimension': '氛围更宽，低音收窄。',
-  'genre.downtempo.stage.maximizer': '一个缓慢、轻柔的上限。',
+  'genre.downtempo.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.downtempo.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.downtempo.off': '低音熔炉有提供但保持关闭：贝斯本来就够深。',
 
   'genre.chillout.hook': '顺滑而宽敞',
@@ -126,8 +142,10 @@ export default {
   'genre.chillout.pin.12500.why': '顶上的微光。',
   'genre.chillout.stage.exciter': '只加一点轻盈的空气感。',
   'genre.chillout.stage.dimension': '高频更宽：在这里宽度是受欢迎的。',
+  'genre.chillout.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
   'genre.chillout.stage.maximizer':
-    '一个缓慢的上限，用一整拍松开：什么都不压。',
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.chillout.off': '不用低音冲击，也不用低音熔炉：没有沉重的东西。',
 
   'genre.lofi.hook': '故意又暗又带灰尘',
@@ -139,8 +157,10 @@ export default {
   'genre.lofi.pin.200.why': '它唯一能好好接受的方向。',
   'genre.lofi.pin.3150': '故意偏暗',
   'genre.lofi.pin.3150.why': '不比唱片更亮。',
-  'genre.lofi.stage.dimension': '稍微收窄，120 Hz 以下的低频单声道。',
-  'genre.lofi.stage.maximizer': '比同族预设多推一点，照顾母带做得更轻的唱片。',
+  'genre.lofi.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.lofi.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.lofi.off':
     '它的激励器有提供但保持关闭：唱片本来就已经在磁带上饱和了。',
 
@@ -154,7 +174,8 @@ export default {
   'genre.ambient.pin.12500': '空气感和微光',
   'genre.ambient.pin.12500.why': '铺底的顶端。',
   'genre.ambient.stage.dimension': '宽，所有流派里最宽，但单声道下依然安全。',
-  'genre.ambient.stage.maximizer': '一个只会碰到涌动顶端的上限。',
+  'genre.ambient.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.ambient.off':
     '它的激励器有提供但保持关闭：没有东西去压缩或抹平安静的部分。',
 
@@ -168,6 +189,9 @@ export default {
   'genre.newAge.pin.12500': '一点空气感',
   'genre.newAge.pin.12500.why': '在混响之上。',
   'genre.newAge.stage.dimension': '宽阔的氛围。',
-  'genre.newAge.stage.maximizer': '没有东西去抹平安静的部分。',
+  'genre.newAge.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.newAge.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.newAge.off': '它的激励器有提供但保持关闭：通透就是要求。',
 };

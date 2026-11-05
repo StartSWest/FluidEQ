@@ -17,8 +17,11 @@ const genreRock = {
   'genre.rock.stage.bassPunch':
     'The kick keeps its own hit, and its tail is shortened under the bass guitar.',
   'genre.rock.stage.dimension':
-    'The bass narrowed under 160 Hz; the hard-panned guitars untouched.',
-  'genre.rock.stage.maximizer': 'A light ceiling, quick enough for a backbeat.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.rock.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.rock.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.rock.off':
     'Its Exciter and Bass Forge are offered and left off: distorted guitars make their own harmonics, and the bass guitar has a real bottom.',
 
@@ -37,9 +40,11 @@ const genreRock = {
   'genre.popRock.stage.bassPunch':
     'Keeps the kick’s hit and shortens its tail under a moving bass line.',
   'genre.popRock.stage.dimension':
-    'The bass narrowed under 150 Hz; the guitars stay where the mix put them.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.popRock.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.popRock.stage.maximizer':
-    'Catches peaks only and lets go within a sixteenth note.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.popRock.off':
     'No Exciter over a voice that is bright already, and no Bass Forge under a real bass guitar.',
 
@@ -56,9 +61,11 @@ const genreRock = {
   'genre.classicRock.stage.exciter':
     'A little low-mid warmth, the tape sound, and nothing on the top.',
   'genre.classicRock.stage.dimension':
-    'A shade narrower, which brings hard-panned 60s mixes together on headphones.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.classicRock.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.classicRock.stage.maximizer':
-    'A slow ceiling that keeps the dynamics the originals had.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.classicRock.off':
     'No Bass Punch or Bass Forge: a roomy kick and tape-warm bass stay as recorded.',
 
@@ -77,9 +84,11 @@ const genreRock = {
   'genre.alternativeRock.stage.bassPunch':
     'The kick’s hit kept and its tail shortened.',
   'genre.alternativeRock.stage.dimension':
-    'The bass narrowed, the guitars left where they were panned.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.alternativeRock.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.alternativeRock.stage.maximizer':
-    'A ceiling that barely drives, so the loud part stays louder than the quiet one.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.alternativeRock.off':
     'No Exciter and no Bass Forge: the fuzz makes its own harmonics.',
 
@@ -94,9 +103,11 @@ const genreRock = {
   'genre.indieRock.pin.8000': 'Warm and dark, as recorded',
   'genre.indieRock.pin.8000.why': 'The top stays soft.',
   'genre.indieRock.stage.dimension':
-    'The room’s own width, only the bottom narrowed.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.indieRock.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.indieRock.stage.maximizer':
-    'A light ceiling that lets go within a sixteenth note.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.indieRock.off':
     'No Exciter, Bass Punch or Bass Forge: nothing shapes the drums or colours the room.',
 
@@ -111,9 +122,11 @@ const genreRock = {
   'genre.progressiveRock.pin.12500.why':
     'The air these records were made with.',
   'genre.progressiveRock.stage.dimension':
-    'The picture as mixed above the bass, with a touch of depth.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.progressiveRock.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.progressiveRock.stage.maximizer':
-    'The longest look-ahead in the rock family and a whole beat of release: it touches only the climax.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.progressiveRock.off':
     'No Exciter, Bass Punch or Bass Forge: nothing fast levels a quiet passage.',
 
@@ -131,8 +144,11 @@ const genreRock = {
   'genre.hardRock.stage.bassPunch':
     'The kick’s hit kept and its tail a little shorter.',
   'genre.hardRock.stage.dimension':
-    'The bass narrowed; the guitars left as panned.',
-  'genre.hardRock.stage.maximizer': 'A light ceiling for a live-room kick.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.hardRock.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.hardRock.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.hardRock.off':
     'No Exciter or Bass Forge: valve crunch is harmonics enough.',
 
@@ -147,16 +163,18 @@ const genreRock = {
     'The bands that could lift it would lift everything under 75 Hz with it.',
   'genre.metal.pin.315': 'Mud out of down-tuned guitars',
   'genre.metal.pin.315.why':
-    'The deepest cut of any genre, and why the riffs stay clear.',
+    'A restrained low-mid cut keeps dense riffs clear without hollowing out the guitars.',
   'genre.metal.pin.3150': 'The click that makes a hit read',
   'genre.metal.pin.3150.why':
     'Why a double-kick run sounds like separate hits.',
   'genre.metal.stage.bassPunch':
     'A shorter tail rather than a harder attack, so runs stay separate.',
   'genre.metal.stage.dimension':
-    'The bass narrowed under 150 Hz, and nothing widened.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.metal.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.metal.stage.maximizer':
-    'It barely drives: this is the loudest genre there is.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.metal.off':
     'Its Exciter is offered and left off: more harmonics would land in the fizz. No Bass Forge under down-tuned guitars.',
 
@@ -171,8 +189,12 @@ const genreRock = {
   'genre.punk.pin.5000.why':
     'Taken down: nothing brighter than the band played it.',
   'genre.punk.stage.bassPunch': 'Only the kick tightened.',
-  'genre.punk.stage.dimension': 'The bass narrowed, and nothing widened.',
-  'genre.punk.stage.maximizer': 'A light ceiling that keeps the attack.',
+  'genre.punk.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.punk.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.punk.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.punk.off': 'No Exciter and no Bass Forge: raw is the sound.',
 
   'genre.popPunk.hook': 'A tight, clicky kick and glossy guitars',
@@ -186,9 +208,11 @@ const genreRock = {
   'genre.popPunk.pin.3150.why': 'These masters are bright and crushed already.',
   'genre.popPunk.stage.bassPunch': 'A tighter kick, never a deeper one.',
   'genre.popPunk.stage.dimension':
-    'The bass narrowed under 150 Hz, and nothing widened.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.popPunk.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.popPunk.stage.maximizer':
-    'The lightest ceiling in the rock family: the master is loud already.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.popPunk.off':
     'No Exciter or Bass Forge on masters this bright and this loud.',
 
@@ -203,9 +227,11 @@ const genreRock = {
   'genre.grunge.pin.12500': 'The rolled-off top',
   'genre.grunge.pin.12500.why': 'Taken further down: dark is the record.',
   'genre.grunge.stage.dimension':
-    'Wide guitars and a centred voice, as mixed; only the bottom narrowed.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.grunge.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.grunge.stage.maximizer':
-    'A slow ceiling that keeps the soft half soft and the loud half loud.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.grunge.off':
     'No Exciter, Bass Punch or Bass Forge: nothing brightens it.',
 };

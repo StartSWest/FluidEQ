@@ -12,9 +12,11 @@ export default {
   'genre.reggae.pin.12500.why':
     'Bande d’époque : rien ne fait monter le souffle.',
   'genre.reggae.stage.dimension':
-    'Les basses en mono sous 80 Hz et resserrées au-dessus ; un disque mono reste mono.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.reggae.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.reggae.stage.maximizer':
-    'Un plafond qui ne fait que rattraper, et la grosse caisse douce reste douce.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.reggae.off':
     'La Forge de basses est proposée et reste désactivée : la basse porte ses propres harmoniques. Pas d’Exciteur sur un haut de l’ère de la bande.',
 
@@ -28,9 +30,11 @@ export default {
   'genre.dub.pin.8000': 'L’éclat de l’écho et du ressort',
   'genre.dub.pin.8000.why': 'Le scintillement des effets, gardé.',
   'genre.dub.stage.dimension':
-    'Le bas en mono sous 150 Hz, aussi étroit que les originaux ; les échos laissés là où le mix les a lancés.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.dub.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.dub.stage.maximizer':
-    'Un plafond qui ne fait que rattraper : les coupures sont le propos.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.dub.off':
     'La Forge de basses est proposée et reste désactivée, il n’y a pas d’Exciteur, et rien n’aplanit les coupures.',
 
@@ -43,9 +47,12 @@ export default {
   'genre.dancehall.pin.315.why': 'De la place pour la voix.',
   'genre.dancehall.pin.1250': 'La voix en avant',
   'genre.dancehall.pin.1250.why': 'Le deejay par-dessus.',
-  'genre.dancehall.stage.dimension': 'Mono sous 120 Hz, resserré jusqu’à 150.',
+  'genre.dancehall.stage.dimension':
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.dancehall.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.dancehall.stage.maximizer':
-    'Un plafond assez rapide pour garder les percussions nettes.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.dancehall.off':
     'La Forge de basses est proposée et reste désactivée, et il n’y a pas d’Exciteur sur des percussions nettes.',
 
@@ -61,8 +68,11 @@ export default {
   'genre.ska.pin.2000': 'Cuivres et skank',
   'genre.ska.pin.2000.why': 'Le contretemps, brillant.',
   'genre.ska.stage.dimension':
-    'Un soupçon de resserrement plutôt que de la largeur.',
-  'genre.ska.stage.maximizer': 'Un plafond léger.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.ska.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.ska.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.ska.off':
     'Ni Exciteur, ni Punch des basses, ni Forge de basses : pas de basse inventée sous un enregistrement d’époque.',
 };

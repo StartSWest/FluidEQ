@@ -44,8 +44,11 @@ export default {
   'genre.indiePop.stage.exciter':
     'Só calor, nos médios graves: nunca mais brilhante.',
   'genre.indiePop.stage.dimension':
-    'A base mais estreita e o ar um pouquinho mais aberto: as harmonias se abrem sem mover a voz.',
-  'genre.indiePop.stage.maximizer': 'Um teto leve que mantém a suavidade.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.indiePop.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.indiePop.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.indiePop.off':
     'Nenhuma etapa abrilhanta nem acrescenta grave: o calor lo-fi é a ideia.',
 
@@ -65,9 +68,11 @@ export default {
   'genre.synthPop.stage.exciter':
     'Só calor, nos médios graves: nada de harmônicos em agudos brilhantes.',
   'genre.synthPop.stage.dimension':
-    'A base mais estreita e os pads um pouco mais abertos, do jeito que o gênero era mixado.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.synthPop.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.synthPop.stage.maximizer':
-    'Um teto lento que preserva a dinâmica dos anos 80.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.synthPop.off':
     'Sem Punch dos graves e sem Forja de graves: o bumbo de uma bateria eletrônica é exatamente como foi programado.',
 
@@ -82,11 +87,13 @@ export default {
   'genre.newWave.pin.1250': 'As guitarras picotadas',
   'genre.newWave.pin.1250.why': 'Onde mora a mordida da guitarra base.',
   'genre.newWave.stage.exciter':
-    'Um pouco de corpo e um pouco de ar, que um original fino agradece.',
+    'Apenas um pouco de calor nos médios-graves. As três bandas harmônicas ficam desligadas para manter claras as vozes sobrepostas.',
   'genre.newWave.stage.dimension':
-    'Perto do disco: a base mais estreita, o topo só um tiquinho mais aberto.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.newWave.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.newWave.stage.maximizer':
-    'Um teto que só segura: o estalo é o gênero.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.newWave.off':
     'Sem Punch dos graves nem Forja de graves: a base enxuta é como foi feita.',
 
@@ -125,9 +132,11 @@ export default {
   'genre.jPop.stage.exciter':
     'Só calor, nos médios graves: nada em agudos tão brilhantes.',
   'genre.jPop.stage.dimension':
-    'Nada é alargado: o muro já é largo o bastante.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.jPop.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.jPop.stage.maximizer':
-    'Um teto que mal empurra, sobre masters que já vêm clipados.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.jPop.off':
     'Sem Punch dos graves nem Forja de graves: a parede chega densa e alta.',
 
@@ -143,8 +152,11 @@ export default {
     'Um pequeno realce acima das consoantes, não sobre elas.',
   'genre.cPop.stage.exciter': 'Só calor: nada de harmônicos nas sibilantes.',
   'genre.cPop.stage.dimension':
-    'Os médios um pouquinho mais estreitos para a voz segurar o centro, e as cordas e reverbs um pouco mais abertos.',
-  'genre.cPop.stage.maximizer': 'Um teto lento para a dinâmica das baladas.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.cPop.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.cPop.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.cPop.off':
     'Sem Punch dos graves nem Forja de graves: nenhum sub inventado sob uma balada de piano.',
 
@@ -164,9 +176,11 @@ export default {
   'genre.ballad.pin.8000.why':
     'Uma voz próxima carrega aqui seus esses, e um realce afiaria cada um.',
   'genre.ballad.stage.dimension':
-    'Os graves estreitados para o centro, onde as baladas os mixam; a voz, o piano e as cordas deixados tão abertos quanto foram posicionados.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.ballad.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.ballad.stage.maximizer':
-    'Um teto leve e lento que solta ao longo de um tempo inteiro, para os versos calmos continuarem calmos e o último refrão ainda crescer.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.ballad.off':
     'Sem Excitador, Forja de graves nem Punch dos graves: os harmônicos cairiam nas sibilantes, uma balada só tem sub onde o produtor colocou, e raramente há um bumbo para moldar.',
 };

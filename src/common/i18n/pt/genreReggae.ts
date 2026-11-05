@@ -11,9 +11,11 @@ export default {
   'genre.reggae.pin.12500': 'Agudos suaves',
   'genre.reggae.pin.12500.why': 'Fita antiga: nada sobe o chiado.',
   'genre.reggae.stage.dimension':
-    'Os graves em mono abaixo de 80 Hz e mais estreitos acima disso; um disco mono continua mono.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.reggae.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.reggae.stage.maximizer':
-    'Um teto que só segura, e o bumbo suave continua suave.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.reggae.off':
     'A Forja de graves é oferecida e fica desligada: o baixo carrega os próprios harmônicos. Sem Excitador num agudo da era da fita.',
 
@@ -27,8 +29,11 @@ export default {
   'genre.dub.pin.8000': 'O brilho do eco e da mola',
   'genre.dub.pin.8000.why': 'A cintilância dos efeitos, mantida.',
   'genre.dub.stage.dimension':
-    'A base em mono abaixo de 150 Hz, tão estreita quanto os originais; os ecos onde a mixagem os jogou.',
-  'genre.dub.stage.maximizer': 'Um teto que só segura: as quedas são o ponto.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.dub.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.dub.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.dub.off':
     'A Forja de graves é oferecida e fica desligada, não há Excitador, e nada achata as quedas.',
 
@@ -42,9 +47,11 @@ export default {
   'genre.dancehall.pin.1250': 'A voz à frente',
   'genre.dancehall.pin.1250.why': 'O deejay por cima.',
   'genre.dancehall.stage.dimension':
-    'Mono abaixo de 120 Hz, mais estreito até 150.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.dancehall.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.dancehall.stage.maximizer':
-    'Um teto rápido o bastante para manter a percussão nítida.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.dancehall.off':
     'A Forja de graves é oferecida e fica desligada, e não há Excitador sobre uma percussão nítida.',
 
@@ -60,8 +67,11 @@ export default {
   'genre.ska.pin.2000': 'Metais e skank',
   'genre.ska.pin.2000.why': 'O contratempo, brilhante.',
   'genre.ska.stage.dimension':
-    'Um pouquinho mais estreito, em vez de mais largo.',
-  'genre.ska.stage.maximizer': 'Um teto leve.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.ska.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.ska.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.ska.off':
     'Sem Excitador, Punch dos graves ou Forja de graves: nenhum grave inventado sob uma gravação antiga.',
 };

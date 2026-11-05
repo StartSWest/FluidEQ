@@ -44,9 +44,11 @@ export default {
   'genre.indiePop.stage.exciter':
     'Nur Wärme, in den unteren Mitten: nie heller.',
   'genre.indiePop.stage.dimension':
-    'Unten schmaler und die Luft einen Hauch breiter: Die Harmonien öffnen sich, ohne die Stimme zu verschieben.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.indiePop.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.indiePop.stage.maximizer':
-    'Eine leichte Obergrenze, die die Weichheit bewahrt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.indiePop.off':
     'Keine Stufe macht es heller oder fügt Bass hinzu: Die Lo-Fi-Wärme ist der Sinn der Sache.',
 
@@ -64,9 +66,11 @@ export default {
   'genre.synthPop.stage.exciter':
     'Nur Wärme, in den unteren Mitten: keine Obertöne auf hellen Höhen.',
   'genre.synthPop.stage.dimension':
-    'Unten schmaler und die Flächen etwas breiter, so wie das Genre gemischt wurde.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.synthPop.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.synthPop.stage.maximizer':
-    'Eine langsame Obergrenze, die die Dynamik der 80er lässt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.synthPop.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Der Kick eines Drumcomputers ist genau so, wie er programmiert wurde.',
 
@@ -82,11 +86,13 @@ export default {
   'genre.newWave.pin.1250': 'Die zerhackten Gitarren',
   'genre.newWave.pin.1250.why': 'Wo der Biss der Rhythmusgitarre sitzt.',
   'genre.newWave.stage.exciter':
-    'Etwas Körper und etwas Luft, die ein dünnes Original gern annimmt.',
+    'Nur etwas Wärme in den unteren Mitten. Alle drei Obertonbänder bleiben aus, damit gestapelte Stimmen klar bleiben.',
   'genre.newWave.stage.dimension':
-    'Nah an der Platte: unten schmaler, oben einen Hauch breiter.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.newWave.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.newWave.stage.maximizer':
-    'Eine Obergrenze, die nur abfängt: Das Knackige ist das Genre.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.newWave.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Das schlanke Fundament ist so gemacht.',
 
@@ -124,9 +130,12 @@ export default {
   'genre.jPop.pin.3150.why': 'Schon hell und nach vorn; nie weiter geschoben.',
   'genre.jPop.stage.exciter':
     'Nur Wärme, in den unteren Mitten: nichts auf so hellen Höhen.',
-  'genre.jPop.stage.dimension': 'Nichts verbreitert: Die Wand ist breit genug.',
+  'genre.jPop.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.jPop.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.jPop.stage.maximizer':
-    'Eine Obergrenze, die kaum antreibt, auf Mastern, die schon geclippt sind.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.jPop.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Die Wand kommt dicht und laut an.',
 
@@ -142,9 +151,11 @@ export default {
     'Ein wenig Anhebung über den Konsonanten, nicht auf ihnen.',
   'genre.cPop.stage.exciter': 'Nur Wärme: keine Obertöne auf Zischlauten.',
   'genre.cPop.stage.dimension':
-    'Die Mitten einen Hauch schmaler, damit die Stimme die Mitte hält, Streicher und Hall etwas breiter.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.cPop.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.cPop.stage.maximizer':
-    'Eine langsame Obergrenze für die Dynamik der Balladen.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.cPop.off':
     'Kein Bass-Punch und keine Bass-Schmiede: kein erfundener Sub unter einer Klavierballade.',
 
@@ -164,9 +175,11 @@ export default {
   'genre.ballad.pin.8000.why':
     'Eine nahe Stimme trägt hier ihre S-Laute, und eine Anhebung würde jeden schärfen.',
   'genre.ballad.stage.dimension':
-    'Der Bass zur Mitte hin verschmälert, wo Balladen ihn mischen; Stimme, Klavier und Streicher so breit gelassen, wie sie platziert wurden.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.ballad.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.ballad.stage.maximizer':
-    'Eine leichte, langsame Obergrenze, die über einen ganzen Schlag loslässt, damit die leisen Strophen leise bleiben und der letzte Refrain noch steigt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.ballad.off':
     'Kein Exciter, keine Bass-Schmiede und kein Bass-Punch: Obertöne landeten auf den Zischlauten, eine Ballade hat nur dort einen Sub, wo ihr Produzent ihn hingesetzt hat, und selten gibt es eine Bassdrum zu formen.',
 };

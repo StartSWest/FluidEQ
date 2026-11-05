@@ -16,8 +16,11 @@ export default {
     'アナログマスターにあたたかさと少しの空気感を。',
   'genre.afrobeat.stage.bassPunch': 'ベースを少し引き締めます。',
   'genre.afrobeat.stage.dimension':
-    '大編成の広がりは録ったまま、低域だけ狭めます。',
-  'genre.afrobeat.stage.maximizer': 'ダイナミクスを残す、ゆっくりした天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.afrobeat.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.afrobeat.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.afrobeat.off':
     'ベースフォージはなし。バンドを締めつけるものもありません。天井はピークを受け止めるだけです。',
 
@@ -31,8 +34,11 @@ export default {
   'genre.afrobeats.pin.12500': 'シェイカーと声の空気感',
   'genre.afrobeats.pin.12500.why': '上に、軽く。',
   'genre.afrobeats.stage.dimension':
-    '150 Hz以下はモノラル、シェイカーは少し広く。',
-  'genre.afrobeats.stage.maximizer': 'スウィングを残す軽い天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.afrobeats.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.afrobeats.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.afrobeats.off':
     'ベースフォージは用意されていますがオフです。サイン波のサブはクリーンで、下にオクターブも汚れも要りません。',
 
@@ -46,8 +52,11 @@ export default {
   'genre.amapiano.pin.8000': '明るいシェイカー',
   'genre.amapiano.pin.8000.why': '少しだけ持ち上げます。',
   'genre.amapiano.stage.dimension':
-    '120 Hz以下のサブはモノラル、ログドラムの胴鳴りは200まで狭めて中央に。広げるのは3 kHzより上だけ。',
-  'genre.amapiano.stage.maximizer': 'ログドラムのアタックを残す軽い天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.amapiano.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.amapiano.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.amapiano.off':
     'ベースフォージは用意されていますがオフです。ログドラムの唯一のルールは、飽和させないことです。',
 
@@ -61,8 +70,12 @@ export default {
   'genre.highlife.pin.3150': '甘いギター',
   'genre.highlife.pin.3150.why': 'クリアで明るく。',
   'genre.highlife.stage.exciter': '古い録音に少しのあたたかさと空気感を。',
-  'genre.highlife.stage.dimension': 'パンしたギターは録ったまま。',
-  'genre.highlife.stage.maximizer': 'ゆっくりした天井。',
+  'genre.highlife.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.highlife.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.highlife.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.highlife.off':
     'ベースパンチもベースフォージもなし。クリーンなギターはクリーンなまま。',
 
@@ -75,7 +88,10 @@ export default {
   'genre.world.pin.3150.why': '1 dB未満。',
   'genre.world.pin.12500': '少しの空気感',
   'genre.world.pin.12500.why': 'やさしく。',
-  'genre.world.stage.maximizer': '受け止めるだけの天井。',
+  'genre.world.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.world.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.world.off':
     'ディメンション、エキサイター、ベースパンチ、ベースフォージはなし。音像はそのままです。',
 
@@ -90,8 +106,11 @@ export default {
   'genre.bollywood.pin.2000.why': '前に、クリーンに。',
   'genre.bollywood.stage.bassPunch': 'サブを引き締めます。',
   'genre.bollywood.stage.dimension':
-    '音像は届いた広さのまま、低域だけ狭めます。',
-  'genre.bollywood.stage.maximizer': 'ほとんど押し込まない天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.bollywood.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.bollywood.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.bollywood.off': '声にエキサイターは使わず、ベースフォージもなし。',
 
   'genre.bhangra.hook': 'ドールこそがジャンル',
@@ -106,8 +125,11 @@ export default {
   'genre.bhangra.stage.bassPunch':
     '低音の余韻は引き締め、決して持ち上げません。',
   'genre.bhangra.stage.dimension':
-    '低域を狭め、ドールの低音が中央に留まるように。',
-  'genre.bhangra.stage.maximizer': 'はじける音を通すのに十分な長さの先読み。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.bhangra.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.bhangra.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.bhangra.off': 'エキサイターもベースフォージもなし。高域は足しません。',
 
   'genre.indianClassical.hook': 'ドローンの上の、拍のないアーラープ',
@@ -120,7 +142,7 @@ export default {
   'genre.indianClassical.pin.12500': 'タンプーラのきらめき',
   'genre.indianClassical.pin.12500.why': 'ドローンの光輪。',
   'genre.indianClassical.stage.maximizer':
-    '天井だけ。レベラーはアーラープでドローンを持ち上げてしまいます。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.indianClassical.off':
     'ディメンション、エキサイター、ベースパンチはなし。ジャワーリーの倍音は楽器に組み込まれています。',
 
@@ -139,8 +161,11 @@ export default {
     '声の下にあたたかさ。ストリングスとテクは明るいままです。',
   'genre.arabicPop.stage.bassPunch': '低域を引き締めます。',
   'genre.arabicPop.stage.dimension':
-    'ストリングスは録った広さのまま、低域だけ狭めます。',
-  'genre.arabicPop.stage.maximizer': 'ダルブッカのアタックを残す軽い天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.arabicPop.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.arabicPop.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.arabicPop.off': 'ベースフォージはなし。ドゥムの下に何も生成しません。',
 
   'genre.turkishPop.hook': 'トルコの色をまとった磨かれたポップ',
@@ -157,8 +182,12 @@ export default {
   'genre.turkishPop.stage.exciter':
     '声の下にあたたかさ。ダルブッカには何も足しません。',
   'genre.turkishPop.stage.bassPunch': 'タイトな低域。',
-  'genre.turkishPop.stage.dimension': 'ミックスのまま、低域だけ狭めます。',
-  'genre.turkishPop.stage.maximizer': 'ほとんど押さない天井。',
+  'genre.turkishPop.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.turkishPop.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.turkishPop.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.turkishPop.off':
     'これほど磨かれたレコードに、ベースフォージは使いません。',
 
@@ -171,8 +200,12 @@ export default {
   'genre.gospel.pin.315.why': '満ちた音に余白を。',
   'genre.gospel.pin.2000': 'リードボーカル',
   'genre.gospel.pin.2000.why': '前へ。',
-  'genre.gospel.stage.dimension': 'クワイアは録音された広さのまま。',
-  'genre.gospel.stage.maximizer': 'ヴァンプを高まらせる、ゆっくりした天井。',
+  'genre.gospel.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.gospel.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.gospel.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.gospel.off':
     'エキサイターは用意されていますがオフです。クワイアに輝きは足しません。',
 
@@ -185,8 +218,12 @@ export default {
   'genre.christian.pin.800.why': '広いギターのために。',
   'genre.christian.pin.3150': '歌詞をはっきりと',
   'genre.christian.pin.3150.why': '言葉がある帯域。',
-  'genre.christian.stage.dimension': '低域を狭めます。ギターは広いまま。',
-  'genre.christian.stage.maximizer': '曲の起伏を残せるほどゆっくりした天井。',
+  'genre.christian.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.christian.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.christian.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.christian.off':
     'エキサイター、ベースパンチ、ベースフォージはなし。高まっていく流れこそが曲です。',
 };

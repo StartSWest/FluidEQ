@@ -45,8 +45,11 @@ export default {
   'genre.indiePop.stage.exciter':
     'De la chaleur seulement, dans les bas-médiums : jamais plus brillant.',
   'genre.indiePop.stage.dimension':
-    'Le bas resserré et l’air un soupçon plus large : les harmonies s’ouvrent sans déplacer la voix.',
-  'genre.indiePop.stage.maximizer': 'Un plafond léger qui garde la douceur.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.indiePop.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.indiePop.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.indiePop.off':
     'Aucun étage ne l’éclaircit ni n’ajoute de basses : la chaleur lo-fi est le but.',
 
@@ -66,9 +69,11 @@ export default {
   'genre.synthPop.stage.exciter':
     'De la chaleur seulement, dans les bas-médiums : pas d’harmoniques sur des aigus brillants.',
   'genre.synthPop.stage.dimension':
-    'Le bas resserré et des nappes un peu plus larges, comme le genre était mixé.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.synthPop.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.synthPop.stage.maximizer':
-    'Un plafond lent qui laisse la dynamique des années 80.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.synthPop.off':
     'Ni Punch des basses ni Forge de basses : la grosse caisse d’une boîte à rythmes est exactement telle qu’elle a été programmée.',
 
@@ -84,11 +89,13 @@ export default {
   'genre.newWave.pin.1250': 'Les guitares hachées',
   'genre.newWave.pin.1250.why': 'Là où vit le mordant de la guitare rythmique.',
   'genre.newWave.stage.exciter':
-    'Un peu de corps et un peu d’air, qu’un original maigre accueille volontiers.',
+    'Une touche de chaleur dans les bas médiums uniquement. Les trois bandes harmoniques restent coupées pour garder les voix superposées nettes.',
   'genre.newWave.stage.dimension':
-    'Au plus près du disque : le bas resserré, le haut à peine plus large.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.newWave.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.newWave.stage.maximizer':
-    'Un plafond qui ne fait que rattraper : le claquant, c’est le genre.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.newWave.off':
     'Ni Punch des basses ni Forge de basses : le bas maigre est voulu.',
 
@@ -126,9 +133,12 @@ export default {
   'genre.jPop.pin.3150.why': 'Déjà brillants et en avant ; jamais poussés.',
   'genre.jPop.stage.exciter':
     'De la chaleur seulement, dans les bas-médiums : rien sur des aigus aussi brillants.',
-  'genre.jPop.stage.dimension': 'Rien n’est élargi : le mur est assez large.',
+  'genre.jPop.stage.dimension':
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.jPop.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.jPop.stage.maximizer':
-    'Un plafond qui pousse à peine sur des masters déjà écrêtés.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.jPop.off':
     'Ni Punch des basses ni Forge de basses : le mur arrive dense et fort.',
 
@@ -145,9 +155,11 @@ export default {
   'genre.cPop.stage.exciter':
     'De la chaleur seulement : pas d’harmoniques sur les sifflantes.',
   'genre.cPop.stage.dimension':
-    'Les médiums un soupçon plus étroits pour que la voix tienne le centre, les cordes et les réverbes un peu plus larges.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.cPop.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.cPop.stage.maximizer':
-    'Un plafond lent pour la dynamique des ballades.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.cPop.off':
     'Ni Punch des basses ni Forge de basses : pas de sub inventé sous une ballade au piano.',
 
@@ -167,9 +179,11 @@ export default {
   'genre.ballad.pin.8000.why':
     'Une voix proche porte ici ses « s », et un relèvement aiguiserait chacun d’eux.',
   'genre.ballad.stage.dimension':
-    'Les basses resserrées vers le centre, où les ballades les mixent ; la voix, le piano et les cordes laissés aussi larges qu’ils ont été placés.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.ballad.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.ballad.stage.maximizer':
-    'Un plafond léger et lent qui relâche sur un temps entier, pour que les couplets calmes restent calmes et que le dernier refrain s’élève encore.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.ballad.off':
     'Ni Exciteur, ni Forge de basses, ni Punch des basses : les harmoniques tomberaient sur les sifflantes, une ballade n’a de sub que là où son producteur en a mis, et il y a rarement une grosse caisse à façonner.',
 };

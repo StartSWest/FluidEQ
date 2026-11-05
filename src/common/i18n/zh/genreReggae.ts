@@ -11,8 +11,11 @@ export default {
   'genre.reggae.pin.12500': '柔和的高频',
   'genre.reggae.pin.12500.why': '老磁带：没有东西去抬高嘶声。',
   'genre.reggae.stage.dimension':
-    '80 Hz 以下的低音单声道，往上收窄；单声道唱片仍是单声道。',
-  'genre.reggae.stage.maximizer': '一个只负责接住的上限，柔软的底鼓保持柔软。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.reggae.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.reggae.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.reggae.off':
     '低音熔炉有提供但保持关闭：贝斯自带谐波。磁带时代的高频上也不用激励器。',
 
@@ -26,8 +29,11 @@ export default {
   'genre.dub.pin.8000': '回声和弹簧的光泽',
   'genre.dub.pin.8000.why': '保留效果器的闪光。',
   'genre.dub.stage.dimension':
-    '150 Hz 以下单声道，和原版一样窄；回声留在混音把它们抛去的地方。',
-  'genre.dub.stage.maximizer': '一个只负责接住的上限：抽空才是重点。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.dub.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.dub.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.dub.off':
     '低音熔炉有提供但保持关闭，没有激励器，也没有东西去抹平抽空。',
 
@@ -40,8 +46,12 @@ export default {
   'genre.dancehall.pin.315.why': '给人声留空间。',
   'genre.dancehall.pin.1250': '人声在前',
   'genre.dancehall.pin.1250.why': 'deejay 在最上面。',
-  'genre.dancehall.stage.dimension': '120 Hz 以下单声道，150 以下收窄。',
-  'genre.dancehall.stage.maximizer': '一个快到能让打击乐保持清脆的上限。',
+  'genre.dancehall.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.dancehall.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.dancehall.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.dancehall.off':
     '低音熔炉有提供但保持关闭，清脆的打击乐上也不用激励器。',
 
@@ -56,7 +66,11 @@ export default {
   'genre.ska.pin.315.why': '给铜管留空间。',
   'genre.ska.pin.2000': '铜管和 skank',
   'genre.ska.pin.2000.why': '反拍，明亮。',
-  'genre.ska.stage.dimension': '稍微收窄，而不是加宽。',
-  'genre.ska.stage.maximizer': '一个轻上限。',
+  'genre.ska.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.ska.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.ska.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.ska.off': '不用激励器、低音冲击或低音熔炉：老录音下面不凭空造低音。',
 };

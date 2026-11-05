@@ -43,8 +43,11 @@ const genrePop = {
   'genre.indiePop.stage.exciter':
     'Warmth only, in the low mids: never brighter.',
   'genre.indiePop.stage.dimension':
-    'The bottom narrowed and the air a shade wider: the harmonies open without moving the voice.',
-  'genre.indiePop.stage.maximizer': 'A light ceiling that keeps the softness.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.indiePop.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.indiePop.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.indiePop.off':
     'No stage brightens it or adds bass: the lo-fi warmth is the point.',
 
@@ -62,9 +65,11 @@ const genrePop = {
   'genre.synthPop.stage.exciter':
     'Warmth only, in the low mids: no harmonics on a bright top.',
   'genre.synthPop.stage.dimension':
-    'The bass narrowed and the pads a little wider, the way the genre was mixed.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.synthPop.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.synthPop.stage.maximizer':
-    'A slow ceiling that leaves the 80s dynamics in.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.synthPop.off':
     'No Bass Punch and no Bass Forge: a drum machine’s kick is exactly as programmed.',
 
@@ -78,11 +83,13 @@ const genrePop = {
   'genre.newWave.pin.1250': 'The choppy guitars',
   'genre.newWave.pin.1250.why': 'Where the rhythm guitar’s bite lives.',
   'genre.newWave.stage.exciter':
-    'A little body and a little air, which a thin original welcomes.',
+    'A little low-mid warmth only. All three harmonic bands stay off, keeping the stacked vocals clear.',
   'genre.newWave.stage.dimension':
-    'Kept close to the record: the bottom narrowed, the top a hair wider.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.newWave.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.newWave.stage.maximizer':
-    'A ceiling that only catches: the snap is the genre.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.newWave.off':
     'No Bass Punch or Bass Forge: the lean bottom is how it was made.',
 
@@ -120,9 +127,12 @@ const genrePop = {
   'genre.jPop.pin.3150.why': 'Bright and forward already; never pushed.',
   'genre.jPop.stage.exciter':
     'Warmth only, in the low mids: nothing on a top this bright.',
-  'genre.jPop.stage.dimension': 'Nothing widened: the wall is wide enough.',
+  'genre.jPop.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.jPop.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.jPop.stage.maximizer':
-    'A ceiling that barely drives on masters that are clipped already.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.jPop.off':
     'No Bass Punch or Bass Forge: the wall arrives dense and loud.',
 
@@ -138,8 +148,11 @@ const genrePop = {
     'A little lift above the consonants, not on them.',
   'genre.cPop.stage.exciter': 'Warmth only: no harmonics on sibilants.',
   'genre.cPop.stage.dimension':
-    'The mids a shade narrower so the voice holds the middle, the strings and reverbs a little wider.',
-  'genre.cPop.stage.maximizer': 'A slow ceiling for the ballads’ dynamics.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.cPop.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.cPop.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.cPop.off':
     'No Bass Punch or Bass Forge: no invented sub under a piano ballad.',
 
@@ -159,9 +172,11 @@ const genrePop = {
   'genre.ballad.pin.8000.why':
     'A close voice carries its esses here, and a lift would sharpen every one.',
   'genre.ballad.stage.dimension':
-    'The bass narrowed toward the middle, where ballads are mixed with it; the voice, the piano and the strings left as wide as they were placed.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.ballad.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.ballad.stage.maximizer':
-    'A light, slow ceiling that lets go over a whole beat, so the quiet verses stay quiet and the last chorus still lifts.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.ballad.off':
     'No Exciter, Bass Forge or Bass Punch: harmonics would land on the sibilants, a ballad has a sub only where its producer put one, and there is rarely a kick to shape.',
 };

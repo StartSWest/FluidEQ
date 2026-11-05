@@ -14,8 +14,11 @@ const genreUrban = {
   'genre.hiphop.pin.12500.why':
     '샘플링된 레코드로 구성된 비트가 소리를 내는 방식입니다.',
   'genre.hiphop.stage.dimension':
-    '120Hz 이하의 모노에서 180까지 좁혀져 좁은 영상이 유지되었습니다.',
-  'genre.hiphop.stage.maximizer': '거의 움직이지 않는 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.hiphop.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.hiphop.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.hiphop.off':
     'Exciter인 Bass Forge 및 Bass Punch가 제공되고 중단되었습니다. 샘플은 이미 포화되었으며 Bass Forge는 베이스 노트에 16%의 새로운 사운드를 추가했습니다.',
   'genre.rap.hook': '목소리가 곧 상품이다',
@@ -28,8 +31,11 @@ const genreUrban = {
   'genre.rap.pin.2000': '자음',
   'genre.rap.pin.2000.why': '명료도, 조금 앞으로.',
   'genre.rap.stage.dimension':
-    '중음은 레코드판보다 더 좁은 음영으로 목소리를 가만히 유지합니다.',
-  'genre.rap.stage.maximizer': '거의 움직이지 않는 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.rap.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.rap.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.rap.off':
     'Bass Forge가 제공되고 중단됩니다. 베이스의 하모닉스가 목소리의 가슴에 닿습니다.',
   'genre.trap.hook': '전화기로 들을 수 있는 긴 808',
@@ -45,8 +51,11 @@ const genreUrban = {
   'genre.trap.stage.bassForge':
     '808의 배음(40Hz 음표의 80, 120 및 160Hz)이므로 작은 스피커로도 재생할 수 있습니다. 아래에는 옥타브가 없습니다.',
   'genre.trap.stage.dimension':
-    '120Hz 모노 미만의 모든 것, 모자 및 신디사이저가 넓습니다.',
-  'genre.trap.stage.maximizer': '거의 움직이지 않는 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.trap.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.trap.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.trap.off':
     'Exciter도 없고 Bass Punch도 없습니다. 808은 이미 왜곡되었습니다.',
   'genre.rnb.hook': '둥근 바닥 위에 실키한 탑이',
@@ -59,8 +68,11 @@ const genreUrban = {
   'genre.rnb.pin.12500': '실크 탑',
   'genre.rnb.pin.12500.why': '목소리 위의 공기.',
   'genre.rnb.stage.dimension':
-    '장르가 믹스된 만큼 패드는 보이스보다 조금 더 넓습니다.',
-  'genre.rnb.stage.maximizer': '밝은 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.rnb.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.rnb.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.rnb.off':
     'Exciter는 제공되고 중단됩니다. 이 보컬의 하모닉스는 호흡과 연결됩니다.',
   'genre.soul.hook': '테이프, 튜브, 라이브 밴드',
@@ -74,8 +86,11 @@ const genreUrban = {
   'genre.soul.pin.5000.why':
     '철거: 공기가 테이프를 쉭쉭 소리를 내며 들어 올립니다.',
   'genre.soul.stage.dimension':
-    '하드 패닝된 60년대 믹스를 하나로 모으는 좁은 음영.',
-  'genre.soul.stage.maximizer': '결코 제한되지 않는 마스터를 위한 느린 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.soul.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.soul.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.soul.off':
     'Exciter는 제공되고 중단됩니다. 테이프와 튜브가 소리이고 Exciter는 쉿쉿거리는 소리를 냅니다.',
   'genre.neoSoul.hook': '생동감 넘치는 취한 느낌의 주머니',
@@ -88,8 +103,11 @@ const genreUrban = {
   'genre.neoSoul.pin.12500': '반짝이 없음',
   'genre.neoSoul.pin.12500.why': '따뜻하고 어두운 것이 간단합니다.',
   'genre.neoSoul.stage.dimension':
-    '라이브 밴드 영상은 그대로 유지하고 저음만 좁아졌습니다.',
-  'genre.neoSoul.stage.maximizer': '아무것도 압박하지 않는 느린 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.neoSoul.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.neoSoul.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.neoSoul.off':
     'Exciter가 제공되고 중단됩니다. Exciter가 없으면 따뜻하고 어두운 상태를 유지합니다.',
   'genre.funk.hook': '베이스가 리드이고, 베이스가 전부다',
@@ -105,8 +123,12 @@ const genreUrban = {
   'genre.funk.pin.12500.why': '완화되고 결코 밝아지지 않습니다.',
   'genre.funk.stage.bassPunch':
     '관절을 더럽힐 수 있는 꽃이 없는 타이트한 저음역대입니다.',
-  'genre.funk.stage.dimension': '기록에 가까워지면 바닥이 좁아졌습니다.',
-  'genre.funk.stage.maximizer': '밝은 천장.',
+  'genre.funk.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.funk.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.funk.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.funk.off':
     'Exciter 없음 또는 Bass Forge: 드라이하고 미드 포워드 사운드입니다.',
   'genre.disco.hook': '끈으로 된 벽 아래 바닥에 4개',
@@ -121,9 +143,11 @@ const genreUrban = {
   'genre.disco.stage.bassPunch':
     '킥에 약간의 무게가 가해졌고, 꼬리는 다음 박자보다 짧게 유지되었습니다.',
   'genre.disco.stage.dimension':
-    '이미 오케스트라가 퍼뜨린 것의 확장은 없습니다.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.disco.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.disco.stage.maximizer':
-    '가벼운 천장, 킥 아래로 빨리 놓을 수 있습니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.disco.off':
     '익사이터 또는 Bass Forge 없음: 모자와 끈은 하나 아래에서 부서지기 쉽습니다.',
 } satisfies Partial<Dictionary>;

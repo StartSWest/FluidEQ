@@ -14,8 +14,12 @@ const genreLatin = {
   'genre.latin.pin.3150.why': '存在，稍微向前一點。',
   'genre.latin.pin.12500': '黃銅頂部未推',
   'genre.latin.pin.12500.why': '諧波已經很豐富了。',
-  'genre.latin.stage.dimension': '影像保持混合狀態，只是低音變窄。',
-  'genre.latin.stage.maximizer': '保持打擊樂起音的上限。',
+  'genre.latin.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.latin.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.latin.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.latin.off': '它的激勵器被提供並停止：銅管和古伊拉在一個下變得刺耳。',
   'genre.latinPop.hook': '優美的聲音下的 Dembow',
   'genre.latinPop.story':
@@ -28,8 +32,12 @@ const genreLatin = {
   'genre.latinPop.pin.3150.why': '言語在哪裡。',
   'genre.latinPop.stage.exciter': '人聲下面有溫暖和身體，上面什麼都沒有。',
   'genre.latinPop.stage.bassPunch': '潛艇收緊了一點。',
-  'genre.latinPop.stage.dimension': '單聲道低於 150 Hz。',
-  'genre.latinPop.stage.maximizer': '幾乎無法驅動的天花板。',
+  'genre.latinPop.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.latinPop.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.latinPop.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.latinPop.off': '無 Bass Forge：重低音已鎖定到底鼓。',
   'genre.reggaeton.hook': '調音後的 808 的每一個節拍都有一個踢腳聲',
   'genre.reggaeton.story':
@@ -40,8 +48,12 @@ const genreLatin = {
   'genre.reggaeton.pin.315.why': '解壓縮的空間。',
   'genre.reggaeton.pin.5000': '網羅的裂縫',
   'genre.reggaeton.pin.5000.why': '清脆。',
-  'genre.reggaeton.stage.dimension': '單聲道低於 150 Hz。',
-  'genre.reggaeton.stage.maximizer': '天花板很難將大師推得這麼大聲。',
+  'genre.reggaeton.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.reggaeton.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.reggaeton.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.reggaeton.off':
     'Bass Forge 已提供並保留：在 808 下失真的八度和諧波已經達到音符的 13%。',
   'genre.salsa.hook': '速度快，康加舞向一側',
@@ -57,8 +69,12 @@ const genreLatin = {
   'genre.salsa.pin.12500.why': '如果抬起它們，它們會變得粗糙。',
   'genre.salsa.stage.exciter':
     '只有在 tumbao 下輕輕地溫暖，而在黃銅上沒有任何東西。',
-  'genre.salsa.stage.dimension': '樂團離開了原來的位置，只有低音變窄了。',
-  'genre.salsa.stage.maximizer': '緩慢的天花板讓每一聲康加舞都拍打著穿過。',
+  'genre.salsa.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.salsa.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.salsa.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.salsa.off':
     '沒有 Bass Punch 或 Bass Forge，頂部也沒有任何東西：銅管和牛鈴已經具有豐富的和聲。',
   'genre.bachata.hook': '哭泣的 Requinto 和金屬 güira',
@@ -70,8 +86,12 @@ const genreLatin = {
   'genre.bachata.pin.1250.why': '主音吉他的聲音。',
   'genre.bachata.pin.8000': '3 至 8 kHz 從未提升',
   'genre.bachata.pin.8000.why': 'güira 和 requinto 很快就會讓耳朵感到疲勞。',
-  'genre.bachata.stage.dimension': '作為混合，兩把吉他分開；只有低音變窄了。',
-  'genre.bachata.stage.maximizer': '輕型天花板可保持 güira 的攻擊。',
+  'genre.bachata.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.bachata.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.bachata.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.bachata.off':
     '它的Exciter被提供並被取消：它使requinto和güira變得刺耳。',
   'genre.merengue.hook': '坦博拉與十六分音符吉他',
@@ -84,8 +104,12 @@ const genreLatin = {
   'genre.merengue.pin.5000': '頂部有所緩和',
   'genre.merengue.pin.5000.why': '古伊拉和薩克斯風已經明亮了。',
   'genre.merengue.stage.bassPunch': '坦博拉的拳頭始終緊繃。',
-  'genre.merengue.stage.dimension': '交響樂團混音，只有低音變窄。',
-  'genre.merengue.stage.maximizer': '不會弄髒 güira 的淺色天花板。',
+  'genre.merengue.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.merengue.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.merengue.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.merengue.off': '無激勵器或 Bass Forge：薩克斯風和古伊拉管未新增面板。',
   'genre.cumbia.hook': '穩定的刮擦聲和兩拍的低音',
   'genre.cumbia.story':
@@ -97,8 +121,12 @@ const genreLatin = {
   'genre.cumbia.pin.12500': '刮刀未鋒利',
   'genre.cumbia.pin.12500.why': '它的脈搏被留下了。',
   'genre.cumbia.stage.exciter': '低音溫暖，頂部沒有任何東西。',
-  'genre.cumbia.stage.dimension': '樂隊混合在一起，只有低音變窄。',
-  'genre.cumbia.stage.maximizer': '緩慢的上限讓刮刀的脈搏不受幹擾。',
+  'genre.cumbia.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.cumbia.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.cumbia.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.cumbia.off': '無 Bass Punch 或 Bass Forge：刮音和低音保持原狀。',
   'genre.bossaNova.hook': '尼龍吉他和內斂的聲音',
   'genre.bossaNova.story':
@@ -110,8 +138,12 @@ const genreLatin = {
   'genre.bossaNova.pin.5000': '聲音裡有一點空氣',
   'genre.bossaNova.pin.5000.why': '存在，溫柔。',
   'genre.bossaNova.stage.exciter': '吉他的溫暖和聲音的空氣感。',
-  'genre.bossaNova.stage.dimension': '據記錄，親密且靠近中心。',
-  'genre.bossaNova.stage.maximizer': '一個只能捕捉的天花板。',
+  'genre.bossaNova.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.bossaNova.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.bossaNova.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.bossaNova.off':
     '沒有 Bass Punch 或 Bass Forge：沒有任何內容對其進行壓縮或新增子內容。',
   'genre.samba.hook': '呼叫和響應中的 Surdos',
@@ -124,8 +156,12 @@ const genreLatin = {
   'genre.samba.pin.5000': '坦博林和潘代羅',
   'genre.samba.pin.5000.why': '脆而有金屬感。',
   'genre.samba.stage.bassPunch': '蘇爾多收緊了，而不是發出了轟鳴聲。',
-  'genre.samba.stage.dimension': '合奏的自然寬度，只有低音變窄。',
-  'genre.samba.stage.maximizer': '不會催促打擊樂攻擊的天花板。',
+  'genre.samba.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.samba.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.samba.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.samba.off': '頂部已經明亮，沒有激勵器或 Bass Forge。',
   'genre.flamenco.hook': '拉斯格阿多、帕爾馬斯和步法',
   'genre.flamenco.story':
@@ -137,8 +173,12 @@ const genreLatin = {
   'genre.flamenco.pin.12500': '頂部有所緩和',
   'genre.flamenco.pin.12500.why': '已經明亮了：沒有新增任何東西。',
   'genre.flamenco.stage.exciter': '體，決不頂。',
-  'genre.flamenco.stage.dimension': '吉他和歌手位於中間，如錄製的那樣。',
-  'genre.flamenco.stage.maximizer': '一個能保留每一個山峰的天花板。',
+  'genre.flamenco.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.flamenco.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.flamenco.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.flamenco.off':
     '沒有 Bass Punch 或 Bass Forge：沒有任何東西會壓縮節奏。',
   'genre.regionalMexican.hook': '大號、手風琴和小號',
@@ -153,8 +193,12 @@ const genreLatin = {
   'genre.regionalMexican.pin.12500': '黃銅頂部緩和了',
   'genre.regionalMexican.pin.12500.why': '已經夠大聲了。',
   'genre.regionalMexican.stage.bassPunch': '坦博拉的拳頭始終緊繃。',
-  'genre.regionalMexican.stage.dimension': '現場合奏混音，只有低音變窄。',
-  'genre.regionalMexican.stage.maximizer': '淺色天花板。',
+  'genre.regionalMexican.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.regionalMexican.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.regionalMexican.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.regionalMexican.off':
     '它的激勵器被提供並停止：銅管樂器、手風琴和小提琴已經明亮了。',
   'genre.corridos.hook': '大號上的鋼製琴絃',
@@ -167,8 +211,11 @@ const genreLatin = {
   'genre.corridos.pin.12500': '鋼燈罩未變亮',
   'genre.corridos.pin.12500.why': '已經說清楚了',
   'genre.corridos.stage.dimension':
-    '120Hz以下的亞單聲道； requinto 和節奏吉他離開了混音的位置。',
-  'genre.corridos.stage.maximizer': '一個上限，其前瞻可以保持鎬攻擊。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.corridos.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.corridos.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.corridos.off': 'Bass Forge 已提供並保留：808 附有自己的重低音。',
 } satisfies Partial<Dictionary>;
 

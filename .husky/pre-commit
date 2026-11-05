@@ -1,1 +1,3 @@
-pnpm exec lint-staged --no-stash
+# cross-env adds shell arguments after lint-staged sizes its file list.
+# Leave room below cmd.exe's limit when a change covers all 12 locales.
+pnpm exec lint-staged --no-stash --max-arg-length 5000

@@ -34,6 +34,8 @@ import {
   withoutDeEssBands,
 } from '../../../common/dsp/presetCurve';
 import { DSP_PRESETS } from '../../../common/dsp/presets';
+import { GENRE_RACKS, genreChainId } from '../../../common/dsp/genres';
+import { inGenreChain } from '../../../common/dsp/genreRack';
 import en from '../../../common/i18n/en';
 
 /**
@@ -181,10 +183,23 @@ describe('the chains that de-ess', () => {
     });
   });
 
-  it('every other chain leaves the De-esser off', () => {
+  it('music chains use their own declared De-esser and every other chain leaves it off', () => {
+    GENRE_RACKS.forEach((rack) => {
+      const { deEsser } = chain(genreChainId(rack)).settings;
+      const active = inGenreChain(rack, 'deEsser');
+      expect({ id: rack.id, on: deEsser.enabled }).toEqual({
+        id: rack.id,
+        on: active,
+      });
+      expect(deEsser.isolate).toBe(false);
+      expect(deEsser.presetId).toBe(
+        active ? rack.id : DSP_DEFAULTS.deEsser.presetId,
+      );
+    });
+    const musicIds = GENRE_RACKS.map(genreChainId);
     DSP_PRESETS.filter(
       (preset) =>
-        !['speech', 'podcast', 'audiobook', 'pop', 'kPop'].includes(preset.id),
+        !['speech', 'podcast', 'audiobook', ...musicIds].includes(preset.id),
     ).forEach((preset) => {
       expect({ id: preset.id, on: preset.settings.deEsser.enabled }).toEqual({
         id: preset.id,

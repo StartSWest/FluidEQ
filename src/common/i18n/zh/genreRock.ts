@@ -14,8 +14,11 @@ export default {
   'genre.rock.pin.12500.why': '失真已经把高频填满了。',
   'genre.rock.stage.bassPunch': '底鼓保留自己的冲击，尾音在电贝斯下面被缩短。',
   'genre.rock.stage.dimension':
-    '160 Hz 以下的低音收窄；声像拉满的吉他原封不动。',
-  'genre.rock.stage.maximizer': '一个轻上限，快到足以跟上反拍。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.rock.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.rock.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.rock.off':
     '它的激励器和低音熔炉有提供但保持关闭：失真吉他自己会产生谐波，电贝斯也有真正的低频。',
 
@@ -33,8 +36,11 @@ export default {
   'genre.popRock.stage.bassPunch':
     '保留底鼓的冲击，在流动的贝斯线下面缩短它的尾音。',
   'genre.popRock.stage.dimension':
-    '150 Hz 以下的低音收窄；吉他留在混音放它们的位置。',
-  'genre.popRock.stage.maximizer': '只接住峰值，并在一个十六分音符之内放开。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.popRock.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.popRock.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.popRock.off':
     '已经很亮的人声上不加激励器，真电贝斯下面也不加低音熔炉。',
 
@@ -51,8 +57,11 @@ export default {
   'genre.classicRock.stage.exciter':
     '中低频加一点温暖，也就是磁带的声音，高频什么都不加。',
   'genre.classicRock.stage.dimension':
-    '稍微收窄一点，让声像拉满的 60 年代混音在耳机里合拢。',
-  'genre.classicRock.stage.maximizer': '一个缓慢的上限，保留原版的动态。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.classicRock.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.classicRock.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.classicRock.off':
     '不用低音冲击，也不用低音熔炉：带房间感的底鼓和磁带般温暖的贝斯保持录音原样。',
 
@@ -68,9 +77,12 @@ export default {
   'genre.alternativeRock.pin.8000': '高频稍微降一点',
   'genre.alternativeRock.pin.8000.why': '缓和 90 年代削波母带的刺耳。',
   'genre.alternativeRock.stage.bassPunch': '保留底鼓的冲击，缩短它的尾音。',
-  'genre.alternativeRock.stage.dimension': '低频收窄，吉他留在原来的声像位置。',
+  'genre.alternativeRock.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.alternativeRock.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
   'genre.alternativeRock.stage.maximizer':
-    '一个几乎不推的上限，让响的部分始终比轻的部分更响。',
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.alternativeRock.off':
     '不用激励器，也不用低音熔炉：法兹自己会产生谐波。',
 
@@ -83,8 +95,12 @@ export default {
   'genre.indieRock.pin.1250.why': '乐队听起来像乐队的地方。',
   'genre.indieRock.pin.8000': '温暖而暗，和录音时一样',
   'genre.indieRock.pin.8000.why': '高频保持柔和。',
-  'genre.indieRock.stage.dimension': '房间本身的宽度，只把低频收窄。',
-  'genre.indieRock.stage.maximizer': '一个轻上限，在一个十六分音符之内松开。',
+  'genre.indieRock.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.indieRock.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.indieRock.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.indieRock.off':
     '不用激励器、低音冲击或低音熔炉：没有东西去塑造鼓，也没有东西给房间染色。',
 
@@ -98,9 +114,11 @@ export default {
   'genre.progressiveRock.pin.12500': '全频段的高保真高频',
   'genre.progressiveRock.pin.12500.why': '这些唱片制作时本来就有的空气感。',
   'genre.progressiveRock.stage.dimension':
-    '低音以上保持混音时的声像，加一点纵深。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.progressiveRock.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
   'genre.progressiveRock.stage.maximizer':
-    '摇滚家族里最长的预读，加上一整拍的释放：只碰高潮。',
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.progressiveRock.off':
     '不用激励器、低音冲击或低音熔炉：没有快速的处理去压平安静的段落。',
 
@@ -116,8 +134,12 @@ export default {
   'genre.hardRock.pin.12500': '放松嘶嘶声',
   'genre.hardRock.pin.12500.why': '过载的顶端，不去抬高。',
   'genre.hardRock.stage.bassPunch': '保留底鼓的击打，尾音稍微缩短。',
-  'genre.hardRock.stage.dimension': '低频收窄；吉他保持原来的声像。',
-  'genre.hardRock.stage.maximizer': '一个为现场房间底鼓准备的轻上限。',
+  'genre.hardRock.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.hardRock.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.hardRock.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.hardRock.off':
     '不用激励器，也不用低音熔炉：电子管破音的谐波已经够了。',
 
@@ -130,12 +152,17 @@ export default {
   'genre.metal.pin.80.why':
     '能把它抬起来的频段，会把 75 Hz 以下的一切一起抬起来。',
   'genre.metal.pin.315': '去掉降调吉他的浑浊',
-  'genre.metal.pin.315.why': '所有流派里最深的一刀，也是 riff 保持清晰的原因。',
+  'genre.metal.pin.315.why':
+    '适度削减中低频，让密集的吉他乐句保持清晰，同时保留吉他的厚度。',
   'genre.metal.pin.3150': '让一下击打听得清的咔嗒声',
   'genre.metal.pin.3150.why': '为什么双踩连击听起来是一下一下分开的。',
   'genre.metal.stage.bassPunch': '缩短尾音而不是加硬起音，让连击保持分开。',
-  'genre.metal.stage.dimension': '150 Hz 以下的低音收窄，什么都不加宽。',
-  'genre.metal.stage.maximizer': '几乎不推：这是现有最响的流派。',
+  'genre.metal.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.metal.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.metal.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.metal.off':
     '它的激励器有提供但保持关闭：多出来的谐波只会落进嘶嘶声里。降调吉他下面也不加低音熔炉。',
 
@@ -149,8 +176,12 @@ export default {
   'genre.punk.pin.5000': '没有空气感，干',
   'genre.punk.pin.5000.why': '降下来：不比乐队弹出来的更亮。',
   'genre.punk.stage.bassPunch': '只收紧底鼓。',
-  'genre.punk.stage.dimension': '低频收窄，什么都不加宽。',
-  'genre.punk.stage.maximizer': '一个保留起音的轻上限。',
+  'genre.punk.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.punk.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.punk.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.punk.off': '不用激励器，也不用低音熔炉：粗粝就是这个声音。',
 
   'genre.popPunk.hook': '紧实带咔嗒声的底鼓和光亮的吉他',
@@ -163,8 +194,12 @@ export default {
   'genre.popPunk.pin.3150': '只加一点边缘',
   'genre.popPunk.pin.3150.why': '这些母带已经又亮又被压扁了。',
   'genre.popPunk.stage.bassPunch': '底鼓更紧，但绝不更深。',
-  'genre.popPunk.stage.dimension': '150 Hz 以下的低音收窄，什么都不加宽。',
-  'genre.popPunk.stage.maximizer': '摇滚家族里最轻的上限：母带本来就很响。',
+  'genre.popPunk.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.popPunk.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.popPunk.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.popPunk.off': '这么亮、这么响的母带上，不用激励器，也不用低音熔炉。',
 
   'genre.grunge.hook': '泥泞，先轻后响，故意偏暗',
@@ -177,8 +212,10 @@ export default {
   'genre.grunge.pin.12500': '滚降的高频',
   'genre.grunge.pin.12500.why': '再往下降：暗就是这张唱片。',
   'genre.grunge.stage.dimension':
-    '宽阔的吉他和居中的人声保持混音原样；只收窄低频。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.grunge.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
   'genre.grunge.stage.maximizer':
-    '一个缓慢的上限，让轻的一半保持轻，响的一半保持响。',
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.grunge.off': '不用激励器、低音冲击或低音熔炉：没有东西把它提亮。',
 };

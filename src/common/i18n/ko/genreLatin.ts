@@ -15,8 +15,11 @@ const genreLatin = {
   'genre.latin.pin.12500': '황동 상단이 밀리지 않음',
   'genre.latin.pin.12500.why': '이미 고조파가 풍부합니다.',
   'genre.latin.stage.dimension':
-    '사진은 혼합된 상태로 유지되었으며 저음만 좁아졌습니다.',
-  'genre.latin.stage.maximizer': '타악기의 공격을 유지하는 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.latin.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.latin.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.latin.off':
     'Exciter가 제공되고 중단됩니다. 황동과 güira가 하나 아래에서 거칠어집니다.',
   'genre.latinPop.hook': '세련된 목소리로 뎀보우',
@@ -31,8 +34,12 @@ const genreLatin = {
   'genre.latinPop.stage.exciter':
     '보컬 아래에는 따뜻함과 바디감이 있고 그 위에는 아무것도 없습니다.',
   'genre.latinPop.stage.bassPunch': '서브가 조금 조여졌습니다.',
-  'genre.latinPop.stage.dimension': '150Hz 미만의 모노.',
-  'genre.latinPop.stage.maximizer': '거의 움직이지 않는 천장.',
+  'genre.latinPop.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.latinPop.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.latinPop.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.latinPop.off': 'Bass Forge 없음: 서브가 이미 킥에 잠겨 있습니다.',
   'genre.reggaeton.hook': '조율된 808의 비트마다 킥을 선사합니다.',
   'genre.reggaeton.story':
@@ -43,9 +50,12 @@ const genreLatin = {
   'genre.reggaeton.pin.315.why': '뎀보우를 위한 공간입니다.',
   'genre.reggaeton.pin.5000': '스네어의 균열',
   'genre.reggaeton.pin.5000.why': '바삭바삭.',
-  'genre.reggaeton.stage.dimension': '150Hz 미만의 모노.',
+  'genre.reggaeton.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.reggaeton.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.reggaeton.stage.maximizer':
-    '주인을 이렇게 크게 밀어붙일 수 없는 천장.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.reggaeton.off':
     'Bass Forge가 제공되고 중단되었습니다. 왜곡된 808 아래의 옥타브와 고조파가 이미 음표의 13%에 이르렀습니다.',
   'genre.salsa.hook': '빠른 속도로 클레이브, 한쪽으로 콩가스',
@@ -62,8 +72,11 @@ const genreLatin = {
   'genre.salsa.stage.exciter':
     '따뜻함만 있고, 툼바오 아래는 부드럽게, 황동 위에는 아무것도 없습니다.',
   'genre.salsa.stage.dimension':
-    '밴드는 원래 있던 자리를 떠나고 베이스만 좁아졌습니다.',
-  'genre.salsa.stage.maximizer': '모든 콩가가 뚫고 나올 수 있는 느린 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.salsa.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.salsa.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.salsa.off':
     'Bass Punch 또는 Bass Forge도 없고 상단에는 아무것도 없습니다. 브라스와 카우벨은 이미 고조파가 풍부합니다.',
   'genre.bachata.hook': '눈물 흘리는 레퀸토와 메탈릭 귀라',
@@ -76,8 +89,11 @@ const genreLatin = {
   'genre.bachata.pin.8000': '3~8kHz가 들리지 않음',
   'genre.bachata.pin.8000.why': '귀라와 레퀸토는 귀를 빨리 지치게 합니다.',
   'genre.bachata.stage.dimension':
-    '혼합됨에 따라 두 기타는 서로 분리됩니다. 저음만 좁아졌습니다.',
-  'genre.bachata.stage.maximizer': '구이라의 공격을 막아주는 가벼운 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.bachata.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.bachata.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.bachata.off':
     'Exciter는 제공되고 중단됩니다. 이는 requinto와 güira를 거칠게 만듭니다.',
   'genre.merengue.hook': '탐보라와 16분음표 귀라',
@@ -91,8 +107,11 @@ const genreLatin = {
   'genre.merengue.pin.5000.why': '기라와 색소폰은 이미 밝습니다.',
   'genre.merengue.stage.bassPunch': '탐보라의 펀치는 팽팽했다.',
   'genre.merengue.stage.dimension':
-    '오르케스타는 혼합되어 베이스만 좁아졌습니다.',
-  'genre.merengue.stage.maximizer': '구이라를 더럽히지 않는 가벼운 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.merengue.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.merengue.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.merengue.off':
     'Exciter 또는 Bass Forge 없음: 색소폰 및 Güira에 탑이 추가되지 않습니다.',
   'genre.cumbia.hook': '꾸준한 긁힘과 2비트 베이스',
@@ -106,9 +125,12 @@ const genreLatin = {
   'genre.cumbia.pin.12500.why': '맥박은 그대로 남아 있습니다.',
   'genre.cumbia.stage.exciter':
     '베이스에는 따뜻함이 있고 상단에는 아무것도 없습니다.',
-  'genre.cumbia.stage.dimension': '밴드가 믹싱되면서 베이스만 좁아졌습니다.',
+  'genre.cumbia.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.cumbia.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.cumbia.stage.maximizer':
-    '스크레이퍼의 펄스를 그대로 유지하는 느린 천장.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.cumbia.off':
     'Bass Punch 또는 Bass Forge 없음: 긁힘과 베이스가 재생된 상태로 유지됩니다.',
   'genre.bossaNova.hook': '나일론 기타와 절제된 목소리',
@@ -122,8 +144,12 @@ const genreLatin = {
   'genre.bossaNova.pin.5000.why': '존재감, 부드럽게.',
   'genre.bossaNova.stage.exciter':
     '기타에는 따뜻함이 있고 목소리에는 약간의 공기가 있습니다.',
-  'genre.bossaNova.stage.dimension': '녹음된 대로 친밀하고 중앙에 가깝습니다.',
-  'genre.bossaNova.stage.maximizer': '잡기만 하는 천장.',
+  'genre.bossaNova.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.bossaNova.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.bossaNova.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.bossaNova.off':
     'Bass Punch 또는 Bass Forge 없음: 아무것도 압축하거나 하위를 추가하지 않습니다.',
   'genre.samba.hook': '통화 및 응답의 과장된 표현',
@@ -137,8 +163,11 @@ const genreLatin = {
   'genre.samba.pin.5000.why': '선명하고 금속성입니다.',
   'genre.samba.stage.bassPunch': '서도는 붐을 일으키기보다는 조여졌습니다.',
   'genre.samba.stage.dimension':
-    '앙상블의 자연스러운 폭, 베이스만 좁아졌습니다.',
-  'genre.samba.stage.maximizer': '퍼커션의 공격을 서두르지 않는 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.samba.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.samba.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.samba.off': '이미 밝은 상단에는 Exciter 또는 Bass Forge가 없습니다.',
   'genre.flamenco.hook': '라스게아도(Rasgueado), 팔마스 및 풋워크',
   'genre.flamenco.story':
@@ -151,8 +180,11 @@ const genreLatin = {
   'genre.flamenco.pin.12500.why': '이미 밝음: 아무것도 추가되지 않았습니다.',
   'genre.flamenco.stage.exciter': '몸, 결코 최고가 아닙니다.',
   'genre.flamenco.stage.dimension':
-    '녹음된 대로 중앙에 기타와 가수가 있습니다.',
-  'genre.flamenco.stage.maximizer': '가능한 모든 정점을 유지하는 천장입니다.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.flamenco.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.flamenco.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.flamenco.off':
     'Bass Punch 또는 Bass Forge 없음: 아무것도 리듬을 압축하지 않습니다.',
   'genre.regionalMexican.hook': '튜바, 아코디언 및 트럼펫',
@@ -169,8 +201,11 @@ const genreLatin = {
   'genre.regionalMexican.pin.12500.why': '이미 충분히 시끄럽습니다.',
   'genre.regionalMexican.stage.bassPunch': '탐보라의 펀치는 팽팽했다.',
   'genre.regionalMexican.stage.dimension':
-    '라이브 앙상블을 믹싱하여 베이스만 좁혀졌습니다.',
-  'genre.regionalMexican.stage.maximizer': '밝은 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.regionalMexican.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.regionalMexican.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.regionalMexican.off':
     'Exciter는 제공되고 중단됩니다. 금관 악기, 아코디언 및 바이올린은 이미 밝습니다.',
   'genre.corridos.hook': '튜바 위에 강철 레퀸토',
@@ -183,9 +218,11 @@ const genreLatin = {
   'genre.corridos.pin.12500': '강철 레퀸토는 밝아지지 않았다',
   'genre.corridos.pin.12500.why': '이미 분명히 표현했습니다.',
   'genre.corridos.stage.dimension':
-    '120Hz 미만의 서브 모노; 레퀸토와 리듬 기타는 믹스가 놓인 자리에 남겨졌습니다.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.corridos.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.corridos.stage.maximizer':
-    '전방을 내다보는 천장이 픽 공격을 유지합니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.corridos.off':
     'Bass Forge가 제공되고 중단되었습니다. 808은 자체 서브를 가져옵니다.',
 } satisfies Partial<Dictionary>;

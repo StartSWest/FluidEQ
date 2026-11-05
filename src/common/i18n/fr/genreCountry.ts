@@ -15,8 +15,11 @@ export default {
   'genre.country.stage.exciter':
     'De la présence sur les consonnes et de l’air une octave au-dessus des cordes, les deux légers.',
   'genre.country.stage.dimension':
-    'Presque tel qu’enregistré : le bas resserré et une touche d’air sur les côtés.',
-  'genre.country.stage.maximizer': 'Un plafond léger.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.country.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.country.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.country.off':
     'Ni Punch des basses ni Forge de basses : la grosse caisse et la basse restent telles que jouées.',
 
@@ -32,9 +35,11 @@ export default {
   'genre.modernCountry.pin.3150.why':
     'Un peu relevée, en surveillant la dureté.',
   'genre.modernCountry.stage.dimension':
-    'Le bas resserré et des côtés un peu plus larges, comme au mixage.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.modernCountry.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.modernCountry.stage.maximizer':
-    'Un plafond qui pousse à peine sur des masters déjà forts.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.modernCountry.off':
     'Rien de généré : ni Exciteur, ni Punch des basses, ni Forge de basses sous des 808 qui remplissent déjà le sub.',
 
@@ -51,8 +56,11 @@ export default {
   'genre.americana.stage.exciter':
     'De la chaleur, et une touche d’air au-dessus des cordes.',
   'genre.americana.stage.dimension':
-    'L’image d’une seule pièce gardée : aucun élargissement, les basses un soupçon plus étroites.',
-  'genre.americana.stage.maximizer': 'Un plafond lent sur tout un temps.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.americana.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.americana.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.americana.off':
     'Ni Punch des basses ni Forge de basses : rien ne remodèle une batterie aux balais ou une contrebasse.',
 
@@ -68,9 +76,11 @@ export default {
   'genre.bluegrass.stage.exciter':
     'De l’air au-dessus du banjo et de la mandoline, une octave au-dessus du leur.',
   'genre.bluegrass.stage.dimension':
-    'Tel qu’enregistré, micros proches et naturel.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.bluegrass.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.bluegrass.stage.maximizer':
-    'Un plafond lent qui n’écrase jamais une attaque de médiator.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.bluegrass.off':
     'Ni Punch des basses ni Forge de basses : il n’y a pas de grosse caisse à façonner ni de sub à inventer.',
 
@@ -85,9 +95,12 @@ export default {
   'genre.folk.pin.12500.why': 'Au-dessus de 7 kHz, légèrement.',
   'genre.folk.stage.exciter':
     'Une présence douce vers 2 kHz, de l’air au-dessus de 7 et la petite part d’harmoniques qu’utilise le mastering folk.',
-  'genre.folk.stage.dimension': 'La pièce telle qu’enregistrée.',
+  'genre.folk.stage.dimension':
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.folk.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.folk.stage.maximizer':
-    'Un plafond lent qui n’aplanit jamais le calme.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.folk.off':
     'Ni Punch des basses ni Forge de basses : pas de basses gonflées sous une voix et une guitare.',
 
@@ -103,9 +116,12 @@ export default {
     'Au-dessus de 10 kHz, là où les cordes scintillent.',
   'genre.acoustic.stage.exciter':
     'Du corps à la table et de l’air au-dessus de 10 kHz.',
-  'genre.acoustic.stage.dimension': 'Le couple stéréo tel qu’enregistré.',
+  'genre.acoustic.stage.dimension':
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.acoustic.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.acoustic.stage.maximizer':
-    'Un plafond lent qui relâche sur un temps entier.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.acoustic.off':
     'Son profil de Punch des basses est proposé et reste désactivé : une guitare n’a pas de grosse caisse à façonner.',
 
@@ -122,8 +138,11 @@ export default {
   'genre.singerSongwriter.stage.exciter':
     'Du corps seulement, jamais d’harmoniques sur les sifflantes.',
   'genre.singerSongwriter.stage.dimension':
-    'Les médiums un soupçon plus étroits pour garder la voix au centre.',
-  'genre.singerSongwriter.stage.maximizer': 'Un plafond lent.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.singerSongwriter.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.singerSongwriter.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.singerSongwriter.off':
     'Ni Punch des basses ni Forge de basses : rien n’encombre une voix et un instrument.',
 };

@@ -17,8 +17,11 @@ const genreRock = {
   'genre.rock.stage.bassPunch':
     '킥은 자체 히트를 유지하고 베이스 기타 아래에서 꼬리가 짧아집니다.',
   'genre.rock.stage.dimension':
-    '저음은 160Hz 미만으로 좁아졌습니다. 하드 패닝 기타는 손대지 않았습니다.',
-  'genre.rock.stage.maximizer': '백비트에 충분히 빠른 가벼운 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.rock.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.rock.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.rock.off':
     'Exciter와 Bass Forge가 제공되고 중단됩니다. 디스토션 기타는 자체 하모닉을 만들고 베이스 기타는 실제 바닥을 갖습니다.',
   'genre.popRock.hook': '목소리가 앞선 록밴드',
@@ -36,8 +39,11 @@ const genreRock = {
   'genre.popRock.stage.bassPunch':
     '킥의 타격을 유지하고 움직이는 베이스 라인 아래에서 꼬리를 짧게 만듭니다.',
   'genre.popRock.stage.dimension':
-    '저음은 150Hz 미만으로 좁아졌습니다. 기타는 믹스가 놓인 곳에 그대로 있습니다.',
-  'genre.popRock.stage.maximizer': '최고점만 포착하고 16분음표 이내로 갑니다.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.popRock.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.popRock.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.popRock.off':
     '이미 밝은 목소리에는 자극이 없고 실제 베이스 기타에는 Bass Forge가 없습니다.',
   'genre.classicRock.hook': '클릭 한 번 없이 숨 쉴 공간이 있는 플레이',
@@ -53,8 +59,11 @@ const genreRock = {
   'genre.classicRock.stage.exciter':
     '약간의 중저음의 따뜻함, 테이프 사운드, 상단에는 아무것도 없습니다.',
   'genre.classicRock.stage.dimension':
-    '하드 패닝된 60년대 믹스를 헤드폰에 결합하는 더 좁은 그늘.',
-  'genre.classicRock.stage.maximizer': '원본의 역동성을 유지하는 느린 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.classicRock.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.classicRock.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.classicRock.off':
     'Bass Punch 또는 Bass Forge 없음: 녹음된 대로 넉넉한 킥과 테이프처럼 따뜻한 베이스가 유지됩니다.',
   'genre.alternativeRock.hook': '같은 노래 속에서 시끄럽고 조용하게',
@@ -73,9 +82,11 @@ const genreRock = {
   'genre.alternativeRock.stage.bassPunch':
     '킥의 타격이 유지되고 꼬리가 짧아졌습니다.',
   'genre.alternativeRock.stage.dimension':
-    '베이스가 좁아지고 기타는 패닝된 위치에 그대로 남아 있습니다.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.alternativeRock.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.alternativeRock.stage.maximizer':
-    '천장이 거의 움직이지 않아 시끄러운 부분이 조용한 부분보다 더 크게 유지됩니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.alternativeRock.off':
     'Exciter 및 Bass Forge 없음: 퍼즈가 자체 고조파를 생성합니다.',
   'genre.indieRock.hook': '따뜻하고 어두운 방 안의 라이브 키트',
@@ -87,9 +98,12 @@ const genreRock = {
   'genre.indieRock.pin.1250.why': '밴드가 밴드처럼 들리는 곳.',
   'genre.indieRock.pin.8000': '녹음된 대로 따뜻하고 어두움',
   'genre.indieRock.pin.8000.why': '윗부분은 부드러운 상태로 유지됩니다.',
-  'genre.indieRock.stage.dimension': '방 자체의 너비, 바닥만 좁아졌습니다.',
+  'genre.indieRock.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.indieRock.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.indieRock.stage.maximizer':
-    '16분음표 안에 들어갈 수 있는 가벼운 천장.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.indieRock.off':
     'Exciter 없음, Bass Punch 또는 Bass Forge: 드럼 모양을 형성하거나 방을 색칠하는 것은 없습니다.',
   'genre.progressiveRock.hook': '거의 침묵 속에서 만들어진 긴 조각들',
@@ -102,9 +116,11 @@ const genreRock = {
   'genre.progressiveRock.pin.12500': '풀레인지 하이파이 탑',
   'genre.progressiveRock.pin.12500.why': '이 기록을 만든 공기.',
   'genre.progressiveRock.stage.dimension':
-    '베이스 위에 깊이감이 더해진 믹스된 그림입니다.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.progressiveRock.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.progressiveRock.stage.maximizer':
-    '록 계열에서 가장 긴 미리보기와 릴리스의 전체 비트: 이는 단지 클라이막스에 도달합니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.progressiveRock.off':
     '여진 장치 없음, Bass Punch 또는 Bass Forge: 빠른 레벨은 조용한 통행을 보장하지 않습니다.',
   'genre.hardRock.hook': '라이브 룸에서 큰 킥',
@@ -122,8 +138,11 @@ const genreRock = {
   'genre.hardRock.stage.bassPunch':
     '킥의 타격은 유지되었고 꼬리는 조금 짧아졌습니다.',
   'genre.hardRock.stage.dimension':
-    '저음이 좁아졌습니다. 기타는 패닝된 상태로 남겨졌습니다.',
-  'genre.hardRock.stage.maximizer': '라이브 룸에서 즐길 수 있는 조명 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.hardRock.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.hardRock.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.hardRock.off':
     '익사이터 또는 Bass Forge 없음: 밸브 크런치가 고조파로 충분합니다.',
   'genre.metal.hook': '모든 더블킥은 저절로 이루어집니다.',
@@ -137,15 +156,17 @@ const genreRock = {
     '그것을 들어 올릴 수 있는 밴드는 75Hz 미만의 모든 것을 들어 올릴 것입니다.',
   'genre.metal.pin.315': '튜닝된 기타의 진흙',
   'genre.metal.pin.315.why':
-    '모든 장르 중 가장 깊은 컷과 리프가 선명하게 유지되는 이유.',
+    '저중역을 절제해 줄여 기타의 두께를 비우지 않고 밀도 높은 리프를 선명하게 유지합니다.',
   'genre.metal.pin.3150': '히트를 읽게 만드는 클릭',
   'genre.metal.pin.3150.why': '더블킥 실행이 별도의 안타처럼 들리는 이유',
   'genre.metal.stage.bassPunch':
     '더 강한 공격보다는 짧은 꼬리로 달리기가 분리됩니다.',
   'genre.metal.stage.dimension':
-    '저음은 150Hz 미만으로 좁아졌고 아무것도 넓어지지 않았습니다.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.metal.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.metal.stage.maximizer':
-    '거의 운전하지 않습니다. 이것은 가장 시끄러운 장르입니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.metal.off':
     'Exciter가 제공되고 중단됩니다. 더 많은 고조파가 거품에 도달합니다. 다운 튜닝된 기타에는 Bass Forge가 없습니다.',
   'genre.punk.hook': '건조하고 중간 정도이며 빠름',
@@ -159,8 +180,12 @@ const genreRock = {
   'genre.punk.pin.5000.why':
     'Take down: 밴드가 연주한 것보다 더 밝은 것은 없습니다.',
   'genre.punk.stage.bassPunch': '킥만 조여졌습니다.',
-  'genre.punk.stage.dimension': '저음은 좁아졌고 아무것도 넓어지지 않았습니다.',
-  'genre.punk.stage.maximizer': '공격을 유지하는 가벼운 천장.',
+  'genre.punk.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.punk.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.punk.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.punk.off': 'Exciter 및 Bass Forge 없음: 원시 사운드입니다.',
   'genre.popPunk.hook': '타이트하고 딸깍거리는 킥과 윤기 나는 기타',
   'genre.popPunk.story':
@@ -173,9 +198,11 @@ const genreRock = {
   'genre.popPunk.pin.3150.why': '이 마스터들은 이미 똑똑하고 무너졌습니다.',
   'genre.popPunk.stage.bassPunch': '더 단단한 킥, 결코 더 깊은 킥이 아닙니다.',
   'genre.popPunk.stage.dimension':
-    '저음은 150Hz 미만으로 좁아졌고 아무것도 넓어지지 않았습니다.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.popPunk.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.popPunk.stage.maximizer':
-    '록 제품군 중 가장 가벼운 천장: 마스터는 이미 시끄럽습니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.popPunk.off':
     '이렇게 밝고 시끄러운 마스터에는 Exciter나 Bass Forge가 없습니다.',
   'genre.grunge.hook': '슬러시하고 부드러우며 시끄럽고 일부러 어둡습니다.',
@@ -188,9 +215,11 @@ const genreRock = {
   'genre.grunge.pin.12500': '롤오프된 탑',
   'genre.grunge.pin.12500.why': '더 자세히 설명하면 어두운 것이 기록입니다.',
   'genre.grunge.stage.dimension':
-    '넓은 기타와 중앙에 위치한 목소리가 혼합되어 있습니다. 바닥만 좁아졌어요.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.grunge.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.grunge.stage.maximizer':
-    '부드러운 반은 부드럽고 시끄러운 반은 시끄러운 것을 유지하는 느린 천장.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.grunge.off':
     '자극기 없음, Bass Punch 또는 Bass Forge: 아무것도 밝게 하지 않습니다.',
 } satisfies Partial<Dictionary>;

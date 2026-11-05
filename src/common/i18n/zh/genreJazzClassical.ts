@@ -11,8 +11,9 @@ export default {
   'genre.jazz.pin.12500': '叮叮镲的空气感',
   'genre.jazz.pin.12500.why': '鼓组的顶端，保持开阔。',
   'genre.jazz.stage.dimension':
-    '稍微收窄一点，让声像拉满的 1950 年代立体声在耳机里合拢。',
-  'genre.jazz.stage.maximizer': '一个跨越整拍的上限，只碰偶尔冒出的峰值。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.jazz.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.jazz.off':
     '它的激励器有提供但保持关闭：加进去的谐波会明显给管乐和钢琴染色。没有东西压缩、加宽或生成低音。',
 
@@ -25,8 +26,10 @@ export default {
   'genre.smoothJazz.pin.2000.why': '放松一点，让主奏保持柔和。',
   'genre.smoothJazz.pin.12500': '光亮的高频',
   'genre.smoothJazz.pin.12500.why': '保留录音棚的光泽。',
-  'genre.smoothJazz.stage.dimension': '光亮的立体声保持混音原样，只收窄低频。',
-  'genre.smoothJazz.stage.maximizer': '一个缓慢的上限。',
+  'genre.smoothJazz.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.smoothJazz.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.smoothJazz.off':
     '它的激励器有提供但保持关闭，也没有低音冲击：这个流派本来就故意柔和。',
 
@@ -39,8 +42,10 @@ export default {
   'genre.fusion.pin.315.why': '给快句留出空间。',
   'genre.fusion.pin.12500': '明亮，和录音一样',
   'genre.fusion.pin.12500.why': '这些唱片本来就有的高频。',
-  'genre.fusion.stage.dimension': '多轨的铺开保持录音原样，只收窄低频。',
-  'genre.fusion.stage.maximizer': '一个缓慢的上限，不去碰加花。',
+  'genre.fusion.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.fusion.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.fusion.off':
     '不用激励器、低音冲击或低音熔炉：会自己产生谐波的乐器，什么都不加。',
 
@@ -53,8 +58,12 @@ export default {
   'genre.blues.pin.200.why': '老录音丢掉的那份温暖。',
   'genre.blues.pin.5000': '粗粝，不明亮',
   'genre.blues.pin.5000.why': '高频放松。',
-  'genre.blues.stage.dimension': '稍微收窄一点；单声道唱片仍是单声道。',
-  'genre.blues.stage.maximizer': '一个缓慢的上限。',
+  'genre.blues.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.blues.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.blues.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.blues.off':
     '它的激励器有提供但保持关闭：过载就是这个声音，不往上加任何东西。',
 
@@ -68,7 +77,7 @@ export default {
   'genre.classical.pin.12500': '音乐厅的空气感',
   'genre.classical.pin.12500.why': '录音所在的空间。',
   'genre.classical.stage.maximizer':
-    '只有上限，用所有流派里最长的预读和释放，绝不让它压住的是渐强。',
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.classical.off':
     '完全不用空间感：音乐厅就是这份录音。它的激励器和低音冲击有提供但保持关闭。',
 
@@ -82,7 +91,7 @@ export default {
   'genre.orchestra.pin.12500': '音乐厅的空气感',
   'genre.orchestra.pin.12500.why': '乐团周围的空间。',
   'genre.orchestra.stage.maximizer':
-    '只有上限，用所有流派里最长的预读和释放，全奏时绝不抽吸。',
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.orchestra.off':
     '不用空间感、激励器、低音冲击或低音熔炉：不去提升会被定音鼓打到过载的低频。',
 
@@ -95,7 +104,10 @@ export default {
   'genre.opera.pin.800.why': '稍微往前。',
   'genre.opera.pin.3150': '共振峰保持不动',
   'genre.opera.pin.3150.why': '它本来就穿透力十足；再抬会让人声尖利。',
-  'genre.opera.stage.maximizer': '只有一个轻上限：没有东西压缩人声。',
+  'genre.opera.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.opera.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.opera.off':
     '不用空间感、激励器或低音冲击：没有东西去加宽、激励或重塑人声。',
 
@@ -108,7 +120,8 @@ export default {
   'genre.piano.pin.315.why': '要的是音板，不是琴盖。',
   'genre.piano.pin.5000': '琴槌的起音',
   'genre.piano.pin.5000.why': '一个音开始的地方。',
-  'genre.piano.stage.maximizer': '只有上限。',
+  'genre.piano.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.piano.off': '不用空间感、激励器或低音冲击：没有东西去饱和或重塑钢琴。',
 
   'genre.strings.hook': '本来就富含谐波',
@@ -120,6 +133,7 @@ export default {
   'genre.strings.pin.2000.why': '降下来：弓弦乐器在这里会变得尖锐。',
   'genre.strings.pin.12500': '声部周围的空气感',
   'genre.strings.pin.12500.why': '琴弓之上的音乐厅。',
-  'genre.strings.stage.maximizer': '只有上限。',
+  'genre.strings.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.strings.off': '不用空间感，也不用激励器：激励器会让弓弦乐器变得尖锐。',
 };

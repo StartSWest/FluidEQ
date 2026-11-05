@@ -27,12 +27,29 @@ import {
  * room and take warmth well. The two catch-all rows — World and the Indian
  * classical tradition — impose the least of anything in the catalogue.
  */
+// 2026-11-04 reference calibration: constant input normalization precedes
+// the creative stages and one final Maximizer. Drive is makeup from that
+// working level, not a ranking of limiting strength. Exact settings and
+// measured limits: docs/dsp/music-reference-audit.json.
 const WORLD_RACKS: readonly IGenreRack[] = [
   {
     // Long grooves at 105-135 BPM from a big live band, the 1970s originals
     // at DR 11-16. Warmth and a little air for the analog masters, the bass
     // tightened a little, and a slow ceiling.
     id: 'afrobeat',
+    normalizer: { mode: 'loudness', targetLufs: -23.5, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     exciter: exciterProfile(
       [
         { enabled: false },
@@ -43,7 +60,7 @@ const WORLD_RACKS: readonly IGenreRack[] = [
     ),
     bassPunch: punch(100, 0.1, -0.3, 0, 60, 0),
     dimension: width(0.75, 1, 1, 170, 3_200, 0),
-    maximizer: ceiling(1, -1, 10, beatMs(120)),
+    maximizer: ceiling(3.75, -1, 10, beatMs(120)),
   },
   {
     // About 110 BPM, a round kick and a sine sub (log drums in the newer
@@ -53,9 +70,22 @@ const WORLD_RACKS: readonly IGenreRack[] = [
     // left alone; Forge offered and left off, as a sine sub is clean and
     // wants no octave or grit made under it.
     id: 'afrobeats',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     bassForge: forge(90, 0, 0.6, 0.5, 0.9, 0.3),
-    dimension: width(0.5, 1, 1.1, 150, 3_000, 0.1),
-    maximizer: ceiling(0.75, -1, 4, sixteenthMs(110)),
+    dimension: width(0.5, 1, 1.1, 150, 3_000, 0),
+    maximizer: ceiling(5.75, -1, 4, sixteenthMs(110)),
     offered: ['bassForge'],
   },
   {
@@ -65,15 +95,41 @@ const WORLD_RACKS: readonly IGenreRack[] = [
     // stays centred, and width only above 3 kHz. Forge offered and left off: the research's one rule
     // for the log drum is no saturation on it.
     id: 'amapiano',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     bassForge: forge(90, 0, 0.6, 0.3, 0.95, 0.25),
-    dimension: width(0.5, 1, 1.15, 200, 3_000, 0.15),
-    maximizer: ceiling(0.75, -1, 5, sixteenthMs(113)),
+    dimension: width(0.5, 1, 1.15, 200, 3_000, 0),
+    maximizer: ceiling(5.25, -1, 5, sixteenthMs(113)),
     offered: ['bassForge'],
   },
   {
     // Sweet, clean guitars and jazzy horns over a melodic bass. A little
     // warmth and air for the older recordings, and no width.
     id: 'highlife',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     exciter: exciterProfile(
       [
         { enabled: false },
@@ -83,39 +139,79 @@ const WORLD_RACKS: readonly IGenreRack[] = [
       { enabled: true, amount: 0.08, focusHz: 250, range: 0.3 },
     ),
     dimension: width(0.75, 1, 1, 170, 3_200, 0),
-    maximizer: ceiling(1, -1, 8, beatMs(118)),
+    maximizer: ceiling(4.5, -1, 8, beatMs(118)),
   },
   {
     // Recordings made in every way there is, field recordings in mono among
     // them, with timbres a Western reference does not know. The least a
     // chain can do: no picture changed, and a ceiling that only catches.
     id: 'world',
-    maximizer: ceiling(0.5, -1, 14, beatMs(90)),
+    normalizer: { mode: 'loudness', targetLufs: -18.5, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
+    maximizer: ceiling(4.5, -1, 14, beatMs(90)),
   },
   {
     // Lush film backdrops around a centred playback vocal, modern dance
     // numbers bass-heavy and mastered at DR 5-8. The sub tightened, the
     // picture — wide already — left alone.
     id: 'bollywood',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     bassPunch: punch(100, 0.1, -0.3, 0, 60, 0),
     dimension: width(0.6, 1, 1, 150, 3_200, 0),
-    maximizer: ceiling(0.5, -1, 3, sixteenthMs(100)),
+    maximizer: ceiling(6.75, -1, 3, sixteenthMs(100)),
   },
   {
     // The dhol is the genre: a thick boom and a treble crack at 90-110 BPM.
     // The boom tightened, never raised, and a look-ahead long enough to let
     // the crack through.
     id: 'bhangra',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     bassPunch: punch(110, 0.15, -0.4, 0, 50, 0),
     dimension: width(0.6, 1, 1, 150, 3_200, 0),
-    maximizer: ceiling(0.5, -1, 5, sixteenthMs(100)),
+    maximizer: ceiling(6, -1, 5, sixteenthMs(100)),
   },
   {
     // An unmetered alap over a drone, then tabla: harmonics built in by the
     // jivari bridge, and dynamics a leveller would ruin by lifting the drone.
     // A ceiling and nothing else.
     id: 'indianClassical',
-    maximizer: ceiling(0.5, -1, 16, beatMs(60)),
+    normalizer: { mode: 'loudness', targetLufs: -18.5, truePeakDbtp: -3 },
+    maximizer: ceiling(1.25, -1, 16, beatMs(60)),
   },
   {
     // A reverberant, ornamented voice over the maqsum's doum and tek. The
@@ -124,39 +220,78 @@ const WORLD_RACKS: readonly IGenreRack[] = [
     // the pop styles, Organic's warmth under the voice, and nothing on the
     // strings or the tek.
     id: 'arabicPop',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     exciter: exciterProfile(
       [{ enabled: false }, { enabled: false }, { enabled: false }],
       { enabled: true, amount: 0.1, focusHz: 400, range: 0.3 },
     ),
     bassPunch: punch(100, 0.1, -0.3, 0, 60, 0),
     dimension: width(0.6, 1, 1, 150, 3_200, 0),
-    maximizer: ceiling(0.75, -1, 4, sixteenthMs(100)),
+    maximizer: ceiling(6, -1, 4, sixteenthMs(100)),
   },
   {
     // Polished pop with Turkish colour, the modern albums at DR 5-6. A tight
     // bottom, the darbuka crisp, the ceiling barely pushing, and since
     // 2026-10-15 Organic's warmth under the voice, as Arabic pop's.
     id: 'turkishPop',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     exciter: exciterProfile(
       [{ enabled: false }, { enabled: false }, { enabled: false }],
       { enabled: true, amount: 0.1, focusHz: 400, range: 0.3 },
     ),
     bassPunch: punch(100, 0.1, -0.3, 0, 60, 0),
     dimension: width(0.6, 1, 1, 150, 3_200, 0),
-    maximizer: ceiling(0.5, -1, 3, sixteenthMs(110)),
+    maximizer: ceiling(6.5, -1, 3, sixteenthMs(110)),
   },
   {
     // A choir and a lead voice over organ and a busy bass, with vamps that
     // build for minutes (LRA about 11). Warmth, the choir left as wide as it
     // was recorded, and a slow ceiling that lets a vamp build.
     id: 'gospel',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     // Offered under its name and not played: no excitement on the choir.
     exciter: exciterProfile(
       [{ enabled: false }, { enabled: false }, { enabled: false }],
       { enabled: true, amount: 0.12, focusHz: 350, range: 0.32 },
     ),
     dimension: width(0.75, 1, 1, 170, 3_400, 0),
-    maximizer: ceiling(1, -1, 10, beatMs(100)),
+    maximizer: ceiling(3.75, -1, 10, beatMs(100)),
     offered: ['exciter'],
   },
   {
@@ -165,8 +300,21 @@ const WORLD_RACKS: readonly IGenreRack[] = [
     // ceiling
     // slow enough to keep the arc.
     id: 'christian',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     dimension: width(0.65, 1, 1, 160, 3_200, 0),
-    maximizer: ceiling(1, -1, 8, beatMs(95)),
+    maximizer: ceiling(5.75, -1, 8, beatMs(95)),
   },
 ];
 

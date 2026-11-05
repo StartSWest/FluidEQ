@@ -11,9 +11,11 @@ export default {
   'genre.reggae.pin.12500': 'Unos agudos suaves',
   'genre.reggae.pin.12500.why': 'Cinta antigua: nada sube el siseo.',
   'genre.reggae.stage.dimension':
-    'Los graves en mono por debajo de 80 Hz y más estrechos por encima; un disco mono sigue en mono.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.reggae.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.reggae.stage.maximizer':
-    'Un techo que solo atrapa, y el bombo suave sigue suave.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.reggae.off':
     'La Forja de graves se ofrece y queda apagada: el bajo lleva sus propios armónicos. Sin Excitador en unos agudos de la era de la cinta.',
 
@@ -27,9 +29,11 @@ export default {
   'genre.dub.pin.8000': 'El brillo del eco y del muelle',
   'genre.dub.pin.8000.why': 'El destello de los efectos, conservado.',
   'genre.dub.stage.dimension':
-    'El fondo en mono por debajo de 150 Hz, tan estrecho como los originales; los ecos donde los lanzó la mezcla.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.dub.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.dub.stage.maximizer':
-    'Un techo que solo atrapa: las caídas son la gracia.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.dub.off':
     'La Forja de graves se ofrece y queda apagada, no hay Excitador y nada aplana las caídas.',
 
@@ -43,9 +47,11 @@ export default {
   'genre.dancehall.pin.1250': 'La voz delante',
   'genre.dancehall.pin.1250.why': 'El deejay encima.',
   'genre.dancehall.stage.dimension':
-    'Mono por debajo de 120 Hz, más estrecho hasta 150.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.dancehall.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.dancehall.stage.maximizer':
-    'Un techo lo bastante rápido para mantener nítida la percusión.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.dancehall.off':
     'La Forja de graves se ofrece y queda apagada, y no hay Excitador sobre una percusión nítida.',
 
@@ -60,8 +66,12 @@ export default {
   'genre.ska.pin.315.why': 'Espacio para los metales.',
   'genre.ska.pin.2000': 'Metales y skank',
   'genre.ska.pin.2000.why': 'El contratiempo, brillante.',
-  'genre.ska.stage.dimension': 'Un pelín de estrechamiento en vez de anchura.',
-  'genre.ska.stage.maximizer': 'Un techo ligero.',
+  'genre.ska.stage.dimension':
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.ska.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.ska.stage.maximizer':
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.ska.off':
     'Sin Excitador, Pegada de graves ni Forja de graves: ningún grave inventado bajo una grabación antigua.',
 };
