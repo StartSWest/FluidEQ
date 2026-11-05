@@ -23,6 +23,8 @@ export interface ISettingsResetDeps {
   resetDesktopBackgrounds: () => void;
   /** The desk lights' switch, brightness and devices as new. */
   resetLighting: () => void;
+  /** The engine's shortcut choice, none; its power and sound stay as they are. */
+  resetEngineKey: () => Promise<void>;
   /** The compact player's Always on top, off. */
   unpinWindow: () => void;
   /** The graph's on/off switch, on: it is kept in the state file beside the EQ. */
@@ -38,8 +40,8 @@ export interface ISettingsResetDeps {
  * answers, and reloads, which reads every one of them again.
  *
  * What main keeps that is a setting: the animations, the graphics card,
- * whether Windows starts FluidEQ, the desktop backgrounds, the desk lights,
- * the compact player's Always on top, and the graph's on/off switch (Ivan,
+ * whether Windows starts FluidEQ, the engine shortcut, the desktop backgrounds,
+ * the desk lights, the compact player's Always on top, and the graph's on/off switch (Ivan,
  * 2026-10-26, from the reset checklist: "do it"). What it keeps that is not,
  * and so is left alone: the engine and the outputs, the EQ in every profile,
  * the song EQs, the band layouts, the account, the Library and the Studio —
@@ -58,7 +60,7 @@ export const registerSettingsResetIpc = (deps: ISettingsResetDeps) => {
     event.senderFrame === event.sender.mainFrame &&
     event.sender === deps.ownerContents();
 
-  const steps: [string, () => void][] = [
+  const steps: [string, () => void | Promise<void>][] = [
     ['animations', () => writeMotionPreference(deps.userDataDir, 'full')],
     ['graphics card', () => writeGpuPreference(deps.userDataDir, 'auto')],
     [
@@ -71,6 +73,7 @@ export const registerSettingsResetIpc = (deps: ISettingsResetDeps) => {
     ],
     ['desktop backgrounds', deps.resetDesktopBackgrounds],
     ['desk lights', deps.resetLighting],
+    ['engine on/off key', deps.resetEngineKey],
     ['always on top', deps.unpinWindow],
     ['graph switch', deps.showGraph],
   ];
@@ -79,13 +82,21 @@ export const registerSettingsResetIpc = (deps: ISettingsResetDeps) => {
     if (!fromOwner(event)) {
       throw new Error('Only FluidEQ resets its settings.');
     }
-    steps.forEach(([name, step]) => {
-      try {
-        step();
-      } catch (error) {
-        deps.logger.error(`Settings reset: could not reset the ${name}`, error);
-      }
-    });
+    return Promise.all(
+      steps.map(([name, step]) => {
+        const report = (error: unknown) =>
+          deps.logger.error(
+            `Settings reset: could not reset the ${name}`,
+            error,
+          );
+        try {
+          return step()?.catch(report);
+        } catch (error) {
+          report(error);
+          return undefined;
+        }
+      }),
+    ).then(() => undefined);
   });
 
   return {

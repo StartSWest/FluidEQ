@@ -240,12 +240,14 @@ describe('Reset all settings', () => {
       'fluideq.standardPerformance',
       'fluideq.songSound',
       'fluideq.singlePlayer',
+      'fluideq.gaming.gamesLayout',
       'fluideq-rainbow',
     ];
     const kept = [
       'fluideq.sceneTint.skies',
       'fluideq.dsp.userPresets.v1',
       'fluideq.disclaimerAccepted',
+      'fluideq.games.profiles.v1',
       'fluideq.library.sortDirectionless',
       'somebody-else',
     ];

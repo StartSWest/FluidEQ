@@ -122,6 +122,7 @@ import {
   START_IN_TRAY_ARG,
 } from './startWithWindows';
 import { registerSettingsResetIpc } from './ipc/settingsReset';
+import { resetEngineKey } from './engineKey';
 import { registerTaskbarIconIpc } from './taskbarIcon';
 import { DEFAULT_LIGHTING_SETTINGS } from '../common/lighting/lightingModel';
 import { MOTION_SWITCHES, readMotionPreference } from './motionPreference';
@@ -842,6 +843,7 @@ registerSettingsResetIpc({
       : undefined,
   resetDesktopBackgrounds: () => members.wallpaperIpc.reset(),
   resetLighting: () => lighting.setSettings(DEFAULT_LIGHTING_SETTINGS),
+  resetEngineKey,
   unpinWindow: () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       windowModes.setPinned(mainWindow, false);

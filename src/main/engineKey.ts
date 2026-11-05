@@ -117,6 +117,16 @@ export const createEngineKey = (
   };
 };
 
+let currentKey: ReturnType<typeof createEngineKey> | undefined;
+
+/** Forget the shortcut choice, without changing the engine's power or sound. */
+export const resetEngineKey = async (): Promise<void> => {
+  const result = await currentKey?.set('');
+  if (result && !result.ok) {
+    throw new Error('The engine on/off key could not be reset');
+  }
+};
+
 /** The key for this window: held while it lives, asked about by it alone. */
 const installEngineKey = (window: BrowserWindow): void => {
   const key = createEngineKey(
@@ -129,6 +139,7 @@ const installEngineKey = (window: BrowserWindow): void => {
     },
   );
   key.start();
+  currentKey = key;
   const fromWindow = (event: Electron.IpcMainInvokeEvent) =>
     event.sender === window.webContents &&
     event.senderFrame === window.webContents.mainFrame;
@@ -141,6 +152,9 @@ const installEngineKey = (window: BrowserWindow): void => {
       : { ok: false, problem: 'invalid' },
   );
   window.once('closed', () => {
+    if (currentKey === key) {
+      currentKey = undefined;
+    }
     key.stop();
     ipcMain.removeHandler(ENGINE_KEY_GET);
     ipcMain.removeHandler(ENGINE_KEY_SET);

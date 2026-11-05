@@ -193,6 +193,7 @@ import './SceneCover.scss';
 import './EngineTroubleNotice.scss';
 import './EngineUpdateNotice.scss';
 import './AudioEngineDialog.scss';
+import './EngineKeyDialog.scss';
 // Every dialog's frame and the small frame for questions and notices, after
 // every sheet that sizes or places one: it reached the window through the
 // dialogs' own imports, after this whole list, and every dialog was built
