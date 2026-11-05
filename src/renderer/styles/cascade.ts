@@ -33,6 +33,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import './ConfigInspector.scss';
 import './RichPick.scss';
 import './Games.scss';
+import './GamingGamesLayout.scss';
 import './App.scss';
 import './Rainbow.scss';
 // The header's logo and name ("Signal"): over `.brand-mark`, and with

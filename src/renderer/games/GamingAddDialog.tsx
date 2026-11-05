@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useEffectEvent, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { IGameProfile, IGameProgram, TGameSource } from '../../common/games';
+import isGameProgramEligible from '../../common/gamePrograms';
 import { suggestGamingProfile } from '../../common/gaming';
 import type { TranslationKey } from '../../common/i18n/en';
 import DialogFrame from '../components/DialogFrame';
@@ -92,7 +93,9 @@ const GamingAddDialog = ({
         const programs = [
           ...(Array.isArray(running) ? running : []),
           ...(Array.isArray(installed) ? installed : []),
-        ].filter(isProgram);
+        ]
+          .filter(isProgram)
+          .filter(isGameProgramEligible);
         setKnown(programs);
         // Rows saved before their icon was carried across get it here, the
         // first time the launchers answer again.
@@ -126,6 +129,9 @@ const GamingAddDialog = ({
     profileId ?? suggestGamingProfile(program.name);
 
   const add = (program: IGameProgram) => {
+    if (!isGameProgramEligible(program)) {
+      return;
+    }
     const next = addGameProfile(
       {
         name: program.name,

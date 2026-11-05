@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { chainGamingProfileId, suggestGamingProfile } from './gaming';
+import isGameProgramEligible from './gamePrograms';
 
 /** Where a program came from, which is all the row says about it. */
 export type TGameSource =
@@ -141,5 +142,10 @@ export const gameProfileFor = (
   programPath: string,
 ): IGameProfile | undefined =>
   profiles
-    .filter((profile) => gamePathHolds(profile.path, programPath))
+    .filter(
+      (profile) =>
+        isGameProgramEligible(profile) &&
+        isGameProgramEligible({ path: programPath }) &&
+        gamePathHolds(profile.path, programPath),
+    )
     .sort((a, b) => b.path.length - a.path.length)[0];

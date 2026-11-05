@@ -13,6 +13,9 @@ export default {
   'gaming.switch.hint':
     'Aus: Ihre Spiele behalten Ihren Musikklang, und nichts schaltet von selbst um.',
   'gaming.add': 'Spiel hinzufügen',
+  'gaming.list.show': 'Spieleliste anzeigen',
+  'gaming.list.hide': 'Spieleliste ausblenden',
+  'gaming.list.resize': 'Größe der Spieleliste ändern',
   'gaming.list.count': 'Ihre Spiele · {count}',
   'gaming.list.from': 'Aus {profile}',
   'gaming.list.tuned': 'angepasst',

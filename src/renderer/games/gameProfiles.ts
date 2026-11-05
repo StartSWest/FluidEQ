@@ -20,6 +20,7 @@ import {
   TGameSource,
 } from '../../common/games';
 import { gamingProfileName } from '../../common/gaming';
+import isGameProgramEligible from '../../common/gamePrograms';
 
 const STORAGE_KEY = 'fluideq.games.profiles.v1';
 
@@ -50,7 +51,8 @@ export const readGameProfiles = (): IGameProfile[] => {
         typeof entry.id !== 'string' ||
         typeof entry.name !== 'string' ||
         typeof entry.path !== 'string' ||
-        entry.path === ''
+        entry.path === '' ||
+        !isGameProgramEligible({ name: entry.name, path: entry.path })
       ) {
         return [];
       }
@@ -145,6 +147,9 @@ export const addGameProfile = (
   profileId?: string,
 ): IGameProfile[] => {
   const profiles = readGameProfiles();
+  if (!isGameProgramEligible(program)) {
+    return profiles;
+  }
   const key = program.path.toLowerCase();
   if (profiles.some((profile) => profile.path.toLowerCase() === key)) {
     return profiles;

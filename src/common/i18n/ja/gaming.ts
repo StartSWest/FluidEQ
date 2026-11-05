@@ -13,6 +13,9 @@ export default {
   'gaming.switch.hint':
     'オフのときは、ゲームも音楽用のサウンドのままで、勝手に切り替わることはありません。',
   'gaming.add': 'ゲームを追加',
+  'gaming.list.show': 'ゲーム一覧を表示',
+  'gaming.list.hide': 'ゲーム一覧を非表示',
+  'gaming.list.resize': 'ゲーム一覧のサイズを変更',
   'gaming.list.count': 'あなたのゲーム · {count}',
   'gaming.list.from': '元: {profile}',
   'gaming.list.tuned': '調整済み',

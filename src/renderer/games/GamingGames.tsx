@@ -9,6 +9,7 @@ import { gamingProfileOf, IGameProfile } from '../../common/games';
 import { useTranslation } from '../utils/I18nContext';
 import GamingGamePanel from './GamingGamePanel';
 import GamingGameRow from './GamingGameRow';
+import GamingGamesLayout from './GamingGamesLayout';
 import { gamingProfileEntry } from './gamingCatalog';
 import { useLoadedGame } from './gameSoundStore';
 import { useGameTuned, useYoursGamingProfiles } from './useGamingData';
@@ -127,25 +128,21 @@ const GamingGames = ({
     games[0];
 
   return (
-    <div className={`gaming-games${isOn ? '' : ' is-off'}`}>
-      <div className="gaming-games__list">
-        <span className="gaming-cap">
-          {t('gaming.list.count', { count: games.length })}
-        </span>
-        {games.map((game) => (
-          <TunedGameRow
-            key={game.id}
-            game={game}
-            profileName={
-              gamingProfileEntry(gamingProfileOf(game), yours, t).name
-            }
-            isSelected={game.id === shown.id}
-            isPlaying={game.id === playingId}
-            isLoaded={game.id === loadedId}
-            onSelect={() => onSelect(game.id)}
-          />
-        ))}
-      </div>
+    <GamingGamesLayout
+      count={games.length}
+      isOn={isOn}
+      list={games.map((game) => (
+        <TunedGameRow
+          key={game.id}
+          game={game}
+          profileName={gamingProfileEntry(gamingProfileOf(game), yours, t).name}
+          isSelected={game.id === shown.id}
+          isPlaying={game.id === playingId}
+          isLoaded={game.id === loadedId}
+          onSelect={() => onSelect(game.id)}
+        />
+      ))}
+    >
       <GamingGamePanel
         key={shown.id}
         game={shown}
@@ -153,7 +150,7 @@ const GamingGames = ({
         isLoaded={shown.id === loadedId}
         isPlaying={shown.id === playingId}
       />
-    </div>
+    </GamingGamesLayout>
   );
 };
 

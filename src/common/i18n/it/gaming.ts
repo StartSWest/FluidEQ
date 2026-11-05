@@ -13,6 +13,9 @@ export default {
   'gaming.switch.hint':
     'Spento, i tuoi giochi tengono il tuo suono per la musica e niente cambia da solo.',
   'gaming.add': 'Aggiungi un gioco',
+  'gaming.list.show': 'Mostra elenco giochi',
+  'gaming.list.hide': 'Nascondi elenco giochi',
+  'gaming.list.resize': 'Ridimensiona elenco giochi',
   'gaming.list.count': 'I tuoi giochi · {count}',
   'gaming.list.from': 'Da {profile}',
   'gaming.list.tuned': 'regolato',

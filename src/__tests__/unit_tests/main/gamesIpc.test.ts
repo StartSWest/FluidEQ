@@ -24,6 +24,7 @@ type THandler = () => Promise<IGameProgramsAnswer>;
 const mockHandlers = new Map<string, THandler>();
 const mockAppListeners = new Map<string, (...args: unknown[]) => void>();
 const mockGetFileIcon = jest.fn();
+const mockExePath = jest.fn(() => 'C:\\Program Files\\FluidEQ\\FluidEQ.exe');
 
 jest.mock('electron', () => ({
   ipcMain: {
@@ -34,7 +35,7 @@ jest.mock('electron', () => ({
   app: {
     on: (event: string, listener: (...args: unknown[]) => void) =>
       mockAppListeners.set(event, listener),
-    getPath: () => 'C:\\Program Files\\FluidEQ\\FluidEQ.exe',
+    getPath: () => mockExePath(),
     getFileIcon: (...args: unknown[]) => mockGetFileIcon(...args),
   },
   dialog: {},
@@ -79,6 +80,7 @@ beforeEach(() => {
     isEmpty: () => false,
     toDataURL: () => 'data:image/png;base64,AAAA',
   });
+  mockExePath.mockReturnValue('C:\\Program Files\\FluidEQ\\FluidEQ.exe');
   scan = jest.fn(async () => [OVERWATCH]);
   const watch: IGameWatch = {
     start: jest.fn(),
@@ -162,4 +164,71 @@ it('does not keep an icon that could not be read', async () => {
     'icon',
     'data:image/png;base64,AAAA',
   );
+});
+
+it('omits FluidEQ, the shell, system services and launchers before reading their icons', async () => {
+  const targets = [
+    'FluidEQ.exe',
+    'explorer.exe',
+    'svchost.exe',
+    'Steam.exe',
+  ].map((file) => ({
+    name: file,
+    path: `C:\\Programs\\${file}`,
+    source: 'running' as const,
+  }));
+  const watch: IGameWatch = {
+    start: jest.fn(),
+    stop: jest.fn(),
+    hold: jest.fn(),
+    isWatching: () => false,
+    running: async () => [...targets, HALO],
+  };
+  registerGamesIpc({
+    getMainWindow: () => mainWindow,
+    scan: async () => [...targets, OVERWATCH],
+    makeWatch: () => watch,
+    toasts: { show: jest.fn(), close: jest.fn() },
+  });
+  const answer = await ask();
+  expect(answer.installed.map((program) => program.name)).toEqual([
+    'Overwatch',
+  ]);
+  expect(answer.running.map((program) => program.name)).toEqual([
+    'Halo Infinite',
+  ]);
+  expect(mockGetFileIcon.mock.calls.flat()).not.toEqual(
+    expect.arrayContaining(targets.map((program) => program.path)),
+  );
+});
+
+it('also omits the actual development runtime and a folder containing it', async () => {
+  const runtime = 'D:\\Dev\\node_modules\\electron\\dist\\electron.exe';
+  mockExePath.mockReturnValue(runtime);
+  const watch: IGameWatch = {
+    start: jest.fn(),
+    stop: jest.fn(),
+    hold: jest.fn(),
+    isWatching: () => false,
+    running: async () => [
+      { name: 'Electron', path: runtime, source: 'running' },
+      HALO,
+    ],
+  };
+  registerGamesIpc({
+    getMainWindow: () => mainWindow,
+    scan: async () => [
+      { name: 'A folder', path: 'D:\\Dev', source: 'file' },
+      OVERWATCH,
+    ],
+    makeWatch: () => watch,
+    toasts: { show: jest.fn(), close: jest.fn() },
+  });
+  const answer = await ask();
+  expect(answer.installed.map((program) => program.name)).toEqual([
+    'Overwatch',
+  ]);
+  expect(answer.running.map((program) => program.name)).toEqual([
+    'Halo Infinite',
+  ]);
 });

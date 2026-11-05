@@ -27,7 +27,8 @@ import {
 } from 'electron';
 import path from 'path';
 import log from 'electron-log';
-import { IGameProgram } from '../../common/games';
+import { gamePathHolds, IGameProgram } from '../../common/games';
+import isGameProgramEligible from '../../common/gamePrograms';
 import { gameIconSource, isGameFolder, scanGameLibraries } from '../gameScan';
 import { createGameToasts, IGameToast } from '../gameToast';
 import { createGameWatch, IGameWatch } from '../gameWatch';
@@ -117,6 +118,12 @@ export interface IGamesIpcDeps {
 export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
   const scan = deps.scan ?? scanGameLibraries;
   const ours = app?.getPath ? app.getPath('exe').toLowerCase() : '';
+  // A folder that contains this runtime also targets FluidEQ itself. This
+  // includes development Electron and renamed portable copies, not just the
+  // installed executable's usual name.
+  const eligible = (program: IGameProgram) =>
+    isGameProgramEligible(program) &&
+    (ours === '' || !gamePathHolds(program.path, ours));
   // The card goes to the screen this window is on, so it is told the window.
   const toasts = deps.toasts ?? createGameToasts(deps.getMainWindow);
   // Where the last program in front was drawn. The card follows FluidEQ's
@@ -133,7 +140,7 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
   const watch = (deps.makeWatch ?? createGameWatch)(
     (program) => {
       // Our own window coming forward says nothing about the game behind it.
-      if (ours !== '' && program.path.toLowerCase() === ours) {
+      if (!eligible(program)) {
         return;
       }
       lastRect = program.rect;
@@ -162,7 +169,9 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
   let installed: Promise<IGameProgram[]> | undefined;
   const readInstalled = (): Promise<IGameProgram[]> => {
     if (!installed) {
-      const reading = scan().then((found) => withIcons(found, icons));
+      const reading = scan().then((found) =>
+        withIcons(found.filter(eligible), icons),
+      );
       installed = reading;
       reading.catch(() => {
         if (installed === reading) {
@@ -186,7 +195,9 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
     async (): Promise<IGameProgramsAnswer> => {
       const [withInstalled, withRunning] = await Promise.all([
         readInstalled(),
-        watch.running().then((running) => withIcons(running, icons)),
+        watch
+          .running()
+          .then((running) => withIcons(running.filter(eligible), icons)),
       ]);
       return { installed: withInstalled, running: withRunning };
     },
@@ -222,7 +233,10 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
         ? await dialog.showOpenDialog(window, options)
         : await dialog.showOpenDialog(options);
       const [chosen] = result.canceled ? [] : result.filePaths;
-      if (!chosen) {
+      if (
+        !chosen ||
+        !eligible({ name: programName(chosen), path: chosen, source: 'file' })
+      ) {
         return undefined;
       }
       const folder = isGameFolder(chosen);
