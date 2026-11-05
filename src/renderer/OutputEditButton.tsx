@@ -17,9 +17,11 @@ const OutputEditButton = ({
   device,
   label,
   onDone,
+  className = 'link-button',
 }: {
   device: IAudioDevice;
   label?: string;
+  className?: string;
   /** Called once the editor has moved, before this button may disappear. */
   onDone?: () => void;
 }) => {
@@ -48,22 +50,24 @@ const OutputEditButton = ({
   // aria-pressed: it said "Done" while pressed, and every second output's
   // was "Edit sound" — two buttons nobody could tell apart. Never disabled
   // while it works: a disabled button lets go of the keyboard's focus.
+  // Named actions keep their visible label and do not announce toggle state.
   return (
     <button
-      className={`link-button output-edit-button${canFinish ? ' is-editing' : ''}`}
+      className={`${className} output-edit-button${canFinish && !label ? ' is-editing' : ''}`}
       type="button"
       aria-disabled={busy || (selected && !canFinish) || undefined}
       aria-label={label ?? t('extraOutput.editHint', { device: device.name })}
-      aria-pressed={selected}
+      aria-pressed={label ? undefined : selected}
       onClick={edit}
       title={
-        canFinish
+        label ??
+        (canFinish
           ? t('extraOutput.editMain')
-          : t('extraOutput.editHint', { device: device.name })
+          : t('extraOutput.editHint', { device: device.name }))
       }
     >
       <MenuIcon name={selected ? 'check' : 'configure'} />
-      {canFinish ? (
+      {canFinish && !label ? (
         <span className="output-edit-button__state" aria-hidden="true">
           <span className="output-edit-button__editing">
             {t('extraOutput.editing')}
