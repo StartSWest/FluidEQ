@@ -1,6 +1,7 @@
 /* FluidEQ — GPL-3.0-or-later */
 
 import { AUTOMATIC_PRESET_PREFIX } from '../../../common/constants';
+import { yoursGamingProfileId } from '../../../common/gaming';
 import { DSP_PRESETS, dspPresetCurve } from '../../../common/dsp/presets';
 import { dspPresetVoicing } from '../../../common/dsp/presetVoicing';
 import { translate, type Translate } from '../../../common/i18n';
@@ -25,11 +26,31 @@ const loaded: IGameSwitch = {
   profile: { voicing },
 };
 
-it('names the confirmed preset rather than the profile the game originally copied', () => {
-  expect(gameSwitchProfileName(loaded, [], t)).toBe('K-pop');
+it('names the whole Gaming profile or copy rather than its differently named curve', () => {
+  expect(gameSwitchProfileName(loaded, [], t)).toBe('Competitive');
   expect(
     gameSwitchProfileName({ ...loaded, copyName: 'Ranked nights' }, [], t),
   ).toBe('Ranked nights');
+});
+
+it('keeps a saved Gaming profile name while its curve has another name', () => {
+  expect(
+    gameSwitchProfileName(
+      { ...loaded, profileId: yoursGamingProfileId('my-mix') },
+      [{ id: 'my-mix', name: 'Quiet nights', from: 'A game', savedAt: 1 }],
+      t,
+    ),
+  ).toBe('Quiet nights');
+});
+
+it('can still name the sound after its original Gaming profile was removed', () => {
+  expect(
+    gameSwitchProfileName(
+      { ...loaded, profileId: yoursGamingProfileId('removed') },
+      [],
+      t,
+    ),
+  ).toBe('K-pop');
 });
 
 it('names the actual restored music profile and hides automatic file IDs', () => {

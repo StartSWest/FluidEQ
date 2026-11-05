@@ -20,6 +20,19 @@ export default function gameSwitchProfileName(
   if (switched.kind === 'loaded' && switched.copyName) {
     return switched.copyName;
   }
+  const gaming =
+    switched.kind === 'loaded'
+      ? gamingProfileEntry(
+          switched.profileId ?? suggestGamingProfile(switched.game),
+          yours,
+          t,
+        )
+      : undefined;
+  // A Gaming profile owns the whole sound. Its curve may be named K-pop
+  // or Competitive without being the name the listener loaded it under.
+  if (gaming && gaming.kind !== 'gone') {
+    return gaming.name;
+  }
   if (
     switched.kind === 'restored' &&
     profile?.name &&
@@ -37,11 +50,5 @@ export default function gameSwitchProfileName(
       return name;
     }
   }
-  return switched.kind === 'loaded'
-    ? gamingProfileEntry(
-        switched.profileId ?? suggestGamingProfile(switched.game),
-        yours,
-        t,
-      ).name
-    : t('output.mapping.live');
+  return gaming?.name ?? t('output.mapping.live');
 }
