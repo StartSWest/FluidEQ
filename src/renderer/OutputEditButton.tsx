@@ -17,11 +17,9 @@ const OutputEditButton = ({
   device,
   label,
   onDone,
-  className = 'link-button',
 }: {
   device: IAudioDevice;
   label?: string;
-  className?: string;
   /** Called once the editor has moved, before this button may disappear. */
   onDone?: () => void;
 }) => {
@@ -53,7 +51,7 @@ const OutputEditButton = ({
   // Named actions keep their visible label and do not announce toggle state.
   return (
     <button
-      className={`${className} output-edit-button${canFinish && !label ? ' is-editing' : ''}`}
+      className={`link-button output-edit-button${canFinish && !label ? ' is-editing' : ''}`}
       type="button"
       aria-disabled={busy || (selected && !canFinish) || undefined}
       aria-label={label ?? t('extraOutput.editHint', { device: device.name })}

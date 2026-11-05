@@ -72,10 +72,10 @@ const OutputEditingNotice = () => {
           />
           {/* Finishing must be discoverable without hovering the sidebar's
               Editing toggle, especially when that panel is folded away. */}
+          <span aria-hidden="true">·</span>
           <OutputEditButton
             device={editor.device}
             label={t('extraOutput.done')}
-            className="button small"
             onDone={() => focusFrom(after.current)}
           />
         </span>

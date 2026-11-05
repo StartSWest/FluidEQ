@@ -2,17 +2,6 @@
 @use 'color' as *;
 @use 'theme' as *;
 
-.output-edit-button .menu-icon {
-  width: 14px;
-  height: 14px;
-  flex: 0 0 auto;
-}
-
-.button.output-edit-button {
-  display: inline-flex;
-  gap: 4px;
-}
-
 // The default link has full-size button padding. These actions share a line
 // with small profile text, so size the label and glyph together explicitly.
 .link-button.output-edit-button {
@@ -29,6 +18,12 @@
   font-weight: $weight-medium;
   line-height: 1.35;
   white-space: nowrap;
+
+  .menu-icon {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+  }
 
   > span {
     text-decoration: underline;
