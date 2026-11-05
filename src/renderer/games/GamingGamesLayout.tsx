@@ -8,6 +8,38 @@ import { useTranslation } from '../utils/I18nContext';
 import useGamingGamesLayout from './useGamingGamesLayout';
 import '../styles/GamingGamesLayout.scss';
 
+/** Also drawn in Help, without reading or changing the listener's layout. */
+export const GamingGamesListToggle = ({
+  count,
+  collapsed,
+  controls,
+  onToggle,
+}: {
+  count: number;
+  collapsed: boolean;
+  controls: string;
+  onToggle: () => void;
+}) => {
+  const { t } = useTranslation();
+  const label = t(collapsed ? 'gaming.list.show' : 'gaming.list.hide');
+  return (
+    <div className="gaming-games__list-head">
+      <span className="gaming-cap">{t('gaming.list.count', { count })}</span>
+      <button
+        type="button"
+        className="button small subtle gaming-games__list-toggle"
+        aria-label={label}
+        title={label}
+        aria-expanded={!collapsed}
+        aria-controls={controls}
+        onClick={onToggle}
+      >
+        <Chevron />
+      </button>
+    </div>
+  );
+};
+
 /** Same keyboard and captured-pointer dividers as Library and Karaoke. */
 export default function GamingGamesLayout({
   count,
@@ -23,9 +55,6 @@ export default function GamingGamesLayout({
   const { t } = useTranslation();
   const layout = useGamingGamesLayout();
   const listId = useId();
-  const toggleLabel = t(
-    layout.collapsed ? 'gaming.list.show' : 'gaming.list.hide',
-  );
   return (
     <div
       ref={layout.host}
@@ -38,18 +67,12 @@ export default function GamingGamesLayout({
       }
     >
       <aside className="gaming-games__sidebar">
-        <button
-          type="button"
-          className="button small subtle gaming-games__list-toggle"
-          aria-label={toggleLabel}
-          title={toggleLabel}
-          aria-expanded={!layout.collapsed}
-          aria-controls={listId}
-          onClick={layout.toggle}
-        >
-          <span>{t('gaming.list.count', { count })}</span>
-          <Chevron />
-        </button>
+        <GamingGamesListToggle
+          count={count}
+          collapsed={layout.collapsed}
+          controls={listId}
+          onToggle={layout.toggle}
+        />
         <div
           id={listId}
           className="gaming-games__list"

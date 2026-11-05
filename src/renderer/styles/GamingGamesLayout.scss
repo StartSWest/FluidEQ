@@ -1,9 +1,10 @@
 /* FluidEQ — GPL-3.0-or-later */
 
 @use 'theme' as *;
+@use 'color' as *;
 
-// Scoped to the live page: the Help and tour drawings retain their two-column
-// illustration, while the live list owns its height and scroll position.
+// The live page and its Help drawing share the list frame. Older tour
+// illustrations keep their layout until they opt into this class.
 .gaming-games.gaming-games--split {
   grid-template-columns: var(--gaming-list-width) 16px minmax(0, 1fr);
   gap: 0 4px;
@@ -44,17 +45,37 @@
     }
   }
 
-  .gaming-games__list-toggle {
-    flex: 0 0 auto;
+  .gaming-games__list-head {
+    display: flex;
+    align-items: center;
     justify-content: space-between;
     gap: 8px;
     min-width: 0;
-    text-align: left;
 
-    > span {
+    > .gaming-cap {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+  }
+
+  // A heading is not an action bar. Only the little chevron is a control,
+  // as on the Karaoke playlist; the count stays quiet beside the game rows.
+  .gaming-games__list-toggle {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    color: $text-faint;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+
+    &:hover,
+    &:focus-visible {
+      color: $secondary-light;
+      border-color: $border-field;
+      background: $hover-accent;
     }
 
     > .chevron {
