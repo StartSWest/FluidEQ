@@ -1,6 +1,9 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import { gamingProfileOf, IGameProfile } from 'common/games';
+import { CSSProperties, useId } from 'react';
+import ColumnResizer from '../../components/ColumnResizer';
+import { GamingGamesListToggle } from '../../games/GamingGamesLayout';
 import { gamingProfileEntry } from '../../games/gamingCatalog';
 import {
   GamingGameHead,
@@ -58,6 +61,7 @@ const TUNED: readonly TGamingStage[] = ['footsteps', 'mainEq', 'curve'];
 
 const GamingLabDrawing = () => {
   const { t } = useTranslation();
+  const listId = useId();
   const [shown] = GAMES;
   const profile = gamingProfileEntry(gamingProfileOf(shown), [], t);
   return (
@@ -71,25 +75,46 @@ const GamingLabDrawing = () => {
             onToggle={nothing}
             onAdd={nothing}
           />
-          <div className="gaming-games">
-            <div className="gaming-games__list">
-              <span className="gaming-cap">
-                {t('gaming.list.count', { count: GAMES.length })}
-              </span>
-              {GAMES.map((game) => (
-                <GamingGameRow
-                  key={game.id}
-                  game={game}
-                  profileName={
-                    gamingProfileEntry(gamingProfileOf(game), [], t).name
-                  }
-                  isTuned={game.id === shown.id}
-                  isSelected={game.id === shown.id}
-                  isPlaying={game.id === shown.id}
-                  onSelect={nothing}
-                />
-              ))}
-            </div>
+          <div
+            className="gaming-games gaming-games--split"
+            style={
+              {
+                '--gaming-list-width': '240px',
+                '--gaming-list-height': '220px',
+              } as CSSProperties
+            }
+          >
+            <aside className="gaming-games__sidebar">
+              <GamingGamesListToggle
+                count={GAMES.length}
+                collapsed={false}
+                controls={listId}
+                onToggle={nothing}
+              />
+              <div className="gaming-games__list" id={listId}>
+                {GAMES.map((game) => (
+                  <GamingGameRow
+                    key={game.id}
+                    game={game}
+                    profileName={
+                      gamingProfileEntry(gamingProfileOf(game), [], t).name
+                    }
+                    isTuned={game.id === shown.id}
+                    isSelected={game.id === shown.id}
+                    isPlaying={game.id === shown.id}
+                    onSelect={nothing}
+                  />
+                ))}
+              </div>
+            </aside>
+            <ColumnResizer
+              ariaLabel={t('gaming.list.resize')}
+              valuePercent={25}
+              onStart={nothing}
+              onDrag={nothing}
+              onEnd={nothing}
+              onReset={nothing}
+            />
             <section className="gaming-panel" aria-label={shown.name}>
               <GamingGameHead
                 game={shown}

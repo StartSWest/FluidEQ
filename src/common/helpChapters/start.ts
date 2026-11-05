@@ -16,8 +16,8 @@ const START_CHAPTERS = [
     // (`help/live/windowFigures`) and framed in two, cut at the signal:
     // whole, it is drawn too small in the guide to read a label. The drawing
     // is laid out wider than the bar ever comes to, so nothing in it wraps,
-    // and each tab is found by its place in its strip. Its stills are the
-    // 2.0 captures, for the exported guide.
+    // and each tab is found by its place in its strip. The exported guide's
+    // stills are captured from this same drawing (docs/guide-captures.md).
     //
     // The rails are captures from the running window at 2560 x 1392 on
     // 2026-09-29: their boxes are the elements' own rectangles, and each
@@ -38,8 +38,8 @@ const START_CHAPTERS = [
         controls: [
           {
             target: '.window-titlebar__left .workspace-tab:nth-of-type(1)',
-            name: 'tabs.media',
-            text: 'help.window.media',
+            name: 'tabs.plus',
+            text: 'help.window.plus',
           },
           {
             target: '.window-titlebar__left .workspace-tab:nth-of-type(2)',
@@ -89,10 +89,9 @@ const START_CHAPTERS = [
             text: 'help.window.karaoke',
           },
           {
-            // Only in a build with accounts (`WorkspaceTabsRight`).
             target: '.window-titlebar__right .workspace-tab:nth-of-type(4)',
-            name: 'tabs.plus',
-            text: 'help.window.plus',
+            name: 'tabs.media',
+            text: 'help.window.media',
           },
           {
             target: '.support-pet',

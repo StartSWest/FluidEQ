@@ -88,6 +88,11 @@ const SOUND_CHAPTERS = [
         still: '44-gaming-lab.png',
         controls: [
           {
+            target: '.gaming-games__list-toggle',
+            name: 'gaming.list.hide',
+            text: 'help.games.list',
+          },
+          {
             target: '.gaming-lab__head .game-mode-switch',
             name: 'gaming.switch',
             text: 'help.games.switch',

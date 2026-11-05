@@ -25,7 +25,7 @@ import { helpLiveDrawing } from 'renderer/help/live/helpLiveFigures';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 
 // Drawn as a shipped build draws them, with accounts: only then does the
-// title bar have its Visualizers tab (`WorkspaceTabsRight`).
+// title bar have its Visualizers tab (`WorkspaceTabsLeft`).
 jest.mock('common/accountConfig', () => ({
   ...jest.requireActual('common/accountConfig'),
   isAccountConfigured: () => true,

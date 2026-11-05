@@ -50,8 +50,33 @@ made for games.
   filters stay on one line and each kind of game has its own colour. Your
   saved profiles show their curve, Game filter levels and chain too.
 - **Add a game** scrolls while keeping its action buttons in view.
+- **A game list that stays out of the editor's way.** Its own scrollbar keeps
+  a long list from lengthening the page. Drag the divider to resize it, or
+  fold it with the chevron; its size and folded state are remembered.
+- **The picker leaves non-games out.** FluidEQ and its development runtime,
+  Windows Explorer, known system processes and launchers, and shared runtime
+  installers cannot be added or matched as games.
+- **Switch notices name the sound.** The loaded game profile or named copy
+  has a line of its own, and the notice names the music profile restored
+  when the game closes.
 - **A film of the Lab** in Help's Gaming Lab chapter and in What's New,
   voiced in ten languages.
+
+### Navigation
+
+- **Visualizers and Online Media have swapped places.** Visualizers starts
+  the left side of the title bar; Online Media ends the right side. Their
+  pages and remembered selections stay with them.
+
+### Everyday controls
+
+- **Search is more forgiving.** Presets, Convolution, Library and the other
+  local searches ignore case, accents, spaces and punctuation. Typing
+  `kpop` finds **K-pop**.
+- **Listen to a preset's examples.** Press a song under **Listen for it in**
+  to open its video on YouTube.
+- **Volume readouts stay steady.** The number follows the confirmed volume
+  while you adjust it, and changing digits no longer shifts the slider.
 
 ### Game filter
 

@@ -91,7 +91,7 @@ The header takes you between FluidEQ’s pages and shows the sound as it plays. 
 
 ![The header, up to the signal](37-header-left.png)
 
-1. **Online Media** — YouTube, YouTube Music, Bandcamp, Twitch and Suno, played inside FluidEQ with your EQ on them.
+1. **Visualizers** — Visualizers, the gallery, the Studio and Dynamic lighting.
 2. **Share Audio** — Sends this computer’s sound to another one, or plays another one’s here.
 3. **Gaming Lab** — Your games, each with a sound of its own, tuned for that game.
 4. **EQ** — Your bands, presets, headphone correction and the engine’s config.
@@ -104,7 +104,7 @@ The header takes you between FluidEQ’s pages and shows the sound as it plays. 
 1. **DSP** — The effects rack: presets, the Room and every stage of the chain.
 2. **Library** — Your music files, albums and play queue.
 3. **Karaoke** — Sing along, and make karaoke out of your own songs.
-4. **Visualizers** — Visualizers, the gallery, the Studio and Dynamic lighting.
+4. **Online Media** — YouTube, YouTube Music, Bandcamp, Twitch and Suno, played inside FluidEQ with your EQ on them.
 5. **Support the work** — Ways to support the work on FluidEQ.
 6. **FluidEQ actions** — The engine, your account, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint, Colourful mode and Tint app icon, the EQ sliders, animations, Start with Windows and the language. On/off key… lets you choose a shortcut to turn all FluidEQ processing off and on while another app is in front. No key is assigned at first. A card above your other windows confirms each switch.
 7. **Help** — This guide, What’s new, Full release notes, Forum, the audio troubleshooter, Report a problem and About FluidEQ. Full release notes opens all the notes directly. About has links to its sections and, where the support link is available, a Buy Me a Coffee card with a QR code.
@@ -121,7 +121,7 @@ The header takes you between FluidEQ’s pages and shows the sound as it plays. 
 
 ### Try it
 
-1. Open a page from the header: Online Media, Share Audio, Gaming Lab, EQ, DSP, Library, Karaoke, or Visualizers.
+1. Open a page from the header: Visualizers, Share Audio, Gaming Lab, EQ, DSP, Library, Karaoke, Online Media.
 2. Turn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.
 3. Press the level meter to change how it is drawn, and Colourful on the signal to have the bands, the title and the lit controls in a palette instead of one colour.
 4. To switch processing from another app, open the ≡ menu → On/off key and choose your own key combination. No key is assigned at first; the confirmation above other windows says whether FluidEQ is on or off.
@@ -346,13 +346,14 @@ Give each game its own sound. A game starts from a Gaming profile made for it an
 
 ![Gaming Lab](44-gaming-lab.png)
 
-1. **Switch when a game is in front** — Lets a game in front put its own sound on. Off, your games keep your music sound.
-2. **Add a game** — Adds a game from Steam, Epic, EA, GOG, Ubisoft, Battle.net or Xbox, or any program that is open now.
-3. **A game** — The game, the profile its sound started from, and whether you tuned it. Playing means it is in front now.
-4. **Gaming profile** — The Gaming profile this game’s copy starts from. Picking another gives the game a fresh copy of it.
-5. **Save as profile** — Saves the copy as a new profile or updates one of yours, resets it to its profile, renames it or deletes it. The profile itself never changes.
-6. **Try it now** — Puts the game’s sound on now, so you hear what you tune. While it is on, Unload stands here and brings your music sound back.
-7. **What was tuned** — Which parts of this copy are different from its profile.
+1. **Hide game list** — The games list scrolls on its own. Drag the divider to change its width, or its height in a narrow layout. Use the chevron to hide or show the list; its size and folded state are remembered.
+2. **Switch when a game is in front** — Lets a game in front put its own sound on. Off, your games keep your music sound.
+3. **Add a game** — Adds a game from Steam, Epic, EA, GOG, Ubisoft, Battle.net or Xbox, or any program that is open now. FluidEQ, Windows Explorer, known system and launcher processes, and shared runtime installers are left out.
+4. **A game** — The game, the profile its sound started from, and whether you tuned it. Playing means it is in front now.
+5. **Gaming profile** — The Gaming profile this game’s copy starts from. Picking another gives the game a fresh copy of it.
+6. **Save as profile** — Saves the copy as a new profile or updates one of yours, resets it to its profile, renames it or deletes it. The profile itself never changes.
+7. **Try it now** — Puts the game’s sound on now, so you hear what you tune. While it is on, Unload stands here and brings your music sound back.
+8. **What was tuned** — Which parts of this copy are different from its profile.
 
 ![Gaming Lab](45-gaming-parts.png)
 
@@ -369,7 +370,7 @@ Give each game its own sound. A game starts from a Gaming profile made for it an
 1. Open the Gaming Lab in the title bar and press Add a game. Pick one from your launchers, a program that is open now, or browse for its program. It starts from the Gaming profile suggested for it; pick another in its Gaming profile list any time.
 2. Press Try it now to put the game’s sound on. Pick a part on the left — the Game filter, EQ, Curve or any DSP stage — and tune it right there. Every change stays in this game’s copy.
 3. Save as profile keeps the copy as one of your own Gaming profiles for other games, updates yours, resets the copy to its profile, renames the copy or deletes it.
-4. Start the game. A card on the desktop says its sound is on, and another says your music sound is back when you close it.
+4. Start the game. A card on the desktop says its sound is on, and another says your music sound is back when you close it. The card shows the loaded profile’s name, and names the music profile when it returns.
 
 > **Good to know:** While a game’s sound is on, the DSP page shows your music rack paused with a button to tune the game, and the profile list rests, so nothing done there can overwrite your music profile with the game’s sound. The Game filter brings up quiet steps and reloads as they happen and puts voices forward.
 
