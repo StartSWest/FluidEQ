@@ -87,7 +87,7 @@
     min-width: 0;
     width: max-content;
     max-width: 100%;
-    height: 26px;
+    height: 28px;
 
     > .gaming-cap {
       min-width: 0;
@@ -97,13 +97,15 @@
     }
   }
 
-  // Keep the list pin beside its heading, with the same accent as other
-  // active controls; the count stays quiet beside the game rows.
+  // The pin needs room to read at this scale; its hit area stays quiet
+  // until hovered or focused, rather than boxing in a tiny glyph.
   .gaming-games__list-toggle {
     flex: 0 0 auto;
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     padding: 0;
+    border: 0;
+    border-radius: $radius-pill;
     color: $text-faint;
     border-color: transparent;
     background: transparent;
@@ -111,21 +113,18 @@
 
     &[aria-expanded='true'] {
       color: $secondary-default;
-      border-color: $border-field;
-      background: $hover-accent;
     }
 
     &:hover,
     &:focus-visible {
       color: $secondary-light;
-      border-color: $border-field;
       background: $hover-accent;
     }
 
     > .menu-icon {
       flex: 0 0 auto;
-      width: 16px;
-      height: 16px;
+      width: 20px;
+      height: 20px;
     }
   }
 
