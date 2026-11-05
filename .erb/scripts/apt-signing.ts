@@ -1,24 +1,63 @@
 import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
+import { randomBytes } from 'crypto';
 import { atomicWrite, digest } from './apt-repository';
+import {
+  createAptPassphraseStore,
+  type IAptPassphraseStore,
+} from './apt-passphrase';
 
 export const APT_KEY_UID =
   'FluidEQ apt repository <StartSWest@users.noreply.github.com>';
 export const gpg = (args: string[]) =>
   execFileSync('gpg', ['--batch', ...args], { encoding: 'utf8' });
 
-/** The owner enters a passphrase in GPG's own prompt, never in chat or argv. */
-export const initializeAptKey = (assets: string): void => {
+/** Neither secret reaches argv, environment, the checkout, logs or the user. */
+export const initializeAptKey = (
+  assets: string,
+  store: IAptPassphraseStore = createAptPassphraseStore(),
+): void => {
   if (fs.existsSync(path.join(assets, 'key.json'))) {
     throw new Error(
       'An apt key is already configured; refusing an implicit rotation.',
     );
   }
+  // A failed export can leave a dedicated key behind. Never create a second
+  // identity or rotate it implicitly just because its public config is absent.
+  const existing = execFileSync(
+    'gpg',
+    ['--batch', '--with-colons', '--list-secret-keys'],
+    { encoding: 'utf8' },
+  );
+  if (
+    existing
+      .split('\n')
+      .some(
+        (line) => line.startsWith('uid:') && line.split(':')[9] === APT_KEY_UID,
+      )
+  ) {
+    throw new Error(
+      'The dedicated apt key already exists; refusing to create a replacement.',
+    );
+  }
+  const secret = store.read() ?? randomBytes(32).toString('hex');
+  store.write(secret);
   execFileSync(
     'gpg',
-    ['--quick-generate-key', APT_KEY_UID, 'rsa3072', 'sign', '2y'],
-    { stdio: 'inherit' },
+    [
+      '--batch',
+      '--pinentry-mode',
+      'loopback',
+      '--passphrase-fd',
+      '0',
+      '--quick-generate-key',
+      APT_KEY_UID,
+      'rsa3072',
+      'sign',
+      '2y',
+    ],
+    { input: `${secret}\n`, stdio: ['pipe', 'pipe', 'pipe'] },
   );
   const listing = gpg(['--with-colons', '--list-secret-keys', APT_KEY_UID]);
   const fingerprints = listing
@@ -37,8 +76,57 @@ export const initializeAptKey = (assets: string): void => {
   );
   atomicWrite(
     path.join(assets, 'key.json'),
-    `${JSON.stringify({ fingerprint }, null, 2)}\n`,
+    `${JSON.stringify({ fingerprint, protection: 'secret-service' }, null, 2)}\n`,
   );
+};
+
+const signWithAptKey = (args: string[], fingerprint: string) => {
+  const configPath = path.resolve(__dirname, '../../assets/apt/key.json');
+  const config: unknown = fs.existsSync(configPath)
+    ? JSON.parse(fs.readFileSync(configPath, 'utf8'))
+    : undefined;
+  if (
+    typeof config === 'object' &&
+    config !== null &&
+    'fingerprint' in config &&
+    config.fingerprint === fingerprint &&
+    'protection' in config &&
+    config.protection === 'secret-service'
+  ) {
+    const secret = createAptPassphraseStore().read();
+    if (!secret) {
+      throw new Error(
+        'The login keyring has no passphrase for this protected apt key.',
+      );
+    }
+    // stdin is reserved for the passphrase; the Release is a separate file.
+    // Capture and discard subprocess errors, which can include stdout buffers.
+    try {
+      return execFileSync(
+        'gpg',
+        [
+          '--batch',
+          '--pinentry-mode',
+          'loopback',
+          '--passphrase-fd',
+          '0',
+          ...args,
+        ],
+        {
+          input: `${secret}\n`,
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'pipe'],
+        },
+      );
+    } catch {
+      throw new Error(
+        'Signing with the protected apt key failed. No unsigned repository was published.',
+      );
+    }
+  }
+  // Isolated signing fixtures and pre-existing manually protected keys use
+  // GPG's normal agent. They never read the production passphrase entry.
+  return gpg(args);
 };
 
 export const signingFingerprint = (assets: string): string => {
@@ -113,18 +201,21 @@ export const signRepository = (
     ['Release.gpg', '--detach-sign'],
   ].forEach(([name, mode]) => {
     const destination = path.join(distribution, name);
-    gpg([
-      '--yes',
-      '--local-user',
+    signWithAptKey(
+      [
+        '--yes',
+        '--local-user',
+        fingerprint,
+        '--digest-algo',
+        'SHA256',
+        '--armor',
+        '--output',
+        `${destination}.tmp`,
+        mode,
+        path.join(distribution, 'Release'),
+      ],
       fingerprint,
-      '--digest-algo',
-      'SHA256',
-      '--armor',
-      '--output',
-      `${destination}.tmp`,
-      mode,
-      path.join(distribution, 'Release'),
-    ]);
+    );
     fs.renameSync(`${destination}.tmp`, destination);
   });
   verifyRepository(directory, publicKey);

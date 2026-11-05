@@ -21,7 +21,7 @@ owner's GPG keyring. Only `assets/apt/fluideq-archive-keyring.asc`, `.gpg`, and
 the fingerprint in `key.json` are committed. Never export the secret key to
 either checkout, CI, chat, command arguments or environment variables.
 
-## First publication (owner's terminal)
+## First publication
 
 The implementation does not ship a test key as a production trust anchor.
 After the code changes have been committed and the website integration pushed,
@@ -31,7 +31,12 @@ one command completes the protected signing setup and first publication:
 pnpm publish:apt --bootstrap
 ```
 
-GPG asks for the new key's passphrase in its own secure prompt. The command
+The command generates a strong passphrase and verifies it is safely stored in
+the Linux login keyring (Secret Service), separately from the app's feed key.
+GPG encrypts the dedicated apt private key with that passphrase. Secrets cross
+to GPG and the keyring on standard input only; none is written to arguments,
+environment variables, checkout files or logs. An unavailable/locked keyring
+stops setup without falling back to an unprotected key. The command
 commits/pushes only the exported public key through normal hooks, builds and
 signs the Linux release, creates the Linux GitHub release if absent, verifies
 its public Debian bytes against `latest-linux.yml`, signs apt metadata, then
