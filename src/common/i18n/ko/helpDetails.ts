@@ -10,7 +10,7 @@ const helpDetails = {
   'help.dynamics.tip':
     '많이 끌어올리면 배경 잡음도 커집니다. 원래의 움직임을 더 남기려면 혼합을 줄이세요.',
   'help.dynamics.keywords':
-    'dynamics, compressor, compression, upward compression, downward compression, lift, hold, attack, release, mix, makeup, quiet passages, loud passages',
+    '다이내믹스, 컴프레서, 압축, 상향 압축, 하향 압축, 올리기, 유지, 어택, 릴리스, 믹스, 메이크업, 조용한 구간, 큰 구간',
   'help.deesser.title': '디에서: 날카로운 목소리 부드럽게 만들기',
   'help.deesser.intro':
     '날카로운 S, T, SH 소리가 날 때만 줄입니다. 네 그룹에서 감지할 소리, 줄일 범위, 반응 속도와 스테레오 위치를 정합니다.',
@@ -19,7 +19,7 @@ const helpDetails = {
   'help.deesser.tip':
     '목소리가 어눌해지거나 음악의 공기감이 사라지면 감도나 최대 감소량을 낮추세요. 재생 처리이며 마이크 효과가 아닙니다.',
   'help.deesser.keywords':
-    'de-esser, deesser, de essing, sibilance, sharp voice, harsh voice, spectral, centre only, center only, cymbals, isolate',
+    '디에서, 치찰음, 날카로운 목소리, 거친 보컬, 스펙트럼, 중앙만, 심벌, 분리 듣기',
   'help.normalizer.title': '노멀라이저와 실시간 레벨 제어',
   'help.normalizer.intro':
     '창의적 처리 단계 앞에서 음원의 레벨을 조절합니다. 라이브러리 파일은 전체를 분석할 수 있고 다른 음원은 재생하면서 학습합니다.',
@@ -28,7 +28,7 @@ const helpDetails = {
   'help.normalizer.tip':
     '왼쪽의 자동 정규화는 EQ 여유를 확보하고 Master는 완성된 출력 레벨을 맞춥니다. 이 기능들은 녹음에 이미 들어 있는 왜곡을 복구하지 못합니다.',
   'help.normalizer.keywords':
-    'normalizer, normalisation, normalization, lufs, loudness target, true peak, peak ceiling, applied gain, leveling, live level control, learning source, holding gain',
+    '노멀라이저, 정규화, LUFS, 음량 목표, 트루 피크, 피크 한계, 적용 게인, 레벨 조정, 실시간 음량 제어, 소스 학습, 게인 유지',
   'help.crossfade.title': '크로스페이드와 사용자 페이드 곡선',
   'help.crossfade.intro':
     '라이브러리의 연속된 곡을 겹쳐 전환합니다. DSP 필터와 별개인 재생 설정이며 다른 앱이나 Karaoke를 교차 페이드하지 않습니다.',
@@ -37,7 +37,7 @@ const helpDetails = {
   'help.crossfade.tip':
     '컨트롤을 사용할 수 없으면 라이브러리 오디오 트랙을 재생하세요. 곡선은 곡 사이의 전환을 바꾸며 각 곡의 EQ는 바꾸지 않습니다.',
   'help.crossfade.keywords':
-    'crossfade, fade, transition, overlap, dj, equal power, custom curve, save curve, outgoing, incoming',
+    '크로스페이드, 페이드, 전환, 겹치기, DJ, 동일 파워, 사용자 곡선, 곡선 저장, 나가는 곡, 들어오는 곡',
   'help.gamefilter.title': '게임 필터: 발소리, 환경음과 목소리',
   'help.gamefilter.intro':
     '게임마다 작은 단서, 배경과 대사를 따로 조절합니다. 해당 게임의 프로필에서 시작해 들으면서 그 게임의 복사본을 조절하세요.',
@@ -46,7 +46,7 @@ const helpDetails = {
   'help.gamefilter.tip':
     '자체 3D 오디오가 있는 게임은 Room을 끄는 프로필로 이중 위치 처리를 피할 수 있습니다. Room은 헤드폰용입니다. 게임 사운드를 해제하면 음악 사운드가 돌아옵니다.',
   'help.gamefilter.keywords':
-    'game filter, footsteps, lift, calm, environment, ambience, dialogue, voices, make room, hooves, heavy steps, isolate, hrtf, spatial audio',
+    '게임 필터, 발소리, 올리기, 억제, 환경음, 분위기, 대화, 목소리, 공간 확보, 발굽, 무거운 발걸음, 분리 듣기, HRTF, 공간 오디오',
   'help.songs.title': '곡마다 사운드 기억하기',
   'help.songs.intro':
     '곡은 출력별로 프리셋, Tone과 EQ를 기억할 수 있습니다. 헤드폰에서 맞춘 설정은 스피커의 기억을 바꾸지 않습니다.',
@@ -55,7 +55,7 @@ const helpDetails = {
   'help.songs.tip':
     '곡 식별은 파일이나 플레이어의 미디어 정보에서 옵니다. 제목이 없거나 틀리면 일치하지 않을 수 있습니다. 프리앰프는 저장하지 않으며 로드된 게임 사운드가 우선합니다.',
   'help.songs.keywords':
-    'per song, song sound, song memory, remember song, save song eq, smart eq, undo, forget this song, preset per song, tone per song',
+    '곡별 설정, 곡 사운드, 곡 기억, 곡 기억하기, 곡 EQ 저장, 스마트 EQ, 실행 취소, 이 곡 잊기, 곡별 프리셋, 곡별 톤',
   'help.mycurves.title': '내 곡선: 가져오기, 편집과 공유',
   'help.mycurves.intro':
     '측정 라이브러리 옆에 있는 나만의 곡선 모음입니다. 응답을 확인한 뒤 보정 레이어 또는 편집 가능한 EQ 밴드로 적용할 수 있습니다.',
@@ -64,7 +64,7 @@ const helpDetails = {
   'help.mycurves.tip':
     '곡선은 주파수 응답을 나타내고 출력 프로필은 그 장치의 다른 사운드 설정도 보관합니다. 보정 전 모델과 출처를 확인하세요.',
   'help.mycurves.keywords':
-    'my curves, custom curve, squiglink, import list, export list, apply as curve, apply as eq, left ear, right ear, curve editor, measurements',
+    '내 곡선, 사용자 곡선, Squiglink, 목록 가져오기, 목록 내보내기, 곡선으로 적용, EQ로 적용, 왼쪽 귀, 오른쪽 귀, 곡선 편집기, 측정',
 } as const;
 
 export default helpDetails;

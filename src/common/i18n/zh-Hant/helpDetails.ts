@@ -10,7 +10,7 @@ const helpDetails = {
   'help.dynamics.tip':
     '大幅提升也會讓底噪更明顯。降低混合比例可以保留更多原始起伏。',
   'help.dynamics.keywords':
-    'dynamics, compressor, compression, upward compression, downward compression, lift, hold, attack, release, mix, makeup, quiet passages, loud passages',
+    '動態, 壓縮器, 壓縮, 向上壓縮, 向下壓縮, 提升, 保持, 起音, 釋放, 混合, 補償增益, 安靜段落, 響亮段落',
   'help.deesser.title': '齒音消除器：柔化刺耳人聲',
   'help.deesser.intro':
     '僅在尖銳的 S、T、SH 等齒音出現時壓低它們。四組控制決定聆聽什麼、壓低什麼、反應速度及立體聲中的作用位置。',
@@ -19,7 +19,7 @@ const helpDetails = {
   'help.deesser.tip':
     '若人聲變得含糊或音樂失去空氣感，請降低靈敏度或最大衰減量。這是播放處理，不是麥克風效果。',
   'help.deesser.keywords':
-    'de-esser, deesser, de essing, sibilance, sharp voice, harsh voice, spectral, centre only, center only, cymbals, isolate',
+    '齒音消除器, 齒音, 尖銳人聲, 刺耳人聲, 頻譜, 僅中央, 鈸聲, 隔離監聽',
   'help.normalizer.title': '正規化器 與即時位準控制',
   'help.normalizer.intro':
     '在創意處理級之前調整音源位準。媒體庫檔案可以完整分析，其他音源則在播放時學習。',
@@ -28,7 +28,7 @@ const helpDetails = {
   'help.normalizer.tip':
     '它不同於左側為 EQ 保留餘裕的自動正規化，也不同於調整最終輸出的 Master。這些功能都無法修復錄音中已有的失真。',
   'help.normalizer.keywords':
-    'normalizer, normalisation, normalization, lufs, loudness target, true peak, peak ceiling, applied gain, leveling, live level control, learning source, holding gain',
+    '正規化器, 正規化, LUFS, 響度目標, 真峰值, 峰值上限, 已套用增益, 音量平衡, 即時音量控制, 學習音源, 保持增益',
   'help.crossfade.title': '交叉淡入淡出 與自訂淡化曲線',
   'help.crossfade.intro':
     '讓媒體庫中連續的歌曲重疊過渡。這是獨立於 DSP 濾波器的播放設定，不會對其他應用程式或 Karaoke 進行交叉淡化。',
@@ -37,7 +37,7 @@ const helpDetails = {
   'help.crossfade.tip':
     '若控制項無法使用，請先播放媒體庫音軌。這條曲線改變歌曲之間的過渡，不改變它們的 EQ。',
   'help.crossfade.keywords':
-    'crossfade, fade, transition, overlap, dj, equal power, custom curve, save curve, outgoing, incoming',
+    '交叉淡化, 淡入淡出, 轉場, 重疊, DJ, 等功率, 自訂曲線, 儲存曲線, 淡出曲目, 淡入曲目',
   'help.gamefilter.title': '遊戲 濾波器：腳步、環境與人聲',
   'help.gamefilter.intro':
     '每個遊戲都可單獨調節細微線索、背景與對白。從該遊戲的設定檔開始，一邊試聽一邊調整自己的副本。',
@@ -46,7 +46,7 @@ const helpDetails = {
   'help.gamefilter.tip':
     '內建 3D 音訊的遊戲可使用保持 Room 關閉的設定檔，避免重複定位。Room 適用於耳機。卸載遊戲聲音後會恢復音樂聲音。',
   'help.gamefilter.keywords':
-    'game filter, footsteps, lift, calm, environment, ambience, dialogue, voices, make room, hooves, heavy steps, isolate, hrtf, spatial audio',
+    '遊戲濾波器, 腳步聲, 提升, 壓低, 環境, 氣氛, 對話, 人聲, 騰出空間, 蹄聲, 沉重腳步, 隔離監聽, HRTF, 空間音訊',
   'help.songs.title': '記住每首歌曲的聲音',
   'help.songs.intro':
     '歌曲可以按輸出裝置分別記住預設、Tone 與 EQ。耳機上的調整不會改變喇叭儲存的聲音。',
@@ -55,7 +55,7 @@ const helpDetails = {
   'help.songs.tip':
     '歌曲身分來自檔案或播放器的媒體資訊。缺少或錯誤的標題可能無法比對。前置增益不會按歌曲儲存；已載入的遊戲聲音具有優先權。',
   'help.songs.keywords':
-    'per song, song sound, song memory, remember song, save song eq, smart eq, undo, forget this song, preset per song, tone per song',
+    '單曲設定, 歌曲音色, 歌曲記憶, 記住歌曲, 儲存歌曲 EQ, 智慧 EQ, 復原, 忘記這首歌, 單曲預設, 單曲音色',
   'help.mycurves.title': '我的曲線：匯入、編輯與分享',
   'help.mycurves.intro':
     '這是測量庫旁邊的個人曲線集合。檢查響應後，可將曲線套用為校正層，或變成可編輯的 EQ 頻段。',
@@ -64,7 +64,7 @@ const helpDetails = {
   'help.mycurves.tip':
     '曲線描述頻率響應；輸出設定檔還儲存該裝置其餘的聲音設定。套用校正前，請檢查型號與來源。',
   'help.mycurves.keywords':
-    'my curves, custom curve, squiglink, import list, export list, apply as curve, apply as eq, left ear, right ear, curve editor, measurements',
+    '我的曲線, 自訂曲線, Squiglink, 匯入清單, 匯出清單, 套用為曲線, 套用為 EQ, 左耳, 右耳, 曲線編輯器, 測量',
 } as const;
 
 export default helpDetails;
