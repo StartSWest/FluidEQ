@@ -42,37 +42,49 @@ export const runGoogleSignIn = async ({
   now,
 }: IGoogleSignInSteps): Promise<IAuthSession> => {
   const pkce = createPkcePair();
-  const loopback = await startLoopback(signal, pages);
-  onWaiting(true);
-  try {
-    await openExternal(
-      googleAuthorizeUrl(config, loopback.redirectTo, pkce.challenge),
-    );
-  } catch {
-    throw new AuthError(
-      'google_unfinished',
-      'The browser could not be opened.',
-    );
+  const controller = new AbortController();
+  const cancel = () => controller.abort();
+  signal.addEventListener('abort', cancel, { once: true });
+  if (signal.aborted) {
+    cancel();
   }
-  const answer = await loopback.answer;
-  if (answer.kind === 'error') {
-    throw new AuthError('google_unfinished', answer.reason);
-  }
-  // Back from the browser: trading the code is one quick request.
-  onWaiting(false);
   try {
-    return await exchangeAuthCode(
-      config,
-      { authCode: answer.code, codeVerifier: pkce.verifier },
-      signal,
-      now(),
-    );
-  } catch (error) {
-    // A refused code is Google's sign-in not finishing, never "wrong email or
-    // password", which is how the token endpoint's refusal reads elsewhere.
-    if (error instanceof AuthError && error.failure !== 'network') {
-      throw new AuthError('google_unfinished', error.message);
+    const loopback = await startLoopback(controller.signal, pages);
+    onWaiting(true);
+    try {
+      await openExternal(
+        googleAuthorizeUrl(config, loopback.redirectTo, pkce.challenge),
+      );
+    } catch {
+      throw new AuthError(
+        'google_unfinished',
+        'The browser could not be opened.',
+      );
     }
-    throw error;
+    const answer = await loopback.answer;
+    if (answer.kind === 'error') {
+      throw new AuthError('google_unfinished', answer.reason);
+    }
+    // Back from the browser: trading the code is one quick request.
+    onWaiting(false);
+    try {
+      return await exchangeAuthCode(
+        config,
+        { authCode: answer.code, codeVerifier: pkce.verifier },
+        controller.signal,
+        now(),
+      );
+    } catch (error) {
+      // A refused code is Google's sign-in not finishing, never "wrong email or
+      // password", which is how the token endpoint's refusal reads elsewhere.
+      if (error instanceof AuthError && error.failure !== 'network') {
+        throw new AuthError('google_unfinished', error.message);
+      }
+      throw error;
+    }
+  } finally {
+    signal.removeEventListener('abort', cancel);
+    // A failed browser launch has no callback to close the local listener.
+    controller.abort();
   }
 };

@@ -8,6 +8,7 @@ const handlers = new Map<string, (...args: unknown[]) => unknown>();
 const mockStartRemoteAudioHostSession = jest.fn();
 const mockRawSharing = jest.fn().mockResolvedValue(undefined);
 const mockCapture = jest.fn().mockResolvedValue({ close: jest.fn() });
+const mockRawCapture = jest.fn();
 
 jest.mock('electron', () => ({
   BrowserWindow: class {},
@@ -57,7 +58,7 @@ jest.mock('../../../main/remoteAudioCredentials', () => ({
 }));
 jest.mock('../../../main/remoteAudioCapture', () => ({
   startNetworkCapture: (...args: unknown[]) => mockCapture(...args),
-  startRawSourceCapture: jest.fn(),
+  startRawSourceCapture: (...args: unknown[]) => mockRawCapture(...args),
 }));
 jest.mock('../../../main/remoteAudioHostSession', () => ({
   __esModule: true,
@@ -77,7 +78,10 @@ import path from 'path';
 // eslint-disable-next-line import/first
 import type { BrowserWindow } from 'electron';
 // eslint-disable-next-line import/first
-import { registerRemoteAudioIpc } from '../../../main/ipc/remoteAudio';
+import {
+  isRemoteAudioActive,
+  registerRemoteAudioIpc,
+} from '../../../main/ipc/remoteAudio';
 // eslint-disable-next-line import/first
 import createRemoteAudioLan from '../../../main/remoteAudioLan';
 // eslint-disable-next-line import/first
@@ -96,6 +100,7 @@ describe('Share Audio all to all: one code, every link kept', () => {
   };
   const codeOf = (secret: string, name: string) =>
     encodePairingCode(['192.168.1.20'], 49_100, secret, name);
+  let dispose: () => void = () => undefined;
 
   beforeAll(() =>
     Object.defineProperty(process, 'platform', { value: 'win32' }),
@@ -111,11 +116,12 @@ describe('Share Audio all to all: one code, every link kept', () => {
     mockStartRemoteAudioHostSession.mockResolvedValue(hostSession);
     mockRawSharing.mockReset().mockResolvedValue(undefined);
     mockCapture.mockReset().mockResolvedValue({ close: jest.fn() });
-    registerRemoteAudioIpc({
+    dispose = registerRemoteAudioIpc({
       getMainWindow: () => window as unknown as BrowserWindow,
       userDataDir: 'C:\\FluidEQ-test',
     });
   });
+  afterEach(() => dispose());
 
   it('listens on its code and goes back to every computer pasted here', async () => {
     const first = codeOf('a'.repeat(43), 'DESK');
@@ -315,6 +321,7 @@ describe('the network capture a link starts', () => {
     });
     mockRawSharing.mockReset().mockResolvedValue(undefined);
     mockCapture.mockReset().mockResolvedValue({ close: jest.fn() });
+    mockRawCapture.mockReset();
     credentials.read.mockReturnValue({ joins: [], revoked: [] });
     mockStartRemoteAudioHostSession.mockResolvedValue(hostSession);
     lan.join.mockReturnValue({ computerId: 'r-id', deviceName: 'Receiver' });
@@ -484,6 +491,128 @@ describe('the network capture a link starts', () => {
       peerId: 'peer',
       signal: { kind: 'stream-mode', mode: 'video', duplex },
     });
+
+  it('holds unattended updates during sending, including capture startup, and releases after disconnect', async () => {
+    let finish: (value: { close: () => void }) => void = () => undefined;
+    mockCapture.mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    expect(isRemoteAudioActive()).toBe(false);
+    const onSignal = await linkJoined();
+    await settle();
+    expect(isRemoteAudioActive()).toBe(true);
+    onSignal({ peerId: 'peer', signal: { kind: 'stop' } });
+    expect(isRemoteAudioActive()).toBe(false);
+    const close = jest.fn();
+    finish({ close });
+    await settle();
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it('holds unattended updates for receive-only sound and releases when that computer pauses', async () => {
+    const onSignal = await linkJoined();
+    await handlers.get('remote-audio-lan-switches')?.({}, 'Receiver', {
+      send: false,
+      play: true,
+      paused: false,
+      volume: 1,
+    });
+    expect(isRemoteAudioActive()).toBe(false);
+    arrive(1);
+    expect(isRemoteAudioActive()).toBe(true);
+    await handlers.get('remote-audio-lan-start')?.({}, true);
+    expect(isRemoteAudioActive()).toBe(true);
+    theySay(onSignal, { sends: false, plays: false, paused: true });
+    expect(isRemoteAudioActive()).toBe(false);
+  });
+
+  it('removes its audio activity owner when disposed', async () => {
+    await linkJoined();
+    expect(isRemoteAudioActive()).toBe(true);
+    dispose();
+    expect(isRemoteAudioActive()).toBe(false);
+  });
+
+  const deferredRawCapture = () => {
+    let complete: (capture: { close: () => void }) => void = () => undefined;
+    let fail: (error: Error) => void = () => undefined;
+    const ready = new Promise<{ close: () => void }>((resolve, reject) => {
+      complete = resolve;
+      fail = reject;
+    });
+    return { ready, resolve: complete, reject: fail };
+  };
+  const rawCapture = (enabled: boolean) => {
+    const handler = handlers.get('raw-source-capture');
+    if (!handler) {
+      throw new Error('No raw-source capture handler');
+    }
+    return Promise.resolve(handler({ sender: window.webContents }, enabled));
+  };
+
+  it('closes an obsolete raw capture without replacing the newer capture', async () => {
+    const first = deferredRawCapture();
+    const second = deferredRawCapture();
+    mockRawCapture
+      .mockReturnValueOnce(first.ready)
+      .mockReturnValueOnce(second.ready);
+    const openingFirst = rawCapture(true);
+    await rawCapture(false);
+    const openingSecond = rawCapture(true);
+    const oldClose = jest.fn();
+    const newClose = jest.fn();
+    second.resolve({ close: newClose });
+    expect(await openingSecond).toBe(true);
+    first.resolve({ close: oldClose });
+    expect(await openingFirst).toBe(false);
+    expect(oldClose).toHaveBeenCalledTimes(1);
+    expect(newClose).not.toHaveBeenCalled();
+    await rawCapture(false);
+    expect(newClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a new raw capture opening when an obsolete opening rejects', async () => {
+    const first = deferredRawCapture();
+    const second = deferredRawCapture();
+    mockRawCapture
+      .mockReturnValueOnce(first.ready)
+      .mockReturnValueOnce(second.ready);
+    const openingFirst = rawCapture(true);
+    await rawCapture(false);
+    const openingSecond = rawCapture(true);
+    first.reject(new Error('old device failed'));
+    expect(await openingFirst).toBe(false);
+    expect(rawCapture(true)).toBe(openingSecond);
+    expect(mockRawCapture).toHaveBeenCalledTimes(2);
+    const close = jest.fn();
+    second.resolve({ close });
+    expect(await openingSecond).toBe(true);
+    await rawCapture(false);
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores an obsolete raw capture failure after a restart', async () => {
+    const oldClose = jest.fn();
+    const newClose = jest.fn();
+    mockRawCapture
+      .mockResolvedValueOnce({ close: oldClose })
+      .mockResolvedValueOnce({ close: newClose });
+    expect(await rawCapture(true)).toBe(true);
+    const oldFailure = mockRawCapture.mock.calls[0][1] as () => void;
+    await rawCapture(false);
+    expect(await rawCapture(true)).toBe(true);
+    oldFailure();
+    expect(newClose).not.toHaveBeenCalled();
+    expect(sent.map(([channel]) => channel)).not.toContain('raw-source-lost');
+    const currentFailure = mockRawCapture.mock.calls[1][1] as () => void;
+    currentFailure();
+    expect(newClose).toHaveBeenCalledTimes(1);
+    expect(
+      sent.filter(([channel]) => channel === 'raw-source-lost'),
+    ).toHaveLength(1);
+  });
 
   it('tells the window again when the sound comes back after the other computer paused', async () => {
     const onSignal = await linkJoined();

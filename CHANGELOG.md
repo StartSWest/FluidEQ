@@ -137,6 +137,12 @@ made for games.
   an older connection attempt was still failing is no longer left offline,
   pasting its current code replaces an old address or port, and both of its
   saved addresses are kept when FluidEQ starts.
+- **Automatic updates wait for Share Audio.** An update no longer restarts
+  FluidEQ while sound is being shared, even with the window hidden.
+- **Smart EQ stops measuring cleanly** when a capture is stopped and started
+  again quickly, without leaving an older capture running.
+- **Google sign-in cleans up a failed attempt** if the browser cannot open,
+  so retrying does not leave unused sign-in connections behind.
 - **The Forum keeps what you were writing.** A reply or a new topic you
   leave half-written is still there when you come back to it.
 - **Every Forum board counts unseen activity.** Its yellow number shows
