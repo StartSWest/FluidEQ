@@ -24,8 +24,18 @@ import {
   type IStudioView,
 } from './studioStore';
 import type { ISharingNotice } from './useStudioSharing';
+import preparePublishPreview, {
+  type IPreparedPublishPreview,
+} from './preparePublishPreview';
+import useStudioPublishProgress from './useStudioPublishProgress';
+
+export type { IPreparedPublishPreview } from './preparePublishPreview';
 
 const PUBLISH_FAILURES: Record<string, TranslationKey> = {
+  cancelled: 'studio.publish.videoCancelled',
+  'preview-invalid': 'studio.publish.videoFailed',
+  'preview-stale': 'studio.publish.videoChanged',
+  'preview-upload': 'studio.publish.videoUploadFailed',
   terms: 'studio.publish.outdated',
   offline: 'studio.publish.offline',
   banned: 'studio.export.banned',
@@ -152,6 +162,12 @@ export default function useStudioPublish(
   const lastChoice = useRef(0);
   const accountId = useAccount().identity?.id;
   const { pack } = view;
+  const {
+    phase,
+    begin: beginProgress,
+    abandon,
+    requestCancel: requestProgressCancel,
+  } = useStudioPublishProgress();
 
   // Event handlers can run twice before React commits; refs also keep pending
   // captures and the bytes being published in the same synchronous draft.
@@ -161,6 +177,7 @@ export default function useStudioPublish(
   }, []);
 
   const cancel = useCallback(() => {
+    abandon();
     generation.current += 1;
     preparingRef.current = false;
     publishingRef.current = false;
@@ -168,7 +185,13 @@ export default function useStudioPublish(
     setPreparing(false);
     setPublishing(false);
     setDraft(undefined);
-  }, [setDraft]);
+  }, [setDraft, abandon]);
+
+  const requestCancel = useCallback(async () => {
+    if (!publishingRef.current || (await requestProgressCancel())) {
+      cancel();
+    }
+  }, [requestProgressCancel, cancel]);
 
   // A cover belongs to one account and one build. An old promise must never
   // reopen its dialog or clear a replacement project's work.
@@ -371,12 +394,18 @@ export default function useStudioPublish(
   );
 
   const publish = useCallback(
-    (category: TPlusCategory, category2?: TPlusCategory, note?: string) => {
+    (
+      category: TPlusCategory,
+      category2?: TPlusCategory,
+      note?: string,
+      preview?: IPreparedPublishPreview,
+    ) => {
       const mine = currentDraft.current;
       const cover = mine?.shots.find((shot) => shot.id === mine.chosen);
       if (!mine || !cover?.picture || publishingRef.current || view.problems) {
         return;
       }
+      const { picture } = cover;
       const started = generation.current;
       publishingRef.current = true;
       setNotice(undefined);
@@ -395,13 +424,23 @@ export default function useStudioPublish(
         setPublishing(false);
         setNotice({ ok: false, key, ...(vars ? { vars } : {}) });
       };
-      publishStudioScene(
-        PLUS_TERMS_VERSION,
-        category,
-        cover.picture.bytes,
-        category2,
-        note,
-      )
+      const prepare = async () => {
+        const media = preview
+          ? await preparePublishPreview(preview, beginProgress())
+          : undefined;
+        if (!isCurrent(started)) {
+          return { ok: false as const, reason: 'no-build' as const };
+        }
+        return publishStudioScene(
+          PLUS_TERMS_VERSION,
+          category,
+          picture.bytes,
+          category2,
+          note,
+          media,
+        );
+      };
+      prepare()
         .then((outcome) => {
           // Even a publication whose dialog has gone away changed the gallery,
           // and moved the settings the Studio's Reset goes back to.
@@ -448,7 +487,7 @@ export default function useStudioPublish(
           }
         });
     },
-    [name, view.problems, isCurrent, setDraft, onPublished],
+    [name, view.problems, isCurrent, setDraft, onPublished, beginProgress],
   );
 
   return {
@@ -461,5 +500,7 @@ export default function useStudioPublish(
     choose,
     publish,
     cancel,
+    requestCancel,
+    phase,
   };
 }

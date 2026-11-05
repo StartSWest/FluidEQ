@@ -60,7 +60,11 @@ const answering = (response: Response) =>
 const authWith = (fetchImpl: jest.Mock) => ({
   config,
   accessToken: 'token',
-  fetchImpl: fetchImpl as unknown as typeof fetch,
+  // These existing cases describe a photo-only server, before immutable paths.
+  fetchImpl: (async (input: string | URL, init?: RequestInit) =>
+    String(input).endsWith('/rpc/published_scene_file')
+      ? fakeResponse(404, {})
+      : fetchImpl(input, init)) as typeof fetch,
 });
 
 describe('publication list failures', () => {

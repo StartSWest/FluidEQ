@@ -16,6 +16,10 @@ import { headers, type IAuthorised } from './galleryApi';
  */
 
 export type TPublishFailure =
+  | 'cancelled'
+  | 'preview-invalid'
+  | 'preview-stale'
+  | 'preview-upload'
   | 'offline'
   | 'signed-out'
   | 'forbidden'
@@ -119,6 +123,9 @@ const publishFailure = async (response: Response): Promise<TPublishFailure> => {
   if (response.status === 422 && reason === 'too_many_scenes') {
     return 'too-many-scenes';
   }
+  if (response.status === 422 && reason === 'preview') {
+    return 'preview-invalid';
+  }
   if (response.status === 422 || response.status === 413) {
     return 'refused';
   }
@@ -130,10 +137,23 @@ const callPublish = async (
   body: Record<string, unknown>,
 ): Promise<Response | undefined> => {
   try {
-    return await (auth.fetchImpl ?? fetch)(
+    let response = await (auth.fetchImpl ?? fetch)(
       `${auth.config.apiUrl}/publish-member-scene`,
       { method: 'POST', headers: headers(auth), body: JSON.stringify(body) },
     );
+    // An accepted publication can need its staged files copied again. Repeat
+    // the identical receipt once; the server finishes that exact transaction.
+    if (
+      body.previewUploadId &&
+      response.status === 502 &&
+      (await refusalOf(response.clone())).word === 'files_failed'
+    ) {
+      response = await (auth.fetchImpl ?? fetch)(
+        `${auth.config.apiUrl}/publish-member-scene`,
+        { method: 'POST', headers: headers(auth), body: JSON.stringify(body) },
+      );
+    }
+    return response;
   } catch {
     return undefined;
   }
@@ -148,6 +168,7 @@ export const publishScene = async (
     pack,
     picture,
     note,
+    previewUploadId,
   }: {
     termsVersion: number;
     category: TPlusCategory;
@@ -158,6 +179,7 @@ export const publishScene = async (
     picture: string;
     /** What changed in this version, already cleaned (fluideq-premium 0026). */
     note?: string;
+    previewUploadId?: string;
   },
 ): Promise<
   { ok: true; review?: 'pending' } | { ok: false; reason: TPublishFailure }
@@ -170,6 +192,7 @@ export const publishScene = async (
     pack,
     picture,
     ...(note ? { note } : {}),
+    ...(previewUploadId ? { previewUploadId } : {}),
   });
   if (!response) {
     return { ok: false, reason: 'offline' };
@@ -183,6 +206,12 @@ export const publishScene = async (
   // which is what the status already said.
   try {
     const body: unknown = await response.json();
+    if (
+      previewUploadId &&
+      (!isRecord(body) || body.previewUploadId !== previewUploadId)
+    ) {
+      return { ok: false, reason: 'preview-upload' };
+    }
     return typeof body === 'object' &&
       body !== null &&
       'review' in body &&
@@ -190,7 +219,9 @@ export const publishScene = async (
       ? { ok: true, review: 'pending' }
       : { ok: true };
   } catch {
-    return { ok: true };
+    return previewUploadId
+      ? { ok: false, reason: 'preview-upload' }
+      : { ok: true };
   }
 };
 

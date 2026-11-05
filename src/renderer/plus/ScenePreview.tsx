@@ -28,11 +28,12 @@ interface IScenePreviewProps {
   label: string;
   onTrouble: (trouble: TPreviewTrouble) => void;
   /** After every frame drawn, with the frame. */
-  onDrawn?: (frame: ISceneFrame) => void;
+  onDrawn?: (frame: ISceneFrame, canvas?: HTMLCanvasElement) => void;
   /** Replaces what the scene hears — the Studio's test signals. */
   shapeFrame?: (frame: ISceneFrame) => ISceneFrame;
   /** The member's settings over the pack's — the Studio's, in Publish. */
   tuning?: ISceneTuning;
+  captureFrames?: boolean;
   /**
    * Where the wave stands, for a preview that plays the listener's own
    * visualizer — the Library's player, its EQ screen, the backdrop behind a
@@ -64,6 +65,7 @@ export default function ScenePreview({
   onDrawn,
   shapeFrame,
   tuning,
+  captureFrames,
   wave: listenerWave,
 }: IScenePreviewProps) {
   const frameRef = useRef<HTMLDivElement>(null);
@@ -118,7 +120,11 @@ export default function ScenePreview({
   const drawnRef = useRef(onDrawn);
   drawnRef.current = onDrawn;
   const drawn = useCallback(
-    (frame: ISceneFrame) => drawnRef.current?.(frame),
+    (frame: ISceneFrame) =>
+      drawnRef.current?.(
+        frame,
+        frameRef.current?.querySelector('canvas') ?? undefined,
+      ),
     [],
   );
 
@@ -144,6 +150,7 @@ export default function ScenePreview({
   const interaction = useMemo(createSceneInteraction, []);
 
   const sceneRef = useSceneRunner({
+    captureFrames,
     source,
     width: box.width,
     height: box.height,

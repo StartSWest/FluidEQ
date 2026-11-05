@@ -52,7 +52,7 @@ made for games.
 - **Add a game** scrolls while keeping its action buttons in view.
 - **A game list that stays out of the editor's way.** Its own scrollbar keeps
   a long list from lengthening the page. Drag the divider to resize it, or
-  fold it smoothly with the chevron; its size and folded state are remembered.
+  fold it smoothly with the pin; its size and folded state are remembered.
 - **The picker leaves non-games out.** FluidEQ and its development runtime,
   Windows Explorer, known system processes and launchers, and shared runtime
   installers cannot be added or matched as games.
@@ -67,6 +67,19 @@ made for games.
 - **Visualizers and Online Media have swapped places.** Visualizers starts
   the left side of the title bar; Online Media ends the right side. Their
   pages and remembered selections stay with them.
+
+### Gallery and Studio
+
+- **Watch your scene before publishing.** Studio prepares a silent ten-second
+  video in the Publish screen. Watch it there, record it again, or cancel
+  before sending your scene for review.
+- **Your cover stays your choice.** Recording keeps the cover you selected.
+  A change to the scene or its settings needs a fresh clip, so the preview
+  matches the work you publish. Clips carry a small FluidEQ Plus preview
+  watermark.
+- **See a scene before getting it.** A scene you do not own plays its
+  published clip once, then shows its cover and how to get it. Older scenes
+  without a clip show their cover. The live scene stays with its owner.
 
 ### Everyday controls
 

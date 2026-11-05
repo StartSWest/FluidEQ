@@ -5,7 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   FLUIDEQ_CREATOR_ID,
@@ -116,6 +123,7 @@ const bridge = {
   listGallery: jest.fn(),
   galleryPicture: jest.fn(),
   previewGalleryScene: jest.fn(),
+  galleryClip: jest.fn(),
   addGalleryScene: jest.fn(),
   reportGalleryScene: jest.fn(),
   likeMemberScene: jest.fn(),
@@ -158,6 +166,8 @@ beforeEach(() => {
     more: false,
   });
   bridge.galleryPicture.mockResolvedValue(undefined);
+  // A scene published before clips, unless a test gives it one.
+  bridge.galleryClip.mockResolvedValue(undefined);
   bridge.listMemberScenes.mockResolvedValue({
     scenes: [],
     locked: [],
@@ -253,6 +263,71 @@ describe('Visualizers', () => {
     expect(await pageGet()).toHaveLength(1);
     expect(screen.queryByText('trial.free.title')).not.toBeInTheDocument();
     expect(bridge.addGalleryScene).not.toHaveBeenCalled();
+  });
+
+  it('plays a scene’s published clip once for a member who does not own it, then the way to get it', async () => {
+    mockEntitled = false;
+    bridge.galleryClip.mockResolvedValue({
+      bytes: new Uint8Array([0x1a, 0x45, 0xdf, 0xa3]),
+      mimeType: 'video/webm',
+    });
+    const createUrl = jest.fn(() => 'blob:clip');
+    const revokeUrl = jest.fn();
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: createUrl,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      value: revokeUrl,
+    });
+    Object.defineProperty(
+      HTMLVideoElement.prototype,
+      'requestVideoFrameCallback',
+      {
+        configurable: true,
+        value: jest.fn(() => 1),
+      },
+    );
+    Object.defineProperty(
+      HTMLVideoElement.prototype,
+      'cancelVideoFrameCallback',
+      {
+        configurable: true,
+        value: jest.fn(),
+      },
+    );
+    const { unmount } = renderGallery();
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Neon City' }),
+    );
+    const clip = await waitFor(() => {
+      const video = document.querySelector('video.gallery-preview__clip');
+      if (!(video instanceof HTMLVideoElement)) {
+        throw new Error('no clip yet');
+      }
+      return video;
+    });
+    expect(clip).toHaveAttribute('src', 'blob:clip');
+    expect(clip.muted).toBe(true);
+    expect(screen.getByText(/plus\.scene\.taste/)).toBeInTheDocument();
+    // Asked by the gallery row's version and revision; the scene itself never.
+    expect(bridge.galleryClip).toHaveBeenCalledWith(
+      SOMEONE,
+      'neon-city',
+      1,
+      '2026-09-10T12:00:00Z',
+    );
+    expect(bridge.previewGalleryScene).not.toHaveBeenCalled();
+    expect(screen.queryByText(/store\.scene\.tasted/)).not.toBeInTheDocument();
+
+    fireEvent.ended(clip);
+    expect(await screen.findByText(/store\.scene\.tasted/)).toBeInTheDocument();
+    expect(document.querySelector('video.gallery-preview__clip')).toBeNull();
+    // The veil's Get beside the page's own.
+    expect(await pageGet()).toHaveLength(2);
+    unmount();
+    expect(revokeUrl).toHaveBeenCalledWith('blob:clip');
   });
 
   // The control: a Plus member sees the scenes the server lists.

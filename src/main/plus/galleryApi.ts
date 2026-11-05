@@ -18,6 +18,7 @@ import {
 } from '../../common/scenePacks';
 import { MAX_MEMBER_SCENE_FILE_BYTES } from '../../common/memberSceneFile';
 import { readWebpSize } from '../../common/sceneArtwork';
+import galleryPublishedFile from './galleryPublishedFile';
 
 /**
  * The gallery's server, spoken to with the member's own token, so every rule
@@ -349,12 +350,16 @@ export const fetchPicture = async (
   /** The copy the gallery row names (`download`). */
   version?: string,
 ): Promise<Uint8Array | undefined> => {
-  const bytes = await download(
-    auth,
-    publishedPath(authorId, sceneId, 'picture.webp'),
-    MAX_PICTURE_BYTES,
-    version,
+  const file = await galleryPublishedFile(
+    authorId,
+    sceneId,
+    'picture.webp',
+    (body) => rpc(auth, 'published_scene_file', body),
   );
+  if (!file) {
+    return undefined;
+  }
+  const bytes = await download(auth, file, MAX_PICTURE_BYTES, version);
   return bytes && isCardPicture(bytes) ? bytes : undefined;
 };
 
@@ -366,9 +371,18 @@ export const fetchEnvelope = async (
   /** The version the gallery row names (`download`). */
   version?: number,
 ): Promise<IScenePackEnvelope | undefined> => {
+  const file = await galleryPublishedFile(
+    authorId,
+    sceneId,
+    'scene.json',
+    (body) => rpc(auth, 'published_scene_file', body),
+  );
+  if (!file) {
+    return undefined;
+  }
   const bytes = await download(
     auth,
-    publishedPath(authorId, sceneId, 'scene.json'),
+    file,
     MAX_MEMBER_SCENE_FILE_BYTES,
     version === undefined ? undefined : String(version),
   );

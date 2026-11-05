@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { createHash, randomUUID } from 'crypto';
 
 const handlers = new Map<string, (...args: unknown[]) => unknown>();
 jest.mock('electron', () => ({
@@ -31,6 +32,8 @@ import {
 } from '../../../main/ipc/plusPublishing';
 import { writeStarterProject } from '../../../main/memberScenes/project';
 import * as projects from '../../../main/memberScenes/project';
+import { previewPackSha256 } from '../../../main/plus/scenePreviewApi';
+import type { IScenePreviewUpload } from '../../../common/scenePreviewMedia';
 import { writeProjectSettings } from '../../../main/memberScenes/projectSettings';
 import { readAgreedTerms } from '../../../main/memberScenes/termsAgreement';
 import type { IGalleryAccess } from '../../../main/plus/galleryAccess';
@@ -57,7 +60,10 @@ const invoke = <T>(channel: string, ...args: unknown[]) => {
   if (!handler) {
     throw new Error(`no handler for ${channel}`);
   }
-  return handler({}, ...args) as T;
+  return handler(
+    { sender: { id: 1, isDestroyed: () => false, send: jest.fn() } },
+    ...args,
+  ) as T;
 };
 
 let root: string;
@@ -70,6 +76,8 @@ let signedInAs: string;
 let switchDuringAuth: boolean;
 let duringAuth: (() => void) | undefined;
 let duringFetch: (() => void) | undefined;
+let previewAnswer:
+  ((url: URL, init?: RequestInit) => Promise<Response>) | undefined;
 /** One reply for every request, or one chosen by the URL asked for. */
 let answer: Response | ((url: string) => Response);
 /**
@@ -80,11 +88,20 @@ let floorsAnswer: () => Response;
 let calls: Array<{ url: string; body: Record<string, unknown> }>;
 
 const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
+  if (String(input).endsWith('/rpc/published_scene_file')) {
+    return fakeResponse(404, {});
+  }
   calls.push({
     url: String(input),
-    body: JSON.parse(String(init?.body ?? '{}')),
+    body:
+      typeof init?.body === 'string'
+        ? JSON.parse(init.body)
+        : { bytes: init?.body },
   });
   duringFetch?.();
+  if (String(input).includes('/scene-preview-media') && previewAnswer) {
+    return previewAnswer(new URL(input), init);
+  }
   if (String(input).includes('/rpc/my_scene_version_floors')) {
     return floorsAnswer();
   }
@@ -163,6 +180,7 @@ beforeEach(async () => {
   switchDuringAuth = false;
   duringAuth = undefined;
   duringFetch = undefined;
+  previewAnswer = undefined;
   // Publishing reads this account's gallery listing before it sends, so the
   // version goes out above the one already there. Nothing published, unless a
   // test says otherwise.
@@ -178,6 +196,176 @@ beforeEach(async () => {
 afterEach(() => {
   jest.restoreAllMocks();
   fs.rmSync(root, { recursive: true, force: true });
+});
+
+describe('the recorded scene publication', () => {
+  const clip = new Uint8Array(
+    fs.readFileSync(path.join(__dirname, '../../utils/preview-fixture.webm')),
+  );
+  let receiptId: string;
+  const previewOf = async (): Promise<IScenePreviewUpload> => {
+    if (!folder) {
+      throw new Error('Missing test project');
+    }
+    const build = await projects.readProject(folder);
+    if (!build.ok) {
+      throw new Error('Invalid test project');
+    }
+    return {
+      bytes: clip,
+      operationId: randomUUID(),
+      sceneId: build.pack.id,
+      sourceVersion: build.pack.version,
+      version: build.pack.version,
+      packSha256: previewPackSha256(build.pack),
+    };
+  };
+  const uploaded = (url: URL) => {
+    receiptId = url.searchParams.get('uploadId') ?? '';
+    return fakeResponse(200, {
+      uploadId: receiptId,
+      mediaSha256: createHash('sha256').update(clip).digest('hex'),
+    });
+  };
+  const serving = () => {
+    previewAnswer = async (url, init) =>
+      init?.method === 'DELETE' ? fakeResponse(200, {}) : uploaded(url);
+    answer = (url) =>
+      url.includes('/rpc/')
+        ? fakeResponse(200, [])
+        : fakeResponse(200, { published: {}, previewUploadId: receiptId });
+  };
+  const send = (preview: IScenePreviewUpload) =>
+    invoke<Promise<TPublishOutcome>>(
+      'studio-publish',
+      5,
+      'nature',
+      webpBytes(),
+      undefined,
+      undefined,
+      preview,
+    );
+
+  it('uploads bounded native video separately, then binds only its receipt to the exact pack', async () => {
+    setup();
+    serving();
+    const preview = await previewOf();
+    expect(await send(preview)).toEqual({ ok: true });
+    const upload = calls.find((call) =>
+      call.url.includes('/scene-preview-media'),
+    );
+    expect(upload?.body.bytes).toEqual(clip);
+    expect(publishRequest()?.body).toMatchObject({
+      previewUploadId: receiptId,
+      pack: { id: preview.sceneId, version: preview.version },
+    });
+    expect(JSON.stringify(publishRequest()?.body)).not.toContain('data:video');
+    expect(
+      calls.filter((call) => call.url.includes('/scene-preview-media')),
+    ).toHaveLength(1);
+  });
+
+  it('refuses a stale identity or malformed video before uploading or publishing', async () => {
+    setup();
+    serving();
+    const preview = await previewOf();
+    expect(await send({ ...preview, packSha256: 'f'.repeat(64) })).toEqual({
+      ok: false,
+      reason: 'preview-stale',
+    });
+    expect(
+      await send({ ...preview, bytes: new Uint8Array([1, 2, 3]) }),
+    ).toEqual({ ok: false, reason: 'preview-invalid' });
+    expect(publishRequests()).toEqual([]);
+    expect(
+      calls.filter(
+        (call) => call.url.includes('/scene-preview-media') && call.body.bytes,
+      ),
+    ).toEqual([]);
+  });
+
+  it('refuses double submit; cancel revokes a held upload immediately and never publishes it; retry succeeds', async () => {
+    setup();
+    serving();
+    const preview = await previewOf();
+    let enter: () => void = () => undefined;
+    let release: () => void = () => undefined;
+    const entered = new Promise<void>((resolve) => {
+      enter = resolve;
+    });
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    previewAnswer = async (url, init) => {
+      if (init?.method === 'DELETE') {
+        return fakeResponse(200, {});
+      }
+      enter();
+      await gate;
+      return uploaded(url);
+    };
+    const pending = send(preview);
+    await entered;
+    expect(await send(preview)).toEqual({ ok: false, reason: 'refused' });
+    expect(invoke('studio-publish-cancel', randomUUID())).toBe(false);
+    expect(invoke('studio-publish-cancel', preview.operationId)).toBe(true);
+    expect(
+      calls.filter((call) => call.url.includes('/scene-preview-media')),
+    ).toHaveLength(2);
+    release();
+    expect(await pending).toEqual({ ok: false, reason: 'cancelled' });
+    expect(publishRequests()).toEqual([]);
+    serving();
+    expect(await send(await previewOf())).toEqual({ ok: true });
+    expect(publishRequests()).toHaveLength(1);
+  });
+
+  it('rechecks source after upload and discards only its unused receipt when an edit landed', async () => {
+    setup();
+    serving();
+    const preview = await previewOf();
+    previewAnswer = async (url, init) => {
+      if (init?.method === 'DELETE') {
+        return fakeResponse(200, {});
+      }
+      if (!folder) {
+        throw new Error('Missing project');
+      }
+      fs.appendFileSync(
+        path.join(folder, 'scene.frag'),
+        '\nfloat previewRevision = 0.5;\n',
+      );
+      return uploaded(url);
+    };
+    expect(await send(preview)).toEqual({ ok: false, reason: 'preview-stale' });
+    expect(publishRequests()).toEqual([]);
+    expect(
+      calls.filter((call) => call.url.includes('/scene-preview-media')),
+    ).toHaveLength(2);
+  });
+
+  it('retains the chosen cover and retries an accepted file copy using the identical publication body', async () => {
+    setup();
+    serving();
+    const preview = await previewOf();
+    let attempt = 0;
+    answer = (url) => {
+      if (url.includes('/rpc/')) {
+        return fakeResponse(200, []);
+      }
+      expect(invoke('studio-publish-cancel', preview.operationId)).toBe(false);
+      attempt += 1;
+      return attempt === 1
+        ? fakeResponse(502, { error: 'files_failed', accepted: true })
+        : fakeResponse(200, { published: {}, previewUploadId: receiptId });
+    };
+    expect(await send(preview)).toEqual({ ok: true });
+    expect(publishRequests()).toHaveLength(2);
+    expect(publishRequests()[1].body).toEqual(publishRequests()[0].body);
+    expect(publishRequest()?.body.picture).toBe(
+      Buffer.from(webpBytes()).toString('base64'),
+    );
+  });
 });
 
 describe('the account publication list', () => {

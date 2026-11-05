@@ -90,6 +90,32 @@ const studio = {
     '해당 이름은 폴더 이름이 될 수 없습니다. 문자와 숫자를 사용해 보세요.',
   'studio.new.failed':
     '폴더를 만들 수 없습니다. 변경을 통해 다른 장소를 선택하세요.',
+  'studio.publish.videoUploading': '미리 보기 업로드 중…',
+  'studio.publish.videoChanged':
+    '녹화 후 장면이 변경되었습니다. 게시 화면을 열어 현재 버전을 녹화하세요.',
+  'studio.publish.videoUploadFailed':
+    '미리 보기를 첨부할 수 없습니다. 게시 화면을 열고 다시 시도하세요.',
+  'studio.publish.videoTitle': '동영상 미리 보기',
+  'studio.publish.videoHint':
+    '이 장면을 워터마크가 있는 10초 무음 동영상으로 녹화합니다. 게시하기 전에 여기서 확인하세요.',
+  'studio.publish.videoPreparing': '장면 녹화 준비 중…',
+  'studio.publish.videoRecording': '미리 보기 녹화 중 · {seconds} / 10초',
+  'studio.publish.videoEncoding': '동영상 마무리 중…',
+  'studio.publish.videoChecking': '동영상 재생 확인 중…',
+  'studio.publish.videoReady':
+    '미리 보기가 준비되었습니다. 아래에서 재생하세요.',
+  'studio.publish.videoFailed':
+    '미리 보기를 녹화하거나 재생할 수 없습니다. 다시 녹화해 주세요.',
+  'studio.publish.videoCancelled':
+    '녹화가 취소되었습니다. 계속하려면 미리 보기를 녹화하세요.',
+  'studio.publish.videoCancel': '녹화 취소',
+  'studio.publish.videoAgain': '다시 녹화',
+  'studio.publish.videoRetry': '녹화 재시도',
+  'studio.publish.videoPlay': '장면 미리 보기 재생',
+  'studio.publish.videoRequired':
+    '먼저 재생 가능한 미리 보기 녹화를 완료하세요',
+  'studio.publish.videoWatermark': 'FluidEQ Plus · 미리보기',
+
   'studio.publish.title': '{name} 게시',
   'studio.publish.titleUpdate': '갤러리에서 {name}를 업데이트하세요.',
   'studio.publish.version': '버전 {version}',

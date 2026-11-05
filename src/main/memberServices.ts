@@ -28,6 +28,7 @@ import { registerCreatorIpc } from './ipc/creator';
 import { registerMemberScenesIpc } from './ipc/memberScenes';
 import { registerMemberSharingIpc } from './ipc/memberSharing';
 import { registerPlusGalleryIpc } from './ipc/plusGallery';
+import { registerGalleryClipIpc } from './ipc/plusGalleryClip';
 import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerPlusPublishingIpc } from './ipc/plusPublishing';
 import { registerPlusReviewIpc } from './ipc/plusReview';
@@ -221,6 +222,15 @@ const registerMemberServices = ({
     // downloaded again (`plus/pictureDiskCache.ts`).
     pictureDir: path.join(userDataDir, 'gallery-pictures'),
   });
+  // A published scene's ten-second clip, for the page of a scene this
+  // account does not own; kept like the pictures (`ipc/plusGalleryClip.ts`).
+  const galleryClipIpc = registerGalleryClipIpc({
+    access: galleryAccess,
+    isBlocked: (authorId, sceneId) =>
+      memberScenesIpc.store.isBlocked(authorId, sceneId),
+    clipDir: path.join(userDataDir, 'gallery-clips'),
+    logger: log,
+  });
   // Scenes under review (premium migration 0037): a maker's list of what
   // they sent, and the corner notice telling them an answer came. Signing
   // out must take the notice away too, which the membership alone never says
@@ -361,6 +371,7 @@ const registerMemberServices = ({
     disposeSceneVersions();
     plusPublishingIpc.dispose();
     plusGalleryIpc.dispose();
+    galleryClipIpc.dispose();
     memberSharingIpc.dispose();
     memberScenesIpc.dispose();
     // Its listening socket, like the forum's, must not outlive the app.

@@ -270,6 +270,7 @@ const publishStudioScene = (
   picture: Uint8Array,
   category2?: TPlusCategory,
   note?: string,
+  preview?: import('../common/scenePreviewMedia').IScenePreviewUpload,
 ) =>
   ipcRenderer.invoke(
     'studio-publish',
@@ -278,7 +279,23 @@ const publishStudioScene = (
     picture,
     category2,
     note,
+    preview,
   ) as Promise<TPublishOutcome>;
+
+const cancelStudioPublish = (id: string) =>
+  ipcRenderer.invoke('studio-publish-cancel', id) as Promise<boolean>;
+const onStudioPublishProgress = (
+  listener: (
+    progress: import('../common/scenePreviewMedia').IScenePublishProgress,
+  ) => void,
+) => {
+  const wrapped = (
+    _event: IpcRendererEvent,
+    progress: import('../common/scenePreviewMedia').IScenePublishProgress,
+  ) => listener(progress);
+  ipcRenderer.on('studio-publish-progress', wrapped);
+  return () => ipcRenderer.removeListener('studio-publish-progress', wrapped);
+};
 
 const studioBridge = {
   listScenePacks,
@@ -321,6 +338,8 @@ const studioBridge = {
   writeStudioSource,
   inspectOfficialScene,
   publishStudioScene,
+  cancelStudioPublish,
+  onStudioPublishProgress,
 };
 
 export default studioBridge;

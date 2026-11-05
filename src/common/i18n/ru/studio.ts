@@ -90,6 +90,31 @@ const studio = {
   'studio.new.failed':
     'Не удалось создать там папку. Выберите другое место кнопкой «Изменить».',
 
+  'studio.publish.videoUploading': 'Загрузка предпросмотра…',
+  'studio.publish.videoChanged':
+    'Сцена изменилась после записи. Откройте публикацию, чтобы записать текущую версию.',
+  'studio.publish.videoUploadFailed':
+    'Не удалось прикрепить предпросмотр. Откройте публикацию и попробуйте снова.',
+  'studio.publish.videoTitle': 'Видеопредпросмотр',
+  'studio.publish.videoHint':
+    'Беззвучное видео этой сцены на 10 секунд с водяным знаком. Посмотрите его здесь перед публикацией.',
+  'studio.publish.videoPreparing': 'Подготовка сцены к записи…',
+  'studio.publish.videoRecording': 'Запись предпросмотра · {seconds} / 10 с',
+  'studio.publish.videoEncoding': 'Завершение видео…',
+  'studio.publish.videoChecking': 'Проверка воспроизведения…',
+  'studio.publish.videoReady': 'Предпросмотр готов. Воспроизведите его ниже.',
+  'studio.publish.videoFailed':
+    'Не удалось записать или воспроизвести предпросмотр. Попробуйте записать снова.',
+  'studio.publish.videoCancelled':
+    'Запись отменена. Запишите предпросмотр, чтобы продолжить.',
+  'studio.publish.videoCancel': 'Отменить запись',
+  'studio.publish.videoAgain': 'Записать снова',
+  'studio.publish.videoRetry': 'Повторить запись',
+  'studio.publish.videoPlay': 'Воспроизвести предпросмотр сцены',
+  'studio.publish.videoRequired':
+    'Сначала завершите запись воспроизводимого предпросмотра',
+  'studio.publish.videoWatermark': 'FluidEQ Plus · Предпросмотр',
+
   'studio.publish.title': 'Опубликовать «{name}»',
   'studio.publish.titleUpdate': 'Обновить «{name}» в галерее',
   'studio.publish.version': 'Версия {version}',

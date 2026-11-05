@@ -92,6 +92,31 @@ const studio = {
   'studio.new.failed':
     'そこにフォルダーを作れませんでした。「変更」で別の場所を選んでください。',
 
+  'studio.publish.videoUploading': 'プレビューをアップロード中…',
+  'studio.publish.videoChanged':
+    '録画後にシーンが変更されました。公開画面を開き、現在のバージョンを録画してください。',
+  'studio.publish.videoUploadFailed':
+    'プレビューを添付できませんでした。公開画面を開いて再試行してください。',
+  'studio.publish.videoTitle': '動画プレビュー',
+  'studio.publish.videoHint':
+    'このシーンの透かし入り10秒動画を無音で録画します。公開前にここで確認できます。',
+  'studio.publish.videoPreparing': 'シーンの録画を準備中…',
+  'studio.publish.videoRecording': 'プレビューを録画中 · {seconds} / 10 秒',
+  'studio.publish.videoEncoding': '動画を仕上げています…',
+  'studio.publish.videoChecking': '動画の再生を確認中…',
+  'studio.publish.videoReady': 'プレビューができました。下で再生できます。',
+  'studio.publish.videoFailed':
+    'プレビューを録画または再生できませんでした。もう一度録画してください。',
+  'studio.publish.videoCancelled':
+    '録画をキャンセルしました。プレビューを録画して続けてください。',
+  'studio.publish.videoCancel': '録画をキャンセル',
+  'studio.publish.videoAgain': '録画し直す',
+  'studio.publish.videoRetry': '録画を再試行',
+  'studio.publish.videoPlay': 'シーンのプレビューを再生',
+  'studio.publish.videoRequired':
+    'まず再生できるプレビューの録画を完了してください',
+  'studio.publish.videoWatermark': 'FluidEQ Plus · プレビュー',
+
   'studio.publish.title': '{name} を公開',
   'studio.publish.titleUpdate': 'ギャラリーの {name} を更新',
   'studio.publish.version': 'バージョン {version}',
