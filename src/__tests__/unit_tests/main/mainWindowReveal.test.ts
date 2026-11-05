@@ -18,6 +18,7 @@ import { EventEmitter } from 'events';
 import { ipcMain } from 'electron';
 import { RENDERER_READY_EVENT } from 'common/constants';
 import { GROUP_MEDIA_WATCH } from 'common/groupMediaTransport';
+import { ENGINE_KEY_GET, ENGINE_KEY_SET } from 'common/engineKey';
 import type { IMainWindowDeps } from '../../../main/mainWindow';
 import type { TWindowModes } from '../../../main/windowMode';
 
@@ -86,7 +87,12 @@ jest.mock('electron', () => {
   }
   return {
     BrowserWindow: FakeWindow,
-    app: { isPackaged: false },
+    app: {
+      isPackaged: false,
+      // No saved shortcut in this fixture; never read the listener's settings.
+      getPath: jest.fn(() => __dirname),
+    },
+    globalShortcut: { register: jest.fn(), unregister: jest.fn() },
     desktopCapturer: { getSources: jest.fn() },
     screen: {
       getDisplayMatching: () => display,
@@ -181,6 +187,7 @@ beforeEach(() => {
   ipcListeners.clear();
   saveWindowState.mockClear();
   jest.mocked(ipcMain.handle).mockClear();
+  jest.mocked(ipcMain.removeHandler).mockClear();
 });
 
 afterEach(() => {
@@ -188,6 +195,20 @@ afterEach(() => {
 });
 
 describe('when the window appears', () => {
+  it('installs the engine-key handlers and removes them when the window closes', () => {
+    const { window } = open();
+    [ENGINE_KEY_GET, ENGINE_KEY_SET].forEach((channel) => {
+      expect(ipcMain.handle).toHaveBeenCalledWith(
+        channel,
+        expect.any(Function),
+      );
+    });
+    window.emit('closed');
+    [ENGINE_KEY_GET, ENGINE_KEY_SET].forEach((channel) => {
+      expect(ipcMain.removeHandler).toHaveBeenCalledWith(channel);
+    });
+  });
+
   it('is not decided by ready-to-show, and no clock is started for it', () => {
     const { window } = open();
     expect(ipcMain.handle).toHaveBeenCalledWith(
