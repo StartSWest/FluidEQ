@@ -7,13 +7,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import toastColours from './toastColours';
+import gameSwitchProfileName from './gameSwitchProfileName';
 import { useGameSound } from './useGameSound';
-import { SoundingTunedWatch } from './useGamingData';
+import { SoundingTunedWatch, useYoursGamingProfiles } from './useGamingData';
 
 interface IGameToastBridge {
   showGameToast?: (said: {
     what: string;
     game: string;
+    profile?: string;
     icon?: string;
     colors?: Record<string, string>;
   }) => void;
@@ -36,23 +38,25 @@ interface IGameToastBridge {
  */
 const GameSound = () => {
   const { t } = useTranslation();
+  const yours = useYoursGamingProfiles();
   const { switched, forgetSwitch, playing, sounding } = useGameSound({
     applies: true,
   });
   // Read when a switch arrives rather than closed over, so a change of
   // language does not run the effect again.
-  const latest = useRef(t);
-  latest.current = t;
+  const latest = useRef({ t, yours });
+  latest.current = { t, yours };
 
   useEffect(() => {
     if (!switched) {
       return;
     }
-    const say = latest.current;
+    const { t: say, yours: saved } = latest.current;
     const back = switched.kind === 'restored';
     const bridge = window.electron?.ipcRenderer as IGameToastBridge | undefined;
     bridge?.showGameToast?.({
       what: back ? say('gaming.toast.restored') : say('gaming.toast.loaded'),
+      profile: gameSwitchProfileName(switched, saved, say),
       game: back
         ? say('games.toast.afterGame', { game: switched.game })
         : say('games.toast.forGame', { game: switched.game }),

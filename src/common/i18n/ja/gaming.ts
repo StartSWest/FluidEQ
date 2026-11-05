@@ -119,8 +119,8 @@ export default {
   'gaming.profiles.renameTitle': 'ゲーミングプロファイルの名前を変更',
   'gaming.profiles.renameHint':
     'ここから始めたゲームはコピーを保ちます。変わるのは名前だけです。',
-  'gaming.toast.loaded': '専用のサウンドがオンです',
-  'gaming.toast.restored': '音楽用のサウンドに戻りました',
+  'gaming.toast.loaded': 'ゲーム用プロファイルを読み込みました',
+  'gaming.toast.restored': '音楽用プロファイルに戻りました',
   'gaming.paused.notice': '一時停止中: {game} 専用のサウンドを再生中',
   'gaming.paused.tune': '{game} を調整',
   'gaming.paused.title': '音楽用のラックは待機中です',

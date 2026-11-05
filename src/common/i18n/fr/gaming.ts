@@ -119,8 +119,8 @@ export default {
   'gaming.profiles.renameTitle': 'Renommer le profil gaming',
   'gaming.profiles.renameHint':
     'Les jeux partis de lui gardent leurs copies ; seul le nom change.',
-  'gaming.toast.loaded': 'Son propre son est actif',
-  'gaming.toast.restored': 'Votre son musique est de retour',
+  'gaming.toast.loaded': 'Profil de jeu chargé',
+  'gaming.toast.restored': 'Profil musical rétabli',
   'gaming.paused.notice': 'En pause : le son propre de {game} est en lecture',
   'gaming.paused.tune': 'Ajuster {game}',
   'gaming.paused.title': 'Votre rack musique attend',

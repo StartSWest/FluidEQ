@@ -18,6 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import type { IDspSettings, IEqSettings } from './dsp/chain';
+import type { IVoicingSettings } from './constants';
 import {
   FOOTSTEPS_PRESETS,
   footstepsPresetOf,
@@ -263,6 +264,14 @@ export const gamingProfileName = (name: string): string | undefined => {
 /** Which game's copy the playing output has on, if any. */
 export interface IGameSoundState {
   gameId?: string;
+  /** The sound main actually put on, for a switch notice to name it without
+   * racing the renderer's later output-state refresh. Internal copy names
+   * are never shown; the Preset layer or the game's chosen name labels them. */
+  profile?: {
+    name?: string;
+    voicing?: IVoicingSettings;
+    voicingBypassed?: boolean;
+  };
   /**
    * The rack of the music sound waiting for the game to end, for the DSP
    * page to say what is paused: its preset's name and the stages it plays.

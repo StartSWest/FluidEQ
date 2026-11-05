@@ -278,6 +278,7 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
     toasts.show({
       what: card.what,
       game: typeof card.game === 'string' ? card.game : '',
+      ...(typeof card.profile === 'string' ? { profile: card.profile } : {}),
       ...(typeof card.icon === 'string' ? { icon: card.icon } : {}),
       ...(colors ? { colors } : {}),
       ...(lastRect ? { rect: lastRect } : {}),

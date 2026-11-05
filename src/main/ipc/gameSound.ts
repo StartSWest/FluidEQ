@@ -264,6 +264,12 @@ export const registerGameSoundIpc = ({
       result: {
         gameId: loan?.gameId,
         musicDsp: loan ? musicRackOf(loan.musicPresetName) : undefined,
+        profile: {
+          name: deviceProfileSettings.assignments[session.activeAudioDeviceId]
+            ?.presetName,
+          voicing: state.voicing,
+          voicingBypassed: (state.bypassed ?? []).includes('voicing'),
+        },
       },
     };
     event.reply(ChannelEnum.GAME_SOUND_STATE, reply);

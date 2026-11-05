@@ -83,6 +83,7 @@ describe('the game card the desktop shows', () => {
     document.body.innerHTML = body[1].replace(/<script>[\s\S]*<\/script>/, '');
     const address = new URLSearchParams({
       what: 'Loaded Gaming',
+      profile: '<My mix>',
       game: 'for Overwatch',
       accent: '#fab1fb',
       panel: 'rgb(27, 2, 28)',
@@ -104,6 +105,8 @@ describe('the game card the desktop shows', () => {
     expect(root.getPropertyValue('--muted')).toBe('');
     // And the words still arrive beside them.
     expect(document.getElementById('what')?.textContent).toBe('Loaded Gaming');
+    expect(document.getElementById('profile')?.textContent).toBe('<My mix>');
+    expect(document.getElementById('profile')?.children).toHaveLength(0);
   });
 
   it('closes itself on an animation rather than on a clock', () => {

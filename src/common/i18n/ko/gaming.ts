@@ -117,8 +117,8 @@ export default {
   'gaming.profiles.renameTitle': '게이밍 프로필 이름 바꾸기',
   'gaming.profiles.renameHint':
     '여기서 시작한 게임은 복사본을 유지하며, 이름만 바뀝니다.',
-  'gaming.toast.loaded': '전용 사운드가 켜졌습니다',
-  'gaming.toast.restored': '음악용 사운드로 돌아왔습니다',
+  'gaming.toast.loaded': '게임 프로필 로드됨',
+  'gaming.toast.restored': '음악 프로필 복원됨',
   'gaming.paused.notice': '일시 중지됨: {game} 전용 사운드 재생 중',
   'gaming.paused.tune': '{game} 조정',
   'gaming.paused.title': '음악용 랙이 기다리고 있습니다',

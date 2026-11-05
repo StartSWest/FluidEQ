@@ -37,10 +37,10 @@ let loaded: IGameSoundState = {};
 
 jest.mock('../../../renderer/utils/gamingApi', () => ({
   loadGameSound: jest.fn(async (gameId: string, _seed: TGameSeed) => {
-    loaded = { gameId };
+    loaded = { gameId, profile: { name: 'Game copy', voicingBypassed: false } };
   }),
   unloadGameSound: jest.fn(async () => {
-    loaded = {};
+    loaded = { profile: { name: 'My music', voicingBypassed: true } };
   }),
   readGameSoundState: jest.fn(async () => loaded),
 }));
@@ -126,6 +126,10 @@ describe('the window’s own game sound switch', () => {
     expect(holdGameProcess).toHaveBeenCalledWith(41);
     expect(readLoadedGame().gameId).toBe(neonDrift().id);
     expect(result.current.sounding?.name).toBe('Neon Drift');
+    expect(result.current.switched?.profile).toEqual({
+      name: 'Game copy',
+      voicingBypassed: false,
+    });
   });
 
   it('keeps it through alt-tabs, and puts it on once however often the game comes back', async () => {
@@ -164,6 +168,10 @@ describe('the window’s own game sound switch', () => {
     await waitFor(() => expect(result.current.switched?.kind).toBe('restored'));
     expect(unloadGameSound).toHaveBeenCalledTimes(1);
     expect(readLoadedGame().gameId).toBeUndefined();
+    expect(result.current.switched?.profile).toEqual({
+      name: 'My music',
+      voicingBypassed: true,
+    });
   });
 
   it('leaves alone a sound the listener put on by hand since', async () => {

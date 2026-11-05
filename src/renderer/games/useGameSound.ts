@@ -27,6 +27,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { IGameSoundState } from '../../common/gaming';
 import {
   gameProfileFor,
   gamingProfileOf,
@@ -113,6 +114,9 @@ export interface IGameSwitch {
   game: string;
   icon?: string;
   kind: 'loaded' | 'restored';
+  profileId?: string;
+  copyName?: string;
+  profile?: IGameSoundState['profile'];
 }
 
 export interface IGameSound {
@@ -209,10 +213,18 @@ export const useGameSound = ({
   const announce = useCallback(
     (game: IGameProfile, kind: IGameSwitch['kind']) => {
       switches.current += 1;
+      const current = readLoadedGame();
+      const confirmed =
+        kind === 'loaded'
+          ? current.gameId === game.id
+          : current.gameId === undefined;
       setSwitched({
         kind,
         id: switches.current,
         game: game.name,
+        profileId: gamingProfileOf(game),
+        copyName: game.copyName,
+        profile: confirmed ? current.profile : undefined,
         ...(game.icon ? { icon: game.icon } : {}),
       });
     },

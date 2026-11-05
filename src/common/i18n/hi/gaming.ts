@@ -118,8 +118,8 @@ export default {
   'gaming.profiles.renameTitle': 'गेमिंग प्रोफ़ाइल का नाम बदलें',
   'gaming.profiles.renameHint':
     'जो गेम इससे शुरू हुए, उनकी कॉपी बनी रहती है; सिर्फ़ नाम बदलता है।',
-  'gaming.toast.loaded': 'इसकी अपनी साउंड चालू है',
-  'gaming.toast.restored': 'आपकी संगीत वाली साउंड वापस आ गई',
+  'gaming.toast.loaded': 'गेम प्रोफ़ाइल लोड हुई',
+  'gaming.toast.restored': 'संगीत प्रोफ़ाइल बहाल हुई',
   'gaming.paused.notice': 'रुका हुआ: {game} की अपनी साउंड चल रही है',
   'gaming.paused.tune': '{game} ट्यून करें',
   'gaming.paused.title': 'आपका संगीत रैक इंतज़ार कर रहा है',

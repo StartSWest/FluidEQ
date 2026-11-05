@@ -117,8 +117,8 @@ export default {
   'gaming.profiles.renameTitle': 'Переименовать игровой профиль',
   'gaming.profiles.renameHint':
     'Игры, начавшие с него, сохраняют свои копии; меняется только название.',
-  'gaming.toast.loaded': 'Включён её собственный звук',
-  'gaming.toast.restored': 'Музыкальный звук вернулся',
+  'gaming.toast.loaded': 'Игровой профиль загружен',
+  'gaming.toast.restored': 'Музыкальный профиль восстановлен',
   'gaming.paused.notice': 'Пауза: играет собственный звук {game}',
   'gaming.paused.tune': 'Настроить {game}',
   'gaming.paused.title': 'Ваша музыкальная стойка ждёт',

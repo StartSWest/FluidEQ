@@ -321,6 +321,13 @@ describe('the game sound messages', () => {
     expect(state.dsp?.gameMode).toBe(true);
     expect(doesPresetExist(gameOriginName('cs2'), dirOf(OUTPUT))).toBe(true);
     expect(handleError).not.toHaveBeenCalled();
+    const snapshot = await send(ChannelEnum.GAME_SOUND_STATE);
+    expect(snapshot.reply).toHaveBeenCalledWith(ChannelEnum.GAME_SOUND_STATE, {
+      result: expect.objectContaining({
+        gameId: 'cs2',
+        profile: { name: copy, voicing: state.voicing, voicingBypassed: false },
+      }),
+    });
   });
 
   it('lends the same music sound to a second game in a row', async () => {
@@ -339,6 +346,17 @@ describe('the game sound messages', () => {
     expect(state.dsp?.presetId).toBe('rock');
     expect(state.preAmp).toBe(-4);
     expect(loans.entries()).toEqual([]);
+    const snapshot = await send(ChannelEnum.GAME_SOUND_STATE);
+    expect(snapshot.reply).toHaveBeenCalledWith(ChannelEnum.GAME_SOUND_STATE, {
+      result: expect.objectContaining({
+        gameId: undefined,
+        profile: {
+          name: 'Music',
+          voicing: state.voicing,
+          voicingBypassed: false,
+        },
+      }),
+    });
   });
 
   it('keeps the live sound as a profile to come back to when the output had none', async () => {
