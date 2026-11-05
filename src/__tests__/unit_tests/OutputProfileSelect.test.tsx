@@ -225,31 +225,45 @@ it('cannot publish the old secondary’s catalogue after the editor heading chan
 });
 
 /**
- * "Edit main" ends the edit, and the notice — with the button the keyboard
- * was on — goes with it. Focus fell to the start of the page; it goes to
- * the control that followed the notice.
+ * Either finish action ends the edit, and the notice — with the focused
+ * button — goes with it. Focus fell to the start of the page; it goes to the
+ * control that followed the notice.
  */
-it('hands the keyboard to what follows the notice when Edit main ends the edit', async () => {
-  const refreshState = jest.fn(async () => {
-    showOutputEditor(mainOutput, mainOutput);
-  });
-  jest.mocked(activateAudioDeviceProfile).mockResolvedValue(undefined);
-  renderProfiles(
-    <FluidEqProviderWrapper value={{ ...defaultFluidEqContext, refreshState }}>
-      <section aria-label="Editor heading">
-        <OutputEditingNotice />
-        <button type="button">The page’s first control</button>
-      </section>
-    </FluidEqProviderWrapper>,
-  );
-  const editMain = screen.getByRole('button', { name: 'Edit main' });
-  editMain.focus();
-  await act(async () => {
-    fireEvent.click(editMain);
-  });
-  expect(activateAudioDeviceProfile).toHaveBeenCalledWith(mainOutput.id);
-  expect(screen.queryByRole('button', { name: 'Edit main' })).toBeNull();
-  expect(
-    screen.getByRole('button', { name: 'The page’s first control' }),
-  ).toHaveFocus();
-});
+it.each(['Edit main', 'Done'])(
+  'hands the keyboard to what follows the notice when %s ends the edit',
+  async (action) => {
+    const refreshState = jest.fn(async () => {
+      showOutputEditor(mainOutput, mainOutput);
+    });
+    jest.mocked(activateAudioDeviceProfile).mockResolvedValue(undefined);
+    renderProfiles(
+      <FluidEqProviderWrapper
+        value={{ ...defaultFluidEqContext, refreshState }}
+      >
+        <section aria-label="Editor heading">
+          <OutputEditingNotice />
+          <button type="button">The page’s first control</button>
+        </section>
+      </FluidEqProviderWrapper>,
+    );
+    // Done is a named action from the moment editing starts, without having to
+    // discover the sidebar toggle's hover-only completion label.
+    const done = screen.getByRole('button', { name: 'Done' });
+    expect(done).toHaveTextContent('Done');
+    expect(done).not.toHaveAttribute('aria-pressed');
+    const finish = screen.getByRole('button', { name: action });
+    finish.focus();
+    await act(async () => {
+      fireEvent.click(finish);
+    });
+    expect(activateAudioDeviceProfile).toHaveBeenCalledWith(mainOutput.id);
+    expect(screen.queryByRole('button', { name: 'Edit main' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Done' })).toBeNull();
+    expect(readOutputEditor().main?.id).toBe(mainOutput.id);
+    expect(setDefaultAudioDevice).not.toHaveBeenCalled();
+    expect(assignDeviceProfile).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole('button', { name: 'The page’s first control' }),
+    ).toHaveFocus();
+  },
+);
