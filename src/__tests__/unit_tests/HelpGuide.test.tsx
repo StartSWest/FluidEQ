@@ -85,18 +85,32 @@ afterAll(() => {
 const showMenu = (forumOpen = false) => {
   const onAbout = jest.fn();
   const onForum = jest.fn();
+  const onReleaseNotes = jest.fn();
   render(
     <HelpMenu
       onAbout={onAbout}
       onTour={jest.fn()}
+      onReleaseNotes={onReleaseNotes}
       onReport={jest.fn()}
       onTroubleshoot={jest.fn()}
       onForum={onForum}
       forumOpen={forumOpen}
     />,
   );
-  return { onAbout, onForum };
+  return { onAbout, onForum, onReleaseNotes };
 };
+
+it('offers every version’s notes right under What’s new', () => {
+  const { onReleaseNotes } = showMenu();
+  fireEvent.click(screen.getByRole('button', { name: 'Help' }));
+  const items = screen.getAllByRole('menuitem');
+  const whatsNew = screen.getByRole('menuitem', { name: /What.s new/ });
+  const notes = screen.getByRole('menuitem', { name: 'Full release notes' });
+  expect(items.indexOf(notes)).toBe(items.indexOf(whatsNew) + 1);
+  fireEvent.click(notes);
+  expect(onReleaseNotes).toHaveBeenCalledTimes(1);
+  expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+});
 
 const openGuide = () => {
   showMenu();

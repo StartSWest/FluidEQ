@@ -848,6 +848,19 @@ const tour: Partial<Dictionary> = {
   'tour.media.open': 'Abrir Mídia online',
   'tour.studio.free': 'Grátis para todas as contas',
   'tour.film.englishAudio': 'Áudio em inglês · legendas traduzidas',
+  'tour.v23.also': 'Também na 2.3',
+  'tour.v23.engineKey':
+    'Escolha uma tecla liga/desliga no menu para alternar todo o processamento do FluidEQ enquanto outro app está em primeiro plano. Um cartão confirma a mudança.',
+  'tour.v23.profiles':
+    'Busque perfis de jogos por jogo, curva ou cadeia. Seus perfis salvos também mostram as curvas e os níveis do filtro Jogo.',
+  'tour.v23.dsp':
+    'Dinâmica levanta sons baixos em três bandas. O Maximizador preserva os graves; a normalização True Peak usa um ganho por música.',
+  'tour.v23.help':
+    'A ajuda reproduz o passeio gravado da 2.2 e abre as notas completas diretamente. Sobre tem links para as seções e o QR de apoio, quando disponível.',
+  'tour.v23.forum':
+    'Cada seção do Fórum conta a atividade não vista, Problemas conta os abertos, e tópicos e respostas inacabados ficam salvos.',
+  'tour.v23.layout':
+    'O player compacto mantém os nomes de jogos curtos. Adicionar um jogo deixa os botões visíveis durante a rolagem e as barras das páginas ficam na borda direita.',
 };
 
 export default tour;

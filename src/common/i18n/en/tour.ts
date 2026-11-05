@@ -855,6 +855,19 @@ const tour = {
   'tour.media.open': 'Open Online Media',
   'tour.studio.free': 'Free for every account',
   'tour.film.englishAudio': 'English audio · translated captions',
+  'tour.v23.also': 'Also in 2.3',
+  'tour.v23.engineKey':
+    'Choose an On/off key in the menu to switch all FluidEQ processing while another app is in front. A card confirms each switch.',
+  'tour.v23.profiles':
+    'Search Gaming profiles by game, curve or chain. Your saved profiles show their curves and Game filter levels too.',
+  'tour.v23.dsp':
+    'Dynamics lifts quiet sound in three bands. The cleaner Maximizer keeps the bass intact; True Peak normalization uses one gain per song.',
+  'tour.v23.help':
+    'Help plays the recorded 2.2 tour. Full release notes opens directly from Help; About has section links and the support QR code where available.',
+  'tour.v23.forum':
+    'Every Forum board counts unseen activity, Issues counts open issues, and unfinished topics and replies stay saved.',
+  'tour.v23.layout':
+    'The Compact player keeps game names short. Add a game keeps its buttons visible while scrolling, and page scrollbars sit at the right edge.',
 } as const;
 
 export default tour;

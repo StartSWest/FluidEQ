@@ -11,7 +11,7 @@ const help = {
   'help.title': 'User guide',
   'help.subtitle': 'Find your sound. Make yourself at home.',
   'help.intro':
-    'A practical guide to FluidEQ, illustrated with real app captures. Start with your first listening session, then explore each part of the app at your own pace.',
+    'A practical guide to FluidEQ, with illustrations drawn by the app’s own controls and real window captures. Start with your first listening session, then explore at your own pace.',
   'help.offline': 'Available offline',
   'help.search': 'Search the guide',
   'help.searchHint': 'Try engine, bass, visualizer…',
@@ -25,7 +25,7 @@ const help = {
   'help.closeImage': 'Close screenshot',
   'help.controlsOf': 'What each control in {title} does',
   'help.captureNote':
-    'Real captures of the FluidEQ window. Colours, labels and control positions may differ in your version. Example settings are illustrations, not recommended presets.',
+    'Live illustrations follow your language and window colours. Older window captures may show different labels or positions. Example settings illustrate the controls; they are not recommended presets.',
   'help.steps': 'Try it',
   'help.tip': 'Good to know',
   'help.back': 'Back to top',
@@ -56,7 +56,7 @@ const help = {
   'help.window.intro':
     'The header takes you between FluidEQ’s pages and shows the sound as it plays. The left rail holds the switch for the whole EQ, the preamp and the level meter; the right rail follows your output and its profiles.',
   'help.window.steps':
-    'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Visualizers after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the level meter to change how it is drawn, and Colourful on the signal to have the bands, the title and the lit controls in a palette instead of one colour.',
+    'Open a page from the header: Online Media, Share Audio, Gaming Lab, EQ, DSP, Library, Karaoke, or Visualizers.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the level meter to change how it is drawn, and Colourful on the signal to have the bands, the title and the lit controls in a palette instead of one colour.',
   'help.window.tip':
     'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The menu button beside it, three lines, holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio, Processes, which shows what each part of FluidEQ is using, and Reset all settings; at its foot are Brightness, Tint, Colourful mode, Tint app icon (off at first; it puts the taskbar icon, the tray icon and the icon in the tray’s menu in the window’s colours), the EQ sliders, animations, Start with Windows (FluidEQ then starts in the tray, shaping your sound with no window open) and the language. The switch after them turns the window into the Compact player.',
   'help.window.keywords':
@@ -83,9 +83,9 @@ const help = {
     'Visualizers, the gallery, the Studio and Dynamic lighting.',
   'help.window.support': 'Ways to support the work on FluidEQ.',
   'help.window.help':
-    'This guide, What’s new, the audio troubleshooter and Report a problem.',
+    'This guide, What’s new, Full release notes, Forum, the audio troubleshooter, Report a problem and About FluidEQ. Full release notes opens all the notes directly. About has links to its sections and, where the support link is available, a Buy Me a Coffee card with a QR code.',
   'help.window.actions':
-    'The engine, your account, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint, Colourful mode and Tint app icon, the EQ sliders, animations, Start with Windows and the language.',
+    'The engine, your account, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint, Colourful mode and Tint app icon, the EQ sliders, animations, Start with Windows and the language. On/off key… lets you choose a shortcut to turn all FluidEQ processing off and on while another app is in front. No key is assigned at first. A card above your other windows confirms each switch.',
   'help.window.systemEq':
     'Turns FluidEQ’s processing on or off for everything the PC plays.',
   'help.window.preamp':
@@ -102,7 +102,7 @@ const help = {
   'help.player.steps':
     'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.\nFold Sound, or Up next and Playlists, down to its header, and the visualizer takes the room; press the header to open it again. Drag the player’s top or bottom edge to make it taller or shorter.\nDouble-click the visualizer to fill the screen with it; Escape gives it back. Press the look’s name beside shuffle and repeat to choose from every style and scene.\nChoose Fold to one line in the FluidEQ mark’s menu to fold the player down to one line; the mark unfolds it.\nIn the same menu, set the player’s own Brightness, the Transparency over a scene or the window’s Tint over a standard style, and a scene’s Daylight. Always on top, there or in the header, keeps it above other windows.\nDrop music files anywhere on the player: they join the Library and the end of Up next or, over the list, the place where you let go.',
   'help.player.tip':
-    'The player’s volume is your computer’s own, the same as in Windows, so it sets the level of everything the computer plays. If the player ends up off the screen, right-click FluidEQ in the taskbar’s tray and choose Recover the window.',
+    'The player’s volume is your computer’s own, the same as in Windows, so it sets the level of everything the computer plays. If the player ends up off the screen, right-click FluidEQ in the taskbar’s tray and choose Recover the window. While a game’s sound is on, the game button shows just the game’s name so it fits the Compact player.',
   'help.player.keywords':
     'mini player, small player, compact, compact mode, winamp, amp, player mode, always on top, pin, fold, one line, queue, up next, drop files, theme, light theme, dark theme, dark mode, light mode, small window, floating player, volume',
   'help.player.topCaption': 'The top: the song, and how it plays',
@@ -363,13 +363,13 @@ const help = {
   'help.dsp.intro':
     'The DSP rack is a chain of studio stages. Under the FluidEQ Engine it processes everything the PC plays; under Equalizer APO it processes Library audio tracks. It is off while FluidEQ is switched off.',
   'help.dsp.steps':
-    'Open DSP. Pick a chain under Presets, or select a stage in the rail and switch it On.\nChange one control at a time and compare with the stage bypassed at a similar volume. Isolate lets you hear only what a stage adds.\nSave a rack you like, and use Export and Import to share it.\nThe De-esser turns down the sharp S, T and SH of a voice only while they sound, and leaves cymbals alone; Speech, Podcast and Audiobook switch it on. Every stage can keep profiles of your own: set it, then press Save.\nGame brings up the quiet sounds of a game as they happen, puts voices forward, turns the weather and hum of a level down or up, and can put a game without its own 3D sound around you; pick your game in its list, and the Gaming presets switch it on.',
+    'Open DSP. Pick a chain under Presets, or select a stage in the rail and switch it On.\nChange one control at a time and compare with the stage bypassed at a similar volume. Isolate lets you hear only what a stage adds.\nSave a rack you like, and use Export and Import to share it.\nThe De-esser turns down the sharp S, T and SH of a voice only while they sound, and leaves cymbals alone; Speech, Podcast and Audiobook switch it on. Every stage can keep profiles of your own: set it, then press Save.\nDynamics lifts quiet sound and holds loud sound in three bands, with no added delay. Tune the Game filter in the Gaming Lab, where each game keeps its own sound; gaming presets are offered there for every stage.\nDynamics — Music before and after Dynamics. The gain curve rises for lift and dips for hold.',
   'help.dsp.tip':
     'Louder often sounds better simply because it is louder, so compare at matched levels. Ctrl-click a dial to return it to its default.',
   'help.dsp.keywords':
     'effects, fx, audio effects, rack, chain, plugins, limiter, loudness, normalizer, leveler, volume leveling, exciter, harmonics, enhancer, stereo widener, widen, stereo width, bass enhancer, sub bass, subharmonic, punch, transient, mastering, clipping, peak limiter, crossfade, gapless, de-esser, deesser, sibilance, harsh s, sharp s, ess, voice, speech, podcast, profiles, save profile, footsteps, footstep, hear footsteps, steps, gaming, game audio, reloads, loudness equalization, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses',
   'help.dsp.normalizer':
-    'Evens out loudness. On live audio it levels song by song.',
+    'Evens out loudness song by song. True Peak sets one gain for each song instead of limiting it throughout. Presets leave the Normalizer off until you turn it on.',
   'help.dsp.denoise':
     'Repairs hiss, hum and clicks. The neural voice cleaner works on Library tracks.',
   'help.dsp.exciter': 'Adds harmonics for body and air.',
@@ -723,9 +723,11 @@ const help = {
   'help.forum.steps':
     'Open Help → Forum and pick a board: Announcements, General, Ideas, Polls, Q&A or Show and tell. New for you gathers what came in since you last looked, and Issues lists the problems reported on GitHub.\nSearch the forum, or open a topic to read the replies.\nPress Sign in with GitHub, finish in your browser, then post a New topic or a reply.',
   'help.forum.tip':
-    'Everything posted is public on GitHub under your GitHub name. On Q&A, mark the answer that worked so the next person finds it.',
+    'Everything posted is public on GitHub under your GitHub name. On Q&A, mark the answer that worked so the next person finds it. Each board’s yellow count shows topics with activity you have not seen; Issues counts open issues. Half-written topics and replies are kept when you leave. Press a post’s picture to enlarge it inside FluidEQ.',
   'help.forum.keywords':
     'community, questions, support, discussions, github, feedback, feature request, ideas, suggestions, ask, help, contact, announcements',
+  'help.games.profiles':
+    'Open Gaming profiles to search by profile, game, curve or chain. The filters stay on one line and each kind of game has its own colour. Your saved profiles show their curve, Game filter levels and chain too. Use for a game starts a new copy.',
 };
 
 export default help;

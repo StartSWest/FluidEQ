@@ -6,7 +6,7 @@ const help: Record<keyof typeof en, string> = {
   'help.title': 'Benutzerhandbuch',
   'help.subtitle': 'Finden Sie Ihren Klang. Fühlen Sie sich zu Hause.',
   'help.intro':
-    'Eine praktische Anleitung für FluidEQ mit echten Bildschirmaufnahmen. Beginnen Sie mit Ihrer ersten Hörsitzung und erkunden Sie dann jeden Teil der App in Ihrem Tempo.',
+    'Ein praktischer Leitfaden zu FluidEQ, mit Abbildungen aus den eigenen Bedienelementen der App und echten Fensteraufnahmen. Beginnen Sie mit Ihrer ersten Hörsitzung und erkunden Sie alles in Ihrem Tempo.',
   'help.offline': 'Offline verfügbar',
   'help.search': 'Handbuch durchsuchen',
   'help.searchHint': 'Zum Beispiel Engine, Bass, Visualizer…',
@@ -21,7 +21,7 @@ const help: Record<keyof typeof en, string> = {
   'help.closeImage': 'Bildschirmaufnahme schließen',
   'help.controlsOf': 'Was jedes Bedienelement tut: {title}',
   'help.captureNote':
-    'Echte Aufnahmen des FluidEQ-Fensters. Farben, Bezeichnungen und Positionen von Bedienelementen können in Ihrer Version abweichen. Die Einstellungen sind Beispiele, keine empfohlenen Presets.',
+    'Live-Abbildungen übernehmen Ihre Sprache und Fensterfarben. Ältere Fensteraufnahmen können andere Beschriftungen oder Positionen zeigen. Beispielwerte erklären die Bedienung; sie sind keine empfohlenen Presets.',
   'help.steps': 'Ausprobieren',
   'help.tip': 'Gut zu wissen',
   'help.back': 'Nach oben',
@@ -52,7 +52,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'Über die Kopfzeile wechseln Sie zwischen den Seiten von FluidEQ, und sie zeigt den Klang in Echtzeit. Die linke Leiste enthält den Schalter für den ganzen EQ, die Vorverstärkung und die Pegelanzeige; die rechte Leiste folgt Ihrem Ausgang und seinen Profilen.',
   'help.window.steps':
-    'Drücken Sie in der Kopfzeile auf eine Seite: Online-Medien, Audio teilen und EQ vor dem Signal, DSP, Bibliothek, Karaoke und Visualizer danach.\nSchalten Sie in der linken Leiste System-EQ ein und lassen Sie Automatisch normalisieren eingeschaltet, damit keine Anhebung übersteuern kann.\nDrücken Sie auf die Pegelanzeige, um zu ändern, wie sie gezeichnet wird, und auf „Bunt“ am Signal, damit Bänder, Titel und leuchtende Bedienelemente in einer Palette statt in einer Farbe erscheinen.',
+    'Öffnen Sie eine Seite über die Kopfzeile: Online-Medien, Audio teilen, Gaming-Labor, EQ, DSP, Bibliothek, Karaoke oder Visualizer.\nSchalten Sie in der linken Leiste System-EQ ein und lassen Sie Automatisch normalisieren eingeschaltet, damit keine Anhebung übersteuern kann.\nDrücken Sie auf die Pegelanzeige, um zu ändern, wie sie gezeichnet wird, und auf „Bunt“ am Signal, damit Bänder, Titel und leuchtende Bedienelemente in einer Palette statt in einer Farbe erscheinen.',
   'help.window.tip':
     'Hilfe öffnet dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden. Hinter dem Menüknopf mit den drei Linien daneben finden Sie die Karte der Engine, Ihr Konto, den Import von EQ-Einstellungen oder einer Impulsantwort, den Neustart von Windows-Audio, Prozesse, wo Sie sehen, was jeder Teil von FluidEQ gerade nutzt, und Alle Einstellungen zurücksetzen; ganz unten stehen Helligkeit, Farbton, Bunter Modus, App-Symbol einfärben (anfangs aus; färbt das Symbol in der Taskleiste, im Infobereich und in dessen Menü in den Farben des Fensters), die EQ-Schieberegler, die Animationen, Mit Windows starten (FluidEQ startet dann im Infobereich und formt Ihren Klang, ohne ein Fenster zu öffnen) und die Sprache. Mit dem Schalter danach wechselt das Fenster in die Ansicht Kompakter Player.',
   'help.window.keywords':
@@ -81,9 +81,9 @@ const help: Record<keyof typeof en, string> = {
   'help.window.support':
     'Möglichkeiten, die Arbeit an FluidEQ zu unterstützen.',
   'help.window.help':
-    'Dieses Handbuch, Neuerungen, die Audioreparatur und Problem melden.',
+    'Dieser Leitfaden, Neuigkeiten, Vollständige Versionshinweise, Forum, die Audio-Fehlerbehebung, Problem melden und Über FluidEQ. Die vollständigen Hinweise öffnen sich direkt. Über FluidEQ bietet Sprunglinks zu seinen Abschnitten und, wenn der Unterstützungslink verfügbar ist, eine Buy-Me-a-Coffee-Karte mit QR-Code.',
   'help.window.actions':
-    'Die Engine, Ihr Konto, der Import von EQ-Einstellungen, der Neustart von Windows-Audio, Prozesse und Alle Einstellungen zurücksetzen; Helligkeit, Farbton, Bunter Modus und App-Symbol einfärben, die EQ-Schieberegler, die Animationen, Mit Windows starten und die Sprache.',
+    'Die Engine, Ihr Konto, der Import von EQ-Einstellungen, der Neustart von Windows-Audio, Prozesse und Alle Einstellungen zurücksetzen; Helligkeit, Farbton, Bunter Modus und App-Symbol einfärben, die EQ-Schieberegler, die Animationen, Mit Windows starten und die Sprache. Ein/Aus-Taste… lässt Sie ein Tastenkürzel wählen, das die gesamte Verarbeitung von FluidEQ aus- und einschaltet, während eine andere App im Vordergrund ist. Anfangs ist keine Taste zugewiesen. Eine Karte über den anderen Fenstern bestätigt jeden Wechsel.',
   'help.window.systemEq':
     'Schaltet die Verarbeitung von FluidEQ für alles, was der PC abspielt, ein oder aus.',
   'help.window.preamp':
@@ -100,7 +100,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.steps':
     'Drücken Sie in der Titelleiste neben Hilfe den Schalter Kompakter Player. Im Player holt derselbe Schalter die vollständige App zurück.\nKlappen Sie Sound oder „Als Nächstes“ und Playlists bis auf die Kopfzeile ein, und der Visualizer bekommt den Platz; ein Klick auf die Kopfzeile öffnet den Bereich wieder. Ziehen Sie den oberen oder unteren Rand des Players, um ihn höher oder niedriger zu machen.\nDoppelklicken Sie auf den Visualizer, damit er den ganzen Bildschirm füllt; Esc gibt ihn zurück. Ein Klick auf den Namen des Looks neben Zufallswiedergabe und Wiederholen zeigt alle Stile und Szenen zur Auswahl.\nWählen Sie im Menü des FluidEQ-Logos Auf eine Zeile einklappen, um den Player auf eine Zeile zu verkleinern; das Logo klappt ihn wieder aus.\nStellen Sie im selben Menü die eigene Helligkeit des Players ein, die Transparenz über einer Szene oder den Farbton des Fensters über einem Standardstil, und das Tageslicht einer Szene. Immer im Vordergrund, dort oder in der Kopfzeile, hält ihn über anderen Fenstern.\nLegen Sie Musikdateien irgendwo auf dem Player ab: Die Dateien kommen in die Bibliothek und ans Ende von „Als Nächstes“ – oder, über der Liste abgelegt, genau an diese Stelle.',
   'help.player.tip':
-    'Die Lautstärke des Players ist die Ihres Computers, dieselbe wie in Windows, und regelt daher den Pegel von allem, was der Computer abspielt. Landet der Player außerhalb des Bildschirms, klicken Sie im Infobereich der Taskleiste mit der rechten Maustaste auf FluidEQ und wählen Sie Fenster wiederherstellen.',
+    'Die Lautstärke des Players ist die Ihres Computers, dieselbe wie in Windows, und regelt daher den Pegel von allem, was der Computer abspielt. Landet der Player außerhalb des Bildschirms, klicken Sie im Infobereich der Taskleiste mit der rechten Maustaste auf FluidEQ und wählen Sie Fenster wiederherstellen. Während der Spielklang aktiv ist, zeigt die Spieltaste nur den Spielnamen, damit sie in den Kompaktspieler passt.',
   'help.player.keywords':
     'mini player, miniplayer, mini-player, kleiner player, kompakt, kompaktmodus, kompakte ansicht, winamp, amp, player-modus, immer im vordergrund, immer oben, always on top, anheften, pin, einklappen, zusammenklappen, eine zeile, warteschlange, als nächstes, dateien ablegen, drag and drop, design, theme, helles design, dunkles design, dark mode, dunkelmodus, light mode, kleines fenster, schwebender player, lautstärke',
   'help.player.topCaption': 'Der obere Teil: der Song und wie er läuft',
@@ -373,13 +373,13 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'Das DSP-Rack ist eine Kette aus Studiostufen. Unter der FluidEQ-Engine verarbeitet es alles, was der PC abspielt; unter Equalizer APO die Audiotitel der Bibliothek. Solange FluidEQ ausgeschaltet ist, ist es aus.',
   'help.dsp.steps':
-    'Öffnen Sie DSP. Suchen Sie sich unter Presets eine Kette aus oder wählen Sie in der Seitenleiste eine Stufe und schalten Sie sie auf Ein.\nÄndern Sie jeweils nur einen Regler und vergleichen Sie bei ähnlicher Lautstärke mit umgangener Stufe. Mit Isolieren hören Sie nur, was eine Stufe hinzufügt.\nSpeichern Sie ein Rack, das Ihnen gefällt, und teilen Sie es mit Exportieren und Importieren.\nDer De-Esser senkt die scharfen S-, T- und Sch-Laute einer Stimme nur, während sie klingen, und lässt Becken unberührt; Sprache, Podcast und Hörbuch schalten ihn ein. Jede Stufe kann eigene Profile behalten: Stellen Sie sie ein und drücken Sie Speichern.\nSpiel hebt die leisen Geräusche eines Spiels an, während sie erklingen, rückt Stimmen nach vorn, macht Wetter und Brummen eines Levels leiser oder lauter und kann ein Spiel ohne eigenen 3D-Sound um Sie herum stellen; wählen Sie Ihr Spiel in seiner Liste, die Gaming-Presets schalten es ein.',
+    'Öffnen Sie DSP. Suchen Sie sich unter Presets eine Kette aus oder wählen Sie in der Seitenleiste eine Stufe und schalten Sie sie auf Ein.\nÄndern Sie jeweils nur einen Regler und vergleichen Sie bei ähnlicher Lautstärke mit umgangener Stufe. Mit Isolieren hören Sie nur, was eine Stufe hinzufügt.\nSpeichern Sie ein Rack, das Ihnen gefällt, und teilen Sie es mit Exportieren und Importieren.\nDer De-Esser senkt die scharfen S-, T- und Sch-Laute einer Stimme nur, während sie klingen, und lässt Becken unberührt; Sprache, Podcast und Hörbuch schalten ihn ein. Jede Stufe kann eigene Profile behalten: Stellen Sie sie ein und drücken Sie Speichern.\nDynamik hebt Leises an und hält Lautes zurück, in drei Bändern ohne zusätzliche Verzögerung. Den Spiel-Filter stimmen Sie im Gaming-Labor ab: Jedes Spiel behält seinen eigenen Klang, dort gibt es Gaming-Presets für jede Stufe.\nDynamik — Musik vor und nach Dynamics. Die Kurve steigt beim Anheben und sinkt beim Absenken.',
   'help.dsp.tip':
     'Lauter klingt oft nur deshalb besser, weil es lauter ist; vergleichen Sie also bei angeglichenem Pegel. Strg+Klick auf einen Drehregler setzt ihn auf seinen Standardwert zurück.',
   'help.dsp.keywords':
     'audioeffekte, effektkette, voreinstellungen, limiter, peak-limiter, begrenzer, loudness, normalisieren, lautstärke angleichen, lautstärkeausgleich, lautstärkeschwankungen, enhancer, stereobreite, stereoverbreiterung, subbass, tiefbass, transienten, mastering, clipping, crossfade, überblenden, gapless, lückenlos, De-Esser, Zischlaute, scharfes S, Sibilanten, Stimme, Sprache, Podcast, Profile, Profil speichern, schritte, schritte hören, footsteps, gaming, spielsound, nachladen, lautstärkeausgleich, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    'Gleicht die Lautheit an. Bei Live-Audio regelt sie Song für Song.',
+    'Gleicht die Lautstärke von Lied zu Lied an. True Peak setzt eine Verstärkung pro Lied, statt es durchgehend zu begrenzen. Presets lassen den Normalisierer aus, bis Sie ihn einschalten.',
   'help.dsp.denoise':
     'Repariert Rauschen, Brummen und Knackser. Der neuronale Stimmreiniger arbeitet an Titeln der Bibliothek.',
   'help.dsp.exciter': 'Fügt Obertöne für Fülle und Luft hinzu.',
@@ -748,9 +748,11 @@ const help: Record<keyof typeof en, string> = {
   'help.forum.steps':
     'Öffnen Sie Hilfe → Forum und wählen Sie eine Kategorie: Ankündigungen, Allgemein, Ideen, Umfragen, Q&A oder Schaufenster. Neu für Sie sammelt, was seit Ihrem letzten Besuch kam, und Issues listet die auf GitHub gemeldeten Probleme.\nDurchsuchen Sie das Forum oder öffnen Sie ein Thema, um die Antworten zu lesen.\nDrücken Sie Mit GitHub anmelden, schließen Sie die Anmeldung im Browser ab und schreiben Sie dann ein Neues Thema oder eine Antwort.',
   'help.forum.tip':
-    'Alles, was Sie schreiben, ist auf GitHub unter Ihrem GitHub-Namen öffentlich. Markieren Sie in Q&A die Antwort, die geholfen hat, damit die nächste Person sie findet.',
+    'Alles, was Sie schreiben, ist auf GitHub unter Ihrem GitHub-Namen öffentlich. Markieren Sie in Q&A die Antwort, die geholfen hat, damit die nächste Person sie findet. Die gelbe Zahl eines Bereichs zeigt Themen mit Aktivität, die Sie noch nicht gesehen haben; Probleme zählt offene Probleme. Angefangene Themen und Antworten bleiben beim Verlassen erhalten. Drücken Sie auf ein Beitragsbild, um es in FluidEQ zu vergrößern.',
   'help.forum.keywords':
     'community, diskussionen, feedback, rückmeldung, funktionswunsch, feature-request, verbesserungsvorschlag, vorschlagen, frage stellen, kontakt, entwickler kontaktieren, support',
+  'help.games.profiles':
+    'Öffnen Sie Gaming-Profile und suchen Sie nach Profil, Spiel, Kurve oder Kette. Die Filter bleiben in einer Zeile und jede Spielart hat ihre eigene Farbe. Auch gespeicherte Profile zeigen ihre Kurve, die Pegel des Spiel-Filters und ihre Kette. Für ein Spiel verwenden erstellt eine neue Kopie.',
 };
 
 export default help;

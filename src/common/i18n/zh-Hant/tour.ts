@@ -761,6 +761,19 @@ const tour = {
   'tour.languages.how': '在選單（三條橫線）底部選擇：',
   'tour.languages.imageAlt':
     'FluidEQ 支援的十二種語言，每種都用自己的文字書寫，韓文和繁體中文標為新增。',
+  'tour.v23.also': '2.3 的其他更新',
+  'tour.v23.engineKey':
+    '在選單中選擇開關快捷鍵，即使其他應用程式在前景，也能切換 FluidEQ 的全部處理。卡片會確認每次切換。',
+  'tour.v23.profiles':
+    '依遊戲、曲線或效果鏈搜尋遊戲設定檔。儲存的設定檔也會顯示曲線和遊戲濾波器電平。',
+  'tour.v23.dsp':
+    '動態處理在三個頻段提高輕聲。改進的響度最大化器保留低頻；True Peak 正規化每首歌使用一個增益。',
+  'tour.v23.help':
+    '說明可播放錄製的 2.2 導覽，並直接開啟完整版本說明。「關於」增加章節連結，並在支援連結可用時顯示支援 QR 碼。',
+  'tour.v23.forum':
+    '論壇各看板顯示未讀動態數量，「問題」計算仍未關閉的問題，未寫完的主題與回覆也會儲存。',
+  'tour.v23.layout':
+    '輕巧播放器縮短遊戲名稱。新增遊戲時捲動仍能看到按鈕，各頁面捲軸緊貼右側邊緣。',
 } satisfies Partial<Dictionary>;
 
 export default tour;

@@ -102,6 +102,7 @@ const renderHelp = () =>
   render(
     <HelpMenu
       onTour={jest.fn()}
+      onReleaseNotes={jest.fn()}
       onTroubleshoot={jest.fn()}
       onReport={jest.fn()}
       onForum={jest.fn()}

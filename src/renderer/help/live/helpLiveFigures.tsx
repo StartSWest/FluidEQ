@@ -10,6 +10,7 @@ import {
 import DesktopDialogDrawing from './desktopFigures';
 import ForumDrawing from './forumFigures';
 import GamingLabDrawing, { GamingPartsDrawing } from './gamingFigures';
+import GamingProfilesDrawing from './gamingProfilesFigure';
 import LightingDrawing from './lightingFigures';
 import LookPickerDrawing from './lookFigures';
 import { SceneDrawing, VisualizersDrawing } from './plusFigures';
@@ -37,6 +38,7 @@ const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'gallery-scene': SceneDrawing,
   'gaming-lab': GamingLabDrawing,
   'gaming-parts': GamingPartsDrawing,
+  'gaming-profiles': GamingProfilesDrawing,
   'header-left': WindowHeaderDrawing,
   'header-right': WindowHeaderDrawing,
   'lighting-page': LightingDrawing,

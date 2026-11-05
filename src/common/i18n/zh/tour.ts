@@ -782,6 +782,19 @@ const tour: Partial<Dictionary> = {
   'tour.media.open': '打开在线媒体',
   'tour.studio.free': '所有账户免费',
   'tour.film.englishAudio': '英语音频 · 翻译字幕',
+  'tour.v23.also': '2.3 的其他更新',
+  'tour.v23.engineKey':
+    '在菜单中选择开关快捷键，即使其他应用在前台，也能切换 FluidEQ 的全部处理。卡片会确认每次切换。',
+  'tour.v23.profiles':
+    '按游戏、曲线或效果链搜索游戏配置。保存的配置也会显示曲线和游戏滤波器电平。',
+  'tour.v23.dsp':
+    '动态处理在三个频段抬高轻声。改进的最大化器保留低频；True Peak 标准化每首歌使用一个增益。',
+  'tour.v23.help':
+    '帮助可播放录制的 2.2 导览并直接打开完整发行说明。“关于”增加章节链接，并在支持链接可用时显示支持二维码。',
+  'tour.v23.forum':
+    '论坛各板块显示未读动态数量，“问题”统计仍未关闭的问题，没写完的话题和回复也会保存。',
+  'tour.v23.layout':
+    '紧凑播放器缩短游戏名称。添加游戏时滚动仍可看到按钮，各页面滚动条紧贴右侧边缘。',
 };
 
 export default tour;

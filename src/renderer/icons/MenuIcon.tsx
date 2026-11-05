@@ -57,6 +57,8 @@ const PATHS: Record<string, string> = {
   // its six rows, which left nothing to recognise any of them by.
   guide:
     'M12 7c-2-1.5-5-2-8-1.5V18c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5.5c-3-.5-6 0-8 1.5zM12 7v12.5',
+  // A page with its lines: the release notes, every change written down.
+  notes: 'M6 3.5h8l4 4V20H6V3.5zM14 3.5v4h4M9 11.5h6M9 15h6M9 8h2.5',
   // A wrapped present: what is new in this version.
   gift: 'M4.5 9.5h15V13h-15zM6 13h12v7H6zM12 9.5V20M12 9.5C11 7 7.5 6 7.5 8c0 1.5 3 1.5 4.5 1.5zM12 9.5c1-2.5 4.5-3.5 4.5-1.5 0 1.5-3 1.5-4.5 1.5z',
   // A flag on its pole: raise a problem with us.

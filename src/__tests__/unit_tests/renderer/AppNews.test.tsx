@@ -191,6 +191,7 @@ it('opens the full reader, marks once, and remains readable later through Help',
     (key) => translate('en', key),
     {
       onTour: tour,
+      onReleaseNotes: jest.fn(),
       onForum: forum,
       onAbout: jest.fn(),
       onReport: jest.fn(),

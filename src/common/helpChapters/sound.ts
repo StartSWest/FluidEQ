@@ -141,6 +141,20 @@ const SOUND_CHAPTERS = [
           },
         ],
       },
+      {
+        live: 'gaming-profiles',
+        width: 1040,
+        height: 470,
+        still: '41-game-presets.png',
+        caption: 'gaming.view.profiles',
+        controls: [
+          {
+            target: '.gaming-profile:first-child',
+            name: 'gaming.view.profiles',
+            text: 'help.games.profiles',
+          },
+        ],
+      },
     ],
   },
   {

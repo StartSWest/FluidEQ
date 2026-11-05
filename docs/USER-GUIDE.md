@@ -2,9 +2,9 @@
 
 > Find your sound. Make yourself at home.
 
-A practical guide to FluidEQ, illustrated with real app captures. Start with your first listening session, then explore each part of the app at your own pace.
+A practical guide to FluidEQ, with illustrations drawn by the app’s own controls and real window captures. Start with your first listening session, then explore at your own pace.
 
-Real captures of the FluidEQ window. Colours, labels and control positions may differ in your version. Example settings are illustrations, not recommended presets.
+Live illustrations follow your language and window colours. Older window captures may show different labels or positions. Example settings illustrate the controls; they are not recommended presets.
 
 **In FluidEQ: Help → User guide, or press F1.**
 
@@ -22,7 +22,7 @@ Real captures of the FluidEQ window. Colours, labels and control positions may d
 
 6. [Shape your sound with EQ](#eq)
 7. [EQ mode and band designs](#eqmode)
-8. [Game presets](#games)
+8. [Gaming Lab](#games)
 9. [Headphone correction & imports](#headphones)
 10. [Use an impulse response](#convolution)
 11. [Devices, profiles & second output](#profiles)
@@ -62,7 +62,7 @@ Real captures of the FluidEQ window. Colours, labels and control positions may d
 
 ## Your first five minutes
 
-Start with a familiar song at a comfortable volume. The left rail switches FluidEQ on and holds the preamp; the centre is your workspace; the right rail follows your output and its profiles. The bar at the foot of the window controls whatever is playing.
+Start with a familiar song at a comfortable volume. The left rail switches FluidEQ on and holds the preamp; the centre is your workspace; the right rail follows your output and its profiles. The bar at the foot of the window controls whatever is playing. The recorded 2.2 tour below runs about nine and a half minutes and streams only when you press Play. For the new 2.3 gaming page, see Gaming Lab.
 
 ![Your first five minutes](03-eq-parametric-bands-and-live-response.png)
 
@@ -86,8 +86,9 @@ The header takes you between FluidEQ’s pages and shows the sound as it plays. 
 
 1. **Online Media** — YouTube, YouTube Music, Bandcamp, Twitch and Suno, played inside FluidEQ with your EQ on them.
 2. **Share Audio** — Sends this computer’s sound to another one, or plays another one’s here.
-3. **EQ** — Your bands, presets, headphone correction, game presets and the engine’s config.
-4. **Audio signal** — What is playing, as it plays, with its peak level. Colourful, at its top, turns Colourful mode on or off; the graph’s View menu can hide it.
+3. **Gaming Lab** — Your games, each with a sound of its own, tuned for that game.
+4. **EQ** — Your bands, presets, headphone correction and the engine’s config.
+5. **Audio signal** — What is playing, as it plays, with its peak level. Colourful, at its top, turns Colourful mode on or off; the graph’s View menu can hide it.
 
 ### The header, after the signal
 
@@ -98,8 +99,8 @@ The header takes you between FluidEQ’s pages and shows the sound as it plays. 
 3. **Karaoke** — Sing along, and make karaoke out of your own songs.
 4. **Visualizers** — Visualizers, the gallery, the Studio and Dynamic lighting.
 5. **Support the work** — Ways to support the work on FluidEQ.
-6. **FluidEQ actions** — The engine, your account, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint, Colourful mode and Tint app icon, the EQ sliders, animations, Start with Windows and the language.
-7. **Help** — This guide, What’s new, the audio troubleshooter and Report a problem.
+6. **FluidEQ actions** — The engine, your account, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint, Colourful mode and Tint app icon, the EQ sliders, animations, Start with Windows and the language. On/off key… lets you choose a shortcut to turn all FluidEQ processing off and on while another app is in front. No key is assigned at first. A card above your other windows confirms each switch.
+7. **Help** — This guide, What’s new, Full release notes, Forum, the audio troubleshooter, Report a problem and About FluidEQ. Full release notes opens all the notes directly. About has links to its sections and, where the support link is available, a Buy Me a Coffee card with a QR code.
 
 ### The left rail
 
@@ -113,7 +114,7 @@ The header takes you between FluidEQ’s pages and shows the sound as it plays. 
 
 ### Try it
 
-1. Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Visualizers after it.
+1. Open a page from the header: Online Media, Share Audio, Gaming Lab, EQ, DSP, Library, Karaoke, or Visualizers.
 2. Turn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.
 3. Press the level meter to change how it is drawn, and Colourful on the signal to have the bands, the title and the lit controls in a palette instead of one colour.
 
@@ -198,7 +199,7 @@ One switch turns FluidEQ’s window into the Compact player, a single narrow col
 5. In the same menu, set the player’s own Brightness, the Transparency over a scene or the window’s Tint over a standard style, and a scene’s Daylight. Always on top, there or in the header, keeps it above other windows.
 6. Drop music files anywhere on the player: they join the Library and the end of Up next or, over the list, the place where you let go.
 
-> **Good to know:** The player’s volume is your computer’s own, the same as in Windows, so it sets the level of everything the computer plays. If the player ends up off the screen, right-click FluidEQ in the taskbar’s tray and choose Recover the window.
+> **Good to know:** The player’s volume is your computer’s own, the same as in Windows, so it sets the level of everything the computer plays. If the player ends up off the screen, right-click FluidEQ in the taskbar’s tray and choose Recover the window. While a game’s sound is on, the game button shows just the game’s name so it fits the Compact player.
 
 <a id="requirements"></a>
 
@@ -329,25 +330,38 @@ EQ mode changes how your sound is shaped, without editing anything. Its settings
 
 <a id="games"></a>
 
-## Game presets
+## Gaming Lab
 
-Give each game its own sound. When the game comes to the front, FluidEQ switches to that sound and keeps it until you close the game, whatever you alt-tab to in between. Then it puts back what you had.
+Give each game its own sound. A game starts from a Gaming profile made for it and gets its own copy: you tune the copy in the Gaming Lab, and the profile never changes. When the game comes to the front, FluidEQ puts its sound on and keeps it until you close the game, whatever you alt-tab to in between. Then your music sound comes back.
 
-![Game presets](41-game-presets.png)
+![Gaming Lab](41-game-presets.png)
 
-1. **Game presets** — Your games and the sound each one gets.
+1. **Switch when a game is in front** — Lets a game in front put its own sound on. Off, your games keep your music sound.
 2. **Add a game** — Adds a game from Steam, Epic, EA, GOG, Ubisoft, Battle.net or Xbox, or any program that is open now.
-3. **A game** — The game, and the folder FluidEQ knows it by.
-4. **Its sound** — The sound FluidEQ switches to when this game comes to the front, or Leave it as it is.
-5. **Remove** — Forgets the game. The preset it used stays.
+3. **A game** — The game, the profile its sound started from, and whether you tuned it. Playing means it is in front now.
+4. **Gaming profile** — The Gaming profile this game’s copy starts from. Picking another gives the game a fresh copy of it.
+5. **Save as profile** — Saves the copy as a new profile or updates one of yours, resets it to its profile, renames it or deletes it. The profile itself never changes.
+6. **Try it now** — Puts the game’s sound on now, so you hear what you tune. While it is on, Unload stands here and brings your music sound back.
+7. **What was tuned** — Which parts of this copy are different from its profile.
+
+![Gaming Lab](41-game-presets.png)
+
+1. **Its parts** — Every part of the game’s sound, each tuned in its own editor beside the list. Tuned marks what moved away from the profile.
+
+### Gaming profiles
+
+![Gaming profiles](41-game-presets.png)
+
+1. **Gaming profiles** — Open Gaming profiles to search by profile, game, curve or chain. The filters stay on one line and each kind of game has its own colour. Your saved profiles show their curve, Game filter levels and chain too. Use for a game starts a new copy.
 
 ### Try it
 
-1. Open EQ → Game presets and press Add a game. Pick one from your launchers, a program that is open now, or choose its program yourself.
-2. Pick the sound it should get in the picker on its row: a Gaming preset, or any other.
-3. Start the game. A card on the desktop says what FluidEQ switched to, and another says what came back when you close it.
+1. Open the Gaming Lab in the title bar and press Add a game. Pick one from your launchers, a program that is open now, or browse for its program. It starts from the Gaming profile suggested for it; pick another in its Gaming profile list any time.
+2. Press Try it now to put the game’s sound on. Pick a part on the left — the Game filter, EQ, Curve or any DSP stage — and tune it right there. Every change stays in this game’s copy.
+3. Save as profile keeps the copy as one of your own Gaming profiles for other games, updates yours, resets the copy to its profile, renames the copy or deletes it.
+4. Start the game. A card on the desktop says its sound is on, and another says your music sound is back when you close it.
 
-> **Good to know:** While a game holds the sound, the bar at the foot of the window names it. Pick another sound while you play and it stays: FluidEQ only puts back what it put on. Gaming presets also turn on Game mode.
+> **Good to know:** While a game’s sound is on, the DSP page shows your music rack paused with a button to tune the game, and the profile list rests, so nothing done there can overwrite your music profile with the game’s sound. The Game filter brings up quiet steps and reloads as they happen and puts voices forward.
 
 <a id="headphones"></a>
 
@@ -437,7 +451,7 @@ The DSP rack is a chain of studio stages. Under the FluidEQ Engine it processes 
 
 1. **Presets** — Whole-rack chains for genres, devices and repairs.
 2. **Game mode** — Cuts the delay FluidEQ adds, for games and calls. Gaming presets turn it on.
-3. **Normalizer** — Evens out loudness. On live audio it levels song by song.
+3. **Normalizer** — Evens out loudness song by song. True Peak sets one gain for each song instead of limiting it throughout. Presets leave the Normalizer off until you turn it on.
 4. **Denoise** — Repairs hiss, hum and clicks. The neural voice cleaner works on Library tracks.
 5. **Exciter** — Adds harmonics for body and air.
 6. **Bass Forge** — Adds a real octave below the bass, or its harmonics for small speakers.
@@ -455,6 +469,8 @@ The DSP rack is a chain of studio stages. Under the FluidEQ Engine it processes 
 2. Change one control at a time and compare with the stage bypassed at a similar volume. Isolate lets you hear only what a stage adds.
 3. Save a rack you like, and use Export and Import to share it.
 4. The De-esser turns down the sharp S, T and SH of a voice only while they sound, and leaves cymbals alone; Speech, Podcast and Audiobook switch it on. Every stage can keep profiles of your own: set it, then press Save.
+5. Dynamics lifts quiet sound and holds loud sound in three bands, with no added delay. Tune the Game filter in the Gaming Lab, where each game keeps its own sound; gaming presets are offered there for every stage.
+6. Dynamics — Music before and after Dynamics. The gain curve rises for lift and dips for hold.
 
 > **Good to know:** Louder often sounds better simply because it is louder, so compare at matched levels. Ctrl-click a dial to return it to its default.
 
@@ -871,4 +887,4 @@ The Forum brings FluidEQ’s GitHub Discussions into the app: announcements, ide
 2. Search the forum, or open a topic to read the replies.
 3. Press Sign in with GitHub, finish in your browser, then post a New topic or a reply.
 
-> **Good to know:** Everything posted is public on GitHub under your GitHub name. On Q&A, mark the answer that worked so the next person finds it.
+> **Good to know:** Everything posted is public on GitHub under your GitHub name. On Q&A, mark the answer that worked so the next person finds it. Each board’s yellow count shows topics with activity you have not seen; Issues counts open issues. Half-written topics and replies are kept when you leave. Press a post’s picture to enlarge it inside FluidEQ.

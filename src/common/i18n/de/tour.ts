@@ -854,6 +854,19 @@ const tour: Partial<Dictionary> = {
   'tour.media.open': 'Online-Medien öffnen',
   'tour.studio.free': 'Kostenlos für jedes Konto',
   'tour.film.englishAudio': 'Englischer Ton · übersetzte Untertitel',
+  'tour.v23.also': 'Außerdem in 2.3',
+  'tour.v23.engineKey':
+    'Wählen Sie im Menü eine Ein/Aus-Taste, um die gesamte Verarbeitung von FluidEQ bei einer anderen App im Vordergrund umzuschalten. Eine Karte bestätigt den Wechsel.',
+  'tour.v23.profiles':
+    'Suchen Sie Gaming-Profile nach Spiel, Kurve oder Kette. Gespeicherte Profile zeigen ebenfalls ihre Kurven und die Pegel des Spiel-Filters.',
+  'tour.v23.dsp':
+    'Dynamik hebt Leises in drei Bändern an. Der sauberere Maximizer erhält den Bass; True-Peak-Normalisierung nutzt eine Verstärkung pro Lied.',
+  'tour.v23.help':
+    'Hilfe spielt den aufgezeichneten 2.2-Rundgang und öffnet die vollständigen Versionshinweise direkt. Über FluidEQ bietet Abschnittslinks und, wo verfügbar, den Unterstützungs-QR-Code.',
+  'tour.v23.forum':
+    'Jeder Forumsbereich zählt ungesehene Aktivität, Probleme zählt offene Probleme, und angefangene Themen und Antworten bleiben gespeichert.',
+  'tour.v23.layout':
+    'Der Kompaktspieler hält Spielnamen kurz. Spiel hinzufügen hält beim Scrollen seine Tasten sichtbar, und Seiten-Scrollleisten liegen am rechten Rand.',
 };
 
 export default tour;

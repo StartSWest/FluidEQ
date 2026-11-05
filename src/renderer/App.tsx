@@ -410,6 +410,7 @@ const AppContent = () => {
   // the titlebar has no room for Help's button.
   const helpHandlers: IHelpHandlers = {
     onTour: () => dialogs.setShowFeatureTour(true),
+    onReleaseNotes: () => dialogs.setWhatsNewScope('all'),
     onTroubleshoot: () => dialogs.setShowTroubleshooter(true),
     onReport: () => dialogs.setShowBugReport(true),
     onForum: () => selectTopWorkspaceTab('forum'),

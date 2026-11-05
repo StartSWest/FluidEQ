@@ -106,3 +106,17 @@ $lab-turn: 9s;
     visibility: hidden;
   }
 }
+
+.tour-release23__also {
+  margin-top: 24px;
+
+  .tour-showcase__points {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1280px) {
+  .tour-release23__also .tour-showcase__points {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
