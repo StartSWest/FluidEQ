@@ -859,15 +859,15 @@ const tour = {
   'tour.v23.engineKey':
     'Choose an On/off key in the menu to switch all FluidEQ processing while another app is in front. A card confirms each switch.',
   'tour.v23.profiles':
-    'Search Gaming profiles by game, curve or chain. Your saved profiles show their curves and Game filter levels too.',
+    'Resize or fold the game list; switch notices name the sound. Find Gaming profiles by game, curve or chain; saved profiles show their curves and Game filter levels too.',
   'tour.v23.dsp':
     'Dynamics lifts quiet sound in three bands. The cleaner Maximizer keeps the bass intact; True Peak normalization uses one gain per song.',
   'tour.v23.help':
-    'Help plays the recorded 2.2 tour. Full release notes opens directly from Help; About has section links and the support QR code where available.',
+    'Local searches ignore case, accents, spaces and punctuation. Help has the 2.2 tour and direct full notes; About has section links and a support QR where available.',
   'tour.v23.forum':
     'Every Forum board counts unseen activity, Issues counts open issues, and unfinished topics and replies stay saved.',
   'tour.v23.layout':
-    'The Compact player keeps game names short. Add a game keeps its buttons visible while scrolling, and page scrollbars sit at the right edge.',
+    'Visualizers starts the header; Online Media ends it. The Compact player keeps game names short, volume readouts stay steady, Add a game keeps its buttons visible, and scrollbars reach the edge.',
 } as const;
 
 export default tour;

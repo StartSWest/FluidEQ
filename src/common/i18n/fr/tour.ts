@@ -858,15 +858,15 @@ const tour: Partial<Dictionary> = {
   'tour.v23.engineKey':
     'Choisissez une touche marche/arrêt dans le menu pour basculer tout le traitement de FluidEQ lorsqu’une autre app est au premier plan. Une carte confirme le changement.',
   'tour.v23.profiles':
-    'Recherchez les profils de jeu par jeu, courbe ou chaîne. Vos profils enregistrés montrent aussi leurs courbes et les niveaux du filtre Jeu.',
+    'Redimensionnez ou repliez la liste des jeux ; les avis de changement nomment le son. Recherchez les profils par jeu, courbe ou chaîne ; vos profils affichent aussi leurs courbes et niveaux du filtre Jeu.',
   'tour.v23.dsp':
     'Dynamique relève les sons faibles dans trois bandes. Le Maximiseur préserve mieux les graves ; True Peak utilise un gain par morceau.',
   'tour.v23.help':
-    'L’aide lit la visite enregistrée de la 2.2 et ouvre directement les notes complètes. À propos propose des liens de section et le QR de soutien lorsqu’il est disponible.',
+    'Les recherches locales ignorent la casse, les accents, les espaces et la ponctuation. L’Aide propose la visite 2.2 et les notes complètes ; À propos offre des liens de section et le QR de soutien lorsqu’il est disponible.',
   'tour.v23.forum':
     'Chaque rubrique du Forum compte l’activité non vue, Problèmes compte les problèmes ouverts, et vos sujets et réponses inachevés restent enregistrés.',
   'tour.v23.layout':
-    'Le lecteur compact raccourcit les noms de jeu. Ajouter un jeu garde ses boutons visibles pendant le défilement, et les barres des pages longent le bord droit.',
+    'Visualiseurs ouvre l’en-tête et Médias en ligne le termine. Le lecteur compact garde les noms de jeu courts, l’affichage du volume reste stable, Ajouter un jeu garde ses boutons visibles et les barres atteignent le bord.',
 };
 
 export default tour;
