@@ -401,22 +401,20 @@ describe('App', () => {
     // is what this asserts, and it is unchanged. The Gaming Lab sits just
     // before EQ (Ivan, 2026-11-02: the Gaming tab left of EQ).
     //
-    // What did change is where the strip breaks. The places used to be one
-    // run; they are now dealt into two so the meter between them sits in the
-    // window's actual middle, and Online Media — the longest name — is the one
-    // on the left balancing the short ones on the right. So it leads the DOM
-    // order without leading the group EQ belongs to.
+    // Visualizers now opens the left strip and Online Media ends the right.
+    // This build has no accounts, so Visualizers is absent; the remaining
+    // destinations still surround the meter with DSP immediately after EQ.
     //
     // "Online Media" and not "Media": jsdom has no `matchMedia`, which
     // `useMediaQuery` reads as "not narrow", so this is the wide-window strip.
     expect(tabs.slice(0, 7).map((tab) => tab.textContent)).toEqual([
-      'Online Media',
       'Share Audio',
       'Gaming Lab',
       'EQ',
       'DSP',
       'Library',
       'Karaoke',
+      'Online Media',
     ]);
     expect(screen.getByRole('tab', { name: 'DSP' })).toBeInTheDocument();
     expect(
