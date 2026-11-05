@@ -45,9 +45,13 @@ afterEach(() => jest.restoreAllMocks());
 it('folds the game list without remounting or losing the editor, and remembers the fold', () => {
   const view = open();
   const editor = screen.getByLabelText('Game tuning');
+  const game = screen.getByRole('button', { name: 'Select game' });
   fireEvent.change(editor, { target: { value: 'edited' } });
   fireEvent.click(screen.getByRole('button', { name: 'Hide game list' }));
   expect(screen.queryByRole('button', { name: 'Select game' })).toBeNull();
+  // It can finish sliding away without leaving invisible controls reachable.
+  expect(game).toBeInTheDocument();
+  expect(game.closest('aside')).toHaveAttribute('inert');
   expect(screen.getByLabelText('Game tuning')).toBe(editor);
   expect(editor).toHaveValue('edited');
   expect(screen.queryByRole('separator')).toBeNull();

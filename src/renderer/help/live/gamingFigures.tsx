@@ -84,13 +84,13 @@ const GamingLabDrawing = () => {
               } as CSSProperties
             }
           >
+            <GamingGamesListToggle
+              count={GAMES.length}
+              collapsed={false}
+              controls={listId}
+              onToggle={nothing}
+            />
             <aside className="gaming-games__sidebar">
-              <GamingGamesListToggle
-                count={GAMES.length}
-                collapsed={false}
-                controls={listId}
-                onToggle={nothing}
-              />
               <div className="gaming-games__list" id={listId}>
                 {GAMES.map((game) => (
                   <GamingGameRow
@@ -107,15 +107,20 @@ const GamingLabDrawing = () => {
                 ))}
               </div>
             </aside>
-            <ColumnResizer
-              ariaLabel={t('gaming.list.resize')}
-              valuePercent={25}
-              onStart={nothing}
-              onDrag={nothing}
-              onEnd={nothing}
-              onReset={nothing}
-            />
-            <section className="gaming-panel" aria-label={shown.name}>
+            <div className="gaming-games__divider">
+              <ColumnResizer
+                ariaLabel={t('gaming.list.resize')}
+                valuePercent={25}
+                onStart={nothing}
+                onDrag={nothing}
+                onEnd={nothing}
+                onReset={nothing}
+              />
+            </div>
+            <section
+              className="gaming-games__detail gaming-panel"
+              aria-label={shown.name}
+            >
               <GamingGameHead
                 game={shown}
                 where={t('gaming.game.where', {
