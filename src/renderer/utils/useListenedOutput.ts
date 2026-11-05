@@ -191,6 +191,7 @@ const RACK_STAGES = new Set([
   'exciter',
   'bassForge',
   'linearEq',
+  'footsteps',
   'bassPunch',
   'room',
   'dimension',

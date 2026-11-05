@@ -16,9 +16,11 @@ export default {
     'Wärme und ein wenig Luft für die analogen Master.',
   'genre.afrobeat.stage.bassPunch': 'Der Bass etwas gestrafft.',
   'genre.afrobeat.stage.dimension':
-    'Das Panorama der großen Band wie aufgenommen, nur unten schmaler.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.afrobeat.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.afrobeat.stage.maximizer':
-    'Eine langsame Obergrenze, die die Dynamik bewahrt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.afrobeat.off':
     'Keine Bass-Schmiede und nichts, was die Band zusammendrückt: Ihre Obergrenze fängt nur ab.',
 
@@ -32,9 +34,11 @@ export default {
   'genre.afrobeats.pin.12500': 'Shaker und Luft auf der Stimme',
   'genre.afrobeats.pin.12500.why': 'Leicht, obendrauf.',
   'genre.afrobeats.stage.dimension':
-    'Mono unter 150 Hz, die Shaker etwas breiter.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.afrobeats.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.afrobeats.stage.maximizer':
-    'Eine leichte Obergrenze, die den Swing bewahrt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.afrobeats.off':
     'Die Bass-Schmiede wird angeboten und bleibt aus: Ein Sinus-Sub ist sauber und will keine Oktave und keinen Dreck darunter.',
 
@@ -48,9 +52,11 @@ export default {
   'genre.amapiano.pin.8000': 'Helle Shaker',
   'genre.amapiano.pin.8000.why': 'Ein wenig angehoben.',
   'genre.amapiano.stage.dimension':
-    'Der Sub unter 120 Hz in Mono und der Körper der Log Drum bis 200 schmaler, damit sie mittig bleibt; Breite erst über 3 kHz.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.amapiano.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.amapiano.stage.maximizer':
-    'Eine leichte Obergrenze, die den Anschlag der Log Drum bewahrt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.amapiano.off':
     'Die Bass-Schmiede wird angeboten und bleibt aus: Die eine Regel für die Log Drum lautet: keine Sättigung darauf.',
 
@@ -65,8 +71,12 @@ export default {
   'genre.highlife.pin.3150.why': 'Klar und hell.',
   'genre.highlife.stage.exciter':
     'Ein wenig Wärme und Luft für die älteren Aufnahmen.',
-  'genre.highlife.stage.dimension': 'Die gepannten Gitarren wie aufgenommen.',
-  'genre.highlife.stage.maximizer': 'Eine langsame Obergrenze.',
+  'genre.highlife.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.highlife.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
+  'genre.highlife.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.highlife.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Saubere Gitarren bleiben sauber.',
 
@@ -79,7 +89,10 @@ export default {
   'genre.world.pin.3150.why': 'Unter einem Dezibel.',
   'genre.world.pin.12500': 'Ein wenig Luft',
   'genre.world.pin.12500.why': 'Sanft.',
-  'genre.world.stage.maximizer': 'Eine Obergrenze, die nur abfängt.',
+  'genre.world.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
+  'genre.world.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.world.off':
     'Keine Dimension, kein Exciter, kein Bass-Punch und keine Bass-Schmiede: Das Bild bleibt, wie es ist.',
 
@@ -94,8 +107,11 @@ export default {
   'genre.bollywood.pin.2000.why': 'Vorn und sauber.',
   'genre.bollywood.stage.bassPunch': 'Der Sub gestrafft.',
   'genre.bollywood.stage.dimension':
-    'Das Bild so breit, wie es kam; nur unten schmaler.',
-  'genre.bollywood.stage.maximizer': 'Eine Obergrenze, die kaum antreibt.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.bollywood.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
+  'genre.bollywood.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.bollywood.off': 'Kein Exciter auf der Stimme und keine Bass-Schmiede.',
 
   'genre.bhangra.hook': 'Die Dhol ist das Genre',
@@ -110,9 +126,11 @@ export default {
   'genre.bhangra.stage.bassPunch':
     'Der Ausklang des Wummses gestrafft, nie angehoben.',
   'genre.bhangra.stage.dimension':
-    'Unten schmaler, damit der Wumms des Dhol in der Mitte bleibt.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.bhangra.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.bhangra.stage.maximizer':
-    'Eine Vorausschau, lang genug, um das Knallen durchzulassen.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.bhangra.off':
     'Kein Exciter und keine Bass-Schmiede: keine zusätzlichen Höhen.',
 
@@ -126,7 +144,7 @@ export default {
   'genre.indianClassical.pin.12500': 'Der Schimmer der Tanpura',
   'genre.indianClassical.pin.12500.why': 'Der Glanz des Borduns.',
   'genre.indianClassical.stage.maximizer':
-    'Nur eine Obergrenze: Ein Pegelangleicher würde den Bordun im Alap anheben.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.indianClassical.off':
     'Keine Dimension, kein Exciter und kein Bass-Punch: Die Obertöne der Jivari sind eingebaut.',
 
@@ -145,9 +163,11 @@ export default {
     'Wärme unter der Stimme; Streicher und Tek bleiben so hell, wie sie sind.',
   'genre.arabicPop.stage.bassPunch': 'Das Fundament gestrafft.',
   'genre.arabicPop.stage.dimension':
-    'Die Streicher so breit wie aufgenommen; nur unten schmaler.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.arabicPop.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.arabicPop.stage.maximizer':
-    'Eine leichte Obergrenze, die den Anschlag der Darbuka bewahrt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.arabicPop.off':
     'Keine Bass-Schmiede: Unter dem Doum wird nichts erzeugt.',
 
@@ -165,8 +185,12 @@ export default {
   'genre.turkishPop.stage.exciter':
     'Wärme unter der Stimme, nichts auf der Darbuka.',
   'genre.turkishPop.stage.bassPunch': 'Ein straffes Fundament.',
-  'genre.turkishPop.stage.dimension': 'Wie gemischt, nur unten schmaler.',
-  'genre.turkishPop.stage.maximizer': 'Eine Obergrenze, die kaum anschiebt.',
+  'genre.turkishPop.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.turkishPop.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
+  'genre.turkishPop.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.turkishPop.off': 'Keine Bass-Schmiede auf einer so polierten Platte.',
 
   'genre.gospel.hook': 'Ein Chor und Vamps, die sich minutenlang steigern',
@@ -179,9 +203,11 @@ export default {
   'genre.gospel.pin.2000': 'Die Leadstimme',
   'genre.gospel.pin.2000.why': 'Nach vorn.',
   'genre.gospel.stage.dimension':
-    'Der Chor bleibt so breit, wie er aufgenommen wurde.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.gospel.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.gospel.stage.maximizer':
-    'Eine langsame Obergrenze, die einen Vamp sich steigern lässt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.gospel.off':
     'Sein Exciter wird angeboten und bleibt aus: kein Glanz auf dem Chor.',
 
@@ -196,9 +222,11 @@ export default {
   'genre.christian.pin.3150': 'Der Text, klar',
   'genre.christian.pin.3150.why': 'Wo die Worte sind.',
   'genre.christian.stage.dimension':
-    'Unten schmaler; die Gitarren bleiben breit.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.christian.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.christian.stage.maximizer':
-    'Eine Obergrenze, langsam genug, um den Bogen zu bewahren.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.christian.off':
     'Kein Exciter, kein Bass-Punch und keine Bass-Schmiede: Die Steigerung ist der Song.',
 };

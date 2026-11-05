@@ -34,6 +34,8 @@ import { defaultCrossfadeShape } from './crossfadeShape';
 import { DEFAULT_TREBLE_DESIGN } from '../filterDesign';
 import { BASS_PUNCH_PRESET_BY_ID } from './bassPunchPresets';
 import { DE_ESSER_DEFAULTS } from './deEsser';
+import { DYNAMICS_DEFAULTS } from './dynamicsStage';
+import { FOOTSTEPS_DEFAULTS } from './footsteps';
 
 // The rack as it starts - DSP_DEFAULTS and the EQ rack it is built on - and
 // the ranges every setting is held to when it is read (clampDspSettings, in
@@ -332,7 +334,12 @@ export const DSP_DEFAULTS: IDspSettings = {
   enabled: true,
   presetId: '',
   normalizer: {
-    mode: 'truePeak',
+    // Off in every chain, factory and genre alike (Ivan, 2026-11-01): the
+    // Maximizer or the Master ends the chains that need a ceiling, and a
+    // second level stage in front of everything is the listener's to add.
+    // Before then True Peak was the default, and as a limiter it held loud
+    // masters down on every beat ahead of every stage.
+    mode: 'off',
     truePeakDbtp: -1,
     targetLufs: -14,
   },
@@ -489,6 +496,8 @@ export const DSP_DEFAULTS: IDspSettings = {
     mix: 0,
   },
   deEsser: DE_ESSER_DEFAULTS,
+  footsteps: FOOTSTEPS_DEFAULTS,
+  dynamics: DYNAMICS_DEFAULTS,
   bassPunch: {
     enabled: false,
     isolate: false,

@@ -11,9 +11,9 @@ export default {
   'genre.jazz.pin.12500': 'Die Luft des Ride-Beckens',
   'genre.jazz.pin.12500.why': 'Die Spitze des Schlagzeugs, offen.',
   'genre.jazz.stage.dimension':
-    'Einen Hauch schmaler, was hart gepanntes 50er-Stereo im Kopfhörer zusammenbringt.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
   'genre.jazz.stage.maximizer':
-    'Eine Obergrenze, die nur eine vereinzelte Spitze berührt, über einen ganzen Schlag.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.jazz.off':
     'Sein Exciter wird angeboten und bleibt aus: Zusätzliche Obertöne färben Bläser und Klavier hörbar. Nichts komprimiert, verbreitert oder erzeugt Bass.',
 
@@ -28,8 +28,9 @@ export default {
   'genre.smoothJazz.pin.12500': 'Glänzende Höhen',
   'genre.smoothJazz.pin.12500.why': 'Der Studioglanz, bewahrt.',
   'genre.smoothJazz.stage.dimension':
-    'Das glänzende Stereo wie gemischt, nur unten schmaler.',
-  'genre.smoothJazz.stage.maximizer': 'Eine langsame Obergrenze.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.smoothJazz.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.smoothJazz.off':
     'Sein Exciter wird angeboten und bleibt aus, und es gibt keinen Bass-Punch: Das Genre ist absichtlich weich.',
 
@@ -43,9 +44,9 @@ export default {
   'genre.fusion.pin.12500': 'Hell, wie aufgenommen',
   'genre.fusion.pin.12500.why': 'Die Höhen, die diese Platten hatten.',
   'genre.fusion.stage.dimension':
-    'Das Mehrspur-Panorama wie aufgenommen, nur unten schmaler.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
   'genre.fusion.stage.maximizer':
-    'Eine langsame Obergrenze, die die Fills in Ruhe lässt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.fusion.off':
     'Kein Exciter, kein Bass-Punch und keine Bass-Schmiede: Instrumenten, die ihre eigenen Obertöne machen, wird nichts hinzugefügt.',
 
@@ -59,8 +60,11 @@ export default {
   'genre.blues.pin.5000': 'Roh, nicht hell',
   'genre.blues.pin.5000.why': 'Die Höhen zurückgenommen.',
   'genre.blues.stage.dimension':
-    'Ein Hauch schmaler; die Mono-Platten bleiben Mono.',
-  'genre.blues.stage.maximizer': 'Eine langsame Obergrenze.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.blues.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
+  'genre.blues.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.blues.off':
     'Sein Exciter wird angeboten und bleibt aus: Die Übersteuerung ist der Klang, und ihr wird nichts hinzugefügt.',
 
@@ -75,7 +79,7 @@ export default {
   'genre.classical.pin.12500': 'Die Luft des Saals',
   'genre.classical.pin.12500.why': 'Der Raum, in dem die Aufnahme entstand.',
   'genre.classical.stage.maximizer':
-    'Nur eine Obergrenze, mit der längsten Vorausschau und Rückstellzeit aller Genres, damit nie ein Crescendo das ist, was sie niederhält.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.classical.off':
     'Überhaupt keine Dimension: Der Saal ist die Aufnahme. Exciter und Bass-Punch werden angeboten und bleiben aus.',
 
@@ -90,7 +94,7 @@ export default {
   'genre.orchestra.pin.12500': 'Die Luft des Saals',
   'genre.orchestra.pin.12500.why': 'Der Raum um das Orchester.',
   'genre.orchestra.stage.maximizer':
-    'Nur eine Obergrenze, mit der längsten Vorausschau und Rückstellzeit aller Genres, damit ein Tutti nie pumpt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.orchestra.off':
     'Keine Dimension, kein Exciter, kein Bass-Punch und keine Bass-Schmiede: Nichts hebt den Bass an, den die Pauken übersteuern würden.',
 
@@ -104,8 +108,10 @@ export default {
   'genre.opera.pin.3150': 'Der Formant in Ruhe gelassen',
   'genre.opera.pin.3150.why':
     'Er trägt schon; ihn anzuheben macht eine Stimme schrill.',
+  'genre.opera.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.opera.stage.maximizer':
-    'Nur eine leichte Obergrenze: Nichts komprimiert die Stimme.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.opera.off':
     'Keine Dimension, kein Exciter und kein Bass-Punch: Nichts verbreitert, erregt oder formt die Stimme um.',
 
@@ -118,7 +124,8 @@ export default {
   'genre.piano.pin.315.why': 'Der Resonanzboden, nicht der Deckel.',
   'genre.piano.pin.5000': 'Der Anschlag des Hammers',
   'genre.piano.pin.5000.why': 'Wo ein Ton beginnt.',
-  'genre.piano.stage.maximizer': 'Nur eine Obergrenze.',
+  'genre.piano.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.piano.off':
     'Keine Dimension, kein Exciter und kein Bass-Punch: Nichts sättigt oder formt ein Klavier um.',
 
@@ -132,7 +139,8 @@ export default {
     'Abgesenkt: Gestrichene Saiten werden hier schneidend.',
   'genre.strings.pin.12500': 'Luft um die Gruppe',
   'genre.strings.pin.12500.why': 'Der Saal über den Bögen.',
-  'genre.strings.stage.maximizer': 'Nur eine Obergrenze.',
+  'genre.strings.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.strings.off':
     'Keine Dimension und kein Exciter: Ein Exciter macht gestrichene Saiten schneidend.',
 };

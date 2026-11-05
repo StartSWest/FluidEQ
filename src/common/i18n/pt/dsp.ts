@@ -104,7 +104,7 @@ const dsp = {
   'dsp.denoise.voiceLibraryOnly':
     'O processamento neural de voz está disponível apenas na reprodução da Biblioteca. A redução de chiado, zumbido e cliques funciona com áudio externo.',
   'dsp.normalizer.liveDescription':
-    'Mede o áudio externo durante a reprodução, ajusta os dois canais juntos e protege os picos antes do Excitador e do EQ.',
+    'Mede o áudio externo durante a reprodução e define um único volume para os dois canais antes do Excitador e do EQ, sem achatar a música: o Pico real abaixa a faixa até que seu pico mais alto chegue ao teto de pico.',
   'dsp.normalizer.liveAnalysis': 'Análise da fonte ao vivo',
   'dsp.normalizer.inputLoudness': 'Sonoridade de entrada (3 s)',
   'dsp.normalizer.outputLoudness': 'Sonoridade de saída (3 s)',

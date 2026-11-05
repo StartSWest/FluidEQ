@@ -5,6 +5,18 @@ import net from 'net';
 import startEngineAnalysisPipe from '../../../main/engineAnalysisPipe';
 import { ENGINE_PREAMP_CHANNEL } from '../../../common/enginePreamp';
 import { ENGINE_ANALYSIS_CHANNEL } from '../../../common/dsp/engineAnalysis';
+import {
+  ANALYSIS_MAX_FRAME_BYTES,
+  ANALYSIS_HEADER_BYTES,
+  ANALYSIS_BINS,
+  ANALYSIS_SCOPE_PAIRS,
+  ANALYSIS_MAX_BANDS,
+  ANALYSIS_STAGES,
+  ANALYSIS_EQ_DETAIL_WINDOW,
+  ANALYSIS_EQ_DETAIL_BINS,
+  ANALYSIS_DYNAMICS_TAG,
+} from '../../../common/dsp/analysisWire';
+import { MAGIC_ANALYSIS } from '../../../main/dspHost/wire';
 
 jest.mock('electron', () => ({ ipcMain: { handle: jest.fn() } }));
 jest.mock('net', () => ({ createServer: jest.fn() }));
@@ -59,6 +71,7 @@ const frame = (gain = -6) => {
 beforeEach(() => jest.clearAllMocks());
 afterEach(() => {
   sockets.splice(0).forEach((socket) => socket.emit('close'));
+  sender.removeAllListeners();
 });
 
 it('reads actual reduction with DSP absent and accepts fragmented packets', async () => {
@@ -119,4 +132,69 @@ it('cancels queued waveform reads when the DSP page closes', async () => {
   socket.emit('data', frame());
   expect(socket.write).not.toHaveBeenCalledWith(Buffer.from([1]));
   expect(read()).toEqual({ gainDb: -6, active: true, enabled: true });
+});
+
+/** A maximum-sized real wire shape, including Dynamics' two extra spectra. */
+const fullAnalysisPacket = () => {
+  const packet = Buffer.alloc(ANALYSIS_MAX_FRAME_BYTES + 4);
+  packet.writeUInt32LE(ANALYSIS_MAX_FRAME_BYTES, 0);
+  const payload = packet.subarray(4);
+  payload.writeUInt32LE(MAGIC_ANALYSIS, 0);
+  payload.writeUInt32LE(1, 4);
+  payload.writeUInt32LE(2 ** ANALYSIS_STAGES.length - 1, 8);
+  payload.writeUInt32LE(ANALYSIS_BINS, 12);
+  payload.writeUInt32LE(ANALYSIS_SCOPE_PAIRS, 16);
+  payload.writeUInt32LE(ANALYSIS_MAX_BANDS, 20);
+  payload.writeUInt32LE(ANALYSIS_EQ_DETAIL_WINDOW, 84);
+  payload.writeUInt32LE(ANALYSIS_EQ_DETAIL_BINS, 88);
+  payload.writeUInt32LE(ANALYSIS_DYNAMICS_TAG, 840);
+  payload.writeUInt32LE(1, 844);
+  [6, -4, 2].forEach((db, band) => payload.writeFloatLE(db, 860 + band * 4));
+  ANALYSIS_STAGES.forEach((_name, stage) => {
+    payload.writeFloatLE(
+      -40 + stage,
+      ANALYSIS_HEADER_BYTES + (stage * ANALYSIS_BINS + 100) * 4,
+    );
+  });
+  [-6, -24, -18, 3, -20].forEach((value, index) =>
+    payload.writeFloatLE(value, payload.length - 20 + index * 4),
+  );
+  return packet;
+};
+
+it.each([0, 32768])(
+  'accepts the full Dynamics/detail/scope/band frame with a chunk break at %s',
+  async (split) => {
+    const { socket, analysis } = await setup();
+    analysis();
+    const packet = fullAnalysisPacket();
+    expect(packet.length).toBeGreaterThan(32768);
+    socket.emit('data', split ? packet.subarray(0, split) : packet);
+    expect(socket.destroy).not.toHaveBeenCalled();
+    if (split) {
+      socket.emit('data', packet.subarray(split));
+    }
+    expect(socket.destroy).not.toHaveBeenCalled();
+    const result = analysis();
+    expect(result).toMatchObject({
+      sampleRate: 48000,
+      frame: {
+        dynamics: { active: true, gainDb: [6, -4, 2] },
+        normalizer: { inputLufs: -24, outputLufs: -20 },
+      },
+    });
+    expect(result?.frame.spectra.dynamicsIn?.[100]).toBe(-36);
+    expect(result?.frame.spectra.dynamicsOut?.[100]).toBe(-35);
+    expect(result?.frame.eqLive?.detail).toHaveLength(ANALYSIS_EQ_DETAIL_BINS);
+    expect(result?.frame.bandAmounts).toHaveLength(ANALYSIS_MAX_BANDS);
+  },
+);
+
+it('still rejects a frame exceeding the actual maximum wire payload', async () => {
+  const { socket, analysis } = await setup();
+  analysis();
+  const prefix = Buffer.alloc(4);
+  prefix.writeUInt32LE(ANALYSIS_MAX_FRAME_BYTES + 1);
+  socket.emit('data', prefix);
+  expect(socket.destroy).toHaveBeenCalledTimes(1);
 });

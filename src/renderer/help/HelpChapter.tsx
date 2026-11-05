@@ -13,7 +13,6 @@ import { Marked } from './HelpMarks';
 import { helpAnchor, type IHelpHit } from './helpSearch';
 import HelpFilm from './HelpFilm';
 import HELP_FILMS from './helpFilms';
-import HelpVideo from './HelpVideo';
 import helpScreenshot from './screenshots';
 
 type TGuideChapter = (typeof HELP_CHAPTERS)[number];
@@ -23,7 +22,6 @@ export interface IHelpShownChapter {
   id: TGuideChapter['id'];
   group: TGuideChapter['group'];
   figures: TGuideChapter['figures'];
-  video?: TGuideChapter['video'];
   /** Its place in the guide, which a search keeps while reordering it. */
   number: number;
   title: string;
@@ -92,7 +90,6 @@ function HelpChapter({ chapter, groupLabel, onEnlarge }: IHelpChapterProps) {
           kind="intro"
         />
       </p>
-      {chapter.video && <HelpVideo video={chapter.video} />}
       {chapter.figures.map((figure, figureIndex) => {
         const title = figure.caption ? t(figure.caption) : chapter.title;
         const anchor = helpAnchor.figure(chapter.id, figureIndex);

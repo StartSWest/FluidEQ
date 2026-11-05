@@ -25,6 +25,7 @@ const PlayerVolume = () => {
   const { level, isMuted } = fader;
   const name = t('player.volume.system');
   const percent = Math.round(level * 100);
+  const confirmedPercent = Math.round((fader.confirmedLevel ?? level) * 100);
 
   return (
     <div className="player-volume">
@@ -47,10 +48,13 @@ const PlayerVolume = () => {
         aria-label={name}
         title={name}
         style={{ '--fill': `${percent}%` } as CSSProperties}
+        onPointerDown={fader.beginChange}
+        onKeyDown={fader.onKeyDown}
+        onBlur={fader.endChange}
         onChange={(event) => fader.setLevel(Number(event.target.value) / 100)}
       />
       <span className="player-volume__value" aria-hidden="true">
-        {`${percent}%`}
+        {`${confirmedPercent}%`}
       </span>
     </div>
   );

@@ -13,8 +13,11 @@ const genreUrban = {
   'genre.hiphop.pin.12500': '佈滿灰塵的頂部',
   'genre.hiphop.pin.12500.why': '從取樣記錄建立的節拍聽起來的方式。',
   'genre.hiphop.stage.dimension':
-    '單聲道低於 120 Hz，並縮小到 180，窄畫面保持不變。',
-  'genre.hiphop.stage.maximizer': '幾乎無法驅動的天花板。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.hiphop.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.hiphop.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.hiphop.off':
     '它的 Exciter、Bass Forge 和 Bass Punch 已提供並保留：樣本已經飽和，Bass Forge 在低音音符中添加了 16% 的新聲音。',
   'genre.rap.hook': '聲音就是產品',
@@ -26,8 +29,12 @@ const genreUrban = {
   'genre.rap.pin.200.why': '低音會使詩句變得混亂。',
   'genre.rap.pin.2000': '子音',
   'genre.rap.pin.2000.why': '可理解性，稍微靠前一點。',
-  'genre.rap.stage.dimension': '中頻比唱片窄一些，以保持聲音靜止。',
-  'genre.rap.stage.maximizer': '幾乎無法驅動的天花板。',
+  'genre.rap.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.rap.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.rap.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.rap.off': 'Bass Forge 被提供並被保留：低音的諧波落在聲音的胸部。',
   'genre.trap.hook': '手機聽得到的長長的808',
   'genre.trap.story':
@@ -41,8 +48,12 @@ const genreUrban = {
   'genre.trap.pin.8000.why': '卷子，清晰。',
   'genre.trap.stage.bassForge':
     '808 的泛音（40 Hz 音符的 80、120 和 160 Hz），因此小型喇叭可以播放它；沒有低於八度的。',
-  'genre.trap.stage.dimension': '120 Hz 單聲道以下的一切，帽子和合成器都很寬。',
-  'genre.trap.stage.maximizer': '幾乎無法驅動的天花板。',
+  'genre.trap.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.trap.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.trap.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.trap.off': '沒有激勵器，也沒有 Bass Punch：808 已經失真了。',
   'genre.rnb.hook': '絲質上衣搭配圓底',
   'genre.rnb.story':
@@ -53,8 +64,12 @@ const genreUrban = {
   'genre.rnb.pin.1250.why': '放鬆，使聲音保持柔滑。',
   'genre.rnb.pin.12500': '絲綢上衣',
   'genre.rnb.pin.12500.why': '聲音上方的空氣。',
-  'genre.rnb.stage.dimension': '由於流派是混合的，所以音墊比聲音稍寬。',
-  'genre.rnb.stage.maximizer': '淺色天花板。',
+  'genre.rnb.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.rnb.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.rnb.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.rnb.off': '它的激勵器被提供並停止：在這個聲音上的和聲落在它的呼吸上。',
   'genre.soul.hook': '磁帶、電子管和現場樂隊',
   'genre.soul.story':
@@ -66,8 +81,11 @@ const genreUrban = {
   'genre.soul.pin.5000': '沒有空氣',
   'genre.soul.pin.5000.why': '取下來：空氣將磁帶抬起，發出嘶嘶聲。',
   'genre.soul.stage.dimension':
-    '一種狹窄的色調，將硬調的 60 年代混音融合在一起。',
-  'genre.soul.stage.maximizer': '大師的上限緩慢而不受限制。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.soul.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.soul.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.soul.off':
     '它的激勵器被提供並停止：磁帶和電子管就是聲音，激勵器發出嘶嘶聲。',
   'genre.neoSoul.hook': '一個充滿活力、醉酒感覺的口袋',
@@ -79,8 +97,12 @@ const genreUrban = {
   'genre.neoSoul.pin.1250.why': '放鬆了所以什麼都沒有戳出來。',
   'genre.neoSoul.pin.12500': '無閃光',
   'genre.neoSoul.pin.12500.why': '溫暖和黑暗是簡短的。',
-  'genre.neoSoul.stage.dimension': '現場樂隊的畫面保持不變，只是低音變窄了。',
-  'genre.neoSoul.stage.maximizer': '緩慢的天花板不會擠壓任何東西。',
+  'genre.neoSoul.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.neoSoul.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.neoSoul.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.neoSoul.off':
     '它的激勵器被提供並停止：沒有激勵器，它就會保持溫暖和黑暗。',
   'genre.funk.hook': '低音是主音，而聲音就是一切',
@@ -95,8 +117,12 @@ const genreUrban = {
   'genre.funk.pin.12500': '磁帶般的高頻，不刻意提亮',
   'genre.funk.pin.12500.why': '柔化高頻，不額外增加亮度。',
   'genre.funk.stage.bassPunch': '緊密的低音端，沒有花哨來玷汙發音。',
-  'genre.funk.stage.dimension': '接近歷史紀錄，底部收窄。',
-  'genre.funk.stage.maximizer': '淺色天花板。',
+  'genre.funk.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.funk.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.funk.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.funk.off':
     '不使用激勵器或 Bass Forge：乾淨俐落、突出的中頻就是這類音樂的特色。',
   'genre.disco.hook': '四拍大鼓，搭配層層弦樂',
@@ -109,8 +135,12 @@ const genreUrban = {
   'genre.disco.pin.8000': '開啟踩鈸和閃光',
   'genre.disco.pin.8000.why': '閃耀著時代的光芒。',
   'genre.disco.stage.bassPunch': '踢腿時有點重，它的尾巴保持在下一拍的位置。',
-  'genre.disco.stage.dimension': '樂團已經傳播的內容還沒有擴大。',
-  'genre.disco.stage.maximizer': '輕度限制峰值，大鼓之間迅速恢復。',
+  'genre.disco.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.disco.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.disco.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.disco.off':
     '沒有激勵器或 Bass Forge：帽子和琴絃在沒有激勵器的情況下會變脆。',
 } satisfies Partial<Dictionary>;

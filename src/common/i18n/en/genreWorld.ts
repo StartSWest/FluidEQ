@@ -17,8 +17,11 @@ const genreWorld = {
     'Warmth and a little air for the analog masters.',
   'genre.afrobeat.stage.bassPunch': 'The bass tightened a little.',
   'genre.afrobeat.stage.dimension':
-    'The big band’s spread as recorded, only the bass narrowed.',
-  'genre.afrobeat.stage.maximizer': 'A slow ceiling that keeps the dynamics.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.afrobeat.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.afrobeat.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.afrobeat.off':
     'No Bass Forge, and nothing that squeezes the band: its ceiling only catches.',
 
@@ -32,8 +35,11 @@ const genreWorld = {
   'genre.afrobeats.pin.12500': 'Shakers and vocal air',
   'genre.afrobeats.pin.12500.why': 'Light, on top.',
   'genre.afrobeats.stage.dimension':
-    'Mono under 150 Hz, the shakers a little wider.',
-  'genre.afrobeats.stage.maximizer': 'A light ceiling that keeps the swing.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.afrobeats.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.afrobeats.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.afrobeats.off':
     'Bass Forge is offered and left off: a sine sub is clean and wants no octave or grit under it.',
 
@@ -47,9 +53,11 @@ const genreWorld = {
   'genre.amapiano.pin.8000': 'Bright shakers',
   'genre.amapiano.pin.8000.why': 'A little lift.',
   'genre.amapiano.stage.dimension':
-    'The sub mono under 120 Hz and the log drum’s body narrowed up to 200, so it stays centred; width only above 3 kHz.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.amapiano.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.amapiano.stage.maximizer':
-    'A light ceiling that keeps the log drum’s attack.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.amapiano.off':
     'Bass Forge is offered and left off: the one rule for the log drum is no saturation on it.',
 
@@ -64,8 +72,12 @@ const genreWorld = {
   'genre.highlife.pin.3150.why': 'Clear and bright.',
   'genre.highlife.stage.exciter':
     'A little warmth and air for the older recordings.',
-  'genre.highlife.stage.dimension': 'The panned guitars as recorded.',
-  'genre.highlife.stage.maximizer': 'A slow ceiling.',
+  'genre.highlife.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.highlife.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.highlife.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.highlife.off':
     'No Bass Punch or Bass Forge: clean guitars stay clean.',
 
@@ -78,7 +90,10 @@ const genreWorld = {
   'genre.world.pin.3150.why': 'Under a decibel.',
   'genre.world.pin.12500': 'A little air',
   'genre.world.pin.12500.why': 'Gentle.',
-  'genre.world.stage.maximizer': 'A ceiling that only catches.',
+  'genre.world.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.world.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.world.off':
     'No Dimension, Exciter, Bass Punch or Bass Forge: the picture is left as it is.',
 
@@ -93,8 +108,11 @@ const genreWorld = {
   'genre.bollywood.pin.2000.why': 'Forward and clean.',
   'genre.bollywood.stage.bassPunch': 'The sub tightened.',
   'genre.bollywood.stage.dimension':
-    'The picture left as wide as it came; only the bass narrowed.',
-  'genre.bollywood.stage.maximizer': 'A ceiling that barely drives.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.bollywood.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.bollywood.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.bollywood.off': 'No Exciter on the voice and no Bass Forge.',
 
   'genre.bhangra.hook': 'The dhol is the genre',
@@ -108,9 +126,11 @@ const genreWorld = {
   'genre.bhangra.pin.2000.why': 'Bright and punchy.',
   'genre.bhangra.stage.bassPunch': 'The boom’s tail tightened, never raised.',
   'genre.bhangra.stage.dimension':
-    'The bass narrowed, so the dhol’s boom holds the middle.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.bhangra.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.bhangra.stage.maximizer':
-    'A look-ahead long enough to let the crack through.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.bhangra.off': 'No Exciter or Bass Forge: no top added.',
 
   'genre.indianClassical.hook': 'An unmetered alap over a drone',
@@ -123,7 +143,7 @@ const genreWorld = {
   'genre.indianClassical.pin.12500': 'The tanpura’s shimmer',
   'genre.indianClassical.pin.12500.why': 'The halo of the drone.',
   'genre.indianClassical.stage.maximizer':
-    'A ceiling only: a leveller would lift the drone in the alap.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.indianClassical.off':
     'No Dimension, Exciter or Bass Punch: the jivari’s harmonics are built in.',
 
@@ -142,9 +162,11 @@ const genreWorld = {
     'Warmth under the voice; the strings and the tek left as bright as they are.',
   'genre.arabicPop.stage.bassPunch': 'The low end tightened.',
   'genre.arabicPop.stage.dimension':
-    'The strings left as wide as recorded; only the bass narrowed.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.arabicPop.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.arabicPop.stage.maximizer':
-    'A light ceiling that keeps the darbuka’s attack.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.arabicPop.off': 'No Bass Forge: nothing generated under the doum.',
 
   'genre.turkishPop.hook': 'Polished pop with Turkish colour',
@@ -161,8 +183,12 @@ const genreWorld = {
   'genre.turkishPop.stage.exciter':
     'Warmth under the voice, nothing on the darbuka.',
   'genre.turkishPop.stage.bassPunch': 'A tight bottom.',
-  'genre.turkishPop.stage.dimension': 'As mixed, only the bass narrowed.',
-  'genre.turkishPop.stage.maximizer': 'A ceiling that barely pushes.',
+  'genre.turkishPop.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.turkishPop.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.turkishPop.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off.',
   'genre.turkishPop.off': 'No Bass Forge on a record this polished.',
 
   'genre.gospel.hook': 'A choir, and vamps that build for minutes',
@@ -174,8 +200,12 @@ const genreWorld = {
   'genre.gospel.pin.315.why': 'Room in a full sound.',
   'genre.gospel.pin.2000': 'The lead voice',
   'genre.gospel.pin.2000.why': 'Forward.',
-  'genre.gospel.stage.dimension': 'The choir left as wide as it was recorded.',
-  'genre.gospel.stage.maximizer': 'A slow ceiling that lets a vamp build.',
+  'genre.gospel.stage.dimension':
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.gospel.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.gospel.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.gospel.off':
     'Its Exciter is offered and left off: no excitement on the choir.',
 
@@ -189,8 +219,11 @@ const genreWorld = {
   'genre.christian.pin.3150': 'The lyric, clear',
   'genre.christian.pin.3150.why': 'Where the words are.',
   'genre.christian.stage.dimension':
-    'The bass narrowed; the guitars left wide.',
-  'genre.christian.stage.maximizer': 'A ceiling slow enough to keep the arc.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.christian.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.christian.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.christian.off':
     'No Exciter, Bass Punch or Bass Forge: the build is the song.',
 };

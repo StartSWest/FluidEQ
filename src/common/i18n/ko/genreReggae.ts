@@ -14,9 +14,11 @@ const genreReggae = {
   'genre.reggae.pin.12500.why':
     '빈티지 테이프: 쉿쉿거리는 소리가 들리지 않습니다.',
   'genre.reggae.stage.dimension':
-    '80Hz 미만의 베이스 모노는 그 이상으로 좁아졌습니다. 모노 레코드는 모노로 유지됩니다.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.reggae.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.reggae.stage.maximizer':
-    '잡아주기만 하는 천장, 부드러운 킥은 그대로 유지됩니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.reggae.off':
     'Bass Forge가 제공되고 중단됩니다. 베이스는 고유한 고조파를 전달합니다. 테이프 시대의 상단에는 Exciter가 없습니다.',
   'genre.dub.hook': '드럼, 베이스 그리고 드롭',
@@ -29,8 +31,11 @@ const genreReggae = {
   'genre.dub.pin.8000': '메아리와 봄의 빛',
   'genre.dub.pin.8000.why': '효과의 반짝임이 유지됩니다.',
   'genre.dub.stage.dimension':
-    '150Hz 미만의 하단 모노는 원본만큼 좁습니다. 믹스가 던진 곳에 에코가 남았습니다.',
-  'genre.dub.stage.maximizer': '시선을 사로잡는 천장: 물방울이 포인트입니다.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.dub.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.dub.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.dub.off':
     'Bass Forge가 제공되고 중단되었으며, Exciter가 없으며 아무것도 레벨을 떨어뜨리지 않습니다.',
   'genre.dancehall.hook': '808 스타일 서브의 디지털 리딤',
@@ -43,9 +48,11 @@ const genreReggae = {
   'genre.dancehall.pin.1250': '보컬 포워드',
   'genre.dancehall.pin.1250.why': '위에는 디제이.',
   'genre.dancehall.stage.dimension':
-    '120Hz 미만의 모노, 최대 150으로 좁혀졌습니다.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.dancehall.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.dancehall.stage.maximizer':
-    '타악기를 선명하게 유지하기에 충분히 빠른 천장.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.dancehall.off':
     'Bass Forge가 제공되고 중단되었으며, 선명한 타악기에는 Exciter가 없습니다.',
   'genre.ska.hook': '색다른 비트의 워킹 베이스와 호른',
@@ -59,8 +66,12 @@ const genreReggae = {
   'genre.ska.pin.315.why': '뿔을 위한 공간입니다.',
   'genre.ska.pin.2000': '뿔과 걸레',
   'genre.ska.pin.2000.why': '색다른, 밝은.',
-  'genre.ska.stage.dimension': '어떤 폭보다 좁아지는 그늘.',
-  'genre.ska.stage.maximizer': '밝은 천장.',
+  'genre.ska.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.ska.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.ska.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.ska.off':
     'Exciter 없음, Bass Punch 또는 Bass Forge: 빈티지 녹음에는 베이스가 없습니다.',
 } satisfies Partial<Dictionary>;

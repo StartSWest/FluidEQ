@@ -49,10 +49,13 @@ import songEq from './songEq';
 import songSound from './songSound';
 import dsp from './dsp';
 import dspDeEsser from './dspDeEsser';
+import dspFootsteps from './dspFootsteps';
+import dspDynamics from './dspDynamics';
 import dspStageSave from './dspStageSave';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
 import help from './help';
+import helpDetails from './helpDetails';
 import about from './about';
 import account from './account';
 import forum from './forum';
@@ -87,6 +90,7 @@ import genreLatin from './genreLatin';
 import genreWorld from './genreWorld';
 import troubleshoot from './troubleshoot';
 import files from './files';
+import gaming from './gaming';
 
 const en = {
   ...karaoke,
@@ -99,10 +103,13 @@ const en = {
   ...songSound,
   ...dsp,
   ...dspDeEsser,
+  ...dspFootsteps,
+  ...dspDynamics,
   ...dspStageSave,
   ...remoteAudio,
   ...tour,
   ...help,
+  ...helpDetails,
   ...about,
   ...account,
   ...forum,
@@ -137,6 +144,7 @@ const en = {
   ...genreWorld,
   ...troubleshoot,
   ...files,
+  ...gaming,
 };
 
 export type TranslationKey = keyof typeof en;

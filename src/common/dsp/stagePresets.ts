@@ -18,7 +18,9 @@ export const PRESET_STAGES = [
   'deEsser',
   'exciter',
   'bassForge',
+  'footsteps',
   'bassPunch',
+  'dynamics',
   'dimension',
   'maximizer',
   'master',
@@ -74,6 +76,9 @@ export const applyStagePreset = <S extends TPresetStage>(
     ...('matchedBypass' in current
       ? { matchedBypass: current.matchedBypass }
       : {}),
+    // The Game filter's Room for games is about the listener's
+    // headphones, not the saved sound.
+    ...('useRoom' in current ? { useRoom: current.useRoom } : {}),
   };
   return clampDspSettings({
     ...DSP_DEFAULTS,

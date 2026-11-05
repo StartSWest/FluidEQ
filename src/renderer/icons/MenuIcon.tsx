@@ -57,6 +57,8 @@ const PATHS: Record<string, string> = {
   // its six rows, which left nothing to recognise any of them by.
   guide:
     'M12 7c-2-1.5-5-2-8-1.5V18c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5.5c-3-.5-6 0-8 1.5zM12 7v12.5',
+  // A page with its lines: the release notes, every change written down.
+  notes: 'M6 3.5h8l4 4V20H6V3.5zM14 3.5v4h4M9 11.5h6M9 15h6M9 8h2.5',
   // A wrapped present: what is new in this version.
   gift: 'M4.5 9.5h15V13h-15zM6 13h12v7H6zM12 9.5V20M12 9.5C11 7 7.5 6 7.5 8c0 1.5 3 1.5 4.5 1.5zM12 9.5c1-2.5 4.5-3.5 4.5-1.5 0 1.5-3 1.5-4.5 1.5z',
   // A flag on its pole: raise a problem with us.
@@ -85,6 +87,9 @@ const PATHS: Record<string, string> = {
   plus: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 8.5v7M8.5 12h7',
   // Four rails of different heights: a band layout in miniature.
   layout: 'M6 6v12M10 9v9M14 5v13M18 8v10',
+  // A gamepad, the Gaming Lab's: the same pad the game rows fall back to.
+  gamepad:
+    'M8 7.5h8a5 5 0 0 1 5 5v1a3.6 3.6 0 0 1-6.3 2.4l-.7-.8h-4l-.7.8A3.6 3.6 0 0 1 3 13.5v-1a5 5 0 0 1 5-5zM7.4 11.4v2.4M6.2 12.6h2.4M15.8 11.6h.01M18 13.4h.01',
   // Circled i.
   info: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 11v5M12 8h0',
   // Clock face, hands short of noon: a file found but not yet read, distinct

@@ -192,7 +192,7 @@ export const registerEngineServices = ({
     getConfigPath: () => getConfigPath('fluid'),
   });
 
-  registerAudioEngineIpc({
+  const engineIpc = registerAudioEngineIpc({
     userDataDir,
     getEngine: () => session.audioEngine,
     setEngine: (engine) => {
@@ -266,6 +266,7 @@ export const registerEngineServices = ({
         dspOverrides: new Map([[edit.deviceId, edit.settings]]),
         stateOverrides: session.outputStateOverrides,
         systemRackEnabled: session.systemRackEnabled,
+        engineVersion: session.installedEngineVersion,
       });
     },
     isApoOnAnyOutput,
@@ -284,6 +285,7 @@ export const registerEngineServices = ({
     automatic: automaticSetup,
     onSwitched: onEngineSwitched,
   });
+  session.installedEngineVersion = engineIpc.installedEngineVersion;
 
   return { apoGuard };
 };

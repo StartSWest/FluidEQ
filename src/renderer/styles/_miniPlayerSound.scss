@@ -134,6 +134,40 @@ SPDX-License-Identifier: GPL-3.0-or-later
   color: var(--player-text);
 }
 
+// A game's own sound on (`GameSoundPresetButton`): the game's icon and its
+// name, no longer than a preset's, and nothing else. The amp's width rises
+// to what its head needs on one line (`useRowNeed`), measured at the
+// content's full width, so "Heroes of the Storm · MOBA and strategy" made the
+// whole amp wider rather than giving way (Ivan, 2026-11-04: "no wide pls
+// short it its making the amp player wider"). The preset it plays is left to
+// the Gaming Lab the button opens, as the main toolbar leaves it below three
+// columns; the name is capped, so its need is the cap and never the title.
+// The selectors outweigh the amp's inline-names rule
+// (`_miniPlayerEqKeys.scss`) on purpose.
+.mini-player .player-sound__head .voicing-pick:has(.voicing-pick__game) {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.mini-player .player-sound__head .voicing-pick .voicing-pick__game {
+  max-width: 100%;
+  min-width: 0;
+
+  .rich-pick__label {
+    min-width: 2.5em;
+    // The head then needs about 450px in English, under the amp's own 480.
+    max-width: 10em;
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .voicing-pick__game-preset {
+    display: none;
+  }
+}
+
 // SMART: one key with its lamp, in capitals, quiet until it is on; the caret
 // that chooses how it listens is the same key's other half.
 .mini-player .player-sound__head .player-split {

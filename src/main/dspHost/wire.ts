@@ -21,8 +21,12 @@ import {
   ANALYSIS_BASS_FORGE_BANDS,
   ANALYSIS_BINS,
   ANALYSIS_DEESSER_BANDS,
+  ANALYSIS_DEESSER_HEADER_BYTES,
   ANALYSIS_EQ_DETAIL_BINS,
   ANALYSIS_EQ_DETAIL_WINDOW,
+  ANALYSIS_FOOTSTEPS_HEADER_BYTES,
+  ANALYSIS_GAME_HEADER_BYTES,
+  ANALYSIS_DYNAMICS_TAG,
   ANALYSIS_HEADER_BYTES,
   ANALYSIS_MAX_BANDS,
   ANALYSIS_SCOPE_PAIRS,
@@ -31,6 +35,9 @@ import {
 import type {
   IHostAnalysis,
   IHostAnalysisDeEsser,
+  IHostAnalysisFootsteps,
+  IHostAnalysisDynamics,
+  IHostAnalysisGame,
   TAnalysisStage,
 } from '../../common/dsp/analysisWire';
 import { CHAIN_PARAM_LEAD } from '../../common/dsp/chainWire';
@@ -50,7 +57,7 @@ import {
  * changes, so a stale host is refused at the handshake with a legible reason
  * rather than desynchronising on its first frame of that kind.
  */
-export const HOST_WIRE_PROTOCOL_VERSION = 8;
+export const HOST_WIRE_PROTOCOL_VERSION = 9;
 
 export const HANDSHAKE_BYTES = 104;
 export const COMMAND_BYTES = 32;
@@ -429,7 +436,8 @@ const processingLatencyOf = (view: DataView): IEngineLatency | undefined => {
     'headroom',
     'deEsser',
   ];
-  // The bits of `feq_chain_active_stages`, the De-esser's appended last.
+  // The bits of `feq_chain_active_stages`, the De-esser's and Footsteps'
+  // appended last.
   const active: TLatencyStage[] = [
     'leveler',
     'restoration',
@@ -443,6 +451,7 @@ const processingLatencyOf = (view: DataView): IEngineLatency | undefined => {
     'headroom',
     'master',
     'deEsser',
+    'footsteps',
   ];
   const mask = view.getUint32(148, true);
   const counts = delayed.map((stage, index) => ({
@@ -483,6 +492,50 @@ const decodeDeEsser = (view: DataView): IHostAnalysisDeEsser => {
     bandThresholdDb: run(592 + ANALYSIS_DEESSER_BANDS * 8),
     bandCutDb: run(592 + ANALYSIS_DEESSER_BANDS * 12),
   };
+};
+
+/** Footsteps' window, offsets 784 to 811 (`feq_wire_footsteps_report`). */
+const decodeFootsteps = (view: DataView): IHostAnalysisFootsteps => ({
+  levelDb: view.getFloat32(784, true),
+  cueDb: view.getFloat32(788, true),
+  bedDb: view.getFloat32(792, true),
+  liftDb: [
+    view.getFloat32(796, true),
+    view.getFloat32(800, true),
+    view.getFloat32(804, true),
+  ],
+  calmDb: view.getFloat32(808, true),
+});
+
+/** The Game filter's window, offsets 816 to 835 (`feq_wire_footsteps_report`). */
+const decodeGame = (view: DataView): IHostAnalysisGame => ({
+  environmentDb: view.getFloat32(816, true),
+  ambience: view.getFloat32(820, true),
+  voice: view.getFloat32(824, true),
+  voiceDb: view.getFloat32(828, true),
+  duckDb: view.getFloat32(832, true),
+});
+
+/** The tagged current Dynamics readings, appended at offset 840. */
+const decodeDynamics = (view: DataView): IHostAnalysisDynamics | undefined => {
+  if (view.getUint32(840, true) !== ANALYSIS_DYNAMICS_TAG) {
+    return undefined;
+  }
+  const active = view.getUint32(844, true);
+  const levelDb: [number, number, number] = [
+    view.getFloat32(848, true),
+    view.getFloat32(852, true),
+    view.getFloat32(856, true),
+  ];
+  const gainDb: [number, number, number] = [
+    view.getFloat32(860, true),
+    view.getFloat32(864, true),
+    view.getFloat32(868, true),
+  ];
+  if (active > 1 || ![...levelDb, ...gainDb].every(Number.isFinite)) {
+    return undefined;
+  }
+  return { active: active === 1, levelDb, gainDb };
 };
 
 export const decodeTelemetry = (frame: Buffer): IHostTelemetry | undefined => {
@@ -617,9 +670,11 @@ export const analysisFrameLength = (
 
 /**
  * One analysis frame. `headerBytes` is the header the writer was built with:
- * the Library host's is always this build's, and an engine before the
- * De-esser (`ENGINE_DEESSER_SINCE`) writes the 560 bytes before it, which
- * `engineAnalysis.ts` tries when this build's does not fit.
+ * the Library host's is always this build's, an engine before the rest of
+ * the Game filter (`ENGINE_GAME_SINCE`) writes the 816 bytes before it, one
+ * before Footsteps (`ENGINE_FOOTSTEPS_SINCE`) the 784 before those, and one before
+ * the De-esser (`ENGINE_DEESSER_SINCE`) the 560 before those, which
+ * `engineAnalysis.ts` tries in turn when this build's does not fit.
  */
 export const decodeAnalysis = (
   frame: Buffer,
@@ -797,8 +852,21 @@ export const decodeAnalysis = (
     },
     // Appended after the complete 560-byte header, and only in a frame that
     // has it: an engine before the De-esser has nothing to say about it.
-    ...(headerBytes >= ANALYSIS_HEADER_BYTES
+    ...(headerBytes >= ANALYSIS_DEESSER_HEADER_BYTES
       ? { deEsser: decodeDeEsser(view) }
+      : {}),
+    // After the 784 bytes that end with the De-esser, from an engine that has
+    // Footsteps.
+    ...(headerBytes >= ANALYSIS_FOOTSTEPS_HEADER_BYTES
+      ? { footsteps: decodeFootsteps(view) }
+      : {}),
+    // After the 816 bytes that end with Footsteps, from an engine that runs
+    // the whole Game filter.
+    ...(headerBytes >= ANALYSIS_GAME_HEADER_BYTES
+      ? { game: decodeGame(view) }
+      : {}),
+    ...(headerBytes >= ANALYSIS_HEADER_BYTES
+      ? { dynamics: decodeDynamics(view) }
       : {}),
     // From a writer whose EQ spectrum is the live one; offsets 84 and 88 were
     // two of the retired guard's zeros, which is what every writer before

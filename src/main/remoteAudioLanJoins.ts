@@ -59,6 +59,11 @@ interface IJoin {
   peerId: string;
   attempts: Map<string, () => void>;
   authenticating: Set<string>;
+  /** A newer authenticated announcement arrived during this attempt. */
+  rediscovered: Set<string>;
+  /** One saved public code can name another reachable endpoint than the pair
+   * book. Neither snapshot has a clock; retain both bounded candidate sets. */
+  restored?: Pick<ILanPairingPayload, 'addresses' | 'port'>;
   socket?: WebSocket;
   lastAddress?: string;
 }
@@ -76,11 +81,22 @@ export interface ILanJoinsDeps {
 
 export const createLanJoins = (deps: ILanJoinsDeps) => {
   const joins = new Map<string, IJoin>();
+  /** Who asked by hand to reconnect a join, and is told how the round that
+   * follows ends: linked, or every address it tried gone without an answer. */
+  const waiters = new Map<IJoin, ((linked: boolean) => void)[]>();
+  const settle = (join: IJoin, linked: boolean) => {
+    const waiting = waiters.get(join);
+    if (waiting) {
+      waiters.delete(join);
+      waiting.forEach((resolve) => resolve(linked));
+    }
+  };
 
   const cancelAttempts = (join: IJoin) => {
     join.attempts.forEach((cancel) => cancel());
     join.attempts.clear();
     join.authenticating.clear();
+    join.rediscovered.clear();
   };
 
   const leave = (computerId: string) => {
@@ -90,6 +106,7 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
     }
     joins.delete(computerId);
     cancelAttempts(join);
+    settle(join, false);
     if (join.socket) {
       closeWebSocketSafely(join.socket);
     }
@@ -98,6 +115,8 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
   const sleep = (join: IJoin) => {
     join.state = 'asleep';
     cancelAttempts(join);
+    // Asleep is linked: the other computer's connection is the one kept.
+    settle(join, true);
     const { socket } = join;
     join.socket = undefined;
     if (socket) {
@@ -158,6 +177,7 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
         join.lastAddress = address;
         join.port = port;
         join.fresh = false;
+        settle(join, true);
         socket.once('close', (code) => {
           if (joins.get(join.computerId) === join && join.socket === socket) {
             log.info('Share Audio connection closed; keeping pairing', {
@@ -192,31 +212,53 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
         }
         // A cancelled round may finish after a retry has opened the same
         // address again. It must not remove or put that newer round to sleep.
+        const rediscovered = join.rediscovered.delete(at);
+        const authenticating = join.authenticating.delete(at);
         join.attempts.delete(at);
-        join.authenticating.delete(at);
-        if (!(error instanceof LanJoinClosed)) {
-          // Nobody there, or not this computer: the next announcement says
-          // where it is.
-          return;
-        }
-        if (error.code === CLOSE_FORGET) {
-          log.info(
-            'Share Audio peer refused a connection; saved pairing retained',
-            {
-              computerId: join.computerId,
-              code: error.code,
-            },
-          );
-        }
+        const code =
+          typeof error === 'object' && error !== null && 'code' in error
+            ? error.code
+            : undefined;
+        log.info('Share Audio peer connection failed; saved pairing retained', {
+          computerId: join.computerId,
+          address,
+          port,
+          stage: authenticating ? 'authentication' : 'connection',
+          ...(error instanceof LanJoinClosed ? { closeCode: error.code } : {}),
+          ...(typeof code === 'string' && /^[A-Z][A-Z0-9_]{0,39}$/.test(code)
+            ? { code }
+            : {}),
+        });
         // Old builds used 4001 for duplicate connections as well as unlink.
         // A bare WebSocket close is not an authenticated unlink instruction.
         // Keep the pairing; only an encrypted stop/forget removes it in LAN.
         if (
+          error instanceof LanJoinClosed &&
           (error.code === CLOSE_FORGET ||
             error.code === CLOSE_ALREADY_LINKED) &&
           deps.inboundLive(join.computerId)
         ) {
           sleep(join);
+          return;
+        }
+        // A peer can announce its return before an older connect error is
+        // delivered. Dropping that authenticated event left it offline until
+        // another lifecycle event. Consume one hint after failure, without a
+        // timed retry loop or retrying an explicit authentication refusal.
+        if (
+          rediscovered &&
+          !(
+            error instanceof LanJoinClosed &&
+            [1008, CLOSE_FORGET, CLOSE_ALREADY_LINKED].includes(error.code)
+          )
+        ) {
+          tryAddress(join, address, port);
+        }
+        if (join.attempts.size === 0) {
+          // Every address of this round has answered no. A later
+          // announcement still starts another attempt; a reconnect asked for
+          // by hand is told now that this one found nobody.
+          settle(join, false);
         }
       });
   };
@@ -230,6 +272,12 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
       ),
     );
     candidates.forEach((address) => tryAddress(join, address, join.port));
+    const { restored } = join;
+    if (restored) {
+      restored.addresses.forEach((address) =>
+        tryAddress(join, address, restored.port),
+      );
+    }
     deps.askWhoIsThere(join.pairing.secret);
   };
 
@@ -238,6 +286,9 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
     join.state = 'looking';
     join.peerId = crypto.randomUUID();
     probe(join);
+    if (join.attempts.size === 0) {
+      settle(join, false);
+    }
   };
 
   return {
@@ -247,22 +298,51 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
       const existing = joins.get(computerId);
       if (existing) {
         existing.fresh = existing.fresh || fresh;
-        if (
-          existing.pairing.computerId &&
-          existing.pairing.secret !== pairing.secret
-        ) {
+        if (fresh) {
+          existing.restored = undefined;
+        } else if (pairing.computerId === undefined) {
+          existing.restored = {
+            addresses: [...pairing.addresses],
+            port: pairing.port,
+          };
+        }
+        const credentialChanged =
+          existing.pairing.computerId !== undefined &&
+          existing.pairing.secret !== pairing.secret;
+        // Startup replays the originally pasted code after loading the pair
+        // book. Its old address/port must not replace a newer saved endpoint.
+        // A deliberate paste or an authenticated scoped link can refresh it.
+        const endpoint =
+          fresh || pairing.computerId !== undefined
+            ? pairing
+            : existing.pairing;
+        const endpointChanged =
+          existing.pairing.port !== endpoint.port ||
+          existing.pairing.addresses.join(',') !== endpoint.addresses.join(',');
+        if (credentialChanged) {
           // A concurrent introduction chose another scoped credential. Keep
           // the authenticated session alive while both computers learn it;
           // closing here could cut off delivery of the winning credential.
-          existing.pairing = pairing;
           existing.pairingKey = keyFromSecret(pairing.secret);
-          if (existing.state === 'looking') {
-            look(existing);
-          }
-          return computerId;
+        }
+        existing.pairing = {
+          ...(credentialChanged ? pairing : existing.pairing),
+          address: endpoint.address,
+          addresses: endpoint.addresses,
+          port: endpoint.port,
+          deviceName: endpoint.deviceName,
+        };
+        if (endpointChanged) {
+          existing.port = endpoint.port;
         }
         if (existing.state === 'looking') {
-          probe(existing);
+          // Re-pasting today's code must replace yesterday's endpoint and
+          // pending handshake; the row used to stay offline on its old port.
+          if (credentialChanged || endpointChanged || fresh) {
+            look(existing);
+          } else {
+            probe(existing);
+          }
         }
         return computerId;
       }
@@ -276,6 +356,7 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
         peerId: '',
         attempts: new Map(),
         authenticating: new Set(),
+        rediscovered: new Set(),
       };
       joins.set(computerId, join);
       if (deps.inboundLive(computerId)) {
@@ -287,6 +368,26 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
     },
     leave,
     has: (computerId: string) => joins.has(computerId),
+    /**
+     * Reconnect by hand, with the code saved for that computer: true once it
+     * is linked again, false when no address answered. A join still looking
+     * starts a new round now; a linked one starts it when the caller closes
+     * its connection (`remoteAudioLan`'s `reconnect`), which is why the
+     * answer is waited for from here and not from the round.
+     */
+    reconnect(computerId: string): Promise<boolean> {
+      const join = joins.get(computerId);
+      if (!join) {
+        return Promise.resolve(false);
+      }
+      const outcome = new Promise<boolean>((resolve) => {
+        waiters.set(join, [...(waiters.get(join) ?? []), resolve]);
+      });
+      if (join.state === 'looking') {
+        look(join);
+      }
+      return outcome;
+    },
     /** The peer id of the open connection to that computer, if any. */
     peerOf(computerId: string): string | undefined {
       const join = joins.get(computerId);
@@ -338,7 +439,12 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
           join.pairing.secret,
         );
         if (announcement) {
-          tryAddress(join, address, announcement.port);
+          const at = `${address}:${announcement.port}`;
+          if (join.attempts.has(at)) {
+            join.rediscovered.add(at);
+          } else {
+            tryAddress(join, address, announcement.port);
+          }
         }
       });
     },

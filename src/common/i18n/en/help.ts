@@ -11,7 +11,7 @@ const help = {
   'help.title': 'User guide',
   'help.subtitle': 'Find your sound. Make yourself at home.',
   'help.intro':
-    'A practical guide to FluidEQ, illustrated with real app captures. Start with your first listening session, then explore each part of the app at your own pace.',
+    'A practical guide to FluidEQ, with illustrations drawn by the app’s own controls and real window captures. Start with your first listening session, then explore at your own pace.',
   'help.offline': 'Available offline',
   'help.search': 'Search the guide',
   'help.searchHint': 'Try engine, bass, visualizer…',
@@ -25,7 +25,7 @@ const help = {
   'help.closeImage': 'Close screenshot',
   'help.controlsOf': 'What each control in {title} does',
   'help.captureNote':
-    'Real captures of the FluidEQ window. Colours, labels and control positions may differ in your version. Example settings are illustrations, not recommended presets.',
+    'Live illustrations follow your language and window colours. Older window captures may show different labels or positions. Example settings illustrate the controls; they are not recommended presets.',
   'help.steps': 'Try it',
   'help.tip': 'Good to know',
   'help.back': 'Back to top',
@@ -39,28 +39,24 @@ const help = {
 
   'help.start.title': 'Your first five minutes',
   'help.start.intro':
-    'Start with a familiar song at a comfortable volume. The left rail switches FluidEQ on and holds the preamp; the centre is your workspace; the right rail follows your output and its profiles. The bar at the foot of the window controls whatever is playing.',
+    'Start with a familiar song at a comfortable volume. The left rail switches FluidEQ on and holds the preamp; the centre is your workspace; the right rail follows your output and its profiles. The bar at the foot of the window controls whatever is playing. The recorded 2.2 tour below runs about nine and a half minutes and streams only when you press Play. For the new 2.3 gaming page, see Gaming Lab.',
   'help.start.steps':
     'Install FluidEQ and keep the FluidEQ Engine selected when setup asks how to process your sound. Windows asks for permission once, with no restart.\nChoose your listening device under Output device. Turn on System EQ and leave Auto normalize on.\nPlay a song, open EQ → Bands, make a small change, and compare with System EQ off and on.',
   'help.start.tip':
     'System-wide EQ needs Windows and an audio engine: the FluidEQ Engine or Equalizer APO. On macOS and Linux the app shows demonstration outputs, so a moving graph there is not proof that anything is processed.',
   'help.start.keywords':
     'install, installer, setup, set up, getting started, first steps, quick start, beginner, basics, tutorial, how to use, begin',
-  'help.start.videoTitle': 'First steps with FluidEQ',
-  'help.start.videoNote':
-    'About four minutes. It plays from fluideq.com when you press play.',
   'help.video.play': 'Play the video: {title}',
   'help.video.loading': 'Loading from fluideq.com…',
   'help.video.failed':
     'The video could not be loaded. It plays from fluideq.com, so it needs an internet connection.',
   'help.video.retry': 'Try again',
-  'help.video.open': 'Open on fluideq.com',
 
   'help.window.title': 'Around the window',
   'help.window.intro':
     'The header takes you between FluidEQ’s pages and shows the sound as it plays. The left rail holds the switch for the whole EQ, the preamp and the level meter; the right rail follows your output and its profiles.',
   'help.window.steps':
-    'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Visualizers after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the level meter to change how it is drawn, and Colourful on the signal to have the bands, the title and the lit controls in a palette instead of one colour.',
+    'Open a page from the header: Visualizers, Share Audio, Gaming Lab, EQ, DSP, Library, Karaoke, Online Media.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the level meter to change how it is drawn, and Colourful on the signal to have the bands, the title and the lit controls in a palette instead of one colour.\nTo switch processing from another app, open the ≡ menu → On/off key and choose your own key combination. No key is assigned at first; the confirmation above other windows says whether FluidEQ is on or off.',
   'help.window.tip':
     'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The menu button beside it, three lines, holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio, Processes, which shows what each part of FluidEQ is using, and Reset all settings; at its foot are Brightness, Tint, Colourful mode, Tint app icon (off at first; it puts the taskbar icon, the tray icon and the icon in the tray’s menu in the window’s colours), the EQ sliders, animations, Start with Windows (FluidEQ then starts in the tray, shaping your sound with no window open) and the language. The switch after them turns the window into the Compact player.',
   'help.window.keywords':
@@ -72,8 +68,10 @@ const help = {
     'YouTube, YouTube Music, Bandcamp, Twitch and Suno, played inside FluidEQ with your EQ on them.',
   'help.window.share':
     'Sends this computer’s sound to another one, or plays another one’s here.',
+  'help.window.gaming':
+    'Your games, each with a sound of its own, tuned for that game.',
   'help.window.eq':
-    'Your bands, presets, headphone correction, game presets and the engine’s config.',
+    'Your bands, presets, headphone correction and the engine’s config.',
   'help.window.waveName': 'Audio signal',
   'help.window.wave':
     'What is playing, as it plays, with its peak level. Colourful, at its top, turns Colourful mode on or off; the graph’s View menu can hide it.',
@@ -85,9 +83,9 @@ const help = {
     'Visualizers, the gallery, the Studio and Dynamic lighting.',
   'help.window.support': 'Ways to support the work on FluidEQ.',
   'help.window.help':
-    'This guide, What’s new, the audio troubleshooter and Report a problem.',
+    'This guide, What’s new, Full release notes, Forum, the audio troubleshooter, Report a problem and About FluidEQ. Full release notes opens all the notes directly. About has links to its sections and, where the support link is available, a Buy Me a Coffee card with a QR code.',
   'help.window.actions':
-    'The engine, your account, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint, Colourful mode and Tint app icon, the EQ sliders, animations, Start with Windows and the language.',
+    'The engine, your account, importing EQ settings, restarting Windows audio, Processes and Reset all settings; Brightness, Tint, Colourful mode and Tint app icon, the EQ sliders, animations, Start with Windows and the language. On/off key… lets you choose a shortcut to turn all FluidEQ processing off and on while another app is in front. No key is assigned at first. A card above your other windows confirms each switch.',
   'help.window.systemEq':
     'Turns FluidEQ’s processing on or off for everything the PC plays.',
   'help.window.preamp':
@@ -102,9 +100,9 @@ const help = {
   'help.player.intro':
     'One switch turns FluidEQ’s window into the Compact player, a single narrow column: a visualizer at the top with the song over it and the play controls under it, then Sound, your equaliser, then Up next and your playlists. Whatever is playing keeps playing, and the same switch brings the full app back on the page you left.',
   'help.player.steps':
-    'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.\nFold Sound, or Up next and Playlists, down to its header, and the visualizer takes the room; press the header to open it again. Drag the player’s top or bottom edge to make it taller or shorter.\nDouble-click the visualizer to fill the screen with it; Escape gives it back. Press the look’s name beside shuffle and repeat to choose from every style and scene.\nChoose Fold to one line in the FluidEQ mark’s menu to fold the player down to one line; the mark unfolds it.\nIn the same menu, set the player’s own Brightness, the Transparency over a scene or the window’s Tint over a standard style, and a scene’s Daylight. Always on top, there or in the header, keeps it above other windows.\nDrop music files anywhere on the player: they join the Library and the end of Up next or, over the list, the place where you let go.',
+    'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.\nFold Sound, or Up next and Playlists, down to its header, and the visualizer takes the room; press the header to open it again. Drag the player’s top or bottom edge to make it taller or shorter.\nDouble-click the visualizer to fill the screen with it; Escape gives it back. Press the look’s name beside shuffle and repeat to choose from every style and scene.\nChoose Fold to one line in the FluidEQ mark’s menu to fold the player down to one line; the mark unfolds it.\nIn the same menu, set the player’s own Brightness, the Transparency over a scene or the window’s Tint over a standard style, and a scene’s Daylight. Always on top, there or in the header, keeps it above other windows.\nDrop music files anywhere on the player: they join the Library and the end of Up next or, over the list, the place where you let go.\nIn Sound, choose Tone for Bass, Mid and Treble or Bands for the full EQ. Its preset and EQ mode controls change the same output as the full app. Explore scenes opens the gallery in the full window; automatic scene switching works in the Compact player too.',
   'help.player.tip':
-    'The player’s volume is your computer’s own, the same as in Windows, so it sets the level of everything the computer plays. If the player ends up off the screen, right-click FluidEQ in the taskbar’s tray and choose Recover the window.',
+    'The player’s volume is your computer’s own, the same as in Windows, so it sets the level of everything the computer plays. If the player ends up off the screen, right-click FluidEQ in the taskbar’s tray and choose Recover the window. While a game’s sound is on, the game button shows just the game’s name so it fits the Compact player.',
   'help.player.keywords':
     'mini player, small player, compact, compact mode, winamp, amp, player mode, always on top, pin, fold, one line, queue, up next, drop files, theme, light theme, dark theme, dark mode, light mode, small window, floating player, volume',
   'help.player.topCaption': 'The top: the song, and how it plays',
@@ -183,7 +181,7 @@ const help = {
   'help.engine.intro':
     "FluidEQ processes your sound with its own engine or with Equalizer APO. The FluidEQ Engine runs inside Windows' audio service after your sound card's effects, brings your EQ and the DSP rack to everything the PC plays, and steps aside the moment FluidEQ closes.",
   'help.engine.steps':
-    'Open the actions menu — the pulse button at the top right — and press the engine card at the top of it.\nChoose FluidEQ Engine and press Apply. Windows asks for permission, and audio pauses for a few seconds while it restarts.\nIf an output shows OFF, press Enable on its notice. If a notice says the engine is not running, press Restart Windows audio.',
+    'Open the actions menu (≡) and press the engine card at the top.\nChoose FluidEQ Engine and press Apply. Windows asks for permission, and audio pauses for a few seconds while it restarts.\nIf an output shows OFF, press Enable on its notice. If a notice says the engine is not running, press Restart Windows audio.',
   'help.engine.tip':
     'Equalizer APO remains available for custom APO commands, Peace and VST plugins. When an update brings a newer engine, a notice offers Update engine. Quitting FluidEQ from the tray turns the EQ off on every output.',
   'help.engine.keywords':
@@ -199,7 +197,7 @@ const help = {
   'help.eq.intro':
     'Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its width: higher Q is narrower. With no band selected, the Tone dials — Bass, Mid and Treble, with Low cut and High cut on either side — shape the sound as a curve of their own and leave your bands as they are. Begin with small, broad changes and compare often.',
   'help.eq.steps':
-    'Open EQ → Bands. With nothing selected, turn Bass, Mid or Treble for a quick change of tone, and Low cut or High cut to trim the extremes. They draw their own Tone line on the graph.\nClick a band’s frequency, or its point on the graph, to select it. Turn its Frequency, Gain and Quality (Q) dials, pick a Filter, or switch it off with Active. The curve follows a slider as you move it.\nEverything works from the keyboard too: Tab to a fader, a dial or a point on the graph, and the arrow keys step it; Page Up and Page Down take bigger steps.\nTo see each band’s frequency, Q and gain on the graph, open View above it and press Show EQ labels, or press Ctrl+W until it shows Everything. A label sits above or below its point, never beside it, and goes back to its place once there is room.\nRight-click a band to reset it, switch it off, or add a band beside it. Press Clear EQ to set every gain, and Bass, Mid and Treble, to 0 dB while keeping your bands. It asks first.\nThe same menu has Delete band, which asks for a second press before it deletes. Left + right turns a band into one band for each ear, at the same frequency, so you can move each by itself: the left ear’s curve is drawn solid and the right’s dashed. Both ears joins the two again in their middle, and so do Reset band and Clear EQ.',
+    'Open EQ → Bands. With nothing selected, turn Bass, Mid or Treble for a quick change of tone, and Low cut or High cut to trim the extremes. They draw their own Tone line on the graph.\nClick a band’s frequency, or its point on the graph, to select it. Turn its Frequency, Gain and Quality (Q) dials, pick a Filter, or switch it off with Active. The curve follows a slider as you move it.\nEverything works from the keyboard too: Tab to a fader, a dial or a point on the graph, and the arrow keys step it; Page Up and Page Down take bigger steps.\nTo see each band’s frequency, Q and gain on the graph, open View above it and press Show EQ labels, or press Ctrl+W until it shows Everything. A label sits above or below its point, never beside it, and goes back to its place once there is room.\nRight-click a band to reset it, switch it off, or add a band beside it. Press Clear EQ to set every gain, and Bass, Mid and Treble, to 0 dB while keeping your bands. It asks first.\nThe same menu has Delete band, which asks for a second press before it deletes. Left + right turns a band into one band for each ear, at the same frequency, so you can move each by itself: the left ear’s curve is drawn solid and the right’s dashed. Both ears joins the two again in their middle, and so do Reset band and Clear EQ.\nSelect several bands to move them together, or use Ctrl+A on the graph to select every band. The selected bands share the editor; switching from one band to another updates that editor in place.',
   'help.eq.tip':
     'Curves lists what shapes this output besides your bands, each with its own strength and ×. Game mode cuts the delay FluidEQ adds, for games and calls; Gaming presets turn it on. While the EQ is switched off its bands are dimmed and cannot be changed by accident; the Tone dials still work.',
   'help.eq.keywords':
@@ -273,25 +271,36 @@ const help = {
   'help.eqmode.save':
     'Names the current frequencies and Q as a design, listed under My designs.',
 
-  'help.games.title': 'Game presets',
+  'help.games.title': 'Gaming Lab',
   'help.games.intro':
-    'Give each game its own sound. When the game comes to the front, FluidEQ switches to that sound and keeps it until you close the game, whatever you alt-tab to in between. Then it puts back what you had.',
+    'Give each game its own sound. A game starts from a Gaming profile made for it and gets its own copy: you tune the copy in the Gaming Lab, and the profile never changes. When the game comes to the front, FluidEQ puts its sound on and keeps it until you close the game, whatever you alt-tab to in between. Then your music sound comes back.',
   'help.games.steps':
-    'Open EQ → Game presets and press Add a game. Pick one from your launchers, a program that is open now, or choose its program yourself.\nPick the sound it should get in the picker on its row: a Gaming preset, or any other.\nStart the game. A card on the desktop says what FluidEQ switched to, and another says what came back when you close it.',
+    'Open the Gaming Lab in the title bar and press Add a game. Pick one from your launchers, a program that is open now, or browse for its program. It starts from the Gaming profile suggested for it; pick another in its Gaming profile list any time.\nPress Try it now to put the game’s sound on. Pick a part on the left — the Game filter, EQ, Curve or any DSP stage — and tune it right there. Every change stays in this game’s copy.\nSave as profile keeps the copy as one of your own Gaming profiles for other games, updates yours, resets the copy to its profile, renames the copy or deletes it.\nStart the game. A card on the desktop says its sound is on, and another says your music sound is back when you close it. The card shows the loaded profile’s name, and names the music profile when it returns.',
   'help.games.tip':
-    'While a game holds the sound, the bar at the foot of the window names it. Pick another sound while you play and it stays: FluidEQ only puts back what it put on. Gaming presets also turn on Game mode.',
+    'While a game’s sound is on, the DSP page shows your music rack paused with a button to tune the game, and the profile list rests, so nothing done there can overwrite your music profile with the game’s sound. The Game filter brings up quiet steps and reloads as they happen and puts voices forward.',
+  'help.games.list':
+    'The games list scrolls on its own. Drag the divider to change its width, or its height in a narrow layout. Use the chevron to hide or show the list; its size and folded state are remembered.',
   'help.games.keywords':
-    'gaming, game profile, per game, per-game, per app, automatic, auto switch, steam, epic, launcher, fps, shooter, footsteps, competitive, alt-tab, game mode',
-  'help.games.tab': 'Your games and the sound each one gets.',
+    'gaming, gaming lab, gaming profile, game profile, game presets, per game, per-game, per app, copy, automatic, auto switch, steam, epic, launcher, fps, shooter, footsteps, competitive, alt-tab, game mode, game filter, dialogue, voices, ambience, environment, hooves, resize, splitter, collapse, game list, scrolling',
+  'help.games.switch':
+    'Lets a game in front put its own sound on. Off, your games keep your music sound.',
   'help.games.add':
-    'Adds a game from Steam, Epic, EA, GOG, Ubisoft, Battle.net or Xbox, or any program that is open now.',
+    'Adds a game from Steam, Epic, EA, GOG, Ubisoft, Battle.net or Xbox, or any program that is open now. FluidEQ, Windows Explorer, known system and launcher processes, and shared runtime installers are left out.',
   'help.games.gameName': 'A game',
-  'help.games.game': 'The game, and the folder FluidEQ knows it by.',
-  'help.games.soundName': 'Its sound',
-  'help.games.sound':
-    'The sound FluidEQ switches to when this game comes to the front, or Leave it as it is.',
-  'help.games.removeName': 'Remove',
-  'help.games.remove': 'Forgets the game. The preset it used stays.',
+  'help.games.game':
+    'The game, the profile its sound started from, and whether you tuned it. Playing means it is in front now.',
+  'help.games.profile':
+    'The Gaming profile this game’s copy starts from. Picking another gives the game a fresh copy of it.',
+  'help.games.save':
+    'Saves the copy as a new profile or updates one of yours, resets it to its profile, renames it or deletes it. The profile itself never changes.',
+  'help.games.try':
+    'Puts the game’s sound on now, so you hear what you tune. While it is on, Unload stands here and brings your music sound back.',
+  'help.games.statusName': 'What was tuned',
+  'help.games.status':
+    'Which parts of this copy are different from its profile.',
+  'help.games.railName': 'Its parts',
+  'help.games.rail':
+    'Every part of the game’s sound, each tuned in its own editor beside the list. Tuned marks what moved away from the profile.',
 
   'help.headphones.title': 'Headphone correction & imports',
   'help.headphones.intro':
@@ -356,13 +365,13 @@ const help = {
   'help.dsp.intro':
     'The DSP rack is a chain of studio stages. Under the FluidEQ Engine it processes everything the PC plays; under Equalizer APO it processes Library audio tracks. It is off while FluidEQ is switched off.',
   'help.dsp.steps':
-    'Open DSP. Pick a chain under Presets, or select a stage in the rail and switch it On.\nChange one control at a time and compare with the stage bypassed at a similar volume. Isolate lets you hear only what a stage adds.\nSave a rack you like, and use Export and Import to share it.\nThe De-esser turns down the sharp S, T and SH of a voice only while they sound, and leaves cymbals alone; Speech, Podcast and Audiobook switch it on. Every stage can keep profiles of your own: set it, then press Save.',
+    'Open DSP and choose a whole-rack chain under Presets. A genre preset’s information explains its curve and processing; its listening examples open on YouTube.\nSelect a stage in the rail and switch it on. Each stage has its own preset picker; Save there keeps just that stage’s settings.\nCompare with the stage bypassed at a similar volume. Isolate, where offered, lets you hear its contribution. Ctrl-click a dial to restore its default.\nSave the complete rack when you want to keep the combination, and use Export and Import to carry it elsewhere. A whole-rack preset can replace several stage settings together.\nDynamics and De-esser have their own chapters below. The Game filter and gaming presets belong to Gaming Lab, not the music preset list.\nWhile a game’s own sound is loaded, the music DSP page rests so it cannot overwrite that game. Open Gaming Lab to tune the sound that is actually playing.',
   'help.dsp.tip':
     'Louder often sounds better simply because it is louder, so compare at matched levels. Ctrl-click a dial to return it to its default.',
   'help.dsp.keywords':
-    'effects, fx, audio effects, rack, chain, plugins, limiter, loudness, normalizer, leveler, volume leveling, exciter, harmonics, enhancer, stereo widener, widen, stereo width, bass enhancer, sub bass, subharmonic, punch, transient, mastering, clipping, peak limiter, crossfade, gapless, de-esser, deesser, sibilance, harsh s, sharp s, ess, voice, speech, podcast, profiles, save profile',
+    'effects, fx, audio effects, rack, chain, plugins, limiter, loudness, normalizer, leveler, volume leveling, exciter, harmonics, enhancer, stereo widener, widen, stereo width, bass enhancer, sub bass, subharmonic, punch, transient, mastering, clipping, peak limiter, crossfade, gapless, de-esser, deesser, sibilance, harsh s, sharp s, ess, voice, speech, podcast, profiles, save profile, footsteps, footstep, hear footsteps, steps, gaming, game audio, reloads, loudness equalization, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses',
   'help.dsp.normalizer':
-    'Evens out loudness. On live audio it levels song by song.',
+    'Evens out loudness song by song. True Peak sets one gain for each song instead of limiting it throughout. Presets leave the Normalizer off until you turn it on.',
   'help.dsp.denoise':
     'Repairs hiss, hum and clicks. The neural voice cleaner works on Library tracks.',
   'help.dsp.exciter': 'Adds harmonics for body and air.',
@@ -412,7 +421,7 @@ const help = {
   'help.denoise.intro':
     'Denoise reduces hiss, mains hum and clicks. Under the FluidEQ Engine it works live on anything the PC plays; the neural voice cleaner and the scanned noise floor are for Library tracks. Stronger reduction is not automatically better.',
   'help.denoise.steps':
-    'Play something with the noise you want to reduce and select Denoise in DSP.\nSwitch on Hiss, Hum or Clicks with a light setting, and listen to quiet passages and to musical detail.\nIncrease reduction gradually, then bypass the stage to check that the improvement is worth any loss of detail.',
+    'Play something with the noise you want to reduce and select Denoise in DSP.\nSwitch on Hiss, Hum or Clicks with a light setting, and listen to quiet passages and to musical detail.\nIncrease reduction gradually, then bypass the stage to check that the improvement is worth any loss of detail.\nFor a Library file, let its source analysis finish before comparing the measured noise floor or neural voice cleaner. Live system audio can use hiss, hum and click reduction, but the neural voice cleaner is for Library playback.',
   'help.denoise.tip':
     'Listen for softened detail and watery or pumping textures. This is not a microphone cleanup. If you hear no change, confirm the rack and the stage are both on.',
   'help.denoise.keywords':
@@ -422,7 +431,7 @@ const help = {
   'help.graph.intro':
     'The response graph draws your EQ curves over the live sound. The strip above it chooses what is drawn and how, and it changes with the look: a standard style or a scene.',
   'help.graph.steps':
-    'Click the look’s name to choose a style or scene. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for the graph’s size, what it shows, and the wave’s height and position. Show EQ labels writes each band’s frequency, Q and gain over its point. How it is drawn sets the frame rate — every frame your display offers, or 60 or 30, held at 60 on battery — and the resolution and smoothing; standard styles keep their own choices, apart from scenes.\nA scene adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.\nDouble-click the plot for full screen, or Ctrl+double-click to expand it over the window; double-click again to come back. A single click hides or shows the strip.\nKeys: Ctrl+F full screen, Ctrl+S expanded, Esc back to the normal view, Ctrl+G the grid, Ctrl+W what the graph shows, band labels included, Ctrl+I which way the wave faces, Ctrl+A every band. On a band’s point, drag to move it, use the arrow keys to step it, and right-click for its menu; Ctrl+scroll changes the Q of a selected point.',
+    'Click the look’s name to choose a style or scene. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for the graph’s size, what it shows, and the wave’s height and position. Show EQ labels writes each band’s frequency, Q and gain over its point. How it is drawn sets the frame rate — every frame your display offers, or 60 or 30, held at 60 on battery — and the resolution and smoothing; standard styles keep their own choices, apart from scenes.\nA scene adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.\nDouble-click the plot for full screen, or Ctrl+double-click to expand it over the window; double-click again to come back. A single click hides or shows the strip.\nKeys: Ctrl+F full screen, Ctrl+S expanded, Esc back to the normal view, Ctrl+G the grid, Ctrl+W what the graph shows, band labels included, Ctrl+I which way the wave faces, Ctrl+A every band. On a band’s point, drag to move it, use the arrow keys to step it, and right-click for its menu; Ctrl+scroll changes the Q of a selected point.\nPress a curve’s name in the graph legend to hide or show its drawing. This leaves the sound unchanged. Remove or change the layer under Curves when you want to change what you hear.',
   'help.graph.tip':
     'Everything here changes only the drawing, never your sound.',
   'help.graph.keywords':
@@ -608,17 +617,17 @@ const help = {
   'help.library.intro':
     'Library brings together music and video from your drives. Browse by albums, artists, genres, songs, folders, a folder tree or your playlists. Album art and details come from your files, so the same collection may look different depending on its tags.',
   'help.library.steps':
-    'Open Library and add the folder containing your media. Let the scan finish before judging what is missing.\nChoose an artist or album, or search for a song. Start a track from the results.\nUse the bar at the foot of the window to pause, seek and skip. Its volume is your computer’s own, the same as in Windows.',
+    'Open Library and add the folder containing your media. Let the scan finish before judging what is missing.\nChoose an artist or album, or search for a song. Start a track from the results.\nUse the bar at the foot of the window to pause, seek and skip. Its volume is your computer’s own, the same as in Windows.\nUse Grid, List, Cover Flow or the folder tree to browse the same collection. Select several songs, or open an album’s menu, to queue or file them together. A single audio track’s menu can send it to Karaoke.',
   'help.library.tip':
     'Hover FluidEQ’s button on the Windows taskbar for Previous, Play and Next, even while it is minimized. Library needs the original files: reconnect a drive or add a moved folder again.',
   'help.library.keywords':
-    'music player, player, local files, local music, mp3, flac, wav, aac, folders, albums, artists, genres, playlist, video, videos, scan, tags, cover art, album art',
+    'music player, player, local files, local music, mp3, flac, wav, aac, folders, albums, artists, genres, playlist, video, videos, scan, tags, cover art, album art, Playlists, New playlist',
 
   'help.queue.title': 'Albums & your play queue',
   'help.queue.intro':
     'The queue is the listening order; browsing is where you choose music. Opening another album lets you explore without making it the current song. The active track and Up next help you keep your place.',
   'help.queue.steps':
-    'Open an album to inspect its tracks. Start the one you want to hear.\nRight-click a song for Add to up next, Add to Favourites or Add to playlist.\nOpen Up next to see what plays after, and turn on Keep playing to continue with more of the same genre.',
+    'Open an album to inspect its tracks. Start the one you want to hear.\nRight-click a song for Add to up next, Add to Favourites or Add to playlist.\nOpen Up next to see what plays after, and turn on Keep playing to continue with more of the same genre.\nDrag an Up next row to change the order and use its remove action to take it out of the queue. Save the queue as a playlist when you want to keep the listening order.\nOn Windows, drop music files or folders onto the Compact player to scan them into Library and queue them. Drop over an Up next row to insert before it, or below the list to append; the progress notice follows folder scanning.',
   'help.queue.tip':
     'Starting Library playback takes over from FluidEQ’s other players. Use the current track shown in the bar to confirm which source owns playback.',
   'help.queue.keywords':
@@ -628,9 +637,9 @@ const help = {
   'help.karaoke.intro':
     'Karaoke pairs your own audio with lyrics. Timed lyrics follow playback; pitch targets depend on the song’s note data. A microphone adds your live pitch when configured, and the stage can fill the screen.',
   'help.karaoke.steps':
-    'Open Karaoke. Use Add files or Add folder to bring in audio and matching lyric files.\nChoose a song and start playback. Check that the correct lyrics and backing track are paired.\nConfigure microphone input for live pitch, adjust lyric size for your viewing distance, and use the stage’s fullscreen control to sing.',
+    'Open Karaoke. Use Add files or Add folder to bring in audio and matching lyric files.\nChoose a song and start playback. Check that the correct lyrics and backing track are paired.\nConfigure microphone input for live pitch, adjust lyric size for your viewing distance, and use the stage’s fullscreen control to sing.\nUse the stage’s cover and visualizer buttons to choose its background. Its Transparency and Blur are separate from the main graph’s. Group the playlist by folder, then press a folder heading to fold its songs away.',
   'help.karaoke.tip':
-    'A lyric-only file does not contain target notes. Karaoke plays at your computer’s volume; the melody, backing and guide vocal levels are under Mix settings.',
+    'A lyric-only file does not contain target notes. Karaoke plays at your computer’s volume; the melody, backing and guide vocal levels are under Mix settings. The microphone is analysed locally for level and pitch; FluidEQ does not play it through the speakers or record it.',
   'help.karaoke.keywords':
     'sing, singing, sing along, lyrics, microphone, mic, pitch, lrc, ultrastar, songs',
 
@@ -638,7 +647,7 @@ const help = {
   'help.maker.intro':
     'Maker turns your audio into an editable karaoke project. Its timeline brings together audio, lyrics and pitch notes. Automatic results are a starting point: check words, timing and notes against the recording.',
   'help.maker.steps':
-    'Open Make from Karaoke and load the source audio. Choose the available separation or transcription tools you need.\nWatch progress; first use of an AI tool may require a model download. Review the resulting lyrics and notes in the timeline.\nPlay short passages, correct the timing and text, save the project for later editing, then export the karaoke files.',
+    'Open Make from Karaoke and load the source audio. Choose the available separation or transcription tools you need.\nWatch progress; first use of an AI tool may require a model download. Review the resulting lyrics and notes in the timeline.\nPlay short passages, correct the timing and text, save the project for later editing, then export the karaoke files.\nIf you already have the words, paste the complete reference lyrics, including repeated lines. You can record line entries while listening and refine words and notes afterwards. Keep a project file for editable work; export LRC or UltraStar for the player.',
   'help.maker.lyricsCaption': 'The words, and when each one is sung',
   'help.maker.referenceName': 'Reference lyrics',
   'help.maker.reference':
@@ -694,7 +703,7 @@ const help = {
   'help.share.intro':
     'Share Audio links computers on the same private network into one group, and each one plays the others’ sound: whichever one you sit at, you hear the rest. Each computer sends its own sound straight to the others, untouched, and never sends back what it receives, so there is no echo; the computer you listen on applies its own EQ, curves and DSP. This is separate from mirroring to a second device on one computer.',
   'help.share.steps':
-    'On one computer, open Share Audio, press Add computer and then Copy code. Start at a low volume.\nOn the other computer, press Add computer, paste the code under The other computer’s code and press Link. Both computers play each other right away. Link more computers the same way: each one joins the whole group, and computers that join through another one appear with Receive off until you turn it on.\nIn The whole group, each computer has two switches, Receive and Send; Share turns this computer’s sound off for all of them. Your mix sets This PC’s volume and a level for each computer.\nPause, Resume and Unlink are in each computer’s menu. A computer that is away stays listed as Offline, and the group finds itself again after a restart, sleep, a network drop or an engine switch.',
+    'On one computer, open Share Audio, press Add computer and then Copy code. Start at a low volume.\nOn the other computer, press Add computer, paste the code under The other computer’s code and press Link. Both computers play each other right away. Link more computers the same way: each one joins the whole group, and computers that join through another one appear with Receive off until you turn it on.\nIn The whole group, each computer has two switches, Receive and Send; Share turns this computer’s sound off for all of them. Your mix sets This PC’s volume and a level for each computer.\nPause, Resume and Unlink are in each computer’s menu. A computer that is away stays listed as Offline, and the group finds itself again after a restart, sleep, a network drop or an engine switch.\nTurn Fluid on beside Share for music over a connection that stalls. It adds a small playback cushion; switch it off when lower delay matters more.\nFor a saved computer that stays Offline, open its ••• menu and choose Reconnect. It tries the saved code again without forgetting the link; if the other computer’s address changed, copy and paste its current code.',
   'help.share.tip':
     'Keep the connection code private: it authorizes linking. Under the FluidEQ Engine this computer keeps its DSP on while it shares, and the computer playing its sound applies its own. Playing and sending at once needs Windows on that computer; elsewhere a link runs one way.',
   'help.share.keywords':
@@ -716,9 +725,11 @@ const help = {
   'help.forum.steps':
     'Open Help → Forum and pick a board: Announcements, General, Ideas, Polls, Q&A or Show and tell. New for you gathers what came in since you last looked, and Issues lists the problems reported on GitHub.\nSearch the forum, or open a topic to read the replies.\nPress Sign in with GitHub, finish in your browser, then post a New topic or a reply.',
   'help.forum.tip':
-    'Everything posted is public on GitHub under your GitHub name. On Q&A, mark the answer that worked so the next person finds it.',
+    'Everything posted is public on GitHub under your GitHub name. On Q&A, mark the answer that worked so the next person finds it. Each board’s yellow count shows topics with activity you have not seen; Issues counts open issues. Half-written topics and replies are kept when you leave. Press a post’s picture to enlarge it inside FluidEQ.',
   'help.forum.keywords':
     'community, questions, support, discussions, github, feedback, feature request, ideas, suggestions, ask, help, contact, announcements',
+  'help.games.profiles':
+    'Open Gaming profiles to search by profile, game, curve or chain. The filters stay on one line and each kind of game has its own colour. Your saved profiles show their curve, Game filter levels and chain too. Use for a game starts a new copy.',
 };
 
 export default help;

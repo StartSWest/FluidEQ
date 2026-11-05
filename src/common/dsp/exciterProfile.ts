@@ -20,6 +20,7 @@ export const EXCITER_PRESET_GROUPS = [
   'scene',
   'character',
   'repair',
+  'gaming',
 ] as const;
 
 export type TExciterPresetGroup = (typeof EXCITER_PRESET_GROUPS)[number];

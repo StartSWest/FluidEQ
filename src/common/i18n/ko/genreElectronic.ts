@@ -13,9 +13,9 @@ const genreElectronic = {
   'genre.electronic.pin.8000': '모자와 공기',
   'genre.electronic.pin.8000.why': '밝은 믹스의 상단입니다.',
   'genre.electronic.stage.dimension':
-    '150Hz 미만의 모노, 중음보다 약간 높은 폭.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
   'genre.electronic.stage.maximizer':
-    '가벼운 천장은 옆에 있는 클럽 스타일보다 반 데시벨 더 세게 구동되어 수평을 유지합니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.electronic.off':
     'Exciter인 Bass Forge 및 Bass Punch는 제공되고 중단됩니다. Exciter는 이 상단을 빠르게 거칠게 만들고 서브는 그 아래에서 생성될 필요가 없습니다.',
   'genre.edm.hook': '큰 방: 킥은 베이스',
@@ -27,8 +27,10 @@ const genreElectronic = {
   'genre.edm.pin.315.why': '킥을 위한 공간.',
   'genre.edm.pin.5000': '슈퍼톱 바이트',
   'genre.edm.pin.5000.why': '리드의 가장자리.',
-  'genre.edm.stage.dimension': '모노 바닥이고 다른 것은 없습니다.',
-  'genre.edm.stage.maximizer': '잘린 마스터를 간신히 움직이는 천장.',
+  'genre.edm.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.edm.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.edm.off':
     'Exciter는 제공되고 중단됩니다. 모든 것을 갖춘 드롭에는 서브 부스트도 없고 확장도 없고 고조파도 없습니다.',
   'genre.house.hook': '펌프는 홈이다',
@@ -41,8 +43,11 @@ const genreElectronic = {
   'genre.house.pin.12500': '따뜻하다, 밝지 않다',
   'genre.house.pin.12500.why': '상단이 완화되었습니다.',
   'genre.house.stage.dimension':
-    '150Hz 미만의 모노이고 200까지 좁아졌으며 상단이 조금 더 넓어졌습니다.',
-  'genre.house.stage.maximizer': '펌프를 내버려두는 가벼운 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.house.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.house.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.house.off':
     'Bass Punch는 없습니다. 킥 시간을 재조정할 수 있는 방법이 없기 때문입니다. 자극기 또는 Bass Forge가 없습니다.',
   'genre.techno.hook': '지속적인 럼블 위에 압축된 킥',
@@ -57,8 +62,9 @@ const genreElectronic = {
   'genre.techno.stage.bassPunch':
     '기껏해야 킥이 조여져서 럼블이 번지지 않습니다.',
   'genre.techno.stage.dimension':
-    '모노 바닥; 가장 좁은 스타일에서는 넓어진 것이 없습니다.',
-  'genre.techno.stage.maximizer': '밝은 천장.',
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.techno.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.techno.off':
     '여자기 없음 및 Bass Forge 없음: 서브 부스트 없음 및 고조파 없음.',
   'genre.trance.hook': '대조를 기반으로 한 슈퍼톱과 드롭',
@@ -70,9 +76,10 @@ const genreElectronic = {
   'genre.trance.pin.315.why': '200~350Hz, 혼합이 흐려지는 경우.',
   'genre.trance.pin.3150': '부서지기 쉬운 밴드가 완화되었습니다.',
   'genre.trance.pin.3150.why': '톱이 유리처럼 변하는 약 3kHz입니다.',
-  'genre.trance.stage.dimension': '120Hz 미만의 모노, 그 이상은 아닙니다.',
+  'genre.trance.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
   'genre.trance.stage.maximizer':
-    '천장이 거의 움직이지 않아 낙하가 대비를 유지합니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.trance.off':
     '익사이터 또는 Bass Forge 없음: 슈퍼톱은 이미 충분한 상단을 생성합니다.',
   'genre.drumBass.hook': '모노 서브를 통해 174에서 브레이크',
@@ -86,9 +93,10 @@ const genreElectronic = {
   'genre.drumBass.pin.5000.why': '장르의 정체성.',
   'genre.drumBass.stage.bassPunch':
     '발차기가 조여졌지만 결코 올라가지 않았습니다.',
-  'genre.drumBass.stage.dimension': '서브 모노.',
+  'genre.drumBass.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
   'genre.drumBass.stage.maximizer':
-    '16분의 1 내부로 들어갈 수 있는 가벼운 천장으로 인해 스네어가 균열을 유지합니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.drumBass.off':
     'Exciter 또는 Bass Forge 없음: 뉴로 베이스에 고조파가 없습니다.',
   'genre.dubstep.hook': '으르렁거리는 소리 아래 사인 서브',
@@ -100,8 +108,10 @@ const genreElectronic = {
   'genre.dubstep.pin.80.why': '서브 위의 몸체.',
   'genre.dubstep.pin.500': '올가미와 으르렁거림을 위한 공간',
   'genre.dubstep.pin.500.why': '중간이 지워졌습니다.',
-  'genre.dubstep.stage.dimension': '120Hz 이하의 서브 모노.',
-  'genre.dubstep.stage.maximizer': '거의 움직이지 않는 천장.',
+  'genre.dubstep.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
+  'genre.dubstep.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.',
   'genre.dubstep.off':
     '익사이터 없음, Bass Punch 또는 Bass Forge: 으르렁거리는 소리가 이미 흥건합니다.',
   'genre.downtempo.hook': '깊은 베이스 아래에서 느린 브레이크',
@@ -115,7 +125,10 @@ const genreElectronic = {
   'genre.downtempo.pin.12500.why': '밝아지지 않았습니다.',
   'genre.downtempo.stage.dimension':
     '분위기는 더 넓어지고 저음은 좁아졌습니다.',
-  'genre.downtempo.stage.maximizer': '느리고 가벼운 천장.',
+  'genre.downtempo.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.downtempo.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.downtempo.off':
     'Bass Forge가 제공되고 중단되었습니다. 저음이 이미 깊습니다.',
   'genre.chillout.hook': '부드럽고 넓음',
@@ -129,8 +142,10 @@ const genreElectronic = {
   'genre.chillout.pin.12500.why': '위에는 쉬머가 있습니다.',
   'genre.chillout.stage.exciter': '가벼운 공기만.',
   'genre.chillout.stage.dimension': '더 넓은 상단: 여기서는 너비를 환영합니다.',
+  'genre.chillout.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
   'genre.chillout.stage.maximizer':
-    '전체 비트에 걸쳐 느린 천장: 아무것도 누르지 않았습니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.chillout.off':
     'Bass Punch 또는 Bass Forge 없음: 무거운 것은 없습니다.',
   'genre.lofi.hook': '일부러 어둡고 먼지가 많음',
@@ -142,9 +157,10 @@ const genreElectronic = {
   'genre.lofi.pin.200.why': '한 방향으로 잘 걸립니다.',
   'genre.lofi.pin.3150': '고의적으로 어둡게',
   'genre.lofi.pin.3150.why': '기록보다 더 밝은 것은 없습니다.',
-  'genre.lofi.stage.dimension': '약간 좁아지고 하단 모노는 120Hz 미만입니다.',
+  'genre.lofi.stage.dimension':
+    '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
   'genre.lofi.stage.maximizer':
-    '기록을 더 조용하게 마스터하기 위해 형제보다 조금 더 추진력이 있습니다.',
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.lofi.off':
     'Exciter가 제공되고 중단됩니다. 레코드는 이미 테이프에 포화 상태입니다.',
   'genre.ambient.hook': '낮은 레벨을 위해 만들어진 드론과 너울',
@@ -158,7 +174,8 @@ const genreElectronic = {
   'genre.ambient.pin.12500.why': '패드의 상단입니다.',
   'genre.ambient.stage.dimension':
     '와이드, 모든 장르 중 가장 넓으며 모노에서도 여전히 안전합니다.',
-  'genre.ambient.stage.maximizer': '너울의 꼭대기에만 닿는 천장.',
+  'genre.ambient.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.ambient.off':
     'Exciter가 제공되고 중단됩니다. 아무것도 압축하거나 조용함을 평준화하지 않습니다.',
   'genre.newAge.hook': '피아노, 플루트 및 긴 리버브',
@@ -171,7 +188,10 @@ const genreElectronic = {
   'genre.newAge.pin.12500': '약간의 공기',
   'genre.newAge.pin.12500.why': '리버브 위에.',
   'genre.newAge.stage.dimension': '넓은 분위기.',
-  'genre.newAge.stage.maximizer': '아무것도 조용함을 평준화하지 않습니다.',
+  'genre.newAge.stage.deEsser':
+    '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',
+  'genre.newAge.stage.maximizer':
+    '정규화된 입력을 이 장르에서 측정한 감상 음량으로 올리고 피크를 −1 dBTP로 제한합니다. 녹음의 강약을 보존하도록 제한을 절제하며 Master와 Dynamics는 꺼 둡니다.느린 릴리스로 개별 비트를 따라가는 것을 피합니다.',
   'genre.newAge.off':
     'Exciter는 제공되고 중단됩니다. 투명하다는 것이 간단합니다.',
 } satisfies Partial<Dictionary>;

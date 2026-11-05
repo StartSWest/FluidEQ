@@ -5,20 +5,23 @@ import type { Dictionary } from '../en';
 const genrePop = {
   'genre.pop.hook': '目前完成最多的紀錄是',
   'genre.pop.story':
-    '流行音樂的執行速度為 100 至 130 BPM，或半時速度約為 90，超過 808 或合成貝斯，聲音明亮到略顯刺耳。母帶到達時限制為大約 −8 LUFS，峰值超過全尺寸，因此播放階段可以新增的所有內容都已經在其中了。預設僅新增母版無法擁有的內容。',
+    '現代流行音樂以紮實的低音和明亮開闊的混音襯托清晰的主唱。歌曲先統一至 −18 LUFS，讓響亮的母帶和較輕的錄音以相同電平進入處理。隨後最大化器將結果提升至約 −11 LUFS，把峰值限制在 −1 dBTP，同時保留主歌、副歌和鼓點之間的強弱對比。',
   'genre.pop.pin.50': '重低音和大鼓流行音樂是建立在',
   'genre.pop.pin.50.why': '感受到的比聽到的要多：小型喇叭首先減輕的重量。',
   'genre.pop.pin.315': '隱藏聲音的四四方方',
   'genre.pop.pin.315.why': '去掉後，主唱就可以從混音中脫穎而出。',
   'genre.pop.pin.5000': '存在感和光澤',
   'genre.pop.pin.5000.why': '人聲的潤色，不致於刺耳。',
-  'genre.pop.stage.exciter': '琴體在 1kHz 左右，人聲上有光澤，下方有溫暖。',
+  'genre.pop.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.pop.stage.exciter':
+    '為人聲增添少量厚度與溫暖。高頻段激勵器保持關閉，保留錄音原有的光澤。',
   'genre.pop.stage.bassPunch':
     '收緊而不是打擊：低音線下方的踢尾較短，起音剛剛提升。',
   'genre.pop.stage.dimension':
     '單聲道低音低於 140 Hz，就像流行音樂大師的作品一樣，空氣比唱片寬一點。',
   'genre.pop.stage.maximizer':
-    '一個幾乎無法驅動的輕型天花板：主人已經受到限制。',
+    '輸入響度統一後提升 7 dB，以約 −11 LUFS 為目標，峰值上限為 −1 dBTP。Master 保持關閉，只用一個最終限制器保留衝擊力。',
   'genre.pop.off':
     'Bass Forge 以 Pop 的名義提供，並保留下來：低音砲位於母帶中。',
   'genre.indiePop.hook': '比圖表更輕更溫暖',
@@ -34,8 +37,11 @@ const genrePop = {
   'genre.indiePop.pin.12500.why': '溫柔，覆蓋著原本柔軟的頂部。',
   'genre.indiePop.stage.exciter': '僅溫暖，在中低頻：從未如此明亮。',
   'genre.indiePop.stage.dimension':
-    '底部變窄了，空氣也變寬了：和聲在不移動聲音的情況下開啟。',
-  'genre.indiePop.stage.maximizer': '保持柔軟的淺色天花板。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.indiePop.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.indiePop.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.indiePop.off': '沒有舞臺可以照亮它或增加低音：低保真溫暖才是重點。',
   'genre.synthPop.hook': '鼓機、音序貝斯和合唱墊',
   'genre.synthPop.story':
@@ -48,8 +54,11 @@ const genrePop = {
   'genre.synthPop.pin.12500.why': '早期的合成器流行音樂已經變得光明。',
   'genre.synthPop.stage.exciter': '僅在中低音處溫暖：在明亮的頂部沒有諧波。',
   'genre.synthPop.stage.dimension':
-    '低音變窄，音墊變寬，這就是這種流派的混合方式。',
-  'genre.synthPop.stage.maximizer': '緩慢的天花板保留了 80 年代的活力。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.synthPop.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.synthPop.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.synthPop.off':
     '沒有 Bass Punch 和沒有 Bass Forge：鼓機的底鼓完全按照程式設計進行。',
   'genre.newWave.hook': '急促、起伏不定的吉他和傾斜的底部',
@@ -62,25 +71,32 @@ const genrePop = {
   'genre.newWave.pin.1250': '波濤洶湧的吉他',
   'genre.newWave.pin.1250.why': '節奏吉他的魅力所在。',
   'genre.newWave.stage.exciter':
-    '一點點的身體和一點點的空氣，這是薄薄的原件所歡迎的。',
-  'genre.newWave.stage.dimension': '接近記錄：底部變窄，頂部變寬。',
-  'genre.newWave.stage.maximizer': '一個只吸引人的天花板：快照就是流派。',
+    '僅在中低頻添加少許溫暖感。三個諧波頻段全部關閉，保持疊加人聲清晰。',
+  'genre.newWave.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.newWave.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.newWave.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.newWave.off':
     '沒有 Bass Punch 或 Bass Forge：精實底部就是它的製作方式。',
-  'genre.kPop.hook': '最響亮、最精美的唱片之一',
+  'genre.kPop.hook': '清晰人聲、緊實低頻與有力的高潮',
   'genre.kPop.story':
-    '女團舞曲多在 115 至 130 BPM，男團歌曲則常接近 80 至 100 BPM。大鼓強調極低頻衝擊，人聲在 3 至 5 kHz 和 12 kHz 通常已經提升。母帶約為 −10 至 −6 LUFS，峰值往往超過滿刻度。',
+    'BTS 的 Dynamite 以迪斯可流行貝斯為特色，BLACKPINK 的 How You Like That 則有厚重的嘻哈段落。兩首歌都需要清晰人聲、份量和強弱對比。處理前將輸入統一到 −18 LUFS。本聆聽預設依據兩首歌的 Apple 官方試聽片段校準，未使用耳機補償。',
   'genre.kPop.pin.80': '是踢拳，而不是子拳',
   'genre.kPop.pin.80.why': '踢球落地的地方； 50 Hz 以下沒有任何物體被提升。',
   'genre.kPop.pin.315': '密集排列下的空間',
-  'genre.kPop.pin.315.why': '中低頻已清除，因此各層不會模糊。',
+  'genre.kPop.pin.315.why': '輕削中低頻以分開密集層次，同時保留人聲厚度。',
   'genre.kPop.pin.12500': '沒有額外的空氣',
-  'genre.kPop.pin.12500.why': '人聲已經帶有 12 kHz 的聲音。',
+  'genre.kPop.pin.12500.why': '不再額外提升高頻，保留錄音本來的空氣感。',
+  'genre.kPop.stage.deEsser':
+    '對中央人聲的 5–10 kHz 進行溫和的頻譜去齒音，最多衰減 1.5 dB，保護鈸聲且不削減低頻。',
   'genre.kPop.stage.exciter':
-    '身體和臨場感都在人聲自身的提升之下，而上面什麼都沒有。',
-  'genre.kPop.stage.dimension': '低音變窄，雙音和低音比混合後稍寬。',
+    '僅在中低頻添加少許溫暖感。三個諧波頻段全部關閉，保持疊加人聲清晰。',
+  'genre.kPop.stage.dimension':
+    '收窄低頻，略微展開錄音既有的高頻側聲道，不擴散中央主唱。',
   'genre.kPop.stage.maximizer':
-    '天花板幾乎無法驅動：這些大師的聲音與大師一樣響亮。',
+    '輸入正規化至 −18 LUFS 後提升 7 dB，目標約為 −11 LUFS，峰值限制在 −1 dBTP。Dynamics 和 Master 保持關閉。',
   'genre.kPop.off':
     '沒有 Bass Punch 或 Bass Forge：踢擊和重低音喇叭已在記錄中。',
   'genre.jPop.hook': '任何節奏的密集、明亮的牆壁',
@@ -93,8 +109,12 @@ const genrePop = {
   'genre.jPop.pin.3150': '中高頻單獨留下',
   'genre.jPop.pin.3150.why': '已經光明正大；從來沒有推動過。',
   'genre.jPop.stage.exciter': '只有溫暖，在中低頻：頂部沒有任何東西如此明亮。',
-  'genre.jPop.stage.dimension': '沒有任何東西變寬：牆壁夠寬。',
-  'genre.jPop.stage.maximizer': '一個天花板幾乎無法驅動已經被剪裁的母版。',
+  'genre.jPop.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.jPop.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.jPop.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.jPop.off': '沒有 Bass Punch 或 Bass Forge：牆壁變得密集且響亮。',
   'genre.cPop.hook': '民謠，聲音的前沿和中心',
   'genre.cPop.story':
@@ -106,8 +126,12 @@ const genrePop = {
   'genre.cPop.pin.12500': '溫柔的空氣',
   'genre.cPop.pin.12500.why': '稍微提升到子音上方，而不是子音上方。',
   'genre.cPop.stage.exciter': '僅溫暖：齒擦音上沒有和聲。',
-  'genre.cPop.stage.dimension': '中頻較窄，因此聲音位於中間，弦樂和殘響較寬。',
-  'genre.cPop.stage.maximizer': '民謠動態的緩慢上限。',
+  'genre.cPop.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.cPop.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.cPop.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.cPop.off':
     '沒有 Bass Punch 或 Bass Forge：鋼琴民謠下沒有發明重低音喇叭。',
   'genre.ballad.hook': '慢歌，聲音蓋過一切',
@@ -124,9 +148,11 @@ const genrePop = {
   'genre.ballad.pin.8000.why':
     '近距離的聲音在這裡傳遞出它的精髓，而一次提升會讓每個人都變得敏銳。',
   'genre.ballad.stage.dimension':
-    '低音向中間變窄，民謠與其中混合；人聲、鋼琴和琴絃的寬度與它們放置的位置一樣寬。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.ballad.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
   'genre.ballad.stage.maximizer':
-    '輕盈、緩慢的天花板讓整個節拍得以流逝，因此安靜的詩句保持安靜，最後的副歌仍然升起。',
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.ballad.off':
     '不使用激勵器、Bass Forge 或 Bass Punch：新增的諧波容易落在齒音上，抒情歌曲的極低頻應保留製作人原有的安排，而且通常沒有需要塑形的大鼓。',
 } satisfies Partial<Dictionary>;

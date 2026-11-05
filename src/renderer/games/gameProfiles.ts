@@ -5,12 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The game profiles this listener has made, as they are kept and read back.
+ * The listener's games, as they are kept and read back.
  *
- * Beside the saved chains and the starred ones, in the window's own storage:
- * they are a listener's list rather than a setting of the sound, and nothing
- * outside the window needs them — main watches what is in front and the
- * window decides what that means.
+ * In the window's own storage: they are a listener's list rather than a
+ * setting of the sound, and nothing outside the window needs them — main
+ * watches what is in front, keeps each game's copy of its sound, and the
+ * window decides what being in front means.
  */
 
 import {
@@ -19,6 +19,8 @@ import {
   IGameProgram,
   TGameSource,
 } from '../../common/games';
+import { gamingProfileName } from '../../common/gaming';
+import isGameProgramEligible from '../../common/gamePrograms';
 
 const STORAGE_KEY = 'fluideq.games.profiles.v1';
 
@@ -49,16 +51,25 @@ export const readGameProfiles = (): IGameProfile[] => {
         typeof entry.id !== 'string' ||
         typeof entry.name !== 'string' ||
         typeof entry.path !== 'string' ||
-        entry.path === ''
+        entry.path === '' ||
+        !isGameProgramEligible({ name: entry.name, path: entry.path })
       ) {
         return [];
       }
+      const copyName =
+        typeof entry.copyName === 'string'
+          ? gamingProfileName(entry.copyName)
+          : undefined;
       return [
         {
           id: entry.id,
           name: entry.name.slice(0, GAME_NAME_MAX),
           path: entry.path,
           presetId: typeof entry.presetId === 'string' ? entry.presetId : '',
+          ...(typeof entry.profileId === 'string' && entry.profileId !== ''
+            ? { profileId: entry.profileId }
+            : {}),
+          ...(copyName ? { copyName } : {}),
           source: asSource(entry.source),
           ...(typeof entry.icon === 'string' && entry.icon.startsWith('data:')
             ? { icon: entry.icon }
@@ -83,7 +94,7 @@ const write = (profiles: readonly IGameProfile[]): void => {
 const ENABLED_KEY = 'fluideq.games.enabled.v1';
 
 /**
- * Whether game presets run at all — the page's own switch.
+ * Whether games switch the sound at all — the Gaming Lab's own switch.
  *
  * On unless it was switched off: every list saved before the switch existed
  * was a list somebody wanted running. Off is the whole feature, not a pause
@@ -133,9 +144,12 @@ const newId = (): string =>
  */
 export const addGameProfile = (
   program: Omit<IGameProfile, 'id' | 'presetId'>,
-  presetId = '',
+  profileId?: string,
 ): IGameProfile[] => {
   const profiles = readGameProfiles();
+  if (!isGameProgramEligible(program)) {
+    return profiles;
+  }
   const key = program.path.toLowerCase();
   if (profiles.some((profile) => profile.path.toLowerCase() === key)) {
     return profiles;
@@ -146,7 +160,8 @@ export const addGameProfile = (
       ...program,
       name: program.name.slice(0, GAME_NAME_MAX),
       id: newId(),
-      presetId,
+      presetId: '',
+      ...(profileId ? { profileId } : {}),
       ...(program.icon && program.icon.length <= ICON_MAX
         ? { icon: program.icon }
         : { icon: undefined }),
@@ -156,13 +171,24 @@ export const addGameProfile = (
   return next;
 };
 
-export const setGameProfilePreset = (
+/**
+ * A game's Gaming profile or its copy's name changed; `copyName: undefined`
+ * takes a name away.
+ */
+export const updateGameProfile = (
   id: string,
-  presetId: string,
+  patch: Partial<Pick<IGameProfile, 'profileId' | 'copyName'>>,
 ): IGameProfile[] => {
-  const next = readGameProfiles().map((profile) =>
-    profile.id === id ? { ...profile, presetId } : profile,
-  );
+  const next = readGameProfiles().map((profile) => {
+    if (profile.id !== id) {
+      return profile;
+    }
+    const updated: IGameProfile = { ...profile, ...patch };
+    if (updated.copyName === undefined) {
+      delete updated.copyName;
+    }
+    return updated;
+  });
   write(next);
   return next;
 };

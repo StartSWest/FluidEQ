@@ -404,18 +404,21 @@ it('shows the engine’s treble choice where the EQ mode menu has it, with its m
   expect(screen.getByText('−80 dBFS')).toBeInTheDocument();
 });
 
-it('tells what a minimized game keeps and what closing it gives back', () => {
-  showTour();
+it('draws the Gaming Lab with the music, then with the game in front, and offers its film', () => {
+  showTour('2.3.0');
   goTo('Every game, its own sound');
+  const picture = screen.getByRole('img', {
+    name: /^The Gaming Lab with Counter-Strike 2/,
+  });
+  // Both turns, from the page's own parts: the music's Try it now, then the
+  // game's own sound on, with Unload in its place.
+  expect(within(picture).getByText('Try it now')).toBeInTheDocument();
+  expect(within(picture).getByText('Unload')).toBeInTheDocument();
+  // The game's turn names the preset its sound plays, as its chip names it.
+  expect(within(picture).getByText('Competitive')).toBeInTheDocument();
   expect(
-    screen.getByText('Minimized or alt-tabbed: its sound stays on'),
+    screen.getByRole('button', { name: 'Watch the video' }),
   ).toBeInTheDocument();
-  expect(
-    screen.getByText('Closed: your own sound comes back'),
-  ).toBeInTheDocument();
-  // The cards say what the desktop card says, in its own words.
-  expect(screen.getByText('Back to Pop')).toBeInTheDocument();
-  expect(screen.getAllByText('for Counter-Strike 2')).toHaveLength(1);
 });
 
 it('opens the guide from the Help slide', () => {
@@ -426,10 +429,10 @@ it('opens the guide from the Help slide', () => {
   expect(requestHelpGuide).toHaveBeenCalledTimes(1);
 });
 
-it('lands on the Game presets page from its slide', () => {
+it('lands on the Gaming Lab from its slide', () => {
   const { onOpenTab } = showTour();
   goTo('Every game, its own sound');
-  fireEvent.click(screen.getByRole('button', { name: 'Open Game presets' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Open the Gaming Lab' }));
   expect(onOpenTab).toHaveBeenCalledWith('games');
 });
 

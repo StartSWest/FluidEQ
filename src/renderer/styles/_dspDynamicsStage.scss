@@ -1,0 +1,210 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'sass:list';
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'dspTokens' as *;
+
+// The Dynamics stage's page (`DspDynamicsCard`). `_dspDynamics.scss` is the
+// EQ's dynamic bands; this is the compressor.
+//
+// One colour per band, the same on its curve, its key and its panel: the lows
+// in the lagoon's deepest blue, the middle in the rack's applied accent, the
+// highs in the voice's gold.
+$dynamics-low: list.nth($lagoon, 7);
+$dynamics-high: $neon-yellow;
+
+@mixin band-ink($property) {
+  &.is-band-0 {
+    #{$property}: $dynamics-low;
+  }
+
+  &.is-band-1 {
+    #{$property}: var(--dsp-applied);
+  }
+
+  &.is-band-2 {
+    #{$property}: $dynamics-high;
+  }
+}
+
+// One shared frequency plot, with readable band gains above it.
+.dsp-dynamics-graph {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 12px 10px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: $surface-plot;
+  transition: opacity 160ms ease;
+
+  &.is-off {
+    opacity: 0.45;
+  }
+
+  > canvas {
+    display: block;
+    width: 100%;
+    height: 260px;
+  }
+
+  > figcaption {
+    padding: 4px 4px 0;
+    color: $text-faint;
+    font-size: $text-small;
+    line-height: 1.5;
+  }
+}
+
+.dsp-dynamics-graph-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 18px;
+  padding: 0 4px 12px;
+}
+
+.dsp-dynamics-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.dsp-dynamics-key-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  &::before {
+    width: 16px;
+    height: 3px;
+    border-radius: 2px;
+    content: '';
+  }
+
+  &.is-input::before {
+    height: 0;
+    border-top: 1px dashed $text-faint;
+  }
+
+  &.is-output::before {
+    height: 8px;
+    background: rgba($dynamics-low, 0.3);
+    border-top: 1px solid $dynamics-low;
+  }
+
+  &.is-gain::before {
+    background: linear-gradient(
+      90deg,
+      $dynamics-low,
+      var(--dsp-applied),
+      $dynamics-high
+    );
+  }
+}
+
+.dsp-dynamics-readouts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dsp-dynamics-readout {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 5px 9px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  font-size: $text-small;
+  @include band-ink(color);
+
+  > output {
+    display: inline-block;
+    width: 7ch;
+    color: $text-primary;
+    font-family: $font-mono;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@container dsp-card (min-width: #{$bp-md}) {
+  .dsp-dynamics-graph > canvas {
+    height: 310px;
+  }
+}
+
+// One column on a narrow card, two by two from a medium one, the three bands
+// and the timing side by side on a wide one: four panels divide by each of
+// those, so none is ever left alone on a row.
+.dsp-dynamics-bands {
+  display: grid;
+  flex: 1 1 100%;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+
+  > .dsp-band {
+    flex: none;
+    gap: 6px;
+  }
+}
+
+@container dsp-card (min-width: #{$bp-md}) {
+  .dsp-dynamics-bands {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container dsp-card (min-width: #{$bp-xl}) {
+  .dsp-dynamics-bands {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+// The band's colour as a mark before its name, so a panel is found from its
+// curve and a curve from its panel.
+.dsp-dynamics-band .dsp-band-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  &::before {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    content: '';
+  }
+}
+
+.dsp-dynamics-band.is-band-0 .dsp-band-title::before {
+  background: $dynamics-low;
+}
+
+.dsp-dynamics-band.is-band-1 .dsp-band-title::before {
+  background: var(--dsp-applied);
+}
+
+.dsp-dynamics-band.is-band-2 .dsp-band-title::before {
+  background: $dynamics-high;
+}
+
+// "Lift" and "Hold", over their dials: the two halves of a band.
+.dsp-dynamics-side {
+  margin-top: 4px;
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}

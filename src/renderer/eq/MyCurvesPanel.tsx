@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import type { IMyCurve } from 'common/myCurves';
 import type { ErrorDescription } from 'common/errors';
+import { searchMatcher } from 'common/searchText';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { importEqText } from '../utils/equalizerApi';
@@ -43,10 +44,8 @@ export default function MyCurvesPanel() {
   const [isApplying, setApplying] = useState(false);
 
   const shown = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    const found = needle
-      ? curves.filter((curve) => curve.name.toLowerCase().includes(needle))
-      : [...curves];
+    const matchesQuery = searchMatcher(query);
+    const found = curves.filter((curve) => matchesQuery(curve.name));
     return sort === 'name'
       ? found.sort((a, b) => a.name.localeCompare(b.name))
       : found;
@@ -81,25 +80,60 @@ export default function MyCurvesPanel() {
           <h3>{t('myCurves.tab.mine')}</h3>
           <p>{t('myCurves.intro')}</p>
         </div>
+        {/* Every action in one row (Ivan, 2026-11-03: "can we arrange these
+            buttons better"): the whole list's way in and out, then a curve's,
+            the loud one last. They used to stand in two rows of different
+            widths, this pair here and the list's beside the search, and in
+            a narrow panel Export list fell to a line of its own. Each pair
+            stays together, so a row too narrow for four becomes two even
+            rows of two, in every language. */}
         <div className="my-curves__actions">
-          <button
-            type="button"
-            className="button small subtle"
-            disabled={!isLoaded}
-            onClick={() => setDialog('add')}
-          >
-            <MenuIcon name="import" />
-            {t('myCurves.importSquiglink')}
-          </button>
-          <button
-            type="button"
-            className="button small"
-            disabled={!isLoaded}
-            onClick={() => setDialog('add')}
-          >
-            <MenuIcon name="plus" />
-            {t('myCurves.add')}
-          </button>
+          <div className="my-curves__pair">
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={!isLoaded}
+              onClick={() => setDialog('import')}
+            >
+              {/* Into the tray, where Export comes out of it: side by side
+                  the two read as opposite directions, not as one glyph
+                  twice. */}
+              <MenuIcon name="download" />
+              {t('myCurves.import')}
+            </button>
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={curves.length === 0}
+              onClick={() => setDialog('export')}
+            >
+              <MenuIcon name="upload" />
+              {t('myCurves.export')}
+            </button>
+          </div>
+          <div className="my-curves__pair">
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={!isLoaded}
+              onClick={() => setDialog('add')}
+            >
+              {/* A curve off a graph, never `import`: that glyph is drawn
+                  exactly as `upload` is, and beside Export list it said the
+                  opposite of what the button does. */}
+              <MenuIcon name="graph" />
+              {t('myCurves.importSquiglink')}
+            </button>
+            <button
+              type="button"
+              className="button small"
+              disabled={!isLoaded}
+              onClick={() => setDialog('add')}
+            >
+              <MenuIcon name="plus" />
+              {t('myCurves.add')}
+            </button>
+          </div>
         </div>
       </header>
       <div className="my-curves__toolbar">
@@ -138,27 +172,6 @@ export default function MyCurvesPanel() {
             </button>
           ))}
         </div>
-        <span className="my-curves__spacer" />
-        <button
-          type="button"
-          className="button small subtle"
-          disabled={!isLoaded}
-          onClick={() => setDialog('import')}
-        >
-          {/* Into the tray, where Export comes out of it: side by side the
-              two read as opposite directions, not as one glyph twice. */}
-          <MenuIcon name="download" />
-          {t('myCurves.import')}
-        </button>
-        <button
-          type="button"
-          className="button small subtle"
-          disabled={curves.length === 0}
-          onClick={() => setDialog('export')}
-        >
-          <MenuIcon name="upload" />
-          {t('myCurves.export')}
-        </button>
       </div>
 
       {isFailed && (

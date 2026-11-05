@@ -34,6 +34,22 @@ const FAMILIES: Partial<Record<HelpChapterId, readonly ITermFamily[]>> = {
     { keys: CHAINS, control: 'dsp.presets' },
     { keys: /^dsp\.masterPreset\.[a-zA-Z0-9]+$/, control: 'dsp.master.title' },
   ],
+  library: [
+    {
+      keys: /^library\.browse\.(album|artist|genre|song|folder|directory|playlist)$/,
+    },
+    { keys: /^library\.view\.(list|grid|coverflow)$/ },
+    {
+      keys: /^library\.playlist\.(new|favorites|addToFavorites|removeFromFavorites|addTo|removeFrom|rename|delete)$/,
+    },
+  ],
+  dynamics: [{ keys: /^dsp\.dynamics(Preset)?\./ }],
+  deesser: [{ keys: /^dsp\.deEsser(Preset)?\./ }],
+  normalizer: [{ keys: /^dsp\.normalizer\./ }],
+  crossfade: [{ keys: /^dsp\.crossfade\./ }],
+  gamefilter: [{ keys: /^dsp\.footsteps\./ }],
+  songs: [{ keys: /^(songSound|songEq)\./ }],
+  mycurves: [{ keys: /^myCurves\./ }],
   room: [
     {
       keys: /^dsp\.room\.(preset|profile)\.[a-zA-Z0-9]+$/,
@@ -46,7 +62,11 @@ const FAMILIES: Partial<Record<HelpChapterId, readonly ITermFamily[]>> = {
       control: 'graph.picker.styles',
     },
   ],
-  games: [{ keys: /^games\.source\.[a-zA-Z]+$/, control: 'games.add' }],
+  games: [
+    { keys: /^games\.source\.[a-zA-Z]+$/, control: 'gaming.add' },
+    { keys: /^gaming\.(profile|profiles|action)\./ },
+    { keys: /^dsp\.gaming(Chain|Preset)\./ },
+  ],
   lighting: [
     { keys: /^lighting\.effect\.[a-zA-Z]+$/, control: 'lighting.tuning.title' },
   ],

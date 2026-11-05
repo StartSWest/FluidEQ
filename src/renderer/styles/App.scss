@@ -3208,12 +3208,17 @@ $graph-card-pages: list.join(
   }
 }
 
-// Share Audio can be taller than the window while its graph and connection
-// workspace stay one continuous page. Its scroller used to stop at the
-// panel's right padding, leaving the thumb floating a full gutter away from
-// the card edge. Give the scroller the edge and put the content air inside it,
-// matching the panels whose scrollbar visibly belongs to the outer card.
-.workspace-tab-panel--share {
+// Every page that scrolls as a whole puts its scrollbar on the card's edge.
+// The scroller used to stop at the panel's right padding, leaving the thumb
+// floating a full gutter (13px) inside the card; Share Audio was fixed first,
+// and the Gaming Lab and DSP kept the gap until Ivan held them up to it
+// (2026-11-04: "need to be full to the right like on shared audio"). The
+// scroller takes the edge and the content's air goes inside it. Only pages
+// whose one child is the scroller: the equaliser's pages keep their pills
+// row in the panel, which would lose its right inset.
+.workspace-tab-panel--share,
+.workspace-tab-panel--games,
+.workspace-tab-panel--dsp {
   padding-right: 0;
 
   > .workspace-tab-panel__scroll {

@@ -34,6 +34,11 @@ constexpr uint32_t kBlock = 480;
 FeqDeEsserSettings vocal_music() {
   FeqDeEsserSettings settings{};
   feq_deesser_settings_defaults(&settings);
+  // Stable strong reference for the algorithm contracts; factory defaults
+  // are intentionally gentler for finished music.
+  settings.sensitivity = 0.55;
+  settings.range_db = 6.0;
+  settings.keep_cymbals = 0.7;
   settings.enabled = 1;
   return settings;
 }

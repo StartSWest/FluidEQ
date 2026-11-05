@@ -1,0 +1,122 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'constant' as *;
+@use 'motion' as *;
+
+// The Gaming Lab (`GamingLabVisual.tsx`): the page's own top line, list and
+// game header, from its own classes, in two turns — the music, then the game
+// in front with its own sound on. Layout only: every colour, type and
+// spacing inside is the page's.
+
+// One turn of the music and the game. Each is on for half of it.
+$lab-turn: 9s;
+
+// No frame of its own, and none from the tab: the slide's picture frame is
+// the one frame. With the tab's card inside it and a frame of its own around
+// both, the Lab sat three boxes deep.
+.gaming-lab-visual {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  @include animate(rise-in, $motion-slow);
+
+  // The two turns in one place: only one is on at a time.
+  > * {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+
+  // The page without the tab around it: it sizes to its content rather than
+  // filling a tab, and draws no card or scrollbar of its own.
+  .workspace-tab-panel,
+  .workspace-tab-panel__scroll {
+    height: auto;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+}
+
+// Smaller where the stage is shorter, so How to start beside it and the
+// film's key under it stay on screen, as the outputs' picture does.
+@media (max-height: $bp-full-hd-height) {
+  .gaming-lab-visual {
+    zoom: 0.88;
+  }
+}
+
+// A laptop's stage leaves the list out rather than drawing everything
+// smaller still: the game's own header names it and says it is playing, and
+// at 1366 x 768 the whole picture ran 40 to 63px past the stage, with the
+// list's rows cut short in Russian.
+@media (max-height: $bp-laptop-height) {
+  .gaming-lab-visual {
+    zoom: 0.78;
+  }
+
+  .gaming-lab-visual .gaming-games__list {
+    display: none;
+  }
+}
+
+.gaming-lab-visual__turn {
+  animation: gaming-lab-visual-turn $lab-turn ease-in-out infinite;
+}
+
+.gaming-lab-visual__turn--game {
+  animation-delay: calc(#{$lab-turn} / -2);
+}
+
+@keyframes gaming-lab-visual-turn {
+  0%,
+  44% {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  50%,
+  94% {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  100% {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+// Held still, the picture shows what the slide is about: the game's own
+// sound on.
+@media (prefers-reduced-motion: reduce) {
+  .gaming-lab-visual__turn {
+    animation: none;
+  }
+
+  .gaming-lab-visual__turn--music {
+    visibility: hidden;
+  }
+}
+
+.tour-release23__also {
+  margin-top: 24px;
+
+  .tour-showcase__points {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1280px) {
+  .tour-release23__also .tour-showcase__points {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

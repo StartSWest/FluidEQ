@@ -14,6 +14,7 @@ import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
 import { BASE_CURVE_CSS, baseCurveInk } from './dspInks';
 import writeLiveText from '../utils/liveText';
 import useCanvasSize from './useCanvasSize';
+import createMaximizerReadout from './maximizerReadout';
 
 /**
  * What the Maximizer did to the last six seconds of the record.
@@ -157,6 +158,13 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
   const { ceilingDb, enabled } = maximizer;
 
   useEffect(() => {
+    const readout = createMaximizerReadout();
+    if (!enabled) {
+      heldDepth.current = 0;
+      peakHold.current = 0;
+      writeLiveText(reductionRef.current, '0.0 dB');
+      writeLiveText(holdRef.current, '0.0 dB');
+    }
     const paint = ({ schedule }: IGraphLoopFrame) => {
       const textInk = readTextInk();
       const canvas = canvasRef.current;
@@ -194,29 +202,39 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
           ? heldDepth.current
           : Math.max(heldDepth.current, peakHold.current - PEAK_HOLD_FALL_DB);
 
-      writeLiveText(
-        reductionRef.current,
-        heldDepth.current < 0.05
-          ? '0.0 dB'
-          : `-${heldDepth.current.toFixed(1)} dB`,
-      );
-      writeLiveText(
-        holdRef.current,
-        peakHold.current < 0.05
-          ? '0.0 dB'
-          : `-${peakHold.current.toFixed(1)} dB`,
-      );
-      const isReading = levelDb > OUTPUT_FLOOR_DB;
-      if (isReading) {
-        writeLiveText(outputRef.current, `${levelDb.toFixed(1)} dBFS`);
-      }
-      if (isReading !== isReadingRef.current) {
-        isReadingRef.current = isReading;
-        if (outputRestRef.current) {
-          outputRestRef.current.hidden = isReading;
+      const reading = readout.sample(now, {
+        reductionDb: depthDb,
+        peakHoldDb: peakHold.current,
+        outputDb: levelDb,
+      });
+      if (reading) {
+        writeLiveText(
+          reductionRef.current,
+          reading.reductionDb < 0.05
+            ? '0.0 dB'
+            : `-${reading.reductionDb.toFixed(1)} dB`,
+        );
+        writeLiveText(
+          holdRef.current,
+          reading.peakHoldDb < 0.05
+            ? '0.0 dB'
+            : `-${reading.peakHoldDb.toFixed(1)} dB`,
+        );
+        const isReading = reading.outputDb > OUTPUT_FLOOR_DB;
+        if (isReading) {
+          writeLiveText(
+            outputRef.current,
+            `${reading.outputDb.toFixed(1)} dBFS`,
+          );
         }
-        if (outputReadingRef.current) {
-          outputReadingRef.current.hidden = !isReading;
+        if (isReading !== isReadingRef.current) {
+          isReadingRef.current = isReading;
+          if (outputRestRef.current) {
+            outputRestRef.current.hidden = isReading;
+          }
+          if (outputReadingRef.current) {
+            outputReadingRef.current.hidden = !isReading;
+          }
         }
       }
 
@@ -458,6 +476,16 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
         sampledAt.current = performance.now();
         heldDepth.current = 0;
         peakHold.current = 0;
+        readout.reset();
+        writeLiveText(reductionRef.current, '0.0 dB');
+        writeLiveText(holdRef.current, '0.0 dB');
+        isReadingRef.current = false;
+        if (outputRestRef.current) {
+          outputRestRef.current.hidden = false;
+        }
+        if (outputReadingRef.current) {
+          outputReadingRef.current.hidden = true;
+        }
       },
     });
     redraw.current = loop.schedule;

@@ -128,6 +128,22 @@ export default function MarkdownEditor({
     undefined,
   );
   const previewTicket = useRef(0);
+  // A picture pasted or dropped in: GitHub lets no app add one to a post
+  // (Ivan chose, 2026-11-02, to keep pictures on GitHub's own page), so the
+  // box refuses it out loud and points at "Post on GitHub instead".
+  const [pictureRefused, setPictureRefused] = useState(false);
+  const refusePictures = (event: {
+    dataTransfer?: DataTransfer | null;
+    clipboardData?: DataTransfer | null;
+    preventDefault: () => void;
+  }) => {
+    const carried = event.clipboardData ?? event.dataTransfer;
+    const files = Array.from(carried?.files ?? []);
+    if (files.length > 0) {
+      event.preventDefault();
+      setPictureRefused(true);
+    }
+  };
 
   // A formatting button changes the text and then wants the caret where the
   // person continues typing. The new text is only in the textarea after React
@@ -241,7 +257,12 @@ export default function MarkdownEditor({
           // eslint-disable-next-line jsx-a11y/no-autofocus -- opened by the person pressing Reply, so the focus goes where they are about to type.
           autoFocus={autoFocus}
           disabled={disabled}
-          onChange={(event) => onChange(event.target.value)}
+          onChange={(event) => {
+            setPictureRefused(false);
+            onChange(event.target.value);
+          }}
+          onPaste={refusePictures}
+          onDrop={refusePictures}
           onKeyDown={(event) => {
             if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
               event.preventDefault();
@@ -267,6 +288,11 @@ export default function MarkdownEditor({
         </span>
         <span>{t('forum.composer.imagesHint')}</span>
       </div>
+      {pictureRefused && (
+        <p className="forum-editor__refused" role="alert">
+          {t('forum.composer.picturesOnGithub')}
+        </p>
+      )}
     </div>
   );
 }

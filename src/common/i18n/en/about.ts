@@ -8,6 +8,7 @@ const about = {
   'about.author': 'Created and maintained by {author}',
   'about.website': 'Official website',
   'about.source': 'Source code',
+  'about.contents': 'On this page',
 };
 
 export default about;

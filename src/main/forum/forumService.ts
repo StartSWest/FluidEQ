@@ -9,6 +9,11 @@ import {
   type IForumTopicSummary,
   type TForumPostKind,
 } from '../../common/forum/forumTypes';
+import {
+  compactSearchText,
+  matchesSearchTerms,
+  searchTerms,
+} from '../../common/searchText';
 import type { IForumConfig } from './forumConfig';
 import ForumError from './forumError';
 import type { IForumFeedSource } from './forumFeed';
@@ -117,11 +122,17 @@ const summaryOf = (topic: IForumTopic): IForumTopicSummary => ({
   ...(topic.issue ? { issue: topic.issue } : {}),
 });
 
-const matchesWords = (topic: IForumTopic, words: string[]): boolean => {
-  const haystack = `${topic.title} ${topic.excerpt} ${topic.post.bodyHtml}`
-    .replace(/<[^>]*>/g, ' ')
-    .toLowerCase();
-  return words.every((word) => haystack.includes(word));
+const matchesWords = (
+  topic: IForumTopic,
+  words: readonly string[],
+): boolean => {
+  const haystack = compactSearchText(
+    `${topic.title} ${topic.excerpt} ${topic.post.bodyHtml}`.replace(
+      /<[^>]*>/g,
+      ' ',
+    ),
+  );
+  return matchesSearchTerms(haystack, words);
 };
 
 /** The feed has every topic, so a page is a slice and the cursor an offset. */
@@ -129,10 +140,7 @@ const feedPage = (
   topics: readonly IForumTopic[],
   query: IForumTopicQuery,
 ): IForumTopicPage => {
-  const words = searchWords(query.search)
-    .toLowerCase()
-    .split(' ')
-    .filter(Boolean);
+  const words = searchTerms(searchWords(query.search));
   const matching = topics
     .filter((topic) => {
       if (words.length) {
@@ -174,6 +182,12 @@ export const createForumService = ({
   // cannot be read at all then means "not an issue", so an unreachable
   // GitHub and a missing file never stop a discussion from opening.
   const issuesOrNone = () => allIssues().catch(() => []);
+  // The issues' row counts the open ones: the list shows every issue, but
+  // the number beside the board is how many still need something (Ivan,
+  // 2026-11-04: "show the count only for open ones"). It read 7 with one
+  // open.
+  const openCount = (list: readonly IForumTopic[]): number =>
+    list.filter((topic) => topic.issue?.closed !== true).length;
   const issueThread = async (number: number, listed: IForumTopic) => {
     if (live) {
       try {
@@ -281,7 +295,7 @@ export const createForumService = ({
         return {
           boards: loaded.boards,
           canStartIn: [],
-          issueCount: issueList.length,
+          issueCount: openCount(issueList),
         };
       }
       const [repo, issueList] = await Promise.all([
@@ -299,7 +313,7 @@ export const createForumService = ({
       return {
         boards: readBoardCounts(counts, repo.boards),
         canStartIn: startable(repo),
-        issueCount: issueList.length,
+        issueCount: openCount(issueList),
       };
     },
 

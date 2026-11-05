@@ -19,11 +19,13 @@ export type TDspSection =
   | 'deEsser'
   | 'crossfade'
   | 'eq'
+  | 'footsteps'
   | 'exciter'
   | 'bassForge'
   | 'bassPunch'
   | 'dimension'
   | 'room'
+  | 'dynamics'
   | 'maximizer'
   | 'master';
 
@@ -50,6 +52,10 @@ export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   // rack's two synthesis stages just made.
   { id: 'bassForge', labelKey: 'dsp.bassForge.title' },
   { id: 'eq', labelKey: 'dsp.eq.title' },
+  // The Game filter (`footsteps`) runs after the EQ and before Bass Punch
+  // (`chain_process_footsteps`) but has no page here: it is tuned per game,
+  // on the Gaming tab, inside each game's own sound (Ivan, 2026-11-02). Its
+  // card is `DspStageCards` with section `footsteps`, rendered there.
   // After the EQ rather than beside Forge, because that is where the audio
   // runs: `chain_process_bass_punch` sits between the EQ and Dimension so the
   // envelope it shapes is the one the EQ has already voiced, not one the EQ
@@ -61,6 +67,9 @@ export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   // then widens the binaural pair like any stereo mix. Listed here because
   // the page reads as "shape the stereo picture, then put it in a room".
   { id: 'room', labelKey: 'dsp.room.title' },
+  // Just before the Maximizer, where the audio runs: what Dynamics lifts too
+  // far, the ceiling still catches (`compander.h`).
+  { id: 'dynamics', labelKey: 'dsp.dynamics.title' },
   { id: 'maximizer', labelKey: 'dsp.maximizer.title' },
   { id: 'master', labelKey: 'dsp.master.title' },
 ];

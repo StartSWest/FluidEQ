@@ -38,6 +38,8 @@ import {
   useSoundPaneSlide,
 } from './utils/soundPane';
 import GameSound from './games/GameSound';
+import EngineKeySwitch from './components/EngineKeySwitch';
+import { OPEN_GAMING_LAB_EVENT } from './games/gamingLabEvents';
 import RackFollowsEngine from './dsp/RackFollowsEngine';
 import useMainEditorWhile from './utils/useMainEditorWhile';
 import PresetToneFeed from './dsp/PresetToneFeed';
@@ -49,7 +51,7 @@ import SmartEqEngine from './SmartEqEngine';
 import SmartHeadroomEngine from './SmartHeadroomEngine';
 import showGalleryGraph from './plus/showGalleryGraph';
 import { subscribeGraphShowRequests } from './plus/graphShowRequest';
-import { subscribePlusTabRequests } from './plus/plusTabRequest';
+import usePlusTabOpensApp from './player/usePlusTabOpensApp';
 import useStudioAgent from './studio/useStudioAgent';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
 import HeardSongNames from './graph/HeardSongNames';
@@ -168,11 +170,34 @@ const AppContent = () => {
   // the tab press appear to do nothing.
   const isGraphFullScreen = useGraphFullScreen();
   const graphView = useGraphView();
-
   // The window as the compact player (`MiniPlayer`), and the way back from
   // it onto one of the pages: the page is chosen while the app is still put
   // away, so it comes back already showing it.
   const { mode: windowMode } = useWindowMode();
+
+  // Asked for the Gaming Lab — by the DSP page, paused while a game's own
+  // sound is on, and by the presets pick, which while a game is loaded is
+  // the way to its sound — wherever the ask comes from: from the amp's
+  // sound deck, the page is loaded and the app comes back already on it,
+  // as the amp's own page buttons do.
+  useEffect(() => {
+    const open = () => {
+      if (windowMode !== 'player') {
+        selectTopWorkspaceTab('games');
+        return;
+      }
+      preloadTab('games')
+        .catch((error: unknown) => {
+          reportError('Loading the games page', error);
+        })
+        .finally(() => {
+          selectTopWorkspaceTab('games');
+          setWindowMode('app').catch(() => undefined);
+        });
+    };
+    window.addEventListener(OPEN_GAMING_LAB_EVENT, open);
+    return () => window.removeEventListener(OPEN_GAMING_LAB_EVENT, open);
+  }, [selectTopWorkspaceTab, windowMode]);
   usePerformanceContext(activeWorkspaceTab, windowMode);
   /**
    * THE AMP'S QUEUE DECK NEEDS THE LIBRARY'S PLAYER, whether or not anything
@@ -283,18 +308,7 @@ const AppContent = () => {
     [showGraphOn, selectTopWorkspaceTab],
   );
 
-  // A request to see the Visualizers tab is a request to see it, and the
-  // Compact player does not show the app's tabs: from there it comes back to
-  // the full app on that tab, the way its own menu opens a page. The look
-  // picker's Explore scenes only switched the tab behind the player (Ivan,
-  // 2026-10-29: "explorar escenes while open amp ui need to go to full app").
-  useEffect(
-    () =>
-      windowMode === 'player'
-        ? subscribePlusTabRequests(() => openPageFromPlayer('plus'))
-        : undefined,
-    [windowMode, openPageFromPlayer],
-  );
+  usePlusTabOpensApp(isAmp, openPageFromPlayer);
 
   /**
    * The EQ page puts its graph ABOVE the page (layout A, the open floor,
@@ -397,6 +411,7 @@ const AppContent = () => {
   // the titlebar has no room for Help's button.
   const helpHandlers: IHelpHandlers = {
     onTour: () => dialogs.setShowFeatureTour(true),
+    onReleaseNotes: () => dialogs.setWhatsNewScope('all'),
     onTroubleshoot: () => dialogs.setShowTroubleshooter(true),
     onReport: () => dialogs.setShowBugReport(true),
     onForum: () => selectTopWorkspaceTab('forum'),
@@ -839,6 +854,9 @@ const AppContent = () => {
           isEngineUnchosen={isEngineUnchosen}
           selectTopWorkspaceTab={selectTopWorkspaceTab}
         />
+        {/* The on/off key: here, outside every page and the amp, because it
+            is pressed while FluidEQ is behind a game. Renders nothing. */}
+        <EngineKeySwitch />
         {/* Drawn at the foot of the document, over the app it puts away. */}
         {windowMode === 'player' && (
           <MiniPlayer onOpenPage={openPageFromPlayer} />

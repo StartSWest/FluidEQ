@@ -16,8 +16,11 @@ export default {
   'genre.rock.stage.bassPunch':
     'キックは自分のアタックを保ち、ベースギターの下で余韻だけを短くします。',
   'genre.rock.stage.dimension':
-    '160 Hz以下のベースを狭めます。左右いっぱいのギターには触れません。',
-  'genre.rock.stage.maximizer': 'バックビートに間に合う速さの、軽い天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.rock.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.rock.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.rock.off':
     'エキサイターとベースフォージは用意されていますがオフです。歪んだギターは自分で倍音を作り、ベースギターには本物の低域があります。',
 
@@ -36,9 +39,11 @@ export default {
   'genre.popRock.stage.bassPunch':
     'キックのアタックを保ち、動くベースラインの下で余韻を短くします。',
   'genre.popRock.stage.dimension':
-    '150 Hz以下のベースを狭めます。ギターはミックスが置いた場所のままです。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.popRock.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.popRock.stage.maximizer':
-    'ピークだけを受け止め、16分音符より短い時間で離します。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.popRock.off':
     'すでに明るい声にエキサイターは足さず、本物のベースギターの下にベースフォージも入れません。',
 
@@ -55,9 +60,11 @@ export default {
   'genre.classicRock.stage.exciter':
     '中低域に少しのあたたかさ、つまりテープの音。高域には何も足しません。',
   'genre.classicRock.stage.dimension':
-    'わずかに狭め、左右に振り切った60年代のミックスをヘッドホンでまとめます。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.classicRock.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.classicRock.stage.maximizer':
-    'オリジナル盤のダイナミクスを残す、ゆっくりした天井。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.classicRock.off':
     'ベースパンチもベースフォージもなし。部屋鳴りのキックとテープのあたたかいベースは、録ったままです。',
 
@@ -77,9 +84,11 @@ export default {
   'genre.alternativeRock.stage.bassPunch':
     'キックのアタックを保ち、余韻を短くします。',
   'genre.alternativeRock.stage.dimension':
-    '低域を狭め、ギターはパンした位置のまま。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.alternativeRock.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.alternativeRock.stage.maximizer':
-    'ほとんど押し込まない天井。大きいパートが静かなパートより大きいままでいられます。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.alternativeRock.off':
     'エキサイターもベースフォージもなし。ファズが自分で倍音を作ります。',
 
@@ -93,8 +102,12 @@ export default {
   'genre.indieRock.pin.1250.why': 'バンドがバンドらしく聴こえる帯域。',
   'genre.indieRock.pin.8000': '録ったとおり、あたたかく暗く',
   'genre.indieRock.pin.8000.why': '高域は柔らかいままです。',
-  'genre.indieRock.stage.dimension': '部屋そのものの広がり。低域だけ狭めます。',
-  'genre.indieRock.stage.maximizer': '16分音符のうちに離す、軽い天井。',
+  'genre.indieRock.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.indieRock.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.indieRock.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.indieRock.off':
     'エキサイター、ベースパンチ、ベースフォージはなし。ドラムを作り変えたり部屋に色を付けたりするものは何もありません。',
 
@@ -109,9 +122,11 @@ export default {
   'genre.progressiveRock.pin.12500': '全帯域のハイファイな高域',
   'genre.progressiveRock.pin.12500.why': 'これらのレコードが持っていた空気感。',
   'genre.progressiveRock.stage.dimension':
-    'ベースより上はミックスどおりの音像に、ほんの少しの奥行き。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.progressiveRock.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.progressiveRock.stage.maximizer':
-    'ロック系でもっとも長い先読みと、1拍まるごとのリリース。触れるのはクライマックスだけです。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.progressiveRock.off':
     'エキサイター、ベースパンチ、ベースフォージはなし。静かな一節を速い処理でならすことはしません。',
 
@@ -127,8 +142,12 @@ export default {
   'genre.hardRock.pin.12500': 'ジリつきを和らげる',
   'genre.hardRock.pin.12500.why': 'オーバードライブの上端は持ち上げません。',
   'genre.hardRock.stage.bassPunch': 'キックの打撃は保ち、余韻を少し短く。',
-  'genre.hardRock.stage.dimension': '低域を狭めます。ギターはパンしたまま。',
-  'genre.hardRock.stage.maximizer': 'ライブな部屋のキックのための、軽い天井。',
+  'genre.hardRock.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.hardRock.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.hardRock.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.hardRock.off':
     'エキサイターもベースフォージもなし。真空管のクランチで倍音は十分です。',
 
@@ -143,14 +162,17 @@ export default {
     'ここを持ち上げるEQのバンドは、75 Hz以下もまとめて持ち上げてしまいます。',
   'genre.metal.pin.315': 'ダウンチューニングのギターから濁りを抜く',
   'genre.metal.pin.315.why':
-    '全ジャンルでもっとも深いカット。リフがクリアなままでいられる理由です。',
+    '低中域を控えめにカットし、ギターの厚みを失わず密集したリフを明瞭に保ちます。',
   'genre.metal.pin.3150': '一打を聴き取らせるクリック',
   'genre.metal.pin.3150.why': 'ツーバス連打が別々の打撃に聴こえる理由。',
   'genre.metal.stage.bassPunch':
     'アタックを硬くするのではなく余韻を短くし、連打を分離させます。',
-  'genre.metal.stage.dimension': '150 Hz以下のベースを狭め、何も広げません。',
+  'genre.metal.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.metal.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.metal.stage.maximizer':
-    'ほとんど押し込みません。これは存在するもっとも音の大きいジャンルです。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.metal.off':
     'エキサイターは用意されていますがオフです。倍音を足してもジリつきに埋もれるだけです。ダウンチューニングのギターの下にベースフォージも入れません。',
 
@@ -165,8 +187,12 @@ export default {
   'genre.punk.pin.5000.why':
     '下げています。バンドが弾いた以上に明るくはしません。',
   'genre.punk.stage.bassPunch': '引き締めるのはキックだけ。',
-  'genre.punk.stage.dimension': '低域を狭め、何も広げません。',
-  'genre.punk.stage.maximizer': 'アタックを残す軽い天井。',
+  'genre.punk.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.punk.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.punk.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.punk.off':
     'エキサイターもベースフォージもなし。生々しさこそが音です。',
 
@@ -181,9 +207,12 @@ export default {
   'genre.popPunk.pin.3150.why':
     'これらのマスターはすでに明るく、潰れています。',
   'genre.popPunk.stage.bassPunch': 'キックはタイトに、決して深くはしません。',
-  'genre.popPunk.stage.dimension': '150 Hz以下のベースを狭め、何も広げません。',
+  'genre.popPunk.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.popPunk.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.popPunk.stage.maximizer':
-    'ロック系でもっとも軽い天井。マスターはすでに大きな音です。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.popPunk.off':
     'これほど明るく大きなマスターに、エキサイターもベースフォージも使いません。',
 
@@ -197,9 +226,11 @@ export default {
   'genre.grunge.pin.12500': '丸めた高域',
   'genre.grunge.pin.12500.why': 'さらに下げています。暗さこそがレコードです。',
   'genre.grunge.stage.dimension':
-    '広いギターと中央の声はミックスどおり。低域だけ狭めます。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.grunge.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.grunge.stage.maximizer':
-    '静かな半分は静かに、激しい半分は激しく残す、ゆっくりした天井。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.grunge.off':
     'エキサイター、ベースパンチ、ベースフォージはなし。明るくするものは何もありません。',
 };

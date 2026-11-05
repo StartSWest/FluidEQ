@@ -8,7 +8,13 @@ import {
   PlayerMenuDrawing,
 } from './playerFigures';
 import DesktopDialogDrawing from './desktopFigures';
+import DspOverviewDrawing, {
+  DynamicsDrawing,
+  DeEsserDrawing,
+} from './dspFigures';
 import ForumDrawing from './forumFigures';
+import GamingLabDrawing, { GamingPartsDrawing } from './gamingFigures';
+import GamingProfilesDrawing from './gamingProfilesFigure';
 import LightingDrawing from './lightingFigures';
 import LookPickerDrawing from './lookFigures';
 import { SceneDrawing, VisualizersDrawing } from './plusFigures';
@@ -32,8 +38,14 @@ import WindowHeaderDrawing from './windowFigures';
  */
 const HELP_LIVE_FIGURES: Readonly<Record<THelpLiveId, ComponentType>> = {
   'desktop-dialog': DesktopDialogDrawing,
+  'dsp-overview': DspOverviewDrawing,
+  'dsp-dynamics': DynamicsDrawing,
+  'dsp-deesser': DeEsserDrawing,
   'forum-page': ForumDrawing,
   'gallery-scene': SceneDrawing,
+  'gaming-lab': GamingLabDrawing,
+  'gaming-parts': GamingPartsDrawing,
+  'gaming-profiles': GamingProfilesDrawing,
   'header-left': WindowHeaderDrawing,
   'header-right': WindowHeaderDrawing,
   'lighting-page': LightingDrawing,

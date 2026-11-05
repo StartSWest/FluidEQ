@@ -5,14 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import { dspPresetCatalog } from '../dsp/dspPresetCatalog';
 import { useTranslation } from '../utils/I18nContext';
+import toastColours from './toastColours';
+import gameSwitchProfileName from './gameSwitchProfileName';
 import { useGameSound } from './useGameSound';
+import { SoundingTunedWatch, useYoursGamingProfiles } from './useGamingData';
 
 interface IGameToastBridge {
   showGameToast?: (said: {
     what: string;
     game: string;
+    profile?: string;
     icon?: string;
     colors?: Record<string, string>;
   }) => void;
@@ -20,81 +23,45 @@ interface IGameToastBridge {
 }
 
 /**
- * The five colours the card is painted with, as this window wears them now.
- *
- * Read rather than remembered: a listener switches theme, and a scene tints
- * the whole window with its own accent over whichever theme that is. The card
- * is drawn by a file on disk that has none of this app's stylesheets, so the
- * answer has to travel with the card, and it has to be the answer at the
- * moment the card is asked for.
- */
-const windowColours = (): Record<string, string> => {
-  const style = getComputedStyle(document.documentElement);
-  const found: Record<string, string> = {};
-  const take = (name: string, token: string) => {
-    const value = style.getPropertyValue(token).trim();
-    if (value !== '') {
-      found[name] = value;
-    }
-  };
-  take('accent', '--accent');
-  take('panel', '--surface-panel');
-  take('base', '--surface-base');
-  take('text', '--text-primary');
-  take('muted', '--text-muted');
-  return found;
-};
-
-/**
  * The one place a game's sound is actually switched, and the one that says so.
  *
  * Headless, and mounted beside the app's other headless engines for the same
  * reason: a game comes to the front while FluidEQ is behind it, and a switch
- * that lived on the Games page would only work while somebody was looking at
- * the Games page — which is the one moment nobody is playing. Mounted once,
- * so one memory decides what to put back.
+ * that lived on the Gaming Lab would only work while somebody was looking at
+ * the Gaming Lab — which is the one moment nobody is playing. Mounted once,
+ * so one caller decides what to put back.
  *
  * What it says goes to main and not onto this page, for the same reason
  * again: this window is behind the game or minimised. Main draws it on the
  * desktop, on the screen the game is on (`gameToast.ts`). The words are made
- * here, because the chain's name and the listener's language are the window's.
+ * here, because the listener's language is the window's.
  */
 const GameSound = () => {
   const { t } = useTranslation();
-  const { switched, forgetSwitch, playing } = useGameSound({ applies: true });
+  const yours = useYoursGamingProfiles();
+  const { switched, forgetSwitch, playing, sounding } = useGameSound({
+    applies: true,
+  });
   // Read when a switch arrives rather than closed over, so a change of
   // language does not run the effect again.
-  const latest = useRef(t);
-  latest.current = t;
+  const latest = useRef({ t, yours });
+  latest.current = { t, yours };
 
   useEffect(() => {
     if (!switched) {
       return;
     }
-    const say = latest.current;
-    // The catalogue is read here, when a switch arrives, and not held: this is
-    // mounted for the life of the window and re-renders with it, and holding
-    // the catalogue read every saved chain out of storage, parsed and clamped
-    // it, on each of those renders, for a card that names one chain per game.
-    const named = dspPresetCatalog(say).find(
-      (one) => one.id === switched.presetId,
-    )?.name;
+    const { t: say, yours: saved } = latest.current;
     const back = switched.kind === 'restored';
-    // A restore to nothing is the rack going off, which has no name in the
-    // catalogue: "Custom" there would be the card inventing a chain.
-    const preset = named ?? say('dsp.eqPreset.custom');
-    const wentBack =
-      switched.presetId === ''
-        ? say('games.toast.restoredNone')
-        : say('games.toast.restored', { preset });
     const bridge = window.electron?.ipcRenderer as IGameToastBridge | undefined;
     bridge?.showGameToast?.({
-      what: back ? wentBack : say('games.toast.loaded', { preset }),
+      what: back ? say('gaming.toast.restored') : say('gaming.toast.loaded'),
+      profile: gameSwitchProfileName(switched, saved, say),
       game: back
         ? say('games.toast.afterGame', { game: switched.game })
         : say('games.toast.forGame', { game: switched.game }),
       ...(switched.icon ? { icon: switched.icon } : {}),
-      colors: windowColours(),
+      colors: toastColours(),
     });
     forgetSwitch();
   }, [switched, forgetSwitch]);
@@ -108,7 +75,9 @@ const GameSound = () => {
     bridge?.setGamePlaying?.(playing !== undefined);
   }, [playing]);
 
-  return null;
+  // Whether the game's copy on now is tuned, for the presets pick to say so
+  // wherever it stands (the EQ page, the player).
+  return <SoundingTunedWatch gameId={sounding?.id} />;
 };
 
 export default GameSound;

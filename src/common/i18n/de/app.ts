@@ -39,6 +39,27 @@ const app: Partial<Dictionary> = {
   'app.menu.importEq': 'EQ-Einstellungen importieren…',
   'app.menu.importConvolution': 'Impulsantwort importieren…',
   'app.menu.restartAudio': 'Windows-Audio neu starten',
+  'app.menu.engineKey': 'Ein/Aus-Taste…',
+  'engineKey.title': 'Ein/Aus-Taste',
+  'engineKey.body':
+    'Drücken Sie die Tasten, mit denen Sie die FluidEQ-Engine aus- und wieder einschalten, aus jedem Programm, auch aus einem Spiel.',
+  'engineKey.field': 'Taste',
+  'engineKey.waiting': 'Tasten drücken',
+  'engineKey.none': 'Keine Taste',
+  'engineKey.use': '{key} verwenden',
+  'engineKey.useKey': 'Diese Taste verwenden',
+  'engineKey.problem.invalid':
+    'Verwenden Sie einen Buchstaben, eine Zahl oder F1 bis F24 mit Ctrl, Alt oder Shift.',
+  'engineKey.problem.modifier':
+    'Nehmen Sie Ctrl oder Alt dazu, damit die Taste keinem anderen Programm im Weg ist.',
+  'engineKey.problem.altgr':
+    'Ctrl + Alt mit einem Buchstaben tippt auf vielen Tastaturen Zeichen wie €. Versuchen Sie Ctrl + Shift.',
+  'engineKey.problem.taken':
+    'Ein anderes Programm belegt {key} bereits. Versuchen Sie eine andere.',
+  'engineKey.toast.off': 'FluidEQ aus',
+  'engineKey.toast.offDetail': 'Nichts wird bearbeitet',
+  'engineKey.toast.on': 'FluidEQ an',
+  'engineKey.toast.onDetail': 'Ihr Klang, wie Sie ihn verlassen haben',
   'engine.apo.reconfigure': 'Equalizer APO neu einrichten',
   'engine.apo.settings': 'Equalizer-APO-Einstellungen',
   'app.menu.support': 'Projekt unterstützen',
@@ -251,7 +272,6 @@ const app: Partial<Dictionary> = {
   'tabs.eqMain': 'Bänder',
   'tabs.presets': 'EQ-Presets',
   'tabs.convolution': 'Faltung',
-  'tabs.games': 'Spiel-Presets',
   'tabs.config': 'Config',
   'tabs.media': 'Online-Medien',
   'tabs.mediaShort': 'Medien',
@@ -407,12 +427,6 @@ const app: Partial<Dictionary> = {
   'settings.group.studioOnly': 'Nur hier im Studio',
 
   // Game profiles: the page, its list and what it says.
-  'games.add': 'Spiel hinzufügen',
-  'games.addHint':
-    'Wählen Sie ein Spiel aus Ihren Launchern oder ein gerade geöffnetes Programm.',
-  'games.choose': 'Programm auswählen…',
-  'games.group.installed': 'Installiert',
-  'games.group.running': 'Jetzt offen',
   'games.source.steam': 'Steam',
   'games.source.epic': 'Epic Games',
   'games.source.ea': 'EA',
@@ -422,27 +436,8 @@ const app: Partial<Dictionary> = {
   'games.source.xbox': 'Xbox',
   'games.source.running': 'Jetzt offen',
   'games.source.file': 'Von Ihnen gewählt',
-  'games.front.playing': '{name} ist im Vordergrund, und sein Klang läuft.',
-  'games.front.sounding': '{name} läuft, und sein Klang läuft mit.',
-  'games.front.off':
-    'Spiel-Presets sind aus. Ihre Spiele behalten Ihren eigenen Klang.',
-  'games.switch.hint':
-    'Aus: Kein Spiel ändert Ihren Klang, und FluidEQ achtet nicht mehr darauf, welches Programm im Vordergrund ist. Ihre Liste bleibt, wie sie ist.',
-  'games.toast.loaded': '{preset} geladen',
   'games.toast.forGame': 'für {game}',
-  'games.toast.restored': 'Zurück zu {preset}',
-  'games.toast.restoredNone': 'Effekte wieder aus',
   'games.toast.afterGame': 'nach {game}',
-  'games.empty.title': 'Noch keine Spiele',
-  'games.empty.more':
-    'Fügen Sie ein Spiel hinzu, geben Sie ihm einen Klang, und FluidEQ wechselt dorthin, sobald das Spiel im Vordergrund ist — und zurück, wenn Sie das Spiel beenden.',
-  'games.preset.none': 'So lassen, wie es ist',
-  'games.preset.noneHint':
-    'Es ändert sich nichts, wenn dieses Spiel im Vordergrund ist.',
-  'games.row.inFront': 'im Vordergrund',
-  'games.row.sounding': 'Klang läuft',
-  'games.row.sound': 'Klang für {name}',
-  'games.row.remove': '{name} entfernen',
   'error.apoMissing': 'Equalizer APO ist nicht installiert.',
   'error.apoMissing.action':
     'Installieren Sie Equalizer APO und versuchen Sie es dann erneut.',

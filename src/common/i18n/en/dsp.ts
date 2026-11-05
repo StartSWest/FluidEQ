@@ -113,7 +113,7 @@ const dsp = {
   'dsp.denoise.voiceLibraryOnly':
     'Neural Voice is available for Library playback only. Hiss, hum, and click reduction work with external audio.',
   'dsp.normalizer.liveDescription':
-    'Measures external audio as it plays, adjusts both channels together, and protects peaks before the Exciter and EQ.',
+    'Measures external audio as it plays and sets one volume for both channels before the Exciter and EQ, without squashing the music: True Peak turns a song down until its loudest peak meets the peak ceiling.',
   'dsp.normalizer.liveAnalysis': 'Live source analysis',
   'dsp.normalizer.inputLoudness': 'Input loudness (3 s)',
   'dsp.normalizer.outputLoudness': 'Output loudness (3 s)',

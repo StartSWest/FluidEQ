@@ -64,10 +64,12 @@ const cardSession = (): Electron.Session => {
 };
 
 export interface IGameToast {
-  /** "Loaded Gaming · Competitive", already in the listener's language. */
+  /** The switch status, already in the listener's language. */
   what: string;
   /** "for Overwatch", the same. */
   game: string;
+  /** The profile/copy that actually loaded, on its own line. */
+  profile?: string;
   icon?: string;
   /** The game window's place, `x,y,w,h` in real pixels, where it said. */
   rect?: string;
@@ -98,14 +100,10 @@ const COLOUR_NAMES = ['accent', 'panel', 'base', 'text', 'muted'];
 const isColour = (value: string): boolean =>
   /^(#[0-9a-fA-F]{3,8}|rgba?\([\d\s.,%/]+\))$/.test(value);
 
-// Wide enough that the common chain names fit on the first line beside the
-// game's icon and the brand mark: the line is 315px here, and Russian's
-// "Загружено: Игры · Соревнование" takes 284. Longer ones wrap to a second line
-// (`game-toast.html`): measured as DOM text, the factory names run to 359px
-// in Japanese, 356 in German and 341 in Russian. Height is the content's,
-// not a round number — 120 left a quarter of the card empty.
+// The name has two lines beside the icon and brand; status and game have
+// their own rows. Keep all three visible when a translated name wraps.
 const WIDTH = 520;
-const HEIGHT = 104;
+const HEIGHT = 128;
 const MARGIN = 26;
 
 const pagePath = (): string => {
@@ -232,6 +230,7 @@ export const createGameToasts = (
       const said = new URLSearchParams({
         what: toast.what,
         game: toast.game,
+        ...(toast.profile ? { profile: toast.profile } : {}),
         ...(toast.icon ? { icon: toast.icon } : {}),
       });
       COLOUR_NAMES.forEach((name) => {

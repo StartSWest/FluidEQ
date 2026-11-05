@@ -19,6 +19,7 @@ const lanWithStart = (start: jest.Mock): IRemoteAudioLan => ({
   start,
   join: jest.fn(),
   unlink: jest.fn(),
+  reconnect: jest.fn(),
   retry: jest.fn(),
   sendAudio: jest.fn(),
   sendSignal: jest.fn(),

@@ -90,15 +90,27 @@ The biggest release FluidEQ has had; these were its headlines.
 
 ## What it does
 
-![The FluidEQ EQ page on its Bands tab. The graph fills the top: what is playing drawn live as bars from 10 Hz to 20 kHz, and over it the flat EQ line with a point for every band and the other curves applied to this output. Along its top edge sit the Presets picker on Modern Country, Smart EQ on Detail, the EQ mode, the 15-band layout, Add band, Curves with a coloured dot for each curve applied, and Clear EQ, with Game mode and the processing delay beside the FluidEQ Engine's name above them. Under the graph, fifteen parametric bands as vertical sliders from 26 Hz to 16.3 kHz, and under those the Tone row: Low cut, Bass, Mid, Treble and High cut. Down the left are the engine switch, the preamp, Auto normalize, the Response graph switch and a stereo level meter; down the right, the Output panel with the device and its profiles, Second output and the Driver type panel. The live output signal runs across the title bar, between Online Media, Share Audio and EQ on one side and DSP, Library, Karaoke and Plus on the other.](docs/03-eq-parametric-bands-and-live-response.png)
+The title bar has **Visualizers**, **Share Audio**, **Gaming Lab** and **EQ**
+on the left of the signal, with **DSP**, **Library**, **Karaoke** and
+**Online Media** on the right.
+
+![The FluidEQ EQ page on its Bands tab. The graph fills the top: what is playing drawn live as bars from 10 Hz to 20 kHz, and over it the flat EQ line with a point for every band and the other curves applied to this output. Along its top edge sit the Presets picker on Modern Country, Smart EQ on Detail, the EQ mode, the 15-band layout, Add band, Curves with a coloured dot for each curve applied, and Clear EQ, with Game mode and the processing delay beside the FluidEQ Engine's name above them. Under the graph, fifteen parametric bands as vertical sliders from 26 Hz to 16.3 kHz, and under those the Tone row: Low cut, Bass, Mid, Treble and High cut. Down the left are the engine switch, the preamp, Auto normalize, the Response graph switch and a stereo level meter; down the right, the Output panel with the device and its profiles, Second output and the Driver type panel. The live output signal sits between the title bar’s navigation groups.](docs/03-eq-parametric-bands-and-live-response.png)
 
 **Follows your output.** Every setting below belongs to the device you tuned it
 on. Plug in your headphones and their tuning comes back; switch to speakers and
 theirs does. FluidEQ maps the stable Windows endpoint ID, not the display name,
 so it survives renames and re-plugs. Games can have a sound of their own too:
-give one a preset under **Game presets**, and FluidEQ switches to it when the
-game comes to the front, keeps it until the game is closed, however often you
-alt-tab, and then puts back what you had.
+add it in the **Gaming Lab** and choose a Gaming profile to start its own copy
+from. FluidEQ switches to that copy when the game comes to the front, keeps
+it until the game is closed, however often you alt-tab, and then puts back
+what you had. The desktop notice names the loaded profile on a separate line
+and names your music profile when it returns.
+
+The game list scrolls independently of the editor. Drag its divider to change
+its width, or its height in a narrow layout, and use the chevron to hide or
+show it. The size and folded state are remembered. FluidEQ, Windows Explorer,
+known system and launcher processes, and shared runtime installers stay out
+of **Add a game**; old saved entries cannot target these processes either.
 
 **Seven layers, one chain.** Each is written as its own file in the Equalizer
 APO config, included in this order:
@@ -137,6 +149,11 @@ measured them. For anything not in it, the EQ Presets tab links to Squiglink so
 you can export its EQ text and import it locally. Published corrections remain
 their own layer; an external export becomes editable EQ bands with a visible
 source and curve preview.
+
+Preset, Convolution, Library and Help searches accept differences in case,
+accents, spaces and punctuation: `kpop` finds **K-pop**. A genre preset's
+information explains its sound; press a song under **Listen for it in** to
+open its video on YouTube.
 
 ![The EQ Presets tab. At the top, Headphone correction: a picker for the headphone model, searchable by brand or model, and one for the measurement and target under it, with Apply headset EQ, the correction's curve to the right, and a line saying the OPRA library is up to date at 6,229 models; the OPRA credit sits under them. Below, the guided Squiglink import in three numbered steps: the EQ text exported from Squiglink pasted into the left pane as a preamp and ten filter lines with their own frequency, gain and Q, with Choose a .txt file, Apply as EQ and Apply as curve under it, and on the right the curve those ten bands produce.](docs/04-eq-headphone-correction-and-import.png)
 
@@ -818,7 +835,7 @@ what you interact with.
   tone is a layer of its own in the main equaliser, on either engine, written
   after your bands so your own tuning is never overwritten and taking the
   preset away restores it exactly.
-- **Game presets.** A sound for each game, switched in the moment the game
+- **Gaming Lab.** A sound for each game, switched in the moment the game
   comes to the front and kept until it is closed, however often you alt-tab,
   with a Game mode that cuts the delay FluidEQ adds.
 - **Convolution.** Verified minimum-phase impulse responses from the AutoEq

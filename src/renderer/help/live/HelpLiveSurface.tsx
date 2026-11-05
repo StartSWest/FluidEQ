@@ -31,15 +31,31 @@ interface IRect {
 /** Below this, two measurements are the same: a zoom rounds to fractions. */
 const SAME = 0.25;
 
-const sameMeasure = (one: IHelpLiveMeasure, other: IHelpLiveMeasure) =>
-  Math.abs(one.width - other.width) < SAME &&
-  Math.abs(one.height - other.height) < SAME &&
+/**
+ * How far two measurements may differ and still be the same, in the
+ * drawing's own pixels: a quarter, or one pixel as drawn, whichever is more.
+ * CSS `zoom` lays the drawing out at its drawn size and snaps every box to
+ * those pixels, so read back in the drawing's own units a height wobbles by
+ * up to a drawn pixel as the zoom moves. A figure capped by the column's
+ * height takes its zoom from that height, so with a quarter of a pixel as
+ * the bound its measure and its zoom chased each other for good: the Gaming
+ * Lab's parts, sixteen stages tall, re-laid every frame by 0.3-0.4px.
+ */
+const sameWithin = (zoom: number) => Math.max(SAME, 1 / zoom);
+
+const sameMeasure = (
+  one: IHelpLiveMeasure,
+  other: IHelpLiveMeasure,
+  within: number,
+) =>
+  Math.abs(one.width - other.width) < within &&
+  Math.abs(one.height - other.height) < within &&
   one.boxes.length === other.boxes.length &&
   one.boxes.every((box, index) => {
     const twin = other.boxes[index];
     return box === undefined || twin === undefined
       ? box === twin
-      : box.every((value, at) => Math.abs(value - twin[at]) < SAME);
+      : box.every((value, at) => Math.abs(value - twin[at]) < within);
   });
 
 /**
@@ -185,12 +201,13 @@ export default function HelpLiveSurface({
     const next = drawing && measureDrawing(drawing, figure);
     // The frame's corner too: a part that moves without changing size keeps
     // every box and would leave the drawing shifted under its own clip.
+    const within = sameWithin(zoom);
     const isSame =
       drawn &&
       next &&
-      sameMeasure(drawn.measure, next.measure) &&
-      Math.abs(drawn.frame.left - next.frame.left) < SAME &&
-      Math.abs(drawn.frame.top - next.frame.top) < SAME;
+      sameMeasure(drawn.measure, next.measure, within) &&
+      Math.abs(drawn.frame.left - next.frame.left) < within &&
+      Math.abs(drawn.frame.top - next.frame.top) < within;
     if (next && !isSame) {
       setDrawn(next);
     }

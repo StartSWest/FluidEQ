@@ -95,20 +95,23 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.rock',
     group: 'genre',
     gains: [
-      0.5, 0.5, 1.6, 0.9, -1.2, -2.9, -2.2, -0.3, 0.4, 0.8, 1.1, 0.6, 0.1, -0.1,
-      -0.3,
+      0.5, 0.5, 1.59, 0.9, -1.51, -1.34, -1.49, -0.5, 0.41, 0.79, 1.1, 0.6, 0.1,
+      -0.1, -0.3,
     ],
     setup: { ...PROTECTED, model: 'proportional' },
   },
   {
-    // Vocal-forward over a punchy low end: the 3-8k lift is presence and
-    // sheen, the 250-500 cut is the boxiness that hides a lead voice.
+    // Keep the lead's body: the former overlapping 315/500 Hz cuts reached
+    // -3.5 dB while the upper bands added another 2 dB of edge. A small
+    // presence lift and a shallow low-mid cut keep Pop clear without that
+    // hollow, over-processed contrast on its finished reference recordings.
+    // Custom playback voicing, not an international Pop EQ standard.
+    // These are the values approved in listening before the De-esser was added.
     id: 'pop',
     labelKey: 'dsp.eqPreset.pop',
     group: 'genre',
     gains: [
-      2.1, 1.2, 1.5, 0.6, -1.3, -2.9, -2.4, -0.9, -0.4, 0.3, 1.3, 1.6, 1.5, 1,
-      0.3,
+      1, 0.8, 1, 0.4, -0.6, -1.3, -0.8, -0.2, 0, 0.2, 0.5, 0.5, 0.4, 0.3, 0.1,
     ],
     // Mono under 140 Hz, as pop masters are made (the research's "side mono
     // <140 Hz"): Dimension's low width alone only narrows the side there, and
@@ -123,8 +126,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.jazz',
     group: 'genre',
     gains: [
-      -1.8, -0.7, 0.9, 1.9, 1.3, -0.8, -1, -0.7, -0.9, -0.9, -0.7, -0.3, 1.2,
-      1.6, 1.7,
+      -1.77, -0.81, 1.49, 0.76, 1.45, -0.58, -1.54, -0.03, -0.33, -0.1, -1.52,
+      0.65, 0.52, 0.09, 1.28,
     ],
     setup: { ...PROTECTED, model: 'wide' },
   },
@@ -136,8 +139,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.classical',
     group: 'genre',
     gains: [
-      0.3, 0.5, 1, 0.9, 0.4, -0.5, -1, -1.2, -1.1, -0.8, -0.1, 1.1, 1.1, 1.3,
-      1.1,
+      0.32, 0.54, 0.49, 0.55, 0.51, -0.64, -0.52, -0.49, -0.48, -0.65, -0.03,
+      0.69, 0.47, 0.37, 0.83,
     ],
     // No mono-below: the hall IS the recording, and summing its bottom end
     // throws away the space it was captured in.
@@ -150,7 +153,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.electronic',
     group: 'genre',
     gains: [
-      2, 1.5, 1.2, -0.2, -1.8, -2.2, -2, -1.3, -0.4, 0, 0.3, 1.1, 1.7, 1.3, 0.5,
+      0.82, 0.62, 0.47, 0.02, -1.42, 0.22, -0.03, -1.2, 0.04, -0.11, 0.42, 0.14,
+      -0.14, 0.16, 1.09,
     ],
     // Mono under 150 Hz, where a club system sums everything anyway.
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 150 },
@@ -163,8 +167,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.hiphop',
     group: 'genre',
     gains: [
-      1.9, 1.1, 1.1, 1.1, -0.5, -2.4, -2.2, -0.9, -0.6, 0.3, 1.2, 0.4, -1, -1.7,
-      -2.2,
+      1.89, 1.12, 1.01, 1.4, -1.81, -0.63, -0.84, -0.39, -0.76, 0.09, 1.29,
+      0.36, -0.99, -1.7, -2.2,
     ],
     // Mono under 120 Hz, as the research has it: kick, snare, bass and voice
     // are mixed in the middle, and sub-bass this heavy is where cancellation
@@ -622,8 +626,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.orchestra',
     group: 'genre',
     gains: [
-      0, 0.1, -0.6, -0.3, 0.2, -0.3, -0.8, -1, -0.8, -0.4, -0.2, -0.1, 0.7, 1.1,
-      1.1,
+      0, 0.1, -0.6, -0.3, 0.19, -0.4, -0.54, -0.48, -0.5, -0.5, -0.2, -0.04,
+      0.62, 0.36, 0.85,
     ],
     setup: { subsonicHz: 20, monoBelowHz: 0, model: 'clean' },
   },
@@ -640,8 +644,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.metal',
     group: 'genre',
     gains: [
-      -1.5, -3.1, 0.7, 1.1, -2.3, -4.4, -3.8, -1.5, 0.3, 1.8, 3, 2.6, 0.7, -0.2,
-      -0.8,
+      -1.5, -3.11, 0.7, 0.82, -1.76, -1.26, -1.34, -1.5, 0.38, 1.25, 1.06, 0.92,
+      1.09, -0.2, -0.77,
     ],
     setup: { ...PROTECTED, model: 'proportional' },
   },
@@ -653,8 +657,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.punk',
     group: 'genre',
     gains: [
-      -2.8, -0.9, 1.3, 0.7, -1.1, -2.2, -1.5, 0.5, 2, 2, 0.1, -2.5, -2.5, -1.5,
-      -0.7,
+      -2.8, -0.9, 1.3, 0.71, -1.26, -1.4, -1.66, 0.69, 1.12, 2.16, -0.13, -1.53,
+      -1.45, -1.75, -0.69,
     ],
     setup: { ...PROTECTED, model: 'proportional' },
   },
@@ -667,8 +671,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.reggae',
     group: 'genre',
     gains: [
-      1.9, 1.3, 1.9, 1.8, -0.2, -1.7, -2.1, -1.5, -1.4, -0.7, -0.3, -0.6, -1.3,
-      -1.7, -2.2,
+      2.65, 0.93, -0.72, 3, -1.36, -1.23, -0.65, -0.6, -0.08, -0.59, -0.01,
+      -0.45, -0.72, -0.4, -2.23,
     ],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 80 },
   },
@@ -681,8 +685,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.country',
     group: 'genre',
     gains: [
-      -0.5, -0.3, 0.2, 0.6, 0.2, -1.2, -2, -1.6, -0.1, 1.7, 2.1, 0.7, 0.1, 0,
-      -0.2,
+      -0.51, -0.28, 0.14, 0.77, -0.39, -0.92, -0.22, -1.16, 0.03, 1.06, 0.12,
+      0.42, 0.6, -0.08, -0.16,
     ],
     setup: { ...PROTECTED, model: 'wide' },
   },
@@ -696,8 +700,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.blues',
     group: 'genre',
     gains: [
-      -2.2, -1.1, 0.3, 0.8, 0.7, 0.3, 0.4, 0.6, 0.2, -0.8, -0.7, -1.1, -1.1,
-      -0.9, -0.7,
+      -2.2, -1.1, 0.3, 0.8, 0.7, 0.31, 0.38, 0.66, 0.04, -0.94, 0, -0.46, -0.41,
+      -0.47, -1.3,
     ],
     setup: { ...PROTECTED, model: 'wide' },
   },
@@ -712,8 +716,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.lofi',
     group: 'genre',
     gains: [
-      -2.4, -1.3, 0.5, 1.6, 1.6, 1, 0.3, -0.2, -0.8, -1.3, -1.8, -1, -1.5, -1.8,
-      -1.8,
+      -2.4, -1.3, 0.5, 1.6, 1.61, 0.95, 0.43, -0.71, -0.54, -0.4, -0.14, -0.4,
+      -0.74, -0.48, -2.06,
     ],
     // Mono under 120 Hz, as the research has it for a filtered bass under a
     // modest stereo picture.
@@ -727,8 +731,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.ambient',
     group: 'genre',
     gains: [
-      1.8, 1.6, 1.3, 0.2, -0.5, -1.3, -1.4, -1, -1, -1, -1.2, -0.1, 1.6, 1.8,
-      1.6,
+      0.74, 0.66, 0.51, 0.14, -0.4, -0.37, -0.3, -0.24, -0.06, -0.01, -0.83,
+      0.05, 0.62, 0.75, 0.66,
     ],
     setup: { model: 'wide', subsonicHz: 20, monoBelowHz: 40 },
   },
@@ -744,8 +748,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.trap',
     group: 'genre',
     gains: [
-      -0.9, 0, 0.7, 0.4, -1.2, -2.5, -1.9, -0.7, -0.3, -0.1, 0.4, 1.5, 1.2, 1.2,
-      2,
+      -0.95, 0.01, 0.64, 0.67, -2.84, 0.34, -0.99, -0.39, -0.89, 0.18, 0.81,
+      0.28, 0.24, 0.19, 1.41,
     ],
     // Mono under 120 Hz, as trap is mixed: the hats and synths are wide, the
     // 808 never.
@@ -761,8 +765,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.drumBass',
     group: 'genre',
     gains: [
-      -0.6, 0.1, 0.4, 0.3, -0.6, -2.5, -2.7, -1.6, -0.1, 0.9, 1.1, 2.1, 0.9,
-      -0.2, -1.2,
+      -0.63, 0.05, 0.52, -0.01, -1.27, -0.41, -0.75, -0.63, -1.16, 1.62, 0.08,
+      0.46, 0.96, 0.28, -1.49,
     ],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 90 },
   },
@@ -774,7 +778,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.piano',
     group: 'genre',
     gains: [
-      -0.2, -0.1, 0.8, 1.3, 0, -2.4, -1.7, 0, -0.6, -0.3, 1.1, 1.9, 1.4, 0.6, 0,
+      -0.2, -0.03, 0.61, 0.74, -0.29, -0.65, -0.54, -0.31, -0.59, -0.11, 0.69,
+      0.5, 0.49, 0.52, 0.25,
     ],
     setup: { ...PROTECTED, model: 'clean' },
   },
@@ -785,8 +790,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.strings',
     group: 'genre',
     gains: [
-      -0.8, -0.5, -0.2, 0.6, 1.3, 1.1, 0.5, -0.5, -1.8, -2.3, -1.9, -0.4, 1.4,
-      1.9, 1.9,
+      -0.77, -0.57, 0.02, 0.77, 0.12, 0.37, 0.69, -0.97, -0.09, -0.24, -0.41,
+      -0.66, 0.93, -0.18, 1.16,
     ],
     setup: { ...PROTECTED, model: 'wide' },
   },
@@ -974,6 +979,156 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
       ...PROTECTED,
       model: 'wide',
     },
+  },
+  // Gaming (the Gaming tab's only; `presetScope.tsx`). Every one judged on
+  // a game's mix, where the low end is effects and the cues a player needs
+  // sit at 2-6 kHz, and each one levelled so it is not simply louder: a
+  // gaming curve that wins by volume wins for the wrong reason.
+  /*        32   50   80  125  200  315  500  800  1k2  2k   3k1  5k   8k  12k5 16k */
+  {
+    // Steps, reloads, a door: 2-6 kHz up, and the 80-500 a firefight fills
+    // the room with taken down. The sub is cut as well, unlike the global
+    // Gaming curve, because here nothing else in the rack brings it back.
+    id: 'gameFootstepFocus',
+    labelKey: 'dsp.gamingPreset.footstepFocus',
+    group: 'gaming',
+    gains: [
+      -3, -3, -2.5, -2, -2.5, -2.5, -1.2, -0.3, 0.5, 2, 3, 2.8, 1.5, 0, -0.8,
+    ],
+    setup: { model: 'proportional', subsonicHz: 30, monoBelowHz: 120 },
+  },
+  {
+    // Explosions held down only while they happen: every low band dynamic,
+    // so a quiet scene keeps its weight and a blast loses up to 6 dB of
+    // boom, and the cues just above it a little lift to stay on top.
+    id: 'gameBlastTamer',
+    labelKey: 'dsp.gamingPreset.blastTamer',
+    group: 'gaming',
+    gains: [-6, -6, -5, -3.5, -2, 0, 0, 0, 0, 0.8, 1.5, 1, 0, 0, 0],
+    dynamic: [
+      -26,
+      -26,
+      -26,
+      -24,
+      -22,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+    ],
+    setup: { ...PROTECTED, model: 'wide' },
+  },
+  {
+    // A voice in a game is buried under the score and the effects at once:
+    // the body of speech at 1-3 kHz lifted, the 300 Hz a score is thick
+    // with eased, the very top left as it was so it is not sibilant.
+    id: 'gameVoicesForward',
+    labelKey: 'dsp.gamingPreset.voicesForward',
+    group: 'gaming',
+    gains: [
+      -1.85, -1.85, -1.35, -1.15, -1.35, -1.85, -0.85, 0.15, 1.15, 1.95, 1.65,
+      0.65, -0.35, -0.65, -0.85,
+    ],
+    setup: { ...PROTECTED, model: 'wide' },
+  },
+  {
+    // A cutscene and a set piece: weight under 100 Hz, a decibel out of the
+    // boxy 300-500, and a little air, the shape of a film mix.
+    id: 'gameCinematic',
+    labelKey: 'dsp.gamingPreset.cinematicWeight',
+    group: 'gaming',
+    gains: [
+      1.8, 2.3, 1.8, 0.5, -0.7, -1.7, -1.7, -1, -0.7, -0.2, 0.3, 0.3, 0.3, 0.5,
+      0.3,
+    ],
+    setup: { model: 'wide', subsonicHz: 20, monoBelowHz: 60 },
+  },
+  {
+    // Horror: the low drone kept, the middle scooped so the room feels
+    // empty, and the 5-12 kHz where creaks, breath and scratching live
+    // brought up.
+    id: 'gameDread',
+    labelKey: 'dsp.gamingPreset.dread',
+    group: 'gaming',
+    gains: [
+      1.5, 1.5, 0.5, -0.5, -1.5, -2, -1.7, -1, -0.5, 0.3, 1, 1.5, 1.5, 1.3, 1,
+    ],
+    setup: { ...PROTECTED, model: 'wide' },
+  },
+  {
+    // An engine's weight at 80-125 Hz without the boom over it, tyres and
+    // gear changes at 3-5 kHz, and wind: the top two bands held down only
+    // while it roars.
+    id: 'gameEngineTyres',
+    labelKey: 'dsp.gamingPreset.engineTyres',
+    group: 'gaming',
+    gains: [
+      -0.75, 0.25, 1.25, 1.25, -0.25, -1.95, -1.75, -1.05, -0.45, 0.25, 1.25,
+      1.75, 0.25, -2.25, -2.75,
+    ],
+    dynamic: [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      -30,
+      -30,
+    ],
+    setup: { model: 'proportional', subsonicHz: 25, monoBelowHz: 90 },
+  },
+  {
+    // Seen from above: ability cues and a hero's lines at 1-3 kHz up, the
+    // low end of a team fight down, nothing bright added for hours of play.
+    id: 'gameAbilityClarity',
+    labelKey: 'dsp.gamingPreset.abilityClarity',
+    group: 'gaming',
+    gains: [
+      -2.35, -2.35, -1.85, -1.35, -1.15, -0.85, -0.35, 0.15, 1.15, 1.65, 1.15,
+      0.65, 0.15, -0.35, -0.35,
+    ],
+    setup: { ...PROTECTED, model: 'wide' },
+  },
+  {
+    // Playing at night: the bass that travels through a wall held down only
+    // when it is loud (as Late night does for music), the voice range a
+    // decibel up, the top eased so nothing sharp carries.
+    id: 'gameNight',
+    labelKey: 'dsp.gamingPreset.night',
+    group: 'gaming',
+    gains: [-8, -7, -5, -3, -1, 0, 0.5, 1, 1.3, 1.5, 1, 0, -1, -2, -2.5],
+    dynamic: [
+      -32,
+      -32,
+      -32,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+    ],
+    setup: { ...PROTECTED, model: 'wide' },
   },
 ];
 

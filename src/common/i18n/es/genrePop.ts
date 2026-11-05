@@ -3,7 +3,7 @@
 export default {
   'genre.pop.hook': 'El disco más acabado que existe',
   'genre.pop.story':
-    'El pop va de 100 a 130 BPM, o a medio tiempo cerca de 90, sobre un 808 o un bajo de sintetizador, con una voz brillante hasta justo antes de sonar áspera. Los másters llegan limitados a unos −8 LUFS con picos por encima de la escala completa, así que todo lo que una etapa de reproducción podría añadir ya está en ellos. El preset añade solo lo que un máster no puede tener.',
+    'El pop contemporáneo sitúa una voz principal clara sobre un bajo definido y una mezcla brillante y abierta. Las canciones se normalizan primero a −18 LUFS para que tanto un máster fuerte como una grabación más suave lleguen al procesamiento con un nivel común. Después, el Maximizador eleva el resultado hacia −11 LUFS y controla los picos a −1 dBTP, conservando el contraste entre estrofas, estribillos y golpes de batería.',
   'genre.pop.pin.50': 'El sub y el bombo sobre los que se construye el pop',
   'genre.pop.pin.50.why':
     'Se siente más de lo que se oye: el peso que un altavoz pequeño pierde primero.',
@@ -13,14 +13,16 @@ export default {
   'genre.pop.pin.5000': 'Presencia y brillo',
   'genre.pop.pin.5000.why':
     'El pulido de la voz, justo antes de volverse áspero.',
+  'genre.pop.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.pop.stage.exciter':
-    'Cuerpo en torno a 1 kHz, brillo en la voz y calidez bajo ambos.',
+    'Un toque de cuerpo y calidez en la voz. El excitador de la banda aguda queda apagado para conservar el brillo propio de la grabación.',
   'genre.pop.stage.bassPunch':
     'Tensa en lugar de golpear: una cola de bombo más corta bajo la línea de bajo y el ataque apenas levantado.',
   'genre.pop.stage.dimension':
     'Graves en mono por debajo de 140 Hz, como se hacen los másters de pop, y el aire un poco más abierto que en el disco.',
   'genre.pop.stage.maximizer':
-    'Un techo ligero que apenas empuja: el máster ya viene limitado.',
+    'Añade 7 dB tras la normalización de entrada para acercarse a −11 LUFS, con un techo de −1 dBTP. Master queda apagado: un solo limitador final conserva la pegada.',
   'genre.pop.off':
     'La Forja de graves se ofrece con el nombre de Pop y queda apagada: el sub está en el máster.',
 
@@ -42,8 +44,11 @@ export default {
   'genre.indiePop.stage.exciter':
     'Solo calidez, en los medios graves: nunca más brillante.',
   'genre.indiePop.stage.dimension':
-    'Los graves más estrechos y el aire un pelín más abierto: las armonías se abren sin mover la voz.',
-  'genre.indiePop.stage.maximizer': 'Un techo ligero que conserva la suavidad.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.indiePop.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.indiePop.stage.maximizer':
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.indiePop.off':
     'Ninguna etapa le da brillo ni añade graves: la calidez lo-fi es la idea.',
 
@@ -61,9 +66,11 @@ export default {
   'genre.synthPop.stage.exciter':
     'Solo calidez, en los medios graves: nada de armónicos sobre unos agudos brillantes.',
   'genre.synthPop.stage.dimension':
-    'Los graves más estrechos y los pads un poco más abiertos, como se mezclaba el género.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.synthPop.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.synthPop.stage.maximizer':
-    'Un techo lento que deja la dinámica de los 80.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.synthPop.off':
     'Sin Pegada de graves ni Forja de graves: el bombo de una caja de ritmos es exactamente como se programó.',
 
@@ -79,31 +86,36 @@ export default {
   'genre.newWave.pin.1250.why':
     'Donde vive el mordiente de la guitarra rítmica.',
   'genre.newWave.stage.exciter':
-    'Un poco de cuerpo y un poco de aire, que un original fino agradece.',
+    'Solo un poco de calidez en los medios graves. Las tres bandas de armónicos permanecen apagadas para mantener claras las voces superpuestas.',
   'genre.newWave.stage.dimension':
-    'Cerca del disco: los graves más estrechos y los agudos apenas más abiertos.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.newWave.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.newWave.stage.maximizer':
-    'Un techo que solo atrapa: el chasquido es el género.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.newWave.off':
     'Sin Pegada de graves ni Forja de graves: los graves delgados son como se hizo.',
 
-  'genre.kPop.hook': 'Entre los discos más fuertes y pulidos que se hacen',
+  'genre.kPop.hook': 'Voces claras, graves firmes y un drop potente',
   'genre.kPop.story':
-    'Temas de baile de grupos femeninos a 115–130 BPM y canciones de grupos masculinos más cerca de 80–100, con un bombo hecho para la pegada del sub y una voz ya realzada entre 3 y 5 kHz y en 12 kHz. Los másters están entre −10 y −6 LUFS con picos por encima de la escala completa.',
+    'Dynamite de BTS aporta un bajo disco-pop; How You Like That de BLACKPINK, un drop hip-hop contundente. Ambas necesitan voces claras, cuerpo y contraste. La entrada se iguala a −18 LUFS antes del procesamiento. Este preset se calibró con sus avances oficiales de Apple, sin corrección de auriculares.',
   'genre.kPop.pin.80': 'La pegada del bombo, no el sub',
   'genre.kPop.pin.80.why':
     'Donde cae el bombo; nada se levanta por debajo de 50 Hz.',
   'genre.kPop.pin.315': 'Espacio bajo un arreglo denso',
   'genre.kPop.pin.315.why':
-    'Medios graves despejados para que las capas no se emborronen.',
+    'Un recorte suave de medios graves despeja las capas y conserva el cuerpo de la voz.',
   'genre.kPop.pin.12500': 'Sin aire extra',
-  'genre.kPop.pin.12500.why': 'La voz ya trae el suyo en 12 kHz.',
+  'genre.kPop.pin.12500.why':
+    'Conserva el aire de la grabación sin añadir realce de agudos.',
+  'genre.kPop.stage.deEsser':
+    'De-essing espectral suave en la voz central entre 5 y 10 kHz, limitado a 1,5 dB, con protección de platillos y sin reducir los graves.',
   'genre.kPop.stage.exciter':
-    'Cuerpo y presencia por debajo de los realces de la propia voz, y nada en los agudos.',
+    'Solo un poco de calidez en los medios graves. Las tres bandas de armónicos permanecen apagadas para mantener claras las voces superpuestas.',
   'genre.kPop.stage.dimension':
-    'Los graves más estrechos, y los dobles y los pads un poco más abiertos de lo que se mezclaron.',
+    'Estrecha los graves y abre ligeramente los laterales de agudos existentes, sin ensanchar la voz principal centrada.',
   'genre.kPop.stage.maximizer':
-    'Un techo que apenas empuja: estos másters son tan fuertes como puede serlo un máster.',
+    'Añade 7 dB tras normalizar a −18 LUFS, buscando cerca de −11 LUFS con picos a −1 dBTP. Dynamics y Master permanecen apagados.',
   'genre.kPop.off':
     'Sin Pegada de graves ni Forja de graves: la pegada del bombo y el sub ya están en el disco.',
 
@@ -121,9 +133,11 @@ export default {
   'genre.jPop.stage.exciter':
     'Solo calidez, en los medios graves: nada sobre unos agudos tan brillantes.',
   'genre.jPop.stage.dimension':
-    'Nada se ensancha: el muro ya es bastante ancho.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.jPop.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.jPop.stage.maximizer':
-    'Un techo que apenas empuja sobre másters que ya vienen saturados.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.jPop.off':
     'Sin Pegada de graves ni Forja de graves: el muro llega denso y fuerte.',
 
@@ -141,9 +155,11 @@ export default {
   'genre.cPop.stage.exciter':
     'Solo calidez: nada de armónicos en las sibilantes.',
   'genre.cPop.stage.dimension':
-    'Los medios un pelín más estrechos para que la voz sostenga el centro, y las cuerdas y reverberaciones algo más abiertas.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.cPop.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.cPop.stage.maximizer':
-    'Un techo lento para la dinámica de las baladas.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.cPop.off':
     'Sin Pegada de graves ni Forja de graves: ningún sub inventado bajo una balada de piano.',
 
@@ -163,9 +179,11 @@ export default {
   'genre.ballad.pin.8000.why':
     'Una voz cercana lleva aquí sus eses, y un realce afilaría cada una.',
   'genre.ballad.stage.dimension':
-    'Los graves estrechados hacia el centro, donde las baladas los mezclan; la voz, el piano y las cuerdas tan abiertos como se colocaron.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.ballad.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.ballad.stage.maximizer':
-    'Un techo ligero y lento que suelta a lo largo de un tiempo entero, para que las estrofas suaves sigan suaves y el último estribillo aún crezca.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.ballad.off':
     'Sin Excitador, Forja de graves ni Pegada de graves: los armónicos caerían sobre las sibilantes, una balada tiene sub solo donde su productor lo puso, y rara vez hay un bombo que moldear.',
 };

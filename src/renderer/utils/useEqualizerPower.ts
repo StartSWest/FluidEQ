@@ -21,7 +21,8 @@ const useEqualizerPower = () => {
   const { isBlockingError, isEnabled, setGlobalError, setIsEnabled } =
     useFluidEqShell();
 
-  const toggle = useCallback(async () => {
+  /** Resolves to the switch's new position, or undefined when main refused. */
+  const toggle = useCallback(async (): Promise<boolean | undefined> => {
     try {
       if (isEnabled) {
         await disableEqualizer();
@@ -29,8 +30,10 @@ const useEqualizerPower = () => {
         await enableEqualizer();
       }
       setIsEnabled(!isEnabled);
+      return !isEnabled;
     } catch (e) {
       setGlobalError(e as ErrorDescription);
+      return undefined;
     }
   }, [isEnabled, setGlobalError, setIsEnabled]);
 

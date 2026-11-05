@@ -94,6 +94,16 @@ const searchOf = (): URLSearchParams => {
   return new URLSearchParams(options.search);
 };
 
+it('carries the loaded profile name on its own line', () => {
+  createGameToasts().show({
+    what: 'Game profile loaded',
+    profile: 'Competitive',
+    game: 'for Overwatch',
+  });
+  expect(searchOf().get('profile')).toBe('Competitive');
+  expect(searchOf().get('game')).toBe('for Overwatch');
+});
+
 beforeEach(() => {
   mockCreated.length = 0;
   mockLoadFile.mockClear();

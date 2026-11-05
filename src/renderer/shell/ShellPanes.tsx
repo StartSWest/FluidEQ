@@ -40,6 +40,9 @@ import {
   useEditorHeight,
 } from '../utils/paneSizes';
 import { DspPanelPage } from '../workspacePages';
+import DspPausedForGame from '../games/DspPausedForGame';
+import { useLoadedGame } from '../games/gameSoundStore';
+import { useSoundingGame } from '../games/useGameSound';
 
 /**
  * The DSP page, subscribed to the rack's settings itself.
@@ -55,6 +58,13 @@ export const DspPage = memo(
   ({ onOpenEngineDialog }: { onOpenEngineDialog: () => void }) => {
     const settings = useDspSettings();
     const engineState = useDspEngineState();
+    const game = useSoundingGame();
+    const { musicDsp } = useLoadedGame();
+    // A game's own sound is tuned in the Gaming Lab alone; while it is on,
+    // this page says the music rack is paused instead of editing the game's.
+    if (game) {
+      return <DspPausedForGame gameName={game.name} musicDsp={musicDsp} />;
+    }
     return (
       <DspPanelPage.Page
         settings={settings}

@@ -36,6 +36,8 @@ it under the terms of the GNU General Public License version 3 or later.
   > .forum__stage > .forum__scroll,
   > .forum__stage > .forum__loading {
     padding-inline: max(4px, calc((100% - 1080px) / 2));
+    // The card's right inset, given back inside (`.forum__main`).
+    padding-right: calc(max(4px, calc((100% - 1080px) / 2)) + 12px);
   }
 }
 

@@ -34,6 +34,7 @@ import {
 import { isRestrictedPresetName } from 'common/utils';
 import type { TranslationKey } from 'common/i18n/en';
 import { keepSongSound, yieldSongSound } from './audio/songSoundSession';
+import { useSoundingGame } from './games/useGameSound';
 import { useFluidEqShell } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { readOutputEditor } from './utils/outputEditor';
@@ -138,6 +139,13 @@ const PresetsBar = ({
   const { isBlockingError, isCaseSensitiveFs, refreshState, setGlobalError } =
     useFluidEqShell();
   const { t } = useTranslation();
+  // While a game's own sound is on, the output is playing that game's copy
+  // (`main/ipc/gameSound.ts`): Update would write the game's sound over the
+  // music profile still highlighted here, and a profile picked would replace
+  // the game's sound mid-game. The list rests until the game is over, and
+  // says why.
+  const sounding = useSoundingGame();
+  const isResting = isBlockingError || sounding !== undefined;
   const enterMainEditor = useMainOutputEditor();
 
   const [presetName, setPresetName] = useState<string>('');
@@ -597,7 +605,7 @@ const PresetsBar = ({
             isAttached={n === assignedPresetForOutput}
             handleRename={handleRenameExistingPresetName(n)}
             handleDelete={handleDeletePreset(n)}
-            isDisabled={isBlockingError}
+            isDisabled={isResting}
             validate={validatePresetRename(n)}
           />
         ),
@@ -606,7 +614,7 @@ const PresetsBar = ({
   }, [
     assignedPresetForOutput,
     validatePresetRename,
-    isBlockingError,
+    isResting,
     handleDeletePreset,
     handleRenameExistingPresetName,
     visiblePresetNames,
@@ -633,6 +641,12 @@ const PresetsBar = ({
           </span>
         )}
       </div>
+      {sounding && (
+        <p className="presets-bar__game" role="status">
+          <span className="gaming-dot is-lavender" aria-hidden="true" />
+          {t('gaming.profileSelect.game', { game: sounding.name })}
+        </p>
+      )}
       <List
         name="preset"
         className="profile-list"
@@ -640,7 +654,7 @@ const PresetsBar = ({
         itemClassName="preset-list-item"
         value={presetName}
         handleChange={handleChangeSelectedPreset}
-        isDisabled={isBlockingError}
+        isDisabled={isResting}
         emptyOptionsPlaceholder={
           hasResolvedOutput ? t('profiles.empty') : t('profiles.detecting')
         }
@@ -661,7 +675,7 @@ const PresetsBar = ({
         <Button
           ariaLabel={t('profiles.newAria')}
           className="small subtle profile-actions__new"
-          isDisabled={isBlockingError}
+          isDisabled={isResting}
           handleChange={handleStartNewProfile}
         >
           <ProfileActionIcon action="new" />
@@ -672,7 +686,7 @@ const PresetsBar = ({
         <Button
           ariaLabel={t('profiles.restoreAria')}
           className="small subtle profile-actions__restore"
-          isDisabled={isBlockingError || isRestoring || !canRestoreBaseline}
+          isDisabled={isResting || isRestoring || !canRestoreBaseline}
           handleChange={handleRestoreBaseline}
         >
           <ProfileActionIcon action="restore" />
@@ -683,7 +697,7 @@ const PresetsBar = ({
         <Button
           ariaLabel={t('profiles.saveAria')}
           className="small profile-actions__save"
-          isDisabled={isBlockingError || !presetName}
+          isDisabled={isResting || !presetName}
           handleChange={handleSavePreset}
         >
           <ProfileActionIcon action="save" />

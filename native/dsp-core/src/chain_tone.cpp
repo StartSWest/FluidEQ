@@ -131,12 +131,12 @@ void clear_histories(FeqChain* chain, uint32_t slot) {
 }
 
 /**
- * The audio held between the curve going on and coming off: both of the
- * Maximizer's limiters and the Master's Auto Headroom, which run whether they
- * limit or not (`feq_chain_latency_parts`).
+ * The audio held between the curve going on and coming off: the Maximizer's
+ * limiter and the Master's Auto Headroom, which run whether they limit or not
+ * (`feq_chain_latency_parts`).
  */
 uint32_t limiter_delay(const FeqChain* chain) {
-  return chain->maximizer.look_ahead + chain->maximizer_low.look_ahead +
+  return chain->maximizer.look_ahead +
          chain->post_normalizer.limiter.look_ahead;
 }
 

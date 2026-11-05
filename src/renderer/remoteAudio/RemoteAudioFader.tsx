@@ -1,5 +1,5 @@
 /* FluidEQ — GPL-3.0-or-later */
-import type { CSSProperties } from 'react';
+import type { CSSProperties, KeyboardEventHandler } from 'react';
 import '../styles/NowPlayingBar.scss';
 import PlayerIcon from '../player/PlayerIcon';
 
@@ -7,6 +7,10 @@ const RemoteAudioFader = ({
   id,
   label,
   value,
+  valueText,
+  onBeginChange,
+  onEndChange,
+  onKeyDown,
   caption,
   disabled,
   muted = false,
@@ -17,6 +21,10 @@ const RemoteAudioFader = ({
   id: string;
   label: string;
   value?: number;
+  valueText?: string;
+  onBeginChange?: () => void;
+  onEndChange?: () => void;
+  onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
   caption: string;
   disabled?: boolean;
   muted?: boolean;
@@ -34,7 +42,7 @@ const RemoteAudioFader = ({
           <strong>{label}</strong>
         </label>
         <output className="remote-audio__lane-level-value" htmlFor={id}>
-          {percent === undefined ? '—' : `${percent}%`}
+          {valueText ?? (percent === undefined ? '—' : `${percent}%`)}
         </output>
         <div className="remote-audio__mix-volume">
           <button
@@ -54,6 +62,9 @@ const RemoteAudioFader = ({
             min="0"
             max="100"
             value={percent ?? 0}
+            onPointerDown={onBeginChange}
+            onKeyDown={onKeyDown}
+            onBlur={onEndChange}
             className="now-playing-bar__volume-slider"
             aria-label={label}
             disabled={disabled || value === undefined}

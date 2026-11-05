@@ -9,7 +9,12 @@
  * nothing is fetched before that.
  */
 const HELP_FILMS: Readonly<Record<string, readonly string[]>> = {
+  start: ['walkthrough'],
   looks: ['custom-looks'],
+  // The Gaming Lab's own film (Ivan, 2026-11-04: "record the new game film
+  // to show case it completely"): the walkthrough still shows the Game
+  // presets page the Lab replaced, so this is the one film of the Lab.
+  games: ['gaming-lab'],
 };
 
 /**
@@ -23,6 +28,11 @@ const HELP_FILMS: Readonly<Record<string, readonly string[]>> = {
  *   first page now goes over all of them (Ivan, 2026-10-28: "remove all other
  *   videos we have, only keep the visualizer one"), and only the custom
  *   looks' film, the visualizer's, stays.
+ *
+ * A film recorded again takes a new name when what it shows changed (the old
+ * `game-presets` is now `gaming-lab`): a released app streams its films from
+ * the site by name with its own captions bundled, so a new film under an old
+ * name would play under captions written for another.
  */
 export const FILMS_AWAY: readonly string[] = [
   'compact-player',
@@ -33,7 +43,6 @@ export const FILMS_AWAY: readonly string[] = [
   'engine-sound',
   'every-output',
   'fluideq-engine',
-  'game-presets',
   'headphone-presets',
   'karaoke',
   'karaoke-maker',

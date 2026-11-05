@@ -17,8 +17,11 @@ export default {
     'Calore e un po’ d’aria per i master analogici.',
   'genre.afrobeat.stage.bassPunch': 'Il basso un po’ più stretto.',
   'genre.afrobeat.stage.dimension':
-    'L’apertura della grande band come registrata, solo il basso più stretto.',
-  'genre.afrobeat.stage.maximizer': 'Un tetto lento che conserva la dinamica.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.afrobeat.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
+  'genre.afrobeat.stage.maximizer':
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.afrobeat.off':
     'Niente Fucina dei bassi, e niente che stringa la band: il suo tetto si limita a trattenere.',
 
@@ -32,8 +35,11 @@ export default {
   'genre.afrobeats.pin.12500': 'Shaker e aria sulla voce',
   'genre.afrobeats.pin.12500.why': 'Leggeri, in cima.',
   'genre.afrobeats.stage.dimension':
-    'Mono sotto i 150 Hz, gli shaker un po’ più ampi.',
-  'genre.afrobeats.stage.maximizer': 'Un tetto leggero che conserva lo swing.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.afrobeats.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
+  'genre.afrobeats.stage.maximizer':
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.afrobeats.off':
     'La Fucina dei bassi è offerta e resta spenta: un sub sinusoidale è pulito e non vuole né ottava né sporco sotto.',
 
@@ -47,9 +53,11 @@ export default {
   'genre.amapiano.pin.8000': 'Shaker brillanti',
   'genre.amapiano.pin.8000.why': 'Un piccolo sollevamento.',
   'genre.amapiano.stage.dimension':
-    'Il sub in mono sotto i 120 Hz e il corpo del log drum più stretto fino a 200, perché resti al centro; ampiezza solo sopra i 3 kHz.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.amapiano.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.amapiano.stage.maximizer':
-    'Un tetto leggero che conserva l’attacco del log drum.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.amapiano.off':
     'La Fucina dei bassi è offerta e resta spenta: l’unica regola per il log drum è nessuna saturazione.',
 
@@ -64,8 +72,12 @@ export default {
   'genre.highlife.pin.3150.why': 'Chiare e brillanti.',
   'genre.highlife.stage.exciter':
     'Un po’ di calore e d’aria per le registrazioni più vecchie.',
-  'genre.highlife.stage.dimension': 'Le chitarre panoramicate come registrate.',
-  'genre.highlife.stage.maximizer': 'Un tetto lento.',
+  'genre.highlife.stage.dimension':
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.highlife.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
+  'genre.highlife.stage.maximizer':
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.highlife.off':
     'Niente Punch dei bassi né Fucina dei bassi: le chitarre pulite restano pulite.',
 
@@ -78,7 +90,10 @@ export default {
   'genre.world.pin.3150.why': 'Sotto il decibel.',
   'genre.world.pin.12500': 'Un po’ d’aria',
   'genre.world.pin.12500.why': 'Delicata.',
-  'genre.world.stage.maximizer': 'Un tetto che si limita a contenere.',
+  'genre.world.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
+  'genre.world.stage.maximizer':
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.world.off':
     'Niente Dimensione, Exciter, Punch dei bassi o Fucina dei bassi: l’immagine resta com’è.',
 
@@ -93,8 +108,11 @@ export default {
   'genre.bollywood.pin.2000.why': 'In avanti e pulita.',
   'genre.bollywood.stage.bassPunch': 'Il sub stretto.',
   'genre.bollywood.stage.dimension':
-    'L’immagine ampia com’è arrivata; solo il basso più stretto.',
-  'genre.bollywood.stage.maximizer': 'Un tetto che spinge appena.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.bollywood.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
+  'genre.bollywood.stage.maximizer':
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.bollywood.off': 'Niente Exciter sulla voce e niente Fucina dei bassi.',
 
   'genre.bhangra.hook': 'Il dhol è il genere',
@@ -108,9 +126,11 @@ export default {
   'genre.bhangra.pin.2000.why': 'Brillanti e incisivi.',
   'genre.bhangra.stage.bassPunch': 'La coda del rimbombo stretta, mai alzata.',
   'genre.bhangra.stage.dimension':
-    'Il basso più stretto, perché il rimbombo del dhol tenga il centro.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.bhangra.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.bhangra.stage.maximizer':
-    'Un look-ahead abbastanza lungo da lasciar passare lo schiocco.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.bhangra.off':
     'Niente Exciter né Fucina dei bassi: nessun acuto aggiunto.',
 
@@ -125,7 +145,7 @@ export default {
   'genre.indianClassical.pin.12500': 'Il luccichio del tanpura',
   'genre.indianClassical.pin.12500.why': 'L’alone del bordone.',
   'genre.indianClassical.stage.maximizer':
-    'Solo un tetto: un livellatore alzerebbe il bordone nell’alap.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.indianClassical.off':
     'Niente Dimensione, Exciter o Punch dei bassi: le armoniche della jivari sono già incorporate.',
 
@@ -144,9 +164,11 @@ export default {
     'Calore sotto la voce; gli archi e il tek restano brillanti come sono.',
   'genre.arabicPop.stage.bassPunch': 'Il basso stretto.',
   'genre.arabicPop.stage.dimension':
-    'Gli archi ampi come registrati; solo il basso più stretto.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.arabicPop.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.arabicPop.stage.maximizer':
-    'Un tetto leggero che conserva l’attacco della darbuka.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.arabicPop.off':
     'Niente Fucina dei bassi: nulla di generato sotto il doum.',
 
@@ -164,8 +186,12 @@ export default {
   'genre.turkishPop.stage.exciter':
     'Calore sotto la voce, niente sulla darbuka.',
   'genre.turkishPop.stage.bassPunch': 'Un basso stretto.',
-  'genre.turkishPop.stage.dimension': 'Come mixato, solo il basso più stretto.',
-  'genre.turkishPop.stage.maximizer': 'Un tetto che spinge appena.',
+  'genre.turkishPop.stage.dimension':
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.turkishPop.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
+  'genre.turkishPop.stage.maximizer':
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.turkishPop.off': 'Niente Fucina dei bassi su un disco così levigato.',
 
   'genre.gospel.hook': 'Un coro, e vamp che crescono per minuti',
@@ -177,8 +203,12 @@ export default {
   'genre.gospel.pin.315.why': 'Spazio in un suono pieno.',
   'genre.gospel.pin.2000': 'La voce solista',
   'genre.gospel.pin.2000.why': 'In avanti.',
-  'genre.gospel.stage.dimension': 'Il coro ampio quanto è stato registrato.',
-  'genre.gospel.stage.maximizer': 'Un tetto lento che lascia crescere un vamp.',
+  'genre.gospel.stage.dimension':
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.gospel.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
+  'genre.gospel.stage.maximizer':
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.gospel.off':
     'Il suo Exciter è offerto e resta spento: niente brillantezza sul coro.',
 
@@ -192,9 +222,11 @@ export default {
   'genre.christian.pin.3150': 'Il testo, chiaro',
   'genre.christian.pin.3150.why': 'Dove stanno le parole.',
   'genre.christian.stage.dimension':
-    'Il basso più stretto; le chitarre lasciate ampie.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.christian.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.christian.stage.maximizer':
-    'Un tetto abbastanza lento da conservare l’arco.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.christian.off':
     'Niente Exciter, Punch dei bassi o Fucina dei bassi: la crescita è la canzone.',
 };

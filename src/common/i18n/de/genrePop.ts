@@ -3,7 +3,7 @@
 export default {
   'genre.pop.hook': 'Die fertigste Platte, die es gibt',
   'genre.pop.story':
-    'Pop läuft mit 100 bis 130 BPM oder im Halftime um 90, über einer 808 oder einem Synth-Bass, mit einer Stimme, die hell ist bis knapp vor scharf. Die Master kommen auf etwa −8 LUFS limitiert und mit Spitzen über Vollaussteuerung, also steckt alles, was eine Wiedergabestufe hinzufügen könnte, schon darin. Das Preset fügt nur hinzu, was ein Master nicht haben kann.',
+    'Moderner Pop stellt eine klare Hauptstimme über einen straffen Bass und einen hellen, offenen Mix. Zuerst werden die Songs auf −18 LUFS gebracht, damit laute Master und leisere Aufnahmen die Bearbeitung mit einem gemeinsamen Pegel erreichen. Der Maximizer hebt das Ergebnis dann in Richtung −11 LUFS und begrenzt Spitzen auf −1 dBTP, während die Unterschiede zwischen Strophen, Refrains und Schlagzeugimpulsen erhalten bleiben.',
   'genre.pop.pin.50': 'Sub und Kick, auf denen Pop gebaut ist',
   'genre.pop.pin.50.why':
     'Mehr gefühlt als gehört: das Gewicht, das ein kleiner Lautsprecher zuerst verliert.',
@@ -13,14 +13,16 @@ export default {
   'genre.pop.pin.5000': 'Präsenz und Glanz',
   'genre.pop.pin.5000.why':
     'Der Schliff auf der Stimme, knapp vor dem Scharfen gehalten.',
+  'genre.pop.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.pop.stage.exciter':
-    'Körper um 1 kHz, Glanz auf der Stimme und Wärme unter beidem.',
+    'Etwas Körper und Wärme für die Stimme. Der Hochton-Exciter bleibt aus, damit der eigene Glanz der Aufnahme erhalten bleibt.',
   'genre.pop.stage.bassPunch':
     'Strafft, statt zu schlagen: ein kürzerer Kick-Ausklang unter der Basslinie, der Anschlag nur leicht angehoben.',
   'genre.pop.stage.dimension':
     'Bass unter 140 Hz in Mono, wie Pop-Master gemacht werden, und die Luft etwas breiter als auf der Platte.',
   'genre.pop.stage.maximizer':
-    'Eine leichte Obergrenze, die kaum antreibt: Der Master ist schon limitiert.',
+    'Hebt nach der Eingangsnormalisierung um 7 dB an: Ziel etwa −11 LUFS bei einer Grenze von −1 dBTP. Master bleibt aus, damit nur ein finaler Limiter den Druck erhält.',
   'genre.pop.off':
     'Die Bass-Schmiede wird unter dem Namen Pop angeboten und bleibt aus: Der Sub steckt im Master.',
 
@@ -42,9 +44,11 @@ export default {
   'genre.indiePop.stage.exciter':
     'Nur Wärme, in den unteren Mitten: nie heller.',
   'genre.indiePop.stage.dimension':
-    'Unten schmaler und die Luft einen Hauch breiter: Die Harmonien öffnen sich, ohne die Stimme zu verschieben.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.indiePop.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.indiePop.stage.maximizer':
-    'Eine leichte Obergrenze, die die Weichheit bewahrt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.indiePop.off':
     'Keine Stufe macht es heller oder fügt Bass hinzu: Die Lo-Fi-Wärme ist der Sinn der Sache.',
 
@@ -62,9 +66,11 @@ export default {
   'genre.synthPop.stage.exciter':
     'Nur Wärme, in den unteren Mitten: keine Obertöne auf hellen Höhen.',
   'genre.synthPop.stage.dimension':
-    'Unten schmaler und die Flächen etwas breiter, so wie das Genre gemischt wurde.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.synthPop.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.synthPop.stage.maximizer':
-    'Eine langsame Obergrenze, die die Dynamik der 80er lässt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.synthPop.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Der Kick eines Drumcomputers ist genau so, wie er programmiert wurde.',
 
@@ -80,32 +86,36 @@ export default {
   'genre.newWave.pin.1250': 'Die zerhackten Gitarren',
   'genre.newWave.pin.1250.why': 'Wo der Biss der Rhythmusgitarre sitzt.',
   'genre.newWave.stage.exciter':
-    'Etwas Körper und etwas Luft, die ein dünnes Original gern annimmt.',
+    'Nur etwas Wärme in den unteren Mitten. Alle drei Obertonbänder bleiben aus, damit gestapelte Stimmen klar bleiben.',
   'genre.newWave.stage.dimension':
-    'Nah an der Platte: unten schmaler, oben einen Hauch breiter.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.newWave.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.newWave.stage.maximizer':
-    'Eine Obergrenze, die nur abfängt: Das Knackige ist das Genre.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.newWave.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Das schlanke Fundament ist so gemacht.',
 
-  'genre.kPop.hook': 'Unter den lautesten, glattesten Platten überhaupt',
+  'genre.kPop.hook': 'Klare Stimmen, straffer Bass und ein kraftvoller Drop',
   'genre.kPop.story':
-    'Dance-Tracks von Girlgroups mit 115 bis 130 BPM und Songs von Boygroups eher bei 80 bis 100, mit einem Kick, der für Sub-Druck gebaut ist, und einer Stimme, die bei 3 bis 5 kHz und bei 12 kHz schon angehoben ist. Die Master liegen bei −10 bis −6 LUFS mit Spitzen über Vollaussteuerung.',
+    'Dynamite von BTS bringt Disco-Pop-Bass, How You Like That von BLACKPINK einen kräftigen Hip-Hop-Drop. Beide brauchen klare Stimmen, Gewicht und Kontrast. Vor der Bearbeitung wird der Eingang auf −18 LUFS angeglichen. Dieses Hörpreset wurde mit den offiziellen Apple-Hörproben ohne Kopfhörerkorrektur abgestimmt.',
   'genre.kPop.pin.80': 'Der Druck des Kicks, nicht Sub',
   'genre.kPop.pin.80.why':
     'Wo der Kick landet; unter 50 Hz wird nichts angehoben.',
   'genre.kPop.pin.315': 'Platz unter einem dichten Arrangement',
   'genre.kPop.pin.315.why':
-    'Untere Mitten freigeräumt, damit die Schichten nicht verschwimmen.',
+    'Eine sanfte Absenkung der unteren Mitten schafft Platz und erhält den Körper der Stimme.',
   'genre.kPop.pin.12500': 'Keine zusätzliche Luft',
   'genre.kPop.pin.12500.why':
-    'Die Stimme bringt ihre eigene bei 12 kHz schon mit.',
+    'Erhält die Luftigkeit der Aufnahme ohne zusätzliche Höhenanhebung.',
+  'genre.kPop.stage.deEsser':
+    'Sanftes spektrales De-Essing der mittigen Stimme von 5 bis 10 kHz, auf 1,5 dB begrenzt, mit Beckenschutz und ohne Bassabsenkung.',
   'genre.kPop.stage.exciter':
-    'Körper und Präsenz unterhalb der Anhebungen der Stimme selbst, nichts in den Höhen.',
+    'Nur etwas Wärme in den unteren Mitten. Alle drei Obertonbänder bleiben aus, damit gestapelte Stimmen klar bleiben.',
   'genre.kPop.stage.dimension':
-    'Unten schmaler, Doppelungen und Flächen etwas breiter, als sie gemischt wurden.',
+    'Verengt den Bass und öffnet die vorhandenen Höhenseiten leicht, ohne die mittige Hauptstimme zu verbreitern.',
   'genre.kPop.stage.maximizer':
-    'Eine Obergrenze, die kaum antreibt: Diese Master sind so laut, wie Master nur werden.',
+    'Hebt nach der Normalisierung auf −18 LUFS um 7 dB an: Ziel nahe −11 LUFS, Spitzen bei −1 dBTP. Dynamics und Master bleiben aus.',
   'genre.kPop.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Der Punch der Kick und der Sub sind schon in der Platte.',
 
@@ -120,9 +130,12 @@ export default {
   'genre.jPop.pin.3150.why': 'Schon hell und nach vorn; nie weiter geschoben.',
   'genre.jPop.stage.exciter':
     'Nur Wärme, in den unteren Mitten: nichts auf so hellen Höhen.',
-  'genre.jPop.stage.dimension': 'Nichts verbreitert: Die Wand ist breit genug.',
+  'genre.jPop.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.jPop.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.jPop.stage.maximizer':
-    'Eine Obergrenze, die kaum antreibt, auf Mastern, die schon geclippt sind.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.jPop.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Die Wand kommt dicht und laut an.',
 
@@ -138,9 +151,11 @@ export default {
     'Ein wenig Anhebung über den Konsonanten, nicht auf ihnen.',
   'genre.cPop.stage.exciter': 'Nur Wärme: keine Obertöne auf Zischlauten.',
   'genre.cPop.stage.dimension':
-    'Die Mitten einen Hauch schmaler, damit die Stimme die Mitte hält, Streicher und Hall etwas breiter.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.cPop.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.cPop.stage.maximizer':
-    'Eine langsame Obergrenze für die Dynamik der Balladen.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.cPop.off':
     'Kein Bass-Punch und keine Bass-Schmiede: kein erfundener Sub unter einer Klavierballade.',
 
@@ -160,9 +175,11 @@ export default {
   'genre.ballad.pin.8000.why':
     'Eine nahe Stimme trägt hier ihre S-Laute, und eine Anhebung würde jeden schärfen.',
   'genre.ballad.stage.dimension':
-    'Der Bass zur Mitte hin verschmälert, wo Balladen ihn mischen; Stimme, Klavier und Streicher so breit gelassen, wie sie platziert wurden.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.ballad.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.ballad.stage.maximizer':
-    'Eine leichte, langsame Obergrenze, die über einen ganzen Schlag loslässt, damit die leisen Strophen leise bleiben und der letzte Refrain noch steigt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.ballad.off':
     'Kein Exciter, keine Bass-Schmiede und kein Bass-Punch: Obertöne landeten auf den Zischlauten, eine Ballade hat nur dort einen Sub, wo ihr Produzent ihn hingesetzt hat, und selten gibt es eine Bassdrum zu formen.',
 };

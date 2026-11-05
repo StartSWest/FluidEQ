@@ -13,9 +13,11 @@ export default {
   'genre.latin.pin.12500': 'Los agudos de los metales, sin empujar',
   'genre.latin.pin.12500.why': 'Ya son ricos en armónicos.',
   'genre.latin.stage.dimension':
-    'La imagen tal como se mezcló; solo se estrechan los graves.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.latin.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.latin.stage.maximizer':
-    'Un techo que conserva el ataque de la percusión.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.latin.off':
     'Su Excitador se ofrece y queda apagado: los metales y la güira se vuelven ásperos con él.',
 
@@ -31,8 +33,12 @@ export default {
   'genre.latinPop.stage.exciter':
     'Calidez y cuerpo bajo la voz, nada en los agudos.',
   'genre.latinPop.stage.bassPunch': 'El sub, un poco más ajustado.',
-  'genre.latinPop.stage.dimension': 'Mono por debajo de 150 Hz.',
-  'genre.latinPop.stage.maximizer': 'Un techo que apenas empuja.',
+  'genre.latinPop.stage.dimension':
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.latinPop.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.latinPop.stage.maximizer':
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.latinPop.off': 'Sin Forja de graves: el sub ya va amarrado al bombo.',
 
   'genre.reggaeton.hook': 'Un bombo en cada tiempo sobre un 808 afinado',
@@ -44,9 +50,12 @@ export default {
   'genre.reggaeton.pin.315.why': 'Espacio para el dembow.',
   'genre.reggaeton.pin.5000': 'El chasquido de la caja',
   'genre.reggaeton.pin.5000.why': 'Nítido.',
-  'genre.reggaeton.stage.dimension': 'Mono por debajo de 150 Hz.',
+  'genre.reggaeton.stage.dimension':
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.reggaeton.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.reggaeton.stage.maximizer':
-    'Un techo que apenas empuja un máster tan fuerte.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.reggaeton.off':
     'La Forja de graves se ofrece y queda apagada: su octava y sus armónicos bajo un 808 ya distorsionado llegaban al 13 % de la nota.',
 
@@ -64,9 +73,11 @@ export default {
   'genre.salsa.stage.exciter':
     'Solo calidez, suave bajo el tumbao, y nada en los metales.',
   'genre.salsa.stage.dimension':
-    'La orquesta donde se colocó; solo se estrechan los graves.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.salsa.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.salsa.stage.maximizer':
-    'Un techo lento que deja pasar cada golpe de conga.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.salsa.off':
     'Sin Pegada de graves ni Forja de graves, y nada arriba: los metales y el cencerro ya son ricos en armónicos.',
 
@@ -81,9 +92,11 @@ export default {
   'genre.bachata.pin.8000.why':
     'La güira y el requinto cansan el oído enseguida.',
   'genre.bachata.stage.dimension':
-    'Como se mezcló, las dos guitarras separadas; solo se estrechan los graves.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.bachata.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.bachata.stage.maximizer':
-    'Un techo ligero que conserva el ataque de la güira.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.bachata.off':
     'Su Excitador se ofrece y queda apagado: vuelve ásperos el requinto y la güira.',
 
@@ -98,9 +111,11 @@ export default {
   'genre.merengue.pin.5000.why': 'La güira y los saxos ya son brillantes.',
   'genre.merengue.stage.bassPunch': 'La pegada de la tambora, bien ajustada.',
   'genre.merengue.stage.dimension':
-    'La orquesta tal como se mezcló; solo se estrechan los graves.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.merengue.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.merengue.stage.maximizer':
-    'Un techo ligero que no emborrona la güira.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.merengue.off':
     'Sin Excitador ni Forja de graves: nada de agudos añadidos a saxos y güira.',
 
@@ -115,9 +130,11 @@ export default {
   'genre.cumbia.pin.12500.why': 'Su pulso, sin tocar.',
   'genre.cumbia.stage.exciter': 'Calidez para el bajo, y nada arriba.',
   'genre.cumbia.stage.dimension':
-    'La banda tal como se mezcló; solo se estrechan los graves.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.cumbia.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.cumbia.stage.maximizer':
-    'Un techo lento que deja en paz el pulso de la guacharaca.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.cumbia.off':
     'Sin Pegada de graves ni Forja de graves: el raspado y el bajo quedan como se tocaron.',
 
@@ -133,8 +150,11 @@ export default {
   'genre.bossaNova.stage.exciter':
     'Calidez para la guitarra y un poco de aire para la voz.',
   'genre.bossaNova.stage.dimension':
-    'Íntimo y cerca del centro, como se grabó.',
-  'genre.bossaNova.stage.maximizer': 'Un techo que solo atrapa.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.bossaNova.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.bossaNova.stage.maximizer':
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.bossaNova.off':
     'Sin Pegada de graves ni Forja de graves: nada la comprime ni le añade sub.',
 
@@ -150,9 +170,11 @@ export default {
   'genre.samba.stage.bassPunch':
     'El surdo ajustado en vez de hacerlo retumbar.',
   'genre.samba.stage.dimension':
-    'La anchura natural del conjunto; solo se estrechan los graves.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.samba.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.samba.stage.maximizer':
-    'Un techo que no precipita el ataque de la percusión.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.samba.off':
     'Sin Excitador ni Forja de graves sobre unos agudos que ya son brillantes.',
 
@@ -167,9 +189,11 @@ export default {
   'genre.flamenco.pin.12500.why': 'Ya es brillante: no se añade nada.',
   'genre.flamenco.stage.exciter': 'Cuerpo, y nunca agudos.',
   'genre.flamenco.stage.dimension':
-    'La guitarra y el cantaor en el centro, como se grabó.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.flamenco.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.flamenco.stage.maximizer':
-    'Un techo que conserva todos los picos que puede.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.flamenco.off':
     'Sin Pegada de graves ni Forja de graves: nada comprime el ritmo.',
 
@@ -187,8 +211,11 @@ export default {
   'genre.regionalMexican.stage.bassPunch':
     'La pegada de la tambora, bien ajustada.',
   'genre.regionalMexican.stage.dimension':
-    'El conjunto en vivo tal como se mezcló; solo se estrechan los graves.',
-  'genre.regionalMexican.stage.maximizer': 'Un techo ligero.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.regionalMexican.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.regionalMexican.stage.maximizer':
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.regionalMexican.off':
     'Su Excitador se ofrece y queda apagado: los metales, el acordeón y los violines ya son brillantes.',
 
@@ -202,9 +229,11 @@ export default {
   'genre.corridos.pin.12500': 'El requinto de acero sin abrillantar',
   'genre.corridos.pin.12500.why': 'Ya es bien articulado.',
   'genre.corridos.stage.dimension':
-    'El sub en mono por debajo de 120 Hz; el requinto y las guitarras rítmicas donde los puso la mezcla.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.corridos.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.corridos.stage.maximizer':
-    'Un techo cuya anticipación conserva el ataque de la púa.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.corridos.off':
     'La Forja de graves se ofrece y queda apagada: el 808 trae su propio sub.',
 };

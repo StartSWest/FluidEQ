@@ -286,6 +286,7 @@ describe('the commands of the actions menu', () => {
 describe('Help and the compact switch, while the titlebar has no room for them', () => {
   const helpHandlers = (): IHelpHandlers => ({
     onTour: jest.fn(),
+    onReleaseNotes: jest.fn(),
     onTroubleshoot: jest.fn(),
     onReport: jest.fn(),
     onForum: jest.fn(),

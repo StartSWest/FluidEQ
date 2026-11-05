@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { isAccountConfigured } from 'common/accountConfig';
 import WorkspaceTabStrip from '../components/WorkspaceTabStrip';
+import { useSoundingGame } from '../games/useGameSound';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useMediaQuery from '../utils/useMediaQuery';
@@ -26,8 +27,7 @@ import type { TWorkspaceTab } from '../workspaceTabs';
 import { isEqGroupTab, MEDIA_TAB_ONE_WORD_QUERY } from './workspaceGroups';
 
 /**
- * The six places, drawn in the titlebar either side of the live output
- * meter — three on the left, three on the right.
+ * The main places, drawn either side of the live output meter.
  *
  * Above the workspace rather than on it. The meter is the one element that
  * makes this window look like itself and it already floats across the top;
@@ -37,8 +37,8 @@ import { isEqGroupTab, MEDIA_TAB_ONE_WORD_QUERY } from './workspaceGroups';
  * Split, because all six on one end left the spectrum sitting a couple of
  * hundred pixels left of the window's middle while the wrapper around it was
  * perfectly centred — the one drawing in this app that is meant to look
- * centred was the one thing that was not. Share Audio belongs beside Online
- * Media because both move audio between computers rather than shape it.
+ * centred was the one thing that was not. Visualizers opens the left strip;
+ * Online Media closes the right, as Ivan asked on 2026-11-05.
  */
 export interface IWorkspaceTabsProps {
   activeTab: TWorkspaceTab;
@@ -49,7 +49,61 @@ export interface IWorkspaceTabsProps {
   onApproach: (tab: TWorkspaceTab) => void;
 }
 
-/** Media, Share Audio and the equaliser: the left of the meter. */
+const VisualizersTab = ({
+  activeTab,
+  onSelect,
+  onApproach,
+}: Omit<IWorkspaceTabsProps, 'lastEqTab'>) => {
+  const { t } = useTranslation();
+  if (!isAccountConfigured()) {
+    return null;
+  }
+  const active = activeTab === 'community';
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      aria-label={t('tabs.plus')}
+      className={`workspace-tab${active ? ' is-active' : ''}`}
+      onClick={() => onSelect('community')}
+      onPointerEnter={() => onApproach('community')}
+      onFocus={() => onApproach('community')}
+    >
+      <MenuIcon name="plusTab" />
+      <span className="workspace-tab__label">{t('tabs.plus')}</span>
+    </button>
+  );
+};
+
+const OnlineMediaTab = ({
+  activeTab,
+  onSelect,
+  onApproach,
+}: Omit<IWorkspaceTabsProps, 'lastEqTab'>) => {
+  const { t } = useTranslation();
+  const short = useMediaQuery(MEDIA_TAB_ONE_WORD_QUERY);
+  const active = activeTab === 'video';
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      aria-label={t('tabs.media')}
+      className={`workspace-tab${active ? ' is-active' : ''}`}
+      onClick={() => onSelect('video')}
+      onPointerEnter={() => onApproach('video')}
+      onFocus={() => onApproach('video')}
+    >
+      <MenuIcon name="video" />
+      <span className="workspace-tab__label">
+        {short ? t('tabs.mediaShort') : t('tabs.media')}
+      </span>
+    </button>
+  );
+};
+
+/** Visualizers, Share Audio, Gaming Lab and the equaliser: left of the meter. */
 export const WorkspaceTabsLeft = ({
   activeTab,
   lastEqTab,
@@ -57,30 +111,16 @@ export const WorkspaceTabsLeft = ({
   onApproach,
 }: IWorkspaceTabsProps) => {
   const { t } = useTranslation();
-  const isMediaTabOneWord = useMediaQuery(MEDIA_TAB_ONE_WORD_QUERY);
-  const isVideoTab = activeTab === 'video';
   const isShareTab = activeTab === 'share';
+  const isGamesTab = activeTab === 'games';
+  const sounding = useSoundingGame();
   return (
     <WorkspaceTabStrip label={t('tabs.aria')}>
-      {/* The one tab whose name is too long for its own strip. It shortens for
-          the eye and not for anything else: the accessible name stays the full
-          two words at every width, and the short label is a word out of them,
-          so what is read aloud and what is on screen never disagree. */}
-      <button
-        type="button"
-        role="tab"
-        aria-selected={isVideoTab}
-        aria-label={t('tabs.media')}
-        className={`workspace-tab${isVideoTab ? ' is-active' : ''}`}
-        onClick={() => onSelect('video')}
-        onPointerEnter={() => onApproach('video')}
-        onFocus={() => onApproach('video')}
-      >
-        <MenuIcon name="video" />
-        <span className="workspace-tab__label">
-          {isMediaTabOneWord ? t('tabs.mediaShort') : t('tabs.media')}
-        </span>
-      </button>
+      <VisualizersTab
+        activeTab={activeTab}
+        onSelect={onSelect}
+        onApproach={onApproach}
+      />
       <button
         type="button"
         role="tab"
@@ -93,6 +133,30 @@ export const WorkspaceTabsLeft = ({
       >
         <MenuIcon name="waveform" />
         <span className="workspace-tab__label">{t('tabs.share')}</span>
+      </button>
+      {/* Beside the equaliser, which it stands in for while a game plays:
+          a game's whole sound is tuned here (Ivan, 2026-11-02: "put it to the
+          left of EQ"). The dot says a game's own sound is the one on, from
+          any page, without a banner over anybody's graph. */}
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isGamesTab}
+        aria-label={t('gaming.tab')}
+        className={`workspace-tab${isGamesTab ? ' is-active' : ''}`}
+        onClick={() => onSelect('games')}
+        onPointerEnter={() => onApproach('games')}
+        onFocus={() => onApproach('games')}
+      >
+        <MenuIcon name="gamepad" />
+        <span className="workspace-tab__label">{t('gaming.tab')}</span>
+        {sounding && (
+          <span
+            className="workspace-tab__live"
+            title={sounding.name}
+            aria-hidden="true"
+          />
+        )}
       </button>
       {/* Six places, not ten. The equaliser and everything that sets it
           are one tab with a row of pills inside — see EQ_GROUP_TABS.
@@ -120,7 +184,7 @@ export const WorkspaceTabsLeft = ({
   );
 };
 
-/** The rack, the Library, Karaoke and Plus: the right of the meter. */
+/** The rack, Library, Karaoke and Online Media: right of the meter. */
 export const WorkspaceTabsRight = ({
   activeTab,
   onSelect,
@@ -130,7 +194,6 @@ export const WorkspaceTabsRight = ({
   const isDspTab = activeTab === 'dsp';
   const isLibraryTab = activeTab === 'library';
   const isKaraokeTab = activeTab === 'karaoke';
-  const isCommunityTab = activeTab === 'community';
   return (
     <WorkspaceTabStrip label={t('tabs.aria')}>
       {/* First on this side, which keeps it next to the equaliser across the
@@ -176,24 +239,11 @@ export const WorkspaceTabsRight = ({
         <MenuIcon name="microphone" />
         <span className="workspace-tab__label">{t('tabs.karaoke')}</span>
       </button>
-      {/* Only in a build with a backend — every fork and every checkout
-          without a .env has no gallery, board or Studio sharing to show, and
-          a tab that opens an empty room is worse than no tab. */}
-      {isAccountConfigured() && (
-        <button
-          type="button"
-          role="tab"
-          aria-selected={isCommunityTab}
-          aria-label={t('tabs.plus')}
-          className={`workspace-tab${isCommunityTab ? ' is-active' : ''}`}
-          onClick={() => onSelect('community')}
-          onPointerEnter={() => onApproach('community')}
-          onFocus={() => onApproach('community')}
-        >
-          <MenuIcon name="plusTab" />
-          <span className="workspace-tab__label">{t('tabs.plus')}</span>
-        </button>
-      )}
+      <OnlineMediaTab
+        activeTab={activeTab}
+        onSelect={onSelect}
+        onApproach={onApproach}
+      />
       {/* No Forum tab: the forum opens from the Help menu, beside the other
           ways to get help, and still fills the workspace like a tab. */}
     </WorkspaceTabStrip>

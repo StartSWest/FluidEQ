@@ -11,41 +11,44 @@ import MenuIcon from '../icons/MenuIcon';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import '../styles/BandMenu.scss';
 
+/** The menu's items that can be pressed now, in order. */
+const enabledItems = (from: Element | null): HTMLButtonElement[] => [
+  ...(from
+    ?.closest('[role="menu"]')
+    ?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not(:disabled)') ??
+    []),
+];
+
 export default function RemoteAudioPeerMenu({
   name,
   paused,
   canPause = true,
+  canReconnect = true,
   onPause,
+  onReconnect,
   onUnlink,
 }: {
   name: string;
   paused: boolean;
   canPause?: boolean;
+  /** False while a reconnect asked for already runs. */
+  canReconnect?: boolean;
   onPause(): void;
+  onReconnect(): void;
   onUnlink(): void;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
-  const first = useRef<HTMLButtonElement>(null);
-  const last = useRef<HTMLButtonElement>(null);
+  // The subject heads the menu whatever is enabled, so it is where the menu
+  // finds its first item to focus when it opens.
   const focusFirst = useCallback(
-    (element: HTMLButtonElement | null) => {
-      first.current = element;
-      if (element && open && canPause) {
-        element.focus();
+    (subject: HTMLParagraphElement | null) => {
+      if (subject && open) {
+        enabledItems(subject)[0]?.focus();
       }
     },
-    [open, canPause],
-  );
-  const focusLast = useCallback(
-    (element: HTMLButtonElement | null) => {
-      last.current = element;
-      if (element && open && !canPause) {
-        element.focus();
-      }
-    },
-    [open, canPause],
+    [open],
   );
 
   useEffect(() => {
@@ -79,18 +82,15 @@ export default function RemoteAudioPeerMenu({
     trigger.current?.focus();
   };
   const navigate = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    const items = enabledItems(event.currentTarget);
+    const at = items.indexOf(event.currentTarget);
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
-      (!canPause || event.currentTarget === first.current
-        ? last.current
-        : first.current
-      )?.focus();
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      items[(at + step + items.length) % items.length]?.focus();
     } else if (event.key === 'Home' || event.key === 'End') {
       event.preventDefault();
-      (event.key === 'Home' && canPause
-        ? first.current
-        : last.current
-      )?.focus();
+      items[event.key === 'Home' ? 0 : items.length - 1]?.focus();
     } else if (event.key === 'Tab') {
       close();
     }
@@ -115,10 +115,11 @@ export default function RemoteAudioPeerMenu({
         className="band-menu"
         ariaLabel={t('remoteAudio.group.options', { name })}
       >
-        <p className="band-menu__subject">{name}</p>
+        <p className="band-menu__subject" ref={focusFirst}>
+          {name}
+        </p>
         <button
           disabled={!canPause}
-          ref={focusFirst}
           type="button"
           role="menuitem"
           onKeyDown={navigate}
@@ -137,9 +138,21 @@ export default function RemoteAudioPeerMenu({
               : t('remoteAudio.linked.pause')}
           </span>
         </button>
+        <button
+          disabled={!canReconnect}
+          type="button"
+          role="menuitem"
+          onKeyDown={navigate}
+          onClick={() => {
+            close();
+            onReconnect();
+          }}
+        >
+          <MenuIcon name="restart" className="band-menu__icon" />
+          <span>{t('remoteAudio.linked.reconnect')}</span>
+        </button>
         <div className="band-menu__rule" role="none" />
         <button
-          ref={focusLast}
           type="button"
           role="menuitem"
           onKeyDown={navigate}

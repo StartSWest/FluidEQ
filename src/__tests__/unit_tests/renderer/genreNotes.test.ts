@@ -27,7 +27,6 @@ import {
   inGenreChain,
 } from '../../../common/dsp/genreRack';
 import { GENRE_RACKS, genreChainId } from '../../../common/dsp/genres';
-import ELECTRONIC_RACKS from '../../../common/dsp/genres/electronic';
 import ROCK_RACKS from '../../../common/dsp/genres/rock';
 import type { IEqSettings } from '../../../common/dsp/chain';
 import { curveGainDb } from '../../../renderer/dsp/genreNotesModel';
@@ -56,14 +55,6 @@ const loudestIn = (curve: IEqSettings, from: number, to: number) => {
     loudest = Math.max(loudest, curveGainDb(curve, hz));
   }
   return loudest;
-};
-/** The deepest the curve plays anywhere, 20 Hz to 20 kHz. */
-const deepest = (curve: IEqSettings) => {
-  let low = Infinity;
-  for (let hz = 20; hz <= 20_000; hz *= 2 ** (1 / 24)) {
-    low = Math.min(low, curveGainDb(curve, hz));
-  }
-  return low;
 };
 
 /**
@@ -197,22 +188,11 @@ describe('a genre’s notes', () => {
   });
 
   it('keeps every “most of any” it claims', () => {
-    const presets = GENRE_RACKS.map((rack) => ({
-      rack,
-      preset: presetOf(rack),
-    }));
     // Ambient: "the widest of any genre".
     const widest = Math.max(
       ...GENRE_RACKS.map((rack) => rack.dimension?.highWidth ?? 0),
     );
     expect(rackOf('ambient').dimension?.highWidth).toBe(widest);
-    // Metal: "the deepest cut of any genre".
-    const cuts = presets.map(({ rack, preset }) => ({
-      id: rack.id,
-      low: preset.curve ? deepest(preset.curve) : 0,
-    }));
-    const deepestCut = Math.min(...cuts.map((one) => one.low));
-    expect(cuts.find((one) => one.id === 'metal')?.low).toBe(deepestCut);
     // Classical and Orchestra: "the longest look-ahead and release of any genre".
     const longestLook = Math.max(
       ...GENRE_RACKS.map((rack) => rack.maximizer.lookAheadMs),
@@ -228,13 +208,35 @@ describe('a genre’s notes', () => {
     expect(rackOf('progressiveRock').maximizer.lookAheadMs).toBe(
       Math.max(...ROCK_RACKS.map((rack) => rack.maximizer.lookAheadMs)),
     );
-    // Pop punk: "the lightest ceiling in the rock family".
-    expect(rackOf('popPunk').maximizer.driveDb).toBe(
-      Math.min(...ROCK_RACKS.map((rack) => rack.maximizer.driveDb)),
-    );
-    // Lo-fi: "a little more drive than its siblings".
-    expect(rackOf('lofi').maximizer.driveDb).toBe(
-      Math.max(...ELECTRONIC_RACKS.map((rack) => rack.maximizer.driveDb)),
-    );
+  });
+
+  it('describes Metal’s measured body control without requiring an extreme scoop', () => {
+    const { curve } = presetOf(rackOf('metal'));
+    if (!curve) {
+      throw new Error('no curve for metal');
+    }
+    const body = [200, 315, 500, 800].map((hz) => curveGainDb(curve, hz));
+    expect(Math.min(...body)).toBeGreaterThanOrEqual(-2.1);
+    expect(Math.max(...body)).toBeLessThan(0);
+    expect(text[key('metal', 'pin.315.why')]).toContain('without hollowing');
+    // A returned deep scoop must fail even if the note stays unchanged.
+    const scooped = {
+      ...curve,
+      bands: curve.bands.map((band) =>
+        band.frequency === 315 ? { ...band, gainDb: -4 } : band,
+      ),
+    };
+    expect(curveGainDb(scooped, 315)).toBeLessThan(-2.1);
+  });
+
+  it('describes normalized genre loudness without ranking raw Maximizer drive', () => {
+    // Input targets now reserve different amounts of reference peak headroom.
+    // Raw drive alone therefore cannot rank loudness or limiting strength;
+    // dspMusicReferenceAudit holds the actual output and dynamics bounds.
+    ['popPunk', 'lofi'].forEach((id) => {
+      expect(presetOf(rackOf(id)).settings.normalizer.mode).toBe('loudness');
+      expect(text[key(id, 'stage.maximizer')]).toContain('normalized input');
+      expect(text[key(id, 'stage.maximizer')]).toContain('−1 dBTP');
+    });
   });
 });

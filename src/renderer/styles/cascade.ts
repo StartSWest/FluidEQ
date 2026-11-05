@@ -33,6 +33,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import './ConfigInspector.scss';
 import './RichPick.scss';
 import './Games.scss';
+import './GamingGamesLayout.scss';
 import './App.scss';
 import './Rainbow.scss';
 // The header's logo and name ("Signal"): over `.brand-mark`, and with
@@ -192,6 +193,7 @@ import './SceneCover.scss';
 import './EngineTroubleNotice.scss';
 import './EngineUpdateNotice.scss';
 import './AudioEngineDialog.scss';
+import './EngineKeyDialog.scss';
 // Every dialog's frame and the small frame for questions and notices, after
 // every sheet that sizes or places one: it reached the window through the
 // dialogs' own imports, after this whole list, and every dialog was built

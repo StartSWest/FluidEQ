@@ -1,8 +1,4 @@
-/*
-<FluidEQ: System-wide parametric audio equalizer interface>
-Copyright (C) <2026> <Ivan Carmenates Garcia>
-SPDX-License-Identifier: GPL-3.0-or-later
-*/
+/* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import { type CSSProperties, useRef, useState } from 'react';
 import PlayerIcon from '../player/PlayerIcon';
@@ -10,98 +6,60 @@ import { useTranslation } from '../utils/I18nContext';
 import {
   FEATURE_FILMS,
   featureFilmLocale,
-  featureFilmUrl,
+  type IFeatureFilm,
 } from '../components/featureTour/featureFilms';
 import FILM_POSTERS from '../components/featureTour/filmPosters';
-import useFilmLine from '../components/featureTour/useFilmLine';
+import useFilmPlayback from '../components/featureTour/useFilmPlayback';
 
-type TFilmState = 'idle' | 'loading' | 'playing' | 'failed';
+type TFilmState = 'loading' | 'playing' | 'failed';
 
-/**
- * One of What's New's films in the Help topic it shows (Ivan, 2026-10-15:
- * the films go in Help too). Help's own promise holds: nothing is fetched
- * until the reader presses play, so until then it is a picture bundled with
- * the app. Pressed, it plays an available voice with each line translated
- * below it, as on the What's New slide. English fallback is disclosed first.
- */
-export default function HelpFilm({
-  id,
-}: {
-  /** The film's id in `FEATURE_FILMS`. */
+interface IPlaybackProps {
   id: string;
-}) {
-  const { t, locale } = useTranslation();
-  const [state, setState] = useState<TFilmState>('idle');
-  // A fresh element on every try, so a retry asks the site again instead of
-  // replaying the failure the old element remembers.
-  const [attempt, setAttempt] = useState(0);
+  film: IFeatureFilm;
+  poster: string;
+  title: string;
+  audioNote?: string;
+  onRetry: () => void;
+}
+
+// Mounted only after Play. A retry mounts afresh, so neither a failed source
+// nor its stand-in and timing track can survive into the next attempt.
+function HelpFilmPlayback({
+  id,
+  film,
+  poster,
+  title,
+  audioNote,
+  onRetry,
+}: IPlaybackProps) {
+  const { t } = useTranslation();
+  const [state, setState] = useState<TFilmState>('loading');
   const video = useRef<HTMLVideoElement>(null);
-  const film = FEATURE_FILMS[id];
-  // A frame of it, bundled, shown until it is pressed.
-  const poster = FILM_POSTERS[id];
-  const cue = useFilmLine(video, film?.cues ?? [], state === 'playing');
-  if (!film || !poster) {
-    return null;
-  }
-  // Its first line says what the feature is: the card's name.
-  const title = t(film.cues[0].key);
-  const audioNote =
-    featureFilmLocale(locale, film) !== locale
-      ? t('tour.film.englishAudio')
-      : undefined;
-  const shape = {
-    '--film-aspect': film.width / film.height,
-  } as CSSProperties;
-
-  if (state === 'idle') {
-    return (
-      <button
-        type="button"
-        className="help-film help-film--poster"
-        style={shape}
-        data-film={id}
-        onClick={() => setState('loading')}
-        aria-label={`${t('help.video.play', { title })}${audioNote ? `. ${audioNote}` : ''}`}
-      >
-        <span className="help-film__screen">
-          <img src={poster} alt="" />
-          <span className="help-video__play" aria-hidden="true">
-            <PlayerIcon name="play" />
-          </span>
-        </span>
-        <span className="help-film__line">
-          {title}
-          {audioNote && <span>{audioNote}</span>}
-        </span>
-      </button>
-    );
-  }
-
+  const playback = useFilmPlayback(id, film, video, state === 'playing', () =>
+    setState('failed'),
+  );
   return (
-    <figure className="help-film" style={shape} data-film={id}>
+    <figure
+      className="help-film"
+      style={{ '--film-aspect': film.width / film.height } as CSSProperties}
+      data-film={id}
+    >
       <div className="help-film__screen">
         {state === 'failed' ? (
           <div className="help-film__failed" role="status">
             <img src={poster} alt="" />
             <p>{t('help.video.failed')}</p>
-            <button
-              type="button"
-              className="button small"
-              onClick={() => {
-                setAttempt((count) => count + 1);
-                setState('loading');
-              }}
-            >
+            <button type="button" className="button small" onClick={onRetry}>
               {t('help.video.retry')}
             </button>
           </div>
         ) : (
           <>
-            {/* eslint-disable-next-line jsx-a11y/media-has-caption -- every line the voice says is the subtitle under the film, translated into the reader's language */}
+            {/* eslint-disable-next-line jsx-a11y/media-has-caption -- shared playback draws translated lines or the stand-in's captions below the film */}
             <video
-              key={attempt}
               ref={video}
-              src={featureFilmUrl(id, locale)}
+              src={playback.src}
+              crossOrigin={playback.crossOrigin}
               poster={poster}
               controls
               autoPlay
@@ -109,8 +67,10 @@ export default function HelpFilm({
               preload="auto"
               aria-label={title}
               onPlaying={() => setState('playing')}
-              onError={() => setState('failed')}
-            />
+              onError={playback.onError}
+            >
+              {playback.tracks}
+            </video>
             {state === 'loading' && (
               <span className="help-video__loading" role="status">
                 {t('help.video.loading')}
@@ -119,10 +79,63 @@ export default function HelpFilm({
           </>
         )}
       </div>
-      {/* Always there, so a line arriving never moves the film above it. */}
       <figcaption className="help-film__line">
-        {cue ? <span key={cue.key}>{t(cue.key)}</span> : title}
+        <span key={playback.subtitle}>{playback.subtitle || title}</span>
+        {audioNote && <span>{audioNote}</span>}
       </figcaption>
     </figure>
+  );
+}
+
+/** A bundled poster until Play; Help and What's New share timings, subtitles and fallback. */
+export default function HelpFilm({ id }: { id: string }) {
+  const { t, locale } = useTranslation();
+  const [pressed, setPressed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const film = FEATURE_FILMS[id];
+  const poster = FILM_POSTERS[id];
+  if (!film || !poster) {
+    return null;
+  }
+  const title = t(film.cues[0].key);
+  const audioNote =
+    featureFilmLocale(locale, film) !== locale
+      ? t('tour.film.englishAudio')
+      : undefined;
+  if (pressed) {
+    return (
+      <HelpFilmPlayback
+        key={attempt}
+        id={id}
+        film={film}
+        poster={poster}
+        title={title}
+        audioNote={audioNote}
+        onRetry={() => setAttempt((count) => count + 1)}
+      />
+    );
+  }
+  return (
+    <button
+      type="button"
+      className="help-film help-film--poster"
+      style={{ '--film-aspect': film.width / film.height } as CSSProperties}
+      data-film={id}
+      onClick={() => setPressed(true)}
+      aria-label={[t('help.video.play', { title }), audioNote]
+        .filter(Boolean)
+        .join('. ')}
+    >
+      <span className="help-film__screen">
+        <img src={poster} alt="" />
+        <span className="help-video__play" aria-hidden="true">
+          <PlayerIcon name="play" />
+        </span>
+      </span>
+      <span className="help-film__line">
+        {title}
+        {audioNote && <span>{audioNote}</span>}
+      </span>
+    </button>
   );
 }

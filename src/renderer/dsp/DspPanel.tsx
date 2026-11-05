@@ -4,23 +4,10 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { IDspSettings, clampDspSettings } from '../../common/dsp/chain';
 import { TranslationKey } from '../../common/i18n/en';
-import DspBassForgeCard from './DspBassForgeCard';
-import DspBassPunchCard from './DspBassPunchCard';
-import DspDeEsserCard from './DspDeEsserCard';
-import { ProcessorCard } from './DspControls';
-import DspEqBar from './DspEqBar';
-import DspEqCard from './DspEqCard';
-import DspCrossfadeCard from './DspCrossfadeCard';
-import DspExciterCard from './DspExciterCard';
-import DspDimensionCard from './DspDimensionCard';
-import DspMasterCard from './DspMasterCard';
-import DspMaximizerCard from './DspMaximizerCard';
-import DspDenoiseCard, { IDspVoiceModelState } from './DspDenoiseCard';
-import DspNormalizerCard from './DspNormalizerCard';
-import DspRoomCard from './DspRoomCard';
+import DspStageCards from './DspStageCards';
 import { useDspPageRoomLive } from './useRoomLive';
 import DspChainPresetBar from './DspChainPresetBar';
 import DspHeldLock from './DspHeldLock';
@@ -45,14 +32,11 @@ import {
 import Switch from '../widgets/Switch';
 import {
   TDspEngineState,
-  requestDspNoiseRescan,
   publishSystemDspChain,
   useDspNativeState,
   useDspSampleRate,
-  useDspInputAnalysis,
 } from './store';
 import '../styles/Dsp.scss';
-import { masterLoudnessBreakdown } from './inputNormalizer';
 import { readOpenDspSection, writeOpenDspSection } from './openSection';
 import useNativeMeters from './useNativeMeters';
 import { usePlaybackOwner } from '../audio/playbackOwner';
@@ -100,6 +84,7 @@ const ISOLATING_SECTIONS = [
   'denoise',
   'deEsser',
   'eq',
+  'footsteps',
   'exciter',
   'bassForge',
   'bassPunch',
@@ -118,6 +103,7 @@ const withoutIsolate = (from: IDspSettings): IDspSettings => ({
   denoise: { ...from.denoise, isolate: false },
   deEsser: { ...from.deEsser, isolate: false },
   eq: { ...from.eq, isolate: false },
+  footsteps: { ...from.footsteps, isolate: false },
   exciter: { ...from.exciter, isolate: false },
   bassForge: { ...from.bassForge, isolate: false },
   bassPunch: { ...from.bassPunch, isolate: false },
@@ -186,6 +172,7 @@ const DspPanel = ({
     deEsser,
     crossfade,
     eq,
+    footsteps,
     exciter,
     bassForge,
     bassPunch,
@@ -288,12 +275,6 @@ const DspPanel = ({
   // header, the rail and whichever processor was open on every one of them —
   // measured at 90–100 renders a second on every page, Master or not. The
   // Master page's graph, the one thing that shows it, reads it itself.
-  const inputAnalysis = useDspInputAnalysis();
-  const loudness = masterLoudnessBreakdown(
-    master,
-    normalizer,
-    inputAnalysis.analysis,
-  );
   // Which processor has the page. Local state: it is where the user is
   // looking, not part of the chain, and nothing outside this panel needs it.
   // Where it was left, not where the rack starts: see `openSection.ts`.
@@ -302,81 +283,6 @@ const DspPanel = ({
   );
   const isStageDisabled =
     section === 'crossfade' ? !hasLibraryPlayback : !areControlsUsable;
-
-  /**
-   * The Voice model's download, which is a fact about the machine.
-   *
-   * Local rather than in the DSP store because it is not a setting and does
-   * not travel to the engine: it is whether a file exists on this disk, and
-   * the panel is the only thing that asks.
-   */
-  const [voiceModel, setVoiceModel] = useState<IDspVoiceModelState>({
-    state: 'missing',
-    fraction: 0,
-  });
-
-  /**
-   * The bridge calls this panel needs, each checked for individually.
-   *
-   * Not just "is there a bridge": this panel is rendered by tests that have no
-   * preload at all AND by ones that supply a partial one, so the object being
-   * present says nothing about the method being there. An absent call means
-   * the model state is simply unknown, which is what `missing` already says —
-   * no separate state, and no throw during a render.
-   */
-  const readModelState = window.electron?.ipcRenderer?.readDspDenoiseModelState;
-  const downloadModel = window.electron?.ipcRenderer?.downloadDspDenoiseModel;
-  const cancelModel = window.electron?.ipcRenderer?.cancelDspDenoiseModel;
-
-  useEffect(() => {
-    if (typeof readModelState !== 'function') {
-      return undefined;
-    }
-    let cancelled = false;
-    readModelState()
-      .then((present) => {
-        if (!cancelled && present) {
-          setVoiceModel({ state: 'ready', fraction: 1 });
-        }
-        return present;
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, [readModelState]);
-
-  const downloadVoiceModel = useCallback(() => {
-    if (typeof downloadModel !== 'function') {
-      return;
-    }
-    setVoiceModel({ state: 'downloading', fraction: 0 });
-    downloadModel((received, total) => {
-      setVoiceModel({
-        state: 'downloading',
-        fraction: total > 0 ? received / total : 0,
-      });
-    })
-      .then((ok) => {
-        // `ok` says whether the file is on disk, not whether the engine has
-        // taken it (main's handler): false is a download that failed, bytes
-        // that were refused, or a cancel.
-        setVoiceModel(
-          ok
-            ? { state: 'ready', fraction: 1 }
-            : { state: 'missing', fraction: 0 },
-        );
-        return ok;
-      })
-      .catch(() => setVoiceModel({ state: 'missing', fraction: 0 }));
-  }, [downloadModel]);
-
-  // The download's own answer puts the card back to `missing`.
-  const cancelVoiceModel = useCallback(() => {
-    if (typeof cancelModel === 'function') {
-      cancelModel().catch(() => undefined);
-    }
-  }, [cancelModel]);
 
   /**
    * Isolate is an audition state owned by the page that exposes its switch.
@@ -592,11 +498,13 @@ const DspPanel = ({
             deEsser: deEsser.enabled,
             crossfade: crossfade.enabled,
             eq: eq.enabled,
+            footsteps: footsteps.enabled,
             exciter: exciter.enabled,
             bassForge: bassForge.enabled,
             bassPunch: bassPunch.enabled,
             dimension: dimension.enabled,
             room: room.enabled,
+            dynamics: settings.dynamics.enabled,
             maximizer: maximizer.enabled,
             master: master.enabled,
           }}
@@ -607,160 +515,14 @@ const DspPanel = ({
           inert={isStageDisabled ? true : undefined}
           aria-disabled={isStageDisabled}
         >
-          {section === 'normalizer' && (
-            <DspNormalizerCard
-              normalizer={normalizer}
-              analysisState={inputAnalysis}
-              onPatch={(next) => patch({ normalizer: next })}
-              onCommit={onCommit}
-            />
-          )}
-
-          {section === 'denoise' && (
-            <DspDenoiseCard
-              denoise={denoise}
-              isSystemWide={isSystemWide}
-              analysisState={inputAnalysis}
-              model={voiceModel}
-              onDownloadModel={downloadVoiceModel}
-              onCancelModel={cancelVoiceModel}
-              onRescan={() => requestDspNoiseRescan(inputAnalysis.trackId)}
-              onPatch={(next) => patch({ denoise: next })}
-              onCommit={onCommit}
-            />
-          )}
-
-          {section === 'deEsser' && (
-            <DspDeEsserCard
-              deEsser={deEsser}
-              onPatch={(next) => patch({ deEsser: next })}
-              onCommit={onCommit}
-            />
-          )}
-
-          {section === 'crossfade' && (
-            <DspCrossfadeCard
-              crossfade={crossfade}
-              // Playback transitions are independent from the selected rack
-              // sound, so editing one does not turn the chain label Custom.
-              onPatch={(next) => patch({ crossfade: next }, true)}
-              onCommit={onCommit}
-            />
-          )}
-
-          {section === 'eq' && (
-            <ProcessorCard
-              id="dsp-eq"
-              titleKey="dsp.eq.title"
-              isEnabled={eq.enabled}
-              onToggle={() => {
-                patch({
-                  eq: { ...eq, enabled: !eq.enabled, isolate: false },
-                });
-                onCommit();
-              }}
-              beforePower={
-                <div
-                  className="dsp-monitor-isolate"
-                  title={
-                    eq.isolate ? t('dsp.eq.isolateOn') : t('dsp.eq.isolateHint')
-                  }
-                >
-                  <span
-                    className={`dsp-monitor-isolate-label${
-                      eq.isolate ? ' is-on' : ''
-                    }`}
-                    aria-hidden="true"
-                  >
-                    {t('dsp.eq.isolate')}
-                  </span>
-                  <Switch
-                    id="dsp-eq-isolate"
-                    isOn={eq.isolate}
-                    isDisabled={!eq.enabled}
-                    handleToggle={() => {
-                      patch({ eq: { ...eq, isolate: !eq.isolate } });
-                      onCommit();
-                    }}
-                    ariaLabel={t('dsp.eq.isolate')}
-                  />
-                </div>
-              }
-              toolbar={
-                <DspEqBar
-                  eq={eq}
-                  sampleRate={sampleRate}
-                  onChange={(next) => patch({ eq: next })}
-                  onCommit={onCommit}
-                />
-              }
-            >
-              <DspEqCard
-                eq={eq}
-                sampleRate={sampleRate}
-                onChange={(next) => patch({ eq: next })}
-                onCommit={onCommit}
-              />
-            </ProcessorCard>
-          )}
-
-          {section === 'exciter' && (
-            <DspExciterCard
-              exciter={exciter}
-              onPatch={(next) => patch({ exciter: next })}
-              onCommit={onCommit}
-            />
-          )}
-
-          {section === 'bassForge' && (
-            <DspBassForgeCard
-              bassForge={bassForge}
-              onPatch={(next) => patch({ bassForge: next })}
-              onCommit={onCommit}
-            />
-          )}
-
-          {section === 'bassPunch' && (
-            <DspBassPunchCard
-              bassPunch={bassPunch}
-              onPatch={(next) => patch({ bassPunch: next })}
-              onCommit={onCommit}
-            />
-          )}
-
-          {section === 'dimension' && (
-            <DspDimensionCard
-              dimension={dimension}
-              onPatch={(next) => patch({ dimension: next })}
-              onCommit={onCommit}
-            />
-          )}
-
-          {section === 'room' && (
-            <DspRoomCard
-              room={room}
-              live={roomLive}
-              onPatch={(next) => patch({ room: next })}
-              onCommit={onCommit}
-            />
-          )}
-
-          {section === 'maximizer' && (
-            <DspMaximizerCard
-              maximizer={maximizer}
-              onPatch={(next) => patch({ maximizer: next })}
-              onCommit={onCommit}
-            />
-          )}
-
-          {section === 'master' && (
-            <DspMasterCard
-              master={master}
-              loudness={loudness}
-              onPatch={(next) => patch({ master: next })}
-              onCommit={onCommit}
-            />
-          )}
+          <DspStageCards
+            section={section}
+            settings={settings}
+            onPatch={patch}
+            onCommit={onCommit}
+            isSystemWide={isSystemWide}
+            roomLive={roomLive}
+          />
         </div>
       </div>
     </div>

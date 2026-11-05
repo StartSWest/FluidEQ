@@ -38,7 +38,7 @@ export const ConvolutionPage = lazyPage(
   () => import(/* webpackChunkName: "page-convolution" */ './ConvolutionPanel'),
 );
 export const GamesPage = lazyPage(
-  () => import(/* webpackChunkName: "page-games" */ './games/GamesPanel'),
+  () => import(/* webpackChunkName: "page-games" */ './games/GamingLab'),
 );
 export const ConfigPage = lazyPage(
   () =>

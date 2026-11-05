@@ -150,6 +150,18 @@ textarea.forum-editor__input {
   font-size: $text-micro;
 }
 
+// A picture was pasted or dropped: said in the caution colour the Forum's
+// error bar wears, under the box, until the next keystroke.
+.forum-editor__refused {
+  margin: 0;
+  padding: 7px 12px;
+  color: $text-primary;
+  border-top: 1px solid color-mix(in srgb, $amber 45%, transparent);
+  background: color-mix(in srgb, $amber 10%, transparent);
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
 // ---------------------------------------------------------------- composer
 
 .forum-composer {
@@ -170,6 +182,24 @@ textarea.forum-editor__input {
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
+}
+
+// "Post on GitHub instead": the quiet way out, its glyph saying it leaves,
+// spaced as the thread bar's own "Open on GitHub" is.
+.forum-composer__github {
+  gap: 6px;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+// Said once the words are on the clipboard: what to do on GitHub's page.
+.forum-composer__note {
+  margin-right: auto;
+  color: $text-faint;
+  font-size: $text-small;
 }
 
 // ---------------------------------------------------------------- new topic

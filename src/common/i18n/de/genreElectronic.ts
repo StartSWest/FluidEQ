@@ -11,9 +11,9 @@ export default {
   'genre.electronic.pin.8000': 'Hi-Hats und Luft',
   'genre.electronic.pin.8000.why': 'Die Spitze eines hellen Mixes.',
   'genre.electronic.stage.dimension':
-    'Mono unter 150 Hz und etwas Breite über den Mitten.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
   'genre.electronic.stage.maximizer':
-    'Eine leichte Obergrenze mit einem halben Dezibel mehr Antrieb als die Club-Varianten, was sie auf deren Pegel bringt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.electronic.off':
     'Exciter, Bass-Schmiede und Bass-Punch werden angeboten und bleiben aus: Ein Exciter macht diese Höhen schnell scharf, und unter dem Sub muss nichts erzeugt werden.',
 
@@ -26,9 +26,10 @@ export default {
   'genre.edm.pin.315.why': 'Platz für den Kick.',
   'genre.edm.pin.5000': 'Biss der Supersaws',
   'genre.edm.pin.5000.why': 'Die Kante des Leads.',
-  'genre.edm.stage.dimension': 'Unten Mono, und sonst nichts.',
+  'genre.edm.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
   'genre.edm.stage.maximizer':
-    'Eine Obergrenze, die auf einem geclippten Master kaum antreibt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.edm.off':
     'Sein Exciter wird angeboten und bleibt aus: kein Sub-Boost, keine Verbreiterung und keine Obertöne auf einem Drop, der schon alles hat.',
 
@@ -42,9 +43,11 @@ export default {
   'genre.house.pin.12500': 'Warm, nicht hell',
   'genre.house.pin.12500.why': 'Die Höhen zurückgenommen.',
   'genre.house.stage.dimension':
-    'Mono unter 150 Hz und schmaler bis 200, oben etwas breiter.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.house.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.house.stage.maximizer':
-    'Eine leichte Obergrenze, die das Pumpen in Ruhe lässt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.house.off':
     'Kein Bass-Punch, weil nichts das Timing des Kicks verschieben darf; kein Exciter und keine Bass-Schmiede.',
 
@@ -60,8 +63,9 @@ export default {
   'genre.techno.stage.bassPunch':
     'Höchstens den Kick gestrafft, damit das Grollen ihn nicht verschmiert.',
   'genre.techno.stage.dimension':
-    'Unten Mono; nichts verbreitert im schmalsten Stil, den es gibt.',
-  'genre.techno.stage.maximizer': 'Eine leichte Obergrenze.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.techno.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.techno.off':
     'Kein Exciter und keine Bass-Schmiede: kein Sub-Boost und keine Obertöne.',
 
@@ -74,9 +78,10 @@ export default {
   'genre.trance.pin.315.why': '200 bis 350 Hz, wo ein Mix trüb wird.',
   'genre.trance.pin.3150': 'Das spröde Band gemildert',
   'genre.trance.pin.3150.why': 'Um 3 kHz, wo die Saws gläsern werden.',
-  'genre.trance.stage.dimension': 'Mono unter 120 Hz, und nicht mehr.',
+  'genre.trance.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
   'genre.trance.stage.maximizer':
-    'Eine Obergrenze, die kaum antreibt, damit der Drop seinen Kontrast behält.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.trance.off':
     'Kein Exciter und keine Bass-Schmiede: Supersaws erzeugen schon reichlich Höhen.',
 
@@ -91,9 +96,10 @@ export default {
   'genre.drumBass.pin.5000': 'Das Knallen von Snare und Break',
   'genre.drumBass.pin.5000.why': 'Die Identität des Genres.',
   'genre.drumBass.stage.bassPunch': 'Der Kick gestrafft, nie angehoben.',
-  'genre.drumBass.stage.dimension': 'Der Sub in Mono.',
+  'genre.drumBass.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
   'genre.drumBass.stage.maximizer':
-    'Eine leichte Obergrenze, die innerhalb einer Sechzehntel loslässt, damit die Snare ihren Knall behält.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.drumBass.off':
     'Kein Exciter und keine Bass-Schmiede: keine Obertöne auf Neuro-Bässen.',
 
@@ -106,8 +112,10 @@ export default {
   'genre.dubstep.pin.80.why': 'Der Körper über dem Sub.',
   'genre.dubstep.pin.500': 'Platz für Snare und Growl',
   'genre.dubstep.pin.500.why': 'Die Mitte freigeräumt.',
-  'genre.dubstep.stage.dimension': 'Der Sub unter 120 Hz in Mono.',
-  'genre.dubstep.stage.maximizer': 'Eine Obergrenze, die kaum antreibt.',
+  'genre.dubstep.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.dubstep.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.dubstep.off':
     'Kein Exciter, kein Bass-Punch und keine Bass-Schmiede: Der Growl ist schon Britzeln.',
 
@@ -122,7 +130,10 @@ export default {
   'genre.downtempo.pin.12500.why': 'Nicht aufgehellt.',
   'genre.downtempo.stage.dimension':
     'Die Atmosphären breiter, der Bass schmaler.',
-  'genre.downtempo.stage.maximizer': 'Eine langsame, leichte Obergrenze.',
+  'genre.downtempo.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
+  'genre.downtempo.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.downtempo.off':
     'Die Bass-Schmiede wird angeboten und bleibt aus: Der Bass ist schon tief.',
 
@@ -137,8 +148,10 @@ export default {
   'genre.chillout.pin.12500.why': 'Der Schimmer obendrauf.',
   'genre.chillout.stage.exciter': 'Nur leichte Luft.',
   'genre.chillout.stage.dimension': 'Oben breiter: Hier ist Breite willkommen.',
+  'genre.chillout.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.chillout.stage.maximizer':
-    'Eine langsame Obergrenze über einen ganzen Schlag: Nichts wird gedrückt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.chillout.off':
     'Kein Bass-Punch und keine Bass-Schmiede: nichts Schweres.',
 
@@ -151,9 +164,10 @@ export default {
   'genre.lofi.pin.200.why': 'Die eine Richtung, die es gut verträgt.',
   'genre.lofi.pin.3150': 'Absichtlich dunkel',
   'genre.lofi.pin.3150.why': 'Nichts heller als die Platte.',
-  'genre.lofi.stage.dimension': 'Leicht schmaler, unten Mono unter 120 Hz.',
+  'genre.lofi.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
   'genre.lofi.stage.maximizer':
-    'Etwas mehr Antrieb als bei ihren Geschwistern, für leiser gemasterte Platten.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.lofi.off':
     'Sein Exciter wird angeboten und bleibt aus: Die Platte ist schon auf Band gesättigt.',
 
@@ -169,7 +183,7 @@ export default {
   'genre.ambient.stage.dimension':
     'Breit, das Breiteste aller Genres, und in Mono trotzdem sicher.',
   'genre.ambient.stage.maximizer':
-    'Eine Obergrenze, die immer nur die Spitze einer Schwellung trifft.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.ambient.off':
     'Sein Exciter wird angeboten und bleibt aus: Nichts komprimiert oder ebnet das Leise ein.',
 
@@ -183,7 +197,10 @@ export default {
   'genre.newAge.pin.12500': 'Ein wenig Luft',
   'genre.newAge.pin.12500.why': 'Über den Hallfahnen.',
   'genre.newAge.stage.dimension': 'Breites Ambiente.',
-  'genre.newAge.stage.maximizer': 'Nichts ebnet das Leise ein.',
+  'genre.newAge.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
+  'genre.newAge.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.newAge.off':
     'Sein Exciter wird angeboten und bleibt aus: Transparenz ist die Vorgabe.',
 };

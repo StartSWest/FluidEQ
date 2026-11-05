@@ -12,9 +12,9 @@ export default {
   'genre.electronic.pin.8000': 'Charlestons et air',
   'genre.electronic.pin.8000.why': 'Le haut d’un mix brillant.',
   'genre.electronic.stage.dimension':
-    'Mono sous 150 Hz, et un peu de largeur au-dessus des médiums.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
   'genre.electronic.stage.maximizer':
-    'Un plafond léger avec un demi-décibel de poussée de plus que les variantes club, ce qui le met à leur niveau.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.electronic.off':
     'Son Exciteur, sa Forge de basses et son Punch des basses sont proposés et restent désactivés : un exciteur rend vite ce haut agressif, et rien n’a besoin d’être généré sous le sub.',
 
@@ -27,9 +27,10 @@ export default {
   'genre.edm.pin.315.why': 'De la place pour la grosse caisse.',
   'genre.edm.pin.5000': 'Le mordant des supersaws',
   'genre.edm.pin.5000.why': 'Le tranchant du lead.',
-  'genre.edm.stage.dimension': 'Un bas en mono, et rien d’autre.',
+  'genre.edm.stage.dimension':
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
   'genre.edm.stage.maximizer':
-    'Un plafond qui pousse à peine sur un master écrêté.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.edm.off':
     'Son Exciteur est proposé et reste désactivé : ni sub relevé, ni élargissement, ni harmoniques sur un drop qui a déjà tout.',
 
@@ -44,9 +45,11 @@ export default {
   'genre.house.pin.12500': 'Chaud, pas brillant',
   'genre.house.pin.12500.why': 'Le haut adouci.',
   'genre.house.stage.dimension':
-    'Mono sous 150 Hz et resserré jusqu’à 200, le haut un peu plus large.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.house.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.house.stage.maximizer':
-    'Un plafond léger qui laisse le pompage tranquille.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.house.off':
     'Pas de Punch des basses, car rien ne doit décaler la grosse caisse ; ni Exciteur ni Forge de basses.',
 
@@ -62,8 +65,9 @@ export default {
   'genre.techno.stage.bassPunch':
     'Tout au plus la grosse caisse resserrée, pour que le grondement ne la brouille pas.',
   'genre.techno.stage.dimension':
-    'Un bas en mono ; rien d’élargi dans le style le plus étroit qui soit.',
-  'genre.techno.stage.maximizer': 'Un plafond léger.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.techno.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.techno.off':
     'Ni Exciteur ni Forge de basses : ni sub relevé, ni harmoniques.',
 
@@ -76,9 +80,10 @@ export default {
   'genre.trance.pin.315.why': 'De 200 à 350 Hz, là où un mix se brouille.',
   'genre.trance.pin.3150': 'La bande cassante adoucie',
   'genre.trance.pin.3150.why': 'Vers 3 kHz, là où les saws deviennent vitreux.',
-  'genre.trance.stage.dimension': 'Mono sous 120 Hz, et rien de plus.',
+  'genre.trance.stage.dimension':
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
   'genre.trance.stage.maximizer':
-    'Un plafond qui pousse à peine, pour que le drop garde son contraste.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.trance.off':
     'Ni Exciteur ni Forge de basses : les supersaws génèrent déjà beaucoup de haut.',
 
@@ -94,9 +99,10 @@ export default {
   'genre.drumBass.pin.5000.why': 'L’identité du genre.',
   'genre.drumBass.stage.bassPunch':
     'La grosse caisse resserrée, jamais relevée.',
-  'genre.drumBass.stage.dimension': 'Le sub en mono.',
+  'genre.drumBass.stage.dimension':
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
   'genre.drumBass.stage.maximizer':
-    'Un plafond léger qui relâche en moins d’une double croche, pour que la caisse claire garde son claquement.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.drumBass.off':
     'Ni Exciteur ni Forge de basses : pas d’harmoniques sur les basses neuro.',
 
@@ -110,8 +116,10 @@ export default {
   'genre.dubstep.pin.80.why': 'Le corps au-dessus du sub.',
   'genre.dubstep.pin.500': 'De la place pour la caisse claire et le grognement',
   'genre.dubstep.pin.500.why': 'Le milieu dégagé.',
-  'genre.dubstep.stage.dimension': 'Le sub en mono sous 120 Hz.',
-  'genre.dubstep.stage.maximizer': 'Un plafond qui pousse à peine.',
+  'genre.dubstep.stage.dimension':
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
+  'genre.dubstep.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés.',
   'genre.dubstep.off':
     'Ni Exciteur, ni Punch des basses, ni Forge de basses : le grognement est déjà du grésillement.',
 
@@ -126,7 +134,10 @@ export default {
   'genre.downtempo.pin.12500.why': 'Pas éclairci.',
   'genre.downtempo.stage.dimension':
     'Les atmosphères plus larges, les basses resserrées.',
-  'genre.downtempo.stage.maximizer': 'Un plafond lent et léger.',
+  'genre.downtempo.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.downtempo.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.downtempo.off':
     'La Forge de basses est proposée et reste désactivée : la basse est déjà profonde.',
 
@@ -142,8 +153,10 @@ export default {
   'genre.chillout.stage.exciter': 'De l’air léger seulement.',
   'genre.chillout.stage.dimension':
     'Un haut plus large : ici, la largeur est bienvenue.',
+  'genre.chillout.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
   'genre.chillout.stage.maximizer':
-    'Un plafond lent, sur un temps entier : rien de pressé.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.chillout.off':
     'Ni Punch des basses ni Forge de basses : rien de lourd.',
 
@@ -157,9 +170,9 @@ export default {
   'genre.lofi.pin.3150': 'Volontairement sombre',
   'genre.lofi.pin.3150.why': 'Rien de plus brillant que le disque.',
   'genre.lofi.stage.dimension':
-    'Un léger resserrement, le bas en mono sous 120 Hz.',
+    'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
   'genre.lofi.stage.maximizer':
-    'Un peu plus de poussée que ses frères et sœurs, pour des disques masterisés plus bas.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.lofi.off':
     'Son Exciteur est proposé et reste désactivé : le disque est déjà saturé sur bande.',
 
@@ -175,7 +188,7 @@ export default {
   'genre.ambient.stage.dimension':
     'Large, le plus large de tous les genres, et toujours sûr en mono.',
   'genre.ambient.stage.maximizer':
-    'Un plafond qui ne rencontre jamais que le sommet d’une montée.',
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.ambient.off':
     'Son Exciteur est proposé et reste désactivé : rien ne compresse ni n’aplanit le calme.',
 
@@ -189,7 +202,10 @@ export default {
   'genre.newAge.pin.12500': 'Un peu d’air',
   'genre.newAge.pin.12500.why': 'Au-dessus des réverbérations.',
   'genre.newAge.stage.dimension': 'Une ambiance large.',
-  'genre.newAge.stage.maximizer': 'Rien n’aplanit le calme.',
+  'genre.newAge.stage.deEsser':
+    'Atténue les S et CH de la voix centrale par des réductions spectrales étroites allant jusqu’à 1.5 dB entre 5 et 10 kHz, en protégeant les cymbales sans toucher aux graves.',
+  'genre.newAge.stage.maximizer':
+    'Amène l’entrée normalisée vers le niveau d’écoute mesuré pour ce genre, avec des crêtes limitées à −1 dBTP. La limitation reste modérée pour préserver la dynamique de l’enregistrement ; Master et Dynamics restent désactivés. Un relâchement lent évite de suivre chaque frappe.',
   'genre.newAge.off':
     'Son Exciteur est proposé et reste désactivé : la transparence est la consigne.',
 };

@@ -15,7 +15,7 @@
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; script-src 'sha256-s+4s3HGXOH7Mt9cMOV3+9xgNPJD9UQ82QgZuPIlWk6g='"
+      content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; script-src 'sha256-G0a1ZUnXe/zdle6+NeLqEXOkTuItBo5j+Ekn6GP2IcI='"
     />
     <title>FluidEQ</title>
     <style>
@@ -138,19 +138,19 @@
         padding: 0 18px;
       }
 
-      /* Two lines before an ellipsis, because the preset's name is the news
-         and it stands at the end of the line in half the languages ("Снова:
-         …", "Zurück zu …"). On one line, measured as DOM text at this size,
-         the factory names ran to 359px in Japanese, 356 in German and 341
-         in Russian against the 315 this column has, and every one of them
-         lost the name. Two lines hold all of them with the card's height
-         unchanged; only a preset somebody named at length still ends in one.
-         Japanese and Chinese break at the spaces around the name rather than
-         between any two characters, which cut "コンペティティブ" in half; a
-         word too long for the line still breaks inside itself. */
       .what {
+        color: color-mix(in srgb, var(--muted) 80%, transparent);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+
+      /* Give the actual loaded name two lines. Keep CJK words together
+         when they fit, and break unusually long custom names as needed. */
+      .profile {
         display: -webkit-box;
         overflow: hidden;
+        margin-top: 4px;
         font-size: 18px;
         font-weight: 600;
         line-height: 1.25;
@@ -159,6 +159,10 @@
         word-break: keep-all;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
+      }
+
+      .profile:empty {
+        display: none;
       }
 
       .game {
@@ -258,6 +262,7 @@
       </div>
       <div class="words">
         <div class="what" id="what"></div>
+        <div class="profile" id="profile"></div>
         <div class="game" id="game"></div>
       </div>
       <!-- The wave is BRAND_MARK's own path (common/branding.ts): one period,
@@ -289,6 +294,8 @@
         }
       });
       document.getElementById('what').textContent = said.get('what') || '';
+      document.getElementById('profile').textContent =
+        said.get('profile') || '';
       document.getElementById('game').textContent = said.get('game') || '';
       const icon = said.get('icon');
       if (icon && icon.startsWith('data:image/')) {

@@ -10,6 +10,7 @@ const about = {
   'about.author': '제작 및 유지 관리: {author}',
   'about.website': '공식 홈페이지',
   'about.source': '소스 코드',
+  'about.contents': '이 페이지의 내용',
 } satisfies Partial<Dictionary>;
 
 export default about;

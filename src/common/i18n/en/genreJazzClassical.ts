@@ -12,9 +12,9 @@ const genreJazzClassical = {
   'genre.jazz.pin.12500': 'The ride cymbal’s air',
   'genre.jazz.pin.12500.why': 'The top of the kit, open.',
   'genre.jazz.stage.dimension':
-    'A shade narrower, which brings hard-panned 1950s stereo together on headphones.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
   'genre.jazz.stage.maximizer':
-    'A ceiling that touches only a stray peak, over a whole beat.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.jazz.off':
     'Its Exciter is offered and left off: added harmonics colour horns and piano audibly. Nothing compresses, widens or generates bass.',
 
@@ -28,8 +28,9 @@ const genreJazzClassical = {
   'genre.smoothJazz.pin.12500': 'A glossy top',
   'genre.smoothJazz.pin.12500.why': 'The studio sheen, kept.',
   'genre.smoothJazz.stage.dimension':
-    'The glossy stereo as mixed, only the bass narrowed.',
-  'genre.smoothJazz.stage.maximizer': 'A slow ceiling.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.smoothJazz.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.smoothJazz.off':
     'Its Exciter is offered and left off, and there is no Bass Punch: the genre is soft on purpose.',
 
@@ -43,8 +44,9 @@ const genreJazzClassical = {
   'genre.fusion.pin.12500': 'Bright, as recorded',
   'genre.fusion.pin.12500.why': 'The top these records had.',
   'genre.fusion.stage.dimension':
-    'The multitrack spread as recorded, only the bass narrowed.',
-  'genre.fusion.stage.maximizer': 'A slow ceiling that leaves the fills alone.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.fusion.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.fusion.off':
     'No Exciter, Bass Punch or Bass Forge: nothing is added to instruments that make their own harmonics.',
 
@@ -58,8 +60,11 @@ const genreJazzClassical = {
   'genre.blues.pin.5000': 'Raw, not bright',
   'genre.blues.pin.5000.why': 'The top eased.',
   'genre.blues.stage.dimension':
-    'A shade of narrowing; the mono records stay mono.',
-  'genre.blues.stage.maximizer': 'A slow ceiling.',
+    'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
+  'genre.blues.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
+  'genre.blues.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.blues.off':
     'Its Exciter is offered and left off: the overdrive is the sound, and nothing is added to it.',
 
@@ -73,7 +78,7 @@ const genreJazzClassical = {
   'genre.classical.pin.12500': 'The hall’s air',
   'genre.classical.pin.12500.why': 'The space the recording was made in.',
   'genre.classical.stage.maximizer':
-    'Only a ceiling, with the longest look-ahead and release of any genre, so a crescendo is never what it holds down.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.classical.off':
     'No Dimension at all: the hall is the recording. Its Exciter and Bass Punch are offered and left off.',
 
@@ -88,7 +93,7 @@ const genreJazzClassical = {
   'genre.orchestra.pin.12500': 'The hall’s air',
   'genre.orchestra.pin.12500.why': 'The space around the orchestra.',
   'genre.orchestra.stage.maximizer':
-    'A ceiling only, with the longest look-ahead and release of any genre, so a tutti is never pumped.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.orchestra.off':
     'No Dimension, Exciter, Bass Punch or Bass Forge: nothing boosts the bass that the timpani would overload.',
 
@@ -102,8 +107,10 @@ const genreJazzClassical = {
   'genre.opera.pin.3150': 'The formant left alone',
   'genre.opera.pin.3150.why':
     'It already projects; lifting it turns a voice shrill.',
+  'genre.opera.stage.deEsser':
+    'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',
   'genre.opera.stage.maximizer':
-    'A light ceiling only: nothing compresses the voice.',
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.opera.off':
     'No Dimension, Exciter or Bass Punch: nothing widens, excites or reshapes the voice.',
 
@@ -116,7 +123,8 @@ const genreJazzClassical = {
   'genre.piano.pin.315.why': 'The soundboard, not the lid.',
   'genre.piano.pin.5000': 'The hammer’s attack',
   'genre.piano.pin.5000.why': 'Where a note begins.',
-  'genre.piano.stage.maximizer': 'A ceiling only.',
+  'genre.piano.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.piano.off':
     'No Dimension, Exciter or Bass Punch: nothing saturates or reshapes a piano.',
 
@@ -129,7 +137,8 @@ const genreJazzClassical = {
   'genre.strings.pin.2000.why': 'Taken down: bowed strings turn strident here.',
   'genre.strings.pin.12500': 'Air around the section',
   'genre.strings.pin.12500.why': 'The hall above the bows.',
-  'genre.strings.stage.maximizer': 'A ceiling only.',
+  'genre.strings.stage.maximizer':
+    'Levels the normalized input towards this genre’s measured listening level, with peaks caught at −1 dBTP. Limiting stays restrained to preserve the recording’s dynamics; Master and Dynamics remain off. A slow release avoids following individual beats.',
   'genre.strings.off':
     'No Dimension and no Exciter: an exciter makes bowed strings strident.',
 };

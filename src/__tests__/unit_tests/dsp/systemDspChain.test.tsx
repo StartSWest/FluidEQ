@@ -410,16 +410,21 @@ describe('the rack under the engine with nothing playing at all', () => {
       stopAllPlayback();
       setDspNativeState('idle');
     });
-    renderPanel();
+    renderPanel({
+      ...DSP_DEFAULTS,
+      normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'off' },
+    });
 
     await waitFor(() => expect(chainsSent).toHaveLength(1));
-    // "Bypassed" is what an unavailable rack says. The default settings
-    // leave the master switch on and the engine is already running the
-    // chain, so the readout has to say so rather than wait for a Library
-    // track that will never arrive.
-    expect(screen.queryByText('Bypassed')).not.toBeInTheDocument();
-    // Scoped to the master readout: the normalizer's own `ProcessorCard`
-    // power label says "On" too, for a different switch entirely.
+    // The Normalizer can be bypassed while the rack runs system audio. Its
+    // card's label must not be mistaken for the rack's own power readout.
+    expect(
+      screen.getByText('Bypassed', { selector: '.dsp-card-power-label' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Bypassed', { selector: '.dsp-global-power-state' }),
+    ).not.toBeInTheDocument();
+    // The rack's own switch stays on independently of each processor.
     expect(
       screen.getByText('On', { selector: '.dsp-global-power-state' }),
     ).toBeInTheDocument();

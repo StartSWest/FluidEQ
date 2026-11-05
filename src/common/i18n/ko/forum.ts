@@ -112,6 +112,11 @@ const forum = {
   'forum.composer.replyPlaceholder': '답장을 쓰세요…',
   'forum.composer.replyingTo': '@{login}님에게 답글 작성 중',
   'forum.composer.hint': '마크다운 작동 · {keys} 게시물',
+  'forum.composer.postOnGithub': 'GitHub에 게시',
+  'forum.composer.copiedForGithub':
+    '복사했습니다. GitHub에 붙여 넣으세요. 그곳에서 이미지를 추가할 수 있습니다.',
+  'forum.composer.picturesOnGithub':
+    '여기에는 이미지를 추가할 수 없습니다. GitHub에 게시를 누르면 글이 복사되고 GitHub에서 스레드가 열립니다. 그곳에 이미지를 붙여 넣으세요.',
   'forum.composer.imagesHint': 'GitHub에 사진과 파일이 추가되었습니다.',
   'forum.composer.postReply': '답글 게시',
   'forum.composer.posting': '게시 중…',

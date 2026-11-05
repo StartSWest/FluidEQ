@@ -70,6 +70,7 @@ const setup = () => {
     })),
     join: jest.fn(),
     unlink: jest.fn(),
+    reconnect: jest.fn(),
     retry: jest.fn(),
     sendSignal: jest.fn(),
     sendAudio: jest.fn(),

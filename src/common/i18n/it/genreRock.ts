@@ -17,9 +17,11 @@ export default {
   'genre.rock.stage.bassPunch':
     'La cassa mantiene il suo colpo, e la sua coda si accorcia sotto il basso elettrico.',
   'genre.rock.stage.dimension':
-    'I bassi più stretti sotto i 160 Hz; le chitarre panoramicate agli estremi, intatte.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.rock.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.rock.stage.maximizer':
-    'Un tetto leggero, abbastanza rapido per un backbeat.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.rock.off':
     'Il suo Exciter e la sua Fucina dei bassi sono offerti e restano spenti: le chitarre distorte fanno le proprie armoniche e il basso elettrico ha un fondo vero.',
 
@@ -38,9 +40,11 @@ export default {
   'genre.popRock.stage.bassPunch':
     'Mantiene il colpo della cassa e ne accorcia la coda sotto una linea di basso in movimento.',
   'genre.popRock.stage.dimension':
-    'I bassi più stretti sotto i 150 Hz; le chitarre restano dove le ha messe il mix.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.popRock.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.popRock.stage.maximizer':
-    'Afferra solo i picchi e rilascia entro una semicroma.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.popRock.off':
     'Niente Exciter su una voce già brillante, e niente Fucina dei bassi sotto un vero basso elettrico.',
 
@@ -58,9 +62,11 @@ export default {
   'genre.classicRock.stage.exciter':
     'Un po’ di calore nei medio-bassi, il suono del nastro, e niente sugli acuti.',
   'genre.classicRock.stage.dimension':
-    'Un filo più stretto, cosa che in cuffia riunisce i mix anni ’60 panoramicati agli estremi.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.classicRock.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.classicRock.stage.maximizer':
-    'Un tetto lento che conserva la dinamica degli originali.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.classicRock.off':
     'Niente Punch dei bassi né Fucina dei bassi: una cassa con ambiente e bassi caldi da nastro restano come sono stati registrati.',
 
@@ -80,9 +86,11 @@ export default {
   'genre.alternativeRock.stage.bassPunch':
     'Il colpo della cassa mantenuto e la sua coda accorciata.',
   'genre.alternativeRock.stage.dimension':
-    'Il basso più stretto, le chitarre lasciate dove sono state panoramicate.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.alternativeRock.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.alternativeRock.stage.maximizer':
-    'Un tetto che spinge appena, perché la parte forte resti più forte di quella piano.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.alternativeRock.off':
     'Niente Exciter e niente Fucina dei bassi: il fuzz fa le proprie armoniche.',
 
@@ -97,9 +105,11 @@ export default {
   'genre.indieRock.pin.8000': 'Caldo e scuro, come registrato',
   'genre.indieRock.pin.8000.why': 'Gli acuti restano morbidi.',
   'genre.indieRock.stage.dimension':
-    'L’ampiezza propria della stanza, solo il basso più stretto.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.indieRock.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.indieRock.stage.maximizer':
-    'Un tetto leggero che rilascia entro una semicroma.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.indieRock.off':
     'Niente Exciter, Punch dei bassi o Fucina dei bassi: niente modella la batteria o colora la stanza.',
 
@@ -115,9 +125,11 @@ export default {
   'genre.progressiveRock.pin.12500.why':
     'L’aria con cui sono stati fatti questi dischi.',
   'genre.progressiveRock.stage.dimension':
-    'L’immagine come è stata mixata sopra i bassi, con un tocco di profondità.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.progressiveRock.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.progressiveRock.stage.maximizer':
-    'Il look-ahead più lungo della famiglia rock e un rilascio di un’intera battuta: tocca solo il culmine.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.progressiveRock.off':
     'Niente Exciter, Punch dei bassi o Fucina dei bassi: niente di rapido appiattisce un passaggio piano.',
 
@@ -135,9 +147,11 @@ export default {
   'genre.hardRock.stage.bassPunch':
     'Il colpo della cassa mantenuto e la sua coda un po’ più corta.',
   'genre.hardRock.stage.dimension':
-    'Il basso più stretto; le chitarre lasciate come panoramicate.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.hardRock.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.hardRock.stage.maximizer':
-    'Un tetto leggero per una cassa da stanza dal vivo.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.hardRock.off':
     'Niente Exciter né Fucina dei bassi: il crunch delle valvole è già armoniche a sufficienza.',
 
@@ -152,16 +166,18 @@ export default {
     'Le bande che potrebbero alzarlo alzerebbero anche tutto ciò che sta sotto i 75 Hz.',
   'genre.metal.pin.315': 'Via il fango dalle chitarre accordate basse',
   'genre.metal.pin.315.why':
-    'Il taglio più profondo di tutti i generi, ed è per questo che i riff restano chiari.',
+    'Un taglio moderato dei medio-bassi chiarisce i riff densi senza svuotare le chitarre.',
   'genre.metal.pin.3150': 'Il clic che rende leggibile un colpo',
   'genre.metal.pin.3150.why':
     'Perché una raffica di doppia cassa suona come colpi separati.',
   'genre.metal.stage.bassPunch':
     'Una coda più corta invece di un attacco più duro, perché le raffiche restino separate.',
   'genre.metal.stage.dimension':
-    'I bassi più stretti sotto i 150 Hz, e niente allargato.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.metal.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.metal.stage.maximizer':
-    'Spinge appena: è il genere più forte che esista.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.metal.off':
     'Il suo Exciter è offerto e resta spento: altre armoniche finirebbero nel frizzio. Niente Fucina dei bassi sotto chitarre accordate basse.',
 
@@ -176,8 +192,12 @@ export default {
   'genre.punk.pin.5000.why':
     'Abbassato: niente più brillante di come l’ha suonato la band.',
   'genre.punk.stage.bassPunch': 'Si stringe solo la cassa.',
-  'genre.punk.stage.dimension': 'Il basso più stretto, e niente allargato.',
-  'genre.punk.stage.maximizer': 'Un tetto leggero che conserva l’attacco.',
+  'genre.punk.stage.dimension':
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.punk.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
+  'genre.punk.stage.maximizer':
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.punk.off': 'Niente Exciter né Fucina dei bassi: il crudo è il suono.',
 
   'genre.popPunk.hook': 'Una cassa secca e cliccante e chitarre lucide',
@@ -192,9 +212,11 @@ export default {
     'Questi master sono già brillanti e schiacciati.',
   'genre.popPunk.stage.bassPunch': 'Una cassa più stretta, mai più profonda.',
   'genre.popPunk.stage.dimension':
-    'I bassi più stretti sotto i 150 Hz, e niente allargato.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.popPunk.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.popPunk.stage.maximizer':
-    'Il tetto più leggero della famiglia rock: il master è già forte.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati.',
   'genre.popPunk.off':
     'Niente Exciter né Fucina dei bassi su master così brillanti e così forti.',
 
@@ -209,9 +231,11 @@ export default {
   'genre.grunge.pin.12500': 'Gli acuti smorzati',
   'genre.grunge.pin.12500.why': 'Ancora più giù: lo scuro è il disco.',
   'genre.grunge.stage.dimension':
-    'Chitarre ampie e voce centrata, come sono state mixate; solo il basso più stretto.',
+    'Mantiene l’equilibrio della larghezza stereo di questo genere lungo lo spettro. Non aggiunge decorrelazione alla voce centrale.',
+  'genre.grunge.stage.deEsser':
+    'Controlla le S e le SC della voce centrale con tagli spettrali stretti fino a 1.5 dB tra 5 e 10 kHz, proteggendo i piatti senza modificare i bassi.',
   'genre.grunge.stage.maximizer':
-    'Un tetto lento che lascia piano la metà piano e forte la metà forte.',
+    'Porta l’ingresso normalizzato verso il livello d’ascolto misurato per questo genere, con picchi limitati a −1 dBTP. La limitazione resta moderata per conservare la dinamica della registrazione; Master e Dynamics restano disattivati. Un rilascio lento evita di seguire ogni singolo colpo.',
   'genre.grunge.off':
     'Niente Exciter, Punch dei bassi o Fucina dei bassi: niente lo schiarisce.',
 };

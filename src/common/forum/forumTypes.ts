@@ -44,7 +44,7 @@ export interface IForumBoards {
    * is signed in — and polls never.
    */
   canStartIn: string[];
-  /** How many issues the repository has, open and closed, when known. */
+  /** How many of the repository's issues are open, when known. */
   issueCount?: number;
 }
 

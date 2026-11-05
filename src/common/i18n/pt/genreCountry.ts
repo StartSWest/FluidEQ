@@ -14,8 +14,11 @@ export default {
   'genre.country.stage.exciter':
     'Presença nas consoantes e ar uma oitava acima das cordas, as duas coisas leves.',
   'genre.country.stage.dimension':
-    'Quase como foi gravado: a base mais estreita e um toque de ar nas laterais.',
-  'genre.country.stage.maximizer': 'Um teto leve.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.country.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.country.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.country.off':
     'Sem Punch dos graves nem Forja de graves: o bumbo e o baixo ficam como foram tocados.',
 
@@ -29,9 +32,11 @@ export default {
   'genre.modernCountry.pin.3150': 'Presença da voz',
   'genre.modernCountry.pin.3150.why': 'Um pouco realçada, de olho na aspereza.',
   'genre.modernCountry.stage.dimension':
-    'A base mais estreita e as laterais um pouco mais abertas, como é mixado.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.modernCountry.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.modernCountry.stage.maximizer':
-    'Um teto que mal empurra, sobre masters que já são altos.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados.',
   'genre.modernCountry.off':
     'Nada gerado: sem Excitador, Punch dos graves ou Forja de graves sob 808s que já preenchem o sub.',
 
@@ -46,9 +51,11 @@ export default {
   'genre.americana.pin.3150.why': 'Um pouco à frente.',
   'genre.americana.stage.exciter': 'Calor e um toque de ar sobre as cordas.',
   'genre.americana.stage.dimension':
-    'A imagem de uma sala só mantida: nada alargado, os graves um pouquinho mais estreitos.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.americana.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.americana.stage.maximizer':
-    'Um teto lento ao longo de um tempo inteiro.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.americana.off':
     'Sem Punch dos graves nem Forja de graves: nada remodela uma bateria de vassourinha ou um contrabaixo.',
 
@@ -64,9 +71,11 @@ export default {
   'genre.bluegrass.stage.exciter':
     'Ar sobre o banjo e o bandolim, uma oitava acima do deles.',
   'genre.bluegrass.stage.dimension':
-    'Como foi gravado, com microfones próximos e natural.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.bluegrass.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.bluegrass.stage.maximizer':
-    'Um teto lento que nunca achata o ataque da palheta.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.bluegrass.off':
     'Sem Punch dos graves nem Forja de graves: não há bumbo para moldar nem sub para inventar.',
 
@@ -81,8 +90,12 @@ export default {
   'genre.folk.pin.12500.why': 'Acima de 7 kHz, de leve.',
   'genre.folk.stage.exciter':
     'Uma presença suave perto de 2 kHz, ar acima de 7 e a pequena parcela de harmônicos que a masterização de folk usa.',
-  'genre.folk.stage.dimension': 'A sala como foi gravada.',
-  'genre.folk.stage.maximizer': 'Um teto lento que nunca achata o silêncio.',
+  'genre.folk.stage.dimension':
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.folk.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.folk.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.folk.off':
     'Sem Punch dos graves nem Forja de graves: nada de grave inflado sob uma voz e um violão.',
 
@@ -97,9 +110,12 @@ export default {
   'genre.acoustic.pin.12500': 'Uma prateleira de ar',
   'genre.acoustic.pin.12500.why': 'Acima de 10 kHz, onde as cordas cintilam.',
   'genre.acoustic.stage.exciter': 'Corpo no tampo e ar acima de 10 kHz.',
-  'genre.acoustic.stage.dimension': 'O par estéreo como foi gravado.',
+  'genre.acoustic.stage.dimension':
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.acoustic.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
   'genre.acoustic.stage.maximizer':
-    'Um teto lento que solta ao longo de um tempo inteiro.',
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.acoustic.off':
     'O perfil de Punch dos graves dele é oferecido e fica desligado: um violão não tem bumbo para moldar.',
 
@@ -115,8 +131,11 @@ export default {
   'genre.singerSongwriter.stage.exciter':
     'Só corpo, nunca harmônicos nas sibilantes.',
   'genre.singerSongwriter.stage.dimension':
-    'Os médios um pouquinho mais estreitos para manter a voz no centro.',
-  'genre.singerSongwriter.stage.maximizer': 'Um teto lento.',
+    'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
+  'genre.singerSongwriter.stage.deEsser':
+    'Controla os sons S e CH da voz central com cortes espectrais estreitos de até 1.5 dB entre 5 e 10 kHz, protegendo os pratos sem alterar os graves.',
+  'genre.singerSongwriter.stage.maximizer':
+    'Eleva a entrada normalizada ao nível de escuta medido para este gênero, limitando os picos a −1 dBTP. A limitação permanece moderada para preservar a dinâmica da gravação; Master e Dynamics ficam desligados. Uma liberação lenta evita acompanhar cada batida.',
   'genre.singerSongwriter.off':
     'Sem Punch dos graves nem Forja de graves: nada sufoca uma voz e um instrumento.',
 };

@@ -15,8 +15,11 @@ export default {
   'genre.country.stage.exciter':
     'Presencia en las consonantes y aire una octava por encima de las cuerdas, las dos cosas ligeras.',
   'genre.country.stage.dimension':
-    'Casi como se grabó: los graves más estrechos y un toque de aire a los lados.',
-  'genre.country.stage.maximizer': 'Un techo ligero.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.country.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.country.stage.maximizer':
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.country.off':
     'Sin Pegada de graves ni Forja de graves: el bombo y el bajo quedan como se tocaron.',
 
@@ -31,9 +34,11 @@ export default {
   'genre.modernCountry.pin.3150.why':
     'Un poco más arriba, vigilando la aspereza.',
   'genre.modernCountry.stage.dimension':
-    'Los graves más estrechos y los laterales un poco más abiertos, como se mezcla.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.modernCountry.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.modernCountry.stage.maximizer':
-    'Un techo que apenas empuja sobre másters que ya son fuertes.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados.',
   'genre.modernCountry.off':
     'Nada generado: sin Excitador, Pegada de graves ni Forja de graves bajo unos 808 que ya llenan el sub.',
 
@@ -50,9 +55,11 @@ export default {
   'genre.americana.stage.exciter':
     'Calidez y un toque de aire sobre las cuerdas.',
   'genre.americana.stage.dimension':
-    'La imagen de una sola sala se conserva: sin ensanchar, con los graves un pelín más estrechos.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.americana.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.americana.stage.maximizer':
-    'Un techo lento a lo largo de todo un pulso.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.americana.off':
     'Sin Pegada de graves ni Forja de graves: nada remodela una batería con escobillas ni un contrabajo.',
 
@@ -68,9 +75,11 @@ export default {
   'genre.bluegrass.stage.exciter':
     'Aire sobre el banjo y la mandolina, una octava por encima del suyo propio.',
   'genre.bluegrass.stage.dimension':
-    'Como se grabó, con micrófonos cercanos y natural.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.bluegrass.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.bluegrass.stage.maximizer':
-    'Un techo lento que nunca aplasta el ataque de una púa.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.bluegrass.off':
     'Sin Pegada de graves ni Forja de graves: no hay bombo que moldear ni sub que inventar.',
 
@@ -85,8 +94,12 @@ export default {
   'genre.folk.pin.12500.why': 'Por encima de 7 kHz, con suavidad.',
   'genre.folk.stage.exciter':
     'Una presencia suave cerca de 2 kHz, aire por encima de 7 y la pequeña dosis de armónicos que usa la masterización de folk.',
-  'genre.folk.stage.dimension': 'La sala tal como se grabó.',
-  'genre.folk.stage.maximizer': 'Un techo lento que nunca aplana lo suave.',
+  'genre.folk.stage.dimension':
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.folk.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.folk.stage.maximizer':
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.folk.off':
     'Sin Pegada de graves ni Forja de graves: ningún grave inflado bajo una voz y una guitarra.',
 
@@ -102,9 +115,12 @@ export default {
     'Por encima de 10 kHz, donde brillan las cuerdas.',
   'genre.acoustic.stage.exciter':
     'Cuerpo en la tapa y aire por encima de 10 kHz.',
-  'genre.acoustic.stage.dimension': 'El par estéreo tal como se grabó.',
+  'genre.acoustic.stage.dimension':
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.acoustic.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
   'genre.acoustic.stage.maximizer':
-    'Un techo lento que suelta a lo largo de un tiempo entero.',
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.acoustic.off':
     'Su perfil de Pegada de graves se ofrece y queda apagado: una guitarra no tiene bombo que moldear.',
 
@@ -121,8 +137,11 @@ export default {
   'genre.singerSongwriter.stage.exciter':
     'Solo cuerpo, nunca armónicos en las sibilantes.',
   'genre.singerSongwriter.stage.dimension':
-    'Los medios un pelín más estrechos para mantener la voz centrada.',
-  'genre.singerSongwriter.stage.maximizer': 'Un techo lento.',
+    'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
+  'genre.singerSongwriter.stage.deEsser':
+    'Controla los sonidos S y SH de la voz centrada con recortes espectrales estrechos de hasta 1.5 dB entre 5 y 10 kHz, protegiendo los platillos sin tocar los graves.',
+  'genre.singerSongwriter.stage.maximizer':
+    'Eleva la entrada normalizada hacia el nivel de escucha medido para este género, con picos limitados a −1 dBTP. La limitación se mantiene moderada para conservar la dinámica de la grabación; Master y Dynamics permanecen apagados. Una liberación lenta evita seguir cada golpe.',
   'genre.singerSongwriter.off':
     'Sin Pegada de graves ni Forja de graves: nada agobia a una voz y un instrumento.',
 };

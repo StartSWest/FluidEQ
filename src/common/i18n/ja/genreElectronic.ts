@@ -11,9 +11,9 @@ export default {
   'genre.electronic.pin.8000': 'ハイハットと空気感',
   'genre.electronic.pin.8000.why': '明るいミックスの上端。',
   'genre.electronic.stage.dimension':
-    '150 Hz以下はモノラル、中域より上に少しの広がり。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
   'genre.electronic.stage.maximizer':
-    'クラブ系プリセットより0.5 dB強く押し込む軽い天井。それで音量がそろいます。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.electronic.off':
     'エキサイター、ベースフォージ、ベースパンチは用意されていますがオフです。エキサイターはこの高域をすぐきつくしますし、サブの下に何かを作り出す必要はありません。',
 
@@ -26,9 +26,10 @@ export default {
   'genre.edm.pin.315.why': 'キックのための余白。',
   'genre.edm.pin.5000': 'スーパーソウの噛みつき',
   'genre.edm.pin.5000.why': 'リードのエッジ。',
-  'genre.edm.stage.dimension': '低域をモノラルに。それだけです。',
+  'genre.edm.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
   'genre.edm.stage.maximizer':
-    'クリップしたマスターを、ほとんど押し込まない天井。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.edm.off':
     'エキサイターは用意されていますがオフです。すべてが揃ったドロップに、サブの持ち上げも、広げることも、倍音も足しません。',
 
@@ -42,8 +43,11 @@ export default {
   'genre.house.pin.12500': '明るくせず、あたたかく',
   'genre.house.pin.12500.why': '高域を和らげます。',
   'genre.house.stage.dimension':
-    '150 Hz以下はモノラル、200までは狭め、高域は少し広く。',
-  'genre.house.stage.maximizer': 'ポンピングには触れない軽い天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.house.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.house.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.house.off':
     'ベースパンチなし。キックのタイミングを動かしてはいけないからです。エキサイターもベースフォージもなし。',
 
@@ -59,8 +63,9 @@ export default {
   'genre.techno.stage.bassPunch':
     'せいぜいキックを引き締めるだけ。ランブルでにじまないように。',
   'genre.techno.stage.dimension':
-    '低域はモノラル。もっとも狭いスタイルで、何も広げません。',
-  'genre.techno.stage.maximizer': '軽い天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.techno.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.techno.off':
     'エキサイターもベースフォージもなし。サブの持ち上げも倍音もありません。',
 
@@ -74,9 +79,9 @@ export default {
   'genre.trance.pin.3150': '硬い帯域を和らげる',
   'genre.trance.pin.3150.why': 'ソウがガラスのようになる3 kHz前後。',
   'genre.trance.stage.dimension':
-    '120 Hz以下はモノラル、それ以上は何もしません。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
   'genre.trance.stage.maximizer':
-    'ドロップのコントラストを残す、ほとんど押し込まない天井。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.trance.off':
     'エキサイターもベースフォージもなし。スーパーソウはすでに高域をたっぷり生みます。',
 
@@ -90,9 +95,10 @@ export default {
   'genre.drumBass.pin.5000': 'スネアとブレイクの破裂音',
   'genre.drumBass.pin.5000.why': 'このジャンルの顔。',
   'genre.drumBass.stage.bassPunch': 'キックは引き締め、決して持ち上げません。',
-  'genre.drumBass.stage.dimension': 'サブはモノラル。',
+  'genre.drumBass.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
   'genre.drumBass.stage.maximizer':
-    '16分音符のうちに離す軽い天井。スネアのアタックが残ります。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.drumBass.off':
     'エキサイターもベースフォージもなし。ニューロベースに倍音は足しません。',
 
@@ -105,8 +111,10 @@ export default {
   'genre.dubstep.pin.80.why': 'サブの上の厚み。',
   'genre.dubstep.pin.500': 'スネアとうなりのための余白',
   'genre.dubstep.pin.500.why': '中域を空けます。',
-  'genre.dubstep.stage.dimension': '120 Hz以下のサブはモノラル。',
-  'genre.dubstep.stage.maximizer': 'ほとんど押し込まない天井。',
+  'genre.dubstep.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.dubstep.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.dubstep.off':
     'エキサイター、ベースパンチ、ベースフォージはなし。うなりはすでにジリついています。',
 
@@ -120,7 +128,10 @@ export default {
   'genre.downtempo.pin.12500': '粒子はほこりっぽいまま',
   'genre.downtempo.pin.12500.why': '明るくしません。',
   'genre.downtempo.stage.dimension': 'アトモスフィアは広く、ベースは狭めます。',
-  'genre.downtempo.stage.maximizer': 'ゆっくりした軽い天井。',
+  'genre.downtempo.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.downtempo.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.downtempo.off':
     'ベースフォージは用意されていますがオフです。ベースはすでに深いからです。',
 
@@ -136,8 +147,10 @@ export default {
   'genre.chillout.stage.exciter': '軽い空気感だけ。',
   'genre.chillout.stage.dimension':
     '高域を広く。ここでは広がりが歓迎されます。',
+  'genre.chillout.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.chillout.stage.maximizer':
-    '1拍かけて離す、ゆっくりした天井。押しつけるものは何もありません。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.chillout.off':
     'ベースパンチもベースフォージもなし。重いものは何もありません。',
 
@@ -150,9 +163,10 @@ export default {
   'genre.lofi.pin.200.why': 'うまく受け入れる唯一の方向。',
   'genre.lofi.pin.3150': 'わざと暗く',
   'genre.lofi.pin.3150.why': 'レコードより明るくはしません。',
-  'genre.lofi.stage.dimension': 'わずかに狭め、120 Hz以下の低域はモノラルに。',
+  'genre.lofi.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
   'genre.lofi.stage.maximizer':
-    '静かめにマスタリングされたレコードのため、兄弟プリセットより少しだけ押し込みます。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.lofi.off':
     'エキサイターは用意されていますがオフです。レコードはすでにテープで飽和しています。',
 
@@ -167,7 +181,8 @@ export default {
   'genre.ambient.pin.12500.why': 'パッドの上端。',
   'genre.ambient.stage.dimension':
     '広く、全ジャンルでもっとも広く、それでもモノラルで安全です。',
-  'genre.ambient.stage.maximizer': 'うねりの頂点にだけ触れる天井。',
+  'genre.ambient.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.ambient.off':
     'エキサイターは用意されていますがオフです。静けさを圧縮したり、ならしたりするものはありません。',
 
@@ -181,7 +196,10 @@ export default {
   'genre.newAge.pin.12500': '少しの空気感',
   'genre.newAge.pin.12500.why': '残響の上に。',
   'genre.newAge.stage.dimension': '広いアンビエンス。',
-  'genre.newAge.stage.maximizer': '静けさをならすものは何もありません。',
+  'genre.newAge.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.newAge.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.newAge.off':
     'エキサイターは用意されていますがオフです。透明であることが注文です。',
 };

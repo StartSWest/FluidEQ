@@ -12,10 +12,11 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import type {
-  IForumTopic,
-  IForumTopicSummary,
-  TForumAuthState,
+import {
+  FORUM_ISSUES_BOARD,
+  type IForumTopic,
+  type IForumTopicSummary,
+  type TForumAuthState,
 } from '../../../common/forum/forumTypes';
 import ForumPanel from '../../../renderer/forum/ForumPanel';
 import {
@@ -252,6 +253,47 @@ describe('the forum store', () => {
     fireEvent.click(voted);
     await act(async () => {});
     expect(bridge.forumVote).toHaveBeenLastCalledWith('D1', false);
+  });
+
+  it('says on a board how many of its topics are new, and its total once they are read', async () => {
+    // What earlier tests read is kept on this machine, as in the app.
+    window.localStorage.clear();
+    // As main answers: the discussion on its board, and no issues.
+    installBridge({
+      forumTopics: jest.fn((query: { board: string }) =>
+        Promise.resolve({
+          ok: true,
+          value:
+            query.board === FORUM_ISSUES_BOARD
+              ? { topics: [], total: 0 }
+              : { topics: [summary(1, 'q-a')], total: 1 },
+        }),
+      ),
+    });
+    render(<ForumPanel />);
+    await screen.findByText('Topic 1 on q-a');
+    const boardRow = () =>
+      screen
+        .getAllByRole('button')
+        .find(
+          (button) =>
+            button.classList.contains('forum__board') &&
+            button.textContent?.includes('forum.board.qa'),
+        ) as HTMLElement;
+    // Topic 1 has activity this reader has not seen: the board says 1 new,
+    // in the news badge, where it used to show a dot beside its total.
+    await waitFor(() =>
+      expect(boardRow().querySelector('.forum-news-badge')).toHaveTextContent(
+        '1',
+      ),
+    );
+    expect(boardRow().querySelector('.forum__count')).toBeNull();
+    fireEvent.click(screen.getByText('Topic 1 on q-a'));
+    await screen.findByText('question');
+    await waitFor(() =>
+      expect(boardRow().querySelector('.forum-news-badge')).toBeNull(),
+    );
+    expect(boardRow().querySelector('.forum__count')).toHaveTextContent('1');
   });
 
   it('shows the count with nothing to press when nobody is signed in', async () => {

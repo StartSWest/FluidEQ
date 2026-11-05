@@ -134,11 +134,7 @@ const WorkspacePages = ({
       <div
         key="eq-workspace"
         className={`workspace-tab-panel workspace-tab-panel--${activeTab}${!isEqReachingSound ? ' is-engine-disabled' : ''}`}
-        aria-disabled={
-          activeTab === 'config' || activeTab === 'games'
-            ? undefined
-            : !isEqReachingSound
-        }
+        aria-disabled={activeTab === 'config' ? undefined : !isEqReachingSound}
         onPointerOver={onEqPillApproach}
         onFocus={onEqPillApproach}
       >
@@ -151,8 +147,23 @@ const WorkspacePages = ({
             {activeTab === 'eq' && <MainContent />}
             {activeTab === 'presets' && <PresetsPage.Page />}
             {activeTab === 'convolution' && <ConvolutionPage.Page />}
-            {activeTab === 'games' && <GamesPage.Page />}
             {activeTab === 'config' && <ConfigPage.Page />}
+          </Suspense>
+        </div>
+      </div>
+    )}
+    {/* A place of its own beside the equaliser: each game's whole sound is
+      tuned here, the rack's stages included (Ivan, 2026-11-02). Not inert
+      with the equaliser off, like the DSP page beside it: a game's sound is
+      kept and put on whether or not the equaliser is switched on. */}
+    {activeTab === 'games' && (
+      <div
+        key={activeTab}
+        className="workspace-tab-panel workspace-tab-panel--games"
+      >
+        <div className="workspace-tab-panel__scroll">
+          <Suspense fallback={null}>
+            <GamesPage.Page />
           </Suspense>
         </div>
       </div>

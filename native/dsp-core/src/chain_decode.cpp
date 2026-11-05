@@ -79,9 +79,10 @@ int feq_chain_settings_decode(const double* values,
   // A trailer leaves every existing band offset intact. Older saved snapshots
   // still decode with the normalizer off instead of shifting their EQ bands.
   // After the normalizer's three comes game mode's one — written only when it
-  // is on, or when a tagged trailer follows it — then the Room's trailer and
-  // the tone's, each recognised by its tag and each only where the one before
-  // it may stand. Anything else is a line this engine does not know.
+  // is on, or when a tagged trailer follows it — then the Room's trailer,
+  // Footsteps' and the tone's, each recognised by its tag and each only where
+  // the one before it may stand. Anything else is a line this engine does
+  // not know.
   const uint32_t tail = count - legacy_count;
   if (count < legacy_count || tail == 1 || tail == 2) {
     return 0;
@@ -95,6 +96,65 @@ int feq_chain_settings_decode(const double* values,
   if (extended_room) {
     if (count < trailer_at + FEQ_CHAIN_ROOM_TRAILER) return 0;
     trailer_at += FEQ_CHAIN_ROOM_TRAILER;
+  }
+  const bool has_footsteps =
+      has_low_latency && count > trailer_at &&
+      values[trailer_at] == FEQ_CHAIN_FOOTSTEPS_TAG;
+  // Schema 1 is Footsteps alone, schema 2 the whole Game filter.
+  bool has_game = false;
+  if (has_footsteps) {
+    if (count < trailer_at + FEQ_CHAIN_FOOTSTEPS_TRAILER) return 0;
+    // Its switch and Isolate are flags, Lift and Calm fractions: anything
+    // else is a Footsteps this engine does not know.
+    const double* foot = values + trailer_at;
+    has_game = foot[1] == FEQ_CHAIN_GAME_SCHEMA;
+    if (has_game) {
+      // Heavy and Duck flags, Environment from -1 to 1, Voices a fraction.
+      if (count < trailer_at + FEQ_CHAIN_GAME_TRAILER ||
+          foot[2] != FEQ_CHAIN_GAME_FIELDS || (foot[7] != 0 && foot[7] != 1) ||
+          foot[8] < -1 || foot[8] > 1 || foot[9] < 0 || foot[9] > 1 ||
+          (foot[10] != 0 && foot[10] != 1)) {
+        return 0;
+      }
+    } else if (foot[1] != FEQ_CHAIN_FOOTSTEPS_SCHEMA ||
+               foot[2] != FEQ_CHAIN_FOOTSTEPS_FIELDS) {
+      return 0;
+    }
+    if ((foot[3] != 0 && foot[3] != 1) || (foot[4] != 0 && foot[4] != 1) ||
+        foot[5] < 0 || foot[5] > 1 || foot[6] < 0 || foot[6] > 1) {
+      return 0;
+    }
+    trailer_at +=
+        has_game ? FEQ_CHAIN_GAME_TRAILER : FEQ_CHAIN_FOOTSTEPS_TRAILER;
+  }
+  const bool has_dynamics =
+      has_low_latency && count > trailer_at &&
+      values[trailer_at] == FEQ_CHAIN_DYNAMICS_TAG;
+  if (has_dynamics) {
+    // A switch, five values a band each within the stage's own ranges, then
+    // attack, release, mix and make-up: anything else is a Dynamics this
+    // engine does not know.
+    const double* dyn = values + trailer_at;
+    if (count < trailer_at + FEQ_CHAIN_DYNAMICS_TRAILER ||
+        dyn[1] != FEQ_CHAIN_DYNAMICS_SCHEMA ||
+        dyn[2] != FEQ_CHAIN_DYNAMICS_FIELDS || (dyn[3] != 0 && dyn[3] != 1)) {
+      return 0;
+    }
+    for (int band = 0; band < FEQ_COMPANDER_BANDS; ++band) {
+      const double* read = dyn + 4 + band * 5;
+      if (read[0] < -80 || read[0] > -10 || read[1] < 1 || read[1] > 4 ||
+          read[2] < 0 || read[2] > 18 || read[3] < -60 || read[3] > 0 ||
+          read[4] < 1 || read[4] > 20) {
+        return 0;
+      }
+    }
+    const double* tail_values = dyn + 4 + FEQ_COMPANDER_BANDS * 5;
+    if (tail_values[0] < 1 || tail_values[0] > 100 || tail_values[1] < 20 ||
+        tail_values[1] > 1000 || tail_values[2] < 0 || tail_values[2] > 1 ||
+        tail_values[3] < -12 || tail_values[3] > 12) {
+      return 0;
+    }
+    trailer_at += FEQ_CHAIN_DYNAMICS_TRAILER;
   }
   const bool has_tone = has_low_latency && count > trailer_at;
   uint32_t tone_bands = 0;
@@ -387,6 +447,35 @@ int feq_chain_settings_decode(const double* values,
     out->room.preserve_position = flag();
     out->room.compare_original = flag();
     out->room.source_already_spatial = flag();
+  }
+  if (has_footsteps) {
+    at += 3;  // validated tag, schema and field count
+    out->footsteps.enabled = flag();
+    out->footsteps.isolate = flag();
+    out->footsteps.lift = next();
+    out->footsteps.calm = next();
+    // Schema 1 leaves the defaults: no Heavy, Environment, Voices or Duck.
+    if (has_game) {
+      out->footsteps.heavy = flag();
+      out->footsteps.environment = next();
+      out->footsteps.voices = next();
+      out->footsteps.duck = flag();
+    }
+  }
+  if (has_dynamics) {
+    at += 3;  // validated tag, schema and field count
+    out->compander.enabled = flag();
+    for (FeqCompanderBand& band : out->compander.bands) {
+      band.up_threshold_db = next();
+      band.up_ratio = next();
+      band.up_max_db = next();
+      band.down_threshold_db = next();
+      band.down_ratio = next();
+    }
+    out->compander.attack_ms = next();
+    out->compander.release_ms = next();
+    out->compander.mix = next();
+    out->compander.makeup_db = next();
   }
   if (has_tone) {
     at += 3; // validated tag, schema and band count

@@ -15,8 +15,11 @@ export default {
   'genre.country.stage.exciter':
     'Präsenz an den Konsonanten und Luft eine Oktave über den Saiten, beides leicht.',
   'genre.country.stage.dimension':
-    'Fast wie aufgenommen: unten schmaler und ein Hauch Luft an den Seiten.',
-  'genre.country.stage.maximizer': 'Eine leichte Obergrenze.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.country.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
+  'genre.country.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.country.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Kick und Bass bleiben, wie sie gespielt wurden.',
 
@@ -30,9 +33,11 @@ export default {
   'genre.modernCountry.pin.3150': 'Präsenz der Stimme',
   'genre.modernCountry.pin.3150.why': 'Etwas angehoben, mit Blick auf Schärfe.',
   'genre.modernCountry.stage.dimension':
-    'Unten schmaler und die Seiten etwas breiter, so wie gemischt wird.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.modernCountry.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.modernCountry.stage.maximizer':
-    'Eine Obergrenze, die auf schon lauten Mastern kaum antreibt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus.',
   'genre.modernCountry.off':
     'Nichts wird erzeugt: kein Exciter, kein Bass-Punch und keine Bass-Schmiede unter 808s, die den Sub schon füllen.',
 
@@ -47,9 +52,11 @@ export default {
   'genre.americana.pin.3150.why': 'Etwas nach vorn.',
   'genre.americana.stage.exciter': 'Wärme und ein Hauch Luft über den Saiten.',
   'genre.americana.stage.dimension':
-    'Das Bild des einen Raums bleibt: keine Verbreiterung, der Bass einen Hauch schmaler.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.americana.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.americana.stage.maximizer':
-    'Eine langsame Obergrenze über einen ganzen Schlag.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.americana.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Nichts formt ein Besen-Schlagzeug oder einen Kontrabass um.',
 
@@ -65,9 +72,11 @@ export default {
   'genre.bluegrass.stage.exciter':
     'Luft über Banjo und Mandoline, eine Oktave über ihrer eigenen.',
   'genre.bluegrass.stage.dimension':
-    'Wie aufgenommen, nah mikrofoniert und natürlich.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.bluegrass.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.bluegrass.stage.maximizer':
-    'Eine langsame Obergrenze, die einen Anschlag nie plattdrückt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.bluegrass.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Es gibt keinen Kick zu formen und keinen Sub zu erfinden.',
 
@@ -82,9 +91,12 @@ export default {
   'genre.folk.pin.12500.why': 'Über 7 kHz, leicht.',
   'genre.folk.stage.exciter':
     'Eine sanfte Präsenz um 2 kHz, Luft über 7 und der kleine Anteil Obertöne, den das Folk-Mastering nutzt.',
-  'genre.folk.stage.dimension': 'Der Raum wie aufgenommen.',
+  'genre.folk.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.folk.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.folk.stage.maximizer':
-    'Eine langsame Obergrenze, die das Leise nie einebnet.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.folk.off':
     'Kein Bass-Punch und keine Bass-Schmiede: kein aufgeblasener Bass unter einer Stimme und einer Gitarre.',
 
@@ -99,9 +111,12 @@ export default {
   'genre.acoustic.pin.12500': 'Ein Kuhschwanz Luft',
   'genre.acoustic.pin.12500.why': 'Über 10 kHz, wo Saiten schimmern.',
   'genre.acoustic.stage.exciter': 'Körper an der Decke und Luft über 10 kHz.',
-  'genre.acoustic.stage.dimension': 'Das Stereopaar wie aufgenommen.',
+  'genre.acoustic.stage.dimension':
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.acoustic.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
   'genre.acoustic.stage.maximizer':
-    'Eine langsame Obergrenze, die über einen ganzen Schlag loslässt.',
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.acoustic.off':
     'Sein Bass-Punch-Profil wird angeboten und bleibt aus: Eine Gitarre hat keinen Kick zu formen.',
 
@@ -118,8 +133,11 @@ export default {
   'genre.singerSongwriter.stage.exciter':
     'Nur Körper, nie Obertöne auf den Zischlauten.',
   'genre.singerSongwriter.stage.dimension':
-    'Die Mitten einen Hauch schmaler, damit die Stimme mittig bleibt.',
-  'genre.singerSongwriter.stage.maximizer': 'Eine langsame Obergrenze.',
+    'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
+  'genre.singerSongwriter.stage.deEsser':
+    'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',
+  'genre.singerSongwriter.stage.maximizer':
+    'Hebt den normalisierten Eingang auf den gemessenen Hörpegel dieses Genres an und begrenzt Spitzen auf −1 dBTP. Die Begrenzung bleibt zurückhaltend, damit die Dynamik der Aufnahme erhalten bleibt; Master und Dynamics bleiben aus. Eine langsame Freigabe vermeidet das Nachregeln einzelner Schläge.',
   'genre.singerSongwriter.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Nichts bedrängt eine Stimme und ein Instrument.',
 };

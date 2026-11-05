@@ -99,13 +99,25 @@ function CurvesPage({ turn, index }: { turn: ITurn; index: number }) {
               <p>{t('myCurves.intro')}</p>
             </div>
             <div className="my-curves__actions">
-              <span className="button small subtle">
-                <MenuIcon name="import" />
-                {t('myCurves.importSquiglink')}
+              <span className="my-curves__pair">
+                <span className="button small subtle">
+                  <MenuIcon name="download" />
+                  {t('myCurves.import')}
+                </span>
+                <span className="button small subtle">
+                  <MenuIcon name="upload" />
+                  {t('myCurves.export')}
+                </span>
               </span>
-              <span className="button small">
-                <MenuIcon name="plus" />
-                {t('myCurves.add')}
+              <span className="my-curves__pair">
+                <span className="button small subtle">
+                  <MenuIcon name="graph" />
+                  {t('myCurves.importSquiglink')}
+                </span>
+                <span className="button small">
+                  <MenuIcon name="plus" />
+                  {t('myCurves.add')}
+                </span>
               </span>
             </div>
           </header>
@@ -129,15 +141,6 @@ function CurvesPage({ turn, index }: { turn: ITurn; index: number }) {
               <span className="segmented__option">
                 {t('myCurves.sort.name')}
               </span>
-            </span>
-            <span className="my-curves__spacer" />
-            <span className="button small subtle">
-              <MenuIcon name="download" />
-              {t('myCurves.import')}
-            </span>
-            <span className="button small subtle">
-              <MenuIcon name="upload" />
-              {t('myCurves.export')}
             </span>
           </div>
           <ul className="my-curves__list">

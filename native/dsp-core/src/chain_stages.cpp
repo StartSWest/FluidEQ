@@ -367,11 +367,9 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
    */
   const bool recovering =
       !on && (chain->maximizer.detector_gain < kMaximizerOffSettledGain ||
-              chain->maximizer.platform_db < kMaximizerOffSettledDb ||
-              chain->maximizer_low.detector_gain < kMaximizerOffSettledGain);
+              chain->maximizer.platform_db < kMaximizerOffSettledDb);
   if (!on && !recovering) {
     feq_linked_limiter_reset_control(&chain->maximizer);
-    feq_bass_limiter_reset_control(&chain->maximizer_low);
     chain->maximizer_reduction_db = 0.0;
   }
   const bool running = on || recovering;
@@ -451,29 +449,6 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
       on ? std::exp(-1.0 / ((kMaximizerPlatformReleaseMs / 1000.0) *
                             chain->sample_rate))
          : (recovering ? off_release : 0.0);
-
-  // The low band first (`bass_limiter.h`): a peak the bass put over the
-  // ceiling comes out of the bass before the limiter hears it. Read against
-  // the platform the limiter is holding now, so the steady reduction a driven
-  // record asks for stays the limiter's, on everything alike.
-  FeqBassLimiterOptions low{};
-  low.ceiling = on ? options.ceiling : HUGE_VAL;
-  low.knee_db = options.knee_db;
-  low.platform_db = chain->maximizer.platform_db;
-  low.floor_gain = std::pow(10.0, kMaximizerLowFloorDb / 20.0);
-  low.split_hz = kMaximizerLowSplitHz;
-  low.release_coefficient =
-      running ? std::exp(-1.0 / ((kMaximizerLowReleaseMs / 1000.0) *
-                                 chain->sample_rate))
-              : 0.0;
-  low.release_hold_samples = options.release_hold_samples;
-  low.window_samples =
-      on ? std::floor((kMaximizerLowWindowMs / 1000.0) * chain->sample_rate +
-                      0.5)
-         : 0.0;
-  low.release_snap_ratio = options.release_snap_ratio;
-  low.sample_rate = chain->sample_rate;
-  feq_bass_limiter_process(&chain->maximizer_low, channels, frames, &low);
 
   feq_linked_limiter_process(&chain->maximizer, channels, frames, &options);
 

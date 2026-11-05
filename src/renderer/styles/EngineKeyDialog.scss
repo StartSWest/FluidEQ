@@ -1,0 +1,67 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// The on/off key's dialog (`EngineKeyDialog`): one field the keys are
+// pressed into, on the field's own face, with the keys written large enough
+// to read at a glance across the room from a game.
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+
+.engine-key__label {
+  margin-top: 6px;
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  font-weight: $weight-semibold;
+  @include tracking(0.09em);
+  text-transform: uppercase;
+}
+
+.engine-key__field {
+  box-sizing: border-box;
+  width: 100%;
+  height: 52px;
+  padding: 0 14px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+  background: $surface-field;
+  color: $text-primary;
+  font: inherit;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  cursor: default;
+  caret-color: transparent;
+  outline: none;
+
+  &::placeholder {
+    color: $text-faint;
+    font-weight: $weight-regular;
+  }
+
+  &:focus-visible {
+    border-color: $secondary-default;
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, $secondary-default 22%, transparent);
+  }
+
+  &.has-problem {
+    border-color: $amber;
+  }
+}
+
+.engine-key__problem {
+  color: $amber;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+// Taking the key away is the odd one out: it stands apart, at the left.
+.compact-frame__actions .engine-key__none {
+  margin-right: auto;
+}

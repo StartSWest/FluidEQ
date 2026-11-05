@@ -156,25 +156,21 @@ const tour: Partial<Dictionary> = {
   'tour.graph.imageAlt':
     '播放歌曲时图表的“频谱分析仪”：80 dB 深度的实时频谱和上方的峰值，最上面是均衡器曲线，角落里是“分析”下的视图列表。',
 
-  'tour.games.kicker': '游戏预设',
+  'tour.games.kicker': '游戏实验室',
   'tour.games.title': '每个游戏，都有自己的音效',
   'tour.games.subtitle': '游戏来到最前面时随即切换',
   'tour.games.lead':
-    '每个游戏只需选一次音效。游戏来到最前面时，FluidEQ 会切换到这种音效，无论你按多少次 Alt+Tab 都会一直保持，直到你关闭游戏，然后换回你原来的音效。',
+    '每个游戏都有一份游戏配置的专属副本，在游戏实验室里调整。游戏切到前台时启用它的声音，无论按多少次 Alt+Tab 都保持；关闭游戏，你的音乐声音就会恢复。',
   'tour.games.point1':
     'Steam、Epic Games、EA、GOG、育碧、战网和 Xbox 上的游戏，或任何当前打开的程序。',
   'tour.games.point2':
-    '“游戏”预设会开启“游戏模式”，减少 FluidEQ 带来的延迟；页面上还会显示这段延迟的实测值。',
-  'tour.games.point3':
-    '桌面上的一张卡片会说明切换了什么；游戏关闭时，另一张会说明换回了什么。',
+    '在同一页调整每个部分：用于脚步声和人声的游戏滤镜、EQ、曲线和每一级 DSP，并有为游戏准备的预设。',
+  'tour.games.point3': '实验室和 EQ 页面会显示正在播放的游戏及其预设。',
   'tour.games.how':
-    '打开“均衡器”，选择“游戏预设”并按“添加游戏”。然后在它那一行的选择器中选好音效。',
-  'tour.games.open': '打开游戏预设',
+    '在标题栏打开游戏实验室，点“添加游戏”。然后点“立即试听”，就地调整它的声音。',
+  'tour.games.open': '打开游戏实验室',
   'tour.games.imageAlt':
-    '桌面上的三个时刻：游戏在最前面，FluidEQ 的卡片说它的音效已加载；同一个游戏最小化后，它的音效仍然开着；游戏关闭后，卡片说之前的音效回来了。',
-  'tour.games.stepFront': '在最前面：加载它的音效',
-  'tour.games.stepAway': '最小化或 Alt+Tab 切走：音效保持不变',
-  'tour.games.stepClosed': '关闭：你自己的音效回来',
+    '显示 Counter-Strike 2 的游戏实验室：先播放你的音乐，然后启用游戏专属的声音，顶部显示它的预设名称，游戏模式开启，“立即试听”变为“卸载”。',
   'tour.presets.kicker': '全新预设',
   'tour.presets.title': '声如其名的预设',
   'tour.presets.subtitle': '整条处理链，响度统一',
@@ -496,11 +492,19 @@ const tour: Partial<Dictionary> = {
   'tour.film.sound.precise':
     '在 EQ 模式菜单里，高音设为“精确”。每个频段都按画出的样子发声，一直到两万赫兹。',
   'tour.film.sound.classic': '选择“经典”，频段会按 Equalizer APO 的方式构建。',
-  'tour.film.games.intro': 'FluidEQ 可以为你的每个游戏设置专属的声音。',
-  'tour.film.games.add': '点击“添加游戏”，从启动器已安装的游戏中选择它。',
-  'tour.film.games.sound': '然后选择它应有的声音。',
-  'tour.film.games.front': '游戏切到前台时，它的声音会自动载入。',
-  'tour.film.games.closed': '关闭游戏，你自己的声音就会回来。',
+  'tour.film.games.intro':
+    '游戏实验室为你的每个游戏设置专属的声音，全部在一个地方调整。',
+  'tour.film.games.add': '点击“添加游戏”，从这台电脑上的游戏中选择它。',
+  'tour.film.games.profile':
+    '它从一个游戏配置开始：按游戏类型的，或专为这款游戏做的。',
+  'tour.film.games.try':
+    '点击“立即试听”，它专属的声音就会播放，并开启游戏模式以降低延迟。',
+  'tour.film.games.tune': '每个部分都在这里调整：游戏滤镜、EQ 和它的曲线。',
+  'tour.film.games.presets': '每个 DSP 级都提供为游戏调好的预设。',
+  'tour.film.games.save': '把调整保存为你自己的配置，或从原始配置重新开始。',
+  'tour.film.games.front': '游戏切到前台时，它的声音会自动开启。',
+  'tour.film.games.eqPage': 'EQ 页面会显示正在播放哪个游戏，以及它的预设。',
+  'tour.film.games.closed': '关闭游戏，你的音乐声音就会回来。',
   'tour.film.compact.intro': '只需要控制按钮时，FluidEQ 可以收成一个小播放器。',
   'tour.film.compact.go': '点击顶部的播放器按钮，窗口就变成迷你播放器。',
   'tour.film.compact.eq': '你的 EQ 也一起带过来。转动旋钮，立刻就能听到。',
@@ -590,10 +594,14 @@ const tour: Partial<Dictionary> = {
   'tour.film.walkthrough.room':
     '房间让你置身真实空间的音箱之间，戴耳机也一样。',
   'tour.film.walkthrough.maximizer': '最大化器则让一切响亮又干净，永不削波。',
+  'tour.film.walkthrough.footsteps':
+    '效果架新增“脚步声”：游戏里的细小声响一出现，就把它们凸显出来，比如脚步声和换弹声。',
   'tour.film.walkthrough.library':
     '媒体库用同样的声音播放你自己的音乐，还有专辑、播放列表和“接下来播放”。',
   'tour.film.walkthrough.compact':
     '迷你播放器把这一切装进一个小窗口：歌曲、控制和你的 EQ。',
+  'tour.film.walkthrough.desktop':
+    '在它后面，任何可视化效果都能在你的桌面上播放，随着音乐律动。',
   'tour.film.walkthrough.oneline':
     '把它折叠成一行，就不会挡路，歌曲后面还有可视化效果轻轻律动。',
   'tour.film.walkthrough.looks':
@@ -604,8 +612,16 @@ const tour: Partial<Dictionary> = {
     '在工作室里，用你自己的话描述想要的改动，就能看着它在舞台上实现。',
   'tour.film.walkthrough.karaoke':
     '卡拉OK 让你的歌都能跟着唱，歌词按时出现，你的音高也显示在屏幕上。',
+  'tour.film.walkthrough.karaokeplay':
+    '打开一首带歌词的歌，点击播放。每个词会在唱到时亮起，下方的音高引导会显示每个要唱准的音。',
+  'tour.film.walkthrough.karaokestage':
+    '歌词后面的舞台还能播放任意可视化效果，随着歌曲律动。',
   'tour.film.walkthrough.share':
     '共享音频把你家庭网络里的电脑连起来，让音乐在它们之间双向流动。',
+  'tour.film.walkthrough.sharelink':
+    '每台电脑只发送它自己播放的声音，所以不会有回声，而你用来收听的那台会套用它自己的 EQ。',
+  'tour.film.walkthrough.sharemix':
+    '每条链接都有自己的音量，声音无损送达，保持同步，也不会断断续续。',
   'tour.film.walkthrough.help':
     '这些内容都在用户指南里，图示直接取自应用本身。',
   'tour.film.walkthrough.outro': '这就是 FluidEQ。让它的声音和样子都属于你。',
@@ -766,6 +782,19 @@ const tour: Partial<Dictionary> = {
   'tour.media.open': '打开在线媒体',
   'tour.studio.free': '所有账户免费',
   'tour.film.englishAudio': '英语音频 · 翻译字幕',
+  'tour.v23.also': '2.3 的其他更新',
+  'tour.v23.engineKey':
+    '在菜单中选择开关快捷键，即使其他应用在前台，也能切换 FluidEQ 的全部处理。卡片会确认每次切换。',
+  'tour.v23.profiles':
+    '按游戏、曲线或效果链搜索游戏配置。保存的配置也会显示曲线和游戏滤波器电平。',
+  'tour.v23.dsp':
+    '动态处理在三个频段抬高轻声。改进的最大化器保留低频；True Peak 标准化每首歌使用一个增益。',
+  'tour.v23.help':
+    '帮助可播放录制的 2.2 导览并直接打开完整发行说明。“关于”增加章节链接，并在支持链接可用时显示支持二维码。',
+  'tour.v23.forum':
+    '论坛各板块显示未读动态数量，“问题”统计仍未关闭的问题，没写完的话题和回复也会保存。',
+  'tour.v23.layout':
+    '紧凑播放器缩短游戏名称。添加游戏时滚动仍可看到按钮，各页面滚动条紧贴右侧边缘。',
 };
 
 export default tour;

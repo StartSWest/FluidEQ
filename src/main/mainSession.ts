@@ -63,6 +63,13 @@ export interface IMainSession {
   /** Live song loans and unsaved sound stay on their own output when editing another. */
   outputStateOverrides?: Map<string, IState>;
   systemRackEnabled?: (deviceId: string) => boolean;
+  /**
+   * The installed FluidEQ Engine's binary version, from the latest status
+   * read the engine IPC shares (`registerAudioEngineIpc`), so a flush asks no
+   * helper of its own. Unset until that IPC is registered; it rejects when
+   * the current read failed.
+   */
+  installedEngineVersion?: () => Promise<string | undefined>;
   /** Routed native receivers, including outputs without saved profiles. */
   secondOutputDevices?: IAudioDevice[];
   /** The user opened a device explicitly, so its profile wins over the default. */

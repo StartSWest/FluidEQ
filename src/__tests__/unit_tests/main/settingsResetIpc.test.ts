@@ -96,6 +96,7 @@ describe('resetting the settings main keeps', () => {
       ownerContents: () => owner,
       resetDesktopBackgrounds: jest.fn(),
       resetLighting: jest.fn(),
+      resetEngineKey: jest.fn(() => Promise.resolve()),
       unpinWindow: jest.fn(),
       showGraph: jest.fn(),
       logger: { error: jest.fn() },
@@ -115,6 +116,7 @@ describe('resetting the settings main keeps', () => {
     expect(mockLogin.openAtLogin).toBe(false);
     expect(deps.resetDesktopBackgrounds).toHaveBeenCalledTimes(1);
     expect(deps.resetLighting).toHaveBeenCalledTimes(1);
+    expect(deps.resetEngineKey).toHaveBeenCalledTimes(1);
     expect(deps.unpinWindow).toHaveBeenCalledTimes(1);
     // The graph's on/off switch, from the checklist (Ivan, 2026-10-26).
     expect(deps.showGraph).toHaveBeenCalledTimes(1);
@@ -162,6 +164,48 @@ describe('resetting the settings main keeps', () => {
     expect(deps.unpinWindow).toHaveBeenCalledTimes(1);
   });
 
+  it('accepts a synchronous reset callback returning its new state', async () => {
+    jest
+      .mocked(deps.resetLighting)
+      .mockImplementation(() => ({ enabled: false }));
+    await askFrom(owner);
+    expect(deps.resetLighting).toHaveBeenCalledTimes(1);
+    expect(deps.logger.error).not.toHaveBeenCalled();
+  });
+
+  it('waits for the engine shortcut choice to be saved', async () => {
+    let finish: () => void = () => undefined;
+    jest.mocked(deps.resetEngineKey).mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    let answered = false;
+    const answer = Promise.resolve(askFrom(owner)).then(() => {
+      answered = true;
+      return undefined;
+    });
+    await Promise.resolve();
+    expect(answered).toBe(false);
+    finish();
+    await answer;
+    expect(answered).toBe(true);
+  });
+
+  it('reports an asynchronous shortcut reset failure and resets the other settings', async () => {
+    jest
+      .mocked(deps.resetEngineKey)
+      .mockRejectedValue(new Error('write refused'));
+    await askFrom(owner);
+    expect(deps.logger.error).toHaveBeenCalledWith(
+      'Settings reset: could not reset the engine on/off key',
+      expect.any(Error),
+    );
+    expect(readMotionPreference(folder)).toBe('full');
+    expect(deps.resetLighting).toHaveBeenCalledTimes(1);
+  });
+
   it('answers nobody but FluidEQ’s own window', () => {
     expect(() => askFrom(contents())).toThrow(
       'Only FluidEQ resets its settings.',
@@ -174,6 +218,7 @@ describe('resetting the settings main keeps', () => {
     expect(readGpuPreference(folder)).toBe('high');
     expect(mockLogin.openAtLogin).toBe(true);
     expect(deps.resetDesktopBackgrounds).not.toHaveBeenCalled();
+    expect(deps.resetEngineKey).not.toHaveBeenCalled();
   });
 });
 
@@ -192,6 +237,7 @@ const RESET_FILES = [
   'motion.json',
   'desktop-backgrounds.json',
   'lighting.json',
+  'engine-key.json',
 ];
 
 /** Kept on purpose, with why. */
@@ -203,6 +249,9 @@ const KEPT_FILES = [
   'song-eq.json',
   'song-levels.json',
   'song-sound.json',
+  // Which outputs a game's own sound has borrowed, so the music sound comes
+  // back when the game ends: reset away, a game left playing kept its sound.
+  'game-sound.json',
   'output-design-profiles-v1.json',
   'output-dsp-profiles-v1.json',
   // The engine and the outputs.

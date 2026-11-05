@@ -1,10 +1,13 @@
 import {
+  createContext,
   createElement,
   Fragment,
+  useContext,
   useMemo,
   useState,
   type ReactNode,
 } from 'react';
+import StudioChatPictureViewer from '../studio/chat/StudioChatPictureViewer';
 import { useTranslation } from '../utils/I18nContext';
 
 /**
@@ -134,6 +137,16 @@ interface IForumImageProps {
 }
 
 /**
+ * Opens one of the post's pictures in the window-sized viewer (Ivan,
+ * 2026-11-02: "when clicking one I want to open it right there in Fluid in a
+ * modal that can be expanded"). Absent outside a post, where a picture is
+ * only a picture.
+ */
+const PictureOpener = createContext<((src: string) => void) | undefined>(
+  undefined,
+);
+
+/**
  * An image in a post, or a link to it when it will not load. GitHub signs
  * attachment URLs for a few minutes only, so an image read from the published
  * feed can have expired by the time it is drawn; a broken picture frame says
@@ -141,6 +154,7 @@ interface IForumImageProps {
  */
 function ForumImage({ src, alt }: IForumImageProps) {
   const { t } = useTranslation();
+  const open = useContext(PictureOpener);
   const [broken, setBroken] = useState(false);
   if (broken) {
     return (
@@ -154,7 +168,7 @@ function ForumImage({ src, alt }: IForumImageProps) {
       </a>
     );
   }
-  return (
+  const picture = (
     <img
       src={src}
       alt={alt}
@@ -162,6 +176,19 @@ function ForumImage({ src, alt }: IForumImageProps) {
       referrerPolicy="no-referrer"
       onError={() => setBroken(true)}
     />
+  );
+  return open ? (
+    <button
+      type="button"
+      className="forum-prose__picture"
+      aria-label={alt || t('forum.post.image')}
+      title={t('forum.post.image')}
+      onClick={() => open(src)}
+    >
+      {picture}
+    </button>
+  ) : (
+    picture
   );
 }
 
@@ -205,6 +232,11 @@ const convert = (node: Node, key: number): ReactNode => {
       return element.textContent?.trim()
         ? createElement(Fragment, { key }, ...inner)
         : null;
+    }
+    // GitHub wraps a pasted picture in a link to itself; the picture opens
+    // in the viewer here, so the link around it would only lead away.
+    if (element.querySelector('img')) {
+      return createElement(Fragment, { key }, ...inner);
     }
     const mention = element.classList.contains('user-mention');
     return createElement(
@@ -320,11 +352,51 @@ interface IGithubHtmlProps {
   className?: string;
 }
 
+/** Every picture this body draws, in order, as the viewer steps through them. */
+const picturesOf = (html: string) =>
+  Array.from(
+    new DOMParser().parseFromString(html, 'text/html').querySelectorAll('img'),
+  )
+    .map((image) => ({
+      src: image.getAttribute('src') ?? '',
+      alt: image.getAttribute('alt') ?? '',
+    }))
+    .filter((image) => isGithubImage(image.src));
+
 export default function GithubHtml({ html, className }: IGithubHtmlProps) {
+  const { t } = useTranslation();
   const nodes = useMemo(() => renderGithubHtml(html), [html]);
+  const pictures = useMemo(
+    () =>
+      picturesOf(html).map((image, index) => ({
+        key: `${index}:${image.src}`,
+        src: image.src,
+        name: image.alt || t('forum.post.image'),
+        cutOut: false,
+      })),
+    [html, t],
+  );
+  const [showing, setShowing] = useState<number>();
+  const open = useMemo(
+    () => (src: string) => {
+      const at = pictures.findIndex((picture) => picture.src === src);
+      setShowing(at < 0 ? undefined : at);
+    },
+    [pictures],
+  );
   return (
-    <div className={`forum-prose${className ? ` ${className}` : ''}`}>
-      {nodes}
-    </div>
+    <PictureOpener.Provider value={open}>
+      <div className={`forum-prose${className ? ` ${className}` : ''}`}>
+        {nodes}
+      </div>
+      {showing !== undefined && (
+        <StudioChatPictureViewer
+          pictures={pictures}
+          index={showing}
+          onStep={setShowing}
+          onClose={() => setShowing(undefined)}
+        />
+      )}
+    </PictureOpener.Provider>
   );
 }

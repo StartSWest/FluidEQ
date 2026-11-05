@@ -507,12 +507,90 @@ Everything worth knowing about them is available through commands:
   everything down: measured over the catalogue, 0.85 LU louder than not told,
   no overs, no more pumping. A new curve glides in over 20 ms and the old one
   out (a hard switch clicked at -49 dBFS; now under -104). The trailer stands
-  after the game word and the Room trailer; an engine older than 1.16 refuses a
-  longer line and bypasses the whole rack, so main strips it for one
+  after the game word, the Room trailer and Footsteps'; an engine older than
+  1.16 refuses a longer line and bypasses the whole rack, so main strips it for one
   (`ENGINE_PRESET_TONE_SINCE`), and a switched-off rack carries none. Only bells
   and shelves travel; a preset curve's subsonic high pass is in the rack, in
   front of the Maximizer. Change how the Preset layer is written and
   `presetToneOf` changes with it, or the rack limits a curve nobody hears.
+- **Footsteps lifts what arrives, never what lingers, with one gain for
+  every side** (Ivan, 2026-10-31: "so they can hear the footsteps"). Three
+  parallel bells (`footsteps.cpp`: 300 Hz, 2.4 kHz, 7 kHz, each
+  `x + (g-1)·bandpass`, so 0 dB is the input to the bit) after the EQ and
+  before Bass Punch and the Room, one gain per band from a detector linked
+  across every channel but the LFE: a gain per side moves and splits the
+  image, and the LFE is never touched. A band comes up only while a sound
+  stands over its own 30 ms past AND over the bed (held for a step's 200 ms
+  while it still stands over the bed), never during a shot or a blast, and
+  never past the target on the very sample — a shot landing in a step's lift
+  loses it there, not at the next decision. Lifting a tail blurs where it
+  came from, which is the whole of what a step is worth. **Every level is
+  judged against the programme, never a fixed one** (`footsteps_decide.cpp`):
+  the target is the mix's own level over the last seconds (never under
+  -24 dB), a loud event is the whole signal 3-9 dB over that AND over -30 to
+  -20 dBFS, and Calm cuts what jumps 3 dB over it. The first version used
+  -24, -22 and -16 dB fixed, and Ivan heard nothing in his games
+  (2026-11-01): replayed through it, real matches recorded from YouTube lifted
+  a distant step 0.1-1.6 dB, because a game sits over -22 dBFS most of the
+  time. **The band is heard through its filter twice** for the decisions
+  (`detect_history`): one pass leaks a game's bass into the steps band and
+  read a bed above the steps. Now 2.5-5.1 dB on nine of eleven games' matches
+  (CS2 1.8, Overwatch 2 0.9: wall-to-wall music and abilities), shots and
+  background around 1 dB. `footsteps_mix_test.cpp` holds the game-like mixes
+  (loud, paused, bass-heavy, steps louder than -24 dB under a louder
+  programme), each beside the control the first version failed. It has no
+  latency; Calm is a 250 Hz first-order shelf on the rumble. Its
+  settings ride a FOOT trailer of their own (`footstepsWire.ts`), after the
+  game word and the Room's and before the curve, written only while the
+  stage is on, and stripped for an engine before 1.25
+  (`ENGINE_FOOTSTEPS_SINCE`, `withoutFootsteps`), which would refuse the line
+  and bypass the whole rack. The analysis header is 816 bytes from 1.25; the
+  reader still takes 784 and 560 (`engineAnalysis.ts`). Only the Gaming
+  chains turn it on. Held by
+  `footsteps_test.cpp` against a synthetic match (steps up 5 dB or more,
+  shots and the blast under 0.1 dB, the same at all eight rates) and
+  `footsteps_line_test.cpp` against lines the app's encoder wrote.
+- **The page calls the stage Game, and it has three more parts** (Ivan,
+  2026-11-01: "rename the filter to Game", "all nice things for gaming").
+  The code and the wire keep the Footsteps name. In the engine
+  (`game_parts.h`): **Environment** first — a game's bed down to -9 dB or up
+  to +6 in three bands split by first-order all-passes (they always sum back
+  to the input), each band's gain going to the dial only while the band sits
+  on its own bed and that bed reads as environment (still, or diffuse: the
+  two ears' ENVELOPES move apart — never waveforms, which a game's own HRTF
+  decorrelates above 1 kHz), and back to unity in 3 ms the moment anything
+  stands out of the bed, so a step keeps its level while the rain under it
+  drops (a gain that followed only the scene lowered the step with the rain:
+  -2.7 dB of 9, nothing a player could use). What a bed is made of is read
+  from the bed alone, never with the sounds over it. The lift then hears what
+  Environment left. **Dialogue** last, listening to the stage's input: a
+  voice is the centre (mid over side, or the centre channel over the fronts
+  on 5.1/7.1), syllable-rate movement, energy under 5 kHz and no blast; its
+  band (250 Hz-5 kHz of the centre, split exactly) up to +6 dB and, with
+  "make room", everything else down 3-6 dB, held 0.4 s through the gaps.
+  **Heavy** lets the weight band lift 10 dB, for hooves. All three are
+  exactly the input at zero (the old lift-alone path runs to the bit).
+  `game_parts_test.cpp` holds them at four rates against controls. On the
+  wire the FOOT trailer's schema 2 (11 values, `FEQ_CHAIN_GAME_*`); engine
+  1.25 refuses schema 2, so main writes it schema 1 for that engine
+  (`asFootstepsAlone`, `ENGINE_GAME_SINCE` 1.26) and drops it below 1.25; the
+  analysis header grows to 840 (`game_environment_db` at 816). The presets
+  are by kind and by title, each tuned on a recording of that game's own play
+  and each saying what it does to the Room (`footstepsPresets.ts`): `own3d`
+  (the game has its own HRTF — checked at each game's settings — the Room
+  off, or a step comes from two places), `none` (Alien: Isolation, best as
+  mixed, Ivan's ears), `keep` (a kind leaves the chain's Room), or a featured
+  room. A game's room switches the Room on only for a listener who wears
+  headphones, which they say by having the Room on (or by a Gaming Room
+  copy); while a game with its own 3D sound holds it off, `useRoom` keeps
+  that word for the next game (`pickGame`): the app cannot tell headphones
+  from speakers, and the Room is wrong on speakers. The game rooms are
+  featured rooms that already measure apart — never new rooms. The page has
+  no Room part (taken out 2026-11-03: the Room filter stands beside it), and
+  no "headset's own sound" switch (2026-11-02: a game's curve, or none,
+  belongs to the per-game sound on the Gaming tab). The filter has no page
+  on the DSP rail either: its card is `DspStageCards`' `footsteps`,
+  rendered on the Gaming tab.
 - **The Preset layer writes each band at its curve's model Q** (`eqModel.ts`,
   `presetVoicing.ts`): the main EQ has no Wide or Proportional model, and the
   genre curves were fitted through theirs. From 09-21 to 09-23 every Wide

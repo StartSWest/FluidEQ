@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useState } from 'react';
 import { IRoomSettings } from '../../common/dsp/chain';
+import { GAME_ROOMS } from '../../common/dsp/footstepsPresets';
 import {
   IRoomPreset,
   ROOM_CLASSIC_LIST,
@@ -18,6 +19,7 @@ import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
 import DspPresetSaveDialog from './DspPresetSaveDialog';
+import { GAMING_PRESET_GROUP, useDspPresetScope } from './presetScope';
 import {
   ISavedRoom,
   ISaveRoomResult,
@@ -52,7 +54,18 @@ const GROUP_KEYS: Record<string, TranslationKey | undefined> = {
   featured: 'dsp.room.featured',
   classic: 'dsp.room.classicRooms',
   saved: 'dsp.eqPreset.saved',
+  gaming: 'dsp.eqPresetGroup.gaming',
 };
+
+/**
+ * On the Gaming tab, the rooms a game is offered and nothing else: the six
+ * featured rooms the Game filter's presets stand games in, which already
+ * measure apart. No room is new here; the DSP page keeps every room.
+ */
+const GAMING_ROOMS: readonly IRoomPreset[] = GAME_ROOMS.flatMap((id) => {
+  const preset = roomPresetOf(id);
+  return preset === undefined ? [] : [preset];
+});
 
 /**
  * The rooms, presented with the same picker as the EQ, the Exciter and the
@@ -98,13 +111,16 @@ const DspRoomBar = ({
           distance: preset.shape.distanceM.toFixed(1),
           live: String(Math.round((1 - preset.shape.walls) * 100)),
         });
-  const builtIn = [...ROOM_FEATURED_LIST, ...ROOM_CLASSIC_LIST];
+  const isGaming = useDspPresetScope() === 'gaming';
+  const builtIn = isGaming
+    ? GAMING_ROOMS
+    : [...ROOM_FEATURED_LIST, ...ROOM_CLASSIC_LIST];
   const entries: IRichPickEntry[] = [
     ...builtIn.map((preset) => ({
       id: preset.id,
       name: t(preset.labelKey as TranslationKey),
       hint: hintOf(preset),
-      group: preset.collection,
+      group: isGaming ? GAMING_PRESET_GROUP : preset.collection,
       icon: <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />,
     })),
     ...saved.map((one) => ({

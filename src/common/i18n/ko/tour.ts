@@ -122,25 +122,22 @@ const tour = {
   'tour.graph.open': '오픈 EQ',
   'tour.graph.imageAlt':
     '재생 중인 노래에 대한 그래프의 분석기: 80dB 깊이의 라이브 스펙트럼과 그 위에 피크가 있고 EQ 곡선이 상단에 있고 모서리에는 분석 아래 보기 목록이 있습니다.',
-  'tour.games.kicker': '게임 프리셋',
+  'tour.games.kicker': '게이밍 랩',
   'tour.games.title': '모든 게임, 고유한 사운드',
   'tour.games.subtitle': '게임이 전면에 나오면 전환됨',
   'tour.games.lead':
-    '각 게임마다 한 번씩 사운드를 선택하세요. 게임이 앞으로 나오면 FluidEQ가 해당 게임으로 전환하여 게임을 닫을 때까지 유지합니다. 그러나 종종 Alt 키를 누른 다음 원래 있던 것을 되돌립니다.',
+    '게임마다 게이밍 프로필의 전용 복사본이 생기고, 게이밍 랩에서 조정합니다. 게임이 앞으로 오면 사운드가 켜지고 Alt+Tab을 몇 번 하든 유지되며, 게임을 닫으면 음악용 사운드가 돌아옵니다.',
   'tour.games.point1':
     'Steam, Epic Games, EA, GOG, Ubisoft, Battle.net 및 Xbox 게임 또는 열려 있는 모든 프로그램.',
   'tour.games.point2':
-    '게임 프리셋은 게임 모드를 켜서 FluidEQ가 추가하는 지연을 줄이고 페이지에 측정된 지연이 표시됩니다.',
+    '발소리와 목소리를 위한 게임 필터, EQ, 커브, 모든 DSP 단계를 한 페이지에서 조정하고, 게임용 프리셋도 있습니다.',
   'tour.games.point3':
-    '데스크탑의 카드에는 전환된 내용이 표시되고, 다른 카드에는 게임이 종료되었을 때 반환된 내용이 표시됩니다.',
+    '랩과 EQ 페이지에 재생 중인 게임과 그 프리셋이 표시됩니다.',
   'tour.games.how':
-    'EQ를 열고 게임 프리셋을 선택한 다음 게임 추가를 누릅니다. 그런 다음 해당 행의 선택기에서 사운드를 선택합니다.',
-  'tour.games.open': '게임 프리셋 열기',
+    '제목 표시줄에서 게이밍 랩을 열고 게임 추가를 누르세요. 그런 다음 지금 사용해 보기를 누르고 바로 그 자리에서 사운드를 조정하세요.',
+  'tour.games.open': '게이밍 랩 열기',
   'tour.games.imageAlt':
-    '데스크탑에서의 세 순간: FluidEQ의 카드가 사운드가 로드되었다고 말하는 앞에 있는 게임, 사운드가 계속 켜져 있는 상태에서 동일한 게임이 최소화되고, 이전 사운드가 돌아왔다는 카드와 함께 게임이 닫혔습니다.',
-  'tour.games.stepFront': '전면: 사운드 로드',
-  'tour.games.stepAway': '최소화 또는 Alt 키: 소리가 계속 켜져 있습니다.',
-  'tour.games.stepClosed': '휴무 : 당신만의 소리가 돌아온다',
+    'Counter-Strike 2가 있는 게이밍 랩. 처음에는 음악이 재생되고, 다음에는 게임 고유의 사운드가 켜집니다. 위쪽에 프리셋 이름, 게임 모드 켜짐, 지금 사용해 보기 대신 언로드.',
   'tour.presets.kicker': '새로운 프리셋',
   'tour.presets.title': '음악처럼 들리는 프리셋',
   'tour.presets.subtitle': '체인 전체를 하나의 음량으로',
@@ -464,13 +461,24 @@ const tour = {
   'tour.film.sound.classic':
     'Equalizer APO와 같은 방식으로 밴드를 만들려면 클래식을 선택하세요.',
   'tour.film.games.intro':
-    'FluidEQ로 게임마다 다른 사운드를 설정할 수 있습니다.',
+    '게이밍 랩은 게임마다 고유한 사운드를 주고, 모두 한곳에서 조정합니다.',
   'tour.film.games.add':
-    '게임 추가를 누르고 게임 런처로 설치한 게임 중에서 선택하세요.',
-  'tour.film.games.sound': '그런 다음 해당 게임에 적용할 사운드를 선택하세요.',
+    '게임 추가를 누르고 이 PC에 있는 게임 중에서 선택하세요.',
+  'tour.film.games.profile':
+    '게이밍 프로필에서 시작합니다. 게임 종류에 맞춘 프로필이나 해당 게임 전용 프로필입니다.',
+  'tour.film.games.try':
+    '지금 사용해 보기를 누르세요. 게임 고유의 사운드가 재생되고, 지연을 줄이도록 게임 모드가 켜집니다.',
+  'tour.film.games.tune':
+    '게임 필터, EQ와 커브까지 원하는 부분을 바로 여기서 조정하세요.',
+  'tour.film.games.presets':
+    '모든 DSP 단계에 게임용으로 조정된 프리셋이 있습니다.',
+  'tour.film.games.save':
+    '조정한 사운드를 나만의 프로필로 저장하거나, 원래 상태에서 다시 시작하세요.',
   'tour.film.games.front':
-    '게임 창이 앞으로 나오면 해당 사운드가 자동으로 적용됩니다.',
-  'tour.film.games.closed': '게임을 종료하면 원래 사운드로 돌아옵니다.',
+    '게임이 앞으로 나오면 해당 사운드가 자동으로 켜집니다.',
+  'tour.film.games.eqPage':
+    'EQ 페이지에 어떤 게임이 재생 중인지 프리셋과 함께 표시됩니다.',
+  'tour.film.games.closed': '게임을 닫으면 음악용 사운드가 돌아옵니다.',
   'tour.film.compact.intro':
     '재생 조작만 필요할 때는 FluidEQ를 작은 플레이어로 접을 수 있습니다.',
   'tour.film.compact.go':
@@ -583,10 +591,14 @@ const tour = {
     '룸은 헤드폰으로도 실제 공간의 스피커들 사이에 있는 듯한 소리를 들려줍니다.',
   'tour.film.walkthrough.maximizer':
     '그리고 맥시마이저가 클리핑 없이 모든 소리를 크고 깨끗하게 유지합니다.',
+  'tour.film.walkthrough.footsteps':
+    '랙에 새로 추가된 발소리는 발걸음과 재장전 같은 게임의 조용한 소리를 발생하는 순간에 올려 줍니다.',
   'tour.film.walkthrough.library':
     '라이브러리는 같은 사운드로 내 음악을 재생하며, 앨범과 재생목록, 다음 곡도 있습니다.',
   'tour.film.walkthrough.compact':
     '컴팩트 플레이어는 노래, 컨트롤, EQ를 작은 창 하나에 담습니다.',
+  'tour.film.walkthrough.desktop':
+    '그 뒤에서는 어떤 시각화든 바탕 화면에서 음악에 맞춰 움직일 수 있습니다.',
   'tour.film.walkthrough.oneline':
     '한 줄로 접으면 방해가 되지 않고, 노래 뒤에서 비주얼라이저가 은은하게 재생됩니다.',
   'tour.film.walkthrough.looks':
@@ -597,8 +609,16 @@ const tour = {
     '스튜디오에서 원하는 변경을 내 말로 설명하고, 무대에서 그대로 이루어지는 것을 보세요.',
   'tour.film.walkthrough.karaoke':
     '노래방은 내 노래를 함께 부를 수 있게 바꿔 줍니다. 시간에 맞춘 가사와 내 음정이 화면에 나옵니다.',
+  'tour.film.walkthrough.karaokeplay':
+    '가사가 있는 곡을 열고 재생을 누르세요. 노래에 맞춰 단어가 빛나고, 아래의 음정 가이드는 불러야 할 모든 음을 보여 줍니다.',
+  'tour.film.walkthrough.karaokestage':
+    '가사 뒤의 무대에서는 어떤 시각화든 곡에 맞춰 움직일 수 있습니다.',
   'tour.film.walkthrough.share':
     '오디오 공유는 집 네트워크의 컴퓨터들을 연결해, 음악이 양방향으로 오가게 합니다.',
+  'tour.film.walkthrough.sharelink':
+    '각 컴퓨터는 자신이 재생하는 소리만 보내므로 소리가 되돌아오지 않고, 듣는 컴퓨터는 자기 EQ를 적용합니다.',
+  'tour.film.walkthrough.sharemix':
+    '연결마다 볼륨을 따로 조절할 수 있고, 소리는 끊김 없이 무손실로 동기화되어 도착합니다.',
   'tour.film.walkthrough.help':
     '그리고 여기 있는 모든 것은 앱에서 직접 가져온 그림과 함께 사용자 가이드에 있습니다.',
   'tour.film.walkthrough.outro':
@@ -794,6 +814,19 @@ const tour = {
   'tour.languages.how': '메뉴(세 줄) 맨 아래에서 고르세요:',
   'tour.languages.imageAlt':
     'FluidEQ가 지원하는 12개 언어를 각자의 문자로 보여 주고, 한국어와 번체 중국어에 새 표시를 한 그림.',
+  'tour.v23.also': '2.3의 다른 변경 사항',
+  'tour.v23.engineKey':
+    '메뉴에서 켜기/끄기 키를 골라 다른 앱이 앞에 있어도 FluidEQ의 모든 처리를 전환하세요. 카드가 전환을 알려 줍니다.',
+  'tour.v23.profiles':
+    '게임, 곡선, 체인으로 게이밍 프로필을 검색하세요. 저장한 프로필도 곡선과 게임 필터 레벨을 보여 줍니다.',
+  'tour.v23.dsp':
+    '다이내믹스는 세 대역에서 작은 소리를 올립니다. 개선된 맥시마이저는 저음을 유지하고 True Peak 정규화는 곡마다 하나의 게인을 사용합니다.',
+  'tour.v23.help':
+    '도움말에서 녹화된 2.2 둘러보기를 재생하고 전체 릴리스 노트를 바로 엽니다. 정보 화면에는 섹션 링크와, 제공되는 경우 후원 QR 코드가 있습니다.',
+  'tour.v23.forum':
+    '포럼의 각 게시판은 보지 않은 활동을 세고 문제는 열린 문제만 셉니다. 미완성 주제와 답글도 저장됩니다.',
+  'tour.v23.layout':
+    '컴팩트 플레이어에서 게임 이름이 짧아집니다. 게임 추가는 스크롤 중에도 버튼이 보이고 페이지 스크롤바는 오른쪽 가장자리에 붙습니다.',
 } satisfies Partial<Dictionary>;
 
 export default tour;

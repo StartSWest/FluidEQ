@@ -1,0 +1,114 @@
+/* FluidEQ — GPL-3.0-or-later */
+
+@use 'theme' as *;
+@use 'color' as *;
+
+// The live page and its Help drawing share the list frame. Older tour
+// illustrations keep their layout until they opt into this class.
+.gaming-games.gaming-games--split {
+  grid-template-columns: var(--gaming-list-width) 16px minmax(0, 1fr);
+  gap: 0 4px;
+  min-width: 0;
+
+  > .column-resizer {
+    position: sticky;
+    top: 0;
+    width: 16px;
+    height: var(--gaming-list-height);
+  }
+
+  > .pane-resizer {
+    margin: 4px 0;
+  }
+
+  .gaming-games__sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    min-height: 0;
+    height: var(--gaming-list-height);
+  }
+
+  .gaming-games__list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    padding-right: 4px;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .gaming-games__list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+
+    > .gaming-cap {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  // A heading is not an action bar. Only the little chevron is a control,
+  // as on the Karaoke playlist; the count stays quiet beside the game rows.
+  .gaming-games__list-toggle {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    color: $text-faint;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+
+    &:hover,
+    &:focus-visible {
+      color: $secondary-light;
+      border-color: $border-field;
+      background: $hover-accent;
+    }
+
+    > .chevron {
+      flex: 0 0 auto;
+      transform: rotate(90deg);
+    }
+  }
+
+  &.is-stacked,
+  &.is-list-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  &.is-stacked .gaming-games__sidebar {
+    position: static;
+  }
+
+  &.is-stacked .gaming-games__list-toggle > .chevron {
+    transform: rotate(180deg);
+  }
+
+  &.is-list-collapsed {
+    row-gap: 12px;
+
+    .gaming-games__sidebar {
+      position: static;
+      width: fit-content;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .gaming-games__list-toggle > .chevron {
+      transform: rotate(-90deg);
+    }
+  }
+}

@@ -44,6 +44,7 @@ const DspSideTabs = ({
     <button
       key={id}
       type="button"
+      data-dsp-section={id}
       className={`dsp-rail-tab${id === active ? ' is-active' : ''}${
         enabled[id] ? ' is-on' : ''
       }`}

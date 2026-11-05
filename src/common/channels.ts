@@ -125,6 +125,20 @@ enum ChannelEnum {
   EXPORT_CURVE_FOLDER = 'exportCurveFolder',
   GET_MY_CURVES = 'getMyCurves',
   SET_MY_CURVES = 'setMyCurves',
+  // A game's own sound on the playing output, and the music sound back once
+  // the game is over (`main/ipc/gameSound.ts`); the listener's Gaming
+  // profiles beside them.
+  GAME_SOUND_STATE = 'gameSoundState',
+  GAME_SOUND_TUNED = 'gameSoundTuned',
+  GAME_SOUND_LOAD = 'gameSoundLoad',
+  GAME_SOUND_UNLOAD = 'gameSoundUnload',
+  GAME_SOUND_RESET = 'gameSoundReset',
+  GAME_SOUND_DELETE = 'gameSoundDelete',
+  GAMING_PROFILES = 'gamingProfiles',
+  GAMING_PROFILE_SAVE = 'gamingProfileSave',
+  GAMING_PROFILE_UPDATE = 'gamingProfileUpdate',
+  GAMING_PROFILE_RENAME = 'gamingProfileRename',
+  GAMING_PROFILE_DELETE = 'gamingProfileDelete',
   IMPORT_CONVOLUTION_FILE = 'importConvolutionFile',
   CHECK_OPRA_UPDATE = 'checkOpraUpdate',
   UPDATE_OPRA_DATABASE = 'updateOpraDatabase',

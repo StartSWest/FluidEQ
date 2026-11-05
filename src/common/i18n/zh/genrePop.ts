@@ -3,19 +3,23 @@
 export default {
   'genre.pop.hook': '做得最完整的唱片',
   'genre.pop.story':
-    '流行乐的速度在 100 到 130 BPM，或在 90 左右的半拍，底下是 808 或合成器贝斯，人声亮到刚好不刺耳。母带送来时已被限制到约 −8 LUFS，峰值超过满刻度，所以回放环节能加的东西里面都已经有了。这个预设只加母带里不可能有的东西。',
+    '现代流行乐以紧实的低音和明亮开阔的混音衬托清晰的主唱。歌曲先统一到 −18 LUFS，让响亮的母带和较轻的录音以相同电平进入处理。随后最大化器将结果提升至约 −11 LUFS，把峰值限制在 −1 dBTP，同时保留主歌、副歌和鼓点之间的强弱对比。',
   'genre.pop.pin.50': '流行乐赖以建立的超低音和底鼓',
   'genre.pop.pin.50.why': '感觉多于听见：小音箱最先丢掉的那份重量。',
   'genre.pop.pin.315': '遮住人声的箱体感',
   'genre.pop.pin.315.why': '削掉它，让主唱清楚地站在混音之上。',
   'genre.pop.pin.5000': '临场感与光泽',
   'genre.pop.pin.5000.why': '人声上的打磨，停在刺耳之前。',
-  'genre.pop.stage.exciter': '1 kHz 附近加厚度，人声加光泽，两者之下加温暖。',
+  'genre.pop.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.pop.stage.exciter':
+    '给人声少量厚度和温暖。高频段激励器保持关闭，保留录音原有的光泽。',
   'genre.pop.stage.bassPunch':
     '收紧而不是猛击：贝斯线下的底鼓尾音更短，起音只略微抬起。',
   'genre.pop.stage.dimension':
     '140 Hz 以下的低音为单声道，和流行乐母带的做法一样；空气感比唱片略宽一点。',
-  'genre.pop.stage.maximizer': '一个几乎不推的轻上限：母带本来就已经被限制过。',
+  'genre.pop.stage.maximizer':
+    '输入响度统一后提升 7 dB，以约 −11 LUFS 为目标，峰值上限为 −1 dBTP。Master 保持关闭，只用一个最终限制器保留冲击力。',
   'genre.pop.off': '低音熔炉以“流行”的名义提供，但保持关闭：超低音已在母带里。',
 
   'genre.indiePop.hook': '比排行榜更轻、更暖',
@@ -31,8 +35,11 @@ export default {
   'genre.indiePop.pin.12500.why': '轻轻地，加在原本就柔和的高频上。',
   'genre.indiePop.stage.exciter': '只在中低频加温暖：绝不变亮。',
   'genre.indiePop.stage.dimension':
-    '低频收窄，空气感稍微放宽：和声打开，人声的位置不动。',
-  'genre.indiePop.stage.maximizer': '一个轻柔的上限，保留那份柔软。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.indiePop.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.indiePop.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.indiePop.off': '没有哪一环去提亮或加低音：低保真的温暖才是重点。',
 
   'genre.synthPop.hook': '鼓机、音序贝斯和带合唱效果的铺底',
@@ -46,8 +53,11 @@ export default {
   'genre.synthPop.pin.12500.why': '早期合成器流行本来就偏亮。',
   'genre.synthPop.stage.exciter': '只在中低频加温暖：不在明亮的高频上加谐波。',
   'genre.synthPop.stage.dimension':
-    '低频收窄，铺底稍宽一点，就像这个流派当年的混法。',
-  'genre.synthPop.stage.maximizer': '一个缓慢的上限，保留 80 年代的动态。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.synthPop.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.synthPop.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.synthPop.off':
     '不用低音冲击，也不用低音熔炉：鼓机的底鼓就该和编程时一模一样。',
 
@@ -60,27 +70,34 @@ export default {
   'genre.newWave.pin.315.why': '有旋律的贝斯需要一条干净的车道。',
   'genre.newWave.pin.1250': '切分的吉他',
   'genre.newWave.pin.1250.why': '节奏吉他的咬劲所在之处。',
-  'genre.newWave.stage.exciter': '一点厚度和一点空气感，偏薄的原版会很受用。',
-  'genre.newWave.stage.dimension': '贴近唱片：低频收窄，高频只宽一丝。',
+  'genre.newWave.stage.exciter':
+    '仅在中低频添加少许温暖感。三个谐波频段全部关闭，保持叠加人声清晰。',
+  'genre.newWave.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.newWave.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
   'genre.newWave.stage.maximizer':
-    '一个只负责接住的上限：利落本身就是这个流派。',
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.newWave.off':
     '不用低音冲击，也不用低音熔炉：精瘦的低频本来就是这么做的。',
 
-  'genre.kPop.hook': '世上最响、打磨最精的唱片之一',
+  'genre.kPop.hook': '清晰人声、紧实低频与有力的高潮',
   'genre.kPop.story':
-    '女团舞曲在 115 到 130 BPM，男团歌曲更接近 80 到 100；底鼓为超低音的冲击而做，人声在 3 到 5 kHz 和 12 kHz 已经被提升。母带在 −10 到 −6 LUFS，峰值超过满刻度。',
+    'BTS 的 Dynamite 以迪斯科流行贝斯为特色，BLACKPINK 的 How You Like That 则有厚重的嘻哈段落。两首歌都需要清晰人声、分量和强弱对比。处理前将输入统一到 −18 LUFS。本聆听预设依据两首歌的 Apple 官方试听片段校准，未使用耳机补偿。',
   'genre.kPop.pin.80': '底鼓的冲击，不是超低音',
   'genre.kPop.pin.80.why': '底鼓落下的位置；50 Hz 以下什么都不抬。',
   'genre.kPop.pin.315': '在密集编曲下腾出空间',
-  'genre.kPop.pin.315.why': '清理中低频，让各层不糊在一起。',
+  'genre.kPop.pin.315.why': '轻削中低频以分开密集层次，同时保留人声厚度。',
   'genre.kPop.pin.12500': '不额外加空气感',
-  'genre.kPop.pin.12500.why': '人声在 12 kHz 已经自带空气感。',
+  'genre.kPop.pin.12500.why': '不再额外提升高频，保留录音本来的空气感。',
+  'genre.kPop.stage.deEsser':
+    '对中央人声的 5–10 kHz 进行温和的频谱去齿音，最多衰减 1.5 dB，保护镲片且不削减低频。',
   'genre.kPop.stage.exciter':
-    '在人声自身的提升之下加厚度和临场感，高频什么都不加。',
-  'genre.kPop.stage.dimension': '低频收窄，叠唱和铺底比混音时稍宽一点。',
+    '仅在中低频添加少许温暖感。三个谐波频段全部关闭，保持叠加人声清晰。',
+  'genre.kPop.stage.dimension':
+    '收窄低频，略微展开录音已有的高频侧声道，不扩散中央主唱。',
   'genre.kPop.stage.maximizer':
-    '一个几乎不推的上限：这些母带已经响到了母带的极限。',
+    '输入归一化至 −18 LUFS 后提升 7 dB，目标约为 −11 LUFS，峰值限制在 −1 dBTP。Dynamics 和 Master 保持关闭。',
   'genre.kPop.off':
     '不用低音冲击，也不用低音熔炉：底鼓的冲击和超低音，唱片里都已经有了。',
 
@@ -94,8 +111,12 @@ export default {
   'genre.jPop.pin.3150': '中高频保持不动',
   'genre.jPop.pin.3150.why': '已经又亮又靠前，从不再推。',
   'genre.jPop.stage.exciter': '只在中低频加温暖：这么亮的高频上什么都不加。',
-  'genre.jPop.stage.dimension': '什么都不加宽：这堵墙已经够宽。',
-  'genre.jPop.stage.maximizer': '一个几乎不推的上限，面对的是已经削波的母带。',
+  'genre.jPop.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.jPop.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.jPop.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.jPop.off': '不用低音冲击，也不用低音熔炉：这堵墙送来时就又密又响。',
 
   'genre.cPop.hook': '抒情歌，人声在前方正中',
@@ -109,8 +130,11 @@ export default {
   'genre.cPop.pin.12500.why': '在辅音之上轻轻抬一点，而不是抬在辅音上。',
   'genre.cPop.stage.exciter': '只加温暖：不在齿音上加谐波。',
   'genre.cPop.stage.dimension':
-    '中频稍微收窄，让人声守住中央；弦乐和混响稍微放宽。',
-  'genre.cPop.stage.maximizer': '一个缓慢的上限，照顾抒情歌的动态。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.cPop.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.cPop.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.cPop.off':
     '不用低音冲击，也不用低音熔炉：钢琴抒情歌底下不凭空造超低音。',
 
@@ -127,9 +151,11 @@ export default {
   'genre.ballad.pin.8000': '齿音收敛，不提亮',
   'genre.ballad.pin.8000.why': '贴近的人声把齿音放在这里，一提升每个都会变尖。',
   'genre.ballad.stage.dimension':
-    '低音向中间收窄，抒情歌就是这样混的；人声、钢琴和弦乐保持摆放时的宽度。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.ballad.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
   'genre.ballad.stage.maximizer':
-    '轻而慢的上限，用整整一拍来释放，安静的主歌保持安静，最后的副歌仍能升起。',
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.ballad.off':
     '不用激励器、低音熔炉和低音冲击：谐波会落在齿音上，抒情歌只有制作人放了超低音的地方才有，也很少有需要塑形的底鼓。',
 };

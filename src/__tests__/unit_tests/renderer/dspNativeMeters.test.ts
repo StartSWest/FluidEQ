@@ -2,6 +2,7 @@ import {
   readDspRoomReport,
   subscribeDspRoomReport,
 } from '../../../renderer/dsp/roomTelemetry';
+import { readDspDynamicsReport } from '../../../renderer/dsp/dynamicsTelemetry';
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
@@ -164,6 +165,28 @@ const fakeBridge = () => {
 };
 
 const STAGES: readonly TAnalysisStage[] = ['exciter', 'eq', 'master'];
+
+it('registers both Dynamics taps, publishes actual gains, and clears them with the source', () => {
+  const source = fakeBridge();
+  const meters = createNativeMeters(source.bridge, ANALYSIS_BINS);
+  const frame = analysisFrame(['dynamicsIn', 'dynamicsOut']);
+  frame.dynamics = {
+    active: true,
+    levelDb: [-45, -20, -40],
+    gainDb: [6, -4, 3],
+  };
+  source.send(frame);
+  expect(readDspAnalyser('dynamicsIn')).toBeDefined();
+  expect(readDspAnalyser('dynamicsOut')).toBeDefined();
+  expect(readDspDynamicsReport()).toEqual(frame.dynamics);
+  source.send({ ...frame, dynamics: undefined });
+  expect(readDspDynamicsReport()).toBeUndefined();
+  source.send(frame);
+  meters.release(true);
+  expect(readDspDynamicsReport()).toBeUndefined();
+  expect(readDspAnalyser('dynamicsIn')).toBeUndefined();
+  expect(readDspAnalyser('dynamicsOut')).toBeUndefined();
+});
 
 it('clears external measurements when their source stops', () => {
   const source = fakeBridge();

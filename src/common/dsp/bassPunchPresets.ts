@@ -11,6 +11,7 @@ export const BASS_PUNCH_PRESET_GROUPS = [
   'genre',
   'character',
   'scene',
+  'gaming',
 ] as const;
 
 export type TBassPunchPresetGroup = (typeof BASS_PUNCH_PRESET_GROUPS)[number];
@@ -170,6 +171,37 @@ export const BASS_PUNCH_PRESET_BY_ID = {
     // Fast impact and no tail: repeated effects remain separate rather than
     // turning a busy scene into one continuous low-frequency bed.
     settings: profile(100, 0.75, -0.35, 0.05, 60, 0.45),
+  },
+
+  // Gaming (the Gaming tab's only; `presetScope.tsx`). A game's low end is
+  // effects, not a bass line: what matters is how soon a blast lets go of
+  // the band the next step is heard over, and how hard a hit lands.
+  gameTight: {
+    id: 'gameTight',
+    labelKey: 'dsp.gamingPreset.tightLows',
+    group: 'gaming',
+    // Sustain near its floor: a grenade's boom ends sooner, so the steps
+    // after it are not under its tail. The attack barely lifted: at 0.35 the
+    // lifted hits outweighed the shortened tails and the boom band measured
+    // 0.4 dB louder over eight matches, the opposite of the point.
+    settings: profile(110, 0.1, -0.85, 0, 60, 0),
+  },
+  gameImpact: {
+    id: 'gameImpact',
+    labelKey: 'dsp.gamingPreset.impact',
+    group: 'gaming',
+    // Every hit and every recoil arrives harder and gets out of the way: the
+    // attack near the top of its range, the tail a little short, and a touch
+    // of bloom ducked under the next hit so a combo stays separate.
+    settings: profile(100, 0.9, -0.25, 0.15, 90, 0.35),
+  },
+  gameNight: {
+    id: 'gameNight',
+    labelKey: 'dsp.gamingPreset.night',
+    group: 'gaming',
+    // Softer leading edges and shorter tails: at low volume the thumps are
+    // what wakes the house, and nothing a player needs lives in them.
+    settings: profile(100, -0.45, -0.55, 0, 60, 0),
   },
 } satisfies Record<string, IBassPunchPreset>;
 

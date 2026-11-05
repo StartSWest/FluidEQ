@@ -42,6 +42,9 @@ const KEPT = [
   // What the listener made or saved.
   'fluideq-custom-looks',
   'fluideq.lookDraft',
+  // A Forum reply or topic left half-written (`forumDrafts.ts`), one name
+  // per place it was written, as the look's and the Studio's drafts.
+  'fluideq.forum.draft.v1:',
   'fluideq.dsp.crossfadeCurves.v1',
   'fluideq.dsp.favouritePresets.v1',
   'fluideq.dsp.savedRooms.v1',
@@ -104,9 +107,13 @@ const NOT_STORED = [
   'fluideq-dsp-presets-changed',
   'fluideq-editor-changed',
   'fluideq-engine-update-request',
+  'fluideq-game-copy-changed',
   'fluideq-game-profiles-changed',
-  'fluideq-game-sounding-changed',
+  'fluideq-game-sound-changed',
+  'fluideq-gaming-profiles-changed',
+  'fluideq-open-gaming-lab',
   'fluideq-opra-updated',
+  'fluideq-sounding-game-tuned',
   'fluideq-output-changed',
   'fluideq-output-signal',
   'fluideq-presets-changed',
@@ -233,12 +240,14 @@ describe('Reset all settings', () => {
       'fluideq.standardPerformance',
       'fluideq.songSound',
       'fluideq.singlePlayer',
+      'fluideq.gaming.gamesLayout',
       'fluideq-rainbow',
     ];
     const kept = [
       'fluideq.sceneTint.skies',
       'fluideq.dsp.userPresets.v1',
       'fluideq.disclaimerAccepted',
+      'fluideq.games.profiles.v1',
       'fluideq.library.sortDirectionless',
       'somebody-else',
     ];

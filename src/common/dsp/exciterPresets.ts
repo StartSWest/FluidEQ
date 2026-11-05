@@ -306,6 +306,45 @@ export const EXCITER_PRESET_BY_ID = {
       { enabled: true, amount: 0.45 },
     ),
   },
+
+  // Gaming. Only the top band, and never the organic colour: a game is
+  // already full of distortion by design (guns, engines, blasts), and
+  // harmonics on its low and mid bands make them louder, not clearer.
+  gameCueDetail: {
+    id: 'gameCueDetail',
+    labelKey: 'dsp.gamingPreset.cueDetail',
+    group: 'gaming',
+    // The crunch of a step, a reload's click, a shell landing: the top band
+    // from 3.8 kHz, nothing below it. At a mix of 0.3 it moved the 2-6 kHz
+    // band by 0.1 dB over eight recorded matches, heard by nobody; this mix
+    // is the global Gaming chain's top band, which is known not to hiss.
+    settings: exciterProfile(
+      [
+        { enabled: false },
+        { enabled: false },
+        { freqHz: 3_800, range: 0.22, drive: 2.6, mix: 0.5, texture: 0.55 },
+      ],
+      { enabled: false },
+      { enabled: false },
+    ),
+  },
+  gameDullHeadset: {
+    id: 'gameDullHeadset',
+    labelKey: 'dsp.gamingPreset.dullHeadset',
+    group: 'gaming',
+    // A headset that rolls off early: presence from 2.5 kHz and air from
+    // 8.5, so voices and cues come back without a sharp edge (half these
+    // mixes measured as nothing at all).
+    settings: exciterProfile(
+      [
+        { enabled: false },
+        { freqHz: 2_500, range: 0.2, mix: 0.26, texture: 0.2 },
+        { freqHz: 8_500, range: 0.2, drive: 2.5, mix: 0.5, texture: 0.6 },
+      ],
+      { enabled: false },
+      { enabled: false },
+    ),
+  },
 } satisfies Record<string, IExciterPreset>;
 
 export type TExciterPresetId = keyof typeof EXCITER_PRESET_BY_ID;

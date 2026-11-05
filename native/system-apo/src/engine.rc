@@ -89,6 +89,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        stages, its delay and its readings for the page.
  *   1.24 honors live Normalizer target and ceiling edits while holding a song,
  *        and appends the measured post-Normalizer short-term LUFS reading.
+ *   1.25 runs Footsteps (`footsteps.h`) from a tagged trailer on the rack's
+ *        line, which an older engine refuses whole, so the app leaves the
+ *        trailer off for one (`ENGINE_FOOTSTEPS_SINCE`). It reports the stage
+ *        in its stages and its readings for the page, in a header 28 bytes
+ *        longer.
+ *   1.26 runs the Game filter around it (Environment, Dialogue, Heavy) from
+ *        the same trailer at schema 2, which 1.25 refuses, so the app writes
+ *        schema 1 for it (`ENGINE_GAME_SINCE`); its readings take the header
+ *        to 840 bytes.
+ *   1.27 runs Dynamics (`compander.h`), the upward and downward compressor,
+ *        from a tagged trailer of its own (DYNA) that an older engine refuses
+ *        whole, so the app leaves it off for one (`ENGINE_DYNAMICS_SINCE`).
+ *   1.28 adds Dynamics input/output spectra and current applied gain readings.
+ *        Audio processing is identical to 1.27; only the display gains data.
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -100,8 +114,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 24, 0, 0
-PRODUCTVERSION 1, 24, 0, 0
+FILEVERSION 1, 28, 0, 0
+PRODUCTVERSION 1, 28, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

@@ -102,6 +102,13 @@ describe('suggesting searches', () => {
     expect(suggestSearches(history, 'BOHEMIAN')).toEqual(['bohemian rhapsody']);
   });
 
+  it('finds a remembered search without its spaces, accents or punctuation', () => {
+    expect(
+      suggestSearches(['K-pop music', 'Déjà Café', 'Classical'], 'kpop'),
+    ).toEqual(['K-pop music']);
+    expect(suggestSearches(['Déjà Café'], 'dejac')).toEqual(['Déjà Café']);
+  });
+
   it('does not offer back exactly what has been typed', () => {
     // A row that puts the same text in the box is a row that does nothing.
     expect(suggestSearches(history, 'in the dark')).not.toContain(

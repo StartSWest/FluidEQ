@@ -53,6 +53,47 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// Where each part is: the sections' names as pills at the top, one press to
+// reach any of them. Each section stops a little under the body's top edge
+// when it is reached, so its heading is not pressed against it.
+.about__index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 16px;
+  border-bottom: dialog.$seam;
+}
+
+.about__index-item {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid $menu-rule;
+  border-radius: $radius-pill;
+  background: none;
+  color: $text-muted;
+  font: inherit;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: color-mix(in srgb, $secondary-default 45%, transparent);
+    color: $text-primary;
+  }
+}
+
+.about__body > .dialog-frame__section {
+  scroll-margin-top: 12px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dialog-frame.about .dialog-frame__body {
+    scroll-behavior: smooth;
+  }
+}
+
 // Copyright lines are read as a block, not as prose.
 .about__copyright {
   color: $text-primary;
@@ -84,7 +125,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   img {
     display: block;
-    width: min(100%, 150px);
+    width: min(100%, 120px);
     height: auto;
   }
 }
@@ -117,6 +158,87 @@ it under the terms of the GNU General Public License version 3 or later.
       width: 15px;
       height: 15px;
     }
+  }
+}
+
+// Supporting FluidEQ: the Buy Me a Coffee code the support window shows, on
+// a card of the accent's own tint, its button the rail's one loud action.
+// The code keeps its white frame, which a scanner needs, at a size that
+// scans from a phone held at arm's length without outshining the button.
+.about-support {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, $secondary-default 26%, transparent);
+  border-radius: $radius-l;
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
+}
+
+.about-support__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    color: $text-accent;
+  }
+}
+
+.about-support__code {
+  display: grid;
+  place-items: center;
+
+  .qr-code {
+    display: block;
+    width: 140px;
+    height: 140px;
+    padding: 8px;
+    border-radius: $radius-s;
+    background: $white;
+    box-shadow: 0 6px 18px rgba($black, 0.32);
+  }
+}
+
+.about-support__hint {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.about-support__action {
+  display: inline-flex;
+  justify-content: center;
+  gap: 7px;
+  text-decoration: none;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// A laptop's height and under: the mascot steps aside and the code shrinks,
+// so the support card stays whole in the rail instead of under its fold. At
+// 1280x720 the card's code and button were below the rail's edge.
+@media (max-height: $bp-laptop-height) {
+  .about-brand__portrait {
+    display: none;
+  }
+
+  .about-support__code .qr-code {
+    width: 112px;
+    height: 112px;
+    padding: 6px;
   }
 }
 

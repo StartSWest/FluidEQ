@@ -33,6 +33,11 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { suggestSearches } from 'common/searchHistory';
+import {
+  compactSearchText,
+  matchesSearchTerms,
+  searchTerms,
+} from 'common/searchText';
 import Chevron from '../icons/Chevron';
 import '../styles/Dropdown.scss';
 import { useClickOutside, useFocusOutside } from '../utils/utils';
@@ -137,14 +142,6 @@ const MENU_GAP_INLINE_PX = 8;
 /** Clearance between the menu and the window edges. */
 const VIEWPORT_PADDING_PX = 16;
 
-const normalizeSearchText = (value: string) =>
-  value
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLocaleLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
-
 // Catalogues run to tens of thousands of entries. Matching is done over the
 // whole set (against a pre-normalised index, so it stays cheap), but only a
 // page of results is mounted at a time and the next page is appended as the
@@ -208,23 +205,19 @@ const Dropdown = ({
     () =>
       options.map((option) => ({
         option,
-        searchableText: normalizeSearchText(`${option.label} ${option.value}`),
+        searchableText: compactSearchText(`${option.label} ${option.value}`),
       })),
     [options],
   );
 
   // Every match, over the complete option set.
   const matchedOptions = useMemo(() => {
-    const terms = normalizeSearchText(deferredSearchString)
-      .split(/\s+/)
-      .filter(Boolean);
+    const terms = searchTerms(deferredSearchString);
     if (terms.length === 0) {
       return options;
     }
     return indexedOptions
-      .filter(({ searchableText }) =>
-        terms.every((term) => searchableText.includes(term)),
-      )
+      .filter(({ searchableText }) => matchesSearchTerms(searchableText, terms))
       .map(({ option }) => option);
   }, [deferredSearchString, indexedOptions, options]);
 

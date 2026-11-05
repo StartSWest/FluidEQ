@@ -15,8 +15,11 @@ export default {
   'genre.country.stage.exciter':
     '子音の存在感と、弦の1オクターブ上の空気感。どちらも控えめです。',
   'genre.country.stage.dimension':
-    'ほぼ録ったまま。低域を狭め、左右にほんの少し空気感を。',
-  'genre.country.stage.maximizer': '軽い天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.country.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.country.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.country.off':
     'ベースパンチもベースフォージもなし。キックとベースは演奏したままです。',
 
@@ -30,9 +33,11 @@ export default {
   'genre.modernCountry.pin.3150': '声の存在感',
   'genre.modernCountry.pin.3150.why': '少し持ち上げ、きつさには目を配ります。',
   'genre.modernCountry.stage.dimension':
-    'ミックスどおり、低域は狭め、左右は少し広く。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.modernCountry.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.modernCountry.stage.maximizer':
-    'すでに大きなマスターを、ほとんど押し込まない天井。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。',
   'genre.modernCountry.off':
     '何も生成しません。すでにサブを埋めている808の下に、エキサイターもベースパンチもベースフォージも入れません。',
 
@@ -47,8 +52,11 @@ export default {
   'genre.americana.pin.3150.why': '少し前へ。',
   'genre.americana.stage.exciter': 'あたたかさと、弦の上にほんの少しの空気感。',
   'genre.americana.stage.dimension':
-    '一部屋の音像はそのまま。広げず、ベースだけわずかに狭めます。',
-  'genre.americana.stage.maximizer': '一拍まるごとにかかる、ゆっくりした天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.americana.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.americana.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.americana.off':
     'ベースパンチもベースフォージもなし。ブラシのドラムやウッドベースを作り変えるものはありません。',
 
@@ -63,9 +71,12 @@ export default {
   'genre.bluegrass.pin.12500.why': 'バンドを包む部屋。',
   'genre.bluegrass.stage.exciter':
     'バンジョーとマンドリンの上、それぞれの音の1オクターブ上に空気感を。',
-  'genre.bluegrass.stage.dimension': '録ったまま。近接マイクで、自然に。',
+  'genre.bluegrass.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.bluegrass.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
   'genre.bluegrass.stage.maximizer':
-    'ピッキングのアタックを決して潰さない、ゆっくりした天井。',
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.bluegrass.off':
     'ベースパンチもベースフォージもなし。形を整えるキックも、作り出すサブもありません。',
 
@@ -80,8 +91,12 @@ export default {
   'genre.folk.pin.12500.why': '7 kHzより上に、軽く。',
   'genre.folk.stage.exciter':
     '2 kHz付近のやさしい存在感、7 kHzより上の空気感、そしてフォークのマスタリングが使うわずかな倍音。',
-  'genre.folk.stage.dimension': '部屋は録ったまま。',
-  'genre.folk.stage.maximizer': '静けさを決してならさない、ゆっくりした天井。',
+  'genre.folk.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.folk.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.folk.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.folk.off':
     'ベースパンチもベースフォージもなし。声とギターの下で低音を盛りません。',
 
@@ -95,8 +110,12 @@ export default {
   'genre.acoustic.pin.12500': '空気感のシェルフ',
   'genre.acoustic.pin.12500.why': '弦がきらめく10 kHzより上。',
   'genre.acoustic.stage.exciter': '表板のボディ感と、10 kHzより上の空気感。',
-  'genre.acoustic.stage.dimension': 'ステレオペアを録ったまま。',
-  'genre.acoustic.stage.maximizer': '1拍かけて離す、ゆっくりした天井。',
+  'genre.acoustic.stage.dimension':
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.acoustic.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.acoustic.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.acoustic.off':
     'ベースパンチのプロファイルは用意されていますがオフです。ギターには整えるキックがありません。',
 
@@ -112,8 +131,11 @@ export default {
   'genre.singerSongwriter.stage.exciter':
     'ボディ感だけ。歯擦音に倍音は決して足しません。',
   'genre.singerSongwriter.stage.dimension':
-    '声を中央に保つため、中域をわずかに狭めます。',
-  'genre.singerSongwriter.stage.maximizer': 'ゆっくりした天井。',
+    '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
+  'genre.singerSongwriter.stage.deEsser':
+    '中央のボーカルの鋭いS音やSH音を、5～10 kHzで最大1.5 dBの狭いスペクトルカットで抑え、シンバルを保護して低音はそのままにします。',
+  'genre.singerSongwriter.stage.maximizer':
+    '正規化した入力をこのジャンルで測定したリスニング音量へ上げ、ピークを−1 dBTPに抑えます。録音の強弱を保つためリミッティングは控えめにし、MasterとDynamicsはオフのままです。遅めのリリースで個々のビートへの追従を避けます。',
   'genre.singerSongwriter.off':
     'ベースパンチもベースフォージもなし。声と一つの楽器を窮屈にするものは何もありません。',
 };

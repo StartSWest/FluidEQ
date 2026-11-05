@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   CSSProperties,
+  KeyboardEventHandler,
   ReactNode,
   useEffect,
   useId,
@@ -47,6 +48,8 @@ export interface IKaraokeTransportLevel {
   label: string;
   value: number;
   onChange: (value: number) => void;
+  onBeginChange?: () => void;
+  onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
   /**
    * Called when the gesture ends, not while it runs.
    *
@@ -349,6 +352,8 @@ const KaraokeTransportLevel = ({
         max={1}
         step={0.01}
         value={level.value}
+        onPointerDown={level.onBeginChange}
+        onKeyDown={level.onKeyDown}
         style={levelStyle}
         disabled={level.disabled}
         onChange={(event) => {

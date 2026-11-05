@@ -90,6 +90,16 @@ describe('searchHelp', () => {
     expect(firstFor('en', 'playlists')).toBe('library');
   });
 
+  it('finds joined control names and keeps valid highlight ranges', () => {
+    expect(firstFor('en', 'basspunch')).toBe('dsp');
+    const found = searchHelp(guideIn('en'), 'basspunch');
+    expect(
+      found?.hits[0]?.snippet.flatMap(({ text, marks }) =>
+        marks.map(([start, end]) => text.slice(start, end).toLowerCase()),
+      ),
+    ).toContain('bass punch');
+  });
+
   it('finds nothing where most of what was typed is in no chapter', () => {
     // The positive control: the same word alone is found.
     expect(searchHelp(guideIn('en'), 'equalizer')?.hits.length).toBeGreaterThan(

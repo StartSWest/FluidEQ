@@ -261,7 +261,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // the keys after it.
 .player-volume__value {
   flex: none;
-  min-width: 4.5ch;
+  // A minimum still grew at 100% on Segoe UI. Fix the reading's width so
+  // changing its digits cannot resize the track under a held pointer.
+  width: 5ch;
   color: var(--player-text-soft);
   font-size: 11.5px;
   font-weight: $weight-bold;

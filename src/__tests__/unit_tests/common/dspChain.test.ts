@@ -27,6 +27,7 @@ import {
   biquadCoefficients,
   biquadMagnitudeDb,
 } from '../../../renderer/dsp/biquad';
+import musicAudit from '../../../../docs/dsp/music-reference-audit.json';
 
 describe('dsp chain settings', () => {
   it('defaults to every module bypassed', () => {
@@ -110,7 +111,8 @@ describe('dsp chain settings', () => {
   });
 
   it('ships the complete, uniquely named DSP preset catalog', () => {
-    expect(DSP_PRESETS).toHaveLength(108);
+    // 108, and the Gaming tab's ten.
+    expect(DSP_PRESETS).toHaveLength(118);
     expect(new Set(DSP_PRESETS.map((preset) => preset.id)).size).toBe(
       DSP_PRESETS.length,
     );
@@ -575,9 +577,10 @@ describe('dsp chain settings', () => {
     DSP_PRESETS.forEach((preset) => {
       expect({ id: preset.id, gameMode: preset.settings.gameMode }).toEqual({
         id: preset.id,
-        gameMode: ['gaming', 'gaming-room', 'gaming-competitive'].includes(
-          preset.id,
-        ),
+        // The three global Gaming chains, and every chain of the Gaming tab.
+        gameMode:
+          ['gaming', 'gaming-room', 'gaming-competitive'].includes(preset.id) ||
+          preset.group === 'gaming',
       });
     });
     const gaming = DSP_PRESETS.find((preset) => preset.id === 'gaming');
@@ -841,13 +844,12 @@ it('orders the basic presets None, Default, Reference, Music before the remainin
  * Pop Rock's research, held: records mastered as finished as pop's (DR 4-7)
  * and bright already, a vocal that is bright and guitars that make their own
  * harmonics, doubled hard left and right. So no stage that adds harmonics,
- * nothing wider than the mix, a ceiling that only catches — and a curve that
- * is neither of its parents: the voice further forward than Rock's, the sub
- * well under Pop's 808, and a gentler low-mid clean-up than Rock's, because
- * piano and clean guitars do not turn to mud the way a wall of distortion
- * does.
+ * nothing wider than the mix. Its final gain follows constant input leveling,
+ * and the measured references bound the limiting. Its own curve keeps the
+ * vocal forward and sub below Pop's, without requiring the low mids to be
+ * deeper than another genre's independently retuned reference curve.
  */
-it('keeps Pop Rock clean, unwidened and between its parents', () => {
+it('keeps Pop Rock clean, unwidened and voiced from its references', () => {
   const chain = DSP_PRESETS.find((preset) => preset.id === 'popRock');
   expect(chain?.group).toBe('genre');
   const settings = chain?.settings;
@@ -857,7 +859,14 @@ it('keeps Pop Rock clean, unwidened and between its parents', () => {
     midWidth: settings?.dimension.midWidth,
     highWidth: settings?.dimension.highWidth,
   }).toEqual({ exciter: false, bassForge: false, midWidth: 1, highWidth: 1 });
-  expect(settings?.maximizer.driveDb).toBeLessThanOrEqual(1.25);
+  const measured = musicAudit.genres.find((genre) => genre.id === 'popRock');
+  expect(settings?.normalizer.mode).toBe('loudness');
+  expect(settings?.maximizer.driveDb).toBe(measured?.maximizerDriveDb);
+  expect(measured?.references).toHaveLength(2);
+  measured?.references.forEach((reference) => {
+    expect(reference.limiterLossLu).toBeLessThanOrEqual(0.686);
+    expect(reference.outputTruePeakDbtp).toBeLessThanOrEqual(-0.99);
+  });
 
   // Each curve as the Preset layer plays it: its bands through its model.
   const heardAt = (id: string, hz: number): number => {
@@ -895,7 +904,9 @@ it('keeps Pop Rock clean, unwidened and between its parents', () => {
 
   expect(heardAt('popRock', 3_150)).toBeGreaterThan(heardAt('rock', 3_150));
   expect(heardAt('popRock', 32)).toBeLessThan(heardAt('pop', 32) - 1);
-  expect(heardAt('popRock', 315)).toBeGreaterThan(heardAt('rock', 315) + 1);
+  expect(
+    Math.min(...[315, 500, 800].map((hz) => heardAt('popRock', hz))),
+  ).toBeGreaterThanOrEqual(-2.2);
   // Audibly its own curve, not either parent's; and the measure can say
   // "the same", or a gap that is always large would pass this too.
   expect(widestGap('popRock', 'rock')).toBeGreaterThan(1.2);

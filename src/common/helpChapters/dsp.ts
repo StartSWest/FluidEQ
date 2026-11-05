@@ -5,84 +5,165 @@ import { type IHelpChapter } from './model';
 /** The DSP rack, the Room and the source analysis. */
 const DSP_CHAPTERS = [
   {
-    // The rack from the running window at 2560 x 1392 on 2026-09-29, on
-    // Dimension: a stage the preset already has on, so nothing is switched
-    // and the header keeps the preset's name, and one that draws its curve
-    // with nothing playing. The System-wide pill is gone: Game mode and the
-    // delay it moves sit in the header now, and the Room is a stage of the
-    // rail.
     id: 'dsp',
     group: 'sound',
     figures: [
       {
-        image: '20-dsp.png',
-        width: 2060,
-        height: 652,
+        live: 'dsp-overview',
+        width: 1280,
+        height: 808,
+        still: '20-dsp.png',
         controls: [
           {
-            box: [12, 64, 200, 42],
+            target: '[data-dsp-section="normalizer"]',
             name: 'dsp.normalizer.title',
             text: 'help.dsp.normalizer',
           },
           {
-            box: [12, 110, 200, 42],
+            target: '[data-dsp-section="denoise"]',
             name: 'dsp.denoise.title',
             text: 'help.dsp.denoise',
           },
           {
-            box: [12, 156, 200, 42],
+            target: '[data-dsp-section="deEsser"]',
+            name: 'dsp.deEsser.title',
+            text: 'help.deesser.intro',
+          },
+          {
+            target: '[data-dsp-section="exciter"]',
             name: 'dsp.exciter.title',
             text: 'help.dsp.exciter',
           },
           {
-            box: [12, 202, 200, 42],
+            target: '[data-dsp-section="bassForge"]',
             name: 'dsp.bassForge.title',
             text: 'help.dsp.bassForge',
           },
           {
-            box: [12, 248, 200, 42],
+            target: '[data-dsp-section="eq"]',
             name: 'dsp.eq.title',
             text: 'help.dsp.equaliser',
           },
           {
-            box: [12, 294, 200, 42],
+            target: '[data-dsp-section="bassPunch"]',
             name: 'dsp.bassPunch.title',
             text: 'help.dsp.bassPunch',
           },
           {
-            box: [12, 340, 200, 42],
+            target: '[data-dsp-section="dimension"]',
             name: 'dsp.dimension.title',
             text: 'help.dsp.dimension',
           },
           {
-            box: [12, 386, 200, 42],
+            target: '[data-dsp-section="room"]',
             name: 'dsp.room.title',
             text: 'help.dsp.room',
           },
           {
-            box: [12, 432, 200, 42],
+            target: '[data-dsp-section="dynamics"]',
+            name: 'dsp.dynamics.title',
+            text: 'help.dynamics.intro',
+          },
+          {
+            target: '[data-dsp-section="maximizer"]',
             name: 'dsp.maximizer.title',
             text: 'help.dsp.maximizer',
           },
           {
-            box: [12, 478, 200, 42],
+            target: '[data-dsp-section="master"]',
             name: 'dsp.master.title',
             text: 'help.dsp.master',
           },
           {
-            box: [12, 561, 200, 42],
+            target: '[data-dsp-section="crossfade"]',
             name: 'dsp.crossfade.title',
             text: 'help.dsp.crossfade',
           },
           {
-            box: [1498, 17, 305, 28],
-            name: 'dsp.latency.gameMode',
-            text: 'help.eq.gameMode',
-          },
-          {
-            box: [135, 15, 210, 32],
+            target: '.dsp-presets',
             name: 'dsp.presets',
             text: 'help.dsp.presets',
+          },
+        ],
+      },
+    ],
+  },
+  { id: 'normalizer', group: 'sound', figures: [] },
+  {
+    id: 'denoise',
+    group: 'sound',
+    // Not WINDOW: this one is a crop of the page, not the whole window.
+    figures: [
+      {
+        image: '13-dsp-denoise-and-source-analysis.png',
+        width: 1838,
+        height: 731,
+      },
+    ],
+  },
+  {
+    id: 'deesser',
+    group: 'sound',
+    figures: [
+      {
+        live: 'dsp-deesser',
+        width: 1180,
+        height: 297,
+        still: '43-dsp-deesser.png',
+        controls: [
+          {
+            target: '.dsp-de-esser-controls > .dsp-band:nth-child(1)',
+            name: 'dsp.deEsser.group.find',
+            text: 'dsp.deEsser.group.findHint',
+          },
+          {
+            target: '.dsp-de-esser-controls > .dsp-band:nth-child(2)',
+            name: 'dsp.deEsser.group.reduce',
+            text: 'dsp.deEsser.mode.spectralHint',
+          },
+          {
+            target: '.dsp-de-esser-controls > .dsp-band:nth-child(3)',
+            name: 'dsp.deEsser.group.timing',
+            text: 'dsp.deEsser.group.timingHint',
+          },
+          {
+            target: '.dsp-de-esser-controls > .dsp-band:nth-child(4)',
+            name: 'dsp.deEsser.group.where',
+            text: 'dsp.deEsser.description',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'dynamics',
+    group: 'sound',
+    figures: [
+      {
+        live: 'dsp-dynamics',
+        width: 1180,
+        height: 755,
+        still: '42-dsp-dynamics.png',
+        controls: [
+          {
+            target: '.is-band-0',
+            name: 'dsp.dynamics.band.low',
+            text: 'dsp.dynamics.band.lowHint',
+          },
+          {
+            target: '.is-band-1',
+            name: 'dsp.dynamics.band.mid',
+            text: 'dsp.dynamics.band.midHint',
+          },
+          {
+            target: '.is-band-2',
+            name: 'dsp.dynamics.band.high',
+            text: 'dsp.dynamics.band.highHint',
+          },
+          {
+            target: '.dsp-dynamics-timing',
+            name: 'dsp.dynamics.timing',
+            text: 'dsp.dynamics.timingHint',
           },
         ],
       },
@@ -148,18 +229,7 @@ const DSP_CHAPTERS = [
       },
     ],
   },
-  {
-    id: 'denoise',
-    group: 'sound',
-    // Not WINDOW: this one is a crop of the page, not the whole window.
-    figures: [
-      {
-        image: '13-dsp-denoise-and-source-analysis.png',
-        width: 1838,
-        height: 731,
-      },
-    ],
-  },
+  { id: 'crossfade', group: 'sound', figures: [] },
 ] as const satisfies readonly IHelpChapter[];
 
 export default DSP_CHAPTERS;

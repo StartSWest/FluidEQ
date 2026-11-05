@@ -47,6 +47,14 @@ The guide uses real FluidEQ interface captures, not generated UI artwork.
   after, and for Dynamic lighting the lighting was switched on and back off.
 - `02`, `07` and `10` are no longer in the guide; this repository's README
   still shows them.
+- `37`, `38` and `44` were refreshed on November 5, 2026, from the actual
+  read-only Help drawings and the application's stylesheet cascade in an
+  isolated headless Chrome profile. They show the swapped Visualizers and
+  Online Media tabs, and the Gaming Lab's resizable game list with its small
+  collapse chevron. The header is drawn at 2400 CSS pixels wide and cropped
+  by the live figure's selectors; Gaming Lab is drawn at 1280. Their control
+  positions are measured from the drawing in the app, and the exported guide
+  lists those controls below each picture without fixed-position circles.
 
 The guide identifies screenshots as illustrations whose language, appearance
 and control positions may differ from the installed version. Settings visible

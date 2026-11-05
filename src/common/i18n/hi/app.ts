@@ -39,6 +39,27 @@ const app: Partial<Dictionary> = {
   'app.menu.importEq': 'EQ सेटिंग आयात करें…',
   'app.menu.importConvolution': 'इंपल्स रिस्पॉन्स आयात करें…',
   'app.menu.restartAudio': 'Windows ऑडियो फिर से चालू करें',
+  'app.menu.engineKey': 'ऑन/ऑफ़ कुंजी…',
+  'engineKey.title': 'ऑन/ऑफ़ कुंजी',
+  'engineKey.body':
+    'वे कुंजियाँ दबाएँ जो FluidEQ इंजन को बंद करके फिर चालू करती हैं, किसी भी प्रोग्राम से, गेम से भी।',
+  'engineKey.field': 'कुंजी',
+  'engineKey.waiting': 'कुंजियाँ दबाएँ',
+  'engineKey.none': 'कोई कुंजी नहीं',
+  'engineKey.use': '{key} इस्तेमाल करें',
+  'engineKey.useKey': 'यह कुंजी इस्तेमाल करें',
+  'engineKey.problem.invalid':
+    'Ctrl, Alt या Shift के साथ कोई अक्षर, अंक या F1 से F24 इस्तेमाल करें।',
+  'engineKey.problem.modifier':
+    'Ctrl या Alt जोड़ें, ताकि कुंजी दूसरे प्रोग्राम के रास्ते में न आए।',
+  'engineKey.problem.altgr':
+    'कई कीबोर्ड पर Ctrl + Alt के साथ अक्षर € जैसे चिह्न टाइप करता है। Ctrl + Shift आज़माएँ।',
+  'engineKey.problem.taken':
+    '{key} पहले से किसी दूसरे प्रोग्राम के पास है। कोई और आज़माएँ।',
+  'engineKey.toast.off': 'FluidEQ बंद',
+  'engineKey.toast.offDetail': 'कुछ भी प्रोसेस नहीं हो रहा',
+  'engineKey.toast.on': 'FluidEQ चालू',
+  'engineKey.toast.onDetail': 'आपकी आवाज़, जैसी आपने छोड़ी थी',
   'engine.apo.reconfigure': 'Equalizer APO फिर से सेट करें',
   'engine.apo.settings': 'Equalizer APO सेटिंग',
   'app.menu.support': 'प्रोजेक्ट का साथ दें',
@@ -246,7 +267,6 @@ const app: Partial<Dictionary> = {
   'tabs.eqMain': 'बैंड',
   'tabs.presets': 'EQ प्रीसेट',
   'tabs.convolution': 'कन्वॉल्यूशन',
-  'tabs.games': 'गेम प्रीसेट',
   'tabs.config': 'Config',
   'tabs.media': 'ऑनलाइन मीडिया',
   'tabs.mediaShort': 'मीडिया',
@@ -398,11 +418,6 @@ const app: Partial<Dictionary> = {
   'settings.group.studioOnly': 'सिर्फ़ यहाँ स्टूडियो में',
 
   // Game profiles: the page, its list and what it says.
-  'games.add': 'गेम जोड़ें',
-  'games.addHint': 'अपने लॉन्चर से कोई गेम चुनें, या अभी खुला कोई प्रोग्राम।',
-  'games.choose': 'प्रोग्राम चुनें…',
-  'games.group.installed': 'इंस्टॉल किए हुए',
-  'games.group.running': 'अभी खुले',
   'games.source.steam': 'Steam',
   'games.source.epic': 'Epic Games',
   'games.source.ea': 'EA',
@@ -412,25 +427,8 @@ const app: Partial<Dictionary> = {
   'games.source.xbox': 'Xbox',
   'games.source.running': 'अभी खुला',
   'games.source.file': 'आपका चुना हुआ',
-  'games.front.playing': '{name} सामने है, और उसकी आवाज़ चालू है।',
-  'games.front.sounding': '{name} चल रहा है, और उसकी आवाज़ चालू है।',
-  'games.front.off': 'गेम प्रीसेट बंद हैं। आपके गेम आपकी अपनी आवाज़ रखते हैं।',
-  'games.switch.hint':
-    'बंद: कोई गेम आपकी आवाज़ नहीं बदलता, और FluidEQ यह देखना बंद कर देता है कि सामने कौन-सा प्रोग्राम है। आपकी सूची जैसी है वैसी रहती है।',
-  'games.toast.loaded': '{preset} लोड किया',
   'games.toast.forGame': '{game} के लिए',
-  'games.toast.restored': '{preset} पर वापस',
-  'games.toast.restoredNone': 'प्रभाव फिर से बंद',
   'games.toast.afterGame': '{game} के बाद',
-  'games.empty.title': 'अभी कोई गेम नहीं',
-  'games.empty.more':
-    'एक गेम जोड़ें, उसे एक आवाज़ दें — वह गेम सामने आते ही FluidEQ उस पर चला जाएगा, और गेम बंद करने पर वापस आ जाएगा।',
-  'games.preset.none': 'जैसा है वैसा रहने दें',
-  'games.preset.noneHint': 'यह गेम सामने हो तब कुछ नहीं बदलता।',
-  'games.row.inFront': 'सामने',
-  'games.row.sounding': 'आवाज़ चालू',
-  'games.row.sound': '{name} की आवाज़',
-  'games.row.remove': '{name} हटाएँ',
   'error.apoMissing': 'Equalizer APO इंस्टॉल नहीं है।',
   'error.apoMissing.action':
     'कृपया Equalizer APO इंस्टॉल करें, फिर दोबारा कोशिश करें।',

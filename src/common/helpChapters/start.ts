@@ -1,6 +1,5 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { OFFICIAL_SITE_URL } from '../branding';
 import { type IHelpChapter, WINDOW } from './model';
 
 /** Getting started: the first session, the window, what a PC needs and the engine. */
@@ -11,28 +10,14 @@ const START_CHAPTERS = [
     figures: [
       { image: '03-eq-parametric-bands-and-live-response.png', ...WINDOW },
     ],
-    // The first-steps film, where the site shows it (Ivan, 2026-09-30: "put
-    // it on the site and be able to be streamed by the app"). Its poster is
-    // the chapter's own capture until the film's first frame replaces it.
-    video: {
-      src: `${OFFICIAL_SITE_URL}/video/first-steps.mp4`,
-      captions: {
-        src: `${OFFICIAL_SITE_URL}/video/first-steps.en.vtt`,
-        lang: 'en',
-      },
-      page: `${OFFICIAL_SITE_URL}/#first-steps`,
-      title: 'help.start.videoTitle',
-      note: 'help.start.videoNote',
-      poster: '03-eq-parametric-bands-and-live-response.png',
-    },
   },
   {
     // The window's frame. The title bar is drawn by its own parts
     // (`help/live/windowFigures`) and framed in two, cut at the signal:
     // whole, it is drawn too small in the guide to read a label. The drawing
     // is laid out wider than the bar ever comes to, so nothing in it wraps,
-    // and each tab is found by its place in its strip. Its stills are the
-    // 2.0 captures, for the exported guide.
+    // and each tab is found by its place in its strip. The exported guide's
+    // stills are captured from this same drawing (docs/guide-captures.md).
     //
     // The rails are captures from the running window at 2560 x 1392 on
     // 2026-09-29: their boxes are the elements' own rectangles, and each
@@ -53,8 +38,8 @@ const START_CHAPTERS = [
         controls: [
           {
             target: '.window-titlebar__left .workspace-tab:nth-of-type(1)',
-            name: 'tabs.media',
-            text: 'help.window.media',
+            name: 'tabs.plus',
+            text: 'help.window.plus',
           },
           {
             target: '.window-titlebar__left .workspace-tab:nth-of-type(2)',
@@ -63,6 +48,11 @@ const START_CHAPTERS = [
           },
           {
             target: '.window-titlebar__left .workspace-tab:nth-of-type(3)',
+            name: 'gaming.tab',
+            text: 'help.window.gaming',
+          },
+          {
+            target: '.window-titlebar__left .workspace-tab:nth-of-type(4)',
             name: 'tabs.eq',
             text: 'help.window.eq',
           },
@@ -99,10 +89,9 @@ const START_CHAPTERS = [
             text: 'help.window.karaoke',
           },
           {
-            // Only in a build with accounts (`WorkspaceTabsRight`).
             target: '.window-titlebar__right .workspace-tab:nth-of-type(4)',
-            name: 'tabs.plus',
-            text: 'help.window.plus',
+            name: 'tabs.media',
+            text: 'help.window.media',
           },
           {
             target: '.support-pet',

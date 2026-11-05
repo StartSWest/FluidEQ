@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { compactSearchText } from './searchText';
+
 /**
  * What has been searched for before, so it need not be typed again.
  *
@@ -91,14 +93,14 @@ export const suggestSearches = (
   query: string,
   limit = MAX_SEARCH_SUGGESTIONS,
 ): string[] => {
-  const needle = normalise(query).toLocaleLowerCase();
+  const needle = compactSearchText(query);
   if (!needle) {
     return history.slice(0, limit);
   }
   const starts: string[] = [];
   const contains: string[] = [];
   history.forEach((entry) => {
-    const value = entry.toLocaleLowerCase();
+    const value = compactSearchText(entry);
     if (value === needle) {
       // Already typed in full. Offering it back is a row that does nothing.
       return;

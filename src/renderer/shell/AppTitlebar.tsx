@@ -267,6 +267,7 @@ const AppTitlebar = ({
               strip. */}
           <HelpMenu
             onTour={help.onTour}
+            onReleaseNotes={help.onReleaseNotes}
             onTroubleshoot={help.onTroubleshoot}
             onReport={help.onReport}
             onForum={help.onForum}

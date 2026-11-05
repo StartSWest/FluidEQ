@@ -17,8 +17,11 @@ const genreWorld = {
   'genre.afrobeat.stage.exciter': '替類比母帶增添暖度與少許空氣感。',
   'genre.afrobeat.stage.bassPunch': '讓低頻稍微更緊實。',
   'genre.afrobeat.stage.dimension':
-    '錄音時大樂團的傳播範圍很廣，只有低音變窄了。',
-  'genre.afrobeat.stage.maximizer': '緩慢的天花板可以保持動態。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.afrobeat.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.afrobeat.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.afrobeat.off':
     '沒有 Bass Forge，也沒有任何東西會擠壓樂團：它的上限只會卡住。',
   'genre.afrobeats.hook': '圓踢和正弦子',
@@ -30,8 +33,12 @@ const genreWorld = {
   'genre.afrobeats.pin.800.why': '鞦韆的空間。',
   'genre.afrobeats.pin.12500': '搖搖器和聲樂空氣',
   'genre.afrobeats.pin.12500.why': '輕，在上面。',
-  'genre.afrobeats.stage.dimension': '單聲道低於 150 Hz，振動器更寬一些。',
-  'genre.afrobeats.stage.maximizer': '輕質天花板可保持擺動。',
+  'genre.afrobeats.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.afrobeats.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.afrobeats.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.afrobeats.off':
     'Bass Forge 已提供並保留：正弦重低音喇叭是乾淨的，不需要八度音階或沙礫。',
   'genre.amapiano.hook': '原木鼓就是能量',
@@ -44,8 +51,11 @@ const genreWorld = {
   'genre.amapiano.pin.8000': '明亮的搖瓶',
   'genre.amapiano.pin.8000.why': '一點電梯。',
   'genre.amapiano.stage.dimension':
-    '120 Hz以下的亞單聲道和原木鼓的主體縮小到200，因此它保持居中；寬度僅高於 3 kHz。',
-  'genre.amapiano.stage.maximizer': '輕質天花板可保持原木鼓的攻擊力。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.amapiano.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.amapiano.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.amapiano.off':
     'Bass Forge 已提供並保留：原木鼓的唯一規則是其上不飽和。',
   'genre.highlife.hook': '甜美的吉他和爵士號',
@@ -58,8 +68,12 @@ const genreWorld = {
   'genre.highlife.pin.3150': '甜美的吉他',
   'genre.highlife.pin.3150.why': '清晰明亮。',
   'genre.highlife.stage.exciter': '為舊錄音帶來一點溫暖和空氣。',
-  'genre.highlife.stage.dimension': '錄製的平移吉他。',
-  'genre.highlife.stage.maximizer': '緩慢的天花板。',
+  'genre.highlife.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.highlife.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.highlife.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.highlife.off': '無 Bass Punch 或 Bass Forge：乾淨的吉他保持乾淨。',
   'genre.world.hook': '鏈條至少能做到的',
   'genre.world.story':
@@ -70,7 +84,10 @@ const genreWorld = {
   'genre.world.pin.3150.why': '一個分貝以下。',
   'genre.world.pin.12500': '一點空氣',
   'genre.world.pin.12500.why': '溫柔。',
-  'genre.world.stage.maximizer': '一個只能捕捉的天花板。',
+  'genre.world.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.world.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.world.off': '無尺寸、激勵器、Bass Punch 或 Bass Forge：圖片保持原樣。',
   'genre.bollywood.hook': '播放聲音周圍鬱鬱蔥蔥的背景',
   'genre.bollywood.story':
@@ -83,8 +100,11 @@ const genreWorld = {
   'genre.bollywood.pin.2000.why': '前進並清潔。',
   'genre.bollywood.stage.bassPunch': '潛艇收緊了。',
   'genre.bollywood.stage.dimension':
-    '畫面留下來的時候就和它來時一樣寬闊；只有低音變窄了。',
-  'genre.bollywood.stage.maximizer': '幾乎無法驅動的天花板。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.bollywood.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.bollywood.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.bollywood.off': '聲音上沒有激勵器，也沒有 Bass Forge。',
   'genre.bhangra.hook': 'dhol 是一種流派',
   'genre.bhangra.story':
@@ -96,8 +116,12 @@ const genreWorld = {
   'genre.bhangra.pin.2000': 'Dhol 裂縫和 tumbi',
   'genre.bhangra.pin.2000.why': '明亮有力。',
   'genre.bhangra.stage.bassPunch': '吊桿尾部收緊，從未抬起。',
-  'genre.bhangra.stage.dimension': '低音變窄，因此 dhol 的吊桿固定住了中音。',
-  'genre.bhangra.stage.maximizer': '向前看的時間夠長，足以讓裂縫通過。',
+  'genre.bhangra.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.bhangra.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.bhangra.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.bhangra.off': '無激勵器或 Bass Forge：未新增頂部。',
   'genre.indianClassical.hook': '無人機上空未計時的一圈',
   'genre.indianClassical.story':
@@ -109,7 +133,7 @@ const genreWorld = {
   'genre.indianClassical.pin.12500': 'tanpura 的微光',
   'genre.indianClassical.pin.12500.why': '無人機的光環。',
   'genre.indianClassical.stage.maximizer':
-    '只有天花板：水平儀可以將無人機升到空中。',
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.indianClassical.off':
     '無尺寸、激勵器或 Bass Punch：jivari 的諧波是內建的。',
   'genre.arabicPop.hook': '馬克蘇姆上的裝飾聲音',
@@ -127,8 +151,11 @@ const genreWorld = {
     '聲音下的溫暖；琴絃和泰克仍然像原來一樣明亮。',
   'genre.arabicPop.stage.bassPunch': '低端收緊。',
   'genre.arabicPop.stage.dimension':
-    '琴絃的寬度與記錄的一樣寬；只有低音變窄了。',
-  'genre.arabicPop.stage.maximizer': '輕型天花板可以阻擋達爾布卡的攻擊。',
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.arabicPop.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.arabicPop.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.arabicPop.off': '沒有 Bass Forge：在 doum 下沒有產生任何內容。',
   'genre.turkishPop.hook': '拋光流行土耳其色',
   'genre.turkishPop.story':
@@ -143,8 +170,12 @@ const genreWorld = {
   'genre.turkishPop.pin.8000.why': '原本就已經過細緻處理。',
   'genre.turkishPop.stage.exciter': '聲音裡充滿了溫暖，達爾布卡上什麼都沒有。',
   'genre.turkishPop.stage.bassPunch': '緊實的低頻。',
-  'genre.turkishPop.stage.dimension': '混合後，只有低音變窄。',
-  'genre.turkishPop.stage.maximizer': '幾乎無法推動的天花板。',
+  'genre.turkishPop.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.turkishPop.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.turkishPop.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。',
   'genre.turkishPop.off': '這張經過打磨的唱片上沒有 Bass Forge。',
   'genre.gospel.hook': '合唱團和幾分鐘就能打造的鞋面',
   'genre.gospel.story':
@@ -155,8 +186,12 @@ const genreWorld = {
   'genre.gospel.pin.315.why': '替飽滿的聲音保留空間。',
   'genre.gospel.pin.2000': '主唱人聲',
   'genre.gospel.pin.2000.why': '讓人聲更靠前。',
-  'genre.gospel.stage.dimension': '合唱團離開的距離與記錄的一樣遠。',
-  'genre.gospel.stage.maximizer': '緩慢的天花板可以讓鞋面形成。',
+  'genre.gospel.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.gospel.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.gospel.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.gospel.off': '它的激勵器被提供並停止：合唱團沒有興奮。',
   'genre.christian.hook': '安靜的詩句築起一座大橋',
   'genre.christian.story':
@@ -167,8 +202,12 @@ const genreWorld = {
   'genre.christian.pin.800.why': '對於寬吉他。',
   'genre.christian.pin.3150': '歌詞清晰，',
   'genre.christian.pin.3150.why': '言語在哪裡。',
-  'genre.christian.stage.dimension': '低音變窄；吉他左開。',
-  'genre.christian.stage.maximizer': '天花板夠慢以保持電弧。',
+  'genre.christian.stage.dimension':
+    '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
+  'genre.christian.stage.deEsser':
+    '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',
+  'genre.christian.stage.maximizer':
+    '將正規化後的輸入提升至此曲風實測的聆聽音量，峰值限制在 −1 dBTP。限制保持適度，以保留錄音的動態；Master 和 Dynamics 維持關閉。較慢的釋放時間可避免跟隨每個鼓點起伏。',
   'genre.christian.off': 'No Exciter、Bass Punch 或 Bass Forge：建構就是歌曲。',
 } satisfies Partial<Dictionary>;
 

@@ -23,6 +23,7 @@ import { FrameReader } from '../../../main/dspHost/transport';
 import {
   ANALYSIS_EQ_DETAIL_BINS,
   ANALYSIS_EQ_DETAIL_WINDOW,
+  ANALYSIS_FOOTSTEPS_HEADER_BYTES,
 } from '../../../common/dsp/analysisWire';
 import {
   ANALYSIS_BASS_FORGE_BANDS,
@@ -592,8 +593,8 @@ it('decodes the tagged Room report without changing legacy meter framing', () =>
 
 it('decodes the actual native meter-to-host/APO encoder fixture', () => {
   const bytes = Buffer.from(ROOM_REPORT_NATIVE_FRAME, 'base64');
-  expect(bytes.length).toBe(784);
-  expect(decodeAnalysis(bytes)?.room).toEqual({
+  expect(bytes.length).toBe(ANALYSIS_HEADER_BYTES);
+  const room = {
     active: true,
     original: true,
     matchAvailable: true,
@@ -601,7 +602,17 @@ it('decodes the actual native meter-to-host/APO encoder fixture', () => {
     conventionalFoldDown: true,
     positionProtected: true,
     sourceBypassed: false,
-  });
+  };
+  expect(decodeAnalysis(bytes, ANALYSIS_HEADER_BYTES)?.room).toEqual(room);
+  expect(decodeAnalysis(bytes.subarray(0, 840), 840)?.room).toEqual(room);
+  expect(
+    decodeAnalysis(
+      bytes.subarray(0, ANALYSIS_FOOTSTEPS_HEADER_BYTES),
+      ANALYSIS_FOOTSTEPS_HEADER_BYTES,
+    )?.room,
+  ).toEqual(room);
+  // The 784 bytes an engine from before Footsteps writes carry it the same.
+  expect(decodeAnalysis(bytes.subarray(0, 784), 784)?.room).toEqual(room);
 });
 
 it('accepts inactive and explicit bypass reports and refuses contradictory states', () => {

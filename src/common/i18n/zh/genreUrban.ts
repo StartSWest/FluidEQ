@@ -11,8 +11,11 @@ export default {
   'genre.hiphop.pin.12500': '带点灰尘感的高频',
   'genre.hiphop.pin.12500.why': '用唱片采样搭起来的节拍就是这个声音。',
   'genre.hiphop.stage.dimension':
-    '120 Hz 以下单声道，180 以下收窄，保留那种窄的声像。',
-  'genre.hiphop.stage.maximizer': '一个几乎不推的上限。',
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.hiphop.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.hiphop.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.hiphop.off':
     '它的激励器、低音熔炉和低音冲击有提供但保持关闭：采样已经饱和，而低音熔炉给一个贝斯音加进了 16% 的新声音。',
 
@@ -25,8 +28,12 @@ export default {
   'genre.rap.pin.200.why': '贝斯会把主歌弄浑的地方。',
   'genre.rap.pin.2000': '辅音',
   'genre.rap.pin.2000.why': '清晰度，稍微往前。',
-  'genre.rap.stage.dimension': '中频比唱片稍窄一点，让人声稳稳不动。',
-  'genre.rap.stage.maximizer': '一个几乎不推的上限。',
+  'genre.rap.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.rap.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.rap.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.rap.off':
     '低音熔炉有提供但保持关闭：贝斯的谐波会落在人声的胸腔共鸣上。',
 
@@ -42,8 +49,12 @@ export default {
   'genre.trap.pin.8000.why': '滚奏清楚。',
   'genre.trap.stage.bassForge':
     '808 的泛音（40 Hz 的音对应 80、120 和 160 Hz），让小音箱也能放出来；不加下方的八度。',
-  'genre.trap.stage.dimension': '120 Hz 以下全部单声道，踩镲和合成器保持宽阔。',
-  'genre.trap.stage.maximizer': '一个几乎不推的上限。',
+  'genre.trap.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.trap.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.trap.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.trap.off': '不用激励器，也不用低音冲击：808 本来就已经失真。',
 
   'genre.rnb.hook': '圆润低频上的丝滑高频',
@@ -55,8 +66,12 @@ export default {
   'genre.rnb.pin.1250.why': '稍微收一点，让人声保持丝滑。',
   'genre.rnb.pin.12500': '丝滑的高频',
   'genre.rnb.pin.12500.why': '人声之上的空气感。',
-  'genre.rnb.stage.dimension': '铺底比人声稍宽一点，和这个流派的混法一样。',
-  'genre.rnb.stage.maximizer': '一个轻上限。',
+  'genre.rnb.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.rnb.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.rnb.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.rnb.off':
     '它的激励器有提供但保持关闭：加在这种人声上的谐波会落在换气声上。',
 
@@ -69,8 +84,12 @@ export default {
   'genre.soul.pin.80.why': '撑起整首歌的那条线。',
   'genre.soul.pin.5000': '不加空气感',
   'genre.soul.pin.5000.why': '降下来：空气感会把磁带嘶声抬起来。',
-  'genre.soul.stage.dimension': '稍微收窄一点，让声像拉满的 60 年代混音合拢。',
-  'genre.soul.stage.maximizer': '一个缓慢的上限，面对的是从未被限制过的母带。',
+  'genre.soul.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.soul.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.soul.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.soul.off':
     '它的激励器有提供但保持关闭：磁带和电子管就是这个声音，激励器只会抬高它们的嘶声。',
 
@@ -83,8 +102,12 @@ export default {
   'genre.neoSoul.pin.1250.why': '放松一点，让没有东西冒出来。',
   'genre.neoSoul.pin.12500': '不加闪亮',
   'genre.neoSoul.pin.12500.why': '温暖而暗，就是要求。',
-  'genre.neoSoul.stage.dimension': '保留现场乐队的声像，只收窄低频。',
-  'genre.neoSoul.stage.maximizer': '一个什么都不挤压的缓慢上限。',
+  'genre.neoSoul.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.neoSoul.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.neoSoul.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。较慢的释放时间可避免跟随每个鼓点起伏。',
   'genre.neoSoul.off': '它的激励器有提供但保持关闭：不用它，就一直温暖而暗。',
 
   'genre.funk.hook': '贝斯是主角，第一拍就是一切',
@@ -99,8 +122,12 @@ export default {
   'genre.funk.pin.12500': '磁带般的高频，不夸张',
   'genre.funk.pin.12500.why': '放松一点，从不提亮。',
   'genre.funk.stage.bassPunch': '紧实的低频，没有会把演奏细节糊掉的膨胀。',
-  'genre.funk.stage.dimension': '贴近唱片，低频收窄。',
-  'genre.funk.stage.maximizer': '一个轻上限。',
+  'genre.funk.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.funk.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.funk.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.funk.off': '不用激励器，也不用低音熔炉：干、中频靠前，就是这个声音。',
 
   'genre.disco.hook': '弦乐墙下的四四拍底鼓',
@@ -113,7 +140,11 @@ export default {
   'genre.disco.pin.8000': '开放踩镲和闪光',
   'genre.disco.pin.8000.why': '那个年代的光彩。',
   'genre.disco.stage.bassPunch': '给底鼓一点重量，尾音在下一拍之前收住。',
-  'genre.disco.stage.dimension': '管弦乐已经铺开的东西不再加宽。',
-  'genre.disco.stage.maximizer': '一个轻上限，在底鼓下面很快松开。',
+  'genre.disco.stage.dimension':
+    '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
+  'genre.disco.stage.deEsser':
+    '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',
+  'genre.disco.stage.maximizer':
+    '将归一化后的输入提升至此曲风实测的聆听音量，峰值限制在 −1 dBTP。限制保持适度，以保留录音的动态；Master 和 Dynamics 保持关闭。',
   'genre.disco.off': '不用激励器，也不用低音熔炉：踩镲和弦乐会因此变得脆硬。',
 };

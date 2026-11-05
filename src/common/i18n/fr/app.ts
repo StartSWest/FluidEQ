@@ -39,6 +39,27 @@ const app: Partial<Dictionary> = {
   'app.menu.importEq': 'Importer des réglages d’égalisation…',
   'app.menu.importConvolution': 'Importer une réponse impulsionnelle…',
   'app.menu.restartAudio': 'Redémarrer l’audio de Windows',
+  'app.menu.engineKey': 'Touche marche/arrêt…',
+  'engineKey.title': 'Touche marche/arrêt',
+  'engineKey.body':
+    'Appuyez sur les touches qui éteignent puis rallument le moteur FluidEQ depuis n’importe quel programme, y compris un jeu.',
+  'engineKey.field': 'Touche',
+  'engineKey.waiting': 'Appuyez sur les touches',
+  'engineKey.none': 'Aucune touche',
+  'engineKey.use': 'Utiliser {key}',
+  'engineKey.useKey': 'Utiliser cette touche',
+  'engineKey.problem.invalid':
+    'Utilisez une lettre, un chiffre ou F1 à F24, avec Ctrl, Alt ou Shift.',
+  'engineKey.problem.modifier':
+    'Ajoutez Ctrl ou Alt, pour que la touche ne gêne aucun autre programme.',
+  'engineKey.problem.altgr':
+    'Ctrl + Alt avec une lettre tape des caractères comme € sur beaucoup de claviers. Essayez Ctrl + Shift.',
+  'engineKey.problem.taken':
+    'Un autre programme utilise déjà {key}. Essayez-en une autre.',
+  'engineKey.toast.off': 'FluidEQ éteint',
+  'engineKey.toast.offDetail': 'Rien n’est traité',
+  'engineKey.toast.on': 'FluidEQ allumé',
+  'engineKey.toast.onDetail': 'Votre son, tel que vous l’aviez laissé',
   'engine.apo.reconfigure': 'Reconfigurer Equalizer APO',
   'engine.apo.settings': 'Réglages d’Equalizer APO',
   'app.menu.support': 'Soutenir le projet',
@@ -255,7 +276,6 @@ const app: Partial<Dictionary> = {
   'tabs.eqMain': 'Bandes',
   'tabs.presets': 'Préréglages EQ',
   'tabs.convolution': 'Convolution',
-  'tabs.games': 'Préréglages de jeu',
   'tabs.config': 'Config',
   'tabs.media': 'Médias en ligne',
   'tabs.mediaShort': 'Médias',
@@ -409,12 +429,6 @@ const app: Partial<Dictionary> = {
   'settings.group.studioOnly': 'Seulement ici, dans le Studio',
 
   // Game profiles: the page, its list and what it says.
-  'games.add': 'Ajouter un jeu',
-  'games.addHint':
-    'Choisissez un jeu dans vos lanceurs, ou un programme ouvert maintenant.',
-  'games.choose': 'Choisir un programme…',
-  'games.group.installed': 'Installés',
-  'games.group.running': 'Ouverts',
   'games.source.steam': 'Steam',
   'games.source.epic': 'Epic Games',
   'games.source.ea': 'EA',
@@ -424,26 +438,8 @@ const app: Partial<Dictionary> = {
   'games.source.xbox': 'Xbox',
   'games.source.running': 'Ouvert',
   'games.source.file': 'Choisi par vous',
-  'games.front.playing': '{name} est au premier plan, et son son est activé.',
-  'games.front.sounding': '{name} est lancé, et son son est activé.',
-  'games.front.off':
-    'Les presets de jeu sont désactivés. Vos jeux gardent votre propre son.',
-  'games.switch.hint':
-    'Désactivé : aucun jeu ne change votre son, et FluidEQ ne regarde plus quel programme est au premier plan. Votre liste reste telle quelle.',
-  'games.toast.loaded': '{preset} chargé',
   'games.toast.forGame': 'pour {game}',
-  'games.toast.restored': 'Retour à {preset}',
-  'games.toast.restoredNone': 'Effets de nouveau coupés',
   'games.toast.afterGame': 'après {game}',
-  'games.empty.title': 'Aucun jeu pour l’instant',
-  'games.empty.more':
-    'Ajoutez un jeu, donnez-lui un son, et FluidEQ y passe dès que ce jeu est au premier plan — et revient quand vous fermez le jeu.',
-  'games.preset.none': 'Ne rien changer',
-  'games.preset.noneHint': 'Rien ne change quand ce jeu est au premier plan.',
-  'games.row.inFront': 'au premier plan',
-  'games.row.sounding': 'son activé',
-  'games.row.sound': 'Son pour {name}',
-  'games.row.remove': 'Retirer {name}',
   'error.apoMissing': 'Equalizer APO n’est pas installé.',
   'error.apoMissing.action': 'Installez Equalizer APO, puis réessayez.',
   'error.configMissing':

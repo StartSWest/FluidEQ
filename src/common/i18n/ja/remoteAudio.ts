@@ -61,6 +61,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.linked.paused': '一時停止',
   'remoteAudio.linked.lossless': 'ロスレス',
   'remoteAudio.linked.unlink': 'リンク解除',
+  'remoteAudio.linked.reconnect': '再接続',
   'remoteAudio.linked.pause': '一時停止',
   'remoteAudio.linked.resume': '再開',
   'remoteAudio.lane.inPaused':
@@ -86,6 +87,8 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.receiving': '受信中',
   'remoteAudio.lane.paused': '一時停止',
   'remoteAudio.lane.inQuiet': '{name} では何も再生されていません',
+  'remoteAudio.lane.reconnecting': '再接続しています…',
+  'remoteAudio.lane.unreachable': 'このネットワークに {name} が見つかりません',
   'remoteAudio.lane.inOff':
     'オフ：{name} の音はこのコンピューターでは再生されません。',
   'remoteAudio.lane.inNotSent': '{name} は「自分の音を送る」がオフです。',

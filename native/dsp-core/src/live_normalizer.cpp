@@ -86,6 +86,14 @@ constexpr double kDeadband = 0.75;
 constexpr double kDownDbPerSecond = 1.0;
 constexpr double kUpDbPerSecond = 0.2;
 constexpr double kGlideDbPerSecond = 2.0;
+// True Peak lowers the song the moment a peak over the ceiling is heard, and
+// close enough to the ceiling that a new peak never waits: the gain is the
+// song's own room under it, not an aim with a tolerance. Fast, because the
+// peak that asked for it is already playing; a level change at 10 dB/s is a
+// move of the volume, never a waveform change, and it happens once per new
+// loudest peak rather than on every beat.
+constexpr double kPeakDownDbPerSecond = 10.0;
+constexpr double kPeakDeadband = 0.1;
 
 double db(double value) { return value > 1e-6 ? 20 * std::log10(value) : kUnknown; }
 double bounded(double value, double fallback, double low, double high) {
@@ -123,6 +131,17 @@ void begin_segment(FeqLiveNormalizer& state, uint64_t song_id, double level, dou
 
 double desired_gain(const FeqLevelingState& song, const FeqNormalizerSettings& settings,
                     double& requested, double& peak_room) {
+  if (settings.mode == 1) {
+    // True Peak: one gain that sets the song's loudest true peak on the
+    // ceiling, never above unity — what the Library's analysed gain does
+    // (`input_gain` in chain_source.cpp), learned here as the song plays. It
+    // used to be a limiter held at the ceiling for the whole song, which on a
+    // loud master squashed every beat in front of every stage of the rack
+    // (2026-11-01: 96% of a rock master and 99.7% of an EDM one touched).
+    peak_room = bounded(settings.ceiling_db, -1, -12, -0.1) - song.song_peak_db;
+    requested = peak_room;
+    return std::clamp(peak_room, -48.0, 0.0);
+  }
   requested = bounded(settings.target_lufs, -14, -24, -5) - song.song_level;
   peak_room = bounded(settings.ceiling_db, -1, -12, -0.1) - song.song_peak_db - 0.5;
   // Preserve observed crest factor instead of boosting into continuous
@@ -143,7 +162,9 @@ void follow_controls(FeqLiveNormalizer& state, const FeqNormalizerSettings& sett
   }
   song.control_target_lufs = target;
   song.control_ceiling_db = ceiling;
-  if (song.retarget_pending && heard(song.song_level)) {
+  // True Peak's gain needs only the peak; Loudness waits for the level.
+  if (song.retarget_pending &&
+      heard(settings.mode == 1 ? song.song_peak_db : song.song_level)) {
     double requested = 0, peak_room = 0;
     song.target_db = desired_gain(song, settings, requested, peak_room);
     song.established = true;
@@ -220,7 +241,7 @@ void adopt(FeqLiveNormalizer& state) {
     FeqLevelingState learned;
     const auto read = feq_leveling::read_learned(*state.memory, learned);
     if (read == feq_leveling::Read::busy) return;  // The next block asks again.
-    if (read == feq_leveling::Read::ready) {
+    if (read == feq_leveling::Read::ready && learned.peak_mode == (state.mode == 1)) {
       state.song = learned;
       state.song_peak = heard(learned.song_peak_db) ? std::pow(10.0, learned.song_peak_db / 20) : 0;
       // What was settled stays settled; the newer seconds start again from
@@ -257,6 +278,12 @@ int level(FeqLiveNormalizer& state, const FeqLoudnessReading& measured, double p
   song.song_peak_db = db(state.song_peak);
   const double seconds = static_cast<double>(frames) / state.rate;
   advance_settled(state, seconds);
+  if (settings.mode == 1) {
+    // A peak is known the sample it arrives; only loudness needs a window.
+    double requested = 0, peak_room = 0;
+    const double desired = desired_gain(song, settings, requested, peak_room);
+    if (desired < song.target_db - kPeakDeadband) song.target_db = desired;
+  }
   const bool settled = song.known || song.foreground_seconds >= kSettleSeconds;
   if (static_cast<double>(state.samples) < state.rate * kWindowSeconds ||
       measured.momentary_lufs <= -50 || measured.short_term_lufs <= -50) {
@@ -392,8 +419,11 @@ FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,
   reading.input_true_peak_db = db(peak);
   const bool programme = peak >= 1e-5;
   double target = 0;
+  // Both modes learn the song: True Peak its loudest peak, Loudness its level
+  // as well. Off learns nothing and only returns to unity.
+  const bool learning = settings->mode == 1 || settings->mode == 2;
   reading.level_state = settings->mode == 1 ? 1 : 0;
-  if (settings->mode == 2) {
+  if (learning) {
     if (programme) adopt(*state);
     follow_cue(*state, *settings);
   }
@@ -404,8 +434,9 @@ FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,
   feq_loudness_meter_read(state->loudness, &measured);
   state->samples += frames;
   reading.input_lufs = measured.short_term_lufs;
-  if (settings->mode == 2) {
-    reading.level_state = level(*state, measured, peak, frames, *settings);
+  if (learning) {
+    const int state_now = level(*state, measured, peak, frames, *settings);
+    if (settings->mode == 2) reading.level_state = state_now;
     follow_controls(*state, *settings);
     target = state->song.target_db;
   }
@@ -413,9 +444,11 @@ FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,
   auto& song = state->song;
   // Slow corrections plus a 0.75 LU deadband avoid riding every phrase.
   // Mode changes return to unity promptly without stepping the waveform.
-  const double speed = settings->mode != 2 ? 30.0
+  const double speed = !learning ? 30.0
       : song.glide ? kGlideDbPerSecond
-      : target < song.gain_db ? kDownDbPerSecond : kUpDbPerSecond;
+      : target < song.gain_db
+          ? (settings->mode == 1 ? kPeakDownDbPerSecond : kDownDbPerSecond)
+          : kUpDbPerSecond;
   const double step = speed / state->rate;
   for (uint32_t frame = 0; frame < frames; ++frame) {
     song.gain_db += std::clamp(target - song.gain_db, -step, step);
@@ -427,13 +460,22 @@ FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,
   // Only a block that carried music says anything about the programme. An
   // idle stream on the same output publishing its copy every block would
   // overwrite what the playing one learned.
+  song.peak_mode = settings->mode == 1;
   if (state->memory != nullptr && programme && state->live) {
-    feq_leveling::publish(*state->memory, song, settings->mode == 2);
+    feq_leveling::publish(*state->memory, song, learning);
   }
   // Peak protection answers the delayed samples, never a UI measurement.
   // Keep the same delay while bypassed so switching modes cannot shift audio.
+  //
+  // Only while the gain is a boost. The rack runs in floating point, so a
+  // peak over the ceiling distorts nothing between stages, and the end of
+  // the chain owns the output's ceiling; what this stage may not do is make
+  // a peak louder than the source had it. Held at the ceiling whatever the
+  // gain, it limited loud masters on every beat while the gain was turning
+  // them DOWN — in True Peak for the whole song, in Loudness until the level
+  // landed. Switched off it lets go over its release, never in a step.
   FeqPostFilterNormalizerOptions options{};
-  options.enabled = settings->mode == 1 || settings->mode == 2;
+  options.enabled = settings->mode == 2 && song.gain_db > 0;
   options.output_ceiling_db = bounded(settings->ceiling_db, -1, -12, -0.1);
   options.sample_rate = state->rate;
   options.release_ms = 250;

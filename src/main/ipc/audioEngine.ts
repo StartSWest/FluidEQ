@@ -19,12 +19,20 @@ import log from 'electron-log';
 import { engineSupportsRoomUpgrade } from '../../common/engineHealth';
 import { engineTakesOutputConfig } from '../../common/outputConfigFiles';
 import {
+  hasDynamics,
+  hasFootsteps,
   hasPresetTone,
   hasRoomTrailer,
   legacyChainWithoutInactiveRoom,
   isChainWirePayload,
   withoutPresetTone,
 } from '../../common/dsp/chainWire';
+import {
+  ENGINE_READS_NONE,
+  engineReadsOf,
+  IEngineReads,
+  lineForEngine,
+} from '../../common/dsp/engineLine';
 import { engineTakesPresetTone } from '../../common/dsp/presetTone';
 
 /**
@@ -281,6 +289,23 @@ export const registerAudioEngineIpc = ({
     } catch (error) {
       log.warn('Sending the rack without its curve: no engine version', error);
       return false;
+    }
+  };
+  /**
+   * Which of the rack's newer trailers the installed engine reads — the Game
+   * filter, Dynamics (`engineLine.ts`). Answered none where the version
+   * cannot be read, for the curve's reason: a line without a stage plays the
+   * rest of the rack, a line refused plays none of it.
+   */
+  const engineReads = async (): Promise<IEngineReads> => {
+    try {
+      return engineReadsOf(await installedEngineVersion());
+    } catch (error) {
+      log.warn(
+        'Sending the rack without its newer stages: no engine version',
+        error,
+      );
+      return ENGINE_READS_NONE;
     }
   };
   /**
@@ -780,6 +805,9 @@ export const registerAudioEngineIpc = ({
         return;
       }
       let supportedValues = values;
+      if (hasFootsteps(supportedValues) || hasDynamics(supportedValues)) {
+        supportedValues = lineForEngine(supportedValues, await engineReads());
+      }
       if (hasPresetTone(supportedValues) && !(await takesPresetTone())) {
         supportedValues = withoutPresetTone(supportedValues);
       }
@@ -853,4 +881,8 @@ export const registerAudioEngineIpc = ({
       refuse(event, channel, ErrorCode.FAILURE);
     }
   });
+
+  // The flushes write every output's rack too, and must ask the same cached
+  // read as this file's own writes (`IMainSession.installedEngineVersion`).
+  return { installedEngineVersion };
 };

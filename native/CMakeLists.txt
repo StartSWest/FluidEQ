@@ -80,7 +80,6 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/primitives.cpp
   dsp-core/src/saturate.cpp
   dsp-core/src/limiter.cpp
-  dsp-core/src/bass_limiter.cpp
   dsp-core/src/post_filter_normalizer.cpp
   dsp-core/src/live_normalizer.cpp
   dsp-core/src/leveling_memory.cpp
@@ -121,8 +120,15 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/deesser.cpp
   dsp-core/src/deesser_process.cpp
   dsp-core/src/deesser_decide.cpp
+  dsp-core/src/footsteps.cpp
+  dsp-core/src/footsteps_decide.cpp
+  dsp-core/src/game_dialogue.cpp
+  dsp-core/src/game_environment.cpp
+  dsp-core/src/game_shared.cpp
+  dsp-core/src/compander.cpp
   dsp-core/src/meters.cpp
   dsp-core/src/meters_deesser.cpp
+  dsp-core/src/meters_footsteps.cpp
   dsp-core/src/meters_eq_live.cpp
   dsp-core/src/meters_transform.cpp
   dsp-core/src/chain.cpp
@@ -140,6 +146,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/chain_tone.cpp
   dsp-core/src/chain_decode.cpp
   dsp-core/src/chain_deesser.cpp
+  dsp-core/src/chain_footsteps.cpp
   dsp-core/src/resampler.cpp
   dsp-core/src/player.cpp
   dsp-core/src/player_roles.cpp
@@ -152,6 +159,10 @@ target_include_directories(fluideq-dsp-core PUBLIC dsp-core/include)
 # declarations rather than a build dependency.
 target_include_directories(fluideq-dsp-core PRIVATE dsp-host/src/vendor)
 target_link_libraries(fluideq-dsp-core PRIVATE feq_strict)
+# The core's voice runtime opens a library and starts a thread. Before glibc
+# 2.34 these symbols live in libdl/libpthread; all consumers must inherit them.
+find_package(Threads REQUIRED)
+target_link_libraries(fluideq-dsp-core PUBLIC ${CMAKE_DL_LIBS} Threads::Threads)
 target_compile_definitions(fluideq-dsp-core
   PUBLIC FEQ_CORE_VERSION="${FEQ_CORE_VERSION}")
 
@@ -195,6 +206,37 @@ add_test(NAME deesser COMMAND fluideq-deesser-test)
 add_executable(fluideq-deesser-modes-test dsp-core/tests/deesser_modes_test.cpp)
 target_link_libraries(fluideq-deesser-modes-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME deesser-modes COMMAND fluideq-deesser-modes-test)
+
+# Footsteps on a match: steps up, shots, blast, rain and echoes left alone, a
+# shot inside a lift at its own peak, one lift on every side, the LFE
+# untouched, Calm's let-go, a handover, every rate — and the input to the bit
+# with nothing to do.
+add_executable(fluideq-footsteps-test dsp-core/tests/footsteps_test.cpp)
+target_link_libraries(fluideq-footsteps-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME footsteps COMMAND fluideq-footsteps-test)
+
+# Footsteps in mixes the way games play them: loud, paused, heavy in the bass
+# — where judging against fixed levels lifted a match's steps 0.4 dB.
+add_executable(fluideq-footsteps-mix-test dsp-core/tests/footsteps_mix_test.cpp)
+target_link_libraries(fluideq-footsteps-mix-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME footsteps-mix COMMAND fluideq-footsteps-mix-test)
+
+add_executable(fluideq-compander-test dsp-core/tests/compander_test.cpp)
+target_link_libraries(fluideq-compander-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME compander COMMAND fluideq-compander-test)
+
+add_executable(fluideq-dynamics-meters-test dsp-core/tests/dynamics_meters_test.cpp)
+target_link_libraries(fluideq-dynamics-meters-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME dynamics-meters COMMAND fluideq-dynamics-meters-test)
+
+
+# The Game filter's other two parts: a voice brought forward and the rest
+# stepping back (stereo, 5.1, mono, every rate), the bed turned down or up
+# without a step or a voice going with it, and both the input to the bit at
+# zero.
+add_executable(fluideq-game-parts-test dsp-core/tests/game_parts_test.cpp)
+target_link_libraries(fluideq-game-parts-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME game-parts COMMAND fluideq-game-parts-test)
 
 # The three-band split every multiband stage shares, held to the response of
 # the bands put back together rather than to any one of them.
@@ -336,10 +378,6 @@ add_test(NAME maximizer-tone COMMAND fluideq-maximizer-tone-test)
 add_executable(fluideq-limiter-release-test dsp-core/tests/limiter_release_test.cpp)
 target_link_libraries(fluideq-limiter-release-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME limiter-release COMMAND fluideq-limiter-release-test)
-
-add_executable(fluideq-bass-limiter-test dsp-core/tests/bass_limiter_test.cpp)
-target_link_libraries(fluideq-bass-limiter-test PRIVATE fluideq-dsp-core feq_strict)
-add_test(NAME bass-limiter COMMAND fluideq-bass-limiter-test)
 
 add_executable(fluideq-eq-fade-test dsp-core/tests/eq_fade_test.cpp)
 target_link_libraries(fluideq-eq-fade-test PRIVATE fluideq-dsp-core feq_strict)
