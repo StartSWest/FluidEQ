@@ -71,7 +71,6 @@
     scrollbar-gutter: stable;
     padding-right: 4px;
     width: var(--gaming-list-width);
-    opacity: 1;
     transition: opacity $motion-base ease-out calc(var(--gaming-fold) * 0.2);
   }
 
