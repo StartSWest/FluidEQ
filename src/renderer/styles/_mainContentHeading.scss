@@ -176,6 +176,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     $neon-cyan
   );
   background-size: 200% 100%;
+  // Keep the clip in every state. The background shorthand resets it; a
+  // scene tint added afterwards would then paint a rectangle at startup.
   background-clip: text;
   // One pass, and then the name rests lit, which is what the working state
   // says it does (`FluidEngineLabel.tsx`). It drifted for ever: a background
@@ -217,13 +219,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   @media (forced-colors: active) {
     color: CanvasText;
-    background: none;
+    background-image: none;
   }
 
   // APO names the selected engine without borrowing FluidEQ's rainbow identity.
   &.eq-engine-label--apo {
     color: $text-primary;
-    background: none;
+    background-image: none;
     animation: none;
   }
 }
@@ -256,7 +258,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // sit beside.
 .eq-engine-line--broken .eq-engine-label {
   color: $text-muted;
-  background: none;
+  background-image: none;
   animation: none;
   opacity: 0.58;
 }
@@ -273,7 +275,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 .eq-engine-line--partly .eq-engine-label {
   color: $amber;
-  background: none;
+  background-image: none;
   animation: none;
 }
 
@@ -291,7 +293,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // not claim. Plain muted ink until the answer comes, and the colour
   // arrives with the answer.
   color: $text-muted;
-  background: none;
+  background-image: none;
   opacity: 0.62;
   // Only the crest: there is no gradient left to drift. `linear`, because
   // ease-in-out parks it at each end and reads as a wobble, not a scan.
