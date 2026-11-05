@@ -83,17 +83,16 @@ export const registerSettingsResetIpc = (deps: ISettingsResetDeps) => {
       throw new Error('Only FluidEQ resets its settings.');
     }
     return Promise.all(
-      steps.map(([name, step]) => {
-        const report = (error: unknown) =>
+      steps.map(async ([name, step]) => {
+        try {
+          // Some synchronous reset callbacks return their new state.
+          // Await accepts that too, and waits for asynchronous persistence.
+          await step();
+        } catch (error) {
           deps.logger.error(
             `Settings reset: could not reset the ${name}`,
             error,
           );
-        try {
-          return step()?.catch(report);
-        } catch (error) {
-          report(error);
-          return undefined;
         }
       }),
     ).then(() => undefined);

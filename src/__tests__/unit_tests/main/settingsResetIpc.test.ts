@@ -152,6 +152,15 @@ describe('resetting the settings main keeps', () => {
     expect(deps.unpinWindow).toHaveBeenCalledTimes(1);
   });
 
+  it('accepts a synchronous reset callback returning its new state', async () => {
+    jest
+      .mocked(deps.resetLighting)
+      .mockImplementation(() => ({ enabled: false }));
+    await askFrom(owner);
+    expect(deps.resetLighting).toHaveBeenCalledTimes(1);
+    expect(deps.logger.error).not.toHaveBeenCalled();
+  });
+
   it('waits for the engine shortcut choice to be saved', async () => {
     let finish: () => void = () => undefined;
     jest.mocked(deps.resetEngineKey).mockImplementation(
