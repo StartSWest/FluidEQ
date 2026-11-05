@@ -219,7 +219,7 @@ describe('what stands on the floor', () => {
     ['Library.scss', '.library-list'],
     ['Library.scss', '.library-up-next'],
     ['Library.scss', '.library-empty__card'],
-    ['Games.scss', '.games-row'],
+    ['Games.scss', '.gaming-game'],
     ['ConfigInspector.scss', '.config-card'],
     ['StudioMaker.scss', '.studio-maker'],
     ['RemoteAudio.scss', '.remote-audio__link-form'],

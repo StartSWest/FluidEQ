@@ -12,6 +12,7 @@ export const DIMENSION_PRESET_GROUPS = [
   'device',
   'scene',
   'character',
+  'gaming',
 ] as const;
 
 export type TDimensionPresetGroup = (typeof DIMENSION_PRESET_GROUPS)[number];
@@ -211,6 +212,38 @@ export const DIMENSION_PRESET_BY_ID = {
     // Bass approaches mono for a PA, while the top stays only modestly wide;
     // the room supplies more spread than the record needs to manufacture.
     settings: profile(0.45, 1, 1.15, 180, 3_200, 0.15),
+  },
+
+  // Gaming. Width that never moves a sound, or width for a world. A game
+  // places its sounds itself; scaling the side is safe, but made side out of
+  // the centre (decorrelation) blurs where a centred sound is, so the
+  // position-critical ones take none.
+  gamePositionSafe: {
+    id: 'gamePositionSafe',
+    labelKey: 'dsp.gamingPreset.positionSafe',
+    group: 'gaming',
+    // Every width at one and nothing made: a step stays exactly where the
+    // game put it. Only the bass under 120 Hz is narrowed, where a blast's
+    // rumble carries no direction and pulls the head to one side.
+    settings: profile(0.6, 1, 1, 120, 3_000, 0),
+  },
+  gameOpenWorld: {
+    id: 'gameOpenWorld',
+    labelKey: 'dsp.gamingPreset.openWorld',
+    group: 'gaming',
+    // A world wider than the headset: mids and highs opened, a little spread
+    // so ambience surrounds rather than sits in two cups. Under the music
+    // profiles' Expansive; a game's centre is dialogue and the crosshair.
+    settings: profile(0.75, 1.2, 1.4, 160, 2_600, 0.25),
+  },
+  gameBattlefield: {
+    id: 'gameBattlefield',
+    labelKey: 'dsp.gamingPreset.battlefieldView',
+    group: 'gaming',
+    // Seen from above, nothing is behind you: the stage as wide as it goes
+    // without thinning, bass held mono under 150 Hz so team fights stay
+    // centred.
+    settings: profile(0.6, 1.3, 1.55, 150, 2_400, 0.4),
   },
 } satisfies Record<string, IDimensionPreset>;
 

@@ -19,6 +19,7 @@ import {
   CHAIN_ROOM_TAG,
   CHAIN_TONE_TAG,
   appendPresetTone,
+  asFootstepsAlone,
   chainWireLength,
   encodeChainSettings,
   hasFootsteps,
@@ -34,17 +35,28 @@ import { FOOTSTEPS_DEFAULTS } from '../../../common/dsp/footsteps';
 import clampFootstepsSettings from '../../../common/dsp/footstepsClamp';
 import {
   FOOTSTEPS_PRESETS,
+  footstepsPresetOf,
   footstepsPresetSettings,
+  footstepsSettingsOf,
 } from '../../../common/dsp/footstepsPresets';
 import {
   CHAIN_FOOTSTEPS_TAG,
   CHAIN_FOOTSTEPS_TRAILER,
+  CHAIN_GAME_SCHEMA,
+  CHAIN_GAME_TRAILER,
 } from '../../../common/dsp/footstepsWire';
+import {
+  ENGINE_READS_NONE,
+  engineReadsOf,
+  lineForEngine,
+} from '../../../common/dsp/engineLine';
 import { DSP_PRESETS } from '../../../common/dsp/presets';
 import { FOOTSTEPS_CATALOGUE } from '../../../common/dsp/stageCatalogues';
 import {
   ENGINE_FOOTSTEPS_SINCE,
+  ENGINE_GAME_SINCE,
   engineRunsFootsteps,
+  engineRunsGame,
 } from '../../../common/engineHealth';
 import en from '../../../common/i18n/en';
 
@@ -82,11 +94,23 @@ describe('Footsteps profiles', () => {
     });
   });
 
-  it('names and games every one in English', () => {
-    FOOTSTEPS_PRESETS.forEach((preset) => {
+  it('names every kind in English with its games', () => {
+    const kinds = FOOTSTEPS_PRESETS.filter(
+      (preset) => preset.title === undefined,
+    );
+    expect(kinds.length).toBeGreaterThan(0);
+    kinds.forEach((preset) => {
       expect(en).toHaveProperty([preset.labelKey]);
-      expect(en).toHaveProperty([preset.gamesKey]);
+      expect(en).toHaveProperty([preset.hintKey ?? '']);
     });
+  });
+
+  it('names every title by the game’s own name', () => {
+    const titles = FOOTSTEPS_PRESETS.filter(
+      (preset) => preset.title !== undefined,
+    );
+    expect(titles.length).toBeGreaterThan(0);
+    titles.forEach((preset) => expect(preset.title?.length).toBeGreaterThan(0));
   });
 
   it('lifts more the larger and louder the kind of game', () => {
@@ -115,6 +139,8 @@ describe('a stored Footsteps read back', () => {
         lift: 3,
         calm: -1,
         presetId: '',
+        environment: -3,
+        voices: 2,
       }),
     ).toEqual({
       enabled: true,
@@ -122,24 +148,72 @@ describe('a stored Footsteps read back', () => {
       presetId: '',
       lift: 1,
       calm: 0,
+      heavy: false,
+      environment: -1,
+      voices: 1,
+      duck: false,
+      useRoom: false,
+    });
+  });
+
+  it('reads a Footsteps saved before the filter’s other parts as having none of them', () => {
+    // Tuned by hand when the filter was Footsteps alone: it has to sound as
+    // it did, with no Environment and no Dialogue it never had.
+    expect(
+      clampFootstepsSettings({
+        enabled: true,
+        lift: 0.4,
+        calm: 0.2,
+        presetId: 'competitive',
+      }),
+    ).toEqual({
+      ...FOOTSTEPS_DEFAULTS,
+      enabled: true,
+      lift: 0.4,
+      calm: 0.2,
+      environment: 0,
+      voices: 0,
     });
   });
 });
 
 describe('the chains that turn it on', () => {
-  it('are the three Gaming chains, at Competitive', () => {
+  it('are the three Gaming chains and the ten for kinds of game', () => {
     const on = DSP_PRESETS.filter(
       (preset) => preset.settings.footsteps.enabled,
     );
     expect(on.map((preset) => preset.id).sort()).toEqual([
+      'game-blast',
+      'game-cinematic',
+      'game-dread',
+      'game-impact',
+      'game-night',
+      'game-pinpoint',
+      'game-speed',
+      'game-stealth',
+      'game-topdown',
+      'game-worlds',
       'gaming',
       'gaming-competitive',
       'gaming-room',
     ]);
-    on.forEach((preset) =>
-      expect(preset.settings.footsteps).toEqual(
-        footstepsPresetSettings('competitive', true),
-      ),
+  });
+
+  it('each play the Game filter profile they name, the Room’s copies saying so', () => {
+    DSP_PRESETS.filter((preset) => preset.settings.footsteps.enabled).forEach(
+      (preset) => {
+        const { footsteps, room } = preset.settings;
+        const named = footstepsPresetOf(footsteps.presetId);
+        expect(named).toBeDefined();
+        expect(footsteps).toEqual(
+          named &&
+            footstepsSettingsOf(named, true, {
+              // Having the Room on is how a listener says they wear
+              // headphones.
+              useRoom: room.enabled,
+            }),
+        );
+      },
     );
   });
 });
@@ -155,13 +229,47 @@ describe('Footsteps on the rack’s line', () => {
     expect(off).toEqual(line);
   });
 
-  it('stands after a game word written off, with its four values', () => {
+  it('stands after a game word written off, with its eight values', () => {
     const line = encodeChainSettings(
-      withFootsteps({ isolate: true, lift: 0.4, calm: 0.2 }),
+      withFootsteps({
+        isolate: true,
+        lift: 0.4,
+        calm: 0.2,
+        heavy: true,
+        environment: -0.6,
+        voices: 0.5,
+        duck: true,
+      }),
     );
     const gameWord = chainWireLength(DSP_DEFAULTS.eq.bands.length);
     expect(line[gameWord]).toBe(0);
     expect(line.slice(gameWord + 1)).toEqual([
+      CHAIN_FOOTSTEPS_TAG,
+      CHAIN_GAME_SCHEMA,
+      8,
+      1,
+      1,
+      0.4,
+      0.2,
+      1,
+      -0.6,
+      0.5,
+      1,
+    ]);
+    expect(isChainWirePayload(line)).toBe(true);
+    expect(hasFootsteps(line)).toBe(true);
+  });
+
+  it('reaches engine 1.25 as Footsteps alone, the rest of the line kept', () => {
+    const line = appendPresetTone(
+      encodeChainSettings(
+        withFootsteps({ isolate: true, lift: 0.4, calm: 0.2, voices: 0.5 }),
+      ),
+      tone,
+    );
+    const alone = asFootstepsAlone(line);
+    const at = alone.indexOf(CHAIN_FOOTSTEPS_TAG);
+    expect(alone.slice(at, at + CHAIN_FOOTSTEPS_TRAILER)).toEqual([
       CHAIN_FOOTSTEPS_TAG,
       1,
       4,
@@ -170,8 +278,15 @@ describe('Footsteps on the rack’s line', () => {
       0.4,
       0.2,
     ]);
-    expect(isChainWirePayload(line)).toBe(true);
-    expect(hasFootsteps(line)).toBe(true);
+    expect(alone).toHaveLength(
+      line.length - (CHAIN_GAME_TRAILER - CHAIN_FOOTSTEPS_TRAILER),
+    );
+    expect(isChainWirePayload(alone)).toBe(true);
+    expect(hasPresetTone(alone)).toBe(true);
+    // Already Footsteps alone, or without the filter: nothing to cut.
+    expect(asFootstepsAlone(alone)).toEqual(alone);
+    const plain = encodeChainSettings({ ...DSP_DEFAULTS, enabled: true });
+    expect(asFootstepsAlone(plain)).toEqual(plain);
   });
 
   it('stands between the Room’s trailer and the curve', () => {
@@ -185,7 +300,7 @@ describe('Footsteps on the rack’s line', () => {
     const curve = line.indexOf(CHAIN_TONE_TAG);
     expect(room).toBeGreaterThan(0);
     expect(footsteps).toBeGreaterThan(room);
-    expect(curve).toBe(footsteps + CHAIN_FOOTSTEPS_TRAILER);
+    expect(curve).toBe(footsteps + CHAIN_GAME_TRAILER);
     expect(isChainWirePayload(line)).toBe(true);
     expect(hasRoomTrailer(line)).toBe(true);
     expect(hasPresetTone(line)).toBe(true);
@@ -230,18 +345,47 @@ describe('Footsteps on the rack’s line', () => {
       return copy;
     };
     expect(isChainWirePayload(line)).toBe(true);
-    expect(isChainWirePayload(broken(at + 1, 2))).toBe(false);
-    expect(isChainWirePayload(broken(at + 5, 1.5))).toBe(false);
+    // A schema no engine reads, and schema 1 claiming the Game filter's
+    // eight fields.
+    expect(isChainWirePayload(broken(at + 1, 3))).toBe(false);
+    expect(isChainWirePayload(broken(at + 1, 1))).toBe(false);
+    expect(isChainWirePayload(broken(at + 2, 4))).toBe(false);
+    // Isolate, Lift, Heavy, Environment, Voices and Duck out of range.
     expect(isChainWirePayload(broken(at + 4, 2))).toBe(false);
+    expect(isChainWirePayload(broken(at + 5, 1.5))).toBe(false);
+    expect(isChainWirePayload(broken(at + 7, 2))).toBe(false);
+    expect(isChainWirePayload(broken(at + 8, -1.5))).toBe(false);
+    expect(isChainWirePayload(broken(at + 9, 1.5))).toBe(false);
+    expect(isChainWirePayload(broken(at + 10, 0.5))).toBe(false);
     expect(isChainWirePayload(line.slice(0, -1))).toBe(false);
   });
 });
 
 describe('the engine that runs it', () => {
-  it('is 1.25 and later', () => {
+  it('is 1.25 and later for Footsteps, 1.26 and later for the whole filter', () => {
     expect(ENGINE_FOOTSTEPS_SINCE).toEqual([1, 25]);
     expect(engineRunsFootsteps('1.24.0.0')).toBe(false);
     expect(engineRunsFootsteps('1.25.0.0')).toBe(true);
     expect(engineRunsFootsteps(undefined)).toBe(false);
+    expect(ENGINE_GAME_SINCE).toEqual([1, 26]);
+    expect(engineRunsGame('1.25.0.0')).toBe(false);
+    expect(engineRunsGame('1.26.0.0')).toBe(true);
+    expect(engineRunsGame(undefined)).toBe(false);
+  });
+
+  it('gets the line it reads, and an older one never a trailer it would refuse the rack over', () => {
+    const line = appendPresetTone(
+      encodeChainSettings(withFootsteps({ voices: 0.5 })),
+      tone,
+    );
+    expect(lineForEngine(line, engineReadsOf('1.27.0.0'))).toEqual(line);
+    expect(lineForEngine(line, engineReadsOf('1.26.0.0'))).toEqual(line);
+    expect(lineForEngine(line, engineReadsOf('1.25.0.0'))).toEqual(
+      asFootstepsAlone(line),
+    );
+    const older = lineForEngine(line, engineReadsOf('1.24.0.0'));
+    expect(hasFootsteps(older)).toBe(false);
+    expect(hasPresetTone(older)).toBe(true);
+    expect(lineForEngine(line, ENGINE_READS_NONE)).toEqual(older);
   });
 });

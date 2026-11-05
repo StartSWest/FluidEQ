@@ -15,10 +15,10 @@ import {
   ANALYSIS_DEESSER_HEADER_BYTES,
   ANALYSIS_EQ_DETAIL_BINS,
   ANALYSIS_EQ_DETAIL_WINDOW,
-  ANALYSIS_LEGACY_HEADER_BYTES,
   ANALYSIS_FOOTSTEPS_HEADER_BYTES,
   ANALYSIS_GAME_HEADER_BYTES,
   ANALYSIS_DYNAMICS_TAG,
+  ANALYSIS_LEGACY_HEADER_BYTES,
 } from '../../../common/dsp/analysisWire';
 
 const packet = (
@@ -241,13 +241,31 @@ describe('an engine with Footsteps and one without', () => {
     expect(read?.footsteps).toBeUndefined();
   });
 
-  it('cannot take the 32 bytes between the two for a live extension', () => {
-    expect(
-      ANALYSIS_FOOTSTEPS_HEADER_BYTES - ANALYSIS_DEESSER_HEADER_BYTES,
-    ).toBe(32);
-    // The extensions are 8, 16 or 20 bytes: no two differ by 32.
-    [0, 8, 16, 20].forEach((one) =>
-      [0, 8, 16, 20].forEach((other) => expect(one - other).not.toBe(32)),
+  it('cannot take the bytes between any two headers for a live extension', () => {
+    // A frame is tried at each header in turn, newest first, and its whole
+    // length follows from the header plus an extension of 0, 8, 16 or 20
+    // bytes. Were one header plus one extension the length of another header
+    // plus another, a frame would decode at the wrong header as numbers that
+    // look right.
+    const headers = [
+      ANALYSIS_HEADER_BYTES,
+      ANALYSIS_GAME_HEADER_BYTES,
+      ANALYSIS_FOOTSTEPS_HEADER_BYTES,
+      ANALYSIS_DEESSER_HEADER_BYTES,
+      ANALYSIS_LEGACY_HEADER_BYTES,
+    ];
+    const extensions = [0, 8, 16, 20];
+    expect(new Set(headers).size).toBe(headers.length);
+    headers.forEach((one) =>
+      headers
+        .filter((other) => other !== one)
+        .forEach((other) =>
+          extensions.forEach((mine) =>
+            extensions.forEach((theirs) =>
+              expect(one + mine).not.toBe(other + theirs),
+            ),
+          ),
+        ),
     );
   });
 });

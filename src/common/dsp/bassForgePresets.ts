@@ -11,6 +11,7 @@ export const BASS_FORGE_PRESET_GROUPS = [
   'genre',
   'character',
   'scene',
+  'gaming',
 ] as const;
 
 export type TBassForgePresetGroup = (typeof BASS_FORGE_PRESET_GROUPS)[number];
@@ -258,6 +259,27 @@ export const BASS_FORGE_PRESET_BY_ID = {
     // No octave a small driver cannot radiate; the second-order cue carries
     // the pitch without spending excursion below the enclosure's cutoff.
     settings: profile(110, 1, 0, 1.5, 1, 0.6),
+  },
+
+  // Gaming. A headset's small driver cannot play an explosion's sub; the
+  // Forge's harmonics let the ear hear it an octave up. Never the octave
+  // divider here: a made subharmonic on top of a game's own LFE muddies the
+  // band a blast and a step share.
+  gameRumble: {
+    id: 'gameRumble',
+    labelKey: 'dsp.gamingPreset.rumble',
+    group: 'gaming',
+    // Presence carries the rumble, no sub, little drive; the split low so a
+    // voice's fundamental is never touched.
+    settings: profile(90, 1, 0, 0.95, 0.9, 0.5),
+  },
+  gameEngine: {
+    id: 'gameEngine',
+    labelKey: 'dsp.gamingPreset.engineWeight',
+    group: 'gaming',
+    // An engine's firing note is 60-160 Hz: harmonics make its weight heard
+    // on any headset, no drive so it never fuzzes the gear changes.
+    settings: profile(130, 0.5, 0, 0.8, 0.9, 0.45),
   },
 } satisfies Record<string, IBassForgePreset>;
 

@@ -4,43 +4,85 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-// Game profiles: a row per game, the sound beside it, and a line at the top
-// saying what is in front right now.
+// The Gaming Lab: the listener's games down the side, the chosen one's own
+// sound beside them with every part of it to tune, and the profiles their
+// copies start from.
 //
-// The page is a list and nothing else, so it borrows the rack's surfaces
-// rather than inventing any: the same card, the same quiet hint, the same
-// picker. What is new here is only the row.
+// It borrows the rack's surfaces rather than inventing any — the DSP page's
+// rail, its cards, the same pickers — because tuning a game is tuning a
+// sound, and the page should not look like a different app from the one
+// that tunes the music. What is new here is the list, the header that says
+// where a game's copy came from, and the word "tuned".
 
+@use 'sass:list';
 @use 'color' as *;
 @use 'constant' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'theme' as *;
 
-// No padding of its own, like the pages either side of it on the same rail:
-// the card is the tab panel's and the air above the first row is the
-// scroller's. It had its own while the panel had no card at all, and once the
-// card arrived the two stacked.
-.games-page {
+// A container, because the list beside the panel is a question about this
+// page's width and not the window's: the side columns change the room the
+// page has at their own breakpoints.
+.gaming-lab {
   display: grid;
-  gap: 10px;
+  gap: 14px;
   align-content: start;
+  container: gaming-lab / inline-size;
 }
 
-// What is in front, and the button that adds it. They share a line until the
-// line is too narrow for both, which is where the button drops under it.
-.games-head {
+// The two views on the left, the switch and the add button on the right.
+// They share a line until the line is too narrow for both.
+.gaming-lab__head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px 16px;
   min-width: 0;
+  border-bottom: 1px solid $menu-rule;
 }
 
-// The feature's switch and the button that adds to it, kept together at the
-// line's end and wrapping under each other only when the page is too narrow
-// for both.
-.games-head__actions {
+.gaming-lab__views {
+  display: flex;
+  gap: 22px;
+}
+
+// The view's name underlined the way the titlebar's tabs are, one level down.
+.gaming-lab__view {
+  position: relative;
+  padding: 10px 0 9px;
+  border: 0;
+  background: none;
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 140ms ease;
+
+  &:hover {
+    color: $text-muted;
+  }
+
+  &.is-active {
+    color: $text-primary;
+
+    &::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      bottom: -1px;
+      left: 0;
+      height: 2px;
+      border-radius: 2px;
+      background: $secondary-default;
+    }
+  }
+}
+
+.gaming-lab__head-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -48,157 +90,1386 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 8px;
   min-width: 0;
   margin-left: auto;
+  padding-bottom: 6px;
 }
 
-.games-front {
-  display: flex;
+// What is playing (`GamingNowPlaying`): the capsule the switches beside it
+// wear, in its on colours, because it says a game's sound is on. The preset
+// leads in the accent, the game follows quieter; a live dot first.
+.gaming-now {
+  @include field-interactive;
+  display: inline-flex;
+  flex: 0 1 auto;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
-  margin: 0;
-  color: $text-faint;
+  padding: 5px 10px;
+  border-color: color-mix(in srgb, $secondary-default 45%, transparent);
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 9%, transparent);
+  color: $secondary-default;
   font-size: $text-small;
-  transition: color $motion-base $ease-out;
-
-  &.is-on {
-    color: $secondary-default;
-  }
+  font-weight: $weight-semibold;
+  cursor: pointer;
 }
 
-.games-front__pip {
+.gaming-now__dot {
   flex: 0 0 auto;
   width: 6px;
   height: 6px;
   border-radius: $radius-pill;
-  background: currentColor;
-  opacity: 0.55;
+  background: $secondary-default;
+  box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 70%, transparent);
+}
 
-  .is-on > & {
-    opacity: 1;
-    box-shadow: 0 0 8px currentColor;
+.gaming-now__glyph {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+
+.gaming-now__preset {
+  white-space: nowrap;
+}
+
+.gaming-now__game {
+  min-width: 0;
+  overflow: hidden;
+  color: $text-muted;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  .gaming-now__preset + &::before {
+    margin-right: 7px;
+    content: '·';
+    color: $text-faint;
   }
 }
 
-.games-list {
-  display: grid;
+// The toolbar's measure between a button's icon and its word (6px, as the
+// EQ page's pickers keep it): `.button` lays its parts out with none, and
+// the plus sat against "Add a game".
+.gaming-lab__add {
   gap: 6px;
+
+  > svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.gaming-cap {
   margin: 0;
-  padding: 0;
-  list-style: none;
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  font-weight: $weight-semibold;
+  @include tracking(0.09em);
+  text-transform: uppercase;
+}
+
+// The live dot: a game in front, a game's own sound on.
+.gaming-dot {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: $radius-pill;
+  background: $active;
+  box-shadow: 0 0 8px color-mix(in srgb, $active 70%, transparent);
+
+  &.is-lavender {
+    background: $primary-lighter;
+    box-shadow: 0 0 8px color-mix(in srgb, $primary-lighter 60%, transparent);
+  }
+}
+
+// The kind of profile, beside its name: for this game, by kind, yours.
+.gaming-kind {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border-radius: $radius-2xs;
+  background: color-mix(in srgb, $secondary-default 16%, transparent);
+  color: $text-accent;
+  font-size: $text-eyebrow;
+  font-weight: $weight-semibold;
+  @include tracking(0.07em);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+// ---- The games view --------------------------------------------------------
+
+.gaming-games {
+  display: grid;
+  grid-template-columns: minmax(220px, 270px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
   transition: opacity $motion-base $ease-out;
 
-  // Switched off, the list is still the listener's to edit, but it reads as
+  // Switched off, the list is still the listener's to tune, but it reads as
   // standing by rather than as live.
-  &.is-off {
-    opacity: 0.55;
+  &.is-off .gaming-games__list {
+    opacity: 0.6;
   }
 }
 
-// The game on the left, its sound on the right, and the two meeting in the
-// middle at the width where the name would otherwise be squeezed to nothing.
-.games-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
+@container gaming-lab (max-width: 820px) {
+  .gaming-games {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.gaming-games__list {
+  display: grid;
+  gap: 7px;
+  align-content: start;
   min-width: 0;
-  // A card like the Library's tiles, in the window's colour: the plot's flat
-  // slate made each game a grey bar the pickers on it did not match (Ivan,
-  // 2026-09-26: "see some select and pane not matching").
-  @include card-surface;
-  padding: 8px 10px;
 
-  &.is-playing {
-    border-color: color-mix(in srgb, $secondary-default 32%, transparent);
+  > .gaming-cap {
+    margin-bottom: 2px;
   }
 }
 
-// Windows draws these at 32px; shown smaller they keep their own colours,
-// which is the point of using them. The drawn fallback beside them takes the
-// row's own colour instead, so a list of both does not read as two lists.
-.game-icon {
+.gaming-game {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  min-width: 0;
+  @include card-surface;
+  padding: 9px 11px;
+  color: $text-primary;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, $secondary-default 28%, transparent);
+  }
+
+  &.is-selected {
+    border-color: color-mix(in srgb, $secondary-default 50%, transparent);
+    box-shadow: inset 3px 0 0 $secondary-default;
+  }
+}
+
+// Windows draws these at 32px; shown in a tile they keep their own colours,
+// which is the point of using them.
+.gaming-game__icon,
+.gaming-panel__icon {
+  display: grid;
   flex: 0 0 auto;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 5px;
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $secondary-default 10%, $surface-well);
+  color: $text-muted;
+}
+
+// Fills the frame it is drawn in, at no specificity, so a caller that sizes
+// it wins: as a picker's glyph (`rich-pick__glyph`, 1em) it otherwise filled
+// the EQ page.
+:where(.game-icon) {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-.games-row__glyph {
-  flex: 0 0 auto;
-  width: 26px;
-  height: 26px;
-  color: $text-faint;
-
-  .is-playing > & {
-    color: $secondary-default;
-  }
-}
-
-.games-row__what {
+.gaming-game__what,
+.gaming-pick__what {
   display: grid;
-  flex: 1 1 200px;
-  gap: 1px;
+  flex: 1 1 auto;
+  gap: 2px;
   min-width: 0;
 }
 
-.games-row__name {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px;
-  color: $text-primary;
+.gaming-game__name {
+  overflow: hidden;
   font-size: $text-body;
   font-weight: $weight-semibold;
-}
-
-.games-row__now {
-  padding: 1px 7px;
-  border-radius: $radius-2xs;
-  background: color-mix(in srgb, $secondary-default 18%, transparent);
-  color: $secondary-default;
-  font-size: $text-micro;
-  font-weight: $weight-medium;
-  @include tracking(0.08em);
-  text-transform: uppercase;
-}
-
-// The whole path, cut at the front rather than the end: two games of one
-// launcher differ in their last folder and share every one before it.
-.games-row__where {
-  overflow: hidden;
-  color: $text-faint;
-  font-size: $text-small;
-  direction: rtl;
-  text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.games-row__sound {
-  flex: 0 1 240px;
-  min-width: 160px;
+.gaming-game__from {
+  display: flex;
+  min-width: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  white-space: nowrap;
 }
 
-.games-row__remove {
+.gaming-game__source {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Said in the colour every "tuned" in the Lab wears. `pre` keeps the space
+// in front of its " · ": a flex item drops the leading space of its own
+// text, and the row read "From Competitive· tuned".
+.gaming-game__tuned {
   flex: 0 0 auto;
+  color: $primary-lighter;
+  font-weight: $weight-semibold;
+  white-space: pre;
 }
 
-.games-empty {
+.gaming-game__playing {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 7px;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $active 14%, transparent);
+  color: $active;
+  font-size: $text-eyebrow;
+  font-weight: $weight-semibold;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+}
+
+// ---- One game's panel ------------------------------------------------------
+
+.gaming-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  @include card-surface;
+  padding: 14px 16px 16px;
+}
+
+.gaming-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 12px;
+}
+
+.gaming-panel__game {
+  display: flex;
+  flex: 1 1 220px;
+  align-items: center;
+  align-self: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.gaming-panel__icon {
+  width: 40px;
+  height: 40px;
+}
+
+.gaming-panel__names {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.gaming-panel__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+}
+
+.gaming-panel__where {
+  overflow: hidden;
+  color: $text-faint;
+  font-size: $text-small;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gaming-panel__profile {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.gaming-panel__pick {
+  min-width: min(260px, 100%);
+}
+
+.gaming-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+// What the copy is and what has been tuned away from its profile: one line
+// across the panel, between what the game is and the parts to tune.
+.gaming-panel__status {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin: 0;
+  padding-top: 2px;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.gaming-panel__status-dot {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 6px;
+  height: 6px;
+  border-radius: $radius-pill;
+  background: $text-dim;
+
+  .is-tuned > & {
+    background: $primary-lighter;
+    box-shadow: 0 0 8px color-mix(in srgb, $primary-lighter 60%, transparent);
+  }
+}
+
+// The rule parts the status line from what is under it; with nothing above
+// (the parts alone, as Help draws them) there is nothing to part.
+.gaming-panel__status + .gaming-panel__body {
+  padding-top: 12px;
+  border-top: 1px solid $menu-rule;
+}
+
+// The rail: the DSP page's own, in three groups, names and all. It is not
+// inside the `dsp-panel` container (the editor beside it is), so the DSP
+// page's narrow rule — a strip of icons across the top — never catches it
+// half-way; this page folds it itself, below.
+.gaming-rail {
+  flex: 0 0 auto;
+  gap: 12px;
+  width: 196px;
+}
+
+.gaming-rail__group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+// The EQ page's own glyphs in the rack's frame (`.dsp-section-icon`).
+.gaming-rail__glyph {
+  display: grid;
+  place-items: center;
+
+  > svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// Folded, the rail goes across the top as the DSP page's does: the glyphs
+// alone, each still named by its title, the groups side by side — on a
+// narrow page only. Folded for the EQ's editor as well, it threw the names
+// away beside plenty of room (Ivan, 2026-11-02: "why on the top?? not good
+// when there is plenty space").
+@mixin folded-rail {
+  flex-direction: column;
+
+  > .gaming-rail {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    width: auto;
+  }
+
+  .gaming-rail__group {
+    flex-direction: row;
+    gap: 2px;
+
+    > .dsp-rail-group-label,
+    .dsp-rail-name,
+    .gaming-rail__tuned {
+      display: none;
+    }
+
+    > .dsp-rail-tab {
+      flex-direction: column;
+      gap: 4px;
+      min-width: 38px;
+      padding: 7px 6px;
+    }
+
+    // Tuned, a glyph alone still says so: a ring of the colour "tuned"
+    // wears, where the word stood.
+    > .dsp-rail-tab:has(.gaming-rail__tuned) .dsp-section-icon {
+      box-shadow: 0 0 0 1px $primary-lighter;
+    }
+  }
+}
+
+@container gaming-lab (max-width: 760px) {
+  .gaming-panel__body {
+    @include folded-rail;
+  }
+}
+
+.gaming-rail__tuned {
+  margin-left: auto;
+  color: $primary-lighter;
+  font-size: $text-eyebrow;
+  font-weight: $weight-semibold;
+  @include tracking(0.04em);
+
+  + .dsp-rail-lamp {
+    margin-left: 6px;
+  }
+}
+
+// The rack's cards answer to the room they stand in, as they do on the DSP
+// page (`container: dsp-panel`): here, the editor column beside the rail.
+.gaming-editor {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  container: dsp-panel / inline-size;
+}
+
+.gaming-editor__note {
   margin: 0;
   color: $text-faint;
   font-size: $text-small;
   line-height: 1.4;
 }
 
+.gaming-editor__card {
+  display: grid;
+  gap: 12px;
+  @include card-surface;
+  padding: 14px 16px;
+}
+
+// A game whose sound is not on: said, with the way to put it on, at the top
+// beside the rail like any editor. Centred on the rail's height it floated
+// halfway down a column of sixteen stages, under a hole.
+.gaming-editor--waiting {
+  justify-content: flex-start;
+}
+
+.gaming-editor__waiting {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  @include card-surface;
+  padding: 44px 24px 48px;
+  text-align: center;
+
+  > p {
+    max-width: 50ch;
+    margin: 0;
+  }
+
+  > .button {
+    margin-top: 8px;
+  }
+}
+
+.gaming-editor__art {
+  width: 46px;
+  height: 46px;
+  color: color-mix(in srgb, $secondary-default 70%, $text-faint);
+}
+
+.gaming-editor__title {
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+}
+
+.gaming-editor__more {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+// The EQ page's editor in the box its own page gives it
+// (`.workspace-tab-panel__scroll`): the same width container, so its rows
+// fold here exactly as they do there at this width, and a height, because
+// the band rows take theirs from the pane they stand in. Without one the row
+// measured nothing and the bands spilled over the toolbar and the Tone row.
+// Never under 560px: beside the rail the toolbar wraps to two rows, and in
+// 464px (58vh of an 800px window) the frequencies and the Tone row ran into
+// it. The page scrolls; the editor does not get squeezed.
+.gaming-eq {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  height: clamp(560px, 64vh, 680px);
+  container-name: autoeq-workspace eq-panel;
+  container-type: inline-size;
+
+  > .main-content {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  // The Lab's own top line already says what plays (`GamingNowPlaying`),
+  // and this toolbar is narrower than the EQ page's.
+  .voicing-pick__game-preset {
+    display: none;
+  }
+}
+
+// Every curve, as the main graph draws them, on the plot's own ground: tall
+// enough for the ±20 dB scale to read, never so tall that the chips and the
+// list under it leave the screen.
+.gaming-curve__graph {
+  flex: 0 0 auto;
+  height: clamp(220px, 30vh, 320px);
+  border: 1px solid $menu-rule;
+  border-radius: $radius-m;
+  background: $surface-plot;
+}
+
+// The chips stand on the card itself, not in a floating menu: no shadow, no
+// edge of their own.
+.gaming-curve__layers {
+  position: static;
+  box-shadow: none;
+  border: 0;
+  background: none;
+  padding: 0;
+}
+
+// ---- The Save as profile menu ---------------------------------------------
+
+// Spaced as every dropdown on the EQ page is (`quick-layouts__trigger`,
+// `rich-pick__trigger`): 6px to the chevron and one more before it. With
+// none, "Save as profile" ran into its arrow.
+.gaming-save > .button {
+  gap: 6px;
+
+  .chevron {
+    margin-left: 1px;
+  }
+}
+
+.gaming-save__menu {
+  @include menu-surface;
+  z-index: 1000;
+  width: min(320px, calc(100vw - 16px));
+  padding: 6px;
+}
+
+.gaming-save__items {
+  display: grid;
+  gap: 2px;
+}
+
+// The action's icon beside its words, at the first line, as the app's other
+// menus draw theirs: a two-line item and a one-line one line up the same.
+.gaming-save__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: $radius-s;
+  background: none;
+  color: $text-primary;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
+  }
+
+  &.is-danger .gaming-save__label,
+  &.is-danger .gaming-save__icon {
+    color: $red;
+  }
+}
+
+.gaming-save__icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  color: $text-muted;
+}
+
+.gaming-save__text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.gaming-save__label {
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.gaming-save__hint {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.35;
+}
+
+.gaming-save__rule {
+  height: 1px;
+  margin: 4px 6px;
+  background: $menu-rule;
+}
+
+// ---- Adding a game ---------------------------------------------------------
+
+// Sized like every framed dialog, height included: with a width alone it
+// grew with its list, and a PC with twenty programs open and a launcher's
+// library pushed Add and Cancel below the screen with nothing to scroll
+// (Ivan, 2026-11-04). Capped, the list scrolls in the body and the buttons
+// stay in the foot. Wider than it was, so a game's name is not cut to
+// "Google Chro…" beside the profile it starts from.
+.dialog-frame.gaming-add-dialog {
+  @include dialog.size(880px, 760px);
+}
+
+.gaming-add-dialog__body {
+  display: grid;
+  gap: 14px;
+}
+
+.gaming-add-dialog__group {
+  display: grid;
+  gap: 6px;
+}
+
+.gaming-add-dialog__note,
+.gaming-add-dialog__later {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.gaming-add-dialog__browse {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: $text-accent;
+  font: inherit;
+  font-size: $text-small;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+// One line whatever the width: the profile's name gives way before the row
+// does. Wrapping turned one row in five into a row twice as tall, because a
+// three-letter store name decided it by a few pixels.
+.gaming-pick {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  @include card-surface;
+  padding: 9px 11px;
+  color: $text-primary;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: color-mix(in srgb, $secondary-default 28%, transparent);
+  }
+
+  &.is-chosen {
+    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
+  }
+}
+
+.gaming-pick__radio {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid $text-dim;
+  border-radius: $radius-pill;
+
+  .is-chosen > & {
+    border: 4.5px solid $secondary-default;
+  }
+}
+
+// Beside the game's name, as two lines of its own — "Starts from" over the
+// profile — so a row is as tall as the game's two lines. On one line under
+// the game it made every row half as tall again for a few words.
+.gaming-pick__starts {
+  display: grid;
+  flex: 0 1 auto;
+  grid-template-columns: minmax(0, auto) auto;
+  align-items: center;
+  justify-content: end;
+  gap: 2px 8px;
+  min-width: 0;
+  max-width: 60%;
+  margin-left: auto;
+  text-align: right;
+}
+
+.gaming-pick__starts-label {
+  grid-column: 1 / -1;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.gaming-pick__profile {
+  overflow: hidden;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ---- The profiles view -----------------------------------------------------
+
+// The accent until a card names its kind (the empty Yours' tile is none).
+// Both are declared together wherever the kind changes: a custom property
+// that reads another is worked out where it is declared, so an ink declared
+// here alone would keep the accent inside every card.
+.gaming-profiles {
+  --kind: #{$secondary-default};
+  --kind-ink: color-mix(in srgb, var(--kind) 80%, #{$text-primary});
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+// The search and the filters on one line (Ivan, 2026-11-04: "filters on
+// same line"). Where the line runs out the filters scroll behind the app's
+// round arrows rather than wrap under; only a page too narrow for the search
+// and three filters puts the search on a row of its own.
+.gaming-profiles__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+// The field My curves and the gallery have, on the field's own face.
+.gaming-profiles__search {
+  display: flex;
+  flex: 0 1 260px;
+  min-width: min(100%, 190px);
+  align-items: center;
+  gap: 8px;
+  height: $control-height-sm;
+  padding: 0 4px 0 10px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: $surface-field;
+
+  > svg {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: $text-faint;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+  }
+
+  input {
+    min-width: 0;
+    flex: 1 1 auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: $text-primary;
+    font: inherit;
+    font-size: $text-small;
+    outline: none;
+
+    // The field draws its own ×, beside the text, in the app's look.
+    &::-webkit-search-cancel-button {
+      display: none;
+    }
+  }
+
+  &:focus-within {
+    border-color: $secondary-default;
+  }
+}
+
+.gaming-profiles__clear {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-pill;
+  background: none;
+  color: $text-faint;
+  cursor: pointer;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
+    color: $text-primary;
+  }
+}
+
+// Sized by the bar, never by its chips: without the containment the chips'
+// one line was what the page was at least as wide as, and at 1100px the
+// whole Gaming Lab scrolled sideways under them.
+.gaming-profiles__filter-row {
+  display: flex;
+  flex: 1 1 340px;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  contain: inline-size;
+}
+
+// The chips that do not fit fade into the edge they scroll past, so a cut
+// chip reads as more to come and not as a chip cut in half.
+.gaming-profiles__filters {
+  --fade-back: 0px;
+  --fade-forward: 0px;
+
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 5px;
+  // Room for a chip's focus ring, which the scrolling box would clip.
+  margin-block: -3px;
+  padding: 3px 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--fade-back),
+    #000 calc(100% - var(--fade-forward)),
+    transparent
+  );
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &.has-back {
+    --fade-back: 28px;
+  }
+
+  &.has-forward {
+    --fade-forward: 28px;
+  }
+
+  > .gaming-filter {
+    flex: none;
+  }
+}
+
+// The search's own height, so the two read as one line.
+.gaming-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: $control-height-sm;
+  padding: 0 9px 0 11px;
+  border: 1px solid $menu-rule;
+  border-radius: $radius-pill;
+  background: none;
+  color: $text-muted;
+  font: inherit;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &.is-on {
+    border-color: transparent;
+    background: color-mix(in srgb, $secondary-default 18%, transparent);
+    color: $text-primary;
+  }
+}
+
+// How many each shows, under the search as it stands.
+.gaming-filter__count {
+  color: $text-faint;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+
+  .gaming-filter.is-on & {
+    color: $text-accent;
+  }
+}
+
+// What a profile is, said once at the top: a note with its mark, not a line
+// of small print floating between the filters and the first heading.
+.gaming-profiles__intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, $secondary-default 18%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $secondary-default 6%, transparent);
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+
+  > svg {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    margin-top: 1px;
+    color: $text-accent;
+  }
+}
+
+.gaming-profiles__section {
+  display: grid;
+  gap: 10px;
+}
+
+// An empty place, drawn as the place a card will stand: a dashed outline
+// with the mark of what will fill it.
+.gaming-profiles__empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px dashed $menu-rule;
+  border-radius: $radius-l;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+
+  p {
+    flex: 1 1 220px;
+    margin: 0;
+  }
+
+  &.is-search {
+    justify-content: space-between;
+  }
+}
+
+.gaming-profiles__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr));
+  gap: 12px;
+
+  // A profile of Yours carries Rename and Delete beside Use: wide enough for
+  // the three on one line.
+  &.is-yours {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  }
+}
+
+// Each kind of game wears a colour of its own, on its icon and its curve
+// (Ivan, 2026-11-04: "add icons with colors so they are more appealing"):
+// forty-two cards in the accent alone read as one card repeated. The
+// palette's own hues, one per glyph, far enough apart on the wheel that two
+// kinds side by side never read as one.
+$gaming-kind-colours: (
+  'competitive': $red,
+  'battle': $amber,
+  'tactical': $analogous-2,
+  'story': $triadic-1,
+  'room': $neon-cyan,
+  'topDown': list.nth($lagoon, 6),
+  'worlds': $neon-lime,
+  'speed': $neon-yellow,
+  'impact': $triadic-2,
+);
+
+.gaming-profile {
+  // The ink is the kind's hue drawn toward this theme's text, so a neon
+  // yellow stays legible on a daylight page as well as a night one.
+  --kind-ink: color-mix(in srgb, var(--kind) 80%, #{$text-primary});
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  @include card-surface;
+  padding: 14px;
+  transition: border-color $motion-fast ease;
+
+  @each $kind, $colour in $gaming-kind-colours {
+    &[data-kind='#{$kind}'] {
+      --kind: #{$colour};
+    }
+  }
+
+  &:hover,
+  &:focus-within {
+    border-color: color-mix(in srgb, var(--kind) 34%, transparent);
+  }
+
+  &.is-yours {
+    border-color: color-mix(in srgb, $secondary-default 32%, transparent);
+  }
+}
+
+.gaming-profile__head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+// A lit tile: the kind's hue strongest at the top left, as if lit from
+// there, with a rim of the same hue and a glow under it.
+.gaming-profile__glyph {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid color-mix(in srgb, var(--kind) 42%, transparent);
+  border-radius: $radius-m;
+  background:
+    radial-gradient(
+      120% 120% at 20% 10%,
+      color-mix(in srgb, var(--kind) 34%, transparent),
+      transparent 70%
+    ),
+    color-mix(in srgb, var(--kind) 10%, $surface-well);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--kind) 30%, transparent),
+    0 6px 16px -8px color-mix(in srgb, var(--kind) 70%, transparent);
+  color: var(--kind-ink);
+
+  > svg {
+    width: 21px;
+    height: 21px;
+  }
+}
+
+.gaming-profile__names {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 1px;
+  min-width: 0;
+}
+
+// A name and its games get two lines each before they give way: "Rainbow
+// Six Siege" and "Warzone, Apex, PUBG, Fortnite" were cut to a few letters
+// on one.
+.gaming-profile__name,
+.gaming-profile__hint {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.gaming-profile__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  line-height: 1.3;
+}
+
+.gaming-profile__hint {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
+}
+
+// Its curve, in a well of its own under the name.
+.gaming-profile__sound {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px 6px;
+  border-radius: $radius-m;
+  background: $surface-well;
+}
+
+.gaming-profile__curve-name {
+  overflow: hidden;
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  font-weight: $weight-semibold;
+  @include tracking(0.08em);
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.gaming-profile__curve {
+  display: block;
+  width: 100%;
+  height: 48px;
+  color: var(--kind);
+}
+
+.gaming-profile__curve-zero {
+  stroke: $menu-rule;
+  stroke-dasharray: 3 3;
+  stroke-width: 1;
+}
+
+.gaming-profile__curve-line {
+  stroke: var(--kind-ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+// How far each part of the Game filter reaches, in its own dB.
+.gaming-profile__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+
+  > div {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  dt {
+    overflow: hidden;
+    color: $text-faint;
+    font-size: $text-micro;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  dd {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-small;
+    font-weight: $weight-semibold;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}
+
+.gaming-profile__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
+}
+
+.gaming-profile__tag {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 2px 8px;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $primary-lighter 9%, transparent);
+  color: $text-muted;
+  font-size: $text-micro;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gaming-profile__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid $menu-rule;
+}
+
+.gaming-profile__used {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: $active;
+  font-size: $text-small;
+}
+
+.gaming-profile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+
+  .is-danger {
+    color: $red;
+  }
+}
+
+.gaming-profile__ask {
+  flex-basis: 100%;
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+// ---- The DSP page while a game's sound is on -------------------------------
+
+.gaming-paused__bar {
+  flex-wrap: wrap;
+}
+
+.gaming-paused__music {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid $menu-rule;
+  border-radius: $radius-m;
+  color: $text-faint;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  opacity: 0.6;
+}
+
+.gaming-paused__notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, $primary-lighter 30%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $primary-lighter 9%, transparent);
+  color: $primary-lighter;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+.gaming-paused__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gaming-paused__body {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  @include card-surface;
+  padding: 56px 24px 60px;
+  text-align: center;
+
+  > p {
+    max-width: 54ch;
+    margin: 0;
+  }
+}
+
+.gaming-paused__art {
+  width: 150px;
+  height: auto;
+}
+
+.gaming-paused__rack {
+  stroke: $text-dim;
+  stroke-width: 2;
+}
+
+.gaming-paused__pause {
+  stroke: $text-faint;
+  stroke-width: 2.4;
+}
+
+.gaming-paused__pad {
+  fill: color-mix(in srgb, $primary-lighter 14%, transparent);
+  stroke: $primary-lighter;
+  stroke-width: 2;
+}
+
+.gaming-paused__title {
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+}
+
+.gaming-paused__more {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+// The music rack's stages, as the rail would light them, held at rest: what
+// comes back is named, and nothing about it reads as something to press.
+.gaming-paused__waiting {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(100%, 720px);
+  margin-top: 14px;
+  padding-top: 18px;
+  border-top: 1px solid $menu-rule;
+}
+
+.gaming-paused__stages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gaming-paused__stage {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px 0 5px;
+  border: 1px solid $menu-rule;
+  border-radius: $radius-m;
+  color: $text-dim;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+
+  .dsp-section-icon {
+    color: $text-faint;
+  }
+}
+
+.gaming-paused__none {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+// ---- The empty page --------------------------------------------------------
+
 // An empty page that says what the page is for, with room around it: a
-// dashed box holding one sentence read as a form somebody had failed to
-// fill in.
+// dashed box holding one sentence read as a form somebody had failed to fill
+// in.
 .games-empty {
   display: grid;
   justify-items: center;
   gap: 14px;
   @include card-surface;
   padding: 34px 18px 38px;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
   text-align: center;
 
   > p {
@@ -253,4 +1524,27 @@ SPDX-License-Identifier: GPL-3.0-or-later
   &:nth-of-type(5) {
     opacity: 0.32;
   }
+}
+
+// The profile list's one line while a game's own sound is on, over the list
+// that rests until the game is over.
+.presets-bar__game {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  color: $primary-lighter;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+// The titlebar tab's dot: a game's own sound is the one on.
+.workspace-tab__live {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  margin-left: 2px;
+  border-radius: $radius-pill;
+  background: $active;
+  box-shadow: 0 0 8px color-mix(in srgb, $active 70%, transparent);
 }

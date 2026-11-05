@@ -151,13 +151,14 @@ describe('DspPanel', () => {
       container.querySelector('.dsp-presets') as HTMLElement,
     );
     fireEvent.click(presets.getByRole('button', { name: 'Presets' }));
+    // Every chain but the Gaming tab's, which stay on that tab.
     expect(screen.getAllByRole('menuitemradio')).toHaveLength(
-      DSP_PRESETS.length,
+      DSP_PRESETS.filter((preset) => preset.group !== 'gaming').length,
     );
     // Include the new worldwide genre chains; the literal is here so that
     // a chain added without a row in the menu is a failure
     // rather than a menu quietly one short.
-    expect(DSP_PRESETS).toHaveLength(108);
+    expect(DSP_PRESETS).toHaveLength(118);
     expect(
       screen.getByRole('menuitemradio', { name: /Repair compressed/i }),
     ).toBeInTheDocument();

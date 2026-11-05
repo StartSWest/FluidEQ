@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IRoomSettings } from '../../common/dsp/chain';
 import {
   IRoomPreset,
@@ -26,13 +26,14 @@ import DspRoomSpeakerPanel from './DspRoomSpeakerPanel';
 import DspRoomTune from './DspRoomTune';
 import {
   forgetRoomSource,
-  IRoomSource,
   rememberRoomSource,
   roomRestoreSource,
+  savedRoomSource,
   trackRoomEdit,
 } from './roomProfileMemory';
 import { TRoomPick } from './roomSpeakerNames';
 import { isRoomPlaying, roomFeedOf } from './roomView';
+import useRoomDrag from './useRoomDrag';
 import {
   deleteSavedRoom,
   ISavedRoom,
@@ -51,13 +52,6 @@ interface IDspRoomCardProps {
   onPatch: (next: IRoomSettings) => void;
   onCommit: () => void;
 }
-
-/**
- * Each speaker's mirror across the front: left with right, the centre with
- * nobody. A plain move takes the pair, so a layout stays symmetric without
- * a second drag that never quite lands on the same angle.
- */
-const ROOM_MIRROR = [1, 0, -1, 4, 3, 6, 5];
 
 /**
  * The Room's page: the rooms in the same picker every other stage has, then
@@ -88,8 +82,6 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
   // card asking for a speaker, and a press on the room lets go of one again.
   const [picked, setPicked] = useState<TRoomPick | undefined>(undefined);
   const [saved, setSaved] = useState<ISavedRoom[]>(() => readSavedRooms());
-  /** The room a drag began in, to go back to if it is called off. */
-  const dragOrigin = useRef<IRoomSettings | null>(null);
   const feed = roomFeedOf(live.state);
   const isSurround =
     live.state === '5.1' || live.state === '7.1' || live.state === 'on';
@@ -98,10 +90,7 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
     room.presetId === 'custom'
       ? saved.find((one) => roomShapesMatch(one.shape, room))
       : undefined;
-  const standingIn: IRoomSource | undefined =
-    savedHere === undefined
-      ? undefined
-      : { presetId: 'custom', name: savedHere.name, shape: savedHere.shape };
+  const standingIn = savedRoomSource(room, saved);
 
   /**
    * A solo is let go when what is playing stops reaching its speaker — a 7.1
@@ -135,18 +124,8 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
   /** Any change to the room's shape makes the result Custom. */
   const shape = (next: Partial<IRoomSettings>) =>
     edit({ ...room, ...next, presetId: 'custom' });
-  /** The pane and the picture both move a speaker, and both take its pair. */
-  const turn = (speaker: number, angleDeg: number, mirrored: boolean) => {
-    const pair = mirrored ? ROOM_MIRROR[speaker] : -1;
-    shape({
-      angles: room.angles.map((angle, at) => {
-        if (at === speaker) {
-          return angleDeg;
-        }
-        return at === pair ? -angleDeg : angle;
-      }),
-    });
-  };
+  /** A speaker dragged round the picture takes its pair (`useRoomDrag`). */
+  const drag = useRoomDrag(room, shape, onPatch, onCommit);
 
   const restore = roomRestoreSource(room);
   const restorePreset =
@@ -237,23 +216,10 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
             isDisabled={!room.enabled}
             selected={picked}
             onSelect={setPicked}
-            onAngle={turn}
-            onDragStart={() => {
-              dragOrigin.current = room;
-            }}
-            onDragCancel={() => {
-              // Back to the room the drag began in, name and all: a drag
-              // called off has not happened.
-              if (dragOrigin.current !== null) {
-                onPatch(dragOrigin.current);
-                onCommit();
-              }
-              dragOrigin.current = null;
-            }}
-            onCommit={() => {
-              dragOrigin.current = null;
-              onCommit();
-            }}
+            onAngle={drag.turn}
+            onDragStart={drag.onDragStart}
+            onDragCancel={drag.onDragCancel}
+            onCommit={drag.onCommit}
           />
           {room.enabled && feed.noteKey !== undefined ? (
             <p className="dsp-room-note" role="status">

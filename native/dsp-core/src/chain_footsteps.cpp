@@ -18,6 +18,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "chain_internal.h"
 
+namespace {
+
+/** The room's speaker that is the centre: FL, FR, then FC (`room.h`). */
+constexpr int kCentreSpeaker = 2;
+
+}  // namespace
+
+void chain_apply_footsteps_layout(FeqChain* chain) {
+  int centre = -1;
+  for (uint32_t channel = 0; channel < chain->channels; ++channel) {
+    if (chain->room_speakers[channel] == kCentreSpeaker) {
+      centre = static_cast<int>(channel);
+    }
+  }
+  feq_footsteps_set_lfe(chain->footsteps, chain->lfe_channel);
+  feq_footsteps_set_centre(chain->footsteps, centre);
+}
+
 void chain_process_footsteps(FeqChain* chain, float* const* channels,
                              uint32_t frames) {
   if (chain->footsteps == nullptr) {

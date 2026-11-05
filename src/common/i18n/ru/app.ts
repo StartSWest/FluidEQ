@@ -251,7 +251,6 @@ const app: Partial<Dictionary> = {
   'tabs.eqMain': 'Полосы',
   'tabs.presets': 'Пресеты EQ',
   'tabs.convolution': 'Свёртка',
-  'tabs.games': 'Пресеты игр',
   'tabs.config': 'Config',
   'tabs.media': 'Онлайн-медиа',
   'tabs.mediaShort': 'Медиа',
@@ -402,12 +401,6 @@ const app: Partial<Dictionary> = {
   'settings.group.studioOnly': 'Только здесь, в Студии',
 
   // Game profiles: the page, its list and what it says.
-  'games.add': 'Добавить игру',
-  'games.addHint':
-    'Выберите игру из своих лаунчеров или программу, открытую сейчас.',
-  'games.choose': 'Выбрать программу…',
-  'games.group.installed': 'Установленные',
-  'games.group.running': 'Открыты сейчас',
   'games.source.steam': 'Steam',
   'games.source.epic': 'Epic Games',
   'games.source.ea': 'EA',
@@ -417,27 +410,8 @@ const app: Partial<Dictionary> = {
   'games.source.xbox': 'Xbox',
   'games.source.running': 'Открыта сейчас',
   'games.source.file': 'Выбрано вами',
-  'games.front.playing': '{name} на переднем плане, её звук включён.',
-  'games.front.sounding': '{name} запущена, её звук включён.',
-  'games.front.off':
-    'Игровые пресеты выключены. В играх остаётся ваш собственный звук.',
-  'games.switch.hint':
-    'Выключено: ни одна игра не меняет звук, и FluidEQ больше не следит, какая программа на переднем плане. Список остаётся как есть.',
-  'games.toast.loaded': 'Загружено: {preset}',
   'games.toast.forGame': 'для {game}',
-  'games.toast.restored': 'Снова: {preset}',
-  'games.toast.restoredNone': 'Эффекты снова выключены',
   'games.toast.afterGame': 'после {game}',
-  'games.empty.title': 'Игр пока нет',
-  'games.empty.more':
-    'Добавьте игру, дайте ей звук — и FluidEQ переключится на него, как только игра выйдет на передний план, и вернётся, когда вы закроете игру.',
-  'games.preset.none': 'Оставить как есть',
-  'games.preset.noneHint':
-    'Ничего не меняется, когда эта игра на переднем плане.',
-  'games.row.inFront': 'на переднем плане',
-  'games.row.sounding': 'звук включён',
-  'games.row.sound': 'Звук для {name}',
-  'games.row.remove': 'Убрать {name}',
   'error.apoMissing': 'Equalizer APO не установлен.',
   'error.apoMissing.action': 'Установите Equalizer APO и попробуйте снова.',
   'error.configMissing': 'Не найден файл конфигурации Equalizer APO.',

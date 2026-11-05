@@ -4,7 +4,10 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { IHostAnalysisFootsteps } from '../../common/dsp/analysisWire';
+import type {
+  IHostAnalysisFootsteps,
+  IHostAnalysisGame,
+} from '../../common/dsp/analysisWire';
 
 /**
  * What Footsteps heard, lifted and calmed in the last analysis window.
@@ -26,3 +29,17 @@ export const setDspFootstepsReport = (
 
 export const readDspFootstepsReport = ():
   Readonly<IHostAnalysisFootsteps> | undefined => report;
+
+/**
+ * What the Game filter's Environment and Dialogue did in the last window,
+ * polled the same way. `undefined` from an engine before them (1.25), so the
+ * page can say they need the update rather than draw them doing nothing.
+ */
+let game: Readonly<IHostAnalysisGame> | undefined;
+
+export const setDspGameReport = (next: IHostAnalysisGame | undefined): void => {
+  game = next;
+};
+
+export const readDspGameReport = (): Readonly<IHostAnalysisGame> | undefined =>
+  game;

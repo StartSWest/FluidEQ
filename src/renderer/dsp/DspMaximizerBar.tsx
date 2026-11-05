@@ -16,6 +16,7 @@ import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
 import useStagePresets from './useStagePresets';
+import { scopedGroups, useDspPresetScope } from './presetScope';
 
 interface IDspMaximizerBarProps {
   maximizer: IMaximizerSettings;
@@ -55,19 +56,22 @@ const DspMaximizerBar = ({
 }: IDspMaximizerBarProps) => {
   const { t } = useTranslation();
   const saved = useStagePresets('maximizer', maximizer, onChange, onCommit);
-  const factoryEntries: IRichPickEntry[] = MAXIMIZER_PRESET_GROUPS.flatMap(
-    (group) =>
-      MAXIMIZER_CATALOGUE.profiles
-        .filter((preset) => preset.group === group)
-        .map((preset) => ({
-          id: preset.id,
-          name: t(preset.labelKey as TranslationKey),
-          hint: profileHint(preset),
-          group,
-          icon: (
-            <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
-          ),
-        })),
+  const scope = useDspPresetScope();
+  const factoryEntries: IRichPickEntry[] = scopedGroups(
+    MAXIMIZER_PRESET_GROUPS,
+    scope,
+  ).flatMap((group) =>
+    MAXIMIZER_CATALOGUE.profiles
+      .filter((preset) => preset.group === group)
+      .map((preset) => ({
+        id: preset.id,
+        name: t(preset.labelKey as TranslationKey),
+        hint: profileHint(preset),
+        group,
+        icon: (
+          <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
+        ),
+      })),
   );
   // Saved profiles first, as the EQ lists its own.
   const entries: IRichPickEntry[] = [...saved.entries, ...factoryEntries];

@@ -122,25 +122,22 @@ const tour = {
   'tour.graph.open': '오픈 EQ',
   'tour.graph.imageAlt':
     '재생 중인 노래에 대한 그래프의 분석기: 80dB 깊이의 라이브 스펙트럼과 그 위에 피크가 있고 EQ 곡선이 상단에 있고 모서리에는 분석 아래 보기 목록이 있습니다.',
-  'tour.games.kicker': '게임 프리셋',
+  'tour.games.kicker': '게이밍 랩',
   'tour.games.title': '모든 게임, 고유한 사운드',
   'tour.games.subtitle': '게임이 전면에 나오면 전환됨',
   'tour.games.lead':
-    '각 게임마다 한 번씩 사운드를 선택하세요. 게임이 앞으로 나오면 FluidEQ가 해당 게임으로 전환하여 게임을 닫을 때까지 유지합니다. 그러나 종종 Alt 키를 누른 다음 원래 있던 것을 되돌립니다.',
+    '게임마다 게이밍 프로필의 전용 복사본이 생기고, 게이밍 랩에서 조정합니다. 게임이 앞으로 오면 사운드가 켜지고 Alt+Tab을 몇 번 하든 유지되며, 게임을 닫으면 음악용 사운드가 돌아옵니다.',
   'tour.games.point1':
     'Steam, Epic Games, EA, GOG, Ubisoft, Battle.net 및 Xbox 게임 또는 열려 있는 모든 프로그램.',
   'tour.games.point2':
-    '게임 프리셋은 게임 모드를 켜서 FluidEQ가 추가하는 지연을 줄이고 페이지에 측정된 지연이 표시됩니다.',
+    '발소리와 목소리를 위한 게임 필터, EQ, 커브, 모든 DSP 단계를 한 페이지에서 조정하고, 게임용 프리셋도 있습니다.',
   'tour.games.point3':
-    '데스크탑의 카드에는 전환된 내용이 표시되고, 다른 카드에는 게임이 종료되었을 때 반환된 내용이 표시됩니다.',
+    '랩과 EQ 페이지에 재생 중인 게임과 그 프리셋이 표시됩니다.',
   'tour.games.how':
-    'EQ를 열고 게임 프리셋을 선택한 다음 게임 추가를 누릅니다. 그런 다음 해당 행의 선택기에서 사운드를 선택합니다.',
-  'tour.games.open': '게임 프리셋 열기',
+    '제목 표시줄에서 게이밍 랩을 열고 게임 추가를 누르세요. 그런 다음 지금 사용해 보기를 누르고 바로 그 자리에서 사운드를 조정하세요.',
+  'tour.games.open': '게이밍 랩 열기',
   'tour.games.imageAlt':
-    '데스크탑에서의 세 순간: FluidEQ의 카드가 사운드가 로드되었다고 말하는 앞에 있는 게임, 사운드가 계속 켜져 있는 상태에서 동일한 게임이 최소화되고, 이전 사운드가 돌아왔다는 카드와 함께 게임이 닫혔습니다.',
-  'tour.games.stepFront': '전면: 사운드 로드',
-  'tour.games.stepAway': '최소화 또는 Alt 키: 소리가 계속 켜져 있습니다.',
-  'tour.games.stepClosed': '휴무 : 당신만의 소리가 돌아온다',
+    'Counter-Strike 2가 있는 게이밍 랩. 처음에는 음악이 재생되고, 다음에는 게임 고유의 사운드가 켜집니다. 위쪽에 프리셋 이름, 게임 모드 켜짐, 지금 사용해 보기 대신 언로드.',
   'tour.presets.kicker': '새로운 프리셋',
   'tour.presets.title': '음악처럼 들리는 프리셋',
   'tour.presets.subtitle': '체인 전체를 하나의 음량으로',
@@ -464,13 +461,24 @@ const tour = {
   'tour.film.sound.classic':
     'Equalizer APO와 같은 방식으로 밴드를 만들려면 클래식을 선택하세요.',
   'tour.film.games.intro':
-    'FluidEQ로 게임마다 다른 사운드를 설정할 수 있습니다.',
+    '게이밍 랩은 게임마다 고유한 사운드를 주고, 모두 한곳에서 조정합니다.',
   'tour.film.games.add':
-    '게임 추가를 누르고 게임 런처로 설치한 게임 중에서 선택하세요.',
-  'tour.film.games.sound': '그런 다음 해당 게임에 적용할 사운드를 선택하세요.',
+    '게임 추가를 누르고 이 PC에 있는 게임 중에서 선택하세요.',
+  'tour.film.games.profile':
+    '게이밍 프로필에서 시작합니다. 게임 종류에 맞춘 프로필이나 해당 게임 전용 프로필입니다.',
+  'tour.film.games.try':
+    '지금 사용해 보기를 누르세요. 게임 고유의 사운드가 재생되고, 지연을 줄이도록 게임 모드가 켜집니다.',
+  'tour.film.games.tune':
+    '게임 필터, EQ와 커브까지 원하는 부분을 바로 여기서 조정하세요.',
+  'tour.film.games.presets':
+    '모든 DSP 단계에 게임용으로 조정된 프리셋이 있습니다.',
+  'tour.film.games.save':
+    '조정한 사운드를 나만의 프로필로 저장하거나, 원래 상태에서 다시 시작하세요.',
   'tour.film.games.front':
-    '게임 창이 앞으로 나오면 해당 사운드가 자동으로 적용됩니다.',
-  'tour.film.games.closed': '게임을 종료하면 원래 사운드로 돌아옵니다.',
+    '게임이 앞으로 나오면 해당 사운드가 자동으로 켜집니다.',
+  'tour.film.games.eqPage':
+    'EQ 페이지에 어떤 게임이 재생 중인지 프리셋과 함께 표시됩니다.',
+  'tour.film.games.closed': '게임을 닫으면 음악용 사운드가 돌아옵니다.',
   'tour.film.compact.intro':
     '재생 조작만 필요할 때는 FluidEQ를 작은 플레이어로 접을 수 있습니다.',
   'tour.film.compact.go':

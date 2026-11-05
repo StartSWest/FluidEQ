@@ -79,7 +79,8 @@ void glide(double& gain, double& per_sample, double db, double samples) {
 
 }  // namespace
 
-void decide(FeqFootsteps& f, bool enabled, double lift, double calm) {
+void decide(FeqFootsteps& f, bool enabled, double lift, double calm,
+            bool heavy) {
   State& s = f.state;
   const double step = static_cast<double>(f.control_step);
   const double whole_db = db_of(s.whole_power);
@@ -103,6 +104,8 @@ void decide(FeqFootsteps& f, bool enabled, double lift, double calm) {
   const double quiet_around =
       1.0 - smoothstep(programme + kLoudFromDb, programme + kLoudToDb, whole_db) *
                 smoothstep(kLoudLevelFromDb, kLoudLevelToDb, whole_db);
+  s.quiet_around = quiet_around;
+  s.learning = learning;
   const double lift_amount = enabled && !learning ? lift : 0.0;
   FeqFootstepsReport& report = f.report;
   report.level_db = std::max(report.level_db, static_cast<float>(whole_db));
@@ -134,8 +137,10 @@ void decide(FeqFootsteps& f, bool enabled, double lift, double calm) {
     } else {
       s.arrival_held[b] = arrival;
     }
+    const double max_db =
+        b == 0 && heavy ? kHeavyWeightMaxDb : kBands[b].max_db;
     double want =
-        std::clamp((target_db - level) * kSlope, 0.0, kBands[b].max_db) *
+        std::clamp((target_db - level) * kSlope, 0.0, max_db) *
         s.arrival_held[b] * smoothstep(2.0, 6.0, level - s.band_bed[b]) *
         smoothstep(-80.0, -68.0, level) * quiet_around * lift_amount;
     if (want < kSettledDb) want = 0.0;

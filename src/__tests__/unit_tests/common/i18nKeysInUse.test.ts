@@ -127,12 +127,13 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     ['genre.*.pin.*', 'genre.*.*'],
     ['genre.*.pin.*.why', 'genre.*.*'],
     [
-      'genre.*.stage.{exciter,bassForge,bassPunch,dimension,maximizer}',
+      'genre.*.stage.{deEsser,exciter,bassForge,bassPunch,dimension,maximizer}',
       'genre.*.*',
     ],
   ],
   'src/renderer/dsp/presetPickEntries.tsx': ['dsp.eqPresetGroup.*'],
-  'src/renderer/games/GamesPanel.tsx': ['games.source.*'],
+  'src/renderer/games/GamingAddDialog.tsx': ['games.source.*'],
+  'src/renderer/games/GamingGamePanel.tsx': ['games.source.*'],
   'src/renderer/graph/lookPickerRows.ts': ['graph.styleName.*'],
   'src/renderer/help/HelpGuide.tsx': [
     'help.*.title',

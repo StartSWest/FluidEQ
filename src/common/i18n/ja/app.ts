@@ -251,7 +251,6 @@ const app: Partial<Dictionary> = {
   'tabs.eqMain': 'バンド',
   'tabs.presets': 'EQ プリセット',
   'tabs.convolution': 'コンボリューション',
-  'tabs.games': 'ゲームプリセット',
   'tabs.config': 'Config',
   'tabs.media': 'オンラインメディア',
   'tabs.mediaShort': 'メディア',
@@ -405,12 +404,6 @@ const app: Partial<Dictionary> = {
   'settings.group.studioOnly': 'スタジオだけ',
 
   // Game profiles: the page, its list and what it says.
-  'games.add': 'ゲームを追加',
-  'games.addHint':
-    'ランチャーのゲーム、または今開いているプログラムから選びます。',
-  'games.choose': 'プログラムを選ぶ…',
-  'games.group.installed': 'インストール済み',
-  'games.group.running': '今開いている',
   'games.source.steam': 'Steam',
   'games.source.epic': 'Epic Games',
   'games.source.ea': 'EA',
@@ -420,26 +413,8 @@ const app: Partial<Dictionary> = {
   'games.source.xbox': 'Xbox',
   'games.source.running': '今開いている',
   'games.source.file': '自分で選択',
-  'games.front.playing': '{name} が手前にあり、その音が有効です。',
-  'games.front.sounding': '{name} は実行中で、その音が有効です。',
-  'games.front.off':
-    'ゲームプリセットはオフです。ゲームでもあなた自身の音のままです。',
-  'games.switch.hint':
-    'オフ：どのゲームも音を切り替えず、FluidEQ は前面のプログラムを見なくなります。リストはそのまま残ります。',
-  'games.toast.loaded': '{preset} を読み込みました',
   'games.toast.forGame': '{game} 用',
-  'games.toast.restored': '{preset} に戻しました',
-  'games.toast.restoredNone': 'エフェクトをオフに戻しました',
   'games.toast.afterGame': '{game} の後',
-  'games.empty.title': 'まだゲームがありません',
-  'games.empty.more':
-    'ゲームを追加して音を割り当てると、そのゲームが手前に来た瞬間に FluidEQ が切り替え、ゲームを終了すると戻します。',
-  'games.preset.none': 'そのままにする',
-  'games.preset.noneHint': 'このゲームが手前でも何も変わりません。',
-  'games.row.inFront': '手前',
-  'games.row.sounding': '音が有効',
-  'games.row.sound': '{name} の音',
-  'games.row.remove': '{name} を削除',
   'error.apoMissing': 'Equalizer APO がインストールされていません。',
   'error.apoMissing.action':
     'Equalizer APO をインストールしてから、もう一度お試しください。',

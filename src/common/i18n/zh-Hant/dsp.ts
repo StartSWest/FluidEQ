@@ -90,7 +90,7 @@ const dsp = {
   'dsp.denoise.voiceLibraryOnly':
     '神經語音僅適用於庫播放。外部音訊可減少嘶嘶聲、嗡嗡聲和咔嗒聲。',
   'dsp.normalizer.liveDescription':
-    '在播放時測量外部音訊，同時調整兩個通道，並保護激勵器和等化器之前的峰值。',
+    '在播放時測量外部音訊，並在激勵器和等化器之前為兩個通道設定同一個音量，不會壓扁音樂：真峰只會把歌曲調低，直到最大的峰值碰到峰值上限。',
   'dsp.normalizer.liveAnalysis': '即時音源分析',
   'dsp.normalizer.inputLoudness': '輸入響度（3秒）',
   'dsp.normalizer.outputLoudness': '輸出響度（3秒）',

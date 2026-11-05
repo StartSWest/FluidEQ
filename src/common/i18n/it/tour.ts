@@ -163,25 +163,22 @@ const tour: Partial<Dictionary> = {
   'tour.graph.imageAlt':
     'L’Analizzatore del grafico su un brano in riproduzione: lo spettro dal vivo a 80 dB di profondità con i picchi sopra, le curve dell’EQ in cima e, nell’angolo, l’elenco delle viste in Analisi.',
 
-  'tour.games.kicker': 'PRESET DI GIOCO',
+  'tour.games.kicker': 'LABORATORIO GAMING',
   'tour.games.title': 'Ogni gioco, il suo suono',
   'tour.games.subtitle': 'Attivato quando il gioco passa in primo piano',
   'tour.games.lead':
-    'Scegli una volta sola un suono per ogni gioco. Quando il gioco passa in primo piano, FluidEQ lo attiva e lo mantiene finché non chiudi il gioco, per quante volte tu faccia Alt+Tab, poi rimette quello che avevi.',
+    'Ogni gioco riceve una copia tutta sua di un profilo gaming, regolata nel Laboratorio gaming. In primo piano il suo suono si attiva e resta, per quante volte tu faccia Alt+Tab; chiudi il gioco e torna il tuo suono per la musica.',
   'tour.games.point1':
     'Giochi di Steam, Epic Games, EA, GOG, Ubisoft, Battle.net e Xbox, o qualsiasi programma aperto.',
   'tour.games.point2':
-    'I preset Gaming attivano Modalità gioco, che riduce il ritardo aggiunto da FluidEQ, e la pagina mostra il ritardo misurato.',
+    'Regola ogni parte in una sola pagina: il Filtro Gioco per passi e voci, l’EQ, la curva e ogni stadio DSP, con preset fatti per i giochi.',
   'tour.games.point3':
-    'Una scheda sul desktop dice a quale suono è passato FluidEQ, e un’altra quale è tornato quando il gioco si è chiuso.',
+    'Il Laboratorio e la pagina EQ mostrano il gioco in corso e il suo preset.',
   'tour.games.how':
-    'Apri EQ, scegli Preset di gioco e premi Aggiungi un gioco. Poi scegli il suo suono nel selettore sulla sua riga.',
-  'tour.games.open': 'Apri Preset di gioco',
+    'Apri il Laboratorio gaming nella barra del titolo e premi Aggiungi un gioco. Poi premi Provalo ora e regola il suo suono proprio lì.',
+  'tour.games.open': 'Apri il Laboratorio gaming',
   'tour.games.imageAlt':
-    'Tre momenti sul desktop: un gioco in primo piano con la scheda di FluidEQ che dice che il suo suono è caricato, lo stesso gioco ridotto a icona con il suono ancora attivo, e il gioco chiuso con la scheda che dice che il suono di prima è tornato.',
-  'tour.games.stepFront': 'In primo piano: si carica il suo suono',
-  'tour.games.stepAway': 'Ridotto a icona o con Alt+Tab: il suono resta',
-  'tour.games.stepClosed': 'Chiuso: torna il tuo suono',
+    'Il Laboratorio gaming con Counter-Strike 2, prima con la tua musica, poi con il suono del gioco: il suo preset nominato in alto, la Modalità gioco attiva e Scarica al posto di Provalo ora.',
   'tour.presets.kicker': 'NUOVI PRESET',
   'tour.presets.title': 'Preset che suonano come la musica',
   'tour.presets.subtitle': 'Catene complete, tutte allo stesso volume',
@@ -522,13 +519,25 @@ const tour: Partial<Dictionary> = {
   'tour.film.sound.classic':
     'Scegli Classico per costruire le bande come fa Equalizer APO.',
   'tour.film.games.intro':
-    'FluidEQ può dare a ciascuno dei tuoi giochi un suono tutto suo.',
+    'Il Laboratorio gaming dà a ciascuno dei tuoi giochi un suono tutto suo, regolato in un solo posto.',
   'tour.film.games.add':
-    'Premi Aggiungi un gioco e sceglilo tra i giochi installati dai tuoi launcher.',
-  'tour.film.games.sound': 'Poi scegli il suono che deve avere.',
+    'Premi Aggiungi un gioco e sceglilo tra i giochi di questo PC.',
+  'tour.film.games.profile':
+    'Parte da un profilo gaming: uno per il suo genere di gioco, o uno fatto per quel titolo.',
+  'tour.film.games.try':
+    'Premi Provalo ora. Suona il suo suono, con la Modalità gioco attiva per una bassa latenza.',
+  'tour.film.games.tune':
+    'Regola ogni parte proprio qui: il Filtro Gioco, l’EQ e la sua curva.',
+  'tour.film.games.presets':
+    'Ogni stadio DSP offre preset pensati per i giochi.',
+  'tour.film.games.save':
+    'Tieni la regolazione come un tuo profilo, o ricomincia dall’originale.',
   'tour.film.games.front':
-    'Quando il gioco passa in primo piano, il suo suono si carica da solo.',
-  'tour.film.games.closed': 'Chiudi il gioco e torna il tuo suono.',
+    'Quando il gioco passa in primo piano, il suo suono si attiva da solo.',
+  'tour.film.games.eqPage':
+    'La pagina EQ mostra quale gioco sta suonando, con il suo preset.',
+  'tour.film.games.closed':
+    'Chiudi il gioco e torna il suono della tua musica.',
   'tour.film.compact.intro':
     'Quando ti servono solo i comandi, FluidEQ si richiude in un piccolo lettore.',
   'tour.film.compact.go':

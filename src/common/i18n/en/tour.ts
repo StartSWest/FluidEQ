@@ -174,25 +174,22 @@ const tour = {
   'tour.graph.imageAlt':
     'The graph’s Analyzer on a playing song: the live spectrum 80 dB deep with its peaks over it, the EQ’s curves on top, and in the corner the list of views under Analysis.',
 
-  'tour.games.kicker': 'GAME PRESETS',
+  'tour.games.kicker': 'GAMING LAB',
   'tour.games.title': 'Every game, its own sound',
   'tour.games.subtitle': 'Switched when the game comes to the front',
   'tour.games.lead':
-    'Pick a sound for each game once. When the game comes to the front, FluidEQ switches to it and keeps it until you close the game, however often you alt-tab, then puts back what you had.',
+    'Each game gets its own copy of a Gaming profile, tuned in the Gaming Lab. In front, its sound comes on and stays however often you alt-tab; close the game and your music sound is back.',
   'tour.games.point1':
     'Steam, Epic Games, EA, GOG, Ubisoft, Battle.net and Xbox games, or any program that is open.',
   'tour.games.point2':
-    'The Gaming presets turn on Game mode, which cuts the delay FluidEQ adds, and the page shows that delay as measured.',
+    'Tune every part on one page: the Game filter for footsteps and voices, the EQ, the curve and every DSP stage, with presets made for games.',
   'tour.games.point3':
-    'A card on your desktop says what was switched, and another says what came back when the game closed.',
+    'The Lab and the EQ page show the game that is playing and its preset.',
   'tour.games.how':
-    'Open EQ, choose Game presets and press Add a game. Then pick its sound in the picker on its row.',
-  'tour.games.open': 'Open Game presets',
+    'Open the Gaming Lab in the title bar and press Add a game. Then press Try it now and tune its sound right there.',
+  'tour.games.open': 'Open the Gaming Lab',
   'tour.games.imageAlt':
-    "Three moments on the desktop: a game in front with FluidEQ's card saying its sound loaded, the same game minimized with its sound still on, and the game closed with the card saying the sound from before is back.",
-  'tour.games.stepFront': 'In front: its sound loads',
-  'tour.games.stepAway': 'Minimized or alt-tabbed: its sound stays on',
-  'tour.games.stepClosed': 'Closed: your own sound comes back',
+    'The Gaming Lab with Counter-Strike 2, first with your music playing, then with the game’s own sound on: its preset named on the top line, Game mode on, and Unload in place of Try it now.',
 
   'tour.presets.kicker': 'NEW PRESETS',
   'tour.presets.title': 'Presets that sound like the music',
@@ -539,13 +536,23 @@ const tour = {
   'tour.film.sound.classic':
     'Choose Classic to build the bands the way Equalizer APO builds them.',
   'tour.film.games.intro':
-    'FluidEQ can give each of your games a sound of its own.',
+    'The Gaming Lab gives each of your games a sound of its own, all tuned in one place.',
   'tour.film.games.add':
-    'Press Add a game, and pick it from the games your launchers have installed.',
-  'tour.film.games.sound': 'Then choose the sound it should have.',
+    'Press Add a game and pick it from the games on this PC.',
+  'tour.film.games.profile':
+    'It starts from a Gaming profile: one for its kind of game, or one made for the title.',
+  'tour.film.games.try':
+    'Press Try it now. Its own sound plays, with Game mode on for low lag.',
+  'tour.film.games.tune':
+    'Tune any part of it right here: the Game filter, the EQ and its curve.',
+  'tour.film.games.presets': 'Every DSP stage offers presets tuned for games.',
+  'tour.film.games.save':
+    'Keep the tuning as a profile of your own, or start again from the original.',
   'tour.film.games.front':
-    'When the game comes to the front, its sound loads by itself.',
-  'tour.film.games.closed': 'Close the game, and your own sound comes back.',
+    'When the game comes to the front, its sound comes on by itself.',
+  'tour.film.games.eqPage':
+    'The EQ page shows which game is playing, with its preset.',
+  'tour.film.games.closed': 'Close the game, and your music sound comes back.',
   'tour.film.compact.intro':
     'When you only need the controls, FluidEQ folds into a small player.',
   'tour.film.compact.go':

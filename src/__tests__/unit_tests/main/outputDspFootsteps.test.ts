@@ -18,7 +18,12 @@ import os from 'os';
 import path from 'path';
 import { getDefaultState } from '../../../common/constants';
 import { DSP_DEFAULTS, IDspSettings } from '../../../common/dsp/chain';
-import { encodeChainSettings } from '../../../common/dsp/chainWire';
+import {
+  asFootstepsAlone,
+  encodeChainSettings,
+  hasDynamics,
+  withoutDynamics,
+} from '../../../common/dsp/chainWire';
 import { CHAIN_FOOTSTEPS_TAG } from '../../../common/dsp/footstepsWire';
 import { flushPendingWrites, forgetPath } from '../../../main/asyncWriter';
 import { readEngineHealth } from '../../../main/engineHealth';
@@ -81,12 +86,29 @@ const written = async (): Promise<number[]> => {
 };
 
 describe("Footsteps in an output's rack file", () => {
-  it('is written, Isolate and all, for an engine that runs it', async () => {
+  it('is written whole, Isolate and all, for an engine that runs the Game filter', async () => {
+    const rack = rackWith({ isolate: true, lift: 0.4, calm: 0.2 });
+    await flush(rack, async () => '1.27.0.0');
+    const values = await written();
+    const at = values.indexOf(CHAIN_FOOTSTEPS_TAG);
+    expect(at).toBeGreaterThan(0);
+    expect(values.slice(at, at + 7)).toEqual([
+      CHAIN_FOOTSTEPS_TAG,
+      2,
+      8,
+      1,
+      1,
+      0.4,
+      0.2,
+    ]);
+    expect(values).toEqual(encodeChainSettings(rack));
+  });
+
+  it('is written as Footsteps alone for engine 1.25, which reads no more of it', async () => {
     const rack = rackWith({ isolate: true, lift: 0.4, calm: 0.2 });
     await flush(rack, async () => '1.25.0.0');
     const values = await written();
     const at = values.indexOf(CHAIN_FOOTSTEPS_TAG);
-    expect(at).toBeGreaterThan(0);
     expect(values.slice(at)).toEqual([
       CHAIN_FOOTSTEPS_TAG,
       1,
@@ -96,7 +118,19 @@ describe("Footsteps in an output's rack file", () => {
       0.4,
       0.2,
     ]);
-    expect(values).toEqual(encodeChainSettings(rack));
+    expect(values).toEqual(asFootstepsAlone(encodeChainSettings(rack)));
+  });
+
+  it('takes Dynamics off for an engine before 1.27 and keeps the Game filter', async () => {
+    const rack: IDspSettings = {
+      ...rackWith({}),
+      dynamics: { ...DSP_DEFAULTS.dynamics, enabled: true },
+    };
+    await flush(rack, async () => '1.26.0.0');
+    const values = await written();
+    expect(hasDynamics(values)).toBe(false);
+    expect(values).toEqual(withoutDynamics(encodeChainSettings(rack)));
+    expect(values).toContain(CHAIN_FOOTSTEPS_TAG);
   });
 
   const cannotRunIt: [
@@ -129,8 +163,8 @@ describe("Footsteps in an output's rack file", () => {
       answerEarlier = resolve;
     });
     const earlier = flush(rackWith({ lift: 0.3 }), () => earlierVersion);
-    const newer = flush(rackWith({ lift: 0.9 }), async () => '1.25.0.0');
-    answerEarlier('1.25.0.0');
+    const newer = flush(rackWith({ lift: 0.9 }), async () => '1.27.0.0');
+    answerEarlier('1.27.0.0');
     await Promise.all([earlier, newer]);
     expect(await written()).toEqual(
       encodeChainSettings(rackWith({ lift: 0.9 })),

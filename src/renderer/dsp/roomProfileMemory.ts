@@ -27,7 +27,7 @@ import {
   roomShapeOf,
   TRoomShape,
 } from '../../common/dsp/roomPresets';
-import { roomShapesMatch } from './savedRooms';
+import { ISavedRoom, roomShapesMatch } from './savedRooms';
 
 export interface IRoomSource {
   /** A built-in room's id, or `custom` for a saved room. */
@@ -53,6 +53,25 @@ const copyOf = (shape: TRoomShape): TRoomShape => ({
 export const rememberRoomSource = (next: IRoomSource): void => {
   source = { ...next, shape: copyOf(next.shape) };
   edited = undefined;
+};
+
+/**
+ * The saved room a room stands in — a custom room in a saved shape — as the
+ * source an edit of it comes from, or nothing. Both cards that edit the
+ * room's shape ask this, so a saved room dragged on the Game page can be
+ * restored on the Room's.
+ */
+export const savedRoomSource = (
+  room: IRoomSettings,
+  saved: readonly ISavedRoom[],
+): IRoomSource | undefined => {
+  const one =
+    room.presetId === 'custom'
+      ? saved.find((each) => roomShapesMatch(each.shape, room))
+      : undefined;
+  return one === undefined
+    ? undefined
+    : { presetId: 'custom', name: one.name, shape: one.shape };
 };
 
 /**

@@ -57,6 +57,33 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * own level, and a game that is bass all along keeps its bass.
  *
  * There is no look-ahead and no delay: the stage fits game mode as it is.
+ *
+ * **The Game filter.** The app shows this stage as "Game", and it carries two
+ * more parts beside the lift, each off at zero and each exactly the input
+ * while it does nothing (`game_parts.h`):
+ *
+ * - **Environment** comes first: a game's bed — rain, wind, the hum of a
+ *   level, a room's tail — turned down by up to 9 dB or up by up to 6, in
+ *   three bands split so they always sum back to the input. A band counts as
+ *   environment while it holds still (its envelope barely moves) or while
+ *   the two ears hear it move differently (diffuse: rain falls everywhere,
+ *   a step lands in one place). Envelopes rather than waveforms: a game with
+ *   its own 3D sound puts a step at each ear a fraction of a millisecond
+ *   apart, which decorrelates the waveforms of every band above 1 kHz and
+ *   leaves the envelopes moving together. The gains follow the scene over a
+ *   quarter of a second, never a sound: a bed that jumped up under every
+ *   step would breathe. Footsteps then listens to what is left, so a step
+ *   over a lowered bed stands out further and is lifted back to the
+ *   programme.
+ * - **Dialogue** comes last: a voice is the centre (stereo: the mid over
+ *   the side; 5.1 and 7.1: the centre channel over the fronts), moves at the
+ *   rate of syllables, holds its energy under 5 kHz, and is not a blast.
+ *   While one speaks, the centre's voice band comes up by up to 6 dB, and
+ *   with "make room" everything else steps back 3 to 6 dB, held through the
+ *   gaps between words so it does not pump. It hears the stage's input, so
+ *   nothing the stage did is taken for a voice.
+ * - **Heavy** lets the weight band (300 Hz) lift up to 10 dB rather than 4:
+ *   hooves and boots carry their distance there.
  */
 #ifndef FLUIDEQ_FOOTSTEPS_H
 #define FLUIDEQ_FOOTSTEPS_H
@@ -80,9 +107,20 @@ typedef struct FeqFootstepsSettings {
   double lift;
   /** 0 to 1: how much of the rumble's largest cut may be taken. */
   double calm;
+  /** Hooves and heavy steps: the weight band lifts up to 10 dB, not 4. */
+  int heavy;
+  /** -1 to 1: the environment down to -9 dB or up to +6 dB; 0 leaves it. */
+  double environment;
+  /** 0 to 1: how far a voice is brought forward, up to 6 dB. */
+  double voices;
+  /** While a voice speaks, everything else steps back 3 to 6 dB. */
+  int duck;
 } FeqFootstepsSettings;
 
-/** Off, at the Competitive profile's Lift and Calm. */
+/**
+ * Off, at the Competitive profile's Lift and Calm, with no Environment,
+ * Dialogue or Heavy: exactly the stage before they existed.
+ */
 void feq_footsteps_settings_defaults(FeqFootstepsSettings* settings);
 
 /**
@@ -102,6 +140,19 @@ typedef struct FeqFootstepsReport {
   float lift_db[FEQ_FOOTSTEPS_BANDS];
   /** The rumble's deepest cut, never positive. */
   float calm_db;
+  /**
+   * The environment's gain, dB: the band moved furthest, with its sign, so
+   * a lowered bed reads negative.
+   */
+  float environment_db;
+  /** 0 to 1: how much of what was heard was environment, the bands' mean. */
+  float ambience;
+  /** 0 to 1: how sure the stage was that a voice was speaking. */
+  float voice;
+  /** The voice band's largest lift, dB. */
+  float voice_db;
+  /** How far everything else stepped back for a voice, never positive. */
+  float duck_db;
 } FeqFootstepsReport;
 
 typedef struct FeqFootsteps FeqFootsteps;
@@ -124,6 +175,14 @@ void feq_footsteps_configure(FeqFootsteps* footsteps,
  * LFE is neither listened to nor lifted.
  */
 void feq_footsteps_set_lfe(FeqFootsteps* footsteps, int lfe_channel);
+
+/**
+ * Which channel is the centre speaker, or -1 for none (stereo and mono), as
+ * the chain reads it from the stream's layout. CONTROL thread. With a centre,
+ * Dialogue listens to it and brings its voice band forward; without one, to
+ * the front pair's mid.
+ */
+void feq_footsteps_set_centre(FeqFootsteps* footsteps, int centre_channel);
 
 /**
  * One block, in place. AUDIO thread; allocates nothing, takes no lock.

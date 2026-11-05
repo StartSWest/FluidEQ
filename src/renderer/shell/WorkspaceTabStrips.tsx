@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { isAccountConfigured } from 'common/accountConfig';
 import WorkspaceTabStrip from '../components/WorkspaceTabStrip';
+import { useSoundingGame } from '../games/useGameSound';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useMediaQuery from '../utils/useMediaQuery';
@@ -49,7 +50,7 @@ export interface IWorkspaceTabsProps {
   onApproach: (tab: TWorkspaceTab) => void;
 }
 
-/** Media, Share Audio and the equaliser: the left of the meter. */
+/** Media, Share Audio, the Gaming Lab and the equaliser: left of the meter. */
 export const WorkspaceTabsLeft = ({
   activeTab,
   lastEqTab,
@@ -60,6 +61,8 @@ export const WorkspaceTabsLeft = ({
   const isMediaTabOneWord = useMediaQuery(MEDIA_TAB_ONE_WORD_QUERY);
   const isVideoTab = activeTab === 'video';
   const isShareTab = activeTab === 'share';
+  const isGamesTab = activeTab === 'games';
+  const sounding = useSoundingGame();
   return (
     <WorkspaceTabStrip label={t('tabs.aria')}>
       {/* The one tab whose name is too long for its own strip. It shortens for
@@ -93,6 +96,30 @@ export const WorkspaceTabsLeft = ({
       >
         <MenuIcon name="waveform" />
         <span className="workspace-tab__label">{t('tabs.share')}</span>
+      </button>
+      {/* Beside the equaliser, which it stands in for while a game plays:
+          a game's whole sound is tuned here (Ivan, 2026-11-02: "put it to the
+          left of EQ"). The dot says a game's own sound is the one on, from
+          any page, without a banner over anybody's graph. */}
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isGamesTab}
+        aria-label={t('gaming.tab')}
+        className={`workspace-tab${isGamesTab ? ' is-active' : ''}`}
+        onClick={() => onSelect('games')}
+        onPointerEnter={() => onApproach('games')}
+        onFocus={() => onApproach('games')}
+      >
+        <MenuIcon name="gamepad" />
+        <span className="workspace-tab__label">{t('gaming.tab')}</span>
+        {sounding && (
+          <span
+            className="workspace-tab__live"
+            title={sounding.name}
+            aria-hidden="true"
+          />
+        )}
       </button>
       {/* Six places, not ten. The equaliser and everything that sets it
           are one tab with a row of pills inside — see EQ_GROUP_TABS.

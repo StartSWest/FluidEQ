@@ -16,6 +16,7 @@ import { bassPunchPresetSettings } from './bassPunchPresets';
 import { deEsserPresetSettings } from './deEsserPresets';
 import { denoisePresetSettings } from './denoisePresets';
 import { dimensionPresetSettings } from './dimensionPresets';
+import { dynamicsPresetSettings } from './dynamicsPresets';
 import { EQ_PRESETS, eqSettingsForPreset } from './eqPresets';
 import { exciterPresetSettings } from './exciterPresets';
 import { footstepsPresetSettings } from './footstepsPresets';
@@ -151,8 +152,12 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
     deEsser: recipe.deEsser
       ? deEsserPresetSettings(recipe.deEsser, true)
       : DSP_DEFAULTS.deEsser,
+    // A Room copy is chosen by somebody on headphones: the Game filter may
+    // then switch the Room on for a game with no 3D sound of its own.
     footsteps: recipe.footsteps
-      ? footstepsPresetSettings(recipe.footsteps, true)
+      ? footstepsPresetSettings(recipe.footsteps, true, {
+          useRoom: recipe.room !== undefined,
+        })
       : DSP_DEFAULTS.footsteps,
     exciter: recipe.exciter
       ? exciterPresetSettings(recipe.exciter, true)
@@ -174,6 +179,9 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
     master: recipe.master
       ? masterProfile(recipe.master, recipe.masterGainMatch)
       : DSP_DEFAULTS.master,
+    dynamics: recipe.dynamics
+      ? dynamicsPresetSettings(recipe.dynamics, true)
+      : DSP_DEFAULTS.dynamics,
     room: recipe.room
       ? { ...roomPresetSettings(DSP_DEFAULTS.room, recipe.room), enabled: true }
       : DSP_DEFAULTS.room,
@@ -373,5 +381,14 @@ export const dspPresetSettings = (
     // of the rack, a chain that does not use it switches it off, and the
     // chains that do are offered as copies — "Gaming · Room".)
     room: chainRoom(current?.room, preset.settings.room),
+    // The Game filter's Room for games follows the chain where the chain is
+    // a Room copy (somebody on headphones chose it), and stays as it was
+    // otherwise: it is about the listener's headphones, not the chain.
+    footsteps: {
+      ...preset.settings.footsteps,
+      useRoom: preset.settings.room.enabled
+        ? true
+        : (current?.footsteps.useRoom ?? false),
+    },
   });
 };

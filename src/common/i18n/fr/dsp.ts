@@ -104,7 +104,7 @@ const dsp = {
   'dsp.denoise.voiceLibraryOnly':
     'Le traitement neuronal de la voix est réservé à la lecture de la Bibliothèque. La réduction du souffle, du ronflement et des craquements fonctionne avec l’audio externe.',
   'dsp.normalizer.liveDescription':
-    'Mesure l’audio externe pendant la lecture, ajuste les deux canaux ensemble et protège les crêtes avant l’exciteur et l’égaliseur.',
+    'Mesure l’audio externe pendant la lecture et fixe un seul volume pour les deux canaux avant l’exciteur et l’égaliseur, sans écraser la musique : Crête vraie baisse le morceau jusqu’à ce que sa crête la plus forte atteigne le plafond de crête.',
   'dsp.normalizer.liveAnalysis': 'Analyse de la source en direct',
   'dsp.normalizer.inputLoudness': 'Sonie en entrée (3 s)',
   'dsp.normalizer.outputLoudness': 'Sonie en sortie (3 s)',

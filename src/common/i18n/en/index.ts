@@ -89,6 +89,7 @@ import genreLatin from './genreLatin';
 import genreWorld from './genreWorld';
 import troubleshoot from './troubleshoot';
 import files from './files';
+import gaming from './gaming';
 
 const en = {
   ...karaoke,
@@ -141,6 +142,7 @@ const en = {
   ...genreWorld,
   ...troubleshoot,
   ...files,
+  ...gaming,
 };
 
 export type TranslationKey = keyof typeof en;

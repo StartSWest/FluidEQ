@@ -17,6 +17,7 @@ import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
 import useStagePresets from './useStagePresets';
+import { scopedGroups, useDspPresetScope } from './presetScope';
 
 interface IDspDeEsserBarProps {
   deEsser: IDeEsserSettings;
@@ -29,6 +30,7 @@ const GROUP_KEYS: Record<TDeEsserPresetGroup, TranslationKey> = {
   music: 'dsp.deEsserPresetGroup.music',
   speech: 'dsp.deEsserPresetGroup.speech',
   genre: 'dsp.eqPresetGroup.genre',
+  gaming: 'dsp.deEsserPresetGroup.gaming',
 };
 
 export const DE_ESSER_MODE_KEYS: Record<TDeEsserMode, TranslationKey> = {
@@ -71,17 +73,20 @@ const DspDeEsserBar = ({
         : t('dsp.deEsser.where.all'),
     ].join(' · ');
 
-  const factoryEntries: IRichPickEntry[] = DE_ESSER_PRESET_GROUPS.flatMap(
-    (group) =>
-      DE_ESSER_CATALOGUE.profiles
-        .filter((preset) => preset.group === group)
-        .map((preset) => ({
-          id: preset.id,
-          name: t(preset.labelKey as TranslationKey),
-          hint: profileHint(preset),
-          group,
-          icon: <VoicingIcon className="rich-pick__glyph" />,
-        })),
+  const scope = useDspPresetScope();
+  const factoryEntries: IRichPickEntry[] = scopedGroups(
+    DE_ESSER_PRESET_GROUPS,
+    scope,
+  ).flatMap((group) =>
+    DE_ESSER_CATALOGUE.profiles
+      .filter((preset) => preset.group === group)
+      .map((preset) => ({
+        id: preset.id,
+        name: t(preset.labelKey as TranslationKey),
+        hint: profileHint(preset),
+        group,
+        icon: <VoicingIcon className="rich-pick__glyph" />,
+      })),
   );
   // Saved profiles first, as the EQ lists its own.
   const entries: IRichPickEntry[] = [...saved.entries, ...factoryEntries];

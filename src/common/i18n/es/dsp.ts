@@ -104,7 +104,7 @@ const dsp = {
   'dsp.denoise.voiceLibraryOnly':
     'Voz neuronal solo está disponible en la Biblioteca. La reducción de siseo, zumbido y clics funciona con audio externo.',
   'dsp.normalizer.liveDescription':
-    'Mide el audio externo mientras se reproduce, ajusta ambos canales a la vez y protege los picos antes del excitador y el ecualizador.',
+    'Mide el audio externo mientras se reproduce y fija un solo volumen para ambos canales antes del excitador y el ecualizador, sin aplastar la música: Pico real baja la canción hasta que su pico más alto llega al techo de pico.',
   'dsp.normalizer.liveAnalysis': 'Análisis de la fuente en directo',
   'dsp.normalizer.inputLoudness': 'Sonoridad de entrada (3 s)',
   'dsp.normalizer.outputLoudness': 'Sonoridad de salida (3 s)',

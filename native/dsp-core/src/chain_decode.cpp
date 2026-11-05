@@ -100,18 +100,32 @@ int feq_chain_settings_decode(const double* values,
   const bool has_footsteps =
       has_low_latency && count > trailer_at &&
       values[trailer_at] == FEQ_CHAIN_FOOTSTEPS_TAG;
+  // Schema 1 is Footsteps alone, schema 2 the whole Game filter.
+  bool has_game = false;
   if (has_footsteps) {
     if (count < trailer_at + FEQ_CHAIN_FOOTSTEPS_TRAILER) return 0;
     // Its switch and Isolate are flags, Lift and Calm fractions: anything
     // else is a Footsteps this engine does not know.
     const double* foot = values + trailer_at;
-    if (foot[1] != FEQ_CHAIN_FOOTSTEPS_SCHEMA ||
-        foot[2] != FEQ_CHAIN_FOOTSTEPS_FIELDS ||
-        (foot[3] != 0 && foot[3] != 1) || (foot[4] != 0 && foot[4] != 1) ||
+    has_game = foot[1] == FEQ_CHAIN_GAME_SCHEMA;
+    if (has_game) {
+      // Heavy and Duck flags, Environment from -1 to 1, Voices a fraction.
+      if (count < trailer_at + FEQ_CHAIN_GAME_TRAILER ||
+          foot[2] != FEQ_CHAIN_GAME_FIELDS || (foot[7] != 0 && foot[7] != 1) ||
+          foot[8] < -1 || foot[8] > 1 || foot[9] < 0 || foot[9] > 1 ||
+          (foot[10] != 0 && foot[10] != 1)) {
+        return 0;
+      }
+    } else if (foot[1] != FEQ_CHAIN_FOOTSTEPS_SCHEMA ||
+               foot[2] != FEQ_CHAIN_FOOTSTEPS_FIELDS) {
+      return 0;
+    }
+    if ((foot[3] != 0 && foot[3] != 1) || (foot[4] != 0 && foot[4] != 1) ||
         foot[5] < 0 || foot[5] > 1 || foot[6] < 0 || foot[6] > 1) {
       return 0;
     }
-    trailer_at += FEQ_CHAIN_FOOTSTEPS_TRAILER;
+    trailer_at +=
+        has_game ? FEQ_CHAIN_GAME_TRAILER : FEQ_CHAIN_FOOTSTEPS_TRAILER;
   }
   const bool has_dynamics =
       has_low_latency && count > trailer_at &&
@@ -440,6 +454,13 @@ int feq_chain_settings_decode(const double* values,
     out->footsteps.isolate = flag();
     out->footsteps.lift = next();
     out->footsteps.calm = next();
+    // Schema 1 leaves the defaults: no Heavy, Environment, Voices or Duck.
+    if (has_game) {
+      out->footsteps.heavy = flag();
+      out->footsteps.environment = next();
+      out->footsteps.voices = next();
+      out->footsteps.duck = flag();
+    }
   }
   if (has_dynamics) {
     at += 3;  // validated tag, schema and field count

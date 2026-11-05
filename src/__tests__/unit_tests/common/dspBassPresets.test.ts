@@ -182,14 +182,15 @@ describe('bass punch profiles', () => {
   it.each([0, 0.5, 1, 1.5, 2])(
     'preserves Mix %s for every shipped profile',
     (mix) => {
-      // The table's own twelve, and one per genre rack with a Punch profile
-      // of its own: every profile the picker lists.
+      // The table's own fifteen (twelve and the Gaming tab's three), and one
+      // per genre rack with a Punch profile of its own: every profile either
+      // picker lists.
       const genreProfiles = GENRE_RACKS.filter(
         (rack) => rack.bassPunch !== undefined,
       ).length;
-      expect(BASS_PUNCH_PRESETS).toHaveLength(12);
+      expect(BASS_PUNCH_PRESETS).toHaveLength(15);
       expect(genreProfiles).toBeGreaterThan(0);
-      expect(BASS_PUNCH_CATALOGUE.profiles).toHaveLength(12 + genreProfiles);
+      expect(BASS_PUNCH_CATALOGUE.profiles).toHaveLength(15 + genreProfiles);
       BASS_PUNCH_CATALOGUE.profiles.forEach((preset) => {
         expect(preset.settings.mix).toBe(1);
         const bassPunch = {

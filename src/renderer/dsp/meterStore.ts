@@ -18,7 +18,7 @@ import { ILibraryNormalizationAnalysis } from '../../common/library/types';
 import { TDspAnalyserStage } from './monitorOutputs';
 import { setDspDeEsserReport } from './deEsserTelemetry';
 import { setDspDynamicsReport } from './dynamicsTelemetry';
-import { setDspFootstepsReport } from './footstepsTelemetry';
+import { setDspFootstepsReport, setDspGameReport } from './footstepsTelemetry';
 import { setDspRoomReport } from './roomTelemetry';
 import { publishDspSourceAnalysis } from './sourceAnalysis';
 import {
@@ -425,6 +425,7 @@ export const clearDspMeterTelemetry = (): void => {
   setDspDeEsserReport(undefined);
   setDspFootstepsReport(undefined);
   setDspDynamicsReport(undefined);
+  setDspGameReport(undefined);
   setDspLoudness({
     momentaryLufs: -120,
     shortTermLufs: -120,

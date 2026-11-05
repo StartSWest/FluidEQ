@@ -26,6 +26,12 @@ struct FootstepsMeterWindow {
   std::atomic<float> bed_db{-120.0f};
   std::atomic<float> lift_db[FEQ_FOOTSTEPS_BANDS];
   std::atomic<float> calm_db{0.0f};
+  /** The furthest the environment was moved, with its sign. */
+  std::atomic<float> environment_db{0.0f};
+  std::atomic<float> ambience{0.0f};
+  std::atomic<float> voice{0.0f};
+  std::atomic<float> voice_db{0.0f};
+  std::atomic<float> duck_db{0.0f};
 
   FootstepsMeterWindow();
 };

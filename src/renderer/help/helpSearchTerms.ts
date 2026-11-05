@@ -46,7 +46,7 @@ const FAMILIES: Partial<Record<HelpChapterId, readonly ITermFamily[]>> = {
       control: 'graph.picker.styles',
     },
   ],
-  games: [{ keys: /^games\.source\.[a-zA-Z]+$/, control: 'games.add' }],
+  games: [{ keys: /^games\.source\.[a-zA-Z]+$/, control: 'gaming.add' }],
   lighting: [
     { keys: /^lighting\.effect\.[a-zA-Z]+$/, control: 'lighting.tuning.title' },
   ],

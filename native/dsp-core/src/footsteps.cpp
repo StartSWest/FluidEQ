@@ -17,6 +17,14 @@ namespace {
 
 using feq_footsteps_detail::BandPass;
 using feq_footsteps_detail::decide;
+using feq_footsteps_detail::dialogue_apply;
+using feq_footsteps_detail::dialogue_decide;
+using feq_footsteps_detail::dialogue_idle;
+using feq_footsteps_detail::dialogue_listen;
+using feq_footsteps_detail::environment_apply;
+using feq_footsteps_detail::environment_decide;
+using feq_footsteps_detail::environment_idle;
+using feq_footsteps_detail::environment_listen;
 using feq_footsteps_detail::History;
 using feq_footsteps_detail::kBands;
 using feq_footsteps_detail::kFloorDb;
@@ -120,7 +128,8 @@ bool settled(const State& s) {
   for (int b = 0; b < FEQ_FOOTSTEPS_BANDS; ++b) {
     if (s.band_gain_db[b] != 0.0 || s.band_gain[b] != 1.0) return false;
   }
-  return s.calm_cut_db == 0.0 && s.calm_gain == 1.0;
+  return s.calm_cut_db == 0.0 && s.calm_gain == 1.0 &&
+         environment_idle(s.environment) && dialogue_idle(s.dialogue);
 }
 
 }  // namespace
@@ -172,6 +181,10 @@ FeqFootsteps* feq_footsteps_create(double sample_rate, uint32_t channels) {
   f->a_programme_fall = pole(control_rate, kProgrammeFallMs);
   f->hold_decisions =
       static_cast<uint32_t>(std::lround(kHoldMs * 0.001 * control_rate));
+  feq_footsteps_detail::environment_design(f->environment_design, sample_rate,
+                                           control_rate);
+  feq_footsteps_detail::dialogue_design(f->dialogue_design, sample_rate,
+                                        control_rate);
   clear_report(f->report);
   FeqFootstepsSettings defaults{};
   feq_footsteps_settings_defaults(&defaults);
@@ -193,6 +206,24 @@ void feq_footsteps_configure(FeqFootsteps* footsteps,
   };
   footsteps->lift.store(unit(settings->lift), std::memory_order_relaxed);
   footsteps->calm.store(unit(settings->calm), std::memory_order_relaxed);
+  footsteps->heavy.store(settings->heavy != 0 ? 1 : 0, std::memory_order_relaxed);
+  footsteps->environment.store(
+      std::isfinite(settings->environment)
+          ? std::clamp(settings->environment, -1.0, 1.0)
+          : 0.0,
+      std::memory_order_relaxed);
+  footsteps->voices.store(unit(settings->voices), std::memory_order_relaxed);
+  footsteps->duck.store(settings->duck != 0 ? 1 : 0, std::memory_order_relaxed);
+}
+
+void feq_footsteps_set_centre(FeqFootsteps* footsteps, int centre_channel) {
+  if (footsteps == nullptr) return;
+  footsteps->centre.store(
+      centre_channel >= 0 &&
+              static_cast<uint32_t>(centre_channel) < footsteps->channels
+          ? centre_channel
+          : -1,
+      std::memory_order_relaxed);
 }
 
 void feq_footsteps_set_lfe(FeqFootsteps* footsteps, int lfe_channel) {
@@ -220,21 +251,47 @@ void feq_footsteps_process(FeqFootsteps* footsteps, float* const* channels,
       enabled && f.isolate.load(std::memory_order_relaxed) != 0;
   const double lift = f.lift.load(std::memory_order_relaxed);
   const double calm = f.calm.load(std::memory_order_relaxed);
+  const bool heavy = f.heavy.load(std::memory_order_relaxed) != 0;
+  const double environment = f.environment.load(std::memory_order_relaxed);
+  const double voices = f.voices.load(std::memory_order_relaxed);
+  const bool duck = f.duck.load(std::memory_order_relaxed) != 0;
   const int lfe = f.lfe.load(std::memory_order_relaxed);
+  const int centre = f.centre.load(std::memory_order_relaxed);
   const uint32_t count = f.channels;
 
   for (uint32_t i = 0; i < frames; ++i) {
     if (s.until_control == 0) {
-      decide(f, enabled, lift, calm);
+      const double step = static_cast<double>(f.control_step);
+      decide(f, enabled, lift, calm, heavy);
+      const bool moving = enabled && !s.learning;
+      environment_decide(f.environment_design, s.environment,
+                         moving ? environment : 0.0, s.learning, step,
+                         f.report);
+      dialogue_decide(f.dialogue_design, s.dialogue, moving ? voices : 0.0,
+                      moving && duck, s.programme_db, s.quiet_around, step,
+                      f.report);
       s.until_control = f.control_step;
     }
     --s.until_control;
 
+    // `x` is the stage's input, which Environment and Dialogue listen to;
+    // the lift listens to, and lifts, what Environment leaves of it.
+    double input[FEQ_FOOTSTEPS_MAX_CHANNELS];
     double x[FEQ_FOOTSTEPS_MAX_CHANNELS];
+    for (uint32_t c = 0; c < count; ++c) {
+      input[c] = channels[c][i];
+      x[c] = input[c];
+    }
+    environment_listen(f.environment_design, s.environment, input, count);
+    dialogue_listen(f.dialogue_design, s.dialogue, input, count, centre);
+    const bool environment_moving = !environment_idle(s.environment);
+    if (environment_moving) {
+      environment_apply(f.environment_design, s.environment, x, count, lfe);
+    }
+
     double added[FEQ_FOOTSTEPS_MAX_CHANNELS] = {};
     double whole_peak = 0.0;
     for (uint32_t c = 0; c < count; ++c) {
-      x[c] = channels[c][i];
       if (static_cast<int>(c) != lfe) whole_peak = std::max(whole_peak, x[c] * x[c]);
     }
     s.whole_power += (whole_peak > s.whole_power ? f.a_power_attack
@@ -290,13 +347,34 @@ void feq_footsteps_process(FeqFootsteps* footsteps, float* const* channels,
     s.calm_gain += s.calm_step;
     const double kc = s.calm_gain - 1.0;
 
+    const bool dialogue_moving = !dialogue_idle(s.dialogue);
+    if (!environment_moving && !dialogue_moving) {
+      // The lift alone, written as it always was: Isolate is its delta to
+      // the bit, not the output less the input.
+      for (uint32_t c = 0; c < count; ++c) {
+        if (static_cast<int>(c) == lfe) {
+          if (isolate) channels[c][i] = 0.0f;
+          continue;
+        }
+        const double delta = added[c] + kc * low[c];
+        channels[c][i] = static_cast<float>(isolate ? delta : x[c] + delta);
+      }
+      continue;
+    }
+    double out[FEQ_FOOTSTEPS_MAX_CHANNELS];
+    for (uint32_t c = 0; c < count; ++c) {
+      out[c] = static_cast<int>(c) == lfe ? x[c] : x[c] + added[c] + kc * low[c];
+    }
+    if (dialogue_moving) {
+      dialogue_apply(f.dialogue_design, s.dialogue, out, count, lfe, centre);
+    }
     for (uint32_t c = 0; c < count; ++c) {
       if (static_cast<int>(c) == lfe) {
         if (isolate) channels[c][i] = 0.0f;
         continue;
       }
-      const double delta = added[c] + kc * low[c];
-      channels[c][i] = static_cast<float>(isolate ? delta : x[c] + delta);
+      channels[c][i] =
+          static_cast<float>(isolate ? out[c] - input[c] : out[c]);
     }
   }
 

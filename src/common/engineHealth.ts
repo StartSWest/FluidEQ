@@ -344,6 +344,16 @@ export const engineRunsFootsteps = (dllVersion: string | undefined): boolean =>
   engineAtLeast(dllVersion, ENGINE_FOOTSTEPS_SINCE);
 
 /**
+ * The first engine that runs the whole Game filter — Environment, Dialogue
+ * and Heavy beside the lift — from the trailer's schema 2, which 1.25
+ * refuses whole; for that engine main writes the lift alone
+ * (`asFootstepsAlone`) and the page says the rest needs the update.
+ */
+export const ENGINE_GAME_SINCE: readonly [number, number] = [1, 26];
+export const engineRunsGame = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_GAME_SINCE);
+
+/**
  * Dynamics, the upward and downward compressor, from its own DYNA trailer.
  * An older engine refuses a line carrying it and bypasses the whole rack, so
  * the app takes the trailer off for one (`withoutDynamics`).

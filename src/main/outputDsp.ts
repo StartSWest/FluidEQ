@@ -44,8 +44,8 @@ export interface IOutputDspFlush {
   dllVersion?: string;
   /**
    * The engine actually installed (`IMainSession.installedEngineVersion`).
-   * Footsteps needs 1.25; Dynamics needs 1.27. Unknown trailers are omitted
-   * so an older engine can still run every stage it understands.
+   * The Game filter's trailer is written whole where it answers 1.26 or
+   * later, as Footsteps alone where it answers 1.25, and not at all below.
    */
   engineVersion?: () => Promise<string | undefined>;
   /** Latest audible rack: a song loan, live drag or the Library's rack gate. */
@@ -62,8 +62,8 @@ interface IOutputSound {
 }
 
 /**
- * Which of the rack's newer trailers the installed engine reads — Footsteps
- * and Dynamics. Answered none where its version cannot be read, as the
+ * Which of the rack's newer trailers the installed engine reads — the Game
+ * filter, Dynamics. Answered none where its version cannot be read, as the
  * rack message's own path answers: an older engine plays the rest of the
  * rack without a trailer, and none of it with one.
  *

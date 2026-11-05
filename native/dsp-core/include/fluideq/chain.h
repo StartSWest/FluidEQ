@@ -228,7 +228,12 @@ typedef struct FeqChainSettings {
    * the stage, which would refuse a line longer than it knows.
    */
   FeqFootstepsSettings footsteps;
-  /** Dynamics, before the Maximizer, with its own tagged trailer. */
+  /**
+   * Dynamics, the upward and downward compressor, just before the Maximizer
+   * (`compander.h`): what it lifts too far the Maximizer still catches. On
+   * the wire in a tagged trailer of its own (`FEQ_CHAIN_DYNAMICS_TAG`),
+   * written only while the stage is on, as Footsteps' is.
+   */
   FeqCompanderSettings compander;
   /**
    * Stereo width per band. Touches the side signal only, so the mono sum is
@@ -445,15 +450,20 @@ typedef struct FeqChainSettings {
 #define FEQ_CHAIN_ROOM_TRAILER 11
 /**
  * FOOT tag, schema version, field count, then Footsteps' switch, Isolate,
- * Lift and Calm. After the low-latency word and the Room's trailer when there
- * is one, before the tone; written only while the stage is on
- * (`footstepsTrailer` in `chainWire.ts`). An engine before 1.25 refuses the
- * line, so the app takes the trailer off for one (`withoutFootsteps`).
+ * Lift and Calm, and from schema 2 the Game filter's Heavy, Environment,
+ * Voices and Duck. After the low-latency word and the Room's trailer when
+ * there is one, before the tone; written only while the stage is on
+ * (`footstepsTrailer` in `footstepsWire.ts`). An engine before 1.25 refuses
+ * the line, so the app takes the trailer off for one (`withoutFootsteps`);
+ * 1.25 refuses schema 2, so the app writes schema 1 for that engine.
  */
 #define FEQ_CHAIN_FOOTSTEPS_TAG 1179602772
 #define FEQ_CHAIN_FOOTSTEPS_SCHEMA 1
 #define FEQ_CHAIN_FOOTSTEPS_FIELDS 4
 #define FEQ_CHAIN_FOOTSTEPS_TRAILER 7
+#define FEQ_CHAIN_GAME_SCHEMA 2
+#define FEQ_CHAIN_GAME_FIELDS 8
+#define FEQ_CHAIN_GAME_TRAILER 11
 /**
  * DYNA tag, schema version, field count, then the Dynamics stage's switch,
  * each of its three bands' upward threshold, ratio and largest lift and
@@ -466,7 +476,6 @@ typedef struct FeqChainSettings {
 #define FEQ_CHAIN_DYNAMICS_SCHEMA 1
 #define FEQ_CHAIN_DYNAMICS_FIELDS 20
 #define FEQ_CHAIN_DYNAMICS_TRAILER 23
-
 /**
  * TONE tag, schema version, band count and design, then each band's type,
  * frequency, gain and Q. Last on the line, after the low-latency word, the
@@ -479,10 +488,11 @@ typedef struct FeqChainSettings {
 #define FEQ_CHAIN_TONE_BAND_PARAMS 4
 /**
  * Normalizer (3), explicit low latency (1), tagged Room (11), tagged
- * Footsteps (7), Dynamics (23), and the tone at its longest.
+ * Footsteps at its longest (11), Dynamics (23), and the tone at its longest.
  */
 #define FEQ_CHAIN_MAX_TRAILER                                        \
-  (15 + FEQ_CHAIN_FOOTSTEPS_TRAILER + FEQ_CHAIN_DYNAMICS_TRAILER + FEQ_CHAIN_TONE_HEADER +        \
+  (15 + FEQ_CHAIN_GAME_TRAILER + FEQ_CHAIN_DYNAMICS_TRAILER +        \
+   FEQ_CHAIN_TONE_HEADER +                                           \
    FEQ_CHAIN_MAX_TONE_BANDS * FEQ_CHAIN_TONE_BAND_PARAMS)
 #define FEQ_CHAIN_MAX_PARAMS (FEQ_CHAIN_PARAM_LEAD + FEQ_CHAIN_MAX_EQ_BANDS * FEQ_CHAIN_BAND_PARAMS + FEQ_CHAIN_MAX_TRAILER)
 

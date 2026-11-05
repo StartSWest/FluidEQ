@@ -73,42 +73,71 @@ const SOUND_CHAPTERS = [
     ],
   },
   {
-    // The Game presets page with two games on it, cut to its tabs and rows:
-    // at 2560 wide the rest of the page below them is empty.
+    // The Gaming Lab drawn by its own parts (`help/live/gamingFigures`) with
+    // three made-up games, the first in front and tuned, its sound not on
+    // yet: the page's top with the game's header, then the game's parts.
+    // One figure was so tall that the header's call-outs crossed the page.
+    // Both stills are the 2.1 capture of the Game presets page it replaced,
+    // for the exported guide.
     id: 'games',
     group: 'sound',
     figures: [
       {
-        image: '41-game-presets.png',
-        width: 2068,
-        height: 276,
+        live: 'gaming-lab',
+        width: 1280,
+        height: 330,
+        still: '41-game-presets.png',
         controls: [
           {
-            box: [291, 12, 109, 31],
-            name: 'tabs.games',
-            text: 'help.games.tab',
+            target: '.gaming-lab__head .game-mode-switch',
+            name: 'gaming.switch',
+            text: 'help.games.switch',
           },
           {
-            box: [1926, 58, 126, 32],
-            name: 'games.add',
+            target: '.gaming-lab__add',
+            name: 'gaming.add',
             text: 'help.games.add',
           },
           {
-            // The icon and the words: the column they sit in stretches all
-            // the way to the picker.
-            box: [23, 106, 150, 38],
+            target: '.gaming-game.is-selected',
             name: 'help.games.gameName',
             text: 'help.games.game',
           },
           {
-            box: [1749, 109, 179, 32],
-            name: 'help.games.soundName',
-            text: 'help.games.sound',
+            target: '.gaming-panel__pick',
+            name: 'gaming.profile.label',
+            text: 'help.games.profile',
           },
           {
-            box: [2001, 109, 40, 32],
-            name: 'help.games.removeName',
-            text: 'help.games.remove',
+            target: '.gaming-save',
+            name: 'gaming.save',
+            text: 'help.games.save',
+          },
+          {
+            target: '.gaming-panel__actions > .button',
+            name: 'gaming.action.try',
+            text: 'help.games.try',
+          },
+          {
+            // The line's dot, at its start: the whole line reaches the
+            // panel's right edge, and its circle took the right margin the
+            // header's buttons needed.
+            target: '.gaming-panel__status-dot',
+            name: 'help.games.statusName',
+            text: 'help.games.status',
+          },
+        ],
+      },
+      {
+        live: 'gaming-parts',
+        width: 900,
+        height: 720,
+        still: '41-game-presets.png',
+        controls: [
+          {
+            target: '.gaming-rail',
+            name: 'help.games.railName',
+            text: 'help.games.rail',
           },
         ],
       },

@@ -15,6 +15,8 @@ import {
 import { useDspPresetSelection } from '../dsp/useDspPresetSelection';
 import { toggleFavouriteDspPreset } from '../dsp/favouriteDspPresets';
 import GenreNotesPreview from '../dsp/GenreNotesPreview';
+import GameSoundPresetButton from '../games/GameSoundPresetButton';
+import { useSoundingGame } from '../games/useGameSound';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
@@ -54,6 +56,9 @@ const VoicingQuickPick = memo(() => {
     true,
   );
   const active = catalog.find((preset) => preset.id === activeId);
+  // A game's own sound loaded: the game is the preset, changed only in the
+  // Gaming Lab, which the pick's place opens (`GameSoundPresetButton`).
+  const sounding = useSoundingGame();
   const favoritesIds = new Set(favorites.map((preset) => preset.id));
   const entries = [
     ...favorites.map((preset) => ({ ...preset, group: 'favorites' })),
@@ -71,6 +76,9 @@ const VoicingQuickPick = memo(() => {
       (preset) => preset.group === 'genre' && !favoritesIds.has(preset.id),
     ),
   ];
+  if (sounding) {
+    return <GameSoundPresetButton game={sounding} />;
+  }
   return (
     <RichPick
       className="voicing-pick"

@@ -172,15 +172,22 @@ export const FEATURE_FILMS: Readonly<Record<string, IFeatureFilm>> = {
       { key: 'tour.film.engine.rack', from: 19.07, to: 28.1 },
     ],
   },
-  'game-presets': {
-    width: 1120,
-    height: 760,
+  // The Gaming Lab (2026-11-04). Not `game-presets`: that name still plays,
+  // from the site, in every app that bundles its five old captions.
+  'gaming-lab': {
+    width: 1920,
+    height: 1200,
     cues: [
-      { key: 'tour.film.games.intro', from: 0.5, to: 5.63 },
-      { key: 'tour.film.games.add', from: 5.63, to: 11.07 },
-      { key: 'tour.film.games.sound', from: 11.07, to: 17.57 },
-      { key: 'tour.film.games.front', from: 17.57, to: 22.4 },
-      { key: 'tour.film.games.closed', from: 22.4, to: 27.47 },
+      { key: 'tour.film.games.intro', from: 0.5, to: 7.8 },
+      { key: 'tour.film.games.add', from: 7.8, to: 17.73 },
+      { key: 'tour.film.games.profile', from: 17.73, to: 24.53 },
+      { key: 'tour.film.games.try', from: 24.53, to: 31.77 },
+      { key: 'tour.film.games.tune', from: 31.77, to: 43.83 },
+      { key: 'tour.film.games.presets', from: 43.83, to: 51.17 },
+      { key: 'tour.film.games.save', from: 51.17, to: 60.3 },
+      { key: 'tour.film.games.front', from: 60.3, to: 64.87 },
+      { key: 'tour.film.games.eqPage', from: 64.87, to: 70 },
+      { key: 'tour.film.games.closed', from: 70, to: 74.67 },
     ],
   },
   'headphone-presets': {

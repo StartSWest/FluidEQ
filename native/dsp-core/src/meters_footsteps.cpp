@@ -24,6 +24,14 @@ void fold_below(std::atomic<float>& slot, float value) {
   }
 }
 
+/** The value furthest from zero, either side, keeping its sign. */
+void fold_furthest(std::atomic<float>& slot, float value) {
+  float held = slot.load(std::memory_order_relaxed);
+  while ((value < 0.0f ? -value : value) > (held < 0.0f ? -held : held) &&
+         !slot.compare_exchange_weak(held, value, std::memory_order_relaxed)) {
+  }
+}
+
 }  // namespace
 
 FootstepsMeterWindow::FootstepsMeterWindow() {
@@ -41,6 +49,11 @@ void footsteps_window_fold(FootstepsMeterWindow& window,
     fold_above(window.lift_db[band], report.lift_db[band]);
   }
   fold_below(window.calm_db, report.calm_db);
+  fold_furthest(window.environment_db, report.environment_db);
+  fold_above(window.ambience, report.ambience);
+  fold_above(window.voice, report.voice);
+  fold_above(window.voice_db, report.voice_db);
+  fold_below(window.duck_db, report.duck_db);
 }
 
 void footsteps_window_take(FootstepsMeterWindow& window,
@@ -53,4 +66,10 @@ void footsteps_window_take(FootstepsMeterWindow& window,
         window.lift_db[band].exchange(0.0f, std::memory_order_relaxed);
   }
   out->calm_db = window.calm_db.exchange(0.0f, std::memory_order_relaxed);
+  out->environment_db =
+      window.environment_db.exchange(0.0f, std::memory_order_relaxed);
+  out->ambience = window.ambience.exchange(0.0f, std::memory_order_relaxed);
+  out->voice = window.voice.exchange(0.0f, std::memory_order_relaxed);
+  out->voice_db = window.voice_db.exchange(0.0f, std::memory_order_relaxed);
+  out->duck_db = window.duck_db.exchange(0.0f, std::memory_order_relaxed);
 }

@@ -68,8 +68,10 @@ const help = {
     'YouTube, YouTube Music, Bandcamp, Twitch and Suno, played inside FluidEQ with your EQ on them.',
   'help.window.share':
     'Sends this computer’s sound to another one, or plays another one’s here.',
+  'help.window.gaming':
+    'Your games, each with a sound of its own, tuned for that game.',
   'help.window.eq':
-    'Your bands, presets, headphone correction, game presets and the engine’s config.',
+    'Your bands, presets, headphone correction and the engine’s config.',
   'help.window.waveName': 'Audio signal',
   'help.window.wave':
     'What is playing, as it plays, with its peak level. Colourful, at its top, turns Colourful mode on or off; the graph’s View menu can hide it.',
@@ -269,25 +271,34 @@ const help = {
   'help.eqmode.save':
     'Names the current frequencies and Q as a design, listed under My designs.',
 
-  'help.games.title': 'Game presets',
+  'help.games.title': 'Gaming Lab',
   'help.games.intro':
-    'Give each game its own sound. When the game comes to the front, FluidEQ switches to that sound and keeps it until you close the game, whatever you alt-tab to in between. Then it puts back what you had.',
+    'Give each game its own sound. A game starts from a Gaming profile made for it and gets its own copy: you tune the copy in the Gaming Lab, and the profile never changes. When the game comes to the front, FluidEQ puts its sound on and keeps it until you close the game, whatever you alt-tab to in between. Then your music sound comes back.',
   'help.games.steps':
-    'Open EQ → Game presets and press Add a game. Pick one from your launchers, a program that is open now, or choose its program yourself.\nPick the sound it should get in the picker on its row: a Gaming preset, or any other.\nStart the game. A card on the desktop says what FluidEQ switched to, and another says what came back when you close it.',
+    'Open the Gaming Lab in the title bar and press Add a game. Pick one from your launchers, a program that is open now, or browse for its program. It starts from the Gaming profile suggested for it; pick another in its Gaming profile list any time.\nPress Try it now to put the game’s sound on. Pick a part on the left — the Game filter, EQ, Curve or any DSP stage — and tune it right there. Every change stays in this game’s copy.\nSave as profile keeps the copy as one of your own Gaming profiles for other games, updates yours, resets the copy to its profile, renames the copy or deletes it.\nStart the game. A card on the desktop says its sound is on, and another says your music sound is back when you close it.',
   'help.games.tip':
-    'While a game holds the sound, the bar at the foot of the window names it. Pick another sound while you play and it stays: FluidEQ only puts back what it put on. Gaming presets also turn on Game mode and Footsteps, which brings up quiet steps and reloads as they happen.',
+    'While a game’s sound is on, the DSP page shows your music rack paused with a button to tune the game, and the profile list rests, so nothing done there can overwrite your music profile with the game’s sound. The Game filter brings up quiet steps and reloads as they happen and puts voices forward.',
   'help.games.keywords':
-    'gaming, game profile, per game, per-game, per app, automatic, auto switch, steam, epic, launcher, fps, shooter, footsteps, competitive, alt-tab, game mode',
-  'help.games.tab': 'Your games and the sound each one gets.',
+    'gaming, gaming lab, gaming profile, game profile, game presets, per game, per-game, per app, copy, automatic, auto switch, steam, epic, launcher, fps, shooter, footsteps, competitive, alt-tab, game mode, game filter, dialogue, voices, ambience, environment, hooves',
+  'help.games.switch':
+    'Lets a game in front put its own sound on. Off, your games keep your music sound.',
   'help.games.add':
     'Adds a game from Steam, Epic, EA, GOG, Ubisoft, Battle.net or Xbox, or any program that is open now.',
   'help.games.gameName': 'A game',
-  'help.games.game': 'The game, and the folder FluidEQ knows it by.',
-  'help.games.soundName': 'Its sound',
-  'help.games.sound':
-    'The sound FluidEQ switches to when this game comes to the front, or Leave it as it is.',
-  'help.games.removeName': 'Remove',
-  'help.games.remove': 'Forgets the game. The preset it used stays.',
+  'help.games.game':
+    'The game, the profile its sound started from, and whether you tuned it. Playing means it is in front now.',
+  'help.games.profile':
+    'The Gaming profile this game’s copy starts from. Picking another gives the game a fresh copy of it.',
+  'help.games.save':
+    'Saves the copy as a new profile or updates one of yours, resets it to its profile, renames it or deletes it. The profile itself never changes.',
+  'help.games.try':
+    'Puts the game’s sound on now, so you hear what you tune. While it is on, Unload stands here and brings your music sound back.',
+  'help.games.statusName': 'What was tuned',
+  'help.games.status':
+    'Which parts of this copy are different from its profile.',
+  'help.games.railName': 'Its parts',
+  'help.games.rail':
+    'Every part of the game’s sound, each tuned in its own editor beside the list. Tuned marks what moved away from the profile.',
 
   'help.headphones.title': 'Headphone correction & imports',
   'help.headphones.intro':
@@ -352,11 +363,11 @@ const help = {
   'help.dsp.intro':
     'The DSP rack is a chain of studio stages. Under the FluidEQ Engine it processes everything the PC plays; under Equalizer APO it processes Library audio tracks. It is off while FluidEQ is switched off.',
   'help.dsp.steps':
-    'Open DSP. Pick a chain under Presets, or select a stage in the rail and switch it On.\nChange one control at a time and compare with the stage bypassed at a similar volume. Isolate lets you hear only what a stage adds.\nSave a rack you like, and use Export and Import to share it.\nThe De-esser turns down the sharp S, T and SH of a voice only while they sound, and leaves cymbals alone; Speech, Podcast and Audiobook switch it on. Every stage can keep profiles of your own: set it, then press Save.\nFootsteps brings up the quiet sounds of a game, like steps and reloads, as they happen, and leaves gunfire, explosions and echoes alone; the Gaming presets switch it on.',
+    'Open DSP. Pick a chain under Presets, or select a stage in the rail and switch it On.\nChange one control at a time and compare with the stage bypassed at a similar volume. Isolate lets you hear only what a stage adds.\nSave a rack you like, and use Export and Import to share it.\nThe De-esser turns down the sharp S, T and SH of a voice only while they sound, and leaves cymbals alone; Speech, Podcast and Audiobook switch it on. Every stage can keep profiles of your own: set it, then press Save.\nGame brings up the quiet sounds of a game as they happen, puts voices forward, turns the weather and hum of a level down or up, and can put a game without its own 3D sound around you; pick your game in its list, and the Gaming presets switch it on.',
   'help.dsp.tip':
     'Louder often sounds better simply because it is louder, so compare at matched levels. Ctrl-click a dial to return it to its default.',
   'help.dsp.keywords':
-    'effects, fx, audio effects, rack, chain, plugins, limiter, loudness, normalizer, leveler, volume leveling, exciter, harmonics, enhancer, stereo widener, widen, stereo width, bass enhancer, sub bass, subharmonic, punch, transient, mastering, clipping, peak limiter, crossfade, gapless, de-esser, deesser, sibilance, harsh s, sharp s, ess, voice, speech, podcast, profiles, save profile, footsteps, footstep, hear footsteps, steps, gaming, game audio, reloads, loudness equalization',
+    'effects, fx, audio effects, rack, chain, plugins, limiter, loudness, normalizer, leveler, volume leveling, exciter, harmonics, enhancer, stereo widener, widen, stereo width, bass enhancer, sub bass, subharmonic, punch, transient, mastering, clipping, peak limiter, crossfade, gapless, de-esser, deesser, sibilance, harsh s, sharp s, ess, voice, speech, podcast, profiles, save profile, footsteps, footstep, hear footsteps, steps, gaming, game audio, reloads, loudness equalization, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses',
   'help.dsp.normalizer':
     'Evens out loudness. On live audio it levels song by song.',
   'help.dsp.denoise':

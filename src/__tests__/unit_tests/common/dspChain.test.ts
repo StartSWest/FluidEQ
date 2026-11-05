@@ -110,7 +110,8 @@ describe('dsp chain settings', () => {
   });
 
   it('ships the complete, uniquely named DSP preset catalog', () => {
-    expect(DSP_PRESETS).toHaveLength(108);
+    // 108, and the Gaming tab's ten.
+    expect(DSP_PRESETS).toHaveLength(118);
     expect(new Set(DSP_PRESETS.map((preset) => preset.id)).size).toBe(
       DSP_PRESETS.length,
     );
@@ -575,9 +576,10 @@ describe('dsp chain settings', () => {
     DSP_PRESETS.forEach((preset) => {
       expect({ id: preset.id, gameMode: preset.settings.gameMode }).toEqual({
         id: preset.id,
-        gameMode: ['gaming', 'gaming-room', 'gaming-competitive'].includes(
-          preset.id,
-        ),
+        // The three global Gaming chains, and every chain of the Gaming tab.
+        gameMode:
+          ['gaming', 'gaming-room', 'gaming-competitive'].includes(preset.id) ||
+          preset.group === 'gaming',
       });
     });
     const gaming = DSP_PRESETS.find((preset) => preset.id === 'gaming');

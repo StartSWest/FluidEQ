@@ -44,7 +44,6 @@ export const EQ_GROUP_TABS: readonly TWorkspaceTab[] = [
   'eq',
   'presets',
   'convolution',
-  'games',
   'config',
 ];
 
@@ -52,7 +51,6 @@ export const EQ_GROUP_LABEL_KEYS = {
   eq: 'tabs.eqMain',
   presets: 'tabs.presets',
   convolution: 'tabs.convolution',
-  games: 'tabs.games',
   config: 'tabs.config',
 } as const;
 

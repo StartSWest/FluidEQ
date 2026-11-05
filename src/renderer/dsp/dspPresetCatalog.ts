@@ -13,6 +13,7 @@ import {
   dspPresetCurve,
   dspPresetSettings,
 } from '../../common/dsp/presets';
+import { gameCurveOfVoicing } from '../../common/dsp/gameCurves';
 import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
 import type { IVoicingSettings } from '../../common/constants';
 import type { Translate } from '../../common/i18n';
@@ -211,7 +212,9 @@ export const resolveDspPresetCurve = (id: string): IEqSettings | undefined => {
  *
  * A saved chain deleted since goes on playing its curve from the layer until
  * the layer is removed, and is called Custom meanwhile, as the picker calls a
- * chain it cannot name.
+ * chain it cannot name. A game's curve wears its own name, "Competitive" or
+ * "Any game" (Ivan, 2026-11-03: "make sure those gaming curves show with
+ * their name"), never its chain's.
  */
 export const presetLayerName = (
   voicing: IVoicingSettings | undefined,
@@ -220,6 +223,10 @@ export const presetLayerName = (
   const id = dspVoicingPresetId(voicing);
   if (id === undefined) {
     return undefined;
+  }
+  const gameCurve = gameCurveOfVoicing(id);
+  if (gameCurve) {
+    return t(gameCurve.labelKey);
   }
   const saved = findUserDspPreset(id);
   const factory = DSP_PRESETS.find((preset) => preset.id === id);

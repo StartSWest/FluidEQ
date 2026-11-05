@@ -165,25 +165,22 @@ const tour: Partial<Dictionary> = {
   'tour.graph.imageAlt':
     'O Analisador do gráfico com uma música tocando: o espectro ao vivo com 80 dB de profundidade e os picos por cima, as curvas do EQ no topo e, no canto, a lista de vistas em Análise.',
 
-  'tour.games.kicker': 'PRESETS DE JOGO',
+  'tour.games.kicker': 'LABORATÓRIO GAMER',
   'tour.games.title': 'Cada jogo com seu próprio som',
   'tour.games.subtitle': 'Aplicado quando o jogo vem para a frente',
   'tour.games.lead':
-    'Escolha uma vez um som para cada jogo. Quando o jogo vem para a frente, o FluidEQ muda para esse som e o mantém até você fechar o jogo, por mais que você use Alt+Tab, e depois restaura o que você tinha.',
+    'Cada jogo ganha a própria cópia de um perfil gamer, ajustada no Laboratório gamer. Em primeiro plano, o som dele liga e fica, por mais vezes que você use Alt+Tab; feche o jogo e seu som de música volta.',
   'tour.games.point1':
     'Jogos de Steam, Epic Games, EA, GOG, Ubisoft, Battle.net e Xbox, ou qualquer programa que esteja aberto.',
   'tour.games.point2':
-    'Os presets de jogo ativam o Modo jogo, que reduz o atraso que o FluidEQ acrescenta, e a página mostra esse atraso medido.',
+    'Ajuste cada parte em uma só página: o Filtro Jogo para passos e vozes, o EQ, a curva e cada etapa DSP, com presets feitos para jogos.',
   'tour.games.point3':
-    'Um cartão na sua área de trabalho diz o que foi trocado, e outro diz o que voltou quando o jogo fechou.',
+    'O Laboratório e a página EQ mostram o jogo que está tocando e o preset dele.',
   'tour.games.how':
-    'Abra EQ, escolha Presets de jogo e pressione Adicionar um jogo. Depois, escolha o som do jogo no seletor da linha dele.',
-  'tour.games.open': 'Abrir Presets de jogo',
+    'Abra o Laboratório gamer na barra de título e clique em Adicionar um jogo. Depois clique em Experimentar agora e ajuste o som dele ali mesmo.',
+  'tour.games.open': 'Abrir o Laboratório gamer',
   'tour.games.imageAlt':
-    'Três momentos na área de trabalho: um jogo em primeiro plano com o cartão do FluidEQ dizendo que o som dele foi carregado, o mesmo jogo minimizado com o som ainda ativo, e o jogo fechado com o cartão dizendo que o som de antes voltou.',
-  'tour.games.stepFront': 'Em primeiro plano: o som dele é carregado',
-  'tour.games.stepAway': 'Minimizado ou com Alt+Tab: o som continua',
-  'tour.games.stepClosed': 'Fechado: o seu som volta',
+    'O Laboratório gamer com Counter-Strike 2, primeiro com a sua música tocando e depois com o som próprio do jogo: o preset dele nomeado no topo, o Modo jogo ligado e Descarregar no lugar de Experimentar agora.',
   'tour.presets.kicker': 'NOVOS PRESETS',
   'tour.presets.title': 'Presets que soam como a música',
   'tour.presets.subtitle': 'Cadeias inteiras, todas no mesmo volume',
@@ -525,13 +522,24 @@ const tour: Partial<Dictionary> = {
   'tour.film.sound.classic':
     'Escolha Clássico para construir as bandas do jeito que o Equalizer APO constrói.',
   'tour.film.games.intro':
-    'O FluidEQ pode dar a cada um dos seus jogos um som próprio.',
+    'O Laboratório gamer dá a cada um dos seus jogos um som próprio, tudo ajustado em um só lugar.',
   'tour.film.games.add':
-    'Pressione Adicionar um jogo e escolha entre os jogos instalados pelos seus launchers.',
-  'tour.film.games.sound': 'Depois escolha o som que ele deve ter.',
+    'Pressione Adicionar um jogo e escolha entre os jogos deste PC.',
+  'tour.film.games.profile':
+    'Ele começa de um perfil gamer: um para o tipo de jogo, ou um feito para esse título.',
+  'tour.film.games.try':
+    'Pressione Experimentar agora. O som dele toca, com o Modo jogo ligado para baixa latência.',
+  'tour.film.games.tune':
+    'Ajuste qualquer parte aqui mesmo: o Filtro Jogo, o EQ e a curva dele.',
+  'tour.film.games.presets':
+    'Cada etapa DSP oferece presets ajustados para jogos.',
+  'tour.film.games.save':
+    'Guarde o ajuste como um perfil seu, ou recomece do original.',
   'tour.film.games.front':
-    'Quando o jogo vem para a frente, o som dele carrega sozinho.',
-  'tour.film.games.closed': 'Feche o jogo, e o seu próprio som volta.',
+    'Quando o jogo vem para a frente, o som dele liga sozinho.',
+  'tour.film.games.eqPage':
+    'A página EQ mostra qual jogo está tocando, com o preset dele.',
+  'tour.film.games.closed': 'Feche o jogo, e o som da sua música volta.',
   'tour.film.compact.intro':
     'Quando você só precisa dos controles, o FluidEQ vira um player pequeno.',
   'tour.film.compact.go':

@@ -38,6 +38,7 @@ import {
   useSoundPaneSlide,
 } from './utils/soundPane';
 import GameSound from './games/GameSound';
+import { OPEN_GAMING_LAB_EVENT } from './games/gamingLabEvents';
 import RackFollowsEngine from './dsp/RackFollowsEngine';
 import useMainEditorWhile from './utils/useMainEditorWhile';
 import PresetToneFeed from './dsp/PresetToneFeed';
@@ -168,11 +169,34 @@ const AppContent = () => {
   // the tab press appear to do nothing.
   const isGraphFullScreen = useGraphFullScreen();
   const graphView = useGraphView();
-
   // The window as the compact player (`MiniPlayer`), and the way back from
   // it onto one of the pages: the page is chosen while the app is still put
   // away, so it comes back already showing it.
   const { mode: windowMode } = useWindowMode();
+
+  // Asked for the Gaming Lab — by the DSP page, paused while a game's own
+  // sound is on, and by the presets pick, which while a game is loaded is
+  // the way to its sound — wherever the ask comes from: from the amp's
+  // sound deck, the page is loaded and the app comes back already on it,
+  // as the amp's own page buttons do.
+  useEffect(() => {
+    const open = () => {
+      if (windowMode !== 'player') {
+        selectTopWorkspaceTab('games');
+        return;
+      }
+      preloadTab('games')
+        .catch((error: unknown) => {
+          reportError('Loading the games page', error);
+        })
+        .finally(() => {
+          selectTopWorkspaceTab('games');
+          setWindowMode('app').catch(() => undefined);
+        });
+    };
+    window.addEventListener(OPEN_GAMING_LAB_EVENT, open);
+    return () => window.removeEventListener(OPEN_GAMING_LAB_EVENT, open);
+  }, [selectTopWorkspaceTab, windowMode]);
   usePerformanceContext(activeWorkspaceTab, windowMode);
   /**
    * THE AMP'S QUEUE DECK NEEDS THE LIBRARY'S PLAYER, whether or not anything

@@ -6,7 +6,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { DSP_PRESETS } from '../../../common/dsp/presets';
 import { useTranslation } from '../../utils/I18nContext';
-import GameStoryVisual from './GameStoryVisual';
 import PresetsVisual from './PresetsVisual';
 import ShowcaseSlide from './ShowcaseSlide';
 import { GuideVisual, ToneVisual } from './release18Visuals';
@@ -16,9 +15,10 @@ import type { ISlideActions } from './slides';
 
 /**
  * What 2.0 announces, one headline slide each (prepared as 1.8, hence the
- * file's name). The Room's slide is 1.7's, moved up with new words, and the
- * Compact player's is 2.1's, for the one player that replaced 2.0's two
- * (`slides.ts` says why); these are the rest.
+ * file's name). The Room's slide is 1.7's, moved up with new words, the
+ * Compact player's is 2.1's, for the one player that replaced 2.0's two, and
+ * the games slide is 2.3's, for the Gaming Lab (`slides.ts` says why); these
+ * are the rest.
  */
 interface ISlideProps {
   actions: ISlideActions;
@@ -74,16 +74,6 @@ export function GraphViewsSlide({ actions }: ISlideProps) {
         scope: t('graph.styleName.scope'),
         analysis: t('graph.family.analysis'),
       }}
-    />
-  );
-}
-
-export function GamePresetsSlide({ actions }: ISlideProps) {
-  return (
-    <ShowcaseSlide
-      prefix="tour.games"
-      onOpen={() => actions.openTab('games')}
-      visual={<GameStoryVisual />}
     />
   );
 }

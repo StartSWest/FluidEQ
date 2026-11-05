@@ -604,8 +604,20 @@ typedef struct FeqWireAnalysisFrame {
    * reading this file. Written 0.
    */
   float footsteps_reserved_tail;
-  /** Retain the 840-byte development layout's stage slots, offsets 816-839. */
-  float reserved_game[6];
+  /*
+   * The Game filter's other two parts, appended after the complete previous
+   * header: the environment's furthest gain with its sign, how much of the
+   * sound was environment, how sure a voice was speaking, the voice's lift
+   * and everything else's step back (`FeqFootstepsReport`). Five words, 20
+   * bytes, onto 816: 836, rounded by `game_reserved_tail`.
+   */
+  float game_environment_db;
+  float game_ambience;
+  float game_voice;
+  float game_voice_db;
+  float game_duck_db;
+  /** Padding, written 0, as `footsteps_reserved_tail` is. */
+  float game_reserved_tail;
   /** DYN1: measured current gains, not the configured transfer curves. */
   uint32_t dynamics_tag;
   uint32_t dynamics_active;
@@ -652,6 +664,11 @@ inline void feq_wire_footsteps_report(FeqWireAnalysisFrame& frame,
     frame.footsteps_lift_db[band] = report.lift_db[band];
   }
   frame.footsteps_calm_db = report.calm_db;
+  frame.game_environment_db = report.environment_db;
+  frame.game_ambience = report.ambience;
+  frame.game_voice = report.voice;
+  frame.game_voice_db = report.voice_db;
+  frame.game_duck_db = report.duck_db;
 }
 inline void feq_wire_dynamics_report(FeqWireAnalysisFrame& frame,
                                      const FeqCompanderReport& report) {
@@ -686,17 +703,18 @@ static_assert(sizeof(FeqWireStatsFrame) == 24, "stats frame size");
  * floats for Forge and three for Punch — 76 bytes, which lands on 396 and is
  * rounded to 400 by the explicit `bass_reserved_tail`. Denoise's forty live
  * hiss-gain bands append 160 bytes, for a 560-byte header, the De-esser's
- * fifty-six words 224 more, for 784, and Footsteps' seven and its pad 32
- * more, for 816. Reserved stage slots retain the 840-byte development layout;
- * Dynamics appends 32 tagged bytes, for 872.
+ * fifty-six words 224 more, for 784, Footsteps' seven and its pad 32 more,
+ * for 816, and the Game filter's five and their pad 24 more, for 840.
  */
 static_assert(sizeof(FeqWireAnalysisFrame) == 872, "analysis frame size");
-static_assert(offsetof(FeqWireAnalysisFrame, dynamics_tag) == 840,
-              "Dynamics offset");
 static_assert(offsetof(FeqWireAnalysisFrame, deesser_reduction_db) == 560,
               "De-esser offset");
 static_assert(offsetof(FeqWireAnalysisFrame, footsteps_level_db) == 784,
               "Footsteps offset");
+static_assert(offsetof(FeqWireAnalysisFrame, dynamics_tag) == 840,
+              "Dynamics offset");
+static_assert(offsetof(FeqWireAnalysisFrame, game_environment_db) == 816,
+              "Game offset");
 #endif
 
 #endif /* FLUIDEQ_HOST_WIRE_H */

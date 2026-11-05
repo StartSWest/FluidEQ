@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'theme' as *;
 
 // What is left here belongs to voicing and to nothing else.
@@ -87,6 +88,50 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .voicing-pick .rich-pick__trigger {
     padding-inline: 8px;
   }
+}
+
+// A game's own sound loaded, the pick is the way to the Gaming Lab
+// (`GameSoundPresetButton`): its chevron points on, not down, because it
+// opens a page rather than a list.
+.voicing-pick__go {
+  transform: rotate(-90deg);
+}
+
+// The preset that game's sound is playing, after its name ("Counter-Strike 2
+// · Competitive"): quieter than the name, which it qualifies, and separated
+// the way the strength is, with the glyph its Preset chip wears.
+//
+// Only from `$bp-three-column` up, and not at all below: measured with the
+// side panes open, the name first fits beside the toolbar's title at 1240
+// in English, 1281 in German and past 1366 in French and Russian (all four
+// at 1561), and under that it moved the whole toolbar to a row of its own,
+// pushing the graph down. The glyph alone cost the row too, at 1120 in
+// English and 1300-1330 in French and Russian. The Gaming Lab's top line
+// says what plays at every width (`GamingNowPlaying`).
+.voicing-pick__game-preset {
+  display: none;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9em;
+  font-weight: $weight-semibold;
+  color: $text-muted;
+  white-space: nowrap;
+
+  &::before {
+    content: '·';
+    color: $text-faint;
+  }
+
+  @media (min-width: $bp-three-column) {
+    display: inline-flex;
+  }
+}
+
+.voicing-pick__game-glyph {
+  flex: none;
+  width: 14px;
+  height: 14px;
 }
 
 // Under the trigger, out of the flow, so a toolbar of eleven controls does not

@@ -40,6 +40,7 @@ import {
   useRef,
 } from 'react';
 import { useIsFirstRender } from 'renderer/utils/utils';
+import { useChartIdOf } from './chartIds';
 import scaleRangeKey from './scaleRange';
 import {
   GRAPH_ANIMATE_DURATION,
@@ -90,6 +91,9 @@ const Line = ({
   dashed = false,
 }: ILineProps) => {
   const ref = useRef<SVGPathElement>(null);
+  // The chart's own ids for its clips and its spectrum (`chartIds.ts`).
+  const idOf = useChartIdOf();
+  const gradient = gradientId && idOf(gradientId);
 
   // Stop any animation still in flight when this leaves the graph.
   //
@@ -136,10 +140,10 @@ const Line = ({
    */
   const spectrum = useMemo(
     () =>
-      gradientId
-        ? ({ '--curve-gradient': `url(#${gradientId})` } as CSSProperties)
+      gradient
+        ? ({ '--curve-gradient': `url(#${gradient})` } as CSSProperties)
         : undefined,
-    [gradientId],
+    [gradient],
   );
 
   // Define different types of animation that we can use
@@ -171,8 +175,8 @@ const Line = ({
   const initRender = useCallback(() => {
     d3.select(ref.current)
       .attr('d', d)
-      .attr('clip-path', 'url(#chart-clip-path)');
-  }, [d]);
+      .attr('clip-path', `url(#${idOf('chart-clip-path')})`);
+  }, [d, idOf]);
 
   // Handle animation for the initial render
   useEffect(() => {
@@ -243,7 +247,7 @@ const Line = ({
           cut. Two strokes cost what a stroke costs, and the clip they run
           under reaches a little past the plot so the halo tails off rather
           than being sliced. */}
-      {glow && gradientId && (
+      {glow && gradient && (
         <>
           <path
             name={`${name} glow`}
@@ -255,13 +259,13 @@ const Line = ({
             // presentation attribute, which is what lets the halo be cyan at
             // rest without this component knowing anything about the mode.
             style={spectrum}
-            stroke={`url(#${gradientId})`}
+            stroke={`url(#${gradient})`}
             strokeWidth={strokeWidth + 14}
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
             opacity={0.09}
-            clipPath="url(#chart-halo-clip-path)"
+            clipPath={`url(#${idOf('chart-halo-clip-path')})`}
             pointerEvents="none"
           />
           <path
@@ -269,13 +273,13 @@ const Line = ({
             className="chart-curve__glow"
             d={d || undefined}
             style={spectrum}
-            stroke={`url(#${gradientId})`}
+            stroke={`url(#${gradient})`}
             strokeWidth={strokeWidth + 6}
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
             opacity={0.2}
-            clipPath="url(#chart-halo-clip-path)"
+            clipPath={`url(#${idOf('chart-halo-clip-path')})`}
             pointerEvents="none"
           />
         </>

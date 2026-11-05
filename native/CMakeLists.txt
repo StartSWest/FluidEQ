@@ -123,6 +123,9 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/deesser_decide.cpp
   dsp-core/src/footsteps.cpp
   dsp-core/src/footsteps_decide.cpp
+  dsp-core/src/game_dialogue.cpp
+  dsp-core/src/game_environment.cpp
+  dsp-core/src/game_shared.cpp
   dsp-core/src/compander.cpp
   dsp-core/src/meters.cpp
   dsp-core/src/meters_deesser.cpp
@@ -222,6 +225,15 @@ add_test(NAME compander COMMAND fluideq-compander-test)
 add_executable(fluideq-dynamics-meters-test dsp-core/tests/dynamics_meters_test.cpp)
 target_link_libraries(fluideq-dynamics-meters-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME dynamics-meters COMMAND fluideq-dynamics-meters-test)
+
+
+# The Game filter's other two parts: a voice brought forward and the rest
+# stepping back (stereo, 5.1, mono, every rate), the bed turned down or up
+# without a step or a voice going with it, and both the input to the bit at
+# zero.
+add_executable(fluideq-game-parts-test dsp-core/tests/game_parts_test.cpp)
+target_link_libraries(fluideq-game-parts-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME game-parts COMMAND fluideq-game-parts-test)
 
 # The three-band split every multiband stage shares, held to the response of
 # the bands put back together rather than to any one of them.

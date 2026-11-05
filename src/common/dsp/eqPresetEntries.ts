@@ -978,6 +978,156 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
       model: 'wide',
     },
   },
+  // Gaming (the Gaming tab's only; `presetScope.tsx`). Every one judged on
+  // a game's mix, where the low end is effects and the cues a player needs
+  // sit at 2-6 kHz, and each one levelled so it is not simply louder: a
+  // gaming curve that wins by volume wins for the wrong reason.
+  /*        32   50   80  125  200  315  500  800  1k2  2k   3k1  5k   8k  12k5 16k */
+  {
+    // Steps, reloads, a door: 2-6 kHz up, and the 80-500 a firefight fills
+    // the room with taken down. The sub is cut as well, unlike the global
+    // Gaming curve, because here nothing else in the rack brings it back.
+    id: 'gameFootstepFocus',
+    labelKey: 'dsp.gamingPreset.footstepFocus',
+    group: 'gaming',
+    gains: [
+      -3, -3, -2.5, -2, -2.5, -2.5, -1.2, -0.3, 0.5, 2, 3, 2.8, 1.5, 0, -0.8,
+    ],
+    setup: { model: 'proportional', subsonicHz: 30, monoBelowHz: 120 },
+  },
+  {
+    // Explosions held down only while they happen: every low band dynamic,
+    // so a quiet scene keeps its weight and a blast loses up to 6 dB of
+    // boom, and the cues just above it a little lift to stay on top.
+    id: 'gameBlastTamer',
+    labelKey: 'dsp.gamingPreset.blastTamer',
+    group: 'gaming',
+    gains: [-6, -6, -5, -3.5, -2, 0, 0, 0, 0, 0.8, 1.5, 1, 0, 0, 0],
+    dynamic: [
+      -26,
+      -26,
+      -26,
+      -24,
+      -22,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+    ],
+    setup: { ...PROTECTED, model: 'wide' },
+  },
+  {
+    // A voice in a game is buried under the score and the effects at once:
+    // the body of speech at 1-3 kHz lifted, the 300 Hz a score is thick
+    // with eased, the very top left as it was so it is not sibilant.
+    id: 'gameVoicesForward',
+    labelKey: 'dsp.gamingPreset.voicesForward',
+    group: 'gaming',
+    gains: [
+      -1.85, -1.85, -1.35, -1.15, -1.35, -1.85, -0.85, 0.15, 1.15, 1.95, 1.65,
+      0.65, -0.35, -0.65, -0.85,
+    ],
+    setup: { ...PROTECTED, model: 'wide' },
+  },
+  {
+    // A cutscene and a set piece: weight under 100 Hz, a decibel out of the
+    // boxy 300-500, and a little air, the shape of a film mix.
+    id: 'gameCinematic',
+    labelKey: 'dsp.gamingPreset.cinematicWeight',
+    group: 'gaming',
+    gains: [
+      1.8, 2.3, 1.8, 0.5, -0.7, -1.7, -1.7, -1, -0.7, -0.2, 0.3, 0.3, 0.3, 0.5,
+      0.3,
+    ],
+    setup: { model: 'wide', subsonicHz: 20, monoBelowHz: 60 },
+  },
+  {
+    // Horror: the low drone kept, the middle scooped so the room feels
+    // empty, and the 5-12 kHz where creaks, breath and scratching live
+    // brought up.
+    id: 'gameDread',
+    labelKey: 'dsp.gamingPreset.dread',
+    group: 'gaming',
+    gains: [
+      1.5, 1.5, 0.5, -0.5, -1.5, -2, -1.7, -1, -0.5, 0.3, 1, 1.5, 1.5, 1.3, 1,
+    ],
+    setup: { ...PROTECTED, model: 'wide' },
+  },
+  {
+    // An engine's weight at 80-125 Hz without the boom over it, tyres and
+    // gear changes at 3-5 kHz, and wind: the top two bands held down only
+    // while it roars.
+    id: 'gameEngineTyres',
+    labelKey: 'dsp.gamingPreset.engineTyres',
+    group: 'gaming',
+    gains: [
+      -0.75, 0.25, 1.25, 1.25, -0.25, -1.95, -1.75, -1.05, -0.45, 0.25, 1.25,
+      1.75, 0.25, -2.25, -2.75,
+    ],
+    dynamic: [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      -30,
+      -30,
+    ],
+    setup: { model: 'proportional', subsonicHz: 25, monoBelowHz: 90 },
+  },
+  {
+    // Seen from above: ability cues and a hero's lines at 1-3 kHz up, the
+    // low end of a team fight down, nothing bright added for hours of play.
+    id: 'gameAbilityClarity',
+    labelKey: 'dsp.gamingPreset.abilityClarity',
+    group: 'gaming',
+    gains: [
+      -2.35, -2.35, -1.85, -1.35, -1.15, -0.85, -0.35, 0.15, 1.15, 1.65, 1.15,
+      0.65, 0.15, -0.35, -0.35,
+    ],
+    setup: { ...PROTECTED, model: 'wide' },
+  },
+  {
+    // Playing at night: the bass that travels through a wall held down only
+    // when it is loud (as Late night does for music), the voice range a
+    // decibel up, the top eased so nothing sharp carries.
+    id: 'gameNight',
+    labelKey: 'dsp.gamingPreset.night',
+    group: 'gaming',
+    gains: [-8, -7, -5, -3, -1, 0, 0.5, 1, 1.3, 1.5, 1, 0, -1, -2, -2.5],
+    dynamic: [
+      -32,
+      -32,
+      -32,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+    ],
+    setup: { ...PROTECTED, model: 'wide' },
+  },
 ];
 
 export default EQ_PRESET_ENTRIES;

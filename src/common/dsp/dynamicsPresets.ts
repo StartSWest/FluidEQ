@@ -211,7 +211,7 @@ export const DYNAMICS_PRESET_BY_ID = {
   },
   gameNight: {
     id: 'gameNight',
-    labelKey: 'dsp.eqPreset.lateNight',
+    labelKey: 'dsp.gamingPreset.night',
     group: 'gaming',
     // Midnight: everything quiet up as far as 12 dB, everything loud held
     // at 6:1, so the whole game sits in a narrow band at a low volume.

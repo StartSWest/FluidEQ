@@ -8,6 +8,7 @@ import { IMasterSettings } from '../../common/dsp/chain';
 import {
   IMasterPreset,
   MASTER_PRESETS,
+  MASTER_PRESET_GROUPS,
   isMasterPresetId,
   masterPresetSettings,
 } from '../../common/dsp/masterPresets';
@@ -16,6 +17,7 @@ import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
+import { useScopedGroups } from './presetScope';
 import useStagePresets from './useStagePresets';
 
 interface IDspMasterBarProps {
@@ -48,7 +50,10 @@ const destinationHint = (preset: IMasterPreset): string =>
 const DspMasterBar = ({ master, onChange, onCommit }: IDspMasterBarProps) => {
   const { t } = useTranslation();
   const saved = useStagePresets('master', master, onChange, onCommit);
-  const factoryEntries: IRichPickEntry[] = MASTER_PRESETS.map((preset) => ({
+  const groups: readonly string[] = useScopedGroups(MASTER_PRESET_GROUPS);
+  const factoryEntries: IRichPickEntry[] = MASTER_PRESETS.filter((preset) =>
+    groups.includes(preset.group),
+  ).map((preset) => ({
     id: preset.id,
     name: t(preset.labelKey as TranslationKey),
     hint: destinationHint(preset),

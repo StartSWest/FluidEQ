@@ -7,12 +7,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef } from 'react';
 import {
   FOOTSTEPS_DEFAULTS,
+  FOOTSTEPS_HEAVY_MAX_DB,
   FOOTSTEPS_MAX_CALM_DB,
   FOOTSTEPS_MAX_LIFT_DB,
+  FOOTSTEPS_WEIGHT_MAX_DB,
   IFootstepsSettings,
 } from '../../common/dsp/footsteps';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
+import Switch from '../widgets/Switch';
 import { Dial } from './DspControls';
 import { readDspFootstepsReport } from './footstepsTelemetry';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
@@ -25,15 +28,20 @@ interface IDspFootstepsControlsProps {
 
 /**
  * The three bands the stage lifts, in the engine's order (`kBands` in
- * `footsteps.cpp`), each with the most it can be lifted at a Lift of one.
- * Written out whole: the dead-keys guard reads keys, not templates.
+ * `footsteps.cpp`), each with the most it can be lifted at a Lift of one —
+ * the weight band's more with Heavy on. Written out whole: the dead-keys
+ * guard reads keys, not templates.
  */
 const BANDS: readonly {
   nameKey: TranslationKey;
   where: string;
   maxDb: number;
 }[] = [
-  { nameKey: 'dsp.footsteps.band.weight', where: '300 Hz', maxDb: 4 },
+  {
+    nameKey: 'dsp.footsteps.band.weight',
+    where: '300 Hz',
+    maxDb: FOOTSTEPS_WEIGHT_MAX_DB,
+  },
   { nameKey: 'dsp.footsteps.band.steps', where: '1.3 – 4.5 kHz', maxDb: 10 },
   { nameKey: 'dsp.footsteps.band.detail', where: '4.5 – 11 kHz', maxDb: 6 },
 ];
@@ -49,7 +57,13 @@ const HEARD_DB = 0.3;
  * frame loop, as the graphs are, so a lift twenty-three times a second is
  * never a React render.
  */
-const FootstepsBandLamps = ({ enabled }: { enabled: boolean }) => {
+const FootstepsBandLamps = ({
+  enabled,
+  heavy,
+}: {
+  enabled: boolean;
+  heavy: boolean;
+}) => {
   const { t } = useTranslation();
   const fills = useRef<(HTMLSpanElement | null)[]>([]);
   const figures = useRef<(HTMLSpanElement | null)[]>([]);
@@ -57,6 +71,8 @@ const FootstepsBandLamps = ({ enabled }: { enabled: boolean }) => {
   const lastFrame = useRef(0);
 
   useEffect(() => {
+    const most = (index: number) =>
+      index === 0 && heavy ? FOOTSTEPS_HEAVY_MAX_DB : BANDS[index].maxDb;
     const paint = ({ schedule }: IGraphLoopFrame) => {
       const now = performance.now();
       const dt = Math.min(100, Math.max(0, now - lastFrame.current));
@@ -64,7 +80,7 @@ const FootstepsBandLamps = ({ enabled }: { enabled: boolean }) => {
       const report = enabled ? readDspFootstepsReport() : undefined;
       const ease = 1 - Math.exp(-dt / LAMP_RELEASE_MS);
       let fading = false;
-      BANDS.forEach((band, index) => {
+      BANDS.forEach((_band, index) => {
         const reading = report?.liftDb[index] ?? 0;
         const was = held.current[index];
         const next = reading > was ? reading : was + (reading - was) * ease;
@@ -72,7 +88,7 @@ const FootstepsBandLamps = ({ enabled }: { enabled: boolean }) => {
         fading = fading || held.current[index] > 0;
         const fill = fills.current[index];
         if (fill) {
-          fill.style.transform = `scaleX(${Math.min(1, held.current[index] / band.maxDb)})`;
+          fill.style.transform = `scaleX(${Math.min(1, held.current[index] / most(index))})`;
         }
         const figure = figures.current[index];
         if (figure) {
@@ -99,7 +115,7 @@ const FootstepsBandLamps = ({ enabled }: { enabled: boolean }) => {
     });
     loop.schedule();
     return () => loop.stop();
-  }, [enabled]);
+  }, [enabled, heavy]);
 
   return (
     <ul className="dsp-footsteps-lamps">
@@ -127,7 +143,10 @@ const FootstepsBandLamps = ({ enabled }: { enabled: boolean }) => {
   );
 };
 
-/** Footsteps' two dials and the bands they act on. */
+/**
+ * The Game filter's Footsteps: its two dials, Heavy for the hooves and the
+ * boots, and the bands it lifts, lit as they are lifted.
+ */
 const DspFootstepsControls = ({
   footsteps,
   onEdit,
@@ -138,57 +157,61 @@ const DspFootstepsControls = ({
   const upTo = (db: number) => t('dsp.footsteps.upTo', { db: db.toFixed(1) });
 
   return (
-    <div className="dsp-footsteps-controls">
-      <div className="dsp-band">
-        <span className="dsp-band-title">{t('dsp.footsteps.lift')}</span>
-        <p className="dsp-band-hint">{t('dsp.footsteps.liftHint')}</p>
-        <div className="dsp-band-dials">
-          <Dial
-            labelKey="dsp.footsteps.lift"
-            value={footsteps.lift * 100}
-            defaultValue={FOOTSTEPS_DEFAULTS.lift * 100}
-            min={0}
-            max={100}
-            unit="%"
-            step={1}
-            isDisabled={isOff}
-            onCommit={onCommit}
-            onChange={(value) => onEdit({ lift: value / 100 })}
-          />
-        </div>
-        <p className="dsp-footsteps-reach">
+    <section className="dsp-band dsp-game-part is-footsteps">
+      <span className="dsp-band-title">{t('dsp.game.footsteps')}</span>
+      <p className="dsp-band-hint">{t('dsp.footsteps.liftHint')}</p>
+      <div className="dsp-band-dials">
+        <Dial
+          labelKey="dsp.footsteps.lift"
+          value={footsteps.lift * 100}
+          defaultValue={FOOTSTEPS_DEFAULTS.lift * 100}
+          min={0}
+          max={100}
+          unit="%"
+          step={1}
+          isDisabled={isOff}
+          onCommit={onCommit}
+          onChange={(value) => onEdit({ lift: value / 100 })}
+        />
+        <Dial
+          labelKey="dsp.footsteps.calm"
+          value={footsteps.calm * 100}
+          defaultValue={FOOTSTEPS_DEFAULTS.calm * 100}
+          min={0}
+          max={100}
+          unit="%"
+          step={1}
+          isDisabled={isOff}
+          onCommit={onCommit}
+          onChange={(value) => onEdit({ calm: value / 100 })}
+        />
+      </div>
+      <div className="dsp-game-reach">
+        <span className="dsp-footsteps-reach">
           {upTo(footsteps.lift * FOOTSTEPS_MAX_LIFT_DB)}
-        </p>
-      </div>
-
-      <div className="dsp-band">
-        <span className="dsp-band-title">{t('dsp.footsteps.calm')}</span>
-        <p className="dsp-band-hint">{t('dsp.footsteps.calmHint')}</p>
-        <div className="dsp-band-dials">
-          <Dial
-            labelKey="dsp.footsteps.calm"
-            value={footsteps.calm * 100}
-            defaultValue={FOOTSTEPS_DEFAULTS.calm * 100}
-            min={0}
-            max={100}
-            unit="%"
-            step={1}
-            isDisabled={isOff}
-            onCommit={onCommit}
-            onChange={(value) => onEdit({ calm: value / 100 })}
-          />
-        </div>
-        <p className="dsp-footsteps-reach is-calm">
+        </span>
+        <span className="dsp-footsteps-reach is-calm">
           {upTo(footsteps.calm * FOOTSTEPS_MAX_CALM_DB)}
-        </p>
+        </span>
       </div>
-
-      <div className="dsp-band">
-        <span className="dsp-band-title">{t('dsp.footsteps.bands')}</span>
-        <p className="dsp-band-hint">{t('dsp.footsteps.bandsHint')}</p>
-        <FootstepsBandLamps enabled={footsteps.enabled} />
+      <div className="dsp-game-toggle">
+        <span className="dsp-game-toggle-words">
+          <span className="dsp-game-toggle-name">{t('dsp.game.heavy')}</span>
+          <span className="dsp-band-hint">{t('dsp.game.heavyHint')}</span>
+        </span>
+        <Switch
+          id="dsp-game-heavy"
+          isOn={footsteps.heavy}
+          isDisabled={isOff}
+          handleToggle={() => {
+            onEdit({ heavy: !footsteps.heavy });
+            onCommit();
+          }}
+          ariaLabel={t('dsp.game.heavy')}
+        />
       </div>
-    </div>
+      <FootstepsBandLamps enabled={footsteps.enabled} heavy={footsteps.heavy} />
+    </section>
   );
 };
 

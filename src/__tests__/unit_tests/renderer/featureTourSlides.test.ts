@@ -7,6 +7,32 @@ const idsOf = (version: string, release?: string) =>
     .filter((slide) => slide.release === release)
     .map((slide) => slide.id);
 
+describe("What's new in 2.3", () => {
+  it('opens on the Gaming Lab, then keeps 2.2 as new under its own number', () => {
+    expect(featureTourFor('2.3.0')[0].id).toBe('game-presets');
+    expect(idsOf('2.3.0', '2.3')).toEqual(['game-presets']);
+    expect(idsOf('2.3.0', '2.2')).toEqual(idsOf('2.2.0', '2.2'));
+    expect(idsOf('2.2.0', '2.3')).toEqual([]);
+  });
+
+  it('shows the games slide once, as 2.3’s, and keeps every earlier feature', () => {
+    const slides = featureTourFor('2.3.0');
+    const ids = slides.map((slide) => slide.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    featureTourFor('2.2.0').forEach((slide) => expect(ids).toContain(slide.id));
+    const groups = slides.map((slide) => slide.release ?? 'always');
+    expect(
+      groups.filter(
+        (group, index) => index === 0 || group !== groups[index - 1],
+      ),
+    ).toEqual(['2.3', '2.2', 'always']);
+  });
+
+  it('keeps the same content on a 2.3 patch', () => {
+    expect(featureTourFor('2.3.4')).toEqual(featureTourFor('2.3.0'));
+  });
+});
+
 describe("What's new in 2.2", () => {
   it('opens on the walkthrough, then Karaoke backgrounds, the tray and the two languages, without changing 2.1', () => {
     expect(featureTourFor('2.2.0')[0].id).toBe('walkthrough');

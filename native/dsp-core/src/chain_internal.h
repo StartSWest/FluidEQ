@@ -870,6 +870,8 @@ void chain_process_deesser(FeqChain* chain, float* const* channels,
 /** Run it on the block and report what it did. AUDIO thread. */
 void chain_process_footsteps(FeqChain* chain, float* const* channels,
                              uint32_t frames);
+/** Tell it which channels are the LFE and the centre. CONTROL thread. */
+void chain_apply_footsteps_layout(FeqChain* chain);
 
 /** The mono maker after the EQ, and its return to a stream's start. */
 void chain_process_mono_maker(FeqChain* chain, float* const* channels,

@@ -16,6 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstdint>
 
 #include "fluideq/footsteps.h"
+#include "game_parts.h"
 
 namespace feq_footsteps_detail {
 
@@ -112,7 +113,24 @@ struct State {
   double calm_cut_db = 0.0;
   double calm_gain = 1.0;
   double calm_step = 0.0;
+  /**
+   * 1 while nothing around is loud, 0 in a blast, from the last decision:
+   * Dialogue reads it, as the lift does.
+   */
+  double quiet_around = 1.0;
+  /** Still learning the bed: nothing is moved yet. */
+  bool learning = true;
+  EnvironmentState environment;
+  DialogueState dialogue;
 };
+
+/**
+ * The weight band's most when Heavy is on: a hoof or a boot carries its
+ * distance at 300 Hz, and the 4 dB that serves a footstep left the hooves of
+ * a horse across the plains of a ride 1.5 dB up, unheard (2026-11-01, a
+ * recorded ride replayed through the stage).
+ */
+constexpr double kHeavyWeightMaxDb = 10.0;
 
 }  // namespace feq_footsteps_detail
 
@@ -127,7 +145,12 @@ struct FeqFootsteps {
   std::atomic<int> isolate{0};
   std::atomic<double> lift{0.0};
   std::atomic<double> calm{0.0};
+  std::atomic<int> heavy{0};
+  std::atomic<double> environment{0.0};
+  std::atomic<double> voices{0.0};
+  std::atomic<int> duck{0};
   std::atomic<int> lfe{-1};
+  std::atomic<int> centre{-1};
 
   feq_footsteps_detail::BandPass band[FEQ_FOOTSTEPS_BANDS];
   double shelf_c = 0.0;
@@ -152,6 +175,9 @@ struct FeqFootsteps {
   double a_programme_rise = 0.0;
   double a_programme_fall = 0.0;
 
+  feq_footsteps_detail::EnvironmentDesign environment_design;
+  feq_footsteps_detail::DialogueDesign dialogue_design;
+
   feq_footsteps_detail::State state;
   FeqFootstepsReport report{};
 };
@@ -163,7 +189,8 @@ namespace feq_footsteps_detail {
  * the next control step, given everything the followers heard up to now
  * (`footsteps_decide.cpp`).
  */
-void decide(FeqFootsteps& f, bool enabled, double lift, double calm);
+void decide(FeqFootsteps& f, bool enabled, double lift, double calm,
+            bool heavy);
 
 }  // namespace feq_footsteps_detail
 

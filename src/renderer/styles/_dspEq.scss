@@ -562,7 +562,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-bass-forge-note,
 .dsp-bass-punch-note,
 .dsp-de-esser-note,
-.dsp-footsteps-note {
+.dsp-footsteps-note,
+.dsp-dynamics-note {
   margin: 0;
   color: $text-faint;
   font-size: $text-body;
@@ -585,6 +586,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     .dsp-bass-punch-note,
     .dsp-de-esser-note,
     .dsp-footsteps-note,
+    .dsp-dynamics-note,
     .dsp-dimension-note,
     .dsp-eq-settings,
     .dsp-eq-notice
@@ -601,6 +603,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     .dsp-bass-punch-note,
     .dsp-de-esser-note,
     .dsp-footsteps-note,
+    .dsp-dynamics-note,
     .dsp-dimension-note
   ) {
   padding-right: max(0px, calc(100% - 620px));

@@ -22,10 +22,11 @@ import {
   ANALYSIS_BINS,
   ANALYSIS_DEESSER_BANDS,
   ANALYSIS_DEESSER_HEADER_BYTES,
-  ANALYSIS_FOOTSTEPS_HEADER_BYTES,
-  ANALYSIS_DYNAMICS_TAG,
   ANALYSIS_EQ_DETAIL_BINS,
   ANALYSIS_EQ_DETAIL_WINDOW,
+  ANALYSIS_FOOTSTEPS_HEADER_BYTES,
+  ANALYSIS_GAME_HEADER_BYTES,
+  ANALYSIS_DYNAMICS_TAG,
   ANALYSIS_HEADER_BYTES,
   ANALYSIS_MAX_BANDS,
   ANALYSIS_SCOPE_PAIRS,
@@ -36,6 +37,7 @@ import type {
   IHostAnalysisDeEsser,
   IHostAnalysisFootsteps,
   IHostAnalysisDynamics,
+  IHostAnalysisGame,
   TAnalysisStage,
 } from '../../common/dsp/analysisWire';
 import { CHAIN_PARAM_LEAD } from '../../common/dsp/chainWire';
@@ -505,6 +507,15 @@ const decodeFootsteps = (view: DataView): IHostAnalysisFootsteps => ({
   calmDb: view.getFloat32(808, true),
 });
 
+/** The Game filter's window, offsets 816 to 835 (`feq_wire_footsteps_report`). */
+const decodeGame = (view: DataView): IHostAnalysisGame => ({
+  environmentDb: view.getFloat32(816, true),
+  ambience: view.getFloat32(820, true),
+  voice: view.getFloat32(824, true),
+  voiceDb: view.getFloat32(828, true),
+  duckDb: view.getFloat32(832, true),
+});
+
 /** The tagged current Dynamics readings, appended at offset 840. */
 const decodeDynamics = (view: DataView): IHostAnalysisDynamics | undefined => {
   if (view.getUint32(840, true) !== ANALYSIS_DYNAMICS_TAG) {
@@ -659,8 +670,9 @@ export const analysisFrameLength = (
 
 /**
  * One analysis frame. `headerBytes` is the header the writer was built with:
- * the Library host's is always this build's, an engine before Footsteps
- * (`ENGINE_FOOTSTEPS_SINCE`) writes the 784 bytes before it, and one before
+ * the Library host's is always this build's, an engine before the rest of
+ * the Game filter (`ENGINE_GAME_SINCE`) writes the 816 bytes before it, one
+ * before Footsteps (`ENGINE_FOOTSTEPS_SINCE`) the 784 before those, and one before
  * the De-esser (`ENGINE_DEESSER_SINCE`) the 560 before those, which
  * `engineAnalysis.ts` tries in turn when this build's does not fit.
  */
@@ -847,6 +859,11 @@ export const decodeAnalysis = (
     // Footsteps.
     ...(headerBytes >= ANALYSIS_FOOTSTEPS_HEADER_BYTES
       ? { footsteps: decodeFootsteps(view) }
+      : {}),
+    // After the 816 bytes that end with Footsteps, from an engine that runs
+    // the whole Game filter.
+    ...(headerBytes >= ANALYSIS_GAME_HEADER_BYTES
+      ? { game: decodeGame(view) }
       : {}),
     ...(headerBytes >= ANALYSIS_HEADER_BYTES
       ? { dynamics: decodeDynamics(view) }

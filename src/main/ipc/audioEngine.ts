@@ -292,8 +292,8 @@ export const registerAudioEngineIpc = ({
     }
   };
   /**
-   * Which of the rack's newer trailers the installed engine reads — Footsteps
-   * and Dynamics (`engineLine.ts`). Answered none where the version
+   * Which of the rack's newer trailers the installed engine reads — the Game
+   * filter, Dynamics (`engineLine.ts`). Answered none where the version
    * cannot be read, for the curve's reason: a line without a stage plays the
    * rest of the rack, a line refused plays none of it.
    */

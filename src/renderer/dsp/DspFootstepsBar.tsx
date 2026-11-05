@@ -7,8 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { IFootstepsSettings } from '../../common/dsp/footsteps';
 import {
   FOOTSTEPS_PRESET_GROUPS,
+  footstepsPresetOf,
+  IFootstepsPreset,
+  isGameRoom,
   TFootstepsPresetGroup,
 } from '../../common/dsp/footstepsPresets';
+import { IGameRack, pickGame } from '../../common/dsp/gameRoom';
+import { roomPresetOf } from '../../common/dsp/roomPresets';
 import { FOOTSTEPS_CATALOGUE } from '../../common/dsp/stageCatalogues';
 import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
@@ -18,32 +23,66 @@ import DspBarIcon from './DspBarIcon';
 import useStagePresets from './useStagePresets';
 
 interface IDspFootstepsBarProps {
-  footsteps: IFootstepsSettings;
-  onChange: (next: IFootstepsSettings) => void;
+  game: IGameRack;
+  onChange: (next: Partial<IGameRack>) => void;
   onCommit: () => void;
 }
 
 /** Written out whole: the dead-keys guard reads keys, not templates. */
 const GROUP_KEYS: Record<TFootstepsPresetGroup, TranslationKey> = {
-  games: 'dsp.footstepsPresetGroup.games',
+  kinds: 'dsp.footstepsPresetGroup.kinds',
+  competitive: 'dsp.footstepsPresetGroup.competitive',
+  battle: 'dsp.footstepsPresetGroup.battle',
+  tactical: 'dsp.footstepsPresetGroup.tactical',
+  moba: 'dsp.footstepsPresetGroup.moba',
+  rpg: 'dsp.footstepsPresetGroup.rpg',
+  story: 'dsp.footstepsPresetGroup.story',
 };
 
 const isGroup = (group: string | undefined): group is TFootstepsPresetGroup =>
   (FOOTSTEPS_PRESET_GROUPS as readonly string[]).includes(group ?? '');
 
 /**
- * Processor-local profiles, on the same picker as every other stage.
- *
- * Choosing one starts the stage as well as loading its sound; the chains
- * that set this stage decide for themselves whether it runs.
+ * The Game filter's presets, on the same picker as every other stage: the
+ * kinds of game first, then each game by name under its kind, the line
+ * under each name saying whether the game has its own 3D sound or which
+ * room it is best in. Choosing one starts the filter and sets the Room
+ * (`pickGame`); the chains that set this stage decide for themselves
+ * whether it runs.
  */
 const DspFootstepsBar = ({
-  footsteps,
+  game,
   onChange,
   onCommit,
 }: IDspFootstepsBarProps) => {
   const { t } = useTranslation();
-  const saved = useStagePresets('footsteps', footsteps, onChange, onCommit);
+  const { footsteps } = game;
+  const saved = useStagePresets(
+    'footsteps',
+    footsteps,
+    (next: IFootstepsSettings) => onChange({ footsteps: next }),
+    onCommit,
+  );
+
+  const nameOf = (preset: IFootstepsPreset): string =>
+    preset.title ?? t(preset.labelKey as TranslationKey);
+  const roomName = (preset: IFootstepsPreset): string => {
+    const room = isGameRoom(preset.room)
+      ? roomPresetOf(preset.room)
+      : undefined;
+    return room ? t(room.labelKey as TranslationKey) : '';
+  };
+  const hintOf = (preset: IFootstepsPreset): string => {
+    if (preset.hintKey) {
+      return t(preset.hintKey as TranslationKey);
+    }
+    if (preset.room === 'own3d') {
+      return t('dsp.game.hintOwn3d');
+    }
+    return preset.room === 'none'
+      ? t('dsp.game.hintNoRoom')
+      : t('dsp.game.hintRoom', { room: roomName(preset) });
+  };
 
   const factoryEntries: IRichPickEntry[] = FOOTSTEPS_PRESET_GROUPS.flatMap(
     (group) =>
@@ -51,11 +90,8 @@ const DspFootstepsBar = ({
         .filter((preset) => preset.group === group)
         .map((preset) => ({
           id: preset.id,
-          name: t(preset.labelKey as TranslationKey),
-          // The games alone: with the two dials beside them, the picker's
-          // one line was cut short even in English. The dials say their own
-          // values the moment a profile is picked.
-          hint: t(preset.gamesKey as TranslationKey),
+          name: nameOf(preset),
+          hint: hintOf(preset),
           group,
           icon: <VoicingIcon className="rich-pick__glyph" />,
         })),
@@ -68,14 +104,11 @@ const DspFootstepsBar = ({
     if (saved.apply(id)) {
       return;
     }
-    const next = FOOTSTEPS_CATALOGUE.settings(
-      id,
-      enable ? true : footsteps.enabled,
-    );
-    if (next === undefined) {
+    const preset = footstepsPresetOf(id);
+    if (preset === undefined) {
       return;
     }
-    onChange(next);
+    onChange(pickGame(game, preset, enable));
     onCommit();
   };
 
@@ -92,6 +125,19 @@ const DspFootstepsBar = ({
       applyPreset(id);
     }
   };
+
+  const picked = footstepsPresetOf(footsteps.presetId);
+  let note = t('dsp.footsteps.description');
+  if (picked?.room === 'own3d') {
+    note = t('dsp.game.noteOwn3d', { game: nameOf(picked) });
+  } else if (picked?.room === 'none') {
+    note = t('dsp.game.noteNoRoom', { game: nameOf(picked) });
+  } else if (picked && isGameRoom(picked.room)) {
+    note = t('dsp.game.noteRoom', {
+      game: nameOf(picked),
+      room: roomName(picked),
+    });
+  }
 
   return (
     <>
@@ -150,7 +196,7 @@ const DspFootstepsBar = ({
         </div>
       </div>
 
-      <p className="dsp-footsteps-note">{t('dsp.footsteps.description')}</p>
+      <p className="dsp-footsteps-note">{note}</p>
 
       {saved.notice}
 

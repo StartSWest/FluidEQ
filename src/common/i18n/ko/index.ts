@@ -31,6 +31,7 @@ import dspDeEsser from './dspDeEsser';
 import dspFootsteps from './dspFootsteps';
 import dspDynamics from './dspDynamics';
 import dspStageSave from './dspStageSave';
+import gaming from './gaming';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
 import help from './help';
@@ -83,6 +84,7 @@ const ko: Dictionary = {
   ...dspFootsteps,
   ...dspDynamics,
   ...dspStageSave,
+  ...gaming,
   ...remoteAudio,
   ...tour,
   ...help,

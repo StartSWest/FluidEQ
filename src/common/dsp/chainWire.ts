@@ -42,8 +42,9 @@ import { DE_ESSER_MODES, IDeEsserSettings } from './deEsser';
 import {
   CHAIN_FOOTSTEPS_TAG,
   dropFootsteps,
+  footstepsAlone,
   footstepsTrailer,
-  CHAIN_FOOTSTEPS_TRAILER,
+  footstepsTrailerLength,
   isFootstepsTrailer,
 } from './footstepsWire';
 import {
@@ -589,7 +590,7 @@ export const isChainWirePayload = (value: unknown): value is number[] => {
     if (!isFootstepsTrailer(value, at)) {
       return false;
     }
-    at += CHAIN_FOOTSTEPS_TRAILER;
+    at += footstepsTrailerLength(value, at);
   }
   if (value[at] === CHAIN_DYNAMICS_TAG) {
     if (!isDynamicsTrailer(value, at)) {
@@ -639,9 +640,17 @@ export const withoutFootsteps = (values: number[]): number[] =>
     ? dropFootsteps(values, footstepsSlot(values), gameWordAt(values))
     : values;
 
+/**
+ * The line with the Game filter written as Footsteps alone, for engine 1.25
+ * (`ENGINE_GAME_SINCE`), which refuses the whole rack over a trailer of the
+ * filter's later schema and plays the lift without its other parts.
+ */
+export const asFootstepsAlone = (values: number[]): number[] =>
+  hasFootsteps(values) ? footstepsAlone(values, footstepsSlot(values)) : values;
+
 /** Where Dynamics' trailer would start: after Footsteps' when there is one. */
 const dynamicsSlot = (values: readonly number[]): number =>
-  footstepsSlot(values) + (hasFootsteps(values) ? CHAIN_FOOTSTEPS_TRAILER : 0);
+  footstepsSlot(values) + footstepsTrailerLength(values, footstepsSlot(values));
 
 /** Call only after isChainWirePayload at the IPC boundary. */
 export const hasDynamics = (values: readonly number[]): boolean =>

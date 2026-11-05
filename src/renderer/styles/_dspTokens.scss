@@ -50,8 +50,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // several entries arriving together. That is exactly what happened when Bass
 // Forge and Bass Punch took the list from eight entries to ten and the count
 // stayed at nine: the Maximizer and the Master flew in on the same beat. The
-// De-esser made it eleven, Footsteps twelve.
-$dsp-rail-filters: 13;
+// De-esser made it eleven, Footsteps twelve, and the Game filter moving to
+// the Gaming tab eleven again (2026-11-02), Dynamics twelve (2026-11-03).
+$dsp-rail-filters: 12;
 
 $dsp-rail-step: 26ms;
 

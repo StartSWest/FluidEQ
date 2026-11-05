@@ -6,7 +6,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IDeEsserSettings } from './deEsser';
 
-export const DE_ESSER_PRESET_GROUPS = ['music', 'speech', 'genre'] as const;
+export const DE_ESSER_PRESET_GROUPS = [
+  'music',
+  'speech',
+  'genre',
+  'gaming',
+] as const;
 
 export type TDeEsserPresetGroup = (typeof DE_ESSER_PRESET_GROUPS)[number];
 
@@ -169,6 +174,28 @@ export const DE_ESSER_PRESET_BY_ID = {
       releaseMs: 120,
       centreOnly: false,
       keepCymbals: 0.3,
+    },
+  },
+
+  // Gaming. Squad callouts and voice chat come out of the same output as
+  // the game, and a cheap microphone's S cuts through a headset at 6-9 kHz.
+  // Steps and gear live there too, so this listens only to the centre,
+  // where a voice stands, and keeps transients like a cymbal's.
+  gameCallouts: {
+    id: 'gameCallouts',
+    labelKey: 'dsp.gamingPreset.callouts',
+    group: 'gaming',
+    settings: {
+      ...vocalMusic,
+      sensitivity: 0.5,
+      lowHz: 5500,
+      highHz: 9000,
+      rangeDb: 5,
+      widthOct: 0.5,
+      attackMs: 1,
+      releaseMs: 45,
+      centreOnly: true,
+      keepCymbals: 0.9,
     },
   },
 } satisfies Record<string, IDeEsserPreset>;

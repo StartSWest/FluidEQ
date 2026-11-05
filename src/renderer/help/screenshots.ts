@@ -26,7 +26,6 @@ import makerToolbar from '../../../docs/35-karaoke-maker-toolbar.png';
 import bandSelected from '../../../docs/36-eq-band-selected.png';
 import railLeft from '../../../docs/39-rail-left.png';
 import railRight from '../../../docs/40-rail-right.png';
-import games from '../../../docs/41-game-presets.png';
 import type { THelpPicture } from '../../common/helpGuide';
 
 /**
@@ -65,7 +64,6 @@ const SHOTS: Record<THelpPicture, string> = {
   '36-eq-band-selected.png': bandSelected,
   '39-rail-left.png': railLeft,
   '40-rail-right.png': railRight,
-  '41-game-presets.png': games,
 };
 
 /** A capture, as the guide shows it. */

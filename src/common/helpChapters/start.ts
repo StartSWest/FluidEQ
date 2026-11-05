@@ -48,6 +48,11 @@ const START_CHAPTERS = [
           },
           {
             target: '.window-titlebar__left .workspace-tab:nth-of-type(3)',
+            name: 'gaming.tab',
+            text: 'help.window.gaming',
+          },
+          {
+            target: '.window-titlebar__left .workspace-tab:nth-of-type(4)',
             name: 'tabs.eq',
             text: 'help.window.eq',
           },

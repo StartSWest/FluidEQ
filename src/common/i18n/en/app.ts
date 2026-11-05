@@ -243,7 +243,6 @@ const app = {
   'tabs.eqMain': 'Bands',
   'tabs.presets': 'EQ Presets',
   'tabs.convolution': 'Convolution',
-  'tabs.games': 'Game presets',
   'tabs.config': 'Config',
   'tabs.media': 'Online Media',
   // The same place, named in one word for a titlebar that has run out of
@@ -393,12 +392,6 @@ const app = {
   'settings.group.studioOnly': 'Only here in the Studio',
 
   // Game profiles: the page, its list and what it says.
-  'games.add': 'Add a game',
-  'games.addHint':
-    'Pick a game from your launchers, or a program that is open now.',
-  'games.choose': 'Choose a program…',
-  'games.group.installed': 'Installed',
-  'games.group.running': 'Open now',
   'games.source.steam': 'Steam',
   'games.source.epic': 'Epic Games',
   'games.source.ea': 'EA',
@@ -408,25 +401,8 @@ const app = {
   'games.source.xbox': 'Xbox',
   'games.source.running': 'Open now',
   'games.source.file': 'Chosen by you',
-  'games.front.playing': '{name} is in front, and its sound is on.',
-  'games.front.sounding': '{name} is running, and its sound is on.',
-  'games.front.off': 'Game presets are off. Your games keep your own sound.',
-  'games.switch.hint':
-    'Off: no game changes your sound, and FluidEQ stops watching which program is in front. Your list stays as it is.',
-  'games.toast.loaded': 'Loaded {preset}',
   'games.toast.forGame': 'for {game}',
-  'games.toast.restored': 'Back to {preset}',
-  'games.toast.restoredNone': 'Effects off again',
   'games.toast.afterGame': 'after {game}',
-  'games.empty.title': 'No games yet',
-  'games.empty.more':
-    'Add a game, give it a sound, and FluidEQ switches to it the moment that game is in front — and back when you close the game.',
-  'games.preset.none': 'Leave it as it is',
-  'games.preset.noneHint': 'Nothing changes when this game is in front.',
-  'games.row.inFront': 'in front',
-  'games.row.sounding': 'sound on',
-  'games.row.sound': 'Sound for {name}',
-  'games.row.remove': 'Remove {name}',
   'error.apoMissing': 'Equalizer APO is not installed.',
   'error.apoMissing.action': 'Please install Equalizer APO before retrying.',
   'error.configMissing':

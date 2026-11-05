@@ -391,26 +391,28 @@ describe('App', () => {
     await act(async () => Promise.resolve());
     const tabs = screen.getAllByRole('tab');
 
-    // The strip itself: six places. The equaliser's five — bands, presets,
+    // The strip itself: seven places. The equaliser's five — bands, presets,
     // voicing, convolution, config — are pills inside the EQ page, which is
     // why DSP is top-level rather than mixed into the APO pages.
     //
     // DSP sits immediately after EQ, because the rack is the rest of the signal
     // chain the EQ tab starts: someone who has just set a curve reaches for the
     // compressor, not past Library and Karaoke to the end of the strip. That
-    // is what this asserts, and it is unchanged.
+    // is what this asserts, and it is unchanged. The Gaming Lab sits just
+    // before EQ (Ivan, 2026-11-02: the Gaming tab left of EQ).
     //
-    // What did change is where the strip breaks. The six used to be one run;
-    // they are now dealt into two so the meter between them sits in the
+    // What did change is where the strip breaks. The places used to be one
+    // run; they are now dealt into two so the meter between them sits in the
     // window's actual middle, and Online Media — the longest name — is the one
-    // on the left balancing the three short ones on the right. So it leads the
-    // DOM order without leading the group EQ belongs to.
+    // on the left balancing the short ones on the right. So it leads the DOM
+    // order without leading the group EQ belongs to.
     //
     // "Online Media" and not "Media": jsdom has no `matchMedia`, which
     // `useMediaQuery` reads as "not narrow", so this is the wide-window strip.
-    expect(tabs.slice(0, 6).map((tab) => tab.textContent)).toEqual([
+    expect(tabs.slice(0, 7).map((tab) => tab.textContent)).toEqual([
       'Online Media',
       'Share Audio',
+      'Gaming Lab',
       'EQ',
       'DSP',
       'Library',

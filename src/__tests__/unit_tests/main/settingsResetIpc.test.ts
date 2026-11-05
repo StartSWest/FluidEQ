@@ -191,6 +191,9 @@ const KEPT_FILES = [
   'song-eq.json',
   'song-levels.json',
   'song-sound.json',
+  // Which outputs a game's own sound has borrowed, so the music sound comes
+  // back when the game ends: reset away, a game left playing kept its sound.
+  'game-sound.json',
   'output-design-profiles-v1.json',
   'output-dsp-profiles-v1.json',
   // The engine and the outputs.

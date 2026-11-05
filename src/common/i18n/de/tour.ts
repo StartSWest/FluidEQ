@@ -166,27 +166,23 @@ const tour: Partial<Dictionary> = {
   'tour.graph.imageAlt':
     'Der Analyzer des Diagramms bei laufender Musik: das Live-Spektrum 80 dB tief mit seinen Spitzen darüber, die EQ-Kurven obenauf und in der Ecke die Liste der Ansichten unter Analyse.',
 
-  'tour.games.kicker': 'SPIEL-PRESETS',
+  'tour.games.kicker': 'GAMING-LABOR',
   'tour.games.title': 'Jedem Spiel sein eigener Klang',
   'tour.games.subtitle':
     'Umgeschaltet, sobald das Spiel in den Vordergrund kommt',
   'tour.games.lead':
-    'Wählen Sie einmal für jedes Spiel einen Klang. Kommt das Spiel in den Vordergrund, wechselt FluidEQ zu diesem Klang und behält ihn, bis Sie das Spiel beenden – ganz gleich, wie oft Sie mit Alt+Tab umschalten. Danach stellt es wieder her, was Sie vorher hatten.',
+    'Jedes Spiel bekommt seine eigene Kopie eines Gaming-Profils, abgestimmt im Gaming-Labor. Im Vordergrund geht sein Klang an und bleibt, wie oft Sie auch mit Alt+Tab wechseln; schließen Sie das Spiel, ist Ihr Musikklang zurück.',
   'tour.games.point1':
     'Spiele von Steam, Epic Games, EA, GOG, Ubisoft, Battle.net und Xbox oder jedes Programm, das gerade offen ist.',
   'tour.games.point2':
-    'Die Gaming-Presets schalten den Spielmodus ein, der die Verzögerung durch FluidEQ verkürzt, und die Seite zeigt diese Verzögerung als Messwert.',
+    'Jeder Teil wird auf einer Seite abgestimmt: der Filter Spiel für Schritte und Stimmen, der EQ, die Kurve und jede DSP-Stufe, mit Presets für Spiele.',
   'tour.games.point3':
-    'Eine Karte auf Ihrem Desktop zeigt, was umgeschaltet wurde, und eine weitere, was zurückkam, als das Spiel beendet wurde.',
+    'Das Labor und die EQ-Seite zeigen das laufende Spiel und sein Preset.',
   'tour.games.how':
-    'Öffnen Sie EQ, wählen Sie Spiel-Presets und drücken Sie Spiel hinzufügen. Wählen Sie dann seinen Klang in der Auswahl in seiner Zeile.',
-  'tour.games.open': 'Spiel-Presets öffnen',
+    'Öffnen Sie das Gaming-Labor in der Titelleiste und klicken Sie auf „Spiel hinzufügen“. Dann „Jetzt ausprobieren“, und stimmen Sie seinen Klang gleich dort ab.',
+  'tour.games.open': 'Gaming-Labor öffnen',
   'tour.games.imageAlt':
-    'Drei Momente auf dem Desktop: ein Spiel im Vordergrund mit der Karte von FluidEQ, dass sein Klang geladen ist; dasselbe Spiel minimiert, sein Klang weiter aktiv; und das Spiel geschlossen mit der Karte, dass der Klang von vorher zurück ist.',
-  'tour.games.stepFront': 'Im Vordergrund: sein Klang wird geladen',
-  'tour.games.stepAway':
-    'Minimiert oder per Alt+Tab verlassen: sein Klang bleibt',
-  'tour.games.stepClosed': 'Geschlossen: Ihr eigener Klang kommt zurück',
+    'Das Gaming-Labor mit Counter-Strike 2, zuerst mit Ihrer Musik, dann mit dem eigenen Klang des Spiels: sein Preset oben genannt, Spielmodus an und Entladen statt Jetzt ausprobieren.',
   'tour.presets.kicker': 'NEUE PRESETS',
   'tour.presets.title': 'Presets, die nach ihrer Musik klingen',
   'tour.presets.subtitle': 'Ganze Ketten, alle gleich laut',
@@ -530,14 +526,25 @@ const tour: Partial<Dictionary> = {
   'tour.film.sound.classic':
     'Wählen Sie Klassisch, damit die Bänder so gebaut werden wie in Equalizer APO.',
   'tour.film.games.intro':
-    'FluidEQ kann jedem Ihrer Spiele einen eigenen Klang geben.',
+    'Das Gaming-Labor gibt jedem Ihrer Spiele einen eigenen Klang, alles an einem Ort abgestimmt.',
   'tour.film.games.add':
-    'Drücken Sie Spiel hinzufügen und wählen Sie es aus den Spielen Ihrer Launcher.',
-  'tour.film.games.sound': 'Dann wählen Sie den Klang, den es haben soll.',
+    'Drücken Sie Spiel hinzufügen und wählen Sie es aus den Spielen auf diesem PC.',
+  'tour.film.games.profile':
+    'Es startet mit einem Gaming-Profil: einem für seine Art von Spiel oder einem für genau diesen Titel.',
+  'tour.film.games.try':
+    'Drücken Sie Jetzt ausprobieren. Sein eigener Klang spielt, mit Spielmodus für geringe Latenz.',
+  'tour.film.games.tune':
+    'Stimmen Sie jeden Teil direkt hier ab: den Filter Spiel, den EQ und seine Kurve.',
+  'tour.film.games.presets':
+    'Jede DSP-Stufe bietet Presets, die für Spiele abgestimmt sind.',
+  'tour.film.games.save':
+    'Behalten Sie die Abstimmung als eigenes Profil, oder beginnen Sie neu mit dem Original.',
   'tour.film.games.front':
-    'Sobald das Spiel im Vordergrund ist, wird sein Klang von selbst geladen.',
+    'Kommt das Spiel in den Vordergrund, schaltet sich sein Klang von selbst ein.',
+  'tour.film.games.eqPage':
+    'Die EQ-Seite zeigt, welches Spiel läuft, mit seinem Preset.',
   'tour.film.games.closed':
-    'Schließen Sie das Spiel, und Ihr eigener Klang kehrt zurück.',
+    'Schließen Sie das Spiel, und Ihr Musikklang kehrt zurück.',
   'tour.film.compact.intro':
     'Wenn Sie nur die Bedienelemente brauchen, wird FluidEQ zu einem kleinen Player.',
   'tour.film.compact.go':

@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 import { setDspDeEsserReport } from './deEsserTelemetry';
 import { setDspDynamicsReport } from './dynamicsTelemetry';
-import { setDspFootstepsReport } from './footstepsTelemetry';
+import { setDspFootstepsReport, setDspGameReport } from './footstepsTelemetry';
 import { setDspRoomReport } from './roomTelemetry';
 
 /**
@@ -254,6 +254,7 @@ export const createNativeMeters = (
     setDspDeEsserReport(frame.deEsser);
     setDspFootstepsReport(frame.footsteps);
     setDspDynamicsReport(frame.dynamics);
+    setDspGameReport(frame.game);
     // The one reading the Master page never had. Its target was a number the
     // user set beside a spectrum, with nothing anywhere in the app that could
     // say what the output measured — which is how a makeup applying exactly

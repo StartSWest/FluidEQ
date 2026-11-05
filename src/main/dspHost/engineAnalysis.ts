@@ -5,8 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 import {
   ANALYSIS_DEESSER_HEADER_BYTES,
-  ANALYSIS_GAME_HEADER_BYTES,
   ANALYSIS_FOOTSTEPS_HEADER_BYTES,
+  ANALYSIS_GAME_HEADER_BYTES,
   ANALYSIS_HEADER_BYTES,
   ANALYSIS_LEGACY_HEADER_BYTES,
   IHostAnalysis,
@@ -69,12 +69,13 @@ const decodeAt = (
 /**
  * Exact lengths keep malformed records from masquerading as legacy frames.
  *
- * The engine is installed apart from the app and may be one from before
- * Footsteps, whose header is 32 bytes shorter, or from before the De-esser,
- * 256 shorter: its record is read at the length that fits. None can be
- * mistaken for another, because a record's whole length follows from its
- * header and the extensions are 8, 16 or 20 bytes — no difference of two of
- * those is 32, 224 or 256. Older engines have no output LUFS reading; leave
+ * The engine is installed apart from the app and may be one from before the
+ * rest of the Game filter, whose header is 24 bytes shorter, from before
+ * Footsteps, 56 shorter, or from before the De-esser, 280 shorter: its record
+ * is read at the length that fits. None can be mistaken for another, because
+ * a record's whole length follows from its header and the extensions are 8,
+ * 16 or 20 bytes — no difference of two of those is 24, 32, 56, 224, 256 or
+ * 280. Older engines have no output LUFS reading; leave
  * it absent rather than guessing it from the current gain.
  */
 const decodeEngineAnalysis = (payload: Buffer): IHostAnalysis | undefined =>

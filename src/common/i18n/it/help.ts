@@ -64,8 +64,10 @@ const help: Record<keyof typeof en, string> = {
     'YouTube, YouTube Music, Bandcamp, Twitch e Suno, riprodotti dentro FluidEQ con il tuo EQ applicato.',
   'help.window.share':
     'Invia il suono di questo computer a un altro, o riproduce qui quello di un altro.',
+  'help.window.gaming':
+    'I tuoi giochi, ognuno con un suono tutto suo, regolato per quel gioco.',
   'help.window.eq':
-    'Le tue bande, i preset, la correzione delle cuffie, i preset di gioco e la configurazione del motore.',
+    'Le tue bande, i preset, la correzione delle cuffie e la configurazione del motore.',
   'help.window.waveName': 'Segnale audio',
   'help.window.wave':
     'Ciò che è in riproduzione, in tempo reale, con il suo livello di picco. Colorata, in alto, attiva o disattiva la Modalità colorata; il menu Vista del grafico può nasconderlo.',
@@ -275,25 +277,34 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.save':
     'Salva con un nome le frequenze e i Q attuali come disposizione, elencata in Le mie disposizioni.',
 
-  'help.games.title': 'Preset di gioco',
+  'help.games.title': 'Laboratorio gaming',
   'help.games.intro':
-    'Dai a ogni gioco il suo suono. Quando il gioco passa in primo piano, FluidEQ attiva quel suono e lo mantiene finché non chiudi il gioco, anche se nel frattempo passi ad altro con Alt+Tab. Poi rimette quello che avevi.',
+    'Dai a ogni gioco il suo suono. Un gioco parte da un profilo gaming fatto per lui e riceve una copia tutta sua: regoli la copia nel Laboratorio gaming e il profilo non cambia mai. Quando il gioco passa in primo piano, FluidEQ mette il suo suono e lo tiene finché chiudi il gioco, qualunque cosa apri nel frattempo con Alt+Tab. Poi torna il tuo suono per la musica.',
   'help.games.steps':
-    'Apri EQ → Preset di gioco e premi Aggiungi un gioco. Scegline uno dai tuoi launcher o tra i programmi aperti ora, oppure indica tu il suo programma.\nNel selettore sulla sua riga scegli il suono che deve avere: un preset Gaming o qualsiasi altro.\nAvvia il gioco. Una scheda sul desktop dice a quale suono è passato FluidEQ e, quando lo chiudi, un’altra dice quale è tornato.',
+    'Apri il Laboratorio gaming nella barra del titolo e premi Aggiungi un gioco. Scegline uno dai tuoi launcher, un programma aperto ora, oppure cerca il suo programma. Parte dal profilo gaming suggerito per lui; scegline un altro nel suo elenco di profili gaming quando vuoi.\nPremi Provalo ora per mettere il suono del gioco. Scegli una parte a sinistra — il Filtro Gioco, EQ, Curva o qualsiasi stadio DSP — e regolala proprio lì. Ogni modifica resta nella copia di questo gioco.\nSalva come profilo tiene la copia come uno dei tuoi profili gaming per altri giochi, aggiorna il tuo, riporta la copia al suo profilo, la rinomina o la elimina.\nAvvia il gioco. Una scheda sul desktop dice che il suo suono è attivo, e un’altra che il tuo suono per la musica è tornato quando lo chiudi.',
   'help.games.tip':
-    'Finché il suono di un gioco è attivo, la barra in fondo alla finestra ne mostra il nome. Se scegli un altro suono mentre giochi, resta: FluidEQ annulla solo le proprie modifiche. I preset Gaming attivano anche Modalità gioco e Passi, che alza passi e ricariche deboli mentre accadono.',
+    'Finché il suono di un gioco è attivo, la pagina DSP mostra il tuo rack per la musica in pausa con un pulsante per regolare il gioco, e l’elenco dei profili resta fermo, così niente di quello che fai lì può sovrascrivere il tuo profilo musicale con il suono del gioco. Il Filtro Gioco alza passi e ricariche deboli mentre accadono e porta avanti le voci.',
   'help.games.keywords':
-    'videogiochi, EQ per giochi, giocare, aggiungere gioco, profilo gioco, cambio automatico, sparatutto, FPS, competitivo, passi dei nemici, sentire i passi, game mode',
-  'help.games.tab': 'I tuoi giochi e il suono che riceve ciascuno.',
+    'videogiochi, EQ per giochi, giocare, aggiungere gioco, profilo gioco, cambio automatico, sparatutto, FPS, competitivo, passi dei nemici, sentire i passi, game mode, game filter, dialogue, voices, ambience, environment, hooves, laboratorio gaming, gaming lab, profilo gaming, copia',
+  'help.games.switch':
+    'Lascia che un gioco in primo piano metta il suo suono. Spento, i tuoi giochi tengono il tuo suono per la musica.',
   'help.games.add':
     'Aggiunge un gioco da Steam, Epic, EA, GOG, Ubisoft, Battle.net o Xbox, oppure qualsiasi programma aperto ora.',
   'help.games.gameName': 'Un gioco',
-  'help.games.game': 'Il gioco e la cartella con cui FluidEQ lo riconosce.',
-  'help.games.soundName': 'Il suo suono',
-  'help.games.sound':
-    'Il suono che FluidEQ attiva quando questo gioco passa in primo piano, oppure Lascia com’è.',
-  'help.games.removeName': 'Rimuovi',
-  'help.games.remove': 'Dimentica il gioco. Il preset che usava resta.',
+  'help.games.game':
+    'Il gioco, il profilo da cui è partito il suo suono e se l’hai regolato. In gioco significa che è in primo piano ora.',
+  'help.games.profile':
+    'Il profilo gaming da cui parte la copia di questo gioco. Sceglierne un altro dà al gioco una copia nuova di quello.',
+  'help.games.save':
+    'Salva la copia come nuovo profilo o aggiorna uno dei tuoi, la riporta al suo profilo, la rinomina o la elimina. Il profilo in sé non cambia mai.',
+  'help.games.try':
+    'Mette adesso il suono del gioco, così senti quello che regoli. Finché è attivo, qui c’è Scarica, che riporta il tuo suono per la musica.',
+  'help.games.statusName': 'Cosa è stato regolato',
+  'help.games.status':
+    'Quali parti di questa copia sono diverse dal suo profilo.',
+  'help.games.railName': 'Le sue parti',
+  'help.games.rail':
+    'Ogni parte del suono del gioco, ognuna regolata nel proprio editor accanto all’elenco. Regolato indica cosa si è allontanato dal profilo.',
 
   'help.headphones.title': 'Correzione delle cuffie e importazione',
   'help.headphones.intro':
@@ -358,11 +369,11 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'Il rack DSP è una catena di stadi da studio. Con il motore FluidEQ elabora tutto ciò che il PC riproduce; con Equalizer APO elabora le tracce audio della Libreria. Resta spento mentre FluidEQ è spento.',
   'help.dsp.steps':
-    'Apri DSP. Scegli una catena in Preset, oppure seleziona uno stadio nella colonna laterale e mettilo su Attivo.\nCambia un controllo alla volta e confronta disattivando lo stadio a volume simile. Isola ti fa sentire solo ciò che uno stadio aggiunge.\nSalva un rack che ti piace e usa Esporta e Importa per condividerlo.\nIl de-esser abbassa le S, T e SC taglienti di una voce solo mentre suonano e lascia intatti i piatti; Voce, Podcast e Audiolibro lo attivano. Ogni stadio può tenere profili tuoi: regolalo, poi premi Salva.\nPassi alza i suoni deboli di un gioco, come passi e ricariche, mentre accadono, e lascia come sono spari, esplosioni ed echi; i preset Gaming lo attivano.',
+    'Apri DSP. Scegli una catena in Preset, oppure seleziona uno stadio nella colonna laterale e mettilo su Attivo.\nCambia un controllo alla volta e confronta disattivando lo stadio a volume simile. Isola ti fa sentire solo ciò che uno stadio aggiunge.\nSalva un rack che ti piace e usa Esporta e Importa per condividerlo.\nIl de-esser abbassa le S, T e SC taglienti di una voce solo mentre suonano e lascia intatti i piatti; Voce, Podcast e Audiolibro lo attivano. Ogni stadio può tenere profili tuoi: regolalo, poi premi Salva.\nGioco alza i suoni deboli di un gioco mentre accadono, porta avanti le voci, abbassa o alza il meteo e il ronzio di un livello e può mettere intorno a te un gioco senza suono 3D proprio; scegli il tuo gioco nel suo elenco, e i preset Gaming lo attivano.',
   'help.dsp.tip':
     'Un suono più forte spesso sembra migliore solo perché è più forte, quindi confronta a parità di livello. Ctrl+click su una manopola la riporta al valore predefinito.',
   'help.dsp.keywords':
-    'effetti, FX, limiter, limitatore, loudness, normalizzazione volume, normalizzare, livellamento, volume costante, enhancer, allargamento stereo, stereo widener, sub bass, subarmoniche, transienti, mastering, crossfade, gapless, aumentare volume, alzare volume, amplificatore di volume, de-esser, sibilanti, sibilanza, s tagliente, voce, podcast, profili, salva profilo, passi, sentire i passi, footsteps, gaming, audio di gioco, ricariche, equalizzazione del volume',
+    'effetti, FX, limiter, limitatore, loudness, normalizzazione volume, normalizzare, livellamento, volume costante, enhancer, allargamento stereo, stereo widener, sub bass, subarmoniche, transienti, mastering, crossfade, gapless, aumentare volume, alzare volume, amplificatore di volume, de-esser, sibilanti, sibilanza, s tagliente, voce, podcast, profili, salva profilo, passi, sentire i passi, footsteps, gaming, audio di gioco, ricariche, equalizzazione del volume, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
     'Uniforma la sonorità. Sull’audio dal vivo livella un brano alla volta.',
   'help.dsp.denoise':

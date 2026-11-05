@@ -104,7 +104,7 @@ const dsp = {
   'dsp.denoise.voiceLibraryOnly':
     'La voce neurale è disponibile solo per la riproduzione dalla Libreria. La riduzione di fruscio, ronzio e clic funziona con l’audio esterno.',
   'dsp.normalizer.liveDescription':
-    'Misura l’audio esterno durante la riproduzione, regola insieme i due canali e protegge i picchi prima di Exciter ed EQ.',
+    'Misura l’audio esterno durante la riproduzione e imposta un unico volume per entrambi i canali prima di Exciter ed EQ, senza schiacciare la musica: Picco reale abbassa il brano finché il suo picco più alto raggiunge il limite di picco.',
   'dsp.normalizer.liveAnalysis': 'Analisi della sorgente dal vivo',
   'dsp.normalizer.inputLoudness': 'Sonorità in ingresso (3 s)',
   'dsp.normalizer.outputLoudness': 'Sonorità in uscita (3 s)',

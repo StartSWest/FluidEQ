@@ -4,10 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+@use 'sass:list';
 @use 'color' as *;
 @use 'constant' as *;
 @use 'theme' as *;
 @use 'dspTokens' as *;
+
+// The Game filter's environment, in the first of the lagoon's blues: the
+// colour of water and air, apart from the lift's violet and the voice's gold.
+$environment-ink: list.nth($lagoon, 1);
 
 // Footsteps' picture, on the card above its three groups. Claims the whole
 // row the way every stage's display does.
@@ -85,48 +90,131 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// THREE GROUPS ON ONE GRID, EVERY ROW ON A LINE.
+// THREE PARTS, NO HOLE.
 //
-// Lift and Calm side by side with the bands on a row of their own under
-// them, and all three in one row from a medium card — never one dial alone
-// on a row, and never a hole beside the last group. Each group lays itself
-// out on four rows of the grid (`subgrid`) — its name, its note, its control,
-// what the control reaches — so groups standing side by side start every row
-// on one line whatever a language makes of the words.
-.dsp-footsteps-controls {
+// One column on a narrow card. Two from a medium one: Footsteps across the
+// card, its three lamps in a row, then Dialogue beside Environment — one
+// dial and one meter each, so the two stand the same height with their
+// meters level. Three from a wide one: all three on a row. The Room had a
+// part here and is the Room filter's alone now (Ivan, 2026-11-03).
+.dsp-game-parts {
   display: grid;
   flex: 1 1 100%;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   width: 100%;
   min-width: 0;
 
   > .dsp-band {
-    display: grid;
-    grid-row: span 4;
-    grid-template-rows: subgrid;
-    row-gap: 6px;
-    align-items: start;
+    flex: none;
+    gap: 8px;
+    padding-bottom: 10px;
   }
 
-  > .dsp-band:last-child {
-    grid-column: 1 / -1;
+  // The three bands' lamps on one row across their part, the way each other
+  // part's one meter spans its own: stacked and centred they left Footsteps
+  // twice the height of the part beside it.
+  .dsp-footsteps-lamps {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 104px), 1fr));
+    align-self: stretch;
+    margin-top: auto;
+    padding: 4px 0 0;
   }
 }
 
 @container dsp-card (min-width: #{$bp-md}) {
-  .dsp-footsteps-controls {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr);
+  .dsp-game-parts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
-    > .dsp-band:last-child {
+    > .is-footsteps {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+@container dsp-card (min-width: #{$bp-xl}) {
+  .dsp-game-parts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+    > .is-footsteps {
       grid-column: auto;
     }
   }
+}
 
-  // In a column the three stack: two side by side over one left a hole.
-  // Under the controls' class, to win over the lamps' own rule further down.
-  .dsp-footsteps-controls .dsp-footsteps-lamps {
-    grid-template-columns: minmax(0, 1fr);
+// What each dial reaches, under the dials, side by side as they are.
+.dsp-game-reach {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 18px;
+}
+
+// A switch with what it does: its name and a line under it on the left, the
+// switch on the right, held to the top of the words so a long line in German
+// wraps under the name rather than pushing the switch away.
+.dsp-game-toggle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0 2px;
+  border-top: 1px solid rgba($white, 0.06);
+}
+
+.dsp-game-toggle-words {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dsp-game-toggle-name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.dsp-game-figure {
+  color: color-mix(in srgb, $neon-yellow 90%, transparent);
+  font-variant-numeric: tabular-nums;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+}
+
+// The live readings stand under their part's controls, the lamp's own grid
+// without the line for a frequency.
+.dsp-game-meter {
+  margin-top: auto;
+  padding-top: 4px;
+  grid-template-areas:
+    'name figure'
+    'track track';
+
+  &.is-voice {
+    .dsp-footsteps-lamp-fill {
+      background: linear-gradient(90deg, rgba($neon-yellow, 0.5), $neon-yellow);
+      box-shadow: 0 0 10px rgba($neon-yellow, 0.4);
+    }
+
+    .dsp-footsteps-lamp-figure {
+      color: rgba($neon-yellow, 0.92);
+    }
+  }
+
+  &.is-ambience {
+    .dsp-footsteps-lamp-fill {
+      background: linear-gradient(
+        90deg,
+        rgba($environment-ink, 0.45),
+        $environment-ink
+      );
+      box-shadow: 0 0 10px rgba($environment-ink, 0.35);
+    }
+
+    .dsp-footsteps-lamp-figure {
+      color: rgba($environment-ink, 0.92);
+    }
   }
 }
 
@@ -141,6 +229,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   &.is-calm {
     color: rgba($amber, 0.9);
+  }
+
+  &.is-voice {
+    color: rgba($neon-yellow, 0.9);
+  }
+
+  &.is-environment {
+    color: rgba($environment-ink, 0.9);
   }
 }
 

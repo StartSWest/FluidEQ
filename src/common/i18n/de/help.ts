@@ -64,8 +64,10 @@ const help: Record<keyof typeof en, string> = {
     'YouTube, YouTube Music, Bandcamp, Twitch und Suno, in FluidEQ abgespielt und von Ihrem EQ geformt.',
   'help.window.share':
     'Sendet den Klang dieses Computers an einen anderen oder spielt den eines anderen hier ab.',
+  'help.window.gaming':
+    'Ihre Spiele, jedes mit einem eigenen Klang, für dieses Spiel abgestimmt.',
   'help.window.eq':
-    'Ihre Bänder, Presets, Kopfhörerkorrektur, Spiel-Presets und die Config der Engine.',
+    'Ihre Bänder, Presets, Kopfhörerkorrektur und die Config der Engine.',
   'help.window.waveName': 'Audiosignal',
   'help.window.wave':
     'Was gerade läuft, in Echtzeit, mit dem Spitzenpegel. „Bunt“ oben auf der Anzeige schaltet „Bunter Modus“ ein oder aus; ausblenden lässt sie sich im Menü „Ansicht“ des Graphen.',
@@ -279,26 +281,34 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.save':
     'Speichert die aktuellen Frequenzen und Q als benanntes Design, aufgeführt unter Meine Designs.',
 
-  'help.games.title': 'Spiel-Presets',
+  'help.games.title': 'Gaming-Labor',
   'help.games.intro':
-    'Geben Sie jedem Spiel seinen eigenen Klang. Kommt das Spiel in den Vordergrund, wechselt FluidEQ zu diesem Klang und behält ihn, bis Sie das Spiel beenden – ganz gleich, wohin Sie zwischendurch mit Alt+Tab wechseln. Danach stellt FluidEQ wieder her, was Sie vorher hatten.',
+    'Geben Sie jedem Spiel einen eigenen Klang. Ein Spiel geht von einem Gaming-Profil aus, das dafür gemacht ist, und bekommt eine eigene Kopie: Sie stimmen die Kopie im Gaming-Labor ab, das Profil ändert sich nie. Kommt das Spiel in den Vordergrund, schaltet FluidEQ seinen Klang ein und behält ihn, bis Sie das Spiel schließen, egal wohin Sie zwischendurch mit Alt+Tab wechseln. Dann kommt Ihr Musikklang zurück.',
   'help.games.steps':
-    'Öffnen Sie EQ → Spiel-Presets und drücken Sie Spiel hinzufügen. Nehmen Sie eines aus Ihren Launchern, ein Programm, das gerade offen ist, oder wählen Sie sein Programm selbst aus.\nWählen Sie in seiner Zeile aus, welchen Klang es bekommen soll: ein Gaming-Preset oder ein beliebiges anderes.\nStarten Sie das Spiel. Eine Karte auf dem Desktop zeigt, zu welchem Klang FluidEQ gewechselt hat, und eine weitere, welcher zurückkommt, wenn Sie es beenden.',
+    'Öffnen Sie das Gaming-Labor in der Titelleiste und klicken Sie auf „Spiel hinzufügen“. Wählen Sie eines aus Ihren Launchern, ein gerade offenes Programm oder suchen Sie nach seinem Programm. Es geht von dem Gaming-Profil aus, das dafür vorgeschlagen wird; ein anderes wählen Sie jederzeit in seiner Liste der Gaming-Profile.\nMit „Jetzt ausprobieren“ schalten Sie den Klang des Spiels ein. Wählen Sie links einen Teil – Filter Spiel, EQ, Kurve oder eine DSP-Stufe – und stimmen Sie ihn gleich dort ab. Jede Änderung bleibt in der Kopie dieses Spiels.\n„Als Profil speichern“ behält die Kopie als eines Ihrer eigenen Gaming-Profile für andere Spiele, aktualisiert Ihres, setzt die Kopie auf ihr Profil zurück, benennt sie um oder löscht sie.\nStarten Sie das Spiel. Eine Karte auf dem Desktop sagt, dass sein Klang an ist, und eine andere, dass Ihr Musikklang zurück ist, wenn Sie es schließen.',
   'help.games.tip':
-    'Solange ein Spiel den Klang hält, zeigt die Leiste am unteren Fensterrand seinen Namen. Wählen Sie beim Spielen einen anderen Klang, bleibt er: FluidEQ nimmt nur zurück, was es selbst gesetzt hat. Gaming-Presets schalten außerdem den Spielmodus und Schritte ein, das leise Schritte und Nachladen anhebt, während sie erklingen.',
+    'Solange der Klang eines Spiels an ist, zeigt die DSP-Seite Ihr Musik-Rack pausiert, mit einer Schaltfläche, um das Spiel abzustimmen, und die Profilliste ruht: Nichts, was Sie dort tun, kann Ihr Musikprofil mit dem Klang des Spiels überschreiben. Der Filter Spiel hebt leise Schritte und Nachladegeräusche an, während sie passieren, und rückt Stimmen nach vorn.',
   'help.games.keywords':
-    'games, zocken, spielprofil, pro app, automatisch umschalten, ego-shooter, FPS, schritte hören, footsteps, gamemode',
-  'help.games.tab': 'Ihre Spiele und der Klang, den jedes bekommt.',
+    'games, zocken, spielprofil, pro app, automatisch umschalten, ego-shooter, FPS, schritte hören, footsteps, gamemode, game filter, dialogue, voices, ambience, environment, hooves, gaming-labor, gaming lab, gaming-profil, kopie',
+  'help.games.switch':
+    'Lässt ein Spiel im Vordergrund seinen eigenen Klang einschalten. Aus: Ihre Spiele behalten Ihren Musikklang.',
   'help.games.add':
     'Fügt ein Spiel aus Steam, Epic, EA, GOG, Ubisoft, Battle.net oder Xbox hinzu oder ein beliebiges Programm, das gerade offen ist.',
   'help.games.gameName': 'Ein Spiel',
-  'help.games.game': 'Das Spiel und der Ordner, an dem FluidEQ es erkennt.',
-  'help.games.soundName': 'Sein Klang',
-  'help.games.sound':
-    'Der Klang, zu dem FluidEQ wechselt, wenn dieses Spiel in den Vordergrund kommt, oder So lassen, wie es ist.',
-  'help.games.removeName': 'Entfernen',
-  'help.games.remove':
-    'Vergisst das Spiel. Das Preset, das es genutzt hat, bleibt erhalten.',
+  'help.games.game':
+    'Das Spiel, das Profil, von dem sein Klang ausging, und ob Sie es angepasst haben. „Läuft“ heißt, es ist gerade im Vordergrund.',
+  'help.games.profile':
+    'Das Gaming-Profil, von dem die Kopie dieses Spiels ausgeht. Ein anderes gibt dem Spiel eine frische Kopie davon.',
+  'help.games.save':
+    'Speichert die Kopie als neues Profil oder aktualisiert eines Ihrer eigenen, setzt sie auf ihr Profil zurück, benennt sie um oder löscht sie. Das Profil selbst ändert sich nie.',
+  'help.games.try':
+    'Schaltet den Klang des Spiels jetzt ein, damit Sie hören, was Sie abstimmen. Solange er an ist, steht hier „Entladen“ und bringt Ihren Musikklang zurück.',
+  'help.games.statusName': 'Was angepasst wurde',
+  'help.games.status':
+    'Welche Teile dieser Kopie sich von ihrem Profil unterscheiden.',
+  'help.games.railName': 'Seine Teile',
+  'help.games.rail':
+    'Jeder Teil des Klangs des Spiels, jeder in seinem eigenen Editor neben der Liste abgestimmt. „angepasst“ markiert, was sich vom Profil entfernt hat.',
 
   'help.headphones.title': 'Kopfhörerkorrektur und Import',
   'help.headphones.intro':
@@ -363,11 +373,11 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'Das DSP-Rack ist eine Kette aus Studiostufen. Unter der FluidEQ-Engine verarbeitet es alles, was der PC abspielt; unter Equalizer APO die Audiotitel der Bibliothek. Solange FluidEQ ausgeschaltet ist, ist es aus.',
   'help.dsp.steps':
-    'Öffnen Sie DSP. Suchen Sie sich unter Presets eine Kette aus oder wählen Sie in der Seitenleiste eine Stufe und schalten Sie sie auf Ein.\nÄndern Sie jeweils nur einen Regler und vergleichen Sie bei ähnlicher Lautstärke mit umgangener Stufe. Mit Isolieren hören Sie nur, was eine Stufe hinzufügt.\nSpeichern Sie ein Rack, das Ihnen gefällt, und teilen Sie es mit Exportieren und Importieren.\nDer De-Esser senkt die scharfen S-, T- und Sch-Laute einer Stimme nur, während sie klingen, und lässt Becken unberührt; Sprache, Podcast und Hörbuch schalten ihn ein. Jede Stufe kann eigene Profile behalten: Stellen Sie sie ein und drücken Sie Speichern.\nSchritte hebt die leisen Geräusche eines Spiels an, etwa Schritte und Nachladen, während sie erklingen, und lässt Schüsse, Explosionen und Echos in Ruhe; die Gaming-Presets schalten es ein.',
+    'Öffnen Sie DSP. Suchen Sie sich unter Presets eine Kette aus oder wählen Sie in der Seitenleiste eine Stufe und schalten Sie sie auf Ein.\nÄndern Sie jeweils nur einen Regler und vergleichen Sie bei ähnlicher Lautstärke mit umgangener Stufe. Mit Isolieren hören Sie nur, was eine Stufe hinzufügt.\nSpeichern Sie ein Rack, das Ihnen gefällt, und teilen Sie es mit Exportieren und Importieren.\nDer De-Esser senkt die scharfen S-, T- und Sch-Laute einer Stimme nur, während sie klingen, und lässt Becken unberührt; Sprache, Podcast und Hörbuch schalten ihn ein. Jede Stufe kann eigene Profile behalten: Stellen Sie sie ein und drücken Sie Speichern.\nSpiel hebt die leisen Geräusche eines Spiels an, während sie erklingen, rückt Stimmen nach vorn, macht Wetter und Brummen eines Levels leiser oder lauter und kann ein Spiel ohne eigenen 3D-Sound um Sie herum stellen; wählen Sie Ihr Spiel in seiner Liste, die Gaming-Presets schalten es ein.',
   'help.dsp.tip':
     'Lauter klingt oft nur deshalb besser, weil es lauter ist; vergleichen Sie also bei angeglichenem Pegel. Strg+Klick auf einen Drehregler setzt ihn auf seinen Standardwert zurück.',
   'help.dsp.keywords':
-    'audioeffekte, effektkette, voreinstellungen, limiter, peak-limiter, begrenzer, loudness, normalisieren, lautstärke angleichen, lautstärkeausgleich, lautstärkeschwankungen, enhancer, stereobreite, stereoverbreiterung, subbass, tiefbass, transienten, mastering, clipping, crossfade, überblenden, gapless, lückenlos, De-Esser, Zischlaute, scharfes S, Sibilanten, Stimme, Sprache, Podcast, Profile, Profil speichern, schritte, schritte hören, footsteps, gaming, spielsound, nachladen, lautstärkeausgleich',
+    'audioeffekte, effektkette, voreinstellungen, limiter, peak-limiter, begrenzer, loudness, normalisieren, lautstärke angleichen, lautstärkeausgleich, lautstärkeschwankungen, enhancer, stereobreite, stereoverbreiterung, subbass, tiefbass, transienten, mastering, clipping, crossfade, überblenden, gapless, lückenlos, De-Esser, Zischlaute, scharfes S, Sibilanten, Stimme, Sprache, Podcast, Profile, Profil speichern, schritte, schritte hören, footsteps, gaming, spielsound, nachladen, lautstärkeausgleich, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
     'Gleicht die Lautheit an. Bei Live-Audio regelt sie Song für Song.',
   'help.dsp.denoise':
