@@ -1,0 +1,70 @@
+/* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
+
+/** Detailed guides for the current sound and playback tools. */
+const helpDetails = {
+  'help.dynamics.title': '다이내믹스: 작은 소리와 큰 소리',
+  'help.dynamics.intro':
+    '다이내믹스는 3밴드 컴프레서입니다. 작은 소리를 끌어올리고 큰 소리를 억제하며 지연은 추가하지 않습니다. 음악, 영화, 말소리와 게임별 사운드에 사용할 수 있습니다.',
+  'help.dynamics.steps':
+    'DSP → 다이내믹스를 열고 켠 뒤 프리셋을 선택합니다. 게임용 프리셋은 Gaming Lab에 있습니다.\n저역은 150 Hz 미만, 중역은 150 Hz~4 kHz, 고역은 4 kHz 초과입니다. 바꾸려는 소리가 있는 대역을 조절합니다.\n올리기의 이 아래는 작은 소리를 올리는 기준, 비율는 강도, 최대는 최대 게인을 정합니다. 1:1은 바꾸지 않습니다.\n붙잡기의 이 위는 큰 소리를 줄이는 기준, 비율는 억제 강도입니다. 기준을 낮추면 더 자주 작동합니다.\n어택과 릴리스로 반응을, 믹스로 원음과의 혼합을, 메이크업으로 최종 레벨을 맞춥니다. 비슷한 음량에서 비교하세요.\n그래프는 처리 전후 소리와 실제 적용 게인을 보여 줍니다. 위로 올라가면 증폭, 내려가면 억제입니다. 엔진 업데이트 안내가 실시간 표시만을 위한 것일 수 있으며 소리 처리는 이미 작동할 수도 있습니다.',
+  'help.dynamics.tip':
+    '많이 끌어올리면 배경 잡음도 커집니다. 원래의 움직임을 더 남기려면 혼합을 줄이세요.',
+  'help.dynamics.keywords':
+    'dynamics, compressor, compression, upward compression, downward compression, lift, hold, attack, release, mix, makeup, quiet passages, loud passages',
+  'help.deesser.title': '디에서: 날카로운 목소리 부드럽게 만들기',
+  'help.deesser.intro':
+    '날카로운 S, T, SH 소리가 날 때만 줄입니다. 네 그룹에서 감지할 소리, 줄일 범위, 반응 속도와 스테레오 위치를 정합니다.',
+  'help.deesser.steps':
+    'DSP → 디에서를 켜고 치찰음이 있는 녹음에서 프리셋을 시험합니다.\n찾기에서 거슬리는 소리를 하한과 상한 주파수로 감쌉니다. 밝은 음마다 반응하지 않을 정도로 감도를 올립니다.\n감소의 스펙트럼은 문제 주파수만 따라가고 고음은 고역 대역을 낮춥니다. 전체 음성은 전체 소리를 낮추므로 단독 녹음된 목소리용입니다. 최대 감소량과 사용 가능한 폭을 설정합니다.\n타이밍에서 소리 시작을 잡는 방식과 고역이 돌아오는 속도를 조절합니다. 어디에의 센터는 중앙 목소리에 집중하고 심벌 보존는 밝은 타격음을 보호합니다.\n격리하다를 켜서 제거되는 부분만 듣고, 다시 꺼서 전체 녹음을 판단합니다. 화면은 조절 중인 컨트롤을 따라갑니다.\n단계의 프리셋 막대에서 설정을 저장합니다. 조합을 유지하려면 랙 전체도 저장하세요. 다른 체인을 고르면 여러 단계가 바뀔 수 있습니다.',
+  'help.deesser.tip':
+    '목소리가 어눌해지거나 음악의 공기감이 사라지면 감도나 최대 감소량을 낮추세요. 재생 처리이며 마이크 효과가 아닙니다.',
+  'help.deesser.keywords':
+    'de-esser, deesser, de essing, sibilance, sharp voice, harsh voice, spectral, centre only, center only, cymbals, isolate',
+  'help.normalizer.title': '노멀라이저와 실시간 레벨 제어',
+  'help.normalizer.intro':
+    '창의적 처리 단계 앞에서 음원의 레벨을 조절합니다. 라이브러리 파일은 전체를 분석할 수 있고 다른 음원은 재생하면서 학습합니다.',
+  'help.normalizer.steps':
+    'DSP → 노멀라이저에서 끄기, 트루피크 또는 음량를 선택합니다. 음원 레벨을 바꾸지 않으려면 끕니다.\n라이브러리에서는 분석이 끝날 때까지 기다립니다. 트루피크는 피크 상한에 따라 파일에 일정한 게인을 적용하고, 음량는 그 한도 안에서 음량 목표을 목표로 합니다.\n적용 게인과 제한 이유를 확인합니다. 피크 한도를 지키면서 원하는 음량에 도달하지 못할 수도 있습니다.\nFluidEQ Engine의 외부 오디오는 피크 보호 또는 실시간 레벨 조절 화면을 사용합니다. 학습 중과 게인 유지 상태가 현재 동작을 알려 줍니다.\n실시간 조절은 Windows가 식별한 곡을 따릅니다. 더 큰 구간을 만나면 곡의 남은 부분에 유지할 게인이 낮아질 수 있습니다. 음원이나 식별이 잘못되면 껐다 켜서 다시 학습합니다.',
+  'help.normalizer.tip':
+    '왼쪽의 자동 정규화는 EQ 여유를 확보하고 Master는 완성된 출력 레벨을 맞춥니다. 이 기능들은 녹음에 이미 들어 있는 왜곡을 복구하지 못합니다.',
+  'help.normalizer.keywords':
+    'normalizer, normalisation, normalization, lufs, loudness target, true peak, peak ceiling, applied gain, leveling, live level control, learning source, holding gain',
+  'help.crossfade.title': '크로스페이드와 사용자 페이드 곡선',
+  'help.crossfade.intro':
+    '라이브러리의 연속된 곡을 겹쳐 전환합니다. DSP 필터와 별개인 재생 설정이며 다른 앱이나 Karaoke를 교차 페이드하지 않습니다.',
+  'help.crossfade.steps':
+    '라이브러리 대기열에 두 곡 이상 넣습니다. DSP의 재생 옵션에서 크로스페이드를 선택해 켭니다.\n길이를 설정하고 동일 파워, 부드러운 곡선 또는 선형을 선택합니다. 첫 곡이 끝에 가까워질 때 겹치는 부분을 들어 봅니다.\n맞춤을 선택하고 나가는 곡과 들어오는 곡의 점을 드래그합니다. 점에 초점을 맞추고 방향키로도 조절할 수 있습니다.\n두 곡선과 합계를 살펴보세요. 둘 다 높으면 전환 부분이 더 커질 수 있습니다.\n곡선 저장로 이름을 붙여 저장하고 나중에 목록에서 선택합니다. 모양 재설정는 편집 가능한 모양을 초기 상태로 되돌립니다.',
+  'help.crossfade.tip':
+    '컨트롤을 사용할 수 없으면 라이브러리 오디오 트랙을 재생하세요. 곡선은 곡 사이의 전환을 바꾸며 각 곡의 EQ는 바꾸지 않습니다.',
+  'help.crossfade.keywords':
+    'crossfade, fade, transition, overlap, dj, equal power, custom curve, save curve, outgoing, incoming',
+  'help.gamefilter.title': '게임 필터: 발소리, 환경음과 목소리',
+  'help.gamefilter.intro':
+    '게임마다 작은 단서, 배경과 대사를 따로 조절합니다. 해당 게임의 프로필에서 시작해 들으면서 그 게임의 복사본을 조절하세요.',
+  'help.gamefilter.steps':
+    'Gaming Lab에서 게임을 선택하고 아직 로드되지 않았다면 사운드를 시험합니다. 게임의 구성 요소에서 게임을 선택합니다.\n작은 발소리, 재장전과 문 소리를 끌어올립니다. Calm은 주의를 흐리는 큰 소리를 억제합니다. 두 조절을 과하게 올리기 전에 비교하세요.\n발굽과 무거운 발걸음 옵션은 부츠, 말과 차량의 저음 무게를 더합니다. 단서가 너무 무거워지면 끕니다.\n환경음은 배경을 낮추거나 높입니다. 발소리처럼 뚜렷한 소리가 튀어나오면 처리를 풀어 배경과 함께 줄이지 않습니다.\n대사는 중앙 목소리를 앞으로 가져옵니다. 공간 만들기는 말하는 동안 나머지를 조금 낮춥니다.\n격리로 바뀌는 부분만 확인한 뒤 전체 게임으로 돌아옵니다. 프로필로 저장하면 다른 게임에도 쓸 수 있고 초기화는 시작 프로필을 복구합니다.',
+  'help.gamefilter.tip':
+    '자체 3D 오디오가 있는 게임은 Room을 끄는 프로필로 이중 위치 처리를 피할 수 있습니다. Room은 헤드폰용입니다. 게임 사운드를 해제하면 음악 사운드가 돌아옵니다.',
+  'help.gamefilter.keywords':
+    'game filter, footsteps, lift, calm, environment, ambience, dialogue, voices, make room, hooves, heavy steps, isolate, hrtf, spatial audio',
+  'help.songs.title': '곡마다 사운드 기억하기',
+  'help.songs.intro':
+    '곡은 출력별로 프리셋, Tone과 EQ를 기억할 수 있습니다. 헤드폰에서 맞춘 설정은 스피커의 기억을 바꾸지 않습니다.',
+  'help.songs.steps':
+    '출력 프로필 아래에서 각 노래의 사운드 기억를 켭니다. 처음에는 꺼져 있습니다.\n식별 가능한 곡을 재생하고 프리셋, Tone 또는 EQ를 바꿉니다. 저장 예정 알림이 나오며 시험한 것이라면 저장하지 않기를 선택합니다.\n같은 출력에서 다시 재생하면 그 사운드가 임시로 돌아옵니다. 실행 취소는 이번 재생만 건너뛰고 곡 잊기는 저장된 기억도 지웁니다.\n곡이 끝나면 출력의 이전 사운드로 돌아옵니다. 다른 프로필을 직접 고르면 다시 사용자가 제어합니다.\nSmart EQ는 측정 중 곡에 저장하는 별도의 컨트롤이 있습니다. 측정한 보정을 기억하며 수동 프리셋, Tone과 밴드 기억과는 구분됩니다.',
+  'help.songs.tip':
+    '곡 식별은 파일이나 플레이어의 미디어 정보에서 옵니다. 제목이 없거나 틀리면 일치하지 않을 수 있습니다. 프리앰프는 저장하지 않으며 로드된 게임 사운드가 우선합니다.',
+  'help.songs.keywords':
+    'per song, song sound, song memory, remember song, save song eq, smart eq, undo, forget this song, preset per song, tone per song',
+  'help.mycurves.title': '내 곡선: 가져오기, 편집과 공유',
+  'help.mycurves.intro':
+    '측정 라이브러리 옆에 있는 나만의 곡선 모음입니다. 응답을 확인한 뒤 보정 레이어 또는 편집 가능한 EQ 밴드로 적용할 수 있습니다.',
+  'help.mycurves.steps':
+    'EQ Presets → 내 곡선를 열고 검색이나 정렬로 저장된 곡선을 찾습니다.\n곡선 추가는 현재 EQ, 텍스트 파일, 측정 선택이나 붙여넣기를 받습니다. Squiglink에서는 내보낸 EQ 텍스트를 가져옵니다. 저장 전 미리 보기를 확인하세요.\n곡선으로 적용하면 밴드를 남기고 레이어를 추가합니다. EQ로 적용하면 확인 후 가져오기 대상으로 고른 양쪽, 왼쪽 또는 오른쪽 귀의 밴드를 바꿉니다.\n메뉴에서 이름 변경, 밴드 편집, 복제, 텍스트 복사와 삭제가 가능합니다. 편집하려고 다시 가져올 필요는 없습니다.\n목록 내보내기와 가져오기로 다른 컴퓨터에 모음을 옮깁니다. 측정을 공유할 때 모델과 작성자 정보를 유지하세요.',
+  'help.mycurves.tip':
+    '곡선은 주파수 응답을 나타내고 출력 프로필은 그 장치의 다른 사운드 설정도 보관합니다. 보정 전 모델과 출처를 확인하세요.',
+  'help.mycurves.keywords':
+    'my curves, custom curve, squiglink, import list, export list, apply as curve, apply as eq, left ear, right ear, curve editor, measurements',
+} as const;
+
+export default helpDetails;

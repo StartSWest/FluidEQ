@@ -77,8 +77,7 @@ const SOUND_CHAPTERS = [
     // three made-up games, the first in front and tuned, its sound not on
     // yet: the page's top with the game's header, then the game's parts.
     // One figure was so tall that the header's call-outs crossed the page.
-    // Both stills are the 2.1 capture of the Game presets page it replaced,
-    // for the exported guide.
+    // The exported guide uses captures of these same read-only drawings.
     id: 'games',
     group: 'sound',
     figures: [
@@ -86,7 +85,7 @@ const SOUND_CHAPTERS = [
         live: 'gaming-lab',
         width: 1280,
         height: 330,
-        still: '41-game-presets.png',
+        still: '44-gaming-lab.png',
         controls: [
           {
             target: '.gaming-lab__head .game-mode-switch',
@@ -132,7 +131,7 @@ const SOUND_CHAPTERS = [
         live: 'gaming-parts',
         width: 900,
         height: 720,
-        still: '41-game-presets.png',
+        still: '45-gaming-parts.png',
         controls: [
           {
             target: '.gaming-rail',
@@ -145,7 +144,7 @@ const SOUND_CHAPTERS = [
         live: 'gaming-profiles',
         width: 1040,
         height: 470,
-        still: '41-game-presets.png',
+        still: '46-gaming-profiles.png',
         caption: 'gaming.view.profiles',
         controls: [
           {
@@ -157,6 +156,7 @@ const SOUND_CHAPTERS = [
       },
     ],
   },
+  { id: 'gamefilter', group: 'sound', figures: [] },
   {
     id: 'headphones',
     group: 'sound',
@@ -164,6 +164,7 @@ const SOUND_CHAPTERS = [
       { image: '04-eq-headphone-correction-and-import.png', ...WINDOW },
     ],
   },
+  { id: 'mycurves', group: 'sound', figures: [] },
   {
     id: 'convolution',
     group: 'sound',
@@ -179,6 +180,7 @@ const SOUND_CHAPTERS = [
     group: 'sound',
     figures: [CAPTURED['40-rail-right.png']],
   },
+  { id: 'songs', group: 'sound', figures: [] },
   {
     id: 'config',
     group: 'sound',

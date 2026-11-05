@@ -35,6 +35,7 @@ import gaming from './gaming';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
 import help from './help';
+import helpDetails from './helpDetails';
 import about from './about';
 import account from './account';
 import forum from './forum';
@@ -88,6 +89,7 @@ const ja: Partial<Dictionary> = {
   ...remoteAudio,
   ...tour,
   ...help,
+  ...helpDetails,
   ...about,
   ...account,
   ...forum,

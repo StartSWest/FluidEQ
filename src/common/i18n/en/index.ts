@@ -55,6 +55,7 @@ import dspStageSave from './dspStageSave';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
 import help from './help';
+import helpDetails from './helpDetails';
 import about from './about';
 import account from './account';
 import forum from './forum';
@@ -108,6 +109,7 @@ const en = {
   ...remoteAudio,
   ...tour,
   ...help,
+  ...helpDetails,
   ...about,
   ...account,
   ...forum,

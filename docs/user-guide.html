@@ -433,34 +433,42 @@
           ><a href="#eq">06 &nbsp; Shape your sound with EQ</a
           ><a href="#eqmode">07 &nbsp; EQ mode and band designs</a
           ><a href="#games">08 &nbsp; Gaming Lab</a
-          ><a href="#headphones">09 &nbsp; Headphone correction &amp; imports</a
-          ><a href="#convolution">10 &nbsp; Use an impulse response</a
+          ><a href="#gamefilter"
+            >09 &nbsp; The Game filter: steps, surroundings and voices</a
+          ><a href="#headphones">10 &nbsp; Headphone correction &amp; imports</a
+          ><a href="#mycurves">11 &nbsp; My curves: import, edit and share</a
+          ><a href="#convolution">12 &nbsp; Use an impulse response</a
           ><a href="#profiles"
-            >11 &nbsp; Devices, profiles &amp; second output</a
-          ><a href="#config">12 &nbsp; Inspect &amp; back up a chain</a
-          ><a href="#dsp">13 &nbsp; Explore the DSP rack</a
-          ><a href="#room">14 &nbsp; The Room: surround on headphones</a
-          ><a href="#denoise">15 &nbsp; Denoise &amp; source analysis</a
+            >13 &nbsp; Devices, profiles &amp; second output</a
+          ><a href="#songs">14 &nbsp; Remember each song’s sound</a
+          ><a href="#config">15 &nbsp; Inspect &amp; back up a chain</a
+          ><a href="#dsp">16 &nbsp; Explore the DSP rack</a
+          ><a href="#normalizer">17 &nbsp; Normalizer and live level control</a
+          ><a href="#denoise">18 &nbsp; Denoise &amp; source analysis</a
+          ><a href="#deesser">19 &nbsp; De-esser: soften sharp voices</a
+          ><a href="#dynamics">20 &nbsp; Dynamics: quiet and loud passages</a
+          ><a href="#room">21 &nbsp; The Room: surround on headphones</a
+          ><a href="#crossfade">22 &nbsp; Crossfade and custom fade curves</a
           ><span class="part">See your music</span
-          ><a href="#graph">16 &nbsp; The graph and its controls</a
-          ><a href="#looks">17 &nbsp; Styles and scenes</a
+          ><a href="#graph">23 &nbsp; The graph and its controls</a
+          ><a href="#looks">24 &nbsp; Styles and scenes</a
           ><span class="part">Visualizers and your account</span
           ><a href="#plus"
-            >18 &nbsp; Your account, credits and the Visualizers tab</a
-          ><a href="#gallery">19 &nbsp; The Visualizers gallery</a
-          ><a href="#studio">20 &nbsp; Make scenes in the Studio</a
-          ><a href="#desktop">21 &nbsp; The desktop visualizer</a
-          ><a href="#lighting">22 &nbsp; Dynamic lighting (beta)</a
+            >25 &nbsp; Your account, credits and the Visualizers tab</a
+          ><a href="#gallery">26 &nbsp; The Visualizers gallery</a
+          ><a href="#studio">27 &nbsp; Make scenes in the Studio</a
+          ><a href="#desktop">28 &nbsp; The desktop visualizer</a
+          ><a href="#lighting">29 &nbsp; Dynamic lighting (beta)</a
           ><span class="part">Listen, sing and share</span
-          ><a href="#online">23 &nbsp; Listen with Online Media</a
-          ><a href="#library">24 &nbsp; Build your local library</a
-          ><a href="#queue">25 &nbsp; Albums &amp; your play queue</a
-          ><a href="#karaoke">26 &nbsp; Sing with Karaoke</a
-          ><a href="#maker">27 &nbsp; Create in Karaoke Maker</a
-          ><a href="#share">28 &nbsp; Share audio between computers</a
+          ><a href="#online">30 &nbsp; Listen with Online Media</a
+          ><a href="#library">31 &nbsp; Build your local library</a
+          ><a href="#queue">32 &nbsp; Albums &amp; your play queue</a
+          ><a href="#karaoke">33 &nbsp; Sing with Karaoke</a
+          ><a href="#maker">34 &nbsp; Create in Karaoke Maker</a
+          ><a href="#share">35 &nbsp; Share audio between computers</a
           ><span class="part">When you need help</span
-          ><a href="#trouble">29 &nbsp; When something sounds wrong</a
-          ><a href="#forum">30 &nbsp; Ask in the Forum</a>
+          ><a href="#trouble">36 &nbsp; When something sounds wrong</a
+          ><a href="#forum">37 &nbsp; Ask in the Forum</a>
         </nav>
       </aside>
       <main>
@@ -473,7 +481,7 @@
             listening session, then explore at your own pace.
           </p>
           <span class="badge"
-            >30 chapters · 42 real interface captures · Offline</span
+            >37 chapters · 46 real interface captures · Offline</span
           >
           <p><strong>In FluidEQ: Help → User guide, or press F1.</strong></p>
           <button type="button" id="print">Print / Save as PDF</button>
@@ -909,6 +917,12 @@
               Press the level meter to change how it is drawn, and Colourful on
               the signal to have the bands, the title and the lit controls in a
               palette instead of one colour.
+            </li>
+            <li>
+              To switch processing from another app, open the ≡ menu → On/off
+              key and choose your own key combination. No key is assigned at
+              first; the confirmation above other windows says whether FluidEQ
+              is on or off.
             </li>
           </ol>
           <aside class="tip">
@@ -1433,6 +1447,12 @@
               Drop music files anywhere on the player: they join the Library and
               the end of Up next or, over the list, the place where you let go.
             </li>
+            <li>
+              In Sound, choose Tone for Bass, Mid and Treble or Bands for the
+              full EQ. Its preset and EQ mode controls change the same output as
+              the full app. Explore scenes opens the gallery in the full window;
+              automatic scene switching works in the Compact player too.
+            </li>
           </ol>
           <aside class="tip">
             <strong>Good to know</strong>
@@ -1652,8 +1672,7 @@
           <h3>Try it</h3>
           <ol>
             <li>
-              Open the actions menu — the pulse button at the top right — and
-              press the engine card at the top of it.
+              Open the actions menu (≡) and press the engine card at the top.
             </li>
             <li>
               Choose FluidEQ Engine and press Apply. Windows asks for
@@ -2479,6 +2498,11 @@
               ears joins the two again in their middle, and so do Reset band and
               Clear EQ.
             </li>
+            <li>
+              Select several bands to move them together, or use Ctrl+A on the
+              graph to select every band. The selected bands share the editor;
+              switching from one band to another updates that editor in place.
+            </li>
           </ol>
           <aside class="tip">
             <strong>Good to know</strong>
@@ -2935,12 +2959,12 @@
           </p>
           <figure>
             <a
-              href="41-game-presets.png"
+              href="44-gaming-lab.png"
               aria-label="Enlarge screenshot: Gaming Lab"
               ><img
-                src="41-game-presets.png"
-                width="2068"
-                height="276"
+                src="44-gaming-lab.png"
+                width="1972"
+                height="452"
                 alt="Gaming Lab"
                 loading="lazy"
             /></a>
@@ -3023,12 +3047,12 @@
           </ol>
           <figure>
             <a
-              href="41-game-presets.png"
+              href="45-gaming-parts.png"
               aria-label="Enlarge screenshot: Gaming Lab"
               ><img
-                src="41-game-presets.png"
-                width="2068"
-                height="276"
+                src="45-gaming-parts.png"
+                width="1895"
+                height="1728"
                 alt="Gaming Lab"
                 loading="lazy"
             /></a>
@@ -3050,12 +3074,12 @@
           <h3>Gaming profiles</h3>
           <figure>
             <a
-              href="41-game-presets.png"
+              href="46-gaming-profiles.png"
               aria-label="Enlarge screenshot: Gaming profiles"
               ><img
-                src="41-game-presets.png"
-                width="2068"
-                height="276"
+                src="46-gaming-profiles.png"
+                width="2048"
+                height="543"
                 alt="Gaming profiles"
                 loading="lazy"
             /></a>
@@ -3110,9 +3134,61 @@
             </p>
           </aside>
         </section>
-        <section id="headphones">
+        <section id="gamefilter">
           <header class="chapter-heading">
             <span class="number">09</span>
+            <h2>The Game filter: steps, surroundings and voices</h2>
+          </header>
+          <p>
+            The Game filter gives each game separate control over quiet cues,
+            its background and dialogue. Start from that game’s profile, then
+            tune its own copy while listening.
+          </p>
+
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open Gaming Lab, select a game and press Try it now if its sound
+              is not already on. Choose Game in that game’s parts.
+            </li>
+            <li>
+              Raise the footsteps lift for quiet steps, reloads and doors. Calm
+              holds distracting loud events; compare before pushing both
+              controls.
+            </li>
+            <li>
+              Hooves and heavy steps brings more of the low weight forward for
+              boots, horses and vehicles. Leave it off when it makes cues too
+              heavy.
+            </li>
+            <li>
+              Environment turns the game’s bed down or up. The stage lets go
+              when a step or another distinct sound stands out, so the cue is
+              not lowered with the background.
+            </li>
+            <li>
+              Dialogue brings a centred voice forward. Make room lowers the rest
+              a little while somebody speaks.
+            </li>
+            <li>
+              Use Isolate to hear what Game changes, then return to the full
+              game. Save as profile keeps your tuning for other games; resetting
+              the game returns it to its starting profile.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              A profile for a game with its own 3D audio can keep the Room off
+              to avoid processing its positioning twice. Room profiles are for
+              headphones. Your music sound returns when the game’s sound is
+              unloaded.
+            </p>
+          </aside>
+        </section>
+        <section id="headphones">
+          <header class="chapter-heading">
+            <span class="number">10</span>
             <h2>Headphone correction &amp; imports</h2>
           </header>
           <p>
@@ -3176,9 +3252,58 @@
             </p>
           </aside>
         </section>
+        <section id="mycurves">
+          <header class="chapter-heading">
+            <span class="number">11</span>
+            <h2>My curves: import, edit and share</h2>
+          </header>
+          <p>
+            My curves is your own library beside the headphone measurement
+            library. Keep a curve once, inspect its response and choose whether
+            it becomes a correction layer or editable EQ bands.
+          </p>
+
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open the EQ Presets page and choose My curves. Search or sort the
+              list to find a saved curve.
+            </li>
+            <li>
+              Use Add curve for your current EQ, a text file, a
+              measurement-library pick or pasted data. Import from Squiglink
+              accepts its exported EQ text. Review the preview before saving.
+            </li>
+            <li>
+              Apply as curve adds a correction layer and leaves your editable
+              bands in place. Apply as EQ replaces the selected ear’s editable
+              bands after confirmation; choose Both ears, Left ear or Right ear
+              under Import into.
+            </li>
+            <li>
+              A curve’s menu can rename it, edit its bands, duplicate it, copy
+              it as text or delete it. Editing a saved curve does not require
+              starting the import again.
+            </li>
+            <li>
+              Export list and Import list carry the whole collection between
+              computers. Keep the measurement author and model clear when you
+              share a correction.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              A curve and a full sound profile are different: a curve describes
+              a frequency response; an output profile also keeps the rest of
+              that output’s sound. Check the model and source before applying a
+              correction.
+            </p>
+          </aside>
+        </section>
         <section id="convolution">
           <header class="chapter-heading">
-            <span class="number">10</span>
+            <span class="number">12</span>
             <h2>Use an impulse response</h2>
           </header>
           <p>
@@ -3223,7 +3348,7 @@
         </section>
         <section id="profiles">
           <header class="chapter-heading">
-            <span class="number">11</span>
+            <span class="number">13</span>
             <h2>Devices, profiles &amp; second output</h2>
           </header>
           <p>
@@ -3571,9 +3696,57 @@
             </p>
           </aside>
         </section>
+        <section id="songs">
+          <header class="chapter-heading">
+            <span class="number">14</span>
+            <h2>Remember each song’s sound</h2>
+          </header>
+          <p>
+            A song can remember its preset, Tone and EQ separately for each
+            output. A song tuned on headphones does not change the sound saved
+            for your speakers.
+          </p>
+
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Under the output’s profiles, turn on Remember each song’s sound.
+              It is off until you choose to use it.
+            </li>
+            <li>
+              Play an identifiable song, then change its preset, Tone or EQ. A
+              notice tells you that the sound will be kept; use its do-not-save
+              action if this was only an experiment.
+            </li>
+            <li>
+              When that song plays again on the same output, its sound comes
+              back temporarily. Undo skips it for this play; Forget this song
+              also removes the saved memory.
+            </li>
+            <li>
+              When the song ends, the output’s previous sound comes back.
+              Choosing a different profile deliberately lets you take control
+              again.
+            </li>
+            <li>
+              Smart EQ has its own Save for this song control while it measures.
+              That remembers the measured Smart EQ correction; it is separate
+              from remembering your hand-tuned preset, Tone and bands.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Song identity comes from the local file or the player’s media
+              information. Missing or wrong titles can prevent a match. The
+              preamp is not stored with a song, and a game’s own sound takes
+              priority while it is loaded.
+            </p>
+          </aside>
+        </section>
         <section id="config">
           <header class="chapter-heading">
-            <span class="number">12</span>
+            <span class="number">15</span>
             <h2>Inspect &amp; back up a chain</h2>
           </header>
           <p>
@@ -3622,7 +3795,7 @@
         </section>
         <section id="dsp">
           <header class="chapter-heading">
-            <span class="number">13</span>
+            <span class="number">16</span>
             <h2>Explore the DSP rack</h2>
           </header>
           <p>
@@ -3631,260 +3804,22 @@
             processes Library audio tracks. It is off while FluidEQ is switched
             off.
           </p>
-          <figure class="annotated">
-            <svg
-              class="callouts wide"
-              viewBox="0 0 1040 355.1"
-              width="1040"
-              height="355.1"
-              role="img"
-              aria-label="Explore the DSP rack"
-            >
-              <defs>
-                <clipPath id="clip-wide-20-dsp-png">
-                  <rect x="38" y="38" width="1002" height="317.1" rx="10" />
-                </clipPath>
-              </defs>
-              <a
-                href="20-dsp.png"
-                aria-label="Enlarge screenshot: Explore the DSP rack"
-              >
-                <image
-                  href="20-dsp.png"
-                  x="38"
-                  y="38"
-                  width="1002"
-                  height="317.1"
-                  clip-path="url(#clip-wide-20-dsp-png)"
-                />
-              </a>
-              <rect
-                class="edge"
-                x="38"
-                y="38"
-                width="1002"
-                height="317.1"
-                rx="10"
-              />
-              <g class="leads">
-                <line x1="154.7" y1="22" x2="154.7" y2="46.3" />
-                <circle class="dot" cx="154.7" cy="46.3" r="2.5" />
-                <line x1="840.8" y1="22" x2="840.8" y2="47.3" />
-                <circle class="dot" cx="840.8" cy="47.3" r="2.5" />
-                <line x1="20.4" y1="58.5" x2="44.8" y2="73.1" />
-                <circle class="dot" cx="44.8" cy="73.1" r="2.5" />
-                <line x1="21.1" y1="85.2" x2="44.8" y2="95.5" />
-                <circle class="dot" cx="44.8" cy="95.5" r="2.5" />
-                <line x1="21.6" y1="111.7" x2="44.8" y2="117.9" />
-                <circle class="dot" cx="44.8" cy="117.9" r="2.5" />
-                <line x1="21.9" y1="138" x2="44.8" y2="140.3" />
-                <circle class="dot" cx="44.8" cy="140.3" r="2.5" />
-                <line x1="22" y1="164.9" x2="44.8" y2="164.9" />
-                <circle class="dot" cx="44.8" cy="164.9" r="2.5" />
-                <line x1="22" y1="192.9" x2="44.8" y2="192.9" />
-                <circle class="dot" cx="44.8" cy="192.9" r="2.5" />
-                <line x1="22" y1="220.5" x2="44.8" y2="219.8" />
-                <circle class="dot" cx="44.8" cy="219.8" r="2.5" />
-                <line x1="21.8" y1="246.7" x2="44.8" y2="242.2" />
-                <circle class="dot" cx="44.8" cy="242.2" r="2.5" />
-                <line x1="21.3" y1="273.1" x2="44.8" y2="264.6" />
-                <circle class="dot" cx="44.8" cy="264.6" r="2.5" />
-                <line x1="20.7" y1="299.7" x2="44.8" y2="286.9" />
-                <circle class="dot" cx="44.8" cy="286.9" r="2.5" />
-                <line x1="21.9" y1="331.1" x2="44.8" y2="327.3" />
-                <circle class="dot" cx="44.8" cy="327.3" r="2.5" />
-              </g>
-              <g class="num">
-                <circle cx="154.7" cy="11" r="11" />
-                <text x="154.7" y="11">1</text>
-              </g>
-              <g class="num">
-                <circle cx="840.8" cy="11" r="11" />
-                <text x="840.8" y="11">2</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="52.9" r="11" />
-                <text x="11" y="52.9">3</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="80.9" r="11" />
-                <text x="11" y="80.9">4</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="108.9" r="11" />
-                <text x="11" y="108.9">5</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="136.9" r="11" />
-                <text x="11" y="136.9">6</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="164.9" r="11" />
-                <text x="11" y="164.9">7</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="192.9" r="11" />
-                <text x="11" y="192.9">8</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="220.9" r="11" />
-                <text x="11" y="220.9">9</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="248.9" r="11" />
-                <text x="11" y="248.9">10</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="276.9" r="11" />
-                <text x="11" y="276.9">11</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="304.9" r="11" />
-                <text x="11" y="304.9">12</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="332.9" r="11" />
-                <text x="11" y="332.9">13</text>
-              </g></svg
-            ><svg
-              class="callouts narrow"
-              viewBox="0 0 340 302"
-              width="340"
-              height="302"
-              role="img"
-              aria-label="Explore the DSP rack"
-            >
-              <defs>
-                <clipPath id="clip-narrow-20-dsp-png">
-                  <rect x="38" y="122.2" width="302" height="95.6" rx="10" />
-                </clipPath>
-              </defs>
-              <a
-                href="20-dsp.png"
-                aria-label="Enlarge screenshot: Explore the DSP rack"
-              >
-                <image
-                  href="20-dsp.png"
-                  x="38"
-                  y="122.2"
-                  width="302"
-                  height="95.6"
-                  clip-path="url(#clip-narrow-20-dsp-png)"
-                />
-              </a>
-              <rect
-                class="edge"
-                x="38"
-                y="122.2"
-                width="302"
-                height="95.6"
-                rx="10"
-              />
-              <g class="leads">
-                <line x1="73.2" y1="106.2" x2="73.2" y2="125.4" />
-                <circle class="dot" cx="73.2" cy="125.4" r="2.5" />
-                <line x1="280" y1="106.2" x2="280" y2="125.7" />
-                <circle class="dot" cx="280" cy="125.7" r="2.5" />
-                <line x1="13.6" y1="21.7" x2="40.8" y2="134.7" />
-                <circle class="dot" cx="40.8" cy="134.7" r="2.5" />
-                <line x1="14.1" y1="49.6" x2="40.8" y2="141.4" />
-                <circle class="dot" cx="40.8" cy="141.4" r="2.5" />
-                <line x1="14.8" y1="77.3" x2="40.8" y2="148.2" />
-                <circle class="dot" cx="40.8" cy="148.2" r="2.5" />
-                <line x1="15.9" y1="104.9" x2="40.8" y2="154.9" />
-                <circle class="dot" cx="40.8" cy="154.9" r="2.5" />
-                <line x1="17.7" y1="131.7" x2="40.8" y2="161.6" />
-                <circle class="dot" cx="40.8" cy="161.6" r="2.5" />
-                <line x1="20.5" y1="156.5" x2="40.8" y2="168.4" />
-                <circle class="dot" cx="40.8" cy="168.4" r="2.5" />
-                <line x1="21.9" y1="177.6" x2="40.8" y2="175.1" />
-                <circle class="dot" cx="40.8" cy="175.1" r="2.5" />
-                <line x1="19.4" y1="199.9" x2="40.8" y2="181.9" />
-                <circle class="dot" cx="40.8" cy="181.9" r="2.5" />
-                <line x1="16.9" y1="225.7" x2="40.8" y2="188.6" />
-                <circle class="dot" cx="40.8" cy="188.6" r="2.5" />
-                <line x1="15.4" y1="252.9" x2="40.8" y2="195.4" />
-                <circle class="dot" cx="40.8" cy="195.4" r="2.5" />
-                <line x1="14.7" y1="280.6" x2="40.8" y2="207.5" />
-                <circle class="dot" cx="40.8" cy="207.5" r="2.5" />
-              </g>
-              <g class="num">
-                <circle cx="73.2" cy="95.2" r="11" />
-                <text x="73.2" y="95.2">1</text>
-              </g>
-              <g class="num">
-                <circle cx="280" cy="95.2" r="11" />
-                <text x="280" y="95.2">2</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="11" r="11" />
-                <text x="11" y="11">3</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="39" r="11" />
-                <text x="11" y="39">4</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="67" r="11" />
-                <text x="11" y="67">5</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="95" r="11" />
-                <text x="11" y="95">6</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="123" r="11" />
-                <text x="11" y="123">7</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="151" r="11" />
-                <text x="11" y="151">8</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="179" r="11" />
-                <text x="11" y="179">9</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="207" r="11" />
-                <text x="11" y="207">10</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="235" r="11" />
-                <text x="11" y="235">11</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="263" r="11" />
-                <text x="11" y="263">12</text>
-              </g>
-              <g class="num">
-                <circle cx="11" cy="291" r="11" />
-                <text x="11" y="291">13</text>
-              </g>
-            </svg>
+          <figure>
+            <a
+              href="20-dsp.png"
+              aria-label="Enlarge screenshot: Explore the DSP rack"
+              ><img
+                src="20-dsp.png"
+                width="1972"
+                height="1244"
+                alt="Explore the DSP rack"
+                loading="lazy"
+            /></a>
             <figcaption>Explore the DSP rack · FluidEQ</figcaption>
           </figure>
           <ol class="controls">
             <li>
               <span class="n">1</span
-              ><span
-                ><span class="name"><strong>Presets</strong></span
-                ><span class="text"
-                  >Whole-rack chains for genres, devices and repairs.</span
-                ></span
-              >
-            </li>
-            <li>
-              <span class="n">2</span
-              ><span
-                ><span class="name"><strong>Game mode</strong></span
-                ><span class="text"
-                  >Cuts the delay FluidEQ adds, for games and calls. Gaming
-                  presets turn it on.</span
-                ></span
-              >
-            </li>
-            <li>
-              <span class="n">3</span
               ><span
                 ><span class="name"><strong>Normalizer</strong></span
                 ><span class="text"
@@ -3895,7 +3830,7 @@
               >
             </li>
             <li>
-              <span class="n">4</span
+              <span class="n">2</span
               ><span
                 ><span class="name"><strong>Denoise</strong></span
                 ><span class="text"
@@ -3905,7 +3840,18 @@
               >
             </li>
             <li>
-              <span class="n">5</span
+              <span class="n">3</span
+              ><span
+                ><span class="name"><strong>De-esser</strong></span
+                ><span class="text"
+                  >The De-esser reduces sharp S, T and SH sounds when they
+                  occur. Its four groups decide what it hears, what it turns
+                  down, how fast, and where in the stereo sound it acts.</span
+                ></span
+              >
+            </li>
+            <li>
+              <span class="n">4</span
               ><span
                 ><span class="name"><strong>Exciter</strong></span
                 ><span class="text"
@@ -3914,7 +3860,7 @@
               >
             </li>
             <li>
-              <span class="n">6</span
+              <span class="n">5</span
               ><span
                 ><span class="name"><strong>Bass Forge</strong></span
                 ><span class="text"
@@ -3924,7 +3870,7 @@
               >
             </li>
             <li>
-              <span class="n">7</span
+              <span class="n">6</span
               ><span
                 ><span class="name"><strong>Equaliser</strong></span
                 ><span class="text"
@@ -3933,7 +3879,7 @@
               >
             </li>
             <li>
-              <span class="n">8</span
+              <span class="n">7</span
               ><span
                 ><span class="name"><strong>Bass Punch</strong></span
                 ><span class="text"
@@ -3942,7 +3888,7 @@
               >
             </li>
             <li>
-              <span class="n">9</span
+              <span class="n">8</span
               ><span
                 ><span class="name"><strong>Dimension</strong></span
                 ><span class="text"
@@ -3952,12 +3898,23 @@
               >
             </li>
             <li>
-              <span class="n">10</span
+              <span class="n">9</span
               ><span
                 ><span class="name"><strong>Room</strong></span
                 ><span class="text"
                   >Surround on headphones: each channel becomes a speaker in a
                   room around you.</span
+                ></span
+              >
+            </li>
+            <li>
+              <span class="n">10</span
+              ><span
+                ><span class="name"><strong>Dynamics</strong></span
+                ><span class="text"
+                  >Dynamics is a three-band compressor that lifts quiet passages
+                  and holds loud ones without adding delay. Use it on music,
+                  films, speech or a game’s own sound.</span
                 ></span
               >
             </li>
@@ -3989,35 +3946,46 @@
                 ></span
               >
             </li>
+            <li>
+              <span class="n">14</span
+              ><span
+                ><span class="name"><strong>Presets</strong></span
+                ><span class="text"
+                  >Whole-rack chains for genres, devices and repairs.</span
+                ></span
+              >
+            </li>
           </ol>
           <h3>Try it</h3>
           <ol>
             <li>
-              Open DSP. Pick a chain under Presets, or select a stage in the
-              rail and switch it On.
+              Open DSP and choose a whole-rack chain under Presets. A genre
+              preset’s information explains its curve and processing; its
+              listening examples open on YouTube.
             </li>
             <li>
-              Change one control at a time and compare with the stage bypassed
-              at a similar volume. Isolate lets you hear only what a stage adds.
+              Select a stage in the rail and switch it on. Each stage has its
+              own preset picker; Save there keeps just that stage’s settings.
             </li>
             <li>
-              Save a rack you like, and use Export and Import to share it.
+              Compare with the stage bypassed at a similar volume. Isolate,
+              where offered, lets you hear its contribution. Ctrl-click a dial
+              to restore its default.
             </li>
             <li>
-              The De-esser turns down the sharp S, T and SH of a voice only
-              while they sound, and leaves cymbals alone; Speech, Podcast and
-              Audiobook switch it on. Every stage can keep profiles of your own:
-              set it, then press Save.
+              Save the complete rack when you want to keep the combination, and
+              use Export and Import to carry it elsewhere. A whole-rack preset
+              can replace several stage settings together.
             </li>
             <li>
-              Dynamics lifts quiet sound and holds loud sound in three bands,
-              with no added delay. Tune the Game filter in the Gaming Lab, where
-              each game keeps its own sound; gaming presets are offered there
-              for every stage.
+              Dynamics and De-esser have their own chapters below. The Game
+              filter and gaming presets belong to Gaming Lab, not the music
+              preset list.
             </li>
             <li>
-              Dynamics — Music before and after Dynamics. The gain curve rises
-              for lift and dips for hold.
+              While a game’s own sound is loaded, the music DSP page rests so it
+              cannot overwrite that game. Open Gaming Lab to tune the sound that
+              is actually playing.
             </li>
           </ol>
           <aside class="tip">
@@ -4028,9 +3996,322 @@
             </p>
           </aside>
         </section>
+        <section id="normalizer">
+          <header class="chapter-heading">
+            <span class="number">17</span>
+            <h2>Normalizer and live level control</h2>
+          </header>
+          <p>
+            The Normalizer changes the source level before the creative stages.
+            Library files can be measured in full; other system audio is learned
+            while it plays.
+          </p>
+
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open DSP → Normalizer. Choose Off, True Peak or Loudness. Leave it
+              Off when you do not want source-level adjustment.
+            </li>
+            <li>
+              For Library playback, let Source analysis finish. True Peak sets
+              one gain for the file against Peak ceiling; Loudness aims for
+              Loudness target while respecting the peak limit.
+            </li>
+            <li>
+              Read Applied gain and the limiting reason. A source cannot always
+              reach the requested loudness without exceeding its peak ceiling.
+            </li>
+            <li>
+              For external audio under the FluidEQ Engine, the card becomes Live
+              level control with Peak protection or Live leveling. Learning
+              source and Holding gain describe what it is doing now.
+            </li>
+            <li>
+              Live leveling follows the song Windows identifies. A louder
+              passage can lower the gain held for that song. Switch Off and on
+              to start learning again when the source or its identity was wrong.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              This differs from Auto normalize in the left rail, which manages
+              EQ headroom, and from Master, which trims the finished output.
+              None can repair distortion already in a recording.
+            </p>
+          </aside>
+        </section>
+        <section id="denoise">
+          <header class="chapter-heading">
+            <span class="number">18</span>
+            <h2>Denoise &amp; source analysis</h2>
+          </header>
+          <p>
+            Denoise reduces hiss, mains hum and clicks. Under the FluidEQ Engine
+            it works live on anything the PC plays; the neural voice cleaner and
+            the scanned noise floor are for Library tracks. Stronger reduction
+            is not automatically better.
+          </p>
+          <figure>
+            <a
+              href="13-dsp-denoise-and-source-analysis.png"
+              aria-label="Enlarge screenshot: Denoise &amp; source analysis"
+              ><img
+                src="13-dsp-denoise-and-source-analysis.png"
+                width="1838"
+                height="731"
+                alt="Denoise &amp; source analysis"
+                loading="lazy"
+            /></a>
+            <figcaption>Denoise &amp; source analysis · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Play something with the noise you want to reduce and select
+              Denoise in DSP.
+            </li>
+            <li>
+              Switch on Hiss, Hum or Clicks with a light setting, and listen to
+              quiet passages and to musical detail.
+            </li>
+            <li>
+              Increase reduction gradually, then bypass the stage to check that
+              the improvement is worth any loss of detail.
+            </li>
+            <li>
+              For a Library file, let its source analysis finish before
+              comparing the measured noise floor or neural voice cleaner. Live
+              system audio can use hiss, hum and click reduction, but the neural
+              voice cleaner is for Library playback.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Listen for softened detail and watery or pumping textures. This is
+              not a microphone cleanup. If you hear no change, confirm the rack
+              and the stage are both on.
+            </p>
+          </aside>
+        </section>
+        <section id="deesser">
+          <header class="chapter-heading">
+            <span class="number">19</span>
+            <h2>De-esser: soften sharp voices</h2>
+          </header>
+          <p>
+            The De-esser reduces sharp S, T and SH sounds when they occur. Its
+            four groups decide what it hears, what it turns down, how fast, and
+            where in the stereo sound it acts.
+          </p>
+          <figure>
+            <a
+              href="43-dsp-deesser.png"
+              aria-label="Enlarge screenshot: De-esser: soften sharp voices"
+              ><img
+                src="43-dsp-deesser.png"
+                width="2124"
+                height="535"
+                alt="De-esser: soften sharp voices"
+                loading="lazy"
+            /></a>
+            <figcaption>De-esser: soften sharp voices · FluidEQ</figcaption>
+          </figure>
+          <ol class="controls">
+            <li>
+              <span class="n">1</span
+              ><span
+                ><span class="name"><strong>Find</strong></span
+                ><span class="text"
+                  >Sensitivity is measured against the song’s own level, so a
+                  quiet track and a loud one are treated alike.</span
+                ></span
+              >
+            </li>
+            <li>
+              <span class="n">2</span
+              ><span
+                ><span class="name"><strong>Reduce</strong></span
+                ><span class="text"
+                  >Turns down only the frequencies the S is made of, and follows
+                  it as it moves.</span
+                ></span
+              >
+            </li>
+            <li>
+              <span class="n">3</span
+              ><span
+                ><span class="name"><strong>Timing</strong></span
+                ><span class="text"
+                  >Catch the start reacts just before each S, so its first edge
+                  is not missed. Let go sets how fast the treble comes back
+                  after it.</span
+                ></span
+              >
+            </li>
+            <li>
+              <span class="n">4</span
+              ><span
+                ><span class="name"><strong>Where</strong></span
+                ><span class="text"
+                  >Turns down the sharp S, T and SH of a voice only while they
+                  sound, and leaves cymbals and the rest of the treble
+                  alone.</span
+                ></span
+              >
+            </li>
+          </ol>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open DSP → De-esser, switch it on and try a preset while a
+              recording with a sharp voice plays.
+            </li>
+            <li>
+              In Find, set the lower and upper listening frequencies around the
+              harsh sound, then raise Sensitivity until those sounds are caught
+              without reacting to every bright note.
+            </li>
+            <li>
+              In Reduce, Spectral follows only the offending frequencies; Treble
+              turns down the upper band. Whole voice lowers the entire sound and
+              is intended for an isolated voice. Set how far it may reduce, and
+              the width where available.
+            </li>
+            <li>
+              Use Timing to catch the beginning of the sound and set how quickly
+              the treble returns. In Where, Centre only concentrates on a
+              centred voice; Keep cymbals protects bright hits.
+            </li>
+            <li>
+              Turn Isolate on to hear only what is removed, then turn it off to
+              judge the complete recording. The display follows the control you
+              are adjusting and shows what the stage did.
+            </li>
+            <li>
+              Save a useful setting from the stage’s preset bar. Choosing a
+              whole-rack chain later can replace the stage settings, so save the
+              complete rack too if you want to keep it.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              If a voice lisps or the music loses air, reduce Sensitivity or the
+              maximum reduction. This is playback processing, not a microphone
+              effect.
+            </p>
+          </aside>
+        </section>
+        <section id="dynamics">
+          <header class="chapter-heading">
+            <span class="number">20</span>
+            <h2>Dynamics: quiet and loud passages</h2>
+          </header>
+          <p>
+            Dynamics is a three-band compressor that lifts quiet passages and
+            holds loud ones without adding delay. Use it on music, films, speech
+            or a game’s own sound.
+          </p>
+          <figure>
+            <a
+              href="42-dsp-dynamics.png"
+              aria-label="Enlarge screenshot: Dynamics: quiet and loud passages"
+              ><img
+                src="42-dsp-dynamics.png"
+                width="1972"
+                height="1262"
+                alt="Dynamics: quiet and loud passages"
+                loading="lazy"
+            /></a>
+            <figcaption>Dynamics: quiet and loud passages · FluidEQ</figcaption>
+          </figure>
+          <ol class="controls">
+            <li>
+              <span class="n">1</span
+              ><span
+                ><span class="name"><strong>Lows</strong></span
+                ><span class="text"
+                  >Under 150 Hz: the boom of a blast, a kick, an engine.</span
+                ></span
+              >
+            </li>
+            <li>
+              <span class="n">2</span
+              ><span
+                ><span class="name"><strong>Middle</strong></span
+                ><span class="text"
+                  >150 Hz to 4 kHz: voices, steps and most of the sound.</span
+                ></span
+              >
+            </li>
+            <li>
+              <span class="n">3</span
+              ><span
+                ><span class="name"><strong>Highs</strong></span
+                ><span class="text"
+                  >Over 4 kHz: detail, air, the edge of a step.</span
+                ></span
+              >
+            </li>
+            <li>
+              <span class="n">4</span
+              ><span
+                ><span class="name"><strong>Timing and level</strong></span
+                ><span class="text"
+                  >How fast a hold arrives and a lift comes back, and how loud
+                  the result is.</span
+                ></span
+              >
+            </li>
+          </ol>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open DSP → Dynamics, switch it on and choose a preset as a
+              starting point. Everyday presets are here; presets for games are
+              in the Gaming Lab.
+            </li>
+            <li>
+              The three bands cover lows below 150 Hz, the middle from 150 Hz to
+              4 kHz, and highs above 4 kHz. Tune the band containing the sound
+              you want to change.
+            </li>
+            <li>
+              Under Lift, Below sets when quiet sound is raised, Ratio sets how
+              strongly, and Up to limits the added gain. A ratio of 1:1 leaves
+              it alone.
+            </li>
+            <li>
+              Under Hold, Above sets where loud sound is reduced and Ratio sets
+              how firmly. Lowering Above makes the hold act more often.
+            </li>
+            <li>
+              Set Attack and Release for the response, Mix to blend with the
+              unprocessed signal, and Make-up to adjust the result’s level.
+              Compare at a similar listening volume.
+            </li>
+            <li>
+              The graph shows sound before and after the stage and the gain
+              actually applied: a rise is lift and a dip is hold. If a notice
+              asks for an Engine update, sound processing may already work while
+              the live display needs the update.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Keep the loudness similar when comparing. Strong lift also brings
+              quiet background noise forward; less Mix can keep more of the
+              original movement.
+            </p>
+          </aside>
+        </section>
         <section id="room">
           <header class="chapter-heading">
-            <span class="number">14</span>
+            <span class="number">21</span>
             <h2>The Room: surround on headphones</h2>
           </header>
           <p>
@@ -4333,58 +4614,54 @@
             </p>
           </aside>
         </section>
-        <section id="denoise">
+        <section id="crossfade">
           <header class="chapter-heading">
-            <span class="number">15</span>
-            <h2>Denoise &amp; source analysis</h2>
+            <span class="number">22</span>
+            <h2>Crossfade and custom fade curves</h2>
           </header>
           <p>
-            Denoise reduces hiss, mains hum and clicks. Under the FluidEQ Engine
-            it works live on anything the PC plays; the neural voice cleaner and
-            the scanned noise floor are for Library tracks. Stronger reduction
-            is not automatically better.
+            Crossfade overlaps consecutive Library tracks. Its playback settings
+            are separate from the DSP filters and do not crossfade other apps or
+            Karaoke.
           </p>
-          <figure>
-            <a
-              href="13-dsp-denoise-and-source-analysis.png"
-              aria-label="Enlarge screenshot: Denoise &amp; source analysis"
-              ><img
-                src="13-dsp-denoise-and-source-analysis.png"
-                width="1838"
-                height="731"
-                alt="Denoise &amp; source analysis"
-                loading="lazy"
-            /></a>
-            <figcaption>Denoise &amp; source analysis · FluidEQ</figcaption>
-          </figure>
+
           <h3>Try it</h3>
           <ol>
             <li>
-              Play something with the noise you want to reduce and select
-              Denoise in DSP.
+              Put at least two tracks in the Library queue. In DSP, choose
+              Crossfade under Playback options and switch it on.
             </li>
             <li>
-              Switch on Hiss, Hum or Clicks with a light setting, and listen to
-              quiet passages and to musical detail.
+              Set Duration, then choose Equal power, Smooth or Linear. Let the
+              first track reach its ending to hear the overlap.
             </li>
             <li>
-              Increase reduction gradually, then bypass the stage to check that
-              the improvement is worth any loss of detail.
+              Choose Custom to shape the outgoing and incoming fades. Drag the
+              handles, or focus a handle and use the arrow keys to adjust it.
+            </li>
+            <li>
+              Watch both curves and the combined level. Keeping both high
+              together can make the overlap louder.
+            </li>
+            <li>
+              Save curve keeps a shape under its own name; choose it again from
+              the saved list. Reset shape returns the editable shape to its
+              starting form.
             </li>
           </ol>
           <aside class="tip">
             <strong>Good to know</strong>
             <p>
-              Listen for softened detail and watery or pumping textures. This is
-              not a microphone cleanup. If you hear no change, confirm the rack
-              and the stage are both on.
+              If the controls are unavailable, start a Library audio track. A
+              fade shape changes the transition between songs, not the EQ curve
+              of either song.
             </p>
           </aside>
         </section>
         <section id="graph">
           <span class="eyebrow part">See your music</span>
           <header class="chapter-heading">
-            <span class="number">16</span>
+            <span class="number">23</span>
             <h2>The graph and its controls</h2>
           </header>
           <p>
@@ -5249,6 +5526,11 @@
               right-click for its menu; Ctrl+scroll changes the Q of a selected
               point.
             </li>
+            <li>
+              Press a curve’s name in the graph legend to hide or show its
+              drawing. This leaves the sound unchanged. Remove or change the
+              layer under Curves when you want to change what you hear.
+            </li>
           </ol>
           <aside class="tip">
             <strong>Good to know</strong>
@@ -5257,7 +5539,7 @@
         </section>
         <section id="looks">
           <header class="chapter-heading">
-            <span class="number">17</span>
+            <span class="number">24</span>
             <h2>Styles and scenes</h2>
           </header>
           <p>
@@ -5360,7 +5642,7 @@
         <section id="plus">
           <span class="eyebrow part">Visualizers and your account</span>
           <header class="chapter-heading">
-            <span class="number">18</span>
+            <span class="number">25</span>
             <h2>Your account, credits and the Visualizers tab</h2>
           </header>
           <p>
@@ -5450,7 +5732,7 @@
         </section>
         <section id="gallery">
           <header class="chapter-heading">
-            <span class="number">19</span>
+            <span class="number">26</span>
             <h2>The Visualizers gallery</h2>
           </header>
           <p>
@@ -5615,7 +5897,7 @@
         </section>
         <section id="studio">
           <header class="chapter-heading">
-            <span class="number">20</span>
+            <span class="number">27</span>
             <h2>Make scenes in the Studio</h2>
           </header>
           <p>
@@ -5739,7 +6021,7 @@
         </section>
         <section id="desktop">
           <header class="chapter-heading">
-            <span class="number">21</span>
+            <span class="number">28</span>
             <h2>The desktop visualizer</h2>
           </header>
           <p>
@@ -5842,7 +6124,7 @@
         </section>
         <section id="lighting">
           <header class="chapter-heading">
-            <span class="number">22</span>
+            <span class="number">29</span>
             <h2>Dynamic lighting (beta)</h2>
           </header>
           <p>
@@ -5955,7 +6237,7 @@
         <section id="online">
           <span class="eyebrow part">Listen, sing and share</span>
           <header class="chapter-heading">
-            <span class="number">23</span>
+            <span class="number">30</span>
             <h2>Listen with Online Media</h2>
           </header>
           <p>
@@ -6003,7 +6285,7 @@
         </section>
         <section id="library">
           <header class="chapter-heading">
-            <span class="number">24</span>
+            <span class="number">31</span>
             <h2>Build your local library</h2>
           </header>
           <p>
@@ -6039,6 +6321,12 @@
               Use the bar at the foot of the window to pause, seek and skip. Its
               volume is your computer’s own, the same as in Windows.
             </li>
+            <li>
+              Use Grid, List, Cover Flow or the folder tree to browse the same
+              collection. Select several songs, or open an album’s menu, to
+              queue or file them together. A single audio track’s menu can send
+              it to Karaoke.
+            </li>
           </ol>
           <aside class="tip">
             <strong>Good to know</strong>
@@ -6051,7 +6339,7 @@
         </section>
         <section id="queue">
           <header class="chapter-heading">
-            <span class="number">25</span>
+            <span class="number">32</span>
             <h2>Albums &amp; your play queue</h2>
           </header>
           <p>
@@ -6086,6 +6374,17 @@
               Open Up next to see what plays after, and turn on Keep playing to
               continue with more of the same genre.
             </li>
+            <li>
+              Drag an Up next row to change the order and use its remove action
+              to take it out of the queue. Save the queue as a playlist when you
+              want to keep the listening order.
+            </li>
+            <li>
+              On Windows, drop music files or folders onto the Compact player to
+              scan them into Library and queue them. Drop over an Up next row to
+              insert before it, or below the list to append; the progress notice
+              follows folder scanning.
+            </li>
           </ol>
           <aside class="tip">
             <strong>Good to know</strong>
@@ -6098,7 +6397,7 @@
         </section>
         <section id="karaoke">
           <header class="chapter-heading">
-            <span class="number">26</span>
+            <span class="number">33</span>
             <h2>Sing with Karaoke</h2>
           </header>
           <p>
@@ -6135,19 +6434,27 @@
               your viewing distance, and use the stage’s fullscreen control to
               sing.
             </li>
+            <li>
+              Use the stage’s cover and visualizer buttons to choose its
+              background. Its Transparency and Blur are separate from the main
+              graph’s. Group the playlist by folder, then press a folder heading
+              to fold its songs away.
+            </li>
           </ol>
           <aside class="tip">
             <strong>Good to know</strong>
             <p>
               A lyric-only file does not contain target notes. Karaoke plays at
               your computer’s volume; the melody, backing and guide vocal levels
-              are under Mix settings.
+              are under Mix settings. The microphone is analysed locally for
+              level and pitch; FluidEQ does not play it through the speakers or
+              record it.
             </p>
           </aside>
         </section>
         <section id="maker">
           <header class="chapter-heading">
-            <span class="number">27</span>
+            <span class="number">34</span>
             <h2>Create in Karaoke Maker</h2>
           </header>
           <p>
@@ -6868,6 +7175,13 @@
               Play short passages, correct the timing and text, save the project
               for later editing, then export the karaoke files.
             </li>
+            <li>
+              If you already have the words, paste the complete reference
+              lyrics, including repeated lines. You can record line entries
+              while listening and refine words and notes afterwards. Keep a
+              project file for editable work; export LRC or UltraStar for the
+              player.
+            </li>
           </ol>
           <aside class="tip">
             <strong>Good to know</strong>
@@ -6880,7 +7194,7 @@
         </section>
         <section id="share">
           <header class="chapter-heading">
-            <span class="number">28</span>
+            <span class="number">35</span>
             <h2>Share audio between computers</h2>
           </header>
           <p>
@@ -6928,6 +7242,17 @@
               that is away stays listed as Offline, and the group finds itself
               again after a restart, sleep, a network drop or an engine switch.
             </li>
+            <li>
+              Turn Fluid on beside Share for music over a connection that
+              stalls. It adds a small playback cushion; switch it off when lower
+              delay matters more.
+            </li>
+            <li>
+              For a saved computer that stays Offline, open its ••• menu and
+              choose Reconnect. It tries the saved code again without forgetting
+              the link; if the other computer’s address changed, copy and paste
+              its current code.
+            </li>
           </ol>
           <aside class="tip">
             <strong>Good to know</strong>
@@ -6943,7 +7268,7 @@
         <section id="trouble">
           <span class="eyebrow part">When you need help</span>
           <header class="chapter-heading">
-            <span class="number">29</span>
+            <span class="number">36</span>
             <h2>When something sounds wrong</h2>
           </header>
           <p>
@@ -7001,7 +7326,7 @@
         </section>
         <section id="forum">
           <header class="chapter-heading">
-            <span class="number">30</span>
+            <span class="number">37</span>
             <h2>Ask in the Forum</h2>
           </header>
           <p>

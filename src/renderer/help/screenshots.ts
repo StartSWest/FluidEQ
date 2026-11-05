@@ -15,7 +15,6 @@ import bands from '../../../docs/16-eq-bands.png';
 import bandMenu from '../../../docs/17-band-menu.png';
 import eqMode from '../../../docs/18-eq-mode.png';
 import bandDesigns from '../../../docs/19-band-designs.png';
-import dsp from '../../../docs/20-dsp.png';
 import room from '../../../docs/32-dsp-room.png';
 import strip from '../../../docs/21-graph-strip.png';
 import stripPlus from '../../../docs/22-graph-strip-plus.png';
@@ -53,7 +52,6 @@ const SHOTS: Record<THelpPicture, string> = {
   '17-band-menu.png': bandMenu,
   '18-eq-mode.png': eqMode,
   '19-band-designs.png': bandDesigns,
-  '20-dsp.png': dsp,
   '32-dsp-room.png': room,
   '21-graph-strip.png': strip,
   '22-graph-strip-plus.png': stripPlus,

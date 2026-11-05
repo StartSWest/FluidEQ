@@ -23,40 +23,47 @@ Live illustrations follow your language and window colours. Older window capture
 6. [Shape your sound with EQ](#eq)
 7. [EQ mode and band designs](#eqmode)
 8. [Gaming Lab](#games)
-9. [Headphone correction & imports](#headphones)
-10. [Use an impulse response](#convolution)
-11. [Devices, profiles & second output](#profiles)
-12. [Inspect & back up a chain](#config)
-13. [Explore the DSP rack](#dsp)
-14. [The Room: surround on headphones](#room)
-15. [Denoise & source analysis](#denoise)
+9. [The Game filter: steps, surroundings and voices](#gamefilter)
+10. [Headphone correction & imports](#headphones)
+11. [My curves: import, edit and share](#mycurves)
+12. [Use an impulse response](#convolution)
+13. [Devices, profiles & second output](#profiles)
+14. [Remember each song’s sound](#songs)
+15. [Inspect & back up a chain](#config)
+16. [Explore the DSP rack](#dsp)
+17. [Normalizer and live level control](#normalizer)
+18. [Denoise & source analysis](#denoise)
+19. [De-esser: soften sharp voices](#deesser)
+20. [Dynamics: quiet and loud passages](#dynamics)
+21. [The Room: surround on headphones](#room)
+22. [Crossfade and custom fade curves](#crossfade)
 
 **See your music**
 
-16. [The graph and its controls](#graph)
-17. [Styles and scenes](#looks)
+23. [The graph and its controls](#graph)
+24. [Styles and scenes](#looks)
 
 **Visualizers and your account**
 
-18. [Your account, credits and the Visualizers tab](#plus)
-19. [The Visualizers gallery](#gallery)
-20. [Make scenes in the Studio](#studio)
-21. [The desktop visualizer](#desktop)
-22. [Dynamic lighting (beta)](#lighting)
+25. [Your account, credits and the Visualizers tab](#plus)
+26. [The Visualizers gallery](#gallery)
+27. [Make scenes in the Studio](#studio)
+28. [The desktop visualizer](#desktop)
+29. [Dynamic lighting (beta)](#lighting)
 
 **Listen, sing and share**
 
-23. [Listen with Online Media](#online)
-24. [Build your local library](#library)
-25. [Albums & your play queue](#queue)
-26. [Sing with Karaoke](#karaoke)
-27. [Create in Karaoke Maker](#maker)
-28. [Share audio between computers](#share)
+30. [Listen with Online Media](#online)
+31. [Build your local library](#library)
+32. [Albums & your play queue](#queue)
+33. [Sing with Karaoke](#karaoke)
+34. [Create in Karaoke Maker](#maker)
+35. [Share audio between computers](#share)
 
 **When you need help**
 
-29. [When something sounds wrong](#trouble)
-30. [Ask in the Forum](#forum)
+36. [When something sounds wrong](#trouble)
+37. [Ask in the Forum](#forum)
 
 <a id="start"></a>
 
@@ -117,6 +124,7 @@ The header takes you between FluidEQ’s pages and shows the sound as it plays. 
 1. Open a page from the header: Online Media, Share Audio, Gaming Lab, EQ, DSP, Library, Karaoke, or Visualizers.
 2. Turn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.
 3. Press the level meter to change how it is drawn, and Colourful on the signal to have the bands, the title and the lit controls in a palette instead of one colour.
+4. To switch processing from another app, open the ≡ menu → On/off key and choose your own key combination. No key is assigned at first; the confirmation above other windows says whether FluidEQ is on or off.
 
 > **Good to know:** Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The menu button beside it, three lines, holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio, Processes, which shows what each part of FluidEQ is using, and Reset all settings; at its foot are Brightness, Tint, Colourful mode, Tint app icon (off at first; it puts the taskbar icon, the tray icon and the icon in the tray’s menu in the window’s colours), the EQ sliders, animations, Start with Windows (FluidEQ then starts in the tray, shaping your sound with no window open) and the language. The switch after them turns the window into the Compact player.
 
@@ -198,6 +206,7 @@ One switch turns FluidEQ’s window into the Compact player, a single narrow col
 4. Choose Fold to one line in the FluidEQ mark’s menu to fold the player down to one line; the mark unfolds it.
 5. In the same menu, set the player’s own Brightness, the Transparency over a scene or the window’s Tint over a standard style, and a scene’s Daylight. Always on top, there or in the header, keeps it above other windows.
 6. Drop music files anywhere on the player: they join the Library and the end of Up next or, over the list, the place where you let go.
+7. In Sound, choose Tone for Bass, Mid and Treble or Bands for the full EQ. Its preset and EQ mode controls change the same output as the full app. Explore scenes opens the gallery in the full window; automatic scene switching works in the Compact player too.
 
 > **Good to know:** The player’s volume is your computer’s own, the same as in Windows, so it sets the level of everything the computer plays. If the player ends up off the screen, right-click FluidEQ in the taskbar’s tray and choose Recover the window. While a game’s sound is on, the game button shows just the game’s name so it fits the Compact player.
 
@@ -230,7 +239,7 @@ FluidEQ processes your sound with its own engine or with Equalizer APO. The Flui
 
 ### Try it
 
-1. Open the actions menu — the pulse button at the top right — and press the engine card at the top of it.
+1. Open the actions menu (≡) and press the engine card at the top.
 2. Choose FluidEQ Engine and press Apply. Windows asks for permission, and audio pauses for a few seconds while it restarts.
 3. If an output shows OFF, press Enable on its notice. If a notice says the engine is not running, press Restart Windows audio.
 
@@ -289,6 +298,7 @@ Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its 
 4. To see each band’s frequency, Q and gain on the graph, open View above it and press Show EQ labels, or press Ctrl+W until it shows Everything. A label sits above or below its point, never beside it, and goes back to its place once there is room.
 5. Right-click a band to reset it, switch it off, or add a band beside it. Press Clear EQ to set every gain, and Bass, Mid and Treble, to 0 dB while keeping your bands. It asks first.
 6. The same menu has Delete band, which asks for a second press before it deletes. Left + right turns a band into one band for each ear, at the same frequency, so you can move each by itself: the left ear’s curve is drawn solid and the right’s dashed. Both ears joins the two again in their middle, and so do Reset band and Clear EQ.
+7. Select several bands to move them together, or use Ctrl+A on the graph to select every band. The selected bands share the editor; switching from one band to another updates that editor in place.
 
 > **Good to know:** Curves lists what shapes this output besides your bands, each with its own strength and ×. Game mode cuts the delay FluidEQ adds, for games and calls; Gaming presets turn it on. While the EQ is switched off its bands are dimmed and cannot be changed by accident; the Tone dials still work.
 
@@ -334,7 +344,7 @@ EQ mode changes how your sound is shaped, without editing anything. Its settings
 
 Give each game its own sound. A game starts from a Gaming profile made for it and gets its own copy: you tune the copy in the Gaming Lab, and the profile never changes. When the game comes to the front, FluidEQ puts its sound on and keeps it until you close the game, whatever you alt-tab to in between. Then your music sound comes back.
 
-![Gaming Lab](41-game-presets.png)
+![Gaming Lab](44-gaming-lab.png)
 
 1. **Switch when a game is in front** — Lets a game in front put its own sound on. Off, your games keep your music sound.
 2. **Add a game** — Adds a game from Steam, Epic, EA, GOG, Ubisoft, Battle.net or Xbox, or any program that is open now.
@@ -344,13 +354,13 @@ Give each game its own sound. A game starts from a Gaming profile made for it an
 6. **Try it now** — Puts the game’s sound on now, so you hear what you tune. While it is on, Unload stands here and brings your music sound back.
 7. **What was tuned** — Which parts of this copy are different from its profile.
 
-![Gaming Lab](41-game-presets.png)
+![Gaming Lab](45-gaming-parts.png)
 
 1. **Its parts** — Every part of the game’s sound, each tuned in its own editor beside the list. Tuned marks what moved away from the profile.
 
 ### Gaming profiles
 
-![Gaming profiles](41-game-presets.png)
+![Gaming profiles](46-gaming-profiles.png)
 
 1. **Gaming profiles** — Open Gaming profiles to search by profile, game, curve or chain. The filters stay on one line and each kind of game has its own colour. Your saved profiles show their curve, Game filter levels and chain too. Use for a game starts a new copy.
 
@@ -362,6 +372,23 @@ Give each game its own sound. A game starts from a Gaming profile made for it an
 4. Start the game. A card on the desktop says its sound is on, and another says your music sound is back when you close it.
 
 > **Good to know:** While a game’s sound is on, the DSP page shows your music rack paused with a button to tune the game, and the profile list rests, so nothing done there can overwrite your music profile with the game’s sound. The Game filter brings up quiet steps and reloads as they happen and puts voices forward.
+
+<a id="gamefilter"></a>
+
+## The Game filter: steps, surroundings and voices
+
+The Game filter gives each game separate control over quiet cues, its background and dialogue. Start from that game’s profile, then tune its own copy while listening.
+
+### Try it
+
+1. Open Gaming Lab, select a game and press Try it now if its sound is not already on. Choose Game in that game’s parts.
+2. Raise the footsteps lift for quiet steps, reloads and doors. Calm holds distracting loud events; compare before pushing both controls.
+3. Hooves and heavy steps brings more of the low weight forward for boots, horses and vehicles. Leave it off when it makes cues too heavy.
+4. Environment turns the game’s bed down or up. The stage lets go when a step or another distinct sound stands out, so the cue is not lowered with the background.
+5. Dialogue brings a centred voice forward. Make room lowers the rest a little while somebody speaks.
+6. Use Isolate to hear what Game changes, then return to the full game. Save as profile keeps your tuning for other games; resetting the game returns it to its starting profile.
+
+> **Good to know:** A profile for a game with its own 3D audio can keep the Room off to avoid processing its positioning twice. Room profiles are for headphones. Your music sound returns when the game’s sound is unloaded.
 
 <a id="headphones"></a>
 
@@ -380,6 +407,22 @@ A headphone correction compensates for a measured model. It is a starting point 
 5. Import into, beside Apply as EQ, picks Both ears, Left ear or Right ear: one ear replaces only that ear’s bands and leaves the other ear as it was.
 
 > **Good to know:** A preview marked not applied is not changing your sound. Avoid stacking two full corrections for the same headphones unless that is deliberate; compare with the headphone layer switched off.
+
+<a id="mycurves"></a>
+
+## My curves: import, edit and share
+
+My curves is your own library beside the headphone measurement library. Keep a curve once, inspect its response and choose whether it becomes a correction layer or editable EQ bands.
+
+### Try it
+
+1. Open the EQ Presets page and choose My curves. Search or sort the list to find a saved curve.
+2. Use Add curve for your current EQ, a text file, a measurement-library pick or pasted data. Import from Squiglink accepts its exported EQ text. Review the preview before saving.
+3. Apply as curve adds a correction layer and leaves your editable bands in place. Apply as EQ replaces the selected ear’s editable bands after confirmation; choose Both ears, Left ear or Right ear under Import into.
+4. A curve’s menu can rename it, edit its bands, duplicate it, copy it as text or delete it. Editing a saved curve does not require starting the import again.
+5. Export list and Import list carry the whole collection between computers. Keep the measurement author and model clear when you share a correction.
+
+> **Good to know:** A curve and a full sound profile are different: a curve describes a frequency response; an output profile also keeps the rest of that output’s sound. Check the model and source before applying a correction.
 
 <a id="convolution"></a>
 
@@ -425,6 +468,22 @@ Every output keeps its own sound: the EQ, the preset, the Tone, the cuts, the DS
 
 > **Good to know:** Under the FluidEQ Engine a second output plays straight from the engine, and the main output never waits for it. Remember each song’s sound starts switched off, and remembers per output. On the EQ page the panel starts with the EQ mode card; fold it to reach your outputs sooner.
 
+<a id="songs"></a>
+
+## Remember each song’s sound
+
+A song can remember its preset, Tone and EQ separately for each output. A song tuned on headphones does not change the sound saved for your speakers.
+
+### Try it
+
+1. Under the output’s profiles, turn on Remember each song’s sound. It is off until you choose to use it.
+2. Play an identifiable song, then change its preset, Tone or EQ. A notice tells you that the sound will be kept; use its do-not-save action if this was only an experiment.
+3. When that song plays again on the same output, its sound comes back temporarily. Undo skips it for this play; Forget this song also removes the saved memory.
+4. When the song ends, the output’s previous sound comes back. Choosing a different profile deliberately lets you take control again.
+5. Smart EQ has its own Save for this song control while it measures. That remembers the measured Smart EQ correction; it is separate from remembering your hand-tuned preset, Tone and bands.
+
+> **Good to know:** Song identity comes from the local file or the player’s media information. Missing or wrong titles can prevent a match. The preamp is not stored with a song, and a game’s own sound takes priority while it is loaded.
+
 <a id="config"></a>
 
 ## Inspect & back up a chain
@@ -449,30 +508,112 @@ The DSP rack is a chain of studio stages. Under the FluidEQ Engine it processes 
 
 ![Explore the DSP rack](20-dsp.png)
 
-1. **Presets** — Whole-rack chains for genres, devices and repairs.
-2. **Game mode** — Cuts the delay FluidEQ adds, for games and calls. Gaming presets turn it on.
-3. **Normalizer** — Evens out loudness song by song. True Peak sets one gain for each song instead of limiting it throughout. Presets leave the Normalizer off until you turn it on.
-4. **Denoise** — Repairs hiss, hum and clicks. The neural voice cleaner works on Library tracks.
-5. **Exciter** — Adds harmonics for body and air.
-6. **Bass Forge** — Adds a real octave below the bass, or its harmonics for small speakers.
-7. **Equaliser** — Fifteen parametric bands, with minimum or linear phase.
-8. **Bass Punch** — Shapes the attack, sustain and bloom of the bass.
-9. **Dimension** — Widens the stereo picture without changing the mono sum.
-10. **Room** — Surround on headphones: each channel becomes a speaker in a room around you.
+1. **Normalizer** — Evens out loudness song by song. True Peak sets one gain for each song instead of limiting it throughout. Presets leave the Normalizer off until you turn it on.
+2. **Denoise** — Repairs hiss, hum and clicks. The neural voice cleaner works on Library tracks.
+3. **De-esser** — The De-esser reduces sharp S, T and SH sounds when they occur. Its four groups decide what it hears, what it turns down, how fast, and where in the stereo sound it acts.
+4. **Exciter** — Adds harmonics for body and air.
+5. **Bass Forge** — Adds a real octave below the bass, or its harmonics for small speakers.
+6. **Equaliser** — Fifteen parametric bands, with minimum or linear phase.
+7. **Bass Punch** — Shapes the attack, sustain and bloom of the bass.
+8. **Dimension** — Widens the stereo picture without changing the mono sum.
+9. **Room** — Surround on headphones: each channel becomes a speaker in a room around you.
+10. **Dynamics** — Dynamics is a three-band compressor that lifts quiet passages and holds loud ones without adding delay. Use it on music, films, speech or a game’s own sound.
 11. **Maximizer** — Raises the level without letting peaks pass the ceiling.
 12. **Master** — Final level, loudness target and peak safety.
 13. **Crossfade** — Blends one Library track into the next.
+14. **Presets** — Whole-rack chains for genres, devices and repairs.
 
 ### Try it
 
-1. Open DSP. Pick a chain under Presets, or select a stage in the rail and switch it On.
-2. Change one control at a time and compare with the stage bypassed at a similar volume. Isolate lets you hear only what a stage adds.
-3. Save a rack you like, and use Export and Import to share it.
-4. The De-esser turns down the sharp S, T and SH of a voice only while they sound, and leaves cymbals alone; Speech, Podcast and Audiobook switch it on. Every stage can keep profiles of your own: set it, then press Save.
-5. Dynamics lifts quiet sound and holds loud sound in three bands, with no added delay. Tune the Game filter in the Gaming Lab, where each game keeps its own sound; gaming presets are offered there for every stage.
-6. Dynamics — Music before and after Dynamics. The gain curve rises for lift and dips for hold.
+1. Open DSP and choose a whole-rack chain under Presets. A genre preset’s information explains its curve and processing; its listening examples open on YouTube.
+2. Select a stage in the rail and switch it on. Each stage has its own preset picker; Save there keeps just that stage’s settings.
+3. Compare with the stage bypassed at a similar volume. Isolate, where offered, lets you hear its contribution. Ctrl-click a dial to restore its default.
+4. Save the complete rack when you want to keep the combination, and use Export and Import to carry it elsewhere. A whole-rack preset can replace several stage settings together.
+5. Dynamics and De-esser have their own chapters below. The Game filter and gaming presets belong to Gaming Lab, not the music preset list.
+6. While a game’s own sound is loaded, the music DSP page rests so it cannot overwrite that game. Open Gaming Lab to tune the sound that is actually playing.
 
 > **Good to know:** Louder often sounds better simply because it is louder, so compare at matched levels. Ctrl-click a dial to return it to its default.
+
+<a id="normalizer"></a>
+
+## Normalizer and live level control
+
+The Normalizer changes the source level before the creative stages. Library files can be measured in full; other system audio is learned while it plays.
+
+### Try it
+
+1. Open DSP → Normalizer. Choose Off, True Peak or Loudness. Leave it Off when you do not want source-level adjustment.
+2. For Library playback, let Source analysis finish. True Peak sets one gain for the file against Peak ceiling; Loudness aims for Loudness target while respecting the peak limit.
+3. Read Applied gain and the limiting reason. A source cannot always reach the requested loudness without exceeding its peak ceiling.
+4. For external audio under the FluidEQ Engine, the card becomes Live level control with Peak protection or Live leveling. Learning source and Holding gain describe what it is doing now.
+5. Live leveling follows the song Windows identifies. A louder passage can lower the gain held for that song. Switch Off and on to start learning again when the source or its identity was wrong.
+
+> **Good to know:** This differs from Auto normalize in the left rail, which manages EQ headroom, and from Master, which trims the finished output. None can repair distortion already in a recording.
+
+<a id="denoise"></a>
+
+## Denoise & source analysis
+
+Denoise reduces hiss, mains hum and clicks. Under the FluidEQ Engine it works live on anything the PC plays; the neural voice cleaner and the scanned noise floor are for Library tracks. Stronger reduction is not automatically better.
+
+![Denoise & source analysis](13-dsp-denoise-and-source-analysis.png)
+
+### Try it
+
+1. Play something with the noise you want to reduce and select Denoise in DSP.
+2. Switch on Hiss, Hum or Clicks with a light setting, and listen to quiet passages and to musical detail.
+3. Increase reduction gradually, then bypass the stage to check that the improvement is worth any loss of detail.
+4. For a Library file, let its source analysis finish before comparing the measured noise floor or neural voice cleaner. Live system audio can use hiss, hum and click reduction, but the neural voice cleaner is for Library playback.
+
+> **Good to know:** Listen for softened detail and watery or pumping textures. This is not a microphone cleanup. If you hear no change, confirm the rack and the stage are both on.
+
+<a id="deesser"></a>
+
+## De-esser: soften sharp voices
+
+The De-esser reduces sharp S, T and SH sounds when they occur. Its four groups decide what it hears, what it turns down, how fast, and where in the stereo sound it acts.
+
+![De-esser: soften sharp voices](43-dsp-deesser.png)
+
+1. **Find** — Sensitivity is measured against the song’s own level, so a quiet track and a loud one are treated alike.
+2. **Reduce** — Turns down only the frequencies the S is made of, and follows it as it moves.
+3. **Timing** — Catch the start reacts just before each S, so its first edge is not missed. Let go sets how fast the treble comes back after it.
+4. **Where** — Turns down the sharp S, T and SH of a voice only while they sound, and leaves cymbals and the rest of the treble alone.
+
+### Try it
+
+1. Open DSP → De-esser, switch it on and try a preset while a recording with a sharp voice plays.
+2. In Find, set the lower and upper listening frequencies around the harsh sound, then raise Sensitivity until those sounds are caught without reacting to every bright note.
+3. In Reduce, Spectral follows only the offending frequencies; Treble turns down the upper band. Whole voice lowers the entire sound and is intended for an isolated voice. Set how far it may reduce, and the width where available.
+4. Use Timing to catch the beginning of the sound and set how quickly the treble returns. In Where, Centre only concentrates on a centred voice; Keep cymbals protects bright hits.
+5. Turn Isolate on to hear only what is removed, then turn it off to judge the complete recording. The display follows the control you are adjusting and shows what the stage did.
+6. Save a useful setting from the stage’s preset bar. Choosing a whole-rack chain later can replace the stage settings, so save the complete rack too if you want to keep it.
+
+> **Good to know:** If a voice lisps or the music loses air, reduce Sensitivity or the maximum reduction. This is playback processing, not a microphone effect.
+
+<a id="dynamics"></a>
+
+## Dynamics: quiet and loud passages
+
+Dynamics is a three-band compressor that lifts quiet passages and holds loud ones without adding delay. Use it on music, films, speech or a game’s own sound.
+
+![Dynamics: quiet and loud passages](42-dsp-dynamics.png)
+
+1. **Lows** — Under 150 Hz: the boom of a blast, a kick, an engine.
+2. **Middle** — 150 Hz to 4 kHz: voices, steps and most of the sound.
+3. **Highs** — Over 4 kHz: detail, air, the edge of a step.
+4. **Timing and level** — How fast a hold arrives and a lift comes back, and how loud the result is.
+
+### Try it
+
+1. Open DSP → Dynamics, switch it on and choose a preset as a starting point. Everyday presets are here; presets for games are in the Gaming Lab.
+2. The three bands cover lows below 150 Hz, the middle from 150 Hz to 4 kHz, and highs above 4 kHz. Tune the band containing the sound you want to change.
+3. Under Lift, Below sets when quiet sound is raised, Ratio sets how strongly, and Up to limits the added gain. A ratio of 1:1 leaves it alone.
+4. Under Hold, Above sets where loud sound is reduced and Ratio sets how firmly. Lowering Above makes the hold act more often.
+5. Set Attack and Release for the response, Mix to blend with the unprocessed signal, and Make-up to adjust the result’s level. Compare at a similar listening volume.
+6. The graph shows sound before and after the stage and the gain actually applied: a rise is lift and a dip is hold. If a notice asks for an Engine update, sound processing may already work while the live display needs the update.
+
+> **Good to know:** Keep the loudness similar when comparing. Strong lift also brings quiet background noise forward; less Mix can keep more of the original movement.
 
 <a id="room"></a>
 
@@ -500,21 +641,21 @@ The Room turns headphones into a listening room. Every channel of the sound beco
 
 > **Good to know:** Games and films only send their surround channels to an output Windows believes has that many speakers: when the driver takes it, the output panel offers one press to 7.1.
 
-<a id="denoise"></a>
+<a id="crossfade"></a>
 
-## Denoise & source analysis
+## Crossfade and custom fade curves
 
-Denoise reduces hiss, mains hum and clicks. Under the FluidEQ Engine it works live on anything the PC plays; the neural voice cleaner and the scanned noise floor are for Library tracks. Stronger reduction is not automatically better.
-
-![Denoise & source analysis](13-dsp-denoise-and-source-analysis.png)
+Crossfade overlaps consecutive Library tracks. Its playback settings are separate from the DSP filters and do not crossfade other apps or Karaoke.
 
 ### Try it
 
-1. Play something with the noise you want to reduce and select Denoise in DSP.
-2. Switch on Hiss, Hum or Clicks with a light setting, and listen to quiet passages and to musical detail.
-3. Increase reduction gradually, then bypass the stage to check that the improvement is worth any loss of detail.
+1. Put at least two tracks in the Library queue. In DSP, choose Crossfade under Playback options and switch it on.
+2. Set Duration, then choose Equal power, Smooth or Linear. Let the first track reach its ending to hear the overlap.
+3. Choose Custom to shape the outgoing and incoming fades. Drag the handles, or focus a handle and use the arrow keys to adjust it.
+4. Watch both curves and the combined level. Keeping both high together can make the overlap louder.
+5. Save curve keeps a shape under its own name; choose it again from the saved list. Reset shape returns the editable shape to its starting form.
 
-> **Good to know:** Listen for softened detail and watery or pumping textures. This is not a microphone cleanup. If you hear no change, confirm the rack and the stage are both on.
+> **Good to know:** If the controls are unavailable, start a Library audio track. A fade shape changes the transition between songs, not the EQ curve of either song.
 
 <a id="graph"></a>
 
@@ -572,6 +713,7 @@ The response graph draws your EQ curves over the live sound. The strip above it 
 3. A scene adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.
 4. Double-click the plot for full screen, or Ctrl+double-click to expand it over the window; double-click again to come back. A single click hides or shows the strip.
 5. Keys: Ctrl+F full screen, Ctrl+S expanded, Esc back to the normal view, Ctrl+G the grid, Ctrl+W what the graph shows, band labels included, Ctrl+I which way the wave faces, Ctrl+A every band. On a band’s point, drag to move it, use the arrow keys to step it, and right-click for its menu; Ctrl+scroll changes the Q of a selected point.
+6. Press a curve’s name in the graph legend to hide or show its drawing. This leaves the sound unchanged. Remove or change the layer under Curves when you want to change what you hear.
 
 > **Good to know:** Everything here changes only the drawing, never your sound.
 
@@ -753,6 +895,7 @@ Library brings together music and video from your drives. Browse by albums, arti
 1. Open Library and add the folder containing your media. Let the scan finish before judging what is missing.
 2. Choose an artist or album, or search for a song. Start a track from the results.
 3. Use the bar at the foot of the window to pause, seek and skip. Its volume is your computer’s own, the same as in Windows.
+4. Use Grid, List, Cover Flow or the folder tree to browse the same collection. Select several songs, or open an album’s menu, to queue or file them together. A single audio track’s menu can send it to Karaoke.
 
 > **Good to know:** Hover FluidEQ’s button on the Windows taskbar for Previous, Play and Next, even while it is minimized. Library needs the original files: reconnect a drive or add a moved folder again.
 
@@ -769,6 +912,8 @@ The queue is the listening order; browsing is where you choose music. Opening an
 1. Open an album to inspect its tracks. Start the one you want to hear.
 2. Right-click a song for Add to up next, Add to Favourites or Add to playlist.
 3. Open Up next to see what plays after, and turn on Keep playing to continue with more of the same genre.
+4. Drag an Up next row to change the order and use its remove action to take it out of the queue. Save the queue as a playlist when you want to keep the listening order.
+5. On Windows, drop music files or folders onto the Compact player to scan them into Library and queue them. Drop over an Up next row to insert before it, or below the list to append; the progress notice follows folder scanning.
 
 > **Good to know:** Starting Library playback takes over from FluidEQ’s other players. Use the current track shown in the bar to confirm which source owns playback.
 
@@ -785,8 +930,9 @@ Karaoke pairs your own audio with lyrics. Timed lyrics follow playback; pitch ta
 1. Open Karaoke. Use Add files or Add folder to bring in audio and matching lyric files.
 2. Choose a song and start playback. Check that the correct lyrics and backing track are paired.
 3. Configure microphone input for live pitch, adjust lyric size for your viewing distance, and use the stage’s fullscreen control to sing.
+4. Use the stage’s cover and visualizer buttons to choose its background. Its Transparency and Blur are separate from the main graph’s. Group the playlist by folder, then press a folder heading to fold its songs away.
 
-> **Good to know:** A lyric-only file does not contain target notes. Karaoke plays at your computer’s volume; the melody, backing and guide vocal levels are under Mix settings.
+> **Good to know:** A lyric-only file does not contain target notes. Karaoke plays at your computer’s volume; the melody, backing and guide vocal levels are under Mix settings. The microphone is analysed locally for level and pitch; FluidEQ does not play it through the speakers or record it.
 
 <a id="maker"></a>
 
@@ -836,6 +982,7 @@ Maker turns your audio into an editable karaoke project. Its timeline brings tog
 1. Open Make from Karaoke and load the source audio. Choose the available separation or transcription tools you need.
 2. Watch progress; first use of an AI tool may require a model download. Review the resulting lyrics and notes in the timeline.
 3. Play short passages, correct the timing and text, save the project for later editing, then export the karaoke files.
+4. If you already have the words, paste the complete reference lyrics, including repeated lines. You can record line entries while listening and refine words and notes afterwards. Keep a project file for editable work; export LRC or UltraStar for the player.
 
 > **Good to know:** Model downloads need a connection and free disk space. Processing time depends on your hardware and song length. Use audio you are permitted to work with and review exports before sharing.
 
@@ -853,6 +1000,8 @@ Share Audio links computers on the same private network into one group, and each
 2. On the other computer, press Add computer, paste the code under The other computer’s code and press Link. Both computers play each other right away. Link more computers the same way: each one joins the whole group, and computers that join through another one appear with Receive off until you turn it on.
 3. In The whole group, each computer has two switches, Receive and Send; Share turns this computer’s sound off for all of them. Your mix sets This PC’s volume and a level for each computer.
 4. Pause, Resume and Unlink are in each computer’s menu. A computer that is away stays listed as Offline, and the group finds itself again after a restart, sleep, a network drop or an engine switch.
+5. Turn Fluid on beside Share for music over a connection that stalls. It adds a small playback cushion; switch it off when lower delay matters more.
+6. For a saved computer that stays Offline, open its ••• menu and choose Reconnect. It tries the saved code again without forgetting the link; if the other computer’s address changed, copy and paste its current code.
 
 > **Good to know:** Keep the connection code private: it authorizes linking. Under the FluidEQ Engine this computer keeps its DSP on while it shares, and the computer playing its sound applies its own. Playing and sending at once needs Windows on that computer; elsewhere a link runs one way.
 

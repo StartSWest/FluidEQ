@@ -195,16 +195,22 @@ it('filters chapters, clears an empty result, and marks only the current chapter
   fireEvent.change(screen.getByRole('searchbox'), {
     target: { value: 'between computers' },
   });
-  expect(within(contents).getAllByRole('button')).toHaveLength(1);
-  expect(within(contents).getByRole('button')).toHaveAttribute(
-    'aria-current',
-    'location',
-  );
+  // Sharing audio and moving a curve collection both explain this phrase.
+  const found = within(contents).getAllByRole('button');
+  expect(found.map((button) => button.getAttribute('aria-label'))).toEqual([
+    'Share audio between computers',
+    'My curves: import, edit and share',
+  ]);
+  expect(
+    found.filter(
+      (button) => button.getAttribute('aria-current') === 'location',
+    ),
+  ).toHaveLength(1);
   expect(
     screen.getByRole('heading', { name: 'Share audio between computers' }),
   ).toBeVisible();
   fireEvent.change(screen.getByRole('searchbox'), {
-    target: { value: 'zzzz-no-chapter' },
+    target: { value: 'zzzzqqqq' },
   });
   expect(within(contents).queryAllByRole('button')).toHaveLength(0);
   fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
@@ -231,7 +237,23 @@ it('puts the chapter that answers first, and quotes where it answers', () => {
   fireEvent.change(screen.getByRole('searchbox'), {
     target: { value: 'between computers' },
   });
+  expect(screen.getByText('2 chapters')).toBeInTheDocument();
+  expect(within(contents).getAllByRole('button')[0]).toHaveAccessibleName(
+    'Share audio between computers',
+  );
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: 'Reconnect' },
+  });
+  expect(within(contents).getAllByRole('button')[0]).toHaveAccessibleName(
+    'Share audio between computers',
+  );
+  fireEvent.change(screen.getByRole('searchbox'), {
+    target: { value: 'LUFS' },
+  });
   expect(screen.getByText('1 chapter')).toBeInTheDocument();
+  expect(within(contents).getByRole('button')).toHaveAccessibleName(
+    'Normalizer and live level control',
+  );
 });
 
 it('marks the words in the guide and walks them with Enter and Shift+Enter', () => {

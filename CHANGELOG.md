@@ -124,8 +124,13 @@ made for games.
   Nothing streams until you press Play. If the film cannot load, the older
   tutorial stands in; if neither can load, Help offers Try again and the
   written guide remains available offline.
-- **Help's Gaming Lab illustrations** use the app's own controls and profile
-  cards, following your language and window colours.
+- **Help covers the newer sound tools**, with full how-to chapters for Dynamics,
+  De-esser, the Normalizer and live level control, custom crossfades, the Game
+  filter, each song’s saved sound and My Curves, in all twelve languages.
+  Playback, sharing, Karaoke and saving instructions are up to date too.
+- **Help’s DSP and Gaming Lab illustrations** use the app’s own controls and
+  profile cards, following your language and window colours. The exported
+  guide includes fresh pictures of the same examples.
 - **About FluidEQ** has links to each of its sections and a Buy Me a Coffee
   card with a QR code in builds where that support link is available.
 - **The Compact player's game button** shows just the game name so it stays
