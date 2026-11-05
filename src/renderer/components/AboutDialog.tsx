@@ -80,6 +80,14 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useModalKeys(surfaceRef, closeRef, { busy: false, onCancel: onClose });
+  const sections = [
+    { id: 'about-license', label: 'License' },
+    { id: 'about-warranty', label: t(DISCLAIMER_HEADING_KEY) },
+    { id: 'about-attribution', label: 'Attribution' },
+    { id: 'about-trademark', label: 'Trademark' },
+    { id: 'about-engine', label: BUNDLED_ENGINE.name },
+    { id: 'about-data', label: 'Bundled data' },
+  ];
 
   return (
     <div
@@ -111,7 +119,28 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
         ref={surfaceRef}
       >
         <div className="about__body">
-          <section className="dialog-frame__section">
+          {/* Where each part is, at the top of a page of notices: one press
+              takes the reader to the part they came for, and nothing of what
+              the law asks to be said is folded away to get there. The names
+              are the sections' own, in the language each section is in. */}
+          <nav className="about__index" aria-label={t('about.contents')}>
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                type="button"
+                className="about__index-item"
+                onClick={() =>
+                  document
+                    .getElementById(section.id)
+                    ?.scrollIntoView({ block: 'start' })
+                }
+              >
+                {section.label}
+              </button>
+            ))}
+          </nav>
+
+          <section id="about-license" className="dialog-frame__section">
             <h3 className="dialog-frame__section-title">License</h3>
             <p>
               {PRODUCT_NAME} is free software under the {LICENSE.name}. You may
@@ -147,7 +176,7 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
               does not bind them. It would also be indefensible to have
               somebody accept this in Spanish on first run and then find only
               an English version of it here. */}
-          <section className="dialog-frame__section">
+          <section id="about-warranty" className="dialog-frame__section">
             <h3 className="dialog-frame__section-title">
               {t(DISCLAIMER_HEADING_KEY)}
             </h3>
@@ -157,7 +186,7 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
             <p className="about__aside">{t(DISCLAIMER_LANGUAGE_KEY)}</p>
           </section>
 
-          <section className="dialog-frame__section">
+          <section id="about-attribution" className="dialog-frame__section">
             <h3 className="dialog-frame__section-title">Attribution</h3>
             <p>
               {PRODUCT_NAME} is written and maintained by its author. It began
@@ -177,13 +206,13 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
             </p>
           </section>
 
-          <section className="dialog-frame__section">
+          <section id="about-trademark" className="dialog-frame__section">
             <h3 className="dialog-frame__section-title">Trademark</h3>
             <p>{TRADEMARK.notice}</p>
             <p>{TRADEMARK.additionalTerm}</p>
           </section>
 
-          <section className="dialog-frame__section">
+          <section id="about-engine" className="dialog-frame__section">
             <h3 className="dialog-frame__section-title">
               {BUNDLED_ENGINE.name}
             </h3>
@@ -208,7 +237,7 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
             </p>
           </section>
 
-          <section className="dialog-frame__section">
+          <section id="about-data" className="dialog-frame__section">
             <h3 className="dialog-frame__section-title">Bundled data</h3>
             <p>
               The headphone correction library is{' '}

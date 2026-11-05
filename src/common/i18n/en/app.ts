@@ -37,6 +37,27 @@ const app = {
   'app.menu.importEq': 'Import EQ settings…',
   'app.menu.importConvolution': 'Import impulse response…',
   'app.menu.restartAudio': 'Restart Windows audio',
+  'app.menu.engineKey': 'On/off key…',
+  'engineKey.title': 'On/off key',
+  'engineKey.body':
+    'Press the keys that switch the FluidEQ engine off and on again, from any program, a game included.',
+  'engineKey.field': 'Key',
+  'engineKey.waiting': 'Press the keys',
+  'engineKey.none': 'No key',
+  'engineKey.use': 'Use {key}',
+  'engineKey.useKey': 'Use this key',
+  'engineKey.problem.invalid':
+    'Use a letter, a number or F1 to F24, with Ctrl, Alt or Shift.',
+  'engineKey.problem.modifier':
+    'Add Ctrl or Alt, so the key never gets in another program’s way.',
+  'engineKey.problem.altgr':
+    'Ctrl + Alt with a letter types characters such as € on many keyboards. Try Ctrl + Shift instead.',
+  'engineKey.problem.taken':
+    'Another program already holds {key}. Try another.',
+  'engineKey.toast.off': 'FluidEQ off',
+  'engineKey.toast.offDetail': 'Nothing is processed',
+  'engineKey.toast.on': 'FluidEQ on',
+  'engineKey.toast.onDetail': 'Your sound, as you left it',
   'engine.apo.reconfigure': 'Reconfigure Equalizer APO',
   'engine.apo.settings': 'Equalizer APO settings',
   'app.menu.support': 'Support the work',

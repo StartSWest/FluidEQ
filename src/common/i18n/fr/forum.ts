@@ -119,6 +119,11 @@ const forum = {
   'forum.composer.replyPlaceholder': 'Écrire une réponse…',
   'forum.composer.replyingTo': 'En réponse à @{login}',
   'forum.composer.hint': 'Markdown accepté · {keys} pour publier',
+  'forum.composer.postOnGithub': 'Publier sur GitHub à la place',
+  'forum.composer.copiedForGithub':
+    'Copié. Collez-le sur GitHub, où vous pouvez ajouter des images.',
+  'forum.composer.picturesOnGithub':
+    'Impossible d’ajouter une image ici. Cliquez sur « Publier sur GitHub à la place » : votre texte est copié et le fil s’ouvre sur GitHub, où vous pouvez coller l’image.',
   'forum.composer.imagesHint': 'Les images et fichiers s’ajoutent sur GitHub.',
   'forum.composer.postReply': 'Répondre',
   'forum.composer.posting': 'Publication…',

@@ -5,13 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The ring arithmetic `limiter.cpp` and `bass_limiter.cpp` share.
+ * The ring arithmetic of `limiter.cpp`'s limiters.
  *
- * Both hold their audio back by a look-ahead and write the gain they decide
+ * Each holds its audio back by a look-ahead and writes the gain it decides
  * into a ring that runs in lockstep with it, so a gain can be lowered BEFORE
- * the peak that asked for it is heard. Two copies of the ramp that does that
- * would be two chances for the two stages of one Maximizer to disagree about
- * where a peak lands.
+ * the peak that asked for it is heard. One copy of the ramp that does that,
+ * so no two limiters disagree about where a peak lands.
  */
 #ifndef FLUIDEQ_LIMITER_INTERNAL_H
 #define FLUIDEQ_LIMITER_INTERNAL_H

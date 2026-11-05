@@ -39,6 +39,27 @@ const app: Partial<Dictionary> = {
   'app.menu.importEq': 'Importa impostazioni EQ…',
   'app.menu.importConvolution': 'Importa risposta all’impulso…',
   'app.menu.restartAudio': 'Riavvia l’audio di Windows',
+  'app.menu.engineKey': 'Tasto acceso/spento…',
+  'engineKey.title': 'Tasto acceso/spento',
+  'engineKey.body':
+    'Premi i tasti che spengono e riaccendono il motore di FluidEQ da qualsiasi programma, anche da un gioco.',
+  'engineKey.field': 'Tasto',
+  'engineKey.waiting': 'Premi i tasti',
+  'engineKey.none': 'Nessun tasto',
+  'engineKey.use': 'Usa {key}',
+  'engineKey.useKey': 'Usa questo tasto',
+  'engineKey.problem.invalid':
+    'Usa una lettera, un numero o da F1 a F24, con Ctrl, Alt o Shift.',
+  'engineKey.problem.modifier':
+    'Aggiungi Ctrl o Alt, così il tasto non intralcia altri programmi.',
+  'engineKey.problem.altgr':
+    'Ctrl + Alt con una lettera scrive caratteri come € su molte tastiere. Prova Ctrl + Shift.',
+  'engineKey.problem.taken':
+    'Un altro programma usa già {key}. Provane un altro.',
+  'engineKey.toast.off': 'FluidEQ spento',
+  'engineKey.toast.offDetail': 'Non viene elaborato nulla',
+  'engineKey.toast.on': 'FluidEQ acceso',
+  'engineKey.toast.onDetail': 'Il tuo suono, come l’avevi lasciato',
   'engine.apo.reconfigure': 'Riconfigura Equalizer APO',
   'engine.apo.settings': 'Impostazioni di Equalizer APO',
   'app.menu.support': 'Sostieni il progetto',

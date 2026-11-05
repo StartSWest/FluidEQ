@@ -39,6 +39,27 @@ const app: Partial<Dictionary> = {
   'app.menu.importEq': 'Импорт настроек эквалайзера…',
   'app.menu.importConvolution': 'Импорт импульсной характеристики…',
   'app.menu.restartAudio': 'Перезапустить звук Windows',
+  'app.menu.engineKey': 'Клавиша вкл/выкл…',
+  'engineKey.title': 'Клавиша вкл/выкл',
+  'engineKey.body':
+    'Нажмите клавиши, которыми движок FluidEQ выключается и снова включается из любой программы, в том числе из игры.',
+  'engineKey.field': 'Клавиша',
+  'engineKey.waiting': 'Нажмите клавиши',
+  'engineKey.none': 'Без клавиши',
+  'engineKey.use': 'Использовать {key}',
+  'engineKey.useKey': 'Использовать эту клавишу',
+  'engineKey.problem.invalid':
+    'Используйте букву, цифру или F1–F24 вместе с Ctrl, Alt или Shift.',
+  'engineKey.problem.modifier':
+    'Добавьте Ctrl или Alt, чтобы клавиша не мешала другим программам.',
+  'engineKey.problem.altgr':
+    'Ctrl + Alt с буквой на многих клавиатурах печатает символы вроде €. Попробуйте Ctrl + Shift.',
+  'engineKey.problem.taken':
+    '{key} уже занята другой программой. Попробуйте другую.',
+  'engineKey.toast.off': 'FluidEQ выключен',
+  'engineKey.toast.offDetail': 'Ничего не обрабатывается',
+  'engineKey.toast.on': 'FluidEQ включён',
+  'engineKey.toast.onDetail': 'Ваш звук, как вы его оставили',
   'engine.apo.reconfigure': 'Перенастроить Equalizer APO',
   'engine.apo.settings': 'Настройки Equalizer APO',
   'app.menu.support': 'Поддержать проект',

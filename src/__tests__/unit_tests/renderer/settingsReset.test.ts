@@ -42,6 +42,9 @@ const KEPT = [
   // What the listener made or saved.
   'fluideq-custom-looks',
   'fluideq.lookDraft',
+  // A Forum reply or topic left half-written (`forumDrafts.ts`), one name
+  // per place it was written, as the look's and the Studio's drafts.
+  'fluideq.forum.draft.v1:',
   'fluideq.dsp.crossfadeCurves.v1',
   'fluideq.dsp.favouritePresets.v1',
   'fluideq.dsp.savedRooms.v1',

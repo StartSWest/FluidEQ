@@ -118,6 +118,11 @@ const forum = {
   'forum.composer.replyPlaceholder': 'जवाब लिखें…',
   'forum.composer.replyingTo': '@{login} को जवाब',
   'forum.composer.hint': 'Markdown चलता है · {keys} से पोस्ट करें',
+  'forum.composer.postOnGithub': 'इसके बजाय GitHub पर पोस्ट करें',
+  'forum.composer.copiedForGithub':
+    'कॉपी हो गया। इसे GitHub पर चिपकाएँ, जहाँ आप तस्वीरें जोड़ सकते हैं।',
+  'forum.composer.picturesOnGithub':
+    'यहाँ तस्वीरें नहीं जोड़ी जा सकतीं। इसके बजाय GitHub पर पोस्ट करें दबाएँ: आपका लिखा कॉपी हो जाएगा और थ्रेड GitHub पर खुलेगा, जहाँ आप तस्वीर चिपका सकते हैं।',
   'forum.composer.imagesHint': 'तस्वीरें और फ़ाइलें GitHub पर जोड़ी जाती हैं।',
   'forum.composer.postReply': 'जवाब पोस्ट करें',
   'forum.composer.posting': 'पोस्ट हो रहा है…',

@@ -113,6 +113,11 @@ const forum = {
   'forum.composer.replyPlaceholder': '写下回复…',
   'forum.composer.replyingTo': '回复 @{login}',
   'forum.composer.hint': '支持 Markdown · {keys} 发布',
+  'forum.composer.postOnGithub': '改为在 GitHub 上发布',
+  'forum.composer.copiedForGithub':
+    '已复制。请粘贴到 GitHub，在那里可以添加图片。',
+  'forum.composer.picturesOnGithub':
+    '这里无法添加图片。点按“改为在 GitHub 上发布”：文字会被复制，并在 GitHub 上打开该讨论，你可以在那里粘贴图片。',
   'forum.composer.imagesHint': '图片和文件需在 GitHub 上添加。',
   'forum.composer.postReply': '发表回复',
   'forum.composer.posting': '发布中…',

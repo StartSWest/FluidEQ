@@ -41,17 +41,42 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
+// Two pairs, the list's Import and Export, then Import from Squiglink and
+// Add curve, told apart by the wider gap between them. A pair never splits:
+// where the four do not fit on one line the second pair takes the next, and
+// each fills its line in halves of equal width, so the four stand as an even
+// two by two in any language rather than as rows of whatever width the
+// words left — no width to tune per translation.
 .my-curves__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 8px 18px;
+
   .button {
     gap: 6px;
   }
+
+  // A menu icon has no size of its own; the place it stands in gives it one.
   .menu-icon {
     width: 15px;
     height: 15px;
     flex: 0 0 auto;
+  }
+}
+
+.my-curves__pair {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  // Even halves once a pair is stretched, never under its own words: in a
+  // panel too narrow for two the second button takes a line of its own.
+  > .button {
+    flex: 1 1 0;
+    min-width: max-content;
+    justify-content: center;
   }
 }
 
@@ -60,17 +85,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-
-  > .button {
-    gap: 6px;
-  }
-
-  // A menu icon has no size of its own; the place it stands in gives it one.
-  .button .menu-icon {
-    width: 15px;
-    height: 15px;
-    flex: 0 0 auto;
-  }
 }
 
 .my-curves__search {
@@ -109,10 +123,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   &:focus-within {
     border-color: $secondary-default;
   }
-}
-
-.my-curves__spacer {
-  flex: 1 1 auto;
 }
 
 .my-curves__empty {

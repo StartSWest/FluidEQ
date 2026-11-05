@@ -22,6 +22,27 @@ const app = {
   'app.menu.importEq': 'EQ 설정 가져오기…',
   'app.menu.importConvolution': '임펄스 응답 가져오기…',
   'app.menu.restartAudio': 'Windows 오디오 다시 시작',
+  'app.menu.engineKey': '켜기/끄기 키…',
+  'engineKey.title': '켜기/끄기 키',
+  'engineKey.body':
+    'FluidEQ 엔진을 껐다가 다시 켜는 키를 누르세요. 게임을 포함해 어떤 프로그램에서든 작동합니다.',
+  'engineKey.field': '키',
+  'engineKey.waiting': '키를 누르세요',
+  'engineKey.none': '키 없음',
+  'engineKey.use': '{key} 사용',
+  'engineKey.useKey': '이 키 사용',
+  'engineKey.problem.invalid':
+    'Ctrl, Alt 또는 Shift와 함께 문자, 숫자 또는 F1~F24를 사용하세요.',
+  'engineKey.problem.modifier':
+    '다른 프로그램에 방해가 되지 않도록 Ctrl 또는 Alt를 추가하세요.',
+  'engineKey.problem.altgr':
+    '많은 키보드에서 Ctrl + Alt와 문자를 누르면 € 같은 기호가 입력됩니다. Ctrl + Shift를 사용해 보세요.',
+  'engineKey.problem.taken':
+    '{key}는 이미 다른 프로그램이 사용 중입니다. 다른 키를 사용해 보세요.',
+  'engineKey.toast.off': 'FluidEQ 꺼짐',
+  'engineKey.toast.offDetail': '아무것도 처리하지 않음',
+  'engineKey.toast.on': 'FluidEQ 켜짐',
+  'engineKey.toast.onDetail': '그대로 두신 사운드',
   'engine.apo.reconfigure': 'Equalizer APO 재구성',
   'engine.apo.settings': 'Equalizer APO 설정',
   'app.menu.support': '개발 후원',

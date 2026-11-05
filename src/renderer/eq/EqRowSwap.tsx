@@ -33,8 +33,10 @@ const LEAVE_ANIMATION = 'eq-row-leave';
  * THE ROW UNDER THE BANDS CHANGES WITHOUT A CUT (Ivan, 2026-10-26: "make the
  * animation where user select a band and show the band knobs and it click out
  * and shows the tone knobs on the full app so it has a nice smooth
- * animation"): the band's editor and the Tone row, and one band's editor and
- * another's.
+ * animation"): the band's editor and the Tone row. One band's editor and
+ * another's swapped too until Ivan took it out (2026-11-03: "it can only be
+ * when switching from tone to a band setting and vice versa"); that is the
+ * caller's key, which names the row and not the band.
  *
  * The two rows stand in the same cell of the bands' grid (`> .eq-flat-editor`
  * in `_mainContentGrid.scss`) and are one height by construction, so while
@@ -46,8 +48,7 @@ const LEAVE_ANIMATION = 'eq-row-leave';
  * keeps its key, so a drag swaps nothing. Never more than two rows: a change
  * while one is leaving drops that one at once.
  *
- * `rowKey` names what the row is about — the Tone row, or the bands
- * selected — and only a change of it swaps.
+ * `rowKey` names which row this is, and only a change of it swaps.
  */
 const EqRowSwap = ({
   rowKey,

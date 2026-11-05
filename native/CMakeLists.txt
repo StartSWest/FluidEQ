@@ -80,7 +80,6 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/primitives.cpp
   dsp-core/src/saturate.cpp
   dsp-core/src/limiter.cpp
-  dsp-core/src/bass_limiter.cpp
   dsp-core/src/post_filter_normalizer.cpp
   dsp-core/src/live_normalizer.cpp
   dsp-core/src/leveling_memory.cpp
@@ -375,10 +374,6 @@ add_test(NAME maximizer-tone COMMAND fluideq-maximizer-tone-test)
 add_executable(fluideq-limiter-release-test dsp-core/tests/limiter_release_test.cpp)
 target_link_libraries(fluideq-limiter-release-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME limiter-release COMMAND fluideq-limiter-release-test)
-
-add_executable(fluideq-bass-limiter-test dsp-core/tests/bass_limiter_test.cpp)
-target_link_libraries(fluideq-bass-limiter-test PRIVATE fluideq-dsp-core feq_strict)
-add_test(NAME bass-limiter COMMAND fluideq-bass-limiter-test)
 
 add_executable(fluideq-eq-fade-test dsp-core/tests/eq_fade_test.cpp)
 target_link_libraries(fluideq-eq-fade-test PRIVATE fluideq-dsp-core feq_strict)

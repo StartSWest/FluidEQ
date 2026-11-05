@@ -117,6 +117,11 @@ const forum = {
   'forum.composer.replyPlaceholder': '返信を書く…',
   'forum.composer.replyingTo': '@{login} に返信',
   'forum.composer.hint': 'Markdown 対応 · {keys} で投稿',
+  'forum.composer.postOnGithub': 'GitHub で投稿',
+  'forum.composer.copiedForGithub':
+    'コピーしました。GitHub に貼り付けてください。画像も追加できます。',
+  'forum.composer.picturesOnGithub':
+    'ここには画像を追加できません。「GitHub で投稿」を押すと、文章がコピーされて GitHub でスレッドが開きます。そこで画像を貼り付けてください。',
   'forum.composer.imagesHint': '画像やファイルは GitHub で追加します。',
   'forum.composer.postReply': '返信する',
   'forum.composer.posting': '投稿中…',

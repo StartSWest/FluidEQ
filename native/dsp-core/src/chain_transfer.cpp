@@ -95,16 +95,6 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   swap(prepared.maximizer_drive_now, previous.maximizer_drive_now);
   feq_linked_limiter_set_look_ahead(&prepared.maximizer,
                                     prepared.maximizer_look_ahead);
-  swap(prepared.maximizer_low, previous.maximizer_low);
-  swap(prepared.maximizer_low_input, previous.maximizer_low_input);
-  swap(prepared.maximizer_low_band, previous.maximizer_low_band);
-  swap(prepared.maximizer_low_input_pointers,
-       previous.maximizer_low_input_pointers);
-  swap(prepared.maximizer_low_band_pointers,
-       previous.maximizer_low_band_pointers);
-  swap(prepared.maximizer_low_gain, previous.maximizer_low_gain);
-  feq_bass_limiter_set_look_ahead(&prepared.maximizer_low,
-                                  prepared.maximizer_low_look_ahead);
 
   swap(prepared.bass_forge, previous.bass_forge);
   swap(prepared.bass_forge_run, previous.bass_forge_run);
@@ -118,6 +108,8 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   // dial in the rack must not start it learning again, or every turn of a
   // knob would hold the lift off for 0.4 s.
   feq_footsteps_transfer(prepared.footsteps, previous.footsteps);
+  // Its gains and levels likewise: a turned knob must not drop every lift
+  // to nothing and bring it back over the release.
   feq_compander_transfer(prepared.compander, previous.compander);
   swap(prepared.bass_punch_low, previous.bass_punch_low);
   swap(prepared.bass_punch_bloom, previous.bass_punch_bloom);

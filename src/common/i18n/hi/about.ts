@@ -9,6 +9,7 @@ const about: Record<keyof typeof en, string> = {
   'about.author': 'निर्माण और रखरखाव: {author}',
   'about.website': 'आधिकारिक वेबसाइट',
   'about.source': 'सोर्स कोड',
+  'about.contents': 'इस पेज पर',
 };
 
 export default about;

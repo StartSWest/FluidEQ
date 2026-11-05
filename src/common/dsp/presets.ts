@@ -137,9 +137,6 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
     ...DSP_DEFAULTS,
     enabled: true,
     presetId: recipe.id,
-    normalizer: recipe.normalizer
-      ? { ...DSP_DEFAULTS.normalizer, mode: recipe.normalizer }
-      : DSP_DEFAULTS.normalizer,
     denoise: recipe.denoise
       ? denoisePresetSettings(recipe.denoise, true)
       : DSP_DEFAULTS.denoise,

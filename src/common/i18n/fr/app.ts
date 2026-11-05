@@ -39,6 +39,27 @@ const app: Partial<Dictionary> = {
   'app.menu.importEq': 'Importer des réglages d’égalisation…',
   'app.menu.importConvolution': 'Importer une réponse impulsionnelle…',
   'app.menu.restartAudio': 'Redémarrer l’audio de Windows',
+  'app.menu.engineKey': 'Touche marche/arrêt…',
+  'engineKey.title': 'Touche marche/arrêt',
+  'engineKey.body':
+    'Appuyez sur les touches qui éteignent puis rallument le moteur FluidEQ depuis n’importe quel programme, y compris un jeu.',
+  'engineKey.field': 'Touche',
+  'engineKey.waiting': 'Appuyez sur les touches',
+  'engineKey.none': 'Aucune touche',
+  'engineKey.use': 'Utiliser {key}',
+  'engineKey.useKey': 'Utiliser cette touche',
+  'engineKey.problem.invalid':
+    'Utilisez une lettre, un chiffre ou F1 à F24, avec Ctrl, Alt ou Shift.',
+  'engineKey.problem.modifier':
+    'Ajoutez Ctrl ou Alt, pour que la touche ne gêne aucun autre programme.',
+  'engineKey.problem.altgr':
+    'Ctrl + Alt avec une lettre tape des caractères comme € sur beaucoup de claviers. Essayez Ctrl + Shift.',
+  'engineKey.problem.taken':
+    'Un autre programme utilise déjà {key}. Essayez-en une autre.',
+  'engineKey.toast.off': 'FluidEQ éteint',
+  'engineKey.toast.offDetail': 'Rien n’est traité',
+  'engineKey.toast.on': 'FluidEQ allumé',
+  'engineKey.toast.onDetail': 'Votre son, tel que vous l’aviez laissé',
   'engine.apo.reconfigure': 'Reconfigurer Equalizer APO',
   'engine.apo.settings': 'Réglages d’Equalizer APO',
   'app.menu.support': 'Soutenir le projet',

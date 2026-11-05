@@ -11,7 +11,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * for applying a chain are not.
  */
 
-import { TNormalizerMode } from './chain';
 import { TBassForgePresetId } from './bassForgePresets';
 import { TBassPunchPresetId } from './bassPunchPresets';
 import { TDeEsserPresetId } from './deEsserPresets';
@@ -58,8 +57,6 @@ export interface IDspPresetRecipe {
   master?: TMasterPresetId;
   /** Compare the processed chain at its incoming level, without LUFS makeup. */
   masterGainMatch?: boolean;
-  /** The Normalizer's mode, where a chain needs other than the default. */
-  normalizer?: TNormalizerMode;
   /** Game mode: see `IDspSettings.gameMode`. Only the Gaming chains. */
   gameMode?: boolean;
   /**
@@ -97,7 +94,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'empty',
     labelKey: 'dsp.preset.none',
     group: 'basic',
-    normalizer: 'off',
   },
   {
     id: 'balanced',
@@ -324,7 +320,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'gaming',
     labelKey: 'dsp.eqPreset.gaming',
     group: 'scene',
-    normalizer: 'off',
     eq: 'gaming',
     footsteps: 'competitive',
     gameMode: true,
@@ -341,7 +336,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'gaming-room',
     labelKey: 'dsp.eqPreset.gaming',
     group: 'scene',
-    normalizer: 'off',
     eq: 'gaming',
     // Before the Room in the rack: a step is lifted on its own speaker and
     // the Room's walls are never lifted with it.
@@ -363,7 +357,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.eqPreset.gaming',
     copyLabelKey: 'dsp.room.profile.competitiveV2',
     group: 'scene',
-    normalizer: 'off',
     eq: 'gaming',
     footsteps: 'competitive',
     gameMode: true,
@@ -480,7 +473,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'game-pinpoint',
     labelKey: 'dsp.gamingChain.pinpoint',
     group: 'gaming',
-    normalizer: 'off',
     eq: 'gameFootstepFocus',
     footsteps: 'competitive',
     gameMode: true,
@@ -495,7 +487,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'game-blast',
     labelKey: 'dsp.gamingChain.blast',
     group: 'gaming',
-    normalizer: 'off',
     eq: 'gameBlastTamer',
     footsteps: 'battleRoyale',
     gameMode: true,
@@ -512,7 +503,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'game-stealth',
     labelKey: 'dsp.gamingChain.stealth',
     group: 'gaming',
-    normalizer: 'off',
     eq: 'gameFootstepFocus',
     footsteps: 'tactical',
     gameMode: true,
@@ -526,7 +516,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'game-cinematic',
     labelKey: 'dsp.gamingChain.cinematic',
     group: 'gaming',
-    normalizer: 'off',
     eq: 'gameCinematic',
     footsteps: 'story',
     gameMode: true,
@@ -544,7 +533,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'game-dread',
     labelKey: 'dsp.gamingChain.dread',
     group: 'gaming',
-    normalizer: 'off',
     eq: 'gameDread',
     footsteps: 'story',
     gameMode: true,
@@ -558,7 +546,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'game-topdown',
     labelKey: 'dsp.gamingChain.topDown',
     group: 'gaming',
-    normalizer: 'off',
     eq: 'gameAbilityClarity',
     footsteps: 'topDown',
     gameMode: true,
@@ -573,7 +560,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'game-worlds',
     labelKey: 'dsp.gamingChain.worlds',
     group: 'gaming',
-    normalizer: 'off',
     eq: 'gameVoicesForward',
     footsteps: 'worlds',
     gameMode: true,
@@ -587,7 +573,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'game-speed',
     labelKey: 'dsp.gamingChain.speed',
     group: 'gaming',
-    normalizer: 'off',
     eq: 'gameEngineTyres',
     footsteps: 'speed',
     gameMode: true,
@@ -601,7 +586,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'game-impact',
     labelKey: 'dsp.gamingChain.impact',
     group: 'gaming',
-    normalizer: 'off',
     eq: 'gameCinematic',
     footsteps: 'impact',
     gameMode: true,
@@ -616,7 +600,6 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     id: 'game-night',
     labelKey: 'dsp.gamingChain.night',
     group: 'gaming',
-    normalizer: 'off',
     eq: 'gameNight',
     footsteps: 'competitive',
     gameMode: true,

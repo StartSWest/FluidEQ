@@ -50,7 +50,9 @@ describe('the chain wire layout', () => {
     const encoded = encodeChainSettings(withBands(0));
 
     expect(encoded.slice(0, -3)).toHaveLength(CHAIN_PARAM_LEAD);
-    expect(encoded.slice(-3)).toEqual([1, -1, -14]);
+    // The Normalizer's three after the bands: Off by default since
+    // 2026-11-01, then its True Peak ceiling and loudness target.
+    expect(encoded.slice(-3)).toEqual([0, -1, -14]);
     expect(encoded[CHAIN_PARAM_LEAD - 1]).toBe(0);
   });
 

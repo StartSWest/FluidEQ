@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   FORUM_TITLE_MAX,
   type IForumComment,
@@ -21,6 +21,7 @@ import {
   reply,
   signIn,
 } from './forumStore';
+import { commentDraftKey, readDraft, threadDraftKey } from './forumDrafts';
 import { isPostNew } from './forumUnread';
 import { IssueFoot, IssueLabels, IssueState } from './IssueParts';
 import PostComposer from './PostComposer';
@@ -47,6 +48,24 @@ export default function TopicView({ forum }: ITopicViewProps) {
   const [editingTitle, setEditingTitle] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
   const { topic } = forum;
+
+  // A reply left half-written under a comment opens again with the thread,
+  // so it is found where it was left rather than hidden behind its button.
+  const openedTopic = topic?.id;
+  useEffect(() => {
+    if (!topic || topic.id !== openedTopic) {
+      return;
+    }
+    const waiting = topic.comments.find(
+      (comment) =>
+        readDraft(commentDraftKey(topic.id, comment.threadId)) !== '',
+    );
+    setReplyingTo(
+      waiting ? { row: waiting.id, threadId: waiting.threadId } : undefined,
+    );
+    // Once per thread opened: a reload of the same thread keeps what is open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by the thread's id alone; the comments reloading must not reopen a box the reader closed.
+  }, [openedTopic]);
   const signedIn = forum.auth.status === 'signed-in';
 
   const listLabel = (() => {
@@ -330,6 +349,8 @@ export default function TopicView({ forum }: ITopicViewProps) {
                 placeholder={t('forum.composer.replyPlaceholder')}
                 submitLabel={t('forum.composer.postReply')}
                 onSubmit={(body) => reply(topic.id, body)}
+                draftKey={threadDraftKey(topic.id)}
+                githubUrl={topic.url || undefined}
               />
             )}
             {topic.issue && !canReply && <IssueFoot url={topic.url} />}
@@ -433,6 +454,8 @@ function CommentItem({
             autoFocus
             onSubmit={(body) => reply(topic.id, body, replyingTo.threadId)}
             onCancel={onCloseReply}
+            draftKey={commentDraftKey(topic.id, replyingTo.threadId)}
+            githubUrl={comment.url || topic.url || undefined}
           />
         </div>
       )}

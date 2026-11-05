@@ -56,26 +56,6 @@ uint32_t maximizer_look_ahead_samples(const FeqChain* chain) {
   return samples < 1.0 ? 1u : static_cast<uint32_t>(samples);
 }
 
-/** The low band's ring, one more than its longest look-ahead. */
-uint32_t maximizer_low_capacity(double sample_rate) {
-  const double samples =
-      std::floor((kMaximizerLowLookAheadMs / 1000.0) * sample_rate + 0.5);
-  return (samples < 1.0 ? 1u : static_cast<uint32_t>(samples)) + 1;
-}
-
-/**
- * The low band's look-ahead: its own, or the limiter's when that is shorter.
- *
- * Never longer than the limiter's, so a profile that asks for a short one —
- * the Punch profile's 1.5 ms is its whole character — gets a short one in
- * both, and game mode's zero is zero here too.
- */
-uint32_t maximizer_low_look_ahead_samples(const FeqChain* chain) {
-  const uint32_t own = maximizer_low_capacity(chain->sample_rate) - 1;
-  const uint32_t limiter = maximizer_look_ahead_samples(chain);
-  return own < limiter ? own : limiter;
-}
-
 /**
  * Build the Maximizer's limiter once, at the largest look-ahead the dial has.
  *
@@ -106,27 +86,6 @@ void allocate_maximizer(FeqChain* chain) {
   chain->maximizer_look_ahead = maximizer_look_ahead_samples(chain);
   feq_linked_limiter_set_look_ahead(&chain->maximizer,
                                     chain->maximizer_look_ahead);
-
-  const uint32_t low_capacity = maximizer_low_capacity(chain->sample_rate);
-  chain->maximizer_low_gain.assign(low_capacity, 0.0f);
-  chain->maximizer_low_input_pointers.assign(chain->channels, nullptr);
-  chain->maximizer_low_band_pointers.assign(chain->channels, nullptr);
-  for (uint32_t channel = 0; channel < chain->channels; ++channel) {
-    chain->maximizer_low_input[channel].assign(low_capacity, 0.0f);
-    chain->maximizer_low_band[channel].assign(low_capacity, 0.0f);
-    chain->maximizer_low_input_pointers[channel] =
-        chain->maximizer_low_input[channel].data();
-    chain->maximizer_low_band_pointers[channel] =
-        chain->maximizer_low_band[channel].data();
-  }
-  feq_bass_limiter_init(&chain->maximizer_low,
-                        chain->maximizer_low_input_pointers.data(),
-                        chain->maximizer_low_band_pointers.data(),
-                        chain->maximizer_low_gain.data(), chain->channels,
-                        low_capacity);
-  chain->maximizer_low_look_ahead = maximizer_low_look_ahead_samples(chain);
-  feq_bass_limiter_set_look_ahead(&chain->maximizer_low,
-                                  chain->maximizer_low_look_ahead);
 }
 
 /**
@@ -145,11 +104,6 @@ void apply_maximizer_look_ahead(FeqChain* chain) {
   if (look_ahead != chain->maximizer_look_ahead) {
     chain->maximizer_look_ahead = look_ahead;
     feq_linked_limiter_set_look_ahead(&chain->maximizer, look_ahead);
-  }
-  const uint32_t low_look_ahead = maximizer_low_look_ahead_samples(chain);
-  if (low_look_ahead != chain->maximizer_low_look_ahead) {
-    chain->maximizer_low_look_ahead = low_look_ahead;
-    feq_bass_limiter_set_look_ahead(&chain->maximizer_low, low_look_ahead);
   }
 }
 
@@ -424,6 +378,7 @@ FeqChain* feq_chain_create(double sample_rate,
   chain->deesser = feq_deesser_create(sample_rate, chain->channels);
   // And for the same reason a rack missing Footsteps still plays.
   chain->footsteps = feq_footsteps_create(sample_rate, chain->channels);
+  // And a rack missing Dynamics.
   chain->compander = feq_compander_create(sample_rate, chain->channels);
 
   // Both sets, so the first published one is complete and the spare is not a
@@ -683,8 +638,6 @@ void feq_chain_reset_room(FeqChain* chain) {
       std::fill(line->begin(), line->end(), 0.0f);
     }
   }
-  // The Maximizer's low band holds the same audio a little earlier.
-  feq_bass_limiter_reset(&chain->maximizer_low);
   const FeqRoomReport inactive{FEQ_ROOM_REPORT_TAG, 0};
   feq_meters_publish_room(chain->meters, &inactive);
 }
@@ -716,7 +669,6 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
           ? std::pow(10.0, chain->settings.maximizer.drive_db / 20.0)
           : 1.0;
   feq_linked_limiter_reset_control(&chain->maximizer);
-  feq_bass_limiter_reset_control(&chain->maximizer_low);
   // A seek or a new source must not arrive with the previous passage's bloom
   // tail still decaying under it, which is what these two hold that no filter
   // history above does.
@@ -728,6 +680,7 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
   feq_deesser_reset(chain->deesser);
   // A new passage has a new bed, learnt again before anything is lifted.
   feq_footsteps_reset(chain->footsteps);
+  // Its gains were the passage before's; the next one starts level.
   feq_compander_reset(chain->compander);
 
   if (reason != FEQ_CHAIN_RESET_SEEK) {
@@ -772,7 +725,6 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
       std::fill(chain->punch_align_line[channel].begin(),
                 chain->punch_align_line[channel].end(), 0.0f);
     }
-    feq_bass_limiter_reset(&chain->maximizer_low);
     feq_post_filter_normalizer_rebase(&chain->post_normalizer);
     // The Maximizer's ring is empty now, so the curve around it starts over
     // from silence rather than gliding from the last song's.
@@ -811,7 +763,7 @@ void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out) {
   // set to, game mode's zero included.
   out->maximizer =
       chain->maximizer.delay != nullptr
-          ? chain->maximizer.look_ahead + chain->maximizer_low.look_ahead
+          ? chain->maximizer.look_ahead
           : 0u;
   out->headroom = chain->post_normalizer.limiter.look_ahead;
 }

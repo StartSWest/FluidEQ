@@ -39,6 +39,27 @@ const app: Partial<Dictionary> = {
   'app.menu.importEq': 'EQ-Einstellungen importieren…',
   'app.menu.importConvolution': 'Impulsantwort importieren…',
   'app.menu.restartAudio': 'Windows-Audio neu starten',
+  'app.menu.engineKey': 'Ein/Aus-Taste…',
+  'engineKey.title': 'Ein/Aus-Taste',
+  'engineKey.body':
+    'Drücken Sie die Tasten, mit denen Sie die FluidEQ-Engine aus- und wieder einschalten, aus jedem Programm, auch aus einem Spiel.',
+  'engineKey.field': 'Taste',
+  'engineKey.waiting': 'Tasten drücken',
+  'engineKey.none': 'Keine Taste',
+  'engineKey.use': '{key} verwenden',
+  'engineKey.useKey': 'Diese Taste verwenden',
+  'engineKey.problem.invalid':
+    'Verwenden Sie einen Buchstaben, eine Zahl oder F1 bis F24 mit Ctrl, Alt oder Shift.',
+  'engineKey.problem.modifier':
+    'Nehmen Sie Ctrl oder Alt dazu, damit die Taste keinem anderen Programm im Weg ist.',
+  'engineKey.problem.altgr':
+    'Ctrl + Alt mit einem Buchstaben tippt auf vielen Tastaturen Zeichen wie €. Versuchen Sie Ctrl + Shift.',
+  'engineKey.problem.taken':
+    'Ein anderes Programm belegt {key} bereits. Versuchen Sie eine andere.',
+  'engineKey.toast.off': 'FluidEQ aus',
+  'engineKey.toast.offDetail': 'Nichts wird bearbeitet',
+  'engineKey.toast.on': 'FluidEQ an',
+  'engineKey.toast.onDetail': 'Ihr Klang, wie Sie ihn verlassen haben',
   'engine.apo.reconfigure': 'Equalizer APO neu einrichten',
   'engine.apo.settings': 'Equalizer-APO-Einstellungen',
   'app.menu.support': 'Projekt unterstützen',

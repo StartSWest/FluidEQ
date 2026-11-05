@@ -39,6 +39,26 @@ const app: Partial<Dictionary> = {
   'app.menu.importEq': 'Importar configurações de EQ…',
   'app.menu.importConvolution': 'Importar resposta ao impulso…',
   'app.menu.restartAudio': 'Reiniciar o áudio do Windows',
+  'app.menu.engineKey': 'Tecla liga/desliga…',
+  'engineKey.title': 'Tecla liga/desliga',
+  'engineKey.body':
+    'Pressione as teclas que desligam e ligam de novo o motor do FluidEQ em qualquer programa, inclusive num jogo.',
+  'engineKey.field': 'Tecla',
+  'engineKey.waiting': 'Pressione as teclas',
+  'engineKey.none': 'Sem tecla',
+  'engineKey.use': 'Usar {key}',
+  'engineKey.useKey': 'Usar esta tecla',
+  'engineKey.problem.invalid':
+    'Use uma letra, um número ou F1 a F24, com Ctrl, Alt ou Shift.',
+  'engineKey.problem.modifier':
+    'Inclua Ctrl ou Alt, para a tecla não atrapalhar outros programas.',
+  'engineKey.problem.altgr':
+    'Ctrl + Alt com uma letra digita caracteres como € em muitos teclados. Experimente Ctrl + Shift.',
+  'engineKey.problem.taken': 'Outro programa já usa {key}. Experimente outra.',
+  'engineKey.toast.off': 'FluidEQ desligado',
+  'engineKey.toast.offDetail': 'Nada é processado',
+  'engineKey.toast.on': 'FluidEQ ligado',
+  'engineKey.toast.onDetail': 'Seu som, do jeito que você deixou',
   'engine.apo.reconfigure': 'Reconfigurar o Equalizer APO',
   'engine.apo.settings': 'Configurações do Equalizer APO',
   'app.menu.support': 'Apoie o projeto',

@@ -12,7 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 namespace {
 constexpr uint64_t kValid = 1, kEstablished = 2, kNamed = 4, kKnown = 8, kGlide = 16,
-                   kRetarget = 32;
+                   kRetarget = 32, kPeakMode = 64;
 constexpr int kControlAttempts = 1024;
 
 uint64_t word(double value) noexcept { return std::bit_cast<uint64_t>(value); }
@@ -53,6 +53,7 @@ Read read_learned(const FeqLevelingMemory& memory, FeqLevelingState& out) noexce
   out.known = (flags & kKnown) != 0;
   out.glide = (flags & kGlide) != 0;
   out.retarget_pending = (flags & kRetarget) != 0;
+  out.peak_mode = (flags & kPeakMode) != 0;
   out.control_target_lufs = number(words[10]);
   out.control_ceiling_db = number(words[11]);
   return Read::ready;
@@ -71,7 +72,8 @@ bool publish(FeqLevelingMemory& memory, const FeqLevelingState& state, bool vali
       word(state.settled_peak_db), word(state.foreground_seconds),
       valid ? kValid | (state.established ? kEstablished : 0) | (state.named ? kNamed : 0) |
                   (state.known ? kKnown : 0) | (state.glide ? kGlide : 0) |
-                  (state.retarget_pending ? kRetarget : 0)
+                  (state.retarget_pending ? kRetarget : 0) |
+                  (state.peak_mode ? kPeakMode : 0)
             : 0, word(state.control_target_lufs), word(state.control_ceiling_db)};
   for (std::size_t at = 0; at < kLevelingWords; ++at)
     memory.learned[at].store(words[at], std::memory_order_release);

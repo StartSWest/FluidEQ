@@ -47,6 +47,7 @@ import { shutdownDspHost } from './ipc/dspHost';
 import { shutdownNativeInference } from './nativeInference';
 import installTaskbarTransport from './taskbarTransport';
 import installGroupMediaKeys from './groupMediaKeys';
+import installEngineKey from './engineKey';
 import onWindowMessage from './ipc/windowMessages';
 
 /**
@@ -716,6 +717,8 @@ export const createMainWindowFactory = ({
     // line of script to send to.
     installTaskbarTransport(created, RESOURCES_PATH);
     installGroupMediaKeys(created);
+    // The on/off key, held from the saved choice before the page asks.
+    installEngineKey(created);
     await firstLoad;
     if (created.isDestroyed() || isAppQuitting()) {
       return;

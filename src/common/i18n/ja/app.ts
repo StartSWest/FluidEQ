@@ -39,6 +39,27 @@ const app: Partial<Dictionary> = {
   'app.menu.importEq': 'EQ 設定を読み込む…',
   'app.menu.importConvolution': 'インパルス応答を読み込む…',
   'app.menu.restartAudio': 'Windows オーディオを再起動',
+  'app.menu.engineKey': 'オン/オフキー…',
+  'engineKey.title': 'オン/オフキー',
+  'engineKey.body':
+    'FluidEQ エンジンをオフにして再びオンにするキーを押してください。ゲーム中を含め、どのプログラムからでも使えます。',
+  'engineKey.field': 'キー',
+  'engineKey.waiting': 'キーを押してください',
+  'engineKey.none': 'キーなし',
+  'engineKey.use': '{key} を使う',
+  'engineKey.useKey': 'このキーを使う',
+  'engineKey.problem.invalid':
+    '文字、数字、または F1〜F24 を Ctrl、Alt、Shift と組み合わせてください。',
+  'engineKey.problem.modifier':
+    'ほかのプログラムの邪魔にならないよう、Ctrl か Alt を加えてください。',
+  'engineKey.problem.altgr':
+    '多くのキーボードでは Ctrl + Alt と文字で € などが入力されます。Ctrl + Shift を試してください。',
+  'engineKey.problem.taken':
+    '{key} はすでにほかのプログラムが使っています。別のキーを試してください。',
+  'engineKey.toast.off': 'FluidEQ オフ',
+  'engineKey.toast.offDetail': '何も処理されていません',
+  'engineKey.toast.on': 'FluidEQ オン',
+  'engineKey.toast.onDetail': 'いつものサウンドのまま',
   'engine.apo.reconfigure': 'Equalizer APO を再設定',
   'engine.apo.settings': 'Equalizer APO の設定',
   'app.menu.support': 'プロジェクトを支援する',

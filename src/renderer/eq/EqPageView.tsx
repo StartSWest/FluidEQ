@@ -573,13 +573,12 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
             It stands where the band editor stands rather than somewhere of its
             own, because it is the same question — what is being shaped, and
             with what — asked of everything instead of one thing. The change
-            between the two, and between one band and another, is a swap
-            rather than a cut (`EqRowSwap`). */}
-        <EqRowSwap
-          rowKey={
-            selectedFilter ? `band:${selectedFilterIds.join(',')}` : 'tone'
-          }
-        >
+            between the two is a swap rather than a cut (`EqRowSwap`); from one
+            band to another the editor stays and its values change in place
+            (Ivan, 2026-11-03: the animation "can only be when switching from
+            tone to a band setting and vice versa"), so the key names which row
+            this is, never which bands it is about. */}
+        <EqRowSwap rowKey={selectedFilter ? 'band' : 'tone'}>
           {selectedFilter ? (
             <div className="eq-flat-editor" inert={isEqOff || undefined}>
               {/* Which band, or how many. A group edit moves everything

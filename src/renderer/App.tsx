@@ -38,6 +38,7 @@ import {
   useSoundPaneSlide,
 } from './utils/soundPane';
 import GameSound from './games/GameSound';
+import EngineKeySwitch from './components/EngineKeySwitch';
 import { OPEN_GAMING_LAB_EVENT } from './games/gamingLabEvents';
 import RackFollowsEngine from './dsp/RackFollowsEngine';
 import useMainEditorWhile from './utils/useMainEditorWhile';
@@ -853,6 +854,9 @@ const AppContent = () => {
           isEngineUnchosen={isEngineUnchosen}
           selectTopWorkspaceTab={selectTopWorkspaceTab}
         />
+        {/* The on/off key: here, outside every page and the amp, because it
+            is pressed while FluidEQ is behind a game. Renders nothing. */}
+        <EngineKeySwitch />
         {/* Drawn at the foot of the document, over the app it puts away. */}
         {windowMode === 'player' && (
           <MiniPlayer onOpenPage={openPageFromPlayer} />

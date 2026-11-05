@@ -29,6 +29,9 @@ struct FeqLevelingState {
   bool named = false;        // the programme has a song identity right now
   bool known = false;        // the song's level came from an earlier play
   bool glide = false;        // a remembered level is still being reached
+  // Learned by True Peak, whose gain is the song's peak room and no loudness
+  // level's: a leveler in the other mode adopts nothing from it.
+  bool peak_mode = false;
 };
 
 inline constexpr std::size_t kLevelingWords = 12;

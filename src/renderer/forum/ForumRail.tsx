@@ -60,13 +60,17 @@ export default function ForumRail({
     topics: number | undefined,
   ) => {
     const isActive = !searching && slug === board;
-    // A board with something unread carries the accent's dot; the new ones'
-    // own row carries their number instead, filled, because that number is
-    // the request for attention a topic count is not.
-    const unread = fresh.filter((topic) => topic.board === slug).length;
-    // The issues' row says how many are new in the yellow Help's button
-    // wears for the same news (Ivan, 2026-10-16), in place of its total.
-    const isIssues = slug === FORUM_ISSUES_BOARD;
+    // Every board says how many of its topics have activity this reader has
+    // not seen — their own new topic with no reply aside (`isTopicNew`) — in
+    // the yellow Help's button wears for the same news, in place of its total
+    // (Ivan, 2026-10-16 for the issues; 2026-11-04 for every board: "all
+    // forums need to show that count number on new stuff"). A board used to
+    // carry a dot, which said there was something and not how much. The new
+    // ones' own row and every topic keep their own counts.
+    const unread =
+      slug === NEW_BOARD || slug === ''
+        ? 0
+        : fresh.filter((topic) => topic.board === slug).length;
     return (
       <button
         key={slug || 'all'}
@@ -80,22 +84,11 @@ export default function ForumRail({
           <ForumGlyph name={glyph} />
         </span>
         <span className="community__channel-text">
-          <span className="community__channel-name">
-            {name}
-            {slug !== NEW_BOARD && slug !== '' && !isIssues && unread > 0 && (
-              <span
-                className="forum__new-dot"
-                role="img"
-                aria-label={t('forum.new.countLabel', { count: unread })}
-              />
-            )}
-          </span>
+          <span className="community__channel-name">{name}</span>
           <span className="community__channel-blurb">{blurb}</span>
         </span>
-        {isIssues && unread > 0 && (
-          <ForumNewsBadge count={unread} placement="row" />
-        )}
-        {topics !== undefined && topics > 0 && !(isIssues && unread > 0) && (
+        {unread > 0 && <ForumNewsBadge count={unread} placement="row" />}
+        {topics !== undefined && topics > 0 && unread === 0 && (
           <span
             className={`forum__count${slug === NEW_BOARD ? ' forum__count--new' : ''}`}
             aria-label={t(

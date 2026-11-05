@@ -10,6 +10,7 @@ const about = {
   'about.author': '由 {author} 建立和維護',
   'about.website': '官方網站',
   'about.source': '原始碼',
+  'about.contents': '本頁內容',
 } satisfies Partial<Dictionary>;
 
 export default about;

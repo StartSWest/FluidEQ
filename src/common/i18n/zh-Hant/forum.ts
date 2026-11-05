@@ -109,6 +109,11 @@ const forum = {
   'forum.composer.replyPlaceholder': '寫回覆...',
   'forum.composer.replyingTo': '回覆@{login}',
   'forum.composer.hint': 'Markdown 作品·{keys} 帖子',
+  'forum.composer.postOnGithub': '改在 GitHub 上發佈',
+  'forum.composer.copiedForGithub':
+    '已複製。請貼到 GitHub，在那裡可以加入圖片。',
+  'forum.composer.picturesOnGithub':
+    '這裡無法加入圖片。點按「改在 GitHub 上發佈」：文字會被複製，並在 GitHub 上開啟該討論，你可以在那裡貼上圖片。',
   'forum.composer.imagesHint': '圖片和檔案已新增到 GitHub 上。',
   'forum.composer.postReply': '發表回覆',
   'forum.composer.posting': '發布…',

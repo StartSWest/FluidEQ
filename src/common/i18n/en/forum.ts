@@ -128,6 +128,11 @@ const forum = {
   'forum.composer.replyPlaceholder': 'Write a reply…',
   'forum.composer.replyingTo': 'Replying to @{login}',
   'forum.composer.hint': 'Markdown works · {keys} posts',
+  'forum.composer.postOnGithub': 'Post on GitHub instead',
+  'forum.composer.copiedForGithub':
+    'Copied. Paste it on GitHub, where you can add pictures.',
+  'forum.composer.picturesOnGithub':
+    'Pictures can’t be added here. Press Post on GitHub instead: your words are copied and the thread opens on GitHub, where you can paste the picture.',
   'forum.composer.imagesHint': 'Pictures and files are added on GitHub.',
   'forum.composer.postReply': 'Post reply',
   'forum.composer.posting': 'Posting…',

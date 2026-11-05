@@ -334,7 +334,12 @@ export const DSP_DEFAULTS: IDspSettings = {
   enabled: true,
   presetId: '',
   normalizer: {
-    mode: 'truePeak',
+    // Off in every chain, factory and genre alike (Ivan, 2026-11-01): the
+    // Maximizer or the Master ends the chains that need a ceiling, and a
+    // second level stage in front of everything is the listener's to add.
+    // Before then True Peak was the default, and as a limiter it held loud
+    // masters down on every beat ahead of every stage.
+    mode: 'off',
     truePeakDbtp: -1,
     targetLufs: -14,
   },

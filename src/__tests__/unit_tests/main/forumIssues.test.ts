@@ -191,9 +191,10 @@ describe('the issues’ row in the Forum', () => {
     ]);
   });
 
-  it('counts the issues with the boards', async () => {
+  it('counts the open issues with the boards, never the closed ones', async () => {
+    // One open (30) and one closed (29): the row says 1.
     const { service } = build({ status: 'signed-out' });
-    await expect(service.boards()).resolves.toMatchObject({ issueCount: 2 });
+    await expect(service.boards()).resolves.toMatchObject({ issueCount: 1 });
   });
 
   it('never stops a discussion opening when the issues cannot be read', async () => {

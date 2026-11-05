@@ -21,7 +21,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/chain.h"
 
 #include "fluideq/bass_forge.h"
-#include "fluideq/bass_limiter.h"
 #include "fluideq/bass_punch.h"
 #include "fluideq/convolver.h"
 #include "fluideq/dimension.h"
@@ -88,48 +87,29 @@ constexpr double kMaximizerReleaseSnapRatio = 0.02;
  * gain between 0.5 and 10 Hz: Default 0.83 dB, Streaming 1.08, Loud 1.23,
  * Club 1.56. The platform takes those to 0.55, 0.66, 0.77 and 0.90, and at
  * the same loudness it pumps a fifth to two fifths less than simply less
- * drive would. Why these two: a platform that rises nearly as fast as it
- * deepens sits too shallow to hold anything (500/800 and 1200/3000 pumped
- * more), and one that rises slower still keeps the level down for seconds
- * after a dense passage, which is breathing of its own.
- */
-constexpr double kMaximizerPlatformAttackMs = 500.0;
-constexpr double kMaximizerPlatformReleaseMs = 1500.0;
-/**
- * The Maximizer's low band (`bass_limiter.h`).
+ * drive would.
  *
- * Measured 2026-09-22 on five loud masters through every chain, as the
- * 0.5-10 Hz movement of the mid's 300 Hz - 5 kHz level: Punch 0.57 dB to
- * 0.23 and a decibel louder, Metal 0.48 to 0.22, EDM and House 0.42 and 0.40
- * to 0.24 and 0.23, with the platform under the Normalizer's peak protection
- * beside it (`live_normalizer.cpp`).
- *
- * 250 Hz because a kick's peak after Bass Punch reaches that far: at 150 Hz a
- * third of it was left to the limiter, and Punch still pumped 0.36. A
- * first-order split is that gentle on purpose — it adds back to exactly the
- * input, where a steeper one turns the phase of what it leaves above. 30 ms
- * lets a bass note back up within two of its cycles; 50 and 80 moved the bass
- * further for nothing heard above it. −12 dB is as deep as a kick's peak asks
- * (−18 changed nothing). 3 ms of look-ahead is a quarter of a 60 Hz cycle,
- * and the limiter's own where that is shorter: the Punch profile's 1.5 ms
- * stays 1.5 in both.
+ * 150 ms down and 3 s up since 2026-11-01, when the low band that used to
+ * stand in front of the limiter went (Ivan: "I hate how they sound"). That
+ * band cut the bass alone on each kick, beginning 3 ms ahead of it — less
+ * than one cycle of a bass note — so it bent the waveform inside the cycle:
+ * measured with each band's own level fitted out, what no level explains
+ * was -42 dB on Default and -20 dB (10%) after Bass Punch in the Punch
+ * chain, and the kick lost up to a decibel of its sub on every hit. What it
+ * bought was the mids not dipping on each kick, and a platform that deepens
+ * three times faster buys that without touching the waveform: on one minute
+ * of five songs, against the stage as it was, distortion -42 to -73 dB on
+ * Default, -24 to -41 on Loud, -20 to -33 on the Punch chain and -17 to -32
+ * on Club; pumping 0.079 to 0.051, 0.34 to 0.22, 0.25 to 0.27 and 0.48 to
+ * 0.35; the sub on hits 1.0 dB fuller on Punch and 1.8 on Club; 0.1 to 0.8 dB
+ * quieter, which is what clean costs at the same ceiling. 80/4000 pumped
+ * less still and gave up another half decibel to a decibel; 500/1500
+ * without the low band pumped 0.44 on Punch. A platform that rises slower
+ * than 3 s keeps the level down after a dense passage, which is breathing of
+ * its own.
  */
-constexpr double kMaximizerLowLookAheadMs = 3.0;
-constexpr double kMaximizerLowSplitHz = 250.0;
-constexpr double kMaximizerLowFloorDb = -12.0;
-constexpr double kMaximizerLowReleaseMs = 30.0;
-/**
- * How long a peak's reduction stays what the low band recovers toward: half a
- * cycle of a 25 Hz note, the lowest an 808 or a five-string bass plays. The
- * low band's own reduction is still held only 10 ms and let go over 30, but
- * toward the deepest reduction of the last 20 to 40 ms rather than toward
- * the sample in hand, which between two peaks of a note asks for none.
- * Recovering there moved the gain inside every cycle: a held 60 Hz note at
- * -1 dBFS through Pop's rack came out with 0.6% of harmonics once it wavered
- * by a tenth of a percent (120 Hz at -47 dB, 180 at -48), and a note under
- * 50 Hz sawed on every cycle, its half cycle longer than the hold.
- */
-constexpr double kMaximizerLowWindowMs = 20.0;
+constexpr double kMaximizerPlatformAttackMs = 150.0;
+constexpr double kMaximizerPlatformReleaseMs = 3000.0;
 /** Where a Bass Forge fading out is taken as silent and cleared: -80 dB. */
 constexpr double kBassForgeSilentMix = 1e-4;
 /**
@@ -332,7 +312,7 @@ struct FeqChain {
   FeqDeEsser* deesser = nullptr;
   /** Footsteps, owned and made with the chain; null leaves it out. */
   FeqFootsteps* footsteps = nullptr;
-  /** Three-band upward/downward Dynamics, before the Maximizer. */
+  /** Dynamics, just before the Maximizer (`compander.h`). */
   FeqCompander* compander = nullptr;
 
   ChainEqSlot slots[FEQ_CHAIN_MAX_CHANNELS];
@@ -668,18 +648,6 @@ struct FeqChain {
   std::vector<FeqTruePeak> maximizer_detectors;
   std::vector<float> maximizer_delay[FEQ_CHAIN_MAX_CHANNELS];
   std::vector<float*> maximizer_delay_pointers;
-  /**
-   * Its low band (`bass_limiter.h`), ahead of the limiter: the input and its
-   * low band delayed per channel, and the low band's gain. Sized once at
-   * `kMaximizerLowLookAheadMs`, like the limiter's ring at its largest.
-   */
-  FeqBassLimiter maximizer_low{};
-  std::vector<float> maximizer_low_input[FEQ_CHAIN_MAX_CHANNELS];
-  std::vector<float> maximizer_low_band[FEQ_CHAIN_MAX_CHANNELS];
-  std::vector<float*> maximizer_low_input_pointers;
-  std::vector<float*> maximizer_low_band_pointers;
-  std::vector<float> maximizer_low_gain;
-  uint32_t maximizer_low_look_ahead = 0;
   /* --------------------------------------------------------- bass forge -- */
   FeqBassForge bass_forge{};
   /**

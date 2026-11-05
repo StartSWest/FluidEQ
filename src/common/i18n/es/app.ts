@@ -39,6 +39,26 @@ const app: Partial<Dictionary> = {
   'app.menu.importEq': 'Importar ajustes de EQ…',
   'app.menu.importConvolution': 'Importar respuesta al impulso…',
   'app.menu.restartAudio': 'Reiniciar el audio de Windows',
+  'app.menu.engineKey': 'Tecla de encendido/apagado…',
+  'engineKey.title': 'Tecla de encendido/apagado',
+  'engineKey.body':
+    'Pulsa las teclas que apagan y vuelven a encender el motor de FluidEQ desde cualquier programa, también un juego.',
+  'engineKey.field': 'Tecla',
+  'engineKey.waiting': 'Pulsa las teclas',
+  'engineKey.none': 'Sin tecla',
+  'engineKey.use': 'Usar {key}',
+  'engineKey.useKey': 'Usar esta tecla',
+  'engineKey.problem.invalid':
+    'Usa una letra, un número o F1 a F24, con Ctrl, Alt o Shift.',
+  'engineKey.problem.modifier':
+    'Añade Ctrl o Alt, para que la tecla no estorbe a otros programas.',
+  'engineKey.problem.altgr':
+    'Ctrl + Alt con una letra escribe caracteres como € en muchos teclados. Prueba Ctrl + Shift.',
+  'engineKey.problem.taken': 'Otro programa ya usa {key}. Prueba otra.',
+  'engineKey.toast.off': 'FluidEQ apagado',
+  'engineKey.toast.offDetail': 'No se procesa nada',
+  'engineKey.toast.on': 'FluidEQ encendido',
+  'engineKey.toast.onDetail': 'Tu sonido, tal como lo dejaste',
   'engine.apo.reconfigure': 'Reconfigurar Equalizer APO',
   'engine.apo.settings': 'Ajustes de Equalizer APO',
   'app.menu.support': 'Apoya el proyecto',

@@ -39,6 +39,27 @@ const app: Partial<Dictionary> = {
   'app.menu.importEq': 'EQ सेटिंग आयात करें…',
   'app.menu.importConvolution': 'इंपल्स रिस्पॉन्स आयात करें…',
   'app.menu.restartAudio': 'Windows ऑडियो फिर से चालू करें',
+  'app.menu.engineKey': 'ऑन/ऑफ़ कुंजी…',
+  'engineKey.title': 'ऑन/ऑफ़ कुंजी',
+  'engineKey.body':
+    'वे कुंजियाँ दबाएँ जो FluidEQ इंजन को बंद करके फिर चालू करती हैं, किसी भी प्रोग्राम से, गेम से भी।',
+  'engineKey.field': 'कुंजी',
+  'engineKey.waiting': 'कुंजियाँ दबाएँ',
+  'engineKey.none': 'कोई कुंजी नहीं',
+  'engineKey.use': '{key} इस्तेमाल करें',
+  'engineKey.useKey': 'यह कुंजी इस्तेमाल करें',
+  'engineKey.problem.invalid':
+    'Ctrl, Alt या Shift के साथ कोई अक्षर, अंक या F1 से F24 इस्तेमाल करें।',
+  'engineKey.problem.modifier':
+    'Ctrl या Alt जोड़ें, ताकि कुंजी दूसरे प्रोग्राम के रास्ते में न आए।',
+  'engineKey.problem.altgr':
+    'कई कीबोर्ड पर Ctrl + Alt के साथ अक्षर € जैसे चिह्न टाइप करता है। Ctrl + Shift आज़माएँ।',
+  'engineKey.problem.taken':
+    '{key} पहले से किसी दूसरे प्रोग्राम के पास है। कोई और आज़माएँ।',
+  'engineKey.toast.off': 'FluidEQ बंद',
+  'engineKey.toast.offDetail': 'कुछ भी प्रोसेस नहीं हो रहा',
+  'engineKey.toast.on': 'FluidEQ चालू',
+  'engineKey.toast.onDetail': 'आपकी आवाज़, जैसी आपने छोड़ी थी',
   'engine.apo.reconfigure': 'Equalizer APO फिर से सेट करें',
   'engine.apo.settings': 'Equalizer APO सेटिंग',
   'app.menu.support': 'प्रोजेक्ट का साथ दें',

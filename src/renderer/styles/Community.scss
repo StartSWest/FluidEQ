@@ -25,7 +25,25 @@ it under the terms of the GNU General Public License version 3 or later.
   flex-direction: column;
   min-height: 0;
   min-width: 0;
-  padding: 10px 12px 12px;
+  // No right inset on the card itself: each place's scroller runs to the
+  // card's edge so its scrollbar stands there, as every page's does (Ivan,
+  // 2026-11-04: "like on shared audio"); it stood 13px inside. The inset is
+  // given back to the head outside and to the content inside each scroller:
+  // here for the places whose scroller is the card's own child, and by the
+  // forum (ForumList.scss, ForumThread.scss) and an add-on's place, which
+  // hold theirs deeper, where they hold it.
+  padding: 10px 0 12px 12px;
+
+  > .community__head {
+    margin-right: 12px;
+  }
+
+  // Their 4px for focus rings, plus the card's 12.
+  > .gallery-visualizers,
+  > .studio,
+  > .lighting {
+    padding-right: 16px;
+  }
 }
 
 // Each place draws its own head, so this plays when the tab opens and again

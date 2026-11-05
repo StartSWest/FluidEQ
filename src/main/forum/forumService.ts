@@ -182,6 +182,12 @@ export const createForumService = ({
   // cannot be read at all then means "not an issue", so an unreachable
   // GitHub and a missing file never stop a discussion from opening.
   const issuesOrNone = () => allIssues().catch(() => []);
+  // The issues' row counts the open ones: the list shows every issue, but
+  // the number beside the board is how many still need something (Ivan,
+  // 2026-11-04: "show the count only for open ones"). It read 7 with one
+  // open.
+  const openCount = (list: readonly IForumTopic[]): number =>
+    list.filter((topic) => topic.issue?.closed !== true).length;
   const issueThread = async (number: number, listed: IForumTopic) => {
     if (live) {
       try {
@@ -289,7 +295,7 @@ export const createForumService = ({
         return {
           boards: loaded.boards,
           canStartIn: [],
-          issueCount: issueList.length,
+          issueCount: openCount(issueList),
         };
       }
       const [repo, issueList] = await Promise.all([
@@ -307,7 +313,7 @@ export const createForumService = ({
       return {
         boards: readBoardCounts(counts, repo.boards),
         canStartIn: startable(repo),
-        issueCount: issueList.length,
+        issueCount: openCount(issueList),
       };
     },
 
