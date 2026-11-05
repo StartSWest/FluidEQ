@@ -1,5 +1,5 @@
 /* FluidEQ — GPL-3.0-or-later */
-import type { ReactNode } from 'react';
+import type { ReactNode, KeyboardEventHandler } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import RemoteAudioFader from './RemoteAudioFader';
 import { audioGroupRows, audioLinkKey } from './RemoteAudioGroup';
@@ -17,6 +17,11 @@ const RemoteAudioMix = ({
   system: {
     isAvailable: boolean;
     level?: number;
+    confirmedLevel?: number;
+    confirmedIsMuted?: boolean;
+    beginChange?: () => void;
+    endChange?: () => void;
+    onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
     isMuted: boolean;
     setLevel(value: number): void;
     toggleMute(): void;
@@ -39,6 +44,14 @@ const RemoteAudioMix = ({
         id="this-pc-volume"
         label={t('remoteAudio.group.thisPC')}
         value={system.isAvailable ? system.level : undefined}
+        valueText={
+          system.isAvailable && system.confirmedLevel !== undefined
+            ? `${Math.round((system.confirmedIsMuted ? 0 : system.confirmedLevel) * 100)}%`
+            : undefined
+        }
+        onBeginChange={system.beginChange}
+        onEndChange={system.endChange}
+        onKeyDown={system.onKeyDown}
         disabled={!system.isAvailable}
         muted={system.isMuted}
         muteLabel={t(

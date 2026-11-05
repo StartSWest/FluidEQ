@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore, type KeyboardEvent } from 'react';
 import {
   ISystemVolume,
   SYSTEM_VOLUME_CHANGED,
@@ -18,13 +18,57 @@ import {
  * control. Main runs the helper behind it only while something here is
  * watching, and every reader shares the one watch.
  */
-let volume: ISystemVolume | null | undefined;
+interface IVolumeReading extends ISystemVolume {
+  confirmedLevel: number;
+  confirmedIsMuted: boolean;
+}
+
+let volume: IVolumeReading | null | undefined;
 const listeners = new Set<() => void>();
 let watchers = 0;
 let stopListening: (() => void) | undefined;
 let pending: { requestId: string; sessionId?: string } | undefined;
+let isChangingLevel = false;
+let requestedLevel: number | undefined;
 
 const notify = () => listeners.forEach((listener) => listener());
+
+const beginChange = () => {
+  isChangingLevel = true;
+};
+
+const endChange = () => {
+  isChangingLevel = false;
+  if (!pending && volume && requestedLevel !== undefined) {
+    requestedLevel = undefined;
+    volume = { ...volume, level: volume.confirmedLevel };
+    notify();
+  }
+};
+
+const isVolumeKey = (key: string) =>
+  [
+    'ArrowLeft',
+    'ArrowRight',
+    'ArrowUp',
+    'ArrowDown',
+    'Home',
+    'End',
+    'PageUp',
+    'PageDown',
+  ].includes(key);
+
+const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+  if (isVolumeKey(event.key)) {
+    beginChange();
+  }
+};
+
+const onKeyUp = (event: globalThis.KeyboardEvent) => {
+  if (isVolumeKey(event.key)) {
+    endChange();
+  }
+};
 
 const isVolume = (value: unknown): value is ISystemVolume =>
   typeof value === 'object' &&
@@ -63,10 +107,37 @@ const startWatching = () => {
     ) {
       return;
     }
+    // A driver's confirmed level can be quantized. Replacing the pointer's
+    // position with it on every reply pulled the thumb backwards mid-drag;
+    // printing the requested level first made the percentage oscillate too.
+    // Only the thumb keeps the gesture's target; the readout is always real.
+    if (!next || next.sessionId !== volume?.sessionId) {
+      isChangingLevel = false;
+      requestedLevel = undefined;
+    }
     pending = undefined;
-    volume = next;
+    volume = next
+      ? {
+          ...next,
+          level:
+            isChangingLevel && requestedLevel !== undefined
+              ? requestedLevel
+              : next.level,
+          confirmedLevel: next.level,
+          confirmedIsMuted: next.isMuted,
+        }
+      : null;
+    if (!isChangingLevel) {
+      requestedLevel = undefined;
+    }
     notify();
   });
+  // Release outside the slider, pointer cancellation, and losing the window
+  // all finish the gesture too. No timer guesses when the OS has caught up.
+  window.addEventListener('pointerup', endChange);
+  window.addEventListener('pointercancel', endChange);
+  window.addEventListener('blur', endChange);
+  window.addEventListener('keyup', onKeyUp);
   ask(['watch', true]);
 };
 
@@ -74,8 +145,14 @@ const stopWatching = () => {
   ask(['watch', false]);
   stopListening?.();
   stopListening = undefined;
+  window.removeEventListener('pointerup', endChange);
+  window.removeEventListener('pointercancel', endChange);
+  window.removeEventListener('blur', endChange);
+  window.removeEventListener('keyup', onKeyUp);
   volume = undefined;
   pending = undefined;
+  isChangingLevel = false;
+  requestedLevel = undefined;
   notify();
 };
 
@@ -117,6 +194,7 @@ export const setSystemVolume = (level: number) => {
   const requestId = volume?.canAcknowledge ? crypto.randomUUID() : undefined;
   pending = requestId ? { requestId, sessionId: volume?.sessionId } : undefined;
   if (volume) {
+    requestedLevel = level;
     volume = { ...volume, level };
     notify();
   }
@@ -145,8 +223,9 @@ export const setSystemMute = (isMuted: boolean) => {
  * app's sat under the taskbar's, so a quiet song was quiet twice and nobody
  * could say from which.
  *
- * `level` and `isMuted` are what Windows reports; both are `undefined` until
- * the helper answers and `isAvailable` is false where there is no helper to
+ * `level` follows the hand until the gesture and pending command finish;
+ * `confirmedLevel` is the actual Windows reading for the percentage. Both
+ * start `undefined`; `isAvailable` is false where there is no helper to
  * ask (any platform but Windows), in which case a bar draws no fader at all
  * rather than one that moves nothing. Muting restores to the level muted
  * from, which is Windows' own behaviour for its mute.
@@ -156,8 +235,13 @@ export const useSystemFader = () => {
   return {
     isAvailable: reading !== null,
     level: reading?.level,
+    confirmedLevel: reading?.confirmedLevel,
+    confirmedIsMuted: reading?.confirmedIsMuted ?? false,
     isMuted: reading?.isMuted ?? false,
     setLevel: setSystemVolume,
     toggleMute: () => setSystemMute(!(reading?.isMuted ?? false)),
+    beginChange,
+    endChange,
+    onKeyDown,
   };
 };

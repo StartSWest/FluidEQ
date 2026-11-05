@@ -280,7 +280,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: $surface-plot;
 
   .karaoke-transport__volume-value {
-    min-width: 0;
+    // Keep the track still when a percentage gains another digit. Longer
+    // translated readings, such as Vocal off, can still take their space.
+    min-width: 5ch;
     overflow: hidden;
     color: $text-muted;
     font-size: $text-eyebrow;
@@ -401,9 +403,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding-right: 3px;
 }
 
-// Same rule for a song with one fader and so no arrow beside it: in the bar
-// the reading takes the width of the reading. Only the mix menu keeps a
-// column wide enough to line its readings up.
+// Same rule for a song with one fader and no arrow: the reading keeps room
+// for 100%, while the mix menu keeps its wider column for translated words.
 .now-playing-bar__adopted .karaoke-transport__volume:not(.is-in-mix-menu) {
   grid-template-columns: 26px minmax(56px, 1fr) auto;
 }
