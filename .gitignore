@@ -21,6 +21,8 @@ node_modules
 
 release/app/dist
 release/build
+/release/apt-repository*/
+/release/.apt-*
 build
 .erb/dll
 

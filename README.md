@@ -636,7 +636,40 @@ inside FluidEQ's install directory.
 
 ## Getting started
 
-FluidEQ is Windows-only, because both audio engines are.
+### Ubuntu and Debian (amd64)
+
+Add FluidEQ's signed apt repository once. The Linux release publisher also
+puts this same block in the GitHub release notes and the website's Linux
+download instructions. It becomes available with the first apt release,
+2.3.0; earlier GitHub installers keep the same settings folder.
+
+<!-- FLUIDEQ_APT_SETUP_START -->
+
+```bash
+sudo apt install -y ca-certificates curl
+tmp=$(mktemp -d)
+curl --fail --location https://fluideq.com/apt/fluideq-archive-keyring.gpg -o "$tmp/fluideq-archive-keyring.gpg"
+printf '%s\n' 'Types: deb' 'URIs: https://fluideq.com/apt' 'Suites: stable' 'Components: main' 'Architectures: amd64' 'Signed-By: /usr/share/keyrings/fluideq-archive-keyring.gpg' > "$tmp/fluideq.sources"
+sudo install -m 0644 "$tmp/fluideq-archive-keyring.gpg" /usr/share/keyrings/fluideq-archive-keyring.gpg.tmp
+sudo mv /usr/share/keyrings/fluideq-archive-keyring.gpg.tmp /usr/share/keyrings/fluideq-archive-keyring.gpg
+sudo install -m 0644 "$tmp/fluideq.sources" /etc/apt/sources.list.d/fluideq.sources.tmp
+sudo mv /etc/apt/sources.list.d/fluideq.sources.tmp /etc/apt/sources.list.d/fluideq.sources
+rm -r "$tmp"
+sudo apt update && sudo apt install fluideq
+```
+
+<!-- FLUIDEQ_APT_SETUP_END -->
+
+After setup, `sudo apt upgrade` installs new Linux releases. Both apt and the
+in-app updater use the same signed-release `.deb`; neither automatically
+downgrades an installed package. Existing `~/.config/fluideq-app` settings are
+preserved. Explicit downgrades remain available with
+`sudo apt install fluideq=<version> --allow-downgrades`.
+
+See [Linux apt publishing](docs/linux-apt.md) for signing, release publishing
+and repository recovery. AppImage users can continue using in-app updates.
+
+### Windows
 
 1. Download the installer from
    [Releases](https://github.com/StartSWest/FluidEQ/releases) and run it.
