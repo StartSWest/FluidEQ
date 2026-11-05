@@ -231,14 +231,12 @@ describe('checking without a timer, and on demand', () => {
     // and this made-up download carries no signature; the signature has its
     // own tests below, and this one is about the order of the quit.
     const verifyFeed = jest
-      .spyOn(updateFeed, 'verifyUpdateFeedSignature')
-      .mockReturnValue({ valid: true });
-    harness.listeners.get('update-downloaded')?.({
+      .spyOn(updateFeed, 'verifyDownloadedUpdateFeed')
+      .mockResolvedValue({ valid: true });
+    await harness.listeners.get('update-downloaded')?.({
       downloadedFile: 'C:\\Temp\\FluidEQ-Setup.exe',
       version: '1.3.2',
     });
-    await Promise.resolve();
-    await Promise.resolve();
     verifyFeed.mockRestore();
 
     controller.quitAndInstall(false, true);
@@ -374,8 +372,8 @@ describe('the update feed signature', () => {
   // authorized, however its Authenticode check went.
   it('never authorizes a download whose feed is not signed by a trusted key', async () => {
     const verifyFeed = jest
-      .spyOn(updateFeed, 'verifyUpdateFeedSignature')
-      .mockReturnValue({
+      .spyOn(updateFeed, 'verifyDownloadedUpdateFeed')
+      .mockResolvedValue({
         valid: false,
         reason: 'the update feed is not signed',
       });
@@ -385,12 +383,10 @@ describe('the update feed signature', () => {
       if (!controller) {
         throw new Error('setUpReleaseAutoUpdates returned no controller');
       }
-      harness.listeners.get('update-downloaded')?.({
+      await harness.listeners.get('update-downloaded')?.({
         downloadedFile: 'C:/Temp/FluidEQ-Setup.exe',
         version: '1.3.2',
       });
-      await Promise.resolve();
-      await Promise.resolve();
 
       expect(verifyFeed).toHaveBeenCalled();
       expect(harness.logger.error).toHaveBeenCalledWith(
@@ -550,14 +546,12 @@ describe('an installer that does not start', () => {
       vendor: { fluidEqMandatoryUpdate: 'required' },
     });
     const verifyFeed = jest
-      .spyOn(updateFeed, 'verifyUpdateFeedSignature')
-      .mockReturnValue({ valid: true });
-    harness.listeners.get('update-downloaded')?.({
+      .spyOn(updateFeed, 'verifyDownloadedUpdateFeed')
+      .mockResolvedValue({ valid: true });
+    await harness.listeners.get('update-downloaded')?.({
       downloadedFile: 'C:\\Temp\\FluidEQ-Setup.exe',
       version: '1.3.2',
     });
-    await Promise.resolve();
-    await Promise.resolve();
     verifyFeed.mockRestore();
     return { harness, controller };
   };

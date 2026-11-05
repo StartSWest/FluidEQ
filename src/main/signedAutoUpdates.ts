@@ -22,7 +22,7 @@ import type { NsisUpdater } from 'electron-updater';
 import type { IAppUpdateStatus } from '../common/constants';
 import { isMandatoryUpdate } from '../common/mandatoryUpdate';
 import { POWERSHELL_PATH, utf8Command } from './powershell';
-import { verifyUpdateFeedSignature } from './updateFeedSignature';
+import { verifyDownloadedUpdateFeed } from './updateFeedSignature';
 
 /**
  * How stale a check has to be before another one is worth making.
@@ -499,6 +499,7 @@ export const setUpReleaseAutoUpdates = async (
   let isMandatoryPending = false;
   let hasDownloaded = false;
   let isInstallerAuthorized = false;
+  let installerGeneration = 0;
   /**
    * The installer has been handed over and the app is on its way out. An
    * `error` from here on is the install failing — the installer not starting,
@@ -532,6 +533,7 @@ export const setUpReleaseAutoUpdates = async (
   });
 
   updater.on('update-available', (info) => {
+    installerGeneration += 1;
     hasDownloaded = false;
     isInstallerAuthorized = false;
     if (isMandatoryUpdate(info)) {
@@ -559,10 +561,17 @@ export const setUpReleaseAutoUpdates = async (
   });
 
   updater.on('update-downloaded', (info) => {
+    installerGeneration += 1;
+    const generation = installerGeneration;
+    hasDownloaded = false;
+    isInstallerAuthorized = false;
     // A rejection and a failed verification are the same outcome to a user, so
     // they share one path: the installer stays unauthorized and the only route
     // that can run it refuses.
     const rejectDownload = (reason: string) => {
+      if (generation !== installerGeneration) {
+        return;
+      }
       logger.error(`Downloaded update rejected: ${reason}`);
       if (isMandatoryPending) {
         sendStatus({ phase: 'failed', isMandatory: true, failure: 'download' });
@@ -572,17 +581,24 @@ export const setUpReleaseAutoUpdates = async (
     const authorize = async () => {
       try {
         const verification = await verifyInstaller(info.downloadedFile);
+        if (generation !== installerGeneration) {
+          return;
+        }
         if (!verification.valid) {
           rejectDownload(
             verification.reason || 'Authenticode verification failed',
           );
           return;
         }
-        // The feed that named this installer's SHA-512 — which the download
-        // has already been checked against — must carry the maker's own
-        // signature, so whoever controls where releases are published cannot
-        // hand out an installer of their own.
-        const feed = verifyUpdateFeedSignature(info);
+        // Upstream can select a SHA-256-only file or reuse a cached download;
+        // neither proves these bytes match the maker's signed SHA-512 set.
+        const feed = await verifyDownloadedUpdateFeed(
+          info,
+          info.downloadedFile,
+        );
+        if (generation !== installerGeneration) {
+          return;
+        }
         if (!feed.valid) {
           rejectDownload(feed.reason || 'the update feed is not trusted');
           return;
@@ -602,7 +618,7 @@ export const setUpReleaseAutoUpdates = async (
       }
     };
 
-    authorize().catch(() => undefined);
+    return authorize().catch(() => undefined);
   });
 
   updater.on('error', (error) => {

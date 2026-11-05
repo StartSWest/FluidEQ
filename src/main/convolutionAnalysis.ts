@@ -41,6 +41,10 @@ export interface IConvolutionAnalysis {
 const FFT_OVERSAMPLE = 4;
 /** About 21 seconds at 48 kHz before padding; long for an EQ impulse. */
 const MAX_FFT_SIZE = 1 << 21;
+/** Match the engine's supported impulse layouts, including surround. */
+const MAX_CHANNELS = 8;
+/** No multichannel file may multiply the existing largest mono transform. */
+const MAX_FFT_WORK = (MAX_FFT_SIZE / 2) * Math.log2(MAX_FFT_SIZE);
 const MIN_DB = -300;
 
 const parseWavLayout = (buffer: Buffer): IWavLayout => {
@@ -99,6 +103,7 @@ const parseWavLayout = (buffer: Buffer): IWavLayout => {
     format.audioFormat === 3 && [32, 64].includes(format.bitsPerSample);
   if (
     format.channels < 1 ||
+    format.channels > MAX_CHANNELS ||
     !Number.isInteger(bytesPerSample) ||
     (!supportedPcm && !supportedFloat) ||
     format.blockAlign < format.channels * bytesPerSample
@@ -210,7 +215,10 @@ export const analyzeConvolutionBuffer = (
     throw new Refusal('files.wav.noSamples');
   }
   const fftSize = nextPowerOfTwo(frameCount * FFT_OVERSAMPLE);
-  if (fftSize > MAX_FFT_SIZE) {
+  if (
+    fftSize > MAX_FFT_SIZE ||
+    layout.channels * (fftSize / 2) * Math.log2(fftSize) > MAX_FFT_WORK
+  ) {
     throw new Refusal('files.wav.tooLong');
   }
 

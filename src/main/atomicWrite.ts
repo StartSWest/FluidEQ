@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { randomUUID } from 'crypto';
 
 /**
  * Write a file so that a crash mid-write leaves the previous contents intact.
@@ -15,10 +16,21 @@ const writeFileAtomically = (
   contents: string | Uint8Array,
   mode?: number,
 ): void => {
-  const temporaryPath = `${filePath}.tmp`;
+  // A sibling name independent of the target also preserves long basenames.
+  const temporaryPath = path.join(
+    path.dirname(filePath),
+    `.fluideq-${process.pid}-${randomUUID()}.tmp`,
+  );
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  // A predictable temporary can be a supplied symlink or hard link. Create
+  // exclusively, and never clean up a name this call did not create.
+  const handle = fs.openSync(temporaryPath, 'wx', mode);
   try {
-    fs.writeFileSync(temporaryPath, contents, { encoding: 'utf8', mode });
+    try {
+      fs.writeFileSync(handle, contents, { encoding: 'utf8' });
+    } finally {
+      fs.closeSync(handle);
+    }
     fs.renameSync(temporaryPath, filePath);
   } catch (error) {
     try {

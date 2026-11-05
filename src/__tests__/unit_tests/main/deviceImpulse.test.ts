@@ -66,7 +66,9 @@ describe('an output’s generated impulse', () => {
   });
 
   it('is written once while its filters stay where they are', () => {
-    const writes = jest.spyOn(fs, 'writeFileSync');
+    // Atomic writes publish at the destination; private temporary names and
+    // file descriptors need not include the impulse's filename.
+    const writes = jest.spyOn(fs, 'renameSync');
     try {
       const override = {
         deviceId: 'endpoint',
@@ -84,8 +86,9 @@ describe('an output’s generated impulse', () => {
         });
       }
       const impulseWrites = () =>
-        writes.mock.calls.filter(([file]) => String(file).includes('.wav'))
-          .length;
+        writes.mock.calls.filter(([, target]) =>
+          String(target).endsWith('.wav'),
+        ).length;
       expect(impulseWrites()).toBe(1);
 
       // POSITIVE CONTROL: a change to the impulse's own filters writes it.
