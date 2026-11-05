@@ -90,24 +90,26 @@ export default {
   'genre.newWave.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Das schlanke Fundament ist so gemacht.',
 
-  'genre.kPop.hook': 'Unter den lautesten, glattesten Platten überhaupt',
+  'genre.kPop.hook': 'Klare Stimmen, straffer Bass und ein kraftvoller Drop',
   'genre.kPop.story':
-    'Dance-Tracks von Girlgroups mit 115 bis 130 BPM und Songs von Boygroups eher bei 80 bis 100, mit einem Kick, der für Sub-Druck gebaut ist, und einer Stimme, die bei 3 bis 5 kHz und bei 12 kHz schon angehoben ist. Die Master liegen bei −10 bis −6 LUFS mit Spitzen über Vollaussteuerung.',
+    'Dynamite von BTS bringt Disco-Pop-Bass, How You Like That von BLACKPINK einen kräftigen Hip-Hop-Drop. Beide brauchen klare Stimmen, Gewicht und Kontrast. Vor der Bearbeitung wird der Eingang auf −18 LUFS angeglichen. Dieses Hörpreset wurde mit den offiziellen Apple-Hörproben ohne Kopfhörerkorrektur abgestimmt.',
   'genre.kPop.pin.80': 'Der Druck des Kicks, nicht Sub',
   'genre.kPop.pin.80.why':
     'Wo der Kick landet; unter 50 Hz wird nichts angehoben.',
   'genre.kPop.pin.315': 'Platz unter einem dichten Arrangement',
   'genre.kPop.pin.315.why':
-    'Untere Mitten freigeräumt, damit die Schichten nicht verschwimmen.',
+    'Eine sanfte Absenkung der unteren Mitten schafft Platz und erhält den Körper der Stimme.',
   'genre.kPop.pin.12500': 'Keine zusätzliche Luft',
   'genre.kPop.pin.12500.why':
-    'Die Stimme bringt ihre eigene bei 12 kHz schon mit.',
+    'Erhält die Luftigkeit der Aufnahme ohne zusätzliche Höhenanhebung.',
+  'genre.kPop.stage.deEsser':
+    'Sanftes spektrales De-Essing der mittigen Stimme von 5 bis 10 kHz, auf 1,5 dB begrenzt, mit Beckenschutz und ohne Bassabsenkung.',
   'genre.kPop.stage.exciter':
-    'Körper und Präsenz unterhalb der Anhebungen der Stimme selbst, nichts in den Höhen.',
+    'Nur etwas Wärme in den unteren Mitten. Alle drei Obertonbänder bleiben aus, damit gestapelte Stimmen klar bleiben.',
   'genre.kPop.stage.dimension':
-    'Unten schmaler, Doppelungen und Flächen etwas breiter, als sie gemischt wurden.',
+    'Verengt den Bass und öffnet die vorhandenen Höhenseiten leicht, ohne die mittige Hauptstimme zu verbreitern.',
   'genre.kPop.stage.maximizer':
-    'Eine Obergrenze, die kaum antreibt: Diese Master sind so laut, wie Master nur werden.',
+    'Hebt nach der Normalisierung auf −18 LUFS um 7 dB an: Ziel nahe −11 LUFS, Spitzen bei −1 dBTP. Dynamics und Master bleiben aus.',
   'genre.kPop.off':
     'Kein Bass-Punch und keine Bass-Schmiede: Der Punch der Kick und der Sub sind schon in der Platte.',
 

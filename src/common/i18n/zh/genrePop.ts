@@ -71,20 +71,23 @@ export default {
   'genre.newWave.off':
     '不用低音冲击，也不用低音熔炉：精瘦的低频本来就是这么做的。',
 
-  'genre.kPop.hook': '世上最响、打磨最精的唱片之一',
+  'genre.kPop.hook': '清晰人声、紧实低频与有力的高潮',
   'genre.kPop.story':
-    '女团舞曲在 115 到 130 BPM，男团歌曲更接近 80 到 100；底鼓为超低音的冲击而做，人声在 3 到 5 kHz 和 12 kHz 已经被提升。母带在 −10 到 −6 LUFS，峰值超过满刻度。',
+    'BTS 的 Dynamite 以迪斯科流行贝斯为特色，BLACKPINK 的 How You Like That 则有厚重的嘻哈段落。两首歌都需要清晰人声、分量和强弱对比。处理前将输入统一到 −18 LUFS。本聆听预设依据两首歌的 Apple 官方试听片段校准，未使用耳机补偿。',
   'genre.kPop.pin.80': '底鼓的冲击，不是超低音',
   'genre.kPop.pin.80.why': '底鼓落下的位置；50 Hz 以下什么都不抬。',
   'genre.kPop.pin.315': '在密集编曲下腾出空间',
-  'genre.kPop.pin.315.why': '清理中低频，让各层不糊在一起。',
+  'genre.kPop.pin.315.why': '轻削中低频以分开密集层次，同时保留人声厚度。',
   'genre.kPop.pin.12500': '不额外加空气感',
-  'genre.kPop.pin.12500.why': '人声在 12 kHz 已经自带空气感。',
+  'genre.kPop.pin.12500.why': '不再额外提升高频，保留录音本来的空气感。',
+  'genre.kPop.stage.deEsser':
+    '对中央人声的 5–10 kHz 进行温和的频谱去齿音，最多衰减 1.5 dB，保护镲片且不削减低频。',
   'genre.kPop.stage.exciter':
-    '在人声自身的提升之下加厚度和临场感，高频什么都不加。',
-  'genre.kPop.stage.dimension': '低频收窄，叠唱和铺底比混音时稍宽一点。',
+    '仅在中低频添加少许温暖感。三个谐波频段全部关闭，保持叠加人声清晰。',
+  'genre.kPop.stage.dimension':
+    '收窄低频，略微展开录音已有的高频侧声道，不扩散中央主唱。',
   'genre.kPop.stage.maximizer':
-    '一个几乎不推的上限：这些母带已经响到了母带的极限。',
+    '输入归一化至 −18 LUFS 后提升 7 dB，目标约为 −11 LUFS，峰值限制在 −1 dBTP。Dynamics 和 Master 保持关闭。',
   'genre.kPop.off':
     '不用低音冲击，也不用低音熔炉：底鼓的冲击和超低音，唱片里都已经有了。',
 

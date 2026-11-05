@@ -122,24 +122,37 @@ const POP_RACKS: readonly IGenreRack[] = [
     maximizer: ceiling(1.25, -1, 8, beatMs(135)),
   },
   {
-    // Among the loudest masters made (-10 to -6 LUFS, true peaks over full
-    // scale), a vocal already lifted at 3-5 kHz and 12 kHz, and a kick with
-    // its sub punch built in. A narrowed bottom, a ceiling that barely
-    // drives, and since 2026-10-15 the Exciter Ivan asked for, kept under
-    // the vocal's own lifts: body and presence from a band that stops by
-    // 2.5 kHz (its harmonics an octave over it at most), mostly even orders,
-    // and Organic's warmth — nothing on the top that is lifted already.
+    // Checked against Apple's original-version previews of Dynamite (BTS)
+    // and How You Like That (BLACKPINK), 2026-11-04. Disco bass and a heavy
+    // hip-hop drop need their own recorded weight, not another sub generator
+    // or compressor. The former unnormalised +0.5 dB drove hot masters into
+    // sustained limiting. A common input and one final ceiling retain punch.
+    // These are measured listening settings, not an official K-pop standard.
     id: 'kPop',
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    // Same restrained full-mix approach as Pop: protect the centre's sharp
+    // consonants without turning down the whole song or its wide cymbals.
+    deEsser: {
+      sensitivity: 0.1,
+      lowHz: 5000,
+      highHz: 10000,
+      rangeDb: 1.5,
+      widthOct: 0.5,
+      mode: 'spectral',
+      attackMs: 2,
+      releaseMs: 50,
+      centreOnly: true,
+      keepCymbals: 0.9,
+    },
     exciter: exciterProfile(
-      [
-        { enabled: false },
-        { freqHz: 1_100, range: 0.2, mix: 0.16, texture: 0.22 },
-        { enabled: false },
-      ],
+      // The first audition sounded processed: keep only low-mid warmth,
+      // without generating harmonics above the stacked vocals.
+      [{ enabled: false }, { enabled: false }, { enabled: false }],
       { enabled: true, amount: 0.1, focusHz: 400, range: 0.3 },
     ),
-    dimension: width(0.55, 1, 1.1, 150, 3_000, 0.1),
-    maximizer: ceiling(0.5, -1, 3, sixteenthMs(122)),
+    // Keep the recorded centre: no synthetic side from the lead vocal.
+    dimension: width(0.55, 1, 1.18, 150, 3_000, 0),
+    maximizer: ceiling(7, -1, 3, 123),
   },
   {
     // A dense, bright wall at up to 200 BPM, with overs common (+2.3 dBTP)

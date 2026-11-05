@@ -72,6 +72,7 @@ const FAMILY_SOURCES: readonly (readonly [readonly IGenreRack[], string])[] = [
  */
 const GENRE_OWN_SOURCES: Readonly<Record<string, string>> = {
   pop: 'iZotope · FabFilter · The Weeknd — Blinding Lights · Dua Lipa — Levitating (Apple preview)',
+  kPop: 'BIGHIT MUSIC · YG Entertainment · iZotope · FabFilter · BTS — Dynamite · BLACKPINK — How You Like That (Apple previews)',
   ballad:
     'Sound On Sound · Mix · Waves · Elowsson & Friberg (KTH) · DR Database',
 };
@@ -103,6 +104,14 @@ export const genreSources = (id: string): string | undefined =>
  * under the -1 dBTP ceiling. Rendering opens no output device and reads no
  * live application settings, so a listener's on/off comparison cannot alter it.
  * Its count below is two, not the older catalogue's twenty-five.
+ *
+ * K-pop was remeasured on the same date against the original-version Apple
+ * previews of Dynamite and How You Like That, with the same isolated method.
+ * These are two 30-second excerpts, not whole-track loudness measurements.
+ * From a -18 LUFS input they rendered at -10.58 and -11.19 LUFS, below the
+ * -1 dBTP ceiling. De-essing changed overall loudness by -0.010/-0.032 LU;
+ * repeating was byte-identical and a source 18 dB quieter converged within
+ * 0.001 LU. No output device or live application settings were involved.
  */
 export const GENRE_MEASURED: Readonly<
   Record<string, readonly [number, number]>
@@ -111,7 +120,7 @@ export const GENRE_MEASURED: Readonly<
   indiePop: [0.69, -0.86],
   synthPop: [0.28, -0.88],
   newWave: [0.35, -0.86],
-  kPop: [0.39, -0.86],
+  kPop: [-3.08, -1],
   jPop: [0.63, -0.86],
   cPop: [0.24, -0.86],
   ballad: [0.06, -0.86],
@@ -196,7 +205,10 @@ export const GENRE_MEASURED: Readonly<
 export const GENRE_MEASURED_SONGS = 25;
 
 /** A retuned genre states the size of its own measurement, not the old corpus. */
-const UPDATED_MEASURED_SONGS: Readonly<Record<string, number>> = { pop: 2 };
+const UPDATED_MEASURED_SONGS: Readonly<Record<string, number>> = {
+  pop: 2,
+  kPop: 2,
+};
 
 export const genreMeasuredSongs = (id: string): number =>
   UPDATED_MEASURED_SONGS[id] ?? GENRE_MEASURED_SONGS;

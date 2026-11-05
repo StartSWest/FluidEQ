@@ -3,6 +3,7 @@ import { DSP_DEFAULTS } from '../../../common/dsp/chain';
 import { DE_ESSER_PRESETS } from '../../../common/dsp/deEsserPresets';
 import { DE_ESSER_CATALOGUE } from '../../../common/dsp/stageCatalogues';
 import { GENRE_RACKS, genreChainId } from '../../../common/dsp/genres';
+import { inGenreChain } from '../../../common/dsp/genreRack';
 import { dspPresetSettings } from '../../../common/dsp/presets';
 import { genreNotesFor } from '../../../renderer/dsp/genreNotesModel';
 
@@ -44,12 +45,17 @@ describe('transparent Pop playback', () => {
     expect(genreNotesFor('pop')?.stagesOn).toContain('exciter');
   });
 
-  it('keeps Pop de-essing out of other genres and None', () => {
+  it('selects another genre’s own de-esser instead of carrying Pop into it', () => {
     const previous = dspPresetSettings('pop');
     GENRE_RACKS.filter((rack) => rack.id !== 'pop').forEach((rack) => {
       expect(
         dspPresetSettings(genreChainId(rack), previous)?.deEsser.enabled,
-      ).toBe(false);
+      ).toBe(inGenreChain(rack, 'deEsser'));
+      expect(dspPresetSettings(genreChainId(rack), previous)?.deEsser).toEqual(
+        inGenreChain(rack, 'deEsser')
+          ? DE_ESSER_CATALOGUE.settings(rack.id, true)
+          : { ...DSP_DEFAULTS.deEsser, enabled: false },
+      );
     });
     expect(dspPresetSettings('empty', previous)?.deEsser.enabled).toBe(false);
   });

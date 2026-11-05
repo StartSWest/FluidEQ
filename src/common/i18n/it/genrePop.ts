@@ -91,23 +91,26 @@ export default {
   'genre.newWave.off':
     'Niente Punch dei bassi né Fucina dei bassi: il fondo asciutto è voluto.',
 
-  'genre.kPop.hook': 'Tra i dischi più forti e rifiniti che si facciano',
+  'genre.kPop.hook': 'Voci chiare, bassi compatti e un drop potente',
   'genre.kPop.story':
-    'Brani dance di girl group a 115–130 BPM e canzoni di boy band più vicine a 80–100, con una cassa costruita per la spinta del sub e una voce già sollevata tra 3 e 5 kHz e a 12 kHz. I master stanno tra −10 e −6 LUFS con picchi oltre il fondo scala.',
+    'Dynamite dei BTS propone un basso disco-pop; How You Like That delle BLACKPINK, un drop hip-hop incisivo. Entrambi richiedono voci chiare, corpo e contrasto. Prima del trattamento, l’ingresso viene uniformato a −18 LUFS. Questo preset d’ascolto è stato calibrato sulle anteprime ufficiali Apple, senza correzione delle cuffie.',
   'genre.kPop.pin.80': 'La spinta della cassa, non il sub',
   'genre.kPop.pin.80.why':
     'Dove arriva la cassa; niente viene alzato sotto i 50 Hz.',
   'genre.kPop.pin.315': 'Spazio sotto un arrangiamento denso',
   'genre.kPop.pin.315.why':
-    'Medio-bassi liberati perché gli strati non si impastino.',
+    'Un taglio delicato nei medio-bassi separa gli strati e conserva il corpo della voce.',
   'genre.kPop.pin.12500': 'Nessuna aria in più',
-  'genre.kPop.pin.12500.why': 'La voce porta già la sua a 12 kHz.',
+  'genre.kPop.pin.12500.why':
+    'Conserva l’aria della registrazione senza aggiungere enfasi sugli alti.',
+  'genre.kPop.stage.deEsser':
+    'De-essing spettrale delicato sulla voce centrale da 5 a 10 kHz, limitato a 1,5 dB, con protezione dei piatti e senza ridurre i bassi.',
   'genre.kPop.stage.exciter':
-    'Corpo e presenza sotto le enfasi della voce stessa, e niente sugli acuti.',
+    'Solo un poco di calore nei medio-bassi. Tutte e tre le bande armoniche restano spente per mantenere chiare le voci sovrapposte.',
   'genre.kPop.stage.dimension':
-    'Il basso più stretto, e raddoppi e pad un po’ più ampi di come sono stati mixati.',
+    'Restringe i bassi e apre leggermente i lati alti già presenti, senza allargare la voce principale al centro.',
   'genre.kPop.stage.maximizer':
-    'Un tetto che spinge appena: questi master sono forti quanto un master può esserlo.',
+    'Aggiunge 7 dB dopo la normalizzazione a −18 LUFS, puntando a circa −11 LUFS con picchi a −1 dBTP. Dynamics e Master restano disattivati.',
   'genre.kPop.off':
     'Niente Punch dei bassi né Fucina dei bassi: il punch della cassa e il sub sono già nel disco.',
 

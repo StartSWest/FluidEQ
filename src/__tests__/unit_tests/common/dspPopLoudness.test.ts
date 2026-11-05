@@ -1,4 +1,5 @@
 /* FluidEQ — GPL-3.0-or-later */
+import { DSP_DEFAULTS } from '../../../common/dsp/chain';
 import { GENRE_RACKS, genreChainId } from '../../../common/dsp/genres';
 import { genreMeasuredSongs } from '../../../common/dsp/genreEvidence';
 import { GENRE_NOTES } from '../../../common/dsp/genreNotes';
@@ -84,14 +85,17 @@ describe('Pop source loudness', () => {
     expect(settings.dimension.decorrelation).toBe(0);
   });
 
-  it('does not carry Pop normalization into another genre', () => {
+  it('uses each genre’s own input level instead of inheriting Pop normalization', () => {
     const previous = pop();
     GENRE_RACKS.filter((rack) => rack.id !== 'pop').forEach((rack) => {
       const next = dspPresetSettings(genreChainId(rack), previous);
       expect({ id: rack.id, mode: next?.normalizer.mode }).toEqual({
         id: rack.id,
-        mode: 'off',
+        mode: rack.normalizer?.mode ?? 'off',
       });
+      expect(next?.normalizer).toEqual(
+        rack.normalizer ?? { ...DSP_DEFAULTS.normalizer, mode: 'off' },
+      );
     });
     expect(dspPresetSettings('empty', previous)?.normalizer.mode).toBe('off');
   });

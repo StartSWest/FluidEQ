@@ -78,22 +78,26 @@ const genrePop = {
   'genre.newWave.stage.maximizer': '잡기만 하는 천장:스냅이 장르입니다.',
   'genre.newWave.off':
     'Bass Punch 또는 Bass Forge 없음: 마른 바닥이 만들어진 방식입니다.',
-  'genre.kPop.hook': '가장 시끄럽고 가장 세련된 음반 중',
+  'genre.kPop.hook': '선명한 보컬, 단단한 베이스와 강력한 드롭',
   'genre.kPop.story':
-    '115~130BPM의 걸그룹 댄스 트랙과 80~100에 가까운 보이그룹 노래, 서브 펀치를 위한 킥과 이미 3~5kHz 및 12kHz의 보컬이 들어있습니다. 마스터는 전체 규모에 걸쳐 피크가 있는 -10 ~ -6 LUFS에 있습니다.',
+    'BTS의 Dynamite는 디스코 팝 베이스를, BLACKPINK의 How You Like That은 묵직한 힙합 드롭을 들려줍니다. 두 곡 모두 선명한 보컬과 무게감, 강약의 대비가 중요합니다. 처리 전에 입력을 −18 LUFS로 맞춥니다. 헤드폰 보정 없이 두 곡의 Apple 공식 미리듣기를 기준으로 조정한 감상용 프리셋입니다.',
   'genre.kPop.pin.80': '서브가 아닌 킥의 펀치',
   'genre.kPop.pin.80.why':
     '킥이 착지되는 곳; 50Hz 미만에서는 아무것도 들리지 않습니다.',
   'genre.kPop.pin.315': '촘촘하게 배열된 공간',
-  'genre.kPop.pin.315.why': '레이어가 흐릿해지지 않도록 중저음이 지워졌습니다.',
+  'genre.kPop.pin.315.why':
+    '중저역을 가볍게 줄여 여러 소리를 정리하면서 보컬의 두께를 유지합니다.',
   'genre.kPop.pin.12500': '추가 공기 없음',
-  'genre.kPop.pin.12500.why': '보컬은 이미 12kHz에서 자체적으로 전달됩니다.',
+  'genre.kPop.pin.12500.why':
+    '고음을 더 올리지 않고 녹음 본래의 공기감을 유지합니다.',
+  'genre.kPop.stage.deEsser':
+    '중앙 보컬의 5~10 kHz를 최대 1.5 dB로 부드럽게 디에싱하며 심벌을 보호하고 저음은 줄이지 않습니다.',
   'genre.kPop.stage.exciter':
-    '보컬 자체의 리프트 아래에 바디와 존재감이 있고 그 위에는 아무 것도 없습니다.',
+    '중저역에 약간의 온기만 더합니다. 세 하모닉 밴드는 모두 꺼서 겹쳐진 보컬을 선명하게 유지합니다.',
   'genre.kPop.stage.dimension':
-    '베이스는 좁아졌고, 더블과 패드는 믹스된 것보다 조금 더 넓어졌습니다.',
+    '베이스 폭을 줄이고 기존 고역의 좌우 폭만 약간 넓혀, 중앙 리드 보컬은 퍼뜨리지 않습니다.',
   'genre.kPop.stage.maximizer':
-    '간신히 움직이는 천장: 이 마스터는 마스터만큼 시끄럽습니다.',
+    '−18 LUFS 정규화 후 7 dB를 더해 약 −11 LUFS를 목표로 하고 피크는 −1 dBTP로 제한합니다. Dynamics와 Master는 꺼 둡니다.',
   'genre.kPop.off':
     'Bass Punch 또는 Bass Forge 없음: 킥의 펀치와 서브가 이미 기록에 있습니다.',
   'genre.jPop.hook': '어떤 템포에서도 조밀하고 밝은 벽',

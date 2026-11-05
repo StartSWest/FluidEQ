@@ -70,20 +70,23 @@ const genrePop = {
   'genre.newWave.stage.maximizer': '一個只吸引人的天花板：快照就是流派。',
   'genre.newWave.off':
     '沒有 Bass Punch 或 Bass Forge：精實底部就是它的製作方式。',
-  'genre.kPop.hook': '最響亮、最精美的唱片之一',
+  'genre.kPop.hook': '清晰人聲、緊實低頻與有力的高潮',
   'genre.kPop.story':
-    '女團舞曲多在 115 至 130 BPM，男團歌曲則常接近 80 至 100 BPM。大鼓強調極低頻衝擊，人聲在 3 至 5 kHz 和 12 kHz 通常已經提升。母帶約為 −10 至 −6 LUFS，峰值往往超過滿刻度。',
+    'BTS 的 Dynamite 以迪斯可流行貝斯為特色，BLACKPINK 的 How You Like That 則有厚重的嘻哈段落。兩首歌都需要清晰人聲、份量和強弱對比。處理前將輸入統一到 −18 LUFS。本聆聽預設依據兩首歌的 Apple 官方試聽片段校準，未使用耳機補償。',
   'genre.kPop.pin.80': '是踢拳，而不是子拳',
   'genre.kPop.pin.80.why': '踢球落地的地方； 50 Hz 以下沒有任何物體被提升。',
   'genre.kPop.pin.315': '密集排列下的空間',
-  'genre.kPop.pin.315.why': '中低頻已清除，因此各層不會模糊。',
+  'genre.kPop.pin.315.why': '輕削中低頻以分開密集層次，同時保留人聲厚度。',
   'genre.kPop.pin.12500': '沒有額外的空氣',
-  'genre.kPop.pin.12500.why': '人聲已經帶有 12 kHz 的聲音。',
+  'genre.kPop.pin.12500.why': '不再額外提升高頻，保留錄音本來的空氣感。',
+  'genre.kPop.stage.deEsser':
+    '對中央人聲的 5–10 kHz 進行溫和的頻譜去齒音，最多衰減 1.5 dB，保護鈸聲且不削減低頻。',
   'genre.kPop.stage.exciter':
-    '身體和臨場感都在人聲自身的提升之下，而上面什麼都沒有。',
-  'genre.kPop.stage.dimension': '低音變窄，雙音和低音比混合後稍寬。',
+    '僅在中低頻添加少許溫暖感。三個諧波頻段全部關閉，保持疊加人聲清晰。',
+  'genre.kPop.stage.dimension':
+    '收窄低頻，略微展開錄音既有的高頻側聲道，不擴散中央主唱。',
   'genre.kPop.stage.maximizer':
-    '天花板幾乎無法驅動：這些大師的聲音與大師一樣響亮。',
+    '輸入正規化至 −18 LUFS 後提升 7 dB，目標約為 −11 LUFS，峰值限制在 −1 dBTP。Dynamics 和 Master 保持關閉。',
   'genre.kPop.off':
     '沒有 Bass Punch 或 Bass Forge：踢擊和重低音喇叭已在記錄中。',
   'genre.jPop.hook': '任何節奏的密集、明亮的牆壁',

@@ -184,7 +184,7 @@ describe('the chains that de-ess', () => {
   it('every other chain leaves the De-esser off', () => {
     DSP_PRESETS.filter(
       (preset) =>
-        !['speech', 'podcast', 'audiobook', 'pop'].includes(preset.id),
+        !['speech', 'podcast', 'audiobook', 'pop', 'kPop'].includes(preset.id),
     ).forEach((preset) => {
       expect({ id: preset.id, on: preset.settings.deEsser.enabled }).toEqual({
         id: preset.id,

@@ -142,8 +142,18 @@ const STYLES: readonly (readonly [string, readonly number[]])[] = [
     ],
   ],
   [
+    // 2026-11-04, Dynamite and How You Like That (official Apple previews):
+    // the former 2.4/2.2 dB low-mid cuts removed vocal body while 3-8 kHz
+    // gained over a decibel in the full chain. Smaller moves retain that
+    // body and the records' sheen. Kick weight at 80-125 Hz gives this
+    // listening voicing an audible character without vocal-band harmonics.
+    // Upper mids stay near flat and 8 kHz is eased to avoid glare on the
+    // stacked vocals. The nearly flat sub compensates only for the 80 Hz
+    // bell's skirt; it adds no new sub. See iZotope's gain-matched whole-mix
+    // guidance, not a purported genre EQ standard:
+    // https://www.izotope.com/community/blog/how-to-eq-your-master
     'kPop',
-    [-0.9, -0.1, 1.7, 0.6, -1.2, -2.4, -2.2, -1, 0.1, 0.6, 1.3, 1.4, 1, 0, 0],
+    [-0.1, -0.35, 2, 0.9, -0.5, -1.1, -0.9, -0.3, 0, 0.1, 0, 0, -0.2, 0, 0],
   ],
   [
     'jPop',

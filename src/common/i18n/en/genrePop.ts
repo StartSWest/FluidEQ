@@ -86,22 +86,26 @@ const genrePop = {
   'genre.newWave.off':
     'No Bass Punch or Bass Forge: the lean bottom is how it was made.',
 
-  'genre.kPop.hook': 'Among the loudest, most polished records made',
+  'genre.kPop.hook': 'Clear vocals, tight bass and a powerful drop',
   'genre.kPop.story':
-    'Girl-group dance tracks at 115 to 130 BPM and boy-group songs nearer 80 to 100, with a kick built for sub punch and a vocal already lifted at 3 to 5 kHz and at 12 kHz. The masters sit at −10 to −6 LUFS with peaks over full scale.',
+    'BTS’s Dynamite brings disco-pop bass; BLACKPINK’s How You Like That brings a heavy hip-hop drop. Both need clear vocals, weight and contrast. Input meets at −18 LUFS before processing. This listening preset was calibrated on their official Apple previews, without headphone correction.',
   'genre.kPop.pin.80': 'The kick’s punch, not sub',
   'genre.kPop.pin.80.why':
     'Where the kick lands; nothing is lifted under 50 Hz.',
   'genre.kPop.pin.315': 'Space under a dense arrangement',
-  'genre.kPop.pin.315.why': 'Low-mids cleared so the layers do not blur.',
+  'genre.kPop.pin.315.why':
+    'A gentle low-mid cut clears the layers while keeping the vocal’s body.',
   'genre.kPop.pin.12500': 'No extra air',
-  'genre.kPop.pin.12500.why': 'The vocal already carries its own at 12 kHz.',
+  'genre.kPop.pin.12500.why':
+    'Keeps the record’s own air without an added treble boost.',
+  'genre.kPop.stage.deEsser':
+    'Gentle spectral de-essing in the centred vocal from 5 to 10 kHz, capped at 1.5 dB, with cymbal protection and no bass reduction.',
   'genre.kPop.stage.exciter':
-    'Body and presence under the vocal’s own lifts, and nothing on the top.',
+    'A little low-mid warmth only. All three harmonic bands stay off, keeping the stacked vocals clear.',
   'genre.kPop.stage.dimension':
-    'The bass narrowed, and the doubles and pads a little wider than they were mixed.',
+    'Narrows the bass and slightly opens the recorded treble sides, without spreading the centred lead vocal.',
   'genre.kPop.stage.maximizer':
-    'A ceiling that barely drives: these masters are as loud as masters get.',
+    'Adds 7 dB after −18 LUFS normalization, aiming near −11 LUFS with peaks at −1 dBTP. Dynamics and Master stay off.',
   'genre.kPop.off':
     'No Bass Punch or Bass Forge: the kick’s punch and the sub are in the record already.',
 

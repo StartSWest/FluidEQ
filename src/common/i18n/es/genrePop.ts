@@ -89,23 +89,26 @@ export default {
   'genre.newWave.off':
     'Sin Pegada de graves ni Forja de graves: los graves delgados son como se hizo.',
 
-  'genre.kPop.hook': 'Entre los discos más fuertes y pulidos que se hacen',
+  'genre.kPop.hook': 'Voces claras, graves firmes y un drop potente',
   'genre.kPop.story':
-    'Temas de baile de grupos femeninos a 115–130 BPM y canciones de grupos masculinos más cerca de 80–100, con un bombo hecho para la pegada del sub y una voz ya realzada entre 3 y 5 kHz y en 12 kHz. Los másters están entre −10 y −6 LUFS con picos por encima de la escala completa.',
+    'Dynamite de BTS aporta un bajo disco-pop; How You Like That de BLACKPINK, un drop hip-hop contundente. Ambas necesitan voces claras, cuerpo y contraste. La entrada se iguala a −18 LUFS antes del procesamiento. Este preset se calibró con sus avances oficiales de Apple, sin corrección de auriculares.',
   'genre.kPop.pin.80': 'La pegada del bombo, no el sub',
   'genre.kPop.pin.80.why':
     'Donde cae el bombo; nada se levanta por debajo de 50 Hz.',
   'genre.kPop.pin.315': 'Espacio bajo un arreglo denso',
   'genre.kPop.pin.315.why':
-    'Medios graves despejados para que las capas no se emborronen.',
+    'Un recorte suave de medios graves despeja las capas y conserva el cuerpo de la voz.',
   'genre.kPop.pin.12500': 'Sin aire extra',
-  'genre.kPop.pin.12500.why': 'La voz ya trae el suyo en 12 kHz.',
+  'genre.kPop.pin.12500.why':
+    'Conserva el aire de la grabación sin añadir realce de agudos.',
+  'genre.kPop.stage.deEsser':
+    'De-essing espectral suave en la voz central entre 5 y 10 kHz, limitado a 1,5 dB, con protección de platillos y sin reducir los graves.',
   'genre.kPop.stage.exciter':
-    'Cuerpo y presencia por debajo de los realces de la propia voz, y nada en los agudos.',
+    'Solo un poco de calidez en los medios graves. Las tres bandas de armónicos permanecen apagadas para mantener claras las voces superpuestas.',
   'genre.kPop.stage.dimension':
-    'Los graves más estrechos, y los dobles y los pads un poco más abiertos de lo que se mezclaron.',
+    'Estrecha los graves y abre ligeramente los laterales de agudos existentes, sin ensanchar la voz principal centrada.',
   'genre.kPop.stage.maximizer':
-    'Un techo que apenas empuja: estos másters son tan fuertes como puede serlo un máster.',
+    'Añade 7 dB tras normalizar a −18 LUFS, buscando cerca de −11 LUFS con picos a −1 dBTP. Dynamics y Master permanecen apagados.',
   'genre.kPop.off':
     'Sin Pegada de graves ni Forja de graves: la pegada del bombo y el sub ya están en el disco.',
 

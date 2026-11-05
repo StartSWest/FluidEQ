@@ -92,23 +92,26 @@ export default {
   'genre.newWave.off':
     'Ni Punch des basses ni Forge de basses : le bas maigre est voulu.',
 
-  'genre.kPop.hook': 'Parmi les disques les plus forts et les plus polis',
+  'genre.kPop.hook': 'Voix nettes, basses fermes et drop puissant',
   'genre.kPop.story':
-    'Des titres dansants de girl groups entre 115 et 130 BPM et des chansons de boy bands plutôt vers 80 à 100, avec une grosse caisse taillée pour l’impact du sub et une voix déjà relevée entre 3 et 5 kHz et à 12 kHz. Les masters sont entre −10 et −6 LUFS avec des crêtes au-delà de la pleine échelle.',
+    'Dynamite de BTS apporte une basse disco-pop ; How You Like That de BLACKPINK, un drop hip-hop puissant. Les deux demandent des voix claires, du corps et du contraste. Le niveau d’entrée est aligné à −18 LUFS avant traitement. Ce preset d’écoute a été réglé sur leurs extraits Apple officiels, sans correction de casque.',
   'genre.kPop.pin.80': 'L’impact de la grosse caisse, pas le sub',
   'genre.kPop.pin.80.why':
     'Là où frappe la grosse caisse ; rien n’est relevé sous 50 Hz.',
   'genre.kPop.pin.315': 'De l’espace sous un arrangement dense',
   'genre.kPop.pin.315.why':
-    'Les bas-médiums dégagés pour que les couches ne se brouillent pas.',
+    'Une légère réduction des bas médiums dégage les couches tout en gardant le corps de la voix.',
   'genre.kPop.pin.12500': 'Pas d’air en plus',
-  'genre.kPop.pin.12500.why': 'La voix apporte déjà le sien à 12 kHz.',
+  'genre.kPop.pin.12500.why':
+    'Conserve l’air de l’enregistrement sans ajouter de renfort dans les aigus.',
+  'genre.kPop.stage.deEsser':
+    'De-essing spectral doux sur la voix centrale de 5 à 10 kHz, limité à 1,5 dB, avec protection des cymbales et sans réduction des basses.',
   'genre.kPop.stage.exciter':
-    'Du corps et de la présence sous les accentuations de la voix elle-même, et rien dans les aigus.',
+    'Une touche de chaleur dans les bas médiums uniquement. Les trois bandes harmoniques restent coupées pour garder les voix superposées nettes.',
   'genre.kPop.stage.dimension':
-    'Le bas resserré, et les doublages et les nappes un peu plus larges qu’au mixage.',
+    'Resserre les basses et ouvre légèrement les côtés aigus existants, sans élargir la voix principale centrée.',
   'genre.kPop.stage.maximizer':
-    'Un plafond qui pousse à peine : ces masters sont aussi forts qu’un master peut l’être.',
+    'Ajoute 7 dB après normalisation à −18 LUFS, pour viser environ −11 LUFS avec des crêtes à −1 dBTP. Dynamics et Master restent désactivés.',
   'genre.kPop.off':
     'Ni Punch des basses ni Forge de basses : le punch du kick et le sub sont déjà dans le disque.',
 
