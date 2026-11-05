@@ -301,16 +301,66 @@ describe('the song shelf', () => {
   );
 
   it('ranks a search exactly as searchTracks does', () => {
-    ['leo', 'nsync', 'blue', 'ELAN', "n'sync", 'pop', 'zz'].forEach(
-      (search) => {
-        const ids = trackIdsOf(
-          all({ shelf: 'tracks', scope: {}, search, direction: 'asc' }),
-        );
-        expect(ids).toEqual(
-          searchTracks(TRACKS, search).map((track) => track.id),
-        );
-      },
+    [
+      'leo',
+      'nsync',
+      'blue',
+      'ELAN',
+      "n'sync",
+      'pop',
+      'milesdavis',
+      'kindofblue',
+      'miles-davis',
+      'zz',
+    ].forEach((search) => {
+      const ids = trackIdsOf(
+        all({ shelf: 'tracks', scope: {}, search, direction: 'asc' }),
+      );
+      expect(ids).toEqual(
+        searchTracks(TRACKS, search).map((track) => track.id),
+      );
+    });
+  });
+
+  it('finds compact names in persisted tags without changing grouping keys', () => {
+    const normal = trackIdsOf(
+      all({
+        shelf: 'tracks',
+        scope: {},
+        search: 'Miles Davis',
+        direction: 'asc',
+      }),
     );
+    expect(normal.length).toBeGreaterThan(0);
+    expect(
+      trackIdsOf(
+        all({
+          shelf: 'tracks',
+          scope: {},
+          search: 'milesdavis',
+          direction: 'asc',
+        }),
+      ),
+    ).toEqual(normal);
+    const album = trackIdsOf(
+      all({
+        shelf: 'tracks',
+        scope: {},
+        search: 'Kind of Blue',
+        direction: 'asc',
+      }),
+    );
+    expect(album.length).toBeGreaterThan(0);
+    expect(
+      trackIdsOf(
+        all({
+          shelf: 'tracks',
+          scope: {},
+          search: 'kindofblue',
+          direction: 'asc',
+        }),
+      ),
+    ).toEqual(album);
   });
 
   it('narrows to the folder the reader stands in, and only it', () => {

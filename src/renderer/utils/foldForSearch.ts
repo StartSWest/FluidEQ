@@ -13,12 +13,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * decompose and do not need to, and are kept as they are rather than dropped,
  * so a name in Chinese or Russian can still be found by typing it.
  */
-const foldForSearch = (text: string) =>
-  text
-    .normalize('NFD')
-    // Written as escapes because the literal range is four invisible combining
-    // marks, which look like a typo and get "tidied" into one.
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
+import { foldSearchText } from '../../common/searchText';
 
-export default foldForSearch;
+export default foldSearchText;

@@ -498,14 +498,17 @@ const scoreField = (
   // library holding `Nsync`, `N'Sync` and `*NSYNC` should answer all three to
   // any of them, and a reader typing the plain spelling should not have to
   // know which punctuation the tagger reached for.
-  const folded = normalizeForGrouping(value);
-  if (folded === needle) {
+  // Search can ignore spaces without merging the albums/artists whose keys
+  // deliberately retain them. SQLite's scoreSql uses the same comparison.
+  const folded = normalizeForGrouping(value).replace(/ /g, '');
+  const compactNeedle = needle.replace(/ /g, '');
+  if (folded === compactNeedle) {
     return exact;
   }
-  if (folded.startsWith(needle)) {
+  if (folded.startsWith(compactNeedle)) {
     return prefix;
   }
-  return folded.includes(needle) ? anywhere : 0;
+  return folded.includes(compactNeedle) ? anywhere : 0;
 };
 
 export const searchScore = (track: ILibraryTrack, needle: string): number => {

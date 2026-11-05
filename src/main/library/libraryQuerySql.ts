@@ -81,14 +81,18 @@ export const scopeConditions = (
 };
 
 /** `searchScore`, in SQL, over the folded columns `libraryStoreRows` wrote. */
-export const scoreSql = (needle: string): string => {
+export const scoreSql = (query: string): string => {
+  // These columns also back stable grouping keys. Compact only comparisons;
+  // changing stored spellings would merge distinct albums and artists.
+  const needle = `replace(${query}, ' ', '')`;
+  const title = "replace(t.fold_title, ' ', '')";
   const prefixOrAnywhere = (column: string, prefix: number, anywhere: number) =>
-    `CASE WHEN substr(${column}, 1, length(${needle})) = ${needle} THEN ${prefix}
-          WHEN instr(${column}, ${needle}) > 0 THEN ${anywhere} ELSE 0 END`;
+    `CASE WHEN substr(replace(${column}, ' ', ''), 1, length(${needle})) = ${needle} THEN ${prefix}
+          WHEN instr(replace(${column}, ' ', ''), ${needle}) > 0 THEN ${anywhere} ELSE 0 END`;
   return `MAX(
-    CASE WHEN t.fold_title = ${needle} THEN 100
-         WHEN substr(t.fold_title, 1, length(${needle})) = ${needle} THEN 80
-         WHEN instr(t.fold_title, ${needle}) > 0 THEN 40 ELSE 0 END,
+    CASE WHEN ${title} = ${needle} THEN 100
+         WHEN substr(${title}, 1, length(${needle})) = ${needle} THEN 80
+         WHEN instr(${title}, ${needle}) > 0 THEN 40 ELSE 0 END,
     ${prefixOrAnywhere('t.fold_artist', 70, 30)},
     ${prefixOrAnywhere('t.fold_album_artist', 70, 30)},
     ${prefixOrAnywhere('t.fold_album', 60, 20)}

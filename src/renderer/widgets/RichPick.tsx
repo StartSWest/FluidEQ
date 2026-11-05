@@ -14,7 +14,7 @@ import {
   useState,
 } from 'react';
 import { useTranslation } from '../utils/I18nContext';
-import foldForSearch from '../utils/foldForSearch';
+import { searchMatcher } from '../../common/searchText';
 import Glyph from '../community/Glyph';
 import Chevron from '../icons/Chevron';
 import MenuIcon from '../icons/MenuIcon';
@@ -293,17 +293,17 @@ const RichPick = ({
   }, []);
 
   const matches = useMemo(() => {
-    const needle = foldForSearch(query.trim());
-    if (!needle) {
+    if (!query.trim()) {
       return entries;
     }
     // The group heading counts as part of every entry under it, so typing
     // "genre" brings back the genres — the heading is on screen next to the
     // names and reads as something you can search for.
+    const matchesQuery = searchMatcher(query);
     return entries.filter((entry) =>
-      foldForSearch(
-        `${entry.name} ${entry.hint} ${groupLabel(entry.group)}`,
-      ).includes(needle),
+      matchesQuery(
+        `${entry.name} ${entry.hint} ${entry.id} ${groupLabel(entry.group)}`,
+      ),
     );
   }, [entries, groupLabel, query]);
 

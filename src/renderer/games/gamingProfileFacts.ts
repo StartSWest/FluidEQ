@@ -21,6 +21,7 @@ import {
   FOOTSTEPS_MAX_LIFT_DB,
   VOICES_MAX_LIFT_DB,
 } from '../../common/dsp/footsteps';
+import { searchMatcher } from '../../common/searchText';
 import {
   IFootstepsPreset,
   isGameRoom,
@@ -201,18 +202,12 @@ export const yoursProfileFacts = (
  * Lower case and without accents, so "pokemon" finds "Pokémon" and "ÉTÉ"
  * finds "été" in any language the page is in.
  */
-export const searchFold = (text: string): string =>
-  text.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase();
+export { foldSearchText as searchFold } from '../../common/searchText';
 
 /** Whether every word of a search stands somewhere in a card's words. */
 export const matchesSearch = (
   words: readonly string[],
   query: string,
 ): boolean => {
-  const asked = searchFold(query).split(/\s+/).filter(Boolean);
-  if (asked.length === 0) {
-    return true;
-  }
-  const haystack = searchFold(words.join(' '));
-  return asked.every((word) => haystack.includes(word));
+  return searchMatcher(query)(words.join(' '));
 };

@@ -3,6 +3,7 @@
 import type { HelpChapterId, IHelpChapter } from 'common/helpGuide';
 import { translate, type LocaleCode, type TranslationKey } from 'common/i18n';
 import { helpSearchTerms } from './helpSearchTerms';
+import joinedHelpWords from './helpJoinedSearchWords';
 
 /**
  * The guide's search.
@@ -379,15 +380,22 @@ const indexChapter = (
     anchor: string,
     text: string,
     english: string,
-  ) =>
+  ) => {
+    const labelWords = (value: string, language: LocaleCode) => {
+      const words = wordsOf(value, language);
+      return ['title', 'controlName', 'term', 'keyword'].includes(kind)
+        ? [...words, ...joinedHelpWords(value, words)]
+        : words;
+    };
     add({
       chapter: number,
       kind,
       anchor,
       text,
-      words: wordsOf(text, locale),
-      english: inEnglish ? wordsOf(english, 'en') : [],
+      words: labelWords(text, locale),
+      english: inEnglish ? labelWords(english, 'en') : [],
     });
+  };
   const both = (kind: THelpPassageKind, anchor: string, key: TranslationKey) =>
     piece(kind, anchor, translate(locale, key), translate('en', key));
 

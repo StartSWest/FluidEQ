@@ -9,6 +9,11 @@ import {
   type IForumTopicSummary,
   type TForumPostKind,
 } from '../../common/forum/forumTypes';
+import {
+  compactSearchText,
+  matchesSearchTerms,
+  searchTerms,
+} from '../../common/searchText';
 import type { IForumConfig } from './forumConfig';
 import ForumError from './forumError';
 import type { IForumFeedSource } from './forumFeed';
@@ -117,11 +122,17 @@ const summaryOf = (topic: IForumTopic): IForumTopicSummary => ({
   ...(topic.issue ? { issue: topic.issue } : {}),
 });
 
-const matchesWords = (topic: IForumTopic, words: string[]): boolean => {
-  const haystack = `${topic.title} ${topic.excerpt} ${topic.post.bodyHtml}`
-    .replace(/<[^>]*>/g, ' ')
-    .toLowerCase();
-  return words.every((word) => haystack.includes(word));
+const matchesWords = (
+  topic: IForumTopic,
+  words: readonly string[],
+): boolean => {
+  const haystack = compactSearchText(
+    `${topic.title} ${topic.excerpt} ${topic.post.bodyHtml}`.replace(
+      /<[^>]*>/g,
+      ' ',
+    ),
+  );
+  return matchesSearchTerms(haystack, words);
 };
 
 /** The feed has every topic, so a page is a slice and the cursor an offset. */
@@ -129,10 +140,7 @@ const feedPage = (
   topics: readonly IForumTopic[],
   query: IForumTopicQuery,
 ): IForumTopicPage => {
-  const words = searchWords(query.search)
-    .toLowerCase()
-    .split(' ')
-    .filter(Boolean);
+  const words = searchTerms(searchWords(query.search));
   const matching = topics
     .filter((topic) => {
       if (words.length) {
