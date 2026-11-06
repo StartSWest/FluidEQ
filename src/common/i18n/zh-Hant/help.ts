@@ -330,7 +330,7 @@ const help = {
   'help.dsp.keywords':
     '效果，fx，音訊效果，機架，鏈，外掛，限制器，響度，標準化器，水平器，音量調節，激勵器，諧波，增強器，立體聲加寬器，加寬，立體聲寬度，低音增強器，低音，分諧波，打孔，瞬態，母帶處理，剪輯，峰值限制器，交叉淡入淡出，無間隙，齒音消除器，去嘶聲，嘶嘶聲，刺耳的聲音，尖銳的聲音，ess，聲音，語音、播客、設定檔、儲存設定檔, 腳步聲, 聽腳步, footsteps, 遊戲, 遊戲音效, 換彈, 響度均衡, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    '逐首歌曲平衡響度。True Peak 為每首歌設定一個增益，而非持續限制整首歌。預設組中的正規化器保持關閉，直到您手動開啟。',
+    '音樂預設會在效果處理前啟用響度正規化；「無」保持關閉。匹配較響的片段，同時保留較輕的片段。真峰值只降低峰值。',
   'help.dsp.denoise':
     '修復嘶嘶聲、嗡嗡聲和咔噠聲。神經語音清理器適用於庫曲目。',
   'help.dsp.exciter': '加入身體和空氣的和聲。',

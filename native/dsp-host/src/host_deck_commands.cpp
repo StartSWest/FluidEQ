@@ -90,8 +90,8 @@ bool load_deck(HostState& state, const FeqWireCommandFrame& frame) {
     // under this one's gain. The spare deck being readied while the
     // other plays is neither (`feq_player_deck_audible`): the song
     // playing keeps its tail and its dynamics.
-    if (heard && state.chain != nullptr) {
-      feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SOURCE_CHANGE);
+    if (heard) {
+      loaded = publish_host_chain(state, false);
     }
   }
   // The deck it landed on, which the app has to address from here on;
@@ -140,8 +140,8 @@ void seek_deck(HostState& state, const FeqWireCommandFrame& frame) {
   state.decoder_bell.ring();
   // Cueing the spare deck to its lead-in while the other plays is not
   // a jump in what is heard (see LOAD_DECK).
-  if (sought && heard && state.chain != nullptr) {
-    feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SEEK);
+  if (sought && heard) {
+    sought = publish_host_chain(state, false);
   }
   send_ack(frame.request_id,
            sought ? FEQ_WIRE_APPLIED : FEQ_WIRE_REJECTED,
@@ -150,6 +150,7 @@ void seek_deck(HostState& state, const FeqWireCommandFrame& frame) {
 
 /** SELECT_DECK: a deck made the one heard, by a cut. */
 void select_deck(HostState& state, const FeqWireCommandFrame& frame) {
+  bool applied = true;
   if (state.player != nullptr) {
     const auto deck = static_cast<uint32_t>(frame.parameter_index);
     // A cut to a deck that was not being heard puts a new source on
@@ -159,19 +160,21 @@ void select_deck(HostState& state, const FeqWireCommandFrame& frame) {
     const bool cut = deck < FEQ_PLAYER_DECKS &&
                      feq_player_deck_audible(state.player, deck) == 0;
     feq_player_select(state.player, deck);
-    if (cut && state.chain != nullptr) {
-      feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SOURCE_CHANGE);
+    if (cut) {
+      applied = publish_host_chain(state, false);
     }
     took_the_path(state, deck);
     // Which may have readied the next track onto the deck this left.
     state.decoder_bell.ring();
   }
-  send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
+  send_ack(frame.request_id, applied ? FEQ_WIRE_APPLIED : FEQ_WIRE_REJECTED,
+           frame.settings_revision, 0,
            0.0);
 }
 
 /** CROSSFADE: a fade to a deck, or at no length a cut. */
 void crossfade(HostState& state, const FeqWireCommandFrame& frame) {
+  bool applied = true;
   if (state.player != nullptr) {
     const auto to_deck = static_cast<uint32_t>(frame.parameter_index);
     // A fade of no length is a cut (`feq_player_start_crossfade`), and
@@ -188,13 +191,14 @@ void crossfade(HostState& state, const FeqWireCommandFrame& frame) {
             ? static_cast<FeqCrossfadeCurve>(frame.parameter_id)
             : FEQ_CROSSFADE_EQUAL_POWER;
     feq_player_start_crossfade(state.player, to_deck, frame.value, curve);
-    if (cut && state.chain != nullptr) {
-      feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SOURCE_CHANGE);
+    if (cut) {
+      applied = publish_host_chain(state, false);
     }
     took_the_path(state, to_deck);
     state.decoder_bell.ring();
   }
-  send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
+  send_ack(frame.request_id, applied ? FEQ_WIRE_APPLIED : FEQ_WIRE_REJECTED,
+           frame.settings_revision, 0,
            frame.value);
 }
 
@@ -230,10 +234,7 @@ bool set_track_gains(HostState& state, const FeqWireCommandFrame& frame) {
   if (!read_exact(gains, sizeof(gains))) {
     return false;
   }
-  if (state.chain != nullptr) {
-    feq_chain_set_track_level_gains(state.chain, gains[0], gains[1],
-                                    frame.parameter_id != 0 ? 1 : 0);
-  }
+  state.track_gains.publish(gains[0], gains[1], frame.parameter_id != 0);
   send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
            gains[0]);
   return true;

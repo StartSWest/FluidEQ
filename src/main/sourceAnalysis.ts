@@ -87,8 +87,10 @@ export const formatSourceAnalysis = (
   voice: ISourceVoicePaths | undefined,
 ): string =>
   [
-    '# FluidEQ source analysis v1',
-    'version=1',
+    '# FluidEQ source analysis',
+    // A host-owned rack must remain readable by an older output engine so it
+    // bypasses its own DSP instead of processing the Library a second time.
+    `version=${publication.library && publication.owner === 'engine' && update.analysis?.version === 3 ? 2 : 1}`,
     `kind=${publication.library ? 'library' : 'live'}`,
     `owner=${publication.owner}`,
     `source=${update.trackId ? createHash('sha256').update(update.trackId).digest('hex').slice(0, 16) : '0000000000000000'}`,
@@ -99,6 +101,11 @@ export const formatSourceAnalysis = (
       ? [
           `level=${update.analysis.integratedLufs}`,
           `peak=${update.analysis.truePeakDbtp}`,
+          ...(publication.owner === 'engine' &&
+          update.analysis.version === 3 &&
+          update.analysis.maxShortTermLufs !== undefined
+            ? [`reference=${update.analysis.maxShortTermLufs}`]
+            : []),
           ...(update.analysis.noise
             ? [`noise=${encodeNoiseProfile(update.analysis.noise).join(' ')}`]
             : []),

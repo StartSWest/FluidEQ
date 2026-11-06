@@ -149,7 +149,7 @@ const dsp = {
 
   'dsp.normalizer.title': 'Normalizer',
   'dsp.normalizer.description':
-    'Measures the complete source once, then applies one stereo-linked gain before the Exciter and EQ. No pumping and no moving RMS follower.',
+    'Matches the loudest three-second passages before the creative stages, within peak and gain limits. Quiet passages keep their relative level. Library measures the file; Live learns as it plays.',
   'dsp.normalizer.mode': 'Normalization mode',
   'dsp.normalizer.off': 'Off',
   'dsp.normalizer.truePeak': 'True Peak',
@@ -162,6 +162,7 @@ const dsp = {
     'This source could not be analyzed. It is playing at its original level.',
   'dsp.normalizer.waiting': 'Play a Library track to measure it.',
   'dsp.normalizer.measuredPeak': 'Measured peak',
+  'dsp.normalizer.foregroundLoudness': 'Foreground loudness',
   'dsp.normalizer.measuredLoudness': 'Integrated loudness',
   'dsp.normalizer.appliedGain': 'Applied gain',
   'dsp.normalizer.limitedByCeiling':

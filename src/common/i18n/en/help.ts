@@ -371,7 +371,7 @@ const help = {
   'help.dsp.keywords':
     'effects, fx, audio effects, rack, chain, plugins, limiter, loudness, normalizer, leveler, volume leveling, exciter, harmonics, enhancer, stereo widener, widen, stereo width, bass enhancer, sub bass, subharmonic, punch, transient, mastering, clipping, peak limiter, crossfade, gapless, de-esser, deesser, sibilance, harsh s, sharp s, ess, voice, speech, podcast, profiles, save profile, footsteps, footstep, hear footsteps, steps, gaming, game audio, reloads, loudness equalization, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses',
   'help.dsp.normalizer':
-    'Evens out loudness song by song. True Peak sets one gain for each song instead of limiting it throughout. Presets leave the Normalizer off until you turn it on.',
+    'Music presets enable Loudness before the effects; None leaves it off. It matches louder passages while preserving quieter ones. True Peak only lowers peaks.',
   'help.dsp.denoise':
     'Repairs hiss, hum and clicks. The neural voice cleaner works on Library tracks.',
   'help.dsp.exciter': 'Adds harmonics for body and air.',

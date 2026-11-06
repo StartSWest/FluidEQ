@@ -37,8 +37,10 @@ import {
   ILibraryProgrammeEdges,
   ILibraryTrack,
 } from '../../../common/library/types';
+import { mergeNormalizationAnalysis } from '../../../common/library/normalization';
 import {
   analyzeInputTrack,
+  hasCurrentNormalization,
   masterLoudnessGainDb,
   normalizerGainDb,
 } from '../../dsp/inputNormalizer';
@@ -131,7 +133,7 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
     if (
       !next ||
       next.kind !== 'audio' ||
-      next.normalization ||
+      hasCurrentNormalization(next.normalization) ||
       analysisJobRef.current
     ) {
       return undefined;
@@ -147,7 +149,7 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
       if (!buffer || cancelled) {
         return;
       }
-      const analysis = await analyzeInputTrack(buffer, {
+      const measured = await analyzeInputTrack(buffer, {
         sampleRateHint: next.sampleRate,
         signal: controller.signal,
         // Yields to the playing track: if its loader starts a job mid-decode,
@@ -158,6 +160,12 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
         // not started reads as the current one having gone backwards.
         onProgress: () => undefined,
       });
+      const analysis = mergeNormalizationAnalysis(
+        measured,
+        next.normalization,
+        signature,
+        next,
+      );
       if (!analysis || cancelled) {
         return;
       }
@@ -191,7 +199,7 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
       (outputAnalysis ||
         dspSettings.normalizer.mode !== 'off' ||
         (dspSettings.master.enabled && dspSettings.master.loudnessMaximize)) &&
-      !track?.normalization;
+      !hasCurrentNormalization(track?.normalization);
     // A track already measured for loudness can still be missing its edges,
     // either because it was analyzed before they were measured at all or
     // because the crossfade was switched on after it started.
@@ -226,7 +234,7 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
       if (!buffer || cancelled) {
         return;
       }
-      const analysis = await analyzeInputTrack(buffer, {
+      const measured = await analyzeInputTrack(buffer, {
         sampleRateHint: track.sampleRate,
         signal: analysisJob.controller.signal,
         isCancelled: () => cancelled || analysisJobRef.current !== analysisJob,
@@ -240,6 +248,12 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
           }
         },
       });
+      const analysis = mergeNormalizationAnalysis(
+        measured,
+        track.normalization,
+        signature,
+        track,
+      );
       if (
         !analysis ||
         cancelled ||

@@ -369,7 +369,7 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.keywords':
     'ऑडियो इफ़ेक्ट्स, audio effects, fx, rack, plugins, presets, लिमिटर, limiter, वॉल्यूम बूस्टर, volume booster, loudness, normalizer, वॉल्यूम लेवलिंग, exciter, स्टीरियो वाइडनर, stereo widener, सब बास, sub bass, bass enhancer, मास्टरिंग, mastering, crossfade, डी-एसर, de-esser, सिबिलेंस, तीखा s, आवाज़, पॉडकास्ट, प्रोफ़ाइल, प्रोफ़ाइल सहेजें, कदमों की आहट, कदम, footsteps, गेमिंग, गेम ऑडियो, रीलोड, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    'गानों के बीच लाउडनेस बराबर करता है। True Peak लगातार लिमिट करने के बजाय हर गाने के लिए एक गेन तय करता है। प्रीसेट नॉर्मलाइज़र को बंद रखते हैं, जब तक आप उसे चालू न करें।',
+    'संगीत प्रीसेट इफ़ेक्ट से पहले लाउडनेस चालू करते हैं; कोई नहीं इसे बंद रखता है। तेज़ अंशों का स्तर मिलता है और शांत अंश सुरक्षित रहते हैं। True Peak केवल पीक घटाता है।',
   'help.dsp.denoise':
     'हिस, हम और क्लिक ठीक करता है। न्यूरल वॉइस क्लीनर लाइब्रेरी ट्रैकों पर काम करता है।',
   'help.dsp.exciter': 'भरापन और एयर देने के लिए हार्मोनिक्स जोड़ता है।',

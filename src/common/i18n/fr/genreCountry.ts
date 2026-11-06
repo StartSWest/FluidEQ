@@ -73,8 +73,6 @@ export default {
   'genre.bluegrass.pin.5000.why': 'Là où le picking scintille.',
   'genre.bluegrass.pin.12500': 'De l’air au-dessus des cordes',
   'genre.bluegrass.pin.12500.why': 'La pièce autour du groupe.',
-  'genre.bluegrass.stage.exciter':
-    'De l’air au-dessus du banjo et de la mandoline, une octave au-dessus du leur.',
   'genre.bluegrass.stage.dimension':
     'Conserve l’équilibre de largeur stéréo de ce genre sur tout le spectre. Aucune décorrélation n’est ajoutée à la voix centrée.',
   'genre.bluegrass.stage.deEsser':

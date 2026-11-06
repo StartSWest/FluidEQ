@@ -10,6 +10,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/oversample.h"
 #include "fluideq/primitives.h"
 
+#include <algorithm>
 #include <cmath>
 #include <vector>
 
@@ -137,6 +138,9 @@ struct FeqLoudnessAnalyzer {
   uint32_t block_frames = 1;
   uint32_t hop_frames = 1;
   double energy_sum = 0.0;
+  std::vector<double> short_window;
+  double short_sum = 0.0;
+  double max_short_energy = 0.0;
   double true_peak_magnitude = 0.0;
   uint64_t frame = 0;
 };
@@ -169,6 +173,7 @@ FeqLoudnessAnalyzer* feq_loudness_create(double sample_rate,
   analyzer->block_frames = rounded(sample_rate * 0.4);
   analyzer->hop_frames = rounded(sample_rate * 0.1);
   analyzer->energy_window.assign(analyzer->block_frames, 0.0);
+  analyzer->short_window.assign(30 * analyzer->hop_frames, 0.0);
   return analyzer;
 }
 
@@ -202,7 +207,14 @@ void feq_loudness_feed(FeqLoudnessAnalyzer* analyzer,
         static_cast<uint32_t>(analyzer->frame % analyzer->block_frames);
     analyzer->energy_sum += combined_energy - analyzer->energy_window[window_at];
     analyzer->energy_window[window_at] = combined_energy;
+    const size_t short_at = static_cast<size_t>(analyzer->frame % analyzer->short_window.size());
+    analyzer->short_sum += combined_energy - analyzer->short_window[short_at];
+    analyzer->short_window[short_at] = combined_energy;
     const uint64_t completed = analyzer->frame + 1;
+    if (completed >= analyzer->short_window.size() && completed % analyzer->hop_frames == 0) {
+      analyzer->max_short_energy = std::max(analyzer->max_short_energy,
+          analyzer->short_sum / static_cast<double>(analyzer->short_window.size()));
+    }
     if (completed >= analyzer->block_frames &&
         (completed - analyzer->block_frames) % analyzer->hop_frames == 0) {
       analyzer->block_energies.push_back(analyzer->energy_sum /
@@ -216,6 +228,7 @@ FeqLoudnessResult feq_loudness_finish(FeqLoudnessAnalyzer* analyzer) {
   FeqLoudnessResult result;
   result.integrated_lufs = FEQ_LOUDNESS_SILENCE_DB;
   result.true_peak_dbtp = FEQ_LOUDNESS_SILENCE_DB;
+  result.max_short_term_lufs = FEQ_LOUDNESS_SILENCE_DB;
   if (analyzer == nullptr) {
     return result;
   }
@@ -249,6 +262,9 @@ FeqLoudnessResult feq_loudness_finish(FeqLoudnessAnalyzer* analyzer) {
   result.integrated_lufs =
       integrated > FEQ_LOUDNESS_SILENCE_DB ? integrated
                                            : FEQ_LOUDNESS_SILENCE_DB;
+  result.max_short_term_lufs = analyzer->frame < analyzer->short_window.size()
+      ? result.integrated_lufs
+      : std::max(FEQ_LOUDNESS_SILENCE_DB, loudness_from_energy(analyzer->max_short_energy));
   return result;
 }
 

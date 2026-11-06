@@ -368,7 +368,7 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.keywords':
     'エフェクト, エフェクター, リミッター, 音量差, 音量自動調整, ノーマライズ, ラウドネスイコライゼーション, エンハンサー, ステレオ拡張, ステレオワイドナー, 重低音, サブベース, トランジェント, マスタリング, クリッピング, ギャップレス, DSPラック, ディエッサー, de-esser, 歯擦音, サ行, 鋭い s, 声, ポッドキャスト, プロファイル, プロファイル保存, 足音, 足音を聞く, footsteps, ゲーム, ゲーム音, リロード, ラウドネス等化, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    '曲ごとに音量をそろえます。True Peakは曲全体を制限し続ける代わりに、曲ごとに1つのゲインを決めます。プリセットでは、オンにするまでノーマライザーはオフです。',
+    '音楽プリセットはエフェクトの前でラウドネスを有効にし、「なし」はオフにします。強い区間を揃えながら静かな区間を保ちます。True Peakはピークだけを下げます。',
   'help.dsp.denoise':
     'ヒス、ハム、クリックを修復します。ニューラル音声クリーナーはライブラリの曲で働きます。',
   'help.dsp.exciter': '倍音を加えて、厚みと空気感を出します。',

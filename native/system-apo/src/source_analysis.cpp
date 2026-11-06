@@ -71,9 +71,10 @@ bool same_endpoint(const std::wstring& left, const std::wstring& right) {
 FeqChainSourceAnalysis SourceAnalysis::view() const noexcept {
   const bool voice = voice_available && voice_model_guard &&
                      !voice_model.empty() && !voice_runtime.empty();
-  return FeqChainSourceAnalysis{1, library ? 1 : 0, source, epoch, revision,
+  return FeqChainSourceAnalysis{wire_version, library ? 1 : 0, source, epoch, revision,
       has_level ? 1 : 0, level, peak, noise ? &*noise : nullptr,
-      voice ? voice_model.c_str() : nullptr, voice ? voice_runtime.c_str() : nullptr};
+      voice ? voice_model.c_str() : nullptr, voice ? voice_runtime.c_str() : nullptr,
+      reference.value_or(0)};
 }
 
 std::string SourceAnalysis::processing_identity() const {
@@ -92,12 +93,14 @@ std::string SourceAnalysis::processing_identity() const {
     out.append(buffer.data(), encoded.ptr);
   };
   integer_part(engine_owner ? 1 : 0);
+  integer_part(wire_version);
   integer_part(source);
   integer_part(epoch);
   integer_part(has_level ? 1 : 0);
   if (has_level) {
     number_part(level);
     number_part(peak);
+    if (reference) number_part(*reference);
   }
   integer_part(noise ? 1 : 0);
   if (noise) {
@@ -137,7 +140,8 @@ std::optional<SourceAnalysis> parse_source_analysis(std::string_view text) {
     const std::string_view value = line.substr(equals + 1);
     if (!seen.insert(key).second) return std::nullopt;
     if (key == "version") {
-      if (value != "1") return std::nullopt;
+      if (value != "1" && value != "2") return std::nullopt;
+      out.wire_version = value == "2" ? 2u : 1u;
     } else if (key == "kind") {
       if (value != "library" && value != "live") return std::nullopt;
       out.library = value == "library";
@@ -152,6 +156,10 @@ std::optional<SourceAnalysis> parse_source_analysis(std::string_view text) {
     } else if (key == "endpoint") {
       out.endpoint.assign(value.begin(), value.end());
       if (!endpoint_config_name(L"id", Endpoint{out.endpoint, {}})) return std::nullopt;
+    } else if (key == "reference") {
+      double reference = 0;
+      if (!number(value, reference) || reference < -120 || reference > 24) return std::nullopt;
+      out.reference = reference;
     } else if (key == "level" || key == "peak") {
       double& target = key == "level" ? out.level : out.peak;
       if (!number(value, target) || target < -120 || target > 24) return std::nullopt;
@@ -174,7 +182,9 @@ std::optional<SourceAnalysis> parse_source_analysis(std::string_view text) {
   for (const auto* key : {"version", "kind", "source", "epoch", "revision"}) {
     if (seen.count(key) == 0) return std::nullopt;
   }
-  if (out.has_level != has_peak ||
+  if (out.has_level != has_peak || (out.reference && !out.has_level) ||
+      (out.wire_version == 1 && out.reference) ||
+      (out.wire_version == 2 && out.has_level && !out.reference) ||
       (out.voice_available && out.voice_model.empty()) ||
       (!out.voice_available && !out.voice_model.empty()) ||
       (out.library && (out.source == 0 || out.endpoint.empty() || seen.count("owner") == 0))) {

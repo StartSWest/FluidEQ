@@ -140,7 +140,7 @@ const dsp = {
 
   'dsp.normalizer.title': 'Normaliseur',
   'dsp.normalizer.description':
-    "Mesure une fois la source complète, puis applique un gain stéréo lié avant l'Exciteur et l'EQ. Sans pompage ni suiveur RMS mobile.",
+    'Aligne les passages de trois secondes les plus forts avant les effets, dans les limites de crête et de gain. Les passages doux gardent leur niveau relatif. La Bibliothèque mesure le fichier ; le mode Direct apprend pendant la lecture.',
   'dsp.normalizer.mode': 'Mode de normalisation',
   'dsp.normalizer.off': 'Désactivé',
   'dsp.normalizer.truePeak': 'Crête vraie',
@@ -154,6 +154,7 @@ const dsp = {
   'dsp.normalizer.waiting':
     'Lisez un morceau de la Bibliothèque pour le mesurer.',
   'dsp.normalizer.measuredPeak': 'Crête mesurée',
+  'dsp.normalizer.foregroundLoudness': 'Sonie des passages forts',
   'dsp.normalizer.measuredLoudness': 'Sonie intégrée',
   'dsp.normalizer.appliedGain': 'Gain appliqué',
   'dsp.normalizer.limitedByCeiling':

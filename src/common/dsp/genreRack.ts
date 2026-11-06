@@ -30,11 +30,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *   one, and no further limiting to speak of. So most genres here run no
  *   Exciter, Bass Punch only tightens (a shorter tail, never a louder hit —
  *   a hit made louder is a peak the Maximizer then has to take back), and
- *   Dimension mostly folds the bottom to mono and leaves the picture alone.
- * - **The low end goes to mono**, in every genre built on a kick or a bass
- *   line: it is where cancellation costs the most and where no mix keeps
- *   anything worth placing. The rooms — jazz, classical, the acoustic
- *   styles — keep theirs, because a hall's bass arrives from everywhere.
+ *   Dimension uses a restrained width adjustment where the row asks for it.
+ * - **Stereo is a playback choice, not a genre requirement.** Some electronic
+ *   rows narrow the bass for translation to a summed sound system. That does
+ *   not establish that every mix is mono there or that its side has no value.
+ *   Piano, strings and ambient preserve the recording's low-frequency space.
  *
  * The numbers are the stage's own dials, in the order its card shows them;
  * `genres/*.ts` holds the rows, one family to a file.

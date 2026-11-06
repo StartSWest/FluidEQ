@@ -123,10 +123,21 @@ made for games.
   shape of bass notes and cut a kick's low end. Every chain now plays with
   far less distortion, its level moves less, and the rack adds 3 ms less
   delay.
-- **The Normalizer's True Peak mode** now sets one clean gain for each
-  song instead of limiting all the way through, and the Normalizer is off
-  in every preset until you turn it on.
-- These need the FluidEQ Engine 1.27. FluidEQ offers the engine update
+- **Music presets level songs consistently in Library and Live.** Their
+  Normalizer uses the loudest three-second passage as a common input level,
+  preserving quieter passages and leaving safe room before the final
+  Maximizer. Every genre is checked against two of its named reference songs.
+- **Cleaner music colour and gentle sibilance control.** Unneeded high-band
+  excitation is off; the remaining colour filters keep their harmonics in
+  their intended bands. Pop and K-pop retain their approved EQ curves.
+- **The Normalizer's True Peak mode** sets one clean gain for each song
+  instead of limiting all the way through. Source readings show whole-song
+  loudness separately from the loudest three-second passage, and older
+  Library measurements refresh without rescanning the whole collection.
+- **Library playback stays safe during DSP and output changes.** Finished
+  DSP changes take over between audio blocks, while device changes and
+  commands share one protected lifetime.
+- These need the FluidEQ Engine 1.29. FluidEQ offers the engine update
   after you install it.
 
 ### Share Audio, Forum and more
@@ -143,6 +154,9 @@ made for games.
   again quickly, without leaving an older capture running.
 - **Google sign-in cleans up a failed attempt** if the browser cannot open,
   so retrying does not leave unused sign-in connections behind.
+- **Karaoke guide vocals stay in sync on slower audio outputs.** Changing
+  their fader adjusts the gain without restarting the stem, and replacing a
+  stem stops the previous voice while the new one decodes.
 - **The Forum keeps what you were writing.** A reply or a new topic you
   leave half-written is still there when you come back to it.
 - **Every Forum board counts unseen activity.** Its yellow number shows

@@ -140,7 +140,6 @@ export default {
   'genre.chillout.pin.2000.why': '没有尖锐的东西。',
   'genre.chillout.pin.12500': '轻盈的空气感',
   'genre.chillout.pin.12500.why': '顶上的微光。',
-  'genre.chillout.stage.exciter': '只加一点轻盈的空气感。',
   'genre.chillout.stage.dimension': '高频更宽：在这里宽度是受欢迎的。',
   'genre.chillout.stage.deEsser':
     '以5至10 kHz范围内最高1.5 dB的窄带频谱衰减，控制中央人声刺耳的S和SH音，保护镲片并保持低音不变。',

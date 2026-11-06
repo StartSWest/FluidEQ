@@ -4,7 +4,7 @@ import { isNoiseProfile } from './noiseProfile';
 
 export const SOURCE_ANALYSIS_CHANNEL = 'dsp-source-analysis';
 export const SOURCE_ANALYSIS_FILE = 'fluideq-source-analysis.txt';
-export const SOURCE_ANALYSIS_VERSION = 1;
+export const SOURCE_ANALYSIS_VERSION = 2;
 
 /** Immutable source facts. Output settings and derived gains never cross it. */
 export interface ISourceAnalysisUpdate {
@@ -17,7 +17,7 @@ export interface ISourceAnalysisUpdate {
 }
 
 export interface IEngineSourceAnalysis {
-  version: 1;
+  version: 2;
   kind: 'library' | 'live';
   owner: 'host' | 'engine';
   epoch: number;
@@ -47,7 +47,7 @@ export const parseEngineSourceAnalysis = (
     return undefined;
   }
   return {
-    version: 1,
+    version: 2,
     kind: v.kind,
     owner: v.owner,
     epoch: Number(v.epoch),
@@ -88,7 +88,8 @@ export const copySourceAnalysisUpdate = (
     a !== undefined &&
     (typeof a !== 'object' ||
       a === null ||
-      a.version !== 2 ||
+      (a.version !== 2 && a.version !== 3) ||
+      (a.version === 3 && !level(a.maxShortTermLufs)) ||
       !level(a.integratedLufs) ||
       !level(a.truePeakDbtp) ||
       (a.noise !== undefined && !isNoiseProfile(a.noise)))
@@ -104,9 +105,12 @@ export const copySourceAnalysisUpdate = (
     ...(a
       ? {
           analysis: {
-            version: 2,
+            version: a.version,
             integratedLufs: a.integratedLufs,
             truePeakDbtp: a.truePeakDbtp,
+            ...(a.version === 3
+              ? { maxShortTermLufs: a.maxShortTermLufs }
+              : {}),
             ...(a.noise
               ? {
                   noise: {

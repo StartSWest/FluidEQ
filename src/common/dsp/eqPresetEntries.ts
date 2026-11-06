@@ -734,7 +734,8 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
       0.74, 0.66, 0.51, 0.14, -0.4, -0.37, -0.3, -0.24, -0.06, -0.01, -0.83,
       0.05, 0.62, 0.75, 0.66,
     ],
-    setup: { model: 'wide', subsonicHz: 20, monoBelowHz: 40 },
+    // Preserve recorded low-frequency space; this is not a club-system fold.
+    setup: { model: 'wide', subsonicHz: 20, monoBelowHz: 0 },
   },
   {
     // An 808 is a sine wave with a long tail, and it lives below where most
@@ -781,7 +782,7 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
       -0.2, -0.03, 0.61, 0.74, -0.29, -0.65, -0.54, -0.31, -0.59, -0.11, 0.69,
       0.5, 0.49, 0.52, 0.25,
     ],
-    setup: { ...PROTECTED, model: 'clean' },
+    setup: { subsonicHz: 20, monoBelowHz: 0, model: 'clean' },
   },
   {
     // Bowed strings turn harsh at 2-4k before they turn bright, which is why
@@ -793,7 +794,7 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
       -0.77, -0.57, 0.02, 0.77, 0.12, 0.37, 0.69, -0.97, -0.09, -0.24, -0.41,
       -0.66, 0.93, -0.18, 1.16,
     ],
-    setup: { ...PROTECTED, model: 'wide' },
+    setup: { subsonicHz: 20, monoBelowHz: 0, model: 'wide' },
   },
   {
     // The de-esser with a wider reach, for a whole record rather than one

@@ -377,7 +377,7 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.keywords':
     'effetti, FX, limiter, limitatore, loudness, normalizzazione volume, normalizzare, livellamento, volume costante, enhancer, allargamento stereo, stereo widener, sub bass, subarmoniche, transienti, mastering, crossfade, gapless, aumentare volume, alzare volume, amplificatore di volume, de-esser, sibilanti, sibilanza, s tagliente, voce, podcast, profili, salva profilo, passi, sentire i passi, footsteps, gaming, audio di gioco, ricariche, equalizzazione del volume, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    'Uniforma il volume da un brano all’altro. True Peak imposta un guadagno per brano invece di limitarlo continuamente. I preset lasciano il Normalizzatore spento finché non lo attivi.',
+    'I preset musicali attivano Sonorità prima degli effetti; Nessuno la lascia disattivata. Allinea i passaggi forti preservando quelli deboli. True Peak riduce soltanto i picchi.',
   'help.dsp.denoise':
     'Ripara fruscio, ronzio e click. Il pulitore vocale neurale funziona sui brani della Libreria.',
   'help.dsp.exciter': 'Aggiunge armoniche per corpo e aria.',

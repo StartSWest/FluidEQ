@@ -170,6 +170,18 @@ add_executable(fluideq-song-leveling-test dsp-core/tests/song_leveling_test.cpp)
 target_link_libraries(fluideq-song-leveling-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME song-leveling COMMAND fluideq-song-leveling-test)
 
+# Execute actual complete chains on public audio, rather than historical JSON.
+# The TS generator and contract test bind all frequency/model/Q/rack settings.
+add_executable(fluideq-music-factory-test dsp-core/tests/music_factory_test.cpp)
+target_link_libraries(fluideq-music-factory-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME music-factory COMMAND fluideq-music-factory-test
+  "${CMAKE_CURRENT_SOURCE_DIR}/dsp-core/tests/fixtures/music-factory.txt")
+
+find_package(Threads REQUIRED)
+add_executable(fluideq-host-chain-exchange-test dsp-core/tests/host_chain_exchange_test.cpp)
+target_link_libraries(fluideq-host-chain-exchange-test PRIVATE fluideq-dsp-core feq_strict Threads::Threads)
+add_test(NAME host-chain-exchange COMMAND fluideq-host-chain-exchange-test)
+
 add_executable(fluideq-dsp-core-test dsp-core/tests/engine_test.cpp)
 target_link_libraries(fluideq-dsp-core-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME dsp-core COMMAND fluideq-dsp-core-test)
@@ -187,6 +199,12 @@ add_test(NAME resampler COMMAND fluideq-resampler-test)
 add_executable(fluideq-exciter-test dsp-core/tests/exciter_test.cpp)
 target_link_libraries(fluideq-exciter-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME exciter COMMAND fluideq-exciter-test)
+add_executable(fluideq-colour-filter-test dsp-core/tests/colour_filter_test.cpp)
+target_link_libraries(fluideq-colour-filter-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME colour-filter COMMAND fluideq-colour-filter-test)
+add_executable(fluideq-source-reference-test dsp-core/tests/source_reference_test.cpp)
+target_link_libraries(fluideq-source-reference-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME source-reference COMMAND fluideq-source-reference-test)
 
 add_executable(fluideq-dimension-test dsp-core/tests/dimension_test.cpp)
 target_link_libraries(fluideq-dimension-test PRIVATE fluideq-dsp-core feq_strict)

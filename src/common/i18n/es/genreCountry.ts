@@ -72,8 +72,6 @@ export default {
   'genre.bluegrass.pin.5000.why': 'Donde centellea el punteo.',
   'genre.bluegrass.pin.12500': 'Aire sobre las cuerdas',
   'genre.bluegrass.pin.12500.why': 'La sala alrededor de la banda.',
-  'genre.bluegrass.stage.exciter':
-    'Aire sobre el banjo y la mandolina, una octava por encima del suyo propio.',
   'genre.bluegrass.stage.dimension':
     'Mantiene el equilibrio de amplitud estéreo de este género en todo el espectro. No añade decorrelación a la voz centrada.',
   'genre.bluegrass.stage.deEsser':

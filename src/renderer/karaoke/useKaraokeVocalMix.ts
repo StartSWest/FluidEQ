@@ -41,7 +41,6 @@ export const useKaraokeVocalMix = ({
   vocals,
 }: IUseKaraokeVocalMixOptions) => {
   const contextRef = useRef<AudioContext | undefined>(undefined);
-  const bufferRef = useRef<AudioBuffer | undefined>(undefined);
   const sourceRef = useRef<AudioBufferSourceNode | undefined>(undefined);
   const gainRef = useRef<GainNode | undefined>(undefined);
   const fadeRef = useRef<GainNode | undefined>(undefined);
@@ -49,15 +48,24 @@ export const useKaraokeVocalMix = ({
     { contextTime: number; mediaTime: number; rate: number } | undefined
   >(undefined);
   const [level, setLevel] = useState(DEFAULT_VOCAL_LEVEL);
-  const [isReady, setIsReady] = useState(false);
+  const levelRef = useRef(level);
+  const [decodedStem, setDecodedStem] = useState<
+    { file: File; buffer: AudioBuffer } | undefined
+  >(undefined);
+  const isReady = vocals !== undefined && decodedStem?.file === vocals;
+
+  useEffect(() => {
+    levelRef.current = level;
+  }, [level]);
 
   // Decode once per stem. A four-minute stereo song is ~40MB as float32, which
   // is worth spending to keep the fader instant and the playback gapless.
   useEffect(() => {
     let cancelled = false;
+    // Readiness belongs to this file. Keeping the previous buffer while a
+    // replacement decodes played the previous singer over the new backing.
+    setDecodedStem(undefined);
     if (!vocals) {
-      bufferRef.current = undefined;
-      setIsReady(false);
       return undefined;
     }
     (async () => {
@@ -67,11 +75,10 @@ export const useKaraokeVocalMix = ({
       if (cancelled) {
         return;
       }
-      bufferRef.current = decoded;
-      setIsReady(true);
+      setDecodedStem({ file: vocals, buffer: decoded });
     })().catch(() => {
       if (!cancelled) {
-        setIsReady(false);
+        setDecodedStem(undefined);
       }
     });
     return () => {
@@ -84,6 +91,7 @@ export const useKaraokeVocalMix = ({
     const fade = fadeRef.current;
     sourceRef.current = undefined;
     fadeRef.current = undefined;
+    startRef.current = undefined;
     if (!source) {
       return;
     }
@@ -119,14 +127,16 @@ export const useKaraokeVocalMix = ({
   const sync = useCallback(() => {
     const element = audioRef.current;
     const context = contextRef.current;
-    const buffer = bufferRef.current;
-    if (!element || !context || !buffer || level < SILENT) {
+    const buffer =
+      decodedStem?.file === vocals ? decodedStem?.buffer : undefined;
+    const currentLevel = levelRef.current;
+    if (!element || !context || !buffer || currentLevel < SILENT) {
       stop();
       return;
     }
     stop();
     const gain = gainRef.current ?? (gainRef.current = context.createGain());
-    gain.gain.value = level;
+    gain.gain.value = currentLevel;
     gain.connect(context.destination);
     const source = context.createBufferSource();
     source.buffer = buffer;
@@ -157,17 +167,18 @@ export const useKaraokeVocalMix = ({
         context.baseLatency +
         ((context as AudioContext & { outputLatency?: number }).outputLatency ??
           0);
-      const offset = Math.min(element.currentTime + latency, buffer.duration);
+      const mediaTime = element.currentTime;
+      const contextTime = context.currentTime;
+      const rate = element.playbackRate;
+      const offset = Math.min(mediaTime + latency * rate, buffer.duration);
       source.start(0, offset);
-      // Where both clocks stood at the start, so drift is measurable later.
-      startRef.current = {
-        contextTime: context.currentTime,
-        mediaTime: offset,
-        rate: element.playbackRate,
-      };
+      // Compare the element's clock with its own start, not the buffer's
+      // intentional latency lead: that lead was mistaken for drift and
+      // restarted a perfectly aligned source on high-latency outputs.
+      startRef.current = { contextTime, mediaTime, rate };
     }
     sourceRef.current = source;
-  }, [audioRef, level, stop]);
+  }, [audioRef, decodedStem, stop, vocals]);
 
   // Follow the element. Seeking and pausing both have to re-issue the source,
   // and `ended` releases it so a finished song is not holding a live node.
@@ -181,7 +192,7 @@ export const useKaraokeVocalMix = ({
     // The element and the AudioContext run on different clocks, and neither
     // owes the other accuracy: over minutes they drift apart, and a late guide
     // vocal is exactly the flanging this design exists to avoid. `timeupdate`
-    // arrives a few times a second; whenever the voice is more than 60 ms from
+    // arrives a few times a second; whenever the voice is more than 120 ms from
     // where the element says it should be, it is restarted at the right spot.
     const onTimeUpdate = () => {
       const context = contextRef.current;
@@ -197,7 +208,7 @@ export const useKaraokeVocalMix = ({
         context.resume().catch(() => undefined);
       }
       if (!sourceRef.current) {
-        if (level >= SILENT) {
+        if (levelRef.current >= SILENT) {
           sync();
         }
         return;
@@ -215,6 +226,7 @@ export const useKaraokeVocalMix = ({
     };
     element.addEventListener('play', onPlay);
     element.addEventListener('seeked', onPlay);
+    element.addEventListener('ratechange', onPlay);
     element.addEventListener('pause', onPause);
     element.addEventListener('ended', onPause);
     element.addEventListener('timeupdate', onTimeUpdate);
@@ -224,20 +236,17 @@ export const useKaraokeVocalMix = ({
     return () => {
       element.removeEventListener('play', onPlay);
       element.removeEventListener('seeked', onPlay);
+      element.removeEventListener('ratechange', onPlay);
       element.removeEventListener('pause', onPause);
       element.removeEventListener('ended', onPause);
       element.removeEventListener('timeupdate', onTimeUpdate);
       stop();
     };
-  }, [audioRef, isReady, level, stop, sync]);
+  }, [audioRef, isReady, stop, sync]);
 
   // A level change while playing should be heard immediately, not at the next
   // seek, so the gain is adjusted in place rather than restarting the source.
   useEffect(() => {
-    const gain = gainRef.current;
-    if (!gain) {
-      return;
-    }
     if (level < SILENT) {
       stop();
       return;
@@ -246,9 +255,10 @@ export const useKaraokeVocalMix = ({
       sync();
       return;
     }
+    const gain = gainRef.current;
     // A short ramp instead of a jump: an instant gain change on a signal that
     // is not at a zero crossing is an audible click.
-    gain.gain.setTargetAtTime(level, gain.context.currentTime, 0.015);
+    gain?.gain.setTargetAtTime(level, gain.context.currentTime, 0.015);
   }, [level, stop, sync]);
 
   useEffect(

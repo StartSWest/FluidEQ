@@ -145,7 +145,6 @@ export default {
   'genre.chillout.pin.2000.why': 'Niente di tagliente.',
   'genre.chillout.pin.12500': 'Aria leggera',
   'genre.chillout.pin.12500.why': 'Il luccichio in cima.',
-  'genre.chillout.stage.exciter': 'Solo aria leggera.',
   'genre.chillout.stage.dimension':
     'Acuti più ampi: qui l’ampiezza è benvenuta.',
   'genre.chillout.stage.deEsser':

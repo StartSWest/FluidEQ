@@ -381,7 +381,7 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.keywords':
     'audioeffekte, effektkette, voreinstellungen, limiter, peak-limiter, begrenzer, loudness, normalisieren, lautstärke angleichen, lautstärkeausgleich, lautstärkeschwankungen, enhancer, stereobreite, stereoverbreiterung, subbass, tiefbass, transienten, mastering, clipping, crossfade, überblenden, gapless, lückenlos, De-Esser, Zischlaute, scharfes S, Sibilanten, Stimme, Sprache, Podcast, Profile, Profil speichern, schritte, schritte hören, footsteps, gaming, spielsound, nachladen, lautstärkeausgleich, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    'Gleicht die Lautstärke von Lied zu Lied an. True Peak setzt eine Verstärkung pro Lied, statt es durchgehend zu begrenzen. Presets lassen den Normalisierer aus, bis Sie ihn einschalten.',
+    'Musik-Presets aktivieren Lautheit vor den Effekten; Keines lässt sie aus. Laute Passagen werden angeglichen, leise bleiben relativ erhalten. True Peak senkt nur Spitzen.',
   'help.dsp.denoise':
     'Repariert Rauschen, Brummen und Knackser. Der neuronale Stimmreiniger arbeitet an Titeln der Bibliothek.',
   'help.dsp.exciter': 'Fügt Obertöne für Fülle und Luft hinzu.',

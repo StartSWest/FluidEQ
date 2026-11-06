@@ -69,8 +69,6 @@ export default {
   'genre.bluegrass.pin.5000.why': 'ピッキングがきらめく帯域。',
   'genre.bluegrass.pin.12500': '弦の上の空気感',
   'genre.bluegrass.pin.12500.why': 'バンドを包む部屋。',
-  'genre.bluegrass.stage.exciter':
-    'バンジョーとマンドリンの上、それぞれの音の1オクターブ上に空気感を。',
   'genre.bluegrass.stage.dimension':
     '周波数全体でこのジャンルのステレオ幅のバランスを保ちます。中央のボーカルにデコリレーションは加えません。',
   'genre.bluegrass.stage.deEsser':

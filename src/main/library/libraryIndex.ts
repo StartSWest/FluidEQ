@@ -61,7 +61,12 @@ const isNormalizationAnalysis = (
   value: unknown,
 ): value is ILibraryNormalizationAnalysis =>
   isObject(value) &&
-  value.version === 2 &&
+  (value.version === 2 ||
+    (value.version === 3 &&
+      typeof value.maxShortTermLufs === 'number' &&
+      Number.isFinite(value.maxShortTermLufs) &&
+      value.maxShortTermLufs >= -120 &&
+      value.maxShortTermLufs <= 24)) &&
   (value.edges === undefined || isProgrammeEdges(value.edges)) &&
   typeof value.truePeakDbtp === 'number' &&
   Number.isFinite(value.truePeakDbtp) &&

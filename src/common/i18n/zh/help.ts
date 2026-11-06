@@ -346,7 +346,7 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.keywords':
     '效果器, 音频效果, 效果链, 效果插件, 音效插件, FX, DSP机架, 限制器, 限幅器, limiter, 响度均衡, 音量均衡, 自动音量, 增强器, 音效增强, 立体声扩展, 声场扩展, 重低音, 次谐波, 瞬态, 淡入淡出, 无缝播放, 齿音消除, 齿音, 嘶声, de-esser, 尖锐 s, 人声, 播客, 配置, 保存配置, 脚步声, 听脚步, footsteps, 游戏, 游戏音效, 换弹, 响度均衡, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    '逐首歌曲平衡响度。True Peak 为每首歌设置一个增益，而不是持续限制整首歌。预设中的标准化器保持关闭，直到你手动开启。',
+    '音乐预设会在效果处理前启用响度归一化；“无”保持关闭。匹配较响的片段，同时保留较轻的片段。真峰值只降低峰值。',
   'help.dsp.denoise':
     '修复嘶声、哼声和爆音。神经网络人声清理器用于媒体库曲目。',
   'help.dsp.exciter': '添加谐波，增加厚度和空气感。',

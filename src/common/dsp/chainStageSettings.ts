@@ -19,6 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ICrossfadeShape } from './crossfadeShape';
 import type { TEqStereo } from './chainSettings';
 
+/** Native guard's 0.2 dB reconstruction margin plus half its 1.5 dB knee.
+ * Stop at its unity edge so peak-bound Live and Library use the same gain
+ * without continuously limiting the normalized input. */
+export const NORMALIZER_LOUDNESS_PEAK_MARGIN_DB = 0.2 + 1.5 / 2;
+
 // The settings of the rack's stages before the EQ and after it - exciter,
 // organic, phase align, Bass Forge and Punch, Dimension, the Maximizer, the
 // input normalizer, restoration and crossfade - with the tables and limits
@@ -442,9 +447,9 @@ export const NORMALIZER_MODES: readonly TNormalizerMode[] = [
  * Prevention before the first creative processor, never restoration.
  *
  * True Peak only attenuates a hot source. Loudness may raise or lower the
- * whole track toward its integrated target, but the same constant gain is
- * capped by the true-peak ceiling. No follower lives here, so the stage
- * cannot pump or change the balance between left and right.
+ * whole track toward its foreground target, with constant linked gain capped
+ * by true-peak room and the boost limit. Library measures the file first;
+ * Live learns while it plays. Quiet sections keep their relative level.
  */
 export interface IInputNormalizerSettings {
   mode: TNormalizerMode;

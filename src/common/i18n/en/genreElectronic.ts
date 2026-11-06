@@ -146,7 +146,6 @@ const genreElectronic = {
   'genre.chillout.pin.2000.why': 'Nothing sharp.',
   'genre.chillout.pin.12500': 'Light air',
   'genre.chillout.pin.12500.why': 'The shimmer on top.',
-  'genre.chillout.stage.exciter': 'Light air only.',
   'genre.chillout.stage.dimension': 'A wider top: here width is welcome.',
   'genre.chillout.stage.deEsser':
     'Tames sharp S and SH sounds in the centred vocal with narrow spectral cuts of up to 1.5 dB from 5 to 10 kHz, while protecting cymbals and leaving the bass alone.',

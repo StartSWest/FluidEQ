@@ -228,126 +228,104 @@ export const genreSources = (id: string): string | undefined =>
   FAMILY_SOURCES.find(([racks]) => racks.some((rack) => rack.id === id))?.[1];
 
 /**
- * What each genre's chain measured, as [loudness against DSP Off in LU,
- * highest true peak after its curve in dBTP].
- *
- * Measured 2026-09-25 by rendering every chain, its curve after its rack as
- * the app sends them, over a 25-song corpus through the engine's own chain:
- * the mean K-weighted loudness change against the song untouched, both
- * through the engine's Auto normalize as they are heard with it on, and the
- * highest true peak of any song after the curve. A number on a screen about
- * a preset is a claim, so it is the preset's own, not the genre's: retune a
- * rack, a curve or the Maximizer and measure again — with Auto normalize
- * after both, or every figure comes out about 1.2 LU lower than the ones
- * beside it.
- *
- * Pop was remeasured on 2026-11-04 against its two named references: the
- * complete Blinding Lights recording and Apple's 30-second Levitating
- * preview. Only its rack and preset curve, with no headphone correction,
- * other EQ or system Auto normalize. Its input is levelled to -18 LUFS;
- * output measured -10.74 and -10.79 LUFS with gentle centre de-essing, both
- * under the -1 dBTP ceiling. Rendering opens no output device and reads no
- * live application settings, so a listener's on/off comparison cannot alter it.
- * Its count below is two, not the older catalogue's twenty-five.
- *
- * K-pop was remeasured on the same date against the original-version Apple
- * previews of Dynamite and How You Like That, with the same isolated method.
- * These are two 30-second excerpts, not whole-track loudness measurements.
- * From a -18 LUFS input they rendered at -10.58 and -11.19 LUFS, below the
- * -1 dBTP ceiling. De-essing changed overall loudness by -0.010/-0.032 LU;
- * repeating was byte-identical and a source 18 dB quieter converged within
- * 0.001 LU. No output device or live application settings were involved.
+ * Current factory-only reference measurements: mean loudness change against
+ * untouched source in LU, and highest final true peak in dBTP. Two named
+ * recordings per genre, measured 2026-11-05 without headset/user correction,
+ * live settings, system Auto normalize or an output device. Full settings,
+ * raw source/output levels and peak-constrained strength limitations are
+ * recorded in docs/dsp/music-reference-audit.json. These are playback
+ * measurements, not official genre mastering standards.
  */
 export const GENRE_MEASURED: Readonly<
   Record<string, readonly [number, number]>
 > = {
-  pop: [-3.39, -1],
-  indiePop: [-4.16, -1.5],
-  synthPop: [0.26, -1],
-  newWave: [-1.68, -1],
-  kPop: [-3.08, -1],
-  jPop: [-5.21, -2],
-  cPop: [-1.92, -1],
-  ballad: [1.93, -1],
-  rock: [-3.82, -1.01],
-  popRock: [-3.2, -1],
-  classicRock: [0.75, -1],
-  alternativeRock: [1.46, -1],
-  indieRock: [-1.75, -1],
-  progressiveRock: [2.69, -1],
-  hardRock: [-1.54, -1],
-  metal: [0.9, -1],
-  punk: [-2.99, -1.62],
-  popPunk: [-2.35, -1],
-  grunge: [-3.13, -1],
-  country: [1.5, -1],
-  modernCountry: [-2.37, -1.01],
-  americana: [-0.06, -1],
-  bluegrass: [-1.4, -1.07],
-  folk: [-2.63, -2.51],
-  acoustic: [-1.76, -1],
-  singerSongwriter: [3.24, -1],
-  hiphop: [-3.11, -1],
-  rap: [-2.06, -1],
-  trap: [-2.9, -1],
-  rnb: [-3.74, -1],
-  soul: [0.88, -1],
-  neoSoul: [0, -1.11],
-  funk: [1.2, -1],
-  disco: [1.82, -1],
-  jazz: [4.4, -1],
-  smoothJazz: [0.85, -1],
-  fusion: [1.51, -1],
-  blues: [1.03, -1],
-  classical: [5.84, -1.19],
-  orchestra: [6.46, -1.02],
-  opera: [-1.5, -1.18],
-  piano: [5.01, -1],
-  strings: [4.54, -1.05],
-  electronic: [-3.23, -1],
-  edm: [-1.11, -1],
-  house: [-1.27, -1],
-  techno: [-2.09, -1],
-  trance: [-0.66, -1.38],
-  drumBass: [-2.82, -1],
-  dubstep: [-4.49, -1],
-  downtempo: [-2.92, -1.66],
-  chillout: [-4.72, -1.6],
-  lofi: [-4.7, -1.1],
-  ambient: [-0.79, -3.95],
-  newAge: [3.56, -1.02],
-  reggae: [-0.82, -1],
-  dub: [0.16, -1],
-  dancehall: [-1.47, -1],
-  ska: [-0.57, -1],
-  latin: [-0.9, -1],
-  latinPop: [-4.04, -1],
-  reggaeton: [-3.58, -1],
-  salsa: [-1.11, -1],
-  bachata: [-2.37, -1.15],
-  merengue: [0.3, -1],
-  cumbia: [-3.04, -1.08],
-  bossaNova: [2.99, -1.13],
-  samba: [-0.42, -1],
-  flamenco: [-1.11, -1],
-  regionalMexican: [-3.76, -1.03],
-  corridos: [-3.42, -1.04],
-  afrobeat: [-4.82, -1],
-  afrobeats: [-2.36, -1],
-  amapiano: [-2.81, -1],
-  highlife: [-1.58, -1],
-  world: [9.49, -1],
-  bollywood: [4.74, -1],
-  bhangra: [-1.5, -1],
-  indianClassical: [3.6, -1.36],
-  arabicPop: [-1.63, -1],
-  turkishPop: [0.75, -1],
-  gospel: [-1.55, -1.06],
-  christian: [-2.09, -1.17],
+  pop: [-3.51, -1],
+  indiePop: [-4.22, -1.48],
+  synthPop: [-0.23, -1],
+  newWave: [-1.67, -1],
+  kPop: [-3.31, -1.03],
+  jPop: [-5.25, -2.19],
+  cPop: [-2.57, -1.06],
+  ballad: [1.09, -1],
+  rock: [-4.35, -1],
+  popRock: [-3.83, -1.19],
+  classicRock: [-0.71, -1],
+  alternativeRock: [-0.32, -1],
+  indieRock: [-2.54, -1],
+  progressiveRock: [1.39, -1],
+  hardRock: [-2.31, -1],
+  metal: [0.03, -1],
+  punk: [-3.18, -1.79],
+  popPunk: [-3.65, -1.02],
+  grunge: [-3.59, -1],
+  country: [0.48, -1],
+  modernCountry: [-3.3, -1.02],
+  americana: [-0.53, -1],
+  bluegrass: [-2.35, -2.93],
+  folk: [-2.79, -2.49],
+  acoustic: [-2.45, -1.41],
+  singerSongwriter: [3.06, -1],
+  hiphop: [-3.02, -1],
+  rap: [-2.61, -1],
+  trap: [-3.78, -1],
+  rnb: [-4.41, -1],
+  soul: [-0.17, -1],
+  neoSoul: [0.24, -1],
+  funk: [0, -1],
+  disco: [-0.34, -1.46],
+  jazz: [1.82, -1.52],
+  smoothJazz: [-0.63, -1.32],
+  fusion: [-1.17, -1.12],
+  blues: [-0.03, -1],
+  classical: [4.78, -2.94],
+  orchestra: [6.17, -1],
+  opera: [-1.6, -1.35],
+  piano: [4.63, -1.74],
+  strings: [4.04, -1.72],
+  electronic: [-2.97, -1],
+  edm: [-1.27, -1],
+  house: [-2.29, -1],
+  techno: [1.89, -1.16],
+  trance: [-0.66, -1.13],
+  drumBass: [-2.73, -1],
+  dubstep: [-3.31, -1],
+  downtempo: [-3.08, -1.02],
+  chillout: [-5.2, -1.28],
+  lofi: [-4.86, -1.06],
+  ambient: [-1.01, -4.13],
+  newAge: [3.39, -1],
+  reggae: [-1.58, -1],
+  dub: [-0.9, -1],
+  dancehall: [-2.41, -1.01],
+  ska: [-0.94, -1],
+  latin: [-1.33, -1.03],
+  latinPop: [-4.95, -1.5],
+  reggaeton: [-5.15, -1],
+  salsa: [-2.42, -1],
+  bachata: [-2.41, -1.28],
+  merengue: [-0.31, -1.03],
+  cumbia: [-3.74, -1],
+  bossaNova: [1.81, -1.76],
+  samba: [-1.81, -1.6],
+  flamenco: [-1.58, -1],
+  regionalMexican: [-4.34, -1],
+  corridos: [-3.56, -1.01],
+  afrobeat: [-2.13, -1],
+  afrobeats: [-2.78, -1],
+  amapiano: [-2.41, -1],
+  highlife: [-2.23, -1.03],
+  world: [8, -1],
+  bollywood: [3.35, -1.73],
+  bhangra: [-1.71, -1],
+  indianClassical: [3.27, -2.24],
+  arabicPop: [-2.05, -1],
+  turkishPop: [-2.45, -1.96],
+  gospel: [-1.77, -1.03],
+  christian: [-3.52, -3.06],
 };
 
 /** How many songs `GENRE_MEASURED` was measured on. */
-export const GENRE_MEASURED_SONGS = 25;
+export const GENRE_MEASURED_SONGS = 2;
 
 /** A retuned genre states the size of its own measurement, not the old corpus. */
 const UPDATED_MEASURED_SONGS: Readonly<Record<string, number>> = {

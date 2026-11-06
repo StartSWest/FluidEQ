@@ -124,7 +124,7 @@ const dsp = {
   'dsp.enabled': '開啟',
   'dsp.normalizer.title': '正規化器',
   'dsp.normalizer.description':
-    '先完整測量音源一次，再於激勵器與 EQ 之前，對左右聲道套用相同增益。沒有音量抽動，也不會持續追蹤 RMS 來改變增益。',
+    '在峰值和增益限制內，於效果處理前匹配最響的三秒片段。較輕的片段保留相對音量。音樂庫測量整個檔案；即時模式在播放時學習。',
   'dsp.normalizer.mode': '正規化模式',
   'dsp.normalizer.off': '關閉',
   'dsp.normalizer.truePeak': '真峰',
@@ -136,6 +136,7 @@ const dsp = {
   'dsp.normalizer.unavailable': '無法分析此音源，目前以原始音量播放。',
   'dsp.normalizer.waiting': '請播放媒體庫中的歌曲以進行測量。',
   'dsp.normalizer.measuredPeak': '測量峰值',
+  'dsp.normalizer.foregroundLoudness': '強段響度',
   'dsp.normalizer.measuredLoudness': '綜合響度',
   'dsp.normalizer.appliedGain': '已套用增益',
   'dsp.normalizer.limitedByCeiling': '需要 {requested} — 受峰值上限限制',

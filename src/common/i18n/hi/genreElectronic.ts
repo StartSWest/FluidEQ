@@ -144,7 +144,6 @@ export default {
   'genre.chillout.pin.2000.why': 'कुछ भी नुकीला नहीं।',
   'genre.chillout.pin.12500': 'हल्की हवा',
   'genre.chillout.pin.12500.why': 'ऊपर की झिलमिलाहट।',
-  'genre.chillout.stage.exciter': 'सिर्फ़ हल्की हवा।',
   'genre.chillout.stage.dimension':
     'ऊपरी हिस्सा चौड़ा: यहाँ चौड़ाई का स्वागत है।',
   'genre.chillout.stage.deEsser':

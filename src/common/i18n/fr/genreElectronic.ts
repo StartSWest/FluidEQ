@@ -150,7 +150,6 @@ export default {
   'genre.chillout.pin.2000.why': 'Rien d’acéré.',
   'genre.chillout.pin.12500': 'Un air léger',
   'genre.chillout.pin.12500.why': 'Le scintillement du dessus.',
-  'genre.chillout.stage.exciter': 'De l’air léger seulement.',
   'genre.chillout.stage.dimension':
     'Un haut plus large : ici, la largeur est bienvenue.',
   'genre.chillout.stage.deEsser':

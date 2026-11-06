@@ -117,10 +117,16 @@ export const DspNormalizerStats = ({
         </dd>
       </div>
       {!isLive && (
-        <div>
-          <dt>{t('dsp.normalizer.measuredLoudness')}</dt>
-          <dd>{analysisValue(analysis?.integratedLufs, 'LUFS')}</dd>
-        </div>
+        <>
+          <div>
+            <dt>{t('dsp.normalizer.foregroundLoudness')}</dt>
+            <dd>{analysisValue(analysis?.maxShortTermLufs, 'LUFS')}</dd>
+          </div>
+          <div>
+            <dt>{t('dsp.normalizer.measuredLoudness')}</dt>
+            <dd>{analysisValue(analysis?.integratedLufs, 'LUFS')}</dd>
+          </div>
+        </>
       )}
       <div>
         <dt>{t('dsp.normalizer.appliedGain')}</dt>

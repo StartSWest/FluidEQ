@@ -378,7 +378,7 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.keywords':
     'effets audio, limiteur, normalisation du volume, volume constant, élargisseur, largeur stéréo, renforcement des basses, infrabasses, transitoires, écrêtage, FX, plugins, loudness, LUFS, sub-bass, mastering, crossfade, gapless, bypass, presets, dé-esseur, de-esser, sifflantes, sibilance, s aigus, voix, podcast, profils, enregistrer un profil, bruits de pas, pas, entendre les pas, footsteps, jeux, son de jeu, rechargement, égalisation du volume, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    'Égalise le volume d’un morceau à l’autre. True Peak fixe un gain par morceau au lieu de le limiter en continu. Les préréglages laissent le Normaliseur désactivé jusqu’à ce que vous l’activiez.',
+    'Les préréglages musicaux activent Sonie avant les effets ; Aucun la désactive. Les passages forts sont alignés en préservant les passages doux. Crête vraie réduit uniquement les crêtes.',
   'help.dsp.denoise':
     'Répare le souffle, le ronflement et les craquements. Le nettoyeur de voix neuronal agit sur les pistes de la Bibliothèque.',
   'help.dsp.exciter': 'Ajoute des harmoniques pour le corps et l’air.',

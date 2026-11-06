@@ -112,6 +112,24 @@ void malformed_source_facts_are_refused_whole() {
   CHECK(!parse_source_analysis(kSource + noise + "0\n"));
 }
 
+void foreground_facts_are_versioned_and_replace_graph_identity() {
+  auto text = kSource;
+  text.replace(text.find("version=1"), 9, "version=2");
+  CHECK(!parse_source_analysis(text));
+  CHECK(!parse_source_analysis(kSource + "reference=-18\n"));
+  const auto facts = parse_source_analysis(text + "reference=-18\n");
+  CHECK(facts && facts->view().version == 2 && facts->view().reference_lufs == -18);
+  const auto changed = parse_source_analysis(text + "reference=-16\n");
+  CHECK(changed && changed->processing_identity() != facts->processing_identity());
+  const auto legacy = parse_source_analysis(kSource);
+  CHECK(legacy && legacy->view().version == 1 &&
+      legacy->processing_identity() != facts->processing_identity());
+  text.erase(text.find("level=-20\n"), 10);
+  text.erase(text.find("peak=-3\n"), 8);
+  const auto waiting = parse_source_analysis(text);
+  CHECK(waiting && !waiting->has_level && waiting->view().version == 2);
+}
+
 }  // namespace
 
 int main() {
@@ -119,5 +137,6 @@ int main() {
   only_canonical_endpoint_ids_can_name_sidecars();
   shared_facts_follow_only_the_direct_source();
   malformed_source_facts_are_refused_whole();
+  foreground_facts_are_versioned_and_replace_graph_identity();
   return report();
 }

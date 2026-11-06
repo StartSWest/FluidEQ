@@ -376,7 +376,7 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.keywords':
     'efectos de sonido, limitador, limiter, loudness, LUFS, normalizar volumen, normalización, nivelador de volumen, volumen entre canciones, exciter, amplitud estéreo, ancho estéreo, stereo widener, subgraves, subarmónicos, punch, transitorios, masterización, mastering, clipping, crossfade, gapless, subir volumen, de-esser, desesador, sibilancia, eses, s aguda, voz, pódcast, perfiles, guardar perfil, pasos, oír pasos, footsteps, juegos, sonido de juegos, recargas, ecualización de sonoridad, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    'Iguala el volumen canción a canción. Pico real fija una ganancia por canción en lugar de limitarla continuamente. Los presets dejan el Normalizador apagado hasta que lo actives.',
+    'Los presets musicales activan Sonoridad antes de los efectos; Ninguno la deja apagada. Iguala los pasajes fuertes conservando los suaves. Pico real solo reduce los picos.',
   'help.dsp.denoise':
     'Repara siseo, zumbido y chasquidos. El limpiador de voz neuronal funciona con pistas de la Biblioteca.',
   'help.dsp.exciter': 'Añade armónicos para dar cuerpo y aire.',

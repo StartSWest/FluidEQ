@@ -276,7 +276,10 @@ const STYLES: readonly (readonly [string, readonly number[]])[] = [
   [
     'bossaNova',
     [
-      -2, -0.6, 1.4, 2.49, 1.7, -1.29, -1.13, -0.83, -0.68, -0.68, 0.3, 0.69,
+      // The 125 Hz boost over-coloured the foreground of Getz/Gilberto by
+      // 1.56 LU versus 0.01 on Jobim. A measured 0.6 dB body correction keeps
+      // this warm contour and its air without changing every band's strength.
+      -2, -0.6, 1.4, 1.89, 1.7, -1.29, -1.13, -0.83, -0.68, -0.68, 0.3, 0.69,
       0.6, 0.2, -0.3,
     ],
   ],
@@ -504,15 +507,10 @@ const STYLES: readonly (readonly [string, readonly number[]])[] = [
 ];
 
 /**
- * Where a row's research says its low end is mono, the corner that makes it
- * so (the rack's mono-maker, a second-order high pass on the side). The
- * chain's Dimension narrows the same region to half its width at most, and
- * through a one-pole split, so on its own it left most of the side at 50 Hz
- * — while every one of these genres is mixed with nothing there at all: a club
- * or a sound system sums everything under about 150 Hz, and a sine sub or
- * an 808 is mixed in the middle. At 150 where the research names the club
- * low end, at 120 where it names the sub (dubstep, dancehall, the log
- * drum's sub, the tuba and 808 of corridos) or says so (trance).
+ * Optional bass narrowing for these playback voicings, through a high-pass
+ * on the side. The corners below are FluidEQ choices for mono translation;
+ * no genre standard requires them and individual recordings can carry useful
+ * stereo bass. Rows absent from this table preserve that recorded space.
  */
 const MONO_BELOW_HZ: Readonly<Record<string, number>> = {
   edm: 150,

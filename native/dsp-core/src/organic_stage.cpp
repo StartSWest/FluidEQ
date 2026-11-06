@@ -50,6 +50,7 @@ void feq_organic_path_init(FeqOrganicPath* state,
     return;
   }
   feq_biquad_reset(&state->filter);
+  feq_biquad_reset(&state->filter_tail);
   state->coefficients.b0 = 1.0;
   state->coefficients.b1 = 0.0;
   state->coefficients.b2 = 0.0;
@@ -92,7 +93,13 @@ void feq_organic_path_process(FeqOrganicPath* state,
     state->band[at] = source[at];
   }
 
-  const double quality = feq_organic_range_q(range);
+  // Two unity-normalized bandpasses keep the same focus gain and -3 dB
+  // crossings at Q * sqrt(sqrt(2)-1). Steeper skirts stop distant treble
+  // entering the shaper and folding back into the intended body region.
+  // This is input filtering, not hidden oversampling; wanted focus harmonics
+  // retain their level. The changed phase is covered by reference renders.
+  constexpr double cascade_q_scale = 0.6435942529055826;
+  const double quality = feq_organic_range_q(range) * cascade_q_scale;
   // Rebuilt only when something it depends on actually moved. A bandpass
   // rebuilt every block is two transcendentals per block for a value that
   // changes when somebody turns a dial.
@@ -106,6 +113,7 @@ void feq_organic_path_process(FeqOrganicPath* state,
   }
 
   feq_biquad_process(&state->filter, state->band, frames, &state->coefficients);
+  feq_biquad_process(&state->filter_tail, state->band, frames, &state->coefficients);
   for (uint32_t at = 0; at < frames; ++at) {
     state->foundation[at] = state->band[at];
   }

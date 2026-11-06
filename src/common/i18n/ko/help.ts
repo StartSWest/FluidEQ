@@ -352,7 +352,7 @@ const help = {
   'help.dsp.keywords':
     '효과, fx, 오디오 효과, 랙, 체인, 플러그인, 리미터, 음량, 노멀라이저, 레벨러, 볼륨 레벨링, 익사이터, 고조파, 인핸서, 스테레오 확장기, 넓히기, 스테레오 폭, 저음 강화기, 서브 베이스, 서브하모닉, 펀치, 과도, 마스터링, 클리핑, 피크 리미터, 크로스페이드, 갭리스, 디에서, 디서, 치찰음, 거친 s, 날카로운 s, ess, 음성, 음성, 팟캐스트, 프로필, 프로필 저장, 발소리, 발소리 듣기, footsteps, 게임, 게임 사운드, 재장전, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    '곡마다 음량을 고르게 맞춥니다. True Peak는 계속 제한하는 대신 곡마다 하나의 게인을 정합니다. 프리셋에서는 직접 켤 때까지 노멀라이저가 꺼져 있습니다.',
+    '음악 프리셋은 효과 처리 전에 라우드니스를 켜고, 없음은 끈 상태를 유지합니다. 강한 구간을 맞추면서 조용한 구간을 보존합니다. True Peak는 피크만 낮춥니다.',
   'help.dsp.denoise':
     '히스, 윙윙거리는 소리, 클릭음을 수리합니다. 신경 음성 클리너는 라이브러리 트랙에서 작동합니다.',
   'help.dsp.exciter': '신체와 공기에 고조파를 추가합니다.',

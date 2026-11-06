@@ -51,6 +51,7 @@ const PARITY_FIXTURE_COUNT = 2085;
 const isWindows = process.platform === 'win32';
 const shouldClean = process.argv.includes('--clean');
 const shouldTest = process.argv.includes('--test');
+const shouldMusicTest = process.argv.includes('--music-test');
 
 const fail = (message: string): never => {
   console.error(`native dsp build: ${message}`);
@@ -201,17 +202,27 @@ const copyCrtDlls = (vsRoot: string): void => {
 /** audiodg loads only this hash-pinned copy from the protected engine folder. */
 const copyVoiceRuntime = (): void => {
   const root = path.join(ROOT, 'node_modules', 'onnxruntime-node', 'bin');
-  const versions = existsSync(root) ? readdirSync(root)
-    .filter((name) => /^napi-v\d+$/.test(name))
-    .sort((a, b) => b.localeCompare(a, undefined, { numeric: true })) : [];
-  const source = versions.map((version) =>
-    path.join(root, version, 'win32', 'x64', 'onnxruntime.dll'),
-  ).find((candidate) => existsSync(candidate));
-  if (!source) fail('The Windows x64 ONNX Runtime is missing; the engine voice stage cannot be shipped.');
+  const versions = existsSync(root)
+    ? readdirSync(root)
+        .filter((name) => /^napi-v\d+$/.test(name))
+        .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
+    : [];
+  const source = versions
+    .map((version) =>
+      path.join(root, version, 'win32', 'x64', 'onnxruntime.dll'),
+    )
+    .find((candidate) => existsSync(candidate));
+  if (!source)
+    fail(
+      'The Windows x64 ONNX Runtime is missing; the engine voice stage cannot be shipped.',
+    );
   if (source) {
     const destination = path.join(BUILD_DIR, 'bin', 'onnxruntime.dll');
     mkdirSync(path.dirname(destination), { recursive: true });
-    if (!existsSync(destination) || statSync(destination).mtimeMs < statSync(source).mtimeMs) {
+    if (
+      !existsSync(destination) ||
+      statSync(destination).mtimeMs < statSync(source).mtimeMs
+    ) {
       copyFileSync(source, destination);
     }
   }
@@ -404,6 +415,7 @@ const extractParityFixtures = (): void => {
 };
 
 generate('generate-native-parameters.ts');
+if (shouldTest || shouldMusicTest) generate('generate-music-dsp-fixture.ts');
 
 mkdirSync(BUILD_DIR, { recursive: true });
 
@@ -427,11 +439,13 @@ if (isWindows) {
 
 run(tools, ['--build', BUILD_DIR, '--config', 'Release']);
 
-if (shouldTest) {
+if (shouldTest || shouldMusicTest) {
   // After the build, not before: nothing but the tests reads the corpus, so an
   // ordinary `pnpm build` should not pay to expand it.
-  extractParityFixtures();
-  generate('generate-preset-fixtures.ts');
+  if (shouldTest) {
+    extractParityFixtures();
+    generate('generate-preset-fixtures.ts');
+  }
   const ctest = path.join(
     path.dirname(tools.cmake),
     isWindows ? 'ctest.exe' : 'ctest',
@@ -443,6 +457,12 @@ if (shouldTest) {
     '--output-on-failure',
     '-C',
     'Release',
+    ...(shouldMusicTest && !shouldTest
+      ? [
+          '-R',
+          '^(music-factory|host-chain-exchange|colour-filter|source-reference|live-normalizer|song-leveling|exciter|exciter-stereo|exciter-oversample|chain-transfer|chain-switch|engine-output-contract|engine-status|engine-dsp-chain|engine-split-graph)$',
+        ]
+      : []),
   ];
   const result = isWindows
     ? spawnSync(windowsShellCommand(tools, runner, args), {

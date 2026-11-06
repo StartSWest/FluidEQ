@@ -373,7 +373,7 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.keywords':
     'efeitos, FX, plugins, limiter, limitador, loudness, LUFS, normalização de volume, nivelamento, exciter, abertura estéreo, subgrave, subharmônico, transientes, masterização, crossfade, gapless, de-esser, sibilância, s agudo, chiado, voz, podcast, perfis, salvar perfil, passos, ouvir passos, footsteps, jogos, som de jogo, recargas, equalização de volume, game, game filter, dialogue, voice clarity, voices forward, ambience, environment, rain, wind, hooves, horses, headset',
   'help.dsp.normalizer':
-    'Equilibra o volume de uma música para outra. True Peak define um ganho por música em vez de limitá-la o tempo todo. Os presets deixam o Normalizador desligado até você ligá-lo.',
+    'Os presets musicais ativam Sonoridade antes dos efeitos; Nenhum a deixa desligada. Iguala trechos fortes preservando os suaves. Pico verdadeiro apenas reduz os picos.',
   'help.dsp.denoise':
     'Corrige chiado, zumbido e estalos. O limpador de voz neural funciona nas faixas da Biblioteca.',
   'help.dsp.exciter': 'Adiciona harmônicos para dar corpo e ar.',

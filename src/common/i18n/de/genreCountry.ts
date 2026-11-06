@@ -69,8 +69,6 @@ export default {
   'genre.bluegrass.pin.5000.why': 'Wo das Picking funkelt.',
   'genre.bluegrass.pin.12500': 'Luft über den Saiten',
   'genre.bluegrass.pin.12500.why': 'Der Raum um die Band.',
-  'genre.bluegrass.stage.exciter':
-    'Luft über Banjo und Mandoline, eine Oktave über ihrer eigenen.',
   'genre.bluegrass.stage.dimension':
     'Behält die frequenzabhängige Stereobreite dieses Genres bei. Der mittigen Stimme wird keine Dekorrelation hinzugefügt.',
   'genre.bluegrass.stage.deEsser':

@@ -144,7 +144,6 @@ export default {
   'genre.chillout.pin.2000.why': '尖ったものは何もなし。',
   'genre.chillout.pin.12500': '軽い空気感',
   'genre.chillout.pin.12500.why': 'いちばん上のきらめき。',
-  'genre.chillout.stage.exciter': '軽い空気感だけ。',
   'genre.chillout.stage.dimension':
     '高域を広く。ここでは広がりが歓迎されます。',
   'genre.chillout.stage.deEsser':

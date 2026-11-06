@@ -120,6 +120,7 @@ export {
   maximumExciterBandRangeAtFrequency,
   organicBandEdges,
   organicRangeQ,
+  NORMALIZER_LOUDNESS_PEAK_MARGIN_DB,
 } from './chainStageSettings';
 export type {
   IBassForgeSettings,

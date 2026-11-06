@@ -5,13 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 /*
  * Live leveling that knows which song is playing: the level a loud passage
- * leaves is kept for the rest of the song, the next song keeps it unless it is
- * much quieter, a song heard before is levelled from its first second, and
+ * leaves is kept for the rest of the song, each new song establishes its own
+ * gain, a song heard before is levelled from its first second, and
  * none of that is lost when Windows hands the output a new chain.
  */
 #include "fluideq/leveling_memory.h"
 #include "fluideq/live_normalizer.h"
 #include "fluideq/loudness_meter.h"
+#include "fluideq/primitives.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -98,16 +99,39 @@ void a_loud_passage_sets_the_level_for_the_rest_of_the_song() {
   check(song.foreground_seconds > 60, "and says how much music that was learned from");
 }
 
-void the_next_song_keeps_the_level_unless_it_is_much_quieter() {
+void each_new_song_reaches_its_own_level_independent_of_playlist_order() {
   Memory memory;
   Leveler leveler(memory.handle);
+  leveler.settings.target_lufs = -18;
   feq_leveling_memory_begin_song(memory.handle, kSongA, -120, -120);
-  leveler.play(40, kChorus);
+  leveler.play(40, kLoud);
   const double carried = leveler.gain();
+  const double quieter = kLoud * std::pow(10.0, -4.0 / 20);
   feq_leveling_memory_begin_song(memory.handle, kSongB, -120, -120);
-  leveler.play(60, kChorus * 0.6);
+  leveler.play(15, quieter);
   check(std::abs(leveler.gain() - carried) < 0.2,
-        "a slightly quieter next song plays at the level the last one left");
+        "a new song keeps continuous gain while its opening is still being learned");
+  leveler.play(45, quieter);
+  check(std::abs(leveler.reading.output_lufs + 18) < 0.1,
+        "a four-dB quieter new song reaches the common working level");
+
+  Memory fresh;
+  Leveler first(fresh.handle);
+  first.settings.target_lufs = -18;
+  feq_leveling_memory_begin_song(fresh.handle, kSongB, -120, -120);
+  first.play(60, quieter);
+  check(std::abs(first.reading.output_lufs - leveler.reading.output_lufs) < 0.05 &&
+            std::abs(first.gain() - leveler.gain()) < 0.05,
+        "the same song converges to the same level when played first or after a loud song");
+  const double established = leveler.gain();
+  leveler.play(35, quieter * 0.1);
+  check(std::abs(leveler.gain() - established) < 0.1 &&
+            leveler.reading.output_lufs < -35,
+        "a quiet verse within that song keeps its contrast instead of being raised");
+  feq_leveling_memory_begin_song(memory.handle, kSongA, -120, -120);
+  leveler.play(40, kLoud);
+  check(std::abs(leveler.reading.output_lufs + 18) < 0.1,
+        "returning to the louder song reaches the same working level too");
 
   Memory loud_first;
   Leveler raised(loud_first.handle);
@@ -120,8 +144,8 @@ void the_next_song_keeps_the_level_unless_it_is_much_quieter() {
   check(std::abs(raised.gain() - lowered) < 0.2,
         "a much quieter song is not raised before its opening has been heard");
   raised.play(90, kVerse);
-  check(raised.gain() > lowered + 6 && raised.gain() < 3.2,
-        "then it is raised, stopping short of what its opening alone asks");
+  check(raised.gain() > lowered + 6 && std::abs(raised.gain() - 12) < 0.1,
+        "a much quieter new song uses the shared twelve-dB boost bound after learning");
 }
 
 void a_song_heard_before_is_levelled_from_its_first_second() {
@@ -262,20 +286,21 @@ void ceiling_edits_and_relocking_keep_the_controls_current() {
     first.settings = {2, -12, -5};
     feq_leveling_memory_begin_song(memory.handle, kSongA, -16, -13);
     first.play(10, kChorus);
-    check(std::abs(first.gain() - 0.5) < 0.1, "the initial gain respects the tight peak ceiling");
+    check(std::abs(first.gain() - 0.05) < 0.1, "the initial gain reserves the shared peak margin");
   }
   Leveler next(memory.handle);
   next.settings = {2, -1, -5};
   next.play(0.1, kChorus);
-  check(next.gain() > 0.5 && next.gain() < 0.8,
+  check(next.gain() > 0.05 && next.gain() < 0.35,
         "a replacement chain notices a relaxed ceiling after adopting the old gain");
-  next.play(4, kChorus);
-  check(std::abs(next.gain() - 6) < 0.1, "the relaxed ceiling permits the new gain within the six-dB limit");
+  next.play(6, kChorus);
+  check(std::abs(next.gain() - 11) < 0.1,
+        "the relaxed ceiling permits the same eleven-dB gain as an analysed source");
   next.settings.ceiling_db = -12;
   // Applied gain includes peak protection, whose platform must release after
   // it catches the initially hotter samples during the downward glide.
   next.play(12, kChorus);
-  check(std::abs(next.gain() - 0.5) < 0.1, "tightening the ceiling retargets the held gain too");
+  check(std::abs(next.gain() - 0.05) < 0.1, "tightening the ceiling retargets the held gain too");
 }
 
 void unknown_songs_honor_late_edits_and_relocked_targets() {
@@ -339,11 +364,35 @@ void lufs_measures_the_actual_output_during_a_gain_ramp() {
   check(std::abs(leveler.reading.output_lufs - observed.short_term_lufs) < 0.001,
         "the measured output still agrees with the observer while peak protection is active");
 }
+
+void a_new_chain_keeps_the_first_blocks_peak_interpolation_history() {
+  Memory memory;
+  feq_leveling_memory_begin_song(memory.handle, kSongA, -120, -120);
+  auto* processor = feq_live_normalizer_create(kRate, 2);
+  feq_live_normalizer_attach_memory(processor, memory.handle);
+  FeqTruePeak observer{};
+  feq_true_peak_init(&observer, 4);
+  FeqNormalizerSettings settings{2, -3, -18};
+  bool tail_heard = false;
+  for (unsigned block = 0; block < 4; ++block) {
+    float left[8]{}, right[8]{};
+    if (block == 0) left[7] = right[7] = 0.4f;
+    const double expected = feq_true_peak_block(&observer, left, 8);
+    float* planes[] = {left, right};
+    const auto reading = feq_live_normalizer_process(processor, planes, 8, &settings);
+    const double expected_db = expected > 1e-6 ? 20 * std::log10(expected) : -120;
+    check(std::abs(reading.input_true_peak_db - expected_db) < 0.001,
+          "a newly adopted song measures every block with continuous peak interpolation");
+    if (block > 0 && expected > 0.05) tail_heard = true;
+  }
+  check(tail_heard, "positive control: the first block's peak really crosses the block boundary");
+  feq_live_normalizer_destroy(processor);
+}
 }
 
 int main() {
   a_loud_passage_sets_the_level_for_the_rest_of_the_song();
-  the_next_song_keeps_the_level_unless_it_is_much_quieter();
+  each_new_song_reaches_its_own_level_independent_of_playlist_order();
   a_song_heard_before_is_levelled_from_its_first_second();
   what_was_learned_survives_a_new_chain();
   titles_pauses_and_the_next_song();
@@ -352,5 +401,6 @@ int main() {
   ceiling_edits_and_relocking_keep_the_controls_current();
   unknown_songs_honor_late_edits_and_relocked_targets();
   lufs_measures_the_actual_output_during_a_gain_ramp();
+  a_new_chain_keeps_the_first_blocks_peak_interpolation_history();
   return failures == 0 ? 0 : 1;
 }

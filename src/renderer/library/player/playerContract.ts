@@ -32,6 +32,7 @@ export const normalizationChanged = (
   previous.version !== next.version ||
   Math.abs(previous.truePeakDbtp - next.truePeakDbtp) >= 0.01 ||
   Math.abs(previous.integratedLufs - next.integratedLufs) >= 0.01 ||
+  previous.maxShortTermLufs !== next.maxShortTermLufs ||
   previous.edges?.leadInMs !== next.edges?.leadInMs ||
   previous.edges?.endMs !== next.edges?.endMs;
 

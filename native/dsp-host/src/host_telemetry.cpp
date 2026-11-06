@@ -33,6 +33,8 @@ namespace feq_host {
  * repaint an identical picture.
  */
 void drain_analysis(HostState& state) {
+  const std::lock_guard<std::mutex> held(state.device_mutex);
+  state.chain_exchange.reclaim();
   if (state.meters == nullptr || feq_meters_enabled(state.meters) == 0) {
     state.analysis_publication.clear();
     return;
@@ -128,7 +130,7 @@ void drain_analysis(HostState& state) {
   frame.loudness_integrated_lufs = loudness[2];
   frame.loudness_range_lu = loudness[3];
   FeqDenoiseReport denoise{};
-  feq_chain_denoise_report(state.chain, &denoise);
+  feq_chain_denoise_report(state.chain_exchange.published(), &denoise);
   frame.denoise_reduction_db = static_cast<float>(denoise.reduction_db);
   frame.denoise_noise_floor_db = static_cast<float>(denoise.noise_floor_db);
   frame.denoise_clicks_repaired = denoise.clicks_repaired;

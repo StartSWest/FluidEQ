@@ -1,6 +1,7 @@
 /* FluidEQ — GPL-3.0-or-later */
 #include "fluideq/chain_source.h"
 #include "chain_internal.h"
+#include "normalizer_gain.h"
 
 #include <algorithm>
 #include <cmath>
@@ -25,16 +26,18 @@ bool valid_noise(const FeqNoiseProfile* profile) {
   return true;
 }
 
-// Kept equal to inputNormalizer.ts: the cached integrated measurement is
-// different from live leveling's loudest settled short-term reference.
+// Version 2 carries the same three-second foreground reference Live learns.
+// Legacy v1 callers retain their integrated policy until they supply new facts.
 double input_gain(const FeqChainSettings& settings,
                   const FeqChainSourceAnalysis& source) {
   if (source.has_level == 0 || settings.normalizer.mode == 0) return 0.0;
   const double room = settings.normalizer.ceiling_db - source.true_peak_dbtp;
   if (settings.normalizer.mode == 1) return std::max(-48.0, std::min(0.0, room));
-  if (source.integrated_lufs <= -70.0) return 0.0;
-  return std::max(-48.0, std::min({12.0, room,
-      settings.normalizer.target_lufs - source.integrated_lufs}));
+  const double reference = source.version >= 2 ? source.reference_lufs : source.integrated_lufs;
+  if (reference <= -70.0) return 0.0;
+  return feq_normalizer::loudness_gain(
+      settings.normalizer.target_lufs - reference,
+      feq_normalizer::peak_room(settings.normalizer.ceiling_db, source.true_peak_dbtp));
 }
 
 double master_gain(const FeqChainSettings& settings,
@@ -57,10 +60,11 @@ extern "C" int feq_chain_prepare_source_analysis(FeqChain* chain,
     const FeqChainSourceAnalysis* source, FeqLevelingMemory* live_memory,
     FeqChainSourceStatus* status) {
   if (status != nullptr) *status = FeqChainSourceStatus{};
-  if (chain == nullptr || source == nullptr || source->version != 1 ||
+  if (chain == nullptr || source == nullptr || (source->version != 1 && source->version != 2) ||
       (source->library != 0 && source->library != 1) ||
       (source->library != 0 && source->source_id == 0) ||
       (source->has_level != 0 && (!valid_level(source->integrated_lufs) ||
+                               (source->version == 2 && !valid_level(source->reference_lufs)) ||
                                !valid_level(source->true_peak_dbtp))) ||
       !valid_noise(source->noise) ||
       ((source->voice_model_path == nullptr) !=

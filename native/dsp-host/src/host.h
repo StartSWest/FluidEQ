@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "analysis_publication.h"
 #include "audio_backend.h"
 #include "chain_route.h"
+#include "chain_exchange.h"
 #include "processing_latency.h"
 #include "fluideq/chain.h"
 #include "fluideq/doorbell.h"
@@ -29,6 +30,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -95,6 +97,9 @@ struct HostState {
   FeqEngine* engine = nullptr;
   /** The whole signal path. Null until a device has told us its rate. */
   FeqChain* chain = nullptr;
+  ChainExchange chain_exchange;
+  TrackGainMailbox track_gains;
+  std::optional<FeqNoiseProfile> noise_profile;
   ProcessingLatency processing_latency;
   ChainRoute chain_route;
   AnalysisPublication analysis_publication;
@@ -221,9 +226,9 @@ struct HostState {
    * Serialises anything that opens, closes or rebuilds the device path, plus
    * the voice-model state copied into every rebuilt chain.
    *
-   * Taken by the control thread for START, STOP and voice-model changes, and
-   * by the reopen below. Never by the audio thread, which only reads what
-   * those two have already finished building.
+   * Taken around every control command and telemetry's borrowed pointers,
+   * and by reopen. Audio owns the chain after block-boundary adoption and
+   * never takes this mutex.
    */
   std::mutex device_mutex;
   /** What the renderer last asked for, so a reopen knows whether to start. */
@@ -303,6 +308,9 @@ bool rebuild_engine(HostState& state,
                     const std::vector<double>& snapshot,
                     uint32_t revision);
 void apply_room_head(HostState& state, FeqChain* chain);
+FeqChain* prepare_host_chain(HostState& state, bool require_voice = false);
+bool publish_host_chain(HostState& state, bool preserve = true,
+                        bool require_voice = false);
 bool rebuild_chain_and_player(HostState& state, const FeqDecoderOps& ops);
 void reopen_if_device_changed(HostState& state, IAudioOutputBackend& backend,
                               const FeqDecoderOps& decoder_ops);

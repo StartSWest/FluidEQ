@@ -140,7 +140,6 @@ const genreElectronic = {
   'genre.chillout.pin.2000.why': '날카로운 것은 없습니다.',
   'genre.chillout.pin.12500': '가벼운 공기',
   'genre.chillout.pin.12500.why': '위에는 쉬머가 있습니다.',
-  'genre.chillout.stage.exciter': '가벼운 공기만.',
   'genre.chillout.stage.dimension': '더 넓은 상단: 여기서는 너비를 환영합니다.',
   'genre.chillout.stage.deEsser':
     '중앙 보컬의 날카로운 S와 SH 소리를 5~10 kHz에서 최대 1.5 dB의 좁은 스펙트럼 감쇠로 제어하고, 심벌을 보호하며 저음은 그대로 유지합니다.',

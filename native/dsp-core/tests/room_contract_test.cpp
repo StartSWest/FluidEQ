@@ -32,6 +32,15 @@ int main() {
   check(settings.low_latency == 1 && settings.normalizer.mode == 2 &&
         settings.normalizer.ceiling_db == -2 && settings.normalizer.target_lufs == -18,
         "Room, loudness and game mode coexist");
+  auto legacy_footsteps = wire;
+  legacy_footsteps.insert(legacy_footsteps.end(),
+      {FEQ_CHAIN_FOOTSTEPS_TAG, FEQ_CHAIN_FOOTSTEPS_SCHEMA,
+       FEQ_CHAIN_FOOTSTEPS_FIELDS, 1, 0, 0.85, 0.5});
+  check(decode(legacy_footsteps, &settings) && settings.footsteps.enabled == 1 &&
+        settings.footsteps.lift == 0.85 && settings.footsteps.calm == 0.5 &&
+        settings.footsteps.heavy == 0 && settings.footsteps.environment == 0 &&
+        settings.footsteps.voices == 0 && settings.footsteps.duck == 0,
+        "legacy schema-one Footsteps still decodes with neutral new Game fields");
   for (size_t trailer : {0u, 3u, 4u}) {
     auto legacy = wire;
     legacy.resize(base + trailer);
@@ -71,12 +80,13 @@ int main() {
   // Every optional trailer together, including Dynamics: the bound must
   // accommodate a complete rack, not only each stage on its own.
   max.push_back(FEQ_CHAIN_FOOTSTEPS_TAG);
-  max.push_back(FEQ_CHAIN_FOOTSTEPS_SCHEMA);
-  max.push_back(FEQ_CHAIN_FOOTSTEPS_FIELDS);
+  max.push_back(FEQ_CHAIN_GAME_SCHEMA);
+  max.push_back(FEQ_CHAIN_GAME_FIELDS);
   max.push_back(1);
   max.push_back(0);
   max.push_back(0.85);
   max.push_back(0.5);
+  max.insert(max.end(), {1, 0, 0.5, 1});
   max.insert(max.end(), {FEQ_CHAIN_DYNAMICS_TAG, FEQ_CHAIN_DYNAMICS_SCHEMA,
                         FEQ_CHAIN_DYNAMICS_FIELDS, 1});
   for (int band = 0; band < FEQ_COMPANDER_BANDS; ++band) {
@@ -95,7 +105,9 @@ int main() {
   }
   check(max.size() == FEQ_CHAIN_MAX_PARAMS && decode(max, &settings) &&
             settings.tone.band_count == FEQ_CHAIN_MAX_TONE_BANDS &&
-            settings.footsteps.enabled == 1 && settings.compander.enabled == 1,
+            settings.footsteps.enabled == 1 && settings.footsteps.heavy == 1 &&
+            settings.footsteps.environment == 0 && settings.footsteps.voices == 0.5 &&
+            settings.footsteps.duck == 1 && settings.compander.enabled == 1,
         "the longest payload, 64 bands, Room, Footsteps, Dynamics and a curve, "
         "fits the shared host/APO bound");
   max.push_back(0);

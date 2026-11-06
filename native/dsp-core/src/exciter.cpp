@@ -179,6 +179,17 @@ void identity(FeqBiquadCoefficients* coefficients) {
   coefficients->a2 = 0.0;
 }
 
+double magnitude_at(const FeqBiquadCoefficients& k, double hz, double rate) {
+  const double angle = 6.283185307179586 * hz / rate;
+  const double c = std::cos(angle), s = std::sin(angle);
+  const double c2 = 2 * c * c - 1, s2 = 2 * c * s;
+  const double nr = k.b0 + k.b1 * c + k.b2 * c2;
+  const double ni = k.b1 * s + k.b2 * s2;
+  const double dr = 1 + k.a1 * c + k.a2 * c2;
+  const double di = k.a1 * s + k.a2 * s2;
+  return std::sqrt((nr * nr + ni * ni) / std::max(dr * dr + di * di, 1e-24));
+}
+
 /** Extract one band from the dry programme into its own buffer. */
 void extract_band(FeqExciterChannel* state, uint32_t band,
                   const FeqExciterBandSetup& setup, uint32_t frames,
@@ -197,18 +208,45 @@ void extract_band(FeqExciterChannel* state, uint32_t band,
     cache.low_hz = low_hz;
     cache.high_hz = high_hz;
     cache.sample_rate = sample_rate;
+    constexpr double q_first = 0.541196100146197;
+    constexpr double q_second = 1.306562964876377;
+    FeqBiquadCoefficients old_high{}, old_low{};
     if (low_hz > kBandEdgeMinHz) {
+      old_high = feq_biquad_coefficients(FEQ_FILTER_HPQ, low_hz, 0.0, kFilterQ, sample_rate);
       cache.highpass = feq_biquad_coefficients(FEQ_FILTER_HPQ, low_hz, 0.0,
-                                               kFilterQ, sample_rate);
+                                               q_first, sample_rate);
+      cache.highpass_tail = feq_biquad_coefficients(FEQ_FILTER_HPQ, low_hz, 0.0,
+                                                    q_second, sample_rate);
     } else {
+      identity(&old_high);
       identity(&cache.highpass);
+      identity(&cache.highpass_tail);
     }
     if (high_hz < kBandEdgeMaxHz) {
+      old_low = feq_biquad_coefficients(FEQ_FILTER_LPQ, high_hz, 0.0, kFilterQ, sample_rate);
       cache.lowpass = feq_biquad_coefficients(FEQ_FILTER_LPQ, high_hz, 0.0,
-                                              kFilterQ, sample_rate);
+                                              q_first, sample_rate);
+      cache.lowpass_tail = feq_biquad_coefficients(FEQ_FILTER_LPQ, high_hz, 0.0,
+                                                   q_second, sample_rate);
     } else {
+      identity(&old_low);
       identity(&cache.lowpass);
+      identity(&cache.lowpass_tail);
     }
+    // Match the OLD complete band's actual centre gain, including its
+    // attenuation at narrow settings. Normalizing to unity would add colour
+    // and consume headroom just because the input skirt became steeper.
+    // The achieved centre belongs to these cached edges. Two out-of-range
+    // requests can clamp to identical edges; their compensation must agree
+    // on a fresh graph and after an edit too.
+    const double centre = std::sqrt(low_hz * high_hz);
+    const double before = magnitude_at(old_high, centre, sample_rate) *
+        magnitude_at(old_low, centre, sample_rate);
+    const double after = magnitude_at(cache.highpass, centre, sample_rate) *
+        magnitude_at(cache.highpass_tail, centre, sample_rate) *
+        magnitude_at(cache.lowpass, centre, sample_rate) *
+        magnitude_at(cache.lowpass_tail, centre, sample_rate);
+    cache.input_scale = after > 1e-10 ? before / after : 1;
     /**
      * Where the harmonics this band makes are allowed to go.
      *
@@ -234,6 +272,12 @@ void extract_band(FeqExciterChannel* state, uint32_t band,
                      &cache.highpass);
   feq_biquad_process(&state->band_filters[band][1], source, frames,
                      &cache.lowpass);
+  feq_biquad_process(&state->band_filters[band][2], source, frames,
+                     &cache.highpass_tail);
+  feq_biquad_process(&state->band_filters[band][3], source, frames,
+                     &cache.lowpass_tail);
+  for (uint32_t at = 0; at < frames; ++at)
+    source[at] = static_cast<float>(source[at] * cache.input_scale);
 }
 
 void shape_band(FeqExciterChannel* state, uint32_t band, const float* source,
@@ -353,9 +397,12 @@ void feq_exciter_channel_init(FeqExciterChannel* state, float* band0,
   for (uint32_t band = 0; band < FEQ_EXCITER_BANDS; ++band) {
     feq_biquad_reset(&state->band_filters[band][0]);
     feq_biquad_reset(&state->band_filters[band][1]);
+    feq_biquad_reset(&state->band_filters[band][2]);
+    feq_biquad_reset(&state->band_filters[band][3]);
     feq_biquad_reset(&state->residue_filters[band]);
     state->band_cache[band].low_hz = 0.0;
     state->band_cache[band].high_hz = 0.0;
+    state->band_cache[band].input_scale = 1.0;
     state->band_cache[band].sample_rate = 0.0;
     identity(&state->band_cache[band].highpass);
     identity(&state->band_cache[band].lowpass);

@@ -227,6 +227,80 @@ const announceMetadata = async (decks: readonly HTMLAudioElement[]) => {
   });
 };
 
+describe('upgrading cached normalization', () => {
+  const legacyAnalysis = {
+    version: 2 as const,
+    truePeakDbtp: -2,
+    integratedLufs: -18,
+  };
+
+  it.each(['missing', 'rejected'] as const)(
+    'keeps legacy facts usable without claiming a completed upgrade when bytes are %s',
+    async (outcome) => {
+      let finishBytes: ((bytes: ArrayBuffer | undefined) => void) | undefined;
+      let rejectBytes: ((reason: Error) => void) | undefined;
+      window.electron.ipcRenderer.libraryTrackBytes = () =>
+        new Promise<ArrayBuffer | undefined>((resolve, reject) => {
+          finishBytes = resolve;
+          rejectBytes = reject;
+        });
+      applyDspSettings({
+        ...DSP_DEFAULTS,
+        enabled: true,
+        normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'loudness' },
+      });
+      await renderHarness();
+      act(() =>
+        store.setTracks([{ ...audioTrack, normalization: legacyAnalysis }]),
+      );
+      await playTracks([audioTrack.id], audioTrack.id);
+      expect(readDspInputAnalysis()).toMatchObject({
+        trackId: audioTrack.id,
+        status: 'analyzing',
+        fraction: 0,
+        analysis: legacyAnalysis,
+      });
+      await act(async () => {
+        if (!finishBytes || !rejectBytes) {
+          throw new Error('Background preparation never began');
+        }
+        if (outcome === 'missing') {
+          finishBytes(undefined);
+        } else {
+          rejectBytes(new Error('File unavailable'));
+        }
+      });
+      expect(readDspInputAnalysis()).toMatchObject({
+        trackId: audioTrack.id,
+        status: 'unavailable',
+        analysis: legacyAnalysis,
+      });
+      expect(latestPlayer?.track?.id).toBe(audioTrack.id);
+    },
+  );
+
+  it('keeps current foreground measurements ready while playback prepares', async () => {
+    const analysis = {
+      ...legacyAnalysis,
+      version: 3 as const,
+      maxShortTermLufs: -15,
+    };
+    applyDspSettings({
+      ...DSP_DEFAULTS,
+      enabled: true,
+      normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'loudness' },
+    });
+    await renderHarness();
+    act(() => store.setTracks([{ ...audioTrack, normalization: analysis }]));
+    await playTracks([audioTrack.id], audioTrack.id);
+    expect(readDspInputAnalysis()).toMatchObject({
+      status: 'ready',
+      fraction: 1,
+      analysis,
+    });
+  });
+});
+
 describe('leaving a video behind (Task 19 fix-round)', () => {
   it('pauses the video element and clears its src the instant the queue moves off it', async () => {
     await renderHarness();

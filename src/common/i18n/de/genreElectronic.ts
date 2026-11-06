@@ -146,7 +146,6 @@ export default {
   'genre.chillout.pin.2000.why': 'Nichts Scharfes.',
   'genre.chillout.pin.12500': 'Leichte Luft',
   'genre.chillout.pin.12500.why': 'Der Schimmer obendrauf.',
-  'genre.chillout.stage.exciter': 'Nur leichte Luft.',
   'genre.chillout.stage.dimension': 'Oben breiter: Hier ist Breite willkommen.',
   'genre.chillout.stage.deEsser':
     'Zähmt scharfe S- und Sch-Laute der mittigen Stimme mit schmalen spektralen Absenkungen bis 1.5 dB zwischen 5 und 10 kHz, schützt Becken und lässt den Bass unberührt.',

@@ -43,6 +43,7 @@ const FLUSH_SAMPLES = 12;
 export interface ILoudnessMeasurement {
   integratedLufs: number;
   truePeakDbtp: number;
+  maxShortTermLufs: number;
 }
 
 export const dbFromMagnitude = (magnitude: number): number =>
@@ -190,6 +191,11 @@ export const createLoudnessAnalyzer = (
   const hopFrames = Math.max(1, Math.round(sampleRate * 0.1));
   // A rolling sum over one block, so the cost is per sample and not per block.
   const energyWindow = new Float64Array(blockFrames);
+  // Match Live's 30 complete 100 ms sub-blocks; the grid never depends on
+  // decoding chunks. Short clips use their integrated reading instead.
+  const shortWindow = new Float64Array(30 * hopFrames);
+  let shortSum = 0;
+  let maxShortEnergy = 0;
   const blockEnergies: number[] = [];
   let energySum = 0;
   let truePeakMagnitude = 0;
@@ -217,7 +223,16 @@ export const createLoudnessAnalyzer = (
         const windowAt = position % blockFrames;
         energySum += combinedEnergy - energyWindow[windowAt];
         energyWindow[windowAt] = combinedEnergy;
+        const shortAt = position % shortWindow.length;
+        shortSum += combinedEnergy - shortWindow[shortAt];
+        shortWindow[shortAt] = combinedEnergy;
         position += 1;
+        if (position >= shortWindow.length && position % hopFrames === 0) {
+          maxShortEnergy = Math.max(
+            maxShortEnergy,
+            shortSum / shortWindow.length,
+          );
+        }
         if (
           position >= blockFrames &&
           (position - blockFrames) % hopFrames === 0
@@ -240,6 +255,12 @@ export const createLoudnessAnalyzer = (
       return {
         truePeakDbtp: Math.max(SILENCE_DB, dbFromMagnitude(truePeakMagnitude)),
         integratedLufs: Math.max(SILENCE_DB, integratedLoudness(blockEnergies)),
+        maxShortTermLufs: Math.max(
+          SILENCE_DB,
+          position < shortWindow.length
+            ? integratedLoudness(blockEnergies)
+            : loudnessFromEnergy(maxShortEnergy),
+        ),
       };
     },
   };
