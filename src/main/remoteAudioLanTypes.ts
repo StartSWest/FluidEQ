@@ -25,6 +25,7 @@ export interface IRemoteAudioLan {
   retry(): void;
   sendSignal(message: unknown): void;
   sendAudio(chunk: unknown): void;
+  reportPlayback?(peerId: string, milliseconds: number): void;
   setStreamMode(peerId: string, mode: TRemoteAudioStreamMode): void;
   stop(): void;
 }

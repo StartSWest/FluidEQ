@@ -2,6 +2,11 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.lag.in': 'Atraso de entrada',
+  'remoteAudio.lag.out': 'Atraso de saída',
+  'remoteAudio.lag.value': '≈{milliseconds} ms',
+  'remoteAudio.lag.hint':
+    'Atraso estimado por direção: metade do tempo de ida e volta medido na rede, mais buffer de reprodução, atraso de saída informado e atraso conhecido do EQ/DSP do receptor. Captura e atrasos de hardware não informados não podem ser medidos aqui. — indica desligado, indisponível ou aguardando dados recentes. Nenhum buffer de áudio adicional.',
   'remoteAudio.group.add': 'Adicionar computador',
   'remoteAudio.group.title': 'Todo o grupo',
   'remoteAudio.group.mix': 'Sua mixagem',

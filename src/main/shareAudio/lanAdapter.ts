@@ -89,6 +89,12 @@ export const createWorkerLan = (
     sendAudio: (chunk) => {
       host.request('lan.audio', chunk).catch(failed);
     },
+    reportPlayback: (peerId, milliseconds) => {
+      // Display reporting must never turn a dropped report into an audio failure.
+      host
+        .request('lan.playback-latency', peerId, milliseconds)
+        .catch(() => undefined);
+    },
     setStreamMode: () => undefined,
     stop: () => {
       unlisten();

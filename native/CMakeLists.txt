@@ -159,10 +159,6 @@ target_include_directories(fluideq-dsp-core PUBLIC dsp-core/include)
 # declarations rather than a build dependency.
 target_include_directories(fluideq-dsp-core PRIVATE dsp-host/src/vendor)
 target_link_libraries(fluideq-dsp-core PRIVATE feq_strict)
-# The core's voice runtime opens a library and starts a thread. Before glibc
-# 2.34 these symbols live in libdl/libpthread; all consumers must inherit them.
-find_package(Threads REQUIRED)
-target_link_libraries(fluideq-dsp-core PUBLIC ${CMAKE_DL_LIBS} Threads::Threads)
 target_compile_definitions(fluideq-dsp-core
   PUBLIC FEQ_CORE_VERSION="${FEQ_CORE_VERSION}")
 
@@ -173,6 +169,18 @@ add_test(NAME live-normalizer COMMAND fluideq-live-normalizer-test)
 add_executable(fluideq-song-leveling-test dsp-core/tests/song_leveling_test.cpp)
 target_link_libraries(fluideq-song-leveling-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME song-leveling COMMAND fluideq-song-leveling-test)
+
+# Execute actual complete chains on public audio, rather than historical JSON.
+# The TS generator and contract test bind all frequency/model/Q/rack settings.
+add_executable(fluideq-music-factory-test dsp-core/tests/music_factory_test.cpp)
+target_link_libraries(fluideq-music-factory-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME music-factory COMMAND fluideq-music-factory-test
+  "${CMAKE_CURRENT_SOURCE_DIR}/dsp-core/tests/fixtures/music-factory.txt")
+
+find_package(Threads REQUIRED)
+add_executable(fluideq-host-chain-exchange-test dsp-core/tests/host_chain_exchange_test.cpp)
+target_link_libraries(fluideq-host-chain-exchange-test PRIVATE fluideq-dsp-core feq_strict Threads::Threads)
+add_test(NAME host-chain-exchange COMMAND fluideq-host-chain-exchange-test)
 
 add_executable(fluideq-dsp-core-test dsp-core/tests/engine_test.cpp)
 target_link_libraries(fluideq-dsp-core-test PRIVATE fluideq-dsp-core feq_strict)
@@ -191,6 +199,12 @@ add_test(NAME resampler COMMAND fluideq-resampler-test)
 add_executable(fluideq-exciter-test dsp-core/tests/exciter_test.cpp)
 target_link_libraries(fluideq-exciter-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME exciter COMMAND fluideq-exciter-test)
+add_executable(fluideq-colour-filter-test dsp-core/tests/colour_filter_test.cpp)
+target_link_libraries(fluideq-colour-filter-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME colour-filter COMMAND fluideq-colour-filter-test)
+add_executable(fluideq-source-reference-test dsp-core/tests/source_reference_test.cpp)
+target_link_libraries(fluideq-source-reference-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME source-reference COMMAND fluideq-source-reference-test)
 
 add_executable(fluideq-dimension-test dsp-core/tests/dimension_test.cpp)
 target_link_libraries(fluideq-dimension-test PRIVATE fluideq-dsp-core feq_strict)
@@ -794,10 +808,3 @@ add_test(NAME room-ambience COMMAND fluideq-room-ambience-test)
 add_executable(fluideq-room-comparison-test dsp-core/tests/room_comparison_test.cpp)
 target_link_libraries(fluideq-room-comparison-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME room-comparison COMMAND fluideq-room-comparison-test)
-
-# Linux only: the FluidEQ Engine for Linux and the DSP host's Linux device
-# backend, all of it under `linux/` (see linux/CMakeLists.txt). Last, because
-# it adds the Linux backend to the host target defined above.
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  add_subdirectory(linux)
-endif()

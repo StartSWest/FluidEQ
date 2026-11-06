@@ -2,7 +2,11 @@
 /* FluidEQ — GPL-3.0-or-later */
 import type { ISourceAnalysisUpdate } from '../../../common/dsp/sourceAnalysis';
 import type { IEngineHealth } from '../../../common/engineHealth';
-import { createSourceAnalysisPublisher } from '../../../main/sourceAnalysis';
+import {
+  createSourceAnalysisPublisher,
+  formatSourceAnalysis,
+} from '../../../main/sourceAnalysis';
+import { copySourceAnalysisUpdate } from '../../../common/dsp/sourceAnalysis';
 
 // No voice model downloaded: the publication says voice is unavailable.
 jest.mock('../../../main/denoiseModel', () => ({
@@ -29,6 +33,62 @@ const source = (
   libraryAudible: true,
   analysis: { version: 2, integratedLufs: level, truePeakDbtp: -1 },
 });
+
+it('publishes foreground facts without changing the integrated Master measurement', async () => {
+  const t = setup();
+  const update = source();
+  update.analysis = {
+    version: 3,
+    integratedLufs: -20,
+    maxShortTermLufs: -16,
+    truePeakDbtp: -3,
+  };
+  await t.publisher.prepare(update);
+  expect(t.text()).toContain('version=2');
+  expect(t.text()).toContain('level=-20');
+  expect(t.text()).toContain('reference=-16');
+  expect(
+    copySourceAnalysisUpdate({
+      ...update,
+      analysis: {
+        ...update.analysis,
+        maxShortTermLufs: Number.NaN,
+      },
+    }),
+  ).toBeUndefined();
+  await t.publisher.publish(source());
+  expect(t.text()).toContain('version=1');
+  expect(t.text()).not.toContain('reference=');
+});
+it('keeps host fallback and Live release readable by an older engine', () => {
+  const update = source();
+  update.analysis = {
+    version: 3,
+    integratedLufs: -20,
+    maxShortTermLufs: -16,
+    truePeakDbtp: -3,
+  };
+  const publication = {
+    endpoint: '{AAAAAAAA-1111-2222-3333-444455556666}',
+    epoch: 1,
+    revision: 2,
+    library: true,
+    owner: 'host' as const,
+    updateKey: '',
+  };
+  const host = formatSourceAnalysis(update, publication, undefined);
+  expect(host).toContain('version=1');
+  expect(host).toContain('owner=host');
+  expect(host).not.toContain('reference=');
+  const released = formatSourceAnalysis(
+    update,
+    { ...publication, library: false, owner: 'engine' },
+    undefined,
+  );
+  expect(released).toContain('version=1');
+  expect(released).toContain('kind=live');
+  expect(released).not.toContain('reference=');
+});
 const setup = () => {
   let text = '';
   let ready = true;
@@ -47,7 +107,7 @@ const setup = () => {
           owner: true,
           problems: [],
           sourceAnalysis: {
-            version: 1,
+            version: 2,
             kind: fields.kind,
             owner: fields.owner,
             epoch: Number(fields.epoch),

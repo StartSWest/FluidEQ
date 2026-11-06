@@ -684,12 +684,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   min-height: 62px;
   margin: 0;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr));
   gap: 8px;
-
-  &.is-live {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 
   div {
     display: flex;

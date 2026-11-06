@@ -1,16 +1,9 @@
 import 'webpack-dev-server';
 import path from 'path';
-import fs from 'fs';
 import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
-import chalk from 'chalk';
 import { merge } from 'webpack-merge';
-import {
-  execFileSync,
-  execSync,
-  spawn,
-  type ChildProcess,
-} from 'child_process';
+import { execFileSync, spawn, type ChildProcess } from 'child_process';
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
@@ -29,26 +22,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const port = process.env.PORT || 1212;
-const manifest = path.resolve(webpackPaths.dllPath, 'renderer.json');
-// Loaded as the entry, with no parent, it is not the DLL config asking.
-const requiredByDLLConfig =
-  module.parent?.filename.includes('webpack.config.renderer.dev.dll') ?? false;
-
-/**
- * Warn if the DLL is not built
- */
-if (
-  !requiredByDLLConfig &&
-  !(fs.existsSync(webpackPaths.dllPath) && fs.existsSync(manifest))
-) {
-  console.log(
-    chalk.black.bgYellow.bold(
-      'The DLL files are missing. Sit back while we build them for you with "npm run build-dll"',
-    ),
-  );
-  execSync('pnpm postinstall');
-}
-
 /** The dev session's own processes: the preload builder and the main process. */
 const devChildren: ChildProcess[] = [];
 let devShuttingDown = false;
@@ -175,6 +148,9 @@ const configuration: webpack.Configuration = {
         exclude: /\.module\.s?(c|a)ss$/,
       },
       // Fonts
+      // The Gaming Help overview is available offline, including its captions.
+      { test: /\.mp4$/i, type: 'asset/resource' },
+      { test: /\.vtt$/i, type: 'asset/source' },
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/i,
         type: 'asset/resource',
@@ -218,16 +194,8 @@ const configuration: webpack.Configuration = {
     ],
   },
   plugins: [
-    ...(requiredByDLLConfig
-      ? []
-      : [
-          new webpack.DllReferencePlugin({
-            context: webpackPaths.dllPath,
-            manifest: require(manifest),
-            sourceType: 'var',
-          }),
-        ]),
-
+    // Compile browser imports with this renderer. A separate Electron DLL
+    // left startup dependent on an unserved script and stale module IDs.
     new webpack.NoEmitOnErrorsPlugin(),
 
     /**

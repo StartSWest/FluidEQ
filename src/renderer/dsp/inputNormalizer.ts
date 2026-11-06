@@ -9,6 +9,7 @@ import {
   IInputNormalizerSettings,
   MASTER_LOUDNESS_GAIN_MAX_DB,
   MASTER_LOUDNESS_GAIN_MIN_DB,
+  NORMALIZER_LOUDNESS_PEAK_MARGIN_DB,
 } from '../../common/dsp/chain';
 import { ILibraryNormalizationAnalysis } from '../../common/library/types';
 import nextTask from '../../common/nextTask';
@@ -21,14 +22,13 @@ import { createNoiseProfileAnalyzer } from './noiseAnalysis';
 import { createProgrammeEdgeAnalyzer } from './programmeEdges';
 
 /**
- * Bumped to 2 when the K-weighting stopped being the RBJ cookbook.
- *
- * The old filter under-weighted the presence region by up to a third of a dB,
- * so every cached number was slightly optimistic. The guards on both sides of
- * the IPC reject version 1, which re-measures a library rather than mixing two
- * meters' readings in one normalized playlist.
+ * Version 3 adds the foreground reference used by Live. Persisted v2 numbers
+ * stay readable while only their missing measurement is refreshed on play;
+ * roots, tracks, signatures, programme edges and noise data are retained.
  */
-const ANALYSIS_VERSION = 2;
+const ANALYSIS_VERSION = 3;
+
+export { hasCurrentNormalization } from '../../common/library/normalization';
 const MAX_LOUDNESS_GAIN_DB = 12;
 const MIN_NORMALIZER_GAIN_DB = -48;
 
@@ -182,6 +182,7 @@ export const analyzeInputTrack = async (
     version: ANALYSIS_VERSION,
     truePeakDbtp: measurement.truePeakDbtp,
     integratedLufs: measurement.integratedLufs,
+    maxShortTermLufs: measurement.maxShortTermLufs,
     edges: edgeAnalyzer.finish(),
     noise: noiseAnalyzer?.finish(),
   };
@@ -215,9 +216,9 @@ export interface INormalizerGainBreakdown {
  * and a meter that disagrees with what is being applied is worse than no meter
  * at all — it is the audio lying with a straight face.
  *
- * This deliberately stays in TypeScript while the measurement goes native. The
- * panel and the engine have to agree on which control won, and that agreement
- * only holds while one function answers both.
+ * This is the player/readout derivation. The output engine derives its gain
+ * from immutable source facts with the same reference and limits; native
+ * rendered parity tests hold the two paths to the same measured result.
  */
 export const normalizerGainBreakdown = (
   settings: IInputNormalizerSettings,
@@ -231,7 +232,10 @@ export const normalizerGainBreakdown = (
       limitedBy: 'none',
     };
   }
-  const peakRoomDb = settings.truePeakDbtp - analysis.truePeakDbtp;
+  const peakRoomDb =
+    settings.truePeakDbtp -
+    analysis.truePeakDbtp -
+    (settings.mode === 'loudness' ? NORMALIZER_LOUDNESS_PEAK_MARGIN_DB : 0);
 
   if (settings.mode === 'truePeak') {
     // The ceiling IS the target here, and the mode only ever comes down: a
@@ -246,7 +250,13 @@ export const normalizerGainBreakdown = (
     };
   }
 
-  if (analysis.integratedLufs <= ABSOLUTE_GATE_LUFS) {
+  // Legacy facts remain usable while their missing foreground reading is
+  // refreshed. Master still uses the separately measured integrated reading.
+  const referenceLufs =
+    analysis.version === 3
+      ? (analysis.maxShortTermLufs ?? analysis.integratedLufs)
+      : analysis.integratedLufs;
+  if (referenceLufs <= ABSOLUTE_GATE_LUFS) {
     return {
       requestedDb: 0,
       peakRoomDb,
@@ -255,7 +265,7 @@ export const normalizerGainBreakdown = (
     };
   }
 
-  const requestedDb = settings.targetLufs - analysis.integratedLufs;
+  const requestedDb = settings.targetLufs - referenceLufs;
   const bounded = Math.min(MAX_LOUDNESS_GAIN_DB, requestedDb, peakRoomDb);
   const appliedDb = Math.max(MIN_NORMALIZER_GAIN_DB, bounded);
 

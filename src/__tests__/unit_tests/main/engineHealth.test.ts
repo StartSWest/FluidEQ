@@ -245,7 +245,7 @@ describe('parseEngineStatus', () => {
   /** The source analysis block as `status_json.cpp` writes it. */
   it('reads the source analysis the engine reports', () => {
     const sourceAnalysis = {
-      version: 1,
+      version: 2,
       kind: 'library',
       owner: 'engine',
       source: '0123456789abcdef',
@@ -257,7 +257,7 @@ describe('parseEngineStatus', () => {
     expect(
       parseEngineStatus(status({ sourceAnalysis }))?.sourceAnalysis,
     ).toEqual({
-      version: 1,
+      version: 2,
       kind: 'library',
       owner: 'engine',
       epoch: 3,
@@ -265,6 +265,13 @@ describe('parseEngineStatus', () => {
       ready: true,
       voiceReady: false,
     });
+    // The old engine cannot promise the new foreground policy. Keep the
+    // overall engine status, but do not grant it analysed-source ownership.
+    const old = parseEngineStatus(
+      status({ sourceAnalysis: { ...sourceAnalysis, version: 1 } }),
+    );
+    expect(old?.locked).toBe(true);
+    expect(old).not.toHaveProperty('sourceAnalysis');
     // An owner the app does not know is not half read.
     expect(
       parseEngineStatus(

@@ -24,7 +24,7 @@ import { isMandatoryUpdate } from '../common/mandatoryUpdate';
 import { POWERSHELL_PATH, utf8Command } from './powershell';
 import {
   LINUX_UPDATE_FEED_KEYS,
-  verifyUpdateFeedSignature,
+  verifyDownloadedUpdateFeed,
 } from './updateFeedSignature';
 
 /**
@@ -555,6 +555,7 @@ export const setUpReleaseAutoUpdates = async (
   let isMandatoryPending = false;
   let hasDownloaded = false;
   let isInstallerAuthorized = false;
+  let installerGeneration = 0;
   /**
    * The installer has been handed over and the app is on its way out. An
    * `error` from here on is the install failing — the installer not starting,
@@ -588,6 +589,7 @@ export const setUpReleaseAutoUpdates = async (
   });
 
   updater.on('update-available', (info) => {
+    installerGeneration += 1;
     hasDownloaded = false;
     isInstallerAuthorized = false;
     if (isMandatoryUpdate(info)) {
@@ -615,10 +617,17 @@ export const setUpReleaseAutoUpdates = async (
   });
 
   updater.on('update-downloaded', (info) => {
+    installerGeneration += 1;
+    const generation = installerGeneration;
+    hasDownloaded = false;
+    isInstallerAuthorized = false;
     // A rejection and a failed verification are the same outcome to a user, so
     // they share one path: the installer stays unauthorized and the only route
     // that can run it refuses.
     const rejectDownload = (reason: string) => {
+      if (generation !== installerGeneration) {
+        return;
+      }
       logger.error(`Downloaded update rejected: ${reason}`);
       if (isMandatoryPending) {
         sendStatus({ phase: 'failed', isMandatory: true, failure: 'download' });
@@ -628,21 +637,27 @@ export const setUpReleaseAutoUpdates = async (
     const authorize = async () => {
       try {
         const verification = await verifyInstaller(info.downloadedFile);
+        if (generation !== installerGeneration) {
+          return;
+        }
         if (!verification.valid) {
           rejectDownload(
             verification.reason || 'Authenticode verification failed',
           );
           return;
         }
-        // The feed that named this installer's SHA-512 — which the download
-        // has already been checked against — must carry the maker's own
-        // signature, so whoever controls where releases are published cannot
-        // hand out an installer of their own.
-        // Linux trusts its own key, made and kept on the machine that builds
-        // the Linux packages, and never Windows' (`LINUX_UPDATE_FEED_KEYS`).
+        // Authenticate the selected bytes even for cached or SHA-256-only
+        // downloads. Linux keeps trusting its own maker's key, never Windows'.
         const feed = isLinux
-          ? verifyUpdateFeedSignature(info, LINUX_UPDATE_FEED_KEYS)
-          : verifyUpdateFeedSignature(info);
+          ? await verifyDownloadedUpdateFeed(
+              info,
+              info.downloadedFile,
+              LINUX_UPDATE_FEED_KEYS,
+            )
+          : await verifyDownloadedUpdateFeed(info, info.downloadedFile);
+        if (generation !== installerGeneration) {
+          return;
+        }
         if (!feed.valid) {
           rejectDownload(feed.reason || 'the update feed is not trusted');
           return;
@@ -662,7 +677,7 @@ export const setUpReleaseAutoUpdates = async (
       }
     };
 
-    authorize().catch(() => undefined);
+    return authorize().catch(() => undefined);
   });
 
   updater.on('error', (error) => {

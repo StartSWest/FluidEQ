@@ -32,6 +32,7 @@ typedef struct FeqOrganicDc {
 
 typedef struct FeqOrganicPath {
   FeqBiquadState filter;
+  FeqBiquadState filter_tail;
   FeqBiquadCoefficients coefficients;
   double focus_hz;
   double quality;

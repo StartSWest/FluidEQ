@@ -48,7 +48,7 @@ process.env.WEBPACK_CLI_SKIP_IMPORT_LOCAL = 'true';
 const buildNativeEngine = () => {
   const { execFileSync } = require('child_process');
   const tsNode = require.resolve('ts-node/dist/bin.js');
-  const script = path.join(__dirname, 'build-native-dsp.ts');
+  const script = path.join(__dirname, 'build-platform-dsp.ts');
   console.log(chalk.cyan('Building the native DSP engine…'));
   execFileSync(process.execPath, [tsNode, script], {
     stdio: 'inherit',

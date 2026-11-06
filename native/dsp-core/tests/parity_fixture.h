@@ -34,6 +34,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/post_filter_normalizer.h"
 #include "fluideq/limiter.h"
 #include "fluideq/saturate.h"
+#include "colour_parity_changes.h"
 
 #include <algorithm>
 #include <cmath>
@@ -186,6 +187,20 @@ inline constexpr const char* kHeadroomReleaseFinish[] = {
 };
 
 inline constexpr Superseded kSuperseded[] = {
+    {kOrganicPath, kColourOrganicFixtures,
+     "2026-11-05: cascaded input bandpasses retain focus gain and both old "
+     "half-power crossings while rejecting distant treble before shaping. "
+     "The old phase/skirt response generated aliases. colour_filter_test.cpp "
+     "holds the independently derived response, music_factory_test.cpp holds "
+     "pre-change focus fundamental/H2/H3 and full-chain folded-tone bounds; "
+     "raw Organic shaper parity remains unchanged"},
+    {kExciter, kColourExciterFixtures,
+     "2026-11-05: fourth-order input skirts retain the original complete "
+     "centre gain and reject treble leaking into body bands. Only these "
+     "changed frozen fixtures leave their old phase/response comparison; "
+     "all are still rendered. colour_filter_test.cpp holds focus/cache "
+     "response, music_factory_test.cpp holds pre-change wanted harmonics, "
+     "83 factory chains and alias-positive/bypass controls"},
     {kLinkedLimiter, kReleaseFinish,
      "a release crosses the last 2% of its gap in a straight line, at the "
      "pace it had there, since 2026-09-26; it used to jump it in one sample, "

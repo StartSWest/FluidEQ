@@ -64,8 +64,6 @@ const genreCountry = {
   'genre.bluegrass.pin.5000.why': '採摘閃閃發光的地方。',
   'genre.bluegrass.pin.12500': '空氣在琴絃上',
   'genre.bluegrass.pin.12500.why': '樂團周圍的房間。',
-  'genre.bluegrass.stage.exciter':
-    '空氣在班卓琴和曼陀林上方，比它們自己的音高八度。',
   'genre.bluegrass.stage.dimension':
     '保持此曲風在各頻段的立體聲寬度平衡，不對中央人聲加入去相關處理。',
   'genre.bluegrass.stage.deEsser':

@@ -7,8 +7,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/compander.h"
 
 #include <algorithm>
-// GCC does not pull array begin/end in through algorithm as MSVC does.
-#include <iterator>
 #include <cmath>
 #include <new>
 

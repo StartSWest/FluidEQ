@@ -67,6 +67,7 @@ docker run --rm \
         /tmp/pw/src/pipewire/version.h.in > /tmp/pwh/pipewire/version.h
 
     cmake -S /src -B /tmp/build -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_TOOLCHAIN_FILE=/src/linux/toolchain.cmake \
       -DFEQ_BUILD_REVISION=portable -DFEQ_PIPEWIRE_HEADERS=/tmp/pwh >/dev/null
     cmake --build /tmp/build -j2 \
       --target fluideq-linux-engine fluideq-dsp-host fluideq-linux-volume fluideq-linux-media fluideq-linux-wallpaper

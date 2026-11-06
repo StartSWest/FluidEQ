@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, type ReactNode } from 'react';
 import LiveFigure from '../components/LiveFigure';
 import MenuIcon from '../icons/MenuIcon';
 import { useLiveSurface } from '../utils/theme';
@@ -43,6 +43,7 @@ export interface IRemoteAudioLaneProps {
   line: string;
   /** Under the song: the artist and where it plays from. */
   lineDetail?: string;
+  readout?: ReactNode;
   /** Sound flows on this lane; off, it is drawn as a dashed line. */
   live: boolean;
   /** The other computer's peer id for its sound here; null for this
@@ -82,6 +83,7 @@ const RemoteAudioLane = ({
   title,
   line,
   lineDetail,
+  readout,
   live,
   meterKey,
   subscribe,
@@ -228,6 +230,7 @@ const RemoteAudioLane = ({
           className="remote-audio__lane-wave"
           aria-hidden="true"
         />
+        {readout}
       </div>
       <div className="remote-audio__lane-figures">
         {figures.map((figure) => (

@@ -68,8 +68,6 @@ export default {
   'genre.bluegrass.pin.5000.why': 'Onde o dedilhado cintila.',
   'genre.bluegrass.pin.12500': 'Ar sobre as cordas',
   'genre.bluegrass.pin.12500.why': 'A sala em volta da banda.',
-  'genre.bluegrass.stage.exciter':
-    'Ar sobre o banjo e o bandolim, uma oitava acima do deles.',
   'genre.bluegrass.stage.dimension':
     'Mantém o equilíbrio de largura estéreo deste gênero em todo o espectro. Não adiciona decorrelação à voz central.',
   'genre.bluegrass.stage.deEsser':

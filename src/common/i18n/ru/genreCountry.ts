@@ -69,8 +69,6 @@ export default {
   'genre.bluegrass.pin.5000.why': 'Где искрятся переборы.',
   'genre.bluegrass.pin.12500': 'Воздух над струнами',
   'genre.bluegrass.pin.12500.why': 'Комната вокруг группы.',
-  'genre.bluegrass.stage.exciter':
-    'Воздух над банджо и мандолиной, на октаву выше их собственного.',
   'genre.bluegrass.stage.dimension':
     'Сохраняет частотный баланс стереоширины этого жанра. К вокалу в центре не добавляется декорреляция.',
   'genre.bluegrass.stage.deEsser':

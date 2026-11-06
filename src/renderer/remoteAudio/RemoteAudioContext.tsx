@@ -42,6 +42,7 @@ import useLinuxShareDevices from './useLinuxShareDevices';
 import useSelectedRemoteAudioOutput from './useSelectedRemoteAudioOutput';
 import useRemoteAudioMeterBus from './useRemoteAudioMeterBus';
 import useRemoteAudioNetworkStats from './useRemoteAudioNetworkStats';
+import useRemoteAudioLatencyReports from './useRemoteAudioLatencyReports';
 import useRemoteAudioBridgeSubscriptions from './useRemoteAudioBridgeSubscriptions';
 import useRemoteAudioMixer from './useRemoteAudioMixer';
 import useRemoteAudioPcmSender from './useRemoteAudioPcmSender';
@@ -141,6 +142,12 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   }, [clearNetworkStats]);
 
   const playedHere = links.some((link) => playsHere(link, bothWays));
+  useRemoteAudioLatencyReports(
+    subscribeMeter,
+    outputSinkIdRef,
+    activeDeviceId,
+    phase !== 'idle' && playedHere,
+  );
   const { mixerRef, removePeer, resume } = useRemoteAudioMixer({
     recoveryAttempt,
     wanted: phase !== 'idle' && playedHere,

@@ -194,7 +194,13 @@ extern "C" int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous) 
       prepared->sample_rate != previous->sample_rate ||
       prepared->channels != previous->channels ||
       prepared->max_frames != previous->max_frames ||
-      prepared->source_analysis_version != previous->source_analysis_version ||
+      // A same-song Library scan upgrades supported facts from v1 to v2.
+      // Its delays/filters still belong to the current passage; rejecting
+      // solely on the fact version would restart them in the middle of it.
+      (prepared->source_analysis_version != previous->source_analysis_version &&
+       !(prepared->source_library &&
+         (prepared->source_analysis_version == 1 || prepared->source_analysis_version == 2) &&
+         (previous->source_analysis_version == 1 || previous->source_analysis_version == 2))) ||
       prepared->source_library != previous->source_library ||
       (prepared->source_library &&
        (prepared->source_id != previous->source_id ||

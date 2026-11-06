@@ -155,6 +155,32 @@ describe('the answer coming back to this computer', () => {
     );
   });
 
+  it('closes the real listener when the browser refuses to open, without cancelling its caller', async () => {
+    const controller = new AbortController();
+    let callback = '';
+    try {
+      await expect(
+        runGoogleSignIn({
+          config: CONFIG,
+          signal: controller.signal,
+          pages: PAGES,
+          startLoopback: startOAuthLoopback,
+          openExternal: async (url) => {
+            callback = new URL(url).searchParams.get('redirect_to') ?? '';
+            throw new Error('No browser is available.');
+          },
+          onWaiting: () => undefined,
+          now: () => 1_000_000,
+        }),
+      ).rejects.toMatchObject({ failure: 'google_unfinished' });
+      expect(callback).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/auth\/callback$/);
+      expect(controller.signal.aborted).toBe(false);
+      await expect(fetch(`${callback}?code=late`)).rejects.toThrow();
+    } finally {
+      controller.abort();
+    }
+  });
+
   it('writes its page as text, never as markup', () => {
     const page = oauthPage('en', '<b>title</b>', 'body & "quotes"');
     expect(page).toContain('&lt;b&gt;title&lt;/b&gt;');

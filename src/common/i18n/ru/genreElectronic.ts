@@ -144,7 +144,6 @@ export default {
   'genre.chillout.pin.2000.why': 'Ничего острого.',
   'genre.chillout.pin.12500': 'Лёгкий воздух',
   'genre.chillout.pin.12500.why': 'Мерцание сверху.',
-  'genre.chillout.stage.exciter': 'Только лёгкий воздух.',
   'genre.chillout.stage.dimension': 'Верх шире: здесь ширина к месту.',
   'genre.chillout.stage.deEsser':
     'Смягчает резкие С и Ш в центральном вокале узкими спектральными срезами до 1,5 дБ в диапазоне 5–10 кГц, защищая тарелки и не затрагивая бас.',

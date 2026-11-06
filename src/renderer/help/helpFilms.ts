@@ -11,10 +11,9 @@
 const HELP_FILMS: Readonly<Record<string, readonly string[]>> = {
   start: ['walkthrough'],
   looks: ['custom-looks'],
-  // The Gaming Lab's own film (Ivan, 2026-11-04: "record the new game film
-  // to show case it completely"): the walkthrough still shows the Game
-  // presets page the Lab replaced, so this is the one film of the Lab.
-  games: ['gaming-lab'],
+  // The fresh full-window overview is Help's recording. What's New keeps its
+  // original film and timings so released clients never receive mismatched copy.
+  games: ['gaming-lab-overview'],
 };
 
 /**

@@ -175,11 +175,11 @@ const tour: Partial<Dictionary> = {
   'tour.games.point1':
     'Spiele von Steam, Epic Games, EA, GOG, Ubisoft, Battle.net und Xbox oder jedes Programm, das gerade offen ist.',
   'tour.games.point2':
-    'Jeder Teil wird auf einer Seite abgestimmt: der Filter Spiel für Schritte und Stimmen, der EQ, die Kurve und jede DSP-Stufe, mit Presets für Spiele.',
+    'Wählen Sie aus 33 Profilen für bestimmte Titel und 9 Spielarten und stimmen Sie Spiel-Filter, EQ, Kurve und DSP-Stufen auf einer Seite ab.',
   'tour.games.point3':
     'Das Labor und die EQ-Seite zeigen das laufende Spiel und sein Preset.',
   'tour.games.how':
-    'Öffnen Sie das Gaming-Labor in der Titelleiste und klicken Sie auf „Spiel hinzufügen“. Dann „Jetzt ausprobieren“, und stimmen Sie seinen Klang gleich dort ab.',
+    'Öffnen Sie das Gaming-Labor in der Titelleiste und klicken Sie auf „Spiel hinzufügen“. Wählen Sie sein Gaming-Profil, klicken Sie auf „Jetzt ausprobieren“ und stimmen Sie seinen Klang ab.',
   'tour.games.open': 'Gaming-Labor öffnen',
   'tour.games.imageAlt':
     'Das Gaming-Labor mit Counter-Strike 2, zuerst mit Ihrer Musik, dann mit dem eigenen Klang des Spiels: sein Preset oben genannt, Spielmodus an und Entladen statt Jetzt ausprobieren.',
@@ -858,15 +858,15 @@ const tour: Partial<Dictionary> = {
   'tour.v23.engineKey':
     'Wählen Sie im Menü eine Ein/Aus-Taste, um die gesamte Verarbeitung von FluidEQ bei einer anderen App im Vordergrund umzuschalten. Eine Karte bestätigt den Wechsel.',
   'tour.v23.profiles':
-    'Suchen Sie Gaming-Profile nach Spiel, Kurve oder Kette. Gespeicherte Profile zeigen ebenfalls ihre Kurven und die Pegel des Spiel-Filters.',
+    'Ändern Sie die Größe der Spieleliste oder klappen Sie sie ein; Wechselhinweise nennen den Klang. Suchen Sie Profile nach Spiel, Kurve oder Kette; gespeicherte Profile zeigen auch Kurven und Spiel-Filter-Pegel.',
   'tour.v23.dsp':
-    'Dynamik hebt Leises in drei Bändern an. Der sauberere Maximizer erhält den Bass; True-Peak-Normalisierung nutzt eine Verstärkung pro Lied.',
+    'Neu abgestimmte Standard-Musik- und Genre-Vorgaben für einen fokussierteren, kraftvolleren Klang und ein gleichmäßigeres Hörerlebnis, mit neuen Messungen für 83 Genres. Dynamik hebt Leises in drei Bändern an; der sauberere Maximizer erhält den Bass, und True Peak nutzt eine Verstärkung pro Lied.',
   'tour.v23.help':
-    'Hilfe spielt den aufgezeichneten 2.2-Rundgang und öffnet die vollständigen Versionshinweise direkt. Über FluidEQ bietet Abschnittslinks und, wo verfügbar, den Unterstützungs-QR-Code.',
+    'Lokale Suchen ignorieren Groß- und Kleinschreibung, Akzente, Leer- und Satzzeichen. Hilfe bietet den 2.2-Rundgang und vollständige Hinweise; Über FluidEQ hat Abschnittslinks und, wo verfügbar, einen Unterstützungs-QR-Code.',
   'tour.v23.forum':
     'Jeder Forumsbereich zählt ungesehene Aktivität, Probleme zählt offene Probleme, und angefangene Themen und Antworten bleiben gespeichert.',
   'tour.v23.layout':
-    'Der Kompaktspieler hält Spielnamen kurz. Spiel hinzufügen hält beim Scrollen seine Tasten sichtbar, und Seiten-Scrollleisten liegen am rechten Rand.',
+    'Visualizer steht am Anfang der Kopfleiste, Online-Medien am Ende. Der Kompaktspieler hält Spielnamen kurz, die Lautstärkeanzeige bleibt stabil, Spiel hinzufügen hält seine Tasten sichtbar und Scrollleisten reichen bis zum Rand.',
 };
 
 export default tour;

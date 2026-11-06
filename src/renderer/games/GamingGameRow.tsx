@@ -40,6 +40,7 @@ const GamingGameRow = ({
         isPlaying ? ' is-playing' : ''
       }`}
       aria-current={isSelected ? 'true' : undefined}
+      title={game.name}
       onClick={onSelect}
     >
       <span className="gaming-game__icon">

@@ -173,11 +173,11 @@ const tour: Partial<Dictionary> = {
   'tour.games.point1':
     'Juegos de Steam, Epic Games, EA, GOG, Ubisoft, Battle.net y Xbox, o cualquier programa que esté abierto.',
   'tour.games.point2':
-    'Ajusta cada parte en una sola página: el Filtro Juego para pasos y voces, el EQ, la curva y cada etapa DSP, con presets hechos para juegos.',
+    'Elige entre 33 perfiles para títulos concretos y 9 tipos de juego; ajusta el Filtro de juego, EQ, curva y etapas DSP en una sola página.',
   'tour.games.point3':
     'El Laboratorio y la página EQ muestran el juego que está sonando y su preset.',
   'tour.games.how':
-    'Abre el Laboratorio gaming en la barra de título y pulsa Añadir un juego. Después pulsa Probar ahora y ajusta su sonido ahí mismo.',
+    'Abre el Laboratorio gaming en la barra de título y pulsa Añadir un juego. Elige su «Perfil gaming», pulsa «Probar ahora» y ajusta su sonido.',
   'tour.games.open': 'Abrir el Laboratorio gaming',
   'tour.games.imageAlt':
     'El Laboratorio gaming con Counter-Strike 2, primero con tu música sonando y luego con el sonido propio del juego: su preset nombrado arriba, el Modo juego activado y Descargar en lugar de Probar ahora.',
@@ -851,15 +851,15 @@ const tour: Partial<Dictionary> = {
   'tour.v23.engineKey':
     'Elige una tecla de encendido/apagado en el menú para cambiar todo el procesamiento de FluidEQ mientras usas otra app. Una tarjeta confirma cada cambio.',
   'tour.v23.profiles':
-    'Busca perfiles de juego por juego, curva o cadena. Tus perfiles guardados también muestran sus curvas y niveles del filtro Juego.',
+    'Cambia el tamaño de la lista de juegos o pliégala; los avisos de cambio nombran el sonido. Busca perfiles por juego, curva o cadena; los guardados también muestran sus curvas y niveles del filtro Juego.',
   'tour.v23.dsp':
-    'Dinámica levanta lo suave en tres bandas. El Maximizador conserva los graves; la normalización de pico real usa una ganancia por canción.',
+    'Presets de música general y de género reajustados para un sonido más definido y potente y una escucha más uniforme, con nuevas mediciones para 83 géneros. Dinámica eleva lo suave en tres bandas; el Maximizador más limpio conserva los graves y True Peak usa una ganancia por canción.',
   'tour.v23.help':
-    'Ayuda reproduce el recorrido grabado de la 2.2 y abre las notas completas directamente. Acerca de incluye enlaces a secciones y el QR de apoyo cuando está disponible.',
+    'Las búsquedas locales ignoran mayúsculas, tildes, espacios y puntuación. Ayuda ofrece el recorrido 2.2 y las notas completas; Acerca de tiene enlaces a secciones y el QR de apoyo cuando está disponible.',
   'tour.v23.forum':
     'Cada sección del Foro cuenta la actividad no vista, Problemas cuenta los abiertos y los temas y respuestas sin terminar se guardan.',
   'tour.v23.layout':
-    'El reproductor compacto acorta los nombres de juego. Añadir un juego mantiene sus botones visibles al desplazarte y las barras de las páginas quedan al borde derecho.',
+    'Visualizadores abre la cabecera y Multimedia en línea la cierra. El reproductor compacto acorta los nombres de juego, el volumen se lee sin saltos, Añadir un juego mantiene sus botones visibles y las barras llegan al borde.',
 };
 
 export default tour;

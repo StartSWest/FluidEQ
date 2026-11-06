@@ -26,6 +26,7 @@ import { APP_UPDATE_EVENT } from '../common/constants';
 import { translate } from '../common/i18n';
 import { appVersion } from './appVersion';
 import { isDspHostPlaying } from './ipc/dspHost';
+import { isRemoteAudioActive } from './ipc/remoteAudio';
 import {
   createNativeUpdatePrompt,
   INativeUpdatePrompt,
@@ -184,7 +185,7 @@ const createAppUpdates = ({
           activeAutoUpdater?.isReadyToInstall() &&
           activeAutoUpdater.installsUnattended,
         ),
-      isPlayingAudio: isDspHostPlaying,
+      isPlayingAudio: () => isDspHostPlaying() || isRemoteAudioActive(),
       isWindowOnScreen: () => isWindowOnScreen(getMainWindow()),
       rememberRestart: () =>
         rememberUnattendedRestart(unattendedRestartMarkerPath, appVersion()),

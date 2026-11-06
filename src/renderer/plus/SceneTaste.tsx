@@ -1,79 +1,81 @@
-import { useCallback, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { PLUS_TASTE_SECONDS } from 'common/plusTerms';
-import type { TSceneMaker } from 'common/sceneMaker';
-import type { IScenePack } from 'common/scenePacks';
-import type { ISceneFrame } from '../graph/sceneGl';
 import { useTranslation } from '../utils/I18nContext';
-import ScenePreview, { type TPreviewTrouble } from './ScenePreview';
 
 /**
- * How long an account without Plus watches a free sample scene play on its
- * page. The number lives with the terms, which quote it.
+ * How long a member watches a scene they do not own play on its page before
+ * the way to get it. The number lives with the terms, which quote it, and is
+ * the length of the clip the Studio records when a scene is published.
  */
 export const TASTE_SECONDS = PLUS_TASTE_SECONDS;
 
 interface ISceneTasteProps {
-  identity: string;
-  /** Whose scene it is, for the runner (`sceneRules.ts`). */
-  madeBy: TSceneMaker;
-  pack: IScenePack;
-  onTrouble: (trouble: TPreviewTrouble) => void;
-  /** After every frame drawn, with the frame — for the page's own picture. */
-  onDrawn?: (frame: ISceneFrame) => void;
-  /** The taste is over: the page shows the picture and the way into Plus. */
+  /** The clip, as an object URL the page made and will revoke. */
+  url: string;
+  /** Its first frame is on screen: the page's picture can step behind it. */
+  onShown: () => void;
+  /** It ran to its end, or could not play: the page shows the way to get it. */
   onOver: () => void;
 }
 
 /**
- * A scene playing on its page for a member without Plus — for ten seconds
- * of it actually being drawn, so they see what it does before they are
- * asked for anything — with a line filling across the stage as it runs.
+ * A scene's published clip playing on its page for a member who does not own
+ * it — silent, once — with a line filling across the stage as it runs. The
+ * scene itself is never sent to them: its code goes to its owners alone
+ * (premium 0085), and this is the ten seconds the Studio recorded instead.
  *
- * Counted on the scene's own clock, which only moves while frames are
- * drawn: a window put away half way through does not use the rest up.
+ * The line follows the frames actually painted (requestVideoFrameCallback),
+ * so a window put away half way through holds it where it was.
  */
-export default function SceneTaste({
-  identity,
-  madeBy,
-  pack,
-  onTrouble,
-  onDrawn: onDrawnOutside,
-  onOver,
-}: ISceneTasteProps) {
+export default function SceneTaste({ url, onShown, onOver }: ISceneTasteProps) {
   const { t } = useTranslation();
-  const started = useRef<number | undefined>(undefined);
-  const done = useRef(false);
+  const video = useRef<HTMLVideoElement>(null);
   const fill = useRef<HTMLSpanElement>(null);
+  const shownRef = useRef(onShown);
+  shownRef.current = onShown;
   const overRef = useRef(onOver);
   overRef.current = onOver;
-  const outsideRef = useRef(onDrawnOutside);
-  outsideRef.current = onDrawnOutside;
 
-  // Written straight to the bar, not through state: a component that
-  // re-rendered sixty times a second would cost the scene beside it.
-  const onDrawn = useCallback((frame: ISceneFrame) => {
-    outsideRef.current?.(frame);
-    started.current = started.current ?? frame.timeSeconds;
-    const elapsed = frame.timeSeconds - started.current;
-    const share = Math.min(1, Math.max(0, elapsed / TASTE_SECONDS));
-    if (fill.current) {
-      fill.current.style.transform = `scaleX(${share})`;
+  useEffect(() => {
+    const element = video.current;
+    if (!element) {
+      return undefined;
     }
-    if (share >= 1 && !done.current) {
-      done.current = true;
-      overRef.current();
-    }
-  }, []);
+    let shown = false;
+    let callback = 0;
+    // Written straight to the bar, not through state: a component that
+    // re-rendered every frame would cost the page around it.
+    const painted = (_now: number, frame: VideoFrameCallbackMetadata) => {
+      if (!shown) {
+        shown = true;
+        shownRef.current();
+      }
+      const share =
+        element.duration > 0
+          ? Math.min(1, Math.max(0, frame.mediaTime / element.duration))
+          : 0;
+      if (fill.current) {
+        fill.current.style.transform = `scaleX(${share})`;
+      }
+      callback = element.requestVideoFrameCallback(painted);
+    };
+    callback = element.requestVideoFrameCallback(painted);
+    return () => element.cancelVideoFrameCallback(callback);
+  }, [url]);
 
   return (
     <>
-      <ScenePreview
-        identity={identity}
-        madeBy={madeBy}
-        pack={pack}
-        label={t('plus.scene.playing')}
-        onTrouble={onTrouble}
-        onDrawn={onDrawn}
+      <video
+        ref={video}
+        className="gallery-preview__clip"
+        src={url}
+        aria-label={t('plus.scene.playing')}
+        muted
+        playsInline
+        autoPlay
+        disablePictureInPicture
+        onEnded={() => overRef.current()}
+        onError={() => overRef.current()}
       />
       <span className="gallery-preview__tag">
         <span className="gallery-preview__live" aria-hidden="true" />

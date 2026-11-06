@@ -53,6 +53,11 @@ const LAN_JOINS_CHANNEL = 'remote-audio-lan-joins';
 /** The raw-source capture stopped on its own — see `startRawSourceCapture`. */
 const RAW_SOURCE_LOST_CHANNEL = 'raw-source-lost';
 
+const activityReaders = new Set<() => boolean>();
+/** Shared audio belongs to its LAN session, independent of Library playback. */
+export const isRemoteAudioActive = (): boolean =>
+  [...activityReaders].some((read) => read());
+
 export interface IRemoteAudioIpcDeps {
   getMainWindow: () => BrowserWindow | null;
   userDataDir: string;
@@ -75,6 +80,25 @@ export const registerRemoteAudioIpc = ({
     sendToWindow('remote-audio-lan-streaming', peerId),
   );
   const playback = registerRemoteAudioPlayback(getMainWindow);
+  const stopLatencyReports = onWindowMessage(
+    'remote-audio-lan-playback-latency',
+    (event, peerId: unknown, milliseconds: unknown) => {
+      const window = getMainWindow();
+      if (
+        window &&
+        event.sender === window.webContents &&
+        event.senderFrame === window.webContents.mainFrame &&
+        typeof peerId === 'string' &&
+        peerId.length <= 128 &&
+        typeof milliseconds === 'number' &&
+        Number.isFinite(milliseconds) &&
+        milliseconds >= 0 &&
+        milliseconds <= 60_000
+      ) {
+        link?.reportPlayback?.(peerId, milliseconds);
+      }
+    },
+  );
   const smoothSwitch = createSmoothSwitch(userDataDir);
   // Where the sound plays in this process (macOS and Linux) and the links
   // sent from it; on Windows the Share Audio service keeps its own.
@@ -88,6 +112,7 @@ export const registerRemoteAudioIpc = ({
   smoothLinks.setLocal(smoothSwitch.get());
   const levels = createRemoteAudioLevels();
   const streaming = new Set<string>();
+  const receiving = new Set<string>();
   let stopWorkerEvents: (() => void) | undefined;
   const syncRouting = () => {
     if (!audioWorkerEnabled() || !link) {
@@ -112,9 +137,13 @@ export const registerRemoteAudioIpc = ({
    * pause the sound played on with its lane dead: no wave, no delay, and
    * "Nothing playing" over music (Ivan, 2026-10-14).
    */
-  const forgetArriving = (peerId: string) => {
+  const forgetAnnouncement = (peerId: string) => {
     streaming.delete(peerId);
     ports.forget(peerId);
+  };
+  const forgetArriving = (peerId: string) => {
+    receiving.delete(peerId);
+    forgetAnnouncement(peerId);
   };
   /**
    * What the window has been told about each open link, for a window that
@@ -190,7 +219,7 @@ export const registerRemoteAudioIpc = ({
             links.disconnected(peerId);
             levels.forget(peerId);
             playback.remove(peerId);
-            streaming.delete(peerId);
+            forgetArriving(peerId);
           }
           ports.signal(signal);
           sendToWindow(LAN_SIGNAL_CHANNEL, signal);
@@ -207,6 +236,7 @@ export const registerRemoteAudioIpc = ({
             return;
           }
           const chunk = levels.apply(arrived, links.volume(arrived.peerId));
+          receiving.add(chunk.peerId);
           if (process.platform !== 'win32') {
             ports.audio(chunk);
             return;
@@ -228,6 +258,7 @@ export const registerRemoteAudioIpc = ({
       if (audioWorkerEnabled()) {
         stopWorkerEvents = listenAudioWorker((event) => {
           if (event.type === 'streaming' && links.hears(event.peerId)) {
+            receiving.add(event.peerId);
             streaming.add(event.peerId);
             sendToWindow('remote-audio-lan-streaming', event.peerId);
           }
@@ -374,11 +405,15 @@ export const registerRemoteAudioIpc = ({
    * the page never drops a link.
    */
   let started: Promise<ILanHostDetails> | undefined;
+  const readActivity = () =>
+    started !== undefined && (networkTargets.length > 0 || receiving.size > 0);
+  activityReaders.add(readActivity);
   const resetSession = () => {
     told.clear();
     smoothLinks.clear();
     ports.reset();
     streaming.clear();
+    receiving.clear();
     playback.reset();
     links.reset();
   };
@@ -431,7 +466,8 @@ export const registerRemoteAudioIpc = ({
     sendToWindow(LAN_SENDING_CHANNEL, networkCapture !== undefined);
     // A new window: every link is told again, and sound already arriving is
     // announced again with the next chunk, through a port of its own.
-    [...streaming].forEach(forgetArriving);
+    // Re-announcing sound to a new window does not make its playback idle.
+    [...streaming].forEach(forgetAnnouncement);
     if (audioWorkerEnabled()) {
       getAudioWorker()
         .request('streams.replay')
@@ -588,7 +624,9 @@ export const registerRemoteAudioIpc = ({
    */
   let rawSource: IRemoteAudioCapture | undefined;
   let rawSourceOpening: Promise<boolean> | undefined;
+  let rawSourceGeneration = 0;
   const closeRawSource = () => {
+    rawSourceGeneration += 1;
     rawSource?.close();
     rawSource = undefined;
     rawSourceOpening = undefined;
@@ -607,15 +645,27 @@ export const registerRemoteAudioIpc = ({
     if (process.platform !== 'win32') {
       return false;
     }
-    rawSourceOpening ??= startRawSourceCapture(
-      (chunk) => ports.source(chunk),
+    if (rawSourceOpening) {
+      return rawSourceOpening;
+    }
+    rawSourceGeneration += 1;
+    const generation = rawSourceGeneration;
+    rawSourceOpening = startRawSourceCapture(
+      (chunk) => {
+        if (generation === rawSourceGeneration) {
+          ports.source(chunk);
+        }
+      },
       () => {
+        if (generation !== rawSourceGeneration) {
+          return;
+        }
         closeRawSource();
         sendToWindow(RAW_SOURCE_LOST_CHANNEL, undefined);
       },
     )
       .then((capture) => {
-        if (rawSourceOpening === undefined) {
+        if (generation !== rawSourceGeneration) {
           // Closed while it was opening: the answer is no capture.
           capture.close();
           return false;
@@ -624,13 +674,17 @@ export const registerRemoteAudioIpc = ({
         return true;
       })
       .catch(() => {
-        rawSourceOpening = undefined;
+        if (generation === rawSourceGeneration) {
+          rawSourceOpening = undefined;
+        }
         return false;
       });
     return rawSourceOpening;
   });
 
   return () => {
+    stopLatencyReports();
+    activityReaders.delete(readActivity);
     powerMonitor.removeListener('resume', wake);
     stopHearingRestarts();
     started = undefined;

@@ -13,7 +13,8 @@ tuned on one page, that comes on when the game comes to the front and
 hands your music sound back when you close it. A new Game filter brings
 up footsteps and voices as they happen, a new Dynamics stage lifts what is
 quiet and holds what is loud, and every stage of the DSP rack has presets
-made for games.
+made for games. Standard music and genre presets have been newly tuned
+for a more focused, powerful sound and a more consistent listening experience.
 
 ### Gaming Lab
 
@@ -21,11 +22,13 @@ made for games.
   **Add a game** and pick it from the games found on this PC (Steam, Epic
   Games, EA, GOG, Ubisoft, Battle.net and Xbox), from a program that is
   open, or browse for its program.
-- **Every game starts from a Gaming profile** made for its kind of game
-  (Competitive, Battle royale, Tactical survival, Story and horror, Top-down,
-  Worlds, Speed, Impact, or any game) or for the title itself: more than
-  thirty games have one. The game gets its own copy, so whatever you tune
-  stays with that game and the profile never changes.
+- **33 profiles for specific games, plus 9 kinds of game.** Counter-Strike 2,
+  Valorant, Fortnite and Cyberpunk 2077 have profiles of their own, alongside
+  Competitive, Battle royale, Tactical survival, Story and horror, Top-down,
+  Worlds, Speed, Impact and any game. A recognized game starts from its matching
+  profile. Choose another in the Gaming Lab’s **Gaming profile** list, then
+  press **Try it now** to hear it. The game gets its own copy, so whatever
+  you tune stays with that game and the profile never changes.
 - **Its sound comes on by itself.** With **Switch when a game is in front**
   on, a game coming to the front puts its own sound on, keeps it however
   often you alt-tab, and brings your music sound back when the game closes.
@@ -52,21 +55,37 @@ made for games.
 - **Add a game** scrolls while keeping its action buttons in view.
 - **A game list that stays out of the editor's way.** Its own scrollbar keeps
   a long list from lengthening the page. Drag the divider to resize it, or
-  fold it with the chevron; its size and folded state are remembered.
+  fold it smoothly with the pin into a narrow bar of game icons. The icons
+  stay selectable, show each game's name on hover and mark the selected and
+  playing games; its size and folded state are remembered.
 - **The picker leaves non-games out.** FluidEQ and its development runtime,
   Windows Explorer, known system processes and launchers, and shared runtime
   installers cannot be added or matched as games.
 - **Switch notices name the sound.** The loaded game profile or named copy
   has a line of its own, and the notice names the music profile restored
   when the game closes.
-- **A film of the Lab** in Help's Gaming Lab chapter and in What's New,
-  voiced in ten languages.
+- **A film of the Lab** in What's New, plus a new overview in Help's Gaming
+  Lab chapter that plays offline with English or Spanish narration and
+  matching captions.
 
 ### Navigation
 
 - **Visualizers and Online Media have swapped places.** Visualizers starts
   the left side of the title bar; Online Media ends the right side. Their
   pages and remembered selections stay with them.
+
+### Gallery and Studio
+
+- **Watch your scene before publishing.** Studio prepares a silent ten-second
+  video in the Publish screen. Watch it there, record it again, or cancel
+  before sending your scene for review.
+- **Your cover stays your choice.** Recording keeps the cover you selected.
+  A change to the scene or its settings needs a fresh clip, so the preview
+  matches the work you publish. Clips carry a small FluidEQ Plus preview
+  watermark.
+- **See a scene before getting it.** A scene you do not own plays its
+  published clip once, then shows its cover and how to get it. Older scenes
+  without a clip show their cover. The live scene stays with its owner.
 
 ### Everyday controls
 
@@ -97,6 +116,11 @@ made for games.
 
 ### DSP
 
+- **Newly tuned standard music and genre presets for a more focused, powerful
+  sound and a more consistent listening experience.** The 83 genre chains have
+  fresh level measurements from two named reference songs each. Choose a chain
+  in **DSP → Presets**; open a genre’s information for its curve, processing,
+  measured levels and listening examples, which open on YouTube.
 - **Dynamics, a new stage.** It lifts what is quiet and holds what is
   loud, in three bands, so a whisper and an explosion meet in the middle.
   It adds no delay. Nine everyday presets cover music, films and speech,
@@ -110,20 +134,49 @@ made for games.
   shape of bass notes and cut a kick's low end. Every chain now plays with
   far less distortion, its level moves less, and the rack adds 3 ms less
   delay.
-- **The Normalizer's True Peak mode** now sets one clean gain for each
-  song instead of limiting all the way through, and the Normalizer is off
-  in every preset until you turn it on.
-- These need the FluidEQ Engine 1.27. FluidEQ offers the engine update
+- **Music presets level songs consistently in Library and Live.** Their
+  Normalizer uses the loudest three-second passage as a common input level,
+  preserving quieter passages and leaving safe room before the final
+  Maximizer.
+- **Cleaner music colour and gentle sibilance control.** Unneeded high-band
+  excitation is off; the remaining colour filters keep their harmonics in
+  their intended bands. Pop and K-pop retain their approved EQ curves.
+- **The Normalizer's True Peak mode** sets one clean gain for each song
+  instead of limiting all the way through. Source readings show whole-song
+  loudness separately from the loudest three-second passage, and older
+  Library measurements refresh without rescanning the whole collection.
+- **Library playback stays safe during DSP and output changes.** Finished
+  DSP changes take over between audio blocks, while device changes and
+  commands share one protected lifetime.
+- These need the FluidEQ Engine 1.29. FluidEQ offers the engine update
   after you install it.
 
 ### Share Audio, Forum and more
 
+- **Downloaded updates are checked before installation.** The installer’s
+  bytes must match a trusted, signed update record.
+- **Safer imports and saves.** Impulse-response analysis limits unusually
+  large inputs, and settings and Studio revisions are saved more safely.
 - **Reconnect** in each computer's ••• menu links it again with its saved
   code, without forgetting the pairing.
+- **In and Out lag beside each computer.** Estimates combine the measured
+  network round trip with the receiving computer's playback buffer, reported
+  output delay and known EQ/DSP delay, without adding audio buffering.
+  Capture and unreported hardware delay are outside this estimate; unavailable
+  or stale measurements show a dash, and outgoing lag needs an updated peer.
 - **Saved computers come back more reliably**: a computer returning while
   an older connection attempt was still failing is no longer left offline,
   pasting its current code replaces an old address or port, and both of its
   saved addresses are kept when FluidEQ starts.
+- **Automatic updates wait for Share Audio.** An update no longer restarts
+  FluidEQ while sound is being shared, even with the window hidden.
+- **Smart EQ stops measuring cleanly** when a capture is stopped and started
+  again quickly, without leaving an older capture running.
+- **Google sign-in cleans up a failed attempt** if the browser cannot open,
+  so retrying does not leave unused sign-in connections behind.
+- **Karaoke guide vocals stay in sync on slower audio outputs.** Changing
+  their fader adjusts the gain without restarting the stem, and replacing a
+  stem stops the previous voice while the new one decodes.
 - **The Forum keeps what you were writing.** A reply or a new topic you
   leave half-written is still there when you come back to it.
 - **Every Forum board counts unseen activity.** Its yellow number shows
@@ -138,6 +191,14 @@ made for games.
 
 ### Help and the window
 
+- **Help search keeps the whole guide in place.** It jumps to matching
+  passages and highlights them without hiding chapters. Clearing the search
+  keeps the chapter and reading position you reached.
+- **Clearer inline editing and graph labels.** Done stays in view while
+  editing another output, and the FluidEQ and APO engine names sit directly
+  on the graph without a filled background.
+- **Help keeps its title in view in a narrow window.** Japanese contents labels
+  no longer squeeze into tall vertical text and push the heading out of view.
 - **Choose an On/off key** from the ≡ menu to switch all FluidEQ processing
   off and on while another app is in front. No shortcut is assigned until
   you choose one. A card above the other windows confirms **FluidEQ off**

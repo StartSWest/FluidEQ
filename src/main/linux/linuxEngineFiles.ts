@@ -32,8 +32,10 @@ export const linuxEngineRoot = (
     return override.replace(/\/+$/, '') || '/';
   }
   const data =
-    absolute(env.XDG_DATA_HOME) ?? path.join(home, '.local', 'share');
-  return path.join(data, 'FluidEQ', 'engine');
+    absolute(env.XDG_DATA_HOME) ?? path.posix.join(home, '.local', 'share');
+  // This is the native Linux engine's wire path, including when a Windows
+  // build host validates it against a supplied Linux home and environment.
+  return path.posix.join(data, 'FluidEQ', 'engine');
 };
 
 export const linuxEngineConfigDir = (): string =>

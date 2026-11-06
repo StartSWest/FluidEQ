@@ -13,8 +13,8 @@ export default {
   'gaming.switch.hint':
     'बंद होने पर आपके गेम आपकी संगीत वाली साउंड पर ही रहते हैं और कुछ भी अपने-आप नहीं बदलता।',
   'gaming.add': 'गेम जोड़ें',
-  'gaming.list.show': 'गेम की सूची दिखाएँ',
-  'gaming.list.hide': 'गेम की सूची छिपाएँ',
+  'gaming.list.show': 'गेम के नाम दिखाएँ',
+  'gaming.list.hide': 'गेम के आइकन दिखाएँ',
   'gaming.list.resize': 'गेम की सूची का आकार बदलें',
   'gaming.list.count': 'आपके गेम · {count}',
   'gaming.list.from': '{profile} से',

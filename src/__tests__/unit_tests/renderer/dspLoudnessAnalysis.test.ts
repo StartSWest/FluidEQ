@@ -125,5 +125,48 @@ describe('BS.1770 loudness measurement', () => {
 
     expect(measured.integratedLufs).toBeCloseTo(whole.integratedLufs, 10);
     expect(measured.truePeakDbtp).toBeCloseTo(whole.truePeakDbtp, 10);
+    expect(measured.maxShortTermLufs).toBeCloseTo(whole.maxShortTermLufs, 10);
+  });
+
+  it('matches foreground independently of quiet verses while reporting their integrated difference', () => {
+    // Share a complete settled three-second window after K-filter startup,
+    // then keep a long quiet verse to make integrated contrast measurable.
+    const first = sine(1_000, 0.1).map((channel) =>
+      Float32Array.from(
+        { length: RATE * 10 },
+        (_, i) => channel[i % channel.length],
+      ),
+    );
+    const second = first.map((channel) => Float32Array.from(channel));
+    second.forEach((channel) => {
+      for (let i = RATE * 4; i < channel.length; i += 1) {
+        channel[i] *= 0.5;
+      }
+    });
+    const loud = measure(first);
+    const dynamic = measure(second);
+    expect(dynamic.maxShortTermLufs).toBeCloseTo(loud.maxShortTermLufs, 5);
+    expect(dynamic.integratedLufs).toBeLessThan(loud.integratedLufs - 1);
+    expect(dynamic.maxShortTermLufs).toBeGreaterThan(-20.05);
+    expect(dynamic.maxShortTermLufs).toBeLessThan(-19.95);
+  });
+
+  it('uses integrated loudness for short clips and ignores only an incomplete final foreground hop', () => {
+    const [source] = sine(1_000, 0.1);
+    const short = measure([source.slice(0, RATE * 2.9)]);
+    expect(short.maxShortTermLufs).toBe(short.integratedLufs);
+    const tail = source.slice(0, RATE * 3.05);
+    const ordinary = measure([tail]);
+    for (let i = RATE * 3; i < tail.length; i += 1) {
+      tail[i] *= 4;
+    }
+    const hotEnding = measure([tail]);
+    expect(hotEnding.maxShortTermLufs).toBeCloseTo(
+      ordinary.maxShortTermLufs,
+      10,
+    );
+    expect(hotEnding.truePeakDbtp).toBeGreaterThan(
+      ordinary.truePeakDbtp + 11.9,
+    );
   });
 });

@@ -72,7 +72,11 @@ describe('the incoming delay', () => {
       payload: doubles(100, 0.5, 0.3),
     });
     expect(onMeter).toHaveBeenCalledWith(
-      expect.objectContaining({ sourceId: 'yoga', bufferedMs: 120 }),
+      expect.objectContaining({
+        sourceId: 'yoga',
+        bufferedMs: 120,
+        playbackMs: 120,
+      }),
     );
   });
 
@@ -88,7 +92,7 @@ describe('the incoming delay', () => {
       payload: doubles(100, 0.5, 0.3),
     });
     expect(onMeter).toHaveBeenCalledWith(
-      expect.objectContaining({ bufferedMs: 100 }),
+      expect.objectContaining({ bufferedMs: 100, playbackMs: undefined }),
     );
   });
 

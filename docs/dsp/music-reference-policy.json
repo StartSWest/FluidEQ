@@ -1,0 +1,338 @@
+{
+  "originalCheckpoint": "130b69ff78ab813759594829fa06f859fd2f94a2",
+  "note": "Existing loss budgets are retained. Output aims are FluidEQ playback choices, not official genre standards or guaranteed loudness for high-crest recordings.",
+  "genres": {
+    "acoustic": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -15
+    },
+    "afrobeat": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -13
+    },
+    "afrobeats": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11.5
+    },
+    "alternativeRock": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "amapiano": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11.5
+    },
+    "ambient": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -16
+    },
+    "americana": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -14
+    },
+    "arabicPop": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "bachata": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "ballad": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -14
+    },
+    "bhangra": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "bluegrass": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -14
+    },
+    "blues": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -13.5
+    },
+    "bollywood": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "bossaNova": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -15
+    },
+    "chillout": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -14
+    },
+    "christian": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -13
+    },
+    "classical": {
+      "limiterLossBudgetLu": 0.18,
+      "outputAimLufs": -17
+    },
+    "classicRock": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -13
+    },
+    "corridos": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11.5
+    },
+    "country": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -14
+    },
+    "cPop": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12.5
+    },
+    "cumbia": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12.5
+    },
+    "dancehall": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11.5
+    },
+    "disco": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "downtempo": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -13.5
+    },
+    "drumBass": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11
+    },
+    "dub": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12.5
+    },
+    "dubstep": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11
+    },
+    "edm": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11
+    },
+    "electronic": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "flamenco": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -14
+    },
+    "folk": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -14.5
+    },
+    "funk": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "fusion": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -13
+    },
+    "gospel": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -14
+    },
+    "grunge": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "hardRock": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11.5
+    },
+    "highlife": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -13
+    },
+    "hiphop": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11.5
+    },
+    "house": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11.5
+    },
+    "indianClassical": {
+      "limiterLossBudgetLu": 0.18,
+      "outputAimLufs": -17
+    },
+    "indiePop": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "indieRock": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12.5
+    },
+    "jazz": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -14
+    },
+    "jPop": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11
+    },
+    "kPop": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -10.5
+    },
+    "latin": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12.5
+    },
+    "latinPop": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11.5
+    },
+    "lofi": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -14
+    },
+    "merengue": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "metal": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11
+    },
+    "modernCountry": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11.5
+    },
+    "neoSoul": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -13
+    },
+    "newAge": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -15
+    },
+    "newWave": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "opera": {
+      "limiterLossBudgetLu": 0.18,
+      "outputAimLufs": -16
+    },
+    "orchestra": {
+      "limiterLossBudgetLu": 0.18,
+      "outputAimLufs": -17
+    },
+    "piano": {
+      "limiterLossBudgetLu": 0.18,
+      "outputAimLufs": -17
+    },
+    "pop": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -10.5
+    },
+    "popPunk": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11
+    },
+    "popRock": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11.5
+    },
+    "progressiveRock": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -14
+    },
+    "punk": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11.5
+    },
+    "rap": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11
+    },
+    "reggae": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12.5
+    },
+    "reggaeton": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11
+    },
+    "regionalMexican": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -13
+    },
+    "rnb": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "rock": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11.5
+    },
+    "salsa": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "samba": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -13
+    },
+    "singerSongwriter": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -14
+    },
+    "ska": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12.5
+    },
+    "smoothJazz": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -14
+    },
+    "soul": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -13
+    },
+    "strings": {
+      "limiterLossBudgetLu": 0.18,
+      "outputAimLufs": -17
+    },
+    "synthPop": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "techno": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11.5
+    },
+    "trance": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11.5
+    },
+    "trap": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -11
+    },
+    "turkishPop": {
+      "limiterLossBudgetLu": 0.65,
+      "outputAimLufs": -12
+    },
+    "world": {
+      "limiterLossBudgetLu": 0.4,
+      "outputAimLufs": -14
+    }
+  }
+}

@@ -16,6 +16,7 @@ inline constexpr const wchar_t* kSourceAnalysisFile = L"fluideq-source-analysis.
 
 /** Immutable source measurements. No output's selected controls or gains. */
 struct SourceAnalysis {
+  unsigned wire_version = 2;
   bool library = false;
   bool engine_owner = true;
   uint64_t source = 0;
@@ -25,6 +26,7 @@ struct SourceAnalysis {
   bool has_level = false;
   double level = 0;
   double peak = 0;
+  std::optional<double> reference;
   std::optional<FeqNoiseProfile> noise;
   bool voice_available = false;
   std::string voice_model;

@@ -21,6 +21,7 @@ import {
   sealSignal,
 } from './remoteAudioLanProtocol';
 import createRemoteAudioNetworkMeter from './remoteAudioNetworkMeter';
+import createRemoteAudioLatency from './remoteAudioLatency';
 
 interface IRemoteAudioTransportOptions {
   emitAudio(chunk: ILanRemoteAudioChunk): void;
@@ -61,7 +62,13 @@ const createRemoteAudioTransport = ({
   >();
   const decodeQueues = new Map<string, Promise<void>>();
   const pendingDecodeBytes = new Map<string, number>();
-  const networkMeter = createRemoteAudioNetworkMeter(emitNetwork);
+  const latency = new Map<
+    string,
+    ReturnType<typeof createRemoteAudioLatency>
+  >();
+  const networkMeter = createRemoteAudioNetworkMeter((stats) =>
+    emitNetwork({ ...stats, ...latency.get(stats.peerId)?.sample() }),
+  );
   let generation = 0;
   let stopping = false;
   const MAX_PENDING_DECODE_BYTES = 8 * 1024 * 1024;
@@ -95,6 +102,8 @@ const createRemoteAudioTransport = ({
         }
       });
     }
+    latency.get(peerId)?.close();
+    latency.set(peerId, createRemoteAudioLatency(socket, socketKey));
     sockets.set(peerId, { key: socketKey, socket, computer });
     socket.on('message', (data: RawData) => {
       try {
@@ -162,6 +171,8 @@ const createRemoteAudioTransport = ({
     });
     const closed = () => {
       if (sockets.get(peerId)?.socket === socket) {
+        latency.get(peerId)?.close();
+        latency.delete(peerId);
         sockets.delete(peerId);
         pendingDecodeBytes.delete(peerId);
         smooth.delete(peerId);
@@ -217,6 +228,8 @@ const createRemoteAudioTransport = ({
       socket.close();
     });
     sockets.clear();
+    latency.forEach((meter) => meter.close());
+    latency.clear();
     smooth.clear();
     decodeQueues.clear();
     pendingDecodeBytes.clear();
@@ -236,6 +249,8 @@ const createRemoteAudioTransport = ({
     has: (peerId: string) => sockets.has(peerId),
     sendAudio,
     sendSignal,
+    reportPlayback: (peerId: string, milliseconds: number) =>
+      latency.get(peerId)?.playback(milliseconds),
     // Sending is always the raw path; music only lets more wait in it.
     setStreamMode: (peerId: string, mode: TRemoteAudioStreamMode) => {
       if (mode === 'music') {

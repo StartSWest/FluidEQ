@@ -37,10 +37,12 @@ import {
   ILibraryProgrammeEdges,
   ILibraryTrack,
 } from '../../../common/library/types';
+import { mergeNormalizationAnalysis } from '../../../common/library/normalization';
 import { selectDspDeck } from '../../dsp/deckCrossfade';
 import { dspErrorValues, reportDspDiagnostic } from '../../dsp/diagnostics';
 import {
   analyzeInputTrack,
+  hasCurrentNormalization,
   masterLoudnessGainDb,
   normalizerGainDb,
 } from '../../dsp/inputNormalizer';
@@ -258,6 +260,7 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
       swapBufferToBlob(audio, track.id, buffer);
     };
     const cachedAnalysis = track.normalization;
+    const hasCurrentAnalysis = hasCurrentNormalization(cachedAnalysis);
     const shouldAnalyze =
       // Source measurements serve every output. A secondary's normalizer must
       // not depend on the main output having its own normalizer switched on.
@@ -381,7 +384,7 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
       : undefined;
     analysisJobRef.current = analysisJob;
     publishAnalysis(
-      cachedAnalysis
+      hasCurrentAnalysis
         ? {
             trackId: track.id,
             status: 'ready',
@@ -392,6 +395,7 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
             trackId: track.id,
             status: shouldAnalyze ? 'analyzing' : 'idle',
             fraction: 0,
+            analysis: cachedAnalysis,
           },
     );
 
@@ -543,11 +547,12 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
           : Promise.resolve(undefined),
       ]);
       if (!buffer || cancelled) {
-        if (shouldAnalyze && !cachedAnalysis && !cancelled) {
+        if (shouldAnalyze && !hasCurrentAnalysis && !cancelled) {
           publishAnalysis({
             trackId: track.id,
             status: 'unavailable',
             fraction: 0,
+            analysis: cachedAnalysis,
           });
         }
         return;
@@ -560,27 +565,27 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
         return;
       }
       const needsFreshAnalysis =
-        !cachedAnalysis ||
+        !hasCurrentAnalysis ||
         !signature ||
         signature.sizeBytes !== track.sizeBytes ||
         signature.mtimeMs !== track.mtimeMs ||
         // An entry measured before the edges existed still holds correct
         // loudness numbers, so it is only worth decoding the file again for
         // the one feature that needs the missing half.
-        (!cachedAnalysis.edges && transition.enabled);
+        (!cachedAnalysis?.edges && transition.enabled);
       if (!needsFreshAnalysis) {
         return;
       }
       if (!analysisJob) {
         return;
       }
-      const analysis = await analyzeInputTrack(buffer, {
+      const measured = await analyzeInputTrack(buffer, {
         sampleRateHint: track.sampleRate,
         signal: analysisJob.controller.signal,
         isCancelled: () => cancelled || analysisJobRef.current !== analysisJob,
         onProgress: ({ fraction }) => {
           if (
-            !cachedAnalysis &&
+            !hasCurrentAnalysis &&
             !cancelled &&
             analysisJobRef.current === analysisJob
           ) {
@@ -588,14 +593,21 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
               trackId: track.id,
               status: 'analyzing',
               fraction,
+              analysis: cachedAnalysis,
             });
           }
         },
       });
+      const analysis = mergeNormalizationAnalysis(
+        measured,
+        cachedAnalysis,
+        signature,
+        track,
+      );
       if (!analysis || cancelled || analysisJobRef.current !== analysisJob) {
         if (
           !analysis &&
-          !cachedAnalysis &&
+          !hasCurrentAnalysis &&
           !cancelled &&
           analysisJobRef.current === analysisJob &&
           !analysisJob.controller.signal.aborted
@@ -604,6 +616,7 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
             trackId: track.id,
             status: 'unavailable',
             fraction: 0,
+            analysis: cachedAnalysis,
           });
         }
         return;
@@ -638,7 +651,7 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
       .catch(() => {
         if (
           shouldAnalyze &&
-          !cachedAnalysis &&
+          !hasCurrentAnalysis &&
           !cancelled &&
           analysisJobRef.current === analysisJob &&
           !analysisJob?.controller.signal.aborted
@@ -647,6 +660,7 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
             trackId: track.id,
             status: 'unavailable',
             fraction: 0,
+            analysis: cachedAnalysis,
           });
         }
       })

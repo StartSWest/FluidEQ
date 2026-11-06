@@ -35,6 +35,7 @@ export interface IAudioMethods {
   };
   'lan.signal': { args: [unknown]; result: void };
   'lan.audio': { args: [unknown]; result: void };
+  'lan.playback-latency': { args: [string, number]; result: void };
   'lan.reconnect': {
     args: [{ peerId?: string; computerId?: string }];
     result: boolean;

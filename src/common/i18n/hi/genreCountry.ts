@@ -68,8 +68,6 @@ export default {
   'genre.bluegrass.pin.5000.why': 'जहाँ पिकिंग जगमगाती है।',
   'genre.bluegrass.pin.12500': 'तारों के ऊपर हवा',
   'genre.bluegrass.pin.12500.why': 'बैंड के चारों ओर का कमरा।',
-  'genre.bluegrass.stage.exciter':
-    'बैंजो और मैंडोलिन के ऊपर हवा, उनकी अपनी से एक सप्तक ऊपर।',
   'genre.bluegrass.stage.dimension':
     'पूरे फ़्रीक्वेंसी विस्तार में इस शैली की स्टीरियो चौड़ाई का संतुलन रखता है। बीच में रखी आवाज़ में डिकॉरिलेशन नहीं जोड़ता।',
   'genre.bluegrass.stage.deEsser':

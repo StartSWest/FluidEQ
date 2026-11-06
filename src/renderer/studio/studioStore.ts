@@ -196,6 +196,7 @@ export const publishStudioScene = async (
   picture: Uint8Array,
   category2?: TPlusCategory,
   note?: string,
+  preview?: import('common/scenePreviewMedia').IScenePreviewUpload,
 ): Promise<TPublishOutcome> =>
   // The second category and the note only when there are some, so a publish
   // under one category with nothing to say is the same call it always was.
@@ -203,8 +204,9 @@ export const publishStudioScene = async (
     termsVersion,
     category,
     picture,
-    ...(category2 || note?.trim() ? [category2] : []),
-    ...(note?.trim() ? [note] : []),
+    ...(category2 || note?.trim() || preview ? [category2] : []),
+    ...(note?.trim() || preview ? [note] : []),
+    ...(preview ? [preview] : []),
   )) ?? {
     ok: false,
     reason: 'offline',

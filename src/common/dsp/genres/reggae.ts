@@ -36,7 +36,7 @@ const REGGAE_RACKS: readonly IGenreRack[] = [
     // rolled off and a bright staccato skank, and a soft kick that should
     // stay so. Forge is offered and left off: the warmth is the curve's.
     id: 'reggae',
-    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -5.5 },
     deEsser: {
       sensitivity: 0.1,
       lowHz: 5000,
@@ -51,7 +51,7 @@ const REGGAE_RACKS: readonly IGenreRack[] = [
     },
     bassForge: forge(90, 0, 0.4, 0.8, 0.95, 0.3),
     dimension: width(0.6, 1, 1, 150, 3_200, 0),
-    maximizer: ceiling(5, -1, 8, beatMs(76)),
+    maximizer: ceiling(5.5, -1, 8, beatMs(76)),
     offered: ['bassForge'],
   },
   {
@@ -60,7 +60,7 @@ const REGGAE_RACKS: readonly IGenreRack[] = [
     // catches. The bottom mono under 150 Hz, as the originals were narrow;
     // Forge offered, left off.
     id: 'dub',
-    normalizer: { mode: 'loudness', targetLufs: -20, truePeakDbtp: -3 },
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -7 },
     deEsser: {
       sensitivity: 0.1,
       lowHz: 5000,
@@ -75,7 +75,7 @@ const REGGAE_RACKS: readonly IGenreRack[] = [
     },
     bassForge: forge(80, 0, 0.8, 0.4, 0.95, 0.3),
     dimension: width(0.5, 1, 1, 150, 3_000, 0),
-    maximizer: ceiling(6.25, -1, 10, beatMs(70)),
+    maximizer: ceiling(7, -1, 10, beatMs(70)),
     offered: ['bassForge'],
   },
   {
@@ -84,7 +84,7 @@ const REGGAE_RACKS: readonly IGenreRack[] = [
     // mono under 120 Hz, Forge offered and left off, and a ceiling quick
     // enough to leave the percussion crisp.
     id: 'dancehall',
-    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -8 },
     deEsser: {
       sensitivity: 0.1,
       lowHz: 5000,
@@ -99,7 +99,7 @@ const REGGAE_RACKS: readonly IGenreRack[] = [
     },
     bassForge: forge(90, 0, 0.7, 0.5, 0.9, 0.3),
     dimension: width(0.5, 1, 1.05, 150, 3_000, 0),
-    maximizer: ceiling(6.5, -1, 4, sixteenthMs(100)),
+    maximizer: ceiling(7.25, -1, 4, sixteenthMs(100)),
     offered: ['bassForge'],
   },
   {
@@ -107,7 +107,7 @@ const REGGAE_RACKS: readonly IGenreRack[] = [
     // in mono and tape-saturated. No invented bass under a vintage
     // recording, and a shade of narrowing rather than any width.
     id: 'ska',
-    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -3 },
+    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -5.5 },
     deEsser: {
       sensitivity: 0.1,
       lowHz: 5000,
@@ -121,7 +121,7 @@ const REGGAE_RACKS: readonly IGenreRack[] = [
       keepCymbals: 0.9,
     },
     dimension: width(0.8, 0.95, 0.95, 170, 3_200, 0),
-    maximizer: ceiling(5, -1, 6, sixteenthMs(150)),
+    maximizer: ceiling(6.25, -1, 6, sixteenthMs(150)),
   },
 ];
 

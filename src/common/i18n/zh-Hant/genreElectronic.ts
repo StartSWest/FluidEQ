@@ -133,7 +133,6 @@ const genreElectronic = {
   'genre.chillout.pin.2000.why': '沒什麼尖銳的。',
   'genre.chillout.pin.12500': '輕空氣',
   'genre.chillout.pin.12500.why': '上面有閃光。',
-  'genre.chillout.stage.exciter': '僅輕空氣。',
   'genre.chillout.stage.dimension': '更寬的頂部：這裡的寬度是受歡迎的。',
   'genre.chillout.stage.deEsser':
     '以5至10 kHz範圍內最高1.5 dB的窄帶頻譜衰減，控制中央人聲刺耳的S和SH音，保護鈸片並保持低音不變。',

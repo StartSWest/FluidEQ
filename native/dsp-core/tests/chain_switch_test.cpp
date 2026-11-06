@@ -62,10 +62,13 @@ Rack prepare(const FeqChainSettings& settings) {
 
 /**
  * Four low tones, the two sides a little apart so the width stages have a
- * side to work on. Nothing above 1.2 kHz, so what lands above 5 kHz is what
+ * side to work on. Selector checks that REMOVE Mid can request a centred
+ * 441.7 Hz component; ones that remove Side keep the spread programme.
+ * Nothing above 1.2 kHz, so what lands above 5 kHz is what
  * the racks make and what the switch makes.
  */
-void signal(uint32_t from, std::vector<float>& left, std::vector<float>& right) {
+void signal(uint32_t from, std::vector<float>& left, std::vector<float>& right,
+            bool centred_mid) {
   for (uint32_t at = 0; at < kBlock; ++at) {
     const double t = static_cast<double>(from + at) / kRate;
     left[at] = static_cast<float>(
@@ -73,15 +76,17 @@ void signal(uint32_t from, std::vector<float>& left, std::vector<float>& right) 
         0.06 * std::sin(2 * kPi * 441.7 * t) + 0.02 * std::sin(2 * kPi * 1103.0 * t));
     right[at] = static_cast<float>(
         0.23 * std::sin(2 * kPi * 55.0 * t + 0.3) + 0.12 * std::sin(2 * kPi * 180.3 * t + 0.9) +
-        0.05 * std::sin(2 * kPi * 441.7 * t + 1.7) + 0.025 * std::sin(2 * kPi * 1103.0 * t + 2.2));
+        0.05 * std::sin(2 * kPi * 441.7 * t + (centred_mid ? 0 : 1.7)) +
+        0.025 * std::sin(2 * kPi * 1103.0 * t + 2.2));
   }
 }
 
 /** The rack's left channel over [from, from + frames). */
-void run(FeqChain* rack, uint32_t from, uint32_t frames, std::vector<float>& out) {
+void run(FeqChain* rack, uint32_t from, uint32_t frames, std::vector<float>& out,
+         bool centred_mid) {
   std::vector<float> left(kBlock), right(kBlock);
   for (uint32_t done = 0; done < frames; done += kBlock) {
-    signal(from + done, left, right);
+    signal(from + done, left, right, centred_mid);
     float* planes[2] = {left.data(), right.data()};
     feq_chain_process(rack, planes, kBlock);
     out.insert(out.end(), left.begin(), left.end());
@@ -134,20 +139,20 @@ double over_steady(const std::vector<float>& out) {
 }
 
 void switched(const char* name, const FeqChainSettings& from,
-              const FeqChainSettings& to) {
+              const FeqChainSettings& to, bool centred_mid = false) {
   auto running = prepare(from);
   std::vector<float> handed;
-  run(running.get(), 0, kBefore, handed);
+  run(running.get(), 0, kBefore, handed, centred_mid);
   auto next = prepare(to);
   check(feq_chain_transfer_state(next.get(), running.get()) == 1,
         "the prepared rack accepts the handover");
-  run(next.get(), kBefore, kAfter, handed);
+  run(next.get(), kBefore, kAfter, handed, centred_mid);
 
   auto first = prepare(from);
   auto second = prepare(to);
   std::vector<float> spliced, other;
-  run(first.get(), 0, kBefore, spliced);
-  run(second.get(), 0, kBefore + kAfter, other);
+  run(first.get(), 0, kBefore, spliced, centred_mid);
+  run(second.get(), 0, kBefore + kAfter, other, centred_mid);
   spliced.insert(spliced.end(), other.begin() + kBefore, other.end());
 
   const double handed_db = over_steady(handed);
@@ -261,6 +266,12 @@ void the_exciter_s_stereo_selector_crosses() {
     band.enabled = 1;
     band.mix = 1.0;
   }
+  // Excite the actual programme's mid tone, not the distant skirts that
+  // the cleaner input filters now reject. Keep the same audible-splice
+  // control threshold and exercise every active band's domain handover.
+  stereo.exciter.bands[1].freq_hz = 441.7;
+  stereo.exciter.bands[1].range = 0.1;
+  stereo.exciter.bands[1].drive = 6;
   FeqChainSettings mid = stereo;
   mid.exciter.stereo = FEQ_STEREO_MID;
   FeqChainSettings sides = stereo;
@@ -268,8 +279,8 @@ void the_exciter_s_stereo_selector_crosses() {
   FeqChainSettings mid_isolated = mid;
   mid_isolated.exciter.isolate = 1;
   switched("Stereo to Mid only", stereo, mid);
-  switched("Mid only to Sides only", mid, sides);
-  switched("Sides only to Stereo", sides, stereo);
+  switched("Mid only to Sides only", mid, sides, true);
+  switched("Sides only to Stereo", sides, stereo, true);
   switched("Isolate on in Mid only", mid, mid_isolated);
 }
 

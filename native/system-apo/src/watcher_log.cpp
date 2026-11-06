@@ -159,7 +159,7 @@ void Watcher::report_status(bool locked) noexcept {
       const bool source_ready = !source_prepare_failed_ && !source_invalid_ &&
           rack_source_ != nullptr && slot_.active() == rack_source_ &&
           source_report_.ready;
-      status.source_analysis = EngineStatus::SourceAnalysis{1,
+      status.source_analysis = EngineStatus::SourceAnalysis{EngineStatus::kSourceAnalysisVersion,
           source_report_.library ? "library" : "live",
           source_report_.engine_owner ? "engine" : "host", source_id,
           source_report_.epoch, source_report_.revision, source_ready,

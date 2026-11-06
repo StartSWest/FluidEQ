@@ -71,8 +71,6 @@ const genreCountry = {
   'genre.bluegrass.pin.5000.why': 'Where the picking sparkles.',
   'genre.bluegrass.pin.12500': 'Air over the strings',
   'genre.bluegrass.pin.12500.why': 'The room around the band.',
-  'genre.bluegrass.stage.exciter':
-    'Air over the banjo and mandolin, an octave above their own.',
   'genre.bluegrass.stage.dimension':
     'Keeps this genre’s balance of stereo width across the frequency range. No decorrelation is added to the centred vocal.',
   'genre.bluegrass.stage.deEsser':

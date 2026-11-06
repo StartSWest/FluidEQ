@@ -87,6 +87,8 @@ const row = (over: Record<string, unknown> = {}) => ({
 let root: string;
 let entitled: boolean;
 let signedIn: boolean;
+let currentAccount: string;
+let beforeObjectRead: (() => Promise<void>) | undefined;
 let store: IMemberSceneStore;
 let announced: number;
 let refreshed: number;
@@ -99,6 +101,9 @@ let rows: unknown[];
 const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
   const parsed = new URL(String(input));
   const url = `${parsed.origin}${parsed.pathname}`;
+  if (url.endsWith('/rpc/published_scene_file')) {
+    return fakeResponse(404, {});
+  }
   calls.push({
     url,
     search: parsed.search,
@@ -108,6 +113,7 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
   // cache (`fetchEnvelope`), as on the real storage server.
   const object = url.match(/member-scenes\/(.+)$/)?.[1];
   if (object) {
+    await beforeObjectRead?.();
     return bucket.has(object)
       ? fakeResponse(200, bucket.get(object))
       : fakeResponse(400, { error: 'not_found' });
@@ -129,7 +135,7 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
 
 let listAuthorization: IGalleryAccess['authorize'];
 const access = (): IGalleryAccess => ({
-  accountId: () => (signedIn ? ME : undefined),
+  accountId: () => (signedIn ? currentAccount : undefined),
   entitled: () => entitled,
   // Plus owns every scene while it lasts (`sceneOwnership.ts`).
   owns: () => entitled,
@@ -164,6 +170,8 @@ beforeEach(() => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-gallery-ipc-'));
   entitled = true;
   signedIn = true;
+  currentAccount = ME;
+  beforeObjectRead = undefined;
   listAuthorization = undefined;
   announced = 0;
   refreshed = 0;
@@ -518,7 +526,7 @@ describe('pictures', () => {
     ).toBeUndefined();
   });
 
-  it('lets a member scene be tasted without owning it, and never keeps it', async () => {
+  it('serves only the photograph to an account that does not own the scene', async () => {
     setup();
     entitled = false;
     bucket.set(`${SOMEONE}/neon-city/picture.webp`, webpBytes());
@@ -531,8 +539,6 @@ describe('pictures', () => {
         1,
       ),
     ).toMatch(/^data:image\/webp;base64,/);
-    // Every scene's page plays it for its taste (server 0056 hands every
-    // signed-in account the file); the page stops it after ten seconds.
     expect(
       await invoke<Promise<TGalleryPreviewOutcome>>(
         'plus-gallery-preview',
@@ -540,7 +546,8 @@ describe('pictures', () => {
         'neon-city',
         1,
       ),
-    ).toMatchObject({ ok: true, own: false, pack: { id: 'neon-city' } });
+    ).toEqual({ ok: false, reason: 'not-entitled' });
+    expect(calls.some((call) => call.url.endsWith('scene.json'))).toBe(false);
     // Keeping it is for an account that owns it.
     expect(
       await invoke<Promise<TGalleryAddOutcome>>(
@@ -554,7 +561,7 @@ describe('pictures', () => {
     expect(announced).toBe(0);
   });
 
-  it('asks the server for an official scene’s taste, owned or not, and tells a refusal from no answer', async () => {
+  it('does not request unowned official content and preserves real owner download errors', async () => {
     setup();
     entitled = false;
     // A server from before 0056 keeps FluidEQ's own files for Plus.
@@ -566,6 +573,7 @@ describe('pictures', () => {
         47,
       ),
     ).toEqual({ ok: false, reason: 'not-entitled' });
+    expect(calls).toEqual([]);
     // A server that cannot answer is unavailable, never a refusal.
     entitled = true;
     expect(
@@ -586,6 +594,64 @@ describe('pictures', () => {
       await invoke('plus-gallery-preview', SOMEONE, 'neon-city', 1),
     ).toEqual({ ok: false, reason: 'not-entitled' });
     expect(calls).toEqual([]);
+  });
+
+  it('never returns a former owner’s cached scene to a nonowner account', async () => {
+    setup();
+    publishScene(SOMEONE);
+    expect(
+      await invoke('plus-gallery-preview', SOMEONE, 'neon-city', 1),
+    ).toMatchObject({ ok: true });
+    const requested = calls.length;
+    // Use a third-party scene so the new account is not its creator.
+    currentAccount = FLUIDEQ_CREATOR_ID;
+    entitled = false;
+    expect(
+      await invoke('plus-gallery-preview', SOMEONE, 'neon-city', 1),
+    ).toEqual({ ok: false, reason: 'not-entitled' });
+    expect(calls).toHaveLength(requested);
+  });
+
+  it.each(['account', 'ownership'] as const)(
+    'withholds an in-flight download after %s changes',
+    async (change) => {
+      setup();
+      publishScene(SOMEONE);
+      let finish: () => void = () => undefined;
+      let started: () => void = () => undefined;
+      const downloading = new Promise<void>((resolve) => {
+        started = resolve;
+      });
+      beforeObjectRead = () => {
+        started();
+        return new Promise<void>((resolve) => {
+          finish = resolve;
+        });
+      };
+      const pending = invoke<Promise<TGalleryPreviewOutcome>>(
+        'plus-gallery-preview',
+        SOMEONE,
+        'neon-city',
+        1,
+      );
+      await downloading;
+      if (change === 'account') {
+        currentAccount = FLUIDEQ_CREATOR_ID;
+      } else {
+        entitled = false;
+      }
+      finish();
+      expect(await pending).toEqual({ ok: false, reason: 'not-entitled' });
+    },
+  );
+
+  it('lets the creator preview their own published scene without buying it', async () => {
+    setup();
+    entitled = false;
+    publishScene(ME);
+    expect(
+      await invoke('plus-gallery-preview', ME, 'neon-city', 1),
+    ).toMatchObject({ ok: true, own: true });
   });
 });
 

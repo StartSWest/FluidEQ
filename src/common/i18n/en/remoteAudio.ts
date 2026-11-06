@@ -7,6 +7,11 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 const remoteAudio = {
+  'remoteAudio.lag.in': 'In lag',
+  'remoteAudio.lag.out': 'Out lag',
+  'remoteAudio.lag.value': '≈{milliseconds} ms',
+  'remoteAudio.lag.hint':
+    'Estimated delay in each direction: half the measured network round trip plus the receiving computer’s playback buffer, reported output delay and known EQ/DSP delay. Capture and unreported hardware delays cannot be measured here. — means off, unavailable or awaiting a fresh report. No extra audio buffering is added.',
   'remoteAudio.group.add': 'Add computer',
   'remoteAudio.group.title': 'The whole group',
   'remoteAudio.group.mix': 'Your mix',

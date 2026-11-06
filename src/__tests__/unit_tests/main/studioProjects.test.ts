@@ -17,6 +17,7 @@ import {
   readProjectList,
   withActive,
   withFolder,
+  withFolders,
   without,
   writeProjectList,
 } from '../../../main/memberScenes/studioProjects';
@@ -94,6 +95,32 @@ describe('the Studio’s projects', () => {
     expect(opened.active).toBe(city?.id);
     expect(byRecent(opened)[0]?.folder).toBe(folderAt('city'));
     expect(withActive(list, 'nobody', 4)).toBe(list);
+  });
+
+  it('keeps new and reopened projects first when openings share a millisecond or the clock moves back', () => {
+    const first = withFolder({ projects: [] }, folderAt('city'), 100);
+    const second = withFolder(first, folderAt('sea'), 100);
+    expect(byRecent(second).map((project) => project.folder)).toEqual([
+      folderAt('sea'),
+      folderAt('city'),
+    ]);
+    const reopened = withActive(second, first.active ?? '', 90);
+    expect(byRecent(reopened)[0]?.folder).toBe(folderAt('city'));
+
+    const batch = withFolders(
+      reopened,
+      [folderAt('forest'), folderAt('desert')],
+      90,
+    );
+    expect(byRecent(batch).map((project) => project.folder)).toEqual([
+      folderAt('forest'),
+      folderAt('desert'),
+      folderAt('city'),
+      folderAt('sea'),
+    ]);
+    expect(batch.active).toBe(byRecent(batch)[0]?.id);
+    writeProjectList(file(), batch);
+    expect(readProjectList(file())).toEqual(batch);
   });
 
   it('opens the most recent of the rest when the open one is removed', () => {

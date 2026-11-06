@@ -69,7 +69,11 @@ const isNormalizationAnalysis = (
   const candidate = value as Record<string, unknown>;
   return (
     (candidate.edges === undefined || isProgrammeEdges(candidate.edges)) &&
-    candidate.version === 2 &&
+    candidate.version === 3 &&
+    typeof candidate.maxShortTermLufs === 'number' &&
+    Number.isFinite(candidate.maxShortTermLufs) &&
+    candidate.maxShortTermLufs >= -120 &&
+    candidate.maxShortTermLufs <= 24 &&
     typeof candidate.truePeakDbtp === 'number' &&
     Number.isFinite(candidate.truePeakDbtp) &&
     candidate.truePeakDbtp >= -120 &&

@@ -140,7 +140,7 @@ const dsp = {
 
   'dsp.normalizer.title': 'Normalizzatore',
   'dsp.normalizer.description':
-    "Misura una volta l'intera sorgente e applica un unico guadagno stereo collegato prima di Exciter ed EQ. Nessun pompaggio o inseguitore RMS mobile.",
+    'Allinea i passaggi di tre secondi più forti prima degli effetti, entro i limiti di picco e guadagno. I passaggi deboli mantengono il livello relativo. La Libreria misura il file; Live apprende durante la riproduzione.',
   'dsp.normalizer.mode': 'Modalità di normalizzazione',
   'dsp.normalizer.off': 'Spento',
   'dsp.normalizer.truePeak': 'Picco reale',
@@ -153,6 +153,7 @@ const dsp = {
     'Impossibile analizzare questa sorgente. Viene riprodotta al livello originale.',
   'dsp.normalizer.waiting': 'Riproduci un brano dalla Libreria per misurarlo.',
   'dsp.normalizer.measuredPeak': 'Picco misurato',
+  'dsp.normalizer.foregroundLoudness': 'Sonorità dei passaggi forti',
   'dsp.normalizer.measuredLoudness': 'Sonorità integrata',
   'dsp.normalizer.appliedGain': 'Guadagno applicato',
   'dsp.normalizer.limitedByCeiling':

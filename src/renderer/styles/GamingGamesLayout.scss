@@ -2,34 +2,66 @@
 
 @use 'theme' as *;
 @use 'color' as *;
+@use 'motion' as *;
+@use 'mainContentTokens' as content;
 
 // The live page and its Help drawing share the list frame. Older tour
 // illustrations keep their layout until they opt into this class.
 .gaming-games.gaming-games--split {
-  grid-template-columns: var(--gaming-list-width) 16px minmax(0, 1fr);
-  gap: 0 4px;
+  // Keep the same tracks when folded so the editor moves with the icon rail.
+  // The heading stays outside the moving tracks and remains reachable.
+  --gaming-fold: #{$motion-slow};
+  grid-template-columns: minmax(0, var(--gaming-list-width)) 24px minmax(0, 1fr);
+  grid-template-rows: 34px minmax(0, 1fr);
+  gap: 0;
   min-width: 0;
+  transition:
+    grid-template-columns var(--gaming-fold) $ease-out,
+    grid-template-rows var(--gaming-fold) $ease-out;
 
-  > .column-resizer {
+  .gaming-games__divider {
+    grid-column: 2;
+    grid-row: 2;
     position: sticky;
-    top: 0;
-    width: 16px;
-    height: var(--gaming-list-height);
+    top: 34px;
+    min-width: 0;
+    overflow: hidden;
+    height: calc(var(--gaming-list-height) - 34px);
+
+    > .column-resizer {
+      height: 100%;
+      margin: 0 4px;
+    }
+
+    > .pane-resizer {
+      margin: 0;
+    }
   }
 
-  > .pane-resizer {
-    margin: 4px 0;
+  .gaming-games__detail {
+    grid-column: 3;
+    grid-row: 2;
+    min-width: 0;
+  }
+
+  &:has(> .gaming-games__divider .is-dragging) {
+    transition: none;
   }
 
   .gaming-games__sidebar {
+    grid-column: 1;
+    grid-row: 2;
     position: sticky;
-    top: 0;
+    top: 34px;
     display: flex;
     flex-direction: column;
     gap: 8px;
     min-width: 0;
     min-height: 0;
-    height: var(--gaming-list-height);
+    height: calc(var(--gaming-list-height) - 34px);
+    overflow: hidden;
+    visibility: visible;
+    transition: visibility 0s;
   }
 
   .gaming-games__list {
@@ -39,76 +71,139 @@
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
     padding-right: 4px;
-
-    &[hidden] {
-      display: none;
-    }
+    width: var(--gaming-list-width);
   }
 
   .gaming-games__list-head {
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+    position: sticky;
+    top: 0;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+    // The heading follows its contents, not the user-resized list column.
+    justify-self: start;
+    gap: 4px;
     min-width: 0;
+    width: max-content;
+    max-width: 100%;
+    min-height: 28px;
 
     > .gaming-cap {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      min-width: 0;
+      // Clipping a max-content flex item can shave the last glyph at a
+      // fractional pixel width. Let long translations wrap without hiding ink.
+      overflow-wrap: anywhere;
     }
   }
 
-  // A heading is not an action bar. Only the little chevron is a control,
-  // as on the Karaoke playlist; the count stays quiet beside the game rows.
+  // Match the small heading's scale while keeping the larger click target.
   .gaming-games__list-toggle {
     flex: 0 0 auto;
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
+    min-height: 28px;
     padding: 0;
+    border: 0;
+    border-radius: $radius-pill;
     color: $text-faint;
     border-color: transparent;
     background: transparent;
     box-shadow: none;
 
+    &[aria-expanded='true'] {
+      color: $secondary-default;
+    }
+
     &:hover,
     &:focus-visible {
       color: $secondary-light;
-      border-color: $border-field;
       background: $hover-accent;
     }
 
-    > .chevron {
+    > .menu-icon {
       flex: 0 0 auto;
-      transform: rotate(90deg);
+      width: 14px;
+      height: 14px;
     }
   }
 
-  &.is-stacked,
   &.is-list-collapsed {
+    // Hiding the list entirely made the other games undiscoverable. Keep
+    // the same buttons as a scrollable rail, including keyboard access.
+    grid-template-columns: minmax(0, 52px) 12px minmax(0, 1fr);
+
+    .gaming-games__list {
+      width: 100%;
+    }
+
+    .gaming-game {
+      position: relative;
+      justify-content: center;
+      min-height: 44px;
+      padding: 4px;
+      gap: 0;
+    }
+
+    .gaming-game__icon {
+      width: 32px;
+      height: 32px;
+      padding: 3px;
+      background: transparent;
+    }
+
+    .gaming-game__what {
+      @include content.words-hidden;
+    }
+
+    .gaming-game__playing {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      padding: 0;
+      gap: 0;
+      background: transparent;
+      font-size: 0;
+    }
+
+    .gaming-games__divider {
+      visibility: hidden;
+    }
+  }
+
+  &.is-stacked:not(.is-list-collapsed) {
     grid-template-columns: minmax(0, 1fr);
-  }
+    grid-template-rows:
+      34px minmax(0, calc(var(--gaming-list-height) - 34px)) 16px
+      minmax(0, 1fr);
 
-  &.is-stacked .gaming-games__sidebar {
-    position: static;
-  }
-
-  &.is-stacked .gaming-games__list-toggle > .chevron {
-    transform: rotate(180deg);
-  }
-
-  &.is-list-collapsed {
-    row-gap: 12px;
+    .gaming-games__list-head {
+      position: static;
+    }
 
     .gaming-games__sidebar {
       position: static;
-      width: fit-content;
-      max-width: 100%;
-      height: auto;
+      height: 100%;
     }
 
-    .gaming-games__list-toggle > .chevron {
-      transform: rotate(-90deg);
+    .gaming-games__list {
+      width: 100%;
     }
+
+    .gaming-games__divider {
+      position: static;
+      grid-column: 1;
+      grid-row: 3;
+      height: 100%;
+    }
+
+    .gaming-games__detail {
+      grid-column: 1;
+      grid-row: 4;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    --gaming-fold: 1ms;
   }
 }

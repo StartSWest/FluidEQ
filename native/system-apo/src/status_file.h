@@ -34,6 +34,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 namespace fluideq_engine {
 
 struct EngineStatus {
+  static constexpr unsigned kSourceAnalysisVersion = 2;
   /** `{GUID}`, as the watcher's endpoint has it. No file without one. */
   std::wstring endpoint;
   /** Windows has this output's audio going through the engine right now. */
@@ -105,7 +106,7 @@ struct EngineStatus {
    */
   std::optional<BlockTiming::Reading> load;
   struct SourceAnalysis {
-    unsigned version = 1;
+    unsigned version = kSourceAnalysisVersion;
     std::string kind = "live";
     std::string owner = "engine";
     std::string source = "0000000000000000";

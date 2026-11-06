@@ -335,6 +335,11 @@
       padding: 0 0 6px;
       overflow: auto hidden;
     }
+    // A section name keeps its width in the horizontal contents. CJK names
+    // shrank to one glyph per line and pushed the Help title out of view.
+    .help-guide__group {
+      flex: 0 0 auto;
+    }
     .feature-tour__rail-item {
       flex: 0 0 200px;
     }

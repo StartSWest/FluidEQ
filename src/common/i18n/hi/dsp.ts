@@ -140,7 +140,7 @@ const dsp = {
 
   'dsp.normalizer.title': 'नॉर्मलाइज़र',
   'dsp.normalizer.description':
-    'पूरे स्रोत को एक बार मापकर एक्साइटर और EQ से पहले एक स्थिर, स्टीरियो-लिंक्ड गेन लगाता है। कोई पंपिंग या चलता RMS फ़ॉलोअर नहीं।',
+    'पीक और गेन की सीमाओं के भीतर, इफ़ेक्ट से पहले सबसे तेज़ तीन सेकंड के अंशों का स्तर मिलाता है। शांत अंश अपना सापेक्ष स्तर बनाए रखते हैं। लाइब्रेरी फ़ाइल मापती है; लाइव चलते समय सीखता है।',
   'dsp.normalizer.mode': 'नॉर्मलाइज़ेशन मोड',
   'dsp.normalizer.off': 'बंद',
   'dsp.normalizer.truePeak': 'ट्रू पीक',
@@ -153,6 +153,7 @@ const dsp = {
     'इस स्रोत का विश्लेषण नहीं हो सका। यह अपने मूल स्तर पर चलेगा।',
   'dsp.normalizer.waiting': 'मापने के लिए लाइब्रेरी से कोई ट्रैक चलाएँ।',
   'dsp.normalizer.measuredPeak': 'मापा गया पीक',
+  'dsp.normalizer.foregroundLoudness': 'तेज़ अंशों की लाउडनेस',
   'dsp.normalizer.measuredLoudness': 'इंटीग्रेटेड लाउडनेस',
   'dsp.normalizer.appliedGain': 'लागू गेन',
   'dsp.normalizer.limitedByCeiling':

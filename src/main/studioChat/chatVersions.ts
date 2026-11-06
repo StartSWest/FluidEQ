@@ -112,9 +112,34 @@ export const bringBackVersion = (kept: string, folder: string): boolean => {
     if (!files || files.length === 0) {
       return false;
     }
+    const root = fs.realpathSync.native(folder);
+    const destination = (relative: string): string => {
+      const parts = relative.split('/');
+      let parent = root;
+      // Snapshot source checks do not constrain destination directories. A
+      // project can retain a junction where a saved ordinary folder stood.
+      parts.slice(0, -1).forEach((part) => {
+        if (!part || part === '.' || part === '..') {
+          throw new Error('Unsafe saved project path');
+        }
+        parent = path.join(parent, part);
+        const stat = fs.lstatSync(parent, { throwIfNoEntry: false });
+        if (stat) {
+          if (!stat.isDirectory() || stat.isSymbolicLink()) {
+            throw new Error('Unsafe project destination');
+          }
+          if (path.relative(parent, fs.realpathSync.native(parent)) !== '') {
+            throw new Error('Project destination left its folder');
+          }
+        }
+      });
+      return path.join(root, ...parts);
+    };
+    // Refuse known unsafe destinations before restoring any of the version.
+    files.forEach(({ relative }) => destination(relative));
     files.forEach(({ relative }) => {
       writeFileAtomically(
-        path.join(folder, ...relative.split('/')),
+        destination(relative),
         fs.readFileSync(path.join(kept, ...relative.split('/'))),
       );
     });

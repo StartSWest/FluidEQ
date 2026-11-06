@@ -52,6 +52,9 @@ typedef struct FeqLoudnessAnalyzer FeqLoudnessAnalyzer;
 typedef struct FeqLoudnessResult {
   double integrated_lufs;
   double true_peak_dbtp;
+  /** Loudest complete 3 s window, advanced on a fixed 100 ms grid.
+      Clips shorter than 3 s use integrated loudness instead. */
+  double max_short_term_lufs;
 } FeqLoudnessResult;
 
 /**

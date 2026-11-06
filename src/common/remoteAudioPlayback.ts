@@ -2,6 +2,8 @@
 
 /** Receiver telemetry excludes the endpoint's EQ/DSP and hardware latency. */
 export interface IRemotePlaybackMeter {
+  /** Buffer plus reported output delay; absent while the output is unknown. */
+  playbackMs?: number;
   sourceId: string;
   bufferedMs: number;
   peak: number;

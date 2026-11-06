@@ -101,11 +101,11 @@ void apply_room_head(HostState& state, FeqChain* chain) {
  * rebuilds, and only then does `start` let a callback in. That ordering is the
  * whole reason `open` and `start` are separate calls.
  */
-bool rebuild_chain_and_player(HostState& state, const FeqDecoderOps& ops) {
+FeqChain* prepare_host_chain(HostState& state, bool require_voice) {
   FeqChain* chain = feq_chain_create(static_cast<double>(state.sample_rate),
                                      state.channels, state.block_frames);
   if (chain == nullptr) {
-    return false;
+    return nullptr;
   }
   feq_chain_configure(chain, &state.chain_settings);
   state.room_head_loaded = -1;
@@ -118,10 +118,40 @@ bool rebuild_chain_and_player(HostState& state, const FeqDecoderOps& ops) {
     // Voice is optional. A missing runtime must not turn a healthy output
     // device into silence; the meter reports the module unavailable and the
     // next rebuild can retry the retained, previously valid pair.
+    if (require_voice) {
+      feq_chain_destroy(chain);
+      return nullptr;
+    }
   }
+  // Adopt prepared EQ kernels before publication. transfer_state deliberately
+  // refuses a chain with an outstanding kernel handoff; publishing it cold
+  // would throw away the playing chain's histories on every ordinary edit.
+  std::vector<float> silence(state.block_frames * state.channels, 0.0f);
+  float* planes[FEQ_CHAIN_MAX_CHANNELS]{};
+  for (uint32_t channel = 0; channel < state.channels; ++channel) {
+    planes[channel] = silence.data() + channel * state.block_frames;
+  }
+  feq_chain_process(chain, planes, state.block_frames);
+  feq_chain_reset(chain, FEQ_CHAIN_RESET_STREAM_START);
   // Re-attached rather than recreated, so the panel's displays carry across a
   // rebuild instead of blanking every time a band moves.
   feq_chain_set_meters(chain, state.meters);
+  if (state.noise_profile) {
+    feq_chain_set_noise_profile(chain, &*state.noise_profile);
+  }
+  return chain;
+}
+
+bool publish_host_chain(HostState& state, bool preserve, bool require_voice) {
+  FeqChain* prepared = prepare_host_chain(state, require_voice);
+  if (prepared == nullptr) return false;
+  state.chain_exchange.publish(prepared, preserve);
+  return true;
+}
+
+bool rebuild_chain_and_player(HostState& state, const FeqDecoderOps& ops) {
+  FeqChain* chain = prepare_host_chain(state);
+  if (chain == nullptr) return false;
   // Told the rate here, because this is the one place it is known to have
   // changed: a device that renegotiated to 44.1 kHz publishes windows more
   // slowly, and the spectrum's decay is derived from that rate.
@@ -140,8 +170,9 @@ bool rebuild_chain_and_player(HostState& state, const FeqDecoderOps& ops) {
     return false;
   }
 
-  FeqChain* old_chain = state.chain;
   FeqPlayer* old_player = state.player;
+  state.chain_exchange.replace_stopped(chain);
+  state.track_gains.reset_stopped();
   state.chain = chain;
   {
     // The decoder thread pumps whatever player is here, and readies the next
@@ -158,7 +189,6 @@ bool rebuild_chain_and_player(HostState& state, const FeqDecoderOps& ops) {
   // Anything a deck held is gone with the old player, so the generator takes
   // over again until something is loaded into the new one.
   state.player_has_source.store(false, std::memory_order_release);
-  feq_chain_destroy(old_chain);
   return true;
 }
 

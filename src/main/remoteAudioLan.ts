@@ -599,6 +599,8 @@ const createRemoteAudioLan = (
     },
     sendSignal,
     sendAudio: (value) => transport.sendAudio(value),
+    reportPlayback: (peerId, milliseconds) =>
+      transport.reportPlayback(peerId, milliseconds),
     setStreamMode: (peerId, mode) => transport.setStreamMode(peerId, mode),
     stop,
   };

@@ -94,6 +94,32 @@ const studio = {
   'studio.new.failed':
     'Le dossier n’a pas pu être créé à cet endroit. Choisissez-en un autre avec Changer.',
 
+  'studio.publish.videoUploading': 'Envoi de l’aperçu…',
+  'studio.publish.videoChanged':
+    'La scène a changé après l’enregistrement. Ouvrez Publier pour enregistrer la version actuelle.',
+  'studio.publish.videoUploadFailed':
+    'L’aperçu n’a pas pu être joint. Ouvrez Publier et réessayez.',
+  'studio.publish.videoTitle': 'Aperçu vidéo',
+  'studio.publish.videoHint':
+    'Une vidéo silencieuse de 10 secondes de cette scène, avec filigrane. Regardez-la ici avant de publier.',
+  'studio.publish.videoPreparing':
+    'Préparation de la scène pour l’enregistrement…',
+  'studio.publish.videoRecording':
+    'Enregistrement de l’aperçu · {seconds} / 10 s',
+  'studio.publish.videoEncoding': 'Finalisation de la vidéo…',
+  'studio.publish.videoChecking': 'Vérification de la lecture…',
+  'studio.publish.videoReady': 'Votre aperçu est prêt. Regardez-le ci-dessous.',
+  'studio.publish.videoFailed':
+    'L’aperçu n’a pas pu être enregistré ou lu. Réessayez l’enregistrement.',
+  'studio.publish.videoCancelled':
+    'Enregistrement annulé. Enregistrez un aperçu pour continuer.',
+  'studio.publish.videoCancel': 'Annuler l’enregistrement',
+  'studio.publish.videoAgain': 'Enregistrer à nouveau',
+  'studio.publish.videoRetry': 'Réessayer l’enregistrement',
+  'studio.publish.videoPlay': 'Lire l’aperçu de la scène',
+  'studio.publish.videoRequired': 'Terminez d’abord un aperçu lisible',
+  'studio.publish.videoWatermark': 'FluidEQ Plus · Aperçu',
+
   'studio.publish.title': 'Publier {name}',
   'studio.publish.titleUpdate': 'Mettre à jour {name} dans la galerie',
   'studio.publish.version': 'Version {version}',

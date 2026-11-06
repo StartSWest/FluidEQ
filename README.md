@@ -85,7 +85,7 @@ The biggest release FluidEQ has had; these were its headlines.
 - **Make your own visualizer.** The Studio turns an idea into a scene that
   moves with your music, with your own AI assistant; a new account can try it
   free for fifteen days.
-- **Ask the guide in your own words**, in any of ten languages, and it takes
+- **Ask the guide in your own words**, in any of twelve languages, and it takes
   you to the control.
 
 ## What it does
@@ -699,8 +699,6 @@ with the pencil on its row.
   The native DSP host builds on every platform but only has a real audio
   backend on Windows, so `pnpm build` needs Visual Studio 2022 there and the
   media player, Karaoke and Share Audio are Windows features.
-- **Traditional Chinese readers get Simplified.** Locale matching uses the
-  primary subtag, so `zh-TW` resolves to `zh`.
 - **No right-to-left languages.** See above — the layout has not been mirrored.
 
 ## Where things live

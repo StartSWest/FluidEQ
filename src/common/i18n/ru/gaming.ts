@@ -13,8 +13,8 @@ export default {
   'gaming.switch.hint':
     'Если выключено, ваши игры звучат вашим музыкальным звуком и ничего не переключается само.',
   'gaming.add': 'Добавить игру',
-  'gaming.list.show': 'Показать список игр',
-  'gaming.list.hide': 'Скрыть список игр',
+  'gaming.list.show': 'Показать названия игр',
+  'gaming.list.hide': 'Показать значки игр',
   'gaming.list.resize': 'Изменить размер списка игр',
   'gaming.list.count': 'Ваши игры · {count}',
   'gaming.list.from': 'Из профиля {profile}',

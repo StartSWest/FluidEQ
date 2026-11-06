@@ -36,16 +36,25 @@ import {
 /* eslint-enable import/first */
 
 let config = '';
+let executable: jest.ReplaceProperty<string>;
 const saved = { xdg: process.env.XDG_CONFIG_HOME, image: process.env.APPIMAGE };
 const entry = () => path.join(config, 'autostart', 'fluideq.desktop');
 
 beforeEach(() => {
+  // The desktop entry is Linux syntax even when CI itself runs on Windows.
+  // A Windows node.exe path has backslashes that Exec correctly escapes.
+  executable = jest.replaceProperty(
+    process,
+    'execPath',
+    '/opt/FluidEQ/FluidEQ',
+  );
   config = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-autostart-'));
   process.env.XDG_CONFIG_HOME = config;
   delete process.env.APPIMAGE;
 });
 
 afterEach(() => {
+  executable.restore();
   fs.rmSync(config, { recursive: true, force: true });
   // Deleted rather than assigned when there was none: assigning undefined
   // to an environment variable stores the word "undefined".

@@ -78,8 +78,13 @@ std::wstring file_name_of(const std::wstring& path) {
 
 std::string decibels(double value) {
   char text[32] = {};
-  const int written = std::snprintf(text, sizeof(text), "%.1f", value);
-  if (written <= 0) {
+  int written = std::snprintf(text, sizeof(text), "%.1f", value);
+  // snprintf reports the required size after truncation, not bytes stored.
+  // Extreme finite config values need a bounded scientific representation.
+  if (written >= static_cast<int>(sizeof(text))) {
+    written = std::snprintf(text, sizeof(text), "%.6g", value);
+  }
+  if (written <= 0 || written >= static_cast<int>(sizeof(text))) {
     return std::string("?");
   }
   return std::string(text, static_cast<size_t>(written));

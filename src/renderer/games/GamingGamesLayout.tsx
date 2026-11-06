@@ -3,7 +3,7 @@
 import { CSSProperties, ReactNode, useId } from 'react';
 import ColumnResizer from '../components/ColumnResizer';
 import PaneResizer from '../components/PaneResizer';
-import Chevron from '../icons/Chevron';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useGamingGamesLayout from './useGamingGamesLayout';
 import '../styles/GamingGamesLayout.scss';
@@ -22,9 +22,12 @@ export const GamingGamesListToggle = ({
 }) => {
   const { t } = useTranslation();
   const label = t(collapsed ? 'gaming.list.show' : 'gaming.list.hide');
+  const heading = t('gaming.list.count', { count });
   return (
     <div className="gaming-games__list-head">
-      <span className="gaming-cap">{t('gaming.list.count', { count })}</span>
+      <span className="gaming-cap" title={heading}>
+        {heading}
+      </span>
       <button
         type="button"
         className="button small subtle gaming-games__list-toggle"
@@ -34,7 +37,7 @@ export const GamingGamesListToggle = ({
         aria-controls={controls}
         onClick={onToggle}
       >
-        <Chevron />
+        <MenuIcon name={collapsed ? 'pin' : 'pinOff'} />
       </button>
     </div>
   );
@@ -66,23 +69,23 @@ export default function GamingGamesLayout({
         } as CSSProperties
       }
     >
+      <GamingGamesListToggle
+        count={count}
+        collapsed={layout.collapsed}
+        controls={listId}
+        onToggle={layout.toggle}
+      />
       <aside className="gaming-games__sidebar">
-        <GamingGamesListToggle
-          count={count}
-          collapsed={layout.collapsed}
-          controls={listId}
-          onToggle={layout.toggle}
-        />
-        <div
-          id={listId}
-          className="gaming-games__list"
-          hidden={layout.collapsed}
-        >
+        <div id={listId} className="gaming-games__list">
           {list}
         </div>
       </aside>
-      {!layout.collapsed &&
-        (layout.stacked ? (
+      <div
+        className="gaming-games__divider"
+        inert={layout.collapsed}
+        aria-hidden={layout.collapsed}
+      >
+        {layout.stacked ? (
           <PaneResizer
             ariaLabel={t('gaming.list.resize')}
             valuePercent={layout.valuePercent}
@@ -99,8 +102,9 @@ export default function GamingGamesLayout({
             onEnd={layout.commit}
             onReset={layout.reset}
           />
-        ))}
-      {children}
+        )}
+      </div>
+      <div className="gaming-games__detail">{children}</div>
     </div>
   );
 }

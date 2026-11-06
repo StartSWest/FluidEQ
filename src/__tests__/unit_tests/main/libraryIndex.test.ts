@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { silentNoiseProfile } from '../../../common/dsp/noiseProfile';
 import {
   emptyLibraryIndex,
   loadLibraryIndex,
@@ -51,12 +52,43 @@ describe('the old library index on disk', () => {
       sizeBytes: 10,
       mtimeMs: 20,
       addedAt: 30,
+      normalization: {
+        version: 2,
+        integratedLufs: -15,
+        truePeakDbtp: -2,
+        edges: { leadInMs: 200, endMs: 180000 },
+        noise: silentNoiseProfile(),
+      },
     });
     fs.writeFileSync(
       path.join(dir, 'library-index.json'),
       JSON.stringify(index, null, 2),
     );
     expect(loadLibraryIndex(dir)).toEqual({ index, wasReset: false });
+    expect(fs.existsSync(path.join(dir, 'library-index.json.bak'))).toBe(false);
+    // A later lazy scan fills only the new fact; the persisted track and all
+    // its ancillary measurements remain valid during an upgrade.
+    const current = JSON.parse(JSON.stringify(index)) as typeof index;
+    current.tracks[0].normalization = {
+      ...index.tracks[0].normalization!,
+      version: 3,
+      maxShortTermLufs: -12,
+    };
+    expect(parseLibraryIndex(current)).toEqual(current);
+    expect(
+      parseLibraryIndex({
+        ...current,
+        tracks: [
+          {
+            ...current.tracks[0],
+            normalization: {
+              ...current.tracks[0].normalization,
+              maxShortTermLufs: Number.NaN,
+            },
+          },
+        ],
+      }),
+    ).toBeUndefined();
   });
 
   it('starts empty when nothing has been saved', () => {

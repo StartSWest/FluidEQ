@@ -138,7 +138,7 @@ const dsp = {
 
   'dsp.normalizer.title': '标准化',
   'dsp.normalizer.description':
-    '完整测量一次音源，在激励器和均衡器前应用固定的立体声联动增益。不会泵动，也没有跟随式 RMS。',
+    '在峰值和增益限制内，于效果处理前匹配最响的三秒片段。较轻的片段保留相对音量。音乐库测量整个文件；实时模式在播放时学习。',
   'dsp.normalizer.mode': '标准化模式',
   'dsp.normalizer.off': '关闭',
   'dsp.normalizer.truePeak': '真实峰值',
@@ -150,6 +150,7 @@ const dsp = {
   'dsp.normalizer.unavailable': '无法分析此音源，将按原始电平播放。',
   'dsp.normalizer.waiting': '播放媒体库曲目以进行测量。',
   'dsp.normalizer.measuredPeak': '测得峰值',
+  'dsp.normalizer.foregroundLoudness': '强段响度',
   'dsp.normalizer.measuredLoudness': '综合响度',
   'dsp.normalizer.appliedGain': '应用增益',
   'dsp.normalizer.limitedByCeiling': '需要 {requested} — 受峰值上限限制',

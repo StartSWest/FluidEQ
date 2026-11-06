@@ -201,9 +201,6 @@ int run(int argc, char** argv) {
       }
       reopen_if_device_changed(state, *backend, decoder_ops);
       reports_since_stats += drain_telemetry(state, *backend);
-      // Same thread as telemetry, deliberately: this is where the transforms
-      // are allowed to happen, and giving them a thread of their own would add
-      // a second writer to stdout for no gain.
       drain_analysis(state);
       if (reports_since_stats >= kStatsIntervalReports ||
           state.stats_wanted.exchange(false, std::memory_order_acq_rel)) {
@@ -291,7 +288,11 @@ int run(int argc, char** argv) {
 
   // Device first: the real-time thread reads the engine, so the engine must
   // outlive it by the whole of this shutdown.
-  backend->close();
+  {
+    const std::lock_guard<std::mutex> held(state.device_mutex);
+    state.device_wanted.store(false, std::memory_order_release);
+    backend->close();
+  }
   decoding.store(false, std::memory_order_release);
   state.decoder_bell.ring();
   decoder.join();
@@ -302,7 +303,8 @@ int run(int argc, char** argv) {
   // order they are read in: nothing may be destroyed while a thread above it
   // could still be holding a pointer into it.
   feq_player_destroy(state.player);
-  feq_chain_destroy(state.chain);
+  state.chain_exchange.clear_stopped();
+  state.chain = nullptr;
   // After the chain, which holds a borrowed pointer to it.
   feq_meters_destroy(state.meters);
   feq_engine_destroy(state.engine);

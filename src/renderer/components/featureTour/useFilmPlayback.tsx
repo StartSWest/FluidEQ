@@ -3,6 +3,8 @@
 import { type RefObject, useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../../utils/I18nContext';
 import {
+  featureFilmCaptionUrl,
+  featureFilmLocale,
   featureFilmTimingUrl,
   featureFilmUrl,
   type IFeatureFilm,
@@ -26,13 +28,18 @@ export default function useFilmPlayback(
   // stand-in that fails too is the film failing.
   const [isStandIn, setStandIn] = useState(false);
   const standIn = isStandIn ? film.standIn : undefined;
+  const captionSrc =
+    standIn?.captions ??
+    (film.spokenCaptions ? featureFilmCaptionUrl(id, locale) : undefined);
+  const isBundled =
+    !standIn && !!film.bundled?.[featureFilmLocale(locale, film)];
   const timing =
     film.timedOnSite && !standIn ? featureFilmTimingUrl(id, locale) : undefined;
   const track = useRef<HTMLTrackElement>(null);
   const [timed, setTimed] = useState<readonly IFilmCue[] | undefined>();
   const cue = useFilmLine(
     video,
-    standIn ? NO_LINES : (timed ?? film.cues),
+    standIn || film.spokenCaptions ? NO_LINES : (timed ?? film.cues),
     isShown,
   );
   const standInTrack = useRef<HTMLTrackElement>(null);
@@ -59,7 +66,7 @@ export default function useFilmPlayback(
       );
     element.addEventListener('cuechange', read);
     return () => element.removeEventListener('cuechange', read);
-  }, [standIn]);
+  }, [captionSrc]);
 
   // Metadata timings can be updated beside the recording without an app release.
   useEffect(() => {
@@ -74,8 +81,9 @@ export default function useFilmPlayback(
 
   return {
     src: standIn?.src ?? featureFilmUrl(id, locale),
-    crossOrigin: timing || standIn ? ('anonymous' as const) : undefined,
-    subtitle: standIn ? standInLine : cue && t(cue.key),
+    crossOrigin:
+      !isBundled && (timing || captionSrc) ? ('anonymous' as const) : undefined,
+    subtitle: captionSrc ? standInLine : cue && t(cue.key),
     onError: () => {
       if (film.standIn && !isStandIn) {
         setStandIn(true);
@@ -83,12 +91,12 @@ export default function useFilmPlayback(
         onFailed();
       }
     },
-    tracks: standIn ? (
+    tracks: captionSrc ? (
       <track
         ref={standInTrack}
         kind="captions"
-        src={standIn.captions}
-        srcLang="en"
+        src={captionSrc}
+        srcLang={standIn ? 'en' : featureFilmLocale(locale, film)}
         default
       />
     ) : (

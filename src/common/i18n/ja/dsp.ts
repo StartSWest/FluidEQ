@@ -139,7 +139,7 @@ const dsp = {
 
   'dsp.normalizer.title': 'ノーマライザー',
   'dsp.normalizer.description':
-    'ソース全体を一度測定し、エキサイターと EQ の前で左右共通の一定ゲインを適用します。ポンピングや追従する RMS はありません。',
+    'ピークとゲインの上限を守りながら、最も大きい3秒間の区間をエフェクトの前で揃えます。静かな区間の相対的な音量は保ちます。ライブラリはファイル全体を測定し、ライブは再生しながら学習します。',
   'dsp.normalizer.mode': 'ノーマライズモード',
   'dsp.normalizer.off': 'オフ',
   'dsp.normalizer.truePeak': 'トゥルーピーク',
@@ -152,6 +152,7 @@ const dsp = {
     'このソースは解析できませんでした。元のレベルで再生します。',
   'dsp.normalizer.waiting': 'ライブラリの曲を再生すると測定します。',
   'dsp.normalizer.measuredPeak': '測定ピーク',
+  'dsp.normalizer.foregroundLoudness': '強い区間のラウドネス',
   'dsp.normalizer.measuredLoudness': '統合ラウドネス',
   'dsp.normalizer.appliedGain': '適用ゲイン',
   'dsp.normalizer.limitedByCeiling': '{requested} 必要 — ピーク上限により制限',

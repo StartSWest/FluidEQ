@@ -28,6 +28,10 @@ void render_bridge(void* context, float* const* planar, uint32_t frames) {
   if (state == nullptr || state->engine == nullptr) {
     return;
   }
+  const auto adopted = state->chain_exchange.adopt();
+  state->chain = adopted.chain;
+  state->track_gains.apply(state->chain, adopted.fresh);
+  if (adopted.changed) state->telemetry_bell.arm();
 
   /**
    * The player first, the generator only when there is nothing to play.

@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * The three-band Exciter, ported from `exciterStage.ts`.
  *
- * Each band is extracted with a two-pole highpass and lowpass, run through the
+ * Each band is extracted with fourth-order highpass and lowpass skirts, run through the
  * harmonic generator at the oversampled rate, DC-blocked, held to its own
  * region by a residue filter, and summed back under the dry programme with a
  * quiet foundation. The bands may overlap, so the returns are normalised
@@ -70,13 +70,16 @@ typedef struct FeqExciterBandCache {
   double sample_rate;
   FeqBiquadCoefficients highpass;
   FeqBiquadCoefficients lowpass;
+  FeqBiquadCoefficients highpass_tail;
+  FeqBiquadCoefficients lowpass_tail;
+  double input_scale;
   /** Where this band's own harmonics are allowed to reach. */
   FeqBiquadCoefficients residue;
 } FeqExciterBandCache;
 
 typedef struct FeqExciterChannel {
-  /** One two-pole highpass and lowpass per independently movable band. */
-  FeqBiquadState band_filters[FEQ_EXCITER_BANDS][2];
+  /** Fourth-order input skirts; centre gain matches the original two poles. */
+  FeqBiquadState band_filters[FEQ_EXCITER_BANDS][4];
   FeqExciterBandCache band_cache[FEQ_EXCITER_BANDS];
   float* bands[FEQ_EXCITER_BANDS];
   float* wet_return;

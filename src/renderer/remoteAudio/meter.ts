@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { ILanRemoteAudioChunk } from '../../common/remoteAudio';
 
 export interface IRemoteAudioMeter {
+  playbackMs?: number;
   bufferedMs?: number;
   peak: number;
   rms: number;

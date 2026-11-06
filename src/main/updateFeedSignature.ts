@@ -4,7 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { createPublicKey, verify } from 'crypto';
+import { createHash, createPublicKey, verify } from 'crypto';
+import { createReadStream } from 'fs';
 
 /**
  * The update feed's own signature: what stands between a stolen GitHub
@@ -135,6 +136,54 @@ export const verifyUpdateFeedSignature = (
     return {
       valid: false,
       reason: `the update feed signature could not be checked: ${(error as Error).message}`,
+    };
+  }
+};
+
+/** Bind the signed v1 digest set to the bytes the updater will actually run. */
+export const verifyDownloadedUpdateFeed = async (
+  info: unknown,
+  installerPath: string,
+  keys: Readonly<Record<string, string>> = UPDATE_FEED_KEYS,
+): Promise<IFeedVerification> => {
+  const signature = verifyUpdateFeedSignature(info, keys);
+  if (!signature.valid || Object.keys(keys).length === 0) {
+    return signature;
+  }
+  if (!isRecord(info)) {
+    return { valid: false, reason: 'the update feed has no installer' };
+  }
+  try {
+    const hash = createHash('sha512');
+    await new Promise<void>((resolve, reject) => {
+      const input = createReadStream(installerPath);
+      input.on('data', (chunk: Buffer) => hash.update(chunk));
+      input.once('error', reject);
+      input.once('end', resolve);
+    });
+    const actual = hash.digest();
+    // electron-updater also accepts legacy hexadecimal SHA-512 values. Keep
+    // the existing signing message and keys; authenticate the selected bytes
+    // even when files[] used SHA-256 or the updater reused its download cache.
+    const matches = feedSha512s(info).some((expected) => {
+      if (/^[a-f\d]{128}$/i.test(expected)) {
+        return actual.equals(Buffer.from(expected, 'hex'));
+      }
+      return (
+        /^[A-Za-z\d+/]{86}==$/.test(expected) &&
+        actual.equals(Buffer.from(expected, 'base64'))
+      );
+    });
+    return matches
+      ? { valid: true }
+      : {
+          valid: false,
+          reason: 'the installer does not match its signed feed',
+        };
+  } catch (error) {
+    return {
+      valid: false,
+      reason: `the downloaded installer could not be checked: ${(error as Error).message}`,
     };
   }
 };

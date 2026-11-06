@@ -93,6 +93,33 @@ const studio = {
   'studio.new.failed':
     'Der Ordner konnte dort nicht angelegt werden. Wählen Sie mit „Ändern“ einen anderen Ort.',
 
+  'studio.publish.videoUploading': 'Vorschau wird hochgeladen…',
+  'studio.publish.videoChanged':
+    'Die Szene wurde nach der Aufnahme geändert. Öffnen Sie Veröffentlichen, um die aktuelle Version aufzunehmen.',
+  'studio.publish.videoUploadFailed':
+    'Die Vorschau konnte nicht angehängt werden. Öffnen Sie Veröffentlichen und versuchen Sie es erneut.',
+  'studio.publish.videoTitle': 'Videovorschau',
+  'studio.publish.videoHint':
+    'Ein lautloser 10-Sekunden-Clip dieser Szene mit Wasserzeichen. Sehen Sie ihn vor dem Veröffentlichen hier an.',
+  'studio.publish.videoPreparing': 'Szene wird für die Aufnahme vorbereitet…',
+  'studio.publish.videoRecording':
+    'Vorschau wird aufgenommen · {seconds} / 10 s',
+  'studio.publish.videoEncoding': 'Video wird fertiggestellt…',
+  'studio.publish.videoChecking': 'Videowiedergabe wird geprüft…',
+  'studio.publish.videoReady':
+    'Ihre Vorschau ist fertig. Spielen Sie sie unten ab.',
+  'studio.publish.videoFailed':
+    'Die Vorschau konnte nicht aufgenommen oder wiedergegeben werden. Versuchen Sie die Aufnahme erneut.',
+  'studio.publish.videoCancelled':
+    'Aufnahme abgebrochen. Nehmen Sie eine Vorschau auf, um fortzufahren.',
+  'studio.publish.videoCancel': 'Aufnahme abbrechen',
+  'studio.publish.videoAgain': 'Erneut aufnehmen',
+  'studio.publish.videoRetry': 'Aufnahme wiederholen',
+  'studio.publish.videoPlay': 'Szenenvorschau abspielen',
+  'studio.publish.videoRequired':
+    'Nehmen Sie zuerst eine abspielbare Vorschau auf',
+  'studio.publish.videoWatermark': 'FluidEQ Plus · Vorschau',
+
   'studio.publish.title': '{name} veröffentlichen',
   'studio.publish.titleUpdate': '{name} in der Galerie aktualisieren',
   'studio.publish.version': 'Version {version}',

@@ -110,7 +110,6 @@ void start_device(HostState& state, IAudioOutputBackend& backend,
    * ordering the rebuild has always required.
    */
   state.device_wanted.store(true, std::memory_order_release);
-  const std::lock_guard<std::mutex> device_held(state.device_mutex);
   if (backend.is_running()) {
     std::fprintf(stderr,
                  "FluidEQ-DSP: device start reused rate=%u channels=%u "
@@ -167,7 +166,6 @@ void start_device(HostState& state, IAudioOutputBackend& backend,
 void stop_device(HostState& state, IAudioOutputBackend& backend,
                  const FeqWireCommandFrame& frame) {
   state.device_wanted.store(false, std::memory_order_release);
-  const std::lock_guard<std::mutex> device_held(state.device_mutex);
   const bool was_open = backend.is_open();
   const bool was_running = backend.is_running();
   // The endpoint is released, not paused. A held-open device keeps the
@@ -237,15 +235,22 @@ void run_offline_blocks(HostState& state, const IAudioOutputBackend& backend,
 
 /** LOAD_VOICE_MODEL: the voice cleaner's model and runtime, or none. */
 bool load_voice_model(HostState& state, const FeqWireCommandFrame& frame) {
-  if (frame.parameter_id == 0) {
-    const std::lock_guard<std::mutex> device_held(state.device_mutex);
-    if (state.chain != nullptr) {
-      feq_chain_load_voice_model(state.chain, nullptr, nullptr);
+  const auto replace_voice = [&](const std::string& model,
+                                  const std::string& runtime) {
+    const std::string previous_model = state.voice_model_path;
+    const std::string previous_runtime = state.voice_runtime_path;
+    state.voice_model_path = model;
+    state.voice_runtime_path = runtime;
+    const bool loaded = publish_host_chain(state, true, !model.empty());
+    if (!loaded) {
+      state.voice_model_path = previous_model;
+      state.voice_runtime_path = previous_runtime;
     }
-    state.voice_model_path.clear();
-    state.voice_runtime_path.clear();
-    send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision,
-             0, 0.0);
+    send_ack(frame.request_id, loaded ? FEQ_WIRE_APPLIED : FEQ_WIRE_REJECTED,
+             frame.settings_revision, 0, 0.0);
+  };
+  if (frame.parameter_id == 0) {
+    replace_voice({}, {});
     return true;
   }
   // Two paths and the newline between them, so twice the ceiling plus
@@ -269,40 +274,25 @@ bool load_voice_model(HostState& state, const FeqWireCommandFrame& frame) {
   // the control thread and never from the callback. A refusal is
   // reported rather than swallowed: the card distinguishes "no model" it
   // asked for from one it thought it had.
-  int loaded = 0;
-  {
-    // A default-device notification can rebuild the chain on the
-    // telemetry thread. Loading and remembering the model are one
-    // operation under the same lock, so the rebuild sees either the
-    // old successful pair or the new successful pair, never half of
-    // one.
-    const std::lock_guard<std::mutex> device_held(state.device_mutex);
-    loaded = state.chain != nullptr
-                 ? feq_chain_load_voice_model(state.chain, model.c_str(),
-                                              runtime.c_str())
-                 : 0;
-    if (loaded != 0) {
-      state.voice_model_path = model;
-      state.voice_runtime_path = runtime;
-    }
-  }
-  send_ack(frame.request_id,
-           loaded != 0 ? FEQ_WIRE_APPLIED : FEQ_WIRE_REJECTED,
-           frame.settings_revision, 0, 0.0);
+  replace_voice(model, runtime);
   return true;
 }
 
 /** SET_NOISE_PROFILE: a scanned track's noise for the restoration, or none. */
 bool set_noise_profile(HostState& state, const FeqWireCommandFrame& frame) {
+  const auto replace_profile = [&](std::optional<FeqNoiseProfile> profile) {
+    const auto previous = state.noise_profile;
+    state.noise_profile = profile;
+    const bool applied = publish_host_chain(state);
+    if (!applied) state.noise_profile = previous;
+    send_ack(frame.request_id, applied ? FEQ_WIRE_APPLIED : FEQ_WIRE_REJECTED,
+             frame.settings_revision, 0, 0.0);
+  };
   // Length zero clears it. A track with no scan must not inherit the
   // previous song's floor: subtracting one recording's hiss from another
   // is audible and there is nothing on screen that would explain it.
   if (frame.parameter_id == 0) {
-    if (state.chain != nullptr) {
-      feq_chain_set_noise_profile(state.chain, nullptr);
-    }
-    send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision,
-             0, 0.0);
+    replace_profile(std::nullopt);
     return true;
   }
   if (frame.parameter_id != FEQ_DENOISE_PROFILE_WIRE) {
@@ -329,11 +319,7 @@ bool set_noise_profile(HostState& state, const FeqWireCommandFrame& frame) {
   for (uint32_t i = 0; i < FEQ_DENOISE_MAX_HUM_PARTIALS; i += 1) {
     profile.hum_partial_excess_db[i] = values[at++];
   }
-  if (state.chain != nullptr) {
-    feq_chain_set_noise_profile(state.chain, &profile);
-  }
-  send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
-           0.0);
+  replace_profile(profile);
   return true;
 }
 
@@ -360,12 +346,12 @@ bool apply_chain(HostState& state, const FeqWireCommandFrame& frame) {
     send_ack(frame.request_id, FEQ_WIRE_REJECTED, 0, 0, 0.0);
     return true;
   }
+  const FeqChainSettings previous = state.chain_settings;
   state.chain_settings = settings;
-  if (state.chain != nullptr) {
-    feq_chain_configure(state.chain, &state.chain_settings);
-    apply_room_head(state, state.chain);
-  }
-  send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
+  const bool applied = publish_host_chain(state);
+  if (!applied) state.chain_settings = previous;
+  send_ack(frame.request_id, applied ? FEQ_WIRE_APPLIED : FEQ_WIRE_REJECTED,
+           frame.settings_revision, 0,
            0.0);
   return true;
 }
@@ -475,6 +461,10 @@ bool render_to_file(HostState& state, const IAudioOutputBackend& backend,
 bool dispatch_command(HostState& state, IAudioOutputBackend& backend,
                       const FeqDecoderOps& decoder_ops,
                       const FeqWireCommandFrame& frame) {
+  // Reopen cannot replace the player/engine while any command borrows them.
+  // The callback takes no lock: prepared chains and gains cross separately.
+  const std::lock_guard<std::mutex> device_held(state.device_mutex);
+  state.chain_exchange.reclaim();
   switch (frame.command) {
     case FEQ_CMD_HELLO:
       send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,

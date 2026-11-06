@@ -86,6 +86,7 @@ module.exports = {
     '<rootDir>/.pnpm-store/',
   ],
   transform: {
+    '\\.vtt$': '<rootDir>/.erb/mocks/textAssetTransform.cjs',
     '\\.(ts|tsx|js|jsx)$': 'ts-jest',
   },
   testMatch: ['**/__tests__/unit_tests/**/*.ts?(x)'],

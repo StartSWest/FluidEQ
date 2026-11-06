@@ -140,7 +140,7 @@ const dsp = {
 
   'dsp.normalizer.title': 'Normalisierung',
   'dsp.normalizer.description':
-    'Misst die komplette Quelle einmal und wendet vor Exciter und EQ eine feste, stereogekoppelte Verstärkung an. Kein Pumpen, kein beweglicher RMS-Folger.',
+    'Gleicht die lautesten Drei-Sekunden-Passagen vor den Effekten innerhalb der Spitzen- und Verstärkungsgrenzen an. Leise Passagen behalten ihren relativen Pegel. Die Bibliothek misst die Datei; Live lernt während der Wiedergabe.',
   'dsp.normalizer.mode': 'Normalisierungsmodus',
   'dsp.normalizer.off': 'Aus',
   'dsp.normalizer.truePeak': 'True Peak',
@@ -154,6 +154,7 @@ const dsp = {
   'dsp.normalizer.waiting':
     'Einen Bibliothekstitel abspielen, um ihn zu messen.',
   'dsp.normalizer.measuredPeak': 'Gemessener Peak',
+  'dsp.normalizer.foregroundLoudness': 'Lautheit lauter Passagen',
   'dsp.normalizer.measuredLoudness': 'Integrierte Lautheit',
   'dsp.normalizer.appliedGain': 'Angewandte Verstärkung',
   'dsp.normalizer.limitedByCeiling':

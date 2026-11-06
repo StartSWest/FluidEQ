@@ -174,11 +174,11 @@ const tour: Partial<Dictionary> = {
   'tour.games.point1':
     'Les jeux Steam, Epic Games, EA, GOG, Ubisoft, Battle.net et Xbox, ou tout programme ouvert.',
   'tour.games.point2':
-    'Chaque partie s’ajuste sur une seule page : le Filtre Jeu pour les pas et les voix, l’EQ, la courbe et chaque étape DSP, avec des préréglages faits pour les jeux.',
+    'Choisissez parmi 33 profils pour des titres précis et 9 types de jeu, puis réglez le Filtre de jeu, l’EQ, la courbe et les étapes DSP sur une page.',
   'tour.games.point3':
     'Le Labo et la page EQ montrent le jeu en cours et son préréglage.',
   'tour.games.how':
-    'Ouvrez le Labo gaming dans la barre de titre et cliquez sur Ajouter un jeu. Puis cliquez sur Essayer maintenant et ajustez son son sur place.',
+    'Ouvrez le Labo gaming dans la barre de titre et cliquez sur Ajouter un jeu. Choisissez son « Profil gaming », cliquez sur « Essayer maintenant » et réglez son son.',
   'tour.games.open': 'Ouvrir le Labo gaming',
   'tour.games.imageAlt':
     'Le Labo gaming avec Counter-Strike 2, d’abord avec votre musique, puis avec le son propre du jeu : son préréglage nommé en haut, le Mode jeu activé et Décharger à la place d’Essayer maintenant.',
@@ -858,15 +858,15 @@ const tour: Partial<Dictionary> = {
   'tour.v23.engineKey':
     'Choisissez une touche marche/arrêt dans le menu pour basculer tout le traitement de FluidEQ lorsqu’une autre app est au premier plan. Une carte confirme le changement.',
   'tour.v23.profiles':
-    'Recherchez les profils de jeu par jeu, courbe ou chaîne. Vos profils enregistrés montrent aussi leurs courbes et les niveaux du filtre Jeu.',
+    'Redimensionnez ou repliez la liste des jeux ; les avis de changement nomment le son. Recherchez les profils par jeu, courbe ou chaîne ; vos profils affichent aussi leurs courbes et niveaux du filtre Jeu.',
   'tour.v23.dsp':
-    'Dynamique relève les sons faibles dans trois bandes. Le Maximiseur préserve mieux les graves ; True Peak utilise un gain par morceau.',
+    'Des préréglages de musique générale et de genre réajustés pour un son plus précis et puissant et une écoute plus régulière, avec de nouvelles mesures pour 83 genres. Dynamique relève les sons faibles sur trois bandes ; le Maximizer plus propre préserve les graves, et True Peak utilise un gain par morceau.',
   'tour.v23.help':
-    'L’aide lit la visite enregistrée de la 2.2 et ouvre directement les notes complètes. À propos propose des liens de section et le QR de soutien lorsqu’il est disponible.',
+    'Les recherches locales ignorent la casse, les accents, les espaces et la ponctuation. L’Aide propose la visite 2.2 et les notes complètes ; À propos offre des liens de section et le QR de soutien lorsqu’il est disponible.',
   'tour.v23.forum':
     'Chaque rubrique du Forum compte l’activité non vue, Problèmes compte les problèmes ouverts, et vos sujets et réponses inachevés restent enregistrés.',
   'tour.v23.layout':
-    'Le lecteur compact raccourcit les noms de jeu. Ajouter un jeu garde ses boutons visibles pendant le défilement, et les barres des pages longent le bord droit.',
+    'Visualiseurs ouvre l’en-tête et Médias en ligne le termine. Le lecteur compact garde les noms de jeu courts, l’affichage du volume reste stable, Ajouter un jeu garde ses boutons visibles et les barres atteignent le bord.',
 };
 
 export default tour;

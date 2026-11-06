@@ -140,7 +140,7 @@ const dsp = {
 
   'dsp.normalizer.title': 'Normalizador',
   'dsp.normalizer.description':
-    'Mide una vez la fuente completa y aplica una sola ganancia estéreo antes del Excitador y el EQ. Sin bombeo ni seguidor RMS móvil.',
+    'Iguala los pasajes de tres segundos más intensos antes de los efectos, respetando los límites de pico y ganancia. Los pasajes suaves conservan su nivel relativo. La Biblioteca mide el archivo; En vivo aprende durante la reproducción.',
   'dsp.normalizer.mode': 'Modo de normalización',
   'dsp.normalizer.off': 'Apagado',
   'dsp.normalizer.truePeak': 'Pico real',
@@ -154,6 +154,7 @@ const dsp = {
   'dsp.normalizer.waiting':
     'Reproduce una pista de la Biblioteca para medirla.',
   'dsp.normalizer.measuredPeak': 'Pico medido',
+  'dsp.normalizer.foregroundLoudness': 'Sonoridad de primer plano',
   'dsp.normalizer.measuredLoudness': 'Sonoridad integrada',
   'dsp.normalizer.appliedGain': 'Ganancia aplicada',
   'dsp.normalizer.limitedByCeiling':

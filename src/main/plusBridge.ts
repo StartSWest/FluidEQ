@@ -30,6 +30,7 @@ import type {
   TUnpublishOutcome,
 } from './ipc/plusPublishing';
 import type { IGalleryQuery, TReportReason } from '../common/plusGallery';
+import type { IGalleryClip } from './plus/galleryClip';
 import type { TPlusProfileResult } from './ipc/plusProfile';
 import type { IPlusProfile } from '../common/plusProfile';
 
@@ -72,6 +73,21 @@ const previewGalleryScene = (
     version,
     revision,
   ) as Promise<TGalleryPreviewOutcome>;
+
+/** A published scene's ten-second clip, or nothing (`plusGalleryClip.ts`). */
+const galleryClip = (
+  authorId: string,
+  sceneId: string,
+  version: number,
+  revision?: string,
+) =>
+  ipcRenderer.invoke(
+    'plus-gallery-clip',
+    authorId,
+    sceneId,
+    version,
+    revision,
+  ) as Promise<IGalleryClip | undefined>;
 
 const addGalleryScene = (
   authorId: string,
@@ -142,6 +158,7 @@ const plusBridge = {
   listGallery,
   galleryPicture,
   previewGalleryScene,
+  galleryClip,
   addGalleryScene,
   reportGalleryScene,
   galleryVersions,

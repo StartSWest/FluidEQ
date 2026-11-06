@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/loudness_meter.h"
 #include "fluideq/post_filter_normalizer.h"
 #include "leveling_memory_internal.h"
+#include "normalizer_gain.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -69,19 +70,13 @@ constexpr double kGapSeconds = 3;
 // Twenty seconds covers most intros; the loudest passage can still come later,
 // which is why lowering never waits for this.
 constexpr double kSettleSeconds = 20;
-// A new unknown song may raise the carried gain only while this young, and
-// only when it is much quieter than the gain allows. After that the song keeps
-// the gain its loudest passage left: the complaint this answers was a song
-// turned down for its chorus and back up for every verse after it.
-constexpr double kOpeningSeconds = 45;
-constexpr double kMuchQuieter = 6;
-constexpr double kRaiseShortOf = 3;
-// A programme this long is a stream, a mix or a broadcast rather than a song,
-// and its loudest passage is allowed to be forgotten, slowly.
+// An unnamed programme this long may be a broadcast. Identified songs keep
+// their reference even through long quiet movements, like Library playback.
 constexpr double kLongProgrammeSeconds = 480;
 constexpr double kReleaseSeconds = 600;
 constexpr double kForegroundRange = 10;
 constexpr double kQuietPassage = 6;
+constexpr double kLearningGateLufs = -70;  // same absolute gate as Library
 constexpr double kDeadband = 0.75;
 constexpr double kDownDbPerSecond = 1.0;
 constexpr double kUpDbPerSecond = 0.2;
@@ -115,7 +110,7 @@ void empty_window(FeqLiveNormalizer& state) {
   feq_loudness_meter_reset(state.output_loudness);
 }
 
-/* A new programme. The gain and whether one was ever decided carry over. */
+/* Keep the applied gain continuous, but learn each new programme independently. */
 void begin_segment(FeqLiveNormalizer& state, uint64_t song_id, double level, double peak_db) {
   auto& song = state.song;
   song.song_id = song_id;
@@ -125,6 +120,10 @@ void begin_segment(FeqLiveNormalizer& state, uint64_t song_id, double level, dou
   state.song_peak = heard(song.song_peak_db) ? std::pow(10.0, song.song_peak_db / 20) : 0;
   restart_settled(state);
   song.foreground_seconds = 0;
+  // Keeping the previous song's established flag held a 4 dB quieter new
+  // song 4 LU below target indefinitely. Only a verse within the SAME song
+  // inherits its established target; a new song gets its own after learning.
+  song.established = false;
   song.glide = false;
   song.retarget_pending = false;
 }
@@ -143,10 +142,11 @@ double desired_gain(const FeqLevelingState& song, const FeqNormalizerSettings& s
     return std::clamp(peak_room, -48.0, 0.0);
   }
   requested = bounded(settings.target_lufs, -14, -24, -5) - song.song_level;
-  peak_room = bounded(settings.ceiling_db, -1, -12, -0.1) - song.song_peak_db - 0.5;
+  peak_room = feq_normalizer::peak_room(
+      bounded(settings.ceiling_db, -1, -12, -0.1), song.song_peak_db);
   // Preserve observed crest factor instead of boosting into continuous
   // limiting to force a LUFS target. A target is an aim, not a guarantee.
-  return std::clamp(std::min(requested, peak_room), -48.0, 6.0);
+  return feq_normalizer::loudness_gain(requested, peak_room);
 }
 
 void follow_controls(FeqLiveNormalizer& state, const FeqNormalizerSettings& settings) {
@@ -193,6 +193,10 @@ void apply_cue(FeqLiveNormalizer& state, const feq_leveling::Cue& cue,
     return;
   }
   begin_segment(state, cue.song_id, cue.level_lufs, cue.peak_db);
+  // The interpolation history belongs to the old recording too. Its last
+  // samples otherwise became the quiet new song's permanent peak and could
+  // cap its gain several dB below the shared limit despite ample headroom.
+  for (auto& detector : state.input_detectors) feq_true_peak_init(&detector, 4);
   // The window still holds the last song's closing seconds. Measured into the
   // new one, a loud ending became a quiet song's loudest passage.
   empty_window(state);
@@ -209,7 +213,12 @@ void silent_frames(FeqLiveNormalizer& state, uint32_t frames) {
   if (static_cast<double>(state.silent_samples) < state.rate * kGapSeconds) return;
   state.gap_cleared = true;
   empty_window(state);
-  if (!state.song.named) begin_segment(state, 0, kUnknown, kUnknown);
+  if (!state.song.named) {
+    begin_segment(state, 0, kUnknown, kUnknown);
+    // Flagged silence carries no samples through the interpolation filters.
+    // Their previous recording's tail must not become the next source peak.
+    for (auto& detector : state.input_detectors) feq_true_peak_init(&detector, 4);
+  }
   if (state.memory != nullptr) {
     // Another stream on this output may have gone on playing and learning
     // meanwhile; what it published is the programme now, not this copy.
@@ -253,7 +262,10 @@ void adopt(FeqLiveNormalizer& state) {
     }
   }
   state.live = true;
-  if (state.gap_pending && !state.song.named) begin_segment(state, 0, kUnknown, kUnknown);
+  if (state.gap_pending && !state.song.named) {
+    begin_segment(state, 0, kUnknown, kUnknown);
+    for (auto& detector : state.input_detectors) feq_true_peak_init(&detector, 4);
+  }
   state.gap_pending = false;
 }
 
@@ -286,40 +298,44 @@ int level(FeqLiveNormalizer& state, const FeqLoudnessReading& measured, double p
   }
   const bool settled = song.known || song.foreground_seconds >= kSettleSeconds;
   if (static_cast<double>(state.samples) < state.rate * kWindowSeconds ||
-      measured.momentary_lufs <= -50 || measured.short_term_lufs <= -50) {
+      measured.momentary_lufs <= kLearningGateLufs ||
+      measured.short_term_lufs <= kLearningGateLufs) {
     return settled ? 3 : 2;
   }
   const double short_term = measured.short_term_lufs;
   song.song_level = std::max(song.song_level, short_term);
   const bool foreground = short_term >= song.song_level - kForegroundRange;
   if (foreground) song.foreground_seconds += seconds;
-  const bool long_programme = song.foreground_seconds >= kLongProgrammeSeconds;
+  const bool long_programme = !song.named &&
+      song.foreground_seconds >= kLongProgrammeSeconds;
   if (long_programme && foreground && short_term < song.song_level) {
     song.song_level += (short_term - song.song_level) * (-std::expm1(-seconds / kReleaseSeconds));
   }
   double requested = 0, peak_room = 0;
   const double desired = desired_gain(song, settings, requested, peak_room);
-  if (desired < song.target_db - kDeadband) {
+  if (desired < song.target_db - kDeadband ||
+      (peak_room < requested && desired < song.target_db - kPeakDeadband)) {
     // Lowering never waits: a passage louder than the gain allows is heard now.
     song.target_db = desired;
   } else if (!song.established) {
-    // The first programme after a start has no gain to keep, so its level
-    // sets one in either direction once it has been heard long enough.
+    // A new programme gets one independent decision in either direction.
+    // The short opening remains protected; once trusted, use the same smooth
+    // glide as a remembered song, rather than spending another minute climbing
+    // out of the preceding loud master's attenuation.
     if (song.foreground_seconds >= kSettleSeconds) {
       if (std::abs(desired - song.target_db) > kDeadband) song.target_db = desired;
       song.established = true;
+      song.glide = true;
     }
   } else if (long_programme) {
     if (desired > song.target_db + kDeadband) song.target_db = desired;
-  } else if (!song.known && song.foreground_seconds >= kSettleSeconds &&
-             song.foreground_seconds <= kOpeningSeconds &&
-             desired - song.target_db > kMuchQuieter) {
-    song.target_db = desired - kRaiseShortOf;
   }
   const double quiet = song.song_level - kQuietPassage;
   if (short_term < quiet || measured.momentary_lufs < quiet) return 3;
   if (!settled) return 2;
   if (peak_room < requested - kDeadband && song.target_db >= peak_room - kDeadband) return 5;
+  if ((requested > 12 + kDeadband || requested < -48 - kDeadband) &&
+      std::abs(song.target_db - desired) <= kDeadband) return 5;
   return desired > song.target_db + kDeadband ? 3 : 4;
 }
 }
@@ -388,7 +404,7 @@ uint32_t feq_live_normalizer_latency(const FeqLiveNormalizer* state) {
 void feq_live_normalizer_silence(FeqLiveNormalizer* state, uint32_t frames) {
   if (state != nullptr && state->mode == 2) silent_frames(*state, frames);
 }
-FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,
+static FeqLiveNormalizerReading process_piece(FeqLiveNormalizer* state,
     float* const* channels, uint32_t frames, const FeqNormalizerSettings* settings) {
   FeqLiveNormalizerReading reading{-120, -120, 0, -120, 0, -120};
   if (state == nullptr || channels == nullptr || settings == nullptr || frames == 0)
@@ -411,6 +427,20 @@ FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,
       state->gap_pending = false;
     }
   }
+  const bool learning = settings->mode == 1 || settings->mode == 2;
+  if (learning) {
+    // Adopt only on sound, as before, but take the programme boundary BEFORE
+    // the true-peak scan on fresh chains too. Resetting interpolation after
+    // that scan discarded the first block's tail and missed peaks crossing
+    // into the second block. This cheap scan only decides memory ownership;
+    // the interpolated detector below still owns peak telemetry and safety.
+    bool sound = false;
+    for (uint32_t channel = 0; channel < state->channels && !sound; ++channel)
+      for (uint32_t frame = 0; frame < frames && !sound; ++frame)
+        sound = std::abs(channels[channel][frame]) >= 1e-5;
+    if (sound) adopt(*state);
+    follow_cue(*state, *settings);
+  }
   double peak = 0;
   for (uint32_t channel = 0; channel < state->channels; ++channel) {
     peak = std::max(peak, feq_true_peak_block(&state->input_detectors[channel],
@@ -421,12 +451,7 @@ FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,
   double target = 0;
   // Both modes learn the song: True Peak its loudest peak, Loudness its level
   // as well. Off learns nothing and only returns to unity.
-  const bool learning = settings->mode == 1 || settings->mode == 2;
   reading.level_state = settings->mode == 1 ? 1 : 0;
-  if (learning) {
-    if (programme) adopt(*state);
-    follow_cue(*state, *settings);
-  }
   // Both meters start at the same programme boundary and use the same 3 s
   // window. A 400 ms fallback made the input and output incomparable at start.
   feq_loudness_meter_process(state->loudness, channels, frames);
@@ -489,5 +514,28 @@ FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,
   feq_loudness_meter_read(state->output_loudness, &output);
   reading.output_lufs = output.short_term_lufs;
   return reading;
+}
+FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,
+    float* const* channels, uint32_t frames, const FeqNormalizerSettings* settings) {
+  if (state == nullptr || channels == nullptr || settings == nullptr || frames == 0)
+    return process_piece(state, channels, frames, settings);
+  // The meter publishes on a 100 ms grid. Reading it only after a larger
+  // callback lost intermediate foreground windows and made normalization
+  // depend on buffer size. Ordinary device periods stay on the direct path.
+  const auto hop = static_cast<uint32_t>(std::max(1.0, std::floor(state->rate * 0.1 + 0.5)));
+  if (frames <= hop) return process_piece(state, channels, frames, settings);
+  std::array<float*, FEQ_LIVE_NORMALIZER_MAX_CHANNELS> planes{};
+  FeqLiveNormalizerReading result{-120, -120, 0, -120, 0, -120};
+  double peak_db = -120;
+  for (uint32_t at = 0; at < frames;) {
+    const uint32_t count = std::min(hop, frames - at);
+    for (uint32_t channel = 0; channel < state->channels; ++channel)
+      planes[channel] = channels[channel] + at;
+    result = process_piece(state, planes.data(), count, settings);
+    peak_db = std::max(peak_db, result.input_true_peak_db);
+    at += count;
+  }
+  result.input_true_peak_db = peak_db;
+  return result;
 }
 }

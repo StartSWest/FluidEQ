@@ -20,13 +20,14 @@ describe('K-pop reference playback', () => {
   it('brings differently mastered sources to a common input without compressing them', () => {
     const { settings } = kpop();
     const inputLevels = [-28, -18, -8];
-    const normalized = inputLevels.map((integratedLufs) => {
+    const normalized = inputLevels.map((maxShortTermLufs) => {
       const gain = normalizerGainDb(settings.normalizer, {
-        version: 2,
-        integratedLufs,
-        truePeakDbtp: integratedLufs + 8,
+        version: 3,
+        integratedLufs: maxShortTermLufs - 2,
+        maxShortTermLufs,
+        truePeakDbtp: maxShortTermLufs + 6,
       });
-      return integratedLufs + gain;
+      return maxShortTermLufs + gain;
     });
     normalized.forEach((level) => expect(level).toBeCloseTo(-18, 8));
     // Positive control: a bypassed input still contains the original spread.

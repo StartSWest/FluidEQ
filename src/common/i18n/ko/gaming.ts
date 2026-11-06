@@ -13,8 +13,8 @@ export default {
   'gaming.switch.hint':
     '끄면 게임도 음악용 사운드를 그대로 쓰고, 저절로 바뀌는 것은 없습니다.',
   'gaming.add': '게임 추가',
-  'gaming.list.show': '게임 목록 표시',
-  'gaming.list.hide': '게임 목록 숨기기',
+  'gaming.list.show': '게임 이름 표시',
+  'gaming.list.hide': '게임 아이콘 표시',
   'gaming.list.resize': '게임 목록 크기 조절',
   'gaming.list.count': '내 게임 · {count}',
   'gaming.list.from': '{profile}에서',

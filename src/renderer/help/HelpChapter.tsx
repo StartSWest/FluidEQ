@@ -22,7 +22,7 @@ export interface IHelpShownChapter {
   id: TGuideChapter['id'];
   group: TGuideChapter['group'];
   figures: TGuideChapter['figures'];
-  /** Its place in the guide, which a search keeps while reordering it. */
+  /** Its fixed place in the complete guide, including during search. */
   number: number;
   title: string;
   intro: string;

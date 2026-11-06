@@ -67,8 +67,6 @@ export default {
   'genre.bluegrass.pin.5000.why': '拨弦闪光的地方。',
   'genre.bluegrass.pin.12500': '琴弦上的空气感',
   'genre.bluegrass.pin.12500.why': '乐队周围的房间。',
-  'genre.bluegrass.stage.exciter':
-    '在班卓琴和曼陀林之上加空气感，比它们自身高一个八度。',
   'genre.bluegrass.stage.dimension':
     '保持此曲风在各频段的立体声宽度平衡，不对中央人声添加去相关处理。',
   'genre.bluegrass.stage.deEsser':

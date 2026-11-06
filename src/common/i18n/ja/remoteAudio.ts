@@ -2,6 +2,11 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.lag.in': '受信遅延',
+  'remoteAudio.lag.out': '送信遅延',
+  'remoteAudio.lag.value': '≈{milliseconds} ms',
+  'remoteAudio.lag.hint':
+    '各方向の推定遅延：実測したネットワーク往復時間の半分に、受信側の再生バッファー、報告された出力遅延、既知のEQ/DSP遅延を加算。キャプチャーや未報告の機器遅延はここでは測定できません。— はオフ、測定不可、または最新データ待ちです。音声バッファーは追加しません。',
   'remoteAudio.group.add': 'コンピューターを追加',
   'remoteAudio.group.title': 'グループ全体',
   'remoteAudio.group.mix': '自分のミックス',

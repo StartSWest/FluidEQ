@@ -125,7 +125,7 @@ const dsp = {
   'dsp.enabled': '켜짐',
   'dsp.normalizer.title': '노멀라이저',
   'dsp.normalizer.description':
-    '전체 음원을 한 번 측정한 뒤, 익사이터와 EQ 앞에서 두 채널에 같은 게인을 적용합니다. 펌핑이 없으며, RMS를 계속 추적하며 게인을 바꾸지 않습니다.',
+    '피크와 게인 한도 안에서 가장 큰 3초 구간을 효과 처리 전에 맞춥니다. 조용한 구간은 상대적인 레벨을 유지합니다. 라이브러리는 파일을 측정하고, 라이브는 재생하면서 학습합니다.',
   'dsp.normalizer.mode': '정규화 모드',
   'dsp.normalizer.off': '꺼짐',
   'dsp.normalizer.truePeak': '트루피크',
@@ -138,6 +138,7 @@ const dsp = {
     '이 소스를 분석할 수 없습니다. 원래 수준으로 재생되고 있습니다.',
   'dsp.normalizer.waiting': '측정하려면 라이브러리 트랙을 재생하세요.',
   'dsp.normalizer.measuredPeak': '측정된 피크',
+  'dsp.normalizer.foregroundLoudness': '강한 구간의 라우드니스',
   'dsp.normalizer.measuredLoudness': '통합 음량',
   'dsp.normalizer.appliedGain': '적용된 게인',
   'dsp.normalizer.limitedByCeiling':

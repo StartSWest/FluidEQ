@@ -161,6 +161,57 @@ beforeEach(() => {
 afterEach(walksDone);
 
 describe('the library channels', () => {
+  it('accepts new foreground measurements and rejects incomplete or obsolete writes', async () => {
+    const dir = tempDir('fluideq-foreground-');
+    const file = path.join(dir, 'a.mp3');
+    fs.writeFileSync(file, 'test recording');
+    const stats = fs.statSync(file);
+    const signature = { sizeBytes: stats.size, mtimeMs: stats.mtimeMs };
+    registerLibraryIpc({
+      userDataDir: tempDir('fluideq-lib-data-'),
+      getMainWindow: () => null,
+    });
+    let trackId = '';
+    scanLibraryRoot.mockImplementation(async (options) => {
+      const track = { ...songIn(options), ...signature };
+      trackId = track.id;
+      options.onTracks?.([track], true);
+      return { found: 1, karaokeSkipped: 0, wasCancelled: false };
+    });
+    handler('library-root-add-paths')({}, [dir]);
+    await walksDone();
+    const write = handler('library-track-normalization-set');
+    const analysis = {
+      version: 3,
+      integratedLufs: -22,
+      maxShortTermLufs: -19,
+      truePeakDbtp: -4,
+    };
+    await expect(write({}, trackId, analysis, signature)).resolves.toBe(true);
+    await expect(
+      write(
+        {},
+        trackId,
+        { ...analysis, maxShortTermLufs: Number.NaN },
+        signature,
+      ),
+    ).resolves.toBe(false);
+    await expect(
+      write(
+        {},
+        trackId,
+        { ...analysis, maxShortTermLufs: undefined },
+        signature,
+      ),
+    ).resolves.toBe(false);
+    await expect(
+      write({}, trackId, { ...analysis, version: 2 }, signature),
+    ).resolves.toBe(false);
+    await expect(
+      write({}, trackId, analysis, { ...signature, sizeBytes: 0 }),
+    ).resolves.toBe(false);
+  });
+
   it('registers every channel the renderer will call', () => {
     registerLibraryIpc({
       userDataDir: tempDir('fluideq-lib-data-'),

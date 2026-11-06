@@ -103,6 +103,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        whole, so the app leaves it off for one (`ENGINE_DYNAMICS_SINCE`).
  *   1.28 adds Dynamics input/output spectra and current applied gain readings.
  *        Audio processing is identical to 1.27; only the display gains data.
+ *   1.29 supports source-analysis v2 with a separate maximum-three-second
+ *        foreground reference. Library and Live share the -70 LUFS gate,
+ *        +12 dB boost cap and peak-room policy; named songs keep their
+ *        reference through long quiet movements. Status advertises v2.
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -114,8 +118,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 28, 0, 0
-PRODUCTVERSION 1, 28, 0, 0
+FILEVERSION 1, 29, 0, 0
+PRODUCTVERSION 1, 29, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

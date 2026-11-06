@@ -69,8 +69,6 @@ const genreCountry = {
   'genre.bluegrass.pin.5000.why': '따기가 빛나는 곳.',
   'genre.bluegrass.pin.12500': '현 위의 공기',
   'genre.bluegrass.pin.12500.why': '밴드 주변의 공간.',
-  'genre.bluegrass.stage.exciter':
-    '밴조와 만돌린보다 한 옥타브 높은 공기를 뿜어냅니다.',
   'genre.bluegrass.stage.dimension':
     '주파수 대역에 걸쳐 이 장르의 스테레오 폭 균형을 유지합니다. 중앙 보컬에 비상관 처리를 더하지 않습니다.',
   'genre.bluegrass.stage.deEsser':

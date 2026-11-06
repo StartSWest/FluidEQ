@@ -235,14 +235,12 @@ describe('checking without a timer, and on demand', () => {
     // and this made-up download carries no signature; the signature has its
     // own tests below, and this one is about the order of the quit.
     const verifyFeed = jest
-      .spyOn(updateFeed, 'verifyUpdateFeedSignature')
-      .mockReturnValue({ valid: true });
-    harness.listeners.get('update-downloaded')?.({
+      .spyOn(updateFeed, 'verifyDownloadedUpdateFeed')
+      .mockResolvedValue({ valid: true });
+    await harness.listeners.get('update-downloaded')?.({
       downloadedFile: 'C:\\Temp\\FluidEQ-Setup.exe',
       version: '1.3.2',
     });
-    await Promise.resolve();
-    await Promise.resolve();
     verifyFeed.mockRestore();
 
     controller.quitAndInstall(false, true);
@@ -378,8 +376,8 @@ describe('the update feed signature', () => {
   // authorized, however its Authenticode check went.
   it('never authorizes a download whose feed is not signed by a trusted key', async () => {
     const verifyFeed = jest
-      .spyOn(updateFeed, 'verifyUpdateFeedSignature')
-      .mockReturnValue({
+      .spyOn(updateFeed, 'verifyDownloadedUpdateFeed')
+      .mockResolvedValue({
         valid: false,
         reason: 'the update feed is not signed',
       });
@@ -389,12 +387,10 @@ describe('the update feed signature', () => {
       if (!controller) {
         throw new Error('setUpReleaseAutoUpdates returned no controller');
       }
-      harness.listeners.get('update-downloaded')?.({
+      await harness.listeners.get('update-downloaded')?.({
         downloadedFile: 'C:/Temp/FluidEQ-Setup.exe',
         version: '1.3.2',
       });
-      await Promise.resolve();
-      await Promise.resolve();
 
       expect(verifyFeed).toHaveBeenCalled();
       expect(harness.logger.error).toHaveBeenCalledWith(
@@ -554,14 +550,12 @@ describe('an installer that does not start', () => {
       vendor: { fluidEqMandatoryUpdate: 'required' },
     });
     const verifyFeed = jest
-      .spyOn(updateFeed, 'verifyUpdateFeedSignature')
-      .mockReturnValue({ valid: true });
-    harness.listeners.get('update-downloaded')?.({
+      .spyOn(updateFeed, 'verifyDownloadedUpdateFeed')
+      .mockResolvedValue({ valid: true });
+    await harness.listeners.get('update-downloaded')?.({
       downloadedFile: 'C:\\Temp\\FluidEQ-Setup.exe',
       version: '1.3.2',
     });
-    await Promise.resolve();
-    await Promise.resolve();
     verifyFeed.mockRestore();
     return { harness, controller };
   };
@@ -626,12 +620,10 @@ describe('updates on Linux', () => {
     });
 
   const download = async (harness: ReturnType<typeof makeHarness>) => {
-    harness.listeners.get('update-downloaded')?.({
+    await harness.listeners.get('update-downloaded')?.({
       downloadedFile: '/tmp/fluideq-app-updater/FluidEQ-2.2.1-amd64.deb',
       version: '2.2.1',
     });
-    await Promise.resolve();
-    await Promise.resolve();
   };
 
   it('takes GitHub Releases and asks Windows nothing', async () => {
@@ -660,11 +652,11 @@ describe('updates on Linux', () => {
   });
 
   it('authorizes a download whose feed the maker signed, and no other', async () => {
-    const verifyFeed = jest.spyOn(updateFeed, 'verifyUpdateFeedSignature');
+    const verifyFeed = jest.spyOn(updateFeed, 'verifyDownloadedUpdateFeed');
     try {
       const signed = makeHarness();
       const trusted = await onLinux(signed, 'deb');
-      verifyFeed.mockReturnValue({ valid: true });
+      verifyFeed.mockResolvedValue({ valid: true });
       await download(signed);
       expect(trusted?.isReadyToInstall()).toBe(true);
       expect(signed.options.sendStatus).toHaveBeenCalledWith({
@@ -674,7 +666,7 @@ describe('updates on Linux', () => {
 
       const unsigned = makeHarness();
       const refused = await onLinux(unsigned, 'deb');
-      verifyFeed.mockReturnValue({
+      verifyFeed.mockResolvedValue({
         valid: false,
         reason: 'the update feed is not signed',
       });
@@ -697,14 +689,15 @@ describe('updates on Linux', () => {
 
   it('checks a Linux feed against the Linux keys, and a Windows feed against Windows keys', async () => {
     const verifyFeed = jest
-      .spyOn(updateFeed, 'verifyUpdateFeedSignature')
-      .mockReturnValue({ valid: true });
+      .spyOn(updateFeed, 'verifyDownloadedUpdateFeed')
+      .mockResolvedValue({ valid: true });
     try {
       const linux = makeHarness();
       await onLinux(linux, 'deb');
       await download(linux);
       expect(verifyFeed).toHaveBeenLastCalledWith(
         expect.anything(),
+        '/tmp/fluideq-app-updater/FluidEQ-2.2.1-amd64.deb',
         updateFeed.LINUX_UPDATE_FEED_KEYS,
       );
 
@@ -715,7 +708,7 @@ describe('updates on Linux', () => {
       await download(windows);
       expect(
         verifyFeed.mock.calls[verifyFeed.mock.calls.length - 1],
-      ).toHaveLength(1);
+      ).toHaveLength(2);
     } finally {
       verifyFeed.mockRestore();
     }
@@ -728,8 +721,8 @@ describe('updates on Linux', () => {
       throw new Error('setUpReleaseAutoUpdates returned no controller');
     }
     const verifyFeed = jest
-      .spyOn(updateFeed, 'verifyUpdateFeedSignature')
-      .mockReturnValue({ valid: true });
+      .spyOn(updateFeed, 'verifyDownloadedUpdateFeed')
+      .mockResolvedValue({ valid: true });
     await download(harness);
     verifyFeed.mockRestore();
     return { harness, controller };

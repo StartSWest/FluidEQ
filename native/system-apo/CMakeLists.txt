@@ -19,6 +19,10 @@ add_executable(fluideq-engine-config-test tests/config_test.cpp)
 target_link_libraries(fluideq-engine-config-test PRIVATE fluideq-engine-config feq_strict)
 add_test(NAME engine-config COMMAND fluideq-engine-config-test)
 
+add_executable(fluideq-engine-log-test tests/log_test.cpp src/log.cpp src/paths.cpp)
+target_link_libraries(fluideq-engine-log-test PRIVATE feq_strict ole32 shell32)
+add_test(NAME engine-log COMMAND fluideq-engine-log-test)
+
 # The DSP side of the engine: reading an impulse response off disk, designing
 # a graphic-EQ FIR from a resolved `Chain`, and the per-output processing
 # graph that runs both of them alongside the biquads.

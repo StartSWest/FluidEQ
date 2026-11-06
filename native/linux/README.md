@@ -1,7 +1,7 @@
 # FluidEQ on Linux — native side
 
-Everything here is Linux-only and is added to the build by one block at the end
-of `native/CMakeLists.txt`. Windows and macOS never configure a line of it, and
+Everything here is Linux-only and is added after the shared targets by
+`linux/toolchain.cmake`. Windows and macOS never configure a line of it, and
 nothing under `system-apo/` or `dsp-host/src/` is edited for Linux: features
 arrive from `main` by merge.
 
@@ -81,6 +81,13 @@ only when neither library exists. Process memory and CPU come from `/proc`.
 `libpipewire-0.3-dev` (Debian/Ubuntu) or `pipewire-devel` (Fedora) installed;
 without it the engine is built for PulseAudio only. `ctest -R linux-` runs the
 Linux tests.
+
+The platform entry selects this toolchain and then runs main's unchanged
+native builder. Linux helper validation, compiler-header portability and
+pre-glibc-2.34 linkage stay here, preserving the shared processing sources and
+their measured preset evidence. A direct CMake build needs
+`-DCMAKE_TOOLCHAIN_FILE=/absolute/path/to/native/linux/toolchain.cmake`;
+the normal pnpm commands select it automatically.
 
 The wallpaper input helper also needs `libx11-dev libxext-dev` (Debian/Ubuntu)
 or `libX11-devel libXext-devel` (Fedora) when building. Their runtime libraries

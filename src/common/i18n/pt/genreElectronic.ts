@@ -146,7 +146,6 @@ export default {
   'genre.chillout.pin.2000.why': 'Nada afiado.',
   'genre.chillout.pin.12500': 'Ar leve',
   'genre.chillout.pin.12500.why': 'O brilho lá em cima.',
-  'genre.chillout.stage.exciter': 'Só ar leve.',
   'genre.chillout.stage.dimension':
     'Um topo mais aberto: aqui a largura é bem-vinda.',
   'genre.chillout.stage.deEsser':

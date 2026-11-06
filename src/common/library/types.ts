@@ -55,13 +55,18 @@ export interface ILibraryProgrammeEdges {
  *
  * Versioned independently from the library index so a future improvement to
  * either meter invalidates only these cached numbers, not the user's roots or
- * metadata. LUFS is ITU-R BS.1770 integrated programme loudness; dBTP includes
- * inter-sample peaks.
+ * metadata. Integrated and maximum three-second foreground loudness are
+ * distinct K-weighted measurements; dBTP includes inter-sample peaks.
  */
 export interface ILibraryNormalizationAnalysis {
-  version: 2;
+  /** Version 2 remains readable so upgrading cannot discard a Library. */
+  version: 2 | 3;
   truePeakDbtp: number;
   integratedLufs: number;
+  /** Version 3: maximum complete 3 s / 100 ms-grid foreground loudness.
+   * Short clips use integrated loudness. Missing legacy facts are refreshed
+   * lazily; metadata, edges and noise measurements remain valid. */
+  maxShortTermLufs?: number;
   /**
    * Absent on entries cached before the edges were measured. Not a version
    * bump: the loudness numbers beside them are still correct, and throwing

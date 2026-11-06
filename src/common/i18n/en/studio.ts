@@ -102,6 +102,30 @@ const studio = {
 
   // Publishing to the Plus gallery. Asked with the terms' own points the
   // first time, then only the category and the picture.
+  'studio.publish.videoUploading': 'Uploading preview…',
+  'studio.publish.videoChanged':
+    'The scene changed after recording. Open Publish to record the current version.',
+  'studio.publish.videoUploadFailed':
+    'The preview could not be attached. Open Publish and try again.',
+  'studio.publish.videoTitle': 'Video preview',
+  'studio.publish.videoHint':
+    'A silent, watermarked 10-second clip of this scene. Watch it here before publishing.',
+  'studio.publish.videoPreparing': 'Preparing the scene for recording…',
+  'studio.publish.videoRecording': 'Recording preview · {seconds} / 10 s',
+  'studio.publish.videoEncoding': 'Finishing the video…',
+  'studio.publish.videoChecking': 'Checking video playback…',
+  'studio.publish.videoReady': 'Your preview is ready. Play it below.',
+  'studio.publish.videoFailed':
+    'The preview could not be recorded or played. Try recording again.',
+  'studio.publish.videoCancelled':
+    'Recording cancelled. Record a preview to continue.',
+  'studio.publish.videoCancel': 'Cancel recording',
+  'studio.publish.videoAgain': 'Record again',
+  'studio.publish.videoRetry': 'Retry recording',
+  'studio.publish.videoPlay': 'Play scene preview',
+  'studio.publish.videoRequired': 'Finish recording a playable preview first',
+  'studio.publish.videoWatermark': 'FluidEQ Plus · Preview',
+
   'studio.publish.title': 'Publish {name}',
   'studio.publish.titleUpdate': 'Update {name} in the gallery',
   'studio.publish.version': 'Version {version}',

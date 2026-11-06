@@ -22,6 +22,8 @@ typedef struct FeqChainSourceAnalysis {
   const FeqNoiseProfile* noise;
   const char* voice_model_path;
   const char* voice_runtime_path;
+  /** Version 2 only. A v1 caller's smaller structure is never read here. */
+  double reference_lufs;
 } FeqChainSourceAnalysis;
 
 typedef struct FeqChainSourceStatus {

@@ -134,6 +134,15 @@ export const writeProjectList = (file: string, list: IProjectList) =>
 export const byRecent = (list: IProjectList): IStoredProject[] =>
   [...list.projects].sort((a, b) => b.openedAt - a.openedAt);
 
+/** Open events can share a millisecond or follow a wall-clock correction.
+ * Keep their persisted order strictly newer, without waiting for the clock.
+ */
+const nextOpening = (list: IProjectList, now: number, count: number): number =>
+  list.projects.reduce(
+    (latest, project) => Math.max(latest, project.openedAt + count),
+    now,
+  );
+
 /**
  * The list with `folder` in it and open: a folder already there is reopened
  * rather than listed twice. `official` marks it as a FluidEQ scene opened to
@@ -164,7 +173,12 @@ export const withFolder = (
   const projects = byRecent({
     projects: [
       ...list.projects,
-      { id, folder, openedAt: now, ...(official ? { official } : {}) },
+      {
+        id,
+        folder,
+        openedAt: nextOpening(list, now, 1),
+        ...(official ? { official } : {}),
+      },
     ],
   }).slice(0, MAX_STUDIO_PROJECTS);
   return { ...list, projects, active: id };
@@ -186,8 +200,9 @@ export const withFolders = (
   if (first === undefined) {
     return list;
   }
+  const newest = nextOpening(list, now, folders.length);
   const projects = folders.reduce<IStoredProject[]>((kept, folder, index) => {
-    const openedAt = now - index;
+    const openedAt = newest - index;
     const known = kept.find((project) => sameFolder(project.folder, folder));
     return known
       ? kept.map((project) =>
@@ -213,7 +228,9 @@ export const withActive = (
     ? {
         ...list,
         projects: list.projects.map((project) =>
-          project.id === id ? { ...project, openedAt: now } : project,
+          project.id === id
+            ? { ...project, openedAt: nextOpening(list, now, 1) }
+            : project,
         ),
         active: id,
       }

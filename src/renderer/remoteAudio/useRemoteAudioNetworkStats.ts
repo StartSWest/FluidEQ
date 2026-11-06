@@ -42,15 +42,48 @@ const useRemoteAudioNetworkStats = (active: boolean) => {
         stats.bytesPerSecond / TENTHS_OF_MEGABIT,
         performance.now(),
       );
+      const lag = (
+        direction: 'incoming' | 'outgoing',
+        value: number | undefined,
+      ) => {
+        const lagKey = `lag:${direction}\n${stats.peerId}`;
+        if (value === undefined || !Number.isFinite(value) || value < 0) {
+          readouts.current.delete(lagKey);
+          return undefined;
+        }
+        let average = readouts.current.get(lagKey);
+        if (!average) {
+          average = createSteadyReadout();
+          readouts.current.set(lagKey, average);
+        }
+        return average.next(value, performance.now());
+      };
+      const incoming = lag('incoming', stats.incomingLagMs);
+      const outgoing = lag('outgoing', stats.outgoingLagMs);
       setNetworkStats((current) => {
         const previous = current.find((entry) => keyOf(entry) === key);
         const bytesPerSecond =
           tenths === undefined
             ? (previous?.bytesPerSecond ?? stats.bytesPerSecond)
             : tenths * TENTHS_OF_MEGABIT;
+        const peer = current.find((entry) => entry.peerId === stats.peerId);
+        const timing = {
+          incomingLagMs:
+            stats.incomingLagMs === undefined
+              ? undefined
+              : (incoming ?? peer?.incomingLagMs),
+          outgoingLagMs:
+            stats.outgoingLagMs === undefined
+              ? undefined
+              : (outgoing ?? peer?.outgoingLagMs),
+        };
         return [
-          ...current.filter((entry) => keyOf(entry) !== key),
-          { ...stats, bytesPerSecond },
+          ...current
+            .filter((entry) => keyOf(entry) !== key)
+            .map((entry) =>
+              entry.peerId === stats.peerId ? { ...entry, ...timing } : entry,
+            ),
+          { ...stats, bytesPerSecond, ...timing },
         ];
       });
     });

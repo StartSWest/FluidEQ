@@ -5,6 +5,7 @@ import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
 import type { ISceneDrawn } from '../../../renderer/graph/sceneWorkerClient';
 import type { TSceneBuildResult } from '../../../renderer/graph/sceneWorkerMessages';
 import StudioStage from '../../../renderer/studio/StudioStage';
+import useSceneRunner from '../../../renderer/graph/useSceneRunner';
 
 /**
  * The Studio stage through the real scene runner, with the worker, the frame
@@ -30,6 +31,7 @@ interface IMockClient {
 
 const mockClients: IMockClient[] = [];
 const mockKick = jest.fn();
+const mockClips: unknown[] = [];
 const mockAudio = {
   points: [],
   waveform: [],
@@ -84,11 +86,12 @@ jest.mock('../../../renderer/graph/sceneWorkerClient', () => ({
         _drawn: unknown,
         _output: unknown,
         _finish: unknown,
-        _clip: unknown,
+        clip: unknown,
         _paceMs: number,
         shown: (drawn: ISceneDrawn) => void,
       ) => {
         client.frames.push(shown);
+        mockClips.push(clip);
       },
       idle: () => undefined,
       holdPicture: () => undefined,
@@ -199,6 +202,7 @@ const running = async () => {
 beforeEach(() => {
   jest.clearAllMocks();
   mockClients.length = 0;
+  mockClips.length = 0;
   mockVisible = true;
   // jsdom lays nothing out, and a scene with no box on screen draws nothing.
   jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
@@ -230,6 +234,86 @@ it('loads until the first frame with anything in it, then shows the scene', asyn
   drawFrame();
   expect(busy()).toBe('false');
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
+});
+
+it('records full frames while scrolled away, then retires its worker when recording finishes', async () => {
+  mockVisible = false;
+  jest.mocked(HTMLElement.prototype.getBoundingClientRect).mockReturnValue({
+    left: 0,
+    top: -400,
+    right: 480,
+    bottom: -130,
+    width: 480,
+    height: 270,
+    x: 0,
+    y: -400,
+    toJSON: () => ({}),
+  });
+  const source = {
+    identity: 'capture',
+    version: '1',
+    name: 'Recording fixture',
+    load: async () => first,
+    block: jest.fn(),
+    reportFailure: jest.fn(),
+    tooSlow: jest.fn(),
+    madeBy: 'listener' as const,
+  };
+  function Capture({ active }: { active: boolean }) {
+    const ref = useSceneRunner({
+      source,
+      width: 480,
+      height: 270,
+      spectrumRect: [0, 0, 1, 1],
+      captureFrames: active,
+    });
+    return <div ref={ref} />;
+  }
+  const { rerender } = render(<Capture active />);
+  await settle();
+  await answerLoad(newest(), 0, { kind: 'ready', rebuilt: true });
+  drawFrame();
+  expect(mockClips[mockClips.length - 1]).toEqual([0, 0, 1, 1]);
+  expect(newest().disposed).toBe(false);
+  setVisible(false);
+  drawFrame();
+  expect(mockClips[mockClips.length - 1]).toEqual([0, 0, 1, 1]);
+  const worker = newest();
+  rerender(<Capture active={false} />);
+  expect(worker.disposed).toBe(true);
+});
+
+it('still stops a recording renderer when the document itself hides', async () => {
+  const source = {
+    identity: 'capture-hidden',
+    version: '1',
+    name: 'Recording fixture',
+    load: async () => first,
+    block: jest.fn(),
+    reportFailure: jest.fn(),
+    tooSlow: jest.fn(),
+    madeBy: 'listener' as const,
+  };
+  function Capture() {
+    const ref = useSceneRunner({
+      source,
+      width: 480,
+      height: 270,
+      spectrumRect: [0, 0, 1, 1],
+      captureFrames: true,
+    });
+    return <div ref={ref} />;
+  }
+  render(<Capture />);
+  await settle();
+  await answerLoad(newest(), 0, { kind: 'ready', rebuilt: true });
+  drawFrame();
+  const hidden = jest.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+  sendFrame();
+  expect(newest().frames).toHaveLength(0);
+  setVisible(false);
+  expect(newest().disposed).toBe(true);
+  hidden.mockRestore();
 });
 
 it('loads again when the covered window lets its worker go, through the save made meanwhile', async () => {

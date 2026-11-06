@@ -51,6 +51,26 @@ beforeEach(() => {
   act(() => setDspNormalizerMeter(frame()));
 });
 
+it('shows the foreground target reference separately from whole-track integrated loudness', () => {
+  render(
+    <DspNormalizerStats
+      isLive={false}
+      analysis={{
+        version: 3,
+        integratedLufs: -22,
+        maxShortTermLufs: -18,
+        truePeakDbtp: -3,
+      }}
+    />,
+  );
+  expect(
+    screen.getByText('Foreground loudness').parentElement,
+  ).toHaveTextContent('-18.0 LUFS');
+  expect(
+    screen.getByText('Integrated loudness').parentElement,
+  ).toHaveTextContent('-22.0 LUFS');
+});
+
 it('draws nothing for a host frame that moved none of its figures', () => {
   const renders = showStats();
   const before = renders();

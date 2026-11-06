@@ -93,6 +93,32 @@ const studio = {
   'studio.new.failed':
     'No se pudo crear la carpeta ahí. Elige otro lugar con Cambiar.',
 
+  'studio.publish.videoUploading': 'Subiendo vista previa…',
+  'studio.publish.videoChanged':
+    'La escena cambió después de grabar. Abre Publicar para grabar la versión actual.',
+  'studio.publish.videoUploadFailed':
+    'No se pudo adjuntar la vista previa. Abre Publicar e inténtalo de nuevo.',
+  'studio.publish.videoTitle': 'Vista previa en vídeo',
+  'studio.publish.videoHint':
+    'Un vídeo silencioso de 10 segundos de esta escena, con marca de agua. Míralo aquí antes de publicar.',
+  'studio.publish.videoPreparing': 'Preparando la escena para grabar…',
+  'studio.publish.videoRecording': 'Grabando vista previa · {seconds} / 10 s',
+  'studio.publish.videoEncoding': 'Finalizando el vídeo…',
+  'studio.publish.videoChecking': 'Comprobando la reproducción…',
+  'studio.publish.videoReady':
+    'Tu vista previa está lista. Reprodúcela aquí abajo.',
+  'studio.publish.videoFailed':
+    'No se pudo grabar o reproducir la vista previa. Vuelve a grabarla.',
+  'studio.publish.videoCancelled':
+    'Grabación cancelada. Graba una vista previa para continuar.',
+  'studio.publish.videoCancel': 'Cancelar grabación',
+  'studio.publish.videoAgain': 'Volver a grabar',
+  'studio.publish.videoRetry': 'Reintentar grabación',
+  'studio.publish.videoPlay': 'Reproducir vista previa de la escena',
+  'studio.publish.videoRequired':
+    'Primero termina de grabar una vista previa que se pueda reproducir',
+  'studio.publish.videoWatermark': 'FluidEQ Plus · Vista previa',
+
   'studio.publish.title': 'Publicar {name}',
   'studio.publish.titleUpdate': 'Actualizar {name} en la galería',
   'studio.publish.version': 'Versión {version}',

@@ -1,4 +1,5 @@
 #include "../src/chain_internal.h"
+#include "fluideq/chain_source.h"
 
 #include <algorithm>
 #include <array>
@@ -169,6 +170,50 @@ void unchanged_settings_match_uninterrupted_audio() {
                 linear, maximum_error, audible_peak);
     check(maximum_error < 1e-7, "handover matches uninterrupted processing");
     check(audible_peak > 0.02, "comparison contains real audio, not silence");
+  }
+}
+
+void library_fact_upgrade_keeps_uninterrupted_audio() {
+  for (const bool linear : {false, true}) {
+    for (const bool cached : {false, true}) {
+      auto settings = settings_for(linear);
+      settings.master.enabled = 0;
+      settings.normalizer = {2, -3, -18};
+      auto reference = prepare(settings);
+      auto running = prepare(settings);
+      FeqChainSourceAnalysis facts{};
+      facts.version = 1; facts.library = 1; facts.source_id = 77; facts.epoch = 9;
+      facts.has_level = cached ? 1 : 0;
+      facts.integrated_lufs = -18; facts.reference_lufs = -18; facts.true_peak_dbtp = -8;
+      FeqChainSourceStatus ready{};
+      check(feq_chain_prepare_source_analysis(reference.get(), &facts, nullptr, &ready) == 1 &&
+            feq_chain_prepare_source_analysis(running.get(), &facts, nullptr, &ready) == 1,
+            "legacy analysed and unanalysed Library sources prepare");
+      double maximum_error = 0, audible = 0;
+      for (uint32_t block = 0; block < 650; ++block) {
+        if (block == 400) {
+          auto next = prepare(settings);
+          facts.version = 2; facts.has_level = 1; facts.revision = 2;
+          check(feq_chain_prepare_source_analysis(next.get(), &facts, nullptr, &ready) == 1,
+                "completed foreground scan prepares");
+          check(transfer(next.get(), running.get()) == 1,
+                "same-song supported fact upgrade accepts its histories");
+          running = std::move(next);
+        }
+        auto expected = signal(block), actual = expected;
+        process(reference.get(), expected);
+        process(running.get(), actual);
+        if (block >= 400) {
+          audible = std::max(audible, peak(actual));
+          for (uint32_t c = 0; c < 2; ++c)
+            for (uint32_t i = 0; i < kFrames; ++i)
+              maximum_error = std::max(maximum_error,
+                  std::abs(static_cast<double>(actual[c][i]) - expected[c][i]));
+        }
+      }
+      check(maximum_error < 1e-7 && audible > 0.02,
+            "cache upgrade and first scan match uninterrupted audible processing");
+    }
   }
 }
 
@@ -628,6 +673,7 @@ int main() {
   allocations = 0;
   releases = 0;
   unchanged_settings_match_uninterrupted_audio();
+  library_fact_upgrade_keeps_uninterrupted_audio();
   changed_settings_arrive_without_a_silent_block();
   dynamic_edits_keep_new_configuration();
   edits_during_audible_fades_keep_the_fade();

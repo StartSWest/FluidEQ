@@ -147,7 +147,6 @@ export default {
   'genre.chillout.pin.2000.why': 'Nada afilado.',
   'genre.chillout.pin.12500': 'Aire ligero',
   'genre.chillout.pin.12500.why': 'El brillo de arriba.',
-  'genre.chillout.stage.exciter': 'Solo aire ligero.',
   'genre.chillout.stage.dimension':
     'Unos agudos más abiertos: aquí la anchura es bienvenida.',
   'genre.chillout.stage.deEsser':

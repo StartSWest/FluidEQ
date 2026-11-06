@@ -144,18 +144,16 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
     [locale],
   );
   const found = useMemo(() => searchHelp(guide, searched), [guide, searched]);
-  const searching = found !== undefined;
-  const matches = useMemo<IHelpShownChapter[]>(
-    () =>
-      found
-        ? found.hits.flatMap((hit) =>
-            chapters
-              .filter((chapter) => chapter.id === hit.chapterId)
-              .map((chapter) => ({ ...chapter, hit })),
-          )
-        : chapters,
-    [chapters, found],
-  );
+  // Finding a passage never removes or reorders the guide. Only contents
+  // entries receive their matching snippet; the article keeps stable chapters.
+  const contents = useMemo<IHelpShownChapter[]>(() => {
+    const hits = new Map(found?.hits.map((hit) => [hit.chapterId, hit]));
+    return chapters.map((chapter) => {
+      const hit = hits.get(chapter.id);
+      return hit ? { ...chapter, hit } : chapter;
+    });
+  }, [chapters, found]);
+  const noMatches = found !== undefined && found.hits.length === 0;
   const foundInGuide = useMemo<IHelpFound>(
     () =>
       found
@@ -166,16 +164,10 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
         : NOTHING_FOUND,
     [found],
   );
-  /**
-   * The group heading goes above the first chapter of each group shown. A
-   * search puts the best chapter first whatever part it is in, so then every
-   * chapter says which part it is from.
-   */
+  /** Group headings stay in their original places, including during search. */
   const groupLabelAt = (index: number) =>
-    searching ||
-    index === 0 ||
-    matches[index].group !== matches[index - 1].group
-      ? t(`help.group.${matches[index].group}`)
+    index === 0 || chapters[index].group !== chapters[index - 1].group
+      ? t(`help.group.${chapters[index].group}`)
       : undefined;
   /** A contents entry pressed: to what the search found there, or its top. */
   const openChapter = useCallback((chapter: IHelpShownChapter) => {
@@ -204,14 +196,14 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
 
   // Set up once. It used to be torn down and built again on every key typed
   // in the search, which had nothing new to listen to; what a search changes
-  // is which sections there are, and the effect below keeps up with that.
+  // is the highlighted text, while each language's sections stay in place.
   useEffect(() => {
     const viewport = article.current;
     if (!viewport) {
       return undefined;
     }
     const update = () => {
-      // Read afresh: a search redraws the chapters under the listener.
+      // Read afresh after a locale or capture changes the reading area.
       const headings = Array.from(viewport.querySelectorAll('h2[id]'));
       // Track the heading crossing the reading area, rather than the biggest
       // visible section: long screenshots would otherwise select too early.
@@ -243,9 +235,8 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
     };
   }, []);
 
-  // The sections a search drew, watched for a capture changing their height,
-  // and the ones it took away no longer watched, so the observer holds only
-  // what is on the page. Then the chapter being read, worked out again.
+  // Watch this language's sections for captures changing their height.
+  // Search only marks their text, so it never replaces the watched sections.
   useEffect(() => {
     const viewport = article.current;
     const watch = readingWatch.current;
@@ -266,7 +257,7 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
       }
     });
     watch.update();
-  }, [matches]);
+  }, [chapters]);
 
   // The column every capture is drawn to, before the first paint so none
   // appears at one size and jumps to another. A resize of the window alone
@@ -299,10 +290,10 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
   useEffect(() => {
     const viewport = article.current;
     const best = found?.hits[0];
-    if (viewport && best) {
+    if (viewport && best && query === searched) {
       reveal(viewport, best.anchor);
     }
-  }, [found]);
+  }, [found, query, searched]);
 
   useEffect(() => {
     // Keep the current number visible in both the vertical desktop rail and
@@ -359,10 +350,7 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
                 type="search"
                 value={query}
                 placeholder={t('help.searchHint')}
-                onChange={(event) => {
-                  setQuery(event.target.value);
-                  article.current?.scrollTo({ top: 0 });
-                }}
+                onChange={(event) => setQuery(event.target.value)}
                 // Capture, not bubble: the dialog stops every key on its way
                 // out, so that the app's own shortcuts stay behind the guide,
                 // and a bubbling handler here would never hear one.
@@ -374,16 +362,33 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
                 }}
               />
               <span className="help-guide__count" aria-live="polite">
-                {t(matches.length === 1 ? 'help.resultsOne' : 'help.results', {
-                  count: matches.length,
-                })}
+                {noMatches
+                  ? t('help.empty')
+                  : t(
+                      chapters.length === 1
+                        ? 'help.resultsOne'
+                        : 'help.results',
+                      { count: chapters.length },
+                    )}
               </span>
+              {noMatches && (
+                <button
+                  className="button small"
+                  type="button"
+                  onClick={() => {
+                    setQuery('');
+                    searchBox.current?.focus();
+                  }}
+                >
+                  {t('help.clear')}
+                </button>
+              )}
               <nav aria-label={t('help.contents')}>
-                {matches.map((chapter, index) => (
+                {contents.map((chapter, index) => (
                   <HelpContentsEntry
                     key={chapter.id}
                     chapter={chapter}
-                    groupLabel={searching ? undefined : groupLabelAt(index)}
+                    groupLabel={groupLabelAt(index)}
                     isActive={activeChapter === `help-${chapter.id}`}
                     onOpen={openChapter}
                   />
@@ -401,31 +406,14 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
                 ref={columnEdge}
                 aria-hidden="true"
               />
-              {!searching && (
-                <header className="help-guide__hero">
-                  <h1>{t('help.subtitle')}</h1>
-                  <p>{t('help.intro')}</p>
-                  <p className="help-guide__capture-note">
-                    {t('help.captureNote')}
-                  </p>
-                </header>
-              )}
-              {matches.length === 0 && (
-                <div className="help-guide__empty">
-                  <p>{t('help.empty')}</p>
-                  <button
-                    className="button small"
-                    type="button"
-                    onClick={() => {
-                      setQuery('');
-                      searchBox.current?.focus();
-                    }}
-                  >
-                    {t('help.clear')}
-                  </button>
-                </div>
-              )}
-              {matches.map((chapter, index) => (
+              <header className="help-guide__hero">
+                <h1>{t('help.subtitle')}</h1>
+                <p>{t('help.intro')}</p>
+                <p className="help-guide__capture-note">
+                  {t('help.captureNote')}
+                </p>
+              </header>
+              {chapters.map((chapter, index) => (
                 <HelpChapter
                   key={chapter.id}
                   chapter={chapter}
@@ -433,7 +421,7 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
                   onEnlarge={setCapture}
                 />
               ))}
-              {matches.length > 0 && (
+              {chapters.length > 0 && (
                 <button
                   className="button small subtle"
                   type="button"
