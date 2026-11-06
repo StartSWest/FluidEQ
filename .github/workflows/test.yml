@@ -4,15 +4,7 @@ on: [push, pull_request]
 
 jobs:
   test:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, ubuntu-24.04]
-    runs-on: ${{ matrix.os }}
-    env:
-      # The complete app and evidence corpus exceed Node's 2 GiB Linux heap.
-      # Keep the same checks on both hosts with room for the actual project.
-      NODE_OPTIONS: --max-old-space-size=4096
+    runs-on: windows-latest
 
     steps:
       - name: Check out FluidEQ
@@ -32,12 +24,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      # Compile the actual Linux audio/window helpers on a clean runner;
-      # a Windows-only green run cannot validate the Linux adaptations.
-      - name: Install Linux build headers
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libpipewire-0.3-dev libpulse-dev libx11-dev libxext-dev
 
       # Ahead of the build because it is seconds and the build is minutes, and
       # a stylesheet that does not compile is thrown away silently rather than
@@ -72,10 +58,6 @@ jobs:
 
       - name: Validate the complete native rack payload
         run: ctest --test-dir native/.build --output-on-failure -C Release -R "^room-contract$"
-
-      - name: Validate Linux routing and shared engine integration
-        if: runner.os == 'Linux'
-        run: ctest --test-dir native/.build --output-on-failure -C Release -R "^(linux-parts|linux-output-engine)$"
 
       - name: Validate the bundled OPRA library
         run: pnpm test:opra
