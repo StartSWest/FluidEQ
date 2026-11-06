@@ -133,6 +133,7 @@ export default function useSceneRunner({
   asleep,
   held,
   captureFrames = false,
+  captureSize,
   arrival = 'fade',
   onHeard,
   onDrawn,
@@ -254,8 +255,8 @@ export default function useSceneRunner({
   interactionRef.current = interaction;
   /** Where the music stands between the speakers, eased (`uStereo`). */
   const stereoRef = useRef(createStereoFollower());
-  const sizeRef = useRef({ width, height });
-  sizeRef.current = { width, height };
+  const sizeRef = useRef({ width, height, captureSize });
+  sizeRef.current = { width, height, captureSize };
   const spectrumRectRef = useRef(spectrumRect);
   spectrumRectRef.current = spectrumRect;
   const viewRef = useRef(view);
@@ -356,7 +357,7 @@ export default function useSceneRunner({
           (3840 * 2160) / Math.max(1, cssWidth * cssHeight * ratio * ratio),
         ),
       );
-      const output = {
+      const output = sizeRef.current.captureSize ?? {
         width: Math.max(1, Math.round(cssWidth * ratio * pixelCap)),
         height: Math.max(1, Math.round(cssHeight * ratio * pixelCap)),
       };
@@ -394,6 +395,11 @@ export default function useSceneRunner({
       let scale = ladderRef.current.scale();
       if (pinned !== undefined) {
         scale = resolution === 'native' ? top : pinned;
+      }
+      // A recorded frame must be genuinely rendered at its delivered size.
+      // Keep the overload checks, but never encode an upscaled low rung.
+      if (sizeRef.current.captureSize) {
+        scale = Math.max(1, scale);
       }
       const drawn = {
         width: Math.max(1, Math.round(output.width * scale)),

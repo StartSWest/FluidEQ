@@ -100,6 +100,8 @@ const studio = {
   'studio.publish.videoTitle': 'Prévia em vídeo',
   'studio.publish.videoHint':
     'Um vídeo silencioso de 10 segundos desta cena, com marca d’água. Assista aqui antes de publicar.',
+  'studio.publish.videoWaiting':
+    'Reproduza música ou inicie a demo para gravar sua prévia.',
   'studio.publish.videoPreparing': 'Preparando a cena para gravar…',
   'studio.publish.videoRecording': 'Gravando prévia · {seconds} / 10 s',
   'studio.publish.videoEncoding': 'Finalizando o vídeo…',

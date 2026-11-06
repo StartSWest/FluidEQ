@@ -265,7 +265,7 @@ describe('Visualizers', () => {
     expect(bridge.addGalleryScene).not.toHaveBeenCalled();
   });
 
-  it('plays a scene’s published clip once for a member who does not own it, then the way to get it', async () => {
+  it('loops an unowned scene’s clip without another download or code request, with a photo fallback', async () => {
     mockEntitled = false;
     bridge.galleryClip.mockResolvedValue({
       bytes: new Uint8Array([0x1a, 0x45, 0xdf, 0xa3]),
@@ -310,6 +310,7 @@ describe('Visualizers', () => {
     });
     expect(clip).toHaveAttribute('src', 'blob:clip');
     expect(clip.muted).toBe(true);
+    expect(clip.loop).toBe(true);
     expect(screen.getByText(/plus\.scene\.taste/)).toBeInTheDocument();
     // Asked by the gallery row's version and revision; the scene itself never.
     expect(bridge.galleryClip).toHaveBeenCalledWith(
@@ -322,10 +323,16 @@ describe('Visualizers', () => {
     expect(screen.queryByText(/store\.scene\.tasted/)).not.toBeInTheDocument();
 
     fireEvent.ended(clip);
-    expect(await screen.findByText(/store\.scene\.tasted/)).toBeInTheDocument();
+    fireEvent.ended(clip);
+    fireEvent.ended(clip);
+    expect(document.querySelector('video.gallery-preview__clip')).toBe(clip);
+    expect(bridge.galleryClip).toHaveBeenCalledTimes(1);
+    expect(bridge.previewGalleryScene).not.toHaveBeenCalled();
+    expect(await pageGet()).toHaveLength(1);
+    fireEvent.error(clip);
+    expect(await screen.findByText('store.scene.locked')).toBeInTheDocument();
     expect(document.querySelector('video.gallery-preview__clip')).toBeNull();
-    // The veil's Get beside the page's own.
-    expect(await pageGet()).toHaveLength(2);
+    expect(await pageGet()).toHaveLength(1);
     unmount();
     expect(revokeUrl).toHaveBeenCalledWith('blob:clip');
   });

@@ -110,6 +110,8 @@ const studio = {
   'studio.publish.videoTitle': 'Video preview',
   'studio.publish.videoHint':
     'A silent, watermarked 10-second clip of this scene. Watch it here before publishing.',
+  'studio.publish.videoWaiting':
+    'Play music or start the demo to record your preview.',
   'studio.publish.videoPreparing': 'Preparing the scene for recording…',
   'studio.publish.videoRecording': 'Recording preview · {seconds} / 10 s',
   'studio.publish.videoEncoding': 'Finishing the video…',

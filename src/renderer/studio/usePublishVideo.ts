@@ -14,117 +14,150 @@ export interface IPublishPreview extends IPreviewVideo {
 
 export type TPublishVideoState =
   | TPreviewVideoProgress
+  | { phase: 'waiting' }
   | { phase: 'ready'; video: IPublishPreview; url: string }
   | { phase: 'failed' | 'cancelled' };
 
-/** One recording per exact source. Effect cleanup owns the recorder, frame
- * request and URL, including React's development remount and late encoding. */
+interface ITake {
+  armed: boolean;
+  playing: boolean;
+  capturing: boolean;
+  recording?: IPreviewVideoRecorder;
+  token?: object;
+  request?: number;
+  url?: string;
+  start: () => IPreviewVideoRecorder;
+}
+
+/** A take is armed on opening/retry, but owns no recorder until real audio
+ * and a fully drawn scene meet. Silence/pausing discards a partial take;
+ * neither queued frames nor late encoders can revive a discarded recording. */
 export default function usePublishVideo(
   source: string,
   watermark: string,
   onPreview: (video: IPublishPreview | undefined) => void,
 ) {
-  const [state, setState] = useState<TPublishVideoState>({
-    phase: 'preparing',
-  });
+  const [state, setState] = useState<TPublishVideoState>({ phase: 'waiting' });
   const [take, setTake] = useState(0);
-  const owner = useRef<IPreviewVideoRecorder | undefined>(undefined);
-  const frameRequest = useRef<number | undefined>(undefined);
-  const failed = useRef(false);
-  const clipUrl = useRef<string | undefined>(undefined);
+  const owner = useRef<ITake | undefined>(undefined);
   const changed = useRef(onPreview);
   changed.current = onPreview;
-  const stopFrames = useCallback(() => {
-    if (frameRequest.current !== undefined) {
-      cancelAnimationFrame(frameRequest.current);
+  const stop = useCallback((current: ITake) => {
+    if (current.request !== undefined) {
+      cancelAnimationFrame(current.request);
+      current.request = undefined;
     }
-    frameRequest.current = undefined;
-    owner.current = undefined;
+    const { recording } = current;
+    current.recording = undefined;
+    current.token = undefined;
+    recording?.cancel();
   }, []);
 
   useLayoutEffect(() => {
-    let current = true;
-    failed.current = false;
-    changed.current(undefined);
-    setState({ phase: 'preparing' });
-    const recording = createPreviewVideoRecorder(watermark, (next) => {
-      if (current) {
-        setState(next);
-      }
-    });
-    owner.current = recording;
-    recording.result
-      .then((video) => {
-        if (!current) {
-          return undefined;
-        }
-        stopFrames();
-        const url = URL.createObjectURL(video.blob);
-        clipUrl.current = url;
-        const preview = { ...video, source };
-        setState({ phase: 'ready', video: preview, url });
-        changed.current(preview);
-        return undefined;
-      })
-      .catch((error: unknown) => {
-        if (current) {
-          stopFrames();
-          if (!(error instanceof DOMException && error.name === 'AbortError')) {
-            reportError('Recording a scene preview', error);
+    const current: ITake = {
+      armed: true,
+      playing: false,
+      capturing: true,
+      start: () => {
+        const token = {};
+        current.token = token;
+        const recording = createPreviewVideoRecorder(watermark, (next) => {
+          if (owner.current === current && current.token === token) {
+            current.capturing = ['preparing', 'recording'].includes(next.phase);
+            setState(next);
           }
-          setState({
-            phase:
-              !failed.current &&
-              error instanceof DOMException &&
-              error.name === 'AbortError'
-                ? 'cancelled'
-                : 'failed',
+        });
+        current.recording = recording;
+        setState({ phase: 'preparing' });
+        recording.result
+          .then((video) => {
+            if (owner.current !== current || current.recording !== recording) {
+              return undefined;
+            }
+            current.armed = false;
+            current.recording = undefined;
+            current.url = URL.createObjectURL(video.blob);
+            const preview = { ...video, source };
+            setState({ phase: 'ready', video: preview, url: current.url });
+            changed.current(preview);
+            return undefined;
+          })
+          .catch((error: unknown) => {
+            if (owner.current !== current || current.recording !== recording) {
+              return;
+            }
+            stop(current);
+            current.armed = false;
+            reportError('Recording a scene preview', error);
+            setState({ phase: 'failed' });
+            changed.current(undefined);
           });
-          changed.current(undefined);
-        }
-      });
-    return () => {
-      current = false;
-      stopFrames();
-      recording.cancel();
-      if (frameRequest.current !== undefined) {
-        cancelAnimationFrame(frameRequest.current);
-      }
-      frameRequest.current = undefined;
-      if (clipUrl.current) {
-        URL.revokeObjectURL(clipUrl.current);
-      }
-      clipUrl.current = undefined;
+        return recording;
+      },
     };
-  }, [source, watermark, take, stopFrames]);
+    owner.current = current;
+    changed.current(undefined);
+    setState({ phase: 'waiting' });
+    return () => {
+      owner.current = undefined;
+      stop(current);
+      if (current.url) {
+        URL.revokeObjectURL(current.url);
+      }
+    };
+  }, [source, watermark, take, stop]);
 
+  const input = useCallback(
+    (playing: boolean) => {
+      const { current } = owner;
+      if (!current) {
+        return;
+      }
+      current.playing = playing;
+      if (!playing && current.armed && current.recording && current.capturing) {
+        stop(current);
+        setState({ phase: 'waiting' });
+        changed.current(undefined);
+      }
+    },
+    [stop],
+  );
   const frame = useCallback((canvas: HTMLCanvasElement) => {
-    if (!owner.current || frameRequest.current !== undefined) {
+    const { current } = owner;
+    if (!current?.armed || !current.playing || current.request !== undefined) {
       return;
     }
-    // OffscreenCanvas commits its worker drawing at the rendering step. Read
-    // the scene at the next paint, after its drawn acknowledgement arrived.
-    frameRequest.current = requestAnimationFrame((at) => {
-      frameRequest.current = undefined;
-      owner.current?.frame(canvas, at);
+    // Read OffscreenCanvas only after its worker's rendering commit. Recheck
+    // audio and ownership at delivery: pause/source change may beat this paint.
+    current.request = requestAnimationFrame((at) => {
+      current.request = undefined;
+      if (owner.current === current && current.armed && current.playing) {
+        (current.recording ?? current.start()).frame(canvas, at);
+      }
     });
   }, []);
-
   const cancel = useCallback(() => {
-    owner.current?.cancel();
-    stopFrames();
-  }, [stopFrames]);
-  const fail = useCallback(() => {
-    failed.current = true;
-    owner.current?.cancel();
-    stopFrames();
-    if (clipUrl.current) {
-      URL.revokeObjectURL(clipUrl.current);
+    const { current } = owner;
+    if (current) {
+      current.armed = false;
+      stop(current);
     }
-    clipUrl.current = undefined;
+    changed.current(undefined);
+    setState({ phase: 'cancelled' });
+  }, [stop]);
+  const fail = useCallback(() => {
+    const { current } = owner;
+    if (current) {
+      current.armed = false;
+      stop(current);
+      if (current.url) {
+        URL.revokeObjectURL(current.url);
+        current.url = undefined;
+      }
+    }
     changed.current(undefined);
     setState({ phase: 'failed' });
-  }, [stopFrames]);
+  }, [stop]);
   const retry = useCallback(() => setTake((value) => value + 1), []);
-  return { state, frame, cancel, retry, fail };
+  return { state, input, frame, cancel, retry, fail };
 }

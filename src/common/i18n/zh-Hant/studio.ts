@@ -92,6 +92,7 @@ const studio = {
   'studio.publish.videoTitle': '影片預覽',
   'studio.publish.videoHint':
     '這段場景影片長 10 秒，無聲並帶有浮水印。發佈前可在此觀看。',
+  'studio.publish.videoWaiting': '播放音樂或啟動示範以錄製預覽。',
   'studio.publish.videoPreparing': '正在準備錄製場景…',
   'studio.publish.videoRecording': '正在錄製預覽 · {seconds} / 10 秒',
   'studio.publish.videoEncoding': '正在完成影片…',

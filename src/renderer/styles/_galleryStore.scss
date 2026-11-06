@@ -23,10 +23,12 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 7px;
   white-space: nowrap;
 
-  svg {
+  > svg {
     flex: 0 0 auto;
     width: 15px;
     height: 15px;
+    color: inherit;
+    stroke: currentColor;
   }
 }
 

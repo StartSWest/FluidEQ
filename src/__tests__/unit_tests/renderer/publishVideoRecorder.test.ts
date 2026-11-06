@@ -141,6 +141,16 @@ const source = () => {
   return canvas;
 };
 
+it('keeps the 30 fps cadence on a jittering 60 Hz source instead of drifting toward 20 fps', () => {
+  const recording = record('Preview', jest.fn());
+  const canvas = source();
+  for (let frame = 0; frame <= 600; frame += 1) {
+    recording.frame(canvas, 2000 + (frame * 1000) / 60);
+  }
+  expect(requestFrame.mock.calls.length).toBeGreaterThanOrEqual(299);
+  expect(requestFrame.mock.calls.length).toBeLessThanOrEqual(301);
+});
+
 it('starts on a real canvas frame without waiting for the recorder start event', async () => {
   const progress = jest.fn();
   const recording = record('FluidEQ Plus · Preview', progress);
@@ -159,9 +169,9 @@ it('starts on a real canvas frame without waiting for the recorder start event',
     852,
     480,
   );
-  // About 0.6 MB a clip, which one clip per published scene is sized for.
+  // Native 854x480 detail, with headroom under the released 1.5 MiB cap.
   expect(Recorder.instances[0].options).toMatchObject({
-    videoBitsPerSecond: 700000,
+    videoBitsPerSecond: 950000,
   });
   expect(context.fillText).toHaveBeenCalledWith(
     'FluidEQ Plus · Preview',

@@ -34,6 +34,8 @@ interface IScenePreviewProps {
   /** The member's settings over the pack's — the Studio's, in Publish. */
   tuning?: ISceneTuning;
   captureFrames?: boolean;
+  /** Recording output, independent of this preview's CSS size and DPI. */
+  captureSize?: { width: number; height: number };
   /**
    * Where the wave stands, for a preview that plays the listener's own
    * visualizer — the Library's player, its EQ screen, the backdrop behind a
@@ -66,6 +68,7 @@ export default function ScenePreview({
   shapeFrame,
   tuning,
   captureFrames,
+  captureSize,
   wave: listenerWave,
 }: IScenePreviewProps) {
   const frameRef = useRef<HTMLDivElement>(null);
@@ -151,6 +154,7 @@ export default function ScenePreview({
 
   const sceneRef = useSceneRunner({
     captureFrames,
+    captureSize,
     source,
     width: box.width,
     height: box.height,

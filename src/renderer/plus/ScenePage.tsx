@@ -64,7 +64,7 @@ type TPreview =
   | { state: 'loading' }
   | { state: 'ready'; pack: IScenePack }
   | { state: 'failed'; key: TranslationKey }
-  /** Not this account's: its published clip, once (`SceneTaste`). */
+  /** Not this account's: its published clip, looping (`SceneTaste`). */
   | { state: 'taste'; url: string }
   /**
    * Not this account's: the captured picture and the way to get it — after
@@ -91,8 +91,7 @@ interface IScenePageProps {
  * pack it was handed and nothing else. Add reuses that same download.
  *
  * An unowned scene never requests its pack: it plays the ten-second clip its
- * maker recorded when publishing, then shows its captured picture and the way
- * to get it. Owners keep the real live scene; the server independently
+ * maker recorded when publishing, with its captured picture as a fallback. Owners keep the real live scene; the server independently
  * enforces access.
  */
 export default function ScenePage({
@@ -347,7 +346,7 @@ export default function ScenePage({
             <SceneTaste
               url={preview.url}
               onShown={() => setClipShown(true)}
-              onOver={() => setPreview({ state: 'locked', tasted: true })}
+              onOver={() => setPreview({ state: 'locked', tasted: false })}
             />
           )}
           {owned && preview.state === 'ready' && (
