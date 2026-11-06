@@ -123,6 +123,8 @@ if (!process.env.FLUIDEQ_AUDIO_TEST_ROOT) {
       ? audio('pw-play', [
           '--target',
           target,
+          '--properties',
+          'node.dont-move=true node.dont-fallback=true state.restore-target=false',
           '--raw',
           '--format',
           'f32',

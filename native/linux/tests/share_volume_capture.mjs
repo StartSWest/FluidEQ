@@ -17,7 +17,10 @@ export default function createCaptureReader({ pipewireServer, audio }) {
             '--target',
             target,
             '--properties',
-            `stream.capture.sink=${target !== 'fluideq_send'}`,
+            // A monitor of the original default must stay on that output
+            // when the engine makes FluidEQ the new default. Otherwise the
+            // measurement sees raw local origins, not final local playback.
+            `stream.capture.sink=${target !== 'fluideq_send'} node.dont-move=true node.dont-fallback=true state.restore-target=false`,
             '--raw',
             '--format',
             'f32',
