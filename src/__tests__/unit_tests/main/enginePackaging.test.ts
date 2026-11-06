@@ -78,4 +78,43 @@ describe('packaged FluidEQ Engine dependencies', () => {
       accepts?.(path.join(native, 'engine_split_process_test.exe'), stat),
     ).toBe(false);
   });
+
+  it.each([
+    'FluidEQ-DSP',
+    'FluidEQ-DSP.exe',
+    'FluidEQ-LAN-Capture',
+    'FluidEQ-LAN-Capture.exe',
+    'FluidEQ-LAN-Playback',
+    'FluidEQ-LAN-Playback.exe',
+    'FluidEQ-Engine',
+    'FluidEQ-Engine.dll',
+    'FluidEQ-Engine-Setup',
+    'FluidEQ-Engine-Setup.exe',
+  ])('ships the current native helper %s on its platform', (name) => {
+    const accepts = matchers
+      .find((entry) => entry.from === native)
+      ?.createFilter();
+    expect(accepts?.(path.join(native, name), fs.statSync(__filename))).toBe(
+      true,
+    );
+  });
+
+  it.each([
+    'FluidEQ-LAN-Capture.previous-97d01769.exe',
+    'FluidEQ-LAN-Capture.main-priority-8ea82d1a.exe',
+    'FluidEQ-LAN-Playback.previous-build',
+    'FluidEQ-DSP.debug.exe',
+    'FluidEQ-DSP.previous',
+    'FluidEQ-Engine.previous.dll',
+    'FluidEQ-Engine-Setup.old.exe',
+    'FluidEQ-Engine.private.pfx',
+    'FluidEQ-Engine/private-signing.key',
+  ])('keeps older builds and private sidecars out: %s', (name) => {
+    const accepts = matchers
+      .find((entry) => entry.from === native)
+      ?.createFilter();
+    expect(accepts?.(path.join(native, name), fs.statSync(__filename))).toBe(
+      false,
+    );
+  });
 });

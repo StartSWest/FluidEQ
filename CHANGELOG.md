@@ -61,8 +61,9 @@ made for games.
 - **Switch notices name the sound.** The loaded game profile or named copy
   has a line of its own, and the notice names the music profile restored
   when the game closes.
-- **A film of the Lab** in Help's Gaming Lab chapter and in What's New,
-  voiced in ten languages.
+- **A film of the Lab** in What's New, plus a new overview in Help's Gaming
+  Lab chapter that plays offline with English or Spanish narration and
+  matching captions.
 
 ### Navigation
 
