@@ -173,11 +173,11 @@ const tour: Partial<Dictionary> = {
   'tour.games.point1':
     'Jogos de Steam, Epic Games, EA, GOG, Ubisoft, Battle.net e Xbox, ou qualquer programa que esteja aberto.',
   'tour.games.point2':
-    'Ajuste cada parte em uma só página: o Filtro Jogo para passos e vozes, o EQ, a curva e cada etapa DSP, com presets feitos para jogos.',
+    'Escolha entre 33 perfis para títulos específicos e 9 tipos de jogo e ajuste Filtro de jogo, EQ, curva e estágios DSP em uma única página.',
   'tour.games.point3':
     'O Laboratório e a página EQ mostram o jogo que está tocando e o preset dele.',
   'tour.games.how':
-    'Abra o Laboratório gamer na barra de título e clique em Adicionar um jogo. Depois clique em Experimentar agora e ajuste o som dele ali mesmo.',
+    'Abra o Laboratório gamer na barra de título e clique em Adicionar um jogo. Escolha seu Perfil gamer, clique em Experimentar agora e ajuste o som.',
   'tour.games.open': 'Abrir o Laboratório gamer',
   'tour.games.imageAlt':
     'O Laboratório gamer com Counter-Strike 2, primeiro com a sua música tocando e depois com o som próprio do jogo: o preset dele nomeado no topo, o Modo jogo ligado e Descarregar no lugar de Experimentar agora.',
@@ -854,7 +854,7 @@ const tour: Partial<Dictionary> = {
   'tour.v23.profiles':
     'Redimensione ou recolha a lista de jogos; os avisos de troca identificam o som. Busque perfis por jogo, curva ou cadeia; os salvos também mostram suas curvas e níveis do filtro Jogo.',
   'tour.v23.dsp':
-    'Dinâmica levanta sons baixos em três bandas. O Maximizador preserva os graves; a normalização True Peak usa um ganho por música.',
+    'Presets de música geral e de gênero reajustados para um som mais definido e potente e uma experiência de audição mais consistente, com novas medições para 83 gêneros. Dinâmica eleva sons suaves em três bandas; o Maximizador mais limpo preserva os graves, e True Peak usa um ganho por música.',
   'tour.v23.help':
     'As buscas locais ignoram maiúsculas, acentos, espaços e pontuação. A Ajuda traz o tour 2.2 e as notas completas; Sobre oferece links para as seções e o QR de apoio, quando disponível.',
   'tour.v23.forum':

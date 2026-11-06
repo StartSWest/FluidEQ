@@ -173,11 +173,11 @@ const tour: Partial<Dictionary> = {
   'tour.games.point1':
     'Juegos de Steam, Epic Games, EA, GOG, Ubisoft, Battle.net y Xbox, o cualquier programa que esté abierto.',
   'tour.games.point2':
-    'Ajusta cada parte en una sola página: el Filtro Juego para pasos y voces, el EQ, la curva y cada etapa DSP, con presets hechos para juegos.',
+    'Elige entre 33 perfiles para títulos concretos y 9 tipos de juego; ajusta el Filtro de juego, EQ, curva y etapas DSP en una sola página.',
   'tour.games.point3':
     'El Laboratorio y la página EQ muestran el juego que está sonando y su preset.',
   'tour.games.how':
-    'Abre el Laboratorio gaming en la barra de título y pulsa Añadir un juego. Después pulsa Probar ahora y ajusta su sonido ahí mismo.',
+    'Abre el Laboratorio gaming en la barra de título y pulsa Añadir un juego. Elige su «Perfil gaming», pulsa «Probar ahora» y ajusta su sonido.',
   'tour.games.open': 'Abrir el Laboratorio gaming',
   'tour.games.imageAlt':
     'El Laboratorio gaming con Counter-Strike 2, primero con tu música sonando y luego con el sonido propio del juego: su preset nombrado arriba, el Modo juego activado y Descargar en lugar de Probar ahora.',
@@ -853,7 +853,7 @@ const tour: Partial<Dictionary> = {
   'tour.v23.profiles':
     'Cambia el tamaño de la lista de juegos o pliégala; los avisos de cambio nombran el sonido. Busca perfiles por juego, curva o cadena; los guardados también muestran sus curvas y niveles del filtro Juego.',
   'tour.v23.dsp':
-    'Dinámica levanta lo suave en tres bandas. El Maximizador conserva los graves; la normalización de pico real usa una ganancia por canción.',
+    'Presets de música general y de género reajustados para un sonido más definido y potente y una escucha más uniforme, con nuevas mediciones para 83 géneros. Dinámica eleva lo suave en tres bandas; el Maximizador más limpio conserva los graves y True Peak usa una ganancia por canción.',
   'tour.v23.help':
     'Las búsquedas locales ignoran mayúsculas, tildes, espacios y puntuación. Ayuda ofrece el recorrido 2.2 y las notas completas; Acerca de tiene enlaces a secciones y el QR de apoyo cuando está disponible.',
   'tour.v23.forum':

@@ -13,7 +13,8 @@ tuned on one page, that comes on when the game comes to the front and
 hands your music sound back when you close it. A new Game filter brings
 up footsteps and voices as they happen, a new Dynamics stage lifts what is
 quiet and holds what is loud, and every stage of the DSP rack has presets
-made for games.
+made for games. Standard music and genre presets have been newly tuned
+for a more focused, powerful sound and a more consistent listening experience.
 
 ### Gaming Lab
 
@@ -21,11 +22,13 @@ made for games.
   **Add a game** and pick it from the games found on this PC (Steam, Epic
   Games, EA, GOG, Ubisoft, Battle.net and Xbox), from a program that is
   open, or browse for its program.
-- **Every game starts from a Gaming profile** made for its kind of game
-  (Competitive, Battle royale, Tactical survival, Story and horror, Top-down,
-  Worlds, Speed, Impact, or any game) or for the title itself: more than
-  thirty games have one. The game gets its own copy, so whatever you tune
-  stays with that game and the profile never changes.
+- **33 profiles for specific games, plus 9 kinds of game.** Counter-Strike 2,
+  Valorant, Fortnite and Cyberpunk 2077 have profiles of their own, alongside
+  Competitive, Battle royale, Tactical survival, Story and horror, Top-down,
+  Worlds, Speed, Impact and any game. A recognized game starts from its matching
+  profile. Choose another in the Gaming Lab’s **Gaming profile** list, then
+  press **Try it now** to hear it. The game gets its own copy, so whatever
+  you tune stays with that game and the profile never changes.
 - **Its sound comes on by itself.** With **Switch when a game is in front**
   on, a game coming to the front puts its own sound on, keeps it however
   often you alt-tab, and brings your music sound back when the game closes.
@@ -113,6 +116,11 @@ made for games.
 
 ### DSP
 
+- **Newly tuned standard music and genre presets for a more focused, powerful
+  sound and a more consistent listening experience.** The 83 genre chains have
+  fresh level measurements from two named reference songs each. Choose a chain
+  in **DSP → Presets**; open a genre’s information for its curve, processing,
+  measured levels and listening examples, which open on YouTube.
 - **Dynamics, a new stage.** It lifts what is quiet and holds what is
   loud, in three bands, so a whisper and an explosion meet in the middle.
   It adds no delay. Nine everyday presets cover music, films and speech,
@@ -129,7 +137,7 @@ made for games.
 - **Music presets level songs consistently in Library and Live.** Their
   Normalizer uses the loudest three-second passage as a common input level,
   preserving quieter passages and leaving safe room before the final
-  Maximizer. Every genre is checked against two of its named reference songs.
+  Maximizer.
 - **Cleaner music colour and gentle sibilance control.** Unneeded high-band
   excitation is off; the remaining colour filters keep their harmonics in
   their intended bands. Pop and K-pop retain their approved EQ curves.
@@ -145,6 +153,10 @@ made for games.
 
 ### Share Audio, Forum and more
 
+- **Downloaded updates are checked before installation.** The installer’s
+  bytes must match a trusted, signed update record.
+- **Safer imports and saves.** Impulse-response analysis limits unusually
+  large inputs, and settings and Studio revisions are saved more safely.
 - **Reconnect** in each computer's ••• menu links it again with its saved
   code, without forgetting the pairing.
 - **Saved computers come back more reliably**: a computer returning while
@@ -174,6 +186,9 @@ made for games.
 
 ### Help and the window
 
+- **Clearer inline editing and graph labels.** Done stays in view while
+  editing another output, and the FluidEQ and APO engine names sit directly
+  on the graph without a filled background.
 - **Help keeps its title in view in a narrow window.** Japanese contents labels
   no longer squeeze into tall vertical text and push the heading out of view.
 - **Choose an On/off key** from the ≡ menu to switch all FluidEQ processing

@@ -182,11 +182,11 @@ const tour = {
   'tour.games.point1':
     'Steam, Epic Games, EA, GOG, Ubisoft, Battle.net and Xbox games, or any program that is open.',
   'tour.games.point2':
-    'Tune every part on one page: the Game filter for footsteps and voices, the EQ, the curve and every DSP stage, with presets made for games.',
+    'Choose among 33 title-specific profiles and 9 kinds of game, then tune the Game filter, EQ, curve and DSP stages on one page.',
   'tour.games.point3':
     'The Lab and the EQ page show the game that is playing and its preset.',
   'tour.games.how':
-    'Open the Gaming Lab in the title bar and press Add a game. Then press Try it now and tune its sound right there.',
+    'Open the Gaming Lab in the title bar and press Add a game. Choose its Gaming profile, press Try it now and tune its sound.',
   'tour.games.open': 'Open the Gaming Lab',
   'tour.games.imageAlt':
     'The Gaming Lab with Counter-Strike 2, first with your music playing, then with the game’s own sound on: its preset named on the top line, Game mode on, and Unload in place of Try it now.',
@@ -861,7 +861,7 @@ const tour = {
   'tour.v23.profiles':
     'Resize or fold the game list; switch notices name the sound. Find Gaming profiles by game, curve or chain; saved profiles show their curves and Game filter levels too.',
   'tour.v23.dsp':
-    'Dynamics lifts quiet sound in three bands. The cleaner Maximizer keeps the bass intact; True Peak normalization uses one gain per song.',
+    'Newly tuned standard music and genre presets for a more focused, powerful sound and a more consistent listening experience, with fresh measurements for 83 genres. Dynamics lifts quiet sound in three bands; the cleaner Maximizer preserves bass, and True Peak uses one gain per song.',
   'tour.v23.help':
     'Local searches ignore case, accents, spaces and punctuation. Help has the 2.2 tour and direct full notes; About has section links and a support QR where available.',
   'tour.v23.forum':

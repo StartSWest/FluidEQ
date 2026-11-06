@@ -171,11 +171,11 @@ const tour: Partial<Dictionary> = {
   'tour.games.point1':
     'Giochi di Steam, Epic Games, EA, GOG, Ubisoft, Battle.net e Xbox, o qualsiasi programma aperto.',
   'tour.games.point2':
-    'Regola ogni parte in una sola pagina: il Filtro Gioco per passi e voci, l’EQ, la curva e ogni stadio DSP, con preset fatti per i giochi.',
+    'Scegli fra 33 profili per titoli specifici e 9 tipi di gioco, poi regola Filtro di gioco, EQ, curva e stadi DSP in una sola pagina.',
   'tour.games.point3':
     'Il Laboratorio e la pagina EQ mostrano il gioco in corso e il suo preset.',
   'tour.games.how':
-    'Apri il Laboratorio gaming nella barra del titolo e premi Aggiungi un gioco. Poi premi Provalo ora e regola il suo suono proprio lì.',
+    'Apri il Laboratorio gaming nella barra del titolo e premi Aggiungi un gioco. Scegli il suo «Profilo gaming», premi «Provalo ora» e regola il suono.',
   'tour.games.open': 'Apri il Laboratorio gaming',
   'tour.games.imageAlt':
     'Il Laboratorio gaming con Counter-Strike 2, prima con la tua musica, poi con il suono del gioco: il suo preset nominato in alto, la Modalità gioco attiva e Scarica al posto di Provalo ora.',
@@ -852,7 +852,7 @@ const tour: Partial<Dictionary> = {
   'tour.v23.profiles':
     'Ridimensiona o ripiega l’elenco dei giochi; gli avvisi di cambio indicano il suono. Cerca i profili per gioco, curva o catena; quelli salvati mostrano anche curve e livelli del filtro Gioco.',
   'tour.v23.dsp':
-    'Dinamica alza i suoni deboli in tre bande. Il Maximizzer conserva i bassi; la normalizzazione True Peak usa un guadagno per brano.',
+    'Preset musicali generali e di genere ritarati per un suono più definito e potente e un’esperienza d’ascolto più uniforme, con nuove misure per 83 generi. Dinamica solleva i suoni deboli in tre bande; il Maximizer più pulito conserva i bassi e True Peak usa un guadagno per brano.',
   'tour.v23.help':
     'Le ricerche locali ignorano maiuscole, accenti, spazi e punteggiatura. La Guida offre il tour 2.2 e le note complete; Informazioni ha collegamenti alle sezioni e il QR di supporto, dove disponibile.',
   'tour.v23.forum':
