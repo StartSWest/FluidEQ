@@ -191,6 +191,9 @@ for a more focused, powerful sound and a more consistent listening experience.
 
 ### Help and the window
 
+- **Help search keeps the whole guide in place.** It jumps to matching
+  passages and highlights them without hiding chapters. Clearing the search
+  keeps the chapter and reading position you reached.
 - **Clearer inline editing and graph labels.** Done stays in view while
   editing another output, and the FluidEQ and APO engine names sit directly
   on the graph without a filled background.
