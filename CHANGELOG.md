@@ -173,6 +173,8 @@ made for games.
 
 ### Help and the window
 
+- **Help keeps its title in view in a narrow window.** Japanese contents labels
+  no longer squeeze into tall vertical text and push the heading out of view.
 - **Choose an On/off key** from the ≡ menu to switch all FluidEQ processing
   off and on while another app is in front. No shortcut is assigned until
   you choose one. A card above the other windows confirms **FluidEQ off**
