@@ -159,6 +159,11 @@ for a more focused, powerful sound and a more consistent listening experience.
   large inputs, and settings and Studio revisions are saved more safely.
 - **Reconnect** in each computer's ••• menu links it again with its saved
   code, without forgetting the pairing.
+- **In and Out lag beside each computer.** Estimates combine the measured
+  network round trip with the receiving computer's playback buffer, reported
+  output delay and known EQ/DSP delay, without adding audio buffering.
+  Capture and unreported hardware delay are outside this estimate; unavailable
+  or stale measurements show a dash, and outgoing lag needs an updated peer.
 - **Saved computers come back more reliably**: a computer returning while
   an older connection attempt was still failing is no longer left offline,
   pasting its current code replaces an old address or port, and both of its

@@ -2,6 +2,11 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.lag.in': 'Eingangsverzögerung',
+  'remoteAudio.lag.out': 'Ausgangsverzögerung',
+  'remoteAudio.lag.value': '≈{milliseconds} ms',
+  'remoteAudio.lag.hint':
+    'Geschätzte Verzögerung je Richtung: halbe gemessene Netzwerklaufzeit hin und zurück, plus Wiedergabepuffer, gemeldete Ausgabeverzögerung und bekannte EQ/DSP-Verzögerung des Empfängers. Aufnahme und nicht gemeldete Hardwareverzögerungen sind hier nicht messbar. — bedeutet ausgeschaltet, nicht verfügbar oder noch keine aktuellen Daten. Kein zusätzlicher Audiopuffer.',
   'remoteAudio.group.add': 'Computer hinzufügen',
   'remoteAudio.group.title': 'Die ganze Gruppe',
   'remoteAudio.group.mix': 'Ihr Mix',

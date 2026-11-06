@@ -3,6 +3,7 @@
 /** @jest-environment node */
 
 import { EventEmitter } from 'events';
+import { setImmediate } from 'timers';
 import type { Socket } from 'net';
 import type { WebSocket } from 'ws';
 import createRemoteAudioTransport, {
@@ -18,6 +19,8 @@ import {
 } from '../../../main/remoteAudioLanProtocol';
 
 class FakeSocket extends EventEmitter {
+  ping = jest.fn();
+
   bufferedAmount = 0;
 
   close = jest.fn((code?: number, reason?: string) => {
@@ -60,6 +63,45 @@ const createTransport = () => {
 };
 
 describe('LAN audio transport boundaries', () => {
+  it('sends PCM before optional lag probes and preserves every captured sample', async () => {
+    const clock = jest.spyOn(process.hrtime, 'bigint').mockReturnValue(0n);
+    const { transport } = createTransport();
+    const socket = new FakeSocket();
+    const key = keyFromSecret('display-does-not-delay-audio');
+    try {
+      transport.attach('peer', socket as unknown as WebSocket, key);
+      const first = {
+        ...audioChunk('peer', 1),
+        pcm: new Float32Array(960).fill(0.25).buffer,
+      };
+      const second = {
+        ...audioChunk('peer', 2),
+        pcm: new Float32Array(960).fill(-0.5).buffer,
+      };
+      transport.sendAudio(first);
+      clock.mockReturnValue(300_000_000n);
+      transport.sendAudio(second);
+      expect(socket.sent).toHaveLength(2);
+      expect(socket.ping).not.toHaveBeenCalled();
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
+      expect(socket.ping).toHaveBeenCalledTimes(1);
+      await Promise.all(
+        [first, second].map(async (expected, index) => {
+          const decoded = await decodeAudioAsync(
+            'peer',
+            openPacket(socket.sent[index], key).clear,
+          );
+          expect(decoded.sequence).toBe(expected.sequence);
+          expect(Buffer.from(decoded.pcm)).toEqual(Buffer.from(expected.pcm));
+        }),
+      );
+    } finally {
+      clock.mockRestore();
+      transport.closeAll();
+    }
+  });
   it('encrypts each peer with its authenticated session key', () => {
     const { transport } = createTransport();
     const socket = new FakeSocket();

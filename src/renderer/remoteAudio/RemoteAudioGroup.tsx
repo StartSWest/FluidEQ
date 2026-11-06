@@ -7,6 +7,7 @@ import { pluralCategory } from '../utils/pluralCategory';
 import MenuIcon from '../icons/MenuIcon';
 import Switch from '../widgets/Switch';
 import RemoteAudioLane from './RemoteAudioLane';
+import RemoteAudioLag from './RemoteAudioLag';
 import RemoteAudioPeerMenu from './RemoteAudioPeerMenu';
 import type { IRemoteAudioLink, IRemoteAudioValue } from './remoteAudioState';
 import { heardHere, linkControls } from './linkRecords';
@@ -213,6 +214,20 @@ const RemoteAudioGroup = ({
                   title={name}
                   line={line}
                   lineDetail={live ? link?.nowPlaying?.subtitle : undefined}
+                  readout={
+                    <RemoteAudioLag
+                      stats={remote.networkStats.find(
+                        (entry) => entry.peerId === link?.id,
+                      )}
+                      incoming={live && remote.phase !== 'playback-blocked'}
+                      outgoing={
+                        !!controls?.send &&
+                        !!link?.switches.send &&
+                        remote.sending &&
+                        !remote.sendingFailed
+                      }
+                    />
+                  }
                   live={live}
                   meterKey={link?.id ?? computerId}
                   subscribe={remote.subscribeMeter}

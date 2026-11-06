@@ -2,6 +2,11 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.lag.in': '接收延迟',
+  'remoteAudio.lag.out': '发送延迟',
+  'remoteAudio.lag.value': '≈{milliseconds} ms',
+  'remoteAudio.lag.hint':
+    '各方向的估计延迟：实测网络往返时间的一半，加上接收电脑的播放缓冲、已报告的输出延迟及已知的EQ/DSP延迟。此处无法测量采集延迟及未报告的硬件延迟。— 表示已关闭、不可用或正在等待最新数据。不会增加音频缓冲。',
   'remoteAudio.group.add': '添加电脑',
   'remoteAudio.group.title': '整个群组',
   'remoteAudio.group.mix': '你的混音',

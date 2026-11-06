@@ -2,6 +2,11 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.lag.in': 'इनपुट विलंब',
+  'remoteAudio.lag.out': 'आउटपुट विलंब',
+  'remoteAudio.lag.value': '≈{milliseconds} ms',
+  'remoteAudio.lag.hint':
+    'हर दिशा का अनुमानित विलंब: मापे गए नेटवर्क आने-जाने के समय का आधा, साथ में प्राप्त करने वाले कंप्यूटर का प्लेबैक बफ़र, बताया गया आउटपुट विलंब और ज्ञात EQ/DSP विलंब। कैप्चर और हार्डवेयर के अज्ञात विलंब यहाँ नहीं मापे जा सकते। — का मतलब बंद, अनुपलब्ध या नए आँकड़ों की प्रतीक्षा है। कोई अतिरिक्त ऑडियो बफ़र नहीं जुड़ता।',
   'remoteAudio.group.add': 'कंप्यूटर जोड़ें',
   'remoteAudio.group.title': 'पूरा समूह',
   'remoteAudio.group.mix': 'आपका मिक्स',

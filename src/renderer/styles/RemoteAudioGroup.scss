@@ -105,6 +105,26 @@ $group-end-slot: 34px;
 .remote-audio__group-lanes .remote-audio__lane-names strong {
   overflow-wrap: anywhere;
 }
+.remote-audio__lag {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  color: $text-muted;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+
+  > span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  strong {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+}
 .remote-audio__mix-fader {
   display: block;
 }

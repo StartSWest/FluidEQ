@@ -3,6 +3,11 @@
 import type { Dictionary } from '../en';
 
 const remoteAudio = {
+  'remoteAudio.lag.in': '接收延遲',
+  'remoteAudio.lag.out': '傳送延遲',
+  'remoteAudio.lag.value': '≈{milliseconds} ms',
+  'remoteAudio.lag.hint':
+    '各方向的估計延遲：實測網路往返時間的一半，加上接收電腦的播放緩衝、已回報的輸出延遲及已知的EQ/DSP延遲。此處無法測量擷取延遲及未回報的硬體延遲。— 表示已關閉、無法使用或正在等待最新資料。不會增加音訊緩衝。',
   'remoteAudio.group.add': '新增電腦',
   'remoteAudio.group.title': '全團',
   'remoteAudio.group.mix': '我的混音',

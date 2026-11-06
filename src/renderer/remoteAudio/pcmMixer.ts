@@ -150,6 +150,16 @@ export const createPcmMixer = async (
     ) {
       onMeter({
         bufferedMs: meter.bufferedMs,
+        // The fallback media element has an unreported queue. A buffer-only
+        // number there must never masquerade as final playback lag.
+        playbackMs:
+          usesDirectOutput &&
+          context.state === 'running' &&
+          Number.isFinite(context.baseLatency) &&
+          Number.isFinite(context.outputLatency)
+            ? meter.bufferedMs +
+              (context.baseLatency + context.outputLatency) * 1_000
+            : undefined,
         peak: meter.peak,
         rms: meter.rms,
         sourceId: meter.sourceId,

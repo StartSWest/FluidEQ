@@ -65,7 +65,7 @@ export const startNativeRemoteAudioPlayback = async (
    * figure is how far behind the other computer's sound plays here, not only
    * how much waits in this end's buffer.
    */
-  let outputMs = 0;
+  let outputMs: number | undefined;
   let closed = false;
   let failed = false;
   let closing: Promise<void> | undefined;
@@ -87,7 +87,7 @@ export const startNativeRemoteAudioPlayback = async (
       }
       if (reply.kind === 6 && reply.payload.byteLength === 8) {
         const held = reply.payload.readDoubleLE(0);
-        outputMs = Number.isFinite(held) && held >= 0 ? held : 0;
+        outputMs = Number.isFinite(held) && held >= 0 ? held : undefined;
         return;
       }
       if (reply.kind !== 5 || reply.payload.byteLength !== 24) {
@@ -107,7 +107,9 @@ export const startNativeRemoteAudioPlayback = async (
       ) {
         onMeter({
           sourceId: found[0],
-          bufferedMs: bufferedMs + outputMs,
+          bufferedMs: bufferedMs + (outputMs ?? 0),
+          playbackMs:
+            outputMs === undefined ? undefined : bufferedMs + outputMs,
           peak,
           rms,
           waveform: new Float32Array(found[1].waveform),
@@ -213,6 +215,7 @@ export const startNativeRemoteAudioPlayback = async (
         return Promise.reject(new Error('Native playback has stopped.'));
       }
       const name = outputGuid(guid);
+      outputMs = undefined;
       return lease.request(1, Buffer.from(name, 'utf8')).answered;
     },
     close: () => {

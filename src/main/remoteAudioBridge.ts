@@ -149,6 +149,12 @@ const sendRemoteAudioLanSignal = (message: ILanRemoteAudioSignal) =>
 const sendRemoteAudioLanAudio = (chunk: ILanRemoteAudioChunk) =>
   ipcRenderer.send('remote-audio-lan-audio-send', chunk);
 
+const reportRemoteAudioPlaybackLatency = (
+  peerId: string,
+  milliseconds: number,
+) =>
+  ipcRenderer.send('remote-audio-lan-playback-latency', peerId, milliseconds);
+
 /** "Send my sound", "Play it here" and Pause for the computer called `name`. */
 const setRemoteAudioLinkSwitches = (name: string, switches: ILinkSwitches) =>
   ipcRenderer.invoke(
@@ -256,6 +262,7 @@ const remoteAudioBridge = {
   onRemoteAudioLanJoins,
   sendRemoteAudioLanSignal,
   sendRemoteAudioLanAudio,
+  reportRemoteAudioPlaybackLatency,
   setRemoteAudioLinkSwitches,
   getRemoteAudioLinkSwitches,
   getRemoteAudioSmooth,

@@ -222,6 +222,10 @@ export interface ILanSavedJoin {
 }
 
 export interface ILanRemoteAudioNetworkStats {
+  /** Estimated one-way network + receiver playback/output/known processing.
+   * Absent until both ends supply fresh telemetry; never an acoustic claim. */
+  incomingLagMs?: number;
+  outgoingLagMs?: number;
   bytesPerSecond: number;
   direction: 'receive' | 'send';
   peerId: string;

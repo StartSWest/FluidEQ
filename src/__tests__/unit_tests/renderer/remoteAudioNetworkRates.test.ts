@@ -56,6 +56,30 @@ const shown = (
 };
 
 describe('the rate a line shows', () => {
+  it('replaces timing in both rate entries and clears missing measurements', () => {
+    const { result } = renderHook(() => useRemoteAudioNetworkStats(true));
+    act(() =>
+      report({ ...reading(100), incomingLagMs: 42, outgoingLagMs: 310 }),
+    );
+    act(() =>
+      report({
+        ...reading(100, 'send'),
+        incomingLagMs: 42,
+        outgoingLagMs: 310,
+      }),
+    );
+    expect(
+      result.current.networkStats.every((entry) => entry.outgoingLagMs === 310),
+    ).toBe(true);
+    act(() => report(reading(100)));
+    expect(
+      result.current.networkStats.every(
+        (entry) =>
+          entry.incomingLagMs === undefined &&
+          entry.outgoingLagMs === undefined,
+      ),
+    ).toBe(true);
+  });
   it('shows the first reading as it is', () => {
     const { result } = renderHook(() => useRemoteAudioNetworkStats(true));
     act(() => report(reading(megabits(3.1))));

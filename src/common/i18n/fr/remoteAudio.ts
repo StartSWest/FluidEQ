@@ -2,6 +2,11 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.lag.in': 'Retard entrant',
+  'remoteAudio.lag.out': 'Retard sortant',
+  'remoteAudio.lag.value': '≈{milliseconds} ms',
+  'remoteAudio.lag.hint':
+    'Retard estimé dans chaque sens : moitié de l’aller-retour réseau mesuré, plus tampon de lecture, retard de sortie signalé et retard EQ/DSP connu du récepteur. La capture et les retards matériels non signalés ne sont pas mesurables ici. — indique un sens désactivé, indisponible ou en attente de données récentes. Aucun tampon audio supplémentaire.',
   'remoteAudio.group.add': 'Ajouter un ordinateur',
   'remoteAudio.group.title': 'Tout le groupe',
   'remoteAudio.group.mix': 'Votre mixage',

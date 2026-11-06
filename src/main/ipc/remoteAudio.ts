@@ -80,6 +80,25 @@ export const registerRemoteAudioIpc = ({
     sendToWindow('remote-audio-lan-streaming', peerId),
   );
   const playback = registerRemoteAudioPlayback(getMainWindow);
+  const stopLatencyReports = onWindowMessage(
+    'remote-audio-lan-playback-latency',
+    (event, peerId: unknown, milliseconds: unknown) => {
+      const window = getMainWindow();
+      if (
+        window &&
+        event.sender === window.webContents &&
+        event.senderFrame === window.webContents.mainFrame &&
+        typeof peerId === 'string' &&
+        peerId.length <= 128 &&
+        typeof milliseconds === 'number' &&
+        Number.isFinite(milliseconds) &&
+        milliseconds >= 0 &&
+        milliseconds <= 60_000
+      ) {
+        link?.reportPlayback?.(peerId, milliseconds);
+      }
+    },
+  );
   const smoothSwitch = createSmoothSwitch(userDataDir);
   // Where the sound plays in this process (macOS and Linux) and the links
   // sent from it; on Windows the Share Audio service keeps its own.
@@ -661,6 +680,7 @@ export const registerRemoteAudioIpc = ({
   });
 
   return () => {
+    stopLatencyReports();
     activityReaders.delete(readActivity);
     powerMonitor.removeListener('resume', wake);
     stopHearingRestarts();

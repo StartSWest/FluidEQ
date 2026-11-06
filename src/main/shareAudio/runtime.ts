@@ -297,6 +297,9 @@ export const createAudioRuntime = ({
       case 'lan.audio':
         network().sendAudio(...request.args);
         return undefined;
+      case 'lan.playback-latency':
+        lan?.reportPlayback?.(...request.args);
+        return undefined;
       case 'lan.retry':
         lan?.retry();
         return undefined;

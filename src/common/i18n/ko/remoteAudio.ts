@@ -3,6 +3,11 @@
 import type { Dictionary } from '../en';
 
 const remoteAudio = {
+  'remoteAudio.lag.in': '수신 지연',
+  'remoteAudio.lag.out': '송신 지연',
+  'remoteAudio.lag.value': '≈{milliseconds} ms',
+  'remoteAudio.lag.hint':
+    '각 방향의 예상 지연: 측정한 네트워크 왕복 시간의 절반에 수신 컴퓨터의 재생 버퍼, 보고된 출력 지연, 알려진 EQ/DSP 지연을 더합니다. 캡처 및 보고되지 않은 하드웨어 지연은 여기서 측정할 수 없습니다. — 는 꺼짐, 측정 불가 또는 최신 데이터 대기 중을 뜻합니다. 추가 오디오 버퍼는 없습니다.',
   'remoteAudio.group.add': '컴퓨터 추가',
   'remoteAudio.group.title': '전체 그룹',
   'remoteAudio.group.mix': '내 믹스',
