@@ -2,6 +2,10 @@
 
 import { OFFICIAL_SITE_URL } from '../../../common/branding';
 import type { LocaleCode, TranslationKey } from '../../../common/i18n';
+import overviewEnglish from './films/gaming-lab-overview.en.mp4';
+import overviewSpanish from './films/gaming-lab-overview.es.mp4';
+import overviewEnglishCaptions from './films/gaming-lab-overview.en.vtt';
+import overviewSpanishCaptions from './films/gaming-lab-overview.es.vtt';
 
 /**
  * The short films What's New plays in place of a slide's drawing: the real
@@ -45,6 +49,10 @@ export interface IFeatureFilm {
    * recordings of the same tour timed its lines up to a second apart.
    */
   timedOnSite?: boolean;
+  /** A separately narrated recording carries its verbatim captions on the site. */
+  spokenCaptions?: boolean;
+  /** Offline Help recordings are shipped with the renderer, one per voice. */
+  bundled?: Partial<Record<LocaleCode, { src: string; captions: string }>>;
   /**
    * What plays in its place while the film itself is not on the site, with
    * its own captions (WebVTT, English) drawn on the picture and none of the
@@ -190,6 +198,25 @@ export const FEATURE_FILMS: Readonly<Record<string, IFeatureFilm>> = {
       { key: 'tour.film.games.closed', from: 70, to: 74.67 },
     ],
   },
+  // A new name preserves the older recording and its bundled captions in
+  // released apps. This overview has its own English and Spanish narration.
+  'gaming-lab-overview': {
+    width: 1920,
+    height: 1080,
+    locales: ['en', 'es'],
+    spokenCaptions: true,
+    bundled: {
+      en: {
+        src: overviewEnglish,
+        captions: `data:text/vtt;charset=utf-8,${encodeURIComponent(overviewEnglishCaptions)}`,
+      },
+      es: {
+        src: overviewSpanish,
+        captions: `data:text/vtt;charset=utf-8,${encodeURIComponent(overviewSpanishCaptions)}`,
+      },
+    },
+    cues: [{ key: 'tour.film.games.intro', from: 0, to: 58.2 }],
+  },
   'headphone-presets': {
     width: 1624,
     height: 1080,
@@ -288,8 +315,13 @@ export const featureFilmLocale = (
 ): LocaleCode =>
   (film?.locales ?? FILM_LOCALES).includes(locale) ? locale : 'en';
 
-export const featureFilmUrl = (id: string, locale: LocaleCode) =>
-  `${OFFICIAL_SITE_URL}/video/whatsnew/${id}.${featureFilmLocale(locale, FEATURE_FILMS[id])}.mp4`;
+export const featureFilmUrl = (id: string, locale: LocaleCode) => {
+  const voice = featureFilmLocale(locale, FEATURE_FILMS[id]);
+  return (
+    FEATURE_FILMS[id]?.bundled?.[voice]?.src ??
+    `${OFFICIAL_SITE_URL}/video/whatsnew/${id}.${voice}.mp4`
+  );
+};
 
 /**
  * Where a film timed on the site keeps its timings: WebVTT beside the film,
@@ -299,6 +331,15 @@ export const featureFilmUrl = (id: string, locale: LocaleCode) =>
  */
 export const featureFilmTimingUrl = (id: string, locale: LocaleCode) =>
   `${OFFICIAL_SITE_URL}/video/whatsnew/${id}.${featureFilmLocale(locale, FEATURE_FILMS[id])}.cues.vtt`;
+
+/** Verbatim subtitles follow the selected voice, including its English fallback. */
+export const featureFilmCaptionUrl = (id: string, locale: LocaleCode) => {
+  const voice = featureFilmLocale(locale, FEATURE_FILMS[id]);
+  return (
+    FEATURE_FILMS[id]?.bundled?.[voice]?.captions ??
+    `${OFFICIAL_SITE_URL}/video/whatsnew/${id}.${voice}.vtt`
+  );
+};
 
 /** What a timing track's cue offers, as the browser's `TextTrackCue` does. */
 interface ITimedCue {

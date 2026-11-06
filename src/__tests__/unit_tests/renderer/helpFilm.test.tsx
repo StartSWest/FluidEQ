@@ -3,7 +3,13 @@
 import '@testing-library/jest-dom';
 import fs from 'fs';
 import path from 'path';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
 import HelpChapter from 'renderer/help/HelpChapter';
 import HelpFilm from 'renderer/help/HelpFilm';
 import HELP_FILMS, { FILMS_AWAY } from 'renderer/help/helpFilms';
@@ -11,6 +17,8 @@ import { WALKTHROUGH_FILM } from 'renderer/components/featureTour/WalkthroughSli
 import FILM_POSTERS from 'renderer/components/featureTour/filmPosters';
 import {
   FEATURE_FILMS,
+  featureFilmCaptionUrl,
+  featureFilmLocale,
   featureFilmUrl,
 } from 'renderer/components/featureTour/featureFilms';
 import { HELP_CHAPTERS } from 'common/helpGuide';
@@ -19,6 +27,30 @@ import en from 'common/i18n/en';
 afterEach(cleanup);
 
 const intro = en[FEATURE_FILMS['each-ear'].cues[0].key];
+
+const filmsOnSlides = () =>
+  new Set(
+    fs
+      .readdirSync(
+        path.join(__dirname, '../../../renderer/components/featureTour'),
+      )
+      .filter((file) => file.endsWith('.tsx'))
+      .flatMap((file) =>
+        Array.from(
+          fs
+            .readFileSync(
+              path.join(
+                __dirname,
+                '../../../renderer/components/featureTour',
+                file,
+              ),
+              'utf8',
+            )
+            .matchAll(/\bfilm="([a-z0-9-]+)"/g),
+          (match) => match[1],
+        ),
+      ),
+  );
 
 it('is a bundled picture until pressed, and fetches nothing before', () => {
   const { container } = render(<HelpFilm id="each-ear" />);
@@ -70,13 +102,16 @@ it('places only films that exist, under topics the guide has', () => {
       expect(FILM_POSTERS[id]).toBeTruthy();
     });
   });
-  // Every film is somewhere in Help, unless it is held away until it is
-  // recorded again, or is What's New's first page, which Help has no topic
-  // for.
+  // Help may select a newer recording than What's New. Every catalogue
+  // entry still has an actual reader, or is explicitly held away.
   const placed = new Set(Object.values(HELP_FILMS).flat());
+  const onSlides = filmsOnSlides();
   Object.keys(FEATURE_FILMS).forEach((id) =>
     expect(
-      placed.has(id) || FILMS_AWAY.includes(id) || id === WALKTHROUGH_FILM,
+      placed.has(id) ||
+        FILMS_AWAY.includes(id) ||
+        onSlides.has(id) ||
+        id === WALKTHROUGH_FILM,
     ).toBe(true),
   );
 });
@@ -86,23 +121,7 @@ it('places only films that exist, under topics the guide has', () => {
 it('plays a film held away nowhere, until it is recorded again', () => {
   expect(FILMS_AWAY).toContain('compact-player');
   const placed = new Set(Object.values(HELP_FILMS).flat());
-  const slides = path.join(
-    __dirname,
-    '../../../renderer/components/featureTour',
-  );
-  const onSlides = new Set(
-    fs
-      .readdirSync(slides)
-      .filter((file) => file.endsWith('.tsx'))
-      .flatMap((file) =>
-        Array.from(
-          fs
-            .readFileSync(path.join(slides, file), 'utf8')
-            .matchAll(/\bfilm="([a-z0-9-]+)"/g),
-          (match) => match[1],
-        ),
-      ),
-  );
+  const onSlides = filmsOnSlides();
   // The positive control: the slides do name their films this way.
   expect(onSlides.has('custom-looks')).toBe(true);
   FILMS_AWAY.forEach((id) => {
@@ -110,6 +129,57 @@ it('plays a film held away nowhere, until it is recorded again', () => {
     expect(placed.has(id)).toBe(false);
     expect(onSlides.has(id)).toBe(false);
   });
+});
+
+it('uses the new full-window Gaming overview with its own spoken captions', () => {
+  expect(HELP_FILMS.games).toEqual(['gaming-lab-overview']);
+  expect(filmsOnSlides()).toContain('gaming-lab');
+  const { container } = render(<HelpFilm id="gaming-lab-overview" />);
+  expect(container.querySelector('video')).toBeNull();
+  fireEvent.click(screen.getByRole('button'));
+  const video = container.querySelector('video') as HTMLVideoElement;
+  expect(video).toHaveAttribute(
+    'src',
+    featureFilmUrl('gaming-lab-overview', 'en'),
+  );
+  expect(video).not.toHaveAttribute('crossorigin');
+  const track = video.querySelector('track') as HTMLTrackElement;
+  expect(track).toHaveAttribute('kind', 'captions');
+  expect(track).toHaveAttribute(
+    'src',
+    featureFilmCaptionUrl('gaming-lab-overview', 'en'),
+  );
+  Object.defineProperty(track, 'track', {
+    value: {
+      mode: 'hidden',
+      activeCues: [{ text: 'This is a development preview.' }],
+    },
+  });
+  act(() => track.dispatchEvent(new Event('cuechange')));
+  expect(container.querySelector('figcaption')).toHaveTextContent(
+    'This is a development preview.',
+  );
+});
+
+it('requests only recorded Gaming voices and matching verbatim subtitles', () => {
+  const film = FEATURE_FILMS['gaming-lab-overview'];
+  expect(Object.keys(film.bundled ?? {})).toEqual(['en', 'es']);
+  expect(featureFilmLocale('es', film)).toBe('es');
+  expect(featureFilmLocale('ja', film)).toBe('en');
+  expect(featureFilmUrl('gaming-lab-overview', 'es')).toBe(
+    film.bundled?.es?.src,
+  );
+  expect(featureFilmUrl('gaming-lab-overview', 'ja')).toBe(
+    film.bundled?.en?.src,
+  );
+  const spanish = featureFilmCaptionUrl('gaming-lab-overview', 'es');
+  expect(spanish).toMatch(/^data:text\/vtt;charset=utf-8,/);
+  expect(decodeURIComponent(spanish)).toContain(
+    'Así se ve el nuevo Laboratorio gaming',
+  );
+  expect(
+    decodeURIComponent(featureFilmCaptionUrl('gaming-lab-overview', 'ja')),
+  ).toContain("Here's a first look");
 });
 
 it("comes after the topic's pictures and before its steps, so a film the site cannot send leaves the topic whole", () => {

@@ -1,5 +1,15 @@
 type Styles = Record<string, string>;
 
+declare module '*.mp4' {
+  const url: string;
+  export default url;
+}
+
+declare module '*.vtt' {
+  const contents: string;
+  export default contents;
+}
+
 declare module '*.svg' {
   const content: string;
   export default content;

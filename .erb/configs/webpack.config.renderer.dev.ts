@@ -147,6 +147,9 @@ const configuration: webpack.Configuration = {
         exclude: /\.module\.s?(c|a)ss$/,
       },
       // Fonts
+      // The Gaming Help overview is available offline, including its captions.
+      { test: /\.mp4$/i, type: 'asset/resource' },
+      { test: /\.vtt$/i, type: 'asset/source' },
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/i,
         type: 'asset/resource',

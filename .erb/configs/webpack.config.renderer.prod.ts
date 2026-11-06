@@ -111,6 +111,9 @@ const configuration: webpack.Configuration = {
         exclude: /\.module\.s?(c|a)ss$/,
       },
       // Fonts
+      // Keep offline Help media beside the packaged renderer, not on the site.
+      { test: /\.mp4$/i, type: 'asset/resource' },
+      { test: /\.vtt$/i, type: 'asset/source' },
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/i,
         type: 'asset/resource',
