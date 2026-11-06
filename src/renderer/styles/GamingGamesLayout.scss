@@ -83,26 +83,26 @@
     align-items: center;
     // The heading follows its contents, not the user-resized list column.
     justify-self: start;
-    gap: 8px;
+    gap: 4px;
     min-width: 0;
     width: max-content;
     max-width: 100%;
-    height: 28px;
+    min-height: 28px;
 
     > .gaming-cap {
       min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      // Clipping a max-content flex item can shave the last glyph at a
+      // fractional pixel width. Let long translations wrap without hiding ink.
+      overflow-wrap: anywhere;
     }
   }
 
-  // The pin needs room to read at this scale; its hit area stays quiet
-  // until hovered or focused, rather than boxing in a tiny glyph.
+  // Match the small heading's scale while keeping the larger click target.
   .gaming-games__list-toggle {
     flex: 0 0 auto;
     width: 28px;
     height: 28px;
+    min-height: 28px;
     padding: 0;
     border: 0;
     border-radius: $radius-pill;
@@ -123,8 +123,8 @@
 
     > .menu-icon {
       flex: 0 0 auto;
-      width: 20px;
-      height: 20px;
+      width: 14px;
+      height: 14px;
     }
   }
 
