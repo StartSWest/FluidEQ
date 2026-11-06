@@ -13,8 +13,8 @@ export default {
   'gaming.switch.hint':
     'Désactivé, vos jeux gardent votre son musique et rien ne bascule tout seul.',
   'gaming.add': 'Ajouter un jeu',
-  'gaming.list.show': 'Afficher la liste des jeux',
-  'gaming.list.hide': 'Masquer la liste des jeux',
+  'gaming.list.show': 'Afficher les noms des jeux',
+  'gaming.list.hide': 'Afficher les icônes des jeux',
   'gaming.list.resize': 'Redimensionner la liste des jeux',
   'gaming.list.count': 'Vos jeux · {count}',
   'gaming.list.from': 'Depuis {profile}',

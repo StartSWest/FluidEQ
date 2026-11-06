@@ -59,9 +59,10 @@ export default function useGamingGamesLayout() {
   const stacked = bounds.width > 0 && bounds.width <= 820;
   const maxWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, bounds.width - 524));
   const width = clamp(layout.width, MIN_WIDTH, maxWidth);
-  const height = stacked
-    ? clamp(layout.height, MIN_HEIGHT, bounds.height)
-    : bounds.height;
+  const height =
+    stacked && !layout.collapsed
+      ? clamp(layout.height, MIN_HEIGHT, bounds.height)
+      : bounds.height;
   const drag = useRef({ key: 'width' as 'width' | 'height', start: width });
 
   useLayoutEffect(() => {

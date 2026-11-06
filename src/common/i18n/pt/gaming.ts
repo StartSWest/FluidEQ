@@ -13,8 +13,8 @@ export default {
   'gaming.switch.hint':
     'Desligado, seus jogos mantêm seu som de música e nada troca sozinho.',
   'gaming.add': 'Adicionar um jogo',
-  'gaming.list.show': 'Mostrar lista de jogos',
-  'gaming.list.hide': 'Ocultar lista de jogos',
+  'gaming.list.show': 'Mostrar nomes dos jogos',
+  'gaming.list.hide': 'Mostrar ícones dos jogos',
   'gaming.list.resize': 'Redimensionar lista de jogos',
   'gaming.list.count': 'Seus jogos · {count}',
   'gaming.list.from': 'De {profile}',

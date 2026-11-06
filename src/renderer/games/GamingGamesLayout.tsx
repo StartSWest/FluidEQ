@@ -75,11 +75,7 @@ export default function GamingGamesLayout({
         controls={listId}
         onToggle={layout.toggle}
       />
-      <aside
-        className="gaming-games__sidebar"
-        inert={layout.collapsed}
-        aria-hidden={layout.collapsed}
-      >
+      <aside className="gaming-games__sidebar">
         <div id={listId} className="gaming-games__list">
           {list}
         </div>

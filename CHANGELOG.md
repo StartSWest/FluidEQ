@@ -52,7 +52,9 @@ made for games.
 - **Add a game** scrolls while keeping its action buttons in view.
 - **A game list that stays out of the editor's way.** Its own scrollbar keeps
   a long list from lengthening the page. Drag the divider to resize it, or
-  fold it smoothly with the pin; its size and folded state are remembered.
+  fold it smoothly with the pin into a narrow bar of game icons. The icons
+  stay selectable, show each game's name on hover and mark the selected and
+  playing games; its size and folded state are remembered.
 - **The picker leaves non-games out.** FluidEQ and its development runtime,
   Windows Explorer, known system processes and launchers, and shared runtime
   installers cannot be added or matched as games.

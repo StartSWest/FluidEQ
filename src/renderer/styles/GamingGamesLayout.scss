@@ -3,11 +3,12 @@
 @use 'theme' as *;
 @use 'color' as *;
 @use 'motion' as *;
+@use 'mainContentTokens' as content;
 
 // The live page and its Help drawing share the list frame. Older tour
 // illustrations keep their layout until they opt into this class.
 .gaming-games.gaming-games--split {
-  // Keep the same tracks when folded so the editor moves with the list.
+  // Keep the same tracks when folded so the editor moves with the icon rail.
   // The heading stays outside the moving tracks and remains reachable.
   --gaming-fold: #{$motion-slow};
   grid-template-columns: minmax(0, var(--gaming-list-width)) 24px minmax(0, 1fr);
@@ -71,7 +72,6 @@
     scrollbar-gutter: stable;
     padding-right: 4px;
     width: var(--gaming-list-width);
-    transition: opacity $motion-base ease-out calc(var(--gaming-fold) * 0.2);
   }
 
   .gaming-games__list-head {
@@ -129,20 +129,41 @@
   }
 
   &.is-list-collapsed {
-    grid-template-columns: minmax(0, 0px) 0px minmax(0, 1fr);
-
-    .gaming-games__list-head {
-      position: static;
-    }
-
-    .gaming-games__sidebar {
-      visibility: hidden;
-      transition: visibility 0s linear var(--gaming-fold);
-    }
+    // Hiding the list entirely made the other games undiscoverable. Keep
+    // the same buttons as a scrollable rail, including keyboard access.
+    grid-template-columns: minmax(0, 52px) 12px minmax(0, 1fr);
 
     .gaming-games__list {
-      opacity: 0;
-      transition: opacity 90ms ease-out;
+      width: 100%;
+    }
+
+    .gaming-game {
+      position: relative;
+      justify-content: center;
+      min-height: 44px;
+      padding: 4px;
+      gap: 0;
+    }
+
+    .gaming-game__icon {
+      width: 32px;
+      height: 32px;
+      padding: 3px;
+      background: transparent;
+    }
+
+    .gaming-game__what {
+      @include content.words-hidden;
+    }
+
+    .gaming-game__playing {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      padding: 0;
+      gap: 0;
+      background: transparent;
+      font-size: 0;
     }
 
     .gaming-games__divider {
@@ -150,7 +171,7 @@
     }
   }
 
-  &.is-stacked {
+  &.is-stacked:not(.is-list-collapsed) {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows:
       34px minmax(0, calc(var(--gaming-list-height) - 34px)) 16px
@@ -180,19 +201,9 @@
       grid-column: 1;
       grid-row: 4;
     }
-
-    &.is-list-collapsed {
-      grid-template-rows: 34px minmax(0, 0px) 0px minmax(0, 1fr);
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     --gaming-fold: 1ms;
-
-    .gaming-games__list,
-    &.is-list-collapsed .gaming-games__list {
-      transition-duration: 1ms;
-      transition-delay: 0s;
-    }
   }
 }

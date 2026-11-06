@@ -484,7 +484,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   .gaming-rail__group {
     flex-direction: row;
+    // A long DSP group must fit beside the collapsed game icons too.
+    flex-wrap: wrap;
     gap: 2px;
+    min-width: 0;
 
     > .dsp-rail-group-label,
     .dsp-rail-name,
