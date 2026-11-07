@@ -25,7 +25,6 @@ import {
   type IEntitlement,
   type IEntitlementStatus,
 } from '../account/entitlement';
-import { createBillingClient } from '../account/billingClient';
 import {
   CODE_LENGTH,
   EMAIL_SHAPE,
@@ -166,8 +165,6 @@ export const registerAccountIpc = ({
     },
   });
 
-  const billing = createBillingClient(ACCOUNT_CONFIG);
-
   entitlement = createEntitlement({
     config: ACCOUNT_CONFIG,
     session,
@@ -179,10 +176,6 @@ export const registerAccountIpc = ({
     onChange: (status: IEntitlementStatus) =>
       send('entitlement-changed', status),
     logger,
-    // The merchant matches payments by email and its notice can arrive
-    // before the account exists: ask the server to look the account up
-    // right before every read of the row.
-    beforeFetch: (token) => billing.syncMembership(token),
     developmentOverride: developmentEntitlement,
   });
   const entitled = entitlement;

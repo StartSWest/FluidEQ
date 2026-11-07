@@ -80,15 +80,6 @@ export interface IEntitlementOptions {
   /** Injected so a test never reaches a network. */
   fetchImpl?: typeof fetch;
   /**
-   * Runs with the access token right before the row is read, on every check.
-   *
-   * This is where the server is asked to match the account against the
-   * merchant's records, for the case where the merchant's notice of a payment
-   * came before the account existed or never came. Its failure is logged and
-   * ignored: the row read that follows is the answer, whatever this managed.
-   */
-  beforeFetch?: (accessToken: string) => Promise<unknown>;
-  /**
    * DEVELOPMENT ONLY. A fixed answer in place of the server's, so the premium
    * path can be looked at before a backend exists. `main.ts` supplies this
    * solely when the app is not packaged and an environment variable asks for
@@ -256,16 +247,6 @@ export const createEntitlement = (
     if (!current()) {
       return status();
     }
-    if (options.beforeFetch) {
-      try {
-        await options.beforeFetch(token);
-      } catch (error) {
-        logger?.warn(`Membership sync did not complete: ${error}`);
-      }
-    }
-    if (!current()) {
-      return status();
-    }
     let response: Response;
     try {
       const url = new URL('/rest/v1/entitlements', config.supabaseUrl);
@@ -361,7 +342,7 @@ export const createEntitlement = (
       ) {
         return;
       }
-      logger?.info(`Checking the subscription after ${reason}.`);
+      logger?.info(`Checking account access after ${reason}.`);
       await checkNow();
     },
     expectChange: () => {

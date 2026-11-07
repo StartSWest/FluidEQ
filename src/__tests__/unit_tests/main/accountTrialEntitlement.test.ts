@@ -53,7 +53,7 @@ let changes: IEntitlementStatus[];
 let fetchImpl: jest.Mock<Promise<Response>, [string, RequestInit?]>;
 let accessToken: jest.Mock<Promise<string>, []>;
 
-const build = (beforeFetch?: (token: string) => Promise<unknown>) =>
+const build = () =>
   createEntitlement({
     config,
     session: {
@@ -76,7 +76,6 @@ const build = (beforeFetch?: (token: string) => Promise<unknown>) =>
     onChange: (status) => changes.push(status),
     now: () => clock,
     fetchImpl: fetchImpl as typeof fetch,
-    beforeFetch,
   });
 
 beforeEach(() => {
@@ -270,20 +269,26 @@ it('does not send an entitlement request after the account switches during token
   expect(stored).toBeUndefined();
 });
 
-it('does not publish an old account after the account switches during merchant sync', async () => {
-  const syncing = deferred<void>();
-  const synced = deferred<void>();
-  const entitlement = build(() => {
-    syncing.complete();
-    return synced.promise;
+it('does not overwrite the new account when the old access read finishes late', async () => {
+  const asked = deferred<void>();
+  const oldReply = deferred<Response>();
+  fetchImpl.mockImplementationOnce(() => {
+    asked.complete();
+    return oldReply.promise;
   });
+  const entitlement = build();
   const checking = entitlement.checkNow();
-  await syncing.promise;
+  await asked.promise;
   account = 'account-b';
-  synced.complete();
+  accessToken.mockResolvedValue('account-b-token');
+  await entitlement.checkNow();
+  oldReply.complete(reply([]));
   await checking;
-  expect(fetchImpl).not.toHaveBeenCalled();
-  expect(stored).toBeUndefined();
+  expect(stored?.userId).toBe('account-b');
+  expect(entitlement.status()).toMatchObject({
+    state: 'active',
+    plan: 'trial',
+  });
 });
 
 it('cannot restore a signed-out account from a pending server reply', async () => {

@@ -294,6 +294,7 @@ describe('the entitlement controller', () => {
 
     expect(status.state).toBe('active');
     expect(status.renewing).toBe(true);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
     const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
     expect(url).toContain('/rest/v1/entitlements?');
     expect(url).toContain('limit=1');
@@ -369,29 +370,6 @@ describe('the entitlement controller', () => {
       jsonResponse(row({ cancel_at_period_end: 'yes' })),
     );
     expect((await build().checkNow()).renewing).toBe(true);
-  });
-
-  /** The merchant lookup runs first with the token, and its failure changes nothing. */
-  it('runs the pre-read hook with the token, and shrugs off its failure', async () => {
-    fetchImpl.mockResolvedValue(jsonResponse(row()));
-    const beforeFetch = jest.fn(() =>
-      Promise.reject(new Error('merchant down')),
-    );
-    const entitlement = createEntitlement({
-      config: CONFIG,
-      session: session(),
-      store: store(),
-      onChange: (status) => changes.push(status),
-      now: () => clock,
-      fetchImpl,
-      beforeFetch,
-    });
-    expect((await entitlement.checkNow()).state).toBe('active');
-    expect(beforeFetch).toHaveBeenCalledWith('access-1');
-    // The hook ran before the row was read, not after.
-    expect(beforeFetch.mock.invocationCallOrder[0]).toBeLessThan(
-      fetchImpl.mock.invocationCallOrder[0],
-    );
   });
 
   /** Built before `ready`, when the cipher cannot read; the record is read when it can. */

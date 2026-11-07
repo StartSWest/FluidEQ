@@ -50,9 +50,6 @@ jest.mock('../../../main/accountCredentials', () => ({
 jest.mock('../../../main/encryptedJsonStore', () => ({
   createEncryptedJsonStore: jest.fn(),
 }));
-jest.mock('../../../main/account/billingClient', () => ({
-  createBillingClient: jest.fn(),
-}));
 const call = (name: string, value: unknown) =>
   mockHandlers.get(name)!(undefined, value);
 let registration: ReturnType<typeof registerAccountIpc>;
