@@ -56,6 +56,7 @@ import createMainSession, {
 } from '../../../main/mainSession';
 import putPresetInState from '../../../main/presetIntoState';
 import { getAutomaticPresetName } from '../../../main/profileStore';
+import gameSeedFor from '../../../renderer/games/gameSeed';
 
 jest.mock('../../../main/ipc/windowMessages', () => ({
   __esModule: true,
@@ -171,6 +172,34 @@ describe('a game’s copy as its Gaming profile makes it', () => {
     expect(copy?.filters).not.toEqual(musicSound().filters);
     expect(copy?.preAmp).not.toBe(-4);
     expect(copy?.isAutoPreAmpOn).toBe(false);
+  });
+
+  it('gives Heroes its own voicing and preserves stereo on a headphone setup', () => {
+    const rack = {
+      ...DSP_DEFAULTS,
+      room: { ...DSP_DEFAULTS.room, enabled: true },
+    };
+    const seed = gameSeedFor('ready:hots', rack);
+    if (!seed) {
+      throw new Error('The Heroes profile is missing');
+    }
+    const copy = gameCopyFromSeed(musicSound(), seed, undefined);
+    expect(copy?.voicing).toEqual(gameCurveVoicing(gameCurveVoicingId('hots')));
+    expect(copy?.dsp).toMatchObject({
+      gameMode: true,
+      footsteps: { enabled: true, lift: 0.35, useRoom: true, duck: false },
+      room: { enabled: false },
+      dynamics: { enabled: false },
+      dimension: { enabled: false },
+    });
+    expect(gameSeedFor('ready:lol', rack)).toMatchObject({
+      gameCurve: gameCurveVoicingId('moba'),
+      dsp: { room: { enabled: true }, footsteps: { lift: 0.6 } },
+    });
+    expect(gameSeedFor('ready:dota2', rack)).toMatchObject({
+      gameCurve: gameCurveVoicingId('moba'),
+      dsp: { room: { enabled: true }, footsteps: { lift: 0.6 } },
+    });
   });
 
   it('is one of the listener’s own whole, with Game mode on, or nothing once it is gone', () => {

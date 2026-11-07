@@ -388,8 +388,10 @@ const FOOTSTEPS_PRESET_TABLE = {
     voices: 0,
     duck: false,
   }),
-  hots: title('Heroes of the Storm', 'moba', 'wideStageV2', {
-    lift: 0.6,
+  // Map calls and abilities carry the fight. Mounts and movement stay audible
+  // within the game's stereo mix, with a lighter lift than the other MOBAs.
+  hots: title('Heroes of the Storm', 'moba', 'none', {
+    lift: 0.35,
     calm: 0,
     heavy: false,
     environment: 0,

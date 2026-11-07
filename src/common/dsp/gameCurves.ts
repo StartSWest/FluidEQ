@@ -13,7 +13,7 @@ import { presetCurve } from './presetCurve';
 import { dspPresetVoicing } from './presetVoicing';
 
 /**
- * The curves a game's own sound starts from, one per kind of game (Ivan,
+ * The curves a game's own sound starts from, by kind or title (Ivan,
  * 2026-11-03: "we draw our own curves" instead of every Gaming profile
  * inheriting the one curve the Gaming chains share, and "make sure those
  * gaming curves show with their name"). A game's copy plays its profile's
@@ -23,7 +23,8 @@ import { dspPresetVoicing } from './presetVoicing';
  * Fifteen gains on the canonical rack, built as every factory curve is
  * (`eqSettingsForPreset`, then `presetCurve`) on the Gaming curve's own
  * model, so a game curve and the Gaming curve differ in shape and in
- * nothing else. Each is level with the Gaming curve as the ear weighs it:
+ * nothing else. The original shared curves are level with the Gaming curve
+ * as the ear weighs it:
  * `heardLevel` of `withCurve` (`.erb/scripts/preset-hearing.ts`) over thirty
  * seconds of each of 22 recorded matches of 21 titles, every curve shifted
  * as a whole (-0.5 to +0.9 dB), never reshaped, and left within 0.04 dB of
@@ -36,6 +37,7 @@ export const GAME_CURVE_IDS = [
   'battle',
   'tactical',
   'moba',
+  'hots',
   'rpg',
   'story',
   'any',
@@ -87,6 +89,13 @@ const GAME_CURVE_TABLE: Record<TGameCurveId, IGameCurveDef> = {
       -0.6, -0.6, -0.1, -0.1, -0.6, -1.1, -0.6, 0.4, 1.4, 1.9, 2.4, 1.9, 1.4,
       0.9, 0.4,
     ],
+  },
+  // Keep the low end of the score and the weight of mounts and impacts.
+  // Gentle presence gives announcer calls and ability attacks room to read
+  // in the mix, without lifting the air and every busy fight sound with it.
+  hots: {
+    labelKey: 'dsp.gamingPreset.abilityClarity',
+    gains: [0, 0, 0, 0, 0, -0.25, -0.2, 0.1, 0.6, 1.1, 1, 0.45, 0, 0, 0],
   },
   // A world to be in: the score and the spells keep their size, quest
   // dialogue a little forward, the top's air kept.
@@ -240,8 +249,8 @@ const GROUP_CURVES: Readonly<Record<string, TGameCurveId>> = {
 };
 
 /**
- * The curve a ready-made Gaming profile starts a game from: its kind's, or
- * its title's group's, with the top kept for a title that renders its own
+ * The curve a ready-made Gaming profile starts a game from: its title's own
+ * voicing or its group's, with the top kept for a title that renders its own
  * 3D sound. None for a title kept as it was mixed (`room: 'none'`, Alien:
  * Isolation — Ivan, 2026-11-01: more frightening as it was mixed), which
  * plays no curve either. A kind or a group added later with no curve of its
@@ -251,6 +260,10 @@ const GROUP_CURVES: Readonly<Record<string, TGameCurveId>> = {
 export const gameCurveForProfile = (
   preset: IFootstepsPreset,
 ): IGameCurve | undefined => {
+  // The Heroes tone is independent of its choice to retain the game's stereo.
+  if (preset.id === 'hots') {
+    return curveFor('hots', false);
+  }
   if (preset.room === 'none') {
     return undefined;
   }
