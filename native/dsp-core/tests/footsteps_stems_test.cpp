@@ -4,9 +4,8 @@ Copyright (C) <2026> <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-// Follow the gains from ONE mixed render, then replay the known stems with
-// those same gains. Subtracting independently detected A/B renders confuses
-// added music with gained footsteps, especially for a weak step on one side.
+// Replay the learned filter and gains from ONE mixed render on known stems.
+// Separate detector runs would misattribute changed music to the footsteps.
 #include "../src/footsteps_internal.h"
 #include "footsteps_test_support.h"
 #include <algorithm>
@@ -59,8 +58,38 @@ void measured_stems(double amount, double step_db, int music) {
   settings.calm = 0;
   feq_footsteps_configure(stage, &settings);
   History history[2][FEQ_FOOTSTEPS_BANDS][2] = {};
+  std::vector<double> past[2][FEQ_FOOTSTEPS_BANDS][2];
+  for (auto& stem : past) {
+    for (int b = 0; b < FEQ_FOOTSTEPS_BANDS; ++b) {
+      for (auto& channel : stem[b]) channel.resize(stage->bed_history[b].length);
+    }
+  }
   double reconstruction = 0;
   for (size_t i = 0; i < steps.left.size(); ++i) {
+    double residual[2][2][FEQ_FOOTSTEPS_BANDS] = {};
+    // The regression is fitted only on the mix. Each stem sees the same
+    // already-learned coefficients, which are linear for this sample.
+    for (int stem = 0; stem < 2; ++stem) {
+      const Signal& source = stem == 0 ? steps : bed;
+      for (int c = 0; c < 2; ++c) {
+        const double x = c == 0 ? source.left[i] : source.right[i];
+        for (int b = 0; b < FEQ_FOOTSTEPS_BANDS; ++b) {
+          const auto& model = stage->state.bed_prediction[b];
+          const auto& delays = stage->bed_history[b];
+          auto& ring = past[stem][b][c];
+          const double y = filter(stage->band[b], history[stem][b][c], x);
+          double predicted = 0.0;
+          if (model.filled == delays.length && (model.active || model.glide_left > 0)) {
+            for (int tap = 0; tap < kBedTaps; ++tap) {
+              const uint32_t at = (model.write + delays.length - delays.delay[tap]) % delays.length;
+              predicted += model.weight[tap] * ring[at];
+            }
+          }
+          ring[model.write] = y;
+          residual[stem][c][b] = y - predicted;
+        }
+      }
+    }
     float l = steps.left[i] + bed.left[i], r = steps.right[i] + bed.right[i];
     float* channels[] = {&l, &r};
     feq_footsteps_process(stage, channels, 1);
@@ -71,8 +100,7 @@ void measured_stems(double amount, double step_db, int music) {
         const double x = c == 0 ? source.left[i] : source.right[i];
         double delta = 0;
         for (int b = 0; b < FEQ_FOOTSTEPS_BANDS; ++b) {
-          delta += (stage->state.band_gain[b] - 1) *
-              filter(stage->band[b], history[stem][b][c], x);
+          delta += (stage->state.band_gain[b] - 1) * residual[stem][c][b];
         }
         (c == 0 ? target.left[i] : target.right[i]) =
             static_cast<float>(x + stage->state.overlay.gain * delta);

@@ -491,7 +491,7 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
   // After the tone is in `settings`, which the De-esser hears its bands
   // through.
   chain_configure_deesser(chain);
-  feq_footsteps_configure(chain->footsteps, &chain->settings.footsteps);
+  chain_configure_footsteps(chain);
   feq_compander_configure(chain->compander, &chain->settings.compander);
   {
     FeqRoomSettings room{};

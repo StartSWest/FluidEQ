@@ -53,8 +53,11 @@ jobs:
       - name: Run unit tests
         run: pnpm test:unit --runInBand
 
-      - name: Render and measure factory music DSP
-        run: pnpm test:music
+      - name: Render factory music DSP and verify Gaming Lab profiles
+        run: |
+          pnpm test:music
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ctest --test-dir native/.build --output-on-failure -C Release -R "^engine-gaming-stability$"
 
       - name: Validate the complete native rack payload
         run: ctest --test-dir native/.build --output-on-failure -C Release -R "^room-contract$"

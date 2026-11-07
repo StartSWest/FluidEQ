@@ -121,6 +121,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/deesser_process.cpp
   dsp-core/src/deesser_decide.cpp
   dsp-core/src/footsteps.cpp
+  dsp-core/src/footsteps_bed.cpp
   dsp-core/src/footsteps_decide.cpp
   dsp-core/src/footsteps_headroom.cpp
   dsp-core/src/game_dialogue.cpp

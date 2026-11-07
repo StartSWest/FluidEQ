@@ -9,6 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "dsp_chain_fixture.h"
 #include "graph_test_support.h"
 #include "../../dsp-core/tests/footsteps_scene.h"
+#include "fluideq/primitives.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -58,13 +59,13 @@ Audio scene(bool steps, double step_db, int music) {
   return audio;
 }
 
-Audio render(const Audio& in, std::vector<double> values, uint32_t& delay,
-             bool without_lift = false) {
-  if (without_lift) {
-    const auto tag = std::find(values.begin(), values.end(), FEQ_CHAIN_FOOTSTEPS_TAG);
-    CHECK(tag != values.end());
-    values[static_cast<size_t>(tag - values.begin()) + 5] = 0;
-  }
+void set_lift(std::vector<double>& values, double lift) {
+  const auto tag = std::find(values.begin(), values.end(), FEQ_CHAIN_FOOTSTEPS_TAG);
+  CHECK(tag != values.end());
+  if (tag != values.end()) values[static_cast<size_t>(tag - values.begin()) + 5] = lift;
+}
+
+fluideq_engine::Chain gaming_chain(const std::vector<double>& values, bool normalize) {
   FeqChainSettings settings{};
   CHECK(feq_chain_settings_decode(values.data(), static_cast<uint32_t>(values.size()), &settings));
   // The trailer tells the rack what the later Preset layer does. Resolve
@@ -77,8 +78,14 @@ Audio render(const Audio& in, std::vector<double> values, uint32_t& delay,
     config += "Filter: ON " + std::string(type) + " Fc " + std::to_string(band.frequency) +
       " Hz Gain " + std::to_string(band.gain_db) + " dB Q " + std::to_string(band.quality) + "\n";
   }
-  auto chain = chain_with(values, config);
-  fluideq_engine::Graph graph(chain, kRate, 2, 480);
+  if (normalize) config += "# FluidEQAutoPreamp: ON\n";
+  return chain_with(values, config);
+}
+
+Audio render(const Audio& in, std::vector<double> values, uint32_t& delay,
+             bool without_lift = false, bool normalize = false) {
+  if (without_lift) set_lift(values, 0);
+  fluideq_engine::Graph graph(gaming_chain(values, normalize), kRate, 2, 480);
   CHECK(mentions(graph.active_stages(), "footsteps"));
   delay = graph.latency_frames();
   Audio out = in;
@@ -119,6 +126,214 @@ void wav(const std::filesystem::path& file, const Audio& audio) {
     out.write(reinterpret_cast<const char*>(&c[i]), 4);
   CHECK(out.good());
 }
+
+constexpr double kScoreHz[] = {100, 300, 500, 900, 1500, 2400, 3100, 4200, 7000};
+constexpr double kScoreAmplitude[] = {0.18, 0.035, 0.042, 0.025, 0.023, 0.022, 0.024, 0.013, 0.012};
+constexpr double kCueTimes[] = {2.8, 3.4, 3.9, 4.4, 5.4, 6.0, 6.3, 6.9, 8.4, 9.6, 10.1, 11.0, 12.4, 13.1, 14.5};
+constexpr double kCueLevel[] = {0.06, 0.09, 0.16, 0.09, 0.08, 0.15, 0.19, 0.065, 0.11, 0.15, 0.17, 0.09, 0.18, 0.10, 0.11};
+
+Audio arena_score(double peak, bool cues, bool narrow, bool change_music = false) {
+  Audio out(2, std::vector<float>(16 * kRate));
+  double largest = 0.0, filtered = 0.0, body = 0.0;
+  size_t event = 0;
+  uint32_t seed = 17839;
+  for (size_t i = 0; i < out[0].size(); ++i) {
+    const double time = static_cast<double>(i) / kRate;
+    double music = 0.0;
+    for (size_t note = 0; note < std::size(kScoreHz); ++note) {
+      double hz = narrow && note == 5 ? 2370.0 : kScoreHz[note];
+      if (change_music && time >= 5.0) hz += 200.0;
+      music += kScoreAmplitude[note] * std::sin(2 * kPi * hz * time + note * 0.71);
+    }
+    music *= 0.88 + 0.12 * std::sin(2 * kPi * 0.2 * time);
+    if (event + 1 < std::size(kCueTimes) && time >= kCueTimes[event + 1]) ++event;
+    const double since = time - kCueTimes[event];
+    seed = seed * 1664525u + 1013904223u;
+    filtered += 0.22 * (seed / 2147483648.0 - 1.0 - filtered);
+    body += 0.025 * (filtered - body);
+    double cue = 0.0;
+    if (since >= 0.0 && since < 0.22) {
+      const double envelope = (1 - std::exp(-since / 0.002)) * std::exp(-since / 0.062);
+      cue = kCueLevel[event] * envelope * (2 * (filtered - body) +
+          0.2 * std::sin(2 * kPi * (1100 * since + 4000 * since * since)));
+    }
+    // Orthogonal stems let one render expose actual bed modulation and cue
+    // gain. Subtracting two unrelated detections cannot separate the stems.
+    out[0][i] = static_cast<float>(music + (cues ? cue : 0));
+    out[1][i] = static_cast<float>(music - (cues ? cue : 0));
+    largest = std::max(largest, std::fabs(music) + std::fabs(cue));
+  }
+  for (auto& channel : out) for (float& x : channel) x = static_cast<float>(x * peak / largest);
+  return out;
+}
+
+double mid(const Audio& audio, size_t at) {
+  return 0.5 * (audio[0][at] + audio[1][at]);
+}
+
+double side(const Audio& audio, size_t at) {
+  return 0.5 * (audio[0][at] - audio[1][at]);
+}
+
+double tone_power(const Audio& audio, double hz, size_t from, size_t span) {
+  double sine = 0.0, cosine = 0.0;
+  for (size_t i = 0; i < span; ++i) {
+    const double phase = 2 * kPi * hz * i / kRate;
+    const double x = mid(audio, from + i);
+    sine += x * std::sin(phase);
+    cosine += x * std::cos(phase);
+  }
+  return sine * sine + cosine * cosine;
+}
+
+struct ArenaMeasure {
+  double bed = 0.0, tone = 0.0, cue = 0.0;
+  double tone_at = 0.0;
+  double tone_hz = 0.0;
+};
+
+ArenaMeasure compare_arena(const Audio& reference, const Audio& output, uint32_t delay,
+                           bool change_music = false) {
+  ArenaMeasure measured;
+  double cue_in = 0.0, cue_out = 0.0;
+  constexpr size_t span = kRate / 20;
+  for (size_t at = 2 * kRate + delay; at + span < output[0].size(); at += span) {
+    double a = 0.0, b = 0.0;
+    for (size_t i = at; i < at + span; ++i) {
+      a += mid(reference, i) * mid(reference, i);
+      b += mid(output, i) * mid(output, i);
+      cue_in += side(reference, i) * side(reference, i);
+      cue_out += side(output, i) * side(output, i);
+    }
+    measured.bed = std::max(measured.bed, std::fabs(10 * std::log10(b / a)));
+    for (double hz : kScoreHz) {
+      if (change_music && at - delay >= 5 * kRate) hz += 200.0;
+      const double change = 10 * std::log10(tone_power(output, hz, at, span) /
+                                            tone_power(reference, hz, at, span));
+      if (std::fabs(change) > measured.tone) {
+        measured.tone = std::fabs(change);
+        measured.tone_at = static_cast<double>(at - delay) / kRate;
+        measured.tone_hz = hz;
+      }
+    }
+  }
+  if (cue_in > 0) measured.cue = 10 * std::log10(cue_out / cue_in);
+  return measured;
+}
+
+double true_peak(const Audio& audio) {
+  double peak = 0.0;
+  for (const auto& channel : audio) {
+    FeqTruePeak meter{};
+    feq_true_peak_init(&meter, 4);
+    peak = std::max(peak, feq_true_peak_block(&meter, channel.data(),
+        static_cast<uint32_t>(channel.size())));
+  }
+  return peak;
+}
+
+void heroes_does_not_ride_the_score(std::vector<double> values, bool narrow) {
+  for (const double peak : {0.38, 0.93}) {
+    const Audio input = arena_score(peak, true, narrow);
+    for (const bool normalize : {false, true}) {
+      uint32_t delay = 0;
+      const Audio reference = render(input, values, delay, true, normalize);
+      const uint32_t reference_delay = delay;
+      for (const double lift : {0.35, 0.6, 1.0}) {
+        if (narrow && lift != 1) continue;
+        set_lift(values, lift);
+        const Audio out = render(input, values, delay, false, normalize);
+        const ArenaMeasure m = compare_arena(reference, out, delay);
+        const double tp = true_peak(out);
+        std::printf("Heroes narrow=%d auto=%d peak=%.2f lift=%.2f: bed %.3f dB, in-band %.3f dB, cues +%.3f dB, TP %.4f\n",
+                    narrow, normalize, peak, lift, m.bed, m.tone, m.cue, tp);
+        CHECK(delay == reference_delay);
+        CHECK(m.bed < 0.2);
+        // The narrow variant tests peak reserve with a deliberately extreme
+        // curve. Its side signal may have no remaining headroom.
+        if (!narrow) {
+          CHECK(m.tone < 0.55);
+          CHECK(m.cue > (peak < 0.9 ? lift * 2.0 : lift * 0.6));
+        } else if (peak < 0.9) {
+          CHECK(m.cue > 0.4);
+        }
+        CHECK(tp < 0.90);
+      }
+    }
+  }
+  if (narrow) return;
+  const Audio music = arena_score(0.38, false, false);
+  uint32_t delay = 0;
+  const Audio quiet = render(music, values, delay, true);
+  const Audio listening = render(music, values, delay);
+  const auto m = compare_arena(quiet, listening, delay);
+  std::printf("Heroes score alone at maximum: bed %.3f dB, in-band %.3f dB\n", m.bed, m.tone);
+  CHECK(m.bed < 0.05);
+  CHECK(m.tone < 0.15);
+}
+
+void heroes_adapts_to_new_music(std::vector<double> values) {
+  const Audio input = arena_score(0.38, true, false, true);
+  uint32_t delay = 0;
+  const Audio dry = render(input, values, delay, true);
+  const uint32_t dry_delay = delay;
+  set_lift(values, 0.6);
+  const Audio out = render(input, values, delay);
+  const auto m = compare_arena(dry, out, delay, true);
+  std::printf("Heroes continuous music change: bed %.3f dB, in-band %.3f dB at %.2f s (%.0f Hz), cues +%.3f dB\n",
+              m.bed, m.tone, m.tone_at, m.tone_hz, m.cue);
+  CHECK(delay == dry_delay);
+  CHECK(m.bed < 0.2 && m.tone < 0.55);
+  CHECK(m.cue > 1.2);
+}
+
+Audio switch_heroes(const std::vector<double>& on, uint32_t& delay, bool change_music) {
+  auto off = on;
+  const auto tag = std::find(off.begin(), off.end(), FEQ_CHAIN_FOOTSTEPS_TAG);
+  CHECK(tag != off.end());
+  if (tag == off.end()) return {};
+  off.erase(tag, tag + FEQ_CHAIN_GAME_TRAILER);
+  fluideq_engine::Graph first(gaming_chain(on, false), kRate, 2, 480);
+  fluideq_engine::Graph bypassed(gaming_chain(off, false), kRate, 2, 480);
+  fluideq_engine::Graph again(gaming_chain(on, false), kRate, 2, 480);
+  delay = first.latency_frames();
+  CHECK(bypassed.latency_frames() == delay && again.latency_frames() == delay);
+  Audio out = arena_score(0.38, true, false, change_music);
+  auto* current = &first;
+  for (size_t i = 0; i < out[0].size(); i += 480) {
+    if (i == 4 * kRate) {
+      bypassed.adopt_state(current);
+      current = &bypassed;
+    } else if (i == 6 * kRate) {
+      again.adopt_state(current);
+      current = &again;
+    }
+    float* block[] = {out[0].data() + i, out[1].data() + i};
+    current->process(block, 480);
+  }
+  return out;
+}
+
+void heroes_filter_switch(const std::vector<double>& on, bool change_music) {
+  auto reference = on;
+  set_lift(reference, 0);
+  uint32_t delay = 0, dry_delay = 0;
+  const Audio out = switch_heroes(on, delay, change_music);
+  // Use the same graph replacements in the reference. The rack transition
+  // itself can affect the first block even when the lift is already zero.
+  const Audio dry = switch_heroes(reference, dry_delay, change_music);
+  CHECK(!out.empty() && !dry.empty() && delay == dry_delay);
+  if (out.empty() || dry.empty()) return;
+  const auto m = compare_arena(dry, out, delay, change_music);
+  std::printf("Heroes switching (music changes=%d): bed %.3f dB, in-band %.3f dB at %.2f s (%.0f Hz), cues +%.3f dB, latency %u frames\n",
+              change_music, m.bed, m.tone, m.tone_at, m.tone_hz, m.cue, delay);
+  CHECK(m.bed < 0.2 && m.tone < 0.55);
+  CHECK(m.cue > 0.8);
+  for (size_t i = 5 * kRate; i < 6 * kRate; ++i) {
+    CHECK(std::fabs(out[0][i] - dry[0][i]) < 1e-6);
+    CHECK(std::fabs(out[1][i] - dry[1][i]) < 1e-6);
+  }
+}
 }
 
 int main(int argc, char** argv) {
@@ -157,6 +372,7 @@ int main(int argc, char** argv) {
     return 2;
   }
   std::ifstream input(argv[1]);
+  const bool heroes_only = argc == 3 && std::string(argv[2]) == "--heroes";
   std::string id;
   uint32_t count = 0;
   size_t tested = 0;
@@ -164,6 +380,19 @@ int main(int argc, char** argv) {
     std::vector<double> values(count);
     for (double& v : values) input >> v;
     CHECK(!input.fail());
+    if (heroes_only) {
+      if (id == "title-hots-full" || id == "title-hots-narrow") {
+        heroes_does_not_ride_the_score(values, id == "title-hots-narrow");
+        if (id == "title-hots-full") {
+          heroes_adapts_to_new_music(values);
+          heroes_filter_switch(values, false);
+          heroes_filter_switch(values, true);
+        }
+        ++tested;
+      }
+      continue;
+    }
+    if (id == "title-hots-narrow") continue;
     for (int music = 0; music < 3; ++music) {
       for (const double level : {-38.0, -20.0}) {
         const Audio bed = scene(false, level, music);
@@ -216,6 +445,6 @@ int main(int argc, char** argv) {
     }
     ++tested;
   }
-  CHECK(tested > 0);
+  CHECK(heroes_only ? tested == 2 : tested > 0);
   return report();
 }

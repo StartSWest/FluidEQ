@@ -106,7 +106,21 @@ void decide(FeqFootsteps& f, bool enabled, double lift, double calm,
                 smoothstep(kLoudLevelFromDb, kLoudLevelToDb, whole_db);
   s.quiet_around = quiet_around;
   s.learning = learning;
-  const double lift_amount = enabled && !learning ? lift : 0.0;
+  if (!learning && s.cue_relearn_left == 0 && s.bed_prediction[0].active &&
+      s.bed_prediction[1].active && s.bed_prediction[2].active &&
+      s.band_power[0] > 1.5 * s.band_power[1] &&
+      s.band_power[0] > 0.12 * s.lift_power[0] &&
+      s.band_power[1] > 0.12 * s.lift_power[1] &&
+      s.band_power[2] > 0.12 * s.lift_power[2]) {
+    // A bass-led change that invalidates all three established predictions
+    // is a new background or a loud event. Give the cue model time to learn
+    // it before the old model can classify the whole change as a step.
+    s.cue_relearn_left = f.learn_frames / 2;
+    for (auto& prediction : s.bed_prediction) prediction = BedPrediction{};
+  }
+  const bool cue_learning = learning || s.cue_relearn_left > 0;
+  s.cue_relearn_left -= std::min(s.cue_relearn_left, f.control_step);
+  const double lift_amount = enabled && !cue_learning ? lift : 0.0;
   FeqFootstepsReport& report = f.report;
   report.level_db = std::max(report.level_db, static_cast<float>(whole_db));
 
@@ -120,7 +134,7 @@ void decide(FeqFootsteps& f, bool enabled, double lift, double calm,
     // band's by tens of milliseconds into a pause, and in that gap the bed
     // used to follow the band down to -240 dB.
     if (sounding && level > kSilenceDb) {
-      const double rise = learning ? f.a_bed_learn : f.a_bed_rise;
+      const double rise = cue_learning ? f.a_bed_learn : f.a_bed_rise;
       s.band_bed[b] += (level > s.band_bed[b] ? rise : f.a_bed_fall) *
                        (level - s.band_bed[b]);
     }
@@ -151,6 +165,7 @@ void decide(FeqFootsteps& f, bool enabled, double lift, double calm,
     // reported lift is the one applied; the per-sample ceiling in the loop
     // catches what arrives between decisions.
     gain_db = std::min(gain_db, std::max(0.0, target_db - db_of(s.lift_power[b])));
+    if (cue_learning) gain_db = 0.0;
     if (want == 0.0 && gain_db < kSettledDb) gain_db = 0.0;
     glide(s.band_gain[b], s.band_step[b], gain_db, step);
   }

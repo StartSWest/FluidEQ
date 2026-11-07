@@ -20,6 +20,7 @@ import {
 import { readyGamingChain } from '../../src/common/gaming';
 import { presetToneOf } from '../../src/common/dsp/presetTone';
 import { dspPresetVoicing } from '../../src/common/dsp/presetVoicing';
+import { FilterTypeEnum } from '../../src/common/constants';
 
 const lines: string[] = [];
 const presets: IDspPreset[] = DSP_PRESETS.filter(
@@ -27,7 +28,7 @@ const presets: IDspPreset[] = DSP_PRESETS.filter(
 );
 // The ready-made titles replace the chain's curve and Game settings, just
 // as gameSeedFor does. No Room is assumed for an original stereo mix.
-(['cs2', 'cod', 'tarkov', 'wow', 'alien', 'valorant'] as const).forEach(
+(['cs2', 'cod', 'tarkov', 'wow', 'alien', 'valorant', 'hots'] as const).forEach(
   (id) => {
     const game = FOOTSTEPS_PRESET_BY_ID[id];
     const chain = DSP_PRESETS.find(
@@ -86,6 +87,17 @@ presets.forEach((preset) => {
     const wire = appendPresetTone(encodeChainSettings(settings), tone);
     lines.push(`${preset.id}-${variant} ${wire.length} ${wire.join(' ')}`);
   });
+  if (preset.id === 'title-hots') {
+    // Narrow boost between the ordinary headroom grid points. This is a
+    // test curve, not the curve the preset plays in the app.
+    const wire = appendPresetTone(encodeChainSettings(preset.settings), {
+      matched: false,
+      bands: [
+        { type: FilterTypeEnum.PK, frequency: 2370, gain: 8, quality: 24 },
+      ],
+    });
+    lines.push(`${preset.id}-narrow ${wire.length} ${wire.join(' ')}`);
+  }
 });
 writeFileSync(
   process.argv[2] ??

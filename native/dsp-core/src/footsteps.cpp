@@ -161,6 +161,10 @@ FeqFootsteps* feq_footsteps_create(double sample_rate, uint32_t channels) {
   if (f == nullptr) return nullptr;
   f->sample_rate = sample_rate;
   f->channels = channels;
+  if (!feq_footsteps_detail::prepare_bed_history(*f)) {
+    delete f;
+    return nullptr;
+  }
   f->control_step = std::max<uint32_t>(
       1u, static_cast<uint32_t>(std::lround(sample_rate / kControlHz)));
   f->learn_frames = static_cast<uint32_t>(std::lround(kLearnSeconds * sample_rate));
@@ -269,6 +273,7 @@ void feq_footsteps_process(FeqFootsteps* footsteps, float* const* channels,
   const bool heavy = f.heavy.load(std::memory_order_relaxed) != 0;
   const double environment = f.environment.load(std::memory_order_relaxed);
   const double voices = f.voices.load(std::memory_order_relaxed);
+  const double cue_ceiling = f.cue_ceiling.load(std::memory_order_relaxed);
   const bool duck = f.duck.load(std::memory_order_relaxed) != 0;
   const int lfe = f.lfe.load(std::memory_order_relaxed);
   const int centre = f.centre.load(std::memory_order_relaxed);
@@ -338,8 +343,12 @@ void feq_footsteps_process(FeqFootsteps* footsteps, float* const* channels,
       for (uint32_t c = 0; c < count; ++c) {
         if (static_cast<int>(c) == lfe) continue;
         y[c] = run_band(f.band[b], s.band_history[b][c], x[c]);
-        const double heard = run_band(f.band[b], s.detect_history[b][c], y[c]);
         peak = std::max(peak, y[c] * y[c]);
+      }
+      feq_footsteps_detail::cue_residual(f, b, lfe, y);
+      for (uint32_t c = 0; c < count; ++c) {
+        if (static_cast<int>(c) == lfe) continue;
+        const double heard = run_band(f.band[b], s.detect_history[b][c], y[c]);
         heard_peak = std::max(heard_peak, heard * heard);
       }
       double& heard_power = s.band_power[b];
@@ -383,9 +392,10 @@ void feq_footsteps_process(FeqFootsteps* footsteps, float* const* channels,
     for (uint32_t c = 0; c < count; ++c) {
       if (static_cast<int>(c) != lfe) cue_delta[c] = added[c] + kc * low[c];
     }
+    const bool adding_cue = s.band_gain[0] > 1 || s.band_gain[1] > 1 || s.band_gain[2] > 1;
     const double overlay = overlay_headroom(f, x, cue_delta, count, lfe,
-        s.overlay, s.band_gain[0] > 1 || s.band_gain[1] > 1 || s.band_gain[2] > 1,
-        f.cue_headroom_hold_frames);
+        s.overlay, adding_cue, f.cue_headroom_hold_frames,
+        adding_cue ? cue_ceiling : feq_footsteps_detail::kOverlayCeiling);
     for (uint32_t c = 0; c < count; ++c) cue_delta[c] *= overlay;
     for (int b = 0; b < FEQ_FOOTSTEPS_BANDS; ++b) {
       applied[b] = std::max(applied[b], (s.band_gain[b] - 1.0) * overlay);
@@ -449,7 +459,10 @@ void feq_footsteps_process(FeqFootsteps* footsteps, float* const* channels,
 
 void feq_footsteps_transfer(FeqFootsteps* prepared, FeqFootsteps* previous) {
   if (prepared == nullptr || previous == nullptr || prepared == previous) return;
+  if (prepared->sample_rate != previous->sample_rate ||
+      prepared->channels != previous->channels) return;
   prepared->state = previous->state;
+  feq_footsteps_detail::transfer_bed_history(*prepared, *previous);
 }
 
 void feq_footsteps_reset(FeqFootsteps* footsteps) {

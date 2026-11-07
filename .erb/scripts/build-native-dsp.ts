@@ -445,6 +445,8 @@ if (shouldTest || shouldMusicTest) {
   if (shouldTest) {
     extractParityFixtures();
     generate('generate-preset-fixtures.ts');
+  }
+  if (shouldTest || isWindows) {
     generate('gaming-stability-fixtures.ts');
   }
   const ctest = path.join(
@@ -461,7 +463,7 @@ if (shouldTest || shouldMusicTest) {
     ...(shouldMusicTest && !shouldTest
       ? [
           '-R',
-          '^(music-factory|host-chain-exchange|colour-filter|source-reference|live-normalizer|song-leveling|exciter|exciter-stereo|exciter-oversample|chain-transfer|chain-switch|engine-output-contract|engine-status|engine-dsp-chain|engine-split-graph)$',
+          '^(music-factory|host-chain-exchange|colour-filter|source-reference|live-normalizer|song-leveling|exciter|exciter-stereo|exciter-oversample|chain-transfer|chain-switch|engine-output-contract|engine-status|engine-dsp-chain|engine-split-graph|footsteps|footsteps-mix|footsteps-overlay|footsteps-stems|game-parts|engine-heroes-cues)$',
         ]
       : []),
   ];

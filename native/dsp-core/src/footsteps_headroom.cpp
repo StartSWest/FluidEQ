@@ -12,10 +12,8 @@ namespace feq_footsteps_detail {
 
 double overlay_headroom(FeqFootsteps& f, const double* dry, const double* added,
                         uint32_t count, int lfe, OverlayHeadroom& state,
-                        bool adds_gain, uint32_t peak_hold_frames) {
-  // One dB before the downstream true-peak guard. The old overlay took a
-  // 0.98 input to 1.53, making that guard duck the entire score.
-  constexpr double ceiling_gain = 0.8912509381337456;
+                        bool adds_gain, uint32_t peak_hold_frames,
+                        double ceiling_gain) {
   double available = 1.0;
   double input_peak = 0.0, added_peak = 0.0, output_peak = 0.0;
   for (uint32_t c = 0; c < count; ++c) {

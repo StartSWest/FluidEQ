@@ -14,6 +14,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <atomic>
 #include <cstdint>
+#include <memory>
 
 #include "fluideq/footsteps.h"
 #include "game_parts.h"
@@ -70,6 +71,34 @@ struct History {
   double z2 = 0.0;
 };
 
+constexpr int kBedTaps = 24;
+constexpr double kOverlayCeiling = 0.8912509381337456;  // -1 dBFS
+
+struct BedFrame {
+  double sample[FEQ_FOOTSTEPS_MAX_CHANNELS] = {};
+};
+
+struct BedHistory {
+  uint32_t delay[kBedTaps] = {};
+  uint32_t length = 0;
+  std::unique_ptr<BedFrame[]> frames;
+};
+
+struct BedPrediction {
+  bool active = false;
+  double weight[kBedTaps] = {};
+  double step[kBedTaps] = {};
+  double covariance[kBedTaps][kBedTaps] = {};
+  double cross[kBedTaps] = {};
+  double energy = 0.0;
+  uint32_t write = 0;
+  uint32_t filled = 0;
+  uint32_t observe_in = 0;
+  uint32_t glide_left = 0;
+  uint32_t observations = 0;
+  uint32_t phase = 1;
+};
+
 struct OverlayHeadroom {
   double gain = 1.0;
   double input_peak = 0.0;
@@ -88,6 +117,8 @@ struct State {
   /** Samples of sound heard since the bed began, up to the learning time. */
   uint32_t heard = 0;
   History band_history[FEQ_FOOTSTEPS_BANDS][FEQ_FOOTSTEPS_MAX_CHANNELS];
+  BedPrediction bed_prediction[FEQ_FOOTSTEPS_BANDS];
+  uint32_t cue_relearn_left = 0;
   /**
    * The band heard through its filter a second time, for the decisions only.
    * One pass leaks 25 dB down at 100 Hz: under a game's music or engine at
@@ -162,11 +193,15 @@ struct FeqFootsteps {
   std::atomic<int> heavy{0};
   std::atomic<double> environment{0.0};
   std::atomic<double> voices{0.0};
+  std::atomic<double> cue_ceiling{feq_footsteps_detail::kOverlayCeiling};
   std::atomic<int> duck{0};
   std::atomic<int> lfe{-1};
   std::atomic<int> centre{-1};
 
   feq_footsteps_detail::BandPass band[FEQ_FOOTSTEPS_BANDS];
+  feq_footsteps_detail::BedHistory bed_history[FEQ_FOOTSTEPS_BANDS];
+  uint32_t bed_observation_frames = 0;
+  uint32_t bed_glide_frames = 0;
   double shelf_c = 0.0;
   // Per sample.
   double a_power_attack = 0.0;
@@ -202,6 +237,10 @@ struct FeqFootsteps {
 
 namespace feq_footsteps_detail {
 
+bool prepare_bed_history(FeqFootsteps& f);
+void cue_residual(FeqFootsteps& f, int band, int lfe, double* samples);
+void transfer_bed_history(FeqFootsteps& prepared, const FeqFootsteps& previous);
+
 /**
  * One decision: where each band's lift and the rumble's cut are going over
  * the next control step, given everything the followers heard up to now
@@ -213,7 +252,8 @@ void decide(FeqFootsteps& f, bool enabled, double lift, double calm,
 /** Linked wet-only protection shared by Environment, cues and Dialogue. */
 double overlay_headroom(FeqFootsteps& f, const double* dry, const double* added,
                         uint32_t count, int lfe, OverlayHeadroom& state,
-                        bool adds_gain, uint32_t peak_hold_frames);
+                        bool adds_gain, uint32_t peak_hold_frames,
+                        double ceiling_gain = kOverlayCeiling);
 
 }  // namespace feq_footsteps_detail
 
