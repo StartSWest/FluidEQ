@@ -65,6 +65,8 @@ export interface IFootstepsPreset {
   title?: string;
   group: TFootstepsPresetGroup;
   room: TGamePresetRoom;
+  /** A title's lift with headphone Room, when that needs more peak margin. */
+  roomLift?: number;
   settings: IFootstepsPresetSettings;
 }
 
@@ -388,16 +390,19 @@ const FOOTSTEPS_PRESET_TABLE = {
     voices: 0,
     duck: false,
   }),
-  // Map calls and abilities carry the fight. Mounts and movement stay audible
-  // within the game's stereo mix, with a lighter lift than the other MOBAs.
-  hots: title('Heroes of the Storm', 'moba', 'none', {
-    lift: 0.35,
-    calm: 0,
-    heavy: false,
-    environment: 0,
-    voices: 0,
-    duck: false,
-  }),
+  // Map calls and abilities carry the fight. Keep a light lift for mounts
+  // and movement, with Wide Stage for listeners who opt into headphone Room.
+  hots: {
+    ...title('Heroes of the Storm', 'moba', 'wideStageV2', {
+      lift: 0.35,
+      calm: 0,
+      heavy: false,
+      environment: 0,
+      voices: 0,
+      duck: false,
+    }),
+    roomLift: 0.23,
+  },
 
   wow: title('World of Warcraft', 'rpg', 'allAroundV2', {
     lift: 0.55,

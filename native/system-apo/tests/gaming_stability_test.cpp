@@ -8,12 +8,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // A tagged continuous bed distinguishes lifted steps from global gain riding.
 #include "dsp_chain_fixture.h"
 #include "graph_test_support.h"
+#include "../src/room_head.h"
 #include "../../dsp-core/tests/footsteps_scene.h"
 #include "fluideq/primitives.h"
 
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 
 namespace {
 using namespace fluideq_engine_test;
@@ -83,10 +85,13 @@ fluideq_engine::Chain gaming_chain(const std::vector<double>& values, bool norma
 }
 
 Audio render(const Audio& in, std::vector<double> values, uint32_t& delay,
-             bool without_lift = false, bool normalize = false) {
+             bool without_lift = false, bool normalize = false,
+             const fluideq_engine::RoomHead* room_head = nullptr) {
   if (without_lift) set_lift(values, 0);
-  fluideq_engine::Graph graph(gaming_chain(values, normalize), kRate, 2, 480);
+  fluideq_engine::Graph graph(gaming_chain(values, normalize), kRate, 2, 480,
+                              nullptr, 0, room_head);
   CHECK(mentions(graph.active_stages(), "footsteps"));
+  if (room_head) CHECK(mentions(graph.active_stages(), "room"));
   delay = graph.latency_frames();
   Audio out = in;
   run_blocks(graph, out, 480);
@@ -232,6 +237,38 @@ double true_peak(const Audio& audio) {
   return peak;
 }
 
+void heroes_has_body_and_presence(std::vector<double> values) {
+  constexpr double hz[] = {80, 315, 2200, 8000, 12500};
+  Audio tones(2, std::vector<float>(std::size(hz) * kRate));
+  for (size_t tone = 0; tone < std::size(hz); ++tone) {
+    for (size_t i = 0; i < kRate; ++i) {
+      const double phase = 2 * kPi * hz[tone] * static_cast<double>(i) / kRate;
+      const float x = static_cast<float>(0.06 * std::sin(phase));
+      tones[0][tone * kRate + i] = x;
+      tones[1][tone * kRate + i] = x;
+    }
+  }
+  uint32_t delay = 0;
+  // At a level well below the ceiling, measure the actual preset curve.
+  // The transient lift is covered separately by the music and cue tests.
+  const Audio out = render(tones, values, delay, true);
+  double gain[std::size(hz)] = {};
+  for (size_t tone = 0; tone < std::size(hz); ++tone) {
+    double before = 0.0, after = 0.0;
+    for (size_t i = tone * kRate + kRate / 4;
+         i < tone * kRate + 3 * kRate / 4; ++i) {
+      before += tones[0][i] * tones[0][i];
+      after += out[0][i + delay] * out[0][i + delay];
+    }
+    gain[tone] = 10 * std::log10(after / before);
+  }
+  std::printf("Heroes tone: body %.2f dB, low mids %.2f dB, presence %.2f dB, highs %.2f/%.2f dB\n",
+              gain[0], gain[1], gain[2], gain[3], gain[4]);
+  CHECK(gain[0] - gain[1] > 3.0);
+  CHECK(gain[2] - gain[1] > 2.5);
+  CHECK(std::fabs(gain[3]) < 1.0 && std::fabs(gain[4]) < 0.75);
+}
+
 void heroes_does_not_ride_the_score(std::vector<double> values, bool narrow) {
   for (const double peak : {0.38, 0.93}) {
     const Audio input = arena_score(peak, true, narrow);
@@ -285,6 +322,31 @@ void heroes_adapts_to_new_music(std::vector<double> values) {
   CHECK(delay == dry_delay);
   CHECK(m.bed < 0.2 && m.tone < 0.55);
   CHECK(m.cue > 1.2);
+}
+
+void heroes_room_keeps_the_hot_score_steady(const std::vector<double>& values,
+                                            const char* head_file) {
+  std::ifstream file(head_file, std::ios::binary);
+  CHECK(file.good());
+  if (!file) return;
+  const std::string text{std::istreambuf_iterator<char>(file),
+                         std::istreambuf_iterator<char>()};
+  const auto head = fluideq_engine::parse_room_head(text, kRate);
+  CHECK(head.has_value());
+  if (!head) return;
+
+  const Audio input = arena_score(0.93, true, false, true);
+  uint32_t dry_delay = 0, delay = 0;
+  const Audio dry = render(input, values, dry_delay, true, false, &*head);
+  const Audio out = render(input, values, delay, false, false, &*head);
+  const auto m = compare_arena(dry, out, delay, true);
+  const double peak = true_peak(out);
+  std::printf("Heroes with Room, hot music change: bed %.3f dB, in-band %.3f dB, cues +%.3f dB, TP %.4f, latency %u frames\n",
+              m.bed, m.tone, m.cue, peak, delay);
+  CHECK(delay == dry_delay);
+  CHECK(m.bed < 0.2 && m.tone < 0.55);
+  CHECK(m.cue > 0.1);
+  CHECK(peak < 0.90);
 }
 
 Audio switch_heroes(const std::vector<double>& on, uint32_t& delay, bool change_music) {
@@ -372,7 +434,8 @@ int main(int argc, char** argv) {
     return 2;
   }
   std::ifstream input(argv[1]);
-  const bool heroes_only = argc == 3 && std::string(argv[2]) == "--heroes";
+  const bool heroes_only = argc >= 3 && std::string(argv[2]) == "--heroes";
+  const bool check_room = heroes_only && argc == 4;
   std::string id;
   uint32_t count = 0;
   size_t tested = 0;
@@ -380,10 +443,18 @@ int main(int argc, char** argv) {
     std::vector<double> values(count);
     for (double& v : values) input >> v;
     CHECK(!input.fail());
+    if (id == "title-hots-room") {
+      if (check_room) {
+        heroes_room_keeps_the_hot_score_steady(values, argv[3]);
+        ++tested;
+      }
+      continue;
+    }
     if (heroes_only) {
       if (id == "title-hots-full" || id == "title-hots-narrow") {
         heroes_does_not_ride_the_score(values, id == "title-hots-narrow");
         if (id == "title-hots-full") {
+          heroes_has_body_and_presence(values);
           heroes_adapts_to_new_music(values);
           heroes_filter_switch(values, false);
           heroes_filter_switch(values, true);
@@ -445,6 +516,6 @@ int main(int argc, char** argv) {
     }
     ++tested;
   }
-  CHECK(heroes_only ? tested == 2 : tested > 0);
+  CHECK(heroes_only ? tested == (check_room ? 3u : 2u) : tested > 0);
   return report();
 }

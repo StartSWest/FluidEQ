@@ -65,7 +65,10 @@ export const pickGame = (
     return { footsteps, room: current.room };
   }
   return {
-    footsteps,
+    footsteps:
+      preset.roomLift === undefined
+        ? footsteps
+        : { ...footsteps, lift: preset.roomLift },
     room: { ...roomPresetSettings(current.room, preset.room), enabled: true },
   };
 };

@@ -88,6 +88,19 @@ presets.forEach((preset) => {
     lines.push(`${preset.id}-${variant} ${wire.length} ${wire.join(' ')}`);
   });
   if (preset.id === 'title-hots') {
+    const withRoom = pickGame(
+      {
+        footsteps: { ...preset.settings.footsteps, useRoom: true },
+        room: { ...preset.settings.room, head: 'large' },
+      },
+      FOOTSTEPS_PRESET_BY_ID.hots,
+      true,
+    );
+    const roomWire = appendPresetTone(
+      encodeChainSettings({ ...preset.settings, ...withRoom }),
+      tone,
+    );
+    lines.push(`${preset.id}-room ${roomWire.length} ${roomWire.join(' ')}`);
     // Narrow boost between the ordinary headroom grid points. This is a
     // test curve, not the curve the preset plays in the app.
     const wire = appendPresetTone(encodeChainSettings(preset.settings), {

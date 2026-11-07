@@ -10,8 +10,8 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 - **Gaming Lab.** Footsteps, voices and ambience add emphasis to the game
   mix within the available headroom. Footsteps keeps sustained music steadier
-  while bringing out cues. Heroes of the Storm has a dedicated mix that
-  keeps the score's body and the game's stereo, with gentler step lift.
+  while bringing out cues. Heroes of the Storm has a dedicated mix with
+  fuller lows, more midrange contrast and optional Wide Stage on headphones.
   Footsteps meters stay aligned when band labels wrap. Standard profiles
   avoid automatic whole-mix compression, while Night keeps the dynamics
   processing intended for quiet listening. Meter readings no longer shift

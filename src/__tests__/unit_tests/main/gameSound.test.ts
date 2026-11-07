@@ -174,7 +174,7 @@ describe('a game’s copy as its Gaming profile makes it', () => {
     expect(copy?.isAutoPreAmpOn).toBe(false);
   });
 
-  it('gives Heroes its own voicing and preserves stereo on a headphone setup', () => {
+  it('gives Heroes its own voicing and offers Wide Stage only with Room enabled', () => {
     const rack = {
       ...DSP_DEFAULTS,
       room: { ...DSP_DEFAULTS.room, enabled: true },
@@ -187,10 +187,14 @@ describe('a game’s copy as its Gaming profile makes it', () => {
     expect(copy?.voicing).toEqual(gameCurveVoicing(gameCurveVoicingId('hots')));
     expect(copy?.dsp).toMatchObject({
       gameMode: true,
-      footsteps: { enabled: true, lift: 0.35, useRoom: true, duck: false },
-      room: { enabled: false },
+      footsteps: { enabled: true, lift: 0.23, useRoom: false, duck: false },
+      room: { enabled: true, presetId: 'wideStageV2', preservePosition: true },
       dynamics: { enabled: false },
       dimension: { enabled: false },
+    });
+    expect(gameSeedFor('ready:hots', DSP_DEFAULTS)).toMatchObject({
+      gameCurve: gameCurveVoicingId('hots'),
+      dsp: { room: { enabled: false }, footsteps: { lift: 0.35 } },
     });
     expect(gameSeedFor('ready:lol', rack)).toMatchObject({
       gameCurve: gameCurveVoicingId('moba'),

@@ -90,12 +90,15 @@ const GAME_CURVE_TABLE: Record<TGameCurveId, IGameCurveDef> = {
       0.9, 0.4,
     ],
   },
-  // Keep the low end of the score and the weight of mounts and impacts.
-  // Gentle presence gives announcer calls and ability attacks room to read
-  // in the mix, without lifting the air and every busy fight sound with it.
+  // Bring out the score's low end and the weight of mounts and impacts.
+  // Ease the low mids so announcer calls and ability attacks have room,
+  // and keep the high treble close to the mix the game made.
   hots: {
     labelKey: 'dsp.gamingPreset.abilityClarity',
-    gains: [0, 0, 0, 0, 0, -0.25, -0.2, 0.1, 0.6, 1.1, 1, 0.45, 0, 0, 0],
+    gains: [
+      1, 2.4, 2.8, 1.55, 0.2, -1.15, -0.15, 0.65, 1.7, 2.8, 2.15, 0.72, 0.3,
+      0.05, 0,
+    ],
   },
   // A world to be in: the score and the spells keep their size, quest
   // dialogue a little forward, the top's air kept.
@@ -260,7 +263,7 @@ const GROUP_CURVES: Readonly<Record<string, TGameCurveId>> = {
 export const gameCurveForProfile = (
   preset: IFootstepsPreset,
 ): IGameCurve | undefined => {
-  // The Heroes tone is independent of its choice to retain the game's stereo.
+  // Heroes uses the same dedicated tone with or without its headphone Room.
   if (preset.id === 'hots') {
     return curveFor('hots', false);
   }

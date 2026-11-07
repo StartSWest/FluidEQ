@@ -167,7 +167,8 @@ target_link_libraries(fluideq-engine-gaming-stability-test
 add_test(NAME engine-gaming-stability COMMAND fluideq-engine-gaming-stability-test
   ${CMAKE_BINARY_DIR}/gaming-stability-fixtures.txt)
 add_test(NAME engine-heroes-cues COMMAND fluideq-engine-gaming-stability-test
-  ${CMAKE_BINARY_DIR}/gaming-stability-fixtures.txt --heroes)
+  ${CMAKE_BINARY_DIR}/gaming-stability-fixtures.txt --heroes
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../assets/room/heads/large.txt)
 # Dynamics' trailer, from lines the TypeScript encoder wrote, likewise.
 add_executable(fluideq-engine-dynamics-line-test tests/dynamics_line_test.cpp)
 target_link_libraries(fluideq-engine-dynamics-line-test
