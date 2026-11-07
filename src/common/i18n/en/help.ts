@@ -519,7 +519,7 @@ const help = {
 
   'help.gallery.title': 'The Visualizers gallery',
   'help.gallery.intro':
-    'Visualizers holds FluidEQ’s own scenes and the ones members publish. Any account can browse them and watch any scene for ten seconds; a scene you get with a credit plays on your music and stays in your looks, for good.',
+    'Visualizers brings together FluidEQ’s own scenes and scenes published by members. Anyone with an account can browse the gallery. If a scene has a published preview, its silent ten-second clip loops until you move on. Scenes without a clip show their cover. A scene you get with a credit plays with your music and stays in your looks.',
   'help.gallery.steps':
     'Open Visualizers → Gallery. Search, sort by Most liked, This week or Newest, or pick a category.\nOpen a scene and press Get to keep it with a credit, then Play on the graph. The arrows, or ← and →, step between scenes.\nLike the scenes you have with the heart, and report one that should not be there.',
   'help.gallery.tip':
@@ -549,7 +549,7 @@ const help = {
   'help.studio.intro':
     'The Studio turns a description into a visualizer. Your own AI assistant writes the scene in a project folder, and FluidEQ plays each version on your music the moment it is saved. The Studio is free for every account.',
   'help.studio.steps':
-    'Open Visualizers → Studio and press New project…. Give it a name; FluidEQ makes its folder with a scene that already moves.\nDescribe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.\nOr type what should change in the chat beside the stage: Claude Code on this computer, signed in with your own plan, edits the scene and plays each version. Every reply keeps its version, with Bring back.\nWatch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….',
+    'Open Visualizers → Studio and press New project…. Give it a name; FluidEQ makes its folder with a scene that already moves.\nDescribe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.\nOr type what should change in the chat beside the stage: Claude Code on this computer, signed in with your own plan, edits the scene and plays each version. Every reply keeps its version, with Bring back.\nWatch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….\nIn Publish…, play music or start the demo to record the silent ten-second preview for the Gallery.',
   'help.studio.tip':
     'Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by FluidEQ’s maker first, and once it is approved it plays free for you everywhere.',
   'help.studio.keywords':

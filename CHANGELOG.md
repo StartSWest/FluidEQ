@@ -6,6 +6,22 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ---
 
+## 2.3.1
+
+- **Gaming Lab.** Footsteps, voices and ambience add emphasis to the game
+  mix within the available headroom. Standard profiles avoid automatic
+  whole-mix compression, while Night keeps the dynamics processing intended
+  for quiet listening. Meter readings no longer shift the controls as they
+  change. Gaming Lab waits for an audio output before comparing a game's
+  tuning with its profile at startup.
+- **Studio and Gallery.** Play music or start the demo to record a sharper,
+  silent ten-second scene preview. Published clips loop in the Gallery
+  and stay cached across sessions until a new scene version replaces them.
+  Scenes without a clip still show their cover.
+- **Support.** Open GitHub Sponsors from About or the Support page.
+- **Account.** Startup checks account access directly and skips the retired
+  membership sync request.
+
 ## 2.3.0
 
 FluidEQ 2.3 brings the Gaming Lab: every game gets a sound of its own,

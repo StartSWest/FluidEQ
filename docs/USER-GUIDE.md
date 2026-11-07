@@ -347,7 +347,7 @@ Give each game its own sound. A game starts from a Gaming profile made for it an
 
 ![Gaming Lab](44-gaming-lab.png)
 
-1. **Hide game list** — The games list scrolls on its own. Drag the divider to change its width, or its height in a narrow layout. Use the chevron to hide or show the list; its size and folded state are remembered.
+1. **Show game icons** — The games list scrolls on its own. Drag the divider to change its width, or its height in a narrow layout. Use the chevron to hide or show the list; its size and folded state are remembered.
 2. **Switch when a game is in front** — Lets a game in front put its own sound on. Off, your games keep your music sound.
 3. **Add a game** — Adds a game from Steam, Epic, EA, GOG, Ubisoft, Battle.net or Xbox, or any program that is open now. FluidEQ, Windows Explorer, known system and launcher processes, and shared runtime installers are left out.
 4. **A game** — The game, the profile its sound started from, and whether you tuned it. Playing means it is in front now.
@@ -368,7 +368,7 @@ Give each game its own sound. A game starts from a Gaming profile made for it an
 
 ### Try it
 
-1. Open the Gaming Lab in the title bar and press Add a game. Pick one from your launchers, a program that is open now, or browse for its program. It starts from the Gaming profile suggested for it; pick another in its Gaming profile list any time.
+1. Open the Gaming Lab in the title bar and press Add a game. Pick one from your launchers, a program that is open now, or browse for its program. It starts from the Gaming profile suggested for it; pick another in its Gaming profile list any time. The list has 33 title-specific profiles, including Counter-Strike 2, Valorant and Fortnite, plus 9 kinds of game.
 2. Press Try it now to put the game’s sound on. Pick a part on the left — the Game filter, EQ, Curve or any DSP stage — and tune it right there. Every change stays in this game’s copy.
 3. Save as profile keeps the copy as one of your own Gaming profiles for other games, updates yours, resets the copy to its profile, renames the copy or deletes it.
 4. Start the game. A card on the desktop says its sound is on, and another says your music sound is back when you close it. The card shows the loaded profile’s name, and names the music profile when it returns.
@@ -510,7 +510,7 @@ The DSP rack is a chain of studio stages. Under the FluidEQ Engine it processes 
 
 ![Explore the DSP rack](20-dsp.png)
 
-1. **Normalizer** — Evens out loudness song by song. True Peak sets one gain for each song instead of limiting it throughout. Presets leave the Normalizer off until you turn it on.
+1. **Normalizer** — Music presets enable Loudness before the effects; None leaves it off. It matches louder passages while preserving quieter ones. True Peak only lowers peaks.
 2. **Denoise** — Repairs hiss, hum and clicks. The neural voice cleaner works on Library tracks.
 3. **De-esser** — The De-esser reduces sharp S, T and SH sounds when they occur. Its four groups decide what it hears, what it turns down, how fast, and where in the stereo sound it acts.
 4. **Exciter** — Adds harmonics for body and air.
@@ -527,7 +527,7 @@ The DSP rack is a chain of studio stages. Under the FluidEQ Engine it processes 
 
 ### Try it
 
-1. Open DSP and choose a whole-rack chain under Presets. A genre preset’s information explains its curve and processing; its listening examples open on YouTube.
+1. Open DSP and choose a whole-rack chain under Presets. A genre preset’s information explains its curve and processing; its listening examples open on YouTube. Newly tuned standard music and genre presets give a more focused, powerful sound and a more consistent listening experience; the 83 genres have fresh level measurements from two named reference songs.
 2. Select a stage in the rail and switch it on. Each stage has its own preset picker; Save there keeps just that stage’s settings.
 3. Compare with the stage bypassed at a similar volume. Isolate, where offered, lets you hear its contribution. Ctrl-click a dial to restore its default.
 4. Save the complete rack when you want to keep the combination, and use Export and Import to carry it elsewhere. A whole-rack preset can replace several stage settings together.
@@ -544,11 +544,12 @@ The Normalizer changes the source level before the creative stages. Library file
 
 ### Try it
 
-1. Open DSP → Normalizer. Choose Off, True Peak or Loudness. Leave it Off when you do not want source-level adjustment.
-2. For Library playback, let Source analysis finish. True Peak sets one gain for the file against Peak ceiling; Loudness aims for Loudness target while respecting the peak limit.
-3. Read Applied gain and the limiting reason. A source cannot always reach the requested loudness without exceeding its peak ceiling.
-4. For external audio under the FluidEQ Engine, the card becomes Live level control with Peak protection or Live leveling. Learning source and Holding gain describe what it is doing now.
-5. Live leveling follows the song Windows identifies. A louder passage can lower the gain held for that song. Switch Off and on to start learning again when the source or its identity was wrong.
+1. Open DSP → Normalizer and choose Off, True Peak or Loudness. For external audio, the same card is called Live level control, with Peak protection and Live leveling modes.
+2. For True Peak, set Peak ceiling. This mode lowers a source when its peaks exceed that limit; it does not boost quieter sources.
+3. For Loudness, set Loudness target and Peak ceiling. The target applies to the loudest three-second passages; clips shorter than three seconds use integrated loudness.
+4. For Library playback, let Source analysis finish. Read Foreground loudness, Integrated loudness and Applied gain: the first describes the strongest passages, while the second measures the whole track.
+5. For Live, play the source while Learning source is shown and watch for Holding gain. A louder passage may lower the gain; quiet passages keep their relative level.
+6. Check Applied gain and any limiting reason before raising the target. Peak headroom and the boost limit can prevent reaching it. Compare at a similar listening volume; one foreground target does not make every track’s whole-song loudness identical.
 
 > **Good to know:** This differs from Auto normalize in the left rail, which manages EQ headroom, and from Master, which trims the finished output. None can repair distortion already in a recording.
 
@@ -766,7 +767,7 @@ An account is optional: everything that was free runs on this computer without o
 
 ## The Visualizers gallery
 
-Visualizers holds FluidEQ’s own scenes and the ones members publish. Any account can browse them and watch any scene for ten seconds; a scene you get with a credit plays on your music and stays in your looks, for good.
+Visualizers brings together FluidEQ’s own scenes and scenes published by members. Anyone with an account can browse the gallery. If a scene has a published preview, its silent ten-second clip loops until you move on. Scenes without a clip show their cover. A scene you get with a credit plays with your music and stays in your looks.
 
 ![The Visualizers gallery](25-plus-visualizers.png)
 
@@ -817,6 +818,7 @@ The Studio turns a description into a visualizer. Your own AI assistant writes t
 2. Describe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.
 3. Or type what should change in the chat beside the stage: Claude Code on this computer, signed in with your own plan, edits the scene and plays each version. Every reply keeps its version, with Bring back.
 4. Watch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….
+5. In Publish…, play music or start the demo to record the silent ten-second preview for the Gallery.
 
 > **Good to know:** Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by FluidEQ’s maker first, and once it is approved it plays free for you everywhere.
 

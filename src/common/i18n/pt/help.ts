@@ -524,7 +524,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.gallery.title': 'A galeria de Visualizadores',
   'help.gallery.intro':
-    'Visualizadores reúne as cenas do próprio FluidEQ e as que os membros publicam. Qualquer conta pode explorá-las e assistir a qualquer cena por dez segundos; uma cena que você obtém com um crédito toca com a sua música e fica nos seus visuais, para sempre.',
+    'Visualizadores reúne as cenas do FluidEQ e as que os membros publicam. Qualquer pessoa com uma conta pode navegar pela galeria. Se uma cena tem uma prévia publicada, o vídeo de dez segundos sem som se repete até você mudar de cena. Cenas sem vídeo mostram a capa. Uma cena que você obtém com um crédito reage à sua música e fica nos seus visuais.',
   'help.gallery.steps':
     'Abra Visualizadores → Galeria. Pesquise, ordene por Mais curtidas, Nesta semana ou Mais novas, ou escolha uma categoria.\nAbra uma cena e pressione Obter para ficar com ela usando um crédito, depois Reproduzir no gráfico. As setas, ou ← e →, passam de uma cena para outra.\nCurta com o coração as cenas que você tem, e denuncie uma que não deveria estar ali.',
   'help.gallery.tip':
@@ -555,7 +555,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.intro':
     'O Estúdio transforma uma descrição em um visualizador. Seu próprio assistente de IA escreve a cena em uma pasta de projeto, e o FluidEQ toca cada versão com sua música no momento em que ela é salva. O Estúdio é grátis para todas as contas.',
   'help.studio.steps':
-    'Abra Visualizadores → Estúdio e pressione Novo projeto…. Dê um nome; o FluidEQ cria a pasta dele com uma cena que já se mexe.\nDescreva sua ideia, abra a pasta no seu assistente de IA e cole o prompt de Copiar prompt para IA.\nOu escreva o que deve mudar no chat ao lado do palco: o Claude Code neste computador, com o seu próprio plano, edita a cena e toca cada versão. Cada resposta guarda a sua versão, com Trazer de volta.\nAcompanhe o palco enquanto os arquivos são salvos e experimente os sinais de teste. Depois, Adicionar aos meus visuais, Publicar… ou Exportar….',
+    'Abra Visualizadores → Estúdio e pressione Novo projeto…. Dê um nome; o FluidEQ cria a pasta dele com uma cena que já se mexe.\nDescreva sua ideia, abra a pasta no seu assistente de IA e cole o prompt de Copiar prompt para IA.\nOu escreva o que deve mudar no chat ao lado do palco: o Claude Code neste computador, com o seu próprio plano, edita a cena e toca cada versão. Cada resposta guarda a sua versão, com Trazer de volta.\nAcompanhe o palco enquanto os arquivos são salvos e experimente os sinais de teste. Depois, Adicionar aos meus visuais, Publicar… ou Exportar….\nEm Publicar…, toque música ou inicie a demonstração para gravar a prévia de dez segundos sem som para a Galeria.',
   'help.studio.tip':
     'Clique duas vezes no palco para tela cheia. Ver por dentro uma cena do FluidEQ… abre uma das cenas do próprio FluidEQ para você aprender com ela; essa cena não pode ser publicada. Cenas que piscam forte demais ou ficam pesadas demais são retidas. Uma cena que você publica é lida antes pelo criador do FluidEQ, e, depois de aprovada, toca de graça para você em todo lugar.',
   'help.studio.keywords':

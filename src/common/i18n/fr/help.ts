@@ -531,7 +531,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.gallery.title': 'La galerie Visualiseurs',
   'help.gallery.intro':
-    'Visualiseurs réunit les scènes de FluidEQ et celles que publient les membres. Tout compte peut les parcourir et regarder n’importe quelle scène pendant dix secondes ; une scène obtenue avec un crédit joue sur votre musique et reste dans vos styles, pour de bon.',
+    'Visualiseurs réunit les scènes de FluidEQ et celles que publient les membres. Toute personne ayant un compte peut parcourir la galerie. Si une scène a un aperçu publié, son clip muet de dix secondes tourne en boucle jusqu’à ce que vous passiez à une autre scène. Les scènes sans clip affichent leur couverture. Une scène obtenue avec un crédit réagit à votre musique et reste dans vos styles.',
   'help.gallery.steps':
     'Ouvrez Visualiseurs → Galerie. Recherchez, triez par Les plus aimées, Cette semaine ou Les plus récentes, ou choisissez une catégorie.\nOuvrez une scène et appuyez sur Obtenir pour la garder avec un crédit, puis sur Lancer sur le graphique. Les flèches, ou ← et →, passent d’une scène à l’autre.\nAimez avec le cœur les scènes que vous avez, et signalez celle qui ne devrait pas être là.',
   'help.gallery.tip':
@@ -563,7 +563,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.intro':
     'Le Studio transforme une description en visualiseur. Votre propre assistant IA écrit la scène dans un dossier de projet, et FluidEQ lance chaque version sur votre musique dès qu’elle est enregistrée. Le Studio est gratuit pour tous les comptes.',
   'help.studio.steps':
-    'Ouvrez Visualiseurs → Studio et appuyez sur Nouveau projet… Donnez-lui un nom ; FluidEQ crée son dossier avec une scène qui bouge déjà.\nDécrivez votre idée, ouvrez le dossier dans votre assistant IA et collez le prompt copié avec Copier le prompt IA.\nOu écrivez ce qui doit changer dans la discussion à côté de la scène : Claude Code sur cet ordinateur, connecté avec votre propre abonnement, modifie la scène et joue chaque version. Chaque réponse garde sa version, avec Rétablir.\nRegardez l’aperçu à chaque enregistrement de fichier et essayez les signaux de test. Puis Ajouter à mes styles, Publier… ou Exporter…',
+    'Ouvrez Visualiseurs → Studio et appuyez sur Nouveau projet… Donnez-lui un nom ; FluidEQ crée son dossier avec une scène qui bouge déjà.\nDécrivez votre idée, ouvrez le dossier dans votre assistant IA et collez le prompt copié avec Copier le prompt IA.\nOu écrivez ce qui doit changer dans la discussion à côté de la scène : Claude Code sur cet ordinateur, connecté avec votre propre abonnement, modifie la scène et joue chaque version. Chaque réponse garde sa version, avec Rétablir.\nRegardez l’aperçu à chaque enregistrement de fichier et essayez les signaux de test. Puis Ajouter à mes styles, Publier… ou Exporter…\nDans Publier…, lancez de la musique ou démarrez la démo pour enregistrer l’aperçu muet de dix secondes destiné à la Galerie.',
   'help.studio.tip':
     'Double-cliquez sur l’aperçu pour le plein écran. Explorer une scène FluidEQ… ouvre l’une des scènes de FluidEQ pour apprendre en l’étudiant ; elle ne peut pas être publiée. Les scènes qui clignotent trop fort ou sont trop lourdes sont retenues. Une scène que vous publiez est d’abord lue par le créateur de FluidEQ, et une fois approuvée, elle joue gratuitement pour vous partout.',
   'help.studio.keywords':

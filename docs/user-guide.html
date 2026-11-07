@@ -2978,7 +2978,7 @@
             <li>
               <span class="n">1</span
               ><span
-                ><span class="name"><strong>Hide game list</strong></span
+                ><span class="name"><strong>Show game icons</strong></span
                 ><span class="text"
                   >The games list scrolls on its own. Drag the divider to change
                   its width, or its height in a narrow layout. Use the chevron
@@ -3124,7 +3124,9 @@
               Open the Gaming Lab in the title bar and press Add a game. Pick
               one from your launchers, a program that is open now, or browse for
               its program. It starts from the Gaming profile suggested for it;
-              pick another in its Gaming profile list any time.
+              pick another in its Gaming profile list any time. The list has 33
+              title-specific profiles, including Counter-Strike 2, Valorant and
+              Fortnite, plus 9 kinds of game.
             </li>
             <li>
               Press Try it now to put the game’s sound on. Pick a part on the
@@ -3843,9 +3845,9 @@
               ><span
                 ><span class="name"><strong>Normalizer</strong></span
                 ><span class="text"
-                  >Evens out loudness song by song. True Peak sets one gain for
-                  each song instead of limiting it throughout. Presets leave the
-                  Normalizer off until you turn it on.</span
+                  >Music presets enable Loudness before the effects; None leaves
+                  it off. It matches louder passages while preserving quieter
+                  ones. True Peak only lowers peaks.</span
                 ></span
               >
             </li>
@@ -3981,7 +3983,10 @@
             <li>
               Open DSP and choose a whole-rack chain under Presets. A genre
               preset’s information explains its curve and processing; its
-              listening examples open on YouTube.
+              listening examples open on YouTube. Newly tuned standard music and
+              genre presets give a more focused, powerful sound and a more
+              consistent listening experience; the 83 genres have fresh level
+              measurements from two named reference songs.
             </li>
             <li>
               Select a stage in the rail and switch it on. Each stage has its
@@ -4030,27 +4035,35 @@
           <h3>Try it</h3>
           <ol>
             <li>
-              Open DSP → Normalizer. Choose Off, True Peak or Loudness. Leave it
-              Off when you do not want source-level adjustment.
+              Open DSP → Normalizer and choose Off, True Peak or Loudness. For
+              external audio, the same card is called Live level control, with
+              Peak protection and Live leveling modes.
             </li>
             <li>
-              For Library playback, let Source analysis finish. True Peak sets
-              one gain for the file against Peak ceiling; Loudness aims for
-              Loudness target while respecting the peak limit.
+              For True Peak, set Peak ceiling. This mode lowers a source when
+              its peaks exceed that limit; it does not boost quieter sources.
             </li>
             <li>
-              Read Applied gain and the limiting reason. A source cannot always
-              reach the requested loudness without exceeding its peak ceiling.
+              For Loudness, set Loudness target and Peak ceiling. The target
+              applies to the loudest three-second passages; clips shorter than
+              three seconds use integrated loudness.
             </li>
             <li>
-              For external audio under the FluidEQ Engine, the card becomes Live
-              level control with Peak protection or Live leveling. Learning
-              source and Holding gain describe what it is doing now.
+              For Library playback, let Source analysis finish. Read Foreground
+              loudness, Integrated loudness and Applied gain: the first
+              describes the strongest passages, while the second measures the
+              whole track.
             </li>
             <li>
-              Live leveling follows the song Windows identifies. A louder
-              passage can lower the gain held for that song. Switch Off and on
-              to start learning again when the source or its identity was wrong.
+              For Live, play the source while Learning source is shown and watch
+              for Holding gain. A louder passage may lower the gain; quiet
+              passages keep their relative level.
+            </li>
+            <li>
+              Check Applied gain and any limiting reason before raising the
+              target. Peak headroom and the boost limit can prevent reaching it.
+              Compare at a similar listening volume; one foreground target does
+              not make every track’s whole-song loudness identical.
             </li>
           </ol>
           <aside class="tip">
@@ -5756,10 +5769,11 @@
             <h2>The Visualizers gallery</h2>
           </header>
           <p>
-            Visualizers holds FluidEQ’s own scenes and the ones members publish.
-            Any account can browse them and watch any scene for ten seconds; a
-            scene you get with a credit plays on your music and stays in your
-            looks, for good.
+            Visualizers brings together FluidEQ’s own scenes and scenes
+            published by members. Anyone with an account can browse the gallery.
+            If a scene has a published preview, its silent ten-second clip loops
+            until you move on. Scenes without a clip show their cover. A scene
+            you get with a credit plays with your music and stays in your looks.
           </p>
           <figure>
             <a
@@ -6026,6 +6040,10 @@
             <li>
               Watch the stage as files are saved and try the test signals. Then
               Add to my looks, Publish… or Export….
+            </li>
+            <li>
+              In Publish…, play music or start the demo to record the silent
+              ten-second preview for the Gallery.
             </li>
           </ol>
           <aside class="tip">
