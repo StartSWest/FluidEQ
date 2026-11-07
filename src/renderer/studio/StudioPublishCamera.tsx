@@ -1,19 +1,29 @@
-import { useCallback, useMemo, useRef, useState, type RefObject } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IScenePack } from 'common/scenePacks';
 import Glyph from '../community/Glyph';
+import {
+  SceneAudioProvider,
+  useSceneAudio,
+  type ISceneAudio,
+} from '../audio/SceneAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
 import type { ISceneTuning } from '../graph/useSceneRunner';
 import ScenePreview, { type TPreviewTrouble } from '../plus/ScenePreview';
 import { useTranslation } from '../utils/I18nContext';
+import { reportError } from '../utils/logger';
 import { createMomentRecorder } from './momentRecorder';
 import StudioPublishVideo from './StudioPublishVideo';
 import usePublishVideo, { type IPublishPreview } from './usePublishVideo';
-import {
-  createStudioSignalBuffers,
-  shapeStudioFrame,
-  type TStudioSignal,
-} from './studioSignals';
+import type { TStudioSignal } from './studioSignals';
+import createPublishDemoAudio from './publishDemoAudio';
 import '../styles/StudioStage.scss';
 
 /** What the scene can hear while its cover is caught. */
@@ -90,6 +100,20 @@ export default function StudioPublishCamera({
   const [quiet, setQuiet] = useState(false);
   const [flashes, setFlashes] = useState(0);
   const recorder = useMemo(createMomentRecorder, []);
+  const liveAudio = useSceneAudio();
+  const demo = useRef<ReturnType<typeof createPublishDemoAudio> | undefined>(
+    undefined,
+  );
+  const stopDemo = useCallback(() => {
+    const playing = demo.current;
+    demo.current = undefined;
+    playing
+      ?.stop()
+      .catch((error: unknown) =>
+        reportError('Stopping the preview demo', error),
+      );
+  }, []);
+  useEffect(() => stopDemo, [stopDemo]);
   const previewChanged = useCallback(
     (preview: IPublishPreview | undefined) => {
       onPreview(preview ? { ...preview, source } : undefined);
@@ -99,6 +123,7 @@ export default function StudioPublishCamera({
   const {
     state: videoState,
     frame: videoFrame,
+    input: videoInput,
     fail: videoFail,
     cancel: videoCancel,
     retry: videoRetry,
@@ -107,6 +132,15 @@ export default function StudioPublishCamera({
     t('studio.publish.videoWatermark'),
     previewChanged,
   );
+  useEffect(() => {
+    const playing = demo.current;
+    playing?.setPaused(liveAudio.isPaused).catch(() => {
+      if (demo.current === playing) {
+        stopDemo();
+        videoFail();
+      }
+    });
+  }, [signal, liveAudio.isPaused, stopDemo, videoFail]);
   const stageTrouble = useCallback(
     (problem: TPreviewTrouble) => {
       setTrouble(problem);
@@ -115,13 +149,52 @@ export default function StudioPublishCamera({
     [videoFail],
   );
 
-  const buffers = useMemo(createStudioSignalBuffers, []);
   const signalRef = useRef(signal);
   signalRef.current = signal;
-  const shapeFrame = useCallback(
-    (frame: ISceneFrame) => shapeStudioFrame(frame, signalRef.current, buffers),
-    [buffers],
+  const audioRef = useRef(liveAudio);
+  audioRef.current = liveAudio;
+  const selectedAudio = useMemo<ISceneAudio>(
+    () => ({
+      points: signal === 'live' ? liveAudio.points : [],
+      waveform: signal === 'live' ? liveAudio.waveform : [],
+      isPaused: liveAudio.isPaused,
+      readFrame: () =>
+        signalRef.current === 'live'
+          ? audioRef.current.readFrame()
+          : (demo.current?.readFrame() ?? {
+              points: [],
+              waveform: [],
+              sound: undefined,
+            }),
+    }),
+    [signal, liveAudio.points, liveAudio.waveform, liveAudio.isPaused],
   );
+  const shapeFrame = useCallback(
+    (frame: ISceneFrame) => {
+      videoInput(frame.playing === true && !audioRef.current.isPaused);
+      return frame;
+    },
+    [videoInput],
+  );
+  const selectSignal = (next: TCameraSignal) => {
+    stopDemo();
+    videoInput(false);
+    setSignal(next);
+    if (next === 'showcase') {
+      try {
+        const playing = createPublishDemoAudio(liveAudio.isPaused);
+        demo.current = playing;
+        playing.ready.catch(() => {
+          if (demo.current === playing) {
+            stopDemo();
+            videoFail();
+          }
+        });
+      } catch {
+        videoFail();
+      }
+    }
+  };
 
   // Counted on drawn frames, and state set only when it flips, so nothing
   // above the canvas renders at frame rate.
@@ -174,21 +247,25 @@ export default function StudioPublishCamera({
             {t(TROUBLE_KEYS[trouble])}
           </p>
         ) : (
-          <ScenePreview
-            captureFrames={
-              videoState.phase === 'preparing' ||
-              videoState.phase === 'recording'
-            }
-            // The member's own work, on its way to the gallery.
-            madeBy="listener"
-            identity={`publish:${identity}`}
-            pack={pack}
-            label={t('studio.stage.label', { name })}
-            onTrouble={stageTrouble}
-            onDrawn={onDrawn}
-            shapeFrame={shapeFrame}
-            tuning={tuning}
-          />
+          <SceneAudioProvider value={selectedAudio}>
+            <ScenePreview
+              captureFrames={
+                videoState.phase === 'waiting' ||
+                videoState.phase === 'preparing' ||
+                videoState.phase === 'recording'
+              }
+              captureSize={{ width: 854, height: 480 }}
+              // The member's own work, on its way to the gallery.
+              madeBy="listener"
+              identity={`publish:${identity}`}
+              pack={pack}
+              label={t('studio.stage.label', { name })}
+              onTrouble={stageTrouble}
+              onDrawn={onDrawn}
+              shapeFrame={shapeFrame}
+              tuning={tuning}
+            />
+          </SceneAudioProvider>
         )}
 
         {flashes > 0 && (
@@ -206,7 +283,7 @@ export default function StudioPublishCamera({
             <button
               type="button"
               className="button small subtle"
-              onClick={() => setSignal('showcase')}
+              onClick={() => selectSignal('showcase')}
             >
               {t('studio.publish.useDemo')}
             </button>
@@ -227,7 +304,7 @@ export default function StudioPublishCamera({
               className="studio-segment"
               aria-pressed={signal === entry.signal}
               disabled={locked || trouble !== undefined}
-              onClick={() => setSignal(entry.signal)}
+              onClick={() => selectSignal(entry.signal)}
             >
               {t(entry.key)}
             </button>

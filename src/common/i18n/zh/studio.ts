@@ -92,6 +92,7 @@ const studio = {
   'studio.publish.videoTitle': '视频预览',
   'studio.publish.videoHint':
     '这段场景视频长 10 秒，无声并带有水印。发布前可在此观看。',
+  'studio.publish.videoWaiting': '播放音乐或启动演示以录制预览。',
   'studio.publish.videoPreparing': '正在准备录制场景…',
   'studio.publish.videoRecording': '正在录制预览 · {seconds} / 10 秒',
   'studio.publish.videoEncoding': '正在完成视频…',

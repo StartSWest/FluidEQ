@@ -13,8 +13,9 @@ export {
   PREVIEW_DURATION_MS,
 } from 'common/scenePreviewMedia';
 const FRAME_MS = 1000 / 30;
-// About 0.6 MB for ten seconds; see MAX_PREVIEW_BYTES for the measurement.
-const BITS_PER_SECOND = 700000;
+// Native 854x480 Alpine: ~1.0 MiB for ten seconds at 950 kbit/s, with visibly
+// cleaner foliage than 700 kbit/s and room below the released 1.5 MiB cap.
+const BITS_PER_SECOND = 950000;
 
 export interface IPreviewVideo {
   blob: Blob;
@@ -132,6 +133,7 @@ export const createPreviewVideoRecorder = (
   let track: CanvasCaptureMediaStreamTrack | undefined;
   let firstAt: number | undefined;
   let lastAt: number | undefined;
+  let lastSlot = -1;
   let elapsedMs = 0;
   let finishing = false;
   let settled = false;
@@ -275,7 +277,8 @@ export const createPreviewVideoRecorder = (
         if (!context || !track || recorder?.state !== 'recording') {
           return;
         }
-        if (lastAt !== undefined && at - lastAt < FRAME_MS) {
+        const slot = Math.floor((at - (firstAt ?? at)) / FRAME_MS);
+        if (lastAt !== undefined && slot === lastSlot) {
           return;
         }
         context.drawImage(source, 0, 0, canvas.width, canvas.height);
@@ -300,6 +303,7 @@ export const createPreviewVideoRecorder = (
         track.requestFrame();
         firstAt ??= at;
         lastAt = at;
+        lastSlot = slot;
         elapsedMs = at - firstAt;
         progress({
           phase: 'recording',

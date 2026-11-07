@@ -101,6 +101,8 @@ const studio = {
   'studio.publish.videoTitle': 'Anteprima video',
   'studio.publish.videoHint':
     'Un video silenzioso di 10 secondi di questa scena, con filigrana. Guardalo qui prima di pubblicare.',
+  'studio.publish.videoWaiting':
+    'Riproduci musica o avvia la demo per registrare l’anteprima.',
   'studio.publish.videoPreparing':
     'Preparazione della scena per la registrazione…',
   'studio.publish.videoRecording': 'Registrazione anteprima · {seconds} / 10 s',

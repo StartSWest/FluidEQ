@@ -99,6 +99,8 @@ const studio = {
   'studio.publish.videoTitle': 'वीडियो प्रीव्यू',
   'studio.publish.videoHint':
     'इस दृश्य का वॉटरमार्क वाला 10 सेकंड का मूक वीडियो। प्रकाशित करने से पहले इसे यहीं देखें।',
+  'studio.publish.videoWaiting':
+    'प्रीव्यू रिकॉर्ड करने के लिए संगीत चलाएँ या डेमो शुरू करें।',
   'studio.publish.videoPreparing': 'दृश्य की रिकॉर्डिंग की तैयारी हो रही है…',
   'studio.publish.videoRecording':
     'प्रीव्यू रिकॉर्ड हो रहा है · {seconds} / 10 सेकंड',

@@ -3,8 +3,7 @@ import { PLUS_TASTE_SECONDS } from 'common/plusTerms';
 import { useTranslation } from '../utils/I18nContext';
 
 /**
- * How long a member watches a scene they do not own play on its page before
- * the way to get it. The number lives with the terms, which quote it, and is
+ * The duration of each loop of a scene they do not own. The number lives with the terms, which quote it, and is
  * the length of the clip the Studio records when a scene is published.
  */
 export const TASTE_SECONDS = PLUS_TASTE_SECONDS;
@@ -14,13 +13,13 @@ interface ISceneTasteProps {
   url: string;
   /** Its first frame is on screen: the page's picture can step behind it. */
   onShown: () => void;
-  /** It ran to its end, or could not play: the page shows the way to get it. */
+  /** It could not play: the page falls back to the captured photo. */
   onOver: () => void;
 }
 
 /**
  * A scene's published clip playing on its page for a member who does not own
- * it — silent, once — with a line filling across the stage as it runs. The
+ * it — silent, looping — with a line filling across the stage as it runs. The
  * scene itself is never sent to them: its code goes to its owners alone
  * (premium 0085), and this is the ten seconds the Studio recorded instead.
  *
@@ -73,8 +72,8 @@ export default function SceneTaste({ url, onShown, onOver }: ISceneTasteProps) {
         muted
         playsInline
         autoPlay
+        loop
         disablePictureInPicture
-        onEnded={() => overRef.current()}
         onError={() => overRef.current()}
       />
       <span className="gallery-preview__tag">

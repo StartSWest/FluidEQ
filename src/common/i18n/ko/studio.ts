@@ -98,6 +98,8 @@ const studio = {
   'studio.publish.videoTitle': '동영상 미리 보기',
   'studio.publish.videoHint':
     '이 장면을 워터마크가 있는 10초 무음 동영상으로 녹화합니다. 게시하기 전에 여기서 확인하세요.',
+  'studio.publish.videoWaiting':
+    '음악을 재생하거나 데모를 시작하여 미리보기를 녹화하세요.',
   'studio.publish.videoPreparing': '장면 녹화 준비 중…',
   'studio.publish.videoRecording': '미리 보기 녹화 중 · {seconds} / 10초',
   'studio.publish.videoEncoding': '동영상 마무리 중…',

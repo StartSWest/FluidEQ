@@ -45,6 +45,7 @@ export const fetchGalleryClip = async (
   auth: IAuthorised,
   authorId: string,
   sceneId: string,
+  version: number,
 ): Promise<IGalleryClip | undefined> => {
   let media: unknown;
   try {
@@ -68,6 +69,45 @@ export const fetchGalleryClip = async (
   );
   if (typeof path !== 'string' || !expected.test(path)) {
     return undefined;
+  }
+  // The deployed media RPC names the CURRENT immutable upload, without a
+  // version. Read catalogue metadata AFTER that name: publication versions
+  // only increase, so a stale page cannot persist new bytes under its old
+  // version. No scene envelope/source is requested to establish this binding.
+  let matched = false;
+  for (let offset = 0; !matched; offset += 60) {
+    const response = await rpc(auth, 'gallery_scenes', {
+      p_author: authorId,
+      p_category: null,
+      p_query: null,
+      p_sort: 'liked',
+      p_limit: 60,
+      p_offset: offset,
+    });
+    if (!response.ok) {
+      return undefined;
+    }
+    const rows: unknown = await response.json();
+    if (!Array.isArray(rows)) {
+      return undefined;
+    }
+    const row = rows.find(
+      (entry: unknown) =>
+        typeof entry === 'object' &&
+        entry !== null &&
+        'author_id' in entry &&
+        entry.author_id === authorId &&
+        'scene_id' in entry &&
+        entry.scene_id === sceneId,
+    );
+    if (row) {
+      if (row.version !== version) {
+        return undefined;
+      }
+      matched = true;
+    } else if (rows.length < 60 || offset >= 6000) {
+      return undefined;
+    }
   }
   // The name carries the upload's own id, so its bytes never change: no
   // version is needed to get past the CDN (`download`).

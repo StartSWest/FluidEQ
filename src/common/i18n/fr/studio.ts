@@ -102,6 +102,8 @@ const studio = {
   'studio.publish.videoTitle': 'Aperçu vidéo',
   'studio.publish.videoHint':
     'Une vidéo silencieuse de 10 secondes de cette scène, avec filigrane. Regardez-la ici avant de publier.',
+  'studio.publish.videoWaiting':
+    'Lancez de la musique ou la démo pour enregistrer votre aperçu.',
   'studio.publish.videoPreparing':
     'Préparation de la scène pour l’enregistrement…',
   'studio.publish.videoRecording':

@@ -101,6 +101,8 @@ const studio = {
   'studio.publish.videoTitle': 'Videovorschau',
   'studio.publish.videoHint':
     'Ein lautloser 10-Sekunden-Clip dieser Szene mit Wasserzeichen. Sehen Sie ihn vor dem Veröffentlichen hier an.',
+  'studio.publish.videoWaiting':
+    'Spielen Sie Musik ab oder starten Sie die Demo, um Ihre Vorschau aufzunehmen.',
   'studio.publish.videoPreparing': 'Szene wird für die Aufnahme vorbereitet…',
   'studio.publish.videoRecording':
     'Vorschau wird aufgenommen · {seconds} / 10 s',

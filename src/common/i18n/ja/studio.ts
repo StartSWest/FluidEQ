@@ -100,6 +100,8 @@ const studio = {
   'studio.publish.videoTitle': '動画プレビュー',
   'studio.publish.videoHint':
     'このシーンの透かし入り10秒動画を無音で録画します。公開前にここで確認できます。',
+  'studio.publish.videoWaiting':
+    '音楽を再生するか、デモを開始してプレビューを録画してください。',
   'studio.publish.videoPreparing': 'シーンの録画を準備中…',
   'studio.publish.videoRecording': 'プレビューを録画中 · {seconds} / 10 秒',
   'studio.publish.videoEncoding': '動画を仕上げています…',

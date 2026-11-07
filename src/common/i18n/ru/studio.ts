@@ -98,6 +98,8 @@ const studio = {
   'studio.publish.videoTitle': 'Видеопредпросмотр',
   'studio.publish.videoHint':
     'Беззвучное видео этой сцены на 10 секунд с водяным знаком. Посмотрите его здесь перед публикацией.',
+  'studio.publish.videoWaiting':
+    'Включите музыку или демо, чтобы записать предпросмотр.',
   'studio.publish.videoPreparing': 'Подготовка сцены к записи…',
   'studio.publish.videoRecording': 'Запись предпросмотра · {seconds} / 10 с',
   'studio.publish.videoEncoding': 'Завершение видео…',

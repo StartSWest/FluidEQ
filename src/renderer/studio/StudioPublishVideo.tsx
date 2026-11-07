@@ -30,9 +30,13 @@ export default function StudioPublishVideo({
       video?.load();
     };
   }, [videoUrl]);
-  const busy = ['preparing', 'recording', 'encoding', 'checking'].includes(
-    state.phase,
-  );
+  const busy = [
+    'waiting',
+    'preparing',
+    'recording',
+    'encoding',
+    'checking',
+  ].includes(state.phase);
   const elapsed = state.phase === 'recording' ? state.elapsedMs : 0;
   const message =
     state.phase === 'recording'
@@ -42,6 +46,7 @@ export default function StudioPublishVideo({
       : t(
           (
             {
+              waiting: 'studio.publish.videoWaiting',
               preparing: 'studio.publish.videoPreparing',
               encoding: 'studio.publish.videoEncoding',
               checking: 'studio.publish.videoChecking',
@@ -67,7 +72,7 @@ export default function StudioPublishVideo({
       >
         {message}
       </p>
-      {busy && (
+      {busy && state.phase !== 'waiting' && (
         <progress
           aria-label={message}
           max={PREVIEW_DURATION_MS}

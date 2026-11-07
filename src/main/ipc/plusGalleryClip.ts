@@ -1,9 +1,5 @@
 import { ipcMain } from 'electron';
-import { MAX_PREVIEW_BYTES } from '../../common/scenePreviewMedia';
-import {
-  createBoundedDiskCache,
-  type IDiskCache,
-} from '../plus/boundedDiskCache';
+import createClipDiskCache from '../plus/clipDiskCache';
 import { sceneRefOf, type IGalleryAccess } from '../plus/galleryAccess';
 import {
   asGalleryClip,
@@ -16,21 +12,11 @@ import {
  * signed in may watch it: the bucket's own rule (premium 0087) says the same,
  * and a member's page never asks for the scene's code to show it.
  *
- * Kept on disk by the scene's version and when it was published, like the
- * pictures: a published version is bound to exactly one clip, so a clip once
+ * Kept on disk by the scene's version: a published version is bound to one
+ * immutable clip, so a clip once
  * watched is never downloaded again — each view of a page would otherwise be
  * a whole file from the bucket. Asked twice at once, it is fetched once.
  */
-
-/** About a hundred clips of 0.6 MB, more than a member watches between releases. */
-export const CLIP_DISK_BYTES = 64 * 1024 * 1024;
-
-const readRevision = (value: unknown) =>
-  typeof value === 'string' &&
-  value.length <= 40 &&
-  Number.isFinite(Date.parse(value))
-    ? value
-    : '';
 
 export interface IGalleryClipIpcDeps {
   access: IGalleryAccess;
@@ -47,47 +33,49 @@ export const registerGalleryClipIpc = ({
   clipDir,
   logger,
 }: IGalleryClipIpcDeps): { dispose(): void } => {
-  const kept: IDiskCache | undefined = clipDir
-    ? createBoundedDiskCache({
-        dir: clipDir,
-        maxBytes: CLIP_DISK_BYTES,
-        extension: '.clip',
-        accepts: (bytes) =>
-          bytes.length <= MAX_PREVIEW_BYTES &&
-          asGalleryClip(bytes) !== undefined,
-      })
-    : undefined;
+  const kept = clipDir ? createClipDiskCache(clipDir) : undefined;
   const inFlight = new Map<string, Promise<IGalleryClip | undefined>>();
 
   const clip = async (
     authorId: string,
     sceneId: string,
     version: number,
-    revision: string,
   ): Promise<IGalleryClip | undefined> => {
+    const account = access.accountId();
+    const allowed = () =>
+      account !== undefined &&
+      access.accountId() === account &&
+      !isBlocked(authorId, sceneId);
     if (isBlocked(authorId, sceneId)) {
       return undefined;
     }
-    const key = `${authorId}/${sceneId}@${version}:${revision}`;
-    // From disk only with a revision to name it by: without one the file
-    // could be an earlier version's clip.
-    const fromDisk = revision ? await kept?.read(key) : undefined;
+    const scene = `${authorId}/${sceneId}`;
+    const fromDisk = await kept?.read(scene, version);
+    if (!allowed()) {
+      return undefined;
+    }
     if (fromDisk) {
       return asGalleryClip(fromDisk);
     }
     const auth = await access.auth();
+    if (!allowed()) {
+      return undefined;
+    }
     const fetched = auth
-      ? await fetchGalleryClip(auth, authorId, sceneId)
+      ? await fetchGalleryClip(auth, authorId, sceneId, version)
       : undefined;
-    if (fetched && revision) {
+    if (!allowed()) {
+      return undefined;
+    }
+    if (fetched) {
       // A disk that will not take it costs only that: the clip still plays.
       await kept
-        ?.write(key, fetched.bytes)
+        ?.write(scene, version, fetched.bytes)
         .catch((error) =>
           logger?.warn(`Could not keep a gallery clip: ${String(error)}`),
         );
     }
-    return fetched;
+    return allowed() ? fetched : undefined;
   };
 
   ipcMain.handle(
@@ -97,26 +85,24 @@ export const registerGalleryClipIpc = ({
       authorId: unknown,
       sceneId: unknown,
       version: unknown,
-      rawRevision: unknown,
     ): Promise<IGalleryClip | undefined> | undefined => {
       const ref = sceneRefOf(authorId, sceneId);
       if (
         !ref ||
         access.accountId() === undefined ||
         typeof version !== 'number' ||
-        !Number.isInteger(version) ||
+        !Number.isSafeInteger(version) ||
         version < 1
       ) {
         return undefined;
       }
-      const revision = readRevision(rawRevision);
-      const key = `${ref.authorId}/${ref.packId}@${version}:${revision}`;
+      const key = `${access.accountId()}:${ref.authorId}/${ref.packId}@${version}`;
       const pending = inFlight.get(key);
       if (pending) {
         return pending;
       }
-      const request = clip(ref.authorId, ref.packId, version, revision).finally(
-        () => inFlight.delete(key),
+      const request = clip(ref.authorId, ref.packId, version).finally(() =>
+        inFlight.delete(key),
       );
       inFlight.set(key, request);
       return request;

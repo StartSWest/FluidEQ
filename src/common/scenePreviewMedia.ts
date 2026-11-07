@@ -6,13 +6,10 @@ import { readScenePreviewMp4 } from './scenePreviewMp4';
 export const SCENE_PREVIEW_MIME = 'video/webm';
 export const SCENE_PREVIEW_CODEC = 'video/webm;codecs=vp8';
 export const SCENE_PREVIEW_MP4_CODEC = 'video/mp4;codecs=avc1.42001F';
-// Every published scene keeps one clip, so storage grows with the catalogue
-// and each view downloads the whole file. Recorded through Chromium's own
-// MediaRecorder from real scenes (2026-10-31, a full-screen city and the
-// campfire): 960x540 at 1.8 Mbit/s came to 1.5 MB, 854x480 at 700 kbit/s to
-// 0.6 MB with the trees and stones still as sharp, where 640x360 at the same
-// size was visibly softer. The cap leaves an encoder 2.5x its target on the
-// busiest scene and refuses anything larger from any client.
+// Preserve the bounds understood by installed 2.3 clients and the upload
+// service. Native 854x480 Alpine at 950 kbit/s measures about 1.0 MiB over
+// ten seconds (2026-11-06). Rendering at that size, rather than enlarging the
+// Publish dialog's thumbnail, improves detail within the existing contract.
 export const MAX_PREVIEW_BYTES = 1.5 * 1024 * 1024;
 export const PREVIEW_MAX_WIDTH = 854;
 export const PREVIEW_MAX_HEIGHT = 480;
