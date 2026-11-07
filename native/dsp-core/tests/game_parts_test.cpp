@@ -26,7 +26,8 @@ using feq_test::kPi;
 
 using Channels = std::vector<std::vector<float>>;
 
-constexpr double kRates[] = {44100.0, 48000.0, 96000.0, 192000.0};
+constexpr double kRates[] = {44100.0, 48000.0, 88200.0, 96000.0,
+                            176400.0, 192000.0, 352800.0, 384000.0};
 
 struct Lcg {
   uint32_t seed;
@@ -125,7 +126,12 @@ void add_steps(Channels& channels, double rate, double hz, double peak,
       const double time = static_cast<double>(i) / rate;
       const double envelope =
           std::min(1.0, time / 0.003) * std::exp(-time / 0.04);
-      const double sample = 3.0 * peak * envelope * shape.run(r.next());
+      // White noise through a fixed-Hz band loses power as the sample rate
+      // rises. Anchor its spectral density at the original 48 kHz fixture:
+      // otherwise the "same" 384 kHz step was nine dB quieter relative to
+      // the scene, which tests different inputs rather than rate parity.
+      const double sample = 3.0 * peak * std::sqrt(rate / 48000.0) *
+                            envelope * shape.run(r.next());
       channels[0][start + i] += static_cast<float>(sample * (1.0 + pan));
       channels[1][start + i] += static_cast<float>(sample * (1.0 - pan));
     }
@@ -424,6 +430,41 @@ void heavy_lifts_the_weight_band_further() {
   check(heavy_db > plain_db + 3.0, "Heavy lifts a hoof's thud 3 dB further");
 }
 
+void every_part_adds_within_the_available_headroom() {
+  for (const double rate : kRates) {
+    for (int part = 0; part < 5; ++part) {
+      Channels scene = dialogue_scene(rate);
+      if (part < 2) {
+        for (size_t c = 0; c < 2; ++c) for (size_t i = 0; i < scene[c].size(); ++i)
+          scene[c][i] = static_cast<float>(std::sin(2 * kPi * 110 * i / rate + c * 0.4));
+      }
+      if (part == 4) {
+        for (size_t c = 0; c < 2; ++c) for (size_t i = 0; i < scene[c].size(); ++i) {
+          const double t = static_cast<double>(i) / rate;
+          const double burst = t > 5 ? std::exp(-(t-5)/0.4) : 0;
+          scene[c][i] = static_cast<float>((0.02 + burst) * std::sin(2*kPi*90*t));
+        }
+      }
+      double peak = 0;
+      for (const auto& c : scene) for (float x : c) peak = std::max(peak, std::fabs(static_cast<double>(x)));
+      for (auto& c : scene) for (float& x : c) x = static_cast<float>(x * 0.98 / peak);
+      auto settings = game();
+      if (part < 2) settings.environment = part == 0 ? 1 : -1;
+      else if (part == 4) settings.calm = 1;
+      else { settings.voices = 1; settings.duck = part == 3 ? 1 : 0; }
+      const auto heard = run(scene, rate, settings);
+      double after = 0;
+      for (const auto& c : heard.out) for (float x : c) after = std::max(after, std::fabs(static_cast<double>(x)));
+      std::printf("  %.0f Hz, part %d: hot original 0.98, output %.8f\n", rate, part, after);
+      check(after <= 0.980001, "Environment, Voices, duck and Calm create no over from a hot original");
+      Channels control = scene;
+      for (auto& c : control) for (float& x : c) x *= 0.25f;
+      check(!same(run(control, rate, settings).out, control),
+            "control: the selected part really changes sound with headroom");
+    }
+  }
+}
+
 }  // namespace
 
 int main() {
@@ -435,5 +476,6 @@ int main() {
   the_bed_comes_down_and_a_step_keeps_its_level();
   a_step_with_its_own_3d_sound_is_not_rain();
   heavy_lifts_the_weight_band_further();
+  every_part_adds_within_the_available_headroom();
   return feq_test::finish();
 }

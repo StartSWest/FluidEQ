@@ -60,11 +60,11 @@ describe('the profiles page', () => {
     render(<GamingProfilesView games={[neonDrift]} onUse={jest.fn()} />);
     const competitive = within(cardOf('Competitive'));
     expect(competitive.getByText('Curve · Competitive')).toBeInTheDocument();
-    // Lift 0.85 of Footsteps' 10 dB, Voices 0.3 of 6, Environment -0.4 of 9.
+    // Lift 0.85 of Footsteps' 10 dB; the new factory pick leaves voices and
+    // environment as mixed, rather than advertising background gain riding.
     // The page's text is matched with its spaces collapsed to one.
     expect(competitive.getByText(/^\+8\.5\sdB$/)).toBeInTheDocument();
-    expect(competitive.getByText(/^\+1\.8\sdB$/)).toBeInTheDocument();
-    expect(competitive.getByText(/^-3\.6\sdB$/)).toBeInTheDocument();
+    expect(competitive.getAllByText(/^0\sdB$/)).toHaveLength(2);
     expect(competitive.getByText('Pinpoint')).toBeInTheDocument();
     expect(
       competitive.getByText(/Neon Drift started from it/),

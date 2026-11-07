@@ -246,6 +246,10 @@ describe('the lines the engine is tested with', () => {
       enabled: true,
       lift: 0.85,
       calm: 0.5,
+      // This frozen line represents the older, deliberately configured Game
+      // settings. A new factory default must not rewrite its wire contract.
+      environment: -0.4,
+      voices: 0.3,
     },
     dynamics: TUNED,
   });

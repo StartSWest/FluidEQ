@@ -157,7 +157,11 @@ void steps_under_the_programme_come_up() {
   add_low_bed(scene.mix, -4.0);
   // Run by hand to read what the stage itself reads the steps band at.
   FeqFootsteps* stage = feq_footsteps_create(kRate, 2);
-  const FeqFootstepsSettings settings = competitive();
+  FeqFootstepsSettings settings = competitive();
+  // This pre-existing combined-parts fixture includes the original 50% Calm.
+  // Keep that saved/manual configuration explicit now that fresh presets
+  // default to additive Lift alone; its 3 dB measurement includes the cut.
+  settings.calm = 0.5;
   feq_footsteps_configure(stage, &settings);
   Signal out = scene.mix;
   std::vector<float> cue;

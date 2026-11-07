@@ -121,12 +121,58 @@ describe('Footsteps profiles', () => {
       'story',
     ].map((id) => FOOTSTEPS_CATALOGUE.settings(id, true));
     expect(battle?.lift).toBeGreaterThan(competitive?.lift ?? 1);
-    expect(battle?.calm).toBeGreaterThan(competitive?.calm ?? 1);
     expect(story?.lift).toBeLessThan(tactical?.lift ?? 0);
+  });
+
+  it('adds cues without riding the score in any fresh Game preset', () => {
+    FOOTSTEPS_PRESETS.forEach(({ settings }) => {
+      expect(settings.lift).toBeGreaterThan(0);
+      expect(settings).toMatchObject({
+        calm: 0,
+        environment: 0,
+        voices: 0,
+        duck: false,
+      });
+    });
+    DSP_PRESETS.filter(
+      ({ group, id }) => group === 'gaming' && id !== 'game-night',
+    ).forEach(({ settings }) => {
+      expect(settings.normalizer.mode).toBe('off');
+      expect(settings.master.enabled).toBe(false);
+      expect(settings.dynamics.enabled).toBe(false);
+      expect(settings.bassForge.enabled).toBe(false);
+      expect(settings.bassPunch.enabled).toBe(false);
+      expect(settings.dimension.enabled).toBe(false);
+      expect(settings.eq.monoBelowHz).toBe(0);
+      expect(
+        settings.eq.bands.some((band) => band.enabled && band.dynamic),
+      ).toBe(false);
+      expect(settings.maximizer.driveDb).toBe(0);
+      expect(settings.footsteps.enabled).toBe(true);
+    });
+    // An explicitly compressed low-volume profile still does what its name says.
+    expect(
+      DSP_PRESETS.find(({ id }) => id === 'game-night')?.settings.dynamics
+        .enabled,
+    ).toBe(true);
   });
 });
 
 describe('a stored Footsteps read back', () => {
+  it('keeps deliberate processing even when its factory preset has changed', () => {
+    const saved = {
+      ...FOOTSTEPS_DEFAULTS,
+      enabled: true,
+      lift: 0.4,
+      calm: 0.7,
+      environment: -0.6,
+      voices: 0.8,
+      duck: true,
+      heavy: true,
+      useRoom: true,
+    };
+    expect(clampFootstepsSettings(saved)).toEqual(saved);
+  });
   it('reads a rack saved before the stage as one with it off', () => {
     expect(clampFootstepsSettings(undefined)).toEqual(FOOTSTEPS_DEFAULTS);
     expect(clampDspSettings({ enabled: true }).footsteps.enabled).toBe(false);

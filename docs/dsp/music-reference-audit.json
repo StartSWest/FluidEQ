@@ -1,14 +1,14 @@
 {
   "schema": 2,
-  "measuredAt": "2026-11-06T00:29:33.060Z",
+  "measuredAt": "2026-11-07T00:04:52.452Z",
   "sampleRateHz": 48000,
   "method": "Factory-only floating-point offline renders. Foreground normalization uses the maximum complete three-second window on a 100 ms grid; integrated loudness is reported separately, not forced equal by compressing quiet passages.",
   "headphoneCorrection": false,
   "liveApplicationSettings": false,
   "outputDevicesOpened": false,
   "manifestSha256": "b16d72da03a11d69d788033ce9d62cb44a01874e52eb647b5d0802f73dab3c54",
-  "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-  "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
+  "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+  "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
   "processingSources": {
     "files": [
       ".erb/scripts/build-native-dsp.ts",
@@ -113,6 +113,7 @@
       "native/dsp-core/src/fft.cpp",
       "native/dsp-core/src/footsteps.cpp",
       "native/dsp-core/src/footsteps_decide.cpp",
+      "native/dsp-core/src/footsteps_headroom.cpp",
       "native/dsp-core/src/footsteps_internal.h",
       "native/dsp-core/src/game_dialogue.cpp",
       "native/dsp-core/src/game_environment.cpp",
@@ -380,7 +381,7 @@
       "src/renderer/dsp/oversample.ts",
       "src/renderer/dsp/truePeak.ts"
     ],
-    "sha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd"
+    "sha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9"
   },
   "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
   "media": [
@@ -1056,9 +1057,9 @@
       "chainId": "pop",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -1523,10 +1524,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -1871,9 +1872,9 @@
       "chainId": "indiePop",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -2339,10 +2340,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -2688,9 +2689,9 @@
       "chainId": "synthPop",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -3156,10 +3157,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -3505,9 +3506,9 @@
       "chainId": "newWave",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -3973,10 +3974,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -4322,9 +4323,9 @@
       "chainId": "kPop",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -4789,10 +4790,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -5132,9 +5133,9 @@
       "chainId": "jPop",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -5600,10 +5601,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -5949,9 +5950,9 @@
       "chainId": "cPop",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -6417,10 +6418,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -6766,9 +6767,9 @@
       "chainId": "ballad",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -7234,10 +7235,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -7578,9 +7579,9 @@
       "chainId": "rock",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -8046,10 +8047,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -8395,9 +8396,9 @@
       "chainId": "popRock",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -8863,10 +8864,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -9212,9 +9213,9 @@
       "chainId": "classicRock",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -9680,10 +9681,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -10029,9 +10030,9 @@
       "chainId": "alternativeRock",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -10497,10 +10498,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -10846,9 +10847,9 @@
       "chainId": "indieRock",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -11314,10 +11315,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -11658,9 +11659,9 @@
       "chainId": "progressiveRock",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -12126,10 +12127,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -12470,9 +12471,9 @@
       "chainId": "hardRock",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -12938,10 +12939,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -13287,9 +13288,9 @@
       "chainId": "metal",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -13755,10 +13756,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -14104,9 +14105,9 @@
       "chainId": "punk",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -14572,10 +14573,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -14921,9 +14922,9 @@
       "chainId": "popPunk",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -15389,10 +15390,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -15738,9 +15739,9 @@
       "chainId": "grunge",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -16206,10 +16207,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -16550,9 +16551,9 @@
       "chainId": "country",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -17018,10 +17019,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -17367,9 +17368,9 @@
       "chainId": "modernCountry",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -17835,10 +17836,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -18179,9 +18180,9 @@
       "chainId": "americana",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -18647,10 +18648,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -18998,9 +18999,9 @@
       "chainId": "bluegrass",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -19466,10 +19467,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -19814,9 +19815,9 @@
       "chainId": "folk",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -20282,10 +20283,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -20633,9 +20634,9 @@
       "chainId": "acoustic",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -21101,10 +21102,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -21452,9 +21453,9 @@
       "chainId": "singerSongwriter",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -21920,10 +21921,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -22269,9 +22270,9 @@
       "chainId": "hiphop",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -22737,10 +22738,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -23081,9 +23082,9 @@
       "chainId": "rap",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -23549,10 +23550,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -23893,9 +23894,9 @@
       "chainId": "trap",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -24361,10 +24362,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -24710,9 +24711,9 @@
       "chainId": "rnb",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -25178,10 +25179,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -25522,9 +25523,9 @@
       "chainId": "soul",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -25990,10 +25991,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -26334,9 +26335,9 @@
       "chainId": "neoSoul",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -26802,10 +26803,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -27146,9 +27147,9 @@
       "chainId": "funk",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -27614,10 +27615,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -27963,9 +27964,9 @@
       "chainId": "disco",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -28431,10 +28432,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -28780,9 +28781,9 @@
       "chainId": "jazz",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -29248,10 +29249,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -29587,9 +29588,9 @@
       "chainId": "smoothJazz",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -30055,10 +30056,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -30394,9 +30395,9 @@
       "chainId": "fusion",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -30862,10 +30863,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -31201,9 +31202,9 @@
       "chainId": "blues",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -31669,10 +31670,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -32013,9 +32014,9 @@
       "chainId": "classical",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -32481,10 +32482,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -32815,9 +32816,9 @@
       "chainId": "orchestra",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -33283,10 +33284,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -33617,9 +33618,9 @@
       "chainId": "opera",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -34085,10 +34086,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -34428,9 +34429,9 @@
       "chainId": "piano",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -34896,10 +34897,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -35230,9 +35231,9 @@
       "chainId": "strings",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -35698,10 +35699,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -36032,9 +36033,9 @@
       "chainId": "electronic",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -36500,10 +36501,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -36839,9 +36840,9 @@
       "chainId": "edm",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -37307,10 +37308,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -37646,9 +37647,9 @@
       "chainId": "house",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -38114,10 +38115,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -38458,9 +38459,9 @@
       "chainId": "techno",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -38926,10 +38927,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -39270,9 +39271,9 @@
       "chainId": "trance",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -39738,10 +39739,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -40077,9 +40078,9 @@
       "chainId": "drum-bass",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -40545,10 +40546,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -40889,9 +40890,9 @@
       "chainId": "dubstep",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -41357,10 +41358,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -41696,9 +41697,9 @@
       "chainId": "downtempo",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -42164,10 +42165,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -42508,9 +42509,9 @@
       "chainId": "chillout",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -42976,10 +42977,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -43320,9 +43321,9 @@
       "chainId": "lofi",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -43788,10 +43789,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -44127,9 +44128,9 @@
       "chainId": "ambient",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -44595,10 +44596,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -44934,9 +44935,9 @@
       "chainId": "newAge",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -45402,10 +45403,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -45746,9 +45747,9 @@
       "chainId": "reggae",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -46214,10 +46215,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -46560,9 +46561,9 @@
       "chainId": "dub",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -47028,10 +47029,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -47372,9 +47373,9 @@
       "chainId": "dancehall",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -47840,10 +47841,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -48184,9 +48185,9 @@
       "chainId": "ska",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -48652,10 +48653,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -48996,9 +48997,9 @@
       "chainId": "latin",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -49464,10 +49465,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -49808,9 +49809,9 @@
       "chainId": "latinPop",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -50276,10 +50277,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -50630,9 +50631,9 @@
       "chainId": "reggaeton",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -51098,10 +51099,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -51442,9 +51443,9 @@
       "chainId": "salsa",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -51910,10 +51911,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -52259,9 +52260,9 @@
       "chainId": "bachata",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -52727,10 +52728,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -53071,9 +53072,9 @@
       "chainId": "merengue",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -53539,10 +53540,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -53888,9 +53889,9 @@
       "chainId": "cumbia",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -54356,10 +54357,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -54705,9 +54706,9 @@
       "chainId": "bossaNova",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -55173,10 +55174,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -55522,9 +55523,9 @@
       "chainId": "samba",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -55990,10 +55991,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -56339,9 +56340,9 @@
       "chainId": "flamenco",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -56807,10 +56808,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -57156,9 +57157,9 @@
       "chainId": "regionalMexican",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -57624,10 +57625,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -57973,9 +57974,9 @@
       "chainId": "corridos",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -58441,10 +58442,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -58785,9 +58786,9 @@
       "chainId": "afrobeat",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -59253,10 +59254,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -59607,9 +59608,9 @@
       "chainId": "afrobeats",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -60075,10 +60076,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -60419,9 +60420,9 @@
       "chainId": "amapiano",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -60886,10 +60887,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -61230,9 +61231,9 @@
       "chainId": "highlife",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -61698,10 +61699,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -62047,9 +62048,9 @@
       "chainId": "world",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -62515,10 +62516,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -62854,9 +62855,9 @@
       "chainId": "bollywood",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -63322,10 +63323,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -63671,9 +63672,9 @@
       "chainId": "bhangra",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -64139,10 +64140,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -64488,9 +64489,9 @@
       "chainId": "indianClassical",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -64956,10 +64957,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -65292,9 +65293,9 @@
       "chainId": "arabicPop",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -65760,10 +65761,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -66114,9 +66115,9 @@
       "chainId": "turkishPop",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -66582,10 +66583,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -66936,9 +66937,9 @@
       "chainId": "gospel",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -67404,10 +67405,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -67748,9 +67749,9 @@
       "chainId": "christian",
       "calibrationOnly": false,
       "provenance": {
-        "nativeEngineSha256": "8d6a92eec29002bfa844f75ff1d5fad91f91e35bc4e859f0fd88e6948499e885",
-        "nativeMeterSha256": "bf83d46d6b212e05850688a4ff6467c6bb82ab0c60011fcc4b5f2e8fd1c819ca",
-        "processingSha256": "52b4bb1e5b55ae37501cc7f7f76f8b92ce229728006fc2f363f4ed11c58a96fd",
+        "nativeEngineSha256": "100bde9cd84328a60a18ce4900d2aec95b4280670596085e430d673c5392e375",
+        "nativeMeterSha256": "3ff926c9bd530096a031b7d9059fcd9e9fa13c75ddf06685f176af830fdc791b",
+        "processingSha256": "bb281c8ce1b594fe4f4212ec3d9405307338cfe802ae11bd0db841ca0541cab9",
         "policySha256": "92601ee4fe6e9885f13cca913586675dce47ee30c33ec6a17de58a75e3c485db",
         "media": [
           {
@@ -68216,10 +68217,10 @@
           "isolate": false,
           "presetId": "competitive",
           "lift": 0.85,
-          "calm": 0.5,
+          "calm": 0,
           "heavy": false,
-          "environment": -0.4,
-          "voices": 0.3,
+          "environment": 0,
+          "voices": 0,
           "duck": false,
           "useRoom": false
         },
@@ -68556,7 +68557,7 @@
       "meanOutputLufs": -14.395378117
     }
   ],
-  "nativeEffectSha256": "aa69ec51d46381a6ee285d3126acf0d36ca164b8c92d624ef3855c28ab4e11f6",
+  "nativeEffectSha256": "ba56f9777b4c421e60e64c0159e74990614f112a894d0d8ba60c18f6993e79f9",
   "approvalComparison": {
     "approvedCheckpoint": "130b69ff78ab813759594829fa06f859fd2f94a2",
     "curvesUnchanged": true,

@@ -463,140 +463,94 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
 
   // The Gaming tab's chains (group 'gaming', `presetScope.tsx`), one per
   // need rather than per title: a game's own profile names the chain its
-  // kind starts from (`gameSeed.ts`). Every stage is a gaming profile
-  // measured on recorded matches, and each chain runs game mode. No chain
-  // carries the Room: a game's pick decides it (`pickGame`).
+  // kind starts from (`gameSeed.ts`). Tone and additive cues keep the score
+  // and the game's stereo placement steady. The old stack of Dynamics,
+  // ambience riding, bass synthesis and widening moved both. Those remain
+  // available as deliberate edits; factory picks do not turn them on.
+  // Night is explicitly for compressing the whole mix at low volume.
+  // No chain carries the Room: a game's pick decides it (`pickGame`).
   {
-    // Competitive shooters: steps, reloads and direction first. Nothing widens
-    // or rooms the picture, the lows are held so a blast does not mask, and
-    // the ceiling only catches overs.
     id: 'game-pinpoint',
     labelKey: 'dsp.gamingChain.pinpoint',
     group: 'gaming',
     eq: 'gameFootstepFocus',
     footsteps: 'competitive',
     gameMode: true,
-    dynamics: 'gameCompetitiveLight',
-    bassPunch: 'gameTight',
-    dimension: 'gamePositionSafe',
     maximizer: 'gameCleanCeiling',
   },
   {
-    // Battle royale and large battles: blasts held where they happen and let
-    // go fast, so the far step after one is heard.
     id: 'game-blast',
     labelKey: 'dsp.gamingChain.blast',
     group: 'gaming',
     eq: 'gameBlastTamer',
     footsteps: 'battleRoyale',
     gameMode: true,
-    dynamics: 'gameBlastGuard',
-    bassPunch: 'gameTight',
-    dimension: 'gamePositionSafe',
-    // gameBattle's drive put the chain 2 dB over the global Gaming chain;
-    // Blast guard already holds the blasts.
-    maximizer: 'gameCinematic',
+    maximizer: 'gameCleanCeiling',
   },
   {
-    // Tactical, survival, extraction: the quiet world lifted, its dynamics
-    // otherwise kept, hooves and heavy boots carried by the Game filter.
     id: 'game-stealth',
     labelKey: 'dsp.gamingChain.stealth',
     group: 'gaming',
     eq: 'gameFootstepFocus',
     footsteps: 'tactical',
     gameMode: true,
-    dynamics: 'gameQuietLift',
-    dimension: 'gamePositionSafe',
     maximizer: 'gameCleanCeiling',
   },
   {
-    // Story and action-adventure: impact and weight, dialogue forward with the
-    // score stepping back, a wide picture.
     id: 'game-cinematic',
     labelKey: 'dsp.gamingChain.cinematic',
     group: 'gaming',
     eq: 'gameCinematic',
     footsteps: 'story',
     gameMode: true,
-    // Bass Punch alone owns the low end, as in every chain
-    // (`lets one stage own the bass`): Impact brings the weight.
-    bassPunch: 'gameImpact',
-    dimension: 'gameOpenWorld',
-    // The ceiling alone: Impact and the Forge already bring the weight, and
-    // with the profile's drive too the chain stood 2 dB over the others.
     maximizer: 'gameCleanCeiling',
   },
   {
-    // Horror: ambience up, the low drone kept, quiet creaks lifted, and the
-    // loud end untouched so a scare still lands.
     id: 'game-dread',
     labelKey: 'dsp.gamingChain.dread',
     group: 'gaming',
     eq: 'gameDread',
     footsteps: 'story',
     gameMode: true,
-    dynamics: 'gameQuietLift',
-    bassForge: 'gameRumble',
     maximizer: 'gameCleanCeiling',
   },
   {
-    // MOBA, RTS, strategy: ability cues and hero lines clear, team fights
-    // calmed, the stage wide since nothing is behind you.
     id: 'game-topdown',
     labelKey: 'dsp.gamingChain.topDown',
     group: 'gaming',
     eq: 'gameAbilityClarity',
     footsteps: 'topDown',
     gameMode: true,
-    dynamics: 'gameLongSession',
-    dimension: 'gameBattlefield',
-    // The ceiling alone, for the level: Long session already evens it out.
     maximizer: 'gameCleanCeiling',
   },
   {
-    // MMO and open-world RPG: atmosphere and quest dialogue, easy on the ears
-    // for hours.
     id: 'game-worlds',
     labelKey: 'dsp.gamingChain.worlds',
     group: 'gaming',
     eq: 'gameVoicesForward',
     footsteps: 'worlds',
     gameMode: true,
-    dynamics: 'gameLongSession',
-    dimension: 'gameOpenWorld',
     maximizer: 'gameCleanCeiling',
   },
   {
-    // Racing and driving: engine weight without boom, tyres and gear changes
-    // forward, wind held down.
     id: 'game-speed',
     labelKey: 'dsp.gamingChain.speed',
     group: 'gaming',
     eq: 'gameEngineTyres',
     footsteps: 'speed',
     gameMode: true,
-    bassForge: 'gameEngine',
-    dimension: 'gameOpenWorld',
-    maximizer: 'gameCinematic',
+    maximizer: 'gameCleanCeiling',
   },
   {
-    // Fighting, action, sports: every hit lands, the crowd held under the
-    // announcer, short peaks caught without pumping.
     id: 'game-impact',
     labelKey: 'dsp.gamingChain.impact',
     group: 'gaming',
     eq: 'gameCinematic',
     footsteps: 'impact',
     gameMode: true,
-    dynamics: 'gameBlastGuard',
-    bassPunch: 'gameImpact',
-    dimension: 'gamePositionSafe',
-    maximizer: 'gameCinematic',
+    maximizer: 'gameCleanCeiling',
   },
   {
-    // Any game at low volume: everything quiet up, everything loud held, the
-    // bass that travels through a wall down.
     id: 'game-night',
     labelKey: 'dsp.gamingChain.night',
     group: 'gaming',

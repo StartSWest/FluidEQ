@@ -70,6 +70,16 @@ struct History {
   double z2 = 0.0;
 };
 
+struct OverlayHeadroom {
+  double gain = 1.0;
+  double input_peak = 0.0;
+  double added_peak = 0.0;
+  double output_peak = 0.0;
+  uint32_t input_hold = 0;
+  uint32_t added_hold = 0;
+  uint32_t output_hold = 0;
+};
+
 /** Everything that runs with the sound, and moves to a prepared chain. */
 struct State {
   bool running = false;
@@ -101,6 +111,10 @@ struct State {
   /** Linear gains, stepped a sample at a time toward each decision. */
   double band_gain[FEQ_FOOTSTEPS_BANDS] = {1.0, 1.0, 1.0};
   double band_step[FEQ_FOOTSTEPS_BANDS] = {};
+  /** Headroom limits only the added cue, never the original mix. */
+  OverlayHeadroom overlay;
+  OverlayHeadroom environment_overlay;
+  OverlayHeadroom dialogue_overlay;
   double whole_power = 0.0;
   /** The programme's level, dB, and the band target's power from it. */
   double programme_db = kFloorDb;
@@ -157,6 +171,10 @@ struct FeqFootsteps {
   // Per sample.
   double a_power_attack = 0.0;
   double a_power_release = 0.0;
+  double a_overlay_release = 0.0;
+  double a_headroom_peak_release = 0.0;
+  uint32_t headroom_hold_frames = 0;
+  uint32_t cue_headroom_hold_frames = 0;
   double a_whole_release = 0.0;
   double a_calm_power_release = 0.0;
   // Per decision.
@@ -191,6 +209,11 @@ namespace feq_footsteps_detail {
  */
 void decide(FeqFootsteps& f, bool enabled, double lift, double calm,
             bool heavy);
+
+/** Linked wet-only protection shared by Environment, cues and Dialogue. */
+double overlay_headroom(FeqFootsteps& f, const double* dry, const double* added,
+                        uint32_t count, int lfe, OverlayHeadroom& state,
+                        bool adds_gain, uint32_t peak_hold_frames);
 
 }  // namespace feq_footsteps_detail
 

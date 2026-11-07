@@ -122,6 +122,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/deesser_decide.cpp
   dsp-core/src/footsteps.cpp
   dsp-core/src/footsteps_decide.cpp
+  dsp-core/src/footsteps_headroom.cpp
   dsp-core/src/game_dialogue.cpp
   dsp-core/src/game_environment.cpp
   dsp-core/src/game_shared.cpp
@@ -234,6 +235,14 @@ add_test(NAME footsteps COMMAND fluideq-footsteps-test)
 add_executable(fluideq-footsteps-mix-test dsp-core/tests/footsteps_mix_test.cpp)
 target_link_libraries(fluideq-footsteps-mix-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME footsteps-mix COMMAND fluideq-footsteps-mix-test)
+
+add_executable(fluideq-footsteps-overlay-test dsp-core/tests/footsteps_overlay_test.cpp)
+target_link_libraries(fluideq-footsteps-overlay-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME footsteps-overlay COMMAND fluideq-footsteps-overlay-test)
+
+add_executable(fluideq-footsteps-stems-test dsp-core/tests/footsteps_stems_test.cpp)
+target_link_libraries(fluideq-footsteps-stems-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME footsteps-stems COMMAND fluideq-footsteps-stems-test)
 
 add_executable(fluideq-compander-test dsp-core/tests/compander_test.cpp)
 target_link_libraries(fluideq-compander-test PRIVATE fluideq-dsp-core feq_strict)

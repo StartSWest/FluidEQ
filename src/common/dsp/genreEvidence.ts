@@ -230,7 +230,7 @@ export const genreSources = (id: string): string | undefined =>
 /**
  * Current factory-only reference measurements: mean loudness change against
  * untouched source in LU, and highest final true peak in dBTP. Two named
- * recordings per genre, measured 2026-11-05 without headset/user correction,
+ * recordings per genre, measured 2026-11-06 without headset/user correction,
  * live settings, system Auto normalize or an output device. Full settings,
  * raw source/output levels and peak-constrained strength limitations are
  * recorded in docs/dsp/music-reference-audit.json. These are playback

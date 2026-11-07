@@ -445,6 +445,7 @@ if (shouldTest || shouldMusicTest) {
   if (shouldTest) {
     extractParityFixtures();
     generate('generate-preset-fixtures.ts');
+    generate('gaming-stability-fixtures.ts');
   }
   const ctest = path.join(
     path.dirname(tools.cmake),

@@ -14,6 +14,7 @@ import {
   IFootstepsSettings,
 } from '../../common/dsp/footsteps';
 import { TranslationKey } from '../../common/i18n/en';
+import LiveFigure from '../components/LiveFigure';
 import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
 import { Dial } from './DspControls';
@@ -50,6 +51,7 @@ const BANDS: readonly {
 const LAMP_RELEASE_MS = 300;
 /** The smallest lift a lamp names: the strip draws nothing smaller either. */
 const HEARD_DB = 0.3;
+const LIFT_WIDEST = ['+10.0 dB'];
 
 /**
  * The bands' lamps: each lights by as much as its band is being lifted, out
@@ -131,9 +133,10 @@ const FootstepsBandLamps = ({
               }}
             />
           </span>
-          <span
+          <LiveFigure
             className="dsp-footsteps-lamp-figure"
-            ref={(element) => {
+            widest={LIFT_WIDEST}
+            textRef={(element) => {
               figures.current[index] = element;
             }}
           />

@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
+import LiveFigure from '../components/LiveFigure';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
 
 /** What a meter shows now: how full, and the figure beside it. */
@@ -24,6 +25,8 @@ interface IDspGameMeterProps {
 
 /** How long the fill takes to fall once its reading drops, ms. */
 const RELEASE_MS = 350;
+const VOICE_WIDEST = ['+6.0 dB · −6.0 dB'];
+const AMBIENCE_WIDEST = ['−9.0 dB', '+6.0 dB'];
 
 /**
  * One live reading of the Game filter, as a lamp that fills: how sure it is
@@ -82,7 +85,11 @@ const DspGameMeter = ({ label, read, tone }: IDspGameMeterProps) => {
       <span className="dsp-footsteps-lamp-track" aria-hidden="true">
         <span className="dsp-footsteps-lamp-fill" ref={fill} />
       </span>
-      <span className="dsp-footsteps-lamp-figure" ref={figure} />
+      <LiveFigure
+        className="dsp-footsteps-lamp-figure"
+        widest={tone === 'voice' ? VOICE_WIDEST : AMBIENCE_WIDEST}
+        textRef={figure}
+      />
     </div>
   );
 };

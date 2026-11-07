@@ -160,6 +160,12 @@ add_executable(fluideq-engine-footsteps-line-test tests/footsteps_line_test.cpp)
 target_link_libraries(fluideq-engine-footsteps-line-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-footsteps-line COMMAND fluideq-engine-footsteps-line-test)
+
+add_executable(fluideq-engine-gaming-stability-test tests/gaming_stability_test.cpp)
+target_link_libraries(fluideq-engine-gaming-stability-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-gaming-stability COMMAND fluideq-engine-gaming-stability-test
+  ${CMAKE_BINARY_DIR}/gaming-stability-fixtures.txt)
 # Dynamics' trailer, from lines the TypeScript encoder wrote, likewise.
 add_executable(fluideq-engine-dynamics-line-test tests/dynamics_line_test.cpp)
 target_link_libraries(fluideq-engine-dynamics-line-test

@@ -153,7 +153,6 @@ void decide(FeqFootsteps& f, bool enabled, double lift, double calm,
     gain_db = std::min(gain_db, std::max(0.0, target_db - db_of(s.lift_power[b])));
     if (want == 0.0 && gain_db < kSettledDb) gain_db = 0.0;
     glide(s.band_gain[b], s.band_step[b], gain_db, step);
-    report.lift_db[b] = std::max(report.lift_db[b], static_cast<float>(gain_db));
   }
   report.cue_db =
       std::max(report.cue_db, static_cast<float>(s.band_level[kStepsBand]));

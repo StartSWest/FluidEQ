@@ -43,6 +43,7 @@ import {
   MAXIMIZER_CATALOGUE,
 } from './stageCatalogues';
 import { VOICING_PROFILES } from '../voicing';
+import { FilterTypeEnum } from '../constants';
 import orderRelatedStyles from './presetOrder';
 
 export { DSP_PRESET_GROUPS } from './presetRecipes';
@@ -127,10 +128,37 @@ const recipeEq = (recipe: IDspPresetRecipe): IEqSettings => {
  * What of a recipe's EQ stays in its rack, with its de-essing handed to the
  * De-esser where the chain switches that stage on.
  */
-const recipeSupport = (recipe: IDspPresetRecipe): IEqSettings =>
-  presetSupport(
+const recipeSupport = (recipe: IDspPresetRecipe): IEqSettings => {
+  const support = presetSupport(
     recipe.deEsser ? withoutDeEssBands(recipeEq(recipe)) : recipeEq(recipe),
   );
+  if (recipe.group !== 'gaming' || recipe.id === 'game-night') {
+    return support;
+  }
+  // Factory gameplay starts with the game's image and a steady bed. Dynamic
+  // bass guards also ride music, and bass mono changes the original stereo.
+  // This is a factory recipe policy; saved racks and manual EQ picks keep
+  // every deliberate band and stereo setting.
+  const bands = support.bands.map((band) =>
+    band.dynamic
+      ? {
+          ...band,
+          enabled: false,
+          dynamic: false,
+          gainDb: 0,
+          type: FilterTypeEnum.PK,
+        }
+      : band,
+  );
+  return {
+    ...support,
+    enabled: support.subsonicHz > 0,
+    monoBelowHz: 0,
+    fuzzAmount: 0,
+    bands,
+    sourceBands: bands.map((band) => ({ ...band })),
+  };
+};
 
 const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
   clampDspSettings({

@@ -89,10 +89,10 @@ export const FOOTSTEPS_DEFAULTS: IFootstepsSettings = {
   isolate: false,
   presetId: 'competitive',
   lift: 0.85,
-  calm: 0.5,
+  calm: 0,
   heavy: false,
-  environment: -0.4,
-  voices: 0.3,
+  environment: 0,
+  voices: 0,
   duck: false,
   useRoom: false,
 };
