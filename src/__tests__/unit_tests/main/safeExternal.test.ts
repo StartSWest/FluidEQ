@@ -74,6 +74,13 @@ describe('handing a URL to the operating system', () => {
     expect(openExternal).toHaveBeenCalledTimes(2);
   });
 
+  it('hands the Sponsors destination to the default browser', () => {
+    const url = 'https://github.com/sponsors/StartSWest';
+    expect(openExternalIfSafe(url)).toBe(true);
+    expect(openExternal).toHaveBeenCalledWith(url);
+    expect(openExternal).toHaveBeenCalledTimes(1);
+  });
+
   it('refuses every scheme that is not the web', () => {
     // `file:` is the obvious one. The rest are why a scheme allowlist beats a
     // `file:` denylist: each is a protocol some installed application may have

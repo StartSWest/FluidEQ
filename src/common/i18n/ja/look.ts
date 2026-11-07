@@ -154,6 +154,7 @@ const look: Partial<Dictionary> = {
   'support.card.hint':
     'Stripe による安全な決済です。ブラウザで開きます — アプリがカード情報を見ることはありません。',
   'support.coffee': 'コーヒーをおごる',
+  'support.github': 'GitHub でスポンサーになる',
   'support.coffee.hint':
     'アカウント不要の一回きりの寄付です。クリックでブラウザが開きます。スマートフォンでコードを読み取ることもできます。',
   'support.verify': '送る前にアドレスを確認してください。',

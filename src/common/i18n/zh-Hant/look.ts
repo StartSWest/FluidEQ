@@ -130,6 +130,7 @@ const look = {
   'support.card.hint':
     '由 Stripe 託管的安全結賬。在您的瀏覽器中開啟 - 該應用程式永遠不會看到您的卡片詳細資訊。',
   'support.coffee': '請我喝杯咖啡',
+  'support.github': '在 GitHub 上贊助',
   'support.coffee.hint':
     '一次性小費，無需帳戶。點選在瀏覽器中開啟它，或使用手機掃描程式碼。',
   'support.verify': '傳送前驗證地址。',

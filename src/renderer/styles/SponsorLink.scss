@@ -1,0 +1,32 @@
+/* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// Keep the existing filled coffee action primary. Only the added link wraps
+// long translations; the shared button still owns its face and focus states.
+.button.support-sponsor {
+  display: inline-flex;
+  justify-content: center;
+  min-width: 0;
+  max-width: 100%;
+  gap: 7px;
+  color: $text-primary;
+  text-decoration: none;
+  white-space: normal;
+
+  span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+  }
+
+  .support-sponsor__heart {
+    color: color-mix(in srgb, $neon-pink 75%, $text-primary);
+  }
+}

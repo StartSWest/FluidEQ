@@ -156,6 +156,7 @@ const look = {
   'support.card.hint':
     'Secure checkout hosted by Stripe. Opens in your browser — the app never sees your card details.',
   'support.coffee': 'Buy me a coffee',
+  'support.github': 'Sponsor on GitHub',
   'support.coffee.hint':
     'A one-off tip, no account needed. Click to open it in your browser, or scan the code with your phone.',
   'support.verify': 'Verify the address before sending.',

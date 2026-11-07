@@ -139,6 +139,7 @@ const look = {
   'support.card.hint':
     'Stripe에서 호스팅하는 보안 결제. 브라우저에서 열립니다. 앱에서는 카드 세부정보를 볼 수 없습니다.',
   'support.coffee': '커피 한 잔 후원하기',
+  'support.github': 'GitHub에서 후원하기',
   'support.coffee.hint':
     '일회성 팁이며 계정이 필요하지 않습니다. 클릭하여 브라우저에서 열거나 휴대폰으로 코드를 스캔하세요.',
   'support.verify': '보내기 전에 주소를 확인하세요.',

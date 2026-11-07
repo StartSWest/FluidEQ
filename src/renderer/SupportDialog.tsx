@@ -43,6 +43,7 @@ import MemoryTraceButton from './components/MemoryTraceButton';
 import QrCode from './components/QrCode';
 import RhythmGame, { IRhythmGameHandle } from './components/RhythmGame';
 import SupportRainbowUnlock from './components/SupportRainbowUnlock';
+import SponsorLink from './components/SponsorLink';
 import { SupportPetHero } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
 import isOwnAnimationEnd from './utils/ownAnimationEnd';
@@ -305,65 +306,68 @@ export default function SupportDialog({
       >
         {/* The ask comes first, where the eye lands on the right side: the
             ways to give, each with what opens it. */}
-        {(hasCoffee || hasStripe) && (
-          <section className="dialog-frame__group support-dialog__give">
-            {hasCoffee && (
-              <div className="support-method support-method--qr">
-                <div className="support-method__text">
-                  <h3 className="support-method__label">
-                    {t('support.coffee')}
-                  </h3>
-                  <p className="support-method__hint">
-                    {t('support.coffee.hint')}
-                  </p>
-                  <a
-                    className="button small support-dialog__action"
-                    href={SUPPORT_CONFIG.coffeeUrl}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                  >
-                    {t('support.coffee')}
-                    <MenuIcon name="external" />
-                  </a>
-                </div>
-                {/* The artwork ships with the app rather than being generated,
+        <section className="dialog-frame__group support-dialog__give">
+          {hasCoffee && (
+            <div className="support-method support-method--qr">
+              <div className="support-method__text">
+                <h3 className="support-method__label">{t('support.coffee')}</h3>
+                <p className="support-method__hint">
+                  {t('support.coffee.hint')}
+                </p>
+                <a
+                  className="button small support-dialog__action"
+                  href={SUPPORT_CONFIG.coffeeUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  {t('support.coffee')}
+                  <MenuIcon name="external" />
+                </a>
+              </div>
+              {/* The artwork ships with the app rather than being generated,
                     so the branded code from Buy Me a Coffee is what people
                     scan. It is therefore pinned to whatever page it was made
                     for — if FLUIDEQ_COFFEE_URL ever changes, replace this file
                     too. */}
-                <img
-                  className="qr-code"
-                  src={supportQrImage}
-                  alt={t('support.qr.coffee')}
-                  width={168}
-                  height={168}
-                />
+              <img
+                className="qr-code"
+                src={supportQrImage}
+                alt={t('support.qr.coffee')}
+                width={168}
+                height={168}
+              />
+              <div className="support-method__actions">
+                <SponsorLink />
               </div>
-            )}
+            </div>
+          )}
 
-            {hasStripe && (
-              <div className="support-method">
-                <div className="support-method__text">
-                  <h3 className="support-method__label">{t('support.card')}</h3>
-                  <p className="support-method__hint">
-                    {t('support.card.hint')}
-                  </p>
-                  {/* The loud face belongs to the one way in with a code
+          {!hasCoffee && (
+            <div className="support-method__actions">
+              <SponsorLink />
+            </div>
+          )}
+
+          {hasStripe && (
+            <div className="support-method">
+              <div className="support-method__text">
+                <h3 className="support-method__label">{t('support.card')}</h3>
+                <p className="support-method__hint">{t('support.card.hint')}</p>
+                {/* The loud face belongs to the one way in with a code
                       beside it; with both on offer, this is the other. */}
-                  <a
-                    className={`button small${hasCoffee ? ' subtle' : ''} support-dialog__action`}
-                    href={SUPPORT_CONFIG.stripeUrl}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                  >
-                    {t('support.card')}
-                    <MenuIcon name="external" />
-                  </a>
-                </div>
+                <a
+                  className={`button small${hasCoffee ? ' subtle' : ''} support-dialog__action`}
+                  href={SUPPORT_CONFIG.stripeUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  {t('support.card')}
+                  <MenuIcon name="external" />
+                </a>
               </div>
-            )}
-          </section>
-        )}
+            </div>
+          )}
+        </section>
 
         {cryptos.map(({ asset, address, uri }) => (
           <section

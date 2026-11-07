@@ -10,6 +10,7 @@ import fluid from '../../../assets/brand/fluid-mascot.svg';
 import supportQrImage from '../../../assets/support-qr.png';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
+import SponsorLink from './SponsorLink';
 
 /**
  * Who FluidEQ is, under the About panel's name in its rail: the mascot, what
@@ -52,39 +53,39 @@ export default function AboutBrand() {
           {t('about.source')}
         </a>
       </div>
-      {hasCoffee && (
-        <section
-          className="about-support"
-          aria-labelledby="about-support-title"
-        >
-          <h3 id="about-support-title" className="about-support__title">
-            <MenuIcon name="support" />
-            {t('support.pet.title')}
-          </h3>
-          <div className="about-support__code">
-            {/* The branded code from Buy Me a Coffee, shipped rather than
+      <section className="about-support" aria-labelledby="about-support-title">
+        <h3 id="about-support-title" className="about-support__title">
+          <MenuIcon name="support" />
+          {t('support.pet.title')}
+        </h3>
+        {hasCoffee && (
+          <>
+            <div className="about-support__code">
+              {/* The branded code from Buy Me a Coffee, shipped rather than
                 generated, as the support window's: pinned to the page it was
                 made for, so a new FLUIDEQ_COFFEE_URL means a new file too. */}
-            <img
-              className="qr-code"
-              src={supportQrImage}
-              alt={t('support.qr.coffee')}
-              width={168}
-              height={168}
-            />
-          </div>
-          <p className="about-support__hint">{t('support.coffee.hint')}</p>
-          <a
-            className="button small about-support__action"
-            href={SUPPORT_CONFIG.coffeeUrl}
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            {t('support.coffee')}
-            <MenuIcon name="external" />
-          </a>
-        </section>
-      )}
+              <img
+                className="qr-code"
+                src={supportQrImage}
+                alt={t('support.qr.coffee')}
+                width={168}
+                height={168}
+              />
+            </div>
+            <p className="about-support__hint">{t('support.coffee.hint')}</p>
+            <a
+              className="button small about-support__action"
+              href={SUPPORT_CONFIG.coffeeUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              {t('support.coffee')}
+              <MenuIcon name="external" />
+            </a>
+          </>
+        )}
+        <SponsorLink />
+      </section>
     </div>
   );
 }

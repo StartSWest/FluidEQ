@@ -158,6 +158,7 @@ const look: Partial<Dictionary> = {
   'support.card.hint':
     'Pagamento sicuro ospitato da Stripe. Si apre nel browser: l’app non vede mai i dati della tua carta.',
   'support.coffee': 'Offrimi un caffè',
+  'support.github': 'Sostieni su GitHub',
   'support.coffee.hint':
     'Una mancia una tantum, senza account. Clicca per aprirlo nel browser oppure scansiona il codice col telefono.',
   'support.verify': 'Verifica l’indirizzo prima di inviare.',

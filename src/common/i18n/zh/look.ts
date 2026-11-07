@@ -149,6 +149,7 @@ const look: Partial<Dictionary> = {
   'support.card.hint':
     '由 Stripe 托管的安全结账。会在浏览器中打开——应用永远看不到你的卡片信息。',
   'support.coffee': '请我喝杯咖啡',
+  'support.github': '在 GitHub 上赞助',
   'support.coffee.hint':
     '一次性的小费，不需要注册账号。点击可在浏览器中打开，也可以用手机扫码。',
   'support.verify': '发送前请核对地址。',
