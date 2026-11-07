@@ -214,6 +214,7 @@
     },
     "asarUnpack": ["**/*.{node,dll,dylib}", "**/*.so*"],
     "files": ["dist", "node_modules", "package.json"],
+    "beforePack": ".erb/scripts/nsis-archive-filter.cjs",
     "afterSign": ".erb/scripts/after-sign.cjs",
     "mac": {
       "target": {
