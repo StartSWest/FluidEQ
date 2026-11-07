@@ -36,6 +36,8 @@ import {
   deletePreset,
   doesPresetExist,
   fetchPreset,
+  readPresetText,
+  safePresetFileName,
   savePreset,
 } from '../../../main/flush';
 import {
@@ -49,7 +51,9 @@ import {
 } from '../../../main/gameSound';
 import { registerGameSoundIpc } from '../../../main/ipc/gameSound';
 import onWindowMessage from '../../../main/ipc/windowMessages';
-import type { IMainSession } from '../../../main/mainSession';
+import createMainSession, {
+  type IMainSession,
+} from '../../../main/mainSession';
 import putPresetInState from '../../../main/presetIntoState';
 import { getAutomaticPresetName } from '../../../main/profileStore';
 
@@ -232,6 +236,7 @@ describe('the game sound messages', () => {
     fs.mkdirSync(dir, { recursive: true });
     return dir;
   };
+  const presetDirForDevice = jest.fn(dirOf);
 
   /** The live sound, as main's profile store builds it from the state. */
   const getCurrentPreset = (): IPresetV2 => ({
@@ -254,6 +259,10 @@ describe('the game sound messages', () => {
     await flushPendingWrites();
     return event;
   };
+  const expectTunedParts = (reply: jest.Mock, result: string[]) =>
+    expect(reply).toHaveBeenCalledWith(ChannelEnum.GAME_SOUND_TUNED, {
+      result,
+    });
 
   let queue: Promise<void> = Promise.resolve();
 
@@ -282,7 +291,7 @@ describe('the game sound messages', () => {
       session,
       deviceProfileSettings: settings,
       userDataDir: root,
-      presetDirForDevice: dirOf,
+      presetDirForDevice,
       loans,
       yours: createYoursGamingProfiles(root),
       runProfileMutation: (work) => {
@@ -390,30 +399,81 @@ describe('the game sound messages', () => {
     expect(state.dsp?.gameMode).toBe(true);
   });
 
+  it('answers a saved game during startup, then compares its unchanged files once an output is selected', async () => {
+    const id = 'game-startup-123456';
+    const copy = gameCopyName(id);
+    const origin = gameOriginName(id);
+    const dir = dirOf(OUTPUT);
+    await savePreset(origin, musicSound(), dir);
+    await savePreset(copy, { ...musicSound(), filters: {} }, dir);
+    const readFiles = () =>
+      [copy, origin].map((name) => readPresetText(name, dir));
+    const before = readFiles();
+    session.activeAudioDeviceId = createMainSession().activeAudioDeviceId;
+
+    const early = await send(ChannelEnum.GAME_SOUND_TUNED, [id]);
+    expectTunedParts(early.reply, []);
+    expect(presetDirForDevice).not.toHaveBeenCalled();
+    expect(handleError).not.toHaveBeenCalled();
+    session.activeAudioDeviceId = OUTPUT;
+    const ready = await send(ChannelEnum.GAME_SOUND_TUNED, [id]);
+    expectTunedParts(ready.reply, ['mainEq']);
+    expect(readFiles()).toEqual(before);
+    expect(handleUpdate).not.toHaveBeenCalled();
+  });
+
+  it('still rejects a malformed game id before an output is selected', async () => {
+    session.activeAudioDeviceId = createMainSession().activeAudioDeviceId;
+    const event = await send(ChannelEnum.GAME_SOUND_TUNED, ['  ']);
+    expect(handleError).toHaveBeenCalledWith(
+      event,
+      ChannelEnum.GAME_SOUND_TUNED,
+      ErrorCode.INVALID_PARAMETER,
+    );
+    expect(presetDirForDevice).not.toHaveBeenCalled();
+  });
+
+  it('reports an unreadable origin instead of calling the copy untouched', async () => {
+    const id = 'game-corrupt-123456';
+    const dir = dirOf(OUTPUT);
+    const name = safePresetFileName(gameOriginName(id));
+    if (!name) {
+      throw new Error('Expected a valid game origin fixture name');
+    }
+    await savePreset(gameCopyName(id), musicSound(), dir);
+    fs.writeFileSync(path.join(dir, name), '{broken fixture');
+
+    const event = await send(ChannelEnum.GAME_SOUND_TUNED, [id]);
+    expect(handleError).toHaveBeenCalledWith(
+      event,
+      ChannelEnum.GAME_SOUND_TUNED,
+      ErrorCode.FAILURE,
+    );
+    expect(event.reply).not.toHaveBeenCalled();
+    expect(fs.readFileSync(path.join(dir, name), 'utf8')).toBe(
+      '{broken fixture',
+    );
+  });
+
   it('says which parts were tuned, and none once the game is saved as a profile', async () => {
     await send(ChannelEnum.GAME_SOUND_LOAD, ['cs2', readySeed]);
     const untouched = await send(ChannelEnum.GAME_SOUND_TUNED, ['cs2']);
-    expect(untouched.reply).toHaveBeenCalledWith(ChannelEnum.GAME_SOUND_TUNED, {
-      result: [],
-    });
+    expectTunedParts(untouched.reply, []);
     state.dsp = {
       ...DSP_DEFAULTS,
       ...state.dsp,
       footsteps: { ...DSP_DEFAULTS.footsteps, enabled: true, lift: 0.2 },
     };
     const tuned = await send(ChannelEnum.GAME_SOUND_TUNED, ['cs2']);
-    expect(tuned.reply).toHaveBeenCalledWith(ChannelEnum.GAME_SOUND_TUNED, {
-      result: ['footsteps'],
-    });
+    expectTunedParts(tuned.reply, ['footsteps']);
     await send(ChannelEnum.GAMING_PROFILE_SAVE, [
       'cs2',
       'My steps',
       'Counter-Strike 2',
     ]);
     const saved = await send(ChannelEnum.GAME_SOUND_TUNED, ['cs2']);
-    expect(saved.reply).toHaveBeenCalledWith(ChannelEnum.GAME_SOUND_TUNED, {
-      result: [],
-    });
+    expectTunedParts(saved.reply, []);
+    expect(handleError).not.toHaveBeenCalled();
   });
 
   it('gives the music sound back before deleting a playing game, and takes its files', async () => {

@@ -278,27 +278,32 @@ export const registerGameSoundIpc = ({
   onWindowMessage(ChannelEnum.GAME_SOUND_TUNED, (event, arg) => {
     const channel = ChannelEnum.GAME_SOUND_TUNED;
     const gameId = asGameId(Array.isArray(arg) ? arg[0] : undefined);
-    const deviceId = session.activeAudioDeviceId;
-    if (!gameId || !deviceId) {
+    if (!gameId) {
       handleError(event, channel, ErrorCode.INVALID_PARAMETER);
       return;
     }
-    const dir = presetDirForDevice(deviceId);
-    const origin = gameOriginName(gameId);
-    let tuned: TGameSoundPart[] = [];
+    const deviceId = session.activeAudioDeviceId;
+    if (!deviceId) {
+      // Saved games may render first; the window asks again on output change.
+      event.reply(channel, { result: [] });
+      return;
+    }
     try {
+      const dir = presetDirForDevice(deviceId);
+      const origin = gameOriginName(gameId);
       // The live sound while the copy plays: an edit changes the state the
       // moment it arrives and reaches the copy's file only when its write
       // lands, and the question is asked right behind the edit.
       const copy = copySound(gameId, dir);
-      if (copy && doesPresetExist(origin, dir)) {
-        tuned = tunedGameParts(copy, fetchPreset(origin, dir));
-      }
+      const tuned: TGameSoundPart[] =
+        copy && doesPresetExist(origin, dir)
+          ? tunedGameParts(copy, fetchPreset(origin, dir))
+          : [];
+      event.reply(channel, { result: tuned });
     } catch (error) {
       log.warn('Game sound: could not compare a copy with its origin', error);
+      handleError(event, channel, ErrorCode.FAILURE);
     }
-    const reply: TSuccess<string[]> = { result: tuned };
-    event.reply(channel, reply);
   });
 
   onGameMessage(
