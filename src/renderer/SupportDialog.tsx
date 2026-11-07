@@ -323,6 +323,7 @@ export default function SupportDialog({
                   {t('support.coffee')}
                   <MenuIcon name="external" />
                 </a>
+                <SponsorLink />
               </div>
               {/* The artwork ships with the app rather than being generated,
                     so the branded code from Buy Me a Coffee is what people
@@ -336,9 +337,6 @@ export default function SupportDialog({
                 width={168}
                 height={168}
               />
-              <div className="support-method__actions">
-                <SponsorLink />
-              </div>
             </div>
           )}
 
