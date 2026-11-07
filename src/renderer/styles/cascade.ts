@@ -74,6 +74,7 @@ import './MemoryTrace.scss';
 import './ShareScore.scss';
 import './RhythmGame.scss';
 import './Support.scss';
+import './SponsorLink.scss';
 import './ProfileNameForm.scss';
 import './SceneHands.scss';
 import './ScenePreview.scss';
