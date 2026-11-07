@@ -252,6 +252,13 @@ $environment-ink: list.nth($lagoon, 1);
   margin: 0;
   padding: 2px 0 6px;
   list-style: none;
+
+  // Bands on the same line share the label, track and frequency rows.
+  // A wrapped name grows the first row for all of them.
+  > .dsp-footsteps-lamp {
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+  }
 }
 
 .dsp-footsteps-lamp {
