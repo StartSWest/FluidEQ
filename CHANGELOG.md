@@ -10,11 +10,13 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 - **Gaming Lab.** Footsteps, voices and ambience add emphasis to the game
   mix within the available headroom. Footsteps keeps sustained music steadier
-  while bringing out cues in Heroes of the Storm and other games. Standard
-  profiles avoid automatic whole-mix compression, while Night keeps the
-  dynamics processing intended for quiet listening. Meter readings no longer
-  shift the controls as they change. Gaming Lab waits for an audio output
-  before comparing a game's tuning with its profile at startup.
+  while bringing out cues. Heroes of the Storm has a dedicated mix that
+  keeps the score's body and the game's stereo, with gentler step lift.
+  Footsteps meters stay aligned when band labels wrap. Standard profiles
+  avoid automatic whole-mix compression, while Night keeps the dynamics
+  processing intended for quiet listening. Meter readings no longer shift
+  the controls as they change. Gaming Lab waits for an audio output before
+  comparing a game's tuning with its profile at startup.
 - **Studio and Gallery.** Play music or start the demo to record a sharper,
   silent ten-second scene preview. Published clips loop in the Gallery
   and stay cached across sessions until a new scene version replaces them.
