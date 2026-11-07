@@ -42,6 +42,8 @@
   // The suite still type-checks when it is actually run, through ts-jest under
   // `pnpm test:cucumber`, which is where someone fixing it would be looking.
   "exclude": [
+    // Generated QA scripts can add globals to the app's type-check.
+    "outputs",
     "test",
     "release/build",
     "release/app/dist",
