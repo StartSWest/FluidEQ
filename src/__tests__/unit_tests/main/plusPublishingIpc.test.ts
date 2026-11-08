@@ -156,7 +156,13 @@ let inspecting: boolean;
 
 const recordPublished = jest.fn();
 
-const setup = (onTermsAgreed?: (version: number) => void) =>
+const setup = (
+  onTermsAgreed?: (version: number) => void,
+  more: Pick<
+    Parameters<typeof registerPlusPublishingIpc>[0],
+    'logger' | 'refreshOwnCopy'
+  > = {},
+) =>
   registerPlusPublishingIpc({
     access: access(),
     userDataDir: userDataDir(),
@@ -166,6 +172,7 @@ const setup = (onTermsAgreed?: (version: number) => void) =>
     mayPublishActive: () => signedIn,
     onTermsAgreed,
     recordPublished,
+    ...more,
   });
 
 beforeEach(async () => {
@@ -620,6 +627,82 @@ describe('publishing from the Studio', () => {
       folder,
       'my-first-scene',
       (publishRequest()?.body.pack as { version: number }).version,
+    );
+  });
+
+  it('logs where the time went, the server’s steps beside its own, and fetches its own copy at once', async () => {
+    // Ivan, 2026-11-08: "add logs to that too and server timings"; his own
+    // copy of Alpine v69 came 82 s after it went out.
+    const info = jest.fn();
+    const refreshOwnCopy = jest.fn(async () => true);
+    answer = (url: string) => {
+      if (url.includes('/rpc/my_published_scenes')) {
+        return fakeResponse(200, []);
+      }
+      const response = fakeResponse(200, { published: {} });
+      // The server's own steps ride its answer (fluideq-premium steptiming).
+      return url.includes('/publish-member-scene')
+        ? ({
+            ...response,
+            headers: {
+              get: (name: string) =>
+                name === 'server-timing'
+                  ? 'auth;dur=120, sign;dur=40, total;dur=200'
+                  : null,
+            },
+          } as unknown as Response)
+        : response;
+    };
+    setup(undefined, { logger: { info, warn: jest.fn() }, refreshOwnCopy });
+    const outcome = await invoke<Promise<TPublishOutcome>>(
+      'studio-publish',
+      4,
+      'space',
+      webpBytes(),
+    );
+    expect(outcome).toEqual({ ok: true });
+    const { version } = publishRequest()?.body.pack as { version: number };
+    const lines = info.mock.calls.map(([logged]) => String(logged));
+    const line =
+      lines.find((logged) =>
+        logged.endsWith(
+          'Server - publish-member-scene: auth 120 ms, sign 40 ms, total 200 ms.',
+        ),
+      ) ?? lines.join('\n');
+    expect(line).toMatch(
+      new RegExp(
+        `^Studio publish my-first-scene v${version} \\(.+\\): read \\d+ ms, versions \\d+ ms, raise \\d+ ms, publish \\d+ ms, keep \\d+ ms; total .+; published\\. Server - publish-member-scene: auth 120 ms, sign 40 ms, total 200 ms\\.$`,
+      ),
+    );
+    expect(refreshOwnCopy).toHaveBeenCalledWith('my-first-scene', version);
+    // Its own line: the publication was answered without waiting for it.
+    expect(info).toHaveBeenCalledWith(
+      expect.stringMatching(
+        new RegExp(
+          `^Studio publish my-first-scene v${version}: own copy \\d+ ms; total .+; this computer holds it\\.$`,
+        ),
+      ),
+    );
+  });
+
+  it('fetches no copy of a version still waiting for review, and logs how it ended', async () => {
+    const info = jest.fn();
+    const refreshOwnCopy = jest.fn(async () => true);
+    answer = (url: string) =>
+      url.includes('/rpc/my_published_scenes')
+        ? fakeResponse(200, [])
+        : fakeResponse(200, { review: 'pending' });
+    setup(undefined, { logger: { info, warn: jest.fn() }, refreshOwnCopy });
+    const outcome = await invoke<Promise<TPublishOutcome>>(
+      'studio-publish',
+      4,
+      'space',
+      webpBytes(),
+    );
+    expect(outcome).toEqual({ ok: true, review: 'pending' });
+    expect(refreshOwnCopy).not.toHaveBeenCalled();
+    expect(info).toHaveBeenCalledWith(
+      expect.stringMatching(/; sent for review\.$/),
     );
   });
 

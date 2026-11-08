@@ -197,6 +197,55 @@ describe('bringing installed scenes up to date', () => {
     }
   });
 
+  // Its maker's own copy of Alpine v69 arrived 82 s after it went out, at
+  // the next check (Ivan, 2026-11-08: "it takes a while").
+  it('fetches a version just published at once, even behind a check that asked before it existed', async () => {
+    const rows = [
+      { id: 'installed', version: 1, published_at: '2026-09-13T02:00:00Z' },
+    ];
+    const server = serve(rows);
+    // The publication lands just after the server sent the check under way
+    // its scenes: that check downloaded version 1, and only a later one can
+    // see 2.
+    let landed = false;
+    const fetchImpl = (async (input: string) => {
+      const answer = await server.fetchImpl(input);
+      const select = new URL(input).searchParams.get('select') ?? '';
+      if (!landed && select.includes('envelope')) {
+        landed = true;
+        rows[0] = {
+          id: 'installed',
+          version: 2,
+          published_at: '2026-11-08T05:52:17Z',
+        };
+      }
+      return answer;
+    }) as unknown as typeof fetch;
+    const registration = register(root, fetchImpl);
+    const held = jest
+      .spyOn(registration.store, 'list')
+      .mockReturnValue([installed(1)]);
+    jest.spyOn(registration.store, 'adopt').mockImplementation((listings) => {
+      const newest = listings.find((listing) => listing.id === 'installed');
+      if (newest) {
+        held.mockReturnValue([installed(newest.version)]);
+      }
+      return listings.length;
+    });
+    newestFromList(registration.store);
+    try {
+      // A check under way when the publication lands, asked of version 1.
+      const underWay = handlers.get('scene-packs-refresh')?.({});
+      expect(await registration.refreshFor('installed', 2)).toBe(true);
+      await underWay;
+      expect(registration.store.newestVersion('installed')).toBe(2);
+      // The control: a version nobody published is not claimed as held.
+      expect(await registration.refreshFor('installed', 3)).toBe(false);
+    } finally {
+      registration.dispose();
+    }
+  });
+
   it('asks about the scenes added from the gallery when the looks are opened', async () => {
     const server = serve([]);
     const refreshGalleryScenes = jest.fn(async () => {});

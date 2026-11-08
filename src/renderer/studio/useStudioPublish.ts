@@ -19,6 +19,7 @@ import {
   renderSceneStill,
 } from '../graph/sceneStill';
 import { markGalleryStale } from '../plus/galleryStore';
+import { reportInfo } from '../utils/logger';
 import {
   publishStudioScene,
   studioTermsAgreed,
@@ -268,8 +269,14 @@ export default function useStudioPublish(
           .then((notes) => notes?.whatsNew)
           .catch(() => undefined) ?? Promise.resolve(undefined))
       : Promise.resolve(undefined);
+    const opened = performance.now();
     Promise.all([still, published, studioTermsAgreed(), suggested])
       .then(([picture, alreadyPublished, agreed, suggestedNote]) => {
+        // What the press of Publish waits on before the dialog shows: the
+        // cover drawn, the gallery and the terms asked, the notes read.
+        reportInfo(
+          `Studio publish: dialog ready in ${Math.round(performance.now() - opened)} ms.`,
+        );
         if (!isCurrent(started)) {
           return undefined;
         }
@@ -427,10 +434,16 @@ export default function useStudioPublish(
         setPublishing(false);
         setNotice({ ok: false, key, ...(vars ? { vars } : {}) });
       };
+      const pressed = performance.now();
       const prepare = async () => {
         const media = preview
           ? await preparePublishPreview(preview, beginProgress())
           : undefined;
+        if (media) {
+          reportInfo(
+            `Studio publish: clip prepared in ${Math.round(performance.now() - pressed)} ms.`,
+          );
+        }
         if (!isCurrent(started)) {
           return { ok: false as const, reason: 'no-build' as const };
         }
@@ -445,6 +458,10 @@ export default function useStudioPublish(
       };
       prepare()
         .then((outcome) => {
+          // The whole wait as the member had it; main's line says where.
+          reportInfo(
+            `Studio publish: answered ${((performance.now() - pressed) / 1000).toFixed(1)} s after the press.`,
+          );
           // Even a publication whose dialog has gone away changed the gallery,
           // and moved the settings the Studio's Reset goes back to.
           if (outcome.ok) {

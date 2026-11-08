@@ -324,6 +324,10 @@ const registerMemberServices = ({
     mayPublishActive: memberScenesIpc.mayUseActive,
     onTermsAgreed: plusTermsNoticeIpc.agreed,
     recordPublished: publishedRecords.record,
+    // One of FluidEQ's own, just published: its maker's copy fetched now.
+    refreshOwnCopy: (sceneId, version) =>
+      scenePacksIpc.refreshFor(sceneId, version),
+    logger: log,
     onPublished: (author, pack) => {
       memberScenesIpc.keepPublished(author, pack);
       // The scene is the author's to play now: the store says so, the

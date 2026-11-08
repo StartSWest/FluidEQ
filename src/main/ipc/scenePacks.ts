@@ -87,6 +87,13 @@ export interface IScenePacksIpcRegistration {
    * time; the catalogue for one that is not is fetched only when stale.
    */
   refreshIfDue(reason: string): Promise<void>;
+  /**
+   * Asks the server now, whatever was asked a moment ago, and answers
+   * whether `id` is then held at `version`: one of FluidEQ's own scenes its
+   * maker just published, which otherwise reached their own looks only at
+   * the next check (82 s after Alpine v69, measured).
+   */
+  refreshFor(id: string, version: number): Promise<boolean>;
   dispose(): void;
 }
 
@@ -389,6 +396,13 @@ export const registerScenePacksIpc = ({
         return;
       }
       await refreshNow();
+    },
+    refreshFor: async (id, version) => {
+      // A check already under way asked before the publication existed:
+      // its answer cannot hold it, so a fresh one follows it.
+      await (inFlight ?? Promise.resolve()).catch(() => undefined);
+      await refreshNow();
+      return store.newestVersion(id) === version;
     },
     dispose: () => {
       unsubscribe();
