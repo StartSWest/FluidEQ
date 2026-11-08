@@ -291,6 +291,13 @@ target_link_libraries(fluideq-engine-dll-split-test
 add_test(NAME engine-dll-split
   COMMAND fluideq-engine-dll-split-test $<TARGET_FILE:fluideq-engine>)
 
+# Auto normalize's level carried from one lock of an output to the next.
+add_executable(fluideq-engine-dll-level-test tests/dll_level_test.cpp)
+target_link_libraries(fluideq-engine-dll-level-test
+  PRIVATE feq_strict ole32 propsys audiomediatypecrt)
+add_test(NAME engine-dll-level
+  COMMAND fluideq-engine-dll-level-test $<TARGET_FILE:fluideq-engine>)
+
 # The engine carries nothing that depends on the folder it was built in, or
 # every release offers an engine update for an engine that did not change.
 add_executable(fluideq-engine-repro-test tests/repro_test.cpp)

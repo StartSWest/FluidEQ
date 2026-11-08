@@ -74,6 +74,10 @@ void one_memory_per_output() {
   CHECK(first == again);
   CHECK(first != other);
   CHECK(leveling_for(L"") != leveling_for(L""));
+  // And Auto normalize's settled level beside it, by the same rule.
+  CHECK(first->auto_level() != nullptr);
+  CHECK(first->auto_level() == again->auto_level());
+  CHECK(first->auto_level() != other->auto_level());
 }
 
 /** A stereo tone through live leveling alone. */

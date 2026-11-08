@@ -38,6 +38,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq_engine/config.h"
 
 namespace fluideq_engine {
+class AutoLevelMemory;
 class InputHistory;
 class LevelMailbox;
 class OutputGuard;
@@ -167,6 +168,14 @@ class Graph {
     history_owner_ = std::move(history);
     history_ = history_owner_.get();
   }
+
+  /**
+   * Watcher thread, before publication: where this output's settled level is
+   * kept across locks (`auto_level_memory.h`), so this graph's guard starts
+   * from it rather than from the curve's level. Null keeps nothing, which is
+   * what a test of one graph wants.
+   */
+  void remember_level_in(std::shared_ptr<AutoLevelMemory> memory) noexcept;
 
   /**
    * Watcher thread, before publication: this graph's level will arrive
@@ -353,6 +362,9 @@ class Graph {
   bool transfer_state_ = false;
   InputHistory* history_ = nullptr;
   std::shared_ptr<InputHistory> history_owner_;
+  // Held so the guard's borrowed pointer outlives this graph wherever the
+  // guard goes (`adopt_state` swaps guards between graphs).
+  std::shared_ptr<AutoLevelMemory> auto_level_;
   // Where this graph's level arrives (`expect_level`); whether it has yet.
   const LevelMailbox* level_mailbox_ = nullptr;
   uint32_t level_generation_ = 0;

@@ -1,10 +1,13 @@
 #include "../src/output_guard.h"
+#include "../src/auto_level_memory.h"
 #include "graph_test_support.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <utility>
 
 using namespace fluideq_engine_test;
+using fluideq_engine::AutoLevelMemory;
 using fluideq_engine::OutputGuard;
 
 void run(OutputGuard& guard, std::vector<std::vector<float>>& audio,
@@ -104,6 +107,133 @@ void switching_it_back_on_starts_from_the_curve_again() {
   std::vector<std::vector<float>> on(2, tone(1000, 0.05, kRate / 2, 0));
   run(guard, on);
   CHECK(std::abs(guard.gain_db() + 8) < 0.05);
+}
+
+// Windows opening the output again is a new guard on the same output. It
+// used to start over at the curve's level and climb back for half a minute
+// (Ivan, 2026-11-07: "the preamp kind of resets and needs to rise again");
+// now it goes on where the music settled. The control is the same new guard
+// with nothing remembered.
+void a_new_lock_goes_on_where_the_output_settled() {
+  AutoLevelMemory memory;
+  CHECK(memory.start_for(-10) == -10);
+  OutputGuard first(kRate, 2);
+  first.remember_level_in(&memory);
+  first.set_curve_level(-10);
+  std::vector<std::vector<float>> music(2, tone(1000, 0.05, kRate * 20, 0));
+  run(first, music);
+  const double settled = first.gain_db();
+  std::printf("settled at %.3f dB, remembered %.3f dB\n", settled, memory.start_for(-10));
+  CHECK(settled > -10 + 1.5);
+  // The level the guard is giving the music, not the limiter's gain this
+  // instant: that trails a climbing level by a few hundredths (0.03 dB at
+  // 0.15 dB/s), and on a peak it dips for 150 ms, which is not a level.
+  CHECK(std::abs(memory.start_for(-10) - settled) < 0.05);
+
+  OutputGuard next(kRate, 2);
+  next.remember_level_in(&memory);
+  next.set_curve_level(-10);
+  std::vector<std::vector<float>> resumed(2, tone(1000, 0.05, kRate / 2, 0));
+  run(next, resumed);
+  CHECK(std::abs(next.gain_db() - settled) < 0.05);
+  // From its very first sample: nothing louder than the settled level.
+  const double allowed = 0.05 * std::pow(10.0, settled / 20.0) * 1.01;
+  for (uint32_t frame = 0; frame < kRate / 10; ++frame) {
+    CHECK(std::abs(resumed[0][frame]) < allowed);
+  }
+
+  OutputGuard forgetful(kRate, 2);
+  forgetful.set_curve_level(-10);
+  std::vector<std::vector<float>> cold(2, tone(1000, 0.05, kRate / 2, 0));
+  run(forgetful, cold);
+  CHECK(std::abs(forgetful.gain_db() + 10) < 0.05);
+}
+
+// A curve that changed while the output was closed: a louder one starts
+// lower by the difference, the rule an edit follows, and a quieter one is
+// left to the recovery rather than starting above where the music was.
+void a_changed_curve_moves_the_start_as_an_edit_would() {
+  for (const auto& [curve, start] : {std::pair{-12.0, -6.0}, std::pair{-8.0, -4.0},
+                                     std::pair{-10.0, -4.0}}) {
+    // Each its own memory: the guard writes its level back as it plays.
+    AutoLevelMemory memory;
+    memory.remember(-4, -10);
+    OutputGuard guard(kRate, 2);
+    guard.remember_level_in(&memory);
+    guard.set_curve_level(curve);
+    std::vector<std::vector<float>> audio(2, tone(1000, 0.05, kRate / 2, 0));
+    run(guard, audio);
+    std::printf("curve %.0f dB: starts at %.2f dB (expected %.0f)\n", curve,
+                guard.gain_db(), start);
+    CHECK(std::abs(guard.gain_db() - start) < 0.05);
+  }
+  // A quieter curve never lifts the start, and nothing starts above unity.
+  AutoLevelMemory memory;
+  memory.remember(-1, -20);
+  CHECK(memory.start_for(0) == -1);
+  memory.remember(3, -10);
+  CHECK(memory.start_for(-10) == 0);
+}
+
+// What the next lock goes on from is only ever music at the guard's own
+// level: not a silent stream locked on the same output, not an edit's
+// estimate waiting for its prediction, not a guard that is switched off.
+// The control is the same guard with music, which does write.
+void only_music_at_the_guards_own_level_is_remembered() {
+  AutoLevelMemory memory;
+  memory.remember(-5, -10);
+  OutputGuard silent(kRate, 2);
+  silent.remember_level_in(&memory);
+  silent.set_curve_level(-12);
+  std::vector<std::vector<float>> nothing(2, std::vector<float>(kRate * 2));
+  run(silent, nothing);
+  CHECK(std::abs(memory.start_for(-10) + 5) < 0.01);
+
+  OutputGuard off(kRate, 2);
+  off.remember_level_in(&memory);
+  off.set_curve_level(-12);
+  std::vector<std::vector<float>> unprocessed(2, tone(1000, 0.05, kRate * 2, 0));
+  run(off, unprocessed, 480, false);
+  CHECK(std::abs(memory.start_for(-10) + 5) < 0.01);
+
+  OutputGuard editing(kRate, 2);
+  editing.remember_level_in(&memory);
+  editing.set_curve_level(-10);
+  std::vector<std::vector<float>> before(2, tone(1000, 0.05, kRate / 2, 0));
+  run(editing, before);
+  CHECK(std::abs(memory.start_for(-10) + 5) < 0.01);
+  // A band raised 6 dB: the guard waits 6 dB down for the edit's level.
+  editing.hold(-16, kRate / 20, true);
+  std::vector<std::vector<float>> waiting(2, tone(1000, 0.05, kRate, kRate / 2));
+  run(editing, waiting);
+  CHECK(editing.holding());
+  CHECK(std::abs(editing.gain_db() + 11) < 0.05);
+  CHECK(std::abs(memory.start_for(-10) + 5) < 0.01);
+  // The level arrives: from here the guard's level is its own again.
+  editing.settle(-2, kRate / 20);
+  std::vector<std::vector<float>> after(2, tone(1000, 0.05, kRate / 2, kRate * 3 / 2));
+  run(editing, after);
+  CHECK(std::abs(memory.start_for(-16) + 7) < 0.05);
+}
+
+// Switching FluidEQ or Auto normalize off and on again, with the output's
+// memory, goes on at the level the music was being heard at. Without one it
+// still starts at the curve (`switching_it_back_on_starts_from_the_curve_again`).
+void switching_it_back_on_goes_on_where_it_settled() {
+  AutoLevelMemory memory;
+  OutputGuard guard(kRate, 2);
+  guard.remember_level_in(&memory);
+  guard.set_curve_level(-8);
+  std::vector<std::vector<float>> quiet(2, tone(1000, 0.05, kRate * 20, 0));
+  run(guard, quiet);
+  const double settled = guard.gain_db();
+  CHECK(settled > -8 + 1.0);
+  std::vector<std::vector<float>> off(2, tone(1000, 0.05, kRate * 6, 0));
+  run(guard, off, 480, false);
+  CHECK(guard.gain_db() > -0.1);
+  std::vector<std::vector<float>> on(2, tone(1000, 0.05, kRate / 2, 0));
+  run(guard, on);
+  CHECK(std::abs(guard.gain_db() - settled) < 0.05);
 }
 
 // An edit whose level is predicted on the music just heard while the edit
@@ -266,5 +396,9 @@ int main() {
   a_predicted_level_is_taken_when_it_arrives();
   an_edits_level_glides_without_a_click();
   switching_it_back_on_starts_from_the_curve_again();
+  a_new_lock_goes_on_where_the_output_settled();
+  a_changed_curve_moves_the_start_as_an_edit_would();
+  only_music_at_the_guards_own_level_is_remembered();
+  switching_it_back_on_goes_on_where_it_settled();
   return report();
 }

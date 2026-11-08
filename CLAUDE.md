@@ -870,6 +870,23 @@ Everything worth knowing about them is available through commands:
   chosen on five songs. Starting at 0 dB, and a 0.3 dB/s climb, were tried on
   2026-10-26 and both taken back the same day at his word ("when I change to
   another song it suddenly rises the volume", "keep as it was").
+  **An output that has played goes on at the level it settled at**
+  (2026-11-07, "the preamp kind of resets and needs to rise again ... we need
+  to ensure stable volume"). Every lock is a new watcher with new graphs, and
+  every lock's guard used to start over at the curve's level: -10 dB on his
+  headset, half a minute of climbing each time Windows opened the output —
+  at every FluidEQ restart, every time the Library's player started its
+  stream again, every stream on an idle output, and every switch of FluidEQ or
+  Auto normalize off and on. Each output now keeps the level and the curve
+  level it was settled under, beside its leveling memory for the life of
+  audiodg (`auto_level_memory.h`, `Leveling::auto_level`); a guard that would
+  start over starts there instead, lower by however much louder the curve is
+  now and never lifted by a quieter one (`hold`'s rule), and the curve's
+  level remains the start where nothing is remembered. Written only from
+  blocks with music, at the guard's own level (never a held edit's
+  estimate, never while off), so a silent stream on the same output cannot
+  overwrite it. Held by `output_guard_test.cpp`, `output_transition_test.cpp`
+  and the real DLL locked twice on one endpoint (`dll_level_test.cpp`).
 - **An edit's level is predicted, never climbed to** (engine 1.16, Ivan
   2026-09-23: "jump straight to it and then the auto normalize just
   finetune"). The engine keeps the last 10 s of music as it leaves the rack

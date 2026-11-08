@@ -1,4 +1,5 @@
 #include "fluideq_engine/graph.h"
+#include "../src/auto_level_memory.h"
 #include "graph_test_support.h"
 #include <algorithm>
 #include <cmath>
@@ -88,6 +89,34 @@ void guard_follows_final_samples() {
   CHECK(manual.output_guard && !manual.auto_preamp && manual.preamp_db == -7);
 }
 
+// Windows opening the output again builds a graph with nothing to adopt.
+// With the output's memory (`auto_level_memory.h`) its level goes on where
+// the music settled; the control, without one, starts at the curve's level
+// and has half a minute to climb, as every lock used to.
+void a_new_lock_goes_on_where_the_output_settled() {
+  const auto chain = chain_from("Filter: ON PK Fc 1000 Hz Gain 12 dB Q 2\n"
+      "GraphicEQ: 20 6; 20000 6\nPreamp: -18 dB\n# FluidEQAutoPreamp: ON\n");
+  auto memory = std::make_shared<fluideq_engine::AutoLevelMemory>();
+  Graph first(chain, kRate, 2, 480);
+  first.remember_level_in(memory);
+  std::vector<std::vector<float>> music(2, tone(1000, 0.05, kRate * 30, 0));
+  run_blocks(first, music, 480);
+  const double settled = first.auto_preamp_gain_db();
+  std::printf("settled at %.2f dB over a curve whose level is -18\n", settled);
+  CHECK(settled > -18 + 2);
+
+  Graph next(chain, kRate, 2, 480);
+  next.remember_level_in(memory);
+  std::vector<std::vector<float>> resumed(2, tone(1000, 0.05, kRate / 2, 0));
+  run_blocks(next, resumed, 480);
+  CHECK(std::abs(next.auto_preamp_gain_db() - settled) < 0.05);
+
+  Graph forgetful(chain, kRate, 2, 480);
+  std::vector<std::vector<float>> cold(2, tone(1000, 0.05, kRate / 2, 0));
+  run_blocks(forgetful, cold, 480);
+  CHECK(std::abs(forgetful.auto_preamp_gain_db() + 18) < 0.5);
+}
+
 void guard_follows_impulse_response() {
   const auto path = std::filesystem::temp_directory_path() / "fluideq-final-guard-ir.wav";
   CHECK(write_float_wav(path, kRate, {4.0f}));
@@ -148,5 +177,6 @@ int main() {
   guard_follows_final_samples();
   guard_follows_impulse_response();
   actual_eq_edits_reassess_quickly();
+  a_new_lock_goes_on_where_the_output_settled();
   return report();
 }

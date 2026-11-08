@@ -5,6 +5,7 @@
 #include "fluideq/post_filter_normalizer.h"
 
 namespace fluideq_engine {
+class AutoLevelMemory;
 /**
  * Actual final samples, not a sum of filter gains. The 2 ms lookahead catches
  * peaks after DSP, IR, curves and preamp; linked gain preserves the stereo
@@ -24,8 +25,9 @@ class OutputGuard {
   double last_input_peak() const noexcept { return last_input_peak_; }
   void reassess(uint32_t settling_frames) noexcept;
   /**
-   * The curve's own level, 0 dB or below: where Auto normalize starts, and
-   * how much a louder curve has to come down at once.
+   * The curve's own level, 0 dB or below: where Auto normalize starts when
+   * this output has no level to go back to, and how much a louder curve has
+   * to come down at once.
    *
    * The first enabled block starts here rather than at 0 dB, and the level is
    * brought back up from it as the music leaves room — Ivan's description of
@@ -34,6 +36,14 @@ class OutputGuard {
    * the ceiling; a higher one is left to the recovery.
    */
   void set_curve_level(double db) noexcept;
+  /**
+   * Where this output's settled level is kept across locks
+   * (`auto_level_memory.h`): the first enabled block starts from it rather
+   * than from the curve's level, and every block with sound that plays at
+   * the guard's own level writes it. Borrowed; it outlives every guard. Null
+   * keeps nothing, and every start is the curve's level.
+   */
+  void remember_level_in(AutoLevelMemory* memory) noexcept { memory_ = memory; }
   /**
    * An edit whose level is being worked out on the music just heard
    * (`level_prediction.h`) while the edit already plays: the level the chain
@@ -46,8 +56,8 @@ class OutputGuard {
    *
    * `sound_changed` false keeps a hold already running and otherwise does
    * what `set_curve_level` does. Before the guard's first enabled block
-   * nothing is held: the level starts at the curve's level there, as it
-   * always does.
+   * nothing is held: the level starts where any first block does — where
+   * this output last settled, or the curve's level.
    */
   void hold(double curve_level_db, uint32_t settling_frames,
             bool sound_changed) noexcept;
@@ -92,8 +102,9 @@ class OutputGuard {
   uint32_t glide_left_ = 0;
   uint32_t glide_frames_ = 1;
   double last_input_peak_ = 0;
-  /** The next enabled block starts from the curve's level. */
+  /** The next enabled block starts over: from `memory_`, or the curve's level. */
   bool armed_ = true;
+  AutoLevelMemory* memory_ = nullptr;
   uint32_t rate_;
   uint32_t latency_;
   uint32_t window_frames_;

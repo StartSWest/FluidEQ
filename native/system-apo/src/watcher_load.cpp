@@ -255,6 +255,7 @@ void Watcher::publish(std::unique_ptr<Graph> graph) {
   if (analysis_) graph->set_meters(analysis_->meters(), analysis_->activity());
   if (analysis_) graph->set_output_meters(&analysis_->output_gain, &analysis_->output_enabled, &analysis_->output_active);
   graph->own_history(history_);
+  if (leveling_) graph->remember_level_in(leveling_->auto_level());
   // Ownership is recorded before the graph becomes reachable: if this
   // allocation throws, the unique_ptr still holds the only reference and
   // frees it, and the audio thread never saw it.

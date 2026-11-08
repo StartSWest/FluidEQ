@@ -133,6 +133,11 @@ bool Graph::start_crossing(Graph* previous) noexcept {
   return true;
 }
 
+void Graph::remember_level_in(std::shared_ptr<AutoLevelMemory> memory) noexcept {
+  auto_level_ = std::move(memory);
+  if (output_guard_) output_guard_->remember_level_in(auto_level_.get());
+}
+
 void Graph::hand_level_over(bool sound_changed, uint32_t settling) noexcept {
   if (level_mailbox_ != nullptr && auto_preamp_) {
     output_guard_->hold(curve_level_db_, settling, sound_changed);

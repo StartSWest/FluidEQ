@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include "auto_level_memory.h"
 
 namespace fluideq_engine {
 namespace {
@@ -21,7 +22,9 @@ namespace {
  * Keep these two values, and keep the start at the curve's level. On
  * 2026-10-26 a start at 0 dB and a doubled climb (0.3 dB/s) were tried and
  * taken back the same day: Ivan heard the level jump up at every new song
- * ("keep as it was").
+ * ("keep as it was"). The one start that is not the curve's level is an
+ * output going on where its music last settled (`auto_level_memory.h`),
+ * which is no jump at all: it is the level the music was already heard at.
  */
 constexpr double kRecoverAfterSeconds = 5.0;
 constexpr double kRecoverDbPerSecond = 0.15;
@@ -32,6 +35,10 @@ constexpr double kRecoverDbPerSecond = 0.15;
  * move together.
  */
 constexpr double kEditGlideSeconds = 0.02;
+
+/** Under this a window carries no music: the level is neither judged on it
+ * nor remembered from it. */
+constexpr double kSoundFloorDb = -65.0;
 
 constexpr double kPi = 3.14159265358979323846;
 }  // namespace
@@ -72,9 +79,12 @@ void OutputGuard::process(float* const* planar, uint32_t frames, bool enabled) n
     holding_ = false;
     glide_left_ = 0;
   } else if (armed_) {
-    // The limiter meets this as a drop and back-fills it across its
-    // look-ahead, so the first sample out is already at the curve's level.
-    target_db_ = curve_level_db_;
+    // Where this output's music last settled, or the curve's own level when
+    // nothing is remembered (`auto_level_memory.h`). The limiter meets this
+    // as a drop and back-fills it across its look-ahead, so the first sample
+    // out is already at it.
+    target_db_ = memory_ != nullptr ? memory_->start_for(curve_level_db_)
+                                    : curve_level_db_;
     glide_left_ = 0;
     armed_ = false;
   }
@@ -105,19 +115,19 @@ void OutputGuard::process(float* const* planar, uint32_t frames, bool enabled) n
       overload_age_ = std::min(10u, overload_age_ + 1);
       if (settling_frames_ > 0) {
         settling_frames_ -= std::min(settling_frames_, window_frames_);
-      } else if (enabled && reassess_frames_ > 0 && peak_db > -65.0) {
+      } else if (enabled && reassess_frames_ > 0 && peak_db > kSoundFloorDb) {
         reassess_peak_ = std::max(reassess_peak_, window_peak_);
         edit_goal_db_ = std::min(0.0, -1.0 - 20.0 * std::log10(reassess_peak_));
         target_db_ = std::min(edit_goal_db_, target_db_ + static_cast<double>(window_frames_) / rate_);
         edit_recovery_ = target_db_ < edit_goal_db_;
         quiet_seconds_ = 0;
         reassess_frames_ -= std::min(reassess_frames_, window_frames_);
-      } else if (enabled && edit_recovery_ && peak_db > -65.0) {
+      } else if (enabled && edit_recovery_ && peak_db > kSoundFloorDb) {
         edit_goal_db_ = std::min(edit_goal_db_, required);
         target_db_ = std::min(edit_goal_db_, target_db_ + static_cast<double>(window_frames_) / rate_);
         edit_recovery_ = target_db_ < edit_goal_db_;
         quiet_seconds_ = 0;
-      } else if (enabled && peak_db > -65.0) {
+      } else if (enabled && peak_db > kSoundFloorDb) {
         if (required < target_db_) {
           if (overload_age_ < 10) target_db_ = required;
           overload_age_ = 0;
@@ -137,6 +147,15 @@ void OutputGuard::process(float* const* planar, uint32_t frames, bool enabled) n
       measured_frames_ = 0;
       window_peak_ = 0;
     }
+  }
+  // The level for the next lock on this output to start from: only from a
+  // block with music in it, so a silent stream locked on the same output
+  // cannot overwrite what the playing one settled at, and only while the
+  // level is this guard's own rather than an edit's estimate waiting for its
+  // prediction. A glide needs no exception: its destination is the level.
+  if (memory_ != nullptr && enabled && !holding_ &&
+      20.0 * std::log10(std::max(1e-12, last_input_peak_)) > kSoundFloorDb) {
+    memory_->remember(target_db_, curve_level_db_);
   }
 }
 

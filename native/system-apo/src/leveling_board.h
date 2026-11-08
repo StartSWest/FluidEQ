@@ -26,6 +26,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <optional>
 #include <string>
 
+#include "auto_level_memory.h"
 #include "fluideq/leveling_memory.h"
 #include "programme.h"
 
@@ -48,6 +49,10 @@ class Leveling {
   /** For a graph to hold while its rack uses the memory. Null if allocation failed. */
   std::shared_ptr<FeqLevelingMemory> memory() const noexcept { return memory_; }
 
+  /** Where Auto normalize settled on this output, for the next lock to go on
+   * from (`auto_level_memory.h`). */
+  std::shared_ptr<AutoLevelMemory> auto_level() const noexcept { return auto_level_; }
+
   /**
    * Watcher thread: the programme the app says is playing now. True when this
    * call ended a named song, whose report `last_song` now holds.
@@ -62,6 +67,7 @@ class Leveling {
 
  private:
   std::shared_ptr<FeqLevelingMemory> memory_;
+  std::shared_ptr<AutoLevelMemory> auto_level_ = std::make_shared<AutoLevelMemory>();
   mutable std::mutex mutex_;
   std::optional<SongReport> last_;
 };
