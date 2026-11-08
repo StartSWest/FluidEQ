@@ -283,6 +283,11 @@ export const useDspEngine = (
       setDspSampleRate(context.sampleRate);
       // Both of these can fail, and neither has touched the element yet.
       await context.audioWorklet.addModule(workletUrl().href);
+      // Put away during the load: its context is closed, and resuming one
+      // would only throw for a run nobody is waiting on.
+      if (cancelled) {
+        return;
+      }
       /**
        * Resumed only when a deck is already playing, never merely because the
        * graph was built.
@@ -411,6 +416,16 @@ export const useDspEngine = (
     );
 
     start().catch((error: unknown) => {
+      // A run put away while its module was still loading is not a failure.
+      // The cleanup below closes that run's context on purpose, and Chromium
+      // then rejects the pending `addModule` with "AbortError: Unable to load
+      // a worklet's module." That was logged as engineStartFailed at every
+      // launch of the dev window, and its `teardown('failed')` — global state
+      // — could land after the next run had started and put the DSP page's
+      // "unavailable" notice over a chain that was working.
+      if (cancelled) {
+        return;
+      }
       reportDspDiagnostic({
         schemaVersion: DSP_DIAGNOSTIC_SCHEMA_VERSION,
         code: DSP_DIAGNOSTIC_CODES.engineStartFailed,

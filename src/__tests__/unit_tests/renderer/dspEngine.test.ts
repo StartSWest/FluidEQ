@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { DSP_DEFAULTS } from '../../../common/dsp/chain';
+import { readDspEngineState } from '../../../renderer/dsp/store';
 import { useDspEngine } from '../../../renderer/dsp/useDspEngine';
 
 interface IFakeNode {
@@ -36,16 +37,21 @@ const installAudio = (
     addModuleFails?: boolean;
     resumeFails?: boolean;
     graphFails?: boolean;
+    /** The module load itself, for a case that settles it by hand. */
+    loadModule?: () => Promise<void>;
   } = {},
 ): IHarness => {
   const source = node();
   const destination = node();
   const createMediaElementSource = jest.fn(() => source);
-  const addModule = jest.fn(() =>
-    overrides.addModuleFails
+  const addModule = jest.fn(() => {
+    if (overrides.loadModule) {
+      return overrides.loadModule();
+    }
+    return overrides.addModuleFails
       ? Promise.reject(new Error('module blocked'))
-      : Promise.resolve(),
-  );
+      : Promise.resolve();
+  });
   const resume = jest.fn(() =>
     overrides.resumeFails
       ? Promise.reject(new Error('not allowed to start'))
@@ -268,5 +274,54 @@ describe('useDspEngine', () => {
     expect(target.listenerCount('play')).toBe(1);
     act(() => unmount());
     expect(target.listenerCount('play')).toBe(0);
+  });
+
+  /**
+   * A player put away while its module was still loading. The cleanup closes
+   * that run's context, and Chromium rejects the pending load with an
+   * AbortError — which was reported as the engine failing to start at every
+   * launch of the dev window, and marked the DSP page unavailable.
+   */
+  describe('a module load cut off by the player leaving', () => {
+    const pendingLoad = () => {
+      let rejectLoad: (error: Error) => void = () => undefined;
+      const loadModule = () =>
+        new Promise<void>((_resolve, reject) => {
+          rejectLoad = reject;
+        });
+      return { loadModule, fail: (error: Error) => rejectLoad(error) };
+    };
+    const abort = () =>
+      Object.assign(new Error("Unable to load a worklet's module."), {
+        name: 'AbortError',
+      });
+
+    it('is not reported as a failed engine', async () => {
+      const load = pendingLoad();
+      const harness = installAudio({ loadModule: load.loadModule });
+      const elements = [element()];
+      const { unmount } = renderHook(() =>
+        useDspEngine(elements, DSP_DEFAULTS),
+      );
+      await waitFor(() => expect(harness.addModule).toHaveBeenCalled());
+      act(() => unmount());
+      await act(async () => {
+        load.fail(abort());
+      });
+      expect(readDspEngineState()).toBe('idle');
+      expect(harness.resume).not.toHaveBeenCalled();
+    });
+
+    it('CONTROL: the same rejection with the player still there is a failure', async () => {
+      const load = pendingLoad();
+      const harness = installAudio({ loadModule: load.loadModule });
+      const elements = [element()];
+      renderHook(() => useDspEngine(elements, DSP_DEFAULTS));
+      await waitFor(() => expect(harness.addModule).toHaveBeenCalled());
+      await act(async () => {
+        load.fail(abort());
+      });
+      expect(readDspEngineState()).toBe('failed');
+    });
   });
 });
