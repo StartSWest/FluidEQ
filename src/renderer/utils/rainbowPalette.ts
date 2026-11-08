@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import { useSyncExternalStore } from 'react';
+import { paletteLinear, type IScenePaletteValue } from 'common/scenePalette';
 import type { ISceneColour, ISceneSky } from './sceneTint';
 import {
   hueDistance,
@@ -14,6 +15,7 @@ import {
   parseCssColour,
   rgbToLab,
   toByte,
+  toGamma,
   type ILab,
 } from './oklab';
 
@@ -195,6 +197,53 @@ export const rainbowFromColours = (
       );
     }
     return toHex(fromLch(amount < 0.5 ? from : to));
+  });
+};
+
+/**
+ * Seven stops from a scene's own palette (contract 9), in the palette's own
+ * order, bass to treble — never re-sorted round the wheel as a swatch is,
+ * because the palette IS the order: the scene paints its bass in the first
+ * stop and its treble in the last, and the bands and the wave read the
+ * rainbow first to last the same way (`rainbowRgbAt`), so each band wears the
+ * colour the scene gives that band (Ivan, 2026-11-08: "what ever user picks
+ * for that scene makes app goes that palette in wave and meters").
+ *
+ * Sampled where the palette's own positions put its colours, mixed in OKLab
+ * as the scene's texture is (`paletteLinear`), then held inside the band the
+ * marks read in — the lightness of every stop between `MIN_LIGHTNESS` and
+ * `MAX_LIGHTNESS`, a coloured stop at least `MIN_CHROMA` — so a palette that
+ * runs into black or navy still reads as a 2px mark on the window's floor at
+ * every theme shade. A stop that is grey stays grey. A palette of greys alone
+ * is no rainbow, as a swatch of greys is not: undefined, and the caller falls
+ * back to what it had.
+ */
+export const rainbowFromPalette = (
+  value: IScenePaletteValue,
+): string[] | undefined => {
+  const coloured = value.stops.some((hex) => {
+    const parsed = parseCssColour(hex);
+    return parsed !== undefined && toLch(rgbToLab(parsed.rgb)).c >= GREY_CHROMA;
+  });
+  if (!coloured) {
+    return undefined;
+  }
+  const linear = paletteLinear(value, RAINBOW_STOP_COUNT);
+  return Array.from({ length: RAINBOW_STOP_COUNT }, (_, index) => {
+    const own = toLch(
+      rgbToLab([
+        toGamma(linear[index * 3]),
+        toGamma(linear[index * 3 + 1]),
+        toGamma(linear[index * 3 + 2]),
+      ]),
+    );
+    return toHex(
+      fromLch({
+        l: Math.min(MAX_LIGHTNESS, Math.max(MIN_LIGHTNESS, own.l)),
+        c: own.c < GREY_CHROMA ? own.c : Math.max(MIN_CHROMA, own.c),
+        h: own.h,
+      }),
+    );
   });
 };
 

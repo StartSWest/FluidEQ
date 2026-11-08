@@ -13,6 +13,8 @@ const studioPalette = {
   'studioPalette.colour': 'Цвет выбранной точки',
   'studioPalette.hint':
     'Щёлкните по полосе, чтобы добавить цвет. Перетащите точку, чтобы сдвинуть, щёлкните, чтобы изменить, щёлкните правой кнопкой или утащите с полосы, чтобы убрать. В палитре остаётся не меньше двух.',
+  'studioPalette.appColours':
+    'В цветном режиме волна, индикаторы и полосы FluidEQ принимают первую палитру, которую показывает эта сцена.',
   'studioPalette.preset.rainbow': 'Радуга',
   'studioPalette.preset.viridis': 'Viridis',
   'studioPalette.preset.magma': 'Magma',

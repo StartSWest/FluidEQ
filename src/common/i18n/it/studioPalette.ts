@@ -13,6 +13,8 @@ const studioPalette = {
   'studioPalette.colour': 'Colore del punto selezionato',
   'studioPalette.hint':
     'Fai clic sulla striscia per aggiungere un colore. Trascinane uno per spostarlo, fai clic per cambiarlo, clic destro o trascinalo fuori per toglierlo. Una palette ne tiene almeno due.',
+  'studioPalette.appColours':
+    'In modalità colorata, l’onda, i misuratori e le bande di FluidEQ prendono la prima palette mostrata da questa scena.',
   'studioPalette.preset.rainbow': 'Arcobaleno',
   'studioPalette.preset.viridis': 'Viridis',
   'studioPalette.preset.magma': 'Magma',

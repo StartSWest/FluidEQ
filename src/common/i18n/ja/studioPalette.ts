@@ -13,6 +13,8 @@ const studioPalette = {
   'studioPalette.colour': '選択中のストップの色',
   'studioPalette.hint':
     '帯をクリックして色を追加。ドラッグで移動、クリックで色を変更、右クリックか帯の外へドラッグで削除。パレットには少なくとも 2 色が残ります。',
+  'studioPalette.appColours':
+    'カラフルモードでは、FluidEQ の波形・メーター・バンドが、このシーンが表示している最初のパレットの色になります。',
   'studioPalette.preset.rainbow': 'レインボー',
   'studioPalette.preset.viridis': 'Viridis',
   'studioPalette.preset.magma': 'Magma',

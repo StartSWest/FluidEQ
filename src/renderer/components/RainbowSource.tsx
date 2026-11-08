@@ -12,6 +12,12 @@ import { isPremiumLookId } from 'common/scenePacks';
 import { useSelectedLookId } from '../utils/graphStyle';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import {
+  sceneAppColourStops,
+  useSceneColourControls,
+  useStudioAppColours,
+} from '../utils/sceneAppColours';
+import { useListenerParams } from '../utils/sceneParamStore';
+import {
   rainbowFromColours,
   sceneColourHex,
   setRainbowStops,
@@ -33,6 +39,12 @@ import { tintedLagoonStops, useWindowTint } from '../utils/windowTint';
  * icon is drawn in until then. Otherwise, and for a scene in greys, it is
  * Lagoon (`rainbowPalette.ts`).
  *
+ * A scene that chose its colours says so first (`sceneAppColours.ts`): its
+ * palette, or the single colour its choices show instead, as the listener's
+ * choices on the graph stand — and while the Studio's bench is on screen,
+ * the project there, as the member is editing it. The swatch and the
+ * measured colours are what a scene without either still hands over.
+ *
  * Whatever the window's colours are set to: Theme, Colours, Ambient or the
  * Backdrop decide what the scene does to the panes, and the rainbow is the
  * mode's own. Mounted beside `SceneTint`, at the root, because the palette
@@ -44,9 +56,28 @@ const RainbowSource = () => {
   const memberScenes = useUsableMemberScenes();
   const isScene = isPremiumLookId(lookId) || isMemberLookId(lookId);
   const measured = useRememberedSceneSky(isScene ? lookId : '');
+  const controls = useSceneColourControls(isScene ? lookId : '');
+  const chosen = useListenerParams(lookId);
+  const studio = useStudioAppColours();
 
-  // As text, so the effect compares it by value: the lists are rebuilt
-  // whenever either arrives, with the same swatch in a new array.
+  // The stops a scene chose, ready to use: never re-sorted round the wheel
+  // as a swatch is, because a palette's order is bass to treble. As text, so
+  // the effect compares them by value.
+  const chosenStops = useMemo(() => {
+    if (studio) {
+      return studio.join(' ');
+    }
+    if (!isScene || !controls) {
+      return undefined;
+    }
+    return sceneAppColourStops(
+      controls,
+      chosen ? { params: chosen } : {},
+    )?.join(' ');
+  }, [studio, isScene, controls, chosen]);
+
+  // As text too: the lists are rebuilt whenever either arrives, with the same
+  // swatch in a new array.
   const swatch = useMemo(() => {
     if (!isScene) {
       return undefined;
@@ -67,12 +98,14 @@ const RainbowSource = () => {
   // follow the colour the window wears.
   const tint = useWindowTint();
   useLayoutEffect(() => {
-    if (swatch) {
+    if (chosenStops) {
+      setRainbowStops(chosenStops.split(' '));
+    } else if (swatch) {
       setRainbowStops(rainbowFromColours(swatch.split(' ')));
     } else {
       setRainbowStops(tint === undefined ? undefined : tintedLagoonStops(tint));
     }
-  }, [swatch, tint]);
+  }, [chosenStops, swatch, tint]);
 
   return null;
 };

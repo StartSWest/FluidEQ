@@ -45,6 +45,11 @@ export const CONTROLS_SECTION = `- A PALETTE is a control of its own kind in par
   Whenever the scene's colours are a set I might want to change, give them as
   a palette: never a rainbow written into the code that I cannot edit. My
   edits are written back as "stops": keep them when you rewrite pack.json.
+  In Colourful mode FluidEQ's own wave, meters and bands wear the FIRST
+  palette the scene is showing, in its order, bass to treble (or the single
+  colours it shows when its choices hide that palette): put the scene's main
+  colours first, and read a palette's t along the spectrum so the scene and
+  the app agree.
 - A CHOICE picks one of ${MIN_CHOICE_OPTIONS} to ${MAX_CHOICE_OPTIONS} named options, shown to me as buttons side by
   side (up to 4) or a menu (5 to ${MAX_CHOICE_OPTIONS}).
   { "id": "style", "type": "choice", "names": { "en": "Style" }, "min": 0, "max": 2, "value": 0,

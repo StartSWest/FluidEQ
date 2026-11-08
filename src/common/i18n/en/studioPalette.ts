@@ -13,6 +13,8 @@ const studioPalette = {
   'studioPalette.colour': 'Colour of the selected stop',
   'studioPalette.hint':
     'Click the strip to add a colour. Drag one to move it, click it to change it, right-click it or drag it off to remove it. A palette keeps at least two.',
+  'studioPalette.appColours':
+    'In Colourful mode, FluidEQ’s own wave, meters and bands wear the first palette this scene shows.',
   'studioPalette.preset.rainbow': 'Rainbow',
   'studioPalette.preset.viridis': 'Viridis',
   'studioPalette.preset.magma': 'Magma',

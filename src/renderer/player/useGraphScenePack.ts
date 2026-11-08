@@ -13,6 +13,7 @@ import type { ISceneTuning } from '../graph/sceneTuner';
 import { useSceneLook } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
 import { loadMemberScene } from '../utils/memberScenes';
+import { reportSceneColourControls } from '../utils/sceneAppColours';
 import { useListenerParams } from '../utils/sceneParamStore';
 import { useListenerResponse } from '../utils/sceneResponseStore';
 import { useWatchedSceneWave } from '../utils/sceneWaveStore';
@@ -93,6 +94,11 @@ const useGraphScenePack = (drawsHere = true): TGraphScene => {
       .then((pack) => {
         if (isCurrent) {
           setLoaded({ key: loadKey, pack });
+          // The colours it chose, for the window's own, wherever it plays
+          // without the graph having drawn it.
+          if (pack) {
+            reportSceneColourControls(lookId, pack);
+          }
         }
         return undefined;
       })

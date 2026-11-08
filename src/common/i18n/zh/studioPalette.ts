@@ -13,6 +13,8 @@ const studioPalette = {
   'studioPalette.colour': '所选色标的颜色',
   'studioPalette.hint':
     '点击色带添加颜色。拖动色标可移动，点击可更改颜色，右键点击或拖出色带可删除。调色板至少保留两种颜色。',
+  'studioPalette.appColours':
+    '在多彩模式下，FluidEQ 的波形、电平表和频段会采用此场景显示的第一个调色板。',
   'studioPalette.preset.rainbow': '彩虹',
   'studioPalette.preset.viridis': 'Viridis',
   'studioPalette.preset.magma': 'Magma',

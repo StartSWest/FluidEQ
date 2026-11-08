@@ -10,6 +10,7 @@ import { createPortal } from 'react-dom';
 import { sceneMakerOf } from 'common/sceneMaker';
 import type { IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
+import { reportSceneColourControls } from '../utils/sceneAppColours';
 import { reportOwnParams, useListenerParams } from '../utils/sceneParamStore';
 import {
   reportOwnResponse,
@@ -226,6 +227,8 @@ export default function SceneCanvas({
       reportOwnResponse(lookId, pack.response);
       // What the menu draws a row from: the controls this pack declares.
       reportOwnParams(lookId, pack.params);
+      // And the colours it chose, which the window's own follow.
+      reportSceneColourControls(lookId, pack);
       // Every version that becomes the drawn one, an update swapped in place
       // included: the picker's "new" marks and the graph's one notice.
       reportScenePlayed({

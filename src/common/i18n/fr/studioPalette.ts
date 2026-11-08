@@ -13,6 +13,8 @@ const studioPalette = {
   'studioPalette.colour': 'Couleur de l’arrêt sélectionné',
   'studioPalette.hint':
     'Cliquez sur la bande pour ajouter une couleur. Faites-en glisser une pour la déplacer, cliquez dessus pour la changer, clic droit ou glissez-la hors de la bande pour la retirer. Une palette en garde au moins deux.',
+  'studioPalette.appColours':
+    'En mode coloré, l’onde, les vumètres et les bandes de FluidEQ prennent la première palette que cette scène affiche.',
   'studioPalette.preset.rainbow': 'Arc-en-ciel',
   'studioPalette.preset.viridis': 'Viridis',
   'studioPalette.preset.magma': 'Magma',

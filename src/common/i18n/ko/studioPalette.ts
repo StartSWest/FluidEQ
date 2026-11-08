@@ -14,6 +14,8 @@ const studioPalette = {
   'studioPalette.colour': '선택한 지점의 색',
   'studioPalette.hint':
     '띠를 클릭하면 색이 추가됩니다. 끌어서 옮기고, 클릭해서 바꾸고, 마우스 오른쪽 클릭이나 띠 밖으로 끌어 빼면 지워집니다. 팔레트에는 적어도 두 가지 색이 남습니다.',
+  'studioPalette.appColours':
+    '컬러풀 모드에서는 FluidEQ의 파형, 미터, 밴드가 이 장면이 보여 주는 첫 번째 팔레트의 색을 따릅니다.',
   'studioPalette.preset.rainbow': '무지개',
   'studioPalette.preset.viridis': 'Viridis',
   'studioPalette.preset.magma': 'Magma',

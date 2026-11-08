@@ -13,6 +13,8 @@ const studioPalette = {
   'studioPalette.colour': 'Color de la parada seleccionada',
   'studioPalette.hint':
     'Haz clic en la franja para añadir un color. Arrastra uno para moverlo, haz clic para cambiarlo, clic derecho o arrástralo fuera para quitarlo. Una paleta conserva al menos dos.',
+  'studioPalette.appColours':
+    'En el modo colorido, la onda, los medidores y las bandas de FluidEQ toman la primera paleta que muestra esta escena.',
   'studioPalette.preset.rainbow': 'Arcoíris',
   'studioPalette.preset.viridis': 'Viridis',
   'studioPalette.preset.magma': 'Magma',

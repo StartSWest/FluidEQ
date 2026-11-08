@@ -392,6 +392,14 @@ export default function StudioSettings({
                 {t('studioPalette.hint')}
               </span>
             )}
+            {/* Which of a scene's palettes the window's own colours follow
+                (`sceneAppColours.ts`): with two, the author has to know it
+                is the first. */}
+            {shownPalettes.length > 0 && (
+              <span className="studio-settings__lead">
+                {t('studioPalette.appColours')}
+              </span>
+            )}
           </section>
         )}
 
