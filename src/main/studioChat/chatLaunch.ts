@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { createHash } from 'crypto';
 import path from 'path';
 import {
   STUDIO_CHAT_MODEL_VERSIONS,
@@ -91,6 +92,10 @@ const ALLOWED = [
   `mcp__${DOOR_SERVER}__pack_artwork`,
 ];
 
+/** A brief as a running chat remembers it: short, and the same for the same text. */
+export const briefKey = (brief: string) =>
+  createHash('sha256').update(brief).digest('hex');
+
 /** A project's running Claude Code, as the chat keeps it. */
 export interface IChatSession {
   process: IChatProcess;
@@ -100,6 +105,12 @@ export interface IChatSession {
   /** What it was started with: a different pick starts it again. */
   model: TStudioChatModel;
   effort: TStudioChatEffort;
+  /**
+   * The brief it was started with, as its hash (`briefKey`): a message
+   * carrying another - FluidEQ's newer one - starts it again on the same
+   * conversation, so every scene's chat works from the current brief.
+   */
+  brief: string;
   /** The reply being written, when one is. */
   reply?: Extract<TStudioChatEntry, { kind: 'claude' }>;
   /**

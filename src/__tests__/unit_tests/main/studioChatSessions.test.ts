@@ -153,6 +153,31 @@ const setUp = (
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'chat-sessions-'));
 
 describe("a project's Claude Code across FluidEQ closing", () => {
+  it('starts a chat again on a newer brief, on the same conversation, and keeps it on the same one', async () => {
+    // Ivan, 2026-11-08: "make sure to update the latest AI system prompt on
+    // all studio scenes".
+    const root = tmp();
+    try {
+      const fluid = setUp(root);
+      const first = await fluid.chat.sessionFor('lake', 'C:/Lake', message(''));
+      // The same brief: the running process answers.
+      expect(await fluid.chat.sessionFor('lake', 'C:/Lake', message(''))).toBe(
+        first,
+      );
+      expect(fluid.started).toHaveLength(1);
+      // FluidEQ's brief changed: a new process, the old one ended.
+      const newer = await fluid.chat.sessionFor('lake', 'C:/Lake', {
+        ...message(''),
+        brief: 'brief, newer',
+      });
+      expect(newer).not.toBe(first);
+      expect(first?.process.end).toHaveBeenCalled();
+      expect(fluid.started).toHaveLength(2);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('a restart leaves every chat running and writes down what the next FluidEQ needs', async () => {
     const root = tmp();
     try {

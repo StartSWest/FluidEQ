@@ -82,6 +82,7 @@ describe('a chat taken up across a restart', () => {
         door: { url: 'http://127.0.0.1:4321/mcp', key: 'k' },
         model: 'opus',
         effort: 'high',
+        brief: 'brief-key',
         reply: {
           kind: 'claude',
           id: 'r-1',
@@ -100,6 +101,7 @@ describe('a chat taken up across a restart', () => {
         folder: 'C:/Scenes/Lake',
         model: 'opus',
         effort: 'high',
+        brief: 'brief-key',
         seen: 7,
         reply: { id: 'r-1', from: 3 },
         stopping: true,
@@ -152,6 +154,7 @@ describe('a chat taken up across a restart', () => {
       folder: 'C:/Scenes/Lake',
       model: 'default',
       effort: 'default',
+      brief: 'brief-key',
       stopping: false,
       sendingNow: false,
     };

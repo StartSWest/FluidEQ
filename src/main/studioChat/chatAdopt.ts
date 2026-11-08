@@ -36,6 +36,8 @@ export interface IKeptSession {
   stopping: boolean;
   sendingNow: boolean;
   door?: { url: string; key: string };
+  /** The brief its Claude Code was started with, as `briefKey` says it. */
+  brief?: string;
 }
 
 export const keepSession = (
@@ -50,6 +52,7 @@ export const keepSession = (
   ...(session.reply && session.replyFrom !== undefined
     ? { reply: { id: session.reply.id, from: session.replyFrom } }
     : {}),
+  brief: session.brief,
   stopping: session.stopping,
   sendingNow: session.sendingNow,
   ...(session.door ? { door: session.door } : {}),
@@ -97,6 +100,7 @@ const readKept = (raw: unknown): IKeptSession | undefined => {
       : {}),
     stopping: raw.stopping === true,
     sendingNow: raw.sendingNow === true,
+    ...(typeof raw.brief === 'string' ? { brief: raw.brief } : {}),
     ...(door ? { door } : {}),
   };
 };

@@ -20,6 +20,7 @@ import {
   writeKeptSessions,
 } from './chatAdopt';
 import {
+  briefKey,
   claudeCodeCommand,
   claudeCodeEvents,
   type IChatSession,
@@ -170,6 +171,7 @@ const createChatSessions = ({
       ...(tools ? { door: tools } : {}),
       model,
       effort,
+      brief: briefKey(brief),
       stopping: false,
       sendingNow: false,
     };
@@ -220,6 +222,9 @@ const createChatSessions = ({
       ...(one.door ? { door: one.door } : {}),
       model: one.model,
       effort: one.effort,
+      // A chat kept by a FluidEQ before briefs were kept has none, which no
+      // brief matches: its next message starts it again on the current one.
+      brief: one.brief ?? '',
       stopping: one.stopping,
       sendingNow: one.sendingNow,
     };
@@ -284,12 +289,16 @@ const createChatSessions = ({
         return undefined;
       }
       const running = sessions.get(projectId);
-      // A model or an effort is fixed for a Claude Code process: a new pick
-      // ends the one running and starts another on the same conversation.
+      // A model, an effort and a brief are fixed for a Claude Code process:
+      // a new pick, or a newer brief - FluidEQ updated, or its brief changed
+      // in development (Ivan, 2026-11-08: "make sure to update the latest AI
+      // system prompt on all studio scenes") - ends the one running and
+      // starts another on the same conversation, which loses nothing of it.
       if (
         running &&
         running.model === picks.model &&
-        running.effort === picks.effort
+        running.effort === picks.effort &&
+        running.brief === briefKey(picks.brief)
       ) {
         return running;
       }

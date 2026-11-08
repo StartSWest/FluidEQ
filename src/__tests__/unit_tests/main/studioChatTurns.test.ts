@@ -79,6 +79,7 @@ const setUp = () => {
       position: () => lines.length,
     },
     folder: 'folder',
+    brief: 'brief-key',
     model: 'default',
     effort: 'default',
     stopping: false,
