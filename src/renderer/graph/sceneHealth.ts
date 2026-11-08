@@ -155,8 +155,8 @@ export const SCENE_CEILING_MS = 20000;
 export const SCENE_MAX_CEILING_DOUBLINGS = 3;
 
 /**
- * A frame is catastrophically slow past this many intervals; a run of them at
- * the floor is when the scene is handed over.
+ * A frame is badly slow past this many intervals: a member's scene climbing
+ * from the floor (`sceneWarmup.ts`) steps back down after a run of them.
  *
  * Three, not two. At a sixty-frame interval that is fifty milliseconds — under
  * twenty frames a second — which is where a scene has visibly stopped being
@@ -165,10 +165,10 @@ export const SCENE_MAX_CEILING_DOUBLINGS = 3;
 export const SCENE_SLOW_FRAME_FACTOR = 3;
 
 /**
- * Consecutive catastrophic frames at the floor before giving up.
+ * Consecutive badly slow frames before a member's scene steps down a size.
  *
  * Twenty-four is under half a second at sixty: long enough that a single
- * driver stall does not stop the scene for the rest of the session.
+ * driver stall does not move the picture.
  */
 export const SCENE_SLOW_FRAMES_TO_STEP = 24;
 
@@ -192,10 +192,11 @@ export interface ICostLadder {
   slowed(): boolean;
   /**
    * Report one frame's reading against the interval frames arrive at.
-   * Returns `degraded` when the bottom has been reached — the smallest
-   * picture at the slow rate, or the smallest picture where there is no
-   * slower rate — and the scene is still too slow, at which point the caller
-   * hands over to the 2D fallback.
+   * Returns `degraded` only where a scene nobody here has watched holds the
+   * GPU so long, at its smallest size, that it would freeze the window and
+   * risk a display-driver reset (`sceneWarmup.ts`): then the caller stops
+   * it. Being slow is never a reason - a slow scene rests on its smallest
+   * size at the slow rate and stays on screen.
    */
   frame(
     reading: ISceneCostReading,
@@ -264,13 +265,13 @@ export const createFinishWatch = () => {
 };
 
 /**
- * Whether a reading is over budget, and whether it is catastrophic, on an
- * exact clock or on the pipeline alone.
+ * Whether a reading is over budget, on an exact clock or on the pipeline
+ * alone.
  */
 const judge = (
   { costMs, behind }: ISceneCostReading,
   intervalMs: number,
-): { over: boolean; catastrophic: boolean } => {
+): { over: boolean } => {
   if (costMs !== undefined) {
     // On the clock alone. Frames still in hand say nothing here: traced in
     // the running window at a hundred frames a second, a scene costing
@@ -279,12 +280,9 @@ const judge = (
     // the GPU is through with it. Counted as late, that held a member's
     // scene at an eighth of the size for good and reset the clean run every
     // climb waits for.
-    return {
-      over: costMs > intervalMs * SCENE_OVER_SHARE,
-      catastrophic: costMs > intervalMs * SCENE_SLOW_FRAME_FACTOR,
-    };
+    return { over: costMs > intervalMs * SCENE_OVER_SHARE };
   }
-  return { over: behind >= 1, catastrophic: behind >= 2 };
+  return { over: behind >= 1 };
 };
 
 /**
@@ -303,8 +301,12 @@ const judge = (
  *
  * Below the smallest picture the listener allows (`floor`) there is one rung
  * more: the same picture held to `SCENE_SLOW_PACE_MS`, taken only where
- * frames arrive faster than that. A scene gives up its rate before it gives
- * up altogether, and only a scene still catastrophic there is handed over.
+ * frames arrive faster than that, and the scene rests there however slow it
+ * still is. It is never handed over to a lesser look for being slow (Ivan,
+ * 2026-11-08: "remove all low performance laptop fallback scenes ... so only
+ * the good one display"): a soft, slower picture of the scene is the scene,
+ * and the standard look in its place was not. A scene stops only where it
+ * cannot run at all - a context lost, a program that will not build.
  */
 export const createCostLadder = (
   top = 1,
@@ -317,7 +319,6 @@ export const createCostLadder = (
   let rung = 0;
   let slowStreak = 0;
   let cleanStreak = 0;
-  let floorStreak = 0;
   let holdLeft = 0;
   let sinceClimb: number | undefined;
   let ceilingRung = 0;
@@ -326,9 +327,6 @@ export const createCostLadder = (
   let typicalCostMs: number | undefined;
   /** The interval frames arrived at before the slow rung: the way out of it. */
   let fastIntervalMs: number | undefined;
-  let degraded = false;
-
-  const state = () => (degraded ? 'degraded' : 'ok');
 
   const scaleAt = (at: number) => scales[Math.min(at, slowRung - 1)];
 
@@ -450,10 +448,9 @@ export const createCostLadder = (
       // `backgroundThrottling` drops an occluded window to about one frame a
       // second. Counting those would ratchet the quality down every minute the
       // window was minimised, for nobody.
-      if (hidden || degraded) {
+      if (hidden) {
         slowStreak = 0;
-        floorStreak = 0;
-        return state();
+        return 'ok';
       }
       finish.frame(reading, intervalMs);
       if (reading.costMs !== undefined) {
@@ -474,13 +471,8 @@ export const createCostLadder = (
           ceilingRung = 0;
         }
       }
-      const { over, catastrophic } = judge(reading, intervalMs);
+      const { over } = judge(reading, intervalMs);
       const bottom = atBottom(intervalMs);
-      floorStreak = bottom && catastrophic ? floorStreak + 1 : 0;
-      if (floorStreak >= SCENE_SLOW_FRAMES_TO_STEP) {
-        degraded = true;
-        return state();
-      }
       if (over) {
         slowStreak += 1;
         // A lone late frame — a pause on the page, a frame the compositor
@@ -502,13 +494,12 @@ export const createCostLadder = (
           climb(intervalMs);
         }
       }
-      return state();
+      return 'ok';
     },
     reset: () => {
       rung = 0;
       slowStreak = 0;
       cleanStreak = 0;
-      floorStreak = 0;
       holdLeft = 0;
       sinceClimb = undefined;
       ceilingRung = 0;
@@ -516,7 +507,6 @@ export const createCostLadder = (
       doublings = 0;
       typicalCostMs = undefined;
       fastIntervalMs = undefined;
-      degraded = false;
       finish.reset();
     },
   };

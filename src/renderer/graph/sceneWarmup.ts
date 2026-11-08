@@ -40,7 +40,10 @@ export const WARMUP_GOOD_FRAMES_TO_CLIMB = 12;
 /**
  * A frame this many intervals long is not a slow scene but a stalled GPU, and
  * three in a row at the smallest size is proof enough: waiting for the cost
- * ladder's usual count would mean seconds of a frozen window.
+ * ladder's usual count would mean seconds of a frozen window. The one thing
+ * that stops a scene on this ladder, because a scene nobody here has watched
+ * can hold the GPU until Windows resets the display driver for every program
+ * on the machine; a scene that is merely slow rests at its smallest size.
  */
 export const WARMUP_HOPELESS_FACTOR = 10;
 export const WARMUP_HOPELESS_FRAMES = 3;
@@ -141,22 +144,15 @@ export const createWarmupLadder = (top = 1, floor = 0): ICostLadder => {
         slowStreak += 1;
         if (slowStreak >= SCENE_SLOW_FRAMES_TO_STEP) {
           slowStreak = 0;
-          if (
-            rung === floorRung &&
-            rung > 0 &&
-            !slowed &&
-            intervalMs < SCENE_SLOW_PACE_MS * 0.9
-          ) {
-            // The smallest picture allowed, still slow: the rate goes before
-            // the picture does, and the ladder rests here. Not at the very
-            // bottom — a scene slow at an eighth of the size is hopeless, and
-            // halving its rate would only halve the proof.
-            slowed = true;
+          if (rung <= floorRung) {
+            // The smallest picture allowed, still slow: the rate goes, and
+            // the scene rests here however slow it stays. It is never handed
+            // over to a lesser look for being slow (Ivan, 2026-11-08: "only
+            // the good one display"); only a stalled GPU stops it, above.
+            if (!slowed && intervalMs < SCENE_SLOW_PACE_MS * 0.9) {
+              slowed = true;
+            }
             ceiling = rung;
-          } else if (rung <= floorRung) {
-            // Never below the listener's smallest size: slow there too, the
-            // scene is handed over rather than shown smaller than allowed.
-            degraded = true;
           } else {
             // Never back up to the rung that ran slow: a picture that climbs
             // and falls on the boundary pulses, which is worse than smaller.

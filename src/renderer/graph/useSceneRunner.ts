@@ -576,12 +576,13 @@ export default function useSceneRunner({
             ladder.frame(result.cost, drawnIntervalMs, document.hidden) ===
               'degraded'
           ) {
-            // Too slow even at the floor. The source decides what that means:
-            // the graph falls back FOR THIS SESSION — a slow session is a fact
-            // about the machine right now, not about the pack — and the
-            // Studio says so.
+            // A scene nobody here has watched held the GPU at its smallest
+            // size long enough to freeze the window (`sceneWarmup.ts`). Never
+            // for being slow: a slow scene rests on its smallest size and
+            // stays. The source decides what this means: the graph falls back
+            // for this session, and the Studio says so.
             console.error(
-              `Scene "${sourceRef.current.name}" ran too slowly even at its smallest size; it stops until the next launch.`,
+              `Scene "${sourceRef.current.name}" held the GPU too long even at its smallest size; it stops until the next launch.`,
             );
             dropProgram();
             setWaiting(false);

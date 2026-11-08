@@ -125,10 +125,14 @@ describe('the warm-up ladder', () => {
     expect(frames(ladder, 1, HOPELESS)).toBe('degraded');
   });
 
-  it('gives up on a scene that stays slow at the bottom', () => {
+  // Ivan, 2026-11-08: "remove all low performance laptop fallback scenes ...
+  // so only the good one display". A slow scene is shown slow, never swapped
+  // for the standard look; only a stalled GPU stops it (the hopeless case).
+  it('keeps a scene that stays slow at the bottom on screen, at the slow rate', () => {
     const ladder = createWarmupLadder();
-    expect(frames(ladder, 23, SLOW)).toBe('ok');
-    expect(frames(ladder, 1, SLOW)).toBe('degraded');
+    expect(frames(ladder, 24 * 10, SLOW)).toBe('ok');
+    expect(ladder.scale()).toBe(0.125);
+    expect(ladder.slowed()).toBe(true);
   });
 
   /** The listener's smallest size: slow there, the rate goes before the picture. */
@@ -143,9 +147,11 @@ describe('the warm-up ladder', () => {
     frames(ladder, WARMUP_GOOD_FRAMES_TO_CLIMB * 3, FAST);
     expect(ladder.scale()).toBe(0.5);
     expect(ladder.slowed()).toBe(true);
-    // Slow even at that rate: never shown smaller than allowed, so handed over.
-    expect(frames(ladder, 24, SLOW)).toBe('degraded');
+    // Slow even at that rate: never shown smaller than allowed, and still
+    // shown - resting there, never handed over for being slow.
+    expect(frames(ladder, 24 * 10, SLOW)).toBe('ok');
     expect(ladder.scale()).toBe(0.5);
+    expect(ladder.slowed()).toBe(true);
   });
 
   it('ignores frames from a hidden window', () => {

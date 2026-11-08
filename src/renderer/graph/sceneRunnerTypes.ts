@@ -62,7 +62,11 @@ export interface ISceneSource {
    * outlives the build; `context-lost` is two losses nothing was blamed for.
    */
   reportFailure(reason: TSceneFailure, log?: string): void;
-  /** Too slow even at the ladder's floor. */
+  /**
+   * It held the GPU so long at its smallest size that it would freeze the
+   * window (`sceneWarmup.ts`): a member's scene only. Never called for a
+   * scene that is merely slow, which rests at its smallest size.
+   */
   tooSlow(): void;
   /**
    * What a 3D world left out, or why it was drawn as its shader instead —

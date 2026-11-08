@@ -230,14 +230,19 @@ describe('the resolution controller', () => {
     expect(ladder.scale()).toBe(1);
   });
 
-  it('reports degraded once the floor is reached and it is still far too slow', () => {
+  // Ivan, 2026-11-08: "remove all low performance laptop fallback scenes ...
+  // so only the good one display". A scene far too slow even at the floor is
+  // still the scene, drawn small and at the slow rate - never the standard
+  // look in its place.
+  it('keeps a scene on screen at the floor however slow it is there', () => {
     const ladder = createCostLadder();
     const hopeless = INTERVAL * SCENE_SLOW_FRAME_FACTOR * 4;
     cost(ladder, hopeless, SCENE_STEP_DOWN_FRAMES);
     expect(ladder.scale()).toBe(
       SCENE_RENDER_SCALES[SCENE_RENDER_SCALES.length - 1],
     );
-    expect(cost(ladder, hopeless, SCENE_SLOW_FRAMES_TO_STEP)).toBe('degraded');
+    expect(cost(ladder, hopeless, SCENE_SLOW_FRAMES_TO_STEP * 10)).toBe('ok');
+    expect(ladder.slowed()).toBe(true);
   });
 
   it('holds the floor without giving up while frames are merely over budget', () => {
@@ -304,7 +309,7 @@ describe('the resolution controller', () => {
     expect(ladder.scale()).toBe(1);
   });
 
-  it('has no slow rate to fall back on where frames already arrive at thirty', () => {
+  it('rests at the floor where frames already arrive at thirty and there is no slower rate', () => {
     const ladder = createCostLadder(1, 0.67);
     const slow = 40;
     for (let i = 0; i < SCENE_STEP_DOWN_FRAMES; i += 1) {
@@ -313,10 +318,11 @@ describe('the resolution controller', () => {
     expect(ladder.scale()).toBe(0.67);
     expect(ladder.slowed()).toBe(false);
     let last: 'ok' | 'degraded' = 'ok';
-    for (let i = 0; i < SCENE_SLOW_FRAMES_TO_STEP; i += 1) {
+    for (let i = 0; i < SCENE_SLOW_FRAMES_TO_STEP * 10; i += 1) {
       last = ladder.frame({ costMs: slow * 4, behind: 0 }, slow, false);
     }
-    expect(last).toBe('degraded');
+    expect(last).toBe('ok');
+    expect(ladder.scale()).toBe(0.67);
   });
 
   it('starts over on reset', () => {
