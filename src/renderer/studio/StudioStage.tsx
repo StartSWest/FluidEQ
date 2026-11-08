@@ -296,6 +296,9 @@ export default function StudioStage({
     source,
     width: screen.width * view.scale,
     height: screen.height * view.scale,
+    // A pan moves the picture without resizing it: the runner measures the
+    // part on screen again, or what the pan brought in is never drawn.
+    moved: `${view.x},${view.y}`,
     spectrumRect: paper?.spectrumRect ?? gridless,
     shapeFrame,
     ...(tuning ? { tuning } : {}),

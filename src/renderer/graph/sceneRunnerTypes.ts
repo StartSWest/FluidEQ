@@ -101,6 +101,15 @@ export interface ISceneRunnerOptions {
    * moved host has new ones.
    */
   placement?: Element;
+  /**
+   * Changes whenever the host moves inside a frame that does not resize it:
+   * the Studio's stage zoomed and panned (`useStageZoom.ts`). Only the part
+   * of the host inside the window is drawn, and it is measured again on a
+   * resize or a scroll; a move is neither, so the part a pan brought into
+   * view stayed undrawn (Ivan, 2026-11-08: "when zooming and panning not
+   * redrawing the new discovered zone").
+   */
+  moved?: string;
   /** Replaces what the scene hears — the Studio's test signals. */
   shapeFrame?: (frame: ISceneFrame) => ISceneFrame;
   /** Read every frame, so moving a slider moves the scene at once. */

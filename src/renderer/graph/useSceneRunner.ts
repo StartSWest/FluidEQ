@@ -126,6 +126,7 @@ export default function useSceneRunner({
   spectrumRect,
   view,
   placement,
+  moved,
   shapeFrame,
   tuning,
   daylight,
@@ -656,6 +657,9 @@ export default function useSceneRunner({
     Promise.resolve(),
   );
 
+  // The part of the host on screen, measured again: kept here for a move,
+  // which nothing the effect below listens to says.
+  const measureRef = useRef<(() => void) | undefined>(undefined);
   useEffect(() => {
     const host = hostRef.current;
     if (!host) {
@@ -731,7 +735,9 @@ export default function useSceneRunner({
     document.addEventListener('visibilitychange', hidden);
     window.addEventListener('scroll', measure, true);
     window.addEventListener('resize', measure);
+    measureRef.current = measure;
     return () => {
+      measureRef.current = undefined;
       stopObserving();
       resize.disconnect();
       document.removeEventListener('visibilitychange', hidden);
@@ -739,6 +745,10 @@ export default function useSceneRunner({
       window.removeEventListener('resize', measure);
     };
   }, [width, height, placement, kick, dropProgram, setWaiting, captureFrames]);
+  // A host moved without a resize: the part now on screen is the one drawn.
+  useEffect(() => {
+    measureRef.current?.();
+  }, [moved]);
 
   const startRenderer = useCallback(() => {
     const host = hostRef.current;
