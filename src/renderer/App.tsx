@@ -53,6 +53,7 @@ import showGalleryGraph from './plus/showGalleryGraph';
 import { subscribeGraphShowRequests } from './plus/graphShowRequest';
 import usePlusTabOpensApp from './player/usePlusTabOpensApp';
 import useStudioAgent from './studio/useStudioAgent';
+import { watchStudioChat } from './studio/chat/studioChatStore';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
 import HeardSongNames from './graph/HeardSongNames';
 import WallpaperAudio from './wallpaper/WallpaperAudio';
@@ -388,8 +389,11 @@ const AppContent = () => {
 
   const dialogs = useShellDialogs(selectTopWorkspaceTab);
   // The member's own AI asking to see the scene it is writing: answered for
-  // the life of the window, since bringing the Studio up is one of the answers.
+  // the life of the window, whatever page is showing.
   useStudioAgent();
+  // Every scene's chat heard from the start too: a reply ending, a card
+  // waiting or an artwork to pack on a scene the member has not opened yet.
+  useEffect(watchStudioChat, []);
   useEffect(() => {
     // A scene has to be compiled on the machine that plays it, so it is
     // compiled the moment it arrives rather than the first time somebody

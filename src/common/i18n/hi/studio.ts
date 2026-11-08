@@ -64,6 +64,9 @@ const studio = {
   'studio.project.aiReplied': 'AI ने जवाब दिया',
   'studio.project.aiWorkingElsewhere': 'एक AI दूसरे सीन पर काम कर रहा है',
   'studio.project.aiRepliedElsewhere': 'दूसरे सीन के AI ने जवाब दिया',
+  'studio.project.aiWaiting': 'आपका इंतज़ार',
+  'studio.project.aiWaitingElsewhere':
+    'एक AI दूसरे सीन पर आपकी अनुमति का इंतज़ार कर रहा है',
   'studio.project.forget': '{name} को सूची से हटाएँ',
   'studio.project.new': 'नया प्रोजेक्ट…',
   'studio.project.forgetHint':

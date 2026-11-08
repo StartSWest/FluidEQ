@@ -66,9 +66,12 @@ const studioChat = {
   'studioChat.placeholder':
     'Demandez un changement, par exemple « fais clignoter les lumières sur la caisse claire »',
   'studioChat.attach': 'Joindre la scène',
-  'studioChat.attached': 'Scène jointe',
+  'studioChat.attached': 'Image jointe',
   'studioChat.attachHint':
     'Envoyer avec votre message une image de la scène telle qu’elle est maintenant',
+  'studioChat.attachPicture': 'Joindre une image',
+  'studioChat.attachPictureHint':
+    'Joignez une image de votre ordinateur. Vous pouvez aussi la coller avec Ctrl+V ou la déposer ici.',
   'studioChat.send': 'Envoyer',
   'studioChat.stop': 'Arrêter',
   'studioChat.fine':

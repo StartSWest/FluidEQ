@@ -8,6 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 @use 'color' as *;
 @use 'dialog' as dialog;
+@use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -15,8 +16,12 @@ it under the terms of the GNU General Public License version 3 or later.
 // (`StudioChatSketch.tsx`): the tools in a row, the picture as large as the
 // dialog lets it be, the marks drawn at its own size.
 
+// As large as the window allows (Ivan, 2026-11-07: "this windows needs to
+// be bigger"): it was held to 1100 by 900 with the picture capped at 640px
+// tall, so a 1280-wide stage was drawn on at half its size.
 .dialog-frame.studio-chat-sketch {
-  @include dialog.size(1100px, 900px);
+  @include dialog.size(1760px, 1400px);
+  height: calc(100vh - #{dialog.$edge} * 2);
 }
 
 .studio-chat-sketch__tools {
@@ -141,15 +146,22 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The space the picture is fitted and zoomed in (`usePictureZoom`), every
+// pixel of the dialog the tools leave: the zoom places the picture in it.
 .studio-chat-sketch__stage {
-  display: grid;
+  position: relative;
   min-height: 0;
-  place-items: center;
+  contain: size layout;
+  touch-action: none;
+
+  &.is-zoomed {
+    overflow: hidden;
+  }
 
   canvas {
     display: block;
-    max-width: 100%;
-    max-height: min(62vh, 640px);
+    width: 100%;
+    height: 100%;
     border-radius: $radius-s;
     cursor: crosshair;
     touch-action: none;
@@ -160,10 +172,48 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The zoom bar's steps square, as in the picture viewer, where the rule is
+// scoped to its own dialog.
+.studio-chat-sketch .button.studio-lightbox__zoom-step {
+  width: $control-height-sm;
+  padding: 0;
+
+  svg {
+    width: 17px;
+    height: 17px;
+  }
+}
+
 // The picture and, over it, the word being typed where it will stand.
+// At the size and place the zoom gives it, in layout pixels, as the picture
+// viewer's frame is; a step glides, a wheel or a pinch follows the hand.
 .studio-chat-sketch__frame {
-  position: relative;
-  max-width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  &.is-eased {
+    transition:
+      width $motion-base $ease-out,
+      height $motion-base $ease-out,
+      transform $motion-base $ease-out;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  // See CRISP_FROM in pictureZoom.ts.
+  &.is-crisp canvas {
+    image-rendering: pixelated;
+  }
+}
+
+// The tools on their row, the picture in all the height left under them.
+.studio-chat-sketch .dialog-frame__body {
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+  overflow: hidden;
 }
 
 // Typed over the picture in the ink it will be set in, its middle on the

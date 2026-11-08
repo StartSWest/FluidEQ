@@ -67,9 +67,12 @@ const studioChat = {
   'studioChat.placeholder':
     '変更を頼んでみましょう。例：「スネアに合わせてライトを光らせて」',
   'studioChat.attach': 'ステージを添付',
-  'studioChat.attached': 'ステージを添付済み',
+  'studioChat.attached': '画像を添付済み',
   'studioChat.attachHint':
     '今の見た目のシーンの画像をメッセージと一緒に送ります',
+  'studioChat.attachPicture': '画像を添付',
+  'studioChat.attachPictureHint':
+    'コンピューターから画像を添付します。Ctrl+V で貼り付けたり、ここにドロップしたりもできます。',
   'studioChat.send': '送信',
   'studioChat.stop': '停止',
   'studioChat.fine':

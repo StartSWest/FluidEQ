@@ -14,7 +14,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import type { TStudioChatEntry } from '../../../common/studioChat';
+import type {
+  TStudioChatAsk,
+  TStudioChatEntry,
+} from '../../../common/studioChat';
 import type { IStudioState } from '../../../main/ipc/memberScenes';
 import StudioProjects from '../../../renderer/studio/StudioProjects';
 import {
@@ -28,6 +31,7 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 
 const A = 'aaaaaaaa-0000-4000-8000-000000000001';
 const B = 'bbbbbbbb-0000-4000-8000-000000000002';
+const C = 'cccccccc-0000-4000-8000-000000000003';
 
 const studio = (activeId: string): IStudioState =>
   ({
@@ -36,6 +40,7 @@ const studio = (activeId: string): IStudioState =>
     projects: [
       { id: A, folderName: 'Alpine', path: 'C:\\Scenes\\Alpine' },
       { id: B, folderName: 'Beach', path: 'C:\\Scenes\\Beach' },
+      { id: C, folderName: 'Canyon', path: 'C:\\Scenes\\Canyon' },
     ],
     activeId,
   }) as IStudioState;
@@ -46,8 +51,33 @@ type TEntryListener = (change: {
   busy: boolean;
 }) => void;
 
+type TAskListener = (change: {
+  projectId: string;
+  ask?: TStudioChatAsk;
+}) => void;
+
 let entry: TEntryListener | undefined;
+let asking: TAskListener | undefined;
 let open = A;
+
+/** A card going up on a project's chat, or (undefined) coming down. */
+const carded = (projectId: string, up: boolean) =>
+  act(() => {
+    asking?.({
+      projectId,
+      ...(up
+        ? {
+            ask: {
+              id: 'k-1',
+              projectId,
+              kind: 'tool',
+              tool: 'Bash',
+              detail: 'node make-picture.mjs',
+            },
+          }
+        : {}),
+    });
+  });
 
 const reply = (id: string): TStudioChatEntry => ({
   kind: 'claude',
@@ -74,6 +104,7 @@ const opened = async (projectId: string) => {
 beforeEach(() => {
   resetStudioChatStore();
   entry = undefined;
+  asking = undefined;
   open = A;
   Object.defineProperty(window, 'electron', {
     configurable: true,
@@ -81,6 +112,10 @@ beforeEach(() => {
       ipcRenderer: {
         onStudioChatEntry: (listener: TEntryListener) => {
           entry = listener;
+          return () => undefined;
+        },
+        onStudioChatAsk: (listener: TAskListener) => {
+          asking = listener;
           return () => undefined;
         },
         studioChatLoad: async () => ({
@@ -149,6 +184,35 @@ test('another scene at work, then replied, then seen once opened', async () => {
   expect(trigger()).toHaveAccessibleName('studio.project.label');
   showMenu();
   expect(rowState('Beach')).toBe('');
+});
+
+test('a scene whose AI waits on a card says so, first of all news, until it is answered', async () => {
+  render(
+    <StudioProjects
+      state={studio(A)}
+      onNewProject={jest.fn()}
+      onLinkFolder={jest.fn()}
+      onOpenFile={jest.fn()}
+    />,
+  );
+  await opened(A);
+  // A third scene has replied meanwhile: the wait still comes first.
+  told(C, true);
+  told(C, false);
+  told(B, true);
+  carded(B, true);
+  told(B, true);
+  expect(trigger()).toHaveAccessibleName(
+    'studio.project.label · studio.project.aiWaitingElsewhere',
+  );
+  showMenu();
+  expect(rowState('Beach')).toBe('studio.project.aiWaiting');
+
+  // Answered, the AI goes back to work; done, it has replied.
+  carded(B, false);
+  expect(rowState('Beach')).toBe('studio.project.aiWorking');
+  told(B, false);
+  expect(rowState('Beach')).toBe('studio.project.aiReplied');
 });
 
 test('the open scene finishing is not called news', async () => {

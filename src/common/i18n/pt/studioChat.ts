@@ -66,9 +66,12 @@ const studioChat = {
   'studioChat.placeholder':
     'Peça uma mudança, como “faça as luzes piscarem na caixa”',
   'studioChat.attach': 'Anexar o palco',
-  'studioChat.attached': 'Palco anexado',
+  'studioChat.attached': 'Imagem anexada',
   'studioChat.attachHint':
     'Enviar com a sua mensagem uma imagem da cena como está agora',
+  'studioChat.attachPicture': 'Anexar uma imagem',
+  'studioChat.attachPictureHint':
+    'Anexe uma imagem do seu computador. Você também pode colar com Ctrl+V ou soltá-la aqui.',
   'studioChat.send': 'Enviar',
   'studioChat.stop': 'Parar',
   'studioChat.fine':

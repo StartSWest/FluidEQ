@@ -66,9 +66,12 @@ const studioChat = {
   'studioChat.placeholder':
     'Pide un cambio, como «que las luces destellen con la caja»',
   'studioChat.attach': 'Adjuntar el escenario',
-  'studioChat.attached': 'Escenario adjunto',
+  'studioChat.attached': 'Imagen adjunta',
   'studioChat.attachHint':
     'Envía con tu mensaje una imagen de la escena tal como se ve ahora',
+  'studioChat.attachPicture': 'Adjuntar una imagen',
+  'studioChat.attachPictureHint':
+    'Adjunta una imagen de tu equipo. También puedes pegarla con Ctrl+V o soltarla aquí.',
   'studioChat.send': 'Enviar',
   'studioChat.stop': 'Detener',
   'studioChat.fine':

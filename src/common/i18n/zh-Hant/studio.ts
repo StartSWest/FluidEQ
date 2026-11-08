@@ -63,6 +63,8 @@ const studio = {
   'studio.project.aiReplied': '人工智慧已回覆',
   'studio.project.aiWorkingElsewhere': '有人工智慧正在處理另一個場景',
   'studio.project.aiRepliedElsewhere': '另一個場景的人工智慧已回覆',
+  'studio.project.aiWaiting': '等你確認',
+  'studio.project.aiWaitingElsewhere': '另一個場景的人工智慧正在等你允許',
   'studio.project.forget': '從清單中刪除 {name}',
   'studio.project.new': '新專案…',
   'studio.project.forgetHint': '該資料夾及其檔案保留在您的電腦上。',

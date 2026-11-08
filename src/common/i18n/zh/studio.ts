@@ -62,6 +62,8 @@ const studio = {
   'studio.project.aiReplied': 'AI 已回复',
   'studio.project.aiWorkingElsewhere': '有 AI 正在处理另一个场景',
   'studio.project.aiRepliedElsewhere': '另一个场景的 AI 已回复',
+  'studio.project.aiWaiting': '等你确认',
+  'studio.project.aiWaitingElsewhere': '另一个场景的 AI 正在等你允许',
   'studio.project.forget': '从列表中移除 {name}',
   'studio.project.new': '新建项目…',
   'studio.project.forgetHint': '文件夹及其中的文件会保留在你的电脑上。',

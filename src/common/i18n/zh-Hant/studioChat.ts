@@ -68,8 +68,11 @@ const studioChat = {
   'studioChat.placeholderFirst': '描述一下你的場景…',
   'studioChat.placeholder': '要求改變，例如“讓軍鼓上的燈光閃爍”',
   'studioChat.attach': '安裝舞臺',
-  'studioChat.attached': '附舞臺',
+  'studioChat.attached': '已附上圖片',
   'studioChat.attachHint': '將當前場景的圖片與您的訊息一起傳送',
+  'studioChat.attachPicture': '附加圖片',
+  'studioChat.attachPictureHint':
+    '從電腦附加一張圖片。也可以用 Ctrl+V 貼上，或拖放到這裡。',
   'studioChat.send': '傳送',
   'studioChat.stop': '停止',
   'studioChat.fine':

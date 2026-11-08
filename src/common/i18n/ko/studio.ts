@@ -65,6 +65,9 @@ const studio = {
   'studio.project.aiReplied': 'AI가 답변함',
   'studio.project.aiWorkingElsewhere': '다른 장면에서 AI가 작업 중입니다',
   'studio.project.aiRepliedElsewhere': '다른 장면의 AI가 답변했습니다',
+  'studio.project.aiWaiting': '응답 대기 중',
+  'studio.project.aiWaitingElsewhere':
+    '다른 장면에서 AI가 허용을 기다리고 있습니다',
   'studio.project.forget': '목록에서 {name} 제거',
   'studio.project.new': '새로운 프로젝트…',
   'studio.project.forgetHint': '폴더와 해당 파일은 컴퓨터에 유지됩니다.',

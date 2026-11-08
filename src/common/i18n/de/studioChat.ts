@@ -68,9 +68,12 @@ const studioChat = {
   'studioChat.placeholder':
     'Bitten Sie um eine Änderung, etwa „die Lichter blitzen bei der Snare“',
   'studioChat.attach': 'Bühne anhängen',
-  'studioChat.attached': 'Bühne angehängt',
+  'studioChat.attached': 'Bild angehängt',
   'studioChat.attachHint':
     'Ein Bild der Szene, wie sie jetzt aussieht, mit Ihrer Nachricht senden',
+  'studioChat.attachPicture': 'Bild anhängen',
+  'studioChat.attachPictureHint':
+    'Hängen Sie ein Bild von Ihrem Computer an. Sie können es auch mit Strg+V einfügen oder hierher ziehen.',
   'studioChat.send': 'Senden',
   'studioChat.stop': 'Anhalten',
   'studioChat.fine':

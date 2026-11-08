@@ -67,6 +67,9 @@ const studio = {
     'Eine KI arbeitet an einer anderen Szene',
   'studio.project.aiRepliedElsewhere':
     'Die KI einer anderen Szene hat geantwortet',
+  'studio.project.aiWaiting': 'Wartet auf Sie',
+  'studio.project.aiWaitingElsewhere':
+    'Eine KI wartet in einer anderen Szene auf Ihre Freigabe',
   'studio.project.forget': '{name} aus der Liste entfernen',
   'studio.project.new': 'Neues Projekt…',
   'studio.project.forgetHint':

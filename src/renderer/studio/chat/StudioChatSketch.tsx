@@ -18,6 +18,8 @@ import Glyph, { type TCommunityGlyph } from '../../community/Glyph';
 import DialogFrame from '../../components/DialogFrame';
 import holdFocusReturn from '../../utils/focusReturn';
 import { useTranslation } from '../../utils/I18nContext';
+import StudioPictureZoomBar from '../StudioPictureZoomBar';
+import usePictureZoom from '../usePictureZoom';
 import {
   drawMark,
   LEAST_ARROW,
@@ -25,6 +27,7 @@ import {
   type TSketchMark,
   type TSketchTool,
 } from './sketchMarks';
+import '../../styles/StudioPictureLightbox.scss';
 import '../../styles/StudioChatSketch.scss';
 
 /**
@@ -37,7 +40,17 @@ import '../../styles/StudioChatSketch.scss';
  * The marks are drawn at the picture's own size, so they land on what was
  * pointed at whatever size the dialog shows it at, and the picture that
  * leaves is the stage with the marks on it, one JPEG, as before.
+ *
+ * As large as the window lets it be, and zoomed the way the Studio's picture
+ * viewers zoom (`usePictureZoom`: Ctrl with the wheel or a pinch about the
+ * pointer, the wheel to move round a zoomed picture, + − 0, the bar) — Ivan,
+ * 2026-11-07: "this windows needs to be bigger and be able to zoom the image
+ * to see better". The pointer's drags stay the pen's, so the viewer's drag
+ * and double-click are not taken.
  */
+
+/** The most a small picture is enlarged to fill the space when fitted. */
+const MOST_FITTED = 2;
 
 /** Ink that reads over any scene: three loud colours and white. */
 const INKS: { colour: string; name: TranslationKey }[] = [
@@ -108,6 +121,14 @@ export default function StudioChatSketch({
   };
   const [saving, setSaving] = useState(false);
   const drawing = useRef<TSketchMark | undefined>(undefined);
+  const placeRef = useRef<HTMLDivElement>(null);
+  const zoom = usePictureZoom(
+    placeRef,
+    'sketch',
+    picture?.width ?? 1,
+    picture?.height ?? 1,
+    MOST_FITTED,
+  );
 
   useEffect(() => {
     let live = true;
@@ -394,6 +415,15 @@ export default function StudioChatSketch({
             ))}
           </div>
           <span className="studio-chat-sketch__gap" />
+          <StudioPictureZoomBar
+            percent={zoom.percent}
+            fitted={!zoom.zoomed}
+            canZoomIn={zoom.canZoomIn}
+            canZoomOut={zoom.canZoomOut}
+            onZoomIn={zoom.zoomIn}
+            onZoomOut={zoom.zoomOut}
+            onFit={zoom.toFit}
+          />
           <button
             type="button"
             className="button small subtle"
@@ -411,9 +441,15 @@ export default function StudioChatSketch({
             {t('studioChat.sketch.clear')}
           </button>
         </div>
-        <div className="studio-chat-sketch__stage">
-          {picture && (
-            <div className="studio-chat-sketch__frame">
+        <div
+          ref={placeRef}
+          className={`studio-chat-sketch__stage${zoom.zoomed ? ' is-zoomed' : ''}`}
+        >
+          {picture && zoom.frameStyle && (
+            <div
+              className={`studio-chat-sketch__frame${zoom.eased ? ' is-eased' : ''}${zoom.crisp ? ' is-crisp' : ''}`}
+              style={zoom.frameStyle}
+            >
               <canvas
                 ref={canvas}
                 width={picture.width}

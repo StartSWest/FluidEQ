@@ -26,7 +26,10 @@ import os from 'os';
 import path from 'path';
 import type { TStudioChatAsk } from '../../../common/studioChat';
 import { createChatAsks } from '../../../main/studioChat/chatAsks';
-import { launchClaudeCode } from '../../../main/studioChat/chatLaunch';
+import {
+  chatTools,
+  launchClaudeCode,
+} from '../../../main/studioChat/chatLaunch';
 import { permissionAnswerLine } from '../../../main/studioChat/chatPermission';
 import { readStreamLine } from '../../../main/studioChat/chatStream';
 
@@ -240,9 +243,22 @@ describe("the member's Claude Code, started for a chat", () => {
         sessionId: undefined,
       });
       const args = mockStart.mock.calls[0][1] as string[];
-      // Its plugins, skills, tool servers and tools are all there.
-      expect(args).not.toContain('--strict-mcp-config');
-      expect(args).not.toContain('--tools');
+      // The plugins' skills, and the files and shell they run through, and
+      // nothing that costs every message without making a scene: Claude
+      // Code's other built-in tools, and the member's own tool servers.
+      expect(args[args.indexOf('--tools') + 1]).toBe(chatTools());
+      // PowerShell is Claude Code's on Windows alone.
+      expect(chatTools('win32')).toBe(
+        'Read,Edit,Write,Glob,Grep,Bash,PowerShell,Skill',
+      );
+      expect(chatTools('darwin')).toBe('Read,Edit,Write,Glob,Grep,Bash,Skill');
+      expect(chatTools('linux')).toBe('Read,Edit,Write,Glob,Grep,Bash,Skill');
+      expect(args).toContain('--strict-mcp-config');
+      // The per-machine lines out of the system prompt, which with the same
+      // brief for every project is one cache for every scene's chat.
+      expect(args).toContain('--exclude-dynamic-system-prompt-sections');
+      expect(args).not.toContain('--disable-slash-commands');
+      expect(args).not.toContain('--bare');
       // Questions come to the chat; Claude Code's own mode that asks, never
       // one the member's settings chose that asks nobody.
       expect(args).toEqual(
@@ -251,7 +267,7 @@ describe("the member's Claude Code, started for a chat", () => {
       expect(args[args.indexOf('--permission-mode') + 1]).toBe('manual');
       expect(args).not.toContain('dontAsk');
       expect(args).not.toContain('bypassPermissions');
-      // FluidEQ's door is added beside the member's own servers.
+      // FluidEQ's door, the one tool server the chat has.
       expect(args).toContain('--mcp-config');
     } finally {
       fs.rmSync(own, { recursive: true, force: true });

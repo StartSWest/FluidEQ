@@ -65,6 +65,9 @@ const studio = {
   'studio.project.aiReplied': 'L’IA ha risposto',
   'studio.project.aiWorkingElsewhere': 'Un’IA sta lavorando su un’altra scena',
   'studio.project.aiRepliedElsewhere': 'L’IA di un’altra scena ha risposto',
+  'studio.project.aiWaiting': 'Ti aspetta',
+  'studio.project.aiWaitingElsewhere':
+    'Un’IA aspetta il tuo consenso su un’altra scena',
   'studio.project.forget': 'Togli {name} dall’elenco',
   'studio.project.new': 'Nuovo progetto…',
   'studio.project.forgetHint':

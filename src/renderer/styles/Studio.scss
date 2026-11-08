@@ -555,8 +555,23 @@ $studio-room-under-chat: 380px;
     box-shadow: 0 0 6px $secondary-default;
   }
 
+  // Its AI is stopped on a card only the member can answer: amber, the one
+  // state here that holds the work up, and the one the eye should find first.
+  &.is-waiting {
+    color: $amber;
+    border-color: color-mix(in srgb, $amber 50%, transparent);
+    background: color-mix(in srgb, $amber 14%, transparent);
+
+    &::before {
+      background: currentColor;
+      box-shadow: 0 0 6px color-mix(in srgb, $amber 70%, transparent);
+      animation: studio-ai-working 1.6s $ease-out infinite;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    &.is-working::before {
+    &.is-working::before,
+    &.is-waiting::before {
       animation: none;
     }
   }
@@ -583,6 +598,16 @@ $studio-room-under-chat: 380px;
   &.is-replied {
     background: $secondary-light;
     box-shadow: 0 0 8px $secondary-default;
+  }
+
+  &.is-waiting {
+    background: $amber;
+    box-shadow: 0 0 8px color-mix(in srgb, $amber 70%, transparent);
+    animation: studio-ai-working 1.6s $ease-out infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
   }
 }
 

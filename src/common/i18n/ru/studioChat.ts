@@ -66,9 +66,12 @@ const studioChat = {
   'studioChat.placeholder':
     'Попросите изменение, например «пусть свет вспыхивает на малом барабане»',
   'studioChat.attach': 'Приложить сцену',
-  'studioChat.attached': 'Сцена приложена',
+  'studioChat.attached': 'Изображение прикреплено',
   'studioChat.attachHint':
     'Отправить вместе с сообщением изображение сцены в её нынешнем виде',
+  'studioChat.attachPicture': 'Прикрепить изображение',
+  'studioChat.attachPictureHint':
+    'Прикрепите изображение с компьютера. Его также можно вставить через Ctrl+V или перетащить сюда.',
   'studioChat.send': 'Отправить',
   'studioChat.stop': 'Остановить',
   'studioChat.fine':

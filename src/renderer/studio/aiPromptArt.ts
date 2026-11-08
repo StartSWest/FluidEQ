@@ -75,17 +75,47 @@ export const ART_SECTION = `YOUR OWN ART: MADE IMAGES, LIBRARY TEXTURES AND MODE
 Photo-real pictures lift a scene from drawn to real: FluidEQ's own aquarium
 swims photo-real fish over sand, its concert crowd is eight real-looking
 people, its hanami a garden of cherry trees. So:
-- IF YOU CAN MAKE IMAGES (a tool of your own - ChatGPT's or Codex's image
-  generation, Gemini's, any other - or one I connected you to), USE IT for
-  the scene's subjects and materials. A subject - a fish, a tree,
-  a person, a ship: alone, seen from the angle the camera sees it, lit as the
-  scene is, on a transparent background. A cut-out keyed from a flat colour
-  keeps that colour on its soft edges: pull those pixels back to their
-  neighbours' hue before packing. A material - bark, sand, stone, foam:
-  seamless and tileable, straight on, evenly lit, no shadows; blend its
-  edges if opposite edges do not match. Two of one subject (arms up and
+- FIND WHAT CAN MAKE IMAGES BEFORE YOU DECIDE NOTHING CAN: a tool of your
+  own (ChatGPT's or Codex's image generation, Gemini's, any other), an
+  image-generation skill or plugin in your skills, an MCP image tool, or one
+  I connected you to. Look at the start, and try one - most have a check
+  command - before you tell me pictures cannot be made; only when none works,
+  write me the prompt and the file name to save the picture as in the folder.
+- USE IT for what should look real: a building, rocks, trees, mountains, a
+  far shore, a creature, a material. Keep drawing in code what moves or
+  answers the music - sky, light, water, weather, particles, glow - over and
+  around the pictures. When I ask for something to look like a photograph,
+  make the picture; never fake it in code. Rebuilding a drawn scene from
+  pictures, tell me first which of its objects become pictures.
+- ONE PICTURE PER OBJECT. A subject - a fish, a tree, a person, a cabin:
+  alone and whole in frame, seen from the angle the camera sees it, lit as
+  the scene is (the same light for every one), on a transparent background,
+  with no ground, sky or text. Three clearly different ones of anything that
+  repeats - rocks, trees: if they come out as near-clones, make them again
+  asking for different shapes. A cut-out keyed from a flat colour keeps that
+  colour on its soft edges: pull those pixels back to their neighbours' hue,
+  and trim its empty margin, before packing. A material - bark, sand, stone,
+  foam: seamless and tileable, straight on, evenly lit, no shadows; blend
+  its edges if opposite edges do not match. Two of one subject (arms up and
   down, by day and by night): make the second by editing the first, so they
-  stay in register.
+  stay in register and a day and night pair crossfades with the daylight
+  without a jump. Take an unwanted detail out by editing too. Look at every
+  picture yourself before you use it, and get what it shows - how dense a
+  forest is, what a rock looks like - into the picture itself: when it is
+  wrong, or I ask for a new one, make a new one; never cover it in code.
+- A FAR BACKGROUND - mountains, a forest, a shore, together - is one strip
+  that repeats: ask for a wide strip (2048 x 512) whose two ends meet the
+  edge at the same height, crossfade its last columns into its first, and
+  repeat it with fract() across any width. Read it with textureGrad and
+  gradients taken from the unwrapped coordinate, or the wrap shows as a
+  blurred seam. Standing on water, sink its thin, see-through bottom rows
+  just under the waterline, so the picture and its reflection meet without
+  a line.
+- LIGHT A PHOTOGRAPH AS PHOTOGRAPHED by day. By night darken it, tint it
+  toward the sky, and let its own lights glow - windows and lanterns are the
+  pixels where red stands well above blue. Never relight a photograph with
+  made-up normals, and never paint shadows under it: a dark dome or shade
+  baked onto the ground looks worse than even light.
 - OR TAKE THEM FROM FREE LIBRARIES, CC0 or public domain only: Poly Haven,
   ambientCG, Kenney, Quaternius, and the Smithsonian's 3D scans marked CC0.
   Never non-commercial, share-alike, attribution-required or unlicensed
@@ -103,7 +133,10 @@ people, its hanami a garden of cherry trees. So:
   image's BOTTOM-left. It arrives premultiplied and in sRGB: the linear
   colour is pow(t.rgb / max(t.a, 0.001), vec3(2.2)); cut a subject out by
   discarding below alpha 0.5. Size each piece at about the pixels it covers
-  on a 1080p panel close up, and no larger.
+  on a 1080p panel close up, and no larger. Every pack moves every piece:
+  after each, update every region in every file that reads one - a stale
+  one silently shows another picture. Shrink a piece by packing it again
+  from its original picture; take out pieces nothing shows any more.
 - LIST THE PIECES in pack.json, in pixels from the top-left like a photo's
   place: "artworkRegions": [{ "id": "koi", "x": 0, "y": 0, "width": 512,
   "height": 256 }], at most 64, ids a-z, 0-9, - and _, starting with a

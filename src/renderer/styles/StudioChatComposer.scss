@@ -36,6 +36,13 @@ it under the terms of the GNU General Public License version 3 or later.
     border-color: color-mix(in srgb, $text-accent 55%, transparent);
   }
 
+  // A picture dragged over it: the box lights to say it will take it.
+  &.is-dropping {
+    border-color: $text-accent;
+    border-style: dashed;
+    background: color-mix(in srgb, $secondary-default 10%, $surface-well);
+  }
+
   textarea {
     width: 100%;
     min-height: 42px;
@@ -359,8 +366,13 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // Stop and Send both on the bar, while a message is typed during a reply:
-// the name gives way, the dots still say it.
-.studio-chat__bar.is-crowded .studio-chat__effort-name {
+// the name gives way, the dots still say it. The model's pick gives way too,
+// for as long as both stand there: with the picture button beside the
+// camera, a 320px chat squeezed the dots over the context ring and cut the
+// model to "Def". A pick lands on the next message, so nothing is lost while
+// a reply is running, and the pick is back the moment it ends.
+.studio-chat__bar.is-crowded .studio-chat__effort-name,
+.studio-chat__bar.is-crowded .studio-chat__model {
   display: none;
 }
 

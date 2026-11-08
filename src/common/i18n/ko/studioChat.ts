@@ -70,8 +70,11 @@ const studioChat = {
   'studioChat.placeholder':
     '"스네어에서 조명을 깜박이게 해 줘"와 같이 변경을 요청하세요.',
   'studioChat.attach': '무대 부착',
-  'studioChat.attached': '무대 부착',
+  'studioChat.attached': '이미지 첨부됨',
   'studioChat.attachHint': '지금 보이는 현장 사진을 메시지와 함께 보내주세요',
+  'studioChat.attachPicture': '이미지 첨부',
+  'studioChat.attachPictureHint':
+    '컴퓨터에서 이미지를 첨부합니다. Ctrl+V로 붙여넣거나 여기에 끌어다 놓을 수도 있습니다.',
   'studioChat.send': '보내기',
   'studioChat.stop': '정지',
   'studioChat.fine':

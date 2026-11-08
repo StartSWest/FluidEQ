@@ -31,7 +31,7 @@ const levelOf = (share: number | undefined) => {
  * empties it. Before a reply has finished the model's window is not known,
  * and the ring shows the size alone.
  */
-export default function StudioChatContext({ folder }: { folder: string }) {
+export default function StudioChatContext() {
   const { t, locale } = useTranslation();
   const { chat } = useStudioChat();
   const popover = useChatPopover();
@@ -118,7 +118,7 @@ export default function StudioChatContext({ folder }: { folder: string }) {
           disabled={chat.busy}
           onClick={() => {
             popover.close();
-            compactStudioChat(folder).catch(() => undefined);
+            compactStudioChat().catch(() => undefined);
           }}
         >
           <Glyph name="compact" />

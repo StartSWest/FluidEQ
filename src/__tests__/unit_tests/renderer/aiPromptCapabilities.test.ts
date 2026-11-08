@@ -64,7 +64,9 @@ describe('the Studio’s brief for a member’s AI', () => {
   // gen available or 3D models from any free resources".
   it('lets the AI make or fetch its own art, only what a sold app may ship, packed to the reader’s limits', () => {
     expect(brief).toContain('YOUR OWN ART');
-    expect(brief).toContain('IF YOU CAN MAKE IMAGES');
+    expect(brief).toContain(
+      'FIND WHAT CAN MAKE IMAGES BEFORE YOU DECIDE NOTHING CAN',
+    );
     expect(brief).toContain('CC0 or public domain only');
     expect(brief).toContain('credits.txt');
     expect(brief).toContain(`W and H at most ${MAX_SCENE_ARTWORK_EDGE}`);
@@ -75,6 +77,40 @@ describe('the Studio’s brief for a member’s AI', () => {
     // Listed pieces are what keeps the Studio from offering the whole image
     // as one place for a photo (`readPictureAtlas`).
     expect(brief).toContain('"artworkRegions"');
+  });
+
+  // Learned rebuilding a member's winter scene from photo-real pictures
+  // (2026-11-07): a picture tool missed and pictures called impossible, a
+  // region left stale after a repack, a horizon seam, side-lit photos
+  // mirrored. Lessons for the AI, never a recipe it is held to.
+  it('teaches what a photo-real scene was learned from, without making it the only way', () => {
+    expect(brief).toContain(
+      'an\n  image-generation skill or plugin in your skills',
+    );
+    expect(brief).toContain('before you tell me pictures cannot be made');
+    expect(brief).toContain('ONE PICTURE PER OBJECT');
+    expect(brief).toContain(
+      'A FAR BACKGROUND - mountains, a forest, a shore, together - is one strip',
+    );
+    expect(brief).toContain('sink its thin, see-through bottom rows');
+    expect(brief).toContain(
+      'Look at every\n  picture yourself before you use it',
+    );
+    expect(brief).toContain('never cover it in code');
+    // A place's landscape stays put; the wave's band holds the music's element.
+    expect(brief).toContain(
+      'the band holds what answers the\n  music (an aurora, a light show, a wave), never the place itself',
+    );
+    expect(brief).toContain('Every pack moves every piece');
+    expect(brief).toContain('LIGHT A PHOTOGRAPH AS PHOTOGRAPHED');
+    expect(brief).toContain(
+      'mirror every other copy only when the photographs are lit from the front',
+    );
+    expect(brief).toContain('Water reflects by moving sideways');
+    // Code still draws what moves and answers the music.
+    expect(brief).toContain(
+      'Keep drawing in code what moves or\n  answers the music',
+    );
   });
 
   it('tells a world what three.js lends its GLSL, and the traps FluidEQ’s own worlds hit', () => {

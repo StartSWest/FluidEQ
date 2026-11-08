@@ -135,19 +135,18 @@ export default function StudioChat({
           version={version}
           onIdea={setDraft}
           onCarryOn={() => {
-            sendToStudioChat(
-              t('studioChat.carryOnMessage'),
-              project.path,
-            ).catch(() => undefined);
+            sendToStudioChat(t('studioChat.carryOnMessage')).catch(
+              () => undefined,
+            );
           }}
           onRetry={() => {
-            retryStudioChat(project.path).catch(() => undefined);
+            retryStudioChat().catch(() => undefined);
           }}
         />
         {ask && ask.projectId === chat?.projectId && (
           <StudioChatAsk ask={ask} />
         )}
-        <StudioChatQueue queued={chat?.queued ?? []} folder={project.path} />
+        <StudioChatQueue queued={chat?.queued ?? []} />
         <StudioChatComposer
           draft={draft.text}
           onDraft={setDraft}
@@ -155,7 +154,6 @@ export default function StudioChat({
           onStage={(stage) => setChatDraftStage(project.id, stage)}
           busy={chat?.busy ?? false}
           first={(chat?.entries.length ?? 0) === 0 && !sceneName}
-          folder={project.path}
           captureStage={captureStage}
         />
       </>

@@ -59,13 +59,14 @@ first one usually describes it, and stands where MY IDEA would.
   now: answer what it shows.
 - Work in this project's folder: reading, searching and writing files there
   is allowed, and so are FluidEQ's look_at_scene and hear_the_music.
-  ${PICTURES_LINE} You also have the member's own Claude Code tools,
-  plugins and skills - a picture plugin among them, when they have one.
-  Anything their settings do not already allow is put to the member on a
-  card in the chat before it runs, and waits for them: use those only when
-  the request needs them, one at a time, and say in a few words why. A no
-  is final for that request: do not try the same thing another way. Save
-  what a tool makes for the scene inside this project's folder.
+  ${PICTURES_LINE} You also have the member's own Claude Code
+  plugins' skills - a picture plugin among them, when they have one - and
+  the shell those skills run through. Anything their settings do not
+  already allow is put to the member on a card in the chat before it runs,
+  and waits for them: use those only when the request needs them, one at a
+  time, and say in a few words why. A no is final for that request: do not
+  try the same thing another way. Save what a skill makes for the scene
+  inside this project's folder.
 - Look as much as the change needs (LOOK AT WHAT YOU MADE): a picture or two
   for a small change, the whole list only for a new or rebuilt scene. The
   member sees every look you take as a step in the chat and waits on it, so
@@ -75,8 +76,11 @@ first one usually describes it, and stands where MY IDEA would.
   change or a new scene, and work to that size - a small request is a few
   edits, one save, one look and two sentences, not a rebuild.${CHATGPT_SECTION}`;
 
-/** The brief for a chat on the project in `folder`. */
-const chatBrief = (folder: string): string =>
-  `${chatPrompt(folder)}\n\n${CHAT_SECTION}\n\n${CRAFT_SECTION}\n`;
+/**
+ * The brief for a chat on any project, word for word the same for each, so
+ * Claude Code's prompt cache holds it once (`chatPrompt`).
+ */
+const chatBrief = (): string =>
+  `${chatPrompt()}\n\n${CHAT_SECTION}\n\n${CRAFT_SECTION}\n`;
 
 export default chatBrief;

@@ -18,14 +18,23 @@ const GROUP_OFFICIAL = 'official';
 /** What a project's row says its chat is doing, ahead of its folder. */
 const WORK_LABEL: Record<TStudioChatWork, TranslationKey> = {
   working: 'studio.project.aiWorking',
+  waiting: 'studio.project.aiWaiting',
   replied: 'studio.project.aiReplied',
 };
 
 /** What the picker's own button says about the other scenes' chats. */
 const NEWS_LABEL: Record<TStudioChatWork, TranslationKey> = {
   working: 'studio.project.aiWorkingElsewhere',
+  waiting: 'studio.project.aiWaitingElsewhere',
   replied: 'studio.project.aiRepliedElsewhere',
 };
+
+/** Which news the button carries: what needs the member most comes first. */
+const NEWS_ORDER: readonly TStudioChatWork[] = [
+  'waiting',
+  'replied',
+  'working',
+];
 
 /**
  * FluidEQ's page in the gallery, where each of its scenes has "Open in
@@ -144,13 +153,12 @@ export default function StudioProjects({
         }),
     [state.projects, locale, work, t],
   );
-  // Another scene's chat with news: a reply waiting first, else one at work.
+  // Another scene's chat with news: one waiting on the member first, then a
+  // reply, then one at work.
   const elsewhere = Object.entries(work)
     .filter(([id]) => id !== state.activeId)
     .map(([, doing]) => doing);
-  const news: TStudioChatWork | undefined = elsewhere.includes('replied')
-    ? 'replied'
-    : elsewhere[0];
+  const news = NEWS_ORDER.find((doing) => elsewhere.includes(doing));
   const active = entries.find((entry) => entry.id === state.activeId);
   const at = entries.findIndex((entry) => entry.id === state.activeId);
   const previous = entries[(at > 0 ? at : entries.length) - 1];

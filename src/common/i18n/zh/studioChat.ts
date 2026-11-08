@@ -64,8 +64,11 @@ const studioChat = {
   'studioChat.placeholderFirst': '描述你的场景…',
   'studioChat.placeholder': '提出修改，比如“让灯光随军鼓闪烁”',
   'studioChat.attach': '附上舞台',
-  'studioChat.attached': '已附上舞台',
+  'studioChat.attached': '已附上图片',
   'studioChat.attachHint': '把场景当前样子的画面随消息一起发送',
+  'studioChat.attachPicture': '附加图片',
+  'studioChat.attachPictureHint':
+    '从电脑附加一张图片。也可以用 Ctrl+V 粘贴，或拖放到这里。',
   'studioChat.send': '发送',
   'studioChat.stop': '停止',
   'studioChat.fine':

@@ -67,9 +67,12 @@ const studioChat = {
   'studioChat.placeholder':
     'Chiedi una modifica, come «fai lampeggiare le luci sul rullante»',
   'studioChat.attach': 'Allega il palco',
-  'studioChat.attached': 'Palco allegato',
+  'studioChat.attached': 'Immagine allegata',
   'studioChat.attachHint':
     'Invia con il messaggio un’immagine della scena com’è adesso',
+  'studioChat.attachPicture': 'Allega un’immagine',
+  'studioChat.attachPictureHint':
+    'Allega un’immagine dal tuo computer. Puoi anche incollarla con Ctrl+V o trascinarla qui.',
   'studioChat.send': 'Invia',
   'studioChat.stop': 'Interrompi',
   'studioChat.fine':

@@ -389,7 +389,10 @@ FIT THE PANEL AND MY WAVE
   abs(r.w - r.z) and centred on vec2(r.x + r.y, r.z + r.w) * 0.5. r.w below
   r.z means the wave hangs from the top. Even at 5% height the subject stays
   visible, only smaller. Clamp its position so the whole of it stays inside
-  the panel. The background may still fill everything.
+  the panel. The background may still fill everything. In a scene of a
+  place - a landscape, a room, a street - the band holds what answers the
+  music (an aurora, a light show, a wave), never the place itself: the
+  landscape stays where it stands whatever the sliders say.
 - A wave, a ribbon or a line is the subject too, not the background: keep it
   in the middle of the band at about half its height, over a background of
   its own, and let it fade out before the panel's sides. Stretched from the
@@ -498,7 +501,16 @@ export const promptWithIdea = (
  * same brief, with the tools FluidEQ hands that chat named as its own, and
  * no idea after it - the member's messages are the idea.
  */
-export const chatPrompt = (folder: string): string =>
-  promptFor(folder, undefined, 'chat')
+/**
+ * The chat's Claude Code is started in the project's folder, so its brief
+ * names the folder by that and never by its path: the same brief for every
+ * project, which Claude Code's prompt cache then holds once for all of them.
+ * With the path in it, each project's chat wrote the whole brief to the
+ * cache again on its first message (measured on Claude Code 2.1.316).
+ */
+const CHAT_FOLDER = 'your working directory - the folder you were started in';
+
+export const chatPrompt = (): string =>
+  promptFor(CHAT_FOLDER, undefined, 'chat')
     .replace(/MY IDEA:\s*$/, '')
     .trimEnd();

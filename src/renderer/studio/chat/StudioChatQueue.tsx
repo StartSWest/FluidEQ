@@ -20,11 +20,8 @@ import { sendNowStudioChat, unqueueStudioChat } from './studioChatStore';
  */
 export default function StudioChatQueue({
   queued,
-  folder,
 }: {
   queued: readonly IStudioChatQueued[];
-  /** The project's folder, for the brief a message sent now goes with. */
-  folder: string;
 }) {
   const { t } = useTranslation();
   if (queued.length === 0) {
@@ -47,7 +44,7 @@ export default function StudioChatQueue({
           className="button small"
           title={t('studioChat.queue.sendNowHint')}
           onClick={() => {
-            sendNowStudioChat(folder).catch(() => undefined);
+            sendNowStudioChat().catch(() => undefined);
           }}
         >
           <Glyph name="arrow-up" />

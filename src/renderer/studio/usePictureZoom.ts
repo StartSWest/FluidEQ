@@ -234,8 +234,16 @@ export default function usePictureZoom(
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const direction = ZOOM_KEYS[event.key];
+      // A word typed on the picture (the sketch's text tool) takes its own
+      // keys: a hyphen in it zoomed the picture out instead of being typed.
+      const typing =
+        event.target instanceof HTMLElement &&
+        (event.target.isContentEditable ||
+          event.target instanceof HTMLInputElement ||
+          event.target instanceof HTMLTextAreaElement);
       if (
         direction === undefined ||
+        typing ||
         event.altKey ||
         event.ctrlKey ||
         event.metaKey ||

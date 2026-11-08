@@ -255,9 +255,17 @@ WHAT A WORLD COSTS, AND HOW TO MAKE IT GOOD - learned on FluidEQ's own:
   with a "basic" material whose fragment file samples its region of the
   artwork, discards below alpha 0.5 and lights it as the scene is lit (dark
   with a rim of the scene's light by night, as photographed by day). Bend
-  its top there for wind or a sway, lift it for a jump; mirror every other
-  copy and pick its photograph by the copy's number, so a crowd is never
-  clones.
+  its top there for wind or a sway, lift it for a jump, and read its
+  picture at the unbent place, or the picture slides across itself. Pick
+  its photograph by the copy's number, so a crowd is never clones, and
+  mirror every other copy only when the photographs are lit from the front:
+  one lit from the side shows its light flipping.
+- Many overlapping copies - a forest, a crowd - are cut out solid (discard
+  below alpha 0.5, alpha 1), so nothing has to be drawn in order. A picture
+  that meets the ground - a cabin, a rock - keeps its soft alpha and fades
+  its bottom into the ground, or its cut shows as a hard line. Solid and
+  transparent parts draw in separate passes: a transparent plane drawn
+  after another transparent one covers it.
 - In a fragment file the copy's number, s.instance.z, arrives a hair off a
   whole number: round it, floor(s.instance.z + 0.5), before hashing or
   comparing it, or some rows of a copy pick another photograph, in stripes.

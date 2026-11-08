@@ -71,13 +71,14 @@ interface IChatState {
   /**
    * What each project's chat is doing, whether or not it is open (Ivan,
    * 2026-11-07: "I should be able to keep working in parallel on every
-   * scene"): working while Claude answers, replied once an answer finished
-   * on a project the member was not on, until that project is opened.
+   * scene"): working while Claude answers, waiting while a card of its waits
+   * on the member, replied once an answer finished on a project the member
+   * was not on, until that project is opened.
    */
   work: Readonly<Record<string, TStudioChatWork>>;
 }
 
-export type TStudioChatWork = 'working' | 'replied';
+export type TStudioChatWork = 'working' | 'waiting' | 'replied';
 
 /** A project's chat after main said whether it is busy. */
 const workAfter = (
@@ -87,11 +88,15 @@ const workAfter = (
   open: boolean,
 ): Readonly<Record<string, TStudioChatWork>> => {
   if (busy) {
-    return work[projectId] === 'working'
+    // A reply goes on growing while its card waits: still waiting.
+    return work[projectId] === 'working' || work[projectId] === 'waiting'
       ? work
       : { ...work, [projectId]: 'working' };
   }
-  if (!open && work[projectId] === 'working') {
+  if (
+    !open &&
+    (work[projectId] === 'working' || work[projectId] === 'waiting')
+  ) {
     return { ...work, [projectId]: 'replied' };
   }
   if (open && work[projectId] !== undefined) {
@@ -100,6 +105,27 @@ const workAfter = (
     return rest;
   }
   return work;
+};
+
+/**
+ * A project's chat after a card of its went up or came down: waiting while
+ * one stands, answering again once it is answered. A card can wait on a
+ * project the member is not on, and the reply waits with it, so the picker
+ * has to say so or the member never finds out.
+ */
+const workAsked = (
+  work: Readonly<Record<string, TStudioChatWork>>,
+  projectId: string,
+  asking: boolean,
+): Readonly<Record<string, TStudioChatWork>> => {
+  if (asking) {
+    return work[projectId] === 'waiting'
+      ? work
+      : { ...work, [projectId]: 'waiting' };
+  }
+  return work[projectId] === 'waiting'
+    ? { ...work, [projectId]: 'working' }
+    : work;
 };
 
 const storedModel = (): TStudioChatModel => {
@@ -192,8 +218,11 @@ const listen = () => {
     }),
     api?.onStudioChatLimits?.((limits) => set({ limits })),
     api?.onStudioChatAsk?.(({ projectId, ask }) => {
+      const work = workAsked(state.work, projectId, ask !== undefined);
       if (state.chat?.projectId === projectId) {
-        set({ ask });
+        set({ ask, work });
+      } else if (work !== state.work) {
+        set({ work });
       }
     }),
     // Claude's pack_artwork: main laid the artwork out, the page draws and
@@ -217,6 +246,17 @@ const subscribe = (listener: () => void) => {
   return () => {
     listeners.delete(listener);
   };
+};
+
+/**
+ * Hears every project's chat from the window's start, for its life. It
+ * listened only once the Studio was opened in this window: after a reload
+ * with a chat still at work, a reply that ended before the Studio was opened
+ * again was never marked, and a pack_artwork asked for meanwhile waited on a
+ * window that was not listening for it.
+ */
+export const watchStudioChat = () => {
+  listen();
 };
 
 const snapshot = () => state;
@@ -250,9 +290,9 @@ export const signInToStudioChat = async () => {
  * The failed reply at the end of the chat answered again in its place, on
  * the member's picks: what a sign-in from that reply's card ends with.
  */
-export const retryStudioChat = (folder: string) =>
+export const retryStudioChat = () =>
   bridge()?.studioChatRetry?.({
-    brief: chatBrief(folder),
+    brief: chatBrief(),
     model: state.model,
     effort: state.effort,
   }) ?? Promise.resolve();
@@ -260,9 +300,14 @@ export const retryStudioChat = (folder: string) =>
 /** The open project's conversation, as main keeps it. */
 export const loadStudioChat = async () => {
   const chat = await bridge()?.studioChatLoad?.();
-  // Opened, its reply is seen; still answering, it goes on saying so.
+  // Opened, its reply is seen; still answering, or with a card up, it goes
+  // on saying so.
   const work = chat
-    ? workAfter(state.work, chat.projectId, chat.busy, true)
+    ? workAsked(
+        workAfter(state.work, chat.projectId, chat.busy, true),
+        chat.projectId,
+        chat.ask !== undefined,
+      )
     : state.work;
   set({ chat: chat ?? undefined, ask: chat?.ask, work });
 };
@@ -347,38 +392,34 @@ export const setStudioChatEffort = (effort: TStudioChatEffort) => {
 };
 
 /**
- * A message to Claude about the project in `folder`, with the brief and the
+ * A message to Claude about the open project, with the brief and the
  * member's model and effort picks; and the stage's picture when attached.
  */
-export const sendToStudioChat = (
-  text: string,
-  folder: string,
-  stage?: Uint8Array,
-) =>
+export const sendToStudioChat = (text: string, stage?: Uint8Array) =>
   bridge()?.studioChatSend?.({
     text,
-    brief: chatBrief(folder),
+    brief: chatBrief(),
     model: state.model,
     effort: state.effort,
     ...(stage ? { stage } : {}),
   }) ?? Promise.resolve();
 
 /**
- * Claude Code's /compact on the conversation about the project in `folder`:
- * the picks go with it, because a different one starts Claude Code anew.
+ * Claude Code's /compact on the open project's conversation: the picks go
+ * with it, because a different one starts Claude Code anew.
  */
-export const compactStudioChat = (folder: string) =>
+export const compactStudioChat = () =>
   bridge()?.studioChatCompact?.({
-    brief: chatBrief(folder),
+    brief: chatBrief(),
     model: state.model,
     effort: state.effort,
   }) ?? Promise.resolve();
 
 /** A queued message taken back before it went. */
 /** What waits in the queue, read by Claude now, on the member's picks. */
-export const sendNowStudioChat = (folder: string) =>
+export const sendNowStudioChat = () =>
   bridge()?.studioChatSendNow?.({
-    brief: chatBrief(folder),
+    brief: chatBrief(),
     model: state.model,
     effort: state.effort,
   }) ?? Promise.resolve();

@@ -69,9 +69,12 @@ const studioChat = {
   'studioChat.placeholder':
     'Ask for a change, like “make the lights flash on the snare”',
   'studioChat.attach': 'Attach the stage',
-  'studioChat.attached': 'Stage attached',
+  'studioChat.attached': 'Picture attached',
   'studioChat.attachHint':
     'Send a picture of the scene as it looks now with your message',
+  'studioChat.attachPicture': 'Attach a picture',
+  'studioChat.attachPictureHint':
+    'Attach a picture from your computer. You can also paste one with Ctrl+V or drop it here.',
   'studioChat.send': 'Send',
   'studioChat.stop': 'Stop',
   'studioChat.fine':

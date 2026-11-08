@@ -65,9 +65,12 @@ const studioChat = {
   'studioChat.placeholderFirst': 'अपने सीन के बारे में बताइए…',
   'studioChat.placeholder': 'कोई बदलाव माँगिए, जैसे “स्नेयर पर लाइटें चमकाओ”',
   'studioChat.attach': 'स्टेज जोड़ें',
-  'studioChat.attached': 'स्टेज जोड़ा गया',
+  'studioChat.attached': 'चित्र जोड़ा गया',
   'studioChat.attachHint':
     'सीन अभी जैसा दिखता है, उसकी तस्वीर अपने संदेश के साथ भेजें',
+  'studioChat.attachPicture': 'चित्र जोड़ें',
+  'studioChat.attachPictureHint':
+    'अपने कंप्यूटर से एक चित्र जोड़ें। आप Ctrl+V से चिपका भी सकते हैं या उसे यहाँ छोड़ सकते हैं।',
   'studioChat.send': 'भेजें',
   'studioChat.stop': 'रोकें',
   'studioChat.fine':

@@ -72,6 +72,9 @@ const studio = {
   'studio.project.aiReplied': 'AI replied',
   'studio.project.aiWorkingElsewhere': 'An AI is working on another scene',
   'studio.project.aiRepliedElsewhere': 'Another scene’s AI replied',
+  'studio.project.aiWaiting': 'Waiting for you',
+  'studio.project.aiWaitingElsewhere':
+    'An AI is waiting for your OK on another scene',
   'studio.project.forget': 'Remove {name} from the list',
   'studio.project.new': 'New project…',
   'studio.project.forgetHint':

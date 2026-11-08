@@ -18,7 +18,18 @@ import chatBrief from '../../../renderer/studio/chat/chatBrief';
 const FOLDER = 'C:/Scenes/Aurora';
 
 describe("the Studio chat's brief", () => {
-  const brief = chatBrief(FOLDER);
+  const brief = chatBrief();
+
+  // The same words for every project, so Claude Code's prompt cache holds
+  // the brief once for every scene's chat: a path in it made each project's
+  // chat write the whole brief to the cache again.
+  it('names no folder by its path, only as the one Claude was started in', () => {
+    expect(brief).toContain(
+      'THE FOLDER TO WORK IN, which already exists:\n  your working directory - the folder you were started in',
+    );
+    expect(brief).not.toMatch(/[A-Za-z]:[\\/]/);
+    expect(chatBrief()).toBe(brief);
+  });
 
   it('names the look and hear tools as the chat’s own, and asks for no switch', () => {
     expect(brief).toContain('FluidEQ gave it to you in this chat');
@@ -33,10 +44,10 @@ describe("the Studio chat's brief", () => {
   // access to all plugins that claude has").
   it("offers the member's own tools and plugins, each asked of the member first", () => {
     expect(brief).toContain(
-      "You also have the member's own Claude Code tools,\n  plugins and skills",
+      "You also have the member's own Claude Code\n  plugins' skills",
     );
-    expect(brief).toContain('put to the member on a\n  card in the chat');
-    expect(brief).toContain('A no\n  is final');
+    expect(brief).toContain('put to the member on a card in the chat');
+    expect(brief).toContain('A no is final');
     expect(brief).not.toContain('You cannot run programs');
     expect(brief).toContain('pack_artwork');
   });
@@ -50,6 +61,11 @@ describe("the Studio chat's brief", () => {
     expect(brief).not.toContain('PICTURES FROM CHATGPT');
     expect(brief).not.toContain("the member's own\n  Codex");
     expect(brief).toContain('made with a picture plugin of theirs');
+    // The same lessons as every brief: look for a picture skill first.
+    expect(brief).toContain(
+      'FIND WHAT CAN MAKE IMAGES BEFORE YOU DECIDE NOTHING CAN',
+    );
+    expect(brief).toContain('ONE PICTURE PER OBJECT');
   });
 
   it('ends on the chat and its craft, with no idea left open', () => {
@@ -70,7 +86,7 @@ describe('every brief', () => {
   it('is a picture of the music, not a game', () => {
     expect(copied).toContain('A PICTURE OF THE MUSIC, NOT A GAME');
     expect(copied).not.toMatch(/game world|endless runner|dogfight/);
-    expect(chatBrief(FOLDER)).toContain('A PICTURE OF THE MUSIC, NOT A GAME');
+    expect(chatBrief()).toContain('A PICTURE OF THE MUSIC, NOT A GAME');
   });
 
   it('gives the frame budget look_at_scene measures against', () => {

@@ -105,6 +105,16 @@ CRAFT
   Nothing moves linearly, and nothing pops.
 - The frame is a composition: the subject on a strong point, the eye led to
   it by light and contrast, the edges quieter than the centre.
+- Soft things keep soft edges: an aurora's lower edge, a light's falloff on
+  the ground, mist. Cut sharply, a soft thing reads as a solid one - a
+  hill's rim, a line drawn across the snow.
+- A texture on the ground seen at a low angle blurs into one flat colour:
+  read it sharper than its footprint (textureGrad with the gradients scaled
+  down), at two scales, with its contrast raised.
+- Water reflects by moving sideways: ripples shift the reflected picture in
+  long horizontal streaks and fade out before they are finer than a pixel
+  (fwidth); glints are short dashes, never lines across the water. Draw the
+  reflection once - a second, offset copy leaves a ghost edge.
 
 3D IN THIS ENGINE
 - Camera: p = (uv - 0.5) * vec2(aspect, 1.0); a ray origin ro, a look-at
