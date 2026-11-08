@@ -125,6 +125,9 @@ const colourFormulas = (colour: TWorldColour | undefined): TWorldExpr[] => {
   if (!colour || 'hex' in colour) {
     return [];
   }
+  if ('palette' in colour) {
+    return [colour.at];
+  }
   return [...('hsl' in colour ? colour.hsl : colour.rgb)];
 };
 
@@ -142,7 +145,11 @@ export const copyCost = (
   const hues = colourFormulas(colour).map((formula) =>
     formulaCost(formula, scope),
   );
-  const colourFrame = hues.some((cost) => cost.everyFrame) ? hues.length : 0;
+  // A palette's colour is worked out every frame wherever it is read: the
+  // member edits the palette while the scene plays (`worldFormula.ts`).
+  const fromPalette = colour !== undefined && 'palette' in colour;
+  const colourFrame =
+    fromPalette || hues.some((cost) => cost.everyFrame) ? hues.length : 0;
   return {
     perFrame: parts.filter((cost) => cost.everyFrame).length + colourFrame,
     state: [...parts, ...hues].reduce((sum, cost) => sum + cost.state, 0),

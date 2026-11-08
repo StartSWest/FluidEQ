@@ -5,9 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
+  ClampToEdgeWrapping,
   DataTexture,
   LinearFilter,
+  RGBAFormat,
   RedFormat,
+  SRGBColorSpace,
   Texture,
   UnsignedByteType,
   Vector2,
@@ -33,7 +36,9 @@ import type {
   IExpressionRuntime,
   IExpressionScope,
 } from 'common/worldExpression';
+import { PALETTE_TEXELS, uniformNameForPalette } from 'common/scenePalette';
 import type { ISceneFrame } from '../sceneGl';
+import { createScenePaletteSlots } from '../scenePalettes';
 import { HOME_CAMERA, NO_POINTER, NO_TAP } from '../sceneFrameRest';
 import { createSlowSpectrum, frameSignals, frameStepMs } from '../sceneSignals';
 import { FULL_VIEW, panelSize } from '../sceneView';
@@ -64,6 +69,11 @@ export interface IWorldInputs {
   spectrumBytes: Uint8Array;
   /** The viewer's turn of the camera as last given: yaw, pitch, zoom. */
   view: [number, number, number];
+  /**
+   * Palette `id`'s colour at `t` (contract 9), in linear light, into `out`;
+   * false for a palette the scene does not have.
+   */
+  paletteColour(id: string, t: number, out: [number, number, number]): boolean;
   update(frame: ISceneFrame, width: number, height: number): void;
   settled(): boolean;
   dispose(): void;
@@ -120,12 +130,15 @@ export const createWorldInputs = (
     slow: (u: number) => sampleBytes(easedSpectrum.values, u, 1 / 255),
     wave: (u: number) => sampleBytes(waveBytes, u, 1 / 255),
   };
+  // Contract 9: what a colour read from a palette reads.
+  const palettes = createScenePaletteSlots(pack);
   const runtime: IExpressionRuntime = {
     env,
     state: new Float64Array(1),
     stateBase: 0,
     dt: 0,
     ...sampler,
+    palette: palettes.colourAt,
   };
   const instanceRuntime: IExpressionRuntime = {
     env: instanceEnv,
@@ -133,6 +146,7 @@ export const createWorldInputs = (
     stateBase: 0,
     dt: 0,
     ...sampler,
+    palette: palettes.colourAt,
   };
 
   const uniforms: Record<string, IUniform> = {
@@ -168,6 +182,26 @@ export const createWorldInputs = (
   };
   pack.params.forEach((param) => {
     uniforms[uniformNameForParam(param.id)] = { value: param.value };
+  });
+  // Contract 9: each palette a 256x1 row the GPU decodes from sRGB, so the
+  // sky and every material read it in linear light, as the flat path does.
+  const paletteTextures = palettes.slots.map((slot) => {
+    const texture = new DataTexture(
+      slot.texels,
+      PALETTE_TEXELS,
+      1,
+      RGBAFormat,
+      UnsignedByteType,
+    );
+    texture.colorSpace = SRGBColorSpace;
+    texture.minFilter = LinearFilter;
+    texture.magFilter = LinearFilter;
+    texture.wrapS = ClampToEdgeWrapping;
+    texture.wrapT = ClampToEdgeWrapping;
+    texture.generateMipmaps = false;
+    texture.needsUpdate = true;
+    uniforms[uniformNameForPalette(slot.id)] = { value: texture };
+    return { id: slot.id, texture };
   });
   varNames.forEach((name) => {
     uniforms[worldVarUniform(name)] = { value: 0 };
@@ -213,7 +247,16 @@ export const createWorldInputs = (
     instanceScope: { names: instanceNames },
     spectrumBytes,
     view,
+    paletteColour: palettes.colourAt,
     update: (frame, width, height) => {
+      // Before the formulas run, so a colour read from a palette this frame
+      // is this frame's palette.
+      palettes.update(frame.palettes).forEach((slot) => {
+        const painted = paletteTextures.find((each) => each.id === slot.id);
+        if (painted) {
+          painted.texture.needsUpdate = true;
+        }
+      });
       const elapsed = frameStepMs(frame, previousTime);
       spectrumBytes.set(frame.spectrum.subarray(0, SPECTRUM_TEXELS));
       waveBytes.set(frame.waveform.subarray(0, WAVEFORM_TEXELS));
@@ -300,6 +343,7 @@ export const createWorldInputs = (
       slow.dispose();
       waveform.dispose();
       blank.dispose();
+      paletteTextures.forEach((palette) => palette.texture.dispose());
     },
   };
 };

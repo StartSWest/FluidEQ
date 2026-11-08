@@ -6,6 +6,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { GRAPH_STYLES, type GraphStyle } from './graphStyles';
 import type { LocaleCode } from './i18n';
+import { readPaletteValue, type IScenePaletteValue } from './scenePalette';
+import {
+  choiceIndex,
+  isChoiceEntry,
+  MAX_CHOICE_NAME_LENGTH,
+  MAX_CHOICE_OPTIONS,
+  MIN_CHOICE_OPTIONS,
+} from './sceneChoice';
 
 /**
  * A scene pack's fields one at a time (`scenePacks.ts` reads the pack):
@@ -49,6 +57,12 @@ export interface IScenePackParam {
   min: number;
   max: number;
   value: number;
+  /**
+   * A choice's options in order (contract 9, `sceneChoice.ts`): then `min`
+   * is 0, `max` one less than their number and `value` the chosen one's.
+   * Absent for a slider.
+   */
+  options?: readonly TLocalizedName[];
 }
 
 export const PACK_ID = /^[a-z][a-z0-9-]{1,47}$/;
@@ -111,12 +125,52 @@ export const readParam = (value: unknown): IScenePackParam | null => {
   if (!isRecord(value) || typeof value.id !== 'string') {
     return null;
   }
+  // A control of another kind - a palette (`scenePalette.ts`), or one a
+  // newer FluidEQ added - is not a slider, and read as one it would be a
+  // slider that moves nothing. A choice is a slider's uniform with names.
+  if (
+    value.type !== undefined &&
+    value.type !== 'slider' &&
+    !isChoiceEntry(value)
+  ) {
+    return null;
+  }
   if (!SCENE_PARAM_ID.test(value.id)) {
     return null;
   }
   const names = readNames(value.names);
   if (!names) {
     return null;
+  }
+  if (isChoiceEntry(value)) {
+    // The options that have a name, up to eight: one this version cannot
+    // name is left out, and fewer than two is no choice.
+    const options = (Array.isArray(value.options) ? value.options : [])
+      .map((option: unknown) =>
+        isRecord(option) ? readNames(option.names) : null,
+      )
+      .filter((option): option is TLocalizedName => option !== null)
+      .map(
+        (option) =>
+          Object.fromEntries(
+            Object.entries(option).map(([locale, name]) => [
+              locale,
+              name.slice(0, MAX_CHOICE_NAME_LENGTH),
+            ]),
+          ) as TLocalizedName,
+      )
+      .slice(0, MAX_CHOICE_OPTIONS);
+    if (options.length < MIN_CHOICE_OPTIONS) {
+      return null;
+    }
+    return {
+      id: value.id,
+      names,
+      min: 0,
+      max: options.length - 1,
+      value: choiceIndex(value.value, options.length),
+      options,
+    };
   }
   // A range written the wrong way round is still the author's range, and a
   // bound past a million is no slider anyone can move: beyond it the track's
@@ -140,6 +194,29 @@ export const readParam = (value: unknown): IScenePackParam | null => {
     max,
     value: clamp(readNumber(value.value, min), min, max),
   };
+};
+
+/** A palette among `params` (contract 9, `scenePalette.ts`). */
+export interface IScenePackPalette extends IScenePaletteValue {
+  /** Uniform suffix: the preamble declares `uniform sampler2D uPalette_<id>`. */
+  id: string;
+  names: TLocalizedName;
+}
+
+/** A palette declared in `params`, or `null` for one this version cannot draw. */
+export const readPalette = (value: unknown): IScenePackPalette | null => {
+  if (!isRecord(value) || value.type !== 'palette') {
+    return null;
+  }
+  if (typeof value.id !== 'string' || !SCENE_PARAM_ID.test(value.id)) {
+    return null;
+  }
+  const names = readNames(value.names);
+  const colours = readPaletteValue(value.stops, value.positions);
+  if (!names || !colours) {
+    return null;
+  }
+  return { id: value.id, names, ...colours };
 };
 
 export const readSwatch = (value: unknown): string[] => {

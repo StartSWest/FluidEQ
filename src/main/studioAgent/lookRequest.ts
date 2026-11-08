@@ -1,3 +1,10 @@
+import {
+  isWholePaletteColours,
+  MAX_PALETTE_STOPS,
+  MIN_PALETTE_STOPS,
+  readPaletteValue,
+  type IScenePaletteValue,
+} from '../../common/scenePalette';
 import type { ISceneCamera } from '../../common/sceneCamera';
 import { SCENE_TAP_AGE_LIMIT_S } from '../../common/sceneUniformContract';
 import {
@@ -36,6 +43,8 @@ export interface ILookRequest {
   /** The test music's tempo, when not its own. */
   tempo?: number;
   sliders: Readonly<Record<string, number>>;
+  /** Colours for the scene's palettes, for this picture only (contract 9). */
+  palettes?: Readonly<Record<string, IScenePaletteValue>>;
   wave?: ISceneWave;
   /** As asked; kept inside the scene's own limits when it is drawn. */
   camera?: Partial<ISceneCamera>;
@@ -108,7 +117,18 @@ export const LOOK_SCHEMA = {
       type: 'object',
       additionalProperties: { type: 'number' },
       description:
-        "Values for the scene's own sliders (their ids in pack.json), for this picture only: nothing is saved. Use it to see each slider at its bottom and at its top - and daylight at 0, 50 and 100 to see the scene's night, its dusk and its day. Without daylight, the picture is at the member's own Brightness, as their stage plays it.",
+        "Values for the scene's own sliders (their ids in pack.json), for this picture only: nothing is saved. Use it to see each slider at its bottom and at its top - and daylight at 0, 50 and 100 to see the scene's night, its dusk and its day. Without daylight, the picture is at the member's own Brightness, as their stage plays it. A choice takes its option's number, 0 for the first: look at every option.",
+    },
+    palettes: {
+      type: 'object',
+      additionalProperties: {
+        type: 'array',
+        items: { type: 'string' },
+        minItems: MIN_PALETTE_STOPS,
+        maxItems: MAX_PALETTE_STOPS,
+      },
+      description:
+        "Colours for the scene's own palettes (their ids in pack.json), for this picture only: nothing is saved. Each a list of 2 to 8 #rrggbb stops, evenly spaced, bass to treble - try the palette dark, light, and as two colours far apart, to see it carries every set the member might choose.",
     },
     wave: {
       type: 'object',
@@ -281,6 +301,7 @@ export const readLookRequest = (
     beats,
     tempo,
     sliders,
+    palettes,
     wave,
     camera,
     pointer,
@@ -350,6 +371,28 @@ export const readLookRequest = (
       return 'sliders must name at most 8 of the scene sliders, each with a number.';
     }
   }
+  const colours: Record<string, IScenePaletteValue> = {};
+  if (palettes !== undefined) {
+    const refusal =
+      'palettes must name at most 2 of the scene palettes, each with 2 to 8 #rrggbb colours.';
+    if (!isRecord(palettes) || Object.keys(palettes).length > 2) {
+      return refusal;
+    }
+    const fine = Object.entries(palettes).every(([id, stops]) => {
+      const read =
+        SLIDER_ID.test(id) && isWholePaletteColours(stops, undefined)
+          ? readPaletteValue(stops, undefined)
+          : null;
+      if (!read) {
+        return false;
+      }
+      colours[id] = read;
+      return true;
+    });
+    if (!fine) {
+      return refusal;
+    }
+  }
   let chosenWave: ISceneWave | undefined;
   if (wave !== undefined) {
     if (
@@ -386,6 +429,7 @@ export const readLookRequest = (
     ...(moment === undefined ? {} : { seconds: moment }),
     ...(isNumber(tempo) ? { tempo } : {}),
     sliders: values,
+    ...(Object.keys(colours).length ? { palettes: colours } : {}),
     ...(chosenWave ? { wave: chosenWave } : {}),
     ...(chosenCamera ? { camera: chosenCamera } : {}),
     ...(chosenPointer ? { pointer: chosenPointer } : {}),

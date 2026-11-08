@@ -513,6 +513,12 @@ const studio = {
     'params의 컨트롤에는 a-z, 0-9 및 _의 ID와 영어 이름, 그리고 최대값 아래에 최소값이 필요합니다.',
   'studio.problem.too-many-params':
     '장면의 매개변수에는 최대 8개의 컨트롤이 있을 수 있습니다.',
+  'studio.problem.bad-palette':
+    'params의 팔레트에는 a-z, 0-9, _로 된 id, 영어 이름, #ff3030 같은 지점 2~8개가 필요합니다. positions를 쓴다면 지점마다 하나씩 0~1 사이에서 순서대로 적습니다.',
+  'studio.problem.too-many-palettes':
+    '장면의 params에는 팔레트를 2개까지만 둘 수 있습니다.',
+  'studio.problem.bad-choice':
+    'params의 선택 항목에는 a-z, 0-9, _로 된 id, 영어 이름, 영어 이름이 40자 이하인 옵션 2~8개가 필요합니다. min을 쓴다면 0, max는 옵션 수보다 하나 적게 적습니다.',
   'studio.problem.no-daylight':
     '모든 장면에는 일광 제어(매개변수에 {control})가 필요하며 밤을 0으로, 낮을 100으로 그립니다.',
   'studio.problem.bad-ambient':

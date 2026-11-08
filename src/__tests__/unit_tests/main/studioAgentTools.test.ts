@@ -20,6 +20,7 @@ import {
 } from '../../../main/studioAgent/agentProject';
 import {
   readDrawAnswer,
+  withPalettes,
   withSliders,
 } from '../../../main/studioAgent/drawAnswer';
 import { readLookRequest } from '../../../main/studioAgent/lookRequest';
@@ -200,6 +201,52 @@ describe('sliders for one picture', () => {
 
   test('name only sliders the scene has', () => {
     expect(withSliders(pack, { glow: 1 })).toEqual({ unknown: 'glow' });
+  });
+});
+
+describe('palettes for one picture (contract 9)', () => {
+  const coloured: IScenePack = {
+    ...pack,
+    palettes: [
+      {
+        id: 'colours',
+        names: { en: 'Colours' },
+        stops: ['#ff0000', '#0000ff'],
+      },
+    ],
+  };
+
+  test('are read as two to eight colours, and refused otherwise', () => {
+    expect(
+      readLookRequest({ palettes: { colours: ['#000000', '#FFFFFF'] } }),
+    ).toMatchObject({
+      palettes: { colours: { stops: ['#000000', '#ffffff'] } },
+    });
+    expect(typeof readLookRequest({ palettes: { colours: ['#000000'] } })).toBe(
+      'string',
+    );
+    expect(
+      typeof readLookRequest({ palettes: { colours: ['#000000', 'red'] } }),
+    ).toBe('string');
+  });
+
+  test('replace the colours of the palettes they name, for that picture only', () => {
+    const drawn = withPalettes(coloured, {
+      colours: { stops: ['#00ff00', '#ffffff'] },
+    });
+    expect((drawn as IScenePack).palettes?.[0].stops).toEqual([
+      '#00ff00',
+      '#ffffff',
+    ]);
+    expect(coloured.palettes?.[0].stops).toEqual(['#ff0000', '#0000ff']);
+  });
+
+  test('name only palettes the scene has', () => {
+    expect(
+      withPalettes(coloured, { sky: { stops: ['#000000', '#ffffff'] } }),
+    ).toEqual({
+      unknown: 'sky',
+    });
   });
 });
 

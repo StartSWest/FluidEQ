@@ -93,6 +93,7 @@ import './WallpaperControls.scss';
 import './Studio.scss';
 import './StudioVersion.scss';
 import './StudioControls.scss';
+import './SceneChoice.scss';
 import './Lighting.scss';
 import './StudioCode.scss';
 import './LiveFigure.scss';

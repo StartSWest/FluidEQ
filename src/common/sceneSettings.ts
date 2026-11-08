@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { isNeutralResponse, type ISceneResponse } from './sceneResponse';
 import { isDefaultSceneWave, type ISceneWave } from './sceneWave';
 import type { IScenePack } from './scenePacks';
+import { paletteValueOf, type IScenePaletteValue } from './scenePalette';
 
 /**
  * Where a scene's settings stand: its own controls, its ambient controls, how
@@ -20,6 +21,8 @@ import type { IScenePack } from './scenePacks';
 export interface ISceneSettings {
   params: Readonly<Record<string, number>>;
   ambient: Readonly<Record<string, number>>;
+  /** Its palettes' colours by id (contract 9); absent for a scene with none. */
+  palettes?: Readonly<Record<string, IScenePaletteValue>>;
   /** Absent for a scene that hears the music as the engine hears it. */
   response?: ISceneResponse;
   /** Absent for a scene that asks nothing of the wave (`sceneWave.ts`). */
@@ -35,6 +38,13 @@ const valuesOf = (
 export const settingsOfPack = (pack: IScenePack): ISceneSettings => ({
   params: valuesOf(pack.params),
   ambient: valuesOf(pack.ambient?.params),
+  ...(pack.palettes?.length
+    ? {
+        palettes: Object.fromEntries(
+          pack.palettes.map((palette) => [palette.id, paletteValueOf(palette)]),
+        ),
+      }
+    : {}),
   ...(pack.response && !isNeutralResponse(pack.response)
     ? { response: pack.response }
     : {}),

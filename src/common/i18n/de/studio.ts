@@ -553,6 +553,12 @@ const studio = {
     'Ein Regler in params braucht eine id aus a-z, 0-9 und _, einen englischen Namen und ein min unter seinem max.',
   'studio.problem.too-many-params':
     'Eine Szene kann höchstens 8 Regler in params haben.',
+  'studio.problem.bad-palette':
+    'Eine Palette in params braucht eine ID aus a-z, 0-9 und _, einen englischen Namen und 2 bis 8 Farbpunkte wie #ff3030; Positionen, falls angegeben, eine je Punkt, von 0 bis 1, aufsteigend.',
+  'studio.problem.too-many-palettes':
+    'Eine Szene kann höchstens 2 Paletten in params haben.',
+  'studio.problem.bad-choice':
+    'Eine Auswahl in params braucht eine ID aus a-z, 0-9 und _, einen englischen Namen und 2 bis 8 Optionen mit je einem englischen Namen von höchstens 40 Zeichen; min ist, falls angegeben, 0 und max eins weniger als die Optionen.',
   'studio.problem.no-daylight':
     'Jede Szene braucht den Regler Daylight, {control} in params, und zeichnet bei 0 die Nacht und bei 100 den Tag.',
   'studio.problem.bad-ambient':

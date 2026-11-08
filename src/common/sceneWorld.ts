@@ -27,9 +27,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 export type TWorldExpr = string | number;
 export type TWorldVec3 = readonly [TWorldExpr, TWorldExpr, TWorldExpr];
 
-/** A colour: a fixed sRGB hex, or three formulas, hue 0..1 or sRGB 0..1. */
+/**
+ * A colour: a fixed sRGB hex, three formulas (hue 0..1 or sRGB 0..1), or
+ * one of the pack's palettes at a formula's 0..1 (contract 9).
+ */
 export type TWorldColour =
-  { hex: string } | { hsl: TWorldVec3 } | { rgb: TWorldVec3 };
+  | { hex: string }
+  | { hsl: TWorldVec3 }
+  | { rgb: TWorldVec3 }
+  | { palette: string; at: TWorldExpr };
 
 export interface IWorldCamera {
   /** Vertical field of view, in degrees. */

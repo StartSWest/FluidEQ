@@ -26,7 +26,7 @@ import {
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import type { IScenePack } from 'common/scenePacks';
 import { worldHasMirror, worldVarUniform } from 'common/sceneWorld';
-import { paramUniformDeclarations } from 'common/sceneUniformContract';
+import { controlDeclarations } from 'common/sceneUniformContract';
 import type { TWorldCompileResult } from '../sceneGl';
 import { createWorldBloom } from './worldBloom';
 import createWorldCamera from './worldCamera';
@@ -223,7 +223,7 @@ const compileWorld = async (
       kept.push(lighting);
     }
 
-    const declarations = `${paramUniformDeclarations(pack)}${world.vars
+    const declarations = `${controlDeclarations(pack)}${world.vars
       .map((known) => `uniform float ${worldVarUniform(known.name)};\n`)
       .join('')}`;
     const mirror = worldHasMirror(world.materials)

@@ -61,6 +61,7 @@ import StudioStage, {
 import type { TStudioSignal } from './studioSignals';
 import StudioStageLoading from './StudioStageLoading';
 import troubleHoldsBack from './stageTrouble';
+import type { IStudioPalettes } from './StudioSettings';
 import { linkStudioFolder, type IStudioView } from './studioStore';
 
 interface IStudioBenchProps {
@@ -113,6 +114,14 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const baseline = useStudioBaseline(state.activeId, publications);
   const tuner = useStudioTuning(pack, state.activeId, baseline);
   const ambient = useStudioAmbientTuning(pack, state.activeId, baseline);
+  const palettes: IStudioPalettes = {
+    params: tuner.paletteParams,
+    values: tuner.palettes,
+    canReset: tuner.canResetPalette,
+    onChange: tuner.setPalette,
+    onCommit: tuner.choosePalette,
+    onReset: tuner.resetPalette,
+  };
 
   // A new version is a new chance: whatever went wrong with the last one is
   // forgotten until this one says otherwise.
@@ -315,11 +324,13 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             canResetResponse={tuner.canResetResponse}
             publishedVersion={tuner.publishedVersion}
             onParam={tuner.setParam}
+            onChoose={tuner.chooseParam}
             onResponse={tuner.setResponse}
             onCommit={tuner.commit}
             onResetParams={tuner.resetParams}
             onResetResponse={tuner.resetResponse}
             ambient={ambient}
+            palettes={palettes}
           />
         }
       />

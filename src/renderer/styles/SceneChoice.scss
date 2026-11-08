@@ -1,0 +1,226 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// A scene's choice (`SceneChoice.tsx`): its name over a segmented row of its
+// options, the chosen one under an accent highlight that slides to the next;
+// or, past four options, the chosen one on a button that opens the rest.
+
+.scene-choice {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.scene-choice__label {
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  overflow-wrap: anywhere;
+}
+
+// A well with the options in equal columns, the highlight a column wide
+// under the chosen one. `--count` and `--at` come from the component.
+.scene-choice__row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--count, 2), minmax(0, 1fr));
+  gap: 2px;
+  min-width: 0;
+  padding: 2px;
+  border-radius: $radius-s;
+  background: rgba($white, 0.05);
+  box-shadow: inset 0 0 0 1px rgba($white, 0.08);
+}
+
+.scene-choice__slide {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc((100% - 4px - (var(--count, 2) - 1) * 2px) / var(--count, 2));
+  border-radius: calc(#{$radius-s} - 2px);
+  background: color-mix(in srgb, $secondary-default 32%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, $secondary-light 55%, transparent),
+    0 0 12px color-mix(in srgb, $secondary-default 30%, transparent);
+  transform: translateX(calc(var(--at, 0) * (100% + 2px)));
+  transition: transform $motion-base $ease-out;
+  pointer-events: none;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+
+  .scene-choice__row:has(:disabled) & {
+    opacity: $disabled-opacity;
+  }
+}
+
+.scene-choice__option {
+  position: relative;
+  min-width: 0;
+  min-height: 26px;
+  padding: 3px 6px;
+  overflow: hidden;
+  color: $text-muted;
+  border: 0;
+  border-radius: calc(#{$radius-s} - 2px);
+  background: none;
+  font: inherit;
+  font-size: $text-small;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color $motion-fast $ease-out;
+
+  &:hover:not(:disabled) {
+    color: $text-primary;
+  }
+
+  &.is-chosen {
+    color: $white;
+    font-weight: $weight-semibold;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+// Past four options: the chosen one on a button the width of the column,
+// which of how many on its right, so a long list is not one row of stubs.
+.scene-choice__trigger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: $spacing-s;
+  min-width: 0;
+  min-height: 30px;
+  padding: 4px 8px 4px 10px;
+  color: $text-primary;
+  border: 0;
+  border-radius: $radius-s;
+  background: rgba($white, 0.05);
+  box-shadow: inset 0 0 0 1px rgba($white, 0.1);
+  font: inherit;
+  font-size: $text-small;
+  text-align: start;
+  cursor: pointer;
+  transition: box-shadow $motion-fast $ease-out;
+
+  &:hover:not(:disabled),
+  &[aria-expanded='true'] {
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, $secondary-light 55%, transparent);
+  }
+
+  &[aria-expanded='true'] .chevron {
+    transform: rotate(180deg);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: $disabled-opacity;
+  }
+}
+
+.scene-choice__current {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scene-choice__count {
+  color: $text-dim;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+}
+
+.scene-choice__menu {
+  @include menu-surface;
+  z-index: 1001;
+  display: grid;
+  gap: 2px;
+  min-width: 180px;
+  max-width: min(280px, calc(100vw - 16px));
+  padding: 4px;
+}
+
+.scene-choice__item {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 8px;
+  color: $text-muted;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  font: inherit;
+  font-size: $text-small;
+  text-align: start;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $text-primary;
+    background: rgba($white, 0.06);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.is-chosen {
+    color: $white;
+  }
+}
+
+// A dot the chosen option wears, in the accent, as a radio's.
+.scene-choice__mark {
+  width: 8px;
+  height: 8px;
+  justify-self: center;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba($white, 0.25);
+
+  .is-chosen > & {
+    background: $secondary-light;
+    box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 60%, transparent);
+  }
+}
+
+.scene-choice__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// In the graph's View menu, a row of the menu: the same inset as the sliders
+// round it (`.graph-view-menu__slider`).
+.graph-view-menu__choice {
+  padding: 5px 8px;
+
+  .scene-choice__label {
+    font-size: $text-small;
+  }
+}

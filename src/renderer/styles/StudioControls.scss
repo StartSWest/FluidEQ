@@ -286,3 +286,171 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-micro;
   line-height: 1.45;
 }
+
+// --------------------------------------------------------------- palettes
+
+// A scene's palette (`StudioPalette.tsx`): its name and three word-buttons on
+// a line, and the gradient under them with a handle at each stop. The
+// gradient is the scene's own numbers (`paletteCss`).
+.studio-palette {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+// The name gives way before the buttons do: at the narrowest column the
+// buttons wrap under it rather than squeezing it to nothing.
+.studio-palette__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px $spacing-s;
+  min-width: 0;
+}
+
+.studio-palette__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-inline-end: -4px;
+}
+
+// The handles stand half outside the gradient at either end, so the strip
+// keeps their half width in from the column's edges.
+.studio-palette__strip {
+  position: relative;
+  height: 22px;
+  margin-inline: 9px;
+  border-radius: $radius-s;
+  background: var(--palette);
+  box-shadow:
+    inset 0 0 0 1px rgba($white, 0.14),
+    0 1px 0 rgba($black, 0.35);
+  touch-action: none;
+
+  &.can-add {
+    cursor: copy;
+  }
+
+  .studio-palette:has(:disabled) & {
+    cursor: default;
+  }
+}
+
+// A stop: its own colour in a white ring, a hair of shadow so a light colour
+// on a light gradient still has an edge, a little taller than the strip so it
+// reads as something to take hold of.
+.studio-palette__stop {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--at, 0) * 100%);
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 2px solid $white;
+  border-radius: 50%;
+  background: var(--stop, #{$white});
+  box-shadow:
+    0 0 0 1px rgba($black, 0.55),
+    0 2px 6px rgba($black, 0.45);
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  transition:
+    transform $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out,
+    opacity $motion-fast $ease-out;
+
+  &:hover:not(:disabled) {
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+
+  &:active:not(:disabled) {
+    cursor: grabbing;
+  }
+
+  &.is-selected {
+    z-index: 1;
+    box-shadow:
+      0 0 0 1px rgba($black, 0.55),
+      0 0 0 4px color-mix(in srgb, $secondary-default 70%, transparent),
+      0 2px 8px rgba($black, 0.5);
+  }
+
+  // Held off the strip: let go, it is removed.
+  &.is-tearing {
+    opacity: 0.35;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+// The colour picker, out of sight under the stop it recolours, so the
+// picker that opens opens there.
+.studio-palette__picker {
+  position: absolute;
+  bottom: 0;
+  left: calc(var(--at, 0) * 100%);
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+// The stock palettes, each its own gradient over its name, two to a row.
+.studio-palette-presets {
+  @include menu-surface;
+  z-index: 1001;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  width: min(320px, calc(100vw - 16px));
+  padding: 6px;
+}
+
+.studio-palette-presets__item {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px;
+  color: $text-muted;
+  border: 0;
+  border-radius: $radius-s;
+  background: none;
+  font: inherit;
+  font-size: $text-micro;
+  text-align: start;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $text-primary;
+    background: rgba($white, 0.06);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.studio-palette-presets__swatch {
+  display: block;
+  height: 12px;
+  border-radius: $radius-xs;
+  box-shadow: inset 0 0 0 1px rgba($white, 0.12);
+}
+
+.studio-palette-presets__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

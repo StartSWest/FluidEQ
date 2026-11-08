@@ -9,6 +9,7 @@ import { normalizeSceneArtwork, type ISceneArtwork } from './sceneArtwork';
 import { readSceneCamera, type ISceneCameraLimits } from './sceneCamera';
 import { readSceneFraming, type ISceneFraming } from './sceneFraming';
 import { readScenePointer, type IScenePointer } from './scenePointer';
+import { MAX_SCENE_PALETTES } from './scenePalette';
 import { readSceneWave, type ISceneWave } from './sceneWave';
 import type { ISceneWorld } from './sceneWorld';
 import normalizeSceneWorld from './sceneWorldRead';
@@ -25,10 +26,12 @@ import {
   PACK_ID,
   readNames,
   readNumber,
+  readPalette,
   readParam,
   readSource,
   readSpectrumRange,
   readSwatch,
+  type IScenePackPalette,
   type IScenePackParam,
   type TLocalizedName,
 } from './scenePackFields';
@@ -72,6 +75,8 @@ export {
   SCENE_PARAM_ID,
 } from './scenePackFields';
 export type { IScenePackParam, TLocalizedName } from './scenePackFields';
+export type { IScenePackPalette } from './scenePackFields';
+export type { IScenePaletteValue } from './scenePalette';
 
 // Accommodate a 6 MiB lossless atlas after base64 expansion, plus the bounded
 // shader and metadata. Decoded artwork dimensions are checked separately.
@@ -96,6 +101,11 @@ export interface IScenePack {
    */
   source: string;
   params: IScenePackParam[];
+  /**
+   * Its colour palettes (contract 9, `scenePalette.ts`), declared among
+   * `params` but apart from the sliders and their eight. Absent is none.
+   */
+  palettes?: IScenePackPalette[];
   /** Optional signed colour atlas; paid image bytes stay in the scene pack. */
   artwork?: ISceneArtwork;
   /** Optional bottom/top of the live dB scale in normalized panel coordinates. */
@@ -260,6 +270,22 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
       }
     });
   }
+  // The palettes after every slider has its id: a palette that takes a
+  // slider's name would be two controls saved under one.
+  const palettes: IScenePackPalette[] = [];
+  if (Array.isArray(raw.params)) {
+    raw.params.forEach((entry) => {
+      const palette = readPalette(entry);
+      if (
+        palette &&
+        !seen.has(palette.id) &&
+        palettes.length < MAX_SCENE_PALETTES
+      ) {
+        seen.add(palette.id);
+        palettes.push(palette);
+      }
+    });
+  }
   // Kept in range rather than refused: a response is taste, and a slider
   // pushed past its end is still the author's meaning.
   const response =
@@ -274,6 +300,7 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
           raw.world,
           params.map((param) => param.id),
           artwork,
+          palettes.map((palette) => palette.id),
         );
   // Dropped rather than refused, like a response: the scene plays without it.
   const ambient =
@@ -299,6 +326,7 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
     swatch: readSwatch(raw.swatch),
     source,
     params,
+    ...(palettes.length ? { palettes } : {}),
     ...(artwork ? { artwork } : {}),
     ...(spectrumRange ? { spectrumRange } : {}),
     ...(response && !isNeutralResponse(response) ? { response } : {}),
@@ -394,6 +422,6 @@ export const resolveSceneName = (
 ): string => pack.names[locale] ?? pack.names.en;
 
 export const resolveParamName = (
-  param: IScenePackParam,
+  param: { names: TLocalizedName },
   locale: LocaleCode,
 ): string => param.names[locale] ?? param.names.en;

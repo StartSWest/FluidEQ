@@ -528,6 +528,12 @@ const studio = {
     'params के किसी नियंत्रण को a-z, 0-9 और _ से बना id, अंग्रेज़ी नाम और max से छोटा min चाहिए।',
   'studio.problem.too-many-params':
     'एक सीन के params में अधिकतम 8 नियंत्रण हो सकते हैं।',
+  'studio.problem.bad-palette':
+    'params में पैलेट के लिए a-z, 0-9 और _ से बनी id, अंग्रेज़ी नाम और #ff3030 जैसे 2 से 8 बिंदु चाहिए; positions दें तो हर बिंदु का एक, 0 से 1 तक, क्रम में।',
+  'studio.problem.too-many-palettes':
+    'एक दृश्य के params में अधिक से अधिक 2 पैलेट हो सकती हैं।',
+  'studio.problem.bad-choice':
+    'params में विकल्प-नियंत्रण के लिए a-z, 0-9 और _ से बनी id, अंग्रेज़ी नाम और 2 से 8 विकल्प चाहिए, हर एक का अंग्रेज़ी नाम 40 अक्षरों तक; min दें तो 0, और max विकल्पों से एक कम।',
   'studio.problem.no-daylight':
     'हर सीन को Daylight नियंत्रण चाहिए: params में {control} रखें, और 0 पर रात और 100 पर दिन बनाएँ।',
   'studio.problem.bad-ambient':

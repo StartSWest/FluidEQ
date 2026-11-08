@@ -384,12 +384,14 @@ const TONE_MAPPINGS: readonly TWorldToneMapping[] = [
  * The world in `raw`, or `undefined` for none worth drawing.
  *
  * `paramIds` are the pack's parameters, which formulas name as `p.<id>`;
- * `artwork` is the pack's atlas, which materials may cut regions from.
+ * `artwork` is the pack's atlas, which materials may cut regions from;
+ * `paletteIds` its palettes, which a colour may be read from.
  */
 const normalizeSceneWorld = (
   raw: unknown,
   paramIds: readonly string[],
   artwork?: { width: number; height: number },
+  paletteIds: readonly string[] = [],
 ): ISceneWorld | undefined => {
   if (!isWorldRecord(raw)) {
     return undefined;
@@ -397,8 +399,14 @@ const normalizeSceneWorld = (
   const vars = readVars(raw.vars, paramIds);
   const varNames = vars.map((known) => known.name);
   const scopes: IWorldScopes = {
-    global: { names: worldScopeNames(paramIds, varNames) },
-    instance: { names: worldInstanceScopeNames(paramIds, varNames) },
+    global: {
+      names: worldScopeNames(paramIds, varNames),
+      palettes: paletteIds,
+    },
+    instance: {
+      names: worldInstanceScopeNames(paramIds, varNames),
+      palettes: paletteIds,
+    },
   };
   const materials = readMaterials(raw.materials, scopes, artwork);
   const { models, costs } = readModels(raw.models);

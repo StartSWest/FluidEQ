@@ -1,6 +1,11 @@
 import { useId, type CSSProperties, type ReactNode } from 'react';
 import type { TranslationKey } from 'common/i18n';
-import { resolveParamName, type IScenePackParam } from 'common/scenePacks';
+import {
+  resolveParamName,
+  type IScenePackPalette,
+  type IScenePackParam,
+} from 'common/scenePacks';
+import type { IScenePaletteValue } from 'common/scenePalette';
 import { RESPONSE_KEYS, type ISceneResponse } from 'common/sceneResponse';
 import sceneSliderParams from '../graph/sceneSliders';
 import { useTranslation } from '../utils/I18nContext';
@@ -11,6 +16,8 @@ import {
 } from '../utils/responseSlider';
 import { isAmbientMode, useWindowTintMode } from '../utils/sceneTintStore';
 import StudioAmbientIcon from './StudioAmbientIcon';
+import StudioPalette from './StudioPalette';
+import SceneChoice from '../graph/SceneChoice';
 import type { IStudioAmbientTuning } from './useStudioAmbientTuning';
 import { SAVED_KEYS, type TTuningSaved } from './useStudioTuning';
 import '../styles/StudioControls.scss';
@@ -185,6 +192,8 @@ interface IStudioSettingsProps {
    */
   publishedVersion?: number;
   onParam: (id: string, value: number) => void;
+  /** A choice picked: on the stage and saved in one go. */
+  onChoose: (id: string, value: number) => void;
   onResponse: (key: keyof ISceneResponse, value: number) => void;
   onCommit: () => void;
   onResetParams: () => void;
@@ -194,6 +203,18 @@ interface IStudioSettingsProps {
    * any: its elements in the window, shown in the Ambient mode.
    */
   ambient?: IStudioAmbientTuning;
+  /** Its palettes (contract 9), and their colours as the member has them. */
+  palettes?: IStudioPalettes;
+}
+
+/** A scene's palettes in the column (`useStudioTuning.ts`). */
+export interface IStudioPalettes {
+  params: readonly IScenePackPalette[];
+  values: Readonly<Record<string, IScenePaletteValue>>;
+  canReset: (id: string) => boolean;
+  onChange: (id: string, value: IScenePaletteValue) => void;
+  onCommit: (id: string, value: IScenePaletteValue) => void;
+  onReset: (id: string) => void;
 }
 
 /**
@@ -214,11 +235,13 @@ export default function StudioSettings({
   canResetResponse,
   publishedVersion,
   onParam,
+  onChoose,
   onResponse,
   onCommit,
   onResetParams,
   onResetResponse,
   ambient,
+  palettes,
 }: IStudioSettingsProps) {
   const { t, locale } = useTranslation();
   const controls = sceneSliderParams(params);
@@ -258,6 +281,21 @@ export default function StudioSettings({
           >
             {controls.map((param) => {
               const value = values[param.id] ?? param.value;
+              // A choice picks and saves at once: a press is a let-go.
+              if (param.options) {
+                return (
+                  <SceneChoice
+                    key={param.id}
+                    label={resolveParamName(param, locale)}
+                    options={param.options.map((option) =>
+                      resolveParamName({ names: option }, locale),
+                    )}
+                    value={Math.round(value)}
+                    disabled={idle}
+                    onPick={(index) => onChoose(param.id, index)}
+                  />
+                );
+              }
               const span = param.max - param.min;
               return (
                 <Setting
@@ -277,6 +315,39 @@ export default function StudioSettings({
               );
             })}
           </Group>
+        )}
+
+        {/* The scene's colours, apart from its sliders: each palette resets
+            on its own, beside its name, so there is no group-wide Reset. */}
+        {palettes && palettes.params.length > 0 && (
+          <section className="studio-settings__group">
+            <div className="studio-settings__group-head">
+              <span className="studio-settings__group-title">
+                {t('studioPalette.group')}
+              </span>
+            </div>
+            <span className="studio-settings__lead">
+              {t('studioPalette.lead')}
+            </span>
+            {palettes.params.map((palette) => (
+              <StudioPalette
+                key={palette.id}
+                label={resolveParamName(palette, locale)}
+                value={palettes.values[palette.id] ?? palette}
+                disabled={idle}
+                canReset={palettes.canReset(palette.id)}
+                resetsTo={resetsTo}
+                onChange={(value) => palettes.onChange(palette.id, value)}
+                onCommit={(value) => palettes.onCommit(palette.id, value)}
+                onReset={() => palettes.onReset(palette.id)}
+              />
+            ))}
+            {/* Said once, under every palette: how a strip is used is the
+                same on each, and under each it was the same line twice. */}
+            <span className="studio-settings__lead">
+              {t('studioPalette.hint')}
+            </span>
+          </section>
         )}
 
         <Group

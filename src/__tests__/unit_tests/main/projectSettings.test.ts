@@ -122,3 +122,63 @@ it('offers no place for a photo over an image the scene lists as its own pieces'
     atlas: { pictures: [{ id: 'picture' }] },
   });
 });
+
+it('saves a palette as its stops and a choice as an option, leaving the rest', async () => {
+  const original = {
+    id: 'scene',
+    params: [
+      { id: 'glow', min: 0, max: 1, value: 0.5, names: { en: 'Glow' } },
+      {
+        id: 'colours',
+        type: 'palette',
+        names: { en: 'Colours' },
+        stops: ['#ff0000', '#0000ff'],
+        positions: [0, 1],
+      },
+      {
+        id: 'style',
+        type: 'choice',
+        names: { en: 'Style' },
+        options: [
+          { names: { en: 'A' } },
+          { names: { en: 'B' } },
+          { names: { en: 'C' } },
+        ],
+        value: 0,
+      },
+    ],
+  };
+  fs.writeFileSync(manifest(), JSON.stringify(original));
+  expect(
+    await writeProjectSettings(folder, {
+      params: { style: 1.7, colours: 5 },
+      palettes: {
+        colours: {
+          stops: ['#000000', '#ffffff', '#ff0000'],
+          positions: [0, 0.2, 1],
+        },
+      },
+    }),
+  ).toBe('written');
+  const saved = JSON.parse(fs.readFileSync(manifest(), 'utf8'));
+  expect(saved.params[0]).toEqual(original.params[0]);
+  expect(saved.params[1]).toEqual({
+    ...original.params[1],
+    stops: ['#000000', '#ffffff', '#ff0000'],
+    positions: [0, 0.2, 1],
+  });
+  // A choice's range is its options, whatever a slider's would be.
+  expect(saved.params[2]).toEqual({ ...original.params[2], value: 2 });
+  // Past the last option is the last option.
+  await writeProjectSettings(folder, { params: { style: 9 } });
+  expect(JSON.parse(fs.readFileSync(manifest(), 'utf8')).params[2].value).toBe(
+    2,
+  );
+  // Evenly spaced is said by saying nothing.
+  await writeProjectSettings(folder, {
+    palettes: { colours: { stops: ['#000000', '#ffffff'] } },
+  });
+  expect(
+    JSON.parse(fs.readFileSync(manifest(), 'utf8')).params[1],
+  ).not.toHaveProperty('positions');
+});

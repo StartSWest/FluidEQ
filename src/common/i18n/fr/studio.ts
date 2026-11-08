@@ -545,6 +545,12 @@ const studio = {
     'Un contrôle de params doit avoir un id en a-z, 0-9 et _, un nom anglais et un min inférieur à son max.',
   'studio.problem.too-many-params':
     'Une scène peut avoir au plus 8 contrôles dans params.',
+  'studio.problem.bad-palette':
+    'Une palette dans params doit avoir un id en a-z, 0-9 et _, un nom anglais et de 2 à 8 arrêts comme #ff3030 ; les positions, si présentes, vont une par arrêt, de 0 à 1, dans l’ordre.',
+  'studio.problem.too-many-palettes':
+    'Une scène peut avoir au plus 2 palettes dans params.',
+  'studio.problem.bad-choice':
+    'Un choix dans params doit avoir un id en a-z, 0-9 et _, un nom anglais et de 2 à 8 options, chacune avec un nom anglais de 40 caractères au plus ; min, si présent, vaut 0 et max une de moins que les options.',
   'studio.problem.no-daylight':
     'Chaque scène a besoin du contrôle Daylight, {control} dans params, et dessine la nuit à 0 et le jour à 100.',
   'studio.problem.bad-ambient':

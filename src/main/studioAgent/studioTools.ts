@@ -46,6 +46,7 @@ export type TLookOutcome =
   | { ok: false; reason: 'none-open' | 'not-a-project' | 'locked' }
   | { ok: false; reason: 'problems'; problems: IMemberSceneProblem[] }
   | { ok: false; reason: 'unknown-slider'; wanted: string; pack: IScenePack }
+  | { ok: false; reason: 'unknown-palette'; wanted: string; pack: IScenePack }
   | { ok: false; reason: 'no-window' }
   | (Extract<TStudioAgentDrawAnswer, { ok: false }> & { pack: IScenePack });
 
@@ -105,6 +106,26 @@ const worldLines = (world: IWorldReport | undefined): string[] => {
 const nameOf = (pack: IScenePack) => pack.names.en ?? pack.id;
 
 /**
+ * The palettes the picture was drawn with (contract 9): the member's saved
+ * colours, which is what `pack.json` holds. Nothing for a scene with none.
+ */
+const palettesLine = (pack: IScenePack): string[] =>
+  pack.palettes?.length
+    ? [
+        `Palettes in this picture: ${pack.palettes
+          .map(
+            (palette) =>
+              `${palette.id} ${palette.stops.join(' ')}${
+                palette.positions
+                  ? ` at ${palette.positions.join(', ')}`
+                  : ' evenly spaced'
+              }`,
+          )
+          .join('; ')}.`,
+      ]
+    : [];
+
+/**
  * The sliders the picture was drawn at. The time of day, unless the caller
  * chose it, is the member's own Brightness rather than the value pack.json
  * holds, and is said to be (`sceneDaylight.ts`).
@@ -116,12 +137,19 @@ const slidersLine = (
   pack.params.length === 0
     ? 'The scene has no sliders.'
     : `Sliders in this picture: ${pack.params
-        .map((param) =>
-          param.id === SCENE_DAYLIGHT_PARAM &&
-          !Object.prototype.hasOwnProperty.call(chosen, param.id)
-            ? `${param.id} at the member's Brightness (${param.min} to ${param.max})`
-            : `${param.id} ${Number(param.value.toFixed(4))} (${param.min} to ${param.max})`,
-        )
+        .map((param) => {
+          if (
+            param.id === SCENE_DAYLIGHT_PARAM &&
+            !Object.prototype.hasOwnProperty.call(chosen, param.id)
+          ) {
+            return `${param.id} at the member's Brightness (${param.min} to ${param.max})`;
+          }
+          // A choice by its option's number and name (`sceneChoice.ts`).
+          if (param.options) {
+            return `${param.id} option ${param.value} of 0 to ${param.max} (${param.options[param.value]?.en ?? ''})`;
+          }
+          return `${param.id} ${Number(param.value.toFixed(4))} (${param.min} to ${param.max})`;
+        })
         .join(', ')}.`;
 
 /**
@@ -213,6 +241,14 @@ const explain = (outcome: Exclude<TLookOutcome, { ok: true }>) => {
             : `Its sliders are: ${outcome.pack.params.map((param) => param.id).join(', ')}.`
         }`,
       );
+    case 'unknown-palette':
+      return failure(
+        `There is no palette called ${JSON.stringify(outcome.wanted)} in pack.json. ${
+          outcome.pack.palettes?.length
+            ? `Its palettes are: ${outcome.pack.palettes.map((palette) => palette.id).join(', ')}.`
+            : 'The scene has none.'
+        }`,
+      );
     case 'compile':
       return failure(
         `The shader does not compile, so FluidEQ keeps playing the last version that did. The graphics driver says (line numbers are scene.frag's own):\n${outcome.log.slice(0, MAX_LOG_LENGTH).trim()}`,
@@ -257,6 +293,7 @@ const describe = (
     ...worldLines(answer.world),
     `The member's wave: height ${wave.height}, position ${wave.position}, so uSpectrumRect was (${answer.spectrumRect.map((edge) => Number(edge.toFixed(3))).join(', ')}).`,
     slidersLine(pack, request.sliders),
+    ...palettesLine(pack),
     momentLine(answer.moment),
     cameraLine(pack, camera, request),
     costLine(answer.drawMs, answer.renderWidth, answer.renderHeight),

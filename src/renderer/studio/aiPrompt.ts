@@ -19,6 +19,7 @@ import { MAX_VERSION_NOTE } from 'common/sceneVersionNote';
 import type { TranslationKey } from 'common/i18n';
 import { AMBIENT_SECTION } from './aiPromptAmbient';
 import { ARTWORK_SECTION, ART_SECTION } from './aiPromptArt';
+import { CONTROLS_SECTION } from './aiPromptControls';
 import { connectSection, type IPromptConnection } from './aiPromptConnect';
 import { AIM_HIGH, HELPERS, QUICK_TO_BUILD } from './aiPromptCraft';
 import { HEAR_SECTION } from './aiPromptHear';
@@ -169,7 +170,8 @@ pack.json:
 - id: 2-48 characters, a-z, 0-9 and dashes, starting with a letter.
 - contract: the version of WHAT THE SCENE RECEIVES the scene was written
   for. Write ${SCENE_CONTRACT_VERSION}; raise an older scene's to it when you give it anything
-  new to ${SCENE_CONTRACT_VERSION} (uRhythm, uDrums, uSong, uStereo, uVoice, uPointer, uTap, uCamera). It
+  new since its own (8: uRhythm, uDrums, uSong, uStereo, uVoice, uPointer, uTap,
+  uCamera; 9: palettes and choices in params). It
   refuses nothing: a scene written for an older one plays as it always did.
 - version: raise it by one each time you hand me a changed scene - once for
   each request of mine, however many saves it took. Every time you change a
@@ -212,7 +214,7 @@ pack.json:
   the scene as you would have made it anyway.
   I tune them in FluidEQ, which writes my values back as "value": when you
   rewrite pack.json, keep each existing param's "value" unless I ask.
-- response (optional): how the scene answers the music, which I also tune in
+${CONTROLS_SECTION}- response (optional): how the scene answers the music, which I also tune in
   FluidEQ: { "sensitivity": 1, "threshold": 0.05, "attack": 40,
   "release": 300 }. sensitivity 0.25-4 scales what it hears; threshold 0-0.6
   silences everything below it; attack 0-1000 and release 0-3000 are the

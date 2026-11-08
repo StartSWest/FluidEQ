@@ -134,5 +134,13 @@ export const readColour = (
   if (Array.isArray(value.rgb)) {
     return { rgb: readVec3(value.rgb, scope, [1, 1, 1]) };
   }
+  // A palette the pack has, at a formula: a palette it has not got is the
+  // fallback, as any colour this reader cannot read is.
+  if (
+    typeof value.palette === 'string' &&
+    scope.palettes?.includes(value.palette)
+  ) {
+    return { palette: value.palette, at: readExpr(value.at, scope, 0) };
+  }
   return fallback;
 };

@@ -48,6 +48,8 @@ type TBuilt = string | readonly [keys: string, template: string];
  */
 const BUILDERS: Record<string, readonly TBuilt[]> = {
   'src/common/dsp/presetOrder.ts': ['dsp.eqPreset.*'],
+  // The Studio's stock palettes (`PALETTE_PRESET_IDS`), named in its menu.
+  'src/renderer/studio/StudioPalette.tsx': ['studioPalette.preset.*'],
   'src/renderer/components/BugReportDialog.tsx': [
     [
       'bugReport.{copied,issuePaste,emailOpening,emailOpened,emailOpenedPartial,emailNotOpened}',

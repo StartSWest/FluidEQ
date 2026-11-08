@@ -1,4 +1,5 @@
 import type { IScenePack } from './scenePacks';
+import { uniformNameForPalette } from './scenePalette';
 
 /**
  * What a scene shader is handed every frame, and the program it is wrapped in.
@@ -29,9 +30,12 @@ import type { IScenePack } from './scenePacks';
 /**
  * Bumped when a uniform is added, removed or changes meaning. 8 added the
  * music's time, the drums, the song's shape, stereo, the singing voice, the
- * pointer, taps and the viewer's camera.
+ * pointer, taps and the viewer's camera. 9 added colour palettes: a
+ * `params` entry of `"type": "palette"` is a `uniform sampler2D
+ * uPalette_<id>`, the member's gradient 256 texels wide in linear light
+ * (`scenePalette.ts`), and does not count toward the eight sliders.
  */
-export const SCENE_CONTRACT_VERSION = 8;
+export const SCENE_CONTRACT_VERSION = 9;
 
 /**
  * Texture widths. The 320 log-spaced spectrum points resample to 512 texels;
@@ -173,11 +177,27 @@ export const paramUniformDeclarations = (pack: IScenePack): string =>
     .map((param) => `uniform float ${uniformNameForParam(param.id)};\n`)
     .join('');
 
+/**
+ * One `uniform sampler2D` a line for each of the pack's palettes (contract
+ * 9): read with `texture(uPalette_<id>, vec2(t, 0.5)).rgb`, `t` 0..1, in
+ * linear light, filtered and clamped at both ends.
+ */
+export const paletteUniformDeclarations = (pack: IScenePack): string =>
+  (pack.palettes ?? [])
+    .map(
+      (palette) => `uniform sampler2D ${uniformNameForPalette(palette.id)};\n`,
+    )
+    .join('');
+
+/** Everything a pack's own controls add to the preamble. */
+export const controlDeclarations = (pack: IScenePack): string =>
+  `${paramUniformDeclarations(pack)}${paletteUniformDeclarations(pack)}`;
+
 /** The whole fragment program, with the pack's parameters declared as uniforms. */
 export const assembleFragmentSource = (
   pack: IScenePack,
 ): IAssembledFragment => {
-  const head = `${PREAMBLE_HEAD}${paramUniformDeclarations(pack)}`;
+  const head = `${PREAMBLE_HEAD}${controlDeclarations(pack)}`;
   return {
     source: `${head}${pack.source}\n${PREAMBLE_TAIL}`,
     sourceLineOffset: head.split('\n').length - 1,
@@ -190,7 +210,7 @@ export const assembleFragmentSource = (
  * Without the version line, which the 3D renderer writes itself.
  */
 export const assembleSceneDeclarations = (pack: IScenePack): string =>
-  `${PREAMBLE_HEAD.replace(/^#version 300 es\n/, '')}${paramUniformDeclarations(pack)}`;
+  `${PREAMBLE_HEAD.replace(/^#version 300 es\n/, '')}${controlDeclarations(pack)}`;
 
 /**
  * The same with the pack's own `sceneColour`, for a world whose sky is its

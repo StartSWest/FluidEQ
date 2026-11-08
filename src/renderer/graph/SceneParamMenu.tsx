@@ -16,6 +16,7 @@ import {
   useOwnParams,
 } from '../utils/sceneParamStore';
 import sceneSliderParams from './sceneSliders';
+import SceneChoice from './SceneChoice';
 
 interface ISceneParamMenuProps {
   /** The Plus visualizer on the graph. */
@@ -114,7 +115,7 @@ function ParamSlider({
  * scene that declares none, rather than a heading over an empty space.
  */
 export default function SceneParamMenu({ lookId }: ISceneParamMenuProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const own = useOwnParams(lookId);
   const chosen = useListenerParams(lookId);
   const movable = own && sceneSliderParams(own);
@@ -123,14 +124,32 @@ export default function SceneParamMenu({ lookId }: ISceneParamMenuProps) {
   }
   return (
     <>
-      {movable.map((param) => (
-        <ParamSlider
-          key={param.id}
-          lookId={lookId}
-          param={param}
-          chosen={chosen?.[param.id]}
-        />
-      ))}
+      {movable.map((param) =>
+        // A choice (`sceneChoice.ts`) as the Studio shows it: its options,
+        // not a slider across their numbers.
+        param.options ? (
+          <div key={param.id} className="graph-view-menu__choice">
+            <SceneChoice
+              label={resolveParamName(param, locale)}
+              options={param.options.map((option) =>
+                resolveParamName({ names: option }, locale),
+              )}
+              value={Math.round(chosen?.[param.id] ?? param.value)}
+              disabled={false}
+              onPick={(index) =>
+                setListenerParam(lookId, param.id, index, param.value)
+              }
+            />
+          </div>
+        ) : (
+          <ParamSlider
+            key={param.id}
+            lookId={lookId}
+            param={param}
+            chosen={chosen?.[param.id]}
+          />
+        ),
+      )}
       <button
         type="button"
         role="menuitem"

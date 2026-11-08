@@ -63,6 +63,7 @@ import profile from './profile';
 import terms from './terms';
 import studio from './studio';
 import studioChat from './studioChat';
+import studioPalette from './studioPalette';
 import studioStarter from './studioStarter';
 import plus from './plus';
 import trial from './trial';
@@ -117,6 +118,7 @@ const en = {
   ...terms,
   ...studio,
   ...studioChat,
+  ...studioPalette,
   ...studioStarter,
   ...plus,
   ...trial,

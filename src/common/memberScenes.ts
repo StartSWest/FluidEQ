@@ -8,6 +8,17 @@ import {
 import { normalizeSceneArtwork } from './sceneArtwork';
 import { declaresSceneDaylight } from './sceneDaylight';
 import {
+  isChoiceEntry,
+  MAX_CHOICE_NAME_LENGTH,
+  MAX_CHOICE_OPTIONS,
+  MIN_CHOICE_OPTIONS,
+} from './sceneChoice';
+import {
+  isPaletteEntry,
+  isWholePaletteColours,
+  MAX_SCENE_PALETTES,
+} from './scenePalette';
+import {
   MAX_PACK_BYTES,
   MAX_PARAM_MAGNITUDE,
   MAX_SCENE_PARAMS,
@@ -162,6 +173,12 @@ export type TMemberProblemCode =
   | 'bad-artwork'
   | 'bad-param'
   | 'too-many-params'
+  // A palette (`scenePalette.ts`) that is not two to eight #rrggbb stops,
+  // or more palettes than a scene may have.
+  | 'bad-palette'
+  | 'too-many-palettes'
+  // A choice (`sceneChoice.ts`) that is not two to eight named options.
+  | 'bad-choice'
   // No control answering to the time of day (`sceneDaylight.ts`).
   | 'no-daylight'
   | 'bad-ambient'
@@ -243,6 +260,8 @@ const isWholeParam = (entry: unknown): boolean => {
   }
   const { min, max, value } = entry;
   return (
+    // A kind of control this version has not got is read as nothing.
+    (entry.type === undefined || entry.type === 'slider') &&
     Boolean(cleanNames(entry.names).names?.en) &&
     isFiniteNumber(min) &&
     isFiniteNumber(max) &&
@@ -251,6 +270,56 @@ const isWholeParam = (entry: unknown): boolean => {
     (value === undefined || isFiniteNumber(value))
   );
 };
+
+/**
+ * Whether a choice is whole as its author wrote it (`sceneChoice.ts`): two to
+ * eight options, each with an English name of a word or two, and a `min`
+ * and `max`, where written, that are the options' own numbers - what an
+ * older FluidEQ shows as a slider across them.
+ */
+const isWholeChoice = (entry: unknown): boolean => {
+  if (
+    !isRecord(entry) ||
+    typeof entry.id !== 'string' ||
+    !SCENE_PARAM_ID.test(entry.id) ||
+    !cleanNames(entry.names).names?.en ||
+    !Array.isArray(entry.options) ||
+    entry.options.length < MIN_CHOICE_OPTIONS ||
+    entry.options.length > MAX_CHOICE_OPTIONS
+  ) {
+    return false;
+  }
+  const count = entry.options.length;
+  const named = entry.options.every((option: unknown) => {
+    if (!isRecord(option)) {
+      return false;
+    }
+    const { names } = cleanNames(option.names);
+    return (
+      Boolean(names?.en) &&
+      Object.values(names ?? {}).every(
+        (name) => name.length <= MAX_CHOICE_NAME_LENGTH,
+      )
+    );
+  });
+  return (
+    named &&
+    (entry.min === undefined || entry.min === 0) &&
+    (entry.max === undefined || entry.max === count - 1) &&
+    (entry.value === undefined ||
+      (Number.isInteger(entry.value) &&
+        (entry.value as number) >= 0 &&
+        (entry.value as number) < count))
+  );
+};
+
+/** Whether a palette entry is whole as its author wrote it (`scenePalette.ts`). */
+const isWholePalette = (entry: unknown): boolean =>
+  isRecord(entry) &&
+  typeof entry.id === 'string' &&
+  SCENE_PARAM_ID.test(entry.id) &&
+  Boolean(cleanNames(entry.names).names?.en) &&
+  isWholePaletteColours(entry.stops, entry.positions);
 
 /**
  * Every rule a 3D world's own GLSL breaks, material by material, each at its
@@ -307,11 +376,30 @@ export const checkProjectParams = (value: unknown): TMemberProblemCode[] => {
     isRecord(entry) ? entry.id : undefined,
   );
   const repeated = ids.some((id, index) => ids.indexOf(id) !== index);
-  if (repeated || !value.every(isWholeParam)) {
+  // A palette is a control of its own kind, with its own limit apart from
+  // the sliders': the eight are sliders alone.
+  const palettes = value.filter(isPaletteEntry);
+  const sliders = value.filter((entry: unknown) => !isPaletteEntry(entry));
+  const choices = sliders.filter(isChoiceEntry);
+  if (
+    repeated ||
+    !sliders
+      .filter((entry: unknown) => !isChoiceEntry(entry))
+      .every(isWholeParam)
+  ) {
     problems.push('bad-param');
   }
-  if (value.length > MAX_SCENE_PARAMS) {
+  if (!choices.every(isWholeChoice)) {
+    problems.push('bad-choice');
+  }
+  if (sliders.length > MAX_SCENE_PARAMS) {
     problems.push('too-many-params');
+  }
+  if (!palettes.every(isWholePalette)) {
+    problems.push('bad-palette');
+  }
+  if (palettes.length > MAX_SCENE_PALETTES) {
+    problems.push('too-many-palettes');
   }
   return problems;
 };

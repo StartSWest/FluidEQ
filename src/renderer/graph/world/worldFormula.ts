@@ -125,6 +125,28 @@ export const createColourFormula = (
   scope: IExpressionScope,
   copies = 1,
 ): IWorldColourFormula => {
+  if ('palette' in source) {
+    // Read in linear light, which is the renderer's own: no conversion.
+    const at = createFormula(source.at, runtime, scope, copies);
+    const { palette: id } = source;
+    const read: [number, number, number] = [1, 1, 1];
+    return {
+      apply: (target, copy = 0) => {
+        if (!runtime.palette?.(id, at.value(copy), read)) {
+          read[0] = 1;
+          read[1] = 1;
+          read[2] = 1;
+        }
+        target.setRGB(read[0], read[1], read[2]);
+      },
+      // Never constant, even at a fixed place: the member edits the palette
+      // while it plays.
+      constant: false,
+      names: at.names,
+      live: true,
+      remembers: at.remembers,
+    };
+  }
   if ('hex' in source) {
     const fixed = new Color(source.hex);
     return {

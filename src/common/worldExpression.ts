@@ -49,6 +49,11 @@ export interface IExpressionRuntime {
   spectrum(u: number): number;
   slow(u: number): number;
   wave(u: number): number;
+  /**
+   * Palette `id`'s colour at `t` in linear light, into `out` (contract 9);
+   * false where there is no such palette. Absent where no palette is.
+   */
+  palette?(id: string, t: number, out: [number, number, number]): boolean;
 }
 
 export type TEvaluate = (runtime: IExpressionRuntime) => number;
@@ -68,6 +73,11 @@ export interface ICompiledExpression {
 export interface IExpressionScope {
   /** The values a formula may name, in the order `env` holds them. */
   names: readonly string[];
+  /**
+   * The pack's palettes (contract 9), which a world's colour may be read
+   * from (`{ "palette": id, "at": formula }`). Absent is none.
+   */
+  palettes?: readonly string[];
 }
 
 export type TExpressionResult =

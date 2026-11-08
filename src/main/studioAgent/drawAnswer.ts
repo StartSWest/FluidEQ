@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { IScenePaletteValue } from '../../common/scenePalette';
 import type { IScenePack } from '../../common/scenePacks';
 import {
   STUDIO_AGENT_MOMENT_KEYS,
@@ -196,6 +197,33 @@ export const readDrawAnswer = (
     default:
       return unavailable;
   }
+};
+
+/**
+ * `pack` with the palettes' colours the caller chose for this one picture
+ * (contract 9); the id of the first one the scene does not have.
+ */
+export const withPalettes = (
+  pack: IScenePack,
+  palettes: Readonly<Record<string, IScenePaletteValue>> | undefined,
+): IScenePack | { unknown: string } => {
+  if (!palettes) {
+    return pack;
+  }
+  const wanted = Object.keys(palettes).find(
+    (id) => !(pack.palettes ?? []).some((palette) => palette.id === id),
+  );
+  if (wanted !== undefined) {
+    return { unknown: wanted };
+  }
+  return {
+    ...pack,
+    palettes: (pack.palettes ?? []).map((palette) =>
+      Object.prototype.hasOwnProperty.call(palettes, palette.id)
+        ? { id: palette.id, names: palette.names, ...palettes[palette.id] }
+        : palette,
+    ),
+  };
 };
 
 /**

@@ -8,7 +8,13 @@ import {
   uniformNameForParam,
   WAVEFORM_TEXELS,
 } from 'common/sceneUniformContract';
+import {
+  PALETTE_TEXELS,
+  uniformNameForPalette,
+  type IScenePaletteValue,
+} from 'common/scenePalette';
 import { createSlowSpectrum, frameSignals, frameStepMs } from './sceneSignals';
+import { createScenePaletteSlots } from './scenePalettes';
 import { framedFrame } from './sceneFramingView';
 import { FULL_VIEW, panelSize, type TSceneView } from './sceneView';
 import { SCENE_CONTEXT_ATTRIBUTES } from './sceneHealth';
@@ -71,6 +77,12 @@ export interface ISceneFrame {
   framing?: ISceneFraming;
   waveform: Uint8Array;
   params: Readonly<Record<string, number>>;
+  /**
+   * Contract 9: the scene's palettes as the member has them, by id. Absent,
+   * or a palette left out, is the pack's own colours. Its program makes its
+   * textures again only when these differ from what it last drew.
+   */
+  palettes?: Readonly<Record<string, IScenePaletteValue>>;
   /**
    * Contract 8: the music's time and shape (`sceneRhythm.ts`). Absent on a
    * surface that hears no music of its own - a still, a lamp - and read as
@@ -197,6 +209,12 @@ const createDataTexture = (
   return texture;
 };
 
+/**
+ * The first texture unit a palette takes: 0 to 3 are the spectrum, the
+ * waveform, the artwork and the eased spectrum.
+ */
+const PALETTE_FIRST_UNIT = 4;
+
 const compileShaderScene = async (
   gl: WebGL2RenderingContext,
   pack: IScenePack,
@@ -295,6 +313,37 @@ const compileShaderScene = async (
     location: location(uniformNameForParam(param.id)),
     fallback: param.value,
   }));
+  // Contract 9: each palette a 256x1 SRGB8_ALPHA8 row on a unit of its own
+  // after the four the contract's textures take, so the GPU hands the shader
+  // linear light, filtered after decoding.
+  const paletteSlots = createScenePaletteSlots(pack);
+  const paletteTextures = paletteSlots.slots.map((slot, index) => {
+    const texture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0 + PALETTE_FIRST_UNIT + index);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.SRGB8_ALPHA8,
+      PALETTE_TEXELS,
+      1,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      slot.texels,
+    );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    return {
+      id: slot.id,
+      texture,
+      unit: PALETTE_FIRST_UNIT + index,
+      location: location(uniformNameForPalette(slot.id)),
+    };
+  });
 
   // One of FluidEQ's own looks, which paints from the layout the page sends.
   const look = createLookGl(gl, program);
@@ -419,6 +468,27 @@ const compileShaderScene = async (
         paramLocations.forEach(({ id, location: where, fallback }) => {
           gl.uniform1f(where, frame.params[id] ?? fallback);
         });
+        const repainted = paletteSlots.update(frame.palettes);
+        paletteTextures.forEach((palette) => {
+          gl.activeTexture(gl.TEXTURE0 + palette.unit);
+          gl.bindTexture(gl.TEXTURE_2D, palette.texture);
+          const slot = repainted.find((each) => each.id === palette.id);
+          if (slot) {
+            gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+            gl.texSubImage2D(
+              gl.TEXTURE_2D,
+              0,
+              0,
+              0,
+              PALETTE_TEXELS,
+              1,
+              gl.RGBA,
+              gl.UNSIGNED_BYTE,
+              slot.texels,
+            );
+          }
+          gl.uniform1i(palette.location, palette.unit);
+        });
 
         if (!look) {
           gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -438,6 +508,7 @@ const compileShaderScene = async (
         gl.deleteTexture(waveformTexture);
         gl.deleteTexture(artworkTexture);
         gl.deleteTexture(slowTexture);
+        paletteTextures.forEach((palette) => gl.deleteTexture(palette.texture));
         gl.deleteProgram(program);
       },
       isSettled: () => slow.settled(),

@@ -535,6 +535,12 @@ const studio = {
     'Элементу управления в params нужны id из a-z, 0-9 и _, английское имя и min меньше max.',
   'studio.problem.too-many-params':
     'В params может быть не больше 8 элементов управления.',
+  'studio.problem.bad-palette':
+    'Палитре в params нужны id из a-z, 0-9 и _, английское имя и от 2 до 8 точек вида #ff3030; позиции, если есть, — по одной на точку, от 0 до 1, по порядку.',
+  'studio.problem.too-many-palettes':
+    'В сцене может быть не больше 2 палитр в params.',
+  'studio.problem.bad-choice':
+    'Выбору в params нужны id из a-z, 0-9 и _, английское имя и от 2 до 8 вариантов, у каждого английское имя не длиннее 40 символов; min, если есть, — 0, а max на один меньше числа вариантов.',
   'studio.problem.no-daylight':
     'Каждой сцене нужен элемент управления Daylight, {control} в params: при 0 она рисует ночь, при 100 — день.',
   'studio.problem.bad-ambient':

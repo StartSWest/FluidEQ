@@ -9,6 +9,12 @@ import {
   readSceneWave,
   type ISceneWave,
 } from '../../common/sceneWave';
+import { choiceIndex, isChoiceEntry } from '../../common/sceneChoice';
+import {
+  isPaletteEntry,
+  readPaletteValue,
+  type IScenePaletteValue,
+} from '../../common/scenePalette';
 import { MANIFEST_FILE, readManifest, writeInside } from './projectFiles';
 import { queueSettingsWrite } from './settingsWrites';
 
@@ -29,6 +35,12 @@ import { queueSettingsWrite } from './settingsWrites';
 
 export interface IProjectSettings {
   params?: Readonly<Record<string, number>>;
+  /**
+   * The colours of the scene's palettes by id (contract 9): written into
+   * the palette's own `params` entry as `stops`, and `positions` only
+   * where they are not evenly spaced.
+   */
+  palettes?: Readonly<Record<string, IScenePaletteValue>>;
   /** Where the ambient layer's controls stand, 0..1, by id (`sceneAmbient.ts`). */
   ambient?: Readonly<Record<string, number>>;
   /** `null` takes the scene's response out: as the engine hears it. */
@@ -64,12 +76,22 @@ const writeSettings = async (
   if (settings.params && Array.isArray(manifest.params)) {
     const given = settings.params;
     manifest.params = manifest.params.map((entry: unknown) => {
-      if (!isRecord(entry) || typeof entry.id !== 'string') {
+      if (
+        !isRecord(entry) ||
+        typeof entry.id !== 'string' ||
+        isPaletteEntry(entry)
+      ) {
         return entry;
       }
       const value = given[entry.id];
       if (typeof value !== 'number' || !Number.isFinite(value)) {
         return entry;
+      }
+      // A choice's range is its options, whatever min and max say, and its
+      // value the nearest option (`sceneChoice.ts`).
+      if (isChoiceEntry(entry)) {
+        const count = Array.isArray(entry.options) ? entry.options.length : 0;
+        return { ...entry, value: choiceIndex(value, count) };
       }
       const min = typeof entry.min === 'number' ? entry.min : 0;
       const max = typeof entry.max === 'number' ? entry.max : 1;
@@ -77,6 +99,36 @@ const writeSettings = async (
         ...entry,
         value: tidy(Math.min(Math.max(min, max), Math.max(min, value))),
       };
+    });
+  }
+
+  if (settings.palettes && Array.isArray(manifest.params)) {
+    const given = settings.palettes;
+    manifest.params = manifest.params.map((entry: unknown) => {
+      if (
+        !isRecord(entry) ||
+        typeof entry.id !== 'string' ||
+        !isPaletteEntry(entry)
+      ) {
+        return entry;
+      }
+      const wanted = given[entry.id];
+      const read = wanted
+        ? readPaletteValue(wanted.stops, wanted.positions)
+        : null;
+      if (!read) {
+        return entry;
+      }
+      // Evenly spaced is said by saying nothing, so a palette moved back
+      // to even loses the positions it had.
+      const next: Record<string, unknown> = {
+        ...entry,
+        stops: [...read.stops],
+      };
+      delete next.positions;
+      return read.positions
+        ? { ...next, positions: [...read.positions] }
+        : next;
     });
   }
 

@@ -457,6 +457,12 @@ const studio = {
   'studio.problem.bad-param':
     'params 中的控制項需要一個由 a-z、0-9 和 _ 組成的 id、一個英文名稱、一個低於其最大值的最小值。',
   'studio.problem.too-many-params': '一個場景最多可以有 8 個引數控制。',
+  'studio.problem.bad-palette':
+    'params 中的調色盤需要由 a-z、0-9 和 _ 組成的 id、英文名稱，以及 2 到 8 個像 #ff3030 的色標；如寫 positions，每個色標一個，0 到 1，依序排列。',
+  'studio.problem.too-many-palettes':
+    '一個場景的 params 中最多只能有 2 個調色盤。',
+  'studio.problem.bad-choice':
+    'params 中的選項控制需要由 a-z、0-9 和 _ 組成的 id、英文名稱，以及 2 到 8 個選項，每個選項的英文名不超過 40 個字元；如寫 min，應為 0，max 比選項數少 1。',
   'studio.problem.no-daylight':
     '每個場景都需要日光控制，引數為 {control}，並在 0 處繪製夜晚，在 100 處繪製白天。',
   'studio.problem.bad-ambient':

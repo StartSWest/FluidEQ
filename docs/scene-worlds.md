@@ -173,7 +173,9 @@ wearing a mirror is the floor, and only it reflects: anything else wearing
 the same material is drawn without the reflection.
 
 Colours: `"#rrggbb"`, `{ "hsl": [h, s, l] }` or `{ "rgb": [r, g, b] }`, each
-channel a formula (hue 0..1 wraps).
+channel a formula (hue 0..1 wraps), or `{ "palette": "colours", "at": formula }`:
+the pack's palette `colours` at a formula's 0..1 (contract 9), worked out
+every frame because the member edits the palette while it plays.
 
 ### A material's own GLSL
 
@@ -198,7 +200,9 @@ void worldSurface(inout vec4 colour, inout vec3 emissive, WorldSurface s) {
 Both see the shader contract's uniforms (`uTime`, `uLevel`, `uBeat`,
 `uBands`, `uAccent`, `uMusicAccent`, `uMusicRun`, `uSpectrum`,
 `uSpectrumSlow`, `uWaveform`, and the pack's artwork `uArtwork`), the
-pack's `uParam_<id>` and the world's variables as `uVar_<name>`.
+pack's `uParam_<id>`, its palettes as `uPalette_<id>` (read
+`texture(uPalette_<id>, vec2(t, 0.5)).rgb`, `t` 0..1, already linear light)
+and the world's variables as `uVar_<name>`.
 
 A `map` repeats the artwork only when its region is the whole picture, so
 a world with several tiling textures in one atlas tiles them itself from

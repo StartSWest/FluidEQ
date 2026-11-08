@@ -2,6 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IScenePack } from 'common/scenePacks';
 import {
+  paletteValueOf,
+  samePalette,
+  type IScenePaletteValue,
+} from 'common/scenePalette';
+import {
   NEUTRAL_RESPONSE,
   RESPONSE_KEYS,
   isNeutralResponse,
@@ -20,8 +25,12 @@ import type { IStudioBaseline } from './useStudioBaseline';
 /** What the last save came to, for the card's line under its sliders. */
 export type TTuningSaved = 'saving' | 'saved' | 'look' | 'failed' | undefined;
 
+type TPalettes = Record<string, IScenePaletteValue>;
+
 interface IPending {
   params: Record<string, number>;
+  /** Palettes the member changed and the scene does not have yet. */
+  palettes?: TPalettes;
   response?: ISceneResponse;
   wave?: ISceneWave;
 }
@@ -32,6 +41,26 @@ const valuesOf = (pack: IScenePack | undefined) =>
   Object.fromEntries(
     (pack?.params ?? []).map((param) => [param.id, param.value]),
   );
+
+/** The scene's palettes as it has them now, by id. */
+const palettesOf = (pack: IScenePack | undefined): TPalettes =>
+  Object.fromEntries(
+    (pack?.palettes ?? []).map((palette) => [
+      palette.id,
+      paletteValueOf(palette),
+    ]),
+  );
+
+/** The pending palettes the scene does not already agree with. */
+const unagreed = (
+  pending: TPalettes | undefined,
+  agreed: TPalettes,
+): TPalettes | undefined => {
+  const left = Object.entries(pending ?? {}).filter(
+    ([id, value]) => id in agreed && !samePalette(agreed[id], value),
+  );
+  return left.length ? Object.fromEntries(left) : undefined;
+};
 
 const sameResponse = (a: ISceneResponse, b: ISceneResponse) =>
   RESPONSE_KEYS.every((key) => Math.abs(a[key] - b[key]) < 1e-6);
@@ -90,9 +119,11 @@ export default function useStudioTuning(
   const opened = useRef<{
     project?: string;
     values: Record<string, number>;
+    palettes: TPalettes;
     wave?: ISceneWave;
   }>({
     values: {},
+    palettes: {},
   });
 
   useEffect(() => {
@@ -108,6 +139,7 @@ export default function useStudioTuning(
       opened.current = {
         project,
         values: valuesOf(pack),
+        palettes: palettesOf(pack),
         ...(pack.wave ? { wave: pack.wave } : {}),
       };
     }
@@ -128,8 +160,10 @@ export default function useStudioTuning(
         current.wave && !sameSceneWave(current.wave, packWave)
           ? current.wave
           : undefined;
+      const palettes = unagreed(current.palettes, palettesOf(pack));
       return {
         params,
+        ...(palettes ? { palettes } : {}),
         ...(response ? { response } : {}),
         ...(wave ? { wave } : {}),
       };
@@ -144,9 +178,13 @@ export default function useStudioTuning(
   // Where the scene wants the wave: the member's unsaved choice, else what
   // the scene carries, else the graph's own full height on the bottom.
   const wave = pending.wave ?? pack?.wave ?? DEFAULT_SCENE_WAVE;
+  const palettes = useMemo(
+    () => ({ ...palettesOf(pack), ...pending.palettes }),
+    [pack, pending.palettes],
+  );
   const tuning = useMemo<ISceneTuning>(
-    () => ({ params: values, response }),
-    [values, response],
+    () => ({ params: values, response, palettes }),
+    [values, response, palettes],
   );
 
   const setParam = useCallback(
@@ -156,6 +194,18 @@ export default function useStudioTuning(
       setPending((current) => ({
         ...current,
         params: { ...current.params, [id]: value },
+      }));
+    },
+    [project],
+  );
+
+  /** A palette as the member has it now: on the stage at once, saved on commit. */
+  const setPalette = useCallback(
+    (id: string, value: IScenePaletteValue) => {
+      markStarterStep(project, 'dial');
+      setPending((current) => ({
+        ...current,
+        palettes: { ...current.palettes, [id]: value },
       }));
     },
     [project],
@@ -195,9 +245,13 @@ export default function useStudioTuning(
       const packWave = pack?.wave ?? DEFAULT_SCENE_WAVE;
       const waveChanged =
         next.wave !== undefined && !sameSceneWave(next.wave, packWave);
+      const palettes = unagreed(next.palettes, palettesOf(pack));
       const send = window.electron?.ipcRenderer?.writeStudioSettings;
       if (
-        (!Object.keys(params).length && !responseChanged && !waveChanged) ||
+        (!Object.keys(params).length &&
+          !responseChanged &&
+          !waveChanged &&
+          !palettes) ||
         !send
       ) {
         return;
@@ -205,6 +259,7 @@ export default function useStudioTuning(
       setSaved('saving');
       send({
         ...(Object.keys(params).length ? { params } : {}),
+        ...(palettes ? { palettes } : {}),
         ...(responseChanged && next.response
           ? {
               response: isNeutralResponse(next.response) ? null : next.response,
@@ -262,6 +317,39 @@ export default function useStudioTuning(
     write(next);
   }, [pending, responseAtReset, write]);
 
+  // Where a palette's Reset puts it: the published version's colours, else
+  // the ones the project was opened with - the scene's own, before the
+  // member's edits - the same rule the controls follow.
+  const paletteAtReset = (id: string): IScenePaletteValue | undefined =>
+    published?.palettes?.[id] ??
+    opened.current.palettes[id] ??
+    palettesOf(pack)[id];
+
+  const resetPalette = (id: string) => {
+    const back = paletteAtReset(id);
+    if (!back) {
+      return;
+    }
+    const next = { ...pending, palettes: { ...pending.palettes, [id]: back } };
+    setPending(next);
+    write(next);
+  };
+
+  /** A choice picked: on the stage and saved in one go, as a let-go is. */
+  const chooseParam = (id: string, value: number) => {
+    markStarterStep(project, 'dial');
+    const next = { ...pending, params: { ...pending.params, [id]: value } };
+    setPending(next);
+    write(next);
+  };
+
+  /** A palette changed and saved in one go: a preset, a reverse, a stop removed. */
+  const choosePalette = (id: string, value: IScenePaletteValue) => {
+    const next = { ...pending, palettes: { ...pending.palettes, [id]: value } };
+    setPending(next);
+    write(next);
+  };
+
   const resetWave = useCallback(() => {
     const next = { ...pending, wave: waveAtReset };
     setPending(next);
@@ -278,6 +366,18 @@ export default function useStudioTuning(
     tuning,
     params: pack?.params ?? [],
     values,
+    /** The scene's palettes, and their colours as the member has them. */
+    paletteParams: pack?.palettes ?? [],
+    palettes,
+    canResetPalette: (id: string) => {
+      const back = paletteAtReset(id);
+      return back !== undefined && palettes[id] !== undefined
+        ? !samePalette(back, palettes[id])
+        : false;
+    },
+    setPalette,
+    choosePalette,
+    resetPalette,
     response,
     wave,
     saved,
@@ -287,6 +387,7 @@ export default function useStudioTuning(
     /** The published version Reset goes back to, when there is one. */
     publishedVersion: baseline.version,
     setParam,
+    chooseParam,
     setResponse,
     setWave,
     commit,

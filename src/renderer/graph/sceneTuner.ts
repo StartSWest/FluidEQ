@@ -1,5 +1,6 @@
 import { SCENE_DAYLIGHT_PARAM } from 'common/sceneDaylight';
 import type { IScenePack } from 'common/scenePacks';
+import type { IScenePaletteValue } from 'common/scenePalette';
 import { SCENE_WORLD_PARAM } from 'common/sceneWorldFront';
 import {
   NEUTRAL_RESPONSE,
@@ -20,6 +21,11 @@ import { createSpectrumTexels, createWaveformTexels } from './sceneUniforms';
 export interface ISceneTuning {
   /** By param id; one the scene does not have is ignored, each is clamped. */
   params?: Readonly<Record<string, number>>;
+  /**
+   * The member's palettes by id (contract 9), over the pack's own colours;
+   * one the scene does not have is ignored.
+   */
+  palettes?: Readonly<Record<string, IScenePaletteValue>>;
   /**
    * Over the pack's response, key by key: the Studio sends all four, the
    * graph's menu only the attack and release a listener moved.
@@ -90,6 +96,39 @@ export const createSceneTuner = (): ISceneTuner => {
     return params;
   };
 
+  let coloured: {
+    own: IScenePack['palettes'];
+    chosen: Readonly<Record<string, IScenePaletteValue>> | undefined;
+    palettes: Readonly<Record<string, IScenePaletteValue>> | undefined;
+  } = { own: undefined, chosen: undefined, palettes: undefined };
+
+  /**
+   * Every palette the scene has, the member's over the pack's: made again
+   * only when either changes, so the object a frame carries stays the same
+   * while nothing moves.
+   */
+  const palettesOf = (
+    pack: IScenePack | null,
+    chosen: Readonly<Record<string, IScenePaletteValue>> | undefined,
+  ) => {
+    const own = pack?.palettes;
+    if (coloured.own !== own || coloured.chosen !== chosen) {
+      coloured = {
+        own,
+        chosen,
+        palettes: own?.length
+          ? Object.fromEntries(
+              own.map((palette) => [
+                palette.id,
+                chosen?.[palette.id] ?? palette,
+              ]),
+            )
+          : undefined,
+      };
+    }
+    return coloured.palettes;
+  };
+
   let heardThrough: {
     own: ISceneResponse | undefined;
     chosen: Readonly<Partial<ISceneResponse>> | undefined;
@@ -122,6 +161,7 @@ export const createSceneTuner = (): ISceneTuner => {
             ...respond(shaped, response, state, deltaMs, answered),
           };
       const params = paramsOf(pack, base, tuning?.params);
+      const palettes = palettesOf(pack, tuning?.palettes);
       // The time of day is the window's, not a setting: a member's saved
       // value or the pack's own would hold the scene at one hour whatever
       // the Brightness said. Clamped to the control's own range.
@@ -143,6 +183,7 @@ export const createSceneTuner = (): ISceneTuner => {
         // reaches a scene comes through here, the live ones and the ones a
         // picture is made from, so every place draws it framed alike.
         ...(pack?.framing ? { framing: pack.framing } : {}),
+        ...(palettes ? { palettes } : {}),
       };
     },
     reset: () => {

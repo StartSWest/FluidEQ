@@ -164,6 +164,7 @@ describe('the 3D world in front of its shader', () => {
         canResetParams={false}
         canResetResponse={false}
         onParam={jest.fn()}
+        onChoose={jest.fn()}
         onResponse={jest.fn()}
         onCommit={jest.fn()}
         onResetParams={jest.fn()}

@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+import { readPaletteValue } from '../../common/scenePalette';
 import type { ISceneResponse } from '../../common/sceneResponse';
 import { readSceneWave, type ISceneWave } from '../../common/sceneWave';
 import { readProject } from '../memberScenes/project';
@@ -70,6 +71,18 @@ const readSettings = (raw: unknown): IProjectSettings => {
       : undefined;
   const params = numbers(raw.params);
   const ambient = numbers(raw.ambient);
+  // Each palette read as a pack's is (`scenePalette.ts`): one that is not
+  // two to eight colours is not written.
+  const palettes = isRecord(raw.palettes)
+    ? Object.fromEntries(
+        Object.entries(raw.palettes).flatMap(([id, value]) => {
+          const read = isRecord(value)
+            ? readPaletteValue(value.stops, value.positions)
+            : null;
+          return read ? [[id, read]] : [];
+        }),
+      )
+    : undefined;
   let response: ISceneResponse | null | undefined;
   if (raw.response === null) {
     response = null;
@@ -87,6 +100,7 @@ const readSettings = (raw: unknown): IProjectSettings => {
   return {
     ...(params ? { params } : {}),
     ...(ambient ? { ambient } : {}),
+    ...(palettes && Object.keys(palettes).length ? { palettes } : {}),
     ...(response !== undefined ? { response } : {}),
     ...(wave !== undefined ? { wave } : {}),
   };

@@ -537,6 +537,12 @@ const studio = {
     'params のコントロールには、a-z・0-9・_ でできた id、英語の名前、max より小さい min が必要です。',
   'studio.problem.too-many-params':
     'params に置けるコントロールは 8 個までです。',
+  'studio.problem.bad-palette':
+    'params のパレットには、a-z・0-9・_ の id、英語の名前、#ff3030 のようなストップ 2〜8 個が必要です。positions を書く場合はストップごとに 1 つ、0〜1 で昇順にします。',
+  'studio.problem.too-many-palettes':
+    'シーンの params に置けるパレットは 2 つまでです。',
+  'studio.problem.bad-choice':
+    'params の選択肢には、a-z・0-9・_ の id、英語の名前、英語名 40 文字以内のオプション 2〜8 個が必要です。min を書く場合は 0、max はオプション数より 1 少なくします。',
   'studio.problem.no-daylight':
     'すべてのシーンに Daylight コントロールが必要です。params に {control} を入れ、0 で夜、100 で昼を描いてください。',
   'studio.problem.bad-ambient':
