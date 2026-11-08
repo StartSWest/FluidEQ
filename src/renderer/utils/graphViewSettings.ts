@@ -21,11 +21,13 @@ import type { TranslationKey } from 'common/i18n/en';
 
 import {
   VIEW_KEYS,
+  getGraphLookFamily,
   perViewEmitters,
   readStored,
   removeStored,
   wakeOnViewChange,
   writeStored,
+  type TGraphLookFamily,
 } from './graphStorage';
 import { announceGraphMode } from './graphModeAnnouncement';
 
@@ -109,11 +111,14 @@ let view: TGraphView =
  * and `localStorage.getItem` is a synchronous trip out of the JavaScript heap.
  */
 export interface IPerViewSetting<T> {
-  /** The value for whichever mode the graph is in right now. */
+  /** The value for whichever mode the graph is in right now, for the family of look on it. */
   get: () => T;
-  /** The value one mode holds, whichever mode the graph is in. */
+  /** The value one mode holds, whichever mode the graph is in, for the family of look on it. */
   getFor: (mode: TGraphView) => T;
-  /** Sets it for the current mode only; the other two are left alone. */
+  /**
+   * Sets it for the current mode and the family of look on the graph only;
+   * the other modes and the other family are left alone.
+   */
   set: (next: T) => void;
   subscribe: (listener: () => void) => () => void;
 }
@@ -146,7 +151,13 @@ export const createPerViewSetting = <T>(
   parse: (raw: string) => T,
   serialize: (value: T) => string,
 ): IPerViewSetting<T> => {
-  const keyFor = (mode: TGraphView) => `${stem}.${mode}`;
+  /**
+   * A standard look keeps the keys every version before the family split
+   * wrote, so nothing a standard look shows moves on update; a Plus look's
+   * hang off `<stem>.plus` (`getGraphLookFamily`).
+   */
+  const keyFor = (mode: TGraphView, family: TGraphLookFamily = 'standard') =>
+    family === 'standard' ? `${stem}.${mode}` : `${stem}.plus.${mode}`;
   const isPerMode = (
     value: T | Record<TGraphView, T>,
   ): value is Record<TGraphView, T> =>
@@ -182,20 +193,51 @@ export const createPerViewSetting = <T>(
     removeStored(stem);
   }
 
+  /**
+   * And the same once more for the family split (2026-11-08): what somebody
+   * set before it was set with no notion of families, so the Plus looks
+   * start from exactly what they had — written down, not followed, so that
+   * from here on a change on either side stays on that side. A mode nothing
+   * was ever stored for stays unstored on both: both read the fallback, and
+   * the first change to either writes only its own.
+   *
+   * ONCE, marked by `<stem>.families`: run on every launch, a value set on a
+   * standard look after the update — with the Plus looks never touched —
+   * was copied across again at the next start, and the two were one setting
+   * once more.
+   */
+  const splitMark = `${stem}.families`;
+  if (readStored(splitMark) === null) {
+    GRAPH_VIEWS.forEach((mode) => {
+      const standing = readStored(keyFor(mode));
+      if (standing !== null && readStored(keyFor(mode, 'plus')) === null) {
+        writeStored(keyFor(mode, 'plus'), standing);
+      }
+    });
+    writeStored(splitMark, '1');
+  }
+
   // Written out rather than built by folding `GRAPH_VIEWS`, so that adding a
   // fourth mode is a compiler error here rather than a mode that quietly reads
   // `undefined` and draws whatever that coerces to.
-  const values: Record<TGraphView, T> = {
-    normal: fallbackFor('normal'),
-    expanded: fallbackFor('expanded'),
-    fullscreen: fallbackFor('fullscreen'),
+  const loaded = (family: TGraphLookFamily): Record<TGraphView, T> => {
+    const values: Record<TGraphView, T> = {
+      normal: fallbackFor('normal'),
+      expanded: fallbackFor('expanded'),
+      fullscreen: fallbackFor('fullscreen'),
+    };
+    GRAPH_VIEWS.forEach((mode) => {
+      const raw = readStored(keyFor(mode, family));
+      if (raw !== null) {
+        values[mode] = parse(raw);
+      }
+    });
+    return values;
   };
-  GRAPH_VIEWS.forEach((mode) => {
-    const raw = readStored(keyFor(mode));
-    if (raw !== null) {
-      values[mode] = parse(raw);
-    }
-  });
+  const values: Record<TGraphLookFamily, Record<TGraphView, T>> = {
+    standard: loaded('standard'),
+    plus: loaded('plus'),
+  };
 
   const settingListeners = new Set<() => void>();
   const emit = () => {
@@ -205,14 +247,15 @@ export const createPerViewSetting = <T>(
   perViewEmitters.add(emit);
 
   return {
-    get: () => values[view],
-    getFor: (mode: TGraphView) => values[mode],
+    get: () => values[getGraphLookFamily()][view],
+    getFor: (mode: TGraphView) => values[getGraphLookFamily()][mode],
     set: (next: T) => {
-      if (next === values[view]) {
+      const family = getGraphLookFamily();
+      if (next === values[family][view]) {
         return;
       }
-      values[view] = next;
-      writeStored(keyFor(view), serialize(next));
+      values[family][view] = next;
+      writeStored(keyFor(view, family), serialize(next));
       emit();
     },
     subscribe: (listener: () => void) => {

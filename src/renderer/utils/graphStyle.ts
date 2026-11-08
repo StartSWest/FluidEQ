@@ -62,7 +62,13 @@ import {
 } from './scenePacks';
 import type { TDrawableScene } from '../graph/SceneCanvas';
 
-import { readStored, STORAGE_KEY, writeStored } from './graphStorage';
+import {
+  lookFamilyOf,
+  readStored,
+  setGraphLookFamily,
+  STORAGE_KEY,
+  writeStored,
+} from './graphStorage';
 
 const listeners = new Set<() => void>();
 
@@ -215,9 +221,14 @@ const computeResolved = (): IResolvedLook => {
  * the chart forever.
  */
 let resolved: IResolvedLook = computeResolved();
+setGraphLookFamily(lookFamilyOf(selectedId));
 
 const refresh = () => {
   resolved = computeResolved();
+  // Every change of selection comes through here, a scene set aside onto its
+  // fallback form included, so the grid, the wave and the rest follow the
+  // family of look now on the plot (`setGraphLookFamily`).
+  setGraphLookFamily(lookFamilyOf(selectedId));
   listeners.forEach((listener) => listener());
 };
 

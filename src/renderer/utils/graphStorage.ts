@@ -28,6 +28,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * and the look store would have to re-export the settings — a cycle that works
  * today and breaks the first time an import order changes.
  */
+import { isMemberLookId } from 'common/memberScenes';
+import { isPremiumLookId } from 'common/scenePacks';
+
 /**
  * How the live spectrum is drawn, held outside React.
  *
@@ -63,7 +66,9 @@ export const VIEW_KEYS = {
   // one of per view mode is stored under `<stem>.normal`, `<stem>.expanded` and
   // `<stem>.fullscreen` — see `createPerViewSetting`, which is also the only
   // thing that still reads the bare stem, once, to move an older install's
-  // value across.
+  // value across. The Plus looks' own copies are `<stem>.plus.<mode>`, and
+  // `<stem>.families` marks that the copy from before the split was made
+  // (`getGraphLookFamily`).
   //
   // Four are still flat, and each says why where it is used: the meter and the
   // titlebar wave are not on the plot at all, the orientation is a property of
@@ -174,4 +179,44 @@ export const wakeOnViewChange = (set: Set<() => void>) => {
   perViewEmitters.add(() => {
     set.forEach((listener) => listener());
   });
+};
+
+/**
+ * WHICH FAMILY OF LOOK THE GRAPH IS DRAWING, the second thing every per-view
+ * setting is kept by (Ivan, 2026-11-08: "the graph grid and waves etc needs
+ * to work separate non standard viz vs plus viz so I can for example turn off
+ * graph grid on plus and when switching to standard it still shows the grid
+ * there").
+ *
+ * A standard look is a measurement drawn on the plot's own paper; a Plus
+ * visualizer is a picture the plot stands over. The grid, the wave, the
+ * see-through sliders and the rest are set up differently for each, and one
+ * value for both meant every switch between them undid the other's.
+ *
+ * `plus` is a Plus look or a member's scene, as the selection says; a scene
+ * this session set aside is drawn as its free fallback form and is
+ * `standard`, because that is what is on the plot. Read from the stored
+ * selection here, so the very first read is right before the look store has
+ * loaded, and kept by `graphStyle` from then on (`setGraphLookFamily`).
+ */
+export type TGraphLookFamily = 'standard' | 'plus';
+
+export const lookFamilyOf = (lookId: string): TGraphLookFamily =>
+  isPremiumLookId(lookId) || isMemberLookId(lookId) ? 'plus' : 'standard';
+
+let lookFamily: TGraphLookFamily = lookFamilyOf(readStored(STORAGE_KEY) ?? '');
+
+export const getGraphLookFamily = () => lookFamily;
+
+/**
+ * Every per-view setting has a new answer the moment the family moves, and
+ * not one of them was set: rung like a change of view (`setGraphView`), so
+ * the plot and the View menu draw the family now on screen.
+ */
+export const setGraphLookFamily = (next: TGraphLookFamily) => {
+  if (next === lookFamily) {
+    return;
+  }
+  lookFamily = next;
+  perViewEmitters.forEach((emit) => emit());
 };
