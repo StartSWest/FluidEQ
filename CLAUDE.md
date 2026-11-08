@@ -349,6 +349,23 @@ Everything worth knowing about them is available through commands:
   quick pick reverted with no message. If a change to `src/common` seems not to
   have taken effect, restart `pnpm dev` before believing anything else; the
   pattern list only takes effect when electronmon starts.
+- **In dev, the Studio's chats outlive a main restart; a real quit ends
+  them.** Under electronmon each chat's Claude Code runs beneath a helper
+  started apart from main (`chatRelayBoot.cjs`, Electron as Node), through
+  PowerShell's `Start-Process` so it inherits none of main's handles - a
+  plain spawn carried DevTools' 127.0.0.1:9222 into it and no later main
+  could open DevTools - and
+  the main that follows reconnects through `studio-chat/relay.json` and
+  takes every chat up where it was: the reply being written, a question
+  still waiting, the queue (`chatSessions.ts`, `chatAdopt.ts`). Electronmon's
+  `reset` message is what tells a restart from a quit; any other quit kills
+  the helper by its pid with everything under it. With no main connected,
+  the helper lets a chat between turns go at once and one mid-turn at its
+  turn's end, then writes what nobody collected to `relay-left.json` and
+  exits. A tool call that lands in the gap fails (the door is in main).
+  Installed builds have no restarter and keep the chats as main's own
+  children (`chatLauncherFor`). Never hold main back to keep a chat alive:
+  a stale main is the voicing-profile bug above.
 - **Jest will not start without a build.** `setupFiles` runs
   `check-build-exists.ts`, which throws unless `dist` holds both bundles. Tests
   pass locally only because a build is always lying around, so any new CI job

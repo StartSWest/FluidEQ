@@ -126,6 +126,9 @@ const studioChat = {
   'studioChat.ask.toolBody':
     '내 Claude Code 도구 또는 플러그인입니다. 허용한 경우에만 이 컴퓨터에서 내 계정으로 실행됩니다.',
   'studioChat.ask.allow': '허용',
+  'studioChat.ask.allowAlways': '항상 허용',
+  'studioChat.ask.allowAlwaysHint':
+    '이 채팅에서는 {tool}에 대해 다시 묻지 않음',
   'studioChat.ask.deny': '허용 안 함',
   'studioChat.chatgptOn': 'ChatGPT 사진이 켜져 있습니다.',
   'studioChat.chatgptTurnOff': '끄다',
@@ -144,6 +147,8 @@ const studioChat = {
   'studioChat.zoom.out': '더 작은 텍스트',
   'studioChat.zoom.reset': '정사이즈로 돌아옴',
   'studioChat.copy': '복사',
+  'studioChat.latest': '최신으로 이동',
+  'studioChat.latestWriting': 'Claude가 아직 작성 중: 최신으로 이동',
   'studioChat.copied': '복사됨',
   'studioChat.sketch.title': '그림 위에 그림을 그리세요',
   'studioChat.sketch.lead':

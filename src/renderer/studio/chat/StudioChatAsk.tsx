@@ -169,6 +169,10 @@ function ToolCard({ ask }: { ask: Extract<TStudioChatAsk, { kind: 'tool' }> }) {
       </p>
       <p className="studio-chat__ask-body">{t('studioChat.ask.toolBody')}</p>
       <pre className="studio-chat__ask-detail">{ask.detail}</pre>
+      {/* Three answers on one row at the chat's narrowest (Ivan,
+          2026-11-07: a fourth wrapped "Don't allow" onto a line of its
+          own). Always is for this chat, never every scene's: "always allow
+          is per chat not global". */}
       <div className="studio-chat__ask-actions">
         <button
           type="button"
@@ -180,9 +184,10 @@ function ToolCard({ ask }: { ask: Extract<TStudioChatAsk, { kind: 'tool' }> }) {
         <button
           type="button"
           className="button small subtle"
+          title={t('studioChat.ask.allowAlwaysHint', { tool: ask.tool })}
           onClick={() => answer('chat')}
         >
-          {t('studioChat.ask.allowChat')}
+          {t('studioChat.ask.allowAlways')}
         </button>
         <button
           type="button"

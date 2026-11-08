@@ -4,24 +4,14 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { randomUUID } from 'crypto';
 import path from 'path';
-import type { ChildProcess } from 'child_process';
 import type { BrowserWindow } from 'electron';
 import {
   type IStudioChat,
-  type TStudioChatEffort,
   type TStudioChatEntry,
-  type TStudioChatFailure,
-  type TStudioChatModel,
 } from '../../common/studioChat';
 import type { TAgentProject } from '../studioAgent/agentProject';
 import type { IStudioLook } from '../studioAgent/studioTools';
-import {
-  launchClaudeCode,
-  watchClaudeCode,
-  type IChatSession,
-} from './chatLaunch';
 import {
   readChatMessage,
   readChatPicks,
@@ -29,15 +19,16 @@ import {
   type IChatMessage,
 } from './chatMessage';
 import createChatDrafts from './chatDraft';
-import { answerPermission } from './chatPermission';
+import type { IChatSession } from './chatLaunch';
 import { createChatPictures } from './chatPictures';
+import type { IChatLauncher } from './chatProcess';
 import createChatQueue from './chatQueue';
+import createChatSessions from './chatSessions';
 import createChatTurns from './chatTurns';
-import createChatUsage, { usageRequestLine } from './chatUsage';
+import createChatUsage from './chatUsage';
 import createUsageRead from './chatUsageRead';
 import createChatWindow from './chatWindow';
 import registerChatHandlers from './chatHandlers';
-import endProcessTree from './endProcessTree';
 import { createPastChats } from './pastChats';
 import { createTranscripts } from './chatTranscript';
 import createTranscriptCache from './transcriptCache';
@@ -55,7 +46,8 @@ import { findClaudeCode, startClaudeCode, systemEnv } from './claudeCode';
  *
  * One Claude Code process a project, kept for as long as the chat goes on, so
  * a second message is answered without starting anew; a process that ends
- * is started again on the next message with the session it was in.
+ * is started again on the next message with the session it was in
+ * (`chatSessions.ts`).
  */
 
 export interface IStudioChatDeps {
@@ -66,6 +58,8 @@ export interface IStudioChatDeps {
   /** The agent door's look and hear, carried on the chat's own door. */
   door: IStudioLook;
   version: string;
+  /** How its Claude Code is started (`chatProcess.ts`). */
+  launcher: IChatLauncher;
   logger?: { info(message: string): void; warn(message: string): void };
 }
 
@@ -75,11 +69,11 @@ export const createStudioChat = ({
   agentProject,
   door,
   version,
+  launcher,
   logger,
 }: IStudioChatDeps) => {
   const root = path.join(userDataDir, 'studio-chat');
   const transcripts = createTranscripts(root);
-  const sessions = new Map<string, IChatSession>();
   const { transcriptOf, save, saveWith, unload } = createTranscriptCache(
     transcripts,
     logger,
@@ -92,6 +86,8 @@ export const createStudioChat = ({
   /** Already aborted: what a project with no reply running is handed. */
   const nothingRunning = new AbortController();
   nothingRunning.abort();
+  // Each project's running Claude Code (`chatSessions.ts`).
+  const sessions = new Map<string, IChatSession>();
   const pictures = createChatPictures({
     root,
     pageOf,
@@ -139,10 +135,6 @@ export const createStudioChat = ({
     cwd: root,
     onUsage: (use) => usage.note(undefined, use),
   });
-  const askUsage = (child: ChildProcess) => {
-    child.stdin?.write(usageRequestLine());
-  };
-
   const queue = createChatQueue((projectId, queued) =>
     pageOf()?.send('studio-chat-queue', { projectId, queued }),
   );
@@ -168,143 +160,20 @@ export const createStudioChat = ({
     dropAsks: pictures.asks.drop,
   });
 
-  const start = (
-    projectId: string,
-    folder: string,
-    executable: string,
-    brief: string,
-    tools: { url: string; key: string } | undefined,
-    model: TStudioChatModel,
-    effort: TStudioChatEffort,
-  ): IChatSession => {
-    const child = launchClaudeCode({
-      own: path.join(root, encodeURIComponent(projectId)),
-      folder,
-      executable,
-      brief,
-      tools,
-      model,
-      effort,
-      sessionId: transcriptOf(projectId).sessionId,
-    });
-    const session: IChatSession = {
-      child,
-      folder,
-      model,
-      effort,
-      stopping: false,
-      sendingNow: false,
-    };
-    watchClaudeCode(
-      child,
-      (event) => {
-        if (event.type === 'session') {
-          const transcript = transcriptOf(projectId);
-          if (transcript.sessionId !== event.sessionId) {
-            transcript.sessionId = event.sessionId;
-            save(projectId);
-          }
-          return;
-        }
-        if (event.type === 'permission') {
-          answerPermission(
-            pictures.asks,
-            projectId,
-            child,
-            event,
-            session.controller?.signal ?? nothingRunning.signal,
-          ).catch(() => undefined);
-          return;
-        }
-        turns.onEvent(projectId, session, event);
-        // Each answer spent some of the plan: the card reads it again.
-        if (event.type === 'end') {
-          askUsage(child);
-        }
-        // A Claude Code that answered "signed out" holds the sign-in it
-        // started with, and a sign-in renewed since does not reach it: it
-        // ends, and the next message starts one that reads the sign-in
-        // afresh (the head said "Max plan" over a reply saying signed out).
-        if (event.type === 'end' && event.failure === 'signed-out') {
-          endProcessTree(child);
-        }
-      },
-      (use) => usage.note(projectId, use),
-      (failure, errors) => {
-        if (sessions.get(projectId) === session) {
-          sessions.delete(projectId);
-        }
-        if (session.reply && !session.stopping) {
-          logger?.warn(
-            `Claude Code ended in the middle of a Studio reply: ${errors.trim().slice(-400)}`,
-          );
-        }
-        turns.ended(projectId, session, failure);
-      },
-    );
-    sessions.set(projectId, session);
-    askUsage(child);
-    return session;
-  };
-
-  const failNow = (projectId: string, failure: TStudioChatFailure) => {
-    upsert(projectId, {
-      kind: 'claude',
-      id: randomUUID(),
-      text: '',
-      steps: [],
-      state: 'failed',
-      failure,
-    });
-    save(projectId);
-  };
-
-  /**
-   * The project's Claude Code, running on the picks given: the one running
-   * when they match, else a new one on the same conversation; undefined,
-   * with the chat told, when Claude Code is not installed.
-   */
-  const sessionFor = async (
-    projectId: string,
-    folder: string,
-    picks: Pick<IChatMessage, 'brief' | 'model' | 'effort'>,
-  ): Promise<IChatSession | undefined> => {
-    const executable = findClaudeCode(systemEnv());
-    if (!executable) {
-      failNow(projectId, 'missing');
-      return undefined;
-    }
-    const running = sessions.get(projectId);
-    // A model or an effort is fixed for a Claude Code process: a new pick
-    // ends the one running and starts another on the same conversation.
-    if (
-      running &&
-      running.model === picks.model &&
-      running.effort === picks.effort
-    ) {
-      return running;
-    }
-    if (running) {
-      sessions.delete(projectId);
-      endProcessTree(running.child);
-    }
-    let tools: { url: string; key: string } | undefined;
-    try {
-      tools = await pictures.address(projectId, folder);
-    } catch (error) {
-      // Claude still answers; it cannot look, hear or make pictures.
-      logger?.warn(`The Studio chat's tools did not open: ${String(error)}`);
-    }
-    return start(
-      projectId,
-      folder,
-      executable,
-      picks.brief,
-      tools,
-      picks.model,
-      picks.effort,
-    );
-  };
+  const chatSessions = createChatSessions({
+    root,
+    sessions,
+    launcher,
+    transcriptOf,
+    save,
+    upsert,
+    turns,
+    queue,
+    pictures,
+    noteUsage: (projectId, use) => usage.note(projectId, use),
+    ...(logger ? { logger } : {}),
+  });
+  const { sessionFor, askUsage } = chatSessions;
 
   /**
    * Messages to Claude, now, as one turn: each shown as the member wrote it,
@@ -332,6 +201,7 @@ export const createStudioChat = ({
    * one step, sized before and after, and nothing sent in the member's name.
    */
   const compact = async (raw: unknown): Promise<void> => {
+    await chatSessions.ready;
     const project = agentProject();
     const picks = readChatPicks(raw);
     if (!project.ok || !picks || isBusy(project.id)) {
@@ -351,6 +221,9 @@ export const createStudioChat = ({
    * waiting, or queued for Claude to read at its next step.
    */
   const send = async (raw: unknown): Promise<void> => {
+    // A chat still being taken up after a restart is busy, and a message
+    // to it waits in its queue like any other.
+    await chatSessions.ready;
     const message = readChatMessage(raw);
     const project = agentProject();
     if (!message || !project.ok) {
@@ -374,6 +247,7 @@ export const createStudioChat = ({
    * a Claude Code started afresh, which reads the sign-in as it is now.
    */
   const retry = async (raw: unknown): Promise<void> => {
+    await chatSessions.ready;
     const project = agentProject();
     const picks = readChatPicks(raw);
     if (!project.ok || !picks || isBusy(project.id)) {
@@ -384,11 +258,7 @@ export const createStudioChat = ({
     if (!again) {
       return;
     }
-    const stale = sessions.get(project.id);
-    if (stale) {
-      sessions.delete(project.id);
-      endProcessTree(stale.child);
-    }
+    chatSessions.end(project.id);
     const session = await sessionFor(project.id, project.folder, picks);
     if (!session) {
       return;
@@ -406,6 +276,7 @@ export const createStudioChat = ({
    * a message of its own.
    */
   const sendNow = async (raw: unknown): Promise<void> => {
+    await chatSessions.ready;
     const project = agentProject();
     const picks = readChatPicks(raw);
     if (!project.ok || !picks) {
@@ -450,11 +321,7 @@ export const createStudioChat = ({
    * dropped, so it is read from disk again.
    */
   const letGo = (projectId: string) => {
-    const session = sessions.get(projectId);
-    if (session) {
-      sessions.delete(projectId);
-      endProcessTree(session.child);
-    }
+    chatSessions.end(projectId);
     unload(projectId);
     pictures.asks.forget(projectId);
     pictures.close(projectId).catch(() => undefined);
@@ -496,7 +363,7 @@ export const createStudioChat = ({
     limits: () => {
       const running = sessions.values().next().value;
       if (running) {
-        askUsage(running.child);
+        askUsage(running.process);
       } else {
         usageRead.read();
       }
@@ -510,15 +377,7 @@ export const createStudioChat = ({
       usageRead.dispose();
       pictures.dispose().catch(() => undefined);
       past.dispose();
-      // A reply FluidEQ's closing cuts short is kept as it stood, stopped,
-      // with any version it had made, so the chat opens on it next time
-      // and can carry on from there.
-      sessions.forEach((session, projectId) => {
-        session.stopping = true;
-        turns.ended(projectId, session, 'crashed');
-        endProcessTree(session.child);
-      });
-      sessions.clear();
+      chatSessions.dispose();
     },
   };
 };

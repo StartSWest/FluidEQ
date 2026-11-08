@@ -125,6 +125,9 @@ const studioChat = {
   'studioChat.ask.toolBody':
     'Uno dei tuoi strumenti o plugin di Claude Code. Viene eseguito su questo computer, con i tuoi account, solo se lo consenti.',
   'studioChat.ask.allow': 'Consenti',
+  'studioChat.ask.allowAlways': 'Consenti sempre',
+  'studioChat.ask.allowAlwaysHint':
+    'Non chiedere più per {tool} in questa chat',
   'studioChat.ask.deny': 'Non consentire',
   'studioChat.chatgptOn': 'Le immagini di ChatGPT sono attive.',
   'studioChat.chatgptTurnOff': 'Disattiva',
@@ -143,6 +146,8 @@ const studioChat = {
   'studioChat.zoom.out': 'Testo più piccolo',
   'studioChat.zoom.reset': 'Torna alla dimensione normale',
   'studioChat.copy': 'Copia',
+  'studioChat.latest': 'Vai al più recente',
+  'studioChat.latestWriting': 'Claude sta ancora scrivendo: vai al più recente',
   'studioChat.copied': 'Copiato',
   'studioChat.sketch.title': 'Disegna sull’immagine',
   'studioChat.sketch.lead':

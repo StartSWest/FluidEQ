@@ -20,13 +20,8 @@ jest.mock('../../../main/studioChat/chatPicture', () => ({
   chatPictureFromBytes: jest.fn(() => 'data:image/jpeg;base64,AA=='),
   chatPictureFromDataUrl: jest.fn(() => 'data:image/jpeg;base64,AA=='),
 }));
-jest.mock('../../../main/studioChat/endProcessTree', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
 
 /* eslint-disable import/first -- the mocks must be installed first */
-import type { ChildProcess } from 'child_process';
 import type { TStudioChatEntry } from '../../../common/studioChat';
 import type { IChatSession } from '../../../main/studioChat/chatLaunch';
 import type { IChatMessage } from '../../../main/studioChat/chatMessage';
@@ -34,7 +29,6 @@ import { retryOf } from '../../../main/studioChat/chatMessage';
 import createChatQueue from '../../../main/studioChat/chatQueue';
 import { readStreamLine } from '../../../main/studioChat/chatStream';
 import createChatTurns from '../../../main/studioChat/chatTurns';
-import endProcessTree from '../../../main/studioChat/endProcessTree';
 /* eslint-enable import/first */
 
 const PROJECT = 'project';
@@ -77,11 +71,13 @@ const setUp = () => {
     dropAsks: () => undefined,
   });
   const session: IChatSession = {
-    child: {
-      stdin: {
-        write: (line: string) => lines.push(JSON.parse(line) as IWritten),
+    process: {
+      write: (line: string) => {
+        lines.push(JSON.parse(line) as IWritten);
       },
-    } as unknown as ChildProcess,
+      end: jest.fn(),
+      position: () => lines.length,
+    },
     folder: 'folder',
     model: 'default',
     effort: 'default',
@@ -269,9 +265,9 @@ describe("the Studio chat's turns", () => {
     turns.begin(PROJECT, session, [message('first')]);
     turns.stop(PROJECT, session);
     expect(controls()).toEqual([{ subtype: 'interrupt' }]);
-    expect(endProcessTree).not.toHaveBeenCalled();
+    expect(session.process.end).not.toHaveBeenCalled();
     turns.stop(PROJECT, session);
-    expect(endProcessTree).toHaveBeenCalledWith(session.child);
+    expect(session.process.end).toHaveBeenCalled();
   });
 
   it('Stop with no reply running withdraws what was handed over, and the chat is free', () => {

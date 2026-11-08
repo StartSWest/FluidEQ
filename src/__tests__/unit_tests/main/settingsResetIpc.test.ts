@@ -306,6 +306,15 @@ const NOT_SETTING_FILES = [
   'limits.json',
   'meta.json',
   'fluideq-mcp.json',
+  // A chat's own: the tools said "Always allow" to, which go with the chat;
+  // the queue, the member's own words like the draft; and what holds a
+  // chat across a restart in development - the helper's address, what it
+  // left, and what the chat knew - which is running state, not a choice.
+  'allowed-tools.json',
+  'queued.json',
+  'relay.json',
+  'relay-left.json',
+  'relay-sessions.json',
   // Another program's sign-in, read where it keeps it.
   '.credentials.json',
   'auth.json',

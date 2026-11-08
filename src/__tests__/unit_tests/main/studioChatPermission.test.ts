@@ -15,12 +15,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * their settings do not allow is asked of them on a card before it runs.
  */
 
-const mockStart = jest.fn();
-jest.mock('../../../main/studioChat/claudeCode', () => ({
-  startClaudeCode: (...args: unknown[]) => mockStart(...args),
-}));
-
-/* eslint-disable import/first -- the mock above must be installed first */
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -28,7 +22,7 @@ import type { TStudioChatAsk } from '../../../common/studioChat';
 import { createChatAsks } from '../../../main/studioChat/chatAsks';
 import {
   chatTools,
-  launchClaudeCode,
+  claudeCodeCommand,
 } from '../../../main/studioChat/chatLaunch';
 import { permissionAnswerLine } from '../../../main/studioChat/chatPermission';
 import { readStreamLine } from '../../../main/studioChat/chatStream';
@@ -182,6 +176,37 @@ describe('the cards', () => {
     expect(await again).toMatchObject({ detail: 'c' });
   });
 
+  it('Always allow outlives a restart of FluidEQ, never the chat', async () => {
+    const reply = new AbortController();
+    const card = nextCard();
+    const asked = asks.tool('p', { tool: 'Bash', detail: 'a' }, reply.signal);
+    await card;
+    asks.answer(standing().id, 'chat');
+    expect(await asked).toBe(true);
+
+    // The FluidEQ after a restart reads it back: no card.
+    const restarted = createChatAsks({ root, show: () => undefined });
+    expect(
+      await restarted.tool('p', { tool: 'Bash', detail: 'b' }, reply.signal),
+    ).toBe(true);
+    // Only for the tool said yes to, and only on its own chat.
+    expect(restarted.standing('p')).toBeUndefined();
+
+    // A new chat begins with it gone, on disk too.
+    restarted.forget('p');
+    const again = createChatAsks({
+      root,
+      show: (_id, ask) => {
+        if (ask) {
+          onCard?.(ask);
+        }
+      },
+    });
+    const asksAgain = nextCard();
+    again.tool('p', { tool: 'Bash', detail: 'c' }, reply.signal);
+    expect(await asksAgain).toMatchObject({ detail: 'c' });
+  });
+
   it('a reply stopped answers no, and its waiting ask never takes the next turn', async () => {
     const stopped = new AbortController();
     const up = nextCard();
@@ -232,7 +257,7 @@ describe("the member's Claude Code, started for a chat", () => {
   it('has everything it was set up with, asks through the chat, and never runs unasked', () => {
     const own = fs.mkdtempSync(path.join(os.tmpdir(), 'chat-launch-'));
     try {
-      launchClaudeCode({
+      const { args } = claudeCodeCommand({
         own,
         folder: 'C:/Scenes/Lake',
         executable: 'claude',
@@ -242,7 +267,6 @@ describe("the member's Claude Code, started for a chat", () => {
         effort: 'default',
         sessionId: undefined,
       });
-      const args = mockStart.mock.calls[0][1] as string[];
       // The plugins' skills, and the files and shell they run through, and
       // nothing that costs every message without making a scene: Claude
       // Code's other built-in tools, and the member's own tool servers.
@@ -269,6 +293,8 @@ describe("the member's Claude Code, started for a chat", () => {
       expect(args).not.toContain('bypassPermissions');
       // FluidEQ's door, the one tool server the chat has.
       expect(args).toContain('--mcp-config');
+      // The member's own settings, never a scene folder's .claude.
+      expect(args[args.indexOf('--setting-sources') + 1]).toBe('user');
     } finally {
       fs.rmSync(own, { recursive: true, force: true });
     }

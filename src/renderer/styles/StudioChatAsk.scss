@@ -13,13 +13,19 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- asks
 
+// The card's mark and the space beside it: the answers run under the mark
+// too (`.studio-chat__ask-actions`), which is what keeps three of them on
+// one row at the chat's own width.
+$ask-mark: 26px;
+$ask-mark-gap: 10px;
+
 // What Claude's use of ChatGPT waits on: a card at the foot of the
 // conversation, over the message box, in the version card's face with the
 // accent's edge, because it is waiting on the member.
 .studio-chat__ask {
   display: flex;
   flex: none;
-  gap: 10px;
+  gap: $ask-mark-gap;
   margin: 0 12px;
   padding: 10px 12px;
   border: 1px solid color-mix(in srgb, $text-accent 45%, transparent);
@@ -39,8 +45,8 @@ it under the terms of the GNU General Public License version 3 or later.
   display: inline-grid;
   flex: none;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: $ask-mark;
+  height: $ask-mark;
   color: $text-accent;
   border-radius: 50%;
   background: color-mix(in srgb, $text-accent 14%, transparent);
@@ -135,11 +141,16 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// Under the mark as well as the words (Ivan, 2026-11-07: "make sure to do
+// responsive"): at the chat's 294px card the three answers wrapped "Don't
+// allow" onto a line of its own in the words' column alone. A longer
+// translation still wraps, a whole button at a time.
 .studio-chat__ask-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 2px;
+  margin-left: -($ask-mark + $ask-mark-gap);
 }
 
 // Messages waiting their turn, over the message box (`StudioChatQueue.tsx`):

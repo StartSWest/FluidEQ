@@ -181,8 +181,15 @@ export const createChatPictures = ({
     { folder: string; server: ReturnType<typeof createChatServer> }
   >();
 
-  /** The project's own server, made on its chat's first message. */
-  const serverFor = (projectId: string, folder: string) => {
+  /**
+   * The project's own server, made on its chat's first message - or where
+   * a Claude Code held across a restart already reaches it (`at`).
+   */
+  const serverFor = (
+    projectId: string,
+    folder: string,
+    at?: { port: number; key: string },
+  ) => {
     const known = servers.get(projectId);
     if (known?.folder === folder) {
       return known.server;
@@ -201,6 +208,7 @@ export const createChatPictures = ({
       ],
       version,
       ...(logger ? { logger } : {}),
+      ...(at ? { at } : {}),
     });
     servers.set(projectId, { folder, server });
     return server;
@@ -283,8 +291,11 @@ export const createChatPictures = ({
   return {
     asks,
     /** Where the project's Claude Code reaches its tools. */
-    address: (projectId: string, folder: string) =>
-      serverFor(projectId, folder).address(),
+    address: (
+      projectId: string,
+      folder: string,
+      at?: { port: number; key: string },
+    ) => serverFor(projectId, folder, at).address(),
     /** The project's chat let go: its server stops listening. */
     close: async (projectId: string) => {
       const known = servers.get(projectId);
@@ -301,3 +312,5 @@ export const createChatPictures = ({
     },
   };
 };
+
+export type TChatPictures = ReturnType<typeof createChatPictures>;

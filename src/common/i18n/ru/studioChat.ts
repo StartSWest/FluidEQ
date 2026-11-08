@@ -124,6 +124,9 @@ const studioChat = {
   'studioChat.ask.toolBody':
     'Один из ваших собственных инструментов или плагинов Claude Code. Он работает на этом компьютере, с вашими учётными записями, только если вы разрешите.',
   'studioChat.ask.allow': 'Разрешить',
+  'studioChat.ask.allowAlways': 'Всегда разрешать',
+  'studioChat.ask.allowAlwaysHint':
+    'Больше не спрашивать про {tool} в этом чате',
   'studioChat.ask.deny': 'Не разрешать',
   'studioChat.chatgptOn': 'Изображения ChatGPT включены.',
   'studioChat.chatgptTurnOff': 'Выключить',
@@ -142,6 +145,8 @@ const studioChat = {
   'studioChat.zoom.out': 'Мельче',
   'studioChat.zoom.reset': 'Вернуть обычный размер',
   'studioChat.copy': 'Копировать',
+  'studioChat.latest': 'К последнему',
+  'studioChat.latestWriting': 'Claude ещё пишет: к последнему',
   'studioChat.copied': 'Скопировано',
   'studioChat.sketch.title': 'Рисовать на изображении',
   'studioChat.sketch.lead':

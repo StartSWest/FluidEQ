@@ -15,7 +15,6 @@ import { chatPictureFromBytes, chatPictureFromDataUrl } from './chatPicture';
 import type { TChatQueue } from './chatQueue';
 import type { TChatStreamEvent } from './chatStream';
 import { keepReplyVersion } from './chatVersions';
-import endProcessTree from './endProcessTree';
 import withEvent from './replyEvents';
 
 type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
@@ -63,11 +62,12 @@ const createChatTurns = ({
   dropAsks,
 }: IChatTurnsDeps) => {
   const write = (session: IChatSession, line: string) => {
-    session.child.stdin?.write(line);
+    session.process.write(line);
   };
 
   /** A new reply, working, shown before Claude has said a word. */
   const open = (projectId: string, session: IChatSession, id?: string) => {
+    session.replyFrom = session.process.position();
     session.reply = {
       kind: 'claude',
       id: id ?? randomUUID(),
@@ -95,6 +95,7 @@ const createChatTurns = ({
       return;
     }
     session.reply = undefined;
+    session.replyFrom = undefined;
     session.controller?.abort();
     session.controller = undefined;
     dropAsks(projectId);
@@ -166,6 +167,15 @@ const createChatTurns = ({
       open(projectId, session, replacing);
       write(session, userLine(randomUUID(), ...messages));
     },
+
+    /**
+     * A reply a FluidEQ before this one left running, open again under its
+     * own id and empty, for what Claude Code said from where it began to be
+     * read into it again (`chatAdopt.ts`). Nothing is written: Claude Code
+     * has its turn already.
+     */
+    resume: (projectId: string, session: IChatSession, id: string) =>
+      open(projectId, session, id),
 
     /** The member's messages as one, joining the conversation as written. */
     show: (projectId: string, messages: readonly TWords[]) => {
@@ -305,7 +315,7 @@ const createChatTurns = ({
         return;
       }
       if (session.stopping) {
-        endProcessTree(session.child);
+        session.process.end();
         return;
       }
       session.stopping = true;

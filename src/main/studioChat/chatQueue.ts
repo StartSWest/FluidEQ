@@ -25,11 +25,12 @@ import type { IChatMessage } from './chatMessage';
  *
  * Nothing here is lost to a stop: a stop ends what Claude is doing and what
  * waits goes on. A failure keeps it waiting; Claude Code ending before it
- * read a line puts that line back to wait. Held in memory only: a queue is
- * the next few seconds or minutes of one sitting.
+ * read a line puts that line back to wait. Held in memory: a queue is the
+ * next few seconds or minutes of one sitting - and kept on disk while
+ * FluidEQ is closed (`chatQueueFile.ts`).
  */
 
-interface IQueued {
+export interface IQueued {
   id: string;
   message: IChatMessage;
   /** The uuid of the line it was handed to Claude Code in; none while it waits. */
@@ -172,6 +173,13 @@ const createChatQueue = (
       }
       return waiting.map(({ message }) => message);
     },
+
+    /** Every project's queue as it stands, to be put back by `restore`. */
+    all: (): ReadonlyMap<string, readonly IQueued[]> => queues,
+
+    /** A queue kept across a restart, as it stood. */
+    restore: (projectId: string, entries: readonly IQueued[]) =>
+      set(projectId, [...entries]),
 
     clear: (projectId: string) => {
       if (of(projectId).length > 0) {

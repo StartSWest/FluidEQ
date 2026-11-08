@@ -27,7 +27,9 @@ import { createMcpHandler, type IMcpTool } from '../studioAgent/mcpProtocol';
  *
  * Same server, same rules (`agentServer.ts`: this computer only, no web
  * page, a key); the key is new each launch and only Claude Code's MCP file,
- * which only this account reads, ever holds it.
+ * which only this account reads, ever holds it - except that a chat held
+ * across a restart in development (`chatRelayClient.ts`) finds its door
+ * again where it was, under the key it was given.
  */
 
 const INSTRUCTIONS = [
@@ -42,14 +44,17 @@ export interface IChatServerDeps {
   tools: IMcpTool[];
   version: string;
   logger?: { info(message: string): void; warn(message: string): void };
+  /** The address and key a running Claude Code already has for this door. */
+  at?: { port: number; key: string };
 }
 
 export const createChatServer = ({
   tools,
   version,
   logger,
+  at,
 }: IChatServerDeps) => {
-  const key = randomBytes(32).toString('base64url');
+  const key = at?.key ?? randomBytes(32).toString('base64url');
   const server = createAgentServer({
     key: () => key,
     handle: createMcpHandler(
@@ -66,10 +71,14 @@ export const createChatServer = ({
   let listening: Promise<number> | undefined;
 
   return {
-    /** Where Claude Code reaches it; listens on the first ask, on any free port. */
+    /**
+     * Where Claude Code reaches it; listens on the first ask, where it was
+     * when one is known, else (or if that is taken) on any free port.
+     */
     address: async () => {
       if (!listening) {
-        listening = server.listen(0);
+        // `listen` takes any free port itself when that one is taken.
+        listening = server.listen(at?.port ?? 0);
         // A failed listen is tried again on the next message, not held.
         listening.catch(() => {
           listening = undefined;

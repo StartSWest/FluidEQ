@@ -31,6 +31,8 @@ import writeFileAtomically from '../atomicWrite';
  */
 
 const CONNECTION_FILE = 'codex.json';
+/** A chat's tools allowed always, in its project's own folder of the chat. */
+const ALWAYS_FILE = 'allowed-tools.json';
 
 interface IPending {
   ask: TStudioChatAsk;
@@ -52,8 +54,40 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
   const declined = new Set<string>();
   /** Per project, for the life of its chat: "yes to every picture". */
   const allowed = new Set<string>();
-  /** Per project, for the life of its chat: tools said yes to for good. */
+  /**
+   * Per project, for the life of its chat: tools said "Always allow" to
+   * (Ivan, 2026-11-07: "always allow is per chat not global"). Kept on disk
+   * beside the chat, so a restart of FluidEQ leaves the chat as it was, and
+   * read once per project.
+   */
   const allowedTools = new Map<string, Set<string>>();
+  const alwaysFileOf = (projectId: string) =>
+    path.join(root, encodeURIComponent(projectId), ALWAYS_FILE);
+  const toolsOf = (projectId: string) => {
+    const known = allowedTools.get(projectId);
+    if (known) {
+      return known;
+    }
+    let tools = new Set<string>();
+    try {
+      const raw: unknown = JSON.parse(
+        fs.readFileSync(alwaysFileOf(projectId), 'utf8'),
+      );
+      const list =
+        typeof raw === 'object' && raw !== null
+          ? (raw as Record<string, unknown>).tools
+          : undefined;
+      if (Array.isArray(list)) {
+        tools = new Set(
+          list.filter((tool): tool is string => typeof tool === 'string'),
+        );
+      }
+    } catch {
+      // Nothing allowed always yet in this chat.
+    }
+    allowedTools.set(projectId, tools);
+    return tools;
+  };
   /** Per project, the tool asks waiting for the card standing to go. */
   const waiting = new Map<string, Array<() => void>>();
 
@@ -181,8 +215,8 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
 
     /**
      * Whether one of the member's own tools may run once (Ivan, 2026-11-07:
-     * "claude need to have access to all plugins that claude has"): yes, yes
-     * to that tool for the rest of this chat, or no. Claude can ask for
+     * "claude need to have access to all plugins that claude has"): yes,
+     * always - that tool for the rest of this chat - or no. Claude can ask for
      * several at once, so each waits its turn for the card rather than being
      * refused; the reply ending or stopped answers it no.
      */
@@ -191,7 +225,7 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
       what: { tool: string; detail: string },
       signal: AbortSignal,
     ): Promise<boolean> => {
-      if (allowedTools.get(projectId)?.has(what.tool)) {
+      if (toolsOf(projectId).has(what.tool)) {
         return true;
       }
       // Looked at again after every wait, and the card put up in the same
@@ -204,14 +238,18 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
       if (signal.aborted) {
         return false;
       }
-      if (allowedTools.get(projectId)?.has(what.tool)) {
+      if (toolsOf(projectId).has(what.tool)) {
         return true;
       }
       const answer = await ask(projectId, { kind: 'tool', ...what });
       if (answer === 'chat') {
-        const tools = allowedTools.get(projectId) ?? new Set<string>();
+        const tools = toolsOf(projectId);
         tools.add(what.tool);
-        allowedTools.set(projectId, tools);
+        writeFileAtomically(
+          alwaysFileOf(projectId),
+          JSON.stringify({ tools: [...tools] }),
+          0o600,
+        );
       }
       return answer !== 'no';
     },
@@ -235,7 +273,8 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
     forget: (projectId: string) => {
       declined.delete(projectId);
       allowed.delete(projectId);
-      allowedTools.delete(projectId);
+      allowedTools.set(projectId, new Set());
+      fs.rmSync(alwaysFileOf(projectId), { force: true });
     },
   };
 };

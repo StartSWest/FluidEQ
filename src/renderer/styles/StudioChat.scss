@@ -225,6 +225,66 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The way back to the newest line while the member reads further up
+// (`StudioChatThread.tsx`): pinned to the foot of the thread as it
+// scrolls, taking no room in it - the negative margin gives back the
+// thread's gap - and floating a little above its edge.
+.studio-chat__latest-dock {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex: none;
+  justify-content: center;
+  height: 0;
+  margin-top: -16px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.studio-chat__latest {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  min-width: 30px;
+  padding: 0 9px;
+  color: $text-primary;
+  border: 1px solid $card-edge;
+  border-radius: 999px;
+  background: $surface-floating;
+  box-shadow: 0 6px 18px rgba($black, 0.35);
+  cursor: pointer;
+  transform: translateY(calc(-100% - 4px));
+  pointer-events: auto;
+  animation: studio-chat-latest-in $motion-fast $ease-out;
+
+  // An arrow pointing down, to the end.
+  svg {
+    width: 14px;
+    height: 14px;
+    transform: rotate(180deg);
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, $text-accent 55%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes studio-chat-latest-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-100% + 4px));
+  }
+}
+
 .studio-chat__welcome,
 .studio-chat__setup {
   display: grid;

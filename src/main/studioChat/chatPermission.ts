@@ -4,8 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { ChildProcess } from 'child_process';
 import type { TChatAsks } from './chatAsks';
+import type { IChatProcess } from './chatProcess';
 import type { TChatStreamEvent } from './chatStream';
 
 /**
@@ -47,7 +47,7 @@ export const permissionAnswerLine = (
 export const answerPermission = (
   asks: TChatAsks,
   projectId: string,
-  child: ChildProcess,
+  process: IChatProcess,
   event: Extract<TChatStreamEvent, { type: 'permission' }>,
   signal: AbortSignal,
 ): Promise<void> =>
@@ -55,7 +55,7 @@ export const answerPermission = (
     .tool(projectId, { tool: event.tool, detail: event.detail }, signal)
     .catch(() => false)
     .then((allowed) => {
-      child.stdin?.write(
+      process.write(
         permissionAnswerLine(event.requestId, event.input, allowed),
       );
       return undefined;

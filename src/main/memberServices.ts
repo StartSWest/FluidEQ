@@ -49,6 +49,7 @@ import {
 import openExternalIfSafe from './safeExternal';
 import { createStudioAgentDoor } from './studioAgent/studioAgentDoor';
 import { createStudioChat } from './studioChat/studioChat';
+import { chatLauncherFor } from './studioChat/chatRelayClient';
 import { createArrangementStore } from './wallpaper/arrangement';
 import registerWallpaperIpc from './wallpaper/register';
 import { createWallpaperScenes } from './wallpaper/scenes';
@@ -267,6 +268,7 @@ const registerMemberServices = ({
     agentProject: (folder) => memberScenesIpc.agentProject(folder),
     door: { look: studioAgentDoor.look, hear: studioAgentDoor.hear },
     version: appVersion(),
+    launcher: chatLauncherFor(path.join(userDataDir, 'studio-chat'), log),
     logger: log,
   });
   const plusPublishingIpc = registerPlusPublishingIpc({

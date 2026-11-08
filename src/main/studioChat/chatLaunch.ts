@@ -4,7 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { ChildProcess } from 'child_process';
 import path from 'path';
 import {
   STUDIO_CHAT_MODEL_VERSIONS,
@@ -15,13 +14,16 @@ import {
 } from '../../common/studioChat';
 import writeFileAtomically from '../atomicWrite';
 import {
-  createLineReader,
   DOOR_SERVER,
   readStreamLine,
   type TChatStreamEvent,
 } from './chatStream';
+import type {
+  IChatCommand,
+  IChatProcess,
+  IChatProcessEvents,
+} from './chatProcess';
 import { readUsageLine, type TChatUsage } from './chatUsage';
-import { startClaudeCode } from './claudeCode';
 
 /*
  * What FluidEQ does, and what it will not, follow Anthropic's conditions for
@@ -91,13 +93,20 @@ const ALLOWED = [
 
 /** A project's running Claude Code, as the chat keeps it. */
 export interface IChatSession {
-  child: ChildProcess;
+  process: IChatProcess;
   folder: string;
+  /** Where it reaches FluidEQ's tools, kept to open them there again. */
+  door?: { url: string; key: string };
   /** What it was started with: a different pick starts it again. */
   model: TStudioChatModel;
   effort: TStudioChatEffort;
   /** The reply being written, when one is. */
   reply?: Extract<TStudioChatEntry, { kind: 'claude' }>;
+  /**
+   * Where that reply began in the process's stream (`position`): a
+   * restart reads the reply again from there (`chatAdopt.ts`).
+   */
+  replyFrom?: number;
   /** Aborted when that reply ends or is stopped: what it started ends too. */
   controller?: AbortController;
   stopping: boolean;
@@ -121,11 +130,11 @@ export interface IClaudeLaunch {
 }
 
 /**
- * The member's Claude Code started on a project: the brief in a file beside
- * the chat, the door in another that only this account reads, and the
- * project's folder as its world.
+ * How the member's Claude Code is started on a project: the brief in a file
+ * beside the chat, the door in another that only this account reads, and
+ * the project's folder as its world.
  */
-export const launchClaudeCode = ({
+export const claudeCodeCommand = ({
   own,
   folder,
   executable,
@@ -134,7 +143,7 @@ export const launchClaudeCode = ({
   model,
   effort,
   sessionId,
-}: IClaudeLaunch) => {
+}: IClaudeLaunch): IChatCommand => {
   const briefFile = path.join(own, 'brief.txt');
   writeFileAtomically(briefFile, brief, 0o600);
   const args = [
@@ -168,6 +177,12 @@ export const launchClaudeCode = ({
     // FluidEQ's door only (`--mcp-config` below): see chatTools for what the
     // member's own tool servers cost every message.
     '--strict-mcp-config',
+    // The member's own settings and plugins, never a scene folder's: a
+    // folder may have come from a forum post, and Claude Code obeys the
+    // allow rules and hooks in a folder's .claude wherever it trusts that
+    // folder.
+    '--setting-sources',
+    'user',
     ...(model === 'default'
       ? []
       : ['--model', STUDIO_CHAT_MODEL_VERSIONS[model].id]),
@@ -195,11 +210,7 @@ export const launchClaudeCode = ({
   if (sessionId) {
     args.push('--resume', sessionId);
   }
-  return startClaudeCode(executable, args, {
-    cwd: folder,
-    stdio: ['pipe', 'pipe', 'pipe'],
-    windowsHide: true,
-  });
+  return { executable, args, cwd: folder };
 };
 
 /**
@@ -207,28 +218,23 @@ export const launchClaudeCode = ({
  * how it ended: `missing` when it could not start, `crashed` when it
  * closed, with the last of what it wrote to stderr for the log.
  */
-export const watchClaudeCode = (
-  child: ChildProcess,
+export const claudeCodeEvents = (
   onEvent: (event: TChatStreamEvent) => void,
   onUsage: (usage: TChatUsage) => void,
   onEnded: (failure: TStudioChatFailure, errors: string) => void,
-) => {
+): IChatProcessEvents => {
   let errors = '';
-  // The use first, so a turn's last line has its window counted before the
-  // reply it ends is saved.
-  const reader = createLineReader((line) => {
-    readUsageLine(line).forEach(onUsage);
-    readStreamLine(line).forEach(onEvent);
-  });
-  child.stdout?.setEncoding('utf8');
-  child.stdout?.on('data', (chunk: string) => reader.push(chunk));
-  child.stderr?.setEncoding('utf8');
-  child.stderr?.on('data', (chunk: string) => {
-    errors = `${errors}${chunk}`.slice(-2000);
-  });
-  child.on('error', () => onEnded('missing', errors));
-  child.on('close', () => onEnded('crashed', errors));
-  // A write to a process that has just ended is reported here, and its
-  // close follows; the reply is finished there.
-  child.stdin?.on('error', () => undefined);
+  return {
+    // The use first, so a turn's last line has its window counted before the
+    // reply it ends is saved.
+    line: (line) => {
+      readUsageLine(line).forEach(onUsage);
+      readStreamLine(line).forEach(onEvent);
+    },
+    errors: (chunk) => {
+      errors = `${errors}${chunk}`.slice(-2000);
+    },
+    failed: () => onEnded('missing', errors),
+    closed: () => onEnded('crashed', errors),
+  };
 };

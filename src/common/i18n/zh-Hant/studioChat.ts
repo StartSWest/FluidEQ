@@ -122,6 +122,8 @@ const studioChat = {
   'studioChat.ask.toolBody':
     '這是你自己的 Claude Code 工具或外掛程式。只有在你允許時，它才會在這台電腦上用你的帳戶執行。',
   'studioChat.ask.allow': '允許',
+  'studioChat.ask.allowAlways': '一律允許',
+  'studioChat.ask.allowAlwaysHint': '在此聊天中不再詢問 {tool}',
   'studioChat.ask.deny': '不允許',
   'studioChat.chatgptOn': 'ChatGPT 圖片已開啟。',
   'studioChat.chatgptTurnOff': '關閉',
@@ -139,6 +141,8 @@ const studioChat = {
   'studioChat.zoom.out': '較小的文字',
   'studioChat.zoom.reset': '回到正常尺寸',
   'studioChat.copy': '複製',
+  'studioChat.latest': '跳到最新',
+  'studioChat.latestWriting': 'Claude 仍在輸入：跳到最新',
   'studioChat.copied': '已複製',
   'studioChat.sketch.title': '在圖片上畫畫',
   'studioChat.sketch.lead':

@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { UIEvent } from 'react';
 import type { IStudioChat } from 'common/studioChat';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
@@ -53,6 +54,12 @@ export default function StudioChatThread({
   const { t } = useTranslation();
   const scroller = useRef<HTMLDivElement>(null);
   const following = useRef(true);
+  // Scrolled up from the end: the way back to it shows (Ivan, 2026-11-07:
+  // "add a go back button with typing animated dot click jump to last").
+  const [away, setAway] = useState(false);
+  // On the way down after a press: the scroll it causes passes through
+  // "away" and must not bring the button back on its way.
+  const jumping = useRef(false);
   const entries = chat?.entries ?? [];
   const last = entries[entries.length - 1];
   // The picture open in the viewer, by its key; the viewer steps through
@@ -143,11 +150,15 @@ export default function StudioChatThread({
             element.scrollTop = element.scrollHeight;
           }
         }}
-        onScroll={(event) => {
+        onScroll={(event: UIEvent<HTMLDivElement>) => {
           const element = event.currentTarget;
           following.current =
             element.scrollHeight - element.scrollTop - element.clientHeight <
             FOLLOW_SLACK;
+          if (following.current) {
+            jumping.current = false;
+          }
+          setAway(!following.current && !jumping.current);
         }}
       >
         {entries.map((entry) =>
@@ -194,6 +205,64 @@ export default function StudioChatThread({
               onOpenPicture={setViewing}
             />
           ),
+        )}
+        {away && (
+          // Pinned to the foot of the thread while it scrolls, taking no
+          // room in it; dots while Claude is still writing below.
+          <div className="studio-chat__latest-dock">
+            <button
+              type="button"
+              className="studio-chat__latest"
+              title={t(
+                chat?.busy ? 'studioChat.latestWriting' : 'studioChat.latest',
+              )}
+              aria-label={t(
+                chat?.busy ? 'studioChat.latestWriting' : 'studioChat.latest',
+              )}
+              onClick={() => {
+                const element = scroller.current;
+                if (!element) {
+                  return;
+                }
+                jumping.current = true;
+                following.current = true;
+                setAway(false);
+                // Where the glide ended says what is true now: at the end,
+                // or short of it - stopped by the hand, or the reply grew
+                // past where the glide was aimed.
+                element.addEventListener(
+                  'scrollend',
+                  () => {
+                    jumping.current = false;
+                    following.current =
+                      element.scrollHeight -
+                        element.scrollTop -
+                        element.clientHeight <
+                      FOLLOW_SLACK;
+                    setAway(!following.current);
+                  },
+                  { once: true },
+                );
+                element.scrollTo({
+                  top: element.scrollHeight,
+                  behavior: window.matchMedia(
+                    '(prefers-reduced-motion: reduce)',
+                  ).matches
+                    ? 'auto'
+                    : 'smooth',
+                });
+              }}
+            >
+              {chat?.busy && (
+                <span className="studio-chat__dots" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              )}
+              <Glyph name="arrow-up" />
+            </button>
+          </div>
         )}
       </div>
       {viewed !== -1 && (
