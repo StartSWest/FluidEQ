@@ -303,6 +303,7 @@ const studio = {
   'studio.empty': '尚未顯示任何內容',
   'studio.stage.label': '{name}，現場演奏',
   'studio.stage.resize': '拖曳以調整預覽大小',
+  'studio.stage.zoomHint': 'Ctrl + 滾輪縮放；按住空白鍵拖曳即可移動',
   'studio.stage.startTitle': '您的場景在這裡播放',
   'studio.stage.startBody':
     '啟動一個專案，FluidEQ 會建立其資料夾，其中包含已移動的場景。你的人工智慧會從那裡改變它。',

@@ -152,7 +152,7 @@ const studioChat = {
   'studioChat.copied': '복사됨',
   'studioChat.sketch.title': '그림 위에 그림을 그리세요',
   'studioChat.sketch.lead':
-    '사물에 동그라미를 치거나 화살표를 가리키거나 옆에 글을 쓰세요. Claude는 그림에서 당신의 흔적을 봅니다.',
+    '사물에 동그라미를 치거나 화살표로 가리키거나 옆에 글을 쓰거나 중요한 부분만 잘라내세요. Claude는 그림과 함께 표시를 봅니다. 확대한 그림은 Space를 누른 채 드래그하면 움직일 수 있습니다.',
   'studioChat.sketch.done': '이 그림 사용',
   'studioChat.sketch.cancel': '취소',
   'studioChat.sketch.undo': '실행 취소',
@@ -173,6 +173,9 @@ const studioChat = {
   'studioChat.sketch.arrow': '화살표',
   'studioChat.sketch.text': '텍스트',
   'studioChat.sketch.textHint': '입력한 다음 Enter를 누르세요.',
+  'studioChat.sketch.crop': '자르기',
+  'studioChat.sketch.cropApply': '자르기',
+  'studioChat.sketch.cropHint': '상자 안의 부분만 남깁니다 (Enter)',
   'studioChat.accounts.title': '계정',
   'studioChat.accounts.open': '채팅에서 사용하는 계정 확인',
   'studioChat.accounts.claude': '클로드',

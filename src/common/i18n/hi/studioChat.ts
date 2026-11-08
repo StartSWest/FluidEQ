@@ -147,7 +147,7 @@ const studioChat = {
   'studioChat.copied': 'कॉपी हो गया',
   'studioChat.sketch.title': 'चित्र पर बनाएँ',
   'studioChat.sketch.lead':
-    'चीज़ों को घेरें, तीर से उनकी ओर इशारा करें या उनके पास लिखें। Claude चित्र के साथ आपके निशान देखता है।',
+    'चीज़ों को घेरें, तीर से उनकी ओर इशारा करें, उनके पास लिखें या ज़रूरी हिस्से तक क्रॉप करें। Claude चित्र के साथ आपके निशान देखता है। बड़े किए गए चित्र को घुमाने के लिए Space दबाए रखें और खींचें।',
   'studioChat.sketch.done': 'यह चित्र इस्तेमाल करें',
   'studioChat.sketch.cancel': 'रद्द करें',
   'studioChat.sketch.undo': 'पूर्ववत करें',
@@ -168,6 +168,9 @@ const studioChat = {
   'studioChat.sketch.arrow': 'तीर',
   'studioChat.sketch.text': 'टेक्स्ट',
   'studioChat.sketch.textHint': 'लिखें, फिर Enter दबाएँ',
+  'studioChat.sketch.crop': 'क्रॉप',
+  'studioChat.sketch.cropApply': 'क्रॉप करें',
+  'studioChat.sketch.cropHint': 'सिर्फ़ बॉक्स के अंदर का हिस्सा रखें (Enter)',
   'studioChat.accounts.title': 'खाते',
   'studioChat.accounts.open': 'देखें कि चैट कौन-से खाते इस्तेमाल करती है',
   'studioChat.accounts.claude': 'Claude',

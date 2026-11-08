@@ -150,7 +150,7 @@ const studioChat = {
   'studioChat.copied': 'Скопировано',
   'studioChat.sketch.title': 'Рисовать на изображении',
   'studioChat.sketch.lead':
-    'Обводите, указывайте стрелками или подписывайте рядом. Claude увидит ваши пометки вместе с изображением.',
+    'Обводите, указывайте стрелками, подписывайте рядом или обрезайте до главного. Claude увидит ваши пометки вместе с изображением. Чтобы двигать увеличенное изображение, зажмите пробел и перетаскивайте.',
   'studioChat.sketch.done': 'Использовать это изображение',
   'studioChat.sketch.cancel': 'Отмена',
   'studioChat.sketch.undo': 'Отменить',
@@ -171,6 +171,9 @@ const studioChat = {
   'studioChat.sketch.arrow': 'Стрелка',
   'studioChat.sketch.text': 'Текст',
   'studioChat.sketch.textHint': 'Введите и нажмите Enter',
+  'studioChat.sketch.crop': 'Обрезать',
+  'studioChat.sketch.cropApply': 'Обрезать',
+  'studioChat.sketch.cropHint': 'Оставить только то, что внутри рамки (Enter)',
   'studioChat.accounts.title': 'Аккаунты',
   'studioChat.accounts.open': 'Посмотреть, какие аккаунты использует чат',
   'studioChat.accounts.claude': 'Claude',

@@ -146,7 +146,7 @@ const studioChat = {
   'studioChat.copied': '已複製',
   'studioChat.sketch.title': '在圖片上畫畫',
   'studioChat.sketch.lead':
-    '圈出事物，用箭頭指向它們或在它們旁邊寫字。克勞德在照片上看到了你的標記。',
+    '可以圈出、用箭頭指出、在旁邊寫字，或裁切出重點部分。Claude 會連同圖片一起看到你的標記。按住空白鍵拖曳，即可移動放大後的圖片。',
   'studioChat.sketch.done': '使用這張圖片',
   'studioChat.sketch.cancel': '取消',
   'studioChat.sketch.undo': '撤銷',
@@ -167,6 +167,9 @@ const studioChat = {
   'studioChat.sketch.arrow': '箭頭',
   'studioChat.sketch.text': '文字',
   'studioChat.sketch.textHint': '鍵入，然後輸入',
+  'studioChat.sketch.crop': '裁切',
+  'studioChat.sketch.cropApply': '裁切',
+  'studioChat.sketch.cropHint': '只保留框內的部分（Enter）',
   'studioChat.accounts.title': '帳戶',
   'studioChat.accounts.open': '檢視聊天使用哪些帳戶',
   'studioChat.accounts.claude': '克洛德',

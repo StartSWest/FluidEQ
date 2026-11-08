@@ -353,6 +353,8 @@ const studio = {
   'studio.empty': 'Пока нечего показать',
   'studio.stage.label': '{name}, вживую',
   'studio.stage.resize': 'Потяните, чтобы изменить размер предпросмотра',
+  'studio.stage.zoomHint':
+    'Ctrl + колесо — масштаб; зажмите пробел и перетаскивайте, чтобы двигать',
   'studio.stage.startTitle': 'Здесь будет ваша сцена',
   'studio.stage.startBody':
     'Создайте проект, и FluidEQ подготовит его папку со сценой, которая уже движется. Дальше её меняет ваш ИИ.',

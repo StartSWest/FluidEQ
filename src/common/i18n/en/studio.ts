@@ -363,6 +363,8 @@ const studio = {
   'studio.empty': 'Nothing to show yet',
   'studio.stage.label': '{name}, playing live',
   'studio.stage.resize': 'Drag to resize the preview',
+  'studio.stage.zoomHint':
+    'Ctrl + wheel zooms; hold Space and drag to move round',
   'studio.stage.startTitle': 'Your scene plays here',
   'studio.stage.startBody':
     'Start a project and FluidEQ makes its folder, with a scene that already moves. Your AI changes it from there.',

@@ -358,6 +358,8 @@ const studio = {
   'studio.empty': 'まだ表示するものがありません',
   'studio.stage.label': '{name}、ライブ再生中',
   'studio.stage.resize': 'ドラッグしてプレビューの大きさを変更',
+  'studio.stage.zoomHint':
+    'Ctrl + ホイールで拡大縮小、Space を押しながらドラッグで移動',
   'studio.stage.startTitle': 'ここにシーンが映ります',
   'studio.stage.startBody':
     'プロジェクトを作ると、FluidEQ がすでに動くシーン入りのフォルダーを用意します。そこから先は AI が変えていきます。',

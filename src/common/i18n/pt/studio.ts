@@ -351,6 +351,8 @@ const studio = {
   'studio.empty': 'Nada para mostrar ainda',
   'studio.stage.label': '{name}, tocando ao vivo',
   'studio.stage.resize': 'Arraste para redimensionar a prévia',
+  'studio.stage.zoomHint':
+    'Ctrl + roda para zoom; segure a barra de espaço e arraste para mover',
   'studio.stage.startTitle': 'Sua cena aparece aqui',
   'studio.stage.startBody':
     'Crie um projeto e o FluidEQ prepara a pasta dele com uma cena que já se mexe. Sua IA a muda a partir daí.',

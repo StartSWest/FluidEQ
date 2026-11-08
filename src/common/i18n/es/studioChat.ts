@@ -149,7 +149,7 @@ const studioChat = {
   'studioChat.copied': 'Copiado',
   'studioChat.sketch.title': 'Dibujar sobre la imagen',
   'studioChat.sketch.lead':
-    'Rodea cosas, señálalas con flechas o escribe al lado. Claude ve tus marcas junto con la imagen.',
+    'Rodea cosas, señálalas con flechas, escribe al lado o recorta lo que importa. Claude ve tus marcas junto con la imagen. Mantén pulsada la barra espaciadora y arrastra para mover una imagen ampliada.',
   'studioChat.sketch.done': 'Usar esta imagen',
   'studioChat.sketch.cancel': 'Cancelar',
   'studioChat.sketch.undo': 'Deshacer',
@@ -170,6 +170,10 @@ const studioChat = {
   'studioChat.sketch.arrow': 'Flecha',
   'studioChat.sketch.text': 'Texto',
   'studioChat.sketch.textHint': 'Escribe y pulsa Intro',
+  'studioChat.sketch.crop': 'Recortar',
+  'studioChat.sketch.cropApply': 'Recortar',
+  'studioChat.sketch.cropHint':
+    'Conservar solo lo que está dentro del recuadro (Intro)',
   'studioChat.accounts.title': 'Cuentas',
   'studioChat.accounts.open': 'Ver qué cuentas usa el chat',
   'studioChat.accounts.claude': 'Claude',

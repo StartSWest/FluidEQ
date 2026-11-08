@@ -262,6 +262,13 @@ it under the terms of the GNU General Public License version 3 or later.
       padding-right: 0;
       border-right: 0;
     }
+
+    // Five drawings share the buttons' row since the closer look joined it:
+    // at their roomy padding they took a third row on a 180px stage, past
+    // its bottom edge.
+    button {
+      padding: 0 5px;
+    }
   }
 }
 
@@ -275,6 +282,51 @@ it under the terms of the GNU General Public License version 3 or later.
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+// The closer look and the stage's controls, one row on the plate, parted by
+// the plate's own hairline.
+.studio-stage__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+
+  > :not(:last-child) {
+    padding-right: 4px;
+    border-right: 1px solid $border-subtle;
+  }
+}
+
+// The closer look (`StudioStageZoom`): a step with nowhere to go dimmed, and
+// how close it is in figures that do not shove the steps as they count.
+.studio-stage-zoom {
+  button[aria-disabled='true'] {
+    opacity: 0.4;
+    cursor: default;
+
+    &:hover {
+      color: $text-muted;
+      background: none;
+    }
+  }
+}
+
+.studio-stage-zoom__percent {
+  min-width: 46px;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+// On a stage too small for five drawings and a figure on one row, the
+// figure steps aside rather than push full screen, the player and the grid
+// past the stage's edge; − still walks back to the whole picture. As
+// specific as the plate's own button rule, which sets `display`.
+@container studio-stage (max-width: 230px) {
+  .studio-stage__bar .studio-stage-zoom__percent {
+    display: none;
+  }
 }
 
 // ---------------------------------------------------------------- the bar's ways out

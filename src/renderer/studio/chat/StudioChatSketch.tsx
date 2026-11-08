@@ -13,20 +13,26 @@ import {
   type PointerEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
-import type { TranslationKey } from 'common/i18n';
-import Glyph, { type TCommunityGlyph } from '../../community/Glyph';
+import Glyph from '../../community/Glyph';
 import DialogFrame from '../../components/DialogFrame';
 import holdFocusReturn from '../../utils/focusReturn';
 import { useTranslation } from '../../utils/I18nContext';
-import StudioPictureZoomBar from '../StudioPictureZoomBar';
 import usePictureZoom from '../usePictureZoom';
+import useSpaceHeld from '../useSpaceHeld';
 import {
   drawMark,
   LEAST_ARROW,
   type IPoint,
   type TSketchMark,
-  type TSketchTool,
 } from './sketchMarks';
+import StudioChatCropBox from './StudioChatCropBox';
+import StudioChatSketchTools, {
+  INKS,
+  WIDTHS,
+  type TSketchMode,
+} from './StudioChatSketchTools';
+import useSketchCrop from './useSketchCrop';
+import useSketchPicture from './useSketchPicture';
 import '../../styles/StudioPictureLightbox.scss';
 import '../../styles/StudioChatSketch.scss';
 
@@ -45,39 +51,18 @@ import '../../styles/StudioChatSketch.scss';
  * viewers zoom (`usePictureZoom`: Ctrl with the wheel or a pinch about the
  * pointer, the wheel to move round a zoomed picture, + − 0, the bar) — Ivan,
  * 2026-11-07: "this windows needs to be bigger and be able to zoom the image
- * to see better". The pointer's drags stay the pen's, so the viewer's drag
- * and double-click are not taken.
+ * to see better". The pointer's drags stay the pen's; with Space held they
+ * move a zoomed picture instead, as in drawing tools (2026-11-08: "pan with
+ * space pressed").
+ *
+ * The crop tool keeps only the part of the picture inside a box
+ * (2026-11-08: "zoom and crop attached chat images"), marks and all: they
+ * are part of the picture from then on, and Undo takes the crop back with
+ * the marks it held.
  */
 
 /** The most a small picture is enlarged to fill the space when fitted. */
 const MOST_FITTED = 2;
-
-/** Ink that reads over any scene: three loud colours and white. */
-const INKS: { colour: string; name: TranslationKey }[] = [
-  { colour: '#ff4d5e', name: 'studioChat.sketch.red' },
-  { colour: '#ffd23f', name: 'studioChat.sketch.yellow' },
-  { colour: '#3ce7d8', name: 'studioChat.sketch.cyan' },
-  { colour: '#ffffff', name: 'studioChat.sketch.white' },
-];
-
-/**
- * Pen widths as fractions of the picture's width, so they read the same on
- * any picture; text is set at a size that matches its pen.
- */
-const WIDTHS: { share: number; text: number; name: TranslationKey }[] = [
-  { share: 0.005, text: 0.032, name: 'studioChat.sketch.thin' },
-  { share: 0.012, text: 0.05, name: 'studioChat.sketch.thick' },
-];
-
-const TOOLS: {
-  tool: TSketchTool;
-  glyph: TCommunityGlyph;
-  name: TranslationKey;
-}[] = [
-  { tool: 'pen', glyph: 'studio', name: 'studioChat.sketch.pen' },
-  { tool: 'arrow', glyph: 'arrow-mark', name: 'studioChat.sketch.arrow' },
-  { tool: 'text', glyph: 'text-mark', name: 'studioChat.sketch.text' },
-];
 
 const JPEG_QUALITY = 0.9;
 const MAX_TEXT = 80;
@@ -105,9 +90,9 @@ export default function StudioChatSketch({
 }: IStudioChatSketchProps) {
   const { t } = useTranslation();
   const canvas = useRef<HTMLCanvasElement>(null);
-  const [picture, setPicture] = useState<ImageBitmap>();
-  const [marks, setMarks] = useState<TSketchMark[]>([]);
-  const [tool, setTool] = useState<TSketchTool>('pen');
+  const sketch = useSketchPicture(image, onClose);
+  const { picture, marks, setMarks } = sketch;
+  const [tool, setTool] = useState<TSketchMode>('pen');
   const [ink, setInk] = useState(INKS[0].colour);
   const [size, setSize] = useState(WIDTHS[0]);
   const [writing, setWritingState] = useState<IWriting>();
@@ -120,34 +105,33 @@ export default function StudioChatSketch({
     setWritingState(next);
   };
   const [saving, setSaving] = useState(false);
+  const [cropping, setCropping] = useState(false);
   const drawing = useRef<TSketchMark | undefined>(undefined);
   const placeRef = useRef<HTMLDivElement>(null);
+  // A crop is a new picture, shown fitted: its zoom is keyed to it.
   const zoom = usePictureZoom(
     placeRef,
-    'sketch',
+    `sketch-${sketch.crops}`,
     picture?.width ?? 1,
     picture?.height ?? 1,
     MOST_FITTED,
   );
+  const spaceHeld = useSpaceHeld(!writing);
+  const panning = spaceHeld && zoom.pannable;
 
-  useEffect(() => {
-    let live = true;
-    createImageBitmap(new Blob([new Uint8Array(image)]))
-      .then((bitmap) => {
-        if (live) {
-          setPicture(bitmap);
-        } else {
-          bitmap.close();
-        }
-        return undefined;
-      })
-      .catch(() => onClose());
-    return () => {
-      live = false;
+  /** Where a pointer is on the picture, in the picture's own pixels. */
+  const pointAt = (clientX: number, clientY: number): IPoint | undefined => {
+    const element = canvas.current;
+    if (!element) {
+      return undefined;
+    }
+    const box = element.getBoundingClientRect();
+    return {
+      x: ((clientX - box.left) / box.width) * element.width,
+      y: ((clientY - box.top) / box.height) * element.height,
     };
-  }, [image, onClose]);
-
-  useEffect(() => () => picture?.close(), [picture]);
+  };
+  const crop = useSketchCrop(picture, pointAt);
 
   // The picture and every mark, drawn again whenever they change.
   const paint = () => {
@@ -168,37 +152,6 @@ export default function StudioChatSketch({
     return giveFocusBack;
   }, []);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      // A word being typed takes its own keys (`onKeyDown` on its field).
-      if (writing) {
-        return;
-      }
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onClose();
-      } else if (
-        (event.ctrlKey || event.metaKey) &&
-        event.key.toLowerCase() === 'z'
-      ) {
-        event.preventDefault();
-        setMarks((done) => done.slice(0, -1));
-      }
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose, writing]);
-
-  /** Where the pointer is on the picture, in the picture's own pixels. */
-  const pointOf = (event: MouseEvent<HTMLCanvasElement>): IPoint => {
-    const element = event.currentTarget;
-    const box = element.getBoundingClientRect();
-    return {
-      x: ((event.clientX - box.left) / box.width) * element.width,
-      y: ((event.clientY - box.top) / box.height) * element.height,
-    };
-  };
-
   /** The word typed so far, set down on the picture; an empty one is dropped. */
   const setDownWord = () => {
     const { current } = writingNow;
@@ -218,6 +171,72 @@ export default function StudioChatSketch({
     setWriting(undefined);
   };
 
+  // A word still being typed is set down first; the crop is taken once that
+  // word is painted, which the layout effect has done when this effect runs.
+  const applyCrop = () => {
+    if (!crop.usable) {
+      return;
+    }
+    setDownWord();
+    setCropping(true);
+  };
+  useEffect(() => {
+    if (!cropping) {
+      return undefined;
+    }
+    const element = canvas.current;
+    const { box } = crop;
+    if (!element || !box) {
+      setCropping(false);
+      return undefined;
+    }
+    sketch
+      .cropTo(element, box)
+      .then(() => {
+        crop.clear();
+        setCropping(false);
+        return undefined;
+      })
+      .catch(() => setCropping(false));
+    return undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- taken once per press, from the picture and box as the press found them
+  }, [cropping]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      // A word being typed takes its own keys (`onKeyDown` on its field).
+      if (writing) {
+        return;
+      }
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        // A crop box being framed goes first, the dialog on the next press.
+        if (crop.box) {
+          crop.clear();
+        } else {
+          onClose();
+        }
+      } else if (
+        event.key === 'Enter' &&
+        tool === 'crop' &&
+        crop.usable &&
+        // A button with the focus is pressed by Enter itself.
+        !(event.target instanceof HTMLButtonElement)
+      ) {
+        event.preventDefault();
+        applyCrop();
+      } else if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key.toLowerCase() === 'z'
+      ) {
+        event.preventDefault();
+        sketch.undo();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  });
+
   const finishMark = () => {
     const mark = drawing.current;
     drawing.current = undefined;
@@ -235,15 +254,20 @@ export default function StudioChatSketch({
     setMarks((done) => [...done, mark]);
   };
 
-  const startMark = (event: PointerEvent<HTMLCanvasElement>) => {
-    if (event.button !== 0 || !picture) {
+  const press = (event: PointerEvent<HTMLCanvasElement>) => {
+    if (panning) {
+      zoom.handlers.onPointerDown(event);
+      return;
+    }
+    if (tool === 'crop') {
+      crop.begin('new', event);
       return;
     }
     // A word starts on the click instead (`startWord`).
-    if (tool === 'text') {
+    const at = pointAt(event.clientX, event.clientY);
+    if (event.button !== 0 || !picture || tool === 'text' || !at) {
       return;
     }
-    const at = pointOf(event);
     event.currentTarget.setPointerCapture(event.pointerId);
     const width = Math.max(2, picture.width * size.share);
     drawing.current =
@@ -260,30 +284,41 @@ export default function StudioChatSketch({
    * already being typed is set down first.
    */
   const startWord = (event: MouseEvent<HTMLCanvasElement>) => {
-    if (tool !== 'text') {
+    const at = pointAt(event.clientX, event.clientY);
+    if (tool !== 'text' || panning || !at) {
       return;
     }
     setDownWord();
     const box = event.currentTarget.getBoundingClientRect();
     setWriting({
-      at: pointOf(event),
+      at,
       left: event.clientX - box.left,
       top: event.clientY - box.top,
       text: '',
     });
   };
 
-  const moveMark = (event: PointerEvent<HTMLCanvasElement>) => {
+  // Each of these ignores a drag it did not start.
+  const drag = (event: PointerEvent<HTMLCanvasElement>) => {
+    zoom.handlers.onPointerMove(event);
+    crop.move(event);
     const mark = drawing.current;
-    if (!mark) {
+    const at = pointAt(event.clientX, event.clientY);
+    if (!mark || !at) {
       return;
     }
     if (mark.kind === 'pen') {
-      mark.points.push(pointOf(event));
+      mark.points.push(at);
     } else if (mark.kind === 'arrow') {
-      mark.to = pointOf(event);
+      mark.to = at;
     }
     paint();
+  };
+
+  const release = (event: PointerEvent<HTMLCanvasElement>) => {
+    zoom.handlers.onPointerUp();
+    crop.end(event);
+    finishMark();
   };
 
   // Saving sets down a word still being typed first; the picture is taken
@@ -313,6 +348,12 @@ export default function StudioChatSketch({
       JPEG_QUALITY,
     );
   }, [saving, onDone]);
+
+  const stageState = [
+    zoom.zoomed ? ' is-zoomed' : '',
+    panning ? ' is-panning' : '',
+    zoom.dragging ? ' is-dragging' : '',
+  ].join('');
 
   return createPortal(
     <div
@@ -344,7 +385,7 @@ export default function StudioChatSketch({
             <button
               type="button"
               className={`button small${saving ? ' is-running' : ''}`}
-              disabled={!picture || saving}
+              disabled={!picture || saving || cropping}
               aria-busy={saving}
               onClick={save}
             >
@@ -353,97 +394,30 @@ export default function StudioChatSketch({
           </div>
         }
       >
-        <div className="studio-chat-sketch__tools">
-          <div
-            className="studio-chat-sketch__kinds"
-            role="radiogroup"
-            aria-label={t('studioChat.sketch.tool')}
-          >
-            {TOOLS.map((entry) => (
-              <button
-                key={entry.tool}
-                type="button"
-                role="radio"
-                aria-checked={tool === entry.tool}
-                aria-label={t(entry.name)}
-                title={t(entry.name)}
-                onClick={() => {
-                  setDownWord();
-                  setTool(entry.tool);
-                }}
-              >
-                <Glyph name={entry.glyph} />
-              </button>
-            ))}
-          </div>
-          <div
-            className="studio-chat-sketch__inks"
-            role="radiogroup"
-            aria-label={t('studioChat.sketch.ink')}
-          >
-            {INKS.map((entry) => (
-              <button
-                key={entry.colour}
-                type="button"
-                role="radio"
-                aria-checked={ink === entry.colour}
-                aria-label={t(entry.name)}
-                title={t(entry.name)}
-                style={{ color: entry.colour }}
-                onClick={() => setInk(entry.colour)}
-              />
-            ))}
-          </div>
-          <div
-            className="studio-chat-sketch__widths"
-            role="radiogroup"
-            aria-label={t('studioChat.sketch.width')}
-          >
-            {WIDTHS.map((entry) => (
-              <button
-                key={entry.share}
-                type="button"
-                role="radio"
-                aria-checked={size === entry}
-                className={entry === WIDTHS[0] ? 'is-thin' : 'is-thick'}
-                aria-label={t(entry.name)}
-                title={t(entry.name)}
-                onClick={() => setSize(entry)}
-              >
-                <span />
-              </button>
-            ))}
-          </div>
-          <span className="studio-chat-sketch__gap" />
-          <StudioPictureZoomBar
-            percent={zoom.percent}
-            fitted={!zoom.zoomed}
-            canZoomIn={zoom.canZoomIn}
-            canZoomOut={zoom.canZoomOut}
-            onZoomIn={zoom.zoomIn}
-            onZoomOut={zoom.zoomOut}
-            onFit={zoom.toFit}
-          />
-          <button
-            type="button"
-            className="button small subtle"
-            disabled={marks.length === 0}
-            onClick={() => setMarks((done) => done.slice(0, -1))}
-          >
-            {t('studioChat.sketch.undo')}
-          </button>
-          <button
-            type="button"
-            className="button small subtle"
-            disabled={marks.length === 0}
-            onClick={() => setMarks([])}
-          >
-            {t('studioChat.sketch.clear')}
-          </button>
-        </div>
+        <StudioChatSketchTools
+          tool={tool}
+          onTool={(next) => {
+            setDownWord();
+            setTool(next);
+            if (next !== 'crop') {
+              crop.clear();
+            }
+          }}
+          ink={ink}
+          onInk={setInk}
+          width={size}
+          onWidth={setSize}
+          zoom={zoom}
+          canCrop={crop.usable && !cropping}
+          onCrop={applyCrop}
+          canUndo={sketch.canUndo}
+          onUndo={sketch.undo}
+          canClear={marks.length > 0}
+          onClear={() => setMarks([])}
+        />
         <div
           ref={placeRef}
-          className={`studio-chat-sketch__stage${zoom.zoomed ? ' is-zoomed' : ''}`}
+          className={`studio-chat-sketch__stage${stageState}`}
         >
           {picture && zoom.frameStyle && (
             <div
@@ -456,12 +430,20 @@ export default function StudioChatSketch({
                 height={picture.height}
                 className={`is-${tool}`}
                 aria-label={t('studioChat.sketch.canvas')}
-                onPointerDown={startMark}
-                onPointerMove={moveMark}
-                onPointerUp={finishMark}
-                onPointerCancel={finishMark}
+                onPointerDown={press}
+                onPointerMove={drag}
+                onPointerUp={release}
+                onPointerCancel={release}
+                onLostPointerCapture={zoom.handlers.onLostPointerCapture}
                 onClick={startWord}
               />
+              {tool === 'crop' && (
+                <StudioChatCropBox
+                  crop={crop}
+                  width={picture.width}
+                  height={picture.height}
+                />
+              )}
               {writing && (
                 <input
                   // The field the word is typed in, where it will stand;

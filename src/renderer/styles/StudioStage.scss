@@ -186,6 +186,21 @@ $stage-edge: $border-menu;
 .studio-stage__screen {
   position: absolute;
   inset: 0;
+
+  // A closer look (`useStageZoom.ts`): the scene drawn larger than the
+  // screen and moved inside it, which shows only its own part.
+  &.is-zoomed {
+    overflow: hidden;
+  }
+}
+
+// Space held over a closer look: the hand moves the view.
+.studio-stage__well.is-panning .studio-stage {
+  cursor: grab;
+}
+
+.studio-stage__well.is-panning.is-dragging .studio-stage {
+  cursor: grabbing;
 }
 
 // The compact player's window on the stage (`StudioStage.tsx` places and

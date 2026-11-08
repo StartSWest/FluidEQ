@@ -152,7 +152,7 @@ const studioChat = {
   'studioChat.copied': 'Kopiert',
   'studioChat.sketch.title': 'Auf das Bild zeichnen',
   'studioChat.sketch.lead':
-    'Kreisen Sie Dinge ein, zeigen Sie mit Pfeilen darauf oder schreiben Sie daneben. Claude sieht Ihre Markierungen mit dem Bild.',
+    'Kreisen Sie Dinge ein, zeigen Sie mit Pfeilen darauf, schreiben Sie daneben oder schneiden Sie auf das Wesentliche zu. Claude sieht Ihre Markierungen mit dem Bild. Halten Sie die Leertaste gedrückt und ziehen Sie, um ein vergrößertes Bild zu verschieben.',
   'studioChat.sketch.done': 'Dieses Bild verwenden',
   'studioChat.sketch.cancel': 'Abbrechen',
   'studioChat.sketch.undo': 'Rückgängig',
@@ -173,6 +173,9 @@ const studioChat = {
   'studioChat.sketch.arrow': 'Pfeil',
   'studioChat.sketch.text': 'Text',
   'studioChat.sketch.textHint': 'Tippen, dann Enter',
+  'studioChat.sketch.crop': 'Zuschneiden',
+  'studioChat.sketch.cropApply': 'Zuschneiden',
+  'studioChat.sketch.cropHint': 'Nur den Inhalt des Rahmens behalten (Enter)',
   'studioChat.accounts.title': 'Konten',
   'studioChat.accounts.open': 'Sehen, welche Konten der Chat nutzt',
   'studioChat.accounts.claude': 'Claude',

@@ -151,7 +151,7 @@ const studioChat = {
   'studioChat.copied': 'Copiato',
   'studioChat.sketch.title': 'Disegna sull’immagine',
   'studioChat.sketch.lead':
-    'Cerchia le cose, indicale con le frecce o scrivi accanto. Claude vede i tuoi segni insieme all’immagine.',
+    'Cerchia le cose, indicale con le frecce, scrivi accanto o ritaglia la parte che conta. Claude vede i tuoi segni insieme all’immagine. Tieni premuta la barra spaziatrice e trascina per spostare un’immagine ingrandita.',
   'studioChat.sketch.done': 'Usa questa immagine',
   'studioChat.sketch.cancel': 'Annulla',
   'studioChat.sketch.undo': 'Annulla tratto',
@@ -172,6 +172,10 @@ const studioChat = {
   'studioChat.sketch.arrow': 'Freccia',
   'studioChat.sketch.text': 'Testo',
   'studioChat.sketch.textHint': 'Scrivi, poi Invio',
+  'studioChat.sketch.crop': 'Ritaglia',
+  'studioChat.sketch.cropApply': 'Ritaglia',
+  'studioChat.sketch.cropHint':
+    'Tieni solo ciò che è dentro il riquadro (Invio)',
   'studioChat.accounts.title': 'Account',
   'studioChat.accounts.open': 'Vedi quali account usa la chat',
   'studioChat.accounts.claude': 'Claude',

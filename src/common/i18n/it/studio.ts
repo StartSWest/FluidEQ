@@ -358,6 +358,8 @@ const studio = {
   'studio.empty': 'Ancora niente da mostrare',
   'studio.stage.label': '{name}, dal vivo',
   'studio.stage.resize': 'Trascina per ridimensionare l’anteprima',
+  'studio.stage.zoomHint':
+    'Ctrl + rotellina per lo zoom; tieni premuta la barra spaziatrice e trascina per spostarti',
   'studio.stage.startTitle': 'La tua scena si vede qui',
   'studio.stage.startBody':
     'Crea un progetto e FluidEQ prepara la sua cartella con una scena che si muove già. La tua IA la cambia da lì.',

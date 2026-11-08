@@ -366,6 +366,8 @@ const studio = {
   'studio.empty': 'Noch nichts zu zeigen',
   'studio.stage.label': '{name}, live',
   'studio.stage.resize': 'Ziehen, um die Größe der Vorschau zu ändern',
+  'studio.stage.zoomHint':
+    'Strg + Mausrad zoomt; Leertaste halten und ziehen, um das Bild zu verschieben',
   'studio.stage.startTitle': 'Hier läuft Ihre Szene',
   'studio.stage.startBody':
     'Legen Sie ein Projekt an, und FluidEQ richtet seinen Ordner mit einer Szene ein, die sich schon bewegt. Ihre KI ändert sie von dort aus.',

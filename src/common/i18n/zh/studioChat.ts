@@ -142,7 +142,7 @@ const studioChat = {
   'studioChat.copied': '已复制',
   'studioChat.sketch.title': '在图片上画',
   'studioChat.sketch.lead':
-    '可以圈出、用箭头指出或在旁边写字。Claude 会连同图片一起看到你的标记。',
+    '可以圈出、用箭头指出、在旁边写字，或裁剪出重点部分。Claude 会连同图片一起看到你的标记。按住空格键拖动，可移动放大后的图片。',
   'studioChat.sketch.done': '使用这张图片',
   'studioChat.sketch.cancel': '取消',
   'studioChat.sketch.undo': '撤销',
@@ -163,6 +163,9 @@ const studioChat = {
   'studioChat.sketch.arrow': '箭头',
   'studioChat.sketch.text': '文字',
   'studioChat.sketch.textHint': '输入后按回车',
+  'studioChat.sketch.crop': '裁剪',
+  'studioChat.sketch.cropApply': '裁剪',
+  'studioChat.sketch.cropHint': '只保留框内的部分（回车）',
   'studioChat.accounts.title': '账号',
   'studioChat.accounts.open': '查看聊天使用的账号',
   'studioChat.accounts.claude': 'Claude',

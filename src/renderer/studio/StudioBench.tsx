@@ -183,7 +183,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   );
 
   const chatBusy = useStudioChat().chat?.busy === true;
-  const captureStage = useStageCapture(playing ? pack : undefined, tuner.wave);
+  const stageCapture = useStageCapture(playing ? pack : undefined, tuner.wave);
 
   const status = studioBenchStatus({
     chatBusy,
@@ -207,7 +207,9 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   // Where keeping, publishing and sending go: a FluidEQ scene opened to look
   // inside says what it is for instead. Two of them, chosen here, rather
   // than one with a flag; each stands at the end of the bar.
-  let shipCard = (
+  const shipCard = project?.official ? (
+    <StudioShipInspect />
+  ) : (
     <StudioShipCard
       unfit={unfit}
       onAdd={keeping.add}
@@ -219,9 +221,6 @@ export default function StudioBench({ view }: IStudioBenchProps) {
       settingDesktop={keeping.settingDesktop}
     />
   );
-  if (project?.official) {
-    shipCard = <StudioShipInspect />;
-  }
 
   let stage = (
     <div className="studio-stage__well studio-stage__well--empty">
@@ -269,6 +268,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         onDrawn={onDrawn}
         onExitFullscreen={exitFullscreen}
         onToggleFullscreen={toggleFullscreen}
+        captureRef={stageCapture.live}
         controls={
           <>
             <StudioStageControls
@@ -299,7 +299,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             <StudioChat
               project={project}
               version={version}
-              captureStage={captureStage}
+              captureStage={stageCapture.capture}
             />
           ),
         }),
@@ -454,7 +454,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
           <StudioChatColumn
             project={project}
             version={version}
-            captureStage={captureStage}
+            captureStage={stageCapture.capture}
           />
         )}
       </div>

@@ -7,6 +7,7 @@ export type TCommunityGlyph =
   | 'history'
   | 'arrow-mark'
   | 'text-mark'
+  | 'crop'
   | 'stop'
   | 'report'
   | 'delete'
@@ -122,6 +123,9 @@ export default function Glyph({ name, className }: IGlyphProps) {
       case 'text-mark':
         // A letter T: words written on a picture.
         return <path d="M4.5 5h11M10 5v11" />;
+      case 'crop':
+        // Two corner brackets crossing: the part of a picture kept.
+        return <path d="M6 2.5V14h11.5M2.5 6H14v11.5" />;
       case 'stop':
         // A filled square: what is running ends here.
         return (

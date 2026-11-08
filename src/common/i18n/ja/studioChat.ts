@@ -150,7 +150,7 @@ const studioChat = {
   'studioChat.copied': 'コピーしました',
   'studioChat.sketch.title': '画像に描き込む',
   'studioChat.sketch.lead':
-    '丸で囲んだり、矢印で指したり、横に書き込んだりできます。Claude は画像と一緒にあなたの書き込みを見ます。',
+    '丸で囲んだり、矢印で指したり、横に書き込んだり、大事な部分だけにトリミングしたりできます。Claude は画像と一緒にあなたの書き込みを見ます。拡大した画像は Space を押しながらドラッグすると動かせます。',
   'studioChat.sketch.done': 'この画像を使う',
   'studioChat.sketch.cancel': 'キャンセル',
   'studioChat.sketch.undo': '元に戻す',
@@ -171,6 +171,9 @@ const studioChat = {
   'studioChat.sketch.arrow': '矢印',
   'studioChat.sketch.text': '文字',
   'studioChat.sketch.textHint': '入力して Enter',
+  'studioChat.sketch.crop': 'トリミング',
+  'studioChat.sketch.cropApply': 'トリミング',
+  'studioChat.sketch.cropHint': '枠の中だけを残します（Enter）',
   'studioChat.accounts.title': 'アカウント',
   'studioChat.accounts.open': 'チャットが使うアカウントを見る',
   'studioChat.accounts.claude': 'Claude',

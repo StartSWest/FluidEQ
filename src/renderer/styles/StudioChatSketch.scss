@@ -170,6 +170,163 @@ it under the terms of the GNU General Public License version 3 or later.
       cursor: text;
     }
   }
+
+  // Space held over a zoomed picture: the hand moves it, over the crop box
+  // too, which lets the presses through to the picture meanwhile.
+  &.is-panning {
+    canvas {
+      cursor: grab;
+    }
+
+    .studio-chat-crop__box,
+    .studio-chat-crop__corner {
+      pointer-events: none;
+    }
+  }
+
+  &.is-panning.is-dragging canvas {
+    cursor: grabbing;
+  }
+}
+
+// The crop tool's Crop: its mark and its word, the loud style once a box is
+// framed (StudioChatSketchTools).
+.studio-chat-sketch__crop-apply {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// The crop box over the picture (StudioChatCropBox): the picture outside it
+// dimmed by the box's own shadow, clipped to the picture so the dim never
+// spills onto the dialog.
+.studio-chat-crop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: $radius-s;
+  pointer-events: none;
+}
+
+.studio-chat-crop__box {
+  position: absolute;
+  outline: 1px solid rgba($white, 0.95);
+  box-shadow:
+    0 0 0 1px rgba($black, 0.55),
+    0 0 0 100vmax rgba($black, 0.58);
+  cursor: move;
+  pointer-events: auto;
+
+  // Still being drawn, or too small to keep: a crop would do nothing yet.
+  &.is-small {
+    outline-style: dashed;
+  }
+}
+
+// The thirds, as a photographer frames.
+.studio-chat-crop__third {
+  position: absolute;
+  background: rgba($white, 0.32);
+  pointer-events: none;
+
+  &.is-v1,
+  &.is-v2 {
+    top: 0;
+    bottom: 0;
+    width: 1px;
+  }
+
+  &.is-h1,
+  &.is-h2 {
+    right: 0;
+    left: 0;
+    height: 1px;
+  }
+
+  &.is-v1 {
+    left: 33.333%;
+  }
+
+  &.is-v2 {
+    left: 66.667%;
+  }
+
+  &.is-h1 {
+    top: 33.333%;
+  }
+
+  &.is-h2 {
+    top: 66.667%;
+  }
+}
+
+// A thick white bracket at each corner, with a hit area larger than it
+// looks. Inside the box, so a box at the picture's edge, which clips what
+// lies beyond it, keeps its brackets whole.
+.studio-chat-crop__corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 3px solid $white;
+  filter: drop-shadow(0 0 1px rgba($black, 0.85));
+
+  &::before {
+    position: absolute;
+    inset: -9px;
+    content: '';
+  }
+
+  &.is-nw {
+    top: -1px;
+    left: -1px;
+    border-right: 0;
+    border-bottom: 0;
+    cursor: nwse-resize;
+  }
+
+  &.is-ne {
+    top: -1px;
+    right: -1px;
+    border-bottom: 0;
+    border-left: 0;
+    cursor: nesw-resize;
+  }
+
+  &.is-sw {
+    bottom: -1px;
+    left: -1px;
+    border-top: 0;
+    border-right: 0;
+    cursor: nesw-resize;
+  }
+
+  &.is-se {
+    right: -1px;
+    bottom: -1px;
+    border-top: 0;
+    border-left: 0;
+    cursor: nwse-resize;
+  }
+}
+
+// What the crop keeps, in the picture's pixels, in its top left corner.
+.studio-chat-crop__size {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 2px 6px;
+  border-radius: $radius-xs;
+  color: $white;
+  background: rgba($black, 0.62);
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 // The zoom bar's steps square, as in the picture viewer, where the rule is

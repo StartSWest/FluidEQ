@@ -341,6 +341,8 @@ const studio = {
   'studio.empty': '아직 표시할 항목이 없습니다.',
   'studio.stage.label': '{name}, 라이브로 재생 중',
   'studio.stage.resize': '미리보기 크기를 조정하려면 드래그하세요.',
+  'studio.stage.zoomHint':
+    'Ctrl + 휠로 확대/축소, Space를 누른 채 드래그해 이동',
   'studio.stage.startTitle': '여기서 장면이 재생됩니다.',
   'studio.stage.startBody':
     '프로젝트를 시작하면 FluidEQ가 이미 움직이는 장면이 포함된 폴더를 만듭니다. 당신의 AI가 거기에서 그것을 변경합니다.',

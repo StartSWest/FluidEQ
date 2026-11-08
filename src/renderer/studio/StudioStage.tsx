@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type MutableRefObject,
   type ReactNode,
   type RefObject,
 } from 'react';
@@ -35,28 +36,13 @@ import {
   type TStudioSignal,
 } from './studioSignals';
 import { stageScreen } from './studioStageScreen';
-import {
-  claimStageFullScreen,
-  isStageFullScreenClaimed,
-} from '../utils/stageFullScreen';
+import captureVisibleStage from './stageVisibleCapture';
+import StudioStageZoom from './StudioStageZoom';
+import useStageBox from './useStageBox';
+import useStageFullscreen from './useStageFullscreen';
+import useStageZoom from './useStageZoom';
 
 export type TStudioSize = 'graph' | 'full';
-
-/**
- * The window full screen with the stage, and back. The stage's frame fills
- * the window through the page's own full screen, which no longer moves the
- * window (`disableHtmlFullscreenWindowResize` in `mainWindow.ts`), so the
- * window is asked for as well — claimed first, so the shell finds the claim
- * when the window says it is full screen (`stageFullScreen.ts`), and given
- * back only by the stage that asked, never out from under the app's own.
- */
-const holdWindowFullScreen = (next: boolean) => {
-  if (next === isStageFullScreenClaimed()) {
-    return;
-  }
-  claimStageFullScreen(next);
-  window.electron?.ipcRenderer.setWindowFullScreen(next).catch(() => undefined);
-};
 
 export type TStageTrouble =
   | { kind: 'compile'; log: string }
@@ -137,6 +123,14 @@ interface IStudioStageProps {
   controls?: ReactNode;
   /** Over the picture itself: the starter's parts named (`StudioStarterLabels`). */
   labels?: ReactNode;
+  /**
+   * Filled with a picture of exactly what the stage shows — zoomed, moved
+   * and turned as it is — for the chat's "Attach the stage"; emptied when the
+   * stage goes.
+   */
+  captureRef?: MutableRefObject<
+    (() => Promise<Uint8Array | undefined>) | undefined
+  >;
 }
 
 /**
@@ -170,10 +164,14 @@ export default function StudioStage({
   onToggleFullscreen,
   controls,
   labels,
+  captureRef,
 }: IStudioStageProps) {
   const { t } = useTranslation();
+  const wellRef = useRef<HTMLDivElement>(null);
+  const screenRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
-  const [box, setBox] = useState({ width: 0, height: 0 });
+  const barRef = useRef<HTMLDivElement>(null);
+  const { box, plateLeft } = useStageBox(frameRef, barRef);
   // Answered by the runner, which alone knows when the picture went: a first
   // frame seen once said "settled" for good, so a stage built again after the
   // window had been covered sat black, with no loading, for its whole compile.
@@ -182,107 +180,12 @@ export default function StudioStage({
   const [updating, setUpdating] = useState(false);
   useLiveAudioCapture(true);
 
-  // The canvas takes the frame's measured size; the frame's shape comes from
-  // the chosen size in CSS, so the layout — not this — decides what fits.
-  useEffect(() => {
-    const frame = frameRef.current;
-    if (!frame) {
-      return undefined;
-    }
-    const observer = new ResizeObserver(() => {
-      const { width, height } = frame.getBoundingClientRect();
-      setBox((previous) =>
-        Math.round(previous.width) === Math.round(width) &&
-        Math.round(previous.height) === Math.round(height)
-          ? previous
-          : { width, height },
-      );
-    });
-    observer.observe(frame);
-    return () => observer.disconnect();
-  }, []);
-
-  // Where the plate's left edge stands in the stage, for the player's window
-  // to keep clear of: it moves as the stage narrows and as its reading's
-  // words change length, and nothing else says when either happens.
-  const barRef = useRef<HTMLDivElement>(null);
-  const [plateLeft, setPlateLeft] = useState<number>();
-  useEffect(() => {
-    const frame = frameRef.current;
-    const bar = barRef.current;
-    if (!frame || !bar) {
-      return undefined;
-    }
-    const observer = new ResizeObserver(() => {
-      setPlateLeft(
-        bar.offsetWidth === 0
-          ? undefined
-          : Math.round(
-              bar.getBoundingClientRect().left -
-                frame.getBoundingClientRect().left,
-            ),
-      );
-    });
-    observer.observe(frame);
-    observer.observe(bar);
-    return () => observer.disconnect();
-  }, []);
-
-  // Fullscreen is the real thing, not a bigger box: a scene that holds at
-  // 1080p and falls apart at 4K is the commonest defect there is.
-  //
-  // Whether the screen is actually full is kept as its own state, read from
-  // the browser rather than assumed from the size. The two can part: leaving
-  // is a promise that can be refused — mid-transition, or by the window
-  // manager — and the refusal was swallowed, which left the screen full with
-  // the size back to windowed and the only way out unrendered. That is Ivan's
-  // "exit button can't click it sometimes": the button was not there to
-  // click, and nothing but Escape was left.
-  const [isFullscreen, setIsFullscreen] = useState(
-    () =>
-      typeof document !== 'undefined' && document.fullscreenElement !== null,
+  // Real full screen, and always a way out of it (`useStageFullscreen.ts`).
+  const { isFullscreen, leaveFullscreen } = useStageFullscreen(
+    frameRef,
+    size,
+    onExitFullscreen,
   );
-  useEffect(() => {
-    const frame = frameRef.current;
-    if (!frame) {
-      return undefined;
-    }
-    setIsFullscreen(document.fullscreenElement === frame);
-    if (size === 'full' && document.fullscreenElement !== frame) {
-      holdWindowFullScreen(true);
-      frame.requestFullscreen().catch(() => onExitFullscreen());
-    }
-    if (size !== 'full') {
-      holdWindowFullScreen(false);
-      if (document.fullscreenElement === frame) {
-        document.exitFullscreen().catch(() => undefined);
-      }
-    }
-    const onChange = () => {
-      const full = document.fullscreenElement === frame;
-      setIsFullscreen(full);
-      if (size === 'full' && !full) {
-        onExitFullscreen();
-      }
-    };
-    document.addEventListener('fullscreenchange', onChange);
-    return () => document.removeEventListener('fullscreenchange', onChange);
-  }, [size, onExitFullscreen]);
-  // A stage taken away while full gives the window back.
-  useEffect(() => () => holdWindowFullScreen(false), []);
-
-  /**
-   * The way out, from either side: the size goes back to what it was, and
-   * the screen is asked to leave fullscreen even when the size already says
-   * windowed — which is the state the two can be left in, and where a button
-   * that only set the size would do nothing at all.
-   */
-  const leaveFullscreen = useCallback(() => {
-    onExitFullscreen();
-    if (document.fullscreenElement === frameRef.current) {
-      document.exitFullscreen().catch(() => undefined);
-    }
-  }, [onExitFullscreen]);
 
   const packRef = useRef(pack);
   packRef.current = pack;
@@ -363,6 +266,9 @@ export default function StudioStage({
     () => stageScreen(box, isPlayer, plateLeft),
     [box, isPlayer, plateLeft],
   );
+  // A closer look, drawn at the size it is zoomed to (`useStageZoom.ts`).
+  const zoom = useStageZoom(wellRef, screenRef, screen.width, screen.height);
+  const { view } = zoom;
   const { spectrumRange } = pack;
   const paper = useMemo(
     () =>
@@ -388,8 +294,8 @@ export default function StudioStage({
 
   const sceneRef = useSceneRunner({
     source,
-    width: screen.width,
-    height: screen.height,
+    width: screen.width * view.scale,
+    height: screen.height * view.scale,
     spectrumRect: paper?.spectrumRect ?? gridless,
     shapeFrame,
     ...(tuning ? { tuning } : {}),
@@ -400,6 +306,17 @@ export default function StudioStage({
     interaction,
   });
   hostRef.current = sceneRef;
+  // What "Attach the stage" takes: the picture as it stands on screen now.
+  useEffect(() => {
+    if (!captureRef) {
+      return undefined;
+    }
+    captureRef.current = () =>
+      captureVisibleStage(sceneRef.current, view, screen.width, screen.height);
+    return () => {
+      captureRef.current = undefined;
+    };
+  }, [captureRef, sceneRef, view, screen.width, screen.height]);
 
   // Every drag on the stage is the scene's: nothing else on it drags, and
   // its one other gesture, the double click, is two taps the scene hears.
@@ -417,7 +334,10 @@ export default function StudioStage({
   }, [interaction, sceneRef]);
 
   return (
-    <div className="studio-stage__well">
+    <div
+      ref={wellRef}
+      className={`studio-stage__well${zoom.panning ? ' is-panning' : ''}${zoom.dragging ? ' is-dragging' : ''}`}
+    >
       <div
         ref={frameRef}
         className={`studio-stage studio-stage--${size}${isPlayer ? ' studio-stage--player' : ''}`}
@@ -433,7 +353,8 @@ export default function StudioStage({
         }}
       >
         <div
-          className={`studio-stage__screen${isPlayer ? ' studio-stage__screen--player' : ''}`}
+          ref={screenRef}
+          className={`studio-stage__screen${isPlayer ? ' studio-stage__screen--player' : ''}${zoom.zoomed ? ' is-zoomed' : ''}`}
           style={
             isPlayer
               ? {
@@ -450,9 +371,19 @@ export default function StudioStage({
             className="studio-stage__canvas"
             role="img"
             aria-label={t('studio.stage.label', { name: pack.names.en })}
-            style={{ width: screen.width, height: screen.height }}
+            style={{
+              width: screen.width * view.scale,
+              height: screen.height * view.scale,
+              ...(zoom.zoomed
+                ? { transform: `translate(${view.x}px, ${view.y}px)` }
+                : {}),
+            }}
           />
-          {paper && screen.width > 0 && <StudioGraphPaper paper={paper} />}
+          {/* The grid and the starter's labels are drawn for the whole
+              picture: on a closer look they would stand on the wrong part. */}
+          {paper && screen.width > 0 && !zoom.zoomed && (
+            <StudioGraphPaper paper={paper} />
+          )}
           {/* What the scene throws from the hand, over it: never gated here,
               where trying the hands is the point. */}
           <ScenePointerLayer
@@ -461,7 +392,7 @@ export default function StudioStage({
             ambient={pack.ambient}
             artwork={pack.artwork}
           />
-          {labels}
+          {!zoom.zoomed && labels}
         </div>
         {/* One plate in the top right corner (Ivan, 2026-09-27: "join all
             into one with runs smoothly and put it on the right top"): how the
@@ -503,7 +434,13 @@ export default function StudioStage({
               readingRef={readingRef}
             />
           )}
-          {controls}
+          {/* The closer look shares the controls' row: as a row of its own it
+              pushed full screen, the player and the grid past the bottom of a
+              small stage, which shows the plate in no more than two rows. */}
+          <div className="studio-stage__tools">
+            <StudioStageZoom zoom={zoom} />
+            {controls}
+          </div>
           {/* On screen whenever the screen is full, whichever of the two
               believes it: a way out that depends on the app's own idea of the
               size is a way out that can go missing. */}
