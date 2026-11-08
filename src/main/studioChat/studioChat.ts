@@ -60,6 +60,8 @@ export interface IStudioChatDeps {
   version: string;
   /** How its Claude Code is started (`chatProcess.ts`). */
   launcher: IChatLauncher;
+  /** A reply finished, however it finished: its project's files may have changed. */
+  onReplyEnded?: (projectId: string) => void;
   logger?: { info(message: string): void; warn(message: string): void };
 }
 
@@ -70,6 +72,7 @@ export const createStudioChat = ({
   door,
   version,
   launcher,
+  onReplyEnded,
   logger,
 }: IStudioChatDeps) => {
   const root = path.join(userDataDir, 'studio-chat');
@@ -110,6 +113,9 @@ export const createStudioChat = ({
       entry,
       busy: isBusy(projectId),
     });
+    if (entry.kind === 'claude' && entry.state !== 'working') {
+      onReplyEnded?.(projectId);
+    }
   };
 
   const usage = createChatUsage({

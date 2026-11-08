@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { app, BrowserWindow } from 'electron';
 import log from 'electron-log';
 import path from 'path';
+import type { IScenePack } from '../common/scenePacks';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
 import { startMainAddons } from './addons';
 import { appVersion } from './appVersion';
@@ -49,6 +50,7 @@ import {
 import openExternalIfSafe from './safeExternal';
 import { createStudioAgentDoor } from './studioAgent/studioAgentDoor';
 import { createStudioChat } from './studioChat/studioChat';
+import { createPublishedAdoption } from './memberScenes/publishedAdoption';
 import { createPublishedRecords } from './memberScenes/publishedRecords';
 import { chatLauncherFor } from './studioChat/chatRelayClient';
 import { createArrangementStore } from './wallpaper/arrangement';
@@ -164,6 +166,40 @@ const registerMemberServices = ({
   // Which version went out from each project's folder, and what the folder
   // held then: the project list's Published mark.
   const publishedRecords = createPublishedRecords(userDataDir, log);
+  // A scene published before records were kept is recognised by the copy
+  // of it that came back here: FluidEQ's own in the scene store, a member's
+  // in the looks. Read only once the Studio asks, after both exist.
+  const publishedAdoption = createPublishedAdoption({
+    records: publishedRecords,
+    // A held copy is decrypted and verified only once its kept summary
+    // names the version asked for: each is a whole scene.
+    heldOf: (sceneId, version) => {
+      const me = accountIpc.session.state().identity?.id;
+      const official =
+        scenePacksIpc.store.newestVersion(sceneId) === version
+          ? scenePacksIpc.store.newest(sceneId)
+          : undefined;
+      const member =
+        me &&
+        memberScenesIpc.store
+          .list()
+          .some(
+            (scene) =>
+              scene.own &&
+              scene.authorId === me &&
+              scene.packId === sceneId &&
+              scene.version === version,
+          )
+          ? memberScenesIpc.store.newest(me, sceneId)
+          : undefined;
+      return [official, member].filter(
+        (pack): pack is IScenePack =>
+          pack !== undefined && pack.version === version,
+      );
+    },
+    differsFile: path.join(userDataDir, 'studio-published-checked.json'),
+    logger: log,
+  });
   const memberScenesIpc = registerMemberScenesIpc({
     getMainWindow,
     userDataDir,
@@ -173,6 +209,7 @@ const registerMemberServices = ({
     pins: versionPins,
     logger: log,
     publishedOf: publishedRecords.stateOf,
+    adoptPublished: publishedAdoption.adopt,
   });
   const disposeSceneVersions = registerSceneVersionsIpc({
     pins: versionPins,
@@ -274,6 +311,9 @@ const registerMemberServices = ({
     door: { look: studioAgentDoor.look, hear: studioAgentDoor.hear },
     version: appVersion(),
     launcher: chatLauncherFor(path.join(userDataDir, 'studio-chat'), log),
+    // An AI may have written into a scene that is not the open one, so the
+    // project list reads its publications again.
+    onReplyEnded: () => memberScenesIpc.publishedMayHaveChanged(),
     logger: log,
   });
   const plusPublishingIpc = registerPlusPublishingIpc({

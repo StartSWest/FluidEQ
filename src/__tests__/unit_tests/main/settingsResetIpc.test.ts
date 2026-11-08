@@ -271,6 +271,9 @@ const KEPT_FILES = [
   // Which version went out from each project folder here, and what the
   // folder held then: a record of what was published, not a choice.
   'studio-published.json',
+  // And which folders were compared with what came back and found edited
+  // since: bookkeeping that spares reading a whole scene at every launch.
+  'studio-published-checked.json',
   'catalogue.json',
   'rejected.json',
   'removed.json',

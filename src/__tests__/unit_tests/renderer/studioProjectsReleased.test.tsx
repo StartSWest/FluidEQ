@@ -43,6 +43,12 @@ describe('where a project stands in the gallery', () => {
     expect(releaseOf(published(3), [live('lake', 3)], [])).toBe('published');
   });
 
+  it('is published for one of FluidEQ’s own this account published', () => {
+    expect(
+      releaseOf(published(3), [{ ...live('lake', 3), official: true }], []),
+    ).toBe('published');
+  });
+
   it('is nothing once its folder changed, even with that version live', () => {
     expect(releaseOf(published(3, false), [live('lake', 3)], [])).toBe(
       undefined,

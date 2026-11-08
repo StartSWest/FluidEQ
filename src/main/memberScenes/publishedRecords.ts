@@ -42,31 +42,34 @@ export interface IProjectPublished {
 const MAX_ENTRIES = 4000;
 const MAX_DEPTH = 4;
 
-/** What a folder holds, as one hash of each file's path, size and time. */
+const lineOf = (folder: string, full: string, stats: fs.Stats) =>
+  `${path.relative(folder, full)}\t${stats.size}\t${Math.round(stats.mtimeMs)}`;
+
+const hashOf = (lines: string[]) =>
+  createHash('sha256').update(lines.sort().join('\n')).digest('hex');
+
+/** Whether a walk goes into an entry: never a dot-name, never a link. */
+const walked = (entry: fs.Dirent) =>
+  !entry.name.startsWith('.') && !entry.isSymbolicLink();
+
+/**
+ * What a folder holds, as one hash of each file's path, size and time; read
+ * here at once, for the one folder a publication just went out from.
+ */
 export const folderFingerprint = (folder: string): string | undefined => {
   const lines: string[] = [];
   const walk = (dir: string, depth: number) => {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    entries.forEach((entry) => {
-      if (entry.name.startsWith('.') || lines.length > MAX_ENTRIES) {
+    fs.readdirSync(dir, { withFileTypes: true }).forEach((entry) => {
+      if (!walked(entry) || lines.length > MAX_ENTRIES) {
         return;
       }
       const full = path.join(dir, entry.name);
-      // Never through a link: a junction can point anywhere.
-      if (entry.isSymbolicLink()) {
-        return;
-      }
       if (entry.isDirectory()) {
         if (depth < MAX_DEPTH) {
           walk(full, depth + 1);
         }
-        return;
-      }
-      if (entry.isFile()) {
-        const stats = fs.statSync(full);
-        lines.push(
-          `${path.relative(folder, full)}\t${stats.size}\t${Math.round(stats.mtimeMs)}`,
-        );
+      } else if (entry.isFile()) {
+        lines.push(lineOf(folder, full, fs.statSync(full)));
       }
     });
   };
@@ -75,7 +78,42 @@ export const folderFingerprint = (folder: string): string | undefined => {
   } catch {
     return undefined;
   }
-  return createHash('sha256').update(lines.sort().join('\n')).digest('hex');
+  return hashOf(lines);
+};
+
+/**
+ * `folderFingerprint`, read without holding FluidEQ up: on a OneDrive folder
+ * each file costs about 0.1 ms, and the project list's 52 folders took 330 ms
+ * read at once - on every save of the open scene.
+ */
+export const readFolderFingerprint = async (
+  folder: string,
+): Promise<string | undefined> => {
+  const lines: string[] = [];
+  const walk = async (dir: string, depth: number): Promise<void> => {
+    if (lines.length > MAX_ENTRIES) {
+      return;
+    }
+    const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+    await Promise.all(
+      entries.filter(walked).map(async (entry) => {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (depth < MAX_DEPTH) {
+            await walk(full, depth + 1);
+          }
+        } else if (entry.isFile() && lines.length <= MAX_ENTRIES) {
+          lines.push(lineOf(folder, full, await fs.promises.stat(full)));
+        }
+      }),
+    );
+  };
+  try {
+    await walk(folder, 0);
+  } catch {
+    return undefined;
+  }
+  return hashOf(lines);
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -95,7 +133,7 @@ const readRecord = (raw: unknown): IPublishedRecord | undefined =>
     : undefined;
 
 /** One folder, however its path is spelled. */
-const keyOf = (folder: string) => {
+export const folderKey = (folder: string) => {
   const resolved = path.resolve(folder);
   return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
 };
@@ -135,7 +173,7 @@ export const createPublishedRecords = (
       }
       records = {
         ...records,
-        [keyOf(folder)]: { sceneId, version, fingerprint },
+        [folderKey(folder)]: { sceneId, version, fingerprint },
       };
       try {
         writeFileAtomically(file, JSON.stringify(records), 0o600);
@@ -150,15 +188,16 @@ export const createPublishedRecords = (
      * What was last published from this folder and whether it is still what
      * the folder holds; nothing for a folder never published from here.
      */
-    stateOf: (folder: string): IProjectPublished | undefined => {
-      const one = records[keyOf(folder)];
+    stateOf: async (folder: string): Promise<IProjectPublished | undefined> => {
+      const one = records[folderKey(folder)];
       if (!one) {
         return undefined;
       }
+      const now = await readFolderFingerprint(folder);
       return {
         sceneId: one.sceneId,
         version: one.version,
-        unchanged: folderFingerprint(folder) === one.fingerprint,
+        unchanged: now === one.fingerprint,
       };
     },
   };

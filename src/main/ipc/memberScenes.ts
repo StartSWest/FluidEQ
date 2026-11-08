@@ -68,7 +68,9 @@ export interface IMemberScenesIpcDeps {
   dialogImpl?: IDialogLike;
   openPath?: (target: string) => Promise<string>;
   /** What was last published from a project's folder (`publishedRecords.ts`). */
-  publishedOf?: (folder: string) => IProjectPublished | undefined;
+  publishedOf?: (folder: string) => Promise<IProjectPublished | undefined>;
+  /** Records the folders holding a publication held here (`publishedAdoption.ts`). */
+  adoptPublished?: (folders: readonly string[]) => Promise<boolean>;
 }
 
 export interface IMemberScenesIpcRegistration {
@@ -112,6 +114,8 @@ export interface IMemberScenesIpcRegistration {
    * an scene it needs to show in grahp").
    */
   keepPublished(author: string, pack: IScenePack): void;
+  /** A chat's reply ended: the project list reads its folders again. */
+  publishedMayHaveChanged(): void;
   dispose(): void;
 }
 
@@ -133,6 +137,7 @@ export const registerMemberScenesIpc = ({
   dialogImpl = dialog,
   openPath = (target) => shell.openPath(target),
   publishedOf,
+  adoptPublished,
 }: IMemberScenesIpcDeps): IMemberScenesIpcRegistration => {
   const store = createMemberSceneStore({ userDataDir, pins, logger });
 
@@ -178,6 +183,7 @@ export const registerMemberScenesIpc = ({
     openPath,
     ...(logger ? { logger } : {}),
     ...(publishedOf ? { publishedOf } : {}),
+    ...(adoptPublished ? { adoptPublished } : {}),
   });
 
   // A buy, a publication, an account changing, Plus: which scenes play
@@ -250,6 +256,7 @@ export const registerMemberScenesIpc = ({
     openInspection: studio.openInspection,
     agentProject: studio.agentProject,
     announce: announceScenes,
+    publishedMayHaveChanged: () => studio.publishedMayHaveChanged(),
     keepPublished: (author, pack) => {
       try {
         store.save(author, pack);

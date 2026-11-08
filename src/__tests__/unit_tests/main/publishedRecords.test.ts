@@ -48,45 +48,47 @@ const touch = (file: string, text?: string) => {
   fs.utimesSync(file, later, later);
 };
 
-it('says nothing for a folder never published from here', () => {
-  expect(createPublishedRecords(userData).stateOf(project)).toBeUndefined();
+it('says nothing for a folder never published from here', async () => {
+  expect(
+    await createPublishedRecords(userData).stateOf(project),
+  ).toBeUndefined();
 });
 
-it('is unchanged right after publishing, and across a restart', () => {
+it('is unchanged right after publishing, and across a restart', async () => {
   createPublishedRecords(userData).record(project, 'lake', 3);
   // A new instance reads what the last one kept, the path spelled otherwise.
   const again = createPublishedRecords(userData);
   const spelled =
     process.platform === 'win32' ? project.toUpperCase() : project;
-  expect(again.stateOf(spelled)).toEqual({
+  expect(await again.stateOf(spelled)).toEqual({
     sceneId: 'lake',
     version: 3,
     unchanged: true,
   });
 });
 
-it('sees an edit, a new picture and a removed file as changes', () => {
+it('sees an edit, a new picture and a removed file as changes', async () => {
   const records = createPublishedRecords(userData);
   records.record(project, 'lake', 3);
   touch(path.join(project, 'scene.glsl'), 'void main(){ /* edited */ }');
-  expect(records.stateOf(project)?.unchanged).toBe(false);
+  expect((await records.stateOf(project))?.unchanged).toBe(false);
 
   records.record(project, 'lake', 4);
   fs.writeFileSync(path.join(project, 'art', 'reef.png'), 'png');
-  expect(records.stateOf(project)?.unchanged).toBe(false);
+  expect((await records.stateOf(project))?.unchanged).toBe(false);
 
   records.record(project, 'lake', 5);
   fs.rmSync(path.join(project, 'art', 'reef.png'));
-  expect(records.stateOf(project)?.unchanged).toBe(false);
+  expect((await records.stateOf(project))?.unchanged).toBe(false);
 });
 
-it('ignores what a tool keeps in a dot-folder', () => {
+it('ignores what a tool keeps in a dot-folder', async () => {
   const records = createPublishedRecords(userData);
   records.record(project, 'lake', 3);
   fs.mkdirSync(path.join(project, '.claude'));
   fs.writeFileSync(path.join(project, '.claude', 'settings.local.json'), '{}');
-  expect(records.stateOf(project)?.unchanged).toBe(true);
+  expect((await records.stateOf(project))?.unchanged).toBe(true);
   // The control: the same file outside a dot-folder is a change.
   fs.writeFileSync(path.join(project, 'notes.json'), '{}');
-  expect(records.stateOf(project)?.unchanged).toBe(false);
+  expect((await records.stateOf(project))?.unchanged).toBe(false);
 });

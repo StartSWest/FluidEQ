@@ -34,10 +34,12 @@ export const releaseOf = (
     return undefined;
   }
   const { sceneId, version } = published;
+  // This account's own publications, FluidEQ's own among them for an account
+  // that publishes those: leaving them out left the maker of FluidEQ's own
+  // scenes with no mark on any of them.
   if (
     scenes.some(
       (scene) =>
-        !scene.official &&
         !scene.blocked &&
         scene.sceneId === sceneId &&
         scene.version === version,

@@ -2,6 +2,7 @@ import { dialog, ipcMain, shell, type BrowserWindow } from 'electron';
 import path from 'path';
 import type { IScenePack } from '../../common/scenePacks';
 import { writeProjectSource, type TSourceWrite } from '../memberScenes/project';
+import { createPublishedMarks } from '../memberScenes/publishedMarks';
 import type { IProjectPublished } from '../memberScenes/publishedRecords';
 import {
   mayAddProject as mayAdd,
@@ -83,7 +84,13 @@ export interface IStudioProjectsIpcDeps {
   dialogImpl?: IDialogLike;
   openPath?: (target: string) => Promise<string>;
   /** What was last published from a folder here (`publishedRecords.ts`). */
-  publishedOf?: (folder: string) => IProjectPublished | undefined;
+  publishedOf?: (folder: string) => Promise<IProjectPublished | undefined>;
+  /**
+   * Records the folders holding a publication this computer holds, which a
+   * scene published before records existed has none of
+   * (`publishedAdoption.ts`); true when one was.
+   */
+  adoptPublished?: (folders: readonly string[]) => Promise<boolean>;
 }
 
 export interface IStudioProjectsIpcRegistration {
@@ -106,6 +113,8 @@ export interface IStudioProjectsIpcRegistration {
   accountChanged(): void;
   /** The Studio told again, so the bench shows its looks copy as it now is. */
   announceStudio(): void;
+  /** A chat's reply ended: any project's files may have changed. */
+  publishedMayHaveChanged(): void;
   dispose(): void;
 }
 
@@ -136,6 +145,7 @@ export const registerStudioProjectsIpc = ({
   dialogImpl = dialog,
   openPath = (target) => shell.openPath(target),
   publishedOf,
+  adoptPublished,
 }: IStudioProjectsIpcDeps): IStudioProjectsIpcRegistration => {
   const studioPath = path.join(userDataDir, STUDIO_FILE);
 
@@ -195,13 +205,38 @@ export const registerStudioProjectsIpc = ({
       names: bench.names,
       usable,
       ...(build ? { build } : {}),
-      ...(publishedOf ? { publishedOf } : {}),
+      ...(marks ? { publishedOf: marks.of } : {}),
     });
     return look ? { ...state, look } : state;
   };
 
-  const announceStudio = () =>
+  const tellStudio = () =>
     getMainWindow()?.webContents.send('studio-changed', studioState());
+
+  // Each project's publication, read apart from any announcement
+  // (`publishedMarks.ts`).
+  const marks = publishedOf
+    ? createPublishedMarks({
+        stateOf: publishedOf,
+        ...(adoptPublished ? { adopt: adoptPublished } : {}),
+        folders: () =>
+          projects.projects
+            .filter((project) => project.official === undefined)
+            .map((project) => project.folder),
+        isOpen: () => studioOpen,
+        changed: tellStudio,
+        ...(logger ? { logger } : {}),
+      })
+    : undefined;
+
+  /** The Studio told; the open scene may have changed, so its mark is read. */
+  const announceStudio = () => {
+    tellStudio();
+    const folder = activeFolder();
+    if (folder && !activeIsInspection()) {
+      marks?.refresh(folder);
+    }
+  };
 
   // The project's copy in the looks: kept from here, compared on the bench.
   const looksCopy = createStudioLooksCopy({
@@ -232,6 +267,9 @@ export const registerStudioProjectsIpc = ({
     if (switched || !bench.watching()) {
       bench.start();
     }
+    // A folder just added may hold a scene published before records were
+    // kept; one already compared costs a look at its pack.json.
+    marks?.refresh();
   };
 
   // Making a project out of a scene, and the folder dialog both "open a
@@ -444,6 +482,7 @@ export const registerStudioProjectsIpc = ({
       announceStudio();
     },
     announceStudio,
+    publishedMayHaveChanged: () => marks?.refresh(),
     dispose: () => {
       bench.stop();
       disposePanes();
