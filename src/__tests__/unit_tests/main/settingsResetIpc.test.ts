@@ -268,6 +268,9 @@ const KEPT_FILES = [
   'scene-store.json',
   'version-pins.json',
   'publications.json',
+  // Which version went out from each project folder here, and what the
+  // folder held then: a record of what was published, not a choice.
+  'studio-published.json',
   'catalogue.json',
   'rejected.json',
   'removed.json',

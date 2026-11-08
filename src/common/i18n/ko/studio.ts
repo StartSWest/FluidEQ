@@ -61,6 +61,12 @@ const studio = {
   'studio.project.none': '프로젝트를 선택하세요',
   'studio.project.empty': '아직 프로젝트가 없습니다.',
   'studio.project.add': '폴더 열기…',
+  'studio.project.published': '게시됨',
+  'studio.project.publishedHint':
+    '이 버전은 모두를 위해 갤러리에 있으며 이후 변경된 것이 없습니다',
+  'studio.project.inReview': '검토 중',
+  'studio.project.inReviewHint':
+    '이 버전은 검토를 기다리고 있으며 이후 변경된 것이 없습니다',
   'studio.project.aiWorking': 'AI 작업 중',
   'studio.project.aiReplied': 'AI가 답변함',
   'studio.project.aiWorkingElsewhere': '다른 장면에서 AI가 작업 중입니다',

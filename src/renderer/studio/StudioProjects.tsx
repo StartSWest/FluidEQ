@@ -11,6 +11,9 @@ import RichPick, { type IRichPickEntry } from '../widgets/RichPick';
 import StudioRenameProjectDialog from './StudioRenameProjectDialog';
 import { useStudioChat, type TStudioChatWork } from './chat/studioChatStore';
 import { forgetStudioProject, selectStudioProject } from './studioStore';
+import useProjectsReleased, {
+  type TProjectRelease,
+} from './useProjectsReleased';
 
 const GROUP_OWN = 'projects';
 const GROUP_OFFICIAL = 'official';
@@ -20,6 +23,17 @@ const WORK_LABEL: Record<TStudioChatWork, TranslationKey> = {
   working: 'studio.project.aiWorking',
   waiting: 'studio.project.aiWaiting',
   replied: 'studio.project.aiReplied',
+};
+
+/** Where a project stands in the gallery, when its AI is not at it. */
+const RELEASE_LABEL: Record<TProjectRelease, TranslationKey> = {
+  published: 'studio.project.published',
+  review: 'studio.project.inReview',
+};
+
+const RELEASE_HINT: Record<TProjectRelease, TranslationKey> = {
+  published: 'studio.project.publishedHint',
+  review: 'studio.project.inReviewHint',
 };
 
 /** What the picker's own button says about the other scenes' chats. */
@@ -103,6 +117,7 @@ export default function StudioProjects({
 }: IStudioProjectsProps) {
   const { t, locale } = useTranslation();
   const { work } = useStudioChat();
+  const releaseOf = useProjectsReleased(state.projects);
   const [switching, setSwitching] = useState(false);
   const picking = useRef(false);
   // The project being renamed, as it was when Rename was pressed.
@@ -127,6 +142,25 @@ export default function StudioProjects({
         )
         .map((project) => {
           const doing = work[project.id];
+          // An AI at work on it says so instead: the scene is changing.
+          const release = doing ? undefined : releaseOf(project);
+          let trailing;
+          if (doing) {
+            trailing = (
+              <span className={`studio-projects__state is-${doing}`}>
+                {t(WORK_LABEL[doing])}
+              </span>
+            );
+          } else if (release) {
+            trailing = (
+              <span
+                className={`studio-projects__state is-${release}`}
+                title={t(RELEASE_HINT[release])}
+              >
+                {t(RELEASE_LABEL[release])}
+              </span>
+            );
+          }
           return {
             id: project.id,
             name: project.names
@@ -140,18 +174,10 @@ export default function StudioProjects({
                 className="rich-pick__glyph"
               />
             ),
-            ...(doing
-              ? {
-                  trailing: (
-                    <span className={`studio-projects__state is-${doing}`}>
-                      {t(WORK_LABEL[doing])}
-                    </span>
-                  ),
-                }
-              : {}),
+            ...(trailing ? { trailing } : {}),
           };
         }),
-    [state.projects, locale, work, t],
+    [state.projects, locale, work, t, releaseOf],
   );
   // Another scene's chat with news: one waiting on the member first, then a
   // reply, then one at work.

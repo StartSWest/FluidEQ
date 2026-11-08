@@ -124,6 +124,11 @@ export interface IPlusPublishingIpcDeps {
   onTermsAgreed?: (version: number) => void;
   /** A publication landed: who published, and the pack exactly as it went out. */
   onPublished?: (author: string, pack: IScenePack) => void;
+  /**
+   * A version went out from this folder: what the folder holds is it
+   * (`publishedRecords.ts`), for the project list's Published mark.
+   */
+  recordPublished?: (folder: string, sceneId: string, version: number) => void;
 }
 
 const CHANNELS = [
@@ -174,6 +179,7 @@ export const registerPlusPublishingIpc = ({
   mayPublishActive,
   onTermsAgreed,
   onPublished,
+  recordPublished,
 }: IPlusPublishingIpcDeps) => {
   type TPublishOperation = {
     id?: string;
@@ -487,6 +493,9 @@ export const registerPlusPublishingIpc = ({
           // The server recorded the agreement with the publication, for this
           // account; so is this.
           writeAgreedTerms(userDataDir, me, termsVersion);
+          // What the folder holds is what went out; before the Studio is
+          // told of the publication below, so the list says so at once.
+          recordPublished?.(folder, raised.pack.id, raised.pack.version);
           // The completion belongs to the original author; a new account must
           // not adopt its agreement through the current-account callback.
           if (access.accountId() === me) {

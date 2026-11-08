@@ -3,6 +3,7 @@ import { parseMemberLookId } from '../../common/memberScenes';
 import type { IScenePack } from '../../common/scenePacks';
 import type { IAccountSession } from '../account/session';
 import type { IVersionPins } from '../keptVersions';
+import type { IProjectPublished } from '../memberScenes/publishedRecords';
 import type { ISceneOwnership } from '../plus/sceneOwnership';
 import {
   createMemberSceneStore,
@@ -66,6 +67,8 @@ export interface IMemberScenesIpcDeps {
   logger?: { info(message: string): void; warn(message: string): void };
   dialogImpl?: IDialogLike;
   openPath?: (target: string) => Promise<string>;
+  /** What was last published from a project's folder (`publishedRecords.ts`). */
+  publishedOf?: (folder: string) => IProjectPublished | undefined;
 }
 
 export interface IMemberScenesIpcRegistration {
@@ -129,6 +132,7 @@ export const registerMemberScenesIpc = ({
   logger,
   dialogImpl = dialog,
   openPath = (target) => shell.openPath(target),
+  publishedOf,
 }: IMemberScenesIpcDeps): IMemberScenesIpcRegistration => {
   const store = createMemberSceneStore({ userDataDir, pins, logger });
 
@@ -173,6 +177,7 @@ export const registerMemberScenesIpc = ({
     dialogImpl,
     openPath,
     ...(logger ? { logger } : {}),
+    ...(publishedOf ? { publishedOf } : {}),
   });
 
   // A buy, a publication, an account changing, Plus: which scenes play

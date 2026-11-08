@@ -61,6 +61,12 @@ const studio = {
   'studio.project.none': 'Projekt wählen',
   'studio.project.empty': 'Noch kein Projekt',
   'studio.project.add': 'Ordner öffnen…',
+  'studio.project.published': 'Veröffentlicht',
+  'studio.project.publishedHint':
+    'Diese Version ist für alle in der Galerie, und seitdem wurde nichts geändert',
+  'studio.project.inReview': 'In Prüfung',
+  'studio.project.inReviewHint':
+    'Diese Version wartet auf die Prüfung, und seitdem wurde nichts geändert',
   'studio.project.aiWorking': 'KI arbeitet',
   'studio.project.aiReplied': 'KI hat geantwortet',
   'studio.project.aiWorkingElsewhere':

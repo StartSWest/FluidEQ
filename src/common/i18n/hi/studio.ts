@@ -60,6 +60,12 @@ const studio = {
   'studio.project.none': 'प्रोजेक्ट चुनें',
   'studio.project.empty': 'अभी कोई प्रोजेक्ट नहीं',
   'studio.project.add': 'फ़ोल्डर खोलें…',
+  'studio.project.published': 'प्रकाशित',
+  'studio.project.publishedHint':
+    'यह संस्करण सबके लिए गैलरी में है, और तब से कुछ नहीं बदला',
+  'studio.project.inReview': 'समीक्षा में',
+  'studio.project.inReviewHint':
+    'यह संस्करण समीक्षा की प्रतीक्षा में है, और तब से कुछ नहीं बदला',
   'studio.project.aiWorking': 'AI काम कर रहा है',
   'studio.project.aiReplied': 'AI ने जवाब दिया',
   'studio.project.aiWorkingElsewhere': 'एक AI दूसरे सीन पर काम कर रहा है',

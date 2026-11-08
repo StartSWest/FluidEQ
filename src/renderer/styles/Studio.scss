@@ -569,6 +569,29 @@ $studio-room-under-chat: 380px;
     }
   }
 
+  // Its latest version is live in the gallery and nothing changed since:
+  // finished, so still - the one state here that does not move.
+  &.is-published {
+    color: $neon-lime;
+    border-color: color-mix(in srgb, $neon-lime 40%, transparent);
+    background: color-mix(in srgb, $neon-lime 10%, transparent);
+
+    &::before {
+      background: currentColor;
+    }
+  }
+
+  // Sent and waiting for review: done on the member's side, not yet out.
+  &.is-review {
+    color: $primary-lighter;
+    border-color: color-mix(in srgb, $primary-lighter 35%, transparent);
+    background: color-mix(in srgb, $primary-lighter 8%, transparent);
+
+    &::before {
+      border: 1.5px solid currentColor;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     &.is-working::before,
     &.is-waiting::before {

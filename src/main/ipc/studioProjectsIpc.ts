@@ -2,6 +2,7 @@ import { dialog, ipcMain, shell, type BrowserWindow } from 'electron';
 import path from 'path';
 import type { IScenePack } from '../../common/scenePacks';
 import { writeProjectSource, type TSourceWrite } from '../memberScenes/project';
+import type { IProjectPublished } from '../memberScenes/publishedRecords';
 import {
   mayAddProject as mayAdd,
   mayUseProject,
@@ -81,6 +82,8 @@ export interface IStudioProjectsIpcDeps {
   logger?: { info(message: string): void; warn(message: string): void };
   dialogImpl?: IDialogLike;
   openPath?: (target: string) => Promise<string>;
+  /** What was last published from a folder here (`publishedRecords.ts`). */
+  publishedOf?: (folder: string) => IProjectPublished | undefined;
 }
 
 export interface IStudioProjectsIpcRegistration {
@@ -132,6 +135,7 @@ export const registerStudioProjectsIpc = ({
   logger,
   dialogImpl = dialog,
   openPath = (target) => shell.openPath(target),
+  publishedOf,
 }: IStudioProjectsIpcDeps): IStudioProjectsIpcRegistration => {
   const studioPath = path.join(userDataDir, STUDIO_FILE);
 
@@ -191,6 +195,7 @@ export const registerStudioProjectsIpc = ({
       names: bench.names,
       usable,
       ...(build ? { build } : {}),
+      ...(publishedOf ? { publishedOf } : {}),
     });
     return look ? { ...state, look } : state;
   };

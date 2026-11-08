@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import path from 'path';
 import type { TLocalizedName } from '../../common/scenePacks';
 import type { TProjectBuild } from '../memberScenes/project';
+import type { IProjectPublished } from '../memberScenes/publishedRecords';
 import type { IMemberSceneSummary } from '../memberScenes/store';
 import {
   byRecent,
@@ -35,6 +36,12 @@ export interface IStudioProject {
    * to looks, exported or published.
    */
   official?: true;
+  /**
+   * What was last published from its folder here, and whether the folder
+   * still holds exactly that (`publishedRecords.ts`). The page asks the
+   * gallery whether that version is live.
+   */
+  published?: IProjectPublished;
 }
 
 export interface IStudioState {
@@ -125,18 +132,24 @@ export const studioStateOf = (
     usable: (project: IStoredProject) => boolean;
     /** The latest build of the open project, while the Studio is open. */
     build?: TProjectBuild;
+    /** What was last published from a folder here (`publishedRecords.ts`). */
+    publishedOf?: (folder: string) => IProjectPublished | undefined;
   },
 ): IStudioState => ({
   mayAddProject: seen.mayAddProject,
   projectsRoot: seen.projectsRoot,
   projects: byRecent(list).map((project) => {
     const names = seen.names.get(project.id);
+    const published = project.official
+      ? undefined
+      : seen.publishedOf?.(project.folder);
     return {
       id: project.id,
       folderName: path.basename(project.folder),
       path: project.folder,
       ...(names ? { names } : {}),
       ...(project.official ? { official: true as const } : {}),
+      ...(published ? { published } : {}),
     };
   }),
   ...(list.active &&

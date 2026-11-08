@@ -60,6 +60,12 @@ const studio = {
   'studio.project.none': 'Выберите проект',
   'studio.project.empty': 'Проектов пока нет',
   'studio.project.add': 'Открыть папку…',
+  'studio.project.published': 'Опубликовано',
+  'studio.project.publishedHint':
+    'Эта версия есть в галерее для всех, и с тех пор ничего не менялось',
+  'studio.project.inReview': 'На проверке',
+  'studio.project.inReviewHint':
+    'Эта версия ждёт проверки, и с тех пор ничего не менялось',
   'studio.project.aiWorking': 'ИИ работает',
   'studio.project.aiReplied': 'ИИ ответил',
   'studio.project.aiWorkingElsewhere': 'ИИ работает над другой сценой',

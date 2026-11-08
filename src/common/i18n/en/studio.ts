@@ -68,6 +68,12 @@ const studio = {
   'studio.project.none': 'Choose a project',
   'studio.project.empty': 'No project yet',
   'studio.project.add': 'Open a folder…',
+  'studio.project.published': 'Published',
+  'studio.project.publishedHint':
+    'This version is in the gallery for everyone, and nothing has changed since',
+  'studio.project.inReview': 'In review',
+  'studio.project.inReviewHint':
+    'This version is waiting for review, and nothing has changed since',
   'studio.project.aiWorking': 'AI working',
   'studio.project.aiReplied': 'AI replied',
   'studio.project.aiWorkingElsewhere': 'An AI is working on another scene',

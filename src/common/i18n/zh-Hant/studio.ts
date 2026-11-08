@@ -59,6 +59,11 @@ const studio = {
   'studio.project.none': '選擇一個專案',
   'studio.project.empty': '還沒有專案',
   'studio.project.add': '開啟資料夾...',
+  'studio.project.published': '已發佈',
+  'studio.project.publishedHint':
+    '此版本已在圖庫中向所有人開放，之後沒有任何變更',
+  'studio.project.inReview': '審核中',
+  'studio.project.inReviewHint': '此版本正在等待審核，之後沒有任何變更',
   'studio.project.aiWorking': '人工智慧正在工作',
   'studio.project.aiReplied': '人工智慧已回覆',
   'studio.project.aiWorkingElsewhere': '有人工智慧正在處理另一個場景',

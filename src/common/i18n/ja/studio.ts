@@ -60,6 +60,12 @@ const studio = {
   'studio.project.none': 'プロジェクトを選択',
   'studio.project.empty': 'まだプロジェクトがありません',
   'studio.project.add': 'フォルダーを開く…',
+  'studio.project.published': '公開中',
+  'studio.project.publishedHint':
+    'このバージョンは全員向けにギャラリーにあり、その後の変更はありません',
+  'studio.project.inReview': '審査中',
+  'studio.project.inReviewHint':
+    'このバージョンは審査待ちで、その後の変更はありません',
   'studio.project.aiWorking': 'AI が作業中',
   'studio.project.aiReplied': 'AI が返信しました',
   'studio.project.aiWorkingElsewhere': '別のシーンで AI が作業中です',

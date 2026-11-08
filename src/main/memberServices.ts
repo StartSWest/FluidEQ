@@ -49,6 +49,7 @@ import {
 import openExternalIfSafe from './safeExternal';
 import { createStudioAgentDoor } from './studioAgent/studioAgentDoor';
 import { createStudioChat } from './studioChat/studioChat';
+import { createPublishedRecords } from './memberScenes/publishedRecords';
 import { chatLauncherFor } from './studioChat/chatRelayClient';
 import { createArrangementStore } from './wallpaper/arrangement';
 import registerWallpaperIpc from './wallpaper/register';
@@ -160,6 +161,9 @@ const registerMemberServices = ({
 
   // Scenes members make in the Studio. Registering watches nothing: the open
   // project's folder is watched only while the Studio is open.
+  // Which version went out from each project's folder, and what the folder
+  // held then: the project list's Published mark.
+  const publishedRecords = createPublishedRecords(userDataDir, log);
   const memberScenesIpc = registerMemberScenesIpc({
     getMainWindow,
     userDataDir,
@@ -168,6 +172,7 @@ const registerMemberServices = ({
     ownership: sceneOwnership,
     pins: versionPins,
     logger: log,
+    publishedOf: publishedRecords.stateOf,
   });
   const disposeSceneVersions = registerSceneVersionsIpc({
     pins: versionPins,
@@ -278,6 +283,7 @@ const registerMemberServices = ({
     activeIsInspection: memberScenesIpc.activeIsInspection,
     mayPublishActive: memberScenesIpc.mayUseActive,
     onTermsAgreed: plusTermsNoticeIpc.agreed,
+    recordPublished: publishedRecords.record,
     onPublished: (author, pack) => {
       memberScenesIpc.keepPublished(author, pack);
       // The scene is the author's to play now: the store says so, the

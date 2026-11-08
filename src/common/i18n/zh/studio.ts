@@ -58,6 +58,11 @@ const studio = {
   'studio.project.none': '选择一个项目',
   'studio.project.empty': '还没有项目',
   'studio.project.add': '打开文件夹…',
+  'studio.project.published': '已发布',
+  'studio.project.publishedHint':
+    '此版本已在图库中向所有人开放，之后没有任何更改',
+  'studio.project.inReview': '审核中',
+  'studio.project.inReviewHint': '此版本正在等待审核，之后没有任何更改',
   'studio.project.aiWorking': 'AI 正在工作',
   'studio.project.aiReplied': 'AI 已回复',
   'studio.project.aiWorkingElsewhere': '有 AI 正在处理另一个场景',

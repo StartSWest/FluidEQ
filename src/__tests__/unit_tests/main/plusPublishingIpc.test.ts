@@ -154,6 +154,8 @@ const publishRefusedWith = (refusal: () => Response) => {
 /** The open project is a FluidEQ scene, opened only to look inside. */
 let inspecting: boolean;
 
+const recordPublished = jest.fn();
+
 const setup = (onTermsAgreed?: (version: number) => void) =>
   registerPlusPublishingIpc({
     access: access(),
@@ -163,10 +165,12 @@ const setup = (onTermsAgreed?: (version: number) => void) =>
     // The Studio is any signed-in account's (`projectAccess.ts`).
     mayPublishActive: () => signedIn,
     onTermsAgreed,
+    recordPublished,
   });
 
 beforeEach(async () => {
   handlers.clear();
+  recordPublished.mockClear();
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-publish-ipc-'));
   folder = path.join(root, 'project');
   fs.mkdirSync(folder);
@@ -555,6 +559,8 @@ describe('publishing from the Studio', () => {
       reason: 'too-large',
     });
     expect(calls).toEqual([]);
+    // Nothing went out: nothing is recorded as published.
+    expect(recordPublished).not.toHaveBeenCalled();
   });
 
   it('rechecks the project after acquiring the token', async () => {
@@ -609,6 +615,12 @@ describe('publishing from the Studio', () => {
     // Remembered for the account that published, and for nobody else here.
     expect(readAgreedTerms(userDataDir(), ME)).toBe(4);
     expect(readAgreedTerms(userDataDir(), SOMEONE)).toBe(0);
+    // What the folder holds is what went out, under the version it went at.
+    expect(recordPublished).toHaveBeenCalledWith(
+      folder,
+      'my-first-scene',
+      (publishRequest()?.body.pack as { version: number }).version,
+    );
   });
 
   it('sends what the maker wrote about this version, as one clean line', async () => {

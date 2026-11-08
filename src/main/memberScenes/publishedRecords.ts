@@ -1,0 +1,167 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+import { createHash } from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import writeFileAtomically from '../atomicWrite';
+
+/**
+ * Which version of each project was last published from this computer, and
+ * what its folder held at that moment (Ivan, 2026-11-08: "show in the list
+ * published if last version is on the lib on the server ... and no more
+ * changes were made"). The gallery says what is live; only this can say
+ * whether the folder still holds exactly what went out.
+ *
+ * The folder is judged whole, not the files `pack.json` names: a scene's
+ * files are named in more than one place (its world's models are listed in
+ * the world, which may be a file of its own), and a change anywhere in the
+ * scene's folder - a new picture, an edit - is a change the member made
+ * since publishing. Names starting with a dot are not the scene's: a tool's
+ * own folder, the system's.
+ */
+
+export interface IPublishedRecord {
+  sceneId: string;
+  version: number;
+  /** The folder's files, by path, size and time written, at that moment. */
+  fingerprint: string;
+}
+
+export interface IProjectPublished {
+  sceneId: string;
+  version: number;
+  /** The folder holds exactly what it held when this version went out. */
+  unchanged: boolean;
+}
+
+/** Past this many entries the walk stops: a folder that size is no scene. */
+const MAX_ENTRIES = 4000;
+const MAX_DEPTH = 4;
+
+/** What a folder holds, as one hash of each file's path, size and time. */
+export const folderFingerprint = (folder: string): string | undefined => {
+  const lines: string[] = [];
+  const walk = (dir: string, depth: number) => {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    entries.forEach((entry) => {
+      if (entry.name.startsWith('.') || lines.length > MAX_ENTRIES) {
+        return;
+      }
+      const full = path.join(dir, entry.name);
+      // Never through a link: a junction can point anywhere.
+      if (entry.isSymbolicLink()) {
+        return;
+      }
+      if (entry.isDirectory()) {
+        if (depth < MAX_DEPTH) {
+          walk(full, depth + 1);
+        }
+        return;
+      }
+      if (entry.isFile()) {
+        const stats = fs.statSync(full);
+        lines.push(
+          `${path.relative(folder, full)}\t${stats.size}\t${Math.round(stats.mtimeMs)}`,
+        );
+      }
+    });
+  };
+  try {
+    walk(folder, 0);
+  } catch {
+    return undefined;
+  }
+  return createHash('sha256').update(lines.sort().join('\n')).digest('hex');
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const readRecord = (raw: unknown): IPublishedRecord | undefined =>
+  isRecord(raw) &&
+  typeof raw.sceneId === 'string' &&
+  typeof raw.version === 'number' &&
+  Number.isSafeInteger(raw.version) &&
+  typeof raw.fingerprint === 'string'
+    ? {
+        sceneId: raw.sceneId,
+        version: raw.version,
+        fingerprint: raw.fingerprint,
+      }
+    : undefined;
+
+/** One folder, however its path is spelled. */
+const keyOf = (folder: string) => {
+  const resolved = path.resolve(folder);
+  return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+};
+
+export const createPublishedRecords = (
+  userDataDir: string,
+  logger?: { warn(message: string): void },
+) => {
+  const file = path.join(userDataDir, 'studio-published.json');
+  const read = (): Record<string, IPublishedRecord> => {
+    try {
+      const raw: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (!isRecord(raw)) {
+        return {};
+      }
+      return Object.fromEntries(
+        Object.entries(raw).flatMap(([key, value]) => {
+          const one = readRecord(value);
+          return one ? [[key, one]] : [];
+        }),
+      );
+    } catch {
+      return {};
+    }
+  };
+  let records = read();
+
+  return {
+    /**
+     * A version just went out from this folder: what it holds now is it.
+     * Never throws: the publication stands whether or not this is kept.
+     */
+    record: (folder: string, sceneId: string, version: number) => {
+      const fingerprint = folderFingerprint(folder);
+      if (!fingerprint) {
+        return;
+      }
+      records = {
+        ...records,
+        [keyOf(folder)]: { sceneId, version, fingerprint },
+      };
+      try {
+        writeFileAtomically(file, JSON.stringify(records), 0o600);
+      } catch (error) {
+        logger?.warn(
+          `The published folder could not be kept: ${String(error)}`,
+        );
+      }
+    },
+
+    /**
+     * What was last published from this folder and whether it is still what
+     * the folder holds; nothing for a folder never published from here.
+     */
+    stateOf: (folder: string): IProjectPublished | undefined => {
+      const one = records[keyOf(folder)];
+      if (!one) {
+        return undefined;
+      }
+      return {
+        sceneId: one.sceneId,
+        version: one.version,
+        unchanged: folderFingerprint(folder) === one.fingerprint,
+      };
+    },
+  };
+};
+
+export type TPublishedRecords = ReturnType<typeof createPublishedRecords>;
