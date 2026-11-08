@@ -100,6 +100,7 @@ import './StudioMeters.scss';
 import './StudioDialogs.scss';
 import './StudioStage.scss';
 import './StudioPublish.scss';
+import './StudioPublishSize.scss';
 import './StudioPictures.scss';
 import './StudioPictureLightbox.scss';
 import './PaneResizer.scss';

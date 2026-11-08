@@ -184,6 +184,13 @@ const studio = {
   'studio.publish.tooManyScenes':
     'गैलरी में और समीक्षा में आपके {count} सीन हैं — एक सदस्य के लिए यही सीमा है। नया सीन प्रकाशित करने के लिए “आपके सीन” में किसी एक का प्रकाशन हटाएँ।',
   'studio.publish.signedOut': 'अपना सीन प्रकाशित करने के लिए साइन इन करें।',
+  'studio.publish.size': 'पैकेज का आकार',
+  'studio.publish.sizeOf': '{limit} में से {size}',
+  'studio.publish.sizeArtwork': 'आर्टवर्क',
+  'studio.publish.sizeModels': '3D मॉडल',
+  'studio.publish.sizeCode': 'कोड और सेटिंग्स',
+  'studio.publish.tooLarge':
+    'यह सीन {limit} से बड़ा है, जो किसी सीन को प्रकाशित करने की अधिकतम सीमा है। इसका आर्टवर्क छोटा करें (कम या छोटी तस्वीरें), या अपने AI से इसे हल्का करने को कहें।',
   'studio.publish.failed': 'सीन प्रकाशित नहीं हो सका। फिर कोशिश करें।',
   'studio.publish.officialCopy':
     'यह सीन ज़्यादातर FluidEQ के एक सीन जैसा ही है। उनसे आइडिया लें, लेकिन प्रकाशित करने से पहले सीन को अपना बनाएँ।',

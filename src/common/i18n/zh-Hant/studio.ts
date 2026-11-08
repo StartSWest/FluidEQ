@@ -166,6 +166,13 @@ const studio = {
   'studio.publish.tooManyScenes':
     '您在相簿中擁有 {count} 場景或正在等待審核，這是一名成員可以擁有的最多場景。取消發布您的場景中的場景以發布新場景。',
   'studio.publish.signedOut': '登入以發布您的場景。',
+  'studio.publish.size': '套件大小',
+  'studio.publish.sizeOf': '{size} / {limit}',
+  'studio.publish.sizeArtwork': '美術圖',
+  'studio.publish.sizeModels': '3D 模型',
+  'studio.publish.sizeCode': '程式碼與設定',
+  'studio.publish.tooLarge':
+    '此場景超過了 {limit}，即場景可發佈的上限。請縮小其美術圖（減少圖片或使用更小的圖片），或請你的 AI 為它瘦身。',
   'studio.publish.failed': '該場景無法發布。再試一次。',
   'studio.publish.officialCopy':
     '該場景大部分是 FluidEQ 自己的場景之一。從他們那裡獲取想法，但在發布之前將場景變成你自己的。',

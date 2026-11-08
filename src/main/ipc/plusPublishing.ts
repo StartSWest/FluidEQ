@@ -11,6 +11,7 @@ import {
   type ISceneSettings,
 } from '../../common/sceneSettings';
 import type { IScenePack } from '../../common/scenePacks';
+import { tooLargeToPublish } from '../../common/scenePackSize';
 import {
   readVersionNote,
   versionToPublish,
@@ -81,7 +82,12 @@ export type TPublishOutcome =
   | { ok: true; review?: 'pending' }
   | {
       ok: false;
-      reason: TPublishFailure | 'no-build' | 'no-picture' | 'inspect-only';
+      reason:
+        | TPublishFailure
+        | 'no-build'
+        | 'no-picture'
+        | 'inspect-only'
+        | 'too-large';
     };
 
 export type TUnpublishOutcome =
@@ -372,6 +378,11 @@ export const registerPlusPublishingIpc = ({
         const build = await readProject(folder);
         if (!build.ok) {
           return { ok: false, reason: 'no-build' };
+        }
+        // Past what a member may publish (`scenePackSize.ts`): refused here,
+        // before anything is sent, as the dialog already says.
+        if (tooLargeToPublish(build.pack)) {
+          return { ok: false, reason: 'too-large' };
         }
         const sceneId = build.pack.id;
         // The account the server will record the agreement for is the one this

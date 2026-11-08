@@ -187,6 +187,13 @@ const studio = {
   'studio.publish.tooManyScenes':
     'Tienes {count} escenas en la galería o en revisión, el máximo por miembro. Retira una en «Tus escenas» para publicar una nueva.',
   'studio.publish.signedOut': 'Inicia sesión para publicar tu escena.',
+  'studio.publish.size': 'Tamaño del paquete',
+  'studio.publish.sizeOf': '{size} de {limit}',
+  'studio.publish.sizeArtwork': 'Arte',
+  'studio.publish.sizeModels': 'Modelos 3D',
+  'studio.publish.sizeCode': 'Código y ajustes',
+  'studio.publish.tooLarge':
+    'Esta escena supera {limit}, lo máximo con que se puede publicar una escena. Haz su arte más ligero (menos imágenes o más pequeñas) o pídele a tu IA que la aligere.',
   'studio.publish.failed':
     'No se pudo publicar la escena. Vuelve a intentarlo.',
   'studio.publish.officialCopy':

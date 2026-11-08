@@ -183,6 +183,13 @@ const studio = {
   'studio.publish.tooManyScenes':
     'У вас {count} сцен в галерее или на проверке — это предел для одного участника. Снимите одну с публикации в разделе «Ваши сцены», чтобы опубликовать новую.',
   'studio.publish.signedOut': 'Войдите, чтобы опубликовать сцену.',
+  'studio.publish.size': 'Размер пакета',
+  'studio.publish.sizeOf': '{size} из {limit}',
+  'studio.publish.sizeArtwork': 'Графика',
+  'studio.publish.sizeModels': '3D-модели',
+  'studio.publish.sizeCode': 'Код и настройки',
+  'studio.publish.tooLarge':
+    'Эта сцена больше {limit} — предела для публикации сцены. Уменьшите графику (меньше изображений или изображения меньшего размера) или попросите ИИ облегчить её.',
   'studio.publish.failed': 'Не удалось опубликовать сцену. Попробуйте ещё раз.',
   'studio.publish.officialCopy':
     'Эта сцена почти целиком повторяет одну из сцен FluidEQ. Берите из них идеи, но сделайте сцену своей, прежде чем публиковать её.',

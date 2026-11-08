@@ -183,6 +183,13 @@ const studio = {
   'studio.publish.tooManyScenes':
     '갤러리에 {count} 장면이 있거나 검토 대기 중입니다. 회원 한 명이 가질 수 있는 최대 장면입니다. 새 장면을 게시하려면 장면에서 게시를 취소하세요.',
   'studio.publish.signedOut': '장면을 게시하려면 로그인하세요.',
+  'studio.publish.size': '패키지 크기',
+  'studio.publish.sizeOf': '{size} / {limit}',
+  'studio.publish.sizeArtwork': '아트워크',
+  'studio.publish.sizeModels': '3D 모델',
+  'studio.publish.sizeCode': '코드 및 설정',
+  'studio.publish.tooLarge':
+    '이 장면은 게시할 수 있는 최대 크기인 {limit}를 넘습니다. 아트워크를 줄이거나(이미지 수를 줄이거나 더 작게) AI에게 가볍게 만들어 달라고 요청하세요.',
   'studio.publish.failed': '장면을 게시할 수 없습니다. 다시 시도해 보세요.',
   'studio.publish.officialCopy':
     '이 장면의 대부분은 FluidEQ의 장면 중 하나입니다. 그들로부터 아이디어를 얻고, 게시하기 전에 장면을 자신만의 것으로 만드십시오.',

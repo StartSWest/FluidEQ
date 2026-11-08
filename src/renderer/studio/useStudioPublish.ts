@@ -1,5 +1,6 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
+import { formatPackBytes, MAX_PUBLISH_BYTES } from 'common/scenePackSize';
 import {
   heldVersionOf,
   type IPublishedScene,
@@ -53,12 +54,14 @@ const PUBLISH_FAILURES: Record<string, TranslationKey> = {
   'taken-down': 'studio.publish.takenDown',
   deleted: 'studio.publish.deleted',
   'inspect-only': 'studio.inspect.locked',
+  'too-large': 'studio.publish.tooLarge',
   server: 'studio.publish.failed',
 };
 
 /** The numbers a refusal's sentence names, where it names one. */
 const PUBLISH_FAILURE_VARS: Partial<Record<string, Record<string, string>>> = {
   'too-many-scenes': { count: String(PLUS_MAX_PUBLISHED_SCENES) },
+  'too-large': { limit: formatPackBytes(MAX_PUBLISH_BYTES) },
 };
 
 /**

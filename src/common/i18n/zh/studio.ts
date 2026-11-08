@@ -166,6 +166,13 @@ const studio = {
   'studio.publish.tooManyScenes':
     '你在画廊中和审核中的场景共有 {count} 个，已达到每位成员的上限。请在“你的场景”中取消发布一个，才能发布新的场景。',
   'studio.publish.signedOut': '请登录后发布你的场景。',
+  'studio.publish.size': '包大小',
+  'studio.publish.sizeOf': '{size} / {limit}',
+  'studio.publish.sizeArtwork': '美术图',
+  'studio.publish.sizeModels': '3D 模型',
+  'studio.publish.sizeCode': '代码和设置',
+  'studio.publish.tooLarge':
+    '此场景超过了 {limit}，即场景可发布的上限。请缩小其美术图（减少图片或使用更小的图片），或让你的 AI 为它瘦身。',
   'studio.publish.failed': '无法发布场景。请重试。',
   'studio.publish.officialCopy':
     '这个场景的大部分内容与 FluidEQ 的某个场景相同。可以从中汲取灵感，但请先把它变成你自己的场景再发布。',

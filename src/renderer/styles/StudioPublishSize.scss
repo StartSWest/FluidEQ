@@ -1,0 +1,151 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The scene's weight on the publish screen (`StudioPublishSize.tsx`). In the
+// right column's free cell under the categories while the screen has two
+// columns; at the end, by the Publish button, when it has one.
+.studio-publish-size {
+  display: grid;
+  grid-row: 3;
+  grid-column: 2;
+  align-self: start;
+  gap: 8px;
+  min-width: 0;
+
+  @container publish (max-width: 1000px) {
+    grid-row: auto;
+    grid-column: 1;
+  }
+}
+
+.studio-publish-size__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.studio-publish-size__total {
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+
+  .is-over & {
+    color: $red;
+  }
+}
+
+// The parts side by side over a track the length of the limit.
+.studio-publish-size__bar {
+  position: relative;
+  display: flex;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: $surface-well;
+  box-shadow: inset 0 0 0 1px $card-edge;
+}
+
+.studio-publish-size__part {
+  height: 100%;
+  transition: width $motion-base $ease-out;
+
+  & + & {
+    box-shadow: inset 1px 0 0 rgba($black, 0.45);
+  }
+
+  // The window colours' accent for the part that is nearly always the most
+  // of it, their softer blue beside it.
+  &.is-artwork {
+    background: $secondary-default;
+  }
+
+  &.is-models {
+    background: $active;
+  }
+
+  &.is-rest {
+    background: color-mix(in srgb, $text-primary 45%, transparent);
+  }
+
+  // Past the limit the whole bar says so.
+  .is-over & {
+    background: color-mix(in srgb, $red 80%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+// Where the limit falls, when the scene runs past it.
+.studio-publish-size__limit {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  margin-left: -1px;
+  background: $text-primary;
+}
+
+.studio-publish-size__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: $text-dim;
+  font-size: $text-micro;
+
+  // An item wraps whole, never its name from its weight.
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+
+    &::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+    }
+
+    &.is-artwork::before {
+      background: $secondary-default;
+    }
+
+    &.is-models::before {
+      background: $active;
+    }
+
+    &.is-rest::before {
+      background: color-mix(in srgb, $text-primary 45%, transparent);
+    }
+  }
+}
+
+.studio-publish-size__bytes {
+  color: $text-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+.studio-publish-size__over {
+  margin: 0;
+  color: $red;
+  font-size: $text-small;
+  line-height: 1.4;
+}

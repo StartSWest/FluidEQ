@@ -189,6 +189,13 @@ const studio = {
   'studio.publish.tooManyScenes':
     'Vous avez {count} scènes dans la galerie ou en examen, le maximum par membre. Dépubliez-en une dans « Vos scènes » pour en publier une nouvelle.',
   'studio.publish.signedOut': 'Connectez-vous pour publier votre scène.',
+  'studio.publish.size': 'Taille du paquet',
+  'studio.publish.sizeOf': '{size} sur {limit}',
+  'studio.publish.sizeArtwork': 'Illustrations',
+  'studio.publish.sizeModels': 'Modèles 3D',
+  'studio.publish.sizeCode': 'Code et réglages',
+  'studio.publish.tooLarge':
+    'Cette scène dépasse {limit}, la taille maximale pour publier une scène. Allégez ses illustrations (moins d’images ou des images plus petites), ou demandez à votre IA de l’alléger.',
   'studio.publish.failed': 'La scène n’a pas pu être publiée. Réessayez.',
   'studio.publish.officialCopy':
     'Cette scène est pour l’essentiel une scène de FluidEQ. Inspirez-vous-en, mais faites-en votre propre scène avant de la publier.',

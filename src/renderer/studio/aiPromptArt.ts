@@ -3,6 +3,10 @@ import {
   MAX_SCENE_ARTWORK_EDGE,
   MAX_SCENE_ARTWORK_PIXELS,
 } from 'common/sceneArtwork';
+import { MAX_PUBLISH_BYTES } from 'common/scenePackSize';
+
+/** The most a published scene weighs, in whole megabytes, for the brief. */
+const PUBLISH_MB = MAX_PUBLISH_BYTES / (1024 * 1024);
 
 /**
  * The two parts of the Studio's AI prompt (`aiPrompt.ts`) about pictures in
@@ -111,6 +115,11 @@ people, its hanami a garden of cherry trees. So:
   blurred seam. Standing on water, sink its thin, see-through bottom rows
   just under the waterline, so the picture and its reflection meet without
   a line.
+- THE WHOLE SCENE PUBLISHES AT ${PUBLISH_MB} MB AT MOST - artwork, models,
+  code and all - because everybody who picks it downloads all of it, and
+  the publish screen refuses more. The artwork is nearly all of it: give
+  each picture the pixels it shows on screen and no more, share one strip
+  for a far background, and pack the atlas no larger than its pieces need.
 - LIGHT A PHOTOGRAPH AS PHOTOGRAPHED by day. By night darken it, tint it
   toward the sky, and let its own lights glow - windows and lanterns are the
   pixels where red stands well above blue. Never relight a photograph with

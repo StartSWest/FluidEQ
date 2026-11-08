@@ -96,7 +96,20 @@ CRAFT
   fwidth(d), or about 1.5 / uResolution.y - and never a bare step().
 - Depth: what is far fades toward the colour of the air, fog lies in the low
   places, a vignette holds the eye, and the far layer is softer than the
-  near one.
+  near one. Build in layers: a dark near layer that frames the view, partly
+  cut by the edge, the subject in the middle, the distance hazed - and the
+  same things repeated smaller as they go back, which is what says how big
+  the place is.
+- GROUND EVERYTHING. Whatever stands on something touches it: a tree's base,
+  a rock, a wall, a person, a fish over the sand gets a contact shadow -
+  dark and tight where it meets the ground, gone within a short distance -
+  and creases where two things meet are darker (ambient occlusion). A
+  moving thing carries its shadow with it, softer and fainter the higher it
+  is. A picture laid into the scene never brings one: draw it under it, or
+  it floats. Keep it subtle: darkening every crevice looks dirty.
+- ONE LIGHT. Every shadow, highlight and rim agrees on where the light comes
+  from and how warm it is; shadows fall away from it. A picture lit from the
+  other side is mirrored or replaced, never left to argue with the scene.
 - Surfaces: diffuse light plus a highlight that sharpens as the material gets
   smoother, a Fresnel rim, a little ambient occlusion in the creases, soft
   shadows, and noise in colour and roughness so nothing is uniformly flat.
@@ -104,7 +117,11 @@ CRAFT
   the secondary parts - tail, ears, hair, cloth - lag behind the main motion.
   Nothing moves linearly, and nothing pops.
 - The frame is a composition: the subject on a strong point, the eye led to
-  it by light and contrast, the edges quieter than the centre.
+  it by light and contrast, the edges quieter than the centre. It must read
+  in grey first - squinted, the subject is the strongest light against the
+  strongest dark - with light and shadow on opposite sides of warm and
+  cool; the sharpest edges and finest detail sit at the subject and soften
+  away from it.
 - Soft things keep soft edges: an aurora's lower edge, a light's falloff on
   the ground, mist. Cut sharply, a soft thing reads as a solid one - a
   hill's rim, a line drawn across the snow.

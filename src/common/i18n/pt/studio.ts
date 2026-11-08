@@ -184,6 +184,13 @@ const studio = {
   'studio.publish.tooManyScenes':
     'Você tem {count} cenas na galeria ou em revisão, o máximo por membro. Despublique uma em “Suas cenas” para publicar uma nova.',
   'studio.publish.signedOut': 'Entre para publicar sua cena.',
+  'studio.publish.size': 'Tamanho do pacote',
+  'studio.publish.sizeOf': '{size} de {limit}',
+  'studio.publish.sizeArtwork': 'Arte',
+  'studio.publish.sizeModels': 'Modelos 3D',
+  'studio.publish.sizeCode': 'Código e configurações',
+  'studio.publish.tooLarge':
+    'Esta cena passa de {limit}, o máximo com que uma cena pode ser publicada. Deixe a arte mais leve (menos imagens ou imagens menores) ou peça à sua IA para enxugá-la.',
   'studio.publish.failed': 'Não foi possível publicar a cena. Tente de novo.',
   'studio.publish.officialCopy':
     'Quase toda esta cena é uma das cenas do FluidEQ. Tire ideias delas, mas faça a cena ser sua antes de publicá-la.',

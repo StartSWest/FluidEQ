@@ -19,6 +19,7 @@ import {
   MAX_STUDIO_PROMPT,
   parseStudioNotes,
 } from '../../../common/studioNotes';
+import { MAX_PUBLISH_BYTES } from '../../../common/scenePackSize';
 import { promptWithIdea } from '../../../renderer/studio/aiPrompt';
 
 /**
@@ -46,6 +47,18 @@ describe('the Studio’s brief for a member’s AI', () => {
     expect(brief).toContain(`at most ${MAX_POINTER_TRAIL} pieces`);
     expect(brief).toContain(`at most ${MAX_POINTER_BURST}`);
     expect(brief).toContain(`${MAX_POINTER_PIECES} pieces in the air`);
+  });
+
+  it('grounds what stands and moves, under one light, and keeps to the publishing weight', () => {
+    // Ivan, 2026-11-07: "moving objects lack occlusion shadows ... on tree
+    // bases, rocks", and "we limit to a reasonable size".
+    expect(brief).toContain('GROUND EVERYTHING');
+    expect(brief).toMatch(/contact shadow/);
+    expect(brief).toMatch(/carries its shadow with it/);
+    expect(brief).toContain('ONE LIGHT');
+    expect(brief).toContain(
+      `THE WHOLE SCENE PUBLISHES AT ${MAX_PUBLISH_BYTES / (1024 * 1024)} MB AT MOST`,
+    );
   });
 
   it('asks for a framing, so a narrow panel slides the picture', () => {

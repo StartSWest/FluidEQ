@@ -10,6 +10,7 @@ import { createPortal } from 'react-dom';
 import { PLUS_CATEGORIES, type TPlusCategory } from 'common/plusGallery';
 import type { IScenePack } from 'common/scenePacks';
 import { normalizeScenePack } from 'common/scenePacks';
+import { formatPackBytes, scenePackSize } from 'common/scenePackSize';
 import { NEUTRAL_RESPONSE } from 'common/sceneResponse';
 import { MAX_VERSION_NOTE, versionToPublish } from 'common/sceneVersionNote';
 import { requestAccountPanel } from '../account/accountPanel';
@@ -24,6 +25,7 @@ import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import StudioPublishCamera from './StudioPublishCamera';
 import StudioPublishCovers from './StudioPublishCovers';
+import StudioPublishSize from './StudioPublishSize';
 import type {
   IPublishDraft,
   IPreparedPublishPreview,
@@ -89,8 +91,12 @@ export default function StudioPublishDialog({
   onPublish,
   onCancel,
 }: IStudioPublishDialogProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { publishesWithoutReview } = useAddonCapabilities();
+  // The scene as it is built, which is what main weighs before it sends it
+  // (`tooLargeToPublish`): past the limit, the press is held and says why.
+  const size = useMemo(() => scenePackSize(pack), [pack]);
+  const tooLarge = size.total > size.limit;
   const me = useAccount().identity?.id;
   const publicationPack = useMemo(
     () =>
@@ -169,7 +175,11 @@ export default function StudioPublishDialog({
   // (`useAddonCapabilities`) is told so.
   const reviewed = !publishesWithoutReview;
   let publishHint: string | undefined;
-  if (!previewReady) {
+  if (tooLarge) {
+    publishHint = t('studio.publish.tooLarge', {
+      limit: formatPackBytes(size.limit, locale),
+    });
+  } else if (!previewReady) {
     publishHint = t('studio.publish.videoRequired');
   } else if (!category) {
     publishHint = t('studio.publish.pickCategory');
@@ -293,10 +303,16 @@ export default function StudioPublishDialog({
                 type="button"
                 className={`button small${running ? ' is-running' : ''}`}
                 aria-busy={running}
-                disabled={!category || !previewReady || running}
+                disabled={!category || !previewReady || running || tooLarge}
                 title={publishHint}
                 onClick={() => {
-                  if (!category || running || !preview || !previewReady) {
+                  if (
+                    !category ||
+                    running ||
+                    !preview ||
+                    !previewReady ||
+                    tooLarge
+                  ) {
                     return;
                   }
                   if (needsNote) {
@@ -373,6 +389,8 @@ export default function StudioPublishDialog({
               ))}
             </div>
           </div>
+
+          <StudioPublishSize size={size} />
 
           {update && (
             <div className="studio-publish__note">

@@ -186,6 +186,13 @@ const studio = {
   'studio.publish.tooManyScenes':
     'ギャラリーと審査中を合わせて {count} 個のシーンがあり、1 人あたりの上限に達しています。新しいシーンを公開するには、「あなたのシーン」でどれかの公開を停止してください。',
   'studio.publish.signedOut': 'シーンを公開するにはサインインしてください。',
+  'studio.publish.size': 'パッケージのサイズ',
+  'studio.publish.sizeOf': '{size} / {limit}',
+  'studio.publish.sizeArtwork': 'アートワーク',
+  'studio.publish.sizeModels': '3D モデル',
+  'studio.publish.sizeCode': 'コードと設定',
+  'studio.publish.tooLarge':
+    'このシーンは公開できる上限の {limit} を超えています。アートワークを小さくする（画像を減らす・小さくする）か、AI に軽量化を頼んでください。',
   'studio.publish.failed':
     'シーンを公開できませんでした。もう一度お試しください。',
   'studio.publish.officialCopy':

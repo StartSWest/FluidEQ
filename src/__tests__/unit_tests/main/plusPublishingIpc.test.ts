@@ -25,6 +25,7 @@ jest.mock('electron', () => ({
 /* eslint-disable import/first -- the electron mock must be installed first */
 import type { IAccountConfig } from '../../../common/accountConfig';
 import { MAX_VERSION_NOTE } from '../../../common/sceneVersionNote';
+import { MAX_PUBLISH_BYTES } from '../../../common/scenePackSize';
 import {
   registerPlusPublishingIpc,
   type TPublishedSettingsOutcome,
@@ -527,6 +528,31 @@ describe('publishing from the Studio', () => {
     expect(await invoke('studio-publish', 4, 'space', webpBytes())).toEqual({
       ok: false,
       reason: 'signed-out',
+    });
+    expect(calls).toEqual([]);
+  });
+
+  it('refuses a scene past the publishing limit before sending anything', async () => {
+    const read = projects.readProject;
+    jest
+      .spyOn(projects, 'readProject')
+      .mockImplementationOnce(async (project) => {
+        const build = await read(project);
+        return build.ok
+          ? {
+              ...build,
+              // Code alone past the limit: what is measured is the whole.
+              pack: {
+                ...build.pack,
+                source: 'x'.repeat(MAX_PUBLISH_BYTES + 1),
+              },
+            }
+          : build;
+      });
+    setup();
+    expect(await invoke('studio-publish', 4, 'space', webpBytes())).toEqual({
+      ok: false,
+      reason: 'too-large',
     });
     expect(calls).toEqual([]);
   });

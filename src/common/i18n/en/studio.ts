@@ -191,6 +191,13 @@ const studio = {
   'studio.publish.tooManyScenes':
     'You have {count} scenes in the gallery or waiting for review, the most one member can have. Unpublish one in Your scenes to publish a new one.',
   'studio.publish.signedOut': 'Sign in to publish your scene.',
+  'studio.publish.size': 'Package size',
+  'studio.publish.sizeOf': '{size} of {limit}',
+  'studio.publish.sizeArtwork': 'Artwork',
+  'studio.publish.sizeModels': '3D models',
+  'studio.publish.sizeCode': 'Code and settings',
+  'studio.publish.tooLarge':
+    'This scene is over {limit}, the most a scene can be published at. Make its artwork smaller (fewer or smaller pictures), or ask your AI to slim it down.',
   'studio.publish.failed': 'The scene could not be published. Try again.',
   'studio.publish.officialCopy':
     'Most of this scene is one of FluidEQ’s own. Take ideas from them, but make the scene your own before you publish it.',
