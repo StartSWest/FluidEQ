@@ -304,6 +304,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
+  // A row with something to say about itself at its end (a state): a third
+  // column, so the name and its line keep their width and truncate first.
+  &.has-trailing {
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+  }
+
+  &.has-trailing.is-locked {
+    grid-template-columns: 18px minmax(0, 1fr) auto auto;
+  }
+
   // A project listed for when there is Plus: named and placed like the
   // others, in the muted ink, with the lock in a third column at the row's
   // end. Pressed, it opens Plus, so it lights up like every other row.

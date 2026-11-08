@@ -153,16 +153,25 @@ export interface ISceneRunnerOptions {
    */
   onLoaded?: (pack: IScenePack) => void;
   /**
-   * Whether a version is on its way that is not on the canvas yet: from the
-   * moment it is asked for — built beside a running one, built with nothing on
-   * screen, or put away until somebody can see it — until its first frame
-   * with anything in it is drawn, or until the runner gives up on it, which it
-   * says before telling the source why.
+   * Whether the canvas is waiting for a picture: from the moment a version is
+   * asked for with nothing of this scene on screen — the first build, a new
+   * scene, or one put away until somebody can see it — until its first frame
+   * with anything in it is drawn, or until the runner gives up on it, which
+   * it says before telling the source why.
    * Nothing else knows: a worker let go while the window was covered and built
    * again when it came back leaves a component that only watched for its
    * first frame believing it was drawing all along.
    */
   onWaiting?: (waiting: boolean) => void;
+  /**
+   * Whether a new version of the scene on screen is being built beside it:
+   * the running picture goes on playing meanwhile and is replaced the moment
+   * the new one is ready, or stays if the new one does not compile. Not a
+   * wait — there is a picture — so a place that covers the canvas while it
+   * waits keeps it in view for this (Ivan, 2026-11-07: "can be reload on hot
+   * so we see them more smolty").
+   */
+  onUpdating?: (updating: boolean) => void;
   /**
    * The viewer's hands on this surface (`sceneInteraction.ts`): the pointer,
    * taps and the camera the scene's `camera` limits allow. Absent, a scene

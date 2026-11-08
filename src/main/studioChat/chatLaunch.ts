@@ -31,16 +31,22 @@ import { startClaudeCode } from './claudeCode';
  *   by the member through Claude Code's own sign-in. It never reads, keeps or
  *   sends that sign-in, and pays for or meters nothing: the use is the
  *   member's own plan's.
- * - Claude works in the open project's folder and nowhere else: its tools are
- *   reading, searching and writing files there (`--permission-mode dontAsk`
- *   refuses everything else without asking), and FluidEQ's tools on the
- *   chat's own door (`chatServer.ts`): look at and hear the scene, and make
- *   pictures with the member's ChatGPT, which asks the member every time
- *   (`chatPictures.ts`).
+ * - Claude has the member's Claude Code as they set it up — its tools, their
+ *   plugins, skills and tool servers (Ivan, 2026-11-07: "claude need to have
+ *   access to all plugins that claude has") — and FluidEQ's own on the chat's
+ *   own door (`chatServer.ts`): look at and hear the scene, lay out its
+ *   artwork. Reading, searching and writing in the project's folder, and
+ *   FluidEQ's tools, are allowed; so is whatever the member's own settings
+ *   allow. Everything else is asked of the member, on a card in the chat,
+ *   before it runs (`chatPermission.ts`), in Claude Code's own manual mode —
+ *   never a mode the member's settings may have chosen that asks nobody,
+ *   because the chat reads files in a project anybody may have shared.
+ *   It used to be held to the five file tools, no plugins and no tool server
+ *   of the member's, with everything else refused unasked: a member's own
+ *   picture plugin could not be reached from the chat at all.
  */
 
-/** The tools Claude Code is given, and what each may touch. */
-const TOOLS = 'Read,Edit,Write,Glob,Grep';
+/** Allowed without a card: the project's files, and FluidEQ's own tools. */
 const ALLOWED = [
   'Read(./**)',
   'Edit(./**)',
@@ -115,12 +121,12 @@ export const launchClaudeCode = ({
     '--append-system-prompt-file',
     briefFile,
     '--permission-mode',
-    'dontAsk',
-    '--tools',
-    TOOLS,
+    'manual',
+    // Claude Code's questions come to the chat over its own stream.
+    '--permission-prompt-tool',
+    'stdio',
     '--allowedTools',
     ...ALLOWED,
-    '--strict-mcp-config',
     ...(model === 'default'
       ? []
       : ['--model', STUDIO_CHAT_MODEL_VERSIONS[model].id]),

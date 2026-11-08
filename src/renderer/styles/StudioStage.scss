@@ -589,6 +589,45 @@ $stage-edge: $border-menu;
   line-height: 1.35;
 }
 
+// A save's new version building beside the running picture (Ivan,
+// 2026-11-07: "can be reload on hot so we see them more smolty"): a word on
+// the plate with a turning ring, where the whole stage used to be covered
+// with the loading card until the new version's first frame.
+.studio-stage__updating {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  color: $secondary-light;
+  pointer-events: none;
+  font-size: $text-micro;
+  font-weight: $weight-medium;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.studio-stage__updating-ring {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: studio-stage-updating 0.9s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    border-color: currentColor;
+  }
+}
+
+@keyframes studio-stage-updating {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
 // The frame cost and rate, on a line of their own under the words so a
 // narrow side column never has to fit both beside the light. Empty, and so
 // without height, until the first frame is timed.

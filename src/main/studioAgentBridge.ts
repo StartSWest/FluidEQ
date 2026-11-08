@@ -35,18 +35,6 @@ export const studioAgentBridge = {
    */
   studioAgentReady: (answers?: { hears: boolean }): Promise<void> =>
     ipcRenderer.invoke('studio-agent-ready', answers),
-  /** The project the member's AI is looking at, by its Studio id. */
-  onStudioAgentShow: (listener: (projectId: string) => void) => {
-    const wrapped = (_event: IpcRendererEvent, projectId: unknown) => {
-      if (typeof projectId === 'string') {
-        listener(projectId);
-      }
-    };
-    ipcRenderer.on('studio-agent-show', wrapped);
-    return () => {
-      ipcRenderer.removeListener('studio-agent-show', wrapped);
-    };
-  },
   onStudioAgentDraw: (listener: (ask: IStudioAgentDrawAsk) => void) => {
     const wrapped = (_event: IpcRendererEvent, ask: IStudioAgentDrawAsk) =>
       listener(ask);

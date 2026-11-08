@@ -68,7 +68,39 @@ interface IChatState {
   zoom: number;
   /** The Claude plan's limits, as Claude Code last reported them. */
   limits?: IStudioChatLimits;
+  /**
+   * What each project's chat is doing, whether or not it is open (Ivan,
+   * 2026-11-07: "I should be able to keep working in parallel on every
+   * scene"): working while Claude answers, replied once an answer finished
+   * on a project the member was not on, until that project is opened.
+   */
+  work: Readonly<Record<string, TStudioChatWork>>;
 }
+
+export type TStudioChatWork = 'working' | 'replied';
+
+/** A project's chat after main said whether it is busy. */
+const workAfter = (
+  work: Readonly<Record<string, TStudioChatWork>>,
+  projectId: string,
+  busy: boolean,
+  open: boolean,
+): Readonly<Record<string, TStudioChatWork>> => {
+  if (busy) {
+    return work[projectId] === 'working'
+      ? work
+      : { ...work, [projectId]: 'working' };
+  }
+  if (!open && work[projectId] === 'working') {
+    return { ...work, [projectId]: 'replied' };
+  }
+  if (open && work[projectId] !== undefined) {
+    const rest = { ...work };
+    delete rest[projectId];
+    return rest;
+  }
+  return work;
+};
 
 const storedModel = (): TStudioChatModel => {
   const stored = readStored(MODEL_KEY);
@@ -96,6 +128,7 @@ const initialState = (): IChatState => ({
   codexSigningIn: false,
   model: storedModel(),
   effort: storedEffort(),
+  work: {},
 });
 
 let state: IChatState = initialState();
@@ -130,10 +163,16 @@ const listen = () => {
   const api = bridge();
   const stops = [
     api?.onStudioChatEntry?.(({ projectId, entry, busy }) => {
-      if (state.chat?.projectId !== projectId) {
+      const open = state.chat?.projectId === projectId;
+      const work = workAfter(state.work, projectId, busy, open);
+      if (!state.chat || !open) {
+        if (work !== state.work) {
+          set({ work });
+        }
         return;
       }
       set({
+        work,
         chat: {
           ...state.chat,
           busy,
@@ -221,7 +260,11 @@ export const retryStudioChat = (folder: string) =>
 /** The open project's conversation, as main keeps it. */
 export const loadStudioChat = async () => {
   const chat = await bridge()?.studioChatLoad?.();
-  set({ chat: chat ?? undefined, ask: chat?.ask });
+  // Opened, its reply is seen; still answering, it goes on saying so.
+  const work = chat
+    ? workAfter(state.work, chat.projectId, chat.busy, true)
+    : state.work;
+  set({ chat: chat ?? undefined, ask: chat?.ask, work });
 };
 
 /** The Claude plan's limits as last reported, kept from earlier sittings too. */

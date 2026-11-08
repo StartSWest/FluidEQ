@@ -117,6 +117,11 @@ const studioChat = {
   'studioChat.ask.makeIt': '作成する',
   'studioChat.ask.allowChat': 'このチャットでは許可',
   'studioChat.ask.cost': 'ChatGPT プランを使います。1 分ほどかかります。',
+  'studioChat.ask.toolTitle': 'Claude に {tool} の使用を許可しますか？',
+  'studioChat.ask.toolBody':
+    'あなた自身の Claude Code のツールまたはプラグインです。許可した場合にのみ、このコンピューター上であなたのアカウントで実行されます。',
+  'studioChat.ask.allow': '許可',
+  'studioChat.ask.deny': '許可しない',
   'studioChat.chatgptOn': 'ChatGPT の画像はオンです。',
   'studioChat.chatgptTurnOff': 'オフにする',
   'studioChat.past.title': '過去のチャット',

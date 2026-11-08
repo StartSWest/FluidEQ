@@ -40,6 +40,8 @@ export interface IRichPickEntry {
    * pick with whatever unlocks it, rather than the row doing nothing.
    */
   locked?: string;
+  /** Something the row says about itself at its end: a state, never an action. */
+  trailing?: ReactNode;
 }
 
 interface IRichPickProps {
@@ -380,7 +382,9 @@ const RichPick = ({
               aria-checked={entry.id === activeId}
               className={`rich-pick__item${
                 entry.id === activeId ? ' is-active' : ''
-              }${entry.locked ? ' is-locked' : ''}`}
+              }${entry.locked ? ' is-locked' : ''}${
+                entry.trailing ? ' has-trailing' : ''
+              }`}
               title={entry.locked}
               onClick={() => pick(entry.id)}
               onPointerEnter={
@@ -393,6 +397,7 @@ const RichPick = ({
                 <strong>{entry.name}</strong>
                 <small>{entry.hint}</small>
               </span>
+              {entry.trailing}
               {entry.locked && (
                 <Glyph name="lock" className="rich-pick__item-lock" />
               )}

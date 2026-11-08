@@ -2,6 +2,7 @@ const studio = {
   'studio.notes.failed':
     'प्रोजेक्ट का विवरण सेव नहीं हो सका। फिर से कोशिश करें।',
   'studio.stage.loading': 'सीन लोड हो रहा है…',
+  'studio.stage.updating': 'अपडेट हो रहा है…',
   'studio.picture.download': 'चित्र सहेजें',
   'studio.picture.downloaded': 'चित्र सहेजा गया',
   'studio.picture.downloadFailed': 'चित्र सहेजा नहीं जा सका।',
@@ -59,6 +60,10 @@ const studio = {
   'studio.project.none': 'प्रोजेक्ट चुनें',
   'studio.project.empty': 'अभी कोई प्रोजेक्ट नहीं',
   'studio.project.add': 'फ़ोल्डर खोलें…',
+  'studio.project.aiWorking': 'AI काम कर रहा है',
+  'studio.project.aiReplied': 'AI ने जवाब दिया',
+  'studio.project.aiWorkingElsewhere': 'एक AI दूसरे सीन पर काम कर रहा है',
+  'studio.project.aiRepliedElsewhere': 'दूसरे सीन के AI ने जवाब दिया',
   'studio.project.forget': '{name} को सूची से हटाएँ',
   'studio.project.new': 'नया प्रोजेक्ट…',
   'studio.project.forgetHint':

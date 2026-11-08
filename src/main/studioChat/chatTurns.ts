@@ -238,7 +238,11 @@ const createChatTurns = ({
     onEvent: (
       projectId: string,
       session: IChatSession,
-      event: Exclude<TChatStreamEvent, { type: 'session' }>,
+      // A permission question is the member's to answer (`chatPermission.ts`).
+      event: Exclude<
+        TChatStreamEvent,
+        { type: 'session' } | { type: 'permission' }
+      >,
     ) => {
       if (event.type === 'read') {
         read(projectId, session, event);

@@ -54,7 +54,21 @@ export type TChatStreamEvent =
       /** The first picture it carried, as a data URL. */
       picture?: string;
     }
-  | { type: 'end'; failure?: TStudioChatFailure };
+  | { type: 'end'; failure?: TStudioChatFailure }
+  /**
+   * Claude Code asks whether a tool may run that neither the chat nor the
+   * member's own settings allow (`--permission-prompt-tool stdio`), and
+   * waits for the answer (`chatPermission.ts`).
+   */
+  | {
+      type: 'permission';
+      requestId: string;
+      tool: string;
+      /** What it is about to do, in a line the member can judge. */
+      detail: string;
+      /** The tool's input, handed back unchanged with a yes. */
+      input: Record<string, unknown>;
+    };
 
 /** Claude Code names FluidEQ's tools by the server they came from. */
 export const DOOR_SERVER = 'fluideq';
@@ -187,6 +201,57 @@ const systemEvents = (message: Record<string, unknown>): TChatStreamEvent[] => {
   return [];
 };
 
+/** Longest line of a tool's input the member is shown on its card. */
+const MAX_DETAIL = 600;
+
+/**
+ * What a tool asked about is about to do: its command, skill, address or
+ * file when the input names one, else Claude Code's own description of it,
+ * else its input as written.
+ */
+const detailOf = (
+  input: Record<string, unknown>,
+  description: unknown,
+): string => {
+  const named = [
+    input.command,
+    input.skill,
+    input.url,
+    input.file_path,
+    description,
+  ].find((value): value is string => typeof value === 'string' && value !== '');
+  return (named ?? JSON.stringify(input)).slice(0, MAX_DETAIL);
+};
+
+/** Claude Code asking the chat whether a tool may run, as an event. */
+const permissionEvents = (
+  message: Record<string, unknown>,
+): TChatStreamEvent[] => {
+  const { request } = message;
+  if (
+    typeof message.request_id !== 'string' ||
+    !isRecord(request) ||
+    request.subtype !== 'can_use_tool' ||
+    typeof request.tool_name !== 'string'
+  ) {
+    return [];
+  }
+  const input = isRecord(request.input) ? request.input : {};
+  const shown =
+    typeof request.display_name === 'string' && request.display_name
+      ? request.display_name
+      : request.tool_name;
+  return [
+    {
+      type: 'permission',
+      requestId: message.request_id,
+      tool: shown,
+      detail: detailOf(input, request.description),
+      input,
+    },
+  ];
+};
+
 /** The events one line of the stream holds; none for a line passed over. */
 export const readStreamLine = (line: string): TChatStreamEvent[] => {
   let message: unknown;
@@ -296,6 +361,8 @@ export const readStreamLine = (line: string): TChatStreamEvent[] => {
       return message.is_error === true || message.subtype !== 'success'
         ? [{ type: 'end', failure: failureOf(message.result) }]
         : [{ type: 'end' }];
+    case 'control_request':
+      return permissionEvents(message);
     default:
       return [];
   }

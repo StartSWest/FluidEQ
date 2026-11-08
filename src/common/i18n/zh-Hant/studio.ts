@@ -5,6 +5,7 @@ import type { Dictionary } from '../en';
 const studio = {
   'studio.notes.failed': '無法儲存專案描述。再試一次。',
   'studio.stage.loading': '載入場景...',
+  'studio.stage.updating': '正在更新…',
   'studio.picture.download': '儲存影像',
   'studio.picture.downloaded': '影像已儲存',
   'studio.picture.downloadFailed': '無法儲存影像。',
@@ -58,6 +59,10 @@ const studio = {
   'studio.project.none': '選擇一個專案',
   'studio.project.empty': '還沒有專案',
   'studio.project.add': '開啟資料夾...',
+  'studio.project.aiWorking': '人工智慧正在工作',
+  'studio.project.aiReplied': '人工智慧已回覆',
+  'studio.project.aiWorkingElsewhere': '有人工智慧正在處理另一個場景',
+  'studio.project.aiRepliedElsewhere': '另一個場景的人工智慧已回覆',
   'studio.project.forget': '從清單中刪除 {name}',
   'studio.project.new': '新專案…',
   'studio.project.forgetHint': '該資料夾及其檔案保留在您的電腦上。',

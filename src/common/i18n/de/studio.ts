@@ -2,6 +2,7 @@ const studio = {
   'studio.notes.failed':
     'Die Projektbeschreibung konnte nicht gespeichert werden. Versuchen Sie es erneut.',
   'studio.stage.loading': 'Szene wird geladen…',
+  'studio.stage.updating': 'Wird aktualisiert…',
   'studio.picture.download': 'Bild speichern',
   'studio.picture.downloaded': 'Bild gespeichert',
   'studio.picture.downloadFailed': 'Das Bild konnte nicht gespeichert werden.',
@@ -60,6 +61,12 @@ const studio = {
   'studio.project.none': 'Projekt wählen',
   'studio.project.empty': 'Noch kein Projekt',
   'studio.project.add': 'Ordner öffnen…',
+  'studio.project.aiWorking': 'KI arbeitet',
+  'studio.project.aiReplied': 'KI hat geantwortet',
+  'studio.project.aiWorkingElsewhere':
+    'Eine KI arbeitet an einer anderen Szene',
+  'studio.project.aiRepliedElsewhere':
+    'Die KI einer anderen Szene hat geantwortet',
   'studio.project.forget': '{name} aus der Liste entfernen',
   'studio.project.new': 'Neues Projekt…',
   'studio.project.forgetHint':

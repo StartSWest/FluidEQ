@@ -13,8 +13,8 @@ import {
  * Where each piece of a scene's own art goes in its one artwork image.
  *
  * The brief has always told the member's AI to pack its pictures itself,
- * with a script; Claude in the Studio's chat runs no scripts, so FluidEQ
- * does the arithmetic, by the same rules the brief states (`aiPromptArt.ts`):
+ * with a script; Claude in the Studio's chat runs a script only with the
+ * member's yes to each command, so FluidEQ does the arithmetic, by the same rules the brief states (`aiPromptArt.ts`):
  * every tile a gutter of its own wrapped pixels (32), every subject a clear
  * margin (16), so a distant mipmap never mixes two pieces; the image within
  * ARTWORK's limits; the member's photo places left exactly where they are.

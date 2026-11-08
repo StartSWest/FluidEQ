@@ -1,6 +1,7 @@
 const studio = {
   'studio.notes.failed': '无法保存项目描述，请重试。',
   'studio.stage.loading': '正在加载场景…',
+  'studio.stage.updating': '正在更新…',
   'studio.picture.download': '保存图片',
   'studio.picture.downloaded': '图片已保存',
   'studio.picture.downloadFailed': '无法保存图片。',
@@ -57,6 +58,10 @@ const studio = {
   'studio.project.none': '选择一个项目',
   'studio.project.empty': '还没有项目',
   'studio.project.add': '打开文件夹…',
+  'studio.project.aiWorking': 'AI 正在工作',
+  'studio.project.aiReplied': 'AI 已回复',
+  'studio.project.aiWorkingElsewhere': '有 AI 正在处理另一个场景',
+  'studio.project.aiRepliedElsewhere': '另一个场景的 AI 已回复',
   'studio.project.forget': '从列表中移除 {name}',
   'studio.project.new': '新建项目…',
   'studio.project.forgetHint': '文件夹及其中的文件会保留在你的电脑上。',

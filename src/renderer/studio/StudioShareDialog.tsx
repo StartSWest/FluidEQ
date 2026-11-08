@@ -5,7 +5,6 @@ import DialogFrame from '../components/DialogFrame';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import holdFocusReturn from '../utils/focusReturn';
-import { useStudioAgentHold } from './studioAgentHold';
 import '../styles/StudioDialogs.scss';
 
 interface IStudioShareDialogProps {
@@ -30,8 +29,6 @@ export default function StudioShareDialog({
   onCancel,
 }: IStudioShareDialogProps) {
   const { t } = useTranslation();
-  // Open on the Studio's project: its AI may not switch the Studio under it.
-  useStudioAgentHold(true);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const agreeRef = useRef<HTMLButtonElement>(null);
 

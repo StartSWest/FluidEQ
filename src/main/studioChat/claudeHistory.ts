@@ -191,7 +191,8 @@ export const readClaudeHistory = (
         reply &&
         event.type !== 'session' &&
         event.type !== 'read' &&
-        event.type !== 'end'
+        event.type !== 'end' &&
+        event.type !== 'permission'
       ) {
         reply = withEvent(reply, event);
       }

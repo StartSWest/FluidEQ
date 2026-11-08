@@ -29,6 +29,7 @@ import {
   type IChatMessage,
 } from './chatMessage';
 import createChatDrafts from './chatDraft';
+import { answerPermission } from './chatPermission';
 import { createChatPictures } from './chatPictures';
 import createChatQueue from './chatQueue';
 import createChatTurns from './chatTurns';
@@ -61,7 +62,7 @@ export interface IStudioChatDeps {
   userDataDir: string;
   getMainWindow: () => BrowserWindow | null | undefined;
   /** The open project, as the door finds it: the member's own and usable. */
-  agentProject(): TAgentProject;
+  agentProject(folder?: string): TAgentProject;
   /** The agent door's look and hear, carried on the chat's own door. */
   door: IStudioLook;
   version: string;
@@ -95,7 +96,7 @@ export const createStudioChat = ({
     root,
     pageOf,
     fromWindow,
-    project: agentProject,
+    projectAt: (folder) => agentProject(folder),
     signalOf: (projectId) =>
       sessions.get(projectId)?.controller?.signal ?? nothingRunning.signal,
     door,
@@ -205,6 +206,16 @@ export const createStudioChat = ({
           }
           return;
         }
+        if (event.type === 'permission') {
+          answerPermission(
+            pictures.asks,
+            projectId,
+            child,
+            event,
+            session.controller?.signal ?? nothingRunning.signal,
+          ).catch(() => undefined);
+          return;
+        }
         turns.onEvent(projectId, session, event);
         // Each answer spent some of the plan: the card reads it again.
         if (event.type === 'end') {
@@ -279,7 +290,7 @@ export const createStudioChat = ({
     }
     let tools: { url: string; key: string } | undefined;
     try {
-      tools = await pictures.address();
+      tools = await pictures.address(projectId, folder);
     } catch (error) {
       // Claude still answers; it cannot look, hear or make pictures.
       logger?.warn(`The Studio chat's tools did not open: ${String(error)}`);
@@ -446,6 +457,7 @@ export const createStudioChat = ({
     }
     unload(projectId);
     pictures.asks.forget(projectId);
+    pictures.close(projectId).catch(() => undefined);
     queue.clear(projectId);
   };
 

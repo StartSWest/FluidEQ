@@ -118,6 +118,11 @@ const studioChat = {
   'studioChat.ask.makeIt': 'Make it',
   'studioChat.ask.allowChat': 'Allow for this chat',
   'studioChat.ask.cost': 'Uses your ChatGPT plan; about a minute.',
+  'studioChat.ask.toolTitle': 'Allow Claude to use {tool}?',
+  'studioChat.ask.toolBody':
+    'One of your own Claude Code tools or plugins. It runs on this computer, with your accounts, only if you allow it.',
+  'studioChat.ask.allow': 'Allow',
+  'studioChat.ask.deny': 'Don’t allow',
   'studioChat.chatgptOn': 'ChatGPT pictures are on.',
   'studioChat.chatgptTurnOff': 'Turn off',
   'studioChat.past.title': 'Past chats',

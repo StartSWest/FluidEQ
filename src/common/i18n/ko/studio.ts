@@ -6,6 +6,7 @@ const studio = {
   'studio.notes.failed':
     '프로젝트 설명을 저장할 수 없습니다. 다시 시도해 보세요.',
   'studio.stage.loading': '장면 로드 중…',
+  'studio.stage.updating': '업데이트 중…',
   'studio.picture.download': '이미지 저장',
   'studio.picture.downloaded': '이미지가 저장되었습니다',
   'studio.picture.downloadFailed': '이미지를 저장할 수 없습니다.',
@@ -60,6 +61,10 @@ const studio = {
   'studio.project.none': '프로젝트를 선택하세요',
   'studio.project.empty': '아직 프로젝트가 없습니다.',
   'studio.project.add': '폴더 열기…',
+  'studio.project.aiWorking': 'AI 작업 중',
+  'studio.project.aiReplied': 'AI가 답변함',
+  'studio.project.aiWorkingElsewhere': '다른 장면에서 AI가 작업 중입니다',
+  'studio.project.aiRepliedElsewhere': '다른 장면의 AI가 답변했습니다',
   'studio.project.forget': '목록에서 {name} 제거',
   'studio.project.new': '새로운 프로젝트…',
   'studio.project.forgetHint': '폴더와 해당 파일은 컴퓨터에 유지됩니다.',

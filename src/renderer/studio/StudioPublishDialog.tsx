@@ -28,7 +28,6 @@ import type {
   IPublishDraft,
   IPreparedPublishPreview,
 } from './useStudioPublish';
-import { useStudioAgentHold } from './studioAgentHold';
 import type { IPublishPreview } from './usePublishVideo';
 import '../styles/Gallery.scss';
 import '../styles/StudioDialogs.scss';
@@ -91,8 +90,6 @@ export default function StudioPublishDialog({
   onCancel,
 }: IStudioPublishDialogProps) {
   const { t } = useTranslation();
-  // Open on the Studio's project: its AI may not switch the Studio under it.
-  useStudioAgentHold(true);
   const { publishesWithoutReview } = useAddonCapabilities();
   const me = useAccount().identity?.id;
   const publicationPack = useMemo(

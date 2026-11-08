@@ -72,7 +72,7 @@ export const LOOK_SCHEMA = {
       type: 'string',
       maxLength: MAX_FOLDER_LENGTH,
       description:
-        "The full path of the Studio project folder you are working in. Leave it out to look at the project FluidEQ's Studio is showing. If another project is showing, FluidEQ opens this one in the Studio first, so the member sees what you see.",
+        "The full path of the Studio project folder you are working in. Leave it out to look at the project FluidEQ's Studio is showing. Looking never changes what the Studio shows: the member may be working on another scene.",
     },
     shape: {
       type: 'string',

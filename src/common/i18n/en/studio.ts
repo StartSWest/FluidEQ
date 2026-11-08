@@ -9,6 +9,7 @@
 const studio = {
   'studio.notes.failed': 'Could not save the project description. Try again.',
   'studio.stage.loading': 'Loading scene…',
+  'studio.stage.updating': 'Updating…',
   'studio.picture.download': 'Save image',
   'studio.picture.downloaded': 'Image saved',
   'studio.picture.downloadFailed': 'Could not save the image.',
@@ -67,6 +68,10 @@ const studio = {
   'studio.project.none': 'Choose a project',
   'studio.project.empty': 'No project yet',
   'studio.project.add': 'Open a folder…',
+  'studio.project.aiWorking': 'AI working',
+  'studio.project.aiReplied': 'AI replied',
+  'studio.project.aiWorkingElsewhere': 'An AI is working on another scene',
+  'studio.project.aiRepliedElsewhere': 'Another scene’s AI replied',
   'studio.project.forget': 'Remove {name} from the list',
   'studio.project.new': 'New project…',
   'studio.project.forgetHint':

@@ -2,6 +2,7 @@ const studio = {
   'studio.notes.failed':
     'プロジェクトの説明を保存できませんでした。もう一度お試しください。',
   'studio.stage.loading': 'シーンを読み込み中…',
+  'studio.stage.updating': '更新中…',
   'studio.picture.download': '画像を保存',
   'studio.picture.downloaded': '画像を保存しました',
   'studio.picture.downloadFailed': '画像を保存できませんでした。',
@@ -59,6 +60,10 @@ const studio = {
   'studio.project.none': 'プロジェクトを選択',
   'studio.project.empty': 'まだプロジェクトがありません',
   'studio.project.add': 'フォルダーを開く…',
+  'studio.project.aiWorking': 'AI が作業中',
+  'studio.project.aiReplied': 'AI が返信しました',
+  'studio.project.aiWorkingElsewhere': '別のシーンで AI が作業中です',
+  'studio.project.aiRepliedElsewhere': '別のシーンの AI が返信しました',
   'studio.project.forget': '{name} を一覧から外す',
   'studio.project.new': '新しいプロジェクト…',
   'studio.project.forgetHint':

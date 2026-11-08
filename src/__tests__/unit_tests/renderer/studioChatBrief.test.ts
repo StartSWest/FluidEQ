@@ -28,20 +28,28 @@ describe("the Studio chat's brief", () => {
     expect(brief).not.toContain('CONNECT TO FLUIDEQ FIRST');
   });
 
-  it('says what the chat cannot do: run scripts or download', () => {
-    expect(brief).toContain('You cannot run programs or reach the internet');
+  // The member's own Claude Code tools and plugins are Claude's in the chat,
+  // each put to the member first (Ivan, 2026-11-07: "claude need to have
+  // access to all plugins that claude has").
+  it("offers the member's own tools and plugins, each asked of the member first", () => {
+    expect(brief).toContain(
+      "You also have the member's own Claude Code tools,\n  plugins and skills",
+    );
+    expect(brief).toContain('put to the member on a\n  card in the chat');
+    expect(brief).toContain('A no\n  is final');
+    expect(brief).not.toContain('You cannot run programs');
     expect(brief).toContain('pack_artwork');
   });
 
   // ChatGPT pictures are closed for 2.1 (`studioChatPictures.ts`): Claude is
   // never told of a tool it is not given, nor that FluidEQ reaches the
-  // member's ChatGPT. (The art section every AI gets still says to use an
-  // image tool of its own, if it has one; Claude in the chat has none.)
+  // member's ChatGPT. A picture plugin of the member's own Claude Code is
+  // theirs to use, and its pictures go in the art folder.
   it('says nothing of make_picture or of ChatGPT through Codex while pictures are closed', () => {
     expect(brief).not.toContain('make_picture');
     expect(brief).not.toContain('PICTURES FROM CHATGPT');
     expect(brief).not.toContain("the member's own\n  Codex");
-    expect(brief).toContain('You draw everything');
+    expect(brief).toContain('made with a picture plugin of theirs');
   });
 
   it('ends on the chat and its craft, with no idea left open', () => {

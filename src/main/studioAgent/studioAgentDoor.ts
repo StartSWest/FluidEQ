@@ -54,10 +54,9 @@ import { createStudioTools, waveFor, type TLookOutcome } from './studioTools';
  * - WHO MAY ASK is `agentServer.ts`: this computer only, no web page, and the
  *   key the member handed their assistant.
  *
- * Every look also asks the window to put the project in front of the member
- * (`useStudioAgent.ts`), which it does once per project a session and never
- * while the member is in the middle of something in the Studio: the picture
- * is drawn from the folder, not from the stage, so it does not wait on that.
+ * A look never changes what the Studio shows (`useStudioAgent.ts`): the
+ * picture is drawn from the folder, off screen, so several AIs can each work
+ * on a scene of their own while the member stays on whichever they choose.
  */
 
 const DOOR_FILE = 'studio-agent.json';
@@ -213,9 +212,6 @@ export const createStudioAgentDoor = ({
     const project = agentProject(request.folder);
     if (!project.ok) {
       return project;
-    }
-    if (readyPage && !readyPage.isDestroyed()) {
-      readyPage.send('studio-agent-show', project.id);
     }
     const build = await readProject(project.folder);
     if (!build.ok) {

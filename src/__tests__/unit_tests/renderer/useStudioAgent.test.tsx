@@ -5,22 +5,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { act, render } from '@testing-library/react';
+import type { IStudioAgentDrawAsk } from '../../../common/studioAgent';
 import useStudioAgent from '../../../renderer/studio/useStudioAgent';
-import { useStudioAgentHold } from '../../../renderer/studio/studioAgentHold';
 
 /**
- * When the member's AI looks at a project, the window puts it in front of
- * the member: the Studio switched to it and brought up, once per project —
- * and never while the member is in the middle of something in the Studio,
- * where a switch would send their Publish, their framing or their unsaved
- * typing to the project their AI happened to look at.
+ * When the member's AI looks at a project, the window draws it off screen
+ * and answers — and moves nothing (Ivan, 2026-11-07: "when an agent take pic
+ * it should not jump into that scene ... so I can work on multiple scenes at
+ * the same time"). It used to switch the Studio to the project looked at and
+ * bring the Studio up, which pulled the member off the scene they were on
+ * every time another scene's chat took a picture.
  */
 
 const mockSelect = jest.fn(async (_id: string) => undefined);
-let mockActive: string | undefined;
 jest.mock('../../../renderer/studio/studioStore', () => ({
   selectStudioProject: (id: string) => mockSelect(id),
-  studioActiveId: () => mockActive,
+  studioActiveId: () => 'lake',
 }));
 const mockPlusTab = jest.fn();
 jest.mock('../../../renderer/plus/plusTabRequest', () => ({
@@ -34,79 +34,55 @@ jest.mock('../../../renderer/studio/studioAgentDraw', () => ({
   drawForAgent: async () => ({ ok: false, reason: 'unavailable' }),
 }));
 
-let show: ((projectId: string) => void) | undefined;
+let draw: ((ask: IStudioAgentDrawAsk) => void) | undefined;
+const drawn = jest.fn(async (_id: number, _answer: unknown) => undefined);
 const ready = jest.fn(async () => undefined);
 
 beforeEach(() => {
-  show = undefined;
-  mockActive = undefined;
+  draw = undefined;
   mockSelect.mockClear();
   mockPlusTab.mockClear();
   mockPlace.mockClear();
+  drawn.mockClear();
   ready.mockClear();
   Object.assign(window, {
     electron: {
       ipcRenderer: {
-        onStudioAgentDraw: () => () => undefined,
-        onStudioAgentShow: (listener: (projectId: string) => void) => {
-          show = listener;
+        onStudioAgentDraw: (listener: (ask: IStudioAgentDrawAsk) => void) => {
+          draw = listener;
           return () => {
-            show = undefined;
+            draw = undefined;
           };
         },
-        studioAgentDrawn: async () => undefined,
+        studioAgentDrawn: drawn,
         studioAgentReady: ready,
       },
     },
   });
 });
 
-function Window({ held = false }: { held?: boolean }) {
+function Window() {
   useStudioAgent();
-  useStudioAgentHold(held);
   return null;
 }
 
-const looked = (projectId: string) =>
-  act(() => {
-    show?.(projectId);
-  });
-
 test('the window says it can answer once its listeners are in place', () => {
   render(<Window />);
-  expect(show).toBeDefined();
+  expect(draw).toBeDefined();
   expect(ready).toHaveBeenCalled();
 });
 
-test('a project the Studio is not on is switched to and brought up', () => {
-  mockActive = 'lake';
+test('a picture of another project is drawn and answered, and the Studio stays where it is', async () => {
   render(<Window />);
-  looked('cat');
-  expect(mockSelect).toHaveBeenCalledWith('cat');
-  expect(mockPlusTab).toHaveBeenCalledTimes(1);
-  expect(mockPlace).toHaveBeenCalledWith('studio');
-});
-
-test('the open project is brought up once, then left alone', () => {
-  mockActive = 'cat';
-  render(<Window />);
-  looked('cat');
-  looked('cat');
-  looked('cat');
-  expect(mockSelect).not.toHaveBeenCalled();
-  expect(mockPlusTab).toHaveBeenCalledTimes(1);
-});
-
-test('nothing moves while the member is in the middle of something', () => {
-  mockActive = 'lake';
-  const { rerender } = render(<Window held />);
-  looked('cat');
+  await act(async () => {
+    draw?.({ id: 7 } as IStudioAgentDrawAsk);
+  });
+  // The positive control: the ask was answered, so the window did hear it.
+  expect(drawn).toHaveBeenCalledWith(7, {
+    ok: false,
+    reason: 'unavailable',
+  });
   expect(mockSelect).not.toHaveBeenCalled();
   expect(mockPlusTab).not.toHaveBeenCalled();
-
-  // Let go, the next look does what the held one could not.
-  rerender(<Window />);
-  looked('cat');
-  expect(mockSelect).toHaveBeenCalledWith('cat');
-  expect(mockPlusTab).toHaveBeenCalledTimes(1);
+  expect(mockPlace).not.toHaveBeenCalled();
 });

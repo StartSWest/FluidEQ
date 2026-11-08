@@ -173,7 +173,9 @@ const createPackArtworkTool = ({
   ): Promise<IMcpToolResult> => {
     const open = project();
     if (!open.ok) {
-      return failure('No Studio project is open.');
+      return failure(
+        "This chat's project is not in FluidEQ's Studio list any more, or may not be used now: ask the member to open it in the Studio again.",
+      );
     }
     const raw = args.pieces;
     if (!Array.isArray(raw) || raw.length > MAX_PIECES) {

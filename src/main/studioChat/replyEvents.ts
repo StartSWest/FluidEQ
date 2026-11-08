@@ -15,7 +15,11 @@ const withEvent = (
   reply: TReply,
   event: Exclude<
     TChatStreamEvent,
-    { type: 'session' } | { type: 'read' } | { type: 'end' }
+    | { type: 'session' }
+    | { type: 'read' }
+    | { type: 'end' }
+    // A question for the member, not part of the reply (`chatPermission.ts`).
+    | { type: 'permission' }
   >,
 ): TReply => {
   if (event.type === 'compacting') {

@@ -345,7 +345,13 @@ it('loads again when the covered window lets its worker go, through the save mad
   expect(busy()).toBe('false');
 });
 
-it('loads while a save builds beside the picture, and a late frame of that picture does not end it', async () => {
+/** The plate's word for a save building beside the picture. */
+const updating = () => screen.queryByText('studio.stage.updating');
+
+// A save of the scene on the stage builds beside it while it plays on (Ivan,
+// 2026-11-07: "can be reload on hot so we see them more smolty"): the stage
+// is never covered with the loading card for it, only told on its plate.
+it('keeps the picture playing while a save builds beside it, then swaps it in', async () => {
   const { rerender } = await running();
   const worker = mockClients[0];
   sendFrame();
@@ -353,28 +359,34 @@ it('loads while a save builds beside the picture, and a late frame of that pictu
   rerender(stage(saved, 2));
   await settle();
   expect(worker.loads.map((load) => load.pack)).toEqual([first, saved]);
-  expect(busy()).toBe('true');
+  expect(busy()).toBe('false');
+  expect(screen.queryByText('studio.stage.loading')).not.toBeInTheDocument();
+  expect(updating()).toBeInTheDocument();
 
-  // The last frame of the version being replaced reaches the canvas now.
+  // The picture being replaced goes on drawing meanwhile.
   answerFrame(worker);
-  expect(busy()).toBe('true');
+  drawFrame();
+  expect(busy()).toBe('false');
 
   await answerLoad(worker, 1, { kind: 'ready', rebuilt: true });
+  expect(updating()).not.toBeInTheDocument();
   drawFrame();
   expect(busy()).toBe('false');
   expect(mockClients).toHaveLength(1);
 });
 
-it('stops loading for a save that does not compile, and builds the version that did when seen again', async () => {
+it('keeps the picture for a save that does not compile, and builds the version that did when seen again', async () => {
   // The driver's message goes to the console as well; expected here.
   const logged = jest.spyOn(console, 'error').mockImplementation(() => {});
   const { rerender } = await running();
   rerender(stage(saved, 2));
   await settle();
-  expect(busy()).toBe('true');
+  expect(busy()).toBe('false');
+  expect(updating()).toBeInTheDocument();
 
   await answerLoad(mockClients[0], 1, { kind: 'compile', log: 'ERROR: 0:1' });
   expect(busy()).toBe('false');
+  expect(updating()).not.toBeInTheDocument();
   expect(onTrouble).toHaveBeenCalledWith({
     kind: 'compile',
     log: 'ERROR: 0:1',

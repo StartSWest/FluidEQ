@@ -5,30 +5,27 @@ import type {
   TStudioAgentHeardAnswer,
 } from 'common/studioAgent';
 import { heardSongs } from '../graph/heardSongs';
-import { openPlusPlace } from '../plus/plusNavigation';
-import { requestPlusTab } from '../plus/plusTabRequest';
 import { drawForAgent } from './studioAgentDraw';
-import { isStudioHeld } from './studioAgentHold';
 import { markStudioAgentWorking } from './studioAgentSession';
-import { selectStudioProject, studioActiveId } from './studioStore';
 
 /**
  * The window's answers to the member's AI (`main/studioAgent/studioAgentDoor.ts`),
  * for the whole life of the page — not only while the Studio is showing,
- * because putting the Studio in front of the member is one of the answers.
+ * because the AI works whatever page the member is on.
  *
- * Three things are asked of it:
+ * Two things are asked of it:
  *
  * - DRAW a scene main has already read and checked, off screen
  *   (`studioAgentDraw.ts`), and send the picture back.
- * - SHOW the project the AI is looking at: switch the Studio to it and bring
- *   the Studio up, the first time in a session the AI looks at that project,
- *   or whenever it looks at a project the Studio is not on. Never while the
- *   member is in the middle of something there (`studioAgentHold.ts`), and
- *   never again for a project already shown, so a member who walks away to
- *   the equaliser is not dragged back on every look.
  * - HEAR: the song playing, or the one before it, as this window heard it
  *   (`heardSongs.ts`), mapped (`songMap.ts`) for main to put into words.
+ *
+ * A look never moves the Studio (Ivan, 2026-11-07: "when an agent take pic
+ * it should not jump into that scene ... so I can work on multiple scenes at
+ * the same time"). It used to switch the Studio to the project looked at and
+ * bring the Studio up; with a chat at work on each of several scenes, every
+ * picture one of them took pulled the member off the scene they were on.
+ * The picture is drawn from the folder, so it never needed the switch.
  *
  * Either of the AI's asks says it is at work, and from then on the Studio
  * goes on hearing the music for it (`useSongListening.ts`).
@@ -52,7 +49,6 @@ export default function useStudioAgent() {
     if (!api?.onStudioAgentDraw || !api.studioAgentReady) {
       return undefined;
     }
-    const shown = new Set<string>();
     const stopDraw = api.onStudioAgentDraw((ask) => {
       markStudioAgentWorking();
       drawForAgent(ask)
@@ -62,21 +58,6 @@ export default function useStudioAgent() {
         })
         .then((answer) => api.studioAgentDrawn(ask.id, answer))
         .catch(() => undefined);
-    });
-    const stopShow = api.onStudioAgentShow((projectId) => {
-      if (isStudioHeld()) {
-        return;
-      }
-      const switching = studioActiveId() !== projectId;
-      if (!switching && shown.has(projectId)) {
-        return;
-      }
-      shown.add(projectId);
-      if (switching) {
-        selectStudioProject(projectId).catch(() => undefined);
-      }
-      requestPlusTab();
-      openPlusPlace('studio');
     });
     // A preload from before hear_the_music has no way to be asked it, and
     // main is told so, so it never waits on an answer that cannot come.
@@ -89,7 +70,6 @@ export default function useStudioAgent() {
       .catch(() => undefined);
     return () => {
       stopDraw();
-      stopShow();
       stopHear?.();
     };
   }, []);

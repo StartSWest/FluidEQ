@@ -2,6 +2,7 @@ const studio = {
   'studio.notes.failed':
     'No se pudo guardar la descripción del proyecto. Inténtalo de nuevo.',
   'studio.stage.loading': 'Cargando escena…',
+  'studio.stage.updating': 'Actualizando…',
   'studio.picture.download': 'Guardar imagen',
   'studio.picture.downloaded': 'Imagen guardada',
   'studio.picture.downloadFailed': 'No se pudo guardar la imagen.',
@@ -60,6 +61,10 @@ const studio = {
   'studio.project.none': 'Elige un proyecto',
   'studio.project.empty': 'Aún no hay proyecto',
   'studio.project.add': 'Abrir una carpeta…',
+  'studio.project.aiWorking': 'IA trabajando',
+  'studio.project.aiReplied': 'La IA respondió',
+  'studio.project.aiWorkingElsewhere': 'Una IA trabaja en otra escena',
+  'studio.project.aiRepliedElsewhere': 'La IA de otra escena respondió',
   'studio.project.forget': 'Quitar {name} de la lista',
   'studio.project.new': 'Proyecto nuevo…',
   'studio.project.forgetHint':

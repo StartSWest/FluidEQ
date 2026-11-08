@@ -264,7 +264,7 @@ const registerMemberServices = ({
   const studioChat = createStudioChat({
     userDataDir,
     getMainWindow,
-    agentProject: () => memberScenesIpc.agentProject(),
+    agentProject: (folder) => memberScenesIpc.agentProject(folder),
     door: { look: studioAgentDoor.look, hear: studioAgentDoor.hear },
     version: appVersion(),
     logger: log,

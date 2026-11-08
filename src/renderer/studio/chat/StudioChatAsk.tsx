@@ -152,6 +152,51 @@ function PictureCard({
 }
 
 /**
+ * One of the member's own Claude Code tools, which their settings do not
+ * already allow: its name, what it is about to do, and the yes or no.
+ * Allow is the loud press, the suggested one, since Claude asked because the
+ * request needs it; the member can still say no, and that is final.
+ */
+function ToolCard({ ask }: { ask: Extract<TStudioChatAsk, { kind: 'tool' }> }) {
+  const { t } = useTranslation();
+  const answer = (choice: 'yes' | 'chat' | 'no') => {
+    answerStudioChat(ask.id, choice).catch(() => undefined);
+  };
+  return (
+    <>
+      <p className="studio-chat__ask-title">
+        {t('studioChat.ask.toolTitle', { tool: ask.tool })}
+      </p>
+      <p className="studio-chat__ask-body">{t('studioChat.ask.toolBody')}</p>
+      <pre className="studio-chat__ask-detail">{ask.detail}</pre>
+      <div className="studio-chat__ask-actions">
+        <button
+          type="button"
+          className="button small"
+          onClick={() => answer('yes')}
+        >
+          {t('studioChat.ask.allow')}
+        </button>
+        <button
+          type="button"
+          className="button small subtle"
+          onClick={() => answer('chat')}
+        >
+          {t('studioChat.ask.allowChat')}
+        </button>
+        <button
+          type="button"
+          className="button small subtle"
+          onClick={() => answer('no')}
+        >
+          {t('studioChat.ask.deny')}
+        </button>
+      </div>
+    </>
+  );
+}
+
+/**
  * The card Claude's use of ChatGPT waits on (Ivan, 2026-10-09: "it needs to
  * ask the user if you connect gpt codex … and also ask when it will use
  * it"), at the foot of the conversation where the reply stands waiting.
@@ -176,25 +221,25 @@ export default function StudioChatAsk({ ask }: { ask: TStudioChatAsk }) {
     return () => window.removeEventListener('focus', onFocus);
   }, [connecting]);
 
+  let label;
+  let card;
+  if (ask.kind === 'connect') {
+    label = t('studioChat.ask.connectTitle');
+    card = <ConnectCard ask={ask} codex={codex?.codex ?? ask.codex} />;
+  } else if (ask.kind === 'picture') {
+    label = t('studioChat.ask.pictureTitle');
+    card = <PictureCard ask={ask} />;
+  } else {
+    label = t('studioChat.ask.toolTitle', { tool: ask.tool });
+    card = <ToolCard ask={ask} />;
+  }
+
   return (
-    <section
-      className="studio-chat__ask"
-      aria-label={t(
-        connecting
-          ? 'studioChat.ask.connectTitle'
-          : 'studioChat.ask.pictureTitle',
-      )}
-    >
+    <section className="studio-chat__ask" aria-label={label}>
       <span className="studio-chat__ask-mark" aria-hidden="true">
-        <Glyph name="image" />
+        <Glyph name={ask.kind === 'tool' ? 'shield' : 'image'} />
       </span>
-      <div className="studio-chat__ask-content">
-        {ask.kind === 'connect' ? (
-          <ConnectCard ask={ask} codex={codex?.codex ?? ask.codex} />
-        ) : (
-          <PictureCard ask={ask} />
-        )}
-      </div>
+      <div className="studio-chat__ask-content">{card}</div>
     </section>
   );
 }

@@ -517,6 +517,82 @@ $studio-room-under-chat: 380px;
   }
 }
 
+// What each scene's chat is doing, at the end of its row in the picker
+// (Ivan, 2026-11-07: "keep working in parallel on every scene"): a chip in
+// the accent, apart from the green of the watched project, its dot a
+// breathing ring while the AI works and lit once it replied on a scene the
+// member was not on. The menu is in the body (see AnchoredMenu), so this is
+// not nested under the picker.
+.studio-projects__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 7px 1px 6px;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-default 45%, transparent);
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+  font-size: $text-micro;
+  font-weight: $weight-medium;
+  line-height: 1.6;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  &.is-working::before {
+    border: 1.5px solid currentColor;
+    animation: studio-ai-working 1.6s $ease-out infinite;
+  }
+
+  &.is-replied::before {
+    background: currentColor;
+    box-shadow: 0 0 6px $secondary-default;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &.is-working::before {
+      animation: none;
+    }
+  }
+}
+
+// The same news on the picker's own button, at its far end beside the
+// caret, so it reads as news in the list and not about the open project.
+.studio-projects__news {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  margin-left: auto;
+  border-radius: 50%;
+
+  &.is-working {
+    border: 1.5px solid $secondary-light;
+    animation: studio-ai-working 1.6s $ease-out infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  &.is-replied {
+    background: $secondary-light;
+    box-shadow: 0 0 8px $secondary-default;
+  }
+}
+
+@keyframes studio-ai-working {
+  50% {
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+}
+
 // Taking the open project off the list is about that one project, not about
 // starting another: it sits apart from the actions above it, in the quiet
 // ink, so it is never the thing a hurried click lands on. The menu is in the

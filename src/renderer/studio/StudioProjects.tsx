@@ -9,10 +9,23 @@ import { openGalleryPage, type IMakerRef } from '../plus/plusNavigation';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { type IRichPickEntry } from '../widgets/RichPick';
 import StudioRenameProjectDialog from './StudioRenameProjectDialog';
+import { useStudioChat, type TStudioChatWork } from './chat/studioChatStore';
 import { forgetStudioProject, selectStudioProject } from './studioStore';
 
 const GROUP_OWN = 'projects';
 const GROUP_OFFICIAL = 'official';
+
+/** What a project's row says its chat is doing, ahead of its folder. */
+const WORK_LABEL: Record<TStudioChatWork, TranslationKey> = {
+  working: 'studio.project.aiWorking',
+  replied: 'studio.project.aiReplied',
+};
+
+/** What the picker's own button says about the other scenes' chats. */
+const NEWS_LABEL: Record<TStudioChatWork, TranslationKey> = {
+  working: 'studio.project.aiWorkingElsewhere',
+  replied: 'studio.project.aiRepliedElsewhere',
+};
 
 /**
  * FluidEQ's page in the gallery, where each of its scenes has "Open in
@@ -80,6 +93,7 @@ export default function StudioProjects({
   onOpenFile,
 }: IStudioProjectsProps) {
   const { t, locale } = useTranslation();
+  const { work } = useStudioChat();
   const [switching, setSwitching] = useState(false);
   const picking = useRef(false);
   // The project being renamed, as it was when Rename was pressed.
@@ -102,22 +116,41 @@ export default function StudioProjects({
             Number(Boolean(a.official)) - Number(Boolean(b.official)) ||
             a.path.localeCompare(b.path),
         )
-        .map((project) => ({
-          id: project.id,
-          name: project.names
-            ? resolveSceneName({ names: project.names }, locale)
-            : project.folderName,
-          hint: project.path,
-          group: project.official ? GROUP_OFFICIAL : GROUP_OWN,
-          icon: (
-            <Glyph
-              name={project.official ? 'looks' : 'folder'}
-              className="rich-pick__glyph"
-            />
-          ),
-        })),
-    [state.projects, locale],
+        .map((project) => {
+          const doing = work[project.id];
+          return {
+            id: project.id,
+            name: project.names
+              ? resolveSceneName({ names: project.names }, locale)
+              : project.folderName,
+            hint: project.path,
+            group: project.official ? GROUP_OFFICIAL : GROUP_OWN,
+            icon: (
+              <Glyph
+                name={project.official ? 'looks' : 'folder'}
+                className="rich-pick__glyph"
+              />
+            ),
+            ...(doing
+              ? {
+                  trailing: (
+                    <span className={`studio-projects__state is-${doing}`}>
+                      {t(WORK_LABEL[doing])}
+                    </span>
+                  ),
+                }
+              : {}),
+          };
+        }),
+    [state.projects, locale, work, t],
   );
+  // Another scene's chat with news: a reply waiting first, else one at work.
+  const elsewhere = Object.entries(work)
+    .filter(([id]) => id !== state.activeId)
+    .map(([, doing]) => doing);
+  const news: TStudioChatWork | undefined = elsewhere.includes('replied')
+    ? 'replied'
+    : elsewhere[0];
   const active = entries.find((entry) => entry.id === state.activeId);
   const at = entries.findIndex((entry) => entry.id === state.activeId);
   const previous = entries[(at > 0 ? at : entries.length) - 1];
@@ -159,13 +192,29 @@ export default function StudioProjects({
         placeholder={t(
           entries.length > 0 ? 'studio.project.none' : 'studio.project.empty',
         )}
-        triggerAriaLabel={t('studio.project.label')}
-        triggerTitle={active?.hint ?? t('studio.project.label')}
+        triggerAriaLabel={
+          news
+            ? `${t('studio.project.label')} · ${t(NEWS_LABEL[news])}`
+            : t('studio.project.label')
+        }
+        triggerTitle={
+          news
+            ? `${active?.hint ?? t('studio.project.label')}\n${t(NEWS_LABEL[news])}`
+            : (active?.hint ?? t('studio.project.label'))
+        }
         placeholderIcon={<Glyph name="folder" className="rich-pick__glyph" />}
         triggerExtra={
-          active && (
-            <span className="studio-projects__live" aria-hidden="true" />
-          )
+          <>
+            {active && (
+              <span className="studio-projects__live" aria-hidden="true" />
+            )}
+            {news && (
+              <span
+                className={`studio-projects__news is-${news}`}
+                aria-hidden="true"
+              />
+            )}
+          </>
         }
         renderFooter={(close) => (
           <>

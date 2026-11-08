@@ -115,6 +115,11 @@ const studioChat = {
   'studioChat.ask.makeIt': 'बनाएँ',
   'studioChat.ask.allowChat': 'इस चैट के लिए अनुमति दें',
   'studioChat.ask.cost': 'आपके ChatGPT प्लान का उपयोग होता है; लगभग एक मिनट।',
+  'studioChat.ask.toolTitle': 'क्या Claude को {tool} इस्तेमाल करने दें?',
+  'studioChat.ask.toolBody':
+    'आपके अपने Claude Code टूल या प्लगइन में से एक। यह इस कंप्यूटर पर, आपके खातों के साथ, केवल आपकी अनुमति से चलता है।',
+  'studioChat.ask.allow': 'अनुमति दें',
+  'studioChat.ask.deny': 'अनुमति न दें',
   'studioChat.chatgptOn': 'ChatGPT चित्र चालू हैं।',
   'studioChat.chatgptTurnOff': 'बंद करें',
   'studioChat.past.title': 'पिछली चैट',

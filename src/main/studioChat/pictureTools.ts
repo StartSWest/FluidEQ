@@ -28,8 +28,9 @@ import createPackArtworkTool from './packArtworkTool';
  *   `pack.json`'s artwork lines to match. The member's photo places stay
  *   where they are, with what is in them.
  *
- * Claude in the chat has no shell, so this is the packing script the brief
- * asks any other AI to write for itself.
+ * Claude in the chat runs a command only once the member says yes to it
+ * (`chatPermission.ts`), so this is the packing script the brief asks any
+ * other AI to write for itself, with no card to answer.
  */
 
 export interface IPictureToolsDeps {

@@ -117,6 +117,11 @@ const studioChat = {
   'studioChat.ask.makeIt': 'Создать',
   'studioChat.ask.allowChat': 'Разрешить в этом чате',
   'studioChat.ask.cost': 'Расходует ваш план ChatGPT; около минуты.',
+  'studioChat.ask.toolTitle': 'Разрешить Claude использовать {tool}?',
+  'studioChat.ask.toolBody':
+    'Один из ваших собственных инструментов или плагинов Claude Code. Он работает на этом компьютере, с вашими учётными записями, только если вы разрешите.',
+  'studioChat.ask.allow': 'Разрешить',
+  'studioChat.ask.deny': 'Не разрешать',
   'studioChat.chatgptOn': 'Изображения ChatGPT включены.',
   'studioChat.chatgptTurnOff': 'Выключить',
   'studioChat.past.title': 'Прошлые чаты',

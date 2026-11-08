@@ -9,7 +9,6 @@ import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import holdFocusReturn from '../utils/focusReturn';
 import { chooseStudioProjectsRoot, createStudioProject } from './studioStore';
-import { useStudioAgentHold } from './studioAgentHold';
 import '../styles/StudioDialogs.scss';
 
 const REFUSALS: Record<
@@ -42,8 +41,6 @@ export default function StudioNewProjectDialog({
   onClose,
 }: IStudioNewProjectDialogProps) {
   const { t } = useTranslation();
-  // Open on the Studio's project: its AI may not switch the Studio under it.
-  useStudioAgentHold(true);
   const nameId = useId();
   const formId = useId();
   const [name, setName] = useState('');

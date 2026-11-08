@@ -2,6 +2,7 @@ const studio = {
   'studio.notes.failed':
     'Не удалось сохранить описание проекта. Попробуйте ещё раз.',
   'studio.stage.loading': 'Загрузка сцены…',
+  'studio.stage.updating': 'Обновление…',
   'studio.picture.download': 'Сохранить изображение',
   'studio.picture.downloaded': 'Изображение сохранено',
   'studio.picture.downloadFailed': 'Не удалось сохранить изображение.',
@@ -59,6 +60,10 @@ const studio = {
   'studio.project.none': 'Выберите проект',
   'studio.project.empty': 'Проектов пока нет',
   'studio.project.add': 'Открыть папку…',
+  'studio.project.aiWorking': 'ИИ работает',
+  'studio.project.aiReplied': 'ИИ ответил',
+  'studio.project.aiWorkingElsewhere': 'ИИ работает над другой сценой',
+  'studio.project.aiRepliedElsewhere': 'ИИ другой сцены ответил',
   'studio.project.forget': 'Убрать {name} из списка',
   'studio.project.new': 'Новый проект…',
   'studio.project.forgetHint':

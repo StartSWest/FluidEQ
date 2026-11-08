@@ -10,13 +10,14 @@ import CRAFT_SECTION from './chatCraft';
 
 /**
  * What makes a picture, by whether ChatGPT pictures are open
- * (`studioChatPictures.ts`). Closed, Claude is told only of pack_artwork,
- * for pictures the member put in the project's art folder, and draws
- * everything else: it is never told of a tool it does not have.
+ * (`studioChatPictures.ts`). Closed, Claude is told of pack_artwork, for
+ * pictures in the project's art folder - the member's, or made with a
+ * picture plugin of the member's own Claude Code - and draws everything
+ * else: it is never told of a FluidEQ tool it does not have.
  */
 const PICTURES_LINE = CHATGPT_PICTURES_OPEN
   ? 'Pictures come from make_picture and pack_artwork; everything else you draw.'
-  : "You draw everything; pack_artwork lays pictures the member put in the project's art folder into the scene's artwork.";
+  : "pack_artwork lays pictures from the project's art folder - the member's, or made with a picture plugin of theirs and saved there - into the scene's artwork; what no picture covers, you draw.";
 
 const CHATGPT_SECTION = CHATGPT_PICTURES_OPEN
   ? `
@@ -56,12 +57,15 @@ first one usually describes it, and stands where MY IDEA would.
   unless the member asks for them.
 - When a message comes with a picture, it is the stage as the member sees it
   now: answer what it shows.
-- You can read, search and write files in this project's folder and nowhere
-  else, and look at and hear the scene with FluidEQ's look_at_scene and
-  hear_the_music. You cannot run programs or reach the internet: no
-  scripts and no downloads, so no library textures or models and no
-  packing by hand. ${PICTURES_LINE} Anything else is refused; do not ask
-  for it.
+- Work in this project's folder: reading, searching and writing files there
+  is allowed, and so are FluidEQ's look_at_scene and hear_the_music.
+  ${PICTURES_LINE} You also have the member's own Claude Code tools,
+  plugins and skills - a picture plugin among them, when they have one.
+  Anything their settings do not already allow is put to the member on a
+  card in the chat before it runs, and waits for them: use those only when
+  the request needs them, one at a time, and say in a few words why. A no
+  is final for that request: do not try the same thing another way. Save
+  what a tool makes for the scene inside this project's folder.
 - Look as much as the change needs (LOOK AT WHAT YOU MADE): a picture or two
   for a small change, the whole list only for a new or rebuilt scene. The
   member sees every look you take as a step in the chat and waits on it, so

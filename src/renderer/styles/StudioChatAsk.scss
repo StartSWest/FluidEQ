@@ -103,6 +103,25 @@ it under the terms of the GNU General Public License version 3 or later.
   @include slim-scrollbar;
 }
 
+// What a tool of the member's is about to do — a command, a file, a skill —
+// as written, in the fixed face, so a command reads exactly as it will run.
+.studio-chat__ask-detail {
+  max-height: 7.5em;
+  margin: 0;
+  padding: 6px 9px;
+  overflow-y: auto;
+  color: $text-primary;
+  border-left: 2px solid color-mix(in srgb, $text-accent 40%, transparent);
+  border-radius: 0 $radius-xs $radius-xs 0;
+  background: color-mix(in srgb, $white 4%, transparent);
+  font-family: $font-mono;
+  font-size: $text-small;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  @include slim-scrollbar;
+}
+
 .studio-chat__ask-meta {
   display: flex;
   flex-wrap: wrap;

@@ -178,6 +178,8 @@ export default function StudioStage({
   // frame seen once said "settled" for good, so a stage built again after the
   // window had been covered sat black, with no loading, for its whole compile.
   const [waiting, setWaiting] = useState(true);
+  // A new version on its way beside the picture: no cover, a word on the plate.
+  const [updating, setUpdating] = useState(false);
   useLiveAudioCapture(true);
 
   // The canvas takes the frame's measured size; the frame's shape comes from
@@ -394,6 +396,7 @@ export default function StudioStage({
     onHeard,
     onDrawn: onFrame,
     onWaiting: setWaiting,
+    onUpdating: setUpdating,
     interaction,
   });
   hostRef.current = sceneRef;
@@ -482,6 +485,17 @@ export default function StudioStage({
               : undefined
           }
         >
+          {/* A save's new version building beside the picture, which plays
+              on meanwhile and is swapped for it the moment it is ready. */}
+          {updating && (
+            <span className="studio-stage__updating" role="status">
+              <span
+                className="studio-stage__updating-ring"
+                aria-hidden="true"
+              />
+              {t('studio.stage.updating')}
+            </span>
+          )}
           {cost && (
             <StudioStageReading
               cost={cost}

@@ -2,6 +2,7 @@ const studio = {
   'studio.notes.failed':
     'Impossibile salvare la descrizione del progetto. Riprova.',
   'studio.stage.loading': 'Caricamento della scena…',
+  'studio.stage.updating': 'Aggiornamento…',
   'studio.picture.download': 'Salva immagine',
   'studio.picture.downloaded': 'Immagine salvata',
   'studio.picture.downloadFailed': 'Impossibile salvare l’immagine.',
@@ -60,6 +61,10 @@ const studio = {
   'studio.project.none': 'Scegli un progetto',
   'studio.project.empty': 'Ancora nessun progetto',
   'studio.project.add': 'Apri una cartella…',
+  'studio.project.aiWorking': 'IA al lavoro',
+  'studio.project.aiReplied': 'L’IA ha risposto',
+  'studio.project.aiWorkingElsewhere': 'Un’IA sta lavorando su un’altra scena',
+  'studio.project.aiRepliedElsewhere': 'L’IA di un’altra scena ha risposto',
   'studio.project.forget': 'Togli {name} dall’elenco',
   'studio.project.new': 'Nuovo progetto…',
   'studio.project.forgetHint':

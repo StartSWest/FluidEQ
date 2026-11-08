@@ -6,7 +6,6 @@ import { describeChange, type ILineChange } from './lineDiff';
 import StudioCodeDiff from './StudioCodeDiff';
 import StudioCodeEditor from './StudioCodeEditor';
 import { writeStudioSource } from './studioStore';
-import { useStudioAgentHold } from './studioAgentHold';
 import '../styles/StudioCode.scss';
 
 /**
@@ -117,8 +116,6 @@ export default function StudioCode({ source, problemLines }: IStudioCodeProps) {
 
   const wrong = useMemo(() => new Set(problemLines), [problemLines]);
   const dirty = draft !== base;
-  // Unsaved typing belongs to this project: its AI may not switch away.
-  useStudioAgentHold(dirty);
   const timeOf = useMemo(
     () =>
       new Intl.DateTimeFormat(locale, {

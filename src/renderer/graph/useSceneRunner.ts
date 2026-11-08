@@ -139,6 +139,7 @@ export default function useSceneRunner({
   onDrawn,
   onLoaded,
   onWaiting,
+  onUpdating,
   interaction,
 }: ISceneRunnerOptions): RefObject<HTMLDivElement | null> {
   const { points, waveform, isPaused, readFrame } = useSceneAudio();
@@ -230,6 +231,9 @@ export default function useSceneRunner({
   const waitingCallbackRef = useRef(onWaiting);
   waitingCallbackRef.current = onWaiting;
   const waitingRef = useRef<boolean | undefined>(undefined);
+  const updatingCallbackRef = useRef(onUpdating);
+  updatingCallbackRef.current = onUpdating;
+  const updatingRef = useRef(false);
   /**
    * The build whose program the worker holds ready to draw. Frames are
    * tagged with it when they are sent, so the last frame of the version being
@@ -277,10 +281,19 @@ export default function useSceneRunner({
     }
   }, []);
 
+  const setUpdating = useCallback((updating: boolean) => {
+    if (updatingRef.current !== updating) {
+      updatingRef.current = updating;
+      updatingCallbackRef.current?.(updating);
+    }
+  }, []);
+
+  // The worker goes with whatever it was building beside the picture.
   const dropProgram = useCallback(() => {
     rendererRef.current?.dispose();
     rendererRef.current = undefined;
-  }, []);
+    setUpdating(false);
+  }, [setUpdating]);
 
   const onFrame = useCallback(
     (elapsedMs: number): boolean => {
@@ -805,6 +818,15 @@ export default function useSceneRunner({
         kick();
         return;
       }
+      // A picture of this scene on the canvas, drawing: the worker builds the
+      // new version beside it and goes on drawing the old one, so the canvas
+      // is not waiting, only updating. It used to say it waited, and the
+      // Studio covered its stage with "Loading" on every save the member's AI
+      // made, until the new version's first frame.
+      const beside =
+        rendererRef.current !== undefined &&
+        packRef.current !== null &&
+        waitingRef.current === false;
       const renderer = rendererRef.current ?? startRenderer();
       if (!renderer) {
         return;
@@ -812,9 +834,11 @@ export default function useSceneRunner({
       generationRef.current += 1;
       const generation = generationRef.current;
       buildingRef.current = true;
-      // Beside a running picture too: that picture stops moving until the
-      // new one is built, which in a busy window is seconds.
-      setWaiting(true);
+      if (beside) {
+        setUpdating(true);
+      } else {
+        setWaiting(true);
+      }
       let result;
       try {
         result = await renderer.load(pack, rules.limited);
@@ -829,6 +853,7 @@ export default function useSceneRunner({
       ) {
         return;
       }
+      setUpdating(false);
       drawnAtRef.current = undefined;
       if (result.kind === 'unavailable') {
         dropProgram();
@@ -871,7 +896,7 @@ export default function useSceneRunner({
         kick();
       }
     },
-    [kick, startRenderer, dropProgram, setWaiting],
+    [kick, startRenderer, dropProgram, setWaiting, setUpdating],
   );
   buildRef.current = build;
 

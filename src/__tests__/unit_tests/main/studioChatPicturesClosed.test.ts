@@ -83,7 +83,7 @@ it("answers the window's questions about Codex without starting it", async () =>
     root,
     pageOf: () => undefined,
     fromWindow: () => true,
-    project: noProject,
+    projectAt: noProject,
     signalOf: () => new AbortController().signal,
     door,
     version: '0',
