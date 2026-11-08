@@ -485,6 +485,10 @@ const studio = {
     '一个场景的 params 中最多只能有 2 个调色板。',
   'studio.problem.bad-choice':
     'params 中的选项控件需要由 a-z、0-9 和 _ 组成的 id、英文名称，以及 2 到 8 个选项，每个选项的英文名不超过 40 个字符；如写 min，应为 0，max 比选项数少 1。',
+  'studio.problem.bad-colour':
+    'params 中的颜色需要由 a-z、0-9 和 _ 组成的 id、英文名称，以及像 #00b3a4 的值；一个场景最多 4 个。',
+  'studio.problem.bad-show-when':
+    'params 中的 showWhen 用选项控件的 id 和显示该控件的选项编号来写，例如 "style": [0, 2]；最多 2 个选项控件。',
   'studio.problem.no-daylight':
     '每个场景都需要 Daylight 控件：在 params 中加入 {control}，0 时画夜晚，100 时画白天。',
   'studio.problem.bad-ambient':

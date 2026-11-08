@@ -549,6 +549,10 @@ const studio = {
     'シーンの params に置けるパレットは 2 つまでです。',
   'studio.problem.bad-choice':
     'params の選択肢には、a-z・0-9・_ の id、英語の名前、英語名 40 文字以内のオプション 2〜8 個が必要です。min を書く場合は 0、max はオプション数より 1 少なくします。',
+  'studio.problem.bad-colour':
+    'params の色には、a-z・0-9・_ の id、英語の名前、#00b3a4 のような値が必要です。シーンに置けるのは 4 つまでです。',
+  'studio.problem.bad-show-when':
+    'params の showWhen は、選択肢の id と、その操作を表示するオプション番号を書きます（例 "style": [0, 2]）。選択肢は 2 つまでです。',
   'studio.problem.no-daylight':
     'すべてのシーンに Daylight コントロールが必要です。params に {control} を入れ、0 で夜、100 で昼を描いてください。',
   'studio.problem.bad-ambient':

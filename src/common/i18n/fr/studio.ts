@@ -557,6 +557,10 @@ const studio = {
     'Une scène peut avoir au plus 2 palettes dans params.',
   'studio.problem.bad-choice':
     'Un choix dans params doit avoir un id en a-z, 0-9 et _, un nom anglais et de 2 à 8 options, chacune avec un nom anglais de 40 caractères au plus ; min, si présent, vaut 0 et max une de moins que les options.',
+  'studio.problem.bad-colour':
+    'Une couleur dans params doit avoir un id en a-z, 0-9 et _, un nom anglais et une valeur comme #00b3a4 ; une scène en a au plus 4.',
+  'studio.problem.bad-show-when':
+    'showWhen dans params nomme un choix par son id avec les numéros d’options qui affichent le réglage, comme "style": [0, 2] ; au plus 2 choix.',
   'studio.problem.no-daylight':
     'Chaque scène a besoin du contrôle Daylight, {control} dans params, et dessine la nuit à 0 et le jour à 100.',
   'studio.problem.bad-ambient':

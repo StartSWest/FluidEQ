@@ -13,7 +13,9 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from 'react';
+import type { TChoiceIcon } from 'common/sceneChoice';
 import Chevron from '../icons/Chevron';
+import SceneOptionIcon from './SceneOptionIcon';
 import useChatPopover from '../studio/chat/useChatPopover';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import '../styles/SceneChoice.scss';
@@ -35,6 +37,8 @@ const ROW_PADDING = 4;
 const OPTION_GAP = 2;
 /** The chosen option is set in the bolder weight, a little wider. */
 const BOLD_ALLOWANCE = 1.08;
+/** An option's icon or chip and the gap after it, in pixels. */
+const LOOK_ALLOWANCE = 20;
 
 let measurer: CanvasRenderingContext2D | null | undefined;
 
@@ -47,10 +51,15 @@ let measurer: CanvasRenderingContext2D | null | undefined;
  */
 const useNamesFit = (
   root: RefObject<HTMLDivElement | null>,
-  options: readonly string[],
+  options: readonly ISceneChoiceShown[],
 ) => {
   const [fits, setFits] = useState(true);
-  const key = options.join('\u0000');
+  const key = options
+    .map(
+      (option) =>
+        `${option.name}|${option.icon ?? ''}|${option.swatch?.join(',') ?? ''}`,
+    )
+    .join('\u0000');
   useEffect(() => {
     const node = root.current;
     if (!node) {
@@ -67,7 +76,12 @@ const useNamesFit = (
       );
       measurer.font = `${style.fontSize} ${style.fontFamily}`;
       const widest = Math.max(
-        ...options.map((name) => measurer?.measureText(name).width ?? 0),
+        ...options.map(
+          (option) =>
+            (measurer?.measureText(option.name).width ?? 0) +
+            // An icon or a chip stands beside the name.
+            (option.icon || option.swatch ? LOOK_ALLOWANCE : 0),
+        ),
       );
       const needed =
         options.length * (widest * BOLD_ALLOWANCE + OPTION_PADDING) +
@@ -86,10 +100,40 @@ const useNamesFit = (
   return fits;
 };
 
+/** One option as it is shown: its name and what it wears beside it. */
+export interface ISceneChoiceShown {
+  name: string;
+  icon?: TChoiceIcon;
+  swatch?: readonly string[];
+}
+
+/** An option's icon and its colour chip, where it has them. */
+function OptionLook({ option }: { option: ISceneChoiceShown }) {
+  return (
+    <>
+      {option.icon && (
+        <SceneOptionIcon icon={option.icon} className="scene-choice__icon" />
+      )}
+      {option.swatch && (
+        <span
+          className="scene-choice__swatch"
+          style={{
+            background:
+              option.swatch.length > 1
+                ? `linear-gradient(90deg, ${option.swatch.join(', ')})`
+                : option.swatch[0],
+          }}
+          aria-hidden
+        />
+      )}
+    </>
+  );
+}
+
 interface ISceneChoiceProps {
   label: string;
-  /** The options' names, in the reader's language, in order. */
-  options: readonly string[];
+  /** The options, named in the reader's language, in order. */
+  options: readonly ISceneChoiceShown[];
   /** The chosen option's place among them. */
   value: number;
   disabled: boolean;
@@ -147,7 +191,7 @@ export default function SceneChoice({
           style={{ '--count': count, '--at': value } as CSSProperties}
         >
           <span className="scene-choice__slide" aria-hidden />
-          {options.map((name, index) => (
+          {options.map((option, index) => (
             <button
               // Options are the scene's, fixed in number and order.
               // eslint-disable-next-line react/no-array-index-key -- an option is its place
@@ -157,12 +201,13 @@ export default function SceneChoice({
               aria-checked={index === value}
               tabIndex={index === value ? 0 : -1}
               className={`scene-choice__option${index === value ? ' is-chosen' : ''}`}
-              title={name}
+              title={option.name}
               disabled={disabled}
               onClick={() => onPick(index)}
               onKeyDown={onKey}
             >
-              {name}
+              <OptionLook option={option} />
+              <span className="scene-choice__text">{option.name}</span>
             </button>
           ))}
         </div>
@@ -186,7 +231,10 @@ export default function SceneChoice({
         onClick={menu.toggle}
         onKeyDown={onKey}
       >
-        <span className="scene-choice__current">{options[value]}</span>
+        <span className="scene-choice__current">
+          {options[value] && <OptionLook option={options[value]} />}
+          <span className="scene-choice__text">{options[value]?.name}</span>
+        </span>
         <span className="scene-choice__count" aria-hidden>
           {value + 1}/{count}
         </span>
@@ -200,7 +248,7 @@ export default function SceneChoice({
         ariaLabel={label}
         align="left"
       >
-        {options.map((name, index) => (
+        {options.map((option, index) => (
           <button
             // eslint-disable-next-line react/no-array-index-key -- an option is its place
             key={index}
@@ -214,7 +262,8 @@ export default function SceneChoice({
             }}
           >
             <span className="scene-choice__mark" aria-hidden />
-            <span className="scene-choice__name">{name}</span>
+            <OptionLook option={option} />
+            <span className="scene-choice__name">{option.name}</span>
           </button>
         ))}
       </AnchoredMenu>

@@ -20,6 +20,7 @@ import {
 } from '../../../main/studioAgent/agentProject';
 import {
   readDrawAnswer,
+  withColours,
   withPalettes,
   withSliders,
 } from '../../../main/studioAgent/drawAnswer';
@@ -245,6 +246,47 @@ describe('palettes for one picture (contract 9)', () => {
     expect(
       withPalettes(coloured, { sky: { stops: ['#000000', '#ffffff'] } }),
     ).toEqual({
+      unknown: 'sky',
+    });
+  });
+});
+
+describe('single colours for one picture (contract 9)', () => {
+  const tinted: IScenePack = {
+    ...pack,
+    colours: [{ id: 'tint', names: { en: 'Tint' }, value: '#00b3a4' }],
+  };
+
+  test('are read as #rrggbb, four at most, and refused otherwise', () => {
+    expect(readLookRequest({ colours: { tint: '#FF8800' } })).toMatchObject({
+      colours: { tint: '#ff8800' },
+    });
+    expect(typeof readLookRequest({ colours: { tint: 'orange' } })).toBe(
+      'string',
+    );
+    expect(typeof readLookRequest({ colours: { Tint: '#ff8800' } })).toBe(
+      'string',
+    );
+    expect(typeof readLookRequest({ colours: ['#ff8800'] })).toBe('string');
+    const five = Object.fromEntries(
+      Array.from({ length: 5 }, (_, i) => [`c${i}`, '#000000']),
+    );
+    expect(typeof readLookRequest({ colours: five })).toBe('string');
+  });
+
+  test('replace the colours they name, for that picture only', () => {
+    const drawn = withColours(tinted, { tint: '#ff0000' });
+    expect((drawn as IScenePack).colours?.[0]).toEqual({
+      id: 'tint',
+      names: { en: 'Tint' },
+      value: '#ff0000',
+    });
+    expect(tinted.colours?.[0].value).toBe('#00b3a4');
+    expect(withColours(tinted, undefined)).toBe(tinted);
+  });
+
+  test('name only colours the scene has', () => {
+    expect(withColours(tinted, { sky: '#000000' })).toEqual({
       unknown: 'sky',
     });
   });

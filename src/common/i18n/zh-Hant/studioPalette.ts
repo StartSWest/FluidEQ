@@ -33,6 +33,7 @@ const studioPalette = {
   'studioPalette.preset.spring': '春天',
   'studioPalette.preset.tropical': '熱帶',
   'studioPalette.preset.chrome': '鉻',
+  'studioPalette.pickColour': '{name}：選擇顏色',
 } as const;
 
 export default studioPalette;

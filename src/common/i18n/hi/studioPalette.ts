@@ -33,6 +33,7 @@ const studioPalette = {
   'studioPalette.preset.spring': 'वसंत',
   'studioPalette.preset.tropical': 'उष्णकटिबंधीय',
   'studioPalette.preset.chrome': 'क्रोम',
+  'studioPalette.pickColour': '{name}: रंग चुनें',
 } as const;
 
 export default studioPalette;

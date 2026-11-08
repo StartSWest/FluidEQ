@@ -23,6 +23,8 @@ export interface ISceneSettings {
   ambient: Readonly<Record<string, number>>;
   /** Its palettes' colours by id (contract 9); absent for a scene with none. */
   palettes?: Readonly<Record<string, IScenePaletteValue>>;
+  /** Its single colours by id; absent for a scene with none. */
+  colours?: Readonly<Record<string, string>>;
   /** Absent for a scene that hears the music as the engine hears it. */
   response?: ISceneResponse;
   /** Absent for a scene that asks nothing of the wave (`sceneWave.ts`). */
@@ -42,6 +44,13 @@ export const settingsOfPack = (pack: IScenePack): ISceneSettings => ({
     ? {
         palettes: Object.fromEntries(
           pack.palettes.map((palette) => [palette.id, paletteValueOf(palette)]),
+        ),
+      }
+    : {}),
+  ...(pack.colours?.length
+    ? {
+        colours: Object.fromEntries(
+          pack.colours.map((colour) => [colour.id, colour.value]),
         ),
       }
     : {}),

@@ -547,6 +547,10 @@ const studio = {
     'В сцене может быть не больше 2 палитр в params.',
   'studio.problem.bad-choice':
     'Выбору в params нужны id из a-z, 0-9 и _, английское имя и от 2 до 8 вариантов, у каждого английское имя не длиннее 40 символов; min, если есть, — 0, а max на один меньше числа вариантов.',
+  'studio.problem.bad-colour':
+    'Цвету в params нужны id из a-z, 0-9 и _, английское имя и значение вида #00b3a4; в сцене их не больше 4.',
+  'studio.problem.bad-show-when':
+    'showWhen в params называет выбор по id и номера вариантов, при которых виден элемент, например "style": [0, 2]; не больше 2 выборов.',
   'studio.problem.no-daylight':
     'Каждой сцене нужен элемент управления Daylight, {control} в params: при 0 она рисует ночь, при 100 — день.',
   'studio.problem.bad-ambient':

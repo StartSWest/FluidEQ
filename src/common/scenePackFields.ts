@@ -7,9 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { GRAPH_STYLES, type GraphStyle } from './graphStyles';
 import type { LocaleCode } from './i18n';
 import { readPaletteValue, type IScenePaletteValue } from './scenePalette';
+import { readShowWhen, type TShowWhen } from './sceneShowWhen';
+import { COLOUR_TYPE, readColourValue } from './sceneColourControl';
 import {
   choiceIndex,
   isChoiceEntry,
+  readChoiceLook,
+  type TChoiceIcon,
   MAX_CHOICE_NAME_LENGTH,
   MAX_CHOICE_OPTIONS,
   MIN_CHOICE_OPTIONS,
@@ -62,7 +66,21 @@ export interface IScenePackParam {
    * is 0, `max` one less than their number and `value` the chosen one's.
    * Absent for a slider.
    */
-  options?: readonly TLocalizedName[];
+  options?: readonly ISceneChoiceOption[];
+  /**
+   * Shown in the Studio only while the choices it names stand on one of the
+   * listed options (`sceneShowWhen.ts`). Absent is always shown.
+   */
+  showWhen?: TShowWhen;
+}
+
+/** One option of a choice: its name, and what it wears beside it. */
+export interface ISceneChoiceOption {
+  names: TLocalizedName;
+  /** One of FluidEQ's own pictures (`CHOICE_ICONS`). */
+  icon?: TChoiceIcon;
+  /** A chip of one to four colours. */
+  swatch?: readonly string[];
 }
 
 export const PACK_ID = /^[a-z][a-z0-9-]{1,47}$/;
@@ -146,20 +164,24 @@ export const readParam = (value: unknown): IScenePackParam | null => {
     // The options that have a name, up to eight: one this version cannot
     // name is left out, and fewer than two is no choice.
     const options = (Array.isArray(value.options) ? value.options : [])
-      .map((option: unknown) =>
-        isRecord(option) ? readNames(option.names) : null,
-      )
-      .filter((option): option is TLocalizedName => option !== null)
-      .map(
-        (option) =>
-          Object.fromEntries(
-            Object.entries(option).map(([locale, name]) => [
+      .map((option: unknown): ISceneChoiceOption | null => {
+        const named = isRecord(option) ? readNames(option.names) : null;
+        if (!named) {
+          return null;
+        }
+        return {
+          names: Object.fromEntries(
+            Object.entries(named).map(([locale, name]) => [
               locale,
               name.slice(0, MAX_CHOICE_NAME_LENGTH),
             ]),
           ) as TLocalizedName,
-      )
+          ...readChoiceLook(option),
+        };
+      })
+      .filter((option): option is ISceneChoiceOption => option !== null)
       .slice(0, MAX_CHOICE_OPTIONS);
+    const rule = readShowWhen(value.showWhen);
     if (options.length < MIN_CHOICE_OPTIONS) {
       return null;
     }
@@ -170,6 +192,7 @@ export const readParam = (value: unknown): IScenePackParam | null => {
       max: options.length - 1,
       value: choiceIndex(value.value, options.length),
       options,
+      ...(rule ? { showWhen: rule } : {}),
     };
   }
   // A range written the wrong way round is still the author's range, and a
@@ -187,12 +210,14 @@ export const readParam = (value: unknown): IScenePackParam | null => {
   );
   const min = Math.min(first, second);
   const max = Math.max(first, second);
+  const shown = readShowWhen(value.showWhen);
   return {
     id: value.id,
     names,
     min,
     max,
     value: clamp(readNumber(value.value, min), min, max),
+    ...(shown ? { showWhen: shown } : {}),
   };
 };
 
@@ -201,7 +226,41 @@ export interface IScenePackPalette extends IScenePaletteValue {
   /** Uniform suffix: the preamble declares `uniform sampler2D uPalette_<id>`. */
   id: string;
   names: TLocalizedName;
+  /** Shown only while these choices stand as listed (`sceneShowWhen.ts`). */
+  showWhen?: TShowWhen;
 }
+
+/** A single colour among `params` (contract 9, `sceneColourControl.ts`). */
+export interface IScenePackColour {
+  /** Uniform suffix: the preamble declares `uniform vec3 uColour_<id>`. */
+  id: string;
+  names: TLocalizedName;
+  /** `#rrggbb`, lower case, as the member picked it. */
+  value: string;
+  showWhen?: TShowWhen;
+}
+
+/** A single colour declared in `params`, or `null`. */
+export const readColourControl = (value: unknown): IScenePackColour | null => {
+  if (!isRecord(value) || value.type !== COLOUR_TYPE) {
+    return null;
+  }
+  if (typeof value.id !== 'string' || !SCENE_PARAM_ID.test(value.id)) {
+    return null;
+  }
+  const names = readNames(value.names);
+  const colour = readColourValue(value.value);
+  if (!names || !colour) {
+    return null;
+  }
+  const rule = readShowWhen(value.showWhen);
+  return {
+    id: value.id,
+    names,
+    value: colour,
+    ...(rule ? { showWhen: rule } : {}),
+  };
+};
 
 /** A palette declared in `params`, or `null` for one this version cannot draw. */
 export const readPalette = (value: unknown): IScenePackPalette | null => {
@@ -216,7 +275,13 @@ export const readPalette = (value: unknown): IScenePackPalette | null => {
   if (!names || !colours) {
     return null;
   }
-  return { id: value.id, names, ...colours };
+  const rule = readShowWhen(value.showWhen);
+  return {
+    id: value.id,
+    names,
+    ...colours,
+    ...(rule ? { showWhen: rule } : {}),
+  };
 };
 
 export const readSwatch = (value: unknown): string[] => {

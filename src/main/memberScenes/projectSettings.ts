@@ -11,6 +11,10 @@ import {
 } from '../../common/sceneWave';
 import { choiceIndex, isChoiceEntry } from '../../common/sceneChoice';
 import {
+  isColourEntry,
+  readColourValue,
+} from '../../common/sceneColourControl';
+import {
   isPaletteEntry,
   readPaletteValue,
   type IScenePaletteValue,
@@ -41,6 +45,8 @@ export interface IProjectSettings {
    * where they are not evenly spaced.
    */
   palettes?: Readonly<Record<string, IScenePaletteValue>>;
+  /** The single colours by id, `#rrggbb`, written as each one's `value`. */
+  colours?: Readonly<Record<string, string>>;
   /** Where the ambient layer's controls stand, 0..1, by id (`sceneAmbient.ts`). */
   ambient?: Readonly<Record<string, number>>;
   /** `null` takes the scene's response out: as the engine hears it. */
@@ -79,7 +85,8 @@ const writeSettings = async (
       if (
         !isRecord(entry) ||
         typeof entry.id !== 'string' ||
-        isPaletteEntry(entry)
+        isPaletteEntry(entry) ||
+        isColourEntry(entry)
       ) {
         return entry;
       }
@@ -129,6 +136,21 @@ const writeSettings = async (
       return read.positions
         ? { ...next, positions: [...read.positions] }
         : next;
+    });
+  }
+
+  if (settings.colours && Array.isArray(manifest.params)) {
+    const given = settings.colours;
+    manifest.params = manifest.params.map((entry: unknown) => {
+      if (
+        !isRecord(entry) ||
+        typeof entry.id !== 'string' ||
+        !isColourEntry(entry)
+      ) {
+        return entry;
+      }
+      const colour = readColourValue(given[entry.id]);
+      return colour ? { ...entry, value: colour } : entry;
     });
   }
 

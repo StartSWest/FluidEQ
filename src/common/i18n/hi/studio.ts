@@ -540,6 +540,10 @@ const studio = {
     'एक दृश्य के params में अधिक से अधिक 2 पैलेट हो सकती हैं।',
   'studio.problem.bad-choice':
     'params में विकल्प-नियंत्रण के लिए a-z, 0-9 और _ से बनी id, अंग्रेज़ी नाम और 2 से 8 विकल्प चाहिए, हर एक का अंग्रेज़ी नाम 40 अक्षरों तक; min दें तो 0, और max विकल्पों से एक कम।',
+  'studio.problem.bad-colour':
+    'params में रंग के लिए a-z, 0-9 और _ से बनी id, अंग्रेज़ी नाम और #00b3a4 जैसा मान चाहिए; एक दृश्य में अधिक से अधिक 4।',
+  'studio.problem.bad-show-when':
+    'params में showWhen किसी विकल्प-नियंत्रण की id और उन विकल्प संख्याओं को लिखता है जिन पर नियंत्रण दिखे, जैसे "style": [0, 2]; अधिक से अधिक 2।',
   'studio.problem.no-daylight':
     'हर सीन को Daylight नियंत्रण चाहिए: params में {control} रखें, और 0 पर रात और 100 पर दिन बनाएँ।',
   'studio.problem.bad-ambient':

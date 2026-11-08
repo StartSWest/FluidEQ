@@ -10,6 +10,7 @@ import { readSceneCamera, type ISceneCameraLimits } from './sceneCamera';
 import { readSceneFraming, type ISceneFraming } from './sceneFraming';
 import { readScenePointer, type IScenePointer } from './scenePointer';
 import { MAX_SCENE_PALETTES } from './scenePalette';
+import { MAX_SCENE_COLOURS } from './sceneColourControl';
 import { readSceneWave, type ISceneWave } from './sceneWave';
 import type { ISceneWorld } from './sceneWorld';
 import normalizeSceneWorld from './sceneWorldRead';
@@ -26,11 +27,13 @@ import {
   PACK_ID,
   readNames,
   readNumber,
+  readColourControl,
   readPalette,
   readParam,
   readSource,
   readSpectrumRange,
   readSwatch,
+  type IScenePackColour,
   type IScenePackPalette,
   type IScenePackParam,
   type TLocalizedName,
@@ -75,7 +78,11 @@ export {
   SCENE_PARAM_ID,
 } from './scenePackFields';
 export type { IScenePackParam, TLocalizedName } from './scenePackFields';
-export type { IScenePackPalette } from './scenePackFields';
+export type {
+  IScenePackColour,
+  IScenePackPalette,
+  ISceneChoiceOption,
+} from './scenePackFields';
 export type { IScenePaletteValue } from './scenePalette';
 
 // Accommodate a 6 MiB lossless atlas after base64 expansion, plus the bounded
@@ -106,6 +113,11 @@ export interface IScenePack {
    * `params` but apart from the sliders and their eight. Absent is none.
    */
   palettes?: IScenePackPalette[];
+  /**
+   * Its single colours (contract 9, `sceneColourControl.ts`), apart from
+   * the sliders and the palettes. Absent is none.
+   */
+  colours?: IScenePackColour[];
   /** Optional signed colour atlas; paid image bytes stay in the scene pack. */
   artwork?: ISceneArtwork;
   /** Optional bottom/top of the live dB scale in normalized panel coordinates. */
@@ -286,6 +298,20 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
       }
     });
   }
+  const colours: IScenePackColour[] = [];
+  if (Array.isArray(raw.params)) {
+    raw.params.forEach((entry) => {
+      const colour = readColourControl(entry);
+      if (
+        colour &&
+        !seen.has(colour.id) &&
+        colours.length < MAX_SCENE_COLOURS
+      ) {
+        seen.add(colour.id);
+        colours.push(colour);
+      }
+    });
+  }
   // Kept in range rather than refused: a response is taste, and a slider
   // pushed past its end is still the author's meaning.
   const response =
@@ -327,6 +353,7 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
     source,
     params,
     ...(palettes.length ? { palettes } : {}),
+    ...(colours.length ? { colours } : {}),
     ...(artwork ? { artwork } : {}),
     ...(spectrumRange ? { spectrumRange } : {}),
     ...(response && !isNeutralResponse(response) ? { response } : {}),

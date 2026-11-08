@@ -8,6 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { type CSSProperties, type ReactNode, useId } from 'react';
 import { resolveParamName, type IScenePackParam } from 'common/scenePacks';
+import { isShownBy } from 'common/sceneShowWhen';
 import { useTranslation } from '../utils/I18nContext';
 import {
   clearListenerParams,
@@ -118,7 +119,19 @@ export default function SceneParamMenu({ lookId }: ISceneParamMenuProps) {
   const { t, locale } = useTranslation();
   const own = useOwnParams(lookId);
   const chosen = useListenerParams(lookId);
-  const movable = own && sceneSliderParams(own);
+  // As the Studio shows them: a control its choices put away is not offered
+  // (`sceneShowWhen.ts`), at the listener's own choices over the scene's.
+  const standing = Object.fromEntries(
+    (own ?? []).map((param) => [param.id, chosen?.[param.id] ?? param.value]),
+  );
+  const choiceIds = new Set(
+    (own ?? []).filter((param) => param.options).map((param) => param.id),
+  );
+  const movable =
+    own &&
+    sceneSliderParams(own).filter((param) =>
+      isShownBy(param.showWhen, standing, choiceIds),
+    );
   if (!movable || movable.length === 0) {
     return null;
   }
@@ -131,9 +144,11 @@ export default function SceneParamMenu({ lookId }: ISceneParamMenuProps) {
           <div key={param.id} className="graph-view-menu__choice">
             <SceneChoice
               label={resolveParamName(param, locale)}
-              options={param.options.map((option) =>
-                resolveParamName({ names: option }, locale),
-              )}
+              options={param.options.map((option) => ({
+                name: resolveParamName(option, locale),
+                ...(option.icon ? { icon: option.icon } : {}),
+                ...(option.swatch ? { swatch: option.swatch } : {}),
+              }))}
               value={Math.round(chosen?.[param.id] ?? param.value)}
               disabled={false}
               onPick={(index) =>

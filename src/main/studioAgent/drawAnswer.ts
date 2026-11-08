@@ -200,6 +200,33 @@ export const readDrawAnswer = (
 };
 
 /**
+ * `pack` with the single colours the caller chose for this one picture
+ * (contract 9); the id of the first one the scene does not have.
+ */
+export const withColours = (
+  pack: IScenePack,
+  colours: Readonly<Record<string, string>> | undefined,
+): IScenePack | { unknown: string } => {
+  if (!colours) {
+    return pack;
+  }
+  const wanted = Object.keys(colours).find(
+    (id) => !(pack.colours ?? []).some((colour) => colour.id === id),
+  );
+  if (wanted !== undefined) {
+    return { unknown: wanted };
+  }
+  return {
+    ...pack,
+    colours: (pack.colours ?? []).map((colour) =>
+      Object.prototype.hasOwnProperty.call(colours, colour.id)
+        ? { ...colour, value: colours[colour.id] }
+        : colour,
+    ),
+  };
+};
+
+/**
  * `pack` with the palettes' colours the caller chose for this one picture
  * (contract 9); the id of the first one the scene does not have.
  */

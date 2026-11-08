@@ -8,7 +8,15 @@ import {
 import { normalizeSceneArtwork } from './sceneArtwork';
 import { declaresSceneDaylight } from './sceneDaylight';
 import {
+  isColourEntry,
+  MAX_SCENE_COLOURS,
+  readColourValue,
+} from './sceneColourControl';
+import { isWholeShowWhen } from './sceneShowWhen';
+import {
   isChoiceEntry,
+  isChoiceIcon,
+  MAX_CHOICE_SWATCH,
   MAX_CHOICE_NAME_LENGTH,
   MAX_CHOICE_OPTIONS,
   MIN_CHOICE_OPTIONS,
@@ -179,6 +187,12 @@ export type TMemberProblemCode =
   | 'too-many-palettes'
   // A choice (`sceneChoice.ts`) that is not two to eight named options.
   | 'bad-choice'
+  // A single colour (`sceneColourControl.ts`) with no #rrggbb value, or
+  // more of them than a scene may have.
+  | 'bad-colour'
+  // A `showWhen` (`sceneShowWhen.ts`) that is not choice ids and option
+  // numbers.
+  | 'bad-show-when'
   // No control answering to the time of day (`sceneDaylight.ts`).
   | 'no-daylight'
   | 'bad-ambient'
@@ -295,11 +309,18 @@ const isWholeChoice = (entry: unknown): boolean => {
       return false;
     }
     const { names } = cleanNames(option.names);
+    const { icon, swatch } = option;
     return (
       Boolean(names?.en) &&
       Object.values(names ?? {}).every(
         (name) => name.length <= MAX_CHOICE_NAME_LENGTH,
-      )
+      ) &&
+      (icon === undefined || isChoiceIcon(icon)) &&
+      (swatch === undefined ||
+        (Array.isArray(swatch) &&
+          swatch.length > 0 &&
+          swatch.length <= MAX_CHOICE_SWATCH &&
+          swatch.every((colour) => readColourValue(colour) !== null)))
     );
   });
   return (
@@ -312,6 +333,14 @@ const isWholeChoice = (entry: unknown): boolean => {
         (entry.value as number) < count))
   );
 };
+
+/** Whether a single colour is whole as its author wrote it. */
+const isWholeColour = (entry: unknown): boolean =>
+  isRecord(entry) &&
+  typeof entry.id === 'string' &&
+  SCENE_PARAM_ID.test(entry.id) &&
+  Boolean(cleanNames(entry.names).names?.en) &&
+  readColourValue(entry.value) !== null;
 
 /** Whether a palette entry is whole as its author wrote it (`scenePalette.ts`). */
 const isWholePalette = (entry: unknown): boolean =>
@@ -379,7 +408,10 @@ export const checkProjectParams = (value: unknown): TMemberProblemCode[] => {
   // A palette is a control of its own kind, with its own limit apart from
   // the sliders': the eight are sliders alone.
   const palettes = value.filter(isPaletteEntry);
-  const sliders = value.filter((entry: unknown) => !isPaletteEntry(entry));
+  const colours = value.filter(isColourEntry);
+  const sliders = value.filter(
+    (entry: unknown) => !isPaletteEntry(entry) && !isColourEntry(entry),
+  );
   const choices = sliders.filter(isChoiceEntry);
   if (
     repeated ||
@@ -400,6 +432,16 @@ export const checkProjectParams = (value: unknown): TMemberProblemCode[] => {
   }
   if (palettes.length > MAX_SCENE_PALETTES) {
     problems.push('too-many-palettes');
+  }
+  if (!colours.every(isWholeColour) || colours.length > MAX_SCENE_COLOURS) {
+    problems.push('bad-colour');
+  }
+  if (
+    !value.every(
+      (entry: unknown) => !isRecord(entry) || isWholeShowWhen(entry.showWhen),
+    )
+  ) {
+    problems.push('bad-show-when');
   }
   return problems;
 };

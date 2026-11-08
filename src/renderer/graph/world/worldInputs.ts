@@ -37,6 +37,7 @@ import type {
   IExpressionScope,
 } from 'common/worldExpression';
 import { PALETTE_TEXELS, uniformNameForPalette } from 'common/scenePalette';
+import { colourLinear, uniformNameForColour } from 'common/sceneColourControl';
 import type { ISceneFrame } from '../sceneGl';
 import { createScenePaletteSlots } from '../scenePalettes';
 import { HOME_CAMERA, NO_POINTER, NO_TAP } from '../sceneFrameRest';
@@ -183,6 +184,19 @@ export const createWorldInputs = (
   pack.params.forEach((param) => {
     uniforms[uniformNameForParam(param.id)] = { value: param.value };
   });
+  // Contract 9: each single colour a vec3 in linear light, the renderer's.
+  const colourSlots = (pack.colours ?? []).map((colour) => {
+    const uniform: IUniform = {
+      value: new Vector3(...colourLinear(colour.value)),
+    };
+    uniforms[uniformNameForColour(colour.id)] = uniform;
+    return {
+      id: colour.id,
+      fallback: colour.value,
+      hex: colour.value,
+      uniform,
+    };
+  });
   // Contract 9: each palette a 256x1 row the GPU decodes from sRGB, so the
   // sky and every material read it in linear light, as the flat path does.
   const paletteTextures = palettes.slots.map((slot) => {
@@ -249,6 +263,13 @@ export const createWorldInputs = (
     view,
     paletteColour: palettes.colourAt,
     update: (frame, width, height) => {
+      colourSlots.forEach((slot) => {
+        const hex = frame.colours?.[slot.id] ?? slot.fallback;
+        if (hex !== slot.hex) {
+          slot.hex = hex;
+          (slot.uniform.value as Vector3).set(...colourLinear(hex));
+        }
+      });
       // Before the formulas run, so a colour read from a palette this frame
       // is this frame's palette.
       palettes.update(frame.palettes).forEach((slot) => {

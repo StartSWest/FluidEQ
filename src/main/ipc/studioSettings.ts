@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron';
 import { readPaletteValue } from '../../common/scenePalette';
+import { readColourValue } from '../../common/sceneColourControl';
 import type { ISceneResponse } from '../../common/sceneResponse';
 import { readSceneWave, type ISceneWave } from '../../common/sceneWave';
 import { readProject } from '../memberScenes/project';
@@ -83,6 +84,15 @@ const readSettings = (raw: unknown): IProjectSettings => {
         }),
       )
     : undefined;
+  // Each a #rrggbb, or not written.
+  const colours = isRecord(raw.colours)
+    ? Object.fromEntries(
+        Object.entries(raw.colours).flatMap(([id, value]) => {
+          const colour = readColourValue(value);
+          return colour ? [[id, colour]] : [];
+        }),
+      )
+    : undefined;
   let response: ISceneResponse | null | undefined;
   if (raw.response === null) {
     response = null;
@@ -101,6 +111,7 @@ const readSettings = (raw: unknown): IProjectSettings => {
     ...(params ? { params } : {}),
     ...(ambient ? { ambient } : {}),
     ...(palettes && Object.keys(palettes).length ? { palettes } : {}),
+    ...(colours && Object.keys(colours).length ? { colours } : {}),
     ...(response !== undefined ? { response } : {}),
     ...(wave !== undefined ? { wave } : {}),
   };

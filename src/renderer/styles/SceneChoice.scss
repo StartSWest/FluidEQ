@@ -68,6 +68,10 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .scene-choice__option {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   min-width: 0;
   min-height: 26px;
   padding: 3px 6px;
@@ -143,9 +147,37 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .scene-choice__current {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+// An option's name, cut short with an ellipsis rather than pushing its icon
+// or chip out of the button.
+.scene-choice__text {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+// FluidEQ's own picture for an option (`SceneOptionIcon.tsx`), in the
+// option's colour, so it lights with the name when the option is chosen.
+.scene-choice__icon {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+}
+
+// The option's colours as a small chip: one colour, or the gradient of up
+// to four, ringed so a dark colour still has an edge on the well.
+.scene-choice__swatch {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba($white, 0.22);
 }
 
 .scene-choice__count {
@@ -165,8 +197,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .scene-choice__item {
-  display: grid;
-  grid-template-columns: 14px minmax(0, 1fr);
+  display: flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
@@ -199,7 +230,8 @@ it under the terms of the GNU General Public License version 3 or later.
 .scene-choice__mark {
   width: 8px;
   height: 8px;
-  justify-self: center;
+  flex: 0 0 auto;
+  margin-inline: 3px;
   border-radius: 50%;
   box-shadow: inset 0 0 0 1px rgba($white, 0.25);
 

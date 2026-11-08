@@ -468,6 +468,10 @@ const studio = {
     '一個場景的 params 中最多只能有 2 個調色盤。',
   'studio.problem.bad-choice':
     'params 中的選項控制需要由 a-z、0-9 和 _ 組成的 id、英文名稱，以及 2 到 8 個選項，每個選項的英文名不超過 40 個字元；如寫 min，應為 0，max 比選項數少 1。',
+  'studio.problem.bad-colour':
+    'params 中的顏色需要由 a-z、0-9 和 _ 組成的 id、英文名稱，以及像 #00b3a4 的值；一個場景最多 4 個。',
+  'studio.problem.bad-show-when':
+    'params 中的 showWhen 用選項控制的 id 和顯示該控制的選項編號來寫，例如 "style": [0, 2]；最多 2 個選項控制。',
   'studio.problem.no-daylight':
     '每個場景都需要日光控制，引數為 {control}，並在 0 處繪製夜晚，在 100 處繪製白天。',
   'studio.problem.bad-ambient':

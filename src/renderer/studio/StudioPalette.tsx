@@ -27,6 +27,7 @@ import {
 } from 'common/scenePalette';
 import { useTranslation } from '../utils/I18nContext';
 import AnchoredMenu from '../widgets/AnchoredMenu';
+import Chevron from '../icons/Chevron';
 import useChatPopover from './chat/useChatPopover';
 
 /** A stop while the member has hold of it: its own key survives a reorder. */
@@ -304,34 +305,50 @@ export default function StudioPalette({
       <div className="studio-palette__head">
         <span className="studio-setting__label">{label}</span>
         <span className="studio-palette__tools">
+          {/* The app's quiet outline buttons: Presets with the palette's own
+              colours on it and the arrow every list-opener wears; Reverse and
+              Reset as icons, named for the reader and the pointer. */}
           <button
             ref={presets.setAnchor}
             type="button"
-            className="studio-settings__reset"
+            className="button small subtle studio-palette__tool studio-palette__tool--presets"
             aria-haspopup="dialog"
             aria-expanded={presets.isOpen}
             disabled={disabled}
             onClick={presets.toggle}
           >
+            <span
+              className="studio-palette__chip"
+              style={{ background: paletteCss(drawn) }}
+              aria-hidden
+            />
             {t('studioPalette.presets')}
+            <Chevron />
           </button>
           <button
             type="button"
-            className="studio-settings__reset"
+            className="button small subtle studio-palette__tool"
             title={t('studioPalette.reverseHint')}
+            aria-label={t('studioPalette.reverse')}
             disabled={disabled}
             onClick={() => onCommit(reversedPalette(drawn))}
           >
-            {t('studioPalette.reverse')}
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M2.5 5.5h10M10 3l2.5 2.5L10 8M13.5 10.5h-10M6 8l-2.5 2.5L6 13" />
+            </svg>
           </button>
           <button
             type="button"
-            className="studio-settings__reset"
+            className="button small subtle studio-palette__tool"
             title={resetsTo}
+            aria-label={t('studio.settings.reset')}
             disabled={disabled || !canReset}
             onClick={onReset}
           >
-            {t('studio.settings.reset')}
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 8a5 5 0 1 0 1.6-3.7" />
+              <path d="M2.8 2.2v2.6h2.6" />
+            </svg>
           </button>
         </span>
       </div>

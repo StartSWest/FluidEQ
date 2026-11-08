@@ -31,6 +31,8 @@ interface IPending {
   params: Record<string, number>;
   /** Palettes the member changed and the scene does not have yet. */
   palettes?: TPalettes;
+  /** Single colours likewise, `#rrggbb` by id. */
+  colours?: Record<string, string>;
   response?: ISceneResponse;
   wave?: ISceneWave;
 }
@@ -50,6 +52,23 @@ const palettesOf = (pack: IScenePack | undefined): TPalettes =>
       paletteValueOf(palette),
     ]),
   );
+
+/** The scene's single colours as it has them now, by id. */
+const coloursOf = (pack: IScenePack | undefined): Record<string, string> =>
+  Object.fromEntries(
+    (pack?.colours ?? []).map((colour) => [colour.id, colour.value]),
+  );
+
+/** The pending colours the scene does not already agree with. */
+const unagreedColours = (
+  pending: Record<string, string> | undefined,
+  agreed: Record<string, string>,
+): Record<string, string> | undefined => {
+  const left = Object.entries(pending ?? {}).filter(
+    ([id, value]) => id in agreed && agreed[id] !== value,
+  );
+  return left.length ? Object.fromEntries(left) : undefined;
+};
 
 /** The pending palettes the scene does not already agree with. */
 const unagreed = (
@@ -120,10 +139,12 @@ export default function useStudioTuning(
     project?: string;
     values: Record<string, number>;
     palettes: TPalettes;
+    colours: Record<string, string>;
     wave?: ISceneWave;
   }>({
     values: {},
     palettes: {},
+    colours: {},
   });
 
   useEffect(() => {
@@ -140,6 +161,7 @@ export default function useStudioTuning(
         project,
         values: valuesOf(pack),
         palettes: palettesOf(pack),
+        colours: coloursOf(pack),
         ...(pack.wave ? { wave: pack.wave } : {}),
       };
     }
@@ -161,9 +183,11 @@ export default function useStudioTuning(
           ? current.wave
           : undefined;
       const palettes = unagreed(current.palettes, palettesOf(pack));
+      const colours = unagreedColours(current.colours, coloursOf(pack));
       return {
         params,
         ...(palettes ? { palettes } : {}),
+        ...(colours ? { colours } : {}),
         ...(response ? { response } : {}),
         ...(wave ? { wave } : {}),
       };
@@ -182,9 +206,13 @@ export default function useStudioTuning(
     () => ({ ...palettesOf(pack), ...pending.palettes }),
     [pack, pending.palettes],
   );
+  const colours = useMemo(
+    () => ({ ...coloursOf(pack), ...pending.colours }),
+    [pack, pending.colours],
+  );
   const tuning = useMemo<ISceneTuning>(
-    () => ({ params: values, response, palettes }),
-    [values, response, palettes],
+    () => ({ params: values, response, palettes, colours }),
+    [values, response, palettes, colours],
   );
 
   const setParam = useCallback(
@@ -246,12 +274,14 @@ export default function useStudioTuning(
       const waveChanged =
         next.wave !== undefined && !sameSceneWave(next.wave, packWave);
       const palettes = unagreed(next.palettes, palettesOf(pack));
+      const colours = unagreedColours(next.colours, coloursOf(pack));
       const send = window.electron?.ipcRenderer?.writeStudioSettings;
       if (
         (!Object.keys(params).length &&
           !responseChanged &&
           !waveChanged &&
-          !palettes) ||
+          !palettes &&
+          !colours) ||
         !send
       ) {
         return;
@@ -260,6 +290,7 @@ export default function useStudioTuning(
       send({
         ...(Object.keys(params).length ? { params } : {}),
         ...(palettes ? { palettes } : {}),
+        ...(colours ? { colours } : {}),
         ...(responseChanged && next.response
           ? {
               response: isNeutralResponse(next.response) ? null : next.response,
@@ -350,6 +381,36 @@ export default function useStudioTuning(
     write(next);
   };
 
+  /** A single colour as the member picks it: on the stage at once. */
+  const setColour = (id: string, value: string) => {
+    markStarterStep(project, 'dial');
+    setPending((current) => ({
+      ...current,
+      colours: { ...current.colours, [id]: value },
+    }));
+  };
+
+  /** A single colour settled: on the stage and saved. */
+  const chooseColour = (id: string, value: string) => {
+    const next = { ...pending, colours: { ...pending.colours, [id]: value } };
+    setPending(next);
+    write(next);
+  };
+
+  // Where a colour's Reset puts it: the published version's, else the one
+  // the project was opened with, as the other controls go.
+  const colourAtReset = (id: string): string | undefined =>
+    published?.colours?.[id] ??
+    opened.current.colours[id] ??
+    coloursOf(pack)[id];
+
+  const resetColour = (id: string) => {
+    const back = colourAtReset(id);
+    if (back) {
+      chooseColour(id, back);
+    }
+  };
+
   const resetWave = useCallback(() => {
     const next = { ...pending, wave: waveAtReset };
     setPending(next);
@@ -378,6 +439,18 @@ export default function useStudioTuning(
     setPalette,
     choosePalette,
     resetPalette,
+    /** The scene's single colours, and their values as the member has them. */
+    colourParams: pack?.colours ?? [],
+    colours,
+    canResetColour: (id: string) => {
+      const back = colourAtReset(id);
+      return back !== undefined && colours[id] !== undefined
+        ? back !== colours[id]
+        : false;
+    },
+    setColour,
+    chooseColour,
+    resetColour,
     response,
     wave,
     saved,

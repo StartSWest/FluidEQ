@@ -44,3 +44,75 @@ export const choiceIndex = (value: unknown, count: number): number => {
   const read = typeof value === 'number' && Number.isFinite(value) ? value : 0;
   return Math.min(Math.max(0, count - 1), Math.max(0, Math.round(read)));
 };
+
+/**
+ * The pictures an option may wear beside its name (`"icon"`), drawn by
+ * FluidEQ from its own set (`SceneOptionIcon.tsx`): a scene names one, it
+ * never ships a picture, so an option's icon is as safe as its name.
+ */
+export const CHOICE_ICONS = [
+  'bars',
+  'wave',
+  'circle',
+  'ring',
+  'dots',
+  'grid',
+  'star',
+  'sparkle',
+  'sun',
+  'moon',
+  'cloud',
+  'snow',
+  'drop',
+  'flame',
+  'leaf',
+  'flower',
+  'heart',
+  'spiral',
+  'square',
+  'triangle',
+  'diamond',
+  'mountain',
+  'bolt',
+  'eye',
+] as const;
+
+export type TChoiceIcon = (typeof CHOICE_ICONS)[number];
+
+/** Colours an option may show as a little chip (`"swatch"`): one to four. */
+export const MAX_CHOICE_SWATCH = 4;
+
+// Named apart from every other vendored module's: the server bundles them into
+// one scope (`tools/bundle-functions.mjs`).
+const SWATCH_HEX = /^#[0-9a-f]{6}$/i;
+
+export const isChoiceIcon = (value: unknown): value is TChoiceIcon =>
+  typeof value === 'string' &&
+  (CHOICE_ICONS as readonly string[]).includes(value);
+
+/**
+ * What an option shows beside its name: an icon from FluidEQ's set and a
+ * chip of up to four colours, each left out where it is not one this
+ * version draws - an option is still its name without them.
+ */
+export const readChoiceLook = (
+  option: unknown,
+): { icon?: TChoiceIcon; swatch?: string[] } => {
+  if (typeof option !== 'object' || option === null) {
+    return {};
+  }
+  const { icon, swatch } = option as { icon?: unknown; swatch?: unknown };
+  const colours = Array.isArray(swatch)
+    ? swatch
+        .filter(
+          (entry): entry is string =>
+            typeof entry === 'string' && SWATCH_HEX.test(entry),
+        )
+        .slice(0, MAX_CHOICE_SWATCH)
+        .map((entry) => entry.toLowerCase())
+    : [];
+  return {
+    ...(isChoiceIcon(icon) ? { icon } : {}),
+    ...(colours.length ? { swatch: colours } : {}),
+  };
+};

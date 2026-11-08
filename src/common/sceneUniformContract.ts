@@ -1,5 +1,6 @@
 import type { IScenePack } from './scenePacks';
 import { uniformNameForPalette } from './scenePalette';
+import { uniformNameForColour } from './sceneColourControl';
 
 /**
  * What a scene shader is handed every frame, and the program it is wrapped in.
@@ -33,7 +34,11 @@ import { uniformNameForPalette } from './scenePalette';
  * pointer, taps and the viewer's camera. 9 added colour palettes: a
  * `params` entry of `"type": "palette"` is a `uniform sampler2D
  * uPalette_<id>`, the member's gradient 256 texels wide in linear light
- * (`scenePalette.ts`), and does not count toward the eight sliders.
+ * (`scenePalette.ts`), and does not count toward the eight sliders; a
+ * `"type": "colour"` entry is a `uniform vec3 uColour_<id>` in linear light
+ * (`sceneColourControl.ts`); a `"choice"` is a slider's uniform with named
+ * options (`sceneChoice.ts`); and any control may say when the Studio shows
+ * it (`sceneShowWhen.ts`).
  */
 export const SCENE_CONTRACT_VERSION = 9;
 
@@ -189,9 +194,18 @@ export const paletteUniformDeclarations = (pack: IScenePack): string =>
     )
     .join('');
 
+/**
+ * One `uniform vec3` a line for each of the pack's single colours (contract
+ * 9): the member's pick in linear light.
+ */
+export const colourUniformDeclarations = (pack: IScenePack): string =>
+  (pack.colours ?? [])
+    .map((colour) => `uniform vec3 ${uniformNameForColour(colour.id)};\n`)
+    .join('');
+
 /** Everything a pack's own controls add to the preamble. */
 export const controlDeclarations = (pack: IScenePack): string =>
-  `${paramUniformDeclarations(pack)}${paletteUniformDeclarations(pack)}`;
+  `${paramUniformDeclarations(pack)}${paletteUniformDeclarations(pack)}${colourUniformDeclarations(pack)}`;
 
 /** The whole fragment program, with the pack's parameters declared as uniforms. */
 export const assembleFragmentSource = (

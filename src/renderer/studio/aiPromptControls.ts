@@ -1,8 +1,12 @@
 import {
+  CHOICE_ICONS,
   MAX_CHOICE_NAME_LENGTH,
   MAX_CHOICE_OPTIONS,
+  MAX_CHOICE_SWATCH,
   MIN_CHOICE_OPTIONS,
 } from 'common/sceneChoice';
+import { MAX_SCENE_COLOURS } from 'common/sceneColourControl';
+import { MAX_SHOW_WHEN_KEYS } from 'common/sceneShowWhen';
 import {
   MAX_PALETTE_STOPS,
   MAX_SCENE_PALETTES,
@@ -17,7 +21,9 @@ import {
  * scenes can use it", and "selectors to select options like dropdown but
  * nicer". Its numbers are the readers' own, so the brief cannot promise what
  * the engine refuses, and it names nothing of any one project: the brief is
- * one cached prefix for every scene's chat.
+ * one cached prefix for every scene's chat. With them, the single colour
+ * (`sceneColourControl.ts`), an option's icon and colour chip, and
+ * `showWhen` (`sceneShowWhen.ts`).
  *
  * Written as two more items of the pack.json fields list, under `params`,
  * in its indentation. English, like the rest of the prompt: a model reads it.
@@ -53,4 +59,22 @@ export const CONTROLS_SECTION = `- A PALETTE is a control of its own kind in par
   one for modes I pick between - a style, a shape, a count, a variant of the
   scene - never for an amount, which is a slider. Every option has to show as
   plainly as a slider's two ends.
+  An option may wear a picture beside its name: "icon", one of
+  ${CHOICE_ICONS.join(', ')};
+  and/or "swatch", 1 to ${MAX_CHOICE_SWATCH} #rrggbb colours drawn as a chip - give a colour mode's
+  options their colours: { "names": { "en": "Rainbow" }, "swatch": ["#ff3030", "#ffd21f", "#2fd66b", "#6b4cff"] }.
+- A COLOUR is one colour I pick, apart from the 8 sliders, at most ${MAX_SCENE_COLOURS}:
+  { "id": "tint", "type": "colour", "names": { "en": "Colour" }, "value": "#00b3a4" }
+  It becomes "uniform vec3 uColour_<id>;" automatically, in LINEAR light
+  (converted from the sRGB I picked), like a palette's texture; a world's
+  material GLSL sees it too. My pick is written back as "value": keep it when
+  you rewrite pack.json. Use a colour for one thing I would want my own
+  colour (a glow, a tint, an accent) and a palette for a set.
+- "showWhen" on ANY control shows it only while a choice stands on one of the
+  listed option numbers: "showWhen": { "style": [0] } for a colour used in a
+  "One colour" mode, "showWhen": { "style": [1, 2] } for a palette used in the
+  others. At most ${MAX_SHOW_WHEN_KEYS} choices, every one listed must match. A hidden
+  control keeps its value and still reaches the shader, so the shader decides
+  what is drawn and showWhen only tidies what I am offered: never show me a
+  control that does nothing in the mode I am in.
 `;

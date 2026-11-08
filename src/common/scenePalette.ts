@@ -206,7 +206,8 @@ const toSrgb = (channel: number) =>
 
 type TTriple = [number, number, number];
 
-const hexToLinear = (hex: string): TTriple => [
+/** `#rrggbb` in linear light. */
+export const hexToLinear = (hex: string): TTriple => [
   toLinear(parseInt(hex.slice(1, 3), 16) / 255),
   toLinear(parseInt(hex.slice(3, 5), 16) / 255),
   toLinear(parseInt(hex.slice(5, 7), 16) / 255),

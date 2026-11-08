@@ -170,6 +170,8 @@ const writeStudioSettings = (settings: {
   ambient?: Record<string, number>;
   /** The palettes' colours by id (`scenePalette.ts`). */
   palettes?: Record<string, IScenePaletteValue>;
+  /** The single colours by id, `#rrggbb` (`sceneColourControl.ts`). */
+  colours?: Record<string, string>;
   response?: ISceneResponse | null;
   /** Where the scene wants the wave; `null` takes it out (`sceneWave.ts`). */
   wave?: ISceneWave | null;

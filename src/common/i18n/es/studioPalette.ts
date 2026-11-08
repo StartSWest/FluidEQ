@@ -33,6 +33,7 @@ const studioPalette = {
   'studioPalette.preset.spring': 'Primavera',
   'studioPalette.preset.tropical': 'Tropical',
   'studioPalette.preset.chrome': 'Cromo',
+  'studioPalette.pickColour': '{name}: elige un color',
 } as const;
 
 export default studioPalette;

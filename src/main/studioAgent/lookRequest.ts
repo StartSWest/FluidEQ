@@ -1,3 +1,4 @@
+import { readColourValue } from '../../common/sceneColourControl';
 import {
   isWholePaletteColours,
   MAX_PALETTE_STOPS,
@@ -45,6 +46,8 @@ export interface ILookRequest {
   sliders: Readonly<Record<string, number>>;
   /** Colours for the scene's palettes, for this picture only (contract 9). */
   palettes?: Readonly<Record<string, IScenePaletteValue>>;
+  /** Single colours, `#rrggbb` by id, for this picture only (contract 9). */
+  colours?: Readonly<Record<string, string>>;
   wave?: ISceneWave;
   /** As asked; kept inside the scene's own limits when it is drawn. */
   camera?: Partial<ISceneCamera>;
@@ -129,6 +132,12 @@ export const LOOK_SCHEMA = {
       },
       description:
         "Colours for the scene's own palettes (their ids in pack.json), for this picture only: nothing is saved. Each a list of 2 to 8 #rrggbb stops, evenly spaced, bass to treble - try the palette dark, light, and as two colours far apart, to see it carries every set the member might choose.",
+    },
+    colours: {
+      type: 'object',
+      additionalProperties: { type: 'string' },
+      description:
+        "Values for the scene's own single colours (their ids in pack.json), each a #rrggbb, for this picture only: nothing is saved. Try one dark, one light and one saturated, to see the scene reads with any colour the member might pick.",
     },
     wave: {
       type: 'object',
@@ -302,6 +311,7 @@ export const readLookRequest = (
     tempo,
     sliders,
     palettes,
+    colours,
     wave,
     camera,
     pointer,
@@ -371,7 +381,7 @@ export const readLookRequest = (
       return 'sliders must name at most 8 of the scene sliders, each with a number.';
     }
   }
-  const colours: Record<string, IScenePaletteValue> = {};
+  const paletteValues: Record<string, IScenePaletteValue> = {};
   if (palettes !== undefined) {
     const refusal =
       'palettes must name at most 2 of the scene palettes, each with 2 to 8 #rrggbb colours.';
@@ -386,7 +396,26 @@ export const readLookRequest = (
       if (!read) {
         return false;
       }
-      colours[id] = read;
+      paletteValues[id] = read;
+      return true;
+    });
+    if (!fine) {
+      return refusal;
+    }
+  }
+  const picks: Record<string, string> = {};
+  if (colours !== undefined) {
+    const refusal =
+      'colours must name at most 4 of the scene colours, each a #rrggbb.';
+    if (!isRecord(colours) || Object.keys(colours).length > 4) {
+      return refusal;
+    }
+    const fine = Object.entries(colours).every(([id, value]) => {
+      const read = SLIDER_ID.test(id) ? readColourValue(value) : null;
+      if (!read) {
+        return false;
+      }
+      picks[id] = read;
       return true;
     });
     if (!fine) {
@@ -429,7 +458,8 @@ export const readLookRequest = (
     ...(moment === undefined ? {} : { seconds: moment }),
     ...(isNumber(tempo) ? { tempo } : {}),
     sliders: values,
-    ...(Object.keys(colours).length ? { palettes: colours } : {}),
+    ...(Object.keys(paletteValues).length ? { palettes: paletteValues } : {}),
+    ...(Object.keys(picks).length ? { colours: picks } : {}),
     ...(chosenWave ? { wave: chosenWave } : {}),
     ...(chosenCamera ? { camera: chosenCamera } : {}),
     ...(chosenPointer ? { pointer: chosenPointer } : {}),

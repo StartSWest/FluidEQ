@@ -34,6 +34,7 @@ const studioPalette = {
   'studioPalette.preset.spring': '봄',
   'studioPalette.preset.tropical': '트로피컬',
   'studioPalette.preset.chrome': '크롬',
+  'studioPalette.pickColour': '{name}: 색 고르기',
 } as const;
 
 export default studioPalette;

@@ -26,6 +26,8 @@ export interface ISceneTuning {
    * one the scene does not have is ignored.
    */
   palettes?: Readonly<Record<string, IScenePaletteValue>>;
+  /** The member's single colours by id, `#rrggbb`, over the pack's own. */
+  colours?: Readonly<Record<string, string>>;
   /**
    * Over the pack's response, key by key: the Studio sends all four, the
    * graph's menu only the attack and release a listener moved.
@@ -129,6 +131,35 @@ export const createSceneTuner = (): ISceneTuner => {
     return coloured.palettes;
   };
 
+  let picked: {
+    own: IScenePack['colours'];
+    chosen: Readonly<Record<string, string>> | undefined;
+    colours: Readonly<Record<string, string>> | undefined;
+  } = { own: undefined, chosen: undefined, colours: undefined };
+
+  /** Every single colour the scene has, the member's over the pack's. */
+  const coloursOf = (
+    pack: IScenePack | null,
+    chosen: Readonly<Record<string, string>> | undefined,
+  ) => {
+    const own = pack?.colours;
+    if (picked.own !== own || picked.chosen !== chosen) {
+      picked = {
+        own,
+        chosen,
+        colours: own?.length
+          ? Object.fromEntries(
+              own.map((colour) => [
+                colour.id,
+                chosen?.[colour.id] ?? colour.value,
+              ]),
+            )
+          : undefined,
+      };
+    }
+    return picked.colours;
+  };
+
   let heardThrough: {
     own: ISceneResponse | undefined;
     chosen: Readonly<Partial<ISceneResponse>> | undefined;
@@ -162,6 +193,7 @@ export const createSceneTuner = (): ISceneTuner => {
           };
       const params = paramsOf(pack, base, tuning?.params);
       const palettes = palettesOf(pack, tuning?.palettes);
+      const colours = coloursOf(pack, tuning?.colours);
       // The time of day is the window's, not a setting: a member's saved
       // value or the pack's own would hold the scene at one hour whatever
       // the Brightness said. Clamped to the control's own range.
@@ -184,6 +216,7 @@ export const createSceneTuner = (): ISceneTuner => {
         // picture is made from, so every place draws it framed alike.
         ...(pack?.framing ? { framing: pack.framing } : {}),
         ...(palettes ? { palettes } : {}),
+        ...(colours ? { colours } : {}),
       };
     },
     reset: () => {

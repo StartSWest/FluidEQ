@@ -63,6 +63,8 @@ const sameSceneProgramInputs = (
   // declaration.
   (previous.palettes ?? []).map((palette) => palette.id).join(',') ===
     (next.palettes ?? []).map((palette) => palette.id).join(',') &&
+  (previous.colours ?? []).map((colour) => colour.id).join(',') ===
+    (next.colours ?? []).map((colour) => colour.id).join(',') &&
   previous.artwork?.mime === next.artwork?.mime &&
   previous.artwork?.width === next.artwork?.width &&
   previous.artwork?.height === next.artwork?.height &&

@@ -182,3 +182,33 @@ it('saves a palette as its stops and a choice as an option, leaving the rest', a
     JSON.parse(fs.readFileSync(manifest(), 'utf8')).params[1],
   ).not.toHaveProperty('positions');
 });
+
+it('saves a single colour as its value, leaving the sliders and the rest', async () => {
+  const original = {
+    id: 'scene',
+    params: [
+      { id: 'glow', min: 0, max: 1, value: 0.5, names: { en: 'Glow' } },
+      {
+        id: 'tint',
+        type: 'colour',
+        names: { en: 'Tint' },
+        value: '#00b3a4',
+        showWhen: { style: [0] },
+      },
+      { id: 'other', type: 'colour', names: { en: 'Other' }, value: '#111111' },
+    ],
+  };
+  fs.writeFileSync(manifest(), JSON.stringify(original));
+  expect(
+    await writeProjectSettings(folder, {
+      params: { tint: 0.3, other: 0.3, glow: 0.8 },
+      colours: { tint: '#FF8800', other: 'orange' },
+    }),
+  ).toBe('written');
+  const saved = JSON.parse(fs.readFileSync(manifest(), 'utf8'));
+  expect(saved.params[0]).toEqual({ ...original.params[0], value: 0.8 });
+  // Written lower-cased with its rule kept; a slider's number never lands on it.
+  expect(saved.params[1]).toEqual({ ...original.params[1], value: '#ff8800' });
+  // A value that is not a colour leaves the colour as it was.
+  expect(saved.params[2]).toEqual(original.params[2]);
+});

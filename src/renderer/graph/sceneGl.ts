@@ -13,6 +13,7 @@ import {
   uniformNameForPalette,
   type IScenePaletteValue,
 } from 'common/scenePalette';
+import { colourLinear, uniformNameForColour } from 'common/sceneColourControl';
 import { createSlowSpectrum, frameSignals, frameStepMs } from './sceneSignals';
 import { createScenePaletteSlots } from './scenePalettes';
 import { framedFrame } from './sceneFramingView';
@@ -83,6 +84,11 @@ export interface ISceneFrame {
    * textures again only when these differ from what it last drew.
    */
   palettes?: Readonly<Record<string, IScenePaletteValue>>;
+  /**
+   * Contract 9: the scene's single colours as the member has them, by id,
+   * `#rrggbb`. Absent, or a colour left out, is the pack's own.
+   */
+  colours?: Readonly<Record<string, string>>;
   /**
    * Contract 8: the music's time and shape (`sceneRhythm.ts`). Absent on a
    * surface that hears no music of its own - a still, a lamp - and read as
@@ -313,6 +319,15 @@ const compileShaderScene = async (
     location: location(uniformNameForParam(param.id)),
     fallback: param.value,
   }));
+  // Contract 9: each single colour a vec3 in linear light, worked out again
+  // only when the colour changes.
+  const colourSlots = (pack.colours ?? []).map((colour) => ({
+    id: colour.id,
+    fallback: colour.value,
+    location: location(uniformNameForColour(colour.id)),
+    hex: '',
+    linear: [0, 0, 0] as [number, number, number],
+  }));
   // Contract 9: each palette a 256x1 SRGB8_ALPHA8 row on a unit of its own
   // after the four the contract's textures take, so the GPU hands the shader
   // linear light, filtered after decoding.
@@ -467,6 +482,14 @@ const compileShaderScene = async (
         gl.uniform3f(uniforms.camera, ...signals.camera);
         paramLocations.forEach(({ id, location: where, fallback }) => {
           gl.uniform1f(where, frame.params[id] ?? fallback);
+        });
+        colourSlots.forEach((slot) => {
+          const hex = frame.colours?.[slot.id] ?? slot.fallback;
+          if (hex !== slot.hex) {
+            slot.hex = hex;
+            slot.linear = colourLinear(hex);
+          }
+          gl.uniform3f(slot.location, ...slot.linear);
         });
         const repainted = paletteSlots.update(frame.palettes);
         paletteTextures.forEach((palette) => {

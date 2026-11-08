@@ -90,7 +90,7 @@ describe('reading', () => {
   it('reads a choice as its options on a slider across their numbers', () => {
     const [read] = pack([choice({ value: 1.6, min: 3, max: 9 })])?.params ?? [];
     expect(read).toMatchObject({ id: 'style', min: 0, max: 2, value: 2 });
-    expect(read.options?.map((option) => option.en)).toEqual([
+    expect(read.options?.map((option) => option.names.en)).toEqual([
       'Bars',
       'Rings',
       'Both',

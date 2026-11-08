@@ -525,6 +525,10 @@ const studio = {
     '장면의 params에는 팔레트를 2개까지만 둘 수 있습니다.',
   'studio.problem.bad-choice':
     'params의 선택 항목에는 a-z, 0-9, _로 된 id, 영어 이름, 영어 이름이 40자 이하인 옵션 2~8개가 필요합니다. min을 쓴다면 0, max는 옵션 수보다 하나 적게 적습니다.',
+  'studio.problem.bad-colour':
+    'params의 색에는 a-z, 0-9, _로 된 id, 영어 이름, #00b3a4 같은 값이 필요합니다. 장면에는 4개까지 둘 수 있습니다.',
+  'studio.problem.bad-show-when':
+    'params의 showWhen에는 선택 항목의 id와, 그 컨트롤을 보여 줄 옵션 번호를 적습니다(예: "style": [0, 2]). 선택 항목은 2개까지입니다.',
   'studio.problem.no-daylight':
     '모든 장면에는 일광 제어(매개변수에 {control})가 필요하며 밤을 0으로, 낮을 100으로 그립니다.',
   'studio.problem.bad-ambient':
