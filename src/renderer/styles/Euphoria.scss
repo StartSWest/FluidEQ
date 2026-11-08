@@ -472,29 +472,85 @@ it under the terms of the GNU General Public License version 3 or later.
   cursor: pointer;
   transition: $transition-control;
 
-  // On, over the wave, it is a dark chip tinted with the colour the mode is
-  // on, its letters that colour made pale — not the pale block the badge is
-  // elsewhere, which at the top of the window was the brightest thing in it
-  // and drew the eye from what was playing (Ivan, 2026-09-26: "arcoiris pull
-  // make darker so it doesnt focus attention to the view").
-  &:not(.is-dormant) {
-    color: color-mix(in srgb, var(--rainbow-now) 55%, white);
-    background: color-mix(in srgb, var(--rainbow-now) 20%, $surface-base);
-    box-shadow: inset 0 0 0 1px
-      color-mix(in srgb, var(--rainbow-now) 38%, transparent);
+  // On and off have to be told apart at a glance over a moving wave, in any
+  // palette the mode is given (Ivan, 2026-11-08: "fix rainbow mode button not
+  // showing well if on or off, increase borders"). Both used to be a dark chip
+  // with pale letters, on told from off only by a tint of the mode's colour:
+  // with a grey, pale or dark palette — which a scene's own colours can be —
+  // the two were the same chip, and a dark palette lost the label outright.
+  //
+  // So they now differ in shape and in light, not only in hue, the way the
+  // app's other switches do: on is lit — a glowing dot, a full ring and its
+  // letters in the mode's colour held to a lightness that reads on the dark
+  // chip whatever the palette — and off is a quiet outline, a hollow dot and
+  // faint letters. Still a dark chip when on, never the pale block the badge
+  // is elsewhere, which at the top of the window was the brightest thing in
+  // it and drew the eye from what was playing (Ivan, 2026-09-26: "arcoiris
+  // pull make darker so it doesnt focus attention to the view").
+  //
+  // The dot is a background image rather than a pseudo-element: the mode's
+  // colour is a registered property that does not inherit (see
+  // `--rainbow-now` below), so a `::before` would never see it sweep.
+  &[aria-pressed] {
+    padding-left: 21px;
+    background-repeat: no-repeat;
+    background-position: 8px 50%;
+    background-size: 9px 9px;
+  }
+
+  &[aria-pressed='true'] {
+    // The mode's colour at a lightness the chip below can carry, and no more
+    // saturated than a label should be: a dark palette is lifted, a pale one
+    // kept just short of white.
+    --pill-lit: oklch(
+      from var(--rainbow-now) clamp(0.8, l, 0.92) min(c, 0.16) h
+    );
+
+    color: var(--pill-lit);
+    background-color: color-mix(
+      in oklab,
+      var(--rainbow-now) 24%,
+      $surface-base
+    );
+    background-image: radial-gradient(
+      circle closest-side,
+      var(--pill-lit) 52%,
+      color-mix(in oklab, var(--pill-lit) 35%, transparent) 72%,
+      transparent
+    );
+    box-shadow:
+      inset 0 0 0 1.5px var(--pill-lit),
+      0 0 8px -3px var(--pill-lit);
 
     &:hover {
-      background: color-mix(in srgb, var(--rainbow-now) 32%, $surface-base);
+      background-color: color-mix(
+        in oklab,
+        var(--rainbow-now) 36%,
+        $surface-base
+      );
     }
   }
 
-  &.is-dormant {
-    color: $text-muted;
-    background: rgba($edge-tint, 0.1);
+  // A backing of the bar's own floor, so the wave never runs through the
+  // letters, and letters well under the lit ones: `$text-faint` alone is
+  // #bfd3e3 on Ocean, as bright as a grey palette's lit label, and the two
+  // states then differed by their dot alone.
+  &[aria-pressed='false'] {
+    color: color-mix(in srgb, $text-faint 62%, transparent);
+    background-color: color-mix(in srgb, $surface-base 72%, transparent);
+    // A thin ring, so the empty dot does not read as a letter O.
+    background-image: radial-gradient(
+      circle closest-side,
+      transparent 56%,
+      currentcolor 64%,
+      currentcolor 78%,
+      transparent 88%
+    );
+    box-shadow: inset 0 0 0 1px $border-control;
 
     &:hover {
-      color: $white;
-      background: color-mix(in srgb, $secondary-default 22%, transparent);
+      color: $text-primary;
+      box-shadow: inset 0 0 0 1px $border-control-hover;
     }
   }
 }

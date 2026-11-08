@@ -94,7 +94,6 @@ describe('the Colourful switch on the titlebar wave', () => {
 
     fireEvent.click(pill);
     expect(pill).toHaveAttribute('aria-pressed', 'false');
-    expect(pill).toHaveClass('is-dormant');
     expect(window.localStorage.getItem('fluideq-rainbow')).toBe('off');
 
     fireEvent.click(pill);

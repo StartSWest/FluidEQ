@@ -955,13 +955,12 @@ const WaveformVisualizer = () => {
         window colours menu and the app menu (`RainbowSwitch`). A sibling of
         the meter, not inside it: both are buttons, and a button inside a
         button is unnested by the browser, which loses the inner click.
-        Drained of colour when off, so it reads as a control that is there to
-        be pressed rather than as something that vanished. */}
+        Lit when on, a quiet outline when off, both drawn from `aria-pressed`
+        alone (`Euphoria.scss`), so what it says and how it looks cannot
+        disagree. */}
       <button
         type="button"
-        className={`euphoria-pill waveform-visualizer__euphoria${
-          isRainbowOn ? '' : ' is-dormant'
-        }`}
+        className="euphoria-pill waveform-visualizer__euphoria"
         aria-pressed={isRainbowOn}
         title={t('graph.sceneTint.rainbowHint')}
         onClick={toggleEuphoriaEnabled}
