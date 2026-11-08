@@ -5,7 +5,7 @@ import {
 } from '../../../renderer/studio/previewVideo';
 
 class Recorder {
-  static isTypeSupported = () => true;
+  static isTypeSupported = (_type: string) => true;
 
   static instances: Recorder[] = [];
 
@@ -161,17 +161,18 @@ it('starts on a real canvas frame without waiting for the recorder start event',
     phase: 'recording',
     elapsedMs: 0,
   });
-  // A 1920x1080 stage fits 854x480 at most, the width kept even: 852x480.
+  // VP9 first: a 1920x1080 stage fits its 1280x720 box exactly.
   expect(context.drawImage).toHaveBeenCalledWith(
     expect.any(HTMLCanvasElement),
     0,
     0,
-    852,
-    480,
+    1280,
+    720,
   );
-  // Native 854x480 detail, with headroom under the released 1.5 MiB cap.
+  // A busy 720p scene in about 1.2 MB, a fifth under the 1.5 MiB cap.
   expect(Recorder.instances[0].options).toMatchObject({
-    videoBitsPerSecond: 950000,
+    mimeType: expect.stringContaining('vp9'),
+    videoBitsPerSecond: 1050000,
   });
   expect(context.fillText).toHaveBeenCalledWith(
     'FluidEQ Plus · Preview',
@@ -180,6 +181,29 @@ it('starts on a real canvas frame without waiting for the recorder start event',
   );
   recording.cancel();
   await expect(recording.result).rejects.toMatchObject({ name: 'AbortError' });
+});
+
+it('falls back to 854x480 at its own bitrate where VP9 cannot be recorded', async () => {
+  const supported = jest
+    .spyOn(Recorder, 'isTypeSupported')
+    .mockImplementation((type: string) => !type.includes('vp9'));
+  const recording = record('Preview', jest.fn());
+  recording.frame(source(), 2000);
+  // The width kept even: a 1920x1080 stage in 854x480 is 852x480.
+  expect(context.drawImage).toHaveBeenCalledWith(
+    expect.any(HTMLCanvasElement),
+    0,
+    0,
+    852,
+    480,
+  );
+  expect(Recorder.instances[0].options).toMatchObject({
+    mimeType: expect.stringContaining('vp8'),
+    videoBitsPerSecond: 950000,
+  });
+  recording.cancel();
+  await expect(recording.result).rejects.toMatchObject({ name: 'AbortError' });
+  supported.mockRestore();
 });
 
 it('finishes after ten seconds of captured frames, then waits for stop and decoding', async () => {

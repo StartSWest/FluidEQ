@@ -44,6 +44,13 @@ interface IScenePreviewProps {
    * review show a scene as its maker framed it.
    */
   wave?: ISceneWave;
+  /**
+   * The time of day to draw at, read every frame; absent, the page's
+   * (Brightness or the listener's own choice). The Publish dialog sets its
+   * own, so the cover and the preview video are shot at the hour the maker
+   * picks there.
+   */
+  daylight?: () => number;
 }
 
 /**
@@ -70,6 +77,7 @@ export default function ScenePreview({
   captureFrames,
   captureSize,
   wave: listenerWave,
+  daylight,
 }: IScenePreviewProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
@@ -161,6 +169,7 @@ export default function ScenePreview({
     spectrumRect,
     shapeFrame,
     ...(tuning ? { tuning } : {}),
+    ...(daylight ? { daylight } : {}),
     onDrawn: drawn,
     interaction,
   });

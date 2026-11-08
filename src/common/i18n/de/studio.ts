@@ -122,10 +122,12 @@ const studio = {
   'studio.publish.videoPreparing': 'Szene wird für die Aufnahme vorbereitet…',
   'studio.publish.videoRecording':
     'Vorschau wird aufgenommen · {seconds} / 10 s',
+  'studio.publish.videoPaused':
+    'Pausiert, solange es still ist · {seconds} / 10 s',
   'studio.publish.videoEncoding': 'Video wird fertiggestellt…',
   'studio.publish.videoChecking': 'Videowiedergabe wird geprüft…',
   'studio.publish.videoReady':
-    'Ihre Vorschau ist fertig. Spielen Sie sie unten ab.',
+    'Ihre Vorschau ist fertig. Sie läuft oben auf dem Tab „Vorschauvideo“.',
   'studio.publish.videoFailed':
     'Die Vorschau konnte nicht aufgenommen oder wiedergegeben werden. Versuchen Sie die Aufnahme erneut.',
   'studio.publish.videoCancelled':
@@ -134,6 +136,9 @@ const studio = {
   'studio.publish.videoAgain': 'Erneut aufnehmen',
   'studio.publish.videoRetry': 'Aufnahme wiederholen',
   'studio.publish.videoPlay': 'Szenenvorschau abspielen',
+  'studio.publish.viewChoice': 'Was das Bild zeigt',
+  'studio.publish.viewLive': 'Live-Szene',
+  'studio.publish.viewRecorded': 'Vorschauvideo',
   'studio.publish.videoRequired':
     'Nehmen Sie zuerst eine abspielbare Vorschau auf',
   'studio.publish.videoWatermark': 'FluidEQ Plus · Vorschau',
@@ -149,6 +154,9 @@ const studio = {
   'studio.publish.yourMusic': 'Ihre Musik',
   'studio.publish.demo': 'Demo',
   'studio.publish.capture': 'Diesen Moment festhalten',
+  'studio.publish.timeOfDay': 'Tageszeit',
+  'studio.publish.timeOfDayHint':
+    'Die Tageszeit, zu der die Titelbilder und das Vorschauvideo aufgenommen werden, von Nacht bis voller Tag. Eine Änderung nimmt die Vorschau neu auf; das Tageslicht der App bleibt, wie es ist.',
   'studio.publish.capturing': 'Wird festgehalten…',
   'studio.publish.quietTitle': 'Es läuft nichts',
   'studio.publish.quietBody':

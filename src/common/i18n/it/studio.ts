@@ -120,9 +120,12 @@ const studio = {
   'studio.publish.videoPreparing':
     'Preparazione della scena per la registrazione…',
   'studio.publish.videoRecording': 'Registrazione anteprima · {seconds} / 10 s',
+  'studio.publish.videoPaused':
+    'In pausa finché c’è silenzio · {seconds} / 10 s',
   'studio.publish.videoEncoding': 'Completamento del video…',
   'studio.publish.videoChecking': 'Verifica della riproduzione…',
-  'studio.publish.videoReady': 'L’anteprima è pronta. Riproducila qui sotto.',
+  'studio.publish.videoReady':
+    'L’anteprima è pronta. Si riproduce qui sopra, nella scheda Video di anteprima.',
   'studio.publish.videoFailed':
     'Impossibile registrare o riprodurre l’anteprima. Prova a registrarla di nuovo.',
   'studio.publish.videoCancelled':
@@ -131,6 +134,9 @@ const studio = {
   'studio.publish.videoAgain': 'Registra di nuovo',
   'studio.publish.videoRetry': 'Riprova a registrare',
   'studio.publish.videoPlay': 'Riproduci anteprima della scena',
+  'studio.publish.viewChoice': 'Cosa mostra il riquadro',
+  'studio.publish.viewLive': 'Scena dal vivo',
+  'studio.publish.viewRecorded': 'Video di anteprima',
   'studio.publish.videoRequired': 'Prima completa un’anteprima riproducibile',
   'studio.publish.videoWatermark': 'FluidEQ Plus · Anteprima',
 
@@ -145,6 +151,9 @@ const studio = {
   'studio.publish.yourMusic': 'La tua musica',
   'studio.publish.demo': 'Demo',
   'studio.publish.capture': 'Cattura questo momento',
+  'studio.publish.timeOfDay': 'Ora del giorno',
+  'studio.publish.timeOfDayHint':
+    'L’ora del giorno in cui vengono scattate le copertine e il video di anteprima, dalla notte al pieno giorno. Cambiarla registra di nuovo l’anteprima; la Luce del giorno dell’app resta com’è.',
   'studio.publish.capturing': 'Cattura in corso…',
   'studio.publish.quietTitle': 'Non suona niente',
   'studio.publish.quietBody':

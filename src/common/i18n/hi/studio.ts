@@ -118,9 +118,12 @@ const studio = {
   'studio.publish.videoPreparing': 'दृश्य की रिकॉर्डिंग की तैयारी हो रही है…',
   'studio.publish.videoRecording':
     'प्रीव्यू रिकॉर्ड हो रहा है · {seconds} / 10 सेकंड',
+  'studio.publish.videoPaused':
+    'आवाज़ न होने पर रुका है · {seconds} / 10 सेकंड',
   'studio.publish.videoEncoding': 'वीडियो तैयार किया जा रहा है…',
   'studio.publish.videoChecking': 'वीडियो का प्लेबैक जाँचा जा रहा है…',
-  'studio.publish.videoReady': 'आपका प्रीव्यू तैयार है। इसे नीचे चलाएँ।',
+  'studio.publish.videoReady':
+    'आपका प्रीव्यू तैयार है। यह ऊपर "प्रीव्यू वीडियो" टैब में चलता है।',
   'studio.publish.videoFailed':
     'प्रीव्यू रिकॉर्ड या प्ले नहीं हो सका। फिर से रिकॉर्ड करें।',
   'studio.publish.videoCancelled':
@@ -129,6 +132,9 @@ const studio = {
   'studio.publish.videoAgain': 'फिर से रिकॉर्ड करें',
   'studio.publish.videoRetry': 'रिकॉर्डिंग फिर आज़माएँ',
   'studio.publish.videoPlay': 'दृश्य का प्रीव्यू चलाएँ',
+  'studio.publish.viewChoice': 'फ़्रेम में क्या दिखे',
+  'studio.publish.viewLive': 'लाइव दृश्य',
+  'studio.publish.viewRecorded': 'प्रीव्यू वीडियो',
   'studio.publish.videoRequired':
     'पहले चलने योग्य प्रीव्यू की रिकॉर्डिंग पूरी करें',
   'studio.publish.videoWatermark': 'FluidEQ Plus · पूर्वावलोकन',
@@ -144,6 +150,9 @@ const studio = {
   'studio.publish.yourMusic': 'आपका संगीत',
   'studio.publish.demo': 'डेमो',
   'studio.publish.capture': 'यह पल कैप्चर करें',
+  'studio.publish.timeOfDay': 'दिन का समय',
+  'studio.publish.timeOfDayHint':
+    'कवर और प्रीव्यू वीडियो किस समय के दिखें, रात से पूरे दिन तक। इसे बदलने पर प्रीव्यू फिर से रिकॉर्ड होता है; ऐप का अपना दिन का उजाला वैसा ही रहता है।',
   'studio.publish.capturing': 'कैप्चर हो रहा है…',
   'studio.publish.quietTitle': 'कुछ नहीं बज रहा',
   'studio.publish.quietBody':

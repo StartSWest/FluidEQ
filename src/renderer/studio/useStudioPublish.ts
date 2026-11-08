@@ -1,4 +1,10 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { formatPackBytes, MAX_PUBLISH_BYTES } from 'common/scenePackSize';
 import {
@@ -166,6 +172,17 @@ export default function useStudioPublish(
   const lastChoice = useRef(0);
   const accountId = useAccount().identity?.id;
   const { pack } = view;
+  // What a running publication and a shown notice belong to: this project,
+  // for this account. Kept in a ref by the layout effect below, so an answer
+  // that lands later is filed under the project it was started on.
+  const projectKey = `${accountId ?? ''}/${view.state.activeId ?? ''}`;
+  const projectKeyRef = useRef(projectKey);
+  const publishingFor = useRef<string | undefined>(undefined);
+  const noticeFor = useRef<string | undefined>(undefined);
+  const showNotice = useCallback((next: ISharingNotice | undefined) => {
+    noticeFor.current = next ? projectKeyRef.current : undefined;
+    setNotice(next);
+  }, []);
   const {
     phase,
     begin: beginProgress,
@@ -185,6 +202,7 @@ export default function useStudioPublish(
     generation.current += 1;
     preparingRef.current = false;
     publishingRef.current = false;
+    publishingFor.current = undefined;
     retryDraft.current = undefined;
     setPreparing(false);
     setPublishing(false);
@@ -197,22 +215,33 @@ export default function useStudioPublish(
     }
   }, [requestProgressCancel, cancel]);
 
-  // A cover belongs to one account and one build. An old promise must never
-  // reopen its dialog or clear a replacement project's work.
+  // A cover belongs to one account and one build: an old promise must never
+  // reopen its dialog or clear a replacement project's work. A publication
+  // belongs to its project and account alone, because it rebuilds that
+  // project itself: main writes the version it goes out under into
+  // pack.json, then records it as published, and each of those reached here
+  // as a new build or view before the answer did. Cancelling on them threw
+  // the answer away, so a publication that went through never said so
+  // (2026-11-08). A notice likewise stays until the project or account
+  // changes, or the next action replaces it.
   useLayoutEffect(() => {
-    cancel();
-    setNotice(undefined);
-    return () => {
+    if (publishingFor.current !== projectKey) {
+      cancel();
+    }
+    if (noticeFor.current !== projectKey) {
+      noticeFor.current = undefined;
+      setNotice(undefined);
+    }
+    projectKeyRef.current = projectKey;
+  }, [cancel, pack, view.serial, view.problems, projectKey]);
+
+  // Whatever is still on its way when the Studio closes answers nobody.
+  useEffect(
+    () => () => {
       generation.current += 1;
-    };
-  }, [
-    cancel,
-    pack,
-    view.serial,
-    view.state.activeId,
-    view.problems,
-    accountId,
-  ]);
+    },
+    [],
+  );
 
   const isCurrent = useCallback(
     (started: number) =>
@@ -232,7 +261,7 @@ export default function useStudioPublish(
     ) {
       return;
     }
-    setNotice(undefined);
+    showNotice(undefined);
     if (retryDraft.current) {
       setDraft(retryDraft.current);
       retryDraft.current = undefined;
@@ -283,7 +312,7 @@ export default function useStudioPublish(
         preparingRef.current = false;
         setPreparing(false);
         if (!picture) {
-          setNotice({ ok: false, key: 'studio.publish.noPicture' });
+          showNotice({ ok: false, key: 'studio.publish.noPicture' });
           return undefined;
         }
         nextShot.current += 1;
@@ -309,9 +338,17 @@ export default function useStudioPublish(
         }
         preparingRef.current = false;
         setPreparing(false);
-        setNotice({ ok: false, key: 'studio.publish.noPicture' });
+        showNotice({ ok: false, key: 'studio.publish.noPicture' });
       });
-  }, [playing, pack, view.state.activeId, view.problems, isCurrent, setDraft]);
+  }, [
+    playing,
+    pack,
+    view.state.activeId,
+    view.problems,
+    isCurrent,
+    setDraft,
+    showNotice,
+  ]);
 
   /**
    * A cover from the moment on the dialog's stage: `frames` are what the
@@ -319,7 +356,7 @@ export default function useStudioPublish(
    * cover being drawn, and becomes the chosen one when it is ready.
    */
   const capture = useCallback(
-    (frames: readonly ISceneFrame[]) => {
+    (frames: readonly ISceneFrame[], daylight?: number) => {
       const { current } = currentDraft;
       if (
         !pack ||
@@ -358,7 +395,7 @@ export default function useStudioPublish(
           });
         }
       };
-      renderCapturedStill(pack, frames)
+      renderCapturedStill(pack, frames, daylight)
         .then((blob) => (blob ? readStill(blob) : undefined))
         .then((picture) => {
           if (!picture) {
@@ -418,7 +455,8 @@ export default function useStudioPublish(
       const { picture } = cover;
       const started = generation.current;
       publishingRef.current = true;
-      setNotice(undefined);
+      publishingFor.current = projectKeyRef.current;
+      showNotice(undefined);
       setPublishing(true);
       const failed = (key: TranslationKey, vars?: Record<string, string>) => {
         // Show the error on the bench, keeping completed covers for the next
@@ -431,8 +469,9 @@ export default function useStudioPublish(
         };
         setDraft(undefined);
         publishingRef.current = false;
+        publishingFor.current = undefined;
         setPublishing(false);
-        setNotice({ ok: false, key, ...(vars ? { vars } : {}) });
+        showNotice({ ok: false, key, ...(vars ? { vars } : {}) });
       };
       const pressed = performance.now();
       const prepare = async () => {
@@ -472,6 +511,7 @@ export default function useStudioPublish(
             return undefined;
           }
           publishingRef.current = false;
+          publishingFor.current = undefined;
           setPublishing(false);
           if (outcome.ok) {
             setDraft(undefined);
@@ -486,7 +526,7 @@ export default function useStudioPublish(
                 ? 'studio.publish.submittedUpdate'
                 : 'studio.publish.submitted';
             }
-            setNotice({ ok: true, key, vars: { name } });
+            showNotice({ ok: true, key, vars: { name } });
             return undefined;
           }
           // Only a server from before the free Studio still says this.
@@ -507,7 +547,15 @@ export default function useStudioPublish(
           }
         });
     },
-    [name, view.problems, isCurrent, setDraft, onPublished, beginProgress],
+    [
+      name,
+      view.problems,
+      isCurrent,
+      setDraft,
+      onPublished,
+      beginProgress,
+      showNotice,
+    ],
   );
 
   return {

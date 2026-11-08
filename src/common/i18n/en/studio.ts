@@ -128,9 +128,11 @@ const studio = {
     'Play music or start the demo to record your preview.',
   'studio.publish.videoPreparing': 'Preparing the scene for recording…',
   'studio.publish.videoRecording': 'Recording preview · {seconds} / 10 s',
+  'studio.publish.videoPaused': "Paused while it's quiet · {seconds} / 10 s",
   'studio.publish.videoEncoding': 'Finishing the video…',
   'studio.publish.videoChecking': 'Checking video playback…',
-  'studio.publish.videoReady': 'Your preview is ready. Play it below.',
+  'studio.publish.videoReady':
+    'Your preview is ready. It plays on the Preview video tab above.',
   'studio.publish.videoFailed':
     'The preview could not be recorded or played. Try recording again.',
   'studio.publish.videoCancelled':
@@ -139,6 +141,9 @@ const studio = {
   'studio.publish.videoAgain': 'Record again',
   'studio.publish.videoRetry': 'Retry recording',
   'studio.publish.videoPlay': 'Play scene preview',
+  'studio.publish.viewChoice': 'What the frame shows',
+  'studio.publish.viewLive': 'Live scene',
+  'studio.publish.viewRecorded': 'Preview video',
   'studio.publish.videoRequired': 'Finish recording a playable preview first',
   'studio.publish.videoWatermark': 'FluidEQ Plus · Preview',
 
@@ -153,6 +158,9 @@ const studio = {
   'studio.publish.yourMusic': 'Your music',
   'studio.publish.demo': 'Demo',
   'studio.publish.capture': 'Capture this moment',
+  'studio.publish.timeOfDay': 'Time of day',
+  'studio.publish.timeOfDayHint':
+    "The time of day the covers and the preview video are shot at, from night to full day. Changing it records the preview again; the app's own Daylight stays as it is.",
   'studio.publish.capturing': 'Capturing…',
   'studio.publish.quietTitle': 'Nothing is playing',
   'studio.publish.quietBody': 'Play music in any app, or use the demo.',

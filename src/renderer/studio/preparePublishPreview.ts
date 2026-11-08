@@ -3,6 +3,7 @@ import {
   canonicalPreviewPayload,
   type IScenePreviewUpload,
 } from 'common/scenePreviewMedia';
+import storedScenePack from 'common/sceneStoredPack';
 import type { IPublishPreview } from './usePublishVideo';
 
 export interface IPreparedPublishPreview extends IPublishPreview {
@@ -14,9 +15,13 @@ export default async function preparePublishPreview(
   preview: IPreparedPublishPreview,
   operationId: string,
 ): Promise<IScenePreviewUpload> {
+  // Over the scene as it is sent and the server rebuilds it, as main's
+  // `previewPackSha256` takes it.
   const digest = await crypto.subtle.digest(
     'SHA-256',
-    new TextEncoder().encode(canonicalPreviewPayload(preview.pack)),
+    new TextEncoder().encode(
+      canonicalPreviewPayload(storedScenePack(preview.pack)),
+    ),
   );
   return {
     bytes: new Uint8Array(await preview.blob.arrayBuffer()),

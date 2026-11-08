@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { TPlusCategory } from '../../common/plusGallery';
 import type { IScenePack } from '../../common/scenePacks';
+import storedScenePack from '../../common/sceneStoredPack';
 import { headers, type IAuthorised } from './galleryApi';
 
 /**
@@ -189,7 +190,8 @@ export const publishScene = async (
     termsVersion,
     category,
     ...(category2 ? { category2 } : {}),
-    pack,
+    // The service reads every control from `params` alone.
+    pack: storedScenePack(pack),
     picture,
     ...(note ? { note } : {}),
     ...(previewUploadId ? { previewUploadId } : {}),

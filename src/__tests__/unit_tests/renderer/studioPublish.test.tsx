@@ -355,7 +355,10 @@ it.each(['offline', 'rejection'])(
   },
 );
 
-it('keeps a newer draft intact when an older publication finishes', async () => {
+// A publication rebuilds its own project before it answers: main writes the
+// version it goes out under into pack.json, then records it as published.
+// Those used to cancel it, and the success never showed (2026-11-08).
+it('says a publication went through when its own project was rebuilt while it ran', async () => {
   const pending = deferred<{ ok: true }>();
   bridge.publishStudioScene.mockReturnValueOnce(pending.promise);
   const { result, rerender } = setup();
@@ -366,6 +369,37 @@ it('keeps a newer draft intact when an older publication finishes', async () => 
     result.current.publish('space');
   });
   rerender({ ...view(), serial: 2, pack: { ...pack, version: 2 } });
+  expect(result.current.publishing).toBe(true);
+  await act(async () => {
+    pending.resolve({ ok: true });
+  });
+  expect(result.current.publishing).toBe(false);
+  expect(result.current.draft).toBeUndefined();
+  expect(result.current.notice).toEqual({
+    ok: true,
+    key: 'studio.publish.done',
+    vars: { name: 'Neon City' },
+  });
+  // The published record arriving after the answer leaves it on screen.
+  rerender({ ...view(), serial: 3, pack: { ...pack, version: 2 } });
+  expect(result.current.notice?.key).toBe('studio.publish.done');
+  expect(markGalleryStale).toHaveBeenCalledTimes(1);
+});
+
+it('keeps a publication’s answer off another project opened while it ran', async () => {
+  const pending = deferred<{ ok: true }>();
+  bridge.publishStudioScene.mockReturnValueOnce(pending.promise);
+  const { result, rerender } = setup();
+  await act(async () => {
+    result.current.begin();
+  });
+  act(() => {
+    result.current.publish('space');
+  });
+  const other = view();
+  other.state.activeId = 'sea';
+  rerender(other);
+  expect(result.current.publishing).toBe(false);
   await act(async () => {
     result.current.begin();
   });

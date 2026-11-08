@@ -213,6 +213,10 @@ const writeStudioPreview = (id: string, bytes: Uint8Array) =>
 const studioTermsAgreed = () =>
   ipcRenderer.invoke('studio-terms-agreed') as Promise<number>;
 
+/** The Publish dialog's Demo music, as the file's bytes (`studioDemoMusic.ts`). */
+const readStudioDemoMusic = () =>
+  ipcRenderer.invoke('studio-demo-music') as Promise<Uint8Array | undefined>;
+
 const exportStudioScene = (termsVersion: number) =>
   ipcRenderer.invoke('studio-export', termsVersion) as Promise<TExportOutcome>;
 
@@ -334,6 +338,7 @@ const studioBridge = {
   saveStudioNotes,
   writeStudioPreview,
   studioTermsAgreed,
+  readStudioDemoMusic,
   exportStudioScene,
   importMemberScene,
   memberSceneLikeStatus,

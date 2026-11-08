@@ -122,9 +122,12 @@ const studio = {
     'Préparation de la scène pour l’enregistrement…',
   'studio.publish.videoRecording':
     'Enregistrement de l’aperçu · {seconds} / 10 s',
+  'studio.publish.videoPaused':
+    'En pause pendant le silence · {seconds} / 10 s',
   'studio.publish.videoEncoding': 'Finalisation de la vidéo…',
   'studio.publish.videoChecking': 'Vérification de la lecture…',
-  'studio.publish.videoReady': 'Votre aperçu est prêt. Regardez-le ci-dessous.',
+  'studio.publish.videoReady':
+    'Votre aperçu est prêt. Il se lit ci-dessus, dans l’onglet Vidéo d’aperçu.',
   'studio.publish.videoFailed':
     'L’aperçu n’a pas pu être enregistré ou lu. Réessayez l’enregistrement.',
   'studio.publish.videoCancelled':
@@ -133,6 +136,9 @@ const studio = {
   'studio.publish.videoAgain': 'Enregistrer à nouveau',
   'studio.publish.videoRetry': 'Réessayer l’enregistrement',
   'studio.publish.videoPlay': 'Lire l’aperçu de la scène',
+  'studio.publish.viewChoice': 'Ce que montre le cadre',
+  'studio.publish.viewLive': 'Scène en direct',
+  'studio.publish.viewRecorded': 'Vidéo d’aperçu',
   'studio.publish.videoRequired': 'Terminez d’abord un aperçu lisible',
   'studio.publish.videoWatermark': 'FluidEQ Plus · Aperçu',
 
@@ -148,6 +154,9 @@ const studio = {
   'studio.publish.yourMusic': 'Votre musique',
   'studio.publish.demo': 'Démo',
   'studio.publish.capture': 'Capturer ce moment',
+  'studio.publish.timeOfDay': 'Moment de la journée',
+  'studio.publish.timeOfDayHint':
+    'Le moment de la journée où les couvertures et la vidéo d’aperçu sont prises, de la nuit au plein jour. Le changer enregistre à nouveau l’aperçu ; la Lumière du jour de l’application ne change pas.',
   'studio.publish.capturing': 'Capture…',
   'studio.publish.quietTitle': 'Rien ne joue',
   'studio.publish.quietBody':

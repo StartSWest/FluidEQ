@@ -57,9 +57,11 @@ export const renderScenePreview = (pack: IScenePack) =>
  * the scene heard over the last few seconds before it, oldest first, replayed
  * so everything the scene eases is where it was, and the last one is the
  * moment. At full presence whatever the stage's own entrance was doing — its
- * fade is how a stage appears, not part of the scene.
+ * fade is how a stage appears, not part of the scene. At the time of day the
+ * stage was showing (`daylight`), or the page's.
  */
 export const renderCapturedStill = (
   pack: IScenePack,
   frames: readonly ISceneFrame[],
-) => drawStillInWorker(pack, frames);
+  daylight?: number,
+) => drawStillInWorker(pack, frames, undefined, daylight);

@@ -342,23 +342,35 @@ export const isCardPicture = (bytes: Uint8Array) => {
   );
 };
 
-/** The picture a scene was published with, as bytes that are a WebP. */
-export const fetchPicture = async (
+/** Where a scene's published picture is: a file its publication staged, or
+ * the old fixed path (`galleryPublishedFile`). */
+export const publishedPictureFile = (
   auth: IAuthorised,
   authorId: string,
   sceneId: string,
+): Promise<string | undefined> =>
+  galleryPublishedFile(authorId, sceneId, 'picture.webp', (body) =>
+    rpc(auth, 'published_scene_file', body),
+  );
+
+/**
+ * Whether the file's name alone says which picture it holds. A staged file
+ * (`<scene>/preview/<upload>.<format>.<payload digest>.picture.webp`, whose
+ * shape `galleryPublishedFile` already checked) is written once and never
+ * over: the upload service writes it without replacing and refuses other
+ * bytes under that name. The old fixed path is rewritten in place whenever
+ * the scene is republished, so its name says nothing.
+ */
+export const isLastingPictureFile = (file: string) =>
+  file.includes('/preview/');
+
+/** The picture in `file`, as bytes that are a WebP. */
+export const downloadPicture = async (
+  auth: IAuthorised,
+  file: string,
   /** The copy the gallery row names (`download`). */
   version?: string,
 ): Promise<Uint8Array | undefined> => {
-  const file = await galleryPublishedFile(
-    authorId,
-    sceneId,
-    'picture.webp',
-    (body) => rpc(auth, 'published_scene_file', body),
-  );
-  if (!file) {
-    return undefined;
-  }
   const bytes = await download(auth, file, MAX_PICTURE_BYTES, version);
   return bytes && isCardPicture(bytes) ? bytes : undefined;
 };

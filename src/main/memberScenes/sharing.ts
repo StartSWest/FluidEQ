@@ -10,6 +10,7 @@ import {
   type IScenePack,
   type IScenePackEnvelope,
 } from '../../common/scenePacks';
+import storedScenePack from '../../common/sceneStoredPack';
 import { verifyMemberSceneEnvelope } from '../scenePackVerify';
 
 /**
@@ -75,7 +76,8 @@ export const signMemberScene = async ({
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ termsVersion, pack }),
+      // The service reads every control from `params` alone.
+      body: JSON.stringify({ termsVersion, pack: storedScenePack(pack) }),
     });
   } catch {
     return { ok: false, reason: 'offline' };

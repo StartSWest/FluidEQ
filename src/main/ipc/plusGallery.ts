@@ -19,10 +19,12 @@ import {
 import { openMemberEnvelope } from '../memberScenes/sharing';
 import type { IMemberSceneStore } from '../memberScenes/store';
 import {
+  downloadPicture,
   fetchEnvelope,
-  fetchPicture,
+  isLastingPictureFile,
   listGallery,
   listVersions,
+  publishedPictureFile,
   recordAdd,
   recordOfficialAdd,
   reportScene,
@@ -239,31 +241,48 @@ export const registerPlusGalleryIpc = ({
     // From disk only with a revision to name it by — without one the file
     // could be an older picture of the same version — and never for a scene
     // blocked since it was kept: the bucket would refuse it, so this does too.
-    const fromDisk =
-      revision && !store.isBlocked(authorId, sceneId)
-        ? await kept?.read(key)
-        : undefined;
-    const auth = fromDisk ? undefined : await access.auth();
-    const bytes =
-      fromDisk ??
-      (auth
-        ? await fetchPicture(auth, authorId, sceneId, `${version}-${revision}`)
-        : undefined);
-    if (!bytes) {
-      // A failure is not remembered: the next time the card is on screen is
-      // the next chance.
-      return undefined;
-    }
-    if (!fromDisk && revision) {
-      // Kept for the next session, before the picture is handed over: a few
-      // milliseconds after a download, and nothing is left writing once the
-      // card shows. A disk that will not take it costs only that — the
-      // picture is still shown.
-      await kept
-        ?.write(key, bytes)
+    const blocked = store.isBlocked(authorId, sceneId);
+    // Kept for the next session, before the picture is handed over: a few
+    // milliseconds after a download, and nothing is left writing once the
+    // card shows. A disk that will not take it costs only that — the picture
+    // is still shown.
+    const keep = (name: string, bytes: Uint8Array) =>
+      kept
+        ?.write(name, bytes)
         .catch((error) =>
           logger?.warn(`Could not keep a gallery picture: ${String(error)}`),
         );
+    let bytes = revision && !blocked ? await kept?.read(key) : undefined;
+    if (!bytes) {
+      const auth = await access.auth();
+      const file = auth
+        ? await publishedPictureFile(auth, authorId, sceneId)
+        : undefined;
+      if (!auth || !file) {
+        // A failure is not remembered: the next time the card is on screen
+        // is the next chance.
+        return undefined;
+      }
+      // A staged picture's name names its bytes for good
+      // (`isLastingPictureFile`), so it is kept by that name too and read
+      // back in every later session whether or not a revision came with the
+      // ask. The graph's scene list and the account's collection ask without
+      // one, and fetched every picture again at every launch (Ivan,
+      // 2026-11-07: "kind of slow loading").
+      const lasting = isLastingPictureFile(file) ? `file:${file}` : undefined;
+      bytes = lasting && !blocked ? await kept?.read(lasting) : undefined;
+      if (!bytes) {
+        bytes = await downloadPicture(auth, file, `${version}-${revision}`);
+        if (!bytes) {
+          return undefined;
+        }
+        if (lasting) {
+          await keep(lasting, bytes);
+        }
+        if (revision) {
+          await keep(key, bytes);
+        }
+      }
     }
     // A data URL is what the page's content policy lets an <img> show, and it
     // is only ever built from bytes that are a WebP by their own header.

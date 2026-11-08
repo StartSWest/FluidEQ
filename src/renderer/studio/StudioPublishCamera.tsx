@@ -7,8 +7,15 @@ import {
   type RefObject,
 } from 'react';
 import type { TranslationKey } from 'common/i18n';
+import { SCENE_DAYLIGHT_MAX, SCENE_DAYLIGHT_MIN } from 'common/sceneDaylight';
 import type { IScenePack } from 'common/scenePacks';
 import Glyph from '../community/Glyph';
+import { pageDaylight } from '../graph/sceneDaylight';
+import {
+  PERCENT_SNAPS,
+  snapFraction,
+  snapPercent,
+} from '../utils/percentSnaps';
 import {
   SceneAudioProvider,
   useSceneAudio,
@@ -21,8 +28,11 @@ import { useTranslation } from '../utils/I18nContext';
 import { reportError } from '../utils/logger';
 import { createMomentRecorder } from './momentRecorder';
 import StudioPublishVideo from './StudioPublishVideo';
+import StudioPublishDaylightIcon from './StudioPublishDaylightIcon';
+import { Setting } from './StudioSettings';
 import usePublishVideo, { type IPublishPreview } from './usePublishVideo';
 import type { TStudioSignal } from './studioSignals';
+import { previewCaptureSize } from './previewVideo';
 import createPublishDemoAudio from './publishDemoAudio';
 import '../styles/StudioStage.scss';
 
@@ -51,6 +61,12 @@ const QUIET_MS = 1500;
 /** The runner's own cap on how far one frame moves the clock. */
 const MAX_FRAME_MS = 100;
 
+const DAYLIGHT_SPAN = SCENE_DAYLIGHT_MAX - SCENE_DAYLIGHT_MIN;
+/** The quarters, marked where the Window colours slider marks them. */
+const DAYLIGHT_SNAPS = PERCENT_SNAPS.map((snap) =>
+  snapFraction(snap, SCENE_DAYLIGHT_MIN, SCENE_DAYLIGHT_MAX),
+);
+
 const TROUBLE_KEYS: Record<TPreviewTrouble, TranslationKey> = {
   heavy: 'studio.publish.stageHeavy',
   unavailable: 'studio.publish.stageUnavailable',
@@ -66,7 +82,8 @@ interface IStudioPublishCameraProps {
   locked: boolean;
   /** The Studio's settings: the cover is the scene as it was tuned. */
   tuning: ISceneTuning;
-  onCapture: (frames: ISceneFrame[]) => void;
+  /** A caught moment, at the time of day the stage was showing. */
+  onCapture: (frames: ISceneFrame[], daylight: number) => void;
   source: string;
   onPreview: (preview: IPublishPreview | undefined) => void;
   initialFocusRef?: RefObject<HTMLButtonElement | null>;
@@ -99,7 +116,21 @@ export default function StudioPublishCamera({
   const [ready, setReady] = useState(false);
   const [quiet, setQuiet] = useState(false);
   const [flashes, setFlashes] = useState(0);
+  // The hour the cover and the preview video are shot at (Ivan, 2026-11-07:
+  // "we need sliders for time of day so we configure that from the publish
+  // screen"). It starts where the window has it and is the dialog's own:
+  // moving it leaves the app's Brightness and every other scene alone.
+  const [daylight, setDaylight] = useState(() => Math.round(pageDaylight()));
+  const daylightRef = useRef(daylight);
+  daylightRef.current = daylight;
+  const readDaylight = useCallback(() => daylightRef.current, []);
+  // The hour the preview video is shot at, set when the slider is let go: a
+  // clip shot at another hour is not the one asked for, so it is recorded
+  // again — once, not at every step of the drag.
+  const [videoDaylight, setVideoDaylight] = useState(daylight);
   const recorder = useMemo(createMomentRecorder, []);
+  // Drawn at the size the clip is recorded at (1280x720 where VP9 records).
+  const captureSize = useMemo(previewCaptureSize, []);
   const liveAudio = useSceneAudio();
   const demo = useRef<ReturnType<typeof createPublishDemoAudio> | undefined>(
     undefined,
@@ -128,7 +159,7 @@ export default function StudioPublishCamera({
     cancel: videoCancel,
     retry: videoRetry,
   } = usePublishVideo(
-    `${source}\n${signal}`,
+    `${source}\n${signal}\n${videoDaylight}`,
     t('studio.publish.videoWatermark'),
     previewChanged,
   );
@@ -141,6 +172,13 @@ export default function StudioPublishCamera({
       }
     });
   }, [signal, liveAudio.isPaused, stopDemo, videoFail]);
+  // What the frame shows: the scene playing, or the clip just recorded, on
+  // two tabs in the frame itself (Ivan, 2026-11-07: under the buttons the
+  // finished clip sat below everything else). A new clip opens on its own
+  // tab; Live is the member's choice for that clip only.
+  const recordedUrl = videoState.phase === 'ready' ? videoState.url : undefined;
+  const [liveOver, setLiveOver] = useState<string>();
+  const showsRecorded = recordedUrl !== undefined && liveOver !== recordedUrl;
   const stageTrouble = useCallback(
     (problem: TPreviewTrouble) => {
       setTrouble(problem);
@@ -232,7 +270,7 @@ export default function StudioPublishCamera({
       return;
     }
     setFlashes((count) => count + 1);
-    onCapture(frames);
+    onCapture(frames, daylight);
   };
   const retryVideo = () => {
     setTrouble(undefined);
@@ -249,12 +287,15 @@ export default function StudioPublishCamera({
         ) : (
           <SceneAudioProvider value={selectedAudio}>
             <ScenePreview
+              // Paused too: a stage scrolled out of sight would give its
+              // canvas back, and the take holding it could not carry on.
               captureFrames={
                 videoState.phase === 'waiting' ||
                 videoState.phase === 'preparing' ||
-                videoState.phase === 'recording'
+                videoState.phase === 'recording' ||
+                videoState.phase === 'paused'
               }
-              captureSize={{ width: 854, height: 480 }}
+              captureSize={captureSize}
               // The member's own work, on its way to the gallery.
               madeBy="listener"
               identity={`publish:${identity}`}
@@ -264,8 +305,49 @@ export default function StudioPublishCamera({
               onDrawn={onDrawn}
               shapeFrame={shapeFrame}
               tuning={tuning}
+              daylight={readDaylight}
             />
           </SceneAudioProvider>
+        )}
+
+        {showsRecorded && (
+          <video
+            key={recordedUrl}
+            className="studio-publish__recorded"
+            src={recordedUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            controls
+            aria-label={t('studio.publish.videoPlay')}
+          />
+        )}
+
+        {!trouble && (
+          <div
+            className="studio-segments studio-publish__view-tabs"
+            role="group"
+            aria-label={t('studio.publish.viewChoice')}
+          >
+            <button
+              type="button"
+              className="studio-segment"
+              aria-pressed={!showsRecorded}
+              onClick={() => setLiveOver(recordedUrl)}
+            >
+              {t('studio.publish.viewLive')}
+            </button>
+            <button
+              type="button"
+              className="studio-segment"
+              aria-pressed={showsRecorded}
+              disabled={recordedUrl === undefined}
+              onClick={() => setLiveOver(undefined)}
+            >
+              {t('studio.publish.viewRecorded')}
+            </button>
+          </div>
         )}
 
         {flashes > 0 && (
@@ -276,7 +358,7 @@ export default function StudioPublishCamera({
           />
         )}
 
-        {!trouble && quiet && signal === 'live' && (
+        {!trouble && !showsRecorded && quiet && signal === 'live' && (
           <div className="studio-publish__quiet" role="status">
             <strong>{t('studio.publish.quietTitle')}</strong>
             <span>{t('studio.publish.quietBody')}</span>
@@ -313,13 +395,30 @@ export default function StudioPublishCamera({
         <button
           type="button"
           className="button small subtle"
-          disabled={!ready || locked || trouble !== undefined}
+          disabled={!ready || locked || trouble !== undefined || showsRecorded}
           onClick={shoot}
         >
           <Glyph name="camera" />
           {t('studio.publish.capture')}
         </button>
       </div>
+      <Setting
+        label={t('studio.publish.timeOfDay')}
+        hint={t('studio.publish.timeOfDayHint')}
+        value={t('studio.settings.percent', { percent: daylight })}
+        position={(daylight - SCENE_DAYLIGHT_MIN) / DAYLIGHT_SPAN}
+        disabled={locked || trouble !== undefined}
+        onPosition={(position) =>
+          setDaylight(
+            snapPercent(
+              Math.round(SCENE_DAYLIGHT_MIN + position * DAYLIGHT_SPAN),
+            ),
+          )
+        }
+        onCommit={() => setVideoDaylight(daylightRef.current)}
+        snaps={DAYLIGHT_SNAPS}
+        icon={<StudioPublishDaylightIcon daylight={daylight} />}
+      />
       <StudioPublishVideo
         initialFocusRef={initialFocusRef}
         state={videoState}

@@ -1,18 +1,22 @@
 import { readScenePreviewMp4 } from './scenePreviewMp4';
 
-/** Published clips use native VP8/WebM throughout Electron's three platforms.
- * The bounded parser is also vendored to the private upload service. It reads
- * actual track/frame headers and timestamps, never client-declared metadata. */
+/** Published clips are WebM (VP9, or VP8 from the clients before it) or an
+ * H.264 MP4, all native to Electron on its three platforms. The bounded
+ * parser is also vendored to the private upload service. It reads actual
+ * track/frame headers and timestamps, never client-declared metadata. */
 export const SCENE_PREVIEW_MIME = 'video/webm';
-export const SCENE_PREVIEW_CODEC = 'video/webm;codecs=vp8';
+export const SCENE_PREVIEW_VP9_CODEC = 'video/webm;codecs=vp9';
+export const SCENE_PREVIEW_VP8_CODEC = 'video/webm;codecs=vp8';
 export const SCENE_PREVIEW_MP4_CODEC = 'video/mp4;codecs=avc1.42001F';
-// Preserve the bounds understood by installed 2.3 clients and the upload
-// service. Native 854x480 Alpine at 950 kbit/s measures about 1.0 MiB over
-// ten seconds (2026-11-06). Rendering at that size, rather than enlarging the
-// Publish dialog's thumbnail, improves detail within the existing contract.
+// The box every reader holds a clip to, uploader and viewer alike. 1280x720
+// from 2.3.1 (Ivan, 2026-11-07: "the video quality still low ... more res
+// while keeping it low in capacity"): Chromium's own VP9 recorder fits ten
+// seconds of a busy 720p canvas at 1.1 Mbit/s in 1.2 MB, under the same cap
+// 854x480 VP8 had. Copies of 2.3.0 hold clips to 854x480 and show a larger
+// one's cover instead.
 export const MAX_PREVIEW_BYTES = 1.5 * 1024 * 1024;
-export const PREVIEW_MAX_WIDTH = 854;
-export const PREVIEW_MAX_HEIGHT = 480;
+export const PREVIEW_MAX_WIDTH = 1280;
+export const PREVIEW_MAX_HEIGHT = 720;
 export const PREVIEW_DURATION_MS = 10000;
 
 export interface IScenePreviewMetadata {
@@ -157,6 +161,70 @@ const float = (bytes: Uint8Array, element: IElement | undefined): number => {
   return invalid();
 };
 
+/** A frame's key-frame flag and, on a key frame, the size it codes. */
+interface IFrameHeader {
+  key: boolean;
+  width: number;
+  height: number;
+}
+
+/** VP8 (RFC 6386, section 9.1): the frame tag's low bit is clear on a key
+ * frame, which then carries the start code 9d 01 2a and two 14-bit sizes. */
+const vp8Frame = (bytes: Uint8Array, at: number, end: number): IFrameHeader => {
+  if (bytes[at] % 2 !== 0) {
+    return { key: false, width: 0, height: 0 };
+  }
+  if (
+    at + 10 > end ||
+    bytes[at + 3] !== 0x9d ||
+    bytes[at + 4] !== 0x01 ||
+    bytes[at + 5] !== 0x2a
+  ) {
+    return invalid();
+  }
+  return {
+    key: true,
+    width: (bytes[at + 6] + bytes[at + 7] * 256) % 16384,
+    height: (bytes[at + 8] + bytes[at + 9] * 256) % 16384,
+  };
+};
+
+/** VP9's uncompressed header (bitstream spec, section 6.2), profile 0 only:
+ * 8-bit 4:2:0, what Chromium's encoders write. The first byte is the frame
+ * marker (binary 10), two clear profile bits, a clear show_existing_frame and
+ * the frame type, clear on a key frame. A key frame goes on with the sync code
+ * 49 83 42, a colour space other than RGB (which profile 0 cannot carry), the
+ * colour range, and the size less one in 16 bits each, from bit 36. */
+const vp9Frame = (bytes: Uint8Array, at: number, end: number): IFrameHeader => {
+  // The bit `from` places below the top of `byte` (0 is its highest bit).
+  const bitOf = (byte: number, from: number) =>
+    Math.floor(byte / 2 ** (7 - from)) % 2;
+  const first = bytes[at];
+  if (Math.floor(first / 64) !== 2 || Math.floor(first / 8) % 8 !== 0) {
+    return invalid();
+  }
+  if (bitOf(first, 5) !== 0) {
+    return { key: false, width: 0, height: 0 };
+  }
+  if (
+    at + 9 > end ||
+    bytes[at + 1] !== 0x49 ||
+    bytes[at + 2] !== 0x83 ||
+    bytes[at + 3] !== 0x42 ||
+    Math.floor(bytes[at + 4] / 32) === 7
+  ) {
+    return invalid();
+  }
+  const bits = (from: number, count: number) => {
+    let value = 0;
+    for (let bit = from; bit < from + count; bit += 1) {
+      value = value * 2 + bitOf(bytes[at + Math.floor(bit / 8)], bit % 8);
+    }
+    return value;
+  };
+  return { key: true, width: bits(36, 16) + 1, height: bits(52, 16) + 1 };
+};
+
 export const readScenePreviewMedia = (
   bytes: Uint8Array,
   mimeType: string,
@@ -230,15 +298,16 @@ export const readScenePreviewMedia = (
     return invalid();
   }
   const stream = children(bytes, streams[0].body, streams[0].end);
+  const codec = text(
+    bytes,
+    stream.find((item) => item.id === 0x86),
+  );
   if (
     uint(
       bytes,
       stream.find((item) => item.id === 0x83),
     ) !== 1 ||
-    text(
-      bytes,
-      stream.find((item) => item.id === 0x86),
-    ) !== 'V_VP8'
+    (codec !== 'V_VP8' && codec !== 'V_VP9')
   ) {
     return invalid();
   }
@@ -298,24 +367,15 @@ export const readScenePreviewMedia = (
     if (atMs < 0 || atMs > 10500 || (frames > 0 && atMs < last)) {
       return invalid();
     }
-    const key = bytes[dataAt] % 2 === 0;
-    if (!frames && !key) {
+    const frame =
+      codec === 'V_VP9'
+        ? vp9Frame(bytes, dataAt, item.end)
+        : vp8Frame(bytes, dataAt, item.end);
+    if (!frames && !frame.key) {
       return invalid();
     }
-    if (key) {
-      if (
-        dataAt + 10 > item.end ||
-        bytes[dataAt + 3] !== 0x9d ||
-        bytes[dataAt + 4] !== 0x01 ||
-        bytes[dataAt + 5] !== 0x2a
-      ) {
-        return invalid();
-      }
-      const codedWidth = (bytes[dataAt + 6] + bytes[dataAt + 7] * 256) % 16384;
-      const codedHeight = (bytes[dataAt + 8] + bytes[dataAt + 9] * 256) % 16384;
-      if (codedWidth !== width || codedHeight !== height) {
-        return invalid();
-      }
+    if (frame.key && (frame.width !== width || frame.height !== height)) {
+      return invalid();
     }
     first ??= atMs;
     last = atMs;

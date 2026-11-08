@@ -6,13 +6,17 @@ import {
   readScenePreviewMedia,
   type IScenePreviewUpload,
 } from '../../common/scenePreviewMedia';
+import storedScenePack from '../../common/sceneStoredPack';
 import { headers, type IAuthorised } from './galleryApi';
 import type { TPublishFailure } from './galleryPublishApi';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const SHA = /^[0-9a-f]{64}$/;
+/** Over the scene as it is sent and the server rebuilds it (`storedScenePack`). */
 export const previewPackSha256 = (pack: IScenePack): string =>
-  createHash('sha256').update(canonicalPreviewPayload(pack)).digest('hex');
+  createHash('sha256')
+    .update(canonicalPreviewPayload(storedScenePack(pack)))
+    .digest('hex');
 
 export const readPreviewUpload = (
   value: unknown,

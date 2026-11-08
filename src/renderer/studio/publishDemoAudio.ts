@@ -1,61 +1,49 @@
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
-import {
-  STUDIO_TEST_BPM,
-  STUDIO_TEST_CYCLE_BEATS,
-} from 'common/studioTestMusic';
 import type { ISceneAudio } from '../audio/SceneAudioContext';
 
-/** An audible, local musical loop started only by the Demo button. Studio
- * hears its real analyser, not the stage's synthetic showcase measurements.
- * The preview recorder still receives canvas pixels only, never this audio. */
+/** The Publish dialog's Demo: a short instrumental loop that ships with the
+ * app (`studioDemoMusic.ts` in main says what it is and how its join was
+ * made), played on repeat when the Demo button is pressed. It replaces a loop
+ * synthesised here from sine waves (Ivan, 2026-11-07: "that ugly sound").
+ * Studio hears its real analyser, not the stage's synthetic showcase
+ * measurements. The preview recorder still receives canvas pixels only, never
+ * this audio. */
 export default function createPublishDemoAudio(paused = false) {
   const context = new AudioContext();
   const analyser = context.createAnalyser();
   analyser.fftSize = 2048;
   analyser.smoothingTimeConstant = 0.2;
-  const seconds = (60 / STUDIO_TEST_BPM) * STUDIO_TEST_CYCLE_BEATS;
-  const buffer = context.createBuffer(
-    1,
-    Math.ceil(context.sampleRate * seconds),
-    context.sampleRate,
-  );
-  const samples = buffer.getChannelData(0);
-  const notes = [130.81, 164.81, 196, 261.63, 110, 164.81, 220, 329.63];
-  for (let index = 0; index < samples.length; index += 1) {
-    const time = index / context.sampleRate;
-    const beat = (time * STUDIO_TEST_BPM) / 60;
-    const age = ((beat % 1) * 60) / STUDIO_TEST_BPM;
-    const pluckAge = (((beat * 2) % 1) * 30) / STUDIO_TEST_BPM;
-    const note = notes[Math.floor(beat * 2) % notes.length];
-    const kick =
-      Math.sin(2 * Math.PI * (52 * age + 1.6 * (1 - Math.exp(-age * 35)))) *
-      Math.exp(-age * 15);
-    const pluck =
-      Math.sin(2 * Math.PI * note * pluckAge) * Math.exp(-pluckAge * 14);
-    const hat =
-      Math.sin(time * 75431) *
-      Math.sin(time * 61897) *
-      Math.exp(-pluckAge * 100);
-    const pad =
-      Math.sin(2 * Math.PI * 130.81 * time) +
-      Math.sin(2 * Math.PI * 196 * time);
-    // A short edge ramp makes the loop's boundary silent without a click.
-    const edge = Math.min(1, time * 100, (seconds - time) * 100);
-    samples[index] =
-      (kick * 0.19 + pluck * 0.09 + hat * 0.035 + pad * 0.025) * edge;
-  }
-  const source = context.createBufferSource();
-  source.buffer = buffer;
-  source.loop = true;
-  source.connect(analyser);
   analyser.connect(context.destination);
-  source.start();
-  const ready = (paused ? context.suspend() : context.resume()).then(() => {
-    if (!paused && context.state !== 'running') {
+  let source: AudioBufferSourceNode | undefined;
+  let stopped = false;
+  // Paused or not as last asked, also while the file is still on its way.
+  let wantPaused = paused;
+  const settle = () => (wantPaused ? context.suspend() : context.resume());
+  const ready = (async () => {
+    const bytes = await window.electron?.ipcRenderer?.readStudioDemoMusic?.();
+    if (!bytes) {
+      throw new Error('The demo music could not be read');
+    }
+    // A copy of exactly the file's bytes: decoding takes its buffer over, and
+    // the array handed across may be a view into a larger one.
+    const music = await context.decodeAudioData(bytes.slice().buffer);
+    if (stopped) {
+      return undefined;
+    }
+    // A buffer source loops on the sample, where a media element's `loop`
+    // leaves a gap at every repeat.
+    const playing = context.createBufferSource();
+    playing.buffer = music;
+    playing.loop = true;
+    playing.connect(analyser);
+    playing.start();
+    source = playing;
+    await settle();
+    if (!wantPaused && !stopped && context.state !== 'running') {
       throw new Error('Demo audio could not start');
     }
     return undefined;
-  });
+  })();
   const bins = new Float32Array(analyser.frequencyBinCount);
   const wave = new Float32Array(analyser.fftSize);
   const points = Array.from({ length: 320 }, (_, index) => ({
@@ -64,9 +52,13 @@ export default function createPublishDemoAudio(paused = false) {
   }));
   const waveform = Array.from({ length: 96 }, () => 0);
   const silence = { points: [], waveform: [], sound: undefined };
-  let stopped = false;
   const readFrame: ISceneAudio['readFrame'] = () => {
-    if (stopped || context.state !== 'running' || context.currentTime === 0) {
+    if (
+      stopped ||
+      !source ||
+      context.state !== 'running' ||
+      context.currentTime === 0
+    ) {
       return silence;
     }
     analyser.getFloatFrequencyData(bins);
@@ -99,11 +91,14 @@ export default function createPublishDemoAudio(paused = false) {
   return {
     ready,
     readFrame,
-    setPaused: (next: boolean) => (next ? context.suspend() : context.resume()),
+    setPaused: (next: boolean) => {
+      wantPaused = next;
+      return settle();
+    },
     stop: () => {
       stopped = true;
-      source.stop();
-      source.disconnect();
+      source?.stop();
+      source?.disconnect();
       analyser.disconnect();
       return context.close();
     },

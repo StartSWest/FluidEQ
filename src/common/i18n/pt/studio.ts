@@ -118,9 +118,12 @@ const studio = {
     'Reproduza música ou inicie a demo para gravar sua prévia.',
   'studio.publish.videoPreparing': 'Preparando a cena para gravar…',
   'studio.publish.videoRecording': 'Gravando prévia · {seconds} / 10 s',
+  'studio.publish.videoPaused':
+    'Pausado enquanto está em silêncio · {seconds} / 10 s',
   'studio.publish.videoEncoding': 'Finalizando o vídeo…',
   'studio.publish.videoChecking': 'Verificando a reprodução…',
-  'studio.publish.videoReady': 'Sua prévia está pronta. Reproduza abaixo.',
+  'studio.publish.videoReady':
+    'Sua prévia está pronta. Ela toca acima, na aba Vídeo da prévia.',
   'studio.publish.videoFailed':
     'Não foi possível gravar ou reproduzir a prévia. Grave novamente.',
   'studio.publish.videoCancelled':
@@ -129,6 +132,9 @@ const studio = {
   'studio.publish.videoAgain': 'Gravar novamente',
   'studio.publish.videoRetry': 'Tentar gravar novamente',
   'studio.publish.videoPlay': 'Reproduzir prévia da cena',
+  'studio.publish.viewChoice': 'O que o quadro mostra',
+  'studio.publish.viewLive': 'Cena ao vivo',
+  'studio.publish.viewRecorded': 'Vídeo da prévia',
   'studio.publish.videoRequired':
     'Primeiro termine de gravar uma prévia que possa ser reproduzida',
   'studio.publish.videoWatermark': 'FluidEQ Plus · Prévia',
@@ -144,6 +150,9 @@ const studio = {
   'studio.publish.yourMusic': 'Sua música',
   'studio.publish.demo': 'Demo',
   'studio.publish.capture': 'Capturar este momento',
+  'studio.publish.timeOfDay': 'Hora do dia',
+  'studio.publish.timeOfDayHint':
+    'A hora do dia em que as capas e o vídeo da prévia são feitos, da noite ao dia pleno. Mudá-la grava a prévia de novo; a Luz do dia do app continua como está.',
   'studio.publish.capturing': 'Capturando…',
   'studio.publish.quietTitle': 'Nada está tocando',
   'studio.publish.quietBody': 'Toque música em qualquer app, ou use a demo.',

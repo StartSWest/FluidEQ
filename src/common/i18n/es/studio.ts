@@ -119,10 +119,12 @@ const studio = {
     'Reproduce música o inicia la demo para grabar tu vista previa.',
   'studio.publish.videoPreparing': 'Preparando la escena para grabar…',
   'studio.publish.videoRecording': 'Grabando vista previa · {seconds} / 10 s',
+  'studio.publish.videoPaused':
+    'En pausa mientras hay silencio · {seconds} / 10 s',
   'studio.publish.videoEncoding': 'Finalizando el vídeo…',
   'studio.publish.videoChecking': 'Comprobando la reproducción…',
   'studio.publish.videoReady':
-    'Tu vista previa está lista. Reprodúcela aquí abajo.',
+    'Tu vista previa está lista. Se reproduce arriba, en la pestaña Vídeo de vista previa.',
   'studio.publish.videoFailed':
     'No se pudo grabar o reproducir la vista previa. Vuelve a grabarla.',
   'studio.publish.videoCancelled':
@@ -131,6 +133,9 @@ const studio = {
   'studio.publish.videoAgain': 'Volver a grabar',
   'studio.publish.videoRetry': 'Reintentar grabación',
   'studio.publish.videoPlay': 'Reproducir vista previa de la escena',
+  'studio.publish.viewChoice': 'Qué muestra el cuadro',
+  'studio.publish.viewLive': 'Escena en vivo',
+  'studio.publish.viewRecorded': 'Vídeo de vista previa',
   'studio.publish.videoRequired':
     'Primero termina de grabar una vista previa que se pueda reproducir',
   'studio.publish.videoWatermark': 'FluidEQ Plus · Vista previa',
@@ -146,6 +151,9 @@ const studio = {
   'studio.publish.yourMusic': 'Tu música',
   'studio.publish.demo': 'Demo',
   'studio.publish.capture': 'Capturar este momento',
+  'studio.publish.timeOfDay': 'Hora del día',
+  'studio.publish.timeOfDayHint':
+    'La hora del día a la que se toman las portadas y el vídeo de vista previa, de noche a pleno día. Al cambiarla se vuelve a grabar la vista previa; la Luz del día de la app no cambia.',
   'studio.publish.capturing': 'Capturando…',
   'studio.publish.quietTitle': 'No suena nada',
   'studio.publish.quietBody':

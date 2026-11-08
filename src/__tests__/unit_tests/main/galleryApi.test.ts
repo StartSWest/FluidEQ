@@ -10,11 +10,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IAccountConfig } from '../../../common/accountConfig';
 import {
+  downloadPicture,
   fetchEnvelope,
-  fetchPicture,
+  type IAuthorised,
   listGallery,
   listPublished,
   MAX_PICTURE_BYTES,
+  publishedPictureFile,
 } from '../../../main/plus/galleryApi';
 import {
   publishScene,
@@ -212,6 +214,17 @@ describe('listing the gallery', () => {
     expect(timedOut).toHaveBeenCalledTimes(1);
   });
 });
+
+/** A scene's picture as the gallery's picture handler fetches it: where it
+ * is, then the file. */
+const fetchPicture = async (
+  auth: IAuthorised,
+  authorId: string,
+  sceneId: string,
+) => {
+  const file = await publishedPictureFile(auth, authorId, sceneId);
+  return file ? downloadPicture(auth, file) : undefined;
+};
 
 describe('a scene’s files', () => {
   it('reads a picture only when it is a WebP by its own header', async () => {

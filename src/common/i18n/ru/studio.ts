@@ -116,9 +116,11 @@ const studio = {
     'Включите музыку или демо, чтобы записать предпросмотр.',
   'studio.publish.videoPreparing': 'Подготовка сцены к записи…',
   'studio.publish.videoRecording': 'Запись предпросмотра · {seconds} / 10 с',
+  'studio.publish.videoPaused': 'Пауза, пока тихо · {seconds} / 10 с',
   'studio.publish.videoEncoding': 'Завершение видео…',
   'studio.publish.videoChecking': 'Проверка воспроизведения…',
-  'studio.publish.videoReady': 'Предпросмотр готов. Воспроизведите его ниже.',
+  'studio.publish.videoReady':
+    'Предпросмотр готов. Он воспроизводится выше, на вкладке «Видео предпросмотра».',
   'studio.publish.videoFailed':
     'Не удалось записать или воспроизвести предпросмотр. Попробуйте записать снова.',
   'studio.publish.videoCancelled':
@@ -127,6 +129,9 @@ const studio = {
   'studio.publish.videoAgain': 'Записать снова',
   'studio.publish.videoRetry': 'Повторить запись',
   'studio.publish.videoPlay': 'Воспроизвести предпросмотр сцены',
+  'studio.publish.viewChoice': 'Что показывает кадр',
+  'studio.publish.viewLive': 'Живая сцена',
+  'studio.publish.viewRecorded': 'Видео предпросмотра',
   'studio.publish.videoRequired':
     'Сначала завершите запись воспроизводимого предпросмотра',
   'studio.publish.videoWatermark': 'FluidEQ Plus · Предпросмотр',
@@ -142,6 +147,9 @@ const studio = {
   'studio.publish.yourMusic': 'Ваша музыка',
   'studio.publish.demo': 'Демо',
   'studio.publish.capture': 'Поймать этот момент',
+  'studio.publish.timeOfDay': 'Время суток',
+  'studio.publish.timeOfDayHint':
+    'Время суток, в которое снимаются обложки и видео предпросмотра, от ночи до ясного дня. При изменении предпросмотр записывается заново; собственная настройка приложения не меняется.',
   'studio.publish.capturing': 'Снимаем…',
   'studio.publish.quietTitle': 'Ничего не играет',
   'studio.publish.quietBody':

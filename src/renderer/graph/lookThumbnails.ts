@@ -6,6 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from 'react';
 import type { IScenePack } from 'common/scenePacks';
+import { useAccount } from '../account/accountStore';
+import { useEntitlement } from '../account/entitlementStore';
 import { isSceneRenderingAvailable } from './sceneHealth';
 import { blobAsDataUrl, renderSceneStill } from './sceneStill';
 
@@ -48,8 +50,8 @@ export interface ILookThumbnailRef {
 export type TLookThumbnail =
   { state: 'loading' } | { state: 'ready'; url: string } | { state: 'none' };
 
-/** Pictures by scene version: a data URL, or null for a scene with none. */
-const pictures = new Map<string, string | null>();
+/** Pictures by scene version, as data URLs; never the lack of one. */
+const pictures = new Map<string, string>();
 
 /**
  * Kept here at most, the longest-kept going first. A few hundred kilobytes of
@@ -57,7 +59,7 @@ const pictures = new Map<string, string | null>();
  */
 const MAX_PICTURES = 120;
 
-const keep = (key: string, picture: string | null) => {
+const keep = (key: string, picture: string) => {
   pictures.delete(key);
   pictures.set(key, picture);
   while (pictures.size > MAX_PICTURES) {
@@ -115,7 +117,15 @@ const pictureOf = (ref: ILookThumbnailRef): Promise<string | null> => {
     return load ? drawFrame(load) : null;
   })().then((result) => {
     inFlight.delete(key);
-    keep(key, result);
+    // Only a picture is kept. Nothing back says only "not now" — not signed
+    // in yet in the first seconds after launch, the network, the renderer
+    // still starting — and kept, it held every row on its stand-in for the
+    // rest of the session (Ivan, 2026-11-07: the scene list in the graph had
+    // no pictures while the gallery answered each one in under a second).
+    // The main process keeps no failure either (`plusGallery.ts`).
+    if (result !== null) {
+      keep(key, result);
+    }
     return result;
   });
   inFlight.set(key, request);
@@ -139,6 +149,11 @@ export const useLookThumbnail = (
 ): TLookThumbnail => {
   const key = keyOf(ref);
   const { still } = ref;
+  // A row still without a picture asks again when the account comes in or
+  // its Plus changes: both decide whether the gallery answers and whether the
+  // scene may be loaded to draw a frame.
+  const account = useAccount().status;
+  const plus = useEntitlement().state;
   const [thumbnail, setThumbnail] = useState<TLookThumbnail>(() =>
     asThumbnail(still ?? pictures.get(key)),
   );
@@ -188,7 +203,7 @@ export const useLookThumbnail = (
     // The key names the scene's version; nothing else in `ref` changes
     // without it but a still, which is named on its own.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, element, still]);
+  }, [key, element, still, account, plus]);
 
   return thumbnail;
 };

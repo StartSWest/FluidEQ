@@ -9,9 +9,7 @@ import {
 import { createPortal } from 'react-dom';
 import { PLUS_CATEGORIES, type TPlusCategory } from 'common/plusGallery';
 import type { IScenePack } from 'common/scenePacks';
-import { normalizeScenePack } from 'common/scenePacks';
 import { formatPackBytes, scenePackSize } from 'common/scenePackSize';
-import { NEUTRAL_RESPONSE } from 'common/sceneResponse';
 import { MAX_VERSION_NOTE, versionToPublish } from 'common/sceneVersionNote';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
@@ -45,7 +43,8 @@ interface IStudioPublishDialogProps {
   phase?: import('common/scenePreviewMedia').TScenePublishPhase;
   /** The Studio's settings, so the scene plays here as it does on the stage. */
   tuning: ISceneTuning;
-  onCapture: (frames: ISceneFrame[]) => void;
+  /** A caught moment, at the time of day the stage was showing. */
+  onCapture: (frames: ISceneFrame[], daylight: number) => void;
   onChoose: (id: number) => void;
   /**
    * The first category, the one a card names, an optional second, and what
@@ -98,18 +97,18 @@ export default function StudioPublishDialog({
   const size = useMemo(() => scenePackSize(pack), [pack]);
   const tooLarge = size.total > size.limit;
   const me = useAccount().identity?.id;
+  // The scene the clip is stamped with, built exactly as main rebuilds it to
+  // check the stamp (`previewMatchesSource`): the project as built, at the
+  // version it goes out under. The Studio's settings are already in `pack`
+  // (each one is saved into the project, and `source` re-records the clip
+  // when the rebuilt pack arrives). It used to be passed back through
+  // `normalizeScenePack`, the reader for a pack as stored, where palettes and
+  // colours are entries of `params`; a built pack keeps them apart, so that
+  // reader dropped them, and every scene with a palette, a colour or a
+  // choice's option looks was refused as "changed after recording".
   const publicationPack = useMemo(
-    () =>
-      normalizeScenePack({
-        ...pack,
-        version: versionToPublish(pack.version, draft.held),
-        params: pack.params.map((param) => ({
-          ...param,
-          value: tuning.params?.[param.id] ?? param.value,
-        })),
-        response: { ...NEUTRAL_RESPONSE, ...pack.response, ...tuning.response },
-      }) ?? pack,
-    [pack, tuning, draft.held],
+    () => ({ ...pack, version: versionToPublish(pack.version, draft.held) }),
+    [pack, draft.held],
   );
   const source = useMemo(
     () =>

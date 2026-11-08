@@ -118,9 +118,11 @@ const studio = {
     '音楽を再生するか、デモを開始してプレビューを録画してください。',
   'studio.publish.videoPreparing': 'シーンの録画を準備中…',
   'studio.publish.videoRecording': 'プレビューを録画中 · {seconds} / 10 秒',
+  'studio.publish.videoPaused': '無音の間は一時停止 · {seconds} / 10 秒',
   'studio.publish.videoEncoding': '動画を仕上げています…',
   'studio.publish.videoChecking': '動画の再生を確認中…',
-  'studio.publish.videoReady': 'プレビューができました。下で再生できます。',
+  'studio.publish.videoReady':
+    'プレビューができました。上の「プレビュー動画」タブで再生されます。',
   'studio.publish.videoFailed':
     'プレビューを録画または再生できませんでした。もう一度録画してください。',
   'studio.publish.videoCancelled':
@@ -129,6 +131,9 @@ const studio = {
   'studio.publish.videoAgain': '録画し直す',
   'studio.publish.videoRetry': '録画を再試行',
   'studio.publish.videoPlay': 'シーンのプレビューを再生',
+  'studio.publish.viewChoice': 'フレームに表示する内容',
+  'studio.publish.viewLive': 'ライブのシーン',
+  'studio.publish.viewRecorded': 'プレビュー動画',
   'studio.publish.videoRequired':
     'まず再生できるプレビューの録画を完了してください',
   'studio.publish.videoWatermark': 'FluidEQ Plus · プレビュー',
@@ -145,6 +150,9 @@ const studio = {
   'studio.publish.yourMusic': 'あなたの音楽',
   'studio.publish.demo': 'デモ',
   'studio.publish.capture': 'この瞬間をキャプチャ',
+  'studio.publish.timeOfDay': '時間帯',
+  'studio.publish.timeOfDayHint':
+    'カバーとプレビュー動画を撮る時間帯です。夜から真昼まで選べます。変更するとプレビューを録り直します。アプリ本体の時間帯の設定は変わりません。',
   'studio.publish.capturing': 'キャプチャしています…',
   'studio.publish.quietTitle': '何も再生されていません',
   'studio.publish.quietBody':

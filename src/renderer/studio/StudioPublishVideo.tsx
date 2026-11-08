@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type RefObject } from 'react';
+import { useId, type RefObject } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import { PREVIEW_DURATION_MS } from './previewVideo';
 import type { TPublishVideoState } from './usePublishVideo';
@@ -11,6 +11,16 @@ interface IProps {
   initialFocusRef?: RefObject<HTMLButtonElement | null>;
 }
 
+/**
+ * The preview video's status and its one button. The clip itself plays in
+ * the stage's frame, on its own tab (`StudioPublishCamera`): under the
+ * buttons it sat below everything else in the dialog (Ivan, 2026-11-07).
+ *
+ * The bar is there for the whole take, waiting and held included, so the
+ * panel keeps one height while sound comes and goes: shown only while
+ * frames were being kept, it pushed everything under it down and back up
+ * at every quiet moment.
+ */
 export default function StudioPublishVideo({
   state,
   locked,
@@ -20,29 +30,27 @@ export default function StudioPublishVideo({
 }: IProps) {
   const { t } = useTranslation();
   const titleId = useId();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const videoUrl = state.phase === 'ready' ? state.url : undefined;
-  useEffect(() => {
-    const video = videoRef.current;
-    return () => {
-      video?.pause();
-      video?.removeAttribute('src');
-      video?.load();
-    };
-  }, [videoUrl]);
   const busy = [
     'waiting',
     'preparing',
     'recording',
+    'paused',
     'encoding',
     'checking',
   ].includes(state.phase);
-  const elapsed = state.phase === 'recording' ? state.elapsedMs : 0;
+  const elapsed =
+    state.phase === 'recording' || state.phase === 'paused'
+      ? state.elapsedMs
+      : 0;
+  const seconds = String(Math.min(10, Math.floor(elapsed / 1000)));
   const message =
-    state.phase === 'recording'
-      ? t('studio.publish.videoRecording', {
-          seconds: String(Math.min(10, Math.floor(elapsed / 1000))),
-        })
+    state.phase === 'recording' || state.phase === 'paused'
+      ? t(
+          state.phase === 'recording'
+            ? 'studio.publish.videoRecording'
+            : 'studio.publish.videoPaused',
+          { seconds },
+        )
       : t(
           (
             {
@@ -56,6 +64,9 @@ export default function StudioPublishVideo({
             } as const
           )[state.phase],
         );
+  // A count while there is one to show; the moving bar only while the clip is
+  // being finished, when nothing can be counted.
+  const counting = ['waiting', 'recording', 'paused'].includes(state.phase);
 
   return (
     <section className="studio-publish__video" aria-labelledby={titleId}>
@@ -72,11 +83,11 @@ export default function StudioPublishVideo({
       >
         {message}
       </p>
-      {busy && state.phase !== 'waiting' && (
+      {busy && (
         <progress
           aria-label={message}
           max={PREVIEW_DURATION_MS}
-          value={state.phase === 'recording' ? elapsed : undefined}
+          value={counting ? elapsed : undefined}
         />
       )}
       <div className="studio-publish__video-actions">
@@ -106,18 +117,6 @@ export default function StudioPublishVideo({
           </button>
         )}
       </div>
-      {state.phase === 'ready' && (
-        <video
-          ref={videoRef}
-          className="studio-publish__video-player"
-          src={state.url}
-          controls
-          muted
-          playsInline
-          preload="auto"
-          aria-label={t('studio.publish.videoPlay')}
-        />
-      )}
     </section>
   );
 }

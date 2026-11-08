@@ -107,8 +107,22 @@ $lab-turn: 9s;
   }
 }
 
+// The slide, then what else 2.3 brings, a step apart as the slide's own
+// columns are. The container keeps them apart, not a margin: the Also card
+// wears the How card's classes, whose `margin-top: auto` (FeatureTour.scss,
+// emitted after this module) outweighed one here, and the two cards touched.
+.tour-release23 {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--tour-unit) * 2);
+}
+
 .tour-release23__also {
-  margin-top: 24px;
+  // A heading here, where the How card's title is a span: without this its
+  // default margins set it 14px lower in its card than that one in its own.
+  .tour-slide__how-title {
+    margin: 0;
+  }
 
   .tour-showcase__points {
     grid-template-columns: repeat(2, minmax(0, 1fr));

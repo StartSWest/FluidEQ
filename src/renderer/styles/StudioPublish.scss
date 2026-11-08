@@ -6,6 +6,7 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
+@use 'sass:list';
 @use 'color' as *;
 @use 'dialog' as dialog;
 @use 'motion' as *;
@@ -102,16 +103,38 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.studio-publish__video-hint {
-  color: $text-dim;
+// Time of day's picture: the element tile's sky (`--sky`, which the tile
+// darkens toward its top) runs from the app's own night to a clear blue, the
+// sun rises out of the land and the moon and stars fade as it does.
+.studio-publish__daylight {
+  --sky: color-mix(
+    in srgb,
+    #{list.nth($lagoon, 6)} calc(var(--day, 0.5) * 100%),
+    #{$primary-light}
+  );
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
 }
 
-.studio-publish__video-player {
-  display: block;
-  width: 100%;
-  max-height: 260px;
-  border-radius: $radius-m;
-  background: $black;
+.studio-publish__daylight-night {
+  fill: $white;
+}
+
+.studio-publish__daylight-sun {
+  fill: $neon-yellow;
+  filter: drop-shadow(0 0 2px rgba($neon-yellow, 0.7));
+}
+
+.studio-publish__daylight-land {
+  fill: color-mix(in srgb, $primary-dark 82%, var(--sky));
+}
+
+.studio-publish__video-hint {
+  color: $text-dim;
 }
 
 .studio-publish__video-actions {
@@ -244,6 +267,32 @@ it under the terms of the GNU General Public License version 3 or later.
   background: $black;
   box-shadow: 0 18px 44px rgba($black, 0.5);
   isolation: isolate;
+}
+
+// The recorded preview, in the stage's own frame on its tab: the same 16:9
+// box, so switching between the live scene and the clip moves nothing.
+.studio-publish__recorded {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: $black;
+}
+
+// Live scene / Preview video, the Studio's own segments laid over the
+// frame's top corner on a dark glass so they read on any scene.
+.studio-publish__view-tabs {
+  position: absolute;
+  z-index: 3;
+  top: 8px;
+  left: 8px;
+  padding: 3px;
+  border-radius: $radius-s;
+  background: rgba($black, 0.55);
+  backdrop-filter: blur(8px);
 }
 
 // The shutter's answer: the frame blinks white for a moment.

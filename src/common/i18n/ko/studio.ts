@@ -116,10 +116,11 @@ const studio = {
     '음악을 재생하거나 데모를 시작하여 미리보기를 녹화하세요.',
   'studio.publish.videoPreparing': '장면 녹화 준비 중…',
   'studio.publish.videoRecording': '미리 보기 녹화 중 · {seconds} / 10초',
+  'studio.publish.videoPaused': '조용한 동안 일시 정지 · {seconds} / 10초',
   'studio.publish.videoEncoding': '동영상 마무리 중…',
   'studio.publish.videoChecking': '동영상 재생 확인 중…',
   'studio.publish.videoReady':
-    '미리 보기가 준비되었습니다. 아래에서 재생하세요.',
+    '미리 보기가 준비되었습니다. 위쪽 미리 보기 동영상 탭에서 재생됩니다.',
   'studio.publish.videoFailed':
     '미리 보기를 녹화하거나 재생할 수 없습니다. 다시 녹화해 주세요.',
   'studio.publish.videoCancelled':
@@ -128,6 +129,9 @@ const studio = {
   'studio.publish.videoAgain': '다시 녹화',
   'studio.publish.videoRetry': '녹화 재시도',
   'studio.publish.videoPlay': '장면 미리 보기 재생',
+  'studio.publish.viewChoice': '화면에 표시할 내용',
+  'studio.publish.viewLive': '실시간 장면',
+  'studio.publish.viewRecorded': '미리 보기 동영상',
   'studio.publish.videoRequired':
     '먼저 재생 가능한 미리 보기 녹화를 완료하세요',
   'studio.publish.videoWatermark': 'FluidEQ Plus · 미리보기',
@@ -143,6 +147,9 @@ const studio = {
   'studio.publish.yourMusic': '당신의 음악',
   'studio.publish.demo': '데모',
   'studio.publish.capture': '이 순간 캡처',
+  'studio.publish.timeOfDay': '시간대',
+  'studio.publish.timeOfDayHint':
+    '표지와 미리 보기 동영상을 촬영할 시간대로, 밤부터 한낮까지입니다. 바꾸면 미리 보기를 다시 녹화하며, 앱 자체의 일광 설정은 그대로입니다.',
   'studio.publish.capturing': '캡처 중…',
   'studio.publish.quietTitle': '재생 중인 항목이 없습니다.',
   'studio.publish.quietBody':

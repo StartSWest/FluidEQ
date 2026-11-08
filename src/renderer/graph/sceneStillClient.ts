@@ -172,11 +172,15 @@ const ask = <K extends TSceneStillRequest['kind']>(
   });
 };
 
-/** `pack`'s picture under the showcase, or at a caught moment's `frames`. */
+/**
+ * `pack`'s picture under the showcase, or at a caught moment's `frames`, at
+ * `daylight` (the Publish dialog's own time of day) or the page's.
+ */
 export const drawStillInWorker = async (
   pack: IScenePack,
   frames?: readonly ISceneFrame[],
   format?: 'png',
+  daylight?: number,
 ): Promise<Blob | undefined> => {
   // After the graph's own compile of this scene, if one is under way, so this
   // one is the GPU process's cached copy (`sceneLinkTurns.ts`).
@@ -186,7 +190,7 @@ export const drawStillInWorker = async (
       kind: 'still',
       pack,
       accent: pageAccent(),
-      daylight: pageDaylight(),
+      daylight: daylight ?? pageDaylight(),
       ...(frames ? { frames } : {}),
       ...(format ? { format } : {}),
     })

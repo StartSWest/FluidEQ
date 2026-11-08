@@ -160,7 +160,7 @@ it.each([
 );
 
 it('refuses bytes that are not a clip of the box, and keeps none of them', async () => {
-  bucket.set(CLIP_PATH, fixture('preview-856x480.webm'));
+  bucket.set(CLIP_PATH, fixture('preview-1282x720.webm'));
   register();
   await expect(ask()).resolves.toBeUndefined();
   await expect(ask()).resolves.toBeUndefined();

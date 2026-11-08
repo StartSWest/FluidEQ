@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { BrowserWindow, dialog } from 'electron';
 import type { IMemberSceneStore } from '../memberScenes/store';
 import type { IStoredProject } from '../memberScenes/studioProjects';
+import { registerStudioDemoMusicIpc } from './studioDemoMusic';
 import { registerStudioNotesIpc } from './studioNotes';
 import { registerStudioPicturesIpc } from './studioPictures';
 import { registerStudioPreviewIpc } from './studioPreview';
@@ -14,7 +15,8 @@ import { registerStudioSettingsIpc } from './studioSettings';
 
 /**
  * The panes beside the Studio's bench: the notes, the Pictures card, the
- * picture of the scene for the member's AI, and the scene's settings.
+ * picture of the scene for the member's AI, the scene's settings, and the
+ * music the Publish dialog's Demo plays.
  *
  * Each is asked about the project it is about, the way the projects' own
  * channels ask (`studioProjectsIpc.ts`): one the page names only while the
@@ -86,10 +88,13 @@ export const registerStudioProjectPanes = ({
     announceScenes,
     ...(logger ? { logger } : {}),
   });
+  // The Publish dialog's Demo music: the same for every project.
+  const disposeDemoMusic = registerStudioDemoMusicIpc();
   return () => {
     disposeNotes();
     disposePictures();
     disposePreview();
     disposeSettings();
+    disposeDemoMusic();
   };
 };

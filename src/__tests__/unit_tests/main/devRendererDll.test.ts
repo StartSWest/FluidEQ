@@ -97,7 +97,11 @@ it('boots React from the development entry in an isolated page without a DLL', a
     );
     expect(root.textContent).toBe('Interface ready');
   });
-});
+  // A real webpack build of the development renderer config: 8.2 s alone on
+  // Ivan's machine (2026-11-07), longer inside the full parallel suite. Under
+  // Jest's 5 s default it timed out every run, and the build it left running
+  // broke a Studio test that shared its worker.
+}, 120000);
 
 it('does not put a development-only dependency in the shared HTML templates', () => {
   const plugins = rendererDevConfig.plugins?.filter(

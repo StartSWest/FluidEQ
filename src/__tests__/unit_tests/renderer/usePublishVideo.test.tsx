@@ -13,6 +13,8 @@ const takes: {
   reject: (error: Error) => void;
   cancel: jest.Mock;
   frame: jest.Mock;
+  pause: jest.Mock;
+  resume: jest.Mock;
 }[] = [];
 const preview = () => ({
   blob: new Blob(['clip']),
@@ -57,9 +59,18 @@ beforeEach(() => {
         fail(new DOMException('cancelled', 'AbortError')),
       );
       const frame = jest.fn();
-      takes.push({ resolve: complete, reject: fail, cancel, frame });
+      const pause = jest.fn();
+      const resume = jest.fn();
+      takes.push({
+        resolve: complete,
+        reject: fail,
+        cancel,
+        frame,
+        pause,
+        resume,
+      });
       progress({ phase: 'preparing' });
-      return { result, frame, cancel };
+      return { result, frame, cancel, pause, resume };
     });
 });
 afterEach(() => jest.restoreAllMocks());
@@ -85,21 +96,39 @@ it('creates no recorder or countdown before real audio and a drawn frame', () =>
   expect(createPreviewVideoRecorder).toHaveBeenCalledTimes(1);
 });
 
-it('discards paused takes and stale completions, then starts afresh on audio', async () => {
+// A quiet bar in the music used to throw the take away and start again, so a
+// song with pauses never finished one (2026-11-07). Silence now holds it.
+it('holds a take through silence and carries it on with the sound', async () => {
+  const changed = jest.fn();
+  const { result } = renderHook(() =>
+    usePublishVideo('source', 'Preview', changed),
+  );
+  draw(result.current);
+  act(() => result.current.input(false));
+  expect(takes[0].pause).toHaveBeenCalledTimes(1);
+  expect(takes[0].cancel).not.toHaveBeenCalled();
+  expect(result.current.state.phase).not.toBe('waiting');
+  act(() => result.current.input(true));
+  expect(takes[0].resume).toHaveBeenCalledTimes(1);
+  await act(async () => takes[0].resolve(preview()));
+  expect(takes).toHaveLength(1);
+  expect(result.current.state.phase).toBe('ready');
+  expect(changed).toHaveBeenLastCalledWith(
+    expect.objectContaining({ durationMs: 10000 }),
+  );
+});
+
+it('keeps a completion that lands after a cancel off the dialog', async () => {
   const changed = jest.fn();
   const { result } = renderHook(() =>
     usePublishVideo('source', 'Preview', changed),
   );
   draw(result.current);
   takes[0].cancel.mockImplementation(() => undefined);
-  act(() => result.current.input(false));
-  expect(takes[0].cancel).toHaveBeenCalled();
-  expect(result.current.state.phase).toBe('waiting');
+  act(() => result.current.cancel());
   await act(async () => takes[0].resolve(preview()));
   expect(created).not.toHaveBeenCalled();
-  expect(changed).toHaveBeenLastCalledWith(undefined);
-  draw(result.current);
-  expect(takes).toHaveLength(2);
+  expect(result.current.state.phase).toBe('cancelled');
 });
 
 it('rechecks audio at the queued paint and honours cancellation while waiting', () => {

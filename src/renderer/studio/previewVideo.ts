@@ -3,8 +3,9 @@ import {
   PREVIEW_DURATION_MS,
   PREVIEW_MAX_HEIGHT as MAX_HEIGHT,
   PREVIEW_MAX_WIDTH as MAX_WIDTH,
-  SCENE_PREVIEW_CODEC,
   SCENE_PREVIEW_MP4_CODEC,
+  SCENE_PREVIEW_VP8_CODEC,
+  SCENE_PREVIEW_VP9_CODEC,
 } from 'common/scenePreviewMedia';
 import finishPreviewWebm from './previewWebm';
 
@@ -13,9 +14,6 @@ export {
   PREVIEW_DURATION_MS,
 } from 'common/scenePreviewMedia';
 const FRAME_MS = 1000 / 30;
-// Native 854x480 Alpine: ~1.0 MiB for ten seconds at 950 kbit/s, with visibly
-// cleaner foliage than 700 kbit/s and room below the released 1.5 MiB cap.
-const BITS_PER_SECOND = 950000;
 
 export interface IPreviewVideo {
   blob: Blob;
@@ -26,11 +24,19 @@ export interface IPreviewVideo {
 
 export type TPreviewVideoProgress =
   | { phase: 'preparing' | 'encoding' | 'checking' }
-  | { phase: 'recording'; elapsedMs: number };
+  | { phase: 'recording' | 'paused'; elapsedMs: number };
 
 export interface IPreviewVideoRecorder {
   /** Called only after the scene's renderer has produced a real frame. */
   frame(canvas: HTMLCanvasElement, at: number): void;
+  /**
+   * Holds the take while nothing is heard and carries it on from the same
+   * second when sound comes back (Ivan, 2026-11-07: a take that started
+   * again at every quiet moment pushed the dialog down and up and could
+   * never finish over speech or a song with pauses).
+   */
+  pause(): void;
+  resume(): void;
   result: Promise<IPreviewVideo>;
   cancel(): void;
 }
@@ -107,16 +113,66 @@ export const checkPreviewVideo = (
     video.load();
   });
 
-const mimeTypeOf = (): string => {
+interface IRecordingFormat {
+  type: string;
+  width: number;
+  height: number;
+  bitsPerSecond: number;
+}
+
+/** What a clip is recorded as, best first (Ivan, 2026-11-07: "the video
+ * quality still low ... more res while keeping it low in capacity"). VP9 at
+ * 1280x720: Chromium's recorder fits ten seconds of a busy 720p canvas at
+ * 1.1 Mbit/s in 1.2 MB, so 1.05 Mbit/s keeps a busy scene a fifth under the
+ * 1.5 MiB cap. VP8 and H.264 stay at the 854x480 and 950 kbit/s they were
+ * tuned at (native 854x480 Alpine: ~1.0 MiB, foliage still clean): either
+ * at 720p in the same bytes would be softer than VP9, not sharper. */
+const FORMATS: readonly IRecordingFormat[] = [
+  {
+    type: SCENE_PREVIEW_VP9_CODEC,
+    width: 1280,
+    height: 720,
+    bitsPerSecond: 1050000,
+  },
+  {
+    type: SCENE_PREVIEW_VP8_CODEC,
+    width: 854,
+    height: 480,
+    bitsPerSecond: 950000,
+  },
+  {
+    type: SCENE_PREVIEW_MP4_CODEC,
+    width: 854,
+    height: 480,
+    bitsPerSecond: 950000,
+  },
+];
+
+const formatOf = (): IRecordingFormat => {
   const video = document.createElement('video');
-  const type = [SCENE_PREVIEW_CODEC, SCENE_PREVIEW_MP4_CODEC].find(
-    (candidate) =>
-      MediaRecorder.isTypeSupported(candidate) && video.canPlayType(candidate),
+  const format = FORMATS.find(
+    ({ type }) =>
+      MediaRecorder.isTypeSupported(type) && video.canPlayType(type) !== '',
   );
-  if (!type) {
+  if (!format) {
     throw new Error('No supported preview codec');
   }
-  return type;
+  return format;
+};
+
+/** The size the scene is drawn at for its clip: the format's own, so every
+ * pixel recorded was rendered and none is enlarged. With no format to record
+ * in, the stage still needs a size; the recording then fails on its own. */
+export const previewCaptureSize = (): { width: number; height: number } => {
+  if (typeof MediaRecorder === 'undefined') {
+    return { width: FORMATS[1].width, height: FORMATS[1].height };
+  }
+  try {
+    const { width, height } = formatOf();
+    return { width, height };
+  } catch {
+    return { width: FORMATS[1].width, height: FORMATS[1].height };
+  }
 };
 
 /** Only raster pixels from the scene enter this canvas. captureStream creates
@@ -131,10 +187,14 @@ export const createPreviewVideoRecorder = (
   let recorder: MediaRecorder | undefined;
   let stream: MediaStream | undefined;
   let track: CanvasCaptureMediaStreamTrack | undefined;
-  let firstAt: number | undefined;
+  // The take's own clock: `at` less every second it was held, so a pause
+  // leaves no gap in the clip and the countdown carries on where it stopped.
+  let origin: number | undefined;
   let lastAt: number | undefined;
   let lastSlot = -1;
   let elapsedMs = 0;
+  let paused = false;
+  let resuming = false;
   let finishing = false;
   let settled = false;
   let size = 0;
@@ -187,10 +247,11 @@ export const createPreviewVideoRecorder = (
     if (!context || typeof MediaRecorder === 'undefined') {
       throw new Error('Recording unavailable');
     }
+    const format = formatOf();
     const scale = Math.min(
       1,
-      MAX_WIDTH / source.width,
-      MAX_HEIGHT / source.height,
+      format.width / source.width,
+      format.height / source.height,
     );
     canvas.width = Math.max(2, Math.floor((source.width * scale) / 2) * 2);
     canvas.height = Math.max(2, Math.floor((source.height * scale) / 2) * 2);
@@ -206,8 +267,8 @@ export const createPreviewVideoRecorder = (
       }
     };
     recorder = new MediaRecorder(stream, {
-      mimeType: mimeTypeOf(),
-      videoBitsPerSecond: BITS_PER_SECOND,
+      mimeType: format.type,
+      videoBitsPerSecond: format.bitsPerSecond,
     });
     recorder.onerror = () => fail(new Error('Preview encoder failed'));
     recorder.ondataavailable = (event) => {
@@ -263,8 +324,41 @@ export const createPreviewVideoRecorder = (
   return {
     result,
     cancel: () => fail(abortError()),
+    pause: () => {
+      if (settled || finishing || paused) {
+        return;
+      }
+      paused = true;
+      // The encoder's own pause leaves the held time out of the clip's
+      // timeline; frames simply stop being requested while it lasts.
+      if (recorder?.state === 'recording') {
+        recorder.pause();
+      }
+      progress({ phase: 'paused', elapsedMs });
+    },
+    resume: () => {
+      if (settled || finishing || !paused) {
+        return;
+      }
+      paused = false;
+      resuming = lastAt !== undefined;
+      if (recorder?.state === 'paused') {
+        recorder.resume();
+      }
+      progress(
+        lastAt === undefined
+          ? { phase: 'preparing' }
+          : { phase: 'recording', elapsedMs },
+      );
+    },
     frame: (source, at) => {
-      if (settled || finishing || source.width < 2 || source.height < 2) {
+      if (
+        settled ||
+        finishing ||
+        paused ||
+        source.width < 2 ||
+        source.height < 2
+      ) {
         return;
       }
       try {
@@ -277,7 +371,12 @@ export const createPreviewVideoRecorder = (
         if (!context || !track || recorder?.state !== 'recording') {
           return;
         }
-        const slot = Math.floor((at - (firstAt ?? at)) / FRAME_MS);
+        if (resuming && origin !== undefined && lastAt !== undefined) {
+          // The first frame after a pause is one frame after the last kept.
+          origin += at - lastAt - FRAME_MS;
+          resuming = false;
+        }
+        const slot = Math.floor((at - (origin ?? at)) / FRAME_MS);
         if (lastAt !== undefined && slot === lastSlot) {
           return;
         }
@@ -301,10 +400,10 @@ export const createPreviewVideoRecorder = (
           canvas.height - padding * 2,
         );
         track.requestFrame();
-        firstAt ??= at;
+        origin ??= at;
         lastAt = at;
         lastSlot = slot;
-        elapsedMs = at - firstAt;
+        elapsedMs = at - origin;
         progress({
           phase: 'recording',
           elapsedMs: Math.min(PREVIEW_DURATION_MS, elapsedMs),

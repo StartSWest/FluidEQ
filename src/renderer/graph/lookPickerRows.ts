@@ -212,11 +212,20 @@ export const buildPlusRows = ({
       thumbnail: {
         lookId: scene.lookId,
         version: scene.revision ?? String(scene.version),
-        published: {
-          authorId: FLUIDEQ_CREATOR_ID,
-          sceneId: scene.id,
-          version: scene.version,
-        },
+        // The copy the gallery names, when a list has it, as member rows do:
+        // its date is what lets the picture be read back from disk.
+        published: gallery
+          ? {
+              authorId: FLUIDEQ_CREATOR_ID,
+              sceneId: scene.id,
+              version: gallery.version,
+              revision: gallery.updatedAt,
+            }
+          : {
+              authorId: FLUIDEQ_CREATOR_ID,
+              sceneId: scene.id,
+              version: scene.version,
+            },
         load: () => loadScenePack(scene.id),
       },
     });
@@ -241,6 +250,7 @@ export const buildPlusRows = ({
           authorId: FLUIDEQ_CREATOR_ID,
           sceneId: scene.id,
           version: gallery.version,
+          revision: gallery.updatedAt,
         },
       },
     });

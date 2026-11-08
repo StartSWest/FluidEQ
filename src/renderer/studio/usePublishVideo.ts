@@ -30,8 +30,11 @@ interface ITake {
 }
 
 /** A take is armed on opening/retry, but owns no recorder until real audio
- * and a fully drawn scene meet. Silence/pausing discards a partial take;
- * neither queued frames nor late encoders can revive a discarded recording. */
+ * and a fully drawn scene meet. Silence or a paused player holds a take and
+ * sound carries it on from the same second (Ivan, 2026-11-07: discarding it
+ * at every quiet moment made the panel jump and a take over speech or a song
+ * with pauses never finished). Neither queued frames nor late encoders can
+ * revive a cancelled recording. */
 export default function usePublishVideo(
   source: string,
   watermark: string,
@@ -63,7 +66,9 @@ export default function usePublishVideo(
         current.token = token;
         const recording = createPreviewVideoRecorder(watermark, (next) => {
           if (owner.current === current && current.token === token) {
-            current.capturing = ['preparing', 'recording'].includes(next.phase);
+            current.capturing = ['preparing', 'recording', 'paused'].includes(
+              next.phase,
+            );
             setState(next);
           }
         });
@@ -107,21 +112,24 @@ export default function usePublishVideo(
     };
   }, [source, watermark, take, stop]);
 
-  const input = useCallback(
-    (playing: boolean) => {
-      const { current } = owner;
-      if (!current) {
-        return;
-      }
-      current.playing = playing;
-      if (!playing && current.armed && current.recording && current.capturing) {
-        stop(current);
-        setState({ phase: 'waiting' });
-        changed.current(undefined);
-      }
-    },
-    [stop],
-  );
+  const input = useCallback((playing: boolean) => {
+    const { current } = owner;
+    if (!current) {
+      return;
+    }
+    if (current.playing === playing) {
+      return;
+    }
+    current.playing = playing;
+    if (!current.armed || !current.recording || !current.capturing) {
+      return;
+    }
+    if (playing) {
+      current.recording.resume();
+    } else {
+      current.recording.pause();
+    }
+  }, []);
   const frame = useCallback((canvas: HTMLCanvasElement) => {
     const { current } = owner;
     if (!current?.armed || !current.playing || current.request !== undefined) {
