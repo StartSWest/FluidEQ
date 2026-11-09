@@ -36,11 +36,19 @@ const held = () => {
   };
 };
 
-/** The word's moment ends, as its hold animation does. */
-const wordEnds = () =>
-  fireEvent.animationEnd(screen.getByRole('status'), {
-    animationName: 'studio-picture-copied',
+/**
+ * The word's moment ends, as its hold animation does. jsdom has no
+ * AnimationEvent, so the name is put on a plain one, as the Karaoke tests do.
+ */
+const wordEnds = () => {
+  const event = new Event('animationend', { bubbles: true });
+  Object.defineProperty(event, 'animationName', {
+    value: 'studio-picture-copied',
   });
+  act(() => {
+    screen.getByRole('status').dispatchEvent(event);
+  });
+};
 
 beforeEach(() => {
   mockCopy.mockReset();
@@ -55,16 +63,16 @@ describe('the viewer’s Copy', () => {
     fireEvent.click(button);
     expect(mockCopy).toHaveBeenCalledWith(SOURCE);
     // From the press: a large picture takes up to a second.
-    expect(button).toHaveTextContent('studio.picture.copying');
-    expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(button.textContent).toBe('studio.picture.copying');
+    expect(button.getAttribute('aria-busy')).toBe('true');
     // A second press while it works copies nothing more.
     fireEvent.click(button);
     expect(mockCopy).toHaveBeenCalledTimes(1);
 
     await copy.finish();
-    expect(button).toHaveTextContent('studio.picture.copied');
+    expect(button.textContent).toBe('studio.picture.copied');
     wordEnds();
-    expect(button).toHaveTextContent('studio.picture.copy');
+    expect(button.textContent).toBe('studio.picture.copy');
   });
 
   it('says it could not copy when the clipboard refuses', async () => {
@@ -75,7 +83,7 @@ describe('the viewer’s Copy', () => {
     render(<StudioPictureCopyButton source={SOURCE} />);
     fireEvent.click(screen.getByRole('button'));
     await copy.fail();
-    expect(screen.getByRole('button')).toHaveTextContent(
+    expect(screen.getByRole('button').textContent).toBe(
       'studio.picture.copyFailed',
     );
     expect(printed).toHaveBeenCalledTimes(1);
@@ -128,20 +136,18 @@ describe('a preview’s right click', () => {
     expect(screen.queryByRole('menu')).toBeNull();
     fireEvent.contextMenu(screen.getByTestId('piece'));
     const item = await screen.findByRole('menuitem');
-    expect(item).toHaveTextContent('studio.picture.copy');
+    expect(item.textContent).toBe('studio.picture.copy');
     // Opened from the keyboard's menu key as well: Enter copies.
-    expect(item).toHaveFocus();
+    expect(document.activeElement).toBe(item);
 
     fireEvent.click(item);
     expect(mockCopy).toHaveBeenCalledWith({ ...SOURCE, region: REGION });
     await act(async () => undefined);
-    expect(screen.getByRole('menu')).toBeInTheDocument();
-    expect(item).toHaveTextContent('studio.picture.copied');
+    expect(screen.queryByRole('menu')).not.toBeNull();
+    expect(item.textContent).toBe('studio.picture.copied');
 
     wordEnds();
-    // Closing plays the menu's way out, and then it is gone.
-    const menu = screen.getByRole('menu');
-    expect(menu).toHaveAttribute('data-closing');
+    expect(screen.queryByRole('menu')).toBeNull();
   });
 
   it('closes on a press elsewhere without copying', async () => {
@@ -149,7 +155,7 @@ describe('a preview’s right click', () => {
     fireEvent.contextMenu(screen.getByTestId('piece'));
     await screen.findByRole('menuitem');
     fireEvent.mouseDown(screen.getByTestId('elsewhere'));
-    expect(screen.getByRole('menu')).toHaveAttribute('data-closing');
+    expect(screen.queryByRole('menu')).toBeNull();
     expect(mockCopy).not.toHaveBeenCalled();
   });
 });
