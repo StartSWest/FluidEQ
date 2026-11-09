@@ -300,6 +300,15 @@ it under the terms of the GNU General Public License version 3 or later.
     }
   }
 
+  // The reading's figures fold away where the plate would no longer keep
+  // one row with them (`.studio-stage__reading`): the widest plate, the
+  // demo song's words in it, is 663px with them, measured in the harness.
+  @container studio-stage (max-width: 720px) {
+    .studio-cost__reading {
+      display: none;
+    }
+  }
+
   // A SMALL STAGE KEEPS ITS PICTURE (found by session 2, 2026-11-09: at the
   // 1024px window with the chat as the Studio's tab the stage is 284 by 121,
   // and the plate wrapped into two rows over two thirds of it — the part the
@@ -349,6 +358,11 @@ it under the terms of the GNU General Public License version 3 or later.
 // the plate's own hairline.
 .studio-stage__tools {
   display: flex;
+  // Never the part that gives way: where the plate is short of room, the
+  // words of what the scene hears are cut short instead
+  // (`.studio-stage-motion__label`). Free to shrink, the drawings wrapped
+  // into three rows on a 546px stage in es while those words still fitted.
+  flex: none;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;

@@ -334,8 +334,16 @@ $stage-edge: $border-menu;
 // an em cap took the button itself to nothing there and cut its glyph.
 .studio-stage-motion__label {
   min-width: 0;
-  max-width: 16em;
+  // The longest words, the demo song's in it, whole on a wide stage: at 16em
+  // they were cut there too.
+  max-width: 20em;
   margin-inline-start: 0.5em;
+  // The clip a little past the last letter and taken back from the layout,
+  // so the ellipsis is the only cut there is: clipped at the text's own
+  // edge, the last letter's ink past its advance was cut against the
+  // divider (Ivan, 2026-11-09).
+  padding-inline-end: 0.15em;
+  margin-inline-end: -0.15em;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -682,18 +690,37 @@ $stage-edge: $border-menu;
  * three hundred pixels apart — so a change that made the scene heavy went
  * unnoticed until somebody happened to glance aside.
  *
- * The first part of the stage's plate (`.studio-stage__bar` in
- * StudioWork.scss), which carries the glass; it takes no press, like the
- * plate around it.
+ * A part of the stage's plate (`.studio-stage__bar` in StudioWork.scss),
+ * which carries the glass; it takes no press, like the plate around it.
+ *
+ * ONE LINE ON THE PLATE'S MIDDLE (Ivan, 2026-11-09, circling it: "center
+ * this"): the light, the words and the figures in a row, centred with the
+ * buttons beside them. The card's two lines - the words over the figures, the
+ * light beside the first - stood here as a block whose first line sat ten
+ * pixels over the plate's middle, with the faint figures under it reading as
+ * an empty band over a bright scene. Where the stage is too narrow to carry
+ * the figures as well, they fold away (StudioWork.scss), and are still on the
+ * Performance card.
  */
 .studio-stage__reading {
+  display: inline-flex;
   flex: none;
+  // The row's whole height, its content centred in it, so the hairline after
+  // it is as tall as the one after the button beside it.
+  align-self: stretch;
+  align-items: center;
+  gap: 6px;
   margin-top: 0;
   padding: 0 4px 0 6px;
   border-top: 0;
   pointer-events: none;
   font-size: $text-micro;
   line-height: 1.35;
+  white-space: nowrap;
+
+  .studio-cost__reading {
+    grid-column: auto;
+  }
 }
 
 // A save's new version building beside the running picture (Ivan,
