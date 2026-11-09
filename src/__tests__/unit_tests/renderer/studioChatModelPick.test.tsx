@@ -33,7 +33,11 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 
 const NO_HAIKU: IStudioChatModels = {
   checked: true,
-  names: { fable: 'Fable 5.2', opus: 'Opus 5.5', sonnet: 'Sonnet 5.5' },
+  lines: [
+    { id: 'opus', name: 'Opus 5.5' },
+    { id: 'fable', name: 'Fable 5.2' },
+    { id: 'sonnet', name: 'Sonnet 5.5' },
+  ],
   defaultName: 'Opus 5.5',
 };
 
@@ -108,8 +112,31 @@ describe("the chat's model picker", () => {
     expect(row('studioChat.modelDefault')).toHaveClass('selected');
   });
 
+  // Ivan, 2026-11-09: "claude can launch new models and we want to pick up
+  // smartly automatically".
+  it("offers a family Anthropic added after this app, in Claude Code's words, and takes it", async () => {
+    answer = Promise.resolve({
+      ...NO_HAIKU,
+      lines: [
+        ...NO_HAIKU.lines,
+        {
+          id: 'mythos',
+          name: 'Mythos 1',
+          description: 'For the longest creative work',
+        },
+      ],
+    });
+    const { user } = await open();
+    const mythos = row('Mythos 1');
+    expect(
+      within(mythos).getByText('For the longest creative work'),
+    ).toBeInTheDocument();
+    await user.click(mythos);
+    expect(screen.getByRole('status')).toHaveTextContent('mythos');
+  });
+
   it('offers every line under its bare name before Claude Code ever answered', async () => {
-    answer = Promise.resolve({ checked: false, names: {} });
+    answer = Promise.resolve({ checked: false, lines: [] });
     await open();
     ['Fable', 'Opus', 'Sonnet', 'Haiku'].forEach((name) =>
       expect(row(name)).not.toHaveAttribute('aria-disabled'),

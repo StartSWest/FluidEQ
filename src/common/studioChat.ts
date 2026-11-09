@@ -194,23 +194,50 @@ export interface IStudioChatMessage {
 export type IStudioChatCompact = Omit<IStudioChatMessage, 'text' | 'stage'>;
 
 /**
- * The models the member may pick in the chat (Ivan, 2026-10-09: "user needs
- * to be able to pick the model and effort"), by line. Each line is started
- * by Claude Code's own name for it - `--model haiku` - which Claude Code
- * resolves to the newest model of that line; `default` passes nothing, and
- * Claude Code uses whatever the member set for it, or its plan's default.
+ * A model the member may pick in the chat (Ivan, 2026-10-09: "user needs to
+ * be able to pick the model and effort"): `default`, which passes nothing
+ * and leaves Claude Code on whatever the member set for it, or a line by
+ * Claude Code's own name for it - `haiku` - which Claude Code resolves to
+ * that line's newest model. Any line Claude Code offers, not only the ones
+ * this app knew of when it was built (Ivan, 2026-11-09: "claude can launch
+ * new models and we want to pick up smartly automatically"): a name of a
+ * line's shape, held to it everywhere it crosses into a command line.
  */
-export const STUDIO_CHAT_MODELS = [
-  'default',
+export type TStudioChatModel = string;
+
+/** A line's name as Claude Code takes it: lower case, a word or two, no version. */
+const LINE_NAME = /^[a-z][a-z0-9-]{0,31}$/;
+
+export const isStudioChatModel = (value: unknown): value is TStudioChatModel =>
+  typeof value === 'string' &&
+  LINE_NAME.test(value) &&
+  // An exact model (`claude-haiku-4-5-...`) is an older one of a line, which
+  // the list does not offer: a line's own name always reaches its newest.
+  !value.startsWith('claude-');
+
+/**
+ * The lines there were when this was written, each with its own words in
+ * every language (`studioChat.modelHint*`), and the ones offered under their
+ * bare names before Claude Code has ever said anything. A line Claude Code
+ * adds later is offered all the same, in Claude Code's own words.
+ */
+export const STUDIO_CHAT_FAMILIES = [
   'fable',
   'opus',
   'sonnet',
   'haiku',
 ] as const;
-export type TStudioChatModel = (typeof STUDIO_CHAT_MODELS)[number];
+export type TStudioChatFamily = (typeof STUDIO_CHAT_FAMILIES)[number];
 
-/** A line of models: every pick but `default`. */
-export type TStudioChatFamily = Exclude<TStudioChatModel, 'default'>;
+export const isStudioChatFamily = (value: string): value is TStudioChatFamily =>
+  (STUDIO_CHAT_FAMILIES as readonly string[]).includes(value);
+
+/** One line Claude Code offers: its name for it, and the model's name and words. */
+export interface IStudioChatLine {
+  id: TStudioChatModel;
+  name: string;
+  description?: string;
+}
 
 /**
  * What Claude Code says it offers (Ivan, 2026-11-09: "make sure model list
@@ -221,28 +248,37 @@ export type TStudioChatFamily = Exclude<TStudioChatModel, 'default'>;
  * answers and never ages. It used to be a table of exact versions written
  * into the app, and it went on offering Haiku 4.5 after 5.5 shipped.
  *
- * `checked`: Claude Code has answered at least once, ever. Until then
- * nothing is known, and every line is offered under its bare name; after,
- * a line Claude Code did not offer is one this account cannot use, shown
- * as such, never quietly left out.
+ * `lines` are every line Claude Code offered, in its own order, a family
+ * it added after this app was built among them. `checked`: Claude Code has
+ * answered at least once, ever. Until then nothing is known, and the lines
+ * this app knows of are offered under their bare names; after, one of those
+ * that Claude Code did not offer is one this account cannot use, shown as
+ * such, never quietly left out.
  */
 export interface IStudioChatModels {
   checked: boolean;
-  names: Partial<Record<TStudioChatFamily, string>>;
+  lines: IStudioChatLine[];
   /** The model `default` starts, by its name, where Claude Code said it. */
   defaultName?: string;
 }
 
 export const NO_STUDIO_CHAT_MODELS: IStudioChatModels = {
   checked: false,
-  names: {},
+  lines: [],
 };
 
-/** Whether `model` can be started here: `default` always, a line where it is offered. */
+/**
+ * Whether `model` can be started here: `default` always; a line Claude Code
+ * offered; before it ever answered, a line this app knows of.
+ */
 export const isStudioChatModelOffered = (
   models: IStudioChatModels,
   model: TStudioChatModel,
-) => model === 'default' || !models.checked || Boolean(models.names[model]);
+) =>
+  model === 'default' ||
+  (models.checked
+    ? models.lines.some(({ id }) => id === model)
+    : isStudioChatFamily(model));
 
 /** Claude Code's effort levels (`--effort`), and its own default. */
 export const STUDIO_CHAT_EFFORTS = [
@@ -254,10 +290,6 @@ export const STUDIO_CHAT_EFFORTS = [
   'max',
 ] as const;
 export type TStudioChatEffort = (typeof STUDIO_CHAT_EFFORTS)[number];
-
-export const isStudioChatModel = (value: unknown): value is TStudioChatModel =>
-  typeof value === 'string' &&
-  (STUDIO_CHAT_MODELS as readonly string[]).includes(value);
 
 export const isStudioChatEffort = (
   value: unknown,

@@ -8,10 +8,10 @@ import fs from 'fs';
 import path from 'path';
 import { createInterface } from 'readline';
 import {
+  isStudioChatModel,
   NO_STUDIO_CHAT_MODELS,
-  STUDIO_CHAT_MODELS,
+  type IStudioChatLine,
   type IStudioChatModels,
-  type TStudioChatFamily,
 } from '../../common/studioChat';
 import writeFileAtomically from '../atomicWrite';
 import {
@@ -42,9 +42,8 @@ import {
 
 /** The control request's id, so its answer is told from anything else. */
 const REQUEST_ID = 'fluideq-models';
-const FAMILIES = STUDIO_CHAT_MODELS.filter(
-  (model): model is TStudioChatFamily => model !== 'default',
-);
+/** No more lines than a list can show; Claude Code offers four or five. */
+const MOST_LINES = 12;
 
 const isRecord = (raw: unknown): raw is Record<string, unknown> =>
   typeof raw === 'object' && raw !== null && !Array.isArray(raw);
@@ -55,10 +54,44 @@ const nameOf = (raw: unknown) =>
     ? raw
     : undefined;
 
+/** What a model is for, in Claude Code's words: a line of plain text, or nothing. */
+const descriptionOf = (raw: unknown) =>
+  typeof raw === 'string' && /^[\p{L}\p{N} .,·:;'’()/&+-]{1,120}$/u.test(raw)
+    ? raw
+    : undefined;
+
+/** A line from its name for it and its words, when every part is one. */
+const lineOf = (
+  id: unknown,
+  name: unknown,
+  description: unknown,
+): IStudioChatLine | undefined => {
+  const shown = nameOf(name);
+  if (!isStudioChatModel(id) || id === 'default' || !shown) {
+    return undefined;
+  }
+  const words = descriptionOf(description);
+  return { id, name: shown, ...(words ? { description: words } : {}) };
+};
+
+/** Each id once, at most MOST_LINES of them, in the order given. */
+const distinct = (lines: (IStudioChatLine | undefined)[]) =>
+  lines
+    .filter((line): line is IStudioChatLine => line !== undefined)
+    .filter(
+      (line, index, all) => all.findIndex(({ id }) => id === line.id) === index,
+    )
+    .slice(0, MOST_LINES);
+
 /**
- * The list in Claude Code's answer to the \`initialize\` request, from one line
+ * The list in Claude Code's answer to the `initialize` request, from one line
  * of what it wrote; undefined for any other line, or an answer of a shape
  * this does not know. Read as untrusted, like every line of its output.
+ *
+ * Every line it offers by its own name for it - `opus`, `haiku`, and a
+ * family that did not exist when this was written alike - and none of the
+ * exact models it lists beside them (`claude-haiku-4-5-...`), each an older
+ * one of a line whose own name already reaches its newest.
  */
 export const readModelsAnswer = (
   line: string,
@@ -81,29 +114,25 @@ export const readModelsAnswer = (
     return undefined;
   }
   const entries = inner.models.filter(isRecord);
-  const names: IStudioChatModels['names'] = {};
-  FAMILIES.forEach((family) => {
-    const entry = entries.find(({ value }) => value === family);
-    const name = entry && nameOf(entry.displayName);
-    if (name) {
-      names[family] = name;
-    }
-  });
-  // What \`default\` starts, by the line's name that resolves to the same model.
+  const lines = distinct(
+    entries.map(({ value, displayName, description }) =>
+      lineOf(value, displayName, description),
+    ),
+  );
+  // What `default` starts, by the line's name that resolves to the same model.
   const fallback = entries.find(({ value }) => value === 'default');
   const same =
     fallback &&
     entries.find(
       (entry) =>
         entry !== fallback &&
-        typeof entry.value === 'string' &&
-        (FAMILIES as readonly string[]).includes(entry.value) &&
+        lines.some(({ id }) => id === entry.value) &&
         entry.resolvedModel === fallback.resolvedModel,
     );
   const defaultName = same && nameOf(same.displayName);
   return {
     checked: true,
-    names,
+    lines,
     ...(defaultName ? { defaultName } : {}),
   };
 };
@@ -112,19 +141,16 @@ export const readModelsAnswer = (
 export const readKeptModels = (text: string): IStudioChatModels | undefined => {
   try {
     const raw: unknown = JSON.parse(text);
-    if (!isRecord(raw) || raw.checked !== true || !isRecord(raw.names)) {
+    if (!isRecord(raw) || raw.checked !== true || !Array.isArray(raw.lines)) {
       return undefined;
     }
-    const { names: kept } = raw;
-    const names: IStudioChatModels['names'] = {};
-    FAMILIES.forEach((family) => {
-      const name = nameOf(kept[family]);
-      if (name) {
-        names[family] = name;
-      }
-    });
+    const lines = distinct(
+      raw.lines
+        .filter(isRecord)
+        .map(({ id, name, description }) => lineOf(id, name, description)),
+    );
     const defaultName = nameOf(raw.defaultName);
-    return { checked: true, names, ...(defaultName ? { defaultName } : {}) };
+    return { checked: true, lines, ...(defaultName ? { defaultName } : {}) };
   } catch {
     return undefined;
   }

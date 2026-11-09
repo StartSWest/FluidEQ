@@ -34,6 +34,7 @@ const ANSWER = {
           value: 'opus',
           resolvedModel: 'claude-opus-5-5',
           displayName: 'Opus 5.5',
+          description: 'Best for everyday, complex tasks',
         },
         {
           value: 'fable',
@@ -105,14 +106,27 @@ import {
 
 const LIST = {
   checked: true,
-  names: {
-    fable: 'Fable 5.2',
-    opus: 'Opus 5.5',
-    sonnet: 'Sonnet 5.5',
-    haiku: 'Haiku 5.5',
-  },
+  lines: [
+    {
+      id: 'opus',
+      name: 'Opus 5.5',
+      description: 'Best for everyday, complex tasks',
+    },
+    { id: 'fable', name: 'Fable 5.2' },
+    { id: 'sonnet', name: 'Sonnet 5.5' },
+    { id: 'haiku', name: 'Haiku 5.5' },
+  ],
   defaultName: 'Opus 5.5',
 };
+
+/** The answer with `models` changed by `change`. */
+const answered = (change: (models: Record<string, unknown>[]) => unknown[]) => {
+  const answer = JSON.parse(JSON.stringify(ANSWER));
+  answer.response.response.models = change(answer.response.response.models);
+  return JSON.stringify(answer);
+};
+const idsOf = (line: string) =>
+  readModelsAnswer(line)?.lines.map(({ id }) => id);
 
 let dir: string;
 beforeEach(() => {
@@ -127,7 +141,37 @@ afterEach(() => {
 
 describe("Claude Code's answer", () => {
   it('names each line by the model it starts, and what Default starts', () => {
+    // Its own order, and none of the exact older models it lists beside them.
     expect(readModelsAnswer(JSON.stringify(ANSWER))).toEqual(LIST);
+  });
+
+  // Ivan, 2026-11-09: "claude can launch new models and we want to pick up
+  // smartly automatically".
+  it("offers a family it never knew of, in Claude Code's own words", () => {
+    const line = answered((models) => [
+      ...models,
+      {
+        value: 'mythos',
+        resolvedModel: 'claude-mythos-1',
+        displayName: 'Mythos 1',
+        description: 'For the longest creative work',
+      },
+    ]);
+    expect(readModelsAnswer(line)?.lines).toContainEqual({
+      id: 'mythos',
+      name: 'Mythos 1',
+      description: 'For the longest creative work',
+    });
+  });
+
+  it('takes no name that could not be a line, or crossed into a command line', () => {
+    const line = answered((models) => [
+      ...models,
+      { value: '--dangerously-skip-permissions', displayName: 'Evil' },
+      { value: 'Mythos', displayName: 'Upper case' },
+      { value: 'a b', displayName: 'Spaced' },
+    ]);
+    expect(idsOf(line)).toEqual(['opus', 'fable', 'sonnet', 'haiku']);
   });
 
   it('is nothing but the answer to its own request', () => {
@@ -141,19 +185,16 @@ describe("Claude Code's answer", () => {
   });
 
   it('leaves out a line it did not offer, and a name that is not a name', () => {
-    const answer = JSON.parse(JSON.stringify(ANSWER));
-    const { models } = answer.response.response;
-    answer.response.response.models = models
-      .filter(({ value }: { value: string }) => value !== 'fable')
-      .map((entry: { value: string }) =>
-        entry.value === 'haiku'
-          ? { ...entry, displayName: '<img src=x>' }
-          : entry,
-      );
-    expect(readModelsAnswer(JSON.stringify(answer))?.names).toEqual({
-      opus: 'Opus 5.5',
-      sonnet: 'Sonnet 5.5',
-    });
+    const line = answered((models) =>
+      models
+        .filter(({ value }) => value !== 'fable')
+        .map((entry) =>
+          entry.value === 'haiku'
+            ? { ...entry, displayName: '<img src=x>' }
+            : entry,
+        ),
+    );
+    expect(idsOf(line)).toEqual(['opus', 'sonnet']);
   });
 
   it('names what Default starts by the line that starts the same model', () => {
@@ -167,14 +208,12 @@ describe("Claude Code's answer", () => {
   it('takes no name longer than a name', () => {
     const answer = JSON.parse(JSON.stringify(ANSWER));
     answer.response.response.models[1].displayName = 'Opus '.repeat(12);
-    expect(
-      readModelsAnswer(JSON.stringify(answer))?.names.opus,
-    ).toBeUndefined();
+    expect(idsOf(JSON.stringify(answer))).not.toContain('opus');
   });
 
   it('reads back what was kept, and nothing of any other shape', () => {
     expect(readKeptModels(JSON.stringify(LIST))).toEqual(LIST);
-    expect(readKeptModels('{"checked":false,"names":{}}')).toBeUndefined();
+    expect(readKeptModels('{"checked":false,"lines":[]}')).toBeUndefined();
     expect(readKeptModels('[]')).toBeUndefined();
   });
 });
@@ -217,7 +256,7 @@ describe('the list for a run of the app', () => {
     mockReply = 'nothing';
     expect(await createClaudeModels({ dir }).list()).toEqual({
       checked: false,
-      names: {},
+      lines: [],
     });
   });
 });
