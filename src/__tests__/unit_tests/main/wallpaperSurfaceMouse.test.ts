@@ -60,7 +60,10 @@ const WAVE = { height: 1, position: 0 };
  * the mouse unless told otherwise.
  */
 const playing = (
-  options: { interactive?: boolean; pause?: () => TWallpaperPause } = {},
+  options: {
+    interactive?: boolean;
+    pause?: () => TWallpaperPause | undefined;
+  } = {},
 ) => {
   const surface = createDesktopSurface({
     displayId: 2,
@@ -104,7 +107,10 @@ const record = (line: string) => {
   mockHost.pointer(parsed);
 };
 
-const lastTouch = () => mockHost.setTouch.mock.calls.at(-1)?.[0];
+const lastTouch = () => {
+  const { calls } = mockHost.setTouch.mock;
+  return calls[calls.length - 1]?.[0];
+};
 
 beforeEach(() => {
   jest.clearAllMocks();

@@ -46,10 +46,16 @@ describe('the stylesheet cascade', () => {
   });
 
   it('names every sheet the renderer imports', () => {
+    // Sheets kept beside the desktop background's page (`wallpaper/`, with
+    // its surface.css) are that document's own, never the window's: its
+    // view reset paints the shipped theme on `:root`, which in the window
+    // would stand over the theme's slider.
+    const pageOwn = join(RENDERER, 'wallpaper');
     const imported = new Set(
       sourceFiles(RENDERER)
         .filter((file) => file !== CASCADE)
-        .flatMap(importedSheets),
+        .flatMap(importedSheets)
+        .filter((sheet) => dirname(sheet) !== pageOwn),
     );
     // The scan finds what is certainly there, or "nothing missing" would
     // also be what a scan that found nothing reports.

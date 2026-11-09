@@ -38,6 +38,8 @@ const stateAt = (renderGeneration: number): IWallpaperSurfaceState => ({
     upscaler: 'fsr',
     smoothing: 'off',
   },
+  interactive: true,
+  locale: 'en',
 });
 
 const sceneNamed = (id: string) => ({
@@ -67,6 +69,7 @@ const desktop = () => {
       push = listener;
       return () => undefined;
     },
+    onWheel: () => () => undefined,
   };
   const view = render(<WallpaperSurface bridge={bridge} />);
   return {

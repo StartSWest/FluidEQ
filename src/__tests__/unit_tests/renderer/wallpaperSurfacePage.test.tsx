@@ -88,6 +88,7 @@ const pageFor = (
       push = listener;
       return () => undefined;
     },
+    onWheel: () => () => undefined,
   };
   return {
     bridge,
@@ -112,6 +113,8 @@ const running = (over: Partial<IWallpaperSurfaceState> = {}) => ({
     upscaler: 'fsr' as const,
     smoothing: 'off' as const,
   },
+  interactive: true,
+  locale: 'en',
   ...over,
 });
 

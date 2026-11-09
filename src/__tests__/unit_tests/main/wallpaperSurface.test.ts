@@ -413,6 +413,8 @@ describe('a desktop background changing and ending', () => {
           upscaler: 'fsr',
           smoothing: 'off',
         },
+        interactive: true,
+        locale: 'en',
       },
     );
     expect(surface.choice()).toEqual({
@@ -456,6 +458,8 @@ describe('a desktop background changing and ending', () => {
           upscaler: 'fsr',
           smoothing: 'off',
         },
+        interactive: true,
+        locale: 'en',
       },
     );
 

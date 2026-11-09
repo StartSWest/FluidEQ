@@ -70,9 +70,13 @@ describe('a desktop scene’s hands', () => {
     expect(interaction.read(16).camera[2]).toBeGreaterThan(1);
     const reset = screen.getByRole('button', { name: 'Reset view' });
     fireEvent.click(reset);
-    for (let frame = 0; frame < 120 && interaction.moved(); frame += 1) {
-      interaction.read(16);
-    }
+    // The frames the scene would draw, which carry the camera home and tell
+    // the button it is no longer needed.
+    act(() => {
+      for (let frame = 0; frame < 120 && interaction.moved(); frame += 1) {
+        interaction.read(16);
+      }
+    });
     expect(interaction.moved()).toBe(false);
   });
 
