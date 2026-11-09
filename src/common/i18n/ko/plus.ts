@@ -89,6 +89,7 @@ const plus = {
   'plus.scene.next': '다음 장면: {name}',
   'plus.scene.loading': '장면 로드 중…',
   'plus.scene.playing': '음악 재생',
+  'plus.scene.demoSong': '데모 곡에 맞춰 재생 중',
   'plus.scene.taste': '미리보기 · {seconds}',
   'plus.scene.unavailable': '지금은 이 장면을 다운로드할 수 없습니다.',
   'plus.scene.blocked': '이 장면은 삭제되었습니다.',

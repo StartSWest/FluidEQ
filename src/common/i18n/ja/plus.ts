@@ -95,6 +95,7 @@ const plus = {
   'plus.scene.next': '次のシーン：{name}',
   'plus.scene.loading': 'シーンを読み込み中…',
   'plus.scene.playing': 'あなたの音楽でライブ再生中',
+  'plus.scene.demoSong': 'デモ曲に合わせて再生中',
   'plus.scene.taste': 'プレビュー · {seconds} 秒',
   'plus.scene.unavailable': 'このシーンは今はダウンロードできません。',
   'plus.scene.blocked': 'このシーンは削除されました。',

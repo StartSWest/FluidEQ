@@ -90,6 +90,7 @@ const plus = {
   'plus.scene.next': 'अगला सीन: {name}',
   'plus.scene.loading': 'सीन लोड हो रहा है…',
   'plus.scene.playing': 'आपके संगीत पर लाइव',
+  'plus.scene.demoSong': 'डेमो गाने पर चल रहा है',
   'plus.scene.taste': 'प्रीव्यू · {seconds} सेकंड',
   'plus.scene.unavailable': 'यह सीन अभी डाउनलोड नहीं हो सकता।',
   'plus.scene.blocked': 'यह सीन हटा दिया गया है।',

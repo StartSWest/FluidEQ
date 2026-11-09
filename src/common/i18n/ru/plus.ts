@@ -92,6 +92,7 @@ const plus = {
   'plus.scene.next': 'Следующая сцена: {name}',
   'plus.scene.loading': 'Сцена загружается…',
   'plus.scene.playing': 'Вживую под вашу музыку',
+  'plus.scene.demoSong': 'Играет под демо-песню',
   'plus.scene.taste': 'Превью · {seconds} с',
   'plus.scene.unavailable': 'Эту сцену сейчас нельзя скачать.',
   'plus.scene.blocked': 'Эта сцена удалена.',

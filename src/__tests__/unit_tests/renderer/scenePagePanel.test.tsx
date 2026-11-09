@@ -73,6 +73,21 @@ jest.mock('../../../renderer/plus/ScenePreview', () => ({
     return <div data-testid="scene-preview" />;
   },
 }));
+// What the preview hears is its own hook's (quietDemoAudio.test.tsx); here only
+// whether it is the demo song, for the stage's tag.
+let mockDemo = false;
+jest.mock('../../../renderer/plus/useQuietDemoAudio', () => ({
+  __esModule: true,
+  default: () => ({
+    audio: {
+      points: [],
+      waveform: [],
+      isPaused: false,
+      readFrame: () => undefined,
+    },
+    demo: mockDemo,
+  }),
+}));
 jest.mock('../../../renderer/plus/scenePictures', () => ({
   useScenePicture: () => ({ state: 'none' }),
 }));
@@ -297,6 +312,20 @@ describe('the stage while the scene starts', () => {
       'is-behind',
     );
     expect(screen.getByText('plus.scene.playing')).toBeInTheDocument();
+  });
+
+  it('says so on the stage while the scene moves to the demo song, nothing playing', async () => {
+    mockDemo = true;
+    try {
+      await openScene(official);
+      act(() => mockDrawn?.(frame(1)));
+      expect(screen.getByText('plus.scene.demoSong')).toHaveClass(
+        'gallery-preview__tag',
+      );
+      expect(screen.queryByText('plus.scene.playing')).toBeNull();
+    } finally {
+      mockDemo = false;
+    }
   });
 });
 

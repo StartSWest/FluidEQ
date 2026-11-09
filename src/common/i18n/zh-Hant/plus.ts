@@ -80,6 +80,7 @@ const plus = {
   'plus.scene.next': '下一個場景：{name}',
   'plus.scene.loading': '正在載入場景...',
   'plus.scene.playing': '播放您的音樂',
+  'plus.scene.demoSong': '正隨示範歌曲播放',
   'plus.scene.taste': '預覽·{seconds}',
   'plus.scene.unavailable': '該場景目前無法下載。',
   'plus.scene.blocked': '該場景已被撤下。',

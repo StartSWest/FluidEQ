@@ -94,6 +94,7 @@ const plus = {
   'plus.scene.next': 'Escena siguiente: {name}',
   'plus.scene.loading': 'Cargando la escena…',
   'plus.scene.playing': 'En vivo con tu música',
+  'plus.scene.demoSong': 'Al ritmo de la canción de la demo',
   'plus.scene.taste': 'Vista previa · {seconds} s',
   'plus.scene.unavailable': 'Esta escena no se puede descargar ahora.',
   'plus.scene.blocked': 'Esta escena fue retirada.',

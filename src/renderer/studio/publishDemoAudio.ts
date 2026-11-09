@@ -7,13 +7,28 @@ import type { ISceneAudio } from '../audio/SceneAudioContext';
  * synthesised here from sine waves (Ivan, 2026-11-07: "that ugly sound").
  * Studio hears its real analyser, not the stage's synthetic showcase
  * measurements. The preview recorder still receives canvas pixels only, never
- * this audio. */
-export default function createPublishDemoAudio(paused = false) {
+ * this audio.
+ *
+ * `audible: false` measures the same loop without a sound: the Gallery's
+ * preview moves to it while nothing is playing (Ivan, 2026-11-09: "a fake
+ * audio but that don't sound, just move"). The analyser still feeds the
+ * destination, through a gain of nought, because a graph that reaches no
+ * destination is not pulled and its analyser reads nothing. */
+export default function createPublishDemoAudio(
+  paused = false,
+  { audible = true }: { audible?: boolean } = {},
+) {
   const context = new AudioContext();
   const analyser = context.createAnalyser();
   analyser.fftSize = 2048;
   analyser.smoothingTimeConstant = 0.2;
-  analyser.connect(context.destination);
+  if (audible) {
+    analyser.connect(context.destination);
+  } else {
+    const mute = context.createGain();
+    mute.gain.value = 0;
+    analyser.connect(mute).connect(context.destination);
+  }
   let source: AudioBufferSourceNode | undefined;
   let stopped = false;
   // Paused or not as last asked, also while the file is still on its way.
@@ -91,6 +106,10 @@ export default function createPublishDemoAudio(paused = false) {
   return {
     ready,
     readFrame,
+    // The arrays `readFrame` fills in place, for a provider that has to say
+    // there is music without a React render per frame (`useQuietDemoAudio`).
+    points,
+    waveform,
     setPaused: (next: boolean) => {
       wantPaused = next;
       return settle();

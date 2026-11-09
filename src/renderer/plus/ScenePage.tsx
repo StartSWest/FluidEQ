@@ -40,7 +40,8 @@ import { openGalleryPage, type IMakerRef } from './plusNavigation';
 import ReportDialog from './ReportDialog';
 import SceneGet, { officialLine, SceneLockedVeil } from './SceneGet';
 import SceneInspectButton from './SceneInspectButton';
-import ScenePreview, { type TPreviewTrouble } from './ScenePreview';
+import GalleryScenePreview from './GalleryScenePreview';
+import type { TPreviewTrouble } from './ScenePreview';
 import SceneSteps from './SceneSteps';
 import SceneTaste from './SceneTaste';
 import SceneVersions from './SceneVersions';
@@ -114,6 +115,8 @@ export default function ScenePage({
   const [clipShown, setClipShown] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [reported, setReported] = useState(false);
+  // The scene is moving to the demo song, silently, while nothing plays.
+  const [demo, setDemo] = useState(false);
   const name = resolveSceneName(scene, locale);
   const own = scene.authorId === me;
   // Who made it decides how it is run (`sceneRules.ts`), and FluidEQ's own
@@ -350,11 +353,12 @@ export default function ScenePage({
             />
           )}
           {owned && preview.state === 'ready' && (
-            <ScenePreview
+            <GalleryScenePreview
               identity={playing ?? ''}
               madeBy={madeBy}
               pack={preview.pack}
-              label={t('plus.scene.playing')}
+              label={t(demo ? 'plus.scene.demoSong' : 'plus.scene.playing')}
+              onDemo={setDemo}
               onTrouble={(trouble) =>
                 setPreview({ state: 'failed', key: PREVIEW_FAILURES[trouble] })
               }
@@ -396,7 +400,7 @@ export default function ScenePage({
           {preview.state === 'ready' && live && (
             <span className="gallery-preview__tag">
               <span className="gallery-preview__live" aria-hidden="true" />
-              {t('plus.scene.playing')}
+              {t(demo ? 'plus.scene.demoSong' : 'plus.scene.playing')}
             </span>
           )}
           {preview.state === 'failed' && (

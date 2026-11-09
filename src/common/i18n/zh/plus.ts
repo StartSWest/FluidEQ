@@ -83,6 +83,7 @@ const plus = {
   'plus.scene.next': '下一个场景：{name}',
   'plus.scene.loading': '正在加载场景…',
   'plus.scene.playing': '随你的音乐实时播放',
+  'plus.scene.demoSong': '正随演示歌曲播放',
   'plus.scene.taste': '预览 · {seconds} 秒',
   'plus.scene.unavailable': '暂时无法下载这个场景。',
   'plus.scene.blocked': '这个场景已被下架。',
