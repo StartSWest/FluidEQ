@@ -403,6 +403,10 @@ add_executable(fluideq-limiter-release-test dsp-core/tests/limiter_release_test.
 target_link_libraries(fluideq-limiter-release-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME limiter-release COMMAND fluideq-limiter-release-test)
 
+add_executable(fluideq-maximizer-hold-test dsp-core/tests/maximizer_hold_test.cpp)
+target_link_libraries(fluideq-maximizer-hold-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME maximizer-hold COMMAND fluideq-maximizer-hold-test)
+
 add_executable(fluideq-eq-fade-test dsp-core/tests/eq_fade_test.cpp)
 target_link_libraries(fluideq-eq-fade-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME eq-fade COMMAND fluideq-eq-fade-test)

@@ -917,6 +917,25 @@ Everything worth knowing about them is available through commands:
   estimate, never while off), so a silent stream on the same output cannot
   overwrite it. Held by `output_guard_test.cpp`, `output_transition_test.cpp`
   and the real DLL locked twice on one endpoint (`dll_level_test.cpp`).
+  **Room is music within 40 dB of what the level allows** (`kRoomRangeDb`,
+  2026-11-08). Anything further down — a fade's tail, a pause's faint noise,
+  another program idling — is read as nothing, like silence: counted as
+  room, minutes of sound at -60 dBFS lifted his headset's level from -7.3 dB
+  to 0 and the next song came in 4.7 dB loud for 20 s ("the music suddenly
+  higher and then it normalized"). The climb, its 5 s and the start are
+  unchanged; 158 of 166 reference clips play within 0.5 dB of before.
+- **The Maximizer's platform is the reduction a record asks of the
+  ceiling, and it is kept** (2026-11-08, same report: his rack drove 7.8 dB,
+  and every song after a pause came in 3-4 dB loud for half a second). It
+  waits through blocks under -65 dBFS, lets go over 30 s instead of 3 while
+  the music stays 6 dB under the ceiling for two seconds, survives every
+  `feq_chain_reset` (a Library seek cleared it), and is remembered per
+  output in `FeqLevelingMemory` (`remember_platform`, `platform_start`),
+  which `feq_chain_attach_leveling_memory` gives a new chain — deeper by
+  however much more the drive pushes past the ceiling. On music it plays as
+  before: the same pumping and distortion, under 0.1 dB quieter
+  (`maximizer_hold_test.cpp`, each case beside a chain whose platform is
+  thrown away).
 - **An edit's level is predicted, never climbed to** (engine 1.16, Ivan
   2026-09-23: "jump straight to it and then the auto normalize just
   finetune"). The engine keeps the last 10 s of music as it leaves the rack

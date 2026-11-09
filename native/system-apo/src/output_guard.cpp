@@ -40,6 +40,27 @@ constexpr double kEditGlideSeconds = 0.02;
  * nor remembered from it. */
 constexpr double kSoundFloorDb = -65.0;
 
+/**
+ * How far under what the level allows a window may be and still say the
+ * music leaves room. Further down it is a fade's tail, a pause's faint noise,
+ * another program idling, a quiet intro: nothing about how loud the music
+ * is, and it is read as nothing, as silence is. Counted as room, any of them
+ * lifted the level to 0 dB at the 0.15 dB/s climb — -7.3 dB to 0 on Ivan's
+ * headset after a few minutes of sound at -60 dBFS — and the next song came
+ * in 4.7 dB loud for its first second and took 20 s to come back (2026-11-08,
+ * "the music suddenly higher and then it normalized"). The climb and its
+ * 5 s are unchanged; only what counts as room is.
+ *
+ * Why 40: all 166 reference clips as one playlist through his curve, against
+ * the guard before: 158 within half a decibel, the rest 0.5-3.2 dB quieter
+ * (jazz, techno and dubstep clips whose breakdowns or intros sit that far
+ * down, and no longer lift the level just before the music comes back), and
+ * a song 20 dB quieter than the one before still climbs all the way to 0 dB.
+ * 20 and 30 held that quiet song where it was and moved 60 and 17 clips by
+ * over a decibel; 60 let the faint sound lift the level again.
+ */
+constexpr double kRoomRangeDb = 40.0;
+
 constexpr double kPi = 3.14159265358979323846;
 }  // namespace
 
@@ -132,7 +153,8 @@ void OutputGuard::process(float* const* planar, uint32_t frames, bool enabled) n
           if (overload_age_ < 10) target_db_ = required;
           overload_age_ = 0;
           quiet_seconds_ = 0;
-        } else if (-1.0 - peak_db > target_db_ + 1.0) {
+        } else if (-1.0 - peak_db > target_db_ + 1.0 &&
+                   -1.0 - peak_db <= target_db_ + kRoomRangeDb) {
           const double seconds = static_cast<double>(window_frames_) / rate_;
           quiet_seconds_ += seconds;
           if (quiet_seconds_ > kRecoverAfterSeconds) {

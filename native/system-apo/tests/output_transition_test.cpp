@@ -77,12 +77,15 @@ void guard_follows_final_samples() {
   next.request_state_transfer();
   next.adopt_state(&graph);
   CHECK(std::abs(next.auto_preamp_gain_db() - held) < 1e-6);
-  // 0.15 dB/s once 5 s have left room: 8 s of quiet is 0.45 dB.
-  std::vector<std::vector<float>> quiet(2, tone(1000, 0.005, kRate * 8, kRate));
+  // 0.15 dB/s once 5 s have left room: 8 s of quiet is 0.45 dB. Quiet music
+  // 28 dB under the steady tone: room is music within 40 dB of what the level
+  // allows (`kRoomRangeDb`), and the 0.005 this used, 40 dB under, now reads
+  // as the faint sound a fade's tail or a pause leaves.
+  std::vector<std::vector<float>> quiet(2, tone(1000, 0.02, kRate * 8, kRate));
   run_blocks(next, quiet, 480);
   CHECK(next.auto_preamp_gain_db() > held + 0.2);
   CHECK(next.auto_preamp_gain_db() < held + 0.7);
-  std::vector<std::vector<float>> recovery(2, tone(1000, 0.005, kRate * 160, 0));
+  std::vector<std::vector<float>> recovery(2, tone(1000, 0.02, kRate * 160, 0));
   run_blocks(next, recovery, 480);
   CHECK(next.auto_preamp_gain_db() > -0.1);
   const auto manual = chain_from("Preamp: -7 dB\n# FluidEQAutoPreamp: OFF\n");

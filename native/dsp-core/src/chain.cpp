@@ -668,7 +668,17 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
       chain->settings.maximizer.enabled != 0
           ? std::pow(10.0, chain->settings.maximizer.drive_db / 20.0)
           : 1.0;
-  feq_linked_limiter_reset_control(&chain->maximizer);
+  {
+    // The platform is kept: a seek is the same record, and a new song or a
+    // new stream is played as it would be straight after the last — which is
+    // what the engine does between songs anyway. Thrown away, every seek in
+    // the Library met the full drive with nothing under the peaks: about a
+    // decibel loud for a second (measured 2026-11-07), 3-4 dB on a rack
+    // driving 7.8 (`kMaximizerProgrammeFloorDb`).
+    const double platform_db = chain->maximizer.platform_db;
+    feq_linked_limiter_reset_control(&chain->maximizer);
+    if (chain->settings.maximizer.enabled != 0) chain->maximizer.platform_db = platform_db;
+  }
   // A seek or a new source must not arrive with the previous passage's bloom
   // tail still decaying under it, which is what these two hold that no filter
   // history above does.
@@ -835,6 +845,15 @@ void feq_chain_attach_leveling_memory(FeqChain* chain, FeqLevelingMemory* memory
   // The Master reads it too, for one thing only: whether the song changed,
   // because integrated loudness describes one piece of music.
   chain->leveling = memory;
+  // And the Maximizer starts where this output's music last held it, as the
+  // guard after the rack does (`auto_level_memory.h`): every lock builds a new
+  // chain, and a platform starting at 0 dB let each stream's first half
+  // second through at the full drive. A chain that takes over from a playing
+  // one takes its platform at the handover instead (`chain_transfer.cpp`).
+  if (memory != nullptr && chain->settings.maximizer.enabled != 0) {
+    chain->maximizer.platform_db = feq_leveling::platform_start(
+        *memory, chain->settings.maximizer.drive_db - chain->settings.maximizer.ceiling_db);
+  }
 }
 void feq_chain_notify_input_silence(FeqChain* chain, uint32_t frames) {
   if (chain != nullptr) feq_live_normalizer_silence(chain->live_normalizer, frames);

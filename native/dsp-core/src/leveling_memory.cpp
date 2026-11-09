@@ -80,6 +80,24 @@ bool publish(FeqLevelingMemory& memory, const FeqLevelingState& state, bool vali
   memory.learned_sequence.store(sequence + 2, std::memory_order_release);
   return true;
 }
+
+void remember_platform(FeqLevelingMemory& memory, double platform_db, double push_db) noexcept {
+  const auto platform = std::bit_cast<uint32_t>(static_cast<float>(platform_db));
+  const auto push = std::bit_cast<uint32_t>(static_cast<float>(push_db));
+  memory.platform.store((static_cast<uint64_t>(platform) << 32) | push, std::memory_order_relaxed);
+}
+
+double platform_start(const FeqLevelingMemory& memory, double push_db) noexcept {
+  const uint64_t settled = memory.platform.load(std::memory_order_relaxed);
+  const auto platform = std::bit_cast<float>(static_cast<uint32_t>(settled >> 32));
+  const auto push = std::bit_cast<float>(static_cast<uint32_t>(settled));
+  if (!std::isfinite(platform) || !std::isfinite(push) || !std::isfinite(push_db)) return 0.0;
+  // A record held down by P dB (P under 0) under a push of D dB is held down
+  // by about P - (D' - D) under D': loud masters sit on the ceiling, so
+  // whatever more the drive puts in front of it is what more has to come off.
+  const double start = static_cast<double>(platform) - (push_db - static_cast<double>(push));
+  return start < 0.0 ? start : 0.0;
+}
 }
 
 extern "C" {

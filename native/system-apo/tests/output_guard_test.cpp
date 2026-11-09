@@ -55,6 +55,46 @@ void repeated_peaks_do_not_pump() {
   }
 }
 
+// A minute of sound far under the music — a fade's tail, a pause's faint
+// noise, another program idling — says nothing about how loud the music is,
+// and the level waits through it as it waits through silence: the next song
+// comes in where the last one left it. Counted as room, it lifted the level
+// to 0 dB and the next song came in 4.7 dB loud (2026-11-08). The control is
+// a minute of music 25 dB under, which is room and is climbed into.
+void faint_sound_does_not_lift_the_level() {
+  for (const auto& [under_db, climbs] : {std::pair{45.0, false}, std::pair{25.0, true}}) {
+    // A flat curve starts at 0 dB, and the loud music brings it down to its
+    // own level on its second window over the ceiling.
+    OutputGuard guard(kRate, 2);
+    guard.set_curve_level(0);
+    std::vector<std::vector<float>> loud(2, tone(1000, 2.0, kRate * 5, 0));
+    run(guard, loud);
+    const double settled = guard.gain_db();
+    CHECK(std::abs(settled + 7.02) < 0.1);  // -1 dBTP under a +6 dB peak
+    const float faint = static_cast<float>(2.0 * std::pow(10.0, -under_db / 20.0));
+    std::vector<std::vector<float>> gap(2, tone(1000, faint, kRate * 60, kRate * 5));
+    run(guard, gap);
+    std::printf("a minute %.0f dB under the music: level %.2f -> %.2f dB\n", under_db,
+                settled, guard.gain_db());
+    if (climbs) {
+      CHECK(guard.gain_db() > settled + 5);
+    } else {
+      CHECK(std::abs(guard.gain_db() - settled) < 0.05);
+      // And the next song comes in no louder than the last one left it (the
+      // limiter's own gain dips for 150 ms on a first peak, which is no
+      // level), and is at that level a second later.
+      std::vector<std::vector<float>> next(2, tone(1000, 2.0, kRate, 0));
+      run(guard, next);
+      const float allowed = static_cast<float>(2.0 * std::pow(10.0, settled / 20.0) * 1.02);
+      const float loudest =
+          *std::max_element(next[0].begin(), next[0].begin() + kRate / 10,
+                            [](float a, float b) { return std::abs(a) < std::abs(b); });
+      CHECK(std::abs(loudest) <= allowed);
+      CHECK(std::abs(guard.gain_db() - settled) < 0.1);
+    }
+  }
+}
+
 // Auto normalize as Ivan described it: the curve's level first, the volume
 // brought back up as the music leaves room.
 void starts_at_the_curve_level_and_recovers() {
@@ -392,6 +432,7 @@ int main() {
   isolated_peak_does_not_set_the_programme_level();
   true_peaks_and_stereo_are_protected();
   starts_at_the_curve_level_and_recovers();
+  faint_sound_does_not_lift_the_level();
   a_louder_curve_comes_down_at_once();
   a_predicted_level_is_taken_when_it_arrives();
   an_edits_level_glides_without_a_click();
