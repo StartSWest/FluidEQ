@@ -5,6 +5,7 @@ import ChannelEnum from '../common/channels';
 import { translate } from '../common/i18n';
 import { PRODUCT_NAME } from '../common/branding';
 import { flushPendingWrites } from './asyncWriter';
+import { crashDumpFolder } from './crashDumps';
 import { getTrayLocale, isAppQuitting } from './tray';
 import onWindowMessage from './ipc/windowMessages';
 
@@ -358,14 +359,14 @@ export const installCrashLogging = () => {
   app.on('render-process-gone', (_event, contents, details) => {
     log.error(
       `Render process gone (${contents.getType()}): ${details.reason}`,
-      details,
+      { ...details, dumps: crashDumpFolder() },
     );
   });
 
   app.on('child-process-gone', (_event, details) => {
-    log.error(
-      `Child process gone (${details.type}): ${details.reason}`,
-      details,
-    );
+    log.error(`Child process gone (${details.type}): ${details.reason}`, {
+      ...details,
+      dumps: crashDumpFolder(),
+    });
   });
 };

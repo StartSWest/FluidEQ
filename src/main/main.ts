@@ -74,6 +74,7 @@ import {
 import { consumeUnattendedRestart } from './unattendedUpdate';
 import { accountComeBackSteps, createComeBackWatch } from './comeBackSignals';
 import { createMainWindowFactory } from './mainWindow';
+import { startCrashDumps } from './crashDumps';
 import { installCrashLogging } from './crashRecovery';
 import { createApoAdoption } from './apoAdopt';
 import { registerTransferIpc } from './ipc/transfer';
@@ -984,7 +985,10 @@ const createMainWindow = createMainWindowFactory({
 });
 
 // At module scope rather than inside `whenReady`: the window that never opens
-// is exactly the failure worth catching (`crashRecovery.ts`).
+// is exactly the failure worth catching (`crashRecovery.ts`), and a process
+// started before the crash handler is one whose crash leaves no dump
+// (`crashDumps.ts`).
+startCrashDumps();
 installCrashLogging();
 
 // The first line of every launch, so a start with no window after it shows in
