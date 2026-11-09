@@ -87,7 +87,24 @@ export interface ISpectrumDrums {
   kick: number;
   snare: number;
   hat: number;
+  /**
+   * How far what rose since the previous frame alone - this hop, not
+   * RISE_LAG_MS - is a hat rather than a snare, 0..1, for the beat grid
+   * (`beatStrength`): by the share of its new energy above 8 kHz
+   * (STEP_AIR_SNARE, STEP_AIR_HAT).
+   */
+  steppedHat: number;
 }
+
+/**
+ * Where a hop's new energy reads as a snare's, and where as a hat's: the
+ * share of it above 8 kHz. Over eighteen real songs, nine tenths of the
+ * snares the kit heard put 0.05 to 0.30 of their new energy there (0.50 in
+ * the two brightest mixes), where a hat of white noise puts 0.48 to 0.66 and
+ * a real hat more.
+ */
+const STEP_AIR_SNARE = 0.35;
+const STEP_AIR_HAT = 0.55;
 
 const floorOf = (db: number) =>
   Number.isFinite(db) ? Math.max(-100, db) : -100;
@@ -127,6 +144,57 @@ const riseIn = (
   return { rise: rise / count, added: added / loudestPower };
 };
 
+interface IRegionRises {
+  low: IRegionRise;
+  crack: IRegionRise;
+  presence: IRegionRise;
+  air: IRegionRise;
+}
+
+/** How far each region rose from `before` to `now`. */
+const regionsBetween = (
+  now: IKeptFrame,
+  before: IKeptFrame,
+  lowBinHz: number,
+  highBinHz: number,
+): IRegionRises => {
+  const lowBins = binRange(LOW_REGION, lowBinHz, now.low.length);
+  const crackBins = binRange(CRACK_REGION, highBinHz, now.high.length);
+  const presenceBins = binRange(PRESENCE_REGION, highBinHz, now.high.length);
+  const airBins = binRange(AIR_REGION, highBinHz, now.high.length);
+  let loudest = -100;
+  for (let bin = lowBins[0]; bin <= lowBins[1]; bin += 1) {
+    loudest = Math.max(
+      loudest,
+      floorOf(now.low[bin]),
+      floorOf(before.low[bin]),
+    );
+  }
+  for (
+    let bin = Math.ceil(LOW_REGION[1] / highBinHz);
+    bin <= airBins[1];
+    bin += 1
+  ) {
+    loudest = Math.max(
+      loudest,
+      floorOf(now.high[bin]),
+      floorOf(before.high[bin]),
+    );
+  }
+  const floor = Math.max(FLOOR_DB, loudest - FLOOR_BELOW_DB);
+  const loudestPower = 10 ** (loudest / 10);
+  return {
+    low: riseIn(now.low, before.low, lowBins, floor, loudestPower),
+    crack: riseIn(now.high, before.high, crackBins, floor, loudestPower),
+    presence: riseIn(now.high, before.high, presenceBins, floor, loudestPower),
+    air: riseIn(now.high, before.high, airBins, floor, loudestPower),
+  };
+};
+
+/** The share of the new energy above 8 kHz. */
+const airShareOf = ({ crack, presence, air }: IRegionRises) =>
+  air.added / Math.max(1e-9, crack.added + presence.added + air.added);
+
 /**
  * This frame's drum features. The frame is kept (copied: the analysers reuse
  * their arrays) to measure the next frames' rises against.
@@ -145,79 +213,40 @@ export const readSpectrumDrums = (
     }
   }
   base ??= frames[0];
-  frames.push({
+  const last = frames[frames.length - 1];
+  const now: IKeptFrame = {
     atMs,
     low: Float32Array.from(spectrum.low),
     high: Float32Array.from(spectrum.high),
-  });
+  };
+  frames.push(now);
   if (frames.length > FRAMES_KEPT) {
     frames.shift();
   }
-  if (
-    !base ||
-    base.low.length !== spectrum.low.length ||
-    base.high.length !== spectrum.high.length
-  ) {
-    return { kick: 0, snare: 0, hat: 0 };
+  const fits = (frame: IKeptFrame | undefined): frame is IKeptFrame =>
+    frame !== undefined &&
+    frame.low.length === now.low.length &&
+    frame.high.length === now.high.length;
+  const between = (before: IKeptFrame) =>
+    regionsBetween(now, before, spectrum.lowBinHz, spectrum.highBinHz);
+  const steppedHat = fits(last)
+    ? Math.max(
+        0,
+        Math.min(
+          1,
+          (airShareOf(between(last)) - STEP_AIR_SNARE) /
+            (STEP_AIR_HAT - STEP_AIR_SNARE),
+        ),
+      )
+    : 0;
+  if (!fits(base)) {
+    return { kick: 0, snare: 0, hat: 0, steppedHat };
   }
-  const lowBins = binRange(LOW_REGION, spectrum.lowBinHz, spectrum.low.length);
-  const crackBins = binRange(
-    CRACK_REGION,
-    spectrum.highBinHz,
-    spectrum.high.length,
-  );
-  const presenceBins = binRange(
-    PRESENCE_REGION,
-    spectrum.highBinHz,
-    spectrum.high.length,
-  );
-  const airBins = binRange(
-    AIR_REGION,
-    spectrum.highBinHz,
-    spectrum.high.length,
-  );
-  let loudest = -100;
-  for (let bin = lowBins[0]; bin <= lowBins[1]; bin += 1) {
-    loudest = Math.max(
-      loudest,
-      floorOf(spectrum.low[bin]),
-      floorOf(base.low[bin]),
-    );
-  }
-  for (
-    let bin = Math.ceil(LOW_REGION[1] / spectrum.highBinHz);
-    bin <= airBins[1];
-    bin += 1
-  ) {
-    loudest = Math.max(
-      loudest,
-      floorOf(spectrum.high[bin]),
-      floorOf(base.high[bin]),
-    );
-  }
-  const floor = Math.max(FLOOR_DB, loudest - FLOOR_BELOW_DB);
-  const loudestPower = 10 ** (loudest / 10);
-  const low = riseIn(spectrum.low, base.low, lowBins, floor, loudestPower);
-  const crack = riseIn(
-    spectrum.high,
-    base.high,
-    crackBins,
-    floor,
-    loudestPower,
-  );
-  const presence = riseIn(
-    spectrum.high,
-    base.high,
-    presenceBins,
-    floor,
-    loudestPower,
-  );
-  const air = riseIn(spectrum.high, base.high, airBins, floor, loudestPower);
-  const airShare =
-    air.added / Math.max(1e-9, crack.added + presence.added + air.added);
+  const regions = between(base);
   return {
-    kick: low.rise / 100,
-    snare: Math.min(crack.rise, presence.rise) / 100,
-    hat: (airShare * air.rise) / 100,
+    kick: regions.low.rise / 100,
+    snare: Math.min(regions.crack.rise, regions.presence.rise) / 100,
+    hat: (airShareOf(regions) * regions.air.rise) / 100,
+    steppedHat,
   };
 };

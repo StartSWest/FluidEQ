@@ -19,12 +19,14 @@ import {
   followBandTops,
   gateRises,
   keepBandFrame,
+  stepHat,
   stepRises,
   tempoStrength,
   type IBandFrame,
 } from './rhythmDrums';
 import {
   createDrumKit,
+  followHitHeight,
   HAT_HALF_LIFE_MS,
   hearKit,
   KICK_HALF_LIFE_MS,
@@ -168,6 +170,11 @@ export interface IRhythmState extends IRhythmClock {
   quietMs: number;
   /** The kick, the snare and the hats (`rhythmKit.ts`). */
   kit: TDrumKit;
+  /**
+   * How tall the kick's and the snare's hits stand on the bands, at the hits
+   * the kit heard, for the beat grid (`beatStrength`).
+   */
+  gridHeights: { kick: number; snare: number };
   section: ISectionState;
   /** The last frames of the two windows' bins, for the drums' rises. */
   spectrumDrums: ISpectrumDrumState;
@@ -222,6 +229,7 @@ export const createRhythmState = (): IRhythmState => ({
   bandTops: new Float32Array(24),
   quietMs: 0,
   kit: createDrumKit(),
+  gridHeights: { kick: 0, snare: 0 },
   section: createSectionState(),
   spectrumDrums: createSpectrumDrumState(),
   step: { kick: false, snare: false, drumsSinceMs: 60_000, broad: 0 },
@@ -370,25 +378,40 @@ export const advanceRhythm = (
     bands,
     state.bandTops,
   );
+  const spectrumDrums = heard.spectrum
+    ? readSpectrumDrums(state.spectrumDrums, state.clockMs, heard.spectrum)
+    : undefined;
+  // Whether this step's snare is a hat: from the spectrum where there is
+  // one, which parts them more cleanly than the bands can.
+  const hat = spectrumDrums
+    ? spectrumDrums.steppedHat
+    : stepHat(state.frames, bands);
   keepBandFrame(state.frames, state.clockMs, bands);
   const drums = drumFeatures(rises);
   state.step.broad = drums.broad;
-  listenToDrums(
-    state,
-    heard.spectrum
-      ? readSpectrumDrums(state.spectrumDrums, state.clockMs, heard.spectrum)
-      : drums,
-    bands,
+  listenToDrums(state, spectrumDrums ?? drums, bands, step);
+  // The grid counts the bands' rises, so each drum is weighed against how
+  // tall its hits stand on the bands - never against its detector's own
+  // height, which is on the spectrum's scale wherever there is a spectrum.
+  const heights = state.gridHeights;
+  heights.kick = followHitHeight(
+    state.kit,
+    'kick',
+    heights.kick,
+    drums.kick,
+    step,
+  );
+  heights.snare = followHitHeight(
+    state.kit,
+    'snare',
+    heights.snare,
+    drums.snare,
     step,
   );
   holdOnset(state.tempoOnsets, tempoStrength(rises, bands), step);
   keepOnset(
     state.beatOnsets,
-    beatStrength(
-      stepped,
-      state.kit.kick.detector.peak,
-      state.kit.snare.detector.peak,
-    ),
+    beatStrength(stepped, heights.kick, heights.snare, hat),
     step,
   );
   // How hard, not whether: every kick's envelope is 1 at its hit, and the

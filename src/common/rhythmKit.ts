@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   listenFor,
   newDetector,
+  PEAK_HALF_LIFE_MS,
   type IHitDetector,
   type IHitRule,
 } from './rhythmDrums';
@@ -282,4 +283,24 @@ export const restartKit = (kit: TDrumKit) => {
     drum.checks = [];
     drum.earlierDb = [];
   });
+};
+
+/**
+ * How tall `name`'s hits stand in a measure of them other than the one its
+ * detector hears - the bands', for the beat grid (`beatStrength`): `height`
+ * carried on by one step, raised to `feature` only while a hit the detector
+ * heard is under way, and forgotten as the detector forgets its own. What the
+ * detector never takes for this drum never makes it taller.
+ */
+export const followHitHeight = (
+  kit: TDrumKit,
+  name: TDrum,
+  height: number,
+  feature: number,
+  stepMs: number,
+) => {
+  const kept = height * 2 ** (-stepMs / PEAK_HALF_LIFE_MS);
+  return kit[name].detector.sinceMs < RULES[name].refractoryMs
+    ? Math.max(kept, feature)
+    : kept;
 };

@@ -179,6 +179,55 @@ export const drumFeatures = (rises: readonly number[]): IDrumFeatures => {
   };
 };
 
+/** The bands at and above 7.4 kHz, the rhythm's air (`stepHat`). */
+const AIR_BANDS_FROM = 22;
+/**
+ * Where a step's new energy on the bands reads as a snare's, and where as a
+ * hat's: the share of it from 7.4 kHz among everything from 1.1 kHz, as
+ * `ISpectrumDrums.steppedHat` reads it from the spectrum. The bands stop at
+ * 12 kHz, under most of a hat, so the two part less cleanly than they do
+ * there: over eighteen real songs nine tenths of the snares the kit heard put
+ * no more than 0.02 to 0.20 of their new energy in these bands, and a hat of
+ * white noise 0.12 to 0.34, half of them over 0.21.
+ */
+const BAND_AIR_SNARE = 0.08;
+const BAND_AIR_HAT = 0.2;
+
+const powerOf = (band: number) => 10 ** ((band * 100 - 100) / 10);
+
+/**
+ * How far what rose on the bands since the last frame is a hat rather than a
+ * snare, 0..1, for the beat grid (`beatStrength`), where the music comes as
+ * bands alone. Measured on the energy that is new, not on the rises in
+ * decibels: a hat of white noise rises as many decibels in a quiet crack as
+ * in the top, and reads as a snare there.
+ */
+export const stepHat = (
+  frames: readonly IBandFrame[],
+  bands: readonly number[],
+) => {
+  const last = frames[frames.length - 1];
+  if (!last || last.bands.length !== bands.length) {
+    return 0;
+  }
+  let all = 0;
+  let air = 0;
+  for (let at = CRACK_BANDS[0]; at < bands.length; at += 1) {
+    const added = Math.max(0, powerOf(bands[at]) - powerOf(last.bands[at]));
+    all += added;
+    if (at >= AIR_BANDS_FROM) {
+      air += added;
+    }
+  }
+  if (all <= 0) {
+    return 0;
+  }
+  return Math.max(
+    0,
+    Math.min(1, (air / all - BAND_AIR_SNARE) / (BAND_AIR_HAT - BAND_AIR_SNARE)),
+  );
+};
+
 /**
  * The onsets the beat grid is laid over, from one frame's rises: kicks and
  * snares alike, everything else a little, so the grid lands where a
@@ -188,20 +237,32 @@ export const drumFeatures = (rises: readonly number[]): IDrumFeatures => {
  * after it, its beats wandering 140 ms. Straight sums of the rises, so a
  * frame's share can be split over the time it covered and come out the same
  * at any frame rate.
+ *
+ * The snare counted only as far as the step is not a hat's (`hat`, 0..1:
+ * `stepHat`, or `ISpectrumDrums.steppedHat` where there is a spectrum). A
+ * hat played between every two kicks - the open hat of house music - lifts
+ * the crack and the presence as a snare does, and counted as one it laid the
+ * grid on the off-beat: every kick of a 120 bpm control was flashed 250 ms
+ * late, 40 times in 40.
  */
 export const beatStrength = (
   rises: readonly number[],
   kickHeight: number,
   snareHeight: number,
+  hat = 0,
 ) => {
   // Each drum counted against its own usual hit, so one kick weighs what one
   // snare does however much louder the kick's band runs: counted raw, the
-  // kicks of a hip-hop pattern outweighed its backbeat three to one. And each
-  // counted as its detector hears it, so what the detector knows is not a
-  // snare - a sung "s", a guitar - does not pull the grid either.
+  // kicks of a hip-hop pattern outweighed its backbeat three to one. The
+  // heights are the bands' own, taken at the hits the kit's detectors heard
+  // (`followHitHeight`), so what a detector knows is not a snare - a sung
+  // "s", a guitar - does not pull the grid either. They were once the
+  // detectors' own heights, on the spectrum's scale where the detectors hear
+  // the spectrum: a white-noise hat's snare on the bands stood eight times
+  // taller against them than a kick did.
   const drums = drumFeatures(rises);
   const kick = drums.kick / Math.max(0.02, kickHeight);
-  const snare = drums.snare / Math.max(0.02, snareHeight);
+  const snare = ((1 - hat) * drums.snare) / Math.max(0.02, snareHeight);
   const broad = drums.broad / Math.max(0.02, kickHeight, snareHeight);
   return kick + snare + 0.2 * broad;
 };
@@ -258,7 +319,7 @@ export const newDetector = (): IHitDetector => ({
 /** Nothing this small is a hit, however quiet the music around it: 1 dB. */
 const SMALLEST_HIT = 0.01;
 /** How quickly the height of past hits is forgotten, so a quiet verse is heard. */
-const PEAK_HALF_LIFE_MS = 4_000;
+export const PEAK_HALF_LIFE_MS = 4_000;
 /** The most of the drum's tallest recent hit a hit is ever asked for. */
 const MOST_SHARE = 0.95;
 
