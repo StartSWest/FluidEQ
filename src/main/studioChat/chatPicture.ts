@@ -4,7 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { nativeImage, type NativeImage } from 'electron';
+import type { NativeImage } from 'electron';
+import { pictureFromBytes, pictureFromDataUrl } from '../safePicture';
 
 /**
  * A picture as the chat keeps it: what Claude looked at, or the stage the
@@ -12,6 +13,9 @@ import { nativeImage, type NativeImage } from 'electron';
  * at twice its size. A look comes back at up to 2400px wide, and a chat that
  * kept every one whole would be megabytes a reply, held in memory and written
  * to disk on every message.
+ *
+ * Each is decoded only once its header says it fits (`safePicture.ts`): a
+ * picture Claude read in the project, or wrote there, is a stranger's file.
  */
 const CHAT_PICTURE_WIDTH = 720;
 const CHAT_PICTURE_QUALITY = 82;
@@ -32,11 +36,11 @@ const toChat = (image: NativeImage): string | undefined => {
 
 /** A look's picture, from the data URL the stream carried it in. */
 export const chatPictureFromDataUrl = (dataUrl: string) =>
-  toChat(nativeImage.createFromDataURL(dataUrl));
+  toChat(pictureFromDataUrl(dataUrl));
 
 /** The stage the member attached, from its JPEG bytes. */
 export const chatPictureFromBytes = (bytes: Uint8Array) =>
-  toChat(nativeImage.createFromBuffer(Buffer.from(bytes)));
+  toChat(pictureFromBytes(bytes));
 
 /**
  * A picture ChatGPT made, as the chat keeps it: a PNG, because a cut-out's
@@ -77,8 +81,8 @@ const keepingAlpha = (image: NativeImage) => {
 };
 
 export const chatPictureKeepingAlpha = (dataUrl: string) =>
-  keepingAlpha(nativeImage.createFromDataURL(dataUrl));
+  keepingAlpha(pictureFromDataUrl(dataUrl));
 
 /** A PNG Claude wrote into the project, from its bytes. */
 export const chatPictureKeepingAlphaBytes = (bytes: Uint8Array) =>
-  keepingAlpha(nativeImage.createFromBuffer(Buffer.from(bytes)));
+  keepingAlpha(pictureFromBytes(bytes));

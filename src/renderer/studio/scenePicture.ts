@@ -1,4 +1,5 @@
 import { MAX_SCENE_ARTWORK_BYTES } from 'common/sceneArtwork';
+import { isDecodablePicture } from 'common/pictureBounds';
 import {
   placePicture,
   type IPictureFraming,
@@ -63,10 +64,17 @@ export const encodeWithin = async (
     : encodeWithin(canvas, limit, rest);
 };
 
-/** Bytes as a bitmap, or nothing when they are not a picture this browser reads. */
+/**
+ * Bytes as a bitmap, or nothing when they are not a picture this browser
+ * reads — or one whose header says it decodes past `PICTURE_BOUNDS`, which
+ * is never decoded to find out (`pictureBounds.ts`).
+ */
 export const decodePicture = async (
   bytes: Uint8Array,
 ): Promise<ImageBitmap | undefined> => {
+  if (!isDecodablePicture(bytes)) {
+    return undefined;
+  }
   try {
     // A copy, so the Blob holds a plain ArrayBuffer whatever backed the bytes.
     return await createImageBitmap(new Blob([new Uint8Array(bytes)]));

@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import fs from 'fs';
 import path from 'path';
+import { isDecodablePicture, SHEET_BOUNDS } from '../../common/pictureBounds';
 import {
   ANIMATIONS_DIR,
   MAX_ANIMATION_FILE_BYTES,
@@ -79,10 +80,12 @@ export const readProjectAnimation = async (
   if (!sheet) {
     return undefined;
   }
-  return {
-    animation,
-    sheet: new Uint8Array(await fs.promises.readFile(sheet)),
-  };
+  // Its size on disk says nothing of what it decodes to: neither the window
+  // nor main's look at it decodes one whose header is past the bounds.
+  const bytes = new Uint8Array(await fs.promises.readFile(sheet));
+  return isDecodablePicture(bytes, SHEET_BOUNDS)
+    ? { animation, sheet: bytes }
+    : undefined;
 };
 
 /** Every animation the project keeps, by name, at most `MAX_ANIMATIONS`. */

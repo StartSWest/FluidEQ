@@ -5,8 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import path from 'path';
-import { nativeImage } from 'electron';
 import writeFileAtomically from '../atomicWrite';
+import { pictureFromBytes } from '../safePicture';
 import type { IMcpTool, IMcpToolResult } from '../studioAgent/mcpProtocol';
 import {
   ART_DIR,
@@ -34,7 +34,7 @@ const isEdge = (value: unknown, most: number): value is number =>
 
 /** A picture as Claude is shown it. */
 const shown = (png: Buffer): IMcpToolResult['content'][number] => {
-  const image = nativeImage.createFromBuffer(png);
+  const image = pictureFromBytes(png);
   const { width, height } = image.getSize();
   const small =
     Math.max(width, height) > SHOWN_EDGE

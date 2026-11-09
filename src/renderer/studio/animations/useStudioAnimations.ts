@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { feetLineOf, measureAnimation } from 'common/animationFrames';
+import { isDecodablePicture, SHEET_BOUNDS } from 'common/pictureBounds';
 import { frameCell, type IStudioAnimation } from 'common/studioAnimation';
 
 /**
@@ -27,6 +28,11 @@ const decode = async (
   animation: IStudioAnimation,
   sheet: Uint8Array,
 ): Promise<IViewedAnimation> => {
+  // Main reads no sheet past the bounds; this window never decodes one
+  // either, whatever handed it over.
+  if (!isDecodablePicture(sheet, SHEET_BOUNDS)) {
+    return { animation, aspect: 1 };
+  }
   let bitmap: ImageBitmap;
   try {
     // A copy of exactly the file's bytes: the array handed across may be a

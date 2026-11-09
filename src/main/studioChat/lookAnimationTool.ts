@@ -8,6 +8,7 @@ import { nativeImage } from 'electron';
 import { measureAnimation, feetLineOf } from '../../common/animationFrames';
 import { ANIMATION_NAME } from '../../common/studioAnimation';
 import { readProjectAnimation } from '../memberScenes/projectAnimations';
+import { pictureFromBytes } from '../safePicture';
 import type { IMcpTool } from '../studioAgent/mcpProtocol';
 import { composeLook, describeAnimation } from './animationLook';
 import { failure, text } from './artFolder';
@@ -55,7 +56,7 @@ const lookAnimationTool = (folder: string): IMcpTool => ({
       );
     }
     const { animation } = found;
-    const image = nativeImage.createFromBuffer(Buffer.from(found.sheet));
+    const image = pictureFromBytes(found.sheet);
     const { width, height } = image.getSize();
     if (image.isEmpty() || width === 0 || height === 0) {
       return failure(`${animation.sheet} is not a picture FluidEQ can read.`);

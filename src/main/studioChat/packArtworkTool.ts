@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { nativeImage } from 'electron';
+import { pictureFromBytes } from '../safePicture';
 import type { IStudioChatPackPiece } from '../../common/studioChat';
 import {
   readArtworkRegions,
@@ -120,7 +120,7 @@ const readPiece = (
   if (from.startsWith(`${ART_DIR}/`)) {
     const name = from.slice(ART_DIR.length + 1).replace(/.png$/, '');
     const png = readArt(folder, name);
-    const image = png && nativeImage.createFromBuffer(png);
+    const image = png && pictureFromBytes(png);
     if (!png || !image || image.isEmpty()) {
       return `Piece ${id}: there is no picture ${from}.`;
     }
