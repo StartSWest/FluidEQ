@@ -1,0 +1,544 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'checkerboard' as *;
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The Studio's Animations tab: a card per animation playing its loop, the
+// opened one on a stage to work on it against a ground, and the same view
+// over the Studio, larger. Built from the Pictures card's parts (its head,
+// its tiles' well and transparency grid) and the picture viewer's shell.
+
+.studio-animations {
+  gap: $spacing-m;
+}
+
+// As many to a row as fit, the ask for another always last.
+.studio-animations__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: $spacing-m;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.studio-animation-card {
+  display: grid;
+  min-width: 0;
+}
+
+// The whole card opens the animation; its parts are the tile's layout.
+.studio-animation-card__open {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 8px 10px;
+  color: inherit;
+  border: 1px solid rgba($white, 0.08);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-well 60%, transparent);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color $motion-fast $ease-out,
+    background $motion-fast $ease-out,
+    translate $motion-fast $ease-out;
+
+  &:hover {
+    border-color: $border-field-hover;
+    background: color-mix(in srgb, $surface-well 80%, transparent);
+    translate: 0 -1px;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// The creature on the transparency grid, standing on the tile's floor as it
+// stands on its ground in the scene.
+.studio-animation-card__frame {
+  position: relative;
+  display: grid;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: $radius-2xs;
+  @include transparency-grid(8px);
+}
+
+// Placed by the tile, never by the canvas: a canvas in a grid sized by its
+// height took its own square shape and was cropped by the tile.
+.studio-animation-card__art {
+  position: absolute;
+  top: 6%;
+  left: 6%;
+  display: block;
+  width: 88%;
+  height: 90%;
+}
+
+.studio-animation-card__unreadable {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 6px;
+  padding: $spacing-s;
+  color: $text-faint;
+  font-size: $text-small;
+  text-align: center;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// The chips over a picture wear the stage plate's glass.
+.studio-animation-card__count,
+.studio-animation-stage__tag {
+  position: absolute;
+  padding: 2px 8px;
+  color: $text-muted;
+  border: 1px solid $card-edge;
+  border-radius: 999px;
+  background: color-mix(in srgb, $surface-menu 80%, transparent);
+  backdrop-filter: blur(8px);
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.studio-animation-card__count {
+  bottom: 8px;
+  left: 8px;
+}
+
+.studio-animation-card__about {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 10px;
+  min-width: 0;
+  padding: 0 2px;
+}
+
+.studio-animation-card__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.studio-animation-card__meta {
+  color: $text-faint;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+}
+
+// Where another comes from: the chat, in the member's own words.
+.studio-animations__ask {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-height: 140px;
+  padding: $spacing-m;
+  color: $text-faint;
+  border: 1px dashed color-mix(in srgb, $secondary-light 30%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $secondary-default 4%, transparent);
+}
+
+.studio-animations__ask-title {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.studio-animations__ask-text {
+  font-size: $text-small;
+  line-height: 1.55;
+}
+
+// ---------------------------------------------------------------- opened
+
+.studio-animation-opened {
+  display: grid;
+  gap: $spacing-m;
+  min-width: 0;
+  container: studio-animation / inline-size;
+}
+
+.studio-animation-opened__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  min-width: 0;
+
+  .button {
+    gap: 4px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+.studio-animation-opened__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  overflow-wrap: anywhere;
+}
+
+.studio-animation-opened__meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: $text-faint;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+}
+
+// The animation and, beside it, the agent working on it; one above the
+// other where there is no room for both.
+.studio-animation-opened__work {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $spacing-m;
+  align-items: start;
+
+  @container studio-animation (min-width: 760px) {
+    &:has(> :nth-child(2)) {
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+    }
+  }
+}
+
+.studio-animation-opened__view {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+// The view: stage, controls, strip.
+.studio-animation {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 10px;
+  min-width: 0;
+}
+
+// ---------------------------------------------------------------- stage
+
+// Wide enough for a walk to be seen as one, never so tall that the controls
+// under it leave the pane.
+.studio-animation-stage {
+  position: relative;
+  min-height: 220px;
+  height: clamp(220px, 36cqi, 380px);
+  overflow: hidden;
+  border: 1px solid rgba($white, 0.08);
+  border-radius: $radius-s;
+  @include transparency-grid(10px);
+  isolation: isolate;
+
+  // A place to stand, under a sky a walk reads against.
+  &.is-ground {
+    background: linear-gradient(180deg, #24425a 0%, #557c99 60%, #9cbbcd 100%);
+  }
+
+  &.is-sky {
+    background:
+      radial-gradient(
+        ellipse 28% 13% at 22% 28%,
+        rgba($white, 0.72),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 24% 10% at 76% 56%,
+        rgba($white, 0.56),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 20% 8% at 44% 84%,
+        rgba($white, 0.46),
+        transparent 70%
+      ),
+      linear-gradient(180deg, #2f6fa6 0%, #7fb6de 70%, #c9e2f2 100%);
+  }
+
+  // Air above the surface at 30%, deepening water under it.
+  &.is-water {
+    background: linear-gradient(
+      180deg,
+      #7fb1cf 0%,
+      #7fb1cf 30%,
+      #1f6c8f 30.4%,
+      #0d4664 70%,
+      #072c40 100%
+    );
+  }
+}
+
+.studio-animation-stage__land {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.studio-animation-stage__soil {
+  fill: #e6eef3;
+}
+
+.studio-animation-stage__shade {
+  fill: #c9d8e2;
+}
+
+// The base line: where the lowest foot stands, in the accent so it reads as
+// the editor's, never the scene's.
+.studio-animation-stage__line {
+  fill: none;
+  stroke: $secondary-default;
+  stroke-width: 2;
+  stroke-dasharray: 8 6;
+  vector-effect: non-scaling-stroke;
+}
+
+.studio-animation-stage__surface {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: rgba($white, 0.6);
+  pointer-events: none;
+}
+
+.studio-animation-stage__creature {
+  position: absolute;
+  pointer-events: none;
+}
+
+.studio-animation-stage__frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.studio-animation-stage__count {
+  top: 10px;
+  left: 10px;
+}
+
+.studio-animation-stage__tag--line {
+  right: 10px;
+  color: $secondary-light;
+}
+
+// The stage's choices on the plate's glass, in the stage's corners.
+.studio-animation-stage__chooser {
+  position: absolute;
+  max-width: calc(100% - 20px);
+  padding: 3px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-menu 80%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.studio-animation-stage__chooser--ground {
+  top: 10px;
+  right: 10px;
+  justify-content: flex-end;
+}
+
+.studio-animation-stage__chooser--slope {
+  bottom: 10px;
+  left: 10px;
+}
+
+.studio-animation-stage__corner {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+}
+
+// The way to the larger view: the plate's glass, the accent's ring.
+.studio-animation-stage__expand {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: $text-primary;
+  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-menu 82%, transparent);
+  backdrop-filter: blur(10px);
+  cursor: zoom-in;
+  transition:
+    background $motion-fast $ease-out,
+    border-color $motion-fast $ease-out;
+
+  &:hover {
+    border-color: $secondary-light;
+    background: color-mix(in srgb, $surface-menu-top 90%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// ---------------------------------------------------------------- controls
+
+.studio-animation__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-width: 0;
+}
+
+.studio-animation__transport {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .button {
+    gap: 6px;
+  }
+}
+
+.studio-animation__icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+
+  // In the ink of the button's words: the button's own rule for filled
+  // glyphs (`.button path:not([fill='none'])`) painted them the well's dark,
+  // which vanished on the quiet buttons; this one outranks it.
+  .studio-animation__transport .button & :is(path, rect) {
+    fill: currentColor;
+    stroke: none;
+  }
+}
+
+.studio-animation__step {
+  padding-inline: 8px;
+}
+
+.studio-animation__speeds {
+  font-variant-numeric: tabular-nums;
+}
+
+// ---------------------------------------------------------------- strip
+
+// Every frame, numbered, the one shown lit; it scrolls sideways when the
+// cycle is longer than the row.
+.studio-animation__strip {
+  display: grid;
+  grid-auto-columns: minmax(64px, 1fr);
+  grid-auto-flow: column;
+  gap: 6px;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.studio-animation__cell {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 2px;
+  height: 70px;
+  padding: 4px;
+  color: $text-faint;
+  border: 2px solid rgba($white, 0.08);
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $surface-well 70%, transparent);
+  font: inherit;
+  cursor: pointer;
+
+  // Only the hover fades. A frame handing the light on fades by the base
+  // rule, and at 10-12 fps the one that just left was still lit when the
+  // next one lit up: two frames read as current the whole time it played.
+  &:hover {
+    border-color: $border-field-hover;
+    transition: border-color $motion-fast $ease-out;
+  }
+
+  &[aria-current='true'] {
+    color: $secondary-light;
+    border-color: $secondary-default;
+  }
+}
+
+.studio-animation__cell-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.studio-animation__cell-number {
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+// ---------------------------------------------------------------- larger
+
+// The picture viewer's shell; its body holds the view, and the stage takes
+// every pixel the head, one row of controls and the strip leave.
+.studio-lightbox.studio-animation-modal {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.studio-animation-modal__body {
+  display: grid;
+  min-height: 0;
+  padding: $spacing-m;
+  background:
+    radial-gradient(
+      ellipse 62% 58% at 50% 50%,
+      color-mix(in srgb, $surface-block 75%, transparent),
+      transparent
+    ),
+    $surface-well;
+
+  .studio-animation {
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    min-height: 0;
+  }
+
+  .studio-animation-stage {
+    height: auto;
+    min-height: 160px;
+  }
+
+  .studio-animation__cell {
+    height: 58px;
+  }
+}

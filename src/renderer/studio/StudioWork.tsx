@@ -11,7 +11,7 @@ import { readStored, writeStored } from '../utils/graphStorage';
 import StudioWorkTabs, { type IStudioWorkTab } from './StudioWorkTabs';
 
 export type TStudioWorkTab =
-  'chat' | 'tune' | 'code' | 'pictures' | 'drawing' | 'hears';
+  'chat' | 'tune' | 'code' | 'pictures' | 'animations' | 'drawing' | 'hears';
 
 /**
  * In the order they are offered. The chat is a tab only in a bench too
@@ -23,6 +23,7 @@ const ORDER: readonly TStudioWorkTab[] = [
   'tune',
   'code',
   'pictures',
+  'animations',
   'drawing',
   'hears',
 ];
@@ -31,6 +32,7 @@ const LABELS: Record<TStudioWorkTab, TranslationKey> = {
   chat: 'studio.work.make',
   code: 'studio.code.title',
   pictures: 'studio.work.pictures',
+  animations: 'studio.work.animations',
   tune: 'studio.work.tune',
   drawing: 'studio.performance.title',
   hears: 'studio.meters.title',

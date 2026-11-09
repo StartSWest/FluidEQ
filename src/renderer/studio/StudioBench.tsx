@@ -28,6 +28,8 @@ import StudioShipInspect from './StudioShipInspect';
 import StudioDrawing from './StudioDrawing';
 import StudioFramingDialog from './StudioFramingDialog';
 import StudioListen from './StudioListen';
+import StudioAnimations from './animations/StudioAnimations';
+import useStudioAnimations from './animations/useStudioAnimations';
 import StudioPictures, { pictureName } from './StudioPictures';
 import StudioSettings from './StudioSettings';
 import StudioStageArea from './StudioStageArea';
@@ -107,6 +109,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const { isWide } = useStudioBenchLayout(benchRef);
   const sharing = useStudioSharing();
   const picture = useScenePictures(t('studio.picture.files'), view);
+  const animations = useStudioAnimations(view);
   // How many times this bench has published, so the scene just published
   // becomes what Reset goes back to without reopening the project.
   const [publications, setPublications] = useState(0);
@@ -377,6 +380,11 @@ export default function StudioBench({ view }: IStudioBenchProps) {
       />
     );
   }
+  // Offered for every project, none made yet included: the tab says how
+  // to ask for one.
+  if (project && animations) {
+    panels.animations = <StudioAnimations animations={animations} />;
+  }
   const problemCount =
     (problems?.length ?? 0) + (trouble?.kind === 'compile' ? 1 : 0);
 
@@ -444,6 +452,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
                     ? picture.pictures.pictures.length
                     : undefined,
               },
+              animations: { badge: animations?.length || undefined },
             }}
           />
         </div>

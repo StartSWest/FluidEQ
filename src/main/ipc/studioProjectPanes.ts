@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { BrowserWindow, dialog } from 'electron';
 import type { IMemberSceneStore } from '../memberScenes/store';
 import type { IStoredProject } from '../memberScenes/studioProjects';
+import { registerStudioAnimationsIpc } from './studioAnimations';
 import { registerStudioDemoMusicIpc } from './studioDemoMusic';
 import { registerStudioNotesIpc } from './studioNotes';
 import { registerStudioPicturesIpc } from './studioPictures';
@@ -90,9 +91,15 @@ export const registerStudioProjectPanes = ({
   });
   // The Publish dialog's Demo music: the same for every project.
   const disposeDemoMusic = registerStudioDemoMusicIpc();
+  const disposeAnimations = registerStudioAnimationsIpc({
+    getMainWindow,
+    mayEdit: mayUseActive,
+    activeFolder,
+  });
   return () => {
     disposeNotes();
     disposePictures();
+    disposeAnimations();
     disposePreview();
     disposeSettings();
     disposeDemoMusic();

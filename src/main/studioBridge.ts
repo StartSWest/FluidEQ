@@ -180,6 +180,20 @@ const copyStudioPicture = (bytes: Uint8Array, name: string) =>
 const readStudioPictures = () =>
   ipcRenderer.invoke('studio-pictures') as Promise<TStudioPictures>;
 
+const readStudioAnimations = () =>
+  ipcRenderer.invoke('studio-animations') as Promise<
+    import('./ipc/studioAnimations').TStudioAnimations
+  >;
+
+/** Told whenever a file of the open project's animations changes. */
+const onStudioAnimationsChanged = (listener: () => void) => {
+  const wrapped = () => listener();
+  ipcRenderer.on('studio-animations-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('studio-animations-changed', wrapped);
+  };
+};
+
 /** A photo chosen in the system dialog; `label` names picture files in it. */
 const chooseStudioPicture = (label: string) =>
   ipcRenderer.invoke('studio-choose-picture', label) as Promise<TPictureChoice>;
@@ -355,6 +369,8 @@ const studioBridge = {
   showStudioFolder,
   copyStudioPicture,
   readStudioPictures,
+  readStudioAnimations,
+  onStudioAnimationsChanged,
   chooseStudioPicture,
   writeStudioSettings,
   readStudioPicturePhoto,
