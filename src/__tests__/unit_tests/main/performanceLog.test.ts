@@ -68,3 +68,57 @@ it('counts a process that started or restarted inside a stretch from its own sta
     'Performance: library, app, look analyzer-auto for 1.7 min, 25.0% of one core (desktop 20.0%, window 5.0%), up to 0 MB',
   ]);
 });
+
+describe('the audio service, which FluidEQ shares with every program', () => {
+  // audiodg had run for hours before the log could see it: 13,600 s so far.
+  const audioService = (cpuSeconds: number): TProcessReading => ({
+    pid: 40,
+    role: 'systemEngine',
+    cpuSeconds,
+    memoryMb: 80,
+    isShared: true,
+  });
+  const own = (window: number): TProcessReading => ({
+    pid: 2,
+    role: 'window',
+    cpuSeconds: window,
+    memoryMb: 500,
+  });
+
+  it('books only what it used after FluidEQ first saw it', () => {
+    const { performanceLog, pass } = setup();
+    performanceLog.show([own(0)], 'eq, app, look analyzer-auto');
+    pass(60);
+    // First listed now, mid-stretch: its 13,600 s are not this minute's.
+    performanceLog.show(
+      [own(6), audioService(13_600)],
+      'eq, app, look analyzer-auto',
+    );
+    pass(60);
+    expect(performanceLog.report([own(12), audioService(13_603)])).toEqual([
+      'Performance: eq, app, look analyzer-auto for 2.0 min, 12.5% of one core (window 10.0%, systemEngine 2.5%), up to 500 MB',
+    ]);
+  });
+
+  it('keeps its count while it is missing from a reading', () => {
+    const { performanceLog, pass } = setup();
+    performanceLog.show([own(0), audioService(13_600)], 'look member:eclipse');
+    pass(90);
+    // The engine connection had no numbers to give this time.
+    performanceLog.show([own(9)], 'look member:eclipse');
+    pass(90);
+    expect(performanceLog.report([own(18), audioService(13_606)])).toEqual([
+      'Performance: look member:eclipse for 3.0 min, 13.3% of one core (window 10.0%, systemEngine 3.3%), up to 500 MB',
+    ]);
+  });
+
+  it("control: a process of FluidEQ's own first seen mid-stretch is counted from its start", () => {
+    const { performanceLog, pass } = setup();
+    performanceLog.show([own(0)], 'eq, app, look analyzer-auto');
+    pass(60);
+    const desktop: TProcessReading = { pid: 9, role: 'desktop', cpuSeconds: 6 };
+    expect(performanceLog.report([own(6), desktop])).toEqual([
+      'Performance: eq, app, look analyzer-auto for 1.0 min, 20.0% of one core (window 10.0%, desktop 10.0%), up to 500 MB',
+    ]);
+  });
+});

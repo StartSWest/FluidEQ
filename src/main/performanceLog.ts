@@ -21,7 +21,7 @@ import type { IAppProcess, TProcessRole } from './processRoles';
 /** What a reading needs from each process: who it is and its time so far. */
 export type TProcessReading = Pick<
   IAppProcess,
-  'pid' | 'role' | 'cpuSeconds' | 'memoryMb'
+  'pid' | 'role' | 'cpuSeconds' | 'memoryMb' | 'isShared'
 >;
 
 interface IScreenTotals {
@@ -36,43 +36,57 @@ const MIN_SECONDS_REPORTED = 5;
 export const createPerformanceLog = (now: () => number) => {
   let onScreen = 'starting';
   let readAt: number | undefined;
-  let cpuByPid = new Map<number, number>();
+  /*
+   * Every process's running total as last read, kept while it is missing
+   * from a reading. Windows' audio service is only listed while an engine
+   * connection has answered with its numbers, so it drops out of readings
+   * and comes back; forgotten in between, its return booked every second it
+   * had run since boot to a three-minute stretch — 7565% of one core in
+   * Ivan's log of 2026-11-09.
+   */
+  const cpuByPid = new Map<number, number>();
   const totals = new Map<string, IScreenTotals>();
 
   /** Books what every process used since the last reading to `onScreen`. */
   const book = (readings: readonly TProcessReading[]) => {
     const at = now();
-    const next = new Map<number, number>();
     const entry = totals.get(onScreen) ?? {
       seconds: 0,
       cpu: new Map<TProcessRole, number>(),
       peakMemoryMb: 0,
     };
     let memoryMb = 0;
-    readings.forEach(({ pid, role, cpuSeconds, memoryMb: memory }) => {
-      memoryMb += memory ?? 0;
-      if (cpuSeconds === undefined) {
-        return;
-      }
-      next.set(pid, cpuSeconds);
-      const before = cpuByPid.get(pid);
-      // A process that appeared since the last reading started inside this
-      // stretch, so all of its time so far belongs to it; one that restarted
-      // under the same id counts from zero again.
-      const used =
-        before === undefined || before > cpuSeconds
-          ? cpuSeconds
-          : cpuSeconds - before;
-      if (readAt !== undefined && used > 0) {
-        entry.cpu.set(role, (entry.cpu.get(role) ?? 0) + used);
-      }
-    });
+    readings.forEach(
+      ({ pid, role, cpuSeconds, memoryMb: memory, isShared }) => {
+        // A shared process's memory is not FluidEQ's, as in the Processes
+        // list's total.
+        memoryMb += isShared ? 0 : (memory ?? 0);
+        if (cpuSeconds === undefined) {
+          return;
+        }
+        const before = cpuByPid.get(pid);
+        cpuByPid.set(pid, cpuSeconds);
+        // One of FluidEQ's own processes seen for the first time started inside
+        // this stretch, so all of its time so far belongs to it; one that
+        // restarted under the same id counts from zero again. A shared process
+        // (the audio service) was running long before FluidEQ could see it, so
+        // its first sight only sets where its count starts.
+        let used = cpuSeconds;
+        if (before === undefined) {
+          used = isShared ? 0 : cpuSeconds;
+        } else if (before <= cpuSeconds) {
+          used = cpuSeconds - before;
+        }
+        if (readAt !== undefined && used > 0) {
+          entry.cpu.set(role, (entry.cpu.get(role) ?? 0) + used);
+        }
+      },
+    );
     if (readAt !== undefined) {
       entry.seconds += (at - readAt) / 1000;
       entry.peakMemoryMb = Math.max(entry.peakMemoryMb, memoryMb);
       totals.set(onScreen, entry);
     }
-    cpuByPid = next;
     readAt = at;
   };
 
