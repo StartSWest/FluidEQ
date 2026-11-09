@@ -7,9 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import path from 'path';
 import type { BrowserWindow } from 'electron';
 import {
+  chatProjectOf,
   type IStudioChat,
   type TStudioChatEntry,
 } from '../../common/studioChat';
+import registerAnimatorHandlers from './animatorHandlers';
+import { restoreReplyVersion } from './chatVersions';
+import { createChatTargets, type IChatTarget } from './chatTargets';
 import type { TAgentProject } from '../studioAgent/agentProject';
 import type { IStudioLook } from '../studioAgent/studioTools';
 import {
@@ -120,7 +124,7 @@ export const createStudioChat = ({
       busy: isBusy(projectId),
     });
     if (entry.kind === 'claude' && entry.state !== 'working') {
-      onReplyEnded?.(projectId);
+      onReplyEnded?.(chatProjectOf(projectId));
     }
   };
 
@@ -211,6 +215,9 @@ export const createStudioChat = ({
   });
   const { sessionFor, askUsage } = chatSessions;
 
+  const { sceneChat, animatorChat, animatorOf } =
+    createChatTargets(agentProject);
+
   /**
    * Messages to Claude, now, as one turn: each shown as the member wrote it,
    * then all written to Claude Code together, on the latest one's picks.
@@ -236,19 +243,21 @@ export const createStudioChat = ({
    * Claude can go on without running out of room. Shown as a reply with
    * one step, sized before and after, and nothing sent in the member's name.
    */
-  const compact = async (raw: unknown): Promise<void> => {
+  const compact = async (
+    chat: IChatTarget | undefined,
+    raw: unknown,
+  ): Promise<void> => {
     await chatSessions.ready;
-    const project = agentProject();
     const picks = readChatPicks(raw);
-    if (!project.ok || !picks || isBusy(project.id)) {
+    if (!chat || !picks || isBusy(chat.key)) {
       return;
     }
-    if (transcriptOf(project.id).entries.length === 0) {
+    if (transcriptOf(chat.key).entries.length === 0) {
       return;
     }
-    const session = await sessionFor(project.id, project.folder, picks);
+    const session = await sessionFor(chat.key, chat.folder, picks);
     if (session) {
-      turns.begin(project.id, session, [{ words: '/compact' }]);
+      turns.begin(chat.key, session, [{ words: '/compact' }]);
     }
   };
 
@@ -256,21 +265,23 @@ export const createStudioChat = ({
    * A message from the window: sent now, with anything a failure left
    * waiting, or queued for Claude to read at its next step.
    */
-  const send = async (raw: unknown): Promise<void> => {
+  const send = async (
+    chat: IChatTarget | undefined,
+    raw: unknown,
+  ): Promise<void> => {
     // A chat still being taken up after a restart is busy, and a message
     // to it waits in its queue like any other.
     await chatSessions.ready;
     const message = readChatMessage(raw);
-    const project = agentProject();
-    if (!message || !project.ok) {
+    if (!message || !chat) {
       return;
     }
-    if (isBusy(project.id)) {
-      turns.queueMessage(project.id, message);
+    if (isBusy(chat.key)) {
+      turns.queueMessage(chat.key, message);
       return;
     }
-    await dispatch(project.id, project.folder, [
-      ...queue.takeWaiting(project.id),
+    await dispatch(chat.key, chat.folder, [
+      ...queue.takeWaiting(chat.key),
       message,
     ]);
   };
@@ -282,20 +293,22 @@ export const createStudioChat = ({
    * here, so the message goes on its own rather than being typed again. On
    * a Claude Code started afresh, which reads the sign-in as it is now.
    */
-  const retry = async (raw: unknown): Promise<void> => {
+  const retry = async (
+    chat: IChatTarget | undefined,
+    raw: unknown,
+  ): Promise<void> => {
     await chatSessions.ready;
-    const project = agentProject();
     const picks = readChatPicks(raw);
-    if (!project.ok || !picks || isBusy(project.id)) {
+    if (!chat || !picks || isBusy(chat.key)) {
       return;
     }
-    const transcript = transcriptOf(project.id);
+    const transcript = transcriptOf(chat.key);
     const again = retryOf(transcript.entries);
     if (!again) {
       return;
     }
-    chatSessions.end(project.id);
-    const session = await sessionFor(project.id, project.folder, picks);
+    chatSessions.end(chat.key);
+    const session = await sessionFor(chat.key, chat.folder, picks);
     if (!session) {
       return;
     }
@@ -303,7 +316,7 @@ export const createStudioChat = ({
     if (at !== -1) {
       transcript.entries.splice(at, 1);
     }
-    turns.begin(project.id, session, again.messages, again.replyId);
+    turns.begin(chat.key, session, again.messages, again.replyId);
   };
 
   /**
@@ -311,45 +324,48 @@ export const createStudioChat = ({
    * reads what waits next (`chatTurns.ts`); with none, what waits goes as
    * a message of its own.
    */
-  const sendNow = async (raw: unknown): Promise<void> => {
+  const sendNow = async (
+    chat: IChatTarget | undefined,
+    raw: unknown,
+  ): Promise<void> => {
     await chatSessions.ready;
-    const project = agentProject();
     const picks = readChatPicks(raw);
-    if (!project.ok || !picks) {
+    if (!chat || !picks) {
       return;
     }
-    const session = sessions.get(project.id);
-    if (session && turns.sendNow(project.id, session)) {
+    const session = sessions.get(chat.key);
+    if (session && turns.sendNow(chat.key, session)) {
       return;
     }
-    if (isBusy(project.id)) {
+    if (isBusy(chat.key)) {
       return;
     }
-    const waiting = queue.takeWaiting(project.id);
+    const waiting = queue.takeWaiting(chat.key);
     if (waiting.length > 0) {
-      await dispatch(project.id, project.folder, waiting);
+      await dispatch(chat.key, chat.folder, waiting);
     }
   };
 
-  const activeChat = (): IStudioChat | undefined => {
-    const project = agentProject();
-    if (!project.ok) {
+  /** A chat as the window shows it; its `projectId` is the chat's key. */
+  const chatOf = (chat: IChatTarget | undefined): IStudioChat | undefined => {
+    if (!chat) {
       return undefined;
     }
-    const { entries, context } = transcriptOf(project.id);
+    const { entries, context } = transcriptOf(chat.key);
     // The reply being written joins the transcript only when it ends.
-    const reply = sessions.get(project.id)?.reply;
-    const ask = pictures.asks.standing(project.id);
-    const queued = queue.list(project.id);
+    const reply = sessions.get(chat.key)?.reply;
+    const ask = pictures.asks.standing(chat.key);
+    const queued = queue.list(chat.key);
     return {
-      projectId: project.id,
+      projectId: chat.key,
       entries: reply ? [...entries, { ...reply }] : entries,
-      busy: isBusy(project.id),
+      busy: isBusy(chat.key),
       ...(ask ? { ask } : {}),
       ...(queued.length ? { queued } : {}),
       ...(context ? { context } : {}),
     };
   };
+  const activeChat = () => chatOf(sceneChat());
 
   /**
    * Another chat takes the open one's place: its Claude Code ended, so the
@@ -380,12 +396,12 @@ export const createStudioChat = ({
     agentProject,
     isBusy,
     activeChat,
-    send,
-    compact,
-    retry,
+    send: (raw) => send(sceneChat(), raw),
+    compact: (raw) => compact(sceneChat(), raw),
+    retry: (raw) => retry(sceneChat(), raw),
     unqueue: (projectId, id) =>
       turns.unqueue(projectId, sessions.get(projectId), id),
-    sendNow,
+    sendNow: (raw) => sendNow(sceneChat(), raw),
     stop: (projectId) => {
       const session = sessions.get(projectId);
       if (session) {
@@ -404,6 +420,41 @@ export const createStudioChat = ({
         usageRead.read();
       }
       return usage.limits();
+    },
+  });
+
+  registerAnimatorHandlers({
+    handle,
+    load: (name) => chatOf(animatorChat(name)),
+    send: (raw) => send(animatorOf(raw), raw),
+    retry: (raw) => retry(animatorOf(raw), raw),
+    sendNow: (raw) => sendNow(animatorOf(raw), raw),
+    stop: (name) => {
+      const chat = animatorChat(name);
+      const session = chat ? sessions.get(chat.key) : undefined;
+      if (chat && session) {
+        turns.stop(chat.key, session);
+      }
+    },
+    restore: (name, entryId) => {
+      const chat = animatorChat(name);
+      if (!chat) {
+        return { ok: false, reason: 'no-project' };
+      }
+      return isBusy(chat.key)
+        ? { ok: false, reason: 'busy' }
+        : restoreReplyVersion(
+            transcriptOf(chat.key).entries,
+            transcripts.versionsOf(chat.key),
+            chat.folder,
+            entryId,
+          );
+    },
+    unqueue: (name, id) => {
+      const chat = animatorChat(name);
+      if (chat) {
+        turns.unqueue(chat.key, sessions.get(chat.key), id);
+      }
     },
   });
 

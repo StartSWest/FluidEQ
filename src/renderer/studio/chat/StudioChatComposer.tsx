@@ -10,6 +10,7 @@ import {
   type ClipboardEvent,
   type DragEvent,
   type KeyboardEvent,
+  type ReactNode,
 } from 'react';
 import { STUDIO_CHAT_MAX_TEXT } from 'common/studioChat';
 import Glyph from '../../community/Glyph';
@@ -18,8 +19,6 @@ import { chatPictureIn, firstPicture } from './chatPictureIn';
 import StudioChatEffortDots from './StudioChatEffortDots';
 import StudioChatAttachment from './StudioChatAttachment';
 import StudioChatModelPick from './StudioChatModelPick';
-import StudioChatContext from './StudioChatContext';
-import { sendToStudioChat, stopStudioChat } from './studioChatStore';
 import '../../styles/StudioChatComposer.scss';
 
 interface IStudioChatComposerProps {
@@ -30,8 +29,14 @@ interface IStudioChatComposerProps {
   onStage: (stage?: Uint8Array) => void;
   /** Claude is writing a reply: the box takes no message, and Stop shows. */
   busy: boolean;
-  /** Nothing has been said yet: the box asks for the scene itself. */
-  first: boolean;
+  /** What the empty box asks for. */
+  placeholder: string;
+  /** The message, sent to whichever chat this box is the scene's or an animator's. */
+  onSend: (text: string, stage?: Uint8Array) => Promise<void>;
+  /** Stops the reply being written. */
+  onStop: () => Promise<void>;
+  /** How full the chat is, beside the picks; the scene's chat shows it. */
+  meter?: ReactNode;
   /** A picture of the stage as it is now; absent while nothing plays. */
   captureStage?: () => Promise<Uint8Array | undefined>;
 }
@@ -55,7 +60,10 @@ export default function StudioChatComposer({
   stage,
   onStage: setStage,
   busy,
-  first,
+  placeholder,
+  onSend,
+  onStop,
+  meter,
   captureStage,
 }: IStudioChatComposerProps) {
   const { t } = useTranslation();
@@ -78,7 +86,7 @@ export default function StudioChatComposer({
     try {
       onDraft('');
       setStage(undefined);
-      await sendToStudioChat(text, stage);
+      await onSend(text, stage);
     } finally {
       setSending(false);
     }
@@ -165,9 +173,7 @@ export default function StudioChatComposer({
           rows={2}
           maxLength={STUDIO_CHAT_MAX_TEXT}
           value={draft}
-          placeholder={t(
-            first ? 'studioChat.placeholderFirst' : 'studioChat.placeholder',
-          )}
+          placeholder={placeholder}
           onChange={(event) => onDraft(event.target.value)}
           onKeyDown={onKeyDown}
           onPaste={onPaste}
@@ -235,7 +241,7 @@ export default function StudioChatComposer({
           />
           <StudioChatModelPick disabled={blocked} />
           <StudioChatEffortDots disabled={blocked} />
-          <StudioChatContext />
+          {meter}
           {busy && (
             <button
               type="button"
@@ -243,7 +249,7 @@ export default function StudioChatComposer({
               aria-label={t('studioChat.stop')}
               title={t('studioChat.stop')}
               onClick={() => {
-                stopStudioChat().catch(() => undefined);
+                onStop().catch(() => undefined);
               }}
             >
               <Glyph name="stop" />

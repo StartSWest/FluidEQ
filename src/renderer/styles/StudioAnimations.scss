@@ -230,6 +230,71 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The animator beside the animation: the scene chat's card, its talk
+// scrolling inside it. Stacked under the animation it has a height of its
+// own; beside it, exactly the view's - `contain: size` keeps a long
+// conversation from making the row (and the view's column) taller.
+.studio-chat.studio-animator {
+  .studio-work__panel & {
+    height: 480px;
+    min-height: 0;
+  }
+
+  @container studio-animation (min-width: 760px) {
+    .studio-work__panel & {
+      height: auto;
+      min-height: 420px;
+      align-self: stretch;
+      contain: size;
+    }
+  }
+}
+
+.studio-animator__about {
+  overflow-wrap: anywhere;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+// On a card while its animator works: the plate's glass, a lit lamp.
+.studio-animation-card__working {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  max-width: calc(100% - 16px);
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, $surface-menu 82%, transparent);
+  backdrop-filter: blur(8px);
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  pointer-events: none;
+}
+
+.studio-animation-card__lamp {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $active;
+  animation: studio-animator-lamp 1.2s $ease-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes studio-animator-lamp {
+  50% {
+    opacity: 0.4;
+  }
+}
+
 .studio-animation-opened__view {
   display: grid;
   gap: 8px;

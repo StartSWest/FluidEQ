@@ -7,7 +7,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { IStudioChatQueued } from 'common/studioChat';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
-import { sendNowStudioChat, unqueueStudioChat } from './studioChatStore';
 
 /**
  * Messages sent while Claude was still answering, over the message box
@@ -20,8 +19,14 @@ import { sendNowStudioChat, unqueueStudioChat } from './studioChatStore';
  */
 export default function StudioChatQueue({
   queued,
+  onSendNow,
+  onUnqueue,
 }: {
   queued: readonly IStudioChatQueued[];
+  /** What waits, read now. */
+  onSendNow: () => Promise<void>;
+  /** A message taken back before it went. */
+  onUnqueue: (id: string) => Promise<void>;
 }) {
   const { t } = useTranslation();
   if (queued.length === 0) {
@@ -44,7 +49,7 @@ export default function StudioChatQueue({
           className="button small"
           title={t('studioChat.queue.sendNowHint')}
           onClick={() => {
-            sendNowStudioChat().catch(() => undefined);
+            onSendNow().catch(() => undefined);
           }}
         >
           <Glyph name="arrow-up" />
@@ -79,7 +84,7 @@ export default function StudioChatQueue({
               title={t('studioChat.queue.remove')}
               aria-label={t('studioChat.queue.remove')}
               onClick={() => {
-                unqueueStudioChat(item.id).catch(() => undefined);
+                onUnqueue(item.id).catch(() => undefined);
               }}
             >
               <Glyph name="close" />

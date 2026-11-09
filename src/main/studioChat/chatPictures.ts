@@ -6,6 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { ipcMain, type IpcMainInvokeEvent, type WebContents } from 'electron';
 import {
+  chatAnimationOf,
+  chatProjectOf,
   isStudioChatAnswer,
   type IStudioChatCodexState,
   type IStudioChatPackAsk,
@@ -28,6 +30,7 @@ import { createChatServer } from './chatServer';
 import { codexAccount, type ICodexAccount } from './codexAccount';
 import { codexState, signInToCodex } from './codexPictures';
 import lookAnimationTool from './lookAnimationTool';
+import startAnimatorTool from './startAnimatorTool';
 import { createPictureTools } from './pictureTools';
 
 /**
@@ -170,9 +173,10 @@ export const createChatPictures = ({
    * project taken off the list, locked, or moved since is no project of
    * this chat's, and never the one the Studio happens to show instead.
    */
-  const boundProject = (projectId: string, folder: string): TAgentProject => {
+  /** `key` is a chat's: the project's id, or an animator's within it. */
+  const boundProject = (key: string, folder: string): TAgentProject => {
     const found = projectAt(folder);
-    return found.ok && found.id !== projectId
+    return found.ok && found.id !== chatProjectOf(key)
       ? { ok: false, reason: 'not-a-project' }
       : found;
   };
@@ -200,6 +204,22 @@ export const createChatPictures = ({
       tools: [
         ...ownLookTools(door, folder),
         lookAnimationTool(folder),
+        // The scene's chat starts animators; an animator does not start more.
+        ...(chatAnimationOf(projectId) === undefined
+          ? [
+              startAnimatorTool({
+                start: (name, task) => {
+                  const page = pageOf();
+                  page?.send('studio-animator-start', {
+                    projectId,
+                    name,
+                    task,
+                  });
+                  return page !== undefined;
+                },
+              }),
+            ]
+          : []),
         ...createPictureTools({
           project: () => boundProject(projectId, folder),
           asks,

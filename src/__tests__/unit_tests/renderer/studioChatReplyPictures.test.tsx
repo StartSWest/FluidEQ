@@ -55,6 +55,7 @@ it('keeps a picture Claude opened in sight, and opens it larger on a press', () 
         { id: 'r3', kind: 'read', file: 'pack.json', state: 'done' },
       ])}
       playing={false}
+      onRestore={() => Promise.resolve({ ok: true })}
       onOpenPicture={onOpenPicture}
     />,
   );

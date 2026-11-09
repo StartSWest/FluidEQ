@@ -368,6 +368,12 @@ export const disconnectStudioChatCodex = async () => {
   }
 };
 
+/** The member's model and effort, which every chat of theirs starts on. */
+export const studioChatPicks = () => ({
+  model: state.model,
+  effort: state.effort,
+});
+
 export const setStudioChatModel = (model: TStudioChatModel) => {
   writeStored(MODEL_KEY, model);
   set({ model });

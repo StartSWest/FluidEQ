@@ -20,9 +20,12 @@ const useMeta = () => {
 
 function AnimationCard({
   viewed,
+  working,
   onOpen,
 }: {
   viewed: IViewedAnimation;
+  /** Its animator is writing a reply. */
+  working: boolean;
   onOpen: () => void;
 }) {
   const { t } = useTranslation();
@@ -48,6 +51,15 @@ function AnimationCard({
             <span className="studio-animation-card__unreadable">
               <Glyph name="alert" />
               {t('studio.animation.unreadable')}
+            </span>
+          )}
+          {working && (
+            <span className="studio-animation-card__working">
+              <span
+                className="studio-animation-card__lamp"
+                aria-hidden="true"
+              />
+              {t('studio.animator.working', { name: animation.name })}
             </span>
           )}
           {viewed.bitmap && (
@@ -138,7 +150,9 @@ function OpenedAnimation({ viewed, onBack, side }: IOpenedProps) {
 interface IStudioAnimationsProps {
   animations: IViewedAnimation[];
   /** The agent working on the opened animation, beside it. */
-  sideFor?: (viewed: IViewedAnimation) => ReactNode;
+  renderSide?: (viewed: IViewedAnimation) => ReactNode;
+  /** Whether an animation's animator is at work, for its card. */
+  isWorking?: (name: string) => boolean;
 }
 
 /**
@@ -150,7 +164,8 @@ interface IStudioAnimationsProps {
  */
 export default function StudioAnimations({
   animations,
-  sideFor,
+  renderSide,
+  isWorking,
 }: IStudioAnimationsProps) {
   const { t } = useTranslation();
   const titleId = useId();
@@ -167,7 +182,7 @@ export default function StudioAnimations({
           key={shown.animation.name}
           viewed={shown}
           onBack={() => setOpened(undefined)}
-          side={sideFor?.(shown)}
+          side={renderSide?.(shown)}
         />
       </section>
     );
@@ -191,6 +206,7 @@ export default function StudioAnimations({
           <AnimationCard
             key={viewed.animation.name}
             viewed={viewed}
+            working={isWorking?.(viewed.animation.name) ?? false}
             onOpen={() => setOpened(viewed.animation.name)}
           />
         ))}

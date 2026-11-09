@@ -5,8 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { UIEvent } from 'react';
-import type { IStudioChat } from 'common/studioChat';
+import type { ReactNode, UIEvent } from 'react';
+import type { IStudioChat, TStudioChatRestore } from 'common/studioChat';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import { AI_IDEAS } from '../aiPrompt';
@@ -29,6 +29,8 @@ interface IStudioChatThreadProps {
   onCarryOn: () => void;
   /** Answers the last reply again, when it failed. */
   onRetry: () => void;
+  /** A reply's version brought back, in this chat. */
+  onRestore: (entryId: string) => Promise<TStudioChatRestore>;
   /**
    * The open scene's name, when the project already holds one: an empty
    * chat then asks what should change in it, and offers no ideas for a new
@@ -36,6 +38,11 @@ interface IStudioChatThreadProps {
    * is open doesn't make sense").
    */
   sceneName?: string | undefined;
+  /**
+   * What an empty chat says in place of the scene's welcome: an animator's
+   * chat says what it works on, and offers no ideas for a scene.
+   */
+  welcome?: ReactNode;
 }
 
 /**
@@ -49,7 +56,9 @@ export default function StudioChatThread({
   onIdea,
   onCarryOn,
   onRetry,
+  onRestore,
   sceneName,
+  welcome,
 }: IStudioChatThreadProps) {
   const { t } = useTranslation();
   const scroller = useRef<HTMLDivElement>(null);
@@ -100,34 +109,37 @@ export default function StudioChatThread({
           <span className="studio-chat__welcome-mark" aria-hidden="true">
             <Glyph name="studio" />
           </span>
-          {sceneName ? (
-            <>
-              <h3>{t('studioChat.welcomeSceneTitle', { name: sceneName })}</h3>
-              <p>{t('studioChat.welcomeSceneBody')}</p>
-            </>
-          ) : (
-            <>
-              <h3>{t('studioChat.welcomeTitle')}</h3>
-              <p>{t('studioChat.welcomeBody')}</p>
-              <div
-                className="studio-chat__ideas"
-                role="group"
-                aria-label={t('studio.maker.examples')}
-              >
-                {AI_IDEAS.map((entry) => (
-                  <button
-                    key={entry.label}
-                    type="button"
-                    className="studio-idea"
-                    title={t(entry.idea)}
-                    onClick={() => onIdea(t(entry.idea))}
-                  >
-                    {t(entry.label)}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+          {welcome ??
+            (sceneName ? (
+              <>
+                <h3>
+                  {t('studioChat.welcomeSceneTitle', { name: sceneName })}
+                </h3>
+                <p>{t('studioChat.welcomeSceneBody')}</p>
+              </>
+            ) : (
+              <>
+                <h3>{t('studioChat.welcomeTitle')}</h3>
+                <p>{t('studioChat.welcomeBody')}</p>
+                <div
+                  className="studio-chat__ideas"
+                  role="group"
+                  aria-label={t('studio.maker.examples')}
+                >
+                  {AI_IDEAS.map((entry) => (
+                    <button
+                      key={entry.label}
+                      type="button"
+                      className="studio-idea"
+                      title={t(entry.idea)}
+                      onClick={() => onIdea(t(entry.idea))}
+                    >
+                      {t(entry.label)}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ))}
         </div>
       </div>
     );
@@ -187,6 +199,7 @@ export default function StudioChatThread({
             <StudioChatReply
               key={entry.id}
               reply={entry}
+              onRestore={onRestore}
               playing={entry === playingEntry}
               // Only the last reply, and only one cut short: by Stop, by
               // FluidEQ closing in the middle of it, or by Claude Code ending.

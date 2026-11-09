@@ -77,6 +77,7 @@ it('shows the way back only while reading further up, with dots while Claude wri
       onIdea={() => undefined}
       onCarryOn={() => undefined}
       onRetry={() => undefined}
+      onRestore={() => Promise.resolve({ ok: true })}
     />,
   );
   const thread = screen.getByRole('log');
@@ -96,6 +97,7 @@ it('glides to the end on a press, and stays away on the way down', () => {
       onIdea={() => undefined}
       onCarryOn={() => undefined}
       onRetry={() => undefined}
+      onRestore={() => Promise.resolve({ ok: true })}
     />,
   );
   const thread = screen.getByRole('log');

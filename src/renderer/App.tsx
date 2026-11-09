@@ -53,6 +53,7 @@ import showGalleryGraph from './plus/showGalleryGraph';
 import { subscribeGraphShowRequests } from './plus/graphShowRequest';
 import usePlusTabOpensApp from './player/usePlusTabOpensApp';
 import useStudioAgent from './studio/useStudioAgent';
+import { watchAnimatorStarts } from './studio/chat/animatorChatStore';
 import { watchStudioChat } from './studio/chat/studioChatStore';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
 import HeardSongNames from './graph/HeardSongNames';
@@ -394,6 +395,18 @@ const AppContent = () => {
   // Every scene's chat heard from the start too: a reply ending, a card
   // waiting or an artwork to pack on a scene the member has not opened yet.
   useEffect(watchStudioChat, []);
+  // And the scene's chat handing an animation to its animator, from
+  // wherever the member is: the task goes to that animator at once, said in
+  // the member's language to come from the scene's chat.
+  const translateRef = useRef(t);
+  translateRef.current = t;
+  useEffect(
+    () =>
+      watchAnimatorStarts((task) =>
+        translateRef.current('studio.animator.fromScene', { task }),
+      ),
+    [],
+  );
   useEffect(() => {
     // A scene has to be compiled on the machine that plays it, so it is
     // compiled the moment it arrives rather than the first time somebody

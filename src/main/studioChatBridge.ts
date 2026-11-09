@@ -160,6 +160,47 @@ const studioChatBridge = {
       ipcRenderer.removeListener('studio-chat-entry', wrapped);
     };
   },
+  // An animation's own chat, its animator: the same chat by the animation's
+  // name, on channels of its own (`studioChat/animatorHandlers.ts`). Its
+  // entries, queue and cards arrive on the chat's own events, keyed by the
+  // animator chat's key (`animatorChatKey`).
+  studioAnimatorLoad: (animation: string): Promise<IStudioChat | undefined> =>
+    ipcRenderer.invoke('studio-animator-load', animation),
+  studioAnimatorSend: (
+    message: IStudioChatMessage & { animation: string; projectId?: string },
+  ): Promise<void> => ipcRenderer.invoke('studio-animator-send', message),
+  studioAnimatorRetry: (
+    picks: IStudioChatCompact & { animation: string },
+  ): Promise<void> => ipcRenderer.invoke('studio-animator-retry', picks),
+  studioAnimatorSendNow: (
+    picks: IStudioChatCompact & { animation: string },
+  ): Promise<void> => ipcRenderer.invoke('studio-animator-send-now', picks),
+  studioAnimatorStop: (animation: string): Promise<void> =>
+    ipcRenderer.invoke('studio-animator-stop', animation),
+  studioAnimatorRestore: (
+    animation: string,
+    entryId: string,
+  ): Promise<TStudioChatRestore> =>
+    ipcRenderer.invoke('studio-animator-restore', { animation, entryId }),
+  studioAnimatorUnqueue: (animation: string, id: string): Promise<void> =>
+    ipcRenderer.invoke('studio-animator-unqueue', { animation, id }),
+  /** The scene's chat started an animator (`start_animator`). */
+  onStudioAnimatorStart: (
+    listener: (start: {
+      projectId: string;
+      name: string;
+      task: string;
+    }) => void,
+  ) => {
+    const wrapped = (
+      _event: IpcRendererEvent,
+      start: { projectId: string; name: string; task: string },
+    ) => listener(start);
+    ipcRenderer.on('studio-animator-start', wrapped);
+    return () => {
+      ipcRenderer.removeListener('studio-animator-start', wrapped);
+    };
+  },
 };
 
 export default studioChatBridge;

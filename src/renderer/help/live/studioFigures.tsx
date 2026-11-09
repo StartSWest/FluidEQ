@@ -46,6 +46,8 @@ import '../../styles/StudioWork.scss';
  */
 
 const nothing = () => undefined;
+const NOTHING_RESTORED = () =>
+  Promise.resolve({ ok: false, reason: 'failed' } as const);
 
 const NAME = 'Northern Lake';
 const VERSION = 12;
@@ -291,6 +293,7 @@ const StudioDrawing = () => {
                   onIdea={nothing}
                   onCarryOn={nothing}
                   onRetry={nothing}
+                  onRestore={NOTHING_RESTORED}
                 />
                 <form className="studio-chat__composer">
                   <div className="studio-chat__box">

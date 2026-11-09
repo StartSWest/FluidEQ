@@ -20,6 +20,7 @@ import StudioStartHere from '../StudioStartHere';
 import StudioChatAccounts, { planName } from './StudioChatAccounts';
 import StudioChatAsk from './StudioChatAsk';
 import StudioChatComposer from './StudioChatComposer';
+import StudioChatContext from './StudioChatContext';
 import StudioChatMenu from './StudioChatMenu';
 import StudioChatPast from './StudioChatPast';
 import StudioChatQueue from './StudioChatQueue';
@@ -36,8 +37,12 @@ import {
   checkStudioChatCodex,
   loadStudioChat,
   newStudioChat,
+  restoreStudioChatVersion,
   retryStudioChat,
+  sendNowStudioChat,
   sendToStudioChat,
+  stopStudioChat,
+  unqueueStudioChat,
   useStudioChat,
 } from './studioChatStore';
 import '../../styles/StudioChat.scss';
@@ -188,18 +193,30 @@ export default function StudioChat({
           onRetry={() => {
             retryStudioChat().catch(() => undefined);
           }}
+          onRestore={restoreStudioChatVersion}
         />
         {ask && ask.projectId === chat?.projectId && (
           <StudioChatAsk ask={ask} />
         )}
-        <StudioChatQueue queued={chat?.queued ?? []} />
+        <StudioChatQueue
+          queued={chat?.queued ?? []}
+          onSendNow={sendNowStudioChat}
+          onUnqueue={unqueueStudioChat}
+        />
         <StudioChatComposer
           draft={draft.text}
           onDraft={setDraft}
           stage={draft.stage}
           onStage={(stage) => setChatDraftStage(project.id, stage)}
           busy={chat?.busy ?? false}
-          first={(chat?.entries.length ?? 0) === 0 && !sceneName}
+          placeholder={t(
+            (chat?.entries.length ?? 0) === 0 && !sceneName
+              ? 'studioChat.placeholderFirst'
+              : 'studioChat.placeholder',
+          )}
+          onSend={sendToStudioChat}
+          onStop={stopStudioChat}
+          meter={<StudioChatContext />}
           captureStage={captureStage}
         />
       </>

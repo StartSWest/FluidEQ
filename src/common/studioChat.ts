@@ -46,6 +46,7 @@ export interface IStudioChatStep {
     | 'picture'
     | 'pack'
     | 'animation'
+    | 'animator'
     | 'compact'
     | 'other';
   /** The file it read or wrote, by name only, never a path. */
@@ -149,6 +150,29 @@ export interface IStudioChatQueued {
    */
   sent: boolean;
 }
+
+/**
+ * An animation's own chat, its animator (Ivan, 2026-11-09: "work in a
+ * separated agent to improve that animation", "when I open it I will be
+ * able to see it working and chat with it"): kept beside the project's chat
+ * under a key of its own - the project's id and the animation's name - so
+ * its transcript, its Claude Code, its queue and its cards never mix with
+ * the scene's. The scene's chat is keyed by the project's id alone.
+ */
+const ANIMATOR_MARK = '#animator:';
+
+export const animatorChatKey = (projectId: string, name: string): string =>
+  `${projectId}${ANIMATOR_MARK}${name}`;
+
+/** The project a chat belongs to: its own key, or an animator's project. */
+export const chatProjectOf = (key: string): string =>
+  key.split(ANIMATOR_MARK)[0];
+
+/** The animation an animator's chat works on; undefined for a scene's chat. */
+export const chatAnimationOf = (key: string): string | undefined => {
+  const at = key.indexOf(ANIMATOR_MARK);
+  return at === -1 ? undefined : key.slice(at + ANIMATOR_MARK.length);
+};
 
 /** What the window sends with a message. */
 export interface IStudioChatMessage {

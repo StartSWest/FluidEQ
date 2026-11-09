@@ -12,6 +12,17 @@ Animations tab, and the scene plays it from one region of its artwork. This
 skill is how to make one that reads as alive without spending pictures it
 does not need.
 
+## Who makes it
+
+In FluidEQ's Studio, the scene's chat does not draw animations itself: it
+hands each one to an animator of its own with `start_animator` (a name like
+`wolf-walk`, and the task in full - the creature, its gait, which of the
+project's pictures to start from, against what it moves), then goes on with
+the scene and places the animation once its file exists. The member watches
+the animator and talks to it from the animation in the Animations tab. An
+animator works on its one animation and follows the rest of this skill.
+Elsewhere, whoever is asked makes it the same way.
+
 ## How many frames
 
 Animation reads smooth at about twelve drawings a second ("on twos"). You

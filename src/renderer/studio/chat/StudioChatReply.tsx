@@ -6,18 +6,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useMemo, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
-import type { IStudioChatStep, TStudioChatEntry } from 'common/studioChat';
+import type {
+  IStudioChatStep,
+  TStudioChatEntry,
+  TStudioChatRestore,
+} from 'common/studioChat';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import ChatText from './ChatText';
 import StudioChatCopy from './StudioChatCopy';
 import { isCutOut, pictureKey, stepLabel } from './chatPictureList';
 import { CLAUDE_CODE_INSTALL_URL } from './StudioChatSetup';
-import {
-  restoreStudioChatVersion,
-  signInToStudioChat,
-  useStudioChat,
-} from './studioChatStore';
+import { signInToStudioChat, useStudioChat } from './studioChatStore';
 import '../../styles/StudioChatReply.scss';
 
 type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
@@ -134,6 +134,8 @@ interface IStudioChatReplyProps {
   onRetry?: () => void;
   /** Opens the viewer on one of the chat's pictures, by its key. */
   onOpenPicture: (key: string) => void;
+  /** Brings the project back to how this reply left it, in this reply's chat. */
+  onRestore: (entryId: string) => Promise<TStudioChatRestore>;
 }
 
 export default function StudioChatReply({
@@ -142,6 +144,7 @@ export default function StudioChatReply({
   onCarryOn,
   onRetry,
   onOpenPicture,
+  onRestore,
 }: IStudioChatReplyProps) {
   const { t } = useTranslation();
   const { signingIn } = useStudioChat();
@@ -152,7 +155,7 @@ export default function StudioChatReply({
   const steps = shownSteps(reply.steps);
   const bringBack = () => {
     setRestore('running');
-    restoreStudioChatVersion(reply.id)
+    onRestore(reply.id)
       .then((answer) => {
         setRestore(answer.ok ? 'done' : 'failed');
         return undefined;

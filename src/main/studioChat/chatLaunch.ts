@@ -91,6 +91,7 @@ const ALLOWED = [
   `mcp__${DOOR_SERVER}__make_picture`,
   `mcp__${DOOR_SERVER}__pack_artwork`,
   `mcp__${DOOR_SERVER}__look_at_animation`,
+  `mcp__${DOOR_SERVER}__start_animator`,
 ];
 
 /** A brief as a running chat remembers it: short, and the same for the same text. */

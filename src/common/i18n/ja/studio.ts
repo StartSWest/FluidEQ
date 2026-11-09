@@ -440,6 +440,15 @@ const studio = {
   'studio.animation.frame': 'コマ {frame}',
   'studio.animation.expand': '大きく表示',
   'studio.animation.close': 'スタジオに戻る',
+  'studio.animator.title': 'アニメーター',
+  'studio.animator.on': '{name} を担当 · Claude Code',
+  'studio.animator.working': 'アニメーターが作業中',
+  'studio.animator.welcomeTitle': '{name} のアニメーター',
+  'studio.animator.welcomeBody':
+    'このアニメーションだけを担当します。各コマを単独で見て、跳ねる・浮く・大きさが変わるコマを見つけ、動きが自然になるまで作り直します。作るものや直すところを伝えてください。',
+  'studio.animator.placeholder':
+    'アニメーターに変えてほしいことを伝えてください…',
+  'studio.animator.fromScene': 'シーンのチャットから：{task}',
   'studio.work.tune': '調整',
   'studio.ship.more': 'その他',
   'studio.signals.title': 'プレビューの音声',

@@ -28,7 +28,7 @@ import StudioShipInspect from './StudioShipInspect';
 import StudioDrawing from './StudioDrawing';
 import StudioFramingDialog from './StudioFramingDialog';
 import StudioListen from './StudioListen';
-import StudioAnimations from './animations/StudioAnimations';
+import StudioAnimationsPanel from './animations/StudioAnimationsPanel';
 import useStudioAnimations from './animations/useStudioAnimations';
 import StudioPictures, { pictureName } from './StudioPictures';
 import StudioSettings from './StudioSettings';
@@ -383,7 +383,9 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   // Offered for every project, none made yet included: the tab says how
   // to ask for one.
   if (project && animations) {
-    panels.animations = <StudioAnimations animations={animations} />;
+    panels.animations = (
+      <StudioAnimationsPanel projectId={project.id} animations={animations} />
+    );
   }
   const problemCount =
     (problems?.length ?? 0) + (trouble?.kind === 'compile' ? 1 : 0);
