@@ -10,9 +10,16 @@ import type { IKeptSceneVersions } from 'common/sceneStore';
 import { isNewSceneVersion } from 'common/sceneVersionNote';
 import { absoluteTime } from '../forum/forumTime';
 import { useTranslation } from '../utils/I18nContext';
+import {
+  SceneVersionSaveButton,
+  SceneVersionSaveNote,
+} from './SceneVersionSave';
+import useSceneVersionSave from './useSceneVersionSave';
 
 interface ISceneVersionsProps {
   scene: IGalleryScene;
+  /** Whether this account owns the scene: only an owner saves a version. */
+  owned: boolean;
 }
 
 /** One earlier version as the list shows it: the server's, this computer's, or both. */
@@ -21,6 +28,8 @@ interface IVersionRow {
   note?: string;
   publishedAt?: string;
   kept: boolean;
+  /** The server still holds it, so an owner may save it here. */
+  available: boolean;
 }
 
 const dateOf = (iso: string, locale: string) => {
@@ -44,8 +53,14 @@ const NOTHING_KEPT: IKeptSceneVersions = { versions: [] };
  * version it had, from its own copies, so going back downloads nothing. The
  * list opens by itself while one plays, and says so above it with the way
  * back to the newest.
+ *
+ * And an owner can save any version the server still holds — its last 10
+ * (Ivan, 2026-11-09) — onto this computer, where it stays theirs after the
+ * server lets it go: one of the scene's kept versions from then on, played
+ * from this same list. The version the scene is at now heads the list,
+ * marked, with nothing to save.
  */
-export default function SceneVersions({ scene }: ISceneVersionsProps) {
+export default function SceneVersions({ scene, owned }: ISceneVersionsProps) {
   const { t, locale } = useTranslation();
   const [earlier, setEarlier] = useState<IGalleryVersion[]>([]);
   const [kept, setKept] = useState<IKeptSceneVersions>(NOTHING_KEPT);
@@ -54,16 +69,22 @@ export default function SceneVersions({ scene }: ISceneVersionsProps) {
   const [keptAsk, setKeptAsk] = useState(0);
   const [busy, setBusy] = useState(false);
   const { authorId, sceneId, version, updatedAt } = scene;
+  const saving = useSceneVersionSave(authorId, sceneId);
+  const [current, setCurrent] = useState<IGalleryVersion>();
 
   useEffect(() => {
     let cancelled = false;
     setEarlier([]);
+    setCurrent(undefined);
     window.electron?.ipcRenderer
       ?.galleryVersions?.(authorId, sceneId)
       .then((outcome) => {
         if (!cancelled && outcome.ok) {
           setEarlier(
             outcome.versions.filter((entry) => entry.version < version),
+          );
+          setCurrent(
+            outcome.versions.find((entry) => entry.version === version),
           );
         }
         return undefined;
@@ -90,6 +111,16 @@ export default function SceneVersions({ scene }: ISceneVersionsProps) {
     };
   }, [authorId, sceneId, version, keptAsk]);
 
+  // A version just saved is one of the kept ones now: asked for again, so
+  // its Play is there without waiting on the store's own word.
+  const savedVersion =
+    saving.result?.outcome.ok === true ? saving.result.version : undefined;
+  useEffect(() => {
+    if (savedVersion !== undefined) {
+      setKeptAsk((ask) => ask + 1);
+    }
+  }, [savedVersion]);
+
   useEffect(
     () =>
       window.electron?.ipcRenderer?.onSceneStoreChanged?.(() =>
@@ -103,13 +134,15 @@ export default function SceneVersions({ scene }: ISceneVersionsProps) {
     const listed = earlier.map((entry) => ({
       ...entry,
       kept: held.has(entry.version),
+      // A server from before it kept versions says nothing: nothing to save.
+      available: entry.available === true,
     }));
     const onlyHere = kept.versions
       .filter(
         (entry) =>
           entry < version && !earlier.some((row) => row.version === entry),
       )
-      .map((entry) => ({ version: entry, kept: true }));
+      .map((entry) => ({ version: entry, kept: true, available: false }));
     return [...listed, ...onlyHere].sort((a, b) => b.version - a.version);
   }, [earlier, kept, version]);
 
@@ -173,9 +206,30 @@ export default function SceneVersions({ scene }: ISceneVersionsProps) {
           open={playing !== undefined || undefined}
         >
           <summary>
-            {t('plus.version.earlier', { count: String(rows.length) })}
+            {/* The current version heads the list, so it is counted. */}
+            {t('plus.version.all', { count: String(rows.length + 1) })}
           </summary>
           <ol className="gallery-versions__list">
+            <li className="is-current">
+              <span className="gallery-versions__number">
+                {t('plus.version.short', { version: String(version) })}
+              </span>
+              <span className="gallery-versions__text">
+                {/* Its note is "What's new" just above: not said twice. */}
+                {!scene.versionNote &&
+                  (current?.note ?? (
+                    <span className="gallery-versions__quiet">
+                      {t('plus.version.noNote')}
+                    </span>
+                  ))}
+                <time dateTime={current?.publishedAt ?? updatedAt}>
+                  {dateOf(current?.publishedAt ?? updatedAt, locale)}
+                </time>
+              </span>
+              <span className="gallery-versions__playing gallery-versions__current">
+                {t('plus.version.current')}
+              </span>
+            </li>
             {rows.map((entry) => (
               <li
                 key={entry.version}
@@ -197,6 +251,15 @@ export default function SceneVersions({ scene }: ISceneVersionsProps) {
                       {dateOf(entry.publishedAt, locale)}
                     </time>
                   )}
+                  {owned && (
+                    <SceneVersionSaveNote
+                      version={entry.version}
+                      kept={entry.kept}
+                      available={entry.available}
+                      listed={entry.publishedAt !== undefined}
+                      saving={saving}
+                    />
+                  )}
                 </span>
                 {entry.version === playing && (
                   <span className="gallery-versions__playing">
@@ -216,6 +279,15 @@ export default function SceneVersions({ scene }: ISceneVersionsProps) {
                     {t('plus.version.play')}
                   </button>
                 )}
+                {owned &&
+                  !entry.kept &&
+                  entry.available &&
+                  saving.available && (
+                    <SceneVersionSaveButton
+                      version={entry.version}
+                      saving={saving}
+                    />
+                  )}
               </li>
             ))}
           </ol>

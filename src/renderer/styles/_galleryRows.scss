@@ -565,7 +565,10 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.gallery-versions__playing {
+// The version the scene is at, heading the list: the Playing tag's shape,
+// since both say "this one" about a row.
+.gallery-versions__playing,
+.gallery-versions__current {
   align-self: center;
   padding: 1px 8px;
   border: 1px solid color-mix(in srgb, $secondary-default 55%, transparent);
@@ -602,4 +605,29 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .gallery-versions__quiet {
   color: $text-dim;
+}
+
+// Under an earlier version's note and date while its save runs: what is
+// happening, and the way to stop it, beside each other and wrapping in the
+// narrow card. The Save itself is the row's last column, as Play is.
+.gallery-versions__save {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 2px;
+}
+
+.gallery-versions__saving {
+  color: $text-accent;
+}
+
+.gallery-versions__saved {
+  color: $text-accent;
+  line-height: 1.45;
+}
+
+.gallery-versions__failed {
+  color: $red;
+  line-height: 1.45;
 }

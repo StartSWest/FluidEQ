@@ -405,9 +405,7 @@ describe('the versions on a scene’s page', () => {
     expect(panel.getByText('plus.version.whatsNew:3')).toBeInTheDocument();
     expect(panel.getByText('Peaks stay whole')).toBeInTheDocument();
     // The earlier versions only: this one is already said above.
-    expect(
-      await panel.findByText('plus.version.earlier:2'),
-    ).toBeInTheDocument();
+    expect(await panel.findByText('plus.version.all:3')).toBeInTheDocument();
     expect(panel.getByText('First light')).toBeInTheDocument();
     expect(panel.getByText('plus.version.noNote')).toBeInTheDocument();
     expect(galleryVersions).toHaveBeenCalledWith(FLUIDEQ_CREATOR_ID, 'aurora');

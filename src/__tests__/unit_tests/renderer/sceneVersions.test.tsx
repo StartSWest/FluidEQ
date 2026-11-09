@@ -13,7 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import '@testing-library/jest-dom';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IGalleryScene } from '../../../common/plusGallery';
 import type { IKeptSceneVersions } from '../../../common/sceneStore';
@@ -73,15 +73,15 @@ const playButtons = () =>
   screen.queryAllByRole('button', { name: /^plus\.version\.playLabel/ });
 
 it('shows the history alone to somebody with nothing kept', async () => {
-  render(<SceneVersions scene={scene} />);
-  expect(await screen.findByText('plus.version.earlier:3')).toBeInTheDocument();
+  render(<SceneVersions scene={scene} owned={false} />);
+  expect(await screen.findByText('plus.version.all:4')).toBeInTheDocument();
   expect(playButtons()).toHaveLength(0);
   expect(screen.queryByRole('status')).toBeNull();
 });
 
 it('offers Play only on the versions this computer kept', async () => {
   kept = { versions: [3, 2] };
-  render(<SceneVersions scene={scene} />);
+  render(<SceneVersions scene={scene} owned />);
   await waitFor(() => expect(playButtons()).toHaveLength(2));
   expect(
     playButtons().map((button) => button.getAttribute('aria-label')),
@@ -92,7 +92,7 @@ it('offers Play only on the versions this computer kept', async () => {
 
 it('plays a kept version, says so, and goes back to the newest', async () => {
   kept = { versions: [3, 2] };
-  render(<SceneVersions scene={scene} />);
+  render(<SceneVersions scene={scene} owned />);
   await waitFor(() => expect(playButtons()).toHaveLength(2));
   await userEvent.click(playButtons()[1]);
   expect(play).toHaveBeenCalledWith(scene.authorId, 'alpine', 2);
@@ -119,7 +119,142 @@ it('lists a kept version the server history no longer names', async () => {
     },
   } as unknown as typeof window.electron;
   kept = { versions: [2] };
-  render(<SceneVersions scene={scene} />);
+  render(<SceneVersions scene={scene} owned />);
   expect(await screen.findByText('plus.version.keptHere')).toBeInTheDocument();
   expect(playButtons()).toHaveLength(1);
+});
+
+describe('saving a version the server still holds', () => {
+  // Ivan, 2026-11-09: the server keeps each scene's last 10 versions, and
+  // "a member can pick any of those 10 and save it locally".
+  const saveCalls = jest.fn<Promise<unknown>, [string, string, number]>();
+  const cancelCalls = jest.fn<Promise<void>, [string, string, number]>();
+  let answer: (value: unknown) => void = () => undefined;
+
+  const withSaving = (available: Record<number, boolean>) => {
+    const bridge = window.electron?.ipcRenderer;
+    window.electron = {
+      ipcRenderer: {
+        ...bridge,
+        galleryVersions: async () => ({
+          ok: true,
+          versions: [4, 3, 2, 1].map((version) => ({
+            version,
+            publishedAt: `2026-0${version + 5}-01T10:00:00Z`,
+            available: available[version] ?? false,
+          })),
+        }),
+        saveGalleryVersion: saveCalls,
+        cancelGallerySaveVersion: cancelCalls,
+      },
+    } as unknown as typeof window.electron;
+  };
+
+  const saveButtons = () =>
+    screen.queryAllByRole('button', { name: /^plus.version.saveLabel/ });
+
+  beforeEach(() => {
+    saveCalls.mockReset();
+    cancelCalls.mockReset();
+    cancelCalls.mockResolvedValue(undefined);
+    saveCalls.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          answer = resolve;
+        }),
+    );
+  });
+
+  it('marks the current version, offers Save on the ones the server holds, and says which it let go', async () => {
+    withSaving({ 4: true, 3: true, 2: true });
+    render(<SceneVersions scene={scene} owned />);
+    await waitFor(() => expect(saveButtons()).toHaveLength(2));
+    expect(
+      saveButtons().map((button) => button.getAttribute('aria-label')),
+    ).toEqual(['plus.version.saveLabel:3', 'plus.version.saveLabel:2']);
+    expect(screen.getByText('plus.version.current')).toBeInTheDocument();
+    expect(screen.getByText('plus.version.gone')).toBeInTheDocument();
+    // Quiet: keeping an old version is never the recommended action.
+    saveButtons().forEach((button) => expect(button).toHaveClass('subtle'));
+  });
+
+  it('offers nothing to save to somebody who does not own the scene', async () => {
+    withSaving({ 4: true, 3: true, 2: true });
+    render(<SceneVersions scene={scene} owned={false} />);
+    expect(await screen.findByText('plus.version.current')).toBeInTheDocument();
+    expect(saveButtons()).toHaveLength(0);
+    expect(screen.queryByText('plus.version.gone')).toBeNull();
+  });
+
+  it('runs from the press, can be cancelled, and once saved is a kept version with its Play', async () => {
+    withSaving({ 4: true, 3: true, 2: true });
+    render(<SceneVersions scene={scene} owned />);
+    await waitFor(() => expect(saveButtons()).toHaveLength(2));
+    await userEvent.click(saveButtons()[1]);
+    expect(saveCalls).toHaveBeenCalledWith(scene.authorId, 'alpine', 2);
+    const running = screen.getByRole('button', {
+      name: 'plus.version.saveLabel:2',
+    });
+    expect(running).toHaveAttribute('aria-busy', 'true');
+    expect(running).toHaveClass('is-running');
+    expect(screen.getByRole('status')).toHaveTextContent('plus.version.saving');
+    // One at a time.
+    expect(saveButtons()[0]).toBeDisabled();
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'plus.version.cancelSave' }),
+    );
+    expect(cancelCalls).toHaveBeenCalledWith(scene.authorId, 'alpine', 2);
+
+    // The save had landed before the cancel: saved is what it answers.
+    kept = { versions: [2] };
+    await act(async () => answer({ ok: true, version: 2 }));
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'plus.version.saved:2',
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'plus.version.playLabel:2' }),
+      ).toBeInTheDocument(),
+    );
+    expect(saveButtons()).toHaveLength(1);
+  });
+
+  it('says why a version could not be saved, and says nothing of a cancel', async () => {
+    withSaving({ 4: true, 3: true });
+    render(<SceneVersions scene={scene} owned />);
+    await waitFor(() => expect(saveButtons()).toHaveLength(1));
+    await userEvent.click(saveButtons()[0]);
+    await act(async () => answer({ ok: false, reason: 'gone' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'plus.version.failGone:3',
+    );
+    // It can be tried again.
+    expect(saveButtons()).toHaveLength(1);
+
+    await userEvent.click(saveButtons()[0]);
+    await act(async () => answer({ ok: false, reason: 'cancelled' }));
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(saveButtons()).toHaveLength(1);
+  });
+
+  it('reads an answer it does not understand as a failure', async () => {
+    withSaving({ 4: true, 3: true });
+    render(<SceneVersions scene={scene} owned />);
+    await waitFor(() => expect(saveButtons()).toHaveLength(1));
+    await userEvent.click(saveButtons()[0]);
+    await act(async () => answer({ saved: 'yes' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'plus.version.failFailed:3',
+    );
+  });
+
+  it('offers no Save in a window whose bridge cannot save yet', async () => {
+    withSaving({ 4: true, 3: true });
+    const bridge = window.electron?.ipcRenderer as Record<string, unknown>;
+    delete bridge.saveGalleryVersion;
+    render(<SceneVersions scene={scene} owned />);
+    expect(await screen.findByText('plus.version.current')).toBeInTheDocument();
+    expect(saveButtons()).toHaveLength(0);
+  });
 });

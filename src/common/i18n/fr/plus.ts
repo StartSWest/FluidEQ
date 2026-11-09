@@ -62,7 +62,7 @@ const plus = {
   'plus.version.title': 'Versions',
   'plus.version.pageLine': 'Version {version} · {date}',
   'plus.version.whatsNew': 'Nouveautés de la version {version}',
-  'plus.version.earlier': 'Versions précédentes ({count})',
+  'plus.version.all': 'Toutes les versions ({count})',
   'plus.version.short': 'v{version}',
   'plus.version.noNote': 'Sans note',
   'plus.version.play': 'Utiliser',
@@ -72,6 +72,21 @@ const plus = {
     'Vous utilisez la version {version}, conservée sur cet ordinateur.',
   'plus.version.backToNewest': 'Revenir à la plus récente',
   'plus.version.keptHere': 'Conservée sur cet ordinateur',
+  'plus.version.current': 'Actuelle',
+  'plus.version.saveShort': 'Enregistrer',
+  'plus.version.saveLabel':
+    'Enregistrer la version {version} sur cet ordinateur',
+  'plus.version.saving': 'Enregistrement…',
+  'plus.version.cancelSave': 'Annuler',
+  'plus.version.saved':
+    'Enregistrée. La version {version} reste à vous, même quand le serveur ne l’a plus.',
+  'plus.version.gone': 'N’est plus sur le serveur',
+  'plus.version.failGone': 'Le serveur n’a plus la version {version}.',
+  'plus.version.failOffline': 'Impossible de joindre le serveur. Réessayez.',
+  'plus.version.failSignedOut': 'Connectez-vous pour enregistrer une version.',
+  'plus.version.failNotOwned':
+    'Seule une scène qui vous appartient peut être enregistrée.',
+  'plus.version.failFailed': 'Impossible d’enregistrer la version {version}.',
   'plus.card.open': 'Ouvrir {name}',
 
   'plus.like.label': 'Aimer {name} ({count} j’aime)',

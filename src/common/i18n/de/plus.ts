@@ -66,7 +66,7 @@ const plus = {
   'plus.version.title': 'Versionen',
   'plus.version.pageLine': 'Version {version} · {date}',
   'plus.version.whatsNew': 'Neu in Version {version}',
-  'plus.version.earlier': 'Frühere Versionen ({count})',
+  'plus.version.all': 'Alle Versionen ({count})',
   'plus.version.short': 'v{version}',
   'plus.version.noNote': 'Keine Notiz',
   'plus.version.play': 'Verwenden',
@@ -76,6 +76,22 @@ const plus = {
     'Sie verwenden Version {version}, auf diesem Computer aufbewahrt.',
   'plus.version.backToNewest': 'Zur neuesten zurück',
   'plus.version.keptHere': 'Auf diesem Computer aufbewahrt',
+  'plus.version.current': 'Aktuell',
+  'plus.version.saveShort': 'Sichern',
+  'plus.version.saveLabel': 'Version {version} auf diesem Computer sichern',
+  'plus.version.saving': 'Wird gesichert…',
+  'plus.version.cancelSave': 'Abbrechen',
+  'plus.version.saved':
+    'Gesichert. Version {version} bleibt Ihnen, auch wenn der Server sie nicht mehr hat.',
+  'plus.version.gone': 'Nicht mehr auf dem Server',
+  'plus.version.failGone': 'Der Server hat Version {version} nicht mehr.',
+  'plus.version.failOffline':
+    'Der Server war nicht erreichbar. Versuchen Sie es erneut.',
+  'plus.version.failSignedOut':
+    'Melden Sie sich an, um eine Version zu sichern.',
+  'plus.version.failNotOwned':
+    'Nur eine Szene, die Ihnen gehört, kann gesichert werden.',
+  'plus.version.failFailed': 'Version {version} konnte nicht gesichert werden.',
   'plus.card.open': '{name} öffnen',
 
   'plus.like.label': '„Gefällt mir“ für {name} ({count} „Gefällt mir“)',

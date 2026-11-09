@@ -65,7 +65,7 @@ const plus = {
   'plus.version.title': 'バージョン',
   'plus.version.pageLine': 'バージョン {version} · {date}',
   'plus.version.whatsNew': 'バージョン {version} の新しい点',
-  'plus.version.earlier': '以前のバージョン（{count}）',
+  'plus.version.all': 'すべてのバージョン（{count}）',
   'plus.version.short': 'v{version}',
   'plus.version.noNote': 'メモなし',
   'plus.version.play': '使う',
@@ -75,6 +75,22 @@ const plus = {
     'このコンピューターに保存されたバージョン {version} を使っています。',
   'plus.version.backToNewest': '最新版に戻す',
   'plus.version.keptHere': 'このコンピューターに保存',
+  'plus.version.current': '現在',
+  'plus.version.saveShort': '保存',
+  'plus.version.saveLabel': 'バージョン {version} をこのコンピューターに保存',
+  'plus.version.saving': '保存中…',
+  'plus.version.cancelSave': 'キャンセル',
+  'plus.version.saved':
+    '保存しました。サーバーから消えても、バージョン {version} はあなたのものです。',
+  'plus.version.gone': 'サーバーにはもうありません',
+  'plus.version.failGone':
+    'サーバーにはバージョン {version} がもうありません。',
+  'plus.version.failOffline':
+    'サーバーに接続できませんでした。もう一度お試しください。',
+  'plus.version.failSignedOut':
+    'バージョンを保存するにはサインインしてください。',
+  'plus.version.failNotOwned': '保存できるのは自分が持っているシーンだけです。',
+  'plus.version.failFailed': 'バージョン {version} を保存できませんでした。',
   'plus.card.open': '{name} を開く',
 
   'plus.like.label': '{name} にいいね（{count} 件）',
