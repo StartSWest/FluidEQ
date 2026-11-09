@@ -315,12 +315,11 @@ const studio = {
   'studio.version.looksCurrent': '你的樣子，正是這個場景。',
   'studio.version.looksBehind':
     '您的外觀具有 {version} 版本的早期儲存。新增到我的外觀使它們與時俱進。',
-  'studio.version.gallery': '畫廊 v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished': '此場景的版本 {version}。它尚未發表。',
-  'studio.version.live': '此場景的版本{version}，一人擁有。',
-  'studio.version.ahead':
-    '此場景的版本 {version}。 {published} 版本是人們擁有的版本。',
+  'studio.version.live': '此場景的第 {version} 版，也是大家拿到的那一版。',
+  'studio.version.changed':
+    '大家拿到的是第 {version} 版。你之後改過這個場景，發布後會作為第 {next} 版分享。',
   'studio.empty': '尚未顯示任何內容',
   'studio.stage.label': '{name}，現場演奏',
   'studio.stage.resize': '拖曳以調整預覽大小',

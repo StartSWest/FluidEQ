@@ -494,8 +494,8 @@ describe('the publish dialog', () => {
         onCancel={jest.fn()}
       />,
     );
-    // Never out: the project's own number.
-    expect(screen.getByText('studio.publish.version:3')).toBeInTheDocument();
+    // Never out: the first version, whatever the project's file says.
+    expect(screen.getByText('studio.publish.version:1')).toBeInTheDocument();
   });
 
   it('selects completed covers and identifies captures still being drawn', async () => {

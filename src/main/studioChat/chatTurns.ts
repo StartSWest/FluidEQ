@@ -14,7 +14,7 @@ import { userLine, type IChatMessage } from './chatMessage';
 import { chatPictureFromBytes, chatPictureFromDataUrl } from './chatPicture';
 import type { TChatQueue } from './chatQueue';
 import type { TChatStreamEvent } from './chatStream';
-import { keepReplyVersion } from './chatVersions';
+import { keepReplyVersion, nextReplyVersion } from './chatVersions';
 import {
   snapshotPictures,
   withMadePictures,
@@ -35,6 +35,8 @@ interface IChatTurnsDeps {
   /** The chat saved with the reply being written in it, as far as it got. */
   saveWith(projectId: string, reply: TReply): void;
   versionsOf(projectId: string): string;
+  /** The chat's entries, for the number its next kept version shows. */
+  entriesOf(projectId: string): readonly TStudioChatEntry[];
   /** A card waiting on the member, or a picture being made, ends. */
   dropAsks(projectId: string): void;
 }
@@ -64,6 +66,7 @@ const createChatTurns = ({
   save,
   saveWith,
   versionsOf,
+  entriesOf,
   dropAsks,
 }: IChatTurnsDeps) => {
   const write = (session: IChatSession, line: string) => {
@@ -113,6 +116,7 @@ const createChatTurns = ({
       reply,
       session.folder,
       versionsOf(projectId),
+      nextReplyVersion(entriesOf(projectId)),
     );
     upsert(projectId, {
       ...reply,

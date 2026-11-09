@@ -25,7 +25,7 @@ import {
   uploadScenePreview,
 } from '../plus/scenePreviewApi';
 import { readProject } from '../memberScenes/project';
-import { raiseProjectVersion } from '../memberScenes/projectVersion';
+import { setPublishedVersion } from '../memberScenes/projectVersion';
 import { writeAgreedTerms } from '../memberScenes/termsAgreement';
 import {
   isCardPicture,
@@ -295,7 +295,7 @@ export const registerStudioPublish = ({
         return { ok: false, reason: 'no-build' };
       }
       // A scene's content may only change under a higher version, so every
-      // publication goes out above the one the gallery holds — written into
+      // publication goes out one above the one the gallery holds — written into
       // the project first, then read back, so the pack that gets signed and
       // the file on disk carry the same number. Sending a raised version
       // without writing it would leave the maker's next build one behind and
@@ -312,7 +312,7 @@ export const registerStudioPublish = ({
         return { ok: false, reason: 'cancelled' };
       }
       if (preview) {
-        const version = versionToPublish(build.pack.version, held);
+        const version = versionToPublish(held);
         if (!previewMatchesSource(preview, build.pack, version)) {
           return { ok: false, reason: 'preview-stale' };
         }
@@ -349,7 +349,7 @@ export const registerStudioPublish = ({
       }
       operation.committing = true;
       progress('publishing');
-      if ((await raiseProjectVersion(folder, held)) === 'failed') {
+      if ((await setPublishedVersion(folder, held)) === 'failed') {
         return { ok: false, reason: 'no-build' };
       }
       const raised = await readProject(folder);

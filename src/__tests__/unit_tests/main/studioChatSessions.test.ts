@@ -102,6 +102,7 @@ const setUp = (
     save: () => undefined,
     saveWith: () => undefined,
     versionsOf: () => 'versions',
+    entriesOf: () => [],
     dropAsks: () => undefined,
   });
   const started: (IChatProcess & { end: jest.Mock })[] = [];

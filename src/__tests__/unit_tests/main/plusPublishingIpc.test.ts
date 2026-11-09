@@ -895,19 +895,22 @@ describe('publishing from the Studio', () => {
       expect(onDisk()).toBe(6);
     });
 
-    it('is the project’s own when it is already past the gallery', async () => {
+    // Ivan, 2026-11-09: 'Only when publishing'. A maker's AI used to raise
+    // the number for every change, and v10 in the gallery went out as v23.
+    it('is one above the gallery even when the project ran ahead of it', async () => {
       galleryHolds(2);
       projectAt(40);
       setup();
       expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
         ok: true,
       });
-      expect(publishRequest()?.body.pack).toMatchObject({ version: 40 });
-      expect(onDisk()).toBe(40);
+      expect(publishRequest()?.body.pack).toMatchObject({ version: 3 });
+      expect(onDisk()).toBe(3);
     });
 
-    it('is left alone for a scene that has never been published', async () => {
+    it('is 1 for a scene that has never been published', async () => {
       galleryHolds(undefined);
+      projectAt(23);
       setup();
       expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
         ok: true,

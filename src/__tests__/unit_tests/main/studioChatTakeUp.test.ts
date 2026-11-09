@@ -18,6 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 jest.mock('../../../main/studioChat/chatVersions', () => ({
   keepReplyVersion: jest.fn(() => undefined),
+  nextReplyVersion: jest.fn(() => 1),
 }));
 
 /* eslint-disable import/first -- the mock above must be installed first */
@@ -132,6 +133,7 @@ describe('a chat taken up across a restart', () => {
       save: () => undefined,
       saveWith: () => undefined,
       versionsOf: () => 'versions',
+      entriesOf: () => [],
       dropAsks: () => undefined,
     });
     // Lines 0 and 1 were before the reply began; it began at 2, and the

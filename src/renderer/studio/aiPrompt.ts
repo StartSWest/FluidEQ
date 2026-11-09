@@ -183,13 +183,17 @@ pack.json:
   new since its own (8: uRhythm, uDrums, uSong, uStereo, uVoice, uPointer, uTap,
   uCamera; 9: palettes and choices in params). It
   refuses nothing: a scene written for an older one plays as it always did.
-- version: raise it by one each time you hand me a changed scene - once for
-  each request of mine, however many saves it took. Every time you change a
-  scene that already existed, WRITE ME THE LINE THAT GOES WITH IT.
+- version: never change it. FluidEQ sets it when I publish - one above the
+  version the Gallery has - so it counts the versions people see there; the
+  Studio keeps every change in between in its own history. Every time you
+  change a scene that already existed, WRITE ME THE LINE THAT GOES WITH IT.
   One line, at most ${MAX_VERSION_NOTE} characters, saying what changed as a listener
   would notice it - "the peaks no longer get cut on wide panels", not "fixed
-  the uv clamp". FluidEQ asks me for that line before it will publish an
-  update, and by then I have forgotten what you changed; you have not.
+  the uv clamp". It is about everything since the version the Gallery has:
+  when a line is already there from an earlier request, fold this change
+  into it rather than replacing it, still one line. FluidEQ asks me for
+  that line before it will publish an update, and by then I have forgotten
+  what you changed; you have not.
   Put it in studio-notes.json beside the scene, as "whatsNew", and change
   NOTHING else in that file - it also holds my description and the prompt,
   and rewriting the whole file loses them. If the file is not there yet,

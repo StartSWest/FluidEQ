@@ -364,13 +364,12 @@ const studio = {
   'studio.version.looksCurrent': 'Seus visuais têm exatamente esta cena.',
   'studio.version.looksBehind':
     'Seus visuais têm um salvamento anterior da versão {version}. “Adicionar aos meus visuais” os atualiza.',
-  'studio.version.gallery': 'Galeria v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'Versão {version} desta cena. Ainda não foi publicada.',
   'studio.version.live': 'Versão {version} desta cena, e a que as pessoas têm.',
-  'studio.version.ahead':
-    'Versão {version} desta cena. As pessoas têm a versão {published}.',
+  'studio.version.changed':
+    'As pessoas têm a versão {version}. Você mudou a cena desde então; ao publicar, ela sai como versão {next}.',
   'studio.empty': 'Nada para mostrar ainda',
   'studio.stage.label': '{name}, tocando ao vivo',
   'studio.stage.resize': 'Arraste para redimensionar a prévia',

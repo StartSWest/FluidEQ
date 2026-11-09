@@ -377,14 +377,13 @@ const studio = {
   'studio.version.looksCurrent': 'Ihre Darstellungen haben genau diese Szene.',
   'studio.version.looksBehind':
     'Ihre Darstellungen haben einen früheren Stand von Version {version}. „Zu meinen Darstellungen“ bringt sie auf den neuesten Stand.',
-  'studio.version.gallery': 'Galerie v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'Version {version} dieser Szene. Sie ist noch nicht veröffentlicht.',
   'studio.version.live':
     'Version {version} dieser Szene, und die, die andere haben.',
-  'studio.version.ahead':
-    'Version {version} dieser Szene. Andere haben Version {published}.',
+  'studio.version.changed':
+    'Andere haben Version {version}. Sie haben die Szene seitdem geändert; veröffentlicht erscheint sie als Version {next}.',
   'studio.empty': 'Noch nichts zu zeigen',
   'studio.stage.label': '{name}, live',
   'studio.stage.resize': 'Ziehen, um die Größe der Vorschau zu ändern',

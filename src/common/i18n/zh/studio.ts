@@ -327,12 +327,11 @@ const studio = {
   'studio.version.looksCurrent': '你的外观中正是这个场景。',
   'studio.version.looksBehind':
     '你的外观中是版本 {version} 较早的保存。“添加到我的外观”可将其更新。',
-  'studio.version.gallery': '图库 v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished': '这个场景的第 {version} 版，尚未发布。',
   'studio.version.live': '这个场景的第 {version} 版，也是大家拿到的那一版。',
-  'studio.version.ahead':
-    '这个场景的第 {version} 版。大家拿到的是第 {published} 版。',
+  'studio.version.changed':
+    '大家拿到的是第 {version} 版。你之后改过这个场景，发布后会作为第 {next} 版分享。',
   'studio.empty': '暂时没有可显示的内容',
   'studio.stage.label': '{name}，实时播放中',
   'studio.stage.resize': '拖动可调整预览大小',

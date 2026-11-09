@@ -374,14 +374,13 @@ const studio = {
   'studio.version.looksCurrent': 'Your looks have exactly this scene.',
   'studio.version.looksBehind':
     'Your looks have an earlier save of version {version}. Add to my looks brings them up to date.',
-  'studio.version.gallery': 'Gallery v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'Version {version} of this scene. It has not been published.',
   'studio.version.live':
     'Version {version} of this scene, and the one people have.',
-  'studio.version.ahead':
-    'Version {version} of this scene. Version {published} is the one people have.',
+  'studio.version.changed':
+    'Version {version} is the one people have. You have changed the scene since; publishing shares it as version {next}.',
   'studio.empty': 'Nothing to show yet',
   'studio.stage.label': '{name}, playing live',
   'studio.stage.resize': 'Drag to resize the preview',

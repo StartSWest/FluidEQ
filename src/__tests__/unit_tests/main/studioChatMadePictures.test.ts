@@ -54,6 +54,7 @@ const setUp = () => {
     save: () => undefined,
     saveWith: () => undefined,
     versionsOf: () => 'versions',
+    entriesOf: () => [],
     dropAsks: () => undefined,
   });
   const session: IChatSession = {

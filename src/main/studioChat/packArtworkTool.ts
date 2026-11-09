@@ -316,7 +316,7 @@ const createPackArtworkTool = ({
       content: [
         text(
           [
-            `Packed ${layout.placed.length} piece${layout.placed.length === 1 ? '' : 's'} into ${file}, ${layout.width} x ${layout.height}, and wrote artworkFile, artworkWidth, artworkHeight and artworkRegions in pack.json${places.length ? "; the member's photo places are where they were" : ''}. Raise the version yourself when the shader uses them.`,
+            `Packed ${layout.placed.length} piece${layout.placed.length === 1 ? '' : 's'} into ${file}, ${layout.width} x ${layout.height}, and wrote artworkFile, artworkWidth, artworkHeight and artworkRegions in pack.json${places.length ? "; the member's photo places are where they were" : ''}. Leave the version as it is: FluidEQ sets it when the member publishes.`,
             'Each region, and the vec4 the shader samples it by (x, y from the bottom-left, width, height, as fractions of the image):',
             ...layout.placed.map((piece) =>
               regionLine(piece, layout.width, layout.height),

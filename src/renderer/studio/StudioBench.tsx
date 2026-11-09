@@ -422,6 +422,14 @@ export default function StudioBench({ view }: IStudioBenchProps) {
           <StudioVersion
             version={version}
             published={tuner.publishedVersion}
+            // Known only for the version this folder published itself: one
+            // published from another computer has no record here to compare.
+            changed={
+              project.published &&
+              project.published.version === tuner.publishedVersion
+                ? !project.published.unchanged
+                : undefined
+            }
             look={state.look}
           />
         )}

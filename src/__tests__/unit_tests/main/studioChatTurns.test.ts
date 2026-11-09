@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 jest.mock('../../../main/studioChat/chatVersions', () => ({
   keepReplyVersion: jest.fn(() => undefined),
+  nextReplyVersion: jest.fn(() => 1),
 }));
 jest.mock('../../../main/studioChat/chatPicture', () => ({
   chatPictureFromBytes: jest.fn(() => 'data:image/jpeg;base64,AA=='),
@@ -68,6 +69,7 @@ const setUp = () => {
     save: () => undefined,
     saveWith: () => undefined,
     versionsOf: () => 'versions',
+    entriesOf: () => [],
     dropAsks: () => undefined,
   });
   const session: IChatSession = {

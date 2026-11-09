@@ -369,14 +369,13 @@ const studio = {
   'studio.version.looksCurrent': 'Tus estilos tienen exactamente esta escena.',
   'studio.version.looksBehind':
     'Tus estilos tienen un guardado anterior de la versión {version}. «Añadir a mis estilos» los pone al día.',
-  'studio.version.gallery': 'Galería v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'Versión {version} de esta escena. Todavía no se ha publicado.',
   'studio.version.live':
     'Versión {version} de esta escena, y la que tiene la gente.',
-  'studio.version.ahead':
-    'Versión {version} de esta escena. La que tiene la gente es la {published}.',
+  'studio.version.changed':
+    'La gente tiene la versión {version}. Has cambiado la escena desde entonces; al publicarla, se compartirá como versión {next}.',
   'studio.empty': 'Aún no hay nada que mostrar',
   'studio.stage.label': '{name}, en vivo',
   'studio.stage.resize': 'Arrastra para cambiar el tamaño de la vista previa',

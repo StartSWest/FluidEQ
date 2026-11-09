@@ -365,13 +365,12 @@ const studio = {
   'studio.version.looksCurrent': 'В ваших оформлениях именно эта сцена.',
   'studio.version.looksBehind':
     'В ваших оформлениях более раннее сохранение версии {version}. «Добавить в мои оформления» обновит их.',
-  'studio.version.gallery': 'Галерея v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'Версия {version} этой сцены. Она ещё не опубликована.',
   'studio.version.live': 'Версия {version} этой сцены — та, что есть у людей.',
-  'studio.version.ahead':
-    'Версия {version} этой сцены. У людей версия {published}.',
+  'studio.version.changed':
+    'У людей версия {version}. С тех пор вы изменили сцену; после публикации она выйдет как версия {next}.',
   'studio.empty': 'Пока нечего показать',
   'studio.stage.label': '{name}, вживую',
   'studio.stage.resize': 'Потяните, чтобы изменить размер предпросмотра',

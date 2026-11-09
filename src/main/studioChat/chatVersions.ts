@@ -63,24 +63,6 @@ const filesOf = (folder: string): IProjectFile[] | undefined => {
   return walk(folder, '') ? found : undefined;
 };
 
-/** The version number pack.json gives, if it gives one. */
-export const projectVersion = (folder: string): number | undefined => {
-  try {
-    const raw: unknown = JSON.parse(
-      fs.readFileSync(path.join(folder, 'pack.json'), 'utf8'),
-    );
-    const version =
-      typeof raw === 'object' && raw !== null
-        ? (raw as Record<string, unknown>).version
-        : undefined;
-    return typeof version === 'number' && Number.isInteger(version)
-      ? version
-      : undefined;
-  } catch {
-    return undefined;
-  }
-};
-
 /** Keeps the project as it is now under `target`; false when it could not. */
 export const keepVersion = (folder: string, target: string): boolean => {
   try {
@@ -174,20 +156,41 @@ export const restoreReplyVersion = (
 };
 
 /**
+ * The number the next version a chat keeps is shown under: one above the
+ * highest it shows. Counted in the chat, never read from pack.json: the
+ * scene's own number moves only when it is published (Ivan, 2026-11-09:
+ * "Only when publishing"), so every version between two publications would
+ * read the same. Above the highest rather than one past the count, because
+ * an older chat's versions carry the numbers pack.json had then, and
+ * counting would show one of them twice.
+ */
+export const nextReplyVersion = (
+  entries: readonly TStudioChatEntry[],
+): number =>
+  entries.reduce(
+    (highest, entry) =>
+      entry.kind === 'claude' && entry.version !== undefined
+        ? Math.max(highest, entry.version)
+        : highest,
+    0,
+  ) + 1;
+
+/**
  * The project as a reply that changed it left it, kept under the reply's id
- * so it can be brought back: the version it stands at, or undefined when
+ * so it can be brought back: `number` when it was kept, or undefined when
  * the reply wrote nothing or the copy could not be kept.
  */
 export const keepReplyVersion = (
   reply: Extract<TStudioChatEntry, { kind: 'claude' }>,
   folder: string,
   versionsDir: string,
+  number: number,
 ): number | undefined => {
   const wrote = reply.steps.some(
     (step) =>
       (step.kind === 'write' || step.kind === 'pack') && step.state === 'done',
   );
   return wrote && keepVersion(folder, path.join(versionsDir, reply.id))
-    ? projectVersion(folder)
+    ? number
     : undefined;
 };

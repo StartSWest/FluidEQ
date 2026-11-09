@@ -351,14 +351,13 @@ const studio = {
   'studio.version.looksCurrent': '당신의 외모에는 바로 이 장면이 있습니다.',
   'studio.version.looksBehind':
     '귀하의 외모에는 {version} 버전의 이전 저장 버전이 있습니다. 내 외모에 추가하면 최신 정보를 얻을 수 있습니다.',
-  'studio.version.gallery': '갤러리 v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     '이 장면의 버전 {version}. 출판되지 않았습니다.',
   'studio.version.live':
-    '이 장면의 {version} 버전과 사람들이 가지고 있는 버전입니다.',
-  'studio.version.ahead':
-    '이 장면의 버전 {version}. 버전 {published}는 사람들이 가지고 있는 버전입니다.',
+    '이 장면의 버전 {version}이며, 사람들이 가진 버전입니다.',
+  'studio.version.changed':
+    '사람들이 가진 버전은 {version}입니다. 그 뒤로 장면을 바꿨습니다. 게시하면 버전 {next}(으)로 공유됩니다.',
   'studio.empty': '아직 표시할 항목이 없습니다.',
   'studio.stage.label': '{name}, 라이브로 재생 중',
   'studio.stage.resize': '미리보기 크기를 조정하려면 드래그하세요.',

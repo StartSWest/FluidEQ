@@ -369,14 +369,13 @@ const studio = {
     'マイ表示にはこのシーンがそのまま入っています。',
   'studio.version.looksBehind':
     'マイ表示にはバージョン {version} の以前の保存が入っています。「マイ表示に追加」で最新にできます。',
-  'studio.version.gallery': 'ギャラリー v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'このシーンのバージョン {version} です。まだ公開されていません。',
   'studio.version.live':
     'このシーンのバージョン {version} で、みんなが持っているものです。',
-  'studio.version.ahead':
-    'このシーンのバージョン {version} です。みんなが持っているのはバージョン {published} です。',
+  'studio.version.changed':
+    'みんなが持っているのはバージョン {version} です。その後シーンを変更しました。公開するとバージョン {next} として共有されます。',
   'studio.empty': 'まだ表示するものがありません',
   'studio.stage.label': '{name}、ライブ再生中',
   'studio.stage.resize': 'ドラッグしてプレビューの大きさを変更',

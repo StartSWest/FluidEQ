@@ -57,20 +57,20 @@ export const isLaterSceneVersion = (
 };
 
 /**
- * The version a publication has to go out under: always above the one the
- * gallery holds, and never below where the maker has already taken it.
+ * The version a publication goes out under: one above the one the gallery
+ * holds, and 1 for a scene's first. The number counts the versions people
+ * see in the gallery (Ivan, 2026-11-09: "Only when publishing"), so it moves
+ * only here, and never by more than one: whatever the project's own file
+ * says is not asked. A maker's AI used to raise it for every change it was
+ * asked for, and a scene the gallery had at v10 went out as v23.
  *
- * The Studio raises it for them. Asking a maker to hand-edit a number in a
+ * The Studio sets it for them. Asking a maker to hand-edit a number in a
  * file before every publication is how the rule above turns into a wall —
  * they would meet it as a refusal with no way forward, on a press that has
  * already drawn a cover and written a note.
  */
-export const versionToPublish = (local: unknown, held?: number): number => {
-  const from = typeof local === 'number' && Number.isInteger(local) ? local : 1;
-  return held !== undefined && Number.isInteger(held)
-    ? Math.max(from, held + 1)
-    : from;
-};
+export const versionToPublish = (held?: number): number =>
+  held !== undefined && Number.isInteger(held) && held >= 1 ? held + 1 : 1;
 
 /**
  * Control, zero-width, joiner, direction, filler, blank and tag characters,

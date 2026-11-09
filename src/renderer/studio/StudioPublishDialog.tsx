@@ -107,7 +107,7 @@ export default function StudioPublishDialog({
   // reader dropped them, and every scene with a palette, a colour or a
   // choice's option looks was refused as "changed after recording".
   const publicationPack = useMemo(
-    () => ({ ...pack, version: versionToPublish(pack.version, draft.held) }),
+    () => ({ ...pack, version: versionToPublish(draft.held) }),
     [pack, draft.held],
   );
   const source = useMemo(
@@ -117,7 +117,7 @@ export default function StudioPublishDialog({
         me,
         pack,
         tuning,
-        versionToPublish(pack.version, draft.held),
+        versionToPublish(draft.held),
       ]),
     [identity, me, pack, tuning, draft.held],
   );
@@ -228,11 +228,11 @@ export default function StudioPublishDialog({
             {t('studio.publish.version', {
               // The number this publication will carry, not the one in the
               // project: a scene's content may only change under a higher
-              // version, so publishing raises it, and the dialog has to say
+              // version, so publishing sets it, and the dialog has to say
               // which one is going out or it names the version being
               // replaced right beside the one it replaces. Above what the
               // scene was ever out at, too, when it was unpublished since.
-              version: String(versionToPublish(pack.version, draft.held)),
+              version: String(versionToPublish(draft.held)),
             })}
           </span>
         }

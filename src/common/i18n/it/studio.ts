@@ -370,14 +370,13 @@ const studio = {
     'I tuoi aspetti hanno esattamente questa scena.',
   'studio.version.looksBehind':
     'I tuoi aspetti hanno un salvataggio precedente della versione {version}. «Aggiungi ai miei aspetti» li aggiorna.',
-  'studio.version.gallery': 'Galleria v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'Versione {version} di questa scena. Non è ancora pubblicata.',
   'studio.version.live':
     'Versione {version} di questa scena, e quella che hanno gli altri.',
-  'studio.version.ahead':
-    'Versione {version} di questa scena. Gli altri hanno la versione {published}.',
+  'studio.version.changed':
+    'Gli altri hanno la versione {version}. Hai cambiato la scena da allora; pubblicandola, uscirà come versione {next}.',
   'studio.empty': 'Ancora niente da mostrare',
   'studio.stage.label': '{name}, dal vivo',
   'studio.stage.resize': 'Trascina per ridimensionare l’anteprima',

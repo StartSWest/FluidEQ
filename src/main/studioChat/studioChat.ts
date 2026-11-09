@@ -186,6 +186,7 @@ export const createStudioChat = ({
     save,
     saveWith,
     versionsOf: transcripts.versionsOf,
+    entriesOf: (projectId) => transcriptOf(projectId).entries,
     dropAsks: pictures.asks.drop,
   });
 

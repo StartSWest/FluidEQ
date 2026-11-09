@@ -43,9 +43,14 @@ it under the terms of the GNU General Public License version 3 or later.
 // Ahead of what is published: work nobody has yet. The app's own accent and
 // its selected tint, so it reads as live rather than as a warning — there is
 // nothing wrong with an unpublished version.
-.studio-bench__version--ahead {
-  background: $selected-accent;
-  color: $text-accent;
+// Changed since the version people have: the amber the looks chip says
+// "behind" in, with the same dot, so both read alike.
+.studio-bench__version--changed {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-color: color-mix(in srgb, $amber 45%, transparent);
+  color: $text-muted;
 }
 
 // A copy elsewhere: quieter than the bench's own number, which is the one

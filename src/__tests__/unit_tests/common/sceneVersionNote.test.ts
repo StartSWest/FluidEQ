@@ -123,29 +123,23 @@ describe('the rule that a scene changes only under a higher version', () => {
   });
 });
 
+// Ivan, 2026-11-09: "Only when publishing". The number counts the versions
+// people see in the gallery, so it moves by one, at a publication.
 describe('the version a publication goes out under', () => {
-  it('is one above the gallery when the project has not caught up', () => {
-    expect(versionToPublish(3, 3)).toBe(4);
-    expect(versionToPublish(1, 8)).toBe(9);
+  it('is one above the version the gallery has, never more', () => {
+    expect(versionToPublish(3)).toBe(4);
+    expect(versionToPublish(10)).toBe(11);
   });
 
-  it('never drags a maker back below where they have taken it', () => {
-    expect(versionToPublish(12, 3)).toBe(12);
+  it('is 1 for a scene the gallery has never had', () => {
+    expect(versionToPublish()).toBe(1);
   });
 
-  it('is the project’s own for a first publication', () => {
-    expect(versionToPublish(5)).toBe(5);
-  });
-
-  it('always clears what is held, whatever the project says', () => {
+  it('always clears what is held', () => {
     // The property that matters: whatever comes out of this is a version the
     // rule above accepts. Anything else and publishing refuses its own work.
-    [Number.NaN, 0.5, '2', null, undefined, 1, 4, 99].forEach((local) => {
-      [undefined, 0, 1, 7, 98].forEach((held) => {
-        expect(isLaterSceneVersion(versionToPublish(local, held), held)).toBe(
-          true,
-        );
-      });
+    [undefined, 0, 1, 7, 98, Number.NaN, 2.5].forEach((held) => {
+      expect(isLaterSceneVersion(versionToPublish(held), held)).toBe(true);
     });
   });
 });

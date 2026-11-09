@@ -362,13 +362,12 @@ const studio = {
   'studio.version.looksCurrent': 'आपके रूपों में ठीक यही दृश्य है।',
   'studio.version.looksBehind':
     'आपके रूपों में संस्करण {version} का पहले का सहेजा हुआ रूप है। "मेरे रूपों में जोड़ें" उसे अद्यतन करता है।',
-  'studio.version.gallery': 'गैलरी v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'इस सीन का संस्करण {version}। यह अभी प्रकाशित नहीं हुआ है।',
   'studio.version.live': 'इस सीन का संस्करण {version}, और यही लोगों के पास है।',
-  'studio.version.ahead':
-    'इस सीन का संस्करण {version}। लोगों के पास संस्करण {published} है।',
+  'studio.version.changed':
+    'लोगों के पास संस्करण {version} है। उसके बाद आपने सीन बदला है; प्रकाशित करने पर यह संस्करण {next} के रूप में साझा होगा।',
   'studio.empty': 'अभी दिखाने को कुछ नहीं',
   'studio.stage.label': '{name}, लाइव चल रहा है',
   'studio.stage.resize': 'प्रीव्यू का आकार बदलने के लिए खींचें',
