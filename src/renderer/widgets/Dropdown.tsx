@@ -147,6 +147,21 @@ const VIEWPORT_PADDING_PX = 16;
 // page of results is mounted at a time and the next page is appended as the
 // user scrolls.
 const PAGE_SIZE = 100;
+
+/**
+ * The same options by what they say, whichever array holds them: a parent
+ * that builds its list inline hands over a new array every render.
+ */
+const sameOptions = (
+  a: readonly IOptionEntry[],
+  b: readonly IOptionEntry[],
+): boolean =>
+  a === b ||
+  (a.length === b.length &&
+    a.every(
+      (option, index) =>
+        option.value === b[index]?.value && option.label === b[index]?.label,
+    ));
 /** Distance from the bottom of the list at which the next page is appended. */
 const LOAD_MORE_THRESHOLD_PX = 240;
 
@@ -199,7 +214,27 @@ const Dropdown = ({
     () => suggestSearches(searchHistory ?? [], searchString),
     [searchHistory, searchString],
   );
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  // How far the list has been scrolled into, for the query and the options it
+  // was scrolled under. It starts from the top again when either changes,
+  // worked out while rendering, never reset by an effect: the effect it was
+  // ran after every render whose parent handed over a new array of the same
+  // options - the Studio chat's model picker builds its list inline, so every
+  // keystroke in the message box - and each run scheduled one more render.
+  // React 19 counts a commit that leaves work like that behind as a nested
+  // update; while the window was busy (a scene rebuilding, the AI looking at
+  // the stage) typing outran those renders, the count passed 50 within a
+  // sentence, and the next keystroke threw "Maximum update depth exceeded"
+  // and reloaded the window (Ivan's, 2026-11-08 and 11-09).
+  const [paging, setPaging] = useState({
+    query: '',
+    options,
+    count: PAGE_SIZE,
+  });
+  const visibleCount =
+    paging.query === deferredSearchString &&
+    sameOptions(paging.options, options)
+      ? paging.count
+      : PAGE_SIZE;
 
   const indexedOptions = useMemo(
     () =>
@@ -221,12 +256,6 @@ const Dropdown = ({
       .map(({ option }) => option);
   }, [deferredSearchString, indexedOptions, options]);
 
-  // Start from the top of the results whenever the query or the source list
-  // changes, so a new search never inherits a previous scroll depth.
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [matchedOptions]);
-
   const filteredOptions = useMemo(
     () => matchedOptions.slice(0, visibleCount),
     [matchedOptions, visibleCount],
@@ -241,10 +270,14 @@ const Dropdown = ({
       }
       const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
       if (scrollHeight - scrollTop - clientHeight <= LOAD_MORE_THRESHOLD_PX) {
-        setVisibleCount((current) => current + PAGE_SIZE);
+        setPaging({
+          query: deferredSearchString,
+          options,
+          count: visibleCount + PAGE_SIZE,
+        });
       }
     },
-    [hasMoreOptions],
+    [hasMoreOptions, deferredSearchString, options, visibleCount],
   );
 
   const updateMenuPlacement = useCallback(() => {
