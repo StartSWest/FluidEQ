@@ -22,6 +22,7 @@ import {
   ANIMATIONS_CHANGED,
   registerStudioAnimationsIpc,
 } from '../../../main/ipc/studioAnimations';
+import { pngHeader } from '../../utils/pictureHeaders';
 /* eslint-enable import/first */
 
 let project: string;
@@ -60,7 +61,9 @@ beforeEach(() => {
   closed.length = 0;
   fs.mkdirSync(path.join(project, 'art'));
   fs.mkdirSync(path.join(project, 'animations'));
-  fs.writeFileSync(path.join(project, 'art', 'wolf.png'), 'png');
+  // A real header: a sheet whose size cannot be read is refused before it is
+  // decoded (`pictureBounds.ts`), and this one is eight 64px frames.
+  fs.writeFileSync(path.join(project, 'art', 'wolf.png'), pngHeader(512, 64));
   fs.writeFileSync(
     path.join(project, 'animations', 'wolf-walk.json'),
     JSON.stringify({ sheet: 'art/wolf.png', count: 8 }),
