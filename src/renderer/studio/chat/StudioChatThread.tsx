@@ -10,6 +10,7 @@ import type { IStudioChat, TStudioChatRestore } from 'common/studioChat';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import { AI_IDEAS } from '../aiPrompt';
+import useStudioPictureMenu from '../useStudioPictureMenu';
 import ChatText from './ChatText';
 import StudioChatCopy from './StudioChatCopy';
 import StudioChatPictureViewer from './StudioChatPictureViewer';
@@ -74,6 +75,7 @@ export default function StudioChatThread({
   // The picture open in the viewer, by its key; the viewer steps through
   // every picture in the conversation.
   const [viewing, setViewing] = useState<string>();
+  const { openMenu, menu: pictureMenu } = useStudioPictureMenu();
   const pictures = useMemo(
     () => chatPicturesOf(chat?.entries ?? [], t),
     [chat?.entries, t],
@@ -156,6 +158,18 @@ export default function StudioChatThread({
         // A picture that finishes loading grows the thread under the newest
         // line; following, the thread stays on that line rather than on where
         // its end was before the picture came.
+        // Every picture in the thread, the ones Claude looked at and made and
+        // the ones attached, offers "Copy image" on a right click.
+        onContextMenu={(event) => {
+          const target = event.target instanceof Element ? event.target : null;
+          const frame = target?.closest<HTMLElement>(
+            '.studio-chat__seen, .studio-chat__attached',
+          );
+          const src = frame?.querySelector('img')?.getAttribute('src');
+          if (frame && src) {
+            openMenu(event, { src }, frame);
+          }
+        }}
         onLoadCapture={(event) => {
           const element = event.currentTarget;
           if (following.current) {
@@ -278,6 +292,7 @@ export default function StudioChatThread({
           </div>
         )}
       </div>
+      {pictureMenu}
       {viewed !== -1 && (
         <StudioChatPictureViewer
           pictures={pictures}

@@ -10,6 +10,10 @@ const studio = {
   'studio.picture.download': '儲存影像',
   'studio.picture.downloaded': '影像已儲存',
   'studio.picture.downloadFailed': '無法儲存影像。',
+  'studio.picture.copy': '複製影像',
+  'studio.picture.copying': '正在複製…',
+  'studio.picture.copied': '已複製',
+  'studio.picture.copyFailed': '無法複製',
   'studio.picture.separate': '單獨的影像 ({count})',
   'studio.picture.separateHint':
     '這些是一張影像的一部分。拯救他們會使場景保持不變。',

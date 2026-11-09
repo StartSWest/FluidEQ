@@ -7,6 +7,10 @@ const studio = {
   'studio.picture.download': 'Enregistrer l’image',
   'studio.picture.downloaded': 'Image enregistrée',
   'studio.picture.downloadFailed': 'Impossible d’enregistrer l’image.',
+  'studio.picture.copy': 'Copier l’image',
+  'studio.picture.copying': 'Copie en cours…',
+  'studio.picture.copied': 'Copiée',
+  'studio.picture.copyFailed': 'Impossible de copier',
   'studio.picture.separate': 'Images séparées ({count})',
   'studio.picture.separateHint':
     'Ce sont les parties d’une seule image. Les enregistrer ne modifie pas la scène.',

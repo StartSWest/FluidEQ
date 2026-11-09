@@ -7,6 +7,10 @@ const studio = {
   'studio.picture.download': 'चित्र सहेजें',
   'studio.picture.downloaded': 'चित्र सहेजा गया',
   'studio.picture.downloadFailed': 'चित्र सहेजा नहीं जा सका।',
+  'studio.picture.copy': 'चित्र कॉपी करें',
+  'studio.picture.copying': 'कॉपी हो रहा है…',
+  'studio.picture.copied': 'कॉपी हो गया',
+  'studio.picture.copyFailed': 'कॉपी नहीं हो सका',
   'studio.picture.separate': 'अलग चित्र ({count})',
   'studio.picture.separateHint':
     'ये एक ही चित्र के हिस्से हैं। इन्हें सहेजने से सीन नहीं बदलेगा।',

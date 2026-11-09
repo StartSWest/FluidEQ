@@ -8,6 +8,7 @@ import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import AtlasPicture, { uprightSize } from './AtlasPicture';
+import StudioPictureCopyButton from './StudioPictureCopyButton';
 import StudioPictureZoomBar from './StudioPictureZoomBar';
 import usePictureZoom from './usePictureZoom';
 import '../styles/Gallery.scss';
@@ -211,6 +212,12 @@ export default function StudioPictureLightbox({
                 )}
               </span>
             )}
+            <StudioPictureCopyButton
+              source={{
+                src: url,
+                ...(picture.whole ? {} : { region: picture.region }),
+              }}
+            />
             <button
               type="button"
               className={`button small subtle${saving ? ' is-running' : ''}`}

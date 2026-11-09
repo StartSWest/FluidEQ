@@ -14,6 +14,10 @@ const studio = {
   'studio.picture.download': 'Save image',
   'studio.picture.downloaded': 'Image saved',
   'studio.picture.downloadFailed': 'Could not save the image.',
+  'studio.picture.copy': 'Copy image',
+  'studio.picture.copying': 'Copying…',
+  'studio.picture.copied': 'Copied',
+  'studio.picture.copyFailed': 'Could not copy',
   'studio.picture.separate': 'Separate images ({count})',
   'studio.picture.separateHint':
     'These are parts of one image. Saving them leaves the scene unchanged.',

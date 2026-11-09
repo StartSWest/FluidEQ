@@ -7,6 +7,10 @@ const studio = {
   'studio.picture.download': 'Bild speichern',
   'studio.picture.downloaded': 'Bild gespeichert',
   'studio.picture.downloadFailed': 'Das Bild konnte nicht gespeichert werden.',
+  'studio.picture.copy': 'Bild kopieren',
+  'studio.picture.copying': 'Wird kopiert…',
+  'studio.picture.copied': 'Kopiert',
+  'studio.picture.copyFailed': 'Kopieren fehlgeschlagen',
   'studio.picture.separate': 'Einzelbilder ({count})',
   'studio.picture.separateHint':
     'Dies sind Teile eines Bildes. Das Speichern verändert die Szene nicht.',

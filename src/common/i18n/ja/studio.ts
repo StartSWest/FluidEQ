@@ -7,6 +7,10 @@ const studio = {
   'studio.picture.download': '画像を保存',
   'studio.picture.downloaded': '画像を保存しました',
   'studio.picture.downloadFailed': '画像を保存できませんでした。',
+  'studio.picture.copy': '画像をコピー',
+  'studio.picture.copying': 'コピー中…',
+  'studio.picture.copied': 'コピーしました',
+  'studio.picture.copyFailed': 'コピーできませんでした',
   'studio.picture.separate': '個別の画像（{count}）',
   'studio.picture.separateHint':
     '1枚の画像を構成するパーツです。保存してもシーンは変更されません。',

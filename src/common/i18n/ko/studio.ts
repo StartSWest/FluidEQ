@@ -11,6 +11,10 @@ const studio = {
   'studio.picture.download': '이미지 저장',
   'studio.picture.downloaded': '이미지가 저장되었습니다',
   'studio.picture.downloadFailed': '이미지를 저장할 수 없습니다.',
+  'studio.picture.copy': '이미지 복사',
+  'studio.picture.copying': '복사하는 중…',
+  'studio.picture.copied': '복사됨',
+  'studio.picture.copyFailed': '복사할 수 없습니다',
   'studio.picture.separate': '별도의 이미지({count})',
   'studio.picture.separateHint':
     '이것은 하나의 이미지의 일부입니다. 저장하면 장면이 변경되지 않습니다.',

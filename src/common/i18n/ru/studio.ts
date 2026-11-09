@@ -7,6 +7,10 @@ const studio = {
   'studio.picture.download': 'Сохранить изображение',
   'studio.picture.downloaded': 'Изображение сохранено',
   'studio.picture.downloadFailed': 'Не удалось сохранить изображение.',
+  'studio.picture.copy': 'Копировать изображение',
+  'studio.picture.copying': 'Копирование…',
+  'studio.picture.copied': 'Скопировано',
+  'studio.picture.copyFailed': 'Не удалось скопировать',
   'studio.picture.separate': 'Отдельные изображения ({count})',
   'studio.picture.separateHint':
     'Это части одного изображения. Их сохранение не изменяет сцену.',

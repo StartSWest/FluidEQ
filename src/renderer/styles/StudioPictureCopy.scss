@@ -1,0 +1,32 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+// "Copied", for its moment, in place of "Copy image" (`usePictureCopy.tsx`):
+// the hold's end is what puts the label back and closes a picture's menu,
+// the share card's recipe and its 1.6s (`ShareScore.scss`).
+//
+// `visibility`, which the word already has, so the hold changes nothing on
+// screen. Not a movement, and it has to end for the label to come back, so it
+// stays under reduced motion — against the stand-down's 1ms (`App.scss`) with
+// a class more than its `*` and `!important` to meet its own.
+$studio-picture-copied: 1.6s;
+
+.studio-picture-copied {
+  animation: studio-picture-copied $studio-picture-copied linear;
+}
+
+:root[data-motion='reduced'] .studio-picture-copied {
+  animation: studio-picture-copied $studio-picture-copied linear !important;
+}
+
+@keyframes studio-picture-copied {
+  from,
+  to {
+    visibility: visible;
+  }
+}

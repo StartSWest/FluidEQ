@@ -12,6 +12,7 @@ import MenuIcon from '../../icons/MenuIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import useModalKeys from '../../utils/useModalKeys';
 import { mostEnlarged } from '../StudioPictureLightbox';
+import StudioPictureCopyButton from '../StudioPictureCopyButton';
 import StudioPictureZoomBar from '../StudioPictureZoomBar';
 import usePictureZoom from '../usePictureZoom';
 import type { IChatPicture } from './chatPictureList';
@@ -192,6 +193,9 @@ export default function StudioChatPictureViewer({
                 })}
               </span>
             )}
+          </div>
+          <div className="studio-lightbox__actions">
+            <StudioPictureCopyButton source={{ src: picture.src }} />
           </div>
         </div>
         <DialogClose

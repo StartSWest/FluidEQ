@@ -1,9 +1,11 @@
+import type { MouseEvent } from 'react';
 import type { TStudioPictures } from 'main/ipc/studioPictures';
 import type { IArtworkRegion } from 'main/memberScenes/artworkRegions';
 import type { TPictureCopyOutcome } from 'main/ipc/studioPictureCopy';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import AtlasPicture from './AtlasPicture';
+import { drawUpright } from './pictureClipboard';
 import { decodePicture } from './scenePicture';
 import StudioPictureViewButton from './StudioPictureViewButton';
 
@@ -29,21 +31,7 @@ export const copyRegion = async (image: Uint8Array, region: IArtworkRegion) => {
     if (!context) {
       return undefined;
     }
-    if (region.rotated) {
-      context.translate(0, canvas.height);
-      context.rotate(-Math.PI / 2);
-    }
-    context.drawImage(
-      bitmap,
-      region.x,
-      region.y,
-      region.width,
-      region.height,
-      0,
-      0,
-      region.width,
-      region.height,
-    );
+    drawUpright(context, bitmap, region);
     const blob = await new Promise<Blob | null>((resolve) => {
       canvas.toBlob(resolve, 'image/png');
     });
@@ -62,6 +50,8 @@ interface IStudioPictureDownloadsProps {
   notice: TPictureCopyOutcome | undefined;
   onSave: (key: string, region?: IArtworkRegion) => void;
   onView: (region: IArtworkRegion) => void;
+  /** A right click on a piece: the menu that copies it. */
+  onMenu: (event: MouseEvent<HTMLElement>, region: IArtworkRegion) => void;
 }
 
 export default function StudioPictureDownloads({
@@ -71,6 +61,7 @@ export default function StudioPictureDownloads({
   notice,
   onSave,
   onView,
+  onMenu,
 }: IStudioPictureDownloadsProps) {
   const { t } = useTranslation();
   return (
@@ -104,7 +95,14 @@ export default function StudioPictureDownloads({
           <ul className="studio-pictures__list">
             {atlas.regions.map((region) => (
               <li className="studio-picture" key={region.id}>
-                <span className="studio-picture__frame">
+                <span
+                  className="studio-picture__frame"
+                  onContextMenu={(event) => {
+                    if (url) {
+                      onMenu(event, region);
+                    }
+                  }}
+                >
                   {url && (
                     <>
                       <AtlasPicture

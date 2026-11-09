@@ -13,6 +13,7 @@ import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import type { IPicturePreview } from './useScenePictures';
 import StudioPictureDownloads, { regionKey } from './StudioPictureDownloads';
+import useStudioPictureMenu from './useStudioPictureMenu';
 import StudioPictureLightbox, {
   type IViewedPicture,
 } from './StudioPictureLightbox';
@@ -111,6 +112,7 @@ export default function StudioPictures({
   const atlasImage = useAtlasImage(atlas?.image);
   const { save } = atlasImage;
   const [viewing, setViewing] = useState<IViewing>();
+  const { openMenu, menu: pictureMenu } = useStudioPictureMenu();
 
   const pieces = useMemo<IViewedPicture[]>(
     () =>
@@ -211,6 +213,11 @@ export default function StudioPictures({
           onView={(region) =>
             setViewing({ set: 'pieces', key: regionKey(region) })
           }
+          onMenu={(event, region) => {
+            if (atlasImage.url) {
+              openMenu(event, { src: atlasImage.url, region });
+            }
+          }}
         />
       )}
 
@@ -227,10 +234,23 @@ export default function StudioPictures({
                 ? 'studio.picture.adjust'
                 : 'studio.picture.replace';
             }
+            // Copied from the scene's image at its own size, never the
+            // card's preview, which may be drawn smaller.
+            const shown = filled.find(
+              (picture) => picture.key === pictureKey(slot),
+            );
             return (
               <li key={slot.id} className="studio-picture">
                 <span
                   className={`studio-picture__frame${isFilled ? '' : ' is-empty'}`}
+                  onContextMenu={(event) => {
+                    if (preview?.url && atlasImage.url && shown) {
+                      openMenu(event, {
+                        src: atlasImage.url,
+                        region: shown.region,
+                      });
+                    }
+                  }}
                 >
                   {preview?.url ? (
                     <img
@@ -296,6 +316,7 @@ export default function StudioPictures({
         </ul>
       )}
 
+      {pictureMenu}
       {atlas && atlasImage.url && at >= 0 && (
         <StudioPictureLightbox
           url={atlasImage.url}

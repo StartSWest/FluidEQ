@@ -21,6 +21,7 @@ function Downloads({
       notice={image.notice}
       onSave={image.save}
       onView={() => undefined}
+      onMenu={() => undefined}
     />
   );
 }

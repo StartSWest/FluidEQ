@@ -6,6 +6,10 @@ const studio = {
   'studio.picture.download': '保存图片',
   'studio.picture.downloaded': '图片已保存',
   'studio.picture.downloadFailed': '无法保存图片。',
+  'studio.picture.copy': '复制图片',
+  'studio.picture.copying': '正在复制…',
+  'studio.picture.copied': '已复制',
+  'studio.picture.copyFailed': '无法复制',
   'studio.picture.separate': '独立图片（{count}）',
   'studio.picture.separateHint':
     '这些是同一张图片的不同部分。保存它们不会更改场景。',
