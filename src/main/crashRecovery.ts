@@ -4,6 +4,7 @@ import log from 'electron-log';
 import ChannelEnum from '../common/channels';
 import { translate } from '../common/i18n';
 import { PRODUCT_NAME } from '../common/branding';
+import { keepDeepErrorStacks } from '../common/errorStacks';
 import { flushPendingWrites } from './asyncWriter';
 import { crashDumpFolder } from './crashDumps';
 import { getTrayLocale, isAppQuitting } from './tray';
@@ -339,6 +340,8 @@ export const installMainFailureRecovery = () => {
  * `whenReady` a good deal of the app has already run.
  */
 export const installCrashLogging = () => {
+  keepDeepErrorStacks();
+
   // Moved up from the updater's setup, which does not run until a window is
   // being built. Everything logged before that point was going to the console
   // and no further — including, by definition, every failure to get that far.

@@ -30,6 +30,8 @@ jest.mock('../../../main/tray', () => ({
 import { startCrashDumps } from '../../../main/crashDumps';
 // eslint-disable-next-line import/first -- As above.
 import { installCrashLogging } from '../../../main/crashRecovery';
+// eslint-disable-next-line import/first -- As above.
+import { ERROR_STACK_FRAMES } from '../../../common/errorStacks';
 
 const DUMPS = 'C:/Users/me/AppData/Roaming/FluidEQ/Crashpad';
 
@@ -77,4 +79,15 @@ it("names the dump folder beside the window's crash and a helper process's", () 
     'Child process gone (GPU): crashed',
     { ...crash, type: 'GPU', dumps: DUMPS },
   );
+});
+
+it('keeps deep error stacks in main from the moment crash logging is installed', () => {
+  const original = Error.stackTraceLimit;
+  Error.stackTraceLimit = 10;
+  try {
+    withoutFatalHandlers(installCrashLogging);
+    expect(Error.stackTraceLimit).toBe(ERROR_STACK_FRAMES);
+  } finally {
+    Error.stackTraceLimit = original;
+  }
 });

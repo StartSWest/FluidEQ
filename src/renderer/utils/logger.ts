@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import ChannelEnum from 'common/channels';
 import { PRODUCT_NAME } from 'common/branding';
+import { keepDeepErrorStacks } from 'common/errorStacks';
 import { captureRendererFailure } from './crashRecovery';
 
 /**
@@ -84,6 +85,7 @@ export const reportInfo = (message: string) => {
  * recovery from main, whose retry budget survives a renderer process death.
  */
 export const installGlobalErrorHandlers = () => {
+  keepDeepErrorStacks();
   window.addEventListener('error', (event) => {
     // A failed <img> or stylesheet fires this too, with no `error` on it, and
     // that is not worth a line in the log.
