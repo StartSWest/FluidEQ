@@ -188,7 +188,8 @@ constexpr unsigned kDefaultCameraKey = VK_CONTROL;
  * The commands main writes on the helper's input, one a line. `show`/`hide`
  * say whether the background is on the desktop; `touch`/`still` whether the
  * mouse is passed on; `camera-key <name>` which key turns the camera (`ctrl`,
- * `alt`, `shift`, or `vk:0x01` to `vk:0xFE`, the listener's own choice).
+ * `alt`, `shift`, `vk:0x01` to `vk:0xFE`, or a physical key as `scan:0xNN` or
+ * `scan:0xE0NN`: the listener's own choice).
  *
  * Anything else — a word this helper does not know, a key it cannot read, a
  * line longer than any command — is `unknown`, and the helper ignores it.
@@ -198,7 +199,51 @@ constexpr unsigned kDefaultCameraKey = VK_CONTROL;
  */
 enum class Command { none, show, hide, touch, still, camera_key, unknown };
 
-/** The virtual key a `camera-key` name names, or 0 for none it can read. */
+/**
+ * Marks a camera key held as a physical scan code rather than a virtual key:
+ * `scan:` names the key where it sits on the keyboard (KeyboardEvent.code), and
+ * its virtual key depends on the layout — AZERTY's KeyA is VK 'Q' — so it is
+ * turned into one only when it is read (`camera_vk`).
+ */
+constexpr unsigned kScanKey = 0x10000;
+
+/**
+ * `prefix` then `0x` and between `fewest` and `most` hex digits, as a number;
+ * false for anything else.
+ */
+inline bool hex_named(const char* name, std::size_t length, const char* prefix,
+                      std::size_t fewest, std::size_t most, unsigned& value) {
+  std::size_t index = 0;
+  for (; prefix[index] != '\0'; ++index) {
+    if (index >= length || name[index] != prefix[index]) return false;
+  }
+  if (length < index + 2 || name[index] != '0' || name[index + 1] != 'x') return false;
+  index += 2;
+  const std::size_t digits = length - index;
+  if (digits < fewest || digits > most) return false;
+  value = 0;
+  for (; index < length; ++index) {
+    const char digit = name[index];
+    unsigned nibble = 0;
+    if (digit >= '0' && digit <= '9') {
+      nibble = static_cast<unsigned>(digit - '0');
+    } else if (digit >= 'a' && digit <= 'f') {
+      nibble = static_cast<unsigned>(digit - 'a' + 10);
+    } else if (digit >= 'A' && digit <= 'F') {
+      nibble = static_cast<unsigned>(digit - 'A' + 10);
+    } else {
+      return false;
+    }
+    value = value * 16 + nibble;
+  }
+  return true;
+}
+
+/**
+ * The key a `camera-key` name names, or 0 for none it can read: a virtual key,
+ * or `kScanKey` and a scan code — `scan:0xNN`, or `scan:0xE0NN` for an extended
+ * key such as the right Ctrl, as Windows writes those.
+ */
 inline unsigned camera_key_named(const char* name, std::size_t length) {
   const auto is = [&](const char* word) {
     std::size_t index = 0;
@@ -210,25 +255,27 @@ inline unsigned camera_key_named(const char* name, std::size_t length) {
   if (is("ctrl")) return VK_CONTROL;
   if (is("alt")) return VK_MENU;
   if (is("shift")) return VK_SHIFT;
-  // vk:0x followed by one or two hex digits.
-  if (length < 6 || length > 7 || name[0] != 'v' || name[1] != 'k' || name[2] != ':' ||
-      name[3] != '0' || name[4] != 'x') return 0;
-  unsigned key = 0;
-  for (std::size_t index = 5; index < length; ++index) {
-    const char digit = name[index];
-    unsigned value = 0;
-    if (digit >= '0' && digit <= '9') {
-      value = static_cast<unsigned>(digit - '0');
-    } else if (digit >= 'a' && digit <= 'f') {
-      value = static_cast<unsigned>(digit - 'a' + 10);
-    } else if (digit >= 'A' && digit <= 'F') {
-      value = static_cast<unsigned>(digit - 'A' + 10);
-    } else {
-      return 0;
-    }
-    key = key * 16 + value;
+  unsigned code = 0;
+  if (hex_named(name, length, "vk:", 1, 2, code)) {
+    return code >= 0x01 && code <= 0xFE ? code : 0;
   }
-  return key >= 0x01 && key <= 0xFE ? key : 0;
+  if (hex_named(name, length, "scan:", 1, 4, code)) {
+    const unsigned high = code >> 8;
+    const unsigned low = code & 0xFF;
+    if (low != 0 && (high == 0 || high == 0xE0)) return kScanKey | code;
+  }
+  return 0;
+}
+
+/**
+ * The virtual key to read for a camera key, under keyboard `layout`: a virtual
+ * key as it is, a scan code through the layout (`MAPVK_VSC_TO_VK_EX`, which
+ * tells the left keys from the right and takes the 0xE0 of an extended one).
+ * 0 — a scan code the layout has no key for — is a key never held.
+ */
+inline unsigned camera_vk(unsigned key, HKL layout) {
+  if ((key & kScanKey) == 0) return key;
+  return MapVirtualKeyExW(key & 0xFFFF, MAPVK_VSC_TO_VK_EX, layout);
 }
 
 class CommandReader {
@@ -286,7 +333,8 @@ class CommandReader {
     return Command::unknown;
   }
 
-  // The longest command is `camera-key vk:0xFE`; room for a little more.
+  // The longest command is `camera-key scan:0xE0NN`, 22 bytes; room for a
+  // little more.
   char text_[32]{};
   std::size_t used_ = 0;
   bool overflowed_ = false;

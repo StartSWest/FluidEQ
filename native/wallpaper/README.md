@@ -12,8 +12,13 @@ the work area, and Chromium's frame styles add invisible insets, so placing it
 where it stood left the taskbar strip showing the ordinary wallpaper.
 Write exactly `show\n` or `hide\n` to change native visibility, `touch\n` or
 `still\n` to start or stop passing the mouse on, and `camera-key <name>\n` to
-name the key that turns the camera (`ctrl`, `alt`, `shift`, or `vk:0x01` to
-`vk:0xFE`; Ctrl until told); closing stdin requests shutdown. Commands are
+name the key that turns the camera (`ctrl`, `alt`, `shift`, `vk:0x01` to
+`vk:0xFE`, or a physical key as `scan:0xNN`, `scan:0xE0NN` for an extended one;
+Ctrl until told); closing stdin requests shutdown. A scan code is the key where
+it sits (main takes it from `KeyboardEvent.code`), and is turned into a virtual
+key at each report under the keyboard layout of the window with the keyboard
+(`MapVirtualKeyExW`, `MAPVK_VSC_TO_VK_EX`): a virtual key changes with the
+layout, AZERTY's KeyA being VK 'Q'. Commands are
 bounded (32 bytes), case-sensitive ASCII records. Any line the helper does not
 know — a newer main's command, a key it cannot read, a line too long — is
 ignored with `unknown-command` on stderr and never fails the background: a

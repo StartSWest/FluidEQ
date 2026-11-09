@@ -235,6 +235,42 @@ void the_camera_key() {
   CHECK(last == wallpaper::Command::unknown);
 }
 
+void a_physical_camera_key() {
+  std::printf("a camera key named where it sits on the keyboard\n");
+  const auto key_after = [](const char* text) {
+    wallpaper::CommandReader reader;
+    for (const char* each = text; *each != '\0'; ++each) reader.feed(*each);
+    return reader.camera_key();
+  };
+  CHECK(key_after("camera-key scan:0x1E\n") == (wallpaper::kScanKey | 0x1Eu));
+  CHECK(key_after("camera-key scan:0xE01D\n") == (wallpaper::kScanKey | 0xE01Du));
+  CHECK(key_after("camera-key scan:0xe038\n") == (wallpaper::kScanKey | 0xE038u));
+  CHECK(key_after("camera-key scan:0x2\n") == (wallpaper::kScanKey | 0x02u));
+  // Neither a high byte but 0xE0, nor no key at all, nor too many digits.
+  for (const char* bad : {"camera-key scan:0x00\n", "camera-key scan:0xE000\n",
+                          "camera-key scan:0xE11D\n", "camera-key scan:0x011D\n",
+                          "camera-key scan:0xE001D\n", "camera-key scan:0x00001D\n",
+                          "camera-key scan:1D\n",
+                          "camera-key scan:0x\n", "camera-key scan0x1D\n"}) {
+    std::string line = "camera-key alt\n";
+    line += bad;
+    CHECK(key_after(line.c_str()) == static_cast<unsigned>(VK_MENU));
+  }
+  // A virtual key is read as it is, whatever the layout.
+  CHECK(wallpaper::camera_vk(0x5A, nullptr) == 0x5Au);
+  // A scan code through the layout. Only keys that sit in the same place on
+  // every layout, so the test means the same on any machine: the left and
+  // right Ctrl, Shift and Alt (the right ones extended), and the space bar.
+  const HKL layout = GetKeyboardLayout(0);
+  CHECK(wallpaper::camera_vk(wallpaper::kScanKey | 0x1D, layout) == static_cast<unsigned>(VK_LCONTROL));
+  CHECK(wallpaper::camera_vk(wallpaper::kScanKey | 0xE01D, layout) == static_cast<unsigned>(VK_RCONTROL));
+  CHECK(wallpaper::camera_vk(wallpaper::kScanKey | 0x2A, layout) == static_cast<unsigned>(VK_LSHIFT));
+  CHECK(wallpaper::camera_vk(wallpaper::kScanKey | 0x36, layout) == static_cast<unsigned>(VK_RSHIFT));
+  CHECK(wallpaper::camera_vk(wallpaper::kScanKey | 0x38, layout) == static_cast<unsigned>(VK_LMENU));
+  CHECK(wallpaper::camera_vk(wallpaper::kScanKey | 0xE038, layout) == static_cast<unsigned>(VK_RMENU));
+  CHECK(wallpaper::camera_vk(wallpaper::kScanKey | 0x39, layout) == static_cast<unsigned>(VK_SPACE));
+}
+
 void raw_input_buttons() {
   std::printf("Raw Input's button flags\n");
   unsigned downs = 0;
@@ -267,6 +303,7 @@ int main() {
   stopping_mid_drag();
   the_commands_main_writes();
   the_camera_key();
+  a_physical_camera_key();
   raw_input_buttons();
   icons_under_the_point();
   if (g_failures != 0) {

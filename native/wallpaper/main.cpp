@@ -155,6 +155,25 @@ void update_listening() {
   }
 }
 
+/**
+ * Whether the camera key is down now. A physical key is looked up under the
+ * layout of the window that has the keyboard — the desktop's, most often —
+ * because that layout is what turned the press into the virtual key Windows
+ * keeps the state of; this helper's own thread may have been started under
+ * another. Asked at the moment of a report, so a layout switched since the
+ * key was chosen is followed.
+ */
+bool camera_key_down() {
+  const unsigned key = state.camera_key.load();
+  HKL layout = nullptr;
+  if ((key & wallpaper::kScanKey) != 0) {
+    const HWND foreground = GetForegroundWindow();
+    layout = GetKeyboardLayout(foreground ? GetWindowThreadProcessId(foreground, nullptr) : 0);
+  }
+  const unsigned vk = wallpaper::camera_vk(key, layout);
+  return vk != 0 && (GetAsyncKeyState(static_cast<int>(vk)) & 0x8000) != 0;
+}
+
 void on_raw_input(HRAWINPUT handle) {
   if (!state.listening || state.finished) return;
   RAWINPUT input{};
@@ -175,8 +194,7 @@ void on_raw_input(HRAWINPUT handle) {
   // passed on: the one key the listener chose (Ctrl unless they chose
   // another), and nothing else of the keyboard is ever read.
   if (sample.bare || state.router->holding()) {
-    sample.camera =
-      (GetAsyncKeyState(static_cast<int>(state.camera_key.load())) & 0x8000) != 0;
+    sample.camera = camera_key_down();
   }
   state.router->feed(sample, pointer_line);
   // A release over the desktop is how an icon is dropped somewhere new.
