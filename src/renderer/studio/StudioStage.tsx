@@ -10,6 +10,7 @@ import {
 } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IScenePack } from 'common/scenePacks';
+import type { TWallpaperMotion } from 'common/wallpaper';
 import type { IWorldReport } from 'common/worldNotes';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { useSceneAudio } from '../audio/SceneAudioContext';
@@ -28,6 +29,8 @@ import StudioGraphPaper from './StudioGraphPaper';
 import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
 import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
 import StudioStageLoading from './StudioStageLoading';
+import StudioStageMotion from './StudioStageMotion';
+import { useStageCalm } from './stageMotion';
 import { studioPaper } from './studioPaper';
 import { studioSpectrumRect, type IStudioWave } from './studioWave';
 import {
@@ -89,6 +92,12 @@ interface IStudioStageProps {
   signal: TStudioSignal;
   /** Nothing is playing and the scene moves to the demo song (`StudioStageSound`). */
   demo: boolean;
+  /**
+   * What the scene hears: the music, or Calm as a desktop set to it plays,
+   * switched by the plate's first button (`StudioStageMotion`).
+   */
+  motion: TWallpaperMotion;
+  onToggleMotion: () => void;
   size: TStudioSize;
   /**
    * What the scene is shown as, inside either size: the stage itself, the
@@ -164,6 +173,8 @@ export default function StudioStage({
   serial,
   signal,
   demo,
+  motion,
+  onToggleMotion,
   size,
   preview,
   hasPlayerParts = false,
@@ -254,16 +265,21 @@ export default function StudioStage({
   // of the column (`PLAYER_PANEL_VIEW`).
   const isPlayerRef = useRef(isPlayer);
   isPlayerRef.current = isPlayer;
+  // Calm takes the place of whatever the stage hears — the music, the demo
+  // song or a test signal — as it takes the music's place on a desktop.
+  const calm = useStageCalm(motion);
   const shapeFrame = useMemo(
     () => (frame: ISceneFrame) => {
-      const shaped = shapeStudioFrame(frame, signalRef.current, buffers, {
-        sound: readFrameRef.current()?.sound,
-      });
+      const shaped = calm(
+        shapeStudioFrame(frame, signalRef.current, buffers, {
+          sound: readFrameRef.current()?.sound,
+        }),
+      );
       return isPlayerRef.current
         ? { ...shaped, view: PLAYER_PANEL_VIEW }
         : shaped;
     },
-    [buffers],
+    [buffers, calm],
   );
 
   const drawnRef = useRef(onDrawn);
@@ -467,14 +483,13 @@ export default function StudioStage({
               : undefined
           }
         >
-          {/* Nothing playing, the scene moving to the demo song unheard: said
-              as the Gallery's preview says it, on the plate that wraps. */}
-          {demo && (
-            <span className="studio-stage__demo" role="status">
-              <span className="studio-stage__demo-dot" aria-hidden="true" />
-              {t('studio.stage.demoSong')}
-            </span>
-          )}
+          {/* What the scene hears — the music, the demo song unheard while
+              nothing plays, or Calm — and the press that swaps them. */}
+          <StudioStageMotion
+            motion={motion}
+            demo={demo}
+            onToggle={onToggleMotion}
+          />
           {/* A save's new version building beside the picture, which plays
               on meanwhile and is swapped for it the moment it is ready. */}
           {updating && (

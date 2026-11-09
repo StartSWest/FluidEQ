@@ -4,6 +4,12 @@ const studio = {
   'studio.stage.loading': 'シーンを読み込み中…',
   'studio.stage.updating': '更新中…',
   'studio.stage.demoSong': 'デモ曲に合わせて再生中',
+  'studio.stage.music': '音楽に合わせる',
+  'studio.stage.calm': '穏やか',
+  'studio.stage.toCalm':
+    '押すと「穏やか」になります。「穏やか」に設定したデスクトップ背景と同じ、音楽に反応しないゆっくりとした静かなアニメーションです。変わるのはこのステージだけです。',
+  'studio.stage.toMusic':
+    '押すと再び音楽に合わせて動きます。再生中の曲に、何も再生していないときはデモ曲に合わせます。',
   'studio.picture.download': '画像を保存',
   'studio.picture.downloaded': '画像を保存しました',
   'studio.picture.downloadFailed': '画像を保存できませんでした。',

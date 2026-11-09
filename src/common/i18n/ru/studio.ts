@@ -4,6 +4,12 @@ const studio = {
   'studio.stage.loading': 'Загрузка сцены…',
   'studio.stage.updating': 'Обновление…',
   'studio.stage.demoSong': 'Играет под демо-песню',
+  'studio.stage.music': 'Под музыку',
+  'studio.stage.calm': 'Спокойно',
+  'studio.stage.toCalm':
+    'Нажмите для режима «Спокойно»: медленная тихая анимация, как у фона рабочего стола в режиме «Спокойно», которая не слушает музыку. Меняется только этот предпросмотр.',
+  'studio.stage.toMusic':
+    'Нажмите, чтобы снова двигаться под музыку: под то, что играет, или под демо-песню, пока ничего не играет.',
   'studio.picture.download': 'Сохранить изображение',
   'studio.picture.downloaded': 'Изображение сохранено',
   'studio.picture.downloadFailed': 'Не удалось сохранить изображение.',

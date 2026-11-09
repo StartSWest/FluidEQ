@@ -136,6 +136,8 @@ const stage = (pack: IScenePack, serial: number) => (
     demo={false}
     size="graph"
     preview="stage"
+    motion="music"
+    onToggleMotion={jest.fn()}
     wave={{ height: 1, position: 0 }}
     isGridShown={false}
     readingRef={{ current: null }}

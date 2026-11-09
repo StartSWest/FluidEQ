@@ -108,6 +108,8 @@ const stage = (isGridShown: boolean) => (
     demo={false}
     size="graph"
     preview="stage"
+    motion="music"
+    onToggleMotion={jest.fn()}
     wave={wave}
     isGridShown={isGridShown}
     readingRef={{ current: null }}

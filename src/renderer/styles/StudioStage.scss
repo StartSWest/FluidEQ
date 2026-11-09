@@ -306,30 +306,55 @@ $stage-edge: $border-menu;
   bottom: $spacing-s;
 }
 
-// Nothing playing, the scene moving to the demo song without a sound
-// (`StudioStageSound`): the first part of the plate, as the Gallery's preview
-// tags it. In its own corner it ran under the plate wherever the plate spans
-// the stage (measured at a 420px window in de, ru, hi and fr); on the plate it
-// keeps to one line, and on a small stage it folds to its dot with the
-// reading (`.studio-stage__bar` in StudioWork.scss).
-.studio-stage__demo {
+// WHAT THE SCENE HEARS (`StudioStageMotion`), first on the plate: the
+// music, the demo song while nothing plays, or Calm, and a press swaps them.
+// The plate's own button; where a long language meets a narrow stage its
+// words are cut short rather than pushing the plate onto a second row (the
+// whole of them is its name and its tooltip), and on a small stage they fold
+// away with the plate's others (`.studio-stage__bar` in StudioWork.scss).
+.studio-stage-motion {
   display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 6px;
-  padding: 0 6px;
-  color: $text-muted;
-  pointer-events: none;
-  font-size: $text-micro;
-  font-weight: $weight-medium;
-  line-height: 1.35;
-  white-space: nowrap;
+  min-width: 0;
+  flex: 0 1 auto;
 }
 
-// The plate's hairline after it stood 4px off its last word, as close as a
-// letter's own spacing; the reading beside it keeps the room its figures need.
-.studio-stage__bar .studio-stage__demo:not(:last-child) {
-  padding-right: 10px;
+.studio-stage__bar .studio-stage-motion__button {
+  min-width: 0;
+  flex: 0 1 auto;
+
+  // Calm is the stage away from the music: worn as a chosen button is.
+  &.is-calm {
+    color: $white;
+    background: $selected-accent;
+  }
+}
+
+// Its space from the glyph and its longest in ems, so both fold away with
+// the words on a small stage, where they are made sizeless; on the button,
+// an em cap took the button itself to nothing there and cut its glyph.
+.studio-stage-motion__label {
+  min-width: 0;
+  max-width: 16em;
+  margin-inline-start: 0.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// The demo song: the music's bars with the Gallery's live light on their
+// corner. The light alone stood beside the reading's own as two dots alike
+// once a small stage folded the words away.
+.studio-stage-motion__live {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+
+  .studio-stage__demo-dot {
+    position: absolute;
+    top: -2px;
+    right: -3px;
+    width: 5px;
+    height: 5px;
+  }
 }
 
 // The Gallery's live light: the scene is moving, to music nobody hears.

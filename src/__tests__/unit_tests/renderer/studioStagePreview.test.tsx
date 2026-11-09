@@ -18,6 +18,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import '@testing-library/jest-dom';
 import { act, render } from '@testing-library/react';
 import type { IScenePack } from '../../../common/scenePacks';
+import {
+  SPECTRUM_TEXELS,
+  WAVEFORM_TEXELS,
+} from '../../../common/sceneUniformContract';
 import PlayerPicture from '../../../renderer/components/featureTour/PlayerPicture';
 import type { ISceneFrame } from '../../../renderer/graph/sceneGl';
 import useSceneRunner from '../../../renderer/graph/useSceneRunner';
@@ -109,6 +113,8 @@ const stage = (
     demo={false}
     size="graph"
     preview={preview}
+    motion="music"
+    onToggleMotion={jest.fn()}
     hasPlayerParts={hasPlayerParts}
     wave={wave}
     isGridShown={isGridShown}
@@ -131,7 +137,20 @@ const lastOptions = () => runner.mock.calls[runner.mock.calls.length - 1][0];
 /** What the scene is handed for one frame of the live signal. */
 const shaped = (): ISceneFrame => {
   const { shapeFrame } = lastOptions();
-  const frame = { level: 0.5 } as unknown as ISceneFrame;
+  const frame: ISceneFrame = {
+    timeSeconds: 12,
+    deltaMs: 1000 / 60,
+    level: 0.5,
+    beat: 0.4,
+    bands: [0.6, 0.4, 0.2],
+    musicAccent: [0, 0],
+    musicRun: [0, 0],
+    accent: [0, 0.9, 0.8],
+    fade: 1,
+    spectrum: new Uint8Array(SPECTRUM_TEXELS).fill(120),
+    waveform: new Uint8Array(WAVEFORM_TEXELS).fill(128),
+    params: {},
+  };
   if (!shapeFrame) {
     throw new Error('the stage hands the runner no frame shaper');
   }

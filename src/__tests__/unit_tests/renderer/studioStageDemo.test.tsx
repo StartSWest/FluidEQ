@@ -86,6 +86,8 @@ const stage = (signal: TStudioSignal) => (
     signal={signal}
     size="graph"
     preview="stage"
+    motion="music"
+    onToggleMotion={jest.fn()}
     wave={{ height: 1, position: 0 }}
     isGridShown={false}
     readingRef={{ current: null }}
@@ -119,10 +121,11 @@ beforeEach(() => {
 it('moves Your music to the demo song while nothing plays, and says so on the stage', () => {
   show('live', music(0));
   expect(mockDemos).toHaveLength(1);
-  expect(screen.getByText('studio.stage.demoSong')).toHaveAttribute(
-    'role',
-    'status',
-  );
+  // Said in a live region, so it is announced: the plate's first button,
+  // which also swaps the music for Calm (`StudioStageMotion`).
+  expect(
+    screen.getByText('studio.stage.demoSong').closest('[aria-live="polite"]'),
+  ).not.toBeNull();
   // The scene hears the demo's measurements, not the silent room.
   heardNow().readFrame();
   expect(mockDemos[0].readFrame).toHaveBeenCalled();

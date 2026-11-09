@@ -4,6 +4,12 @@ const studio = {
   'studio.stage.loading': 'Szene wird geladen…',
   'studio.stage.updating': 'Wird aktualisiert…',
   'studio.stage.demoSong': 'Läuft zum Demosong',
+  'studio.stage.music': 'Mit der Musik',
+  'studio.stage.calm': 'Ruhig',
+  'studio.stage.toCalm':
+    'Drücken für „Ruhig“: die langsame, ruhige Animation, die ein auf „Ruhig“ gestellter Desktophintergrund zeigt und die die Musik ignoriert. Nur diese Bühne ändert sich.',
+  'studio.stage.toMusic':
+    'Drücken, um wieder mit der Musik zu laufen: mit dem, was gerade spielt, oder mit dem Demosong, solange nichts läuft.',
   'studio.picture.download': 'Bild speichern',
   'studio.picture.downloaded': 'Bild gespeichert',
   'studio.picture.downloadFailed': 'Das Bild konnte nicht gespeichert werden.',

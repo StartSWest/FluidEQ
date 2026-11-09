@@ -4,6 +4,12 @@ const studio = {
   'studio.stage.loading': 'सीन लोड हो रहा है…',
   'studio.stage.updating': 'अपडेट हो रहा है…',
   'studio.stage.demoSong': 'डेमो गाने पर चल रहा है',
+  'studio.stage.music': 'संगीत के साथ',
+  'studio.stage.calm': 'शांत',
+  'studio.stage.toCalm':
+    'शांत के लिए दबाएँ: वही धीमा, शांत एनिमेशन जो शांत पर सेट डेस्कटॉप बैकग्राउंड चलाता है और संगीत को अनदेखा करता है। सिर्फ़ यह स्टेज बदलता है।',
+  'studio.stage.toMusic':
+    'फिर से संगीत के साथ चलाने के लिए दबाएँ: जो बज रहा है, या कुछ न बजने तक डेमो गाना।',
   'studio.picture.download': 'चित्र सहेजें',
   'studio.picture.downloaded': 'चित्र सहेजा गया',
   'studio.picture.downloadFailed': 'चित्र सहेजा नहीं जा सका।',

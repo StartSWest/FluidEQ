@@ -64,6 +64,8 @@ const stage = (size: 'graph' | 'full', onExitFullscreen: jest.Mock) =>
       demo={false}
       size={size}
       preview="stage"
+      motion="music"
+      onToggleMotion={jest.fn()}
       wave={{ height: 1, position: 0 }}
       isGridShown={false}
       readingRef={{ current: null }}
@@ -113,6 +115,8 @@ it('offers the way out while the screen is full, whatever the size says', () => 
       demo={false}
       size="graph"
       preview="stage"
+      motion="music"
+      onToggleMotion={jest.fn()}
       wave={{ height: 1, position: 0 }}
       isGridShown={false}
       readingRef={{ current: null }}

@@ -4,6 +4,12 @@ const studio = {
   'studio.stage.loading': 'Cargando escena…',
   'studio.stage.updating': 'Actualizando…',
   'studio.stage.demoSong': 'Al ritmo de la canción de la demo',
+  'studio.stage.music': 'Con la música',
+  'studio.stage.calm': 'Tranquilo',
+  'studio.stage.toCalm':
+    'Pulsa para Tranquilo: la animación lenta y serena que reproduce un fondo de escritorio puesto en Tranquilo, sin hacer caso de la música. Solo cambia este escenario.',
+  'studio.stage.toMusic':
+    'Pulsa para volver a moverte con la música: lo que esté sonando o la canción de la demo mientras no suena nada.',
   'studio.picture.download': 'Guardar imagen',
   'studio.picture.downloaded': 'Imagen guardada',
   'studio.picture.downloadFailed': 'No se pudo guardar la imagen.',

@@ -8,6 +8,12 @@ const studio = {
   'studio.stage.loading': '장면 로드 중…',
   'studio.stage.updating': '업데이트 중…',
   'studio.stage.demoSong': '데모 곡에 맞춰 재생 중',
+  'studio.stage.music': '음악과 함께',
+  'studio.stage.calm': '진정',
+  'studio.stage.toCalm':
+    '누르면 진정으로 바뀝니다. 진정으로 설정한 바탕 화면 배경처럼 음악을 무시하는 느리고 조용한 애니메이션입니다. 이 무대만 바뀝니다.',
+  'studio.stage.toMusic':
+    '누르면 다시 음악에 맞춰 움직입니다. 재생 중인 곡에, 아무것도 재생하지 않을 때는 데모 곡에 맞춥니다.',
   'studio.picture.download': '이미지 저장',
   'studio.picture.downloaded': '이미지가 저장되었습니다',
   'studio.picture.downloadFailed': '이미지를 저장할 수 없습니다.',

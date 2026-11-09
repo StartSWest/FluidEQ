@@ -7,6 +7,12 @@ const studio = {
   'studio.stage.loading': '載入場景...',
   'studio.stage.updating': '正在更新…',
   'studio.stage.demoSong': '正隨示範歌曲播放',
+  'studio.stage.music': '隨著音樂',
+  'studio.stage.calm': '冷靜',
+  'studio.stage.toCalm':
+    '按下切換到「冷靜」：與設為「冷靜」的桌面背景相同的緩慢安靜動畫，不受音樂影響。只改變這個舞臺。',
+  'studio.stage.toMusic':
+    '按下恢復隨著音樂而動：隨正在播放的音樂，沒有播放時隨示範歌曲。',
   'studio.picture.download': '儲存影像',
   'studio.picture.downloaded': '影像已儲存',
   'studio.picture.downloadFailed': '無法儲存影像。',

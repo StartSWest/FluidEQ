@@ -304,8 +304,9 @@ it under the terms of the GNU General Public License version 3 or later.
   // 1024px window with the chat as the Studio's tab the stage is 284 by 121,
   // and the plate wrapped into two rows over two thirds of it — the part the
   // stage exists to show). Under 440px the plate is one row of drawings: the
-  // reading folds to its light and the demo song and a new version to their
-  // dot and ring, so the plate covers under a quarter of the smallest stage.
+  // reading folds to its light, what the scene hears to its glyph or the
+  // demo song's dot, and a new version to its ring, so the plate covers
+  // under a quarter of the smallest stage.
   // The words are made sizeless, never removed, so the demo song and a new
   // version are still announced; the reading's words are the Performance
   // card's as well.
@@ -318,8 +319,8 @@ it under the terms of the GNU General Public License version 3 or later.
     }
 
     .studio-stage__reading,
-    .studio-stage__demo,
-    .studio-stage__updating {
+    .studio-stage__updating,
+    .studio-stage-motion__button {
       display: inline-flex;
       gap: 0;
       padding: 0 5px;

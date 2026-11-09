@@ -3,6 +3,12 @@ const studio = {
   'studio.stage.loading': '正在加载场景…',
   'studio.stage.updating': '正在更新…',
   'studio.stage.demoSong': '正随演示歌曲播放',
+  'studio.stage.music': '随音乐',
+  'studio.stage.calm': '平静',
+  'studio.stage.toCalm':
+    '按下切换到“平静”：与设为“平静”的桌面背景相同的缓慢安静动画，不受音乐影响。只改变这个舞台。',
+  'studio.stage.toMusic':
+    '按下恢复随音乐而动：随正在播放的音乐，没有播放时随演示歌曲。',
   'studio.picture.download': '保存图片',
   'studio.picture.downloaded': '图片已保存',
   'studio.picture.downloadFailed': '无法保存图片。',

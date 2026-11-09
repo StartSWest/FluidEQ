@@ -11,6 +11,12 @@ const studio = {
   'studio.stage.loading': 'Loading scene…',
   'studio.stage.updating': 'Updating…',
   'studio.stage.demoSong': 'Playing to the demo song',
+  'studio.stage.music': 'With the music',
+  'studio.stage.calm': 'Calm',
+  'studio.stage.toCalm':
+    'Press for Calm: the slow, quiet animation a desktop background set to Calm plays, ignoring the music. Only this stage changes.',
+  'studio.stage.toMusic':
+    'Press to move with the music again: what is playing, or the demo song while nothing plays.',
   'studio.picture.download': 'Save image',
   'studio.picture.downloaded': 'Image saved',
   'studio.picture.downloadFailed': 'Could not save the image.',
