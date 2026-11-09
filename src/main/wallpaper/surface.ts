@@ -132,7 +132,8 @@ export interface IDesktopSurface {
   owns(contents: WebContents): boolean;
   /** Re-reads the lock, sleep and battery conditions every monitor shares. */
   applyPolicy(): void;
-  drawn(generation: unknown): void;
+  /** The page drew; true when it drew the scene this surface shows now. */
+  drawn(generation: unknown): boolean;
   fail(error: TWallpaperError): void;
   release(): void;
 }
@@ -280,14 +281,14 @@ export const createDesktopSurface = (
     options.onChange();
   };
 
-  const drawn = (generation: unknown) => {
+  const drawn = (generation: unknown): boolean => {
     if (released || generation !== renderGeneration || phase === 'paused') {
-      return;
+      return false;
     }
     frameReady = true;
     if (host) {
       applyPolicy();
-      return;
+      return true;
     }
     // Placed only once the scene has a frame, so the desktop never shows an
     // empty window while shaders compile.
@@ -316,6 +317,8 @@ export const createDesktopSurface = (
       log.warn(`Desktop visualizer attachment: ${error}`);
       fail('host');
     }
+    // The scene drew either way; the window it is in could not be attached.
+    return true;
   };
 
   window.on('closed', () => fail('renderer'));

@@ -357,6 +357,7 @@ export default function ScenePage({
               identity={playing ?? ''}
               madeBy={madeBy}
               pack={preview.pack}
+              look={{ lookId: scene.lookId }}
               label={t(demo ? 'plus.scene.demoSong' : 'plus.scene.playing')}
               onDemo={setDemo}
               onTrouble={(trouble) =>

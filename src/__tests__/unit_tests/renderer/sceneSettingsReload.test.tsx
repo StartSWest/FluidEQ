@@ -212,7 +212,9 @@ it('keeps a failed update unseen and reports it only once the retry is confirmed
   const failure = new Promise<void>((resolve) => {
     finishFailure = resolve;
   });
-  failed.reportFailure = jest.fn(finishFailure);
+  // The version already drawn plays on through it: the new one failed, not
+  // the scene (`sceneKeepsLastBuild.test.tsx`).
+  failed.versionFailed = jest.fn(finishFailure);
   const error = jest
     .spyOn(console, 'error')
     .mockImplementation(() => undefined);
@@ -223,10 +225,10 @@ it('keeps a failed update unseen and reports it only once the retry is confirmed
   try {
     graph.rerender(<ConfirmedStage scene={failed} />);
     await act(async () => failure);
-    expect(failed.reportFailure).toHaveBeenCalledWith(
-      'compile',
+    expect(failed.versionFailed).toHaveBeenCalledWith(
       'synthetic compile failure',
     );
+    expect(failed.reportFailure).not.toHaveBeenCalled();
     expect(error).toHaveBeenCalledTimes(1);
     expect(confirmed).toHaveBeenCalledTimes(1);
     expect(seenSceneVersion(lookId)).toBe(10);

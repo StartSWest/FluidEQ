@@ -200,12 +200,25 @@ export const loadScenePack = async (
 export const reportSceneFailure = async (
   packId: string,
   reason: TSceneFailure,
+  detail?: string,
 ): Promise<void> => {
   if (!blocked.has(packId)) {
     blocked.add(packId);
     publish();
   }
-  await bridge()?.reportScenePackFailure?.(packId, reason);
+  await bridge()?.reportScenePackFailure?.(packId, reason, detail);
+};
+
+/**
+ * A version of this scene failed while an earlier one plays in its place:
+ * written in the log with the driver's words, and nothing stops offering it.
+ */
+export const noteSceneFailure = async (
+  packId: string,
+  reason: TSceneFailure,
+  detail: string,
+): Promise<void> => {
+  await bridge()?.reportScenePackFailure?.(packId, reason, detail);
 };
 
 /**

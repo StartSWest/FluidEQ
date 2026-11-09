@@ -65,8 +65,17 @@ const refreshScenePacks = () =>
 const removeScenePack = (id: string) =>
   ipcRenderer.invoke('scene-packs-remove', id) as Promise<boolean>;
 
-const reportScenePackFailure = (id: string, reason: TSceneFailure) =>
-  ipcRenderer.invoke('scene-packs-report-failure', id, reason) as Promise<void>;
+const reportScenePackFailure = (
+  id: string,
+  reason: TSceneFailure,
+  detail?: string,
+) =>
+  ipcRenderer.invoke(
+    'scene-packs-report-failure',
+    id,
+    reason,
+    detail,
+  ) as Promise<void>;
 
 const onScenePacksChanged = (
   listener: (listing: IScenePacksListing) => void,
@@ -92,12 +101,26 @@ const loadMemberScene = (lookId: string) =>
 const removeMemberScene = (lookId: string) =>
   ipcRenderer.invoke('member-scenes-remove', lookId) as Promise<boolean>;
 
-const reportMemberSceneFailure = (lookId: string, reason: TSceneFailure) =>
+const reportMemberSceneFailure = (
+  lookId: string,
+  reason: TSceneFailure,
+  detail?: string,
+) =>
   ipcRenderer.invoke(
     'member-scenes-report-failure',
     lookId,
     reason,
+    detail,
   ) as Promise<void>;
+
+// The last version of a look that built here (`sceneBuilds.ts`), by look id.
+const reportSceneBuilt = (lookId: string, revision: string) =>
+  ipcRenderer.invoke('scene-builds-built', lookId, revision) as Promise<void>;
+
+const lastSceneBuild = (lookId: string) =>
+  ipcRenderer.invoke('scene-builds-last', lookId) as Promise<
+    IScenePack | undefined
+  >;
 
 const onMemberScenesChanged = (
   listener: (listing: IMemberScenesListing) => void,
@@ -318,6 +341,8 @@ const studioBridge = {
   removeMemberScene,
   reportMemberSceneFailure,
   onMemberScenesChanged,
+  reportSceneBuilt,
+  lastSceneBuild,
   openStudio,
   closeStudio,
   linkStudioFolder,

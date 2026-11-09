@@ -54,13 +54,32 @@ const REMOVED_FILE = 'removed.json';
 /**
  * Why the renderer could not run a look. `gpu-reset`: its own frame held the
  * GPU right before the context was lost, so the reset was the scene's — kept
- * across builds. `context-lost`: lost twice with nothing to blame, which
- * sleep or a driver update does as well — kept for this build only.
+ * across builds. `context-lost`: lost again, with nothing to blame, before a
+ * frame was drawn since the last loss — a driver that will not come back.
  */
 export type TSceneFailure = 'compile' | 'context-lost' | 'gpu-reset';
 
 export const isSceneFailure = (value: unknown): value is TSceneFailure =>
   value === 'compile' || value === 'context-lost' || value === 'gpu-reset';
+
+const FAILURE_DETAIL_CHARS = 400;
+
+/**
+ * What the window says about a failure, made fit for one line of the log: the
+ * driver's own words, which the log never had — two of Ivan's scenes failed to
+ * compile on 2026-11-08 and 11-09 and the log said only "compile".
+ */
+export const sceneFailureDetail = (detail: unknown): string => {
+  if (typeof detail !== 'string') {
+    return '';
+  }
+  // eslint-disable-next-line no-control-regex -- the driver's log is flattened onto one line, control characters included
+  const line = detail.replace(/[\u0000-\u001f\u007f]+/g, ' ').trim();
+  if (line === '') {
+    return '';
+  }
+  return ` ${line.length > FAILURE_DETAIL_CHARS ? `${line.slice(0, FAILURE_DETAIL_CHARS)}…` : line}`;
+};
 
 export interface IScenePackSummary {
   id: string;

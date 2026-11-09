@@ -21,6 +21,7 @@ import { canvasPlan, scissorBox } from './sceneCanvasPlan';
 import { createSceneDrawClock } from './sceneDrawClock';
 import { createScenePost, needsPresent, type IScenePost } from './scenePost';
 import sameSceneProgramInputs from './sceneProgramInputs';
+import { createSceneLossLedger } from './sceneLosses';
 import type {
   TSceneBuildResult,
   TSceneWorkerReply,
@@ -67,7 +68,10 @@ let post: IScenePost | null | undefined;
 let pack: IScenePack | null = null;
 let guarded = false;
 let generation = 0;
+/** Every context loss so far: a load tells by it that one happened under it. */
 let losses = 0;
+/** Whether the scene may still come back from its losses (`sceneLosses.ts`). */
+const ledger = createSceneLossLedger();
 let compilation: AbortController | undefined;
 /** Loads still running: ending the worker waits for every one of them. */
 const running = new Set<Promise<TSceneBuildResult>>();
@@ -137,7 +141,7 @@ const load = async (
   compilation = controller;
   const mine = generation;
   const startedWithLosses = losses;
-  if (!gl || gl.isContextLost() || losses >= 2) {
+  if (!gl || gl.isContextLost() || ledger.spent()) {
     return { kind: 'unavailable' };
   }
   if (program && withGuard === guarded && sameSceneProgramInputs(pack, next)) {
@@ -279,7 +283,7 @@ const attach = (target: OffscreenCanvas) => {
     // second does not get the restore: reloaded, it drew the same frame and
     // reset the driver a second time, for every program on the machine. Any
     // other loss — sleep, a driver update, another page's crash — is not the
-    // scene's, and the scene comes back once.
+    // scene's, and the scene comes back from it, every time it draws again.
     //
     // Its frame is the one still on the GPU when the context went, or the
     // last one the clock finished timing: either past the blamed length.
@@ -291,21 +295,26 @@ const attach = (target: OffscreenCanvas) => {
     if (blamed && pack) {
       blamedSource = pack.source;
     }
-    losses += guarded && blamed ? 2 : 1;
+    losses += 1;
+    const fatal = ledger.lost({
+      heavy: guarded && blamed,
+      scenesOwn: pack !== null && blamedSource === pack.source,
+    });
     scope.postMessage({
       kind: 'lost',
-      fatal: losses >= 2,
+      fatal,
       // Whether this frame's own scene is why the context was lost, which the
       // client reports as a `gpu-reset` rather than a plain `context-lost`.
       blamed: pack !== null && blamedSource === pack.source,
     });
   });
   target.addEventListener('webglcontextrestored', () => {
-    if (!pack || losses >= 2) {
+    if (!pack || ledger.spent()) {
       return;
     }
     track(load(pack, guarded)).then((result) => {
       if (result.kind === 'ready') {
+        ledger.restored();
         scope.postMessage({ kind: 'restored' });
       } else if (result.kind !== 'cancelled') {
         scope.postMessage({
@@ -405,6 +414,7 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
   }
   clock.end();
   shownFrames += 1;
+  ledger.drew();
   shownAt = now;
   // No hand-off: the frame is committed when this task returns.
   return {

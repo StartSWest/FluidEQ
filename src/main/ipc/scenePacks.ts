@@ -21,6 +21,7 @@ import {
   type IScenePackSummary,
   type TSceneFailure,
   isSceneFailure,
+  sceneFailureDetail,
 } from '../scenePackStore';
 
 /**
@@ -365,16 +366,22 @@ export const registerScenePacksIpc = ({
     }
   });
 
-  const reportFailure = (id: string, reason: TSceneFailure) => {
+  const reportFailure = (
+    id: string,
+    reason: TSceneFailure,
+    detail?: unknown,
+  ) => {
     // Diagnostic only: nothing here gates a later attempt at the same scene.
-    logger?.warn(`Scene pack ${id} failed to run here: ${reason}.`);
+    logger?.warn(
+      `Scene pack ${id} failed to run here: ${reason}.${sceneFailureDetail(detail)}`,
+    );
   };
 
   ipcMain.handle(
     'scene-packs-report-failure',
-    (_event, id: unknown, reason: unknown) => {
+    (_event, id: unknown, reason: unknown, detail: unknown) => {
       if (typeof id === 'string' && isSceneFailure(reason)) {
-        reportFailure(id, reason);
+        reportFailure(id, reason, detail);
       }
     },
   );

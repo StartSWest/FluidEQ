@@ -150,7 +150,9 @@ const registerWallpaperIpc = (
         manager.failUnowned();
         return;
       }
-      surface.drawn(generation);
+      if (surface.drawn(generation)) {
+        manager.surfaceDrawn(surface);
+      }
     }),
   ];
 

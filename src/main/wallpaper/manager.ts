@@ -22,6 +22,7 @@ import {
   sameScenePerformance,
   type IScenePerformance,
 } from '../../common/scenePerformance';
+import type { IScenePack } from '../../common/scenePacks';
 import type { ISceneOwnership } from '../plus/sceneOwnership';
 import { isSceneFailure } from '../scenePackStore';
 import {
@@ -45,6 +46,13 @@ export interface IWallpaperDeps extends IWallpaperScenes {
   ownership: Pick<ISceneOwnership, 'owns' | 'subscribe'>;
   /** Where each monitor's background is remembered between launches. */
   arrangement: IArrangementStore;
+  /** A page drew this pack of the look (`sceneBuilds.ts`). */
+  sceneDrawn(lookId: string, pack: IScenePack): void;
+  /**
+   * This pack of the look would not build. True when an earlier build of it
+   * is kept, which `loadScene` answers in its place from now on.
+   */
+  sceneWouldNotBuild(lookId: string, pack: IScenePack): boolean;
 }
 
 /** Failures a monitor changing shape may clear. */
@@ -572,8 +580,32 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       surface.fail('renderer');
       return;
     }
-    surface.fail('refused');
     deps.reportSceneFailure(surface.lookId, reason);
+    // A version that will not compile is not the scene: the last version of
+    // it that drew here takes its place, as it does in the graph, and the
+    // monitor never shows a refusal for a scene that has a build to play.
+    // Only a compile — a reset of the driver is the scene's frame, whatever
+    // version it is, and stays refused.
+    const display = screen
+      .getAllDisplays()
+      .find((entry) => entry.id === surface.displayId);
+    const earlier =
+      reason === 'compile' &&
+      display !== undefined &&
+      deps.sceneWouldNotBuild(surface.lookId, surface.scene.pack)
+        ? deps.loadScene(surface.lookId)
+        : undefined;
+    if (display && earlier) {
+      backgrounds.change(display, surface.choice(), earlier);
+      publish();
+      return;
+    }
+    surface.fail('refused');
+  };
+
+  /** A page drew the scene it was last given. */
+  const surfaceDrawn = (surface: IDesktopSurface) => {
+    deps.sceneDrawn(surface.lookId, surface.scene.pack);
   };
 
   const refreshScenes = () => {
@@ -736,6 +768,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     failEverywhere,
     failUnowned,
     surfaceFailed,
+    surfaceDrawn,
     surfaceOwned,
     ownerContents,
     surfaceFor: backgrounds.surfaceFor,

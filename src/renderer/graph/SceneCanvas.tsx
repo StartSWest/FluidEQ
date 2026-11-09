@@ -8,7 +8,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { sceneMakerOf } from 'common/sceneMaker';
-import type { IScenePack } from 'common/scenePacks';
+import { premiumLookId, type IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { reportSceneColourControls } from '../utils/sceneAppColours';
 import { reportOwnParams, useListenerParams } from '../utils/sceneParamStore';
@@ -19,16 +19,19 @@ import {
 import {
   blockScene,
   loadScenePack,
+  noteSceneFailure,
   reportSceneFailure,
   type IUsableScene,
 } from '../utils/scenePacks';
 import {
   blockMemberScene,
   loadMemberScene,
+  noteMemberSceneFailure,
   reportMemberSceneFailure,
   type IUsableMemberScene,
 } from '../utils/memberScenes';
 import { useWatchedSceneWave } from '../utils/sceneWaveStore';
+import { lastSceneBuild, reportSceneBuilt } from '../utils/sceneBuilds';
 import useMovableContainer from '../utils/useMovableContainer';
 import { studioSpectrumRect } from '../studio/studioWave';
 import type { ISceneFrame } from './sceneGl';
@@ -106,6 +109,11 @@ export const sceneIdentityOf = (scene: TDrawableScene): string =>
  * an error; the fallback form is the error state, and it is a working
  * visualizer.
  *
+ * A VERSION THAT WILL NOT COMPILE IS NOT A FAILURE OF THE SCENE. The version
+ * before it plays on — the one already drawn, or the last one that built here
+ * (`sceneBuilds.ts`) — and the driver's words go to the log. Only a scene with
+ * nothing of it that builds falls back.
+ *
  * How it is run — its size ladder, the brightness limiter, whether it is
  * compiled ahead — follows from who made it (`sceneRules.ts`), exactly as it
  * does on the desktop, in the Library's player and on the Studio's stage.
@@ -131,9 +139,18 @@ export default function SceneCanvas({
             name,
             load: () => loadMemberScene(key),
             block: () => blockMemberScene(key),
-            reportFailure: (reason) => {
-              reportMemberSceneFailure(key, reason).catch(() => undefined);
+            reportFailure: (reason, log) => {
+              reportMemberSceneFailure(key, reason, log).catch(() => undefined);
             },
+            versionFailed: (log) => {
+              noteMemberSceneFailure(
+                key,
+                'compile',
+                `an earlier version plays on: ${log}`,
+              ).catch(() => undefined);
+            },
+            lastBuilt: () => lastSceneBuild(key),
+            built: () => reportSceneBuilt(key, String(version)),
             tooSlow: () => blockMemberScene(key),
             madeBy,
           }
@@ -143,9 +160,18 @@ export default function SceneCanvas({
             name,
             load: () => loadScenePack(key),
             block: () => blockScene(key),
-            reportFailure: (reason) => {
-              reportSceneFailure(key, reason).catch(() => undefined);
+            reportFailure: (reason, log) => {
+              reportSceneFailure(key, reason, log).catch(() => undefined);
             },
+            versionFailed: (log) => {
+              noteSceneFailure(
+                key,
+                'compile',
+                `an earlier version plays on: ${log}`,
+              ).catch(() => undefined);
+            },
+            lastBuilt: () => lastSceneBuild(premiumLookId(key)),
+            built: () => reportSceneBuilt(premiumLookId(key), String(version)),
             // A slow session is a fact about the machine right now, not about
             // the pack: fall back until the next launch, write nothing down.
             tooSlow: () => blockScene(key),

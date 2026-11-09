@@ -252,6 +252,9 @@ export const setup = (stored?: IWallpaperArrangement) => {
       return () => sceneListeners.delete(listener);
     }),
     reportSceneFailure: jest.fn(),
+    // No earlier build kept, unless a test keeps one.
+    sceneDrawn: jest.fn(),
+    sceneWouldNotBuild: jest.fn((): boolean => false),
   };
   const deps: IWallpaperDeps = {
     getMainWindow: () =>

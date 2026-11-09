@@ -652,6 +652,9 @@ export default function useSceneRunner({
   // The newest pack asked for, which is not yet `packRef` while it compiles:
   // hiding a scene mid-compile has to shelve this one, not nothing.
   const wantedRef = useRef<IScenePack | null>(null);
+  // The earlier build being put up in place of a first version that would
+  // not compile: drawn, but not the version the source names.
+  const standInRef = useRef<IScenePack | null>(null);
   const shownRef = useRef(true);
   const buildRef = useRef<(pack: IScenePack) => Promise<void>>(() =>
     Promise.resolve(),
@@ -825,6 +828,11 @@ export default function useSceneRunner({
         paramsRef.current = Object.fromEntries(
           pack.params.map((param) => [param.id, param.value]),
         );
+        // The same program as the one drawn, so this version has built too.
+        if (pack !== standInRef.current) {
+          standInRef.current = null;
+          sourceRef.current.built?.();
+        }
         loadedRef.current?.(pack);
         kick();
         return;
@@ -876,9 +884,37 @@ export default function useSceneRunner({
         );
         // The last version that compiled, if there is one, carries on — and is
         // the one built again should the scene be put away and seen again,
-        // rather than the broken one, which left nothing on the stage.
+        // rather than the broken one, which left nothing on the stage. That is
+        // not a failure of the scene: it used to be reported as one, and every
+        // place but the Studio then put the plain look over a scene still
+        // drawing (Ivan, 2026-11-09: "I dont want fallbacks like that").
         if (packRef.current) {
           wantedRef.current = packRef.current;
+          setWaiting(false);
+          sourceRef.current.versionFailed?.(result.log);
+          return;
+        }
+        // Nothing of it drawn yet: the last version that built here, if one
+        // was kept and it is another program, stands in for it.
+        let earlier: IScenePack | undefined;
+        try {
+          earlier = await sourceRef.current.lastBuilt?.();
+        } catch {
+          earlier = undefined;
+        }
+        if (
+          generation !== generationRef.current ||
+          renderer !== rendererRef.current
+        ) {
+          return;
+        }
+        if (earlier && !sameSceneProgramInputs(earlier, pack)) {
+          sourceRef.current.versionFailed?.(result.log);
+          standInRef.current = earlier;
+          // Should it not compile either, it is the one `lastBuilt` answers
+          // again, the same program, and this ends in `reportFailure`.
+          await buildRef.current(earlier);
+          return;
         }
         setWaiting(false);
         sourceRef.current.reportFailure('compile', result.log);
@@ -903,6 +939,10 @@ export default function useSceneRunner({
         if (result.world) {
           sourceRef.current.reportWorld?.(result.world);
         }
+        if (pack !== standInRef.current) {
+          standInRef.current = null;
+          sourceRef.current.built?.();
+        }
         loadedRef.current?.(pack);
         kick();
       }
@@ -925,6 +965,7 @@ export default function useSceneRunner({
       packRef.current = null;
       shelvedRef.current = null;
       wantedRef.current = null;
+      standInRef.current = null;
     };
   }, [source.identity, startRenderer, dropProgram]);
 

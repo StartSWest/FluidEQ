@@ -208,6 +208,10 @@ export default function StudioStage({
             ? { kind: 'compile', log: log ?? '' }
             : { kind: 'unavailable' },
         ),
+      // The last save that compiled plays on, and the author is told why the
+      // newest did not: the one place where the driver's words are for
+      // somebody who can act on them.
+      versionFailed: (log) => troubleRef.current({ kind: 'compile', log }),
       tooSlow: () => troubleRef.current({ kind: 'heavy' }),
       reportWorld: (report) => {
         if (!report.drawn || report.notes.length > 0) {

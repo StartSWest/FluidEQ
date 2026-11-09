@@ -1,5 +1,5 @@
 import { dialog, ipcMain, shell, type BrowserWindow } from 'electron';
-import { parseMemberLookId } from '../../common/memberScenes';
+import { memberLookId, parseMemberLookId } from '../../common/memberScenes';
 import type { IScenePack } from '../../common/scenePacks';
 import type { IAccountSession } from '../account/session';
 import type { IVersionPins } from '../keptVersions';
@@ -17,7 +17,11 @@ import {
   type ISceneViewer,
   type IVisibleScene,
 } from '../memberScenes/visibleScenes';
-import { isSceneFailure, type TSceneFailure } from '../scenePackStore';
+import {
+  isSceneFailure,
+  sceneFailureDetail,
+  type TSceneFailure,
+} from '../scenePackStore';
 import {
   registerStudioProjectsIpc,
   type IStudioProjectsIpcRegistration,
@@ -73,6 +77,8 @@ export interface IMemberScenesIpcDeps {
   adoptPublished?: (folders: readonly string[]) => Promise<boolean>;
   /** FluidEQ's agent skills placed in a project opened (`studioSkills.ts`). */
   placeSkills?: (folder: string) => void;
+  /** A look removed from this computer: its last build goes with it (`sceneBuilds.ts`). */
+  forgetBuild?: (lookId: string) => void;
 }
 
 export interface IMemberScenesIpcRegistration {
@@ -141,6 +147,7 @@ export const registerMemberScenesIpc = ({
   publishedOf,
   adoptPublished,
   placeSkills,
+  forgetBuild,
 }: IMemberScenesIpcDeps): IMemberScenesIpcRegistration => {
   const store = createMemberSceneStore({ userDataDir, pins, logger });
 
@@ -219,25 +226,32 @@ export const registerMemberScenesIpc = ({
     }
     const removed = store.remove(ref.authorId, ref.packId);
     if (removed) {
+      forgetBuild?.(memberLookId(ref.authorId, ref.packId));
       announceScenes();
     }
     return removed;
   });
 
-  const reportFailure = (lookId: string, reason: TSceneFailure) => {
+  const reportFailure = (
+    lookId: string,
+    reason: TSceneFailure,
+    detail?: unknown,
+  ) => {
     const ref = parseMemberLookId(lookId);
     if (!ref) {
       return;
     }
     // Diagnostic only: nothing here gates a later attempt at the same scene.
-    logger?.warn(`Member scene ${lookId} failed to run here: ${reason}.`);
+    logger?.warn(
+      `Member scene ${lookId} failed to run here: ${reason}.${sceneFailureDetail(detail)}`,
+    );
   };
 
   ipcMain.handle(
     'member-scenes-report-failure',
-    (_event, lookId: unknown, reason: unknown) => {
+    (_event, lookId: unknown, reason: unknown, detail: unknown) => {
       if (typeof lookId === 'string' && isSceneFailure(reason)) {
-        reportFailure(lookId, reason);
+        reportFailure(lookId, reason, detail);
       }
     },
   );

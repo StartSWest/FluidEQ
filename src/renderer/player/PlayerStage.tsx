@@ -149,6 +149,7 @@ const PlayerStage = ({ scene, onTrouble, panel }: IPlayerStageProps) => {
           identity={scene.identity}
           madeBy={scene.madeBy}
           pack={scene.pack}
+          look={{ lookId: scene.lookId, revision: scene.revision }}
           label={scene.label}
           tuning={scene.tuning}
           wave={scene.wave}

@@ -60,6 +60,8 @@ import { chatLauncherFor } from './studioChat/chatRelayClient';
 import { createArrangementStore } from './wallpaper/arrangement';
 import registerWallpaperIpc from './wallpaper/register';
 import { createWallpaperScenes } from './wallpaper/scenes';
+import registerSceneBuildsIpc from './ipc/sceneBuilds';
+import { createSceneBuilds, type ISceneBuilds } from './sceneBuilds';
 
 export interface IMemberServicesDeps {
   getMainWindow: () => BrowserWindow | null;
@@ -204,7 +206,11 @@ const registerMemberServices = ({
     differsFile: path.join(userDataDir, 'studio-published-checked.json'),
     logger: log,
   });
+  // The last version of each look that built here (`sceneBuilds.ts`): made
+  // once both stores exist, and told of a look removed from the member's.
+  let sceneBuilds: ISceneBuilds | undefined;
   const memberScenesIpc = registerMemberScenesIpc({
+    forgetBuild: (lookId) => sceneBuilds?.forget(lookId),
     getMainWindow,
     userDataDir,
     documentsDir: app.getPath('documents'),
@@ -237,11 +243,26 @@ const registerMemberServices = ({
     announceMember: memberScenesIpc.announce,
   });
 
+  const looks = createWallpaperScenes(scenePacksIpc, memberScenesIpc);
+  const builds = createSceneBuilds({
+    dir: path.join(userDataDir, 'scene-builds'),
+    // A look this account may not play has no last build to hand out either:
+    // FluidEQ's own store loads a pack whatever the membership.
+    loadScene: (lookId) =>
+      sceneOwnership.owns(lookId) ? looks.loadScene(lookId) : undefined,
+    logger: log,
+  });
+  sceneBuilds = builds;
+  const disposeSceneBuilds = registerSceneBuildsIpc(builds);
+
   const wallpaperIpc = registerWallpaperIpc({
     getMainWindow,
     ownership: sceneOwnership,
     arrangement: createArrangementStore(userDataDir, log),
-    ...createWallpaperScenes(scenePacksIpc, memberScenesIpc),
+    ...looks,
+    loadScene: builds.loadScene,
+    sceneDrawn: builds.drawn,
+    sceneWouldNotBuild: builds.wouldNotBuild,
   });
 
   // Sharing them between members: export signed by the server, import
@@ -438,6 +459,7 @@ const registerMemberServices = ({
     plusReviewIpc.dispose();
     disposeStudioInspect();
     disposeSceneVersions();
+    disposeSceneBuilds();
     plusPublishingIpc.dispose();
     plusGalleryIpc.dispose();
     galleryClipIpc.dispose();

@@ -59,9 +59,25 @@ export interface ISceneSource {
   /**
    * The scene itself failed here. `log` is the driver's message.
    * `gpu-reset` is a lost context the scene's own frame is blamed for, and
-   * outlives the build; `context-lost` is two losses nothing was blamed for.
+   * outlives the build; `context-lost` is a second loss nothing was blamed
+   * for before any frame came back from the first.
    */
   reportFailure(reason: TSceneFailure, log?: string): void;
+  /**
+   * A newer version would not compile, and an earlier one is drawn in its
+   * place — the one already on the canvas, or `lastBuilt`'s. The scene has not
+   * failed: nothing falls back, and only a place whose author can act on the
+   * driver's message (the Studio) shows it.
+   */
+  versionFailed?(log: string): void;
+  /**
+   * The last version of this scene that built here, for a first build that
+   * will not compile (`sceneBuilds.ts`). Absent, or nothing kept, and that
+   * failure is `reportFailure`'s.
+   */
+  lastBuilt?(): Promise<IScenePack | undefined>;
+  /** The version this source names now has built and is drawn. */
+  built?(): void;
   /**
    * It held the GPU so long at its smallest size that it would freeze the
    * window (`sceneWarmup.ts`): a member's scene only. Never called for a

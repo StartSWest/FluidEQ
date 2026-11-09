@@ -195,3 +195,83 @@ describe('a look that cannot be loaded at start time', () => {
     ]);
   });
 });
+
+/** A desktop page saying it drew the scene of a generation. */
+const pageDraws = (surface: IFakeSurface) =>
+  mockMessages.get('wallpaper-drawn')?.(
+    { sender: surface.contents, senderFrame: surface.contents.mainFrame },
+    1,
+  );
+
+describe('a version of the desktop’s scene that will not compile', () => {
+  // Ivan, 2026-11-09: "I dont want fallbacks like that". A version that will
+  // not compile is not the scene: the last version of it that drew here plays
+  // on, as it does in the graph (`sceneBuilds.ts`).
+  it('gives way to the last build of the scene, and its monitor is not refused', () => {
+    const { deps, owner, scenes } = setup();
+    registerWallpaperIpc(deps);
+    setThrough(owner, { displayIds: [2, 3] });
+    const [onTwo, onThree] = mockSurfaces;
+
+    // The control: nothing earlier kept, and the monitor is refused.
+    pageFails(onTwo, 'compile');
+    expect(onTwo.fail).toHaveBeenCalledWith('refused');
+
+    const earlier = {
+      pack: { id: 'premium:alpine', version: 1, source: 'earlier' },
+      madeBy: 'fluideq',
+    };
+    const { pack } = (onThree as unknown as { scene: { pack: unknown } }).scene;
+    scenes.sceneWouldNotBuild.mockReturnValue(true);
+    scenes.loadScene.mockReturnValue(earlier as never);
+    pageFails(onThree, 'compile');
+    expect(scenes.sceneWouldNotBuild).toHaveBeenLastCalledWith(
+      'premium:alpine',
+      pack,
+    );
+    expect(onThree.fail).not.toHaveBeenCalled();
+    expect(onThree.changeScene).toHaveBeenCalledWith(
+      expect.objectContaining({ lookId: 'premium:alpine' }),
+      earlier,
+      undefined,
+    );
+    const screens = screensThrough(owner);
+    expect(screens.find((screen) => screen.displayId === 2)).toMatchObject({
+      error: 'refused',
+    });
+    expect(
+      screens.find((screen) => screen.displayId === 3)?.error,
+    ).toBeUndefined();
+  });
+
+  it('answers a reset of the driver with no earlier build: that is the scene’s frame', () => {
+    const { deps, owner, scenes } = setup();
+    registerWallpaperIpc(deps);
+    setThrough(owner);
+    scenes.sceneWouldNotBuild.mockReturnValue(true);
+
+    pageFails(mockSurfaces[0], 'gpu-reset');
+    expect(scenes.sceneWouldNotBuild).not.toHaveBeenCalled();
+    expect(mockSurfaces[0].fail).toHaveBeenCalledWith('refused');
+  });
+
+  it('keeps what a page drew of the scene it shows now as the last build', () => {
+    const { deps, owner, scenes } = setup();
+    registerWallpaperIpc(deps);
+    setThrough(owner);
+    const [surface] = mockSurfaces;
+    const drawn = jest.fn(() => false);
+    Object.assign(surface, { drawn });
+
+    // The control: a frame of a scene this monitor no longer shows.
+    pageDraws(surface);
+    expect(scenes.sceneDrawn).not.toHaveBeenCalled();
+
+    drawn.mockReturnValue(true);
+    pageDraws(surface);
+    expect(scenes.sceneDrawn).toHaveBeenCalledWith(
+      'premium:alpine',
+      (surface as unknown as { scene: { pack: unknown } }).scene.pack,
+    );
+  });
+});

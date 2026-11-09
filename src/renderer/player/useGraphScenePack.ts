@@ -28,6 +28,8 @@ export interface IGraphScenePack {
   identity: string;
   /** The graph's look id for it: what the desktop background is asked for. */
   lookId: string;
+  /** Which version of the look the listing names (`sceneBuilds.ts`). */
+  revision: string | undefined;
   pack: IScenePack;
   madeBy: TSceneMaker;
   label: string;
@@ -146,6 +148,7 @@ const useGraphScenePack = (drawsHere = true): TGraphScene => {
     state: 'ready',
     identity: loadKey,
     lookId,
+    revision: scene.revision,
     pack: loaded.pack,
     madeBy: sceneMakerOf({
       member: isMember(scene),

@@ -7,6 +7,7 @@ import type { ISceneFrame } from '../graph/sceneGl';
 import { createSceneInteraction } from '../graph/sceneInteraction';
 import SceneViewReset from '../graph/SceneViewReset';
 import { studioSpectrumRect } from '../studio/studioWave';
+import { lastSceneBuild, reportSceneBuilt } from '../utils/sceneBuilds';
 import useSceneRunner, {
   type ISceneSource,
   type ISceneTuning,
@@ -51,6 +52,13 @@ interface IScenePreviewProps {
    * picks there.
    */
   daylight?: () => number;
+  /**
+   * The look this scene is, where it plays one of the listener's looks: a
+   * version of it that will not compile then gives way to the last one that
+   * built here (`sceneBuilds.ts`) instead of the trouble below. With the
+   * revision the pack is, a version that builds is kept as that last one.
+   */
+  look?: { lookId: string; revision?: string };
 }
 
 /**
@@ -78,6 +86,7 @@ export default function ScenePreview({
   captureSize,
   wave: listenerWave,
   daylight,
+  look,
 }: IScenePreviewProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
@@ -110,6 +119,8 @@ export default function ScenePreview({
   const troubleRef = useRef(onTrouble);
   troubleRef.current = onTrouble;
 
+  const lookId = look?.lookId;
+  const lookRevision = look?.revision;
   const source = useMemo<ISceneSource>(
     () => ({
       identity,
@@ -123,9 +134,19 @@ export default function ScenePreview({
         troubleRef.current(reason === 'compile' ? 'compile' : 'unavailable');
       },
       tooSlow: () => troubleRef.current('heavy'),
+      ...(lookId !== undefined
+        ? {
+            lastBuilt: () => lastSceneBuild(lookId),
+            built: () => {
+              if (lookRevision !== undefined) {
+                reportSceneBuilt(lookId, lookRevision);
+              }
+            },
+          }
+        : {}),
       madeBy,
     }),
-    [identity, madeBy],
+    [identity, madeBy, lookId, lookRevision],
   );
 
   const drawnRef = useRef(onDrawn);
