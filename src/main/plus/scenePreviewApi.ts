@@ -40,7 +40,12 @@ export const readPreviewUpload = (
     item.sourceVersion < 1 ||
     typeof item.version !== 'number' ||
     !Number.isSafeInteger(item.version) ||
-    item.version < item.sourceVersion
+    // Not held to the project's own number: a publication goes out one above
+    // the gallery's (b2d35067b), which is below a project the AI pushed ahead
+    // (v23 on the bench, v11 out). That the clip is this pack's, at the version
+    // published, is `previewMatchesSource`'s check; that it goes up, the
+    // server's.
+    item.version < 1
   ) {
     return undefined;
   }
