@@ -17,6 +17,22 @@ import {
   writeStarterProject,
 } from '../../../main/memberScenes/project';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
+import { LOCALES } from '../../../common/i18n';
+import {
+  isDecodablePicture,
+  pictureHeaderSize,
+  PICTURE_BOUNDS,
+  SHEET_BOUNDS,
+} from '../../../common/pictureBounds';
+import { readProjectAnimations } from '../../../main/memberScenes/projectAnimations';
+import {
+  readPictureAtlas,
+  readPictureImage,
+} from '../../../main/memberScenes/projectPictures';
+import {
+  STARTER_ANIMATION_NAME,
+  starterManifest,
+} from '../../../main/memberScenes/starterScene';
 import { daylightControl, webpBytes } from '../../utils/memberSceneFixtures';
 
 const SOURCE = `vec4 sceneColour(vec2 uv) {
@@ -371,6 +387,84 @@ describe('the starter project', () => {
     expect(fs.readFileSync(path.join(project, 'scene.frag'), 'utf8')).toMatch(
       /^\/\/ My first FluidEQ scene/,
     );
+  });
+
+  // Ivan, 2026-11-09: "the start scene start with someting on both so the
+  // agent knows there exist and the user too".
+  it('starts with a picture in the orb and a swallow for the Animations tab', async () => {
+    await writeStarterProject(project, {
+      name: 'My First Scene',
+      id: 'my-first-scene',
+    });
+    const read = await readPictureAtlas(project);
+    expect(read.kind).toBe('atlas');
+    if (read.kind !== 'atlas') {
+      return;
+    }
+    expect(read.atlas).toMatchObject({
+      file: 'artwork.webp',
+      width: 512,
+      height: 776,
+      pictures: [{ id: 'orb', x: 0, y: 0, width: 512, height: 512 }],
+    });
+    // The image is in the folder and is exactly the WebP the pack asks for,
+    // so the Pictures tab shows the moon rather than an empty place.
+    expect(await readPictureImage(project, read.atlas)).toBeDefined();
+    const animations = await readProjectAnimations(project);
+    expect(animations.map(({ animation }) => animation)).toEqual([
+      {
+        name: STARTER_ANIMATION_NAME,
+        sheet: 'art/swallow-flight.webp',
+        count: 8,
+        columns: 4,
+        fps: 10,
+        loop: true,
+        ground: 'sky',
+      },
+    ]);
+    expect(animations[0].sheet.length).toBeGreaterThan(0);
+    // Both pass the header check a stranger's files get before anything
+    // decodes them: the starter ships through the same door.
+    const artwork = new Uint8Array(
+      fs.readFileSync(path.join(project, 'artwork.webp')),
+    );
+    expect(pictureHeaderSize(artwork)).toEqual([512, 776]);
+    expect(isDecodablePicture(artwork, PICTURE_BOUNDS)).toBe(true);
+    expect(pictureHeaderSize(animations[0].sheet)).toEqual([848, 512]);
+    expect(isDecodablePicture(animations[0].sheet, SHEET_BOUNDS)).toBe(true);
+  });
+
+  it('names the orb picture in every language the app speaks', () => {
+    const pack = JSON.parse(
+      starterManifest('My First Scene', 'my-first-scene'),
+    );
+    expect(Object.keys(pack.pictures[0].names).sort()).toEqual(
+      LOCALES.map(({ code }) => code).sort(),
+    );
+  });
+
+  it("keeps a member's own file where the starter's art would go", async () => {
+    fs.mkdirSync(path.join(project, 'art'));
+    fs.mkdirSync(path.join(project, 'animations'));
+    write('art/swallow-flight.webp', 'mine');
+    write('animations/swallow-flight.json', '{"mine": true}');
+    expect(
+      await writeStarterProject(project, {
+        name: 'My First Scene',
+        id: 'my-first-scene',
+      }),
+    ).toBe('written');
+    expect(
+      fs.readFileSync(path.join(project, 'art/swallow-flight.webp'), 'utf8'),
+    ).toBe('mine');
+    expect(
+      fs.readFileSync(
+        path.join(project, 'animations/swallow-flight.json'),
+        'utf8',
+      ),
+    ).toBe('{"mine": true}');
+    // The starter's picture still arrives beside them.
+    expect(fs.existsSync(path.join(project, 'artwork.webp'))).toBe(true);
   });
 
   it('never writes over a project that is already there', async () => {

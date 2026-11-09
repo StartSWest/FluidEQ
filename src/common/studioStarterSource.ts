@@ -4,6 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import textDigest from './textDigest';
+
 /**
  * The scene "New project" writes to scene.frag (its pack.json is
  * `main/memberScenes/starterScene.ts`). Here rather than beside the manifest
@@ -20,6 +22,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * It is a template literal: no backtick, backslash or dollar-brace may
  * appear in it, and nothing outside plain ASCII, as in every member scene.
+ * Its image's size and places (ART_SIZE, ORB_PICTURE, SWALLOW_SHEET) are the
+ * starter's `pack.json` (`starterScene.ts`); change them together.
  * Its first line is how the AI prompt tells the starter from a member's own
  * scene (`aiPrompt.ts`): keep it.
  */
@@ -39,6 +43,12 @@ const STUDIO_STARTER_SOURCE = `// My first FluidEQ scene. Ask your AI to change 
 //   4. FLOOR   listens to the beat: a ripple runs out on every beat.
 //   And the SPARKS in the air twinkle with the treble.
 //
+// Two more parts come from a picture instead of from code:
+//   5. PICTURE the orb's face is a picture: a moon until you choose a photo
+//              of your own for it in the Studio's Pictures tab.
+//   6. SWALLOW an animation: eight drawings of one wing beat, shown in turn
+//              as it flies over. The Studio's Animations tab plays it alone.
+//
 // The Studio's Labels button shows all of this live, over the stage.
 //
 // What the music gives every scene, each 0..1 unless it says otherwise:
@@ -50,6 +60,7 @@ const STUDIO_STARTER_SOURCE = `// My first FluidEQ scene. Ask your AI to change 
 //   uDrums         x kick, y snare, z hats: 1 at a hit, then falling away
 //   uSong          z a drop landing (1, then falling); w how many so far
 //   uTime          seconds, wrapping every hour
+//   uArtwork       artwork.webp, the scene's pictures (see 5 and 6)
 //
 // The dials are in pack.json ("params"); each is uParam_ and its id here.
 // The first, Daylight, is the time of day FluidEQ sets from the window's
@@ -136,6 +147,18 @@ vec3 sky(vec2 p) {
   return mix(c, day, gDay);
 }
 
+// ---- The scene's pictures ---------------------------------------------------
+// artwork.webp holds every picture the scene draws, each in its own place,
+// in pixels from the image's top-left, as pack.json lists them ("pictures"
+// for the ones you can change, "artworkRegions" for the scene's own art).
+
+const vec2 ART_SIZE = vec2(512.0, 776.0);
+
+// A spot in one place: q runs 0..1 across it, origin bottom-left.
+vec2 inArt(vec4 place, vec2 q) {
+  return (vec2(place.x, ART_SIZE.y - place.y - place.w) + q * place.zw) / ART_SIZE;
+}
+
 // ---- 2. ORB: listens to the bass --------------------------------------------
 // gBass jumps with every kick and bass note, eased so the orb breathes
 // instead of flickering. uParam_glow is the Glow dial.
@@ -153,6 +176,24 @@ vec3 orbLight(vec2 p) {
   return orbTint() * strength * exp(-d / reach) * (1.0 - 0.5 * gDay);
 }
 
+// ---- 5. PICTURE: the orb's face ---------------------------------------------
+// The place called "orb" in pack.json's pictures: a moon until you choose a
+// photo for it in the Studio's Pictures tab - your pet, a face, a place.
+// FluidEQ crops your photo to fill the place; the orb lights it like a pearl
+// and tints it with its own colour.
+// TRY: change 0.25 in orbFace to 0.0 to see the picture untinted.
+
+const vec4 ORB_PICTURE = vec4(0.0, 0.0, 512.0, 512.0);
+
+// q runs -1..1 across the orb, and the photo fills the circle.
+vec3 orbFace(vec2 q, float lit) {
+  vec2 inside = q / max(1.0, length(q));
+  vec3 photo = texture(uArtwork, inArt(ORB_PICTURE, inside * 0.5 + 0.5)).rgb;
+  // Tinted at night; by day only a little, or a pale photo turns brown.
+  vec3 tinted = photo * mix(vec3(1.0), orbTint(), 0.25 * (1.0 - 0.6 * gDay));
+  return tinted * (0.75 + 0.55 * lit) + vec3(1.0, 0.96, 0.9) * pow(lit, 14.0) * 0.4;
+}
+
 vec3 orb(vec3 c, vec2 p) {
   float r = orbRadius();
   vec2 q = (p - gCentre) / r;
@@ -163,8 +204,12 @@ vec3 orb(vec3 c, vec2 p) {
   // Lit from the upper left, so it reads as a pearl and not a flat disc.
   vec3 normal = vec3(q, sqrt(max(0.0, 1.0 - d * d)));
   float lit = clamp(dot(normal, normalize(vec3(-0.45, 0.55, 0.8))), 0.0, 1.0);
-  vec3 face = mix(orbTint() * 0.85, vec3(1.0, 0.96, 0.9), pow(lit, 1.6));
-  face *= 0.8 + 0.3 * gBass;
+  vec3 face = orbFace(q, lit);
+  // Its edge glows in the orb's colour, so it is still the orb; paler by
+  // day, when the gold made the picture look bronze.
+  vec3 rim = mix(orbTint(), vec3(1.0, 0.95, 0.88), 0.55 * gDay);
+  face = mix(face, rim, 0.6 * (1.0 - 0.35 * gDay) * pow(min(d, 1.0), 5.0));
+  face *= 0.85 + 0.3 * gBass;
   return mix(c, face, smoothstep(1.0, 1.0 - 1.5 * gPx / r, d));
 }
 
@@ -278,12 +323,53 @@ vec3 sparks(vec3 c, vec2 p) {
   return c;
 }
 
+// ---- 6. SWALLOW: an animation -----------------------------------------------
+// One picture holds eight drawings of a single wing beat, four to a row: the
+// place called "swallow" in pack.json's artworkRegions. Showing them in turn,
+// ten a second, is the whole animation; the code only carries the bird
+// across the sky. animations/swallow-flight.json is the same eight drawings
+// for the Studio's Animations tab, where the swallow plays on its own.
+// TRY: change 10.0 to 20.0 in swallow, and it beats its wings twice as fast.
+
+const vec4 SWALLOW_SHEET = vec4(0.0, 520.0, 424.0, 256.0);
+const float SWALLOW_FRAMES = 8.0;
+const float SWALLOW_COLUMNS = 4.0;
+
+vec3 swallow(vec3 c, vec2 p) {
+  // Across the sky every 15 seconds: 240 crossings an hour, so it is back
+  // where it started when uTime wraps.
+  float t = fract(240.0 * uTime / 3600.0);
+  // Which drawing: ten a second, round the eight. 36000 an hour is a whole
+  // number of wing beats, so the wrap never skips one.
+  float frame = mod(floor(uTime * 10.0), SWALLOW_FRAMES);
+  vec2 cellSize = SWALLOW_SHEET.zw / vec2(SWALLOW_COLUMNS, SWALLOW_FRAMES / SWALLOW_COLUMNS);
+  // A tenth of the panel's height and a little more, in the drawing's shape.
+  vec2 size = vec2(0.12 * cellSize.x / cellSize.y, 0.12);
+  // The body lifts a little on each downstroke.
+  float lift = 0.006 * sin(TAU * frame / SWALLOW_FRAMES);
+  vec2 at = vec2(mix(-size.x, gAspect + size.x, t), 0.84 + 0.035 * sin(TAU * 2.0 * t) + lift);
+  vec2 q = (p - at) / size + 0.5;
+  if (q.x < 0.0 || q.x > 1.0 || q.y < 0.0 || q.y > 1.0) {
+    return c;
+  }
+  vec2 cell = vec2(mod(frame, SWALLOW_COLUMNS), floor(frame / SWALLOW_COLUMNS));
+  // The drawing's own place: the first row is the top one.
+  vec4 place = vec4(SWALLOW_SHEET.xy + cell * cellSize, cellSize);
+  vec4 bird = texture(uArtwork, inArt(place, clamp(q, 0.01, 0.99)));
+  // Moonlit by night, and caught by the orb's light as it passes.
+  vec3 light = mix(vec3(0.78, 0.8, 0.95), vec3(1.0), gDay) + 2.0 * orbLight(at);
+  // The picture's colour is already multiplied by its own alpha.
+  return c * (1.0 - bird.a) + bird.rgb * light;
+}
+
 vec4 sceneColour(vec2 uv) {
   listen();
   place();
   vec2 p = vec2(uv.x * gAspect, uv.y);
   vec3 c = p.y >= gHorizon ? sky(p) : floorColour(p);
   c = sparks(c, p);
+  // Far away, so the ring and the orb pass in front of it.
+  c = swallow(c, p);
   c += orbLight(p) * step(gHorizon, p.y);
   c = ring(c, p);
   c = orb(c, p);
@@ -297,5 +383,24 @@ vec4 sceneColour(vec2 uv) {
   return vec4(clamp(c, 0.0, 1.0), 1.0);
 }
 `;
+
+/**
+ * Every earlier starter's text, by `textDigest`: a project made before the
+ * starter changed still holds the old text untouched, and is still a starter
+ * nobody has asked an AI about - its orb, ring and floor are where the labels
+ * say, and its guide must not tick "Ask your AI". A digest, not a copy: the
+ * text is 12 KB each time. Whenever the text above changes, add the digest
+ * of the text it replaces (`studioStarterSource.test.ts` holds the earlier
+ * texts to this list from copies of them).
+ */
+const EARLIER_STARTER_DIGESTS: readonly string[] = [
+  // 2026-10-24 to 2026-11-09: Pulse before its picture and its swallow.
+  '9g5.1vfw0ju',
+];
+
+/** Whether a scene's text is FluidEQ's starter, this one or an earlier one. */
+export const isStarterSource = (text: string): boolean =>
+  text === STUDIO_STARTER_SOURCE ||
+  EARLIER_STARTER_DIGESTS.includes(textDigest(text));
 
 export default STUDIO_STARTER_SOURCE;

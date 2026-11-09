@@ -4,6 +4,51 @@ import { SCENE_CONTRACT_VERSION } from '../../common/sceneUniformContract';
 export { default as STARTER_SOURCE } from '../../common/studioStarterSource';
 
 /**
+ * The starter's one image (`assets/studio/starter`, described in its
+ * LICENSES.md): the orb's picture place on top, holding a moon until the
+ * member chooses a photo, and the swallow's sheet under it, which the scene
+ * plays in the sky. So a first open already has something in the Pictures
+ * tab and in the Animations tab, and the AI finds a working example of each
+ * in the folder (Ivan, 2026-11-09: "the start scene start with someting on
+ * both so the agent knows there exist and the user too"). `scene.frag`
+ * (`studioStarterSource.ts`) samples these same numbers.
+ */
+export const STARTER_ARTWORK = {
+  file: 'artwork.webp',
+  width: 512,
+  height: 776,
+} as const;
+
+const ORB_PICTURE = { x: 0, y: 0, width: 512, height: 512 } as const;
+
+const SWALLOW_REGION = {
+  id: 'swallow',
+  x: 0,
+  y: 520,
+  width: 424,
+  height: 256,
+  rotated: false,
+} as const;
+
+/** The swallow as the Studio's Animations tab reads it (`studioAnimation.ts`). */
+export const STARTER_ANIMATION_NAME = 'swallow-flight';
+
+export const STARTER_ANIMATION = {
+  sheet: 'art/swallow-flight.webp',
+  count: 8,
+  columns: 4,
+  fps: 10,
+  loop: true,
+  ground: 'sky',
+} as const;
+
+/** The files copied as they are, by their place in a new project. */
+export const STARTER_ART_FILES = [
+  STARTER_ARTWORK.file,
+  STARTER_ANIMATION.sheet,
+] as const;
+
+/**
  * What "New project" writes: a scene that already moves with the music, so
  * the stage has something alive on it before anybody has asked an AI for
  * anything, and a working example of the music's channels, of the scene's
@@ -11,8 +56,10 @@ export { default as STARTER_SOURCE } from '../../common/studioStarterSource';
  *
  * Pulse (`common/studioStarterSource.ts`): an orb that swells with the bass,
  * a ring that is the spectrum, a sky the mids warm, sparks the treble lights
- * and a floor a ripple crosses on every beat. Each dial is named for the one
- * part it changes, so moving one teaches what a dial is.
+ * and a floor a ripple crosses on every beat; a picture in the orb and a
+ * swallow flying over it, one of each of the Studio's other two kinds of
+ * thing. Each dial is named for the one part it changes, so moving one
+ * teaches what a dial is.
  *
  * The scene keeps the member rules (`memberSceneRules.ts`) and this manifest
  * passes the project check (`readProject`). A test holds both.
@@ -177,6 +224,30 @@ const STARTER_AMBIENT = {
   ],
 };
 
+/** The orb's picture place, named in every language the app speaks. */
+const STARTER_PICTURES = [
+  {
+    id: 'orb',
+    names: {
+      en: 'Picture in the orb',
+      es: 'Imagen en el orbe',
+      pt: 'Imagem no orbe',
+      fr: "Image dans l'orbe",
+      de: 'Bild in der Kugel',
+      it: "Immagine nell'orbe",
+      ru: 'Изображение в шаре',
+      zh: '光球里的图片',
+      'zh-Hant': '光球裡的圖片',
+      ko: '구체 속 사진',
+      ja: '光球の中の画像',
+      hi: 'गोले में चित्र',
+    },
+    ...ORB_PICTURE,
+    fit: 'cover',
+    focus: [0.5, 0.5],
+  },
+];
+
 /** The starter's `pack.json`, named for the project it starts. */
 export const starterManifest = (name: string, id: string) =>
   `${JSON.stringify(
@@ -193,6 +264,11 @@ export const starterManifest = (name: string, id: string) =>
       params: [SCENE_DAYLIGHT_CONTROL, ...STARTER_PARAMS],
       response: STARTER_RESPONSE,
       ambient: STARTER_AMBIENT,
+      artworkFile: STARTER_ARTWORK.file,
+      artworkWidth: STARTER_ARTWORK.width,
+      artworkHeight: STARTER_ARTWORK.height,
+      pictures: STARTER_PICTURES,
+      artworkRegions: [SWALLOW_REGION],
     },
     null,
     2,

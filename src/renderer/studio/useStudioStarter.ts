@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import STUDIO_STARTER_SOURCE from 'common/studioStarterSource';
+import { isStarterSource } from 'common/studioStarterSource';
 import { useSceneStore } from '../plus/sceneStore';
 import type { TStageHeard } from './StudioStage';
 import {
@@ -38,7 +38,7 @@ export default function useStudioStarter(
   packId: string | undefined,
   sourceText: string | undefined,
 ) {
-  const untouched = sourceText === STUDIO_STARTER_SOURCE;
+  const untouched = sourceText !== undefined && isStarterSource(sourceText);
   // Published as the store's own list says, never as the draft's mark reads
   // it: until the store has answered, a Plus member's own scene counts as
   // playable (`mayPlayLook`), and taken for published that closed every new

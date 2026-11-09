@@ -114,7 +114,16 @@ already holds a working pack.json and scene.frag; read both first.`
 } If
 scene.frag starts with "// My first FluidEQ scene", it is only FluidEQ's
 starter: rewrite both for my idea, as a new scene - an id and names of its
-own, version 1, and no whatsNew line. Otherwise the scene is mine: change what
+own, version 1, and no whatsNew line. The starter comes with one picture and
+one animation, as working examples of both: the orb's face is the picture
+place "orb" (pack.json "pictures", a moon until I choose a photo of my own in
+the Studio's Pictures tab), and the swallow flying over it is an animation
+(animations/swallow-flight.json with its sheet in art/, the same eight
+frames in artwork.webp as "swallow" in "artworkRegions"). Reuse either where
+my idea has a place for it. If I have chosen a photo for the orb, keep that
+place and my photo in the new scene; if not, take out what the new scene
+does not use - its entries in pack.json and the files only it needs.
+When scene.frag starts any other way, the scene is mine: change what
 my idea asks for and keep everything else as it is - its look, its sliders
 and their values, its response and its photos. Keep the file names.
 

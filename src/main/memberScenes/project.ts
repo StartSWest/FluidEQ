@@ -25,6 +25,7 @@ import {
   writeInside,
 } from './projectFiles';
 import readProjectWorld from './projectWorld';
+import { writeStarterArt } from './starterArt';
 import { STARTER_SOURCE, starterManifest } from './starterScene';
 import { waitForSettingsWrites } from './settingsWrites';
 
@@ -271,9 +272,10 @@ const exists = async (target: string) => {
  * Writes the starter project into `folder`, its scene named for the project
  * (see `projectFolders.ts`), or reports that one is there.
  *
- * Both files are created exclusively (`wx`), so even a file that appears
+ * Every file is created exclusively (`wx`), so even a file that appears
  * between the check and the write is never overwritten: somebody's work is
- * worth more than a starter.
+ * worth more than a starter. That includes the starter's picture, sheet and
+ * animation file (`starterArt.ts`).
  */
 export const writeStarterProject = async (
   folder: string,
@@ -285,6 +287,9 @@ export const writeStarterProject = async (
     return 'exists';
   }
   const manifest = starterManifest(named.name, named.id);
+  // The picture and the animation first, so the scene that names them never
+  // plays without them.
+  await writeStarterArt(folder);
   try {
     await fs.promises.writeFile(sourcePath, STARTER_SOURCE, { flag: 'wx' });
     await fs.promises.writeFile(manifestPath, manifest, { flag: 'wx' });
