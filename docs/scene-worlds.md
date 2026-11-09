@@ -148,7 +148,11 @@ Geometry kinds: `box` (`size`), `sphere`, `icosahedron`, `octahedron`,
 `cylinder` (`radius` top, `tube` bottom, `size[1]` height), `cone` and
 `capsule` (`radius`, `size[1]` height), `plane` (`size`), `ring` (`tube`
 inner, `radius` outer). `segments` is `[around, along]` or one number for
-both, 1 to 256; `open` leaves a cylinder or cone without its caps.
+both, 1 to 256; `open` leaves a cylinder or cone without its caps. A
+cylinder or cone gets its rings along it only where its material has a
+vertex file to bend them (a tube laid along a path and raised by the
+spectrum); anywhere else it is built with one, which looks the same, and
+FluidEQ before this built one whatever the segments said.
 
 Layouts: `grid` (`count` per axis, `spacing`), `ring` (`count`, `radius`,
 `arc`, `height`), `spiral` (`turns`, `radius`, `height`), `line` (`from`,
@@ -161,7 +165,9 @@ Layouts: `grid` (`count` per axis, `spacing`), `ring` (`count`, `radius`,
 is what the bloom picks up). Numbers may be formulas: `colour`, `emissive`,
 `emissiveIntensity`, `roughness`, `metalness`, `opacity`, `clearcoat`,
 `clearcoatRoughness`, `transmission`, `thickness`, `iridescence`, `sheen`.
-Also `ior`, `transparent`, `wireframe`, `flatShading`, `side`, `additive`,
+Also `ior`, `specularIntensity` (a `physical` material's specular, 0..1,
+three's 1 when unsaid; 0 reflects no light at any angle, which a floor
+painted with the photograph behind it needs), `transparent`, `wireframe`, `flatShading`, `side`, `additive`,
 `fog`, `map` / `emissiveMap` (`[x, y, width, height]` of the pack's artwork)
 and `repeat` (`[u, v]`, how many times the map tiles). A `physical` material
 with `transmission` is glass: three draws the world's solid things a second

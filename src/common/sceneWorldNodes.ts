@@ -204,6 +204,25 @@ interface IReadState {
   budget: IWorldBudget;
 }
 
+/**
+ * A cylinder or cone with the rings along it that its segments ask for only
+ * where its material's vertex file can bend them; anywhere else one, which
+ * looks exactly the same. Every version before this built one whatever the
+ * segments said, so a tube a vertex file laid along a path and raised by the
+ * spectrum stayed straight, and an author fell back to flat cards painted to
+ * look round (Ivan, 2026-11-09: "they are flat no perception of depth"). Left
+ * at one where nothing bends them, every world made before keeps its shape
+ * and its cost in the frame's budget, and the default of 16 costs nothing.
+ */
+const withRingsToBend = (
+  geometry: IWorldGeometry,
+  material: IWorldMaterial | undefined,
+): IWorldGeometry =>
+  (geometry.kind === 'cylinder' || geometry.kind === 'cone') &&
+  material?.vertex === undefined
+    ? { ...geometry, segments: [geometry.segments[0], 1] }
+    : geometry;
+
 const materialId = (
   value: unknown,
   materials: Readonly<Record<string, IWorldMaterial>>,
@@ -246,7 +265,11 @@ const readNode = (
       node = { ...common, type: 'group' };
       break;
     case 'mesh': {
-      const geometry = readGeometry(value.geometry);
+      const material = materialId(value.material, materials);
+      const geometry = withRingsToBend(
+        readGeometry(value.geometry),
+        materials[material],
+      );
       shaded = geometryVertices(geometry);
       if (!affordInFrame(state.budget, shaded)) {
         return null;
@@ -255,7 +278,7 @@ const readNode = (
         ...common,
         type: 'mesh',
         geometry,
-        material: materialId(value.material, materials),
+        material,
       };
       break;
     }
@@ -274,7 +297,11 @@ const readNode = (
         value.type === 'instances'
           ? moved
           : { ...moved, rotation: UNTURNED, scale: UNSCALED };
-      const geometry = readGeometry(value.geometry);
+      const material = materialId(value.material, materials);
+      const geometry = withRingsToBend(
+        readGeometry(value.geometry),
+        materials[material],
+      );
       const perCopy = copyCost(
         [...instance.position, ...instance.rotation, ...instance.scale],
         instance.colour,
@@ -299,7 +326,7 @@ const readNode = (
               ...common,
               type: 'instances',
               geometry,
-              material: materialId(value.material, materials),
+              material,
               layout,
               instance,
             }

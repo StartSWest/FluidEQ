@@ -49,9 +49,9 @@ export const geometryVertices = (shape: IWorldGeometry): number => {
     case 'torusKnot':
       return (Math.max(3, around * 2) + 1) * (Math.max(3, along) + 1);
     case 'cylinder':
-      return ring * 2 + caps * 2;
+      return ring * (Math.max(1, along) + 1) + caps * 2;
     case 'cone':
-      return ring * 2 + caps;
+      return ring * (Math.max(1, along) + 1) + caps;
     case 'plane':
       return (around + 1) * (along + 1);
     case 'ring':

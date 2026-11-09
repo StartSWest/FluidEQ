@@ -101,6 +101,16 @@ export interface IWorldMaterial {
   iridescence: TWorldExpr;
   sheen: TWorldExpr;
   ior: number;
+  /**
+   * A physical material's specular strength, 0..1; absent, three's own 1.
+   * At 0 a surface reflects no light at any angle - an ior of 1 still does
+   * at grazing ones, through Fresnel - which is what a floor painted with
+   * the photograph behind it needs to vanish into it where nothing shades
+   * it (measured: a night floor's blacks lifted from 2 to 25 of 255 by the
+   * key light's grazing reflection). Optional, so a world without it reads
+   * and plays exactly as before, and an older FluidEQ ignores it.
+   */
+  specularIntensity?: number;
   transparent: boolean;
   wireframe: boolean;
   flatShading: boolean;

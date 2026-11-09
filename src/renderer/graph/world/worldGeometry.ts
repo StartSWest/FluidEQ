@@ -56,13 +56,15 @@ export const buildWorldGeometry = (shape: IWorldGeometry): BufferGeometry => {
         shape.knot[0],
         shape.knot[1],
       );
+    // Rings along the length, which only a vertex file can use: reading the
+    // world leaves one where nothing bends it (`withRingsToBend`).
     case 'cylinder':
       return new CylinderGeometry(
         shape.radius,
         shape.tube,
         height,
         Math.max(3, around),
-        1,
+        Math.max(1, along),
         shape.open,
       );
     case 'cone':
@@ -70,7 +72,7 @@ export const buildWorldGeometry = (shape: IWorldGeometry): BufferGeometry => {
         shape.radius,
         height,
         Math.max(3, around),
-        1,
+        Math.max(1, along),
         shape.open,
       );
     case 'plane':

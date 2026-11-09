@@ -277,6 +277,9 @@ const readMaterial = (
     iridescence: expr(raw.iridescence, 0),
     sheen: expr(raw.sheen, 0),
     ior: readNumber(raw.ior, 1.5, 1, 2.333),
+    ...(raw.specularIntensity === undefined
+      ? {}
+      : { specularIntensity: readNumber(raw.specularIntensity, 1, 0, 1) }),
     transparent: readBoolean(raw.transparent, false),
     wireframe: readBoolean(raw.wireframe, false),
     flatShading: readBoolean(raw.flatShading, false),

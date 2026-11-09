@@ -166,6 +166,8 @@ dodecahedron (radius, detail 0-6), torus (radius, tube), torusKnot (knot
 [p, q]), cylinder (radius top, tube bottom, size[1] height), cone and capsule
 (radius, size[1]), plane (size), ring (tube inner, radius outer); segments
 [around, along], 1 to ${WORLD_LIMITS.geometrySegments}; "open" leaves a cylinder or cone without caps.
+A cylinder or cone gets its rings along it only when its material has a
+vertexFile to bend them: that is how a tube follows a path or the music.
 Layouts: grid (count per axis, spacing), ring (count, radius, arc, height),
 spiral (turns, radius, height), line (from, to), scatter (box, seed),
 sphere (radius).
@@ -174,7 +176,8 @@ MATERIALS. kind "standard" or "physical" (lit, shadows, reflections),
 "basic" (unlit) or "glow" (light itself; colour times emissiveIntensity, and
 past 1 is what the bloom picks up). colour, emissive, emissiveIntensity,
 roughness, metalness, opacity, clearcoat, transmission and the rest may be
-formulas; also transparent, flatShading, side, additive, fog, and map /
+formulas; also specularIntensity (physical, 0..1: 0 reflects no light at
+any angle), transparent, flatShading, side, additive, fog, and map /
 emissiveMap ([x, y, width, height] of the artwork). A "mirror" (0..1) makes
 the first flat plane or ring wearing it reflect the world; a physical
 material with transmission is glass. Both draw the world again, and the

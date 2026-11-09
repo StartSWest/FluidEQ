@@ -254,6 +254,9 @@ export const buildWorldMaterial = (
   }
   if (material instanceof MeshPhysicalMaterial) {
     material.ior = def.ior;
+    if (def.specularIntensity !== undefined) {
+      material.specularIntensity = def.specularIntensity;
+    }
     // Each of these switches a part of three's program on as it rises
     // above 0, and three builds the other program then, synchronously, in
     // the middle of the song. One that moves is kept a hair above 0, so the
