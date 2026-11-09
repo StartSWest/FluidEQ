@@ -150,6 +150,8 @@ const studio = {
     'Recording cancelled. Record a preview to continue.',
   'studio.publish.videoCancel': 'Cancel recording',
   'studio.publish.videoAgain': 'Record again',
+  'studio.publish.clipLocked':
+    'This clip is being published. If publishing fails, you can record it again.',
   'studio.publish.videoRetry': 'Retry recording',
   'studio.publish.videoPlay': 'Play scene preview',
   'studio.publish.viewChoice': 'What the frame shows',

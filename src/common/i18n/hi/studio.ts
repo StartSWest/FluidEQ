@@ -141,6 +141,8 @@ const studio = {
     'रिकॉर्डिंग रद्द कर दी गई। आगे बढ़ने के लिए प्रीव्यू रिकॉर्ड करें।',
   'studio.publish.videoCancel': 'रिकॉर्डिंग रद्द करें',
   'studio.publish.videoAgain': 'फिर से रिकॉर्ड करें',
+  'studio.publish.clipLocked':
+    'यह क्लिप प्रकाशित हो रही है। प्रकाशन विफल होने पर आप इसे फिर से रिकॉर्ड कर सकते हैं।',
   'studio.publish.videoRetry': 'रिकॉर्डिंग फिर आज़माएँ',
   'studio.publish.videoPlay': 'दृश्य का प्रीव्यू चलाएँ',
   'studio.publish.viewChoice': 'फ़्रेम में क्या दिखे',

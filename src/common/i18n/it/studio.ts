@@ -143,6 +143,8 @@ const studio = {
     'Registrazione annullata. Registra un’anteprima per continuare.',
   'studio.publish.videoCancel': 'Annulla registrazione',
   'studio.publish.videoAgain': 'Registra di nuovo',
+  'studio.publish.clipLocked':
+    'Questo clip è in pubblicazione. Se la pubblicazione non riesce, potrai registrarlo di nuovo.',
   'studio.publish.videoRetry': 'Riprova a registrare',
   'studio.publish.videoPlay': 'Riproduci anteprima della scena',
   'studio.publish.viewChoice': 'Cosa mostra il riquadro',

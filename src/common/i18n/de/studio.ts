@@ -145,6 +145,8 @@ const studio = {
     'Aufnahme abgebrochen. Nehmen Sie eine Vorschau auf, um fortzufahren.',
   'studio.publish.videoCancel': 'Aufnahme abbrechen',
   'studio.publish.videoAgain': 'Erneut aufnehmen',
+  'studio.publish.clipLocked':
+    'Dieser Clip wird gerade veröffentlicht. Schlägt das fehl, können Sie ihn erneut aufnehmen.',
   'studio.publish.videoRetry': 'Aufnahme wiederholen',
   'studio.publish.videoPlay': 'Szenenvorschau abspielen',
   'studio.publish.viewChoice': 'Was das Bild zeigt',

@@ -126,6 +126,7 @@ const studio = {
   'studio.publish.videoCancelled': '錄製已取消。請錄製預覽以繼續。',
   'studio.publish.videoCancel': '取消錄製',
   'studio.publish.videoAgain': '重新錄製',
+  'studio.publish.clipLocked': '正在發布這段短片。如果發布失敗，可以重新錄製。',
   'studio.publish.videoRetry': '重試錄製',
   'studio.publish.videoPlay': '播放場景預覽',
   'studio.publish.viewChoice': '畫面顯示內容',

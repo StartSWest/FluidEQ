@@ -145,6 +145,8 @@ const studio = {
     'Enregistrement annulé. Enregistrez un aperçu pour continuer.',
   'studio.publish.videoCancel': 'Annuler l’enregistrement',
   'studio.publish.videoAgain': 'Enregistrer à nouveau',
+  'studio.publish.clipLocked':
+    'Ce clip est en cours de publication. Si la publication échoue, vous pourrez l’enregistrer à nouveau.',
   'studio.publish.videoRetry': 'Réessayer l’enregistrement',
   'studio.publish.videoPlay': 'Lire l’aperçu de la scène',
   'studio.publish.viewChoice': 'Ce que montre le cadre',

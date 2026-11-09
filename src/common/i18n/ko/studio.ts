@@ -138,6 +138,8 @@ const studio = {
     '녹화가 취소되었습니다. 계속하려면 미리 보기를 녹화하세요.',
   'studio.publish.videoCancel': '녹화 취소',
   'studio.publish.videoAgain': '다시 녹화',
+  'studio.publish.clipLocked':
+    '이 클립을 게시하는 중입니다. 게시에 실패하면 다시 녹화할 수 있습니다.',
   'studio.publish.videoRetry': '녹화 재시도',
   'studio.publish.videoPlay': '장면 미리 보기 재생',
   'studio.publish.viewChoice': '화면에 표시할 내용',

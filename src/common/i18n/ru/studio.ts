@@ -138,6 +138,8 @@ const studio = {
     'Запись отменена. Запишите предпросмотр, чтобы продолжить.',
   'studio.publish.videoCancel': 'Отменить запись',
   'studio.publish.videoAgain': 'Записать снова',
+  'studio.publish.clipLocked':
+    'Этот ролик сейчас публикуется. Если публикация не удастся, его можно будет записать снова.',
   'studio.publish.videoRetry': 'Повторить запись',
   'studio.publish.videoPlay': 'Воспроизвести предпросмотр сцены',
   'studio.publish.viewChoice': 'Что показывает кадр',

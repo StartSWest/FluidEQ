@@ -110,7 +110,7 @@ export default function StudioPublishDialog({
     () => ({ ...pack, version: versionToPublish(draft.held) }),
     [pack, draft.held],
   );
-  const source = useMemo(
+  const liveSource = useMemo(
     () =>
       JSON.stringify([
         identity,
@@ -121,6 +121,29 @@ export default function StudioPublishDialog({
       ]),
     [identity, me, pack, tuning, draft.held],
   );
+  // The clip, and the scene it shows, as they were when Publish was pressed,
+  // held until the publication answers (Ivan, 2026-11-09: "is allowing me to
+  // re record the demo until is not publised ... we alow it only once per
+  // before plublising"). Publishing writes the version it goes out under
+  // into the project, the project builds again, and a new pack is a new
+  // `source`: the camera, keyed on it, started a new recording mid-publish.
+  // Set during render, where the press's own update lands, so not one frame
+  // passes with the new pack; given back when the publication answers, so a
+  // failed one can be recorded again for the retry.
+  const [pressed, setPressed] = useState<{
+    source: string;
+    pack: IScenePack;
+    tuning: ISceneTuning;
+  }>();
+  if (running && pressed === undefined) {
+    setPressed({ source: liveSource, pack, tuning });
+  } else if (!running && pressed !== undefined) {
+    setPressed(undefined);
+  }
+  const held = running ? pressed : undefined;
+  const source = held?.source ?? liveSource;
+  const cameraPack = held?.pack ?? pack;
+  const cameraTuning = held?.tuning ?? tuning;
   const [preview, setPreview] = useState<IPublishPreview>();
   const previewReady = preview?.source === source;
   // Asked again on opening: an answer that failed earlier — offline at
@@ -337,10 +360,10 @@ export default function StudioPublishDialog({
             initialFocusRef={firstRef}
             key={source}
             identity={identity}
-            pack={pack}
+            pack={cameraPack}
             name={name}
             locked={running}
-            tuning={tuning}
+            tuning={cameraTuning}
             onCapture={onCapture}
             source={source}
             onPreview={setPreview}

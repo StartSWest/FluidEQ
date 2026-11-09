@@ -97,6 +97,7 @@ export default function StudioPublishVideo({
             type="button"
             className="button small subtle"
             disabled={locked}
+            title={locked ? t('studio.publish.clipLocked') : undefined}
             onClick={onCancel}
           >
             {t('studio.publish.videoCancel')}
@@ -107,6 +108,7 @@ export default function StudioPublishVideo({
             type="button"
             className="button small subtle"
             disabled={locked}
+            title={locked ? t('studio.publish.clipLocked') : undefined}
             onClick={onRetry}
           >
             {t(

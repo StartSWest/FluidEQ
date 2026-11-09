@@ -140,6 +140,8 @@ const studio = {
     '録画をキャンセルしました。プレビューを録画して続けてください。',
   'studio.publish.videoCancel': '録画をキャンセル',
   'studio.publish.videoAgain': '録画し直す',
+  'studio.publish.clipLocked':
+    'このクリップを公開しています。公開に失敗したら、録画し直せます。',
   'studio.publish.videoRetry': '録画を再試行',
   'studio.publish.videoPlay': 'シーンのプレビューを再生',
   'studio.publish.viewChoice': 'フレームに表示する内容',

@@ -129,6 +129,8 @@ export default function StudioPublishCamera({
   // again — once, not at every step of the drag.
   const [videoDaylight, setVideoDaylight] = useState(daylight);
   const recorder = useMemo(createMomentRecorder, []);
+  // Why a control does nothing while the clip is on its way to the gallery.
+  const lockedHint = locked ? t('studio.publish.clipLocked') : undefined;
   // Drawn at the size the clip is recorded at (1280x720 where VP9 records).
   const captureSize = useMemo(previewCaptureSize, []);
   const liveAudio = useSceneAudio();
@@ -358,19 +360,23 @@ export default function StudioPublishCamera({
           />
         )}
 
-        {!trouble && !showsRecorded && quiet && signal === 'live' && (
-          <div className="studio-publish__quiet" role="status">
-            <strong>{t('studio.publish.quietTitle')}</strong>
-            <span>{t('studio.publish.quietBody')}</span>
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={() => selectSignal('showcase')}
-            >
-              {t('studio.publish.useDemo')}
-            </button>
-          </div>
-        )}
+        {!trouble &&
+          !locked &&
+          !showsRecorded &&
+          quiet &&
+          signal === 'live' && (
+            <div className="studio-publish__quiet" role="status">
+              <strong>{t('studio.publish.quietTitle')}</strong>
+              <span>{t('studio.publish.quietBody')}</span>
+              <button
+                type="button"
+                className="button small subtle"
+                onClick={() => selectSignal('showcase')}
+              >
+                {t('studio.publish.useDemo')}
+              </button>
+            </div>
+          )}
       </div>
 
       <div className="studio-publish__controls">
@@ -386,6 +392,7 @@ export default function StudioPublishCamera({
               className="studio-segment"
               aria-pressed={signal === entry.signal}
               disabled={locked || trouble !== undefined}
+              title={lockedHint}
               onClick={() => selectSignal(entry.signal)}
             >
               {t(entry.key)}
@@ -396,6 +403,7 @@ export default function StudioPublishCamera({
           type="button"
           className="button small subtle"
           disabled={!ready || locked || trouble !== undefined || showsRecorded}
+          title={lockedHint}
           onClick={shoot}
         >
           <Glyph name="camera" />
@@ -404,7 +412,7 @@ export default function StudioPublishCamera({
       </div>
       <Setting
         label={t('studio.publish.timeOfDay')}
-        hint={t('studio.publish.timeOfDayHint')}
+        hint={lockedHint ?? t('studio.publish.timeOfDayHint')}
         value={t('studio.settings.percent', { percent: daylight })}
         position={(daylight - SCENE_DAYLIGHT_MIN) / DAYLIGHT_SPAN}
         disabled={locked || trouble !== undefined}

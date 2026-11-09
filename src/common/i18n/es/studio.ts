@@ -142,6 +142,8 @@ const studio = {
     'Grabación cancelada. Graba una vista previa para continuar.',
   'studio.publish.videoCancel': 'Cancelar grabación',
   'studio.publish.videoAgain': 'Volver a grabar',
+  'studio.publish.clipLocked':
+    'Este clip se está publicando. Si la publicación falla, podrás volver a grabarlo.',
   'studio.publish.videoRetry': 'Reintentar grabación',
   'studio.publish.videoPlay': 'Reproducir vista previa de la escena',
   'studio.publish.viewChoice': 'Qué muestra el cuadro',
