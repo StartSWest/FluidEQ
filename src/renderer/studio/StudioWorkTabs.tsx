@@ -4,7 +4,20 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import {
+  useCallback,
+  useId,
+  useLayoutEffect,
+  useRef,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
+import OverflowArrow from '../components/OverflowArrow';
+import { useOverflowScroll } from '../utils/useOverflowScroll';
+
+/** The width of the row's faded edge (`.studio-work__tabs.has-*`): a tab
+ * brought into view stops clear of it, never half-faded. */
+const FADE_PX = 28;
 
 export interface IStudioWorkTab<TId extends string> {
   id: TId;
@@ -43,9 +56,45 @@ export default function StudioWorkTabs<TId extends string>({
   children,
 }: IStudioWorkTabsProps<TId>) {
   const id = useId();
-  const list = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLDivElement | null>(null);
   const tabId = (tab: TId) => `${id}-tab-${tab}`;
   const panelId = `${id}-panel`;
+  // Measured again whenever the tabs change: "What it hears now" joins the
+  // row only when the bench is too narrow for its column, and a count can
+  // widen a tab.
+  const tabsKey = tabs
+    .map((tab) => `${tab.id}:${tab.label}:${tab.badge ?? ''}`)
+    .join('|');
+  const overflow = useOverflowScroll(tabsKey);
+  const { ref: overflowRef } = overflow;
+  const attach = useCallback(
+    (element: HTMLDivElement | null) => {
+      list.current = element;
+      overflowRef(element);
+    },
+    [overflowRef],
+  );
+
+  // The selected tab is always one that can be seen: chosen from elsewhere
+  // (the scene's chat opening an animation), remembered from the last visit,
+  // or reached by the arrow keys, it is scrolled into the row. Only the row
+  // moves; `scrollIntoView` would scroll the page under it as well. Keyed on
+  // what the tabs say, never on the array: a fresh array every render ran this
+  // after each scroll the arrows made, and snapped the row back.
+  useLayoutEffect(() => {
+    const row = list.current;
+    const tab = row?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!row || !tab) {
+      return;
+    }
+    const rowBox = row.getBoundingClientRect();
+    const tabBox = tab.getBoundingClientRect();
+    if (tabBox.left < rowBox.left + FADE_PX) {
+      row.scrollLeft -= rowBox.left + FADE_PX - tabBox.left;
+    } else if (tabBox.right > rowBox.right - FADE_PX) {
+      row.scrollLeft += tabBox.right - (rowBox.right - FADE_PX);
+    }
+  }, [selected, tabsKey]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     const at = tabs.findIndex((tab) => tab.id === selected);
@@ -71,38 +120,55 @@ export default function StudioWorkTabs<TId extends string>({
 
   return (
     <div className="studio-work">
-      <div
-        ref={list}
-        className="studio-work__tabs"
-        role="tablist"
-        aria-label={label}
-      >
-        {tabs.map((tab) => {
-          const isSelected = tab.id === selected;
-          return (
-            <button
-              key={tab.id}
-              id={tabId(tab.id)}
-              type="button"
-              role="tab"
-              className="studio-work__tab"
-              aria-selected={isSelected}
-              aria-controls={panelId}
-              tabIndex={isSelected ? 0 : -1}
-              onClick={() => onSelect(tab.id)}
-              onKeyDown={onKeyDown}
-            >
-              {tab.label}
-              {tab.badge !== undefined && tab.badge > 0 && (
-                <span
-                  className={`studio-work__badge${tab.isAlert ? ' is-alert' : ''}`}
-                >
-                  {tab.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
+      <div className="studio-work__tab-row">
+        {overflow.canScrollBack && (
+          <OverflowArrow
+            direction="back"
+            onPress={() => overflow.scrollBy(-1)}
+          />
+        )}
+        <div
+          ref={attach}
+          onScroll={overflow.onScroll}
+          className={`studio-work__tabs${
+            overflow.canScrollBack ? ' has-back' : ''
+          }${overflow.canScrollForward ? ' has-forward' : ''}`}
+          role="tablist"
+          aria-label={label}
+        >
+          {tabs.map((tab) => {
+            const isSelected = tab.id === selected;
+            return (
+              <button
+                key={tab.id}
+                id={tabId(tab.id)}
+                type="button"
+                role="tab"
+                className="studio-work__tab"
+                aria-selected={isSelected}
+                aria-controls={panelId}
+                tabIndex={isSelected ? 0 : -1}
+                onClick={() => onSelect(tab.id)}
+                onKeyDown={onKeyDown}
+              >
+                {tab.label}
+                {tab.badge !== undefined && tab.badge > 0 && (
+                  <span
+                    className={`studio-work__badge${tab.isAlert ? ' is-alert' : ''}`}
+                  >
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        {overflow.canScrollForward && (
+          <OverflowArrow
+            direction="forward"
+            onPress={() => overflow.scrollBy(1)}
+          />
+        )}
       </div>
       <div
         id={panelId}

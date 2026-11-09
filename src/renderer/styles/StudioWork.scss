@@ -30,14 +30,50 @@ it under the terms of the GNU General Public License version 3 or later.
 // The rail of names, ruled off from the panel by the quiet rule the Plus
 // menu parts an add-on's places with (Ivan, 2026-09-27: "make the menu divider
 // less visible"), the chosen one underlined in the accent as the workspace's
-// tabs are: the accent is what says which, and the rule only where.
-.studio-work__tabs {
+// tabs are: the accent is what says which, and the rule only where. The rule
+// is the row's, under the arrows too, so it runs the panel's whole width.
+.studio-work__tab-row {
   display: flex;
   flex: none;
+  align-items: center;
   gap: 4px;
-  overflow-x: auto;
+  min-width: 0;
   border-bottom: 1px solid $menu-rule;
+}
+
+// Tabs that do not fit scroll, fading into the edge they scroll past, with the
+// app's round arrows to them, as the Gaming tab's filters do: a sixth tab cut
+// at the edge of a 1024 window ("Что с…") read as a tab cut in half, with no
+// way to it but a keyboard.
+.studio-work__tabs {
+  --fade-back: 0px;
+  --fade-forward: 0px;
+
+  display: flex;
+  flex: 1 1 auto;
+  gap: 4px;
+  min-width: 0;
+  overflow-x: auto;
   scrollbar-width: none;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--fade-back),
+    #000 calc(100% - var(--fade-forward)),
+    transparent
+  );
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &.has-back {
+    --fade-back: 28px;
+  }
+
+  &.has-forward {
+    --fade-forward: 28px;
+  }
 }
 
 .studio-work__tab {
