@@ -32,6 +32,7 @@ import {
 import VisualizersView from '../../../renderer/plus/VisualizersView';
 import { resetMemberSceneStore } from '../../../renderer/utils/memberScenes';
 import { resetScenePackStore } from '../../../renderer/utils/scenePacks';
+import * as sceneStore from '../../../renderer/plus/sceneStore';
 
 let mockDrawn: ((frame: ISceneFrame) => void) | undefined;
 
@@ -404,7 +405,7 @@ describe('the versions on a scene’s page', () => {
     expect(panel.getByText('plus.version.new')).toBeInTheDocument();
     expect(panel.getByText('plus.version.whatsNew:3')).toBeInTheDocument();
     expect(panel.getByText('Peaks stay whole')).toBeInTheDocument();
-    // The earlier versions only: this one is already said above.
+    // Every version, this one heading the list as the current one.
     expect(await panel.findByText('plus.version.all:3')).toBeInTheDocument();
     expect(panel.getByText('First light')).toBeInTheDocument();
     expect(panel.getByText('plus.version.noNote')).toBeInTheDocument();
@@ -414,6 +415,100 @@ describe('the versions on a scene’s page', () => {
   it('marks nothing new on a scene’s first version', async () => {
     const { panel } = await openScene({ ...official, firstVersion: 2 });
     expect(panel.queryByText('plus.version.new')).toBeNull();
-    expect(panel.queryByText(/plus\.version\.earlier/)).toBeNull();
+    expect(panel.queryByText(/plus\.version\.all/)).toBeNull();
+  });
+
+  // Saving one of the server's versions here is for a scene this account
+  // owns and did not make: a maker's history is their Studio project, and
+  // main refuses to keep a version of their own scene.
+  const withSavableVersions = () => {
+    Object.defineProperty(window, 'electron', {
+      configurable: true,
+      value: {
+        ipcRenderer: {
+          ...bridge,
+          galleryVersions: jest.fn().mockResolvedValue({
+            ok: true,
+            versions: [
+              {
+                version: 3,
+                publishedAt: new Date().toISOString(),
+                available: true,
+              },
+              {
+                version: 2,
+                publishedAt: '2026-09-01T12:00:00Z',
+                available: true,
+              },
+            ],
+          }),
+          keptSceneVersions: jest.fn().mockResolvedValue({ versions: [] }),
+          saveGalleryVersion: jest.fn(),
+          cancelGallerySaveVersion: jest.fn(),
+        },
+      },
+    });
+  };
+  const saves = (panel: ReturnType<typeof within>) =>
+    panel.queryAllByRole('button', { name: /^plus\.version\.saveLabel/ });
+
+  it('offers Save on an earlier version of a scene the member owns', async () => {
+    withSavableVersions();
+    const updated = { ...official, version: 3 };
+    bridge.listGallery.mockResolvedValue({
+      ok: true,
+      scenes: [updated, member],
+      more: false,
+    });
+    const { panel } = await openScene(updated);
+    expect(
+      await panel.findByRole('button', { name: 'plus.version.saveLabel:2' }),
+    ).toBeInTheDocument();
+  });
+
+  it('offers no Save on a scene the member does not own', async () => {
+    withSavableVersions();
+    // Under an active membership every published scene plays; this one is
+    // held back from this account, as a lapsed one would be. The page then
+    // draws no preview, so it is waited on by its versions instead.
+    const owns = jest.spyOn(sceneStore, 'useOwnsLook').mockReturnValue(false);
+    try {
+      const theirs = { ...member, version: 3 };
+      bridge.listGallery.mockResolvedValue({
+        ok: true,
+        scenes: [theirs],
+        more: false,
+      });
+      render(<VisualizersView onShowGraph={jest.fn()} />);
+      act(() => openGalleryPage({ kind: 'scene', scene: theirs }));
+      expect(
+        await screen.findByText('plus.version.current'),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryAllByRole('button', {
+          name: /^plus\.version\.saveLabel/,
+        }),
+      ).toHaveLength(0);
+    } finally {
+      owns.mockRestore();
+    }
+  });
+
+  it('offers no Save on the member’s own scene', async () => {
+    withSavableVersions();
+    const mine: IGalleryScene = {
+      ...member,
+      authorId: 'member-account',
+      lookId: 'member:member-account:neon-city',
+      version: 3,
+    };
+    bridge.listGallery.mockResolvedValue({
+      ok: true,
+      scenes: [mine],
+      more: false,
+    });
+    const { panel } = await openScene(mine);
+    expect(await panel.findByText('plus.version.current')).toBeInTheDocument();
+    expect(saves(panel)).toHaveLength(0);
   });
 });

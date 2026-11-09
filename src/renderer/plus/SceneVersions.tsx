@@ -18,8 +18,12 @@ import useSceneVersionSave from './useSceneVersionSave';
 
 interface ISceneVersionsProps {
   scene: IGalleryScene;
-  /** Whether this account owns the scene: only an owner saves a version. */
-  owned: boolean;
+  /**
+   * Whether this account may keep one of the server's versions here: it owns
+   * the scene and did not make it. A maker's history is their Studio
+   * project, and their own scene plays no kept version (main refuses it).
+   */
+  mayKeep: boolean;
 }
 
 /** One earlier version as the list shows it: the server's, this computer's, or both. */
@@ -60,7 +64,7 @@ const NOTHING_KEPT: IKeptSceneVersions = { versions: [] };
  * from this same list. The version the scene is at now heads the list,
  * marked, with nothing to save.
  */
-export default function SceneVersions({ scene, owned }: ISceneVersionsProps) {
+export default function SceneVersions({ scene, mayKeep }: ISceneVersionsProps) {
   const { t, locale } = useTranslation();
   const [earlier, setEarlier] = useState<IGalleryVersion[]>([]);
   const [kept, setKept] = useState<IKeptSceneVersions>(NOTHING_KEPT);
@@ -251,7 +255,7 @@ export default function SceneVersions({ scene, owned }: ISceneVersionsProps) {
                       {dateOf(entry.publishedAt, locale)}
                     </time>
                   )}
-                  {owned && (
+                  {mayKeep && (
                     <SceneVersionSaveNote
                       version={entry.version}
                       kept={entry.kept}
@@ -279,7 +283,7 @@ export default function SceneVersions({ scene, owned }: ISceneVersionsProps) {
                     {t('plus.version.play')}
                   </button>
                 )}
-                {owned &&
+                {mayKeep &&
                   !entry.kept &&
                   entry.available &&
                   saving.available && (
