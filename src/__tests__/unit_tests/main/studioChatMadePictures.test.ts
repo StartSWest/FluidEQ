@@ -129,6 +129,30 @@ it('shows the pictures a step wrote, right after it, and nothing older', () => {
   ]);
 });
 
+// Windows stamps a file's write time from a clock that can trail Date.now()
+// by a tick (~15.6 ms): the full suite once wrote reference-tubes.png in the
+// step's first millisecond and saw it stamped before the step began.
+it('shows a picture written as the step starts, stamped before it, and one it rewrote', () => {
+  const { stream, reply } = setUp();
+  const skyTime = new Date(Date.now() - 3600_000);
+  write('art/sky.png');
+  fs.utimesSync(path.join(folder, 'art/sky.png'), skyTime, skyTime);
+  stream(toolUse('bash-1', 'Bash', { command: 'node make-picture.mjs' }));
+  write('art/reference-tubes.png');
+  const earlier = new Date(Date.now() - 16);
+  fs.utimesSync(path.join(folder, 'art/reference-tubes.png'), earlier, earlier);
+  // The sky drawn again, larger, its time stamp exactly the old one.
+  fs.writeFileSync(path.join(folder, 'art/sky.png'), Buffer.from([1, 2, 3, 4]));
+  fs.utimesSync(path.join(folder, 'art/sky.png'), skyTime, skyTime);
+  stream(toolResult('bash-1', 'saved'));
+
+  expect(
+    reply()
+      .steps.flatMap(({ file }) => (file ? [file] : []))
+      .sort(),
+  ).toEqual(['reference-tubes.png', 'sky.png']);
+});
+
 it('shows nothing for a step that failed, or wrote nothing new', () => {
   const { stream, reply } = setUp();
   // The control: the same picture, written before either step began.

@@ -15,7 +15,11 @@ import { chatPictureFromBytes, chatPictureFromDataUrl } from './chatPicture';
 import type { TChatQueue } from './chatQueue';
 import type { TChatStreamEvent } from './chatStream';
 import { keepReplyVersion } from './chatVersions';
-import { withMadePictures } from './madePictures';
+import {
+  snapshotPictures,
+  withMadePictures,
+  type TPictureSnapshot,
+} from './madePictures';
 import withEvent from './replyEvents';
 
 type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
@@ -65,9 +69,10 @@ const createChatTurns = ({
   const write = (session: IChatSession, line: string) => {
     session.process.write(line);
   };
-  // When each running step began, by its tool use's id: a picture written
-  // into the project since then is that step's (`madePictures.ts`).
-  const stepStarted = new Map<string, number>();
+  // The project's pictures as each running step that may write one began,
+  // by its tool use's id: a picture new or changed since is that step's
+  // (`madePictures.ts`).
+  const stepPictures = new Map<string, TPictureSnapshot>();
 
   /** A new reply, working, shown before Claude has said a word. */
   const open = (projectId: string, session: IChatSession, id?: string) => {
@@ -100,7 +105,7 @@ const createChatTurns = ({
     }
     session.reply = undefined;
     session.replyFrom = undefined;
-    reply.steps.forEach((step) => stepStarted.delete(step.id));
+    reply.steps.forEach((step) => stepPictures.delete(step.id));
     session.controller?.abort();
     session.controller = undefined;
     dropAsks(projectId);
@@ -287,17 +292,21 @@ const createChatTurns = ({
         return;
       }
       session.reply = withEvent(reply, event);
-      if (event.type === 'step' && !stepStarted.has(event.step.id)) {
-        stepStarted.set(event.step.id, Date.now());
+      if (event.type === 'step') {
+        // Only a step of the member's own tools writes pictures this way;
+        // reads, edits and FluidEQ's tools say what they did themselves.
+        if (event.step.kind === 'other' && !stepPictures.has(event.step.id)) {
+          stepPictures.set(event.step.id, snapshotPictures(session.folder));
+        }
       } else if (event.type === 'step-end') {
-        const since = stepStarted.get(event.id);
-        stepStarted.delete(event.id);
-        if (since !== undefined && !event.failed) {
+        const before = stepPictures.get(event.id);
+        stepPictures.delete(event.id);
+        if (before && !event.failed) {
           session.reply = withMadePictures(
             session.reply,
             event.id,
             session.folder,
-            since,
+            before,
           );
         }
       }
