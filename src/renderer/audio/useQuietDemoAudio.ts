@@ -1,10 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLiveAudioControl } from './LiveAudioContext';
+import { useLiveAudioControl, useLiveAudioFrame } from './LiveAudioContext';
 import { useSceneAudio, type ISceneAudio } from './SceneAudioContext';
 import { useTransportSources } from './transportSource';
 import createPublishDemoAudio from '../studio/publishDemoAudio';
 
 type TDemoAudio = ReturnType<typeof createPublishDemoAudio>;
+
+/**
+ * Music plainly playing: the output meter's held peak above this, in dBFS.
+ * The meter reads from -60; a song's quietest passages still peak around
+ * -40 and its body at -20 to -6, while the hum and tails that flickered sit
+ * at the capture's -95 floor, nowhere near it.
+ */
+const MUSIC_DB = -48;
 
 /**
  * What a scene previewed in the Gallery or on the Studio's stage hears: the
@@ -25,6 +33,16 @@ type TDemoAudio = ReturnType<typeof createPublishDemoAudio>;
  * nothing is heard by the capture and wins at once. Nothing is decided until
  * the capture has started (or failed), so a page opened over music does not
  * flash the demo while the capture opens.
+ *
+ * TWO LEVELS, NOT ONE (Ivan, 2026-11-09: "is glitching because the sound
+ * threshold make it come and goes fast, needs to be smooth"). Heard used to
+ * mean anything over the capture's floor, both ways: a sound hovering at
+ * that floor - a faint hum, a fade's tail, another program idling - was
+ * over it one frame and under it the next, and the scene and its tag swapped
+ * between the music and the demo many times a second. Music now has to be
+ * plainly there to take the scene back from the demo (`MUSIC_DB` on the
+ * meter's held peak, far above the floor), and only true silence gives the
+ * scene to the demo; anything in between keeps what it has.
  * The demo's audio context exists only while it is wanted, and never while
  * the page is not `listening` to the music at all: the Studio's made-up test
  * signals replace everything the scene hears, so a demo under them would be
@@ -41,10 +59,20 @@ export default function useQuietDemoAudio(listening = true): {
   const playerPlays = Object.values(sources).some(
     (source) => source?.isPlaying === true,
   );
-  const heard = !live.isPaused && live.points.length > 0;
+  const { outputLevels } = useLiveAudioFrame();
+  const anything = !live.isPaused && live.points.length > 0;
+  const plain =
+    anything && outputLevels.some(({ peakDb }) => peakDb > MUSIC_DB);
+  // Kept between renders, and set while rendering when it changes, so the
+  // music and the demo never disagree for a render.
+  const [heard, setHeard] = useState(false);
+  const nowHeard = heard ? anything : plain;
+  if (nowHeard !== heard) {
+    setHeard(nowHeard);
+  }
   // The capture's error is the empty string while it has none.
   const wanted =
-    listening && (isActive || error !== '') && !heard && !playerPlays;
+    listening && (isActive || error !== '') && !nowHeard && !playerPlays;
 
   const [playing, setPlaying] = useState<TDemoAudio>();
   const playingRef = useRef<TDemoAudio | undefined>(undefined);

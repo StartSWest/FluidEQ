@@ -13,8 +13,19 @@ import {
 import useQuietDemoAudio from 'renderer/audio/useQuietDemoAudio';
 
 const mockControl = { isActive: true, error: '' };
+// The output meter's held peak: music at -12 dBFS unless a test says.
+const mockMeter = { peakDb: -12 };
 jest.mock('renderer/audio/LiveAudioContext', () => ({
   useLiveAudioControl: () => mockControl,
+  useLiveAudioFrame: () => ({
+    outputLevels: [
+      {
+        levelDb: mockMeter.peakDb,
+        peakDb: mockMeter.peakDb,
+        isClipping: false,
+      },
+    ],
+  }),
 }));
 
 let mockSources: Record<string, { isPlaying: boolean }> = {};
@@ -84,6 +95,7 @@ beforeEach(() => {
   mockSources = {};
   mockControl.isActive = true;
   mockControl.error = '';
+  mockMeter.peakDb = -12;
 });
 
 it('moves to the demo song, silently, while nothing plays', () => {
@@ -148,6 +160,39 @@ it('opens no demo for a page that is not listening to the music', () => {
   live = music(0);
   hook.rerender({ listening: true });
   expect(mockDemos).toHaveLength(1);
+  expect(hook.result.current.demo).toBe(true);
+});
+
+it('holds steady through a sound flickering at the edge of silence', () => {
+  // A faint hum, over the capture's floor one frame and under it the next:
+  // the demo starts once, stays, and is never stopped and started again.
+  const { hook, hear } = render(music(0));
+  expect(hook.result.current.demo).toBe(true);
+  mockMeter.peakDb = -90;
+  [music(4), music(0), music(4), music(0), music(4)].forEach((faint) => {
+    hear(faint);
+    expect(hook.result.current.demo).toBe(true);
+  });
+  expect(mockDemos).toHaveLength(1);
+  expect(mockDemos[0].stop).not.toHaveBeenCalled();
+  // The control: the same sound, plainly music, takes the scene at once.
+  mockMeter.peakDb = -12;
+  const song = music(320);
+  hear(song);
+  expect(hook.result.current.demo).toBe(false);
+  expect(hook.result.current.audio).toBe(song);
+});
+
+it('keeps the music through its quiet passages, and gives way only to silence', () => {
+  const { hook, hear } = render(music(320));
+  expect(hook.result.current.demo).toBe(false);
+  // Quiet, under the level that would have taken the scene back: still music.
+  mockMeter.peakDb = -55;
+  hear(music(320));
+  expect(hook.result.current.demo).toBe(false);
+  expect(mockDemos).toHaveLength(0);
+  // Silence: the demo.
+  hear(music(0));
   expect(hook.result.current.demo).toBe(true);
 });
 
