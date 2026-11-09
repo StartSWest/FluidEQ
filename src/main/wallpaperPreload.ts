@@ -3,6 +3,7 @@ import {
   WALLPAPER,
   type IWallpaperSurfaceBridge,
   type IWallpaperSurfaceState,
+  type IWallpaperWheel,
 } from '../common/wallpaper';
 
 // No generic send/invoke, account, filesystem, playback, or scene-export API.
@@ -17,6 +18,14 @@ const bridge: IWallpaperSurfaceBridge = {
     ipcRenderer.on(WALLPAPER.surfaceChanged, receive);
     return () => {
       ipcRenderer.removeListener(WALLPAPER.surfaceChanged, receive);
+    };
+  },
+  onWheel: (listener) => {
+    const receive = (_event: IpcRendererEvent, wheel: IWallpaperWheel) =>
+      listener(wheel);
+    ipcRenderer.on(WALLPAPER.wheel, receive);
+    return () => {
+      ipcRenderer.removeListener(WALLPAPER.wheel, receive);
     };
   },
 };

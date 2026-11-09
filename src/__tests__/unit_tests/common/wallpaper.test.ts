@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   MAX_WALLPAPER_DISPLAYS,
   WALLPAPER_CLOCK_DAYLIGHT,
+  answersMouse,
   isWallpaperAudio,
   isWallpaperDaylightChoice,
   isWallpaperStart,
@@ -72,6 +73,20 @@ describe('what the window may ask main to put on the desktop', () => {
     expect(isWallpaperStart(start({ motion: 'loud' }))).toBe(false);
     expect(isWallpaperStart(start({ motion: undefined }))).toBe(false);
     expect(isWallpaperStart(start({ pauseOnBattery: 'yes' }))).toBe(false);
+  });
+
+  it('takes the mouse switch as on or off, and nothing else', () => {
+    expect(isWallpaperStart(start({ interactive: false }))).toBe(true);
+    expect(isWallpaperStart(start({ interactive: true }))).toBe(true);
+    expect(isWallpaperStart(start({ interactive: 'no' }))).toBe(false);
+    expect(isWallpaperStart(start({ interactive: 0 }))).toBe(false);
+  });
+
+  // Absent is on: a scene answers the mouse as it does on the graph.
+  it('reads a monitor with no word on the mouse as answering it', () => {
+    expect(answersMouse({})).toBe(true);
+    expect(answersMouse({ interactive: true })).toBe(true);
+    expect(answersMouse({ interactive: false })).toBe(false);
   });
 
   it('stops every monitor with no ids, or the ones named', () => {

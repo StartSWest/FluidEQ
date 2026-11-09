@@ -4,6 +4,7 @@ import path from 'path';
 import { createInterface } from 'readline';
 import { app } from 'electron';
 import log from 'electron-log';
+import { parsePointerRecord, type TWallpaperPointer } from './pointerRelay';
 
 const EXECUTABLE = 'FluidEQ-Wallpaper.exe';
 
@@ -20,6 +21,12 @@ export const wallpaperHostPath = (): string | undefined => {
 
 export interface IWallpaperHost {
   setVisible(visible: boolean): void;
+  /**
+   * Whether the helper passes the mouse on over its monitor's bare desktop
+   * (`native/wallpaper/pointer.h`). It only does while the background is
+   * also shown and not covered; this is main's half of that.
+   */
+  setTouch(touch: boolean): void;
   stop(): void;
 }
 
@@ -43,6 +50,7 @@ export const startWallpaperHost = (
   executable: string,
   handle: Buffer,
   onEvent: (event: TWallpaperHostEvent) => void,
+  onPointer: (pointer: TWallpaperPointer) => void,
 ): IWallpaperHost => {
   const hwnd =
     handle.length === 8
@@ -54,6 +62,7 @@ export const startWallpaperHost = (
   });
   let stopped = false;
   let failed = false;
+  let touching = false;
   const fail = (detail: string) => {
     if (stopped || failed) {
       return;
@@ -65,6 +74,15 @@ export const startWallpaperHost = (
   const lines = createInterface({ input: child.stdout });
   lines.on('line', (line) => {
     if (stopped || failed) {
+      return;
+    }
+    // The mouse first: while it is passed on, nearly every line is one. Never
+    // logged — where the pointer went is nobody's record.
+    if (line.startsWith('pointer:')) {
+      const pointer = parsePointerRecord(line);
+      if (pointer) {
+        onPointer(pointer);
+      }
       return;
     }
     const report = REPORTS.find((known) => known === line);
@@ -86,6 +104,12 @@ export const startWallpaperHost = (
     setVisible: (visible) => {
       if (!stopped && !failed) {
         child.stdin.write(visible ? 'show\n' : 'hide\n');
+      }
+    },
+    setTouch: (touch) => {
+      if (!stopped && !failed && touch !== touching) {
+        touching = touch;
+        child.stdin.write(touch ? 'touch\n' : 'still\n');
       }
     },
     stop: () => {

@@ -1,0 +1,37 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use '../styles/shippedTheme' as *;
+@use '../styles/theme' as *;
+
+// The desktop page has none of the window's stylesheet or scripts, and the
+// view's reset is the app's own quiet button on its own plate: it takes the
+// shipped theme and the UI font the window paints them in, from the same
+// source as the window, never a copy.
+:root {
+  @include shipped-theme;
+  font-family: $font-ui;
+  color: $text-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+// As the window's document has it (App.scss): a control speaks the page's
+// font, never the browser's own — which drew the reset in Arial here.
+button {
+  font: inherit;
+  line-height: 1.15;
+}
+
+// Top and centre: the desktop's icons line its edges, and the reset stands
+// where a column of them is least likely to be. Centred by its margins, not a
+// transform, which its entrance animation owns.
+.wallpaper-hands__reset {
+  top: 28px;
+  right: 0;
+  left: 0;
+  width: max-content;
+  margin-inline: auto;
+}

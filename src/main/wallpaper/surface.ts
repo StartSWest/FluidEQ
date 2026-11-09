@@ -1,5 +1,6 @@
 import type { Rectangle, WebContents } from 'electron';
 import log from 'electron-log';
+import type { LocaleCode } from '../../common/i18n';
 import type { TSceneMaker } from '../../common/sceneMaker';
 import type { IScenePack } from '../../common/scenePacks';
 import {
@@ -8,6 +9,7 @@ import {
 } from '../../common/scenePerformance';
 import {
   WALLPAPER,
+  answersMouse,
   monitorDaylight,
   type IWallpaperChoice,
   type IWallpaperSurfaceState,
@@ -22,6 +24,7 @@ import {
   type IWallpaperHost,
   type TWallpaperHostEvent,
 } from './nativeHost';
+import { pointerDelivery, type TWallpaperPointer } from './pointerRelay';
 import { createWallpaperWindow, wallpaperUrl } from './window';
 
 /** The cover each of the helper's reports describes. */
@@ -56,6 +59,13 @@ interface IDesktopSurfaceOptions {
   daylight(): TWallpaperDaylight | undefined;
   /** The window's Brightness as a time of day, once it has said it. */
   brightness(): number | undefined;
+  /** The window's language, for the words the page shows. */
+  locale(): LocaleCode;
+  /**
+   * The monitor's scale, physical pixels to the page's: the helper reports
+   * the mouse in the first, the page is handed it in the second.
+   */
+  scale: number;
   executable: string;
   /**
    * Why this monitor should not play now, given what keeps its desktop out
@@ -98,7 +108,7 @@ export interface IDesktopSurface {
   retune(
     next: Pick<
       IWallpaperChoice,
-      'wave' | 'motion' | 'followsGraph' | 'daylight'
+      'wave' | 'motion' | 'followsGraph' | 'daylight' | 'interactive'
     >,
   ): void;
   /** The window's frame rate and resolution choice changed: the page follows. */
@@ -114,6 +124,8 @@ export interface IDesktopSurface {
    * day comes from it tells its page, and the rest have nothing to change.
    */
   applyDaylight(): void;
+  /** The window's language changed: the page's words follow it. */
+  applyLocale(): void;
   /**
    * Another visualizer on this monitor — set by hand, the graph's that it
    * follows, a newer version of its own — drawn by the same page, which
@@ -178,6 +190,9 @@ export const createDesktopSurface = (
   let { wave, motion } = options.choice;
   let followsGraph = options.choice.followsGraph === true;
   let ownDaylight = options.choice.daylight;
+  let interactive = answersMouse(options.choice);
+  // Where the pointer last was in the page, which a leave is said at.
+  let lastPointer = { x: 0, y: 0 };
   let { performance, tuning } = options;
   // A look the listener has tuned is drawn in the band they tuned it in,
   // whatever band the monitor was set with.
@@ -194,9 +209,11 @@ export const createDesktopSurface = (
       { graph: options.daylight(), brightness: options.brightness() },
     );
   let toldDaylight = shownDaylight();
+  let toldLocale = options.locale();
 
   const surfaceState = (): IWallpaperSurfaceState => {
     toldDaylight = shownDaylight();
+    toldLocale = options.locale();
     return {
       phase,
       renderGeneration,
@@ -205,6 +222,8 @@ export const createDesktopSurface = (
       performance,
       ...(tuning ? { tuning } : {}),
       ...(toldDaylight !== undefined ? { daylight: toldDaylight } : {}),
+      interactive,
+      locale: toldLocale,
     };
   };
 
@@ -234,6 +253,39 @@ export const createDesktopSurface = (
     }
   };
 
+  // Playing and on the desktop: the only time the page may be handed the
+  // mouse. The helper adds its own condition, some of the desktop in sight,
+  // which it knows before main does.
+  let mouseWanted = false;
+  const applyTouch = () => host?.setTouch(interactive && mouseWanted);
+
+  /**
+   * One record of the mouse from the helper, handed to the page. Once the
+   * mouse is off, only a leave still gets through — the helper's own word
+   * that the page should forget the pointer and any press it held.
+   */
+  const relayPointer = (pointer: TWallpaperPointer) => {
+    if (released || window.isDestroyed() || window.webContents.isDestroyed()) {
+      return;
+    }
+    if (pointer.kind !== 'leave' && !(interactive && mouseWanted)) {
+      return;
+    }
+    const delivery = pointerDelivery(pointer, options.scale, lastPointer);
+    if (!delivery) {
+      return;
+    }
+    if ('wheel' in delivery) {
+      window.webContents.send(WALLPAPER.wheel, delivery.wheel);
+      return;
+    }
+    const { input } = delivery;
+    if (input.type !== 'mouseLeave') {
+      lastPointer = { x: input.x, y: input.y };
+    }
+    window.webContents.sendInputEvent(input);
+  };
+
   const applyPolicy = () => {
     // The helper reports whether any of this monitor's desktop is in sight
     // right after placing the window; showing before that report could
@@ -260,6 +312,8 @@ export const createDesktopSurface = (
     // screen comes back.
     const visible = reason !== 'battery' && frameReady;
     host.setVisible(visible);
+    mouseWanted = visible && !reason;
+    applyTouch();
     if (visible && !shown) {
       shown = true;
       // Chromium marks a window's compositor visible only through its own show
@@ -312,6 +366,7 @@ export const createDesktopSurface = (
           }
           applyPolicy();
         },
+        relayPointer,
       );
     } catch (error) {
       log.warn(`Desktop visualizer attachment: ${error}`);
@@ -355,6 +410,7 @@ export const createDesktopSurface = (
       motion,
       ...(followsGraph ? { followsGraph } : {}),
       ...(ownDaylight ? { daylight: ownDaylight } : {}),
+      ...(interactive ? {} : { interactive: false }),
     }),
     retunePerformance: (next) => {
       // The whole choice, not the rate and the size alone: the page reads the
@@ -384,18 +440,27 @@ export const createDesktopSurface = (
         tellPage();
       }
     },
+    applyLocale: () => {
+      if (options.locale() !== toldLocale) {
+        tellPage();
+      }
+    },
     retune: (next) => {
       followsGraph = next.followsGraph === true;
       ownDaylight = next.daylight;
+      const nextInteractive = answersMouse(next);
       if (
         next.wave.height === wave.height &&
         next.wave.position === wave.position &&
         next.motion === motion &&
-        shownDaylight() === toldDaylight
+        shownDaylight() === toldDaylight &&
+        nextInteractive === interactive
       ) {
         return;
       }
       ({ wave, motion } = next);
+      interactive = nextInteractive;
+      applyTouch();
       tellPage();
     },
     changeScene: (nextChoice, nextScene, nextTuning) => {
@@ -405,6 +470,8 @@ export const createDesktopSurface = (
       ({ lookId, wave, motion } = nextChoice);
       followsGraph = nextChoice.followsGraph === true;
       ownDaylight = nextChoice.daylight;
+      interactive = answersMouse(nextChoice);
+      applyTouch();
       scene = nextScene;
       tuning = nextTuning;
       if (tuning?.wave) {

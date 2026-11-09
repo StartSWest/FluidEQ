@@ -183,6 +183,8 @@ const DesktopDialogDrawing = () => {
         onFollows={nothing}
         daylight={{ source: 'own', daylight: 0 }}
         onDaylight={nothing}
+        interactive
+        onInteractive={nothing}
         pauseOnBattery
         onPauseOnBattery={nothing}
         disabled={false}

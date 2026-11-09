@@ -36,6 +36,9 @@ const wallpaper = {
     'Para um monitor que não segue o gráfico: uma hora do dia que você escolhe, o brilho do app ou o relógio do computador.',
   'wallpaper.daylight.following':
     'Este monitor segue o gráfico, então usa a hora do dia do gráfico.',
+  'wallpaper.interactive': 'Interativo',
+  'wallpaper.interactive.hint':
+    'Responde ao seu mouse na área de trabalho vazia, como no gráfico.',
   'wallpaper.cancel': 'Cancelar',
   'wallpaper.done': 'Concluído',
   'wallpaper.start': 'Definir fundo',

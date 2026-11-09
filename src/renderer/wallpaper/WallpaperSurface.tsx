@@ -1,16 +1,29 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import type {
   IWallpaperAudio,
   IWallpaperSurfaceBridge,
 } from 'common/wallpaper';
 import { SceneAudioProvider } from '../audio/SceneAudioContext';
+import {
+  createSceneInteraction,
+  type ISceneInteraction,
+} from '../graph/sceneInteraction';
 import { prefersReducedMotion } from '../utils/bandReveal';
+import { ToldI18nProvider } from '../utils/I18nContext';
 import {
   layersOf,
   needsScene,
   NO_CROSSFADE,
   stepCrossfade,
 } from './sceneCrossfade';
+import WallpaperHands from './WallpaperHands';
 import WallpaperSceneLayer from './WallpaperSceneLayer';
 
 const SILENCE: IWallpaperAudio = { points: [], waveform: [] };
@@ -119,23 +132,58 @@ export default function WallpaperSurface({
   // leave the desktop black where its picture was, and bring it back only
   // after a whole build. Offscreen Chromium stays visible to the scheduler,
   // so the frames have to be stopped where they are asked for — `asleep`.
+  const layers = layersOf(fade);
+  // The viewer's hands on each scene, one per layer for its life: two layers
+  // crossing each read their own every frame, and only the current one is
+  // attached to the stage (`WallpaperHands`). A layer gone takes its hands.
+  const interactions = useRef(new Map<number, ISceneInteraction>());
+  const interactionOf = (generation: number) => {
+    let interaction = interactions.current.get(generation);
+    if (!interaction) {
+      interaction = createSceneInteraction();
+      interactions.current.set(generation, interaction);
+    }
+    return interaction;
+  };
+  const kept = new Set(layers.map(({ layer }) => layer.generation));
+  [...interactions.current.keys()]
+    .filter((generation) => !kept.has(generation))
+    .forEach((generation) => interactions.current.delete(generation));
+  const [stage, setStage] = useState<HTMLElement | null>(null);
+  const current = layers.find(
+    ({ layer }) => layer.generation === state?.renderGeneration,
+  )?.layer;
   return state ? (
-    <SceneAudioProvider value={audio}>
-      <div className="wallpaper-stage">
-        {layersOf(fade).map(({ layer, stage }) => (
-          <WallpaperSceneLayer
-            key={layer.generation}
-            layer={layer}
-            stage={stage}
-            current={layer.generation === state.renderGeneration}
-            bridge={bridge}
-            performance={state.performance}
-            asleep={!playing}
-            onFirstFrame={onFirstFrame}
-            onCrossed={onCrossed}
-          />
-        ))}
-      </div>
-    </SceneAudioProvider>
+    <ToldI18nProvider locale={state.locale}>
+      <SceneAudioProvider value={audio}>
+        <div ref={setStage} className="wallpaper-stage">
+          {layers.map(({ layer, stage: layerStage }) => (
+            <WallpaperSceneLayer
+              key={layer.generation}
+              layer={layer}
+              stage={layerStage}
+              current={layer.generation === state.renderGeneration}
+              bridge={bridge}
+              performance={state.performance}
+              asleep={!playing}
+              interaction={interactionOf(layer.generation)}
+              onFirstFrame={onFirstFrame}
+              onCrossed={onCrossed}
+            />
+          ))}
+          {stage && current && (
+            <WallpaperHands
+              key={current.generation}
+              interaction={interactionOf(current.generation)}
+              stage={stage}
+              bridge={bridge}
+              pack={current.bootstrap.pack}
+              interactive={state.interactive}
+              awake={playing}
+            />
+          )}
+        </div>
+      </SceneAudioProvider>
+    </ToldI18nProvider>
   ) : null;
 }

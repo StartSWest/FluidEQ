@@ -1,5 +1,6 @@
 import type { Display, WebContents } from 'electron';
 import log from 'electron-log';
+import type { LocaleCode } from '../../common/i18n';
 import type { IScenePerformance } from '../../common/scenePerformance';
 import type {
   IWallpaperChoice,
@@ -37,6 +38,8 @@ interface IMonitorBackgroundsOptions {
   daylight(): TWallpaperDaylight | undefined;
   /** The window's Brightness as a time of day, once it has said it. */
   brightness(): number | undefined;
+  /** The window's language, as it is now. */
+  locale(): LocaleCode;
   /** The last surface has gone. */
   onEmpty(): void;
 }
@@ -119,12 +122,14 @@ export const createMonitorBackgrounds = (
       surface = createDesktopSurface({
         displayId: display.id,
         bounds: display.bounds,
+        scale: display.scaleFactor,
         choice,
         scene,
         performance: options.performance(),
         tuning: options.tuning(choice.lookId),
         daylight: options.daylight,
         brightness: options.brightness,
+        locale: options.locale,
         executable,
         pauseReason: options.pauseReason,
         onReady: () => {
@@ -242,6 +247,11 @@ export const createMonitorBackgrounds = (
     applyDaylight: () => {
       surfaces.forEach((surface) => surface.applyDaylight());
       leaving.forEach((surface) => surface.applyDaylight());
+    },
+    /** The window's language changed: every page's words follow it. */
+    applyLocale: () => {
+      surfaces.forEach((surface) => surface.applyLocale());
+      leaving.forEach((surface) => surface.applyLocale());
     },
     screens: (): IWallpaperScreen[] => [
       ...[...surfaces.values()].map((surface): IWallpaperScreen => ({

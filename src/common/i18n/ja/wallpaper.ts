@@ -36,6 +36,9 @@ const wallpaper = {
     'グラフに合わせないモニターの時間帯：自分で決めた時間帯、アプリの明るさ、またはコンピューターの時計。',
   'wallpaper.daylight.following':
     'このモニターはグラフに合わせているので、グラフの時間帯になります。',
+  'wallpaper.interactive': 'インタラクティブ',
+  'wallpaper.interactive.hint':
+    '何もないデスクトップ上で、グラフと同じようにマウスに反応します。',
   'wallpaper.cancel': 'キャンセル',
   'wallpaper.done': '完了',
   'wallpaper.start': '背景に設定',

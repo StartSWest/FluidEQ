@@ -38,6 +38,10 @@ export interface IFakeSurface {
   applyTuning: jest.Mock;
   /** Told the window's time of day moved. */
   applyDaylight: jest.Mock;
+  /** Told the window's language changed. */
+  applyLocale: jest.Mock;
+  /** The window's language, as the manager hands it to the monitor. */
+  locale(): string;
   /** The window's time of day, as the manager hands it to the monitor. */
   daylight(): number | undefined;
   contents: { mainFrame: object };
@@ -133,6 +137,7 @@ export const mockSurfaceModule = () => ({
     performance: IScenePerformance;
     tuning: IWallpaperTuning | undefined;
     daylight(): number | undefined;
+    locale(): string;
     onReady(): void;
     onFail(error: string): void;
   }) => {
@@ -168,6 +173,7 @@ export const mockSurfaceModule = () => ({
           motion: next.motion,
           ...(next.followsGraph === true ? { followsGraph: true } : {}),
           ...(next.daylight ? { daylight: next.daylight } : {}),
+          ...(next.interactive === false ? { interactive: false } : {}),
         };
       }),
       retunePerformance: jest.fn(),
@@ -177,6 +183,8 @@ export const mockSurfaceModule = () => ({
         }
       }),
       applyDaylight: jest.fn(),
+      applyLocale: jest.fn(),
+      locale: options.locale,
       daylight: options.daylight,
       release: jest.fn(),
       applyPolicy: jest.fn(),
@@ -271,6 +279,9 @@ export const setup = (stored?: IWallpaperArrangement) => {
     },
     arrangement,
     ...scenes,
+    // The window speaking English, until a test changes it.
+    locale: () => 'en',
+    onLocale: () => () => undefined,
   };
   return {
     deps,

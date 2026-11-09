@@ -2,6 +2,7 @@ import { useCallback, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { clockDaylight } from '../../common/sceneDaylight';
 import {
+  answersMouse,
   sameWallpaperDaylight,
   type IWallpaperDaylight,
   type IWallpaperWave,
@@ -156,6 +157,14 @@ export default function WallpaperDialog({
       ? daylightOfShade(getThemeShade())
       : daylight;
   }, []);
+  // Whether the chosen monitors' scenes answer the mouse. Until it is
+  // touched: off only where every chosen monitor already has it off, so a
+  // fresh background is as interactive as the graph (`answersMouse`). Left
+  // untouched, Set sends none and every monitor keeps its own.
+  const [mouseChoice, setMouseChoice] = useState<boolean>();
+  const interactive =
+    mouseChoice ??
+    (chosenScreens.length === 0 || chosenScreens.some(answersMouse));
   const [focusId] = useState(() => [...selected][0] ?? primary?.id);
   const [batteryChoice, setBatteryChoice] = useState<boolean>();
   const pauseOnBattery = batteryChoice ?? savedBattery;
@@ -201,6 +210,7 @@ export default function WallpaperDialog({
       motion,
       followsGraph: follows,
       ...(daylightChoice ? { daylight: daylightChoice } : {}),
+      ...(mouseChoice === undefined ? {} : { interactive: mouseChoice }),
     });
     if (leaving.length > 0) {
       next = await stopWallpaper(leaving);
@@ -420,6 +430,8 @@ export default function WallpaperDialog({
           onFollows={setFollowChoice}
           daylight={shownDaylight}
           onDaylight={setDaylightChoice}
+          interactive={interactive}
+          onInteractive={setMouseChoice}
           pauseOnBattery={pauseOnBattery}
           onPauseOnBattery={setBatteryChoice}
           disabled={operation.pending}

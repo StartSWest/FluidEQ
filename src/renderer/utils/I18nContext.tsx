@@ -174,6 +174,57 @@ export const I18nProvider = ({ children }: { children: ReactNode }) => {
 };
 
 /**
+ * A language told from outside rather than chosen here: the desktop
+ * background's page, which keeps no settings of its own and speaks the
+ * window's language as main passes it on. English until that language's
+ * dictionary has loaded, never a blank.
+ */
+export const ToldI18nProvider = ({
+  locale: told,
+  children,
+}: {
+  locale: string;
+  children: ReactNode;
+}) => {
+  const locale = resolveLocale(told);
+  const [speaking, setSpeaking] = useState<LocaleCode>(() =>
+    isLocaleLoaded(locale) ? locale : DEFAULT_LOCALE,
+  );
+  useEffect(() => {
+    if (speaking === locale) {
+      return undefined;
+    }
+    let current = true;
+    loadLocale(locale)
+      .then(() => {
+        if (current) {
+          setSpeaking(locale);
+        }
+        return undefined;
+      })
+      .catch((error: unknown) =>
+        reportError('Loading the interface language', error),
+      );
+    return () => {
+      current = false;
+    };
+  }, [locale, speaking]);
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+  const value = useMemo<II18nContext>(
+    () => ({
+      locale,
+      setLocale: () => undefined,
+      t: (key: TranslationKey, vars?: TranslateVars) =>
+        translate(speaking, key, vars),
+    }),
+    [locale, speaking],
+  );
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+};
+
+/**
  * The hook every component uses.
  *
  * Falls back to English rather than throwing when there is no provider above

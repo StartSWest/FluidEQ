@@ -36,6 +36,9 @@ const wallpaper = {
     'Pour un écran qui ne suit pas le graphique : un moment de la journée que vous choisissez, la luminosité de l’app ou l’horloge de l’ordinateur.',
   'wallpaper.daylight.following':
     'Cet écran suit le graphique : il prend donc le moment de la journée du graphique.',
+  'wallpaper.interactive': 'Interactif',
+  'wallpaper.interactive.hint':
+    'Répond à votre souris sur le bureau vide, comme sur le graphique.',
   'wallpaper.cancel': 'Annuler',
   'wallpaper.done': 'Terminé',
   'wallpaper.start': "Définir l'arrière-plan",

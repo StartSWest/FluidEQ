@@ -36,6 +36,9 @@ const wallpaper = {
     'For a monitor that doesn’t follow the graph: a time of day you set, the app’s Brightness, or the computer’s clock.',
   'wallpaper.daylight.following':
     'This monitor follows the graph, so it takes the graph’s time of day.',
+  'wallpaper.interactive': 'Interactive',
+  'wallpaper.interactive.hint':
+    'Answers your mouse on the empty desktop, as on the graph.',
   'wallpaper.cancel': 'Cancel',
   'wallpaper.done': 'Done',
   'wallpaper.start': 'Set background',

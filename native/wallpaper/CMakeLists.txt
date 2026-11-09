@@ -25,7 +25,8 @@ if(WIN32)
     OUTPUT_NAME "FluidEQ-Wallpaper"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
   fluideq_wallpaper_target(fluideq-wallpaper)
-  target_link_libraries(fluideq-wallpaper PRIVATE user32 dwmapi shell32)
+  # ole32 and uuid for the desktop's folder view (`icons.h`).
+  target_link_libraries(fluideq-wallpaper PRIVATE user32 dwmapi shell32 ole32 uuid)
   target_compile_options(fluideq-wallpaper PRIVATE /Brepro)
   target_link_options(fluideq-wallpaper PRIVATE /Brepro)
 
@@ -33,4 +34,9 @@ if(WIN32)
   fluideq_wallpaper_target(fluideq-wallpaper-desktop-test)
   target_link_libraries(fluideq-wallpaper-desktop-test PRIVATE user32)
   add_test(NAME wallpaper-desktop COMMAND fluideq-wallpaper-desktop-test)
+
+  add_executable(fluideq-wallpaper-pointer-test tests/pointer_test.cpp)
+  fluideq_wallpaper_target(fluideq-wallpaper-pointer-test)
+  target_link_libraries(fluideq-wallpaper-pointer-test PRIVATE user32)
+  add_test(NAME wallpaper-pointer COMMAND fluideq-wallpaper-pointer-test)
 endif()

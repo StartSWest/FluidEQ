@@ -60,6 +60,7 @@ import { stripStoredBrief } from './ipc/studioNotes';
 import { createPublishedAdoption } from './memberScenes/publishedAdoption';
 import { createPublishedRecords } from './memberScenes/publishedRecords';
 import { chatLauncherFor } from './studioChat/chatRelayClient';
+import { getTrayLocale, onTrayLocale } from './tray';
 import { createArrangementStore } from './wallpaper/arrangement';
 import registerWallpaperIpc from './wallpaper/register';
 import { createWallpaperScenes } from './wallpaper/scenes';
@@ -283,6 +284,8 @@ const registerMemberServices = ({
     loadScene: builds.loadScene,
     sceneDrawn: builds.drawn,
     sceneWouldNotBuild: builds.wouldNotBuild,
+    locale: getTrayLocale,
+    onLocale: onTrayLocale,
   });
 
   // Sharing them between members: export signed by the server, import

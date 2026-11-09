@@ -77,6 +77,9 @@ interface IWallpaperDialogSettingsProps {
   /** The chosen monitors' own time of day, for when they do not follow. */
   daylight: IWallpaperDaylight;
   onDaylight: (daylight: IWallpaperDaylight) => void;
+  /** The chosen monitors' scenes answer the mouse over the bare desktop. */
+  interactive: boolean;
+  onInteractive: (interactive: boolean) => void;
   pauseOnBattery: boolean;
   onPauseOnBattery: (pause: boolean) => void;
   disabled: boolean;
@@ -84,7 +87,7 @@ interface IWallpaperDialogSettingsProps {
 
 /**
  * The wave's height and place, following the graph, the time of day when it
- * does not, and battery power.
+ * does not, the mouse, and battery power.
  */
 export function WallpaperDialogSettings({
   wave,
@@ -93,6 +96,8 @@ export function WallpaperDialogSettings({
   onFollows,
   daylight,
   onDaylight,
+  interactive,
+  onInteractive,
   pauseOnBattery,
   onPauseOnBattery,
   disabled,
@@ -101,6 +106,7 @@ export function WallpaperDialogSettings({
   const waveHeightId = useId();
   const wavePositionId = useId();
   const followId = useId();
+  const mouseId = useId();
   const batteryId = useId();
   return (
     <div className="wallpaper-dialog__settings">
@@ -174,6 +180,19 @@ export function WallpaperDialogSettings({
         followsGraph={follows}
         disabled={disabled}
       />
+      <div className="wallpaper-dialog__setting">
+        <span className="wallpaper-dialog__setting-copy">
+          <label htmlFor={mouseId}>{t('wallpaper.interactive')}</label>
+          <span>{t('wallpaper.interactive.hint')}</span>
+        </span>
+        <Switch
+          id={mouseId}
+          isOn={interactive}
+          isDisabled={disabled}
+          ariaLabel={t('wallpaper.interactive')}
+          handleToggle={() => onInteractive(!interactive)}
+        />
+      </div>
       <div className="wallpaper-dialog__setting">
         <span className="wallpaper-dialog__setting-copy">
           <label htmlFor={batteryId}>{t('wallpaper.pauseOnBattery')}</label>

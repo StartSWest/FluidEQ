@@ -31,6 +31,8 @@ const wallpaper = {
   'wallpaper.daylight.hint':
     '用于不跟随图表的显示器：由你设定的时段、应用的亮度，或电脑的时钟。',
   'wallpaper.daylight.following': '此显示器跟随图表，因此使用图表的时段。',
+  'wallpaper.interactive': '交互',
+  'wallpaper.interactive.hint': '在桌面空白处响应鼠标，就像在图表上一样。',
   'wallpaper.cancel': '取消',
   'wallpaper.done': '完成',
   'wallpaper.start': '设置背景',

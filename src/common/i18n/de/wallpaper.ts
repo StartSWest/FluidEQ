@@ -36,6 +36,9 @@ const wallpaper = {
     'Für einen Monitor, der nicht dem Diagramm folgt: eine Tageszeit, die Sie festlegen, die Helligkeit der App oder die Uhr des Computers.',
   'wallpaper.daylight.following':
     'Dieser Monitor folgt dem Diagramm und übernimmt daher dessen Tageszeit.',
+  'wallpaper.interactive': 'Interaktiv',
+  'wallpaper.interactive.hint':
+    'Reagiert auf Ihre Maus auf dem freien Desktop, wie im Diagramm.',
   'wallpaper.cancel': 'Abbrechen',
   'wallpaper.done': 'Fertig',
   'wallpaper.start': 'Hintergrund festlegen',

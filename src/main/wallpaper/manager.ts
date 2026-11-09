@@ -23,6 +23,7 @@ import {
   type IScenePerformance,
 } from '../../common/scenePerformance';
 import type { IScenePack } from '../../common/scenePacks';
+import { DEFAULT_LOCALE, type LocaleCode } from '../../common/i18n';
 import type { ISceneOwnership } from '../plus/sceneOwnership';
 import { isSceneFailure } from '../scenePackStore';
 import {
@@ -53,6 +54,10 @@ export interface IWallpaperDeps extends IWallpaperScenes {
    * is kept, which `loadScene` answers in its place from now on.
    */
   sceneWouldNotBuild(lookId: string, pack: IScenePack): boolean;
+  /** The window's language as main has it, for the words a page shows. */
+  locale(): LocaleCode;
+  /** Told whenever the window's language changes; returns how to stop. */
+  onLocale(listener: (next: LocaleCode) => void): () => void;
 }
 
 /** Failures a monitor changing shape may clear. */
@@ -109,6 +114,8 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   // what a monitor set to follow Brightness on its own plays at. Not kept
   // either; the window says it as it opens.
   let brightnessDaylight: number | undefined;
+  // The window's language, which a page's words are in (`setLocale`).
+  let locale: LocaleCode = DEFAULT_LOCALE;
   const relay = createWallpaperAudioRelay();
   const cleanups: (() => void)[] = [];
   const hookedOwners = new WeakSet<WebContents>();
@@ -144,6 +151,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     tuning: (lookId) => tuning[lookId],
     daylight: () => graphDaylight,
     brightness: () => brightnessDaylight,
+    locale: () => locale,
     onEmpty: () => relay.cancel(),
   });
 
@@ -393,6 +401,15 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     backgrounds.applyDaylight();
   };
 
+  /** The window's language changed: every page's words follow it. */
+  const setLocale = (next: LocaleCode) => {
+    if (disposed || next === locale) {
+      return;
+    }
+    locale = next;
+    backgrounds.applyLocale();
+  };
+
   /**
    * What was on the desktop before FluidEQ last closed, back on the same
    * monitors. It waits for the window, whose page answers the monitors' audio
@@ -451,8 +468,15 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     if (disposed) {
       return;
     }
-    const { displayIds, lookId, wave, motion, followsGraph, daylight } =
-      request;
+    const {
+      displayIds,
+      lookId,
+      wave,
+      motion,
+      followsGraph,
+      daylight,
+      interactive,
+    } = request;
     // Rebuilt field by field: what is kept, sent back and written to disk is
     // exactly these numbers, whatever else the request carried.
     const choice: IWallpaperChoice = {
@@ -471,9 +495,13 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       const follows =
         followsGraph ?? (kept?.lookId === lookId && kept.followsGraph === true);
       const ownDaylight = daylight ?? kept?.daylight;
+      // Whether its scene answers the mouse, the same way: the request's
+      // word, else what the monitor had.
+      const mouse = interactive ?? kept?.interactive ?? true;
       return {
         ...choice,
         ...(follows ? { followsGraph: true } : {}),
+        ...(mouse ? {} : { interactive: false }),
         ...(ownDaylight
           ? {
               daylight: {
@@ -764,6 +792,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     setGraphLook,
     setGraphDaylight,
     setBrightnessDaylight,
+    setLocale,
     restoreSaved,
     failEverywhere,
     failUnowned,

@@ -41,14 +41,25 @@ const same = (left: string, right: string) =>
   left.replace(/\s+/g, '').toLowerCase() ===
   right.replace(/\s+/g, '').toLowerCase();
 
-/** The `:root` block's declarations in App.scss, as written. */
+/**
+ * The shipped theme's declarations as written: the mixin App.scss includes on
+ * `:root` (and the desktop background's page with it).
+ */
 const stylesheetRoot = (): Record<string, string> => {
   const text = fs.readFileSync(
-    path.join(__dirname, '..', '..', '..', 'renderer', 'styles', 'App.scss'),
+    path.join(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      'renderer',
+      'styles',
+      '_shippedTheme.scss',
+    ),
     'utf8',
   );
   const start = text.indexOf('// THE THEME, in one place.');
-  const open = text.indexOf(':root {', start);
+  const open = text.indexOf('@mixin shipped-theme {', start);
   const close = text.indexOf('\n}', open);
   const block = text.slice(open, close);
   return Object.fromEntries(

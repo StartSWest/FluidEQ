@@ -37,8 +37,9 @@ import {
  * somebody who had picked Ocean opens on the colours they chose and not on
  * a near miss of them.
  *
- * Black is declared here and nowhere else. Ocean is also the `:root` block in
- * `App.scss`, which is what the window paints before any script has run, and
+ * Black is declared here and nowhere else. Ocean is also the shipped theme
+ * App.scss puts on `:root` (`_shippedTheme.scss`), which is what the window
+ * paints before any script has run, and
  * `themeShade.test.ts` holds the two copies to each other.
  */
 

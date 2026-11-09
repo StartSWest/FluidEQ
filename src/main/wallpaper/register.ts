@@ -125,6 +125,12 @@ const registerWallpaperIpc = (
         manager.setBrightnessDaylight(raw);
       }
     }),
+    // The window's language, for the words a desktop page shows (its view
+    // reset): as main has it now, and again whenever the window changes it.
+    (() => {
+      manager.setLocale(deps.locale());
+      return deps.onLocale(manager.setLocale);
+    })(),
     onWindowMessage(WALLPAPER.audio, (event, raw: unknown) => {
       if (fromOwner(event)) {
         manager.acceptAudio(raw);

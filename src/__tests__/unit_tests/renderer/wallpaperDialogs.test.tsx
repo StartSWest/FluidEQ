@@ -650,3 +650,42 @@ describe('choosing a monitor’s time of day', () => {
     );
   });
 });
+
+/**
+ * Whether the chosen monitors' scenes answer the mouse over the bare desktop
+ * (Ivan, 2026-11-09: "user can toogle if they want desktop iteration or not
+ * ... right there at the destkop modal").
+ */
+describe('choosing whether a background answers the mouse', () => {
+  it('starts on, sends none left untouched, and sends off when turned off', () => {
+    withScreens([]);
+    const { unmount } = render(
+      <WallpaperDialog lookId="premium:aurora" onClose={jest.fn()} />,
+    );
+    const mouse = screen.getByRole('checkbox', { name: 'Interactive' });
+    expect(mouse).toHaveAttribute('aria-checked', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
+    expect(jest.mocked(startWallpaper).mock.calls[0][0]).not.toHaveProperty(
+      'interactive',
+    );
+    unmount();
+
+    render(<WallpaperDialog lookId="premium:aurora" onClose={jest.fn()} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Interactive' }));
+    expect(
+      screen.getByRole('checkbox', { name: 'Interactive' }),
+    ).toHaveAttribute('aria-checked', 'false');
+    fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
+    expect(startWallpaper).toHaveBeenLastCalledWith(
+      expect.objectContaining({ displayIds: [2], interactive: false }),
+    );
+  });
+
+  it('opens off where the chosen monitor already has it off', () => {
+    withScreens([showing(2, { interactive: false })]);
+    render(<WallpaperDialog lookId="premium:aurora" onClose={jest.fn()} />);
+    expect(
+      screen.getByRole('checkbox', { name: 'Interactive' }),
+    ).toHaveAttribute('aria-checked', 'false');
+  });
+});

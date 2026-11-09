@@ -39,6 +39,9 @@ const wallpaper = {
     '그래프를 따르지 않는 모니터의 시간대: 직접 정한 시간대, 앱의 밝기 또는 컴퓨터 시계.',
   'wallpaper.daylight.following':
     '이 모니터는 그래프를 따르므로 그래프의 시간대를 사용합니다.',
+  'wallpaper.interactive': '대화형',
+  'wallpaper.interactive.hint':
+    '빈 바탕 화면에서 그래프처럼 마우스에 반응합니다.',
   'wallpaper.cancel': '취소',
   'wallpaper.done': '완료',
   'wallpaper.start': '배경 설정',

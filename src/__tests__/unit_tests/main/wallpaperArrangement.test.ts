@@ -155,6 +155,29 @@ describe('reading back what each monitor was set to show', () => {
     );
   });
 
+  // Only "off" is ever written; a file from before the switch, or anything
+  // else in its place, is a scene that answers the mouse — never a reason to
+  // forget the monitor.
+  it('keeps a monitor whose scene does not answer the mouse, and no other word', () => {
+    const [screen] = file.screens;
+    const off = parseArrangement({
+      ...file,
+      screens: [{ ...screen, interactive: false }],
+    });
+    expect(off?.screens[0].choice.interactive).toBe(false);
+    ['yes', true, 1].forEach((interactive) => {
+      const read = parseArrangement({
+        ...file,
+        screens: [{ ...screen, interactive }],
+      });
+      expect(read?.screens).toHaveLength(1);
+      expect(read?.screens[0].choice).not.toHaveProperty('interactive');
+    });
+    expect(parseArrangement(file)?.screens[0].choice).not.toHaveProperty(
+      'interactive',
+    );
+  });
+
   it('ignores the whole file when any of it is not what this app writes', () => {
     const [screen] = file.screens;
     const broken: unknown[] = [

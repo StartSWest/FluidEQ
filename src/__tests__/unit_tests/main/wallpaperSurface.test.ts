@@ -24,6 +24,7 @@ const mockWindow = {
 const mockHost = {
   report: (_event: THostEvent) => undefined as void,
   setVisible: jest.fn(),
+  setTouch: jest.fn(),
   stop: jest.fn(),
 };
 
@@ -86,6 +87,8 @@ const create = (
     tuning: pause.tuning,
     daylight: pause.daylight ?? (() => undefined),
     brightness: pause.brightness ?? (() => undefined),
+    locale: () => 'en',
+    scale: 1,
     scene: {
       pack: { id: 'aurora', version: 1 } as never,
       madeBy: 'fluideq',

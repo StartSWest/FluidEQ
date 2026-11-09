@@ -10,9 +10,47 @@ The window's own rectangle only names the monitor: the helper places it over
 that monitor's whole physical rectangle. Windows clamps a top-level window to
 the work area, and Chromium's frame styles add invisible insets, so placing it
 where it stood left the taskbar strip showing the ordinary wallpaper.
-Write exactly `show\n` or `hide\n` to change native visibility; closing stdin
-requests shutdown. Commands are bounded, case-sensitive ASCII records. Invalid
-records fail closed. The latest policy wins when several commands arrive together.
+Write exactly `show\n` or `hide\n` to change native visibility, and `touch\n` or
+`still\n` to start or stop passing the mouse on; closing stdin requests
+shutdown. Commands are bounded, case-sensitive ASCII records. Invalid records
+fail closed. The latest policy wins when several commands arrive together.
+
+## The mouse (`pointer.h`, `icons.h`)
+
+Windows never delivers input to the background, so while main has said
+`touch` AND the window is shown AND some of the monitor's desktop is in sight,
+the helper registers Raw Input for the mouse (`RIDEV_INPUTSINK`, delivered to a
+message-only window of its own) and writes what happened over its monitor's
+bare desktop. The rest of the time it is not registered and receives nothing.
+Raw Input only observes: Explorer still gets every click, drag and right click,
+and nothing here can hold the mouse up for the rest of the machine the way a
+`WH_MOUSE_LL` hook stalls every mouse event when its thread does. No timer, no
+cursor poll: each record answers one mouse report.
+
+Bare desktop means: inside this monitor, `WindowFromPoint` names the desktop
+itself (the icons' list view, the shell windows round it, or this background),
+and the point is on no icon. The icons' rectangles come from Explorer's own
+`IFolderView` of the desktop on a thread of their own, read again whenever the
+list view reports a change and after every release over the desktop; never
+`LVM_HITTEST`, which would need memory written into Explorer. Unknown icons
+pass nothing on over a visible list view. A press begun on the bare desktop is
+followed until it is let go, wherever it goes; a press begun anywhere else
+(dragging an icon or a window across the desktop) keeps everything back until
+it is released. Of the keyboard only Ctrl is read, at the moment of a report
+that is passed on.
+
+Records, in the monitor's physical pixels from its top-left corner:
+
+- `pointer:move X Y C B`, `pointer:down X Y C B N`, `pointer:up X Y C B N`,
+  `pointer:wheel X Y C B D`, `pointer:leave`
+- `C` Ctrl down (0/1); `B` buttons held as a page's `PointerEvent.buttons`
+  (1 left, 2 right, 4 middle); `N` the button (0 left, 1 middle, 2 right); `D`
+  the wheel in Windows' units (120 a notch, positive away from the hand).
+- Stopping mid-press says `pointer:leave`, never a release, which a page would
+  read as a tap.
+
+Main never logs these. `touch-unavailable`, `touch-stop-failed` and
+`icons-unavailable` go to stderr; the background plays on without the mouse.
 
 The executable uses the Windows GUI subsystem (no console flash), but writes
 newline-delimited UTF-8/ASCII records to inherited stdout:

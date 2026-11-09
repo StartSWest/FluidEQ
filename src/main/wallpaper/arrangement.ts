@@ -82,6 +82,7 @@ interface IStoredScreen {
   motion?: unknown;
   followsGraph?: unknown;
   daylight?: unknown;
+  interactive?: unknown;
   monitor: ISavedMonitor;
 }
 
@@ -130,6 +131,9 @@ export const parseArrangement = (
             },
           }
         : {}),
+      // Only "off" is ever written; anything else, a file from before the
+      // switch included, is a scene that answers the mouse.
+      ...(entry.interactive === false ? { interactive: false } : {}),
     },
     monitor: {
       label: entry.monitor.label,

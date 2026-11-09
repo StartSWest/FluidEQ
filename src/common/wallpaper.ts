@@ -42,6 +42,13 @@ export const WALLPAPER = {
    * whatever the graph's own time of day follows.
    */
   brightnessDaylight: 'wallpaper-brightness-daylight',
+  /**
+   * The mouse wheel over a monitor's bare desktop, for its page
+   * (`IWallpaperWheel`). The rest of the mouse reaches the page as real
+   * input (`pointerRelay.ts`); a wheel sent that way to a window that cannot
+   * take focus never arrives.
+   */
+  wheel: 'wallpaper-wheel',
 } as const;
 
 /**
@@ -129,7 +136,22 @@ export interface IWallpaperChoice {
    * plays at the hour its author made it at.
    */
   daylight?: IWallpaperDaylight;
+  /**
+   * The scene answers the mouse over the monitor's bare desktop as it does on
+   * the graph — the hand, a tap, Ctrl and a drag or the wheel to turn and zoom
+   * its camera (Ivan, 2026-11-09: "I want to eanble desltop walpaper to be
+   * interactive as the viz un the app"). Absent is on: it is how a scene is
+   * played everywhere else, and it reads no key but Ctrl at a press, nothing
+   * while the background is paused or hidden, and nothing over an icon, a
+   * window or the taskbar. Kept, like the time of day, across another
+   * visualizer on the same monitor; only `false` is ever written.
+   */
+  interactive?: boolean;
 }
+
+/** Whether a monitor's scene answers the mouse (`interactive`, absent is on). */
+export const answersMouse = (choice: Pick<IWallpaperChoice, 'interactive'>) =>
+  choice.interactive !== false;
 
 /**
  * Puts one visualizer on every monitor named, replacing what each showed.
@@ -247,6 +269,26 @@ export interface IWallpaperSurfaceState {
    * no choice of its own: its scene keeps the time of day its author gave it.
    */
   daylight?: TWallpaperDaylight;
+  /**
+   * The mouse reaches this page (`IWallpaperChoice.interactive`): the hand is
+   * on its scene, with the view's reset beside it. Off, the camera goes back
+   * to the author's view, where nothing could turn it back otherwise.
+   */
+  interactive: boolean;
+  /** The window's language, which the page's few words are in. */
+  locale: string;
+}
+
+/**
+ * The wheel over a monitor's bare desktop: where, in the page's own pixels,
+ * how far (100 a notch, positive towards the hand, as a page's `deltaY`), and
+ * whether Ctrl was down — the camera's zoom, as on the graph.
+ */
+export interface IWallpaperWheel {
+  x: number;
+  y: number;
+  deltaY: number;
+  ctrlKey: boolean;
 }
 
 /** Scene source is loaded and authorized by main, never sent back by a page. */
@@ -282,6 +324,8 @@ export interface IWallpaperSurfaceBridge {
   failed(reason?: TSceneFailure): void;
   requestAudio(): Promise<IWallpaperAudio | undefined>;
   onState(listener: (state: IWallpaperSurfaceState) => void): () => void;
+  /** The wheel over this monitor's bare desktop, while the mouse is on. */
+  onWheel(listener: (wheel: IWallpaperWheel) => void): () => void;
 }
 
 const WALLPAPER_PHASES: readonly TWallpaperPhase[] = [
@@ -398,7 +442,8 @@ const isWallpaperChoice = (
   isWallpaperWave(raw.wave) &&
   isWallpaperMotion(raw.motion) &&
   (raw.followsGraph === undefined || typeof raw.followsGraph === 'boolean') &&
-  (raw.daylight === undefined || isWallpaperDaylightChoice(raw.daylight));
+  (raw.daylight === undefined || isWallpaperDaylightChoice(raw.daylight)) &&
+  (raw.interactive === undefined || typeof raw.interactive === 'boolean');
 
 export const isWallpaperStart = (raw: unknown): raw is IWallpaperStart =>
   isRecord(raw) &&

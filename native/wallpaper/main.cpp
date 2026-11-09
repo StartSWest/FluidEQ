@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "desktop.h"
+#include "icons.h"
+#include "pointer.h"
 
 #include <dwmapi.h>
 #include <shellapi.h>
@@ -9,6 +11,7 @@
 #include <cstring>
 #include <iterator>
 #include <limits>
+#include <optional>
 
 namespace {
 struct State {
@@ -19,6 +22,7 @@ struct State {
   HANDLE input_closed = nullptr;
   HANDLE input_changed = nullptr;
   std::atomic<int> requested_visibility{-1};
+  std::atomic<int> requested_touch{-1};
   std::atomic<bool> invalid_command{false};
   wallpaper::Desktop desktop;
   RECT screen_rect{};
@@ -31,7 +35,22 @@ struct State {
   bool reported_visibility = false;
   bool requested_visible = false;
   int exit_code = 0;
-  std::array<HWINEVENTHOOK, 4> hooks{};
+  std::array<HWINEVENTHOOK, 5> hooks{};
+  // The mouse (`pointer.h`): main's word on whether to pass it on, whether
+  // Raw Input is registered now, and the window it is delivered to.
+  bool touch_requested = false;
+  bool listening = false;
+  HWND input_sink = nullptr;
+  std::optional<wallpaper::PointerRouter> router;
+  // The icons (`icons.h`): the list view they live in, and their rectangles
+  // as the reading thread last found them. `icons_known` false — never read,
+  // or Explorer would not say — passes nothing on over a visible list view.
+  HWND list_view = nullptr;
+  HANDLE icons_wanted = nullptr;
+  SRWLOCK icons_lock = SRWLOCK_INIT;
+  RECT icons[wallpaper::kMaxIcons]{};
+  int icon_count = 0;
+  bool icons_known = false;
 } state;
 
 bool line(const char* text) {
@@ -65,6 +84,149 @@ void fail(const char* reason) {
 bool set_style(int index, LONG_PTR style) {
   SetLastError(ERROR_SUCCESS);
   return SetWindowLongPtrW(state.surface, index, style) != 0 || GetLastError() == ERROR_SUCCESS;
+}
+
+/** A note for main's log. Never where the pointer is: nothing of that is kept. */
+void note(const char* text) {
+  DWORD written = 0;
+  WriteFile(GetStdHandle(STD_ERROR_HANDLE), text, static_cast<DWORD>(std::strlen(text)),
+            &written, nullptr);
+}
+
+void pointer_line(const char* text) {
+  if (state.finished) return;
+  if (!line(text)) {
+    state.finished = true;
+    hide_owned();
+  }
+}
+
+/**
+ * Whether the window under `at` is the desktop itself — its icons' list
+ * view, the shell windows around it, or this background — rather than an
+ * application, the taskbar, a menu or a widget standing on it.
+ */
+bool desktop_under(POINT at) {
+  const HWND hit = WindowFromPoint(at);
+  if (!hit) return false;
+  if (hit == state.surface) return true;
+  const HWND root = GetAncestor(hit, GA_ROOT);
+  return root == GetAncestor(state.desktop.icons, GA_ROOT) ||
+         root == GetAncestor(state.desktop.parent, GA_ROOT);
+}
+
+/** This monitor's desktop, with no icon on it either. */
+bool bare_desktop_at(POINT at) {
+  if (!PtInRect(&state.monitor_rect, at) || !desktop_under(at)) return false;
+  // Desktop icons switched off in Explorer: nothing there to keep clear of.
+  if (!state.list_view || !IsWindowVisible(state.list_view)) return true;
+  AcquireSRWLockShared(&state.icons_lock);
+  const bool bare =
+    state.icons_known && !wallpaper::over_any(at, state.icons, state.icon_count);
+  ReleaseSRWLockShared(&state.icons_lock);
+  return bare;
+}
+
+/**
+ * Raw Input registered exactly while the mouse is to be passed on: main asked
+ * for it, the background is shown, and some of the desktop is in sight. The
+ * rest of the time this process receives no mouse input at all.
+ */
+void update_listening() {
+  const bool wanted = state.attached && !state.finished && state.touch_requested &&
+                      state.requested_visible && state.cover == wallpaper::Cover::none &&
+                      state.router.has_value();
+  if (wanted == state.listening) return;
+  // RIDEV_INPUTSINK: delivered while another process has the foreground,
+  // which on a desktop is always. Removing names no window.
+  RAWINPUTDEVICE device{0x01, 0x02, wanted ? static_cast<DWORD>(RIDEV_INPUTSINK) : RIDEV_REMOVE,
+                        wanted ? state.input_sink : nullptr};
+  if (!RegisterRawInputDevices(&device, 1, sizeof(device))) {
+    // The background plays on without the mouse; nothing else depends on it.
+    note(wanted ? "touch-unavailable\n" : "touch-stop-failed\n");
+    if (wanted) return;
+  }
+  state.listening = wanted;
+  if (wanted) {
+    SetEvent(state.icons_wanted);
+  } else {
+    state.router->cancel(pointer_line);
+  }
+}
+
+void on_raw_input(HRAWINPUT handle) {
+  if (!state.listening || state.finished) return;
+  RAWINPUT input{};
+  UINT size = sizeof(input);
+  if (GetRawInputData(handle, RID_INPUT, &input, &size, sizeof(RAWINPUTHEADER)) ==
+        static_cast<UINT>(-1) ||
+      input.header.dwType != RIM_TYPEMOUSE) return;
+  wallpaper::PointerSample sample;
+  // Read when the report is handled, after Windows has moved the cursor by it.
+  if (!GetCursorPos(&sample.at)) return;
+  const USHORT flags = input.data.mouse.usButtonFlags;
+  wallpaper::raw_buttons(flags, sample.downs, sample.ups);
+  if ((flags & RI_MOUSE_WHEEL) != 0) {
+    sample.wheel = static_cast<SHORT>(input.data.mouse.usButtonData);
+  }
+  sample.bare = bare_desktop_at(sample.at);
+  // Ctrl's state at this one moment, and only when the report is passed on:
+  // the camera's key, and nothing else of the keyboard is ever read.
+  if (sample.bare || state.router->holding()) {
+    sample.ctrl = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+  }
+  state.router->feed(sample, pointer_line);
+  // A release over the desktop is how an icon is dropped somewhere new.
+  if ((sample.ups & wallpaper::kAllButtons) != 0 && desktop_under(sample.at)) {
+    SetEvent(state.icons_wanted);
+  }
+}
+
+LRESULT CALLBACK sink_procedure(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
+  if (message == WM_INPUT) on_raw_input(reinterpret_cast<HRAWINPUT>(lparam));
+  // WM_INPUT's own cleanup is DefWindowProc's.
+  return DefWindowProcW(window, message, wparam, lparam);
+}
+
+/** Found where `icons_wanted` is set and read here: copied in whole, under the lock. */
+RECT g_found_icons[wallpaper::kMaxIcons];
+
+DWORD WINAPI read_icons_thread(void*) {
+  SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+  // Multithreaded: a call into Explorer here pumps no messages, and the
+  // thread that reads the mouse never waits on one.
+  if (FAILED(CoInitializeEx(nullptr, COINIT_MULTITHREADED))) {
+    note("icons-unavailable\n");
+    return 0;
+  }
+  wallpaper::Held<IFolderView> view;
+  bool reported = false;
+  while (WaitForSingleObject(state.icons_wanted, INFINITE) == WAIT_OBJECT_0) {
+    int count = 0;
+    bool known = (view || wallpaper::desktop_folder_view(view)) &&
+                 wallpaper::read_icons(*view.get(), state.list_view, g_found_icons, count);
+    if (!known) {
+      // A view kept from before may be one Explorer has since replaced.
+      view.reset();
+      known = wallpaper::desktop_folder_view(view) &&
+              wallpaper::read_icons(*view.get(), state.list_view, g_found_icons, count);
+    }
+    AcquireSRWLockExclusive(&state.icons_lock);
+    state.icons_known = known;
+    state.icon_count = known ? count : 0;
+    std::memcpy(state.icons, g_found_icons, sizeof(RECT) * static_cast<std::size_t>(state.icon_count));
+    ReleaseSRWLockExclusive(&state.icons_lock);
+    if (!known && !reported) {
+      reported = true;
+      note("icons-unavailable\n");
+    }
+  }
+  return 0;
+}
+
+/** Something in the icons' list view changed: an icon added, moved or taken away. */
+void CALLBACK on_icons_event(HWINEVENTHOOK, DWORD, HWND window, LONG, LONG, DWORD, DWORD) {
+  if (window && window == state.list_view) SetEvent(state.icons_wanted);
 }
 
 /**
@@ -202,6 +364,9 @@ void visibility() {
     state.reported_visibility = true;
     apply_visibility();
     if (state.finished) return;
+    // Covered, the mouse stops at once — before main has heard of it.
+    update_listening();
+    if (state.finished) return;
     if (!line(cover_line(now))) {
       state.finished = true;
       hide_owned();
@@ -243,6 +408,9 @@ void verify_attachment() {
 void CALLBACK on_event(HWINEVENTHOOK, DWORD event, HWND window, LONG object,
                        LONG child, DWORD, DWORD) {
   if (state.finished) return;
+  // The icons' list view tells of its items moving, arriving and going as
+  // objects of its own: the list of where the icons are is read again.
+  if (window && window == state.list_view) SetEvent(state.icons_wanted);
   if (event >= EVENT_OBJECT_CREATE &&
       (!window || object != OBJID_WINDOW || child != CHILDID_SELF)) return;
   if (event == EVENT_OBJECT_DESTROY &&
@@ -310,6 +478,19 @@ void CALLBACK desktop_ready(HWND, UINT, ULONG_PTR, LRESULT) {
   state.attached = true;
   verify_attachment();
   if (state.finished) return;
+  // The mouse is passed on in this monitor's own pixels from its corner, and
+  // the icons are found in the list view inside the shell's DefView. No list
+  // view (a shell without one) leaves the desktop bare of icons to avoid.
+  state.router.emplace(state.monitor_rect);
+  state.list_view = FindWindowExW(state.desktop.icons, nullptr, L"SysListView32", nullptr);
+  if (state.list_view) {
+    HANDLE icons = CreateThread(nullptr, 0, read_icons_thread, nullptr, 0, nullptr);
+    if (icons) {
+      CloseHandle(icons);
+    } else {
+      note("icons-unavailable\n");
+    }
+  }
   if (!line("ready\n")) {
     state.finished = true;
     hide_owned();
@@ -320,27 +501,26 @@ void CALLBACK desktop_ready(HWND, UINT, ULONG_PTR, LRESULT) {
 
 DWORD WINAPI read_input(void*) {
   char buffer[64];
-  char command[4]{};
-  std::size_t used = 0;
+  wallpaper::CommandReader reader;
   DWORD count = 0;
-  // A bounded parser accepts only complete show/hide records. The latest
-  // policy wins if main changes it several times before the UI thread wakes.
+  // A bounded parser accepts only complete records (`CommandReader`). The
+  // latest policy wins if main changes it several times before the UI thread
+  // wakes.
   while (ReadFile(GetStdHandle(STD_INPUT_HANDLE), buffer, sizeof(buffer), &count, nullptr) &&
          count != 0) {
     for (DWORD index = 0; index < count; ++index) {
-      const char value = buffer[index];
-      if (value == '\n' && used == 4 &&
-          (std::memcmp(command, "show", 4) == 0 || std::memcmp(command, "hide", 4) == 0)) {
-        state.requested_visibility.store(command[0] == 's' ? 1 : 0);
-        used = 0;
-        SetEvent(state.input_changed);
-      } else if (value != '\n' && used < 4) {
-        command[used++] = value;
-      } else {
-        state.invalid_command.store(true);
-        SetEvent(state.input_changed);
-        return 0;
+      switch (reader.feed(buffer[index])) {
+        case wallpaper::Command::none: continue;
+        case wallpaper::Command::show: state.requested_visibility.store(1); break;
+        case wallpaper::Command::hide: state.requested_visibility.store(0); break;
+        case wallpaper::Command::touch: state.requested_touch.store(1); break;
+        case wallpaper::Command::still: state.requested_touch.store(0); break;
+        case wallpaper::Command::invalid:
+          state.invalid_command.store(true);
+          SetEvent(state.input_changed);
+          return 0;
       }
+      SetEvent(state.input_changed);
     }
   }
   SetEvent(state.input_closed);
@@ -411,9 +591,20 @@ int run() {
   state.shell = OpenProcess(SYNCHRONIZE, FALSE, state.desktop.pid);
   state.input_closed = CreateEventW(nullptr, TRUE, FALSE, nullptr);
   state.input_changed = CreateEventW(nullptr, FALSE, FALSE, nullptr);
-  if (!state.shell || !state.input_closed || !state.input_changed) {
+  state.icons_wanted = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+  if (!state.shell || !state.input_closed || !state.input_changed || !state.icons_wanted) {
     fail("lifetime-unavailable"); return 1;
   }
+  // Where Raw Input delivers the mouse while it is passed on: a message-only
+  // window of this thread's, which nothing can see, focus or click.
+  WNDCLASSW sink_class{};
+  sink_class.lpfnWndProc = sink_procedure;
+  sink_class.hInstance = GetModuleHandleW(nullptr);
+  sink_class.lpszClassName = L"FluidEQWallpaperInput";
+  if (!RegisterClassW(&sink_class)) { fail("input-unavailable"); return 1; }
+  state.input_sink = CreateWindowExW(0, sink_class.lpszClassName, L"", 0, 0, 0, 0, 0,
+                                     HWND_MESSAGE, nullptr, sink_class.hInstance, nullptr);
+  if (!state.input_sink) { fail("input-unavailable"); return 1; }
   HANDLE reader = CreateThread(nullptr, 0, read_input, nullptr, 0, nullptr);
   if (!reader) { fail("input-unavailable"); return 1; }
   CloseHandle(reader);
@@ -422,7 +613,11 @@ int run() {
     SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, nullptr, on_event, 0, 0, flags),
     SetWinEventHook(EVENT_SYSTEM_MINIMIZESTART, EVENT_SYSTEM_MINIMIZEEND, nullptr, on_event, 0, 0, flags),
     SetWinEventHook(EVENT_OBJECT_DESTROY, EVENT_OBJECT_REORDER, nullptr, on_event, 0, 0, flags),
-    SetWinEventHook(EVENT_OBJECT_LOCATIONCHANGE, EVENT_OBJECT_PARENTCHANGE, nullptr, on_event, 0, 0, flags)
+    SetWinEventHook(EVENT_OBJECT_LOCATIONCHANGE, EVENT_OBJECT_PARENTCHANGE, nullptr, on_event, 0, 0, flags),
+    // An icon arriving on the desktop, from Explorer alone: every other
+    // window being created anywhere is nothing this helper has to look at.
+    SetWinEventHook(EVENT_OBJECT_CREATE, EVENT_OBJECT_CREATE, nullptr, on_icons_event,
+                    state.desktop.pid, 0, flags)
   };
   for (const auto hook : state.hooks) {
     if (!hook) { fail("events-unavailable"); return 1; }
@@ -442,7 +637,9 @@ int run() {
     if (result == WAIT_OBJECT_0 + 3) {
       if (state.invalid_command.load()) { fail("invalid-command"); break; }
       state.requested_visible = state.requested_visibility.load() == 1;
+      state.touch_requested = state.requested_touch.load() == 1;
       apply_visibility();
+      update_listening();
     }
     MSG message{};
     while (!state.finished && PeekMessageW(&message, nullptr, 0, 0, PM_REMOVE)) {

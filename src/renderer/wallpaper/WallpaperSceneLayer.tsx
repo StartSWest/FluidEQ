@@ -13,6 +13,7 @@ import {
 } from 'common/wallpaper';
 import { authoredDaylight } from '../graph/sceneDaylight';
 import type { ISceneFrame } from '../graph/sceneGl';
+import type { ISceneInteraction } from '../graph/sceneInteraction';
 import useSceneRunner, { type ISceneSource } from '../graph/useSceneRunner';
 import { studioSpectrumRect } from '../studio/studioWave';
 import { createCalmShaper } from './calmMotion';
@@ -36,6 +37,7 @@ export default function WallpaperSceneLayer({
   bridge,
   performance,
   asleep,
+  interaction,
   onFirstFrame,
   onCrossed,
 }: {
@@ -52,6 +54,11 @@ export default function WallpaperSceneLayer({
   performance: IScenePerformance;
   /** Paused: the picture stays on the desktop and no frame is drawn. */
   asleep: boolean;
+  /**
+   * The viewer's hands on this scene (`WallpaperHands`): the pointer, taps
+   * and the camera it is drawn with, read on every frame as on the graph.
+   */
+  interaction: ISceneInteraction;
   /** Its first frame with anything in it, once. */
   onFirstFrame(generation: number): void;
   /** The fade of this layer off its successor ended, or was cut short. */
@@ -153,6 +160,7 @@ export default function WallpaperSceneLayer({
     // frames it draws, so moving a slider in the window moves the desktop.
     ...(tuning ? { tuning } : {}),
     daylight: readDaylight,
+    interaction,
     onDrawn,
   });
   useEffect(() => {

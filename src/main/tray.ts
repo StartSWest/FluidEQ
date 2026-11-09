@@ -295,6 +295,22 @@ export const isAppQuitting = () => isQuitting;
  */
 export const getTrayLocale = (): LocaleCode => locale;
 
+const localeListeners = new Set<(next: LocaleCode) => void>();
+
+/**
+ * Told whenever the window's language changes, once its dictionary is loaded
+ * here: for main-side surfaces that show text after they are drawn — the
+ * desktop backgrounds' view reset.
+ */
+export const onTrayLocale = (
+  listener: (next: LocaleCode) => void,
+): (() => void) => {
+  localeListeners.add(listener);
+  return () => {
+    localeListeners.delete(listener);
+  };
+};
+
 /**
  * Arm a real quit.
  *
@@ -461,6 +477,7 @@ export const setTrayLocale = (
   { getMainWindow }: Pick<ITrayDeps, 'getMainWindow'>,
 ) => {
   locale = next;
+  localeListeners.forEach((listener) => listener(next));
   if (!tray || tray.isDestroyed()) {
     return;
   }
