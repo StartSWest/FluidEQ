@@ -25,6 +25,7 @@ const mockHost = {
   report: (_event: THostEvent) => undefined as void,
   setVisible: jest.fn(),
   setTouch: jest.fn(),
+  setCameraKey: jest.fn(),
   stop: jest.fn(),
 };
 

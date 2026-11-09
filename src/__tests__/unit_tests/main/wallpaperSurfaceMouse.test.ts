@@ -26,6 +26,7 @@ const mockHost = {
   pointer: (_record: unknown) => undefined as void,
   setVisible: jest.fn(),
   setTouch: jest.fn(),
+  setCameraKey: jest.fn(),
   stop: jest.fn(),
 };
 
@@ -115,6 +116,30 @@ const lastTouch = () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+});
+
+describe('the camera key the desktop helper reads', () => {
+  // The helper reads the key itself, over a desktop the window cannot hear:
+  // told at once, and again whenever the window's choice changes - by where
+  // a key sits, never its letter, and never Ctrl+anything.
+  it('is told the window’s key as the helper starts, and every change of it', () => {
+    const surface = playing();
+    expect(mockHost.setCameraKey).toHaveBeenLastCalledWith('ctrl');
+    surface.retuneCameraControl({
+      key: 'code:KeyQ',
+      move: 'drag',
+      follow: false,
+      orbit: 'off',
+    });
+    expect(mockHost.setCameraKey).toHaveBeenLastCalledWith('scan:0x10');
+    surface.retuneCameraControl({
+      key: 'alt',
+      move: 'drag',
+      follow: false,
+      orbit: 'off',
+    });
+    expect(mockHost.setCameraKey).toHaveBeenLastCalledWith('alt');
+  });
 });
 
 describe('when the desktop helper passes the mouse on', () => {

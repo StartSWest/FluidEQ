@@ -8,6 +8,7 @@ import {
   type IScenePerformance,
 } from '../../common/scenePerformance';
 import {
+  cameraKeyForHelper,
   cameraMotionOf,
   sameSceneCameraControl,
   type ISceneCameraControl,
@@ -378,6 +379,8 @@ export const createDesktopSurface = (
         },
         relayPointer,
       );
+      // The key the window chose, before the first mouse report is read.
+      host.setCameraKey(cameraKeyForHelper(cameraControl.key));
     } catch (error) {
       log.warn(`Desktop visualizer attachment: ${error}`);
       fail('host');
@@ -437,6 +440,7 @@ export const createDesktopSurface = (
         return;
       }
       cameraControl = next;
+      host?.setCameraKey(cameraKeyForHelper(next.key));
       tellPage();
     },
     applyTuning: (next) => {

@@ -27,6 +27,13 @@ export interface IWallpaperHost {
    * also shown and not covered; this is main's half of that.
    */
   setTouch(touch: boolean): void;
+  /**
+   * Which key the helper reads as the camera's at each report it passes on
+   * (`camera-key`, `native/wallpaper/pointer.h`): `ctrl`, `alt`, `shift`
+   * or `scan:0x..`, as `cameraKeyForHelper` names it. Sent only when it
+   * changes; Ctrl until told.
+   */
+  setCameraKey(name: string): void;
   stop(): void;
 }
 
@@ -63,6 +70,7 @@ export const startWallpaperHost = (
   let stopped = false;
   let failed = false;
   let touching = false;
+  let cameraKey = 'ctrl';
   const fail = (detail: string) => {
     if (stopped || failed) {
       return;
@@ -110,6 +118,12 @@ export const startWallpaperHost = (
       if (!stopped && !failed && touch !== touching) {
         touching = touch;
         child.stdin.write(touch ? 'touch\n' : 'still\n');
+      }
+    },
+    setCameraKey: (name) => {
+      if (!stopped && !failed && name !== cameraKey) {
+        cameraKey = name;
+        child.stdin.write(`camera-key ${name}\n`);
       }
     },
     stop: () => {
