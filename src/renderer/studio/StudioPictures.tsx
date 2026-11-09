@@ -17,6 +17,7 @@ import StudioPictureLightbox, {
   type IViewedPicture,
 } from './StudioPictureLightbox';
 import StudioPictureViewButton from './StudioPictureViewButton';
+import StudioAskCard from './StudioAskCard';
 import useAtlasImage from './useAtlasImage';
 import '../styles/Gallery.scss';
 import '../styles/StudioPictures.scss';
@@ -84,8 +85,8 @@ const filledPictures = (
 /**
  * Every picture the open scene asks for, by the name the scene gives it,
  * with what is in it now and the one button that changes it — on the bench,
- * under the stage, where the scene they go into is playing. Nothing when the
- * scene uses no pictures.
+ * under the stage, where the scene they go into is playing. A scene that uses
+ * none yet is told so, with how to ask the chat for one.
  *
  * An empty picture wears the loud button, because filling it is the next
  * thing to do; a filled one the quiet one — "Frame…" when its photo is kept
@@ -156,8 +157,34 @@ export default function StudioPictures({
     [save],
   );
 
-  if (!pictures || pictures.kind === 'none') {
+  if (!pictures) {
     return null;
+  }
+
+  // A scene that uses no picture yet: the tab is offered all the same, and
+  // says so and how to ask for one, as Animations does with none made.
+  if (pictures.kind === 'none') {
+    return (
+      <section
+        className="studio-card studio-pictures"
+        aria-labelledby={titleId}
+      >
+        <div className="studio-pictures__head">
+          <span className="studio-card__eyebrow" id={titleId}>
+            {t('studio.picture.title')}
+          </span>
+          <span className="studio-pictures__lead">
+            {t('studio.picture.noSlot')}
+          </span>
+        </div>
+        <ul className="studio-pictures__list">
+          <StudioAskCard
+            title={t('studio.picture.askTitle')}
+            example={t('studio.picture.askExample')}
+          />
+        </ul>
+      </section>
+    );
   }
 
   return (

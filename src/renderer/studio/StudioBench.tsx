@@ -367,7 +367,9 @@ export default function StudioBench({ view }: IStudioBenchProps) {
       />
     );
   }
-  if (project && picture.pictures && picture.pictures.kind !== 'none') {
+  // Offered for every project, as Animations is: a scene with no picture yet
+  // gets a tab that says how to ask for one, never no tab at all.
+  if (project) {
     panels.pictures = (
       <StudioPictures
         pictures={picture.pictures}

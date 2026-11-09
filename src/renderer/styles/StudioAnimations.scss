@@ -150,30 +150,6 @@ it under the terms of the GNU General Public License version 3 or later.
   font-variant-numeric: tabular-nums;
 }
 
-// Where another comes from: the chat, in the member's own words.
-.studio-animations__ask {
-  display: grid;
-  align-content: center;
-  gap: 8px;
-  min-height: 140px;
-  padding: $spacing-m;
-  color: $text-faint;
-  border: 1px dashed color-mix(in srgb, $secondary-light 30%, transparent);
-  border-radius: $radius-s;
-  background: color-mix(in srgb, $secondary-default 4%, transparent);
-}
-
-.studio-animations__ask-title {
-  color: $text-primary;
-  font-size: $text-body;
-  font-weight: $weight-semibold;
-}
-
-.studio-animations__ask-text {
-  font-size: $text-small;
-  line-height: 1.55;
-}
-
 // ---------------------------------------------------------------- opened
 
 .studio-animation-opened {

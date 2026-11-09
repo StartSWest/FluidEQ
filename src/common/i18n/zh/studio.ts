@@ -211,6 +211,9 @@ const studio = {
   'studio.picture.saving': '正在保存图片…',
   'studio.picture.saved': '你的图片已经在场景里了。',
   'studio.picture.noSlot': '这个场景不使用图片。',
+  'studio.picture.askTitle': '在聊天中请求一张',
+  'studio.picture.askExample':
+    '“舞台后面放一张夜空照片。”聊天会生成这张图片并放进场景，它会显示在这里，你也可以换成自己的照片。',
   'studio.picture.badSlot':
     'pack.json 要求的图片 FluidEQ 无法生成。请让你的 AI 用简单的文件名，尺寸不超过 4096 × 2048。',
   'studio.picture.tooLarge': '这个文件超过 40 MB。请选一张小一些的图片。',

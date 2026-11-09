@@ -1,0 +1,37 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Where another picture or animation comes from: the chat, in the member's
+// own words. The Pictures and Animations tabs end with one, and it is all
+// either tab holds before the scene has anything in it.
+.studio-ask {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-height: 140px;
+  padding: $spacing-m;
+  color: $text-faint;
+  border: 1px dashed color-mix(in srgb, $secondary-light 30%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $secondary-default 4%, transparent);
+}
+
+.studio-ask__title {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.studio-ask__text {
+  font-size: $text-small;
+  line-height: 1.55;
+}

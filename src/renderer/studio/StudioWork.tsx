@@ -14,19 +14,26 @@ export type TStudioWorkTab =
   'chat' | 'tune' | 'code' | 'pictures' | 'animations' | 'drawing' | 'hears';
 
 /**
- * In the order they are offered. The chat is a tab only in a bench too
- * narrow for its pane, and then it comes first: it is where the scene is
- * made. "Make with AI" was the first tab before the chat took its place.
+ * In the order they stand. The chat is a tab only in a bench too narrow for
+ * its pane, and then it comes first: it is where the scene is made. "Make
+ * with AI" was the first tab before the chat took its place.
  */
 const ORDER: readonly TStudioWorkTab[] = [
   'chat',
   'tune',
   'code',
-  'pictures',
-  'animations',
   'drawing',
   'hears',
+  'pictures',
+  'animations',
 ];
+
+/**
+ * Always in sight, at the row's end where the part that scrolls gives way
+ * around them (Ivan, 2026-11-09: "make sure the pic and amaintor tab always
+ * visible"): what a scene is drawn from, and offered for every project.
+ */
+const PINNED: ReadonlySet<TStudioWorkTab> = new Set(['pictures', 'animations']);
 
 const LABELS: Record<TStudioWorkTab, TranslationKey> = {
   chat: 'studio.work.make',
@@ -47,9 +54,9 @@ const readTab = (): TStudioWorkTab => {
 
 interface IStudioWorkProps {
   /**
-   * Each tab's panel, built by the bench; a tab with none is not offered — a
-   * scene that asks for no pictures has no Pictures tab, and "What it hears"
-   * is a tab only while the window is too narrow for its column.
+   * Each tab's panel, built by the bench; a tab with none is not offered —
+   * "What it hears" is a tab only while the window is too narrow for its
+   * column, and the chat only while the bench is too narrow for its pane.
    */
   panels: Partial<Record<TStudioWorkTab, ReactNode>>;
   badges?: Partial<
@@ -59,8 +66,8 @@ interface IStudioWorkProps {
 
 /**
  * The work under the stage, one tab at a time, the chosen tab remembered for
- * the next visit. A remembered tab this bench does not offer — Pictures for a
- * scene without any, "What it hears" in a wide window — is kept, not
+ * the next visit. A remembered tab this bench does not offer — "What it
+ * hears" in a wide window — is kept, not
  * overwritten, and the first tab stands in for it until it is offered again.
  */
 export default function StudioWork({ panels, badges }: IStudioWorkProps) {
@@ -77,6 +84,7 @@ export default function StudioWork({ panels, badges }: IStudioWorkProps) {
       tabs={offered.map((id) => ({
         id,
         label: t(LABELS[id]),
+        pinned: PINNED.has(id),
         ...badges?.[id],
       }))}
       selected={selected}

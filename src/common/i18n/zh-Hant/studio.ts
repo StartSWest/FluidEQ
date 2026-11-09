@@ -211,6 +211,9 @@ const studio = {
   'studio.picture.saving': '儲存圖片...',
   'studio.picture.saved': '你的照片就在場景中。',
   'studio.picture.noSlot': '這個場景沒有使用圖片。',
+  'studio.picture.askTitle': '在聊天中請求一張',
+  'studio.picture.askExample':
+    '「舞台後面放一張夜空照片。」聊天會生成這張圖片並放進場景，它會顯示在這裡，你也可以換成自己的照片。',
   'studio.picture.badSlot':
     'pack.json 要求提供 FluidEQ 無法制作的圖片。向你的 AI 詢問一個普通的檔名和最大 4096 × 2048 的大小。',
   'studio.picture.tooLarge': '該檔案超過 40 MB。選擇較小的圖片。',

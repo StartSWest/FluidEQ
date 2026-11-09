@@ -238,6 +238,9 @@ const studio = {
   'studio.picture.saving': 'Salvataggio dell’immagine…',
   'studio.picture.saved': 'La tua immagine è nella scena.',
   'studio.picture.noSlot': 'Questa scena non usa immagini.',
+  'studio.picture.askTitle': 'Chiedine una nella chat',
+  'studio.picture.askExample':
+    '«Una foto del cielo notturno dietro il palco.» La chat crea l’immagine, la mette nella scena e compare qui, dove puoi sostituirla con una tua.',
   'studio.picture.badSlot':
     'pack.json chiede un’immagine che FluidEQ non può creare. Chiedi alla tua IA un nome di file semplice e una dimensione fino a 4096 × 2048.',
   'studio.picture.tooLarge':

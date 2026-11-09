@@ -1,6 +1,7 @@
 import { useId, useState, type ReactNode } from 'react';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
+import StudioAskCard from '../StudioAskCard';
 import AnimationFrame from './AnimationFrame';
 import AnimationView from './AnimationView';
 import StudioAnimationModal from './StudioAnimationModal';
@@ -210,14 +211,10 @@ export default function StudioAnimations({
             onOpen={() => setOpened(viewed.animation.name)}
           />
         ))}
-        <li className="studio-animations__ask">
-          <span className="studio-animations__ask-title">
-            {t('studio.animation.askTitle')}
-          </span>
-          <span className="studio-animations__ask-text">
-            {t('studio.animation.askExample')}
-          </span>
-        </li>
+        <StudioAskCard
+          title={t('studio.animation.askTitle')}
+          example={t('studio.animation.askExample')}
+        />
       </ul>
     </section>
   );

@@ -242,6 +242,9 @@ const studio = {
   'studio.picture.saving': 'Saving the picture…',
   'studio.picture.saved': 'Your picture is in the scene.',
   'studio.picture.noSlot': 'This scene does not use a picture.',
+  'studio.picture.askTitle': 'Ask for one in the chat',
+  'studio.picture.askExample':
+    '“A photo of the night sky behind the stage.” The chat makes the picture, puts it in the scene, and it appears here, where you can change it for one of your own.',
   'studio.picture.badSlot':
     'pack.json asks for a picture FluidEQ cannot make. Ask your AI for a plain file name and a size up to 4096 × 2048.',
   'studio.picture.tooLarge':

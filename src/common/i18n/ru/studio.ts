@@ -233,6 +233,9 @@ const studio = {
   'studio.picture.saving': 'Сохраняем изображение…',
   'studio.picture.saved': 'Ваше изображение уже в сцене.',
   'studio.picture.noSlot': 'Эта сцена не использует изображение.',
+  'studio.picture.askTitle': 'Попросите изображение в чате',
+  'studio.picture.askExample':
+    '«Фото ночного неба за сценой». Чат создаёт изображение, добавляет его в сцену, и оно появляется здесь, где его можно заменить своим.',
   'studio.picture.badSlot':
     'pack.json просит изображение, которое FluidEQ не может сделать. Попросите ИИ простое имя файла и размер не больше 4096 × 2048.',
   'studio.picture.tooLarge':

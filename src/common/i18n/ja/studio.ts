@@ -237,6 +237,9 @@ const studio = {
   'studio.picture.saving': '画像を保存しています…',
   'studio.picture.saved': '画像がシーンに入りました。',
   'studio.picture.noSlot': 'このシーンは画像を使いません。',
+  'studio.picture.askTitle': 'チャットで頼んでください',
+  'studio.picture.askExample':
+    '「ステージの後ろに夜空の写真を」。チャットが画像を作ってシーンに入れると、ここに表示されます。自分の写真に差し替えることもできます。',
   'studio.picture.badSlot':
     'pack.json が FluidEQ では作れない画像を求めています。AI に、単純なファイル名と 4096 × 2048 以下のサイズにするよう頼んでください。',
   'studio.picture.tooLarge':

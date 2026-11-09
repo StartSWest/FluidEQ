@@ -50,7 +50,9 @@ it under the terms of the GNU General Public License version 3 or later.
   --fade-forward: 0px;
 
   display: flex;
-  flex: 1 1 auto;
+  // Its own width while everything fits, so the pinned tabs follow the last
+  // one rather than standing at the far end; less when it does not.
+  flex: 0 1 auto;
   gap: 4px;
   min-width: 0;
   overflow-x: auto;
@@ -74,6 +76,15 @@ it under the terms of the GNU General Public License version 3 or later.
   &.has-forward {
     --fade-forward: 28px;
   }
+}
+
+// Pictures and Animations: never scrolled away (Ivan, 2026-11-09: "make sure
+// the pic and amaintor tab always visible"). After the part that scrolls and
+// its arrow, at their own width; the part that scrolls is what gives way.
+.studio-work__pinned {
+  display: flex;
+  flex: none;
+  gap: 4px;
 }
 
 .studio-work__tab {

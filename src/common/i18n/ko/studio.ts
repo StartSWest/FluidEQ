@@ -231,6 +231,9 @@ const studio = {
   'studio.picture.saving': '사진을 저장하는 중…',
   'studio.picture.saved': '귀하의 사진이 현장에 있습니다.',
   'studio.picture.noSlot': '이 장면은 사진을 사용하지 않습니다.',
+  'studio.picture.askTitle': '채팅에서 요청하세요',
+  'studio.picture.askExample':
+    '“무대 뒤에 밤하늘 사진을.” 채팅이 사진을 만들어 장면에 넣으면 여기에 나타나고, 내 사진으로 바꿀 수도 있습니다.',
   'studio.picture.badSlot':
     'pack.json은 FluidEQ가 만들 수 없는 사진을 요청합니다. AI에게 일반 파일 이름과 최대 4096 × 2048 크기를 요청하세요.',
   'studio.picture.tooLarge':

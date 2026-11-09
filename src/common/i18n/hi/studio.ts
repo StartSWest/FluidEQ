@@ -235,6 +235,9 @@ const studio = {
   'studio.picture.saving': 'चित्र सहेजा जा रहा है…',
   'studio.picture.saved': 'आपका चित्र सीन में आ गया है।',
   'studio.picture.noSlot': 'यह सीन कोई चित्र इस्तेमाल नहीं करता।',
+  'studio.picture.askTitle': 'चैट में एक माँगें',
+  'studio.picture.askExample':
+    '“स्टेज के पीछे रात के आसमान की फ़ोटो।” चैट चित्र बनाती है, उसे सीन में लगाती है, और वह यहाँ दिखता है, जहाँ आप उसे अपनी फ़ोटो से बदल सकते हैं।',
   'studio.picture.badSlot':
     'pack.json ऐसा चित्र माँगता है जो FluidEQ नहीं बना सकता। अपने AI से सरल फ़ाइल नाम और 4096 × 2048 तक का आकार माँगें।',
   'studio.picture.tooLarge': 'यह फ़ाइल 40 MB से बड़ी है। कोई छोटा चित्र चुनें।',
