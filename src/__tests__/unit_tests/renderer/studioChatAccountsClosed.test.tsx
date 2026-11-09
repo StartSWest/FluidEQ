@@ -41,7 +41,12 @@ beforeEach(() => {
 });
 
 it('shows the Claude account and no ChatGPT row', async () => {
-  render(<StudioChatAccounts />);
+  render(
+    <StudioChatAccounts
+      closeRef={{ current: null }}
+      onClose={() => undefined}
+    />,
+  );
   // The control: the card is drawn, with the Claude account on it.
   expect(
     await screen.findByLabelText('studioChat.accounts.claude'),
@@ -52,7 +57,12 @@ it('shows the Claude account and no ChatGPT row', async () => {
 });
 
 it('never asks main about Codex', async () => {
-  render(<StudioChatAccounts />);
+  render(
+    <StudioChatAccounts
+      closeRef={{ current: null }}
+      onClose={() => undefined}
+    />,
+  );
   await screen.findByLabelText('studioChat.accounts.claude');
   await checkStudioChatCodex();
   expect(bridge.studioChatCodex).not.toHaveBeenCalled();

@@ -24,7 +24,7 @@ export default function StudioChatMenu({
   otherAi,
   onOtherAi,
 }: {
-  onAccounts: () => void;
+  onAccounts: (from: HTMLElement | null) => void;
   /** The pane shows the prompt for another AI instead of the chat. */
   otherAi: boolean;
   onOtherAi: () => void;
@@ -62,7 +62,7 @@ export default function StudioChatMenu({
           className="studio-chat-pop__item"
           onClick={() => {
             popover.close();
-            onAccounts();
+            onAccounts(popover.anchor);
           }}
         >
           <Glyph name="person" />

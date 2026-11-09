@@ -29,17 +29,20 @@ const useChatPopover = () => {
         setIsOpen(false);
       }
     };
+    // Heard first, in capture, and kept: Escape shuts the panel on top, never
+    // the view under it too (the accounts close on Escape as well).
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        event.stopPropagation();
         setIsOpen(false);
         anchor?.focus();
       }
     };
     window.addEventListener('mousedown', onPointerDown);
-    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keydown', onKeyDown, true);
     return () => {
       window.removeEventListener('mousedown', onPointerDown);
-      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keydown', onKeyDown, true);
     };
   }, [isOpen, anchor]);
 

@@ -28,6 +28,21 @@ it under the terms of the GNU General Public License version 3 or later.
   @include slim-scrollbar;
 }
 
+// The heading and the way back to the chat. The × sits in the heading's own
+// line height: its 28px box overhangs above and below, so the cards stay
+// where they were, and its glyph lines up with the cards' right edge.
+.studio-chat-accounts__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 16px;
+
+  .studio-chat__icon {
+    margin: -6px -4px -6px 0;
+  }
+}
+
 .studio-chat-accounts__card {
   display: grid;
   gap: 3px;

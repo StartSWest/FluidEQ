@@ -4,7 +4,13 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import { resolveSceneName } from 'common/scenePacks';
 import type { IStudioProject } from 'main/ipc/studioProjectTypes';
 import Glyph from '../../community/Glyph';
@@ -70,6 +76,44 @@ export default function StudioChat({
   const [view, setView] = useState<'chat' | 'other' | 'past' | 'accounts'>(
     'chat',
   );
+  // The accounts close back to the chat (Ivan, 2026-11-09: "a close button
+  // there so we can close the pane and back to chat"), by their × or Escape,
+  // and hand focus back to what opened them: the plan's line, or ⋯, whose
+  // Accounts item has gone with its menu.
+  const where = useRef<HTMLButtonElement>(null);
+  const accountsClose = useRef<HTMLButtonElement>(null);
+  const accountsFrom = useRef<HTMLElement | null>(null);
+  const openAccounts = (from: HTMLElement | null) => {
+    accountsFrom.current = from;
+    setView('accounts');
+  };
+  const closeAccounts = useCallback(() => {
+    const from = accountsFrom.current;
+    accountsFrom.current = null;
+    setView('chat');
+    (from?.isConnected ? from : where.current)?.focus();
+  }, []);
+  useEffect(() => {
+    const node = pane.current;
+    if (view !== 'accounts' || !node) {
+      return undefined;
+    }
+    // Opened from ⋯, focus falls to the page with the menu's item, where
+    // Escape would never reach the pane: it starts on the way out instead.
+    if (!node.contains(document.activeElement)) {
+      accountsClose.current?.focus();
+    }
+    // An open ⋯ menu takes Escape before this hears it (`useChatPopover`).
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        closeAccounts();
+      }
+    };
+    node.addEventListener('keydown', onKeyDown);
+    return () => node.removeEventListener('keydown', onKeyDown);
+  }, [view, closeAccounts]);
   const otherAi = view === 'other';
   const projectId = project?.id;
   // The project's own, kept until sent, so an idea chosen in the thread
@@ -109,7 +153,9 @@ export default function StudioChat({
 
   let body;
   if (view === 'accounts') {
-    body = <StudioChatAccounts />;
+    body = (
+      <StudioChatAccounts closeRef={accountsClose} onClose={closeAccounts} />
+    );
   } else if (view === 'past' && canChat) {
     body = <StudioChatPast onOpened={() => setView('chat')} />;
   } else if (otherAi) {
@@ -177,13 +223,18 @@ export default function StudioChat({
           {/* Whose plan the chat runs on is a press away (`StudioChatAccounts`):
               the line naming it opens the accounts, and closes them again. */}
           <button
+            ref={where}
             type="button"
             className="studio-chat__where"
             aria-pressed={view === 'accounts'}
             title={t('studioChat.accounts.open')}
-            onClick={() =>
-              setView((shown) => (shown === 'accounts' ? 'chat' : 'accounts'))
-            }
+            onClick={(event) => {
+              if (view === 'accounts') {
+                closeAccounts();
+              } else {
+                openAccounts(event.currentTarget);
+              }
+            }}
           >
             {plan ? t('studioChat.wherePlan', { plan }) : t('studioChat.where')}
             {/* ChatGPT's pictures on: a glyph beside the plan, never words,
@@ -245,7 +296,7 @@ export default function StudioChat({
           </button>
         )}
         <StudioChatMenu
-          onAccounts={() => setView('accounts')}
+          onAccounts={openAccounts}
           otherAi={otherAi}
           onOtherAi={() =>
             setView((shown) => (shown === 'other' ? 'chat' : 'other'))

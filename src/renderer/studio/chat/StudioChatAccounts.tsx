@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, type ReactNode, type Ref } from 'react';
 import { CHATGPT_PICTURES_OPEN } from 'common/studioChatPictures';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
@@ -150,7 +150,15 @@ function ChatGptAccount() {
  * ChatGPT row only while ChatGPT pictures are open (`studioChatPictures.ts`):
  * closed, nothing here asks Codex anything.
  */
-export default function StudioChatAccounts() {
+export default function StudioChatAccounts({
+  closeRef,
+  onClose,
+}: {
+  /** The ×, which the chat focuses when the pane opened from ⋯. */
+  closeRef: Ref<HTMLButtonElement>;
+  /** Back to the chat. */
+  onClose: () => void;
+}) {
   const { t } = useTranslation();
   const { availability, signingIn } = useStudioChat();
 
@@ -198,10 +206,24 @@ export default function StudioChatAccounts() {
   }
 
   return (
-    <div className="studio-chat-accounts">
-      <h3 className="studio-chat-past__heading">
-        {t('studioChat.accounts.title')}
-      </h3>
+    // Focusable, so a press on the cards' words keeps focus in the pane,
+    // where its Escape is heard.
+    <div className="studio-chat-accounts" tabIndex={-1}>
+      <div className="studio-chat-accounts__head">
+        <h3 className="studio-chat-past__heading">
+          {t('studioChat.accounts.title')}
+        </h3>
+        <button
+          ref={closeRef}
+          type="button"
+          className="studio-chat__icon"
+          title={t('studioChat.backToChat')}
+          aria-label={t('studioChat.backToChat')}
+          onClick={onClose}
+        >
+          <Glyph name="close" />
+        </button>
+      </div>
       <AccountCard
         service={t('studioChat.accounts.claude')}
         lamp={claudeReady ? 'ready' : 'off'}
