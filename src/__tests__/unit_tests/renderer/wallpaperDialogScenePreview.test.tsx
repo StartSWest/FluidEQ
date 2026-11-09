@@ -117,7 +117,9 @@ const glassOf = (name: RegExp) =>
   tile(name).querySelector('.wallpaper-monitor__glass');
 
 beforeEach(() => {
-  mockLoad.mockReset().mockResolvedValue({ id: 'aurora' });
+  // A pack as the loader hands one over: normalised, so its controls are
+  // always there, and the dialog reads the hour it was made at from them.
+  mockLoad.mockReset().mockResolvedValue({ id: 'aurora', params: [] });
   mockTrouble = undefined;
 });
 
