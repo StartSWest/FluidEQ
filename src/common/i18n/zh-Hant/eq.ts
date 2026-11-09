@@ -199,6 +199,22 @@ const eq = {
   'graph.scene.ownTiming': '使用自己的計時',
   'graph.scene.ownTimingHint': '回到攻擊並釋放這個視覺化工具',
   'graph.scene.frameRate': '幀率',
+  'graph.scene.camera.key': '移動視角的按鍵',
+  'graph.scene.camera.keyHint':
+    '在 3D 場景上按住此鍵可旋轉場景，搭配滾輪可拉近拉遠。一般點擊始終屬於場景本身。',
+  'graph.scene.camera.key.ctrl': 'Ctrl',
+  'graph.scene.camera.key.alt': 'Alt',
+  'graph.scene.camera.key.shift': 'Shift',
+  'graph.scene.camera.key.press': '請按一個鍵…',
+  'graph.scene.camera.key.pressNote': '按下要使用的鍵 · Esc 取消',
+  'graph.scene.camera.key.shiftNote':
+    '在場景上，Shift+拖曳會旋轉場景，而不是新增頻段',
+  'graph.scene.camera.key.ownNote':
+    '在場景上此鍵用於移動視角；在其他地方保持原有功能',
+  'graph.scene.camera.move': '旋轉方式',
+  'graph.scene.camera.moveHint': '按住此鍵拖曳，或按住此鍵直接移動滑鼠。',
+  'graph.scene.camera.move.drag': '按住並拖曳',
+  'graph.scene.camera.move.move': '按住並移動',
   'graph.scene.frameRateHint':
     '繪製視覺化工具的頻率：顯示器顯示的每一幀，或限制以節省 GPU',
   'graph.scene.frameRate.display': '跟隨顯示器',

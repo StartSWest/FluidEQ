@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { DEFAULT_SCENE_CAMERA_CONTROL } from 'common/sceneCameraControl';
 import { createSceneInteraction } from 'renderer/graph/sceneInteraction';
 
 /**
@@ -49,7 +50,7 @@ const setUp = () => {
     setPointerCapture: () => undefined,
     releasePointerCapture: () => undefined,
   });
-  const hands = createSceneInteraction();
+  const hands = createSceneInteraction(() => DEFAULT_SCENE_CAMERA_CONTROL);
   hands.setLimits(LIMITS);
   const detach = hands.attach(panel, { frame: () => box });
   const panelHeard: string[] = [];

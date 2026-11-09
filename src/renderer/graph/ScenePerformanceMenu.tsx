@@ -6,7 +6,6 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import type { ReactNode } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import {
   SCENE_AUTO_FLOORS,
@@ -27,6 +26,7 @@ import {
   type TGpuPreference,
 } from 'common/graphicsPreference';
 import { useTranslation } from '../utils/I18nContext';
+import { CycleRow } from './ViewMenuCycleRow';
 import { sceneGpuName } from './sceneGpuName';
 import { useOnBattery } from '../utils/batteryPower';
 import {
@@ -75,56 +75,8 @@ const GPU_LABEL: Record<TGpuPreference, TranslationKey> = {
   high: 'graph.scene.gpu.high',
 };
 
-const Icon = ({ children }: { children: ReactNode }) => (
-  <svg className="graph-view-menu__icon" viewBox="0 0 16 16" aria-hidden>
-    {children}
-  </svg>
-);
-
 const after = <T,>(list: readonly T[], current: T): T =>
   list[(list.indexOf(current) + 1) % list.length];
-
-/**
- * One row that cycles its choice on each click, its current answer at the
- * right — and, when the answer is not yet in force, a note under it.
- */
-function CycleRow({
-  hint,
-  label,
-  value,
-  note,
-  report,
-  icon,
-  onCycle,
-}: {
-  hint: TranslationKey;
-  label: TranslationKey;
-  value: string;
-  note?: string;
-  /** A fact under the row, on a full line of its own. */
-  report?: string;
-  icon: ReactNode;
-  onCycle: () => void;
-}) {
-  const { t } = useTranslation();
-  return (
-    <button
-      type="button"
-      role="menuitem"
-      title={t(hint)}
-      className={report ? 'graph-view-menu__row--reported' : undefined}
-      onClick={onCycle}
-    >
-      <Icon>{icon}</Icon>
-      <span>{t(label)}</span>
-      <span className="graph-view-menu__value">
-        {value}
-        {note && <span className="graph-view-menu__note">{note}</span>}
-      </span>
-      {report && <span className="graph-view-menu__report">{report}</span>}
-    </button>
-  );
-}
 
 /**
  * How hard visualizers drive the GPU and how their picture is finished,

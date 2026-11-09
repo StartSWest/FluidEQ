@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import type { ISceneCameraControl } from 'common/sceneCameraControl';
 import type {
   IWallpaperAudio,
   IWallpaperSurfaceBridge,
@@ -137,10 +138,18 @@ export default function WallpaperSurface({
   // crossing each read their own every frame, and only the current one is
   // attached to the stage (`WallpaperHands`). A layer gone takes its hands.
   const interactions = useRef(new Map<number, ISceneInteraction>());
+  // How the camera is moved, as main last said, read on every gesture. The
+  // key is always Ctrl here: the desktop helper reads whichever key the
+  // window chose and reports it in the one bit main hands on as Ctrl.
+  const cameraControl = useRef<ISceneCameraControl>({
+    key: 'ctrl',
+    move: 'drag',
+  });
+  cameraControl.current = { key: 'ctrl', move: state?.cameraMove ?? 'drag' };
   const interactionOf = (generation: number) => {
     let interaction = interactions.current.get(generation);
     if (!interaction) {
-      interaction = createSceneInteraction();
+      interaction = createSceneInteraction(() => cameraControl.current);
       interactions.current.set(generation, interaction);
     }
     return interaction;

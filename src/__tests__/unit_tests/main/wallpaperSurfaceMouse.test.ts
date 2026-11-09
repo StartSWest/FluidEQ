@@ -82,6 +82,7 @@ const playing = (
       upscaler: 'fsr',
       smoothing: 'off',
     },
+    cameraControl: { key: 'ctrl', move: 'drag' },
     tuning: undefined,
     daylight: () => undefined,
     brightness: () => undefined,

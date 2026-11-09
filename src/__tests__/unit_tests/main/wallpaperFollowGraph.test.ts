@@ -233,6 +233,7 @@ describe('following the graph across launches', () => {
       upscaler: 'fsr',
       smoothing: 'off',
     },
+    cameraControl: { key: 'ctrl' as const, move: 'drag' as const },
     tuning: {},
     screens: [
       {

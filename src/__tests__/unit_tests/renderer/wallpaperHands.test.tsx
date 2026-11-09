@@ -11,6 +11,7 @@ import type {
   IWallpaperWheel,
 } from '../../../common/wallpaper';
 import type { IScenePack } from '../../../common/scenePacks';
+import { DEFAULT_SCENE_CAMERA_CONTROL } from '../../../common/sceneCameraControl';
 import { createSceneInteraction } from '../../../renderer/graph/sceneInteraction';
 import WallpaperHands from '../../../renderer/wallpaper/WallpaperHands';
 
@@ -33,7 +34,9 @@ const setUp = () => {
       };
     }),
   } as unknown as IWallpaperSurfaceBridge;
-  const interaction = createSceneInteraction();
+  const interaction = createSceneInteraction(
+    () => DEFAULT_SCENE_CAMERA_CONTROL,
+  );
   interaction.setLimits(LIMITS);
   const stage = document.createElement('div');
   document.body.appendChild(stage);

@@ -237,6 +237,23 @@ const eq: Partial<Dictionary> = {
   'graph.scene.ownTimingHint':
     'Вернуться к атаке и спаду, с которыми пришёл этот визуализатор',
   'graph.scene.frameRate': 'Частота кадров',
+  'graph.scene.camera.key': 'Вращать вид с',
+  'graph.scene.camera.keyHint':
+    'Клавиша, которую удерживают над 3D-сценой, чтобы вращать её, а с колесом — приближать и отдалять. Обычный щелчок всегда остаётся за сценой.',
+  'graph.scene.camera.key.ctrl': 'Ctrl',
+  'graph.scene.camera.key.alt': 'Alt',
+  'graph.scene.camera.key.shift': 'Shift',
+  'graph.scene.camera.key.press': 'Нажмите клавишу…',
+  'graph.scene.camera.key.pressNote': 'Нажмите нужную клавишу · Esc — отмена',
+  'graph.scene.camera.key.shiftNote':
+    'Над сценой Shift с перетаскиванием вращает её, а не добавляет полосы',
+  'graph.scene.camera.key.ownNote':
+    'Над сценой эта клавиша двигает вид; в остальных местах работает как обычно',
+  'graph.scene.camera.move': 'Вращение',
+  'graph.scene.camera.moveHint':
+    'Удерживать клавишу и тянуть, или удерживать её и просто двигать мышь.',
+  'graph.scene.camera.move.drag': 'Удерживать и тянуть',
+  'graph.scene.camera.move.move': 'Удерживать и двигать',
   'graph.scene.frameRateHint':
     'Как часто рисуются визуализаторы: в каждом кадре экрана или с ограничением, чтобы разгрузить GPU',
   'graph.scene.frameRate.display': 'Как у экрана',

@@ -171,6 +171,35 @@ describe('how hard the monitors draw', () => {
     expect(mockSurfaces[0].retunePerformance).toHaveBeenCalledTimes(2);
   });
 
+  // How the window turns a scene travels the same way: every monitor, and the
+  // file, so the next launch's monitors turn as the window does.
+  it('takes the window’s way of moving a camera to the monitors and remembers it', () => {
+    const { deps, file } = setup();
+    const manager = createWallpaperManager(deps);
+    manager.start(request({ displayIds: [2, 3] }));
+    manager.setCameraControl({ key: 'code:KeyQ', move: 'move' });
+    expect(
+      mockSurfaces.map(
+        (surface) => surface.retuneCameraControl.mock.calls[0][0],
+      ),
+    ).toEqual([
+      { key: 'code:KeyQ', move: 'move' },
+      { key: 'code:KeyQ', move: 'move' },
+    ]);
+    expect(file().cameraControl).toEqual({ key: 'code:KeyQ', move: 'move' });
+    // The same choice again is not a change.
+    manager.setCameraControl({ key: 'code:KeyQ', move: 'move' });
+    expect(mockSurfaces[0].retuneCameraControl).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts a monitor with the way of moving a camera it was left with', () => {
+    const { deps } = setup();
+    const manager = createWallpaperManager(deps);
+    manager.setCameraControl({ key: 'alt', move: 'move' });
+    manager.start(request());
+    expect(mockSurfaces[0].cameraControl).toEqual({ key: 'alt', move: 'move' });
+  });
+
   it('starts a monitor with the choice it was left with', () => {
     const { deps } = setup();
     const manager = createWallpaperManager(deps);
@@ -264,6 +293,7 @@ describe('stopping', () => {
         upscaler: 'simple',
         smoothing: 'off',
       },
+      cameraControl: { key: 'ctrl' as const, move: 'drag' as const },
       tuning: { 'premium:alpine': { wave: { height: 0.4, position: 0.2 } } },
       screens: [],
     });
@@ -293,6 +323,7 @@ describe('coming back at launch', () => {
       upscaler: 'fsr',
       smoothing: 'off',
     },
+    cameraControl: { key: 'ctrl' as const, move: 'drag' as const },
     tuning: {},
     screens: [
       {

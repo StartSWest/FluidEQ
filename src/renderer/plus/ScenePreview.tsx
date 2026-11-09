@@ -5,6 +5,8 @@ import { DEFAULT_SCENE_WAVE, type ISceneWave } from 'common/sceneWave';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { createSceneInteraction } from '../graph/sceneInteraction';
+import { readSceneCameraControl } from '../utils/sceneCameraControlStore';
+
 import SceneViewReset from '../graph/SceneViewReset';
 import { studioSpectrumRect } from '../studio/studioWave';
 import { lastSceneBuild, reportSceneBuilt } from '../utils/sceneBuilds';
@@ -179,7 +181,10 @@ export default function ScenePreview({
   // at all. Where one only decorates - a banner under its own overlay, a
   // backdrop that takes no pointer - no press ever arrives, and nothing here
   // needs telling so.
-  const interaction = useMemo(createSceneInteraction, []);
+  const interaction = useMemo(
+    () => createSceneInteraction(readSceneCameraControl),
+    [],
+  );
 
   const sceneRef = useSceneRunner({
     captureFrames,

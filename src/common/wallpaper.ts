@@ -1,5 +1,6 @@
 import type { TSceneFailure } from '../main/scenePackStore';
 import type { IScenePack } from './scenePacks';
+import type { TSceneCameraMove } from './sceneCameraControl';
 import type { IScenePerformance } from './scenePerformance';
 import type { TSceneMaker } from './sceneMaker';
 import { isPremiumLookId, packIdOfLook } from './scenePacks';
@@ -21,6 +22,11 @@ export const WALLPAPER = {
   audioReady: 'wallpaper-audio-ready',
   /** The window's frame rate and resolution choice, for every monitor. */
   performance: 'wallpaper-performance',
+  /**
+   * How a scene's camera is moved (`sceneCameraControl.ts`): the key the
+   * desktop helper reads for it, and the way its pages turn.
+   */
+  cameraControl: 'wallpaper-camera-control',
   /** What the listener set for each visualizer: its controls and its timing. */
   tuning: 'wallpaper-tuning',
   /**
@@ -275,6 +281,13 @@ export interface IWallpaperSurfaceState {
    * to the author's view, where nothing could turn it back otherwise.
    */
   interactive: boolean;
+  /**
+   * How the window turns a scene (`ISceneCameraControl.move`): the camera's
+   * key and a drag, or the key and the mouse moving alone. The key itself
+   * is not here: the helper reads whichever the window chose and main hands
+   * it on as Ctrl.
+   */
+  cameraMove: TSceneCameraMove;
   /** The window's language, which the page's few words are in. */
   locale: string;
 }

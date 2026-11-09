@@ -39,6 +39,7 @@ const stateAt = (renderGeneration: number): IWallpaperSurfaceState => ({
     smoothing: 'off',
   },
   interactive: true,
+  cameraMove: 'drag',
   locale: 'en',
 });
 

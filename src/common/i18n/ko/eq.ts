@@ -217,6 +217,23 @@ const eq = {
   'graph.scene.ownTimingHint':
     '이 비주얼라이저의 원래 어택과 릴리스로 되돌리기',
   'graph.scene.frameRate': '프레임 속도',
+  'graph.scene.camera.key': '시점 이동 키',
+  'graph.scene.camera.keyHint':
+    '3D 장면 위에서 누르고 있으면 장면을 돌리는 키입니다. 휠과 함께 쓰면 확대·축소합니다. 일반 클릭은 항상 장면의 것입니다.',
+  'graph.scene.camera.key.ctrl': 'Ctrl',
+  'graph.scene.camera.key.alt': 'Alt',
+  'graph.scene.camera.key.shift': 'Shift',
+  'graph.scene.camera.key.press': '키를 누르세요…',
+  'graph.scene.camera.key.pressNote': '사용할 키를 누르세요 · Esc로 취소',
+  'graph.scene.camera.key.shiftNote':
+    '장면 위에서 Shift+드래그는 밴드를 추가하는 대신 장면을 돌립니다',
+  'graph.scene.camera.key.ownNote':
+    '장면 위에서는 이 키로 시점이 움직이고, 다른 곳에서는 평소대로 작동합니다',
+  'graph.scene.camera.move': '회전 방식',
+  'graph.scene.camera.moveHint':
+    '키를 누른 채 드래그하거나, 키를 누른 채 마우스만 움직입니다.',
+  'graph.scene.camera.move.drag': '누른 채 드래그',
+  'graph.scene.camera.move.move': '누른 채 이동',
   'graph.scene.frameRateHint':
     '시각화 도우미가 그려지는 빈도: 디스플레이에 표시되는 모든 프레임 또는 GPU를 절약하기 위해 제한됩니다.',
   'graph.scene.frameRate.display': '표시율',

@@ -241,6 +241,24 @@ const eq: Partial<Dictionary> = {
   'graph.scene.ownTimingHint':
     'Revenir à l’attaque et au relâchement fournis avec ce visualiseur',
   'graph.scene.frameRate': 'Cadence',
+  'graph.scene.camera.key': 'Déplacer la vue avec',
+  'graph.scene.camera.keyHint':
+    'La touche maintenue sur une scène 3D pour la faire tourner, et avec la molette pour avancer ou reculer. Un simple clic reste toujours à la scène.',
+  'graph.scene.camera.key.ctrl': 'Ctrl',
+  'graph.scene.camera.key.alt': 'Alt',
+  'graph.scene.camera.key.shift': 'Maj',
+  'graph.scene.camera.key.press': 'Appuyez sur une touche…',
+  'graph.scene.camera.key.pressNote':
+    'Appuyez sur la touche voulue · Échap annule',
+  'graph.scene.camera.key.shiftNote':
+    'Sur une scène, Maj et un glisser la font tourner au lieu d’ajouter des bandes',
+  'graph.scene.camera.key.ownNote':
+    'Sur une scène, cette touche déplace la vue ; ailleurs, elle garde son rôle habituel',
+  'graph.scene.camera.move': 'Rotation',
+  'graph.scene.camera.moveHint':
+    'Maintenir la touche et faire glisser, ou la maintenir et simplement déplacer la souris.',
+  'graph.scene.camera.move.drag': 'Maintenir et glisser',
+  'graph.scene.camera.move.move': 'Maintenir et bouger',
   'graph.scene.frameRateHint':
     'À quelle fréquence les visualiseurs sont dessinés : à chaque image de l’écran, ou plafonnée pour ménager le GPU',
   'graph.scene.frameRate.display': 'Celle de l’écran',

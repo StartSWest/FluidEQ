@@ -1,4 +1,5 @@
 import { ipcRenderer, type IpcRendererEvent } from 'electron';
+import type { ISceneCameraControl } from '../common/sceneCameraControl';
 import type { IScenePerformance } from '../common/scenePerformance';
 import {
   WALLPAPER,
@@ -19,6 +20,12 @@ const wallpaperBridge = {
    */
   setScenePerformance: (value: IScenePerformance) =>
     ipcRenderer.send(WALLPAPER.performance, value),
+  /**
+   * How a scene's camera is moved, so the monitors' pages and the desktop
+   * helper follow the window's choice.
+   */
+  setSceneCameraControl: (value: ISceneCameraControl) =>
+    ipcRenderer.send(WALLPAPER.cameraControl, value),
   /**
    * What the listener set for each visualizer — its controls, its timing and
    * the band it is drawn in — so a monitor showing one is drawn as the window

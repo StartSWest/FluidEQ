@@ -234,6 +234,24 @@ const eq: Partial<Dictionary> = {
   'graph.scene.ownTimingHint':
     'उसी अटैक और रिलीज़ पर लौटें जिनके साथ यह विज़ुअलाइज़र आया था',
   'graph.scene.frameRate': 'फ़्रेम दर',
+  'graph.scene.camera.key': 'दृश्य घुमाने की कुंजी',
+  'graph.scene.camera.keyHint':
+    'वह कुंजी जिसे 3D दृश्य पर दबाए रखकर उसे घुमाया जाता है, और व्हील के साथ पास-दूर किया जाता है। सामान्य क्लिक हमेशा दृश्य का ही रहता है।',
+  'graph.scene.camera.key.ctrl': 'Ctrl',
+  'graph.scene.camera.key.alt': 'Alt',
+  'graph.scene.camera.key.shift': 'Shift',
+  'graph.scene.camera.key.press': 'कोई कुंजी दबाएँ…',
+  'graph.scene.camera.key.pressNote':
+    'जो कुंजी चाहिए उसे दबाएँ · Esc रद्द करता है',
+  'graph.scene.camera.key.shiftNote':
+    'दृश्य पर Shift और खींचना बैंड जोड़ने के बजाय उसे घुमाता है',
+  'graph.scene.camera.key.ownNote':
+    'दृश्य पर यह कुंजी दृश्य घुमाती है; बाकी जगह अपना सामान्य काम करती है',
+  'graph.scene.camera.move': 'घुमाने का तरीका',
+  'graph.scene.camera.moveHint':
+    'कुंजी दबाए रखकर खींचें, या कुंजी दबाए रखकर बस माउस चलाएँ।',
+  'graph.scene.camera.move.drag': 'दबाए रखकर खींचें',
+  'graph.scene.camera.move.move': 'दबाए रखकर चलाएँ',
   'graph.scene.frameRateHint':
     'विज़ुअलाइज़र कितनी बार बनाए जाएँ: डिस्प्ले के हर फ़्रेम पर, या GPU को राहत देने के लिए सीमित',
   'graph.scene.frameRate.display': 'डिस्प्ले जितनी',

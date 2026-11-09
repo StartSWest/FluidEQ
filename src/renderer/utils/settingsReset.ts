@@ -61,6 +61,7 @@ export const SETTING_STEMS: readonly string[] = [
   // Visualizers: each one's own controls, its response and wave, and how
   // hard the graphics card works.
   'fluideq.sceneParams',
+  'fluideq.sceneCameraControl',
   'fluideq.scenePerformance',
   'fluideq.standardPerformance',
   'fluideq.sceneResponse',

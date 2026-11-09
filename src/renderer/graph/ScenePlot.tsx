@@ -93,7 +93,7 @@ export default function ScenePlot({
       {run && (
         <SceneViewReset
           interaction={run.interaction}
-          // Fades with the graph's chrome by itself (`SceneViewReset`).
+          // Shown only while the camera's key is held (`SceneViewReset`).
           className=""
           // In the drawing's own corner, clear of the axes' labels.
           style={{ right: inset.right + 8, bottom: inset.bottom + 8 }}

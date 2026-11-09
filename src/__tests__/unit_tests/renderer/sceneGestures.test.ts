@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { DEFAULT_SCENE_CAMERA_CONTROL } from 'common/sceneCameraControl';
 import {
   createSceneInteraction,
   type TSceneGesture,
@@ -50,7 +51,7 @@ describe('gestures over a scene on its own surface', () => {
     button = document.createElement('button');
     panel.append(button);
     document.body.append(panel);
-    const hands = createSceneInteraction();
+    const hands = createSceneInteraction(() => DEFAULT_SCENE_CAMERA_CONTROL);
     detach = hands.attach(panel, { frame: () => box });
     heard = [];
     stop = hands.onGesture((gesture) => heard.push(gesture));

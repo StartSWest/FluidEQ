@@ -22,6 +22,10 @@ import {
   sameScenePerformance,
   type IScenePerformance,
 } from '../../common/scenePerformance';
+import {
+  sameSceneCameraControl,
+  type ISceneCameraControl,
+} from '../../common/sceneCameraControl';
 import type { IScenePack } from '../../common/scenePacks';
 import { DEFAULT_LOCALE, type LocaleCode } from '../../common/i18n';
 import type { ISceneOwnership } from '../plus/sceneOwnership';
@@ -86,7 +90,7 @@ const MENDED_BY_ANOTHER_SCENE: readonly TWallpaperError[] = [
  */
 export const createWallpaperManager = (deps: IWallpaperDeps) => {
   const remembered = deps.arrangement.read();
-  let { pauseOnBattery, performance, tuning } = remembered;
+  let { pauseOnBattery, performance, cameraControl, tuning } = remembered;
   // What each monitor was set to show, by the id it is connected under now.
   // A failure or an unplugged cable leaves it here; only Stop takes it away.
   const saved = new Map<number, ISavedScreen>(
@@ -148,6 +152,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
         cover,
       }),
     performance: () => performance,
+    cameraControl: () => cameraControl,
     tuning: (lookId) => tuning[lookId],
     daylight: () => graphDaylight,
     brightness: () => brightnessDaylight,
@@ -175,6 +180,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       deps.arrangement.write({
         pauseOnBattery,
         performance,
+        cameraControl,
         tuning,
         screens: [...saved.values()],
       });
@@ -200,6 +206,20 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     performance = next;
     save();
     backgrounds.retunePerformance(next);
+  };
+
+  /**
+   * How a scene's camera is moved, the window's choice: every monitor's page
+   * turns by it and every helper reads its key. Kept with the backgrounds,
+   * as the performance is.
+   */
+  const setCameraControl = (next: ISceneCameraControl) => {
+    if (disposed || sameSceneCameraControl(next, cameraControl)) {
+      return;
+    }
+    cameraControl = next;
+    save();
+    backgrounds.retuneCameraControl(next);
   };
 
   const remember = (display: IWallpaperDisplay, choice: IWallpaperChoice) => {
@@ -595,7 +615,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     if (disposed) {
       return;
     }
-    ({ pauseOnBattery, performance } = EMPTY_ARRANGEMENT);
+    ({ pauseOnBattery, performance, cameraControl } = EMPTY_ARRANGEMENT);
     tuning = {};
     stop(undefined);
   };
@@ -793,6 +813,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     reset,
     setGameInFront,
     setPerformance,
+    setCameraControl,
     setTuning,
     setGraphLook,
     setGraphDaylight,

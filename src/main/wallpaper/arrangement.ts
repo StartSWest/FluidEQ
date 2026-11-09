@@ -6,6 +6,11 @@ import {
   type IScenePerformance,
 } from '../../common/scenePerformance';
 import {
+  DEFAULT_SCENE_CAMERA_CONTROL,
+  normalizeSceneCameraControl,
+  type ISceneCameraControl,
+} from '../../common/sceneCameraControl';
+import {
   DEFAULT_WALLPAPER_WAVE,
   MAX_WALLPAPER_DISPLAYS,
   isWallpaperDaylightChoice,
@@ -42,6 +47,11 @@ export interface IWallpaperArrangement {
   /** The window's frame rate and resolution choice, for every monitor. */
   performance: IScenePerformance;
   /**
+   * How a scene's camera is moved, the window's choice: kept so a background
+   * brought back at launch turns as the window does before it has said so.
+   */
+  cameraControl: ISceneCameraControl;
+  /**
    * What the listener set for each visualizer, by look id. Kept here so a
    * background brought back at launch is drawn as they tuned it before the
    * window has read its own store.
@@ -59,6 +69,7 @@ export interface IArrangementStore {
 export const EMPTY_ARRANGEMENT: IWallpaperArrangement = {
   pauseOnBattery: true,
   performance: DEFAULT_SCENE_PERFORMANCE,
+  cameraControl: DEFAULT_SCENE_CAMERA_CONTROL,
   tuning: {},
   screens: [],
 };
@@ -153,6 +164,8 @@ export const parseArrangement = (
     // Files written before the choice existed have none, and meant what a
     // fresh install means.
     performance: normalizeScenePerformance(raw.performance),
+    // Files written before the choice existed meant Ctrl and a drag.
+    cameraControl: normalizeSceneCameraControl(raw.cameraControl),
     // A tuning of an unknown shape is nothing tuned, never a reason to drop
     // every monitor's background with it.
     tuning: isWallpaperTuningMap(raw.tuning) ? raw.tuning : {},
@@ -196,7 +209,7 @@ export const createArrangementStore = (
       }
       return parsed;
     },
-    write: ({ pauseOnBattery, performance, tuning, screens }) =>
+    write: ({ pauseOnBattery, performance, cameraControl, tuning, screens }) =>
       writeFileAtomically(
         filePath,
         `${JSON.stringify(
@@ -204,6 +217,7 @@ export const createArrangementStore = (
             version: 1,
             pauseOnBattery,
             performance,
+            cameraControl,
             tuning,
             screens: screens.map(storedScreenOf),
           },

@@ -241,6 +241,24 @@ const eq: Partial<Dictionary> = {
   'graph.scene.ownTimingHint':
     'Zurück zu Attack und Release, mit denen dieser Visualizer kam',
   'graph.scene.frameRate': 'Bildrate',
+  'graph.scene.camera.key': 'Ansicht bewegen mit',
+  'graph.scene.camera.keyHint':
+    'Die Taste, die über einer 3D-Szene gehalten wird, um sie zu drehen, und mit dem Mausrad, um heran- und wegzuzoomen. Ein einfacher Klick gehört immer der Szene.',
+  'graph.scene.camera.key.ctrl': 'Strg',
+  'graph.scene.camera.key.alt': 'Alt',
+  'graph.scene.camera.key.shift': 'Umschalt',
+  'graph.scene.camera.key.press': 'Taste drücken…',
+  'graph.scene.camera.key.pressNote':
+    'Drücken Sie die gewünschte Taste · Esc bricht ab',
+  'graph.scene.camera.key.shiftNote':
+    'Über einer Szene dreht Umschalt mit Ziehen sie, statt Bänder hinzuzufügen',
+  'graph.scene.camera.key.ownNote':
+    'Über einer Szene bewegt diese Taste die Ansicht, sonst tut sie, was sie immer tut',
+  'graph.scene.camera.move': 'Drehen',
+  'graph.scene.camera.moveHint':
+    'Taste halten und ziehen, oder Taste halten und nur die Maus bewegen.',
+  'graph.scene.camera.move.drag': 'Halten und ziehen',
+  'graph.scene.camera.move.move': 'Halten und bewegen',
   'graph.scene.frameRateHint':
     'Wie oft Visualizer gezeichnet werden: mit jedem Bild des Displays oder begrenzt, um die GPU zu schonen',
   'graph.scene.frameRate.display': 'Wie das Display',

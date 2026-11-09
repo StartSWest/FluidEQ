@@ -237,6 +237,24 @@ const eq: Partial<Dictionary> = {
   'graph.scene.ownTimingHint':
     'このビジュアライザーに元々設定されたアタックとリリースに戻します',
   'graph.scene.frameRate': 'フレームレート',
+  'graph.scene.camera.key': '視点を動かすキー',
+  'graph.scene.camera.keyHint':
+    '3D シーンの上で押したままにして回転させるキー。ホイールと組み合わせると拡大・縮小します。通常のクリックは常にシーンのものです。',
+  'graph.scene.camera.key.ctrl': 'Ctrl',
+  'graph.scene.camera.key.alt': 'Alt',
+  'graph.scene.camera.key.shift': 'Shift',
+  'graph.scene.camera.key.press': 'キーを押してください…',
+  'graph.scene.camera.key.pressNote':
+    '使うキーを押してください · Esc で取り消し',
+  'graph.scene.camera.key.shiftNote':
+    'シーンの上では、Shift+ドラッグでバンドを追加せずにシーンを回転します',
+  'graph.scene.camera.key.ownNote':
+    'シーンの上ではこのキーで視点が動きます。それ以外では通常どおりです',
+  'graph.scene.camera.move': '回転方法',
+  'graph.scene.camera.moveHint':
+    'キーを押したままドラッグするか、キーを押したままマウスを動かすだけで回転します。',
+  'graph.scene.camera.move.drag': '押したままドラッグ',
+  'graph.scene.camera.move.move': '押したまま動かす',
   'graph.scene.frameRateHint':
     'ビジュアライザーを描く頻度：ディスプレイの全フレーム、または GPU を休ませるための上限付き',
   'graph.scene.frameRate.display': 'ディスプレイと同じ',

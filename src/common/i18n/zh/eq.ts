@@ -218,6 +218,22 @@ const eq: Partial<Dictionary> = {
   'graph.scene.ownTiming': '使用其原始节奏',
   'graph.scene.ownTimingHint': '恢复此可视化效果自带的起音和释放',
   'graph.scene.frameRate': '帧率',
+  'graph.scene.camera.key': '移动视角的按键',
+  'graph.scene.camera.keyHint':
+    '在 3D 场景上按住此键可旋转场景，配合滚轮可拉近拉远。普通点击始终属于场景本身。',
+  'graph.scene.camera.key.ctrl': 'Ctrl',
+  'graph.scene.camera.key.alt': 'Alt',
+  'graph.scene.camera.key.shift': 'Shift',
+  'graph.scene.camera.key.press': '请按一个键…',
+  'graph.scene.camera.key.pressNote': '按下要使用的键 · Esc 取消',
+  'graph.scene.camera.key.shiftNote':
+    '在场景上，Shift+拖动会旋转场景，而不是添加频段',
+  'graph.scene.camera.key.ownNote':
+    '在场景上此键用于移动视角；在其他地方保持原有功能',
+  'graph.scene.camera.move': '旋转方式',
+  'graph.scene.camera.moveHint': '按住此键拖动，或按住此键直接移动鼠标。',
+  'graph.scene.camera.move.drag': '按住并拖动',
+  'graph.scene.camera.move.move': '按住并移动',
   'graph.scene.frameRateHint':
     '可视化效果的绘制频率：跟随显示器的每一帧，或加以限制以减轻 GPU 负担',
   'graph.scene.frameRate.display': '跟随显示器',

@@ -8,6 +8,10 @@ import {
   type IScenePerformance,
 } from '../../common/scenePerformance';
 import {
+  sameSceneCameraControl,
+  type ISceneCameraControl,
+} from '../../common/sceneCameraControl';
+import {
   WALLPAPER,
   answersMouse,
   monitorDaylight,
@@ -50,6 +54,8 @@ interface IDesktopSurfaceOptions {
   scene: IWallpaperScene;
   /** The window's frame rate and resolution choice when the monitor starts. */
   performance: IScenePerformance;
+  /** How the window moves a scene's camera when the monitor starts. */
+  cameraControl: ISceneCameraControl;
   /** What the listener set for this visualizer, when they set anything. */
   tuning: IWallpaperTuning | undefined;
   /**
@@ -113,6 +119,8 @@ export interface IDesktopSurface {
   ): void;
   /** The window's frame rate and resolution choice changed: the page follows. */
   retunePerformance(next: IScenePerformance): void;
+  /** The window's way of moving a camera changed: the page follows. */
+  retuneCameraControl(next: ISceneCameraControl): void;
   /**
    * What the listener set for this visualizer — its controls, its timing and
    * the band it is drawn in — as the window has it now. The band becomes this
@@ -193,7 +201,7 @@ export const createDesktopSurface = (
   let interactive = answersMouse(options.choice);
   // Where the pointer last was in the page, which a leave is said at.
   let lastPointer = { x: 0, y: 0 };
-  let { performance, tuning } = options;
+  let { performance, tuning, cameraControl } = options;
   // A look the listener has tuned is drawn in the band they tuned it in,
   // whatever band the monitor was set with.
   if (tuning?.wave) {
@@ -223,6 +231,7 @@ export const createDesktopSurface = (
       ...(tuning ? { tuning } : {}),
       ...(toldDaylight !== undefined ? { daylight: toldDaylight } : {}),
       interactive,
+      cameraMove: cameraControl.move,
       locale: toldLocale,
     };
   };
@@ -420,6 +429,13 @@ export const createDesktopSurface = (
         return;
       }
       performance = next;
+      tellPage();
+    },
+    retuneCameraControl: (next) => {
+      if (sameSceneCameraControl(next, cameraControl)) {
+        return;
+      }
+      cameraControl = next;
       tellPage();
     },
     applyTuning: (next) => {

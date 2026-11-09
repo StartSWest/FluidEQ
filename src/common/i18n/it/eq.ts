@@ -238,6 +238,23 @@ const eq: Partial<Dictionary> = {
   'graph.scene.ownTimingHint':
     'Torna all’attacco e al rilascio con cui è arrivato questo visualizzatore',
   'graph.scene.frameRate': 'Frequenza',
+  'graph.scene.camera.key': 'Muovi la vista con',
+  'graph.scene.camera.keyHint':
+    'Il tasto da tenere premuto su una scena 3D per ruotarla, e con la rotellina per avvicinarsi e allontanarsi. Un clic normale resta sempre della scena.',
+  'graph.scene.camera.key.ctrl': 'Ctrl',
+  'graph.scene.camera.key.alt': 'Alt',
+  'graph.scene.camera.key.shift': 'Maiusc',
+  'graph.scene.camera.key.press': 'Premi un tasto…',
+  'graph.scene.camera.key.pressNote': 'Premi il tasto da usare · Esc annulla',
+  'graph.scene.camera.key.shiftNote':
+    'Su una scena, Maiusc e trascinare la ruotano invece di aggiungere bande',
+  'graph.scene.camera.key.ownNote':
+    'Su una scena questo tasto muove la vista; altrove fa ciò che fa sempre',
+  'graph.scene.camera.move': 'Rotazione',
+  'graph.scene.camera.moveHint':
+    'Tenere premuto il tasto e trascinare, oppure tenerlo premuto e muovere solo il mouse.',
+  'graph.scene.camera.move.drag': 'Tieni e trascina',
+  'graph.scene.camera.move.move': 'Tieni e muovi',
   'graph.scene.frameRateHint':
     'Ogni quanto vengono disegnati i visualizzatori: a ogni fotogramma dello schermo, o limitati per non affaticare la GPU',
   'graph.scene.frameRate.display': 'Quella dello schermo',

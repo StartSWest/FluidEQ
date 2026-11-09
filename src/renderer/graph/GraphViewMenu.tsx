@@ -47,6 +47,7 @@ import {
 import SceneParamMenu from './SceneParamMenu';
 import SceneResponseMenu from './SceneResponseMenu';
 import ScenePerformanceMenu from './ScenePerformanceMenu';
+import SceneCameraMenu from './SceneCameraMenu';
 import BackdropAppearanceControls from './BackdropAppearanceControls';
 import { PERCENT_SNAPS, snapPercent } from '../utils/percentSnaps';
 
@@ -752,6 +753,10 @@ const GraphViewMenu = ({
               being looked at rather than to the graph: in every view mode,
               and kept for that visualizer. */}
             {sceneLookId && <SceneResponseMenu lookId={sceneLookId} />}
+
+            {/* How the camera is moved: one choice for every scene, shown
+              while the one on the graph can be turned. */}
+            {sceneLookId && <SceneCameraMenu />}
           </Group>
 
           {/* Standard looks use the same GPU engine, with their own saved

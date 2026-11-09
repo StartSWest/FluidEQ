@@ -239,6 +239,24 @@ const eq: Partial<Dictionary> = {
   'graph.scene.ownTimingHint':
     'Volta ao ataque e à liberação com que este visualizador veio',
   'graph.scene.frameRate': 'Quadros',
+  'graph.scene.camera.key': 'Mover a vista com',
+  'graph.scene.camera.keyHint':
+    'A tecla mantida sobre uma cena 3D para girá-la, e com a roda para aproximar e afastar. Um clique simples é sempre da cena.',
+  'graph.scene.camera.key.ctrl': 'Ctrl',
+  'graph.scene.camera.key.alt': 'Alt',
+  'graph.scene.camera.key.shift': 'Shift',
+  'graph.scene.camera.key.press': 'Pressione uma tecla…',
+  'graph.scene.camera.key.pressNote':
+    'Pressione a tecla desejada · Esc cancela',
+  'graph.scene.camera.key.shiftNote':
+    'Sobre uma cena, Shift e arrastar a giram em vez de adicionar bandas',
+  'graph.scene.camera.key.ownNote':
+    'Sobre uma cena esta tecla move a vista; fora dela faz o de sempre',
+  'graph.scene.camera.move': 'Giro',
+  'graph.scene.camera.moveHint':
+    'Segurar a tecla e arrastar, ou segurar a tecla e apenas mover o mouse.',
+  'graph.scene.camera.move.drag': 'Segurar e arrastar',
+  'graph.scene.camera.move.move': 'Segurar e mover',
   'graph.scene.frameRateHint':
     'Com que frequência os visualizadores são desenhados: a cada quadro da tela, ou limitados para poupar a GPU',
   'graph.scene.frameRate.display': 'Os da tela',

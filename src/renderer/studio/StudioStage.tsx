@@ -16,6 +16,8 @@ import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { useSceneAudio } from '../audio/SceneAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { createSceneInteraction } from '../graph/sceneInteraction';
+import { readSceneCameraControl } from '../utils/sceneCameraControlStore';
+
 import ScenePointerLayer from '../graph/ScenePointerLayer';
 import SceneViewReset from '../graph/SceneViewReset';
 import type { ISceneDrawReport } from '../graph/sceneRunnerTypes';
@@ -341,7 +343,10 @@ export default function StudioStage({
 
   // The viewer's hands, as a listener's would be on the graph: the author
   // turns the scene to see it from every angle it allows, and taps it.
-  const interaction = useMemo(createSceneInteraction, []);
+  const interaction = useMemo(
+    () => createSceneInteraction(readSceneCameraControl),
+    [],
+  );
 
   const sceneRef = useSceneRunner({
     source,

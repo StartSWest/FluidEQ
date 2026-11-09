@@ -2,6 +2,7 @@ import type { Display, WebContents } from 'electron';
 import log from 'electron-log';
 import type { LocaleCode } from '../../common/i18n';
 import type { IScenePerformance } from '../../common/scenePerformance';
+import type { ISceneCameraControl } from '../../common/sceneCameraControl';
 import type {
   IWallpaperChoice,
   IWallpaperScreen,
@@ -32,6 +33,8 @@ interface IMonitorBackgroundsOptions {
   pauseReason(cover: TWallpaperCover): TWallpaperPause | undefined;
   /** The window's frame rate and resolution choice, as it is now. */
   performance(): IScenePerformance;
+  /** How the window moves a scene's camera, as it is now. */
+  cameraControl(): ISceneCameraControl;
   /** What the listener set for one visualizer, as it is now. */
   tuning(lookId: string): IWallpaperTuning | undefined;
   /** The window's time of day, once it has said it. */
@@ -126,6 +129,7 @@ export const createMonitorBackgrounds = (
         choice,
         scene,
         performance: options.performance(),
+        cameraControl: options.cameraControl(),
         tuning: options.tuning(choice.lookId),
         daylight: options.daylight,
         brightness: options.brightness,
@@ -231,6 +235,9 @@ export const createMonitorBackgrounds = (
     /** The window's choice changed: every monitor playing follows it. */
     retunePerformance: (next: IScenePerformance) =>
       surfaces.forEach((surface) => surface.retunePerformance(next)),
+    /** The window's way of moving a camera changed: every monitor follows. */
+    retuneCameraControl: (next: ISceneCameraControl) =>
+      surfaces.forEach((surface) => surface.retuneCameraControl(next)),
     /**
      * The listener tuned their visualizers: every monitor takes what belongs
      * to the look it shows, whichever monitors those are.

@@ -76,6 +76,7 @@ describe('reading back what each monitor was set to show', () => {
         upscaler: 'fsr',
         smoothing: 'best',
       },
+      cameraControl: { key: 'ctrl' as const, move: 'drag' as const },
       tuning: {},
       screens: [
         {
@@ -95,6 +96,23 @@ describe('reading back what each monitor was set to show', () => {
         },
       ],
     });
+  });
+
+  // The window's way of moving a camera is kept beside the backgrounds; one
+  // that is not a choice this app writes - a key it refuses - is the default.
+  it('keeps the way a camera is moved, and reads an unknown one as Ctrl and a drag', () => {
+    expect(
+      parseArrangement({
+        ...file,
+        cameraControl: { key: 'code:KeyQ', move: 'move' },
+      })?.cameraControl,
+    ).toEqual({ key: 'code:KeyQ', move: 'move' });
+    expect(
+      parseArrangement({
+        ...file,
+        cameraControl: { key: 'code:F11', move: 'move' },
+      })?.cameraControl,
+    ).toEqual({ key: 'ctrl', move: 'drag' });
   });
 
   // Backgrounds set before waves and motions were kept were drawn with the
@@ -225,6 +243,7 @@ describe('the file on disk', () => {
         upscaler: 'fsr',
         smoothing: 'best',
       },
+      cameraControl: { key: 'ctrl' as const, move: 'drag' as const },
       tuning: {},
       screens: [],
     });
@@ -243,6 +262,7 @@ describe('the file on disk', () => {
         upscaler: 'simple' as const,
         smoothing: 'best' as const,
       },
+      cameraControl: { key: 'ctrl' as const, move: 'drag' as const },
       tuning: {
         'premium:aurora': {
           params: { glow: 0.4 },
@@ -287,6 +307,7 @@ describe('the file on disk', () => {
     const written = {
       pauseOnBattery: true,
       performance: normalizeScenePerformance(undefined),
+      cameraControl: { key: 'ctrl' as const, move: 'drag' as const },
       tuning: {},
       screens: [
         {

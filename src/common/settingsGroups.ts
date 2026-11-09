@@ -103,6 +103,7 @@ export const SETTINGS_ROWS: readonly ISettingsRow[] = [
   { id: 'style', group: 'visualizer', on: 'graph' },
   { id: 'controls', group: 'visualizer', on: 'both' },
   { id: 'response', group: 'visualizer', on: 'both' },
+  { id: 'camera', group: 'visualizer', on: 'graph' },
   { id: 'ambient', group: 'visualizer', on: 'studio' },
 
   // How it is drawn: Plus shares its choices across the graph, Studio and

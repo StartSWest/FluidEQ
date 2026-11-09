@@ -43,6 +43,8 @@ import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
 import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
 import { usePointerSparks } from '../utils/pointerSparksStore';
 import { createSceneInteraction } from './sceneInteraction';
+import { readSceneCameraControl } from '../utils/sceneCameraControlStore';
+
 import ScenePointerLayer from './ScenePointerLayer';
 import windowGestures from './windowGestures';
 import { FULL_VIEW, sceneViewOf, type TSceneView } from './sceneView';
@@ -271,7 +273,10 @@ export default function SceneCanvas({
   // one, the pointer and taps where it answers them. One for the life of the
   // renderer, so a camera turned on the plot is still turned when the plot
   // comes back.
-  const interaction = useMemo(createSceneInteraction, []);
+  const interaction = useMemo(
+    () => createSceneInteraction(readSceneCameraControl),
+    [],
+  );
 
   // The plot's loading and its reset read this (`ScenePlot`).
   useLayoutEffect(() => {

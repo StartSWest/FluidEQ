@@ -251,6 +251,23 @@ const eq = {
   'graph.scene.ownTimingHint':
     'Back to the attack and release this visualizer came with',
   'graph.scene.frameRate': 'Frame rate',
+  'graph.scene.camera.key': 'Move the view with',
+  'graph.scene.camera.keyHint':
+    'The key held over a 3D scene to turn it, and with the wheel to move in and out. A plain click is always the scene’s own.',
+  'graph.scene.camera.key.ctrl': 'Ctrl',
+  'graph.scene.camera.key.alt': 'Alt',
+  'graph.scene.camera.key.shift': 'Shift',
+  'graph.scene.camera.key.press': 'Press a key…',
+  'graph.scene.camera.key.pressNote': 'Press the key to use · Esc stops',
+  'graph.scene.camera.key.shiftNote':
+    'Over a scene, Shift and a drag turn it instead of adding bands',
+  'graph.scene.camera.key.ownNote':
+    'Over a scene this key moves the view; elsewhere it does what it always does',
+  'graph.scene.camera.move': 'Turning',
+  'graph.scene.camera.moveHint':
+    'Hold the key and drag, or hold the key and just move the mouse.',
+  'graph.scene.camera.move.drag': 'Hold and drag',
+  'graph.scene.camera.move.move': 'Hold and move',
   'graph.scene.frameRateHint':
     'How often visualizers are drawn: every frame your display shows, or capped to spare the GPU',
   'graph.scene.frameRate.display': 'Display rate',

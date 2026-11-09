@@ -9,8 +9,7 @@ import { useIsChromeIdle } from '../utils/idleChrome';
 /**
  * Whether the graph's own chrome has faded for the window's stillness
  * (`useIsChromeIdle`): the strip of controls across the top of the plot with
- * the shade it carries (`.live-output-controls::before`), and a scene's view
- * reset in its corner.
+ * the shade it carries (`.live-output-controls::before`).
  *
  * A Plus visualizer used to hold all of it on screen in the ordinary view
  * (2026-09-26: "I can see them and not see them"). With a shade under the
@@ -21,10 +20,10 @@ import { useIsChromeIdle } from '../utils/idleChrome';
  * scene's chrome fades like every other look's, and comes back at the next
  * touch of the mouse.
  *
- * The one place this is decided: the strip, its shade and the reset read
- * it, and two of them deciding separately is how one would fade without the
- * others. The reset reads it on every surface it stands on, and also hides
- * whenever the pointer is off its scene (`SceneViewReset`).
+ * The one place this is decided: the strip and its shade read it, and the
+ * two deciding separately is how one would fade without the other. A
+ * scene's Reset view is not among them: it shows only while the camera's key
+ * is held over the scene (`SceneViewReset`).
  */
 const useIsGraphChromeIdle = () => useIsChromeIdle();
 

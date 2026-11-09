@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { ISceneCameraControl } from '../../common/sceneCameraControl';
 import type { IScenePerformance } from '../../common/scenePerformance';
 import type {
   IWallpaperChoice,
@@ -48,6 +49,10 @@ export interface IFakeSurface {
   choice(): IWallpaperChoice;
   retune: jest.Mock;
   retunePerformance: jest.Mock;
+  /** Told the window's way of moving a camera changed. */
+  retuneCameraControl: jest.Mock;
+  /** How the window moved a camera when the monitor started. */
+  cameraControl: ISceneCameraControl;
   release: jest.Mock;
   applyPolicy: jest.Mock;
   fail: jest.Mock;
@@ -135,6 +140,7 @@ export const mockSurfaceModule = () => ({
     bounds: IFakeDisplay['bounds'];
     choice: IWallpaperChoice;
     performance: IScenePerformance;
+    cameraControl: ISceneCameraControl;
     tuning: IWallpaperTuning | undefined;
     daylight(): number | undefined;
     locale(): string;
@@ -178,6 +184,8 @@ export const mockSurfaceModule = () => ({
         };
       }),
       retunePerformance: jest.fn(),
+      retuneCameraControl: jest.fn(),
+      cameraControl: options.cameraControl,
       applyTuning: jest.fn((next: IWallpaperTuning | undefined) => {
         if (next?.wave) {
           choice = { ...choice, wave: next.wave };
@@ -239,6 +247,7 @@ export const setup = (stored?: IWallpaperArrangement) => {
       upscaler: 'fsr',
       smoothing: 'off',
     },
+    cameraControl: { key: 'ctrl', move: 'drag' },
     tuning: {},
     screens: [],
   };

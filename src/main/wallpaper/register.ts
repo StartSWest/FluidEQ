@@ -4,6 +4,7 @@ import {
   type IpcMainEvent,
   type IpcMainInvokeEvent,
 } from 'electron';
+import { isSceneCameraControl } from '../../common/sceneCameraControl';
 import { isScenePerformance } from '../../common/scenePerformance';
 import {
   WALLPAPER,
@@ -98,6 +99,11 @@ const registerWallpaperIpc = (
     onWindowMessage(WALLPAPER.performance, (event, raw: unknown) => {
       if (fromOwner(event) && isScenePerformance(raw)) {
         manager.setPerformance(raw);
+      }
+    }),
+    onWindowMessage(WALLPAPER.cameraControl, (event, raw: unknown) => {
+      if (fromOwner(event) && isSceneCameraControl(raw)) {
+        manager.setCameraControl(raw);
       }
     }),
     onWindowMessage(WALLPAPER.tuning, (event, raw: unknown) => {
