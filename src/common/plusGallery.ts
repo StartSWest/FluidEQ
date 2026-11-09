@@ -125,7 +125,56 @@ export interface IGalleryVersion {
   version: number;
   note?: string;
   publishedAt: string;
+  /**
+   * Whether the server still holds this version's files, so a member who
+   * owns the scene can save it (Ivan, 2026-11-09: the server keeps each
+   * scene's last 10). Absent from a server before that: read as no, except
+   * for the version the scene is at now.
+   */
+  available?: boolean;
 }
+
+/**
+ * Saving one of the server's versions of a scene on this computer, where it
+ * stays the member's after the server lets it go: one of the scene's kept
+ * versions, in the same look, played through `playSceneVersion`.
+ */
+export type TSaveGalleryVersion =
+  | { ok: true; version: number }
+  | {
+      ok: false;
+      reason:
+        | 'signed-out'
+        | 'not-owned'
+        | 'gone'
+        | 'offline'
+        | 'failed'
+        | 'cancelled';
+    };
+
+const SAVE_FAILURES = [
+  'signed-out',
+  'not-owned',
+  'gone',
+  'offline',
+  'failed',
+  'cancelled',
+] as const;
+
+/** A save's answer as it crossed from main, or undefined when it is not one. */
+export const readSaveGalleryVersion = (
+  value: unknown,
+): TSaveGalleryVersion | undefined => {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  if (value.ok === true) {
+    const version = readCount(value.version);
+    return version ? { ok: true, version } : undefined;
+  }
+  const reason = SAVE_FAILURES.find((known) => known === value.reason);
+  return value.ok === false && reason ? { ok: false, reason } : undefined;
+};
 
 export interface IPublishedScene {
   /** Server-authorized FluidEQ publication, separate from this account's member scenes. */
@@ -354,7 +403,14 @@ export const parseVersionRow = (
   if (!version || !publishedAt || note === undefined) {
     return undefined;
   }
-  return { version, publishedAt, ...(note ? { note } : {}) };
+  return {
+    version,
+    publishedAt,
+    ...(note ? { note } : {}),
+    ...(typeof value.available === 'boolean'
+      ? { available: value.available }
+      : {}),
+  };
 };
 
 /** One row of `my_scene_version_floors`, or nothing when it is not one. */

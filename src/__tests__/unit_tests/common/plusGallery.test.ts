@@ -10,6 +10,7 @@ import {
   MAX_GALLERY_QUERY,
   parseGalleryRow,
   parseVersionRow,
+  readSaveGalleryVersion,
   parsePublishedRow,
   parseVersionFloorRow,
   heldVersionOf,
@@ -287,5 +288,50 @@ describe('the version a scene is published under now', () => {
       null,
       ['lake', 7],
     ].forEach((row) => expect(parseVersionFloorRow(row)).toBeUndefined());
+  });
+});
+
+describe('a version the server still holds', () => {
+  // Ivan, 2026-11-09: the server keeps each scene's last 10 versions, and an
+  // owner may save any of them on this computer.
+  it('says whether its files are still there, and nothing from an older server', () => {
+    const base = { version: 4, published_at: '2026-11-01T02:00:00Z' };
+    expect(parseVersionRow({ ...base, available: true })?.available).toBe(true);
+    expect(parseVersionRow({ ...base, available: false })?.available).toBe(
+      false,
+    );
+    expect(parseVersionRow(base)).not.toHaveProperty('available');
+    // A server's string is not a yes.
+    expect(parseVersionRow({ ...base, available: 'true' })).not.toHaveProperty(
+      'available',
+    );
+  });
+});
+
+describe('a save of one of those versions, as main answers it', () => {
+  it('is read as saved, or as why not', () => {
+    expect(readSaveGalleryVersion({ ok: true, version: 3 })).toEqual({
+      ok: true,
+      version: 3,
+    });
+    expect(readSaveGalleryVersion({ ok: false, reason: 'gone' })).toEqual({
+      ok: false,
+      reason: 'gone',
+    });
+    expect(readSaveGalleryVersion({ ok: false, reason: 'cancelled' })).toEqual({
+      ok: false,
+      reason: 'cancelled',
+    });
+  });
+
+  it('is nothing when it is not one', () => {
+    expect(readSaveGalleryVersion(undefined)).toBeUndefined();
+    expect(readSaveGalleryVersion({ ok: true })).toBeUndefined();
+    expect(readSaveGalleryVersion({ ok: true, version: 0 })).toBeUndefined();
+    // A reason with no word on whether it worked is not an answer.
+    expect(readSaveGalleryVersion({ reason: 'gone' })).toBeUndefined();
+    expect(
+      readSaveGalleryVersion({ ok: false, reason: 'exploded' }),
+    ).toBeUndefined();
   });
 });
