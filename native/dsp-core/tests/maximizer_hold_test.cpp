@@ -213,31 +213,41 @@ void a_new_chain_starts_where_the_output_settled(double reference) {
   feq_leveling_memory_destroy(memory);
 }
 
-// A fade, a breakdown, a quiet intro: music that stays away from the ceiling
-// lets the platform go over 30 s, not 3. Five seconds of it — two still
-// counted as contact, then three apart — keep about 46% of the platform's
-// depth (e^-2/3 · e^-3/30), where 3 s throughout would have kept a fifth
-// (e^-5/3) and the next loud passage would come in louder.
-void music_away_from_the_ceiling_lets_go_slowly(double reference) {
+// A fade, a breakdown, a quiet passage: music, however far from the ceiling,
+// lets the platform go at its own 3 s, exactly as before the silence rule.
+// Holding it there for longer (a 30 s release once the music had stayed 6 dB
+// under the ceiling for two seconds) kept dynamic records turned down
+// through their quiet passages: Dvorak's New World lost 0.230 LU to the
+// limiter in the orchestra rack, over its 0.216 budget, where it had lost
+// 0.208. Five seconds of music 24 dB down keep e^-5/3 of the depth, 19%; the
+// silence beside it keeps all of it.
+void quiet_music_lets_go_as_it_always_did() {
   FeqChain* chain = make_chain();
   play(chain, record());
   const double held = chain->maximizer.platform_db;
+  check(held < -2.0, "the driven record settles a platform to let go of");
   Signal quiet = record();
   const Signal more = record();
   quiet.left.insert(quiet.left.end(), more.left.begin(), more.left.end());
   quiet.right.insert(quiet.right.end(), more.right.begin(), more.right.end());
   quiet.left.resize(static_cast<size_t>(5 * kRate));
   quiet.right.resize(quiet.left.size());
-  for (float& v : quiet.left) v *= 0.06f;   // 24 dB down: under the contact line
+  for (float& v : quiet.left) v *= 0.06f;   // 24 dB down, far over the -65 dBFS floor
   for (float& v : quiet.right) v *= 0.06f;
   play(chain, quiet);
   const double kept = chain->maximizer.platform_db / held;
-  const double level = opening_db(chain, play(chain, record()));
-  std::printf("after 5 s of quiet music: platform kept %.0f%%, the record %+.2f dB\n",
-              100.0 * kept, level - reference);
-  check(kept > 0.35, "five seconds of quiet music keep much of the platform");
-  check(level - reference < 1.5, "the loud passage after it comes in near its level");
+  std::printf("after 5 s of quiet music: platform kept %.1f%%\n", 100.0 * kept);
+  check(std::fabs(kept - std::exp(-5.0 / 3.0)) < 0.02,
+        "five seconds of quiet music let the platform go over 3 s");
   feq_chain_destroy(chain);
+
+  FeqChain* paused = make_chain();
+  play(paused, record());
+  play(paused, silence(1.0));  // the record's tail through the stages ahead
+  const double settled = paused->maximizer.platform_db;
+  play(paused, silence(5.0));
+  check(paused->maximizer.platform_db == settled, "control: five seconds of silence keep all of it");
+  feq_chain_destroy(paused);
 }
 
 }  // namespace
@@ -247,6 +257,6 @@ int main() {
   a_pause_keeps_the_level(reference);
   a_seek_keeps_the_level(reference);
   a_new_chain_starts_where_the_output_settled(reference);
-  music_away_from_the_ceiling_lets_go_slowly(reference);
+  quiet_music_lets_go_as_it_always_did();
   return feq_test::finish();
 }

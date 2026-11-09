@@ -927,15 +927,19 @@ Everything worth knowing about them is available through commands:
 - **The Maximizer's platform is the reduction a record asks of the
   ceiling, and it is kept** (2026-11-08, same report: his rack drove 7.8 dB,
   and every song after a pause came in 3-4 dB loud for half a second). It
-  waits through blocks under -65 dBFS, lets go over 30 s instead of 3 while
-  the music stays 6 dB under the ceiling for two seconds, survives every
-  `feq_chain_reset` (a Library seek cleared it), and is remembered per
-  output in `FeqLevelingMemory` (`remember_platform`, `platform_start`),
-  which `feq_chain_attach_leveling_memory` gives a new chain — deeper by
-  however much more the drive pushes past the ceiling. On music it plays as
-  before: the same pumping and distortion, under 0.1 dB quieter
-  (`maximizer_hold_test.cpp`, each case beside a chain whose platform is
-  thrown away).
+  waits through blocks under -65 dBFS, survives every `feq_chain_reset` (a
+  Library seek cleared it), and is remembered per output in
+  `FeqLevelingMemory` (`remember_platform`, `platform_start`), which
+  `feq_chain_attach_leveling_memory` gives a new chain — deeper by however
+  much more the drive pushes past the ceiling (`maximizer_hold_test.cpp`,
+  each case beside a chain whose platform is thrown away). Music, however
+  quiet, moves it at its own 150 ms and 3 s. A first version also let it go
+  over 30 s while the music stayed 6 dB under the ceiling, for fades and
+  quiet intros; it held dynamic records down through their quiet passages
+  and put the orchestra rack over its limiter-loss budget in the music
+  audit (Dvorak, 0.230 LU against 0.216), so it came out the same night. Do
+  not slow the platform on quiet music again; the pause is silence, and the
+  floor covers it.
 - **An edit's level is predicted, never climbed to** (engine 1.16, Ivan
   2026-09-23: "jump straight to it and then the auto normalize just
   finetune"). The engine keeps the last 10 s of music as it leaves the rack

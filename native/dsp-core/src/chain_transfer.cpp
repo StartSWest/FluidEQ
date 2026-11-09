@@ -93,7 +93,6 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   swap(prepared.maximizer_reduction, previous.maximizer_reduction);
   swap(prepared.maximizer_reduction_db, previous.maximizer_reduction_db);
   swap(prepared.maximizer_drive_now, previous.maximizer_drive_now);
-  swap(prepared.maximizer_contact_left, previous.maximizer_contact_left);
   feq_linked_limiter_set_look_ahead(&prepared.maximizer,
                                     prepared.maximizer_look_ahead);
 

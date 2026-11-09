@@ -451,15 +451,14 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
          : (recovering ? off_release : 0.0);
 
   /**
-   * The platform answers for what the record asks of the ceiling, so it moves
-   * only on what reaches it (`kMaximizerProgrammeFloorDb`). While nothing
-   * plays — a pause, the silence between songs — it waits where it is. While
-   * the music stays away from the ceiling — a fade, a breakdown, a quiet
-   * intro — it lets go only slowly. It used to let go over 3 s whatever the
-   * input was, so every song after a pause or a fade met the full drive with
-   * nothing under the peaks, and came out 3-4 dB loud for its first half
-   * second until the platform deepened again (Ivan, 2026-11-08: "the music
-   * suddenly higher and then it normalized", his rack driving 7.8 dB).
+   * The platform answers for what the record asks of the ceiling, so while
+   * nothing plays — a pause, the silence between songs — it waits where it
+   * is (`kMaximizerProgrammeFloorDb`). It used to let go over 3 s whatever
+   * came in, so every song after a pause met the full drive with nothing
+   * under the peaks, and came out 3-4 dB loud for its first half second until
+   * the platform deepened again (Ivan, 2026-11-08: "the music suddenly higher
+   * and then it normalized", his rack driving 7.8 dB). Music, however quiet,
+   * moves it at its own speeds, as it always did.
    */
   double block_peak = 0.0;
   for (uint32_t channel = 0; channel < chain->channels; ++channel) {
@@ -470,18 +469,7 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
   }
   const bool programme =
       block_peak >= std::pow(10.0, kMaximizerProgrammeFloorDb / 20.0);
-  if (on && programme) {
-    if (block_peak >= options.ceiling * std::pow(10.0, -kMaximizerContactDb / 20.0)) {
-      chain->maximizer_contact_left = static_cast<uint32_t>(std::floor(
-          (kMaximizerContactHoldMs / 1000.0) * chain->sample_rate + 0.5));
-    } else {
-      chain->maximizer_contact_left -= std::min(chain->maximizer_contact_left, frames);
-    }
-    if (chain->maximizer_contact_left == 0) {
-      options.platform_release_coefficient = std::exp(
-          -1.0 / ((kMaximizerApartReleaseMs / 1000.0) * chain->sample_rate));
-    }
-  } else if (on) {
+  if (on && !programme) {
     options.platform_attack_coefficient = 1.0;
     options.platform_release_coefficient = 1.0;
   }

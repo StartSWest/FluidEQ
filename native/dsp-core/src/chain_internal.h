@@ -112,26 +112,19 @@ constexpr double kMaximizerReleaseSnapRatio = 0.02;
 constexpr double kMaximizerPlatformAttackMs = 150.0;
 constexpr double kMaximizerPlatformReleaseMs = 3000.0;
 /**
- * What the platform answers to (`chain_process_maximizer`). A block under
- * the floor carries no music — the engine's guard reads nothing under the
- * same -65 dBFS (`output_guard.cpp`) — and the platform waits through it.
- * Music that has not come within 6 dB of the ceiling for two seconds is
- * not asking the ceiling anything, and the platform lets go of it over 30 s
- * rather than 3; music that reaches it moves the platform at its own speeds.
+ * Where the platform stops answering (`chain_process_maximizer`). A block
+ * under the floor carries no music — the engine's guard reads nothing under
+ * the same -65 dBFS (`output_guard.cpp`) — and the platform waits through
+ * it. Music, however quiet, moves it at its own speeds.
  *
- * Two seconds keep a sparse arrangement's gaps inside its own song: the
- * genre factory's sparse scenes lose exactly what they lost before this
- * rule (indie rock 0.620 LU, country 0.406, disco 0.676, world 0.430), and
- * every one of their limiter-loss budgets holds. Half a second let go of
- * the platform in those gaps too slowly and took 0.02-0.05 LU more than
- * disco's and world's budgets allow. A fade or a breakdown still keeps
- * about half the platform over five seconds, where 3 s throughout kept a
- * fifth.
+ * It also let go over 30 s instead of 3 for a while (2026-11-08), once the
+ * music had stayed 6 dB under the ceiling for two seconds, to keep a fade or
+ * a quiet intro from giving the platform up. On a dynamic record that is a
+ * quiet passage held down: Dvorak's New World lost 0.230 LU to the limiter
+ * in the orchestra rack, over its 0.216 budget, where 3 s lost 0.208 — and
+ * the pause it was for is silence, which this floor already covers.
  */
 constexpr double kMaximizerProgrammeFloorDb = -65.0;
-constexpr double kMaximizerContactDb = 6.0;
-constexpr double kMaximizerContactHoldMs = 2000.0;
-constexpr double kMaximizerApartReleaseMs = 30000.0;
 /** Where a Bass Forge fading out is taken as silent and cleared: -80 dB. */
 constexpr double kBassForgeSilentMix = 1e-4;
 /**
@@ -710,8 +703,6 @@ struct FeqChain {
 
   std::vector<float> maximizer_reduction;
   uint32_t maximizer_look_ahead = 0;
-  /** Samples left of the music's last reach of the ceiling (`kMaximizerContactHoldMs`). */
-  uint32_t maximizer_contact_left = 0;
   /**
    * The deepest reduction over the last block, in dB, for the meter.
    *
