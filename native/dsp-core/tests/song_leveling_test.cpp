@@ -329,7 +329,10 @@ void unknown_songs_honor_late_edits_and_relocked_targets() {
   feq_leveling_memory_begin_song(fresh.handle, kSongB, -120, -120);
   early.play(1, kChorus);
   early.settings.target_lufs = -12;
-  early.play(5, kChorus);
+  // The first second at -24 is already turned down (a song with no level is
+  // judged from its first 400 ms), so the edit's rise starts from that cut
+  // and needs its glide's time after the window is ready.
+  early.play(10, kChorus);
   check(early.gain() > 3,
         "an edit during the first incomplete window applies once that window is ready");
 }

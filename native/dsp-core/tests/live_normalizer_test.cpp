@@ -89,6 +89,89 @@ void flagged_gap_starts_an_independent_unnamed_source() {
   feq_leveling_memory_destroy(memory);
 }
 
+/*
+ * Ivan, 2026-11-08: "when no sound is sounding for a while and I hit play on
+ * a song the music suddenly higher and then it normalized". A loud song after
+ * silence used to wait for the 3 s window and then sink at 1 dB/s, from unity
+ * or from the boost a quiet song before it had — some twelve seconds over the
+ * target for a master 9 LU over it, twenty after a boosted quiet song.
+ *
+ * The level heard is the source's own (measured unprocessed, which is also
+ * the control: the song really is that far over) plus the gain applied, read
+ * every 100 ms. The gain comes down at 10 dB/s once the first 400 ms are
+ * measured, so the first second is the ramp; every whole second after it is
+ * at the target, and from 1.5 s no stretch stands over it by more than the
+ * deadband.
+ */
+struct Heard {
+  double first_gain_db = 0, worst_second_lu = -120, worst_after_ramp_lu = -120;
+  int seconds_over = 0;  // whole seconds, the first included, over by more than 1 LU
+};
+Heard heard_after_silence(Stream& stream, double source_lufs, double target) {
+  Heard result;
+  double second_energy = 0;
+  for (int chunk = 0; chunk < 300; ++chunk) {
+    stream.play(0.1, 0.5);
+    if (chunk == 0) result.first_gain_db = stream.reading.applied_gain_db;
+    const double over = source_lufs + stream.reading.applied_gain_db - target;
+    second_energy += std::pow(10.0, over / 10) / 10;
+    if (chunk >= 15) result.worst_after_ramp_lu = std::max(result.worst_after_ramp_lu, over);
+    if (chunk % 10 == 9) {
+      const double second = 10 * std::log10(second_energy);
+      if (second > 1) ++result.seconds_over;
+      // The first second is the ramp down; every one after it is judged.
+      if (chunk > 9) result.worst_second_lu = std::max(result.worst_second_lu, second);
+      second_energy = 0;
+    }
+  }
+  return result;
+}
+void a_loud_song_after_silence_comes_in_at_the_target() {
+  const double target = -18;
+  Stream bypass(48000, 480);
+  bypass.settings = {0, -1, target};
+  bypass.play(4, 0.5);
+  const double source = bypass.reading.output_lufs;
+  check(source > target + 8,
+        "control: the song plays more than 8 LU over the target unprocessed");
+
+  Stream fresh(48000, 480);
+  fresh.settings = {2, -1, target};
+  fresh.play(5, 0);
+  const Heard cold = heard_after_silence(fresh, source, target);
+  std::printf("after silence, fresh: source %+.1f LU over, %d seconds over, worst second after "
+              "the first %+.2f, worst past 1.5 s %+.2f\n",
+              source - target, cold.seconds_over, cold.worst_second_lu,
+              cold.worst_after_ramp_lu);
+  check(cold.worst_second_lu <= 1,
+        "from a fresh start, no second after the first stands over the target");
+  check(cold.worst_after_ramp_lu <= 0.75,
+        "from a fresh start, nothing past 1.5 s stands over the target");
+
+  for (const bool flagged : {false, true}) {
+    Stream after(48000, 480);
+    after.settings = {2, -1, target};
+    after.play(60, 0.04);
+    check(after.reading.applied_gain_db > 10,
+          "control: the quiet song before it really was boosted");
+    if (flagged) feq_live_normalizer_silence(after.processor, 48000 * 5);
+    else after.play(5, 0);
+    const Heard warm = heard_after_silence(after, source, target);
+    std::printf("after a boosted quiet song and %s silence: gain at the start %+.2f dB, "
+                "%d seconds over, worst second after the first %+.2f, worst past 1.5 s %+.2f\n",
+                flagged ? "flagged" : "played", warm.first_gain_db, warm.seconds_over,
+                warm.worst_second_lu, warm.worst_after_ramp_lu);
+    // Judged on the first 100 ms of the new song, before any of it has been
+    // measured: whatever gain plays there was carried across the silence.
+    check(warm.first_gain_db <= 0.01,
+          flagged ? "after a boosted quiet song and flagged silence, the boost is not carried"
+                  : "after a boosted quiet song and silence, the boost is not carried");
+    check(warm.worst_second_lu <= 1 && warm.worst_after_ramp_lu <= 0.75,
+          flagged ? "after flagged silence, no second after the first stands over the target"
+                  : "after silence, no second after the first stands over the target");
+  }
+}
+
 void quiet_sections(double rate, uint32_t block, uint32_t channels) {
   Stream stream(rate, block, channels);
   check(stream.processor != nullptr, "supported source can prepare live leveling");
@@ -265,6 +348,7 @@ int main() {
   quiet_sections(48000, 512, 2);
   quiet_sections(96000, 257, 1);
   flagged_gap_starts_an_independent_unnamed_source();
+  a_loud_song_after_silence_comes_in_at_the_target();
   protection();
   restoration_edit();
   live_and_analysed_sources_share_gain_and_headroom_bounds();

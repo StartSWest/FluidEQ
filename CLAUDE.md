@@ -448,7 +448,20 @@ Everything worth knowing about them is available through commands:
   rebuilds the rack; the engine reports each finished song as `lastSong` in its
   status, and `songLevels.ts` remembers it so the next play is levelled from
   its first second. Within a song the gain only goes down; the next song keeps
-  it unless it is much quieter. The programme text is pinned on both sides
+  a cut unless it is much quieter, and never a boost: a programme the engine
+  has no level for starts at unity at most, and three seconds of digital
+  silence (counted in samples on the audio thread) take a boost away while
+  nothing is heard. In Loudness mode a song with no level is judged from its
+  first 400 ms (down only, never waiting for the 3 s window), and wherever the
+  gain is not yet decided from the song — that, or a remembered level still
+  being reached — it comes down at 10 dB/s, not 1-2. Ivan heard the old way
+  on 2026-11-08 ("when no sound is sounding for a while and I hit play on a
+  song the music suddenly higher and then it normalized"): a loud master
+  after silence stood up to 9.4 LU over the target for 10 s, and after a
+  quiet song's boost up to 14.7 LU over for 21-23 s; now only the first
+  second, the ramp itself, is over (`live_normalizer_test.cpp`,
+  `a_loud_song_after_silence_comes_in_at_the_target`, beside a control that
+  the song is that far over unprocessed). The programme text is pinned on both sides
   (`leveling_board_test.cpp`, `songProgramme.test.ts`), like the status.
 - **Under the FluidEQ Engine the rack runs in exactly one place.** The
   Library player's host while the Library plays, the engine the rest of the

@@ -89,6 +89,16 @@ constexpr double kGlideDbPerSecond = 2.0;
 // loudest peak rather than on every beat.
 constexpr double kPeakDownDbPerSecond = 10.0;
 constexpr double kPeakDeadband = 0.1;
+// Loudness comes down at that same rate wherever the gain has not yet been
+// decided from the song: a programme it has no level for, and a remembered
+// level still being reached. Both used to wait — no decision until the 3 s
+// window had filled, then 1 dB/s (2 dB/s for a remembered song) — so a loud
+// song after a quiet stretch played at the gain left from before, unity on a
+// fresh start: a master 9.9 LU over the target stood up to 9.4 LU over it for
+// 10 s, and after a boosted quiet song up to 14.7 LU over for 21-23 s (Ivan,
+// 2026-11-08: "the music suddenly higher and then it normalized"). The slow rates stay for an established song's later passages,
+// where a quick move would ride the phrasing.
+constexpr double kOpeningDownDbPerSecond = kPeakDownDbPerSecond;
 
 double db(double value) { return value > 1e-6 ? 20 * std::log10(value) : kUnknown; }
 double bounded(double value, double fallback, double low, double high) {
@@ -126,6 +136,11 @@ void begin_segment(FeqLiveNormalizer& state, uint64_t song_id, double level, dou
   song.established = false;
   song.glide = false;
   song.retarget_pending = false;
+  // A programme it knows nothing about never inherits a boost. The gain stays
+  // continuous otherwise (an inherited cut is only quiet until the song is
+  // trusted), but a quiet song's +11 dB carried into the next one played a
+  // loud master 11 dB over the gain it needed before anything was measured.
+  if (!song.known) song.target_db = std::min(song.target_db, 0.0);
 }
 
 double desired_gain(const FeqLevelingState& song, const FeqNormalizerSettings& settings,
@@ -215,6 +230,9 @@ void silent_frames(FeqLiveNormalizer& state, uint32_t frames) {
   empty_window(state);
   if (!state.song.named) {
     begin_segment(state, 0, kUnknown, kUnknown);
+    // Three seconds of digital silence are the one moment a gain can move
+    // unheard, and a host that flags silence sends no frames to ramp over.
+    state.song.gain_db = std::min(state.song.gain_db, 0.0);
     // Flagged silence carries no samples through the interpolation filters.
     // Their previous recording's tail must not become the next source peak.
     for (auto& detector : state.input_detectors) feq_true_peak_init(&detector, 4);
@@ -295,6 +313,21 @@ int level(FeqLiveNormalizer& state, const FeqLoudnessReading& measured, double p
     double requested = 0, peak_room = 0;
     const double desired = desired_gain(song, settings, requested, peak_room);
     if (desired < song.target_db - kPeakDeadband) song.target_db = desired;
+  }
+  if (settings.mode == 2 && !song.established && !song.known &&
+      measured.momentary_lufs > kLearningGateLufs) {
+    // A song it has no level for is judged from its first 400 ms (the
+    // momentary window, the shortest the meter fills), not after the 3 s
+    // window: down only, and the song's own level is left alone, so a first
+    // loud hit lowers the gain at once while what the song settles at is
+    // still learned from the 3 s window. The momentary reads a little
+    // over the short-term on most music, so this can start a dB or two low;
+    // the established decision below lifts it once the song is trusted.
+    FeqLevelingState opening = song;
+    opening.song_level = std::max(song.song_level, measured.momentary_lufs);
+    double requested = 0, peak_room = 0;
+    const double desired = desired_gain(opening, settings, requested, peak_room);
+    if (desired < song.target_db - kDeadband) song.target_db = desired;
   }
   const bool settled = song.known || song.foreground_seconds >= kSettleSeconds;
   if (static_cast<double>(state.samples) < state.rate * kWindowSeconds ||
@@ -469,11 +502,13 @@ static FeqLiveNormalizerReading process_piece(FeqLiveNormalizer* state,
   auto& song = state->song;
   // Slow corrections plus a 0.75 LU deadband avoid riding every phrase.
   // Mode changes return to unity promptly without stepping the waveform.
+  const bool lowering = target < song.gain_db;
   const double speed = !learning ? 30.0
+      : lowering && settings->mode == 1 ? kPeakDownDbPerSecond
+      : lowering && (!song.established || song.glide) ? kOpeningDownDbPerSecond
       : song.glide ? kGlideDbPerSecond
-      : target < song.gain_db
-          ? (settings->mode == 1 ? kPeakDownDbPerSecond : kDownDbPerSecond)
-          : kUpDbPerSecond;
+      : lowering ? kDownDbPerSecond
+      : kUpDbPerSecond;
   const double step = speed / state->rate;
   for (uint32_t frame = 0; frame < frames; ++frame) {
     song.gain_db += std::clamp(target - song.gain_db, -step, step);
