@@ -60,13 +60,17 @@ describe("a project's scene source", () => {
 
   it('is saved over that same file, and nowhere else', async () => {
     const starter = fs.readFileSync(path.join(folder, 'scene.frag'), 'utf8');
+    // The starter folder as it stands (its picture and animation since
+    // cdddc6e4e): the save may add nothing to it.
+    const before = fs.readdirSync(folder).sort();
     await expect(writeProjectSource(folder, '// edited')).resolves.toBe(
       'written',
     );
     expect(fs.readFileSync(path.join(folder, 'scene.frag'), 'utf8')).toBe(
       '// edited',
     );
-    expect(fs.readdirSync(folder).sort()).toEqual(['pack.json', 'scene.frag']);
+    expect(before).toContain('scene.frag');
+    expect(fs.readdirSync(folder).sort()).toEqual(before);
     // The control: the file really held something else before.
     expect(starter).not.toBe('// edited');
   });
