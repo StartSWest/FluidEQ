@@ -60,6 +60,7 @@ const ownLookTools = (door: IStudioLook, folder: string): IMcpTool[] =>
   createStudioTools({
     look: (request) => door.look({ ...request, folder }),
     hear: door.hear,
+    ...(door.shapeNow ? { shapeNow: door.shapeNow } : {}),
   }).map((tool) =>
     tool.name === 'look_at_scene'
       ? { ...tool, inputSchema: LOOK_WITHOUT_FOLDER }

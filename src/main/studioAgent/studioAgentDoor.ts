@@ -7,13 +7,15 @@ import {
   DEFAULT_SCENE_CAMERA,
 } from '../../common/sceneCamera';
 import { SCENE_DAYLIGHT_PARAM } from '../../common/sceneDaylight';
-import type {
-  IStudioAgentDoor,
-  IStudioAgentDrawAsk,
-  IStudioAgentHearAsk,
-  TStudioAgentDrawAnswer,
-  TStudioAgentHeardAnswer,
-  TStudioAgentSong,
+import {
+  isStudioAgentShape,
+  type IStudioAgentDoor,
+  type IStudioAgentDrawAsk,
+  type IStudioAgentHearAsk,
+  type TStudioAgentDrawAnswer,
+  type TStudioAgentHeardAnswer,
+  type TStudioAgentShape,
+  type TStudioAgentSong,
 } from '../../common/studioAgent';
 import writeFileAtomically from '../atomicWrite';
 import { readProject } from '../memberScenes/project';
@@ -159,6 +161,10 @@ export const createStudioAgentDoor = ({
   >();
   /** The ready page said it can be asked to hear (`useStudioAgent.ts`). */
   let readyHears = false;
+  // The view the Studio's stage shows the scene in, as the window last said:
+  // what a look asks for when it names no shape.
+  let stageShape: TStudioAgentShape | undefined;
+  const shapeNow = (): TStudioAgentShape => stageShape ?? 'graph';
 
   const save = () => {
     try {
@@ -298,7 +304,7 @@ export const createStudioAgentDoor = ({
         version: appVersion,
         instructions: INSTRUCTIONS,
       },
-      createStudioTools({ look, hear }),
+      createStudioTools({ look, hear, shapeNow }),
     ),
     ...(logger ? { logger } : {}),
   });
@@ -397,6 +403,12 @@ export const createStudioAgentDoor = ({
       save();
     }
     return state();
+  });
+
+  ipcMain.handle('studio-agent-stage-view', (event, shape: unknown) => {
+    if (fromWindow(event)) {
+      stageShape = isStudioAgentShape(shape) ? shape : undefined;
+    }
   });
 
   ipcMain.handle('studio-agent-ready', (event, answers: unknown) => {
@@ -498,6 +510,7 @@ export const createStudioAgentDoor = ({
      */
     look,
     hear,
+    shapeNow,
     dispose: async () => {
       [
         'studio-agent-door',
@@ -505,6 +518,7 @@ export const createStudioAgentDoor = ({
         'studio-agent-door-for-prompt',
         'studio-agent-new-key',
         'studio-agent-ready',
+        'studio-agent-stage-view',
         'studio-agent-drawn',
         'studio-agent-heard',
       ].forEach((channel) => ipcMain.removeHandler(channel));

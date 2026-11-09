@@ -43,7 +43,7 @@ const DRAFT_FILE = 'draft.json';
 const STAGE_FILE = 'draft-stage.jpg';
 /** A project id is a UUID (`studioProjects.ts`): nothing else names a folder. */
 const PROJECT_ID = /^[a-f0-9-]{36}$/;
-/** The stage is drawn at 1280x720 (`STUDIO_AGENT_SHAPES.wide`): a few hundred kB. */
+/** The stage is drawn at 1280x720 (`STUDIO_AGENT_SHAPES['full-screen']`): a few hundred kB. */
 const MAX_STAGE_BYTES = 4 * 1024 * 1024;
 const isJpeg = (bytes: Uint8Array) =>
   bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;

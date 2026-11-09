@@ -190,3 +190,25 @@ test('no other page may see or press it', async () => {
   // Open, a stranger still learns nothing about it.
   expect(await invoke('studio-agent-door', stranger)).toEqual({ open: false });
 });
+
+// Ivan, 2026-11-09: asked to improve a scene "on ultra wide", the AI looked
+// at shapes of its own. A look naming no shape is of the stage's view.
+test('a look naming no shape is drawn in the view the stage shows', async () => {
+  open();
+  expect(door?.shapeNow()).toBe('graph');
+  await invoke('studio-agent-stage-view', fromWindow, 'ultra-wide-graph');
+  expect(door?.shapeNow()).toBe('ultra-wide-graph');
+  // Another page has no say in it.
+  await invoke(
+    'studio-agent-stage-view',
+    { sender: { send: jest.fn() } },
+    'compact-player',
+  );
+  expect(door?.shapeNow()).toBe('ultra-wide-graph');
+  // Nothing that is not a FluidEQ shape, and the Studio closing, is the graph.
+  await invoke('studio-agent-stage-view', fromWindow, 'ribbon');
+  expect(door?.shapeNow()).toBe('graph');
+  await invoke('studio-agent-stage-view', fromWindow, 'compact-player');
+  await invoke('studio-agent-stage-view', fromWindow, null);
+  expect(door?.shapeNow()).toBe('graph');
+});

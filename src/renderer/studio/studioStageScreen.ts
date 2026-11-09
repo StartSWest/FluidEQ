@@ -5,6 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { PLAYER_PICTURE_HEIGHT } from 'common/constants';
+import { ULTRA_WIDE_GRAPH } from 'common/stageShapes';
+import type { TStudioAgentShape } from 'common/studioAgent';
 import {
   PICTURE_HEIGHT,
   PICTURE_PANEL_FOOT,
@@ -22,14 +24,20 @@ import { sceneViewOf, type TSceneView } from '../graph/sceneView';
 export type TStagePreview = 'stage' | 'ultraWide' | 'player';
 
 /**
- * The EQ tab's graph on a 3440 by 1440 monitor, the window maximised
- * (3440 by 1392 CSS pixels at 100%), measured in the full-app harness with
- * the panes as a new install opens them: 2956 by 534. A 2560-wide window
- * gives 3.9 and a 1920-wide one 3.8, so 5.5 is the shape only an ultra-wide
- * screen shows a scene at, and the one a scene composed for 16:9 is most
- * likely to come apart in.
+ * Each view as the member's AI names its shape (`STUDIO_AGENT_SHAPES`), so a
+ * look that names none is of the view on the stage: the stage itself is the
+ * graph's shape until its divider is dragged.
  */
-export const ULTRA_WIDE_GRAPH_SHAPE = 2956 / 534;
+export const AGENT_SHAPE_OF_PREVIEW: Record<TStagePreview, TStudioAgentShape> =
+  {
+    stage: 'graph',
+    ultraWide: 'ultra-wide-graph',
+    player: 'compact-player',
+  };
+
+/** The ultra-wide graph's shape, width over height (`ULTRA_WIDE_GRAPH`). */
+export const ULTRA_WIDE_GRAPH_SHAPE =
+  ULTRA_WIDE_GRAPH.width / ULTRA_WIDE_GRAPH.height;
 
 /**
  * The Compact player as its window opens, 480 by 966 (`PlayerPicture`): the

@@ -171,5 +171,7 @@ and the mirror to nothing outside the floor.
 
 `look_at_scene` at rest: the floor's outline must be invisible, the test
 box must stand on the floor, shadows must fall away from the photo's light.
-Check the seam at silence and at a loud passage, at a wide and a narrow
-panel. Then take the test box out.
+Check the seam at silence and at a loud passage, in the `graph` and
+`ultra-wide-graph` shapes (2.35:1 and about 5.5:1 - "ultra wide" means that
+one) and in `compact-player`: those, with `full-screen`, are the only shapes
+FluidEQ shows a scene in. Then take the test box out.

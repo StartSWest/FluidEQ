@@ -200,7 +200,7 @@ test('a look never asks the window to switch the Studio', async () => {
       },
     );
     const outcome = await agentDoor.look({
-      shape: 'wide',
+      shape: 'full-screen',
       sound: 'music',
       sliders: {},
     } as ILookRequest);

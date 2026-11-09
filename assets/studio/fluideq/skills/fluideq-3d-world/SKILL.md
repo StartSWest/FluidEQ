@@ -117,3 +117,9 @@ from the camera, at silence and at a loud passage. Check that it has a lit
 side and a dark side, a shadow under it, a reflection where the floor
 shines, and that it is thinner with distance. If any is missing, it will
 read as flat.
+
+Look in FluidEQ's own shapes and no others: `graph` (2.35:1, the stage's),
+`ultra-wide-graph` (about 5.5:1, the graph on an ultra-wide monitor - what
+the member means by "ultra wide"), `compact-player` and `full-screen`. A
+camera framed for 16:9 most often loses its subject off the ends of the
+ultra-wide graph: look there before calling it done.

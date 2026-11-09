@@ -369,7 +369,11 @@ const registerMemberServices = ({
     userDataDir,
     getMainWindow,
     agentProject: (folder) => memberScenesIpc.agentProject(folder),
-    door: { look: studioAgentDoor.look, hear: studioAgentDoor.hear },
+    door: {
+      look: studioAgentDoor.look,
+      hear: studioAgentDoor.hear,
+      shapeNow: studioAgentDoor.shapeNow,
+    },
     version: appVersion(),
     launcher: chatLauncherFor(path.join(userDataDir, 'studio-chat'), log),
     // An AI may have written into a scene that is not the open one, so the

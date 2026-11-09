@@ -37,7 +37,7 @@ const useStageCapture = (pack: IScenePack | undefined, wave: ISceneWave) => {
             const answer = await drawForAgent({
               id: 0,
               pack,
-              shape: 'wide',
+              shape: 'full-screen',
               sound: 'music',
               wave,
             });

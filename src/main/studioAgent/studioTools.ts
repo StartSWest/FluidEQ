@@ -10,6 +10,7 @@ import {
   type IStudioAgentMoment,
   type TStudioAgentDrawAnswer,
   type TStudioAgentHeardAnswer,
+  type TStudioAgentShape,
   type TStudioAgentSong,
 } from '../../common/studioAgent';
 import { DEFAULT_SCENE_WAVE, type ISceneWave } from '../../common/sceneWave';
@@ -32,6 +33,11 @@ import type { IMcpTool, IMcpToolResult } from './mcpProtocol';
 export interface IStudioLook {
   look(request: ILookRequest): Promise<TLookOutcome>;
   hear(song: TStudioAgentSong): Promise<TStudioAgentHeardAnswer | 'no-window'>;
+  /**
+   * The shape a look names none of: the view the Studio's stage shows the
+   * scene in now, so a look is of what the member is looking at.
+   */
+  shapeNow?(): TStudioAgentShape;
 }
 
 export type TLookOutcome =
@@ -398,7 +404,11 @@ const heardResult = (
   };
 };
 
-export const createStudioTools = ({ look, hear }: IStudioLook): IMcpTool[] => [
+export const createStudioTools = ({
+  look,
+  hear,
+  shapeNow,
+}: IStudioLook): IMcpTool[] => [
   {
     name: 'look_at_scene',
     title: 'Look at the scene',
@@ -412,7 +422,7 @@ export const createStudioTools = ({ look, hear }: IStudioLook): IMcpTool[] => [
       openWorldHint: false,
     },
     call: async (args) => {
-      const request = readLookRequest(args);
+      const request = readLookRequest(args, shapeNow?.());
       if (typeof request === 'string') {
         return failure(request);
       }

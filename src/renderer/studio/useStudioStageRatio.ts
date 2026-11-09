@@ -1,3 +1,4 @@
+import { GRAPH_STAGE_RATIO } from 'common/stageShapes';
 import {
   useCallback,
   useRef,
@@ -22,8 +23,8 @@ import { PANE_MIN_HEIGHT } from '../utils/paneSizes';
  * and wide sizes stand for fixed panels.
  */
 
-/** The graph's own shape, and the stage's until it is dragged. */
-export const GRAPH_STAGE_RATIO = 2.35;
+/** The graph's own shape, and the stage's until it is dragged (`stageShapes.ts`). */
+export { GRAPH_STAGE_RATIO };
 
 const STORAGE_KEY = 'fluideq.studio.stageRatio';
 

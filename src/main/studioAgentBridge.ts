@@ -5,6 +5,7 @@ import type {
   IStudioAgentHearAsk,
   TStudioAgentDrawAnswer,
   TStudioAgentHeardAnswer,
+  TStudioAgentShape,
 } from '../common/studioAgent';
 
 /**
@@ -55,4 +56,10 @@ export const studioAgentBridge = {
   },
   studioAgentHeard: (id: number, answer: TStudioAgentHeardAnswer) =>
     ipcRenderer.invoke('studio-agent-heard', id, answer) as Promise<void>,
+  /**
+   * The view the Studio's stage shows the scene in, so the member's AI looks
+   * at that shape when it names none; null when the Studio closes.
+   */
+  studioAgentStageView: (shape: TStudioAgentShape | null) =>
+    ipcRenderer.invoke('studio-agent-stage-view', shape) as Promise<void>,
 };

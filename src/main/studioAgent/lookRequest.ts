@@ -59,6 +59,12 @@ export interface ILookRequest {
 const MAX_FOLDER_LENGTH = 1024;
 
 const SHAPES = Object.keys(STUDIO_AGENT_SHAPES) as TStudioAgentShape[];
+
+/** A shape's size and its proportion, as the tool's description says them. */
+const shapeLine = (shape: TStudioAgentShape) => {
+  const { width, height } = STUDIO_AGENT_SHAPES[shape];
+  return `${width}x${height}, ${(width / height).toFixed(2)}:1`;
+};
 const SLIDER_ID = /^[a-z][a-z0-9_]{0,23}$/;
 
 /**
@@ -89,7 +95,7 @@ export const LOOK_SCHEMA = {
     shape: {
       type: 'string',
       enum: SHAPES,
-      description: `The panel's shape. wide ${STUDIO_AGENT_SHAPES.wide.width}x${STUDIO_AGENT_SHAPES.wide.height} (a window, the default), tall ${STUDIO_AGENT_SHAPES.tall.width}x${STUDIO_AGENT_SHAPES.tall.height} (a narrow column, like the compact player's window: the picture slides to keep pack.json's framing focus in view), square ${STUDIO_AGENT_SHAPES.square.width}x${STUDIO_AGENT_SHAPES.square.height}, strip ${STUDIO_AGENT_SHAPES.strip.width}x${STUDIO_AGENT_SHAPES.strip.height} (the graph above the equaliser), ribbon ${STUDIO_AGENT_SHAPES.ribbon.width}x${STUDIO_AGENT_SHAPES.ribbon.height} (the thinnest wide panel). The subject must stay whole in every one; in tall, the focus.`,
+      description: `Where FluidEQ shows the scene - these four and no other shape. graph ${shapeLine('graph')} (the EQ graph, the Studio stage's own shape); ultra-wide-graph ${shapeLine('ultra-wide-graph')} (the graph on an ultra-wide monitor: this is what "ultra wide" means, and the shape a scene composed for 16:9 most often comes apart in); compact-player ${shapeLine('compact-player')} (the Compact player's picture); full-screen ${shapeLine('full-screen')} (a visualizer full screen or on the desktop). Leave it out to look at the shape the member's Studio stage shows now. The subject must stay whole in every one.`,
     },
     sound: {
       type: 'string',
@@ -292,9 +298,14 @@ const readTap = (value: unknown): IStudioAgentTap | undefined => {
   return { x: read.x, y: read.y, seconds: read.seconds };
 };
 
-/** The request, or the one-line reason it is not one. */
+/**
+ * The request, or the one-line reason it is not one. A request naming no
+ * shape is drawn in `fallbackShape`: the stage's view when the window has
+ * said, else the graph, the stage's own shape.
+ */
 export const readLookRequest = (
   args: Record<string, unknown>,
+  fallbackShape: TStudioAgentShape = 'graph',
 ): ILookRequest | string => {
   const unknownKey = Object.keys(args).find(
     (key) => !Object.prototype.hasOwnProperty.call(LOOK_SCHEMA.properties, key),
@@ -453,7 +464,7 @@ export const readLookRequest = (
   }
   return {
     ...(typeof folder === 'string' ? { folder } : {}),
-    shape: isStudioAgentShape(shape) ? shape : 'wide',
+    shape: isStudioAgentShape(shape) ? shape : fallbackShape,
     sound: sound === 'silence' ? 'silence' : 'music',
     ...(moment === undefined ? {} : { seconds: moment }),
     ...(isNumber(tempo) ? { tempo } : {}),

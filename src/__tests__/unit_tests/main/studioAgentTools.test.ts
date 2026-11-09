@@ -55,19 +55,41 @@ const pack = {
 const JPEG = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 0xff, 0xd9]);
 
 describe('the arguments', () => {
-  test('nothing asked is the wide picture under the test music', () => {
+  test('nothing asked is the graph under the test music', () => {
     expect(readLookRequest({})).toEqual({
-      shape: 'wide',
+      shape: 'graph',
       sound: 'music',
       sliders: {},
     });
   });
 
+  // Ivan, 2026-11-09: a look is of what the member is looking at.
+  test('a look naming no shape takes the view the Studio stage shows', () => {
+    expect(readLookRequest({}, 'ultra-wide-graph')).toMatchObject({
+      shape: 'ultra-wide-graph',
+    });
+    // A shape asked for is drawn whatever the stage shows.
+    expect(
+      readLookRequest({ shape: 'compact-player' }, 'ultra-wide-graph'),
+    ).toMatchObject({ shape: 'compact-player' });
+  });
+
+  // The AI asked for an ultra-wide scene invented 4:1 to 12:1 strips, one
+  // of them the ribbon this list used to offer: none is a FluidEQ screen.
+  test.each(['ribbon', 'strip', 'wide', 'tall', '12:1'])(
+    'refuses %s, a shape FluidEQ shows nothing at',
+    (shape) => {
+      expect(readLookRequest({ shape })).toMatch(
+        /shape must be one of graph, ultra-wide-graph, compact-player, full-screen/,
+      );
+    },
+  );
+
   test('every argument the schema names is read', () => {
     expect(
       readLookRequest({
         folder: 'D:\\Studio\\cat',
-        shape: 'ribbon',
+        shape: 'ultra-wide-graph',
         sound: 'silence',
         seconds: 2.5,
         sliders: { dance: 1 },
@@ -75,7 +97,7 @@ describe('the arguments', () => {
       }),
     ).toEqual({
       folder: 'D:\\Studio\\cat',
-      shape: 'ribbon',
+      shape: 'ultra-wide-graph',
       sound: 'silence',
       seconds: 2.5,
       sliders: { dance: 1 },
@@ -129,7 +151,7 @@ const MOMENT = {
 };
 
 describe('the window’s answer', () => {
-  const wide = { shape: 'wide' as const };
+  const wide = { shape: 'full-screen' as const };
   const good = {
     ok: true,
     image: JPEG,

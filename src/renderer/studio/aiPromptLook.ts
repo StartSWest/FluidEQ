@@ -77,10 +77,13 @@ How much to look, by what the request changed:
   should show, you do not need it.
 
 The whole list, for a new or rebuilt scene:
-- the default picture (wide, test music, the first kick);
-- shape "tall": the picture slid, not squeezed, with the focus whole and
-  near the middle - what the compact player shows (see FRAMING);
-- shape "ribbon" and shape "strip": the subject whole in a thin strip;
+- the default picture (the shape the Studio stage shows - the graph, unless
+  I have a view on - test music, the first kick);
+- shape "ultra-wide-graph": the subject whole across the graph of an
+  ultra-wide monitor, about 5.5:1, nothing important lost off its ends;
+- shape "compact-player": the picture slid, not squeezed, with the focus
+  whole and near the middle - what the compact player shows (see FRAMING);
+- shape "full-screen": the scene at 16:9, full screen or on a desktop;
 - sound "silence": the scene at rest, and calm;
 - beats ${PLAIN_BAR}, ${PLAIN_BAR}.25, ${PLAIN_BAR}.5 and ${PLAIN_BAR}.75: one beat in quarters on a plain bar
   of the test music, to see how it moves from one beat to the next and each

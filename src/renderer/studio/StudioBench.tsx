@@ -57,6 +57,7 @@ import useStudioAppColours from './useStudioAppColours';
 import useStudioTint from './useStudioTint';
 import { useStudioGridShown } from './studioPaper';
 import useStudioSize from './useStudioSize';
+import useStageViewForAgent from './useStageViewForAgent';
 import { useStageMotion } from './stageMotion';
 import type { TStageHeard, TStageTrouble } from './StudioStage';
 import StudioStageSound from './StudioStageSound';
@@ -92,6 +93,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     togglePreview,
     togglePlayerParts,
   } = useStudioSize();
+  useStageViewForAgent(preview);
   const { motion, toggleMotion } = useStageMotion();
   const isGridShown = useStudioGridShown();
   const [stageProblem, setStageProblem] = useState<{

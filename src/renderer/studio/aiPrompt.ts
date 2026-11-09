@@ -14,6 +14,7 @@ import {
   SCENE_TAP_AGE_LIMIT_S,
 } from 'common/sceneUniformContract';
 import { RUN_MAX_TURNS } from 'common/spectrumEnergy';
+import { GRAPH_STAGE_RATIO, ULTRA_WIDE_GRAPH } from 'common/stageShapes';
 import { LIGHT_FRAME_MS } from 'common/studioAgent';
 import { MAX_VERSION_NOTE } from 'common/sceneVersionNote';
 import type { TranslationKey } from 'common/i18n';
@@ -94,6 +95,11 @@ const MEASURING_VIEWS: ReadonlySet<GraphStyle> = new Set<GraphStyle>([
  */
 export const SCENE_FALLBACK_STYLES: readonly GraphStyle[] =
   SELECTABLE_GRAPH_STYLES.filter((style) => !MEASURING_VIEWS.has(style));
+
+/** The ultra-wide graph's proportion as the brief says it: about 5.5. */
+const ULTRA_WIDE_RATIO = (
+  ULTRA_WIDE_GRAPH.width / ULTRA_WIDE_GRAPH.height
+).toFixed(1);
 
 const promptFor = (
   folder: string | undefined,
@@ -372,6 +378,12 @@ FluidEQ will not play a scene without it.
 FIT THE PANEL AND MY WAVE
 - The panel can be any shape, from a narrow column to a wide strip, and
   changes while the scene plays. Scale by uResolution so circles stay round.
+- FluidEQ shows a scene at four shapes, and look_at_scene draws those four
+  and no other: graph (${GRAPH_STAGE_RATIO}:1, the EQ graph and the Studio stage's own
+  shape), ultra-wide-graph (${ULTRA_WIDE_GRAPH.width} by ${ULTRA_WIDE_GRAPH.height}, about ${ULTRA_WIDE_RATIO}:1, the graph on an
+  ultra-wide monitor), compact-player (${PLAYER_WIDTH} by ${PLAYER_PICTURE_HEIGHT}) and full-screen
+  (16:9). When I say "ultra wide", I mean ultra-wide-graph: look at that
+  shape and improve the scene there, never at a strip of your own making.
 - FRAMING is part of how the scene is built, never something I set. Compose
   the whole picture for panels at least "narrowest" wide (1.7778 is 16:9)
   and put its important part - the cabin, the dancer, the sun over the

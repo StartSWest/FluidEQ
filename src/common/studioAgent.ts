@@ -8,6 +8,11 @@ import type { ISceneCamera } from './sceneCamera';
 import type { IScenePack } from './scenePacks';
 import type { ISceneWave } from './sceneWave';
 import type { ISongMap } from './songMap';
+import {
+  COMPACT_PLAYER_PICTURE,
+  GRAPH_STAGE_RATIO,
+  ULTRA_WIDE_GRAPH,
+} from './stageShapes';
 import type { IWorldReport } from './worldNotes';
 
 /**
@@ -21,18 +26,31 @@ import type { IWorldReport } from './worldNotes';
  * already editing.
  */
 
+/** The graph drawn at this height, at its own shape: 1880 by 800. */
+const GRAPH_PICTURE_HEIGHT = 800;
+
 /**
- * The panel shapes a scene is asked to hold, as pictures of the sizes the
- * app actually gives it: a window, a phone-like column, a square tile, the
- * strip above the equaliser, and the thinnest band of a wide panel. Named
- * rather than free, so a caller cannot ask for a picture of any size it likes.
+ * The shapes FluidEQ shows a scene at, and the only ones a picture is drawn
+ * in, each read from `stageShapes.ts` - the numbers the Studio's stage
+ * previews with. Named rather than free, so a caller cannot ask for a
+ * picture of any size it likes: the Studio's AI, asked to improve a scene
+ * "on ultra wide", invented four shapes from 4:1 to 12:1, the 12:1 being a
+ * "ribbon" this list used to offer that no screen of FluidEQ shows (Ivan,
+ * 2026-11-09: "make sure when I ask the agent it knows is that aspect ratio
+ * not any other invented one").
  */
 export const STUDIO_AGENT_SHAPES = {
-  wide: { width: 1280, height: 720 },
-  tall: { width: 720, height: 1280 },
-  square: { width: 960, height: 960 },
-  strip: { width: 1600, height: 400 },
-  ribbon: { width: 2400, height: 200 },
+  /** The EQ graph, 2.35:1, the Studio stage's own shape. */
+  graph: {
+    width: Math.round(GRAPH_PICTURE_HEIGHT * GRAPH_STAGE_RATIO),
+    height: GRAPH_PICTURE_HEIGHT,
+  },
+  /** The graph on an ultra-wide monitor, 2956 by 534: "ultra wide". */
+  'ultra-wide-graph': ULTRA_WIDE_GRAPH,
+  /** The Compact player's picture, 480 by 309. */
+  'compact-player': COMPACT_PLAYER_PICTURE,
+  /** A visualizer full screen or on the desktop, 16:9. */
+  'full-screen': { width: 1280, height: 720 },
 } as const;
 
 export type TStudioAgentShape = keyof typeof STUDIO_AGENT_SHAPES;

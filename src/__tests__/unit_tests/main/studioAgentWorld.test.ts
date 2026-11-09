@@ -64,7 +64,7 @@ const EVERY_NOTE: TWorldNote[] = [
 ];
 
 const worldRead = (world: unknown) => {
-  const answer = readDrawAnswer({ ...GOOD, world }, { shape: 'wide' });
+  const answer = readDrawAnswer({ ...GOOD, world }, { shape: 'full-screen' });
   return answer.ok ? answer.world : 'refused';
 };
 
