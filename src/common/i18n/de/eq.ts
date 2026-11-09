@@ -259,6 +259,18 @@ const eq: Partial<Dictionary> = {
     'Taste halten und ziehen, oder Taste halten und nur die Maus bewegen.',
   'graph.scene.camera.move.drag': 'Halten und ziehen',
   'graph.scene.camera.move.move': 'Halten und bewegen',
+  'graph.scene.camera.follow': 'Der Maus folgen',
+  'graph.scene.camera.followHint':
+    'Eine 3D-Szene neigt sich um einige Grad zum Zeiger, während er sich darüber bewegt, und kommt zur Ruhe, wenn er sie verlässt.',
+  'graph.scene.camera.follow.off': 'Aus',
+  'graph.scene.camera.follow.on': 'Ein',
+  'graph.scene.camera.orbit': 'Selbst kreisen',
+  'graph.scene.camera.orbitHint':
+    'Eine Szene, die sich ganz herum drehen lässt, kreist langsam, wie eine Kamera, die um sie schwenkt. Ihre eigene Drehung übernimmt sofort.',
+  'graph.scene.camera.orbit.off': 'Aus',
+  'graph.scene.camera.orbit.slow': 'Langsam',
+  'graph.scene.camera.orbit.normal': 'Normal',
+  'graph.scene.camera.calmNote': 'Aus, solange Bewegung reduziert ist',
   'graph.scene.frameRateHint':
     'Wie oft Visualizer gezeichnet werden: mit jedem Bild des Displays oder begrenzt, um die GPU zu schonen',
   'graph.scene.frameRate.display': 'Wie das Display',

@@ -6,7 +6,10 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { ISceneCameraControl } from 'common/sceneCameraControl';
+import {
+  DEFAULT_SCENE_CAMERA_CONTROL,
+  type ISceneCameraControl,
+} from 'common/sceneCameraControl';
 import type {
   IWallpaperAudio,
   IWallpaperSurfaceBridge,
@@ -141,11 +144,14 @@ export default function WallpaperSurface({
   // How the camera is moved, as main last said, read on every gesture. The
   // key is always Ctrl here: the desktop helper reads whichever key the
   // window chose and reports it in the one bit main hands on as Ctrl.
-  const cameraControl = useRef<ISceneCameraControl>({
+  const cameraControl = useRef<ISceneCameraControl>(
+    DEFAULT_SCENE_CAMERA_CONTROL,
+  );
+  cameraControl.current = {
+    ...DEFAULT_SCENE_CAMERA_CONTROL,
+    ...state?.camera,
     key: 'ctrl',
-    move: 'drag',
-  });
-  cameraControl.current = { key: 'ctrl', move: state?.cameraMove ?? 'drag' };
+  };
   const interactionOf = (generation: number) => {
     let interaction = interactions.current.get(generation);
     if (!interaction) {

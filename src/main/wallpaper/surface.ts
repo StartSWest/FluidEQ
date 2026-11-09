@@ -8,6 +8,7 @@ import {
   type IScenePerformance,
 } from '../../common/scenePerformance';
 import {
+  cameraMotionOf,
   sameSceneCameraControl,
   type ISceneCameraControl,
 } from '../../common/sceneCameraControl';
@@ -231,7 +232,7 @@ export const createDesktopSurface = (
       ...(tuning ? { tuning } : {}),
       ...(toldDaylight !== undefined ? { daylight: toldDaylight } : {}),
       interactive,
-      cameraMove: cameraControl.move,
+      camera: cameraMotionOf(cameraControl),
       locale: toldLocale,
     };
   };

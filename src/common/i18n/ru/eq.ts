@@ -254,6 +254,18 @@ const eq: Partial<Dictionary> = {
     'Удерживать клавишу и тянуть, или удерживать её и просто двигать мышь.',
   'graph.scene.camera.move.drag': 'Удерживать и тянуть',
   'graph.scene.camera.move.move': 'Удерживать и двигать',
+  'graph.scene.camera.follow': 'Следовать за мышью',
+  'graph.scene.camera.followHint':
+    '3D-сцена слегка наклоняется на несколько градусов к указателю, пока он движется над ней, и возвращается, когда он уходит.',
+  'graph.scene.camera.follow.off': 'Выкл.',
+  'graph.scene.camera.follow.on': 'Вкл.',
+  'graph.scene.camera.orbit': 'Вращаться самой',
+  'graph.scene.camera.orbitHint':
+    'Сцена, которую можно повернуть полностью, медленно облетается, как камера по кругу. Ваш собственный поворот сразу берёт управление.',
+  'graph.scene.camera.orbit.off': 'Выкл.',
+  'graph.scene.camera.orbit.slow': 'Медленно',
+  'graph.scene.camera.orbit.normal': 'Обычно',
+  'graph.scene.camera.calmNote': 'Выключено, пока движение уменьшено',
   'graph.scene.frameRateHint':
     'Как часто рисуются визуализаторы: в каждом кадре экрана или с ограничением, чтобы разгрузить GPU',
   'graph.scene.frameRate.display': 'Как у экрана',

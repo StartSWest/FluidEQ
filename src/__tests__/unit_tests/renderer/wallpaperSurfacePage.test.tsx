@@ -114,7 +114,7 @@ const running = (over: Partial<IWallpaperSurfaceState> = {}) => ({
     smoothing: 'off' as const,
   },
   interactive: true,
-  cameraMove: 'drag' as const,
+  camera: { move: 'drag' as const, follow: false, orbit: 'off' as const },
   locale: 'en',
   ...over,
 });

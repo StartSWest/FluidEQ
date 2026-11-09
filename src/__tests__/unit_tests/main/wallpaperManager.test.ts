@@ -177,27 +177,52 @@ describe('how hard the monitors draw', () => {
     const { deps, file } = setup();
     const manager = createWallpaperManager(deps);
     manager.start(request({ displayIds: [2, 3] }));
-    manager.setCameraControl({ key: 'code:KeyQ', move: 'move' });
+    manager.setCameraControl({
+      key: 'code:KeyQ',
+      move: 'move',
+      follow: false,
+      orbit: 'slow',
+    });
     expect(
       mockSurfaces.map(
         (surface) => surface.retuneCameraControl.mock.calls[0][0],
       ),
     ).toEqual([
-      { key: 'code:KeyQ', move: 'move' },
-      { key: 'code:KeyQ', move: 'move' },
+      { key: 'code:KeyQ', move: 'move', follow: false, orbit: 'slow' },
+      { key: 'code:KeyQ', move: 'move', follow: false, orbit: 'slow' },
     ]);
-    expect(file().cameraControl).toEqual({ key: 'code:KeyQ', move: 'move' });
+    expect(file().cameraControl).toEqual({
+      key: 'code:KeyQ',
+      move: 'move',
+      follow: false,
+      orbit: 'slow',
+    });
     // The same choice again is not a change.
-    manager.setCameraControl({ key: 'code:KeyQ', move: 'move' });
+    manager.setCameraControl({
+      key: 'code:KeyQ',
+      move: 'move',
+      follow: false,
+      orbit: 'slow',
+    });
     expect(mockSurfaces[0].retuneCameraControl).toHaveBeenCalledTimes(1);
   });
 
   it('starts a monitor with the way of moving a camera it was left with', () => {
     const { deps } = setup();
     const manager = createWallpaperManager(deps);
-    manager.setCameraControl({ key: 'alt', move: 'move' });
+    manager.setCameraControl({
+      key: 'alt',
+      move: 'move',
+      follow: true,
+      orbit: 'off',
+    });
     manager.start(request());
-    expect(mockSurfaces[0].cameraControl).toEqual({ key: 'alt', move: 'move' });
+    expect(mockSurfaces[0].cameraControl).toEqual({
+      key: 'alt',
+      move: 'move',
+      follow: true,
+      orbit: 'off',
+    });
   });
 
   it('starts a monitor with the choice it was left with', () => {
@@ -293,7 +318,12 @@ describe('stopping', () => {
         upscaler: 'simple',
         smoothing: 'off',
       },
-      cameraControl: { key: 'ctrl' as const, move: 'drag' as const },
+      cameraControl: {
+        key: 'ctrl' as const,
+        move: 'drag' as const,
+        follow: false,
+        orbit: 'off' as const,
+      },
       tuning: { 'premium:alpine': { wave: { height: 0.4, position: 0.2 } } },
       screens: [],
     });
@@ -323,7 +353,12 @@ describe('coming back at launch', () => {
       upscaler: 'fsr',
       smoothing: 'off',
     },
-    cameraControl: { key: 'ctrl' as const, move: 'drag' as const },
+    cameraControl: {
+      key: 'ctrl' as const,
+      move: 'drag' as const,
+      follow: false,
+      orbit: 'off' as const,
+    },
     tuning: {},
     screens: [
       {

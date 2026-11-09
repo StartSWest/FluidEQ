@@ -4,7 +4,10 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { ISceneCameraControl } from 'common/sceneCameraControl';
+import {
+  DEFAULT_SCENE_CAMERA_CONTROL,
+  type ISceneCameraControl,
+} from 'common/sceneCameraControl';
 import { createSceneInteraction } from 'renderer/graph/sceneInteraction';
 
 /**
@@ -49,14 +52,14 @@ const LIMITS = {
   zoom: [0.5, 2] as const,
 };
 
-const setUp = (control: ISceneCameraControl) => {
+const setUp = (control: Partial<ISceneCameraControl>) => {
   const panel = document.createElement('div');
   document.body.append(panel);
   Object.assign(panel, {
     setPointerCapture: () => undefined,
     releasePointerCapture: () => undefined,
   });
-  let chosen = control;
+  const chosen = { ...DEFAULT_SCENE_CAMERA_CONTROL, ...control };
   const hands = createSceneInteraction(() => chosen);
   hands.setLimits(LIMITS);
   const detach = hands.attach(panel, { frame: () => box });
@@ -95,10 +98,7 @@ const setUp = (control: ISceneCameraControl) => {
     document.body.dispatchEvent(event);
     return event;
   };
-  const choose = (next: ISceneCameraControl) => {
-    chosen = next;
-  };
-  return { panel, hands, detach, panelHeard, drag, glideOver, key, choose };
+  return { panel, hands, detach, panelHeard, drag, glideOver, key };
 };
 
 const cameraOf = (hands: ReturnType<typeof createSceneInteraction>) =>

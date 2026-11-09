@@ -13,7 +13,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { act, fireEvent, render } from '@testing-library/react';
-import type { ISceneCameraControl } from '../../../common/sceneCameraControl';
+import {
+  DEFAULT_SCENE_CAMERA_CONTROL,
+  type ISceneCameraControl,
+} from '../../../common/sceneCameraControl';
 import { createSceneInteraction } from '../../../renderer/graph/sceneInteraction';
 import SceneViewReset from '../../../renderer/graph/SceneViewReset';
 
@@ -47,10 +50,9 @@ const pointer = (
   return event;
 };
 
-const setUp = (
-  control: ISceneCameraControl = { key: 'ctrl', move: 'drag' },
-) => {
-  const interaction = createSceneInteraction(() => control);
+const setUp = (control: Partial<ISceneCameraControl> = {}) => {
+  const chosen = { ...DEFAULT_SCENE_CAMERA_CONTROL, ...control };
+  const interaction = createSceneInteraction(() => chosen);
   interaction.setLimits(LIMITS);
   const view = render(
     <div data-testid="surface">

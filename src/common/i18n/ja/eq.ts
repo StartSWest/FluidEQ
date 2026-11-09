@@ -255,6 +255,18 @@ const eq: Partial<Dictionary> = {
     'キーを押したままドラッグするか、キーを押したままマウスを動かすだけで回転します。',
   'graph.scene.camera.move.drag': '押したままドラッグ',
   'graph.scene.camera.move.move': '押したまま動かす',
+  'graph.scene.camera.follow': 'マウスに追従',
+  'graph.scene.camera.followHint':
+    'ポインターが 3D シーンの上を動くと、その方向へ数度だけ傾き、離れると元に戻ります。',
+  'graph.scene.camera.follow.off': 'オフ',
+  'graph.scene.camera.follow.on': 'オン',
+  'graph.scene.camera.orbit': '自動で回る',
+  'graph.scene.camera.orbitHint':
+    '一周回せるシーンが、周りをパンするカメラのようにゆっくり回ります。自分で回すとすぐにそちらが優先されます。',
+  'graph.scene.camera.orbit.off': 'オフ',
+  'graph.scene.camera.orbit.slow': 'ゆっくり',
+  'graph.scene.camera.orbit.normal': '標準',
+  'graph.scene.camera.calmNote': '動きを減らす設定中はオフ',
   'graph.scene.frameRateHint':
     'ビジュアライザーを描く頻度：ディスプレイの全フレーム、または GPU を休ませるための上限付き',
   'graph.scene.frameRate.display': 'ディスプレイと同じ',

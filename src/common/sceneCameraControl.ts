@@ -28,10 +28,35 @@ export type TSceneCameraKey = 'ctrl' | 'alt' | 'shift' | `code:${string}`;
 /** Hold the key and drag, or hold the key and just move the mouse. */
 export type TSceneCameraMove = 'drag' | 'move';
 
+/**
+ * A scene that turns all the way round circling by itself, like a camera
+ * panning round it (Ivan, 2026-11-09: "a smooth rotation mode for scenes
+ * that can fully rotate ... like a camera rotation pan"): off, or once round
+ * in two minutes or in one.
+ */
+export type TSceneCameraOrbit = 'off' | 'slow' | 'normal';
+
 export interface ISceneCameraControl {
   key: TSceneCameraKey;
   move: TSceneCameraMove;
+  /**
+   * A 3D scene leaning a few degrees towards the pointer as it moves over
+   * it, with no key and no press (Ivan, 2026-11-09: "only with mouse moving
+   * it tilts the scene but only a bit to make it follow the mouse but
+   * subtle").
+   */
+  follow: boolean;
+  orbit: TSceneCameraOrbit;
 }
+
+/** What a desktop page is told of it: everything but the key (`IWallpaperSurfaceState`). */
+export type TSceneCameraMotion = Omit<ISceneCameraControl, 'key'>;
+
+export const SCENE_CAMERA_ORBITS: readonly TSceneCameraOrbit[] = [
+  'off',
+  'slow',
+  'normal',
+];
 
 export const SCENE_CAMERA_MODIFIERS = ['ctrl', 'alt', 'shift'] as const;
 export const SCENE_CAMERA_MOVES: readonly TSceneCameraMove[] = ['drag', 'move'];
@@ -40,6 +65,8 @@ export const SCENE_CAMERA_MOVES: readonly TSceneCameraMove[] = ['drag', 'move'];
 export const DEFAULT_SCENE_CAMERA_CONTROL: ISceneCameraControl = {
   key: 'ctrl',
   move: 'drag',
+  follow: false,
+  orbit: 'off',
 };
 
 /**
@@ -180,26 +207,64 @@ const isCameraKey = (raw: unknown): raw is TSceneCameraKey => {
   return code !== undefined && cameraKeyOfCode(code) === raw;
 };
 
+const isMove = (raw: unknown): raw is TSceneCameraMove =>
+  SCENE_CAMERA_MOVES.includes(raw as TSceneCameraMove);
+const isOrbit = (raw: unknown): raw is TSceneCameraOrbit =>
+  SCENE_CAMERA_ORBITS.includes(raw as TSceneCameraOrbit);
+
+/** A whole choice, as the window sends it to main: every part known. */
 export const isSceneCameraControl = (
   raw: unknown,
-): raw is ISceneCameraControl =>
-  typeof raw === 'object' &&
-  raw !== null &&
-  isCameraKey((raw as { key?: unknown }).key) &&
-  SCENE_CAMERA_MOVES.includes((raw as { move?: unknown }).move as never);
+): raw is ISceneCameraControl => {
+  if (typeof raw !== 'object' || raw === null) {
+    return false;
+  }
+  const { key, move, follow, orbit } = raw as Record<string, unknown>;
+  return (
+    isCameraKey(key) &&
+    isMove(move) &&
+    typeof follow === 'boolean' &&
+    isOrbit(orbit)
+  );
+};
 
-/** What was stored, or the default where it is anything but a choice. */
+/**
+ * What was stored, part by part: each part that is a choice is kept, and
+ * each that is not - absent, as in everything stored before the part existed,
+ * or anything else - is the default's.
+ */
 export const normalizeSceneCameraControl = (
   raw: unknown,
-): ISceneCameraControl =>
-  isSceneCameraControl(raw)
-    ? { key: raw.key, move: raw.move }
-    : DEFAULT_SCENE_CAMERA_CONTROL;
+): ISceneCameraControl => {
+  const stored =
+    typeof raw === 'object' && raw !== null
+      ? (raw as Record<string, unknown>)
+      : {};
+  const fallback = DEFAULT_SCENE_CAMERA_CONTROL;
+  return {
+    key: isCameraKey(stored.key) ? stored.key : fallback.key,
+    move: isMove(stored.move) ? stored.move : fallback.move,
+    follow:
+      typeof stored.follow === 'boolean' ? stored.follow : fallback.follow,
+    orbit: isOrbit(stored.orbit) ? stored.orbit : fallback.orbit,
+  };
+};
 
 export const sameSceneCameraControl = (
   left: ISceneCameraControl,
   right: ISceneCameraControl,
-) => left.key === right.key && left.move === right.move;
+) =>
+  left.key === right.key &&
+  left.move === right.move &&
+  left.follow === right.follow &&
+  left.orbit === right.orbit;
+
+/** The parts a desktop page turns by. */
+export const cameraMotionOf = ({
+  move,
+  follow,
+  orbit,
+}: ISceneCameraControl): TSceneCameraMotion => ({ move, follow, orbit });
 
 /**
  * A key code as it is written on the key, where that is plain: the letter

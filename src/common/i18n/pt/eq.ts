@@ -257,6 +257,18 @@ const eq: Partial<Dictionary> = {
     'Segurar a tecla e arrastar, ou segurar a tecla e apenas mover o mouse.',
   'graph.scene.camera.move.drag': 'Segurar e arrastar',
   'graph.scene.camera.move.move': 'Segurar e mover',
+  'graph.scene.camera.follow': 'Seguir o mouse',
+  'graph.scene.camera.followHint':
+    'Uma cena 3D se inclina alguns graus em direção ao ponteiro enquanto ele passa sobre ela, e volta ao lugar quando sai.',
+  'graph.scene.camera.follow.off': 'Não',
+  'graph.scene.camera.follow.on': 'Sim',
+  'graph.scene.camera.orbit': 'Girar sozinha',
+  'graph.scene.camera.orbitHint':
+    'Uma cena que dá a volta completa gira devagar, como uma câmera que a contorna. O seu próprio giro assume na hora.',
+  'graph.scene.camera.orbit.off': 'Não',
+  'graph.scene.camera.orbit.slow': 'Lento',
+  'graph.scene.camera.orbit.normal': 'Normal',
+  'graph.scene.camera.calmNote': 'Desligado enquanto o movimento está reduzido',
   'graph.scene.frameRateHint':
     'Com que frequência os visualizadores são desenhados: a cada quadro da tela, ou limitados para poupar a GPU',
   'graph.scene.frameRate.display': 'Os da tela',

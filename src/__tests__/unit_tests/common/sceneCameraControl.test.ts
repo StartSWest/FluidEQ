@@ -66,26 +66,61 @@ describe('the keys a camera may be moved with', () => {
 
 describe('the stored choice', () => {
   it('reads what was stored, and the default for anything else', () => {
-    const chosen = { key: 'code:KeyQ', move: 'move' };
+    const chosen = {
+      key: 'code:KeyQ',
+      move: 'move',
+      follow: true,
+      orbit: 'slow',
+    };
     expect(isSceneCameraControl(chosen)).toBe(true);
     expect(normalizeSceneCameraControl(chosen)).toEqual(chosen);
-    [
-      undefined,
-      null,
-      'ctrl',
-      { key: 'ctrl' },
-      { key: 'meta', move: 'drag' },
-      { key: 'code:Escape', move: 'drag' },
-      { key: 'code:KeyZ', move: 'fling' },
-    ].forEach((raw) =>
-      expect(normalizeSceneCameraControl(raw)).toEqual(
-        DEFAULT_SCENE_CAMERA_CONTROL,
-      ),
+    [undefined, null, 'ctrl', { key: 'meta', move: 'fling', orbit: 9 }].forEach(
+      (raw) =>
+        expect(normalizeSceneCameraControl(raw)).toEqual(
+          DEFAULT_SCENE_CAMERA_CONTROL,
+        ),
     );
   });
 
-  it('starts as it always was: Ctrl and a drag', () => {
-    expect(DEFAULT_SCENE_CAMERA_CONTROL).toEqual({ key: 'ctrl', move: 'drag' });
+  // A choice stored before the lean and the orbit existed keeps its key and
+  // its way, and starts with both off; a refused key alone falls back alone.
+  it('keeps each part it can read, and fills the rest from the default', () => {
+    expect(
+      normalizeSceneCameraControl({ key: 'code:KeyQ', move: 'move' }),
+    ).toEqual({
+      key: 'code:KeyQ',
+      move: 'move',
+      follow: false,
+      orbit: 'off',
+    });
+    expect(
+      normalizeSceneCameraControl({
+        key: 'code:Escape',
+        move: 'move',
+        follow: true,
+      }),
+    ).toEqual({ key: 'ctrl', move: 'move', follow: true, orbit: 'off' });
+  });
+
+  it('takes from the window only a choice whole in every part', () => {
+    expect(isSceneCameraControl({ key: 'ctrl', move: 'drag' })).toBe(false);
+    expect(
+      isSceneCameraControl({
+        key: 'ctrl',
+        move: 'drag',
+        follow: 'yes',
+        orbit: 'off',
+      }),
+    ).toBe(false);
+  });
+
+  it('starts as it always was: Ctrl and a drag, nothing moving by itself', () => {
+    expect(DEFAULT_SCENE_CAMERA_CONTROL).toEqual({
+      key: 'ctrl',
+      move: 'drag',
+      follow: false,
+      orbit: 'off',
+    });
   });
 });
 

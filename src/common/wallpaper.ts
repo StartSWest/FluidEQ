@@ -1,6 +1,6 @@
 import type { TSceneFailure } from '../main/scenePackStore';
 import type { IScenePack } from './scenePacks';
-import type { TSceneCameraMove } from './sceneCameraControl';
+import type { TSceneCameraMotion } from './sceneCameraControl';
 import type { IScenePerformance } from './scenePerformance';
 import type { TSceneMaker } from './sceneMaker';
 import { isPremiumLookId, packIdOfLook } from './scenePacks';
@@ -282,12 +282,13 @@ export interface IWallpaperSurfaceState {
    */
   interactive: boolean;
   /**
-   * How the window turns a scene (`ISceneCameraControl.move`): the camera's
-   * key and a drag, or the key and the mouse moving alone. The key itself
-   * is not here: the helper reads whichever the window chose and main hands
-   * it on as Ctrl.
+   * How the window moves a scene's camera (`ISceneCameraControl`): the
+   * camera's key and a drag, or the key and the mouse moving alone; whether
+   * a scene leans towards the pointer; whether one that turns all the way
+   * round circles by itself. The key itself is not here: the helper reads
+   * whichever the window chose and main hands it on as Ctrl.
    */
-  cameraMove: TSceneCameraMove;
+  camera: TSceneCameraMotion;
   /** The window's language, which the page's few words are in. */
   locale: string;
 }

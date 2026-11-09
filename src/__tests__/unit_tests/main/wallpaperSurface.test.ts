@@ -84,7 +84,7 @@ const create = (
       upscaler: 'fsr',
       smoothing: 'off',
     },
-    cameraControl: { key: 'ctrl', move: 'drag' },
+    cameraControl: { key: 'ctrl', move: 'drag', follow: false, orbit: 'off' },
     tuning: pause.tuning,
     daylight: pause.daylight ?? (() => undefined),
     brightness: pause.brightness ?? (() => undefined),
@@ -415,7 +415,7 @@ describe('a desktop background changing and ending', () => {
           smoothing: 'off',
         },
         interactive: true,
-        cameraMove: 'drag',
+        camera: { move: 'drag', follow: false, orbit: 'off' },
         locale: 'en',
       },
     );
@@ -461,7 +461,7 @@ describe('a desktop background changing and ending', () => {
           smoothing: 'off',
         },
         interactive: true,
-        cameraMove: 'drag',
+        camera: { move: 'drag', follow: false, orbit: 'off' },
         locale: 'en',
       },
     );
@@ -504,12 +504,24 @@ describe('a desktop background changing and ending', () => {
   it('tells its page how the window turns a scene', () => {
     const { surface } = create();
     mockWindow.webContents.send.mockClear();
-    surface.retuneCameraControl({ key: 'ctrl', move: 'drag' });
+    surface.retuneCameraControl({
+      key: 'ctrl',
+      move: 'drag',
+      follow: false,
+      orbit: 'off',
+    });
     expect(mockWindow.webContents.send).not.toHaveBeenCalled();
-    surface.retuneCameraControl({ key: 'alt', move: 'move' });
+    surface.retuneCameraControl({
+      key: 'alt',
+      move: 'move',
+      follow: true,
+      orbit: 'off',
+    });
     expect(mockWindow.webContents.send).toHaveBeenCalledWith(
       'wallpaper-surface-changed',
-      expect.objectContaining({ cameraMove: 'move' }),
+      expect.objectContaining({
+        camera: { move: 'move', follow: true, orbit: 'off' },
+      }),
     );
   });
 

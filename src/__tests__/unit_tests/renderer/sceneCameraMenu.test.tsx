@@ -88,7 +88,7 @@ describe('the camera rows in the View menu', () => {
       JSON.parse(
         window.localStorage.getItem('fluideq.sceneCameraControl') ?? '',
       ),
-    ).toEqual({ key: 'code:KeyQ', move: 'drag' });
+    ).toEqual({ key: 'code:KeyQ', move: 'drag', follow: false, orbit: 'off' });
   });
 
   it('stops waiting on Esc and keeps what was chosen', () => {
@@ -114,6 +114,28 @@ describe('the camera rows in the View menu', () => {
     expect(moveRow()).toHaveTextContent('graph.scene.camera.move.move');
   });
 
+  it('switches the lean, and offers the orbit only on a scene that goes all the way round', () => {
+    const interaction = setUp();
+    const follow = screen.getByTitle('graph.scene.camera.followHint');
+    fireEvent.click(follow);
+    expect(readSceneCameraControl().follow).toBe(true);
+    expect(follow).toHaveTextContent('graph.scene.camera.follow.on');
+    expect(
+      screen.queryByTitle('graph.scene.camera.orbitHint'),
+    ).not.toBeInTheDocument();
+    act(() =>
+      interaction.setLimits({ ...LIMITS, yaw: [-Math.PI, Math.PI] as const }),
+    );
+    const orbit = screen.getByTitle('graph.scene.camera.orbitHint');
+    expect(orbit).toHaveTextContent('graph.scene.camera.orbit.off');
+    fireEvent.click(orbit);
+    expect(readSceneCameraControl().orbit).toBe('slow');
+    fireEvent.click(orbit);
+    expect(readSceneCameraControl().orbit).toBe('normal');
+    fireEvent.click(orbit);
+    expect(readSceneCameraControl().orbit).toBe('off');
+  });
+
   it('tells main the choice, so the desktop follows it', () => {
     const told = jest.fn();
     Object.defineProperty(window, 'electron', {
@@ -122,7 +144,12 @@ describe('the camera rows in the View menu', () => {
     });
     setUp();
     fireEvent.click(moveRow());
-    expect(told).toHaveBeenLastCalledWith({ key: 'ctrl', move: 'move' });
+    expect(told).toHaveBeenLastCalledWith({
+      key: 'ctrl',
+      move: 'move',
+      follow: false,
+      orbit: 'off',
+    });
     Object.defineProperty(window, 'electron', {
       configurable: true,
       value: undefined,

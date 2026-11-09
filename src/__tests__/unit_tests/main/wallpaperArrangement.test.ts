@@ -76,7 +76,12 @@ describe('reading back what each monitor was set to show', () => {
         upscaler: 'fsr',
         smoothing: 'best',
       },
-      cameraControl: { key: 'ctrl' as const, move: 'drag' as const },
+      cameraControl: {
+        key: 'ctrl' as const,
+        move: 'drag' as const,
+        follow: false,
+        orbit: 'off' as const,
+      },
       tuning: {},
       screens: [
         {
@@ -104,15 +109,20 @@ describe('reading back what each monitor was set to show', () => {
     expect(
       parseArrangement({
         ...file,
-        cameraControl: { key: 'code:KeyQ', move: 'move' },
+        cameraControl: {
+          key: 'code:KeyQ',
+          move: 'move',
+          follow: false,
+          orbit: 'slow',
+        },
       })?.cameraControl,
-    ).toEqual({ key: 'code:KeyQ', move: 'move' });
+    ).toEqual({ key: 'code:KeyQ', move: 'move', follow: false, orbit: 'slow' });
     expect(
       parseArrangement({
         ...file,
         cameraControl: { key: 'code:F11', move: 'move' },
       })?.cameraControl,
-    ).toEqual({ key: 'ctrl', move: 'drag' });
+    ).toEqual({ key: 'ctrl', move: 'move', follow: false, orbit: 'off' });
   });
 
   // Backgrounds set before waves and motions were kept were drawn with the
@@ -243,7 +253,12 @@ describe('the file on disk', () => {
         upscaler: 'fsr',
         smoothing: 'best',
       },
-      cameraControl: { key: 'ctrl' as const, move: 'drag' as const },
+      cameraControl: {
+        key: 'ctrl' as const,
+        move: 'drag' as const,
+        follow: false,
+        orbit: 'off' as const,
+      },
       tuning: {},
       screens: [],
     });
@@ -262,7 +277,12 @@ describe('the file on disk', () => {
         upscaler: 'simple' as const,
         smoothing: 'best' as const,
       },
-      cameraControl: { key: 'ctrl' as const, move: 'drag' as const },
+      cameraControl: {
+        key: 'ctrl' as const,
+        move: 'drag' as const,
+        follow: false,
+        orbit: 'off' as const,
+      },
       tuning: {
         'premium:aurora': {
           params: { glow: 0.4 },
@@ -307,7 +327,12 @@ describe('the file on disk', () => {
     const written = {
       pauseOnBattery: true,
       performance: normalizeScenePerformance(undefined),
-      cameraControl: { key: 'ctrl' as const, move: 'drag' as const },
+      cameraControl: {
+        key: 'ctrl' as const,
+        move: 'drag' as const,
+        follow: false,
+        orbit: 'off' as const,
+      },
       tuning: {},
       screens: [
         {

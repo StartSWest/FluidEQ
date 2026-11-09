@@ -268,6 +268,18 @@ const eq = {
     'Hold the key and drag, or hold the key and just move the mouse.',
   'graph.scene.camera.move.drag': 'Hold and drag',
   'graph.scene.camera.move.move': 'Hold and move',
+  'graph.scene.camera.follow': 'Follow the mouse',
+  'graph.scene.camera.followHint':
+    'A 3D scene leans a few degrees towards the pointer as it moves over it, and settles back when it leaves.',
+  'graph.scene.camera.follow.off': 'Off',
+  'graph.scene.camera.follow.on': 'On',
+  'graph.scene.camera.orbit': 'Circle by itself',
+  'graph.scene.camera.orbitHint':
+    'A scene that turns all the way round circles slowly, like a camera panning round it. Your own turn takes over at once.',
+  'graph.scene.camera.orbit.off': 'Off',
+  'graph.scene.camera.orbit.slow': 'Slow',
+  'graph.scene.camera.orbit.normal': 'Normal',
+  'graph.scene.camera.calmNote': 'Off while motion is reduced',
   'graph.scene.frameRateHint':
     'How often visualizers are drawn: every frame your display shows, or capped to spare the GPU',
   'graph.scene.frameRate.display': 'Display rate',

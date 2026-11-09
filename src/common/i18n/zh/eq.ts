@@ -234,6 +234,18 @@ const eq: Partial<Dictionary> = {
   'graph.scene.camera.moveHint': '按住此键拖动，或按住此键直接移动鼠标。',
   'graph.scene.camera.move.drag': '按住并拖动',
   'graph.scene.camera.move.move': '按住并移动',
+  'graph.scene.camera.follow': '跟随鼠标',
+  'graph.scene.camera.followHint':
+    '指针在 3D 场景上移动时，场景会朝指针倾斜几度，指针离开后回到原位。',
+  'graph.scene.camera.follow.off': '关',
+  'graph.scene.camera.follow.on': '开',
+  'graph.scene.camera.orbit': '自动环绕',
+  'graph.scene.camera.orbitHint':
+    '可以完整旋转的场景会缓慢环绕，就像镜头绕着它平移。你自己旋转时会立即接管。',
+  'graph.scene.camera.orbit.off': '关',
+  'graph.scene.camera.orbit.slow': '慢',
+  'graph.scene.camera.orbit.normal': '标准',
+  'graph.scene.camera.calmNote': '减少动态效果时关闭',
   'graph.scene.frameRateHint':
     '可视化效果的绘制频率：跟随显示器的每一帧，或加以限制以减轻 GPU 负担',
   'graph.scene.frameRate.display': '跟随显示器',

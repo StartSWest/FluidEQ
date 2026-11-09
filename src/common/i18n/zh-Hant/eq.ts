@@ -215,6 +215,18 @@ const eq = {
   'graph.scene.camera.moveHint': '按住此鍵拖曳，或按住此鍵直接移動滑鼠。',
   'graph.scene.camera.move.drag': '按住並拖曳',
   'graph.scene.camera.move.move': '按住並移動',
+  'graph.scene.camera.follow': '跟隨滑鼠',
+  'graph.scene.camera.followHint':
+    '指標在 3D 場景上移動時，場景會朝指標傾斜幾度，指標離開後回到原位。',
+  'graph.scene.camera.follow.off': '關',
+  'graph.scene.camera.follow.on': '開',
+  'graph.scene.camera.orbit': '自動環繞',
+  'graph.scene.camera.orbitHint':
+    '可以完整旋轉的場景會緩慢環繞，就像鏡頭繞著它平移。你自己旋轉時會立即接手。',
+  'graph.scene.camera.orbit.off': '關',
+  'graph.scene.camera.orbit.slow': '慢',
+  'graph.scene.camera.orbit.normal': '標準',
+  'graph.scene.camera.calmNote': '減少動態效果時關閉',
   'graph.scene.frameRateHint':
     '繪製視覺化工具的頻率：顯示器顯示的每一幀，或限制以節省 GPU',
   'graph.scene.frameRate.display': '跟隨顯示器',

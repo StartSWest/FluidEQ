@@ -252,6 +252,18 @@ const eq: Partial<Dictionary> = {
     'कुंजी दबाए रखकर खींचें, या कुंजी दबाए रखकर बस माउस चलाएँ।',
   'graph.scene.camera.move.drag': 'दबाए रखकर खींचें',
   'graph.scene.camera.move.move': 'दबाए रखकर चलाएँ',
+  'graph.scene.camera.follow': 'माउस के साथ चलें',
+  'graph.scene.camera.followHint':
+    'पॉइंटर के ऊपर से गुज़रने पर 3D दृश्य उसकी ओर कुछ डिग्री झुकता है, और हटने पर वापस ठहर जाता है।',
+  'graph.scene.camera.follow.off': 'बंद',
+  'graph.scene.camera.follow.on': 'चालू',
+  'graph.scene.camera.orbit': 'अपने आप घूमे',
+  'graph.scene.camera.orbitHint':
+    'जो दृश्य पूरा घूम सकता है वह धीरे-धीरे घूमता है, जैसे कैमरा उसके चारों ओर पैन करे। आपका अपना घुमाव तुरंत नियंत्रण ले लेता है।',
+  'graph.scene.camera.orbit.off': 'बंद',
+  'graph.scene.camera.orbit.slow': 'धीमा',
+  'graph.scene.camera.orbit.normal': 'सामान्य',
+  'graph.scene.camera.calmNote': 'गति कम होने पर बंद',
   'graph.scene.frameRateHint':
     'विज़ुअलाइज़र कितनी बार बनाए जाएँ: डिस्प्ले के हर फ़्रेम पर, या GPU को राहत देने के लिए सीमित',
   'graph.scene.frameRate.display': 'डिस्प्ले जितनी',

@@ -247,7 +247,7 @@ export const setup = (stored?: IWallpaperArrangement) => {
       upscaler: 'fsr',
       smoothing: 'off',
     },
-    cameraControl: { key: 'ctrl', move: 'drag' },
+    cameraControl: { key: 'ctrl', move: 'drag', follow: false, orbit: 'off' },
     tuning: {},
     screens: [],
   };

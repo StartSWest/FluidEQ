@@ -234,6 +234,18 @@ const eq = {
     '키를 누른 채 드래그하거나, 키를 누른 채 마우스만 움직입니다.',
   'graph.scene.camera.move.drag': '누른 채 드래그',
   'graph.scene.camera.move.move': '누른 채 이동',
+  'graph.scene.camera.follow': '마우스 따라가기',
+  'graph.scene.camera.followHint':
+    '포인터가 3D 장면 위를 움직이면 그쪽으로 몇 도 기울고, 벗어나면 제자리로 돌아옵니다.',
+  'graph.scene.camera.follow.off': '끔',
+  'graph.scene.camera.follow.on': '켬',
+  'graph.scene.camera.orbit': '저절로 돌기',
+  'graph.scene.camera.orbitHint':
+    '한 바퀴 돌 수 있는 장면이 주위를 도는 카메라처럼 천천히 돕니다. 직접 돌리면 바로 그쪽이 우선합니다.',
+  'graph.scene.camera.orbit.off': '끔',
+  'graph.scene.camera.orbit.slow': '느리게',
+  'graph.scene.camera.orbit.normal': '보통',
+  'graph.scene.camera.calmNote': '동작 줄이기 중에는 꺼짐',
   'graph.scene.frameRateHint':
     '시각화 도우미가 그려지는 빈도: 디스플레이에 표시되는 모든 프레임 또는 GPU를 절약하기 위해 제한됩니다.',
   'graph.scene.frameRate.display': '표시율',

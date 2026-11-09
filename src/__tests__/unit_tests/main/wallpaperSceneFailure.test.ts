@@ -172,7 +172,12 @@ describe('a look that cannot be loaded at start time', () => {
         upscaler: 'fsr',
         smoothing: 'off',
       },
-      cameraControl: { key: 'ctrl' as const, move: 'drag' as const },
+      cameraControl: {
+        key: 'ctrl' as const,
+        move: 'drag' as const,
+        follow: false,
+        orbit: 'off' as const,
+      },
       tuning: {},
       screens: [
         {

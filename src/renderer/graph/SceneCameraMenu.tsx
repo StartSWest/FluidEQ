@@ -10,9 +10,12 @@ import {
   cameraKeyOfCode,
   codeOfCameraKey,
   printedKey,
+  SCENE_CAMERA_ORBITS,
   type TSceneCameraKey,
   type TSceneCameraMove,
+  type TSceneCameraOrbit,
 } from 'common/sceneCameraControl';
+import { prefersReducedMotion } from '../utils/bandReveal';
 import { useTranslation } from '../utils/I18nContext';
 import {
   setSceneCameraControl,
@@ -33,6 +36,12 @@ const MOVE_LABEL: Record<TSceneCameraMove, TranslationKey> = {
   move: 'graph.scene.camera.move.move',
 };
 
+const ORBIT_LABEL: Record<TSceneCameraOrbit, TranslationKey> = {
+  off: 'graph.scene.camera.orbit.off',
+  slow: 'graph.scene.camera.orbit.slow',
+  normal: 'graph.scene.camera.orbit.normal',
+};
+
 /** The modifiers in the order a click steps through them; then a key of one's own. */
 const NEXT_MODIFIER: Partial<Record<TSceneCameraKey, TSceneCameraKey>> = {
   ctrl: 'alt',
@@ -40,6 +49,12 @@ const NEXT_MODIFIER: Partial<Record<TSceneCameraKey, TSceneCameraKey>> = {
 };
 
 const noSubscription = () => () => undefined;
+
+/** The orbit's next pace: off, slow, normal and back. */
+const after = (orbit: TSceneCameraOrbit) =>
+  SCENE_CAMERA_ORBITS[
+    (SCENE_CAMERA_ORBITS.indexOf(orbit) + 1) % SCENE_CAMERA_ORBITS.length
+  ];
 
 /** Chromium's map of each key's place to what this keyboard types there. */
 interface IKeyboardLayout {
@@ -91,6 +106,13 @@ const useTurns = (interaction: ISceneInteraction | undefined) =>
     () => interaction?.turns() ?? false,
   );
 
+/** And whether it turns all the way round, which is where it can circle. */
+const useTurnsRound = (interaction: ISceneInteraction | undefined) =>
+  useSyncExternalStore(
+    interaction ? interaction.subscribe : noSubscription,
+    () => interaction?.turnsRound() ?? false,
+  );
+
 /**
  * How a 3D scene's camera is moved (`common/sceneCameraControl.ts`), in the
  * View menu beside the scene's own controls, and only while the scene on the
@@ -109,7 +131,8 @@ export default function SceneCameraMenu() {
   const { t } = useTranslation();
   const run = useGraphSceneRun();
   const turns = useTurns(run?.interaction);
-  const { key, move } = useSceneCameraControl();
+  const turnsRound = useTurnsRound(run?.interaction);
+  const { key, move, follow, orbit } = useSceneCameraControl();
   const [recording, setRecording] = useState(false);
   const keyboardLayout = useKeyboardLayout();
 
@@ -141,6 +164,8 @@ export default function SceneCameraMenu() {
   if (!turns) {
     return null;
   }
+  // Read as the menu is drawn: the window's own Motion switch, or Windows'.
+  const calm = prefersReducedMotion();
 
   const code = codeOfCameraKey(key);
   let keyValue: string;
@@ -218,6 +243,47 @@ export default function SceneCameraMenu() {
           setSceneCameraControl({ move: move === 'drag' ? 'move' : 'drag' })
         }
       />
+      <CycleRow
+        hint="graph.scene.camera.followHint"
+        label="graph.scene.camera.follow"
+        value={t(
+          follow
+            ? 'graph.scene.camera.follow.on'
+            : 'graph.scene.camera.follow.off',
+        )}
+        note={follow && calm ? t('graph.scene.camera.calmNote') : undefined}
+        // A pointer, and the arc the view leans along after it.
+        icon={
+          <>
+            <path d="M5.5 4.5l5 4-2.3.4 1.3 2.6-1.2.6-1.3-2.6-1.5 1.6z" />
+            <path d="M2 12.5c1.5 1.4 3.5 2 5.5 2" />
+          </>
+        }
+        onCycle={() => setSceneCameraControl({ follow: !follow })}
+      />
+      {/* Only where the scene can go all the way round: elsewhere a circle
+        would be a sway, which is another motion and not what was asked. */}
+      {turnsRound && (
+        <CycleRow
+          hint="graph.scene.camera.orbitHint"
+          label="graph.scene.camera.orbit"
+          value={t(ORBIT_LABEL[orbit])}
+          note={
+            orbit !== 'off' && calm
+              ? t('graph.scene.camera.calmNote')
+              : undefined
+          }
+          // A path round a centre, with the camera on it.
+          icon={
+            <>
+              <ellipse cx="8" cy="8.5" rx="6" ry="3.2" />
+              <circle cx="8" cy="8.5" r="1" />
+              <path d="M12.6 5.4l1.4.4-.5 1.4" />
+            </>
+          }
+          onCycle={() => setSceneCameraControl({ orbit: after(orbit) })}
+        />
+      )}
     </>
   );
 }

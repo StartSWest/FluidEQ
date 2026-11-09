@@ -1,6 +1,7 @@
 import {
   codeOfCameraKey,
   type ISceneCameraControl,
+  type TSceneCameraOrbit,
 } from 'common/sceneCameraControl';
 import {
   clampSceneCamera,
@@ -41,8 +42,19 @@ import { HOME_CAMERA, NO_POINTER, NO_TAP } from './sceneFrameRest';
  * typed in, it is what it always was. The key is the app's alone: a scene is
  * handed its pointer and its camera, never a key or whether one is held.
  *
- * No timers: the camera's glide after a release and its way home on a reset
- * are stepped by the frames the scene is already drawing.
+ * Two motions of the viewer's choosing ride on top of where they turned it,
+ * and never count as a turn of theirs (`moved()`, the Reset view): a lean of
+ * a few degrees towards the pointer (`follow`), and, on a scene that turns
+ * all the way round, a slow circle of its own (`orbit`). Both ease in and
+ * out, both give way at once while the camera's key is held or the view is
+ * being turned, and both are off where motion is reduced. A 2D scene has no
+ * camera, so neither does anything there: a shader draws what it draws, and
+ * a lean faked over it would be a shake of the picture, not a view.
+ *
+ * No timers: the camera's glide after a release, its way home on a reset,
+ * the lean and the orbit are all stepped by the frames the scene is already
+ * drawing, each step held to 200 ms, so a window hidden for a minute picks
+ * the orbit up where it was rather than jumping a minute round.
  */
 
 export interface ISceneHands {
@@ -91,6 +103,8 @@ export interface ISceneInteraction {
   moved(): boolean;
   /** The scene on it can be turned: its camera's key does something here. */
   turns(): boolean;
+  /** And all the way round, so it can circle by itself (`orbit`). */
+  turnsRound(): boolean;
   /**
    * The camera's key is held with the pointer over a surface this is on:
    * what brings the Reset view button (`SceneViewReset`).
@@ -116,6 +130,30 @@ const PRESENCE_HALF_LIFE_MS = 220;
 const RETURN_HALF_LIFE_MS = 140;
 /** A hand that stopped this long before letting go hands on no speed. */
 const STOPPED_BEFORE_RELEASE_MS = 80;
+/**
+ * The most the pointer leans a scene each way, in radians: four degrees
+ * round and two and a half up or down, the pointer at the panel's edge.
+ * Enough to feel the world follow the hand; not enough to move anything a
+ * viewer was looking at out of where they were looking.
+ */
+const FOLLOW_YAW = 0.07;
+const FOLLOW_PITCH = 0.045;
+/** How quickly the lean follows the hand, and settles when it leaves. */
+const FOLLOW_HALF_LIFE_MS = 280;
+/** Radians a millisecond the orbit goes round at: once in two minutes, or one. */
+const ORBIT_SPEED: Record<TSceneCameraOrbit, number> = {
+  off: 0,
+  slow: (2 * Math.PI) / 120_000,
+  normal: (2 * Math.PI) / 60_000,
+};
+/**
+ * How the orbit gathers speed, and how it gives way: slowly into its pace,
+ * as a camera on a dolly does, and at once when the viewer takes the view.
+ */
+const ORBIT_START_HALF_LIFE_MS = 900;
+const ORBIT_STOP_HALF_LIFE_MS = 90;
+/** The pointer's place the lean is measured from while nothing moved it. */
+const CENTRE = { x: 0.5, y: 0.5 };
 
 /** Controls are the panel's wherever they are: never a turn, a tap or a zoom. */
 const CONTROLS = 'button, input, select, textarea, a, [role="menu"]';
@@ -254,6 +292,17 @@ export const createSceneInteraction = (
    */
   let movingTurn = false;
   let movedTurnAt = 0;
+  /**
+   * The lean towards the pointer, as it stands, and where it is measured
+   * from: the panel's middle, or where the hand was when a turn of its own
+   * ended, so the lean starts again from nothing there instead of swinging
+   * the view the moment the viewer lets it go.
+   */
+  let tilt = { yaw: 0, pitch: 0 };
+  let followFrom = CENTRE;
+  /** The scene's own circle: how far round it is, and how fast it goes. */
+  let orbitYaw = 0;
+  let orbitSpeed = 0;
 
   /** The camera's key is down, as `event` and the keys before it tell. */
   const heldIn = (event: MouseEvent | KeyboardEvent) => {
@@ -290,6 +339,7 @@ export const createSceneInteraction = (
       return;
     }
     movingTurn = false;
+    followFrom = { x: pointerX, y: pointerY };
     if (
       prefersReducedMotion() ||
       at - movedTurnAt > STOPPED_BEFORE_RELEASE_MS
@@ -334,6 +384,72 @@ export const createSceneInteraction = (
     });
   };
 
+  /**
+   * One step of the lean and the orbit. The viewer's own hand on the view -
+   * the camera's key held, a turn, the way home - takes both away: the lean
+   * settles to nothing and the orbit stops within a tenth of a second, and
+   * each comes back gently once the hand has let go.
+   */
+  const stepMotions = (step: number, turnLimits: ISceneCameraLimits) => {
+    const { follow, orbit } = control();
+    const calm = prefersReducedMotion();
+    const handOnIt = turning() || cameraKeyHeld || returning;
+    const leans = follow && !calm && over && !handOnIt;
+    const target = leans
+      ? {
+          yaw: -(pointerX - followFrom.x) * 2 * FOLLOW_YAW,
+          // The scene's uv rises upwards; a drag down tilts its top forward.
+          pitch: -(pointerY - followFrom.y) * 2 * FOLLOW_PITCH,
+        }
+      : { yaw: 0, pitch: 0 };
+    const reach = (value: number, most: number) =>
+      Math.max(-most, Math.min(most, value));
+    const ease = getEaseFactor(step, FOLLOW_HALF_LIFE_MS);
+    tilt = {
+      yaw: tilt.yaw + (reach(target.yaw, FOLLOW_YAW) - tilt.yaw) * ease,
+      pitch:
+        tilt.pitch + (reach(target.pitch, FOLLOW_PITCH) - tilt.pitch) * ease,
+    };
+    if (Math.abs(tilt.yaw) + Math.abs(tilt.pitch) < 1e-5 && !leans) {
+      tilt = { yaw: 0, pitch: 0 };
+    }
+    const circles = turnsRound(turnLimits) && !calm;
+    const pace = circles && !handOnIt ? ORBIT_SPEED[orbit] : 0;
+    orbitSpeed +=
+      (pace - orbitSpeed) *
+      getEaseFactor(
+        step,
+        pace > orbitSpeed ? ORBIT_START_HALF_LIFE_MS : ORBIT_STOP_HALF_LIFE_MS,
+      );
+    if (pace === 0 && orbitSpeed < 1e-7) {
+      orbitSpeed = 0;
+    }
+    if (!circles) {
+      // A scene that cannot go all the way round, or motion reduced: the
+      // circle unwinds back to the view the viewer had, gently.
+      orbitYaw *= 1 - getEaseFactor(step, ORBIT_START_HALF_LIFE_MS);
+      if (Math.abs(orbitYaw) < 1e-5) {
+        orbitYaw = 0;
+      }
+    }
+    orbitYaw = angleTowards(0, orbitYaw + orbitSpeed * step);
+  };
+
+  /** Where the camera stands with the lean and the orbit on top of the viewer's own. */
+  const shownCamera = (turnLimits: ISceneCameraLimits) => {
+    if (tilt.yaw === 0 && tilt.pitch === 0 && orbitYaw === 0) {
+      return camera;
+    }
+    return clampSceneCamera(
+      {
+        yaw: camera.yaw + orbitYaw + tilt.yaw,
+        pitch: camera.pitch + tilt.pitch,
+        zoom: camera.zoom,
+      },
+      turnLimits,
+    );
+  };
+
   const read = (elapsedMs: number): ISceneHands => {
     const step = Math.max(0, Math.min(200, elapsedMs));
     if (limits) {
@@ -369,12 +485,14 @@ export const createSceneInteraction = (
         }
       }
       announce();
+      stepMotions(step, limits);
     }
     presence +=
       ((over ? 1 : 0) - presence) * getEaseFactor(step, PRESENCE_HALF_LIFE_MS);
     held +=
       ((pressedNow ? 1 : 0) - held) * getEaseFactor(step, PRESS_HALF_LIFE_MS);
     showHands();
+    const shown = limits ? shownCamera(limits) : undefined;
     const now = performance.now();
     const moving = stirred;
     stirred = false;
@@ -388,7 +506,7 @@ export const createSceneInteraction = (
             taps,
           ]
         : NO_TAP,
-      camera: limits ? [camera.yaw, camera.pitch, camera.zoom] : HOME_CAMERA,
+      camera: shown ? [shown.yaw, shown.pitch, shown.zoom] : HOME_CAMERA,
       // A pointer merely resting over a silent scene does not keep it from
       // resting: most scenes never read it, and one that does still sees the
       // pointer at the resting pace. A pointer moving, or a hand on the scene,
@@ -398,6 +516,9 @@ export const createSceneInteraction = (
         returning ||
         glide.yaw !== 0 ||
         glide.pitch !== 0 ||
+        tilt.yaw !== 0 ||
+        tilt.pitch !== 0 ||
+        orbitSpeed !== 0 ||
         moving ||
         held > 0.01,
     };
@@ -416,9 +537,15 @@ export const createSceneInteraction = (
       limits = next;
       return;
     }
-    const turnedBefore = Boolean(limits);
+    const shapeOf = (of: ISceneCameraLimits | undefined) =>
+      `${Boolean(of)}/${Boolean(of && turnsRound(of))}`;
+    const shapeBefore = shapeOf(limits);
     limits = next;
-    if (Boolean(next) !== turnedBefore) {
+    tilt = { yaw: 0, pitch: 0 };
+    orbitYaw = 0;
+    orbitSpeed = 0;
+    // Whether it turns, and whether all the way round: what the menu offers.
+    if (shapeOf(next) !== shapeBefore) {
       listeners.forEach((listener) => listener());
     }
     camera = next
@@ -723,6 +850,7 @@ export const createSceneInteraction = (
         tell({ kind: 'tap', x: event.clientX, y: event.clientY });
       }
       if (press.turning) {
+        followFrom = { x: pointerX, y: pointerY };
         showHands();
         // A hand that stopped before it let go has no speed to hand on.
         const stoppedFirst =
@@ -747,6 +875,7 @@ export const createSceneInteraction = (
       lastMove = undefined;
       entry.hovered = false;
       endMovingTurn(event.timeStamp);
+      followFrom = CENTRE;
       showHands();
     };
 
@@ -822,12 +951,16 @@ export const createSceneInteraction = (
       camera = { ...DEFAULT_SCENE_CAMERA };
       glide = { yaw: 0, pitch: 0 };
       returning = false;
+      tilt = { yaw: 0, pitch: 0 };
+      orbitYaw = 0;
+      orbitSpeed = 0;
       tap = undefined;
       taps = 0;
       announce();
     },
     moved: () => wasMoved,
     turns: () => Boolean(limits),
+    turnsRound: () => Boolean(limits && turnsRound(limits)),
     keyHeldOver,
     subscribe: (listener) => {
       listeners.add(listener);
