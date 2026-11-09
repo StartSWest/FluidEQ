@@ -539,9 +539,15 @@ const studio = {
   'studio.framing.saving': 'Guardando…',
 
   'studio.size.full': 'Pantalla completa',
-  'studio.size.player': 'Detrás del reproductor compacto',
+  'studio.size.ultraWide': 'Gráfica ultrapanorámica',
+  'studio.size.ultraWideHint':
+    'La escena como la muestra la gráfica del ecualizador en un monitor ultrapanorámico de 3440 píxeles de ancho: cinco veces y media más ancha que alta.',
+  'studio.size.player': 'Reproductor compacto',
   'studio.size.playerHint':
-    'La escena como la muestra el reproductor compacto, detrás de toda la ventana, con la forma con la que se abre. Una escena mantiene sola a la vista su parte importante en una ventana estrecha.',
+    'La escena en el marco del reproductor compacto: toda su columna, encuadrada en el panel superior donde están la canción y los controles, y prolongada por el resto de la ventana.',
+  'studio.size.playerParts': 'Reproductor encima',
+  'studio.size.playerPartsHint':
+    'Pone la canción, los controles y los paneles esmerilados del reproductor compacto sobre la escena, como los muestra el reproductor. Desactivado: solo la escena en el marco del reproductor.',
   'studio.size.exit': 'Salir de pantalla completa',
   'studio.wave.title': 'Onda en la gráfica',
   'studio.wave.hint':

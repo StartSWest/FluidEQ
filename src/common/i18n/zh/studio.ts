@@ -479,9 +479,15 @@ const studio = {
   'studio.framing.saving': '正在保存…',
 
   'studio.size.full': '全屏',
-  'studio.size.player': '迷你播放器背景',
+  'studio.size.ultraWide': '超宽图表',
+  'studio.size.ultraWideHint':
+    '按 3440 像素宽的超宽显示器上 EQ 图表的样子显示场景：宽度是高度的五倍半。',
+  'studio.size.player': '迷你播放器',
   'studio.size.playerHint':
-    '以迷你播放器打开时的窗口形状，把场景显示为整个窗口的背景。在窄窗口中，场景会自行把重要部分保持在画面内。',
+    '以迷你播放器的框架显示场景：整列窗口中，场景对齐到歌曲信息和控制按钮所在的顶部面板，再向下延伸到窗口其余部分。',
+  'studio.size.playerParts': '叠加播放器',
+  'studio.size.playerPartsHint':
+    '像播放器本身那样，把迷你播放器的歌曲信息、控制按钮和磨砂面板叠在场景上。关闭时，只在播放器框架中显示场景。',
   'studio.size.exit': '退出全屏',
   'studio.wave.title': '图表上的波形',
   'studio.wave.hint':

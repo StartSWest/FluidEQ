@@ -539,9 +539,15 @@ const studio = {
   'studio.framing.saving': 'Salvataggio…',
 
   'studio.size.full': 'Schermo intero',
-  'studio.size.player': 'Dietro il lettore compatto',
+  'studio.size.ultraWide': 'Grafico ultrapanoramico',
+  'studio.size.ultraWideHint':
+    'La scena come la mostra il grafico dell’equalizzatore su un monitor ultrapanoramico largo 3440 pixel: cinque volte e mezza più larga che alta.',
+  'studio.size.player': 'Lettore compatto',
   'studio.size.playerHint':
-    'La scena come la mostra il lettore compatto, dietro tutta la finestra, nella forma in cui si apre. In una finestra stretta una scena tiene da sola in vista la sua parte importante.',
+    'La scena nella cornice del lettore compatto: tutta la sua colonna, inquadrata sul pannello in alto dove stanno il brano e i comandi, e prolungata nel resto della finestra.',
+  'studio.size.playerParts': 'Lettore sopra',
+  'studio.size.playerPartsHint':
+    'Mette il brano, i comandi e i pannelli smerigliati del lettore compatto sopra la scena, come li mostra il lettore. Disattivato: solo la scena nella cornice del lettore.',
   'studio.size.exit': 'Esci da schermo intero',
   'studio.wave.title': 'Onda sul grafico',
   'studio.wave.hint':

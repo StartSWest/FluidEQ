@@ -1,21 +1,23 @@
 import { useEffect, useState, type RefObject } from 'react';
+import type { IStagePlate } from './studioStageScreen';
 
 /**
- * The stage's measured size, and where its plate's left edge stands in it.
+ * The stage's measured size, and where its plate stands in it.
  *
  * The canvas takes the frame's measured size; the frame's shape comes from
  * the chosen size in CSS, so the layout — not this — decides what fits.
  *
- * The plate's edge is for the player's window to keep clear of: it moves as
- * the stage narrows and as its reading's words change length, and nothing
- * else says when either happens.
+ * The plate's edges are for a preview's window to keep clear of: the
+ * player's moves left of the plate, the ultra-wide graph below it. They move
+ * as the stage narrows and as the plate's words change length or wrap onto a
+ * second row, and nothing else says when either happens.
  */
 export default function useStageBox(
   frameRef: RefObject<HTMLDivElement | null>,
   barRef: RefObject<HTMLDivElement | null>,
 ) {
   const [box, setBox] = useState({ width: 0, height: 0 });
-  const [plateLeft, setPlateLeft] = useState<number>();
+  const [plate, setPlate] = useState<IStagePlate>();
 
   useEffect(() => {
     const frame = frameRef.current;
@@ -42,13 +44,18 @@ export default function useStageBox(
       return undefined;
     }
     const observer = new ResizeObserver(() => {
-      setPlateLeft(
-        bar.offsetWidth === 0
-          ? undefined
-          : Math.round(
-              bar.getBoundingClientRect().left -
-                frame.getBoundingClientRect().left,
-            ),
+      if (bar.offsetWidth === 0) {
+        setPlate(undefined);
+        return;
+      }
+      const stage = frame.getBoundingClientRect();
+      const edges = bar.getBoundingClientRect();
+      const left = Math.round(edges.left - stage.left);
+      const bottom = Math.round(edges.bottom - stage.top);
+      setPlate((previous) =>
+        previous?.left === left && previous.bottom === bottom
+          ? previous
+          : { left, bottom },
       );
     });
     observer.observe(frame);
@@ -56,5 +63,5 @@ export default function useStageBox(
     return () => observer.disconnect();
   }, [frameRef, barRef]);
 
-  return { box, plateLeft };
+  return { box, plate };
 }

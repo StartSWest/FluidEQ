@@ -6,12 +6,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { PLAYER_PICTURE_HEIGHT, PLAYER_WIDTH } from 'common/constants';
+import { PLAYER_PICTURE_HEIGHT } from 'common/constants';
+import {
+  PICTURE_HEIGHT,
+  PICTURE_PANEL_FOOT,
+  PICTURE_WIDTH,
+} from 'renderer/components/featureTour/playerPictureData';
 import StudioStageControls from 'renderer/studio/StudioStageControls';
 import {
   PLATE_GAP,
-  PLAYER_INSET,
+  PLAYER_PANEL_VIEW,
+  PREVIEW_INSET,
+  ULTRA_WIDE_GRAPH_SHAPE,
   stageScreen,
+  type TStagePreview,
 } from 'renderer/studio/studioStageScreen';
 
 jest.mock('renderer/utils/I18nContext', () => ({
@@ -19,74 +27,203 @@ jest.mock('renderer/utils/I18nContext', () => ({
 }));
 
 /**
- * The Studio's stage can show a scene behind the compact player (Ivan,
- * 2026-09-28: "this app is not for mobile show the amp player instead"): a
- * window the shape of the amp's picture, where the one amp draws a scene
- * (`PlayerStage`), as tall as the stage allows, and clear of the plate in
- * the stage's corner.
+ * What the Studio's stage can show a scene as besides itself (Ivan,
+ * 2026-11-09: "an ultra wide mode on studio to test scenes on the graph",
+ * "we don't allow 2 columns anymore", "don't show the amp", "allow user to
+ * select if just the frame and if with amp ui on top"): the EQ graph of an
+ * ultra-wide window, and the Compact player's one column, each a window
+ * standing on the stage, clear of the plate in its corner.
  */
-describe('the scene behind the compact player, on the Studio’s stage', () => {
-  const shape = PLAYER_WIDTH / PLAYER_PICTURE_HEIGHT;
 
-  it('is the whole stage until it is asked for', () => {
-    expect(stageScreen({ width: 1280, height: 720 }, false, 900)).toEqual({
-      width: 1280,
-      height: 720,
-    });
+const PLAYER_SHAPE = PICTURE_WIDTH / PICTURE_HEIGHT;
+
+describe('the stage itself', () => {
+  it('is the whole stage until a preview is asked for', () => {
+    expect(
+      stageScreen({ width: 1280, height: 720 }, 'stage', {
+        left: 900,
+        bottom: 60,
+      }),
+    ).toEqual({ width: 1280, height: 720 });
+  });
+});
+
+describe('the Compact player on the stage', () => {
+  it('is one column, as tall as the stage allows', () => {
+    const drawn = stageScreen(
+      { width: 1280, height: 720 },
+      'player',
+      undefined,
+    );
+    expect(drawn.height).toBe(720 - 2 * PREVIEW_INSET);
+    expect(drawn.width).toBe(Math.floor(drawn.height * PLAYER_SHAPE));
+    // Taller than wide: the column, never the wide box it used to be.
+    expect(drawn.width).toBeLessThan(drawn.height);
+    expect(drawn.left).toBe(Math.round((1280 - drawn.width) / 2));
+    expect(drawn.top).toBe(PREVIEW_INSET);
   });
 
-  it('stands in the middle at the player’s shape, as tall as the stage allows', () => {
-    const drawn = stageScreen({ width: 1280, height: 720 }, true, undefined);
-    expect(drawn.height).toBe(720 - 2 * PLAYER_INSET);
-    expect(drawn.width).toBe(Math.floor(drawn.height * shape));
-    expect(drawn.left).toBe(Math.round((1280 - drawn.width) / 2));
-    expect(drawn.top).toBe(PLAYER_INSET);
+  it('is never taller than the player itself, so full screen shows its real size', () => {
+    const drawn = stageScreen(
+      { width: 2560, height: 1440 },
+      'player',
+      undefined,
+    );
+    expect(drawn.height).toBe(PICTURE_HEIGHT);
+    expect(drawn.width).toBe(PICTURE_WIDTH);
+    expect(drawn.top).toBe(Math.round((1440 - PICTURE_HEIGHT) / 2));
   });
 
   it('moves left of the plate where the plate would stand over it', () => {
-    // A stage wider than the picture, so there is room beside it to move to.
     const box = { width: 1280, height: 400 };
-    const centred = stageScreen(box, true, undefined);
-    const plateLeft = 800;
-    const clear = stageScreen(box, true, plateLeft);
+    const centred = stageScreen(box, 'player', undefined);
+    const plate = { left: 660, bottom: 52 };
+    const clear = stageScreen(box, 'player', plate);
     expect(clear.left).toBeLessThan(centred.left ?? 0);
-    expect((clear.left ?? 0) + clear.width).toBe(plateLeft - PLATE_GAP);
+    expect((clear.left ?? 0) + clear.width).toBe(plate.left - PLATE_GAP);
     // A plate far to the right leaves it in the middle.
-    expect(stageScreen(box, true, 1270).left).toBe(centred.left);
+    expect(stageScreen(box, 'player', { left: 1270, bottom: 52 }).left).toBe(
+      centred.left,
+    );
   });
 
   it('never leaves the stage for a plate it cannot clear', () => {
-    const box = { width: 420, height: 720 };
-    const drawn = stageScreen(box, true, 100);
-    expect(drawn.left).toBe(PLAYER_INSET);
+    const drawn = stageScreen({ width: 300, height: 720 }, 'player', {
+      left: 40,
+      bottom: 52,
+    });
+    expect(drawn.left).toBe(PREVIEW_INSET);
     // A narrow stage keeps the shape by being shorter, never squeezed.
-    expect(drawn.width).toBeLessThanOrEqual(420 - 2 * PLAYER_INSET);
-    expect(drawn.width).toBe(Math.floor(drawn.height * shape));
+    expect(drawn.width).toBeLessThanOrEqual(300 - 2 * PREVIEW_INSET);
+    expect(drawn.width).toBe(Math.floor(drawn.height * PLAYER_SHAPE));
   });
 
-  it('is switched on the stage’s own plate, which says whether it is on', () => {
-    const onPlayer = jest.fn();
-    const { rerender } = render(
-      <StudioStageControls
-        isFullscreen={false}
-        onFullscreen={jest.fn()}
-        isPlayer={false}
-        onPlayer={onPlayer}
-      />,
-    );
-    const button = screen.getByRole('button', { name: 'studio.size.player' });
-    expect(button).toHaveAttribute('aria-pressed', 'false');
-    fireEvent.click(button);
-    expect(onPlayer).toHaveBeenCalledTimes(1);
+  it('frames the scene to the player’s top panel, as the player does', () => {
+    // The panel ends at the measured foot and is the amp's picture tall.
+    const top = (PICTURE_PANEL_FOOT - PLAYER_PICTURE_HEIGHT) / PICTURE_HEIGHT;
+    const height = PLAYER_PICTURE_HEIGHT / PICTURE_HEIGHT;
+    const [left, bottom, width, tall] = PLAYER_PANEL_VIEW;
+    expect(left).toBe(0);
+    expect(width).toBe(1);
+    expect(tall).toBeCloseTo(height, 10);
+    // `sceneView` counts from the bottom, as GL does.
+    expect(bottom).toBeCloseTo(1 - top - height, 10);
+    // The panel is the column's top third: the rest of the column is more
+    // of the same scene, not part of its panel.
+    expect(tall).toBeLessThan(0.4);
+  });
+});
 
-    rerender(
-      <StudioStageControls
-        isFullscreen={false}
-        onFullscreen={jest.fn()}
-        isPlayer
-        onPlayer={onPlayer}
-      />,
+describe('the ultra-wide graph on the stage', () => {
+  it('is the 3440-wide window’s graph, measured: 2956 by 534', () => {
+    expect(ULTRA_WIDE_GRAPH_SHAPE).toBeCloseTo(5.54, 2);
+  });
+
+  it('spans the stage between its insets, in its middle', () => {
+    const box = { width: 1280, height: 720 };
+    const drawn = stageScreen(box, 'ultraWide', undefined);
+    expect(drawn.width).toBe(1280 - 2 * PREVIEW_INSET);
+    expect(drawn.height).toBe(Math.floor(drawn.width / ULTRA_WIDE_GRAPH_SHAPE));
+    expect(drawn.left).toBe(PREVIEW_INSET);
+    expect(drawn.top).toBe(Math.round((720 - drawn.height) / 2));
+  });
+
+  it('goes under the plate where the plate would cover its top', () => {
+    // Centred, the strip's top would sit under a plate grown to two rows.
+    const box = { width: 1280, height: 450 };
+    const centred = stageScreen(box, 'ultraWide', undefined);
+    const plate = { left: 900, bottom: 140 };
+    expect(centred.top ?? 0).toBeLessThan(plate.bottom + PLATE_GAP);
+    const clear = stageScreen(box, 'ultraWide', plate);
+    expect(clear.top).toBe(plate.bottom + PLATE_GAP);
+    // A plate already above it changes nothing.
+    expect(stageScreen(box, 'ultraWide', { left: 900, bottom: 20 }).top).toBe(
+      centred.top,
     );
-    expect(button).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('never falls off the stage’s foot to clear a plate', () => {
+    const box = { width: 1280, height: 300 };
+    const drawn = stageScreen(box, 'ultraWide', { left: 900, bottom: 280 });
+    expect((drawn.top ?? 0) + drawn.height).toBe(300 - PREVIEW_INSET);
+  });
+
+  it('is held to the stage’s height on a stage shaped wider than it', () => {
+    const box = { width: 2000, height: 200 };
+    const drawn = stageScreen(box, 'ultraWide', undefined);
+    expect(drawn.width).toBe(
+      Math.floor((200 - 2 * PREVIEW_INSET) * ULTRA_WIDE_GRAPH_SHAPE),
+    );
+    expect(drawn.width).toBeLessThan(2000 - 2 * PREVIEW_INSET);
+  });
+});
+
+describe('the stage’s own plate', () => {
+  const controls = (
+    preview: TStagePreview,
+    onPreview = jest.fn(),
+    hasPlayerParts = false,
+    onPlayerParts = jest.fn(),
+  ) => (
+    <StudioStageControls
+      isFullscreen={false}
+      onFullscreen={jest.fn()}
+      preview={preview}
+      onPreview={onPreview}
+      hasPlayerParts={hasPlayerParts}
+      onPlayerParts={onPlayerParts}
+    />
+  );
+
+  it('switches each shape on its own button, which says whether it is on', () => {
+    const onPreview = jest.fn();
+    const { rerender } = render(controls('stage', onPreview));
+    const ultraWide = screen.getByRole('button', {
+      name: 'studio.size.ultraWide',
+    });
+    const player = screen.getByRole('button', { name: 'studio.size.player' });
+    expect(ultraWide).toHaveAttribute('aria-pressed', 'false');
+    expect(player).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(ultraWide);
+    expect(onPreview).toHaveBeenLastCalledWith('ultraWide');
+    fireEvent.click(player);
+    expect(onPreview).toHaveBeenLastCalledWith('player');
+
+    rerender(controls('ultraWide', onPreview));
+    expect(ultraWide).toHaveAttribute('aria-pressed', 'true');
+    expect(player).toHaveAttribute('aria-pressed', 'false');
+    rerender(controls('player', onPreview));
+    expect(ultraWide).toHaveAttribute('aria-pressed', 'false');
+    expect(player).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('offers the player’s parts in the grid’s place only while the player is shown', () => {
+    const onPlayerParts = jest.fn();
+    const { rerender } = render(
+      controls('stage', jest.fn(), false, onPlayerParts),
+    );
+    expect(
+      screen.queryByRole('button', { name: 'studio.size.playerParts' }),
+    ).toBeNull();
+    // POSITIVE CONTROL: the grid is there on the graph's shapes.
+    expect(
+      screen.getByRole('button', { name: 'studio.grid.label' }),
+    ).toBeInTheDocument();
+
+    rerender(controls('player', jest.fn(), false, onPlayerParts));
+    expect(
+      screen.queryByRole('button', { name: 'studio.grid.label' }),
+    ).toBeNull();
+    const parts = screen.getByRole('button', {
+      name: 'studio.size.playerParts',
+    });
+    expect(parts).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(parts);
+    expect(onPlayerParts).toHaveBeenCalledTimes(1);
+
+    rerender(controls('player', jest.fn(), true, onPlayerParts));
+    expect(
+      screen.getByRole('button', { name: 'studio.size.playerParts' }),
+    ).toHaveAttribute('aria-pressed', 'true');
   });
 });

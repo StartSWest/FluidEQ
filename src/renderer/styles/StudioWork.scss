@@ -300,19 +300,32 @@ it under the terms of the GNU General Public License version 3 or later.
     }
   }
 
-  // The narrowest stage (a phone-width window's) has no room for one row: the reading keeps the first and the
-  // buttons take the next, with no hairline left standing at a row's end.
+  // A SMALL STAGE KEEPS ITS PICTURE (found by session 2, 2026-11-09: at the
+  // 1024px window with the chat as the Studio's tab the stage is 284 by 121,
+  // and the plate wrapped into two rows over two thirds of it — the part the
+  // stage exists to show). Under 440px the plate is one row of drawings: the
+  // reading folds to its light and the demo song and a new version to their
+  // dot and ring, so the plate covers under a quarter of the smallest stage.
+  // The words are made sizeless, never removed, so the demo song and a new
+  // version are still announced; the reading's words are the Performance
+  // card's as well.
   @container studio-stage (max-width: 440px) {
-    flex-wrap: wrap;
+    gap: 2px;
+    padding: 3px;
 
     > :not(:last-child) {
-      padding-right: 0;
-      border-right: 0;
+      padding-right: 2px;
     }
 
-    // Five drawings share the buttons' row since the closer look joined it:
-    // at their roomy padding they took a third row on a 180px stage, past
-    // its bottom edge.
+    .studio-stage__reading,
+    .studio-stage__demo,
+    .studio-stage__updating {
+      display: inline-flex;
+      gap: 0;
+      padding: 0 5px;
+      font-size: 0;
+    }
+
     button {
       padding: 0 5px;
     }

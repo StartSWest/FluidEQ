@@ -4,7 +4,7 @@ Copyright (C) <2026> <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { PRODUCT_NAME } from 'common/branding';
 import Chevron from '../../icons/Chevron';
 import LookIcon from '../../icons/LookIcon';
@@ -298,13 +298,20 @@ const PictureDock = ({ picture }: { picture: TPlayerPicture }) => {
  * One Compact player at its own size, 480 CSS pixels wide, over a scene on
  * the Backdrop with its bands open (`scene`) or with a standard look in its
  * panel and its Tone open (`look`), laid out `zoom` times that size.
+ *
+ * Behind a `scene` player stands `still`, the aurora's picture unless the
+ * caller says otherwise. The Studio's stage passes `null` and draws the
+ * scene being made under the player instead (`StudioStagePlayer`), so the
+ * frost and the shade the player lays over its stage fall on that scene.
  */
 export default function PlayerPicture({
   picture,
   zoom,
+  still = <img className="player-picture__still" src={playerAurora} alt="" />,
 }: {
   picture: TPlayerPicture;
   zoom: number;
+  still?: ReactNode;
 }) {
   const isScene = picture === 'scene';
   return (
@@ -315,7 +322,7 @@ export default function PlayerPicture({
             className="player-stage has-scene"
             style={PICTURE_STAGE_LAYER as CSSProperties}
           >
-            <img className="player-picture__still" src={playerAurora} alt="" />
+            {still}
           </div>
         )}
         <PictureTitle />

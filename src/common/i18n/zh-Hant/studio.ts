@@ -463,9 +463,15 @@ const studio = {
   'studio.framing.use': '使用這張照片',
   'studio.framing.saving': '正在儲存...',
   'studio.size.full': '全螢幕',
-  'studio.size.player': '緊湊型播放器背後',
+  'studio.size.ultraWide': '超寬圖表',
+  'studio.size.ultraWideHint':
+    '依 3440 像素寬的超寬螢幕上 EQ 圖表的樣子顯示場景：寬度是高度的五倍半。',
+  'studio.size.player': '輕巧播放器',
   'studio.size.playerHint':
-    '緊湊型播放器顯示的場景位於整個視窗後面，處於其開啟的形狀。場景將其重要部分保留在狹窄的視窗上。',
+    '以輕巧播放器的框架顯示場景：整欄視窗中，場景對齊到歌曲資訊和控制按鈕所在的頂部面板，再向下延伸到視窗其餘部分。',
+  'studio.size.playerParts': '疊加播放器',
+  'studio.size.playerPartsHint':
+    '像播放器本身那樣，把輕巧播放器的歌曲資訊、控制按鈕和霧面面板疊在場景上。關閉時，只在播放器框架中顯示場景。',
   'studio.size.exit': '退出全螢幕',
   'studio.wave.title': '圖表上的波浪',
   'studio.wave.hint':

@@ -203,11 +203,11 @@ $stage-edge: $border-menu;
   cursor: grabbing;
 }
 
-// The compact player's window on the stage (`StudioStage.tsx` places and
-// sizes it in whole pixels): the stage behind it becomes the desk the empty
-// well is, so the window reads as a window and not as a narrow crop of the
-// scene.
-.studio-stage--player {
+// A preview's window on the stage — the ultra-wide graph, the Compact player
+// (`studioStageScreen.ts` places and sizes it in whole pixels): the stage
+// behind it becomes the desk the empty well is, so the window reads as a
+// window and not as a crop of the scene.
+.studio-stage--windowed {
   background:
     radial-gradient(
       60% 70% at 50% 100%,
@@ -220,7 +220,7 @@ $stage-edge: $border-menu;
 // The window's corners and edge as the stage's own, a ring outside the box
 // so the scene keeps every pixel it measured, and a soft shadow parting it
 // from the desk.
-.studio-stage__screen--player {
+.studio-stage__screen--window {
   inset: auto;
   overflow: hidden;
   border-radius: $radius-m;
@@ -228,6 +228,27 @@ $stage-edge: $border-menu;
   box-shadow:
     0 0 0 1px $stage-edge,
     0 16px 34px -14px rgba($black, 0.75);
+}
+
+// The Compact player over the scene (`StudioStagePlayer`), the screen's size
+// from its top left corner, in a stacking of its own above the scene: the
+// frost of its panes is a layer under the player inside it, and it has to
+// lie over the scene, never under it. It takes no pointer; the scene's hands
+// are under it.
+.studio-stage__player {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+
+  // Nothing of the player's own behind it — neither the window's floor nor
+  // the black its stage lays under a scene — because the scene being made is
+  // under it, where the player's window has its own canvas inside its stage.
+  .mini-player,
+  .player-stage.has-scene {
+    background: none;
+  }
 }
 
 // The graph's grid over the scene (`StudioGraphPaper.tsx`), placed at the
@@ -289,8 +310,8 @@ $stage-edge: $border-menu;
 // (`StudioStageSound`): the first part of the plate, as the Gallery's preview
 // tags it. In its own corner it ran under the plate wherever the plate spans
 // the stage (measured at a 420px window in de, ru, hi and fr); on the plate it
-// keeps to one line, and on the narrowest stage, where the plate wraps, its
-// words take a second line beside the reading before the plate takes a row.
+// keeps to one line, and on a small stage it folds to its dot with the
+// reading (`.studio-stage__bar` in StudioWork.scss).
 .studio-stage__demo {
   display: inline-flex;
   flex: none;
@@ -303,15 +324,6 @@ $stage-edge: $border-menu;
   font-weight: $weight-medium;
   line-height: 1.35;
   white-space: nowrap;
-
-  // From nothing, taking what the reading's row leaves: sized to its words it
-  // was either pushed onto a row of its own or capped into three lines beside
-  // a gap (fr at the window's 1024px floor).
-  @container studio-stage (max-width: 440px) {
-    min-width: 7em;
-    flex: 1 1 0;
-    white-space: normal;
-  }
 }
 
 // The plate's hairline after it stood 4px off its last word, as close as a

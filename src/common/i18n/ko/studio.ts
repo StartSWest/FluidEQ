@@ -513,9 +513,15 @@ const studio = {
   'studio.framing.use': '이 사진 사용',
   'studio.framing.saving': '저장 중…',
   'studio.size.full': '전체 화면',
-  'studio.size.player': '컴팩트 플레이어 뒤에',
+  'studio.size.ultraWide': '울트라와이드 그래프',
+  'studio.size.ultraWideHint':
+    '가로 3440픽셀 울트라와이드 모니터의 EQ 그래프에 표시되는 그대로의 장면입니다. 너비가 높이의 5.5배입니다.',
+  'studio.size.player': '컴팩트 플레이어',
   'studio.size.playerHint':
-    '컴팩트 플레이어로서의 장면은 열린 모양으로 전체 창 뒤에 표시됩니다. 장면은 좁은 창 자체에서 중요한 부분을 볼 수 있도록 유지합니다.',
+    '컴팩트 플레이어의 틀에 담긴 장면입니다. 열 전체에서 곡 정보와 컨트롤이 있는 위쪽 패널에 맞춰지고, 그 아래로 창의 나머지 부분까지 이어집니다.',
+  'studio.size.playerParts': '플레이어 겹치기',
+  'studio.size.playerPartsHint':
+    '컴팩트 플레이어의 곡 정보, 컨트롤, 반투명 패널을 플레이어와 똑같이 장면 위에 겹칩니다. 끄면 플레이어의 틀에 장면만 표시됩니다.',
   'studio.size.exit': '전체 화면 종료',
   'studio.wave.title': '그래프의 파동',
   'studio.wave.hint':

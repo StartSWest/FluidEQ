@@ -541,9 +541,15 @@ const studio = {
   'studio.framing.saving': 'Enregistrement…',
 
   'studio.size.full': 'Plein écran',
-  'studio.size.player': 'Derrière le lecteur compact',
+  'studio.size.ultraWide': 'Graphique ultra-large',
+  'studio.size.ultraWideHint':
+    'La scène telle que le graphique de l’égaliseur la montre sur un écran ultra-large de 3440 pixels : cinq fois et demie plus large que haute.',
+  'studio.size.player': 'Lecteur compact',
   'studio.size.playerHint':
-    'La scène telle que le lecteur compact la montre, derrière toute la fenêtre, à la forme dans laquelle elle s’ouvre. Dans une fenêtre étroite, une scène garde d’elle-même sa partie importante dans le champ.',
+    'La scène dans le cadre du lecteur compact : toute sa colonne, cadrée sur le panneau du haut où se trouvent le morceau et les commandes, et prolongée sur le reste de la fenêtre.',
+  'studio.size.playerParts': 'Lecteur par-dessus',
+  'studio.size.playerPartsHint':
+    'Pose le morceau, les commandes et les panneaux dépolis du lecteur compact sur la scène, tels que le lecteur les montre. Désactivé : la scène seule dans le cadre du lecteur.',
   'studio.size.exit': 'Quitter le plein écran',
   'studio.wave.title': 'Onde sur le graphique',
   'studio.wave.hint':

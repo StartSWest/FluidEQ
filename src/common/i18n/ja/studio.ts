@@ -537,9 +537,15 @@ const studio = {
   'studio.framing.saving': '保存しています…',
 
   'studio.size.full': '全画面',
-  'studio.size.player': 'コンパクトプレーヤーの背景',
+  'studio.size.ultraWide': 'ウルトラワイドのグラフ',
+  'studio.size.ultraWideHint':
+    '横幅 3440 ピクセルのウルトラワイドモニターで EQ グラフに表示されるとおりのシーンです。横幅は高さの 5.5 倍です。',
+  'studio.size.player': 'コンパクトプレーヤー',
   'studio.size.playerHint':
-    'コンパクトプレーヤーが開いたときの形で、ウィンドウ全体の背景としてシーンを表示します。細いウィンドウでも、シーンは大事な部分を自分で画面内に保ちます。',
+    'コンパクトプレーヤーの枠でシーンを表示します。列全体のうち、曲名と操作ボタンがある上のパネルに合わせて収め、その下はウィンドウの残りへ続きます。',
+  'studio.size.playerParts': 'プレーヤーを重ねる',
+  'studio.size.playerPartsHint':
+    'コンパクトプレーヤーの曲名、操作ボタン、すりガラスのパネルを、プレーヤーと同じようにシーンの上に重ねます。オフのときは、プレーヤーの枠にシーンだけを表示します。',
   'studio.size.exit': '全画面を終了',
   'studio.wave.title': 'グラフ上の波形',
   'studio.wave.hint':

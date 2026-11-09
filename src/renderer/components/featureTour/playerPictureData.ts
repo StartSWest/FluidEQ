@@ -171,13 +171,20 @@ export const PICTURE_SCENE = {
 } as const;
 
 /**
+ * Where the player's top panel ends at this size, measured in the player's
+ * harness: the foot the scrim holds dark from, and the bottom of the part a
+ * scene is framed to (the Studio's player preview, `studioStageScreen.ts`).
+ */
+export const PICTURE_PANEL_FOOT = 346;
+
+/**
  * What the player's picture layer is set to at this size, as `PlayerStage`
  * measures it in the window: where the transport's frost begins and how far
  * it fades in, and the foot the scrim holds dark from (480 x 966, measured in
  * the player's harness).
  */
 export const PICTURE_STAGE_LAYER = {
-  '--player-panel-foot': '346px',
+  '--player-panel-foot': `${PICTURE_PANEL_FOOT}px`,
   '--player-frost-top': '218px',
   '--player-frost-ramp': '128px',
 } as const;

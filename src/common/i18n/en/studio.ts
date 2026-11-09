@@ -546,9 +546,15 @@ const studio = {
   'studio.framing.saving': 'Saving…',
 
   'studio.size.full': 'Fullscreen',
-  'studio.size.player': 'Behind the compact player',
+  'studio.size.ultraWide': 'Ultra-wide graph',
+  'studio.size.ultraWideHint':
+    'The scene as the EQ graph shows it on an ultra-wide monitor, 3440 pixels across: five and a half times as wide as it is tall.',
+  'studio.size.player': 'Compact player',
   'studio.size.playerHint':
-    'The scene as the compact player shows it, behind the whole window at the shape it opens in. A scene keeps its important part in view on a narrow window by itself.',
+    "The scene in the Compact player's frame: its whole column, framed to the top panel where the song and the controls sit, and running on down the rest of the window.",
+  'studio.size.playerParts': 'Player on top',
+  'studio.size.playerPartsHint':
+    "Lays the Compact player's song, controls and frosted panels over the scene, as the player shows them. Off, the scene alone in the player's frame.",
   'studio.size.exit': 'Exit fullscreen',
   'studio.wave.title': 'Wave on the graph',
   'studio.wave.hint':

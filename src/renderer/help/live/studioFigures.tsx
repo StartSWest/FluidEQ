@@ -185,8 +185,10 @@ const StudioDrawing = () => {
           <StudioStageControls
             isFullscreen={false}
             onFullscreen={nothing}
-            isPlayer={false}
-            onPlayer={nothing}
+            preview="stage"
+            onPreview={nothing}
+            hasPlayerParts={false}
+            onPlayerParts={nothing}
           />
         </div>
       </div>

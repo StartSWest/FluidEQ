@@ -549,9 +549,15 @@ const studio = {
   'studio.framing.saving': 'Wird gespeichert…',
 
   'studio.size.full': 'Vollbild',
-  'studio.size.player': 'Hinter dem kompakten Player',
+  'studio.size.ultraWide': 'Ultrabreites Diagramm',
+  'studio.size.ultraWideHint':
+    'Die Szene so, wie das EQ-Diagramm sie auf einem Ultrawide-Monitor mit 3440 Pixeln Breite zeigt: fünfeinhalbmal so breit wie hoch.',
+  'studio.size.player': 'Kompakter Player',
   'studio.size.playerHint':
-    'Die Szene so, wie der kompakte Player sie zeigt: hinter dem ganzen Fenster, in der Form, in der es sich öffnet. In einem schmalen Fenster behält eine Szene ihren wichtigen Teil von selbst im Bild.',
+    'Die Szene im Rahmen des kompakten Players: seine ganze Spalte, auf das obere Feld mit Titel und Bedienelementen ausgerichtet und darunter durch das restliche Fenster weitergeführt.',
+  'studio.size.playerParts': 'Player darüber',
+  'studio.size.playerPartsHint':
+    'Legt Titel, Bedienelemente und mattierte Flächen des kompakten Players über die Szene, so wie der Player sie zeigt. Aus: nur die Szene im Rahmen des Players.',
   'studio.size.exit': 'Vollbild beenden',
   'studio.wave.title': 'Welle im Diagramm',
   'studio.wave.hint':

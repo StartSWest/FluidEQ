@@ -46,7 +46,55 @@ describe('the Studio stage size', () => {
     const { result } = sized();
     const first = result.current;
     act(() => result.current.toggleFullscreen());
+    act(() => result.current.togglePreview('player'));
+    act(() => result.current.togglePlayerParts());
     expect(result.current.exitFullscreen).toBe(first.exitFullscreen);
     expect(result.current.toggleFullscreen).toBe(first.toggleFullscreen);
+    expect(result.current.togglePreview).toBe(first.togglePreview);
+    expect(result.current.togglePlayerParts).toBe(first.togglePlayerParts);
+  });
+});
+
+/**
+ * What the stage shows the scene as (Ivan, 2026-11-09): the stage itself,
+ * the ultra-wide graph or the Compact player, one at a time; and the player
+ * shown as its frame alone unless its parts are asked for ("don't show the
+ * amp", "allow user to select if just the frame and if with amp ui on top").
+ */
+describe('what the Studio stage shows the scene as', () => {
+  it('starts on the stage itself, with the player’s parts off', () => {
+    const { result } = sized();
+    expect(result.current.preview).toBe('stage');
+    expect(result.current.hasPlayerParts).toBe(false);
+  });
+
+  it('shows one shape at a time, and the one that is on goes back to the stage', () => {
+    const { result } = sized();
+    act(() => result.current.togglePreview('ultraWide'));
+    expect(result.current.preview).toBe('ultraWide');
+    act(() => result.current.togglePreview('player'));
+    expect(result.current.preview).toBe('player');
+    act(() => result.current.togglePreview('player'));
+    expect(result.current.preview).toBe('stage');
+  });
+
+  it('keeps the shape across full screen and back', () => {
+    const { result } = sized();
+    act(() => result.current.togglePreview('ultraWide'));
+    act(() => result.current.toggleFullscreen());
+    act(() => result.current.exitFullscreen());
+    expect(result.current.preview).toBe('ultraWide');
+  });
+
+  it('keeps the player’s parts while the player is put away and shown again', () => {
+    const { result } = sized();
+    act(() => result.current.togglePreview('player'));
+    act(() => result.current.togglePlayerParts());
+    expect(result.current.hasPlayerParts).toBe(true);
+    act(() => result.current.togglePreview('player'));
+    act(() => result.current.togglePreview('player'));
+    expect(result.current.hasPlayerParts).toBe(true);
+    act(() => result.current.togglePlayerParts());
+    expect(result.current.hasPlayerParts).toBe(false);
   });
 });

@@ -4,17 +4,64 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { PLAYER_PICTURE_HEIGHT, PLAYER_WIDTH } from 'common/constants';
+import { PLAYER_PICTURE_HEIGHT } from 'common/constants';
+import {
+  PICTURE_HEIGHT,
+  PICTURE_PANEL_FOOT,
+  PICTURE_WIDTH,
+} from '../components/featureTour/playerPictureData';
+import { sceneViewOf, type TSceneView } from '../graph/sceneView';
 
 /**
- * The amp's picture, 480 by 309: the one amp draws a scene behind its top
- * panel and its transport (`PlayerStage`), so this is the shape a scene is
- * most often seen at narrower than the graph.
+ * What the stage shows the scene as: the stage itself, at the shape its
+ * divider was dragged to; the EQ graph of an ultra-wide window; or the
+ * Compact player, the scene behind the whole of its one column (Ivan,
+ * 2026-11-09: "an ultra wide mode on studio to test scenes on the graph",
+ * "we don't allow 2 columns anymore", "add graph and amp player").
  */
-const PLAYER_SHAPE = PLAYER_WIDTH / PLAYER_PICTURE_HEIGHT;
-/** Room round the player's window, for its edge and shadow. */
-export const PLAYER_INSET = 16;
-/** Between the player's window and the plate it stands clear of. */
+export type TStagePreview = 'stage' | 'ultraWide' | 'player';
+
+/**
+ * The EQ tab's graph on a 3440 by 1440 monitor, the window maximised
+ * (3440 by 1392 CSS pixels at 100%), measured in the full-app harness with
+ * the panes as a new install opens them: 2956 by 534. A 2560-wide window
+ * gives 3.9 and a 1920-wide one 3.8, so 5.5 is the shape only an ultra-wide
+ * screen shows a scene at, and the one a scene composed for 16:9 is most
+ * likely to come apart in.
+ */
+export const ULTRA_WIDE_GRAPH_SHAPE = 2956 / 534;
+
+/**
+ * The Compact player as its window opens, 480 by 966 (`PlayerPicture`): the
+ * scene is drawn behind the whole column, framed to the top panel under the
+ * song and the controls and running on under the frosted panes below
+ * (`PlayerStage`). It was the picture alone, 480 by 309, which on the stage
+ * read as a wide player of the kind the amp stopped being (2026-10-25).
+ */
+const PLAYER_SHAPE = PICTURE_WIDTH / PICTURE_HEIGHT;
+
+/**
+ * Where the scene's own panel stands on the player's column: the top panel,
+ * the song's picture and the transport under the title strip, which is what
+ * the player frames a scene to (`PlayerStage`, `sceneView.ts`), with the
+ * rest of the column more of the same scene. The same with the player's
+ * parts laid over the preview or without them (Ivan, 2026-11-09: "don't
+ * show the amp", "or allow user to select if just the frame and if with amp
+ * ui on top"), so turning the parts on and off never moves the picture.
+ */
+export const PLAYER_PANEL_VIEW: TSceneView = sceneViewOf(
+  {
+    left: 0,
+    top: PICTURE_PANEL_FOOT - PLAYER_PICTURE_HEIGHT,
+    width: PICTURE_WIDTH,
+    height: PLAYER_PICTURE_HEIGHT,
+  },
+  { left: 0, top: 0, width: PICTURE_WIDTH, height: PICTURE_HEIGHT },
+);
+
+/** Room round a preview's window, for its edge and shadow. */
+export const PREVIEW_INSET = 16;
+/** Between a preview's window and the plate it stands clear of. */
 export const PLATE_GAP = 12;
 
 export interface IStageScreen {
@@ -25,42 +72,92 @@ export interface IStageScreen {
   top?: number;
 }
 
+/** The plate in the stage's top right corner: its left and bottom edges. */
+export interface IStagePlate {
+  left: number;
+  bottom: number;
+}
+
 /**
- * Where the scene is drawn inside the Studio's stage (`StudioStage`): all of
- * it, or the compact player's window standing in its middle as tall as the
- * stage leaves room for. Whole pixels, so the canvas is never drawn between
- * two.
+ * The Compact player standing on the stage, as tall as the stage leaves
+ * room for and never taller than its own window, so a full-screen stage
+ * shows it at the size it really is.
  *
- * The window moves left of centre where the plate in the stage's top right
- * corner (`plateLeft`, its left edge in the stage) would stand over it: on
- * the narrowest window the plate covered the top of the player's, which is
- * the part of the scene the preview is there to show.
+ * It moves left of centre where the plate would stand over it: on the
+ * narrowest window the plate covered the top of the player's, which is the
+ * part of the scene the preview is there to show.
  */
-export const stageScreen = (
+const playerScreen = (
   box: { width: number; height: number },
-  isPlayer: boolean,
-  plateLeft: number | undefined,
+  plate: IStagePlate | undefined,
 ): IStageScreen => {
-  if (!isPlayer) {
-    return box;
-  }
   const height = Math.floor(
     Math.max(
       0,
       Math.min(
-        box.height - 2 * PLAYER_INSET,
-        (box.width - 2 * PLAYER_INSET) / PLAYER_SHAPE,
+        PICTURE_HEIGHT,
+        box.height - 2 * PREVIEW_INSET,
+        (box.width - 2 * PREVIEW_INSET) / PLAYER_SHAPE,
       ),
     ),
   );
   const width = Math.floor(height * PLAYER_SHAPE);
   const centred = Math.round((box.width - width) / 2);
-  const clear =
-    plateLeft === undefined ? centred : plateLeft - PLATE_GAP - width;
+  const clear = plate === undefined ? centred : plate.left - PLATE_GAP - width;
   return {
     width,
     height,
-    left: Math.max(PLAYER_INSET, Math.min(centred, clear)),
+    left: Math.max(PREVIEW_INSET, Math.min(centred, clear)),
     top: Math.round((box.height - height) / 2),
   };
+};
+
+/**
+ * The ultra-wide graph across the stage, as wide as it allows, in its
+ * middle — or below the plate, where the plate would cover the graph's top
+ * and the stage has the room under it.
+ */
+const ultraWideScreen = (
+  box: { width: number; height: number },
+  plate: IStagePlate | undefined,
+): IStageScreen => {
+  const width = Math.floor(
+    Math.max(
+      0,
+      Math.min(
+        box.width - 2 * PREVIEW_INSET,
+        (box.height - 2 * PREVIEW_INSET) * ULTRA_WIDE_GRAPH_SHAPE,
+      ),
+    ),
+  );
+  const height = Math.floor(width / ULTRA_WIDE_GRAPH_SHAPE);
+  const centred = Math.round((box.height - height) / 2);
+  const lowest = Math.max(PREVIEW_INSET, box.height - PREVIEW_INSET - height);
+  const top =
+    plate === undefined ? centred : Math.max(centred, plate.bottom + PLATE_GAP);
+  return {
+    width,
+    height,
+    left: Math.round((box.width - width) / 2),
+    top: Math.min(top, lowest),
+  };
+};
+
+/**
+ * Where the scene is drawn inside the Studio's stage (`StudioStage`): all of
+ * it, or a preview's window standing in it. Whole pixels, so the canvas is
+ * never drawn between two.
+ */
+export const stageScreen = (
+  box: { width: number; height: number },
+  preview: TStagePreview,
+  plate: IStagePlate | undefined,
+): IStageScreen => {
+  if (preview === 'player') {
+    return playerScreen(box, plate);
+  }
+  if (preview === 'ultraWide') {
+    return ultraWideScreen(box, plate);
+  }
+  return box;
 };

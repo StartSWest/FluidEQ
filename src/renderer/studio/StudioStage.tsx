@@ -35,8 +35,13 @@ import {
   shapeStudioFrame,
   type TStudioSignal,
 } from './studioSignals';
-import { stageScreen } from './studioStageScreen';
+import {
+  PLAYER_PANEL_VIEW,
+  stageScreen,
+  type TStagePreview,
+} from './studioStageScreen';
 import captureVisibleStage from './stageVisibleCapture';
+import StudioStagePlayer from './StudioStagePlayer';
 import StudioStageZoom from './StudioStageZoom';
 import useStageBox from './useStageBox';
 import useStageFullscreen from './useStageFullscreen';
@@ -86,11 +91,18 @@ interface IStudioStageProps {
   demo: boolean;
   size: TStudioSize;
   /**
-   * The scene behind the compact player, at its window's shape, inside
-   * either size: where a scene is seen keeping its important part in view
-   * (`common/sceneFraming.ts`).
+   * What the scene is shown as, inside either size: the stage itself, the
+   * EQ graph of an ultra-wide window, or the Compact player's column
+   * (`studioStageScreen.ts`). The last two are where a scene is seen keeping
+   * its important part in view (`common/sceneFraming.ts`).
    */
-  isPlayer: boolean;
+  preview: TStagePreview;
+  /**
+   * The player's own parts — its song, controls and frosted panels — laid
+   * over the scene while the Compact player is shown; without them, the
+   * scene alone in the player's frame.
+   */
+  hasPlayerParts?: boolean;
   /** The graph's wave height and position, tried on the scene. */
   wave: IStudioWave;
   /**
@@ -153,7 +165,8 @@ export default function StudioStage({
   signal,
   demo,
   size,
-  isPlayer,
+  preview,
+  hasPlayerParts = false,
   wave,
   isGridShown,
   tuning,
@@ -174,7 +187,10 @@ export default function StudioStage({
   const screenRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
-  const { box, plateLeft } = useStageBox(frameRef, barRef);
+  const { box, plate } = useStageBox(frameRef, barRef);
+  const isPlayer = preview === 'player';
+  // A preview stands as a window on the stage, which becomes its desk.
+  const isWindowed = preview !== 'stage';
   // Answered by the runner, which alone knows when the picture went: a first
   // frame seen once said "settled" for good, so a stage built again after the
   // window had been covered sat black, with no loading, for its whole compile.
@@ -233,11 +249,20 @@ export default function StudioStage({
   const { readFrame } = useSceneAudio();
   const readFrameRef = useRef(readFrame);
   readFrameRef.current = readFrame;
+  // While the Compact player is shown the scene is framed to the player's
+  // top panel, as the player's window frames it, and runs on down the rest
+  // of the column (`PLAYER_PANEL_VIEW`).
+  const isPlayerRef = useRef(isPlayer);
+  isPlayerRef.current = isPlayer;
   const shapeFrame = useMemo(
-    () => (frame: ISceneFrame) =>
-      shapeStudioFrame(frame, signalRef.current, buffers, {
+    () => (frame: ISceneFrame) => {
+      const shaped = shapeStudioFrame(frame, signalRef.current, buffers, {
         sound: readFrameRef.current()?.sound,
-      }),
+      });
+      return isPlayerRef.current
+        ? { ...shaped, view: PLAYER_PANEL_VIEW }
+        : shaped;
+    },
     [buffers],
   );
 
@@ -270,24 +295,27 @@ export default function StudioStage({
   );
 
   const screen = useMemo(
-    () => stageScreen(box, isPlayer, plateLeft),
-    [box, isPlayer, plateLeft],
+    () => stageScreen(box, preview, plate),
+    [box, preview, plate],
   );
   // A closer look, drawn at the size it is zoomed to (`useStageZoom.ts`).
   const zoom = useStageZoom(wellRef, screenRef, screen.width, screen.height);
   const { view } = zoom;
   const { spectrumRange } = pack;
+  // The graph's grid on the stage and on the ultra-wide graph; the Compact
+  // player draws none behind a scene (`PlayerHero`), so none is laid over it.
+  const isPapered = isGridShown && !isPlayer;
   const paper = useMemo(
     () =>
-      isGridShown
+      isPapered
         ? studioPaper(screen.width, screen.height, { spectrumRange }, wave)
         : undefined,
-    [isGridShown, screen.width, screen.height, spectrumRange, wave],
+    [isPapered, screen.width, screen.height, spectrumRange, wave],
   );
   // The plate and the reset stand inside the grid's ruled plot when the grid
-  // covers the stage; round the player's window they stand at the stage's
-  // own corners, off the window.
-  const plot = isPlayer ? undefined : paper;
+  // covers the stage; round a preview's window they stand at the stage's own
+  // corners, off the window.
+  const plot = isWindowed ? undefined : paper;
   // One array per band, not per render: the runner redraws whenever the band
   // it is handed changes identity.
   const gridless = useMemo(
@@ -348,7 +376,7 @@ export default function StudioStage({
     >
       <div
         ref={frameRef}
-        className={`studio-stage studio-stage--${size}${isPlayer ? ' studio-stage--player' : ''}`}
+        className={`studio-stage studio-stage--${size}${isWindowed ? ' studio-stage--windowed' : ''}`}
         data-testid="studio-stage"
         aria-busy={waiting}
         // The graph's gesture for the same thing, and the same full screen as
@@ -362,9 +390,9 @@ export default function StudioStage({
       >
         <div
           ref={screenRef}
-          className={`studio-stage__screen${isPlayer ? ' studio-stage__screen--player' : ''}${zoom.zoomed ? ' is-zoomed' : ''}`}
+          className={`studio-stage__screen${isWindowed ? ' studio-stage__screen--window' : ''}${zoom.zoomed ? ' is-zoomed' : ''}`}
           style={
-            isPlayer
+            isWindowed
               ? {
                   left: screen.left,
                   top: screen.top,
@@ -400,7 +428,22 @@ export default function StudioStage({
             ambient={pack.ambient}
             artwork={pack.artwork}
           />
-          {!zoom.zoomed && labels}
+          {/* The player's parts over the scene when asked for, moved and
+              magnified by a closer look as the scene under them is. */}
+          {isPlayer && hasPlayerParts && screen.height > 0 && (
+            <StudioStagePlayer
+              width={screen.width * view.scale}
+              height={screen.height * view.scale}
+              style={
+                zoom.zoomed
+                  ? { transform: `translate(${view.x}px, ${view.y}px)` }
+                  : undefined
+              }
+            />
+          )}
+          {/* The starter's labels name parts of the whole picture, which the
+              player's panel shows only a slice of. */}
+          {!zoom.zoomed && !isPlayer && labels}
         </div>
         {/* One plate in the top right corner (Ivan, 2026-09-27: "join all
             into one with runs smoothly and put it on the right top"): how the

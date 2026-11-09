@@ -532,9 +532,15 @@ const studio = {
   'studio.framing.saving': 'Salvando…',
 
   'studio.size.full': 'Tela cheia',
-  'studio.size.player': 'Atrás do player compacto',
+  'studio.size.ultraWide': 'Gráfico ultrawide',
+  'studio.size.ultraWideHint':
+    'A cena como o gráfico do equalizador a mostra num monitor ultrawide de 3440 pixels de largura: cinco vezes e meia mais larga do que alta.',
+  'studio.size.player': 'Player compacto',
   'studio.size.playerHint':
-    'A cena como o player compacto a mostra, atrás da janela inteira, no formato em que ela abre. Numa janela estreita, a cena mantém sozinha a parte importante à vista.',
+    'A cena na moldura do player compacto: a coluna inteira, enquadrada no painel de cima onde ficam a música e os controles, e continuando pelo resto da janela.',
+  'studio.size.playerParts': 'Player por cima',
+  'studio.size.playerPartsHint':
+    'Coloca a música, os controles e os painéis foscos do player compacto sobre a cena, como o player os mostra. Desligado: só a cena na moldura do player.',
   'studio.size.exit': 'Sair da tela cheia',
   'studio.wave.title': 'Onda no gráfico',
   'studio.wave.hint':

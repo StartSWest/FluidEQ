@@ -85,7 +85,7 @@ const stage = (signal: TStudioSignal) => (
     serial={1}
     signal={signal}
     size="graph"
-    isPlayer={false}
+    preview="stage"
     wave={{ height: 1, position: 0 }}
     isGridShown={false}
     readingRef={{ current: null }}

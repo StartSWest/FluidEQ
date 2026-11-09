@@ -53,7 +53,7 @@ const stage = (size: TStudioSize, onToggleFullscreen: () => void) => (
     signal="live"
     demo={false}
     size={size}
-    isPlayer={false}
+    preview="stage"
     wave={{ height: 1, position: 0 }}
     isGridShown={false}
     readingRef={{ current: null }}

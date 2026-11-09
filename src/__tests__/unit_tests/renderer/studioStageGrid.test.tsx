@@ -107,7 +107,7 @@ const stage = (isGridShown: boolean) => (
     signal="live"
     demo={false}
     size="graph"
-    isPlayer={false}
+    preview="stage"
     wave={wave}
     isGridShown={isGridShown}
     readingRef={{ current: null }}
@@ -161,8 +161,10 @@ it('remembers the grid button on the stage', () => {
     <StudioStageControls
       isFullscreen={false}
       onFullscreen={onFullscreen}
-      isPlayer={false}
-      onPlayer={jest.fn()}
+      preview="stage"
+      onPreview={jest.fn()}
+      hasPlayerParts={false}
+      onPlayerParts={jest.fn()}
     />,
   );
   const toggle = screen.getByRole('button', { name: 'studio.grid.label' });
