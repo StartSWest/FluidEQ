@@ -138,6 +138,11 @@ export interface IClaudeLaunch {
   effort: TStudioChatEffort;
   /** The conversation to carry on, when there is one. */
   sessionId: string | undefined;
+  /**
+   * FluidEQ's agent skills as a plugin folder of its own (`studioSkills.ts`),
+   * when it could be placed.
+   */
+  skills?: string;
 }
 
 /**
@@ -154,6 +159,7 @@ export const claudeCodeCommand = ({
   model,
   effort,
   sessionId,
+  skills,
 }: IClaudeLaunch): IChatCommand => {
   const briefFile = path.join(own, 'brief.txt');
   writeFileAtomically(briefFile, brief, 0o600);
@@ -217,6 +223,11 @@ export const claudeCodeCommand = ({
       0o600,
     );
     args.push('--mcp-config', mcpFile);
+  }
+  if (skills) {
+    // FluidEQ's own skills, from FluidEQ's own folder: the member's plugins
+    // still come through their settings, and a scene folder's never do.
+    args.push('--plugin-dir', skills);
   }
   if (sessionId) {
     args.push('--resume', sessionId);

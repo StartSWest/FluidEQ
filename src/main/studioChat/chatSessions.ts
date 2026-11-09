@@ -48,6 +48,8 @@ interface IChatSessionsDeps {
   queue: TChatQueue;
   pictures: TChatPictures;
   noteUsage(projectId: string, use: TChatUsage): void;
+  /** FluidEQ's agent skills as a plugin folder, placed for each start. */
+  skillsPlugin?: () => string | undefined;
   logger?: { info(message: string): void; warn(message: string): void };
 }
 
@@ -68,6 +70,7 @@ const createChatSessions = ({
   queue,
   pictures,
   noteUsage,
+  skillsPlugin,
   logger,
 }: IChatSessionsDeps) => {
   const keptFile = path.join(root, 'relay-sessions.json');
@@ -149,6 +152,7 @@ const createChatSessions = ({
     model: TStudioChatModel,
     effort: TStudioChatEffort,
   ): IChatSession => {
+    const skills = skillsPlugin?.();
     const command = claudeCodeCommand({
       own: ownOf(projectId),
       folder,
@@ -158,6 +162,7 @@ const createChatSessions = ({
       model,
       effort,
       sessionId: transcriptOf(projectId).sessionId,
+      ...(skills ? { skills } : {}),
     });
     // Its events reach the session only once it exists: a process reports
     // nothing from inside its own start.

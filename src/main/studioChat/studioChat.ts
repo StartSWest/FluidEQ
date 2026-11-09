@@ -33,6 +33,7 @@ import { createPastChats } from './pastChats';
 import { createTranscripts } from './chatTranscript';
 import createTranscriptCache from './transcriptCache';
 import { findClaudeCode, startClaudeCode, systemEnv } from './claudeCode';
+import { placeChatSkills, readShippedSkills } from './studioSkills';
 
 /**
  * The Studio's chat (Ivan, 2026-10-09: "they connect their claude sub account
@@ -177,6 +178,16 @@ export const createStudioChat = ({
     queue,
     pictures,
     noteUsage: (projectId, use) => usage.note(projectId, use),
+    skillsPlugin: () => {
+      try {
+        return placeChatSkills(root, readShippedSkills());
+      } catch (error) {
+        logger?.warn(
+          `FluidEQ's agent skills could not be placed for the chat: ${String(error)}`,
+        );
+        return undefined;
+      }
+    },
     ...(logger ? { logger } : {}),
   });
   const { sessionFor, askUsage } = chatSessions;

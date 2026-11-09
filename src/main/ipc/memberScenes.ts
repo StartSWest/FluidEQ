@@ -71,6 +71,8 @@ export interface IMemberScenesIpcDeps {
   publishedOf?: (folder: string) => Promise<IProjectPublished | undefined>;
   /** Records the folders holding a publication held here (`publishedAdoption.ts`). */
   adoptPublished?: (folders: readonly string[]) => Promise<boolean>;
+  /** FluidEQ's agent skills placed in a project opened (`studioSkills.ts`). */
+  placeSkills?: (folder: string) => void;
 }
 
 export interface IMemberScenesIpcRegistration {
@@ -138,6 +140,7 @@ export const registerMemberScenesIpc = ({
   openPath = (target) => shell.openPath(target),
   publishedOf,
   adoptPublished,
+  placeSkills,
 }: IMemberScenesIpcDeps): IMemberScenesIpcRegistration => {
   const store = createMemberSceneStore({ userDataDir, pins, logger });
 
@@ -184,6 +187,7 @@ export const registerMemberScenesIpc = ({
     ...(logger ? { logger } : {}),
     ...(publishedOf ? { publishedOf } : {}),
     ...(adoptPublished ? { adoptPublished } : {}),
+    ...(placeSkills ? { placeSkills } : {}),
   });
 
   // A buy, a publication, an account changing, Plus: which scenes play

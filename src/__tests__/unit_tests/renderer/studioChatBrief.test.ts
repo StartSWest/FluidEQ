@@ -99,4 +99,17 @@ describe('every brief', () => {
   it('names the image tools an assistant may have', () => {
     expect(copied).toContain("ChatGPT's or Codex's image");
   });
+
+  // Ivan, 2026-11-09, of a tube painted on flat cards over a photograph:
+  // "still not 3d they are flat no perception of depth".
+  it('builds what has volume as geometry, and points every AI at the skills', () => {
+    [copied, chatBrief()].forEach((brief) => {
+      expect(brief).toContain('is real geometry in the world');
+      expect(brief).toMatch(/never a ribbon/);
+      expect(brief).toContain('.agents/skills');
+      expect(brief).toContain('fluideq-3d-world');
+      expect(brief).toContain('fluideq-photo-3d');
+    });
+    expect(chatBrief()).toContain('never open a picture in another program');
+  });
 });

@@ -50,6 +50,10 @@ import {
 import openExternalIfSafe from './safeExternal';
 import { createStudioAgentDoor } from './studioAgent/studioAgentDoor';
 import { createStudioChat } from './studioChat/studioChat';
+import {
+  placeProjectSkills,
+  readShippedSkills,
+} from './studioChat/studioSkills';
 import { createPublishedAdoption } from './memberScenes/publishedAdoption';
 import { createPublishedRecords } from './memberScenes/publishedRecords';
 import { chatLauncherFor } from './studioChat/chatRelayClient';
@@ -210,6 +214,19 @@ const registerMemberServices = ({
     logger: log,
     publishedOf: publishedRecords.stateOf,
     adoptPublished: publishedAdoption.adopt,
+    placeSkills: (folder) => {
+      try {
+        if (!placeProjectSkills(folder, readShippedSkills())) {
+          log.warn(
+            `FluidEQ's agent skills were not placed in ${folder}: a link stands where .agents/skills goes`,
+          );
+        }
+      } catch (error) {
+        log.warn(
+          `FluidEQ's agent skills could not be placed in ${folder}: ${String(error)}`,
+        );
+      }
+    },
   });
   const disposeSceneVersions = registerSceneVersionsIpc({
     pins: versionPins,

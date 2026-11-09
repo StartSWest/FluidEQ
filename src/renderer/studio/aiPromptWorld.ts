@@ -60,6 +60,24 @@ casting shadows, with models that walk and a camera that travels. Keep to
 scene.frag alone for flat, graphic, painterly or abstract ideas; they need
 none of this.
 
+Anything that must have volume - a tube, a waveform made solid, a crystal,
+an animal close by - is real geometry in the world, lit, casting a shadow
+and standing on its reflection. Never a line or glow in scene.frag shaded
+to look round, never a ribbon (it always faces the camera) and never flat
+planes painted with a tube: each reads as paper laid on the picture, and
+no shading fixes that. Over a photograph, the world's camera is matched to
+the photo and its floor catches the shadows (FLUIDEQ'S SKILLS below).
+
+FLUIDEQ'S SKILLS. FluidEQ ships skills for this, in the open Agent Skills
+format, in the project's .agents/skills folder (and loaded as your own
+skills where your assistant loads them): fluideq-3d-world, solid things in
+the world - a tube that follows a path and the music, light, shadow and
+ground; and fluideq-photo-3d, 3D set into a photograph - the camera matched
+to it, a floor that is the photograph and still catches shadows and
+reflections, the seams kept invisible. Read the one that fits before you
+build that kind of thing: every recipe in them was measured in this
+engine.
+
 scene.frag stays essential. It is the world's sky, and on a FluidEQ older
 than worlds, or a computer that cannot build the world, it is the whole
 scene: it must be worth watching alone - the sky, the far horizon, a small

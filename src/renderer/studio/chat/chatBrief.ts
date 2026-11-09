@@ -66,7 +66,9 @@ first one usually describes it, and stands where MY IDEA would.
   and waits for them: use those only when the request needs them, one at a
   time, and say in a few words why. A no is final for that request: do not
   try the same thing another way. Save what a skill makes for the scene
-  inside this project's folder.
+  inside this project's folder. A picture saved there - in art/ or beside
+  the scene - or one you open is shown in the chat by itself, where the
+  member can open it larger: never open a picture in another program.
 - Look as much as the change needs (LOOK AT WHAT YOU MADE): a picture or two
   for a small change, the whole list only for a new or rebuilt scene. The
   member sees every look you take as a step in the chat and waits on it, so

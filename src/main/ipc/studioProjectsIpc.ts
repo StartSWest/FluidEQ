@@ -91,6 +91,11 @@ export interface IStudioProjectsIpcDeps {
    * (`publishedAdoption.ts`); true when one was.
    */
   adoptPublished?: (folders: readonly string[]) => Promise<boolean>;
+  /**
+   * FluidEQ's agent skills written into a project's `.agents/skills`, for
+   * any agent that works in it (`studioSkills.ts`).
+   */
+  placeSkills?: (folder: string) => void;
 }
 
 export interface IStudioProjectsIpcRegistration {
@@ -146,8 +151,12 @@ export const registerStudioProjectsIpc = ({
   openPath = (target) => shell.openPath(target),
   publishedOf,
   adoptPublished,
+  placeSkills,
 }: IStudioProjectsIpcDeps): IStudioProjectsIpcRegistration => {
   const studioPath = path.join(userDataDir, STUDIO_FILE);
+  // Once a session for each project opened: the skills are the app's own
+  // and do not change while it runs.
+  const skillsPlaced = new Set<string>();
 
   let projects: IProjectList = readProjectList(studioPath);
   let studioOpen = false;
@@ -235,6 +244,10 @@ export const registerStudioProjectsIpc = ({
     const folder = activeFolder();
     if (folder && !activeIsInspection()) {
       marks?.refresh(folder);
+      if (placeSkills && !skillsPlaced.has(folder)) {
+        skillsPlaced.add(folder);
+        placeSkills(folder);
+      }
     }
   };
 
