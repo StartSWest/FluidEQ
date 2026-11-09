@@ -86,11 +86,11 @@ void a_drag_begun_on_the_desktop_is_followed() {
   wallpaper::PointerRouter router(kMonitor);
   Heard heard;
   auto press = pressed(at(500, 500, true), wallpaper::kLeftButton);
-  press.ctrl = true;
+  press.camera = true;
   router.feed(press, heard);
   CHECK(router.holding());
   auto over_window = at(900, 520, false);
-  over_window.ctrl = true;
+  over_window.camera = true;
   router.feed(over_window, heard);
   router.feed(pressed(at(910, 520, false), 0, wallpaper::kLeftButton), heard);
   CHECK(!router.holding());
@@ -145,7 +145,7 @@ void the_wheel() {
   CHECK(heard.text.empty());
   auto notch = at(20, 20, true);
   notch.wheel = -120;
-  notch.ctrl = true;
+  notch.camera = true;
   router.feed(notch, heard);
   CHECK(heard.text ==
         "pointer:move 20 20 1 0\n"
@@ -172,30 +172,67 @@ void stopping_mid_drag() {
 }
 
 void the_commands_main_writes() {
-  std::printf("the commands main writes, and nothing else\n");
+  std::printf("the commands main writes, and a line it does not know\n");
+  // Every command a run of input completes, in order.
   const auto read = [](const char* text) {
     wallpaper::CommandReader reader;
-    wallpaper::Command last = wallpaper::Command::none;
+    std::string heard;
     for (const char* each = text; *each != '\0'; ++each) {
-      const wallpaper::Command command = reader.feed(*each);
-      if (command != wallpaper::Command::none) last = command;
-      if (command == wallpaper::Command::invalid) break;
+      switch (reader.feed(*each)) {
+        case wallpaper::Command::none: break;
+        case wallpaper::Command::show: heard += "show;"; break;
+        case wallpaper::Command::hide: heard += "hide;"; break;
+        case wallpaper::Command::touch: heard += "touch;"; break;
+        case wallpaper::Command::still: heard += "still;"; break;
+        case wallpaper::Command::camera_key: heard += "key;"; break;
+        case wallpaper::Command::unknown: heard += "unknown;"; break;
+      }
     }
-    return last;
+    return heard;
   };
-  CHECK(read("show\n") == wallpaper::Command::show);
-  CHECK(read("hide\n") == wallpaper::Command::hide);
-  CHECK(read("touch\n") == wallpaper::Command::touch);
-  CHECK(read("still\n") == wallpaper::Command::still);
-  CHECK(read("show\nstill\n") == wallpaper::Command::still);
-  CHECK(read("touc") == wallpaper::Command::none);
-  CHECK(read("tou\n") == wallpaper::Command::invalid);
-  CHECK(read("touches\n") == wallpaper::Command::invalid);
-  // Too long is refused outright, never cut down to whatever command its
-  // tail happens to spell.
-  CHECK(read("abcde-show\n") == wallpaper::Command::invalid);
-  CHECK(read("Show\n") == wallpaper::Command::invalid);
-  CHECK(read("\n") == wallpaper::Command::invalid);
+  CHECK(read("show\nhide\ntouch\nstill\n") == "show;hide;touch;still;");
+  CHECK(read("touc").empty());
+  // A word this helper does not know is ignored, and what follows it is read
+  // as ever: a newer main's command must never stop an older helper. The
+  // control is the line after it, still heard.
+  CHECK(read("tou\nshow\n") == "unknown;show;");
+  CHECK(read("Show\n\nhide\n") == "unknown;unknown;hide;");
+  CHECK(read("zoom-level 3\ntouch\n") == "unknown;touch;");
+  // Too long for any command is one unknown line, never cut down to whatever
+  // its tail spells, and never a reason to stop reading.
+  CHECK(read("abcdefghijklmnopqrstuvwxyz0123456789-show\nstill\n") == "unknown;still;");
+}
+
+void the_camera_key() {
+  std::printf("the key that turns the camera, as main names it\n");
+  const auto key_after = [](const char* text) {
+    wallpaper::CommandReader reader;
+    for (const char* each = text; *each != '\0'; ++each) reader.feed(*each);
+    return reader.camera_key();
+  };
+  CHECK(key_after("") == static_cast<unsigned>(VK_CONTROL));
+  CHECK(key_after("camera-key alt\n") == static_cast<unsigned>(VK_MENU));
+  CHECK(key_after("camera-key shift\n") == static_cast<unsigned>(VK_SHIFT));
+  CHECK(key_after("camera-key alt\ncamera-key ctrl\n") == static_cast<unsigned>(VK_CONTROL));
+  CHECK(key_after("camera-key vk:0x5A\n") == 0x5Au);
+  CHECK(key_after("camera-key vk:0xfe\n") == 0xFEu);
+  CHECK(key_after("camera-key vk:0x1\n") == 0x01u);
+  // A key it cannot read leaves the one before it.
+  for (const char* bad : {"camera-key vk:0x00\n", "camera-key vk:0xFF\n", "camera-key vk:0x100\n",
+                          "camera-key vk:5A\n", "camera-key vk:1x5A\n", "camera-key vk:005A\n",
+                          "camera-key vk:0xG1\n", "camera-key Alt\n",
+                          "camera-key \n", "camera-keyalt\n", "camera-key alt \n"}) {
+    std::string line = "camera-key shift\n";
+    line += bad;
+    CHECK(key_after(line.c_str()) == static_cast<unsigned>(VK_SHIFT));
+  }
+  wallpaper::CommandReader reader;
+  wallpaper::Command last = wallpaper::Command::none;
+  for (const char* each = "camera-key vk:0x00\n"; *each != '\0'; ++each) {
+    const wallpaper::Command command = reader.feed(*each);
+    if (command != wallpaper::Command::none) last = command;
+  }
+  CHECK(last == wallpaper::Command::unknown);
 }
 
 void raw_input_buttons() {
@@ -229,6 +266,7 @@ int main() {
   the_wheel();
   stopping_mid_drag();
   the_commands_main_writes();
+  the_camera_key();
   raw_input_buttons();
   icons_under_the_point();
   if (g_failures != 0) {

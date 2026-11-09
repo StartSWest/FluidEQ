@@ -23,7 +23,8 @@ struct State {
   HANDLE input_changed = nullptr;
   std::atomic<int> requested_visibility{-1};
   std::atomic<int> requested_touch{-1};
-  std::atomic<bool> invalid_command{false};
+  // The virtual key that turns the camera, as main last named it.
+  std::atomic<unsigned> camera_key{wallpaper::kDefaultCameraKey};
   wallpaper::Desktop desktop;
   RECT screen_rect{};
   RECT monitor_rect{};
@@ -170,10 +171,12 @@ void on_raw_input(HRAWINPUT handle) {
     sample.wheel = static_cast<SHORT>(input.data.mouse.usButtonData);
   }
   sample.bare = bare_desktop_at(sample.at);
-  // Ctrl's state at this one moment, and only when the report is passed on:
-  // the camera's key, and nothing else of the keyboard is ever read.
+  // The camera key's state at this one moment, and only when the report is
+  // passed on: the one key the listener chose (Ctrl unless they chose
+  // another), and nothing else of the keyboard is ever read.
   if (sample.bare || state.router->holding()) {
-    sample.ctrl = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+    sample.camera =
+      (GetAsyncKeyState(static_cast<int>(state.camera_key.load())) & 0x8000) != 0;
   }
   state.router->feed(sample, pointer_line);
   // A release over the desktop is how an icon is dropped somewhere new.
@@ -515,10 +518,15 @@ DWORD WINAPI read_input(void*) {
         case wallpaper::Command::hide: state.requested_visibility.store(0); break;
         case wallpaper::Command::touch: state.requested_touch.store(1); break;
         case wallpaper::Command::still: state.requested_touch.store(0); break;
-        case wallpaper::Command::invalid:
-          state.invalid_command.store(true);
-          SetEvent(state.input_changed);
-          return 0;
+        case wallpaper::Command::camera_key:
+          // Read by the mouse's own thread at its next report; nothing to wake.
+          state.camera_key.store(reader.camera_key());
+          continue;
+        case wallpaper::Command::unknown:
+          // A newer main's word, or a malformed line: ignored, and said once
+          // per line. Never what the line held — it is nobody's record.
+          note("unknown-command\n");
+          continue;
       }
       SetEvent(state.input_changed);
     }
@@ -635,7 +643,6 @@ int run() {
     if (result == WAIT_OBJECT_0 + 2) { fail("desktop-destroyed"); break; }
     if (result == WAIT_FAILED) { fail("wait-failed"); break; }
     if (result == WAIT_OBJECT_0 + 3) {
-      if (state.invalid_command.load()) { fail("invalid-command"); break; }
       state.requested_visible = state.requested_visibility.load() == 1;
       state.touch_requested = state.requested_touch.load() == 1;
       apply_visibility();

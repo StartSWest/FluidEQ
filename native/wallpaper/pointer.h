@@ -40,8 +40,11 @@ struct PointerSample {
   POINT at{};
   /** That spot is this monitor's desktop, with no icon, window or taskbar on it. */
   bool bare = false;
-  /** Ctrl was down at the moment of the report: the camera's key. */
-  bool ctrl = false;
+  /**
+   * The camera key (`camera-key`, Ctrl unless the listener chose another) was
+   * down at the moment of the report. The record still calls it the Ctrl bit.
+   */
+  bool camera = false;
   /** Buttons that went down, and up, in this report (`kLeftButton`...). */
   unsigned downs = 0;
   unsigned ups = 0;
@@ -142,9 +145,9 @@ class PointerRouter {
     const long y = static_cast<long>(sample.at.y) - monitor_.top;
     const int written =
       extra ? std::snprintf(text, sizeof(text), "pointer:%s %ld %ld %d %u %d\n", kind, x, y,
-                            sample.ctrl ? 1 : 0, held_, *extra)
+                            sample.camera ? 1 : 0, held_, *extra)
             : std::snprintf(text, sizeof(text), "pointer:%s %ld %ld %d %u\n", kind, x, y,
-                            sample.ctrl ? 1 : 0, held_);
+                            sample.camera ? 1 : 0, held_);
     if (written > 0 && written < static_cast<int>(sizeof(text))) emit(text);
   }
 
@@ -178,48 +181,116 @@ inline bool over_any(const POINT& point, const RECT* rects, int count) {
   return false;
 }
 
+/** The key that moves the camera until main names another: Ctrl, as on the graph. */
+constexpr unsigned kDefaultCameraKey = VK_CONTROL;
+
 /**
  * The commands main writes on the helper's input, one a line. `show`/`hide`
  * say whether the background is on the desktop; `touch`/`still` whether the
- * mouse is passed on. Anything else is refused, and so is a line longer than
- * the longest command.
+ * mouse is passed on; `camera-key <name>` which key turns the camera (`ctrl`,
+ * `alt`, `shift`, or `vk:0x01` to `vk:0xFE`, the listener's own choice).
+ *
+ * Anything else — a word this helper does not know, a key it cannot read, a
+ * line longer than any command — is `unknown`, and the helper ignores it.
+ * Refusing it failed every desktop background the day a newer main first sent
+ * `touch` to an older helper, and the next new command would have done it
+ * again.
  */
-enum class Command { none, show, hide, touch, still, invalid };
+enum class Command { none, show, hide, touch, still, camera_key, unknown };
+
+/** The virtual key a `camera-key` name names, or 0 for none it can read. */
+inline unsigned camera_key_named(const char* name, std::size_t length) {
+  const auto is = [&](const char* word) {
+    std::size_t index = 0;
+    for (; index < length && word[index] != '\0'; ++index) {
+      if (name[index] != word[index]) return false;
+    }
+    return index == length && word[index] == '\0';
+  };
+  if (is("ctrl")) return VK_CONTROL;
+  if (is("alt")) return VK_MENU;
+  if (is("shift")) return VK_SHIFT;
+  // vk:0x followed by one or two hex digits.
+  if (length < 6 || length > 7 || name[0] != 'v' || name[1] != 'k' || name[2] != ':' ||
+      name[3] != '0' || name[4] != 'x') return 0;
+  unsigned key = 0;
+  for (std::size_t index = 5; index < length; ++index) {
+    const char digit = name[index];
+    unsigned value = 0;
+    if (digit >= '0' && digit <= '9') {
+      value = static_cast<unsigned>(digit - '0');
+    } else if (digit >= 'a' && digit <= 'f') {
+      value = static_cast<unsigned>(digit - 'a' + 10);
+    } else if (digit >= 'A' && digit <= 'F') {
+      value = static_cast<unsigned>(digit - 'A' + 10);
+    } else {
+      return 0;
+    }
+    key = key * 16 + value;
+  }
+  return key >= 0x01 && key <= 0xFE ? key : 0;
+}
 
 class CommandReader {
  public:
   /** One byte of input: the command it completes, or `none` mid-line. */
   Command feed(char value) {
     if (value != '\n') {
-      if (used_ == sizeof(text_)) return Command::invalid;
-      text_[used_++] = value;
+      // Too long for any command: kept back to the line's end, then unknown.
+      if (used_ == sizeof(text_)) {
+        overflowed_ = true;
+      } else {
+        text_[used_++] = value;
+      }
       return Command::none;
     }
-    const Command command = parse();
+    const Command command = overflowed_ ? Command::unknown : parse();
     used_ = 0;
+    overflowed_ = false;
     return command;
   }
 
+  /** The key the last `camera_key` named. */
+  unsigned camera_key() const { return camera_key_; }
+
  private:
-  Command parse() const {
-    const struct { const char* word; Command command; } known[]{
-      {"show", Command::show}, {"hide", Command::hide},
-      {"touch", Command::touch}, {"still", Command::still}};
-    for (const auto& entry : known) {
-      std::size_t length = 0;
-      while (entry.word[length] != '\0') ++length;
-      if (length != used_) continue;
-      bool same = true;
-      for (std::size_t index = 0; index < length && same; ++index) {
-        same = text_[index] == entry.word[index];
-      }
-      if (same) return entry.command;
+  bool line_is(const char* word) const {
+    std::size_t length = 0;
+    while (word[length] != '\0') ++length;
+    if (length != used_) return false;
+    for (std::size_t index = 0; index < length; ++index) {
+      if (text_[index] != word[index]) return false;
     }
-    return Command::invalid;
+    return true;
   }
 
-  char text_[5]{};
+  Command parse() {
+    if (line_is("show")) return Command::show;
+    if (line_is("hide")) return Command::hide;
+    if (line_is("touch")) return Command::touch;
+    if (line_is("still")) return Command::still;
+    constexpr char kCameraKey[] = "camera-key ";
+    constexpr std::size_t kCameraKeyLength = sizeof(kCameraKey) - 1;
+    if (used_ > kCameraKeyLength) {
+      bool prefixed = true;
+      for (std::size_t index = 0; index < kCameraKeyLength && prefixed; ++index) {
+        prefixed = text_[index] == kCameraKey[index];
+      }
+      const unsigned key =
+        prefixed ? camera_key_named(text_ + kCameraKeyLength, used_ - kCameraKeyLength) : 0;
+      if (key != 0) {
+        camera_key_ = key;
+        return Command::camera_key;
+      }
+    }
+    return Command::unknown;
+  }
+
+  // The longest command is `camera-key vk:0xFE`; room for a little more.
+  char text_[32]{};
   std::size_t used_ = 0;
+  bool overflowed_ = false;
+  unsigned camera_key_ = kDefaultCameraKey;
 };
 
 }  // namespace wallpaper

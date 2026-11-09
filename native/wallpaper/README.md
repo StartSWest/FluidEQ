@@ -10,10 +10,15 @@ The window's own rectangle only names the monitor: the helper places it over
 that monitor's whole physical rectangle. Windows clamps a top-level window to
 the work area, and Chromium's frame styles add invisible insets, so placing it
 where it stood left the taskbar strip showing the ordinary wallpaper.
-Write exactly `show\n` or `hide\n` to change native visibility, and `touch\n` or
-`still\n` to start or stop passing the mouse on; closing stdin requests
-shutdown. Commands are bounded, case-sensitive ASCII records. Invalid records
-fail closed. The latest policy wins when several commands arrive together.
+Write exactly `show\n` or `hide\n` to change native visibility, `touch\n` or
+`still\n` to start or stop passing the mouse on, and `camera-key <name>\n` to
+name the key that turns the camera (`ctrl`, `alt`, `shift`, or `vk:0x01` to
+`vk:0xFE`; Ctrl until told); closing stdin requests shutdown. Commands are
+bounded (32 bytes), case-sensitive ASCII records. Any line the helper does not
+know — a newer main's command, a key it cannot read, a line too long — is
+ignored with `unknown-command` on stderr and never fails the background: a
+helper refusing them stopped every background the day main first sent
+`touch`. The latest policy wins when several commands arrive together.
 
 ## The mouse (`pointer.h`, `icons.h`)
 
@@ -36,14 +41,15 @@ list view reports a change and after every release over the desktop; never
 pass nothing on over a visible list view. A press begun on the bare desktop is
 followed until it is let go, wherever it goes; a press begun anywhere else
 (dragging an icon or a window across the desktop) keeps everything back until
-it is released. Of the keyboard only Ctrl is read, at the moment of a report
-that is passed on.
+it is released. Of the keyboard only the camera key is read — the one
+`camera-key` named, Ctrl unless told — with `GetAsyncKeyState` at the moment
+of a report that is passed on; no keyboard Raw Input, no key code on stdout.
 
 Records, in the monitor's physical pixels from its top-left corner:
 
 - `pointer:move X Y C B`, `pointer:down X Y C B N`, `pointer:up X Y C B N`,
   `pointer:wheel X Y C B D`, `pointer:leave`
-- `C` Ctrl down (0/1); `B` buttons held as a page's `PointerEvent.buttons`
+- `C` the camera key down (0/1; still the Ctrl bit to main); `B` buttons held as a page's `PointerEvent.buttons`
   (1 left, 2 right, 4 middle); `N` the button (0 left, 1 middle, 2 right); `D`
   the wheel in Windows' units (120 a notch, positive away from the hand).
 - Stopping mid-press says `pointer:leave`, never a release, which a page would
@@ -86,7 +92,7 @@ Stable error reasons: `invalid-arguments`, `owner-mismatch`, `owner-unavailable`
 `lifetime-unavailable`, `input-unavailable`, `events-unavailable`,
 `desktop-request-failed`, `style-failed`, `attach-failed`, `composition-failed`,
 `coordinates-failed`, `position-failed`, `desktop-changed`, `display-changed`,
-`desktop-destroyed`, `wait-failed`, `invalid-command`, `visibility-failed`.
+`desktop-destroyed`, `wait-failed`, `visibility-failed`.
 
 Integrate with `add_subdirectory(wallpaper)` in the Windows native CMake build.
 The target is `fluideq-wallpaper`; output is `bin/FluidEQ-Wallpaper.exe` under the
