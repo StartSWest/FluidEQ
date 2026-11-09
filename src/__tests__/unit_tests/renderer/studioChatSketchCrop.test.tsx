@@ -16,6 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import StudioChatSketch from '../../../renderer/studio/chat/StudioChatSketch';
+import { jpegHeader } from '../../utils/pictureHeaders';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
@@ -90,7 +91,9 @@ afterEach(() => {
 const opened = async (onClose = jest.fn()) => {
   render(
     <StudioChatSketch
-      image={new Uint8Array([0xff, 0xd8, 0xff])}
+      // A JPEG whose header says its size: the sketch decodes nothing
+      // whose header it cannot read (`decodePicture`).
+      image={jpegHeader(1600, 900)}
       onDone={jest.fn()}
       onClose={onClose}
     />,

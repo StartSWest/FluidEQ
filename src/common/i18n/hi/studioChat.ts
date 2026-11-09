@@ -157,6 +157,10 @@ const studioChat = {
   'studioChat.sketch.lead':
     'चीज़ों को घेरें, तीर से उनकी ओर इशारा करें, उनके पास लिखें या ज़रूरी हिस्से तक क्रॉप करें। Claude चित्र के साथ आपके निशान देखता है। बड़े किए गए चित्र को घुमाने के लिए Space दबाए रखें और खींचें।',
   'studioChat.sketch.done': 'यह चित्र इस्तेमाल करें',
+  'studioChat.sketch.attach': 'चैट में जोड़ें',
+  'studioChat.viewer.draw': 'बनाएँ',
+  'studioChat.viewer.drawHint':
+    'इस चित्र पर वहीं बनाएँ जहाँ आपने ज़ूम किया है, फिर इसे अपने अगले संदेश के साथ जोड़ें।',
   'studioChat.sketch.cancel': 'रद्द करें',
   'studioChat.sketch.undo': 'पूर्ववत करें',
   'studioChat.sketch.clear': 'सब साफ़ करें',

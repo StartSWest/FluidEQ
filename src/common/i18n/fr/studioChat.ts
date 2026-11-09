@@ -162,6 +162,10 @@ const studioChat = {
   'studioChat.sketch.lead':
     'Entourez des éléments, pointez-les avec des flèches, écrivez à côté ou recadrez sur l’essentiel. Claude voit vos marques avec l’image. Maintenez la barre d’espace et faites glisser pour déplacer une image agrandie.',
   'studioChat.sketch.done': 'Utiliser cette image',
+  'studioChat.sketch.attach': 'Joindre au chat',
+  'studioChat.viewer.draw': 'Dessiner',
+  'studioChat.viewer.drawHint':
+    'Dessinez sur cette image là où vous l’avez agrandie, puis joignez-la à votre prochain message.',
   'studioChat.sketch.cancel': 'Annuler',
   'studioChat.sketch.undo': 'Annuler le trait',
   'studioChat.sketch.clear': 'Tout effacer',

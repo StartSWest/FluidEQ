@@ -160,6 +160,10 @@ const studioChat = {
   'studioChat.sketch.lead':
     '丸で囲んだり、矢印で指したり、横に書き込んだり、大事な部分だけにトリミングしたりできます。Claude は画像と一緒にあなたの書き込みを見ます。拡大した画像は Space を押しながらドラッグすると動かせます。',
   'studioChat.sketch.done': 'この画像を使う',
+  'studioChat.sketch.attach': 'チャットに添付',
+  'studioChat.viewer.draw': '描き込む',
+  'studioChat.viewer.drawHint':
+    '拡大している場所でこの画像に描き込み、次のメッセージに添付します。',
   'studioChat.sketch.cancel': 'キャンセル',
   'studioChat.sketch.undo': '元に戻す',
   'studioChat.sketch.clear': 'すべて消す',

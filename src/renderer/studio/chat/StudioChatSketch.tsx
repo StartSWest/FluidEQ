@@ -17,6 +17,7 @@ import Glyph from '../../community/Glyph';
 import DialogFrame from '../../components/DialogFrame';
 import holdFocusReturn from '../../utils/focusReturn';
 import { useTranslation } from '../../utils/I18nContext';
+import type { IZoomView } from '../pictureZoom';
 import usePictureZoom from '../usePictureZoom';
 import useSpaceHeld from '../useSpaceHeld';
 import {
@@ -73,6 +74,13 @@ interface IStudioChatSketchProps {
   /** The picture with the marks on it. */
   onDone: (image: Uint8Array) => void;
   onClose: () => void;
+  /**
+   * The closer look to open on, when the picture was already being looked at
+   * closely (the chat's picture viewer); fitted otherwise.
+   */
+  openingView?: IZoomView;
+  /** What the button that hands the picture on says; "Use this picture". */
+  doneLabel?: string;
 }
 
 /** A word being typed: where it goes, in the picture's pixels and on screen. */
@@ -87,6 +95,8 @@ export default function StudioChatSketch({
   image,
   onDone,
   onClose,
+  openingView,
+  doneLabel,
 }: IStudioChatSketchProps) {
   const { t } = useTranslation();
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -115,6 +125,7 @@ export default function StudioChatSketch({
     picture?.width ?? 1,
     picture?.height ?? 1,
     MOST_FITTED,
+    openingView,
   );
   const spaceHeld = useSpaceHeld(!writing);
   const panning = spaceHeld && zoom.pannable;
@@ -389,7 +400,7 @@ export default function StudioChatSketch({
               aria-busy={saving}
               onClick={save}
             >
-              {t('studioChat.sketch.done')}
+              {doneLabel ?? t('studioChat.sketch.done')}
             </button>
           </div>
         }

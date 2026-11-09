@@ -160,6 +160,10 @@ const studioChat = {
   'studioChat.sketch.lead':
     'Обводите, указывайте стрелками, подписывайте рядом или обрезайте до главного. Claude увидит ваши пометки вместе с изображением. Чтобы двигать увеличенное изображение, зажмите пробел и перетаскивайте.',
   'studioChat.sketch.done': 'Использовать это изображение',
+  'studioChat.sketch.attach': 'Прикрепить к чату',
+  'studioChat.viewer.draw': 'Рисовать',
+  'studioChat.viewer.drawHint':
+    'Рисуйте на этом изображении там, где вы его увеличили, затем прикрепите его к следующему сообщению.',
   'studioChat.sketch.cancel': 'Отмена',
   'studioChat.sketch.undo': 'Отменить',
   'studioChat.sketch.clear': 'Стереть всё',

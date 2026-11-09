@@ -162,6 +162,10 @@ const studioChat = {
   'studioChat.sketch.lead':
     '사물에 동그라미를 치거나 화살표로 가리키거나 옆에 글을 쓰거나 중요한 부분만 잘라내세요. Claude는 그림과 함께 표시를 봅니다. 확대한 그림은 Space를 누른 채 드래그하면 움직일 수 있습니다.',
   'studioChat.sketch.done': '이 그림 사용',
+  'studioChat.sketch.attach': '채팅에 첨부',
+  'studioChat.viewer.draw': '그리기',
+  'studioChat.viewer.drawHint':
+    '확대한 곳에서 이 그림 위에 그린 뒤, 다음 메시지에 첨부합니다.',
   'studioChat.sketch.cancel': '취소',
   'studioChat.sketch.undo': '실행 취소',
   'studioChat.sketch.clear': '지우기',

@@ -160,6 +160,10 @@ const studioChat = {
   'studioChat.sketch.lead':
     'Rodea cosas, señálalas con flechas, escribe al lado o recorta lo que importa. Claude ve tus marcas junto con la imagen. Mantén pulsada la barra espaciadora y arrastra para mover una imagen ampliada.',
   'studioChat.sketch.done': 'Usar esta imagen',
+  'studioChat.sketch.attach': 'Adjuntar al chat',
+  'studioChat.viewer.draw': 'Dibujar',
+  'studioChat.viewer.drawHint':
+    'Dibuja sobre esta imagen donde la tienes ampliada y luego adjúntala a tu próximo mensaje.',
   'studioChat.sketch.cancel': 'Cancelar',
   'studioChat.sketch.undo': 'Deshacer',
   'studioChat.sketch.clear': 'Borrar todo',

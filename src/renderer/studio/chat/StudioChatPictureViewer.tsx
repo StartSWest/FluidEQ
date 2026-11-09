@@ -14,6 +14,7 @@ import useModalKeys from '../../utils/useModalKeys';
 import { mostEnlarged } from '../StudioPictureLightbox';
 import StudioPictureCopyButton from '../StudioPictureCopyButton';
 import StudioPictureZoomBar from '../StudioPictureZoomBar';
+import type { IZoomView } from '../pictureZoom';
 import usePictureZoom from '../usePictureZoom';
 import type { IChatPicture } from './chatPictureList';
 import '../../styles/Gallery.scss';
@@ -39,17 +40,30 @@ interface ISize {
  * bar, pan and arrows, over every picture in the conversation, so the looks
  * Claude took and the pictures ChatGPT made can be stepped through side by
  * side. Esc, a click beside the picture and the close button all close it.
+ *
+ * Where there is a chat to send it to (`onDraw`), Draw opens the chat's own
+ * sketch on the picture shown, at the closer look the viewer is on (Ivan,
+ * 2026-11-09: "I should be able to draw also on zoomed pic inside the chat
+ * and attach them to the chat"); the sketch hands it to the message box. The
+ * forum's copy of this viewer has no chat and no Draw. `opening` brings the
+ * viewer back at that closer look when the sketch is left without attaching.
  */
 export default function StudioChatPictureViewer({
   pictures,
   index,
   onStep,
   onClose,
+  onDraw,
+  opening,
 }: {
   pictures: readonly IChatPicture[];
   index: number;
   onStep: (index: number) => void;
   onClose: () => void;
+  /** Draws on `picture`, from the closer look `view` (none: fitted). */
+  onDraw?: (picture: IChatPicture, view: IZoomView | undefined) => void;
+  /** The closer look the picture shown opens at. */
+  opening?: IZoomView;
 }) {
   const { t } = useTranslation();
   const titleId = useId();
@@ -98,6 +112,7 @@ export default function StudioChatPictureViewer({
     size?.width ?? 1,
     size?.height ?? 1,
     size ? mostEnlarged(size.width, size.height) : 1,
+    opening,
   );
 
   useEffect(() => {
@@ -196,6 +211,17 @@ export default function StudioChatPictureViewer({
           </div>
           <div className="studio-lightbox__actions">
             <StudioPictureCopyButton source={{ src: picture.src }} />
+            {onDraw && (
+              <button
+                type="button"
+                className="button small subtle"
+                title={t('studioChat.viewer.drawHint')}
+                onClick={() => onDraw(picture, zoom.view)}
+              >
+                <Glyph name="studio" />
+                {t('studioChat.viewer.draw')}
+              </button>
+            )}
           </div>
         </div>
         <DialogClose

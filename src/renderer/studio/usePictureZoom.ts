@@ -85,6 +85,13 @@ const pointIn = (
  *
  * Every size is measured, never a timer's guess: the space is read once
  * before the first paint and then from a `ResizeObserver`.
+ *
+ * `opening` is a view to open `key`'s picture at, when it should not open
+ * fitted: the chat's picture viewer hands the sketch the closer look it was
+ * on, so the drawing starts on the part of the picture that was being looked
+ * at. The view is a scale and an offset from the middle in screen pixels, so
+ * the same view shows the same part of the picture in a space of any size,
+ * held inside it as every view is (`clampView`).
  */
 export default function usePictureZoom(
   placeRef: RefObject<HTMLDivElement | null>,
@@ -93,9 +100,12 @@ export default function usePictureZoom(
   height: number,
   /** The most the picture is enlarged by when fitted. */
   most: number,
+  opening?: IZoomView,
 ) {
   const [box, setBox] = useState<ISize>();
-  const [state, setState] = useState<IZoomState>();
+  const [state, setState] = useState<IZoomState | undefined>(() =>
+    opening ? { key, view: opening, eased: false } : undefined,
+  );
   // Forgotten as soon as another picture is shown, not only hidden: a zoom
   // kept under its key came back on that picture when the arrows stepped
   // back to it. Reset while rendering, so no frame draws it on either one.
@@ -334,6 +344,8 @@ export default function usePictureZoom(
         } as CSSProperties)
       : undefined,
     percent: Math.round(scale * 100),
+    /** The closer look as it stands, for another view to open at; none fitted. */
+    view,
     zoomed: !!view,
     pannable,
     dragging,

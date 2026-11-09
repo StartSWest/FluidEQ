@@ -194,6 +194,7 @@ export default function StudioChat({
             retryStudioChat().catch(() => undefined);
           }}
           onRestore={restoreStudioChatVersion}
+          onAttachPicture={(image) => setChatDraftStage(project.id, image)}
         />
         {ask && ask.projectId === chat?.projectId && (
           <StudioChatAsk ask={ask} />

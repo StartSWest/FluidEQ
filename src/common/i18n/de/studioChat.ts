@@ -163,6 +163,10 @@ const studioChat = {
   'studioChat.sketch.lead':
     'Kreisen Sie Dinge ein, zeigen Sie mit Pfeilen darauf, schreiben Sie daneben oder schneiden Sie auf das Wesentliche zu. Claude sieht Ihre Markierungen mit dem Bild. Halten Sie die Leertaste gedrückt und ziehen Sie, um ein vergrößertes Bild zu verschieben.',
   'studioChat.sketch.done': 'Dieses Bild verwenden',
+  'studioChat.sketch.attach': 'An den Chat anhängen',
+  'studioChat.viewer.draw': 'Zeichnen',
+  'studioChat.viewer.drawHint':
+    'Zeichnen Sie an der vergrößerten Stelle auf dieses Bild und hängen Sie es dann an Ihre nächste Nachricht an.',
   'studioChat.sketch.cancel': 'Abbrechen',
   'studioChat.sketch.undo': 'Rückgängig',
   'studioChat.sketch.clear': 'Löschen',

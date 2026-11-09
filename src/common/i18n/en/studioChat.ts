@@ -160,6 +160,10 @@ const studioChat = {
   'studioChat.sketch.lead':
     'Circle things, point arrows at them, write beside them or crop to the part that matters. Claude sees your marks with the picture. Hold Space and drag to move round a zoomed picture.',
   'studioChat.sketch.done': 'Use this picture',
+  'studioChat.sketch.attach': 'Attach to chat',
+  'studioChat.viewer.draw': 'Draw',
+  'studioChat.viewer.drawHint':
+    'Draw on this picture where you are zoomed in, then attach it to your next message.',
   'studioChat.sketch.cancel': 'Cancel',
   'studioChat.sketch.undo': 'Undo',
   'studioChat.sketch.clear': 'Clear',

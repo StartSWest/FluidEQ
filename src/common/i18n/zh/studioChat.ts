@@ -152,6 +152,10 @@ const studioChat = {
   'studioChat.sketch.lead':
     '可以圈出、用箭头指出、在旁边写字，或裁剪出重点部分。Claude 会连同图片一起看到你的标记。按住空格键拖动，可移动放大后的图片。',
   'studioChat.sketch.done': '使用这张图片',
+  'studioChat.sketch.attach': '附加到聊天',
+  'studioChat.viewer.draw': '画',
+  'studioChat.viewer.drawHint':
+    '在放大的位置直接在这张图片上画，然后把它附加到你的下一条消息。',
   'studioChat.sketch.cancel': '取消',
   'studioChat.sketch.undo': '撤销',
   'studioChat.sketch.clear': '全部清除',

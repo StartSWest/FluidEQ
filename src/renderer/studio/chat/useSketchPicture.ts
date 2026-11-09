@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { decodePicture } from '../scenePicture';
 import { cropPixels, type ICropBox } from './sketchCrop';
 import type { TSketchMark } from './sketchMarks';
 
@@ -14,7 +15,8 @@ interface ICropped {
  * marks it held. Every picture made here is kept until the dialog goes,
  * since Undo may go back to any of them.
  *
- * `onUnreadable` is told when the picture handed in cannot be decoded.
+ * `onUnreadable` is told when the picture handed in cannot be decoded, or
+ * when its header says it decodes past `PICTURE_BOUNDS`.
  */
 export default function useSketchPicture(
   image: Uint8Array,
@@ -27,8 +29,17 @@ export default function useSketchPicture(
 
   useEffect(() => {
     let live = true;
-    createImageBitmap(new Blob([new Uint8Array(image)]))
+    // Through the header check every decode of a chat's picture asks first
+    // (`decodePicture`): the sketch also opens on pictures Claude's looks and
+    // ChatGPT brought in, from the chat's picture viewer.
+    decodePicture(image)
       .then((bitmap) => {
+        if (!bitmap) {
+          if (live) {
+            onUnreadable();
+          }
+          return undefined;
+        }
         if (live) {
           bitmaps.current.push(bitmap);
           setPicture(bitmap);

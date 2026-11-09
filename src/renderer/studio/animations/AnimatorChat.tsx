@@ -83,6 +83,7 @@ export default function AnimatorChat({ projectId, name }: IAnimatorChatProps) {
               retryAnimator(name).catch(() => undefined);
             }}
             onRestore={(entryId) => restoreAnimatorVersion(name, entryId)}
+            onAttachPicture={setStage}
             welcome={
               <>
                 <h3>{t('studio.animator.welcomeTitle', { name })}</h3>

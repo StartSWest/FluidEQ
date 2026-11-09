@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode, UIEvent } from 'react';
 import type { IStudioChat, TStudioChatRestore } from 'common/studioChat';
 import Glyph from '../../community/Glyph';
@@ -13,9 +13,15 @@ import { AI_IDEAS } from '../aiPrompt';
 import useStudioPictureMenu from '../useStudioPictureMenu';
 import ChatText from './ChatText';
 import StudioChatCopy from './StudioChatCopy';
+import type { IZoomView } from '../pictureZoom';
+import StudioChatPictureDraw from './StudioChatPictureDraw';
 import StudioChatPictureViewer from './StudioChatPictureViewer';
 import StudioChatReply from './StudioChatReply';
-import { chatPicturesOf, pictureKey } from './chatPictureList';
+import {
+  chatPicturesOf,
+  pictureKey,
+  type IChatPicture,
+} from './chatPictureList';
 
 /** Within this many pixels of the end, the thread follows a reply as it grows. */
 const FOLLOW_SLACK = 48;
@@ -44,6 +50,11 @@ interface IStudioChatThreadProps {
    * chat says what it works on, and offers no ideas for a scene.
    */
   welcome?: ReactNode;
+  /**
+   * A picture from the chat, drawn on in the picture viewer, for this chat's
+   * message box: the viewer offers Draw only where it is given.
+   */
+  onAttachPicture?: (image: Uint8Array) => void;
 }
 
 /**
@@ -60,6 +71,7 @@ export default function StudioChatThread({
   onRestore,
   sceneName,
   welcome,
+  onAttachPicture,
 }: IStudioChatThreadProps) {
   const { t } = useTranslation();
   const scroller = useRef<HTMLDivElement>(null);
@@ -81,6 +93,29 @@ export default function StudioChatThread({
     [chat?.entries, t],
   );
   const viewed = pictures.findIndex(({ key }) => key === viewing);
+  // The viewer's picture being drawn on, in the viewer's place, and the
+  // closer look to bring the viewer back at when the drawing is left. Both
+  // handed over in callbacks that keep their identity: the sketch decodes its
+  // picture again whenever its close changes, and this thread renders on
+  // every word of a reply.
+  const [drawing, setDrawing] = useState<{
+    picture: IChatPicture;
+    view: IZoomView | undefined;
+  }>();
+  const [returning, setReturning] = useState<IZoomView>();
+  const leaveDrawing = useCallback(() => {
+    setReturning(drawing?.view);
+    setDrawing(undefined);
+  }, [drawing]);
+  const attachDrawn = useCallback(
+    (image: Uint8Array) => {
+      onAttachPicture?.(image);
+      setDrawing(undefined);
+      setReturning(undefined);
+      setViewing(undefined);
+    },
+    [onAttachPicture],
+  );
   // Changes as a reply grows: its words, its steps, its end.
   const growth = last
     ? `${last.id}:${last.text.length}:${last.kind === 'claude' ? `${last.steps.length}:${last.state}` : ''}`
@@ -293,12 +328,29 @@ export default function StudioChatThread({
         )}
       </div>
       {pictureMenu}
-      {viewed !== -1 && (
+      {viewed !== -1 && !drawing && (
         <StudioChatPictureViewer
           pictures={pictures}
           index={viewed}
           onStep={(at) => setViewing(pictures[at]?.key)}
-          onClose={() => setViewing(undefined)}
+          onClose={() => {
+            setReturning(undefined);
+            setViewing(undefined);
+          }}
+          onDraw={
+            onAttachPicture
+              ? (picture, view) => setDrawing({ picture, view })
+              : undefined
+          }
+          opening={returning}
+        />
+      )}
+      {drawing && (
+        <StudioChatPictureDraw
+          picture={drawing.picture}
+          openingView={drawing.view}
+          onBack={leaveDrawing}
+          onAttach={attachDrawn}
         />
       )}
     </>
