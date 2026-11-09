@@ -502,6 +502,24 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $amber;
 }
 
+// The monitor's time of day, a line of its own across the whole row under
+// its name and its switches: the Set dialog's two rows, without their panel.
+.wallpaper-screen__daylight {
+  display: grid;
+  flex: 1 1 100%;
+  min-width: 0;
+  padding-top: 8px;
+  border-top: 1px solid $border-subtle;
+
+  > .wallpaper-dialog__setting {
+    padding: 0;
+  }
+
+  > .wallpaper-dialog__setting + .wallpaper-dialog__setting {
+    padding-top: 6px;
+  }
+}
+
 .wallpaper-screen__actions {
   display: flex;
   flex-wrap: wrap;

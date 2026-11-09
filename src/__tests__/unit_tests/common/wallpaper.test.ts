@@ -6,11 +6,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   MAX_WALLPAPER_DISPLAYS,
+  WALLPAPER_CLOCK_DAYLIGHT,
   isWallpaperAudio,
+  isWallpaperDaylightChoice,
   isWallpaperStart,
   isWallpaperState,
   isWallpaperStop,
   isWallpaperTuningMap,
+  monitorDaylight,
   wallpaperPauseReason,
   type IWallpaperStart,
   type IWallpaperState,
@@ -268,5 +271,70 @@ describe('why a monitor pauses', () => {
         cover: 'others',
       }),
     ).toBe('covered');
+  });
+});
+
+/**
+ * What a monitor's page is told: the graph's while it follows the graph, its
+ * own choice otherwise, and nothing where it made none (its scene's own hour).
+ */
+describe('a monitor’s time of day', () => {
+  const told = { graph: 80, brightness: 40 };
+
+  it('is the graph’s while it follows, whatever its own choice says', () => {
+    expect(
+      monitorDaylight(
+        { followsGraph: true, daylight: { source: 'own', daylight: 10 } },
+        told,
+      ),
+    ).toBe(80);
+    expect(
+      monitorDaylight({ followsGraph: true }, { ...told, graph: undefined }),
+    ).toBeUndefined();
+  });
+
+  it('is its own choice while it does not follow', () => {
+    expect(
+      monitorDaylight({ daylight: { source: 'own', daylight: 10 } }, told),
+    ).toBe(10);
+    expect(
+      monitorDaylight(
+        { daylight: { source: 'brightness', daylight: 10 } },
+        told,
+      ),
+    ).toBe(40);
+    expect(
+      monitorDaylight({ daylight: { source: 'clock', daylight: 10 } }, told),
+    ).toBe(WALLPAPER_CLOCK_DAYLIGHT);
+  });
+
+  it('waits on its own Daylight for a Brightness not yet told', () => {
+    expect(
+      monitorDaylight(
+        { daylight: { source: 'brightness', daylight: 15 } },
+        { graph: 80, brightness: undefined },
+      ),
+    ).toBe(15);
+  });
+
+  it('is nothing for a monitor with no choice of its own', () => {
+    expect(monitorDaylight({}, told)).toBeUndefined();
+  });
+
+  it('reads only the three choices, each with a time of day in range', () => {
+    expect(isWallpaperDaylightChoice({ source: 'own', daylight: 0 })).toBe(
+      true,
+    );
+    expect(isWallpaperDaylightChoice({ source: 'clock', daylight: 100 })).toBe(
+      true,
+    );
+    [
+      { source: 'moon', daylight: 10 },
+      { source: 'own', daylight: 101 },
+      { source: 'own', daylight: 'noon' },
+      { source: 'brightness' },
+      'own',
+      null,
+    ].forEach((raw) => expect(isWallpaperDaylightChoice(raw)).toBe(false));
   });
 });

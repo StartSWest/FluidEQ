@@ -31,6 +31,11 @@ const wallpaper = {
     'Mostra la scena del grafico e cambia con essa, che la scelga tu o il cambio automatico. Finché il grafico mostra uno stile, questo schermo mantiene l’ultima scena.',
   'wallpaper.follow.choice':
     'I monitor scelti cambiano con la scena del grafico, che la scelga tu o il cambio automatico, e mantengono l’ultima finché il grafico mostra uno stile.',
+  'wallpaper.daylight': 'Momento del giorno',
+  'wallpaper.daylight.hint':
+    'Per un monitor che non segue il grafico: un momento del giorno scelto da te, la luminosità dell’app o l’orologio del computer.',
+  'wallpaper.daylight.following':
+    'Questo monitor segue il grafico, quindi ne prende il momento del giorno.',
   'wallpaper.cancel': 'Annulla',
   'wallpaper.done': 'Fine',
   'wallpaper.start': 'Imposta sfondo',

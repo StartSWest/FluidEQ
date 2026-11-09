@@ -26,6 +26,7 @@ interface IWallpaperBridge {
   setSceneTuning?: (tuning: Record<string, IWallpaperTuning>) => void;
   setGraphLook?: (lookId: string) => void;
   setGraphDaylight?: (daylight: TWallpaperDaylight) => void;
+  setBrightnessDaylight?: (daylight: number) => void;
   onWallpaperState?: (listener: (state: unknown) => void) => () => void;
 }
 
@@ -167,6 +168,14 @@ export const sendGraphLook = (lookId: string) => {
  */
 export const sendGraphDaylight = (daylight: TWallpaperDaylight) => {
   bridge()?.setGraphDaylight?.(daylight);
+};
+
+/**
+ * The window's Brightness as a time of day, for the monitors set to follow
+ * Brightness on their own. Main keeps the last one it was told.
+ */
+export const sendBrightnessDaylight = (daylight: number) => {
+  bridge()?.setBrightnessDaylight?.(daylight);
 };
 
 export const startWallpaper = (

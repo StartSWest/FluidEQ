@@ -8,6 +8,7 @@ import {
 import {
   DEFAULT_WALLPAPER_WAVE,
   MAX_WALLPAPER_DISPLAYS,
+  isWallpaperDaylightChoice,
   isWallpaperLookId,
   isWallpaperMotion,
   isWallpaperTuningMap,
@@ -80,6 +81,7 @@ interface IStoredScreen {
   wave?: unknown;
   motion?: unknown;
   followsGraph?: unknown;
+  daylight?: unknown;
   monitor: ISavedMonitor;
 }
 
@@ -118,6 +120,16 @@ export const parseArrangement = (
         : DEFAULT_WALLPAPER_WAVE,
       motion: isWallpaperMotion(entry.motion) ? entry.motion : 'music',
       ...(entry.followsGraph === true ? { followsGraph: true } : {}),
+      // A time of day this version cannot read is no choice, and the scene
+      // keeps its author's hour: never a reason to drop the monitor.
+      ...(isWallpaperDaylightChoice(entry.daylight)
+        ? {
+            daylight: {
+              source: entry.daylight.source,
+              daylight: entry.daylight.daylight,
+            },
+          }
+        : {}),
     },
     monitor: {
       label: entry.monitor.label,

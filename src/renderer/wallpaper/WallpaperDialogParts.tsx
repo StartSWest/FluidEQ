@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import {
   WALLPAPER_MOTIONS,
+  type IWallpaperDaylight,
   type IWallpaperWave,
   type TWallpaperMotion,
 } from 'common/wallpaper';
@@ -10,6 +11,7 @@ import { snapPercent } from '../utils/percentSnaps';
 import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
 import { MOTION_COPY } from './wallpaperCopy';
+import WallpaperDaylightControl from './WallpaperDaylightControl';
 
 /**
  * The desktop dialog's choices under its monitors (`WallpaperDialog`): how
@@ -72,17 +74,25 @@ interface IWallpaperDialogSettingsProps {
   onWave: (wave: IWallpaperWave) => void;
   follows: boolean;
   onFollows: (follows: boolean) => void;
+  /** The chosen monitors' own time of day, for when they do not follow. */
+  daylight: IWallpaperDaylight;
+  onDaylight: (daylight: IWallpaperDaylight) => void;
   pauseOnBattery: boolean;
   onPauseOnBattery: (pause: boolean) => void;
   disabled: boolean;
 }
 
-/** The wave's height and place, following the graph, and battery power. */
+/**
+ * The wave's height and place, following the graph, the time of day when it
+ * does not, and battery power.
+ */
 export function WallpaperDialogSettings({
   wave,
   onWave,
   follows,
   onFollows,
+  daylight,
+  onDaylight,
   pauseOnBattery,
   onPauseOnBattery,
   disabled,
@@ -157,6 +167,13 @@ export function WallpaperDialogSettings({
           handleToggle={() => onFollows(!follows)}
         />
       </div>
+      <WallpaperDaylightControl
+        value={daylight}
+        onChange={onDaylight}
+        onLive={onDaylight}
+        followsGraph={follows}
+        disabled={disabled}
+      />
       <div className="wallpaper-dialog__setting">
         <span className="wallpaper-dialog__setting-copy">
           <label htmlFor={batteryId}>{t('wallpaper.pauseOnBattery')}</label>

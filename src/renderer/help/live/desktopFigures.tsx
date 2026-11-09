@@ -181,6 +181,8 @@ const DesktopDialogDrawing = () => {
         onWave={nothing}
         follows
         onFollows={nothing}
+        daylight={{ source: 'own', daylight: 0 }}
+        onDaylight={nothing}
         pauseOnBattery
         onPauseOnBattery={nothing}
         disabled={false}

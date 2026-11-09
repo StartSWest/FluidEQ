@@ -159,13 +159,15 @@ export const mockSurfaceModule = () => ({
       tuning: options.tuning,
       contents: { mainFrame: {} },
       choice: () => choice,
-      // As the real surface: following the graph is whatever the retune says.
+      // As the real surface: following the graph and the monitor's own time
+      // of day are whatever the retune says.
       retune: jest.fn((next: IWallpaperChoice) => {
         choice = {
           lookId: choice.lookId,
           wave: next.wave,
           motion: next.motion,
           ...(next.followsGraph === true ? { followsGraph: true } : {}),
+          ...(next.daylight ? { daylight: next.daylight } : {}),
         };
       }),
       retunePerformance: jest.fn(),

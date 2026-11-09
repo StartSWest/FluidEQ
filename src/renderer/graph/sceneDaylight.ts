@@ -66,6 +66,9 @@ const subscribeClock = (listener: () => void) => {
     document.addEventListener('visibilitychange', askClockAgain);
   }
   clockListeners.add(listener);
+  // Read now as well: a control opened long after any scene last read the
+  // clock would otherwise show the hour it was read at.
+  readClock();
   return () => {
     clockListeners.delete(listener);
     if (clockListeners.size === 0) {
@@ -90,11 +93,20 @@ export const pageDaylight = (): number => {
     : setting.daylight;
 };
 
-/** The same, kept current for a component, to the whole number. */
+/**
+ * The clock's time of day, whole, as the graph's own clock follow reads it:
+ * asked again whenever the window is come back to or shown, and on every
+ * frame a scene following the clock draws. What a control showing the
+ * clock's value reads, never a timer of its own.
+ */
+export const useClockDaylight = (): number =>
+  useSyncExternalStore(subscribeClock, () => rungClock);
+
+/** `pageDaylight`, kept current for a component, to the whole number. */
 export const usePageDaylight = (): number => {
   const setting = useSceneDaylightSetting();
   const shade = useThemeShade();
-  const clock = useSyncExternalStore(subscribeClock, () => rungClock);
+  const clock = useClockDaylight();
   if (setting.source === 'clock') {
     return clock;
   }

@@ -1,12 +1,18 @@
 import { useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import type { IWallpaperScreen, TWallpaperError } from '../../common/wallpaper';
+import type {
+  IWallpaperDaylight,
+  IWallpaperScreen,
+  TWallpaperError,
+} from '../../common/wallpaper';
 import Glyph from '../community/Glyph';
+import { authoredDaylight } from '../graph/sceneDaylight';
 import DialogFrame from '../components/DialogFrame';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import LookSwatch from './LookSwatch';
+import { useMonitorScene } from './MonitorScenePreview';
 import {
   MonitorFace,
   MonitorStage,
@@ -15,7 +21,8 @@ import {
   useMonitorLayout,
 } from './MonitorStage';
 import { screenDetailKey, screenStatusKey } from './wallpaperCopy';
-import useWallpaperLooks from './wallpaperLooks';
+import WallpaperDaylightControl from './WallpaperDaylightControl';
+import useWallpaperLooks, { type IWallpaperLook } from './wallpaperLooks';
 import {
   startWallpaper,
   stopWallpaper,
@@ -41,6 +48,40 @@ const RETRYABLE: readonly TWallpaperError[] = [
   'audio',
   'refused',
 ];
+
+/**
+ * One monitor's time of day under its row. With no choice of its own it plays
+ * at the hour its visualizer was made at, so that is what Off shows: the
+ * scene is loaded for it, as the tile in the Set dialog loads it.
+ */
+function ManageDaylight({
+  screen,
+  look,
+  disabled,
+  onChange,
+}: {
+  screen: IWallpaperScreen;
+  look: IWallpaperLook;
+  disabled: boolean;
+  onChange: (daylight: IWallpaperDaylight) => void;
+}) {
+  const scene = useMonitorScene(look);
+  return (
+    <div className="wallpaper-screen__daylight">
+      <WallpaperDaylightControl
+        value={
+          screen.daylight ?? {
+            source: 'own',
+            daylight: Math.round(scene ? authoredDaylight(scene.pack) : 0),
+          }
+        }
+        onChange={onChange}
+        followsGraph={screen.followsGraph === true}
+        disabled={disabled}
+      />
+    </div>
+  );
+}
 
 /** What every monitor shows, and a Stop for each of them. */
 export default function WallpaperManageDialog({
@@ -262,6 +303,25 @@ export default function WallpaperManageDialog({
                       {t('wallpaper.stop')}
                     </button>
                   </span>
+                  {screen.phase !== 'error' && (
+                    <ManageDaylight
+                      screen={screen}
+                      look={look}
+                      disabled={operation.pending}
+                      onChange={(daylight) =>
+                        // The page takes it in place, with no restart.
+                        startWallpaper({
+                          lookId: screen.lookId,
+                          displayIds: [screen.displayId],
+                          pauseOnBattery,
+                          wave: screen.wave,
+                          motion: screen.motion,
+                          followsGraph: screen.followsGraph === true,
+                          daylight,
+                        })
+                      }
+                    />
+                  )}
                 </li>
               );
             })}

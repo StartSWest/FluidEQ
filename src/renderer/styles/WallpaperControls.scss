@@ -353,6 +353,63 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// A monitor's own time of day (`WallpaperDaylightControl`): its name and what
+// it does, the graph's three choices at the end; the Daylight slider under
+// them reads as the same setting, so no hairline parts the two. The choices
+// drop under the words when the panel is too narrow for both on a line.
+.wallpaper-daylight {
+  flex-wrap: wrap;
+
+  > .wallpaper-dialog__setting-copy {
+    flex: 1 1 220px;
+  }
+
+  > .wallpaper-daylight__choice {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+    margin-inline-start: auto;
+  }
+
+  + .wallpaper-wave {
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+
+.wallpaper-daylight__follows {
+  color: $text-muted;
+  font-size: $text-small;
+
+  // Dimmed with the choices it names, while the graph gives the time of day.
+  .wallpaper-daylight__choice:has(:disabled) > & {
+    opacity: $disabled-opacity;
+  }
+}
+
+// The setting's name, where the other rows have a label: past the copy's own
+// rule for the faint line under a name.
+.wallpaper-dialog__setting-copy > .wallpaper-daylight__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+// Given its time of day by Brightness, the clock or the graph: the slider
+// shows it and does not move, as the graph's does.
+.wallpaper-wave.is-disabled {
+  > label,
+  .wallpaper-wave__value {
+    color: $text-faint;
+  }
+
+  input[type='range'] {
+    cursor: default;
+    opacity: $disabled-opacity;
+  }
+}
+
 .wallpaper-wave__value {
   flex: 0 0 auto;
   min-width: 40px;

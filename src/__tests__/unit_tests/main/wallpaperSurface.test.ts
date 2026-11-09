@@ -45,9 +45,11 @@ jest.mock('../../../main/wallpaper/nativeHost', () => ({
 
 /* eslint-disable import/first -- install the mocks first */
 import type {
+  IWallpaperDaylight,
   IWallpaperTuning,
   TWallpaperPause,
 } from '../../../common/wallpaper';
+import { WALLPAPER_CLOCK_DAYLIGHT } from '../../../common/wallpaper';
 import { createDesktopSurface } from '../../../main/wallpaper/surface';
 /* eslint-enable import/first */
 
@@ -57,6 +59,8 @@ const create = (
     tuning?: IWallpaperTuning;
     followsGraph?: boolean;
     daylight?: () => number | undefined;
+    brightness?: () => number | undefined;
+    ownDaylight?: IWallpaperDaylight;
   } = {},
 ) => {
   const onFail = jest.fn();
@@ -70,6 +74,7 @@ const create = (
       wave: { height: 1, position: 0 },
       motion: 'music',
       ...(pause.followsGraph ? { followsGraph: true } : {}),
+      ...(pause.ownDaylight ? { daylight: pause.ownDaylight } : {}),
     },
     performance: {
       frameRate: 'display',
@@ -80,6 +85,7 @@ const create = (
     },
     tuning: pause.tuning,
     daylight: pause.daylight ?? (() => undefined),
+    brightness: pause.brightness ?? (() => undefined),
     scene: {
       pack: { id: 'aurora', version: 1 } as never,
       madeBy: 'fluideq',
@@ -291,6 +297,92 @@ describe('a desktop background and the time of day', () => {
     surface.retune({ ...same, followsGraph: false });
 
     expect(toldDaylight()).toEqual([60, undefined]);
+  });
+});
+
+/**
+ * A monitor that does not follow the graph plays its own time of day, from
+ * the graph's three choices (Ivan, 2026-11-08); one that follows is told the
+ * graph's whatever its own choice says.
+ */
+describe('a desktop background with a time of day of its own', () => {
+  const running = (options: Parameters<typeof create>[0]) => {
+    const made = create(options);
+    made.surface.drawn(1);
+    mockHost.report('ready');
+    mockHost.report('active');
+    mockWindow.webContents.send.mockClear();
+    return made;
+  };
+  const toldDaylight = () =>
+    mockWindow.webContents.send.mock.calls.map(
+      ([, state]) => (state as { daylight?: unknown }).daylight,
+    );
+  const same = { wave: { height: 1, position: 0 }, motion: 'music' } as const;
+
+  it('plays a Daylight set by hand, not the graph’s', () => {
+    const { surface } = running({
+      daylight: () => 90,
+      ownDaylight: { source: 'own', daylight: 25 },
+    });
+    expect(surface.surfaceState().daylight).toBe(25);
+    expect(surface.choice().daylight).toEqual({ source: 'own', daylight: 25 });
+  });
+
+  it('follows the window’s Brightness, and tells only a change of it', () => {
+    let brightness = 40;
+    const { surface } = running({
+      daylight: () => 90,
+      brightness: () => brightness,
+      ownDaylight: { source: 'brightness', daylight: 10 },
+    });
+    expect(surface.surfaceState().daylight).toBe(40);
+    mockWindow.webContents.send.mockClear();
+
+    brightness = 70;
+    surface.applyDaylight();
+    surface.applyDaylight();
+
+    expect(toldDaylight()).toEqual([70]);
+  });
+
+  it('plays its own Daylight until the window has said its Brightness', () => {
+    const { surface } = running({
+      brightness: () => undefined,
+      ownDaylight: { source: 'brightness', daylight: 35 },
+    });
+    expect(surface.surfaceState().daylight).toBe(35);
+  });
+
+  it('reads the clock on the monitor, told once as the word for it', () => {
+    const { surface } = running({
+      ownDaylight: { source: 'clock', daylight: 0 },
+    });
+    expect(surface.surfaceState().daylight).toBe(WALLPAPER_CLOCK_DAYLIGHT);
+  });
+
+  it('takes the graph’s while it follows, and its own again once it stops', () => {
+    const { surface } = running({
+      daylight: () => 80,
+      ownDaylight: { source: 'own', daylight: 20 },
+    });
+    const own = { source: 'own', daylight: 20 } as const;
+
+    surface.retune({ ...same, followsGraph: true, daylight: own });
+    surface.retune({ ...same, followsGraph: false, daylight: own });
+
+    expect(toldDaylight()).toEqual([80, 20]);
+  });
+
+  it('moves to another choice in place, telling the page and nothing else', () => {
+    const { surface } = running({
+      ownDaylight: { source: 'own', daylight: 20 },
+    });
+
+    surface.retune({ ...same, daylight: { source: 'own', daylight: 65 } });
+
+    expect(toldDaylight()).toEqual([65]);
+    expect(surface.choice().daylight).toEqual({ source: 'own', daylight: 65 });
   });
 });
 

@@ -31,6 +31,10 @@ const wallpaper = {
     '顯示圖表正在顯示的場景並隨之更改，無論您選擇它還是自動切換。雖然圖表顯示了一種樣式，但此畫面保留了最後一個場景。',
   'wallpaper.follow.choice':
     '無論您選擇還是自動切換，所選監視器都會隨著圖形的場景而變化，並在圖形顯示樣式時保留最後一個。',
+  'wallpaper.daylight': '時段',
+  'wallpaper.daylight.hint':
+    '適用於不跟隨圖的顯示器：由你設定的時段、應用程式的亮度，或電腦的時鐘。',
+  'wallpaper.daylight.following': '此顯示器跟隨圖，因此使用圖的時段。',
   'wallpaper.cancel': '取消',
   'wallpaper.done': '完成',
   'wallpaper.start': '設定背景',

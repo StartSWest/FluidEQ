@@ -8,6 +8,7 @@ import {
 } from '../../common/scenePerformance';
 import {
   WALLPAPER,
+  monitorDaylight,
   type IWallpaperChoice,
   type IWallpaperSurfaceState,
   type IWallpaperTuning,
@@ -53,6 +54,8 @@ interface IDesktopSurfaceOptions {
    * monitor following the graph draws its scene at it, or reads the clock.
    */
   daylight(): TWallpaperDaylight | undefined;
+  /** The window's Brightness as a time of day, once it has said it. */
+  brightness(): number | undefined;
   executable: string;
   /**
    * Why this monitor should not play now, given what keeps its desktop out
@@ -81,16 +84,22 @@ export interface IDesktopSurface {
   readonly scene: IWallpaperScene;
   phase(): IWallpaperSurfaceState['phase'];
   pauseReason(): TWallpaperPause | undefined;
-  /** What it shows, with its wave, motion and following as they are now. */
+  /**
+   * What it shows, with its wave, motion, following and own time of day as
+   * they are now.
+   */
   choice(): IWallpaperChoice;
   /**
    * A new wave or motion for the visualizer already playing: the page moves
    * its band or changes what it hears, with no restart and no blink. Following
-   * the graph turned on or off is kept here too, and tells the page only the
-   * time of day that comes or goes with it.
+   * the graph turned on or off is kept here too, and so is the monitor's own
+   * time of day; each tells the page only the time of day that changes.
    */
   retune(
-    next: Pick<IWallpaperChoice, 'wave' | 'motion' | 'followsGraph'>,
+    next: Pick<
+      IWallpaperChoice,
+      'wave' | 'motion' | 'followsGraph' | 'daylight'
+    >,
   ): void;
   /** The window's frame rate and resolution choice changed: the page follows. */
   retunePerformance(next: IScenePerformance): void;
@@ -101,8 +110,8 @@ export interface IDesktopSurface {
    */
   applyTuning(next: IWallpaperTuning | undefined): void;
   /**
-   * The window's time of day moved: a monitor following the graph tells its
-   * page, and one that is not has nothing to change.
+   * The window's time of day or its Brightness moved: a monitor whose time of
+   * day comes from it tells its page, and the rest have nothing to change.
    */
   applyDaylight(): void;
   /**
@@ -167,6 +176,7 @@ export const createDesktopSurface = (
   let pauseReason: TWallpaperPause | undefined;
   let { wave, motion } = options.choice;
   let followsGraph = options.choice.followsGraph === true;
+  let ownDaylight = options.choice.daylight;
   let { performance, tuning } = options;
   // A look the listener has tuned is drawn in the band they tuned it in,
   // whatever band the monitor was set with.
@@ -174,9 +184,14 @@ export const createDesktopSurface = (
     wave = tuning.wave;
   }
 
-  // The time of day this monitor's page was last told: the window's, while
-  // it follows the graph, and none otherwise.
-  const shownDaylight = () => (followsGraph ? options.daylight() : undefined);
+  // The time of day this monitor's page was last told (`monitorDaylight`):
+  // the graph's while it follows the graph, else its own, and none where it
+  // has no choice of its own.
+  const shownDaylight = () =>
+    monitorDaylight(
+      { followsGraph, daylight: ownDaylight },
+      { graph: options.daylight(), brightness: options.brightness() },
+    );
   let toldDaylight = shownDaylight();
 
   const surfaceState = (): IWallpaperSurfaceState => {
@@ -336,6 +351,7 @@ export const createDesktopSurface = (
       wave,
       motion,
       ...(followsGraph ? { followsGraph } : {}),
+      ...(ownDaylight ? { daylight: ownDaylight } : {}),
     }),
     retunePerformance: (next) => {
       // The whole choice, not the rate and the size alone: the page reads the
@@ -367,6 +383,7 @@ export const createDesktopSurface = (
     },
     retune: (next) => {
       followsGraph = next.followsGraph === true;
+      ownDaylight = next.daylight;
       if (
         next.wave.height === wave.height &&
         next.wave.position === wave.position &&
@@ -384,6 +401,7 @@ export const createDesktopSurface = (
       }
       ({ lookId, wave, motion } = nextChoice);
       followsGraph = nextChoice.followsGraph === true;
+      ownDaylight = nextChoice.daylight;
       scene = nextScene;
       tuning = nextTuning;
       if (tuning?.wave) {

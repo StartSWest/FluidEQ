@@ -115,6 +115,16 @@ const registerWallpaperIpc = (
         manager.setGraphDaylight(raw);
       }
     }),
+    onWindowMessage(WALLPAPER.brightnessDaylight, (event, raw: unknown) => {
+      // A number only: Brightness is never the clock.
+      if (
+        fromOwner(event) &&
+        typeof raw === 'number' &&
+        isWallpaperDaylight(raw)
+      ) {
+        manager.setBrightnessDaylight(raw);
+      }
+    }),
     onWindowMessage(WALLPAPER.audio, (event, raw: unknown) => {
       if (fromOwner(event)) {
         manager.acceptAudio(raw);

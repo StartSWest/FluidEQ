@@ -34,6 +34,11 @@ const wallpaper = {
     '그래프가 표시하는 장면을 표시하고 선택하든 자동 전환을 선택하든 그에 따라 변경됩니다. 대신 그래프에는 스타일이 표시되지만 이 화면은 마지막 장면을 유지합니다.',
   'wallpaper.follow.choice':
     '선택한 모니터는 사용자가 선택하든 자동 전환을 선택하든 그래프의 장면에 따라 변경되며 그래프가 스타일을 표시하는 동안 마지막 모니터를 유지합니다.',
+  'wallpaper.daylight': '시간대',
+  'wallpaper.daylight.hint':
+    '그래프를 따르지 않는 모니터의 시간대: 직접 정한 시간대, 앱의 밝기 또는 컴퓨터 시계.',
+  'wallpaper.daylight.following':
+    '이 모니터는 그래프를 따르므로 그래프의 시간대를 사용합니다.',
   'wallpaper.cancel': '취소',
   'wallpaper.done': '완료',
   'wallpaper.start': '배경 설정',

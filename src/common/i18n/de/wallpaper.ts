@@ -31,6 +31,11 @@ const wallpaper = {
     'Zeigt die Szene des Diagramms und wechselt mit ihr – ob Sie sie wählen oder der automatische Wechsel. Zeigt das Diagramm stattdessen einen Stil, behält dieser Bildschirm die letzte Szene.',
   'wallpaper.follow.choice':
     'Die gewählten Monitore wechseln mit der Szene des Diagramms – ob Sie sie wählen oder der automatische Wechsel – und behalten die letzte, solange das Diagramm einen Stil zeigt.',
+  'wallpaper.daylight': 'Tageszeit',
+  'wallpaper.daylight.hint':
+    'Für einen Monitor, der nicht dem Diagramm folgt: eine Tageszeit, die Sie festlegen, die Helligkeit der App oder die Uhr des Computers.',
+  'wallpaper.daylight.following':
+    'Dieser Monitor folgt dem Diagramm und übernimmt daher dessen Tageszeit.',
   'wallpaper.cancel': 'Abbrechen',
   'wallpaper.done': 'Fertig',
   'wallpaper.start': 'Hintergrund festlegen',

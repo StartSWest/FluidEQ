@@ -31,6 +31,11 @@ const wallpaper = {
     'Shows the scene the graph is showing and changes with it, whether you pick it or automatic switching does. While the graph shows a style instead, this screen keeps the last scene.',
   'wallpaper.follow.choice':
     'The chosen monitors change with the graph’s scene, whether you pick it or automatic switching does, and keep the last one while the graph shows a style.',
+  'wallpaper.daylight': 'Time of day',
+  'wallpaper.daylight.hint':
+    'For a monitor that doesn’t follow the graph: a time of day you set, the app’s Brightness, or the computer’s clock.',
+  'wallpaper.daylight.following':
+    'This monitor follows the graph, so it takes the graph’s time of day.',
   'wallpaper.cancel': 'Cancel',
   'wallpaper.done': 'Done',
   'wallpaper.start': 'Set background',

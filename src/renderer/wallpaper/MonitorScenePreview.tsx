@@ -89,10 +89,13 @@ export const useMonitorScene = (
 export default function MonitorScenePreview({
   scene,
   wave,
+  daylight,
 }: {
   scene: IMonitorScene;
   /** The wave it is being set with; absent, its maker's. */
   wave?: IWallpaperWave;
+  /** The time of day it is being set with, read on each frame it draws. */
+  daylight?: () => number;
 }) {
   return (
     <span className="wallpaper-monitor__scene" aria-hidden="true">
@@ -103,6 +106,7 @@ export default function MonitorScenePreview({
         label={scene.name}
         onTrouble={scene.fail}
         wave={wave}
+        daylight={daylight}
       />
     </span>
   );

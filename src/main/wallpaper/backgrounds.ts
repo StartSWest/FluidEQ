@@ -35,6 +35,8 @@ interface IMonitorBackgroundsOptions {
   tuning(lookId: string): IWallpaperTuning | undefined;
   /** The window's time of day, once it has said it. */
   daylight(): TWallpaperDaylight | undefined;
+  /** The window's Brightness as a time of day, once it has said it. */
+  brightness(): number | undefined;
   /** The last surface has gone. */
   onEmpty(): void;
 }
@@ -122,6 +124,7 @@ export const createMonitorBackgrounds = (
         performance: options.performance(),
         tuning: options.tuning(choice.lookId),
         daylight: options.daylight,
+        brightness: options.brightness,
         executable,
         pauseReason: options.pauseReason,
         onReady: () => {

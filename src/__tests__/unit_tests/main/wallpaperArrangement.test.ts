@@ -8,6 +8,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { normalizeScenePerformance } from '../../../common/scenePerformance';
 import type { IWallpaperDisplay } from '../../../common/wallpaper';
 import {
   createArrangementStore,
@@ -130,6 +131,30 @@ describe('reading back what each monitor was set to show', () => {
     );
   });
 
+  // A monitor's own time of day, kept beside its following; a file from
+  // before it has none, and its scene plays at its author's hour.
+  it('keeps a monitor’s own time of day, and drops one it cannot read', () => {
+    const [screen] = file.screens;
+    const own = parseArrangement({
+      ...file,
+      screens: [{ ...screen, daylight: { source: 'clock', daylight: 30 } }],
+    });
+    expect(own?.screens[0].choice.daylight).toEqual({
+      source: 'clock',
+      daylight: 30,
+    });
+    // Not a reason to forget the monitor: only the choice goes.
+    const unknown = parseArrangement({
+      ...file,
+      screens: [{ ...screen, daylight: { source: 'moon', daylight: 30 } }],
+    });
+    expect(unknown?.screens).toHaveLength(1);
+    expect(unknown?.screens[0].choice).not.toHaveProperty('daylight');
+    expect(parseArrangement(file)?.screens[0].choice).not.toHaveProperty(
+      'daylight',
+    );
+  });
+
   it('ignores the whole file when any of it is not what this app writes', () => {
     const [screen] = file.screens;
     const broken: unknown[] = [
@@ -230,6 +255,32 @@ describe('the file on disk', () => {
         width: 2560,
         height: 1440,
       },
+    });
+  });
+
+  it('gives back a monitor’s own time of day as it was written', () => {
+    const store = createArrangementStore(folder, { warn });
+    const right = display(782843922, 2560, 'Odyssey G5');
+    const written = {
+      pauseOnBattery: true,
+      performance: normalizeScenePerformance(undefined),
+      tuning: {},
+      screens: [
+        {
+          ...saved(right.id, right),
+          choice: {
+            lookId: 'premium:aurora',
+            wave: { height: 1, position: 0 },
+            motion: 'music' as const,
+            daylight: { source: 'brightness' as const, daylight: 45 },
+          },
+        },
+      ],
+    };
+    store.write(written);
+    expect(store.read().screens[0].choice.daylight).toEqual({
+      source: 'brightness',
+      daylight: 45,
     });
   });
 

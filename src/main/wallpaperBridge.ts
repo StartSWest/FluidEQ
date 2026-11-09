@@ -38,6 +38,8 @@ const wallpaperBridge = {
    */
   setGraphDaylight: (daylight: TWallpaperDaylight) =>
     ipcRenderer.send(WALLPAPER.graphDaylight, daylight),
+  setBrightnessDaylight: (daylight: number) =>
+    ipcRenderer.send(WALLPAPER.brightnessDaylight, daylight),
   getWallpaperState: (): Promise<unknown> =>
     ipcRenderer.invoke(WALLPAPER.state),
   startWallpaper: (request: IWallpaperStart): Promise<unknown> =>

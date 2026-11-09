@@ -37,6 +37,54 @@ const showing = (manager: ReturnType<typeof createWallpaperManager>) =>
     .screens.map((screen) => [screen.displayId, screen.lookId])
     .sort(([a], [b]) => Number(a) - Number(b));
 
+/**
+ * A monitor's own time of day is the monitor's: set with it, kept by a later
+ * change that does not mention it — the Manage dialog's switches, another
+ * visualizer — and written down for the next launch.
+ */
+describe('a monitor’s own time of day', () => {
+  it('is kept when a later change says nothing of it, and remembered', () => {
+    const { deps, file } = setup();
+    const manager = createWallpaperManager(deps);
+    const daylight = { source: 'clock', daylight: 30 } as const;
+    manager.start(request({ displayIds: [2], daylight }));
+    // The Calm switch, which sends the monitor's motion alone.
+    manager.start(request({ displayIds: [2], motion: 'calm' }));
+    // Another visualizer on the same monitor.
+    manager.start(request({ displayIds: [2], lookId: 'premium:ember' }));
+
+    const remembered = file().screens.find((entry) => entry.displayId === 2);
+    expect(remembered?.choice.daylight).toEqual(daylight);
+    expect(
+      manager.state().screens.find((screen) => screen.displayId === 2)
+        ?.daylight,
+    ).toEqual(daylight);
+  });
+
+  it('changes when a change names another one', () => {
+    const { deps, file } = setup();
+    const manager = createWallpaperManager(deps);
+    manager.start(
+      request({ displayIds: [2], daylight: { source: 'own', daylight: 10 } }),
+    );
+    manager.start(
+      request({ displayIds: [2], daylight: { source: 'own', daylight: 70 } }),
+    );
+    expect(
+      file().screens.find((entry) => entry.displayId === 2)?.choice.daylight,
+    ).toEqual({ source: 'own', daylight: 70 });
+  });
+
+  it('is none for a monitor never given one', () => {
+    const { deps, file } = setup();
+    const manager = createWallpaperManager(deps);
+    manager.start(request({ displayIds: [2] }));
+    expect(
+      file().screens.find((entry) => entry.displayId === 2)?.choice,
+    ).not.toHaveProperty('daylight');
+  });
+});
+
 describe('a monitor following the graph', () => {
   it('goes to each Plus visualizer the graph changes to, and remembers it', () => {
     const { deps, file } = setup();

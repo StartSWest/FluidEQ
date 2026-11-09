@@ -97,6 +97,10 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   // (a number, or the clock): what every monitor following the graph draws
   // its scene at. Not kept either; the window says it again as it opens.
   let graphDaylight: TWallpaperDaylight | undefined;
+  // The window's Brightness as a time of day, as the window last said it:
+  // what a monitor set to follow Brightness on its own plays at. Not kept
+  // either; the window says it as it opens.
+  let brightnessDaylight: number | undefined;
   const relay = createWallpaperAudioRelay();
   const cleanups: (() => void)[] = [];
   const hookedOwners = new WeakSet<WebContents>();
@@ -131,6 +135,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     performance: () => performance,
     tuning: (lookId) => tuning[lookId],
     daylight: () => graphDaylight,
+    brightness: () => brightnessDaylight,
     onEmpty: () => relay.cancel(),
   });
 
@@ -359,7 +364,8 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   /**
    * The time of day the window asks of its scenes, each time it moves, or
    * the clock: the monitors following the graph turn with the window's own,
-   * and the rest keep the hour their scene was made at. Nothing is saved;
+   * and the rest play their own time of day, or their scene's hour where
+   * they have none (`monitorDaylight`). Nothing is saved;
    * the window says it again as soon as it opens.
    */
   const setGraphDaylight = (daylight: TWallpaperDaylight) => {
@@ -367,6 +373,15 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       return;
     }
     graphDaylight = daylight;
+    backgrounds.applyDaylight();
+  };
+
+  /** The window's Brightness moved, for the monitors that follow it. */
+  const setBrightnessDaylight = (daylight: number) => {
+    if (disposed || daylight === brightnessDaylight) {
+      return;
+    }
+    brightnessDaylight = daylight;
     backgrounds.applyDaylight();
   };
 
@@ -428,7 +443,8 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     if (disposed) {
       return;
     }
-    const { displayIds, lookId, wave, motion, followsGraph } = request;
+    const { displayIds, lookId, wave, motion, followsGraph, daylight } =
+      request;
     // Rebuilt field by field: what is kept, sent back and written to disk is
     // exactly these numbers, whatever else the request carried.
     const choice: IWallpaperChoice = {
@@ -439,11 +455,26 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     // Following the graph as the request says. Unsaid, a monitor already set
     // to this look keeps following if it did — the same look set again for
     // its wave or its motion — and one given a different look by name stops.
+    // The monitor's own time of day as the request says, and unsaid, the
+    // one it had, whatever it showed: the hour is the monitor's, not the
+    // look's.
     const choiceFor = (displayId: number): IWallpaperChoice => {
       const kept = saved.get(displayId)?.choice;
       const follows =
         followsGraph ?? (kept?.lookId === lookId && kept.followsGraph === true);
-      return follows ? { ...choice, followsGraph: true } : choice;
+      const ownDaylight = daylight ?? kept?.daylight;
+      return {
+        ...choice,
+        ...(follows ? { followsGraph: true } : {}),
+        ...(ownDaylight
+          ? {
+              daylight: {
+                source: ownDaylight.source,
+                daylight: ownDaylight.daylight,
+              },
+            }
+          : {}),
+      };
     };
     pauseOnBattery = request.pauseOnBattery;
     const owner = ownerContents();
@@ -700,6 +731,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     setTuning,
     setGraphLook,
     setGraphDaylight,
+    setBrightnessDaylight,
     restoreSaved,
     failEverywhere,
     failUnowned,

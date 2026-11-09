@@ -27,6 +27,10 @@ const wallpaper = {
     '显示图表上的场景并随之切换，无论是你手动选择还是自动切换。当图表显示样式时，此屏幕保留最后一个场景。',
   'wallpaper.follow.choice':
     '所选显示器会随图表上的场景切换，无论是你手动选择还是自动切换；图表显示样式时，它们保留最后一个场景。',
+  'wallpaper.daylight': '时刻',
+  'wallpaper.daylight.hint':
+    '用于不跟随图表的显示器：由你设定的时段、应用的亮度，或电脑的时钟。',
+  'wallpaper.daylight.following': '此显示器跟随图表，因此使用图表的时段。',
   'wallpaper.cancel': '取消',
   'wallpaper.done': '完成',
   'wallpaper.start': '设置背景',

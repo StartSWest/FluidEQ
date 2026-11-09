@@ -561,3 +561,92 @@ describe('the line beside the Visualizers title', () => {
     ).toBeInTheDocument();
   });
 });
+
+/**
+ * A monitor's own time of day, for while it does not follow the graph
+ * (Ivan, 2026-11-08): Off with a Daylight set by hand, Brightness or Clock.
+ */
+describe('choosing a monitor’s time of day', () => {
+  it('sets the chosen monitors on the clock, and sends none left untouched', () => {
+    mockGraphLookId = undefined;
+    withScreens([]);
+    const { unmount } = render(
+      <WallpaperDialog lookId="premium:aurora" onClose={jest.fn()} />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
+    expect(jest.mocked(startWallpaper).mock.calls[0][0]).not.toHaveProperty(
+      'daylight',
+    );
+    unmount();
+
+    render(<WallpaperDialog lookId="premium:aurora" onClose={jest.fn()} />);
+    const clock = screen.getByRole('radio', { name: 'Clock' });
+    fireEvent.click(clock);
+    expect(clock).toHaveAttribute('aria-checked', 'true');
+    // Given its time of day by the clock, the Daylight slider does not move.
+    expect(screen.getByRole('slider', { name: 'Daylight' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
+    expect(startWallpaper).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        displayIds: [2],
+        followsGraph: false,
+        daylight: expect.objectContaining({ source: 'clock' }),
+      }),
+    );
+  });
+
+  it('opens on the time of day the chosen monitor already has', () => {
+    withScreens([showing(2, { daylight: { source: 'own', daylight: 35 } })]);
+    render(<WallpaperDialog lookId="premium:aurora" onClose={jest.fn()} />);
+    expect(screen.getByRole('radio', { name: 'Off' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    expect(screen.getByRole('slider', { name: 'Daylight' })).toHaveValue('35');
+  });
+
+  it('stands aside while the monitors follow the graph, and says why', () => {
+    withScreens([]);
+    render(<WallpaperDialog lookId="premium:alpine" onClose={jest.fn()} />);
+    expect(
+      screen.getByRole('checkbox', { name: 'Follow graph' }),
+    ).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Clock' })).toBeDisabled();
+    expect(screen.getByRole('slider', { name: 'Daylight' })).toBeDisabled();
+    expect(
+      screen.getByText(
+        /follows the graph, so it takes the graph’s time of day/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('changes one monitor’s in place from its row, on letting go of the slider', () => {
+    withScreens([showing(3, { daylight: { source: 'own', daylight: 20 } })]);
+    render(<WallpaperManageDialog onClose={jest.fn()} />);
+    const slider = screen.getByRole('slider', { name: 'Daylight' });
+    fireEvent.change(slider, { target: { value: '50' } });
+    fireEvent.change(slider, { target: { value: '60' } });
+    // Nothing is sent while the slider is held: each step would be a whole
+    // background set again.
+    expect(startWallpaper).not.toHaveBeenCalled();
+    fireEvent.pointerUp(slider);
+    expect(startWallpaper).toHaveBeenCalledTimes(1);
+    expect(startWallpaper).toHaveBeenLastCalledWith({
+      lookId: 'premium:aurora',
+      displayIds: [3],
+      pauseOnBattery: false,
+      wave: { height: 0.4, position: 0.65 },
+      motion: 'calm',
+      followsGraph: false,
+      daylight: { source: 'own', daylight: 60 },
+    });
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Brightness' }));
+    expect(startWallpaper).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        displayIds: [3],
+        daylight: expect.objectContaining({ source: 'brightness' }),
+      }),
+    );
+  });
+});

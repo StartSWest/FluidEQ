@@ -1,12 +1,20 @@
-import { useId, useRef, useState } from 'react';
+import { useCallback, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { IWallpaperWave, TWallpaperMotion } from '../../common/wallpaper';
+import { clockDaylight } from '../../common/sceneDaylight';
+import {
+  sameWallpaperDaylight,
+  type IWallpaperDaylight,
+  type IWallpaperWave,
+  type TWallpaperMotion,
+} from '../../common/wallpaper';
 import Glyph from '../community/Glyph';
 import DialogFrame from '../components/DialogFrame';
+import { authoredDaylight, daylightOfShade } from '../graph/sceneDaylight';
 import MenuIcon from '../icons/MenuIcon';
 import { getWatchedGraphWave } from '../utils/graphOverlaySettings';
 import { useSceneLook } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
+import { getThemeShade } from '../utils/theme';
 import useModalKeys from '../utils/useModalKeys';
 import {
   MonitorFace,
@@ -117,6 +125,37 @@ export default function WallpaperDialog({
   const [waveChoice, setWaveChoice] = useState<IWallpaperWave>();
   const shownWave: IWallpaperWave =
     waveChoice ?? wave ?? showing[0]?.wave ?? getWatchedGraphWave();
+  // The chosen monitors' own time of day, for while they do not follow the
+  // graph. Until it is touched: the one they share, if they share one, else
+  // the hour this visualizer was made at, which is what such a monitor plays
+  // at. Left untouched, Set sends none and every monitor keeps its own.
+  const [daylightChoice, setDaylightChoice] = useState<IWallpaperDaylight>();
+  const chosenScreens = screens.filter((screen) =>
+    selected.has(screen.displayId),
+  );
+  const sharedDaylight = chosenScreens.every((screen) =>
+    sameWallpaperDaylight(screen.daylight, chosenScreens[0]?.daylight),
+  )
+    ? chosenScreens[0]?.daylight
+    : undefined;
+  const shownDaylight: IWallpaperDaylight = daylightChoice ??
+    sharedDaylight ?? {
+      source: 'own',
+      daylight: Math.round(preview ? authoredDaylight(preview.pack) : 0),
+    };
+  // What the playing tile reads on each frame it draws: the chosen time of
+  // day, the window's Brightness or the clock as they are at that frame.
+  const shownDaylightRef = useRef(shownDaylight);
+  shownDaylightRef.current = shownDaylight;
+  const readPreviewDaylight = useCallback(() => {
+    const { source, daylight } = shownDaylightRef.current;
+    if (source === 'clock') {
+      return clockDaylight(new Date());
+    }
+    return source === 'brightness'
+      ? daylightOfShade(getThemeShade())
+      : daylight;
+  }, []);
   const [focusId] = useState(() => [...selected][0] ?? primary?.id);
   const [batteryChoice, setBatteryChoice] = useState<boolean>();
   const pauseOnBattery = batteryChoice ?? savedBattery;
@@ -161,6 +200,7 @@ export default function WallpaperDialog({
       wave: shownWave,
       motion,
       followsGraph: follows,
+      ...(daylightChoice ? { daylight: daylightChoice } : {}),
     });
     if (leaving.length > 0) {
       next = await stopWallpaper(leaving);
@@ -351,7 +391,13 @@ export default function WallpaperDialog({
                     follows={tileFollows}
                     scene={
                       preview && isChosen && display.id === previewId ? (
-                        <MonitorScenePreview scene={preview} wave={shownWave} />
+                        <MonitorScenePreview
+                          scene={preview}
+                          wave={shownWave}
+                          // Following the graph, the graph's own, which is
+                          // what the preview reads unless told otherwise.
+                          daylight={follows ? undefined : readPreviewDaylight}
+                        />
                       ) : undefined
                     }
                   />
@@ -372,6 +418,8 @@ export default function WallpaperDialog({
           onWave={setWaveChoice}
           follows={follows}
           onFollows={setFollowChoice}
+          daylight={shownDaylight}
+          onDaylight={setDaylightChoice}
           pauseOnBattery={pauseOnBattery}
           onPauseOnBattery={setBatteryChoice}
           disabled={operation.pending}

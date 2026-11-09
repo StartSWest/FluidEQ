@@ -31,6 +31,11 @@ const wallpaper = {
     'グラフに表示中のシーンを表示し、手動でも自動切り替えでも一緒に切り替わります。グラフにスタイルが表示されている間は、最後のシーンのままです。',
   'wallpaper.follow.choice':
     '選んだモニターは、手動でも自動切り替えでも、グラフのシーンに合わせて切り替わります。グラフにスタイルが表示されている間は、最後のシーンのままです。',
+  'wallpaper.daylight': '時刻',
+  'wallpaper.daylight.hint':
+    'グラフに合わせないモニターの時間帯：自分で決めた時間帯、アプリの明るさ、またはコンピューターの時計。',
+  'wallpaper.daylight.following':
+    'このモニターはグラフに合わせているので、グラフの時間帯になります。',
   'wallpaper.cancel': 'キャンセル',
   'wallpaper.done': '完了',
   'wallpaper.start': '背景に設定',

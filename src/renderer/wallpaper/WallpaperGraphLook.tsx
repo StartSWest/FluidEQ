@@ -3,10 +3,15 @@ import {
   WALLPAPER_CLOCK_DAYLIGHT,
   type TWallpaperDaylight,
 } from '../../common/wallpaper';
-import { usePageDaylight } from '../graph/sceneDaylight';
+import { daylightOfShade, usePageDaylight } from '../graph/sceneDaylight';
 import { useSceneLook } from '../utils/graphStyle';
 import { useSceneDaylightSetting } from '../utils/sceneDaylightSetting';
-import { sendGraphDaylight, sendGraphLook } from './wallpaperStore';
+import { useThemeShade } from '../utils/theme';
+import {
+  sendBrightnessDaylight,
+  sendGraphDaylight,
+  sendGraphLook,
+} from './wallpaperStore';
 
 /**
  * Which Plus visualizer the graph is showing, told to main for the monitors
@@ -23,6 +28,9 @@ import { sendGraphDaylight, sendGraphLook } from './wallpaperStore';
  * (Ivan, 2026-09-28). Following the clock, the monitors are told so once and
  * read the clock themselves (`TWallpaperDaylight`): a window minimised draws
  * nothing, and would have left them at the hour it was minimised.
+ *
+ * And the window's Brightness as a time of day, whatever the graph's follows,
+ * for the monitors set to follow Brightness on their own.
  */
 export default function WallpaperGraphLook() {
   const lookId = useSceneLook()?.lookId;
@@ -38,5 +46,9 @@ export default function WallpaperGraphLook() {
   useEffect(() => {
     sendGraphDaylight(daylight);
   }, [daylight]);
+  const brightness = daylightOfShade(useThemeShade());
+  useEffect(() => {
+    sendBrightnessDaylight(brightness);
+  }, [brightness]);
   return null;
 }

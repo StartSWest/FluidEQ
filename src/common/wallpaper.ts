@@ -36,6 +36,12 @@ export const WALLPAPER = {
    * "desktop needs to follow that too ... only if follow graph is enabled").
    */
   graphDaylight: 'wallpaper-graph-daylight',
+  /**
+   * The window's Brightness as a time of day (`daylightOfShade`), for the
+   * monitors set to follow Brightness on their own (`IWallpaperDaylight`),
+   * whatever the graph's own time of day follows.
+   */
+  brightnessDaylight: 'wallpaper-brightness-daylight',
 } as const;
 
 /**
@@ -53,6 +59,27 @@ export const WALLPAPER_CLOCK_DAYLIGHT = 'clock';
  * minimised, and a desktop is exactly what plays then.
  */
 export type TWallpaperDaylight = number | typeof WALLPAPER_CLOCK_DAYLIGHT;
+
+/**
+ * Where a monitor that does not follow the graph takes its time of day from,
+ * the same three the graph offers (`sceneDaylightSetting.ts`): a Daylight set
+ * by hand, the window's Brightness, or the computer's clock (Ivan,
+ * 2026-11-08: "when they are not following grahp we choose the time of day
+ * for the walpaper including use off (configurable manully), app or time").
+ */
+export type TWallpaperDaylightSource = 'own' | 'brightness' | 'clock';
+
+export const WALLPAPER_DAYLIGHT_SOURCES: readonly TWallpaperDaylightSource[] = [
+  'own',
+  'brightness',
+  'clock',
+];
+
+export interface IWallpaperDaylight {
+  source: TWallpaperDaylightSource;
+  /** 0 night to 100 day, whole: what it plays at on its `own`. */
+  daylight: number;
+}
 
 /** More monitors than a desk has; bounds what one request can create. */
 export const MAX_WALLPAPER_DISPLAYS = 16;
@@ -95,6 +122,13 @@ export interface IWallpaperChoice {
    * a background off the desktop. Absent is false.
    */
   followsGraph?: boolean;
+  /**
+   * The monitor's own time of day, used while it does not follow the graph;
+   * one that follows takes the graph's. Kept across another visualizer on
+   * the same monitor: it is the monitor's, not the look's. Absent, the scene
+   * plays at the hour its author made it at.
+   */
+  daylight?: IWallpaperDaylight;
 }
 
 /**
@@ -208,9 +242,9 @@ export interface IWallpaperSurfaceState {
   /** What the listener set for this visualizer, when they set anything. */
   tuning?: IWallpaperTuning;
   /**
-   * The window's time of day on a monitor set to follow the graph
-   * (`TWallpaperDaylight`). Absent on one that is not: its scene keeps the
-   * time of day its author gave it, whatever the window's Brightness does.
+   * The time of day this monitor plays at (`monitorDaylight`): the window's
+   * while it follows the graph, else the monitor's own. Absent where it has
+   * no choice of its own: its scene keeps the time of day its author gave it.
    */
   daylight?: TWallpaperDaylight;
 }
@@ -313,13 +347,58 @@ export const isWallpaperDaylight = (raw: unknown): raw is TWallpaperDaylight =>
     raw >= SCENE_DAYLIGHT_MIN &&
     raw <= SCENE_DAYLIGHT_MAX);
 
+/** A monitor's own time of day as the window sets it (`IWallpaperDaylight`). */
+export const isWallpaperDaylightChoice = (
+  raw: unknown,
+): raw is IWallpaperDaylight =>
+  isRecord(raw) &&
+  WALLPAPER_DAYLIGHT_SOURCES.some((source) => source === raw.source) &&
+  typeof raw.daylight === 'number' &&
+  isWallpaperDaylight(raw.daylight);
+
+/**
+ * What a monitor's page is told to play its time of day at: the graph's while
+ * it follows the graph, else its own choice — the clock as the word the page
+ * reads frame by frame, Brightness as the window last said it (or the
+ * monitor's own Daylight until the window has said anything) — and nothing
+ * where no choice was made, so the scene keeps its author's hour.
+ */
+export const monitorDaylight = (
+  choice: Pick<IWallpaperChoice, 'followsGraph' | 'daylight'>,
+  told: {
+    graph: TWallpaperDaylight | undefined;
+    brightness: number | undefined;
+  },
+): TWallpaperDaylight | undefined => {
+  if (choice.followsGraph === true) {
+    return told.graph;
+  }
+  const own = choice.daylight;
+  if (!own) {
+    return undefined;
+  }
+  if (own.source === 'clock') {
+    return WALLPAPER_CLOCK_DAYLIGHT;
+  }
+  return own.source === 'brightness'
+    ? (told.brightness ?? own.daylight)
+    : own.daylight;
+};
+
+/** Two monitors' own times of day are the same choice. */
+export const sameWallpaperDaylight = (
+  a: IWallpaperDaylight | undefined,
+  b: IWallpaperDaylight | undefined,
+): boolean => a?.source === b?.source && a?.daylight === b?.daylight;
+
 const isWallpaperChoice = (
   raw: Record<string, unknown>,
 ): raw is Record<string, unknown> & IWallpaperChoice =>
   isWallpaperLookId(raw.lookId) &&
   isWallpaperWave(raw.wave) &&
   isWallpaperMotion(raw.motion) &&
-  (raw.followsGraph === undefined || typeof raw.followsGraph === 'boolean');
+  (raw.followsGraph === undefined || typeof raw.followsGraph === 'boolean') &&
+  (raw.daylight === undefined || isWallpaperDaylightChoice(raw.daylight));
 
 export const isWallpaperStart = (raw: unknown): raw is IWallpaperStart =>
   isRecord(raw) &&
