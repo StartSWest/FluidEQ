@@ -169,7 +169,21 @@ Also `ior`, `specularIntensity` (a `physical` material's specular, 0..1,
 three's 1 when unsaid; 0 reflects no light at any angle, which a floor
 painted with the photograph behind it needs), `transparent`, `wireframe`, `flatShading`, `side`, `additive`,
 `fog`, `map` / `emissiveMap` (`[x, y, width, height]` of the pack's artwork)
-and `repeat` (`[u, v]`, how many times the map tiles). A `physical` material
+and `repeat` (`[u, v]`, how many times the map tiles).
+
+`frames` plays a map's region as an animation's sheet: `count` frames of one
+size, laid out left to right and top to bottom, `columns` to a row (all of
+them in one row when unsaid), and `frame`, a formula naming the frame shown,
+counted from 0 and wrapped round the cycle both ways - `time * 8` (the
+default) plays eight a second, `integrate(6 + bass * 4)` walks faster with
+the bass. The emissive map, if any, steps through its own region the same
+way. At most 256 frames. A FluidEQ older than the field ignores it and
+draws the whole sheet on the surface, as it draws any map.
+
+````json
+"walker": { "kind": "standard", "map": [0, 1024, 2048, 512], "transparent": true,
+            "side": "double", "frames": { "count": 8, "columns": 4, "frame": "time * 9" } }
+``` A `physical` material
 with `transmission` is glass: three draws the world's solid things a second
 time behind it, which the frame's budget counts.
 
@@ -192,7 +206,7 @@ vec3 worldDisplace(vec3 position, vec3 normal, WorldVertex v) {
   // v.uv, v.instance = (u, rand, index, count)
   return position + normal * texture(uSpectrumSlow, vec2(v.uv.x, 0.5)).r;
 }
-```
+````
 
 `fragment` colours a surface and gives it light of its own:
 

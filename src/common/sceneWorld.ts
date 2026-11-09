@@ -84,6 +84,23 @@ export interface IWorldAtlasRegion {
   height: number;
 }
 
+/**
+ * A sheet of `count` frames laid out left to right and top to bottom,
+ * `columns` to a row, all the same size, filling the map's region. One
+ * picture of every pose, not a picture per frame: the animal stays the same
+ * animal in every frame, and the whole cycle is one region of the artwork.
+ */
+export interface IWorldMaterialFrames {
+  count: number;
+  columns: number;
+  /**
+   * Which frame shows, counted from 0 and wrapped round the cycle: `time *
+   * 8` plays eight a second, `integrate(6 + bass * 4)` walks faster with
+   * the bass, `drumKick > 0.5 ? 1 : 0` holds a pose on each kick.
+   */
+  frame: TWorldExpr;
+}
+
 export type TWorldMaterialKind = 'standard' | 'physical' | 'basic' | 'glow';
 
 export interface IWorldMaterial {
@@ -120,6 +137,12 @@ export interface IWorldMaterial {
   fog: boolean;
   map?: IWorldAtlasRegion;
   emissiveMap?: IWorldAtlasRegion;
+  /**
+   * The map's region as a sheet of an animation's frames, played in order:
+   * a walk, a wing beat, a tail. Optional, so a world without it reads and
+   * plays exactly as before, and an older FluidEQ shows the whole sheet.
+   */
+  frames?: IWorldMaterialFrames;
   repeat: readonly [number, number];
   /**
    * How much of the world a flat floor reflects, 0..1: wet asphalt under
@@ -360,6 +383,8 @@ export const WORLD_LIMITS = {
   terrainSegments: 256,
   terrainRows: 256,
   materials: 64,
+  /** Frames on one material's sheet (`IWorldMaterialFrames`). */
+  frames: 256,
   models: 16,
   /**
    * Decoded glTF bytes across every model: 8 MB as base64, inside the 9 MB a

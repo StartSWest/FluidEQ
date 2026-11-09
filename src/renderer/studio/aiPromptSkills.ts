@@ -1,3 +1,4 @@
+import animationSkill from '../../../assets/studio/fluideq/skills/fluideq-animation/SKILL.md';
 import worldSkill from '../../../assets/studio/fluideq/skills/fluideq-3d-world/SKILL.md';
 import photoSkill from '../../../assets/studio/fluideq/skills/fluideq-photo-3d/SKILL.md';
 import type { TPromptReach } from './aiPromptLook';
@@ -17,7 +18,11 @@ import type { TPromptReach } from './aiPromptLook';
  * A skill added under `assets/studio/fluideq/skills` is added here too:
  * `aiPromptSkills.test.ts` fails while the two lists differ.
  */
-export const SHIPPED_SKILL_TEXTS: readonly string[] = [worldSkill, photoSkill];
+export const SHIPPED_SKILL_TEXTS: readonly string[] = [
+  worldSkill,
+  photoSkill,
+  animationSkill,
+];
 
 interface ISkillText {
   name: string;

@@ -30,6 +30,7 @@ import {
 } from 'three';
 import type {
   IWorldAtlasRegion,
+  IWorldMaterialFrames,
   IWorldMaterial,
   IWorldPointsNode,
   TWorldExpr,
@@ -191,6 +192,38 @@ const regionTexture = (
   return texture;
 };
 
+/**
+ * A map played as a sheet of frames: the texture shows one cell of its
+ * region, and `show` moves it to the frame a formula names. Only the
+ * texture's offset moves; three rebuilds the uv transform from it at draw.
+ */
+const frameSheet = (
+  texture: Texture | null,
+  region: IWorldAtlasRegion | undefined,
+  frames: IWorldMaterialFrames,
+) => {
+  if (!texture || !region) {
+    return undefined;
+  }
+  const image = texture.image as { width: number; height: number };
+  const rows = Math.ceil(frames.count / frames.columns);
+  const cellWidth = region.width / frames.columns;
+  const cellHeight = region.height / rows;
+  texture.repeat.set(cellWidth / image.width, cellHeight / image.height);
+  return (frame: number) => {
+    // Wrapped both ways: a formula counting down plays the cycle backwards.
+    const index =
+      ((Math.floor(frame) % frames.count) + frames.count) % frames.count;
+    const column = index % frames.columns;
+    const row = Math.floor(index / frames.columns);
+    // The artwork is decoded flipped: a lower row is a lower offset.
+    texture.offset.set(
+      (region.x + column * cellWidth) / image.width,
+      1 - (region.y + (row + 1) * cellHeight) / image.height,
+    );
+  };
+};
+
 const SIDES = { front: FrontSide, back: BackSide, double: DoubleSide } as const;
 
 export const buildWorldMaterial = (
@@ -213,6 +246,13 @@ export const buildWorldMaterial = (
   const unlit = def.kind === 'basic' || def.kind === 'glow';
   const map = regionTexture(context.atlas, def.map, def.repeat);
   const emissiveMap = regionTexture(context.atlas, def.emissiveMap, def.repeat);
+  const sheets = def.frames
+    ? [
+        frameSheet(map, def.map, def.frames),
+        frameSheet(emissiveMap, def.emissiveMap, def.frames),
+      ].filter((sheet) => sheet !== undefined)
+    : [];
+  const frame = def.frames ? scalar(def.frames.frame) : undefined;
 
   let material: MeshBasicMaterial | MeshStandardMaterial | MeshPhysicalMaterial;
   if (unlit) {
@@ -364,6 +404,10 @@ export const buildWorldMaterial = (
     material.color.copy(scratch);
   };
   const update = () => {
+    if (frame) {
+      const at = frame.value();
+      sheets.forEach((show) => show(at));
+    }
     writeColour(colour);
     if (material instanceof MeshStandardMaterial) {
       emissive.apply(material.emissive);
@@ -390,6 +434,7 @@ export const buildWorldMaterial = (
     ...(shadow ? { shadow } : {}),
     remembers: [colour, emissive, emissiveIntensity, mirrorStrength]
       .concat(scalars.map(({ formula }) => formula))
+      .concat(frame ? [frame] : [])
       .some((formula) => formula.remembers),
     dispose: () => {
       material.dispose();

@@ -39,6 +39,8 @@ const studioChat = {
   'studioChat.step.theScene': 'die Szene',
   'studioChat.step.look': 'Szene angesehen',
   'studioChat.step.lookNow': 'Sieht sich die Szene an…',
+  'studioChat.step.animation': 'Animation {file} angesehen',
+  'studioChat.step.animationNow': 'Sieht sich die Animation {file} an…',
   'studioChat.step.hear': 'Musik angehört',
   'studioChat.step.hearNow': 'Hört die Musik…',
   'studioChat.step.read': '{file} gelesen',

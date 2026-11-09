@@ -187,7 +187,11 @@ past 1 is what the bloom picks up). colour, emissive, emissiveIntensity,
 roughness, metalness, opacity, clearcoat, transmission and the rest may be
 formulas; also specularIntensity (physical, 0..1: 0 reflects no light at
 any angle), transparent, flatShading, side, additive, fog, and map /
-emissiveMap ([x, y, width, height] of the artwork). A "mirror" (0..1) makes
+emissiveMap ([x, y, width, height] of the artwork). "frames": { "count",
+"columns", "frame" } plays that map's region as an animation's sheet of
+frames (left to right, top to bottom, all one size); "frame" is a formula
+counted from 0 and wrapped, "time * 8" when unsaid (see the
+fluideq-animation skill). A "mirror" (0..1) makes
 the first flat plane or ring wearing it reflect the world; a physical
 material with transmission is glass. Both draw the world again, and the
 budget below counts them.

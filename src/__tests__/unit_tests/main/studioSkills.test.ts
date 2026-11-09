@@ -48,14 +48,19 @@ const frontmatter = (text: string) => {
 };
 
 /** The project as the first version left it: FluidEQ's skills copied in. */
+/** The two skills the first version copied into a project; later ones never were. */
+const FIRST_PLACED = ['fluideq-3d-world', 'fluideq-photo-3d'];
+
 const placeAsTheFirstVersionDid = (folder: string) => {
-  readShippedSkills(SHIPPED).forEach(({ name, files }) => {
-    files.forEach(({ relative, bytes }) => {
-      const file = path.join(folder, '.agents', 'skills', name, relative);
-      fs.mkdirSync(path.dirname(file), { recursive: true });
-      fs.writeFileSync(file, bytes);
+  readShippedSkills(SHIPPED)
+    .filter(({ name }) => FIRST_PLACED.includes(name))
+    .forEach(({ name, files }) => {
+      files.forEach(({ relative, bytes }) => {
+        const file = path.join(folder, '.agents', 'skills', name, relative);
+        fs.mkdirSync(path.dirname(file), { recursive: true });
+        fs.writeFileSync(file, bytes);
+      });
     });
-  });
 };
 
 describe('the skills FluidEQ ships', () => {
@@ -63,6 +68,7 @@ describe('the skills FluidEQ ships', () => {
     const skills = readShippedSkills(SHIPPED);
     expect(skills.map(({ name }) => name)).toEqual([
       'fluideq-3d-world',
+      'fluideq-animation',
       'fluideq-photo-3d',
     ]);
     skills.forEach(({ name, files }) => {

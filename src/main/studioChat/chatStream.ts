@@ -9,6 +9,7 @@ import type {
   IStudioChatStep,
   TStudioChatFailure,
 } from '../../common/studioChat';
+import { ANIMATION_NAME } from '../../common/studioAnimation';
 
 /**
  * Claude Code's stream (`--output-format stream-json`), one JSON object a
@@ -76,6 +77,7 @@ const LOOK_TOOL = `mcp__${DOOR_SERVER}__look_at_scene`;
 const HEAR_TOOL = `mcp__${DOOR_SERVER}__hear_the_music`;
 const PICTURE_TOOL = `mcp__${DOOR_SERVER}__make_picture`;
 const PACK_TOOL = `mcp__${DOOR_SERVER}__pack_artwork`;
+const ANIMATION_TOOL = `mcp__${DOOR_SERVER}__look_at_animation`;
 
 const READ_TOOLS = new Set(['Read']);
 const WRITE_TOOLS = new Set(['Write', 'Edit', 'MultiEdit', 'NotebookEdit']);
@@ -118,6 +120,15 @@ export const stepOf = (
   }
   if (name === PACK_TOOL) {
     return { id, kind: 'pack', state: 'running' };
+  }
+  if (name === ANIMATION_TOOL) {
+    const named =
+      isRecord(input) &&
+      typeof input.name === 'string' &&
+      ANIMATION_NAME.test(input.name)
+        ? { file: input.name }
+        : {};
+    return { id, kind: 'animation', ...named, state: 'running' };
   }
   const file = fileOf(input);
   const withFile = file ? { file } : {};

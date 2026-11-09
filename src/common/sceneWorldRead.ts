@@ -18,6 +18,7 @@ import {
   type IWorldCamera,
   type IWorldFog,
   type IWorldMaterial,
+  type IWorldMaterialFrames,
   type IWorldModel,
   type IWorldVariable,
   type TWorldColour,
@@ -32,6 +33,7 @@ import {
   readBoolean,
   readChoice,
   readColour,
+  readCount,
   readExpr,
   readNumber,
   readVec3,
@@ -187,6 +189,29 @@ const readRegion = (
   return { x, y, width, height };
 };
 
+/** Eight frames a second: a walk cycle's pace, when no formula says. */
+const DEFAULT_FRAME = 'time * 8';
+
+/**
+ * A sheet of frames on a map that has a region: without one there is
+ * nothing to cut frames from, and the material keeps its plain map.
+ */
+const readFrames = (
+  value: unknown,
+  scopes: IWorldScopes,
+  map: IWorldAtlasRegion | undefined,
+): IWorldMaterialFrames | undefined => {
+  if (!map || !isWorldRecord(value)) {
+    return undefined;
+  }
+  const count = readCount(value.count, 1, 1, WORLD_LIMITS.frames);
+  return {
+    count,
+    columns: readCount(value.columns, count, 1, count),
+    frame: readExpr(value.frame, scopes.global, DEFAULT_FRAME),
+  };
+};
+
 /** What is left of the world's GLSL budget (`hookTotalBytes`). */
 interface IHookBudget {
   bytes: number;
@@ -260,6 +285,7 @@ const readMaterial = (
     : [1, 1];
   const map = readRegion(raw.map, artwork);
   const emissiveMap = readRegion(raw.emissiveMap, artwork);
+  const frames = readFrames(raw.frames, scopes, map);
   const vertex = readHook(raw.vertex, VERTEX_ENTRY, hooks);
   const fragment = readHook(raw.fragment, FRAGMENT_ENTRY, hooks);
   return {
@@ -288,6 +314,7 @@ const readMaterial = (
     fog: readBoolean(raw.fog, true),
     ...(map ? { map } : {}),
     ...(emissiveMap ? { emissiveMap } : {}),
+    ...(frames ? { frames } : {}),
     repeat,
     mirror: expr(raw.mirror, 0),
     mirrorBlur: readNumber(raw.mirrorBlur, 0.3, 0, 1),

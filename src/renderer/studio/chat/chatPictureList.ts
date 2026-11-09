@@ -22,6 +22,10 @@ export const STEP_WORDS: Record<
     now: 'studioChat.step.pictureNow',
   },
   pack: { done: 'studioChat.step.pack', now: 'studioChat.step.packNow' },
+  animation: {
+    done: 'studioChat.step.animation',
+    now: 'studioChat.step.animationNow',
+  },
   compact: {
     done: 'studioChat.step.compact',
     now: 'studioChat.step.compactNow',

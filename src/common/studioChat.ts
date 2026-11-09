@@ -45,6 +45,7 @@ export interface IStudioChatStep {
     | 'search'
     | 'picture'
     | 'pack'
+    | 'animation'
     | 'compact'
     | 'other';
   /** The file it read or wrote, by name only, never a path. */

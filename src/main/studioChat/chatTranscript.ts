@@ -59,6 +59,7 @@ const STEP_KINDS = new Set([
   'search',
   'picture',
   'pack',
+  'animation',
   'compact',
   'other',
 ]);

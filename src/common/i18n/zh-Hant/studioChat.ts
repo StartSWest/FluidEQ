@@ -42,6 +42,8 @@ const studioChat = {
   'studioChat.step.theScene': '現場',
   'studioChat.step.look': '看了現場',
   'studioChat.step.lookNow': '看著現場…',
+  'studioChat.step.animation': '查看了動畫 {file}',
+  'studioChat.step.animationNow': '正在查看動畫 {file}…',
   'studioChat.step.hear': '聽了音樂',
   'studioChat.step.hearNow': '聽音樂…',
   'studioChat.step.read': '讀取 {file}',

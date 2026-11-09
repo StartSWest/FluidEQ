@@ -27,6 +27,7 @@ import { createChatAsks } from './chatAsks';
 import { createChatServer } from './chatServer';
 import { codexAccount, type ICodexAccount } from './codexAccount';
 import { codexState, signInToCodex } from './codexPictures';
+import lookAnimationTool from './lookAnimationTool';
 import { createPictureTools } from './pictureTools';
 
 /**
@@ -198,6 +199,7 @@ export const createChatPictures = ({
     const server = createChatServer({
       tools: [
         ...ownLookTools(door, folder),
+        lookAnimationTool(folder),
         ...createPictureTools({
           project: () => boundProject(projectId, folder),
           asks,
