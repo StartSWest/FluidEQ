@@ -127,7 +127,7 @@ describe("the animators' channels", () => {
 describe("the scene's chat starting an animator", () => {
   it('hands the window the animation and the task', async () => {
     const start = jest.fn(() => true);
-    const tool = startAnimatorTool({ start });
+    const tool = startAnimatorTool({ start, working: () => [] });
     const result = await tool.call({
       name: 'wolf-walk',
       task: ' A grey wolf walking right, 8 frames. ',
@@ -142,7 +142,7 @@ describe("the scene's chat starting an animator", () => {
 
   it('refuses a name or a task it cannot use, and says when no window can take it', async () => {
     const start = jest.fn(() => true);
-    const tool = startAnimatorTool({ start });
+    const tool = startAnimatorTool({ start, working: () => [] });
     expect((await tool.call({ name: 'Wolf Walk', task: 'x' })).isError).toBe(
       true,
     );
@@ -150,7 +150,7 @@ describe("the scene's chat starting an animator", () => {
       true,
     );
     expect(start).not.toHaveBeenCalled();
-    const closed = startAnimatorTool({ start: () => false });
+    const closed = startAnimatorTool({ start: () => false, working: () => [] });
     expect(
       (await closed.call({ name: 'wolf-walk', task: 'walk' })).isError,
     ).toBe(true);

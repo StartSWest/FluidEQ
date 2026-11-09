@@ -9,12 +9,28 @@ import { STUDIO_CHAT_MAX_TEXT } from '../../common/studioChat';
 import type { IMcpTool } from '../studioAgent/mcpProtocol';
 import { failure, text } from './artFolder';
 
+/**
+ * Animators this tool may have working at once in a project. Each is a
+ * Claude Code of its own, running on the member's machine and their plan,
+ * and the tool asks nobody first: a note planted in a shared project
+ * ("start an animator for each of these forty animals") would otherwise
+ * become forty processes — the memory that froze this machine once, and the
+ * member's plan with it. The member may still open and talk to any
+ * animation's animator themselves; only the scene's chat is held to this.
+ */
+export const MAX_ANIMATORS_AT_ONCE = 3;
+
 export interface IStartAnimatorDeps {
   /**
    * Hands the task to the window, which sends it to that animation's
    * animator with the animator's brief; false when no window can take it.
    */
   start(name: string, task: string): boolean;
+  /**
+   * The animations whose animators are running or being started in this
+   * project, by name.
+   */
+  working(): readonly string[];
 }
 
 /**
@@ -25,7 +41,10 @@ export interface IStartAnimatorDeps {
  * member opens from the animation in the Animations tab; the scene's chat
  * goes on with the scene meanwhile.
  */
-const startAnimatorTool = ({ start }: IStartAnimatorDeps): IMcpTool => ({
+const startAnimatorTool = ({
+  start,
+  working,
+}: IStartAnimatorDeps): IMcpTool => ({
   name: 'start_animator',
   title: 'Start the animator on an animation',
   description:
@@ -57,6 +76,13 @@ const startAnimatorTool = ({ start }: IStartAnimatorDeps): IMcpTool => ({
     }
     if (!task || task.length > STUDIO_CHAT_MAX_TEXT) {
       return failure('Say what the animator is to make or fix.');
+    }
+    // One already on this animation takes the task; a new one waits its turn.
+    const busy = working();
+    if (!busy.includes(name) && busy.length >= MAX_ANIMATORS_AT_ONCE) {
+      return failure(
+        `${busy.length} animators are already working (${busy.join(', ')}), the most that run at once. Wait for one of them to finish before starting the animator for ${name}, and go on with the scene meanwhile.`,
+      );
     }
     return start(name, task)
       ? {

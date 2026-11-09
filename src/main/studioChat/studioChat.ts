@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import path from 'path';
 import type { BrowserWindow } from 'electron';
 import {
+  chatAnimationOf,
   chatProjectOf,
   type IStudioChat,
   type TStudioChatEntry,
@@ -111,6 +112,20 @@ export const createStudioChat = ({
     door,
     version,
     ...(logger ? { logger } : {}),
+    animatorsOf: (projectId) => {
+      const animators = [...sessions.keys()].flatMap((key) => {
+        const name = chatAnimationOf(key);
+        return name !== undefined && chatProjectOf(key) === projectId
+          ? [{ key, name }]
+          : [];
+      });
+      return {
+        live: animators.map(({ name }) => name),
+        working: animators
+          .filter(({ key }) => isBusy(key))
+          .map(({ name }) => name),
+      };
+    },
   });
 
   const isBusy = (projectId: string) =>

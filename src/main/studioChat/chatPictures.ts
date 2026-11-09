@@ -77,6 +77,11 @@ export interface IChatPicturesDeps {
   door: IStudioLook;
   version: string;
   logger?: { info(message: string): void; warn(message: string): void };
+  /**
+   * A project's animators by animation name: those with a Claude Code
+   * running, and of those the ones whose reply is in progress.
+   */
+  animatorsOf(projectId: string): { live: string[]; working: string[] };
 }
 
 const CHANNELS = [
@@ -123,7 +128,23 @@ export const createChatPictures = ({
   door,
   version,
   logger,
+  animatorsOf,
 }: IChatPicturesDeps) => {
+  /**
+   * Animators the scene's chat started that have no Claude Code yet: the
+   * window sends each its first message a moment later, and a burst of
+   * starts in that moment must count as much as running ones do.
+   */
+  const startingAnimators = new Map<string, Set<string>>();
+
+  /** The project's animators working now, or about to (`start_animator`). */
+  const animatorsWorking = (projectId: string): string[] => {
+    const { live, working } = animatorsOf(projectId);
+    const starting = startingAnimators.get(projectId) ?? new Set<string>();
+    live.forEach((name) => starting.delete(name));
+    return [...new Set([...working, ...starting])];
+  };
+
   const asks = createChatAsks({
     root,
     show: (projectId, ask) =>
@@ -210,13 +231,20 @@ export const createChatPictures = ({
               startAnimatorTool({
                 start: (name, task) => {
                   const page = pageOf();
-                  page?.send('studio-animator-start', {
+                  if (!page) {
+                    return false;
+                  }
+                  page.send('studio-animator-start', {
                     projectId,
                     name,
                     task,
                   });
-                  return page !== undefined;
+                  const starting =
+                    startingAnimators.get(projectId) ?? new Set<string>();
+                  startingAnimators.set(projectId, starting.add(name));
+                  return true;
                 },
+                working: () => animatorsWorking(projectId),
               }),
             ]
           : []),
@@ -322,6 +350,7 @@ export const createChatPictures = ({
     close: async (projectId: string) => {
       const known = servers.get(projectId);
       servers.delete(projectId);
+      startingAnimators.delete(projectId);
       await known?.server.close();
     },
     dispose: async () => {
