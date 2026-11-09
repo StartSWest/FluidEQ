@@ -154,3 +154,77 @@ describe('a monitor’s background changing to another', () => {
     expect(playing.release).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * The Studio's "Set on desktop": the look is brought up to the stage, then
+ * set on the monitor (Ivan, 2026-11-09: "set on desktop from studio is not
+ * setting last scene from studio kind of uses last scene in the my scenes").
+ * A Studio save keeps the scene's version, so what changed is elsewhere in
+ * the pack — here its controls — and the desktop compared only the version
+ * and the shader.
+ */
+describe('a scene brought up to date by the Studio', () => {
+  const studioSave = (control: number) => ({
+    pack: {
+      id: 'premium:alpine',
+      version: 1,
+      source: 'void main() {}',
+      params: [{ id: 'glow', default: control }],
+    },
+    madeBy: 'own',
+  });
+
+  it('replaces the one on the desktop when the looks say it changed', async () => {
+    const { deps, scenes, announceScenes } = setup();
+    scenes.loadScene.mockReturnValue(studioSave(0.2) as never);
+    const manager = createWallpaperManager(deps);
+    await flush();
+    manager.start(request());
+    const [playing] = mockSurfaces;
+    const saved = studioSave(0.8);
+    scenes.loadScene.mockReturnValue(saved as never);
+
+    announceScenes();
+    expect(playing.changeScene).toHaveBeenCalledWith(
+      expect.objectContaining({ lookId: 'premium:alpine' }),
+      saved,
+      undefined,
+    );
+  });
+
+  it('is what setting it again plays, whether or not the looks said so first', async () => {
+    const { deps, scenes } = setup();
+    scenes.loadScene.mockReturnValue(studioSave(0.2) as never);
+    const manager = createWallpaperManager(deps);
+    await flush();
+    manager.start(request());
+    const [playing] = mockSurfaces;
+    const saved = studioSave(0.8);
+    scenes.loadScene.mockReturnValue(saved as never);
+
+    manager.start(request());
+    expect(playing.changeScene).toHaveBeenCalledWith(
+      expect.objectContaining({ lookId: 'premium:alpine' }),
+      saved,
+      undefined,
+    );
+    expect(playing.retune).not.toHaveBeenCalled();
+  });
+
+  // The control: the same scene set again is only retuned, with no restart.
+  it('only retunes a monitor set again with the scene it already plays', async () => {
+    const { deps, scenes, announceScenes } = setup();
+    scenes.loadScene.mockImplementation(() => studioSave(0.2) as never);
+    const manager = createWallpaperManager(deps);
+    await flush();
+    manager.start(request());
+    const [playing] = mockSurfaces;
+
+    announceScenes();
+    manager.start(request({ motion: 'calm' }));
+    expect(playing.changeScene).not.toHaveBeenCalled();
+    expect(playing.retune).toHaveBeenCalledWith(
+      expect.objectContaining({ motion: 'calm' }),
+    );
+  });
+});

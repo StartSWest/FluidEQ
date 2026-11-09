@@ -38,7 +38,7 @@ import { createMonitorBackgrounds } from './backgrounds';
 import { watchDesktopConditions, type IDesktopConditions } from './conditions';
 import { toWallpaperDisplays } from './displays';
 import { wallpaperHostPath } from './nativeHost';
-import type { IWallpaperScenes } from './scenes';
+import { sameScenePack, type IWallpaperScenes } from './scenes';
 import type { IDesktopSurface } from './surface';
 
 export interface IWallpaperDeps extends IWallpaperScenes {
@@ -540,10 +540,15 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
           return;
         }
         const playing = backgrounds.surfaceOn(id);
-        if (playing?.lookId === lookId) {
+        if (
+          playing?.lookId === lookId &&
+          sameScenePack(playing.scene.pack, scene.pack)
+        ) {
           // Set again with another wave or motion, or to follow the graph or
           // not: the one already playing takes it, with no restart and no
-          // blink.
+          // blink. Only while it is the same scene: the Studio's "Set on
+          // desktop" brings the look up to the stage first, and a retune kept
+          // the version the monitor already had.
           playing.retune(chosen);
         } else {
           backgrounds.change(target, chosen, scene);
@@ -656,12 +661,12 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       }
       const display = connected.find((entry) => entry.id === surface.displayId);
       // An updated scene replaces the one on the desktop, as in the graph —
-      // a Studio save of the listener's own scene among them.
-      if (
-        display &&
-        (next.pack.version !== surface.scene.pack.version ||
-          next.pack.source !== surface.scene.pack.source)
-      ) {
+      // a Studio save of the listener's own scene among them. All of it, not
+      // its version and shader alone: a Studio save keeps the version, and
+      // one that changed a world, a control or a picture left the desktop on
+      // the scene before (Ivan, 2026-11-09: "set on desktop from studio is
+      // not setting last scene from studio").
+      if (display && !sameScenePack(next.pack, surface.scene.pack)) {
         backgrounds.change(display, surface.choice(), next);
         changed = true;
       }

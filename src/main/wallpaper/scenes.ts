@@ -8,6 +8,16 @@ import type { IVisibleScene } from '../memberScenes/visibleScenes';
 import type { TSceneFailure } from '../scenePackStore';
 import type { IWallpaperScene } from './surface';
 
+/**
+ * Two packs are the same scene: every part of them, not the version and the
+ * shader alone. A Studio save keeps its version, and what it changed can be
+ * anywhere in the pack — a 3D world, a control, a picture, the camera.
+ * Compared only when the stores say something changed or a monitor is set,
+ * so writing both out is cheap enough; the same object is never written.
+ */
+export const sameScenePack = (a: IScenePack, b: IScenePack): boolean =>
+  a === b || JSON.stringify(a) === JSON.stringify(b);
+
 /** The looks a desktop background can show, whichever kind each one is. */
 export interface IWallpaperScenes {
   loadScene(lookId: string): IWallpaperScene | undefined;

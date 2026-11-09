@@ -138,6 +138,7 @@ export const mockSurfaceModule = () => ({
     tuning: IWallpaperTuning | undefined;
     daylight(): number | undefined;
     locale(): string;
+    scene: IWallpaperScene;
     onReady(): void;
     onFail(error: string): void;
   }) => {
@@ -193,7 +194,9 @@ export const mockSurfaceModule = () => ({
     };
     Object.assign(surface, {
       bounds: options.bounds,
-      scene: { pack: { version: 1, source: 'void main() {}' } },
+      // The scene it was started with, as the real surface keeps it: what a
+      // set and a store update are compared against.
+      scene: options.scene,
       phase: () => 'running',
       pauseReason: () => undefined,
       owns: (contents: unknown) => contents === surface.contents,
