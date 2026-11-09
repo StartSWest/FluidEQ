@@ -104,6 +104,7 @@ import './StudioPublish.scss';
 import './StudioPublishSize.scss';
 import './StudioPictures.scss';
 import './StudioPictureLightbox.scss';
+import './StudioPictureCopy.scss';
 import './StudioAnimations.scss';
 import './StudioAsk.scss';
 import './PaneResizer.scss';
