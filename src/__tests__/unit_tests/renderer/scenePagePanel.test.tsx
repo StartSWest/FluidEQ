@@ -76,7 +76,7 @@ jest.mock('../../../renderer/plus/ScenePreview', () => ({
 // What the preview hears is its own hook's (quietDemoAudio.test.tsx); here only
 // whether it is the demo song, for the stage's tag.
 let mockDemo = false;
-jest.mock('../../../renderer/plus/useQuietDemoAudio', () => ({
+jest.mock('../../../renderer/audio/useQuietDemoAudio', () => ({
   __esModule: true,
   default: () => ({
     audio: {

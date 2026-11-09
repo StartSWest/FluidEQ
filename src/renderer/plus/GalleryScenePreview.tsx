@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ComponentProps } from 'react';
 import { SceneAudioProvider } from '../audio/SceneAudioContext';
 import ScenePreview from './ScenePreview';
-import useQuietDemoAudio from './useQuietDemoAudio';
+import useQuietDemoAudio from '../audio/useQuietDemoAudio';
 
 type TGalleryScenePreviewProps = ComponentProps<typeof ScenePreview> & {
   /** Told when the scene starts or stops moving to the demo song. */

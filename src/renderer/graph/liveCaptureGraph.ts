@@ -35,6 +35,51 @@ export interface ICaptureNodes {
   meterAnalysers: AnalyserNode[];
 }
 
+/*
+ * THE METER'S OWN ANALYSERS, AND WHY THE SPECTRUM'S COULD NOT DO IT.
+ *
+ * An AnalyserNode reports one signal, not one per channel: whatever
+ * arrives is folded down before the FFT, so the spectrum's analyser already
+ * describes left and right added together. That is right for a shape and
+ * useless for a stereo meter — there is no way to ask it what the right
+ * channel alone is doing, and a "right" meter driven from it would be the
+ * left one with a different letter over it.
+ *
+ * A ChannelSplitterNode is how the channels are told apart. It fans the
+ * source out into one output per channel, each carrying that channel and
+ * nothing else, and an analyser on each gives two genuinely independent
+ * readings. Hard-panned material moves one meter and not the other, which
+ * is the test that says this is real.
+ *
+ * The source keeps its connection to the spectrum's analyser as well — a
+ * node may drive several destinations, and both see the same samples. The
+ * demo song is measured through the same pair (`publishDemoAudio.ts`).
+ */
+export const connectMeterAnalysers = (
+  context: BaseAudioContext,
+  source: AudioNode,
+  isStereo: boolean,
+): Pick<ICaptureNodes, 'splitter' | 'meterAnalysers'> => {
+  const meterAnalysers: AnalyserNode[] = [];
+  const createMeterAnalyser = () => {
+    const meterAnalyser = context.createAnalyser();
+    meterAnalyser.fftSize = LEVEL_FFT_SIZE;
+    meterAnalyser.smoothingTimeConstant = 0;
+    meterAnalysers.push(meterAnalyser);
+    return meterAnalyser;
+  };
+  if (!isStereo) {
+    source.connect(createMeterAnalyser());
+    return { splitter: undefined, meterAnalysers };
+  }
+  const splitter = context.createChannelSplitter(METER_CHANNELS);
+  source.connect(splitter);
+  for (let channel = 0; channel < METER_CHANNELS; channel += 1) {
+    splitter.connect(createMeterAnalyser(), channel);
+  }
+  return { splitter, meterAnalysers };
+};
+
 /**
  * The capture's source, the spectrum's analyser and the meter's analysers,
  * wired in `context` from `stream`.
@@ -73,34 +118,6 @@ const connectCaptureGraph = (
   const source = context.createMediaStreamSource(stream);
   source.connect(analyser);
 
-  /*
-   * THE METER'S OWN ANALYSERS, AND WHY THE ONE ABOVE COULD NOT DO IT.
-   *
-   * An AnalyserNode reports one signal, not one per channel: whatever
-   * arrives is folded down before the FFT, so the spectrum above already
-   * describes left and right added together. That is right for a shape and
-   * useless for a stereo meter — there is no way to ask it what the right
-   * channel alone is doing, and a "right" meter driven from it would be the
-   * left one with a different letter over it.
-   *
-   * A ChannelSplitterNode is how the channels are told apart. It fans the
-   * source out into one output per channel, each carrying that channel and
-   * nothing else, and an analyser on each gives two genuinely independent
-   * readings. Hard-panned material moves one meter and not the other, which
-   * is the test that says this is real.
-   *
-   * The source keeps its existing connection to the spectrum analyser as
-   * well — a node may drive several destinations, and both see the same
-   * samples.
-   */
-  const meterAnalysers: AnalyserNode[] = [];
-  const createMeterAnalyser = () => {
-    const meterAnalyser = context.createAnalyser();
-    meterAnalyser.fftSize = LEVEL_FFT_SIZE;
-    meterAnalyser.smoothingTimeConstant = 0;
-    meterAnalysers.push(meterAnalyser);
-    return meterAnalyser;
-  };
   /*
    * How many channels there actually are, asked of the track rather than
    * assumed.
@@ -141,16 +158,11 @@ const connectCaptureGraph = (
     trackChannels === undefined ||
     trackChannels >= METER_CHANNELS ||
     (Number.isFinite(nodeChannels) && nodeChannels >= METER_CHANNELS);
-  let splitter: ChannelSplitterNode | undefined;
-  if (isStereoCapture) {
-    splitter = context.createChannelSplitter(METER_CHANNELS);
-    source.connect(splitter);
-    for (let channel = 0; channel < METER_CHANNELS; channel += 1) {
-      splitter.connect(createMeterAnalyser(), channel);
-    }
-  } else {
-    source.connect(createMeterAnalyser());
-  }
+  const { splitter, meterAnalysers } = connectMeterAnalysers(
+    context,
+    source,
+    isStereoCapture,
+  );
   return { analyser, source, splitter, meterAnalysers };
 };
 

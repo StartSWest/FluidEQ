@@ -1,18 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLiveAudioControl } from '../audio/LiveAudioContext';
-import { useSceneAudio, type ISceneAudio } from '../audio/SceneAudioContext';
-import { useTransportSources } from '../audio/transportSource';
+import { useLiveAudioControl } from './LiveAudioContext';
+import { useSceneAudio, type ISceneAudio } from './SceneAudioContext';
+import { useTransportSources } from './transportSource';
 import createPublishDemoAudio from '../studio/publishDemoAudio';
 
 type TDemoAudio = ReturnType<typeof createPublishDemoAudio>;
 
 /**
- * What a scene previewed in the Gallery hears: the music playing, or, while
- * nothing is, the app's own demo song measured without a sound (Ivan,
- * 2026-11-09: "if there is no audio playing the scenes on preview use a fake
- * audio but that don't sound, just move, and tell that in the scene ... and
- * if audio, automatically pick up the audio playing"). A scene that only ever
- * heard the capture sat at rest with nothing playing and looked broken.
+ * What a scene previewed in the Gallery or on the Studio's stage hears: the
+ * music playing, or, while nothing is, the app's own demo song measured
+ * without a sound (Ivan, 2026-11-09: "if there is no audio playing the scenes
+ * on preview use a fake audio but that don't sound, just move, and tell that
+ * in the scene ... and if audio, automatically pick up the audio playing";
+ * and for the Studio, "playing with demo data if no sound"). A scene that
+ * only ever heard the capture sat at rest with nothing playing and looked
+ * broken.
  *
  * Quiet is a state, never a stretch of time: nothing heard by the capture
  * (whose own floor already calls anything under -95 dBFS silence) AND no
@@ -23,9 +25,12 @@ type TDemoAudio = ReturnType<typeof createPublishDemoAudio>;
  * nothing is heard by the capture and wins at once. Nothing is decided until
  * the capture has started (or failed), so a page opened over music does not
  * flash the demo while the capture opens.
- * The demo's audio context exists only while it is wanted.
+ * The demo's audio context exists only while it is wanted, and never while
+ * the page is not `listening` to the music at all: the Studio's made-up test
+ * signals replace everything the scene hears, so a demo under them would be
+ * measured for nobody - and Silence has to stay silence.
  */
-export default function useQuietDemoAudio(): {
+export default function useQuietDemoAudio(listening = true): {
   audio: ISceneAudio;
   /** True while the scene moves to the demo song, for the page's tag. */
   demo: boolean;
@@ -38,7 +43,8 @@ export default function useQuietDemoAudio(): {
   );
   const heard = !live.isPaused && live.points.length > 0;
   // The capture's error is the empty string while it has none.
-  const wanted = (isActive || error !== '') && !heard && !playerPlays;
+  const wanted =
+    listening && (isActive || error !== '') && !heard && !playerPlays;
 
   const [playing, setPlaying] = useState<TDemoAudio>();
   const playingRef = useRef<TDemoAudio | undefined>(undefined);

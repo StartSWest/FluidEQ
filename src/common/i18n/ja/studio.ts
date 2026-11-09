@@ -3,6 +3,7 @@ const studio = {
     'プロジェクトの説明を保存できませんでした。もう一度お試しください。',
   'studio.stage.loading': 'シーンを読み込み中…',
   'studio.stage.updating': '更新中…',
+  'studio.stage.demoSong': 'デモ曲に合わせて再生中',
   'studio.picture.download': '画像を保存',
   'studio.picture.downloaded': '画像を保存しました',
   'studio.picture.downloadFailed': '画像を保存できませんでした。',

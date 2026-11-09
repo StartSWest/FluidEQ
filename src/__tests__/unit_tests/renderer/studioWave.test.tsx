@@ -104,6 +104,7 @@ describe('the stage', () => {
       pack={pack}
       serial={1}
       signal="live"
+      demo={false}
       size="graph"
       isPlayer={false}
       wave={wave}

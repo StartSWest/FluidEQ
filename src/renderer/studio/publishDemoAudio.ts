@@ -1,34 +1,57 @@
-import { MAX_GAIN, MIN_GAIN } from 'common/constants';
+import { MIN_GAIN } from 'common/constants';
 import type { ISceneAudio } from '../audio/SceneAudioContext';
+import { connectMeterAnalysers } from '../graph/liveCaptureGraph';
+import { connectLiveFrameReader } from '../graph/liveFrameReader';
+import { FFT_SIZE, createFrequencyAxis } from '../graph/liveSpectrumFrames';
+import { createAxisCells } from '../utils/autoBalanceCapture';
 
 /** The Publish dialog's Demo: a short instrumental loop that ships with the
  * app (`studioDemoMusic.ts` in main says what it is and how its join was
  * made), played on repeat when the Demo button is pressed. It replaces a loop
  * synthesised here from sine waves (Ivan, 2026-11-07: "that ugly sound").
- * Studio hears its real analyser, not the stage's synthetic showcase
- * measurements. The preview recorder still receives canvas pixels only, never
- * this audio.
+ * The preview recorder still receives canvas pixels only, never this audio.
  *
  * `audible: false` measures the same loop without a sound: the Gallery's
- * preview moves to it while nothing is playing (Ivan, 2026-11-09: "a fake
- * audio but that don't sound, just move"). The analyser still feeds the
- * destination, through a gain of nought, because a graph that reaches no
- * destination is not pulled and its analyser reads nothing. */
+ * preview and the Studio's stage move to it while nothing is playing (Ivan,
+ * 2026-11-09: "a fake audio but that don't sound, just move"). What the loop
+ * goes into still feeds the destination, through a gain of nought, so the
+ * graph is pulled exactly as an audible one is.
+ *
+ * MEASURED AS THE CAPTURE MEASURES MUSIC (Ivan, 2026-11-09: "improve the
+ * sound to be more natural toward the bass"). The loop used to be read by a
+ * 2048-point analyser of its own: every frame scaled to its own loudest bin,
+ * which on this loop is the bass, so the bass sat pinned at the top and never
+ * swelled with the kick; every point one rounded bin 23 Hz wide, a staircase
+ * under 150 Hz; and no sound at all, so a scene's kick, tempo and rhythm were
+ * never heard on it. It now goes through the capture's own reader
+ * (`connectLiveFrameReader`) and meters (`connectMeterAnalysers`): one scale
+ * that follows the music down by a decibel a second, the long window under
+ * the bass, and the sound the runner hears kicks in - a scene moves to the
+ * demo as it would to the same song playing. */
 export default function createPublishDemoAudio(
   paused = false,
   { audible = true }: { audible?: boolean } = {},
 ) {
   const context = new AudioContext();
-  const analyser = context.createAnalyser();
-  analyser.fftSize = 2048;
-  analyser.smoothingTimeConstant = 0.2;
+  // Where the loop goes in, and everything that measures it hangs off.
+  const input = context.createGain();
   if (audible) {
-    analyser.connect(context.destination);
+    input.connect(context.destination);
   } else {
     const mute = context.createGain();
     mute.gain.value = 0;
-    analyser.connect(mute).connect(context.destination);
+    input.connect(mute).connect(context.destination);
   }
+  const axis = createFrequencyAxis(context.sampleRate);
+  const reader = connectLiveFrameReader(context, input, {
+    channelAnalysers: connectMeterAnalysers(context, input, true)
+      .meterAnalysers,
+    axis,
+    cells: createAxisCells(axis, context.sampleRate, FFT_SIZE),
+    trackReference: { current: undefined },
+    // No pump runs beside this reader to let the scale fall: it does.
+    releaseReference: () => true,
+  });
   let source: AudioBufferSourceNode | undefined;
   let stopped = false;
   // Paused or not as last asked, also while the file is still on its way.
@@ -50,7 +73,7 @@ export default function createPublishDemoAudio(
     const playing = context.createBufferSource();
     playing.buffer = music;
     playing.loop = true;
-    playing.connect(analyser);
+    playing.connect(input);
     playing.start();
     source = playing;
     await settle();
@@ -59,55 +82,23 @@ export default function createPublishDemoAudio(
     }
     return undefined;
   })();
-  const bins = new Float32Array(analyser.frequencyBinCount);
-  const wave = new Float32Array(analyser.fftSize);
-  const points = Array.from({ length: 320 }, (_, index) => ({
-    x: 20 * 1000 ** (index / 319),
-    y: MIN_GAIN,
-  }));
-  const waveform = Array.from({ length: 96 }, () => 0);
+  // What a provider holds between frames to say there is music
+  // (`useQuietDemoAudio`): never empty, so the runner wakes a scene that had
+  // come to rest in the silence before the demo began. The measurements
+  // themselves are read through `readFrame`, every frame.
+  const points = axis.map((x) => ({ x, y: MIN_GAIN }));
+  const waveform = [0];
   const silence = { points: [], waveform: [], sound: undefined };
-  const readFrame: ISceneAudio['readFrame'] = () => {
-    if (
-      stopped ||
-      !source ||
-      context.state !== 'running' ||
-      context.currentTime === 0
-    ) {
-      return silence;
-    }
-    analyser.getFloatFrequencyData(bins);
-    analyser.getFloatTimeDomainData(wave);
-    let peak = -100;
-    bins.forEach((value) => {
-      peak = Math.max(peak, value);
-    });
-    points.forEach((point) => {
-      const bin = Math.min(
-        bins.length - 1,
-        Math.round((point.x * analyser.fftSize) / context.sampleRate),
-      );
-      point.y = Math.max(
-        MIN_GAIN,
-        Math.min(MAX_GAIN, bins[bin] - peak + MAX_GAIN),
-      );
-    });
-    waveform.forEach((_value, index) => {
-      const from = Math.floor((index * wave.length) / waveform.length);
-      const to = Math.floor(((index + 1) * wave.length) / waveform.length);
-      let amplitude = 0;
-      for (let sample = from; sample < to; sample += 1) {
-        amplitude = Math.max(amplitude, Math.abs(wave[sample]));
-      }
-      waveform[index] = amplitude;
-    });
-    return { points, waveform, sound: undefined };
-  };
+  const readFrame: ISceneAudio['readFrame'] = () =>
+    stopped ||
+    !source ||
+    context.state !== 'running' ||
+    context.currentTime === 0
+      ? silence
+      : reader.read();
   return {
     ready,
     readFrame,
-    // The arrays `readFrame` fills in place, for a provider that has to say
-    // there is music without a React render per frame (`useQuietDemoAudio`).
     points,
     waveform,
     setPaused: (next: boolean) => {
@@ -118,7 +109,7 @@ export default function createPublishDemoAudio(
       stopped = true;
       source?.stop();
       source?.disconnect();
-      analyser.disconnect();
+      input.disconnect();
       return context.close();
     },
   };

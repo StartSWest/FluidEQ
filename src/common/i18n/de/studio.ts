@@ -3,6 +3,7 @@ const studio = {
     'Die Projektbeschreibung konnte nicht gespeichert werden. Versuchen Sie es erneut.',
   'studio.stage.loading': 'Szene wird geladen…',
   'studio.stage.updating': 'Wird aktualisiert…',
+  'studio.stage.demoSong': 'Läuft zum Demosong',
   'studio.picture.download': 'Bild speichern',
   'studio.picture.downloaded': 'Bild gespeichert',
   'studio.picture.downloadFailed': 'Das Bild konnte nicht gespeichert werden.',

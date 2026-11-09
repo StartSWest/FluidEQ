@@ -61,6 +61,7 @@ const stage = (size: 'graph' | 'full', onExitFullscreen: jest.Mock) =>
       pack={pack}
       serial={1}
       signal="live"
+      demo={false}
       size={size}
       isPlayer={false}
       wave={{ height: 1, position: 0 }}
@@ -109,6 +110,7 @@ it('offers the way out while the screen is full, whatever the size says', () => 
       pack={pack}
       serial={1}
       signal="live"
+      demo={false}
       size="graph"
       isPlayer={false}
       wave={{ height: 1, position: 0 }}

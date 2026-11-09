@@ -26,12 +26,9 @@ import {
 import { IChartPointData } from './ChartController';
 import type { ICaptureNodes } from './liveCaptureGraph';
 import {
-  connectDrawAnalyser,
-  createLiveFrameReader,
+  connectLiveFrameReader,
   type ILiveFrameReader,
 } from './liveFrameReader';
-import { createLiveGraphBand } from './liveGraphBand';
-import { connectSoundAnalysers, createLiveSound } from './liveSound';
 import {
   CLIP_HOLD_MS,
   FFT_SIZE,
@@ -121,17 +118,14 @@ const createCapturePump = ({
     current: undefined,
   };
   const isSignalEdge = createSignalEdge();
-  frameReaderRef.current = createLiveFrameReader({
-    analyser: connectDrawAnalyser(context, source),
+  frameReaderRef.current = connectLiveFrameReader(context, source, {
     channelAnalysers: meterAnalysers,
     axis,
     cells,
-    graph: createLiveGraphBand(context, source, FFT_SIZE),
     trackReference,
     // The display pump skips hidden windows. Wallpaper reads still need a
     // reference that follows quieter music.
     releaseReference: () => isHiddenRef.current,
-    sound: createLiveSound(connectSoundAnalysers(context, source)),
   });
 
   // One block of samples, read into again per channel per tick, and the

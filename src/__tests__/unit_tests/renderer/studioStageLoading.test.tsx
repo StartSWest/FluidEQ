@@ -33,6 +33,7 @@ const props = {
   pack,
   serial: 1,
   signal: 'live' as const,
+  demo: false,
   size: 'graph' as const,
   onTrouble: jest.fn(),
   onDrawn: jest.fn(),
@@ -55,6 +56,7 @@ it('shows loading for as long as the runner says a version is on its way', () =>
       pack={props.pack}
       serial={props.serial}
       signal={props.signal}
+      demo={props.demo}
       size={props.size}
       isPlayer={false}
       readingRef={{ current: null }}
@@ -105,6 +107,7 @@ it('starts loading again when the selected project changes', () => {
       pack={props.pack}
       serial={props.serial}
       signal={props.signal}
+      demo={props.demo}
       size={props.size}
       isPlayer={false}
       readingRef={{ current: null }}
@@ -123,6 +126,7 @@ it('starts loading again when the selected project changes', () => {
       pack={props.pack}
       serial={props.serial}
       signal={props.signal}
+      demo={props.demo}
       size={props.size}
       isPlayer={false}
       readingRef={{ current: null }}
@@ -144,6 +148,7 @@ it('reports an actual compile error', () => {
       pack={props.pack}
       serial={props.serial}
       signal={props.signal}
+      demo={props.demo}
       size={props.size}
       isPlayer={false}
       readingRef={{ current: null }}

@@ -33,8 +33,7 @@ import {
 } from '../../utils/fakeLiveCapture';
 
 jest.mock('renderer/graph/liveFrameReader', () => ({
-  connectDrawAnalyser: () => ({}),
-  createLiveFrameReader: () => ({
+  connectLiveFrameReader: () => ({
     read: () => ({
       points: [],
       graphPoints: [],
@@ -42,10 +41,6 @@ jest.mock('renderer/graph/liveFrameReader', () => ({
       channelPeaks: [],
     }),
   }),
-}));
-jest.mock('renderer/graph/liveGraphBand', () => ({
-  ...jest.requireActual('renderer/graph/liveGraphBand'),
-  createLiveGraphBand: () => ({}),
 }));
 
 let control: ReturnType<typeof useLiveOutputSpectrum>['control'] | undefined;

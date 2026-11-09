@@ -110,6 +110,15 @@ const SOLO_HZ: Record<TSoloSignal, readonly [number, number]> = {
 const isSolo = (signal: TStudioSignal): signal is TSoloSignal =>
   signal in SOLO_HZ;
 
+/**
+ * Whether the stage's scene hears the music under `signal`: Your music, or a
+ * part of it on its own. With nothing playing, these are the signals the
+ * demo song stands in for (`StudioStageSound`), so the bass meter under Bass
+ * stays the bass meter under Your music, kick for kick, demo or not.
+ */
+export const listensToMusic = (signal: TStudioSignal): boolean =>
+  signal === 'live' || isSolo(signal);
+
 /** The made-up signals, which do not listen to the music at all. */
 type TMadeSignal = Exclude<TStudioSignal, 'live' | TSoloSignal>;
 

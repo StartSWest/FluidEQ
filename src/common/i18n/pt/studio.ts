@@ -3,6 +3,7 @@ const studio = {
     'Não foi possível salvar a descrição do projeto. Tente novamente.',
   'studio.stage.loading': 'Carregando cena…',
   'studio.stage.updating': 'Atualizando…',
+  'studio.stage.demoSong': 'No ritmo da música da demo',
   'studio.picture.download': 'Salvar imagem',
   'studio.picture.downloaded': 'Imagem salva',
   'studio.picture.downloadFailed': 'Não foi possível salvar a imagem.',

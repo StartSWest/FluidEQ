@@ -3,6 +3,7 @@ const studio = {
     'Impossible d’enregistrer la description du projet. Réessayez.',
   'studio.stage.loading': 'Chargement de la scène…',
   'studio.stage.updating': 'Mise à jour…',
+  'studio.stage.demoSong': 'Sur la chanson de la démo',
   'studio.picture.download': 'Enregistrer l’image',
   'studio.picture.downloaded': 'Image enregistrée',
   'studio.picture.downloadFailed': 'Impossible d’enregistrer l’image.',

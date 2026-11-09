@@ -22,11 +22,16 @@ import {
 } from './liveSpectrumFrames';
 import {
   type ILiveGraphBand,
+  createLiveGraphBand,
   followGraphReference,
   readGraphLevels,
   writeGraphPoints,
 } from './liveGraphBand';
-import type { ILiveSound } from './liveSound';
+import {
+  type ILiveSound,
+  connectSoundAnalysers,
+  createLiveSound,
+} from './liveSound';
 import { readPeakAmplitude } from './outputLevel';
 import { readStereoImage } from './stereoImage';
 
@@ -249,6 +254,27 @@ export const createLiveFrameReader = ({
     },
   };
 };
+
+/**
+ * A drawing's reader on `source`, with every analyser it reads hung off it:
+ * the fast spectrum, the graphs' long window and the sound's two channels.
+ * The capture builds its reader here, and so does the demo song
+ * (`publishDemoAudio.ts`), so a scene hears the demo exactly as it would hear
+ * the same song playing: one scale that follows the music down slowly rather
+ * than one per frame, the long window under the bass, and the sound that
+ * kicks, tempo and rhythm are heard in.
+ */
+export const connectLiveFrameReader = (
+  context: BaseAudioContext,
+  source: AudioNode,
+  options: Omit<ILiveFrameReaderOptions, 'analyser' | 'graph' | 'sound'>,
+): ILiveFrameReader =>
+  createLiveFrameReader({
+    ...options,
+    analyser: connectDrawAnalyser(context, source),
+    graph: createLiveGraphBand(context, source, FFT_SIZE),
+    sound: createLiveSound(connectSoundAnalysers(context, source)),
+  });
 
 /** Build the drawing's analyser beside the pump's, on the same source. */
 export const connectDrawAnalyser = (

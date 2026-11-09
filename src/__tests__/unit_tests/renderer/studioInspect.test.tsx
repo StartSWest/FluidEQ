@@ -44,7 +44,7 @@ jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
   useLiveAudioControl: () => ({ claim: () => undefined, capture: undefined }),
 }));
 
-jest.mock('../../../renderer/studio/StudioStage', () => ({
+jest.mock('../../../renderer/studio/StudioStageSound', () => ({
   __esModule: true,
   default: () => <canvas data-testid="studio-stage" />,
 }));

@@ -3,6 +3,7 @@ const studio = {
     'प्रोजेक्ट का विवरण सेव नहीं हो सका। फिर से कोशिश करें।',
   'studio.stage.loading': 'सीन लोड हो रहा है…',
   'studio.stage.updating': 'अपडेट हो रहा है…',
+  'studio.stage.demoSong': 'डेमो गाने पर चल रहा है',
   'studio.picture.download': 'चित्र सहेजें',
   'studio.picture.downloaded': 'चित्र सहेजा गया',
   'studio.picture.downloadFailed': 'चित्र सहेजा नहीं जा सका।',

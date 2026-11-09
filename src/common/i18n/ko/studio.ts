@@ -7,6 +7,7 @@ const studio = {
     '프로젝트 설명을 저장할 수 없습니다. 다시 시도해 보세요.',
   'studio.stage.loading': '장면 로드 중…',
   'studio.stage.updating': '업데이트 중…',
+  'studio.stage.demoSong': '데모 곡에 맞춰 재생 중',
   'studio.picture.download': '이미지 저장',
   'studio.picture.downloaded': '이미지가 저장되었습니다',
   'studio.picture.downloadFailed': '이미지를 저장할 수 없습니다.',

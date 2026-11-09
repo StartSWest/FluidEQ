@@ -55,10 +55,8 @@ import useStudioAppColours from './useStudioAppColours';
 import useStudioTint from './useStudioTint';
 import { useStudioGridShown } from './studioPaper';
 import useStudioSize from './useStudioSize';
-import StudioStage, {
-  type TStageHeard,
-  type TStageTrouble,
-} from './StudioStage';
+import type { TStageHeard, TStageTrouble } from './StudioStage';
+import StudioStageSound from './StudioStageSound';
 import type { TStudioSignal } from './studioSignals';
 import StudioStageLoading from './StudioStageLoading';
 import troubleHoldsBack from './stageTrouble';
@@ -249,7 +247,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     // is nothing to keep them together for, and a spread is what the lint rule
     // here exists to refuse — it hides which props a component is really given.
     stage = (
-      <StudioStage
+      <StudioStageSound
         key={`stage:${state.activeId}`}
         identity={state.activeId ?? ''}
         pack={pack}

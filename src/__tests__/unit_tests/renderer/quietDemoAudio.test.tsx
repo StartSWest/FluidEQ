@@ -10,7 +10,7 @@ import {
   SceneAudioProvider,
   type ISceneAudio,
 } from 'renderer/audio/SceneAudioContext';
-import useQuietDemoAudio from 'renderer/plus/useQuietDemoAudio';
+import useQuietDemoAudio from 'renderer/audio/useQuietDemoAudio';
 
 const mockControl = { isActive: true, error: '' };
 jest.mock('renderer/audio/LiveAudioContext', () => ({
@@ -129,6 +129,26 @@ it('keeps the music through the silence between two songs', () => {
   expect(mockDemos).toHaveLength(0);
   expect(hook.result.current.demo).toBe(false);
   expect(hook.result.current.audio).toBe(between);
+});
+
+it('opens no demo for a page that is not listening to the music', () => {
+  const room = music(0);
+  let live = room;
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <SceneAudioProvider value={live}>{children}</SceneAudioProvider>
+  );
+  const hook = renderHook(
+    ({ listening }: { listening: boolean }) => useQuietDemoAudio(listening),
+    { wrapper, initialProps: { listening: false } },
+  );
+  expect(mockDemos).toHaveLength(0);
+  expect(hook.result.current.demo).toBe(false);
+  expect(hook.result.current.audio).toBe(room);
+  // The control: the same silence, listened to, moves to the demo.
+  live = music(0);
+  hook.rerender({ listening: true });
+  expect(mockDemos).toHaveLength(1);
+  expect(hook.result.current.demo).toBe(true);
 });
 
 it('waits for the capture to start before deciding', () => {

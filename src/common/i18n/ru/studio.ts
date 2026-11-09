@@ -3,6 +3,7 @@ const studio = {
     'Не удалось сохранить описание проекта. Попробуйте ещё раз.',
   'studio.stage.loading': 'Загрузка сцены…',
   'studio.stage.updating': 'Обновление…',
+  'studio.stage.demoSong': 'Играет под демо-песню',
   'studio.picture.download': 'Сохранить изображение',
   'studio.picture.downloaded': 'Изображение сохранено',
   'studio.picture.downloadFailed': 'Не удалось сохранить изображение.',

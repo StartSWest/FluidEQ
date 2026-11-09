@@ -2,6 +2,7 @@ const studio = {
   'studio.notes.failed': '无法保存项目描述，请重试。',
   'studio.stage.loading': '正在加载场景…',
   'studio.stage.updating': '正在更新…',
+  'studio.stage.demoSong': '正随演示歌曲播放',
   'studio.picture.download': '保存图片',
   'studio.picture.downloaded': '图片已保存',
   'studio.picture.downloadFailed': '无法保存图片。',

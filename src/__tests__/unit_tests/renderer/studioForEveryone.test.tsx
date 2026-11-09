@@ -35,7 +35,7 @@ jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
 }));
 
 // The stage itself is the GPU's; what is held here is what it is told.
-jest.mock('../../../renderer/studio/StudioStage', () => ({
+jest.mock('../../../renderer/studio/StudioStageSound', () => ({
   __esModule: true,
   default: (props: Record<string, unknown>) => (
     <canvas

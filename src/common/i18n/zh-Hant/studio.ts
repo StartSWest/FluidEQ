@@ -6,6 +6,7 @@ const studio = {
   'studio.notes.failed': '無法儲存專案描述。再試一次。',
   'studio.stage.loading': '載入場景...',
   'studio.stage.updating': '正在更新…',
+  'studio.stage.demoSong': '正隨示範歌曲播放',
   'studio.picture.download': '儲存影像',
   'studio.picture.downloaded': '影像已儲存',
   'studio.picture.downloadFailed': '無法儲存影像。',

@@ -35,7 +35,7 @@ jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
 
 // The stage without a GPU, keeping the controls laid over its foot: the sizes
 // are on the stage now, not in the side column.
-jest.mock('../../../renderer/studio/StudioStage', () => ({
+jest.mock('../../../renderer/studio/StudioStageSound', () => ({
   __esModule: true,
   default: ({ controls }: { controls?: import('react').ReactNode }) => (
     <div>

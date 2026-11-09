@@ -82,6 +82,8 @@ interface IStudioStageProps {
   /** Changes with every version that became a pack. */
   serial: number;
   signal: TStudioSignal;
+  /** Nothing is playing and the scene moves to the demo song (`StudioStageSound`). */
+  demo: boolean;
   size: TStudioSize;
   /**
    * The scene behind the compact player, at its window's shape, inside
@@ -149,6 +151,7 @@ export default function StudioStage({
   pack,
   serial,
   signal,
+  demo,
   size,
   isPlayer,
   wave,
@@ -417,6 +420,14 @@ export default function StudioStage({
               : undefined
           }
         >
+          {/* Nothing playing, the scene moving to the demo song unheard: said
+              as the Gallery's preview says it, on the plate that wraps. */}
+          {demo && (
+            <span className="studio-stage__demo" role="status">
+              <span className="studio-stage__demo-dot" aria-hidden="true" />
+              {t('studio.stage.demoSong')}
+            </span>
+          )}
           {/* A save's new version building beside the picture, which plays
               on meanwhile and is swapped for it the moment it is ready. */}
           {updating && (

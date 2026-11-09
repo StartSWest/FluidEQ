@@ -10,6 +10,7 @@ const studio = {
   'studio.notes.failed': 'Could not save the project description. Try again.',
   'studio.stage.loading': 'Loading scene…',
   'studio.stage.updating': 'Updating…',
+  'studio.stage.demoSong': 'Playing to the demo song',
   'studio.picture.download': 'Save image',
   'studio.picture.downloaded': 'Image saved',
   'studio.picture.downloadFailed': 'Could not save the image.',

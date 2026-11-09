@@ -92,7 +92,7 @@ jest.mock('../../../renderer/plus/ScenePreview', () => ({
 }));
 // What the preview hears comes from the window's audio, which these tests do
 // not mount; quietDemoAudio.test.tsx holds that hook.
-jest.mock('../../../renderer/plus/useQuietDemoAudio', () => ({
+jest.mock('../../../renderer/audio/useQuietDemoAudio', () => ({
   __esModule: true,
   default: () => ({
     audio: {

@@ -285,6 +285,61 @@ $stage-edge: $border-menu;
   bottom: $spacing-s;
 }
 
+// Nothing playing, the scene moving to the demo song without a sound
+// (`StudioStageSound`): the first part of the plate, as the Gallery's preview
+// tags it. In its own corner it ran under the plate wherever the plate spans
+// the stage (measured at a 420px window in de, ru, hi and fr); on the plate it
+// keeps to one line, and on the narrowest stage, where the plate wraps, its
+// words take a second line beside the reading before the plate takes a row.
+.studio-stage__demo {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  color: $text-muted;
+  pointer-events: none;
+  font-size: $text-micro;
+  font-weight: $weight-medium;
+  line-height: 1.35;
+  white-space: nowrap;
+
+  // From nothing, taking what the reading's row leaves: sized to its words it
+  // was either pushed onto a row of its own or capped into three lines beside
+  // a gap (fr at the window's 1024px floor).
+  @container studio-stage (max-width: 440px) {
+    min-width: 7em;
+    flex: 1 1 0;
+    white-space: normal;
+  }
+}
+
+// The plate's hairline after it stood 4px off its last word, as close as a
+// letter's own spacing; the reading beside it keeps the room its figures need.
+.studio-stage__bar .studio-stage__demo:not(:last-child) {
+  padding-right: 10px;
+}
+
+// The Gallery's live light: the scene is moving, to music nobody hears.
+.studio-stage__demo-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: $active;
+  animation: studio-stage-demo 2.4s $ease-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes studio-stage-demo {
+  50% {
+    opacity: 0.45;
+  }
+}
+
 // ---------------------------------------------------------------- controls
 
 .studio-segments {
