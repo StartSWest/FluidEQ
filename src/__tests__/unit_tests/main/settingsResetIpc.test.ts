@@ -321,9 +321,6 @@ const NOT_SETTING_FILES = [
   'relay.json',
   'relay-left.json',
   'relay-sessions.json',
-  // The Studio chat's skills plugin manifest, written again from the skills
-  // FluidEQ ships whenever they differ: the app's own, not a choice.
-  'plugin.json',
   // Another program's sign-in, read where it keeps it.
   '.credentials.json',
   'auth.json',

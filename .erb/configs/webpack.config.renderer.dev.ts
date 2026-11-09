@@ -150,6 +150,8 @@ const configuration: webpack.Configuration = {
       // The Gaming Help overview is available offline, including its captions.
       { test: /\.mp4$/i, type: 'asset/resource' },
       { test: /\.vtt$/i, type: 'asset/source' },
+      // FluidEQ's agent skills, carried whole by a prompt for another AI.
+      { test: /\.md$/i, type: 'asset/source' },
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/i,
         type: 'asset/resource',

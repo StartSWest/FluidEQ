@@ -4,23 +4,24 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import writeFileAtomically from '../atomicWrite';
 
 /**
  * FluidEQ's own agent skills for making scenes (Ivan, 2026-11-09: "do this
- * as agents skills that works for any agent gpt, claude, etc"): folders in
- * the open Agent Skills format (a SKILL.md with a name and a description,
- * read by Claude Code, Codex, Gemini CLI and the rest), shipped in
- * `assets/studio/skills` and handed to an agent two ways:
- * - the Studio's own chat loads them as a plugin of FluidEQ's own, from the
- *   chat's folder (`--plugin-dir`): it reads nothing from a scene folder's
- *   `.claude`, which may have come from anybody (`chatLaunch.ts`);
- * - any other agent finds them in the project, in `.agents/skills`, where
- *   Codex, Gemini CLI and the others look.
- * Only folders named `fluideq-*` are FluidEQ's: nothing else in either place
- * is touched.
+ * as agents skills that works for any agent gpt, claude, etc"), in the open
+ * Agent Skills format, shipped inside FluidEQ in `assets/studio/fluideq`:
+ * a plugin folder Claude Code loads as it is (`--plugin-dir`; with no
+ * manifest it is named after the folder, `fluideq`), and the text a prompt
+ * for another AI carries (`aiPromptSkills.ts`).
+ *
+ * They live in FluidEQ and nowhere else, and update with it (Ivan, same
+ * night: "we remove from the scenes and we store in fluid source code and
+ * each time user open a chat gets injected"). The first version copied them
+ * into every project's `.agents/skills` and into the chat's own folder;
+ * a copy in a scene folder is a copy an update never reaches, so both are
+ * gone, and `removePlacedSkills` takes back what that version placed.
  */
 
 const SKILL_NAME = /^fluideq-[a-z0-9-]{1,48}$/;
@@ -38,16 +39,19 @@ export interface IStudioSkill {
 /** `resourcesPath` is Electron's addition to `process` (see `roomHead.ts`). */
 type TProcessWithResources = NodeJS.Process & { resourcesPath?: string };
 
-/** Beside the packaged app's resources, or the checkout's own assets. */
-export const shippedSkillsDir = (): string => {
+/**
+ * The plugin folder FluidEQ ships, beside the packaged app's resources or in
+ * the checkout's own assets.
+ */
+export const shippedPluginDir = (): string => {
   const { resourcesPath: resources } = process as TProcessWithResources;
   const packaged =
     resources === undefined
       ? undefined
-      : path.join(resources, 'assets', 'studio', 'skills');
+      : path.join(resources, 'assets', 'studio', 'fluideq');
   return packaged !== undefined && fs.existsSync(packaged)
     ? packaged
-    : path.join(__dirname, '../../../assets/studio/skills');
+    : path.join(__dirname, '../../../assets/studio/fluideq');
 };
 
 const isPlainDirectory = (target: string) => {
@@ -81,8 +85,9 @@ const readSkillFiles = (dir: string, prefix = '', depth = 0) =>
 
 /** Every skill FluidEQ ships: a `fluideq-*` folder holding a SKILL.md. */
 export const readShippedSkills = (
-  dir: string = shippedSkillsDir(),
+  plugin: string = shippedPluginDir(),
 ): IStudioSkill[] => {
+  const dir = path.join(plugin, 'skills');
   let names: string[];
   try {
     names = fs.readdirSync(dir).filter((name) => SKILL_NAME.test(name));
@@ -94,7 +99,9 @@ export const readShippedSkills = (
     if (!isPlainDirectory(folder)) {
       return [];
     }
-    const files = readSkillFiles(folder).slice(0, MAX_FILES);
+    const files = readSkillFiles(folder)
+      .sort((a, b) => a.relative.localeCompare(b.relative))
+      .slice(0, MAX_FILES);
     return files.some(({ relative }) => relative === 'SKILL.md')
       ? [{ name, files }]
       : [];
@@ -102,104 +109,117 @@ export const readShippedSkills = (
 };
 
 /**
- * Every directory from `base` down to `target` is a plain one, or not there
- * yet: a scene folder may hold a link named `.agents`, and writing through
- * it would write wherever it points.
+ * What the skills say, as one hash: a chat started on other skills is
+ * started again on its next message, as it is for another brief, and a
+ * release that leaves them alone costs it nothing.
  */
-const noLinkBetween = (base: string, target: string) => {
-  const parts = path.relative(base, target).split(path.sep).filter(Boolean);
-  let at = base;
-  return parts.every((part) => {
-    at = path.join(at, part);
-    try {
-      const stats = fs.lstatSync(at);
-      return stats.isDirectory() && !stats.isSymbolicLink();
-    } catch {
-      return true;
-    }
+export const skillsDigest = (skills: readonly IStudioSkill[]): string => {
+  const hash = createHash('sha256');
+  skills.forEach(({ name, files }) => {
+    hash.update(`${name}\u0000`);
+    files.forEach(({ relative, bytes }) => {
+      hash.update(`${relative}\u0000${bytes.length}\u0000`);
+      hash.update(bytes);
+    });
   });
+  return hash.digest('hex');
 };
 
-const sameBytes = (file: string, bytes: Buffer) => {
-  try {
-    const stats = fs.lstatSync(file);
-    return stats.isFile() && fs.readFileSync(file).equals(bytes);
-  } catch {
-    return false;
-  }
-};
-
-/**
- * The skills written under `target` (`base` the folder it must stay inside),
- * each file only where it differs, written beside and renamed over so an
- * agent never reads half of one. A `fluideq-*` folder FluidEQ no longer
- * ships is left as it is: removing a folder in somebody's project is not
- * worth what a stale skill costs. False where a link stood in the way.
- */
-export const placeSkills = (
-  base: string,
-  target: string,
-  skills: readonly IStudioSkill[],
-): boolean => {
-  if (!isPlainDirectory(base)) {
-    return false;
-  }
-  return skills.every(({ name, files }) =>
-    files.every(({ relative, bytes }) => {
-      const file = path.join(target, name, ...relative.split('/'));
-      if (!noLinkBetween(base, path.dirname(file))) {
+/** Every file under `dir`, `/`-separated, plain files only; none past a link. */
+const plainFilesUnder = (
+  dir: string,
+  prefix = '',
+): { relative: string; full: string }[] | undefined => {
+  const found: { relative: string; full: string }[] = [];
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const allPlain = entries.every((entry) => {
+    const full = path.join(dir, entry.name);
+    if (entry.isSymbolicLink()) {
+      return false;
+    }
+    if (entry.isDirectory()) {
+      const inner = plainFilesUnder(full, `${prefix}${entry.name}/`);
+      if (!inner) {
         return false;
       }
-      if (!sameBytes(file, bytes)) {
-        writeFileAtomically(file, bytes);
-      }
+      found.push(...inner);
       return true;
-    }),
-  );
+    }
+    if (entry.isFile()) {
+      found.push({ relative: `${prefix}${entry.name}`, full });
+      return true;
+    }
+    return false;
+  });
+  return allPlain ? found : undefined;
 };
 
-// Checked with `claude plugin validate` and, loaded the way the chat loads it
-// (`--plugin-dir` with `--setting-sources user`), `claude plugin details`:
-// both skills listed, about 280 tokens a message until one is used
-// (Claude Code 2.1.316).
-const PLUGIN_MANIFEST = `${JSON.stringify(
-  {
-    name: 'fluideq',
-    version: '1.0.0',
-    description:
-      "FluidEQ's own skills for making visualizer scenes in the Studio.",
-    license: 'GPL-3.0-or-later',
-  },
-  null,
-  2,
-)}\n`;
+/** Removes `dir` and the folders under it once they are empty. */
+const removeEmptyFolders = (dir: string) => {
+  fs.readdirSync(dir, { withFileTypes: true }).forEach((entry) => {
+    if (entry.isDirectory() && !entry.isSymbolicLink()) {
+      removeEmptyFolders(path.join(dir, entry.name));
+    }
+  });
+  if (fs.readdirSync(dir).length === 0) {
+    fs.rmdirSync(dir);
+  }
+};
 
 /**
- * The Studio chat's plugin of FluidEQ's skills, in the chat's own folder,
- * for `--plugin-dir`; none when FluidEQ ships no skills.
+ * Takes back the skills the first version of this placed in a project's
+ * `.agents/skills`: a `fluideq-*` folder whose files are, byte for byte, a
+ * skill FluidEQ ships and nothing else. One the member or their AI changed,
+ * or added to, is theirs and stays; nothing is followed through a link; and
+ * `.agents` goes only once nothing is left in it. True when anything went.
  */
-export const placeChatSkills = (
-  root: string,
-  skills: readonly IStudioSkill[],
-): string | undefined => {
-  if (skills.length === 0) {
-    return undefined;
+export const removePlacedSkills = (
+  folder: string,
+  shipped: readonly IStudioSkill[],
+): boolean => {
+  const agents = path.join(folder, '.agents');
+  const skills = path.join(agents, 'skills');
+  if (!isPlainDirectory(agents) || !isPlainDirectory(skills)) {
+    return false;
   }
-  const plugin = path.join(root, 'skills-plugin');
-  fs.mkdirSync(plugin, { recursive: true });
-  const manifest = path.join(plugin, '.claude-plugin', 'plugin.json');
-  const bytes = Buffer.from(PLUGIN_MANIFEST);
-  if (!sameBytes(manifest, bytes)) {
-    writeFileAtomically(manifest, bytes);
+  let removed = false;
+  shipped.forEach(({ name, files }) => {
+    const placed = path.join(skills, name);
+    if (!isPlainDirectory(placed)) {
+      return;
+    }
+    const there = plainFilesUnder(placed);
+    const ours =
+      there !== undefined &&
+      there.length === files.length &&
+      there.every(({ relative, full }) => {
+        const file = files.find((one) => one.relative === relative);
+        return file !== undefined && fs.readFileSync(full).equals(file.bytes);
+      });
+    if (!ours) {
+      return;
+    }
+    there.forEach(({ full }) => fs.unlinkSync(full));
+    removeEmptyFolders(placed);
+    removed = true;
+  });
+  if (removed) {
+    [skills, agents].forEach((dir) => {
+      if (fs.readdirSync(dir).length === 0) {
+        fs.rmdirSync(dir);
+      }
+    });
   }
-  return placeSkills(root, path.join(plugin, 'skills'), skills)
-    ? plugin
-    : undefined;
+  return removed;
 };
 
-/** The skills in a project, in `.agents/skills`, for any agent working there. */
-export const placeProjectSkills = (
-  folder: string,
-  skills: readonly IStudioSkill[],
-): boolean =>
-  placeSkills(folder, path.join(folder, '.agents', 'skills'), skills);
+/**
+ * Takes back the copy of the plugin the first version of this kept in the
+ * chat's own folder: FluidEQ's own, so it goes whole, unless it is a link.
+ */
+export const removeOldChatPlugin = (root: string): void => {
+  const copy = path.join(root, 'skills-plugin');
+  if (isPlainDirectory(copy) && plainFilesUnder(copy) !== undefined) {
+    fs.rmSync(copy, { recursive: true });
+  }
+};

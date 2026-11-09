@@ -92,10 +92,11 @@ export interface IStudioProjectsIpcDeps {
    */
   adoptPublished?: (folders: readonly string[]) => Promise<boolean>;
   /**
-   * FluidEQ's agent skills written into a project's `.agents/skills`, for
-   * any agent that works in it (`studioSkills.ts`).
+   * What an earlier FluidEQ left in a project folder that belongs in
+   * FluidEQ itself taken back out - its brief in the notes, its skills in
+   * `.agents/skills` - for every project on the list, once at start.
    */
-  placeSkills?: (folder: string) => void;
+  tidyProject?: (folder: string) => void;
 }
 
 export interface IStudioProjectsIpcRegistration {
@@ -151,14 +152,16 @@ export const registerStudioProjectsIpc = ({
   openPath = (target) => shell.openPath(target),
   publishedOf,
   adoptPublished,
-  placeSkills,
+  tidyProject,
 }: IStudioProjectsIpcDeps): IStudioProjectsIpcRegistration => {
   const studioPath = path.join(userDataDir, STUDIO_FILE);
-  // Once a session for each project opened: the skills are the app's own
-  // and do not change while it runs.
-  const skillsPlaced = new Set<string>();
 
   let projects: IProjectList = readProjectList(studioPath);
+  // FluidEQ's own scenes opened to look inside are written by FluidEQ from
+  // its packs and hold nothing to take back.
+  projects.projects
+    .filter((project) => project.official === undefined)
+    .forEach((project) => tidyProject?.(project.folder));
   let studioOpen = false;
 
   const activeProject = () =>
@@ -244,10 +247,6 @@ export const registerStudioProjectsIpc = ({
     const folder = activeFolder();
     if (folder && !activeIsInspection()) {
       marks?.refresh(folder);
-      if (placeSkills && !skillsPlaced.has(folder)) {
-        skillsPlaced.add(folder);
-        placeSkills(folder);
-      }
     }
   };
 

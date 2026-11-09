@@ -10,6 +10,12 @@ declare module '*.vtt' {
   export default contents;
 }
 
+// FluidEQ's agent skills, as the text a prompt for another AI carries.
+declare module '*.md' {
+  const contents: string;
+  export default contents;
+}
+
 declare module '*.svg' {
   const content: string;
   export default content;

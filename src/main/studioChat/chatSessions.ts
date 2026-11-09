@@ -48,8 +48,11 @@ interface IChatSessionsDeps {
   queue: TChatQueue;
   pictures: TChatPictures;
   noteUsage(projectId: string, use: TChatUsage): void;
-  /** FluidEQ's agent skills as a plugin folder, placed for each start. */
-  skillsPlugin?: () => string | undefined;
+  /**
+   * FluidEQ's agent skills as it ships them (`studioSkills.ts`): the plugin
+   * folder Claude Code loads, and a hash of what they say.
+   */
+  skills?: () => { dir: string; digest: string } | undefined;
   logger?: { info(message: string): void; warn(message: string): void };
 }
 
@@ -70,9 +73,19 @@ const createChatSessions = ({
   queue,
   pictures,
   noteUsage,
-  skillsPlugin,
+  skills,
   logger,
 }: IChatSessionsDeps) => {
+  /**
+   * What a Claude Code process was started on, as one key: the brief this
+   * FluidEQ wrote and the skills it ships. Either differing - FluidEQ
+   * updated, or changed in development - starts the chat again on the same
+   * conversation at its next message, which pays one cache rebuild; a
+   * release that changes neither costs nothing, as the key is their text,
+   * never the app's version.
+   */
+  const startedOn = (brief: string, digest = skills?.()?.digest ?? '') =>
+    briefKey(`${brief}\u0000${digest}`);
   const keptFile = path.join(root, 'relay-sessions.json');
   const queueFile = path.join(root, 'queued.json');
   // What the member queued before FluidEQ last closed waits again now.
@@ -152,7 +165,7 @@ const createChatSessions = ({
     model: TStudioChatModel,
     effort: TStudioChatEffort,
   ): IChatSession => {
-    const skills = skillsPlugin?.();
+    const shipped = skills?.();
     const command = claudeCodeCommand({
       own: ownOf(projectId),
       folder,
@@ -162,7 +175,7 @@ const createChatSessions = ({
       model,
       effort,
       sessionId: transcriptOf(projectId).sessionId,
-      ...(skills ? { skills } : {}),
+      ...(shipped ? { skills: shipped.dir } : {}),
     });
     // Its events reach the session only once it exists: a process reports
     // nothing from inside its own start.
@@ -176,7 +189,7 @@ const createChatSessions = ({
       ...(tools ? { door: tools } : {}),
       model,
       effort,
-      brief: briefKey(brief),
+      brief: startedOn(brief, shipped?.digest ?? ''),
       stopping: false,
       sendingNow: false,
     };
@@ -303,7 +316,7 @@ const createChatSessions = ({
         running &&
         running.model === picks.model &&
         running.effort === picks.effort &&
-        running.brief === briefKey(picks.brief)
+        running.brief === startedOn(picks.brief)
       ) {
         return running;
       }

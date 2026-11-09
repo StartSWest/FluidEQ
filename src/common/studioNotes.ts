@@ -3,20 +3,17 @@ import { readVersionNote } from './sceneVersionNote';
 /**
  * Editing context only. Never included in executable or signed scene packs.
  *
- * Two different owners in one file. `description` is the member's words from
- * "Describe your scene", kept exactly as written. `prompt` is Studio's: the
- * current brief with that description after it, rewritten every time the
- * scene opens (`useProjectIdea`), so an assistant working in the folder reads
- * the brief as it is today rather than as it was when the scene was started.
- * The brief is revised often, which is why it is never treated as kept data.
+ * Only what is the member's: `description`, their words from "Describe your
+ * scene", kept exactly as written, and `whatsNew`, the line their AI wrote
+ * about its change. FluidEQ's brief is never kept here (Ivan, 2026-11-09:
+ * "lets not have that there because updating it on each release not good
+ * since the scene has the old prompt"): it is built from the running
+ * FluidEQ whenever it is used - each chat, each copy for another AI - so a
+ * scene folder never holds a brief an update cannot reach. Notes written
+ * before carry it as `prompt`; reading drops it.
  */
 export interface IStudioNotes {
   description: string;
-  /**
-   * Missing or unusable in a file is no reason to lose the description: it is
-   * regenerated on the next open anyway.
-   */
-  prompt?: string;
   /**
    * One line of what changed since the last publication, written by the
    * member's AI as it finishes (see `aiPrompt.ts`) and offered as the note
@@ -28,39 +25,66 @@ export interface IStudioNotes {
    * always something that can be sent.
    */
   whatsNew?: string;
+  /**
+   * The idea a stored brief carried after "MY IDEA:" where it differs from
+   * `description`: the member's own words from before, kept when the brief
+   * around them was taken out, never lost with it. One of Ivan's 43 folders
+   * had one (ridgeline: an 890-character brief beside a 223-character
+   * description).
+   */
+  earlierIdea?: string;
 }
 
 export const MAX_STUDIO_DESCRIPTION = 1200;
 /**
- * Room for the whole brief (`aiPrompt.ts`) with the longest description and
- * a long folder path after it. The brief outgrew the 64000 this was, and
- * every save from then on dropped the prompt (`parseStudioNotes` keeps the
- * description and leaves an over-long prompt out), so no scene's notes held
- * the brief at all. `aiPromptCapabilities.test.ts` fails before the brief
- * outgrows this one.
+ * Room for anything an old brief carried: the limit a whole stored brief
+ * had, so no idea notes could hold is ever left out.
  */
-export const MAX_STUDIO_PROMPT = 128000;
+const MAX_EARLIER_IDEA = 128000;
+
+/** The words after the last "MY IDEA:" of a brief notes used to keep. */
+const ideaOfStoredBrief = (prompt: unknown): string | undefined => {
+  if (typeof prompt !== 'string') {
+    return undefined;
+  }
+  const at = prompt.lastIndexOf('MY IDEA:');
+  return at === -1 ? undefined : prompt.slice(at + 'MY IDEA:'.length).trim();
+};
 
 export const parseStudioNotes = (raw: unknown): IStudioNotes | undefined => {
   if (!raw || typeof raw !== 'object') {
     return undefined;
   }
-  const { description, prompt, whatsNew } = raw as Record<string, unknown>;
+  const { description, prompt, whatsNew, earlierIdea } = raw as Record<
+    string,
+    unknown
+  >;
   if (
     typeof description !== 'string' ||
     description.length > MAX_STUDIO_DESCRIPTION
   ) {
     return undefined;
   }
-  const usablePrompt =
-    typeof prompt === 'string' && prompt.length <= MAX_STUDIO_PROMPT;
   // Dropped rather than refused: a line too long or full of invisible
   // characters is a suggestion this version cannot offer, never a reason to
-  // lose the description and the prompt beside it.
+  // lose the description beside it.
   const line = whatsNew === undefined ? null : readVersionNote(whatsNew);
+  const fromBrief = ideaOfStoredBrief(prompt);
+  let earlier: string | undefined;
+  if (typeof earlierIdea === 'string' && earlierIdea.trim()) {
+    earlier = earlierIdea;
+  } else if (fromBrief && fromBrief !== description.trim()) {
+    earlier = fromBrief;
+  }
   return {
     description,
-    ...(usablePrompt ? { prompt } : {}),
     ...(line ? { whatsNew: line } : {}),
+    ...(earlier && earlier.length <= MAX_EARLIER_IDEA
+      ? { earlierIdea: earlier }
+      : {}),
   };
 };
+
+/** Whether notes as written still carry a brief, to be taken out. */
+export const notesHoldBrief = (raw: unknown): boolean =>
+  !!raw && typeof raw === 'object' && 'prompt' in raw;

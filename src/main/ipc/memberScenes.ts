@@ -75,8 +75,8 @@ export interface IMemberScenesIpcDeps {
   publishedOf?: (folder: string) => Promise<IProjectPublished | undefined>;
   /** Records the folders holding a publication held here (`publishedAdoption.ts`). */
   adoptPublished?: (folders: readonly string[]) => Promise<boolean>;
-  /** FluidEQ's agent skills placed in a project opened (`studioSkills.ts`). */
-  placeSkills?: (folder: string) => void;
+  /** What an earlier FluidEQ left in a project folder, taken back out (`studioProjectsIpc.ts`). */
+  tidyProject?: (folder: string) => void;
   /** A look removed from this computer: its last build goes with it (`sceneBuilds.ts`). */
   forgetBuild?: (lookId: string) => void;
 }
@@ -146,7 +146,7 @@ export const registerMemberScenesIpc = ({
   openPath = (target) => shell.openPath(target),
   publishedOf,
   adoptPublished,
-  placeSkills,
+  tidyProject,
   forgetBuild,
 }: IMemberScenesIpcDeps): IMemberScenesIpcRegistration => {
   const store = createMemberSceneStore({ userDataDir, pins, logger });
@@ -194,7 +194,7 @@ export const registerMemberScenesIpc = ({
     ...(logger ? { logger } : {}),
     ...(publishedOf ? { publishedOf } : {}),
     ...(adoptPublished ? { adoptPublished } : {}),
-    ...(placeSkills ? { placeSkills } : {}),
+    ...(tidyProject ? { tidyProject } : {}),
   });
 
   // A buy, a publication, an account changing, Plus: which scenes play

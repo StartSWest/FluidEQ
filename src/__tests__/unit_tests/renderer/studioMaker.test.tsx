@@ -107,7 +107,6 @@ describe('making a scene with your AI', () => {
     await waitFor(() =>
       expect(save).toHaveBeenCalledWith(project.id, {
         description: 'A mountain lake at night',
-        prompt: promptWithIdea('A mountain lake at night', project.path),
       }),
     );
     view.rerender(
@@ -126,49 +125,53 @@ describe('making a scene with your AI', () => {
     // for the member's AI to follow.
     expect(clipboard).toBe(promptWithIdea('A neon city', project.path));
     expect(clipboard).not.toContain('Saved editing prompt');
-    // The first project's edit never lands in the second; the second only
-    // gets its own notes back with today's prompt in place of its stale one.
-    expect(save).not.toHaveBeenCalledWith(
-      'second',
-      expect.objectContaining({ description: 'A mountain lake at night' }),
-    );
-    await waitFor(() =>
-      expect(save).toHaveBeenCalledWith('second', {
-        description: 'A neon city',
-        prompt: promptWithIdea('A neon city', project.path),
-      }),
-    );
+    // The first project's edit never lands in the second, and opening the
+    // second writes nothing into its folder.
+    expect(save).not.toHaveBeenCalledWith('second', expect.anything());
   });
 
-  it('rewrites the prompt in the notes with the current brief every time the scene opens', async () => {
+  // Ivan, 2026-11-09: the brief lives in FluidEQ and is built when it is
+  // used; a copy in a scene folder is one an update never reaches.
+  it('never writes the brief into the notes, opening the scene or editing the idea', async () => {
     const save = jest.fn(async () => true);
     Object.assign(window.electron.ipcRenderer, {
       readStudioNotes: jest.fn(async () => ({
         description: 'A mountain lake',
-        prompt: 'The brief as it was a week ago',
         whatsNew: 'The aurora moves more slowly.',
       })),
       saveStudioNotes: save,
     });
     render(<StudioMaker project={project} />);
-    // The member's description and their AI's release line are kept; only
-    // the prompt, which is Studio's, is replaced.
+    const field = await screen.findByRole('textbox', {
+      name: 'studio.maker.describe',
+    });
+    await waitFor(() => expect(field).toHaveValue('A mountain lake'));
+    await userEvent.type(field, ' at dawn');
+    await userEvent.tab();
+    // The member's words and their AI's line, and nothing of FluidEQ's.
     await waitFor(() =>
       expect(save).toHaveBeenCalledWith(project.id, {
-        description: 'A mountain lake',
-        prompt: promptWithIdea('A mountain lake', project.path),
+        description: 'A mountain lake at dawn',
         whatsNew: 'The aurora moves more slowly.',
       }),
     );
-    expect(save).toHaveBeenCalledTimes(1);
+    save.mock.calls.forEach((args) => {
+      const notes = (args as unknown[])[1];
+      expect(JSON.stringify(notes)).not.toContain('MY IDEA');
+      expect(notes).not.toHaveProperty('prompt');
+    });
+    // The prompt to copy is today's FluidEQ's, built on the spot.
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.action.copyPrompt' }),
+    );
+    expect(clipboard).toBe(
+      promptWithIdea('A mountain lake at dawn', project.path),
+    );
   });
 
-  it('leaves notes alone when their prompt is already current or they could not be read', async () => {
+  it('leaves notes alone when the scene opens or they could not be read', async () => {
     const save = jest.fn(async () => true);
-    const current = {
-      description: 'A mountain lake',
-      prompt: promptWithIdea('A mountain lake', project.path),
-    };
+    const current = { description: 'A mountain lake' };
     Object.assign(window.electron.ipcRenderer, {
       readStudioNotes: jest.fn(async () => current),
       saveStudioNotes: save,

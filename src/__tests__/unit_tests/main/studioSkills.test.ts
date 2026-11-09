@@ -5,11 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * FluidEQ's agent skills (Ivan, 2026-11-09: "do this as agents skills that
- * works for any agent gpt, claude, etc"): folders in the open Agent Skills
- * format, shipped with the app, loaded by the Studio chat as a plugin of
- * FluidEQ's own and written into each project's .agents/skills for any
- * other agent - never through a link a scene folder may hold.
+ * FluidEQ's agent skills live in FluidEQ and update with it (Ivan,
+ * 2026-11-09: "we created skills and all that needs to ship with fluid"):
+ * a plugin folder shipped in `assets/studio/fluideq`, which the Studio chat
+ * loads where it is, and never a copy in a scene folder. What the first
+ * version placed in projects' `.agents/skills` and in the chat's own folder
+ * is taken back - only what is, byte for byte, FluidEQ's.
  */
 
 import fs from 'fs';
@@ -17,12 +18,13 @@ import os from 'os';
 import path from 'path';
 import { claudeCodeCommand } from '../../../main/studioChat/chatLaunch';
 import {
-  placeChatSkills,
-  placeProjectSkills,
   readShippedSkills,
+  removeOldChatPlugin,
+  removePlacedSkills,
+  skillsDigest,
 } from '../../../main/studioChat/studioSkills';
 
-const SHIPPED = path.join(__dirname, '../../../../assets/studio/skills');
+const SHIPPED = path.join(__dirname, '../../../../assets/studio/fluideq');
 let scratch: string;
 
 beforeEach(() => {
@@ -45,8 +47,19 @@ const frontmatter = (text: string) => {
   return fields;
 };
 
+/** The project as the first version left it: FluidEQ's skills copied in. */
+const placeAsTheFirstVersionDid = (folder: string) => {
+  readShippedSkills(SHIPPED).forEach(({ name, files }) => {
+    files.forEach(({ relative, bytes }) => {
+      const file = path.join(folder, '.agents', 'skills', name, relative);
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, bytes);
+    });
+  });
+};
+
 describe('the skills FluidEQ ships', () => {
-  it('are each a folder whose SKILL.md names it and says when to use it', () => {
+  it('are a plugin folder of skills, each naming itself and saying when to use it', () => {
     const skills = readShippedSkills(SHIPPED);
     expect(skills.map(({ name }) => name)).toEqual([
       'fluideq-3d-world',
@@ -60,94 +73,123 @@ describe('the skills FluidEQ ships', () => {
       expect(description.length).toBeGreaterThan(80);
       expect(description.length).toBeLessThanOrEqual(1024);
     });
+    // Loaded where it is: no manifest, so Claude Code names it after its
+    // folder, and nothing in it needs writing by FluidEQ.
+    expect(path.basename(SHIPPED)).toBe('fluideq');
+    expect(fs.existsSync(path.join(SHIPPED, '.claude-plugin'))).toBe(false);
+  });
+
+  it('change their digest when what they say changes, and only then', () => {
+    const skills = readShippedSkills(SHIPPED);
+    expect(skillsDigest(readShippedSkills(SHIPPED))).toBe(skillsDigest(skills));
+    const edited = skills.map((skill, index) =>
+      index === 0
+        ? {
+            ...skill,
+            files: skill.files.map((file) => ({
+              ...file,
+              bytes: Buffer.concat([file.bytes, Buffer.from('\nA new line.')]),
+            })),
+          }
+        : skill,
+    );
+    expect(skillsDigest(edited)).not.toBe(skillsDigest(skills));
+  });
+
+  it('reach the Studio chat as the shipped folder itself', () => {
+    const { args } = claudeCodeCommand({
+      own: scratch,
+      folder: scratch,
+      executable: 'claude',
+      brief: 'brief',
+      tools: undefined,
+      model: 'default',
+      effort: 'default',
+      sessionId: undefined,
+      skills: SHIPPED,
+    });
+    expect(args[args.indexOf('--plugin-dir') + 1]).toBe(SHIPPED);
   });
 });
 
-describe("a project's copy", () => {
-  it('is written into .agents/skills, and not again when it is the same', () => {
-    const skills = readShippedSkills(SHIPPED);
-    expect(placeProjectSkills(scratch, skills)).toBe(true);
-    const file = path.join(
+describe('what the first version placed', () => {
+  it('is taken back out of a project, and .agents with it once empty', () => {
+    placeAsTheFirstVersionDid(scratch);
+    expect(removePlacedSkills(scratch, readShippedSkills(SHIPPED))).toBe(true);
+    expect(fs.existsSync(path.join(scratch, '.agents'))).toBe(false);
+    // Nothing is left to take back the second time.
+    expect(removePlacedSkills(scratch, readShippedSkills(SHIPPED))).toBe(false);
+  });
+
+  it('leaves a copy the member changed or added to, and anything else in .agents', () => {
+    placeAsTheFirstVersionDid(scratch);
+    const changed = path.join(
+      scratch,
+      '.agents',
+      'skills',
+      'fluideq-3d-world',
+      'SKILL.md',
+    );
+    fs.appendFileSync(changed, '\nMy own rule.');
+    const added = path.join(
       scratch,
       '.agents',
       'skills',
       'fluideq-photo-3d',
+      'notes.md',
+    );
+    fs.writeFileSync(added, 'mine');
+    const theirs = path.join(
+      scratch,
+      '.agents',
+      'skills',
+      'their-own',
       'SKILL.md',
     );
-    expect(fs.readFileSync(file, 'utf8')).toContain('name: fluideq-photo-3d');
-    const before = fs.statSync(file).mtimeMs;
-    const old = new Date(before - 60_000);
-    fs.utimesSync(file, old, old);
-    expect(placeProjectSkills(scratch, skills)).toBe(true);
-    expect(fs.statSync(file).mtimeMs).toBe(old.getTime());
+    fs.mkdirSync(path.dirname(theirs), { recursive: true });
+    fs.writeFileSync(theirs, 'mine');
+
+    expect(removePlacedSkills(scratch, readShippedSkills(SHIPPED))).toBe(false);
+    expect(fs.readFileSync(changed, 'utf8')).toContain('My own rule.');
+    expect(fs.readFileSync(added, 'utf8')).toBe('mine');
+    expect(fs.readFileSync(theirs, 'utf8')).toBe('mine');
   });
 
-  it('is never written through a link where .agents goes', () => {
+  it('is never followed through a link', () => {
     const elsewhere = path.join(scratch, 'elsewhere');
     const project = path.join(scratch, 'project');
-    fs.mkdirSync(elsewhere);
     fs.mkdirSync(project);
-    fs.symlinkSync(elsewhere, path.join(project, '.agents'), 'junction');
-
-    expect(placeProjectSkills(project, readShippedSkills(SHIPPED))).toBe(false);
-    expect(fs.readdirSync(elsewhere)).toEqual([]);
-
-    // The control: the same project without the link takes the skills.
-    fs.unlinkSync(path.join(project, '.agents'));
-    expect(placeProjectSkills(project, readShippedSkills(SHIPPED))).toBe(true);
-  });
-
-  it('leaves alone what is not FluidEQ’s', () => {
-    const theirs = path.join(scratch, '.agents', 'skills', 'their-own');
-    fs.mkdirSync(theirs, { recursive: true });
-    fs.writeFileSync(path.join(theirs, 'SKILL.md'), 'mine');
-    placeProjectSkills(scratch, readShippedSkills(SHIPPED));
-    expect(fs.readFileSync(path.join(theirs, 'SKILL.md'), 'utf8')).toBe('mine');
-  });
-});
-
-describe("the Studio chat's plugin", () => {
-  it('is a plugin folder of FluidEQ’s own, handed to Claude Code', () => {
-    const plugin = placeChatSkills(scratch, readShippedSkills(SHIPPED));
-    expect(plugin).toBe(path.join(scratch, 'skills-plugin'));
-    const manifest = JSON.parse(
-      fs.readFileSync(
-        path.join(scratch, 'skills-plugin', '.claude-plugin', 'plugin.json'),
-        'utf8',
-      ),
-    ) as { name: string };
-    expect(manifest.name).toBe('fluideq');
+    placeAsTheFirstVersionDid(elsewhere);
+    fs.symlinkSync(
+      path.join(elsewhere, '.agents'),
+      path.join(project, '.agents'),
+      'junction',
+    );
+    expect(removePlacedSkills(project, readShippedSkills(SHIPPED))).toBe(false);
     expect(
       fs.existsSync(
         path.join(
-          scratch,
-          'skills-plugin',
+          elsewhere,
+          '.agents',
           'skills',
           'fluideq-3d-world',
           'SKILL.md',
         ),
       ),
     ).toBe(true);
-
-    const launch = {
-      own: scratch,
-      folder: scratch,
-      executable: 'claude',
-      brief: 'brief',
-      tools: undefined,
-      model: 'default' as const,
-      effort: 'default' as const,
-      sessionId: undefined,
-    };
-    const { args } = claudeCodeCommand({ ...launch, skills: plugin });
-    expect(args.slice(args.indexOf('--plugin-dir'))).toEqual(
-      expect.arrayContaining(['--plugin-dir', plugin]),
-    );
-    // The control: none placed, none named.
-    expect(claudeCodeCommand(launch).args).not.toContain('--plugin-dir');
+    fs.unlinkSync(path.join(project, '.agents'));
   });
 
-  it('is none when FluidEQ ships no skills', () => {
-    expect(placeChatSkills(scratch, [])).toBeUndefined();
+  it('in the chat’s own folder goes whole', () => {
+    const copy = path.join(
+      scratch,
+      'skills-plugin',
+      'skills',
+      'fluideq-3d-world',
+    );
+    fs.mkdirSync(copy, { recursive: true });
+    fs.writeFileSync(path.join(copy, 'SKILL.md'), 'old');
+    removeOldChatPlugin(scratch);
+    expect(fs.existsSync(path.join(scratch, 'skills-plugin'))).toBe(false);
   });
 });

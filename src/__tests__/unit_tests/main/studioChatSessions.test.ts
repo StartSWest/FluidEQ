@@ -72,9 +72,11 @@ const setUp = (
   {
     restarting = false,
     held = [],
+    skills,
   }: {
     restarting?: boolean;
     held?: ((adopt: (adoption: IChatAdoption) => void) => void)[];
+    skills?: () => { dir: string; digest: string } | undefined;
   } = {},
 ) => {
   const transcripts = new Map<string, IChatTranscript>();
@@ -103,8 +105,10 @@ const setUp = (
     dropAsks: () => undefined,
   });
   const started: (IChatProcess & { end: jest.Mock })[] = [];
+  const commands: { args: string[] }[] = [];
   const launcher: IChatLauncher & { close: jest.Mock } = {
-    start: () => {
+    start: (_projectId, command) => {
+      commands.push(command);
       const process = fakeProcess();
       started.push(process);
       return process;
@@ -137,6 +141,7 @@ const setUp = (
     queue,
     pictures,
     noteUsage: () => undefined,
+    ...(skills ? { skills } : {}),
   });
   return {
     chat,
@@ -145,8 +150,23 @@ const setUp = (
     turns,
     launcher,
     started,
+    commands,
     address,
     transcriptOf,
+  };
+};
+
+/** What a command started Claude Code with: its brief, conversation and plugin. */
+const startedWith = ({ args }: { args: string[] }) => {
+  const after = (flag: string) => {
+    const at = args.indexOf(flag);
+    return at === -1 ? undefined : args[at + 1];
+  };
+  const briefFile = after('--append-system-prompt-file');
+  return {
+    brief: briefFile ? fs.readFileSync(briefFile, 'utf8') : undefined,
+    resume: after('--resume'),
+    plugin: after('--plugin-dir'),
   };
 };
 
@@ -173,6 +193,61 @@ describe("a project's Claude Code across FluidEQ closing", () => {
       expect(newer).not.toBe(first);
       expect(first?.process.end).toHaveBeenCalled();
       expect(fluid.started).toHaveLength(2);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  // Ivan, 2026-11-09: "when we update fluid it ships with fluid so when the
+  // user opens a new chat or after chat cache expired it reads again the new
+  // updated prompt".
+  it('runs a conversation saved under one brief on the brief FluidEQ has now, as the same conversation', async () => {
+    const root = tmp();
+    try {
+      const fluid = setUp(root);
+      // A conversation kept from before FluidEQ was updated: nothing running.
+      fluid.transcriptOf('lake').sessionId = 'conversation-1';
+      await fluid.chat.sessionFor('lake', 'C:/Lake', {
+        ...message(''),
+        brief: 'the brief this FluidEQ ships',
+      });
+      expect(fluid.commands).toHaveLength(1);
+      expect(startedWith(fluid.commands[0])).toEqual({
+        brief: 'the brief this FluidEQ ships',
+        resume: 'conversation-1',
+        plugin: undefined,
+      });
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('loads the skills FluidEQ ships, and starts a chat again on the same conversation when they change', async () => {
+    const root = tmp();
+    try {
+      let digest = 'skills as shipped';
+      const fluid = setUp(root, {
+        skills: () => ({
+          dir: 'C:/FluidEQ/resources/assets/studio/fluideq',
+          digest,
+        }),
+      });
+      fluid.transcriptOf('lake').sessionId = 'conversation-1';
+      const first = await fluid.chat.sessionFor('lake', 'C:/Lake', message(''));
+      expect(startedWith(fluid.commands[0]).plugin).toBe(
+        'C:/FluidEQ/resources/assets/studio/fluideq',
+      );
+      // The same brief and skills: the running process answers.
+      expect(await fluid.chat.sessionFor('lake', 'C:/Lake', message(''))).toBe(
+        first,
+      );
+      // FluidEQ's skills changed, the brief did not: started again, on the
+      // same conversation.
+      digest = 'skills, newer';
+      const newer = await fluid.chat.sessionFor('lake', 'C:/Lake', message(''));
+      expect(newer).not.toBe(first);
+      expect(first?.process.end).toHaveBeenCalled();
+      expect(startedWith(fluid.commands[1]).resume).toBe('conversation-1');
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }

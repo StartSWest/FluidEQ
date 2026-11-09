@@ -1,19 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { IStudioProject } from 'main/ipc/memberScenes';
 import type { IStudioNotes } from 'common/studioNotes';
-import { promptWithIdea } from './aiPrompt';
 import { setStudioIdea, useStudioIdea } from './studioIdea';
 
 /**
  * Project notes travel with the folder; the unassigned draft stays separate.
  *
- * The prompt handed over is always this app's, with the idea the member can
- * see in the field after it (`StudioMaker` builds it). A project folder can
- * come from anywhere, and the prompt its notes saved went to the member's AI
- * - which works with the member's files - from a collapsed panel nobody
- * reads: a folder shared on a forum could have told that AI to do anything.
- * The prompt kept in the notes never carries the door's connection: a folder
- * is synced and shared, and its key is the member's own.
+ * Only the member's own goes into the notes: their idea, and the line their
+ * AI wrote. FluidEQ's brief is never written there (Ivan, 2026-11-09): the
+ * prompt handed over is built from the running FluidEQ when it is copied,
+ * with the idea the member can see in the field after it (`StudioMaker`),
+ * and the chat's from the same source when it starts. A brief kept in a
+ * folder is one an update never reaches - and a folder can come from
+ * anywhere, so a brief read from one could have told the member's AI
+ * anything. Notes an earlier FluidEQ wrote with a brief lose it when main
+ * reads them (`stripStoredBrief`).
  */
 export default function useProjectIdea(project?: IStudioProject) {
   const draft = useStudioIdea();
@@ -27,9 +28,6 @@ export default function useProjectIdea(project?: IStudioProject) {
   // field: the line was written, and saving the idea threw it away.
   const written = useRef<string | undefined>(undefined);
   const projectId = project?.id;
-  // The folder FluidEQ made and is watching, named in the prompt so the
-  // member's AI writes into it rather than guessing at one of its own.
-  const folder = project?.path;
   const save = useCallback(() => {
     if (!projectId || !pending.current) {
       return;
@@ -58,24 +56,6 @@ export default function useProjectIdea(project?: IStudioProject) {
           if (!disposed && !pending.current) {
             setIdea(notes?.description ?? '');
             setLoading(false);
-            // The prompt in the notes is Studio's, not the member's: rewrite
-            // it with today's brief every time the scene opens, so an
-            // assistant working in the folder never follows a brief that has
-            // since been revised. Only notes that were read — a file that
-            // could not be read (missing, or half-written by an AI) is left
-            // alone rather than replaced, which would lose the description.
-            // Unchanged notes are not rewritten: the file already says it.
-            if (notes) {
-              const fresh = promptWithIdea(notes.description, folder);
-              if (fresh !== notes.prompt) {
-                pending.current = {
-                  description: notes.description,
-                  prompt: fresh,
-                  ...(notes.whatsNew ? { whatsNew: notes.whatsNew } : {}),
-                };
-                save();
-              }
-            }
           }
           return undefined;
         })
@@ -93,7 +73,7 @@ export default function useProjectIdea(project?: IStudioProject) {
       disposed = true;
       save();
     };
-  }, [projectId, folder, save]);
+  }, [projectId, save]);
   const update = (text: string) => {
     setIdea(text);
     if (!project) {
@@ -101,7 +81,6 @@ export default function useProjectIdea(project?: IStudioProject) {
     } else {
       pending.current = {
         description: text,
-        prompt: promptWithIdea(text, folder),
         ...(written.current ? { whatsNew: written.current } : {}),
       };
     }

@@ -26,6 +26,7 @@ import { HEAR_SECTION } from './aiPromptHear';
 import { lookSection, type TPromptReach } from './aiPromptLook';
 import { MOTION_SECTIONS } from './aiPromptMotion';
 import { POINTER_SECTION } from './aiPromptPointer';
+import { skillsSection } from './aiPromptSkills';
 import { WORLD_SECTION } from './aiPromptWorld';
 
 /**
@@ -469,7 +470,9 @@ ${MOTION_SECTIONS}${POINTER_SECTION}RULES (FluidEQ refuses the scene otherwise)
   runs are nearly free; a chain where each read waits on the last is not.
   Never feed one read's result into the next one's position inside a loop.
 
-${QUICK_TO_BUILD}${HELPERS}${ARTWORK_SECTION}${ART_SECTION}${WORLD_SECTION}${AMBIENT_SECTION}
+${QUICK_TO_BUILD}${HELPERS}${ARTWORK_SECTION}${ART_SECTION}${WORLD_SECTION}${skillsSection(
+  reach,
+)}${AMBIENT_SECTION}
 MY IDEA:`;
 
 /** One-tap starters: a label for the chip, and the idea it appends. */

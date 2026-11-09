@@ -52,9 +52,11 @@ import openExternalIfSafe from './safeExternal';
 import { createStudioAgentDoor } from './studioAgent/studioAgentDoor';
 import { createStudioChat } from './studioChat/studioChat';
 import {
-  placeProjectSkills,
   readShippedSkills,
+  removePlacedSkills,
+  type IStudioSkill,
 } from './studioChat/studioSkills';
+import { stripStoredBrief } from './ipc/studioNotes';
 import { createPublishedAdoption } from './memberScenes/publishedAdoption';
 import { createPublishedRecords } from './memberScenes/publishedRecords';
 import { chatLauncherFor } from './studioChat/chatRelayClient';
@@ -230,19 +232,27 @@ const registerMemberServices = ({
     logger: log,
     publishedOf: publishedRecords.stateOf,
     adoptPublished: publishedAdoption.adopt,
-    placeSkills: (folder) => {
-      try {
-        if (!placeProjectSkills(folder, readShippedSkills())) {
+    tidyProject: (() => {
+      // What FluidEQ ships, read once: the copies an earlier version placed
+      // are recognised by being, byte for byte, these.
+      let shipped: IStudioSkill[] | undefined;
+      return (folder: string) => {
+        try {
+          shipped ??= readShippedSkills();
+          const briefOut = stripStoredBrief(folder);
+          const skillsOut = removePlacedSkills(folder, shipped);
+          if (briefOut || skillsOut) {
+            log.info(
+              `Took FluidEQ's own ${[briefOut ? 'brief' : '', skillsOut ? 'skills' : ''].filter(Boolean).join(' and ')} back out of ${folder}`,
+            );
+          }
+        } catch (error) {
           log.warn(
-            `FluidEQ's agent skills were not placed in ${folder}: a link stands where .agents/skills goes`,
+            `What FluidEQ left in ${folder} could not be taken back out: ${String(error)}`,
           );
         }
-      } catch (error) {
-        log.warn(
-          `FluidEQ's agent skills could not be placed in ${folder}: ${String(error)}`,
-        );
-      }
-    },
+      };
+    })(),
   });
   const disposeSceneVersions = registerSceneVersionsIpc({
     pins: versionPins,

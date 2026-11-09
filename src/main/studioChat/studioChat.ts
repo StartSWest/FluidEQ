@@ -33,7 +33,12 @@ import { createPastChats } from './pastChats';
 import { createTranscripts } from './chatTranscript';
 import createTranscriptCache from './transcriptCache';
 import { findClaudeCode, startClaudeCode, systemEnv } from './claudeCode';
-import { placeChatSkills, readShippedSkills } from './studioSkills';
+import {
+  readShippedSkills,
+  removeOldChatPlugin,
+  shippedPluginDir,
+  skillsDigest,
+} from './studioSkills';
 
 /**
  * The Studio's chat (Ivan, 2026-10-09: "they connect their claude sub account
@@ -167,6 +172,16 @@ export const createStudioChat = ({
     dropAsks: pictures.asks.drop,
   });
 
+  // The copy of the skills the first version kept here: the chat loads
+  // them from what FluidEQ ships now.
+  try {
+    removeOldChatPlugin(root);
+  } catch (error) {
+    logger?.warn(
+      `The Studio chat's old copy of FluidEQ's skills was not removed: ${String(error)}`,
+    );
+  }
+
   const chatSessions = createChatSessions({
     root,
     sessions,
@@ -178,12 +193,16 @@ export const createStudioChat = ({
     queue,
     pictures,
     noteUsage: (projectId, use) => usage.note(projectId, use),
-    skillsPlugin: () => {
+    skills: () => {
+      const dir = shippedPluginDir();
       try {
-        return placeChatSkills(root, readShippedSkills());
+        const shipped = readShippedSkills(dir);
+        return shipped.length > 0
+          ? { dir, digest: skillsDigest(shipped) }
+          : undefined;
       } catch (error) {
         logger?.warn(
-          `FluidEQ's agent skills could not be placed for the chat: ${String(error)}`,
+          `FluidEQ's agent skills could not be read for the chat: ${String(error)}`,
         );
         return undefined;
       }

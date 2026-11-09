@@ -114,6 +114,8 @@ const configuration: webpack.Configuration = {
       // Keep offline Help media beside the packaged renderer, not on the site.
       { test: /\.mp4$/i, type: 'asset/resource' },
       { test: /\.vtt$/i, type: 'asset/source' },
+      // FluidEQ's agent skills, carried whole by a prompt for another AI.
+      { test: /\.md$/i, type: 'asset/source' },
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/i,
         type: 'asset/resource',

@@ -14,11 +14,6 @@ import {
   MAX_POINTER_TRAIL,
   POINTER_SHAPES,
 } from '../../../common/scenePointer';
-import {
-  MAX_STUDIO_DESCRIPTION,
-  MAX_STUDIO_PROMPT,
-  parseStudioNotes,
-} from '../../../common/studioNotes';
 import { MAX_PUBLISH_BYTES } from '../../../common/scenePackSize';
 import { promptWithIdea } from '../../../renderer/studio/aiPrompt';
 
@@ -133,20 +128,4 @@ describe('the Studio’s brief for a member’s AI', () => {
     expect(brief).toContain('pow(max(x, 0.0), k)');
     expect(brief).toContain('"fog": false');
   });
-});
-
-// The project's notes keep the brief beside the scene, for an assistant that
-// opens the folder later. Past MAX_STUDIO_PROMPT a save keeps the
-// description and drops the brief, which is what every save did once the
-// brief outgrew the old 64000.
-it('fits the project’s notes with the longest description and a long folder', () => {
-  const description = 'x'.repeat(MAX_STUDIO_DESCRIPTION);
-  const longest = promptWithIdea(
-    description,
-    `C:\\Users\\${'a'.repeat(240)}\\FluidEQ Studio\\scene`,
-  );
-  expect(longest.length).toBeLessThanOrEqual(MAX_STUDIO_PROMPT);
-  expect(parseStudioNotes({ description, prompt: longest })?.prompt).toBe(
-    longest,
-  );
 });

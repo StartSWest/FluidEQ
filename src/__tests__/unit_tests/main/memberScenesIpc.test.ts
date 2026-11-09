@@ -661,3 +661,39 @@ describe('member scenes over IPC', () => {
     registration.dispose();
   });
 });
+
+// Ivan, 2026-11-09: what belongs in FluidEQ - its brief, its skills - is
+// taken back out of every project an earlier version wrote it into.
+it('tidies every project on the list once at start, never one opened from FluidEQ to look inside', () => {
+  const studio = path.join(root, 'Documents', 'FluidEQ Studio');
+  const mine = path.join(studio, 'Lake');
+  const inspected = path.join(studio, 'Aurora');
+  [mine, inspected].forEach((folder) =>
+    fs.mkdirSync(folder, { recursive: true }),
+  );
+  fs.mkdirSync(path.join(root, 'userData', 'member-scenes'), {
+    recursive: true,
+  });
+  fs.writeFileSync(
+    path.join(root, 'userData', 'member-scenes', 'studio.json'),
+    JSON.stringify({
+      projects: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          folder: mine,
+          openedAt: 2,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          folder: inspected,
+          openedAt: 1,
+          official: 'aurora',
+        },
+      ],
+    }),
+  );
+  const tidyProject = jest.fn();
+  const registration = setup({ tidyProject });
+  expect(tidyProject.mock.calls).toEqual([[mine]]);
+  registration.dispose();
+});
