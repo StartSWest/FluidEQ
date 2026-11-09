@@ -47,6 +47,7 @@ import {
   createSceneOwnership,
   isSceneStoreRecord,
 } from './plus/sceneOwnership';
+import { createCreditsPush } from './plus/creditsPush';
 import openExternalIfSafe from './safeExternal';
 import { createStudioAgentDoor } from './studioAgent/studioAgentDoor';
 import { createStudioChat } from './studioChat/studioChat';
@@ -130,6 +131,15 @@ const registerMemberServices = ({
       isSceneStoreRecord,
     ),
     logger: log,
+    // While a pack is paid for in the browser, the server's word that it
+    // landed (premium 0099), so the credits arrive with no click.
+    createCreditsPush: (onCredits) =>
+      createCreditsPush({
+        config: ACCOUNT_CONFIG,
+        session: accountIpc.session,
+        onCredits,
+        logger: log,
+      }),
   });
   // Credits, a buy and a pack paid for in the browser, for the window.
   const sceneStoreIpc = registerSceneStoreIpc({

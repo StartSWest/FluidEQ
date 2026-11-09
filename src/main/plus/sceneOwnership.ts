@@ -20,6 +20,7 @@ import type { IAccountConfig } from '../../common/accountConfig';
 import type { IEntitlement } from '../account/entitlement';
 import type { IAccountSession } from '../account/session';
 import type { IEncryptedJsonStore } from '../encryptedJsonStore';
+import type { ICreditsPush } from './creditsPush';
 import type { IGalleryAuth } from './galleryAccess';
 import {
   buyScene,
@@ -40,10 +41,11 @@ import {
  * good, and being offline must not take it away.
  *
  * The server is asked at events, never on a clock (`comeBackSignals.ts`), and
- * after every buy. Paying happens in the browser, which the app cannot hear,
- * so once somebody is sent to the checkout every event asks until the
- * balance they left with has changed — the entitlement's `expectChange`, for
- * the same reason.
+ * after every buy. Paying happens in the browser, so once somebody is sent to
+ * the checkout the server's push is listened to (`creditsPush.ts`) and every
+ * event asks too, until the balance they left with has changed — the push so
+ * the credits arrive with the window behind the browser, the events for a
+ * server that does not push, or a socket that dropped.
  */
 
 export interface ISceneStoreRecord {
@@ -98,6 +100,8 @@ export interface ISceneOwnershipDeps {
   logger?: { warn(message: string): void };
   now?: () => number;
   fetchImpl?: typeof fetch;
+  /** The server's word that the credits moved, heard while a payment is owed. */
+  createCreditsPush?: (onCredits: () => void) => ICreditsPush;
 }
 
 const sameStore = (a: ISceneStore | undefined, b: ISceneStore) =>
@@ -112,6 +116,7 @@ export const createSceneOwnership = ({
   logger,
   now = Date.now,
   fetchImpl = fetch,
+  createCreditsPush,
 }: ISceneOwnershipDeps): ISceneOwnership => {
   let record: ISceneStoreRecord | undefined;
   // Read the first time the cipher can read it, as the membership is: this is
@@ -121,6 +126,19 @@ export const createSceneOwnership = ({
   let checkedFor: string | undefined;
   /** The balance somebody left for the checkout with, while it is owed. */
   let awaiting: { userId: string; balance: number } | undefined;
+  // Listened to exactly while a payment is owed, and asked for the store
+  // whenever it says the credits moved.
+  const push = createCreditsPush?.(() => {
+    refreshNow().catch(() => undefined);
+  });
+  const owe = (next: typeof awaiting) => {
+    awaiting = next;
+    if (next) {
+      push?.watch();
+    } else {
+      push?.stop();
+    }
+  };
   let inFlight:
     { userId: string; promise: Promise<TSceneStoreOutcome> } | undefined;
   const listeners = new Set<() => void>();
@@ -145,7 +163,7 @@ export const createSceneOwnership = ({
 
   const adopt = (userId: string, next: ISceneStore) => {
     if (awaiting?.userId === userId && awaiting.balance !== next.balance) {
-      awaiting = undefined;
+      owe(undefined);
     }
     if (record?.userId === userId && sameStore(record.store, next)) {
       return;
@@ -219,6 +237,10 @@ export const createSceneOwnership = ({
     if (!userId) {
       return;
     }
+    if (awaiting?.userId === userId) {
+      // A socket that dropped and stopped rejoining listens again from here.
+      push?.watch();
+    }
     if (
       awaiting?.userId === userId ||
       checkedFor !== userId ||
@@ -251,7 +273,7 @@ export const createSceneOwnership = ({
 
   const offEntitlement = entitlement.subscribe(announce);
   const offIdentity = onIdentityChange(() => {
-    awaiting = undefined;
+    owe(undefined);
     announce();
     refreshIfDue().catch(() => undefined);
   });
@@ -330,11 +352,12 @@ export const createSceneOwnership = ({
       }
       const page = await startCreditCheckout(auth, packId, locale);
       if (page.ok && accountId() === userId) {
-        awaiting = { userId, balance: known()?.balance ?? 0 };
+        owe({ userId, balance: known()?.balance ?? 0 });
       }
       return page;
     },
     dispose: () => {
+      push?.stop();
       offEntitlement();
       offIdentity();
       listeners.clear();

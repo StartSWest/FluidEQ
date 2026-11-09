@@ -29,9 +29,10 @@ import {
  *
  * Main holds the answer (`plus/sceneOwnership.ts`) and pushes every change;
  * this asks it again when somebody is back at the window — focus, the page
- * shown again, the account changing — never on a clock. That is also how a
- * pack paid for in the browser arrives: coming back to the window is the
- * event, and main asks the server at every one until the balance moves.
+ * shown again, the account changing — never on a clock. A pack paid for in
+ * the browser arrives by itself: main hears the server's word that the
+ * credits moved (`plus/creditsPush.ts`) and pushes the new store here, and
+ * coming back to the window still asks, for a server that has not said.
  */
 
 interface ISceneStoreState {
@@ -144,8 +145,8 @@ export const claimStarterCredits = async (): Promise<TStarterOutcome> => {
 
 /**
  * Opens Stripe's page in the browser, in the window's language. The credits
- * arrive when the return page's "Back to FluidEQ" opens the app, or with the
- * window's next focus.
+ * arrive by themselves once the payment lands, the window in front or not;
+ * the return page's "Back to FluidEQ" and the window's next focus ask too.
  */
 export const checkoutCreditPack = async (
   packId: string,

@@ -51,7 +51,7 @@ export const storeFailureKey = (
 
 /**
  * Paying for a pack: Stripe's page opens in the browser, and the credits
- * arrive when the window is come back to (`sceneStore.ts`). `waiting` holds
+ * arrive by themselves once it lands (`sceneStore.ts`). `waiting` holds
  * from the page opening until the balance rises above the one paid from —
  * the window cannot tell an abandoned payment from a slow one, and says so —
  * and `arrived` is how many came, once they have.
