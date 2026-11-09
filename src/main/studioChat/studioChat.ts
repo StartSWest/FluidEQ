@@ -7,12 +7,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import path from 'path';
 import type { BrowserWindow } from 'electron';
 import {
-  chatAnimationOf,
   chatProjectOf,
   type IStudioChat,
   type TStudioChatEntry,
 } from '../../common/studioChat';
 import registerAnimatorHandlers from './animatorHandlers';
+import { animatorsIn, createAnimatorLifetime } from './animatorLifetime';
 import { restoreReplyVersion } from './chatVersions';
 import { createChatTargets, type IChatTarget } from './chatTargets';
 import type { TAgentProject } from '../studioAgent/agentProject';
@@ -112,24 +112,21 @@ export const createStudioChat = ({
     door,
     version,
     ...(logger ? { logger } : {}),
-    animatorsOf: (projectId) => {
-      const animators = [...sessions.keys()].flatMap((key) => {
-        const name = chatAnimationOf(key);
-        return name !== undefined && chatProjectOf(key) === projectId
-          ? [{ key, name }]
-          : [];
-      });
-      return {
-        live: animators.map(({ name }) => name),
-        working: animators
-          .filter(({ key }) => isBusy(key))
-          .map(({ name }) => name),
-      };
-    },
+    animatorsOf: (projectId) =>
+      animatorsIn(projectId, [...sessions.keys()], (key) => isBusy(key)),
   });
 
   const isBusy = (projectId: string) =>
     turns.isWorking(projectId, sessions.get(projectId));
+
+  // Idle animators past their limits are ended (`animatorLifetime.ts`); the
+  // ending is bound once the sessions exist, which a reply may end before.
+  let endAnimator = (_key: string) => {};
+  const animatorLifetime = createAnimatorLifetime({
+    running: () => [...sessions.keys()],
+    isBusy,
+    end: (key) => endAnimator(key),
+  });
 
   /** One entry changed: the window upserts it by id. */
   const tell = (projectId: string, entry: TStudioChatEntry) => {
@@ -140,6 +137,7 @@ export const createStudioChat = ({
     });
     if (entry.kind === 'claude' && entry.state !== 'working') {
       onReplyEnded?.(chatProjectOf(projectId));
+      animatorLifetime.trim();
     }
   };
 
@@ -229,6 +227,10 @@ export const createStudioChat = ({
     ...(logger ? { logger } : {}),
   });
   const { sessionFor, askUsage } = chatSessions;
+  endAnimator = (key) => {
+    chatSessions.end(key);
+    pictures.close(key).catch(() => undefined);
+  };
 
   const { sceneChat, animatorChat, animatorOf } =
     createChatTargets(agentProject);
@@ -247,9 +249,11 @@ export const createStudioChat = ({
       return;
     }
     turns.show(projectId, messages);
+    animatorLifetime.used(projectId);
     const session = await sessionFor(projectId, folder, latest);
     if (session) {
       turns.begin(projectId, session, messages);
+      animatorLifetime.trim();
     }
   };
 
