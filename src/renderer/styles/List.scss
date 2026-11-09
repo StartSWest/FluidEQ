@@ -72,6 +72,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         outline: none;
       }
 
+      // Told, not offered: dimmed, and nothing happens under the hand.
+      &.is-unavailable {
+        cursor: default;
+        opacity: 0.55;
+
+        &:hover,
+        &:focus,
+        &:focus-visible,
+        &:focus-within {
+          color: inherit;
+          background: transparent;
+        }
+      }
+
       &.selected {
         color: $secondary-light;
         border-color: $selected-border;

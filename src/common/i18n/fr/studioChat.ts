@@ -96,6 +96,11 @@ const studioChat = {
   'studioChat.effortHint':
     'Le temps de réflexion de Claude. Moyen convient à la plupart des changements.',
   'studioChat.modelHintDefault': 'Le réglage de Claude Code',
+  'studioChat.modelHintDefaultNamed':
+    'Ce qui est réglé dans Claude Code : {model}',
+  'studioChat.modelUnavailable': 'Absent de votre forfait Claude',
+  'studioChat.modelUnavailableChosen':
+    'Absent de votre forfait Claude, le chat utilise donc le modèle par défaut',
   'studioChat.modelHintFable':
     'Le plus performant, pour les scènes les plus difficiles',
   'studioChat.modelHintOpus':

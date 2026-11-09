@@ -98,6 +98,11 @@ const studioChat = {
   'studioChat.effortHint':
     'Wie gründlich Claude nachdenkt. Mittel passt für die meisten Änderungen.',
   'studioChat.modelHintDefault': 'Was in Claude Code eingestellt ist',
+  'studioChat.modelHintDefaultNamed':
+    'Was in Claude Code eingestellt ist: {model}',
+  'studioChat.modelUnavailable': 'Nicht in Ihrem Claude-Tarif',
+  'studioChat.modelUnavailableChosen':
+    'Nicht in Ihrem Claude-Tarif, daher nutzt der Chat die Standardeinstellung',
   'studioChat.modelHintFable':
     'Das leistungsfähigste, für die schwierigsten Szenen',
   'studioChat.modelHintOpus': 'Gründlich und sorgfältig, für große Änderungen',

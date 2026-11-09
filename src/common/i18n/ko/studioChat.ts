@@ -99,6 +99,10 @@ const studioChat = {
   'studioChat.effortHint':
     '클로드가 얼마나 열심히 생각하는지. 중간은 대부분의 변경 사항에 적합합니다.',
   'studioChat.modelHintDefault': 'Claude Code는 무엇으로 설정되어 있나요?',
+  'studioChat.modelHintDefaultNamed': 'Claude Code에 설정된 모델: {model}',
+  'studioChat.modelUnavailable': 'Claude 요금제에 포함되지 않음',
+  'studioChat.modelUnavailableChosen':
+    'Claude 요금제에 포함되지 않아 채팅은 기본값을 사용합니다',
   'studioChat.modelHintFable': '가장 어려운 장면을 위한 가장 유능한',
   'studioChat.modelHintOpus': '깊고 세심하게, 큰 변화를 위해',
   'studioChat.modelHintSonnet': '대부분의 변경 사항에 대해 빠르고 유능함',

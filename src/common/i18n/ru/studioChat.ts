@@ -97,6 +97,10 @@ const studioChat = {
   'studioChat.effortHint':
     'Насколько глубоко думает Claude. Для большинства изменений подходит «Среднее».',
   'studioChat.modelHintDefault': 'Как настроено в Claude Code',
+  'studioChat.modelHintDefaultNamed': 'Что задано в Claude Code: {model}',
+  'studioChat.modelUnavailable': 'Нет в вашем тарифе Claude',
+  'studioChat.modelUnavailableChosen':
+    'Нет в вашем тарифе Claude, поэтому чат использует модель по умолчанию',
   'studioChat.modelHintFable': 'Самая мощная, для самых сложных сцен',
   'studioChat.modelHintOpus': 'Глубокая и внимательная, для больших изменений',
   'studioChat.modelHintSonnet': 'Быстрая и толковая, для большинства изменений',

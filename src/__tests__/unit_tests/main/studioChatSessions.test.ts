@@ -30,7 +30,10 @@ jest.mock('../../../main/studioChat/claudeCode', () => ({
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import type { TStudioChatEntry } from '../../../common/studioChat';
+import type {
+  TStudioChatEntry,
+  TStudioChatModel,
+} from '../../../common/studioChat';
 import type { IChatSession } from '../../../main/studioChat/chatLaunch';
 import type { TChatPictures } from '../../../main/studioChat/chatPictures';
 import type {
@@ -73,10 +76,12 @@ const setUp = (
     restarting = false,
     held = [],
     skills,
+    offered,
   }: {
     restarting?: boolean;
     held?: ((adopt: (adoption: IChatAdoption) => void) => void)[];
     skills?: () => { dir: string; digest: string } | undefined;
+    offered?: (model: TStudioChatModel) => boolean;
   } = {},
 ) => {
   const transcripts = new Map<string, IChatTranscript>();
@@ -143,6 +148,7 @@ const setUp = (
     pictures,
     noteUsage: () => undefined,
     ...(skills ? { skills } : {}),
+    ...(offered ? { offered } : {}),
   });
   return {
     chat,
@@ -172,6 +178,31 @@ const startedWith = ({ args }: { args: string[] }) => {
 };
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'chat-sessions-'));
+
+describe('the model a chat is started on', () => {
+  // Ivan, 2026-11-09: "make sure model list gets updated when app is
+  // restarted": a line by Claude Code's own name for it, which it resolves
+  // to the line's newest model, and a line the plan lacks as Default.
+  it('starts a line by its name, and one this account cannot use as Default', async () => {
+    const root = tmp();
+    try {
+      const fluid = setUp(root, { offered: (model) => model !== 'haiku' });
+      await fluid.chat.sessionFor('lake', 'C:/Lake', {
+        ...message(''),
+        model: 'sonnet',
+      });
+      const sonnet = fluid.commands[0].args;
+      expect(sonnet[sonnet.indexOf('--model') + 1]).toBe('sonnet');
+      await fluid.chat.sessionFor('lake', 'C:/Lake', {
+        ...message(''),
+        model: 'haiku',
+      });
+      expect(fluid.commands[1].args).not.toContain('--model');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
 
 describe("a project's Claude Code across FluidEQ closing", () => {
   it('starts a chat again on a newer brief, on the same conversation, and keeps it on the same one', async () => {

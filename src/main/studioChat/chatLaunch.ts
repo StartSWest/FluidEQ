@@ -7,7 +7,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { createHash } from 'crypto';
 import path from 'path';
 import {
-  STUDIO_CHAT_MODEL_VERSIONS,
   type TStudioChatEffort,
   type TStudioChatEntry,
   type TStudioChatFailure,
@@ -202,9 +201,10 @@ export const claudeCodeCommand = ({
     // folder.
     '--setting-sources',
     'user',
-    ...(model === 'default'
-      ? []
-      : ['--model', STUDIO_CHAT_MODEL_VERSIONS[model].id]),
+    // A line by Claude Code's own name for it, which Claude Code resolves to
+    // that line's newest model: the name the list shows was read from the
+    // same Claude Code (`claudeModels.ts`), so the two cannot drift apart.
+    ...(model === 'default' ? [] : ['--model', model]),
     ...(effort === 'default' ? [] : ['--effort', effort]),
   ];
   if (tools) {

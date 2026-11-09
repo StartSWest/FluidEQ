@@ -53,6 +53,11 @@ interface IChatSessionsDeps {
    * folder Claude Code loads, and a hash of what they say.
    */
   skills?: () => { dir: string; digest: string } | undefined;
+  /**
+   * Whether Claude Code offers `model` to this account (`claudeModels.ts`):
+   * a line it does not is started as `default`, as the picker says.
+   */
+  offered?: (model: TStudioChatModel) => boolean;
   logger?: { info(message: string): void; warn(message: string): void };
 }
 
@@ -74,6 +79,7 @@ const createChatSessions = ({
   pictures,
   noteUsage,
   skills,
+  offered,
   logger,
 }: IChatSessionsDeps) => {
   /**
@@ -172,7 +178,7 @@ const createChatSessions = ({
       executable,
       brief,
       tools,
-      model,
+      model: offered && !offered(model) ? 'default' : model,
       effort,
       sessionId: transcriptOf(projectId).sessionId,
       ...(shipped ? { skills: shipped.dir } : {}),

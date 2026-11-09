@@ -96,6 +96,11 @@ const studioChat = {
   'studioChat.effortHint':
     'Quanto o Claude pensa. Médio serve para a maioria das mudanças.',
   'studioChat.modelHintDefault': 'O que estiver no Claude Code',
+  'studioChat.modelHintDefaultNamed':
+    'O que está definido no Claude Code: {model}',
+  'studioChat.modelUnavailable': 'Não está no seu plano do Claude',
+  'studioChat.modelUnavailableChosen':
+    'Não está no seu plano do Claude, então o chat usa o padrão',
   'studioChat.modelHintFable': 'O mais capaz, para as cenas mais difíceis',
   'studioChat.modelHintOpus': 'Profundo e cuidadoso, para grandes mudanças',
   'studioChat.modelHintSonnet': 'Rápido e capaz, para a maioria das mudanças',

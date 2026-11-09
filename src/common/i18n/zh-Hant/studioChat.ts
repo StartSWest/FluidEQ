@@ -96,6 +96,10 @@ const studioChat = {
   'studioChat.resize': '拖曳以調整聊天大小',
   'studioChat.effortHint': '克勞德多麼努力地想。中等適合大多數變化。',
   'studioChat.modelHintDefault': 'Claude Code設定了什麼',
+  'studioChat.modelHintDefaultNamed': 'Claude Code 目前的設定：{model}',
+  'studioChat.modelUnavailable': '不在你的 Claude 方案中',
+  'studioChat.modelUnavailableChosen':
+    '不在你的 Claude 方案中，因此聊天使用預設模型',
   'studioChat.modelHintFable': '最有能力，應對最困難的場景',
   'studioChat.modelHintOpus': '深入細心，迎接大改變',
   'studioChat.modelHintSonnet': '快速且強大，適合大多數變化',

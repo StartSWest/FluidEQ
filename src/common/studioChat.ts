@@ -195,10 +195,10 @@ export type IStudioChatCompact = Omit<IStudioChatMessage, 'text' | 'stage'>;
 
 /**
  * The models the member may pick in the chat (Ivan, 2026-10-09: "user needs
- * to be able to pick the model and effort"), by line; each is started on
- * its exact version (`STUDIO_CHAT_MODEL_VERSIONS`). `default` passes
- * nothing, and Claude Code uses whatever the member set for it, or its
- * plan's default.
+ * to be able to pick the model and effort"), by line. Each line is started
+ * by Claude Code's own name for it - `--model haiku` - which Claude Code
+ * resolves to the newest model of that line; `default` passes nothing, and
+ * Claude Code uses whatever the member set for it, or its plan's default.
  */
 export const STUDIO_CHAT_MODELS = [
   'default',
@@ -209,23 +209,40 @@ export const STUDIO_CHAT_MODELS = [
 ] as const;
 export type TStudioChatModel = (typeof STUDIO_CHAT_MODELS)[number];
 
+/** A line of models: every pick but `default`. */
+export type TStudioChatFamily = Exclude<TStudioChatModel, 'default'>;
+
 /**
- * Each model by its version (Ivan, 2026-10-09: "we need to show models
- * version, like opus 5.5"), and the exact model Claude Code is started on,
- * so the name in the list is the model that answers. Claude Code's aliases
- * move to a newer model without telling anyone, and the list would go on
- * naming the old one; an exact id cannot. A new version is a line here, in
- * an update. Every id was checked against Claude Code on 2026-10-09.
+ * What Claude Code says it offers (Ivan, 2026-11-09: "make sure model list
+ * gets updated when app is restarted"; and 2026-10-09: "we need to show
+ * models version, like opus 5.5"): each line's model under its own name -
+ * "Haiku 5.5" - read from Claude Code once in each run of the app
+ * (`main/studioChat/claudeModels.ts`), so the list names the model that
+ * answers and never ages. It used to be a table of exact versions written
+ * into the app, and it went on offering Haiku 4.5 after 5.5 shipped.
+ *
+ * `checked`: Claude Code has answered at least once, ever. Until then
+ * nothing is known, and every line is offered under its bare name; after,
+ * a line Claude Code did not offer is one this account cannot use, shown
+ * as such, never quietly left out.
  */
-export const STUDIO_CHAT_MODEL_VERSIONS: Record<
-  Exclude<TStudioChatModel, 'default'>,
-  { id: string; name: string }
-> = {
-  fable: { id: 'claude-fable-5-1', name: 'Fable 5.1' },
-  opus: { id: 'claude-opus-5-5', name: 'Opus 5.5' },
-  sonnet: { id: 'claude-sonnet-5-5', name: 'Sonnet 5.5' },
-  haiku: { id: 'claude-haiku-4-5-20251001', name: 'Haiku 4.5' },
+export interface IStudioChatModels {
+  checked: boolean;
+  names: Partial<Record<TStudioChatFamily, string>>;
+  /** The model `default` starts, by its name, where Claude Code said it. */
+  defaultName?: string;
+}
+
+export const NO_STUDIO_CHAT_MODELS: IStudioChatModels = {
+  checked: false,
+  names: {},
 };
+
+/** Whether `model` can be started here: `default` always, a line where it is offered. */
+export const isStudioChatModelOffered = (
+  models: IStudioChatModels,
+  model: TStudioChatModel,
+) => model === 'default' || !models.checked || Boolean(models.names[model]);
 
 /** Claude Code's effort levels (`--effort`), and its own default. */
 export const STUDIO_CHAT_EFFORTS = [

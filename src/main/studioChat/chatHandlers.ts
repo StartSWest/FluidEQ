@@ -4,12 +4,14 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type {
-  IStudioChat,
-  IStudioChatLimits,
-  TStudioChatAvailability,
-  TStudioChatEntry,
-  TStudioChatRestore,
+import {
+  NO_STUDIO_CHAT_MODELS,
+  type IStudioChat,
+  type IStudioChatLimits,
+  type IStudioChatModels,
+  type TStudioChatAvailability,
+  type TStudioChatEntry,
+  type TStudioChatRestore,
 } from '../../common/studioChat';
 import type { TAgentProject } from '../studioAgent/agentProject';
 import { restoreReplyVersion } from './chatVersions';
@@ -34,6 +36,8 @@ interface IChatHandlersDeps {
   entriesOf(projectId: string): readonly TStudioChatEntry[];
   versionsOf(projectId: string): string;
   limits(): IStudioChatLimits | undefined;
+  /** The models Claude Code offers, asked once in each run (`claudeModels.ts`). */
+  models(): Promise<IStudioChatModels>;
 }
 
 /** What the window asks of the chat, each answered for the open project only. */
@@ -51,6 +55,7 @@ const registerChatHandlers = ({
   entriesOf,
   versionsOf,
   limits,
+  models,
 }: IChatHandlersDeps) => {
   const missing: Promise<TStudioChatAvailability> = Promise.resolve({
     state: 'missing',
@@ -60,6 +65,7 @@ const registerChatHandlers = ({
     signInToClaudeCode().then(() => claudeCodeAvailability()),
   );
   handle('studio-chat-load', undefined, activeChat);
+  handle('studio-chat-models', Promise.resolve(NO_STUDIO_CHAT_MODELS), models);
   handle('studio-chat-send', undefined, send);
   handle('studio-chat-compact', undefined, compact);
   handle('studio-chat-retry', undefined, retry);

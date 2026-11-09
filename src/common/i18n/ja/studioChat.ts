@@ -97,6 +97,10 @@ const studioChat = {
   'studioChat.effortHint':
     'Claude がどれだけ深く考えるか。ほとんどの変更には「中」で十分です。',
   'studioChat.modelHintDefault': 'Claude Code の設定どおり',
+  'studioChat.modelHintDefaultNamed': 'Claude Code の設定: {model}',
+  'studioChat.modelUnavailable': 'ご利用の Claude プランには含まれていません',
+  'studioChat.modelUnavailableChosen':
+    'ご利用の Claude プランには含まれていないため、チャットは既定を使います',
   'studioChat.modelHintFable': '最も高性能。難しいシーン向け',
   'studioChat.modelHintOpus': '深く丁寧。大きな変更向け',
   'studioChat.modelHintSonnet': '速くて有能。ほとんどの変更向け',

@@ -55,6 +55,8 @@ interface IOptionEntry {
   group?: string;
   /** Optional controls shown only in the open menu, never in the trigger. */
   action?: ReactNode;
+  /** Shown as unavailable, never chosen (`List`). */
+  isUnavailable?: boolean;
 }
 
 interface IDropdownProps {

@@ -98,6 +98,10 @@ const studioChat = {
   'studioChat.resize': 'Drag to resize the chat',
   'studioChat.effortHint': 'How hard Claude thinks. Medium suits most changes.',
   'studioChat.modelHintDefault': 'What Claude Code is set to',
+  'studioChat.modelHintDefaultNamed': 'What Claude Code is set to: {model}',
+  'studioChat.modelUnavailable': 'Not on your Claude plan',
+  'studioChat.modelUnavailableChosen':
+    'Not on your Claude plan, so the chat uses Default',
   'studioChat.modelHintFable': 'The most capable, for the hardest scenes',
   'studioChat.modelHintOpus': 'Deep and careful, for big changes',
   'studioChat.modelHintSonnet': 'Fast and capable, for most changes',

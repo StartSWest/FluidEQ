@@ -45,6 +45,11 @@ export interface IOptionEntry {
   /** Optional non-interactive section heading displayed above this option. */
   group?: string;
   action?: ReactNode;
+  /**
+   * Shown, and said to be unavailable, but never chosen: a choice that
+   * exists and is not open to this member is told, not left out.
+   */
+  isUnavailable?: boolean;
 }
 
 /** Resolves an entry's content, whether it was given as a node or a thunk. */
@@ -139,8 +144,10 @@ const List = ({
   }, [focusOnRender, inputRefs, options, value]);
 
   const onClick = useCallback(
-    (newValue: string) => (e: MouseEvent) => {
-      handleChange(newValue, e);
+    (entry: IOptionEntry) => (e: MouseEvent) => {
+      if (!entry.isUnavailable) {
+        handleChange(entry.value, e);
+      }
     },
     [handleChange],
   );
@@ -161,7 +168,9 @@ const List = ({
         return;
       }
       if (e.code === 'Enter') {
-        handleChange(entry.value);
+        if (!entry.isUnavailable) {
+          handleChange(entry.value);
+        }
       } else if (e.code === 'ArrowDown') {
         const next = Math.min(index + 1, options.length - 1);
         inputRefs[next].current?.focus();
@@ -201,10 +210,11 @@ const List = ({
                 ref={inputRefs[index]}
                 className={`row ${itemClassName || ''} ${
                   entry.value === value ? 'selected' : ''
-                }`}
+                }${entry.isUnavailable ? ' is-unavailable' : ''}`}
                 value={entry.value}
                 aria-label={entry.label}
-                onClick={onClick(entry.value)}
+                aria-disabled={entry.isUnavailable || undefined}
+                onClick={onClick(entry)}
                 onKeyDown={handleItemKeyPress(entry, index)}
                 onMouseEnter={onMouseEnter(index)}
                 tabIndex={0}

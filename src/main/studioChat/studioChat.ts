@@ -8,6 +8,7 @@ import path from 'path';
 import type { BrowserWindow } from 'electron';
 import {
   chatProjectOf,
+  isStudioChatModelOffered,
   type IStudioChat,
   type TStudioChatEntry,
 } from '../../common/studioChat';
@@ -38,6 +39,7 @@ import { createPastChats } from './pastChats';
 import { createTranscripts } from './chatTranscript';
 import createTranscriptCache from './transcriptCache';
 import { findClaudeCode, startClaudeCode, systemEnv } from './claudeCode';
+import { createClaudeModels } from './claudeModels';
 import {
   readShippedSkills,
   removeOldChatPlugin,
@@ -87,6 +89,8 @@ export const createStudioChat = ({
   logger,
 }: IStudioChatDeps) => {
   const root = path.join(userDataDir, 'studio-chat');
+  // What Claude Code offers, asked once in this run of the app.
+  const claudeModels = createClaudeModels({ dir: root, logger });
   const transcripts = createTranscripts(root);
   const { transcriptOf, save, saveWith, unload } = createTranscriptCache(
     transcripts,
@@ -202,6 +206,7 @@ export const createStudioChat = ({
 
   const chatSessions = createChatSessions({
     root,
+    offered: (model) => isStudioChatModelOffered(claudeModels.known(), model),
     sessions,
     launcher,
     transcriptOf,
@@ -413,6 +418,7 @@ export const createStudioChat = ({
 
   registerChatHandlers({
     handle,
+    models: claudeModels.list,
     agentProject,
     isBusy,
     activeChat,

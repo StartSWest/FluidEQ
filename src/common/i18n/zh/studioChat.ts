@@ -92,6 +92,10 @@ const studioChat = {
   'studioChat.resize': '拖动以调整聊天宽度',
   'studioChat.effortHint': 'Claude 思考的深度。大多数改动选「中」即可。',
   'studioChat.modelHintDefault': '使用 Claude Code 的设置',
+  'studioChat.modelHintDefaultNamed': 'Claude Code 当前的设置：{model}',
+  'studioChat.modelUnavailable': '不在你的 Claude 套餐中',
+  'studioChat.modelUnavailableChosen':
+    '不在你的 Claude 套餐中，因此聊天使用默认模型',
   'studioChat.modelHintFable': '能力最强，适合最难的场景',
   'studioChat.modelHintOpus': '深入细致，适合大改动',
   'studioChat.modelHintSonnet': '快速且能干，适合大多数改动',

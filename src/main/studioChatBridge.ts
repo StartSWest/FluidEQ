@@ -4,6 +4,7 @@ import type {
   IStudioChatCompact,
   IStudioChatContext,
   IStudioChatLimits,
+  IStudioChatModels,
   IStudioChatMessage,
   IStudioChatPackAsk,
   IStudioChatCodexState,
@@ -32,6 +33,9 @@ const studioChatBridge = {
   /** Claude Code's own sign-in; settles when it has ended. */
   studioChatSignIn: (): Promise<TStudioChatAvailability> =>
     ipcRenderer.invoke('studio-chat-sign-in'),
+  /** The models Claude Code offers, read from it once in this run. */
+  studioChatModels: (): Promise<IStudioChatModels> =>
+    ipcRenderer.invoke('studio-chat-models'),
   studioChatLoad: (): Promise<IStudioChat | undefined> =>
     ipcRenderer.invoke('studio-chat-load'),
   studioChatSend: (message: IStudioChatMessage): Promise<void> =>
