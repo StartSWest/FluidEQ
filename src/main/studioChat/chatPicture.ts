@@ -45,8 +45,17 @@ export const chatPictureFromBytes = (bytes: Uint8Array) =>
  */
 const MADE_PICTURE_EDGE = 480;
 
-export const chatPictureKeepingAlpha = (dataUrl: string) => {
-  const image = nativeImage.createFromDataURL(dataUrl);
+/** Any pixel of a BGRA bitmap less than fully opaque. */
+const seesThrough = (bitmap: Buffer) => {
+  for (let alpha = 3; alpha < bitmap.length; alpha += 4) {
+    if (bitmap[alpha] !== 255) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const keepingAlpha = (image: NativeImage) => {
   if (image.isEmpty()) {
     return undefined;
   }
@@ -59,5 +68,17 @@ export const chatPictureKeepingAlpha = (dataUrl: string) => {
             : { height: MADE_PICTURE_EDGE, quality: 'good' },
         )
       : image;
-  return `data:image/png;base64,${small.toPNG().toString('base64')}`;
+  // With nothing to see through, a PNG is only bigger: a 480px photograph
+  // as PNG passes the 400 KB the saved chat reads back (`chatTranscript.ts`)
+  // and would be gone after a restart.
+  return seesThrough(small.toBitmap())
+    ? `data:image/png;base64,${small.toPNG().toString('base64')}`
+    : toChat(image);
 };
+
+export const chatPictureKeepingAlpha = (dataUrl: string) =>
+  keepingAlpha(nativeImage.createFromDataURL(dataUrl));
+
+/** A PNG Claude wrote into the project, from its bytes. */
+export const chatPictureKeepingAlphaBytes = (bytes: Uint8Array) =>
+  keepingAlpha(nativeImage.createFromBuffer(Buffer.from(bytes)));

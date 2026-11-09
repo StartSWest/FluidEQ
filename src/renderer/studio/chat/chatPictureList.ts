@@ -51,6 +51,14 @@ export interface IChatPicture {
   cutOut: boolean;
 }
 
+/**
+ * A picture that may carry transparency, shown on the checks: any picture
+ * but a look kept as PNG — ChatGPT's, and any Claude opened or wrote.
+ */
+export const isCutOut = (step: IStudioChatStep) =>
+  step.kind === 'picture' ||
+  (step.kind !== 'look' && step.picture?.startsWith('data:image/png') === true);
+
 /** A picture's key: its message, or its reply and step. */
 export const pictureKey = (entryId: string, stepId?: string) =>
   stepId === undefined ? entryId : `${entryId}/${stepId}`;
@@ -84,7 +92,7 @@ export const chatPicturesOf = (
               key: pictureKey(entry.id, step.id),
               src: step.picture,
               name: stepLabel(t, step),
-              cutOut: step.kind === 'picture',
+              cutOut: isCutOut(step),
             },
           ]
         : [],

@@ -67,14 +67,18 @@ const withEvent = (
       : { ...reply, steps: [...reply.steps, event.step] };
   }
   // A look's picture lands on its own step the moment it comes back, so the
-  // chat shows what Claude is looking at as it looks; a made picture keeps
-  // its transparency.
+  // chat shows what Claude is looking at as it looks. So does any other
+  // step's — a picture file Claude opened, one the member's own image tool
+  // brought back (Ivan, 2026-11-09: "shows generated images right there in
+  // the chat"): it used to be dropped unless the step was a look or
+  // `make_picture`. A PNG keeps its transparency.
   const kind = reply.steps.find((step) => step.id === event.id)?.kind;
   let picture: string | undefined;
-  if (event.picture && kind === 'look') {
-    picture = chatPictureFromDataUrl(event.picture);
-  } else if (event.picture && kind === 'picture') {
-    picture = chatPictureKeepingAlpha(event.picture);
+  if (event.picture) {
+    picture =
+      kind !== 'look' && event.picture.startsWith('data:image/png')
+        ? chatPictureKeepingAlpha(event.picture)
+        : chatPictureFromDataUrl(event.picture);
   }
   return {
     ...reply,

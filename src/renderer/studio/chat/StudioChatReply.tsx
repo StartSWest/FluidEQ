@@ -11,7 +11,7 @@ import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import ChatText from './ChatText';
 import StudioChatCopy from './StudioChatCopy';
-import { pictureKey, stepLabel } from './chatPictureList';
+import { isCutOut, pictureKey, stepLabel } from './chatPictureList';
 import { CLAUDE_CODE_INSTALL_URL } from './StudioChatSetup';
 import {
   restoreStudioChatVersion,
@@ -41,9 +41,13 @@ const shownSteps = (steps: readonly IStudioChatStep[]) =>
   steps.reduce<{ step: IStudioChatStep; count: number }[]>((shown, step) => {
     const last = shown[shown.length - 1];
     const quiet = step.kind === 'read' || step.kind === 'search';
+    // Nor does any step with a picture: a picture file Claude opened would
+    // otherwise fold into the reads before it and never be seen.
     if (
       last &&
       step.kind !== 'look' &&
+      !step.picture &&
+      !last.step.picture &&
       last.step.kind === step.kind &&
       (quiet || last.step.file === step.file)
     ) {
@@ -104,9 +108,7 @@ function Step({
       {step.picture && (
         <button
           type="button"
-          className={`studio-chat__seen${
-            step.kind === 'picture' ? ' is-made' : ''
-          }`}
+          className={`studio-chat__seen${isCutOut(step) ? ' is-made' : ''}`}
           aria-label={t('studioChat.seenLarger')}
           aria-haspopup="dialog"
           onClick={onOpen}

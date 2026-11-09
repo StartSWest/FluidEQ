@@ -15,6 +15,7 @@ import { chatPictureFromBytes, chatPictureFromDataUrl } from './chatPicture';
 import type { TChatQueue } from './chatQueue';
 import type { TChatStreamEvent } from './chatStream';
 import { keepReplyVersion } from './chatVersions';
+import { withMadePictures } from './madePictures';
 import withEvent from './replyEvents';
 
 type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
@@ -64,6 +65,9 @@ const createChatTurns = ({
   const write = (session: IChatSession, line: string) => {
     session.process.write(line);
   };
+  // When each running step began, by its tool use's id: a picture written
+  // into the project since then is that step's (`madePictures.ts`).
+  const stepStarted = new Map<string, number>();
 
   /** A new reply, working, shown before Claude has said a word. */
   const open = (projectId: string, session: IChatSession, id?: string) => {
@@ -96,6 +100,7 @@ const createChatTurns = ({
     }
     session.reply = undefined;
     session.replyFrom = undefined;
+    reply.steps.forEach((step) => stepStarted.delete(step.id));
     session.controller?.abort();
     session.controller = undefined;
     dropAsks(projectId);
@@ -282,6 +287,20 @@ const createChatTurns = ({
         return;
       }
       session.reply = withEvent(reply, event);
+      if (event.type === 'step' && !stepStarted.has(event.step.id)) {
+        stepStarted.set(event.step.id, Date.now());
+      } else if (event.type === 'step-end') {
+        const since = stepStarted.get(event.id);
+        stepStarted.delete(event.id);
+        if (since !== undefined && !event.failed) {
+          session.reply = withMadePictures(
+            session.reply,
+            event.id,
+            session.folder,
+            since,
+          );
+        }
+      }
       if (event.type !== 'text') {
         saveWith(projectId, { ...session.reply });
       }
