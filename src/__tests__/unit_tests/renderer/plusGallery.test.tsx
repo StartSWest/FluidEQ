@@ -90,6 +90,20 @@ jest.mock('../../../renderer/plus/ScenePreview', () => ({
     </div>
   ),
 }));
+// What the preview hears comes from the window's audio, which these tests do
+// not mount; quietDemoAudio.test.tsx holds that hook.
+jest.mock('../../../renderer/plus/useQuietDemoAudio', () => ({
+  __esModule: true,
+  default: () => ({
+    audio: {
+      points: [],
+      waveform: [],
+      isPaused: false,
+      readFrame: () => undefined,
+    },
+    demo: false,
+  }),
+}));
 
 // Drawing a scene's own frame needs WebGL too: stand in with a picture that
 // is recognisably the drawn one.
