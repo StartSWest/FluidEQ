@@ -16,12 +16,17 @@ import { HOME_CAMERA, NO_POINTER, NO_TAP } from './sceneFrameRest';
  * surface a scene is drawn on; the runner reads it every frame
  * (`useSceneRunner.ts`) and hands the scene `uPointer`, `uTap` and `uCamera`.
  *
- * The gestures are the app's, the same in every scene: drag to turn and tilt
- * (the scene follows the hand, as a thing picked up and turned does), the
- * wheel or a pinch to move in and out, all held inside the angles the scene's
- * author allows. Which drags turn the camera is each surface's to say
- * (`attach`): on the graph a plain drag is the band marquee whenever bands can
- * be edited, and turning the scene must never cost the equaliser its gesture.
+ * The gestures are the app's, the same in every scene and on every surface:
+ * Ctrl (⌘ on a Mac) and a drag to turn and tilt (the scene follows the hand,
+ * as a thing picked up and turned does), Ctrl and the wheel — or a touchpad's
+ * pinch, which arrives as that — to move in and out, all held inside the
+ * angles the scene's author allows. A plain press, click, double click or
+ * wheel is never the camera's (Ivan, 2026-11-08: "cannot move just with mouse
+ * move only when control click so double click goes full screen too", "same
+ * for zoom with control scroll"): a plain drag turned the scene on the
+ * Studio's stage and in the gallery, the graph's right and middle drags did
+ * too, and a double click meant to take the picture full screen began a turn
+ * instead. Holding Ctrl over a scene that can be turned shows the open hand.
  *
  * No timers: the camera's glide after a release and its way home on a reset
  * are stepped by the frames the scene is already drawing.
@@ -38,17 +43,6 @@ export interface ISceneHands {
 export interface IAttachOptions {
   /** The scene's own box, which uv is measured across. */
   frame: () => DOMRect | undefined;
-  /**
-   * Whether this press turns the camera rather than doing what it did. Asked
-   * only of presses the panel does not own.
-   */
-  turns: (event: PointerEvent) => boolean;
-  /**
-   * Whether a plain press turns the camera here, so the pointer shows a hand
-   * over a scene that can be turned, and the wheel moves it in and out.
-   * Absent: never.
-   */
-  grabs?: () => boolean;
   /**
    * What the panel keeps for itself - a band's handle, say: a press there is
    * never the scene's, neither a turn nor a tap, and neither is a wheel.
@@ -109,6 +103,10 @@ const CONTROLS = 'button, input, select, textarea, a, [role="menu"]';
 /** The cursor over an element the gestures are on. */
 type THand = '' | 'grab' | 'grabbing';
 
+/** The key that makes a press or a wheel the camera's: Ctrl, or ⌘ on a Mac. */
+const asksForCamera = (event: MouseEvent | KeyboardEvent) =>
+  event.ctrlKey || event.metaKey;
+
 /**
  * `camera` turned by a drag of `dx`, `dy` pixels on a panel `height` tall:
  * right turns the scene right, down tilts its top towards the viewer.
@@ -146,31 +144,6 @@ const isHome = (camera: ISceneCamera) =>
   Math.abs(camera.yaw) < 1e-3 &&
   Math.abs(camera.pitch) < 1e-3 &&
   Math.abs(camera.zoom - 1) < 1e-3;
-
-/**
- * Whether a wheel of `deltaY` over `element` would scroll something around it:
- * an ancestor that scrolls and has room left that way, or the page itself.
- */
-const scrollsFrom = (element: HTMLElement, deltaY: number) => {
-  const hasRoom = (node: Element) =>
-    deltaY < 0
-      ? node.scrollTop > 0
-      : node.scrollTop + node.clientHeight < node.scrollHeight - 1;
-  for (let node = element.parentElement; node; node = node.parentElement) {
-    const { overflowY } = getComputedStyle(node);
-    if (
-      (overflowY === 'auto' || overflowY === 'scroll') &&
-      node.scrollHeight > node.clientHeight + 1 &&
-      hasRoom(node)
-    ) {
-      return true;
-    }
-  }
-  const page = element.ownerDocument.scrollingElement;
-  return Boolean(
-    page && page.scrollHeight > page.clientHeight + 1 && hasRoom(page),
-  );
-};
 
 /** The shortest way round from `from` to `to`, for a scene that turns round. */
 const angleTowards = (from: number, to: number) => {
@@ -230,8 +203,10 @@ export const createSceneInteraction = (): ISceneInteraction => {
   const gestureListeners = new Set<(gesture: TSceneGesture) => void>();
   const tell = (gesture: TSceneGesture) =>
     gestureListeners.forEach((listener) => listener(gesture));
-  /** Every element the gestures are on, with how it says a plain press turns. */
-  const attached = new Map<HTMLElement, () => boolean>();
+  /** Every element the gestures are on, and whether the pointer is over it. */
+  const attached = new Map<HTMLElement, { hovered: boolean }>();
+  /** Ctrl (or ⌘) held, as the last pointer event or key said. */
+  let cameraKeyHeld = false;
 
   const announce = () => {
     const now = !isHome(camera);
@@ -244,17 +219,18 @@ export const createSceneInteraction = (): ISceneInteraction => {
   const turning = () => [...presses.values()].some((press) => press.turning);
 
   /**
-   * The cursor over each element: a hand where a plain press turns a scene
-   * that can be turned, a closed one while it is being turned. Written only
-   * when it changes, as a data attribute the stylesheet reads.
+   * The cursor over each element: an open hand while Ctrl is held over a
+   * scene that can be turned — what a press would do then — and a closed one
+   * while it is being turned. Written only when it changes, as a data
+   * attribute the stylesheet reads.
    */
   const showHands = () => {
-    attached.forEach((grabs, element) => {
+    attached.forEach(({ hovered }, element) => {
       let hand: THand = '';
       if (limits) {
         if (turning()) {
           hand = 'grabbing';
-        } else if (grabs()) {
+        } else if (hovered && cameraKeyHeld) {
           hand = 'grab';
         }
       }
@@ -360,8 +336,18 @@ export const createSceneInteraction = (): ISceneInteraction => {
   };
 
   const attach = (element: HTMLElement, options: IAttachOptions) => {
-    /** Pressed since the pointer came over it: the plain wheel is the scene's. */
-    let engaged = false;
+    const entry = { hovered: false };
+    /** Ctrl going down or up over a still pointer opens or closes the hand. */
+    const onKey = (event: KeyboardEvent) => {
+      if (asksForCamera(event) !== cameraKeyHeld) {
+        cameraKeyHeld = asksForCamera(event);
+        showHands();
+      }
+    };
+    const onBlur = () => {
+      cameraKeyHeld = false;
+      showHands();
+    };
     /** The swallow waiting after a turning drag, taken back by the next press. */
     let swallowing: (() => void) | undefined;
     const stopSwallowing = () => {
@@ -422,6 +408,11 @@ export const createSceneInteraction = (): ISceneInteraction => {
       const uv = uvOf(event);
       const last = lastMove;
       lastMove = { x: event.clientX, y: event.clientY };
+      if (!entry.hovered || asksForCamera(event) !== cameraKeyHeld) {
+        entry.hovered = true;
+        cameraKeyHeld = asksForCamera(event);
+        showHands();
+      }
       if (uv) {
         pointerX = uv.x;
         pointerY = uv.y;
@@ -495,8 +486,11 @@ export const createSceneInteraction = (): ISceneInteraction => {
       pointerY = uv.y;
       over = true;
       pressedNow = true;
-      engaged = true;
-      const turnsNow = Boolean(limits) && options.turns(event);
+      // Ctrl and the primary button, and nothing else: a plain press, click
+      // or double click goes on to the panel untouched - the graph's marquee,
+      // its double click to full screen, the stage's double click.
+      const turnsNow =
+        Boolean(limits) && event.button === 0 && asksForCamera(event);
       // A press this element does not capture - the panel's own, the marquee
       // - may be let go anywhere, where only the window hears it; held until
       // then, it kept the scene busy and `uPointer.z` at 1.
@@ -591,8 +585,9 @@ export const createSceneInteraction = (): ISceneInteraction => {
 
     const onLeave = () => {
       over = false;
-      engaged = false;
       lastMove = undefined;
+      entry.hovered = false;
+      showHands();
     };
 
     const onWheel = (event: WheelEvent) => {
@@ -603,19 +598,11 @@ export const createSceneInteraction = (): ISceneInteraction => {
       ) {
         return;
       }
-      // A touchpad's pinch arrives as Ctrl and the wheel, and so does Ctrl
-      // with a mouse's: the zoom, wherever the scene can be turned at all (a
-      // band's own Ctrl and wheel is its Q, and a band is owned).
-      const pinching = event.ctrlKey;
-      // The plain wheel only where a plain press is the scene's, and even
-      // there the page's scroll comes first until the scene has been pressed:
-      // a stage two-thirds of the gallery's height took every wheel that
-      // crossed it, and the page could not be scrolled past it.
-      if (
-        !pinching &&
-        (!(options.grabs?.() ?? false) ||
-          (!engaged && scrollsFrom(element, event.deltaY)))
-      ) {
+      // Ctrl and the wheel, and so a touchpad's pinch, which arrives as that:
+      // the zoom, wherever the scene can be turned at all (a band's own Ctrl
+      // and wheel is its Q, and a band is owned). The plain wheel is never the
+      // scene's - it scrolls the page or the panel it crosses.
+      if (!asksForCamera(event)) {
         return;
       }
       event.preventDefault();
@@ -632,7 +619,11 @@ export const createSceneInteraction = (): ISceneInteraction => {
     element.addEventListener('pointercancel', onUp, { capture: true });
     element.addEventListener('pointerleave', onLeave);
     element.addEventListener('wheel', onWheel, { passive: false });
-    attached.set(element, options.grabs ?? (() => false));
+    const win = element.ownerDocument.defaultView;
+    win?.addEventListener('keydown', onKey);
+    win?.addEventListener('keyup', onKey);
+    win?.addEventListener('blur', onBlur);
+    attached.set(element, entry);
     showHands();
     return () => {
       stopSwallowing();
@@ -645,6 +636,9 @@ export const createSceneInteraction = (): ISceneInteraction => {
       element.removeEventListener('pointercancel', onUp, { capture: true });
       element.removeEventListener('pointerleave', onLeave);
       element.removeEventListener('wheel', onWheel);
+      win?.removeEventListener('keydown', onKey);
+      win?.removeEventListener('keyup', onKey);
+      win?.removeEventListener('blur', onBlur);
       presses.clear();
       over = false;
       pressedNow = false;

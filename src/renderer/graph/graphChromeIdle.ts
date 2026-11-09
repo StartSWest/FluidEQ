@@ -23,7 +23,8 @@ import { useIsChromeIdle } from '../utils/idleChrome';
  *
  * The one place this is decided: the strip, its shade and the reset read
  * it, and two of them deciding separately is how one would fade without the
- * others.
+ * others. The reset reads it on every surface it stands on, and also hides
+ * whenever the pointer is off its scene (`SceneViewReset`).
  */
 const useIsGraphChromeIdle = () => useIsChromeIdle();
 

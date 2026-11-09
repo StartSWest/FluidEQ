@@ -246,8 +246,6 @@ export default function SceneCanvas({
   // renderer, so a camera turned on the plot is still turned when the plot
   // comes back.
   const interaction = useMemo(createSceneInteraction, []);
-  const dragTurnsRef = useRef(plot?.dragTurns === true);
-  dragTurnsRef.current = plot?.dragTurns === true;
 
   // The plot's loading and its reset read this (`ScenePlot`).
   useLayoutEffect(() => {
@@ -374,11 +372,6 @@ export default function SceneCanvas({
     }
     return interaction.attach(plotElement, {
       frame: () => panel.getBoundingClientRect(),
-      turns: (event) =>
-        event.button === 1 ||
-        event.button === 2 ||
-        (event.button === 0 && dragTurnsRef.current),
-      grabs: () => dragTurnsRef.current,
       owns: (element) =>
         Boolean(
           element.closest('.graph-edit-point, .chart-limit, .chart-presence'),

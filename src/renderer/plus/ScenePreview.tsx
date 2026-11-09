@@ -182,8 +182,6 @@ export default function ScenePreview({
     }
     return interaction.attach(frame, {
       frame: () => host.getBoundingClientRect(),
-      turns: () => true,
-      grabs: () => true,
     });
   }, [interaction, sceneRef]);
 

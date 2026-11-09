@@ -57,8 +57,9 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// With the chrome it sits over: gone while the full screen is idle, and
-// taking no press while it is gone.
+// Away while nobody is at the scene — the pointer off it, or the window's
+// chrome idle (`SceneViewReset`) — taking no press while it is gone, and
+// still reached by Tab, which brings it back.
 .scene-view-reset.is-idle {
   opacity: 0;
   pointer-events: none;

@@ -51,7 +51,7 @@ describe('gestures over a scene on its own surface', () => {
     panel.append(button);
     document.body.append(panel);
     const hands = createSceneInteraction();
-    detach = hands.attach(panel, { frame: () => box, turns: () => false });
+    detach = hands.attach(panel, { frame: () => box });
     heard = [];
     stop = hands.onGesture((gesture) => heard.push(gesture));
   });

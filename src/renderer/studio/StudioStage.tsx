@@ -321,8 +321,8 @@ export default function StudioStage({
     };
   }, [captureRef, sceneRef, view, screen.width, screen.height]);
 
-  // Every drag on the stage is the scene's: nothing else on it drags, and
-  // its one other gesture, the double click, is two taps the scene hears.
+  // Ctrl and a drag turn the scene (`sceneInteraction.ts`); a plain double
+  // click is the stage's full screen, and two taps the scene hears.
   useEffect(() => {
     const frame = frameRef.current;
     const host = sceneRef.current;
@@ -331,8 +331,6 @@ export default function StudioStage({
     }
     return interaction.attach(frame, {
       frame: () => host.getBoundingClientRect(),
-      turns: () => true,
-      grabs: () => true,
     });
   }, [interaction, sceneRef]);
 

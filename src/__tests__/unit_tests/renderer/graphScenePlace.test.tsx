@@ -159,7 +159,6 @@ const plotOf = (isPartOfWindow: boolean): IScenePlot => ({
   width: 640,
   height: 320,
   spectrumRect: [0, 1, 0, 1],
-  dragTurns: false,
   isPartOfWindow,
 });
 
@@ -210,7 +209,6 @@ describe('where the graph’s scene is drawn', () => {
     width: 1,
     height: 1,
     spectrumRect: [0, 1, 0, 1] as const,
-    dragTurns: false,
     isPartOfWindow,
   });
 
@@ -388,7 +386,6 @@ describe('the plot', () => {
           width={640}
           height={320}
           spectrumRect={SPECTRUM}
-          dragTurns={false}
           inset={{ right: 0, bottom: 0 }}
           isPartOfWindow={isPartOfWindow}
         />

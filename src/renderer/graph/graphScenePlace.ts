@@ -43,8 +43,6 @@ export interface IScenePlot {
   width: number;
   height: number;
   spectrumRect: readonly [number, number, number, number];
-  /** Whether a plain drag on the plot turns a scene that can be turned. */
-  dragTurns: boolean;
   /**
    * Whether the plot is one part of the window: the normal size, in the
    * app's own window. Expanded or full screen the graph is the window

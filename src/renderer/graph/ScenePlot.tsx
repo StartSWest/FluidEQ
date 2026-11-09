@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useLayoutEffect, useRef } from 'react';
-import useIsGraphChromeIdle from './graphChromeIdle';
 import { publishScenePlot, useGraphSceneRun } from './graphScenePlace';
 import { sceneIdentityOf, type TDrawableScene } from './SceneCanvas';
 import SceneLoading from './SceneLoading';
@@ -17,12 +16,6 @@ interface IScenePlotProps {
   width: number;
   height: number;
   spectrumRect: readonly [number, number, number, number];
-  /**
-   * Whether a plain drag on the plot turns a scene that can be turned: only
-   * while it is not the band marquee. A right or middle drag turns it
-   * whichever it is.
-   */
-  dragTurns: boolean;
   /** How far in from the panel's right and bottom the ruled plot stands. */
   inset: { right: number; bottom: number };
   /** See `IScenePlot.isPartOfWindow`. */
@@ -44,7 +37,6 @@ export default function ScenePlot({
   width,
   height,
   spectrumRect,
-  dragTurns,
   inset,
   isPartOfWindow,
 }: IScenePlotProps) {
@@ -63,15 +55,13 @@ export default function ScenePlot({
         width,
         height,
         spectrumRect,
-        dragTurns,
         isPartOfWindow,
       });
     }
-  }, [width, height, spectrumRect, dragTurns, isPartOfWindow]);
+  }, [width, height, spectrumRect, isPartOfWindow]);
   useLayoutEffect(() => () => publishScenePlot(undefined), []);
 
   const run = useGraphSceneRun();
-  const isChromeIdle = useIsGraphChromeIdle();
 
   return (
     <>
@@ -103,7 +93,8 @@ export default function ScenePlot({
       {run && (
         <SceneViewReset
           interaction={run.interaction}
-          className={isChromeIdle ? 'is-idle' : ''}
+          // Fades with the graph's chrome by itself (`SceneViewReset`).
+          className=""
           // In the drawing's own corner, clear of the axes' labels.
           style={{ right: inset.right + 8, bottom: inset.bottom + 8 }}
         />
