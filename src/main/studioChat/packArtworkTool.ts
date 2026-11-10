@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { pictureFromBytes } from '../safePicture';
 import type { IStudioChatPackPiece } from '../../common/studioChat';
 import {
+  listsOwnPieces,
   readArtworkRegions,
   type IArtworkRegion,
 } from '../memberScenes/artworkRegions';
@@ -205,9 +206,14 @@ const createPackArtworkTool = ({
     // The member's photo places, where they are: every one `pictures` names,
     // filled or not, and an older artwork that is one photo and nothing else
     // as one place, kept whole — written into `pictures` below, or the
-    // pieces beside it would take its place away.
+    // pieces beside it would take its place away. An artwork that lists
+    // pieces of its own is never that photo, whether or not each entry can
+    // be read: taken for one, it filled every pixel the artwork may have,
+    // and nothing beside it fitted (`readArtworkRegions`).
     const implicitPlace =
-      manifest.pictures === undefined && known.length === 0 && current;
+      manifest.pictures === undefined &&
+      !listsOwnPieces(manifest.artworkRegions) &&
+      current;
     const places =
       atlas.kind === 'atlas' &&
       (manifest.pictures !== undefined || implicitPlace)
