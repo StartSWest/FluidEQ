@@ -93,11 +93,23 @@ interface IPlusNavigation {
   filters: IBrowseFilters;
 }
 
+/**
+ * The order the gallery opens on, every time it is opened (Ivan, 2026-11-09:
+ * "gallery newest is always default"). A member may pick another for the
+ * visit — from the list to a scene and back keeps it — and the next visit
+ * starts on Newest again; no choice is remembered past the visit.
+ */
+export const OPENING_SORT: TGallerySort = 'new';
+
 const INITIAL: IPlusNavigation = {
   place: 'visualizers',
   page: { kind: 'browse' },
-  filters: { sort: 'liked', text: '' },
+  filters: { sort: OPENING_SORT, text: '' },
 };
+
+/** The filters as a new visit finds them: Newest, the rest as they were. */
+const opened = (filters: IBrowseFilters): IBrowseFilters =>
+  filters.sort === OPENING_SORT ? filters : { ...filters, sort: OPENING_SORT };
 
 let navigation: IPlusNavigation = { ...INITIAL, place: storedPlace() };
 const listeners = new Set<() => void>();
@@ -151,14 +163,46 @@ export const plusPlace = (): TPlusPlace => navigation.place;
 export const openPlusPlace = (place: TPlusPlace) => {
   bindAccount();
   if (place !== navigation.place) {
-    publish({ ...navigation, place });
+    publish({
+      ...navigation,
+      place,
+      // Back to the gallery from the Studio or the lighting is a new visit.
+      filters:
+        place === 'visualizers'
+          ? opened(navigation.filters)
+          : navigation.filters,
+    });
+  }
+};
+
+/**
+ * The Plus tab opened from the title bar, or the window from a restart: a
+ * new visit to whatever place it shows, so the gallery's order is Newest
+ * again. The page open in it is kept — coming back finds the scene that was
+ * open — and so are its category and search.
+ */
+export const plusTabOpened = () => {
+  bindAccount();
+  const filters = opened(navigation.filters);
+  if (filters !== navigation.filters) {
+    publish({ ...navigation, filters });
   }
 };
 
 /** Shows a gallery page in place of the one showing. */
 export const openGalleryPage = (page: TGalleryPage) => {
   bindAccount();
-  publish({ ...navigation, place: 'visualizers', page });
+  publish({
+    ...navigation,
+    place: 'visualizers',
+    page,
+    // Sent here from elsewhere — the graph's looks, an update notice — is a
+    // visit of its own; from the gallery's own list it is the same visit.
+    filters:
+      navigation.place === 'visualizers'
+        ? navigation.filters
+        : opened(navigation.filters),
+  });
 };
 
 /**

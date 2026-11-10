@@ -16,6 +16,7 @@ import { identityStyle } from './identity';
 import { setGalleryNotice } from '../plus/galleryActions';
 import {
   openPlusPlace,
+  plusTabOpened,
   usePlusNavigation,
   type TPlusPlace,
 } from '../plus/plusNavigation';
@@ -101,6 +102,11 @@ export default function CommunityPanel({
       forgetProfile();
     }
   }, [accountId]);
+
+  // Every opening of the tab is a new visit: the gallery starts on Newest.
+  useEffect(() => {
+    plusTabOpened();
+  }, []);
 
   // An add-on asks what it needs whenever the tab opens and whenever another
   // account signs in.

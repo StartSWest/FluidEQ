@@ -5,7 +5,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { act, render, screen, within } from '@testing-library/react';
+import {
+  act,
+  render,
+  renderHook,
+  screen,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { subscribeAccountPanelRequests } from '../../../renderer/account/accountPanel';
 import { resetAccountStore } from '../../../renderer/account/accountStore';
@@ -19,6 +25,7 @@ import CommunityPanel from '../../../renderer/community/CommunityPanel';
 import {
   openPlusPlace,
   resetPlusNavigation,
+  setBrowseFilters,
   usePlusNavigation,
 } from '../../../renderer/plus/plusNavigation';
 import { resetProfileStore } from '../../../renderer/plus/profileStore';
@@ -85,6 +92,15 @@ const renderPanel = async () => {
 };
 
 describe('the Plus tab', () => {
+  // Ivan, 2026-11-09: "gallery newest is always default". Opening the tab is
+  // a new visit, whatever order the last one was left on.
+  it('opens the gallery on Newest, whatever the last visit chose', async () => {
+    setBrowseFilters({ sort: 'liked', category: 'water', text: '' });
+    await renderPanel();
+    const { filters } = renderHook(() => usePlusNavigation()).result.current;
+    expect(filters).toEqual({ sort: 'new', category: 'water', text: '' });
+  });
+
   /**
    * The channels went to the Forum tab; three places stayed, and Dynamic
    * lighting came in under the Studio.
