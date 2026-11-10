@@ -14,12 +14,13 @@ std::atomic<uint32_t> heap_operations{0};
 void require(bool condition, const char* message) {
   if (!condition) { std::fprintf(stderr, "%s\n", message); std::abort(); }
 }
-FeqChain* make_chain(double gain) {
+FeqChain* make_chain(double gain, bool manual_leveling = true) {
   FeqChain* chain = feq_chain_create(48000, 2, 64);
   require(chain != nullptr, "chain allocation");
   FeqChainSettings settings{};
   feq_chain_settings_defaults(&settings);
   settings.enabled = 1;
+  settings.normalizer.mode = manual_leveling ? 2 : 0;
   settings.eq.enabled = 1;
   settings.eq.band_count = 1;
   settings.eq.bands[0] = {1, 0, FEQ_FILTER_PK, 1000, gain, 0.7, 0, 0};
@@ -105,6 +106,18 @@ int main() {
   gains.apply(exchange.published(), false);
   require(exchange.published()->input_gain_target_db == 8,
           "a device rebuild must retain the measured track gain");
+
+  exchange.publish(make_chain(0, false), true);
+  const auto fixed = exchange.adopt();
+  require(fixed.changed && !fixed.fresh, "fixed rack carries the current passage");
+  gains.publish(8, -8, true);
+  gains.apply(fixed.chain, false);
+  float left[64]{0.3f};
+  float right[64]{-0.2f};
+  float* planes[] = {left, right};
+  chain_process_input_gain(fixed.chain, planes, 64);
+  require(left[0] == 0.3f && right[0] == -0.2f,
+          "an old publication cannot boost a fixed rack's first input");
   std::puts("host chain ownership, source boundary, gain coherence and real-time heap contracts passed");
   return 0;
 }

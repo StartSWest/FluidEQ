@@ -550,7 +550,7 @@ const dsp = {
   'dsp.dimension.decorrelation': 'फैलाव',
   'dsp.maximizer.title': 'मैक्सिमाइज़र',
   'dsp.maximizer.description':
-    'शिखरों को सीमा से ऊपर जाने दिए बिना कुल स्तर बढ़ाता है।',
+    'स्थिर गेन से स्तर बढ़ाता या घटाता है और पीक को सीमित करता है।',
   'dsp.maximizer.drive': 'ड्राइव',
   'dsp.maximizer.reduction': 'कटौती',
   'dsp.maximizer.ceiling': 'सीमा',
@@ -558,7 +558,7 @@ const dsp = {
   'dsp.maximizer.release': 'रिलीज़',
   'dsp.maximizer.group.loudness': 'लाउडनेस',
   'dsp.maximizer.group.loudnessHint':
-    'ऐसी सीमा की ओर गेन जो कभी नहीं हिलती। शिखरों के नीचे सब कुछ ऊपर आ जाता है।',
+    'पीक सीमा से पहले स्थिर गेन। नकारात्मक ड्राइव अधिक गुंजाइश छोड़ती है।',
   'dsp.maximizer.group.timing': 'टाइमिंग',
   'dsp.maximizer.group.timingHint':
     'लिमिटर शिखर को कितना पहले देखता है, और छोड़ने में कितना समय लेता है।',

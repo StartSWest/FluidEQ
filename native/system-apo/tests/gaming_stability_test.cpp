@@ -9,6 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "dsp_chain_fixture.h"
 #include "graph_test_support.h"
 #include "../src/room_head.h"
+#include "../src/source_analysis.h"
 #include "../../dsp-core/tests/footsteps_scene.h"
 #include "fluideq/primitives.h"
 
@@ -400,9 +401,15 @@ void heroes_filter_switch(const std::vector<double>& on, bool change_music) {
 
 int main(int argc, char** argv) {
   if (argc < 2) return 2;
+  if (argc == 3 && std::string(argv[1]) == "--sources") {
+    const std::filesystem::path directory(argv[2]);
+    wav(directory / "game-mixed.wav", scene(true, -24.0, 1));
+    wav(directory / "game-hot.wav", arena_score(0.93, true, false, true));
+    return report();
+  }
   // Optional offline listening export. Input is explicit 48 kHz stereo
   // f32le, converted by ffmpeg without ever opening an output device.
-  if (argc == 6 && std::string(argv[1]) == "--render") {
+  if ((argc == 6 || argc == 7) && std::string(argv[1]) == "--render") {
     std::ifstream fixture(argv[2]);
     std::string preset;
     uint32_t size = 0;
@@ -422,11 +429,27 @@ int main(int argc, char** argv) {
       for (size_t i = 0; i < in[0].size(); ++i) {
         in[0][i] = samples[2*i]; in[1][i] = samples[2*i+1];
       }
-      uint32_t delay = 0;
-      const Audio out = render(in, values, delay);
-      Audio aligned(2, std::vector<float>(out[0].size() - delay));
+      std::optional<fluideq_engine::RoomHead> head;
+      if (argc == 7) {
+        std::ifstream file(argv[6], std::ios::binary);
+        if (!file) return 2;
+        const std::string text{std::istreambuf_iterator<char>(file),
+                               std::istreambuf_iterator<char>()};
+        head = fluideq_engine::parse_room_head(text, kRate);
+        if (!head) return 2;
+      }
+      const fluideq_engine::SourceAnalysis source{};
+      fluideq_engine::Graph graph(gaming_chain(values, false), kRate, 2, 480,
+                                  nullptr, 0, head ? &*head : nullptr,
+                                  false, nullptr, &source);
+      if (head) CHECK(mentions(graph.active_stages(), "room"));
+      const uint32_t delay = graph.latency_frames();
+      const auto frames = in[0].size();
+      for (auto& channel : in) channel.resize(frames + delay);
+      run_blocks(graph, in, 480);
+      Audio aligned(2, std::vector<float>(frames));
       for (size_t c = 0; c < 2; ++c)
-        std::copy(out[c].begin() + delay, out[c].end(), aligned[c].begin());
+        std::copy(in[c].begin() + delay, in[c].end(), aligned[c].begin());
       wav(argv[5], aligned);
       std::printf("rendered %s: %zu frames, aligned %u frames\n", preset.c_str(), aligned[0].size(), delay);
       return report();

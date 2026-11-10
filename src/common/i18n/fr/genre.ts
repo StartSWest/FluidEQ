@@ -2,6 +2,8 @@
 
 export default {
   'genre.notes.eyebrow': 'Notes du genre',
+  'genre.notes.fixedMaximizer':
+    'Applique un gain fixe au niveau d’origine et limite les crêtes à −1 dBTP.',
   'genre.notes.about': 'À propos de {name}',
   'genre.notes.aboutShort': 'À propos',
   'genre.notes.full': 'Notes complètes',

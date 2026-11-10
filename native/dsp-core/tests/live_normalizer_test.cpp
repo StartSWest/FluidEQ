@@ -225,6 +225,26 @@ void protection() {
   crest.play(60, 0.75);
   check(crest.reading.applied_gain_db < 1.1, "peak headroom prevents forcing a loudness target through limiting");
 }
+
+void off_drops_a_live_boost_before_louder_audio() {
+  for (const bool low_latency : {false, true}) {
+    Stream stream(48000, 480);
+    stream.play(60, 0.02);
+    check(stream.reading.applied_gain_db > 3.0,
+          "the old live mode really built up boost");
+    const uint32_t latency = feq_live_normalizer_latency(stream.processor);
+    stream.settings.mode = 0;
+    if (low_latency) feq_live_normalizer_set_standby(stream.processor, 1);
+    stream.peak = 0;
+    stream.play(0.01, 0.5);
+    check(std::abs(stream.reading.applied_gain_db) < 0.001 &&
+          stream.peak > 0.49 && stream.peak < 0.501,
+          "the first louder block plays at its original level after Off");
+    check(feq_live_normalizer_latency(stream.processor) ==
+              (low_latency ? 0 : latency),
+          "Off keeps the existing normal and Game Mode delay rules");
+  }
+}
 void restoration_edit() {
   FeqChainSettings settings{};
   feq_chain_settings_defaults(&settings);
@@ -350,6 +370,7 @@ int main() {
   flagged_gap_starts_an_independent_unnamed_source();
   a_loud_song_after_silence_comes_in_at_the_target();
   protection();
+  off_drops_a_live_boost_before_louder_audio();
   restoration_edit();
   live_and_analysed_sources_share_gain_and_headroom_bounds();
   return failures == 0 ? 0 : 1;

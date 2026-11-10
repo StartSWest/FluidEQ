@@ -20,14 +20,23 @@ const fullChain = (): IDspSettings =>
     ...DSP_DEFAULTS,
     enabled: false,
     presetId: 'hand-tuned',
-    normalizer: { ...DSP_DEFAULTS.normalizer, targetLufs: -16 },
+    normalizer: {
+      ...DSP_DEFAULTS.normalizer,
+      mode: 'loudness',
+      targetLufs: -16,
+    },
     denoise: { ...DSP_DEFAULTS.denoise, enabled: true, isolate: true },
     eq: { ...DSP_DEFAULTS.eq, enabled: true, isolate: true, model: 'wide' },
     exciter: { ...DSP_DEFAULTS.exciter, enabled: true, isolate: true },
     bassForge: { ...DSP_DEFAULTS.bassForge, enabled: true, isolate: true },
     bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true, isolate: true },
     dimension: { ...DSP_DEFAULTS.dimension, enabled: true, highWidth: 1.2 },
-    maximizer: { ...DSP_DEFAULTS.maximizer, enabled: true, ceilingDb: -1.2 },
+    maximizer: {
+      ...DSP_DEFAULTS.maximizer,
+      enabled: true,
+      driveDb: -2.75,
+      ceilingDb: -1.2,
+    },
     master: {
       ...DSP_DEFAULTS.master,
       enabled: true,
@@ -49,6 +58,7 @@ describe('the shareable complete DSP chain file', () => {
       throw new Error('a chain file this module wrote was not readable');
     }
     expect(read.name).toBe('My full chain');
+    expect(read.settings.normalizer.mode).toBe('loudness');
     expect(read.settings.normalizer.targetLufs).toBe(-16);
     expect(read.settings.denoise.enabled).toBe(true);
     expect(read.settings.eq.model).toBe('wide');
@@ -57,6 +67,7 @@ describe('the shareable complete DSP chain file', () => {
     expect(read.settings.bassPunch.enabled).toBe(true);
     expect(read.settings.dimension.highWidth).toBe(1.2);
     expect(read.settings.maximizer.ceilingDb).toBe(-1.2);
+    expect(read.settings.maximizer.driveDb).toBe(-2.75);
     expect(read.settings.master.matchedBypass).toBe(true);
   });
 

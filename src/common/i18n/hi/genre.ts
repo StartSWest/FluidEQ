@@ -2,6 +2,8 @@
 
 export default {
   'genre.notes.eyebrow': 'शैली नोट्स',
+  'genre.notes.fixedMaximizer':
+    'मूल स्रोत स्तर पर स्थिर गेन लगाता है और पीक को −1 dBTP तक सीमित करता है।',
   'genre.notes.about': '{name} के बारे में',
   'genre.notes.aboutShort': 'जानकारी',
   'genre.notes.full': 'पूरे नोट्स',

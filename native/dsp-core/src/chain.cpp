@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 #include "chain_internal.h"
+#include "normalizer_gain.h"
 
 #include <algorithm>
 #include <cmath>
@@ -133,6 +134,23 @@ void chain_encode_mid_side(float* const* channels, uint32_t frames) {
 
 void chain_decode_mid_side(float* const* channels, uint32_t frames) {
   chain_decode_mid_side_impl(channels, frames);
+}
+
+void chain_release_obsolete_gain(FeqChain* chain, bool source_was_leveling,
+                                 bool master_was_maximizing) {
+  const bool release_source = chain->settings.normalizer.mode == 0 && source_was_leveling;
+  const bool release_master = !chain_master_maximizes(chain->settings) && master_was_maximizing;
+  if ((release_source && !chain->release_source_gain) ||
+      (release_master && !chain->release_master_gain)) {
+    chain->level_release_left = feq_normalizer::release_frames(chain->sample_rate);
+  }
+  chain->release_source_gain = chain->settings.normalizer.mode == 0 &&
+      (release_source || chain->release_source_gain);
+  chain->release_master_gain = !chain_master_maximizes(chain->settings) &&
+      (release_master || chain->release_master_gain);
+  if (!chain->release_source_gain && !chain->release_master_gain) {
+    chain->level_release_left = 0;
+  }
 }
 
 
@@ -470,7 +488,12 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
   if (chain == nullptr || settings == nullptr) {
     return;
   }
+  const bool source_was_leveling = chain->settings.normalizer.mode != 0;
+  const bool master_was_maximizing = chain_master_maximizes(chain->settings);
   chain->settings = *settings;
+  chain->retiring_source_level = false;
+  chain->retiring_master_level = false;
+  chain_release_obsolete_gain(chain, source_was_leveling, master_was_maximizing);
   if (chain->settings.eq.band_count > FEQ_CHAIN_MAX_EQ_BANDS) {
     chain->settings.eq.band_count = FEQ_CHAIN_MAX_EQ_BANDS;
   }
@@ -540,6 +563,32 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
   chain_refresh_eq_kernel(chain);
 }
 
+void feq_chain_retire_leveling(FeqChain* outgoing, const FeqChain* incoming) {
+  if (outgoing == nullptr || outgoing == incoming) return;
+  const auto& old = outgoing->settings;
+  const bool disable_source = old.normalizer.mode != 0 &&
+      (incoming == nullptr || incoming->settings.normalizer.mode == 0);
+  const bool disable_master = chain_master_maximizes(old) &&
+      (incoming == nullptr || !chain_master_maximizes(incoming->settings));
+  if (!disable_source && !disable_master) return;
+
+  // The outgoing rack still renders new samples during the crossover. Keep
+  // its delay and configured settings, but retire its adaptive gains.
+  const double drive = incoming ? chain_maximizer_drive(incoming->settings) : 1.0;
+  outgoing->retiring_drive_limit = outgoing->retiring_source_level ||
+      outgoing->retiring_master_level
+      ? std::min(outgoing->retiring_drive_limit, drive) : drive;
+  const bool release_source = disable_source && !outgoing->retiring_source_level;
+  const bool release_master = disable_master && !outgoing->retiring_master_level;
+  if (release_source || release_master) {
+    outgoing->level_release_left = feq_normalizer::release_frames(outgoing->sample_rate);
+  }
+  outgoing->release_source_gain |= release_source;
+  outgoing->release_master_gain |= release_master;
+  outgoing->retiring_source_level |= disable_source;
+  outgoing->retiring_master_level |= disable_master;
+}
+
 void feq_chain_set_lfe_channel(FeqChain* chain, int channel) {
   if (chain == nullptr) {
     return;
@@ -589,6 +638,7 @@ void feq_chain_set_track_level_gains(FeqChain* chain,
   // Somebody has measured this track, so the chain must not measure it again:
   // the Library's makeup and a live one would be the same correction twice.
   chain->host_track_gains = 1;
+  if (chain->settings.normalizer.mode == 0) input_gain_db = 0.0;
   if (snap != 0) {
     chain->input_gain_now = std::pow(10.0, input_gain_db / 20.0);
     chain->master_loudness_now_db = master_loudness_gain_db;
@@ -662,12 +712,10 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
   chain_eq_fade_stop(chain);
   feq_denoise_reset(chain->denoise);
   feq_live_normalizer_reset(chain->live_normalizer);
+  chain->previous_input_peak = 0.0;
   chain_mono_maker_reset(chain);
   // A stream starts at the drive asked for; only a change glides.
-  chain->maximizer_drive_now =
-      chain->settings.maximizer.enabled != 0
-          ? std::pow(10.0, chain->settings.maximizer.drive_db / 20.0)
-          : 1.0;
+  chain->maximizer_drive_now = chain_maximizer_drive(chain->settings);
   {
     // The platform is kept: a seek is the same record, and a new song or a
     // new stream is played as it would be straight after the last — which is

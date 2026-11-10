@@ -2,6 +2,8 @@
 
 export default {
   'genre.notes.eyebrow': 'Notas do gênero',
+  'genre.notes.fixedMaximizer':
+    'Aplica ganho fixo ao nível original e limita os picos a −1 dBTP.',
   'genre.notes.about': 'Sobre {name}',
   'genre.notes.aboutShort': 'Sobre',
   'genre.notes.full': 'Notas completas',

@@ -19,7 +19,6 @@ import { TDimensionPresetId } from './dimensionPresets';
 import { TDynamicsPresetId } from './dynamicsPresets';
 import { TExciterPresetId } from './exciterPresets';
 import { TFootstepsPresetId } from './footstepsPresets';
-import { TMasterPresetId } from './masterPresets';
 import { TMaximizerPresetId } from './maximizerPresets';
 import { TRoomPresetId } from './roomPresets';
 
@@ -54,9 +53,6 @@ export interface IDspPresetRecipe {
   maximizer?: TMaximizerPresetId;
   /** The Dynamics stage's profile (`dynamicsPresets.ts`). */
   dynamics?: TDynamicsPresetId;
-  master?: TMasterPresetId;
-  /** Compare the processed chain at its incoming level, without LUFS makeup. */
-  masterGainMatch?: boolean;
   /** Game mode: see `IDspSettings.gameMode`. Only the Gaming chains. */
   gameMode?: boolean;
   /**
@@ -104,18 +100,14 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // standalone Exciter preset remains available when that colour is wanted.
     eq: 'balanced',
     dimension: 'default',
-    // A ceiling and a decibel, like every music chain, and no loudness
-    // target: a target is a level somebody chose (Reference, Podcast,
-    // Audiobook, Speech say so by name), and Default's streaming one turned
-    // every loud record down to it — the one preset quieter than none.
+    // A small fixed drive and a ceiling keep the default gain predictable.
     maximizer: 'default',
   },
   {
     id: 'reference',
     labelKey: 'dsp.masterPreset.reference',
     group: 'basic',
-    master: 'reference',
-    masterGainMatch: true,
+    maximizer: 'safety',
   },
   {
     id: 'music',
@@ -127,7 +119,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // boosts push over. Nothing here invents harmonics — a chain called
     // Music has to be safe on a record of any kind.
     dimension: 'default',
-    maximizer: 'safety',
+    maximizer: 'music',
   },
   {
     // Music on headphones, in the Room's Music Space: the record on a wider
@@ -136,13 +128,13 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // Room has placed the speakers, and smears the places the Room just made.
     // And WITH the ceiling: a full-scale stereo record leaves this room up to
     // 3 dB over full scale (measured, `room_profiles_test.cpp`), and the
-    // Maximizer stands after the Room, so `safety` — which adds no level of
-    // its own — is what brings that back under.
+    // Maximizer stands after the Room and reserves fixed headroom for that
+    // reconstructed signal.
     id: 'music-room',
     labelKey: 'dsp.preset.music',
     group: 'basic',
     voicing: 'music',
-    maximizer: 'safety',
+    maximizer: 'musicRoom',
     room: 'musicSpaceV2',
   },
   {
@@ -153,11 +145,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // Every voice's S's, wherever it sits: speech is all voice. Only the S
     // comes down; a dip of the whole sound pumped (see the profile).
     deEsser: 'podcast',
-    // Speech is listened to in the places music is not — a train, a kitchen,
-    // a car — where what costs a sentence is the level, not the tone. This
-    // puts whatever is playing at the level everything else plays at, which
-    // a limiter cannot do.
-    master: 'podcast',
+    maximizer: 'podcast',
   },
   {
     id: 'warm',
@@ -168,9 +156,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // into audible grit. Keep the chain clean and let its curve own the name.
     eq: 'warm',
     dimension: 'intimate',
-    // Its own profile, the transparent timing with the drive that sets the
-    // chain half a decibel over DSP Off once its curve is limited through
-    // (`maximizerPresets.ts`).
+    // Reserve room for the low-mid voicing on already hot masters.
     maximizer: 'warm',
   },
   {
@@ -229,7 +215,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // With it, 0.4 LU over and the limiter touching half a decibel on
     // average (2026-09-23); the harshness the old chain had came from
     // exciting the side and driving a limiter with it, and neither is here.
-    maximizer: 'safety',
+    maximizer: 'expansive',
   },
   {
     id: 'late-night',
@@ -435,18 +421,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     // the De-esser cuts only what it takes for a voice.
     deEsser: 'podcast',
     eq: 'podcast',
-    /**
-     * A target rather than a limiter, because every show arrives at a
-     * different level and none of them at yours.
-     *
-     * Spoken word is the one programme where the listener cannot ride the
-     * volume: a quiet interview in a car is lost, and the next episode is
-     * four decibels louder for no reason anyone chose. Measured across a
-     * large corpus, podcasts average about -19 LUFS with a spread of ten;
-     * -16 is what the platforms normalise to. This puts the show where every
-     * other show is.
-     */
-    master: 'podcast',
+    maximizer: 'podcast',
   },
   {
     id: 'audiobook',
@@ -455,10 +430,8 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     denoise: 'audiobook',
     deEsser: 'audiobook',
     eq: 'audiobook',
-    // The same, at the quieter target and the -3 dBTP ceiling a submitted
-    // audiobook is held to: hours of listening, so the level that matters is
-    // the one that does not tire.
-    master: 'audiobook',
+    // Keep the narration's contrast and the book profile's -3 dBTP ceiling.
+    maximizer: 'audiobook',
   },
 
   // The Gaming tab's chains (group 'gaming', `presetScope.tsx`), one per

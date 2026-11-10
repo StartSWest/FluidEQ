@@ -2,6 +2,8 @@
 
 export default {
   'genre.notes.eyebrow': 'Genre-Notizen',
+  'genre.notes.fixedMaximizer':
+    'Verwendet eine feste Verstärkung beim Originalpegel und begrenzt Spitzen auf −1 dBTP.',
   'genre.notes.about': 'Über {name}',
   'genre.notes.aboutShort': 'Info',
   'genre.notes.full': 'Alle Notizen',

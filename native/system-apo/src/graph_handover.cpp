@@ -116,6 +116,12 @@ bool Graph::start_crossing(Graph* previous) noexcept {
   if (!shared && source->rack_ != nullptr) {
     feq_chain_set_meters(source->rack_.get(), nullptr);
   }
+  if (!shared) {
+    // A graph already fading can still carry an older rack underneath it.
+    for (Graph* before = source; before != nullptr; before = before->source_) {
+      feq_chain_retire_leveling(before->rack_.get(), rack_.get());
+    }
+  }
   crossing_elapsed_ = 0;
   crossing_prime_ =
       latency_frames_ +

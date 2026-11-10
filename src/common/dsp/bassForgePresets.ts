@@ -177,7 +177,7 @@ export const BASS_FORGE_PRESET_BY_ID = {
     // level, so headroom spent there buys nothing. Every bit of low end this
     // profile can make has to come from presence, so it is the one profile
     // that pushes it hardest.
-    settings: profile(100, 1, 0, 1.85, 1, 0.7),
+    settings: profile(100, 1, 0, 1.6, 1, 0.55),
   },
   lateNight: {
     id: 'lateNight',

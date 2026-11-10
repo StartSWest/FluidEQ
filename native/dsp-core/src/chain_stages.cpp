@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "chain_internal.h"
+#include "normalizer_gain.h"
 
 #include <algorithm>
 #include <cmath>
@@ -83,9 +84,35 @@ void chain_process_input_gain(FeqChain* chain, float* const* channels,
    */
   double input_peaks[2] = {0.0, 0.0};
   peak_pair(channels, chain->channels, frames, input_peaks);
+  const auto& settings = chain->settings;
+  const double previous_peak = chain->previous_input_peak;
+  double input_peak = std::max(input_peaks[0], input_peaks[1]);
+  if (settings.normalizer.mode != 0 || chain_master_maximizes(settings) ||
+      chain->release_source_gain || chain->release_master_gain) {
+    for (uint32_t c = 2; c < chain->channels; ++c) {
+      for (uint32_t i = 0; i < frames; ++i) {
+        input_peak = std::max(input_peak, std::fabs(double(channels[c][i])));
+      }
+    }
+    chain->previous_input_peak = feq_normalizer::recent_peak(
+        previous_peak, input_peak, frames, chain->sample_rate);
+  }
+  if (chain->release_source_gain || chain->release_master_gain) {
+    chain->maximizer_drive_now = feq_normalizer::release_start(
+        chain->maximizer_drive_now, chain_maximizer_target(chain),
+        previous_peak, input_peak);
+  }
+  if (chain->release_master_gain) {
+    const double trim = settings.master.enabled
+        ? std::pow(10.0, settings.master.output_trim_db / 20.0) : 1.0;
+    chain->master_gain_now = feq_normalizer::release_start(
+        chain->master_gain_now, trim, previous_peak, input_peak);
+  }
   if (chain->live_normalizer != nullptr) {
+    auto normalizer = settings.normalizer;
+    if (chain->retiring_source_level) normalizer.mode = 0;
     const auto reading = feq_live_normalizer_process(chain->live_normalizer,
-        channels, frames, &chain->settings.normalizer);
+        channels, frames, &normalizer);
     double output_peaks[2]{};
     peak_pair(channels, chain->channels, frames, output_peaks);
     feq_meters_publish_normalizer(chain->meters, input_peaks, output_peaks,
@@ -94,6 +121,13 @@ void chain_process_input_gain(FeqChain* chain, float* const* channels,
                                   reading.input_lufs, reading.reference_lufs, reading.level_state,
                                   reading.output_lufs);
     return;
+  }
+  const bool normalizing = chain->settings.normalizer.mode != 0 &&
+      !chain->retiring_source_level;
+  if (!normalizing) {
+    chain->input_gain_now = chain->release_source_gain
+        ? feq_normalizer::release_start(chain->input_gain_now, 1.0, previous_peak, input_peak)
+        : std::min(1.0, chain->input_gain_now);
   }
   const bool has_programme =
       input_peaks[0] > 1e-8 || input_peaks[1] > 1e-8;
@@ -106,7 +140,8 @@ void chain_process_input_gain(FeqChain* chain, float* const* channels,
      * point in that invisible transition. Landing on the analysed level now
      * means the next non-zero sample starts from the right value.
      */
-    chain->input_gain_now = std::pow(10.0, chain->input_gain_target_db / 20.0);
+    chain->input_gain_now = normalizing
+        ? std::pow(10.0, chain->input_gain_target_db / 20.0) : 1.0;
     chain->master_loudness_now_db = chain->master_loudness_target_db;
     chain->transition_elapsed = chain->transition_frames;
     // Published on the silent path too, or the bars stop where the music
@@ -127,18 +162,25 @@ void chain_process_input_gain(FeqChain* chain, float* const* channels,
           ? static_cast<double>(chain->transition_elapsed) /
                 static_cast<double>(chain->transition_frames)
           : 1.0;
-  const double next_db =
-      chain->input_gain_start_db +
-      (chain->input_gain_target_db - chain->input_gain_start_db) * progress;
+  const auto release_left = chain->release_source_gain ? chain->level_release_left : 0u;
+  const uint32_t gain_frames = release_left == 0 ? frames : std::min(frames, release_left);
+  const double next_db = normalizing
+      ? chain->input_gain_start_db +
+            (chain->input_gain_target_db - chain->input_gain_start_db) * progress
+      : release_left > gain_frames ? from_db * (1.0 - double(gain_frames) / release_left) : 0.0;
   chain->master_loudness_now_db =
       chain->master_loudness_start_db +
       (chain->master_loudness_target_db - chain->master_loudness_start_db) *
           progress;
+  if (chain->input_gain_now == 1.0 && next_db == 0.0) {
+    chain_publish_normalizer_meter(chain, input_peaks, input_peaks, frames);
+    return;
+  }
   const double step_gain =
-      std::pow(10.0, (next_db - from_db) / static_cast<double>(frames) / 20.0);
+      std::pow(10.0, (next_db - from_db) / static_cast<double>(gain_frames) / 20.0);
   for (uint32_t channel = 0; channel < chain->channels; ++channel) {
     double gain = chain->input_gain_now;
-    for (uint32_t at = 0; at < frames; ++at) {
+    for (uint32_t at = 0; at < gain_frames; ++at) {
       gain *= step_gain;
       channels[channel][at] =
           static_cast<float>(static_cast<double>(channels[channel][at]) * gain);
@@ -392,17 +434,19 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
    * It glides to what is asked (`maximizer_drive_now`), so a new preset's
    * drive, or the stage switched on or off, is never a step in every sample.
    */
-  const double drive_target =
-      on ? std::pow(10.0, chain->settings.maximizer.drive_db / 20.0) : 1.0;
+  const double drive_target = chain_maximizer_target(chain);
+  const bool release = chain->release_source_gain || chain->release_master_gain;
   double drive = chain->maximizer_drive_now;
   if (drive != drive_target || drive != 1.0) {
-    const double glide =
+    const double glide = release ? 0.0 :
         1.0 - std::exp(-1.0 / ((kMaximizerDriveGlideMs / 1000.0) *
                                chain->sample_rate));
+    const double step = release ? (drive_target - drive) / chain->level_release_left : 0.0;
     for (uint32_t at = 0; at < frames; ++at) {
       if (drive != drive_target) {
-        drive += (drive_target - drive) * glide;
-        if (std::fabs(drive - drive_target) < 1e-9) {
+        drive += step + (drive_target - drive) * glide;
+        if ((release && at + 1 >= chain->level_release_left) ||
+            std::fabs(drive - drive_target) < 1e-9) {
           drive = drive_target;
         }
       }
@@ -479,7 +523,8 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
   // Where this output's next chain starts (`feq_chain_attach_leveling_memory`):
   // from blocks with music only, so a silent stream locked on the same output
   // never overwrites what the playing one settled at.
-  if (on && programme && chain->leveling != nullptr) {
+  if (on && programme && chain->leveling != nullptr &&
+      !chain->retiring_source_level && !chain->retiring_master_level) {
     feq_leveling::remember_platform(
         *chain->leveling, chain->maximizer.platform_db,
         chain->settings.maximizer.drive_db - chain->settings.maximizer.ceiling_db);
@@ -535,7 +580,7 @@ constexpr double kLiveMasterGlideSeconds = 2.0;
 void chain_update_live_master(FeqChain* chain, float* const* channels,
                               uint32_t frames) {
   const auto& master = chain->settings.master;
-  const bool wanted = master.enabled != 0 && master.loudness_maximize != 0 &&
+  const bool wanted = chain_applies_master_loudness(chain) &&
                       chain->host_track_gains == 0 &&
                       chain->programme_meter != nullptr;
   if (!wanted) {
@@ -610,25 +655,34 @@ void chain_process_master_output(FeqChain* chain, float* const* channels,
    * leaves is different, which is the entire point: an A/B decided by which
    * side is louder is not an A/B.
    */
+  const auto& master = chain->settings.master;
   const double makeup_db =
-      chain->settings.master.matched_bypass != 0
-          ? 0.0
-          : chain->master_loudness_now_db + chain->live_master_now_db;
-  const double total_db =
-      chain->settings.master.output_trim_db + makeup_db;
-  const double target =
-      chain->settings.master.enabled != 0 ? std::pow(10.0, total_db / 20.0)
-                                          : 1.0;
-  const double from = chain->master_gain_now;
-  const double step = (target - from) / static_cast<double>(frames);
+      chain_applies_master_loudness(chain) && master.matched_bypass == 0
+          ? chain->master_loudness_now_db + chain->live_master_now_db : 0.0;
+  const double target = master.enabled != 0
+      ? std::pow(10.0, (master.output_trim_db + makeup_db) / 20.0) : 1.0;
+  double from = chain->master_gain_now;
+  const double peak = chain->post_normalizer.limiter.block_peak;
+  if (chain->release_master_gain && peak > 0.0) {
+    const double ceiling = chain->settings.maximizer.enabled
+        ? chain->settings.maximizer.ceiling_db : master.ceiling_db;
+    from = std::min(from, std::max(target, std::pow(10.0, ceiling / 20.0) / peak));
+  }
+  const uint32_t ramp_frames = chain->release_master_gain ? chain->level_release_left : frames;
+  const double step = (target - from) / static_cast<double>(ramp_frames);
   if (from != 1.0 || target != 1.0) {
     for (uint32_t channel = 0; channel < chain->channels; ++channel) {
       for (uint32_t at = 0; at < frames; ++at) {
         channels[channel][at] = static_cast<float>(
             static_cast<double>(channels[channel][at]) *
-            (from + step * static_cast<double>(at + 1)));
+            (at + 1 < ramp_frames ? from + step * static_cast<double>(at + 1) : target));
       }
     }
   }
-  chain->master_gain_now = target;
+  chain->master_gain_now = frames < ramp_frames ? from + step * frames : target;
+  chain->level_release_left -= std::min(frames, chain->level_release_left);
+  if (chain->level_release_left == 0) {
+    chain->release_source_gain = false;
+    chain->release_master_gain = false;
+  }
 }

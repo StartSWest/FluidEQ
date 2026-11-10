@@ -41,6 +41,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <cmath>
 #include <iterator>
 #include <vector>
 
@@ -741,7 +742,14 @@ struct FeqChain {
 
   /* ------------------------------------------------------- track level -- */
   double input_gain_now = 1.0;
+  double previous_input_peak = 0.0;
   FeqLiveNormalizer* live_normalizer = nullptr;
+  bool release_source_gain = false;
+  bool release_master_gain = false;
+  uint32_t level_release_left = 0;
+  bool retiring_source_level = false;
+  bool retiring_master_level = false;
+  double retiring_drive_limit = 0.0;
   double input_gain_target_db = 0.0;
   double input_gain_start_db = 0.0;
   double master_loudness_now_db = 0.0;
@@ -800,6 +808,8 @@ struct FeqChain {
 /** The stages that are one call each, from `chain_stages.cpp`. */
 void chain_process_input_gain(FeqChain* chain, float* const* channels,
                               uint32_t frames);
+void chain_release_obsolete_gain(FeqChain* chain, bool source_was_leveling,
+                                 bool master_was_maximizing);
 void chain_process_dimension(FeqChain* chain, float* const* channels,
                              uint32_t frames);
 void chain_process_bass_forge(FeqChain* chain, float* const* channels,
@@ -1008,6 +1018,25 @@ inline bool chain_bass_punch_idle(const FeqChain* chain) {
          chain->settings.bass_punch.enabled == 0;
 }
 
+inline bool chain_master_maximizes(const FeqChainSettings& settings) {
+  return settings.master.enabled != 0 && settings.master.loudness_maximize != 0;
+}
+
+inline double chain_maximizer_drive(const FeqChainSettings& settings) {
+  return settings.maximizer.enabled != 0
+      ? std::pow(10.0, settings.maximizer.drive_db / 20.0) : 1.0;
+}
+
+inline double chain_maximizer_target(const FeqChain* chain) {
+  const double wanted = chain_maximizer_drive(chain->settings);
+  return chain->retiring_source_level || chain->retiring_master_level
+      ? std::min(wanted, chain->retiring_drive_limit) : wanted;
+}
+
+inline bool chain_applies_master_loudness(const FeqChain* chain) {
+  return !chain->retiring_master_level && chain_master_maximizes(chain->settings);
+}
+
 /**
  * The Master's auto headroom runs its look-ahead whether or not it is on, so
  * that switching it on never steps the level; game mode takes it away while
@@ -1020,8 +1049,7 @@ inline bool chain_bass_punch_idle(const FeqChain* chain) {
  */
 inline uint32_t chain_headroom_look_ahead(const FeqChain* chain) {
   const bool idle = chain->settings.low_latency != 0 &&
-                    !(chain->settings.master.enabled != 0 &&
-                      chain->settings.master.loudness_maximize != 0);
+                    !chain_master_maximizes(chain->settings);
   return idle ? 0u : feq_post_filter_normalizer_look_ahead(chain->sample_rate);
 }
 

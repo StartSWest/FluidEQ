@@ -17,21 +17,19 @@ const kpop = () => {
 };
 
 describe('K-pop reference playback', () => {
-  it('brings differently mastered sources to a common input without compressing them', () => {
+  it('feeds the creative stages at the original level of each recording', () => {
     const { settings } = kpop();
     const inputLevels = [-28, -18, -8];
-    const normalized = inputLevels.map((maxShortTermLufs) => {
+    inputLevels.forEach((maxShortTermLufs) => {
       const gain = normalizerGainDb(settings.normalizer, {
         version: 3,
         integratedLufs: maxShortTermLufs - 2,
         maxShortTermLufs,
         truePeakDbtp: maxShortTermLufs + 6,
       });
-      return maxShortTermLufs + gain;
+      expect(gain).toBe(0);
     });
-    normalized.forEach((level) => expect(level).toBeCloseTo(-18, 8));
-    // Positive control: a bypassed input still contains the original spread.
-    expect(Math.max(...inputLevels) - Math.min(...inputLevels)).toBe(20);
+    expect(settings.normalizer.mode).toBe('off');
     expect(settings.maximizer.enabled).toBe(true);
     expect(settings.maximizer.ceilingDb).toBe(-1);
     expect(settings.master.enabled).toBe(false);

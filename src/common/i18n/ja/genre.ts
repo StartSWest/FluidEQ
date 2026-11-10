@@ -2,6 +2,8 @@
 
 export default {
   'genre.notes.eyebrow': 'ジャンル解説',
+  'genre.notes.fixedMaximizer':
+    '元の音量に固定ゲインを適用し、ピークを −1 dBTP に抑えます。',
   'genre.notes.about': '{name}について',
   'genre.notes.aboutShort': '解説',
   'genre.notes.full': '詳しい解説',

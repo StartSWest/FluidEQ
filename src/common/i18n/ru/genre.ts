@@ -2,6 +2,8 @@
 
 export default {
   'genre.notes.eyebrow': 'О жанре',
+  'genre.notes.fixedMaximizer':
+    'Применяет фиксированное усиление к исходному уровню и ограничивает пики до −1 dBTP.',
   'genre.notes.about': 'О жанре «{name}»',
   'genre.notes.aboutShort': 'О жанре',
   'genre.notes.full': 'Подробнее',

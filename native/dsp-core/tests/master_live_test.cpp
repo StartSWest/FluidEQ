@@ -113,6 +113,9 @@ Rack build(const FeqChainSettings& settings) {
   Rack rack(feq_chain_create(kRate, 2, kFrames), &feq_chain_destroy);
   feq_chain_configure(rack.get(), &settings);
   feq_chain_enable_live_normalizer(rack.get());
+  std::vector<float> silence(2 * kFrames);
+  float* planes[] = {silence.data(), silence.data() + kFrames};
+  feq_chain_process(rack.get(), planes, kFrames);
   feq_chain_reset(rack.get(), FEQ_CHAIN_RESET_STREAM_START);
   return rack;
 }
@@ -190,6 +193,43 @@ void the_ceiling_holds() {
   check(peak < 1.0, "a target nobody can reach still cannot clip the output");
 }
 
+void fixed_master_drops_live_makeup_on_the_first_block() {
+  const auto adaptive = master_only(-14.0);
+  auto fixed = adaptive;
+  fixed.master.loudness_maximize = 0;
+  fixed.master.output_trim_db = -1.0;
+  for (const bool in_place : {false, true}) {
+    auto previous = build(adaptive);
+    auto next = build(fixed);
+    auto control = build(fixed);
+    const double boosted = delivered_lufs(previous.get(), 0.2, 18.0);
+    const double static_level = delivered_lufs(control.get(), 0.2, 18.0);
+    check(boosted > static_level + 4.0,
+          "the old live Master learned actual makeup");
+    if (in_place) {
+      feq_chain_configure(previous.get(), &fixed);
+    } else {
+      check(feq_chain_transfer_state(next.get(), previous.get()) != 0,
+            "the fixed Master accepts the live handover");
+    }
+    auto* playing = in_place ? previous.get() : next.get();
+    std::vector<float> left(kFrames), right(kFrames);
+    fill(left, right, 1800, 0.9);
+    auto expected_left = left;
+    auto expected_right = right;
+    float* actual[] = {left.data(), right.data()};
+    float* expected[] = {expected_left.data(), expected_right.data()};
+    feq_chain_process(playing, actual, kFrames);
+    feq_chain_process(control.get(), expected, kFrames);
+    double error = 0.0;
+    for (uint32_t frame = 0; frame < kFrames; ++frame) {
+      error = std::fmax(error, std::fabs(left[frame] - expected_left[frame]));
+      error = std::fmax(error, std::fabs(right[frame] - expected_right[frame]));
+    }
+    check(error < 1e-6, "the first louder block uses only the fixed Master trim");
+  }
+}
+
 }  // namespace
 
 int main() {
@@ -198,6 +238,7 @@ int main() {
   the_dial_moves_the_level();
   a_measured_track_is_left_to_its_host();
   the_ceiling_holds();
+  fixed_master_drops_live_makeup_on_the_first_block();
   std::printf("master live: %d failures\n", failures);
   return failures == 0 ? 0 : 1;
 }
