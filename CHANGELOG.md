@@ -6,14 +6,6 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ---
 
-## Unreleased
-
-- **Factory DSP presets.** Music, voice, Room and Gaming presets start at
-  the source level and use fixed gain with peak protection. Switching away
-  from a rack with adaptive gain no longer carries that boost into newly
-  arriving audio. Select the factory preset again to apply its current
-  settings. Saved Gaming copies can use **Reset to Profile**.
-
 ## 2.4.0
 
 FluidEQ 2.4 is the Studio's biggest release yet. The pictures in a scene
@@ -130,6 +122,14 @@ here.
   Maximizer no longer let a song arrive loud after silence.
 - **Auto normalize keeps its level** when Windows reopens an output, instead
   of starting over.
+- **Factory DSP presets start from the song's own level.** The music, voice,
+  Room and Gaming presets no longer level a song before their stages; each
+  hears it as it arrives, and the Maximizer adds a fixed gain and catches
+  the peaks. Switching away from a rack that adjusts its gain as it plays no
+  longer carries that boost into the sound that follows.
+- **A rack you already have keeps its old settings** until you pick its
+  factory preset again. A game's saved copy in the Gaming Lab goes back to
+  the new tuning with **Reset to** and its profile's name.
 
 ### Gaming Lab
 
