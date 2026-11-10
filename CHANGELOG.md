@@ -32,8 +32,10 @@ its own; everything it held is here.
   for you to finish.
 - **A menu on every animation.** Each card's **⋯** has **Open**,
   **Rename**, **Show in folder** and **Delete**. Rename moves its file, its
-  sheet and its history to the new name; Delete asks the scene's chat to
-  remove the animation and fix every place the scene uses it.
+  sheet and its history to the new name. An animation the scene does not
+  play is marked **Not used in the scene**, and Delete removes it at once,
+  with an Undo under the cards; for one the scene uses, Delete asks the
+  scene's chat to remove it and fix every place the scene uses it.
 - **Undo, Redo and Back to the original.** An opened animation goes back
   through its last 20 versions, or all the way to the one it started as.
 - **Step through it.** An opened animation plays on Ground, Sky or Water,
