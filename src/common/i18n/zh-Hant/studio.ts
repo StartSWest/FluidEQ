@@ -402,6 +402,7 @@ const studio = {
     '它只處理這個動畫：逐格單獨查看，找出跳動、懸空或大小變化的那一格，重新製作，直到動作看起來正確。告訴它要做什麼或修什麼。',
   'studio.animator.placeholder': '告訴動畫師要改什麼…',
   'studio.animator.fromScene': '來自場景聊天：{task}',
+  'studio.animator.resize': '拖曳以調整動畫師大小',
   'studio.work.tune': '調音',
   'studio.ship.more': '更多',
   'studio.signals.title': '預覽音訊',

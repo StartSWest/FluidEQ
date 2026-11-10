@@ -463,6 +463,7 @@ const studio = {
     'Il ne travaille que sur cette animation : il regarde chaque image seule, trouve celle qui saute, flotte ou change de taille, et la refait jusqu’à ce que le mouvement soit juste. Dites-lui quoi faire ou corriger.',
   'studio.animator.placeholder': 'Dites à l’animateur quoi changer…',
   'studio.animator.fromScene': 'Du chat de la scène : {task}',
+  'studio.animator.resize': 'Faites glisser pour redimensionner l’animateur',
   'studio.work.tune': 'Réglages',
   'studio.ship.more': 'Autres',
   'studio.signals.title': 'Audio de l’aperçu',

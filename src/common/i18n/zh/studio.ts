@@ -416,6 +416,7 @@ const studio = {
     '它只处理这个动画：逐帧单独查看，找出跳动、悬空或大小变化的那一帧，重新制作，直到动作看起来正确。告诉它要做什么或修什么。',
   'studio.animator.placeholder': '告诉动画师要改什么…',
   'studio.animator.fromScene': '来自场景聊天：{task}',
+  'studio.animator.resize': '拖动以调整动画师宽度',
   'studio.work.tune': '调整',
   'studio.ship.more': '更多',
   'studio.signals.title': '预览音频',

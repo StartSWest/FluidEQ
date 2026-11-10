@@ -5,6 +5,7 @@ import StudioAskCard from '../StudioAskCard';
 import AnimationFrame from './AnimationFrame';
 import AnimationView from './AnimationView';
 import StudioAnimationModal from './StudioAnimationModal';
+import StudioAnimatorColumn from './StudioAnimatorColumn';
 import useAnimationPlayer, { useLoopFrame } from './useAnimationPlayer';
 import type { IViewedAnimation } from './useStudioAnimations';
 import '../../styles/StudioAnimations.scss';
@@ -135,7 +136,7 @@ function OpenedAnimation({ viewed, onBack, side }: IOpenedProps) {
             {t('studio.animation.backgroundNote')}
           </p>
         </div>
-        {side}
+        {side && <StudioAnimatorColumn>{side}</StudioAnimatorColumn>}
       </div>
       {large && (
         <StudioAnimationModal

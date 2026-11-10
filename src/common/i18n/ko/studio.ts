@@ -442,6 +442,7 @@ const studio = {
     '이 애니메이션만 작업합니다. 각 프레임을 따로 보고, 튀거나 뜨거나 크기가 바뀌는 프레임을 찾아 동작이 자연스러워질 때까지 다시 만듭니다. 무엇을 만들거나 고칠지 알려 주세요.',
   'studio.animator.placeholder': '애니메이터에게 바꿀 점을 알려 주세요…',
   'studio.animator.fromScene': '장면 채팅에서: {task}',
+  'studio.animator.resize': '애니메이터 크기를 조정하려면 드래그하세요.',
   'studio.work.tune': '튜닝',
   'studio.ship.more': '더보기',
   'studio.signals.title': '오디오 미리보기',

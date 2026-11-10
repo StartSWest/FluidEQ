@@ -191,6 +191,15 @@ it under the terms of the GNU General Public License version 3 or later.
   font-variant-numeric: tabular-nums;
 }
 
+// The animator's column beside the animation (`StudioAnimatorColumn.tsx`):
+// its width is the member's drag (`--studio-animator-width`) or, never
+// dragged, its own - and never so wide the view keeps less than its least,
+// so a width saved on a big window still fits a small one. At the least, a
+// 760px panel still has room for both side by side.
+$studio-animator-min: 300px;
+$studio-animator-width: 360px;
+$studio-animation-view-min: 440px;
+
 // The animation and, beside it, the agent working on it; one above the
 // other where there is no room for both.
 .studio-animation-opened__work {
@@ -201,15 +210,56 @@ it under the terms of the GNU General Public License version 3 or later.
 
   @container studio-animation (min-width: 760px) {
     &:has(> :nth-child(2)) {
-      grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+      grid-template-columns: minmax(0, 1fr) auto;
     }
   }
 }
 
-// The animator beside the animation: the scene chat's card, its talk
-// scrolling inside it. Stacked under the animation it has a height of its
-// own; beside it, exactly the view's - `contain: size` keeps a long
-// conversation from making the row (and the view's column) taller.
+// Stacked under the animation it has a height of its own and nothing to
+// drag; beside it, exactly the view's height - `contain: size` keeps a long
+// conversation from making the row (and the view's column) taller - and the
+// divider stands in the gap at its left edge, its middle on the gap's.
+.studio-animation-opened__side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  > .column-resizer {
+    display: none;
+  }
+
+  @container studio-animation (min-width: 760px) {
+    width: clamp(
+      #{$studio-animator-min},
+      var(--studio-animator-width, #{$studio-animator-width}),
+      calc(100cqw - #{$studio-animation-view-min} - #{$spacing-m})
+    );
+    min-height: 420px;
+    align-self: stretch;
+    contain: size;
+
+    > .column-resizer {
+      position: absolute;
+      z-index: 2;
+      top: 0;
+      bottom: 0;
+      left: calc(-1 * (#{$spacing-m} + 12px) / 2);
+      display: flex;
+
+      // Under a tall stage the column is taller than the panel it scrolls
+      // in, and its grip, centred on it, sat out of sight with nothing on
+      // screen to say where to drag: the grip keeps to the part in view.
+      span {
+        position: sticky;
+        top: $spacing-m;
+        bottom: $spacing-m;
+      }
+    }
+  }
+}
+
+// The animator: the scene chat's card, its talk scrolling inside it.
 .studio-chat.studio-animator {
   .studio-work__panel & {
     height: 480px;
@@ -219,9 +269,6 @@ it under the terms of the GNU General Public License version 3 or later.
   @container studio-animation (min-width: 760px) {
     .studio-work__panel & {
       height: auto;
-      min-height: 420px;
-      align-self: stretch;
-      contain: size;
     }
   }
 }

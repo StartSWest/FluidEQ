@@ -456,6 +456,7 @@ const studio = {
     'Ele trabalha só nesta animação: olha cada quadro sozinho, encontra o que pula, flutua ou muda de tamanho e o refaz até o movimento ficar certo. Diga o que fazer ou corrigir.',
   'studio.animator.placeholder': 'Diga ao animador o que mudar…',
   'studio.animator.fromScene': 'Do chat da cena: {task}',
+  'studio.animator.resize': 'Arraste para redimensionar o animador',
   'studio.work.tune': 'Ajustar',
   'studio.ship.more': 'Mais',
   'studio.signals.title': 'Áudio da prévia',

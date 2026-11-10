@@ -470,6 +470,7 @@ const studio = {
     'Er arbeitet nur an dieser Animation: Er sieht sich jedes Bild einzeln an, findet das, das springt, schwebt oder die Größe ändert, und macht es neu, bis die Bewegung stimmt. Sagen Sie ihm, was er machen oder korrigieren soll.',
   'studio.animator.placeholder': 'Sagen Sie dem Animator, was er ändern soll…',
   'studio.animator.fromScene': 'Aus dem Chat der Szene: {task}',
+  'studio.animator.resize': 'Ziehen, um die Breite des Animators zu ändern',
   'studio.work.tune': 'Abstimmen',
   'studio.ship.more': 'Mehr',
   'studio.signals.title': 'Audio für die Vorschau',

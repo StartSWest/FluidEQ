@@ -462,6 +462,7 @@ const studio = {
     'Trabaja solo en esta animación: mira cada fotograma por separado, encuentra el que salta, flota o cambia de tamaño y lo rehace hasta que el movimiento se vea bien. Dile qué hacer o qué arreglar.',
   'studio.animator.placeholder': 'Dile al animador qué cambiar…',
   'studio.animator.fromScene': 'Del chat de la escena: {task}',
+  'studio.animator.resize': 'Arrastra para cambiar el ancho del animador',
   'studio.work.tune': 'Ajustar',
   'studio.ship.more': 'Más',
   'studio.signals.title': 'Audio de la vista previa',

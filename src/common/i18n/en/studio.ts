@@ -467,6 +467,7 @@ const studio = {
     'It works on this animation alone: it looks at every frame on its own, finds the one that jumps, floats or changes size, and makes it again until the movement reads right. Tell it what to make or fix.',
   'studio.animator.placeholder': 'Tell the animator what to change…',
   'studio.animator.fromScene': "From the scene's chat: {task}",
+  'studio.animator.resize': 'Drag to resize the animator',
   'studio.work.tune': 'Tune',
   'studio.ship.more': 'More',
   'studio.signals.title': 'Preview audio',

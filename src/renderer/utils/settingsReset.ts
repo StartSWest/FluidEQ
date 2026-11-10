@@ -113,6 +113,8 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.studio.chatModel',
   'fluideq.studio.chatEffort',
   'fluideq.studio.chatPicks',
+  // The width of an opened animation's animator (`StudioAnimatorColumn`).
+  'fluideq.studio.animatorWidth',
   // Video.
   'fluideq.video.matchColours',
   'fluideq.videoAdBlock',

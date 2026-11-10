@@ -463,6 +463,7 @@ const studio = {
   'studio.animator.placeholder':
     'アニメーターに変えてほしいことを伝えてください…',
   'studio.animator.fromScene': 'シーンのチャットから：{task}',
+  'studio.animator.resize': 'ドラッグしてアニメーターの幅を変更',
   'studio.work.tune': '調整',
   'studio.ship.more': 'その他',
   'studio.signals.title': 'プレビューの音声',
