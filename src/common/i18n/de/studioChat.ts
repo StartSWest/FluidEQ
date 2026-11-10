@@ -43,6 +43,8 @@ const studioChat = {
   'studioChat.step.animationNow': 'Sieht sich die Animation {file} an…',
   'studioChat.step.animator': 'Animator für {file} gestartet',
   'studioChat.step.animatorNow': 'Startet den Animator für {file}…',
+  'studioChat.step.sheet': 'Einzelbilder von {file} erstellt',
+  'studioChat.step.sheetNow': 'Erstellt die Einzelbilder von {file}…',
   'studioChat.step.hear': 'Musik angehört',
   'studioChat.step.hearNow': 'Hört die Musik…',
   'studioChat.step.read': '{file} gelesen',

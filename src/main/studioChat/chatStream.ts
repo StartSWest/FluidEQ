@@ -82,6 +82,10 @@ const PICTURE_TOOL = `mcp__${DOOR_SERVER}__make_picture`;
 const PACK_TOOL = `mcp__${DOOR_SERVER}__pack_artwork`;
 const ANIMATION_TOOL = `mcp__${DOOR_SERVER}__look_at_animation`;
 const ANIMATOR_TOOL = `mcp__${DOOR_SERVER}__start_animator`;
+const SHEET_TOOLS = new Set([
+  `mcp__${DOOR_SERVER}__pose_sheet`,
+  `mcp__${DOOR_SERVER}__build_sheet`,
+]);
 
 const READ_TOOLS = new Set(['Read']);
 const WRITE_TOOLS = new Set(['Write', 'Edit', 'MultiEdit', 'NotebookEdit']);
@@ -125,14 +129,22 @@ export const stepOf = (
   if (name === PACK_TOOL) {
     return { id, kind: 'pack', state: 'running' };
   }
-  if (name === ANIMATION_TOOL || name === ANIMATOR_TOOL) {
+  if (
+    name === ANIMATION_TOOL ||
+    name === ANIMATOR_TOOL ||
+    SHEET_TOOLS.has(name)
+  ) {
     const named =
       isRecord(input) &&
       typeof input.name === 'string' &&
       ANIMATION_NAME.test(input.name)
         ? { file: input.name }
         : {};
-    const kind = name === ANIMATOR_TOOL ? 'animator' : 'animation';
+    const kinds: Record<string, IStudioChatStep['kind']> = {
+      [ANIMATOR_TOOL]: 'animator',
+      [ANIMATION_TOOL]: 'animation',
+    };
+    const kind = SHEET_TOOLS.has(name) ? 'sheet' : kinds[name];
     return { id, kind, ...named, state: 'running' };
   }
   const file = fileOf(input);

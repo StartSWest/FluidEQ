@@ -47,6 +47,8 @@ export interface IStudioChatStep {
     | 'pack'
     | 'animation'
     | 'animator'
+    /** `pose_sheet` or `build_sheet` made an animation's frames. */
+    | 'sheet'
     | 'compact'
     | 'other';
   /** The file it read or wrote, by name only, never a path. */

@@ -61,6 +61,7 @@ const STEP_KINDS = new Set([
   'pack',
   'animation',
   'animator',
+  'sheet',
   'compact',
   'other',
 ]);

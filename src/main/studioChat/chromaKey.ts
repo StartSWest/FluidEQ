@@ -175,6 +175,24 @@ export const keyOut = (
   ];
 };
 
+/** Premultiplied alpha back to straight, in place. */
+export const unpremultiply = (pixels: Uint8Array) => {
+  for (let at = 0; at < pixels.length; at += 4) {
+    const alpha = pixels[at + 3];
+    if (alpha > 0 && alpha < 255) {
+      pixels[at] = Math.min(255, Math.round((pixels[at] * 255) / alpha));
+      pixels[at + 1] = Math.min(
+        255,
+        Math.round((pixels[at + 1] * 255) / alpha),
+      );
+      pixels[at + 2] = Math.min(
+        255,
+        Math.round((pixels[at + 2] * 255) / alpha),
+      );
+    }
+  }
+};
+
 /** Straight alpha to premultiplied, in place. */
 export const premultiply = (pixels: Uint8Array) => {
   for (let at = 0; at < pixels.length; at += 4) {

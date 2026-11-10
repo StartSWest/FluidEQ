@@ -16,9 +16,12 @@ import CRAFT_SECTION from './chatCraft';
  * member's that makes pictures runs a script, and the chat runs none
  * (`chatSandbox.ts`).
  */
+const SHEETS_LINE =
+  "An animation's frames come from pose_sheet, which bends a picture of the project into poses, and build_sheet, which lays frames of the project into one grid.";
+
 const PICTURES_LINE = CHATGPT_PICTURES_OPEN
-  ? 'Pictures come from make_picture and pack_artwork; everything else you draw.'
-  : "pack_artwork lays the pictures the member put in the project's art folder into the scene's artwork; what no picture covers, you draw.";
+  ? `Pictures come from make_picture and pack_artwork; everything else you draw. ${SHEETS_LINE}`
+  : `pack_artwork lays the pictures the member put in the project's art folder into the scene's artwork; what no picture covers, you draw. ${SHEETS_LINE}`;
 
 const CHATGPT_SECTION = CHATGPT_PICTURES_OPEN
   ? `

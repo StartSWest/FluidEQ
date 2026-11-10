@@ -32,6 +32,8 @@ import { codexState, signInToCodex } from './codexPictures';
 import lookAnimationTool from './lookAnimationTool';
 import startAnimatorTool from './startAnimatorTool';
 import { createPictureTools } from './pictureTools';
+import sheetCodec from './sheetCodec';
+import { createSheetTools } from './sheetTools';
 
 /**
  * Everything the chat needs for ChatGPT's pictures, wired to the window:
@@ -255,6 +257,13 @@ export const createChatPictures = ({
           signalOf,
           packInWindow: (what) => packInWindow(projectId, what),
           ...(logger ? { logger } : {}),
+        }),
+        // Every chat makes and mends sheets, the scene's as well as each
+        // animator: from the project's own pictures, in main, nothing started.
+        ...createSheetTools({
+          project: () => boundProject(projectId, folder),
+          signal: () => signalOf(projectId),
+          codec: sheetCodec,
         }),
       ],
       version,

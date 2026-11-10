@@ -298,3 +298,79 @@ describe('what the AI is shown of an animation', () => {
     );
   });
 });
+
+/** A sheet of 20 x 20 cells in one row, each drawing the pixels it lists. */
+const drawnSheet = (frames: Array<Array<[number, number]>>): ISheetPixels => {
+  const width = frames.length * 20;
+  const data = new Uint8Array(width * 20 * 4);
+  frames.forEach((pixels, index) => {
+    pixels.forEach(([x, y]) => {
+      data.set([120, 60, 30, 255], (y * width + index * 20 + x) * 4);
+    });
+  });
+  return { data, width, height: 20 };
+};
+
+/** A two-pixel line from (4, 10), level or at 45 degrees down. */
+const line = (slant: boolean): Array<[number, number]> =>
+  Array.from({ length: 10 }, (_, step): Array<[number, number]> => [
+    [4 + step, slant ? 5 + step : 10],
+    [4 + step, slant ? 6 + step : 11],
+  ]).flat();
+
+describe('the frames of a move, judged as it means to move', () => {
+  it('does not call a drawing that only turns a different size, and still names one that grows', () => {
+    const turning = measureAnimation(
+      drawnSheet([line(false), line(false), line(true), line(false)]),
+      cycle(4),
+    );
+    expect(
+      animationFindings(turning, { ground: 'water' }).filter(
+        ({ kind }) => kind === 'size',
+      ),
+    ).toEqual([]);
+    const growing = measureAnimation(
+      drawnSheet([
+        line(false),
+        line(false),
+        [...line(false), ...line(true)],
+        line(false),
+      ]),
+      cycle(4),
+    );
+    expect(
+      animationFindings(growing, { ground: 'water' }).map(({ frame, kind }) => [
+        frame,
+        kind,
+      ]),
+    ).toContainEqual([3, 'size']);
+  });
+
+  it('judges the feet only of what stands on the ground', () => {
+    const lifted = measureAnimation(
+      sheetOf([steady(0), steady(1), { left: 6, top: 2, size: 10 }, steady(1)]),
+      cycle(4),
+    );
+    const feet = (ground: 'ground' | 'water' | 'sky') =>
+      animationFindings(lifted, { ground }).filter(
+        ({ kind }) => kind === 'feet',
+      );
+    expect(feet('ground')).toHaveLength(1);
+    expect(feet('water')).toEqual([]);
+    expect(feet('sky')).toEqual([]);
+  });
+
+  it("never calls a one-shot's first frame a jump from its last, and still does in a loop", () => {
+    // A dive: the last frame is far from the first, every step between small.
+    const dive = measureAnimation(
+      sheetOf([0, 1, 2, 3, 4, 5, 6].map((shift) => steady(shift))),
+      cycle(7),
+    );
+    const jumps = (loop: boolean) =>
+      animationFindings(dive, { loop })
+        .filter(({ kind }) => kind === 'jump')
+        .map(({ frame }) => frame);
+    expect(jumps(false)).toEqual([]);
+    expect(jumps(true)).toEqual([1]);
+  });
+});

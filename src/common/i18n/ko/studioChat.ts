@@ -47,6 +47,8 @@ const studioChat = {
   'studioChat.step.animationNow': '애니메이션 {file}을(를) 살펴보는 중…',
   'studioChat.step.animator': '{file} 애니메이터를 시작했습니다',
   'studioChat.step.animatorNow': '{file} 애니메이터를 시작하는 중…',
+  'studioChat.step.sheet': '{file}의 프레임을 만들었습니다',
+  'studioChat.step.sheetNow': '{file}의 프레임을 만드는 중…',
   'studioChat.step.hear': '음악을 들었다',
   'studioChat.step.hearNow': '음악을 듣는다…',
   'studioChat.step.read': '{file} 읽기',

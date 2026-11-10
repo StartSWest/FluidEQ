@@ -112,7 +112,10 @@ export const describeAnimation = (
     `Size (width x height of what is drawn): ${list(measure.shapes.map((shape) => (shape.ink > 0 ? `${shape.right - shape.left + 1}x${shape.bottom - shape.top + 1}` : '-')))}`,
     `Change from the frame before: ${list(measure.change.map((change) => `${Math.round(change * 100)}%`))}`,
   ];
-  const findings = animationFindings(measure);
+  const findings = animationFindings(measure, {
+    loop: animation.loop,
+    ground: animation.ground,
+  });
   if (findings.length === 0) {
     lines.push(
       'Nothing breaks the cycle by these measures: the feet stay on one line, every frame is the same size and no frame jumps. Judge the gait itself in the picture.',

@@ -8,6 +8,7 @@ import {
   frameCell,
   type IFrameCell,
   type IStudioAnimation,
+  type TAnimationGround,
 } from './studioAnimation';
 
 /**
@@ -171,10 +172,19 @@ export interface IAnimationFinding {
  * The frames that break the cycle: feet off the line the others stand on,
  * a drawing bigger or smaller than the rest, a change from the frame before
  * far above the usual - which is what a jump, a pop or a skating leg is.
+ *
+ * Judged as the animation means to move. Feet only for what stands on the
+ * ground: a whale diving or a bird climbing leaves any line on purpose.
+ * Size by how much is drawn, not by its box, which a turn alone changes
+ * (a diving whale's box grew 30% with not a pixel more of whale). And a
+ * one-shot never steps from its last frame back to its first, so that step
+ * is no jump.
  */
 export const animationFindings = (
   measure: IAnimationMeasure,
+  how: { loop?: boolean; ground?: TAnimationGround } = {},
 ): IAnimationFinding[] => {
+  const standing = how.ground === undefined || how.ground === 'ground';
   const findings: IAnimationFinding[] = [];
   const drawn = measure.shapes.filter((shape) => shape.ink > 0);
   measure.shapes.forEach((shape, index) => {
@@ -188,33 +198,31 @@ export const animationFindings = (
   const cellHeight = measure.cells[0].height;
   const feetLine = median(drawn.map((shape) => shape.bottom));
   const feetSlack = Math.max(FEET_LEAST_PX, cellHeight * FEET_SHARE);
-  const size = median(
-    drawn.map(
-      (shape) =>
-        (shape.right - shape.left + 1) * (shape.bottom - shape.top + 1),
-    ),
-  );
+  const size = median(drawn.map((shape) => shape.ink));
   measure.shapes.forEach((shape, index) => {
     if (shape.ink === 0) {
       return;
     }
     const off = shape.bottom - feetLine;
-    if (Math.abs(off) > feetSlack) {
+    if (standing && Math.abs(off) > feetSlack) {
       findings.push({ frame: index + 1, kind: 'feet', amount: off });
     }
-    const area =
-      (shape.right - shape.left + 1) * (shape.bottom - shape.top + 1);
-    if (size > 0 && Math.abs(area / size - 1) > SIZE_SHARE) {
+    if (size > 0 && Math.abs(shape.ink / size - 1) > SIZE_SHARE) {
       findings.push({
         frame: index + 1,
         kind: 'size',
-        amount: area / size - 1,
+        amount: shape.ink / size - 1,
       });
     }
   });
   if (measure.change.length > 2) {
-    const usual = median(measure.change);
+    // A one-shot's first frame follows nothing.
+    const steps = how.loop === false ? measure.change.slice(1) : measure.change;
+    const usual = median(steps);
     measure.change.forEach((change, index) => {
+      if (how.loop === false && index === 0) {
+        return;
+      }
       if (usual > 0 && change / usual > JUMP_TIMES) {
         findings.push({
           frame: index + 1,
