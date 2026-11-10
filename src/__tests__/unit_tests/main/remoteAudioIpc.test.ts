@@ -85,7 +85,10 @@ import {
 // eslint-disable-next-line import/first
 import createRemoteAudioLan from '../../../main/remoteAudioLan';
 // eslint-disable-next-line import/first
-import { encodePairingCode } from '../../../main/remoteAudioLanProtocol';
+import {
+  computerIdOf,
+  encodePairingCode,
+} from '../../../main/remoteAudioLanProtocol';
 // eslint-disable-next-line import/first
 import { windowsAudioRestarted } from '../../../main/windowsAudioRestarts';
 
@@ -231,6 +234,39 @@ describe('Share Audio all to all: one code, every link kept', () => {
     await expect(
       handlers.get('remote-audio-lan-reconnect')?.({}, 'c-id'),
     ).rejects.toThrow('Invalid Share Audio reconnect.');
+  });
+
+  it('reconnects a computer that is away with its saved code, as a paste', async () => {
+    const yoga = codeOf('y'.repeat(43), 'SWEST-YOGA');
+    credentials.read.mockReturnValue({ joins: [yoga], revoked: [] });
+    await handlers.get('remote-audio-lan-start')?.({}, true);
+    lan.join.mockReset().mockReturnValue({
+      computerId: computerIdOf('y'.repeat(43)),
+      deviceName: 'SWEST-YOGA',
+    });
+
+    await handlers.get('remote-audio-lan-reconnect')?.(
+      {},
+      { computerId: computerIdOf('y'.repeat(43)) },
+    );
+    // A paste is what a computer that unlinked this one still lets in.
+    expect(lan.join).toHaveBeenCalledWith(yoga, true);
+    expect(lan.reconnect).toHaveBeenCalledWith({
+      computerId: computerIdOf('y'.repeat(43)),
+    });
+    expect(lan.join.mock.invocationCallOrder[0]).toBeLessThan(
+      lan.reconnect.mock.invocationCallOrder[0],
+    );
+
+    // A computer with no saved code, or a link that is up, only reconnects.
+    lan.join.mockClear();
+    await handlers.get('remote-audio-lan-reconnect')?.(
+      {},
+      { computerId: computerIdOf('q'.repeat(43)) },
+    );
+    await handlers.get('remote-audio-lan-reconnect')?.({}, { peerId: 'p-1' });
+    expect(lan.join).not.toHaveBeenCalled();
+    expect(lan.reconnect).toHaveBeenCalledTimes(3);
   });
 
   it('tells a new window about the links already up, but never a past press', async () => {

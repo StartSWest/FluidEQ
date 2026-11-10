@@ -292,10 +292,10 @@ const createRemoteAudioLan = (
    * it to forget this code), and not when this computer's own connection to
    * it is the one the pair keeps (`CLOSE_ALREADY_LINKED`).
    */
-  const admit = (
+  const admit = async (
     computerId: string | undefined,
     fresh: boolean,
-  ): number | undefined => {
+  ): Promise<number | undefined> => {
     if (computerId === undefined) {
       return undefined;
     }
@@ -308,7 +308,7 @@ const createRemoteAudioLan = (
       }
       book.unrevoke(computerId);
     }
-    return joins.inboundArrived(computerId) === 'refuse'
+    return (await joins.inboundArrived(computerId)) === 'refuse'
       ? CLOSE_ALREADY_LINKED
       : undefined;
   };

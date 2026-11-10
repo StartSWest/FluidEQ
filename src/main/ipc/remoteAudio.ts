@@ -515,6 +515,33 @@ export const registerRemoteAudioIpc = ({
         return false;
       }
       const { peerId, computerId } = target as Record<string, unknown>;
+      // A press on a computer that is away is somebody here asking for it
+      // by hand, which is what pasting its code again is: its saved code is
+      // joined as a paste, so a computer that unlinked this one lets it back
+      // in (only a paste may) instead of refusing it for good — SWEST-YOGA
+      // answered every attempt with "forget this code" (4001) on 2026-11-09
+      // and a new invitation was the only way back.
+      let saved: string | undefined;
+      try {
+        saved =
+          typeof computerId === 'string'
+            ? credentials
+                .read()
+                .joins.find((code) => computerOfCode(code) === computerId)
+            : undefined;
+      } catch {
+        // The saved pairings cannot be read now (a locked keychain): the
+        // reconnect goes ahead with the credential the link already holds.
+        saved = undefined;
+      }
+      if (saved) {
+        try {
+          lan.join(saved, true);
+        } catch (error) {
+          // A saved code the link turns down still leaves the reconnect.
+          log.warn('Share Audio could not re-paste a saved code', error);
+        }
+      }
       return lan.reconnect({
         ...(typeof peerId === 'string' ? { peerId } : {}),
         ...(typeof computerId === 'string' ? { computerId } : {}),

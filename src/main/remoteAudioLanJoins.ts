@@ -124,6 +124,32 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
     }
   };
 
+  /**
+   * Whether a link that looks open still reaches the other computer: true on
+   * its pong, false when it closes or cannot be pinged. A computer that went
+   * away without closing — asleep, unplugged, given another address — leaves
+   * its link looking open here until TCP gives up, which on a Mac or Linux
+   * is minutes. A computer that rebooted answers the ping with a reset at
+   * once; one that is still there answers with the pong.
+   */
+  const stillLinked = (socket: WebSocket): Promise<boolean> =>
+    new Promise((resolve) => {
+      const settleWith = (alive: boolean) => {
+        socket.removeListener('pong', onPong);
+        socket.removeListener('close', onClose);
+        resolve(alive);
+      };
+      const onPong = () => settleWith(true);
+      const onClose = () => settleWith(false);
+      socket.once('pong', onPong);
+      socket.once('close', onClose);
+      try {
+        socket.ping();
+      } catch {
+        settleWith(false);
+      }
+    });
+
   // `tryAddress` starts a new round when its connection closes, long after
   // both exist; the real `look` is assigned below it.
   let look: (join: IJoin) => void = () => undefined;
@@ -399,21 +425,40 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
      * smaller id is kept, so both computers pick the same one without
      * asking each other. `refuse` means close it with
      * `CLOSE_ALREADY_LINKED`: this computer's own connection is that one.
+     *
+     * A computer dials only while it holds no link to this one, so its dial
+     * means this computer's own connection may be dead. That connection is
+     * kept only if it still answers a ping; a dead one refused the other
+     * computer for as long as it looked open — after a sleep, a power cut or
+     * an address change on the other side — and the link stayed offline
+     * (Ivan, 2026-11-09: "always getting disconnecting").
      */
-    inboundArrived(computerId: string): 'accept' | 'refuse' {
+    async inboundArrived(computerId: string): Promise<'accept' | 'refuse'> {
       const join = joins.get(computerId);
       if (!join) {
         return 'accept';
       }
-      // Rank a pending outbound connection only once its peer has answered
-      // with an authenticated challenge. A stale IP/port that never answers
-      // must not prevent a reachable peer reconnecting in the other direction.
-      // Ranking two live handshakes prevents each PC cancelling the other.
-      if (
-        (join.state === 'connected' || join.authenticating.size > 0) &&
-        deps.self().computerId < computerId
-      ) {
-        return 'refuse';
+      if (deps.self().computerId < computerId) {
+        const { socket } = join;
+        if (join.state === 'connected' && socket) {
+          if (
+            (await stillLinked(socket)) &&
+            joins.get(computerId) === join &&
+            join.state === 'connected'
+          ) {
+            return 'refuse';
+          }
+          if (joins.get(computerId) !== join) {
+            return 'accept';
+          }
+        } else if (join.authenticating.size > 0) {
+          // Rank a pending outbound connection only once its peer has
+          // answered with an authenticated challenge. A stale IP/port that
+          // never answers must not prevent a reachable peer reconnecting in
+          // the other direction. Ranking two live handshakes prevents each
+          // PC cancelling the other.
+          return 'refuse';
+        }
       }
       sleep(join);
       return 'accept';

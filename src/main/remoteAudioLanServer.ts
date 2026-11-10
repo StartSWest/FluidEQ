@@ -25,7 +25,13 @@ interface IDeps {
   current(): boolean;
   pairingKey: Buffer;
   book: ILanLinkBook;
-  admit(computerId: string | undefined, fresh: boolean): number | undefined;
+  /** A close code to refuse with, or undefined to let it in. It may wait:
+   * whether this computer's own link to that one is still alive is asked of
+   * that link (`inboundArrived`). */
+  admit(
+    computerId: string | undefined,
+    fresh: boolean,
+  ): Promise<number | undefined>;
   arriving(computerId: string, socket: WebSocket): void;
   ready(
     socket: WebSocket,
@@ -141,43 +147,63 @@ const registerLanPeers = (
         }
         candidate.removeListener('message', authenticate);
         const { computerId } = message;
-        const refusal = admit(computerId, !ticket && message.fresh === true);
-        if (refusal !== undefined) {
-          closeWebSocketSafely(candidate, refusal, 'Not linked');
-          return;
-        }
-        if (computerId) {
-          arriving(computerId, candidate);
-        }
-        const sessionKey = deriveSessionKey(authKey, challenge, message.peerId);
-        // Reserve the peer identity before the asynchronous send callback,
-        // or two simultaneous responses using the same peer ID could both
-        // pass the duplicate check and race to replace one transport.
+        // Reserve the peer identity before anything asynchronous — the
+        // admission, which may ask this computer's own link whether it is
+        // still alive, and the send callback — or two simultaneous responses
+        // using the same peer ID could both pass the duplicate check and race
+        // to replace one transport.
         usedPeerIds.add(message.peerId);
         candidate.once('close', () => usedPeerIds.delete(message.peerId));
-        candidate.send(
-          sealAuthAccepted({ challenge, peerId: message.peerId }, authKey),
-          (error) => {
-            if (
-              error ||
-              !isPending ||
-              candidate.readyState !== WEB_SOCKET_OPEN
-            ) {
-              closeWebSocketSafely(candidate, 1008, 'Authentication failed');
-              return;
+        const letIn = () => {
+          if (computerId) {
+            arriving(computerId, candidate);
+          }
+          const sessionKey = deriveSessionKey(
+            authKey,
+            challenge,
+            message.peerId,
+          );
+          candidate.send(
+            sealAuthAccepted({ challenge, peerId: message.peerId }, authKey),
+            (error) => {
+              if (
+                error ||
+                !isPending ||
+                candidate.readyState !== WEB_SOCKET_OPEN
+              ) {
+                closeWebSocketSafely(candidate, 1008, 'Authentication failed');
+                return;
+              }
+              candidate.removeListener('close', releasePending);
+              releasePending();
+              candidate.removeListener('error', onPendingError);
+              ready(
+                candidate,
+                sessionKey,
+                message,
+                remoteAddress,
+                ticket?.introduced === true,
+              );
+            },
+          );
+        };
+        admit(computerId, !ticket && message.fresh === true)
+          .then((refusal) => {
+            // It may have gone, or been let go for room, while its
+            // admission was decided.
+            if (!isPending || candidate.readyState !== WEB_SOCKET_OPEN) {
+              return undefined;
             }
-            candidate.removeListener('close', releasePending);
-            releasePending();
-            candidate.removeListener('error', onPendingError);
-            ready(
-              candidate,
-              sessionKey,
-              message,
-              remoteAddress,
-              ticket?.introduced === true,
-            );
-          },
-        );
+            if (refusal !== undefined) {
+              closeWebSocketSafely(candidate, refusal, 'Not linked');
+              return undefined;
+            }
+            letIn();
+            return undefined;
+          })
+          .catch(() =>
+            closeWebSocketSafely(candidate, 1008, 'Authentication failed'),
+          );
       } catch {
         closeWebSocketSafely(candidate, 1008, 'Authentication failed');
       }

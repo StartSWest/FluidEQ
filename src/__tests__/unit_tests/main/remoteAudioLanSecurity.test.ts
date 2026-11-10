@@ -103,6 +103,14 @@ import {
   sealAuthReady,
 } from '../../../main/remoteAudioLanProtocol';
 
+/** Lets an admission land: it is decided over a few promise turns. */
+const admitted = async () => {
+  for (let turn = 0; turn < 8; turn += 1) {
+    // eslint-disable-next-line no-await-in-loop -- one microtask per turn
+    await Promise.resolve();
+  }
+};
+
 const book = (revoked: string[] = []) => ({
   isRevoked: jest.fn((id: string) => revoked.includes(id)),
   revoke: jest.fn(),
@@ -402,6 +410,7 @@ describe('LAN listener authentication limits', () => {
         key,
       ),
     );
+    await admitted();
 
     // Eight newer connections from the same address: the oldest, this one,
     // makes room while its acknowledgement is still being sent.
@@ -527,6 +536,7 @@ describe('LAN listener authentication limits', () => {
         key,
       ),
     );
+    await admitted();
     return { lan, links, candidate, emitSignal };
   };
 

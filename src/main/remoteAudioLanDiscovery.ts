@@ -1,6 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 import type dgram from 'dgram';
-import { discoveryTargets } from './remoteAudioLanAddresses';
+import { discoveryTargets, lanAddresses } from './remoteAudioLanAddresses';
 import {
   REMOTE_AUDIO_DISCOVERY_PORT,
   encodeDiscoveryAnnouncement,
@@ -43,6 +43,35 @@ export const sendToEach = (
   }
 };
 
+/**
+ * Whether a datagram left this computer's own discovery socket. A broadcast
+ * comes back to the socket that sent it, from one of this computer's
+ * addresses and from the port that socket is bound to; another computer's
+ * socket is bound to the same port number but sends from its own address.
+ * A pair link's secret is shared by both of its computers, so this
+ * computer's own "who is there?" for it passes the secret check, was
+ * answered by this computer, and that answer was taken for the other
+ * computer: every saved computer was dialled at this computer's own address
+ * and refused (1008), about a third of every attempt in Ivan's log
+ * (2026-11-09). Judged by address and port, never by content: two computers'
+ * questions for a shared secret are the same bytes.
+ */
+const sentByThisSocket = (
+  socket: dgram.Socket,
+  sender: { address: string; port: number },
+): boolean => {
+  let own: number;
+  try {
+    own = socket.address().port;
+  } catch {
+    return false;
+  }
+  return (
+    sender.port === own &&
+    (sender.address === '127.0.0.1' || lanAddresses().includes(sender.address))
+  );
+};
+
 export const configureLanDiscovery = (
   socket: dgram.Socket,
   {
@@ -62,6 +91,9 @@ export const configureLanDiscovery = (
   },
 ) => {
   socket.on('message', (data, sender) => {
+    if (sentByThisSocket(socket, sender)) {
+      return;
+    }
     const discoveredSecret = [secret, ...pairSecrets()].find((key) =>
       isDiscoveryQuery(data, key),
     );

@@ -1,5 +1,6 @@
 /** @jest-environment node */
 /* FluidEQ — GPL-3.0-or-later */
+import { EventEmitter } from 'events';
 import log from 'electron-log';
 
 const mockJoinAt = jest.fn();
@@ -30,6 +31,14 @@ const pairing = (secret: string) =>
   decodePairingCode(
     encodePairingCode(['192.168.1.20', '10.0.0.20'], 49_100, secret, 'OTHER'),
   );
+
+/** A link that is alive: it answers a ping with a pong. */
+const aliveSocket = () => {
+  const socket = new EventEmitter();
+  return Object.assign(socket, {
+    ping: () => queueMicrotask(() => socket.emit('pong')),
+  });
+};
 
 /** A connection attempt nobody answers. */
 const never = () =>
@@ -110,7 +119,7 @@ describe('joining every computer whose code was pasted', () => {
       joins.join(pairing(theirSecret), false);
       answer({
         address: '192.168.1.20',
-        socket: { once: jest.fn() },
+        socket: aliveSocket(),
         sessionKey: Buffer.alloc(32),
       });
       return joins;
@@ -124,8 +133,8 @@ describe('joining every computer whose code was pasted', () => {
       // The connection whose JOINING computer has the smaller id is kept:
       // below them, this computer's own is kept and theirs refused; above
       // them, theirs is let in and this one's own goes to sleep.
-      expect(below.inboundArrived(theirId)).toBe('refuse');
-      expect(above.inboundArrived(theirId)).toBe('accept');
+      await expect(below.inboundArrived(theirId)).resolves.toBe('refuse');
+      await expect(above.inboundArrived(theirId)).resolves.toBe('accept');
       expect(above.peerOf(theirId)).toBeUndefined();
     })();
   });
@@ -139,7 +148,7 @@ describe('joining every computer whose code was pasted', () => {
     expect(mockJoinAt).toHaveBeenCalled();
   });
 
-  it('chooses one direction before either simultaneous handshake completes', () => {
+  it('chooses one direction before either simultaneous handshake completes', async () => {
     const target = pairing('b'.repeat(43));
     const below = joinsAs('-'.repeat(32));
     below.joins.join(target, false);
@@ -147,27 +156,29 @@ describe('joining every computer whose code was pasted', () => {
     const ownAttempts = mockJoinAt.mock.results.map(
       (result) => result.value.cancel,
     );
-    expect(below.joins.inboundArrived(computerIdOf(target.secret))).toBe(
-      'refuse',
-    );
+    await expect(
+      below.joins.inboundArrived(computerIdOf(target.secret)),
+    ).resolves.toBe('refuse');
     ownAttempts.forEach((cancel) => expect(cancel).not.toHaveBeenCalled());
     mockJoinAt.mockClear();
     const above = joinsAs('z'.repeat(32));
     above.joins.join(target, false);
     mockJoinAt.mock.calls[0][0].onChallenge();
-    expect(above.joins.inboundArrived(computerIdOf(target.secret))).toBe(
-      'accept',
-    );
+    await expect(
+      above.joins.inboundArrived(computerIdOf(target.secret)),
+    ).resolves.toBe('accept');
     mockJoinAt.mock.results.forEach((result) =>
       expect(result.value.cancel).toHaveBeenCalled(),
     );
   });
 
-  it('accepts a reachable inbound peer while its old address has not answered', () => {
+  it('accepts a reachable inbound peer while its old address has not answered', async () => {
     const target = pairing('b'.repeat(43));
     const { joins } = joinsAs('-'.repeat(32));
     joins.join(target, false);
-    expect(joins.inboundArrived(computerIdOf(target.secret))).toBe('accept');
+    await expect(
+      joins.inboundArrived(computerIdOf(target.secret)),
+    ).resolves.toBe('accept');
     mockJoinAt.mock.results.forEach((result) =>
       expect(result.value.cancel).toHaveBeenCalled(),
     );
