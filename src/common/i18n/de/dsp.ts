@@ -561,7 +561,7 @@ const dsp = {
   'dsp.dimension.decorrelation': 'Streuung',
   'dsp.maximizer.title': 'Maximizer',
   'dsp.maximizer.description':
-    'Hebt den Gesamtpegel an, ohne Spitzen über die Obergrenze zu lassen.',
+    'Hebt oder senkt den Pegel um einen festen Wert und begrenzt Spitzen.',
   'dsp.maximizer.drive': 'Drive',
   'dsp.maximizer.reduction': 'Reduktion',
   'dsp.maximizer.ceiling': 'Obergrenze',
@@ -569,7 +569,7 @@ const dsp = {
   'dsp.maximizer.release': 'Release',
   'dsp.maximizer.group.loudness': 'Lautheit',
   'dsp.maximizer.group.loudnessHint':
-    'Verstärkung gegen eine Obergrenze, die sich nie bewegt. Alles unter den Spitzen kommt hoch.',
+    'Feste Verstärkung vor der Peak-Grenze. Negativer Drive lässt mehr Headroom.',
   'dsp.maximizer.group.timing': 'Timing',
   'dsp.maximizer.group.timingHint':
     'Wie früh der Limiter eine Spitze sieht und wie lange er zum Loslassen braucht.',

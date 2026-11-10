@@ -1,6 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 import { DSP_DEFAULTS } from '../../../common/dsp/chain';
-import { GENRE_RACKS, genreChainId } from '../../../common/dsp/genres';
+import { GENRE_RACKS } from '../../../common/dsp/genres';
 import { genreMeasuredSongs } from '../../../common/dsp/genreEvidence';
 import { GENRE_NOTES } from '../../../common/dsp/genreNotes';
 import { DSP_PRESETS, dspPresetSettings } from '../../../common/dsp/presets';
@@ -30,48 +30,29 @@ describe('Pop source loudness', () => {
     });
   });
 
-  it('feeds the same song at one level regardless of its file volume', () => {
+  it('uses the original file level and still allows deliberate normalization', () => {
     const settings = pop();
-    const levels = [0, -12, -18].map((offsetDb) => {
+    [0, -12, -18].forEach((offsetDb) => {
       const analysis = {
         version: 3 as const,
         integratedLufs: -7.724464443981443 + offsetDb,
         maxShortTermLufs: -6.5 + offsetDb,
         truePeakDbtp: 1.0001233328098738 + offsetDb,
       };
-      const gain = normalizerGainDb(settings.normalizer, analysis);
-      // Gain alone brings the whole song to one level; its crest factor is
-      // unchanged and its peaks leave room for Pop's processing.
-      expect(analysis.truePeakDbtp + gain).toBeLessThan(-3);
-      const withoutNormalization = normalizerGainDb(
-        { ...settings.normalizer, mode: 'off' },
+      expect(normalizerGainDb(settings.normalizer, analysis)).toBe(0);
+      const manualGain = normalizerGainDb(
+        { ...settings.normalizer, mode: 'loudness', truePeakDbtp: -10 },
         analysis,
       );
-      expect(withoutNormalization).toBe(0);
-      return {
-        normalized: analysis.maxShortTermLufs + gain,
-        untouched: analysis.integratedLufs + withoutNormalization,
-      };
+      expect(manualGain).not.toBe(0);
+      expect(analysis.truePeakDbtp + manualGain).toBeLessThan(-10);
     });
-    // These hot masters meet the peak limit first. Every copy still reaches
-    // the SAME working level without changing its musical contrast.
-    levels.forEach((level) =>
-      expect(level.normalized).toBeCloseTo(levels[0].normalized, 8),
-    );
-    expect(levels[0].normalized).toBeLessThanOrEqual(-18);
-    // The former unnormalised inputs differ by eighteen LU.
-    const untouched = levels.map((level) => level.untouched);
-    expect(Math.max(...untouched) - Math.min(...untouched)).toBeCloseTo(18, 8);
   });
 
-  it('raises the common input towards Pop level with one final ceiling', () => {
+  it('uses a fixed final drive and a single peak ceiling', () => {
     const settings = pop();
-    expect(settings.normalizer.mode).toBe('loudness');
-    expect(settings.normalizer.targetLufs).toBe(-18);
-    // Input target plus drive is not output LUFS: the curve, source crest
-    // and peak constraint also matter. Actual reference output is rendered
-    // by the native music gate and recorded in the reference audit.
-    expect(settings.maximizer.driveDb).toBeGreaterThan(0);
+    expect(settings.normalizer.mode).toBe('off');
+    expect(settings.maximizer.driveDb).toBeLessThan(0);
     expect(settings.maximizer.enabled).toBe(true);
     expect(settings.maximizer.ceilingDb).toBe(-1);
     expect(settings.master.enabled).toBe(false);
@@ -94,18 +75,18 @@ describe('Pop source loudness', () => {
     expect(settings.dimension.decorrelation).toBe(0);
   });
 
-  it('uses each genre’s own input level instead of inheriting Pop normalization', () => {
-    const previous = pop();
-    GENRE_RACKS.filter((rack) => rack.id !== 'pop').forEach((rack) => {
-      const next = dspPresetSettings(genreChainId(rack), previous);
-      expect({ id: rack.id, mode: next?.normalizer.mode }).toEqual({
-        id: rack.id,
-        mode: rack.normalizer?.mode ?? 'off',
-      });
-      expect(next?.normalizer).toEqual(
-        rack.normalizer ?? { ...DSP_DEFAULTS.normalizer, mode: 'off' },
-      );
+  it('resets both adaptive level stages on every factory selection', () => {
+    const previous = {
+      ...pop(),
+      normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'loudness' as const },
+      master: { ...DSP_DEFAULTS.master, enabled: true, loudnessMaximize: true },
+    };
+    expect(DSP_PRESETS).toHaveLength(118);
+    DSP_PRESETS.forEach(({ id, settings }) => {
+      const next = dspPresetSettings(id, previous);
+      expect(next?.normalizer).toEqual(DSP_DEFAULTS.normalizer);
+      expect(next?.master.enabled).toBe(false);
+      expect(next?.maximizer).toEqual(settings.maximizer);
     });
-    expect(dspPresetSettings('empty', previous)?.normalizer.mode).toBe('off');
   });
 });

@@ -463,7 +463,7 @@ if (shouldTest || shouldMusicTest) {
     ...(shouldMusicTest && !shouldTest
       ? [
           '-R',
-          '^(music-factory|host-chain-exchange|colour-filter|source-reference|live-normalizer|song-leveling|exciter|exciter-stereo|exciter-oversample|chain-transfer|chain-switch|engine-output-contract|engine-status|engine-dsp-chain|engine-split-graph|footsteps|footsteps-mix|footsteps-overlay|footsteps-stems|game-parts|engine-heroes-cues)$',
+          '^(music-factory|host-chain-exchange|colour-filter|source-reference|live-normalizer|song-leveling|exciter|exciter-stereo|exciter-oversample|chain-transfer|chain-switch|chain-latency|master-live|engine-graph-crossing|engine-output-contract|engine-status|engine-dsp-chain|engine-split-graph|footsteps|footsteps-mix|footsteps-overlay|footsteps-stems|game-parts|engine-heroes-cues)$',
         ]
       : []),
   ];

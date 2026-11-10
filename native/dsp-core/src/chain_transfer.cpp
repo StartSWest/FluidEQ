@@ -156,6 +156,7 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   swap(prepared.loudness_meter, previous.loudness_meter);
 
   swap(prepared.input_gain_now, previous.input_gain_now);
+  swap(prepared.previous_input_peak, previous.previous_input_peak);
   swap(prepared.live_normalizer, previous.live_normalizer);
   // What it learned is the programme's and comes across whole; its standby is
   // this chain's game mode, not the previous one's.
@@ -222,6 +223,12 @@ extern "C" int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous) 
   const double input_target = prepared->input_gain_target_db;
   const double master_target = prepared->master_loudness_target_db;
   transfer_histories(*prepared, *previous);
+  prepared->release_source_gain = previous->release_source_gain;
+  prepared->release_master_gain = previous->release_master_gain;
+  prepared->level_release_left = previous->level_release_left;
+  chain_release_obsolete_gain(prepared,
+      previous->settings.normalizer.mode != 0 || previous->release_source_gain,
+      chain_master_maximizes(previous->settings) || previous->release_master_gain);
   if (prepared->source_library) {
     feq_chain_set_track_level_gains(prepared, input_target, master_target, 0);
   }

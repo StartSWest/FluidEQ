@@ -531,6 +531,10 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings);
 
 int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous);
 
+/** Stop applying outgoing adaptive gain while the graph crosses to a fixed
+ * rack. Keep the outgoing delay and its existing filter histories. */
+void feq_chain_retire_leveling(FeqChain* outgoing, const FeqChain* incoming);
+
 /**
  * Which channel is the subwoofer feed, or -1 for none — the LFE of a 2.1,
  * 5.1 or 7.1 stream, as the host reads it from the stream's channel mask.
@@ -576,6 +580,7 @@ void feq_chain_set_eq_kernel(FeqChain* chain,
 
 /**
  * The whole-track gains, which arrive from analysis rather than from a dial.
+ * The input gain is ignored when the Normalizer is off.
  *
  * `snap` lands on them immediately — a direct load has no audible predecessor.
  * Without it the pair glides over two seconds, which is what a completed deck

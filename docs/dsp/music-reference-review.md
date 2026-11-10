@@ -1,143 +1,122 @@
-# Music playback reference review — 2026-11-05
+# Factory DSP at the original source level
 
-This review covers all 83 music presets, including the approved Pop and
-K-pop references. These are FluidEQ playback choices. There is no official
-international playback EQ curve or universal de-esser setting for a genre.
-The original Pop and K-pop curve gains are retained.
+All 118 factory racks take their input at the recording's original level.
+This includes 83 music genres and 35 standard, voice, repair, Room and Gaming
+racks. Factory selection switches the Normalizer and adaptive Master off.
+Reference, Speech, Podcast and Audiobook use a fixed Maximizer profile.
+The None rack passes the input through. The manual Normalizer and Master
+controls remain available for saved and manually edited racks.
 
-## What changed
+## Gain and peak protection
 
-Library and Live now use the same foreground reference: the maximum complete
-three-second K-weighted window on a fixed 100 ms grid. Integrated loudness
-is measured separately. The working target is −18 LUFS, with a common
-−48/+12 dB gain range and source-peak headroom. The 0.95 dB reserve keeps
-the input protection stage out of its soft knee at the selected peak limit.
-Peak-limited and gain-limited sources are reported as such, rather than
-claimed to have reached an impossible target.
+The source starts playing immediately. Library analysis and the Live
+Normalizer's learned level cannot boost new audio after a switch to a fixed
+rack. This also applies to the outgoing rack while the system graph crosses
+between two different latencies. Existing delay histories and the output
+peak protection stay in the signal path. A continuous signal gets a short
+gain ramp across callbacks, even when a callback is one sample. The
+input peak already in the callback limits the old gain immediately on a
+strong onset.
 
-A Library file is measured before choosing constant source gain. Old cached
-measurements are refreshed lazily without resetting the Library index.
-Unchanged files retain their separately measured noise profiles. Completing
-a scan transfers the playing song's filter histories and glides to its new
-gain, including the old-to-new source-fact protocol transition.
+Drive is a signed fixed gain before the Maximizer. Negative drive reserves
+headroom before limiting. The appropriate amount depends on the peaks
+created by each curve and its active stages. Every genre uses its own drive
+and release. Its established look-ahead bounds the attack and latency.
+Genre peaks are held at or below the nominal −1 dBTP ceiling. Techno and
+Bollywood reserve an extra 0.1 dB for measured reconstructed peaks on a hot
+opening. Audiobook, Late Night and Game Night keep their lower peak ceilings.
 
-Live must learn unknown audio as it arrives. A newly identified recording
-learns independently of its predecessor and can establish its own level
-after 20 foreground seconds. A named song retains quiet movements and pauses;
-an unnamed long stream slowly adapts after eight minutes. A genuine anonymous
-silence boundary clears the previous source's peak interpolation history.
-Ordinary Live deadband and causal learning mean this is a common policy,
-not a claim of sample-identical playback or immediate whole-file knowledge.
+The review uses each genre's existing tonal curve and named references.
+The creative stages receive the unscaled source. The Pop and K-pop
+references retain their approved curves and use restrained spectral
+de-essing. The full rack renders each reference again with every active
+colour stage individually bypassed, including the genre curve. Voice,
+general, Room and Gaming renders report their own stage effects.
 
-Nine high-frequency Exciter bands that generated measurable aliasing at
-Off oversampling were disabled. Organic and Exciter input filters now reject
-distant frequencies more strongly while preserving their intended centre
-gain. Wanted second/third harmonics are tested against an independent
-render from checkpoint 130b69ff7; dry controls prevent a silent or muted
-generator from passing. Oversampling remains a user choice.
+Quiet passages and quieter recordings keep their relative levels. A source
+master with reconstructed peaks above full scale can measure louder than
+the processed result. The audit shows both the untouched source and a
+constant-gain dry reference set to the same true-peak ceiling. That second
+reference separates headroom from the gain reduction and crest changes
+caused by the Maximizer.
 
-Piano, Strings and Ambient preserve their natural low-frequency stereo
-content instead of inheriting an unsupported blanket bass-mono assumption.
-Bossa Nova's 125 Hz boost was reduced by 0.6 dB after both normalized
-references exposed source-dependent bass gain. Other curve changes from
-the earlier review remain in the restoring checkpoint.
+Select the factory preset again to apply the new settings to an older saved
+selection. In Gaming Lab, **Reset to Profile** applies the current factory
+rack to an existing game copy. Saved settings are treated as the user's
+sound until a factory preset is applied.
 
-Vocal presets retain gentle, centre-only spectral de-essing from 5–10 kHz,
-capped at 1.5 dB with cymbal protection. Instrumental presets leave it off
-where appropriate. Every enabled colour stage and the genre curve are
-rendered both on and off for each recording. De-essing must change integrated
-loudness by no more than 0.15 LU.
+## Measurements and validation
 
-Master and Dynamics remain off in every music factory preset. One final
-Maximizer supplies fixed makeup and a −1 dBTP ceiling. The original
-per-genre limiting, crest and phrase-contrast budgets from 130b69ff7 are
-pinned in music-reference-policy.json, rather than relaxed to fit new output.
-Shared native colour-filter improvements also affect manually configured
-and gaming consumers of those processors; game preset values were not retuned.
+- [Music reference audit](music-reference-audit.json) records both named
+  recordings for each genre, exact media and decoded hashes, original
+  and processed levels, limiter loss, crest, phrase contrast and source-time
+  alignment. Reference excerpts identify the recording or performance
+  and measure only the supplied edition and interval.
+- [Other factory racks](factory-rack-audit.json) records actual system-graph
+  renders of the remaining 35 racks. The set includes recorded music,
+  deterministic spoken-word controls and Gaming scenes with dialogue,
+  ambience, steps, explosions and score changes. Room uses the bundled
+  medium head. These voice checks establish behaviour on the control
+  material. They do not establish the sound of a particular podcast or
+  audiobook narrator.
+- Twelve non-genre racks needed a second gain and release pass. On the hot
+  music control, this reduced limiter loss from 2.66 to 1.13 LU for Music
+  Room, 2.41 to 1.22 LU for Car, and 2.07 to 1.21 LU for Laptop. Their
+  delivered level changed by 0.46, 0.06 and 0.38 LU respectively. Music
+  Room's quieter jazz control plays 2 LU lower after this adjustment.
+  The general limiter-loss budget is 1.25 LU. Late Night and Game Night
+  use a 1.6 LU budget with their lower ceiling.
+- The native music fixture measures dry dense and sparse material, an
+  independent low-crest control and a hot unanalysed Live input. It
+  compares a quiet-to-loud transition with the same loud onset after
+  silence, over the first callback, 100 ms and one second. Those onset
+  windows report RMS differences. The original tests for generator
+  aliasing, wanted harmonics and wrong-gain input controls run alongside
+  the new level checks.
+- Programme and true-peak measurements use the BS.1770 method. Foreground
+  is the maximum complete three-second short-term window. Phrase contrast
+  is the 95th-to-10th percentile span of 400 ms RMS windows. The comparator
+  applies only the fixed drive to the pre-limiter waveform so the phrase
+  gate sees the same reference level on both sides. Original per-genre
+  limiting, crest and phrase budgets are pinned in
+  [music-reference-policy.json](music-reference-policy.json).
+  [ITU-R BS.1770-5](https://www.itu.int/rec/R-REC-BS.1770-5-202311-I/en)
+  · [EBU Tech 3341](https://tech.ebu.ch/publications/tech3341)
 
-## Evidence and limits
+Genre renders use the native Library host and feed the exact factory curve
+once. The input-only pass must match the original floating-point waveform
+below −100 dB residual after latency compensation. The raw and aligned
+outputs both pass the peak check. The desktop renderer, headphone
+correction and output devices are absent from these renders. The system
+graph separately exercises unanalysed audio, actual Room processing and
+Game Mode. Matched-level spectrum and dynamics are checked against the
+approved Pop and K-pop control renders. Listening remains a separate
+check of preference.
 
-music-reference-audit.json records both named recordings, public catalogue
-links, available performance/edition metadata, exact media/decoded hashes,
-source and measured normalized-input facts, final measurements, stage-bypass
-effects, all factory settings, the exact tone filter design, native host and
-meter hashes, and the complete processing-source fingerprint.
+At 48 kHz, the candidate and its base report identical delay for all 118
+factory racks in Library and Live, and for 15 complete Gaming and Room
+graphs. Standard Gaming is 48 samples. Game Night retains its 645-sample
+dynamics path.
 
-The reference set combines public Apple excerpts with the previously
-supplied complete Blinding Lights recording. Catalogue links identify
-recordings; they do not establish that a local encoded edition matches
-the store's current master. Classical suggestions name works; retained
-performance and movement metadata identify what was actually measured.
-Excerpt measurements do not establish whole-track loudness or a genre's
-universal sound.
+The tests use transparent limiting and selective de-essing practices as
+engineering references. Genre voicings and release times are FluidEQ
+playback choices measured on those recordings.
+[FabFilter limiter timing](https://www.fabfilter.com/help/pro-l/using/advancedsettings)
+· [FabFilter spectral de-essing](https://www.fabfilter.com/help/pro-ds/using/advancedcontrols)
 
-Renders use an isolated native offline host and floating-point waveforms.
-They consult no headphone curve, user correction, live application setting,
-system volume or output device. The factory genre curve uses its real
-frequency/Q/model design and is applied exactly once in the playback routing.
-Known native latency is queried independently, flushed, and trimmed to
-source time before comparing fixed-grid windows. Untrimmed output true
-peaks are checked too.
+## Reproduce
 
-An input-only readback checks every stereo sample against the independently
-predicted constant gain, with gain error below 0.0001 dB and residual below
-−100 dB. Alignment must be zero after latency trimming. Known wrong-gain
-and single-sample corruptions fail the native positive/negative controls.
-
-Raw integrated and foreground spreads are reported separately. A peak-heavy
-recording may remain quieter to preserve its transients. The consistency
-gate instead also compares each chain's additional gain after subtracting
-the independently measured input level; both I and S residual spreads must
-stay within 1.5 LU. When both sources reach the input target without
-constraint, their output foreground spread must also stay within 1.5 LU.
-This never asserts that all tracks reach the same whole-song LUFS.
-
-Strength is checked separately from safety. The audit reports the strongest
-reference's miss from the nominal integrated aim. A miss over 1.5 LU is
-conditional on both references being input constrained and is labelled
-peak-constrained-references. Every preset must also pass a public
-deterministic low-crest control: 32 harmonics from 125 Hz to 4 kHz with equal
-octave energy and Schroeder phases. Its measured P−maxS is about 4.91 dB,
-so it reaches −18 maxS without input constraint even at a −12 dBTP limit.
-Its integrated and foreground outputs must exceed the genre aim minus
-1.5 LU while respecting the same peak, limiting and contrast budgets.
-Neither a quiet output nor heavy compression can satisfy that gate alone.
-
-Phrase contrast is the 95th-to-10th percentile span of 400 ms RMS blocks,
-not EBU Loudness Range. Crest loss compares the same processed waveform
-before and after the Maximizer. The alias ceiling is an engineering
-regression limit, not a guarantee of inaudibility for every stimulus.
-Measurements do not replace listening. Floating-point DSP changes samples;
-avoiding lossy re-encoding does not make processed playback bit-perfect.
-
-## Reproducing and preventing stale evidence
-
-- pnpm test:music builds native tests and renders every factory music chain
-  on dense/sparse, gain-scaled, low-crest and hot Live stimuli. It sweeps
-  colour generators at 44.1/48 kHz over multiple frequencies/levels and folded
-  harmonics, and executes source, handover, ownership and status contracts.
-  CI runs this gate on every push.
-- review-music-references.ts accepts explicit --engine, --meter, --manifest
-  and --output paths. The private manifest supplies two source files,
-  named references and exact excerpt lengths for each genre. A final run
-  uses neither --calibrate nor --resume-calibration.
-- Calibration produces parameter plans only. It cannot promote reused
-  measurements into final evidence. Final verification always decodes and
-  renders every source afresh, checks immutable inputs before/after, and
-  refuses a complete audit if any required genre fails.
-- Unit contracts match current source/configuration fingerprints and the
-  committed native fixture to the audit. Editing measured JSON alone
-  cannot validate changed DSP. Copyrighted audio, private paths and detailed
-  calibration attempts remain outside git.
-
-## Primary engineering sources
-
-- [ITU-R BS.1770-5](https://www.itu.int/rec/R-REC-BS.1770-5-202311-I/en):
-  programme-loudness and true-peak measurement.
-- [EBU Tech 3341](https://tech.ebu.ch/publications/tech3341):
-  short-term and integrated metering. Using maximum S as the shared input
-  policy is FluidEQ's choice, not a prescribed genre mastering target.
-- [FabFilter Pro-DS advanced controls](https://www.fabfilter.com/help/pro-ds/using/advancedcontrols):
-  frequency-selective and mid-only processing for full mixes.
-- [FabFilter Pro-L workflow](https://www.fabfilter.com/help/pro-l/using/recommendedworkflow):
-  level-matched comparisons and checking the audible cost of limiting.
+- Run `pnpm test:music` for the native music, opening, host, state handover,
+  restoration, timing and Gaming cue contracts.
+- Run `review-music-references.ts` with `--engine`, `--meter`, `--manifest`
+  and `--output`. The private manifest names two exact original recordings
+  per genre and their excerpt positions. `--only` is for a partial run.
+- Run `review-factory-racks.ts` with `--graph`, `--meter`, `--manifest`
+  and `--output`. Supply 48 kHz stereo float WAVs grouped as music, speech,
+  gaming, cinema and repair. The graph renderer can export the two Gaming
+  controls with `--sources`.
+- Both audits record the native binaries, source definitions and exact
+  encoded configuration. Source and binary hashes are checked again at the
+  end of each run. The unit contracts tie the results to the current
+  processing sources and CI fixture. Source recordings, listening WAVs and
+  private paths stay outside Git.

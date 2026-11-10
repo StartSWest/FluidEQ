@@ -21,13 +21,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdio>
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "../src/dsp_chain.h"
 #include "../src/graph_reclaim.h"
+#include "../src/source_analysis.h"
 #include "dsp_chain_fixture.h"
 #include "graph_test_support.h"
 
@@ -40,6 +43,7 @@ using fluideq_engine_test::kMaximizerCeilingDb;
 using fluideq_engine_test::kMaximizerDriveDb;
 using fluideq_engine_test::kMaximizerEnabled;
 using fluideq_engine_test::kMaximizerLookAheadMs;
+using fluideq_engine_test::kNormalizerModeFromEnd;
 using fluideq_engine_test::kPi;
 using fluideq_engine_test::kRackEnabled;
 using fluideq_engine_test::kRate;
@@ -186,6 +190,152 @@ void a_new_look_ahead_crosses_over() {
   }
 }
 
+struct LevelJoin {
+  double quiet_peak = 0.0;
+  double steady_step = 0.0;
+  float tail = 0.0f;
+  uint32_t delay = 0;
+};
+
+std::vector<float> level_switch(bool normalized, bool gap, LevelJoin& join,
+                                 double fixed_drive = 0.0,
+                                 bool continuous = false,
+                                 bool variable = false) {
+  auto from = rack(5.0);
+  from[from.size() - kNormalizerModeFromEnd] = normalized ? 2.0 : 0.0;
+  from[kMaximizerDriveDb] = normalized ? 4.0 : fixed_drive;
+  auto to = rack(1.0);
+  to[to.size() - kNormalizerModeFromEnd] = 0.0;
+  auto gaming = chain_with(to, "");
+  gaming.low_latency = true;
+  const fluideq_engine::SourceAnalysis source{};
+  Graph running(chain_with(from, ""), kRate, 2, kBlock,
+                nullptr, 0, nullptr, false, nullptr, &source);
+  Graph next(gaming, kRate, 2, kBlock,
+             nullptr, 0, nullptr, false, &running, &source);
+  join.delay = running.latency_frames();
+  std::vector<float> left(kBlock), right(kBlock), out;
+  constexpr uint32_t before = 24 * kRate;
+  constexpr std::array<uint32_t, 6> callback_sizes{1, 7, 13, 2, 97, 31};
+  size_t callback = 0;
+  for (uint32_t at = 0; at < before + kRate;) {
+    if (at == before) callback = 0;
+    uint32_t frames = kBlock;
+    if (variable && at >= before - kBlock && at < before + kBlock) {
+      const uint32_t end = at < before ? before : before + kBlock;
+      frames = std::min(callback_sizes[callback++ % callback_sizes.size()], end - at);
+    }
+    if (at == before) {
+      hand_over(next, running);
+      CHECK(next.crossing_from() == &running);
+    }
+    if (continuous) {
+      // 180 Hz is at a nonzero peak on the switch's source-time boundary.
+      // Its ordinary sample slope leaves room to detect an abrupt gain cut.
+      for (uint32_t i = 0; i < frames; ++i) {
+        left[i] = static_cast<float>(0.25 * std::cos(2 * kPi * 180 * (at + i) / kRate));
+        right[i] = 0.75f * left[i];
+      }
+    } else {
+      signal(at, left, right);
+    }
+    const double scale = at >= before && !continuous ? 0.9 :
+        (gap && at >= before - kRate / 10 ? 0.0 : 0.04);
+    for (uint32_t i = 0; i < frames; ++i) {
+      left[i] *= static_cast<float>(scale);
+      right[i] *= static_cast<float>(scale);
+    }
+    float* planes[] = {left.data(), right.data()};
+    (at < before ? running : next).process(planes, frames);
+    if (at >= before) {
+      out.insert(out.end(), left.begin(), left.begin() + frames);
+    } else if (at >= before - kRate / 2) {
+      for (uint32_t i = 0; i < frames; ++i) {
+        const float sample = left[i];
+        join.quiet_peak = std::max(join.quiet_peak, std::abs(double(sample)));
+        join.steady_step = std::max(join.steady_step, std::abs(double(sample) - join.tail));
+        join.tail = sample;
+      }
+    } else {
+      join.tail = left[frames - 1];
+    }
+    at += frames;
+  }
+  return out;
+}
+
+double energy(const std::vector<float>& audio, uint32_t begin, uint32_t end) {
+  double sum = 0.0;
+  for (uint32_t i = begin; i < end; ++i) sum += double(audio[i]) * audio[i];
+  return sum;
+}
+
+void a_crossing_cannot_keep_the_previous_level_boost() {
+  for (const auto [gap, variable] : {std::pair{false, false}, {true, false}, {false, true}}) {
+    LevelJoin boosted{}, dry{};
+    const auto actual = level_switch(true, gap, boosted, 0.0, false, variable);
+    const auto expected = level_switch(false, gap, dry, 0.0, false, variable);
+    CHECK(boosted.quiet_peak > 1.7 * dry.quiet_peak && dry.quiet_peak > 0);
+    const auto delay = boosted.delay;
+    CHECK(delay == dry.delay && delay + kBlock < kRate / 10);
+    // The old delay still contains the tail from before the selection.
+    // Compare new input once it reaches that old path, including its first
+    // quantum, the first 100 ms and the first second of the handover.
+    for (const uint32_t end : {delay + kBlock, kRate / 10, kRate}) {
+      const double excess_db =
+          10 * std::log10(energy(actual, delay, end) / energy(expected, delay, end));
+      std::printf("fixed crossover, gap %d, variable %d, end %u: %+0.3f dB excess\n",
+                  gap, variable, end, excess_db);
+      CHECK(std::abs(excess_db) < 0.15);
+    }
+  }
+}
+
+void a_fixed_gaming_crossing_keeps_the_old_ceiling_until_it_finishes() {
+  LevelJoin before{}, dry{};
+  const auto actual = level_switch(false, false, before, 3.0);
+  const auto expected = level_switch(false, false, dry);
+  const auto delay = before.delay;
+  CHECK(delay == dry.delay && before.quiet_peak > dry.quiet_peak * 1.4);
+  const double first = 10 * std::log10(energy(actual, delay, delay + kBlock) /
+                                      energy(expected, delay, delay + kBlock));
+  const double final = 10 * std::log10(energy(actual, kRate / 10, kRate) /
+                                      energy(expected, kRate / 10, kRate));
+  CHECK(first <= 3.05);
+  CHECK(std::abs(final) < 0.05);
+  FeqTruePeak detector{};
+  feq_true_peak_init(&detector, 4);
+  CHECK(feq_true_peak_block(&detector, actual.data(), kRate) <= 1.0001);
+}
+
+double largest_step(const std::vector<float>& signal, size_t begin, size_t end) {
+  double largest = 0.0;
+  for (size_t i = begin; i < end; ++i) {
+    largest = std::max(largest, std::abs(double(signal[i]) - signal[i - 1]));
+  }
+  return largest;
+}
+
+void retiring_gain_does_not_click_on_a_continuous_source() {
+  for (const bool variable : {false, true}) {
+    LevelJoin boosted{}, dry{};
+    const auto actual = level_switch(true, false, boosted, 0.0, true, variable);
+    level_switch(false, false, dry, 0.0, true, variable);
+    CHECK(boosted.delay == dry.delay && boosted.delay > 240);
+    CHECK(boosted.quiet_peak > 1.7 * dry.quiet_peak && dry.quiet_peak > 0);
+    const double normal_step = std::max(boosted.steady_step, dry.steady_step);
+    // A hard splice at the tone's peak removes the entire measured difference
+    // in amplitude at one sample. The test has to distinguish that control.
+    const double hard_cut = boosted.quiet_peak - dry.quiet_peak;
+    const double seam = std::max(std::abs(double(actual.front()) - boosted.tail),
+                                 largest_step(actual, 1, kRate / 10));
+    std::printf("continuous gain change, variable %d: seam %.7f, normal %.7f, hard cut %.7f\n",
+                variable, seam, normal_step, hard_cut);
+    CHECK(hard_cut > 3 * normal_step);
+    CHECK(seam < 2 * normal_step);
+  }
+}
+
 void the_rack_switched_off_and_on_crosses_over() {
   std::printf("the rack switched off (None) and back on\n");
   std::vector<double> off = rack(5.0);
@@ -300,6 +450,9 @@ void reclaim_keeps_what_is_crossed_from() {
 
 int main() {
   a_new_look_ahead_crosses_over();
+  a_crossing_cannot_keep_the_previous_level_boost();
+  a_fixed_gaming_crossing_keeps_the_old_ceiling_until_it_finishes();
+  retiring_gain_does_not_click_on_a_continuous_source();
   the_rack_switched_off_and_on_crosses_over();
   a_switch_on_a_switch();
   an_eq_delay_change_shares_the_rack();

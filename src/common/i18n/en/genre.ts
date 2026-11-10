@@ -6,6 +6,8 @@
  */
 const genre = {
   'genre.notes.eyebrow': 'Genre notes',
+  'genre.notes.fixedMaximizer':
+    'Applies fixed gain at the source’s original level and catches peaks at −1 dBTP.',
   'genre.notes.about': 'About {name}',
   'genre.notes.aboutShort': 'About',
   'genre.notes.full': 'Full notes',

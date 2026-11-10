@@ -112,7 +112,7 @@ export const BASS_PUNCH_PRESET_BY_ID = {
      * band's crest — how far a hit stands above the bass it sits in — went
      * from 3.2 dB over DSP Off to 4.8.
      */
-    settings: profile(95, 1, -0.6, 0, 80, 0),
+    settings: profile(95, 0.45, -0.35, 0, 80, 0),
   },
   slam: {
     id: 'slam',

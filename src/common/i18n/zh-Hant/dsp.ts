@@ -509,7 +509,7 @@ const dsp = {
   'dsp.dimension.highHz': '高開叉',
   'dsp.dimension.decorrelation': '傳播',
   'dsp.maximizer.title': '響度最大化器',
-  'dsp.maximizer.description': '提高整體水平而不讓高峰超過天花板。',
+  'dsp.maximizer.description': '以固定增益提高或降低音量，並限制峰值。',
   'dsp.maximizer.drive': '驅動量',
   'dsp.maximizer.reduction': '減少',
   'dsp.maximizer.ceiling': '輸出上限',
@@ -517,7 +517,7 @@ const dsp = {
   'dsp.maximizer.release': '釋放時間',
   'dsp.maximizer.group.loudness': '響度',
   'dsp.maximizer.group.loudnessHint':
-    '進入永遠不會移動的天花板。山峰底下的一切都浮現出來。',
+    '在峰值上限前套用固定增益。負驅動量可保留更多餘裕。',
   'dsp.maximizer.group.timing': '時機',
   'dsp.maximizer.group.timingHint':
     '限制器多久會看到峰值，以及需要多長時間才能達到峰值。',

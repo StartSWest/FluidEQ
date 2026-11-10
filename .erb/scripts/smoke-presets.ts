@@ -18,8 +18,12 @@ import { existsSync, mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
 import { DSP_DEFAULTS, IDspSettings } from '../../src/common/dsp/chain';
-import { encodeChainSettings } from '../../src/common/dsp/chainWire';
+import {
+  appendPresetTone,
+  encodeChainSettings,
+} from '../../src/common/dsp/chainWire';
 import { filterPresetCases } from './dsp-preset-cases';
+import { factoryMusicTone } from './music-dsp-evidence';
 import { NATIVE_DSP_PARAMETERS } from '../../src/common/dsp/nativeParameters';
 import { DSP_PRESETS } from '../../src/common/dsp/presets';
 import { findDspHostExecutable } from '../../src/main/dspHost/hostPath';
@@ -33,7 +37,6 @@ import {
   readFloatWav,
   settleFrames,
   songSecondsFor,
-  withCurve,
   writeFloatWav,
 } from './preset-hearing';
 
@@ -218,20 +221,27 @@ const main = async (): Promise<void> => {
     settings: IDspSettings,
     name: string,
     inputGainDb = 0,
+    tone?: Parameters<typeof appendPresetTone>[1],
   ): Promise<IMetrics> => {
     const target = path.join(scratch, `${name}.wav`);
     check(
-      await host.applyChain(encodeChainSettings(settings)),
+      await host.applyChain(
+        appendPresetTone(encodeChainSettings(settings), tone),
+      ),
       `${name}: applies`,
     );
     check(await host.seekDeck(0, 12), `${name}: seeks`);
     check(
+      await host.setVolume(10 ** (inputGainDb / 20)),
+      `${name}: fixture gain applies`,
+    );
+    check(
       await host.setTrackGains(
-        inputGainDb,
+        0,
         normalisesLoudness(settings) ? MASTER_MAKEUP_DB : 0,
         true,
       ),
-      `${name}: gains apply`,
+      `${name}: measured Master makeup applies`,
     );
     // Warm the decoder and every stateful stage by processing actual blocks.
     // This waits on completed engine work rather than guessing with a timer.
@@ -333,25 +343,21 @@ const main = async (): Promise<void> => {
 
     for (let index = 0; index < DSP_PRESETS.length; index += 1) {
       const preset = DSP_PRESETS[index];
+      const tone = preset.curve ? factoryMusicTone(preset) : undefined;
       // eslint-disable-next-line no-await-in-loop -- one native chain owns one deck.
       const result = await render(
         preset.settings,
         `chain-${preset.id}`,
         headroomDb,
+        tone,
       );
       const rendered = readFloatWav(
         path.join(scratch, `chain-${preset.id}.wav`),
       );
-      const levelDb = dbRatio(
-        heardLevel(
-          preset.curve
-            ? withCurve(rendered, preset.id, preset.curve)
-            : rendered,
-        ),
-        dryLoudness,
-      );
+      const loudness = heardLevel(rendered);
+      const levelDb = dbRatio(loudness, dryLoudness);
       line(
-        `       ${preset.id.padEnd(16)} peak ${result.peak.toFixed(4)} · ${levelDb.toFixed(1).padStart(5)} dB vs DSP Off, heard, with its curve · crest ${result.crestDb.toFixed(1)} dB`,
+        `       ${preset.id.padEnd(16)} peak ${result.peak.toFixed(4)} · ${levelDb.toFixed(1).padStart(5)} dB vs DSP Off · crest ${result.crestDb.toFixed(1)} dB`,
       );
       const held = holdsCeiling(preset.settings);
       check(
@@ -359,27 +365,35 @@ const main = async (): Promise<void> => {
         `${preset.id}: ${shapeCheckName(held)}`,
       );
       if (levelChecks) {
-        /**
-         * The floor is the same for every chain; only the ceiling moves.
-         *
-         * A chain whose Master is bringing the programme to a target cannot
-         * also be level-neutral — the harness hands it a makeup (above) and
-         * the old window then demanded the result come back where it started,
-         * which is why Default failed this for as long as the window existed.
-         * Those chains may spend the makeup they were given and no more; the
-         * Master's own limiter absorbs part of it, and how much is a property
-         * of the destination rather than a fault. Vinyl keeps a -3 dBTP
-         * ceiling for the lathe, so it delivers almost none of it and lands
-         * below DSP Off, which is correct and still inside the floor.
-         */
-        const normalising = normalisesLoudness(preset.settings);
-        check(
-          levelDb > -1.5 &&
-            levelDb < (normalising ? MASTER_MAKEUP_DB + 0.5 : 1.6),
-          normalising
-            ? `${preset.id}: spends its makeup and no more`
-            : `${preset.id}: stays within -1.5/+1.6 dB of DSP Off`,
-        );
+        const max = preset.settings.maximizer;
+        if (max.enabled) {
+          const name = `chain-${preset.id}-before-limit`;
+          // eslint-disable-next-line no-await-in-loop -- one native chain owns one deck.
+          const before = await render(
+            { ...preset.settings, maximizer: { ...max, enabled: false } },
+            name,
+            headroomDb,
+            tone,
+          );
+          const unlimited = heardLevel(
+            readFloatWav(path.join(scratch, `${name}.wav`)),
+          );
+          const lossDb = max.driveDb + dbRatio(unlimited, loudness);
+          // Allow for intersample peaks and the sub-block latency difference
+          // between the two renders. The named reference audits enforce
+          // the tighter preset-specific crest and phrase limits.
+          const peakExcess = Math.max(
+            0,
+            dbRatio(before.peak, 1) + max.driveDb - max.ceilingDb,
+          );
+          check(
+            lossDb > -0.2 && lossDb < peakExcess + 0.75,
+            `${preset.id}: limiter loss ${lossDb.toFixed(2)} dB is bounded by peak room`,
+          );
+        } else {
+          // The empty rack's delay shifts the comparison window slightly.
+          check(Math.abs(levelDb) < 0.1, `${preset.id}: unity playback`);
+        }
         if (preset.id === 'reference') {
           check(
             Math.abs(levelDb) < 0.5,

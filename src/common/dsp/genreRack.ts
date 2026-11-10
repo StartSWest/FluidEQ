@@ -46,7 +46,6 @@ import type { IDeEsserPresetSettings } from './deEsserPresets';
 import type { IDimensionPresetSettings } from './dimensionPresets';
 import type { IExciterPresetSettings } from './exciterProfile';
 import type { IMaximizerPresetSettings } from './maximizerPresets';
-import type { IInputNormalizerSettings } from './chain';
 
 /** The stages a genre sets. Its EQ is its curve, played as a layer. */
 export const GENRE_STAGES = [
@@ -79,15 +78,6 @@ export interface IGenreRack extends Partial<
   id: string;
   /** The chain's id, where an older one than the genre's is already stored. */
   chainId?: string;
-  /**
-   * A source level before the creative stages, independent of the final
-   * ceiling. Music genres use constant song gain here so the Maximizer sees
-   * a common working level on quiet files and loud masters, within the
-   * normalizer's gain and peak limits, without compressing each beat.
-   * Targets reserve reference peak headroom; docs/dsp/music-reference-audit.json
-   * records the rendered configuration and excerpt measurements.
-   */
-  normalizer?: IInputNormalizerSettings;
   /**
    * Every genre chain ends in its own ceiling: its curve plays after the
    * rack, and a chain with nothing at its end can be pushed past full scale
