@@ -4,7 +4,7 @@ const tour24 = {
   'tour.animations.title': 'Imagens que se mexem, conferidas quadro a quadro',
   'tour.animations.subtitle': 'Cada animação de uma cena, quadro a quadro',
   'tour.animations.lead':
-    'Anime as imagens da sua cena. A aba Animações toca todas as animações de uma cena e abre qualquer uma para você percorrer.',
+    'Anime as imagens da sua cena, com realismo de foto: o Animador dobra uma em quadros que nadam, batem asas, balançam ou giram, ou monta uma folha que você mesmo fez.',
   'tour.animations.point1':
     'Toque sobre Chão, Céu ou Água, subindo ou descendo, em qualquer velocidade, quadro a quadro, ou em tamanho grande sobre todo o Estúdio.',
   'tour.animations.point2':

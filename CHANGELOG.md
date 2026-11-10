@@ -20,8 +20,11 @@ here.
 
 ### Studio: animations
 
-- **An Animations tab.** Animate the pictures in your scene. The tab plays
-  every animation the scene has and opens any of them.
+- **An Animations tab.** Animate the pictures in your scene, photo-real.
+  The Animator bends a scene's own picture along a spine into 16 to 24
+  frames that swim, flap, sway or turn, or lays out and checks a sheet of
+  frames you made yourself in your own ChatGPT. The tab plays every
+  animation the scene has and opens any of them.
 - **Step through it.** An opened animation plays on Ground, Sky or Water,
   uphill or downhill, at the speed it was made at or 4 to 12 frames a
   second, with the frame before showing under the one you are on and every

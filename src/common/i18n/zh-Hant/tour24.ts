@@ -4,7 +4,7 @@ const tour24 = {
   'tour.animations.title': '會動的圖片，逐格檢查',
   'tour.animations.subtitle': '場景裡的每段動畫，一格一格',
   'tour.animations.lead':
-    '讓場景裡的圖片動起來。動畫分頁會播放場景裡的所有動畫，也能開啟任何一段逐格檢視。',
+    '讓場景裡的圖片以照片般的真實感動起來：動畫師把一張圖片彎折成游動、拍翅、搖擺或轉身的畫格，或排好你自己做的畫格圖。',
   'tour.animations.point1':
     '放在地面、天空或水上，上坡或下坡，任何速度，逐格播放，或在整個工作室上方放大播放。',
   'tour.animations.point2':

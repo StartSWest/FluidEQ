@@ -6,7 +6,7 @@ const tour24 = {
   'tour.animations.subtitle':
     'Ogni animazione di una scena, fotogramma per fotogramma',
   'tour.animations.lead':
-    'Anima le immagini della tua scena. La scheda Animazioni riproduce ogni animazione di una scena e ne apre una qualsiasi per scorrerla.',
+    'Anima le immagini della tua scena, fotorealistiche: l’Animatore ne piega una in fotogrammi che nuotano, sbattono le ali, ondeggiano o girano, o dispone un foglio fatto da te.',
   'tour.animations.point1':
     'Riproducila su Terreno, Cielo o Acqua, in salita o in discesa, a ogni velocità, fotogramma per fotogramma, o in grande su tutto lo Studio.',
   'tour.animations.point2':

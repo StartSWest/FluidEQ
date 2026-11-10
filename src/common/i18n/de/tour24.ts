@@ -4,7 +4,7 @@ const tour24 = {
   'tour.animations.title': 'Bilder, die sich bewegen, Bild für Bild geprüft',
   'tour.animations.subtitle': 'Jede Animation einer Szene, Bild für Bild',
   'tour.animations.lead':
-    'Animieren Sie die Bilder Ihrer Szene. Der Tab Animationen spielt jede Animation einer Szene ab und öffnet jede, um sie Bild für Bild durchzugehen.',
+    'Animieren Sie die Bilder Ihrer Szene, fotorealistisch: Der Animator biegt eines zu Bildern, die schwimmen, flattern, schwingen oder sich drehen, oder legt ein selbst gemachtes Blatt aus.',
   'tour.animations.point1':
     'Spielen Sie sie auf Boden, Himmel oder Wasser ab, bergauf oder bergab, in jedem Tempo, Bild für Bild oder groß über dem ganzen Studio.',
   'tour.animations.point2':

@@ -4,7 +4,7 @@ const tour24 = {
   'tour.animations.title': '会动的图片，逐帧检查',
   'tour.animations.subtitle': '场景里的每段动画，一帧一帧',
   'tour.animations.lead':
-    '让场景里的图片动起来。动画标签页会播放场景里的所有动画，也能打开任意一段逐帧查看。',
+    '让场景里的图片以照片般的真实感动起来：动画师把一张图片弯折成游动、扇翅、摇摆或转身的帧，或排好你自己做的帧图。',
   'tour.animations.point1':
     '放在地面、天空或水上，上坡或下坡，任意速度，逐帧播放，或在整个工作室上方放大播放。',
   'tour.animations.point2':

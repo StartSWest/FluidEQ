@@ -4,7 +4,7 @@ const tour24 = {
   'tour.animations.title': 'Des images qui bougent, vérifiées image par image',
   'tour.animations.subtitle': 'Chaque animation d’une scène, image par image',
   'tour.animations.lead':
-    'Animez les images de votre scène. L’onglet Animations joue toutes les animations d’une scène et ouvre n’importe laquelle pour la parcourir.',
+    'Animez les images de votre scène, en photoréaliste : l’Animateur plie une image en vues qui nagent, battent des ailes, se balancent ou tournent, ou dispose une planche que vous avez faite.',
   'tour.animations.point1':
     'Jouez-la sur Sol, Ciel ou Eau, en montée ou en descente, à toute vitesse, image par image, ou en grand sur tout le Studio.',
   'tour.animations.point2':

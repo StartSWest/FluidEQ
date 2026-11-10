@@ -6,7 +6,7 @@ const tour24 = {
   'tour.animations.subtitle':
     'Cada animación de una escena, fotograma a fotograma',
   'tour.animations.lead':
-    'Anima las imágenes de tu escena. La pestaña Animaciones reproduce todas las animaciones de una escena y abre cualquiera para recorrerla.',
+    'Anima las imágenes de tu escena, con realismo fotográfico: el Animador dobla una en fotogramas que nadan, aletean, se mecen o giran, o coloca una hoja que hiciste tú.',
   'tour.animations.point1':
     'Reprodúcela sobre Suelo, Cielo o Agua, cuesta arriba o abajo, a cualquier velocidad, fotograma a fotograma, o en grande sobre todo el Estudio.',
   'tour.animations.point2':

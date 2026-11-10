@@ -7,7 +7,7 @@ const tour24 = {
   'tour.animations.title': 'Pictures that move, checked frame by frame',
   'tour.animations.subtitle': 'Every animation in a scene, frame by frame',
   'tour.animations.lead':
-    'Animate the pictures in your scene. The Animations tab plays every animation a scene has, and opens any of them to step through.',
+    'Animate the pictures in your scene, photo-real: the Animator bends one into frames that swim, flap, sway or turn, or lays out a sheet you made yourself.',
   'tour.animations.point1':
     'Play one on Ground, Sky or Water, uphill or downhill, at any speed, frame by frame, or bigger over the whole Studio.',
   'tour.animations.point2':
