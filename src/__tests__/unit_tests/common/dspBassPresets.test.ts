@@ -17,7 +17,6 @@ import { DSP_DEFAULTS, clampDspSettings } from '../../../common/dsp/chain';
 import {
   BASS_FORGE_PRESET_BY_ID,
   BASS_FORGE_PRESETS,
-  IBassForgePresetSettings,
   bassForgePresetSettings,
   isBassForgePresetId,
 } from '../../../common/dsp/bassForgePresets';
@@ -131,22 +130,26 @@ describe('bass forge profiles', () => {
   /**
    * The ordering claims the profiles make, over everything the picker lists.
    *
-   * `laptop` says it pushes presence hardest of anything in the catalogue,
-   * which is the reason it exists and one careless edit from becoming false
-   * while its comment still asserts it. And no genre's own profile carries
-   * more real sub than the stage's deepest table profile: the genre research
+   * Laptop uses only the presence return, with a top-tier presence amount
+   * and more wet presence than the general Phantom profile. No genre's own
+   * profile carries more real sub than the stage's deepest table profile: the
+   * genre research
    * advises against synthesising sub under records that already have their
    * own (`genres/*.ts`), so the deepest octave is somebody's deliberate pick,
    * never a genre's default. Dub's profile made that claim once, from the
    * table; it is Dub's rack's now, and no deeper than the table's.
    */
-  it('keeps laptop the deepest phantom and no genre deeper than the table', () => {
+  it('keeps laptop presence-only and no genre deeper than the table', () => {
     const { profiles } = BASS_FORGE_CATALOGUE;
-    const highest = (pick: (of: IBassForgePresetSettings) => number) =>
-      profiles.reduce((best, preset) =>
-        pick(preset.settings) > pick(best.settings) ? preset : best,
-      ).id;
-    expect(highest((of) => of.presenceAmount)).toBe('laptop');
+    const laptop = BASS_FORGE_PRESET_BY_ID.laptop.settings;
+    const phantom = BASS_FORGE_PRESET_BY_ID.phantom.settings;
+    expect(laptop.subAmount).toBe(0);
+    expect(laptop.presenceAmount).toBe(
+      Math.max(...profiles.map(({ settings }) => settings.presenceAmount)),
+    );
+    expect(laptop.presenceAmount * laptop.mix).toBeGreaterThan(
+      phantom.presenceAmount * phantom.mix,
+    );
     const deepestTable = Math.max(
       ...BASS_FORGE_PRESETS.map((preset) => preset.settings.subAmount),
     );
@@ -221,9 +224,15 @@ describe('bass punch profiles', () => {
   });
 
   it('keeps hit-focused profiles dry and limits the Hip Hop and Club tails', () => {
+    // Punch's milder attack leaves more room for the kick at the limiter.
+    expect(BASS_PUNCH_PRESET_BY_ID.punch.settings.attack).toBe(0.45);
+    (['default', 'tight', 'slam'] as const).forEach((id) => {
+      expect(
+        BASS_PUNCH_PRESET_BY_ID[id].settings.attack,
+      ).toBeGreaterThanOrEqual(0.5);
+    });
     (['default', 'tight', 'punch', 'slam'] as const).forEach((id) => {
       const profile = BASS_PUNCH_PRESET_BY_ID[id].settings;
-      expect(profile.attack).toBeGreaterThanOrEqual(0.5);
       expect(profile.sustain).toBeLessThan(0);
       expect(profile.bloomAmount).toBe(0);
     });

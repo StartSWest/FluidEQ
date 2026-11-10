@@ -4,6 +4,8 @@ import type { Dictionary } from '../en';
 
 const genre = {
   'genre.notes.eyebrow': '장르노트',
+  'genre.notes.fixedMaximizer':
+    '원래 소스 레벨에 고정 게인을 적용하고 피크를 −1 dBTP로 제한합니다.',
   'genre.notes.about': '{name} 소개',
   'genre.notes.aboutShort': '소개',
   'genre.notes.full': '전체 메모',

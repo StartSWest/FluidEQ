@@ -400,6 +400,7 @@ export interface IMaximizerSettings {
    * Louder comes out of the gap between the two: raise Drive and the peaks meet
    * the ceiling sooner, so what is under them comes up while the ceiling holds
    * the top still.
+   * Negative drive reserves fixed headroom before limiting.
    */
   driveDb: number;
   /** Reconstructed output ceiling in dBTP. Never reaches digital full scale. */

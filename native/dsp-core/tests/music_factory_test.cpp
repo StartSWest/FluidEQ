@@ -28,7 +28,7 @@ struct Audio { double rate; std::vector<float> left, right; };
 struct Metrics { double lufs, peak, crest, contrast, foreground; };
 struct Factory {
   std::string id;
-  double loss_budget, crest_budget, contrast_budget, output_aim;
+  double loss_budget, crest_budget, contrast_budget;
   FeqChainSettings settings{};
 };
 Audio scene(double rate, double scale, bool sparse) {
@@ -51,6 +51,12 @@ Audio scene(double rate, double scale, bool sparse) {
     out.right[i] = static_cast<float>(scale * right);
   }
   return out;
+}
+
+void apply_gain(Audio& audio, double db) {
+  const double gain = std::pow(10.0, db / 20.0);
+  for (float& sample : audio.left) sample = static_cast<float>(sample * gain);
+  for (float& sample : audio.right) sample = static_cast<float>(sample * gain);
 }
 Metrics measure(const Audio& audio, double warmup_seconds = 1) {
   auto* meter = feq_loudness_create(audio.rate, 2);
@@ -180,23 +186,22 @@ void external_curve(Audio& audio, const FeqChainSettings& settings) {
     feq_biquad_process(&right, audio.right.data(), static_cast<unsigned>(audio.right.size()), &k);
   }
 }
-Audio render(const Audio& source, FeqChainSettings settings) {
+Audio render(const Audio& source, FeqChainSettings settings, bool live = false) {
   Audio out = source;
   auto* chain = feq_chain_create(source.rate, 2, kBlock);
   check(chain != nullptr, "factory chain can be created");
   feq_chain_configure(chain, &settings);
-  const auto facts = measure(source, 0);
   FeqChainSourceAnalysis analysis{};
   analysis.version = 2;
-  analysis.library = 1;
-  analysis.source_id = 1;
-  analysis.has_level = 1;
-  analysis.integrated_lufs = facts.lufs;
-  analysis.true_peak_dbtp = facts.peak;
-  analysis.reference_lufs = facts.foreground;
+  analysis.library = live ? 0 : 1;
+  analysis.source_id = live ? 0 : 1;
   FeqChainSourceStatus ready{};
   check(feq_chain_prepare_source_analysis(chain, &analysis, nullptr, &ready) == 1 &&
-      ready.ready != 0, "real analysed-source path prepares");
+      ready.ready != 0, "the source path prepares without level facts");
+  feq_chain_reset(chain, FEQ_CHAIN_RESET_STREAM_START);
+  const auto latency = feq_chain_latency_frames(chain);
+  out.left.resize(out.left.size() + latency);
+  out.right.resize(out.right.size() + latency);
   for (size_t at = 0; at < out.left.size(); at += kBlock) {
     const unsigned count = static_cast<unsigned>(std::min<size_t>(kBlock, out.left.size() - at));
     float* planes[] = {out.left.data() + at, out.right.data() + at};
@@ -206,17 +211,22 @@ Audio render(const Audio& source, FeqChainSettings settings) {
   feq_chain_destroy(chain);
   // Same routing as playback: inverse inside the rack, exact curve once outside.
   if (settings.enabled != 0) external_curve(out, settings);
+  out.left.erase(out.left.begin(), out.left.begin() + latency);
+  out.right.erase(out.right.begin(), out.right.begin() + latency);
   return out;
 }
 void musical_bounds(const Factory& factory, bool sparse) {
   const auto source = scene(48000, 1, sparse);
   auto without = factory.settings;
   without.maximizer.enabled = 0;
-  const auto before = measure(render(source, without));
+  auto linear = render(source, without);
+  apply_gain(linear, factory.settings.maximizer.drive_db);
+  const auto before = measure(linear);
   const auto after = measure(render(source, factory.settings));
-  const auto copy = measure(render(scene(48000, 2, sparse), factory.settings));
+  const auto quiet = measure(render(scene(48000, 0.0625, sparse), factory.settings));
+  const auto quieter = measure(render(scene(48000, 0.03125, sparse), factory.settings));
   const std::string label = factory.id + (sparse ? " sparse" : " dense");
-  const double loss = before.lufs + factory.settings.maximizer.drive_db - after.lufs;
+  const double loss = before.lufs - after.lufs;
   check(std::isfinite(after.lufs) && after.lufs > -60, label + " retains nonzero wanted programme");
   check(after.peak <= -0.99, label + " stays below the final true-peak ceiling");
   check(loss <= factory.loss_budget + 0.036, label + " respects limiter-loss budget");
@@ -224,40 +234,60 @@ void musical_bounds(const Factory& factory, bool sparse) {
         label + " retains transient contrast");
   check(before.contrast - after.contrast <= factory.contrast_budget + 0.055,
         label + " retains phrase contrast");
-  check(std::abs(after.lufs - copy.lufs) < 0.03,
-        label + " gain-scaled source reaches the same measured output");
+  check(std::abs(quiet.lufs - quieter.lufs - 6.0206) < 0.5,
+        label + " preserves the level difference between clean scaled copies");
   std::printf("{\"genre\":\"%s\",\"scene\":\"%s\",\"outputLufs\":%.6f,"
       "\"truePeakDbtp\":%.6f,\"limiterLossLu\":%.6f,\"crestLossDb\":%.6f,"
       "\"phraseLossDb\":%.6f,\"scaledCopyDeltaLu\":%.6f}\n",
       factory.id.c_str(), sparse ? "sparse" : "dense", after.lufs, after.peak,
       loss, before.crest - after.crest, before.contrast - after.contrast,
-      copy.lufs - after.lufs);
+      quiet.lufs - quieter.lufs);
 }
+
+double opening_rms_db(const Audio& audio, size_t begin, size_t count) {
+  double sum = 0.0;
+  for (size_t i = begin; i < begin + count; ++i)
+    sum += double(audio.left[i]) * audio.left[i] + double(audio.right[i]) * audio.right[i];
+  return 10 * std::log10(std::max(1e-30, sum / (2 * count)));
+}
+
 void live_opening_bounds(const Factory& factory) {
-  auto audio = scene(48000, 8, false);
-  auto* chain = feq_chain_create(audio.rate, 2, kBlock);
-  feq_chain_configure(chain, &factory.settings);
-  FeqChainSourceAnalysis source{};
-  source.version = 2;
-  FeqChainSourceStatus ready{};
-  check(feq_chain_prepare_source_analysis(chain, &source, nullptr, &ready) && ready.ready,
-        factory.id + " prepares a genuinely unanalysed Live source");
-  for (size_t at = 0; at < audio.left.size(); at += kBlock) {
-    float* planes[] = {audio.left.data() + at, audio.right.data() + at};
-    const auto count = static_cast<unsigned>(std::min<size_t>(kBlock, audio.left.size() - at));
-    feq_chain_process(chain, planes, count);
-    feq_chain_wake_workers(chain);
-  }
-  feq_chain_destroy(chain);
-  external_curve(audio, factory.settings);
-  const auto result = measure(audio, 0);
+  const auto hot = scene(48000, 8, false);
+  const auto result = measure(render(hot, factory.settings, true), 0);
   check(std::isfinite(result.lufs) && result.peak <= -0.99,
         factory.id + " protects a hot unknown Live opening, including its first block");
+  const auto library = measure(render(hot, factory.settings), 0);
+  check(std::abs(library.lufs - result.lufs) < 0.1,
+        factory.id + " has the same raw source level in Library and Live");
+
+  constexpr size_t boundary = 48000 * 3;
+  const auto loud = scene(48000, 2, false);
+  Audio gap = loud;
+  Audio quiet = loud;
+  for (size_t i = 0; i < boundary; ++i) {
+    gap.left[i] = gap.right[i] = 0.0f;
+    quiet.left[i] *= 0.04f;
+    quiet.right[i] *= 0.04f;
+  }
+  const auto after_gap = render(gap, factory.settings, true);
+  const auto no_gap = render(quiet, factory.settings, true);
+  const auto peak = std::max(measure(after_gap, 0).peak, measure(no_gap, 0).peak);
+  check(peak <= -0.99, factory.id + " protects both quiet-to-loud transitions");
+  double excess[3]{};
+  const size_t windows[] = {kBlock, 4800, 48000};
+  for (size_t i = 0; i < 3; ++i) {
+    excess[i] = opening_rms_db(no_gap, boundary, windows[i]) -
+        opening_rms_db(after_gap, boundary, windows[i]);
+    check(excess[i] < 0.75, factory.id + " does not inherit boost from quiet audio");
+  }
+  std::printf("{\"genre\":\"%s\",\"scene\":\"opening\",\"truePeakDbtp\":%.6f,"
+      "\"firstBlockExcessDb\":%.6f,\"first100MsExcessDb\":%.6f,\"firstSecondExcessDb\":%.6f}\n",
+      factory.id.c_str(), std::max(peak, result.peak), excess[0], excess[1], excess[2]);
 }
 void strength_control(const Factory& factory) {
   // Public deterministic control: equal octave energy from 125 Hz to 4 kHz,
-  // 32 harmonics, Schroeder phases. Its measured P-maxS is about 4.91 dB,
-  // so -18 maxS fits even H=-12 with the normalizer's 0.95 dB reserve.
+  // 32 harmonics, Schroeder phases. Its low crest leaves room to measure the
+  // fixed gain in the absence of the input Normalizer.
   Audio source{48000, std::vector<float>(48000 * 6), {}};
   float period[384]{};
   for (unsigned i = 0; i < 384; ++i) {
@@ -274,25 +304,26 @@ void strength_control(const Factory& factory) {
   for (size_t i = 0; i < source.left.size(); ++i)
     source.right[i] = source.left[i] = static_cast<float>(source.left[i] * scale);
   const auto input = measure(source, 0);
-  check(std::abs(input.foreground + 18) < 0.0001 &&
-      input.peak < factory.settings.normalizer.ceiling_db - 0.95,
-      factory.id + " strength control reaches the foreground target without peak constraint");
+  check(std::abs(input.foreground + 18) < 0.0001 && input.peak < -12,
+        factory.id + " strength control starts at a known raw level");
   auto without = factory.settings;
   without.maximizer.enabled = 0;
-  const auto before = measure(render(source, without));
+  auto linear = render(source, without);
+  apply_gain(linear, factory.settings.maximizer.drive_db);
+  const auto before = measure(linear);
   const auto after = measure(render(source, factory.settings));
-  const double loss = before.lufs + factory.settings.maximizer.drive_db - after.lufs;
-  check(after.lufs >= factory.output_aim - 1.5 &&
-      after.foreground >= factory.output_aim - 1.5,
-      factory.id + " unconstrained control retains the genre's output strength");
+  const double loss = before.lufs - after.lufs;
+  check(std::abs(after.lufs - input.lufs) <= 4.5 &&
+      std::abs(after.foreground - input.foreground) <= 4.5,
+      factory.id + " unnormalized control retains useful output strength");
   check(after.peak <= -0.99 && loss <= factory.loss_budget + 0.036 &&
       before.crest - after.crest <= factory.crest_budget + 0.055 &&
       before.contrast - after.contrast <= factory.contrast_budget + 0.055,
       factory.id + " strength control stays clean within the original dynamics budgets");
   std::printf("{\"genre\":\"%s\",\"scene\":\"strength\",\"sourceForegroundLufs\":%.9f,"
-      "\"sourceTruePeakDbtp\":%.9f,\"outputLufs\":%.9f,\"outputForegroundLufs\":%.9f,"
+      "\"sourceTruePeakDbtp\":%.9f,\"sourceLufs\":%.9f,\"outputLufs\":%.9f,\"outputForegroundLufs\":%.9f,"
       "\"truePeakDbtp\":%.9f,\"limiterLossLu\":%.9f,\"crestLossDb\":%.9f,\"phraseLossDb\":%.9f}\n",
-      factory.id.c_str(), input.foreground, input.peak, after.lufs, after.foreground,
+      factory.id.c_str(), input.foreground, input.peak, input.lufs, after.lufs, after.foreground,
       after.peak, loss, before.crest - after.crest, before.contrast - after.contrast);
 }
 
@@ -419,7 +450,8 @@ void input_readback_controls() {
 }
 }
 int main(int argc, char** argv) {
-  if (argc == 3 && std::strcmp(argv[1], "--latency") == 0) {
+  const bool live_latency = argc == 3 && std::strcmp(argv[1], "--latency-live") == 0;
+  if (argc == 3 && (live_latency || std::strcmp(argv[1], "--latency") == 0)) {
     std::istringstream tokens(argv[2]);
     std::vector<double> values;
     double value;
@@ -430,7 +462,7 @@ int main(int argc, char** argv) {
     auto* engine = feq_engine_create(48000, 2, kBlock);
     if (!chain || !engine) return 2;
     feq_chain_configure(chain, &settings);
-    feq_chain_set_track_level_gains(chain, 0, 0, 1);
+    if (live_latency && !feq_chain_enable_live_normalizer(chain)) return 2;
     float left[kBlock]{}, right[kBlock]{};
     float* planes[] = {left, right};
     feq_chain_process(chain, planes, kBlock);
@@ -462,14 +494,41 @@ int main(int argc, char** argv) {
         readback.gain_db, readback.error_db, readback.alignment);
     return 0;
   }
-  if (argc == 3 && std::strcmp(argv[1], "--measure") == 0) {
+  if ((argc == 3 || argc == 4) && std::strcmp(argv[1], "--measure") == 0) {
     Audio audio{};
     if (!read_float_wave(argv[2], audio)) return 2;
+    if (argc == 4) {
+      std::istringstream trim(argv[3]);
+      double gain_db = 0.0;
+      if (!(trim >> gain_db) || !std::isfinite(gain_db)) return 2;
+      apply_gain(audio, gain_db);
+    }
     const auto result = measure(audio, 0);
     std::printf("{\"integratedLufs\":%.9f,\"truePeakDbtp\":%.9f,"
         "\"crestDb\":%.9f,\"blockRmsRangeDb\":%.9f,\"maxShortTermLufs\":%.9f}\n", result.lufs,
         result.peak, result.crest, result.contrast, result.foreground);
     return 0;
+  }
+  if (argc == 5 && std::strcmp(argv[1], "--limit") == 0) {
+    // Planning only: the supplied WAV is the actual before-Maximizer
+    // waveform, with the external curve already applied. The final audit
+    // re-renders the complete chain and every active colour stage afresh.
+    Audio input{};
+    if (!read_float_wave(argv[2], input)) return 2;
+    FeqChainSettings settings{};
+    feq_chain_settings_defaults(&settings);
+    settings.enabled = 1;
+    settings.low_latency = 1;
+    settings.maximizer.enabled = 1;
+    std::istringstream dials(argv[3]);
+    std::istringstream ceiling(argv[4]);
+    if (!(dials >> settings.maximizer.drive_db >> settings.maximizer.look_ahead_ms
+          >> settings.maximizer.release_ms) || !(ceiling >> settings.maximizer.ceiling_db)) return 2;
+    const auto result = measure(render(input, settings), 0);
+    std::printf("{\"integratedLufs\":%.9f,\"truePeakDbtp\":%.9f,"
+        "\"crestDb\":%.9f,\"blockRmsRangeDb\":%.9f,\"maxShortTermLufs\":%.9f}\n",
+        result.lufs, result.peak, result.crest, result.contrast, result.foreground);
+    return failures == 0 ? 0 : 1;
   }
   const bool programme_only = argc == 4 && std::strcmp(argv[1], "--programme") == 0;
   const bool generators_only = argc == 3 && std::strcmp(argv[1], "--generators") == 0;
@@ -483,7 +542,7 @@ int main(int argc, char** argv) {
     std::istringstream tokens(line);
     Factory factory;
     if (!(tokens >> factory.id >> factory.loss_budget >> factory.crest_budget >>
-          factory.contrast_budget >> factory.output_aim)) return 2;
+          factory.contrast_budget)) return 2;
     if (programme_only && factory.id != argv[2]) continue;
     std::vector<double> values;
     double value;
@@ -494,7 +553,7 @@ int main(int argc, char** argv) {
       musical_bounds(factory, false);
       musical_bounds(factory, true);
       strength_control(factory);
-      if (!programme_only) live_opening_bounds(factory);
+      live_opening_bounds(factory);
     }
     if (!programme_only) generator_bounds(factory);
     if (factory.id == "country") control = factory;

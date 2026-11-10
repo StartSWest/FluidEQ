@@ -556,7 +556,7 @@ const dsp = {
   'dsp.dimension.decorrelation': 'Difusão',
   'dsp.maximizer.title': 'Maximizador',
   'dsp.maximizer.description':
-    'Eleva o nível geral sem deixar os picos passarem do teto.',
+    'Aumenta ou reduz o nível com ganho fixo e limita os picos.',
   'dsp.maximizer.drive': 'Ganho',
   'dsp.maximizer.reduction': 'Redução',
   'dsp.maximizer.ceiling': 'Teto',
@@ -564,7 +564,7 @@ const dsp = {
   'dsp.maximizer.release': 'Liberação',
   'dsp.maximizer.group.loudness': 'Volume',
   'dsp.maximizer.group.loudnessHint':
-    'Ganho contra um teto que nunca se move. Tudo o que está abaixo dos picos sobe.',
+    'Ganho fixo antes do teto de picos. Um ganho negativo deixa mais margem.',
   'dsp.maximizer.group.timing': 'Tempos',
   'dsp.maximizer.group.timingHint':
     'Com quanta antecedência o limitador vê um pico e quanto tempo leva para soltar.',

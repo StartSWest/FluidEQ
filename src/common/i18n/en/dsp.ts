@@ -564,7 +564,7 @@ const dsp = {
   'dsp.dimension.decorrelation': 'Spread',
   'dsp.maximizer.title': 'Maximizer',
   'dsp.maximizer.description':
-    'Raises the overall level without letting peaks pass the ceiling.',
+    'Adjusts the level up or down with fixed gain and limits peaks.',
   'dsp.maximizer.drive': 'Drive',
   'dsp.maximizer.reduction': 'Reduction',
   'dsp.maximizer.ceiling': 'Ceiling',
@@ -572,7 +572,7 @@ const dsp = {
   'dsp.maximizer.release': 'Release',
   'dsp.maximizer.group.loudness': 'Loudness',
   'dsp.maximizer.group.loudnessHint':
-    'Gain into a ceiling that never moves. Everything under the peaks comes up.',
+    'Fixed gain before the peak ceiling. Negative drive leaves more headroom.',
   'dsp.maximizer.group.timing': 'Timing',
   'dsp.maximizer.group.timingHint':
     'How early the limiter sees a peak, and how long it takes to let go.',

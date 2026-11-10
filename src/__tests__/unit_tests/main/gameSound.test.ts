@@ -187,6 +187,8 @@ describe('a game’s copy as its Gaming profile makes it', () => {
     expect(copy?.voicing).toEqual(gameCurveVoicing(gameCurveVoicingId('hots')));
     expect(copy?.dsp).toMatchObject({
       gameMode: true,
+      normalizer: { mode: 'off' },
+      master: { enabled: false },
       footsteps: { enabled: true, lift: 0.23, useRoom: false, duck: false },
       room: { enabled: true, presetId: 'wideStageV2', preservePosition: true },
       dynamics: { enabled: false },
@@ -430,6 +432,41 @@ describe('the game sound messages', () => {
     );
     await send(ChannelEnum.GAME_SOUND_LOAD, ['cs2', readySeed]);
     expect(state.dsp?.gameMode).toBe(true);
+  });
+
+  it('keeps an older saved game edit until Reset to Profile applies the current factory gains', async () => {
+    const seed = gameSeedFor('ready:hots', DSP_DEFAULTS);
+    if (!seed) {
+      throw new Error('Missing Heroes factory seed');
+    }
+    const id = 'hots';
+    const dir = dirOf(OUTPUT);
+    const name = gameCopyName(id);
+    await send(ChannelEnum.GAME_SOUND_LOAD, [id, seed]);
+    await send(ChannelEnum.GAME_SOUND_UNLOAD);
+    const kept = fetchPreset(name, dir);
+    const oldDsp = {
+      ...DSP_DEFAULTS,
+      ...kept.dsp,
+      gameMode: true,
+      normalizer: {
+        mode: 'loudness' as const,
+        targetLufs: -18,
+        truePeakDbtp: -3,
+      },
+    };
+    await savePreset(name, { ...kept, dsp: oldDsp }, dir);
+    await send(ChannelEnum.GAME_SOUND_LOAD, [id, seed]);
+    expect(state.dsp?.normalizer).toEqual(oldDsp.normalizer);
+
+    await send(ChannelEnum.GAME_SOUND_RESET, [id, seed]);
+    expect(state.dsp).toMatchObject({
+      gameMode: true,
+      normalizer: { mode: 'off' },
+      master: { enabled: false },
+      footsteps: { lift: 0.35, duck: false },
+    });
+    expect(fetchPreset(name, dir).dsp?.normalizer.mode).toBe('off');
   });
 
   it('answers a saved game during startup, then compares its unchanged files once an output is selected', async () => {

@@ -4,6 +4,8 @@ import type { Dictionary } from '../en';
 
 const genre = {
   'genre.notes.eyebrow': '文類註釋',
+  'genre.notes.fixedMaximizer':
+    '在原始電平上套用固定增益，並將峰值限制在 −1 dBTP。',
   'genre.notes.about': '關於 {name}',
   'genre.notes.aboutShort': '關於',
   'genre.notes.full': '完整筆記',

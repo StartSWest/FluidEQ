@@ -525,7 +525,7 @@ const dsp = {
   'dsp.dimension.decorrelation': '스프레드',
   'dsp.maximizer.title': '맥시마이저',
   'dsp.maximizer.description':
-    '피크가 천장을 통과하지 않고 전체 레벨을 높입니다.',
+    '고정 게인으로 음량을 높이거나 낮추고 피크를 제한합니다.',
   'dsp.maximizer.drive': '드라이브',
   'dsp.maximizer.reduction': '감소',
   'dsp.maximizer.ceiling': '출력 상한',
@@ -533,7 +533,7 @@ const dsp = {
   'dsp.maximizer.release': '릴리스',
   'dsp.maximizer.group.loudness': '음량',
   'dsp.maximizer.group.loudnessHint':
-    '절대 움직이지 않는 천장에 들어가 보세요. 봉우리 아래의 모든 것이 나타납니다.',
+    '피크 한도에 도달하기 전의 고정 게인입니다. 드라이브가 음수이면 여유가 늘어납니다.',
   'dsp.maximizer.group.timing': '타이밍',
   'dsp.maximizer.group.timingHint':
     '리미터가 최고점을 얼마나 일찍 확인하고, 놓아두는 데 걸리는 시간입니다.',

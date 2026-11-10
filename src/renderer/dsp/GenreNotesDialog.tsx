@@ -135,7 +135,11 @@ const GenreNotesDialog = ({ chainId, onClose }: IGenreNotesDialogProps) => {
                   <span className="genre-rack__state is-on">
                     {t('genre.notes.on')}
                   </span>
-                  <span>{key(`stage.${stage}`)}</span>
+                  <span>
+                    {stage === 'maximizer'
+                      ? t('genre.notes.fixedMaximizer')
+                      : key(`stage.${stage}`)}
+                  </span>
                 </li>
               ))}
               <li>

@@ -139,7 +139,7 @@ export const RANGES = {
   dimensionLowHz: { min: 60, max: 600 },
   dimensionHighHz: { min: 1_000, max: 10_000 },
   dimensionDecorrelation: { min: 0, max: 1 },
-  maximizerDriveDb: { min: 0, max: 12 },
+  maximizerDriveDb: { min: -6, max: 12 },
   ceilingDb: { min: -12, max: MAXIMIZER_MAX_CEILING_DB },
   lookAheadMs: {
     min: MAXIMIZER_MIN_LOOK_AHEAD_MS,

@@ -229,14 +229,11 @@ describe('a genre’s notes', () => {
     expect(curveGainDb(scooped, 315)).toBeLessThan(-2.1);
   });
 
-  it('describes normalized genre loudness without ranking raw Maximizer drive', () => {
-    // Input targets now reserve different amounts of reference peak headroom.
-    // Raw drive alone therefore cannot rank loudness or limiting strength;
-    // dspMusicReferenceAudit holds the actual output and dynamics bounds.
+  it('describes fixed gain at the original source level', () => {
     ['popPunk', 'lofi'].forEach((id) => {
-      expect(presetOf(rackOf(id)).settings.normalizer.mode).toBe('loudness');
-      expect(text[key(id, 'stage.maximizer')]).toContain('normalized input');
-      expect(text[key(id, 'stage.maximizer')]).toContain('−1 dBTP');
+      expect(presetOf(rackOf(id)).settings.normalizer.mode).toBe('off');
     });
+    expect(text['genre.notes.fixedMaximizer']).toContain('fixed gain');
+    expect(text['genre.notes.fixedMaximizer']).toContain('−1 dBTP');
   });
 });

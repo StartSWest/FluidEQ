@@ -557,7 +557,7 @@ const dsp = {
   'dsp.dimension.decorrelation': 'Diffusion',
   'dsp.maximizer.title': 'Maximiseur',
   'dsp.maximizer.description':
-    'Augmente le niveau global sans laisser les crêtes dépasser le plafond.',
+    'Augmente ou réduit le niveau par un gain fixe et limite les crêtes.',
   'dsp.maximizer.drive': 'Attaque',
   'dsp.maximizer.reduction': 'Réduction',
   'dsp.maximizer.ceiling': 'Plafond',
@@ -565,7 +565,7 @@ const dsp = {
   'dsp.maximizer.release': 'Relâchement',
   'dsp.maximizer.group.loudness': 'Intensité sonore',
   'dsp.maximizer.group.loudnessHint':
-    'Du gain contre un plafond qui ne bouge jamais. Tout ce qui est sous les crêtes remonte.',
+    'Gain fixe avant le plafond de crête. Un Drive négatif laisse plus de marge.',
   'dsp.maximizer.group.timing': 'Temporisation',
   'dsp.maximizer.group.timingHint':
     'À quel point le limiteur voit une crête à l’avance, et le temps qu’il met à relâcher.',

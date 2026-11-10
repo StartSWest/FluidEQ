@@ -558,7 +558,7 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
         </span>
         <span className="is-safe">
           {t('dsp.maximizer.drive')}
-          <b>{`+${maximizer.driveDb.toFixed(1)} dB`}</b>
+          <b>{`${maximizer.driveDb > 0 ? '+' : ''}${maximizer.driveDb.toFixed(1)} dB`}</b>
         </span>
       </div>
       <ul className="dsp-eq-legend dsp-master-legend">

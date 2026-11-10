@@ -2,6 +2,8 @@
 
 export default {
   'genre.notes.eyebrow': '流派说明',
+  'genre.notes.fixedMaximizer':
+    '在原始电平上应用固定增益，并将峰值限制在 −1 dBTP。',
   'genre.notes.about': '关于{name}',
   'genre.notes.aboutShort': '说明',
   'genre.notes.full': '完整说明',

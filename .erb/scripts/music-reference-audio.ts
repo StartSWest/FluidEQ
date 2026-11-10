@@ -36,8 +36,20 @@ export interface IMusicRender extends IMusicMeasurement {
   file: string;
   outputDeviceOpened: false;
   processingLatencyFrames: number;
-  rawMeasurement: IMusicMeasurement;
+  rawMeasurement?: IMusicMeasurement;
 }
+
+export const removeMusicRender = (directory: string, file: string) => {
+  if (
+    path.dirname(path.resolve(file)) !== path.resolve(directory) ||
+    !file.endsWith('.wav')
+  ) {
+    throw new Error(
+      'Refusing to remove a file outside the private render directory',
+    );
+  }
+  unlinkSync(file);
+};
 
 const numeric = (value: unknown, key: string): number => {
   if (typeof value !== 'object' || value === null) {
@@ -62,8 +74,11 @@ export const musicMeasurement = (value: unknown): IMusicMeasurement => ({
 export const measureMusicFile = (
   meter: string,
   file: string,
+  fixedGainDb = 0,
 ): IMusicMeasurement => {
-  const result = spawnSync(meter, ['--measure', file], {
+  const args = ['--measure', file];
+  if (fixedGainDb !== 0) args.push(String(fixedGainDb));
+  const result = spawnSync(meter, args, {
     encoding: 'utf8',
     windowsHide: true,
   });
@@ -77,7 +92,7 @@ export const measureMusicFile = (
 };
 
 /** Match source time before comparing fixed-grid foreground windows. The
- * native check also verifies the COMPLETE readback is the predicted linked
+ * native check also verifies the COMPLETE readback is the expected linked
  * gain, below -100 dB residual; alignment cannot hide limiting or other FX. */
 export const measureMusicInput = (
   meter: string,
@@ -95,7 +110,7 @@ export const measureMusicInput = (
     { encoding: 'utf8', windowsHide: true },
   );
   if (result.status !== 0)
-    throw new Error(`Normalized input readback failed: ${result.stderr}`);
+    throw new Error(`Source input readback failed: ${result.stderr}`);
   const value: unknown = JSON.parse(result.stdout);
   const alignmentFrames = numeric(value, 'alignmentFrames');
   if (!Number.isSafeInteger(alignmentFrames))
@@ -115,9 +130,9 @@ export const renderMusicReference = async (
   source: IMusicSource,
   settings: IDspSettings,
   tone: ReturnType<typeof factoryMusicTone>,
-  inputGainDb: number,
   scratch: string,
   label: string,
+  measureUntrimmed = false,
 ): Promise<IMusicRender> => {
   const safe = (text: string) => text.replace(/[^a-zA-Z0-9_.-]/g, '_');
   const directory = path.resolve(scratch);
@@ -165,10 +180,6 @@ export const renderMusicReference = async (
       await host.loadDeck(0, source.file),
       'load original recording',
     );
-    requireApplied(
-      await host.setTrackGains(inputGainDb, 0, true),
-      'set linked source gain',
-    );
     if (source.startSeconds) {
       requireApplied(
         await host.seekDeck(0, source.startSeconds),
@@ -209,8 +220,11 @@ export const renderMusicReference = async (
         });
       });
     }
-    writeFloatWav(file, audio);
-    const rawMeasurement = measureMusicFile(meter, file);
+    let rawMeasurement;
+    if (measureUntrimmed) {
+      writeFloatWav(file, audio);
+      rawMeasurement = measureMusicFile(meter, file);
+    }
     const wantedFrames = Math.ceil(source.seconds * audio.rate);
     writeFloatWav(file, {
       rate: audio.rate,
