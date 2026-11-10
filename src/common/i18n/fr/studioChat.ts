@@ -133,6 +133,14 @@ const studioChat = {
   'studioChat.ask.makeIt': 'La créer',
   'studioChat.ask.allowChat': 'Autoriser pour cette discussion',
   'studioChat.ask.cost': 'Utilise votre forfait ChatGPT ; environ une minute.',
+  'studioChat.ask.toolTitle': 'Autoriser Claude à utiliser {tool} ?',
+  'studioChat.ask.toolBody':
+    'Un de vos propres outils ou plugins Claude Code. Il s’exécute sur cet ordinateur, avec vos comptes, seulement si vous l’autorisez.',
+  'studioChat.ask.allow': 'Autoriser',
+  'studioChat.ask.allowAlways': 'Toujours autoriser',
+  'studioChat.ask.allowAlwaysHint':
+    'Ne plus demander pour {tool} : enregistré dans vos propres réglages Claude Code',
+  'studioChat.ask.deny': 'Ne pas autoriser',
   'studioChat.chatgptOn': 'Les images ChatGPT sont activées.',
   'studioChat.chatgptTurnOff': 'Désactiver',
   'studioChat.past.title': 'Discussions précédentes',

@@ -5,10 +5,6 @@ description: Build solid 3D things in a FluidEQ scene's world (world.json, drawn
 
 # Solid 3D in a FluidEQ world
 
-Everything this skill makes is for this one visualizer and stays inside its
-project folder. It is never a way to build an app or a website, change
-FluidEQ itself, or read or write files anywhere else.
-
 A FluidEQ scene can carry a real 3D world (`world.json`, see the brief's
 A 3D WORLD and `docs/scene-worlds.md`): meshes, lights, shadows, a mirror
 floor, drawn by three.js in front of `scene.frag`. Anything that must have

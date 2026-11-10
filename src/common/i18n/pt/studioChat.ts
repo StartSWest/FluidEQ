@@ -130,6 +130,14 @@ const studioChat = {
   'studioChat.ask.makeIt': 'Criar',
   'studioChat.ask.allowChat': 'Permitir nesta conversa',
   'studioChat.ask.cost': 'Usa o seu plano do ChatGPT; cerca de um minuto.',
+  'studioChat.ask.toolTitle': 'Permitir que o Claude use {tool}?',
+  'studioChat.ask.toolBody':
+    'Uma das suas próprias ferramentas ou plugins do Claude Code. Ela roda neste computador, com suas contas, só se você permitir.',
+  'studioChat.ask.allow': 'Permitir',
+  'studioChat.ask.allowAlways': 'Sempre permitir',
+  'studioChat.ask.allowAlwaysHint':
+    'Não perguntar mais sobre {tool}: fica salvo nas suas próprias configurações do Claude Code',
+  'studioChat.ask.deny': 'Não permitir',
   'studioChat.chatgptOn': 'As imagens do ChatGPT estão ativadas.',
   'studioChat.chatgptTurnOff': 'Desativar',
   'studioChat.past.title': 'Conversas anteriores',

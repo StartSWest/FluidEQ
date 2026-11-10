@@ -17,7 +17,7 @@ import {
   type TAnimationGround,
 } from '../../common/studioAnimation';
 import writeFileAtomically from '../atomicWrite';
-import { insideFolder } from '../studioChat/chatSandbox';
+import { insideFolder } from '../studioChat/projectPath';
 import { MAX_SHEET_BYTES, readProjectAnimation } from './projectAnimations';
 
 /**

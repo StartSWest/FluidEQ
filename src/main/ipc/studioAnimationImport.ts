@@ -20,7 +20,7 @@ import {
 } from '../../common/studioAnimation';
 import { MAX_SHEET_BYTES } from '../memberScenes/projectAnimations';
 import { ART_DIR } from '../studioChat/artFolder';
-import { insideFolder } from '../studioChat/chatSandbox';
+import { insideFolder } from '../studioChat/projectPath';
 import { isSheetName, writeSheet } from '../studioChat/sheetFiles';
 
 /**

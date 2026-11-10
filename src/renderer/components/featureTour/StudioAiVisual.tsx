@@ -15,7 +15,7 @@ import { useTranslation } from '../../utils/I18nContext';
  * The Studio's AI at work on three scenes at once, each its own chat: two
  * still working, one just kept as a new version. Beside them what holds the
  * AI to the open scene: its folder, its own files read and edited, other
- * folders, commands and the web refused (`chatSandbox.ts`) - and under it
+ * folders, commands and the web refused - and under it
  * the menu that picks the model and the effort, the models as Claude Code
  * names them. Under the scenes, the skills FluidEQ ships
  * with the app, which every chat reads.

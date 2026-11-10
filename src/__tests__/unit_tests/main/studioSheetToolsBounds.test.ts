@@ -9,7 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The sheet tools keep to the scene's project (`chatSandbox.ts`: the
+ * The sheet tools keep to the scene's project (`projectPath.ts`: the
  * Studio's agents work inside the scene's folder): they read a picture only
  * from inside it, write only `art/<name>.png` and its animation under a name
  * they check, never over a picture of the member's, decode nothing past the

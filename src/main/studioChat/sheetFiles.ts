@@ -25,12 +25,12 @@ import {
 } from '../memberScenes/projectAnimations';
 import type { IMcpToolResult } from '../studioAgent/mcpProtocol';
 import { ART_DIR, ART_NAME, artFolder, READABLE_PICTURES } from './artFolder';
-import { insideFolder } from './chatSandbox';
+import { insideFolder } from './projectPath';
 import type { IPixels } from './sheetRig';
 
 /**
  * What the sheet tools read and write in a project, and nothing else
- * (`chatSandbox.ts`: the Studio's agents work inside the scene's folder).
+ * (`projectPath.ts`: FluidEQ's own tools work inside the scene's folder).
  *
  * - A picture is read only from a path whose real location, links and
  *   junctions followed, is inside the project folder (`insideFolder`), as a

@@ -204,10 +204,6 @@ export const createClaudeModels = ({
           '--settings',
           settings,
           '--strict-mcp-config',
-          // It is only asked a question and sent no message, so nothing it
-          // could do should exist: no tools at all (`chatSandbox.ts`).
-          '--tools',
-          '',
         ],
         { cwd: dir, stdio: ['pipe', 'pipe', 'ignore'], windowsHide: true },
       );

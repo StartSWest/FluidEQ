@@ -31,6 +31,8 @@ import writeFileAtomically from '../atomicWrite';
  */
 
 const CONNECTION_FILE = 'codex.json';
+/** A chat's tools allowed always, in its project's own folder of the chat. */
+const ALWAYS_FILE = 'allowed-tools.json';
 
 interface IPending {
   ask: TStudioChatAsk;
@@ -52,6 +54,43 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
   const declined = new Set<string>();
   /** Per project, for the life of its chat: "yes to every picture". */
   const allowed = new Set<string>();
+  /**
+   * Per project, for the life of its chat: tools said "Always allow" to
+   * (Ivan, 2026-11-07: "always allow is per chat not global"). Kept on disk
+   * beside the chat, so a restart of FluidEQ leaves the chat as it was, and
+   * read once per project.
+   */
+  const allowedTools = new Map<string, Set<string>>();
+  const alwaysFileOf = (projectId: string) =>
+    path.join(root, encodeURIComponent(projectId), ALWAYS_FILE);
+  const toolsOf = (projectId: string) => {
+    const known = allowedTools.get(projectId);
+    if (known) {
+      return known;
+    }
+    let tools = new Set<string>();
+    try {
+      const raw: unknown = JSON.parse(
+        fs.readFileSync(alwaysFileOf(projectId), 'utf8'),
+      );
+      const list =
+        typeof raw === 'object' && raw !== null
+          ? (raw as Record<string, unknown>).tools
+          : undefined;
+      if (Array.isArray(list)) {
+        tools = new Set(
+          list.filter((tool): tool is string => typeof tool === 'string'),
+        );
+      }
+    } catch {
+      // Nothing allowed always yet in this chat.
+    }
+    allowedTools.set(projectId, tools);
+    return tools;
+  };
+  /** Per project, the tool asks waiting for the card standing to go. */
+  const waiting = new Map<string, Array<() => void>>();
+
   const readConnected = () => {
     try {
       const raw: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -94,6 +133,9 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
     });
   };
 
+  const standingOn = (projectId: string) =>
+    [...pending.values()].some((entry) => entry.ask.projectId === projectId);
+
   const settle = (id: string, answer: TStudioChatAnswer) => {
     const entry = pending.get(id);
     if (!entry) {
@@ -102,7 +144,28 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
     pending.delete(id);
     show(entry.ask.projectId, undefined);
     entry.resolve(answer);
+    // The next tool ask waiting on this project gets its card.
+    waiting.get(entry.ask.projectId)?.shift()?.();
   };
+
+  /** Resolves when the card standing on the project goes, or the reply does. */
+  const nextTurn = (projectId: string, signal: AbortSignal): Promise<void> =>
+    new Promise<void>((resolve) => {
+      const queue = waiting.get(projectId) ?? [];
+      // Out of the line whichever wakes it, so a stopped reply's ask never
+      // takes the next one's turn.
+      const wake = () => {
+        signal.removeEventListener('abort', wake);
+        const at = queue.indexOf(wake);
+        if (at !== -1) {
+          queue.splice(at, 1);
+        }
+        resolve();
+      };
+      queue.push(wake);
+      waiting.set(projectId, queue);
+      signal.addEventListener('abort', wake, { once: true });
+    });
 
   return {
     isConnected: () => connected,
@@ -150,6 +213,49 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
       return answer !== 'no';
     },
 
+    /**
+     * Whether one of the member's own tools may run once (Ivan, 2026-11-07:
+     * "claude need to have access to all plugins that claude has"): yes,
+     * always, or no. Always is the member's own rule from then on, kept by
+     * Claude Code in their user settings (`keptRules`), and remembered for
+     * this chat besides, so a tool with no rule to keep asks no more here.
+     * Claude can ask for several at once, so each waits its turn for the card
+     * rather than being refused; the reply ending or stopped answers it no.
+     */
+    tool: async (
+      projectId: string,
+      what: { tool: string; detail: string },
+      signal: AbortSignal,
+    ): Promise<TStudioChatAnswer> => {
+      if (toolsOf(projectId).has(what.tool)) {
+        return 'yes';
+      }
+      // Looked at again after every wait, and the card put up in the same
+      // step as the last look: two questions arriving together both found
+      // no card up, and the second was refused as one too many.
+      while (standingOn(projectId) && !signal.aborted) {
+        // eslint-disable-next-line no-await-in-loop -- one card at a time, in order
+        await nextTurn(projectId, signal);
+      }
+      if (signal.aborted) {
+        return 'no';
+      }
+      if (toolsOf(projectId).has(what.tool)) {
+        return 'yes';
+      }
+      const answer = await ask(projectId, { kind: 'tool', ...what });
+      if (answer === 'chat') {
+        const tools = toolsOf(projectId);
+        tools.add(what.tool);
+        writeFileAtomically(
+          alwaysFileOf(projectId),
+          JSON.stringify({ tools: [...tools] }),
+          0o600,
+        );
+      }
+      return answer;
+    },
+
     /** The member's answer, from the window. */
     answer: settle,
 
@@ -169,6 +275,8 @@ export const createChatAsks = ({ root, show }: IChatAsksDeps) => {
     forget: (projectId: string) => {
       declined.delete(projectId);
       allowed.delete(projectId);
+      allowedTools.set(projectId, new Set());
+      fs.rmSync(alwaysFileOf(projectId), { force: true });
     },
   };
 };

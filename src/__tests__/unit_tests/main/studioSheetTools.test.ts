@@ -193,7 +193,9 @@ describe('an animator asked for a sheet', () => {
 });
 
 describe("the chat's launch", () => {
-  it('offers the sheet tools and still no shell', () => {
+  // The shell is the member's again, under their own settings and the
+  // chat's card (Ivan, 2026-11-10: "quita esa mierda").
+  it('offers the sheet tools beside the shell', () => {
     const own = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-own-'));
     try {
       const { args } = claudeCodeCommand({
@@ -207,12 +209,10 @@ describe("the chat's launch", () => {
         sessionId: undefined,
       });
       const tools = args[args.indexOf('--tools') + 1].split(',');
-      expect(tools).not.toContain('Bash');
-      expect(tools).not.toContain('PowerShell');
+      expect(tools).toContain('Bash');
       expect(args).toContain('mcp__fluideq__pose_sheet');
       expect(args).toContain('mcp__fluideq__build_sheet');
-      const denied = args.slice(args.indexOf('--disallowedTools') + 1);
-      expect(denied).toEqual(expect.arrayContaining(['Bash', 'PowerShell']));
+      expect(args).not.toContain('--disallowedTools');
     } finally {
       fs.rmSync(own, { recursive: true, force: true });
     }

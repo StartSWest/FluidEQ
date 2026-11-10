@@ -70,12 +70,9 @@ const carded = (projectId: string, up: boolean) =>
             ask: {
               id: 'k-1',
               projectId,
-              kind: 'picture',
-              why: 'A lake for the background',
-              prompt: 'a still lake at dusk',
-              width: 1024,
-              height: 1024,
-              transparent: false,
+              kind: 'tool',
+              tool: 'Bash',
+              detail: 'node make-picture.mjs',
             },
           }
         : {}),

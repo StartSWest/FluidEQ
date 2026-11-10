@@ -99,6 +99,10 @@ const createChatSessions = ({
     queue.restore(projectId, entries),
   );
 
+  /** Already aborted: what a project with no reply running is handed. */
+  const nothingRunning = new AbortController();
+  nothingRunning.abort();
+
   /** The chat's own folder for a project, where its files are kept. */
   const ownOf = (projectId: string) =>
     path.join(root, encodeURIComponent(projectId));
@@ -121,14 +125,13 @@ const createChatSessions = ({
           return;
         }
         if (event.type === 'permission') {
-          const answer = answerPermission(
+          answerPermission(
+            pictures.asks,
+            projectId,
             session.process,
-            session.folder,
             event,
-          );
-          if (!answer.allowed) {
-            logger?.warn(`The Studio refused ${event.tool}: ${event.detail}`);
-          }
+            session.controller?.signal ?? nothingRunning.signal,
+          ).catch(() => undefined);
           return;
         }
         turns.onEvent(projectId, session, event);

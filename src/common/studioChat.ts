@@ -357,11 +357,25 @@ export type TStudioChatAsk =
       width: number;
       height: number;
       transparent: boolean;
+    }
+  | {
+      id: string;
+      projectId: string;
+      /**
+       * Claude wants one of the member's own Claude Code tools — a plugin's
+       * skill, a command, a tool server — that their own settings do not
+       * already allow.
+       */
+      kind: 'tool';
+      /** The tool's name as Claude Code shows it. */
+      tool: string;
+      /** What it is about to do: the command, the file, the skill. */
+      detail: string;
     };
 
 /**
- * The member's answer: yes this once, yes for the rest of this chat (every
- * picture), or no.
+ * The member's answer: yes this once, yes for the rest of this chat (a
+ * picture, or that tool), or no.
  */
 export type TStudioChatAnswer = 'yes' | 'chat' | 'no';
 

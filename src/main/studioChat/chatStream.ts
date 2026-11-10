@@ -64,14 +64,16 @@ export type TChatStreamEvent =
   | {
       type: 'permission';
       requestId: string;
-      /** The tool's own name, which the rule is decided by (`chatSandbox.ts`). */
-      name: string;
-      /** The name it shows, for a line in the log. */
       tool: string;
       /** What it is about to do, in a line the member can judge. */
       detail: string;
       /** The tool's input, handed back unchanged with a yes. */
       input: Record<string, unknown>;
+      /**
+       * The rules Claude Code offers to keep for "always" (its
+       * `permission_suggestions`), handed back with an Always allow.
+       */
+      suggestions: Record<string, unknown>[];
     };
 
 /** Claude Code names FluidEQ's tools by the server they came from. */
@@ -273,10 +275,12 @@ const permissionEvents = (
     {
       type: 'permission',
       requestId: message.request_id,
-      name: request.tool_name,
       tool: shown,
       detail: detailOf(input, request.description),
       input,
+      suggestions: Array.isArray(request.permission_suggestions)
+        ? request.permission_suggestions.filter(isRecord)
+        : [],
     },
   ];
 };
