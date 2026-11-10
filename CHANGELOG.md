@@ -30,6 +30,19 @@ here.
   second, with the frame before showing under the one you are on and every
   frame in a strip. **See it bigger** opens the same view over the whole
   Studio.
+- **Import an animation.** The tab's **Import an animation** takes your own
+  frames, chosen with **Choose files** or dropped anywhere on the tab:
+  - a sprite sheet, whose grid it finds by itself; set **Across**, **Down**
+    and **Frames** on the sheet if the lines do not fall between the frames;
+  - a sheet with its TexturePacker, Phaser or Aseprite JSON, each Aseprite
+    tag becoming an animation of its own, and trimmed or turned frames put
+    back where they belong;
+  - an animated GIF, PNG or WebP, with the timing of every frame kept;
+  - a numbered series of pictures, one per frame.
+
+  It plays in the tab's own view before anything is saved, and **Add to the
+  scene** opens the new animation with its Animator beside it.
+
 - **An animator for every animation.** Each one has a chat of its own
   beside it. The scene's chat can start it with a task, and you can talk to
   it directly. It looks at every frame at once, points out a frame that
