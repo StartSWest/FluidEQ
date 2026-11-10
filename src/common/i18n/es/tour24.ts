@@ -140,7 +140,7 @@ const tour24 = {
 
   'tour.v24.also': 'También en 2.4',
   'tour.v24.level':
-    'Una canción tras una pausa entra a su propio nivel, y Normalizar automáticamente mantiene su nivel cuando Windows vuelve a abrir una salida.',
+    'Los preajustes de fábrica del DSP suenan al nivel propio de la canción, con una ganancia fija y el Maximizador atrapando los picos; Normalizar automáticamente, en el preamplificador del EQ, mantiene su nivel cuando Windows vuelve a abrir una salida.',
   'tour.v24.heroes':
     'Heroes of the Storm tiene una mezcla propia más llena con Escenario ancho opcional, y el filtro Juego mantiene la música más estable mientras resalta los avisos.',
   'tour.v24.graphSettings':

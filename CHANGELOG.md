@@ -143,18 +143,20 @@ its own; everything it held is here.
 
 ### Sound
 
-- **A song after a pause comes in at its level.** The Normalizer and the
-  Maximizer no longer let a song arrive loud after silence.
-- **Auto normalize keeps its level** when Windows reopens an output, instead
-  of starting over.
-- **Factory DSP presets start from the song's own level.** The music, voice,
-  Room and Gaming presets no longer level a song before their stages; each
-  hears it as it arrives, and the Maximizer adds a fixed gain and catches
-  the peaks. Switching away from a rack that adjusts its gain as it plays no
-  longer carries that boost into the sound that follows.
+- **Factory DSP presets play at the song's own level.** The music, voice,
+  Room and Gaming presets no longer level a song before their stages: each
+  hears it as it arrives, the Maximizer adds a fixed gain and catches the
+  peaks, and switching away from a rack that adjusts its gain as it plays no
+  longer carries that boost into the sound that follows. The Normalizer
+  stage is still on the DSP page for anyone who switches it on.
 - **A rack you already have keeps its old settings** until you pick its
   factory preset again. A game's saved copy in the Gaming Lab goes back to
   the new tuning with **Reset to** and its profile's name.
+- **No loud start after a pause.** The Maximizer, and the Normalizer if you
+  switch it on, no longer let a song arrive loud after silence.
+- **Auto normalize on the EQ's preamp keeps its level** when Windows
+  reopens an output, instead of starting over. It is the preamp's own guard,
+  apart from the DSP rack's Normalizer.
 
 ### Gaming Lab
 

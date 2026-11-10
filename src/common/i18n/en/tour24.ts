@@ -132,7 +132,7 @@ const tour24 = {
 
   'tour.v24.also': 'Also in 2.4',
   'tour.v24.level':
-    'A song after a pause comes in at its own level, and Auto normalize keeps its level when Windows reopens an output.',
+    'Factory DSP presets play at the song’s own level, with a fixed gain and the Maximizer catching the peaks; Auto normalize on the EQ’s preamp keeps its level when Windows reopens an output.',
   'tour.v24.heroes':
     'Heroes of the Storm has a fuller mix of its own with optional Wide Stage, and the Game filter keeps music steadier while it brings out cues.',
   'tour.v24.graphSettings':

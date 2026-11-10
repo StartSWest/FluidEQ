@@ -134,7 +134,7 @@ const tour24 = {
 
   'tour.v24.also': 'Außerdem in 2.4',
   'tour.v24.level':
-    'Ein Song nach einer Pause setzt mit seinem eigenen Pegel ein, und Automatisch normalisieren behält seinen Pegel, wenn Windows eine Ausgabe neu öffnet.',
+    'Die DSP-Werkspresets spielen mit dem eigenen Pegel des Songs, mit fester Verstärkung und dem Maximizer, der die Spitzen abfängt; Automatisch normalisieren am Vorverstärker des EQ behält seinen Pegel, wenn Windows eine Ausgabe neu öffnet.',
   'tour.v24.heroes':
     'Heroes of the Storm hat eine eigene, vollere Abmischung mit optionaler Breiter Bühne, und der Filter Spiel hält Musik ruhiger, während er Hinweise hervorhebt.',
   'tour.v24.graphSettings':
