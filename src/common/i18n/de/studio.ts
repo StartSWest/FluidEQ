@@ -453,6 +453,9 @@ const studio = {
   'studio.animation.previous': 'Vorheriges Bild',
   'studio.animation.next': 'Nächstes Bild',
   'studio.animation.play': 'Abspielen',
+  'studio.animation.playLoops': 'Läuft in Schleife, bis Sie pausieren',
+  'studio.animation.repeatsHere':
+    'Läuft in der Szene einmal. Hier wiederholt es sich, damit Sie es ansehen können.',
   'studio.animation.pause': 'Pause',
   'studio.animation.speed': 'Tempo',
   'studio.animation.fps': '{fps} fps',

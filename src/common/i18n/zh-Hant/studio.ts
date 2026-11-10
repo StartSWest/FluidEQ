@@ -385,6 +385,9 @@ const studio = {
   'studio.animation.previous': '上一格',
   'studio.animation.next': '下一格',
   'studio.animation.play': '播放',
+  'studio.animation.playLoops': '循環播放，直到你暫停',
+  'studio.animation.repeatsHere':
+    '在場景中只播放一次。這裡會重複播放，方便你觀看。',
   'studio.animation.pause': '暫停',
   'studio.animation.speed': '速度',
   'studio.animation.fps': '{fps} 格/秒',

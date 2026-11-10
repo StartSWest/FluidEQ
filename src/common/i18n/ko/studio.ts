@@ -425,6 +425,9 @@ const studio = {
   'studio.animation.previous': '이전 프레임',
   'studio.animation.next': '다음 프레임',
   'studio.animation.play': '재생',
+  'studio.animation.playLoops': '일시 정지할 때까지 반복 재생합니다',
+  'studio.animation.repeatsHere':
+    '장면에서는 한 번 재생됩니다. 여기서는 보기 쉽도록 반복합니다.',
   'studio.animation.pause': '일시정지',
   'studio.animation.speed': '속도',
   'studio.animation.fps': '{fps}fps',

@@ -236,7 +236,9 @@ describe('an animation playing', () => {
     expect(result.current.frame).toBe(6);
   });
 
-  it('holds a one-shot on its last frame and stops', () => {
+  // Ivan, 2026-11-09: "also play needs to loop". 8 fps: a frame is 125 ms,
+  // a beat held on the last frame is four of them.
+  it('plays a one-shot to its end, holds a beat, then plays it again', () => {
     const once = viewed('jump', 4);
     const { result } = renderHook(() =>
       useAnimationPlayer({
@@ -245,8 +247,66 @@ describe('an animation playing', () => {
       }),
     );
     paint(0);
-    paint(5000);
+    paint(3 * 125);
     expect(result.current.frame).toBe(3);
+    // Held: still the last frame three frames later.
+    paint(6 * 125);
+    expect(result.current.frame).toBe(3);
+    // Then from its start again, still playing.
+    paint(8 * 125);
+    expect(result.current.frame).toBe(0);
+    expect(result.current.playing).toBe(true);
+  });
+
+  it('control: a looping animation goes round with no hold', () => {
+    const { result } = renderHook(() => useAnimationPlayer(viewed('jump', 4)));
+    paint(0);
+    paint(4 * 125);
+    expect(result.current.frame).toBe(0);
+  });
+
+  it('keeps playing until it is paused', () => {
+    const once = viewed('jump', 4);
+    const { result } = renderHook(() =>
+      useAnimationPlayer({
+        ...once,
+        animation: { ...once.animation, loop: false },
+      }),
+    );
+    paint(0);
+    paint(60_000);
+    expect(result.current.playing).toBe(true);
+    act(() => result.current.toggle());
     expect(result.current.playing).toBe(false);
+  });
+});
+
+describe('a one-shot’s controls', () => {
+  it('say the scene plays it once while it repeats here', () => {
+    const once = viewed('jump', 4);
+    render(
+      <StudioAnimations
+        animations={[
+          { ...once, animation: { ...once.animation, loop: false } },
+        ]}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: /studio\.animation\.open/ }),
+    );
+    expect(
+      screen.getByText('studio.animation.repeatsHere'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /studio\.animation\.(play|pause)/ }),
+    ).toHaveAttribute('title', 'studio.animation.playLoops');
+  });
+
+  it('control: a looping animation needs no such word', () => {
+    render(<StudioAnimations animations={[viewed('wolf-walk', 8)]} />);
+    fireEvent.click(
+      screen.getByRole('button', { name: /studio\.animation\.open/ }),
+    );
+    expect(screen.queryByText('studio.animation.repeatsHere')).toBeNull();
   });
 });

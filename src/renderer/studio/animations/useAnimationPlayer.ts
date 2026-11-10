@@ -7,6 +7,29 @@ export type TAnimationSlope = 'flat' | 'up' | 'down';
 /** The speeds offered beside the animation's own (Ivan: smooth at ~12). */
 export const ANIMATION_SPEEDS = [4, 6, 8, 12];
 
+/** How long a one-shot holds its last frame before it plays again here. */
+const HOLD_SECONDS = 0.5;
+
+/**
+ * The frame `played` frames into watching an animation, from `from`.
+ * Watched, everything repeats (Ivan, 2026-11-09: "also play needs to
+ * loop"): a looping animation round and round, a one-shot to its end, a
+ * beat held on its last frame, then from its start again. In the scene a
+ * one-shot still plays once; only watching it repeats.
+ */
+export const watchedFrame = (
+  from: number,
+  played: number,
+  count: number,
+  fps: number,
+  loop: boolean,
+) => {
+  const cycle = loop
+    ? count
+    : count + Math.max(1, Math.round(fps * HOLD_SECONDS));
+  return Math.min((from + played) % cycle, count - 1);
+};
+
 export interface IAnimationPlayer {
   frame: number;
   playing: boolean;
@@ -31,8 +54,8 @@ export interface IAnimationPlayer {
  *
  * Played on the painted frame's own clock (`requestAnimationFrame`'s time),
  * from the frame it started on: the frame shown is the one that many
- * frames-a-second after that start, never one counted by a timer. A one-shot
- * stops on its last frame.
+ * frames-a-second after that start, never one counted by a timer. It plays
+ * until paused, a one-shot included (`watchedFrame`).
  */
 export default function useAnimationPlayer(
   viewed: IViewedAnimation,
@@ -65,15 +88,9 @@ export default function useAnimationPlayer(
         started = at;
       }
       const played = Math.floor(((at - started) * fps) / 1000);
-      const next = loop
-        ? (from + played) % count
-        : Math.min(from + played, count - 1);
+      const next = watchedFrame(from, played, count, fps, loop);
       if (next !== frameRef.current) {
         setFrame(next);
-      }
-      if (!loop && next === count - 1) {
-        setPlaying(false);
-        return;
       }
       request = requestAnimationFrame(step);
     };
@@ -88,15 +105,7 @@ export default function useAnimationPlayer(
     },
     [count],
   );
-  const toggle = useCallback(() => {
-    setPlaying((now) => {
-      // A one-shot that has ended plays again from its start.
-      if (!now && !loop && frameRef.current === count - 1) {
-        setFrame(0);
-      }
-      return !now;
-    });
-  }, [loop, count]);
+  const toggle = useCallback(() => setPlaying((now) => !now), []);
 
   return {
     frame: Math.min(frame, count - 1),
@@ -131,8 +140,7 @@ export const useLoopFrame = (viewed: IViewedAnimation): number => {
       }
       const played = Math.floor(((at - started) * fps) / 1000);
       // A one-shot on a card plays again, so the card is never a still.
-      const next = loop ? played % count : played % (count + fps);
-      const frameNow = Math.min(next, count - 1);
+      const frameNow = watchedFrame(0, played, count, fps, loop);
       if (frameNow !== shown) {
         shown = frameNow;
         setFrame(frameNow);

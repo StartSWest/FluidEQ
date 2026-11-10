@@ -446,6 +446,9 @@ const studio = {
   'studio.animation.previous': 'Fotogramma precedente',
   'studio.animation.next': 'Fotogramma successivo',
   'studio.animation.play': 'Riproduci',
+  'studio.animation.playLoops': 'Si ripete finché non metti in pausa',
+  'studio.animation.repeatsHere':
+    'Nella scena si riproduce una volta. Qui si ripete perché tu possa guardarla.',
   'studio.animation.pause': 'Pausa',
   'studio.animation.speed': 'Velocità',
   'studio.animation.fps': '{fps} fps',

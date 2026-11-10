@@ -450,6 +450,9 @@ const studio = {
   'studio.animation.previous': 'Previous frame',
   'studio.animation.next': 'Next frame',
   'studio.animation.play': 'Play',
+  'studio.animation.playLoops': 'Plays on repeat until you pause it',
+  'studio.animation.repeatsHere':
+    'Plays once in the scene. Here it repeats so you can watch it.',
   'studio.animation.pause': 'Pause',
   'studio.animation.speed': 'Speed',
   'studio.animation.fps': '{fps} fps',

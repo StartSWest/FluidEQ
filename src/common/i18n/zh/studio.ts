@@ -399,6 +399,9 @@ const studio = {
   'studio.animation.previous': '上一帧',
   'studio.animation.next': '下一帧',
   'studio.animation.play': '播放',
+  'studio.animation.playLoops': '循环播放，直到你暂停',
+  'studio.animation.repeatsHere':
+    '在场景中只播放一次。这里会重复播放，方便你观看。',
   'studio.animation.pause': '暂停',
   'studio.animation.speed': '速度',
   'studio.animation.fps': '{fps} 帧/秒',

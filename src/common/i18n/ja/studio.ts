@@ -445,6 +445,9 @@ const studio = {
   'studio.animation.previous': '前のコマ',
   'studio.animation.next': '次のコマ',
   'studio.animation.play': '再生',
+  'studio.animation.playLoops': '一時停止するまで繰り返し再生します',
+  'studio.animation.repeatsHere':
+    'シーンでは 1 回だけ再生されます。ここでは確認しやすいように繰り返します。',
   'studio.animation.pause': '一時停止',
   'studio.animation.speed': '速度',
   'studio.animation.fps': '{fps} fps',

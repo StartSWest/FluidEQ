@@ -437,6 +437,9 @@ const studio = {
   'studio.animation.previous': 'पिछला फ़्रेम',
   'studio.animation.next': 'अगला फ़्रेम',
   'studio.animation.play': 'चलाएँ',
+  'studio.animation.playLoops': 'जब तक आप रोकें नहीं, बार-बार चलता है',
+  'studio.animation.repeatsHere':
+    'सीन में यह एक बार चलता है। यहाँ यह दोहराता है ताकि आप इसे देख सकें।',
   'studio.animation.pause': 'रोकें',
   'studio.animation.speed': 'गति',
   'studio.animation.fps': '{fps} fps',

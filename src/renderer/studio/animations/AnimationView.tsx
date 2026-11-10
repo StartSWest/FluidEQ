@@ -97,6 +97,7 @@ export default function AnimationView({
           <button
             type="button"
             className="button small studio-animation__play"
+            title={t('studio.animation.playLoops')}
             onClick={player.toggle}
           >
             <TransportIcon name={playing ? 'pause' : 'play'} />
@@ -141,6 +142,12 @@ export default function AnimationView({
         >
           {t('studio.animation.onion')}
         </button>
+        {/* Watching repeats a one-shot; the scene still plays it once. */}
+        {!animation.loop && (
+          <span className="studio-animation__repeats">
+            {t('studio.animation.repeatsHere')}
+          </span>
+        )}
       </div>
       {/* Out of the Tab order, as the picture viewer's strip is: the
           arrows beside play walk the frames. */}

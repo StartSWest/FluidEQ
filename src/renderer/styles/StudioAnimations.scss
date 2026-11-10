@@ -524,6 +524,15 @@ $studio-animation-view-min: 440px;
   min-width: 0;
 }
 
+// A one-shot repeats while it is watched; this says the scene still plays
+// it once, quietly, beside the controls it explains.
+.studio-animation__repeats {
+  min-width: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  overflow-wrap: anywhere;
+}
+
 .studio-animation__transport {
   display: flex;
   align-items: center;

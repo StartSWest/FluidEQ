@@ -439,6 +439,9 @@ const studio = {
   'studio.animation.previous': 'Quadro anterior',
   'studio.animation.next': 'Próximo quadro',
   'studio.animation.play': 'Reproduzir',
+  'studio.animation.playLoops': 'Repete até você pausar',
+  'studio.animation.repeatsHere':
+    'Na cena, toca uma vez. Aqui ela se repete para você poder assistir.',
   'studio.animation.pause': 'Pausar',
   'studio.animation.speed': 'Velocidade',
   'studio.animation.fps': '{fps} fps',

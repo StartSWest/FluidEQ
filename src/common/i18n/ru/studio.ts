@@ -440,6 +440,9 @@ const studio = {
   'studio.animation.previous': 'Предыдущий кадр',
   'studio.animation.next': 'Следующий кадр',
   'studio.animation.play': 'Играть',
+  'studio.animation.playLoops': 'Играет по кругу, пока вы не поставите паузу',
+  'studio.animation.repeatsHere':
+    'В сцене играет один раз. Здесь повторяется, чтобы её было удобно смотреть.',
   'studio.animation.pause': 'Пауза',
   'studio.animation.speed': 'Скорость',
   'studio.animation.fps': '{fps} к/с',

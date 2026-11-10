@@ -446,6 +446,10 @@ const studio = {
   'studio.animation.previous': 'Image précédente',
   'studio.animation.next': 'Image suivante',
   'studio.animation.play': 'Lire',
+  'studio.animation.playLoops':
+    'Joue en boucle jusqu’à ce que vous mettiez en pause',
+  'studio.animation.repeatsHere':
+    'Dans la scène, elle joue une fois. Ici, elle se répète pour que vous puissiez la regarder.',
   'studio.animation.pause': 'Pause',
   'studio.animation.speed': 'Vitesse',
   'studio.animation.fps': '{fps} i/s',
