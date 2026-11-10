@@ -59,7 +59,7 @@ const measure = (column: number, grid: number) => {
 const column = () => {
   render(
     <div className="grid">
-      <StudioAnimatorColumn>
+      <StudioAnimatorColumn storageKey={KEY}>
         <section aria-label="animator" />
       </StudioAnimatorColumn>
     </div>,
@@ -117,6 +117,24 @@ describe('the Animator’s divider', () => {
     measure(530, 1000);
     fireEvent.keyDown(column(), { key: 'ArrowLeft' });
     expect(widthOf()).toBe('544px');
+  });
+
+  it('measures its widest inside the grid’s padding, as the sheet does', () => {
+    // The bigger view's body: 1000 wide with 16px each side, so 968 inside
+    // and the most is 968 - 440 - 16 = 512.
+    measure(500, 1000);
+    render(
+      <div style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+        <StudioAnimatorColumn storageKey={KEY}>
+          <section aria-label="animator" />
+        </StudioAnimatorColumn>
+      </div>,
+    );
+    fireEvent.keyDown(
+      screen.getByRole('separator', { name: 'studio.animator.resize' }),
+      { key: 'ArrowLeft' },
+    );
+    expect(widthOf()).toBe('512px');
   });
 
   it('follows a drag from the pointer, left widening', () => {

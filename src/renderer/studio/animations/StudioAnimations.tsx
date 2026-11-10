@@ -1,11 +1,15 @@
 import { useId, useState, type ReactNode } from 'react';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
+import useMovablePortal from '../../utils/useMovablePortal';
 import StudioAskCard from '../StudioAskCard';
 import AnimationFrame from './AnimationFrame';
 import AnimationView from './AnimationView';
 import StudioAnimationModal from './StudioAnimationModal';
-import StudioAnimatorColumn from './StudioAnimatorColumn';
+import StudioAnimatorColumn, {
+  ANIMATOR_LARGE_WIDTH_KEY,
+  ANIMATOR_WIDTH_KEY,
+} from './StudioAnimatorColumn';
 import useAnimationPlayer, { useLoopFrame } from './useAnimationPlayer';
 import type { IViewedAnimation } from './useStudioAnimations';
 import '../../styles/StudioAnimations.scss';
@@ -94,6 +98,17 @@ function OpenedAnimation({ viewed, onBack, side }: IOpenedProps) {
   const meta = useMeta();
   const player = useAnimationPlayer(viewed);
   const [large, setLarge] = useState(false);
+  // The animator goes with the animation into the bigger view and back
+  // (Ivan, 2026-11-09: "the full screen there needs to attach the chat too
+  // so I can work better focused on animator"): one chat, moved, so what
+  // is being written and a question it asks are there in either place.
+  const animator = useMovablePortal(side, 'studio-animator-host');
+  const animatorIn = (storageKey: string) =>
+    side ? (
+      <StudioAnimatorColumn storageKey={storageKey}>
+        <div ref={animator.place} className="studio-animator-slot" />
+      </StudioAnimatorColumn>
+    ) : undefined;
   return (
     <div className="studio-animation-opened">
       <div className="studio-animation-opened__head">
@@ -136,12 +151,14 @@ function OpenedAnimation({ viewed, onBack, side }: IOpenedProps) {
             {t('studio.animation.backgroundNote')}
           </p>
         </div>
-        {side && <StudioAnimatorColumn>{side}</StudioAnimatorColumn>}
+        {!large && animatorIn(ANIMATOR_WIDTH_KEY)}
       </div>
+      {side && animator.portal}
       {large && (
         <StudioAnimationModal
           viewed={viewed}
           player={player}
+          side={animatorIn(ANIMATOR_LARGE_WIDTH_KEY)}
           onClose={() => setLarge(false)}
         />
       )}

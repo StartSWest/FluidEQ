@@ -1,4 +1,10 @@
-import { useEffect, useId, useRef, type MouseEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  type MouseEvent,
+  type ReactNode,
+} from 'react';
 import { createPortal } from 'react-dom';
 import DialogClose from '../../components/DialogClose';
 import MenuIcon from '../../icons/MenuIcon';
@@ -13,8 +19,30 @@ import '../../styles/StudioPictureLightbox.scss';
 interface IStudioAnimationModalProps {
   viewed: IViewedAnimation;
   player: IAnimationPlayer;
+  /** Beside the animation: the agent working on it, brought along. */
+  side?: ReactNode;
   onClose: () => void;
 }
+
+/**
+ * Whether an arrow key pressed on `target` is this view's to step frames
+ * with. Not while somebody types (the animator's message box, a field) or
+ * works inside the chat, whose menus walk with the arrows; and not from a
+ * dialog opened over this one, such as the chat's picture viewer, which
+ * steps its own pictures.
+ */
+const stepsFrames = (target: EventTarget | null, surface: Element | null) => {
+  if (!(target instanceof Element)) {
+    return true;
+  }
+  const dialog = target.closest('[role="dialog"]');
+  if (dialog && dialog !== surface) {
+    return false;
+  }
+  return !target.closest(
+    '.studio-chat, input, textarea, select, [contenteditable="true"]',
+  );
+};
 
 /**
  * An opened animation over the Studio, to see it bigger (Ivan, 2026-11-09:
@@ -23,10 +51,13 @@ interface IStudioAnimationModalProps {
  * the stage taking everything the window leaves after one row of controls
  * and the strip. Esc, a click outside it and the close button go back, on
  * the same frame, playing or not; the arrow keys step through the frames.
+ * The animator comes along beside it (`side`), to watch the frames and talk
+ * to it without coming back.
  */
 export default function StudioAnimationModal({
   viewed,
   player,
+  side,
   onClose,
 }: IStudioAnimationModalProps) {
   const { t } = useTranslation();
@@ -46,7 +77,8 @@ export default function StudioAnimationModal({
         event.ctrlKey ||
         event.metaKey ||
         event.shiftKey ||
-        event.defaultPrevented
+        event.defaultPrevented ||
+        !stepsFrames(event.target, surfaceRef.current)
       ) {
         return;
       }
@@ -104,6 +136,7 @@ export default function StudioAnimationModal({
         />
         <div className="studio-animation-modal__body">
           <AnimationView viewed={viewed} player={player} />
+          {side}
         </div>
       </div>
     </div>,

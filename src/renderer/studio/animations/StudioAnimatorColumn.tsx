@@ -18,6 +18,10 @@ const ANIMATOR_MIN = 300;
 const VIEW_MIN = 440;
 const GRID_GAP = 16;
 
+/** Where the panel's column keeps its width, and the bigger view's. */
+export const ANIMATOR_WIDTH_KEY = 'fluideq.studio.animatorWidth';
+export const ANIMATOR_LARGE_WIDTH_KEY = 'fluideq.studio.animatorLargeWidth';
+
 /**
  * The opened animation's animator, in a column whose left edge drags it
  * wider or narrower (Ivan, 2026-11-09: "also add splitter for the chat too
@@ -26,16 +30,22 @@ const GRID_GAP = 16;
  * column back at its own. Stacked under the animation, where the panel is
  * too narrow for both, there is nothing to drag and the divider is not
  * drawn.
+ *
+ * The panel and the bigger view each keep a width of their own
+ * (`storageKey`): one dragged wide over the whole window would leave the
+ * panel's animation at its least.
  */
 export default function StudioAnimatorColumn({
+  storageKey,
   children,
 }: {
+  storageKey: string;
   children: ReactNode;
 }) {
   const { t } = useTranslation();
   const column = useRef<HTMLDivElement>(null);
   const width = useColumnWidth(column, {
-    storageKey: 'fluideq.studio.animatorWidth',
+    storageKey,
     property: '--studio-animator-width',
     least: ANIMATOR_MIN,
     besideLeast: VIEW_MIN + GRID_GAP,

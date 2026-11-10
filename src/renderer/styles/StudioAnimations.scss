@@ -219,6 +219,35 @@ $studio-animation-view-min: 440px;
 // drag; beside it, exactly the view's height - `contain: size` keeps a long
 // conversation from making the row (and the view's column) taller - and the
 // divider stands in the gap at its left edge, its middle on the gap's.
+// The column beside the animation, `$default` wide until dragged and never
+// so wide the animation keeps less than its least, the divider standing in
+// the gap at its left edge, its middle on the gap's.
+@mixin animator-beside($default) {
+  width: clamp(
+    #{$studio-animator-min},
+    var(--studio-animator-width, #{$default}),
+    calc(100cqw - #{$studio-animation-view-min} - #{$spacing-m})
+  );
+
+  > .column-resizer {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    bottom: 0;
+    left: calc(-1 * (#{$spacing-m} + 12px) / 2);
+    display: flex;
+
+    // Under a tall stage the column is taller than the panel it scrolls in,
+    // and its grip, centred on it, sat out of sight with nothing on screen
+    // to say where to drag: the grip keeps to the part in view.
+    span {
+      position: sticky;
+      top: $spacing-m;
+      bottom: $spacing-m;
+    }
+  }
+}
+
 .studio-animation-opened__side {
   position: relative;
   display: flex;
@@ -230,33 +259,19 @@ $studio-animation-view-min: 440px;
   }
 
   @container studio-animation (min-width: 760px) {
-    width: clamp(
-      #{$studio-animator-min},
-      var(--studio-animator-width, #{$studio-animator-width}),
-      calc(100cqw - #{$studio-animation-view-min} - #{$spacing-m})
-    );
+    @include animator-beside($studio-animator-width);
     min-height: 420px;
     align-self: stretch;
     contain: size;
-
-    > .column-resizer {
-      position: absolute;
-      z-index: 2;
-      top: 0;
-      bottom: 0;
-      left: calc(-1 * (#{$spacing-m} + 12px) / 2);
-      display: flex;
-
-      // Under a tall stage the column is taller than the panel it scrolls
-      // in, and its grip, centred on it, sat out of sight with nothing on
-      // screen to say where to drag: the grip keeps to the part in view.
-      span {
-        position: sticky;
-        top: $spacing-m;
-        bottom: $spacing-m;
-      }
-    }
   }
+}
+
+// The one animator moves between the panel and the bigger view
+// (`useMovablePortal`); what holds it there makes no box of its own, so the
+// chat's card is the column's own child for the column's layout.
+.studio-animator-slot,
+.studio-animator-host {
+  display: contents;
 }
 
 // The animator: the scene chat's card, its talk scrolling inside it.
@@ -608,6 +623,20 @@ $studio-animation-view-min: 440px;
   display: grid;
   min-height: 0;
   padding: $spacing-m;
+  container: studio-animation-large / inline-size;
+
+  // The animator beside it, the body's whole height, its talk scrolling
+  // inside it: by default as the scene's chat sits beside the stage, 28% of
+  // the room between its least and 440px.
+  &:has(> .studio-animation-opened__side) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: $spacing-m;
+  }
+
+  > .studio-animation-opened__side {
+    @include animator-beside(clamp(#{$studio-animator-min}, 28cqw, 440px));
+    min-height: 0;
+  }
   background:
     radial-gradient(
       ellipse 62% 58% at 50% 50%,

@@ -51,10 +51,18 @@ export default function useColumnWidth(
       return;
     }
     const start = element.getBoundingClientRect().width;
+    // Inside the grid's padding, where the sheet's `100cqw` measures too: a
+    // padded grid (the bigger animation view's body) would otherwise let the
+    // drag run on past where the column stops.
+    const { paddingLeft, paddingRight } = getComputedStyle(grid);
+    const room =
+      grid.getBoundingClientRect().width -
+      (parseFloat(paddingLeft) || 0) -
+      (parseFloat(paddingRight) || 0);
     drag.current = {
       start,
       now: start,
-      max: Math.max(least, grid.getBoundingClientRect().width - besideLeast),
+      max: Math.max(least, room - besideLeast),
     };
   };
 
