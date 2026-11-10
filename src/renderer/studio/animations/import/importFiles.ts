@@ -5,12 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { MAX_ANIMATION_FRAMES } from 'common/studioAnimation';
+import { isAseprite } from './importAseprite';
 
 /**
  * What the member chose to import, told apart by what the files are, not
  * by their names: a still picture (a sheet of frames in a grid), a picture
  * with the atlas JSON its exporter wrote beside it, an animated picture
- * (GIF, APNG, animated WebP), or several pictures, one frame each.
+ * (GIF, APNG, animated WebP), an Aseprite file, or several pictures, one
+ * frame each.
  */
 
 /** A file as chosen: its name and its bytes. */
@@ -23,6 +25,7 @@ export type TImportKind =
   | { kind: 'grid'; picture: IChosenFile }
   | { kind: 'atlas'; picture: IChosenFile; atlas: IChosenFile }
   | { kind: 'animated'; picture: IChosenFile; type: TAnimatedType }
+  | { kind: 'aseprite'; picture: IChosenFile }
   | { kind: 'sequence'; pictures: IChosenFile[] };
 
 export type TAnimatedType = 'image/gif' | 'image/png' | 'image/webp';
@@ -104,7 +107,14 @@ export const isAnimatedWebp = (bytes: Uint8Array) =>
   bytes.length > 20 &&
   Math.floor(bytes[20] / ANIMATION_FLAG) % 2 === 1;
 
+/**
+ * A JSON: text opening with a brace. An Aseprite file is told first, since
+ * its first bytes are its size and may happen to be a brace.
+ */
 const isJson = (file: IChosenFile) => {
+  if (isAseprite(file.bytes)) {
+    return false;
+  }
   const first = file.bytes.find(
     (byte) => byte !== 0x20 && byte !== 0x0a && byte !== 0x0d && byte !== 0x09,
   );
@@ -141,7 +151,8 @@ export const importKindOf = (
   const atlases = files.filter(isJson);
   const pictures = files.filter((file) => !isJson(file));
   const unreadable = pictures.find(
-    (file) => !isStill(file.bytes) && !isGif(file.bytes),
+    (file) =>
+      !isStill(file.bytes) && !isGif(file.bytes) && !isAseprite(file.bytes),
   );
   if (unreadable) {
     return { refused: 'unreadable', file: unreadable.name };
@@ -157,6 +168,9 @@ export const importKindOf = (
   }
   if (pictures.length === 1) {
     const [picture] = pictures;
+    if (isAseprite(picture.bytes)) {
+      return { kind: 'aseprite', picture };
+    }
     if (isGif(picture.bytes)) {
       return { kind: 'animated', picture, type: 'image/gif' };
     }

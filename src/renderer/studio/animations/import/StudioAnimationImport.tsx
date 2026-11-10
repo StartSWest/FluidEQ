@@ -70,6 +70,7 @@ const KIND_KEYS: Record<TImportKind['kind'], TranslationKey> = {
   grid: 'studio.animationImport.kind.grid',
   atlas: 'studio.animationImport.kind.atlas',
   animated: 'studio.animationImport.kind.animated',
+  aseprite: 'studio.animationImport.kind.aseprite',
   sequence: 'studio.animationImport.kind.sequence',
 };
 

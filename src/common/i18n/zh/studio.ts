@@ -419,7 +419,7 @@ const studio = {
   'studio.animator.resize': '拖动以调整动画师宽度',
   'studio.animationImport.cardTitle': '导入动画',
   'studio.animationImport.cardText':
-    '精灵表、动图 GIF、PNG 或 WebP、每帧一张的图片，或带有 TexturePacker、Phaser 或 Aseprite JSON 的图表。',
+    '精灵表、动图 GIF、PNG 或 WebP、Aseprite 文件、每帧一张的图片，或带有 TexturePacker、Phaser 或 Aseprite JSON 的图表。',
   'studio.animationImport.choose': '选择文件',
   'studio.animationImport.title': '导入动画',
   'studio.animationImport.lead':
@@ -429,6 +429,8 @@ const studio = {
   'studio.animationImport.kind.atlas':
     '按其 JSON 切分的图表，每帧时长按文件所给。',
   'studio.animationImport.kind.animated': '一张动图，每帧时长按文件所给。',
+  'studio.animationImport.kind.aseprite':
+    'Aseprite 文件：取其可见图层和标签，每帧时长按文件所给。',
   'studio.animationImport.kind.sequence': '每帧一张图片，按文件名顺序排列。',
   'studio.animationImport.columns': '横向',
   'studio.animationImport.rows': '纵向',
@@ -456,7 +458,7 @@ const studio = {
   'studio.animationImport.refused.tooMany':
     '超过了 {most} 帧，这是一个动画的上限。',
   'studio.animationImport.refused.unreadable':
-    '无法将 {file} 读取为每边不超过 16384 像素的 PNG、JPEG、WebP 或 GIF。',
+    '无法将 {file} 读取为每边不超过 16384 像素的 PNG、JPEG、WebP、GIF 或 Aseprite 文件。',
   'studio.animationImport.refused.noFrames':
     '{file} 中没有能放进与它一起选择的图片中的帧。',
   'studio.animationImport.failed.full': '场景中已有 {most} 个动画，已达上限。',

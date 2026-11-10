@@ -445,7 +445,7 @@ const studio = {
   'studio.animator.resize': '애니메이터 크기를 조정하려면 드래그하세요.',
   'studio.animationImport.cardTitle': '애니메이션 가져오기',
   'studio.animationImport.cardText':
-    '스프라이트 시트, 움직이는 GIF·PNG·WebP, 프레임마다 한 장씩인 그림, 또는 TexturePacker·Phaser·Aseprite JSON이 딸린 시트.',
+    '스프라이트 시트, 움직이는 GIF·PNG·WebP, Aseprite 파일, 프레임마다 한 장씩인 그림, 또는 TexturePacker·Phaser·Aseprite JSON이 딸린 시트.',
   'studio.animationImport.choose': '파일 선택',
   'studio.animationImport.title': '애니메이션 가져오기',
   'studio.animationImport.lead':
@@ -456,6 +456,8 @@ const studio = {
     'JSON에 따라 자른 시트로, 각 프레임의 길이는 파일에 적힌 대로입니다.',
   'studio.animationImport.kind.animated':
     '움직이는 그림으로, 각 프레임의 길이는 파일에 적힌 대로입니다.',
+  'studio.animationImport.kind.aseprite':
+    'Aseprite 파일: 보이는 레이어, 태그, 각 프레임의 길이는 파일에 적힌 대로입니다.',
   'studio.animationImport.kind.sequence':
     '프레임마다 한 장씩인 그림을 이름 순서대로 씁니다.',
   'studio.animationImport.columns': '가로',
@@ -485,7 +487,7 @@ const studio = {
   'studio.animationImport.refused.tooMany':
     '{most}프레임이 넘습니다. 애니메이션이 가질 수 있는 최대치입니다.',
   'studio.animationImport.refused.unreadable':
-    '{file}을(를) 한 변이 16384픽셀 이하인 PNG, JPEG, WebP, GIF로 읽을 수 없습니다.',
+    '{file}을(를) 한 변이 16384픽셀 이하인 PNG, JPEG, WebP, GIF, Aseprite 파일로 읽을 수 없습니다.',
   'studio.animationImport.refused.noFrames':
     '{file}에는 함께 고른 그림 안에 들어가는 프레임이 없습니다.',
   'studio.animationImport.failed.full':

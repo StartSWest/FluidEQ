@@ -100,6 +100,23 @@ describe('the kind of an import', () => {
     });
   });
 
+  it('an Aseprite file by its magic number, even when its size reads as a brace', () => {
+    const ase = new Uint8Array(200);
+    // The file's size, first: 0x7b is "{", which a JSON opens with.
+    ase.set([0x7b, 0, 0, 0, 0xe0, 0xa5]);
+    expect(importKindOf([file('hero.aseprite', ase)])).toMatchObject({
+      kind: 'aseprite',
+    });
+  });
+
+  it('control: the same bytes without the magic number are no picture', () => {
+    const notAse = new Uint8Array(200);
+    notAse.set([0x7b, 0, 0, 0, 0, 0]);
+    expect(importKindOf([file('hero.bin', notAse)])).toEqual({
+      refused: 'mixed',
+    });
+  });
+
   it('a picture with a JSON is a sheet cut by its atlas, in either order', () => {
     expect(
       importKindOf([json('hero.json'), file('hero.png', STILL_PNG)]),

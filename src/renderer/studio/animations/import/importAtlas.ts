@@ -153,8 +153,15 @@ const framesOf = (json: Record<string, unknown>): IAtlasFrame[] | undefined => {
   });
 };
 
-/** A tag's frames in Aseprite's playing order. */
-const tagOrder = (from: number, to: number, direction: unknown): number[] => {
+/**
+ * A tag's frames in Aseprite's playing order, its direction as the JSON
+ * export names it (the .ase file's numbers are read into these names).
+ */
+export const tagOrder = (
+  from: number,
+  to: number,
+  direction: unknown,
+): number[] => {
   const forward = Array.from({ length: to - from + 1 }, (_, at) => from + at);
   const back = [...forward].reverse();
   switch (direction) {

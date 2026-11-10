@@ -460,7 +460,7 @@ const studio = {
   'studio.animator.resize': 'Перетащите, чтобы изменить ширину аниматора',
   'studio.animationImport.cardTitle': 'Импортировать анимацию',
   'studio.animationImport.cardText':
-    'Спрайт-лист, анимированный GIF, PNG или WebP, по картинке на кадр или лист с его JSON из TexturePacker, Phaser или Aseprite.',
+    'Спрайт-лист, анимированный GIF, PNG или WebP, файл Aseprite, по картинке на кадр или лист с его JSON из TexturePacker, Phaser или Aseprite.',
   'studio.animationImport.choose': 'Выбрать файлы',
   'studio.animationImport.title': 'Импортировать анимацию',
   'studio.animationImport.lead':
@@ -471,6 +471,8 @@ const studio = {
     'Лист, разрезанный по его JSON, с длительностью каждого кадра из файла.',
   'studio.animationImport.kind.animated':
     'Анимированная картинка с длительностью каждого кадра из файла.',
+  'studio.animationImport.kind.aseprite':
+    'Файл Aseprite: его видимые слои, теги и длительность каждого кадра из файла.',
   'studio.animationImport.kind.sequence':
     'По картинке на кадр, в порядке их имён.',
   'studio.animationImport.columns': 'По ширине',
@@ -500,7 +502,7 @@ const studio = {
   'studio.animationImport.refused.tooMany':
     'Это больше {most} кадров — максимума для анимации.',
   'studio.animationImport.refused.unreadable':
-    'Не удалось прочитать {file} как PNG, JPEG, WebP или GIF размером не более 16384 пикселей по стороне.',
+    'Не удалось прочитать {file} как PNG, JPEG, WebP, GIF или файл Aseprite размером не более 16384 пикселей по стороне.',
   'studio.animationImport.refused.noFrames':
     '{file} не указывает ни одного кадра, помещающегося в выбранную вместе с ним картинку.',
   'studio.animationImport.failed.full':

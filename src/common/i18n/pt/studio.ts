@@ -459,7 +459,7 @@ const studio = {
   'studio.animator.resize': 'Arraste para redimensionar o animador',
   'studio.animationImport.cardTitle': 'Importar uma animação',
   'studio.animationImport.cardText':
-    'Uma folha de sprites, um GIF, PNG ou WebP animado, uma imagem por quadro, ou uma folha com seu JSON do TexturePacker, Phaser ou Aseprite.',
+    'Uma folha de sprites, um GIF, PNG ou WebP animado, um arquivo do Aseprite, uma imagem por quadro, ou uma folha com seu JSON do TexturePacker, Phaser ou Aseprite.',
   'studio.animationImport.choose': 'Escolher arquivos',
   'studio.animationImport.title': 'Importar uma animação',
   'studio.animationImport.lead':
@@ -471,6 +471,8 @@ const studio = {
     'Uma folha cortada pelo seu JSON, com o tempo que ele dá a cada quadro.',
   'studio.animationImport.kind.animated':
     'Uma imagem animada, com o tempo que ela dá a cada quadro.',
+  'studio.animationImport.kind.aseprite':
+    'Um arquivo do Aseprite: suas camadas visíveis, suas tags e o tempo que ele dá a cada quadro.',
   'studio.animationImport.kind.sequence':
     'Uma imagem por quadro, na ordem dos seus nomes.',
   'studio.animationImport.columns': 'Na largura',
@@ -500,7 +502,7 @@ const studio = {
   'studio.animationImport.refused.tooMany':
     'São mais de {most} quadros, o máximo que uma animação pode ter.',
   'studio.animationImport.refused.unreadable':
-    'Não foi possível ler {file} como PNG, JPEG, WebP ou GIF de no máximo 16384 pixels de lado.',
+    'Não foi possível ler {file} como PNG, JPEG, WebP, GIF ou arquivo do Aseprite de no máximo 16384 pixels de lado.',
   'studio.animationImport.refused.noFrames':
     '{file} não indica nenhum quadro que caiba na imagem escolhida com ele.',
   'studio.animationImport.failed.full':

@@ -470,7 +470,7 @@ const studio = {
   'studio.animator.resize': 'Drag to resize the animator',
   'studio.animationImport.cardTitle': 'Import an animation',
   'studio.animationImport.cardText':
-    'A sprite sheet, an animated GIF, PNG or WebP, one picture per frame, or a sheet with its TexturePacker, Phaser or Aseprite JSON.',
+    'A sprite sheet, an animated GIF, PNG or WebP, an Aseprite file, one picture per frame, or a sheet with its TexturePacker, Phaser or Aseprite JSON.',
   'studio.animationImport.choose': 'Choose files',
   'studio.animationImport.title': 'Import an animation',
   'studio.animationImport.lead':
@@ -481,6 +481,8 @@ const studio = {
     'A sheet cut by its JSON, with the timing it gives each frame.',
   'studio.animationImport.kind.animated':
     'An animated picture, with the timing it gives each frame.',
+  'studio.animationImport.kind.aseprite':
+    'An Aseprite file: its visible layers, its tags and the timing it gives each frame.',
   'studio.animationImport.kind.sequence':
     'One picture per frame, in the order of their names.',
   'studio.animationImport.columns': 'Across',
@@ -510,7 +512,7 @@ const studio = {
   'studio.animationImport.refused.tooMany':
     'That is more than {most} frames, the most an animation can have.',
   'studio.animationImport.refused.unreadable':
-    '{file} could not be read as a PNG, JPEG, WebP or GIF of at most 16384 pixels on a side.',
+    '{file} could not be read as a PNG, JPEG, WebP, GIF or Aseprite file of at most 16384 pixels on a side.',
   'studio.animationImport.refused.noFrames':
     '{file} names no frames that fit inside the picture chosen with it.',
   'studio.animationImport.failed.full':

@@ -465,7 +465,7 @@ const studio = {
   'studio.animator.resize': 'Arrastra para cambiar el ancho del animador',
   'studio.animationImport.cardTitle': 'Importar una animación',
   'studio.animationImport.cardText':
-    'Una hoja de sprites, un GIF, PNG o WebP animado, una imagen por fotograma, o una hoja con su JSON de TexturePacker, Phaser o Aseprite.',
+    'Una hoja de sprites, un GIF, PNG o WebP animado, un archivo de Aseprite, una imagen por fotograma, o una hoja con su JSON de TexturePacker, Phaser o Aseprite.',
   'studio.animationImport.choose': 'Elegir archivos',
   'studio.animationImport.title': 'Importar una animación',
   'studio.animationImport.lead':
@@ -477,6 +477,8 @@ const studio = {
     'Una hoja cortada según su JSON, con el tiempo que da a cada fotograma.',
   'studio.animationImport.kind.animated':
     'Una imagen animada, con el tiempo que da a cada fotograma.',
+  'studio.animationImport.kind.aseprite':
+    'Un archivo de Aseprite: sus capas visibles, sus etiquetas y el tiempo que da a cada fotograma.',
   'studio.animationImport.kind.sequence':
     'Una imagen por fotograma, en el orden de sus nombres.',
   'studio.animationImport.columns': 'A lo ancho',
@@ -506,7 +508,7 @@ const studio = {
   'studio.animationImport.refused.tooMany':
     'Son más de {most} fotogramas, lo máximo que puede tener una animación.',
   'studio.animationImport.refused.unreadable':
-    '{file} no se pudo leer como PNG, JPEG, WebP o GIF de 16384 píxeles por lado como máximo.',
+    '{file} no se pudo leer como PNG, JPEG, WebP, GIF o archivo de Aseprite de 16384 píxeles por lado como máximo.',
   'studio.animationImport.refused.noFrames':
     '{file} no indica ningún fotograma que quepa en la imagen elegida con él.',
   'studio.animationImport.failed.full':

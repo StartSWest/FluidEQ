@@ -466,7 +466,7 @@ const studio = {
   'studio.animator.resize': 'Faites glisser pour redimensionner l’animateur',
   'studio.animationImport.cardTitle': 'Importer une animation',
   'studio.animationImport.cardText':
-    'Une planche de sprites, un GIF, PNG ou WebP animé, un fichier par image, ou une planche avec son JSON TexturePacker, Phaser ou Aseprite.',
+    'Une planche de sprites, un GIF, PNG ou WebP animé, un fichier Aseprite, un fichier par image, ou une planche avec son JSON TexturePacker, Phaser ou Aseprite.',
   'studio.animationImport.choose': 'Choisir des fichiers',
   'studio.animationImport.title': 'Importer une animation',
   'studio.animationImport.lead':
@@ -478,6 +478,8 @@ const studio = {
     'Une planche découpée selon son JSON, avec la durée qu’il donne à chaque image.',
   'studio.animationImport.kind.animated':
     'Une image animée, avec la durée qu’elle donne à chaque image.',
+  'studio.animationImport.kind.aseprite':
+    'Un fichier Aseprite : ses calques visibles, ses tags et la durée qu’il donne à chaque image.',
   'studio.animationImport.kind.sequence':
     'Un fichier par image, dans l’ordre de leurs noms.',
   'studio.animationImport.columns': 'En largeur',
@@ -507,7 +509,7 @@ const studio = {
   'studio.animationImport.refused.tooMany':
     'Cela fait plus de {most} images, le maximum qu’une animation peut avoir.',
   'studio.animationImport.refused.unreadable':
-    '{file} n’a pas pu être lu comme un PNG, JPEG, WebP ou GIF d’au plus 16384 pixels de côté.',
+    '{file} n’a pas pu être lu comme un PNG, JPEG, WebP, GIF ou fichier Aseprite d’au plus 16384 pixels de côté.',
   'studio.animationImport.refused.noFrames':
     '{file} n’indique aucune image qui tienne dans l’image choisie avec lui.',
   'studio.animationImport.failed.full':

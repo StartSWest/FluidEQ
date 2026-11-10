@@ -11,6 +11,7 @@ import {
   SHEET_BOUNDS,
 } from 'common/pictureBounds';
 import { MAX_ANIMATION_FRAMES } from 'common/studioAnimation';
+import { readAseprite } from './importAseprite';
 import { readAtlas } from './importAtlas';
 import { gifSize, type IChosenFile, type TImportKind } from './importFiles';
 import { detectGrid, guessGrid, sheetLayout, type IGrid } from './importGrid';
@@ -333,6 +334,61 @@ const decodeSequence = async (
   };
 };
 
+/**
+ * An Aseprite file's frames, each composited from its visible layers
+ * (`importAseprite.ts`) and drawn into its cell one at a time, its tags as
+ * animations.
+ */
+const decodeAseprite = async (
+  picture: IChosenFile,
+): Promise<IDecodedImport | TDecodeRefusal> => {
+  const read = await readAseprite(picture.bytes);
+  if (read === 'too-many') {
+    return { refused: 'too-many', most: MAX_ANIMATION_FRAMES };
+  }
+  if (read === 'too-large') {
+    return { refused: 'too-large', file: picture.name };
+  }
+  if (read === 'unreadable') {
+    return { refused: 'unreadable', file: picture.name };
+  }
+  const count = read.durations.length;
+  const sheet = framesCanvas(count, read.width, read.height);
+  const one = canvasOf(read.width, read.height);
+  if (!sheet.context || !one.context) {
+    return { refused: 'unreadable', file: picture.name };
+  }
+  for (let index = 0; index < count; index += 1) {
+    one.context.putImageData(
+      new ImageData(read.frame(index), read.width, read.height),
+      0,
+      0,
+    );
+    const { x, y } = sheet.cellAt(index);
+    sheet.context.drawImage(
+      one.canvas,
+      x,
+      y,
+      sheet.layout.cellWidth,
+      sheet.layout.cellHeight,
+    );
+  }
+  const frames = read.durations.map((duration, index) =>
+    sheet.frameAt(index, duration),
+  );
+  return {
+    image: sheet.canvas,
+    frames,
+    clips:
+      read.tags.length > 0
+        ? read.tags.map(({ name, order }) => ({ name, order }))
+        : [{ name: '', order: frames.map((_, index) => index) }],
+    width: sheet.layout.cellWidth,
+    height: sheet.layout.cellHeight,
+    close: () => undefined,
+  };
+};
+
 /** The files decoded into frames, or why they cannot be. */
 export const decodeImport = (
   kind: TImportKind,
@@ -344,6 +400,8 @@ export const decodeImport = (
       return decodeAtlas(kind.picture, kind.atlas);
     case 'animated':
       return decodeAnimated(kind.picture, kind.type);
+    case 'aseprite':
+      return decodeAseprite(kind.picture);
     default:
       return decodeSequence(kind.pictures);
   }

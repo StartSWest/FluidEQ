@@ -11,7 +11,7 @@ import '../../../styles/StudioAsk.scss';
 
 /** Every kind an import reads, for the system's file picker. */
 const ACCEPTED =
-  'image/png,image/jpeg,image/webp,image/gif,.png,.apng,.jpg,.jpeg,.webp,.gif,.json,application/json';
+  'image/png,image/jpeg,image/webp,image/gif,.png,.apng,.jpg,.jpeg,.webp,.gif,.ase,.aseprite,.json,application/json';
 
 /** The files as an import takes them: each one's name and bytes. */
 export const chosenFiles = (list: FileList | null): Promise<IChosenFile[]> =>

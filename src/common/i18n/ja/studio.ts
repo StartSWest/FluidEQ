@@ -466,7 +466,7 @@ const studio = {
   'studio.animator.resize': 'ドラッグしてアニメーターの幅を変更',
   'studio.animationImport.cardTitle': 'アニメーションを読み込む',
   'studio.animationImport.cardText':
-    'スプライトシート、アニメーション GIF・PNG・WebP、1 コマ 1 枚の画像、または TexturePacker・Phaser・Aseprite の JSON 付きのシート。',
+    'スプライトシート、アニメーション GIF・PNG・WebP、Aseprite ファイル、1 コマ 1 枚の画像、または TexturePacker・Phaser・Aseprite の JSON 付きのシート。',
   'studio.animationImport.choose': 'ファイルを選ぶ',
   'studio.animationImport.title': 'アニメーションを読み込む',
   'studio.animationImport.lead':
@@ -477,6 +477,8 @@ const studio = {
     'JSON に従って切り分けたシート。各コマの長さはファイルのとおりです。',
   'studio.animationImport.kind.animated':
     'アニメーション画像。各コマの長さはファイルのとおりです。',
+  'studio.animationImport.kind.aseprite':
+    'Aseprite ファイル: 表示中のレイヤー、タグ、各コマの長さはファイルのとおりです。',
   'studio.animationImport.kind.sequence':
     '1 コマ 1 枚の画像を、名前の順に並べます。',
   'studio.animationImport.columns': '横',
@@ -506,7 +508,7 @@ const studio = {
   'studio.animationImport.refused.tooMany':
     '{most} コマを超えています。これがアニメーションの最大コマ数です。',
   'studio.animationImport.refused.unreadable':
-    '{file} を、一辺 16384 ピクセル以下の PNG・JPEG・WebP・GIF として読み込めませんでした。',
+    '{file} を、一辺 16384 ピクセル以下の PNG・JPEG・WebP・GIF・Aseprite ファイルとして読み込めませんでした。',
   'studio.animationImport.refused.noFrames':
     '{file} には、一緒に選んだ画像に収まるコマがありません。',
   'studio.animationImport.failed.full':

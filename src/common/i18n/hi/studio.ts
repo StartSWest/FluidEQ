@@ -457,7 +457,7 @@ const studio = {
   'studio.animator.resize': 'एनिमेटर की चौड़ाई बदलने के लिए खींचें',
   'studio.animationImport.cardTitle': 'एनिमेशन इंपोर्ट करें',
   'studio.animationImport.cardText':
-    'स्प्राइट शीट, एनिमेटेड GIF, PNG या WebP, हर फ़्रेम की एक तस्वीर, या TexturePacker, Phaser या Aseprite के JSON वाली शीट।',
+    'स्प्राइट शीट, एनिमेटेड GIF, PNG या WebP, Aseprite फ़ाइल, हर फ़्रेम की एक तस्वीर, या TexturePacker, Phaser या Aseprite के JSON वाली शीट।',
   'studio.animationImport.choose': 'फ़ाइलें चुनें',
   'studio.animationImport.title': 'एनिमेशन इंपोर्ट करें',
   'studio.animationImport.lead':
@@ -468,6 +468,8 @@ const studio = {
     'अपने JSON के अनुसार काटी गई शीट, हर फ़्रेम की अवधि फ़ाइल के अनुसार।',
   'studio.animationImport.kind.animated':
     'एक एनिमेटेड तस्वीर, हर फ़्रेम की अवधि फ़ाइल के अनुसार।',
+  'studio.animationImport.kind.aseprite':
+    'एक Aseprite फ़ाइल: उसकी दिखने वाली परतें, उसके टैग और हर फ़्रेम की अवधि फ़ाइल के अनुसार।',
   'studio.animationImport.kind.sequence':
     'हर फ़्रेम की एक तस्वीर, उनके नामों के क्रम में।',
   'studio.animationImport.columns': 'चौड़ाई में',
@@ -497,7 +499,7 @@ const studio = {
   'studio.animationImport.refused.tooMany':
     'ये {most} से ज़्यादा फ़्रेम हैं, जो एक एनिमेशन में अधिकतम हो सकते हैं।',
   'studio.animationImport.refused.unreadable':
-    '{file} को हर तरफ़ अधिकतम 16384 पिक्सेल वाली PNG, JPEG, WebP या GIF के रूप में पढ़ा नहीं जा सका।',
+    '{file} को हर तरफ़ अधिकतम 16384 पिक्सेल वाली PNG, JPEG, WebP, GIF या Aseprite फ़ाइल के रूप में पढ़ा नहीं जा सका।',
   'studio.animationImport.refused.noFrames':
     '{file} में ऐसा कोई फ़्रेम नहीं है जो उसके साथ चुनी गई तस्वीर में समाए।',
   'studio.animationImport.failed.full':

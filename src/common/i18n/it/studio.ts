@@ -466,7 +466,7 @@ const studio = {
   'studio.animator.resize': 'Trascina per ridimensionare l’animatore',
   'studio.animationImport.cardTitle': 'Importa un’animazione',
   'studio.animationImport.cardText':
-    'Uno sprite sheet, una GIF, PNG o WebP animata, un’immagine per fotogramma, o uno sheet con il suo JSON di TexturePacker, Phaser o Aseprite.',
+    'Uno sprite sheet, una GIF, PNG o WebP animata, un file di Aseprite, un’immagine per fotogramma, o uno sheet con il suo JSON di TexturePacker, Phaser o Aseprite.',
   'studio.animationImport.choose': 'Scegli i file',
   'studio.animationImport.title': 'Importa un’animazione',
   'studio.animationImport.lead':
@@ -478,6 +478,8 @@ const studio = {
     'Uno sheet tagliato secondo il suo JSON, con la durata che dà a ogni fotogramma.',
   'studio.animationImport.kind.animated':
     'Un’immagine animata, con la durata che dà a ogni fotogramma.',
+  'studio.animationImport.kind.aseprite':
+    'Un file di Aseprite: i suoi livelli visibili, i suoi tag e la durata che dà a ogni fotogramma.',
   'studio.animationImport.kind.sequence':
     'Un’immagine per fotogramma, nell’ordine dei loro nomi.',
   'studio.animationImport.columns': 'In larghezza',
@@ -507,7 +509,7 @@ const studio = {
   'studio.animationImport.refused.tooMany':
     'Sono più di {most} fotogrammi, il massimo che un’animazione può avere.',
   'studio.animationImport.refused.unreadable':
-    'Impossibile leggere {file} come PNG, JPEG, WebP o GIF di al massimo 16384 pixel per lato.',
+    'Impossibile leggere {file} come PNG, JPEG, WebP, GIF o file di Aseprite di al massimo 16384 pixel per lato.',
   'studio.animationImport.refused.noFrames':
     '{file} non indica fotogrammi che rientrino nell’immagine scelta insieme a esso.',
   'studio.animationImport.failed.full':

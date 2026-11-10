@@ -473,7 +473,7 @@ const studio = {
   'studio.animator.resize': 'Ziehen, um die Breite des Animators zu ändern',
   'studio.animationImport.cardTitle': 'Animation importieren',
   'studio.animationImport.cardText':
-    'Ein Spritesheet, ein animiertes GIF, PNG oder WebP, ein Bild pro Einzelbild oder ein Sheet mit seinem JSON aus TexturePacker, Phaser oder Aseprite.',
+    'Ein Spritesheet, ein animiertes GIF, PNG oder WebP, eine Aseprite-Datei, ein Bild pro Einzelbild oder ein Sheet mit seinem JSON aus TexturePacker, Phaser oder Aseprite.',
   'studio.animationImport.choose': 'Dateien auswählen',
   'studio.animationImport.title': 'Animation importieren',
   'studio.animationImport.lead':
@@ -485,6 +485,8 @@ const studio = {
     'Ein Sheet, zerlegt nach seinem JSON, mit dem Timing, das es jedem Bild gibt.',
   'studio.animationImport.kind.animated':
     'Ein animiertes Bild, mit dem Timing, das es jedem Bild gibt.',
+  'studio.animationImport.kind.aseprite':
+    'Eine Aseprite-Datei: ihre sichtbaren Ebenen, ihre Tags und das Timing, das sie jedem Bild gibt.',
   'studio.animationImport.kind.sequence':
     'Ein Bild pro Einzelbild, in der Reihenfolge ihrer Namen.',
   'studio.animationImport.columns': 'Spalten',
@@ -514,7 +516,7 @@ const studio = {
   'studio.animationImport.refused.tooMany':
     'Das sind mehr als {most} Bilder, die meisten, die eine Animation haben kann.',
   'studio.animationImport.refused.unreadable':
-    '{file} konnte nicht als PNG, JPEG, WebP oder GIF mit höchstens 16384 Pixeln pro Seite gelesen werden.',
+    '{file} konnte nicht als PNG, JPEG, WebP, GIF oder Aseprite-Datei mit höchstens 16384 Pixeln pro Seite gelesen werden.',
   'studio.animationImport.refused.noFrames':
     '{file} nennt keine Bilder, die in das mit ihm gewählte Bild passen.',
   'studio.animationImport.failed.full':

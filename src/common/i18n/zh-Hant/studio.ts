@@ -405,7 +405,7 @@ const studio = {
   'studio.animator.resize': '拖曳以調整動畫師大小',
   'studio.animationImport.cardTitle': '匯入動畫',
   'studio.animationImport.cardText':
-    '精靈表、動態 GIF、PNG 或 WebP、每格一張的圖片，或附有 TexturePacker、Phaser 或 Aseprite JSON 的圖表。',
+    '精靈表、動態 GIF、PNG 或 WebP、Aseprite 檔案、每格一張的圖片，或附有 TexturePacker、Phaser 或 Aseprite JSON 的圖表。',
   'studio.animationImport.choose': '選擇檔案',
   'studio.animationImport.title': '匯入動畫',
   'studio.animationImport.lead':
@@ -415,6 +415,8 @@ const studio = {
   'studio.animationImport.kind.atlas':
     '依其 JSON 切分的圖表，每格時長依檔案所給。',
   'studio.animationImport.kind.animated': '一張動態圖片，每格時長依檔案所給。',
+  'studio.animationImport.kind.aseprite':
+    'Aseprite 檔案：取其可見圖層與標籤，每格時長依檔案所給。',
   'studio.animationImport.kind.sequence': '每格一張圖片，依檔名順序排列。',
   'studio.animationImport.columns': '橫向',
   'studio.animationImport.rows': '縱向',
@@ -442,7 +444,7 @@ const studio = {
   'studio.animationImport.refused.tooMany':
     '超過了 {most} 格，這是一個動畫的上限。',
   'studio.animationImport.refused.unreadable':
-    '無法將 {file} 讀取為每邊不超過 16384 像素的 PNG、JPEG、WebP 或 GIF。',
+    '無法將 {file} 讀取為每邊不超過 16384 像素的 PNG、JPEG、WebP、GIF 或 Aseprite 檔案。',
   'studio.animationImport.refused.noFrames':
     '{file} 中沒有能放進與它一起選擇的圖片中的格。',
   'studio.animationImport.failed.full': '場景中已有 {most} 個動畫，已達上限。',
