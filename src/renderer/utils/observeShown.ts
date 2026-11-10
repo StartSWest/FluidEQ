@@ -4,6 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+/** Painted and not see-through: what a drawing loop needs to be worth running. */
+const PAINTED: CheckVisibilityOptions = {
+  opacityProperty: true,
+  visibilityProperty: true,
+};
+
 /**
  * Whether anybody can see `element`, reported only when the answer changes.
  *
@@ -21,10 +27,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Each of those arrives as a real event here — a class or style attribute
  * changing on an ancestor, a transition or animation on one finishing,
  * `fullscreenchange`, `visibilitychange` — and nothing is sampled on a clock.
+ *
+ * `seen` is what counts as seen, in `checkVisibility`'s own terms. A drawing
+ * loop asks whether its pixels can show, so a see-through ancestor hides it
+ * (the default). A layout asks whether the element stands in its place, and
+ * passes `{ visibilityProperty: true }`: an ancestor at opacity 0 still takes
+ * its room, and the columns' one-time entrance starts at opacity 0.
  */
 export default function observeShown(
   element: Element,
   onChange: (shown: boolean) => void,
+  seen: CheckVisibilityOptions = PAINTED,
 ): () => void {
   let intersecting = true;
   let shown: boolean | undefined;
@@ -41,10 +54,7 @@ export default function observeShown(
       (!fullScreen || fullScreen.contains(element)) &&
       // Absent in jsdom, where nothing is ever painted to hide.
       (typeof element.checkVisibility !== 'function' ||
-        element.checkVisibility({
-          opacityProperty: true,
-          visibilityProperty: true,
-        }));
+        element.checkVisibility(seen));
     if (next !== shown) {
       shown = next;
       onChange(next);

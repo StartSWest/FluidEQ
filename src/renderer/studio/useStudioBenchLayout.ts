@@ -33,6 +33,18 @@ export const STUDIO_SIDE_COLUMN_MIN = 880;
  * the background is not the Studio closing — the bench is still what is
  * open — so a hidden document is not a reason to give the panel back, or it
  * would unfold behind the window and fold again, visibly, on return.
+ *
+ * ON SCREEN MEANS STANDING THERE, NOT FADED IN. The window's columns rise in
+ * once at launch from opacity 0, and the bench used to count as unseen until
+ * that fade had finished. A window that opens without the focus holds the fade
+ * until its first input (measured: the column still at opacity 0 three seconds
+ * after load, finishing on the first key), so the panel stayed unfolded, the
+ * bench measured 848px of the 880 the column needs and the chat sat in its
+ * tab, and the member's first press —
+ * opening a menu — finished the fade, folded the panel, moved the chat to its
+ * column and rebuilt it: the menu shut and the conversation scrolled back to
+ * the top (2026-11-09). The fold is a layout decision, so the bench asks
+ * whether it stands in its place, which it does through a fade.
  */
 export default function useStudioBenchLayout(
   bench: RefObject<HTMLElement | null>,
@@ -56,13 +68,17 @@ export default function useStudioBenchLayout(
     if (!element) {
       return undefined;
     }
-    const stop = observeShown(element, (shown) => {
-      if (shown) {
-        holdSoundPaneForStudio();
-      } else if (!document.hidden) {
-        releaseSoundPaneFromStudio();
-      }
-    });
+    const stop = observeShown(
+      element,
+      (shown) => {
+        if (shown) {
+          holdSoundPaneForStudio();
+        } else if (!document.hidden) {
+          releaseSoundPaneFromStudio();
+        }
+      },
+      { visibilityProperty: true },
+    );
     return () => {
       stop();
       releaseSoundPaneFromStudio();

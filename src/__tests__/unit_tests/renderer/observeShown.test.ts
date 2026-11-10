@@ -74,3 +74,42 @@ describe('the titlebar wave coming back from the amp', () => {
     stop();
   });
 });
+
+// The window's columns rise in once at launch from opacity 0 (2026-11-09).
+describe('an ancestor fading in from opacity 0', () => {
+  let fading: boolean;
+
+  beforeEach(() => {
+    fading = true;
+    Object.defineProperty(wave, 'checkVisibility', {
+      configurable: true,
+      value: (options?: CheckVisibilityOptions) =>
+        !(fading && options?.opacityProperty),
+    });
+  });
+
+  const fadeEnds = () => {
+    fading = false;
+    app.dispatchEvent(new Event('animationend', { bubbles: true }));
+  };
+
+  it('hides a drawing until the fade ends: its pixels cannot show', () => {
+    const onChange = jest.fn();
+    const stop = observeShown(wave, onChange);
+    expect(onChange).toHaveBeenLastCalledWith(false);
+
+    fadeEnds();
+    expect(onChange).toHaveBeenLastCalledWith(true);
+    stop();
+  });
+
+  it('leaves a layout shown throughout: the element stands in its place', () => {
+    const onChange = jest.fn();
+    const stop = observeShown(wave, onChange, { visibilityProperty: true });
+    expect(onChange.mock.calls).toEqual([[true]]);
+
+    fadeEnds();
+    expect(onChange.mock.calls).toEqual([[true]]);
+    stop();
+  });
+});
