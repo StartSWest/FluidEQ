@@ -24,6 +24,7 @@ import type {
   IChatProcessEvents,
 } from './chatProcess';
 import { readUsageLine, type TChatUsage } from './chatUsage';
+import { SANDBOX_DENIED, SANDBOX_SETTINGS } from './chatSandbox';
 
 /*
  * What FluidEQ does, and what it will not, follow Anthropic's conditions for
@@ -33,21 +34,21 @@ import { readUsageLine, type TChatUsage } from './chatUsage';
  *   by the member through Claude Code's own sign-in. It never reads, keeps or
  *   sends that sign-in, and pays for or meters nothing: the use is the
  *   member's own plan's.
- * - Claude has the member's Claude Code with their plugins' skills and
- *   commands (Ivan, 2026-11-07: "claude need to have access to all plugins
- *   that claude has"), the files and the shell those skills run through
- *   (chatTools), and FluidEQ's own tools on the chat's own door
- *   (`chatServer.ts`): look at and hear the scene, lay out its artwork. Not the member's own
- *   tool servers, nor Claude Code's tools that make no scene, which cost the
- *   member's plan on every message (Ivan: "so it doent consujme more ussage
- *   from claude thatn it should"). Reading, searching and writing in the
- *   project's folder, and FluidEQ's tools, are allowed; so is whatever the
- *   member's own settings allow. Everything else is asked of the member, on a card in the chat,
- *   before it runs (`chatPermission.ts`), in Claude Code's own manual mode —
- *   never a mode the member's settings may have chosen that asks nobody,
- *   because the chat reads files in a project anybody may have shared.
- *   It used to be held to the five file tools with everything else refused
- *   unasked: a member's own picture plugin could not be reached at all.
+ * - Claude works on the open scene's project folder and on nothing else
+ *   (Ivan, 2026-11-09: "if I ask it to create app or modify fliid or anting
+ *   it doent have access from there"), enforced as `chatSandbox.ts` says:
+ *   the files of that folder, their plugins' skills as instructions, and
+ *   FluidEQ's own tools on the chat's own door (`chatServer.ts`) — look at
+ *   and hear the scene, make a picture, lay out its artwork. No shell, no
+ *   web, not the member's own tool servers, which also cost the member's
+ *   plan on every message (Ivan: "so it doent consujme more ussage from
+ *   claude thatn it should"). Every use of a file is put to FluidEQ, which
+ *   answers it from where the file really is (`chatPermission.ts`), in
+ *   Claude Code's own manual mode — never a mode that asks nobody, because
+ *   the chat reads files in a project anybody may have shared. From
+ *   2026-11-07 to 11-09 a shell and the member's other tools were offered,
+ *   each asked of the member on a card: a yes there could build an app or
+ *   edit FluidEQ itself, which is what the 11-09 rule took away.
  * - The member's Claude Code is driven as published, over its own stream,
  *   and never through the Agent SDK: Anthropic does not let a third-party
  *   app offer claude.ai login through the SDK, and does allow the member's
@@ -58,33 +59,23 @@ import { readUsageLine, type TChatUsage } from './chatUsage';
  */
 
 /**
- * Claude Code's built-in tools the chat offers: the files, the shell a
- * plugin's skill runs its scripts through (Bash, or PowerShell where Windows
- * has no Bash), and the skills themselves. Every built-in tool is sent with
- * every message, and Claude Code's whole set is 34 of them — scheduling,
- * agents, worktrees — none of which make a scene. Measured on 2.1.316, three
- * messages on one process: the whole set with the member's 92 plugin tool
- * servers came to about 52,000 input tokens a message, and the list grew
- * from 66 tools to 200 while those servers connected, so the second message
- * wrote a fresh cache instead of reading it; this set, with no tool server
- * of the member's, comes to about 29,400, every message after the first read
- * from Claude Code's own prompt cache (the old five file tools: 13,000).
- * The plugins' skills and commands all stay: a picture plugin such as
- * gpt-studio is a skill that runs `node`. PowerShell is Claude Code's on
- * Windows alone, so it is named there alone.
+ * Claude Code's built-in tools the chat offers: the files and the skills,
+ * and nothing that reaches past the project folder (`chatSandbox.ts`).
+ * Every built-in tool is sent with every message, and Claude Code's whole
+ * set is 34 of them — scheduling, agents, worktrees — none of which make a
+ * scene. Measured on 2.1.316: the whole set with the member's 92 plugin tool
+ * servers came to about 52,000 input tokens a message; the files, the shell
+ * and the skills with no tool server of the member's, about 29,400 (the old
+ * five file tools: 13,000).
  */
-export const chatTools = (platform: NodeJS.Platform = process.platform) =>
-  platform === 'win32'
-    ? 'Read,Edit,Write,Glob,Grep,Bash,PowerShell,Skill'
-    : 'Read,Edit,Write,Glob,Grep,Bash,Skill';
+export const CHAT_TOOLS = 'Read,Edit,Write,Glob,Grep,Skill';
 
-/** Allowed without a card: the project's files, and FluidEQ's own tools. */
+/**
+ * FluidEQ's own tools, allowed without a question. The files are not here:
+ * every use of one is put to FluidEQ (`SANDBOX_SETTINGS`), so it can answer
+ * from where the file really is.
+ */
 const ALLOWED = [
-  'Read(./**)',
-  'Edit(./**)',
-  'Write(./**)',
-  'Glob',
-  'Grep',
   `mcp__${DOOR_SERVER}__look_at_scene`,
   `mcp__${DOOR_SERVER}__hear_the_music`,
   `mcp__${DOOR_SERVER}__make_picture`,
@@ -164,6 +155,8 @@ export const claudeCodeCommand = ({
 }: IClaudeLaunch): IChatCommand => {
   const briefFile = path.join(own, 'brief.txt');
   writeFileAtomically(briefFile, brief, 0o600);
+  const sandboxFile = path.join(own, 'sandbox-settings.json');
+  writeFileAtomically(sandboxFile, JSON.stringify(SANDBOX_SETTINGS), 0o600);
   const args = [
     '-p',
     '--input-format',
@@ -189,9 +182,15 @@ export const claudeCodeCommand = ({
     '--permission-prompt-tool',
     'stdio',
     '--tools',
-    chatTools(),
+    CHAT_TOOLS,
     '--allowedTools',
     ...ALLOWED,
+    '--disallowedTools',
+    ...SANDBOX_DENIED,
+    // Above the member's own settings: every file use a question for
+    // FluidEQ, Claude Code's fences on, no hooks (`chatSandbox.ts`).
+    '--settings',
+    sandboxFile,
     // FluidEQ's door only (`--mcp-config` below): see chatTools for what the
     // member's own tool servers cost every message.
     '--strict-mcp-config',

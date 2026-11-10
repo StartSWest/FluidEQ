@@ -122,13 +122,6 @@ const studioChat = {
   'studioChat.ask.makeIt': '生成',
   'studioChat.ask.allowChat': '本次聊天都允许',
   'studioChat.ask.cost': '使用你的 ChatGPT 套餐；大约一分钟。',
-  'studioChat.ask.toolTitle': '允许 Claude 使用 {tool}？',
-  'studioChat.ask.toolBody':
-    '这是你自己的 Claude Code 工具或插件。只有在你允许时，它才会在这台电脑上用你的账户运行。',
-  'studioChat.ask.allow': '允许',
-  'studioChat.ask.allowAlways': '始终允许',
-  'studioChat.ask.allowAlwaysHint': '在此聊天中不再询问 {tool}',
-  'studioChat.ask.deny': '不允许',
   'studioChat.chatgptOn': 'ChatGPT 图片已开启。',
   'studioChat.chatgptTurnOff': '关闭',
   'studioChat.past.title': '以前的聊天',

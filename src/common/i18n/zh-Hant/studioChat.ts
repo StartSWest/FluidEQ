@@ -126,13 +126,6 @@ const studioChat = {
   'studioChat.ask.makeIt': '做到這一點',
   'studioChat.ask.allowChat': '允許此聊天',
   'studioChat.ask.cost': '使用您的 ChatGPT 計劃；大約一分鐘。',
-  'studioChat.ask.toolTitle': '允許 Claude 使用 {tool}？',
-  'studioChat.ask.toolBody':
-    '這是你自己的 Claude Code 工具或外掛程式。只有在你允許時，它才會在這台電腦上用你的帳戶執行。',
-  'studioChat.ask.allow': '允許',
-  'studioChat.ask.allowAlways': '一律允許',
-  'studioChat.ask.allowAlwaysHint': '在此聊天中不再詢問 {tool}',
-  'studioChat.ask.deny': '不允許',
   'studioChat.chatgptOn': 'ChatGPT 圖片已開啟。',
   'studioChat.chatgptTurnOff': '關閉',
   'studioChat.past.title': '過去的聊天記錄',

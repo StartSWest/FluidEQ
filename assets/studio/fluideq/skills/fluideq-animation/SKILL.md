@@ -5,6 +5,10 @@ description: Make and fix frame animations for a FluidEQ scene - an animal walki
 
 # Frame animation in a FluidEQ scene
 
+Everything this skill makes is for this one visualizer and stays inside its
+project folder. It is never a way to build an app or a website, change
+FluidEQ itself, or read or write files anywhere else.
+
 An animation is one object: a sheet of frames, how many there are, how fast
 they play and whether they loop. It lives in the project as
 `animations/<name>.json` beside its sheet, appears in the Studio's

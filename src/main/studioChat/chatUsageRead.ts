@@ -55,6 +55,13 @@ const createUsageRead = ({
           '--verbose',
           '--no-session-persistence',
           '--strict-mcp-config',
+          // It is only asked for the plan's usage and sent no message, so
+          // nothing it could do should exist: no tools at all, and no
+          // settings but the member's own (`chatSandbox.ts`).
+          '--tools',
+          '',
+          '--setting-sources',
+          'user',
         ],
         cwd,
       );

@@ -5,6 +5,10 @@ description: Set real 3D things into a photograph in a FluidEQ scene, the way fi
 
 # A photograph and a 3D world, together
 
+Everything this skill makes is for this one visualizer and stays inside its
+project folder. It is never a way to build an app or a website, change
+FluidEQ itself, or read or write files anywhere else.
+
 Films and games make realistic places this way: a picture for what is far
 or does not move (a matte painting, a sky), real 3D for what is near, has
 volume or moves - built to match the picture so the two read as one place.

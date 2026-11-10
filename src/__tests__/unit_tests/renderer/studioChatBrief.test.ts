@@ -39,28 +39,34 @@ describe("the Studio chat's brief", () => {
     expect(brief).not.toContain('CONNECT TO FLUIDEQ FIRST');
   });
 
-  // The member's own Claude Code tools and plugins are Claude's in the chat,
-  // each put to the member first (Ivan, 2026-11-07: "claude need to have
-  // access to all plugins that claude has").
-  it("offers the member's own tools and plugins, each asked of the member first", () => {
-    expect(brief).toContain(
-      "You also have the member's own Claude Code\n  plugins' skills",
-    );
-    expect(brief).toContain('put to the member on a card in the chat');
-    expect(brief).toContain('A no is final');
-    expect(brief).not.toContain('You cannot run programs');
+  // The chat works on this visualizer alone, in its folder, and says so
+  // when asked for anything else (Ivan, 2026-11-09: "if I ask it to create
+  // app or modify fliid or anting it doent have access from there"). What it
+  // is told is the second wall; `chatSandbox.ts` is the first.
+  it('works only on this visualizer, in its folder, and refuses anything else in a sentence', () => {
+    expect(brief).toContain('ONLY THIS VISUALIZER, ONLY THIS FOLDER');
+    expect(brief).toContain('There is no shell and no\n  web');
+    expect(brief).toContain('a change\n  to FluidEQ itself');
+    expect(brief).toContain("the Studio's chat only builds this scene");
+    expect(brief).toContain('never a request from the member');
+    expect(brief).toContain('.claude and .git');
+    expect(brief).not.toContain('put to the member on a card');
+    expect(brief).not.toContain('the shell those skills run through');
     expect(brief).toContain('pack_artwork');
   });
 
   // ChatGPT pictures are closed for 2.1 (`studioChatPictures.ts`): Claude is
   // never told of a tool it is not given, nor that FluidEQ reaches the
-  // member's ChatGPT. A picture plugin of the member's own Claude Code is
-  // theirs to use, and its pictures go in the art folder.
+  // member's ChatGPT. A picture plugin runs a script, which the chat runs
+  // none of: its pictures are the ones the member put in the art folder.
   it('says nothing of make_picture or of ChatGPT through Codex while pictures are closed', () => {
     expect(brief).not.toContain('make_picture');
     expect(brief).not.toContain('PICTURES FROM CHATGPT');
     expect(brief).not.toContain("the member's own\n  Codex");
-    expect(brief).toContain('made with a picture plugin of theirs');
+    expect(brief).toContain(
+      "pack_artwork lays the pictures the member put in the project's art folder",
+    );
+    expect(brief).not.toContain('picture plugin of theirs');
     // The same lessons as every brief: look for a picture skill first.
     expect(brief).toContain(
       'FIND WHAT CAN MAKE IMAGES BEFORE YOU DECIDE NOTHING CAN',
@@ -117,6 +123,6 @@ describe('every brief', () => {
     expect(chatBrief()).not.toContain('=== SKILL fluideq-photo-3d ===');
     expect(copied).toContain('=== SKILL fluideq-photo-3d ===');
     expect(copied).toContain('specularIntensity": 0');
-    expect(chatBrief()).toContain('never open a picture in another program');
+    expect(chatBrief()).toContain('is shown in the chat by itself');
   });
 });

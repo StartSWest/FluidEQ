@@ -64,6 +64,9 @@ export type TChatStreamEvent =
   | {
       type: 'permission';
       requestId: string;
+      /** The tool's own name, which the rule is decided by (`chatSandbox.ts`). */
+      name: string;
+      /** The name it shows, for a line in the log. */
       tool: string;
       /** What it is about to do, in a line the member can judge. */
       detail: string;
@@ -258,6 +261,7 @@ const permissionEvents = (
     {
       type: 'permission',
       requestId: message.request_id,
+      name: request.tool_name,
       tool: shown,
       detail: detailOf(input, request.description),
       input,
