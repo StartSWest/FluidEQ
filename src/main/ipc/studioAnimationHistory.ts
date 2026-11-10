@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { ipcMain } from 'electron';
 import { ANIMATION_NAME } from '../../common/studioAnimation';
+import { readArtworkSources } from '../memberScenes/artworkSources';
 import {
   moveHistory,
   readHistory,
@@ -174,5 +175,22 @@ export const registerStudioAnimationHistory = ({
       return answerHistory(folder, raw);
     },
   );
-  return () => ipcMain.removeHandler('studio-animation-history');
+  // Which picture each artwork region was packed from (`artworkSources.ts`):
+  // how the Animations tab tells an animation the scene plays from one it
+  // does not. The open project's, asked with nothing.
+  ipcMain.handle('studio-artwork-sources', (): TArtworkSourcesOutcome => {
+    const folder = activeFolder();
+    return folder && mayEdit()
+      ? { ok: true, sources: readArtworkSources(folder) }
+      : { ok: false, reason: 'closed' };
+  });
+  return () => {
+    ipcMain.removeHandler('studio-animation-history');
+    ipcMain.removeHandler('studio-artwork-sources');
+  };
 };
+
+/** Region id → `art/<name>.png`, for the regions the record knows. */
+export type TArtworkSourcesOutcome =
+  | { ok: true; sources: Record<string, string> }
+  | { ok: false; reason: 'closed' };

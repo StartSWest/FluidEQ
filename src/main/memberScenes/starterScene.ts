@@ -48,6 +48,11 @@ export const STARTER_ANIMATION = {
   ground: 'sky',
 } as const;
 
+/** The artwork's swallow, packed from the swallow animation's own sheet. */
+export const STARTER_ARTWORK_SOURCES = {
+  [SWALLOW_REGION.id]: STARTER_ANIMATION.sheet,
+} as const;
+
 /** The files copied as they are, by their place in a new project. */
 export const STARTER_ART_FILES = [
   STARTER_ARTWORK.file,

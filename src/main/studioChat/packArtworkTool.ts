@@ -20,6 +20,10 @@ import {
   readPictureAtlas,
   readPictureImage,
 } from '../memberScenes/projectPictures';
+import {
+  readArtworkSources,
+  writeArtworkSources,
+} from '../memberScenes/artworkSources';
 import type { IMcpTool, IMcpToolResult } from '../studioAgent/mcpProtocol';
 import { ART_DIR, failure, readArt, text } from './artFolder';
 import { layoutArtwork, type ILayoutPiece, type IRect } from './artworkLayout';
@@ -87,6 +91,8 @@ const regionLine = (
 interface IReadPiece {
   piece: ILayoutPiece;
   source: Pick<IStudioChatPackPiece, 'image' | 'fromArtwork'>;
+  /** The picture it came from, `art/<name>.png`, or the region it keeps. */
+  origin: { picture: string } | { kept: string };
 }
 
 const isSize = (value: unknown) =>
@@ -141,6 +147,7 @@ const readPiece = (
           same ? png : image.resize({ ...size, quality: 'best' }).toPNG(),
         ),
       },
+      origin: { picture: `${ART_DIR}/${name}.png` },
     };
   }
   if (from.startsWith('artwork:')) {
@@ -158,6 +165,7 @@ const readPiece = (
     return {
       piece: { id, kind, width: w, height: h },
       source: { fromArtwork: { x, y, width: w, height: h } },
+      origin: { kept: region.id },
     };
   }
   return `Piece ${id}: from is "art/<name>.png" or "artwork:<id>".`;
@@ -317,6 +325,24 @@ const createPackArtworkTool = ({
         `The Studio's artwork could not be written: ${String(error)}`,
       );
       return failure('The artwork could not be written into the project.');
+    }
+    // Where each piece came from, for the Animations tab: a picture of
+    // art/, or what the record said of the region a kept piece keeps.
+    const before = readArtworkSources(open.folder);
+    const record = Object.fromEntries(
+      pieces.flatMap(({ piece, origin }): Array<[string, string]> => {
+        const picture =
+          'picture' in origin ? origin.picture : before[origin.kept];
+        return picture ? [[piece.id, picture]] : [];
+      }),
+    );
+    try {
+      writeArtworkSources(open.folder, record);
+    } catch (error) {
+      // The artwork is written; only the tab's knowing what it uses is not.
+      logger?.warn(
+        `Where the Studio's artwork pieces came from could not be recorded: ${String(error)}`,
+      );
     }
     return {
       content: [

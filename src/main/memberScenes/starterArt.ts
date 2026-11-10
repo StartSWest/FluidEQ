@@ -7,10 +7,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import path from 'path';
 import { ANIMATIONS_DIR } from '../../common/studioAnimation';
+import { ARTWORK_SOURCES_FILE } from './artworkSources';
 import {
   STARTER_ANIMATION,
   STARTER_ANIMATION_NAME,
   STARTER_ART_FILES,
+  STARTER_ARTWORK_SOURCES,
 } from './starterScene';
 
 /** `resourcesPath` is Electron's addition to `process` (see `roomHead.ts`). */
@@ -74,5 +76,11 @@ export const writeStarterArt = async (
   await writeNew(
     path.join(folder, ANIMATIONS_DIR, `${STARTER_ANIMATION_NAME}.json`),
     `${JSON.stringify(STARTER_ANIMATION, null, 2)}\n`,
+  );
+  // Which picture the artwork's swallow was packed from, as pack_artwork
+  // records it, so the Animations tab knows the scene plays the swallow.
+  await writeNew(
+    path.join(folder, ARTWORK_SOURCES_FILE),
+    `${JSON.stringify(STARTER_ARTWORK_SOURCES, null, 2)}\n`,
   );
 };

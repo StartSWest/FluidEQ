@@ -204,6 +204,12 @@ const studioAnimationHistory = (
     import('./ipc/studioAnimationHistory').TAnimationHistoryOutcome
   >;
 
+/** Which picture each region of the open scene's artwork was packed from. */
+const readStudioArtworkSources = () =>
+  ipcRenderer.invoke('studio-artwork-sources') as Promise<
+    import('./ipc/studioAnimationHistory').TArtworkSourcesOutcome
+  >;
+
 /** Told whenever a file of the open project's animations changes. */
 const onStudioAnimationsChanged = (listener: () => void) => {
   const wrapped = () => listener();
@@ -391,6 +397,7 @@ const studioBridge = {
   readStudioAnimations,
   importStudioAnimation,
   studioAnimationHistory,
+  readStudioArtworkSources,
   onStudioAnimationsChanged,
   chooseStudioPicture,
   writeStudioSettings,
