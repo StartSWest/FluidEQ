@@ -20,6 +20,7 @@ import {
   KEPT_VERSIONS,
   createVersionPins,
   forgetKeptVersions,
+  keepSavedVersion,
   keptVersionFile,
   keptVersionsOf,
   replaceKeepingVersion,
@@ -107,6 +108,57 @@ describe('keeping the version a newer one replaces', () => {
     expect(keptVersionsOf(scene)).toEqual([1]);
     forgetKeptVersions(scene);
     expect(fs.existsSync(`${scene}.versions`)).toBe(false);
+  });
+});
+
+describe('a version the member saved on purpose', () => {
+  /** Keeps `version` as a save from the server writes it. */
+  const save = (version: number) =>
+    keepSavedVersion(scene, version, (target) =>
+      fs.writeFileSync(target, `saved v${version}`),
+    );
+
+  it(`is never let go, and holds no place among the ${KEPT_VERSIONS} an update keeps`, () => {
+    publish(5);
+    save(2);
+    for (let version = 6; version <= KEPT_VERSIONS + 8; version += 1) {
+      publish(version, version - 1);
+    }
+    const kept = keptVersionsOf(scene);
+    expect(kept).toContain(2);
+    expect(fs.readFileSync(keptVersionFile(scene, 2), 'utf8')).toBe('saved v2');
+    // The control: the updates' own still keep exactly the newest ten.
+    expect(kept.filter((version) => version !== 2)).toHaveLength(KEPT_VERSIONS);
+    expect(kept).not.toContain(5);
+  });
+
+  it('leaves nothing behind when its write fails', () => {
+    publish(5);
+    expect(() =>
+      keepSavedVersion(scene, 2, () => {
+        throw new Error('disk full');
+      }),
+    ).toThrow('disk full');
+    expect(keptVersionsOf(scene)).toEqual([]);
+    expect(fs.readdirSync(root)).toEqual(['alpine.pack.enc']);
+    // Beside a version already kept, the folder stays and holds no mark: a
+    // mark left there would hold an update's own copy of 2 for good.
+    publish(6, 5);
+    expect(() =>
+      keepSavedVersion(scene, 2, () => {
+        throw new Error('disk full');
+      }),
+    ).toThrow('disk full');
+    expect(fs.readdirSync(`${scene}.versions`)).toEqual(['5']);
+  });
+
+  it('loses its mark with its file, so a version kept again later can be let go', () => {
+    publish(5);
+    save(2);
+    // A copy that stopped verifying is removed by its store.
+    fs.rmSync(keptVersionFile(scene, 2));
+    publish(6, 5);
+    expect(fs.readdirSync(`${scene}.versions`).sort()).toEqual(['5']);
   });
 });
 

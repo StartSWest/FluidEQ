@@ -20,6 +20,7 @@ import { verifyMemberSceneEnvelope } from '../scenePackVerify';
 import { readSceneCache, writeSceneCache } from '../sceneCacheFile';
 import {
   forgetKeptVersions,
+  keepSavedVersion,
   keptVersionFile,
   keptVersionsOf,
   replaceKeepingVersion,
@@ -94,6 +95,19 @@ export interface IMemberSceneStore {
    * projects, and keep none here.
    */
   keptVersions(authorId: string, packId: string): number[];
+  /**
+   * Keeps an earlier version of another member's scene, saved from the
+   * server, beside the newest held and never in its place. True once that
+   * version is on this computer (the newest held already is); false for
+   * anything that does not verify against the member key as exactly
+   * `version` of that author's `packId`, a scene not held, or a blocked one.
+   */
+  keepSaved(
+    envelope: IScenePackEnvelope,
+    authorId: string,
+    packId: string,
+    version: number,
+  ): boolean;
   /** The maker's block list, as fingerprints; replaces the one held. */
   setBlocked(fingerprints: readonly string[]): void;
   isBlocked(authorId: string, packId: string): boolean;
@@ -380,6 +394,44 @@ export const createMemberSceneStore = ({
       validRef(authorId, packId)
         ? keptVersionsOf(importedFile(authorId, packId))
         : [],
+    keepSaved: (envelope, authorId, packId, version) => {
+      if (
+        !validRef(authorId, packId) ||
+        isBlocked(authorId, packId) ||
+        !isScenePackEnvelope(envelope)
+      ) {
+        return false;
+      }
+      const payload = verifyMemberSceneEnvelope(envelope);
+      const parsed = payload ? parseMemberScenePayload(payload) : null;
+      if (
+        !parsed ||
+        parsed.author.id !== authorId ||
+        parsed.pack.id !== packId ||
+        parsed.pack.version !== version
+      ) {
+        logger?.warn(`Saved scene ${packId} v${version} did not verify.`);
+        return false;
+      }
+      // Kept beside the copy this computer imported. The member's own scene
+      // is their Studio project, which keeps its own history, and plays no
+      // version from here.
+      // Above the newest held too: a copy the update has not reached yet
+      // keeps the saved one beside it, and the update then keeps this one.
+      const newest = readImported(authorId, packId)?.pack;
+      if (!newest) {
+        return false;
+      }
+      if (version === newest.version) {
+        return true;
+      }
+      const file = importedFile(authorId, packId);
+      summaries.forget(keptVersionFile(file, version));
+      keepSavedVersion(file, version, (target) =>
+        writeSceneCache(target, `imported/${authorId}/${packId}`, envelope),
+      );
+      return true;
+    },
     setBlocked: (fingerprints) => {
       blocked = new Set(
         fingerprints.filter((print) => /^[0-9a-f]{64}$/.test(print)),

@@ -29,7 +29,11 @@ import type {
   TPublishedSettingsOutcome,
   TUnpublishOutcome,
 } from './ipc/plusPublishing';
-import type { IGalleryQuery, TReportReason } from '../common/plusGallery';
+import type {
+  IGalleryQuery,
+  TReportReason,
+  TSaveGalleryVersion,
+} from '../common/plusGallery';
 import type { IGalleryClip } from './plus/galleryClip';
 import type { TPlusProfileResult } from './ipc/plusProfile';
 import type { IPlusProfile } from '../common/plusProfile';
@@ -123,6 +127,35 @@ const galleryVersions = (authorId: string, sceneId: string) =>
     sceneId,
   ) as Promise<TGalleryVersionsOutcome>;
 
+/**
+ * Saves a version the server keeps of a scene this account owns, among the
+ * scene's kept versions on this computer (`ipc/plusGalleryVersionSave.ts`).
+ */
+const saveGalleryVersion = (
+  authorId: string,
+  sceneId: string,
+  version: number,
+) =>
+  ipcRenderer.invoke(
+    'plus-gallery-save-version',
+    authorId,
+    sceneId,
+    version,
+  ) as Promise<TSaveGalleryVersion>;
+
+/** Stops that save; it then answers `cancelled`, or saved if it had landed. */
+const cancelGallerySaveVersion = (
+  authorId: string,
+  sceneId: string,
+  version: number,
+) =>
+  ipcRenderer.invoke(
+    'plus-gallery-save-version-cancel',
+    authorId,
+    sceneId,
+    version,
+  ) as Promise<boolean>;
+
 const myPublishedScenes = () =>
   ipcRenderer.invoke('plus-gallery-mine') as Promise<TMineOutcome>;
 
@@ -162,6 +195,8 @@ const plusBridge = {
   addGalleryScene,
   reportGalleryScene,
   galleryVersions,
+  saveGalleryVersion,
+  cancelGallerySaveVersion,
   myPublishedScenes,
   publishedStudioSettings,
   unpublishScene,

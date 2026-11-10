@@ -13,6 +13,7 @@ import { verifyScenePackEnvelope } from './scenePackVerify';
 import { readSceneCache, writeSceneCache } from './sceneCacheFile';
 import {
   forgetKeptVersions,
+  keepSavedVersion,
   keptVersionFile,
   keptVersionsOf,
   replaceKeepingVersion,
@@ -122,6 +123,13 @@ export interface IScenePackStore {
   remove(id: string): boolean;
   /** The earlier versions this computer kept of a scene, newest first. */
   keptVersions(id: string): number[];
+  /**
+   * Keeps an earlier version the member saved from the server, beside the
+   * newest held and never in its place. True once that version is on this
+   * computer (the newest held already is); false for anything that does not
+   * verify as exactly `version` of `id`, or a scene not held.
+   */
+  keepSaved(envelope: IScenePackEnvelope, id: string, version: number): boolean;
 }
 
 export interface IScenePackStoreOptions {
@@ -420,5 +428,34 @@ export const createScenePackStore = ({
     },
 
     keptVersions: (id) => (ID.test(id) ? keptVersionsOf(packPath(id)) : []),
+
+    keepSaved: (envelope, id, version) => {
+      if (!ID.test(id) || removed[id] || !isScenePackEnvelope(envelope)) {
+        return false;
+      }
+      const payload = verifyScenePackEnvelope(envelope);
+      const pack = payload ? parseScenePackPayload(payload) : null;
+      if (!pack || pack.id !== id || pack.version !== version) {
+        logger?.warn(`Saved scene pack ${id} v${version} did not verify.`);
+        return false;
+      }
+      // Beside the encrypted file only: a legacy copy is not what a kept
+      // version is read as, and the next read migrates it.
+      // Above the newest held too: a copy the update has not reached yet
+      // keeps the saved one beside it, and the update then keeps this one.
+      const newest = fs.existsSync(packPath(id)) ? readVerified(id) : undefined;
+      if (!newest) {
+        return false;
+      }
+      if (version === newest.version) {
+        return true;
+      }
+      summaries.forget(keptVersionFile(packPath(id), version));
+      keepSavedVersion(packPath(id), version, (target) =>
+        writeSceneCache(target, `official/${id}`, envelope),
+      );
+      logger?.info(`Scene pack ${id} v${version} saved from the server.`);
+      return true;
+    },
   };
 };

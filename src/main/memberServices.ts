@@ -38,6 +38,7 @@ import { registerSceneAnnouncementsIpc } from './ipc/sceneAnnouncements';
 import { registerSceneStoreIpc } from './ipc/sceneStore';
 import forgetListening from './usage/forgetListening';
 import { registerSceneVersionsIpc } from './ipc/sceneVersions';
+import { registerGalleryVersionSaveIpc } from './ipc/plusGalleryVersionSave';
 import { createVersionPins } from './keptVersions';
 import { registerScenePacksIpc } from './ipc/scenePacks';
 import { registerStudioInspectIpc } from './ipc/studioInspect';
@@ -326,6 +327,17 @@ const registerMemberServices = ({
     // downloaded again (`plus/pictureDiskCache.ts`).
     pictureDir: path.join(userDataDir, 'gallery-pictures'),
   });
+  // A version the server still keeps, saved by an owner among the scene's
+  // kept versions here (`ipc/plusGalleryVersionSave.ts`).
+  const disposeGalleryVersionSave = registerGalleryVersionSaveIpc({
+    access: galleryAccess,
+    store: memberScenesIpc.store,
+    officialStore: scenePacksIpc.store,
+    refreshBlocked: memberSharingIpc.refreshBlocked,
+    announce: memberScenesIpc.announce,
+    announceOfficial: scenePacksIpc.announce,
+    logger: log,
+  });
   // A published scene's ten-second clip, for the page of a scene this
   // account does not own; kept like the pictures (`ipc/plusGalleryClip.ts`).
   const galleryClipIpc = registerGalleryClipIpc({
@@ -489,6 +501,7 @@ const registerMemberServices = ({
     disposeSceneBuilds();
     plusPublishingIpc.dispose();
     plusGalleryIpc.dispose();
+    disposeGalleryVersionSave();
     galleryClipIpc.dispose();
     memberSharingIpc.dispose();
     memberScenesIpc.dispose();

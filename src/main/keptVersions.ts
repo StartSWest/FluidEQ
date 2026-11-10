@@ -34,6 +34,45 @@ export const keptVersionsDir = (sceneFile: string) => `${sceneFile}.versions`;
 export const keptVersionFile = (sceneFile: string, version: number) =>
   path.join(keptVersionsDir(sceneFile), String(version));
 
+/**
+ * Beside a version the member saved from the server on purpose: a version
+ * kept that way stays theirs whatever comes after (Ivan, 2026-11-09: "that
+ * saved version stays theirs even after it leaves the server"), so the
+ * oldest-first letting go never takes it. An empty file; its name is all it
+ * says, and `VERSION_NAME` keeps it out of the list.
+ */
+const savedMark = (sceneFile: string, version: number) =>
+  `${keptVersionFile(sceneFile, version)}.saved`;
+
+const isSaved = (sceneFile: string, version: number) =>
+  fs.existsSync(savedMark(sceneFile, version));
+
+/**
+ * Lets go of the oldest versions past `KEPT_VERSIONS`, counting only those
+ * kept by an update: a version saved on purpose holds no place and is never
+ * let go. A mark whose version is gone (a copy that stopped verifying is
+ * removed by its store) goes with it.
+ */
+const letGoOfOldest = (sceneFile: string) => {
+  const kept = keptVersionsOf(sceneFile);
+  kept
+    .filter((version) => !isSaved(sceneFile, version))
+    .slice(KEPT_VERSIONS)
+    .forEach((old) =>
+      fs.rmSync(keptVersionFile(sceneFile, old), { force: true }),
+    );
+  try {
+    fs.readdirSync(keptVersionsDir(sceneFile))
+      .filter((name) => /^[0-9]{1,9}\.saved$/.test(name))
+      .filter((name) => !kept.includes(Number(name.slice(0, -'.saved'.length))))
+      .forEach((name) =>
+        fs.rmSync(path.join(keptVersionsDir(sceneFile), name), { force: true }),
+      );
+  } catch {
+    // No folder: nothing kept, nothing marked.
+  }
+};
+
 /** The versions kept beside a scene file, newest first. */
 export const keptVersionsOf = (sceneFile: string): number[] => {
   try {
@@ -86,11 +125,32 @@ export const replaceKeepingVersion = (
     }
     throw error;
   }
-  keptVersionsOf(sceneFile)
-    .slice(KEPT_VERSIONS)
-    .forEach((old) =>
-      fs.rmSync(keptVersionFile(sceneFile, old), { force: true }),
-    );
+  letGoOfOldest(sceneFile);
+};
+
+/**
+ * Keeps `version` of the scene in `sceneFile` because the member saved it
+ * from the server: `write` puts it at the path it is given, as the store
+ * writes its own file. Marked first, so no update landing meanwhile can let
+ * it go; a `write` that throws takes the mark back and leaves nothing.
+ */
+export const keepSavedVersion = (
+  sceneFile: string,
+  version: number,
+  write: (target: string) => void,
+) => {
+  fs.mkdirSync(keptVersionsDir(sceneFile), { recursive: true });
+  const mark = savedMark(sceneFile, version);
+  fs.writeFileSync(mark, '');
+  try {
+    write(keptVersionFile(sceneFile, version));
+  } catch (error) {
+    fs.rmSync(mark, { force: true });
+    if (keptVersionsOf(sceneFile).length === 0) {
+      forgetKeptVersions(sceneFile);
+    }
+    throw error;
+  }
 };
 
 export interface IVersionPins {

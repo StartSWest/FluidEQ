@@ -8,7 +8,7 @@ import { verifyScenePackEnvelope } from '../scenePackVerify';
 import type { IGalleryAuth } from './galleryAccess';
 
 /** Same bounded envelope as the official pack download, including artwork. */
-const MAX_ENVELOPE_BYTES = 12 * 1024 * 1024;
+export const MAX_ENVELOPE_BYTES = 12 * 1024 * 1024;
 
 export interface IFetchedOfficialScene {
   pack: IScenePack;

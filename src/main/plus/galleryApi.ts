@@ -299,6 +299,8 @@ export const download = async (
   path: string,
   maxBytes: number,
   version?: string,
+  /** Stops the download: it then answers nothing, as any failure does. */
+  signal?: AbortSignal,
 ): Promise<Uint8Array | undefined> => {
   try {
     const url = new URL(objectUrl(auth.config, path));
@@ -308,6 +310,7 @@ export const download = async (
     const response = await (auth.fetchImpl ?? fetch)(url.toString(), {
       headers: headers(auth),
       cache: 'no-store',
+      ...(signal ? { signal } : {}),
     });
     if (!response.ok) {
       return undefined;

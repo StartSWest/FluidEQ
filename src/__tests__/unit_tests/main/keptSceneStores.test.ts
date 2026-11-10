@@ -19,13 +19,17 @@ import { generateKeyPairSync, sign } from 'crypto';
 import { memberLookId } from '../../../common/memberScenes';
 import { premiumLookId } from '../../../common/scenePacks';
 import { createVersionPins } from '../../../main/keptVersions';
-import { createMemberSceneStore } from '../../../main/memberScenes/store';
+import {
+  createMemberSceneStore,
+  memberSceneFingerprint,
+} from '../../../main/memberScenes/store';
 import { createScenePackStore } from '../../../main/scenePackStore';
 import { trustScenePackKeyForTesting } from '../../../main/scenePackVerify';
 import {
   memberPack,
   memberPayload,
   signedEnvelope,
+  ME,
   SOMEONE,
 } from '../../utils/memberSceneFixtures';
 
@@ -115,5 +119,84 @@ describe('scenes another member made', () => {
 
     store.remove(SOMEONE, 'neon-city');
     expect(store.keptVersions(SOMEONE, 'neon-city')).toEqual([]);
+  });
+});
+
+/**
+ * A version saved from the server (premium 0100 keeps each scene's last ten)
+ * joins the kept ones beside the newest, and nothing that is not exactly
+ * that version of that scene, signed by the right key, gets in.
+ */
+describe('a version saved from the server', () => {
+  it("of FluidEQ's own lands beside the newest, plays when pinned, and is refused when it is not that version", () => {
+    const pins = createVersionPins(root);
+    const store = createScenePackStore({ userDataDir: root, pins });
+    const { envelope: first } = officialListing(1);
+    // Not held yet: nothing to keep it beside.
+    expect(store.keepSaved(first, 'neon-city', 1)).toBe(false);
+    store.adopt([officialListing(3)]);
+    expect(store.keepSaved(first, 'neon-city', 1)).toBe(true);
+    expect(store.keptVersions('neon-city')).toEqual([1]);
+    expect(store.newest('neon-city')?.version).toBe(3);
+    pins.pin(premiumLookId('neon-city'), 1);
+    expect(store.load('neon-city')?.version).toBe(1);
+    pins.pin(premiumLookId('neon-city'), undefined);
+
+    // The newest is already here, and kept nowhere else.
+    expect(store.keepSaved(officialListing(3).envelope, 'neon-city', 3)).toBe(
+      true,
+    );
+    expect(store.keptVersions('neon-city')).toEqual([1]);
+    // Asked as another version, or as another scene, or signed by nobody we trust.
+    expect(store.keepSaved(officialListing(2).envelope, 'neon-city', 1)).toBe(
+      false,
+    );
+    expect(store.keepSaved(officialListing(2).envelope, 'other-city', 2)).toBe(
+      false,
+    );
+    const forged = {
+      ...officialListing(2).envelope,
+      signature: officialListing(1).envelope.signature,
+    };
+    expect(store.keepSaved(forged, 'neon-city', 2)).toBe(false);
+    // A member's signature is not FluidEQ's.
+    expect(store.keepSaved(imported(2), 'neon-city', 2)).toBe(false);
+    expect(store.keptVersions('neon-city')).toEqual([1]);
+
+    // Ahead of a copy its update has not reached: kept beside it, and the
+    // update, when it comes, keeps the copy it replaces as well.
+    expect(store.keepSaved(officialListing(4).envelope, 'neon-city', 4)).toBe(
+      true,
+    );
+    expect(store.newest('neon-city')?.version).toBe(3);
+    store.adopt([officialListing(5)]);
+    expect(store.keptVersions('neon-city')).toEqual([4, 3, 1]);
+  });
+
+  it("of another member's lands beside the newest, plays when pinned, and is refused when it is not theirs", () => {
+    const pins = createVersionPins(root);
+    const store = createMemberSceneStore({ userDataDir: root, pins });
+    expect(store.keepSaved(imported(1), SOMEONE, 'neon-city', 1)).toBe(false);
+    store.saveImported(imported(3));
+    expect(store.keepSaved(imported(1), SOMEONE, 'neon-city', 1)).toBe(true);
+    expect(store.keptVersions(SOMEONE, 'neon-city')).toEqual([1]);
+    pins.pin(memberLookId(SOMEONE, 'neon-city'), 1);
+    expect(store.load(SOMEONE, 'neon-city')?.version).toBe(1);
+    expect(store.newest(SOMEONE, 'neon-city')?.version).toBe(3);
+
+    expect(store.keepSaved(imported(3), SOMEONE, 'neon-city', 3)).toBe(true);
+    expect(store.keptVersions(SOMEONE, 'neon-city')).toEqual([1]);
+    expect(store.keepSaved(imported(2), SOMEONE, 'neon-city', 1)).toBe(false);
+    // Another author's name on it, or a key that is not the member key.
+    expect(store.keepSaved(imported(2), ME, 'neon-city', 2)).toBe(false);
+    const untrusted = signedEnvelope(
+      memberPayload({ pack: memberPack({ version: 2 }) }),
+      { trusted: false },
+    );
+    expect(store.keepSaved(untrusted, SOMEONE, 'neon-city', 2)).toBe(false);
+    // Blocked since: refused, though the same file was fine a moment ago.
+    expect(store.keepSaved(imported(2), SOMEONE, 'neon-city', 2)).toBe(true);
+    store.setBlocked([memberSceneFingerprint(SOMEONE, 'neon-city')]);
+    expect(store.keepSaved(imported(2), SOMEONE, 'neon-city', 2)).toBe(false);
   });
 });
