@@ -107,6 +107,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        foreground reference. Library and Live share the -70 LUFS gate,
  *        +12 dB boost cap and peak-room policy; named songs keep their
  *        reference through long quiet movements. Status advertises v2.
+ *   1.30 is the engine of FluidEQ 2.4. A song after a pause comes in at its
+ *        level: the Maximizer keeps its platform through silence (and, as
+ *        always, moves on quiet music), and a loud song after silence comes
+ *        in at the Normalizer's target, not over it. Each output keeps its
+ *        Auto normalize level when Windows reopens it. A rack switched away
+ *        from no longer carries its adaptive gain into the sound that
+ *        follows. Game cues stay additive with the mix held steady while
+ *        footsteps lift. Nothing on the wire changed; the app gates nothing
+ *        on 1.30.
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -118,8 +127,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 29, 0, 0
-PRODUCTVERSION 1, 29, 0, 0
+FILEVERSION 1, 30, 0, 0
+PRODUCTVERSION 1, 30, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32
