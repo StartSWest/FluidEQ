@@ -12,10 +12,11 @@ FluidEQ 2.4 is the Studio's biggest release yet. Your AI now draws
 creatures that move and gives each one an animator of its own, every
 picture it makes shows in the chat for you to zoom, copy and draw on, the
 stage tries your scene as an ultra-wide graph or in the Compact player, and
-one AI works on several of your scenes at once with your own tools. Scenes
-gain palettes, choices and kept versions, and every 3D visualizer lets you
-pick the key that moves its camera, on the graph and on your desktop. 2.3.1
-was never published on its own; everything it held is here.
+one AI works on several of your scenes at once, kept to each scene's own
+folder. Scenes gain palettes, choices and kept versions, and every 3D
+visualizer lets you pick the key that moves its camera, on the graph and on
+your desktop. 2.3.1 was never published on its own; everything it held is
+here.
 
 ### Studio: animations
 
@@ -62,11 +63,11 @@ was never published on its own; everything it held is here.
 
 - **Several scenes at once.** Each scene has its own chat, and they work at
   the same time. Idle animators are let go so they do not pile up.
-- **Kept to the scene's folder.** The AI works only with the scene's own
-  files, inside its folder. It cannot run commands, browse the web or touch
-  anything else on your computer, whatever your own Claude Code settings
-  allow. Before ChatGPT paints a picture for the scene, it asks on a card in
-  the chat.
+- **Kept to the scene's folder, by enforcement.** The AI works only with
+  the open scene's own files, using FluidEQ's own tools and skills. It
+  cannot touch other folders, run commands, browse the web, build an app or
+  change FluidEQ, whatever your own Claude Code settings allow. Before
+  ChatGPT paints a picture for the scene, it asks on a card in the chat.
 - **FluidEQ's skills come with the app.** Its brief and its skills for 3D
   worlds, photos in 3D and animation are built into FluidEQ and always
   current, never copied into a scene's folder. A chat started on an older
