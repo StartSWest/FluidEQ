@@ -383,6 +383,13 @@ const studio = {
   'studio.animation.deleteTitle': '刪除 {name}？',
   'studio.animation.deleteLead':
     '場景可能正在使用它。場景聊天會移除它，並修好場景使用它的每一處，不留下任何損壞。',
+  'studio.animation.unused': '場景中未使用',
+  'studio.animation.deleteLeadUsed':
+    '場景正在使用它。場景聊天會移除它，並修好場景使用它的每一處，不留下任何損壞。',
+  'studio.animation.deleted': '已刪除 {name}。',
+  'studio.animation.undeleteTaken':
+    '{name} 無法復原：另一段動畫現在用了這個名稱。',
+  'studio.animation.deleteFailed': '無法變更 {name}，請再試一次。',
   'studio.animation.deleteAsk': '請聊天移除它',
   'studio.animation.deleteRequest':
     '從這個專案中移除動畫「{name}」（{file} 及其畫格圖），並修好場景使用它的每一處，不留下任何損壞。',

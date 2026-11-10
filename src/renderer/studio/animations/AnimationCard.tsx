@@ -19,6 +19,8 @@ interface IAnimationCardProps {
   meta: string;
   /** The scene's chat was asked to remove it and has not yet. */
   removing: boolean;
+  /** The scene plays nothing of it, as main's record says (`usageOf`). */
+  unused: boolean;
   onOpen: () => void;
   onRename: () => void;
   onShow: () => void;
@@ -36,6 +38,7 @@ export default function AnimationCard({
   viewed,
   meta,
   removing,
+  unused,
   onOpen,
   onRename,
   onShow,
@@ -80,10 +83,16 @@ export default function AnimationCard({
               })}
             </span>
           )}
-          {removing && (
+          {removing ? (
             <span className="studio-animation-card__removing">
               {t('studio.animation.removing')}
             </span>
+          ) : (
+            unused && (
+              <span className="studio-animation-card__unused">
+                {t('studio.animation.unused')}
+              </span>
+            )
           )}
         </span>
         <span className="studio-animation-card__about">

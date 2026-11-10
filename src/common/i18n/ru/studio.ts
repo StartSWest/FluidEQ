@@ -439,6 +439,14 @@ const studio = {
   'studio.animation.deleteTitle': 'Удалить {name}?',
   'studio.animation.deleteLead':
     'Возможно, сцена её использует. Чат сцены удалит её и исправит каждое место, где сцена её использует, чтобы ничего не осталось сломанным.',
+  'studio.animation.unused': 'Не используется в сцене',
+  'studio.animation.deleteLeadUsed':
+    'Сцена её использует. Чат сцены удалит её и исправит каждое место, где сцена её использует, чтобы ничего не осталось сломанным.',
+  'studio.animation.deleted': '{name} удалена.',
+  'studio.animation.undeleteTaken':
+    '{name} не удалось вернуть: её имя теперь у другой анимации.',
+  'studio.animation.deleteFailed':
+    'Не удалось изменить {name}. Попробуйте ещё раз.',
   'studio.animation.deleteAsk': 'Попросить чат удалить её',
   'studio.animation.deleteRequest':
     'Удали анимацию «{name}» ({file} и её лист) из этого проекта и исправь каждое место, где сцена её использует, чтобы ничего не осталось сломанным.',

@@ -181,9 +181,12 @@ describe('deleting an animation the scene may use', () => {
   it('sends the scene’s chat the request, and the card says it is handled', async () => {
     render(<StudioAnimations projectId="p1" animations={[viewed('fox')]} />);
     openMenu('fox');
-    fireEvent.click(
-      screen.getByRole('menuitem', { name: 'studio.animation.menuDelete' }),
-    );
+    // Asked of main first: does the scene play it?
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('menuitem', { name: 'studio.animation.menuDelete' }),
+      );
+    });
     await act(async () => {
       fireEvent.click(
         screen.getByRole('button', { name: 'studio.animation.deleteAsk' }),
@@ -202,12 +205,15 @@ describe('deleting an animation the scene may use', () => {
     );
   });
 
-  it('control: cancelled, sends nothing and marks nothing', () => {
+  it('control: cancelled, sends nothing and marks nothing', async () => {
     render(<StudioAnimations projectId="p1" animations={[viewed('fox')]} />);
     openMenu('fox');
-    fireEvent.click(
-      screen.getByRole('menuitem', { name: 'studio.animation.menuDelete' }),
-    );
+    // Asked of main first: does the scene play it?
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('menuitem', { name: 'studio.animation.menuDelete' }),
+      );
+    });
     fireEvent.click(screen.getByRole('button', { name: 'studio.new.cancel' }));
     expect(send).not.toHaveBeenCalled();
     expect(screen.queryByText('studio.animation.removing')).toBeNull();

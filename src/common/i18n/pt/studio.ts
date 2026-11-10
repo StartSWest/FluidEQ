@@ -437,6 +437,14 @@ const studio = {
   'studio.animation.deleteTitle': 'Excluir {name}?',
   'studio.animation.deleteLead':
     'A cena pode estar usando. O chat da cena remove a animação e corrige cada lugar onde a cena a usa, para nada ficar quebrado.',
+  'studio.animation.unused': 'Não usada na cena',
+  'studio.animation.deleteLeadUsed':
+    'A cena a usa. O chat da cena remove a animação e corrige cada lugar onde a cena a usa, para nada ficar quebrado.',
+  'studio.animation.deleted': '{name} excluída.',
+  'studio.animation.undeleteTaken':
+    '{name} não pôde voltar: outra animação tem o nome dela agora.',
+  'studio.animation.deleteFailed':
+    'Não foi possível alterar {name}. Tente de novo.',
   'studio.animation.deleteAsk': 'Pedir ao chat que a remova',
   'studio.animation.deleteRequest':
     'Remova a animação “{name}” ({file} e a folha dela) deste projeto, e corrija cada lugar onde a cena a usa, para nada ficar quebrado.',

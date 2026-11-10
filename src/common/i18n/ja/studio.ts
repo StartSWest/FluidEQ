@@ -445,6 +445,14 @@ const studio = {
   'studio.animation.deleteTitle': '{name} を削除しますか？',
   'studio.animation.deleteLead':
     'シーンで使われているかもしれません。シーンのチャットがこれを削除し、シーンで使われているすべての箇所を直して、壊れたままの部分が残らないようにします。',
+  'studio.animation.unused': 'シーンで未使用',
+  'studio.animation.deleteLeadUsed':
+    'シーンで使われています。シーンのチャットがこれを削除し、シーンで使われているすべての箇所を直して、壊れたままの部分が残らないようにします。',
+  'studio.animation.deleted': '{name} を削除しました。',
+  'studio.animation.undeleteTaken':
+    '{name} を戻せませんでした。別のアニメーションがその名前を使っています。',
+  'studio.animation.deleteFailed':
+    '{name} を変更できませんでした。もう一度お試しください。',
   'studio.animation.deleteAsk': 'チャットに削除を頼む',
   'studio.animation.deleteRequest':
     'このプロジェクトからアニメーション「{name}」（{file} とそのシート）を削除して、シーンで使っているすべての箇所を直し、壊れたままの部分が残らないようにして。',

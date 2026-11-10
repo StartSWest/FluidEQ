@@ -444,6 +444,13 @@ const studio = {
   'studio.animation.deleteTitle': 'Supprimer {name} ?',
   'studio.animation.deleteLead':
     'La scène l’utilise peut-être. Le chat de la scène la retire et corrige chaque endroit où la scène l’utilise, pour que rien ne reste cassé.',
+  'studio.animation.unused': 'Pas utilisée dans la scène',
+  'studio.animation.deleteLeadUsed':
+    'La scène l’utilise. Le chat de la scène la retire et corrige chaque endroit où la scène l’utilise, pour que rien ne reste cassé.',
+  'studio.animation.deleted': '{name} supprimée.',
+  'studio.animation.undeleteTaken':
+    '{name} n’a pas pu revenir : une autre animation porte désormais son nom.',
+  'studio.animation.deleteFailed': 'Impossible de modifier {name}. Réessayez.',
   'studio.animation.deleteAsk': 'Demander au chat de la retirer',
   'studio.animation.deleteRequest':
     'Retire l’animation « {name} » ({file} et sa planche) de ce projet, et corrige chaque endroit où la scène l’utilise, pour que rien ne reste cassé.',

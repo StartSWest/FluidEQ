@@ -13,6 +13,7 @@ import StudioAnimationImportButton from './import/StudioAnimationImportButton';
 import DeleteAnimationDialog from './DeleteAnimationDialog';
 import RenameAnimationDialog from './RenameAnimationDialog';
 import StudioAnimationModal from './StudioAnimationModal';
+import useAnimationDelete from './useAnimationDelete';
 import useAnimationPlayer from './useAnimationPlayer';
 import type { IViewedAnimation } from './useStudioAnimations';
 import '../../styles/StudioAnimations.scss';
@@ -93,12 +94,14 @@ function OpenedAnimation({ viewed, onBack }: IOpenedProps) {
 function ListedCard({
   projectId,
   viewed,
+  unused,
   onOpen,
   onRename,
   onDelete,
 }: {
   projectId: string;
   viewed: IViewedAnimation;
+  unused: boolean;
   onOpen: () => void;
   onRename: () => void;
   onDelete: () => void;
@@ -110,6 +113,7 @@ function ListedCard({
       viewed={viewed}
       meta={meta(viewed)}
       removing={useRemovalAsked(projectId, name)}
+      unused={unused}
       onOpen={onOpen}
       onRename={onRename}
       onShow={() => {
@@ -144,7 +148,7 @@ export default function StudioAnimations({
   const chooser = useRef<HTMLInputElement>(null);
   const drop = useFileDrop(setImporting);
   const [renaming, setRenaming] = useState<string>();
-  const [deleting, setDeleting] = useState<string>();
+  const removal = useAnimationDelete(animations);
   const shown = animations.find(({ animation }) => animation.name === opened);
   const names = useMemo(
     () => new Set(animations.map(({ animation }) => animation.name)),
@@ -201,9 +205,10 @@ export default function StudioAnimations({
                 key={viewed.animation.name}
                 projectId={projectId}
                 viewed={viewed}
+                unused={removal.usage(viewed) === 'unused'}
                 onOpen={() => setOpened(viewed.animation.name)}
                 onRename={() => setRenaming(viewed.animation.name)}
-                onDelete={() => setDeleting(viewed.animation.name)}
+                onDelete={() => removal.start(viewed)}
               />
             ))}
           </ul>
@@ -221,11 +226,42 @@ export default function StudioAnimations({
           onClose={() => setRenaming(undefined)}
         />
       )}
-      {deleting && (
+      {removal.deleted && (
+        <div className="studio-animations__undo" role="status">
+          <span>
+            {t(removal.deleted.problem ?? 'studio.animation.deleted', {
+              name: removal.deleted.name,
+            })}
+          </span>
+          {!removal.deleted.problem && (
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={removal.undo}
+            >
+              {t('studio.animation.undo')}
+            </button>
+          )}
+          <button
+            type="button"
+            className="studio-animations__undo-close"
+            aria-label={t('support.close')}
+            onClick={removal.dismiss}
+          >
+            <Glyph name="close" />
+          </button>
+        </div>
+      )}
+      {removal.asking && (
         <DeleteAnimationDialog
           projectId={projectId}
-          name={deleting}
-          onClose={() => setDeleting(undefined)}
+          name={removal.asking.name}
+          lead={
+            removal.asking.usage === 'used'
+              ? 'studio.animation.deleteLeadUsed'
+              : 'studio.animation.deleteLead'
+          }
+          onClose={removal.closeAsking}
         />
       )}
       {importing && (

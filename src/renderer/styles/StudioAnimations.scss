@@ -253,6 +253,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // The chips over a picture wear the stage plate's glass.
 .studio-animation-card__count,
 .studio-animation-card__removing,
+.studio-animation-card__unused,
 .studio-animation-stage__tag {
   position: absolute;
   padding: 2px 8px;
@@ -272,14 +273,69 @@ it under the terms of the GNU General Public License version 3 or later.
   left: 8px;
 }
 
-// The removal under way, where the card's other chip is not.
-.studio-animation-card__removing {
+// The removal under way, or that the scene plays none of it, where the
+// card's other chip is not; the menu keeps the corner beside them.
+.studio-animation-card__removing,
+.studio-animation-card__unused {
   top: 8px;
   left: 8px;
   max-width: calc(100% - 56px);
   overflow: hidden;
-  color: $secondary-light;
   text-overflow: ellipsis;
+}
+
+.studio-animation-card__removing {
+  color: $secondary-light;
+}
+
+.studio-animation-card__unused {
+  color: $text-faint;
+}
+
+// After a quick delete: what went, and Undo, under the cards.
+.studio-animations__undo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 8px 8px 8px 14px;
+  color: $text-muted;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-menu 70%, transparent);
+  font-size: $text-small;
+
+  > span {
+    flex: 1 1 200px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.studio-animations__undo-close {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: $text-faint;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  cursor: pointer;
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 // The same two lines on every card, whatever the name: the name on one,

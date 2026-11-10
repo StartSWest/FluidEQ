@@ -397,6 +397,13 @@ const studio = {
   'studio.animation.deleteTitle': '删除 {name}？',
   'studio.animation.deleteLead':
     '场景可能正在使用它。场景聊天会移除它，并修好场景使用它的每一处，不留下任何损坏。',
+  'studio.animation.unused': '场景中未使用',
+  'studio.animation.deleteLeadUsed':
+    '场景正在使用它。场景聊天会移除它，并修好场景使用它的每一处，不留下任何损坏。',
+  'studio.animation.deleted': '已删除 {name}。',
+  'studio.animation.undeleteTaken':
+    '{name} 无法恢复：另一段动画现在用了这个名称。',
+  'studio.animation.deleteFailed': '无法更改 {name}，请重试。',
   'studio.animation.deleteAsk': '让聊天移除它',
   'studio.animation.deleteRequest':
     '从这个项目中移除动画“{name}”（{file} 及其帧图），并修好场景使用它的每一处，不留下任何损坏。',

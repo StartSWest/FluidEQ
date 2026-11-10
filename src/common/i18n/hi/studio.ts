@@ -435,6 +435,13 @@ const studio = {
   'studio.animation.deleteTitle': '{name} हटाएँ?',
   'studio.animation.deleteLead':
     'हो सकता है सीन इसका इस्तेमाल करता हो। सीन की चैट इसे हटाती है और हर उस जगह को ठीक करती है जहाँ सीन इसे इस्तेमाल करता है, ताकि कुछ टूटा न रहे।',
+  'studio.animation.unused': 'सीन में इस्तेमाल नहीं',
+  'studio.animation.deleteLeadUsed':
+    'सीन इसका इस्तेमाल करता है। सीन की चैट इसे हटाती है और हर उस जगह को ठीक करती है जहाँ सीन इसे इस्तेमाल करता है, ताकि कुछ टूटा न रहे।',
+  'studio.animation.deleted': '{name} हटाया गया।',
+  'studio.animation.undeleteTaken':
+    '{name} वापस नहीं आ सका: अब इसका नाम किसी और एनिमेशन का है।',
+  'studio.animation.deleteFailed': '{name} नहीं बदल सका। फिर से कोशिश करें।',
   'studio.animation.deleteAsk': 'चैट से इसे हटाने को कहें',
   'studio.animation.deleteRequest':
     'इस प्रोजेक्ट से एनिमेशन “{name}” ({file} और उसकी शीट) हटाओ, और हर उस जगह को ठीक करो जहाँ सीन इसे इस्तेमाल करता है, ताकि कुछ टूटा न रहे।',

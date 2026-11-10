@@ -448,6 +448,13 @@ const studio = {
   'studio.animation.deleteTitle': 'Delete {name}?',
   'studio.animation.deleteLead':
     'The scene may be using it. The scene’s chat removes it and fixes every place the scene uses it, so nothing is left broken.',
+  'studio.animation.unused': 'Not used in the scene',
+  'studio.animation.deleteLeadUsed':
+    'The scene uses it. The scene’s chat removes it and fixes every place the scene uses it, so nothing is left broken.',
+  'studio.animation.deleted': 'Deleted {name}.',
+  'studio.animation.undeleteTaken':
+    '{name} could not come back: another animation has its name now.',
+  'studio.animation.deleteFailed': '{name} could not be changed. Try again.',
   'studio.animation.deleteAsk': 'Ask the chat to remove it',
   'studio.animation.deleteRequest':
     'Remove the animation “{name}” ({file} and its sheet) from this project, and fix every place the scene uses it, so nothing is left broken.',

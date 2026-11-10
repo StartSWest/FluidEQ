@@ -425,6 +425,14 @@ const studio = {
   'studio.animation.deleteTitle': '{name}을(를) 삭제할까요?',
   'studio.animation.deleteLead':
     '장면이 이것을 쓰고 있을 수 있습니다. 장면 채팅이 이것을 제거하고 장면이 쓰는 모든 곳을 고쳐서 망가진 채로 남는 것이 없게 합니다.',
+  'studio.animation.unused': '장면에서 쓰지 않음',
+  'studio.animation.deleteLeadUsed':
+    '장면이 이것을 씁니다. 장면 채팅이 이것을 제거하고 장면이 쓰는 모든 곳을 고쳐서 망가진 채로 남는 것이 없게 합니다.',
+  'studio.animation.deleted': '{name}을(를) 삭제했습니다.',
+  'studio.animation.undeleteTaken':
+    '{name}을(를) 되돌릴 수 없습니다. 다른 애니메이션이 지금 그 이름을 쓰고 있습니다.',
+  'studio.animation.deleteFailed':
+    '{name}을(를) 바꿀 수 없었습니다. 다시 시도하세요.',
   'studio.animation.deleteAsk': '채팅에 제거 요청',
   'studio.animation.deleteRequest':
     '이 프로젝트에서 애니메이션 “{name}”({file}과 그 시트)을 제거하고, 장면이 쓰는 모든 곳을 고쳐서 망가진 채로 남는 것이 없게 해 줘.',

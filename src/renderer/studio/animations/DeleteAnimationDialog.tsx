@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import type { TranslationKey } from 'common/i18n';
 import { ANIMATIONS_DIR } from 'common/studioAnimation';
 import DialogFrame from '../../components/DialogFrame';
 import MenuIcon from '../../icons/MenuIcon';
@@ -27,10 +28,13 @@ import '../../styles/StudioDialogs.scss';
 export default function DeleteAnimationDialog({
   projectId,
   name,
+  lead,
   onClose,
 }: {
   projectId: string;
   name: string;
+  /** What the dialog knows: the scene uses it, or may. */
+  lead: TranslationKey;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
@@ -85,9 +89,7 @@ export default function DeleteAnimationDialog({
           </div>
         }
       >
-        <p className="studio-pictures__lead">
-          {t('studio.animation.deleteLead')}
-        </p>
+        <p className="studio-pictures__lead">{t(lead)}</p>
       </DialogFrame>
     </div>,
     document.body,
