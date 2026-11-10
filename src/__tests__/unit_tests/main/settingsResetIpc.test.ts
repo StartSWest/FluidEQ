@@ -312,11 +312,9 @@ const NOT_SETTING_FILES = [
   'limits.json',
   'meta.json',
   'fluideq-mcp.json',
-  // A chat's own: the tools said "Always allow" to, which go with the chat;
-  // the queue, the member's own words like the draft; and what holds a
-  // chat across a restart in development - the helper's address, what it
-  // left, and what the chat knew - which is running state, not a choice.
-  'allowed-tools.json',
+  // A chat's own: the queue, the member's own words like the draft; and what
+  // holds a chat across a restart in development - the helper's address, what
+  // it left, and what the chat knew - which is running state, not a choice.
   'queued.json',
   'relay.json',
   'relay-left.json',
@@ -326,6 +324,10 @@ const NOT_SETTING_FILES = [
   // (`claudeModels.ts`): a cache and a launch file, not a choice.
   'claude-models.json',
   'claude-models-settings.json',
+  // The settings file every Studio chat's Claude Code starts with, which
+  // keeps it to the scene's folder (`chatLaunch.ts`): written by FluidEQ at
+  // each launch, never chosen by the member.
+  'sandbox-settings.json',
   // Another program's sign-in, read where it keeps it.
   '.credentials.json',
   'auth.json',
