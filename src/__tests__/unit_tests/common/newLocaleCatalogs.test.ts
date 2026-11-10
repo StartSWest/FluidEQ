@@ -14,7 +14,12 @@ const normalizeNumber = (value: string) =>
   value.replace(/\s/g, '').replace(/−/g, '-');
 
 const englishResidual = (key: string, value: string): string[] => {
-  let text = value.replace(/\bThe Killers\b/g, '').replace(/https?:\S+/g, '');
+  // A game keeps its own title in every locale, as a band keeps its name:
+  // the 2.4 tour names the Gaming Lab's Heroes of the Storm mix.
+  let text = value
+    .replace(/\bThe Killers\b/g, '')
+    .replace(/\bHeroes of the Storm\b/g, '')
+    .replace(/https?:\S+/g, '');
   const genre = /^genre\.([^.]+)\./.exec(key)?.[1];
   // Reference titles and credited artists keep their canonical spelling in
   // every locale. "How You Like That" is a recording, not echoed English
