@@ -34,6 +34,7 @@ import dspStageSave from './dspStageSave';
 import gaming from './gaming';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
+import tour24 from './tour24';
 import help from './help';
 import helpDetails from './helpDetails';
 import about from './about';
@@ -89,6 +90,7 @@ const fr: Partial<Dictionary> = {
   ...gaming,
   ...remoteAudio,
   ...tour,
+  ...tour24,
   ...help,
   ...helpDetails,
   ...about,

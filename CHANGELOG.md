@@ -6,22 +6,139 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ---
 
-## 2.3.1
+## 2.4.0
 
-- **Gaming Lab.** Footsteps, voices and ambience add emphasis to the game
-  mix within the available headroom. Footsteps keeps sustained music steadier
-  while bringing out cues. Heroes of the Storm has a dedicated mix with
-  fuller lows, more midrange contrast and optional Wide Stage on headphones.
-  Footsteps meters stay aligned when band labels wrap. Standard profiles
+FluidEQ 2.4 is the Studio's biggest release yet. Your AI now draws
+creatures that move and gives each one an animator of its own, every
+picture it makes shows in the chat for you to zoom, copy and draw on, the
+stage tries your scene as an ultra-wide graph or in the Compact player, and
+one AI works on several of your scenes at once with your own tools. Scenes
+gain palettes, choices and kept versions, and every 3D visualizer lets you
+pick the key that moves its camera, on the graph and on your desktop. 2.3.1
+was never published on its own; everything it held is here.
+
+### Studio: animations
+
+- **An Animations tab.** Ask the chat for a bird, a fish or someone dancing,
+  and your AI draws it frame by frame into the scene. The tab plays every
+  animation the scene has and opens any of them.
+- **Step through it.** An opened animation plays on Ground, Sky or Water,
+  uphill or downhill, at the speed it was made at or 4 to 12 frames a
+  second, with the frame before showing under the one you are on and every
+  frame in a strip. **See it bigger** opens the same view over the whole
+  Studio.
+- **An animator for every animation.** Each one has a chat of its own
+  beside it. The scene's chat can start it with a task, and you can talk to
+  it directly. It looks at every frame at once, points out a frame that
+  floats, jumps or changes size, and draws it again.
+- **Every new project starts with an example.** A moon sits in the orb and a
+  swallow flies over it, so the Pictures and Animations tabs, and your AI,
+  have something to learn from from the first minute.
+
+### Studio: pictures in the chat
+
+- **Every picture shows in the chat.** Whatever your AI makes or opens
+  appears in the conversation. Click one to see it large and zoom in.
+- **Copy image.** Every picture in the Studio's viewers and previews can be
+  copied with its button, Ctrl+C or a right click.
+- **Draw on a picture.** Press **Draw** where you are zoomed in to circle
+  things, point arrows, write beside them or crop to the part that matters,
+  then **Attach to chat** to send it with your next message.
+
+### Studio: the stage
+
+- **Try it where it will play.** The stage's size menu adds **Ultra-wide
+  graph**, the scene at five and a half times as wide as it is tall, and
+  **Compact player**, the player's whole column, with **Player on top**
+  laying the player's song, controls and frosted panels over it. A small
+  stage keeps its plate small.
+- **Zoom and move around the stage.** Your AI is shown exactly what the stage
+  shows, in the shapes FluidEQ really draws.
+- **Calm or Music in one press.** A button on the stage swaps the music for
+  Calm, the slow animation a desktop background plays, and back.
+- **Never still.** With nothing playing, the stage moves to the demo song.
+
+### Studio: your AI
+
+- **Several scenes at once.** Each scene has its own chat, and they work at
+  the same time. Idle animators are let go so they do not pile up.
+- **Your own tools, with your say.** The AI can use your own Claude Code
+  tools and plugins. Each asks first on a card in the chat: **Allow**,
+  **Always allow** for that chat, or **Don't allow**. It works only inside
+  the scene's own folder.
+- **FluidEQ's skills come with the app.** Its brief and its skills for 3D
+  worlds, photos in 3D and animation are built into FluidEQ and always
+  current, never copied into a scene's folder. A chat started on an older
+  brief picks up the newer one in the same conversation.
+- **Any model, any effort.** Choose the model and the effort for each chat.
+  The list is read from Claude Code every time, so a new model, or a whole
+  new family, appears as soon as it does there.
+- **Uses less of your plan.** The chat sends Claude less to do the same work.
+
+### Scenes
+
+- **More to tune.** A scene can offer colour palettes, choices with icons and
+  chips, a single colour, and controls that show only for the options that
+  use them.
+- **3D worlds.** Cylinders and cones can bend, and a floor can be physical.
+- **Sharper preview clips.** Play music or start the demo to record a sharp,
+  silent ten-second preview, by daylight, to the demo song. Published clips
+  loop in the Gallery and stay cached until a new version replaces them;
+  scenes without a clip still show their cover.
+- **Weight and versions.** The publish screen shows how heavy your scene is.
+  Its version rises only when you publish, and the Studio's status line
+  shows it. The Gallery keeps the last 10 versions of each scene; save any
+  of them on this computer from the scene's page.
+
+### Visualizers
+
+- **Choose your camera key.** Pick the key that moves a 3D scene's camera:
+  Ctrl, Alt, Shift or any key. Choose **Hold and drag** or **Hold and
+  move**. **Follow the mouse** leans the scene after your pointer, and
+  **Circle by itself** turns a scene that goes all the way round. **Reset
+  view** shows only while the key is held.
+- **The desktop answers the mouse.** A visualizer set as your desktop
+  background responds to the mouse over the empty desktop, each monitor
+  keeps its own time of day when it does not follow the graph, and the
+  Studio puts its newest version on the desktop.
+- **Beat flashes land on the kick**, even when hats play between kicks.
+- **Gallery previews move to the demo song**, silently, while nothing plays,
+  and the Gallery opens on its newest scenes.
+- **A scene never falls back to the plain look.** If a new version will not
+  build, or the computer is slow, the last version that worked keeps
+  playing.
+- **Colourful mode takes the scene's palette**, and the graph keeps separate
+  settings for standard looks and for visualizers.
+- **The Colourful switch on the title bar's wave** now reads clearly on or
+  off in any colours.
+
+### Sound
+
+- **A song after a pause comes in at its level.** The Normalizer and the
+  Maximizer no longer let a song arrive loud after silence.
+- **Auto normalize keeps its level** when Windows reopens an output, instead
+  of starting over.
+
+### Gaming Lab
+
+- Footsteps, voices and ambience add emphasis to the game mix within the
+  available headroom. Footsteps keeps sustained music steadier while
+  bringing out cues.
+- Heroes of the Storm has a dedicated mix with fuller lows, more midrange
+  contrast and optional Wide Stage on headphones.
+- Footsteps meters stay aligned when band labels wrap. Standard profiles
   avoid automatic whole-mix compression, while Night keeps the dynamics
   processing intended for quiet listening. Meter readings no longer shift
-  the controls as they change. Gaming Lab waits for an audio output before
-  comparing a game's tuning with its profile at startup.
-- **Studio and Gallery.** Play music or start the demo to record a sharper,
-  silent ten-second scene preview. Published clips loop in the Gallery
-  and stay cached across sessions until a new scene version replaces them.
-  Scenes without a clip still show their cover.
-- **Support.** Open GitHub Sponsors from About or the Support page.
+  the controls as they change, and the Gaming Lab waits for an audio output
+  before comparing a game's tuning with its profile at startup.
+
+### Store, support and more
+
+- **Credits arrive by themselves.** Credits paid in the browser reach the
+  app with no click, whether its window is in front or not.
+- **GitHub Sponsors.** Support FluidEQ from About or the Support page.
+- **Crash records stay on this computer.** If a FluidEQ process ever
+  crashes, a record is kept here only, for a bug report you choose to send.
 - **Account.** Startup checks account access directly and skips the retired
   membership sync request.
 

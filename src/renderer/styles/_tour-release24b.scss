@@ -1,0 +1,995 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// 2.4's pictures, part two: the Studio's AI, a scene's controls and the
+// visualizers' camera (`StudioAiVisual`, `SceneControlsVisual`,
+// `CameraVisual`), and the release's list under its last slide.
+
+$loop: 10s;
+
+@mixin still {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@mixin two-columns($left: 1.2fr, $right: 1fr) {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 38);
+  gap: calc(#{$u} * 0.8);
+  grid-template-columns: minmax(0, $left) minmax(0, $right);
+  text-align: left;
+  @include animate(rise-in, $motion-slow);
+}
+
+@mixin glyph($size: 0.65) {
+  svg {
+    width: calc(#{$u} * #{$size});
+    height: calc(#{$u} * #{$size});
+    flex: 0 0 auto;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The AI.
+
+.ai-visual {
+  @include two-columns(1fr, 1.1fr);
+}
+
+.ai-visual__scenes,
+.ai-visual__chat {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: calc(#{$u} * 0.5);
+}
+
+.ai-visual__scene {
+  @include panel;
+
+  display: grid;
+  overflow: hidden;
+  grid-template-columns: calc(#{$u} * 5.4) minmax(0, 1fr);
+
+  img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  // Each chat at its own pace: the scenes do not finish together.
+  @for $i from 1 through 3 {
+    &:nth-child(#{$i}) {
+      @include animate(rise-in, $motion-slow);
+
+      animation-delay: #{($i - 1) * 120}ms;
+    }
+  }
+
+  &.is-kept {
+    border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+  }
+}
+
+.ai-visual__scene-text {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  padding: calc(#{$u} * 0.35) calc(#{$u} * 0.55);
+  gap: calc(#{$u} * 0.12);
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.66);
+    font-weight: $weight-bold;
+  }
+
+  small {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.54);
+    gap: calc(#{$u} * 0.3);
+    white-space: nowrap;
+    @include glyph(0.6);
+
+    svg {
+      color: $secondary-light;
+    }
+  }
+}
+
+.ai-visual__spinner {
+  width: calc(#{$u} * 0.55);
+  height: calc(#{$u} * 0.55);
+  flex: 0 0 auto;
+  border: 2px solid rgba($edge-tint, 0.2);
+  border-top-color: $secondary-light;
+  border-radius: 50%;
+  animation: ai-visual-spin 0.9s linear infinite;
+  @include still;
+}
+
+@keyframes ai-visual-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.ai-visual__skills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: calc(#{$u} * 0.2);
+  gap: calc(#{$u} * 0.3);
+}
+
+.ai-visual__skills-title {
+  flex: 1 0 100%;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.56);
+  font-weight: $weight-semibold;
+  @include tracking(0.06em);
+  text-transform: uppercase;
+}
+
+.ai-visual__skill {
+  @include pill;
+
+  color: $text-primary;
+  border-color: color-mix(in srgb, $secondary-light 35%, transparent);
+  background: color-mix(in srgb, $secondary-default 14%, $surface-control);
+  font-size: calc(#{$u} * 0.58);
+}
+
+// One of the member's own tools asking first, on the chat's card.
+.ai-visual__ask {
+  @include panel;
+  @include framed;
+
+  display: grid;
+  padding: calc(#{$u} * 0.6);
+  gap: calc(#{$u} * 0.35);
+  border-color: color-mix(in srgb, $amber 45%, transparent);
+  animation: ai-visual-ask $loop $ease-out infinite;
+  @include still;
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.66);
+    font-weight: $weight-bold;
+  }
+
+  small {
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.56);
+    line-height: 1.4;
+  }
+}
+
+@keyframes ai-visual-ask {
+  0%,
+  8% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  14%,
+  94% {
+    opacity: 1;
+    transform: none;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+.ai-visual__ask-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(#{$u} * 0.3);
+
+  .button {
+    min-height: calc(#{$u} * 1.5);
+    padding: calc(#{$u} * 0.18) calc(#{$u} * 0.5);
+    font-size: calc(#{$u} * 0.58);
+    cursor: default;
+  }
+}
+
+// The model and effort menu, open.
+.ai-visual__menu {
+  display: grid;
+  padding: calc(#{$u} * 0.45);
+  border: 1px solid rgba($edge-tint, 0.14);
+  border-radius: $radius-m;
+  background: $surface-menu;
+  box-shadow: 0 16px 40px rgba($black, 0.45);
+  gap: calc(#{$u} * 0.15);
+}
+
+.ai-visual__menu-title {
+  padding: calc(#{$u} * 0.2) calc(#{$u} * 0.35) calc(#{$u} * 0.1);
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.52);
+  font-weight: $weight-semibold;
+  @include tracking(0.06em);
+  text-transform: uppercase;
+}
+
+.ai-visual__model {
+  display: grid;
+  align-items: center;
+  padding: calc(#{$u} * 0.25) calc(#{$u} * 0.35);
+  border-radius: $radius-s;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: calc(#{$u} * 0.4);
+  @include glyph(0.65);
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.62);
+    font-weight: $weight-semibold;
+  }
+
+  small {
+    grid-column: 1;
+    overflow: hidden;
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.52);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  svg {
+    grid-area: 1 / 2 / 3;
+    color: $secondary-light;
+  }
+
+  &.is-chosen {
+    background: $selected-accent;
+  }
+}
+
+.ai-visual__effort {
+  display: flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.15) calc(#{$u} * 0.35) calc(#{$u} * 0.25);
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.58);
+  gap: calc(#{$u} * 0.18);
+
+  i {
+    width: calc(#{$u} * 0.38);
+    height: calc(#{$u} * 0.38);
+    border: 1px solid $text-muted;
+    border-radius: 50%;
+
+    &.is-on {
+      border-color: $secondary-light;
+      background: $secondary-light;
+    }
+
+    &:last-of-type {
+      margin-right: calc(#{$u} * 0.3);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// A scene's controls.
+
+.controls-visual {
+  @include two-columns(1.15fr, 1fr);
+}
+
+.controls-visual__tune,
+.controls-visual__page {
+  @include panel;
+  @include framed;
+
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  padding: calc(#{$u} * 0.7);
+  gap: calc(#{$u} * 0.45);
+}
+
+.controls-visual__group {
+  margin-top: calc(#{$u} * 0.2);
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.56);
+  font-weight: $weight-semibold;
+  @include tracking(0.06em);
+  text-transform: uppercase;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.controls-visual__palette {
+  display: grid;
+  gap: calc(#{$u} * 0.2);
+
+  small {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.58);
+  }
+}
+
+// The palette control's strip: the colours bass to treble, a handle on each
+// stop.
+.controls-visual__strip {
+  position: relative;
+  height: calc(#{$u} * 1.1);
+  margin: 0 calc(#{$u} * 0.4);
+  border-radius: $radius-xs;
+  box-shadow: inset 0 0 0 1px rgba($white, 0.12);
+
+  i {
+    position: absolute;
+    top: 50%;
+    width: calc(#{$u} * 0.75);
+    height: calc(#{$u} * 1.45);
+    border: 2px solid $white;
+    border-radius: $radius-2xs;
+    background: var(--stop);
+    box-shadow: 0 2px 6px rgba($black, 0.5);
+    translate: -50% -50%;
+  }
+}
+
+.controls-visual__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(#{$u} * 0.3);
+}
+
+.controls-visual__chip {
+  @include pill;
+
+  color: $text-muted;
+  background: $surface-control;
+  font-size: calc(#{$u} * 0.6);
+  animation: $loop linear infinite;
+  @include still;
+
+  svg {
+    width: calc(#{$u} * 0.8);
+    height: calc(#{$u} * 0.8);
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+}
+
+// The choice walks Clear, Rain, Snow: each lit for its third of the loop.
+// Every keyframe names all three properties: one left out is interpolated
+// towards the element's own value across the whole gap, and a chip was
+// caught half lit.
+@mixin lit {
+  color: $surface-base;
+  border-color: transparent;
+  background: $secondary-light;
+}
+
+@mixin unlit {
+  color: $text-muted;
+  border-color: rgba($edge-tint, 0.14);
+  background: $surface-control;
+}
+
+.controls-visual__chip--clear {
+  animation-name: controls-visual-clear;
+
+  @media (prefers-reduced-motion: reduce) {
+    @include lit;
+  }
+}
+
+.controls-visual__chip--rain {
+  animation-name: controls-visual-rain;
+}
+
+.controls-visual__chip--snow {
+  animation-name: controls-visual-snow;
+}
+
+@keyframes controls-visual-clear {
+  0%,
+  32% {
+    @include lit;
+  }
+
+  34%,
+  100% {
+    @include unlit;
+  }
+}
+
+@keyframes controls-visual-rain {
+  0%,
+  32% {
+    @include unlit;
+  }
+
+  34%,
+  65% {
+    @include lit;
+  }
+
+  67%,
+  100% {
+    @include unlit;
+  }
+}
+
+@keyframes controls-visual-snow {
+  0%,
+  65% {
+    @include unlit;
+  }
+
+  67%,
+  100% {
+    @include lit;
+  }
+}
+
+.controls-visual__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.6);
+  gap: calc(#{$u} * 0.5);
+}
+
+.controls-visual__swatch {
+  width: calc(#{$u} * 1.6);
+  height: calc(#{$u} * 0.9);
+  border: 1px solid rgba($white, 0.25);
+  border-radius: $radius-xs;
+  background: #ffe8a8;
+  box-shadow: 0 0 calc(#{$u} * 0.6) rgba(#ffe8a8, 0.5);
+}
+
+// Shown only while Snow, the option that uses it, is picked.
+.controls-visual__snowfall {
+  animation: controls-visual-snowfall $loop $ease-out infinite;
+  @include still;
+}
+
+@keyframes controls-visual-snowfall {
+  0%,
+  66% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  70%,
+  97% {
+    opacity: 1;
+    transform: none;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+.controls-visual__slider {
+  position: relative;
+  width: 52%;
+  height: 4px;
+  border-radius: 2px;
+  background: $track-well;
+
+  i {
+    position: absolute;
+    top: 50%;
+    left: 64%;
+    width: calc(#{$u} * 0.75);
+    height: calc(#{$u} * 0.75);
+    border-radius: 50%;
+    background: $secondary-light;
+    box-shadow: 0 0 0 3px color-mix(in srgb, $secondary-light 25%, transparent);
+    translate: -50% -50%;
+  }
+
+  &::before {
+    position: absolute;
+    inset: 0 36% 0 0;
+    border-radius: inherit;
+    background: $secondary-light;
+    content: '';
+  }
+}
+
+.controls-visual__cover {
+  position: relative;
+  overflow: hidden;
+  border-radius: $radius-s;
+
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+}
+
+.controls-visual__version {
+  @include pill;
+
+  position: absolute;
+  top: calc(#{$u} * 0.4);
+  left: calc(#{$u} * 0.4);
+  border-color: rgba($white, 0.2);
+  background: rgba($black, 0.5);
+  color: $white;
+  font-variant-numeric: tabular-nums;
+}
+
+.controls-visual__size {
+  display: grid;
+  gap: calc(#{$u} * 0.3);
+
+  > span:first-child {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(#{$u} * 0.4);
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.62);
+    font-weight: $weight-semibold;
+  }
+
+  small {
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.56);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}
+
+// The package against its limit, in its three parts.
+.controls-visual__meter {
+  display: flex;
+  height: calc(#{$u} * 0.4);
+  overflow: hidden;
+  border-radius: $radius-2xs;
+  background: $track-well;
+
+  i {
+    height: 100%;
+  }
+
+  .is-art {
+    width: 44%;
+    background: $secondary-light;
+  }
+
+  .is-models {
+    width: 18%;
+    background: color-mix(in srgb, $secondary-light 60%, $amber);
+  }
+
+  .is-code {
+    width: 6%;
+    background: $amber;
+  }
+}
+
+.controls-visual__versions {
+  display: grid;
+  gap: calc(#{$u} * 0.15);
+}
+
+.controls-visual__versions-title {
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.56);
+  font-weight: $weight-semibold;
+  @include tracking(0.06em);
+  text-transform: uppercase;
+}
+
+.controls-visual__kept {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(#{$u} * 0.25) calc(#{$u} * 0.4);
+  border-radius: $radius-s;
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.6);
+  font-variant-numeric: tabular-nums;
+  gap: calc(#{$u} * 0.4);
+
+  &:nth-child(2) {
+    background: $selected-accent;
+  }
+
+  small {
+    overflow: hidden;
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.54);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.controls-visual__save {
+  padding: calc(#{$u} * 0.1) calc(#{$u} * 0.4);
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+}
+
+// ---------------------------------------------------------------------------
+// The camera.
+
+.camera-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 38);
+  gap: calc(#{$u} * 0.9);
+  text-align: left;
+  @include animate(rise-in, $motion-slow);
+}
+
+.camera-visual__desk {
+  position: relative;
+  display: grid;
+  align-items: end;
+  gap: calc(#{$u} * 0.9);
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+}
+
+.camera-visual__monitor {
+  display: grid;
+  justify-items: center;
+}
+
+.camera-visual__screen {
+  @include framed;
+
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border: calc(#{$u} * 0.3) solid #0b1118;
+  border-radius: $radius-m;
+  background: $black;
+  perspective: 600px;
+}
+
+.camera-visual__foot {
+  width: 18%;
+  height: calc(#{$u} * 0.9);
+  border-radius: 0 0 $radius-xs $radius-xs;
+  background: linear-gradient(#0b1118, #1a2632);
+
+  &::after {
+    display: block;
+    width: 260%;
+    height: calc(#{$u} * 0.25);
+    margin: calc(#{$u} * 0.9) 0 0 -80%;
+    border-radius: $radius-xs;
+    background: #1a2632;
+    content: '';
+  }
+}
+
+.camera-visual__world {
+  position: absolute;
+  inset: -6%;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+// The scene leaning after the pointer on the first monitor.
+.is-live .camera-visual__world {
+  animation: camera-visual-lean $loop $ease-unfold infinite;
+  @include still;
+}
+
+@keyframes camera-visual-lean {
+  0%,
+  100% {
+    transform: rotateY(5deg) rotateX(-2deg) translateX(1%);
+  }
+
+  50% {
+    transform: rotateY(-6deg) rotateX(2deg) translateX(-1.5%);
+  }
+}
+
+// The desktop's own icons, so it reads as a desktop.
+.camera-visual__icons {
+  position: absolute;
+  top: 7%;
+  left: 3%;
+  display: grid;
+  gap: calc(#{$u} * 0.35);
+
+  i {
+    width: calc(#{$u} * 0.9);
+    height: calc(#{$u} * 0.9);
+    border: 1px solid rgba($white, 0.35);
+    border-radius: $radius-2xs;
+    background: rgba($white, 0.14);
+    backdrop-filter: blur(4px);
+  }
+}
+
+.camera-visual__pointer,
+.camera-visual__glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  animation: camera-visual-pointer $loop $ease-unfold infinite;
+  @include still;
+}
+
+.camera-visual__pointer {
+  width: calc(#{$u} * 0.9);
+  height: calc(#{$u} * 1.2);
+  background: $white;
+  clip-path: polygon(0 0, 0 78%, 24% 60%, 42% 100%, 56% 94%, 39% 56%, 72% 56%);
+  filter: drop-shadow(0 1px 2px rgba($black, 0.7));
+}
+
+// Where the scene answers: a light under the pointer.
+.camera-visual__glow {
+  width: calc(#{$u} * 5);
+  height: calc(#{$u} * 5);
+  margin: calc(#{$u} * -2.5) 0 0 calc(#{$u} * -2.5);
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, $secondary-light 45%, transparent),
+    transparent
+  );
+  mix-blend-mode: screen;
+}
+
+@keyframes camera-visual-pointer {
+  0%,
+  100% {
+    translate: 70% 0;
+    top: 62%;
+    left: 22%;
+  }
+
+  50% {
+    top: 34%;
+    left: 74%;
+  }
+}
+
+// Reset view, only while the camera key is held.
+.camera-visual__reset {
+  @include pill;
+
+  position: absolute;
+  top: calc(#{$u} * 0.5);
+  right: calc(#{$u} * 0.5);
+  border-color: rgba($white, 0.25);
+  background: color-mix(in srgb, $surface-menu 78%, transparent);
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.56);
+  opacity: 0;
+  backdrop-filter: blur(8px);
+  animation: camera-visual-held $loop linear infinite;
+  @include still;
+}
+
+@keyframes camera-visual-held {
+  0%,
+  28% {
+    opacity: 0;
+  }
+
+  30%,
+  62% {
+    opacity: 1;
+  }
+
+  64%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.camera-visual__key {
+  position: absolute;
+  bottom: calc(#{$u} * -0.2);
+  left: 32%;
+  display: grid;
+  place-items: center;
+  min-width: calc(#{$u} * 2.6);
+  padding: calc(#{$u} * 0.3) calc(#{$u} * 0.6);
+  border: 1px solid rgba($edge-tint, 0.25);
+  border-radius: $radius-s;
+  background: linear-gradient($surface-control, $surface-panel);
+  box-shadow: 0 calc(#{$u} * 0.22) 0 #0b1118;
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.62);
+  font-weight: $weight-bold;
+  animation: camera-visual-key $loop linear infinite;
+  @include still;
+}
+
+@keyframes camera-visual-key {
+  0%,
+  28% {
+    box-shadow: 0 calc(#{$u} * 0.22) 0 #0b1118;
+    transform: none;
+  }
+
+  30%,
+  62% {
+    border-color: $secondary-light;
+    box-shadow:
+      0 calc(#{$u} * 0.06) 0 #0b1118,
+      0 0 calc(#{$u} * 0.6)
+        color-mix(in srgb, $secondary-light 45%, transparent);
+    transform: translateY(calc(#{$u} * 0.16));
+  }
+
+  64%,
+  100% {
+    box-shadow: 0 calc(#{$u} * 0.22) 0 #0b1118;
+    transform: none;
+  }
+}
+
+.camera-visual__tag {
+  position: absolute;
+  right: calc(#{$u} * 0.4);
+  bottom: calc(#{$u} * 0.4);
+  display: grid;
+  padding: calc(#{$u} * 0.3) calc(#{$u} * 0.45);
+  border: 1px solid rgba($white, 0.14);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-menu 76%, transparent);
+  gap: calc(#{$u} * 0.15);
+  backdrop-filter: blur(8px);
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.56);
+    font-weight: $weight-semibold;
+  }
+}
+
+.camera-visual__day {
+  display: flex;
+  align-items: center;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.5);
+  gap: calc(#{$u} * 0.35);
+  white-space: nowrap;
+}
+
+// A time of day's dial: night at both ends, noon in the middle.
+.camera-visual__dial {
+  position: relative;
+  width: calc(#{$u} * 3);
+  height: calc(#{$u} * 0.32);
+  border-radius: $radius-2xs;
+  background: linear-gradient(
+    90deg,
+    #0b1a3a,
+    #ff9a5a 25%,
+    #8fd3ff 50%,
+    #ff9a5a 75%,
+    #0b1a3a
+  );
+
+  i {
+    position: absolute;
+    top: 50%;
+    width: calc(#{$u} * 0.5);
+    height: calc(#{$u} * 0.5);
+    border: 2px solid $white;
+    border-radius: 50%;
+    background: $surface-base;
+    translate: -50% -50%;
+  }
+}
+
+.camera-visual__settings {
+  @include panel;
+
+  display: grid;
+  padding: calc(#{$u} * 0.6) calc(#{$u} * 0.7);
+  gap: calc(#{$u} * 0.35);
+}
+
+.camera-visual__setting {
+  display: grid;
+  align-items: center;
+  gap: calc(#{$u} * 0.6);
+  grid-template-columns: calc(#{$u} * 7.5) minmax(0, 1fr);
+}
+
+.camera-visual__label {
+  overflow: hidden;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.58);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.camera-visual__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(#{$u} * 0.25);
+}
+
+.camera-visual__option {
+  @include pill;
+
+  color: $text-muted;
+  background: $surface-control;
+  font-size: calc(#{$u} * 0.56);
+
+  &.is-on {
+    color: $text-primary;
+    border-color: color-mix(in srgb, $secondary-light 60%, transparent);
+    background: color-mix(in srgb, $secondary-default 22%, $surface-control);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The rest of 2.4, under its last slide.
+
+.tour-release24 {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--tour-unit) * 2);
+}
+
+.tour-release24__also {
+  .tour-slide__how-title {
+    margin: 0;
+  }
+
+  .tour-showcase__points {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: $bp-xl) {
+  .tour-release24__also .tour-showcase__points {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

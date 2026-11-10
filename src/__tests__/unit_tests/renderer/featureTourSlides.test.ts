@@ -7,6 +7,39 @@ const idsOf = (version: string, release?: string) =>
     .filter((slide) => slide.release === release)
     .map((slide) => slide.id);
 
+describe("What's new in 2.4", () => {
+  it('opens on the Studio, then keeps the Gaming Lab as new under 2.3', () => {
+    expect(idsOf('2.4.0', '2.4')).toEqual([
+      'studio-animations',
+      'studio-pictures',
+      'studio-stage',
+      'studio-ai',
+      'scene-controls',
+      'scene-camera',
+    ]);
+    expect(featureTourFor('2.4.0')[0].id).toBe('studio-animations');
+    expect(idsOf('2.4.0', '2.3')).toEqual(idsOf('2.3.0', '2.3'));
+    expect(idsOf('2.3.0', '2.4')).toEqual([]);
+  });
+
+  it('keeps every earlier feature once, and 2.2 no longer marked new', () => {
+    const slides = featureTourFor('2.4.0');
+    const ids = slides.map((slide) => slide.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    featureTourFor('2.3.0').forEach((slide) => expect(ids).toContain(slide.id));
+    const groups = slides.map((slide) => slide.release ?? 'always');
+    expect(
+      groups.filter(
+        (group, index) => index === 0 || group !== groups[index - 1],
+      ),
+    ).toEqual(['2.4', '2.3', 'always']);
+  });
+
+  it('keeps the same content on a 2.4 patch', () => {
+    expect(featureTourFor('2.4.2')).toEqual(featureTourFor('2.4.0'));
+  });
+});
+
 describe("What's new in 2.3", () => {
   it('opens on the Gaming Lab, then keeps 2.2 as new under its own number', () => {
     expect(featureTourFor('2.3.0')[0].id).toBe('game-presets');

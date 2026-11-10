@@ -42,7 +42,13 @@ interface IShowcaseSlideProps {
     | 'tour.myCurves'
     | 'tour.songs'
     | 'tour.deesser'
-    | 'tour.chat';
+    | 'tour.chat'
+    | 'tour.animations'
+    | 'tour.pictures'
+    | 'tour.stage'
+    | 'tour.ai'
+    | 'tour.controls'
+    | 'tour.camera';
   /** What the slide's button does: land somewhere, and close the tour. */
   onOpen: () => void;
   visual: ReactNode;

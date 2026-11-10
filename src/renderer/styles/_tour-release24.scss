@@ -1,0 +1,1052 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// 2.4's Studio pictures, part one: Animations, the chat's pictures and the
+// stage (`StudioAnimationsVisual`, `StudioPicturesVisual`,
+// `StudioStageVisual`). The Studio's own parts keep their own styles; what
+// is here places them on a slide and moves what the slide adds.
+
+// The pictures' loop, the same ten seconds the 2.1 chat picture's thread
+// comes in on (`_tour-chat.scss`), so a chat beside one of these keeps time
+// with what it is talking about.
+$loop: 10s;
+
+@mixin still {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+// A Studio work area with its chat under it. Under, not beside: the slide's
+// picture frame is taller than it is wide, and two columns side by side in
+// it left each at a third of a Studio's width.
+@mixin studio-pair {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 30);
+  gap: calc(#{$u} * 0.6);
+  text-align: left;
+  @include animate(rise-in, $motion-slow);
+}
+
+// ---------------------------------------------------------------------------
+// Animations.
+
+.anim-visual {
+  @include studio-pair;
+}
+
+// The Studio's work area under its stage, without the stage: the tabs, the
+// way back to the list and the opened animation.
+.anim-visual__tab {
+  @include panel;
+  @include framed;
+
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  padding: calc(#{$u} * 0.6);
+  gap: calc(#{$u} * 0.5);
+
+  // The tab's own view is drawn for the window at its own pixels; on the
+  // slide it is laid out at the slide's unit instead.
+  .studio-animation {
+    gap: calc(#{$u} * 0.45);
+  }
+
+  .studio-animation-stage {
+    min-height: 0;
+    height: calc(#{$u} * 11.5);
+  }
+
+  .studio-animation__controls {
+    gap: calc(#{$u} * 0.35) calc(#{$u} * 0.5);
+    font-size: calc(#{$u} * 0.62);
+
+    .button {
+      min-height: calc(#{$u} * 1.6);
+      padding: calc(#{$u} * 0.2) calc(#{$u} * 0.5);
+      font-size: calc(#{$u} * 0.62);
+    }
+  }
+
+  .studio-animation__icon {
+    width: calc(#{$u} * 0.9);
+    height: calc(#{$u} * 0.9);
+  }
+
+  .studio-segment {
+    padding: calc(#{$u} * 0.18) calc(#{$u} * 0.45);
+    font-size: calc(#{$u} * 0.58);
+  }
+
+  .studio-animation__strip {
+    overflow: hidden;
+  }
+
+  .studio-animation__cell {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+  }
+}
+
+.anim-visual__tabs {
+  display: flex;
+  min-width: 0;
+  padding-bottom: calc(#{$u} * 0.35);
+  overflow: hidden;
+  border-bottom: 1px solid rgba($edge-tint, 0.1);
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.62);
+  font-weight: $weight-semibold;
+  gap: calc(#{$u} * 0.9);
+  white-space: nowrap;
+
+  .is-on {
+    position: relative;
+    color: $text-primary;
+
+    &::after {
+      position: absolute;
+      right: 0;
+      bottom: calc(#{$u} * -0.38);
+      left: 0;
+      height: 2px;
+      border-radius: 1px;
+      background: $secondary-light;
+      content: '';
+    }
+  }
+}
+
+.anim-visual__crumb {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.58);
+  gap: calc(#{$u} * 0.35);
+  white-space: nowrap;
+
+  svg {
+    width: calc(#{$u} * 0.6);
+    height: calc(#{$u} * 0.6);
+    align-self: center;
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.68);
+    font-weight: $weight-bold;
+  }
+
+  small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.anim-visual__waiting {
+  height: calc(#{$u} * 16);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-well 70%, transparent);
+}
+
+.anim-visual__task {
+  max-width: 100%;
+}
+
+// The frame the animator found out of line, marked in the strip while it
+// says so and until it has drawn it again.
+.anim-visual__tab .studio-animation__cell:nth-child(4) {
+  animation: anim-visual-flag $loop linear infinite;
+  @include still;
+}
+
+@keyframes anim-visual-flag {
+  0%,
+  26% {
+    box-shadow: none;
+  }
+
+  28%,
+  44% {
+    box-shadow: 0 0 0 2px $amber;
+  }
+
+  46%,
+  100% {
+    box-shadow: none;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The chat's pictures.
+
+.pictures-visual {
+  @include studio-pair;
+}
+
+.pictures-visual__viewer {
+  @include panel;
+  @include framed;
+
+  display: grid;
+  min-width: 0;
+  padding: calc(#{$u} * 0.6);
+  gap: calc(#{$u} * 0.5);
+  background: color-mix(in srgb, $surface-menu 92%, $black);
+}
+
+.pictures-visual__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(#{$u} * 0.3);
+}
+
+.pictures-visual__tool {
+  @include pill;
+
+  color: $text-muted;
+  background: $surface-control;
+  font-size: calc(#{$u} * 0.58);
+
+  svg {
+    width: calc(#{$u} * 0.65);
+    height: calc(#{$u} * 0.65);
+  }
+
+  &.is-on {
+    color: $text-primary;
+    border-color: color-mix(in srgb, $secondary-light 55%, transparent);
+    background: color-mix(in srgb, $secondary-default 22%, $surface-control);
+  }
+}
+
+.pictures-visual__inks {
+  display: inline-flex;
+  margin-left: auto;
+  gap: calc(#{$u} * 0.25);
+
+  i {
+    width: calc(#{$u} * 0.62);
+    height: calc(#{$u} * 0.62);
+    border: 1px solid rgba($white, 0.3);
+    border-radius: 50%;
+  }
+
+  .is-red {
+    background: #ff4d5e;
+    box-shadow: 0 0 0 2px color-mix(in srgb, $secondary-light 70%, transparent);
+  }
+
+  .is-yellow {
+    background: #ffd84d;
+  }
+
+  .is-cyan {
+    background: #4ff0ff;
+  }
+
+  .is-white {
+    background: $white;
+  }
+}
+
+// The picture, zoomed in: what the viewer shows at 220%.
+.pictures-visual__frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: $radius-s;
+  background: $black;
+}
+
+.pictures-visual__moon {
+  position: absolute;
+  top: -48%;
+  left: -18%;
+  width: 136%;
+  max-width: none;
+  animation: pictures-visual-zoom $loop $ease-unfold infinite;
+  @include still;
+}
+
+@keyframes pictures-visual-zoom {
+  0% {
+    transform: scale(0.82) translate(4%, 8%);
+  }
+
+  14%,
+  100% {
+    transform: none;
+  }
+}
+
+.pictures-visual__marks {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: #ff4d5e;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.3;
+  filter: drop-shadow(0 0 3px rgba($black, 0.6));
+}
+
+// Drawn in the picture's own units, never `non-scaling-stroke`: that
+// measures the dashes on screen, and the ring stopped short of closing.
+.pictures-visual__ring,
+.pictures-visual__arrow {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  @include still;
+}
+
+.pictures-visual__ring {
+  animation: pictures-visual-ring $loop $ease-out infinite;
+}
+
+.pictures-visual__arrow {
+  animation: pictures-visual-arrow $loop $ease-out infinite;
+}
+
+@keyframes pictures-visual-ring {
+  0%,
+  18% {
+    stroke-dashoffset: 1;
+  }
+
+  27%,
+  94% {
+    stroke-dashoffset: 0;
+  }
+
+  100% {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes pictures-visual-arrow {
+  0%,
+  29% {
+    stroke-dashoffset: 1;
+  }
+
+  36%,
+  94% {
+    stroke-dashoffset: 0;
+  }
+
+  100% {
+    stroke-dashoffset: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pictures-visual__ring,
+  .pictures-visual__arrow {
+    stroke-dashoffset: 0;
+  }
+}
+
+.pictures-visual__word {
+  position: absolute;
+  top: 10%;
+  left: 7%;
+  color: #ff4d5e;
+  font-size: calc(#{$u} * 1.05);
+  font-style: italic;
+  font-weight: $weight-bold;
+  text-shadow: 0 1px 4px rgba($black, 0.7);
+  animation: pictures-visual-word $loop $ease-out infinite;
+  @include still;
+}
+
+@keyframes pictures-visual-word {
+  0%,
+  37% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  41%,
+  94% {
+    opacity: 1;
+    transform: none;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+// The crop box closing in on the marks, its outside dimmed.
+.pictures-visual__crop {
+  position: absolute;
+  inset: 0;
+  border: 2px dashed rgba($white, 0.9);
+  border-radius: 2px;
+  box-shadow: 0 0 0 999px rgba($black, 0.5);
+  opacity: 0;
+  animation: pictures-visual-crop $loop $ease-unfold infinite;
+  @include still;
+}
+
+@keyframes pictures-visual-crop {
+  0%,
+  46% {
+    inset: 0;
+    opacity: 0;
+  }
+
+  50% {
+    inset: 0;
+    opacity: 1;
+  }
+
+  58%,
+  90% {
+    inset: 4% 14% 10% 3%;
+    opacity: 1;
+  }
+
+  95%,
+  100% {
+    inset: 4% 14% 10% 3%;
+    opacity: 0;
+  }
+}
+
+.pictures-visual__zoom {
+  @include pill;
+
+  position: absolute;
+  right: calc(#{$u} * 0.5);
+  bottom: calc(#{$u} * 0.5);
+  border-color: rgba($white, 0.2);
+  background: rgba($black, 0.55);
+  color: $white;
+  font-size: calc(#{$u} * 0.56);
+  font-variant-numeric: tabular-nums;
+
+  svg {
+    width: calc(#{$u} * 0.6);
+    height: calc(#{$u} * 0.6);
+  }
+}
+
+.pictures-visual__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(#{$u} * 0.4);
+
+  .button {
+    gap: calc(#{$u} * 0.3);
+    min-height: calc(#{$u} * 1.6);
+    padding: calc(#{$u} * 0.2) calc(#{$u} * 0.55);
+    font-size: calc(#{$u} * 0.6);
+    cursor: default;
+
+    svg {
+      width: calc(#{$u} * 0.65);
+      height: calc(#{$u} * 0.65);
+    }
+  }
+}
+
+.pictures-visual__copied {
+  display: inline-flex;
+  align-items: center;
+  color: $secondary-light;
+  font-size: calc(#{$u} * 0.56);
+  gap: calc(#{$u} * 0.2);
+  animation: pictures-visual-copied $loop $ease-out infinite;
+  @include still;
+
+  svg {
+    width: calc(#{$u} * 0.6);
+    height: calc(#{$u} * 0.6);
+  }
+}
+
+@keyframes pictures-visual-copied {
+  0%,
+  62% {
+    opacity: 0;
+  }
+
+  65%,
+  76% {
+    opacity: 1;
+  }
+
+  80%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.pictures-visual__attach {
+  margin-left: auto;
+  animation: pictures-visual-attach $loop $ease-out infinite;
+  @include still;
+}
+
+@keyframes pictures-visual-attach {
+  0%,
+  80% {
+    filter: none;
+  }
+
+  83% {
+    filter: brightness(1.25);
+  }
+
+  88%,
+  100% {
+    filter: none;
+  }
+}
+
+// The chat under the viewer, cut to the exchange: the ask, the picture as
+// it arrived, and the marked copy going back.
+.pictures-visual__chat {
+  @include panel;
+
+  padding: calc(#{$u} * 0.55);
+}
+
+.pictures-visual__thread {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: end;
+  column-gap: calc(#{$u} * 0.6);
+
+  > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.pictures-visual__made,
+.pictures-visual__back {
+  display: flex;
+  align-items: flex-end;
+  min-width: 0;
+  gap: calc(#{$u} * 0.45);
+}
+
+.pictures-visual__back {
+  justify-self: end;
+}
+
+.pictures-visual__thumb {
+  position: relative;
+  display: block;
+  width: calc(#{$u} * 3.6);
+  flex: 0 0 auto;
+  overflow: hidden;
+  aspect-ratio: 1;
+  border: 1px solid rgba($edge-tint, 0.18);
+  border-radius: $radius-s;
+  background: $black;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  svg {
+    position: absolute;
+    right: calc(#{$u} * 0.25);
+    bottom: calc(#{$u} * 0.25);
+    width: calc(#{$u} * 0.65);
+    height: calc(#{$u} * 0.65);
+    color: $white;
+    filter: drop-shadow(0 1px 2px rgba($black, 0.8));
+  }
+
+  // The marked copy going back: the same ring, small.
+  &.is-marked {
+    width: calc(#{$u} * 2.8);
+
+    img {
+      transform: scale(1.6) translate(-6%, -10%);
+    }
+
+    &::after {
+      position: absolute;
+      top: 46%;
+      left: 46%;
+      width: 34%;
+      height: 30%;
+      border: 2px solid #ff4d5e;
+      border-radius: 50%;
+      content: '';
+    }
+  }
+}
+
+// Goes back with the next message, once the marks are made.
+.pictures-visual__back {
+  animation: chat-visual-kept $loop $ease-out infinite;
+  @include still;
+}
+
+// ---------------------------------------------------------------------------
+// The stage.
+
+.stage-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 38);
+  gap: calc(#{$u} * 0.8);
+  grid-template-columns: minmax(0, 1fr) calc(#{$u} * 8.5);
+  text-align: left;
+  @include animate(rise-in, $motion-slow);
+}
+
+.stage-visual__main {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: calc(#{$u} * 0.8);
+}
+
+.stage-visual__stage {
+  @include framed;
+
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: $radius-l;
+  background: $black;
+}
+
+.stage-visual__scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform-origin: 68% 58%;
+  animation: stage-visual-zoom $loop $ease-unfold infinite;
+  @include still;
+}
+
+@keyframes stage-visual-zoom {
+  0%,
+  10% {
+    transform: none;
+  }
+
+  34%,
+  70% {
+    transform: scale(1.6);
+  }
+
+  92%,
+  100% {
+    transform: none;
+  }
+}
+
+// What the AI is shown: the stage's own view, whatever it is zoomed to.
+.stage-visual__seen {
+  position: absolute;
+  inset: calc(#{$u} * 0.45);
+  border: 2px dashed color-mix(in srgb, $secondary-light 80%, transparent);
+  border-radius: $radius-m;
+  pointer-events: none;
+}
+
+.stage-visual__seen-tag {
+  @include pill;
+
+  position: absolute;
+  top: calc(#{$u} * 0.4);
+  left: calc(#{$u} * 0.4);
+  border-color: color-mix(in srgb, $secondary-light 50%, transparent);
+  background: color-mix(in srgb, $surface-menu 82%, transparent);
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.56);
+  backdrop-filter: blur(8px);
+
+  svg {
+    width: calc(#{$u} * 0.65);
+    height: calc(#{$u} * 0.65);
+    color: $secondary-light;
+  }
+}
+
+.stage-visual__zoom {
+  @include pill;
+
+  position: absolute;
+  top: calc(#{$u} * 0.85);
+  right: calc(#{$u} * 0.85);
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  border-color: rgba($white, 0.2);
+  background: rgba($black, 0.5);
+  color: $white;
+  font-size: calc(#{$u} * 0.56);
+  font-variant-numeric: tabular-nums;
+
+  svg {
+    width: calc(#{$u} * 0.6);
+    height: calc(#{$u} * 0.6);
+  }
+
+  > span {
+    grid-area: 1 / 2;
+  }
+}
+
+.stage-visual__zoom-a {
+  animation: stage-visual-zoom-a $loop linear infinite;
+  @include still;
+}
+
+.stage-visual__zoom-b {
+  opacity: 0;
+  animation: stage-visual-zoom-b $loop linear infinite;
+  @include still;
+}
+
+@keyframes stage-visual-zoom-a {
+  0%,
+  22% {
+    opacity: 1;
+  }
+
+  24%,
+  80% {
+    opacity: 0;
+  }
+
+  82%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes stage-visual-zoom-b {
+  0%,
+  22% {
+    opacity: 0;
+  }
+
+  24%,
+  80% {
+    opacity: 1;
+  }
+
+  82%,
+  100% {
+    opacity: 0;
+  }
+}
+
+// The stage's plate: what is playing, and the one press between the music
+// and Calm.
+.stage-visual__plate {
+  position: absolute;
+  bottom: calc(#{$u} * 0.9);
+  left: 50%;
+  display: flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.3);
+  border: 1px solid rgba($edge-tint, 0.18);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $surface-menu 78%, transparent);
+  gap: calc(#{$u} * 0.5);
+  translate: -50% 0;
+  backdrop-filter: blur(12px);
+  white-space: nowrap;
+}
+
+.stage-visual__status {
+  display: inline-flex;
+  align-items: center;
+  padding-left: calc(#{$u} * 0.3);
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.56);
+  gap: calc(#{$u} * 0.3);
+
+  i {
+    width: calc(#{$u} * 0.4);
+    height: calc(#{$u} * 0.4);
+    border-radius: 50%;
+    background: $secondary-light;
+    box-shadow: 0 0 calc(#{$u} * 0.4) $secondary-default;
+  }
+}
+
+.stage-visual__swap {
+  display: inline-grid;
+
+  > span {
+    @include pill;
+
+    grid-area: 1 / 1;
+    justify-content: center;
+    color: $surface-base;
+    border-color: transparent;
+    background: $secondary-light;
+    font-size: calc(#{$u} * 0.6);
+
+    svg {
+      width: calc(#{$u} * 0.65);
+      height: calc(#{$u} * 0.65);
+    }
+  }
+}
+
+.stage-visual__music {
+  animation: stage-visual-music $loop linear infinite;
+  @include still;
+}
+
+.stage-visual__calm {
+  opacity: 0;
+  animation: stage-visual-calm $loop linear infinite;
+  @include still;
+}
+
+@keyframes stage-visual-music {
+  0%,
+  48% {
+    opacity: 1;
+  }
+
+  50%,
+  70% {
+    opacity: 0;
+  }
+
+  72%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes stage-visual-calm {
+  0%,
+  48% {
+    opacity: 0;
+  }
+
+  50%,
+  70% {
+    opacity: 1;
+  }
+
+  72%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.stage-visual__shape {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  gap: calc(#{$u} * 0.35);
+
+  figcaption {
+    overflow: hidden;
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.58);
+    font-weight: $weight-semibold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// Five and a half times as wide as it is tall, as the graph on a 3440px
+// monitor, with the graph's wave over the scene.
+.stage-visual__wide {
+  @include framed;
+
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 5.5;
+  border-radius: $radius-m;
+  background: $black;
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 62%;
+  }
+
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 200%;
+    height: 100%;
+    animation: stage-visual-wave 6s linear infinite;
+    @include still;
+  }
+}
+
+.stage-visual__wave {
+  fill: none;
+  stroke: $secondary-light;
+  stroke-width: 1.6;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 4px $secondary-default);
+}
+
+@keyframes stage-visual-wave {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.stage-visual__player-shape {
+  align-content: start;
+}
+
+// The Compact player's column: the scene down the whole window, the
+// player's frosted panel over its top.
+.stage-visual__player {
+  @include framed;
+
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 0.42;
+  border-radius: $radius-l;
+  background: $black;
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 70% 50%;
+  }
+}
+
+.stage-visual__panel {
+  position: absolute;
+  top: calc(#{$u} * 0.45);
+  right: calc(#{$u} * 0.45);
+  left: calc(#{$u} * 0.45);
+  display: grid;
+  padding: calc(#{$u} * 0.5);
+  border: 1px solid rgba($white, 0.14);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $surface-field 42%, transparent);
+  gap: calc(#{$u} * 0.4);
+  backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.stage-visual__song {
+  display: grid;
+  min-width: 0;
+
+  strong {
+    overflow: hidden;
+    color: $white;
+    font-size: calc(#{$u} * 0.6);
+    font-weight: $weight-bold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    color: rgba($white, 0.7);
+    font-size: calc(#{$u} * 0.52);
+  }
+}
+
+.stage-visual__transport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $white;
+  gap: calc(#{$u} * 0.5);
+
+  svg {
+    width: calc(#{$u} * 0.7);
+    height: calc(#{$u} * 0.7);
+  }
+}
+
+.stage-visual__play {
+  position: relative;
+  width: calc(#{$u} * 1.5);
+  height: calc(#{$u} * 1.5);
+  border-radius: 50%;
+  background: $secondary-light;
+
+  &::after {
+    position: absolute;
+    inset: 32% 30% 32% 40%;
+    background: $surface-base;
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+    content: '';
+  }
+}
+
+.stage-visual__bar {
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba($white, 0.2);
+
+  i {
+    display: block;
+    width: 38%;
+    height: 100%;
+    background: $secondary-light;
+    animation: stage-visual-bar $loop linear infinite;
+    @include still;
+  }
+}
+
+@keyframes stage-visual-bar {
+  from {
+    width: 18%;
+  }
+
+  to {
+    width: 58%;
+  }
+}
+
+// A laptop's shorter stage: the animation's stage a little lower and the
+// animator's box left out, so its thread and How to start beside it stay on
+// screen. At 1366 x 768 the whole picture ran 40px under the stage's foot.
+@media (max-height: $bp-laptop-height) {
+  .anim-visual__tab .studio-animation-stage {
+    height: calc(#{$u} * 9);
+  }
+
+  .anim-visual__animator .chat-visual__box {
+    display: none;
+  }
+}

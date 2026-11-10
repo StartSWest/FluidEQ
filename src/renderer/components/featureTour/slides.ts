@@ -52,6 +52,14 @@ import {
 } from './release21';
 import KaraokeBackgroundSlide, { LanguagesSlide, TraySlide } from './release22';
 import GamingLabSlide from './release23';
+import {
+  AnimationsSlide,
+  CameraSlide,
+  PicturesSlide,
+  SceneControlsSlide,
+  StageSlide,
+  StudioAiSlide,
+} from './release24';
 import WalkthroughSlide, { WALKTHROUGH_FILM } from './WalkthroughSlide';
 
 /**
@@ -339,6 +347,52 @@ const RELEASE_22: TSlideEntry[] = [
 /** 2.3: the Gaming Lab. */
 const RELEASE_23: TSlideEntry[] = [GAMING_LAB];
 
+/**
+ * 2.4: the Studio first and most of all (Ivan, 2026-11-09: "whats new very
+ * big the new studio capability and all that is posible to do with it") -
+ * its animations, the pictures in its chat, its stage, its AI and what a
+ * scene hands the member to tune - then the visualizers' camera, on the
+ * graph and the desktop, with the rest of the release listed under it.
+ */
+const RELEASE_24: TSlideEntry[] = [
+  {
+    id: 'studio-animations',
+    titleKey: 'tour.animations.title',
+    subtitleKey: 'tour.animations.subtitle',
+    Body: AnimationsSlide,
+  },
+  {
+    id: 'studio-pictures',
+    titleKey: 'tour.pictures.title',
+    subtitleKey: 'tour.pictures.subtitle',
+    Body: PicturesSlide,
+  },
+  {
+    id: 'studio-stage',
+    titleKey: 'tour.stage.title',
+    subtitleKey: 'tour.stage.subtitle',
+    Body: StageSlide,
+  },
+  {
+    id: 'studio-ai',
+    titleKey: 'tour.ai.title',
+    subtitleKey: 'tour.ai.subtitle',
+    Body: StudioAiSlide,
+  },
+  {
+    id: 'scene-controls',
+    titleKey: 'tour.controls.title',
+    subtitleKey: 'tour.controls.subtitle',
+    Body: SceneControlsSlide,
+  },
+  {
+    id: 'scene-camera',
+    titleKey: 'tour.camera.title',
+    subtitleKey: 'tour.camera.subtitle',
+    Body: CameraSlide,
+  },
+];
+
 const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
   entries.map((entry) => ({ ...entry, release }));
 
@@ -355,6 +409,16 @@ const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
  * from decides what is new to them, not the version they are going to.
  */
 const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
+  '2.4': [
+    ...announced('2.4', RELEASE_24),
+    ...announced('2.3', RELEASE_23),
+    // Earlier features remain discoverable without being announced again.
+    ...RELEASE_22,
+    ...RELEASE_21.filter((entry) => !RELEASE_23.includes(entry)),
+    ...RELEASE_20.filter(
+      (entry) => !RELEASE_21.includes(entry) && !RELEASE_23.includes(entry),
+    ),
+  ],
   '2.3': [
     ...announced('2.3', RELEASE_23),
     ...announced('2.2', RELEASE_22),
