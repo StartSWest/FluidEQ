@@ -134,6 +134,9 @@ was never published on its own; everything it held is here.
 
 ### Store, support and more
 
+- **Share Audio stays linked.** A computer you linked stays linked until
+  somebody unlinks it: it reconnects by itself after sleep, a power cut or a
+  new address, with no new invitation.
 - **Credits arrive by themselves.** Credits paid in the browser reach the
   app with no click, whether its window is in front or not.
 - **GitHub Sponsors.** Support FluidEQ from About or the Support page.
