@@ -12,7 +12,7 @@ import {
 } from '../../common/studioAnimation';
 import { readProjectAnimation } from '../memberScenes/projectAnimations';
 import type { IMcpTool, IMcpToolResult } from '../studioAgent/mcpProtocol';
-import { failure } from './artFolder';
+import { failure, READABLE_PICTURES } from './artFolder';
 import {
   BUDGET_SPENT,
   createSheetBudget,
@@ -192,7 +192,7 @@ const planEntry = async (
     }
     const found = await readProjectAnimation(folder, value.animation);
     if (!found) {
-      return `There is no animation ${value.animation} whose sheet FluidEQ can read.`;
+      return `There is no animation ${value.animation} whose sheet FluidEQ can read. ${READABLE_PICTURES}`;
     }
     const file = readPictureFile(folder, found.animation.sheet);
     if (typeof file === 'string') {
@@ -363,7 +363,9 @@ const createBuildSheetTool = ({
       }
       const picture = codec.decode(file.bytes);
       if (!picture) {
-        return failure(`${file.named} is not a picture FluidEQ can read.`);
+        return failure(
+          `${file.named} could not be read as a picture. ${READABLE_PICTURES}`,
+        );
       }
       for (let index = 0; index < plans.length; index += 1) {
         const plan = plans[index];

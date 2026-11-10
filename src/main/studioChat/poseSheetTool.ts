@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { SHEET_BOUNDS } from '../../common/pictureBounds';
 import type { IMcpTool, IMcpToolResult } from '../studioAgent/mcpProtocol';
-import { failure } from './artFolder';
+import { failure, READABLE_PICTURES } from './artFolder';
 import {
   BUDGET_SPENT,
   createSheetBudget,
@@ -330,7 +330,9 @@ const createPoseSheetTool = ({
     }
     const decoded = codec.decode(file.bytes);
     if (!decoded) {
-      return failure(`${file.named} is not a picture FluidEQ can read.`);
+      return failure(
+        `${file.named} could not be read as a picture. ${READABLE_PICTURES}`,
+      );
     }
     const picture = cutOut(decoded, key);
     if (picture === 'not-flat') {

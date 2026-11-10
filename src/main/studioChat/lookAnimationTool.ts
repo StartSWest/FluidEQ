@@ -11,7 +11,7 @@ import { readProjectAnimation } from '../memberScenes/projectAnimations';
 import { pictureFromBytes } from '../safePicture';
 import type { IMcpTool } from '../studioAgent/mcpProtocol';
 import { composeLook, describeAnimation } from './animationLook';
-import { failure, text } from './artFolder';
+import { failure, READABLE_PICTURES, text } from './artFolder';
 
 /** The tallest a frame is shown: enough to see a hoof, small to send. */
 const SHOWN_CELL = 240;
@@ -52,14 +52,16 @@ const lookAnimationTool = (folder: string): IMcpTool => ({
     const found = await readProjectAnimation(folder, name);
     if (!found) {
       return failure(
-        `There is no animation "${name}" to look at: animations/${name}.json must name a sheet picture inside the project (png, jpg or webp).`,
+        `There is no animation "${name}" to look at: animations/${name}.json must name a sheet picture inside the project. ${READABLE_PICTURES}`,
       );
     }
     const { animation } = found;
     const image = pictureFromBytes(found.sheet);
     const { width, height } = image.getSize();
     if (image.isEmpty() || width === 0 || height === 0) {
-      return failure(`${animation.sheet} is not a picture FluidEQ can read.`);
+      return failure(
+        `${animation.sheet} could not be read as a picture. ${READABLE_PICTURES}`,
+      );
     }
     const measure = measureAnimation(
       { data: image.toBitmap(), width, height },

@@ -23,6 +23,14 @@ export const text = (words: string): IMcpToolResult['content'][number] => ({
   text: words,
 });
 
+/**
+ * What a picture tool says after "cannot be read", so Claude can tell the
+ * member what to do: Electron's decoder in main reads PNG and JPEG only (a
+ * WebP decodes to nothing there).
+ */
+export const READABLE_PICTURES =
+  'FluidEQ reads PNG and JPEG pictures: ask the member for it as one of those, or use another picture of the project.';
+
 export const failure = (words: string): IMcpToolResult => ({
   content: [text(words)],
   isError: true,

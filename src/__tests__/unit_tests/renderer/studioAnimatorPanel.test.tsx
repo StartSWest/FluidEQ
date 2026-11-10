@@ -9,6 +9,7 @@ import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import {
   animatorChatKey,
+  type TStudioChatAsk,
   type TStudioChatEntry,
 } from '../../../common/studioChat';
 import AnimatorChat from '../../../renderer/studio/animations/AnimatorChat';
@@ -42,6 +43,11 @@ type TEntryListener = (change: {
   busy: boolean;
 }) => void;
 let entryListeners: TEntryListener[] = [];
+type TAskListener = (change: {
+  projectId: string;
+  ask?: TStudioChatAsk;
+}) => void;
+let askListeners: TAskListener[] = [];
 let startListener:
   | ((start: { projectId: string; name: string; task: string }) => void)
   | undefined;
@@ -65,7 +71,13 @@ const bridge = {
   },
   onStudioChatQueue: () => () => undefined,
   onStudioChatContext: () => () => undefined,
-  onStudioChatAsk: () => () => undefined,
+  onStudioChatAsk: (listener: TAskListener) => {
+    askListeners.push(listener);
+    return () => {
+      askListeners = askListeners.filter((each) => each !== listener);
+    };
+  },
+  studioChatAnswer: jest.fn(async () => undefined),
   onStudioChatLimits: () => () => undefined,
   onStudioChatPack: () => () => undefined,
   onStudioAnimatorStart: (listener: typeof startListener) => {
@@ -86,6 +98,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   entryListeners = [];
+  askListeners = [];
   startListener = undefined;
   jest.clearAllMocks();
   resetAnimatorChatStore();
@@ -208,6 +221,52 @@ describe('the animator beside an opened animation', () => {
         text: 'the tail is too stiff',
       }),
     );
+  });
+
+  it("asks its questions in its own chat, where the member answers them, and the scene's chat never shows them", async () => {
+    await act(async () => {
+      await checkStudioChat();
+    });
+    function SceneAsk() {
+      const { ask } = useStudioChat();
+      return <span data-testid="scene-ask">{ask?.id ?? 'none'}</span>;
+    }
+    render(
+      <>
+        <AnimatorChat projectId={PROJECT} name="wolf-walk" />
+        <SceneAsk />
+      </>,
+    );
+    await act(async () => undefined);
+    const card = (projectId: string, id: string): TStudioChatAsk => ({
+      id,
+      projectId,
+      kind: 'picture',
+      why: 'The whale for the dive',
+      prompt: 'A humpback, side on',
+      width: 1024,
+      height: 512,
+      transparent: true,
+    });
+    const raise = (projectId: string, ask?: TStudioChatAsk) =>
+      act(() => {
+        askListeners.forEach((listener) => listener({ projectId, ask }));
+      });
+    // The control: the scene's own question stays in the scene's chat.
+    raise(PROJECT, card(PROJECT, 'scene-1'));
+    expect(screen.queryByText('A humpback, side on')).not.toBeInTheDocument();
+    raise(PROJECT, undefined);
+
+    raise(KEY, card(KEY, 'animator-1'));
+    expect(screen.getByText('A humpback, side on')).toBeInTheDocument();
+    expect(screen.getByTestId('scene-ask')).toHaveTextContent('none');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'studioChat.ask.makeIt' }),
+    );
+    expect(bridge.studioChatAnswer).toHaveBeenCalledWith('animator-1', 'yes');
+    // Main settles the question and takes the card down in this chat.
+    raise(KEY, undefined);
+    expect(screen.queryByText('A humpback, side on')).not.toBeInTheDocument();
   });
 
   it('says when it is at work, and stops when asked', async () => {

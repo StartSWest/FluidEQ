@@ -23,7 +23,7 @@ import {
   readProjectAnimation,
 } from '../memberScenes/projectAnimations';
 import type { IMcpToolResult } from '../studioAgent/mcpProtocol';
-import { ART_DIR, ART_NAME, artFolder } from './artFolder';
+import { ART_DIR, ART_NAME, artFolder, READABLE_PICTURES } from './artFolder';
 import { insideFolder } from './chatSandbox';
 import type { IPixels } from './sheetRig';
 
@@ -95,7 +95,7 @@ export const readPictureFile = (
   // Electron's decoder in main reads PNG and JPEG only: a WebP decodes to
   // nothing there, so it is said plainly rather than as an unreadable file.
   if (modelImageSize(bytes, 'image/webp')) {
-    return `${named} is a WebP, which FluidEQ cannot cut frames from; use a PNG or JPEG picture.`;
+    return `${named} is a WebP, which FluidEQ cannot cut frames from. ${READABLE_PICTURES}`;
   }
   const size = pictureHeaderSize(bytes);
   if (!size || !isDecodablePicture(bytes, SHEET_BOUNDS)) {

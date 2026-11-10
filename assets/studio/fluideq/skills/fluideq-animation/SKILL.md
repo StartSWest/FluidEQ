@@ -43,6 +43,13 @@ into the project:
 - `look_at_animation` - the animation alone: every frame, each over the one
   before, and which frame floats, pops or jumps.
 
+What bending one picture can do: swim, flap, sway, turn, bob, dive, glide -
+any motion that is the body the photo shows, curved, tipped, moved or
+scaled. What it cannot do: a pose the photo does not show - the far side of
+the animal, a wing that was folded opening, a mouth opening, a leg stepping
+past another. Bending never invents what is not in the picture; for that,
+the poses have to be drawn (Making it with build_sheet, below).
+
 Never tell the member a sheet cannot be made. Pick the way that fits:
 
 | the motion                                             | the way                                  |
