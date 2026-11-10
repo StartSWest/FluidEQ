@@ -167,6 +167,25 @@ export const writeSheet = async (
   return recorded.ok ? { sheet: `${ART_DIR}/${name}.png` } : recorded.reason;
 };
 
+/**
+ * Why a sheet may not be written as the animation `name`, or undefined: an
+ * animation already there is replaced only when the call says so, and the
+ * replaced sheet stays in its history. A chat asked to save a sheet "as"
+ * some file used to make a second animation, or quietly write over the
+ * first (Ivan's alpine project, 2026-11-10).
+ */
+export const replaceProblem = (
+  folder: string,
+  name: string,
+  replace: unknown,
+): string | undefined => {
+  const file = insideFolder(folder, `${ANIMATIONS_DIR}/${name}.json`);
+  if (!file || !fs.existsSync(file) || replace === true) {
+    return undefined;
+  }
+  return `The animation ${name} already exists. To give it this new sheet, call again with replace: true - the sheet it has now stays in its history, and the member can undo. To make a different animation, give it a name nothing uses yet.`;
+};
+
 const sameFile = (a: string, b: string) =>
   process.platform === 'win32' ? a.toLowerCase() === b.toLowerCase() : a === b;
 

@@ -51,7 +51,7 @@ const pictureOf = (
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const STEP_KINDS = new Set([
+const STEP_KINDS = new Set<IStudioChatStep['kind']>([
   'look',
   'hear',
   'read',
@@ -60,11 +60,30 @@ const STEP_KINDS = new Set([
   'picture',
   'pack',
   'animation',
-  'animator',
   'sheet',
   'compact',
   'other',
 ]);
+
+/**
+ * Kinds a saved chat may hold that are no longer shown as such: the scene's
+ * chat starting an animator, from before the animations' own chats were
+ * taken out (2026-11-10), reads as a step of another kind, so the reply it
+ * stood in keeps every other step.
+ */
+const RETIRED_KINDS: Record<string, IStudioChatStep['kind']> = {
+  animator: 'other',
+};
+
+const kindOf = (raw: unknown): IStudioChatStep['kind'] | undefined => {
+  const kind = String(raw);
+  if (Object.prototype.hasOwnProperty.call(RETIRED_KINDS, kind)) {
+    return RETIRED_KINDS[kind];
+  }
+  return STEP_KINDS.has(kind as IStudioChatStep['kind'])
+    ? (kind as IStudioChatStep['kind'])
+    : undefined;
+};
 const STEP_STATES = new Set(['running', 'done', 'failed']);
 const REPLY_STATES = new Set(['working', 'done', 'stopped', 'failed']);
 const FAILURES: ReadonlySet<string> = new Set<TStudioChatFailure>([
@@ -86,17 +105,18 @@ const tokensOf = (raw: unknown) =>
     : {};
 
 const readStep = (raw: unknown): IStudioChatStep | undefined => {
+  const kind = isRecord(raw) ? kindOf(raw.kind) : undefined;
   if (
     !isRecord(raw) ||
     typeof raw.id !== 'string' ||
-    !STEP_KINDS.has(String(raw.kind)) ||
+    !kind ||
     !STEP_STATES.has(String(raw.state))
   ) {
     return undefined;
   }
   return {
     id: raw.id,
-    kind: raw.kind as IStudioChatStep['kind'],
+    kind,
     state: raw.state as IStudioChatStep['state'],
     ...(typeof raw.file === 'string' ? { file: raw.file } : {}),
     ...pictureOf(raw.picture),

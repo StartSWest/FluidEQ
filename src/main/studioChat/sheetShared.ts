@@ -75,6 +75,12 @@ export const breathe = () =>
 /** How a sheet plays when the call says nothing: on twos, about. */
 const DEFAULT_FPS = 10;
 
+export const REPLACE_SCHEMA = {
+  type: 'boolean',
+  description:
+    'true to give an animation that already exists this new sheet; the sheet it has now stays in its history, undoable. Without it, a name already in use is refused.',
+};
+
 export const ANIMATION_SCHEMA = {
   type: 'object',
   description: `How animations/<name>.json, written beside the sheet so it plays in the Animations tab, plays it: ${DEFAULT_FPS} a second and shown against nothing when left out.`,

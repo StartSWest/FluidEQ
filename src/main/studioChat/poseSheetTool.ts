@@ -13,6 +13,7 @@ import {
   isSheetName,
   readPictureFile,
   sheetAnswer,
+  replaceProblem,
   sheetTargetProblem,
   writeSheet,
 } from './sheetFiles';
@@ -28,6 +29,7 @@ import {
 } from './sheetRig';
 import {
   ANIMATION_SCHEMA,
+  REPLACE_SCHEMA,
   breathe,
   cutOut,
   findingsOf,
@@ -167,6 +169,7 @@ const POSE_SCHEMA = {
         'The flat background to take out: auto (read from the border; when left out), none, or a colour as #rrggbb.',
     },
     animation: ANIMATION_SCHEMA,
+    replace: REPLACE_SCHEMA,
   },
   required: ['name', 'from', 'count', 'columns', 'cell', 'keys'],
   additionalProperties: false,
@@ -321,7 +324,9 @@ const createPoseSheetTool = ({
     if (typeof file === 'string') {
       return failure(file);
     }
-    const target = await sheetTargetProblem(open.folder, name, [file]);
+    const target =
+      replaceProblem(open.folder, name, args.replace) ??
+      (await sheetTargetProblem(open.folder, name, [file]));
     if (target) {
       return failure(target);
     }

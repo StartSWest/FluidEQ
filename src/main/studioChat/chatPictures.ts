@@ -6,8 +6,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { ipcMain, type IpcMainInvokeEvent, type WebContents } from 'electron';
 import {
-  chatAnimationOf,
-  chatProjectOf,
   isStudioChatAnswer,
   type IStudioChatCodexState,
   type IStudioChatPackAsk,
@@ -30,7 +28,6 @@ import { createChatServer } from './chatServer';
 import { codexAccount, type ICodexAccount } from './codexAccount';
 import { codexState, signInToCodex } from './codexPictures';
 import lookAnimationTool from './lookAnimationTool';
-import startAnimatorTool from './startAnimatorTool';
 import { createPictureTools } from './pictureTools';
 import sheetCodec from './sheetCodec';
 import { createSheetTools } from './sheetTools';
@@ -80,11 +77,6 @@ export interface IChatPicturesDeps {
   door: IStudioLook;
   version: string;
   logger?: { info(message: string): void; warn(message: string): void };
-  /**
-   * A project's animators by animation name: those with a Claude Code
-   * running, and of those the ones whose reply is in progress.
-   */
-  animatorsOf(projectId: string): { live: string[]; working: string[] };
 }
 
 const CHANNELS = [
@@ -131,23 +123,7 @@ export const createChatPictures = ({
   door,
   version,
   logger,
-  animatorsOf,
 }: IChatPicturesDeps) => {
-  /**
-   * Animators the scene's chat started that have no Claude Code yet: the
-   * window sends each its first message a moment later, and a burst of
-   * starts in that moment must count as much as running ones do.
-   */
-  const startingAnimators = new Map<string, Set<string>>();
-
-  /** The project's animators working now, or about to (`start_animator`). */
-  const animatorsWorking = (projectId: string): string[] => {
-    const { live, working } = animatorsOf(projectId);
-    const starting = startingAnimators.get(projectId) ?? new Set<string>();
-    live.forEach((name) => starting.delete(name));
-    return [...new Set([...working, ...starting])];
-  };
-
   const asks = createChatAsks({
     root,
     show: (projectId, ask) =>
@@ -197,10 +173,9 @@ export const createChatPictures = ({
    * project taken off the list, locked, or moved since is no project of
    * this chat's, and never the one the Studio happens to show instead.
    */
-  /** `key` is a chat's: the project's id, or an animator's within it. */
-  const boundProject = (key: string, folder: string): TAgentProject => {
+  const boundProject = (projectId: string, folder: string): TAgentProject => {
     const found = projectAt(folder);
-    return found.ok && found.id !== chatProjectOf(key)
+    return found.ok && found.id !== projectId
       ? { ok: false, reason: 'not-a-project' }
       : found;
   };
@@ -228,29 +203,6 @@ export const createChatPictures = ({
       tools: [
         ...ownLookTools(door, folder),
         lookAnimationTool(folder),
-        // The scene's chat starts animators; an animator does not start more.
-        ...(chatAnimationOf(projectId) === undefined
-          ? [
-              startAnimatorTool({
-                start: (name, task) => {
-                  const page = pageOf();
-                  if (!page) {
-                    return false;
-                  }
-                  page.send('studio-animator-start', {
-                    projectId,
-                    name,
-                    task,
-                  });
-                  const starting =
-                    startingAnimators.get(projectId) ?? new Set<string>();
-                  startingAnimators.set(projectId, starting.add(name));
-                  return true;
-                },
-                working: () => animatorsWorking(projectId),
-              }),
-            ]
-          : []),
         ...createPictureTools({
           project: () => boundProject(projectId, folder),
           asks,
@@ -258,8 +210,8 @@ export const createChatPictures = ({
           packInWindow: (what) => packInWindow(projectId, what),
           ...(logger ? { logger } : {}),
         }),
-        // Every chat makes and mends sheets, the scene's as well as each
-        // animator: from the project's own pictures, in main, nothing started.
+        // The chat makes and mends animation sheets itself: from the
+        // project's own pictures, in main, nothing started.
         ...createSheetTools({
           project: () => boundProject(projectId, folder),
           signal: () => signalOf(projectId),
@@ -360,7 +312,6 @@ export const createChatPictures = ({
     close: async (projectId: string) => {
       const known = servers.get(projectId);
       servers.delete(projectId);
-      startingAnimators.delete(projectId);
       await known?.server.close();
     },
     dispose: async () => {

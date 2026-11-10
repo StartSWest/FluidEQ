@@ -22,6 +22,7 @@ jest.mock('electron', () => ({ nativeImage: {} }));
 /* eslint-disable import/first -- the mock above must be installed first */
 import fs from 'fs';
 import path from 'path';
+import { moveHistory } from '../../../main/memberScenes/animationHistory';
 import { readProjectAnimation } from '../../../main/memberScenes/projectAnimations';
 import { MAX_SHEETS_PER_REPLY } from '../../../main/studioChat/sheetFiles';
 import { pngHeader, webpHeader } from '../../utils/pictureHeaders';
@@ -151,6 +152,54 @@ it("never writes over the member's own picture, and still over a sheet of its ow
     (await readProjectAnimation(sheets.state.project, 'whale-dive'))?.animation
       .count,
   ).toBe(4);
+});
+
+it('replaces an animation only when the call says so, undoably, and never makes a second animation of its sheet', async () => {
+  const fresh = { ...DIVE, replace: undefined };
+  // The first write of a name needs nothing said.
+  expect((await tool('pose_sheet').call(fresh)).isError).toBeUndefined();
+  const first = fs.readFileSync(inProject('art/whale-dive.png'));
+  // Again without saying so: refused, the sheet as it was.
+  const quiet = await tool('pose_sheet').call({ ...fresh, count: 4 });
+  expect(quiet.isError).toBe(true);
+  expect(words(quiet)).toContain('replace: true');
+  expect(fs.readFileSync(inProject('art/whale-dive.png')).equals(first)).toBe(
+    true,
+  );
+  // Said: replaced, and the old sheet is one undo away.
+  expect(
+    (await tool('pose_sheet').call({ ...fresh, count: 4, replace: true }))
+      .isError,
+  ).toBeUndefined();
+  await moveHistory(sheets.state.project, 'whale-dive', 'undo');
+  expect(fs.readFileSync(inProject('art/whale-dive.png')).equals(first)).toBe(
+    true,
+  );
+
+  // Ivan's alpine project: whale-dive.json playing art/whale-dive-sheet.png.
+  write('art/whale-dive-sheet.png', encode(whale()));
+  write(
+    'animations/whale-dive.json',
+    JSON.stringify({
+      sheet: 'art/whale-dive-sheet.png',
+      count: 16,
+      columns: 4,
+      fps: 3,
+    }),
+  );
+  const second = await tool('pose_sheet').call({
+    ...fresh,
+    name: 'whale-dive-sheet',
+  });
+  expect(second.isError).toBe(true);
+  expect(words(second)).toContain('the sheet of the animation whale-dive');
+  expect(fs.existsSync(inProject('animations/whale-dive-sheet.json'))).toBe(
+    false,
+  );
+  // The control: a name nothing uses is a new animation of its own.
+  expect(
+    (await tool('pose_sheet').call({ ...fresh, name: 'orca-dive' })).isError,
+  ).toBeUndefined();
 });
 
 it('writes neither file when the animations folder cannot take one', async () => {

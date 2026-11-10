@@ -26,10 +26,6 @@ export const STEP_WORDS: Record<
     done: 'studioChat.step.animation',
     now: 'studioChat.step.animationNow',
   },
-  animator: {
-    done: 'studioChat.step.animator',
-    now: 'studioChat.step.animatorNow',
-  },
   sheet: { done: 'studioChat.step.sheet', now: 'studioChat.step.sheetNow' },
   compact: {
     done: 'studioChat.step.compact',

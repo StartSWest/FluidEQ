@@ -9,7 +9,6 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import { ipcMain, type IpcMainInvokeEvent } from 'electron';
 import {
-  animatorChatKey,
   type IStudioChat,
   type IStudioChatPast,
 } from '../../common/studioChat';
@@ -17,6 +16,7 @@ import writeFileAtomically from '../atomicWrite';
 import type { TAgentProject } from '../studioAgent/agentProject';
 import type { TTranscripts } from './chatTranscript';
 import { listClaudeHistory, loadClaudeHistory, titleOf } from './claudeHistory';
+import { readRetiredSessions } from './oldAnimatorChats';
 
 /**
  * A project's earlier chats (Ivan, 2026-10-09: "how can I recover a
@@ -171,30 +171,17 @@ export const createPastChats = ({
   };
 
   /**
-   * The conversations of the project's animators: they run in its folder
-   * too, so Claude Code keeps them beside the scene's, and without these
-   * they were offered as the scene's own earlier chats.
+   * Every conversation FluidEQ has for the project, by Claude Code's id -
+   * and the old animators' (`oldAnimatorChats.ts`): they ran in its folder
+   * too, so Claude Code keeps them beside the scene's, and they were never
+   * the scene's own earlier chats.
    */
-  const animatorSessions = (projectId: string) => {
-    const prefix = encodeURIComponent(animatorChatKey(projectId, ''));
-    let names: string[];
-    try {
-      names = fs.readdirSync(root);
-    } catch {
-      return [];
-    }
-    return names
-      .filter((name) => name.startsWith(prefix))
-      .map((name) => transcripts.read(decodeURIComponent(name)).sessionId);
-  };
-
-  /** Every conversation FluidEQ has for the project, by Claude Code's id. */
   const knownSessions = (projectId: string) =>
     new Set(
       [
         transcripts.read(projectId).sessionId,
         ...kept(projectId).map((chat) => chat.sessionId),
-        ...animatorSessions(projectId),
+        ...readRetiredSessions(root),
       ].filter((id): id is string => id !== undefined),
     );
 

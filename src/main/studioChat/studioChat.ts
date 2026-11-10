@@ -7,15 +7,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import path from 'path';
 import type { BrowserWindow } from 'electron';
 import {
-  chatProjectOf,
   isStudioChatModelOffered,
   type IStudioChat,
   type TStudioChatEntry,
 } from '../../common/studioChat';
-import registerAnimatorHandlers from './animatorHandlers';
-import { animatorsIn, createAnimatorLifetime } from './animatorLifetime';
-import { restoreReplyVersion } from './chatVersions';
 import { createChatTargets, type IChatTarget } from './chatTargets';
+import removeAnimatorChats from './oldAnimatorChats';
 import type { TAgentProject } from '../studioAgent/agentProject';
 import type { IStudioLook } from '../studioAgent/studioTools';
 import {
@@ -116,21 +113,10 @@ export const createStudioChat = ({
     door,
     version,
     ...(logger ? { logger } : {}),
-    animatorsOf: (projectId) =>
-      animatorsIn(projectId, [...sessions.keys()], (key) => isBusy(key)),
   });
 
   const isBusy = (projectId: string) =>
     turns.isWorking(projectId, sessions.get(projectId));
-
-  // Idle animators past their limits are ended (`animatorLifetime.ts`); the
-  // ending is bound once the sessions exist, which a reply may end before.
-  let endAnimator = (_key: string) => {};
-  const animatorLifetime = createAnimatorLifetime({
-    running: () => [...sessions.keys()],
-    isBusy,
-    end: (key) => endAnimator(key),
-  });
 
   /** One entry changed: the window upserts it by id. */
   const tell = (projectId: string, entry: TStudioChatEntry) => {
@@ -140,8 +126,7 @@ export const createStudioChat = ({
       busy: isBusy(projectId),
     });
     if (entry.kind === 'claude' && entry.state !== 'working') {
-      onReplyEnded?.(chatProjectOf(projectId));
-      animatorLifetime.trim();
+      onReplyEnded?.(projectId);
     }
   };
 
@@ -203,6 +188,19 @@ export const createStudioChat = ({
       `The Studio chat's old copy of FluidEQ's skills was not removed: ${String(error)}`,
     );
   }
+  // The animations' own chats are gone (Ivan, 2026-11-10: "remove that
+  // second chat"); what they left on disk goes with them, once.
+  try {
+    removeAnimatorChats(
+      root,
+      (folderName) =>
+        transcripts.read(decodeURIComponent(folderName)).sessionId,
+    );
+  } catch (error) {
+    logger?.warn(
+      `The Studio's old animator chats were not all removed: ${String(error)}`,
+    );
+  }
 
   const chatSessions = createChatSessions({
     root,
@@ -233,13 +231,8 @@ export const createStudioChat = ({
     ...(logger ? { logger } : {}),
   });
   const { sessionFor, askUsage } = chatSessions;
-  endAnimator = (key) => {
-    chatSessions.end(key);
-    pictures.close(key).catch(() => undefined);
-  };
 
-  const { sceneChat, animatorChat, animatorOf } =
-    createChatTargets(agentProject);
+  const { sceneChat } = createChatTargets(agentProject);
 
   /**
    * Messages to Claude, now, as one turn: each shown as the member wrote it,
@@ -255,11 +248,9 @@ export const createStudioChat = ({
       return;
     }
     turns.show(projectId, messages);
-    animatorLifetime.used(projectId);
     const session = await sessionFor(projectId, folder, latest);
     if (session) {
       turns.begin(projectId, session, messages);
-      animatorLifetime.trim();
     }
   };
 
@@ -446,41 +437,6 @@ export const createStudioChat = ({
         usageRead.read();
       }
       return usage.limits();
-    },
-  });
-
-  registerAnimatorHandlers({
-    handle,
-    load: (name) => chatOf(animatorChat(name)),
-    send: (raw) => send(animatorOf(raw), raw),
-    retry: (raw) => retry(animatorOf(raw), raw),
-    sendNow: (raw) => sendNow(animatorOf(raw), raw),
-    stop: (name) => {
-      const chat = animatorChat(name);
-      const session = chat ? sessions.get(chat.key) : undefined;
-      if (chat && session) {
-        turns.stop(chat.key, session);
-      }
-    },
-    restore: (name, entryId) => {
-      const chat = animatorChat(name);
-      if (!chat) {
-        return { ok: false, reason: 'no-project' };
-      }
-      return isBusy(chat.key)
-        ? { ok: false, reason: 'busy' }
-        : restoreReplyVersion(
-            transcriptOf(chat.key).entries,
-            transcripts.versionsOf(chat.key),
-            chat.folder,
-            entryId,
-          );
-    },
-    unqueue: (name, id) => {
-      const chat = animatorChat(name);
-      if (chat) {
-        turns.unqueue(chat.key, sessions.get(chat.key), id);
-      }
     },
   });
 

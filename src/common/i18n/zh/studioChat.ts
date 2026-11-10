@@ -40,8 +40,6 @@ const studioChat = {
   'studioChat.step.lookNow': '正在查看场景…',
   'studioChat.step.animation': '查看了动画 {file}',
   'studioChat.step.animationNow': '正在查看动画 {file}…',
-  'studioChat.step.animator': '已让动画师处理 {file}',
-  'studioChat.step.animatorNow': '正在让动画师处理 {file}…',
   'studioChat.step.sheet': '制作了 {file} 的帧',
   'studioChat.step.sheetNow': '正在制作 {file} 的帧…',
   'studioChat.step.hear': '聆听了音乐',

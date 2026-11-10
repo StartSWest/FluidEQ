@@ -137,6 +137,8 @@ export const DIVE = {
     { at: 1, bend: [-20, -10, 0, 0], turn: 30, y: 0.1 },
   ],
   animation: { fps: 12, loop: false, ground: 'water' },
+  // The tests make it again and again on purpose; a first write needs none.
+  replace: true,
 };
 
 export const words = (result: Awaited<ReturnType<IMcpTool['call']>>) =>

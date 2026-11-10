@@ -104,7 +104,6 @@ const ALLOWED = [
   `mcp__${DOOR_SERVER}__make_picture`,
   `mcp__${DOOR_SERVER}__pack_artwork`,
   `mcp__${DOOR_SERVER}__look_at_animation`,
-  `mcp__${DOOR_SERVER}__start_animator`,
   `mcp__${DOOR_SERVER}__pose_sheet`,
   `mcp__${DOOR_SERVER}__build_sheet`,
 ];

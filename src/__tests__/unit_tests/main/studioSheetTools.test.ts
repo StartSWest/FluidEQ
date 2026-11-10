@@ -144,6 +144,7 @@ describe('an animator asked for a sheet', () => {
       frames,
       columns: 4,
       animation: { fps: 8 },
+      replace: true,
     });
     expect(new Set(bottomsOf()).size).toBe(1);
     // The green is gone: the corner of every cell is clear.
@@ -182,6 +183,7 @@ describe('an animator asked for a sheet', () => {
       cell: 128,
       align: 'centre',
       animation: { fps: 12, loop: false, ground: 'water' },
+      replace: true,
     });
     expect(result.isError).toBeUndefined();
     expect(words(result)).toContain('art/fix.png');

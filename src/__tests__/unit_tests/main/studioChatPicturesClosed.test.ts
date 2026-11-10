@@ -87,7 +87,6 @@ it("answers the window's questions about Codex without starting it", async () =>
     signalOf: () => new AbortController().signal,
     door,
     version: '0',
-    animatorsOf: () => ({ live: [], working: [] }),
   });
   const event = {};
   const asked = await Promise.all(

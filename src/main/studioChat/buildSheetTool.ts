@@ -19,6 +19,7 @@ import {
   isSheetName,
   readPictureFile,
   sheetAnswer,
+  replaceProblem,
   sheetTargetProblem,
   writeSheet,
   type IPictureFile,
@@ -27,6 +28,7 @@ import { cropPixels, laySheet, type TSheetAlign } from './sheetLayout';
 import type { IPixels } from './sheetRig';
 import {
   ANIMATION_SCHEMA,
+  REPLACE_SCHEMA,
   breathe,
   cutOut,
   findingsOf,
@@ -141,6 +143,7 @@ const BUILD_SCHEMA = {
         "The flat background to take out of frames that have no transparency: auto (read from each frame's border; when left out), none, or a colour as #rrggbb.",
     },
     animation: ANIMATION_SCHEMA,
+    replace: REPLACE_SCHEMA,
   },
   required: ['name', 'frames', 'columns'],
   additionalProperties: false,
@@ -323,9 +326,9 @@ const createBuildSheetTool = ({
         `columns is at most the number of frames, ${plans.length}.`,
       );
     }
-    const target = await sheetTargetProblem(open.folder, name, [
-      ...files.values(),
-    ]);
+    const target =
+      replaceProblem(open.folder, name, args.replace) ??
+      (await sheetTargetProblem(open.folder, name, [...files.values()]));
     if (target) {
       return failure(target);
     }

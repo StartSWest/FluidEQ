@@ -15,8 +15,14 @@ import CRAFT_SECTION from './chatCraft';
  * picture plugin of the member's own Claude Code - and draws everything
  * else: it is never told of a FluidEQ tool it does not have.
  */
+/**
+ * Animations are this chat's own work (Ivan, 2026-11-10: "remove that
+ * second chat and make the root chat work on animations and all"): the
+ * fluideq-animation skill holds the how; the brief says who draws and what
+ * FluidEQ's tools are for, so the chat never claims FluidEQ draws.
+ */
 const SHEETS_LINE =
-  "An animation's frames come from pose_sheet, which bends a picture of the project into poses, and build_sheet, which lays frames of the project into one grid.";
+  "Animations are yours too: load the fluideq-animation skill first. FluidEQ draws nothing - the frames come from the member's own picture tools (their plugins, skills, tool servers and the models those reach), and FluidEQ's build_sheet only writes the playable sheet from them, look_at_animation checks it, and pose_sheet bends one picture into poses. An animation is known by its name: write it again under that name with replace: true, never under another name.";
 
 const PICTURES_LINE = CHATGPT_PICTURES_OPEN
   ? `Pictures come from make_picture and pack_artwork; everything else you draw. ${SHEETS_LINE}`

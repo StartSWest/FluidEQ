@@ -96,7 +96,6 @@ beforeEach(() => {
     signalOf: () => new AbortController().signal,
     door,
     version: '0',
-    animatorsOf: () => ({ live: [], working: [] }),
   });
 });
 
