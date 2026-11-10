@@ -30,6 +30,12 @@ its own; everything it held is here.
 - **An Animations tab.** It plays every animation the scene has, and
   **Ask the scene's chat** starts a request for a new one in the chat's box
   for you to finish.
+- **A menu on every animation.** Each card's **⋯** has **Open**,
+  **Rename**, **Show in folder** and **Delete**. Rename moves its file, its
+  sheet and its history to the new name; Delete asks the scene's chat to
+  remove the animation and fix every place the scene uses it.
+- **Undo, Redo and Back to the original.** An opened animation goes back
+  through its last 20 versions, or all the way to the one it started as.
 - **Step through it.** An opened animation plays on Ground, Sky or Water,
   uphill or downhill, at the speed it was made at or 4 to 12 frames a
   second, with the frame before showing under the one you are on and every
