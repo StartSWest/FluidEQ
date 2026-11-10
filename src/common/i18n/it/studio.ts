@@ -421,9 +421,13 @@ const studio = {
   'studio.animation.title': 'Animazioni della scena',
   'studio.animation.lead':
     'Ognuna si riproduce come nella scena. Aprine una per scorrerne i fotogrammi, provarla su un terreno e vederla più grande.',
-  'studio.animation.askTitle': 'Chiedine una nella chat',
-  'studio.animation.askExample':
-    '«Un lupo che cammina sulla neve, in loop.» La chat disegna tutte le pose in un’unica immagine, le tiene insieme come un’animazione e questa compare qui.',
+  'studio.animation.hint':
+    'Ne vuoi un’altra? La chat della scena anima un’immagine della tua scena, o dispone i fotogrammi che porti.',
+  'studio.animation.askChat': 'Chiedi alla chat della scena',
+  'studio.animation.askDraft': 'Fai un’animazione di ',
+  'studio.animation.emptyTitle': 'Ancora nessuna animazione',
+  'studio.animation.emptyText':
+    'Chiedine una alla chat della scena: anima un’immagine della tua scena, o dispone i fotogrammi che porti. Oppure porta uno sprite sheet, una GIF o un file Aseprite con Importa.',
   'studio.animation.meta': '{count} fotogrammi · {fps} fps · in loop',
   'studio.animation.metaOnce': '{count} fotogrammi · {fps} fps · una volta',
   'studio.animation.open': 'Apri {name}',
@@ -458,10 +462,10 @@ const studio = {
   'studio.animation.frame': 'Fotogramma {frame}',
   'studio.animation.expand': 'Vedila più grande',
   'studio.animation.close': 'Torna allo Studio',
-  'studio.animationImport.cardTitle': 'Importa un’animazione',
-  'studio.animationImport.cardText':
+  'studio.animationImport.formats':
     'Uno sprite sheet, una GIF, PNG o WebP animata, un file di Aseprite, un’immagine per fotogramma, o uno sheet con il suo JSON di TexturePacker, Phaser o Aseprite.',
-  'studio.animationImport.choose': 'Scegli i file',
+  'studio.animationImport.button': 'Importa',
+  'studio.animationImport.drop': 'Rilascia per importare',
   'studio.animationImport.title': 'Importa un’animazione',
   'studio.animationImport.lead':
     'Controlla come si riproduce, poi aggiungila. Viene salvata come uno sheet nella cartella art della scena, come le animazioni che crea la chat della scena.',

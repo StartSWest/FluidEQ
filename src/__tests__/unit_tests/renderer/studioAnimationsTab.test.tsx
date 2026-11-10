@@ -74,6 +74,7 @@ describe('the Animations tab', () => {
   it('shows a card for every animation, and the way to ask for another', () => {
     render(
       <StudioAnimations
+        projectId="p1"
         animations={[viewed('fox-trot', 6), viewed('wolf-walk', 8)]}
       />,
     );
@@ -82,11 +83,16 @@ describe('the Animations tab', () => {
     expect(
       screen.getByText('studio.animation.meta {"count":8,"fps":8}'),
     ).toBeInTheDocument();
-    expect(screen.getByText('studio.animation.askTitle')).toBeInTheDocument();
+    expect(screen.getByText('studio.animation.hint')).toBeInTheDocument();
   });
 
   it('says so of a sheet it could not read, and keeps it closed', () => {
-    render(<StudioAnimations animations={[viewed('broken', 4, false)]} />);
+    render(
+      <StudioAnimations
+        projectId="p1"
+        animations={[viewed('broken', 4, false)]}
+      />,
+    );
     expect(screen.getByText('studio.animation.unreadable')).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole('button', { name: /studio\.animation\.open/ }),
@@ -97,7 +103,9 @@ describe('the Animations tab', () => {
   });
 
   it('opens an animation to step through, and goes back to the cards', () => {
-    render(<StudioAnimations animations={[viewed('wolf-walk', 8)]} />);
+    render(
+      <StudioAnimations projectId="p1" animations={[viewed('wolf-walk', 8)]} />,
+    );
     fireEvent.click(
       screen.getByRole('button', { name: /studio\.animation\.open/ }),
     );
@@ -123,11 +131,13 @@ describe('the Animations tab', () => {
     fireEvent.click(
       screen.getByRole('button', { name: 'studio.animation.back' }),
     );
-    expect(screen.getByText('studio.animation.askTitle')).toBeInTheDocument();
+    expect(screen.getByText('studio.animation.hint')).toBeInTheDocument();
   });
 
   it('tries the creature on the ground it belongs to, the sky or the water', () => {
-    render(<StudioAnimations animations={[viewed('wolf-walk', 8)]} />);
+    render(
+      <StudioAnimations projectId="p1" animations={[viewed('wolf-walk', 8)]} />,
+    );
     fireEvent.click(
       screen.getByRole('button', { name: /studio\.animation\.open/ }),
     );
@@ -147,7 +157,9 @@ describe('the Animations tab', () => {
   });
 
   it('sees it bigger over the Studio, and comes back on the same frame', () => {
-    render(<StudioAnimations animations={[viewed('wolf-walk', 8)]} />);
+    render(
+      <StudioAnimations projectId="p1" animations={[viewed('wolf-walk', 8)]} />,
+    );
     fireEvent.click(
       screen.getByRole('button', { name: /studio\.animation\.open/ }),
     );
@@ -178,7 +190,9 @@ describe('the Animations tab', () => {
   });
 
   it('closes the bigger view with Escape too', () => {
-    render(<StudioAnimations animations={[viewed('wolf-walk', 8)]} />);
+    render(
+      <StudioAnimations projectId="p1" animations={[viewed('wolf-walk', 8)]} />,
+    );
     fireEvent.click(
       screen.getByRole('button', { name: /studio\.animation\.open/ }),
     );
@@ -286,6 +300,7 @@ describe('a one-shot’s controls', () => {
     const once = viewed('jump', 4);
     render(
       <StudioAnimations
+        projectId="p1"
         animations={[
           { ...once, animation: { ...once.animation, loop: false } },
         ]}
@@ -303,7 +318,9 @@ describe('a one-shot’s controls', () => {
   });
 
   it('control: a looping animation needs no such word', () => {
-    render(<StudioAnimations animations={[viewed('wolf-walk', 8)]} />);
+    render(
+      <StudioAnimations projectId="p1" animations={[viewed('wolf-walk', 8)]} />,
+    );
     fireEvent.click(
       screen.getByRole('button', { name: /studio\.animation\.open/ }),
     );

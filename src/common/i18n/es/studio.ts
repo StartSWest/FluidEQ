@@ -420,9 +420,13 @@ const studio = {
   'studio.animation.title': 'Animaciones de la escena',
   'studio.animation.lead':
     'Cada una se reproduce como en la escena. Abre una para recorrer sus fotogramas, probarla sobre un suelo y verla en grande.',
-  'studio.animation.askTitle': 'Pide una en el chat',
-  'studio.animation.askExample':
-    '«Un lobo que camina por la nieve, en bucle.» El chat dibuja todas las poses en una sola imagen, las guarda juntas como una animación y aparece aquí.',
+  'studio.animation.hint':
+    '¿Quieres otra? El chat de la escena anima una imagen de tu escena o coloca los fotogramas que traigas.',
+  'studio.animation.askChat': 'Pedir al chat de la escena',
+  'studio.animation.askDraft': 'Haz una animación de ',
+  'studio.animation.emptyTitle': 'Aún no hay animaciones',
+  'studio.animation.emptyText':
+    'Pide una al chat de la escena: anima una imagen de tu escena o coloca los fotogramas que traigas. O trae una hoja de sprites, un GIF o un archivo de Aseprite con Importar.',
   'studio.animation.meta': '{count} fotogramas · {fps} fps · en bucle',
   'studio.animation.metaOnce': '{count} fotogramas · {fps} fps · una vez',
   'studio.animation.open': 'Abrir {name}',
@@ -457,10 +461,10 @@ const studio = {
   'studio.animation.frame': 'Fotograma {frame}',
   'studio.animation.expand': 'Verla más grande',
   'studio.animation.close': 'Volver al Estudio',
-  'studio.animationImport.cardTitle': 'Importar una animación',
-  'studio.animationImport.cardText':
+  'studio.animationImport.formats':
     'Una hoja de sprites, un GIF, PNG o WebP animado, un archivo de Aseprite, una imagen por fotograma, o una hoja con su JSON de TexturePacker, Phaser o Aseprite.',
-  'studio.animationImport.choose': 'Elegir archivos',
+  'studio.animationImport.button': 'Importar',
+  'studio.animationImport.drop': 'Suelta para importar',
   'studio.animationImport.title': 'Importar una animación',
   'studio.animationImport.lead':
     'Comprueba cómo se reproduce y luego añádela. Se guarda como una hoja en la carpeta de arte de la escena, como las animaciones que hace el chat de la escena.',

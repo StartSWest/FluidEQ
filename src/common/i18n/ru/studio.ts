@@ -415,9 +415,13 @@ const studio = {
   'studio.animation.title': 'Анимации сцены',
   'studio.animation.lead':
     'Каждая играет так же, как в сцене. Откройте анимацию, чтобы пройти её кадры, проверить её на земле и посмотреть крупнее.',
-  'studio.animation.askTitle': 'Попросите анимацию в чате',
-  'studio.animation.askExample':
-    '«Волк, идущий по снегу, по кругу». Чат рисует все позы на одной картинке, хранит их вместе как одну анимацию, и она появляется здесь.',
+  'studio.animation.hint':
+    'Нужна ещё одна? Чат сцены оживит изображение из вашей сцены или разложит кадры, которые вы принесёте.',
+  'studio.animation.askChat': 'Попросить чат сцены',
+  'studio.animation.askDraft': 'Сделай анимацию: ',
+  'studio.animation.emptyTitle': 'Анимаций пока нет',
+  'studio.animation.emptyText':
+    'Попросите чат сцены: он оживит изображение из вашей сцены или разложит кадры, которые вы принесёте. Или добавьте спрайт-лист, GIF или файл Aseprite кнопкой «Импорт».',
   'studio.animation.meta': 'Кадров: {count} · {fps} к/с · по кругу',
   'studio.animation.metaOnce': 'Кадров: {count} · {fps} к/с · один раз',
   'studio.animation.open': 'Открыть {name}',
@@ -452,10 +456,10 @@ const studio = {
   'studio.animation.frame': 'Кадр {frame}',
   'studio.animation.expand': 'Смотреть крупнее',
   'studio.animation.close': 'Вернуться в Студию',
-  'studio.animationImport.cardTitle': 'Импортировать анимацию',
-  'studio.animationImport.cardText':
+  'studio.animationImport.formats':
     'Спрайт-лист, анимированный GIF, PNG или WebP, файл Aseprite, по картинке на кадр или лист с его JSON из TexturePacker, Phaser или Aseprite.',
-  'studio.animationImport.choose': 'Выбрать файлы',
+  'studio.animationImport.button': 'Импорт',
+  'studio.animationImport.drop': 'Отпустите, чтобы импортировать',
   'studio.animationImport.title': 'Импортировать анимацию',
   'studio.animationImport.lead':
     'Проверьте, как она играет, и добавьте её. Она сохраняется как лист в папке art сцены, как анимации, которые делает чат сцены.',

@@ -412,9 +412,13 @@ const studio = {
   'studio.animation.title': 'सीन के एनिमेशन',
   'studio.animation.lead':
     'हर एनिमेशन वैसे ही चलता है जैसे सीन में। किसी को खोलकर उसके फ़्रेम एक-एक करके देखें, ज़मीन पर आज़माएँ और बड़ा करके देखें।',
-  'studio.animation.askTitle': 'चैट में एक माँगें',
-  'studio.animation.askExample':
-    '“बर्फ़ पर चलता हुआ भेड़िया, लूप में।” चैट सारी मुद्राएँ एक ही चित्र में बनाती है, उन्हें एक एनिमेशन के रूप में साथ रखती है, और वह यहाँ दिखता है।',
+  'studio.animation.hint':
+    'एक और चाहिए? सीन की चैट आपके सीन का कोई चित्र एनिमेट करती है, या आपके लाए फ़्रेम सजाती है।',
+  'studio.animation.askChat': 'सीन की चैट से पूछें',
+  'studio.animation.askDraft': 'इसका एक एनिमेशन बनाओ: ',
+  'studio.animation.emptyTitle': 'अभी कोई एनिमेशन नहीं',
+  'studio.animation.emptyText':
+    'सीन की चैट से एक माँगें: यह आपके सीन का कोई चित्र एनिमेट करती है, या आपके लाए फ़्रेम सजाती है। या इम्पोर्ट से कोई स्प्राइट शीट, GIF या Aseprite फ़ाइल लाएँ।',
   'studio.animation.meta': '{count} फ़्रेम · {fps} fps · लूप',
   'studio.animation.metaOnce': '{count} फ़्रेम · {fps} fps · एक बार',
   'studio.animation.open': '{name} खोलें',
@@ -449,10 +453,10 @@ const studio = {
   'studio.animation.frame': 'फ़्रेम {frame}',
   'studio.animation.expand': 'बड़ा करके देखें',
   'studio.animation.close': 'स्टूडियो पर लौटें',
-  'studio.animationImport.cardTitle': 'एनिमेशन इंपोर्ट करें',
-  'studio.animationImport.cardText':
+  'studio.animationImport.formats':
     'स्प्राइट शीट, एनिमेटेड GIF, PNG या WebP, Aseprite फ़ाइल, हर फ़्रेम की एक तस्वीर, या TexturePacker, Phaser या Aseprite के JSON वाली शीट।',
-  'studio.animationImport.choose': 'फ़ाइलें चुनें',
+  'studio.animationImport.button': 'इम्पोर्ट',
+  'studio.animationImport.drop': 'इम्पोर्ट करने के लिए छोड़ें',
   'studio.animationImport.title': 'एनिमेशन इंपोर्ट करें',
   'studio.animationImport.lead':
     'देखें कि यह कैसे चलता है, फिर इसे जोड़ें। यह सीन के art फ़ोल्डर में शीट के रूप में सहेजा जाता है, जैसे सीन की चैट के बनाए एनिमेशन।',

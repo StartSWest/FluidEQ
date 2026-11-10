@@ -8,6 +8,7 @@ import { useState, type ReactNode } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import { readStored, writeStored } from '../utils/graphStorage';
+import { useSceneChatAsked } from './chat/askSceneChat';
 import StudioWorkTabs, { type IStudioWorkTab } from './StudioWorkTabs';
 
 export type TStudioWorkTab =
@@ -74,6 +75,15 @@ export default function StudioWork({ panels, badges }: IStudioWorkProps) {
   const { t } = useTranslation();
   const [chosen, setChosen] = useState<TStudioWorkTab>(readTab);
   const offered = ORDER.filter((tab) => panels[tab] !== undefined);
+  // Asked for from another tab (the Animations tab's import, its hint): the
+  // chat's tab, on a bench too narrow for its pane. A wide bench offers no
+  // chat tab; its pane unfolds instead (`StudioChatColumn`).
+  useSceneChatAsked(() => {
+    if (panels.chat !== undefined) {
+      setChosen('chat');
+      writeStored(STORAGE_KEY, 'chat');
+    }
+  });
   const selected = offered.includes(chosen) ? chosen : offered[0];
   if (selected === undefined) {
     return null;

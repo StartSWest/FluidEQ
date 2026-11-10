@@ -17,6 +17,7 @@ import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import StudioMaker from '../StudioMaker';
 import StudioStartHere from '../StudioStartHere';
+import { takeAskFocus, useSceneChatAsked } from './askSceneChat';
 import StudioChatAccounts, { planName } from './StudioChatAccounts';
 import StudioChatAsk from './StudioChatAsk';
 import StudioChatComposer from './StudioChatComposer';
@@ -76,6 +77,19 @@ export default function StudioChat({
   const { availability, chat, ask, codex, zoom } = useStudioChat();
   const pane = useRef<HTMLElement>(null);
   useChatZoomWheel(pane);
+  // Asked from another tab (`askSceneChat`): the caret in the box, after
+  // the words written there, once they are rendered. On a narrow bench this
+  // pane appears only after the ask brought its tab in, so it looks on
+  // arriving as well.
+  const [asked, setAsked] = useState(0);
+  useSceneChatAsked(() => setAsked((count) => count + 1));
+  useEffect(() => {
+    const box = pane.current?.querySelector<HTMLTextAreaElement>('textarea');
+    if (box && takeAskFocus()) {
+      box.focus();
+      box.setSelectionRange(box.value.length, box.value.length);
+    }
+  }, [asked]);
   // What the pane shows: the chat, the prompt for another AI, or the
   // earlier chats.
   const [view, setView] = useState<'chat' | 'other' | 'past' | 'accounts'>(

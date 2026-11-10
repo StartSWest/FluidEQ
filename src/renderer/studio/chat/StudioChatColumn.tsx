@@ -9,6 +9,7 @@ import ColumnResizer from '../../components/ColumnResizer';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import { readStored, writeStored } from '../../utils/graphStorage';
+import { useSceneChatAsked } from './askSceneChat';
 import StudioChat from './StudioChat';
 import useChatWidth from './useChatWidth';
 
@@ -33,6 +34,9 @@ export default function StudioChatColumn({
     setFolded(next);
     writeStored(FOLDED_KEY, String(next));
   };
+  // Asked for from another tab: a folded pane opens to show what was
+  // written into it (`askSceneChat`).
+  useSceneChatAsked(() => fold(false));
 
   if (folded) {
     return (

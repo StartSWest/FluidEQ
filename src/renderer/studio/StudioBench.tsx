@@ -401,7 +401,9 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   // Offered for every project, none made yet included: the tab says how
   // to ask for one.
   if (project && animations) {
-    panels.animations = <StudioAnimations animations={animations} />;
+    panels.animations = (
+      <StudioAnimations projectId={project.id} animations={animations} />
+    );
   }
   const problemCount =
     (problems?.length ?? 0) + (trouble?.kind === 'compile' ? 1 : 0);

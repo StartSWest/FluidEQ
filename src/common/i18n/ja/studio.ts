@@ -420,9 +420,13 @@ const studio = {
   'studio.animation.title': 'シーンのアニメーション',
   'studio.animation.lead':
     'それぞれシーンと同じように再生されます。開くとコマ送りで確認でき、地面に置いて試したり、大きく表示したりできます。',
-  'studio.animation.askTitle': 'チャットで頼んでください',
-  'studio.animation.askExample':
-    '「雪の上を歩くオオカミをループで」。チャットがすべてのポーズを 1 枚の絵に描き、1 つのアニメーションとしてまとめると、ここに表示されます。',
+  'studio.animation.hint':
+    'ほかにも欲しいときは、シーンのチャットがシーンの画像を動かすか、持ち込んだコマを並べます。',
+  'studio.animation.askChat': 'シーンのチャットに頼む',
+  'studio.animation.askDraft': '次のアニメーションを作って：',
+  'studio.animation.emptyTitle': 'アニメーションはまだありません',
+  'studio.animation.emptyText':
+    'シーンのチャットに頼んでください。シーンの画像を動かすか、持ち込んだコマを並べます。スプライトシート、GIF、Aseprite ファイルは「読み込む」から取り込めます。',
   'studio.animation.meta': '{count} コマ · {fps} fps · ループ',
   'studio.animation.metaOnce': '{count} コマ · {fps} fps · 1 回再生',
   'studio.animation.open': '{name} を開く',
@@ -457,10 +461,10 @@ const studio = {
   'studio.animation.frame': 'コマ {frame}',
   'studio.animation.expand': '大きく表示',
   'studio.animation.close': 'スタジオに戻る',
-  'studio.animationImport.cardTitle': 'アニメーションを読み込む',
-  'studio.animationImport.cardText':
+  'studio.animationImport.formats':
     'スプライトシート、アニメーション GIF・PNG・WebP、Aseprite ファイル、1 コマ 1 枚の画像、または TexturePacker・Phaser・Aseprite の JSON 付きのシート。',
-  'studio.animationImport.choose': 'ファイルを選ぶ',
+  'studio.animationImport.button': '読み込む',
+  'studio.animationImport.drop': 'ドロップして読み込む',
   'studio.animationImport.title': 'アニメーションを読み込む',
   'studio.animationImport.lead':
     '再生のしかたを確かめてから追加します。シーンのチャットが作るアニメーションと同じく、シーンの art フォルダーにシートとして保存されます。',

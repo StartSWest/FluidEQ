@@ -360,9 +360,13 @@ const studio = {
   'studio.animation.title': '場景中的動畫',
   'studio.animation.lead':
     '每個動畫都按場景中的樣子播放。開啟一個即可逐格查看、放在地面上試看，並放大觀看。',
-  'studio.animation.askTitle': '在聊天中請求一個',
-  'studio.animation.askExample':
-    '「一隻在雪地上行走的狼，循環播放。」聊天會把所有姿勢畫在一張圖裡，作為一個動畫保存在一起，並顯示在這裡。',
+  'studio.animation.hint':
+    '還想要一段？場景聊天會讓場景裡的圖片動起來，或排好你帶來的畫格。',
+  'studio.animation.askChat': '問場景聊天',
+  'studio.animation.askDraft': '做一段動畫：',
+  'studio.animation.emptyTitle': '還沒有動畫',
+  'studio.animation.emptyText':
+    '向場景聊天要一段：它會讓場景裡的圖片動起來，或排好你帶來的畫格。也可以用「匯入」加入精靈圖、GIF 或 Aseprite 檔案。',
   'studio.animation.meta': '{count} 格 · {fps} 格/秒 · 循環',
   'studio.animation.metaOnce': '{count} 格 · {fps} 格/秒 · 播放一次',
   'studio.animation.open': '開啟 {name}',
@@ -397,10 +401,10 @@ const studio = {
   'studio.animation.frame': '第 {frame} 格',
   'studio.animation.expand': '放大查看',
   'studio.animation.close': '返回工作室',
-  'studio.animationImport.cardTitle': '匯入動畫',
-  'studio.animationImport.cardText':
+  'studio.animationImport.formats':
     '精靈表、動態 GIF、PNG 或 WebP、Aseprite 檔案、每格一張的圖片，或附有 TexturePacker、Phaser 或 Aseprite JSON 的圖表。',
-  'studio.animationImport.choose': '選擇檔案',
+  'studio.animationImport.button': '匯入',
+  'studio.animationImport.drop': '放開即可匯入',
   'studio.animationImport.title': '匯入動畫',
   'studio.animationImport.lead':
     '先看看它怎麼播放，再加入。它會像場景聊天製作的動畫一樣，以圖表形式儲存在場景的 art 資料夾中。',

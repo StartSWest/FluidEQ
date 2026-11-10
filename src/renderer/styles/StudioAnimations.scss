@@ -19,10 +19,105 @@ it under the terms of the GNU General Public License version 3 or later.
 // its tiles' well and transparency grid) and the picture viewer's shell.
 
 .studio-animations {
+  position: relative;
   gap: $spacing-m;
+  transition: border-color $motion-fast $ease-out;
+
+  &.is-dropping {
+    border-color: $secondary-light;
+  }
 }
 
-// As many to a row as fit, the ask for another always last.
+// The title and what the tab is for, and Import at the row's end; Import
+// goes under them where the panel is too narrow for both.
+.studio-animations__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px $spacing-m;
+
+  > .studio-pictures__head {
+    flex: 1 1 260px;
+  }
+
+  > .button {
+    flex: none;
+    gap: 6px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+// How to get another, once there are some: one line, its ask at the end.
+.studio-animations__hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+
+  > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .button {
+    gap: 6px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+.studio-animations__empty {
+  justify-items: start;
+  max-width: 560px;
+
+  .button {
+    gap: 6px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+// Files held over the tab: where they will land, over everything in it.
+.studio-animations__drop {
+  position: absolute;
+  z-index: 3;
+  inset: 6px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  color: $text-primary;
+  border: 2px dashed $secondary-light;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-menu 88%, transparent);
+  backdrop-filter: blur(6px);
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  pointer-events: none;
+
+  svg {
+    width: 28px;
+    height: 28px;
+    color: $secondary-light;
+  }
+}
+
+// As many to a row as fit.
 .studio-animations__list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

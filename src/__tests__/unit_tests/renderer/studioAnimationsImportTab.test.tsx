@@ -98,7 +98,9 @@ const drop = async (files: File[], types = ['Files']) => {
 
 describe('the Animations tab’s import', () => {
   it('starts from files dropped anywhere on the tab, told the scene’s names', async () => {
-    render(<StudioAnimations animations={[viewed('fox-trot')]} />);
+    render(
+      <StudioAnimations projectId="p1" animations={[viewed('fox-trot')]} />,
+    );
     await drop([new File([new Uint8Array([1, 2])], 'walk.gif')]);
     // Once the files are read, which the reader does in its own time.
     expect(
@@ -112,7 +114,9 @@ describe('the Animations tab’s import', () => {
   });
 
   it('control: a drop with no files starts nothing', async () => {
-    render(<StudioAnimations animations={[viewed('fox-trot')]} />);
+    render(
+      <StudioAnimations projectId="p1" animations={[viewed('fox-trot')]} />,
+    );
     await drop([], ['text/plain']);
     // Given the reader's time to answer, had there been anything to read.
     await drop([new File([new Uint8Array([1])], 'later.png')]);
@@ -121,7 +125,9 @@ describe('the Animations tab’s import', () => {
   });
 
   it('opens an animation added, once the tab has read it', async () => {
-    const view = render(<StudioAnimations animations={[viewed('fox-trot')]} />);
+    const view = render(
+      <StudioAnimations projectId="p1" animations={[viewed('fox-trot')]} />,
+    );
     await drop([new File([new Uint8Array([1])], 'whale-dive.png')]);
     fireEvent.click(await screen.findByRole('button', { name: 'add' }));
     // Not read yet: the cards stay, and nothing pretends to be open.
@@ -129,6 +135,7 @@ describe('the Animations tab’s import', () => {
     expect(tab()).toBeInTheDocument();
     view.rerender(
       <StudioAnimations
+        projectId="p1"
         animations={[viewed('fox-trot'), viewed('whale-dive')]}
       />,
     );

@@ -414,9 +414,13 @@ const studio = {
   'studio.animation.title': 'Animações da cena',
   'studio.animation.lead':
     'Cada uma toca como na cena. Abra uma para percorrer seus quadros, testá-la sobre um chão e vê-la maior.',
-  'studio.animation.askTitle': 'Peça uma no chat',
-  'studio.animation.askExample':
-    '“Um lobo andando pela neve, em loop.” O chat desenha todas as poses numa só imagem, guarda-as juntas como uma animação e ela aparece aqui.',
+  'studio.animation.hint':
+    'Quer outra? O chat da cena anima uma imagem da sua cena ou monta os quadros que você trouxer.',
+  'studio.animation.askChat': 'Pedir ao chat da cena',
+  'studio.animation.askDraft': 'Faça uma animação de ',
+  'studio.animation.emptyTitle': 'Nenhuma animação ainda',
+  'studio.animation.emptyText':
+    'Peça uma ao chat da cena: ele anima uma imagem da sua cena ou monta os quadros que você trouxer. Ou traga uma folha de sprites, um GIF ou um arquivo do Aseprite com Importar.',
   'studio.animation.meta': '{count} quadros · {fps} fps · em loop',
   'studio.animation.metaOnce': '{count} quadros · {fps} fps · uma vez',
   'studio.animation.open': 'Abrir {name}',
@@ -451,10 +455,10 @@ const studio = {
   'studio.animation.frame': 'Quadro {frame}',
   'studio.animation.expand': 'Ver maior',
   'studio.animation.close': 'Voltar ao Estúdio',
-  'studio.animationImport.cardTitle': 'Importar uma animação',
-  'studio.animationImport.cardText':
+  'studio.animationImport.formats':
     'Uma folha de sprites, um GIF, PNG ou WebP animado, um arquivo do Aseprite, uma imagem por quadro, ou uma folha com seu JSON do TexturePacker, Phaser ou Aseprite.',
-  'studio.animationImport.choose': 'Escolher arquivos',
+  'studio.animationImport.button': 'Importar',
+  'studio.animationImport.drop': 'Solte para importar',
   'studio.animationImport.title': 'Importar uma animação',
   'studio.animationImport.lead':
     'Confira como ela toca e depois adicione. Ela é salva como uma folha na pasta de arte da cena, como as animações que o chat da cena faz.',

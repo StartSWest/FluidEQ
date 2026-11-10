@@ -85,6 +85,21 @@ export const setChatDraftStage = (projectId: string, stage?: Uint8Array) => {
     .catch(() => undefined);
 };
 
+/**
+ * The words in a project's message box now, asked of main when this window
+ * has not changed them: the box may never have been shown, and a draft kept
+ * from an earlier visit is still the member's.
+ */
+export const chatDraftText = async (projectId: string): Promise<string> => {
+  const held = drafts.get(projectId);
+  if (held?.touched) {
+    return held.text;
+  }
+  const kept = await bridge()?.studioChatDraft?.(projectId);
+  const now = drafts.get(projectId);
+  return now?.touched ? now.text : (kept?.text ?? now?.text ?? '');
+};
+
 /** A project taken off the Studio's list takes its draft with it. */
 export const forgetChatDraft = (projectId: string) => {
   drafts.set(projectId, { ...EMPTY, touched: true });

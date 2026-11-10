@@ -400,9 +400,13 @@ const studio = {
   'studio.animation.title': '장면의 애니메이션',
   'studio.animation.lead':
     '각 애니메이션은 장면에서처럼 재생됩니다. 하나를 열면 프레임을 하나씩 넘겨 보고, 땅 위에서 시험하고, 크게 볼 수 있습니다.',
-  'studio.animation.askTitle': '채팅에서 요청하세요',
-  'studio.animation.askExample':
-    '“눈 위를 걷는 늑대, 반복으로.” 채팅이 모든 동작을 한 장의 그림에 그려 하나의 애니메이션으로 묶으면 여기에 나타납니다.',
+  'studio.animation.hint':
+    '더 필요하세요? 장면 채팅이 장면의 사진을 움직이거나, 가져온 프레임을 배치합니다.',
+  'studio.animation.askChat': '장면 채팅에 요청',
+  'studio.animation.askDraft': '다음 애니메이션을 만들어 줘: ',
+  'studio.animation.emptyTitle': '아직 애니메이션이 없습니다',
+  'studio.animation.emptyText':
+    '장면 채팅에 요청하세요. 장면의 사진을 움직이거나, 가져온 프레임을 배치합니다. 스프라이트 시트, GIF, Aseprite 파일은 가져오기로 불러올 수 있습니다.',
   'studio.animation.meta': '{count}프레임 · {fps}fps · 반복',
   'studio.animation.metaOnce': '{count}프레임 · {fps}fps · 한 번 재생',
   'studio.animation.open': '{name} 열기',
@@ -437,10 +441,10 @@ const studio = {
   'studio.animation.frame': '프레임 {frame}',
   'studio.animation.expand': '크게 보기',
   'studio.animation.close': '스튜디오로 돌아가기',
-  'studio.animationImport.cardTitle': '애니메이션 가져오기',
-  'studio.animationImport.cardText':
+  'studio.animationImport.formats':
     '스프라이트 시트, 움직이는 GIF·PNG·WebP, Aseprite 파일, 프레임마다 한 장씩인 그림, 또는 TexturePacker·Phaser·Aseprite JSON이 딸린 시트.',
-  'studio.animationImport.choose': '파일 선택',
+  'studio.animationImport.button': '가져오기',
+  'studio.animationImport.drop': '놓아서 가져오기',
   'studio.animationImport.title': '애니메이션 가져오기',
   'studio.animationImport.lead':
     '재생되는 모습을 확인한 뒤 추가하세요. 장면 채팅이 만드는 애니메이션처럼 장면의 art 폴더에 시트로 저장됩니다.',

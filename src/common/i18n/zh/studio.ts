@@ -374,9 +374,13 @@ const studio = {
   'studio.animation.title': '场景中的动画',
   'studio.animation.lead':
     '每个动画都按场景中的样子播放。打开一个即可逐帧查看、放在地面上试看，并放大观看。',
-  'studio.animation.askTitle': '在聊天中请求一个',
-  'studio.animation.askExample':
-    '“一只在雪地上行走的狼，循环播放。”聊天会把所有姿势画在一张图里，作为一个动画保存在一起，并显示在这里。',
+  'studio.animation.hint':
+    '还想要一段？场景聊天会让场景里的图片动起来，或排好你带来的帧。',
+  'studio.animation.askChat': '问场景聊天',
+  'studio.animation.askDraft': '做一段动画：',
+  'studio.animation.emptyTitle': '还没有动画',
+  'studio.animation.emptyText':
+    '向场景聊天要一段：它会让场景里的图片动起来，或排好你带来的帧。也可以用“导入”加入精灵图、GIF 或 Aseprite 文件。',
   'studio.animation.meta': '{count} 帧 · {fps} 帧/秒 · 循环',
   'studio.animation.metaOnce': '{count} 帧 · {fps} 帧/秒 · 播放一次',
   'studio.animation.open': '打开 {name}',
@@ -411,10 +415,10 @@ const studio = {
   'studio.animation.frame': '第 {frame} 帧',
   'studio.animation.expand': '放大查看',
   'studio.animation.close': '返回工作室',
-  'studio.animationImport.cardTitle': '导入动画',
-  'studio.animationImport.cardText':
+  'studio.animationImport.formats':
     '精灵表、动图 GIF、PNG 或 WebP、Aseprite 文件、每帧一张的图片，或带有 TexturePacker、Phaser 或 Aseprite JSON 的图表。',
-  'studio.animationImport.choose': '选择文件',
+  'studio.animationImport.button': '导入',
+  'studio.animationImport.drop': '松开即可导入',
   'studio.animationImport.title': '导入动画',
   'studio.animationImport.lead':
     '先看看它怎么播放，再添加。它会像场景聊天制作的动画一样，作为图表保存在场景的 art 文件夹中。',

@@ -421,9 +421,13 @@ const studio = {
   'studio.animation.title': 'Animations de la scène',
   'studio.animation.lead':
     'Chacune joue comme dans la scène. Ouvrez-en une pour parcourir ses images, l’essayer sur un sol et la voir en grand.',
-  'studio.animation.askTitle': 'Demandez-en une dans le chat',
-  'studio.animation.askExample':
-    '« Un loup qui marche dans la neige, en boucle. » Le chat dessine toutes les poses dans une seule image, les garde ensemble comme une animation, et elle apparaît ici.',
+  'studio.animation.hint':
+    'Une autre ? Le chat de la scène anime une image de votre scène, ou dispose les images que vous apportez.',
+  'studio.animation.askChat': 'Demander au chat de la scène',
+  'studio.animation.askDraft': 'Fais une animation de ',
+  'studio.animation.emptyTitle': 'Pas encore d’animation',
+  'studio.animation.emptyText':
+    'Demandez-en une au chat de la scène : il anime une image de votre scène, ou dispose les images que vous apportez. Ou apportez une planche de sprites, un GIF ou un fichier Aseprite avec Importer.',
   'studio.animation.meta': '{count} images · {fps} i/s · en boucle',
   'studio.animation.metaOnce': '{count} images · {fps} i/s · une fois',
   'studio.animation.open': 'Ouvrir {name}',
@@ -459,10 +463,10 @@ const studio = {
   'studio.animation.frame': 'Image {frame}',
   'studio.animation.expand': 'La voir en grand',
   'studio.animation.close': 'Revenir au Studio',
-  'studio.animationImport.cardTitle': 'Importer une animation',
-  'studio.animationImport.cardText':
+  'studio.animationImport.formats':
     'Une planche de sprites, un GIF, PNG ou WebP animé, un fichier Aseprite, un fichier par image, ou une planche avec son JSON TexturePacker, Phaser ou Aseprite.',
-  'studio.animationImport.choose': 'Choisir des fichiers',
+  'studio.animationImport.button': 'Importer',
+  'studio.animationImport.drop': 'Déposez pour importer',
   'studio.animationImport.title': 'Importer une animation',
   'studio.animationImport.lead':
     'Vérifiez comment elle joue, puis ajoutez-la. Elle est enregistrée comme une planche dans le dossier art de la scène, comme les animations que crée le chat de la scène.',

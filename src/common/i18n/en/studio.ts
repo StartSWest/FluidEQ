@@ -425,9 +425,13 @@ const studio = {
   'studio.animation.title': 'Animations in the scene',
   'studio.animation.lead':
     'Each plays as it does in the scene. Open one to step through its frames, try it on a ground and see it bigger.',
-  'studio.animation.askTitle': 'Ask for one in the chat',
-  'studio.animation.askExample':
-    '“A wolf that walks across the snow, as a loop.” The chat draws every pose in one picture, keeps them together as one animation, and it appears here.',
+  'studio.animation.hint':
+    'Want another? The scene’s chat animates a picture from your scene, or lays out frames you bring.',
+  'studio.animation.askChat': 'Ask the scene’s chat',
+  'studio.animation.askDraft': 'Make an animation of ',
+  'studio.animation.emptyTitle': 'No animations yet',
+  'studio.animation.emptyText':
+    'Ask the scene’s chat for one: it animates a picture from your scene, or lays out frames you bring. Or bring in a sprite sheet, a GIF or an Aseprite file with Import.',
   'studio.animation.meta': '{count} frames · {fps} fps · loops',
   'studio.animation.metaOnce': '{count} frames · {fps} fps · plays once',
   'studio.animation.open': 'Open {name}',
@@ -462,10 +466,10 @@ const studio = {
   'studio.animation.frame': 'Frame {frame}',
   'studio.animation.expand': 'See it bigger',
   'studio.animation.close': 'Back to the Studio',
-  'studio.animationImport.cardTitle': 'Import an animation',
-  'studio.animationImport.cardText':
+  'studio.animationImport.formats':
     'A sprite sheet, an animated GIF, PNG or WebP, an Aseprite file, one picture per frame, or a sheet with its TexturePacker, Phaser or Aseprite JSON.',
-  'studio.animationImport.choose': 'Choose files',
+  'studio.animationImport.button': 'Import',
+  'studio.animationImport.drop': 'Drop to import',
   'studio.animationImport.title': 'Import an animation',
   'studio.animationImport.lead':
     'Check how it plays, then add it. It is saved as a sheet in the scene’s art folder, like the animations the scene’s chat makes.',

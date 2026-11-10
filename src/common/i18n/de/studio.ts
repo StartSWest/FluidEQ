@@ -428,9 +428,13 @@ const studio = {
   'studio.animation.title': 'Animationen der Szene',
   'studio.animation.lead':
     'Jede läuft wie in der Szene. Öffnen Sie eine, um ihre Bilder einzeln durchzugehen, sie auf einem Boden zu testen und sie größer zu sehen.',
-  'studio.animation.askTitle': 'Bitten Sie im Chat um eine',
-  'studio.animation.askExample':
-    '„Ein Wolf, der durch den Schnee läuft, als Schleife.“ Der Chat zeichnet alle Posen in ein Bild, hält sie als eine Animation zusammen, und sie erscheint hier.',
+  'studio.animation.hint':
+    'Noch eine? Der Chat der Szene animiert ein Bild aus Ihrer Szene oder legt Bilder aus, die Sie mitbringen.',
+  'studio.animation.askChat': 'Den Chat der Szene fragen',
+  'studio.animation.askDraft': 'Erstelle eine Animation von ',
+  'studio.animation.emptyTitle': 'Noch keine Animationen',
+  'studio.animation.emptyText':
+    'Fragen Sie den Chat der Szene: Er animiert ein Bild aus Ihrer Szene oder legt Bilder aus, die Sie mitbringen. Oder holen Sie mit Importieren ein Sprite-Sheet, ein GIF oder eine Aseprite-Datei herein.',
   'studio.animation.meta': '{count} Bilder · {fps} fps · Schleife',
   'studio.animation.metaOnce': '{count} Bilder · {fps} fps · einmal',
   'studio.animation.open': '{name} öffnen',
@@ -465,10 +469,10 @@ const studio = {
   'studio.animation.frame': 'Bild {frame}',
   'studio.animation.expand': 'Größer ansehen',
   'studio.animation.close': 'Zurück zum Studio',
-  'studio.animationImport.cardTitle': 'Animation importieren',
-  'studio.animationImport.cardText':
+  'studio.animationImport.formats':
     'Ein Spritesheet, ein animiertes GIF, PNG oder WebP, eine Aseprite-Datei, ein Bild pro Einzelbild oder ein Sheet mit seinem JSON aus TexturePacker, Phaser oder Aseprite.',
-  'studio.animationImport.choose': 'Dateien auswählen',
+  'studio.animationImport.button': 'Importieren',
+  'studio.animationImport.drop': 'Zum Importieren ablegen',
   'studio.animationImport.title': 'Animation importieren',
   'studio.animationImport.lead':
     'Prüfen Sie, wie sie läuft, und fügen Sie sie dann hinzu. Sie wird als Sheet im Art-Ordner der Szene gespeichert, wie die Animationen, die der Chat der Szene erstellt.',

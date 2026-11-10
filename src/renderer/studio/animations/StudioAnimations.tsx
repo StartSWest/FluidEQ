@@ -1,15 +1,13 @@
 import { useId, useMemo, useRef, useState } from 'react';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
-import StudioAskCard from '../StudioAskCard';
 import AnimationFrame from './AnimationFrame';
+import { AnimationsEmpty, AnimationsHint } from './AnimationsAsk';
 import AnimationView from './AnimationView';
+import useFileDrop from './import/importDrop';
 import type { IChosenFile } from './import/importFiles';
 import StudioAnimationImport from './import/StudioAnimationImport';
-import StudioAnimationImportCard, {
-  allowFileDrop,
-  dropFiles,
-} from './import/StudioAnimationImportCard';
+import StudioAnimationImportButton from './import/StudioAnimationImportButton';
 import StudioAnimationModal from './StudioAnimationModal';
 import useAnimationPlayer, { useLoopFrame } from './useAnimationPlayer';
 import type { IViewedAnimation } from './useStudioAnimations';
@@ -138,6 +136,8 @@ function OpenedAnimation({ viewed, onBack }: IOpenedProps) {
 }
 
 interface IStudioAnimationsProps {
+  /** The open project, whose chat is asked for animations. */
+  projectId: string;
   animations: IViewedAnimation[];
 }
 
@@ -149,6 +149,7 @@ interface IStudioAnimationsProps {
  * try against a ground and see bigger.
  */
 export default function StudioAnimations({
+  projectId,
   animations,
 }: IStudioAnimationsProps) {
   const { t } = useTranslation();
@@ -156,6 +157,7 @@ export default function StudioAnimations({
   const [opened, setOpened] = useState<string>();
   const [importing, setImporting] = useState<IChosenFile[]>();
   const chooser = useRef<HTMLInputElement>(null);
+  const drop = useFileDrop(setImporting);
   const shown = animations.find(({ animation }) => animation.name === opened);
   const names = useMemo(
     () => new Set(animations.map(({ animation }) => animation.name)),
@@ -180,33 +182,49 @@ export default function StudioAnimations({
   return (
     // Files dropped anywhere on the tab are an import, as chosen ones are.
     <section
-      className="studio-card studio-animations"
+      className={`studio-card studio-animations${drop.over ? ' is-dropping' : ''}`}
       aria-labelledby={titleId}
-      onDragOver={allowFileDrop}
-      onDrop={dropFiles(setImporting)}
+      onDragEnter={drop.onDragEnter}
+      onDragOver={drop.onDragOver}
+      onDragLeave={drop.onDragLeave}
+      onDrop={drop.onDrop}
     >
-      <div className="studio-pictures__head">
-        <span className="studio-card__eyebrow" id={titleId}>
-          {t('studio.animation.title')}
-        </span>
-        <span className="studio-pictures__lead">
-          {t('studio.animation.lead')}
-        </span>
-      </div>
-      <ul className="studio-animations__list">
-        {animations.map((viewed) => (
-          <AnimationCard
-            key={viewed.animation.name}
-            viewed={viewed}
-            onOpen={() => setOpened(viewed.animation.name)}
-          />
-        ))}
-        <StudioAskCard
-          title={t('studio.animation.askTitle')}
-          example={t('studio.animation.askExample')}
+      <div className="studio-animations__head">
+        <div className="studio-pictures__head">
+          <span className="studio-card__eyebrow" id={titleId}>
+            {t('studio.animation.title')}
+          </span>
+          <span className="studio-pictures__lead">
+            {t('studio.animation.lead')}
+          </span>
+        </div>
+        <StudioAnimationImportButton
+          inputRef={chooser}
+          onFiles={setImporting}
         />
-        <StudioAnimationImportCard inputRef={chooser} onFiles={setImporting} />
-      </ul>
+      </div>
+      {animations.length === 0 ? (
+        <AnimationsEmpty projectId={projectId} />
+      ) : (
+        <>
+          <AnimationsHint projectId={projectId} />
+          <ul className="studio-animations__list">
+            {animations.map((viewed) => (
+              <AnimationCard
+                key={viewed.animation.name}
+                viewed={viewed}
+                onOpen={() => setOpened(viewed.animation.name)}
+              />
+            ))}
+          </ul>
+        </>
+      )}
+      {drop.over && (
+        <div className="studio-animations__drop" aria-hidden="true">
+          <Glyph name="upload" />
+          <span>{t('studio.animationImport.drop')}</span>
+        </div>
+      )}
       {importing && (
         <StudioAnimationImport
           files={importing}
