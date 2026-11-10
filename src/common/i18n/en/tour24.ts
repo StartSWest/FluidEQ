@@ -7,19 +7,19 @@ const tour24 = {
   'tour.animations.title': 'Pictures that move, checked frame by frame',
   'tour.animations.subtitle': 'Every animation in a scene, frame by frame',
   'tour.animations.lead':
-    'Animate the pictures in your scene, photo-real: the Animator bends one into frames that swim, flap, sway or turn, or lays out a sheet you made yourself.',
+    'Animate the pictures in your scene, photo-real: the scene’s chat bends one into frames that swim, flap, sway or turn, or lays out a sheet you made yourself.',
   'tour.animations.point1':
     'Play one on Ground, Sky or Water, uphill or downhill, at any speed, frame by frame, or bigger over the whole Studio.',
   'tour.animations.point2':
-    'Each animation has its own animator, a chat beside it: it looks at every frame at once, finds the one that floats or jumps, and puts it back in line.',
+    'The scene’s chat checks them too: it looks at every frame at once, finds the one that floats or jumps, and puts it back in line.',
   'tour.animations.point3':
     'Every new project starts with a moon in its orb and a swallow flying over it, so pictures and animations are there to learn from on day one.',
   'tour.animations.how':
     'Open Visualizers, then the Studio, and choose Animations under the stage. Ask the chat to animate a picture in your scene.',
   'tour.animations.open': 'Open Visualizers',
   'tour.animations.imageAlt':
-    'The Studio’s Animations tab with a swallow beating its wings on the Sky background and its eight frames in a strip, beside its animator’s chat finding the frame that jumps.',
-  'tour.animations.task': 'check the swallow’s flight frame by frame',
+    'The Studio’s Animations tab with a swallow beating its wings on the Sky background and its eight frames in a strip, beside the scene’s chat finding the frame that jumps.',
+  'tour.animations.task': 'Check the swallow’s flight frame by frame',
   'tour.animations.stepLook': 'Looked at all {count} frames side by side',
   'tour.animations.stepJump': 'Frame {frame} jumps above the others',
   'tour.animations.stepFix': 'Moved frame {frame} back in line with the rest',

@@ -465,22 +465,13 @@ const studio = {
   'studio.animation.frame': 'Bild {frame}',
   'studio.animation.expand': 'Größer ansehen',
   'studio.animation.close': 'Zurück zum Studio',
-  'studio.animator.title': 'Animator',
-  'studio.animator.on': 'Arbeitet an {name} · Claude Code',
-  'studio.animator.working': 'Der Animator arbeitet',
-  'studio.animator.welcomeTitle': 'Der Animator für {name}',
-  'studio.animator.welcomeBody':
-    'Er arbeitet nur an dieser Animation: Er sieht sich jedes Bild einzeln an, findet das, das springt, schwebt oder die Größe ändert, und macht es neu, bis die Bewegung stimmt. Sagen Sie ihm, was er machen oder korrigieren soll.',
-  'studio.animator.placeholder': 'Sagen Sie dem Animator, was er ändern soll…',
-  'studio.animator.fromScene': 'Aus dem Chat der Szene: {task}',
-  'studio.animator.resize': 'Ziehen, um die Breite des Animators zu ändern',
   'studio.animationImport.cardTitle': 'Animation importieren',
   'studio.animationImport.cardText':
     'Ein Spritesheet, ein animiertes GIF, PNG oder WebP, eine Aseprite-Datei, ein Bild pro Einzelbild oder ein Sheet mit seinem JSON aus TexturePacker, Phaser oder Aseprite.',
   'studio.animationImport.choose': 'Dateien auswählen',
   'studio.animationImport.title': 'Animation importieren',
   'studio.animationImport.lead':
-    'Prüfen Sie, wie sie läuft, und fügen Sie sie dann hinzu. Sie wird als Sheet im Art-Ordner der Szene gespeichert, wie die Animationen, die der Animator erstellt.',
+    'Prüfen Sie, wie sie läuft, und fügen Sie sie dann hinzu. Sie wird als Sheet im Art-Ordner der Szene gespeichert, wie die Animationen, die der Chat der Szene erstellt.',
   'studio.animationImport.reading': '{file} wird gelesen…',
   'studio.animationImport.kind.grid':
     'Ein Spritesheet, in Einzelbilder zerlegt:',

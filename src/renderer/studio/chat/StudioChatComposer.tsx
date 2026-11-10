@@ -23,8 +23,8 @@ import '../../styles/StudioChatComposer.scss';
 
 interface IStudioChatComposerProps {
   /**
-   * The chat this box writes to: a scene's project id or an animator's key.
-   * Its model and effort are that chat's own (chatPicks.ts).
+   * The chat this box writes to: its scene's project id. Its model and
+   * effort are that chat's own (chatPicks.ts).
    */
   chatKey: string;
   draft: string;
@@ -36,7 +36,7 @@ interface IStudioChatComposerProps {
   busy: boolean;
   /** What the empty box asks for. */
   placeholder: string;
-  /** The message, sent to whichever chat this box is the scene's or an animator's. */
+  /** The message, sent to this box's chat. */
   onSend: (text: string, stage?: Uint8Array) => Promise<void>;
   /** Stops the reply being written. */
   onStop: () => Promise<void>;

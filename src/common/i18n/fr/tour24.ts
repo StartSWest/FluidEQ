@@ -4,19 +4,19 @@ const tour24 = {
   'tour.animations.title': 'Des images qui bougent, vérifiées image par image',
   'tour.animations.subtitle': 'Chaque animation d’une scène, image par image',
   'tour.animations.lead':
-    'Animez les images de votre scène, en photoréaliste : l’Animateur plie une image en vues qui nagent, battent des ailes, se balancent ou tournent, ou dispose une planche que vous avez faite.',
+    'Animez les images de votre scène, en photoréaliste : le chat de la scène plie une image en vues qui nagent, battent des ailes, se balancent ou tournent, ou dispose une planche que vous avez faite.',
   'tour.animations.point1':
     'Jouez-la sur Sol, Ciel ou Eau, en montée ou en descente, à toute vitesse, image par image, ou en grand sur tout le Studio.',
   'tour.animations.point2':
-    'Chaque animation a son animateur, un chat à côté : il regarde toutes les images à la fois, trouve celle qui flotte ou saute, et la remet en ligne.',
+    'Le chat de la scène les vérifie aussi : il regarde toutes les images à la fois, trouve celle qui flotte ou saute, et la remet en ligne.',
   'tour.animations.point3':
     'Chaque nouveau projet commence avec une lune dans son orbe et une hirondelle qui vole au-dessus, pour découvrir images et animations dès le premier jour.',
   'tour.animations.how':
     'Ouvrez Visualiseurs, puis le Studio, et choisissez Animations sous la scène. Demandez au chat d’animer une image de votre scène.',
   'tour.animations.open': 'Ouvrir Visualiseurs',
   'tour.animations.imageAlt':
-    'L’onglet Animations du Studio avec une hirondelle qui bat des ailes sur le fond Ciel et ses huit images dans une bande, à côté du chat de son animateur qui trouve l’image qui saute.',
-  'tour.animations.task': 'vérifie le vol de l’hirondelle image par image',
+    'L’onglet Animations du Studio avec une hirondelle qui bat des ailes sur le fond Ciel et ses huit images dans une bande, à côté du chat de la scène qui trouve l’image qui saute.',
+  'tour.animations.task': 'Vérifie le vol de l’hirondelle image par image',
   'tour.animations.stepLook': 'Regardé les {count} images côte à côte',
   'tour.animations.stepJump': 'L’image {frame} saute au-dessus des autres',
   'tour.animations.stepFix': 'Remis l’image {frame} en ligne avec les autres',

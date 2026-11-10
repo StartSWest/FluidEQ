@@ -6,20 +6,20 @@ const tour24 = {
   'tour.animations.subtitle':
     'Ogni animazione di una scena, fotogramma per fotogramma',
   'tour.animations.lead':
-    'Anima le immagini della tua scena, fotorealistiche: l’Animatore ne piega una in fotogrammi che nuotano, sbattono le ali, ondeggiano o girano, o dispone un foglio fatto da te.',
+    'Anima le immagini della tua scena, fotorealistiche: la chat della scena ne piega una in fotogrammi che nuotano, sbattono le ali, ondeggiano o girano, o dispone un foglio fatto da te.',
   'tour.animations.point1':
     'Riproducila su Terreno, Cielo o Acqua, in salita o in discesa, a ogni velocità, fotogramma per fotogramma, o in grande su tutto lo Studio.',
   'tour.animations.point2':
-    'Ogni animazione ha il suo animatore, una chat accanto: guarda tutti i fotogrammi insieme, trova quello che galleggia o salta, e lo rimette in linea.',
+    'La chat della scena le controlla anche: guarda tutti i fotogrammi insieme, trova quello che galleggia o salta, e lo rimette in linea.',
   'tour.animations.point3':
     'Ogni nuovo progetto parte con una luna nella sua sfera e una rondine che vola sopra, così immagini e animazioni si imparano dal primo giorno.',
   'tour.animations.how':
     'Apri Visualizzatori, poi lo Studio, e scegli Animazioni sotto il palco. Chiedi alla chat di animare un’immagine della tua scena.',
   'tour.animations.open': 'Apri Visualizzatori',
   'tour.animations.imageAlt':
-    'La scheda Animazioni dello Studio con una rondine che batte le ali sullo sfondo Cielo e i suoi otto fotogrammi in una striscia, accanto alla chat del suo animatore che trova il fotogramma che salta.',
+    'La scheda Animazioni dello Studio con una rondine che batte le ali sullo sfondo Cielo e i suoi otto fotogrammi in una striscia, accanto alla chat della scena che trova il fotogramma che salta.',
   'tour.animations.task':
-    'controlla il volo della rondine fotogramma per fotogramma',
+    'Controlla il volo della rondine fotogramma per fotogramma',
   'tour.animations.stepLook':
     'Guardati tutti i {count} fotogrammi uno accanto all’altro',
   'tour.animations.stepJump': 'Il fotogramma {frame} salta sopra gli altri',

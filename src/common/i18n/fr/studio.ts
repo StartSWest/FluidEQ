@@ -459,22 +459,13 @@ const studio = {
   'studio.animation.frame': 'Image {frame}',
   'studio.animation.expand': 'La voir en grand',
   'studio.animation.close': 'Revenir au Studio',
-  'studio.animator.title': 'Animateur',
-  'studio.animator.on': 'Travaille sur {name} · Claude Code',
-  'studio.animator.working': 'L’animateur travaille',
-  'studio.animator.welcomeTitle': 'L’animateur de {name}',
-  'studio.animator.welcomeBody':
-    'Il ne travaille que sur cette animation : il regarde chaque image seule, trouve celle qui saute, flotte ou change de taille, et la refait jusqu’à ce que le mouvement soit juste. Dites-lui quoi faire ou corriger.',
-  'studio.animator.placeholder': 'Dites à l’animateur quoi changer…',
-  'studio.animator.fromScene': 'Du chat de la scène : {task}',
-  'studio.animator.resize': 'Faites glisser pour redimensionner l’animateur',
   'studio.animationImport.cardTitle': 'Importer une animation',
   'studio.animationImport.cardText':
     'Une planche de sprites, un GIF, PNG ou WebP animé, un fichier Aseprite, un fichier par image, ou une planche avec son JSON TexturePacker, Phaser ou Aseprite.',
   'studio.animationImport.choose': 'Choisir des fichiers',
   'studio.animationImport.title': 'Importer une animation',
   'studio.animationImport.lead':
-    'Vérifiez comment elle joue, puis ajoutez-la. Elle est enregistrée comme une planche dans le dossier art de la scène, comme les animations que crée l’Animateur.',
+    'Vérifiez comment elle joue, puis ajoutez-la. Elle est enregistrée comme une planche dans le dossier art de la scène, comme les animations que crée le chat de la scène.',
   'studio.animationImport.reading': 'Lecture de {file}…',
   'studio.animationImport.kind.grid':
     'Une planche de sprites, découpée en images :',

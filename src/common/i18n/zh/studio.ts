@@ -411,22 +411,13 @@ const studio = {
   'studio.animation.frame': '第 {frame} 帧',
   'studio.animation.expand': '放大查看',
   'studio.animation.close': '返回工作室',
-  'studio.animator.title': '动画师',
-  'studio.animator.on': '负责 {name} · Claude Code',
-  'studio.animator.working': '动画师正在工作',
-  'studio.animator.welcomeTitle': '{name} 的动画师',
-  'studio.animator.welcomeBody':
-    '它只处理这个动画：逐帧单独查看，找出跳动、悬空或大小变化的那一帧，重新制作，直到动作看起来正确。告诉它要做什么或修什么。',
-  'studio.animator.placeholder': '告诉动画师要改什么…',
-  'studio.animator.fromScene': '来自场景聊天：{task}',
-  'studio.animator.resize': '拖动以调整动画师宽度',
   'studio.animationImport.cardTitle': '导入动画',
   'studio.animationImport.cardText':
     '精灵表、动图 GIF、PNG 或 WebP、Aseprite 文件、每帧一张的图片，或带有 TexturePacker、Phaser 或 Aseprite JSON 的图表。',
   'studio.animationImport.choose': '选择文件',
   'studio.animationImport.title': '导入动画',
   'studio.animationImport.lead':
-    '先看看它怎么播放，再添加。它会像动画师制作的动画一样，作为图表保存在场景的 art 文件夹中。',
+    '先看看它怎么播放，再添加。它会像场景聊天制作的动画一样，作为图表保存在场景的 art 文件夹中。',
   'studio.animationImport.reading': '正在读取 {file}…',
   'studio.animationImport.kind.grid': '一张精灵表，切成各帧：',
   'studio.animationImport.kind.atlas':

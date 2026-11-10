@@ -449,22 +449,13 @@ const studio = {
   'studio.animation.frame': 'फ़्रेम {frame}',
   'studio.animation.expand': 'बड़ा करके देखें',
   'studio.animation.close': 'स्टूडियो पर लौटें',
-  'studio.animator.title': 'एनिमेटर',
-  'studio.animator.on': '{name} पर काम करता है · Claude Code',
-  'studio.animator.working': 'एनिमेटर काम कर रहा है',
-  'studio.animator.welcomeTitle': '{name} का एनिमेटर',
-  'studio.animator.welcomeBody':
-    'यह सिर्फ़ इसी एनिमेशन पर काम करता है: हर फ़्रेम को अलग से देखता है, जो उछलता, तैरता या आकार बदलता है उसे ढूँढता है, और हरकत सही दिखने तक उसे दोबारा बनाता है। बताइए क्या बनाना या ठीक करना है।',
-  'studio.animator.placeholder': 'एनिमेटर को बताइए क्या बदलना है…',
-  'studio.animator.fromScene': 'सीन की चैट से: {task}',
-  'studio.animator.resize': 'एनिमेटर की चौड़ाई बदलने के लिए खींचें',
   'studio.animationImport.cardTitle': 'एनिमेशन इंपोर्ट करें',
   'studio.animationImport.cardText':
     'स्प्राइट शीट, एनिमेटेड GIF, PNG या WebP, Aseprite फ़ाइल, हर फ़्रेम की एक तस्वीर, या TexturePacker, Phaser या Aseprite के JSON वाली शीट।',
   'studio.animationImport.choose': 'फ़ाइलें चुनें',
   'studio.animationImport.title': 'एनिमेशन इंपोर्ट करें',
   'studio.animationImport.lead':
-    'देखें कि यह कैसे चलता है, फिर इसे जोड़ें। यह सीन के art फ़ोल्डर में शीट के रूप में सहेजा जाता है, जैसे एनिमेटर के बनाए एनिमेशन।',
+    'देखें कि यह कैसे चलता है, फिर इसे जोड़ें। यह सीन के art फ़ोल्डर में शीट के रूप में सहेजा जाता है, जैसे सीन की चैट के बनाए एनिमेशन।',
   'studio.animationImport.reading': '{file} पढ़ा जा रहा है…',
   'studio.animationImport.kind.grid': 'एक स्प्राइट शीट, फ़्रेमों में काटी गई:',
   'studio.animationImport.kind.atlas':

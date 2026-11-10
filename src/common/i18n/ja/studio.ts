@@ -457,23 +457,13 @@ const studio = {
   'studio.animation.frame': 'コマ {frame}',
   'studio.animation.expand': '大きく表示',
   'studio.animation.close': 'スタジオに戻る',
-  'studio.animator.title': 'アニメーター',
-  'studio.animator.on': '{name} を担当 · Claude Code',
-  'studio.animator.working': 'アニメーターが作業中',
-  'studio.animator.welcomeTitle': '{name} のアニメーター',
-  'studio.animator.welcomeBody':
-    'このアニメーションだけを担当します。各コマを単独で見て、跳ねる・浮く・大きさが変わるコマを見つけ、動きが自然になるまで作り直します。作るものや直すところを伝えてください。',
-  'studio.animator.placeholder':
-    'アニメーターに変えてほしいことを伝えてください…',
-  'studio.animator.fromScene': 'シーンのチャットから：{task}',
-  'studio.animator.resize': 'ドラッグしてアニメーターの幅を変更',
   'studio.animationImport.cardTitle': 'アニメーションを読み込む',
   'studio.animationImport.cardText':
     'スプライトシート、アニメーション GIF・PNG・WebP、Aseprite ファイル、1 コマ 1 枚の画像、または TexturePacker・Phaser・Aseprite の JSON 付きのシート。',
   'studio.animationImport.choose': 'ファイルを選ぶ',
   'studio.animationImport.title': 'アニメーションを読み込む',
   'studio.animationImport.lead':
-    '再生のしかたを確かめてから追加します。アニメーターが作るアニメーションと同じく、シーンの art フォルダーにシートとして保存されます。',
+    '再生のしかたを確かめてから追加します。シーンのチャットが作るアニメーションと同じく、シーンの art フォルダーにシートとして保存されます。',
   'studio.animationImport.reading': '{file} を読み込み中…',
   'studio.animationImport.kind.grid': 'スプライトシートをコマに切り分けます:',
   'studio.animationImport.kind.atlas':

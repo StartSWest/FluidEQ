@@ -4,19 +4,19 @@ const tour24 = {
   'tour.animations.title': 'Bilder, die sich bewegen, Bild für Bild geprüft',
   'tour.animations.subtitle': 'Jede Animation einer Szene, Bild für Bild',
   'tour.animations.lead':
-    'Animieren Sie die Bilder Ihrer Szene, fotorealistisch: Der Animator biegt eines zu Bildern, die schwimmen, flattern, schwingen oder sich drehen, oder legt ein selbst gemachtes Blatt aus.',
+    'Animieren Sie die Bilder Ihrer Szene, fotorealistisch: Der Chat der Szene biegt eines zu Bildern, die schwimmen, flattern, schwingen oder sich drehen, oder legt ein selbst gemachtes Blatt aus.',
   'tour.animations.point1':
     'Spielen Sie sie auf Boden, Himmel oder Wasser ab, bergauf oder bergab, in jedem Tempo, Bild für Bild oder groß über dem ganzen Studio.',
   'tour.animations.point2':
-    'Jede Animation hat ihren Animator, einen Chat daneben: Er sieht alle Bilder auf einmal, findet das, das schwebt oder springt, und rückt es wieder in die Reihe.',
+    'Der Chat der Szene prüft sie auch: Er sieht alle Bilder auf einmal, findet das, das schwebt oder springt, und rückt es wieder in die Reihe.',
   'tour.animations.point3':
     'Jedes neue Projekt beginnt mit einem Mond in seiner Kugel und einer Schwalbe, die darüber fliegt – so lernen Sie Bilder und Animationen vom ersten Tag an kennen.',
   'tour.animations.how':
     'Öffnen Sie Visualizer, dann das Studio, und wählen Sie Animationen unter der Bühne. Bitten Sie den Chat, ein Bild Ihrer Szene zu animieren.',
   'tour.animations.open': 'Visualizer öffnen',
   'tour.animations.imageAlt':
-    'Der Tab Animationen des Studios mit einer Schwalbe, die auf dem Hintergrund Himmel mit den Flügeln schlägt, und ihren acht Bildern in einem Streifen, neben dem Chat ihres Animators, der das springende Bild findet.',
-  'tour.animations.task': 'prüfe den Flug der Schwalbe Bild für Bild',
+    'Der Tab Animationen des Studios mit einer Schwalbe, die auf dem Hintergrund Himmel mit den Flügeln schlägt, und ihren acht Bildern in einem Streifen, neben dem Chat der Szene, der das springende Bild findet.',
+  'tour.animations.task': 'Prüfe den Flug der Schwalbe Bild für Bild',
   'tour.animations.stepLook': 'Alle {count} Bilder nebeneinander angesehen',
   'tour.animations.stepJump': 'Bild {frame} springt über die anderen',
   'tour.animations.stepFix':

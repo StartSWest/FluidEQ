@@ -1,7 +1,6 @@
-import { useId, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
-import useMovablePortal from '../../utils/useMovablePortal';
 import StudioAskCard from '../StudioAskCard';
 import AnimationFrame from './AnimationFrame';
 import AnimationView from './AnimationView';
@@ -12,10 +11,6 @@ import StudioAnimationImportCard, {
   dropFiles,
 } from './import/StudioAnimationImportCard';
 import StudioAnimationModal from './StudioAnimationModal';
-import StudioAnimatorColumn, {
-  ANIMATOR_LARGE_WIDTH_KEY,
-  ANIMATOR_WIDTH_KEY,
-} from './StudioAnimatorColumn';
 import useAnimationPlayer, { useLoopFrame } from './useAnimationPlayer';
 import type { IViewedAnimation } from './useStudioAnimations';
 import '../../styles/StudioAnimations.scss';
@@ -32,12 +27,9 @@ const useMeta = () => {
 
 function AnimationCard({
   viewed,
-  working,
   onOpen,
 }: {
   viewed: IViewedAnimation;
-  /** Its animator is writing a reply. */
-  working: boolean;
   onOpen: () => void;
 }) {
   const { t } = useTranslation();
@@ -65,15 +57,6 @@ function AnimationCard({
               {t('studio.animation.unreadable')}
             </span>
           )}
-          {working && (
-            <span className="studio-animation-card__working">
-              <span
-                className="studio-animation-card__lamp"
-                aria-hidden="true"
-              />
-              {t('studio.animator.working', { name: animation.name })}
-            </span>
-          )}
           {viewed.bitmap && (
             <span className="studio-animation-card__count">
               {t('studio.animation.frameOf', {
@@ -95,26 +78,13 @@ function AnimationCard({
 interface IOpenedProps {
   viewed: IViewedAnimation;
   onBack: () => void;
-  /** Beside the animation: the agent working on it. */
-  side?: ReactNode;
 }
 
-function OpenedAnimation({ viewed, onBack, side }: IOpenedProps) {
+function OpenedAnimation({ viewed, onBack }: IOpenedProps) {
   const { t } = useTranslation();
   const meta = useMeta();
   const player = useAnimationPlayer(viewed);
   const [large, setLarge] = useState(false);
-  // The animator goes with the animation into the bigger view and back
-  // (Ivan, 2026-11-09: "the full screen there needs to attach the chat too
-  // so I can work better focused on animator"): one chat, moved, so what
-  // is being written and a question it asks are there in either place.
-  const animator = useMovablePortal(side, 'studio-animator-host');
-  const animatorIn = (storageKey: string) =>
-    side ? (
-      <StudioAnimatorColumn storageKey={storageKey}>
-        <div ref={animator.place} className="studio-animator-slot" />
-      </StudioAnimatorColumn>
-    ) : undefined;
   return (
     <div className="studio-animation-opened">
       <div className="studio-animation-opened__head">
@@ -133,38 +103,33 @@ function OpenedAnimation({ viewed, onBack, side }: IOpenedProps) {
           {meta(viewed)} · {viewed.animation.sheet}
         </span>
       </div>
-      <div className="studio-animation-opened__work">
-        <div className="studio-animation-opened__view">
-          {/* Not shown under the open modal: one view of it on screen. */}
-          {!large && (
-            <AnimationView
-              viewed={viewed}
-              player={player}
-              stageCorner={
-                <button
-                  type="button"
-                  className="studio-animation-stage__expand"
-                  aria-label={t('studio.animation.expand')}
-                  title={t('studio.animation.expand')}
-                  onClick={() => setLarge(true)}
-                >
-                  <Glyph name="expand" />
-                </button>
-              }
-            />
-          )}
-          <p className="studio-pictures__lead">
-            {t('studio.animation.backgroundNote')}
-          </p>
-        </div>
-        {!large && animatorIn(ANIMATOR_WIDTH_KEY)}
+      <div className="studio-animation-opened__view">
+        {/* Not shown under the open modal: one view of it on screen. */}
+        {!large && (
+          <AnimationView
+            viewed={viewed}
+            player={player}
+            stageCorner={
+              <button
+                type="button"
+                className="studio-animation-stage__expand"
+                aria-label={t('studio.animation.expand')}
+                title={t('studio.animation.expand')}
+                onClick={() => setLarge(true)}
+              >
+                <Glyph name="expand" />
+              </button>
+            }
+          />
+        )}
+        <p className="studio-pictures__lead">
+          {t('studio.animation.backgroundNote')}
+        </p>
       </div>
-      {side && animator.portal}
       {large && (
         <StudioAnimationModal
           viewed={viewed}
           player={player}
-          side={animatorIn(ANIMATOR_LARGE_WIDTH_KEY)}
           onClose={() => setLarge(false)}
         />
       )}
@@ -174,10 +139,6 @@ function OpenedAnimation({ viewed, onBack, side }: IOpenedProps) {
 
 interface IStudioAnimationsProps {
   animations: IViewedAnimation[];
-  /** The agent working on the opened animation, beside it. */
-  renderSide?: (viewed: IViewedAnimation) => ReactNode;
-  /** Whether an animation's animator is at work, for its card. */
-  isWorking?: (name: string) => boolean;
 }
 
 /**
@@ -189,8 +150,6 @@ interface IStudioAnimationsProps {
  */
 export default function StudioAnimations({
   animations,
-  renderSide,
-  isWorking,
 }: IStudioAnimationsProps) {
   const { t } = useTranslation();
   const titleId = useId();
@@ -213,7 +172,6 @@ export default function StudioAnimations({
           key={shown.animation.name}
           viewed={shown}
           onBack={() => setOpened(undefined)}
-          side={renderSide?.(shown)}
         />
       </section>
     );
@@ -240,7 +198,6 @@ export default function StudioAnimations({
           <AnimationCard
             key={viewed.animation.name}
             viewed={viewed}
-            working={isWorking?.(viewed.animation.name) ?? false}
             onOpen={() => setOpened(viewed.animation.name)}
           />
         ))}

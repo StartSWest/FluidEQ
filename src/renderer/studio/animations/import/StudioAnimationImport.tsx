@@ -125,8 +125,8 @@ function ImportPreview({
  * others that most used"): a sprite sheet cut by its grid, a sheet with
  * its TexturePacker, Phaser or Aseprite JSON, an animated GIF, PNG or WebP,
  * or one picture a frame. Each is laid into the scene's own sheet and
- * played before it is added, so the scene and the Animator read one kind
- * of animation whatever it came from.
+ * played before it is added, so the scene and its chat read one kind of
+ * animation whatever it came from.
  */
 export default function StudioAnimationImport({
   files,

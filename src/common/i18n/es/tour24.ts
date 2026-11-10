@@ -6,20 +6,20 @@ const tour24 = {
   'tour.animations.subtitle':
     'Cada animación de una escena, fotograma a fotograma',
   'tour.animations.lead':
-    'Anima las imágenes de tu escena, con realismo fotográfico: el Animador dobla una en fotogramas que nadan, aletean, se mecen o giran, o coloca una hoja que hiciste tú.',
+    'Anima las imágenes de tu escena, con realismo fotográfico: el chat de la escena dobla una en fotogramas que nadan, aletean, se mecen o giran, o coloca una hoja que hiciste tú.',
   'tour.animations.point1':
     'Reprodúcela sobre Suelo, Cielo o Agua, cuesta arriba o abajo, a cualquier velocidad, fotograma a fotograma, o en grande sobre todo el Estudio.',
   'tour.animations.point2':
-    'Cada animación tiene su animador, un chat a su lado: mira todos los fotogramas a la vez, encuentra el que flota o salta, y lo vuelve a alinear.',
+    'El chat de la escena también las revisa: mira todos los fotogramas a la vez, encuentra el que flota o salta, y lo vuelve a alinear.',
   'tour.animations.point3':
     'Cada proyecto nuevo empieza con una luna en su orbe y una golondrina volando por encima, para aprender desde el primer día cómo funcionan las imágenes y las animaciones.',
   'tour.animations.how':
     'Abre Visualizadores, luego el Estudio, y elige Animaciones bajo el escenario. Pide al chat que anime una imagen de tu escena.',
   'tour.animations.open': 'Abrir Visualizadores',
   'tour.animations.imageAlt':
-    'La pestaña Animaciones del Estudio con una golondrina batiendo las alas sobre el fondo Cielo y sus ocho fotogramas en una tira, junto al chat de su animador, que encuentra el fotograma que salta.',
+    'La pestaña Animaciones del Estudio con una golondrina batiendo las alas sobre el fondo Cielo y sus ocho fotogramas en una tira, junto al chat de la escena, que encuentra el fotograma que salta.',
   'tour.animations.task':
-    'revisa el vuelo de la golondrina fotograma a fotograma',
+    'Revisa el vuelo de la golondrina fotograma a fotograma',
   'tour.animations.stepLook':
     'He mirado los {count} fotogramas uno al lado del otro',
   'tour.animations.stepJump':

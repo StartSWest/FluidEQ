@@ -452,22 +452,13 @@ const studio = {
   'studio.animation.frame': 'Кадр {frame}',
   'studio.animation.expand': 'Смотреть крупнее',
   'studio.animation.close': 'Вернуться в Студию',
-  'studio.animator.title': 'Аниматор',
-  'studio.animator.on': 'Работает над {name} · Claude Code',
-  'studio.animator.working': 'Аниматор работает',
-  'studio.animator.welcomeTitle': 'Аниматор для {name}',
-  'studio.animator.welcomeBody':
-    'Он работает только над этой анимацией: смотрит каждый кадр отдельно, находит тот, что прыгает, парит или меняет размер, и переделывает его, пока движение не станет правильным. Скажите, что сделать или исправить.',
-  'studio.animator.placeholder': 'Скажите аниматору, что изменить…',
-  'studio.animator.fromScene': 'Из чата сцены: {task}',
-  'studio.animator.resize': 'Перетащите, чтобы изменить ширину аниматора',
   'studio.animationImport.cardTitle': 'Импортировать анимацию',
   'studio.animationImport.cardText':
     'Спрайт-лист, анимированный GIF, PNG или WebP, файл Aseprite, по картинке на кадр или лист с его JSON из TexturePacker, Phaser или Aseprite.',
   'studio.animationImport.choose': 'Выбрать файлы',
   'studio.animationImport.title': 'Импортировать анимацию',
   'studio.animationImport.lead':
-    'Проверьте, как она играет, и добавьте её. Она сохраняется как лист в папке art сцены, как анимации, которые делает Аниматор.',
+    'Проверьте, как она играет, и добавьте её. Она сохраняется как лист в папке art сцены, как анимации, которые делает чат сцены.',
   'studio.animationImport.reading': 'Чтение {file}…',
   'studio.animationImport.kind.grid': 'Спрайт-лист, разрезанный на кадры:',
   'studio.animationImport.kind.atlas':

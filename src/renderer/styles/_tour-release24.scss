@@ -168,8 +168,8 @@ $loop: 10s;
   max-width: 100%;
 }
 
-// The frame the animator found out of line, marked in the strip while it
-// says so and until it has drawn it again.
+// The frame the chat found out of line, marked in the strip while it says
+// so and until it has drawn it again.
 .anim-visual__tab .studio-animation__cell:nth-child(4) {
   animation: anim-visual-flag $loop linear infinite;
   @include still;
@@ -1039,14 +1039,14 @@ $loop: 10s;
 }
 
 // A laptop's shorter stage: the animation's stage a little lower and the
-// animator's box left out, so its thread and How to start beside it stay on
+// chat's box left out, so its thread and How to start beside it stay on
 // screen. At 1366 x 768 the whole picture ran 40px under the stage's foot.
 @media (max-height: $bp-laptop-height) {
   .anim-visual__tab .studio-animation-stage {
     height: calc(#{$u} * 9);
   }
 
-  .anim-visual__animator .chat-visual__box {
+  .anim-visual__chat .chat-visual__box {
     display: none;
   }
 }

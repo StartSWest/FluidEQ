@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { ReactNode, UIEvent } from 'react';
+import type { UIEvent } from 'react';
 import type { IStudioChat, TStudioChatRestore } from 'common/studioChat';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
@@ -46,11 +46,6 @@ interface IStudioChatThreadProps {
    */
   sceneName?: string | undefined;
   /**
-   * What an empty chat says in place of the scene's welcome: an animator's
-   * chat says what it works on, and offers no ideas for a scene.
-   */
-  welcome?: ReactNode;
-  /**
    * A picture from the chat, drawn on in the picture viewer, for this chat's
    * message box: the viewer offers Draw only where it is given.
    */
@@ -70,7 +65,6 @@ export default function StudioChatThread({
   onRetry,
   onRestore,
   sceneName,
-  welcome,
   onAttachPicture,
 }: IStudioChatThreadProps) {
   const { t } = useTranslation();
@@ -146,37 +140,34 @@ export default function StudioChatThread({
           <span className="studio-chat__welcome-mark" aria-hidden="true">
             <Glyph name="studio" />
           </span>
-          {welcome ??
-            (sceneName ? (
-              <>
-                <h3>
-                  {t('studioChat.welcomeSceneTitle', { name: sceneName })}
-                </h3>
-                <p>{t('studioChat.welcomeSceneBody')}</p>
-              </>
-            ) : (
-              <>
-                <h3>{t('studioChat.welcomeTitle')}</h3>
-                <p>{t('studioChat.welcomeBody')}</p>
-                <div
-                  className="studio-chat__ideas"
-                  role="group"
-                  aria-label={t('studio.maker.examples')}
-                >
-                  {AI_IDEAS.map((entry) => (
-                    <button
-                      key={entry.label}
-                      type="button"
-                      className="studio-idea"
-                      title={t(entry.idea)}
-                      onClick={() => onIdea(t(entry.idea))}
-                    >
-                      {t(entry.label)}
-                    </button>
-                  ))}
-                </div>
-              </>
-            ))}
+          {sceneName ? (
+            <>
+              <h3>{t('studioChat.welcomeSceneTitle', { name: sceneName })}</h3>
+              <p>{t('studioChat.welcomeSceneBody')}</p>
+            </>
+          ) : (
+            <>
+              <h3>{t('studioChat.welcomeTitle')}</h3>
+              <p>{t('studioChat.welcomeBody')}</p>
+              <div
+                className="studio-chat__ideas"
+                role="group"
+                aria-label={t('studio.maker.examples')}
+              >
+                {AI_IDEAS.map((entry) => (
+                  <button
+                    key={entry.label}
+                    type="button"
+                    className="studio-idea"
+                    title={t(entry.idea)}
+                    onClick={() => onIdea(t(entry.idea))}
+                  >
+                    {t(entry.label)}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     );

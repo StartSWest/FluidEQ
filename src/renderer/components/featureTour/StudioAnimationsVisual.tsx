@@ -14,17 +14,17 @@ import useTourSwallow from './useTourSwallow';
 /**
  * The Studio's Animations tab with the starter's swallow opened: the tab's
  * own view, its own player and its own frames (`AnimationView`), on the Sky
- * it was made for, every frame in the strip under it. Beside it the
- * swallow's animator, in the chat's own parts: the task the scene's chat
- * handed it, the steps it takes - all eight frames looked at side by side,
- * the one that jumps found, that one made again - and its answer. The
- * thread comes in on the 2.1 chat picture's loop (`_tour-chat.scss`).
+ * it was made for, every frame in the strip under it. Beside it the scene's
+ * chat, in its own parts: the member asking for the flight to be checked,
+ * the steps it takes - all eight frames looked at side by side, the one that
+ * jumps found, that one made again - and its answer. The thread comes in on
+ * the 2.1 chat picture's loop (`_tour-chat.scss`).
  *
  * Inert: the transport would play, but a picture on a slide is not a place
  * to work.
  */
 
-/** The frame the animator finds out of line, counted from one. */
+/** The frame the chat finds out of line, counted from one. */
 const JUMPING_FRAME = 4;
 
 function Opened({ viewed }: { viewed: IViewedAnimation }) {
@@ -68,21 +68,19 @@ export default function StudioAnimationsVisual() {
         )}
       </div>
 
-      <div className="chat-visual__column anim-visual__animator">
+      <div className="chat-visual__column anim-visual__chat">
         <span className="chat-visual__head">
           <i className="chat-visual__dot" />
           <span>
-            <strong>{t('studio.animator.title')}</strong>
-            <small>{t('studio.animator.on', { name })}</small>
+            <strong>{t('studioChat.title')}</strong>
+            <small>{t('studioChat.where')}</small>
           </span>
           <Glyph name="more" className="chat-visual__more" />
         </span>
 
         <span className="chat-visual__thread">
           <span className="chat-visual__me anim-visual__task">
-            {t('studio.animator.fromScene', {
-              task: t('tour.animations.task'),
-            })}
+            {t('tour.animations.task')}
           </span>
           <span className="chat-visual__steps">
             {steps.map((step) => (
@@ -99,7 +97,7 @@ export default function StudioAnimationsVisual() {
 
         <span className="chat-visual__box">
           <span className="chat-visual__placeholder">
-            {t('studio.animator.placeholder')}
+            {t('studioChat.placeholder')}
           </span>
         </span>
       </div>

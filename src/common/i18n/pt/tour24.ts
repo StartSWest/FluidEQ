@@ -4,19 +4,19 @@ const tour24 = {
   'tour.animations.title': 'Imagens que se mexem, conferidas quadro a quadro',
   'tour.animations.subtitle': 'Cada animação de uma cena, quadro a quadro',
   'tour.animations.lead':
-    'Anime as imagens da sua cena, com realismo de foto: o Animador dobra uma em quadros que nadam, batem asas, balançam ou giram, ou monta uma folha que você mesmo fez.',
+    'Anime as imagens da sua cena, com realismo de foto: o chat da cena dobra uma em quadros que nadam, batem asas, balançam ou giram, ou monta uma folha que você mesmo fez.',
   'tour.animations.point1':
     'Toque sobre Chão, Céu ou Água, subindo ou descendo, em qualquer velocidade, quadro a quadro, ou em tamanho grande sobre todo o Estúdio.',
   'tour.animations.point2':
-    'Cada animação tem o seu animador, um chat ao lado: ele olha todos os quadros de uma vez, acha o que flutua ou pula, e coloca de volta na linha.',
+    'O chat da cena também confere: ele olha todos os quadros de uma vez, acha o que flutua ou pula, e coloca de volta na linha.',
   'tour.animations.point3':
     'Todo projeto novo começa com uma lua no orbe e uma andorinha voando por cima, para você aprender imagens e animações desde o primeiro dia.',
   'tour.animations.how':
     'Abra Visualizadores, depois o Estúdio, e escolha Animações embaixo do palco. Peça ao chat para animar uma imagem da sua cena.',
   'tour.animations.open': 'Abrir Visualizadores',
   'tour.animations.imageAlt':
-    'A aba Animações do Estúdio com uma andorinha batendo as asas no fundo Céu e seus oito quadros numa faixa, ao lado do chat do seu animador, que acha o quadro que pula.',
-  'tour.animations.task': 'confira o voo da andorinha quadro a quadro',
+    'A aba Animações do Estúdio com uma andorinha batendo as asas no fundo Céu e seus oito quadros numa faixa, ao lado do chat da cena, que acha o quadro que pula.',
+  'tour.animations.task': 'Confira o voo da andorinha quadro a quadro',
   'tour.animations.stepLook': 'Olhei os {count} quadros lado a lado',
   'tour.animations.stepJump': 'O quadro {frame} pula acima dos outros',
   'tour.animations.stepFix':

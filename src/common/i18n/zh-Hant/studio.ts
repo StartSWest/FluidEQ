@@ -397,22 +397,13 @@ const studio = {
   'studio.animation.frame': '第 {frame} 格',
   'studio.animation.expand': '放大查看',
   'studio.animation.close': '返回工作室',
-  'studio.animator.title': '動畫師',
-  'studio.animator.on': '負責 {name} · Claude Code',
-  'studio.animator.working': '動畫師正在工作',
-  'studio.animator.welcomeTitle': '{name} 的動畫師',
-  'studio.animator.welcomeBody':
-    '它只處理這個動畫：逐格單獨查看，找出跳動、懸空或大小變化的那一格，重新製作，直到動作看起來正確。告訴它要做什麼或修什麼。',
-  'studio.animator.placeholder': '告訴動畫師要改什麼…',
-  'studio.animator.fromScene': '來自場景聊天：{task}',
-  'studio.animator.resize': '拖曳以調整動畫師大小',
   'studio.animationImport.cardTitle': '匯入動畫',
   'studio.animationImport.cardText':
     '精靈表、動態 GIF、PNG 或 WebP、Aseprite 檔案、每格一張的圖片，或附有 TexturePacker、Phaser 或 Aseprite JSON 的圖表。',
   'studio.animationImport.choose': '選擇檔案',
   'studio.animationImport.title': '匯入動畫',
   'studio.animationImport.lead':
-    '先看看它怎麼播放，再加入。它會像動畫師製作的動畫一樣，以圖表形式儲存在場景的 art 資料夾中。',
+    '先看看它怎麼播放，再加入。它會像場景聊天製作的動畫一樣，以圖表形式儲存在場景的 art 資料夾中。',
   'studio.animationImport.reading': '正在讀取 {file}…',
   'studio.animationImport.kind.grid': '一張精靈表，切成各格：',
   'studio.animationImport.kind.atlas':

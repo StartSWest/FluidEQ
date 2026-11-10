@@ -8,21 +8,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * A picture drawn on in the chat's picture viewer lands in that chat's
  * message box (Ivan, 2026-11-09: "draw also on zoomed pic inside the chat
  * and attach them to the chat"): the scene's chat keeps it with the draft,
- * as a pasted picture is kept, and an animation's animator holds it in its
- * own box. Each beside the control of the box with nothing attached.
+ * as a pasted picture is kept, beside the control of the box with nothing
+ * attached.
  */
 
 import '@testing-library/jest-dom';
 import { act, render, screen } from '@testing-library/react';
 import type { IStudioProject } from '../../../main/ipc/studioProjectTypes';
-import AnimatorChat from '../../../renderer/studio/animations/AnimatorChat';
 import StudioChat from '../../../renderer/studio/chat/StudioChat';
-import { resetAnimatorChatStore } from '../../../renderer/studio/chat/animatorChatStore';
 import { resetChatDrafts } from '../../../renderer/studio/chat/chatDraftStore';
-import {
-  checkStudioChat,
-  resetStudioChatStore,
-} from '../../../renderer/studio/chat/studioChatStore';
+import { resetStudioChatStore } from '../../../renderer/studio/chat/studioChatStore';
 
 const mockThreadProps: Array<Record<string, unknown>> = [];
 
@@ -52,7 +47,6 @@ let api: Record<string, unknown>;
 beforeEach(() => {
   mockThreadProps.length = 0;
   resetStudioChatStore();
-  resetAnimatorChatStore();
   resetChatDrafts();
   Object.defineProperty(URL, 'createObjectURL', {
     configurable: true,
@@ -69,14 +63,12 @@ beforeEach(() => {
     studioChatLoad: jest.fn(async () => undefined),
     studioChatDraft: jest.fn(async () => undefined),
     studioChatDraftChange: jest.fn(async () => undefined),
-    studioAnimatorLoad: jest.fn(async () => undefined),
     onStudioChatEntry: () => () => undefined,
     onStudioChatQueue: () => () => undefined,
     onStudioChatContext: () => () => undefined,
     onStudioChatAsk: () => () => undefined,
     onStudioChatLimits: () => () => undefined,
     onStudioChatPack: () => () => undefined,
-    onStudioAnimatorStart: () => () => undefined,
   };
   Object.defineProperty(window, 'electron', {
     configurable: true,
@@ -106,15 +98,4 @@ it('lands in the scene chat’s box, kept with the draft', async () => {
   expect(kept).toHaveLength(1);
   expect(kept[0].projectId).toBe(A.id);
   expect(Array.from(kept[0].stage as Uint8Array)).toEqual(Array.from(DRAWN));
-});
-
-it('lands in the animator’s own box', async () => {
-  await act(async () => {
-    await checkStudioChat();
-  });
-  render(<AnimatorChat projectId={A.id} name="wolf-walk" />);
-  await act(async () => undefined);
-  expect(attached()).toBeNull();
-  attachDrawn();
-  expect(attached()).toBeInTheDocument();
 });

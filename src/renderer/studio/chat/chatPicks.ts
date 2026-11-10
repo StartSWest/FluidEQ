@@ -14,10 +14,10 @@ import {
 import { readStored, writeStored } from '../../utils/graphStorage';
 
 /**
- * Each chat's own model and effort, by its key: a scene's chat is its
- * project's id, an animator's `animatorChatKey` (Ivan, 2026-11-09: "each chat
- * needs to have its own model select and effort, I cannot change in one and
- * get it changed on all other"). They go with every message that chat sends,
+ * Each chat's own model and effort, by its key, a scene's chat being its
+ * project's id (Ivan, 2026-11-09: "each chat needs to have its own model
+ * select and effort, I cannot change in one and get it changed on all
+ * other"). They go with every message that chat sends,
  * and main starts that chat's Claude Code on them; a reply already being
  * written keeps the ones it began with, and a change counts from the next.
  *

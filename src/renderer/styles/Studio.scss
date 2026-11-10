@@ -332,11 +332,8 @@ $studio-room-under-chat: 380px;
 
   // The chat as the tab under the stage, in a bench too narrow for its pane:
   // a conversation and its message box need far more than the other tabs'
-  // room, and the stage gives it up while that tab is open. Only the scene's
-  // chat: an animation's Animator chat wears the same class and sits in the
-  // Animations panel at its own height, and matching it held a 1024 window's
-  // stage to 285x120, the plate over nearly all of the scene.
-  &:has(.studio-work__panel .studio-chat:not(.studio-animator)) {
+  // room, and the stage gives it up while that tab is open.
+  &:has(.studio-work__panel .studio-chat) {
     --studio-room: #{$studio-room-under-chat};
   }
 

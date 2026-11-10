@@ -11,8 +11,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import '@testing-library/jest-dom';
 import { screen, within } from '@testing-library/react';
-import { animatorChatKey } from '../../../common/studioChat';
-import { sendToAnimator } from '../../../renderer/studio/chat/animatorChatStore';
 import {
   chatPicksOf,
   resetChatPicksForTesting,
@@ -29,16 +27,9 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
   }),
 }));
 
-const send = jest.fn((_message: Record<string, unknown>) => Promise.resolve());
-
 beforeEach(() => {
   window.localStorage.clear();
   resetChatPicksForTesting();
-  send.mockClear();
-  Object.defineProperty(window, 'electron', {
-    configurable: true,
-    value: { ipcRenderer: { studioAnimatorSend: send } },
-  });
 });
 
 describe("a chat's model and effort", () => {
@@ -71,27 +62,6 @@ describe("a chat's model and effort", () => {
     resetChatPicksForTesting();
     expect(chatPicksOf('scene-a').model).toBe('opus');
     expect(chatPicksOf('scene-b')).toEqual({ model: 'sonnet', effort: 'low' });
-  });
-
-  it("go with each animator's messages, its own and not another's", async () => {
-    setChatModel(animatorChatKey('p1', 'wolf-walk'), 'opus');
-    setChatEffort(animatorChatKey('p1', 'wolf-walk'), 'high');
-    setChatModel(animatorChatKey('p1', 'fox-trot'), 'haiku');
-    setChatEffort(animatorChatKey('p1', 'fox-trot'), 'low');
-    await sendToAnimator('p1', 'wolf-walk', 'smoother legs');
-    await sendToAnimator('p1', 'fox-trot', 'a longer tail');
-    expect(send.mock.calls.map(([message]) => message)).toEqual([
-      expect.objectContaining({
-        animation: 'wolf-walk',
-        model: 'opus',
-        effort: 'high',
-      }),
-      expect.objectContaining({
-        animation: 'fox-trot',
-        model: 'haiku',
-        effort: 'low',
-      }),
-    ]);
   });
 });
 

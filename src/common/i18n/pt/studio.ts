@@ -451,22 +451,13 @@ const studio = {
   'studio.animation.frame': 'Quadro {frame}',
   'studio.animation.expand': 'Ver maior',
   'studio.animation.close': 'Voltar ao Estúdio',
-  'studio.animator.title': 'Animador',
-  'studio.animator.on': 'Trabalha em {name} · Claude Code',
-  'studio.animator.working': 'O animador está trabalhando',
-  'studio.animator.welcomeTitle': 'O animador de {name}',
-  'studio.animator.welcomeBody':
-    'Ele trabalha só nesta animação: olha cada quadro sozinho, encontra o que pula, flutua ou muda de tamanho e o refaz até o movimento ficar certo. Diga o que fazer ou corrigir.',
-  'studio.animator.placeholder': 'Diga ao animador o que mudar…',
-  'studio.animator.fromScene': 'Do chat da cena: {task}',
-  'studio.animator.resize': 'Arraste para redimensionar o animador',
   'studio.animationImport.cardTitle': 'Importar uma animação',
   'studio.animationImport.cardText':
     'Uma folha de sprites, um GIF, PNG ou WebP animado, um arquivo do Aseprite, uma imagem por quadro, ou uma folha com seu JSON do TexturePacker, Phaser ou Aseprite.',
   'studio.animationImport.choose': 'Escolher arquivos',
   'studio.animationImport.title': 'Importar uma animação',
   'studio.animationImport.lead':
-    'Confira como ela toca e depois adicione. Ela é salva como uma folha na pasta de arte da cena, como as animações que o Animador faz.',
+    'Confira como ela toca e depois adicione. Ela é salva como uma folha na pasta de arte da cena, como as animações que o chat da cena faz.',
   'studio.animationImport.reading': 'Lendo {file}…',
   'studio.animationImport.kind.grid':
     'Uma folha de sprites, cortada em quadros:',

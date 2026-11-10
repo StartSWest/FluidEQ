@@ -437,22 +437,13 @@ const studio = {
   'studio.animation.frame': '프레임 {frame}',
   'studio.animation.expand': '크게 보기',
   'studio.animation.close': '스튜디오로 돌아가기',
-  'studio.animator.title': '애니메이터',
-  'studio.animator.on': '{name} 담당 · Claude Code',
-  'studio.animator.working': '애니메이터 작업 중',
-  'studio.animator.welcomeTitle': '{name}의 애니메이터',
-  'studio.animator.welcomeBody':
-    '이 애니메이션만 작업합니다. 각 프레임을 따로 보고, 튀거나 뜨거나 크기가 바뀌는 프레임을 찾아 동작이 자연스러워질 때까지 다시 만듭니다. 무엇을 만들거나 고칠지 알려 주세요.',
-  'studio.animator.placeholder': '애니메이터에게 바꿀 점을 알려 주세요…',
-  'studio.animator.fromScene': '장면 채팅에서: {task}',
-  'studio.animator.resize': '애니메이터 크기를 조정하려면 드래그하세요.',
   'studio.animationImport.cardTitle': '애니메이션 가져오기',
   'studio.animationImport.cardText':
     '스프라이트 시트, 움직이는 GIF·PNG·WebP, Aseprite 파일, 프레임마다 한 장씩인 그림, 또는 TexturePacker·Phaser·Aseprite JSON이 딸린 시트.',
   'studio.animationImport.choose': '파일 선택',
   'studio.animationImport.title': '애니메이션 가져오기',
   'studio.animationImport.lead':
-    '재생되는 모습을 확인한 뒤 추가하세요. 애니메이터가 만드는 애니메이션처럼 장면의 art 폴더에 시트로 저장됩니다.',
+    '재생되는 모습을 확인한 뒤 추가하세요. 장면 채팅이 만드는 애니메이션처럼 장면의 art 폴더에 시트로 저장됩니다.',
   'studio.animationImport.reading': '{file} 읽는 중…',
   'studio.animationImport.kind.grid': '스프라이트 시트를 프레임으로 자릅니다:',
   'studio.animationImport.kind.atlas':

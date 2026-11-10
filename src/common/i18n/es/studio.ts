@@ -457,22 +457,13 @@ const studio = {
   'studio.animation.frame': 'Fotograma {frame}',
   'studio.animation.expand': 'Verla más grande',
   'studio.animation.close': 'Volver al Estudio',
-  'studio.animator.title': 'Animador',
-  'studio.animator.on': 'Trabaja en {name} · Claude Code',
-  'studio.animator.working': 'El animador está trabajando',
-  'studio.animator.welcomeTitle': 'El animador de {name}',
-  'studio.animator.welcomeBody':
-    'Trabaja solo en esta animación: mira cada fotograma por separado, encuentra el que salta, flota o cambia de tamaño y lo rehace hasta que el movimiento se vea bien. Dile qué hacer o qué arreglar.',
-  'studio.animator.placeholder': 'Dile al animador qué cambiar…',
-  'studio.animator.fromScene': 'Del chat de la escena: {task}',
-  'studio.animator.resize': 'Arrastra para cambiar el ancho del animador',
   'studio.animationImport.cardTitle': 'Importar una animación',
   'studio.animationImport.cardText':
     'Una hoja de sprites, un GIF, PNG o WebP animado, un archivo de Aseprite, una imagen por fotograma, o una hoja con su JSON de TexturePacker, Phaser o Aseprite.',
   'studio.animationImport.choose': 'Elegir archivos',
   'studio.animationImport.title': 'Importar una animación',
   'studio.animationImport.lead':
-    'Comprueba cómo se reproduce y luego añádela. Se guarda como una hoja en la carpeta de arte de la escena, como las animaciones que hace el Animador.',
+    'Comprueba cómo se reproduce y luego añádela. Se guarda como una hoja en la carpeta de arte de la escena, como las animaciones que hace el chat de la escena.',
   'studio.animationImport.reading': 'Leyendo {file}…',
   'studio.animationImport.kind.grid':
     'Una hoja de sprites, cortada en fotogramas:',

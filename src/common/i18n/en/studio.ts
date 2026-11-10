@@ -462,22 +462,13 @@ const studio = {
   'studio.animation.frame': 'Frame {frame}',
   'studio.animation.expand': 'See it bigger',
   'studio.animation.close': 'Back to the Studio',
-  'studio.animator.title': 'Animator',
-  'studio.animator.on': 'Works on {name} · Claude Code',
-  'studio.animator.working': 'Animator working',
-  'studio.animator.welcomeTitle': 'The animator for {name}',
-  'studio.animator.welcomeBody':
-    'It works on this animation alone: it looks at every frame on its own, finds the one that jumps, floats or changes size, and makes it again until the movement reads right. Tell it what to make or fix.',
-  'studio.animator.placeholder': 'Tell the animator what to change…',
-  'studio.animator.fromScene': "From the scene's chat: {task}",
-  'studio.animator.resize': 'Drag to resize the animator',
   'studio.animationImport.cardTitle': 'Import an animation',
   'studio.animationImport.cardText':
     'A sprite sheet, an animated GIF, PNG or WebP, an Aseprite file, one picture per frame, or a sheet with its TexturePacker, Phaser or Aseprite JSON.',
   'studio.animationImport.choose': 'Choose files',
   'studio.animationImport.title': 'Import an animation',
   'studio.animationImport.lead':
-    'Check how it plays, then add it. It is saved as a sheet in the scene’s art folder, like the animations the Animator makes.',
+    'Check how it plays, then add it. It is saved as a sheet in the scene’s art folder, like the animations the scene’s chat makes.',
   'studio.animationImport.reading': 'Reading {file}…',
   'studio.animationImport.kind.grid': 'A sprite sheet, cut into frames:',
   'studio.animationImport.kind.atlas':
