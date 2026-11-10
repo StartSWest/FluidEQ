@@ -659,6 +659,45 @@ void stages_switch_on_without_a_step() {
   }
 }
 
+void stale_library_gain_cannot_boost_the_first_raw_block() {
+  auto old = settings_for(false);
+  old.normalizer.mode = 2;
+  old.maximizer.drive_db = 8.0;
+  auto raw = old;
+  raw.normalizer.mode = 0;
+  raw.maximizer.drive_db = -1.0;
+  for (const bool in_place : {false, true}) {
+    auto previous = prepare(old);
+    auto next = prepare(raw);
+    feq_chain_set_track_level_gains(previous.get(), 6.0, 0.0, 1);
+    auto dry = signal(0);
+    auto quiet = dry;
+    for (auto& channel : quiet) {
+      for (auto& sample : channel) sample *= 0.04f;
+    }
+    auto boosted = quiet;
+    float* before[] = {boosted[0].data(), boosted[1].data()};
+    chain_process_input_gain(previous.get(), before, kFrames);
+    check(peak(boosted) > peak(quiet) * 1.9, "the old track gain is audible");
+    if (in_place) {
+      feq_chain_configure(previous.get(), &raw);
+    } else {
+      check(transfer(next.get(), previous.get()) == 1,
+            "an old Library rack transfers its delay history");
+    }
+    auto* playing = in_place ? previous.get() : next.get();
+    for (const int snap : {0, 1}) {
+      feq_chain_set_track_level_gains(playing, 6.0, 0.0, snap);
+      auto actual = dry;
+      float* planes[] = {actual[0].data(), actual[1].data()};
+      chain_process_input_gain(playing, planes, kFrames);
+      check(actual == dry, "the first raw block ignores stale track makeup");
+    }
+    check(playing->maximizer_drive_now == chain_maximizer_drive(raw),
+          "the first raw block uses the new signed Maximizer drive");
+  }
+}
+
 }
 
 int main() {
@@ -680,6 +719,7 @@ int main() {
   incompatible_streams_and_pending_configs_are_refused();
   the_library_kernel_update_also_keeps_audio();
   stages_switch_on_without_a_step();
+  stale_library_gain_cannot_boost_the_first_raw_block();
   std::printf("chain transfer: %d failures\n", failures);
   return failures == 0 ? 0 : 1;
 }

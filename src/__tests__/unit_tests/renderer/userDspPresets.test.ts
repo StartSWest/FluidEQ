@@ -78,3 +78,15 @@ it('keeps the listener’s Treble choice when a saved chain is picked', () => {
   // POSITIVE CONTROL: the same pick over a Precise rack stays Precise.
   expect(resolveDspPreset(saved.id, DSP_DEFAULTS)?.eq.treble).toBe('precise');
 });
+
+it('retains deliberate level controls in an older saved chain', () => {
+  const settings = {
+    ...DSP_DEFAULTS,
+    normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'loudness' as const },
+    master: { ...DSP_DEFAULTS.master, enabled: true, loudnessMaximize: true },
+  };
+  const saved = saveUserDspPreset('My levelled chain', settings);
+  const selected = resolveDspPreset(saved.id, DSP_DEFAULTS);
+  expect(selected?.normalizer).toEqual(settings.normalizer);
+  expect(selected?.master).toEqual(settings.master);
+});

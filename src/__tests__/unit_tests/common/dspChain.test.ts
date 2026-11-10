@@ -336,10 +336,12 @@ describe('dsp chain settings', () => {
           groupOfCurve(preset.curve?.presetId) ?? '',
         ),
         maximizer:
-          !preset.settings.maximizer.enabled ||
-          MAXIMIZER_CATALOGUE.profiles.find(
-            (profile) => profile.id === preset.settings.maximizer.presetId,
-          )?.group === 'repair',
+          preset.settings.maximizer.enabled &&
+          ['repair', 'voice'].includes(
+            MAXIMIZER_CATALOGUE.profiles.find(
+              (profile) => profile.id === preset.settings.maximizer.presetId,
+            )?.group ?? '',
+          ),
         fuzz: preset.settings.eq.fuzzAmount,
       }).toEqual({ id: preset.id, curve: true, maximizer: true, fuzz: 0 });
     });
@@ -393,43 +395,18 @@ describe('dsp chain settings', () => {
     expect(expansive?.settings.exciter.enabled).toBe(false);
     expect(expansive?.settings.dimension.presetId).toBe('expansive');
     expect(expansive?.settings.dimension.decorrelation).toBeLessThan(0.5);
-    // The ceiling the widened side needs, adding no level of its own.
+    // A fixed reserve for peaks made by widening.
     expect(expansive?.settings.maximizer).toEqual(
-      maximizerPresetSettings('safety', true),
+      maximizerPresetSettings('expansive', true),
     );
   });
 
-  it('uses Master only where a delivery target owns the final level', () => {
-    const mastered = DSP_PRESETS.filter(
-      (preset) => preset.settings.master.enabled,
-    );
-    /**
-     * Only where the name says the level is the point: Reference brings two
-     * records to one level to compare them, and the spoken-word three put
-     * every show at the level of every other, which a listener in a car
-     * cannot ride by hand. Default and the two restorations carried targets
-     * too until 2026-09-23 — a streaming target, a cutting lathe's, and
-     * Reference's own — and played loud records 2 to 7 LU under DSP Off.
-     */
-    expect(mastered.map((preset) => preset.id)).toEqual([
-      'reference',
-      'speech',
-      'podcast',
-      'audiobook',
-    ]);
-    mastered.forEach((preset) => {
-      expect(preset.settings.maximizer.enabled).toBe(false);
-    });
-    /**
-     * Everything else ends in a ceiling: a chain with no final stage can be
-     * pushed past full scale by its own curve, and then Auto normalize turns
-     * the whole thing down. None is the one exception, being nothing at all.
-     * Expansive, Lo-fi, World and Gaming were open until 2026-09-23, and
-     * Gaming's curve put a game's loud moments 7 dB over full scale.
-     */
+  it('uses fixed peak protection for every factory chain except None', () => {
+    expect(
+      DSP_PRESETS.filter((preset) => preset.settings.master.enabled),
+    ).toEqual([]);
     const open = DSP_PRESETS.filter(
-      (preset) =>
-        !preset.settings.maximizer.enabled && !preset.settings.master.enabled,
+      (preset) => !preset.settings.maximizer.enabled,
     ).map((preset) => preset.id);
     expect(open).toEqual(['empty']);
   });
@@ -492,15 +469,14 @@ describe('dsp chain settings', () => {
     expect(drumBass?.settings.bassPunch.presetId).toBe('drumBass');
   });
 
-  it('gain-matches Reference, and no other whole-chain preset', () => {
-    DSP_PRESETS.forEach((preset) => {
-      expect({
-        id: preset.id,
-        gainMatched: preset.settings.master.matchedBypass,
-      }).toEqual({
-        id: preset.id,
-        gainMatched: preset.id === 'reference',
-      });
+  it('keeps Reference at unity with fixed peak protection', () => {
+    const reference = DSP_PRESETS.find((preset) => preset.id === 'reference');
+    expect(reference?.curve).toBeUndefined();
+    expect(reference?.settings).toMatchObject({
+      eq: { enabled: false },
+      normalizer: { mode: 'off' },
+      master: { enabled: false },
+      maximizer: { enabled: true, driveDb: 0, ceilingDb: -1 },
     });
   });
 
@@ -860,7 +836,7 @@ it('keeps Pop Rock clean, unwidened and voiced from its references', () => {
     highWidth: settings?.dimension.highWidth,
   }).toEqual({ exciter: false, bassForge: false, midWidth: 1, highWidth: 1 });
   const measured = musicAudit.genres.find((genre) => genre.id === 'popRock');
-  expect(settings?.normalizer.mode).toBe('loudness');
+  expect(settings?.normalizer.mode).toBe('off');
   expect(settings?.maximizer.driveDb).toBe(measured?.maximizerDriveDb);
   expect(measured?.references).toHaveLength(2);
   measured?.references.forEach((reference) => {

@@ -4,9 +4,10 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { render, cleanup } from '@testing-library/react';
+import { render, cleanup, fireEvent, screen } from '@testing-library/react';
 import { DSP_DEFAULTS } from '../../../common/dsp/chain';
 import DspMaximizerGraph from '../../../renderer/dsp/DspMaximizerGraph';
+import DspMaximizerCard from '../../../renderer/dsp/DspMaximizerCard';
 import { startGraphLoop } from '../../../renderer/dsp/graphLoop';
 import {
   setDspPeak,
@@ -90,4 +91,31 @@ it('clears reduction and held peak when bypassed while idle', () => {
   const figures = [...container.querySelectorAll('.live-figure__text')];
   expect(figures[0].textContent).toBe('0.0 dB');
   expect(figures[1].textContent).toBe('0.0 dB');
+});
+
+it('renders a signed fixed drive in the real Maximizer graph', () => {
+  const { rerender } = render(
+    <DspMaximizerGraph maximizer={{ ...settings, driveDb: -2.75 }} />,
+  );
+  expect(screen.getByText('-2.8 dB')).toBeTruthy();
+  expect(screen.queryByText('+-2.8 dB')).toBeNull();
+  rerender(<DspMaximizerGraph maximizer={{ ...settings, driveDb: 1.5 }} />);
+  expect(screen.getByText('+1.5 dB')).toBeTruthy();
+});
+
+it('keeps negative drive in the real Maximizer dial range', () => {
+  const patch = jest.fn();
+  render(
+    <DspMaximizerCard
+      maximizer={{ ...settings, driveDb: -2.75 }}
+      onPatch={patch}
+      onCommit={jest.fn()}
+    />,
+  );
+  const drive = screen.getByRole('slider', { name: 'Drive' });
+  expect(drive.getAttribute('aria-valuetext')).toBe('-2.8 dB');
+  fireEvent.keyDown(drive, { key: 'Home' });
+  expect(patch).toHaveBeenCalledWith(
+    expect.objectContaining({ driveDb: -6, presetId: '' }),
+  );
 });

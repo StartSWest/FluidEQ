@@ -531,7 +531,7 @@ const dsp = {
   'dsp.dimension.highHz': '高频分频',
   'dsp.dimension.decorrelation': '扩散',
   'dsp.maximizer.title': '最大化器',
-  'dsp.maximizer.description': '提升整体音量，同时不让峰值超过上限。',
+  'dsp.maximizer.description': '用固定增益提高或降低音量，并限制峰值。',
   'dsp.maximizer.drive': '推动',
   'dsp.maximizer.reduction': '增益衰减',
   'dsp.maximizer.ceiling': '上限',
@@ -539,7 +539,7 @@ const dsp = {
   'dsp.maximizer.release': '释放时间',
   'dsp.maximizer.group.loudness': '响度',
   'dsp.maximizer.group.loudnessHint':
-    '推向一个永不移动的天花板。峰值以下的一切都会被抬起来。',
+    '在峰值上限前施加固定增益。负推动量可留出更多余量。',
   'dsp.maximizer.group.timing': '时间',
   'dsp.maximizer.group.timingHint':
     '限制器提前多久看到峰值，以及松开需要多长时间。',

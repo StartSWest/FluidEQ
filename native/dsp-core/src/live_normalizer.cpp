@@ -26,6 +26,8 @@ struct FeqLiveNormalizer {
   bool gap_cleared = false;
   int mode = -1;
   FeqLevelingState song{};
+  double previous_input_peak = 0;
+  uint32_t release_left = 0;
   double song_peak = 0;  // linear twin of `song.song_peak_db`
   double settle_clock = 0;
   // The song's level and peak at the last two whole seconds of music, newest
@@ -405,6 +407,8 @@ void feq_live_normalizer_reset(FeqLiveNormalizer* state) {
   state->gap_cleared = false;
   state->mode = -1;
   state->song = FeqLevelingState{};
+  state->previous_input_peak = 0;
+  state->release_left = 0;
   state->song_peak = 0;
   restart_settled(*state);
   state->live = false;
@@ -435,14 +439,21 @@ uint32_t feq_live_normalizer_latency(const FeqLiveNormalizer* state) {
   return state == nullptr ? 0 : state->latency;
 }
 void feq_live_normalizer_silence(FeqLiveNormalizer* state, uint32_t frames) {
-  if (state != nullptr && state->mode == 2) silent_frames(*state, frames);
+  if (state == nullptr) return;
+  state->previous_input_peak = 0;
+  if (state->release_left != 0) {
+    state->release_left = 0;
+    state->song.gain_db = 0.0;
+  }
+  if (state->mode == 2) silent_frames(*state, frames);
 }
 static FeqLiveNormalizerReading process_piece(FeqLiveNormalizer* state,
     float* const* channels, uint32_t frames, const FeqNormalizerSettings* settings) {
   FeqLiveNormalizerReading reading{-120, -120, 0, -120, 0, -120};
   if (state == nullptr || channels == nullptr || settings == nullptr || frames == 0)
     return reading;
-  if (state->mode != settings->mode) {
+  const bool mode_changed = state->mode != settings->mode;
+  if (mode_changed) {
     const bool first = state->mode == -1;
     state->mode = settings->mode;
     empty_window(*state);
@@ -450,8 +461,8 @@ static FeqLiveNormalizerReading process_piece(FeqLiveNormalizer* state,
     state->gap_cleared = false;
     if (!first) {
       // Switching modes is the deliberate way to start over: nothing learned
-      // survives it, and the current song is announced to it afresh. The
-      // applied gain stays, so the switch ramps rather than steps.
+      // survives it, and the current song is announced to it afresh. Keep
+      // the old gain until the already available input peak bounds the taper.
       const double gain = state->song.gain_db;
       state->song = FeqLevelingState{};
       state->song.gain_db = gain;
@@ -461,6 +472,10 @@ static FeqLiveNormalizerReading process_piece(FeqLiveNormalizer* state,
     }
   }
   const bool learning = settings->mode == 1 || settings->mode == 2;
+  if (mode_changed) {
+    state->release_left = learning || state->song.gain_db == 0.0
+        ? 0u : feq_normalizer::release_frames(state->rate);
+  }
   if (learning) {
     // Adopt only on sound, as before, but take the programme boundary BEFORE
     // the true-peak scan on fresh chains too. Resetting interpolation after
@@ -500,21 +515,36 @@ static FeqLiveNormalizerReading process_piece(FeqLiveNormalizer* state,
   }
   reading.reference_lufs = state->song.song_level;
   auto& song = state->song;
+  if (state->release_left != 0 && song.gain_db > 0.0) {
+    const double gain = std::pow(10.0, song.gain_db / 20.0);
+    song.gain_db = db(feq_normalizer::release_start(
+        gain, 1.0, state->previous_input_peak, peak));
+  }
+  state->previous_input_peak = learning || state->release_left != 0
+      ? feq_normalizer::recent_peak(state->previous_input_peak, peak, frames, state->rate)
+      : 0.0;
   // Slow corrections plus a 0.75 LU deadband avoid riding every phrase.
-  // Mode changes return to unity promptly without stepping the waveform.
+  // Off retires the gain over the same number of samples at any block size.
   const bool lowering = target < song.gain_db;
-  const double speed = !learning ? 30.0
-      : lowering && settings->mode == 1 ? kPeakDownDbPerSecond
+  const double speed = lowering && settings->mode == 1 ? kPeakDownDbPerSecond
       : lowering && (!song.established || song.glide) ? kOpeningDownDbPerSecond
       : song.glide ? kGlideDbPerSecond
       : lowering ? kDownDbPerSecond
       : kUpDbPerSecond;
-  const double step = speed / state->rate;
-  for (uint32_t frame = 0; frame < frames; ++frame) {
-    song.gain_db += std::clamp(target - song.gain_db, -step, step);
-    const double gain = std::pow(10.0, song.gain_db / 20);
-    for (uint32_t channel = 0; channel < state->channels; ++channel)
-      channels[channel][frame] = static_cast<float>(channels[channel][frame] * gain);
+  const uint32_t gain_frames = learning ? frames : std::min(frames, state->release_left);
+  if (gain_frames != 0 && (learning || song.gain_db != 0.0)) {
+    const double step = learning ? speed / state->rate :
+        std::abs(song.gain_db) / state->release_left;
+    for (uint32_t frame = 0; frame < gain_frames; ++frame) {
+      song.gain_db += std::clamp(target - song.gain_db, -step, step);
+      const double gain = std::pow(10.0, song.gain_db / 20);
+      for (uint32_t channel = 0; channel < state->channels; ++channel)
+        channels[channel][frame] = static_cast<float>(channels[channel][frame] * gain);
+    }
+  }
+  if (!learning) {
+    state->release_left -= gain_frames;
+    if (state->release_left == 0) song.gain_db = 0.0;
   }
   if (song.glide && std::abs(song.gain_db - target) < 1e-9) song.glide = false;
   // Only a block that carried music says anything about the programme. An

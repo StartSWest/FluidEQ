@@ -12,6 +12,7 @@ import {
   MAXIMIZER_MIN_LOOK_AHEAD_MS,
   MAXIMIZER_MIN_RELEASE_MS,
 } from '../../common/dsp/chain';
+import { RANGES } from '../../common/dsp/chainDefaults';
 import { useTranslation } from '../utils/I18nContext';
 import { Dial, ProcessorCard } from './DspControls';
 import DspMaximizerBar from './DspMaximizerBar';
@@ -30,11 +31,9 @@ interface IDspMaximizerCardProps {
  * dials in a row. `DspPanel` had this stage inline while the whole page was one
  * meter, and the panel was already at the size this project allows.
  *
- * The dials are grouped rather than listed. Drive and Ceiling are one decision
- * — how much louder, against a line that never moves — and look-ahead and
- * release are the other, which is whether that loudness is heard as level or as
- * the limiter working. In one flat row of four they read as four unrelated
- * numbers, and the pairing is most of what somebody needs to know to set them.
+ * The dials are grouped rather than listed. Drive and Ceiling set the fixed
+ * gain and the peak limit. Look-ahead and release shape how the limiter
+ * handles each peak. Grouping the dials makes those relationships visible.
  */
 const DspMaximizerCard = ({
   maximizer,
@@ -83,15 +82,13 @@ const DspMaximizerCard = ({
             {t('dsp.maximizer.group.loudnessHint')}
           </p>
           <div className="dsp-band-dials">
-            {/* First, because it is the control that makes this a maximizer
-                rather than a limiter: gain goes in and the ceiling holds the
-                top. Everything under the peaks comes up. */}
+            {/* A cut here reserves headroom before the limiter. */}
             <Dial
               labelKey="dsp.maximizer.drive"
               value={maximizer.driveDb}
               defaultValue={DSP_DEFAULTS.maximizer.driveDb}
-              min={0}
-              max={12}
+              min={RANGES.maximizerDriveDb.min}
+              max={RANGES.maximizerDriveDb.max}
               unit="dB"
               step={0.1}
               isDisabled={!maximizer.enabled}

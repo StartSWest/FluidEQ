@@ -2,6 +2,8 @@
 
 export default {
   'genre.notes.eyebrow': 'Note sul genere',
+  'genre.notes.fixedMaximizer':
+    'Applica un guadagno fisso al livello originale e limita i picchi a −1 dBTP.',
   'genre.notes.about': 'Informazioni su {name}',
   'genre.notes.aboutShort': 'Info',
   'genre.notes.full': 'Note complete',

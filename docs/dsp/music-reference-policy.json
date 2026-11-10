@@ -1,338 +1,255 @@
 {
   "originalCheckpoint": "130b69ff78ab813759594829fa06f859fd2f94a2",
-  "note": "Existing loss budgets are retained. Output aims are FluidEQ playback choices, not official genre standards or guaranteed loudness for high-crest recordings.",
+  "note": "Original limiter, crest and phrase-contrast budgets apply to the fixed-drive comparison at the source recording level.",
   "genres": {
     "acoustic": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -15
+      "limiterLossBudgetLu": 0.4
     },
     "afrobeat": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -13
+      "limiterLossBudgetLu": 0.4
     },
     "afrobeats": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11.5
+      "limiterLossBudgetLu": 0.65
     },
     "alternativeRock": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "amapiano": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11.5
+      "limiterLossBudgetLu": 0.65
     },
     "ambient": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -16
+      "limiterLossBudgetLu": 0.65
     },
     "americana": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -14
+      "limiterLossBudgetLu": 0.4
     },
     "arabicPop": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "bachata": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "ballad": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -14
+      "limiterLossBudgetLu": 0.65
     },
     "bhangra": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "bluegrass": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -14
+      "limiterLossBudgetLu": 0.4
     },
     "blues": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -13.5
+      "limiterLossBudgetLu": 0.4
     },
     "bollywood": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "bossaNova": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -15
+      "limiterLossBudgetLu": 0.4
     },
     "chillout": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -14
+      "limiterLossBudgetLu": 0.65
     },
     "christian": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -13
+      "limiterLossBudgetLu": 0.4
     },
     "classical": {
-      "limiterLossBudgetLu": 0.18,
-      "outputAimLufs": -17
+      "limiterLossBudgetLu": 0.18
     },
     "classicRock": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -13
+      "limiterLossBudgetLu": 0.65
     },
     "corridos": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11.5
+      "limiterLossBudgetLu": 0.65
     },
     "country": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -14
+      "limiterLossBudgetLu": 0.4
     },
     "cPop": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12.5
+      "limiterLossBudgetLu": 0.65
     },
     "cumbia": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12.5
+      "limiterLossBudgetLu": 0.65
     },
     "dancehall": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11.5
+      "limiterLossBudgetLu": 0.65
     },
     "disco": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "downtempo": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -13.5
+      "limiterLossBudgetLu": 0.65
     },
     "drumBass": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11
+      "limiterLossBudgetLu": 0.65
     },
     "dub": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12.5
+      "limiterLossBudgetLu": 0.65
     },
     "dubstep": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11
+      "limiterLossBudgetLu": 0.65
     },
     "edm": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11
+      "limiterLossBudgetLu": 0.65
     },
     "electronic": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "flamenco": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -14
+      "limiterLossBudgetLu": 0.4
     },
     "folk": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -14.5
+      "limiterLossBudgetLu": 0.4
     },
     "funk": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "fusion": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -13
+      "limiterLossBudgetLu": 0.4
     },
     "gospel": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -14
+      "limiterLossBudgetLu": 0.4
     },
     "grunge": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "hardRock": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11.5
+      "limiterLossBudgetLu": 0.65
     },
     "highlife": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -13
+      "limiterLossBudgetLu": 0.4
     },
     "hiphop": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11.5
+      "limiterLossBudgetLu": 0.65
     },
     "house": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11.5
+      "limiterLossBudgetLu": 0.65
     },
     "indianClassical": {
-      "limiterLossBudgetLu": 0.18,
-      "outputAimLufs": -17
+      "limiterLossBudgetLu": 0.18
     },
     "indiePop": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "indieRock": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12.5
+      "limiterLossBudgetLu": 0.65
     },
     "jazz": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -14
+      "limiterLossBudgetLu": 0.4
     },
     "jPop": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11
+      "limiterLossBudgetLu": 0.65
     },
     "kPop": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -10.5
+      "limiterLossBudgetLu": 0.65
     },
     "latin": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12.5
+      "limiterLossBudgetLu": 0.65
     },
     "latinPop": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11.5
+      "limiterLossBudgetLu": 0.65
     },
     "lofi": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -14
+      "limiterLossBudgetLu": 0.65
     },
     "merengue": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "metal": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11
+      "limiterLossBudgetLu": 0.65
     },
     "modernCountry": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11.5
+      "limiterLossBudgetLu": 0.65
     },
     "neoSoul": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -13
+      "limiterLossBudgetLu": 0.65
     },
     "newAge": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -15
+      "limiterLossBudgetLu": 0.65
     },
     "newWave": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "opera": {
-      "limiterLossBudgetLu": 0.18,
-      "outputAimLufs": -16
+      "limiterLossBudgetLu": 0.18
     },
     "orchestra": {
-      "limiterLossBudgetLu": 0.18,
-      "outputAimLufs": -17
+      "limiterLossBudgetLu": 0.18
     },
     "piano": {
-      "limiterLossBudgetLu": 0.18,
-      "outputAimLufs": -17
+      "limiterLossBudgetLu": 0.18
     },
     "pop": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -10.5
+      "limiterLossBudgetLu": 0.65
     },
     "popPunk": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11
+      "limiterLossBudgetLu": 0.65
     },
     "popRock": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11.5
+      "limiterLossBudgetLu": 0.65
     },
     "progressiveRock": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -14
+      "limiterLossBudgetLu": 0.65
     },
     "punk": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11.5
+      "limiterLossBudgetLu": 0.65
     },
     "rap": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11
+      "limiterLossBudgetLu": 0.65
     },
     "reggae": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12.5
+      "limiterLossBudgetLu": 0.65
     },
     "reggaeton": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11
+      "limiterLossBudgetLu": 0.65
     },
     "regionalMexican": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -13
+      "limiterLossBudgetLu": 0.65
     },
     "rnb": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "rock": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11.5
+      "limiterLossBudgetLu": 0.65
     },
     "salsa": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "samba": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -13
+      "limiterLossBudgetLu": 0.65
     },
     "singerSongwriter": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -14
+      "limiterLossBudgetLu": 0.4
     },
     "ska": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12.5
+      "limiterLossBudgetLu": 0.65
     },
     "smoothJazz": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -14
+      "limiterLossBudgetLu": 0.4
     },
     "soul": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -13
+      "limiterLossBudgetLu": 0.65
     },
     "strings": {
-      "limiterLossBudgetLu": 0.18,
-      "outputAimLufs": -17
+      "limiterLossBudgetLu": 0.18
     },
     "synthPop": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "techno": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11.5
+      "limiterLossBudgetLu": 0.65
     },
     "trance": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11.5
+      "limiterLossBudgetLu": 0.65
     },
     "trap": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -11
+      "limiterLossBudgetLu": 0.65
     },
     "turkishPop": {
-      "limiterLossBudgetLu": 0.65,
-      "outputAimLufs": -12
+      "limiterLossBudgetLu": 0.65
     },
     "world": {
-      "limiterLossBudgetLu": 0.4,
-      "outputAimLufs": -14
+      "limiterLossBudgetLu": 0.4
     }
   }
 }

@@ -547,7 +547,7 @@ const dsp = {
   'dsp.dimension.decorrelation': '拡散',
   'dsp.maximizer.title': 'マキシマイザー',
   'dsp.maximizer.description':
-    'ピークが上限を超えないようにしながら全体の音量を上げます。',
+    '固定ゲインで音量を上げ下げし、ピークを制限します。',
   'dsp.maximizer.drive': 'ドライブ',
   'dsp.maximizer.reduction': 'リダクション',
   'dsp.maximizer.ceiling': '上限',
@@ -555,7 +555,7 @@ const dsp = {
   'dsp.maximizer.release': 'リリース',
   'dsp.maximizer.group.loudness': 'ラウドネス',
   'dsp.maximizer.group.loudnessHint':
-    '決して動かない天井へのゲイン。ピークの下にあるものがすべて持ち上がります。',
+    'ピーク上限に入る前の固定ゲイン。ドライブを負にすると余裕が増えます。',
   'dsp.maximizer.group.timing': 'タイミング',
   'dsp.maximizer.group.timingHint':
     'リミッターがピークをどれだけ早く見つけ、離すまでにどれだけかかるか。',

@@ -6,6 +6,14 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ---
 
+## Unreleased
+
+- **Factory DSP presets.** Music, voice, Room and Gaming presets start at
+  the source level and use fixed gain with peak protection. Switching away
+  from a rack with adaptive gain no longer carries that boost into newly
+  arriving audio. Select the factory preset again to apply its current
+  settings. Saved Gaming copies can use **Reset to Profile**.
+
 ## 2.4.0
 
 FluidEQ 2.4 is the Studio's biggest release yet. The pictures in a scene

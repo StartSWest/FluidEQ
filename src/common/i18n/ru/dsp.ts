@@ -553,7 +553,7 @@ const dsp = {
   'dsp.dimension.decorrelation': 'Рассеяние',
   'dsp.maximizer.title': 'Максимайзер',
   'dsp.maximizer.description':
-    'Поднимает общий уровень, не давая пикам выйти за потолок.',
+    'Повышает или понижает уровень на заданную величину и ограничивает пики.',
   'dsp.maximizer.drive': 'Разгон',
   'dsp.maximizer.reduction': 'Подавление',
   'dsp.maximizer.ceiling': 'Потолок',
@@ -561,7 +561,7 @@ const dsp = {
   'dsp.maximizer.release': 'Восстановление',
   'dsp.maximizer.group.loudness': 'Громкость',
   'dsp.maximizer.group.loudnessHint':
-    'Усиление в потолок, который никогда не двигается. Всё, что ниже пиков, поднимается.',
+    'Фиксированное усиление перед ограничением пиков. Отрицательное значение оставляет больше запаса.',
   'dsp.maximizer.group.timing': 'Тайминг',
   'dsp.maximizer.group.timingHint':
     'Насколько заранее лимитер видит пик и сколько времени ему нужно, чтобы отпустить.',

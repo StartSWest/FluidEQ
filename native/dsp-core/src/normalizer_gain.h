@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef FLUIDEQ_NORMALIZER_GAIN_H
 #define FLUIDEQ_NORMALIZER_GAIN_H
 #include <algorithm>
+#include <cstdint>
 #include "fluideq/post_filter_normalizer.h"
 
 namespace feq_normalizer {
@@ -23,6 +24,24 @@ inline double peak_room(double ceiling, double source_peak) {
 // inputNormalizer.ts uses these same -48/+12 dB and peak-room bounds.
 inline double loudness_gain(double requested, double peak_room) {
   return std::clamp(std::min(requested, peak_room), -48.0, 12.0);
+}
+
+inline uint32_t release_frames(double rate) {
+  return std::max(1u, static_cast<uint32_t>(rate * 0.004));
+}
+
+// Keep a recent peak even when the host calls back one sample at a time.
+inline double recent_peak(double previous, double peak, uint32_t frames,
+                          double rate) {
+  return std::max(peak, previous / (1.0 + frames / (rate * 0.1)));
+}
+
+// The taper must not make an incoming peak exceed both the preceding
+// amplified level and the new fixed level.
+inline double release_start(double gain, double target, double previous_peak,
+                            double peak) {
+  if (gain <= target || peak <= previous_peak) return gain;
+  return std::max(target, gain * (previous_peak / peak));
 }
 }
 #endif

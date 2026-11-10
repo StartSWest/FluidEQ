@@ -241,7 +241,9 @@ describe('DspPanel and the engine', () => {
   it('shows one processor at a time', () => {
     renderPanel();
     fireEvent.click(screen.getByRole('button', { name: /Maximizer/i }));
-    expect(screen.getByText(/Raises the overall level/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/up or down with fixed gain and limits peaks/i),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/invents them/i)).not.toBeInTheDocument();
     expect(
       screen.queryByRole('tablist', { name: /bands/i }),
