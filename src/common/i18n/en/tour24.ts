@@ -4,33 +4,32 @@
 // `tour.ts`, which was already past the size a file is held to.
 const tour24 = {
   'tour.animations.kicker': 'STUDIO · ANIMATIONS',
-  'tour.animations.title': 'Creatures that move, drawn by your AI',
+  'tour.animations.title': 'Pictures that move, checked frame by frame',
   'tour.animations.subtitle': 'Every animation in a scene, frame by frame',
   'tour.animations.lead':
-    'Ask for a bird, a fish or a dancer, and your AI draws it frame by frame into the scene. The Animations tab plays them all.',
+    'Animate the pictures in your scene. The Animations tab plays every animation a scene has, and opens any of them to step through.',
   'tour.animations.point1':
     'Play one on Ground, Sky or Water, uphill or downhill, at any speed, frame by frame, or bigger over the whole Studio.',
   'tour.animations.point2':
-    'Each animation has its own animator, a chat beside it: it looks at every frame at once, finds the one that floats or jumps, and draws it again.',
+    'Each animation has its own animator, a chat beside it: it looks at every frame at once, finds the one that floats or jumps, and puts it back in line.',
   'tour.animations.point3':
     'Every new project starts with a moon in its orb and a swallow flying over it, so pictures and animations are there to learn from on day one.',
   'tour.animations.how':
-    'Open Visualizers, then the Studio, and choose Animations under the stage. Ask the chat for an animation in your own words.',
+    'Open Visualizers, then the Studio, and choose Animations under the stage. Ask the chat to animate a picture in your scene.',
   'tour.animations.open': 'Open Visualizers',
   'tour.animations.imageAlt':
     'The Studio’s Animations tab with a swallow beating its wings on the Sky background and its eight frames in a strip, beside its animator’s chat finding the frame that jumps.',
-  'tour.animations.task': 'make the swallow glide between wing beats',
+  'tour.animations.task': 'check the swallow’s flight frame by frame',
   'tour.animations.stepLook': 'Looked at all {count} frames side by side',
   'tour.animations.stepJump': 'Frame {frame} jumps above the others',
-  'tour.animations.stepFix': 'Drew frame {frame} again, in line with the rest',
+  'tour.animations.stepFix': 'Moved frame {frame} back in line with the rest',
   'tour.animations.reply':
-    'The glide reads now: the wings stay open a beat longer, and no frame jumps.',
-
+    'The flight reads smoothly now: every frame sits on the same line.',
   'tour.pictures.kicker': 'STUDIO · PICTURES',
   'tour.pictures.title': 'See every picture, mark it, send it back',
   'tour.pictures.subtitle': 'Zoom, copy and draw on pictures in the chat',
   'tour.pictures.lead':
-    'Every picture your AI makes or opens shows right in the chat. Click one to see it large, and zoom in as far as you like.',
+    'Every picture your AI opens or works with shows right in the chat. Click one to see it large, and zoom in as far as you like.',
   'tour.pictures.point1':
     'Draw on it where you are zoomed in: circle a spot, point an arrow, write a word or crop to the part that matters, then attach it to your next message.',
   'tour.pictures.point2':
@@ -42,8 +41,9 @@ const tour24 = {
   'tour.pictures.open': 'Open Visualizers',
   'tour.pictures.imageAlt':
     'A moon picture opened large and zoomed in, a ring drawn round a crater with an arrow and a word, the crop box closing in, and the Copy image and Attach to chat buttons, beside the chat it came from.',
-  'tour.pictures.ask': 'A moon for the orb, glowing at the edge.',
-  'tour.pictures.reply': 'Here it is. You’ll find it in Pictures too.',
+  'tour.pictures.ask': 'Put this moon in the orb, glowing at the edge.',
+  'tour.pictures.reply':
+    'Done: it glows at the edge, and it’s in Pictures too.',
   'tour.pictures.mark': 'brighter',
   'tour.pictures.followUp': 'Make this crater glow on the bass.',
 
@@ -72,7 +72,7 @@ const tour24 = {
   'tour.ai.lead':
     'Your AI now works on several scenes at once, each in its own chat, and uses less of your Claude plan to do it.',
   'tour.ai.point1':
-    'It works only with the scene’s own files, inside its folder, and cannot touch anything else on your computer. When it wants to make a picture with ChatGPT, it asks first on a card in the chat.',
+    'It works only with the scene’s own files, inside its folder, with FluidEQ’s own tools, and cannot touch anything else on your computer.',
   'tour.ai.point2':
     'FluidEQ’s own skills for 3D worlds, photos in 3D and animation come with the app and are always up to date.',
   'tour.ai.point3':
@@ -81,11 +81,15 @@ const tour24 = {
     'Open a scene in the Studio and write in its chat. The model and the effort are under the box you write in.',
   'tour.ai.open': 'Open Visualizers',
   'tour.ai.imageAlt':
-    'Three scenes being worked on at once, two still in progress and one kept as version 7, above FluidEQ’s skills, beside a card asking to make a picture with ChatGPT and the menu for model and effort.',
+    'Three scenes being worked on at once, two still in progress and one kept as version 7, above FluidEQ’s skills, beside the mark that the AI is kept to the scene’s folder and the menu for model and effort.',
   'tour.ai.skills': 'FluidEQ’s skills',
   'tour.ai.skillWorlds': '3D worlds',
   'tour.ai.skillPhotos': 'Photos in 3D',
   'tour.ai.skillAnimation': 'Animation',
+  'tour.ai.folderTitle': 'Kept to this scene',
+  'tour.ai.folderRead': 'Reads and edits this scene’s files',
+  'tour.ai.folderOther': 'Other folders',
+  'tour.ai.folderWeb': 'Commands and the web',
 
   'tour.controls.kicker': 'SCENES',
   'tour.controls.title': 'Scenes you can make your own',

@@ -1,33 +1,32 @@
 // 2.4 の新機能（`renderer/components/featureTour/release24.tsx`）。
 const tour24 = {
   'tour.animations.kicker': 'スタジオ · アニメーション',
-  'tour.animations.title': 'AI が描く、動く生き物',
+  'tour.animations.title': '動く画像を、1 コマずつ確かめて',
   'tour.animations.subtitle': 'シーンのアニメーションを 1 コマずつ',
   'tour.animations.lead':
-    '鳥や魚、踊る人を頼むと、AI がシーンの中に 1 コマずつ描きます。アニメーションタブはそのすべてを再生します。',
+    'シーンの画像を動かしましょう。アニメーションタブはシーンのアニメーションをすべて再生し、どれでも開いてコマ送りで確かめられます。',
   'tour.animations.point1':
     '地面・空・水の上で、上り坂でも下り坂でも、好きな速さで、1 コマずつ、またはスタジオ全体に大きく再生できます。',
   'tour.animations.point2':
-    'アニメーションごとに専用のアニメーターが隣のチャットにいます。全コマを一度に見て、浮いたり跳ねたりするコマを見つけ、描き直します。',
+    'アニメーションごとに専用のアニメーターが隣のチャットにいます。全コマを一度に見て、浮いたり跳ねたりするコマを見つけ、列に戻します。',
   'tour.animations.point3':
     '新しいプロジェクトは、オーブの中の月とその上を飛ぶツバメから始まります。画像とアニメーションの仕組みを初日から学べます。',
   'tour.animations.how':
-    'ビジュアライザーを開いてスタジオに進み、ステージの下のアニメーションを選びます。チャットに自分の言葉でアニメーションを頼んでください。',
+    'ビジュアライザーを開いてスタジオに進み、ステージの下のアニメーションを選びます。チャットにシーンの画像を動かすよう頼んでください。',
   'tour.animations.open': 'ビジュアライザーを開く',
   'tour.animations.imageAlt':
     'スタジオのアニメーションタブ。空の背景で羽ばたくツバメと、帯に並んだ 8 コマ。隣ではアニメーターのチャットが跳ねるコマを見つけています。',
-  'tour.animations.task': '羽ばたきの合間にツバメを滑空させて',
+  'tour.animations.task': 'ツバメの飛び方を 1 コマずつ確かめて',
   'tour.animations.stepLook': '{count} コマすべてを並べて確認',
   'tour.animations.stepJump': '{frame} コマ目が他より跳ねています',
-  'tour.animations.stepFix': '{frame} コマ目を他とそろえて描き直しました',
+  'tour.animations.stepFix': '{frame} コマ目を他とそろう位置に戻しました',
   'tour.animations.reply':
-    '滑空が伝わるようになりました。翼が一拍長く開いたままで、跳ねるコマはありません。',
-
+    '飛び方がなめらかになりました。どのコマも同じ線の上にあります。',
   'tour.pictures.kicker': 'スタジオ · 画像',
   'tour.pictures.title': '画像を見て、描き込んで、送り返す',
   'tour.pictures.subtitle': 'チャットの画像を拡大・コピーして描き込める',
   'tour.pictures.lead':
-    'AI が作った画像も開いた画像も、すべてチャットに表示されます。クリックすると大きく開き、好きなだけ拡大できます。',
+    'AI が開いたり扱ったりする画像は、すべてチャットに表示されます。クリックすると大きく開き、好きなだけ拡大できます。',
   'tour.pictures.point1':
     '拡大したその場所に描き込めます。丸で囲む、矢印で示す、文字を書く、大事な部分だけ切り抜く。そのまま次のメッセージに添付できます。',
   'tour.pictures.point2':
@@ -39,8 +38,8 @@ const tour24 = {
   'tour.pictures.open': 'ビジュアライザーを開く',
   'tour.pictures.imageAlt':
     '大きく開いて拡大した月の画像。クレーターを囲む丸、矢印、文字が描かれ、切り抜き枠が狭まり、画像をコピーとチャットに添付のボタンがあります。下には画像が届いたチャット。',
-  'tour.pictures.ask': 'オーブ用に、縁が光る月を。',
-  'tour.pictures.reply': 'どうぞ。画像タブにも入っています。',
+  'tour.pictures.ask': 'この月をオーブに入れて、縁を光らせて。',
+  'tour.pictures.reply': 'できました。縁が光り、画像タブにも入っています。',
   'tour.pictures.mark': 'もっと明るく',
   'tour.pictures.followUp': 'このクレーターを低音で光らせて。',
 
@@ -70,7 +69,7 @@ const tour24 = {
   'tour.ai.lead':
     'AI は複数のシーンに同時に取り組めるようになりました。シーンごとに専用のチャットがあり、Claude プランの消費も少なくなりました。',
   'tour.ai.point1':
-    '作業はシーン自身のファイルだけ、そのフォルダーの中だけで、コンピューターのほかの場所には触れられません。ChatGPT で画像を作りたいときは、まずチャットのカードで確認します。',
+    '作業はシーン自身のファイルだけ、そのフォルダーの中だけで、FluidEQ のツールを使い、コンピューターのほかの場所には触れられません。',
   'tour.ai.point2':
     '3D ワールド、3D 写真、アニメーションのための FluidEQ 独自のスキルがアプリに同梱され、常に最新です。',
   'tour.ai.point3':
@@ -79,11 +78,15 @@ const tour24 = {
     'スタジオでシーンを開き、そのチャットに書き込みます。モデルと労力は入力欄の下にあります。',
   'tour.ai.open': 'ビジュアライザーを開く',
   'tour.ai.imageAlt':
-    '同時に作業中の 3 つのシーン。2 つは進行中、1 つはバージョン 7 として保存済み。その下に FluidEQ のスキル。隣には ChatGPT で画像を作るか確認するカードと、モデルと労力のメニュー。',
+    '同時に作業中の 3 つのシーン。2 つは進行中、1 つはバージョン 7 として保存済み。その下に FluidEQ のスキル。隣には AI がシーンのフォルダー内にとどまることを示す印と、モデルと労力のメニュー。',
   'tour.ai.skills': 'FluidEQ のスキル',
   'tour.ai.skillWorlds': '3D ワールド',
   'tour.ai.skillPhotos': '3D 写真',
   'tour.ai.skillAnimation': 'アニメーション',
+  'tour.ai.folderTitle': 'このシーンの中だけ',
+  'tour.ai.folderRead': 'このシーンのファイルを読み書き',
+  'tour.ai.folderOther': 'ほかのフォルダー',
+  'tour.ai.folderWeb': 'コマンドとウェブ',
 
   'tour.controls.kicker': 'シーン',
   'tour.controls.title': '自分好みに仕上げられるシーン',

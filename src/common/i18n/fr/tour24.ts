@@ -1,35 +1,32 @@
 // Nouveautés de la 2.4 (`renderer/components/featureTour/release24.tsx`).
 const tour24 = {
   'tour.animations.kicker': 'STUDIO · ANIMATIONS',
-  'tour.animations.title': 'Des créatures qui bougent, dessinées par votre IA',
+  'tour.animations.title': 'Des images qui bougent, vérifiées image par image',
   'tour.animations.subtitle': 'Chaque animation d’une scène, image par image',
   'tour.animations.lead':
-    'Demandez un oiseau, un poisson ou quelqu’un qui danse, et votre IA le dessine image par image dans la scène. L’onglet Animations les joue toutes.',
+    'Animez les images de votre scène. L’onglet Animations joue toutes les animations d’une scène et ouvre n’importe laquelle pour la parcourir.',
   'tour.animations.point1':
     'Jouez-la sur Sol, Ciel ou Eau, en montée ou en descente, à toute vitesse, image par image, ou en grand sur tout le Studio.',
   'tour.animations.point2':
-    'Chaque animation a son animateur, un chat à côté : il regarde toutes les images à la fois, trouve celle qui flotte ou saute, et la redessine.',
+    'Chaque animation a son animateur, un chat à côté : il regarde toutes les images à la fois, trouve celle qui flotte ou saute, et la remet en ligne.',
   'tour.animations.point3':
     'Chaque nouveau projet commence avec une lune dans son orbe et une hirondelle qui vole au-dessus, pour découvrir images et animations dès le premier jour.',
   'tour.animations.how':
-    'Ouvrez Visualiseurs, puis le Studio, et choisissez Animations sous la scène. Demandez une animation au chat avec vos propres mots.',
+    'Ouvrez Visualiseurs, puis le Studio, et choisissez Animations sous la scène. Demandez au chat d’animer une image de votre scène.',
   'tour.animations.open': 'Ouvrir Visualiseurs',
   'tour.animations.imageAlt':
     'L’onglet Animations du Studio avec une hirondelle qui bat des ailes sur le fond Ciel et ses huit images dans une bande, à côté du chat de son animateur qui trouve l’image qui saute.',
-  'tour.animations.task':
-    'fais planer l’hirondelle entre deux battements d’ailes',
+  'tour.animations.task': 'vérifie le vol de l’hirondelle image par image',
   'tour.animations.stepLook': 'Regardé les {count} images côte à côte',
   'tour.animations.stepJump': 'L’image {frame} saute au-dessus des autres',
-  'tour.animations.stepFix':
-    'Redessiné l’image {frame}, alignée sur les autres',
+  'tour.animations.stepFix': 'Remis l’image {frame} en ligne avec les autres',
   'tour.animations.reply':
-    'Le vol plané se lit maintenant : les ailes restent ouvertes un temps de plus, et aucune image ne saute.',
-
+    'Le vol est fluide maintenant : toutes les images sont sur la même ligne.',
   'tour.pictures.kicker': 'STUDIO · IMAGES',
   'tour.pictures.title': 'Voyez chaque image, annotez-la, renvoyez-la',
   'tour.pictures.subtitle': 'Zoomez, copiez et dessinez sur les images du chat',
   'tour.pictures.lead':
-    'Chaque image que votre IA crée ou ouvre apparaît directement dans le chat. Cliquez dessus pour la voir en grand et zoomez autant que vous voulez.',
+    'Chaque image que votre IA ouvre ou utilise apparaît directement dans le chat. Cliquez dessus pour la voir en grand et zoomez autant que vous voulez.',
   'tour.pictures.point1':
     'Dessinez dessus là où vous avez zoomé : entourez un point, montrez-le d’une flèche, écrivez un mot ou recadrez sur l’essentiel, puis joignez-la à votre prochain message.',
   'tour.pictures.point2':
@@ -41,8 +38,9 @@ const tour24 = {
   'tour.pictures.open': 'Ouvrir Visualiseurs',
   'tour.pictures.imageAlt':
     'Une image de lune ouverte en grand et zoomée, avec un cercle tracé autour d’un cratère, une flèche et un mot, le cadre de recadrage qui se resserre et les boutons Copier l’image et Joindre au chat, à côté du chat d’où elle vient.',
-  'tour.pictures.ask': 'Une lune pour l’orbe, lumineuse sur le bord.',
-  'tour.pictures.reply': 'La voici. Vous la trouverez aussi dans Images.',
+  'tour.pictures.ask': 'Mets cette lune dans l’orbe, lumineuse sur le bord.',
+  'tour.pictures.reply':
+    'C’est fait : elle brille sur le bord, et elle est aussi dans Images.',
   'tour.pictures.mark': 'plus clair',
   'tour.pictures.followUp': 'Fais briller ce cratère sur les basses.',
 
@@ -72,7 +70,7 @@ const tour24 = {
   'tour.ai.lead':
     'Votre IA travaille désormais sur plusieurs scènes à la fois, chacune dans son propre chat, et consomme moins de votre forfait Claude pour le faire.',
   'tour.ai.point1':
-    'Elle ne travaille qu’avec les fichiers de la scène, dans son dossier, et ne peut toucher à rien d’autre sur votre ordinateur. Quand elle veut créer une image avec ChatGPT, elle demande d’abord sur une carte dans le chat.',
+    'Elle ne travaille qu’avec les fichiers de la scène, dans son dossier, avec les outils de FluidEQ, et ne peut toucher à rien d’autre sur votre ordinateur.',
   'tour.ai.point2':
     'Les compétences de FluidEQ pour les mondes 3D, les photos en 3D et l’animation sont livrées avec l’app et toujours à jour.',
   'tour.ai.point3':
@@ -81,11 +79,15 @@ const tour24 = {
     'Ouvrez une scène dans le Studio et écrivez dans son chat. Le modèle et l’effort sont sous la zone de saisie.',
   'tour.ai.open': 'Ouvrir Visualiseurs',
   'tour.ai.imageAlt':
-    'Trois scènes travaillées en même temps, deux encore en cours et une gardée comme version 7, au-dessus des compétences de FluidEQ, à côté d’une carte demandant s’il faut créer une image avec ChatGPT et du menu du modèle et de l’effort.',
+    'Trois scènes travaillées en même temps, deux encore en cours et une gardée comme version 7, au-dessus des compétences de FluidEQ, à côté de la marque indiquant que l’IA reste dans le dossier de la scène et du menu du modèle et de l’effort.',
   'tour.ai.skills': 'Compétences de FluidEQ',
   'tour.ai.skillWorlds': 'Mondes 3D',
   'tour.ai.skillPhotos': 'Photos en 3D',
   'tour.ai.skillAnimation': 'Animation',
+  'tour.ai.folderTitle': 'Limitée à cette scène',
+  'tour.ai.folderRead': 'Lit et modifie les fichiers de cette scène',
+  'tour.ai.folderOther': 'Autres dossiers',
+  'tour.ai.folderWeb': 'Commandes et web',
 
   'tour.controls.kicker': 'SCÈNES',
   'tour.controls.title': 'Des scènes à votre image',

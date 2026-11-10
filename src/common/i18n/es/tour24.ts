@@ -1,38 +1,39 @@
 // Novedades de la 2.4 (`renderer/components/featureTour/release24.tsx`).
 const tour24 = {
   'tour.animations.kicker': 'ESTUDIO · ANIMACIONES',
-  'tour.animations.title': 'Criaturas que se mueven, dibujadas por tu IA',
+  'tour.animations.title':
+    'Imágenes que se mueven, revisadas fotograma a fotograma',
   'tour.animations.subtitle':
     'Cada animación de una escena, fotograma a fotograma',
   'tour.animations.lead':
-    'Pide un pájaro, un pez o alguien que baile, y tu IA lo dibuja fotograma a fotograma en la escena. La pestaña Animaciones las reproduce todas.',
+    'Anima las imágenes de tu escena. La pestaña Animaciones reproduce todas las animaciones de una escena y abre cualquiera para recorrerla.',
   'tour.animations.point1':
     'Reprodúcela sobre Suelo, Cielo o Agua, cuesta arriba o abajo, a cualquier velocidad, fotograma a fotograma, o en grande sobre todo el Estudio.',
   'tour.animations.point2':
-    'Cada animación tiene su animador, un chat a su lado: mira todos los fotogramas a la vez, encuentra el que flota o salta, y lo vuelve a dibujar.',
+    'Cada animación tiene su animador, un chat a su lado: mira todos los fotogramas a la vez, encuentra el que flota o salta, y lo vuelve a alinear.',
   'tour.animations.point3':
     'Cada proyecto nuevo empieza con una luna en su orbe y una golondrina volando por encima, para aprender desde el primer día cómo funcionan las imágenes y las animaciones.',
   'tour.animations.how':
-    'Abre Visualizadores, luego el Estudio, y elige Animaciones bajo el escenario. Pide una animación en el chat con tus propias palabras.',
+    'Abre Visualizadores, luego el Estudio, y elige Animaciones bajo el escenario. Pide al chat que anime una imagen de tu escena.',
   'tour.animations.open': 'Abrir Visualizadores',
   'tour.animations.imageAlt':
     'La pestaña Animaciones del Estudio con una golondrina batiendo las alas sobre el fondo Cielo y sus ocho fotogramas en una tira, junto al chat de su animador, que encuentra el fotograma que salta.',
-  'tour.animations.task': 'haz que la golondrina planee entre aleteos',
+  'tour.animations.task':
+    'revisa el vuelo de la golondrina fotograma a fotograma',
   'tour.animations.stepLook':
     'He mirado los {count} fotogramas uno al lado del otro',
   'tour.animations.stepJump':
     'El fotograma {frame} salta por encima de los demás',
   'tour.animations.stepFix':
-    'He vuelto a dibujar el fotograma {frame}, alineado con el resto',
+    'He vuelto a alinear el fotograma {frame} con el resto',
   'tour.animations.reply':
-    'Ahora el planeo se lee bien: las alas se quedan abiertas un tiempo más y ningún fotograma salta.',
-
+    'Ahora el vuelo se ve fluido: todos los fotogramas están en la misma línea.',
   'tour.pictures.kicker': 'ESTUDIO · IMÁGENES',
   'tour.pictures.title': 'Mira cada imagen, márcala y devuélvela',
   'tour.pictures.subtitle':
     'Amplía, copia y dibuja sobre las imágenes del chat',
   'tour.pictures.lead':
-    'Cada imagen que tu IA crea o abre aparece en el propio chat. Haz clic en una para verla en grande y amplíala todo lo que quieras.',
+    'Cada imagen que tu IA abre o con la que trabaja aparece en el propio chat. Haz clic en una para verla en grande y amplíala todo lo que quieras.',
   'tour.pictures.point1':
     'Dibuja sobre ella justo donde estás ampliando: rodea un punto, señala con una flecha, escribe una palabra o recorta lo que importa, y adjúntala a tu siguiente mensaje.',
   'tour.pictures.point2':
@@ -44,8 +45,9 @@ const tour24 = {
   'tour.pictures.open': 'Abrir Visualizadores',
   'tour.pictures.imageAlt':
     'Una imagen de la luna abierta en grande y ampliada, con un círculo dibujado alrededor de un cráter, una flecha y una palabra, el recorte cerrándose y los botones Copiar imagen y Adjuntar al chat, junto al chat del que llegó.',
-  'tour.pictures.ask': 'Una luna para el orbe, que brille en el borde.',
-  'tour.pictures.reply': 'Aquí la tienes. También está en Imágenes.',
+  'tour.pictures.ask': 'Pon esta luna en el orbe, que brille en el borde.',
+  'tour.pictures.reply':
+    'Hecho: brilla en el borde, y también está en Imágenes.',
   'tour.pictures.mark': 'más brillo',
   'tour.pictures.followUp': 'Haz que este cráter brille con los graves.',
 
@@ -75,7 +77,7 @@ const tour24 = {
   'tour.ai.lead':
     'Tu IA ahora trabaja en varias escenas a la vez, cada una en su propio chat, y gasta menos de tu plan de Claude para hacerlo.',
   'tour.ai.point1':
-    'Solo trabaja con los archivos de la escena, dentro de su carpeta, y no puede tocar nada más de tu ordenador. Cuando quiere crear una imagen con ChatGPT, pregunta antes en una tarjeta del chat.',
+    'Solo trabaja con los archivos de la escena, dentro de su carpeta, con las herramientas de FluidEQ, y no puede tocar nada más de tu ordenador.',
   'tour.ai.point2':
     'Las habilidades propias de FluidEQ para mundos 3D, fotos en 3D y animación vienen con la app y están siempre al día.',
   'tour.ai.point3':
@@ -84,11 +86,15 @@ const tour24 = {
     'Abre una escena en el Estudio y escribe en su chat. El modelo y el esfuerzo están debajo del cuadro donde escribes.',
   'tour.ai.open': 'Abrir Visualizadores',
   'tour.ai.imageAlt':
-    'Tres escenas en las que se trabaja a la vez, dos todavía en marcha y una guardada como versión 7, sobre las habilidades de FluidEQ, junto a una tarjeta que pregunta si crear una imagen con ChatGPT y el menú de modelo y esfuerzo.',
+    'Tres escenas en las que se trabaja a la vez, dos todavía en marcha y una guardada como versión 7, sobre las habilidades de FluidEQ, junto a la marca de que la IA se queda en la carpeta de la escena y el menú de modelo y esfuerzo.',
   'tour.ai.skills': 'Habilidades de FluidEQ',
   'tour.ai.skillWorlds': 'Mundos 3D',
   'tour.ai.skillPhotos': 'Fotos en 3D',
   'tour.ai.skillAnimation': 'Animación',
+  'tour.ai.folderTitle': 'Solo en esta escena',
+  'tour.ai.folderRead': 'Lee y edita los archivos de esta escena',
+  'tour.ai.folderOther': 'Otras carpetas',
+  'tour.ai.folderWeb': 'Comandos y la web',
 
   'tour.controls.kicker': 'ESCENAS',
   'tour.controls.title': 'Escenas que puedes hacer tuyas',

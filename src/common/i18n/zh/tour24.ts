@@ -1,33 +1,31 @@
 // 2.4 新功能（`renderer/components/featureTour/release24.tsx`）。
 const tour24 = {
   'tour.animations.kicker': '工作室 · 动画',
-  'tour.animations.title': '会动的生灵，由你的 AI 画出',
+  'tour.animations.title': '会动的图片，逐帧检查',
   'tour.animations.subtitle': '场景里的每段动画，一帧一帧',
   'tour.animations.lead':
-    '说要一只鸟、一条鱼或一个跳舞的人，你的 AI 就会把它一帧一帧画进场景。动画标签页会播放全部动画。',
+    '让场景里的图片动起来。动画标签页会播放场景里的所有动画，也能打开任意一段逐帧查看。',
   'tour.animations.point1':
     '放在地面、天空或水上，上坡或下坡，任意速度，逐帧播放，或在整个工作室上方放大播放。',
   'tour.animations.point2':
-    '每段动画都有自己的动画师，就在旁边的聊天里：它同时查看所有帧，找出飘起或跳动的那一帧，然后重画。',
+    '每段动画都有自己的动画师，就在旁边的聊天里：它同时查看所有帧，找出飘起或跳动的那一帧，再把它放回同一条线上。',
   'tour.animations.point3':
     '每个新项目都从球体里的月亮和飞过上方的燕子开始，第一天就能学会图片和动画的用法。',
   'tour.animations.how':
-    '打开“可视化”，进入工作室，在舞台下方选择动画。用你自己的话在聊天里要一段动画。',
+    '打开“可视化”，进入工作室，在舞台下方选择动画。在聊天里让它把场景中的一张图片动起来。',
   'tour.animations.open': '打开“可视化”',
   'tour.animations.imageAlt':
     '工作室的动画标签页：燕子在天空背景上扇动翅膀，它的八帧排成一条；旁边是它的动画师聊天，正在找出跳动的那一帧。',
-  'tour.animations.task': '让燕子在两次扇翅之间滑翔',
+  'tour.animations.task': '逐帧检查燕子的飞行',
   'tour.animations.stepLook': '并排查看了全部 {count} 帧',
   'tour.animations.stepJump': '第 {frame} 帧比其他帧跳得更高',
-  'tour.animations.stepFix': '重画了第 {frame} 帧，与其他帧对齐',
-  'tour.animations.reply':
-    '现在滑翔看得清楚了：翅膀多张开一拍，没有哪一帧再跳动。',
-
+  'tour.animations.stepFix': '把第 {frame} 帧放回与其他帧同一条线上',
+  'tour.animations.reply': '现在飞行很流畅：每一帧都在同一条线上。',
   'tour.pictures.kicker': '工作室 · 图片',
   'tour.pictures.title': '看清每张图，标出来，再发回去',
   'tour.pictures.subtitle': '在聊天里放大、复制图片，并在上面画',
   'tour.pictures.lead':
-    'AI 生成或打开的每张图片都会直接显示在聊天里。点击即可放大查看，想放多大就放多大。',
+    'AI 打开或处理的每张图片都会直接显示在聊天里。点击即可放大查看，想放多大就放多大。',
   'tour.pictures.point1':
     '就在放大的地方画：圈出一处、用箭头指出、写一个词，或裁剪到要紧的部分，然后附加到下一条消息。',
   'tour.pictures.point2':
@@ -38,8 +36,8 @@ const tour24 = {
   'tour.pictures.open': '打开“可视化”',
   'tour.pictures.imageAlt':
     '一张放大打开的月亮图片：环形山周围画了一个圈，还有箭头和文字，裁剪框正在收拢，旁边是“复制图片”和“附加到聊天”按钮；下方是图片所在的聊天。',
-  'tour.pictures.ask': '给球体来一个边缘发光的月亮。',
-  'tour.pictures.reply': '给你。它也在“图片”里。',
+  'tour.pictures.ask': '把这个月亮放进球体，边缘发光。',
+  'tour.pictures.reply': '好了：边缘在发光，它也在“图片”里。',
   'tour.pictures.mark': '再亮一点',
   'tour.pictures.followUp': '让这个环形山随低音发光。',
 
@@ -67,7 +65,7 @@ const tour24 = {
   'tour.ai.lead':
     '你的 AI 现在能同时处理多个场景，每个场景一个聊天，而且消耗的 Claude 套餐额度更少。',
   'tour.ai.point1':
-    '它只处理场景自己的文件，只在场景文件夹里工作，碰不到电脑上的其他任何东西。想用 ChatGPT 生成图片时，会先在聊天里用一张卡片询问。',
+    '它只处理场景自己的文件，只在场景文件夹里用 FluidEQ 自己的工具工作，碰不到电脑上的其他任何东西。',
   'tour.ai.point2':
     'FluidEQ 自带的 3D 世界、3D 照片和动画技能随应用提供，始终保持最新。',
   'tour.ai.point3':
@@ -76,11 +74,15 @@ const tour24 = {
     '在工作室打开一个场景，在它的聊天里输入。模型和投入程度就在输入框下方。',
   'tour.ai.open': '打开“可视化”',
   'tour.ai.imageAlt':
-    '同时进行的三个场景，两个仍在处理，一个已保存为版本 7，下方是 FluidEQ 的技能；旁边是询问是否用 ChatGPT 生成图片的卡片，以及模型和投入程度菜单。',
+    '同时进行的三个场景，两个仍在处理，一个已保存为版本 7，下方是 FluidEQ 的技能；旁边是表示 AI 只在场景文件夹内工作的标记，以及模型和投入程度菜单。',
   'tour.ai.skills': 'FluidEQ 的技能',
   'tour.ai.skillWorlds': '3D 世界',
   'tour.ai.skillPhotos': '3D 照片',
   'tour.ai.skillAnimation': '动画',
+  'tour.ai.folderTitle': '只在这个场景里',
+  'tour.ai.folderRead': '读取和编辑这个场景的文件',
+  'tour.ai.folderOther': '其他文件夹',
+  'tour.ai.folderWeb': '命令和网络',
 
   'tour.controls.kicker': '场景',
   'tour.controls.title': '可以按你心意定制的场景',

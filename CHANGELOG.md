@@ -8,10 +8,10 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ## 2.4.0
 
-FluidEQ 2.4 is the Studio's biggest release yet. Your AI now draws
-creatures that move and gives each one an animator of its own, every
-picture it makes shows in the chat for you to zoom, copy and draw on, the
-stage tries your scene as an ultra-wide graph or in the Compact player, and
+FluidEQ 2.4 is the Studio's biggest release yet. The pictures in a scene
+can move, with an animator for each animation that checks every frame,
+every picture in the chat can be zoomed, copied and drawn on, the stage
+tries your scene as an ultra-wide graph or in the Compact player, and
 one AI works on several of your scenes at once, kept to each scene's own
 folder. Scenes gain palettes, choices and kept versions, and every 3D
 visualizer lets you pick the key that moves its camera, on the graph and on
@@ -20,9 +20,8 @@ here.
 
 ### Studio: animations
 
-- **An Animations tab.** Ask the chat for a bird, a fish or someone dancing,
-  and your AI draws it frame by frame into the scene. The tab plays every
-  animation the scene has and opens any of them.
+- **An Animations tab.** Animate the pictures in your scene. The tab plays
+  every animation the scene has and opens any of them.
 - **Step through it.** An opened animation plays on Ground, Sky or Water,
   uphill or downhill, at the speed it was made at or 4 to 12 frames a
   second, with the frame before showing under the one you are on and every
@@ -31,15 +30,16 @@ here.
 - **An animator for every animation.** Each one has a chat of its own
   beside it. The scene's chat can start it with a task, and you can talk to
   it directly. It looks at every frame at once, points out a frame that
-  floats, jumps or changes size, and draws it again.
+  floats, jumps or changes size, and puts it back in line.
 - **Every new project starts with an example.** A moon sits in the orb and a
   swallow flies over it, so the Pictures and Animations tabs, and your AI,
   have something to learn from from the first minute.
 
 ### Studio: pictures in the chat
 
-- **Every picture shows in the chat.** Whatever your AI makes or opens
-  appears in the conversation. Click one to see it large and zoom in.
+- **Every picture shows in the chat.** Whatever picture your AI opens or
+  works with appears in the conversation. Click one to see it large and zoom
+  in.
 - **Copy image.** Every picture in the Studio's viewers and previews can be
   copied with its button, Ctrl+C or a right click.
 - **Draw on a picture.** Press **Draw** where you are zoomed in to circle
@@ -66,8 +66,7 @@ here.
 - **Kept to the scene's folder, by enforcement.** The AI works only with
   the open scene's own files, using FluidEQ's own tools and skills. It
   cannot touch other folders, run commands, browse the web, build an app or
-  change FluidEQ, whatever your own Claude Code settings allow. Before
-  ChatGPT paints a picture for the scene, it asks on a card in the chat.
+  change FluidEQ, whatever your own Claude Code settings allow.
 - **FluidEQ's skills come with the app.** Its brief and its skills for 3D
   worlds, photos in 3D and animation are built into FluidEQ and always
   current, never copied into a scene's folder. A chat started on an older

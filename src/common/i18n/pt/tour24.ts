@@ -1,34 +1,33 @@
 // Novidades da 2.4 (`renderer/components/featureTour/release24.tsx`).
 const tour24 = {
   'tour.animations.kicker': 'ESTÚDIO · ANIMAÇÕES',
-  'tour.animations.title': 'Criaturas que se mexem, desenhadas pela sua IA',
+  'tour.animations.title': 'Imagens que se mexem, conferidas quadro a quadro',
   'tour.animations.subtitle': 'Cada animação de uma cena, quadro a quadro',
   'tour.animations.lead':
-    'Peça um pássaro, um peixe ou alguém dançando, e a sua IA desenha quadro a quadro na cena. A aba Animações toca todas.',
+    'Anime as imagens da sua cena. A aba Animações toca todas as animações de uma cena e abre qualquer uma para você percorrer.',
   'tour.animations.point1':
     'Toque sobre Chão, Céu ou Água, subindo ou descendo, em qualquer velocidade, quadro a quadro, ou em tamanho grande sobre todo o Estúdio.',
   'tour.animations.point2':
-    'Cada animação tem o seu animador, um chat ao lado: ele olha todos os quadros de uma vez, acha o que flutua ou pula, e desenha de novo.',
+    'Cada animação tem o seu animador, um chat ao lado: ele olha todos os quadros de uma vez, acha o que flutua ou pula, e coloca de volta na linha.',
   'tour.animations.point3':
     'Todo projeto novo começa com uma lua no orbe e uma andorinha voando por cima, para você aprender imagens e animações desde o primeiro dia.',
   'tour.animations.how':
-    'Abra Visualizadores, depois o Estúdio, e escolha Animações embaixo do palco. Peça uma animação no chat com as suas palavras.',
+    'Abra Visualizadores, depois o Estúdio, e escolha Animações embaixo do palco. Peça ao chat para animar uma imagem da sua cena.',
   'tour.animations.open': 'Abrir Visualizadores',
   'tour.animations.imageAlt':
     'A aba Animações do Estúdio com uma andorinha batendo as asas no fundo Céu e seus oito quadros numa faixa, ao lado do chat do seu animador, que acha o quadro que pula.',
-  'tour.animations.task': 'faça a andorinha planar entre as batidas de asa',
+  'tour.animations.task': 'confira o voo da andorinha quadro a quadro',
   'tour.animations.stepLook': 'Olhei os {count} quadros lado a lado',
   'tour.animations.stepJump': 'O quadro {frame} pula acima dos outros',
   'tour.animations.stepFix':
-    'Desenhei o quadro {frame} de novo, alinhado com os outros',
+    'Coloquei o quadro {frame} de volta na linha dos outros',
   'tour.animations.reply':
-    'Agora o planeio fica claro: as asas ficam abertas um tempo a mais e nenhum quadro pula.',
-
+    'Agora o voo flui: todos os quadros estão na mesma linha.',
   'tour.pictures.kicker': 'ESTÚDIO · IMAGENS',
   'tour.pictures.title': 'Veja cada imagem, marque e mande de volta',
   'tour.pictures.subtitle': 'Amplie, copie e desenhe nas imagens do chat',
   'tour.pictures.lead':
-    'Toda imagem que a sua IA cria ou abre aparece no próprio chat. Clique numa para ver grande e amplie o quanto quiser.',
+    'Toda imagem que a sua IA abre ou usa aparece no próprio chat. Clique numa para ver grande e amplie o quanto quiser.',
   'tour.pictures.point1':
     'Desenhe nela bem onde você ampliou: circule um ponto, aponte com uma seta, escreva uma palavra ou recorte o que importa, e anexe à sua próxima mensagem.',
   'tour.pictures.point2':
@@ -40,8 +39,9 @@ const tour24 = {
   'tour.pictures.open': 'Abrir Visualizadores',
   'tour.pictures.imageAlt':
     'Uma imagem da lua aberta grande e ampliada, com um círculo em volta de uma cratera, uma seta e uma palavra, o recorte se fechando e os botões Copiar imagem e Anexar ao chat, ao lado do chat de onde ela veio.',
-  'tour.pictures.ask': 'Uma lua para o orbe, brilhando na borda.',
-  'tour.pictures.reply': 'Aqui está. Ela também fica em Imagens.',
+  'tour.pictures.ask': 'Coloque esta lua no orbe, brilhando na borda.',
+  'tour.pictures.reply':
+    'Pronto: ela brilha na borda, e também fica em Imagens.',
   'tour.pictures.mark': 'mais brilho',
   'tour.pictures.followUp': 'Faça esta cratera brilhar com o grave.',
 
@@ -70,7 +70,7 @@ const tour24 = {
   'tour.ai.lead':
     'A sua IA agora trabalha em várias cenas ao mesmo tempo, cada uma no seu chat, e gasta menos do seu plano Claude para isso.',
   'tour.ai.point1':
-    'Ela só trabalha com os arquivos da cena, dentro da pasta dela, e não pode mexer em mais nada do seu computador. Quando quer criar uma imagem com o ChatGPT, pergunta antes num cartão no chat.',
+    'Ela só trabalha com os arquivos da cena, dentro da pasta dela, com as ferramentas do FluidEQ, e não pode mexer em mais nada do seu computador.',
   'tour.ai.point2':
     'As habilidades do FluidEQ para mundos 3D, fotos em 3D e animação vêm com o app e estão sempre atualizadas.',
   'tour.ai.point3':
@@ -79,11 +79,15 @@ const tour24 = {
     'Abra uma cena no Estúdio e escreva no chat dela. O modelo e o esforço ficam embaixo da caixa onde você escreve.',
   'tour.ai.open': 'Abrir Visualizadores',
   'tour.ai.imageAlt':
-    'Três cenas sendo trabalhadas ao mesmo tempo, duas ainda em andamento e uma guardada como versão 7, sobre as habilidades do FluidEQ, ao lado de um cartão que pergunta se deve criar uma imagem com o ChatGPT e do menu de modelo e esforço.',
+    'Três cenas sendo trabalhadas ao mesmo tempo, duas ainda em andamento e uma guardada como versão 7, sobre as habilidades do FluidEQ, ao lado da marca de que a IA fica na pasta da cena e do menu de modelo e esforço.',
   'tour.ai.skills': 'Habilidades do FluidEQ',
   'tour.ai.skillWorlds': 'Mundos 3D',
   'tour.ai.skillPhotos': 'Fotos em 3D',
   'tour.ai.skillAnimation': 'Animação',
+  'tour.ai.folderTitle': 'Só nesta cena',
+  'tour.ai.folderRead': 'Lê e edita os arquivos desta cena',
+  'tour.ai.folderOther': 'Outras pastas',
+  'tour.ai.folderWeb': 'Comandos e a web',
 
   'tour.controls.kicker': 'CENAS',
   'tour.controls.title': 'Cenas que você deixa com a sua cara',

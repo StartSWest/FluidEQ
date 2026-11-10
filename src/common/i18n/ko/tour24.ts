@@ -1,33 +1,32 @@
 // 2.4의 새로운 기능 (`renderer/components/featureTour/release24.tsx`).
 const tour24 = {
   'tour.animations.kicker': '스튜디오 · 애니메이션',
-  'tour.animations.title': 'AI가 그리는 움직이는 생명체',
+  'tour.animations.title': '움직이는 사진, 한 프레임씩 확인',
   'tour.animations.subtitle': '장면의 모든 애니메이션을 한 프레임씩',
   'tour.animations.lead':
-    '새, 물고기, 춤추는 사람을 부탁하면 AI가 장면 안에 한 프레임씩 그립니다. 애니메이션 탭은 그 모두를 재생합니다.',
+    '장면의 사진을 움직여 보세요. 애니메이션 탭은 장면의 모든 애니메이션을 재생하고, 어느 것이든 열어 한 프레임씩 넘겨 볼 수 있습니다.',
   'tour.animations.point1':
     '땅, 하늘, 물 위에서, 오르막이나 내리막에서, 원하는 속도로, 한 프레임씩 또는 스튜디오 전체 위로 크게 재생하세요.',
   'tour.animations.point2':
-    '애니메이션마다 옆 채팅에 전용 애니메이터가 있습니다. 모든 프레임을 한 번에 보고, 떠 있거나 튀는 프레임을 찾아 다시 그립니다.',
+    '애니메이션마다 옆 채팅에 전용 애니메이터가 있습니다. 모든 프레임을 한 번에 보고, 떠 있거나 튀는 프레임을 찾아 줄에 다시 맞춥니다.',
   'tour.animations.point3':
     '새 프로젝트는 구체 안의 달과 그 위를 나는 제비로 시작하므로, 사진과 애니메이션을 첫날부터 익힐 수 있습니다.',
   'tour.animations.how':
-    '시각화 도우미를 열고 스튜디오로 간 다음, 무대 아래에서 애니메이션을 선택하세요. 채팅에 원하는 애니메이션을 자유롭게 부탁하세요.',
+    '시각화 도우미를 열고 스튜디오로 간 다음, 무대 아래에서 애니메이션을 선택하세요. 채팅에 장면의 사진을 움직여 달라고 부탁하세요.',
   'tour.animations.open': '시각화 도우미 열기',
   'tour.animations.imageAlt':
     '스튜디오의 애니메이션 탭. 하늘 배경 위에서 날갯짓하는 제비와 띠에 놓인 여덟 프레임, 옆에는 튀는 프레임을 찾아내는 애니메이터의 채팅이 있습니다.',
-  'tour.animations.task': '날갯짓 사이에 제비가 활공하게 해 줘',
+  'tour.animations.task': '제비의 비행을 한 프레임씩 확인해 줘',
   'tour.animations.stepLook': '{count}개 프레임을 모두 나란히 확인함',
   'tour.animations.stepJump': '{frame}번 프레임이 다른 프레임보다 튐',
-  'tour.animations.stepFix': '{frame}번 프레임을 나머지와 맞춰 다시 그림',
+  'tour.animations.stepFix': '{frame}번 프레임을 나머지와 같은 줄로 되돌림',
   'tour.animations.reply':
-    '이제 활공이 자연스럽게 보입니다. 날개가 한 박자 더 펼쳐져 있고, 튀는 프레임은 없습니다.',
-
+    '이제 비행이 부드럽습니다. 모든 프레임이 같은 선 위에 있습니다.',
   'tour.pictures.kicker': '스튜디오 · 사진',
   'tour.pictures.title': '사진을 보고, 표시하고, 다시 보내세요',
   'tour.pictures.subtitle': '채팅 속 사진을 확대하고 복사하고 그 위에 그리기',
   'tour.pictures.lead':
-    'AI가 만들거나 연 모든 사진이 채팅에 바로 표시됩니다. 클릭하면 크게 열리고, 원하는 만큼 확대할 수 있습니다.',
+    'AI가 열거나 다루는 모든 사진이 채팅에 바로 표시됩니다. 클릭하면 크게 열리고, 원하는 만큼 확대할 수 있습니다.',
   'tour.pictures.point1':
     '확대한 바로 그 자리에 그려 보세요. 한 곳에 동그라미를 치고, 화살표로 가리키고, 글자를 쓰거나 중요한 부분만 잘라 낸 뒤 다음 메시지에 첨부하면 됩니다.',
   'tour.pictures.point2':
@@ -39,8 +38,8 @@ const tour24 = {
   'tour.pictures.open': '시각화 도우미 열기',
   'tour.pictures.imageAlt':
     '크게 열어 확대한 달 사진. 분화구 둘레의 동그라미, 화살표와 글자, 좁혀지는 자르기 상자, 이미지 복사와 채팅에 첨부 버튼이 있고, 아래에는 사진이 도착한 채팅이 있습니다.',
-  'tour.pictures.ask': '가장자리가 빛나는 구체용 달을 만들어 줘.',
-  'tour.pictures.reply': '여기 있습니다. 사진 탭에도 들어 있어요.',
+  'tour.pictures.ask': '이 달을 구체에 넣고 가장자리가 빛나게 해 줘.',
+  'tour.pictures.reply': '완료했습니다. 가장자리가 빛나고, 사진 탭에도 있어요.',
   'tour.pictures.mark': '더 밝게',
   'tour.pictures.followUp': '이 분화구가 베이스에 맞춰 빛나게 해 줘.',
 
@@ -68,7 +67,7 @@ const tour24 = {
   'tour.ai.lead':
     '이제 AI가 여러 장면을 동시에 작업합니다. 장면마다 채팅이 따로 있고, Claude 플랜도 더 적게 씁니다.',
   'tour.ai.point1':
-    '장면 자신의 파일만, 그 폴더 안에서만 작업하며 컴퓨터의 다른 것은 건드릴 수 없습니다. ChatGPT로 사진을 만들고 싶을 때는 먼저 채팅의 카드에서 묻습니다.',
+    '장면 자신의 파일만, 그 폴더 안에서만 FluidEQ의 도구로 작업하며 컴퓨터의 다른 것은 건드릴 수 없습니다.',
   'tour.ai.point2':
     '3D 월드, 3D 사진, 애니메이션을 위한 FluidEQ의 스킬이 앱에 함께 들어 있고 항상 최신입니다.',
   'tour.ai.point3':
@@ -77,11 +76,15 @@ const tour24 = {
     '스튜디오에서 장면을 열고 그 채팅에 쓰세요. 모델과 노력 수준은 입력 상자 아래에 있습니다.',
   'tour.ai.open': '시각화 도우미 열기',
   'tour.ai.imageAlt':
-    '동시에 작업 중인 세 장면. 둘은 진행 중, 하나는 버전 7로 저장됨. 그 아래 FluidEQ의 스킬, 옆에는 ChatGPT로 사진을 만들지 묻는 카드와 모델·노력 수준 메뉴가 있습니다.',
+    '동시에 작업 중인 세 장면. 둘은 진행 중, 하나는 버전 7로 저장됨. 그 아래 FluidEQ의 스킬, 옆에는 AI가 장면 폴더 안에만 머문다는 표시와 모델·노력 수준 메뉴가 있습니다.',
   'tour.ai.skills': 'FluidEQ의 스킬',
   'tour.ai.skillWorlds': '3D 월드',
   'tour.ai.skillPhotos': '3D 사진',
   'tour.ai.skillAnimation': '애니메이션',
+  'tour.ai.folderTitle': '이 장면 안에서만',
+  'tour.ai.folderRead': '이 장면의 파일 읽기와 편집',
+  'tour.ai.folderOther': '다른 폴더',
+  'tour.ai.folderWeb': '명령과 웹',
 
   'tour.controls.kicker': '장면',
   'tour.controls.title': '내 마음대로 꾸미는 장면',

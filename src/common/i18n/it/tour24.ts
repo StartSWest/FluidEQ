@@ -1,38 +1,38 @@
 // Novità della 2.4 (`renderer/components/featureTour/release24.tsx`).
 const tour24 = {
   'tour.animations.kicker': 'STUDIO · ANIMAZIONI',
-  'tour.animations.title': 'Creature che si muovono, disegnate dalla tua IA',
+  'tour.animations.title':
+    'Immagini che si muovono, controllate fotogramma per fotogramma',
   'tour.animations.subtitle':
     'Ogni animazione di una scena, fotogramma per fotogramma',
   'tour.animations.lead':
-    'Chiedi un uccello, un pesce o qualcuno che balla, e la tua IA lo disegna fotogramma per fotogramma nella scena. La scheda Animazioni le riproduce tutte.',
+    'Anima le immagini della tua scena. La scheda Animazioni riproduce ogni animazione di una scena e ne apre una qualsiasi per scorrerla.',
   'tour.animations.point1':
     'Riproducila su Terreno, Cielo o Acqua, in salita o in discesa, a ogni velocità, fotogramma per fotogramma, o in grande su tutto lo Studio.',
   'tour.animations.point2':
-    'Ogni animazione ha il suo animatore, una chat accanto: guarda tutti i fotogrammi insieme, trova quello che galleggia o salta, e lo ridisegna.',
+    'Ogni animazione ha il suo animatore, una chat accanto: guarda tutti i fotogrammi insieme, trova quello che galleggia o salta, e lo rimette in linea.',
   'tour.animations.point3':
     'Ogni nuovo progetto parte con una luna nella sua sfera e una rondine che vola sopra, così immagini e animazioni si imparano dal primo giorno.',
   'tour.animations.how':
-    'Apri Visualizzatori, poi lo Studio, e scegli Animazioni sotto il palco. Chiedi un’animazione alla chat con parole tue.',
+    'Apri Visualizzatori, poi lo Studio, e scegli Animazioni sotto il palco. Chiedi alla chat di animare un’immagine della tua scena.',
   'tour.animations.open': 'Apri Visualizzatori',
   'tour.animations.imageAlt':
     'La scheda Animazioni dello Studio con una rondine che batte le ali sullo sfondo Cielo e i suoi otto fotogrammi in una striscia, accanto alla chat del suo animatore che trova il fotogramma che salta.',
   'tour.animations.task':
-    'fai planare la rondine tra un battito d’ali e l’altro',
+    'controlla il volo della rondine fotogramma per fotogramma',
   'tour.animations.stepLook':
     'Guardati tutti i {count} fotogrammi uno accanto all’altro',
   'tour.animations.stepJump': 'Il fotogramma {frame} salta sopra gli altri',
   'tour.animations.stepFix':
-    'Ridisegnato il fotogramma {frame}, in linea con gli altri',
+    'Rimesso il fotogramma {frame} in linea con gli altri',
   'tour.animations.reply':
-    'Ora la planata si legge: le ali restano aperte un tempo in più e nessun fotogramma salta.',
-
+    'Ora il volo scorre fluido: ogni fotogramma sta sulla stessa linea.',
   'tour.pictures.kicker': 'STUDIO · IMMAGINI',
   'tour.pictures.title': 'Guarda ogni immagine, segnala, rimandala',
   'tour.pictures.subtitle':
     'Ingrandisci, copia e disegna sulle immagini della chat',
   'tour.pictures.lead':
-    'Ogni immagine che la tua IA crea o apre compare direttamente nella chat. Fai clic su una per vederla in grande e ingrandiscila quanto vuoi.',
+    'Ogni immagine che la tua IA apre o usa compare direttamente nella chat. Fai clic su una per vederla in grande e ingrandiscila quanto vuoi.',
   'tour.pictures.point1':
     'Disegnaci sopra proprio dove stai ingrandendo: cerchia un punto, indica con una freccia, scrivi una parola o ritaglia la parte che conta, poi allegala al tuo prossimo messaggio.',
   'tour.pictures.point2':
@@ -44,8 +44,9 @@ const tour24 = {
   'tour.pictures.open': 'Apri Visualizzatori',
   'tour.pictures.imageAlt':
     'Un’immagine della luna aperta in grande e ingrandita, con un cerchio intorno a un cratere, una freccia e una parola, il ritaglio che si stringe e i pulsanti Copia immagine e Allega alla chat, accanto alla chat da cui è arrivata.',
-  'tour.pictures.ask': 'Una luna per la sfera, luminosa sul bordo.',
-  'tour.pictures.reply': 'Eccola. La trovi anche in Immagini.',
+  'tour.pictures.ask': 'Metti questa luna nella sfera, luminosa sul bordo.',
+  'tour.pictures.reply':
+    'Fatto: brilla sul bordo, e la trovi anche in Immagini.',
   'tour.pictures.mark': 'più luce',
   'tour.pictures.followUp': 'Fai brillare questo cratere sui bassi.',
 
@@ -75,7 +76,7 @@ const tour24 = {
   'tour.ai.lead':
     'La tua IA ora lavora su più scene insieme, ognuna nella sua chat, e usa meno del tuo piano Claude per farlo.',
   'tour.ai.point1':
-    'Lavora solo con i file della scena, dentro la sua cartella, e non può toccare nient’altro sul tuo computer. Quando vuole creare un’immagine con ChatGPT, chiede prima su una scheda nella chat.',
+    'Lavora solo con i file della scena, dentro la sua cartella, con gli strumenti di FluidEQ, e non può toccare nient’altro sul tuo computer.',
   'tour.ai.point2':
     'Le abilità di FluidEQ per mondi 3D, foto in 3D e animazione arrivano con l’app e sono sempre aggiornate.',
   'tour.ai.point3':
@@ -84,11 +85,15 @@ const tour24 = {
     'Apri una scena nello Studio e scrivi nella sua chat. Modello e impegno sono sotto la casella in cui scrivi.',
   'tour.ai.open': 'Apri Visualizzatori',
   'tour.ai.imageAlt':
-    'Tre scene su cui si lavora insieme, due ancora in corso e una tenuta come versione 7, sopra le abilità di FluidEQ, accanto a una scheda che chiede se creare un’immagine con ChatGPT e al menu di modello e impegno.',
+    'Tre scene su cui si lavora insieme, due ancora in corso e una tenuta come versione 7, sopra le abilità di FluidEQ, accanto al segno che l’IA resta nella cartella della scena e al menu di modello e impegno.',
   'tour.ai.skills': 'Abilità di FluidEQ',
   'tour.ai.skillWorlds': 'Mondi 3D',
   'tour.ai.skillPhotos': 'Foto in 3D',
   'tour.ai.skillAnimation': 'Animazione',
+  'tour.ai.folderTitle': 'Solo in questa scena',
+  'tour.ai.folderRead': 'Legge e modifica i file di questa scena',
+  'tour.ai.folderOther': 'Altre cartelle',
+  'tour.ai.folderWeb': 'Comandi e web',
 
   'tour.controls.kicker': 'SCENE',
   'tour.controls.title': 'Scene da fare tue',

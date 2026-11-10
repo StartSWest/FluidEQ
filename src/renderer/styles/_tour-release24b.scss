@@ -158,32 +158,36 @@ $loop: 10s;
   font-size: calc(#{$u} * 0.58);
 }
 
-// One of the member's own tools asking first, on the chat's card.
-.ai-visual__ask {
+// What holds the AI to the open scene (`chatSandbox.ts`): its folder, what
+// it may do there, and what it may not.
+.ai-visual__folder {
   @include panel;
   @include framed;
 
   display: grid;
   padding: calc(#{$u} * 0.6);
-  gap: calc(#{$u} * 0.35);
-  border-color: color-mix(in srgb, $amber 45%, transparent);
-  animation: ai-visual-ask $loop $ease-out infinite;
+  gap: calc(#{$u} * 0.3);
+  border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+  animation: ai-visual-folder $loop $ease-out infinite;
   @include still;
 
   strong {
+    display: flex;
+    align-items: center;
     color: $text-primary;
     font-size: calc(#{$u} * 0.66);
     font-weight: $weight-bold;
-  }
+    gap: calc(#{$u} * 0.35);
 
-  small {
-    color: $text-muted;
-    font-size: calc(#{$u} * 0.56);
-    line-height: 1.4;
+    svg {
+      width: calc(#{$u} * 0.75);
+      height: calc(#{$u} * 0.75);
+      color: $secondary-light;
+    }
   }
 }
 
-@keyframes ai-visual-ask {
+@keyframes ai-visual-folder {
   0%,
   8% {
     opacity: 0;
@@ -201,16 +205,42 @@ $loop: 10s;
   }
 }
 
-.ai-visual__ask-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: calc(#{$u} * 0.3);
+.ai-visual__path {
+  overflow: hidden;
+  padding: calc(#{$u} * 0.2) calc(#{$u} * 0.4);
+  border-radius: $radius-xs;
+  background: $surface-well;
+  color: $text-muted;
+  font-family: $font-mono;
+  font-size: calc(#{$u} * 0.54);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-  .button {
-    min-height: calc(#{$u} * 1.5);
-    padding: calc(#{$u} * 0.18) calc(#{$u} * 0.5);
-    font-size: calc(#{$u} * 0.58);
-    cursor: default;
+.ai-visual__rule {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.58);
+  gap: calc(#{$u} * 0.35);
+
+  svg {
+    width: calc(#{$u} * 0.6);
+    height: calc(#{$u} * 0.6);
+    flex: 0 0 auto;
+  }
+
+  &.is-yes svg {
+    color: $secondary-light;
+  }
+
+  &.is-no {
+    color: $text-muted;
+
+    svg {
+      color: $red;
+    }
   }
 }
 

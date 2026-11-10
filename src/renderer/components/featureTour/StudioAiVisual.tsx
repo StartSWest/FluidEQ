@@ -13,11 +13,11 @@ import { useTranslation } from '../../utils/I18nContext';
 
 /**
  * The Studio's AI at work on three scenes at once, each its own chat: two
- * still working, one just kept as a new version. In the open chat, the
- * card that asks before ChatGPT paints a picture for the scene - the one
- * question the chat puts to the member, since the AI is held to the scene's
- * own files (`chatSandbox.ts`) - and beside it the menu that picks the model and the effort - the models
- * as Claude Code names them. Under the scenes, the skills FluidEQ ships
+ * still working, one just kept as a new version. Beside them what holds the
+ * AI to the open scene: its folder, its own files read and edited, other
+ * folders, commands and the web refused (`chatSandbox.ts`) - and under it
+ * the menu that picks the model and the effort, the models as Claude Code
+ * names them. Under the scenes, the skills FluidEQ ships
  * with the app, which every chat reads.
  *
  * One loop of CSS (`_tour-release24b.scss`).
@@ -42,6 +42,9 @@ const MODELS: readonly { name: string; hint: TranslationKey }[] = [
   { name: 'Sonnet 5.5', hint: 'studioChat.modelHintSonnet' },
   { name: 'Haiku 5.5', hint: 'studioChat.modelHintHaiku' },
 ];
+
+/** The open scene's folder, as the Studio keeps its projects. */
+const SCENE_FOLDER = 'FluidEQ Studio\\Alpine';
 
 const SKILLS: readonly TranslationKey[] = [
   'tour.ai.skillWorlds',
@@ -87,22 +90,23 @@ export default function StudioAiVisual() {
       </div>
 
       <div className="ai-visual__chat">
-        <span className="ai-visual__ask">
-          <strong>{t('studioChat.ask.pictureTitle')}</strong>
-          <small>
-            {t('studioChat.ask.pictureSize', { width: 1024, height: 1024 })}
-            {' · '}
-            {t('studioChat.ask.transparent')}
-          </small>
-          <small>{t('studioChat.ask.cost')}</small>
-          <span className="ai-visual__ask-buttons">
-            <span className="button small">{t('studioChat.ask.makeIt')}</span>
-            <span className="button small subtle">
-              {t('studioChat.ask.allowChat')}
-            </span>
-            <span className="button small subtle">
-              {t('studioChat.ask.notNow')}
-            </span>
+        <span className="ai-visual__folder">
+          <strong>
+            <Glyph name="lock" />
+            {t('tour.ai.folderTitle')}
+          </strong>
+          <span className="ai-visual__path">{SCENE_FOLDER}</span>
+          <span className="ai-visual__rule is-yes">
+            <Glyph name="check" />
+            {t('tour.ai.folderRead')}
+          </span>
+          <span className="ai-visual__rule is-no">
+            <Glyph name="close" />
+            {t('tour.ai.folderOther')}
+          </span>
+          <span className="ai-visual__rule is-no">
+            <Glyph name="close" />
+            {t('tour.ai.folderWeb')}
           </span>
         </span>
 
