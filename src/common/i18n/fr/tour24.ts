@@ -68,11 +68,11 @@ const tour24 = {
   'tour.ai.kicker': 'STUDIO · VOTRE IA',
   'tour.ai.title': 'Une IA qui travaille sur toutes vos scènes',
   'tour.ai.subtitle':
-    'Plusieurs scènes à la fois, vos outils, tous les modèles',
+    'Plusieurs scènes à la fois, dans leur dossier, tous les modèles',
   'tour.ai.lead':
     'Votre IA travaille désormais sur plusieurs scènes à la fois, chacune dans son propre chat, et consomme moins de votre forfait Claude pour le faire.',
   'tour.ai.point1':
-    'Elle peut utiliser vos propres outils et plugins Claude Code, et chacun demande d’abord sur une carte dans le chat : autorisez-le une fois, toujours dans ce chat, ou jamais. Elle ne travaille que dans le dossier de la scène.',
+    'Elle ne travaille qu’avec les fichiers de la scène, dans son dossier, et ne peut toucher à rien d’autre sur votre ordinateur. Quand elle veut créer une image avec ChatGPT, elle demande d’abord sur une carte dans le chat.',
   'tour.ai.point2':
     'Les compétences de FluidEQ pour les mondes 3D, les photos en 3D et l’animation sont livrées avec l’app et toujours à jour.',
   'tour.ai.point3':
@@ -81,7 +81,7 @@ const tour24 = {
     'Ouvrez une scène dans le Studio et écrivez dans son chat. Le modèle et l’effort sont sous la zone de saisie.',
   'tour.ai.open': 'Ouvrir Visualiseurs',
   'tour.ai.imageAlt':
-    'Trois scènes travaillées en même temps, deux encore en cours et une gardée comme version 7, au-dessus des compétences de FluidEQ, à côté d’une carte demandant d’autoriser l’un de vos outils et du menu du modèle et de l’effort.',
+    'Trois scènes travaillées en même temps, deux encore en cours et une gardée comme version 7, au-dessus des compétences de FluidEQ, à côté d’une carte demandant s’il faut créer une image avec ChatGPT et du menu du modèle et de l’effort.',
   'tour.ai.skills': 'Compétences de FluidEQ',
   'tour.ai.skillWorlds': 'Mondes 3D',
   'tour.ai.skillPhotos': 'Photos en 3D',

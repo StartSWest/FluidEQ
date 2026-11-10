@@ -13,9 +13,10 @@ import { useTranslation } from '../../utils/I18nContext';
 
 /**
  * The Studio's AI at work on three scenes at once, each its own chat: two
- * still working, one just kept as a new version. In the open chat, one of
- * the member's own Claude Code tools asks first, on the chat's own card,
- * and beside it the menu that picks the model and the effort - the models
+ * still working, one just kept as a new version. In the open chat, the
+ * card that asks before ChatGPT paints a picture for the scene - the one
+ * question the chat puts to the member, since the AI is held to the scene's
+ * own files (`chatSandbox.ts`) - and beside it the menu that picks the model and the effort - the models
  * as Claude Code names them. Under the scenes, the skills FluidEQ ships
  * with the app, which every chat reads.
  *
@@ -47,9 +48,6 @@ const SKILLS: readonly TranslationKey[] = [
   'tour.ai.skillPhotos',
   'tour.ai.skillAnimation',
 ];
-
-/** The member's own tool asking on the card: a plugin of theirs. */
-const TOOL = 'Blender';
 
 export default function StudioAiVisual() {
   const { t } = useTranslation();
@@ -90,15 +88,20 @@ export default function StudioAiVisual() {
 
       <div className="ai-visual__chat">
         <span className="ai-visual__ask">
-          <strong>{t('studioChat.ask.toolTitle', { tool: TOOL })}</strong>
-          <small>{t('studioChat.ask.toolBody')}</small>
+          <strong>{t('studioChat.ask.pictureTitle')}</strong>
+          <small>
+            {t('studioChat.ask.pictureSize', { width: 1024, height: 1024 })}
+            {' · '}
+            {t('studioChat.ask.transparent')}
+          </small>
+          <small>{t('studioChat.ask.cost')}</small>
           <span className="ai-visual__ask-buttons">
-            <span className="button small">{t('studioChat.ask.allow')}</span>
+            <span className="button small">{t('studioChat.ask.makeIt')}</span>
             <span className="button small subtle">
-              {t('studioChat.ask.allowAlways')}
+              {t('studioChat.ask.allowChat')}
             </span>
             <span className="button small subtle">
-              {t('studioChat.ask.deny')}
+              {t('studioChat.ask.notNow')}
             </span>
           </span>
         </span>

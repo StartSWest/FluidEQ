@@ -62,10 +62,11 @@ was never published on its own; everything it held is here.
 
 - **Several scenes at once.** Each scene has its own chat, and they work at
   the same time. Idle animators are let go so they do not pile up.
-- **Your own tools, with your say.** The AI can use your own Claude Code
-  tools and plugins. Each asks first on a card in the chat: **Allow**,
-  **Always allow** for that chat, or **Don't allow**. It works only inside
-  the scene's own folder.
+- **Kept to the scene's folder.** The AI works only with the scene's own
+  files, inside its folder. It cannot run commands, browse the web or touch
+  anything else on your computer, whatever your own Claude Code settings
+  allow. Before ChatGPT paints a picture for the scene, it asks on a card in
+  the chat.
 - **FluidEQ's skills come with the app.** Its brief and its skills for 3D
   worlds, photos in 3D and animation are built into FluidEQ and always
   current, never copied into a scene's folder. A chat started on an older

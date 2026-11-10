@@ -66,11 +66,11 @@ const tour24 = {
   'tour.ai.kicker': 'ESTÚDIO · SUA IA',
   'tour.ai.title': 'Uma IA que trabalha em todas as suas cenas',
   'tour.ai.subtitle':
-    'Várias cenas ao mesmo tempo, suas ferramentas, qualquer modelo',
+    'Várias cenas ao mesmo tempo, na pasta da cena, qualquer modelo',
   'tour.ai.lead':
     'A sua IA agora trabalha em várias cenas ao mesmo tempo, cada uma no seu chat, e gasta menos do seu plano Claude para isso.',
   'tour.ai.point1':
-    'Ela pode usar as suas ferramentas e plugins do Claude Code, e cada um pergunta antes num cartão no chat: permita uma vez, sempre naquele chat ou nunca. Ela só trabalha dentro da pasta da cena.',
+    'Ela só trabalha com os arquivos da cena, dentro da pasta dela, e não pode mexer em mais nada do seu computador. Quando quer criar uma imagem com o ChatGPT, pergunta antes num cartão no chat.',
   'tour.ai.point2':
     'As habilidades do FluidEQ para mundos 3D, fotos em 3D e animação vêm com o app e estão sempre atualizadas.',
   'tour.ai.point3':
@@ -79,7 +79,7 @@ const tour24 = {
     'Abra uma cena no Estúdio e escreva no chat dela. O modelo e o esforço ficam embaixo da caixa onde você escreve.',
   'tour.ai.open': 'Abrir Visualizadores',
   'tour.ai.imageAlt':
-    'Três cenas sendo trabalhadas ao mesmo tempo, duas ainda em andamento e uma guardada como versão 7, sobre as habilidades do FluidEQ, ao lado de um cartão que pede para permitir uma das suas ferramentas e do menu de modelo e esforço.',
+    'Três cenas sendo trabalhadas ao mesmo tempo, duas ainda em andamento e uma guardada como versão 7, sobre as habilidades do FluidEQ, ao lado de um cartão que pergunta se deve criar uma imagem com o ChatGPT e do menu de modelo e esforço.',
   'tour.ai.skills': 'Habilidades do FluidEQ',
   'tour.ai.skillWorlds': 'Mundos 3D',
   'tour.ai.skillPhotos': 'Fotos em 3D',

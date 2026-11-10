@@ -63,11 +63,11 @@ const tour24 = {
 
   'tour.ai.kicker': '工作室 · 你的 AI',
   'tour.ai.title': '一個照顧你所有場景的 AI',
-  'tour.ai.subtitle': '同時做多個場景，用你自己的工具，任選模型',
+  'tour.ai.subtitle': '同時做多個場景，只在場景資料夾裡，任選模型',
   'tour.ai.lead':
     '你的 AI 現在能同時處理多個場景，每個場景一個聊天，而且消耗的 Claude 方案額度更少。',
   'tour.ai.point1':
-    '它可以使用你自己的 Claude Code 工具和外掛，每個工具都會先在聊天裡用一張卡片詢問：允許一次、在此聊天中一律允許，或不允許。它只在場景自己的資料夾裡工作。',
+    '它只處理場景自己的檔案，只在場景資料夾裡工作，碰不到電腦上的其他任何東西。想用 ChatGPT 產生圖片時，會先在聊天裡用一張卡片詢問。',
   'tour.ai.point2':
     'FluidEQ 自己的 3D 世界、3D 照片和動畫技能隨應用程式提供，永遠保持最新。',
   'tour.ai.point3':
@@ -76,7 +76,7 @@ const tour24 = {
     '在工作室開啟一個場景，在它的聊天裡輸入。模型和投入程度就在輸入框下方。',
   'tour.ai.open': '開啟展示臺',
   'tour.ai.imageAlt':
-    '同時進行的三個場景，兩個仍在處理，一個已保存為版本 7，下方是 FluidEQ 的技能；旁邊是請求允許你某個工具的卡片，以及模型和投入程度選單。',
+    '同時進行的三個場景，兩個仍在處理，一個已保存為版本 7，下方是 FluidEQ 的技能；旁邊是詢問是否用 ChatGPT 產生圖片的卡片，以及模型和投入程度選單。',
   'tour.ai.skills': 'FluidEQ 的技能',
   'tour.ai.skillWorlds': '3D 世界',
   'tour.ai.skillPhotos': '3D 照片',

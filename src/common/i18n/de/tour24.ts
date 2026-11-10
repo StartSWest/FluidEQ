@@ -68,11 +68,11 @@ const tour24 = {
   'tour.ai.kicker': 'STUDIO · IHRE KI',
   'tour.ai.title': 'Eine KI, die an all Ihren Szenen arbeitet',
   'tour.ai.subtitle':
-    'Mehrere Szenen gleichzeitig, eigene Werkzeuge, jedes Modell',
+    'Mehrere Szenen gleichzeitig, im Ordner der Szene, jedes Modell',
   'tour.ai.lead':
     'Ihre KI arbeitet jetzt an mehreren Szenen gleichzeitig, jede in ihrem eigenen Chat, und verbraucht dabei weniger von Ihrem Claude-Plan.',
   'tour.ai.point1':
-    'Sie kann Ihre eigenen Werkzeuge und Plug-ins von Claude Code nutzen, und jedes fragt vorher auf einer Karte im Chat: einmal erlauben, immer in diesem Chat oder gar nicht. Sie arbeitet nur im Ordner der Szene.',
+    'Sie arbeitet nur mit den eigenen Dateien der Szene, in ihrem Ordner, und kann nichts anderes auf Ihrem Computer anfassen. Will sie ein Bild mit ChatGPT erstellen, fragt sie vorher auf einer Karte im Chat.',
   'tour.ai.point2':
     'Die eigenen Fähigkeiten von FluidEQ für 3D-Welten, Fotos in 3D und Animation kommen mit der App und sind immer aktuell.',
   'tour.ai.point3':
@@ -81,7 +81,7 @@ const tour24 = {
     'Öffnen Sie eine Szene im Studio und schreiben Sie in ihren Chat. Modell und Aufwand finden Sie unter dem Eingabefeld.',
   'tour.ai.open': 'Visualizer öffnen',
   'tour.ai.imageAlt':
-    'Drei Szenen, an denen gleichzeitig gearbeitet wird, zwei noch in Arbeit und eine als Version 7 behalten, über den Fähigkeiten von FluidEQ, neben einer Karte, die um Erlaubnis für eines Ihrer Werkzeuge bittet, und dem Menü für Modell und Aufwand.',
+    'Drei Szenen, an denen gleichzeitig gearbeitet wird, zwei noch in Arbeit und eine als Version 7 behalten, über den Fähigkeiten von FluidEQ, neben einer Karte, die fragt, ob ein Bild mit ChatGPT erstellt werden soll, und dem Menü für Modell und Aufwand.',
   'tour.ai.skills': 'Fähigkeiten von FluidEQ',
   'tour.ai.skillWorlds': '3D-Welten',
   'tour.ai.skillPhotos': 'Fotos in 3D',
