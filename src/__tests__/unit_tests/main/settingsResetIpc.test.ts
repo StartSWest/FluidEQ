@@ -321,6 +321,11 @@ const NOT_SETTING_FILES = [
   'relay.json',
   'relay-left.json',
   'relay-sessions.json',
+  // What Claude Code said it offers, kept until the next start asks it again,
+  // and the settings file that keeps the member's hooks out of that ask
+  // (`claudeModels.ts`): a cache and a launch file, not a choice.
+  'claude-models.json',
+  'claude-models-settings.json',
   // Another program's sign-in, read where it keeps it.
   '.credentials.json',
   'auth.json',
