@@ -22,6 +22,11 @@ import StudioChatModelPick from './StudioChatModelPick';
 import '../../styles/StudioChatComposer.scss';
 
 interface IStudioChatComposerProps {
+  /**
+   * The chat this box writes to: a scene's project id or an animator's key.
+   * Its model and effort are that chat's own (chatPicks.ts).
+   */
+  chatKey: string;
   draft: string;
   onDraft: (draft: string) => void;
   /** The stage's picture going with the next message, marks and all. */
@@ -55,6 +60,7 @@ interface IStudioChatComposerProps {
  * dots, then a round Send that becomes Stop while Claude works.
  */
 export default function StudioChatComposer({
+  chatKey,
   draft,
   onDraft,
   stage,
@@ -239,8 +245,8 @@ export default function StudioChatComposer({
               event.target.value = '';
             }}
           />
-          <StudioChatModelPick disabled={blocked} />
-          <StudioChatEffortDots disabled={blocked} />
+          <StudioChatModelPick chatKey={chatKey} disabled={blocked} />
+          <StudioChatEffortDots chatKey={chatKey} disabled={blocked} />
           {meter}
           {busy && (
             <button

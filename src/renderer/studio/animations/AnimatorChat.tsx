@@ -75,12 +75,14 @@ export default function AnimatorChat({ projectId, name }: IAnimatorChatProps) {
             chat={chat}
             onIdea={setDraft}
             onCarryOn={() => {
-              sendToAnimator(name, t('studioChat.carryOnMessage')).catch(
-                () => undefined,
-              );
+              sendToAnimator(
+                projectId,
+                name,
+                t('studioChat.carryOnMessage'),
+              ).catch(() => undefined);
             }}
             onRetry={() => {
-              retryAnimator(name).catch(() => undefined);
+              retryAnimator(projectId, name).catch(() => undefined);
             }}
             onRestore={(entryId) => restoreAnimatorVersion(name, entryId)}
             onAttachPicture={setStage}
@@ -94,17 +96,20 @@ export default function AnimatorChat({ projectId, name }: IAnimatorChatProps) {
           {ask && <StudioChatAsk ask={ask} />}
           <StudioChatQueue
             queued={chat?.queued ?? []}
-            onSendNow={() => sendNowToAnimator(name)}
+            onSendNow={() => sendNowToAnimator(projectId, name)}
             onUnqueue={(id) => unqueueAnimator(name, id)}
           />
           <StudioChatComposer
+            chatKey={key}
             draft={draft}
             onDraft={setDraft}
             stage={stage}
             onStage={setStage}
             busy={working}
             placeholder={t('studio.animator.placeholder')}
-            onSend={(text, picture) => sendToAnimator(name, text, picture)}
+            onSend={(text, picture) =>
+              sendToAnimator(projectId, name, text, picture)
+            }
             onStop={() => stopAnimator(name)}
           />
         </>

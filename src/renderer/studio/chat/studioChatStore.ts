@@ -6,8 +6,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useSyncExternalStore } from 'react';
 import {
-  isStudioChatEffort,
-  isStudioChatModel,
   type IStudioChat,
   type IStudioChatCodexState,
   type IStudioChatLimits,
@@ -15,18 +13,15 @@ import {
   type TStudioChatAnswer,
   type TStudioChatAsk,
   type TStudioChatAvailability,
-  type TStudioChatEffort,
   type TStudioChatEntry,
-  type TStudioChatModel,
   type TStudioChatRestore,
 } from 'common/studioChat';
 import { CHATGPT_PICTURES_OPEN } from 'common/studioChatPictures';
 import { readStored, writeStored } from '../../utils/graphStorage';
 import chatBrief from './chatBrief';
+import { chatPicksOf } from './chatPicks';
 import packArtwork from './chatPack';
 
-const MODEL_KEY = 'fluideq.studio.chatModel';
-const EFFORT_KEY = 'fluideq.studio.chatEffort';
 const ZOOM_KEY = 'fluideq.studio.chatZoom';
 
 /**
@@ -53,9 +48,6 @@ interface IChatState {
   chat?: IStudioChat;
   /** Claude Code's sign-in window is open. */
   signingIn: boolean;
-  /** The member's picks, kept for the next visit and every project. */
-  model: TStudioChatModel;
-  effort: TStudioChatEffort;
   /** A card the chat put up for the member: connect ChatGPT, or a picture. */
   ask?: TStudioChatAsk;
   /** ChatGPT's pictures here: Codex's state, and whether it is connected. */
@@ -128,20 +120,6 @@ const workAsked = (
     : work;
 };
 
-const storedModel = (): TStudioChatModel => {
-  const stored = readStored(MODEL_KEY);
-  return isStudioChatModel(stored) ? stored : 'default';
-};
-/**
- * Medium unless the member picked another level (Ivan, 2026-10-09: "set
- * medium as default"): the dots offer no "Claude Code's own", so one stored
- * before they existed reads as Medium too.
- */
-const storedEffort = (): TStudioChatEffort => {
-  const stored = readStored(EFFORT_KEY);
-  return isStudioChatEffort(stored) && stored !== 'default' ? stored : 'medium';
-};
-
 const storedZoom = () => {
   const stored = Number(readStored(ZOOM_KEY));
   return STUDIO_CHAT_ZOOMS.find((zoom) => zoom === stored) ?? 1;
@@ -152,12 +130,16 @@ const initialState = (): IChatState => ({
   availability: { state: 'checking' },
   signingIn: false,
   codexSigningIn: false,
-  model: storedModel(),
-  effort: storedEffort(),
   work: {},
 });
 
 let state: IChatState = initialState();
+
+/**
+ * The open scene's chat's own model and effort (`chatPicks.ts`): its key is
+ * its project's id. Before its chat has loaded, the last pick made anywhere.
+ */
+const scenePicks = () => chatPicksOf(state.chat?.projectId);
 const listeners = new Set<() => void>();
 let unlisten: (() => void) | undefined;
 
@@ -293,8 +275,7 @@ export const signInToStudioChat = async () => {
 export const retryStudioChat = () =>
   bridge()?.studioChatRetry?.({
     brief: chatBrief(),
-    model: state.model,
-    effort: state.effort,
+    ...scenePicks(),
   }) ?? Promise.resolve();
 
 /** The open project's conversation, as main keeps it. */
@@ -368,17 +349,6 @@ export const disconnectStudioChatCodex = async () => {
   }
 };
 
-/** The member's model and effort, which every chat of theirs starts on. */
-export const studioChatPicks = () => ({
-  model: state.model,
-  effort: state.effort,
-});
-
-export const setStudioChatModel = (model: TStudioChatModel) => {
-  writeStored(MODEL_KEY, model);
-  set({ model });
-};
-
 /** One size up or down the steps, held at either end; 0 is back to 1. */
 export const stepStudioChatZoom = (direction: -1 | 0 | 1) => {
   const at = STUDIO_CHAT_ZOOMS.findIndex((zoom) => zoom === state.zoom);
@@ -392,11 +362,6 @@ export const stepStudioChatZoom = (direction: -1 | 0 | 1) => {
   set({ zoom: next });
 };
 
-export const setStudioChatEffort = (effort: TStudioChatEffort) => {
-  writeStored(EFFORT_KEY, effort);
-  set({ effort });
-};
-
 /**
  * A message to Claude about the open project, with the brief and the
  * member's model and effort picks; and the stage's picture when attached.
@@ -405,8 +370,7 @@ export const sendToStudioChat = (text: string, stage?: Uint8Array) =>
   bridge()?.studioChatSend?.({
     text,
     brief: chatBrief(),
-    model: state.model,
-    effort: state.effort,
+    ...scenePicks(),
     ...(stage ? { stage } : {}),
   }) ?? Promise.resolve();
 
@@ -417,8 +381,7 @@ export const sendToStudioChat = (text: string, stage?: Uint8Array) =>
 export const compactStudioChat = () =>
   bridge()?.studioChatCompact?.({
     brief: chatBrief(),
-    model: state.model,
-    effort: state.effort,
+    ...scenePicks(),
   }) ?? Promise.resolve();
 
 /** A queued message taken back before it went. */
@@ -426,8 +389,7 @@ export const compactStudioChat = () =>
 export const sendNowStudioChat = () =>
   bridge()?.studioChatSendNow?.({
     brief: chatBrief(),
-    model: state.model,
-    effort: state.effort,
+    ...scenePicks(),
   }) ?? Promise.resolve();
 
 export const unqueueStudioChat = (id: string) =>

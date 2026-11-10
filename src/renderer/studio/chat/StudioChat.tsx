@@ -205,6 +205,7 @@ export default function StudioChat({
           onUnqueue={unqueueStudioChat}
         />
         <StudioChatComposer
+          chatKey={project.id}
           draft={draft.text}
           onDraft={setDraft}
           stage={draft.stage}

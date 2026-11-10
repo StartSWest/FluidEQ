@@ -150,7 +150,7 @@ describe("an animator's chat in the window", () => {
   });
 
   it("sends with the animator's brief, which names its animation", async () => {
-    await sendToAnimator('wolf-walk', 'make the legs smoother');
+    await sendToAnimator('p1', 'wolf-walk', 'make the legs smoother');
     const [message] = bridge.studioAnimatorSend.mock.calls[0] as unknown as [
       { animation: string; text: string; brief: string },
     ];

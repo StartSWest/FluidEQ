@@ -8,7 +8,7 @@ import { useRef, type KeyboardEvent } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { STUDIO_CHAT_EFFORTS, type TStudioChatEffort } from 'common/studioChat';
 import { useTranslation } from '../../utils/I18nContext';
-import { setStudioChatEffort, useStudioChat } from './studioChatStore';
+import { setChatEffort, useChatPicks } from './chatPicks';
 
 const EFFORT_WORDS: Record<TStudioChatEffort, TranslationKey> = {
   default: 'studioChat.effortDefault',
@@ -46,12 +46,15 @@ const ARROW_MOVES: Partial<Record<string, number>> = {
  * first, and the arrows move the pick along the row.
  */
 export default function StudioChatEffortDots({
+  chatKey,
   disabled,
 }: {
+  /** The chat whose effort this is: each chat keeps its own. */
+  chatKey?: string;
   disabled: boolean;
 }) {
   const { t } = useTranslation();
-  const { effort } = useStudioChat();
+  const { effort } = useChatPicks(chatKey);
   const dots = useRef<(HTMLButtonElement | null)[]>([]);
   const level = STEPS.findIndex((step) => step === effort);
   const stop = level < 0 ? 0 : level;
@@ -69,7 +72,7 @@ export default function StudioChatEffortDots({
     }
     event.preventDefault();
     const next = Math.min(STEPS.length - 1, Math.max(0, stop + move));
-    setStudioChatEffort(STEPS[next]);
+    setChatEffort(chatKey, STEPS[next]);
     dots.current[next]?.focus();
   };
 
@@ -103,7 +106,7 @@ export default function StudioChatEffortDots({
             className={litClass(index)}
             tabIndex={index === stop ? 0 : -1}
             disabled={disabled}
-            onClick={() => setStudioChatEffort(step)}
+            onClick={() => setChatEffort(chatKey, step)}
             onKeyDown={onKeyDown}
           />
         ))}

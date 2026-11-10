@@ -17,7 +17,7 @@ import {
 } from 'common/studioChat';
 import { useTranslation } from '../../utils/I18nContext';
 import Dropdown from '../../widgets/Dropdown';
-import { setStudioChatModel, useStudioChat } from './studioChatStore';
+import { setChatModel, useChatPicks } from './chatPicks';
 import { useStudioChatModels } from './studioChatModels';
 
 /** What each line this app knows of is for, in the member's language. */
@@ -89,12 +89,15 @@ const rowsOf = ({ checked, lines }: IStudioChatModels): IRow[] => {
  * conversation.
  */
 export default function StudioChatModelPick({
+  chatKey,
   disabled,
 }: {
+  /** The chat whose model this is: each chat keeps its own. */
+  chatKey?: string;
   disabled: boolean;
 }) {
   const { t } = useTranslation();
-  const { model } = useStudioChat();
+  const { model } = useChatPicks(chatKey);
   const models = useStudioChatModels();
   const rows = rowsOf(models);
   const shown: TStudioChatModel = isStudioChatModelOffered(models, model)
@@ -151,7 +154,7 @@ export default function StudioChatModelPick({
           isStudioChatModel(value) &&
           isStudioChatModelOffered(models, value)
         ) {
-          setStudioChatModel(value);
+          setChatModel(chatKey, value);
         }
       }}
     />

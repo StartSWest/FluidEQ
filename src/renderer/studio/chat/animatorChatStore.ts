@@ -13,7 +13,8 @@ import {
   type TStudioChatRestore,
 } from 'common/studioChat';
 import animatorBrief from './animatorBrief';
-import { studioChatPicks, withEntry } from './studioChatStore';
+import { chatPicksOf } from './chatPicks';
+import { withEntry } from './studioChatStore';
 
 /**
  * The animators' chats as the window last heard them (Ivan, 2026-11-09: "when
@@ -120,8 +121,12 @@ export const loadAnimatorChat = async (name: string) => {
   });
 };
 
-/** A message to an animation's animator, with its brief and the member's picks. */
+/**
+ * A message to an animation's animator, with its brief and that animator's
+ * own model and effort (`chatPicks.ts`).
+ */
 export const sendToAnimator = (
+  projectId: string,
   name: string,
   text: string,
   stage?: Uint8Array,
@@ -130,22 +135,22 @@ export const sendToAnimator = (
     animation: name,
     text,
     brief: animatorBrief(name),
-    ...studioChatPicks(),
+    ...chatPicksOf(animatorChatKey(projectId, name)),
     ...(stage ? { stage } : {}),
   }) ?? Promise.resolve();
 
-export const retryAnimator = (name: string) =>
+export const retryAnimator = (projectId: string, name: string) =>
   bridge()?.studioAnimatorRetry?.({
     animation: name,
     brief: animatorBrief(name),
-    ...studioChatPicks(),
+    ...chatPicksOf(animatorChatKey(projectId, name)),
   }) ?? Promise.resolve();
 
-export const sendNowToAnimator = (name: string) =>
+export const sendNowToAnimator = (projectId: string, name: string) =>
   bridge()?.studioAnimatorSendNow?.({
     animation: name,
     brief: animatorBrief(name),
-    ...studioChatPicks(),
+    ...chatPicksOf(animatorChatKey(projectId, name)),
   }) ?? Promise.resolve();
 
 export const stopAnimator = (name: string) =>
@@ -180,7 +185,7 @@ export const watchAnimatorStarts = (
           projectId,
           text: fromScene(task),
           brief: animatorBrief(name),
-          ...studioChatPicks(),
+          ...chatPicksOf(animatorChatKey(projectId, name)),
         })
         .catch(() => undefined);
     },

@@ -10,9 +10,10 @@ import type { IStudioChatModels } from '../../../common/studioChat';
 import StudioChatModelPick from '../../../renderer/studio/chat/StudioChatModelPick';
 import { resetStudioChatModelsForTesting } from '../../../renderer/studio/chat/studioChatModels';
 import {
-  setStudioChatModel,
-  useStudioChat,
-} from '../../../renderer/studio/chat/studioChatStore';
+  resetChatPicksForTesting,
+  setChatModel,
+  useChatPicks,
+} from '../../../renderer/studio/chat/chatPicks';
 import { setup } from '../../utils/userEventUtils';
 
 /**
@@ -50,12 +51,13 @@ beforeEach(() => {
     configurable: true,
     value: { ipcRenderer: { studioChatModels: () => answer } },
   });
-  setStudioChatModel('default');
+  resetChatPicksForTesting();
+  setChatModel(undefined, 'default');
 });
 
 /** Shows which model the store holds, beside the picker. */
 function Chosen() {
-  const { model } = useStudioChat();
+  const { model } = useChatPicks(undefined);
   return <output>{model}</output>;
 }
 
@@ -104,7 +106,7 @@ describe("the chat's model picker", () => {
   });
 
   it('falls back to Default for a saved line the plan lacks, and says so', async () => {
-    setStudioChatModel('haiku');
+    setChatModel(undefined, 'haiku');
     await open();
     expect(
       within(row('Haiku')).getByText('studioChat.modelUnavailableChosen'),
