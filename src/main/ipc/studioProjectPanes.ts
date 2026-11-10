@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { BrowserWindow, dialog } from 'electron';
 import type { IMemberSceneStore } from '../memberScenes/store';
 import type { IStoredProject } from '../memberScenes/studioProjects';
+import { registerStudioAnimationImport } from './studioAnimationImport';
 import { registerStudioAnimationsIpc } from './studioAnimations';
 import { registerStudioDemoMusicIpc } from './studioDemoMusic';
 import { registerStudioNotesIpc } from './studioNotes';
@@ -96,10 +97,15 @@ export const registerStudioProjectPanes = ({
     mayEdit: mayUseActive,
     activeFolder,
   });
+  const disposeAnimationImport = registerStudioAnimationImport({
+    mayEdit: mayUseActive,
+    activeFolder,
+  });
   return () => {
     disposeNotes();
     disposePictures();
     disposeAnimations();
+    disposeAnimationImport();
     disposePreview();
     disposeSettings();
     disposeDemoMusic();

@@ -1,10 +1,16 @@
-import { useId, useState, type ReactNode } from 'react';
+import { useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import useMovablePortal from '../../utils/useMovablePortal';
 import StudioAskCard from '../StudioAskCard';
 import AnimationFrame from './AnimationFrame';
 import AnimationView from './AnimationView';
+import type { IChosenFile } from './import/importFiles';
+import StudioAnimationImport from './import/StudioAnimationImport';
+import StudioAnimationImportCard, {
+  allowFileDrop,
+  dropFiles,
+} from './import/StudioAnimationImportCard';
 import StudioAnimationModal from './StudioAnimationModal';
 import StudioAnimatorColumn, {
   ANIMATOR_LARGE_WIDTH_KEY,
@@ -189,7 +195,13 @@ export default function StudioAnimations({
   const { t } = useTranslation();
   const titleId = useId();
   const [opened, setOpened] = useState<string>();
+  const [importing, setImporting] = useState<IChosenFile[]>();
+  const chooser = useRef<HTMLInputElement>(null);
   const shown = animations.find(({ animation }) => animation.name === opened);
+  const names = useMemo(
+    () => new Set(animations.map(({ animation }) => animation.name)),
+    [animations],
+  );
 
   if (shown?.bitmap) {
     return (
@@ -208,9 +220,12 @@ export default function StudioAnimations({
   }
 
   return (
+    // Files dropped anywhere on the tab are an import, as chosen ones are.
     <section
       className="studio-card studio-animations"
       aria-labelledby={titleId}
+      onDragOver={allowFileDrop}
+      onDrop={dropFiles(setImporting)}
     >
       <div className="studio-pictures__head">
         <span className="studio-card__eyebrow" id={titleId}>
@@ -233,7 +248,25 @@ export default function StudioAnimations({
           title={t('studio.animation.askTitle')}
           example={t('studio.animation.askExample')}
         />
+        <StudioAnimationImportCard inputRef={chooser} onFiles={setImporting} />
       </ul>
+      {importing && (
+        <StudioAnimationImport
+          files={importing}
+          taken={names}
+          onChooseAgain={() => {
+            setImporting(undefined);
+            chooser.current?.click();
+          }}
+          // The new animation opens once main says its files changed and
+          // `useStudioAnimations` has read them; until then the cards stay.
+          onAdded={(added) => {
+            setImporting(undefined);
+            setOpened(added[0]);
+          }}
+          onClose={() => setImporting(undefined)}
+        />
+      )}
     </section>
   );
 }

@@ -443,6 +443,57 @@ const studio = {
   'studio.animator.placeholder': '애니메이터에게 바꿀 점을 알려 주세요…',
   'studio.animator.fromScene': '장면 채팅에서: {task}',
   'studio.animator.resize': '애니메이터 크기를 조정하려면 드래그하세요.',
+  'studio.animationImport.cardTitle': '애니메이션 가져오기',
+  'studio.animationImport.cardText':
+    '스프라이트 시트, 움직이는 GIF·PNG·WebP, 프레임마다 한 장씩인 그림, 또는 TexturePacker·Phaser·Aseprite JSON이 딸린 시트.',
+  'studio.animationImport.choose': '파일 선택',
+  'studio.animationImport.title': '애니메이션 가져오기',
+  'studio.animationImport.lead':
+    '재생되는 모습을 확인한 뒤 추가하세요. 애니메이터가 만드는 애니메이션처럼 장면의 art 폴더에 시트로 저장됩니다.',
+  'studio.animationImport.reading': '{file} 읽는 중…',
+  'studio.animationImport.kind.grid': '스프라이트 시트를 프레임으로 자릅니다:',
+  'studio.animationImport.kind.atlas':
+    'JSON에 따라 자른 시트로, 각 프레임의 길이는 파일에 적힌 대로입니다.',
+  'studio.animationImport.kind.animated':
+    '움직이는 그림으로, 각 프레임의 길이는 파일에 적힌 대로입니다.',
+  'studio.animationImport.kind.sequence':
+    '프레임마다 한 장씩인 그림을 이름 순서대로 씁니다.',
+  'studio.animationImport.columns': '가로',
+  'studio.animationImport.rows': '세로',
+  'studio.animationImport.count': '프레임',
+  'studio.animationImport.gridFound':
+    '프레임 사이의 빈 곳에서 읽었습니다. 선이 프레임 사이에 오지 않으면 바꾸세요.',
+  'studio.animationImport.gridGuess':
+    '시트에 가로·세로로 프레임이 몇 개인지, 모두 몇 개인지 정하세요. 선이 각 프레임을 자르는 위치를 보여 줍니다.',
+  'studio.animationImport.clips': '이 파일의 애니메이션',
+  'studio.animationImport.include': '이것 추가',
+  'studio.animationImport.name': '이름',
+  'studio.animationImport.nameRule':
+    '영문 소문자, 숫자, 하이픈을 쓰고 영문자로 시작하세요.',
+  'studio.animationImport.nameTaken':
+    '이 장면에는 이미 {name}(이)라는 애니메이션이 있습니다.',
+  'studio.animationImport.loop': '반복',
+  'studio.animationImport.saved': '{file}(으)로 저장',
+  'studio.animationImport.add': '장면에 추가',
+  'studio.animationImport.addCount': '애니메이션 {count}개 추가',
+  'studio.animationImport.cancel': '취소',
+  'studio.animationImport.again': '다른 파일 선택',
+  'studio.animationImport.refused.mixed':
+    '한 번에 한 애니메이션의 파일만 고르세요: 그림 한 장, 시트와 그 JSON, 또는 프레임마다 한 장씩인 그림.',
+  'studio.animationImport.refused.tooLarge':
+    '{file}은(는) 너무 커서 가져올 수 없습니다. 그림은 40MB, JSON은 4MB까지입니다.',
+  'studio.animationImport.refused.tooMany':
+    '{most}프레임이 넘습니다. 애니메이션이 가질 수 있는 최대치입니다.',
+  'studio.animationImport.refused.unreadable':
+    '{file}을(를) 한 변이 16384픽셀 이하인 PNG, JPEG, WebP, GIF로 읽을 수 없습니다.',
+  'studio.animationImport.refused.noFrames':
+    '{file}에는 함께 고른 그림 안에 들어가는 프레임이 없습니다.',
+  'studio.animationImport.failed.full':
+    '이 장면에는 이미 애니메이션이 {most}개 있어 더 넣을 수 없습니다.',
+  'studio.animationImport.failed.write':
+    '{name}을(를) 장면 폴더에 쓸 수 없습니다.',
+  'studio.animationImport.failed.closed':
+    '애니메이션을 추가하기 전에 장면이 닫혔습니다.',
   'studio.work.tune': '튜닝',
   'studio.ship.more': '더보기',
   'studio.signals.title': '오디오 미리보기',

@@ -455,6 +455,57 @@ const studio = {
   'studio.animator.placeholder': 'एनिमेटर को बताइए क्या बदलना है…',
   'studio.animator.fromScene': 'सीन की चैट से: {task}',
   'studio.animator.resize': 'एनिमेटर की चौड़ाई बदलने के लिए खींचें',
+  'studio.animationImport.cardTitle': 'एनिमेशन इंपोर्ट करें',
+  'studio.animationImport.cardText':
+    'स्प्राइट शीट, एनिमेटेड GIF, PNG या WebP, हर फ़्रेम की एक तस्वीर, या TexturePacker, Phaser या Aseprite के JSON वाली शीट।',
+  'studio.animationImport.choose': 'फ़ाइलें चुनें',
+  'studio.animationImport.title': 'एनिमेशन इंपोर्ट करें',
+  'studio.animationImport.lead':
+    'देखें कि यह कैसे चलता है, फिर इसे जोड़ें। यह सीन के art फ़ोल्डर में शीट के रूप में सहेजा जाता है, जैसे एनिमेटर के बनाए एनिमेशन।',
+  'studio.animationImport.reading': '{file} पढ़ा जा रहा है…',
+  'studio.animationImport.kind.grid': 'एक स्प्राइट शीट, फ़्रेमों में काटी गई:',
+  'studio.animationImport.kind.atlas':
+    'अपने JSON के अनुसार काटी गई शीट, हर फ़्रेम की अवधि फ़ाइल के अनुसार।',
+  'studio.animationImport.kind.animated':
+    'एक एनिमेटेड तस्वीर, हर फ़्रेम की अवधि फ़ाइल के अनुसार।',
+  'studio.animationImport.kind.sequence':
+    'हर फ़्रेम की एक तस्वीर, उनके नामों के क्रम में।',
+  'studio.animationImport.columns': 'चौड़ाई में',
+  'studio.animationImport.rows': 'ऊँचाई में',
+  'studio.animationImport.count': 'फ़्रेम',
+  'studio.animationImport.gridFound':
+    'फ़्रेमों के बीच की ख़ाली जगहों से पढ़ा गया। अगर रेखाएँ उनके बीच नहीं पड़तीं, तो इसे बदलें।',
+  'studio.animationImport.gridGuess':
+    'तय करें कि शीट में चौड़ाई और ऊँचाई में कितने फ़्रेम हैं और कुल कितने हैं: रेखाएँ दिखाती हैं कि हर एक कहाँ काटा जाता है।',
+  'studio.animationImport.clips': 'इस फ़ाइल के एनिमेशन',
+  'studio.animationImport.include': 'इसे जोड़ें',
+  'studio.animationImport.name': 'नाम',
+  'studio.animationImport.nameRule':
+    'छोटे अक्षर, अंक और हाइफ़न इस्तेमाल करें, शुरुआत किसी अक्षर से करें।',
+  'studio.animationImport.nameTaken':
+    'सीन में {name} नाम का एनिमेशन पहले से है।',
+  'studio.animationImport.loop': 'लूप में',
+  'studio.animationImport.saved': '{file} के रूप में सहेजा जाएगा',
+  'studio.animationImport.add': 'सीन में जोड़ें',
+  'studio.animationImport.addCount': '{count} एनिमेशन जोड़ें',
+  'studio.animationImport.cancel': 'रद्द करें',
+  'studio.animationImport.again': 'दूसरी फ़ाइलें चुनें',
+  'studio.animationImport.refused.mixed':
+    'एक बार में एक ही एनिमेशन की फ़ाइलें चुनें: एक तस्वीर, एक शीट और उसका JSON, या हर फ़्रेम की एक तस्वीर।',
+  'studio.animationImport.refused.tooLarge':
+    '{file} इंपोर्ट करने के लिए बहुत बड़ी है: तस्वीर 40 MB तक और JSON 4 MB तक हो सकता है।',
+  'studio.animationImport.refused.tooMany':
+    'ये {most} से ज़्यादा फ़्रेम हैं, जो एक एनिमेशन में अधिकतम हो सकते हैं।',
+  'studio.animationImport.refused.unreadable':
+    '{file} को हर तरफ़ अधिकतम 16384 पिक्सेल वाली PNG, JPEG, WebP या GIF के रूप में पढ़ा नहीं जा सका।',
+  'studio.animationImport.refused.noFrames':
+    '{file} में ऐसा कोई फ़्रेम नहीं है जो उसके साथ चुनी गई तस्वीर में समाए।',
+  'studio.animationImport.failed.full':
+    'सीन में पहले से {most} एनिमेशन हैं, जितने वह रख सकता है।',
+  'studio.animationImport.failed.write':
+    '{name} को सीन के फ़ोल्डर में लिखा नहीं जा सका।',
+  'studio.animationImport.failed.closed':
+    'एनिमेशन जोड़े जाने से पहले सीन बंद हो गया।',
   'studio.work.tune': 'ट्यून',
   'studio.ship.more': 'और',
   'studio.signals.title': 'प्रीव्यू का ऑडियो',

@@ -464,6 +464,58 @@ const studio = {
   'studio.animator.placeholder': 'Dites à l’animateur quoi changer…',
   'studio.animator.fromScene': 'Du chat de la scène : {task}',
   'studio.animator.resize': 'Faites glisser pour redimensionner l’animateur',
+  'studio.animationImport.cardTitle': 'Importer une animation',
+  'studio.animationImport.cardText':
+    'Une planche de sprites, un GIF, PNG ou WebP animé, un fichier par image, ou une planche avec son JSON TexturePacker, Phaser ou Aseprite.',
+  'studio.animationImport.choose': 'Choisir des fichiers',
+  'studio.animationImport.title': 'Importer une animation',
+  'studio.animationImport.lead':
+    'Vérifiez comment elle joue, puis ajoutez-la. Elle est enregistrée comme une planche dans le dossier art de la scène, comme les animations que crée l’Animateur.',
+  'studio.animationImport.reading': 'Lecture de {file}…',
+  'studio.animationImport.kind.grid':
+    'Une planche de sprites, découpée en images :',
+  'studio.animationImport.kind.atlas':
+    'Une planche découpée selon son JSON, avec la durée qu’il donne à chaque image.',
+  'studio.animationImport.kind.animated':
+    'Une image animée, avec la durée qu’elle donne à chaque image.',
+  'studio.animationImport.kind.sequence':
+    'Un fichier par image, dans l’ordre de leurs noms.',
+  'studio.animationImport.columns': 'En largeur',
+  'studio.animationImport.rows': 'En hauteur',
+  'studio.animationImport.count': 'Images',
+  'studio.animationImport.gridFound':
+    'Lu dans les espaces entre les images. Modifiez-le si les lignes ne tombent pas entre elles.',
+  'studio.animationImport.gridGuess':
+    'Indiquez combien d’images la planche a en largeur et en hauteur, et combien il y en a : les lignes montrent où chacune est découpée.',
+  'studio.animationImport.clips': 'Animations de ce fichier',
+  'studio.animationImport.include': 'Ajouter celle-ci',
+  'studio.animationImport.name': 'Nom',
+  'studio.animationImport.nameRule':
+    'Utilisez des minuscules, des chiffres et des tirets, en commençant par une lettre.',
+  'studio.animationImport.nameTaken':
+    'La scène a déjà une animation nommée {name}.',
+  'studio.animationImport.loop': 'En boucle',
+  'studio.animationImport.saved': 'Enregistrée sous {file}',
+  'studio.animationImport.add': 'Ajouter à la scène',
+  'studio.animationImport.addCount': 'Ajouter {count} animations',
+  'studio.animationImport.cancel': 'Annuler',
+  'studio.animationImport.again': 'Choisir d’autres fichiers',
+  'studio.animationImport.refused.mixed':
+    'Choisissez les fichiers d’une seule animation à la fois : une image, une planche et son JSON, ou un fichier par image.',
+  'studio.animationImport.refused.tooLarge':
+    '{file} est trop volumineux pour être importé : une image peut faire jusqu’à 40 Mo, et un JSON jusqu’à 4 Mo.',
+  'studio.animationImport.refused.tooMany':
+    'Cela fait plus de {most} images, le maximum qu’une animation peut avoir.',
+  'studio.animationImport.refused.unreadable':
+    '{file} n’a pas pu être lu comme un PNG, JPEG, WebP ou GIF d’au plus 16384 pixels de côté.',
+  'studio.animationImport.refused.noFrames':
+    '{file} n’indique aucune image qui tienne dans l’image choisie avec lui.',
+  'studio.animationImport.failed.full':
+    'La scène a déjà {most} animations, le maximum qu’elle peut contenir.',
+  'studio.animationImport.failed.write':
+    '{name} n’a pas pu être écrite dans le dossier de la scène.',
+  'studio.animationImport.failed.closed':
+    'La scène a été fermée avant que l’animation puisse être ajoutée.',
   'studio.work.tune': 'Réglages',
   'studio.ship.more': 'Autres',
   'studio.signals.title': 'Audio de l’aperçu',

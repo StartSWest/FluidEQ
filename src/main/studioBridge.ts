@@ -185,6 +185,14 @@ const readStudioAnimations = () =>
     import('./ipc/studioAnimations').TStudioAnimations
   >;
 
+/** An imported animation's sheet and settings, written into the project. */
+const importStudioAnimation = (
+  request: import('./ipc/studioAnimationImport').IAnimationImportRequest,
+) =>
+  ipcRenderer.invoke('studio-animation-import', request) as Promise<
+    import('./ipc/studioAnimationImport').TAnimationImportOutcome
+  >;
+
 /** Told whenever a file of the open project's animations changes. */
 const onStudioAnimationsChanged = (listener: () => void) => {
   const wrapped = () => listener();
@@ -370,6 +378,7 @@ const studioBridge = {
   copyStudioPicture,
   readStudioPictures,
   readStudioAnimations,
+  importStudioAnimation,
   onStudioAnimationsChanged,
   chooseStudioPicture,
   writeStudioSettings,

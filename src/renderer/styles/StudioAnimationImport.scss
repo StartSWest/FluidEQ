@@ -1,0 +1,145 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'checkerboard' as *;
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// An animation brought in from outside (`StudioAnimationImport.tsx`): what
+// it is and how it is cut in the rail, the preview in the body. The parts
+// are the app's own - the rename dialog's fields, the stage's segments, the
+// Switch, the opened animation's view - laid out here and nothing more.
+.dialog-frame.studio-animation-import {
+  @include dialog.size(1320px, 940px);
+  height: calc(100vh - #{dialog.$edge} * 2);
+}
+
+.studio-animation-import__settings {
+  display: grid;
+  gap: $spacing-m;
+  min-width: 0;
+}
+
+// The body is the preview's whole height, as the sketch's is its picture's.
+.studio-animation-import .dialog-frame__body {
+  grid-template-rows: minmax(0, 1fr);
+  align-content: stretch;
+  overflow: hidden;
+}
+
+.studio-animation-import__body {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
+  padding: $spacing-m;
+
+  // The view fills the body: the stage takes what the controls and the
+  // strip leave, as in the bigger view.
+  .studio-animation {
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    min-height: 0;
+  }
+
+  .studio-animation-stage {
+    height: auto;
+    min-height: 200px;
+  }
+}
+
+// What could not be read, said where the preview would be: a notice of its
+// own size in the middle, never one stretched to the preview's.
+.studio-animation-import__body > .studio-notice {
+  align-self: center;
+  justify-self: center;
+  max-width: 56ch;
+}
+
+.studio-animation-import__status {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  justify-self: center;
+  gap: 10px;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+}
+
+// A sheet with its cuts: the picture on the transparency grid, a line round
+// every cell, the cells past the frames dimmed.
+.studio-animation-import__grid {
+  display: grid;
+  gap: 10px;
+}
+
+.studio-animation-import__sheet {
+  @include transparency-grid(8px);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 220px;
+    object-fit: contain;
+  }
+
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  rect {
+    fill: none;
+    stroke: $secondary-light;
+    stroke-width: 1px;
+    vector-effect: non-scaling-stroke;
+
+    &.is-unused {
+      fill: color-mix(in srgb, $surface-well 70%, transparent);
+      stroke-opacity: 0.4;
+    }
+  }
+}
+
+// Three to a row while their names fit, fewer on a narrow rail; a name that
+// still does not fit breaks rather than running into the next one, and the
+// boxes line up under names of one line or two.
+.studio-animation-import__grid-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 4rem), 1fr));
+  align-items: end;
+  gap: 8px;
+
+  .studio-new__label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .studio-new__input {
+    min-width: 0;
+  }
+}
+
+.studio-animation-import__switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: $text-primary;
+  font-size: $text-body;
+}
+
+// An animation of the file the member left out: still there to bring back.
+.studio-segment.is-left-out {
+  text-decoration: line-through;
+}

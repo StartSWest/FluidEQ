@@ -463,6 +463,58 @@ const studio = {
   'studio.animator.placeholder': 'Dile al animador qué cambiar…',
   'studio.animator.fromScene': 'Del chat de la escena: {task}',
   'studio.animator.resize': 'Arrastra para cambiar el ancho del animador',
+  'studio.animationImport.cardTitle': 'Importar una animación',
+  'studio.animationImport.cardText':
+    'Una hoja de sprites, un GIF, PNG o WebP animado, una imagen por fotograma, o una hoja con su JSON de TexturePacker, Phaser o Aseprite.',
+  'studio.animationImport.choose': 'Elegir archivos',
+  'studio.animationImport.title': 'Importar una animación',
+  'studio.animationImport.lead':
+    'Comprueba cómo se reproduce y luego añádela. Se guarda como una hoja en la carpeta de arte de la escena, como las animaciones que hace el Animador.',
+  'studio.animationImport.reading': 'Leyendo {file}…',
+  'studio.animationImport.kind.grid':
+    'Una hoja de sprites, cortada en fotogramas:',
+  'studio.animationImport.kind.atlas':
+    'Una hoja cortada según su JSON, con el tiempo que da a cada fotograma.',
+  'studio.animationImport.kind.animated':
+    'Una imagen animada, con el tiempo que da a cada fotograma.',
+  'studio.animationImport.kind.sequence':
+    'Una imagen por fotograma, en el orden de sus nombres.',
+  'studio.animationImport.columns': 'A lo ancho',
+  'studio.animationImport.rows': 'A lo alto',
+  'studio.animationImport.count': 'Fotogramas',
+  'studio.animationImport.gridFound':
+    'Leído de los huecos entre los fotogramas. Cámbialo si las líneas no caen entre ellos.',
+  'studio.animationImport.gridGuess':
+    'Indica cuántos fotogramas tiene la hoja a lo ancho y a lo alto, y cuántos hay: las líneas muestran dónde se corta cada uno.',
+  'studio.animationImport.clips': 'Animaciones en este archivo',
+  'studio.animationImport.include': 'Añadir esta',
+  'studio.animationImport.name': 'Nombre',
+  'studio.animationImport.nameRule':
+    'Usa minúsculas, dígitos y guiones, empezando por una letra.',
+  'studio.animationImport.nameTaken':
+    'La escena ya tiene una animación llamada {name}.',
+  'studio.animationImport.loop': 'En bucle',
+  'studio.animationImport.saved': 'Se guarda como {file}',
+  'studio.animationImport.add': 'Añadir a la escena',
+  'studio.animationImport.addCount': 'Añadir {count} animaciones',
+  'studio.animationImport.cancel': 'Cancelar',
+  'studio.animationImport.again': 'Elegir otros archivos',
+  'studio.animationImport.refused.mixed':
+    'Elige los archivos de una animación cada vez: una imagen, una hoja y su JSON, o una imagen por fotograma.',
+  'studio.animationImport.refused.tooLarge':
+    '{file} es demasiado grande para importarlo: una imagen puede tener hasta 40 MB y un JSON hasta 4 MB.',
+  'studio.animationImport.refused.tooMany':
+    'Son más de {most} fotogramas, lo máximo que puede tener una animación.',
+  'studio.animationImport.refused.unreadable':
+    '{file} no se pudo leer como PNG, JPEG, WebP o GIF de 16384 píxeles por lado como máximo.',
+  'studio.animationImport.refused.noFrames':
+    '{file} no indica ningún fotograma que quepa en la imagen elegida con él.',
+  'studio.animationImport.failed.full':
+    'La escena ya tiene {most} animaciones, lo máximo que admite.',
+  'studio.animationImport.failed.write':
+    'No se pudo escribir {name} en la carpeta de la escena.',
+  'studio.animationImport.failed.closed':
+    'La escena se cerró antes de que se pudiera añadir la animación.',
   'studio.work.tune': 'Ajustar',
   'studio.ship.more': 'Más',
   'studio.signals.title': 'Audio de la vista previa',

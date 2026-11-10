@@ -24,23 +24,15 @@ export interface IViewedAnimation {
   feetLine?: number;
 }
 
-const decode = async (
+/**
+ * An animation as the tab shows it, from its sheet's bitmap: a frame's
+ * shape, and where the feet stand. Also what an import's preview is
+ * measured with, so it plays as it will once added.
+ */
+export const viewOf = (
   animation: IStudioAnimation,
-  sheet: Uint8Array,
-): Promise<IViewedAnimation> => {
-  // Main reads no sheet past the bounds; this window never decodes one
-  // either, whatever handed it over.
-  if (!isDecodablePicture(sheet, SHEET_BOUNDS)) {
-    return { animation, aspect: 1 };
-  }
-  let bitmap: ImageBitmap;
-  try {
-    // A copy of exactly the file's bytes: the array handed across may be a
-    // view into a larger buffer.
-    bitmap = await createImageBitmap(new Blob([sheet.slice()]));
-  } catch {
-    return { animation, aspect: 1 };
-  }
+  bitmap: ImageBitmap,
+): IViewedAnimation => {
   const cell = frameCell(animation, bitmap.width, bitmap.height, 0);
   const aspect = cell.height > 0 ? cell.width / cell.height : 1;
   const canvas = document.createElement('canvas');
@@ -59,6 +51,26 @@ const decode = async (
     aspect,
     ...(feetLine === undefined ? {} : { feetLine }),
   };
+};
+
+const decode = async (
+  animation: IStudioAnimation,
+  sheet: Uint8Array,
+): Promise<IViewedAnimation> => {
+  // Main reads no sheet past the bounds; this window never decodes one
+  // either, whatever handed it over.
+  if (!isDecodablePicture(sheet, SHEET_BOUNDS)) {
+    return { animation, aspect: 1 };
+  }
+  let bitmap: ImageBitmap;
+  try {
+    // A copy of exactly the file's bytes: the array handed across may be a
+    // view into a larger buffer.
+    bitmap = await createImageBitmap(new Blob([sheet.slice()]));
+  } catch {
+    return { animation, aspect: 1 };
+  }
+  return viewOf(animation, bitmap);
 };
 
 const release = (viewed: IViewedAnimation[] | undefined) =>

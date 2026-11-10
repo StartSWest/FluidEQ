@@ -457,6 +457,58 @@ const studio = {
   'studio.animator.placeholder': 'Diga ao animador o que mudar…',
   'studio.animator.fromScene': 'Do chat da cena: {task}',
   'studio.animator.resize': 'Arraste para redimensionar o animador',
+  'studio.animationImport.cardTitle': 'Importar uma animação',
+  'studio.animationImport.cardText':
+    'Uma folha de sprites, um GIF, PNG ou WebP animado, uma imagem por quadro, ou uma folha com seu JSON do TexturePacker, Phaser ou Aseprite.',
+  'studio.animationImport.choose': 'Escolher arquivos',
+  'studio.animationImport.title': 'Importar uma animação',
+  'studio.animationImport.lead':
+    'Confira como ela toca e depois adicione. Ela é salva como uma folha na pasta de arte da cena, como as animações que o Animador faz.',
+  'studio.animationImport.reading': 'Lendo {file}…',
+  'studio.animationImport.kind.grid':
+    'Uma folha de sprites, cortada em quadros:',
+  'studio.animationImport.kind.atlas':
+    'Uma folha cortada pelo seu JSON, com o tempo que ele dá a cada quadro.',
+  'studio.animationImport.kind.animated':
+    'Uma imagem animada, com o tempo que ela dá a cada quadro.',
+  'studio.animationImport.kind.sequence':
+    'Uma imagem por quadro, na ordem dos seus nomes.',
+  'studio.animationImport.columns': 'Na largura',
+  'studio.animationImport.rows': 'Na altura',
+  'studio.animationImport.count': 'Quadros',
+  'studio.animationImport.gridFound':
+    'Lido dos espaços entre os quadros. Mude se as linhas não caírem entre eles.',
+  'studio.animationImport.gridGuess':
+    'Defina quantos quadros a folha tem na largura e na altura, e quantos são: as linhas mostram onde cada um é cortado.',
+  'studio.animationImport.clips': 'Animações neste arquivo',
+  'studio.animationImport.include': 'Adicionar esta',
+  'studio.animationImport.name': 'Nome',
+  'studio.animationImport.nameRule':
+    'Use letras minúsculas, dígitos e hífens, começando por uma letra.',
+  'studio.animationImport.nameTaken':
+    'A cena já tem uma animação chamada {name}.',
+  'studio.animationImport.loop': 'Em loop',
+  'studio.animationImport.saved': 'Salva como {file}',
+  'studio.animationImport.add': 'Adicionar à cena',
+  'studio.animationImport.addCount': 'Adicionar {count} animações',
+  'studio.animationImport.cancel': 'Cancelar',
+  'studio.animationImport.again': 'Escolher outros arquivos',
+  'studio.animationImport.refused.mixed':
+    'Escolha os arquivos de uma animação por vez: uma imagem, uma folha e seu JSON, ou uma imagem por quadro.',
+  'studio.animationImport.refused.tooLarge':
+    '{file} é grande demais para importar: uma imagem pode ter até 40 MB e um JSON até 4 MB.',
+  'studio.animationImport.refused.tooMany':
+    'São mais de {most} quadros, o máximo que uma animação pode ter.',
+  'studio.animationImport.refused.unreadable':
+    'Não foi possível ler {file} como PNG, JPEG, WebP ou GIF de no máximo 16384 pixels de lado.',
+  'studio.animationImport.refused.noFrames':
+    '{file} não indica nenhum quadro que caiba na imagem escolhida com ele.',
+  'studio.animationImport.failed.full':
+    'A cena já tem {most} animações, o máximo que ela comporta.',
+  'studio.animationImport.failed.write':
+    'Não foi possível gravar {name} na pasta da cena.',
+  'studio.animationImport.failed.closed':
+    'A cena foi fechada antes que a animação pudesse ser adicionada.',
   'studio.work.tune': 'Ajustar',
   'studio.ship.more': 'Mais',
   'studio.signals.title': 'Áudio da prévia',

@@ -464,6 +464,57 @@ const studio = {
     'アニメーターに変えてほしいことを伝えてください…',
   'studio.animator.fromScene': 'シーンのチャットから：{task}',
   'studio.animator.resize': 'ドラッグしてアニメーターの幅を変更',
+  'studio.animationImport.cardTitle': 'アニメーションを読み込む',
+  'studio.animationImport.cardText':
+    'スプライトシート、アニメーション GIF・PNG・WebP、1 コマ 1 枚の画像、または TexturePacker・Phaser・Aseprite の JSON 付きのシート。',
+  'studio.animationImport.choose': 'ファイルを選ぶ',
+  'studio.animationImport.title': 'アニメーションを読み込む',
+  'studio.animationImport.lead':
+    '再生のしかたを確かめてから追加します。アニメーターが作るアニメーションと同じく、シーンの art フォルダーにシートとして保存されます。',
+  'studio.animationImport.reading': '{file} を読み込み中…',
+  'studio.animationImport.kind.grid': 'スプライトシートをコマに切り分けます:',
+  'studio.animationImport.kind.atlas':
+    'JSON に従って切り分けたシート。各コマの長さはファイルのとおりです。',
+  'studio.animationImport.kind.animated':
+    'アニメーション画像。各コマの長さはファイルのとおりです。',
+  'studio.animationImport.kind.sequence':
+    '1 コマ 1 枚の画像を、名前の順に並べます。',
+  'studio.animationImport.columns': '横',
+  'studio.animationImport.rows': '縦',
+  'studio.animationImport.count': 'コマ数',
+  'studio.animationImport.gridFound':
+    'コマの間の隙間から読み取りました。線がコマの間に来ていなければ変えてください。',
+  'studio.animationImport.gridGuess':
+    'シートの横と縦のコマ数と、全部で何コマあるかを設定してください。線が各コマの切り取り位置を示します。',
+  'studio.animationImport.clips': 'このファイルのアニメーション',
+  'studio.animationImport.include': 'これを追加',
+  'studio.animationImport.name': '名前',
+  'studio.animationImport.nameRule':
+    '英小文字・数字・ハイフンを使い、英字で始めてください。',
+  'studio.animationImport.nameTaken':
+    'このシーンには {name} という名前のアニメーションがすでにあります。',
+  'studio.animationImport.loop': 'ループ',
+  'studio.animationImport.saved': '{file} として保存',
+  'studio.animationImport.add': 'シーンに追加',
+  'studio.animationImport.addCount': '{count} 個のアニメーションを追加',
+  'studio.animationImport.cancel': 'キャンセル',
+  'studio.animationImport.again': 'ほかのファイルを選ぶ',
+  'studio.animationImport.refused.mixed':
+    '一度に選べるのは 1 つのアニメーションのファイルだけです: 画像 1 枚、シートとその JSON、または 1 コマ 1 枚の画像。',
+  'studio.animationImport.refused.tooLarge':
+    '{file} は大きすぎて読み込めません。画像は 40 MB まで、JSON は 4 MB までです。',
+  'studio.animationImport.refused.tooMany':
+    '{most} コマを超えています。これがアニメーションの最大コマ数です。',
+  'studio.animationImport.refused.unreadable':
+    '{file} を、一辺 16384 ピクセル以下の PNG・JPEG・WebP・GIF として読み込めませんでした。',
+  'studio.animationImport.refused.noFrames':
+    '{file} には、一緒に選んだ画像に収まるコマがありません。',
+  'studio.animationImport.failed.full':
+    'このシーンにはすでに {most} 個のアニメーションがあり、これ以上入りません。',
+  'studio.animationImport.failed.write':
+    '{name} をシーンのフォルダーに書き込めませんでした。',
+  'studio.animationImport.failed.closed':
+    'アニメーションを追加する前にシーンが閉じられました。',
   'studio.work.tune': '調整',
   'studio.ship.more': 'その他',
   'studio.signals.title': 'プレビューの音声',

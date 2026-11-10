@@ -417,6 +417,51 @@ const studio = {
   'studio.animator.placeholder': '告诉动画师要改什么…',
   'studio.animator.fromScene': '来自场景聊天：{task}',
   'studio.animator.resize': '拖动以调整动画师宽度',
+  'studio.animationImport.cardTitle': '导入动画',
+  'studio.animationImport.cardText':
+    '精灵表、动图 GIF、PNG 或 WebP、每帧一张的图片，或带有 TexturePacker、Phaser 或 Aseprite JSON 的图表。',
+  'studio.animationImport.choose': '选择文件',
+  'studio.animationImport.title': '导入动画',
+  'studio.animationImport.lead':
+    '先看看它怎么播放，再添加。它会像动画师制作的动画一样，作为图表保存在场景的 art 文件夹中。',
+  'studio.animationImport.reading': '正在读取 {file}…',
+  'studio.animationImport.kind.grid': '一张精灵表，切成各帧：',
+  'studio.animationImport.kind.atlas':
+    '按其 JSON 切分的图表，每帧时长按文件所给。',
+  'studio.animationImport.kind.animated': '一张动图，每帧时长按文件所给。',
+  'studio.animationImport.kind.sequence': '每帧一张图片，按文件名顺序排列。',
+  'studio.animationImport.columns': '横向',
+  'studio.animationImport.rows': '纵向',
+  'studio.animationImport.count': '帧数',
+  'studio.animationImport.gridFound':
+    '根据帧之间的空隙读出。如果线没有落在帧之间，请修改。',
+  'studio.animationImport.gridGuess':
+    '设置图表横向和纵向各有几帧、一共几帧：线条显示每一帧的切分位置。',
+  'studio.animationImport.clips': '此文件中的动画',
+  'studio.animationImport.include': '添加这个',
+  'studio.animationImport.name': '名称',
+  'studio.animationImport.nameRule':
+    '请使用小写字母、数字和连字符，并以字母开头。',
+  'studio.animationImport.nameTaken': '场景中已有名为 {name} 的动画。',
+  'studio.animationImport.loop': '循环',
+  'studio.animationImport.saved': '保存为 {file}',
+  'studio.animationImport.add': '添加到场景',
+  'studio.animationImport.addCount': '添加 {count} 个动画',
+  'studio.animationImport.cancel': '取消',
+  'studio.animationImport.again': '选择其他文件',
+  'studio.animationImport.refused.mixed':
+    '一次只选一个动画的文件：一张图片、一张图表及其 JSON，或每帧一张的图片。',
+  'studio.animationImport.refused.tooLarge':
+    '{file} 太大，无法导入：图片最大 40 MB，JSON 最大 4 MB。',
+  'studio.animationImport.refused.tooMany':
+    '超过了 {most} 帧，这是一个动画的上限。',
+  'studio.animationImport.refused.unreadable':
+    '无法将 {file} 读取为每边不超过 16384 像素的 PNG、JPEG、WebP 或 GIF。',
+  'studio.animationImport.refused.noFrames':
+    '{file} 中没有能放进与它一起选择的图片中的帧。',
+  'studio.animationImport.failed.full': '场景中已有 {most} 个动画，已达上限。',
+  'studio.animationImport.failed.write': '无法将 {name} 写入场景文件夹。',
+  'studio.animationImport.failed.closed': '在添加动画之前，场景已被关闭。',
   'studio.work.tune': '调整',
   'studio.ship.more': '更多',
   'studio.signals.title': '预览音频',

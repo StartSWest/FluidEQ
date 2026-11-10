@@ -458,6 +458,57 @@ const studio = {
   'studio.animator.placeholder': 'Скажите аниматору, что изменить…',
   'studio.animator.fromScene': 'Из чата сцены: {task}',
   'studio.animator.resize': 'Перетащите, чтобы изменить ширину аниматора',
+  'studio.animationImport.cardTitle': 'Импортировать анимацию',
+  'studio.animationImport.cardText':
+    'Спрайт-лист, анимированный GIF, PNG или WebP, по картинке на кадр или лист с его JSON из TexturePacker, Phaser или Aseprite.',
+  'studio.animationImport.choose': 'Выбрать файлы',
+  'studio.animationImport.title': 'Импортировать анимацию',
+  'studio.animationImport.lead':
+    'Проверьте, как она играет, и добавьте её. Она сохраняется как лист в папке art сцены, как анимации, которые делает Аниматор.',
+  'studio.animationImport.reading': 'Чтение {file}…',
+  'studio.animationImport.kind.grid': 'Спрайт-лист, разрезанный на кадры:',
+  'studio.animationImport.kind.atlas':
+    'Лист, разрезанный по его JSON, с длительностью каждого кадра из файла.',
+  'studio.animationImport.kind.animated':
+    'Анимированная картинка с длительностью каждого кадра из файла.',
+  'studio.animationImport.kind.sequence':
+    'По картинке на кадр, в порядке их имён.',
+  'studio.animationImport.columns': 'По ширине',
+  'studio.animationImport.rows': 'По высоте',
+  'studio.animationImport.count': 'Кадры',
+  'studio.animationImport.gridFound':
+    'Определено по промежуткам между кадрами. Измените, если линии не попадают между ними.',
+  'studio.animationImport.gridGuess':
+    'Укажите, сколько кадров на листе по ширине и по высоте и сколько их всего: линии показывают, где режется каждый.',
+  'studio.animationImport.clips': 'Анимации в этом файле',
+  'studio.animationImport.include': 'Добавить эту',
+  'studio.animationImport.name': 'Имя',
+  'studio.animationImport.nameRule':
+    'Используйте строчные буквы, цифры и дефисы, начиная с буквы.',
+  'studio.animationImport.nameTaken':
+    'В сцене уже есть анимация с именем {name}.',
+  'studio.animationImport.loop': 'По кругу',
+  'studio.animationImport.saved': 'Сохраняется как {file}',
+  'studio.animationImport.add': 'Добавить в сцену',
+  'studio.animationImport.addCount': 'Добавить анимации: {count}',
+  'studio.animationImport.cancel': 'Отмена',
+  'studio.animationImport.again': 'Выбрать другие файлы',
+  'studio.animationImport.refused.mixed':
+    'Выбирайте файлы одной анимации за раз: одну картинку, лист и его JSON или по картинке на кадр.',
+  'studio.animationImport.refused.tooLarge':
+    '{file} слишком велик для импорта: картинка может весить до 40 МБ, а JSON — до 4 МБ.',
+  'studio.animationImport.refused.tooMany':
+    'Это больше {most} кадров — максимума для анимации.',
+  'studio.animationImport.refused.unreadable':
+    'Не удалось прочитать {file} как PNG, JPEG, WebP или GIF размером не более 16384 пикселей по стороне.',
+  'studio.animationImport.refused.noFrames':
+    '{file} не указывает ни одного кадра, помещающегося в выбранную вместе с ним картинку.',
+  'studio.animationImport.failed.full':
+    'В сцене уже {most} анимаций — больше она не вмещает.',
+  'studio.animationImport.failed.write':
+    'Не удалось записать {name} в папку сцены.',
+  'studio.animationImport.failed.closed':
+    'Сцену закрыли до того, как анимацию удалось добавить.',
   'studio.work.tune': 'Настройка',
   'studio.ship.more': 'Ещё',
   'studio.signals.title': 'Звук для предпросмотра',

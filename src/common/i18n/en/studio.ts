@@ -468,6 +468,57 @@ const studio = {
   'studio.animator.placeholder': 'Tell the animator what to change…',
   'studio.animator.fromScene': "From the scene's chat: {task}",
   'studio.animator.resize': 'Drag to resize the animator',
+  'studio.animationImport.cardTitle': 'Import an animation',
+  'studio.animationImport.cardText':
+    'A sprite sheet, an animated GIF, PNG or WebP, one picture per frame, or a sheet with its TexturePacker, Phaser or Aseprite JSON.',
+  'studio.animationImport.choose': 'Choose files',
+  'studio.animationImport.title': 'Import an animation',
+  'studio.animationImport.lead':
+    'Check how it plays, then add it. It is saved as a sheet in the scene’s art folder, like the animations the Animator makes.',
+  'studio.animationImport.reading': 'Reading {file}…',
+  'studio.animationImport.kind.grid': 'A sprite sheet, cut into frames:',
+  'studio.animationImport.kind.atlas':
+    'A sheet cut by its JSON, with the timing it gives each frame.',
+  'studio.animationImport.kind.animated':
+    'An animated picture, with the timing it gives each frame.',
+  'studio.animationImport.kind.sequence':
+    'One picture per frame, in the order of their names.',
+  'studio.animationImport.columns': 'Across',
+  'studio.animationImport.rows': 'Down',
+  'studio.animationImport.count': 'Frames',
+  'studio.animationImport.gridFound':
+    'Read from the gaps between the frames. Change it if the lines do not fall between them.',
+  'studio.animationImport.gridGuess':
+    'Set how many frames the sheet has across and down, and how many there are: the lines show where each one is cut.',
+  'studio.animationImport.clips': 'Animations in this file',
+  'studio.animationImport.include': 'Add this one',
+  'studio.animationImport.name': 'Name',
+  'studio.animationImport.nameRule':
+    'Use lowercase letters, digits and hyphens, starting with a letter.',
+  'studio.animationImport.nameTaken':
+    'The scene already has an animation called {name}.',
+  'studio.animationImport.loop': 'Loops',
+  'studio.animationImport.saved': 'Saved as {file}',
+  'studio.animationImport.add': 'Add to the scene',
+  'studio.animationImport.addCount': 'Add {count} animations',
+  'studio.animationImport.cancel': 'Cancel',
+  'studio.animationImport.again': 'Choose other files',
+  'studio.animationImport.refused.mixed':
+    'Choose one animation’s files at a time: one picture, a sheet and its JSON, or one picture for each frame.',
+  'studio.animationImport.refused.tooLarge':
+    '{file} is too large to import: a picture may be up to 40 MB, and a JSON up to 4 MB.',
+  'studio.animationImport.refused.tooMany':
+    'That is more than {most} frames, the most an animation can have.',
+  'studio.animationImport.refused.unreadable':
+    '{file} could not be read as a PNG, JPEG, WebP or GIF of at most 16384 pixels on a side.',
+  'studio.animationImport.refused.noFrames':
+    '{file} names no frames that fit inside the picture chosen with it.',
+  'studio.animationImport.failed.full':
+    'The scene already has {most} animations, the most it can hold.',
+  'studio.animationImport.failed.write':
+    '{name} could not be written into the scene’s folder.',
+  'studio.animationImport.failed.closed':
+    'The scene was closed before the animation could be added.',
   'studio.work.tune': 'Tune',
   'studio.ship.more': 'More',
   'studio.signals.title': 'Preview audio',

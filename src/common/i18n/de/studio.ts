@@ -471,6 +471,58 @@ const studio = {
   'studio.animator.placeholder': 'Sagen Sie dem Animator, was er ändern soll…',
   'studio.animator.fromScene': 'Aus dem Chat der Szene: {task}',
   'studio.animator.resize': 'Ziehen, um die Breite des Animators zu ändern',
+  'studio.animationImport.cardTitle': 'Animation importieren',
+  'studio.animationImport.cardText':
+    'Ein Spritesheet, ein animiertes GIF, PNG oder WebP, ein Bild pro Einzelbild oder ein Sheet mit seinem JSON aus TexturePacker, Phaser oder Aseprite.',
+  'studio.animationImport.choose': 'Dateien auswählen',
+  'studio.animationImport.title': 'Animation importieren',
+  'studio.animationImport.lead':
+    'Prüfen Sie, wie sie läuft, und fügen Sie sie dann hinzu. Sie wird als Sheet im Art-Ordner der Szene gespeichert, wie die Animationen, die der Animator erstellt.',
+  'studio.animationImport.reading': '{file} wird gelesen…',
+  'studio.animationImport.kind.grid':
+    'Ein Spritesheet, in Einzelbilder zerlegt:',
+  'studio.animationImport.kind.atlas':
+    'Ein Sheet, zerlegt nach seinem JSON, mit dem Timing, das es jedem Bild gibt.',
+  'studio.animationImport.kind.animated':
+    'Ein animiertes Bild, mit dem Timing, das es jedem Bild gibt.',
+  'studio.animationImport.kind.sequence':
+    'Ein Bild pro Einzelbild, in der Reihenfolge ihrer Namen.',
+  'studio.animationImport.columns': 'Spalten',
+  'studio.animationImport.rows': 'Zeilen',
+  'studio.animationImport.count': 'Bilder',
+  'studio.animationImport.gridFound':
+    'Aus den Lücken zwischen den Bildern gelesen. Ändern Sie es, wenn die Linien nicht dazwischen liegen.',
+  'studio.animationImport.gridGuess':
+    'Legen Sie fest, wie viele Bilder das Sheet nebeneinander und untereinander hat und wie viele es sind: Die Linien zeigen, wo jedes geschnitten wird.',
+  'studio.animationImport.clips': 'Animationen in dieser Datei',
+  'studio.animationImport.include': 'Diese hinzufügen',
+  'studio.animationImport.name': 'Name',
+  'studio.animationImport.nameRule':
+    'Verwenden Sie Kleinbuchstaben, Ziffern und Bindestriche, beginnend mit einem Buchstaben.',
+  'studio.animationImport.nameTaken':
+    'Die Szene hat bereits eine Animation namens {name}.',
+  'studio.animationImport.loop': 'In Schleife',
+  'studio.animationImport.saved': 'Gespeichert als {file}',
+  'studio.animationImport.add': 'Zur Szene hinzufügen',
+  'studio.animationImport.addCount': '{count} Animationen hinzufügen',
+  'studio.animationImport.cancel': 'Abbrechen',
+  'studio.animationImport.again': 'Andere Dateien auswählen',
+  'studio.animationImport.refused.mixed':
+    'Wählen Sie die Dateien einer Animation auf einmal: ein Bild, ein Sheet und sein JSON oder ein Bild pro Einzelbild.',
+  'studio.animationImport.refused.tooLarge':
+    '{file} ist zu groß zum Importieren: Ein Bild darf bis zu 40 MB groß sein, ein JSON bis zu 4 MB.',
+  'studio.animationImport.refused.tooMany':
+    'Das sind mehr als {most} Bilder, die meisten, die eine Animation haben kann.',
+  'studio.animationImport.refused.unreadable':
+    '{file} konnte nicht als PNG, JPEG, WebP oder GIF mit höchstens 16384 Pixeln pro Seite gelesen werden.',
+  'studio.animationImport.refused.noFrames':
+    '{file} nennt keine Bilder, die in das mit ihm gewählte Bild passen.',
+  'studio.animationImport.failed.full':
+    'Die Szene hat bereits {most} Animationen, die meisten, die sie fassen kann.',
+  'studio.animationImport.failed.write':
+    '{name} konnte nicht in den Ordner der Szene geschrieben werden.',
+  'studio.animationImport.failed.closed':
+    'Die Szene wurde geschlossen, bevor die Animation hinzugefügt werden konnte.',
   'studio.work.tune': 'Abstimmen',
   'studio.ship.more': 'Mehr',
   'studio.signals.title': 'Audio für die Vorschau',

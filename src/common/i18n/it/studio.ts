@@ -464,6 +464,58 @@ const studio = {
   'studio.animator.placeholder': 'Di’ all’animatore cosa cambiare…',
   'studio.animator.fromScene': 'Dalla chat della scena: {task}',
   'studio.animator.resize': 'Trascina per ridimensionare l’animatore',
+  'studio.animationImport.cardTitle': 'Importa un’animazione',
+  'studio.animationImport.cardText':
+    'Uno sprite sheet, una GIF, PNG o WebP animata, un’immagine per fotogramma, o uno sheet con il suo JSON di TexturePacker, Phaser o Aseprite.',
+  'studio.animationImport.choose': 'Scegli i file',
+  'studio.animationImport.title': 'Importa un’animazione',
+  'studio.animationImport.lead':
+    'Controlla come si riproduce, poi aggiungila. Viene salvata come uno sheet nella cartella art della scena, come le animazioni che crea l’Animatore.',
+  'studio.animationImport.reading': 'Lettura di {file}…',
+  'studio.animationImport.kind.grid':
+    'Uno sprite sheet, tagliato in fotogrammi:',
+  'studio.animationImport.kind.atlas':
+    'Uno sheet tagliato secondo il suo JSON, con la durata che dà a ogni fotogramma.',
+  'studio.animationImport.kind.animated':
+    'Un’immagine animata, con la durata che dà a ogni fotogramma.',
+  'studio.animationImport.kind.sequence':
+    'Un’immagine per fotogramma, nell’ordine dei loro nomi.',
+  'studio.animationImport.columns': 'In larghezza',
+  'studio.animationImport.rows': 'In altezza',
+  'studio.animationImport.count': 'Fotogrammi',
+  'studio.animationImport.gridFound':
+    'Letto dagli spazi tra i fotogrammi. Cambialo se le linee non cadono tra di essi.',
+  'studio.animationImport.gridGuess':
+    'Indica quanti fotogrammi ha lo sheet in larghezza e in altezza, e quanti sono: le linee mostrano dove viene tagliato ciascuno.',
+  'studio.animationImport.clips': 'Animazioni in questo file',
+  'studio.animationImport.include': 'Aggiungi questa',
+  'studio.animationImport.name': 'Nome',
+  'studio.animationImport.nameRule':
+    'Usa lettere minuscole, cifre e trattini, iniziando con una lettera.',
+  'studio.animationImport.nameTaken':
+    'La scena ha già un’animazione chiamata {name}.',
+  'studio.animationImport.loop': 'In loop',
+  'studio.animationImport.saved': 'Salvata come {file}',
+  'studio.animationImport.add': 'Aggiungi alla scena',
+  'studio.animationImport.addCount': 'Aggiungi {count} animazioni',
+  'studio.animationImport.cancel': 'Annulla',
+  'studio.animationImport.again': 'Scegli altri file',
+  'studio.animationImport.refused.mixed':
+    'Scegli i file di un’animazione alla volta: un’immagine, uno sheet e il suo JSON, o un’immagine per fotogramma.',
+  'studio.animationImport.refused.tooLarge':
+    '{file} è troppo grande da importare: un’immagine può arrivare a 40 MB e un JSON a 4 MB.',
+  'studio.animationImport.refused.tooMany':
+    'Sono più di {most} fotogrammi, il massimo che un’animazione può avere.',
+  'studio.animationImport.refused.unreadable':
+    'Impossibile leggere {file} come PNG, JPEG, WebP o GIF di al massimo 16384 pixel per lato.',
+  'studio.animationImport.refused.noFrames':
+    '{file} non indica fotogrammi che rientrino nell’immagine scelta insieme a esso.',
+  'studio.animationImport.failed.full':
+    'La scena ha già {most} animazioni, il massimo che può contenere.',
+  'studio.animationImport.failed.write':
+    'Impossibile scrivere {name} nella cartella della scena.',
+  'studio.animationImport.failed.closed':
+    'La scena è stata chiusa prima che l’animazione potesse essere aggiunta.',
   'studio.work.tune': 'Regola',
   'studio.ship.more': 'Altro',
   'studio.signals.title': 'Audio dell’anteprima',

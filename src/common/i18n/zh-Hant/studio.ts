@@ -403,6 +403,51 @@ const studio = {
   'studio.animator.placeholder': '告訴動畫師要改什麼…',
   'studio.animator.fromScene': '來自場景聊天：{task}',
   'studio.animator.resize': '拖曳以調整動畫師大小',
+  'studio.animationImport.cardTitle': '匯入動畫',
+  'studio.animationImport.cardText':
+    '精靈表、動態 GIF、PNG 或 WebP、每格一張的圖片，或附有 TexturePacker、Phaser 或 Aseprite JSON 的圖表。',
+  'studio.animationImport.choose': '選擇檔案',
+  'studio.animationImport.title': '匯入動畫',
+  'studio.animationImport.lead':
+    '先看看它怎麼播放，再加入。它會像動畫師製作的動畫一樣，以圖表形式儲存在場景的 art 資料夾中。',
+  'studio.animationImport.reading': '正在讀取 {file}…',
+  'studio.animationImport.kind.grid': '一張精靈表，切成各格：',
+  'studio.animationImport.kind.atlas':
+    '依其 JSON 切分的圖表，每格時長依檔案所給。',
+  'studio.animationImport.kind.animated': '一張動態圖片，每格時長依檔案所給。',
+  'studio.animationImport.kind.sequence': '每格一張圖片，依檔名順序排列。',
+  'studio.animationImport.columns': '橫向',
+  'studio.animationImport.rows': '縱向',
+  'studio.animationImport.count': '格數',
+  'studio.animationImport.gridFound':
+    '依格與格之間的空隙讀出。如果線沒有落在格之間，請修改。',
+  'studio.animationImport.gridGuess':
+    '設定圖表橫向與縱向各有幾格、一共幾格：線條顯示每一格的切分位置。',
+  'studio.animationImport.clips': '此檔案中的動畫',
+  'studio.animationImport.include': '加入這個',
+  'studio.animationImport.name': '名稱',
+  'studio.animationImport.nameRule':
+    '請使用小寫字母、數字與連字號，並以字母開頭。',
+  'studio.animationImport.nameTaken': '場景中已有名為 {name} 的動畫。',
+  'studio.animationImport.loop': '循環',
+  'studio.animationImport.saved': '儲存為 {file}',
+  'studio.animationImport.add': '加入場景',
+  'studio.animationImport.addCount': '加入 {count} 個動畫',
+  'studio.animationImport.cancel': '取消',
+  'studio.animationImport.again': '選擇其他檔案',
+  'studio.animationImport.refused.mixed':
+    '一次只選一個動畫的檔案：一張圖片、一張圖表及其 JSON，或每格一張的圖片。',
+  'studio.animationImport.refused.tooLarge':
+    '{file} 太大，無法匯入：圖片最大 40 MB，JSON 最大 4 MB。',
+  'studio.animationImport.refused.tooMany':
+    '超過了 {most} 格，這是一個動畫的上限。',
+  'studio.animationImport.refused.unreadable':
+    '無法將 {file} 讀取為每邊不超過 16384 像素的 PNG、JPEG、WebP 或 GIF。',
+  'studio.animationImport.refused.noFrames':
+    '{file} 中沒有能放進與它一起選擇的圖片中的格。',
+  'studio.animationImport.failed.full': '場景中已有 {most} 個動畫，已達上限。',
+  'studio.animationImport.failed.write': '無法將 {name} 寫入場景資料夾。',
+  'studio.animationImport.failed.closed': '在加入動畫之前，場景已被關閉。',
   'studio.work.tune': '調音',
   'studio.ship.more': '更多',
   'studio.signals.title': '預覽音訊',
