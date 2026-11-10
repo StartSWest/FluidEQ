@@ -425,11 +425,16 @@ const createPoseSheetTool = ({
     if (signal().aborted) {
       return failure('The member stopped the reply.');
     }
-    const written = writeSheet(open.folder, name, codec.encodePng(sheet), {
-      count,
-      columns,
-      ...animation,
-    });
+    const written = await writeSheet(
+      open.folder,
+      name,
+      codec.encodePng(sheet),
+      {
+        count,
+        columns,
+        ...animation,
+      },
+    );
     if (typeof written === 'string') {
       return failure(written);
     }

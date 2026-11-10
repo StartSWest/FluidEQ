@@ -48,8 +48,8 @@ const request = (change: Record<string, unknown> = {}) => ({
   ...change,
 });
 
-const send = (raw: unknown) =>
-  handlers.get('studio-animation-import')?.({}, raw) as {
+const send = async (raw: unknown) =>
+  (await handlers.get('studio-animation-import')?.({}, raw)) as {
     ok: boolean;
     reason?: string;
     name?: string;
@@ -114,34 +114,34 @@ describe('an import’s request', () => {
 });
 
 describe('a hostile sheet', () => {
-  it('is refused when its header says it decodes past what a sheet may be', () => {
+  it('is refused when its header says it decodes past what a sheet may be', async () => {
     // 20000 x 48: past SHEET_BOUNDS' side, and divisible into its 8 cells.
-    expect(send(request({ sheet: pngHeader(20000, 48) }))).toEqual({
+    expect(await send(request({ sheet: pngHeader(20000, 48) }))).toEqual({
       ok: false,
       reason: 'invalid',
     });
     expect(fs.existsSync(path.join(project, 'art'))).toBe(false);
   });
 
-  it('control: the largest side a sheet may have is written', () => {
-    expect(send(request({ sheet: pngHeader(8192, 48) }))).toEqual({
+  it('control: the largest side a sheet may have is written', async () => {
+    expect(await send(request({ sheet: pngHeader(8192, 48) }))).toEqual({
       ok: true,
       name: 'whale-dive',
     });
   });
 
-  it('is refused when it is another kind of picture named as a sheet', () => {
-    expect(send(request({ sheet: jpegHeader(512, 48) }))).toEqual({
+  it('is refused when it is another kind of picture named as a sheet', async () => {
+    expect(await send(request({ sheet: jpegHeader(512, 48) }))).toEqual({
       ok: false,
       reason: 'invalid',
     });
   });
 
-  it('writes nothing through an art folder that is a link out of the project', () => {
+  it('writes nothing through an art folder that is a link out of the project', async () => {
     const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-outside-'));
     try {
       fs.symlinkSync(outside, path.join(project, 'art'), 'junction');
-      expect(send(request())).toEqual({ ok: false, reason: 'failed' });
+      expect(await send(request())).toEqual({ ok: false, reason: 'failed' });
       expect(fs.readdirSync(outside)).toEqual([]);
       expect(
         fs.existsSync(path.join(project, 'animations', 'whale-dive.json')),
@@ -154,8 +154,8 @@ describe('a hostile sheet', () => {
 });
 
 describe('an import written', () => {
-  it('is the sheet and its animation, as build_sheet writes them', () => {
-    expect(send(request())).toEqual({ ok: true, name: 'whale-dive' });
+  it('is the sheet and its animation, as build_sheet writes them', async () => {
+    expect(await send(request())).toEqual({ ok: true, name: 'whale-dive' });
     const sheet = fs.readFileSync(path.join(project, 'art', 'whale-dive.png'));
     expect(Array.from(sheet)).toEqual(Array.from(pngHeader(512, 48)));
     const animation = JSON.parse(
@@ -174,51 +174,51 @@ describe('an import written', () => {
     });
   });
 
-  it('never replaces what is already there', () => {
+  it('never replaces what is already there', async () => {
     fs.mkdirSync(path.join(project, 'art'));
     fs.writeFileSync(path.join(project, 'art', 'whale-dive.png'), 'mine');
-    expect(send(request())).toEqual({ ok: false, reason: 'taken' });
+    expect(await send(request())).toEqual({ ok: false, reason: 'taken' });
     expect(
       fs.readFileSync(path.join(project, 'art', 'whale-dive.png'), 'utf8'),
     ).toBe('mine');
   });
 
-  it('never goes past the animations a scene holds', () => {
+  it('never goes past the animations a scene holds', async () => {
     fs.mkdirSync(path.join(project, 'animations'));
     for (let at = 0; at < 32; at += 1) {
       fs.writeFileSync(path.join(project, 'animations', `a${at}.json`), '{}');
     }
-    expect(send(request())).toEqual({ ok: false, reason: 'full' });
+    expect(await send(request())).toEqual({ ok: false, reason: 'full' });
   });
 
-  it('control: one under the most is written', () => {
+  it('control: one under the most is written', async () => {
     fs.mkdirSync(path.join(project, 'animations'));
     for (let at = 0; at < 31; at += 1) {
       fs.writeFileSync(path.join(project, 'animations', `a${at}.json`), '{}');
     }
-    expect(send(request())).toEqual({ ok: true, name: 'whale-dive' });
+    expect(await send(request())).toEqual({ ok: true, name: 'whale-dive' });
   });
 
-  it('is refused as invalid, writing nothing', () => {
-    expect(send(request({ name: '../escape' }))).toEqual({
+  it('is refused as invalid, writing nothing', async () => {
+    expect(await send(request({ name: '../escape' }))).toEqual({
       ok: false,
       reason: 'invalid',
     });
     expect(fs.existsSync(path.join(project, 'art'))).toBe(false);
   });
 
-  it('is refused with no project open, or one the member may not work on', () => {
+  it('is refused with no project open, or one the member may not work on', async () => {
     stop();
     stop = registerStudioAnimationImport({
       mayEdit: () => false,
       activeFolder: () => project,
     });
-    expect(send(request())).toEqual({ ok: false, reason: 'closed' });
+    expect(await send(request())).toEqual({ ok: false, reason: 'closed' });
     stop();
     stop = registerStudioAnimationImport({
       mayEdit: () => true,
       activeFolder: () => undefined,
     });
-    expect(send(request())).toEqual({ ok: false, reason: 'closed' });
+    expect(await send(request())).toEqual({ ok: false, reason: 'closed' });
   });
 });

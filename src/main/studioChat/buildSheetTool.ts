@@ -422,11 +422,16 @@ const createBuildSheetTool = ({
     if (signal().aborted) {
       return failure('The member stopped the reply.');
     }
-    const written = writeSheet(open.folder, name, codec.encodePng(laid.sheet), {
-      count: plans.length,
-      columns,
-      ...animation,
-    });
+    const written = await writeSheet(
+      open.folder,
+      name,
+      codec.encodePng(laid.sheet),
+      {
+        count: plans.length,
+        columns,
+        ...animation,
+      },
+    );
     if (typeof written === 'string') {
       return failure(written);
     }

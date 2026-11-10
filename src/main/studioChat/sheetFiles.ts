@@ -17,10 +17,11 @@ import {
   type TAnimationGround,
 } from '../../common/studioAnimation';
 import { modelImageSize } from '../../common/worldModelImages';
-import writeFileAtomically from '../atomicWrite';
+import { recordSheet, type IRecordHow } from '../memberScenes/animationHistory';
 import {
   MAX_SHEET_BYTES,
   readProjectAnimation,
+  readProjectAnimations,
 } from '../memberScenes/projectAnimations';
 import type { IMcpToolResult } from '../studioAgent/mcpProtocol';
 import { ART_DIR, ART_NAME, artFolder, READABLE_PICTURES } from './artFolder';
@@ -132,21 +133,25 @@ export interface IAnimationFields {
 
 /**
  * Writes the sheet as `art/<name>.png` and its animation as
- * `animations/<name>.json`; the relative path of the sheet, or why not.
+ * `animations/<name>.json`, through the animation's history
+ * (`animationHistory.ts`), so every sheet written - the agent's, the
+ * member's import - can be undone; the relative path of the sheet, or why
+ * not. `how` says what the change was, and with a first write carries the
+ * member's files as they came, kept as the original.
  */
-export const writeSheet = (
+export const writeSheet = async (
   folder: string,
   name: string,
   png: Buffer,
   animation: IAnimationFields & { count: number; columns: number },
-): { sheet: string } | string => {
+  how: IRecordHow = { label: 'Made the sheet' },
+): Promise<{ sheet: string } | string> => {
   if (!isSheetName(name)) {
     return 'The name is lowercase letters, digits and hyphens, starting with a letter.';
   }
-  const sheet = `${ART_DIR}/${name}.png`;
+  // Both folders checked before anything is written: a refusal never leaves
+  // a sheet without the animation Claude was told failed.
   try {
-    // Both folders checked before either file is written: a refusal never
-    // leaves a sheet without the animation Claude was told failed.
     const art = artFolder(folder);
     if (!art || !insideFolder(folder, ART_DIR)) {
       return "The project's art folder is not a plain folder inside it.";
@@ -155,15 +160,11 @@ export const writeSheet = (
     if (!animations || !insideFolder(folder, ANIMATIONS_DIR)) {
       return "The project's animations folder is not a plain folder inside it.";
     }
-    writeFileAtomically(path.join(art, `${name}.png`), png);
-    writeFileAtomically(
-      path.join(animations, `${name}.json`),
-      `${JSON.stringify({ sheet, ...animation }, null, 2)}\n`,
-    );
   } catch {
     return 'The sheet could not be written into the project.';
   }
-  return { sheet };
+  const recorded = await recordSheet(folder, name, png, animation, how);
+  return recorded.ok ? { sheet: `${ART_DIR}/${name}.png` } : recorded.reason;
 };
 
 const sameFile = (a: string, b: string) =>
@@ -184,6 +185,17 @@ export const sheetTargetProblem = async (
   const target = insideFolder(folder, `${ART_DIR}/${name}.png`);
   if (!target) {
     return "The project's art folder is not a plain folder inside it.";
+  }
+  // A sheet another animation plays is that animation's: writing a new one
+  // under its picture's name made two animations of one sheet (Ivan's
+  // alpine project, 2026-11-10: whale-dive.json and whale-dive-sheet.json
+  // both on art/whale-dive-sheet.png).
+  const others = (await readProjectAnimations(folder)).filter(
+    ({ animation }) =>
+      animation.name !== name && animation.sheet === `${ART_DIR}/${name}.png`,
+  );
+  if (others.length > 0) {
+    return `art/${name}.png is the sheet of the animation ${others[0].animation.name}. Work on that animation by its own name, ${others[0].animation.name}, or give a new animation a name nothing uses yet.`;
   }
   if (!fs.existsSync(target)) {
     return undefined;

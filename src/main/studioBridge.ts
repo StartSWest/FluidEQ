@@ -193,6 +193,17 @@ const importStudioAnimation = (
     import('./ipc/studioAnimationImport').TAnimationImportOutcome
   >;
 
+/**
+ * An animation's history: list, undo, redo, the original, delete and bring
+ * back, a sheet changed in the window recorded, one version read.
+ */
+const studioAnimationHistory = (
+  request: import('./ipc/studioAnimationHistory').TAnimationHistoryRequest,
+) =>
+  ipcRenderer.invoke('studio-animation-history', request) as Promise<
+    import('./ipc/studioAnimationHistory').TAnimationHistoryOutcome
+  >;
+
 /** Told whenever a file of the open project's animations changes. */
 const onStudioAnimationsChanged = (listener: () => void) => {
   const wrapped = () => listener();
@@ -379,6 +390,7 @@ const studioBridge = {
   readStudioPictures,
   readStudioAnimations,
   importStudioAnimation,
+  studioAnimationHistory,
   onStudioAnimationsChanged,
   chooseStudioPicture,
   writeStudioSettings,

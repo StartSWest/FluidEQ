@@ -142,7 +142,7 @@ export const registerStudioAnimationImport = ({
 }): (() => void) => {
   ipcMain.handle(
     'studio-animation-import',
-    (_event, raw: unknown): TAnimationImportOutcome => {
+    async (_event, raw: unknown): Promise<TAnimationImportOutcome> => {
       const folder = activeFolder();
       if (!folder || !mayEdit()) {
         return { ok: false, reason: 'closed' };
@@ -159,7 +159,9 @@ export const registerStudioAnimationImport = ({
       if (animationsIn(folder) >= MAX_ANIMATIONS) {
         return { ok: false, reason: 'full' };
       }
-      const written = writeSheet(
+      // Through the animation's history, as its first record: the sheet as
+      // imported is the original every later change can go back to.
+      const written = await writeSheet(
         folder,
         request.name,
         Buffer.from(request.sheet),
@@ -170,6 +172,7 @@ export const registerStudioAnimationImport = ({
           loop: request.loop,
           ground: request.ground as (typeof ANIMATION_GROUNDS)[number],
         },
+        { label: 'Import' },
       );
       return typeof written === 'string'
         ? { ok: false, reason: 'failed' }
