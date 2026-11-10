@@ -5,18 +5,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useState } from 'react';
-import swallowSheet from '../../../../assets/tour/studio-swallow.png';
+import swallowSheet from '../../../../assets/studio/starter/art/swallow-flight.png';
 import type { IViewedAnimation } from '../../studio/animations/useStudioAnimations';
 
 /**
  * The swallow every new Studio project starts with (`starterScene.ts`), as
  * the Animations tab reads it: the same eight frames, four to a row, at the
- * speed the starter plays them. Bundled as a PNG copy of the project's
- * `art/swallow-flight.webp`, because the window's build takes no WebP.
+ * speed the starter plays them, from the very file a new project receives,
+ * so the tour and the starter cannot drift apart.
  */
 const SWALLOW = {
   name: 'swallow-flight',
-  sheet: 'art/swallow-flight.webp',
+  sheet: 'art/swallow-flight.png',
   count: 8,
   columns: 4,
   fps: 10,

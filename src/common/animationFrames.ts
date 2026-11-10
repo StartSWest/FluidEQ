@@ -173,12 +173,15 @@ export interface IAnimationFinding {
  * a drawing bigger or smaller than the rest, a change from the frame before
  * far above the usual - which is what a jump, a pop or a skating leg is.
  *
- * Judged as the animation means to move. Feet only for what stands on the
- * ground: a whale diving or a bird climbing leaves any line on purpose.
- * Size by how much is drawn, not by its box, which a turn alone changes
- * (a diving whale's box grew 30% with not a pixel more of whale). And a
- * one-shot never steps from its last frame back to its first, so that step
- * is no jump.
+ * Judged as the animation means to move. Feet and size only for what stands
+ * on the ground: a whale diving or a bird climbing leaves any line on
+ * purpose, and a wing beat shows less bird with the wings edge-on - the
+ * starter's swallow, drawn as one bird, measured 37% "smaller" at its level
+ * wings. What pops in the air or the water still jumps from the frame
+ * before, which is judged everywhere. Size by how much is drawn, not by its
+ * box, which a turn alone changes (a diving whale's box grew 30% with not a
+ * pixel more of whale). And a one-shot never steps from its last frame back
+ * to its first, so that step is no jump.
  */
 export const animationFindings = (
   measure: IAnimationMeasure,
@@ -207,7 +210,7 @@ export const animationFindings = (
     if (standing && Math.abs(off) > feetSlack) {
       findings.push({ frame: index + 1, kind: 'feet', amount: off });
     }
-    if (size > 0 && Math.abs(shape.ink / size - 1) > SIZE_SHARE) {
+    if (standing && size > 0 && Math.abs(shape.ink / size - 1) > SIZE_SHARE) {
       findings.push({
         frame: index + 1,
         kind: 'size',

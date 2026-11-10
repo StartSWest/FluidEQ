@@ -325,7 +325,7 @@ describe('the frames of a move, judged as it means to move', () => {
       cycle(4),
     );
     expect(
-      animationFindings(turning, { ground: 'water' }).filter(
+      animationFindings(turning, { ground: 'ground' }).filter(
         ({ kind }) => kind === 'size',
       ),
     ).toEqual([]);
@@ -339,14 +339,13 @@ describe('the frames of a move, judged as it means to move', () => {
       cycle(4),
     );
     expect(
-      animationFindings(growing, { ground: 'water' }).map(({ frame, kind }) => [
-        frame,
-        kind,
-      ]),
+      animationFindings(growing, { ground: 'ground' }).map(
+        ({ frame, kind }) => [frame, kind],
+      ),
     ).toContainEqual([3, 'size']);
   });
 
-  it('judges the feet only of what stands on the ground', () => {
+  it('judges the feet and the size only of what stands on the ground', () => {
     const lifted = measureAnimation(
       sheetOf([steady(0), steady(1), { left: 6, top: 2, size: 10 }, steady(1)]),
       cycle(4),
@@ -358,6 +357,20 @@ describe('the frames of a move, judged as it means to move', () => {
     expect(feet('ground')).toHaveLength(1);
     expect(feet('water')).toEqual([]);
     expect(feet('sky')).toEqual([]);
+    // A wing beat: the wings edge-on show less bird than spread.
+    const beat = measureAnimation(
+      drawnSheet([
+        [...line(false), ...line(true)],
+        [...line(false), ...line(true)],
+        line(false),
+        [...line(false), ...line(true)],
+      ]),
+      cycle(4),
+    );
+    const sizes = (ground: 'ground' | 'sky') =>
+      animationFindings(beat, { ground }).filter(({ kind }) => kind === 'size');
+    expect(sizes('sky')).toEqual([]);
+    expect(sizes('ground')).toHaveLength(1);
   });
 
   it("never calls a one-shot's first frame a jump from its last, and still does in a loop", () => {

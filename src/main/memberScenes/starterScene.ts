@@ -30,11 +30,17 @@ const SWALLOW_REGION = {
   rotated: false,
 } as const;
 
-/** The swallow as the Studio's Animations tab reads it (`studioAnimation.ts`). */
+/**
+ * The swallow as the Studio's Animations tab reads it (`studioAnimation.ts`).
+ * A PNG, not a WebP: the animator looks at it with look_at_animation, which
+ * decodes in main, and Electron's decoder there reads PNG and JPEG only - as
+ * a WebP the first animation every member meets was one their animator
+ * could not see. The window's tour draws this same file.
+ */
 export const STARTER_ANIMATION_NAME = 'swallow-flight';
 
 export const STARTER_ANIMATION = {
-  sheet: 'art/swallow-flight.webp',
+  sheet: 'art/swallow-flight.png',
   count: 8,
   columns: 4,
   fps: 10,

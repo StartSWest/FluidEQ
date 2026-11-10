@@ -414,7 +414,7 @@ describe('the starter project', () => {
     expect(animations.map(({ animation }) => animation)).toEqual([
       {
         name: STARTER_ANIMATION_NAME,
-        sheet: 'art/swallow-flight.webp',
+        sheet: 'art/swallow-flight.png',
         count: 8,
         columns: 4,
         fps: 10,
@@ -432,6 +432,13 @@ describe('the starter project', () => {
     expect(isDecodablePicture(artwork, PICTURE_BOUNDS)).toBe(true);
     expect(pictureHeaderSize(animations[0].sheet)).toEqual([848, 512]);
     expect(isDecodablePicture(animations[0].sheet, SHEET_BOUNDS)).toBe(true);
+    // A PNG by its bytes, not its name: main's decoder, which the animator's
+    // look_at_animation reads it with, takes PNG and JPEG and no WebP.
+    expect(
+      Buffer.from(animations[0].sheet.subarray(0, 8)).equals(
+        Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+      ),
+    ).toBe(true);
   });
 
   it('names the orb picture in every language the app speaks', () => {
@@ -446,7 +453,7 @@ describe('the starter project', () => {
   it("keeps a member's own file where the starter's art would go", async () => {
     fs.mkdirSync(path.join(project, 'art'));
     fs.mkdirSync(path.join(project, 'animations'));
-    write('art/swallow-flight.webp', 'mine');
+    write('art/swallow-flight.png', 'mine');
     write('animations/swallow-flight.json', '{"mine": true}');
     expect(
       await writeStarterProject(project, {
@@ -455,7 +462,7 @@ describe('the starter project', () => {
       }),
     ).toBe('written');
     expect(
-      fs.readFileSync(path.join(project, 'art/swallow-flight.webp'), 'utf8'),
+      fs.readFileSync(path.join(project, 'art/swallow-flight.png'), 'utf8'),
     ).toBe('mine');
     expect(
       fs.readFileSync(

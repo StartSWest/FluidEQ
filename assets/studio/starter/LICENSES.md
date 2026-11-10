@@ -9,9 +9,12 @@ Existing projects never receive them.
   member chooses a photo of their own in the Pictures tab. Under it, from
   y = 520, is the swallow's 8-frame sheet at 106 × 128 per frame (424 × 256,
   listed in `artworkRegions` as `swallow`), which the scene plays in the sky.
-- `art/swallow-flight.webp` (848 × 512): the same 8 frames at 212 × 256, the
+- `art/swallow-flight.png` (848 × 512): the same 8 frames at 212 × 256, the
   sheet `animations/swallow-flight.json` names, so the Animations tab shows the
-  swallow sharp at its own size.
+  swallow sharp at its own size. A 256-colour PNG (68 KB, closer to the
+  lossless original than the WebP it replaced) because the animator reads it
+  in FluidEQ's main process, which decodes PNG and JPEG only; the What's New
+  tour draws the same file.
 
 ## Origin
 
