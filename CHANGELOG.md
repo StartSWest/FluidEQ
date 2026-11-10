@@ -27,14 +27,16 @@ its own; everything it held is here.
   connect to; FluidEQ draws no new pictures itself. It lays the frames out
   as a sheet that plays and checks every frame for one that floats, jumps
   or changes size. Ask it to fix one, and it does.
-- **An Animations tab.** It plays every animation the scene has.
+- **An Animations tab.** It plays every animation the scene has, and
+  **Ask the scene's chat** starts a request for a new one in the chat's box
+  for you to finish.
 - **Step through it.** An opened animation plays on Ground, Sky or Water,
   uphill or downhill, at the speed it was made at or 4 to 12 frames a
   second, with the frame before showing under the one you are on and every
   frame in a strip. **See it bigger** opens the same view over the whole
   Studio.
-- **Import an animation.** The tab's **Import an animation** takes your own
-  frames, chosen with **Choose files** or dropped anywhere on the tab:
+- **Import an animation.** The **Import** button at the top of the tab takes
+  your own frames, chosen from it or dropped anywhere on the tab:
   - a sprite sheet, whose grid it finds by itself; set **Across**, **Down**
     and **Frames** on the sheet if the lines do not fall between the frames;
   - a sheet with its TexturePacker, Phaser or Aseprite JSON, each Aseprite
