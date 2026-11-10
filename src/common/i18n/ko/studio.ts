@@ -407,6 +407,31 @@ const studio = {
   'studio.animation.emptyTitle': '아직 애니메이션이 없습니다',
   'studio.animation.emptyText':
     '장면 채팅에 요청하세요. 장면의 사진을 움직이거나, 가져온 프레임을 배치합니다. 스프라이트 시트, GIF, Aseprite 파일은 가져오기로 불러올 수 있습니다.',
+  'studio.animation.menu': '{name} 더 보기',
+  'studio.animation.menuOpen': '열기',
+  'studio.animation.menuRename': '이름 바꾸기',
+  'studio.animation.menuShow': '폴더에서 보기',
+  'studio.animation.menuDelete': '삭제',
+  'studio.animation.removing': '채팅이 제거하는 중',
+  'studio.animation.renameTitle': '애니메이션 이름 바꾸기',
+  'studio.animation.renameLead':
+    '파일, 시트, 기록이 새 이름을 갖습니다. 장면은 그대로 재생됩니다.',
+  'studio.animation.renameRule':
+    '영문 소문자, 숫자, 하이픈을 쓰고 영문자로 시작하세요(최대 40자).',
+  'studio.animation.renameTaken':
+    '{name}(이)라는 다른 애니메이션이 이미 있습니다.',
+  'studio.animation.renameFailed':
+    '이름을 바꿀 수 없었습니다. 다시 시도하세요.',
+  'studio.animation.deleteTitle': '{name}을(를) 삭제할까요?',
+  'studio.animation.deleteLead':
+    '장면이 이것을 쓰고 있을 수 있습니다. 장면 채팅이 이것을 제거하고 장면이 쓰는 모든 곳을 고쳐서 망가진 채로 남는 것이 없게 합니다.',
+  'studio.animation.deleteAsk': '채팅에 제거 요청',
+  'studio.animation.deleteRequest':
+    '이 프로젝트에서 애니메이션 “{name}”({file}과 그 시트)을 제거하고, 장면이 쓰는 모든 곳을 고쳐서 망가진 채로 남는 것이 없게 해 줘.',
+  'studio.animation.history': '버전',
+  'studio.animation.undo': '실행 취소',
+  'studio.animation.redo': '다시 실행',
+  'studio.animation.original': '원본으로 되돌리기',
   'studio.animation.meta': '{count}프레임 · {fps}fps · 반복',
   'studio.animation.metaOnce': '{count}프레임 · {fps}fps · 한 번 재생',
   'studio.animation.open': '{name} 열기',

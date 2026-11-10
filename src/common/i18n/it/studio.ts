@@ -428,6 +428,30 @@ const studio = {
   'studio.animation.emptyTitle': 'Ancora nessuna animazione',
   'studio.animation.emptyText':
     'Chiedine una alla chat della scena: anima un’immagine della tua scena, o dispone i fotogrammi che porti. Oppure porta uno sprite sheet, una GIF o un file Aseprite con Importa.',
+  'studio.animation.menu': 'Altro per {name}',
+  'studio.animation.menuOpen': 'Apri',
+  'studio.animation.menuRename': 'Rinomina',
+  'studio.animation.menuShow': 'Mostra nella cartella',
+  'studio.animation.menuDelete': 'Elimina',
+  'studio.animation.removing': 'La chat la sta rimuovendo',
+  'studio.animation.renameTitle': 'Rinomina l’animazione',
+  'studio.animation.renameLead':
+    'Il suo file, il suo sheet e la sua cronologia prendono il nuovo nome. La scena continua a funzionare com’è.',
+  'studio.animation.renameRule':
+    'Usa lettere minuscole, cifre e trattini, iniziando con una lettera: fino a 40.',
+  'studio.animation.renameTaken': 'Un’altra animazione si chiama già {name}.',
+  'studio.animation.renameFailed':
+    'Non è stato possibile rinominarla. Riprova.',
+  'studio.animation.deleteTitle': 'Eliminare {name}?',
+  'studio.animation.deleteLead':
+    'La scena potrebbe usarla. La chat della scena la rimuove e sistema ogni punto in cui la scena la usa, così non resta niente di rotto.',
+  'studio.animation.deleteAsk': 'Chiedi alla chat di rimuoverla',
+  'studio.animation.deleteRequest':
+    'Rimuovi l’animazione «{name}» ({file} e il suo sheet) da questo progetto, e sistema ogni punto in cui la scena la usa, così non resta niente di rotto.',
+  'studio.animation.history': 'Versioni',
+  'studio.animation.undo': 'Annulla',
+  'studio.animation.redo': 'Ripeti',
+  'studio.animation.original': 'Torna all’originale',
   'studio.animation.meta': '{count} fotogrammi · {fps} fps · in loop',
   'studio.animation.metaOnce': '{count} fotogrammi · {fps} fps · una volta',
   'studio.animation.open': 'Apri {name}',

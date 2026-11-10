@@ -421,6 +421,29 @@ const studio = {
   'studio.animation.emptyTitle': 'Nenhuma animação ainda',
   'studio.animation.emptyText':
     'Peça uma ao chat da cena: ele anima uma imagem da sua cena ou monta os quadros que você trouxer. Ou traga uma folha de sprites, um GIF ou um arquivo do Aseprite com Importar.',
+  'studio.animation.menu': 'Mais para {name}',
+  'studio.animation.menuOpen': 'Abrir',
+  'studio.animation.menuRename': 'Renomear',
+  'studio.animation.menuShow': 'Mostrar na pasta',
+  'studio.animation.menuDelete': 'Excluir',
+  'studio.animation.removing': 'O chat está removendo',
+  'studio.animation.renameTitle': 'Renomear a animação',
+  'studio.animation.renameLead':
+    'O arquivo, a folha e o histórico dela ficam com o novo nome. A cena continua tocando como está.',
+  'studio.animation.renameRule':
+    'Use letras minúsculas, números e hifens, começando com uma letra: até 40.',
+  'studio.animation.renameTaken': 'Já existe outra animação chamada {name}.',
+  'studio.animation.renameFailed': 'Não foi possível renomear. Tente de novo.',
+  'studio.animation.deleteTitle': 'Excluir {name}?',
+  'studio.animation.deleteLead':
+    'A cena pode estar usando. O chat da cena remove a animação e corrige cada lugar onde a cena a usa, para nada ficar quebrado.',
+  'studio.animation.deleteAsk': 'Pedir ao chat que a remova',
+  'studio.animation.deleteRequest':
+    'Remova a animação “{name}” ({file} e a folha dela) deste projeto, e corrija cada lugar onde a cena a usa, para nada ficar quebrado.',
+  'studio.animation.history': 'Versões',
+  'studio.animation.undo': 'Desfazer',
+  'studio.animation.redo': 'Refazer',
+  'studio.animation.original': 'Voltar ao original',
   'studio.animation.meta': '{count} quadros · {fps} fps · em loop',
   'studio.animation.metaOnce': '{count} quadros · {fps} fps · uma vez',
   'studio.animation.open': 'Abrir {name}',

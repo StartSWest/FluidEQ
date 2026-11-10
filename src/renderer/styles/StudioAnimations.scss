@@ -128,8 +128,58 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .studio-animation-card {
+  position: relative;
   display: grid;
   min-width: 0;
+
+  // Asked of the chat to remove: still there, plainly on its way out.
+  &.is-removing .studio-animation-card__frame {
+    opacity: 0.55;
+  }
+}
+
+// The card's menu, in the frame's corner on the plate's glass: quiet until
+// the card is pointed at or the menu has the focus, and always there for a
+// keyboard.
+.studio-animation-card__more {
+  position: absolute;
+  z-index: 1;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: $text-muted;
+  border: 1px solid $card-edge;
+  border-radius: 999px;
+  background: color-mix(in srgb, $surface-menu 80%, transparent);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  opacity: 0.7;
+  transition:
+    opacity $motion-fast $ease-out,
+    color $motion-fast $ease-out,
+    border-color $motion-fast $ease-out;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .studio-animation-card:hover &,
+  &:hover,
+  &[aria-expanded='true'] {
+    color: $text-primary;
+    border-color: $border-field-hover;
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    opacity: 1;
+    @include focus-ring;
+  }
 }
 
 // The whole card opens the animation; its parts are the tile's layout.
@@ -202,6 +252,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The chips over a picture wear the stage plate's glass.
 .studio-animation-card__count,
+.studio-animation-card__removing,
 .studio-animation-stage__tag {
   position: absolute;
   padding: 2px 8px;
@@ -221,19 +272,30 @@ it under the terms of the GNU General Public License version 3 or later.
   left: 8px;
 }
 
+// The removal under way, where the card's other chip is not.
+.studio-animation-card__removing {
+  top: 8px;
+  left: 8px;
+  max-width: calc(100% - 56px);
+  overflow: hidden;
+  color: $secondary-light;
+  text-overflow: ellipsis;
+}
+
+// The same two lines on every card, whatever the name: the name on one,
+// cut short with the whole of it on hover, and what it is under it.
 .studio-animation-card__about {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 2px 10px;
+  display: grid;
+  gap: 2px;
   min-width: 0;
   padding: 0 2px;
 }
 
 .studio-animation-card__name {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: $text-primary;
   font-size: $text-body;
   font-weight: $weight-semibold;
@@ -276,6 +338,24 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-body;
   font-weight: $weight-semibold;
   overflow-wrap: anywhere;
+}
+
+// Undo, redo and the original, at the head's end; under the name where
+// there is no room beside it.
+.studio-animation-history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-inline-start: auto;
+
+  .button {
+    gap: 6px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
 }
 
 .studio-animation-opened__meta {

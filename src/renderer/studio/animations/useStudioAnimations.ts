@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { feetLineOf, measureAnimation } from 'common/animationFrames';
+import {
+  drawnBoxOf,
+  feetLineOf,
+  measureAnimation,
+} from 'common/animationFrames';
 import { isDecodablePicture, SHEET_BOUNDS } from 'common/pictureBounds';
 import { frameCell, type IStudioAnimation } from 'common/studioAnimation';
 
@@ -22,6 +26,8 @@ export interface IViewedAnimation {
   aspect: number;
   /** Where the feet stand, as a share of a frame's height from its top. */
   feetLine?: number;
+  /** The part of a cell any frame draws in, in the cell's pixels. */
+  drawn?: { x: number; y: number; width: number; height: number };
 }
 
 /**
@@ -44,12 +50,15 @@ export const viewOf = (
   }
   context.drawImage(bitmap, 0, 0);
   const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height);
-  const feetLine = feetLineOf(measureAnimation(pixels, animation));
+  const measure = measureAnimation(pixels, animation);
+  const feetLine = feetLineOf(measure);
+  const drawn = drawnBoxOf(measure);
   return {
     animation,
     bitmap,
     aspect,
     ...(feetLine === undefined ? {} : { feetLine }),
+    ...(drawn ? { drawn } : {}),
   };
 };
 

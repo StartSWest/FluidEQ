@@ -252,3 +252,38 @@ export const feetLineOf = (measure: IAnimationMeasure): number | undefined => {
     (median(drawn.map((shape) => shape.bottom)) + 1) / measure.cells[0].height
   );
 };
+
+/** Around the drawing in a cropped tile, a share of its larger side. */
+const DRAWN_MARGIN = 0.08;
+
+/**
+ * The part of a cell any frame draws in, with a margin, in the cell's own
+ * pixels: where a tile shows the creature at its size instead of the sheet's
+ * empty room around it (Ivan, 2026-11-10: thumbnails cropped to the frames'
+ * visible pixels). One box for every frame, so the creature does not jump
+ * from tile edge to tile edge as it plays. Undefined when nothing is drawn.
+ */
+export const drawnBoxOf = (
+  measure: IAnimationMeasure,
+): { x: number; y: number; width: number; height: number } | undefined => {
+  const drawn = measure.shapes.filter((shape) => shape.ink > 0);
+  const cell = measure.cells[0];
+  if (drawn.length === 0 || !cell) {
+    return undefined;
+  }
+  const left = Math.min(...drawn.map((shape) => shape.left));
+  const top = Math.min(...drawn.map((shape) => shape.top));
+  const right = Math.max(...drawn.map((shape) => shape.right)) + 1;
+  const bottom = Math.max(...drawn.map((shape) => shape.bottom)) + 1;
+  const margin = Math.round(
+    Math.max(right - left, bottom - top) * DRAWN_MARGIN,
+  );
+  const x = Math.max(0, left - margin);
+  const y = Math.max(0, top - margin);
+  return {
+    x,
+    y,
+    width: Math.min(cell.width, right + margin) - x,
+    height: Math.min(cell.height, bottom + margin) - y,
+  };
+};

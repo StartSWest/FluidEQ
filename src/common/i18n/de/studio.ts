@@ -435,6 +435,30 @@ const studio = {
   'studio.animation.emptyTitle': 'Noch keine Animationen',
   'studio.animation.emptyText':
     'Fragen Sie den Chat der Szene: Er animiert ein Bild aus Ihrer Szene oder legt Bilder aus, die Sie mitbringen. Oder holen Sie mit Importieren ein Sprite-Sheet, ein GIF oder eine Aseprite-Datei herein.',
+  'studio.animation.menu': 'Mehr zu {name}',
+  'studio.animation.menuOpen': 'Öffnen',
+  'studio.animation.menuRename': 'Umbenennen',
+  'studio.animation.menuShow': 'Im Ordner zeigen',
+  'studio.animation.menuDelete': 'Löschen',
+  'studio.animation.removing': 'Der Chat entfernt sie',
+  'studio.animation.renameTitle': 'Animation umbenennen',
+  'studio.animation.renameLead':
+    'Ihre Datei, ihr Sheet und ihr Verlauf erhalten den neuen Namen. Die Szene spielt weiter wie bisher.',
+  'studio.animation.renameRule':
+    'Verwenden Sie Kleinbuchstaben, Ziffern und Bindestriche, beginnend mit einem Buchstaben: bis zu 40.',
+  'studio.animation.renameTaken': 'Eine andere Animation heißt bereits {name}.',
+  'studio.animation.renameFailed':
+    'Sie konnte nicht umbenannt werden. Versuchen Sie es erneut.',
+  'studio.animation.deleteTitle': '{name} löschen?',
+  'studio.animation.deleteLead':
+    'Die Szene verwendet sie vielleicht. Der Chat der Szene entfernt sie und repariert jede Stelle, an der die Szene sie verwendet, damit nichts kaputt bleibt.',
+  'studio.animation.deleteAsk': 'Den Chat bitten, sie zu entfernen',
+  'studio.animation.deleteRequest':
+    'Entferne die Animation „{name}“ ({file} und ihr Sheet) aus diesem Projekt und repariere jede Stelle, an der die Szene sie verwendet, damit nichts kaputt bleibt.',
+  'studio.animation.history': 'Versionen',
+  'studio.animation.undo': 'Rückgängig',
+  'studio.animation.redo': 'Wiederholen',
+  'studio.animation.original': 'Zurück zum Original',
   'studio.animation.meta': '{count} Bilder · {fps} fps · Schleife',
   'studio.animation.metaOnce': '{count} Bilder · {fps} fps · einmal',
   'studio.animation.open': '{name} öffnen',

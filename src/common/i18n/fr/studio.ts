@@ -428,6 +428,29 @@ const studio = {
   'studio.animation.emptyTitle': 'Pas encore d’animation',
   'studio.animation.emptyText':
     'Demandez-en une au chat de la scène : il anime une image de votre scène, ou dispose les images que vous apportez. Ou apportez une planche de sprites, un GIF ou un fichier Aseprite avec Importer.',
+  'studio.animation.menu': 'Plus pour {name}',
+  'studio.animation.menuOpen': 'Ouvrir',
+  'studio.animation.menuRename': 'Renommer',
+  'studio.animation.menuShow': 'Afficher dans le dossier',
+  'studio.animation.menuDelete': 'Supprimer',
+  'studio.animation.removing': 'Le chat la retire',
+  'studio.animation.renameTitle': 'Renommer l’animation',
+  'studio.animation.renameLead':
+    'Son fichier, sa planche et son historique prennent le nouveau nom. La scène continue de jouer telle quelle.',
+  'studio.animation.renameRule':
+    'Utilisez des minuscules, des chiffres et des tirets, en commençant par une lettre : 40 au plus.',
+  'studio.animation.renameTaken': 'Une autre animation s’appelle déjà {name}.',
+  'studio.animation.renameFailed': 'Impossible de la renommer. Réessayez.',
+  'studio.animation.deleteTitle': 'Supprimer {name} ?',
+  'studio.animation.deleteLead':
+    'La scène l’utilise peut-être. Le chat de la scène la retire et corrige chaque endroit où la scène l’utilise, pour que rien ne reste cassé.',
+  'studio.animation.deleteAsk': 'Demander au chat de la retirer',
+  'studio.animation.deleteRequest':
+    'Retire l’animation « {name} » ({file} et sa planche) de ce projet, et corrige chaque endroit où la scène l’utilise, pour que rien ne reste cassé.',
+  'studio.animation.history': 'Versions',
+  'studio.animation.undo': 'Annuler',
+  'studio.animation.redo': 'Rétablir',
+  'studio.animation.original': 'Revenir à l’original',
   'studio.animation.meta': '{count} images · {fps} i/s · en boucle',
   'studio.animation.metaOnce': '{count} images · {fps} i/s · une fois',
   'studio.animation.open': 'Ouvrir {name}',

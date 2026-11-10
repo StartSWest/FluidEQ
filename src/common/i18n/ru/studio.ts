@@ -422,6 +422,30 @@ const studio = {
   'studio.animation.emptyTitle': 'Анимаций пока нет',
   'studio.animation.emptyText':
     'Попросите чат сцены: он оживит изображение из вашей сцены или разложит кадры, которые вы принесёте. Или добавьте спрайт-лист, GIF или файл Aseprite кнопкой «Импорт».',
+  'studio.animation.menu': 'Ещё для {name}',
+  'studio.animation.menuOpen': 'Открыть',
+  'studio.animation.menuRename': 'Переименовать',
+  'studio.animation.menuShow': 'Показать в папке',
+  'studio.animation.menuDelete': 'Удалить',
+  'studio.animation.removing': 'Чат удаляет её',
+  'studio.animation.renameTitle': 'Переименовать анимацию',
+  'studio.animation.renameLead':
+    'Её файл, лист и история получат новое имя. Сцена продолжит играть как есть.',
+  'studio.animation.renameRule':
+    'Используйте строчные латинские буквы, цифры и дефисы, начиная с буквы: до 40.',
+  'studio.animation.renameTaken': 'Другая анимация уже называется {name}.',
+  'studio.animation.renameFailed':
+    'Не удалось переименовать. Попробуйте ещё раз.',
+  'studio.animation.deleteTitle': 'Удалить {name}?',
+  'studio.animation.deleteLead':
+    'Возможно, сцена её использует. Чат сцены удалит её и исправит каждое место, где сцена её использует, чтобы ничего не осталось сломанным.',
+  'studio.animation.deleteAsk': 'Попросить чат удалить её',
+  'studio.animation.deleteRequest':
+    'Удали анимацию «{name}» ({file} и её лист) из этого проекта и исправь каждое место, где сцена её использует, чтобы ничего не осталось сломанным.',
+  'studio.animation.history': 'Версии',
+  'studio.animation.undo': 'Отменить',
+  'studio.animation.redo': 'Повторить',
+  'studio.animation.original': 'Вернуть оригинал',
   'studio.animation.meta': 'Кадров: {count} · {fps} к/с · по кругу',
   'studio.animation.metaOnce': 'Кадров: {count} · {fps} к/с · один раз',
   'studio.animation.open': 'Открыть {name}',

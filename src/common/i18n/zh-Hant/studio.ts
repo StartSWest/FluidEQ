@@ -367,6 +367,29 @@ const studio = {
   'studio.animation.emptyTitle': '還沒有動畫',
   'studio.animation.emptyText':
     '向場景聊天要一段：它會讓場景裡的圖片動起來，或排好你帶來的畫格。也可以用「匯入」加入精靈圖、GIF 或 Aseprite 檔案。',
+  'studio.animation.menu': '{name} 的更多操作',
+  'studio.animation.menuOpen': '開啟',
+  'studio.animation.menuRename': '重新命名',
+  'studio.animation.menuShow': '在資料夾中顯示',
+  'studio.animation.menuDelete': '刪除',
+  'studio.animation.removing': '聊天正在移除',
+  'studio.animation.renameTitle': '重新命名動畫',
+  'studio.animation.renameLead':
+    '它的檔案、畫格圖和歷程都會改用新名稱。場景照常播放。',
+  'studio.animation.renameRule':
+    '請用小寫字母、數字和連字號，以字母開頭，最多 40 個字元。',
+  'studio.animation.renameTaken': '已有另一段動畫叫 {name}。',
+  'studio.animation.renameFailed': '無法重新命名，請再試一次。',
+  'studio.animation.deleteTitle': '刪除 {name}？',
+  'studio.animation.deleteLead':
+    '場景可能正在使用它。場景聊天會移除它，並修好場景使用它的每一處，不留下任何損壞。',
+  'studio.animation.deleteAsk': '請聊天移除它',
+  'studio.animation.deleteRequest':
+    '從這個專案中移除動畫「{name}」（{file} 及其畫格圖），並修好場景使用它的每一處，不留下任何損壞。',
+  'studio.animation.history': '版本',
+  'studio.animation.undo': '復原',
+  'studio.animation.redo': '重做',
+  'studio.animation.original': '回到原始版本',
   'studio.animation.meta': '{count} 格 · {fps} 格/秒 · 循環',
   'studio.animation.metaOnce': '{count} 格 · {fps} 格/秒 · 播放一次',
   'studio.animation.open': '開啟 {name}',

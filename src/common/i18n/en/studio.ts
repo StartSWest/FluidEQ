@@ -432,6 +432,29 @@ const studio = {
   'studio.animation.emptyTitle': 'No animations yet',
   'studio.animation.emptyText':
     'Ask the scene’s chat for one: it animates a picture from your scene, or lays out frames you bring. Or bring in a sprite sheet, a GIF or an Aseprite file with Import.',
+  'studio.animation.menu': 'More for {name}',
+  'studio.animation.menuOpen': 'Open',
+  'studio.animation.menuRename': 'Rename',
+  'studio.animation.menuShow': 'Show in folder',
+  'studio.animation.menuDelete': 'Delete',
+  'studio.animation.removing': 'The chat is removing it',
+  'studio.animation.renameTitle': 'Rename the animation',
+  'studio.animation.renameLead':
+    'Its file, its sheet and its history take the new name. The scene keeps playing as it is.',
+  'studio.animation.renameRule':
+    'Use lowercase letters, digits and hyphens, starting with a letter: up to 40.',
+  'studio.animation.renameTaken': 'Another animation is already called {name}.',
+  'studio.animation.renameFailed': 'It could not be renamed. Try again.',
+  'studio.animation.deleteTitle': 'Delete {name}?',
+  'studio.animation.deleteLead':
+    'The scene may be using it. The scene’s chat removes it and fixes every place the scene uses it, so nothing is left broken.',
+  'studio.animation.deleteAsk': 'Ask the chat to remove it',
+  'studio.animation.deleteRequest':
+    'Remove the animation “{name}” ({file} and its sheet) from this project, and fix every place the scene uses it, so nothing is left broken.',
+  'studio.animation.history': 'Versions',
+  'studio.animation.undo': 'Undo',
+  'studio.animation.redo': 'Redo',
+  'studio.animation.original': 'Back to the original',
   'studio.animation.meta': '{count} frames · {fps} fps · loops',
   'studio.animation.metaOnce': '{count} frames · {fps} fps · plays once',
   'studio.animation.open': 'Open {name}',

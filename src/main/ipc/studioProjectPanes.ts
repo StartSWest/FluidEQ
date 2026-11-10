@@ -9,6 +9,7 @@ import type { IMemberSceneStore } from '../memberScenes/store';
 import type { IStoredProject } from '../memberScenes/studioProjects';
 import { registerStudioAnimationHistory } from './studioAnimationHistory';
 import { registerStudioAnimationImport } from './studioAnimationImport';
+import { registerStudioAnimationShow } from './studioAnimationShow';
 import { registerStudioAnimationsIpc } from './studioAnimations';
 import { registerStudioDemoMusicIpc } from './studioDemoMusic';
 import { registerStudioNotesIpc } from './studioNotes';
@@ -106,12 +107,17 @@ export const registerStudioProjectPanes = ({
     mayEdit: mayUseActive,
     activeFolder,
   });
+  const disposeAnimationShow = registerStudioAnimationShow({
+    mayEdit: mayUseActive,
+    activeFolder,
+  });
   return () => {
     disposeNotes();
     disposePictures();
     disposeAnimations();
     disposeAnimationImport();
     disposeAnimationHistory();
+    disposeAnimationShow();
     disposePreview();
     disposeSettings();
     disposeDemoMusic();

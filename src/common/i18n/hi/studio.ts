@@ -419,6 +419,29 @@ const studio = {
   'studio.animation.emptyTitle': 'अभी कोई एनिमेशन नहीं',
   'studio.animation.emptyText':
     'सीन की चैट से एक माँगें: यह आपके सीन का कोई चित्र एनिमेट करती है, या आपके लाए फ़्रेम सजाती है। या इम्पोर्ट से कोई स्प्राइट शीट, GIF या Aseprite फ़ाइल लाएँ।',
+  'studio.animation.menu': '{name} के और विकल्प',
+  'studio.animation.menuOpen': 'खोलें',
+  'studio.animation.menuRename': 'नाम बदलें',
+  'studio.animation.menuShow': 'फ़ोल्डर में दिखाएँ',
+  'studio.animation.menuDelete': 'हटाएँ',
+  'studio.animation.removing': 'चैट इसे हटा रही है',
+  'studio.animation.renameTitle': 'एनिमेशन का नाम बदलें',
+  'studio.animation.renameLead':
+    'इसकी फ़ाइल, शीट और इतिहास को नया नाम मिलता है। सीन पहले जैसा चलता रहता है।',
+  'studio.animation.renameRule':
+    'छोटे अक्षर, अंक और हाइफ़न इस्तेमाल करें, शुरुआत अक्षर से: अधिकतम 40।',
+  'studio.animation.renameTaken': '{name} नाम का एक और एनिमेशन पहले से है।',
+  'studio.animation.renameFailed': 'नाम नहीं बदल सका। फिर से कोशिश करें।',
+  'studio.animation.deleteTitle': '{name} हटाएँ?',
+  'studio.animation.deleteLead':
+    'हो सकता है सीन इसका इस्तेमाल करता हो। सीन की चैट इसे हटाती है और हर उस जगह को ठीक करती है जहाँ सीन इसे इस्तेमाल करता है, ताकि कुछ टूटा न रहे।',
+  'studio.animation.deleteAsk': 'चैट से इसे हटाने को कहें',
+  'studio.animation.deleteRequest':
+    'इस प्रोजेक्ट से एनिमेशन “{name}” ({file} और उसकी शीट) हटाओ, और हर उस जगह को ठीक करो जहाँ सीन इसे इस्तेमाल करता है, ताकि कुछ टूटा न रहे।',
+  'studio.animation.history': 'संस्करण',
+  'studio.animation.undo': 'पूर्ववत करें',
+  'studio.animation.redo': 'फिर से करें',
+  'studio.animation.original': 'मूल पर लौटें',
   'studio.animation.meta': '{count} फ़्रेम · {fps} fps · लूप',
   'studio.animation.metaOnce': '{count} फ़्रेम · {fps} fps · एक बार',
   'studio.animation.open': '{name} खोलें',

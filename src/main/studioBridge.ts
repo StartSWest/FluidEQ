@@ -210,6 +210,12 @@ const readStudioArtworkSources = () =>
     import('./ipc/studioAnimationHistory').TArtworkSourcesOutcome
   >;
 
+/** The file manager opened on an animation's sheet, by its name. */
+const showStudioAnimation = (name: string) =>
+  ipcRenderer.invoke('studio-animation-show', name) as Promise<
+    import('./ipc/studioAnimationShow').TAnimationShowOutcome
+  >;
+
 /** Told whenever a file of the open project's animations changes. */
 const onStudioAnimationsChanged = (listener: () => void) => {
   const wrapped = () => listener();
@@ -398,6 +404,7 @@ const studioBridge = {
   importStudioAnimation,
   studioAnimationHistory,
   readStudioArtworkSources,
+  showStudioAnimation,
   onStudioAnimationsChanged,
   chooseStudioPicture,
   writeStudioSettings,

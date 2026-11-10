@@ -427,6 +427,31 @@ const studio = {
   'studio.animation.emptyTitle': 'アニメーションはまだありません',
   'studio.animation.emptyText':
     'シーンのチャットに頼んでください。シーンの画像を動かすか、持ち込んだコマを並べます。スプライトシート、GIF、Aseprite ファイルは「読み込む」から取り込めます。',
+  'studio.animation.menu': '{name} のその他の操作',
+  'studio.animation.menuOpen': '開く',
+  'studio.animation.menuRename': '名前を変更',
+  'studio.animation.menuShow': 'フォルダーに表示',
+  'studio.animation.menuDelete': '削除',
+  'studio.animation.removing': 'チャットが削除中',
+  'studio.animation.renameTitle': 'アニメーションの名前を変更',
+  'studio.animation.renameLead':
+    'ファイル、シート、履歴が新しい名前になります。シーンはそのまま再生されます。',
+  'studio.animation.renameRule':
+    '英小文字、数字、ハイフンを使い、英字で始めてください（40 文字まで）。',
+  'studio.animation.renameTaken':
+    '{name} という名前のアニメーションがすでにあります。',
+  'studio.animation.renameFailed':
+    '名前を変更できませんでした。もう一度お試しください。',
+  'studio.animation.deleteTitle': '{name} を削除しますか？',
+  'studio.animation.deleteLead':
+    'シーンで使われているかもしれません。シーンのチャットがこれを削除し、シーンで使われているすべての箇所を直して、壊れたままの部分が残らないようにします。',
+  'studio.animation.deleteAsk': 'チャットに削除を頼む',
+  'studio.animation.deleteRequest':
+    'このプロジェクトからアニメーション「{name}」（{file} とそのシート）を削除して、シーンで使っているすべての箇所を直し、壊れたままの部分が残らないようにして。',
+  'studio.animation.history': 'バージョン',
+  'studio.animation.undo': '元に戻す',
+  'studio.animation.redo': 'やり直す',
+  'studio.animation.original': 'オリジナルに戻す',
   'studio.animation.meta': '{count} コマ · {fps} fps · ループ',
   'studio.animation.metaOnce': '{count} コマ · {fps} fps · 1 回再生',
   'studio.animation.open': '{name} を開く',

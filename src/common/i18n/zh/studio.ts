@@ -381,6 +381,29 @@ const studio = {
   'studio.animation.emptyTitle': '还没有动画',
   'studio.animation.emptyText':
     '向场景聊天要一段：它会让场景里的图片动起来，或排好你带来的帧。也可以用“导入”加入精灵图、GIF 或 Aseprite 文件。',
+  'studio.animation.menu': '{name} 的更多操作',
+  'studio.animation.menuOpen': '打开',
+  'studio.animation.menuRename': '重命名',
+  'studio.animation.menuShow': '在文件夹中显示',
+  'studio.animation.menuDelete': '删除',
+  'studio.animation.removing': '聊天正在移除',
+  'studio.animation.renameTitle': '重命名动画',
+  'studio.animation.renameLead':
+    '它的文件、帧图和历史都会改用新名称。场景照常播放。',
+  'studio.animation.renameRule':
+    '请用小写字母、数字和连字符，以字母开头，最多 40 个字符。',
+  'studio.animation.renameTaken': '已有另一段动画叫 {name}。',
+  'studio.animation.renameFailed': '无法重命名，请重试。',
+  'studio.animation.deleteTitle': '删除 {name}？',
+  'studio.animation.deleteLead':
+    '场景可能正在使用它。场景聊天会移除它，并修好场景使用它的每一处，不留下任何损坏。',
+  'studio.animation.deleteAsk': '让聊天移除它',
+  'studio.animation.deleteRequest':
+    '从这个项目中移除动画“{name}”（{file} 及其帧图），并修好场景使用它的每一处，不留下任何损坏。',
+  'studio.animation.history': '版本',
+  'studio.animation.undo': '撤销',
+  'studio.animation.redo': '重做',
+  'studio.animation.original': '恢复原始版本',
   'studio.animation.meta': '{count} 帧 · {fps} 帧/秒 · 循环',
   'studio.animation.metaOnce': '{count} 帧 · {fps} 帧/秒 · 播放一次',
   'studio.animation.open': '打开 {name}',

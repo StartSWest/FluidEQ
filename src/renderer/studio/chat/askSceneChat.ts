@@ -28,6 +28,14 @@ export const askSceneChat = async (projectId: string, text: string) => {
   listeners.forEach((listener) => listener());
 };
 
+/**
+ * The scene's chat brought into view without a word written: after a
+ * message was sent to it from elsewhere, to watch it work.
+ */
+export const showSceneChat = () => {
+  listeners.forEach((listener) => listener());
+};
+
 /** Calls `onAsked` whenever something asks the scene's chat. */
 export const useSceneChatAsked = (onAsked: () => void) => {
   const latest = useRef(onAsked);

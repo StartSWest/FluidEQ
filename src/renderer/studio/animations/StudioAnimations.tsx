@@ -1,15 +1,19 @@
 import { useId, useMemo, useRef, useState } from 'react';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
-import AnimationFrame from './AnimationFrame';
+import AnimationCard from './AnimationCard';
+import AnimationHistoryBar from './AnimationHistoryBar';
+import { showAnimationFile, useRemovalAsked } from './animationActions';
 import { AnimationsEmpty, AnimationsHint } from './AnimationsAsk';
 import AnimationView from './AnimationView';
 import useFileDrop from './import/importDrop';
 import type { IChosenFile } from './import/importFiles';
 import StudioAnimationImport from './import/StudioAnimationImport';
 import StudioAnimationImportButton from './import/StudioAnimationImportButton';
+import DeleteAnimationDialog from './DeleteAnimationDialog';
+import RenameAnimationDialog from './RenameAnimationDialog';
 import StudioAnimationModal from './StudioAnimationModal';
-import useAnimationPlayer, { useLoopFrame } from './useAnimationPlayer';
+import useAnimationPlayer from './useAnimationPlayer';
 import type { IViewedAnimation } from './useStudioAnimations';
 import '../../styles/StudioAnimations.scss';
 
@@ -22,56 +26,6 @@ const useMeta = () => {
       fps: animation.fps,
     });
 };
-
-function AnimationCard({
-  viewed,
-  onOpen,
-}: {
-  viewed: IViewedAnimation;
-  onOpen: () => void;
-}) {
-  const { t } = useTranslation();
-  const meta = useMeta();
-  const frame = useLoopFrame(viewed);
-  const { animation } = viewed;
-  return (
-    <li className="studio-animation-card">
-      <button
-        type="button"
-        className="studio-animation-card__open"
-        aria-label={t('studio.animation.open', { name: animation.name })}
-        onClick={onOpen}
-      >
-        <span className="studio-animation-card__frame">
-          {viewed.bitmap ? (
-            <AnimationFrame
-              className="studio-animation-card__art"
-              viewed={viewed}
-              frame={frame}
-            />
-          ) : (
-            <span className="studio-animation-card__unreadable">
-              <Glyph name="alert" />
-              {t('studio.animation.unreadable')}
-            </span>
-          )}
-          {viewed.bitmap && (
-            <span className="studio-animation-card__count">
-              {t('studio.animation.frameOf', {
-                frame: frame + 1,
-                count: animation.count,
-              })}
-            </span>
-          )}
-        </span>
-        <span className="studio-animation-card__about">
-          <span className="studio-animation-card__name">{animation.name}</span>
-          <span className="studio-animation-card__meta">{meta(viewed)}</span>
-        </span>
-      </button>
-    </li>
-  );
-}
 
 interface IOpenedProps {
   viewed: IViewedAnimation;
@@ -100,6 +54,7 @@ function OpenedAnimation({ viewed, onBack }: IOpenedProps) {
         <span className="studio-animation-opened__meta">
           {meta(viewed)} · {viewed.animation.sheet}
         </span>
+        <AnimationHistoryBar name={viewed.animation.name} revision={viewed} />
       </div>
       <div className="studio-animation-opened__view">
         {/* Not shown under the open modal: one view of it on screen. */}
@@ -135,6 +90,36 @@ function OpenedAnimation({ viewed, onBack }: IOpenedProps) {
   );
 }
 
+function ListedCard({
+  projectId,
+  viewed,
+  onOpen,
+  onRename,
+  onDelete,
+}: {
+  projectId: string;
+  viewed: IViewedAnimation;
+  onOpen: () => void;
+  onRename: () => void;
+  onDelete: () => void;
+}) {
+  const meta = useMeta();
+  const { name } = viewed.animation;
+  return (
+    <AnimationCard
+      viewed={viewed}
+      meta={meta(viewed)}
+      removing={useRemovalAsked(projectId, name)}
+      onOpen={onOpen}
+      onRename={onRename}
+      onShow={() => {
+        showAnimationFile(name).catch(() => undefined);
+      }}
+      onDelete={onDelete}
+    />
+  );
+}
+
 interface IStudioAnimationsProps {
   /** The open project, whose chat is asked for animations. */
   projectId: string;
@@ -158,6 +143,8 @@ export default function StudioAnimations({
   const [importing, setImporting] = useState<IChosenFile[]>();
   const chooser = useRef<HTMLInputElement>(null);
   const drop = useFileDrop(setImporting);
+  const [renaming, setRenaming] = useState<string>();
+  const [deleting, setDeleting] = useState<string>();
   const shown = animations.find(({ animation }) => animation.name === opened);
   const names = useMemo(
     () => new Set(animations.map(({ animation }) => animation.name)),
@@ -210,10 +197,13 @@ export default function StudioAnimations({
           <AnimationsHint projectId={projectId} />
           <ul className="studio-animations__list">
             {animations.map((viewed) => (
-              <AnimationCard
+              <ListedCard
                 key={viewed.animation.name}
+                projectId={projectId}
                 viewed={viewed}
                 onOpen={() => setOpened(viewed.animation.name)}
+                onRename={() => setRenaming(viewed.animation.name)}
+                onDelete={() => setDeleting(viewed.animation.name)}
               />
             ))}
           </ul>
@@ -224,6 +214,19 @@ export default function StudioAnimations({
           <Glyph name="upload" />
           <span>{t('studio.animationImport.drop')}</span>
         </div>
+      )}
+      {renaming && (
+        <RenameAnimationDialog
+          name={renaming}
+          onClose={() => setRenaming(undefined)}
+        />
+      )}
+      {deleting && (
+        <DeleteAnimationDialog
+          projectId={projectId}
+          name={deleting}
+          onClose={() => setDeleting(undefined)}
+        />
       )}
       {importing && (
         <StudioAnimationImport

@@ -13,6 +13,12 @@ interface IAnimationFrameProps {
   onion?: boolean;
   className?: string;
   label?: string;
+  /**
+   * The part of every cell to draw, in the cell's own pixels; the whole
+   * cell when absent. A card passes the drawing's box (`drawnBoxOf`), so
+   * the creature fills its tile rather than the sheet's empty room.
+   */
+  within?: { x: number; y: number; width: number; height: number } | undefined;
 }
 
 /**
@@ -27,6 +33,7 @@ export default function AnimationFrame({
   onion = false,
   className,
   label,
+  within,
 }: IAnimationFrameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -64,7 +71,8 @@ export default function AnimationFrame({
       canvas.height = height;
     }
     context.clearRect(0, 0, width, height);
-    const cell = frameCell(animation, bitmap.width, bitmap.height, frame);
+    const whole = frameCell(animation, bitmap.width, bitmap.height, frame);
+    const cell = within ?? whole;
     const scale = Math.min(width / cell.width, height / cell.height);
     const drawnWidth = cell.width * scale;
     const drawnHeight = cell.height * scale;
@@ -75,10 +83,10 @@ export default function AnimationFrame({
       const at = frameCell(animation, bitmap.width, bitmap.height, index);
       context.drawImage(
         bitmap,
-        at.x,
-        at.y,
-        at.width,
-        at.height,
+        at.x + (within?.x ?? 0),
+        at.y + (within?.y ?? 0),
+        within?.width ?? at.width,
+        within?.height ?? at.height,
         left,
         top,
         drawnWidth,
@@ -94,7 +102,7 @@ export default function AnimationFrame({
       context.filter = 'none';
     }
     draw(frame);
-  }, [viewed, frame, onion, size]);
+  }, [viewed, frame, onion, size, within]);
 
   return (
     <canvas
