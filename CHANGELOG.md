@@ -37,6 +37,9 @@ here.
   - a sheet with its TexturePacker, Phaser or Aseprite JSON, each Aseprite
     tag becoming an animation of its own, and trimmed or turned frames put
     back where they belong;
+  - an Aseprite file (.ase or .aseprite) itself, its visible layers as
+    Aseprite draws them, each tag an animation of its own and every frame's
+    duration kept;
   - an animated GIF, PNG or WebP, with the timing of every frame kept;
   - a numbered series of pictures, one per frame.
 
