@@ -6,20 +6,20 @@ const tour24 = {
   'tour.animations.subtitle':
     'Cada animación de una escena, fotograma a fotograma',
   'tour.animations.lead':
-    'Anima las imágenes de tu escena, con realismo fotográfico: el chat de la escena dobla una en fotogramas que nadan, aletean, se mecen o giran, o coloca una hoja que hiciste tú.',
+    'Pide al chat de la escena que anime una imagen: la dobla en fotogramas fotorrealistas o usa lo que alcanza tu propio Claude, y luego los coloca en una hoja y revisa cada fotograma.',
   'tour.animations.point1':
     'Reprodúcela sobre Suelo, Cielo o Agua, cuesta arriba o abajo, a cualquier velocidad, fotograma a fotograma, o en grande sobre todo el Estudio.',
   'tour.animations.point2':
-    'El chat de la escena también las revisa: mira todos los fotogramas a la vez, encuentra el que flota o salta, y lo vuelve a alinear.',
+    'Importa hojas, JSON de atlas, GIF, APNG, WebP, archivos de Aseprite o imágenes numeradas; cada una se reproduce en la pestaña antes de añadirla.',
   'tour.animations.point3':
     'Cada proyecto nuevo empieza con una luna en su orbe y una golondrina volando por encima, para aprender desde el primer día cómo funcionan las imágenes y las animaciones.',
   'tour.animations.how':
     'Abre Visualizadores, luego el Estudio, y elige Animaciones bajo el escenario. Pide al chat que anime una imagen de tu escena.',
   'tour.animations.open': 'Abrir Visualizadores',
   'tour.animations.imageAlt':
-    'La pestaña Animaciones del Estudio con una golondrina batiendo las alas sobre el fondo Cielo y sus ocho fotogramas en una tira, junto al chat de la escena, que encuentra el fotograma que salta.',
+    'La pestaña Animaciones del Estudio con una golondrina batiendo las alas sobre el fondo Cielo y sus ocho fotogramas en una tira, sobre el chat de la escena, que encuentra el fotograma que salta.',
   'tour.animations.task':
-    'Revisa el vuelo de la golondrina fotograma a fotograma',
+    'Revisa el vuelo de la golondrina fotograma a fotograma.',
   'tour.animations.stepLook':
     'He mirado los {count} fotogramas uno al lado del otro',
   'tour.animations.stepJump':
@@ -73,11 +73,11 @@ const tour24 = {
   'tour.ai.kicker': 'ESTUDIO · TU IA',
   'tour.ai.title': 'Una IA que trabaja en todas tus escenas',
   'tour.ai.subtitle':
-    'Varias escenas a la vez, en su carpeta, cualquier modelo',
+    'Varias escenas a la vez, tus complementos, cualquier modelo',
   'tour.ai.lead':
     'Tu IA ahora trabaja en varias escenas a la vez, cada una en su propio chat, y gasta menos de tu plan de Claude para hacerlo.',
   'tour.ai.point1':
-    'Solo trabaja con los archivos de la escena, dentro de su carpeta, con las herramientas de FluidEQ, y no puede tocar nada más de tu ordenador.',
+    'Trabaja con todo lo que tiene tu propio Claude, tus complementos, herramientas y comandos, y pregunta antes de usar algo nuevo.',
   'tour.ai.point2':
     'Las habilidades propias de FluidEQ para mundos 3D, fotos en 3D y animación vienen con la app y están siempre al día.',
   'tour.ai.point3':
@@ -86,16 +86,15 @@ const tour24 = {
     'Abre una escena en el Estudio y escribe en su chat. El modelo y el esfuerzo están debajo del cuadro donde escribes.',
   'tour.ai.open': 'Abrir Visualizadores',
   'tour.ai.imageAlt':
-    'Tres escenas en las que se trabaja a la vez, dos todavía en marcha y una guardada como versión 7, sobre las habilidades de FluidEQ, junto a la marca de que la IA se queda en la carpeta de la escena y el menú de modelo y esfuerzo.',
+    'Tres escenas en las que se trabaja a la vez, dos todavía en marcha y una guardada como versión 7, sobre las habilidades de FluidEQ, junto a aquello con lo que trabaja la IA y el menú de modelo y esfuerzo.',
   'tour.ai.skills': 'Habilidades de FluidEQ',
   'tour.ai.skillWorlds': 'Mundos 3D',
   'tour.ai.skillPhotos': 'Fotos en 3D',
   'tour.ai.skillAnimation': 'Animación',
-  'tour.ai.folderTitle': 'Solo en esta escena',
-  'tour.ai.folderRead': 'Lee y edita los archivos de esta escena',
-  'tour.ai.folderOther': 'Otras carpetas',
-  'tour.ai.folderWeb': 'Comandos y la web',
-
+  'tour.ai.claudeTitle': 'Trabaja con tu propio Claude',
+  'tour.ai.claudePlugins': 'Tus complementos',
+  'tour.ai.claudeTools': 'Tus herramientas y comandos',
+  'tour.ai.claudeAsks': 'Pregunta antes de algo nuevo',
   'tour.controls.kicker': 'ESCENAS',
   'tour.controls.title': 'Escenas que puedes hacer tuyas',
   'tour.controls.subtitle':

@@ -13,12 +13,11 @@ import { useTranslation } from '../../utils/I18nContext';
 
 /**
  * The Studio's AI at work on three scenes at once, each its own chat: two
- * still working, one just kept as a new version. Beside them what holds the
- * AI to the open scene: its folder, its own files read and edited, other
- * folders, commands and the web refused - and under it
- * the menu that picks the model and the effort, the models as Claude Code
- * names them. Under the scenes, the skills FluidEQ ships
- * with the app, which every chat reads.
+ * still working, one just kept as a new version. Beside them what the AI
+ * works with - the member's own Claude: their plugins, tools and commands,
+ * anything new asked first - and under it the menu that picks the model
+ * and the effort, the models as Claude Code names them. Under the scenes,
+ * the skills FluidEQ ships with the app, which every chat reads.
  *
  * One loop of CSS (`_tour-release24b.scss`).
  */
@@ -42,9 +41,6 @@ const MODELS: readonly { name: string; hint: TranslationKey }[] = [
   { name: 'Sonnet 5.5', hint: 'studioChat.modelHintSonnet' },
   { name: 'Haiku 5.5', hint: 'studioChat.modelHintHaiku' },
 ];
-
-/** The open scene's folder, as the Studio keeps its projects. */
-const SCENE_FOLDER = 'FluidEQ Studio\\Alpine';
 
 const SKILLS: readonly TranslationKey[] = [
   'tour.ai.skillWorlds',
@@ -92,22 +88,21 @@ export default function StudioAiVisual() {
       <div className="ai-visual__chat">
         <span className="ai-visual__folder">
           <strong>
-            <Glyph name="lock" />
-            {t('tour.ai.folderTitle')}
+            <Glyph name="studio" />
+            {t('tour.ai.claudeTitle')}
           </strong>
-          <span className="ai-visual__path">{SCENE_FOLDER}</span>
-          <span className="ai-visual__rule is-yes">
-            <Glyph name="check" />
-            {t('tour.ai.folderRead')}
-          </span>
-          <span className="ai-visual__rule is-no">
-            <Glyph name="close" />
-            {t('tour.ai.folderOther')}
-          </span>
-          <span className="ai-visual__rule is-no">
-            <Glyph name="close" />
-            {t('tour.ai.folderWeb')}
-          </span>
+          {(
+            [
+              'tour.ai.claudePlugins',
+              'tour.ai.claudeTools',
+              'tour.ai.claudeAsks',
+            ] as const
+          ).map((key) => (
+            <span key={key} className="ai-visual__rule">
+              <Glyph name="check" />
+              {t(key)}
+            </span>
+          ))}
         </span>
 
         <span className="ai-visual__menu">

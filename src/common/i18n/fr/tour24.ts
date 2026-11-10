@@ -4,19 +4,19 @@ const tour24 = {
   'tour.animations.title': 'Des images qui bougent, vérifiées image par image',
   'tour.animations.subtitle': 'Chaque animation d’une scène, image par image',
   'tour.animations.lead':
-    'Animez les images de votre scène, en photoréaliste : le chat de la scène plie une image en vues qui nagent, battent des ailes, se balancent ou tournent, ou dispose une planche que vous avez faite.',
+    'Demandez au chat de la scène d’animer une image : il la plie en vues photoréalistes ou utilise ce que votre propre Claude atteint, puis les dispose en planche et vérifie chaque image.',
   'tour.animations.point1':
     'Jouez-la sur Sol, Ciel ou Eau, en montée ou en descente, à toute vitesse, image par image, ou en grand sur tout le Studio.',
   'tour.animations.point2':
-    'Le chat de la scène les vérifie aussi : il regarde toutes les images à la fois, trouve celle qui flotte ou saute, et la remet en ligne.',
+    'Importez des planches, des JSON d’atlas, des GIF, APNG, WebP, des fichiers Aseprite ou des images numérotées ; chacune se joue dans l’onglet avant d’être ajoutée.',
   'tour.animations.point3':
     'Chaque nouveau projet commence avec une lune dans son orbe et une hirondelle qui vole au-dessus, pour découvrir images et animations dès le premier jour.',
   'tour.animations.how':
     'Ouvrez Visualiseurs, puis le Studio, et choisissez Animations sous la scène. Demandez au chat d’animer une image de votre scène.',
   'tour.animations.open': 'Ouvrir Visualiseurs',
   'tour.animations.imageAlt':
-    'L’onglet Animations du Studio avec une hirondelle qui bat des ailes sur le fond Ciel et ses huit images dans une bande, à côté du chat de la scène qui trouve l’image qui saute.',
-  'tour.animations.task': 'Vérifie le vol de l’hirondelle image par image',
+    'L’onglet Animations du Studio avec une hirondelle qui bat des ailes sur le fond Ciel et ses huit images dans une bande, au-dessus du chat de la scène qui trouve l’image qui saute.',
+  'tour.animations.task': 'Vérifie le vol de l’hirondelle image par image.',
   'tour.animations.stepLook': 'Regardé les {count} images côte à côte',
   'tour.animations.stepJump': 'L’image {frame} saute au-dessus des autres',
   'tour.animations.stepFix': 'Remis l’image {frame} en ligne avec les autres',
@@ -66,11 +66,11 @@ const tour24 = {
   'tour.ai.kicker': 'STUDIO · VOTRE IA',
   'tour.ai.title': 'Une IA qui travaille sur toutes vos scènes',
   'tour.ai.subtitle':
-    'Plusieurs scènes à la fois, dans leur dossier, tous les modèles',
+    'Plusieurs scènes à la fois, vos plugins, tous les modèles',
   'tour.ai.lead':
     'Votre IA travaille désormais sur plusieurs scènes à la fois, chacune dans son propre chat, et consomme moins de votre forfait Claude pour le faire.',
   'tour.ai.point1':
-    'Elle ne travaille qu’avec les fichiers de la scène, dans son dossier, avec les outils de FluidEQ, et ne peut toucher à rien d’autre sur votre ordinateur.',
+    'Elle travaille avec tout ce qu’a votre propre Claude, vos plugins, outils et commandes, et demande avant d’utiliser quoi que ce soit de nouveau.',
   'tour.ai.point2':
     'Les compétences de FluidEQ pour les mondes 3D, les photos en 3D et l’animation sont livrées avec l’app et toujours à jour.',
   'tour.ai.point3':
@@ -79,16 +79,15 @@ const tour24 = {
     'Ouvrez une scène dans le Studio et écrivez dans son chat. Le modèle et l’effort sont sous la zone de saisie.',
   'tour.ai.open': 'Ouvrir Visualiseurs',
   'tour.ai.imageAlt':
-    'Trois scènes travaillées en même temps, deux encore en cours et une gardée comme version 7, au-dessus des compétences de FluidEQ, à côté de la marque indiquant que l’IA reste dans le dossier de la scène et du menu du modèle et de l’effort.',
+    'Trois scènes travaillées en même temps, deux encore en cours et une gardée comme version 7, au-dessus des compétences de FluidEQ, à côté de ce avec quoi l’IA travaille et du menu du modèle et de l’effort.',
   'tour.ai.skills': 'Compétences de FluidEQ',
   'tour.ai.skillWorlds': 'Mondes 3D',
   'tour.ai.skillPhotos': 'Photos en 3D',
   'tour.ai.skillAnimation': 'Animation',
-  'tour.ai.folderTitle': 'Limitée à cette scène',
-  'tour.ai.folderRead': 'Lit et modifie les fichiers de cette scène',
-  'tour.ai.folderOther': 'Autres dossiers',
-  'tour.ai.folderWeb': 'Commandes et web',
-
+  'tour.ai.claudeTitle': 'Travaille avec votre propre Claude',
+  'tour.ai.claudePlugins': 'Vos plugins',
+  'tour.ai.claudeTools': 'Vos outils et commandes',
+  'tour.ai.claudeAsks': 'Demande avant toute nouveauté',
   'tour.controls.kicker': 'SCÈNES',
   'tour.controls.title': 'Des scènes à votre image',
   'tour.controls.subtitle': 'Palettes, choix, mondes 3D et versions conservées',

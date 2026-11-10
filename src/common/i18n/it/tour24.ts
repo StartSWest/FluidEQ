@@ -6,20 +6,20 @@ const tour24 = {
   'tour.animations.subtitle':
     'Ogni animazione di una scena, fotogramma per fotogramma',
   'tour.animations.lead':
-    'Anima le immagini della tua scena, fotorealistiche: la chat della scena ne piega una in fotogrammi che nuotano, sbattono le ali, ondeggiano o girano, o dispone un foglio fatto da te.',
+    'Chiedi alla chat della scena di animare un’immagine: la piega in fotogrammi fotorealistici o usa ciò che raggiunge il tuo Claude, poi li dispone in un foglio e controlla ogni fotogramma.',
   'tour.animations.point1':
     'Riproducila su Terreno, Cielo o Acqua, in salita o in discesa, a ogni velocità, fotogramma per fotogramma, o in grande su tutto lo Studio.',
   'tour.animations.point2':
-    'La chat della scena le controlla anche: guarda tutti i fotogrammi insieme, trova quello che galleggia o salta, e lo rimette in linea.',
+    'Importa fogli, JSON di atlante, GIF, APNG, WebP, file di Aseprite o immagini numerate; ognuna si riproduce nella scheda prima di essere aggiunta.',
   'tour.animations.point3':
     'Ogni nuovo progetto parte con una luna nella sua sfera e una rondine che vola sopra, così immagini e animazioni si imparano dal primo giorno.',
   'tour.animations.how':
     'Apri Visualizzatori, poi lo Studio, e scegli Animazioni sotto il palco. Chiedi alla chat di animare un’immagine della tua scena.',
   'tour.animations.open': 'Apri Visualizzatori',
   'tour.animations.imageAlt':
-    'La scheda Animazioni dello Studio con una rondine che batte le ali sullo sfondo Cielo e i suoi otto fotogrammi in una striscia, accanto alla chat della scena che trova il fotogramma che salta.',
+    'La scheda Animazioni dello Studio con una rondine che batte le ali sullo sfondo Cielo e i suoi otto fotogrammi in una striscia, sopra la chat della scena che trova il fotogramma che salta.',
   'tour.animations.task':
-    'Controlla il volo della rondine fotogramma per fotogramma',
+    'Controlla il volo della rondine fotogramma per fotogramma.',
   'tour.animations.stepLook':
     'Guardati tutti i {count} fotogrammi uno accanto all’altro',
   'tour.animations.stepJump': 'Il fotogramma {frame} salta sopra gli altri',
@@ -71,12 +71,11 @@ const tour24 = {
 
   'tour.ai.kicker': 'STUDIO · LA TUA IA',
   'tour.ai.title': 'Un’IA che lavora su tutte le tue scene',
-  'tour.ai.subtitle':
-    'Più scene insieme, nella cartella della scena, qualsiasi modello',
+  'tour.ai.subtitle': 'Più scene insieme, i tuoi plugin, qualsiasi modello',
   'tour.ai.lead':
     'La tua IA ora lavora su più scene insieme, ognuna nella sua chat, e usa meno del tuo piano Claude per farlo.',
   'tour.ai.point1':
-    'Lavora solo con i file della scena, dentro la sua cartella, con gli strumenti di FluidEQ, e non può toccare nient’altro sul tuo computer.',
+    'Lavora con tutto ciò che ha il tuo Claude, i tuoi plugin, strumenti e comandi, e chiede prima di usare qualcosa di nuovo.',
   'tour.ai.point2':
     'Le abilità di FluidEQ per mondi 3D, foto in 3D e animazione arrivano con l’app e sono sempre aggiornate.',
   'tour.ai.point3':
@@ -85,16 +84,15 @@ const tour24 = {
     'Apri una scena nello Studio e scrivi nella sua chat. Modello e impegno sono sotto la casella in cui scrivi.',
   'tour.ai.open': 'Apri Visualizzatori',
   'tour.ai.imageAlt':
-    'Tre scene su cui si lavora insieme, due ancora in corso e una tenuta come versione 7, sopra le abilità di FluidEQ, accanto al segno che l’IA resta nella cartella della scena e al menu di modello e impegno.',
+    'Tre scene su cui si lavora insieme, due ancora in corso e una tenuta come versione 7, sopra le abilità di FluidEQ, accanto a ciò con cui lavora l’IA e al menu di modello e impegno.',
   'tour.ai.skills': 'Abilità di FluidEQ',
   'tour.ai.skillWorlds': 'Mondi 3D',
   'tour.ai.skillPhotos': 'Foto in 3D',
   'tour.ai.skillAnimation': 'Animazione',
-  'tour.ai.folderTitle': 'Solo in questa scena',
-  'tour.ai.folderRead': 'Legge e modifica i file di questa scena',
-  'tour.ai.folderOther': 'Altre cartelle',
-  'tour.ai.folderWeb': 'Comandi e web',
-
+  'tour.ai.claudeTitle': 'Lavora con il tuo Claude',
+  'tour.ai.claudePlugins': 'I tuoi plugin',
+  'tour.ai.claudeTools': 'I tuoi strumenti e comandi',
+  'tour.ai.claudeAsks': 'Chiede prima di ogni novità',
   'tour.controls.kicker': 'SCENE',
   'tour.controls.title': 'Scene da fare tue',
   'tour.controls.subtitle': 'Tavolozze, scelte, mondi 3D e versioni conservate',

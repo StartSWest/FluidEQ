@@ -158,8 +158,7 @@ $loop: 10s;
   font-size: calc(#{$u} * 0.58);
 }
 
-// What holds the AI to the open scene: its folder, what
-// it may do there, and what it may not.
+// What the AI works with: the member's own Claude.
 .ai-visual__folder {
   @include panel;
   @include framed;
@@ -205,18 +204,6 @@ $loop: 10s;
   }
 }
 
-.ai-visual__path {
-  overflow: hidden;
-  padding: calc(#{$u} * 0.2) calc(#{$u} * 0.4);
-  border-radius: $radius-xs;
-  background: $surface-well;
-  color: $text-muted;
-  font-family: $font-mono;
-  font-size: calc(#{$u} * 0.54);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .ai-visual__rule {
   display: flex;
   align-items: center;
@@ -229,18 +216,7 @@ $loop: 10s;
     width: calc(#{$u} * 0.6);
     height: calc(#{$u} * 0.6);
     flex: 0 0 auto;
-  }
-
-  &.is-yes svg {
     color: $secondary-light;
-  }
-
-  &.is-no {
-    color: $text-muted;
-
-    svg {
-      color: $red;
-    }
   }
 }
 

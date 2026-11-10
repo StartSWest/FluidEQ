@@ -168,8 +168,8 @@ $loop: 10s;
   max-width: 100%;
 }
 
-// The frame the chat found out of line, marked in the strip while it says
-// so and until it has drawn it again.
+// The frame the chat found out of line, marked in the strip while it
+// says so and until it has drawn it again.
 .anim-visual__tab .studio-animation__cell:nth-child(4) {
   animation: anim-visual-flag $loop linear infinite;
   @include still;

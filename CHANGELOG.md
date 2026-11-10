@@ -9,22 +9,25 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 ## 2.4.0
 
 FluidEQ 2.4 is the Studio's biggest release yet. The pictures in a scene
-can move, with an animator for each animation that checks every frame,
-every picture in the chat can be zoomed, copied and drawn on, the stage
-tries your scene as an ultra-wide graph or in the Compact player, and
-one AI works on several of your scenes at once, kept to each scene's own
-folder. Scenes gain palettes, choices and kept versions, and every 3D
-visualizer lets you pick the key that moves its camera, on the graph and on
-your desktop. 2.3.1 was never published on its own; everything it held is
-here.
+can move: the scene's chat makes, fixes and checks its animations, and the
+Animations tab plays and imports them. Every picture in the chat can be
+zoomed, copied and drawn on, the stage tries your scene as an ultra-wide
+graph or in the Compact player, and one AI works on several of your scenes
+at once, with whatever your own Claude has. Scenes gain palettes, choices
+and kept versions, and every 3D visualizer lets you pick the key that moves
+its camera, on the graph and on your desktop. 2.3.1 was never published on
+its own; everything it held is here.
 
 ### Studio: animations
 
-- **An Animations tab.** Animate the pictures in your scene, photo-real.
-  The Animator bends a scene's own picture along a spine into 16 to 24
-  frames that swim, flap, sway or turn, or lays out and checks a sheet of
-  frames you made yourself in your own ChatGPT. The tab plays every
-  animation the scene has and opens any of them.
+- **Animations made in the chat.** Ask the scene's chat to animate a
+  picture in your scene. It can bend one of the scene's own pictures into
+  photo-real frames that swim, flap, sway or turn, or use whatever your own
+  Claude can reach, such as your plugins and the outside models they
+  connect to; FluidEQ draws no new pictures itself. It lays the frames out
+  as a sheet that plays and checks every frame for one that floats, jumps
+  or changes size. Ask it to fix one, and it does.
+- **An Animations tab.** It plays every animation the scene has.
 - **Step through it.** An opened animation plays on Ground, Sky or Water,
   uphill or downhill, at the speed it was made at or 4 to 12 frames a
   second, with the frame before showing under the one you are on and every
@@ -43,13 +46,10 @@ here.
   - an animated GIF, PNG or WebP, with the timing of every frame kept;
   - a numbered series of pictures, one per frame.
 
-  It plays in the tab's own view before anything is saved, and **Add to the
-  scene** opens the new animation with its Animator beside it.
+  It plays in the tab's own view before anything is saved, **Add to the
+  scene** opens the new animation, and the file you imported is kept as it
+  was.
 
-- **An animator for every animation.** Each one has a chat of its own
-  beside it. The scene's chat can start it with a task, and you can talk to
-  it directly. It looks at every frame at once, points out a frame that
-  floats, jumps or changes size, and puts it back in line.
 - **Every new project starts with an example.** A moon sits in the orb and a
   swallow flies over it, so the Pictures and Animations tabs, and your AI,
   have something to learn from from the first minute.
@@ -81,11 +81,10 @@ here.
 ### Studio: your AI
 
 - **Several scenes at once.** Each scene has its own chat, and they work at
-  the same time. Idle animators are let go so they do not pile up.
-- **Kept to the scene's folder, by enforcement.** The AI works only with
-  the open scene's own files, using FluidEQ's own tools and skills. It
-  cannot touch other folders, run commands, browse the web, build an app or
-  change FluidEQ, whatever your own Claude Code settings allow.
+  the same time.
+- **Everything your own Claude has.** The chat works with your own
+  Claude's plugins, tools and commands, and asks first before it uses
+  anything new.
 - **FluidEQ's skills come with the app.** Its brief and its skills for 3D
   worlds, photos in 3D and animation are built into FluidEQ and always
   current, never copied into a scene's folder. A chat started on an older

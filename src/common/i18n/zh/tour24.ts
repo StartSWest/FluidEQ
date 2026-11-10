@@ -4,19 +4,19 @@ const tour24 = {
   'tour.animations.title': '会动的图片，逐帧检查',
   'tour.animations.subtitle': '场景里的每段动画，一帧一帧',
   'tour.animations.lead':
-    '让场景里的图片以照片般的真实感动起来：场景聊天把一张图片弯折成游动、扇翅、摇摆或转身的帧，或排好你自己做的帧图。',
+    '让场景的聊天把一张图片动起来：它会把图片弯折成照片般真实的帧，或使用你自己的 Claude 能用到的东西，再排成帧图并检查每一帧。',
   'tour.animations.point1':
     '放在地面、天空或水上，上坡或下坡，任意速度，逐帧播放，或在整个工作室上方放大播放。',
   'tour.animations.point2':
-    '场景聊天也会检查它们：同时查看所有帧，找出飘起或跳动的那一帧，再把它放回同一条线上。',
+    '可导入帧图、图集 JSON、GIF、APNG、WebP、Aseprite 文件或编号图片；添加前会先在标签页里播放。',
   'tour.animations.point3':
     '每个新项目都从球体里的月亮和飞过上方的燕子开始，第一天就能学会图片和动画的用法。',
   'tour.animations.how':
     '打开“可视化”，进入工作室，在舞台下方选择动画。在聊天里让它把场景中的一张图片动起来。',
   'tour.animations.open': '打开“可视化”',
   'tour.animations.imageAlt':
-    '工作室的动画标签页：燕子在天空背景上扇动翅膀，它的八帧排成一条；旁边是场景聊天，正在找出跳动的那一帧。',
-  'tour.animations.task': '逐帧检查燕子的飞行',
+    '工作室的动画标签页：燕子在天空背景上扇动翅膀，它的八帧排成一条；下方是场景的聊天，正在找出跳动的那一帧。',
+  'tour.animations.task': '逐帧检查燕子的飞行。',
   'tour.animations.stepLook': '并排查看了全部 {count} 帧',
   'tour.animations.stepJump': '第 {frame} 帧比其他帧跳得更高',
   'tour.animations.stepFix': '把第 {frame} 帧放回与其他帧同一条线上',
@@ -61,11 +61,11 @@ const tour24 = {
 
   'tour.ai.kicker': '工作室 · 你的 AI',
   'tour.ai.title': '一个照看你所有场景的 AI',
-  'tour.ai.subtitle': '同时做多个场景，只在场景文件夹里，任选模型',
+  'tour.ai.subtitle': '同时做多个场景，用你自己的插件，任选模型',
   'tour.ai.lead':
     '你的 AI 现在能同时处理多个场景，每个场景一个聊天，而且消耗的 Claude 套餐额度更少。',
   'tour.ai.point1':
-    '它只处理场景自己的文件，只在场景文件夹里用 FluidEQ 自己的工具工作，碰不到电脑上的其他任何东西。',
+    '它使用你自己的 Claude 拥有的一切：你的插件、工具和命令；用到任何新东西之前都会先询问。',
   'tour.ai.point2':
     'FluidEQ 自带的 3D 世界、3D 照片和动画技能随应用提供，始终保持最新。',
   'tour.ai.point3':
@@ -74,16 +74,15 @@ const tour24 = {
     '在工作室打开一个场景，在它的聊天里输入。模型和投入程度就在输入框下方。',
   'tour.ai.open': '打开“可视化”',
   'tour.ai.imageAlt':
-    '同时进行的三个场景，两个仍在处理，一个已保存为版本 7，下方是 FluidEQ 的技能；旁边是表示 AI 只在场景文件夹内工作的标记，以及模型和投入程度菜单。',
+    '同时进行的三个场景，两个仍在处理，一个已保存为版本 7，下方是 FluidEQ 的技能；旁边是 AI 使用的东西，以及模型和投入程度菜单。',
   'tour.ai.skills': 'FluidEQ 的技能',
   'tour.ai.skillWorlds': '3D 世界',
   'tour.ai.skillPhotos': '3D 照片',
   'tour.ai.skillAnimation': '动画',
-  'tour.ai.folderTitle': '只在这个场景里',
-  'tour.ai.folderRead': '读取和编辑这个场景的文件',
-  'tour.ai.folderOther': '其他文件夹',
-  'tour.ai.folderWeb': '命令和网络',
-
+  'tour.ai.claudeTitle': '使用你自己的 Claude',
+  'tour.ai.claudePlugins': '你的插件',
+  'tour.ai.claudeTools': '你的工具和命令',
+  'tour.ai.claudeAsks': '用新东西前先询问',
   'tour.controls.kicker': '场景',
   'tour.controls.title': '可以按你心意定制的场景',
   'tour.controls.subtitle': '调色板、选项、3D 世界和保留的版本',

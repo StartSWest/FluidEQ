@@ -4,19 +4,19 @@ const tour24 = {
   'tour.animations.title': 'Bilder, die sich bewegen, Bild für Bild geprüft',
   'tour.animations.subtitle': 'Jede Animation einer Szene, Bild für Bild',
   'tour.animations.lead':
-    'Animieren Sie die Bilder Ihrer Szene, fotorealistisch: Der Chat der Szene biegt eines zu Bildern, die schwimmen, flattern, schwingen oder sich drehen, oder legt ein selbst gemachtes Blatt aus.',
+    'Bitten Sie den Chat der Szene, ein Bild zu animieren: Er biegt es zu fotorealistischen Bildern oder nutzt, was Ihr eigenes Claude erreicht, legt sie als Blatt aus und prüft jedes Bild.',
   'tour.animations.point1':
     'Spielen Sie sie auf Boden, Himmel oder Wasser ab, bergauf oder bergab, in jedem Tempo, Bild für Bild oder groß über dem ganzen Studio.',
   'tour.animations.point2':
-    'Der Chat der Szene prüft sie auch: Er sieht alle Bilder auf einmal, findet das, das schwebt oder springt, und rückt es wieder in die Reihe.',
+    'Importieren Sie Blätter, Atlas-JSON, GIF, APNG, WebP, Aseprite-Dateien oder nummerierte Bilder; jede spielt im Tab, bevor sie hinzukommt.',
   'tour.animations.point3':
     'Jedes neue Projekt beginnt mit einem Mond in seiner Kugel und einer Schwalbe, die darüber fliegt – so lernen Sie Bilder und Animationen vom ersten Tag an kennen.',
   'tour.animations.how':
     'Öffnen Sie Visualizer, dann das Studio, und wählen Sie Animationen unter der Bühne. Bitten Sie den Chat, ein Bild Ihrer Szene zu animieren.',
   'tour.animations.open': 'Visualizer öffnen',
   'tour.animations.imageAlt':
-    'Der Tab Animationen des Studios mit einer Schwalbe, die auf dem Hintergrund Himmel mit den Flügeln schlägt, und ihren acht Bildern in einem Streifen, neben dem Chat der Szene, der das springende Bild findet.',
-  'tour.animations.task': 'Prüfe den Flug der Schwalbe Bild für Bild',
+    'Der Tab Animationen des Studios mit einer Schwalbe, die auf dem Hintergrund Himmel mit den Flügeln schlägt, und ihren acht Bildern in einem Streifen, über dem Chat der Szene, der das springende Bild findet.',
+  'tour.animations.task': 'Prüfe den Flug der Schwalbe Bild für Bild.',
   'tour.animations.stepLook': 'Alle {count} Bilder nebeneinander angesehen',
   'tour.animations.stepJump': 'Bild {frame} springt über die anderen',
   'tour.animations.stepFix':
@@ -67,11 +67,11 @@ const tour24 = {
   'tour.ai.kicker': 'STUDIO · IHRE KI',
   'tour.ai.title': 'Eine KI, die an all Ihren Szenen arbeitet',
   'tour.ai.subtitle':
-    'Mehrere Szenen gleichzeitig, im Ordner der Szene, jedes Modell',
+    'Mehrere Szenen gleichzeitig, eigene Plug-ins, jedes Modell',
   'tour.ai.lead':
     'Ihre KI arbeitet jetzt an mehreren Szenen gleichzeitig, jede in ihrem eigenen Chat, und verbraucht dabei weniger von Ihrem Claude-Plan.',
   'tour.ai.point1':
-    'Sie arbeitet nur mit den eigenen Dateien der Szene, in ihrem Ordner, mit den Werkzeugen von FluidEQ, und kann nichts anderes auf Ihrem Computer anfassen.',
+    'Sie arbeitet mit allem, was Ihr eigenes Claude hat, Ihren Plug-ins, Werkzeugen und Befehlen, und fragt vorher, bevor sie etwas Neues nutzt.',
   'tour.ai.point2':
     'Die eigenen Fähigkeiten von FluidEQ für 3D-Welten, Fotos in 3D und Animation kommen mit der App und sind immer aktuell.',
   'tour.ai.point3':
@@ -80,16 +80,15 @@ const tour24 = {
     'Öffnen Sie eine Szene im Studio und schreiben Sie in ihren Chat. Modell und Aufwand finden Sie unter dem Eingabefeld.',
   'tour.ai.open': 'Visualizer öffnen',
   'tour.ai.imageAlt':
-    'Drei Szenen, an denen gleichzeitig gearbeitet wird, zwei noch in Arbeit und eine als Version 7 behalten, über den Fähigkeiten von FluidEQ, neben dem Hinweis, dass die KI im Ordner der Szene bleibt, und dem Menü für Modell und Aufwand.',
+    'Drei Szenen, an denen gleichzeitig gearbeitet wird, zwei noch in Arbeit und eine als Version 7 behalten, über den Fähigkeiten von FluidEQ, neben dem, womit die KI arbeitet, und dem Menü für Modell und Aufwand.',
   'tour.ai.skills': 'Fähigkeiten von FluidEQ',
   'tour.ai.skillWorlds': '3D-Welten',
   'tour.ai.skillPhotos': 'Fotos in 3D',
   'tour.ai.skillAnimation': 'Animation',
-  'tour.ai.folderTitle': 'Bleibt in dieser Szene',
-  'tour.ai.folderRead': 'Liest und bearbeitet die Dateien dieser Szene',
-  'tour.ai.folderOther': 'Andere Ordner',
-  'tour.ai.folderWeb': 'Befehle und das Web',
-
+  'tour.ai.claudeTitle': 'Arbeitet mit Ihrem eigenen Claude',
+  'tour.ai.claudePlugins': 'Ihre Plug-ins',
+  'tour.ai.claudeTools': 'Ihre Werkzeuge und Befehle',
+  'tour.ai.claudeAsks': 'Fragt vor allem Neuen',
   'tour.controls.kicker': 'SZENEN',
   'tour.controls.title': 'Szenen, die Sie zu Ihren eigenen machen',
   'tour.controls.subtitle':

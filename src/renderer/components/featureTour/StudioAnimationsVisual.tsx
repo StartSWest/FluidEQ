@@ -14,11 +14,11 @@ import useTourSwallow from './useTourSwallow';
 /**
  * The Studio's Animations tab with the starter's swallow opened: the tab's
  * own view, its own player and its own frames (`AnimationView`), on the Sky
- * it was made for, every frame in the strip under it. Beside it the scene's
- * chat, in its own parts: the member asking for the flight to be checked,
- * the steps it takes - all eight frames looked at side by side, the one that
- * jumps found, that one made again - and its answer. The thread comes in on
- * the 2.1 chat picture's loop (`_tour-chat.scss`).
+ * it was made for, every frame in the strip under it. Under it the scene's
+ * own chat, which makes, fixes and checks a scene's animations: the ask,
+ * the steps it takes - all eight frames looked at side by side, the one
+ * that jumps found, that one put back in line - and its answer. The thread
+ * comes in on the 2.1 chat picture's loop (`_tour-chat.scss`).
  *
  * Inert: the transport would play, but a picture on a slide is not a place
  * to work.
@@ -73,7 +73,7 @@ export default function StudioAnimationsVisual() {
           <i className="chat-visual__dot" />
           <span>
             <strong>{t('studioChat.title')}</strong>
-            <small>{t('studioChat.where')}</small>
+            <small>{t('studioChat.wherePlan', { plan: 'Max' })}</small>
           </span>
           <Glyph name="more" className="chat-visual__more" />
         </span>

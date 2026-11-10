@@ -4,19 +4,19 @@ const tour24 = {
   'tour.animations.title': '動く画像を、1 コマずつ確かめて',
   'tour.animations.subtitle': 'シーンのアニメーションを 1 コマずつ',
   'tour.animations.lead':
-    'シーンの画像を写真のままリアルに動かせます。シーンのチャットが 1 枚を曲げて、泳ぐ・羽ばたく・揺れる・振り向くコマにするか、あなたが作ったシートを並べます。',
+    'シーンのチャットに画像を動かすよう頼めます。画像を曲げて写真のままのコマにするか、あなたの Claude が使えるものを使い、シートに並べて全コマを確かめます。',
   'tour.animations.point1':
     '地面・空・水の上で、上り坂でも下り坂でも、好きな速さで、1 コマずつ、またはスタジオ全体に大きく再生できます。',
   'tour.animations.point2':
-    'シーンのチャットが確認もします。全コマを一度に見て、浮いたり跳ねたりするコマを見つけ、列に戻します。',
+    'シート、アトラス JSON、GIF、APNG、WebP、Aseprite ファイル、連番画像を取り込めます。追加する前にタブで再生して確かめられます。',
   'tour.animations.point3':
     '新しいプロジェクトは、オーブの中の月とその上を飛ぶツバメから始まります。画像とアニメーションの仕組みを初日から学べます。',
   'tour.animations.how':
     'ビジュアライザーを開いてスタジオに進み、ステージの下のアニメーションを選びます。チャットにシーンの画像を動かすよう頼んでください。',
   'tour.animations.open': 'ビジュアライザーを開く',
   'tour.animations.imageAlt':
-    'スタジオのアニメーションタブ。空の背景で羽ばたくツバメと、帯に並んだ 8 コマ。隣ではシーンのチャットが跳ねるコマを見つけています。',
-  'tour.animations.task': 'ツバメの飛び方を 1 コマずつ確かめて',
+    'スタジオのアニメーションタブ。空の背景で羽ばたくツバメと、帯に並んだ 8 コマ。その下でシーンのチャットが跳ねるコマを見つけています。',
+  'tour.animations.task': 'ツバメの飛び方を 1 コマずつ確かめて。',
   'tour.animations.stepLook': '{count} コマすべてを並べて確認',
   'tour.animations.stepJump': '{frame} コマ目が他より跳ねています',
   'tour.animations.stepFix': '{frame} コマ目を他とそろう位置に戻しました',
@@ -65,11 +65,11 @@ const tour24 = {
   'tour.ai.kicker': 'スタジオ · あなたの AI',
   'tour.ai.title': 'すべてのシーンに取り組む AI',
   'tour.ai.subtitle':
-    '複数のシーンを同時に、シーンのフォルダー内で、好きなモデルで',
+    '複数のシーンを同時に、自分のプラグインで、好きなモデルで',
   'tour.ai.lead':
     'AI は複数のシーンに同時に取り組めるようになりました。シーンごとに専用のチャットがあり、Claude プランの消費も少なくなりました。',
   'tour.ai.point1':
-    '作業はシーン自身のファイルだけ、そのフォルダーの中だけで、FluidEQ のツールを使い、コンピューターのほかの場所には触れられません。',
+    'あなたの Claude にあるもの、つまりプラグイン、ツール、コマンドで作業し、新しいものを使う前には確認します。',
   'tour.ai.point2':
     '3D ワールド、3D 写真、アニメーションのための FluidEQ 独自のスキルがアプリに同梱され、常に最新です。',
   'tour.ai.point3':
@@ -78,16 +78,15 @@ const tour24 = {
     'スタジオでシーンを開き、そのチャットに書き込みます。モデルと労力は入力欄の下にあります。',
   'tour.ai.open': 'ビジュアライザーを開く',
   'tour.ai.imageAlt':
-    '同時に作業中の 3 つのシーン。2 つは進行中、1 つはバージョン 7 として保存済み。その下に FluidEQ のスキル。隣には AI がシーンのフォルダー内にとどまることを示す印と、モデルと労力のメニュー。',
+    '同時に作業中の 3 つのシーン。2 つは進行中、1 つはバージョン 7 として保存済み。その下に FluidEQ のスキル。隣には AI が使うものと、モデルと労力のメニュー。',
   'tour.ai.skills': 'FluidEQ のスキル',
   'tour.ai.skillWorlds': '3D ワールド',
   'tour.ai.skillPhotos': '3D 写真',
   'tour.ai.skillAnimation': 'アニメーション',
-  'tour.ai.folderTitle': 'このシーンの中だけ',
-  'tour.ai.folderRead': 'このシーンのファイルを読み書き',
-  'tour.ai.folderOther': 'ほかのフォルダー',
-  'tour.ai.folderWeb': 'コマンドとウェブ',
-
+  'tour.ai.claudeTitle': 'あなたの Claude で作業',
+  'tour.ai.claudePlugins': 'あなたのプラグイン',
+  'tour.ai.claudeTools': 'あなたのツールとコマンド',
+  'tour.ai.claudeAsks': '新しいものは使う前に確認',
   'tour.controls.kicker': 'シーン',
   'tour.controls.title': '自分好みに仕上げられるシーン',
   'tour.controls.subtitle':

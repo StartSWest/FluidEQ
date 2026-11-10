@@ -4,19 +4,19 @@ const tour24 = {
   'tour.animations.title': 'Imagens que se mexem, conferidas quadro a quadro',
   'tour.animations.subtitle': 'Cada animação de uma cena, quadro a quadro',
   'tour.animations.lead':
-    'Anime as imagens da sua cena, com realismo de foto: o chat da cena dobra uma em quadros que nadam, batem asas, balançam ou giram, ou monta uma folha que você mesmo fez.',
+    'Peça ao chat da cena para animar uma imagem: ele a dobra em quadros com realismo de foto ou usa o que o seu Claude alcança, depois monta uma folha e confere cada quadro.',
   'tour.animations.point1':
     'Toque sobre Chão, Céu ou Água, subindo ou descendo, em qualquer velocidade, quadro a quadro, ou em tamanho grande sobre todo o Estúdio.',
   'tour.animations.point2':
-    'O chat da cena também confere: ele olha todos os quadros de uma vez, acha o que flutua ou pula, e coloca de volta na linha.',
+    'Importe folhas, JSON de atlas, GIF, APNG, WebP, arquivos do Aseprite ou imagens numeradas; cada uma toca na aba antes de ser adicionada.',
   'tour.animations.point3':
     'Todo projeto novo começa com uma lua no orbe e uma andorinha voando por cima, para você aprender imagens e animações desde o primeiro dia.',
   'tour.animations.how':
     'Abra Visualizadores, depois o Estúdio, e escolha Animações embaixo do palco. Peça ao chat para animar uma imagem da sua cena.',
   'tour.animations.open': 'Abrir Visualizadores',
   'tour.animations.imageAlt':
-    'A aba Animações do Estúdio com uma andorinha batendo as asas no fundo Céu e seus oito quadros numa faixa, ao lado do chat da cena, que acha o quadro que pula.',
-  'tour.animations.task': 'Confira o voo da andorinha quadro a quadro',
+    'A aba Animações do Estúdio com uma andorinha batendo as asas no fundo Céu e seus oito quadros numa faixa, acima do chat da cena, que acha o quadro que pula.',
+  'tour.animations.task': 'Confira o voo da andorinha quadro a quadro.',
   'tour.animations.stepLook': 'Olhei os {count} quadros lado a lado',
   'tour.animations.stepJump': 'O quadro {frame} pula acima dos outros',
   'tour.animations.stepFix':
@@ -66,11 +66,11 @@ const tour24 = {
   'tour.ai.kicker': 'ESTÚDIO · SUA IA',
   'tour.ai.title': 'Uma IA que trabalha em todas as suas cenas',
   'tour.ai.subtitle':
-    'Várias cenas ao mesmo tempo, na pasta da cena, qualquer modelo',
+    'Várias cenas ao mesmo tempo, seus plugins, qualquer modelo',
   'tour.ai.lead':
     'A sua IA agora trabalha em várias cenas ao mesmo tempo, cada uma no seu chat, e gasta menos do seu plano Claude para isso.',
   'tour.ai.point1':
-    'Ela só trabalha com os arquivos da cena, dentro da pasta dela, com as ferramentas do FluidEQ, e não pode mexer em mais nada do seu computador.',
+    'Ela trabalha com tudo o que o seu próprio Claude tem, seus plugins, ferramentas e comandos, e pergunta antes de usar qualquer coisa nova.',
   'tour.ai.point2':
     'As habilidades do FluidEQ para mundos 3D, fotos em 3D e animação vêm com o app e estão sempre atualizadas.',
   'tour.ai.point3':
@@ -79,16 +79,15 @@ const tour24 = {
     'Abra uma cena no Estúdio e escreva no chat dela. O modelo e o esforço ficam embaixo da caixa onde você escreve.',
   'tour.ai.open': 'Abrir Visualizadores',
   'tour.ai.imageAlt':
-    'Três cenas sendo trabalhadas ao mesmo tempo, duas ainda em andamento e uma guardada como versão 7, sobre as habilidades do FluidEQ, ao lado da marca de que a IA fica na pasta da cena e do menu de modelo e esforço.',
+    'Três cenas sendo trabalhadas ao mesmo tempo, duas ainda em andamento e uma guardada como versão 7, sobre as habilidades do FluidEQ, ao lado do que a IA usa e do menu de modelo e esforço.',
   'tour.ai.skills': 'Habilidades do FluidEQ',
   'tour.ai.skillWorlds': 'Mundos 3D',
   'tour.ai.skillPhotos': 'Fotos em 3D',
   'tour.ai.skillAnimation': 'Animação',
-  'tour.ai.folderTitle': 'Só nesta cena',
-  'tour.ai.folderRead': 'Lê e edita os arquivos desta cena',
-  'tour.ai.folderOther': 'Outras pastas',
-  'tour.ai.folderWeb': 'Comandos e a web',
-
+  'tour.ai.claudeTitle': 'Trabalha com o seu próprio Claude',
+  'tour.ai.claudePlugins': 'Seus plugins',
+  'tour.ai.claudeTools': 'Suas ferramentas e comandos',
+  'tour.ai.claudeAsks': 'Pergunta antes de algo novo',
   'tour.controls.kicker': 'CENAS',
   'tour.controls.title': 'Cenas que você deixa com a sua cara',
   'tour.controls.subtitle': 'Paletas, escolhas, mundos 3D e versões guardadas',

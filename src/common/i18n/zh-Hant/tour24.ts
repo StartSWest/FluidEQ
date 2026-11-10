@@ -4,19 +4,19 @@ const tour24 = {
   'tour.animations.title': '會動的圖片，逐格檢查',
   'tour.animations.subtitle': '場景裡的每段動畫，一格一格',
   'tour.animations.lead':
-    '讓場景裡的圖片以照片般的真實感動起來：場景聊天把一張圖片彎折成游動、拍翅、搖擺或轉身的畫格，或排好你自己做的畫格圖。',
+    '請場景的聊天讓一張圖片動起來：它會把圖片彎折成照片般真實的畫格，或使用你自己的 Claude 能用到的東西，再排成畫格圖並檢查每一格。',
   'tour.animations.point1':
     '放在地面、天空或水上，上坡或下坡，任何速度，逐格播放，或在整個工作室上方放大播放。',
   'tour.animations.point2':
-    '場景聊天也會檢查它們：同時檢視所有畫格，找出飄起或跳動的那一格，再把它放回同一條線上。',
+    '可匯入畫格圖、圖集 JSON、GIF、APNG、WebP、Aseprite 檔案或編號圖片；加入前會先在分頁裡播放。',
   'tour.animations.point3':
     '每個新專案都從球體裡的月亮和飛過上方的燕子開始，第一天就能學會圖片和動畫的用法。',
   'tour.animations.how':
     '開啟展示臺，進入工作室，在舞臺下方選擇動畫。在聊天裡請它讓場景中的一張圖片動起來。',
   'tour.animations.open': '開啟展示臺',
   'tour.animations.imageAlt':
-    '工作室的動畫分頁：燕子在天空背景上拍動翅膀，八個畫格排成一列；旁邊是場景聊天，正在找出跳動的那一格。',
-  'tour.animations.task': '逐格檢查燕子的飛行',
+    '工作室的動畫分頁：燕子在天空背景上拍動翅膀，八個畫格排成一列；下方是場景的聊天，正在找出跳動的那一格。',
+  'tour.animations.task': '逐格檢查燕子的飛行。',
   'tour.animations.stepLook': '並排檢視了全部 {count} 格',
   'tour.animations.stepJump': '第 {frame} 格比其他格跳得更高',
   'tour.animations.stepFix': '把第 {frame} 格放回與其他格同一條線上',
@@ -61,11 +61,11 @@ const tour24 = {
 
   'tour.ai.kicker': '工作室 · 你的 AI',
   'tour.ai.title': '一個照顧你所有場景的 AI',
-  'tour.ai.subtitle': '同時做多個場景，只在場景資料夾裡，任選模型',
+  'tour.ai.subtitle': '同時做多個場景，用你自己的外掛，任選模型',
   'tour.ai.lead':
     '你的 AI 現在能同時處理多個場景，每個場景一個聊天，而且消耗的 Claude 方案額度更少。',
   'tour.ai.point1':
-    '它只處理場景自己的檔案，只在場景資料夾裡用 FluidEQ 自己的工具工作，碰不到電腦上的其他任何東西。',
+    '它使用你自己的 Claude 擁有的一切：你的外掛、工具和指令；用到任何新東西之前都會先詢問。',
   'tour.ai.point2':
     'FluidEQ 自己的 3D 世界、3D 照片和動畫技能隨應用程式提供，永遠保持最新。',
   'tour.ai.point3':
@@ -74,16 +74,15 @@ const tour24 = {
     '在工作室開啟一個場景，在它的聊天裡輸入。模型和投入程度就在輸入框下方。',
   'tour.ai.open': '開啟展示臺',
   'tour.ai.imageAlt':
-    '同時進行的三個場景，兩個仍在處理，一個已保存為版本 7，下方是 FluidEQ 的技能；旁邊是表示 AI 只在場景資料夾內工作的標記，以及模型和投入程度選單。',
+    '同時進行的三個場景，兩個仍在處理，一個已保存為版本 7，下方是 FluidEQ 的技能；旁邊是 AI 使用的東西，以及模型和投入程度選單。',
   'tour.ai.skills': 'FluidEQ 的技能',
   'tour.ai.skillWorlds': '3D 世界',
   'tour.ai.skillPhotos': '3D 照片',
   'tour.ai.skillAnimation': '動畫',
-  'tour.ai.folderTitle': '只在這個場景裡',
-  'tour.ai.folderRead': '讀取和編輯這個場景的檔案',
-  'tour.ai.folderOther': '其他資料夾',
-  'tour.ai.folderWeb': '指令和網路',
-
+  'tour.ai.claudeTitle': '使用你自己的 Claude',
+  'tour.ai.claudePlugins': '你的外掛',
+  'tour.ai.claudeTools': '你的工具和指令',
+  'tour.ai.claudeAsks': '用新東西前先詢問',
   'tour.controls.kicker': '場景',
   'tour.controls.title': '可以照你心意打造的場景',
   'tour.controls.subtitle': '調色盤、選項、3D 世界和保留的版本',

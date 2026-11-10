@@ -18,7 +18,7 @@ import type { ISlideActions } from './slides';
 /**
  * What 2.4 announces, and most of it is the Studio (Ivan, 2026-11-09: "whats
  * new very big the new studio capability and all that is posible to do with
- * it"): its animations, the pictures in its chat, its
+ * it"): its animations, made and checked in its chat, the pictures there, its
  * stage, its AI and what a scene can hand the member to tune, then the
  * visualizers' camera on the graph and on the desktop, with the rest of the
  * release listed under that last one. Every picture is drawn from the

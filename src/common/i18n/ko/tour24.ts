@@ -4,19 +4,19 @@ const tour24 = {
   'tour.animations.title': '움직이는 사진, 한 프레임씩 확인',
   'tour.animations.subtitle': '장면의 모든 애니메이션을 한 프레임씩',
   'tour.animations.lead':
-    '장면의 사진을 사진 그대로 사실감 있게 움직이세요. 장면 채팅이 사진 한 장을 구부려 헤엄치고, 날갯짓하고, 흔들리고, 도는 프레임으로 만들거나 직접 만든 시트를 배치합니다.',
+    '장면의 채팅에 사진을 움직여 달라고 하세요. 사진을 구부려 사실적인 프레임을 만들거나 내 Claude가 닿는 것을 쓰고, 시트로 배치해 모든 프레임을 확인합니다.',
   'tour.animations.point1':
     '땅, 하늘, 물 위에서, 오르막이나 내리막에서, 원하는 속도로, 한 프레임씩 또는 스튜디오 전체 위로 크게 재생하세요.',
   'tour.animations.point2':
-    '장면 채팅이 검사도 합니다. 모든 프레임을 한 번에 보고, 떠 있거나 튀는 프레임을 찾아 줄에 다시 맞춥니다.',
+    '시트, 아틀라스 JSON, GIF, APNG, WebP, Aseprite 파일이나 번호 붙은 사진을 가져오세요. 추가하기 전에 탭에서 재생해 볼 수 있습니다.',
   'tour.animations.point3':
     '새 프로젝트는 구체 안의 달과 그 위를 나는 제비로 시작하므로, 사진과 애니메이션을 첫날부터 익힐 수 있습니다.',
   'tour.animations.how':
     '시각화 도우미를 열고 스튜디오로 간 다음, 무대 아래에서 애니메이션을 선택하세요. 채팅에 장면의 사진을 움직여 달라고 부탁하세요.',
   'tour.animations.open': '시각화 도우미 열기',
   'tour.animations.imageAlt':
-    '스튜디오의 애니메이션 탭. 하늘 배경 위에서 날갯짓하는 제비와 띠에 놓인 여덟 프레임, 옆에는 튀는 프레임을 찾아내는 장면 채팅이 있습니다.',
-  'tour.animations.task': '제비의 비행을 한 프레임씩 확인해 줘',
+    '스튜디오의 애니메이션 탭. 하늘 배경 위에서 날갯짓하는 제비와 띠에 놓인 여덟 프레임, 아래에는 튀는 프레임을 찾아내는 장면의 채팅이 있습니다.',
+  'tour.animations.task': '제비의 비행을 한 프레임씩 확인해 줘.',
   'tour.animations.stepLook': '{count}개 프레임을 모두 나란히 확인함',
   'tour.animations.stepJump': '{frame}번 프레임이 다른 프레임보다 튐',
   'tour.animations.stepFix': '{frame}번 프레임을 나머지와 같은 줄로 되돌림',
@@ -63,11 +63,11 @@ const tour24 = {
 
   'tour.ai.kicker': '스튜디오 · 나의 AI',
   'tour.ai.title': '모든 장면을 함께 작업하는 AI',
-  'tour.ai.subtitle': '여러 장면을 동시에, 장면 폴더 안에서, 원하는 모델로',
+  'tour.ai.subtitle': '여러 장면을 동시에, 내 플러그인으로, 원하는 모델로',
   'tour.ai.lead':
     '이제 AI가 여러 장면을 동시에 작업합니다. 장면마다 채팅이 따로 있고, Claude 플랜도 더 적게 씁니다.',
   'tour.ai.point1':
-    '장면 자신의 파일만, 그 폴더 안에서만 FluidEQ의 도구로 작업하며 컴퓨터의 다른 것은 건드릴 수 없습니다.',
+    '내 Claude에 있는 모든 것, 즉 플러그인, 도구, 명령으로 작업하며, 새로운 것을 쓰기 전에는 먼저 묻습니다.',
   'tour.ai.point2':
     '3D 월드, 3D 사진, 애니메이션을 위한 FluidEQ의 스킬이 앱에 함께 들어 있고 항상 최신입니다.',
   'tour.ai.point3':
@@ -76,16 +76,15 @@ const tour24 = {
     '스튜디오에서 장면을 열고 그 채팅에 쓰세요. 모델과 노력 수준은 입력 상자 아래에 있습니다.',
   'tour.ai.open': '시각화 도우미 열기',
   'tour.ai.imageAlt':
-    '동시에 작업 중인 세 장면. 둘은 진행 중, 하나는 버전 7로 저장됨. 그 아래 FluidEQ의 스킬, 옆에는 AI가 장면 폴더 안에만 머문다는 표시와 모델·노력 수준 메뉴가 있습니다.',
+    '동시에 작업 중인 세 장면. 둘은 진행 중, 하나는 버전 7로 저장됨. 그 아래 FluidEQ의 스킬, 옆에는 AI가 쓰는 것과 모델·노력 수준 메뉴가 있습니다.',
   'tour.ai.skills': 'FluidEQ의 스킬',
   'tour.ai.skillWorlds': '3D 월드',
   'tour.ai.skillPhotos': '3D 사진',
   'tour.ai.skillAnimation': '애니메이션',
-  'tour.ai.folderTitle': '이 장면 안에서만',
-  'tour.ai.folderRead': '이 장면의 파일 읽기와 편집',
-  'tour.ai.folderOther': '다른 폴더',
-  'tour.ai.folderWeb': '명령과 웹',
-
+  'tour.ai.claudeTitle': '내 Claude로 작업',
+  'tour.ai.claudePlugins': '내 플러그인',
+  'tour.ai.claudeTools': '내 도구와 명령',
+  'tour.ai.claudeAsks': '새로운 것은 먼저 묻기',
   'tour.controls.kicker': '장면',
   'tour.controls.title': '내 마음대로 꾸미는 장면',
   'tour.controls.subtitle': '팔레트, 선택지, 3D 월드, 보관되는 버전',

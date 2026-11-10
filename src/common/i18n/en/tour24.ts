@@ -7,19 +7,19 @@ const tour24 = {
   'tour.animations.title': 'Pictures that move, checked frame by frame',
   'tour.animations.subtitle': 'Every animation in a scene, frame by frame',
   'tour.animations.lead':
-    'Animate the pictures in your scene, photo-real: the scene’s chat bends one into frames that swim, flap, sway or turn, or lays out a sheet you made yourself.',
+    'Ask the scene’s chat to animate a picture: it bends one into photo-real frames or uses what your own Claude can reach, then lays them out as a sheet and checks every frame.',
   'tour.animations.point1':
     'Play one on Ground, Sky or Water, uphill or downhill, at any speed, frame by frame, or bigger over the whole Studio.',
   'tour.animations.point2':
-    'The scene’s chat checks them too: it looks at every frame at once, finds the one that floats or jumps, and puts it back in line.',
+    'Import sheets, atlas JSON, GIF, APNG, WebP, Aseprite files or numbered pictures; each one plays in the tab before it is added.',
   'tour.animations.point3':
     'Every new project starts with a moon in its orb and a swallow flying over it, so pictures and animations are there to learn from on day one.',
   'tour.animations.how':
     'Open Visualizers, then the Studio, and choose Animations under the stage. Ask the chat to animate a picture in your scene.',
   'tour.animations.open': 'Open Visualizers',
   'tour.animations.imageAlt':
-    'The Studio’s Animations tab with a swallow beating its wings on the Sky background and its eight frames in a strip, beside the scene’s chat finding the frame that jumps.',
-  'tour.animations.task': 'Check the swallow’s flight frame by frame',
+    'The Studio’s Animations tab with a swallow beating its wings on the Sky background and its eight frames in a strip, above the scene’s chat finding the frame that jumps.',
+  'tour.animations.task': 'Check the swallow’s flight frame by frame.',
   'tour.animations.stepLook': 'Looked at all {count} frames side by side',
   'tour.animations.stepJump': 'Frame {frame} jumps above the others',
   'tour.animations.stepFix': 'Moved frame {frame} back in line with the rest',
@@ -67,12 +67,11 @@ const tour24 = {
 
   'tour.ai.kicker': 'STUDIO · YOUR AI',
   'tour.ai.title': 'An AI that works on all your scenes',
-  'tour.ai.subtitle':
-    'Several scenes at once, in the scene’s folder, any model',
+  'tour.ai.subtitle': 'Several scenes at once, your own plugins, any model',
   'tour.ai.lead':
     'Your AI now works on several scenes at once, each in its own chat, and uses less of your Claude plan to do it.',
   'tour.ai.point1':
-    'It works only with the scene’s own files, inside its folder, with FluidEQ’s own tools, and cannot touch anything else on your computer.',
+    'It works with whatever your own Claude has, your plugins, tools and commands, and asks first before it uses anything new.',
   'tour.ai.point2':
     'FluidEQ’s own skills for 3D worlds, photos in 3D and animation come with the app and are always up to date.',
   'tour.ai.point3':
@@ -81,16 +80,15 @@ const tour24 = {
     'Open a scene in the Studio and write in its chat. The model and the effort are under the box you write in.',
   'tour.ai.open': 'Open Visualizers',
   'tour.ai.imageAlt':
-    'Three scenes being worked on at once, two still in progress and one kept as version 7, above FluidEQ’s skills, beside the mark that the AI is kept to the scene’s folder and the menu for model and effort.',
+    'Three scenes being worked on at once, two still in progress and one kept as version 7, above FluidEQ’s skills, beside what the AI works with and the menu for model and effort.',
   'tour.ai.skills': 'FluidEQ’s skills',
   'tour.ai.skillWorlds': '3D worlds',
   'tour.ai.skillPhotos': 'Photos in 3D',
   'tour.ai.skillAnimation': 'Animation',
-  'tour.ai.folderTitle': 'Kept to this scene',
-  'tour.ai.folderRead': 'Reads and edits this scene’s files',
-  'tour.ai.folderOther': 'Other folders',
-  'tour.ai.folderWeb': 'Commands and the web',
-
+  'tour.ai.claudeTitle': 'Works with your own Claude',
+  'tour.ai.claudePlugins': 'Your plugins',
+  'tour.ai.claudeTools': 'Your tools and commands',
+  'tour.ai.claudeAsks': 'Asks first before anything new',
   'tour.controls.kicker': 'SCENES',
   'tour.controls.title': 'Scenes you can make your own',
   'tour.controls.subtitle': 'Palettes, choices, 3D worlds and kept versions',
