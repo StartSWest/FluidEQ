@@ -360,8 +360,9 @@ describe('Visualizers', () => {
     expect(
       screen.getByRole('button', { name: 'Deep Sea' }),
     ).toBeInTheDocument();
+    // Newest, every time the gallery opens (Ivan, 2026-11-09).
     expect(bridge.listGallery).toHaveBeenCalledWith({
-      sort: 'liked',
+      sort: 'new',
       offset: 0,
     });
   });
@@ -374,17 +375,17 @@ describe('Visualizers', () => {
     );
     await waitFor(() =>
       expect(bridge.listGallery).toHaveBeenLastCalledWith({
-        sort: 'liked',
+        sort: 'new',
         category: 'water',
         offset: 0,
       }),
     );
     await userEvent.click(
-      screen.getByRole('button', { name: 'plus.gallery.sort.new' }),
+      screen.getByRole('button', { name: 'plus.gallery.sort.liked' }),
     );
     await waitFor(() =>
       expect(bridge.listGallery).toHaveBeenLastCalledWith({
-        sort: 'new',
+        sort: 'liked',
         category: 'water',
         offset: 0,
       }),
@@ -406,7 +407,7 @@ describe('Visualizers', () => {
     await userEvent.type(search, 'neo');
     // Only the first letter went while its answer was on the way.
     expect(bridge.listGallery).toHaveBeenLastCalledWith({
-      sort: 'liked',
+      sort: 'new',
       query: 'n',
       offset: 0,
     });
@@ -414,7 +415,7 @@ describe('Visualizers', () => {
     await act(async () => settle({ ok: true, scenes: [scene()], more: false }));
     await waitFor(() =>
       expect(bridge.listGallery).toHaveBeenLastCalledWith({
-        sort: 'liked',
+        sort: 'new',
         query: 'neo',
         offset: 0,
       }),
