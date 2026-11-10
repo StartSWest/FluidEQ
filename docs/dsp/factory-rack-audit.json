@@ -1,0 +1,4100 @@
+{
+  "schema": 1,
+  "sampleRateHz": 48000,
+  "method": "Offline live Graph at original levels with no level facts. Room examples use the bundled medium head.",
+  "headphoneCorrection": false,
+  "outputDevicesOpened": false,
+  "processingSha256": "f4e20c727557141933e807483cd1d4202fc3f35a99a9262c896bfd3048efbde0",
+  "graphSha256": "9c3eb37c95110e67db6406f1f2bcf3ec650ecc8fb1ad9eb2a23daa67345c7ec7",
+  "nativeMeterSha256": "05427e4933173cba867fc0699d22c528bd35863f1e731b4a43538d16146a581a",
+  "roomHeadSha256": "21fac3dffc1874a7bb86d0903cc5c5761a86734a1dcc676ad3d5ce536582e9cb",
+  "manifestSha256": "cc6eb7f7ba4d3073baa024b3cb1359b54489a0a9ab3f23580664bfb0d94dec06",
+  "completeCatalogue": true,
+  "presets": [
+    {
+      "id": "empty",
+      "group": "basic",
+      "sourceGroup": "music",
+      "configurationSha256": "dc95a078c2fa8dca3e86e4762a63e81407d2639e88a52fe319983a283491126a",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": false,
+        "presetId": "",
+        "driveDb": 0,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 100
+      },
+      "references": [
+        {
+          "id": "pop-1",
+          "name": "Levitating — Dua Lipa",
+          "origin": "https://music.apple.com/us/song/1538003843",
+          "sourceSha256": "23a72442462c055254183568556153b03971e552922b9e5f0214a656d08c7e7d",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "output": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "loudnessDeltaLu": 0,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": []
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "loudnessDeltaLu": 0,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "balanced",
+      "group": "basic",
+      "sourceGroup": "music",
+      "configurationSha256": "6b812f98c70f0d766b44125638f9b016cdfc09a4b6c819f244704f60c64c1166",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "default",
+        "driveDb": -2,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 50
+      },
+      "references": [
+        {
+          "id": "pop-1",
+          "name": "Levitating — Dua Lipa",
+          "origin": "https://music.apple.com/us/song/1538003843",
+          "sourceSha256": "23a72442462c055254183568556153b03971e552922b9e5f0214a656d08c7e7d",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "output": {
+            "integratedLufs": -9.57474727,
+            "maxShortTermLufs": -7.989709091,
+            "truePeakDbtp": -0.999999128,
+            "crestDb": 11.20703834,
+            "blockRmsRangeDb": 9.080665127
+          },
+          "loudnessDeltaLu": -2.827369996,
+          "limiterLossLu": 1.103482304,
+          "limiterCrestLossDb": 1.239581502,
+          "limiterPhraseLossDb": 0.6638187149999997,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.20619160799999925,
+              "peakDeltaDb": -5.809999999994986e-7,
+              "crestDeltaDb": 0.220644999000001,
+              "phraseDeltaDb": -0.3141231340000008
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": -0.34963342799999886,
+              "peakDeltaDb": 5.809999999994986e-7,
+              "crestDeltaDb": 0.41057392400000126,
+              "phraseDeltaDb": -0.06175340100000071
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.09597373899999972,
+              "peakDeltaDb": 5.809999999994986e-7,
+              "crestDeltaDb": -0.18738075799999976,
+              "phraseDeltaDb": 0.6741861619999998
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -22.514182942,
+            "maxShortTermLufs": -20.270637043,
+            "truePeakDbtp": -3.549505551,
+            "crestDb": 21.685192604,
+            "blockRmsRangeDb": 10.136587934
+          },
+          "loudnessDeltaLu": -2.3403439440000007,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 4.000000330961484e-9,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.002824635000003184,
+              "peakDeltaDb": -0.14180150300000038,
+              "crestDeltaDb": -0.11778896299999886,
+              "phraseDeltaDb": 0.010341339000000005
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": 0.18918136099999927,
+              "peakDeltaDb": 0.39934707499999966,
+              "crestDeltaDb": 0.3402461460000019,
+              "phraseDeltaDb": 0.4277734940000002
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.4921305060000023,
+              "peakDeltaDb": -0.17874558299999999,
+              "crestDeltaDb": 0.34886670999999936,
+              "phraseDeltaDb": 0.17488278499999943
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reference",
+      "group": "basic",
+      "sourceGroup": "music",
+      "configurationSha256": "11663ffbc9fae57f7af6e5e0d90de902cd9b8a84a21e3878ac5fa134051f9ef5",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "safety",
+        "driveDb": 0,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 100
+      },
+      "references": [
+        {
+          "id": "pop-1",
+          "name": "Levitating — Dua Lipa",
+          "origin": "https://music.apple.com/us/song/1538003843",
+          "sourceSha256": "23a72442462c055254183568556153b03971e552922b9e5f0214a656d08c7e7d",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "output": {
+            "integratedLufs": -7.918269002,
+            "maxShortTermLufs": -6.382014881,
+            "truePeakDbtp": -0.999999709,
+            "crestDb": 9.538396219,
+            "blockRmsRangeDb": 8.336499885
+          },
+          "loudnessDeltaLu": -1.170891728,
+          "limiterLossLu": 1.170891728,
+          "limiterCrestLossDb": 0.7011438640000005,
+          "limiterPhraseLossDb": 0.766816232,
+          "effects": []
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "loudnessDeltaLu": 0,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "music",
+      "group": "basic",
+      "sourceGroup": "music",
+      "configurationSha256": "4dd120b560f55b47fbd10109f980ce1558ee69229e63fd32e083d30df15ab2cf",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "music",
+        "driveDb": -2.75,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 40
+      },
+      "references": [
+        {
+          "id": "pop-1",
+          "name": "Levitating — Dua Lipa",
+          "origin": "https://music.apple.com/us/song/1538003843",
+          "sourceSha256": "23a72442462c055254183568556153b03971e552922b9e5f0214a656d08c7e7d",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "output": {
+            "integratedLufs": -9.753231,
+            "maxShortTermLufs": -8.241334339,
+            "truePeakDbtp": -0.999999128,
+            "crestDb": 11.014884474,
+            "blockRmsRangeDb": 9.992325115
+          },
+          "loudnessDeltaLu": -3.005853726,
+          "limiterLossLu": 1.0591388619999993,
+          "limiterCrestLossDb": 1.0892633959999998,
+          "limiterPhraseLossDb": 0.6109351780000001,
+          "effects": [
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": -0.2689292229999989,
+              "peakDeltaDb": -0.00000343499999999608,
+              "crestDeltaDb": 0.3596216280000011,
+              "phraseDeltaDb": -0.08087724299999977
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.28454713300000023,
+              "peakDeltaDb": 0.00013294000000008133,
+              "crestDeltaDb": -0.14856596299999936,
+              "phraseDeltaDb": 0.7509412330000007
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -22.991086039,
+            "maxShortTermLufs": -20.801984824,
+            "truePeakDbtp": -4.190766487,
+            "crestDb": 21.314931612,
+            "blockRmsRangeDb": 9.93354646
+          },
+          "loudnessDeltaLu": -2.817247040999998,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 4.000000330961484e-9,
+          "effects": [
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": 0.11014734600000153,
+              "peakDeltaDb": 0.2605314519999995,
+              "crestDeltaDb": 0.30012089699999933,
+              "phraseDeltaDb": 0.5826903020000014
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.2219552440000001,
+              "peakDeltaDb": -0.12235209800000035,
+              "crestDeltaDb": -0.06577282499999981,
+              "phraseDeltaDb": -0.032573600999999286
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "music-room",
+      "group": "basic",
+      "sourceGroup": "music",
+      "configurationSha256": "2f4869b730ecf1255f60bc5a944f38ca99bda2b6418d79eb1c7e4f3decaceae6",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": true,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "musicRoom",
+        "driveDb": -4.5,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 40
+      },
+      "references": [
+        {
+          "id": "pop-1",
+          "name": "Levitating — Dua Lipa",
+          "origin": "https://music.apple.com/us/song/1538003843",
+          "sourceSha256": "23a72442462c055254183568556153b03971e552922b9e5f0214a656d08c7e7d",
+          "latencyFrames": 1589,
+          "dry": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "output": {
+            "integratedLufs": -11.759804077,
+            "maxShortTermLufs": -10.245079928,
+            "truePeakDbtp": -0.999999709,
+            "crestDb": 12.661051204,
+            "blockRmsRangeDb": 10.924827811
+          },
+          "loudnessDeltaLu": -5.012426803,
+          "limiterLossLu": 1.1256935129999999,
+          "limiterCrestLossDb": 1.8458002740000001,
+          "limiterPhraseLossDb": 0.7459922960000007,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.40045606300000003,
+              "peakDeltaDb": -5.809999999994986e-7,
+              "crestDeltaDb": 1.0439590509999999,
+              "phraseDeltaDb": -2.469755137
+            },
+            {
+              "stage": "room",
+              "loudnessDeltaLu": -1.3646114750000002,
+              "peakDeltaDb": 0.011470028000000076,
+              "crestDeltaDb": 0.15698846299999936,
+              "phraseDeltaDb": 1.995687877
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.32160411299999936,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": -0.8475452089999997,
+              "phraseDeltaDb": 1.3513028420000008
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 1589,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -25.980309348,
+            "maxShortTermLufs": -24.009659626,
+            "truePeakDbtp": -6.474796272,
+            "crestDb": 21.999583265,
+            "blockRmsRangeDb": 9.252702654
+          },
+          "loudnessDeltaLu": -5.806470349999998,
+          "limiterLossLu": 1.000000082740371e-9,
+          "limiterCrestLossDb": -9.999965300266922e-10,
+          "limiterPhraseLossDb": -9.000000744663339e-9,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.21169665399999715,
+              "peakDeltaDb": 2.4354953890000006,
+              "crestDeltaDb": 3.3178981709999995,
+              "phraseDeltaDb": 0.3648374059999995
+            },
+            {
+              "stage": "room",
+              "loudnessDeltaLu": -1.7077475129999975,
+              "peakDeltaDb": -2.19854722,
+              "crestDeltaDb": -0.879921417000002,
+              "phraseDeltaDb": -1.7492992909999998
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.2508605459999984,
+              "peakDeltaDb": -0.2575241359999998,
+              "crestDeltaDb": -0.11472989600000005,
+              "phraseDeltaDb": 0.21144476399999945
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "warm",
+      "group": "basic",
+      "sourceGroup": "music",
+      "configurationSha256": "cb92407f20b60e89ce4b7d60a874958b2c10527866b53f5e818751954c0ade6b",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "warm",
+        "driveDb": -1.75,
+        "ceilingDb": -1,
+        "lookAheadMs": 14,
+        "releaseMs": 65
+      },
+      "references": [
+        {
+          "id": "pop-1",
+          "name": "Levitating — Dua Lipa",
+          "origin": "https://music.apple.com/us/song/1538003843",
+          "sourceSha256": "23a72442462c055254183568556153b03971e552922b9e5f0214a656d08c7e7d",
+          "latencyFrames": 1509,
+          "dry": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "output": {
+            "integratedLufs": -10.022070694,
+            "maxShortTermLufs": -8.436428344,
+            "truePeakDbtp": -0.999999709,
+            "crestDb": 11.117802814,
+            "blockRmsRangeDb": 9.723646069
+          },
+          "loudnessDeltaLu": -3.27469342,
+          "limiterLossLu": 1.0908661770000005,
+          "limiterCrestLossDb": 1.491079794000001,
+          "limiterPhraseLossDb": 0.8404263199999988,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.46148010099999937,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.4692144839999983,
+              "phraseDeltaDb": -0.38382283499999836
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": -0.28420999999999985,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.25801102599999837,
+              "phraseDeltaDb": 0.33423387700000085
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.3651954160000006,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": -0.18101460300000127,
+              "phraseDeltaDb": 1.134492196
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 1509,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -22.394650855,
+            "maxShortTermLufs": -20.420775701,
+            "truePeakDbtp": -4.757359626,
+            "crestDb": 20.057904647,
+            "blockRmsRangeDb": 9.372332709
+          },
+          "loudnessDeltaLu": -2.2208118569999975,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": -8.000000661922968e-9,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.0030451969999987227,
+              "peakDeltaDb": -0.1913459210000008,
+              "crestDeltaDb": -0.1771116759999991,
+              "phraseDeltaDb": 0.005744565000000534
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": -0.2606115679999981,
+              "peakDeltaDb": -0.31463380200000035,
+              "crestDeltaDb": 0.03341537500000058,
+              "phraseDeltaDb": 0.2882004000000009
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.24908811699999944,
+              "peakDeltaDb": -0.9630517510000005,
+              "crestDeltaDb": -0.952390888,
+              "phraseDeltaDb": -0.5584156979999992
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "clarity",
+      "group": "basic",
+      "sourceGroup": "music",
+      "configurationSha256": "6a3de310d27d3fb84f9bba7582baf77f2f0afc0a8efdcd9ff6004fa95bba1efa",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "clarity",
+        "driveDb": -2,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 40
+      },
+      "references": [
+        {
+          "id": "pop-1",
+          "name": "Levitating — Dua Lipa",
+          "origin": "https://music.apple.com/us/song/1538003843",
+          "sourceSha256": "23a72442462c055254183568556153b03971e552922b9e5f0214a656d08c7e7d",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "output": {
+            "integratedLufs": -9.659652442,
+            "maxShortTermLufs": -8.02464291,
+            "truePeakDbtp": -0.999914261,
+            "crestDb": 11.619244697,
+            "blockRmsRangeDb": 8.664583931
+          },
+          "loudnessDeltaLu": -2.9122751680000007,
+          "limiterLossLu": 1.1459706230000002,
+          "limiterCrestLossDb": 1.2839414430000016,
+          "limiterPhraseLossDb": 0.7460677540000002,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.373759089,
+              "peakDeltaDb": -0.000005330000000025592,
+              "crestDeltaDb": 0.39167315999999985,
+              "phraseDeltaDb": -0.27697019400000045
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": -0.15145294000000042,
+              "peakDeltaDb": 0.00008428599999998898,
+              "crestDeltaDb": 0.22020564399999998,
+              "phraseDeltaDb": 0.034043694999999374
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.11838461099999975,
+              "peakDeltaDb": 0.00008544799999998798,
+              "crestDeltaDb": 0.37364965099999914,
+              "phraseDeltaDb": 0.1198062809999989
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -22.044685344,
+            "maxShortTermLufs": -19.918792289,
+            "truePeakDbtp": -3.523862833,
+            "crestDb": 21.412299152,
+            "blockRmsRangeDb": 9.449376867
+          },
+          "loudnessDeltaLu": -1.8708463460000004,
+          "limiterLossLu": -2.000000165480742e-9,
+          "limiterCrestLossDb": -0.0000015520000005153634,
+          "limiterPhraseLossDb": -7.000000579182597e-9,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.002028710000001155,
+              "peakDeltaDb": -0.18833184199999975,
+              "crestDeltaDb": -0.17398374300000086,
+              "phraseDeltaDb": 0.00615435799999986
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": 0.21141974499999705,
+              "peakDeltaDb": 0.4190507480000001,
+              "crestDeltaDb": 0.33194478499999747,
+              "phraseDeltaDb": 0.14719595899999938
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.006117081999999385,
+              "peakDeltaDb": -0.08341401199999998,
+              "crestDeltaDb": 0.14290735199999816,
+              "phraseDeltaDb": -0.35614900200000044
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "punch",
+      "group": "basic",
+      "sourceGroup": "music",
+      "configurationSha256": "88d3241b1c22ed0d7bbf5be7f0fffa413fc179a3a2bca195b15eb056f235be50",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "punch",
+        "driveDb": -2.75,
+        "ceilingDb": -1,
+        "lookAheadMs": 1.5,
+        "releaseMs": 40
+      },
+      "references": [
+        {
+          "id": "pop-1",
+          "name": "Levitating — Dua Lipa",
+          "origin": "https://music.apple.com/us/song/1538003843",
+          "sourceSha256": "23a72442462c055254183568556153b03971e552922b9e5f0214a656d08c7e7d",
+          "latencyFrames": 909,
+          "dry": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "output": {
+            "integratedLufs": -10.125113566,
+            "maxShortTermLufs": -8.582999811,
+            "truePeakDbtp": -0.999999709,
+            "crestDb": 11.85128291,
+            "blockRmsRangeDb": 9.279336222
+          },
+          "loudnessDeltaLu": -3.377736292,
+          "limiterLossLu": 1.2479979950000004,
+          "limiterCrestLossDb": 2.0053957570000005,
+          "limiterPhraseLossDb": 0.8535679750000007,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.22571669399999905,
+              "peakDeltaDb": -0.0007743630000000001,
+              "crestDeltaDb": 0.2494757950000004,
+              "phraseDeltaDb": -0.29777975400000045
+            },
+            {
+              "stage": "bassPunch",
+              "loudnessDeltaLu": -0.4478147459999988,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.33596691900000053,
+              "phraseDeltaDb": 0.005080238999999764
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.008294809999998876,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.19363704100000056,
+              "phraseDeltaDb": 0.6232674599999992
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 909,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -23.462154405,
+            "maxShortTermLufs": -21.131614826,
+            "truePeakDbtp": -3.80943929,
+            "crestDb": 22.325594097,
+            "blockRmsRangeDb": 10.312612692
+          },
+          "loudnessDeltaLu": -3.288315406999999,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 1.000000082740371e-9,
+          "limiterPhraseLossDb": -4.000000330961484e-9,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.0034429980000005855,
+              "peakDeltaDb": 0.03422554600000005,
+              "crestDeltaDb": 0.04463204900000051,
+              "phraseDeltaDb": 0.0056604409999998495
+            },
+            {
+              "stage": "bassPunch",
+              "loudnessDeltaLu": 0.0645942220000002,
+              "peakDeltaDb": 0.00004174200000006678,
+              "crestDeltaDb": -0.12982197100000192,
+              "phraseDeltaDb": 0.4404010439999997
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.5709138389999993,
+              "peakDeltaDb": 0.7183025339999998,
+              "crestDeltaDb": 1.415265956999999,
+              "phraseDeltaDb": 0.5077685580000004
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "expansive",
+      "group": "basic",
+      "sourceGroup": "music",
+      "configurationSha256": "6fe741784399ddca9c0794e6d53d778d5b91f3e9bb4b2470ba9d779c577a0288",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "expansive",
+        "driveDb": -2,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 40
+      },
+      "references": [
+        {
+          "id": "pop-1",
+          "name": "Levitating — Dua Lipa",
+          "origin": "https://music.apple.com/us/song/1538003843",
+          "sourceSha256": "23a72442462c055254183568556153b03971e552922b9e5f0214a656d08c7e7d",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "output": {
+            "integratedLufs": -9.326945846,
+            "maxShortTermLufs": -7.768931375,
+            "truePeakDbtp": -0.999999709,
+            "crestDb": 11.144760473,
+            "blockRmsRangeDb": 8.574733158
+          },
+          "loudnessDeltaLu": -2.5795685719999994,
+          "limiterLossLu": 1.2252956389999987,
+          "limiterCrestLossDb": 1.3160017479999997,
+          "limiterPhraseLossDb": 0.793888085999999,
+          "effects": [
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": -0.5795685719999994,
+              "peakDeltaDb": 0.13418938499999988,
+              "crestDeltaDb": 0.9052204540000002,
+              "phraseDeltaDb": -0.5285829619999998
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -21.634434972,
+            "maxShortTermLufs": -19.430187026,
+            "truePeakDbtp": -2.780305473,
+            "crestDb": 21.613088364,
+            "blockRmsRangeDb": 10.052486869
+          },
+          "loudnessDeltaLu": -1.4605959740000003,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": 0.5394040259999997,
+              "peakDeltaDb": 0.8559553270000002,
+              "crestDeltaDb": 0.5125038039999978,
+              "phraseDeltaDb": 0.573688971000001
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "late-night",
+      "group": "basic",
+      "sourceGroup": "music",
+      "configurationSha256": "481fa6f42ea9cbdd9f7070b89fc00a87a476a0c468ad027e67169bed2d3cbdef",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "lateNight",
+        "driveDb": -3.5,
+        "ceilingDb": -3,
+        "lookAheadMs": 8,
+        "releaseMs": 65
+      },
+      "references": [
+        {
+          "id": "pop-1",
+          "name": "Levitating — Dua Lipa",
+          "origin": "https://music.apple.com/us/song/1538003843",
+          "sourceSha256": "23a72442462c055254183568556153b03971e552922b9e5f0214a656d08c7e7d",
+          "latencyFrames": 1221,
+          "dry": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "output": {
+            "integratedLufs": -12.754979812,
+            "maxShortTermLufs": -11.260835849,
+            "truePeakDbtp": -3.000000249,
+            "crestDb": 13.18954709,
+            "blockRmsRangeDb": 6.99331205
+          },
+          "loudnessDeltaLu": -6.007602538,
+          "limiterLossLu": 1.448220202,
+          "limiterCrestLossDb": 1.7921431329999997,
+          "limiterPhraseLossDb": 0.42020831099999967,
+          "effects": [
+            {
+              "stage": "bassForge",
+              "loudnessDeltaLu": 0.004296656999999371,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": -0.005526868000000462,
+              "phraseDeltaDb": 0.05415102400000027
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -1.5215572220000002,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 2.3316372459999997,
+              "phraseDeltaDb": -0.1532479379999998
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.22840123499999976,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": -0.4526232580000009,
+              "phraseDeltaDb": -0.07813283199999965
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 1221,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -23.527999306,
+            "maxShortTermLufs": -21.061209896,
+            "truePeakDbtp": -5.02207765,
+            "crestDb": 21.201116278,
+            "blockRmsRangeDb": 11.547959903
+          },
+          "loudnessDeltaLu": -3.354160308000001,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 1.000000082740371e-9,
+          "limiterPhraseLossDb": -6.000000496442226e-9,
+          "effects": [
+            {
+              "stage": "bassForge",
+              "loudnessDeltaLu": -0.0020534750000003044,
+              "peakDeltaDb": 0.021168029000000033,
+              "crestDeltaDb": 0.005068092000001911,
+              "phraseDeltaDb": -0.015237640999998803
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.34196914300000003,
+              "peakDeltaDb": -0.63684809,
+              "crestDeltaDb": -0.18168113499999805,
+              "phraseDeltaDb": 0.5101991670000015
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.5977558779999974,
+              "peakDeltaDb": 0.6540056769999998,
+              "crestDeltaDb": 0.018587865000000647,
+              "phraseDeltaDb": 1.9818451340000003
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "speech",
+      "group": "scene",
+      "sourceGroup": "speech",
+      "configurationSha256": "5d5530af32725da879aec672b8e135678ad460effd7e0b0e20d6e93953bfd590",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "podcast",
+        "driveDb": 0.9,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 120
+      },
+      "references": [
+        {
+          "id": "spoken-quiet",
+          "name": "Quiet narrator with sharp consonants",
+          "origin": "Deterministic Flite SLT voice",
+          "sourceSha256": "8a7008ccd0fda52378cf8f644bae977e8fe883b892ae1f8cc151661609bbb2b1",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -26.714224308,
+            "maxShortTermLufs": -26.079063396,
+            "truePeakDbtp": -14.638865905,
+            "crestDb": 14.575703209,
+            "blockRmsRangeDb": 3.785600176
+          },
+          "output": {
+            "integratedLufs": -26.781230065,
+            "maxShortTermLufs": -26.181319402,
+            "truePeakDbtp": -15.282822577,
+            "crestDb": 14.008611278,
+            "blockRmsRangeDb": 3.78434494
+          },
+          "loudnessDeltaLu": -0.06700575700000044,
+          "limiterLossLu": 1.000000082740371e-9,
+          "limiterCrestLossDb": -1.000000082740371e-9,
+          "limiterPhraseLossDb": 2.999999804131903e-9,
+          "effects": [
+            {
+              "stage": "deEsser",
+              "loudnessDeltaLu": -0.047413234000000415,
+              "peakDeltaDb": 0.00013008400000025233,
+              "crestDeltaDb": 0.01813319600000085,
+              "phraseDeltaDb": -0.00783982899999991
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.9144601189999975,
+              "peakDeltaDb": -1.543961844,
+              "crestDeltaDb": -0.5866183429999996,
+              "phraseDeltaDb": 0.008553329000000165
+            }
+          ]
+        },
+        {
+          "id": "spoken-loud",
+          "name": "Louder narrator with pauses",
+          "origin": "Deterministic Flite KAL voice",
+          "sourceSha256": "155d9a029dc019d6799b4c566f16cee712a146a68b772ec5f15cbf1880e78df1",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -21.770654406,
+            "maxShortTermLufs": -20.71147022,
+            "truePeakDbtp": -4.91670781,
+            "crestDb": 19.428760483,
+            "blockRmsRangeDb": 8.078767318
+          },
+          "output": {
+            "integratedLufs": -21.284690273,
+            "maxShortTermLufs": -20.126766943,
+            "truePeakDbtp": -3.484745512,
+            "crestDb": 20.593274266,
+            "blockRmsRangeDb": 8.230524173
+          },
+          "loudnessDeltaLu": 0.4859641329999995,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": -7.750000001749413e-7,
+          "limiterPhraseLossDb": -9.999983063835316e-10,
+          "effects": [
+            {
+              "stage": "deEsser",
+              "loudnessDeltaLu": -0.00623615700000002,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.0027169499999999402,
+              "phraseDeltaDb": 0.0029960879999997303
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.41063985399999936,
+              "peakDeltaDb": 0.5319622520000005,
+              "crestDeltaDb": 1.163104078,
+              "phraseDeltaDb": 0.15175727599999966
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "headphones",
+      "group": "scene",
+      "sourceGroup": "music",
+      "configurationSha256": "bc07ddb1cad4072fb2f86a94a642155aac74c0b87367fbb322937250ea31e30e",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "headphones",
+        "driveDb": -1.5,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 45
+      },
+      "references": [
+        {
+          "id": "pop-1",
+          "name": "Levitating — Dua Lipa",
+          "origin": "https://music.apple.com/us/song/1538003843",
+          "sourceSha256": "23a72442462c055254183568556153b03971e552922b9e5f0214a656d08c7e7d",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "output": {
+            "integratedLufs": -9.581920999,
+            "maxShortTermLufs": -8.077665186,
+            "truePeakDbtp": -0.999999709,
+            "crestDb": 10.786422483,
+            "blockRmsRangeDb": 10.008472445
+          },
+          "loudnessDeltaLu": -2.8345437249999996,
+          "limiterLossLu": 1.1574507039999986,
+          "limiterCrestLossDb": 1.5621648819999994,
+          "limiterPhraseLossDb": 0.7978766849999985,
+          "effects": [
+            {
+              "stage": "bassForge",
+              "loudnessDeltaLu": -0.11168343199999953,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.10177291200000127,
+              "phraseDeltaDb": -0.09310618800000015
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.10810841500000024,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.12821204700000166,
+              "phraseDeltaDb": -0.1843085689999988
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": -0.14201466799999984,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.11332240500000168,
+              "phraseDeltaDb": 0.26272371200000144
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.13763790500000006,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": -0.274025932999999,
+              "phraseDeltaDb": 1.4618067230000005
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -22.816032672,
+            "maxShortTermLufs": -20.657548252,
+            "truePeakDbtp": -4.437737311,
+            "crestDb": 20.870583431,
+            "blockRmsRangeDb": 9.809265043
+          },
+          "loudnessDeltaLu": -2.642193673999998,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 1.000000082740371e-9,
+          "limiterPhraseLossDb": -2.000000165480742e-9,
+          "effects": [
+            {
+              "stage": "bassForge",
+              "loudnessDeltaLu": 0.000164234999999735,
+              "peakDeltaDb": 0.09975328599999944,
+              "crestDeltaDb": 0.09454360200000167,
+              "phraseDeltaDb": 0.03871180299999999
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.0040764689999974735,
+              "peakDeltaDb": -0.17596520599999987,
+              "crestDeltaDb": -0.17911627799999863,
+              "phraseDeltaDb": 0.010484444999999454
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": -0.43726750699999783,
+              "peakDeltaDb": -0.6834349530000003,
+              "crestDeltaDb": -0.1571512119999987,
+              "phraseDeltaDb": 0.7152062729999997
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.7424333059999988,
+              "peakDeltaDb": -0.5592903270000003,
+              "crestDeltaDb": 0.014588048000000242,
+              "phraseDeltaDb": -0.21466823999999995
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "speakers",
+      "group": "scene",
+      "sourceGroup": "music",
+      "configurationSha256": "75e1c40e2c0e01bba93961166057c5e8b7c2cbbdf6dcd528491371c832c9aecd",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "speakers",
+        "driveDb": -2.5,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 45
+      },
+      "references": [
+        {
+          "id": "pop-1",
+          "name": "Levitating — Dua Lipa",
+          "origin": "https://music.apple.com/us/song/1538003843",
+          "sourceSha256": "23a72442462c055254183568556153b03971e552922b9e5f0214a656d08c7e7d",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "output": {
+            "integratedLufs": -9.790212721,
+            "maxShortTermLufs": -8.239674587,
+            "truePeakDbtp": -0.999999709,
+            "crestDb": 11.404097565,
+            "blockRmsRangeDb": 9.613062483
+          },
+          "loudnessDeltaLu": -3.042835447,
+          "limiterLossLu": 1.1789710370000002,
+          "limiterCrestLossDb": 1.2102468019999986,
+          "limiterPhraseLossDb": 0.7111616660000006,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.07808469199999912,
+              "peakDeltaDb": -5.809999999994986e-7,
+              "crestDeltaDb": 0.08829810800000004,
+              "phraseDeltaDb": -0.1428375390000003
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": -0.32925805899999894,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.48265993300000076,
+              "phraseDeltaDb": -0.15993050700000033
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.10095864900000073,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": -0.2830979599999992,
+              "phraseDeltaDb": 1.1282909239999999
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -22.923456876,
+            "maxShortTermLufs": -20.662501506,
+            "truePeakDbtp": -3.447168923,
+            "crestDb": 22.229881262,
+            "blockRmsRangeDb": 10.225681603
+          },
+          "loudnessDeltaLu": -2.7496178779999987,
+          "limiterLossLu": 1.000000082740371e-9,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.003134549999998626,
+              "peakDeltaDb": 0.13258571099999994,
+              "crestDeltaDb": 0.13470802899999867,
+              "phraseDeltaDb": 0.009893558999999996
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": 0.4099051280000019,
+              "peakDeltaDb": 0.9859615219999998,
+              "crestDeltaDb": 0.798780966999999,
+              "phraseDeltaDb": 0.544995578
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.6335083620000006,
+              "peakDeltaDb": 0.11284054500000007,
+              "crestDeltaDb": 0.7687550969999997,
+              "phraseDeltaDb": 0.19290163299999996
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "laptop",
+      "group": "scene",
+      "sourceGroup": "music",
+      "configurationSha256": "4cfce312c19ae9d6a304ff92bb3e8bfcb387c2aff3f63ce9238f8dc7c6263b48",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "laptop",
+        "driveDb": -4.5,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 40
+      },
+      "references": [
+        {
+          "id": "pop-1",
+          "name": "Levitating — Dua Lipa",
+          "origin": "https://music.apple.com/us/song/1538003843",
+          "sourceSha256": "23a72442462c055254183568556153b03971e552922b9e5f0214a656d08c7e7d",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "output": {
+            "integratedLufs": -11.290585344,
+            "maxShortTermLufs": -9.681195354,
+            "truePeakDbtp": -0.999999128,
+            "crestDb": 13.921127379,
+            "blockRmsRangeDb": 8.085571205
+          },
+          "loudnessDeltaLu": -4.54320807,
+          "limiterLossLu": 1.2053218050000005,
+          "limiterCrestLossDb": 2.2260861310000006,
+          "limiterPhraseLossDb": 0.8302539259999993,
+          "effects": [
+            {
+              "stage": "bassForge",
+              "loudnessDeltaLu": 0.014969246999999797,
+              "peakDeltaDb": 5.809999999994986e-7,
+              "crestDeltaDb": -0.024443167000001154,
+              "phraseDeltaDb": 0.009254659000001553
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.2394360510000002,
+              "peakDeltaDb": 5.809999999994986e-7,
+              "crestDeltaDb": 0.27463273000000044,
+              "phraseDeltaDb": -0.1064921159999983
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": 0.281802686999999,
+              "peakDeltaDb": 0.0000011619999999989972,
+              "crestDeltaDb": -0.03571199599999986,
+              "phraseDeltaDb": 0.2838677390000006
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.10150948799999959,
+              "peakDeltaDb": 5.809999999994986e-7,
+              "crestDeltaDb": 0.450475419,
+              "phraseDeltaDb": -0.651227411999999
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -23.318785704,
+            "maxShortTermLufs": -20.935181116,
+            "truePeakDbtp": -3.81622014,
+            "crestDb": 22.549523934,
+            "blockRmsRangeDb": 10.980295937
+          },
+          "loudnessDeltaLu": -3.144946705999999,
+          "limiterLossLu": 1.000000082740371e-9,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 7.000000579182597e-9,
+          "effects": [
+            {
+              "stage": "bassForge",
+              "loudnessDeltaLu": -0.0023069569999982775,
+              "peakDeltaDb": 0.07010947199999995,
+              "crestDeltaDb": 0.07235957500000012,
+              "phraseDeltaDb": -0.03303245900000107
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.005447295999999824,
+              "peakDeltaDb": 0.16127290900000002,
+              "crestDeltaDb": 0.1738959169999994,
+              "phraseDeltaDb": 0.05733760099999863
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": 0.7235901250000012,
+              "peakDeltaDb": 0.9918426750000005,
+              "crestDeltaDb": 0.535689645999998,
+              "phraseDeltaDb": 0.4152675549999998
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.8686115279999989,
+              "peakDeltaDb": 1.5480514089999997,
+              "crestDeltaDb": 0.7785976939999983,
+              "phraseDeltaDb": 0.3022583609999998
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "car",
+      "group": "scene",
+      "sourceGroup": "music",
+      "configurationSha256": "790f1a0ab0b9b5274ac7250692f836d03cab38c9480a8b31665e7b356ab394e7",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "car",
+        "driveDb": -2.5,
+        "ceilingDb": -1,
+        "lookAheadMs": 14,
+        "releaseMs": 65
+      },
+      "references": [
+        {
+          "id": "pop-1",
+          "name": "Levitating — Dua Lipa",
+          "origin": "https://music.apple.com/us/song/1538003843",
+          "sourceSha256": "23a72442462c055254183568556153b03971e552922b9e5f0214a656d08c7e7d",
+          "latencyFrames": 1509,
+          "dry": {
+            "integratedLufs": -6.747377274,
+            "maxShortTermLufs": -5.130379459,
+            "truePeakDbtp": 0.86581097,
+            "crestDb": 10.239540083,
+            "blockRmsRangeDb": 9.103316117
+          },
+          "output": {
+            "integratedLufs": -10.264909313,
+            "maxShortTermLufs": -8.579241362,
+            "truePeakDbtp": -0.999999128,
+            "crestDb": 12.546761063,
+            "blockRmsRangeDb": 8.031281973
+          },
+          "loudnessDeltaLu": -3.5175320390000007,
+          "limiterLossLu": 1.217448717,
+          "limiterCrestLossDb": 2.066781195000001,
+          "limiterPhraseLossDb": 0.7699336460000001,
+          "effects": [
+            {
+              "stage": "bassForge",
+              "loudnessDeltaLu": -0.0036721390000007403,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.009346537999999072,
+              "phraseDeltaDb": -0.017019515999999513
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.2628490630000009,
+              "peakDeltaDb": 5.809999999994986e-7,
+              "crestDeltaDb": 0.3079323390000006,
+              "phraseDeltaDb": -0.18972364599999914
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": -0.17416654500000028,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.1500894860000006,
+              "phraseDeltaDb": 0.12448203400000057
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.04151350800000131,
+              "peakDeltaDb": 5.809999999994986e-7,
+              "crestDeltaDb": 0.668510113,
+              "phraseDeltaDb": -0.49283696
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 1509,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -22.956858932,
+            "maxShortTermLufs": -20.454294505,
+            "truePeakDbtp": -2.581323678,
+            "crestDb": 23.434693457,
+            "blockRmsRangeDb": 11.123025384
+          },
+          "loudnessDeltaLu": -2.7830199339999986,
+          "limiterLossLu": 1.000000082740371e-9,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": -6.000000496442226e-9,
+          "effects": [
+            {
+              "stage": "bassForge",
+              "loudnessDeltaLu": -0.0003456499999998641,
+              "peakDeltaDb": 0.019436225999999834,
+              "crestDeltaDb": 0.020077776000000824,
+              "phraseDeltaDb": -0.0044125539999999575
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.006532422999999454,
+              "peakDeltaDb": 0.18343595400000012,
+              "crestDeltaDb": 0.20364521400000157,
+              "phraseDeltaDb": 0.002951925999999716
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": -0.23627627299999787,
+              "peakDeltaDb": -0.22795897600000004,
+              "crestDeltaDb": 0.01041723000000161,
+              "phraseDeltaDb": 0.26300741700000074
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.0981239450000011,
+              "peakDeltaDb": 2.338895992,
+              "crestDeltaDb": 2.671555364000003,
+              "phraseDeltaDb": 1.087794357
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gaming",
+      "group": "scene",
+      "sourceGroup": "gaming",
+      "configurationSha256": "29eac3068ff257973f16b520724066c16b0e992e72cd632e541c2cc2ad437c19",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": true,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "gaming",
+        "driveDb": 1,
+        "ceilingDb": -1,
+        "lookAheadMs": 1,
+        "releaseMs": 60
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -19.553836871,
+            "maxShortTermLufs": -18.098419053,
+            "truePeakDbtp": -3.377108691,
+            "crestDb": 17.564219576,
+            "blockRmsRangeDb": 5.126377513
+          },
+          "loudnessDeltaLu": -0.2913175670000001,
+          "limiterLossLu": 0.00447217199999983,
+          "limiterCrestLossDb": 0.0014595650000011062,
+          "limiterPhraseLossDb": 0.008585306999999709,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.0371431340000008,
+              "peakDeltaDb": -1.394057646,
+              "crestDeltaDb": -1.2085678360000003,
+              "phraseDeltaDb": -0.7309401439999998
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.25649017900000004,
+              "peakDeltaDb": 0.001421450999999685,
+              "crestDeltaDb": -0.1481539749999996,
+              "phraseDeltaDb": 0.24895289300000023
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -1.4507251120000006,
+              "peakDeltaDb": -0.07337329299999995,
+              "crestDeltaDb": 1.3566557229999994,
+              "phraseDeltaDb": 0.49351703000000047
+            }
+          ]
+        },
+        {
+          "id": "game-hot",
+          "name": "Hot arena score with cues and music change",
+          "origin": "Gaming stability test arena score",
+          "sourceSha256": "0e75b1c8237b0bf0a09fbd90db0da4195053a4546a424c8cda523ecb8ba9db94",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -9.239545467,
+            "maxShortTermLufs": -8.457767902,
+            "truePeakDbtp": -0.630340962,
+            "crestDb": 10.909065805,
+            "blockRmsRangeDb": 2.209978768
+          },
+          "output": {
+            "integratedLufs": -10.082419722,
+            "maxShortTermLufs": -8.843522334,
+            "truePeakDbtp": -1.00000029,
+            "crestDb": 11.907636414,
+            "blockRmsRangeDb": 4.539174431
+          },
+          "loudnessDeltaLu": -0.8428742549999999,
+          "limiterLossLu": 0.06786329299999849,
+          "limiterCrestLossDb": 0.8029838389999995,
+          "limiterPhraseLossDb": -0.11627762999999991,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.00015087099999888665,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.0016376129999997602,
+              "phraseDeltaDb": -0.01004694799999939
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.014835071000000255,
+              "peakDeltaDb": -5.809999999994986e-7,
+              "crestDeltaDb": -0.007713689999999218,
+              "phraseDeltaDb": 0
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -1.794659983999999,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 2.2860584080000006,
+              "phraseDeltaDb": 2.301649396
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gaming-room",
+      "group": "scene",
+      "sourceGroup": "gaming",
+      "configurationSha256": "48dee9d959459dd7d9548c986b0ecd211d2fb03eacaa223423c3012ec321d348",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": true,
+      "room": true,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "gaming",
+        "driveDb": 1,
+        "ceilingDb": -1,
+        "lookAheadMs": 1,
+        "releaseMs": 60
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -19.956290176,
+            "maxShortTermLufs": -18.173848276,
+            "truePeakDbtp": -2.813972367,
+            "crestDb": 18.381914136,
+            "blockRmsRangeDb": 6.287754799
+          },
+          "loudnessDeltaLu": -0.6937708719999982,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 7.160000023986868e-7,
+          "limiterPhraseLossDb": 5.999999608263806e-9,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -1.2127273830000007,
+              "peakDeltaDb": -1.814026279,
+              "crestDeltaDb": 0.007555532999997894,
+              "phraseDeltaDb": -1.3824727
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.2587175210000012,
+              "peakDeltaDb": 0.020443730000000215,
+              "crestDeltaDb": -0.12362765299999978,
+              "phraseDeltaDb": 0.279895142
+            },
+            {
+              "stage": "room",
+              "loudnessDeltaLu": 0.6807834990000003,
+              "peakDeltaDb": 1.002761933,
+              "crestDeltaDb": -0.08709218599999957,
+              "phraseDeltaDb": 1.2452106870000001
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -1.45069801,
+              "peakDeltaDb": -0.40908798699999993,
+              "crestDeltaDb": 0.9554448839999985,
+              "phraseDeltaDb": 0.6787046849999996
+            }
+          ]
+        },
+        {
+          "id": "game-hot",
+          "name": "Hot arena score with cues and music change",
+          "origin": "Gaming stability test arena score",
+          "sourceSha256": "0e75b1c8237b0bf0a09fbd90db0da4195053a4546a424c8cda523ecb8ba9db94",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -9.239545467,
+            "maxShortTermLufs": -8.457767902,
+            "truePeakDbtp": -0.630340962,
+            "crestDb": 10.909065805,
+            "blockRmsRangeDb": 2.209978768
+          },
+          "output": {
+            "integratedLufs": -10.676064781,
+            "maxShortTermLufs": -9.602253046,
+            "truePeakDbtp": -1.004558133,
+            "crestDb": 12.25387315,
+            "blockRmsRangeDb": 4.377634766
+          },
+          "loudnessDeltaLu": -1.4365193139999999,
+          "limiterLossLu": 0.06456340699999963,
+          "limiterCrestLossDb": 0.6360355489999989,
+          "limiterPhraseLossDb": -0.09044901299999974,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.4376366409999992,
+              "peakDeltaDb": 0.3882737300000001,
+              "crestDeltaDb": 1.1038803220000002,
+              "phraseDeltaDb": -1.1893725269999997
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.018125277000001105,
+              "peakDeltaDb": -8.049999999926172e-7,
+              "crestDeltaDb": -0.009777443999999136,
+              "phraseDeltaDb": -0.009145567000000021
+            },
+            {
+              "stage": "room",
+              "loudnessDeltaLu": -0.7585937549999997,
+              "peakDeltaDb": -0.0027300930000000445,
+              "crestDeltaDb": 0.1860267870000012,
+              "phraseDeltaDb": 0.9640572599999997
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -1.9121070679999992,
+              "peakDeltaDb": -0.00455842399999995,
+              "crestDeltaDb": 2.190858875,
+              "phraseDeltaDb": 2.022623534
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gaming-competitive",
+      "group": "scene",
+      "sourceGroup": "gaming",
+      "configurationSha256": "76547115fd806dd8cc6a51ff17d9a3d8a302edf88533a61a1a478516c6fb2ae0",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": true,
+      "room": true,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "gaming",
+        "driveDb": 1,
+        "ceilingDb": -1,
+        "lookAheadMs": 1,
+        "releaseMs": 60
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -19.844557804,
+            "maxShortTermLufs": -18.11353074,
+            "truePeakDbtp": -2.825596523,
+            "crestDb": 18.259704895,
+            "blockRmsRangeDb": 6.161012161
+          },
+          "loudnessDeltaLu": -0.5820384999999995,
+          "limiterLossLu": 2.000000165480742e-9,
+          "limiterCrestLossDb": -1.000000082740371e-9,
+          "limiterPhraseLossDb": -4.000000330961484e-9,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -1.2217777390000002,
+              "peakDeltaDb": -1.8256658960000003,
+              "crestDeltaDb": -0.013270554000001766,
+              "phraseDeltaDb": -1.3620803109999997
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.2384056870000002,
+              "peakDeltaDb": 0.018294876999999765,
+              "crestDeltaDb": -0.11338605100000265,
+              "phraseDeltaDb": 0.2802194930000006
+            },
+            {
+              "stage": "room",
+              "loudnessDeltaLu": 0.7925158709999991,
+              "peakDeltaDb": 0.9911377769999996,
+              "crestDeltaDb": -0.20930142699999976,
+              "phraseDeltaDb": 1.1184680490000005
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -1.4541814429999995,
+              "peakDeltaDb": -0.38265063300000035,
+              "crestDeltaDb": 0.9892112910000002,
+              "phraseDeltaDb": 0.679876728
+            }
+          ]
+        },
+        {
+          "id": "game-hot",
+          "name": "Hot arena score with cues and music change",
+          "origin": "Gaming stability test arena score",
+          "sourceSha256": "0e75b1c8237b0bf0a09fbd90db0da4195053a4546a424c8cda523ecb8ba9db94",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -9.239545467,
+            "maxShortTermLufs": -8.457767902,
+            "truePeakDbtp": -0.630340962,
+            "crestDb": 10.909065805,
+            "blockRmsRangeDb": 2.209978768
+          },
+          "output": {
+            "integratedLufs": -10.5873541,
+            "maxShortTermLufs": -9.327601431,
+            "truePeakDbtp": -1.004170928,
+            "crestDb": 12.125675086,
+            "blockRmsRangeDb": 4.675690687
+          },
+          "loudnessDeltaLu": -1.3478086330000014,
+          "limiterLossLu": 0.06341903800000104,
+          "limiterCrestLossDb": 0.7810241100000006,
+          "limiterPhraseLossDb": -0.09122792900000043,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.46056834900000077,
+              "peakDeltaDb": 0.386886222,
+              "crestDeltaDb": 1.0531155179999985,
+              "phraseDeltaDb": -1.1975062479999998
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.017732492999998684,
+              "peakDeltaDb": -0.0000013159999998624272,
+              "crestDeltaDb": -0.00949031900000108,
+              "phraseDeltaDb": -0.009606565999999539
+            },
+            {
+              "stage": "room",
+              "loudnessDeltaLu": -0.6698830740000012,
+              "peakDeltaDb": -0.002342888000000043,
+              "crestDeltaDb": 0.05782872300000008,
+              "phraseDeltaDb": 1.2621131810000001
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -1.8921196480000013,
+              "peakDeltaDb": -0.004170637999999949,
+              "crestDeltaDb": 2.151065341999999,
+              "phraseDeltaDb": 2.2976728540000004
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "movie",
+      "group": "scene",
+      "sourceGroup": "cinema",
+      "configurationSha256": "89796ec167a4b6fa4ebeb323639ad4715727a21f51c0089534b54b3094b8bef8",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "movie",
+        "driveDb": 0.7,
+        "ceilingDb": -2,
+        "lookAheadMs": 12,
+        "releaseMs": 380
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 1413,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -21.056603747,
+            "maxShortTermLufs": -19.512210319,
+            "truePeakDbtp": -4.888571105,
+            "crestDb": 17.481645517,
+            "blockRmsRangeDb": 5.391419325
+          },
+          "loudnessDeltaLu": -1.7940844429999991,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 2.000000165480742e-9,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.014406978000000237,
+              "peakDeltaDb": -1.7395116279999994,
+              "crestDeltaDb": -1.5434553609999995,
+              "phraseDeltaDb": -0.7307183649999995
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": -0.2872314280000019,
+              "peakDeltaDb": -0.2915746859999997,
+              "crestDeltaDb": 0.0015608819999997081,
+              "phraseDeltaDb": 0.33403437000000036
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -2.129048603000001,
+              "peakDeltaDb": -1.5897166879999998,
+              "crestDeltaDb": 0.5014706320000002,
+              "phraseDeltaDb": 0.6329586250000006
+            }
+          ]
+        },
+        {
+          "id": "spoken-loud",
+          "name": "Louder narrator with pauses",
+          "origin": "Deterministic Flite KAL voice",
+          "sourceSha256": "155d9a029dc019d6799b4c566f16cee712a146a68b772ec5f15cbf1880e78df1",
+          "latencyFrames": 1413,
+          "dry": {
+            "integratedLufs": -21.770654406,
+            "maxShortTermLufs": -20.71147022,
+            "truePeakDbtp": -4.91670781,
+            "crestDb": 19.428760483,
+            "blockRmsRangeDb": 8.078767318
+          },
+          "output": {
+            "integratedLufs": -20.926144366,
+            "maxShortTermLufs": -19.800059531,
+            "truePeakDbtp": -3.09678889,
+            "crestDb": 20.645070995,
+            "blockRmsRangeDb": 8.633156379
+          },
+          "loudnessDeltaLu": 0.8445100399999994,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": -1.000000082740371e-9,
+          "limiterPhraseLossDb": 1.4999999464748726e-8,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.00026720400000002087,
+              "peakDeltaDb": 0.14025508199999992,
+              "crestDeltaDb": 0.13661592000000056,
+              "phraseDeltaDb": 0.002982346000001357
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": 0.3814684270000015,
+              "peakDeltaDb": 0.039710319000000105,
+              "crestDeltaDb": -0.324472489999998,
+              "phraseDeltaDb": 0.07900194000000127
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.19790144399999932,
+              "peakDeltaDb": 0.699171084,
+              "crestDeltaDb": 1.1036108500000026,
+              "phraseDeltaDb": 0.48426843200000036
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "movie-room",
+      "group": "scene",
+      "sourceGroup": "cinema",
+      "configurationSha256": "80cc85ddfff56c372071bebc2ddc85f7e1139f52641f91ff70900d1f17d4a333",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": true,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "movie",
+        "driveDb": 0.7,
+        "ceilingDb": -2,
+        "lookAheadMs": 12,
+        "releaseMs": 380
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 1925,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -20.869783919,
+            "maxShortTermLufs": -19.036121354,
+            "truePeakDbtp": -2.927035893,
+            "crestDb": 19.048227057,
+            "blockRmsRangeDb": 6.605225123
+          },
+          "loudnessDeltaLu": -1.6072646149999983,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": -7.249999995906364e-7,
+          "limiterPhraseLossDb": 1.9999992773023223e-9,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -1.5210599820000006,
+              "peakDeltaDb": -0.9270356530000003,
+              "crestDeltaDb": 1.004383182999998,
+              "phraseDeltaDb": -0.6804803320000001
+            },
+            {
+              "stage": "room",
+              "loudnessDeltaLu": 1.719227796000002,
+              "peakDeltaDb": 4.309602808,
+              "crestDeltaDb": 2.1696734699999993,
+              "phraseDeltaDb": 1.6557424059999999
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -2.122292644999998,
+              "peakDeltaDb": -0.924825191,
+              "crestDeltaDb": 1.061921684999998,
+              "phraseDeltaDb": 0.8461671970000006
+            }
+          ]
+        },
+        {
+          "id": "spoken-loud",
+          "name": "Louder narrator with pauses",
+          "origin": "Deterministic Flite KAL voice",
+          "sourceSha256": "155d9a029dc019d6799b4c566f16cee712a146a68b772ec5f15cbf1880e78df1",
+          "latencyFrames": 1925,
+          "dry": {
+            "integratedLufs": -21.770654406,
+            "maxShortTermLufs": -20.71147022,
+            "truePeakDbtp": -4.91670781,
+            "crestDb": 19.428760483,
+            "blockRmsRangeDb": 8.078767318
+          },
+          "output": {
+            "integratedLufs": -20.970026624,
+            "maxShortTermLufs": -19.805302094,
+            "truePeakDbtp": -2.882848092,
+            "crestDb": 20.787765914,
+            "blockRmsRangeDb": 8.340205132
+          },
+          "loudnessDeltaLu": 0.8006277819999994,
+          "limiterLossLu": 1.000000082740371e-9,
+          "limiterCrestLossDb": -1.000000082740371e-9,
+          "limiterPhraseLossDb": -1.1999999216527613e-8,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": 0.39029888199999974,
+              "peakDeltaDb": 0.9292541559999998,
+              "crestDeltaDb": 0.7282486880000008,
+              "phraseDeltaDb": 0.25024289999999993
+            },
+            {
+              "stage": "room",
+              "loudnessDeltaLu": -0.4763982459999987,
+              "peakDeltaDb": -0.8828478520000003,
+              "crestDeltaDb": -0.7448223519999999,
+              "phraseDeltaDb": -0.8738584550000006
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.48255227599999984,
+              "peakDeltaDb": 0.47126864999999984,
+              "crestDeltaDb": 1.1296635230000014,
+              "phraseDeltaDb": 0.45096353999999916
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lossy-repair",
+      "group": "repair",
+      "sourceGroup": "repair",
+      "configurationSha256": "528423822889b8710608199ecf1c678ecf84b2d1f450c8259a8e80059a01cce8",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "lossy",
+        "driveDb": 0.25,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 100
+      },
+      "references": [
+        {
+          "id": "classicrock-0",
+          "name": "Hotel California — Eagles",
+          "origin": "https://music.apple.com/us/song/635770202",
+          "sourceSha256": "1d7db240ffc4840f0a1c723ef0ad85922af586cf43d3626bd01cea6004c5175d",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -13.620983503,
+            "maxShortTermLufs": -11.848481133,
+            "truePeakDbtp": 0.553264241,
+            "crestDb": 17.411373212,
+            "blockRmsRangeDb": 5.192411088
+          },
+          "output": {
+            "integratedLufs": -14.271890875,
+            "maxShortTermLufs": -12.981979568,
+            "truePeakDbtp": -0.999999128,
+            "crestDb": 16.616792075,
+            "blockRmsRangeDb": 4.60802869
+          },
+          "loudnessDeltaLu": -0.6509073720000007,
+          "limiterLossLu": 1.14843647,
+          "limiterCrestLossDb": 2.416497362000001,
+          "limiterPhraseLossDb": 0.39615954399999964,
+          "effects": [
+            {
+              "stage": "exciter",
+              "loudnessDeltaLu": -0.14498061599999978,
+              "peakDeltaDb": 5.809999999994986e-7,
+              "crestDeltaDb": 0.13902539100000055,
+              "phraseDeltaDb": -0.00938784299999984
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.012082875000000826,
+              "peakDeltaDb": 5.809999999994986e-7,
+              "crestDeltaDb": 0.01107839899999874,
+              "phraseDeltaDb": 0.2976904540000005
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.0026601729999988777,
+              "peakDeltaDb": 5.809999999994986e-7,
+              "crestDeltaDb": 0.13622436100000002,
+              "phraseDeltaDb": -0.15380077199999942
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 1077,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -19.730168147,
+            "maxShortTermLufs": -17.597247826,
+            "truePeakDbtp": -1.504742756,
+            "crestDb": 20.907683029,
+            "blockRmsRangeDb": 9.32606767
+          },
+          "loudnessDeltaLu": 0.44367085100000025,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": -1.1000000910144081e-8,
+          "effects": [
+            {
+              "stage": "exciter",
+              "loudnessDeltaLu": 0.046742514999998264,
+              "peakDeltaDb": -0.09638120699999986,
+              "crestDeltaDb": -0.10192227199999948,
+              "phraseDeltaDb": -0.08074860500000014
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.002406729000000496,
+              "peakDeltaDb": -0.23796198299999993,
+              "crestDeltaDb": -0.2230669909999996,
+              "phraseDeltaDb": 0.001555435000000216
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.18716684500000014,
+              "peakDeltaDb": 0.1832010100000001,
+              "crestDeltaDb": 0.0769271069999995,
+              "phraseDeltaDb": -0.10391746500000032
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vinyl-restore",
+      "group": "repair",
+      "sourceGroup": "repair",
+      "configurationSha256": "b78cfd9dd34d341216e8df57c973c5d4e9894b3e76c1c41226dbbd7f42127112",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "vinyl",
+        "driveDb": 0.5,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 100
+      },
+      "references": [
+        {
+          "id": "classicrock-0",
+          "name": "Hotel California — Eagles",
+          "origin": "https://music.apple.com/us/song/635770202",
+          "sourceSha256": "1d7db240ffc4840f0a1c723ef0ad85922af586cf43d3626bd01cea6004c5175d",
+          "latencyFrames": 3152,
+          "dry": {
+            "integratedLufs": -13.620983503,
+            "maxShortTermLufs": -11.848481133,
+            "truePeakDbtp": 0.553264241,
+            "crestDb": 17.411373212,
+            "blockRmsRangeDb": 5.192411088
+          },
+          "output": {
+            "integratedLufs": -14.242808191,
+            "maxShortTermLufs": -12.597106036,
+            "truePeakDbtp": -0.999889082,
+            "crestDb": 16.729350821,
+            "blockRmsRangeDb": 4.675630827
+          },
+          "loudnessDeltaLu": -0.6218246880000002,
+          "limiterLossLu": 1.0533161910000004,
+          "limiterCrestLossDb": 2.581806053000001,
+          "limiterPhraseLossDb": 0.24283258899999982,
+          "effects": [
+            {
+              "stage": "denoise",
+              "loudnessDeltaLu": -0.08919007000000079,
+              "peakDeltaDb": 0.00011062699999997427,
+              "crestDeltaDb": 0.08802521800000207,
+              "phraseDeltaDb": 0.07236675900000034
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.06968343800000021,
+              "peakDeltaDb": -0.000003496000000047239,
+              "crestDeltaDb": 0.07688935000000185,
+              "phraseDeltaDb": -0.023807998999999747
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": -0.028684924000000223,
+              "peakDeltaDb": -0.000029279000000048683,
+              "crestDeltaDb": 0.014202325999999488,
+              "phraseDeltaDb": 0.030251587999999607
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.06074835899999975,
+              "peakDeltaDb": 0.00011062699999997427,
+              "crestDeltaDb": 0.18373416200000037,
+              "phraseDeltaDb": -0.5501950750000004
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 3152,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -20.337868343,
+            "maxShortTermLufs": -17.993568244,
+            "truePeakDbtp": -1.200851418,
+            "crestDb": 22.032085254,
+            "blockRmsRangeDb": 10.30742312
+          },
+          "loudnessDeltaLu": -0.16402934499999944,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": -1.0999999133787242e-8,
+          "effects": [
+            {
+              "stage": "denoise",
+              "loudnessDeltaLu": -0.0388532469999987,
+              "peakDeltaDb": -0.002435242000000004,
+              "crestDeltaDb": 0.021589285999997543,
+              "phraseDeltaDb": 0.07738284299999876
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.005610222000001386,
+              "peakDeltaDb": 0.1567723889999999,
+              "crestDeltaDb": 0.170584268999999,
+              "phraseDeltaDb": 0.054652346999999324
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": -0.2098730979999992,
+              "peakDeltaDb": -0.03222218600000004,
+              "crestDeltaDb": 0.17404854699999817,
+              "phraseDeltaDb": 0.2316892949999989
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.22531929200000178,
+              "peakDeltaDb": 0.682043975,
+              "crestDeltaDb": 1.1674946449999979,
+              "phraseDeltaDb": 0.14935460599999928
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tape-restore",
+      "group": "repair",
+      "sourceGroup": "repair",
+      "configurationSha256": "60b4b39e851606e5bea3b6f299f75049fd8473c1a7b39b9e7d01abe803d5abd9",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "tape",
+        "driveDb": 0.75,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 100
+      },
+      "references": [
+        {
+          "id": "classicrock-0",
+          "name": "Hotel California — Eagles",
+          "origin": "https://music.apple.com/us/song/635770202",
+          "sourceSha256": "1d7db240ffc4840f0a1c723ef0ad85922af586cf43d3626bd01cea6004c5175d",
+          "latencyFrames": 3125,
+          "dry": {
+            "integratedLufs": -13.620983503,
+            "maxShortTermLufs": -11.848481133,
+            "truePeakDbtp": 0.553264241,
+            "crestDb": 17.411373212,
+            "blockRmsRangeDb": 5.192411088
+          },
+          "output": {
+            "integratedLufs": -13.594351237,
+            "maxShortTermLufs": -11.937777316,
+            "truePeakDbtp": -0.999998547,
+            "crestDb": 16.312075186,
+            "blockRmsRangeDb": 4.373181175
+          },
+          "loudnessDeltaLu": 0.026632266000000016,
+          "limiterLossLu": 1.2354462589999997,
+          "limiterCrestLossDb": 2.402212538999997,
+          "limiterPhraseLossDb": 0.1856337159999999,
+          "effects": [
+            {
+              "stage": "denoise",
+              "loudnessDeltaLu": -0.0700230279999996,
+              "peakDeltaDb": 5.809999999994986e-7,
+              "crestDeltaDb": 0.06473864000000162,
+              "phraseDeltaDb": 0.08350795700000013
+            },
+            {
+              "stage": "exciter",
+              "loudnessDeltaLu": -0.12398418499999941,
+              "peakDeltaDb": 0.0000011619999999989972,
+              "crestDeltaDb": 0.10104188600000086,
+              "phraseDeltaDb": 0.07887381000000016
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.025869762999999324,
+              "peakDeltaDb": 0.0000011619999999989972,
+              "crestDeltaDb": 0.027271249000001774,
+              "phraseDeltaDb": 0.15312166699999974
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.49031318699999993,
+              "peakDeltaDb": 0.0000011619999999989972,
+              "crestDeltaDb": 0.03556410600000248,
+              "phraseDeltaDb": -0.5276185010000001
+            }
+          ]
+        },
+        {
+          "id": "jazz-1",
+          "name": "Take Five — The Dave Brubeck Quartet",
+          "origin": "https://music.apple.com/us/song/316475543",
+          "sourceSha256": "1f5a28315d747a957ab62061886477db552e4411b2273df89e0a1b77bcb0f5d2",
+          "latencyFrames": 3125,
+          "dry": {
+            "integratedLufs": -20.173838998,
+            "maxShortTermLufs": -17.992393661,
+            "truePeakDbtp": -1.636260903,
+            "crestDb": 21.100584314,
+            "blockRmsRangeDb": 9.478797894
+          },
+          "output": {
+            "integratedLufs": -19.272298329,
+            "maxShortTermLufs": -17.118222777,
+            "truePeakDbtp": -1.000300636,
+            "crestDb": 21.149350562,
+            "blockRmsRangeDb": 10.385624321
+          },
+          "loudnessDeltaLu": 0.9015406689999992,
+          "limiterLossLu": 0.09042541300000195,
+          "limiterCrestLossDb": 0.8490899600000006,
+          "limiterPhraseLossDb": -0.03290812800000076,
+          "effects": [
+            {
+              "stage": "denoise",
+              "loudnessDeltaLu": -0.05813558700000243,
+              "peakDeltaDb": 0.000005360999999926008,
+              "crestDeltaDb": 0.03371351499999875,
+              "phraseDeltaDb": 0.13765117500000024
+            },
+            {
+              "stage": "exciter",
+              "loudnessDeltaLu": 0.0390451039999995,
+              "peakDeltaDb": -0.00030092699999995087,
+              "crestDeltaDb": -0.04242495200000107,
+              "phraseDeltaDb": -0.11885288100000047
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.006646615000001077,
+              "peakDeltaDb": -0.000023171999999904713,
+              "crestDeltaDb": 0.01442085299999718,
+              "phraseDeltaDb": 0.028968751000000736
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.20483830399999903,
+              "peakDeltaDb": 0.11282212400000002,
+              "crestDeltaDb": 0.2114245429999997,
+              "phraseDeltaDb": 0.8741629470000003
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "podcast",
+      "group": "repair",
+      "sourceGroup": "speech",
+      "configurationSha256": "169ebb1bbec8b8e4e213229827dfc973cec881e99736a2c31253e46b7f9954d3",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "podcast",
+        "driveDb": 0.9,
+        "ceilingDb": -1,
+        "lookAheadMs": 5,
+        "releaseMs": 120
+      },
+      "references": [
+        {
+          "id": "spoken-quiet",
+          "name": "Quiet narrator with sharp consonants",
+          "origin": "Deterministic Flite SLT voice",
+          "sourceSha256": "8a7008ccd0fda52378cf8f644bae977e8fe883b892ae1f8cc151661609bbb2b1",
+          "latencyFrames": 3125,
+          "dry": {
+            "integratedLufs": -26.714224308,
+            "maxShortTermLufs": -26.079063396,
+            "truePeakDbtp": -14.638865905,
+            "crestDb": 14.575703209,
+            "blockRmsRangeDb": 3.785600176
+          },
+          "output": {
+            "integratedLufs": -26.107138037,
+            "maxShortTermLufs": -25.44113027,
+            "truePeakDbtp": -14.185674899,
+            "crestDb": 14.452470779,
+            "blockRmsRangeDb": 3.813401571
+          },
+          "loudnessDeltaLu": 0.607086271,
+          "limiterLossLu": 1.000000082740371e-9,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 9.99999993922529e-9,
+          "effects": [
+            {
+              "stage": "denoise",
+              "loudnessDeltaLu": -0.015092441000000179,
+              "peakDeltaDb": 0.0000033139999988662794,
+              "crestDeltaDb": 0.01535056300000015,
+              "phraseDeltaDb": 0.030271373999999796
+            },
+            {
+              "stage": "deEsser",
+              "loudnessDeltaLu": -0.04774458300000006,
+              "peakDeltaDb": -0.0006540929999996337,
+              "crestDeltaDb": 0.017551669999999575,
+              "phraseDeltaDb": 0.02614141400000003
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.011089807999997703,
+              "peakDeltaDb": -0.1092265819999998,
+              "crestDeltaDb": -0.09694157000000025,
+              "phraseDeltaDb": 0.0026991779999998577
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.2124942059999988,
+              "peakDeltaDb": -0.5185434129999997,
+              "crestDeltaDb": -0.2425997510000002,
+              "phraseDeltaDb": 0.027193703000000014
+            }
+          ]
+        },
+        {
+          "id": "spoken-loud",
+          "name": "Louder narrator with pauses",
+          "origin": "Deterministic Flite KAL voice",
+          "sourceSha256": "155d9a029dc019d6799b4c566f16cee712a146a68b772ec5f15cbf1880e78df1",
+          "latencyFrames": 3125,
+          "dry": {
+            "integratedLufs": -21.770654406,
+            "maxShortTermLufs": -20.71147022,
+            "truePeakDbtp": -4.91670781,
+            "crestDb": 19.428760483,
+            "blockRmsRangeDb": 8.078767318
+          },
+          "output": {
+            "integratedLufs": -19.783643572,
+            "maxShortTermLufs": -18.676152283,
+            "truePeakDbtp": -1.444070371,
+            "crestDb": 21.04328906,
+            "blockRmsRangeDb": 8.53740915
+          },
+          "loudnessDeltaLu": 1.9870108339999994,
+          "limiterLossLu": -3.000000248221113e-9,
+          "limiterCrestLossDb": 2.000000165480742e-9,
+          "limiterPhraseLossDb": 1.899999979571021e-8,
+          "effects": [
+            {
+              "stage": "denoise",
+              "loudnessDeltaLu": -0.013247946999999982,
+              "peakDeltaDb": -0.02166755500000006,
+              "crestDeltaDb": -0.006087282999999388,
+              "phraseDeltaDb": -0.011184571999999449
+            },
+            {
+              "stage": "deEsser",
+              "loudnessDeltaLu": -0.0035609229999984393,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.0015265189999986717,
+              "phraseDeltaDb": 0.029338259000001088
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.0023034419999987676,
+              "peakDeltaDb": 0.29477022799999997,
+              "crestDeltaDb": 0.27672306499999877,
+              "phraseDeltaDb": 0.007668988000000709
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 1.1096952800000004,
+              "peakDeltaDb": 2.175273868,
+              "crestDeltaDb": 1.1808663069999987,
+              "phraseDeltaDb": 0.44998193099999995
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "audiobook",
+      "group": "repair",
+      "sourceGroup": "speech",
+      "configurationSha256": "a2a4634deb227c1a3a1478316dfacf050b30a3c0b173026468309dd8f8ca880d",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": false,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "audiobook",
+        "driveDb": 0.25,
+        "ceilingDb": -3,
+        "lookAheadMs": 5,
+        "releaseMs": 150
+      },
+      "references": [
+        {
+          "id": "spoken-quiet",
+          "name": "Quiet narrator with sharp consonants",
+          "origin": "Deterministic Flite SLT voice",
+          "sourceSha256": "8a7008ccd0fda52378cf8f644bae977e8fe883b892ae1f8cc151661609bbb2b1",
+          "latencyFrames": 3125,
+          "dry": {
+            "integratedLufs": -26.714224308,
+            "maxShortTermLufs": -26.079063396,
+            "truePeakDbtp": -14.638865905,
+            "crestDb": 14.575703209,
+            "blockRmsRangeDb": 3.785600176
+          },
+          "output": {
+            "integratedLufs": -25.926631367,
+            "maxShortTermLufs": -25.267912297,
+            "truePeakDbtp": -13.911661343,
+            "crestDb": 14.516843166,
+            "blockRmsRangeDb": 4.056698743
+          },
+          "loudnessDeltaLu": 0.7875929409999998,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": -0.000001283999999657226,
+          "limiterPhraseLossDb": -7.999999773744548e-9,
+          "effects": [
+            {
+              "stage": "denoise",
+              "loudnessDeltaLu": -0.013195180000000306,
+              "peakDeltaDb": 0.000002720999999539231,
+              "crestDeltaDb": 0.013350570000000062,
+              "phraseDeltaDb": 0.018201727000000112
+            },
+            {
+              "stage": "deEsser",
+              "loudnessDeltaLu": -0.028508911999999498,
+              "peakDeltaDb": 0.002761349000000024,
+              "crestDeltaDb": 0.013504822999999888,
+              "phraseDeltaDb": -0.010548883000000231
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.011003406000000382,
+              "peakDeltaDb": -0.2502911100000009,
+              "crestDeltaDb": -0.23887623800000135,
+              "phraseDeltaDb": 0.0115786120000001
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.603325366,
+              "peakDeltaDb": 0.40630142599999886,
+              "crestDeltaDb": -0.171178127000001,
+              "phraseDeltaDb": 0.268768696
+            }
+          ]
+        },
+        {
+          "id": "spoken-loud",
+          "name": "Louder narrator with pauses",
+          "origin": "Deterministic Flite KAL voice",
+          "sourceSha256": "155d9a029dc019d6799b4c566f16cee712a146a68b772ec5f15cbf1880e78df1",
+          "latencyFrames": 3125,
+          "dry": {
+            "integratedLufs": -21.770654406,
+            "maxShortTermLufs": -20.71147022,
+            "truePeakDbtp": -4.91670781,
+            "crestDb": 19.428760483,
+            "blockRmsRangeDb": 8.078767318
+          },
+          "output": {
+            "integratedLufs": -20.101285219,
+            "maxShortTermLufs": -19.063640727,
+            "truePeakDbtp": -3.036972154,
+            "crestDb": 19.650688386,
+            "blockRmsRangeDb": 7.715789376
+          },
+          "loudnessDeltaLu": 1.6693691869999974,
+          "limiterLossLu": 0.04737668900000003,
+          "limiterCrestLossDb": 0.408211455,
+          "limiterPhraseLossDb": 0.2814989189999997,
+          "effects": [
+            {
+              "stage": "denoise",
+              "loudnessDeltaLu": -0.01151781000000085,
+              "peakDeltaDb": -0.0012291950000000718,
+              "crestDeltaDb": 0.010423045999999658,
+              "phraseDeltaDb": -0.0008578940000001367
+            },
+            {
+              "stage": "deEsser",
+              "loudnessDeltaLu": -0.0006567190000019707,
+              "peakDeltaDb": 0.000016685999999932477,
+              "crestDeltaDb": 0.0003976209999976277,
+              "phraseDeltaDb": 0.0034424949999998233
+            },
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.022982132000002764,
+              "peakDeltaDb": 0.04597174799999992,
+              "crestDeltaDb": 0.06333610899999798,
+              "phraseDeltaDb": -0.1605296049999998
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 1.4381090929999978,
+              "peakDeltaDb": 1.2310615170000005,
+              "crestDeltaDb": -0.21031483900000225,
+              "phraseDeltaDb": -0.37136241900000044
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "game-pinpoint",
+      "group": "gaming",
+      "sourceGroup": "gaming",
+      "configurationSha256": "80d2bd2730f1fbf525310facbe33fc3ea755f6498a475aec79c3ea7d48df8647",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": true,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "gameCleanCeiling",
+        "driveDb": 0,
+        "ceilingDb": -1,
+        "lookAheadMs": 1,
+        "releaseMs": 80
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -21.416455462,
+            "maxShortTermLufs": -19.91256143,
+            "truePeakDbtp": -7.035053164,
+            "crestDb": 15.995789739,
+            "blockRmsRangeDb": 4.475548232
+          },
+          "loudnessDeltaLu": -2.153936157999997,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.03395490699999826,
+              "peakDeltaDb": -1.8803856229999996,
+              "crestDeltaDb": -1.7261096229999993,
+              "phraseDeltaDb": -0.5157692699999998
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.3350245100000002,
+              "peakDeltaDb": 0.49746883099999994,
+              "crestDeltaDb": 0.3018215519999998,
+              "phraseDeltaDb": 0.33972646400000084
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -2.292742740999998,
+              "peakDeltaDb": -2.078962596,
+              "crestDeltaDb": 0.3781173209999995,
+              "phraseDeltaDb": 0.08073095500000083
+            }
+          ]
+        },
+        {
+          "id": "game-hot",
+          "name": "Hot arena score with cues and music change",
+          "origin": "Gaming stability test arena score",
+          "sourceSha256": "0e75b1c8237b0bf0a09fbd90db0da4195053a4546a424c8cda523ecb8ba9db94",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -9.239545467,
+            "maxShortTermLufs": -8.457767902,
+            "truePeakDbtp": -0.630340962,
+            "crestDb": 10.909065805,
+            "blockRmsRangeDb": 2.209978768
+          },
+          "output": {
+            "integratedLufs": -10.777858582,
+            "maxShortTermLufs": -10.091457314,
+            "truePeakDbtp": -1.146091506,
+            "crestDb": 12.552193139,
+            "blockRmsRangeDb": 2.449685836
+          },
+          "loudnessDeltaLu": -1.5383131150000011,
+          "limiterLossLu": 0.013332828000001129,
+          "limiterCrestLossDb": 0.22178411600000025,
+          "limiterPhraseLossDb": -0.030396200999999845,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": 0.0007820150000004134,
+              "peakDeltaDb": -0.030942316000000192,
+              "crestDeltaDb": -0.0265965640000001,
+              "phraseDeltaDb": -0.004678017999999895
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.035498258000000504,
+              "peakDeltaDb": 0.000005316999999838146,
+              "crestDeltaDb": -0.018798646000000474,
+              "phraseDeltaDb": -0.002765295000000112
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -1.5549270770000003,
+              "peakDeltaDb": -0.10546820600000006,
+              "crestDeltaDb": 2.0162256660000004,
+              "phraseDeltaDb": 0.2629272560000002
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "game-blast",
+      "group": "gaming",
+      "sourceGroup": "gaming",
+      "configurationSha256": "87899321f46ece06b2cfd4b7fd1245ef7638936f6f986561eda1a118718e3bc0",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": true,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "gameCleanCeiling",
+        "driveDb": 0,
+        "ceilingDb": -1,
+        "lookAheadMs": 1,
+        "releaseMs": 80
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -18.962337189,
+            "maxShortTermLufs": -17.484765978,
+            "truePeakDbtp": -4.153697474,
+            "crestDb": 16.278804579,
+            "blockRmsRangeDb": 4.650617629
+          },
+          "loudnessDeltaLu": 0.3001821150000019,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.01571862199999785,
+              "peakDeltaDb": -1.7035006080000001,
+              "crestDeltaDb": -1.6054468590000006,
+              "phraseDeltaDb": -0.4144948150000003
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.27488549099999915,
+              "peakDeltaDb": 0.0785900659999994,
+              "crestDeltaDb": -0.09231466199999971,
+              "phraseDeltaDb": 0.23326134599999993
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.07389076700000174,
+              "peakDeltaDb": 0.029985932999999854,
+              "crestDeltaDb": -0.004887488000001383,
+              "phraseDeltaDb": 0.04173451900000025
+            }
+          ]
+        },
+        {
+          "id": "game-hot",
+          "name": "Hot arena score with cues and music change",
+          "origin": "Gaming stability test arena score",
+          "sourceSha256": "0e75b1c8237b0bf0a09fbd90db0da4195053a4546a424c8cda523ecb8ba9db94",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -9.239545467,
+            "maxShortTermLufs": -8.457767902,
+            "truePeakDbtp": -0.630340962,
+            "crestDb": 10.909065805,
+            "blockRmsRangeDb": 2.209978768
+          },
+          "output": {
+            "integratedLufs": -8.905197441,
+            "maxShortTermLufs": -8.125734036,
+            "truePeakDbtp": -0.999999709,
+            "crestDb": 10.397660594,
+            "blockRmsRangeDb": 2.154876136
+          },
+          "loudnessDeltaLu": 0.3343480259999989,
+          "limiterLossLu": 0.06513497100000087,
+          "limiterCrestLossDb": 0.9998771390000005,
+          "limiterPhraseLossDb": -0.016838619000000055,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": 0.003230880000000269,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": 0.00006319699999934869,
+              "phraseDeltaDb": -0.004078054999999914
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.07060090799999941,
+              "peakDeltaDb": 0,
+              "crestDeltaDb": -0.03458268800000042,
+              "phraseDeltaDb": -0.03472293800000026
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.29200834099999895,
+              "peakDeltaDb": 0.009160828000000065,
+              "crestDeltaDb": -0.15583413700000115,
+              "phraseDeltaDb": -0.04128487500000011
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "game-stealth",
+      "group": "gaming",
+      "sourceGroup": "gaming",
+      "configurationSha256": "bbf56438df2b292d9eba7649b99efba055d197c4e11407af4fbd2219f978c546",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": true,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "gameCleanCeiling",
+        "driveDb": 0,
+        "ceilingDb": -1,
+        "lookAheadMs": 1,
+        "releaseMs": 80
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -21.428069005,
+            "maxShortTermLufs": -19.920052264,
+            "truePeakDbtp": -7.196952703,
+            "crestDb": 15.768261487,
+            "blockRmsRangeDb": 4.441333978
+          },
+          "loudnessDeltaLu": -2.1655497009999998,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.02299326199999996,
+              "peakDeltaDb": -2.042278812,
+              "crestDeltaDb": -1.9572090899999992,
+              "phraseDeltaDb": -0.50074518
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.3234109669999974,
+              "peakDeltaDb": 0.33556929199999974,
+              "crestDeltaDb": 0.07429330000000078,
+              "phraseDeltaDb": 0.30551221000000073
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -2.3042616329999994,
+              "peakDeltaDb": -2.2392233289999997,
+              "crestDeltaDb": 0.15528645900000093,
+              "phraseDeltaDb": 0.07013880600000011
+            }
+          ]
+        },
+        {
+          "id": "game-hot",
+          "name": "Hot arena score with cues and music change",
+          "origin": "Gaming stability test arena score",
+          "sourceSha256": "0e75b1c8237b0bf0a09fbd90db0da4195053a4546a424c8cda523ecb8ba9db94",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -9.239545467,
+            "maxShortTermLufs": -8.457767902,
+            "truePeakDbtp": -0.630340962,
+            "crestDb": 10.909065805,
+            "blockRmsRangeDb": 2.209978768
+          },
+          "output": {
+            "integratedLufs": -10.779742588,
+            "maxShortTermLufs": -10.092809198,
+            "truePeakDbtp": -1.146092688,
+            "crestDb": 12.553011441,
+            "blockRmsRangeDb": 2.452563845
+          },
+          "loudnessDeltaLu": -1.5401971210000003,
+          "limiterLossLu": 0.01333553899999984,
+          "limiterCrestLossDb": 0.221783984,
+          "limiterPhraseLossDb": -0.029291096999999766,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": 0.0004230350000007377,
+              "peakDeltaDb": -0.03094349800000007,
+              "crestDeltaDb": -0.026367426000000194,
+              "phraseDeltaDb": -0.0017980140000002365
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.03361425200000134,
+              "peakDeltaDb": 0.000004134999999960698,
+              "crestDeltaDb": -0.017980343999999704,
+              "phraseDeltaDb": 0.00011271399999968068
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -1.5491507089999992,
+              "peakDeltaDb": -0.10546938799999994,
+              "crestDeltaDb": 2.013747435000001,
+              "phraseDeltaDb": 0.2656416909999999
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "game-cinematic",
+      "group": "gaming",
+      "sourceGroup": "gaming",
+      "configurationSha256": "fde742782ccffb4188fdcb973d57a941bc0542bae8a83c70a5d793ab7310bcd3",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": true,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "gameCleanCeiling",
+        "driveDb": 0,
+        "ceilingDb": -1,
+        "lookAheadMs": 1,
+        "releaseMs": 80
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -17.274711538,
+            "maxShortTermLufs": -16.051808126,
+            "truePeakDbtp": -1.343246962,
+            "crestDb": 17.220168009,
+            "blockRmsRangeDb": 4.511909012
+          },
+          "loudnessDeltaLu": 1.987807766000003,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": 0.002424285000000026,
+              "peakDeltaDb": 0.007381709999999986,
+              "crestDeltaDb": 0.09437016900000117,
+              "phraseDeltaDb": -0.33238656799999955
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.08014358100000152,
+              "peakDeltaDb": 0.00001027399999986578,
+              "crestDeltaDb": -0.051605005999999065,
+              "phraseDeltaDb": 0.15652573100000033
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 1.8398946710000033,
+              "peakDeltaDb": 2.8551748859999995,
+              "crestDeltaDb": 0.9320183790000023,
+              "phraseDeltaDb": -0.15604238199999987
+            }
+          ]
+        },
+        {
+          "id": "game-hot",
+          "name": "Hot arena score with cues and music change",
+          "origin": "Gaming stability test arena score",
+          "sourceSha256": "0e75b1c8237b0bf0a09fbd90db0da4195053a4546a424c8cda523ecb8ba9db94",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -9.239545467,
+            "maxShortTermLufs": -8.457767902,
+            "truePeakDbtp": -0.630340962,
+            "crestDb": 10.909065805,
+            "blockRmsRangeDb": 2.209978768
+          },
+          "output": {
+            "integratedLufs": -9.942003714,
+            "maxShortTermLufs": -7.44052572,
+            "truePeakDbtp": -2.405130971,
+            "crestDb": 9.600530976,
+            "blockRmsRangeDb": 6.795395942
+          },
+          "loudnessDeltaLu": -0.7024582470000009,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.002767540000000679,
+              "peakDeltaDb": -0.07878494300000005,
+              "crestDeltaDb": 0.0807431059999999,
+              "phraseDeltaDb": -0.006822290000000564
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.009506469999999823,
+              "peakDeltaDb": -6.830000001123437e-7,
+              "crestDeltaDb": -0.004142898999999645,
+              "phraseDeltaDb": 0
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.7117602529999996,
+              "peakDeltaDb": -1.3650982680000001,
+              "crestDeltaDb": -0.9322607850000004,
+              "phraseDeltaDb": 4.608763839
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "game-dread",
+      "group": "gaming",
+      "sourceGroup": "gaming",
+      "configurationSha256": "c1663b9f873fce04032406eba85d243723b8fd98739ddb6c98327603af0fdeb6",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": true,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "gameCleanCeiling",
+        "driveDb": 0,
+        "ceilingDb": -1,
+        "lookAheadMs": 1,
+        "releaseMs": 80
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -19.546693086,
+            "maxShortTermLufs": -18.186869878,
+            "truePeakDbtp": -3.286576046,
+            "crestDb": 17.584501072,
+            "blockRmsRangeDb": 4.901000875
+          },
+          "loudnessDeltaLu": -0.2841737819999999,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": 0.01131433499999801,
+              "peakDeltaDb": -0.6223291949999998,
+              "crestDeltaDb": -0.490831852000003,
+              "phraseDeltaDb": -0.4871342890000001
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.15480686299999746,
+              "peakDeltaDb": 0.0010833070000000333,
+              "crestDeltaDb": -0.08279795800000045,
+              "phraseDeltaDb": 0.22053970400000011
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.4320868769999997,
+              "peakDeltaDb": 0.9118458019999998,
+              "crestDeltaDb": 1.2963514419999989,
+              "phraseDeltaDb": 0.2330494810000001
+            }
+          ]
+        },
+        {
+          "id": "game-hot",
+          "name": "Hot arena score with cues and music change",
+          "origin": "Gaming stability test arena score",
+          "sourceSha256": "0e75b1c8237b0bf0a09fbd90db0da4195053a4546a424c8cda523ecb8ba9db94",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -9.239545467,
+            "maxShortTermLufs": -8.457767902,
+            "truePeakDbtp": -0.630340962,
+            "crestDb": 10.909065805,
+            "blockRmsRangeDb": 2.209978768
+          },
+          "output": {
+            "integratedLufs": -10.870576937,
+            "maxShortTermLufs": -9.307731934,
+            "truePeakDbtp": -2.074622305,
+            "crestDb": 11.343421936,
+            "blockRmsRangeDb": 5.135440175
+          },
+          "loudnessDeltaLu": -1.63103147,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.00033578799999922637,
+              "peakDeltaDb": 0.038989538999999684,
+              "crestDeltaDb": 0.03382848700000096,
+              "phraseDeltaDb": -0.022758156000000085
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.033323296000000724,
+              "peakDeltaDb": 0.00006313000000002233,
+              "crestDeltaDb": -0.01573285699999971,
+              "phraseDeltaDb": -0.04549393399999957
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -1.6403334759999986,
+              "peakDeltaDb": -1.034589602,
+              "crestDeltaDb": 0.810630175,
+              "phraseDeltaDb": 2.9488080720000003
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "game-topdown",
+      "group": "gaming",
+      "sourceGroup": "gaming",
+      "configurationSha256": "3b80293782e7b75cfd48a02d83ad7b547a67ed8c04495b1690f4e043284aa0c1",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": true,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "gameCleanCeiling",
+        "driveDb": 0,
+        "ceilingDb": -1,
+        "lookAheadMs": 1,
+        "releaseMs": 80
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -22.871770088,
+            "maxShortTermLufs": -21.227726785,
+            "truePeakDbtp": -7.49010888,
+            "crestDb": 16.936289885,
+            "blockRmsRangeDb": 5.002942235
+          },
+          "loudnessDeltaLu": -3.6092507840000003,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": 0.005425082999998665,
+              "peakDeltaDb": -1.7760165319999999,
+              "crestDeltaDb": -1.6354617949999977,
+              "phraseDeltaDb": -0.5792690660000002
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.2245569589999974,
+              "peakDeltaDb": -0.012855076000000132,
+              "crestDeltaDb": -0.1499308699999986,
+              "phraseDeltaDb": 0.17089997300000004
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -3.683154088000002,
+              "peakDeltaDb": -3.2351147750000004,
+              "crestDeltaDb": 0.6256555000000006,
+              "phraseDeltaDb": 0.5032337589999996
+            }
+          ]
+        },
+        {
+          "id": "game-hot",
+          "name": "Hot arena score with cues and music change",
+          "origin": "Gaming stability test arena score",
+          "sourceSha256": "0e75b1c8237b0bf0a09fbd90db0da4195053a4546a424c8cda523ecb8ba9db94",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -9.239545467,
+            "maxShortTermLufs": -8.457767902,
+            "truePeakDbtp": -0.630340962,
+            "crestDb": 10.909065805,
+            "blockRmsRangeDb": 2.209978768
+          },
+          "output": {
+            "integratedLufs": -10.590478601,
+            "maxShortTermLufs": -9.511272571,
+            "truePeakDbtp": -1.013326847,
+            "crestDb": 12.475504608,
+            "blockRmsRangeDb": 3.089619981
+          },
+          "loudnessDeltaLu": -1.350933134,
+          "limiterLossLu": 0.037770669999998674,
+          "limiterCrestLossDb": 0.527078307,
+          "limiterPhraseLossDb": 0.03574754499999999,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": 0.00858249000000022,
+              "peakDeltaDb": -0.008899623000000023,
+              "crestDeltaDb": -0.014838565999999886,
+              "phraseDeltaDb": -0.0061443940000001085
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.03503825300000152,
+              "peakDeltaDb": -0.00003258000000005978,
+              "crestDeltaDb": -0.01931661600000112,
+              "phraseDeltaDb": -0.20327530700000018
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -1.3507824579999994,
+              "peakDeltaDb": 0.026705855999999972,
+              "crestDeltaDb": 1.9502628819999988,
+              "phraseDeltaDb": 0.906917682
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "game-worlds",
+      "group": "gaming",
+      "sourceGroup": "gaming",
+      "configurationSha256": "f977c1b0d9a79c58d088addc9bae04c5ab1be2661c375fe7a3d6d32e90765916",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": true,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "gameCleanCeiling",
+        "driveDb": 0,
+        "ceilingDb": -1,
+        "lookAheadMs": 1,
+        "releaseMs": 80
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -22.531574543,
+            "maxShortTermLufs": -21.02046023,
+            "truePeakDbtp": -7.433944237,
+            "crestDb": 16.595434535,
+            "blockRmsRangeDb": 4.766656445
+          },
+          "loudnessDeltaLu": -3.269055239,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": 0.000022976999996870973,
+              "peakDeltaDb": -1.7852000120000007,
+              "crestDeltaDb": -1.6415266959999997,
+              "phraseDeltaDb": -0.6145601230000004
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.19347947099999985,
+              "peakDeltaDb": -0.016426650000000542,
+              "crestDeltaDb": -0.13697833200000176,
+              "phraseDeltaDb": 0.13376156999999989
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -3.346361623,
+              "peakDeltaDb": -3.1805871560000005,
+              "crestDeltaDb": 0.28796403299999795,
+              "phraseDeltaDb": 0.2792860890000002
+            }
+          ]
+        },
+        {
+          "id": "game-hot",
+          "name": "Hot arena score with cues and music change",
+          "origin": "Gaming stability test arena score",
+          "sourceSha256": "0e75b1c8237b0bf0a09fbd90db0da4195053a4546a424c8cda523ecb8ba9db94",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -9.239545467,
+            "maxShortTermLufs": -8.457767902,
+            "truePeakDbtp": -0.630340962,
+            "crestDb": 10.909065805,
+            "blockRmsRangeDb": 2.209978768
+          },
+          "output": {
+            "integratedLufs": -11.008784927,
+            "maxShortTermLufs": -10.161457021,
+            "truePeakDbtp": -1.09936143,
+            "crestDb": 12.91911565,
+            "blockRmsRangeDb": 2.313890644
+          },
+          "loudnessDeltaLu": -1.7692394600000014,
+          "limiterLossLu": 0.018851480000000365,
+          "limiterCrestLossDb": 0.28566101400000043,
+          "limiterPhraseLossDb": -0.017642669000000222,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": 0.003375397999999308,
+              "peakDeltaDb": -0.02387788099999999,
+              "crestDeltaDb": -0.02589182999999906,
+              "phraseDeltaDb": -0.002675212999999843
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.024668987000000087,
+              "peakDeltaDb": -0.0000017629999999879686,
+              "crestDeltaDb": -0.014086081000000306,
+              "phraseDeltaDb": 0.000569057000000317
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -1.7719921230000004,
+              "peakDeltaDb": -0.059328727000000026,
+              "crestDeltaDb": 2.4000729540000005,
+              "phraseDeltaDb": 0.13880544100000014
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "game-speed",
+      "group": "gaming",
+      "sourceGroup": "gaming",
+      "configurationSha256": "0ef6b5588584f1ff4a782b3b01bc9a37c7808edc28a38d271b1fd7bdf85540cd",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": true,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "gameCleanCeiling",
+        "driveDb": 0,
+        "ceilingDb": -1,
+        "lookAheadMs": 1,
+        "releaseMs": 80
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -18.223546587,
+            "maxShortTermLufs": -17.084119027,
+            "truePeakDbtp": -4.077161116,
+            "crestDb": 15.519669152,
+            "blockRmsRangeDb": 3.917572652
+          },
+          "loudnessDeltaLu": 1.038972717,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.016983567000000477,
+              "peakDeltaDb": -1.6475899750000003,
+              "crestDeltaDb": -1.551681639,
+              "phraseDeltaDb": -0.40308518699999984
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.03144016299999919,
+              "peakDeltaDb": 0.002266239999999975,
+              "crestDeltaDb": -0.018493648999999834,
+              "phraseDeltaDb": 0.05207181400000005
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 1.0174484689999979,
+              "peakDeltaDb": 0.4822644570000003,
+              "crestDeltaDb": -0.5459069110000012,
+              "phraseDeltaDb": -0.4381134369999997
+            }
+          ]
+        },
+        {
+          "id": "game-hot",
+          "name": "Hot arena score with cues and music change",
+          "origin": "Gaming stability test arena score",
+          "sourceSha256": "0e75b1c8237b0bf0a09fbd90db0da4195053a4546a424c8cda523ecb8ba9db94",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -9.239545467,
+            "maxShortTermLufs": -8.457767902,
+            "truePeakDbtp": -0.630340962,
+            "crestDb": 10.909065805,
+            "blockRmsRangeDb": 2.209978768
+          },
+          "output": {
+            "integratedLufs": -10.001823973,
+            "maxShortTermLufs": -8.56522644,
+            "truePeakDbtp": -1.410792322,
+            "crestDb": 10.911427163,
+            "blockRmsRangeDb": 4.795358482
+          },
+          "loudnessDeltaLu": -0.7622785060000012,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.0024400360000012,
+              "peakDeltaDb": 0.06840252499999999,
+              "crestDeltaDb": 0.07429719600000162,
+              "phraseDeltaDb": -0.015566334999999931
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.023668389999999206,
+              "peakDeltaDb": -0.0010669439999999586,
+              "crestDeltaDb": -0.012107334999999608,
+              "phraseDeltaDb": 0
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.7478827790000011,
+              "peakDeltaDb": -0.3708284800000001,
+              "crestDeltaDb": 0.3848929770000016,
+              "phraseDeltaDb": 2.6230761570000003
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "game-impact",
+      "group": "gaming",
+      "sourceGroup": "gaming",
+      "configurationSha256": "10ff9b59b5fad0a13de81d991f892387874aa49a4102d30836014620bd291b8b",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": true,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "gameCleanCeiling",
+        "driveDb": 0,
+        "ceilingDb": -1,
+        "lookAheadMs": 1,
+        "releaseMs": 80
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -17.315999481,
+            "maxShortTermLufs": -16.124477731,
+            "truePeakDbtp": -1.343294098,
+            "crestDb": 17.244582667,
+            "blockRmsRangeDb": 4.407006416
+          },
+          "loudnessDeltaLu": 1.9465198230000027,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.007602645999998714,
+              "peakDeltaDb": 0.009311348999999858,
+              "crestDeltaDb": 0.10420350700000114,
+              "phraseDeltaDb": -0.3970711960000006
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.038855638000001136,
+              "peakDeltaDb": -0.00003686200000019291,
+              "crestDeltaDb": -0.027190348000001308,
+              "phraseDeltaDb": 0.05162313499999982
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 1.879622953000002,
+              "peakDeltaDb": 2.9215213899999997,
+              "crestDeltaDb": 0.9418296449999985,
+              "phraseDeltaDb": -0.0721098480000002
+            }
+          ]
+        },
+        {
+          "id": "game-hot",
+          "name": "Hot arena score with cues and music change",
+          "origin": "Gaming stability test arena score",
+          "sourceSha256": "0e75b1c8237b0bf0a09fbd90db0da4195053a4546a424c8cda523ecb8ba9db94",
+          "latencyFrames": 48,
+          "dry": {
+            "integratedLufs": -9.239545467,
+            "maxShortTermLufs": -8.457767902,
+            "truePeakDbtp": -0.630340962,
+            "crestDb": 10.909065805,
+            "blockRmsRangeDb": 2.209978768
+          },
+          "output": {
+            "integratedLufs": -9.946005264,
+            "maxShortTermLufs": -7.44179058,
+            "truePeakDbtp": -2.405130971,
+            "crestDb": 9.602190464,
+            "blockRmsRangeDb": 6.795395942
+          },
+          "loudnessDeltaLu": -0.7064597970000008,
+          "limiterLossLu": 0,
+          "limiterCrestLossDb": 0,
+          "limiterPhraseLossDb": 0,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -0.0026915780000003053,
+              "peakDeltaDb": -0.07745285500000021,
+              "crestDeltaDb": 0.0820480210000003,
+              "phraseDeltaDb": -0.006822290000000564
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.005504919999999913,
+              "peakDeltaDb": -6.830000001123437e-7,
+              "crestDeltaDb": -0.0024834110000000464,
+              "phraseDeltaDb": 0
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -0.7028505650000003,
+              "peakDeltaDb": -1.3650982680000001,
+              "crestDeltaDb": -0.9193671250000008,
+              "phraseDeltaDb": 4.617621988
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "game-night",
+      "group": "gaming",
+      "sourceGroup": "gaming",
+      "configurationSha256": "20d8e96c1316436f37c805335476f7afbd4cc464c42f5491dfe69cb334c52f83",
+      "normalizerMode": "off",
+      "adaptiveMaster": false,
+      "gameMode": true,
+      "room": false,
+      "maximizer": {
+        "enabled": true,
+        "presetId": "gameNight",
+        "driveDb": 3,
+        "ceilingDb": -3,
+        "lookAheadMs": 2,
+        "releaseMs": 200
+      },
+      "references": [
+        {
+          "id": "game-mixed",
+          "name": "Stereo bed, dialogue, footsteps and blast",
+          "origin": "Gaming stability test scene",
+          "sourceSha256": "93b5e31ba4573a8fc038f647ca4979ab15e3b9ba5e110a79abea31856f5e64bb",
+          "latencyFrames": 645,
+          "dry": {
+            "integratedLufs": -19.262519304,
+            "maxShortTermLufs": -17.945796226,
+            "truePeakDbtp": -2.455640101,
+            "crestDb": 18.062414533,
+            "blockRmsRangeDb": 4.853008575
+          },
+          "output": {
+            "integratedLufs": -19.500324908,
+            "maxShortTermLufs": -17.332060271,
+            "truePeakDbtp": -5.530011403,
+            "crestDb": 16.134505301,
+            "blockRmsRangeDb": 4.67384614
+          },
+          "loudnessDeltaLu": -0.23780560399999828,
+          "limiterLossLu": 0.0006435919999994155,
+          "limiterCrestLossDb": 0.5391577489999975,
+          "limiterPhraseLossDb": -4.000000330961484e-9,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": -1.0713962710000011,
+              "peakDeltaDb": 0.277795641,
+              "crestDeltaDb": 1.7161685330000012,
+              "phraseDeltaDb": 2.139579448
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": 0.9884886329999993,
+              "peakDeltaDb": -0.2605945289999996,
+              "crestDeltaDb": -0.9684936579999999,
+              "phraseDeltaDb": 2.237043436
+            },
+            {
+              "stage": "bassPunch",
+              "loudnessDeltaLu": -0.005749190999999598,
+              "peakDeltaDb": 0.13451862300000084,
+              "crestDeltaDb": 0.14933138700000015,
+              "phraseDeltaDb": 0.005014495000000174
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": 0.022347242999998684,
+              "peakDeltaDb": 0.08130021500000062,
+              "crestDeltaDb": 0.06632227900000132,
+              "phraseDeltaDb": 0.05333903500000048
+            },
+            {
+              "stage": "dynamics",
+              "loudnessDeltaLu": 2.4449957110000007,
+              "peakDeltaDb": 1.5129818160000008,
+              "crestDeltaDb": -0.8557514949999998,
+              "phraseDeltaDb": -0.18902527699999983
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": -1.4514622039999985,
+              "peakDeltaDb": -1.8702285989999998,
+              "crestDeltaDb": -0.02887905000000046,
+              "phraseDeltaDb": 2.387329294
+            }
+          ]
+        },
+        {
+          "id": "game-hot",
+          "name": "Hot arena score with cues and music change",
+          "origin": "Gaming stability test arena score",
+          "sourceSha256": "0e75b1c8237b0bf0a09fbd90db0da4195053a4546a424c8cda523ecb8ba9db94",
+          "latencyFrames": 645,
+          "dry": {
+            "integratedLufs": -9.239545467,
+            "maxShortTermLufs": -8.457767902,
+            "truePeakDbtp": -0.630340962,
+            "crestDb": 10.909065805,
+            "blockRmsRangeDb": 2.209978768
+          },
+          "output": {
+            "integratedLufs": -11.792292317,
+            "maxShortTermLufs": -11.578424376,
+            "truePeakDbtp": -3.000726107,
+            "crestDb": 11.828637035,
+            "blockRmsRangeDb": 1.455766074
+          },
+          "loudnessDeltaLu": -2.55274685,
+          "limiterLossLu": 0.08370754399999925,
+          "limiterCrestLossDb": 1.741160432000001,
+          "limiterPhraseLossDb": 0.14653328599999993,
+          "effects": [
+            {
+              "stage": "eq",
+              "loudnessDeltaLu": 0.22339392700000005,
+              "peakDeltaDb": 0.0637596549999997,
+              "crestDeltaDb": 0.08191247099999899,
+              "phraseDeltaDb": -0.41545819000000006
+            },
+            {
+              "stage": "footsteps",
+              "loudnessDeltaLu": -0.00018268899999895893,
+              "peakDeltaDb": -6.520000002119275e-7,
+              "crestDeltaDb": 0.00017729600000038204,
+              "phraseDeltaDb": 0.0025118349999999623
+            },
+            {
+              "stage": "bassPunch",
+              "loudnessDeltaLu": -0.02391935799999878,
+              "peakDeltaDb": -6.550000000160594e-7,
+              "crestDeltaDb": 0.02343386399999936,
+              "phraseDeltaDb": 0.04079377800000006
+            },
+            {
+              "stage": "dimension",
+              "loudnessDeltaLu": 0.005230669000001242,
+              "peakDeltaDb": 0.000030050999999975403,
+              "crestDeltaDb": -0.0014857219999999671,
+              "phraseDeltaDb": -0.0038373899999999406
+            },
+            {
+              "stage": "dynamics",
+              "loudnessDeltaLu": -1.826998870999999,
+              "peakDeltaDb": -0.0007273200000001978,
+              "crestDeltaDb": 1.9360736109999994,
+              "phraseDeltaDb": -3.2717862419999997
+            },
+            {
+              "stage": "curve",
+              "loudnessDeltaLu": 0.17982695500000112,
+              "peakDeltaDb": 0.01610307699999991,
+              "crestDeltaDb": 0.1261279979999994,
+              "phraseDeltaDb": -0.3144567979999999
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "failures": []
+}

@@ -14,16 +14,17 @@ const file = path.join(
 const rows = GENRE_RACKS.map((rack) => {
   const preset = DSP_PRESETS.find((entry) => entry.id === genreChainId(rack));
   if (!preset) throw new Error(`Missing music preset: ${rack.id}`);
-  const saved:
-    { limiterLossBudgetLu: number; outputAimLufs: number } | undefined =
-    Reflect.get(policy.genres, rack.id);
+  const saved: { limiterLossBudgetLu: number } | undefined = Reflect.get(
+    policy.genres,
+    rack.id,
+  );
   if (!saved) {
     throw new Error(`Missing music dynamics budget: ${rack.id}`);
   }
   const loss = saved.limiterLossBudgetLu;
   const crest = loss < 0.2 ? 1.75 : loss < 0.5 ? 3 : 4;
   const contrast = loss < 0.2 ? 0.65 : loss < 0.5 ? 1 : 1.5;
-  return `${rack.id} ${loss} ${crest} ${contrast} ${saved.outputAimLufs} ${factoryMusicLine(preset)}`;
+  return `${rack.id} ${loss} ${crest} ${contrast} ${factoryMusicLine(preset)}`;
 });
 mkdirSync(path.dirname(file), { recursive: true });
 // A running dev process must never observe a partially written source fixture.

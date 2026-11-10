@@ -22,7 +22,6 @@ import { exciterPresetSettings } from './exciterPresets';
 import { footstepsPresetSettings } from './footstepsPresets';
 import { IGenreRack, TGenreStage, inGenreChain } from './genreRack';
 import { GENRE_RACKS, genreChainId, genreLabelKey } from './genres';
-import { TMasterPresetId, masterPresetSettings } from './masterPresets';
 import { maximizerPresetSettings } from './maximizerPresets';
 import {
   DSP_PRESET_GROUPS,
@@ -81,14 +80,6 @@ const eqProfile = (id: string) => {
   }
   return eqSettingsForPreset({ ...DSP_DEFAULTS.eq, enabled: true }, preset);
 };
-
-const masterProfile = (id: TMasterPresetId, gainMatch = false) => ({
-  ...masterPresetSettings(id, DSP_DEFAULTS.master),
-  enabled: true,
-  loudnessMaximize: true,
-  outputTrimDb: 0,
-  matchedBypass: gainMatch,
-});
 
 /**
  * A whole-rack pick owns every stage, including the bypassed ones.
@@ -201,9 +192,6 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
     maximizer: recipe.maximizer
       ? maximizerPresetSettings(recipe.maximizer, true)
       : DSP_DEFAULTS.maximizer,
-    master: recipe.master
-      ? masterProfile(recipe.master, recipe.masterGainMatch)
-      : DSP_DEFAULTS.master,
     dynamics: recipe.dynamics
       ? dynamicsPresetSettings(recipe.dynamics, true)
       : DSP_DEFAULTS.dynamics,
@@ -274,17 +262,14 @@ const genreStage = <S>(
  * A genre's chain: its curve, played in the main EQ, and every stage its row
  * sets, each at the genre's own profile.
  *
- * A row may level the source before processing. This is constant song gain,
- * not a second beat-by-beat limiter: Pop first sets -18 LUFS and its own
- * Maximizer brings that up towards -11, holding the final peaks at -1 dBTP.
- * Other genres keep their existing input behaviour until individually tuned.
+ * The creative stages receive the original signal level. The Maximizer
+ * supplies the rack's fixed gain and catches peaks after the curve.
  */
 const materializeGenre = (rack: IGenreRack): IDspSettings =>
   clampDspSettings({
     ...DSP_DEFAULTS,
     enabled: true,
     presetId: genreChainId(rack),
-    normalizer: rack.normalizer ?? { ...DSP_DEFAULTS.normalizer, mode: 'off' },
     eq: presetSupport(eqProfile(rack.id)),
     deEsser: genreStage(
       rack,

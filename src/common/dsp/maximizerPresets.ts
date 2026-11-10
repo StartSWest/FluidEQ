@@ -97,13 +97,27 @@ export const MAXIMIZER_PRESET_BY_ID = {
     id: 'default',
     labelKey: 'dsp.eqPreset.default',
     group: 'basic',
-    // The Default chain's, which until 2026-09-23 had none and a streaming
-    // Master instead: a -14 LUFS target that turned every loud record down
-    // to it, 1.8 LU under DSP Off on the song corpus and 5 LU on the
-    // loudest, so Default was the one preset quieter than no preset. A
-    // decibel over this timing puts it 0.6 LU over DSP Off with the limiter
-    // holding 0.7 dB on average; the three it carried before held 1.9.
-    settings: profile(1, -1, 5, 100),
+    // A little headroom for the Default curve on already loud masters.
+    settings: profile(-2, -1, 5, 50),
+  },
+  music: {
+    id: 'music',
+    labelKey: 'dsp.preset.music',
+    group: 'basic',
+    settings: profile(-2.75, -1, 5, 40),
+  },
+  musicRoom: {
+    id: 'musicRoom',
+    labelKey: 'dsp.room.profile.musicSpaceV2',
+    group: 'scene',
+    // Reserve headroom for reconstructed peaks after the Room fold.
+    settings: profile(-4.5, -1, 5, 40),
+  },
+  expansive: {
+    id: 'expansive',
+    labelKey: 'dsp.dimensionPreset.expansive',
+    group: 'character',
+    settings: profile(-2, -1, 5, 40),
   },
   transparent: {
     id: 'transparent',
@@ -150,16 +164,14 @@ export const MAXIMIZER_PRESET_BY_ID = {
     id: 'podcast',
     labelKey: 'dsp.eqPreset.podcast',
     group: 'voice',
-    settings: profile(1.7, -1.5, 6, 140),
+    settings: profile(0.9, -1, 5, 120),
   },
   audiobook: {
     id: 'audiobook',
     labelKey: 'dsp.eqPreset.audiobook',
     group: 'voice',
-    // Spoken-word peaks need restraint, not a louder average. The -3 dB
-    // ceiling remains the delivery protection; two decibels is enough drive
-    // to make narration even without pinning breaths to the limiter.
-    settings: profile(0.6, -3, 10, 180),
+    // Fixed voice gain with the audiobook playback ceiling.
+    settings: profile(0.25, -3, 5, 150),
   },
 
   gaming: {
@@ -179,34 +191,28 @@ export const MAXIMIZER_PRESET_BY_ID = {
     id: 'headphones',
     labelKey: 'dsp.dimensionPreset.headphones',
     group: 'scene',
-    // The chains of this group have their own, so none of them opens its
-    // picker on Custom. Each drive was measured with the Maximizer told the
-    // chain's curve (`presetTone.ts`) over the song corpus, for the chain to
-    // sit about half a decibel over DSP Off (2026-09-23).
-    settings: profile(1.5, -1, 5, 100),
+    // A small fixed reserve for the added width and low-end presence.
+    settings: profile(-1.5, -1, 5, 45),
   },
   speakers: {
     id: 'speakers',
     labelKey: 'dsp.dimensionPreset.speakers',
     group: 'scene',
-    settings: profile(0.8, -1, 5, 100),
+    settings: profile(-2.5, -1, 5, 45),
   },
   laptop: {
     id: 'laptop',
     labelKey: 'dsp.eqPreset.laptop',
     group: 'scene',
-    // At the group's 1.5 the chain sat +0.53 LU over DSP Off on the song
-    // corpus and read +1.7 dB on the level gate's song, heard with its curve,
-    // past the gate's +1.6. At 1.2: +0.40 and +1.4 (2026-09-25).
-    settings: profile(1.2, -1, 5, 100),
+    // The presence return and the laptop curve can both add peaks.
+    settings: profile(-4.5, -1, 5, 40),
   },
   car: {
     id: 'car',
     labelKey: 'dsp.eqPreset.car',
     group: 'scene',
-    // The transparent timing, so the road's steady noise floor is not what
-    // the limiter pumps against.
-    settings: profile(2.3, -1, 14, 400),
+    // The longer look-ahead holds peaks through the car voicing.
+    settings: profile(-2.5, -1, 14, 65),
   },
   movie: {
     id: 'movie',
@@ -223,10 +229,8 @@ export const MAXIMIZER_PRESET_BY_ID = {
     id: 'lateNight',
     labelKey: 'dsp.eqPreset.lateNight',
     group: 'scene',
-    // Deep drive into a low ceiling. Late listening is about the gap between
-    // the loudest and quietest moment being small enough that nothing has to be
-    // turned up to follow the dialogue and back down for the next explosion.
-    settings: profile(2, -3, 8, 250),
+    // Reserve the lower ceiling before the bass-presence return hits it.
+    settings: profile(-3.5, -3, 8, 65),
   },
   club: {
     id: 'club',
@@ -239,63 +243,43 @@ export const MAXIMIZER_PRESET_BY_ID = {
     id: 'punch',
     labelKey: 'dsp.maximizerPreset.punch',
     group: 'character',
-    // The one profile that is deliberately NOT transparent: 1.5 ms is shorter
-    // than a kick's own attack, so its first cycle passes before the limiter
-    // has finished moving. That is the whole character, and it is the Punch
-    // chain's too. Its drive was 4 dB, which on loud records held the limiter
-    // 2.7 dB down on average; at 1.5 the Punch chain sits 0.7 LU over DSP Off
-    // with half the reduction, where the transparent timing it used before
-    // left it 0.6 under (2026-09-23).
-    settings: profile(1.5, -1, 1.5, 70),
+    // Keep the short timing and reserve headroom for the reshaped kick.
+    settings: profile(-2.75, -1, 1.5, 40),
   },
   warm: {
     id: 'warm',
     labelKey: 'dsp.eqPreset.warm',
     group: 'character',
-    // The Warm and Air chains' own, measured like the scene group's above:
-    // Warm on the transparent timing, which keeps its broad low-mid lift
-    // from being modulated, Air on the default's.
-    settings: profile(1.7, -1, 14, 400),
+    // The broad low-mid lift needs headroom and a measured release.
+    settings: profile(-1.75, -1, 14, 65),
   },
   clarity: {
     id: 'clarity',
     labelKey: 'dsp.eqPreset.air',
     group: 'character',
-    settings: profile(1, -1, 5, 100),
+    settings: profile(-2, -1, 5, 40),
   },
 
   vinyl: {
     id: 'vinyl',
     labelKey: 'dsp.eqPreset.vinyl',
     group: 'repair',
-    // The Vinyl repair chain's. It borrowed the Master's Vinyl profile,
-    // which is a cutting lathe's delivery target — -3 dBTP so a hot peak
-    // cannot throw the cutting head — and nothing to do with playing a rip
-    // back: it held the repaired record 2.6 LU under DSP Off. The default's
-    // timing measured less pumping than the transparent one at the same
-    // level, the restoration's gating included (2026-09-23).
-    settings: profile(1.5, -1, 5, 100),
+    // A small fixed lift after the restoration.
+    settings: profile(0.5, -1, 5, 100),
   },
   tape: {
     id: 'tape',
     labelKey: 'dsp.eqPreset.tape',
     group: 'repair',
-    // The Tape repair chain's. It had the Master's Reference, a tool that
-    // brings two records to -18 LUFS for comparing them, and so played
-    // every transfer louder than -18 quieter than it came: 7 LU under DSP
-    // Off on the corpus. A decibel here puts it 0.5 LU over.
-    settings: profile(1, -1, 5, 100),
+    // A small fixed lift after the restoration and Exciter.
+    settings: profile(0.75, -1, 5, 100),
   },
   lossy: {
     id: 'lossy',
     labelKey: 'dsp.preset.lossyRepair',
     group: 'repair',
-    // The compressed-file repair's. It had the bare ceiling (`safety`),
-    // which is all its rebuilt top needs to stay clean, and left the chain
-    // level with DSP Off; half a decibel puts it 0.46 LU over with the
-    // limiter holding 0.75 dB on average, beside the other repairs
-    // (2026-09-23, with its own curve, `lossyRestore`).
-    settings: profile(0.5, -1, 5, 100),
+    // Reserve a little more headroom after reconstructing the top.
+    settings: profile(0.25, -1, 5, 100),
   },
 
   // Gaming. Every one with a short look-ahead, because it is delay: the

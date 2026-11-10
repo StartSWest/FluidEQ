@@ -23,20 +23,14 @@ import {
  * not universal mastering curves. Source gain precedes the creative stages;
  * a single final Maximizer protects peaks while preserving musical contrast.
  */
-// 2026-11-04 reference calibration: constant input normalization precedes
-// the creative stages and one final Maximizer. Drive is makeup from that
-// working level, not a ranking of limiting strength. Exact settings and
-// measured limits: docs/dsp/music-reference-audit.json.
+// Fixed drive is calibrated on the original recordings.
+// See docs/dsp/music-reference-audit.json for measured results.
 const POP_RACKS: readonly IGenreRack[] = [
   {
     // Retain the small body return from the approved 2026-11-04 voicing.
     // Removing it and reducing the bass together lost the requested punch.
     // The high-band generator stays off; de-essing is light and Dynamics off.
     id: 'pop',
-    // Foreground target -18 LUFS, constrained by source peaks and the shared
-    // gain limits. Calibrated final makeup retains the approved reference
-    // level without forcing quiet passages through continuous limiting.
-    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -10 },
     // A finished mix, not an isolated vocal: narrow spectral cuts in the
     // centre spare the bass and the sides. iZotope's mastering de-essing
     // guide recommends mid-only processing, and FabFilter's Pro-DS manual
@@ -73,7 +67,7 @@ const POP_RACKS: readonly IGenreRack[] = [
     // the air a little wider than the record. No synthetic side from the
     // centre: the lead stays as focused as it was mixed.
     dimension: width(0.6, 1, 1.08, 140, 3_200, 0),
-    maximizer: ceiling(8.75, -1, 3, sixteenthMs(116)),
+    maximizer: ceiling(-2.75, -1, 3, 58),
     offered: ['bassForge'],
   },
   {
@@ -82,7 +76,6 @@ const POP_RACKS: readonly IGenreRack[] = [
     // it. The Exciter adds to the warmth alone — Organic's body in the low
     // mids, no band and nothing on the top.
     id: 'indiePop',
-    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -5.5 },
     deEsser: {
       sensitivity: 0.1,
       lowHz: 5000,
@@ -100,7 +93,7 @@ const POP_RACKS: readonly IGenreRack[] = [
       { enabled: true, amount: 0.1, focusHz: 320, range: 0.3 },
     ),
     dimension: width(0.75, 1, 1.1, 160, 3_400, 0),
-    maximizer: ceiling(7, -1, 5, sixteenthMs(110)),
+    maximizer: ceiling(-1.75, -1, 5, sixteenthMs(110)),
   },
   {
     // Drum machines and sequenced bass under wide chorused pads. The 80s
@@ -109,7 +102,6 @@ const POP_RACKS: readonly IGenreRack[] = [
     // ceiling that lets go over a whole beat, which leaves those dynamics in
     // (it let go within a sixteenth until 2026-09-24).
     id: 'synthPop',
-    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -6.5 },
     deEsser: {
       sensitivity: 0.1,
       lowHz: 5000,
@@ -127,7 +119,7 @@ const POP_RACKS: readonly IGenreRack[] = [
       { enabled: true, amount: 0.12, focusHz: 350, range: 0.3 },
     ),
     dimension: width(0.65, 1, 1.15, 150, 3_000, 0),
-    maximizer: ceiling(7.25, -1, 5, beatMs(118)),
+    maximizer: ceiling(-0.75, -1, 5, beatMs(118)),
   },
   {
     // Up-tempo, choppy guitars and synths over a lean bottom, mastered with
@@ -135,7 +127,6 @@ const POP_RACKS: readonly IGenreRack[] = [
     // little air, which is what a thin original welcomes, and a ceiling that
     // only catches: the snap is the genre.
     id: 'newWave',
-    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -5.5 },
     deEsser: {
       sensitivity: 0.1,
       lowHz: 5000,
@@ -178,7 +169,7 @@ const POP_RACKS: readonly IGenreRack[] = [
       { enabled: true, amount: 0.1, focusHz: 260, range: 0.3 },
     ),
     dimension: width(0.8, 1, 1.05, 170, 3_200, 0),
-    maximizer: ceiling(6.5, -1, 8, beatMs(135)),
+    maximizer: ceiling(-1.75, -1, 8, beatMs(135)),
   },
   {
     // Checked against Apple's original-version previews of Dynamite (BTS)
@@ -188,7 +179,6 @@ const POP_RACKS: readonly IGenreRack[] = [
     // sustained limiting. A common input and one final ceiling retain punch.
     // These are measured listening settings, not an official K-pop standard.
     id: 'kPop',
-    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -7.5 },
     // Same restrained full-mix approach as Pop: protect the centre's sharp
     // consonants without turning down the whole song or its wide cymbals.
     deEsser: {
@@ -211,14 +201,13 @@ const POP_RACKS: readonly IGenreRack[] = [
     ),
     // Keep the recorded centre: no synthetic side from the lead vocal.
     dimension: width(0.55, 1, 1.18, 150, 3_000, 0),
-    maximizer: ceiling(7.75, -1, 3, 123),
+    maximizer: ceiling(-2.75, -1, 3, 55),
   },
   {
     // A dense, bright wall at up to 200 BPM, with overs common (+2.3 dBTP)
     // and distorted guitars in it. No width, no air: a touch of low-mid body
     // is the one direction these mixes take well.
     id: 'jPop',
-    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -6.5 },
     deEsser: {
       sensitivity: 0.1,
       lowHz: 5000,
@@ -239,7 +228,7 @@ const POP_RACKS: readonly IGenreRack[] = [
       { enabled: true, amount: 0.1, focusHz: 300, range: 0.3 },
     ),
     dimension: width(0.65, 1, 1, 160, 3_000, 0),
-    maximizer: ceiling(7.5, -1, 3, sixteenthMs(160)),
+    maximizer: ceiling(-2.5, -1, 3, sixteenthMs(160)),
   },
   {
     // Ballad-led, the vocal front and centre and warm, with consonants that
@@ -248,7 +237,6 @@ const POP_RACKS: readonly IGenreRack[] = [
     // the middle, and a slow ceiling for the ballads' dynamics: a whole beat
     // of release, where until 2026-09-24 it let go within a sixteenth.
     id: 'cPop',
-    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -7 },
     deEsser: {
       sensitivity: 0.1,
       lowHz: 5000,
@@ -266,7 +254,7 @@ const POP_RACKS: readonly IGenreRack[] = [
       { enabled: true, amount: 0.1, focusHz: 400, range: 0.32 },
     ),
     dimension: width(0.75, 0.95, 1.1, 180, 3_600, 0),
-    maximizer: ceiling(6.5, -1, 6, beatMs(84)),
+    maximizer: ceiling(-1.5, -1, 6, beatMs(84)),
   },
   {
     // The slow song of every catalogue, pop, rock, soul and Latin alike:
@@ -278,7 +266,6 @@ const POP_RACKS: readonly IGenreRack[] = [
     // dynamics than the same album's singles (Adele's "21": DR8 against DR5),
     // so the ceiling only lightly drives and lets go over a whole beat.
     id: 'ballad',
-    normalizer: { mode: 'loudness', targetLufs: -18, truePeakDbtp: -5 },
     deEsser: {
       sensitivity: 0.1,
       lowHz: 5000,
@@ -295,7 +282,7 @@ const POP_RACKS: readonly IGenreRack[] = [
     // about 150 Hz); the voice and the piano or strings left as wide as
     // they were placed — a wider centre is a vaguer voice.
     dimension: width(0.7, 1, 1, 150, 3_500, 0),
-    maximizer: ceiling(6.75, -1, 6, beatMs(72)),
+    maximizer: ceiling(1, -1, 6, beatMs(72)),
   },
 ];
 

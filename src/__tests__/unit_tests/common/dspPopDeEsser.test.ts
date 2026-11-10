@@ -104,8 +104,13 @@ describe('transparent Pop playback', () => {
         measured.references[index].outputTruePeakDbtp,
         7,
       );
-      // Fixed approved-comparison budgets, independent of the JSON's labels.
-      expect(Math.abs(control.loudnessDeltaLu)).toBeLessThanOrEqual(0.5);
+      // The original-level pass has different gain. Preserve the body's
+      // spectrum and dynamics after compensating that level difference.
+      expect(control.loudnessDeltaLu).toBeCloseTo(
+        control.rawRevised.integratedLufs - control.rawApproved.integratedLufs,
+        7,
+      );
+      expect(control.loudnessDeltaLu).toBeGreaterThanOrEqual(-0.5);
       Object.values(control.levelMatchedSpectrumDeltaDb).forEach((delta) =>
         expect(Math.abs(delta)).toBeLessThanOrEqual(0.75),
       );

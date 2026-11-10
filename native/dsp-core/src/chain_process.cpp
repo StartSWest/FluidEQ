@@ -224,8 +224,7 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   feq_meters_publish_maximizer(chain->meters, chain->maximizer_reduction_db);
 
   const bool uses_selected_headroom =
-      chain->settings.master.enabled != 0 &&
-      chain->settings.master.loudness_maximize != 0;
+      chain_applies_master_loudness(chain);
   FeqPostFilterNormalizerOptions headroom{};
   headroom.enabled = uses_selected_headroom ? 1 : 0;
   headroom.output_ceiling_db = chain->settings.master.ceiling_db;
