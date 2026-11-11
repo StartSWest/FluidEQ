@@ -302,3 +302,13 @@ describe('a look that would not build is recovered first', () => {
     expect(seen?.reason).toBe('compile');
   });
 });
+
+// Emphasis follows recommendation: Try again is the way out of the problem
+// the notice states, so it wears the filled style, not the quiet outline.
+it('offers Try again as the loud button', async () => {
+  mount();
+  await act(async () => source().reportFailure('compile'));
+  const retry = screen.getByRole('button', { name: 'graph.look.retry' });
+  expect(retry).toHaveClass('button', 'small');
+  expect(retry).not.toHaveClass('subtle');
+});

@@ -18,8 +18,14 @@ interface IPlusToastStackProps<T extends IPlusToastNotice> {
   /** Each action's current notice, under a name that stays put per action. */
   sources: TPlusToastSources<T>;
   text: (notice: T) => string;
-  /** A button a notice offers, which also puts the toast away when pressed. */
-  action?: (notice: T) => { label: string; run: () => void } | undefined;
+  /**
+   * A button a notice offers, which also puts the toast away when pressed.
+   * `loud` when pressing it is what the notice recommends - the way out of a
+   * problem - and quiet for somewhere a notice merely leads.
+   */
+  action?: (
+    notice: T,
+  ) => { label: string; run: () => void; loud?: boolean } | undefined;
 }
 
 /** Only the element the handler sits on: every animation inside bubbles. */
@@ -105,7 +111,9 @@ export default function PlusToastStack<T extends IPlusToastNotice>({
                 offered && (
                   <button
                     type="button"
-                    className="button small subtle"
+                    className={
+                      offered.loud ? 'button small' : 'button small subtle'
+                    }
                     onClick={() => {
                       dismiss(toast.id);
                       offered.run();

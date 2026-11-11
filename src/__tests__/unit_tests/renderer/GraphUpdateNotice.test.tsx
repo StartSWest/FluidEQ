@@ -149,3 +149,24 @@ it("keeps See what's new and treats another scene at version 11 independently", 
   await played('premium:another-scene', 11);
   expect(screen.getByText('Neon Horizon is now version 11')).toBeVisible();
 });
+
+// The control for the loud Try again on a refused look: somewhere a notice
+// merely leads stays the quiet button.
+it('keeps See what’s new as the quiet button', async () => {
+  Object.defineProperty(window, 'electron', {
+    configurable: true,
+    value: {
+      ipcRenderer: {
+        listGallery: async () => ({
+          ok: true,
+          scenes: [{ lookId: 'premium:quiet', version: 2, names }],
+        }),
+      },
+    },
+  });
+  mount();
+  await played('premium:quiet', 1);
+  await played('premium:quiet', 2);
+  const see = screen.getByRole('button', { name: "See what's new" });
+  expect(see).toHaveClass('button', 'small', 'subtle');
+});

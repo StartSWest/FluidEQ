@@ -50,6 +50,7 @@ export default function GraphLookRefusedNotice() {
         }
         action={(entry) => ({
           label: t('graph.look.retry'),
+          loud: true,
           run: () => retryLook(entry.lookId),
         })}
       />
