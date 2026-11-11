@@ -17,6 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import log from 'electron-log';
 import { FilterTypeEnum, IPresetV2 } from 'common/constants';
 import { deviceProfilesToFiles, TApoConfigFiles } from 'main/deviceProfiles';
 import { fetchPreset, FLUIDEQ_CONFIG_FILENAME, savePreset } from 'main/flush';
@@ -165,7 +166,14 @@ it('still renders a profile with an impulse every time, as it writes and migrate
   expect(fetches).toHaveBeenCalledTimes(2);
 });
 
-it('says why an output it cannot read is left out, every time it is asked', () => {
+/*
+ * An output left out is never remembered as left out. What is remembered is
+ * the log line (said once per output and profile; deviceProfiles.test.ts),
+ * never the render: every flush looks again, so the profile plays on the
+ * first flush after it can be read.
+ */
+
+it('looks again on every flush for an output whose profile is not in its folder', () => {
   writeProfile('a', preset(3));
   const settings = settingsFor('a', 'missing');
 
@@ -174,6 +182,52 @@ it('says why an output it cannot read is left out, every time it is asked', () =
 
   expect(deviceFileFor(files, 'a')).not.toBe('');
   expect(files.get(FLUIDEQ_CONFIG_FILENAME)).not.toContain('{missing}');
-  // One read for "a", then two failed reads of "missing".
-  expect(fetches).toHaveBeenCalledTimes(3);
+  // One read, for "a". A profile that is not there is never handed to a
+  // read that can only throw: the launch puts one there
+  // (`recoverMissingProfiles`).
+  expect(fetches).toHaveBeenCalledTimes(1);
+
+  writeProfile('missing', preset(-4));
+  const found = deviceProfilesToFiles(settings, presetDir);
+
+  expect(found.get(FLUIDEQ_CONFIG_FILENAME)).toContain('{missing}');
+  expect(expandApoConfig(found)).toContain('Fc 80 Hz Gain -4 dB Q 0.8');
+  // "a" comes from its render, "missing" is read for the first time.
+  expect(fetches).toHaveBeenCalledTimes(2);
+});
+
+it('reads an output whose profile cannot be read again on every flush, and says so once', () => {
+  writeProfile('a', preset(3));
+  fs.mkdirSync(presetDir('broken'), { recursive: true });
+  fs.writeFileSync(path.join(presetDir('broken'), 'Studio'), '{ not a profile');
+  const settings = settingsFor('a', 'broken');
+  const leftOut: string[] = [];
+  const reportedError = jest
+    .spyOn(log, 'error')
+    .mockImplementation((...args: unknown[]) => {
+      if (typeof args[0] === 'string' && args[0].includes('left out')) {
+        leftOut.push(args[0]);
+      }
+    });
+
+  try {
+    const files = deviceProfilesToFiles(settings, presetDir);
+    deviceProfilesToFiles(settings, presetDir);
+
+    expect(deviceFileFor(files, 'a')).not.toBe('');
+    expect(files.get(FLUIDEQ_CONFIG_FILENAME)).not.toContain('{broken}');
+    // One read for "a", then a failed read of "broken" on each flush.
+    expect(fetches).toHaveBeenCalledTimes(3);
+    expect(leftOut).toEqual([
+      'Output "Output broken" was left out of the config: its profile "Studio" could not be read',
+    ]);
+
+    // The control for the reads above: once it reads, it plays.
+    writeProfile('broken', preset(-4));
+    expect(
+      expandApoConfig(deviceProfilesToFiles(settings, presetDir)),
+    ).toContain('Fc 80 Hz Gain -4 dB Q 0.8');
+  } finally {
+    reportedError.mockRestore();
+  }
 });
