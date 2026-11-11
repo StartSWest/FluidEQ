@@ -281,3 +281,25 @@ describe('a version of the desktop’s scene that will not compile', () => {
     );
   });
 });
+
+/**
+ * A request main cannot read is refused out loud. Answered with the state as
+ * it was, the dialog took "nothing changed" for done and closed, and the
+ * desktop stayed as it was with nothing said.
+ */
+describe('a set request main cannot read', () => {
+  it('is refused, never answered as if it had been set', () => {
+    const { deps, owner } = setup();
+    registerWallpaperIpc(deps);
+    const event = { sender: owner, senderFrame: owner.mainFrame };
+    const start = mockHandlers.get('wallpaper-start');
+    expect(() =>
+      start?.(event, { ...request(), wave: { height: 2, position: 0 } }),
+    ).toThrow();
+    expect(() => mockHandlers.get('wallpaper-stop')?.(event, ['3'])).toThrow();
+    expect(mockSurfaces).toHaveLength(0);
+    // The control: the same request in the shape main reads sets it.
+    expect(() => setThrough(owner)).not.toThrow();
+    expect(mockSurfaces).not.toHaveLength(0);
+  });
+});

@@ -126,3 +126,15 @@ it('says what an inspected FluidEQ scene is for, in place of every action', () =
   expect(screen.queryAllByRole('button')).toHaveLength(0);
   expect(screen.getByText('studio.inspect.title')).toBeInTheDocument();
 });
+
+// The menu closes on the press, so a running item is shown on More itself.
+it('shows More running while the desktop is being prepared, and not otherwise', () => {
+  card({ settingDesktop: true });
+  expect(more()).toHaveClass('is-running');
+  expect(more()).toHaveAttribute('aria-busy', 'true');
+});
+
+it('shows More at rest with nothing running', () => {
+  card();
+  expect(more()).not.toHaveClass('is-running');
+});

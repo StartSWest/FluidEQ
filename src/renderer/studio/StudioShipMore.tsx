@@ -34,6 +34,7 @@ interface IStudioShipMoreProps {
 export default function StudioShipMore({ items }: IStudioShipMoreProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  const busy = items.some((item) => item.busy);
   const holder = useRef<HTMLSpanElement>(null);
 
   // Closes on a press elsewhere and on Escape, like every other menu here.
@@ -64,11 +65,15 @@ export default function StudioShipMore({ items }: IStudioShipMoreProps) {
 
   return (
     <span className="studio-ship-more" ref={holder}>
+      {/* Busy while one of its items runs: the menu closes on the press, so
+          the item's own busy state is out of sight from its first second —
+          and getting a scene ready for the desktop reads its whole folder. */}
       <button
         type="button"
-        className={`button small subtle studio-ship-more__trigger${isOpen ? ' is-open' : ''}`}
+        className={`button small subtle studio-ship-more__trigger${isOpen ? ' is-open' : ''}${busy ? ' is-running' : ''}`}
         aria-haspopup="menu"
         aria-expanded={isOpen}
+        aria-busy={busy}
         onClick={() => setIsOpen((wasOpen) => !wasOpen)}
       >
         {t('studio.ship.more')}

@@ -110,14 +110,11 @@ export const useWallpaperMutation = (): IWallpaperMutationState =>
     () => mutation,
   );
 
-const mutate = async (
+const sendNow = async (
   kind: 'start' | 'stop',
   send: (api: IWallpaperBridge) => Promise<unknown> | undefined,
   failed: () => IWallpaperState,
 ): Promise<IWallpaperState> => {
-  if (mutation.pending) {
-    return state;
-  }
   publishMutation({ pending: true, kind });
   const requestedAt = revision;
   try {
@@ -134,15 +131,32 @@ const mutate = async (
     publishState(result);
     return result;
   } catch {
-    if (revision !== requestedAt) {
-      return state;
-    }
+    // Refused or unanswered: those monitors say so, whatever main published
+    // meanwhile — never a quiet "as it was" that reads as done.
     const result = failed();
     publishState(result);
     return result;
   } finally {
     publishMutation({ pending: false, kind });
   }
+};
+
+/**
+ * The request main is answering now, which the next waits for. A second
+ * request while one was in flight used to be answered with the state as it
+ * was, and the dialog that sent it read that as done and closed: nothing
+ * happened on screen, and nothing said why.
+ */
+let inFlight: Promise<unknown> = Promise.resolve();
+
+const mutate = (
+  kind: 'start' | 'stop',
+  send: (api: IWallpaperBridge) => Promise<unknown> | undefined,
+  failed: () => IWallpaperState,
+): Promise<IWallpaperState> => {
+  const next = inFlight.then(() => sendNow(kind, send, failed));
+  inFlight = next.catch(() => undefined);
+  return next;
 };
 
 /**

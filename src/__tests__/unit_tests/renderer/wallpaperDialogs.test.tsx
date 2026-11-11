@@ -5,7 +5,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import type {
   IWallpaperScreen,
   IWallpaperState,
@@ -21,7 +27,16 @@ import {
 jest.mock('../../../renderer/wallpaper/wallpaperStore', () => ({
   useWallpaperState: jest.fn(),
   useWallpaperMutation: () => ({ pending: false }),
-  startWallpaper: jest.fn(async () => ({ screens: [] })),
+  // Main's answer: every monitor asked for now shows the visualizer asked for.
+  startWallpaper: jest.fn(
+    async (asked: { lookId: string; displayIds: number[] }) => ({
+      screens: asked.displayIds.map((displayId) => ({
+        displayId,
+        lookId: asked.lookId,
+        phase: 'running',
+      })),
+    }),
+  ),
   stopWallpaper: jest.fn(async () => ({ screens: [] })),
 }));
 // Aurora can be pictured; Alpine is a look with no frame anywhere, which
@@ -687,5 +702,35 @@ describe('choosing whether a background answers the mouse', () => {
     expect(
       screen.getByRole('checkbox', { name: 'Interactive' }),
     ).toHaveAttribute('aria-checked', 'false');
+  });
+});
+
+/**
+ * A Set main answers without the visualizer on the monitor asked for — a
+ * request it could not take — stays open and says so. It used to close, and
+ * the desktop stayed as it was with nothing said.
+ */
+describe('a set that does not take', () => {
+  it('keeps the dialog open and says the monitor was not set', async () => {
+    withScreens([]);
+    jest
+      .mocked(startWallpaper)
+      .mockResolvedValueOnce({ screens: [] } as unknown as IWallpaperState);
+    const onClose = jest.fn();
+    render(<WallpaperDialog lookId="premium:aurora" onClose={onClose} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
+    expect(
+      await screen.findByText(/could not be reached|couldn.t be reached/i),
+    ).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  // The control: a set main answers with the monitor showing it closes.
+  it('closes once main says the monitor shows it', async () => {
+    withScreens([]);
+    const onClose = jest.fn();
+    render(<WallpaperDialog lookId="premium:aurora" onClose={onClose} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 });

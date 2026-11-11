@@ -505,13 +505,17 @@ describe('who may ask', () => {
     expect(mockSurfaces).toHaveLength(1);
   });
 
-  it('ignores a malformed request from the window', () => {
+  // Refused out loud, so the window can say the monitor was not set: taken
+  // in silence, the dialog read the old state as done and closed.
+  it('refuses a malformed request from the window, and starts nothing', () => {
     const { deps, owner } = setup();
     registerWallpaperIpc(deps);
-    mockHandlers.get('wallpaper-start')?.(
-      { sender: owner, senderFrame: owner.mainFrame },
-      { ...request(), displayIds: [2, 2] },
-    );
+    expect(() =>
+      mockHandlers.get('wallpaper-start')?.(
+        { sender: owner, senderFrame: owner.mainFrame },
+        { ...request(), displayIds: [2, 2] },
+      ),
+    ).toThrow();
     expect(mockSurfaces).toHaveLength(0);
   });
 

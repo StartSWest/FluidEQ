@@ -6,6 +6,7 @@ import {
   sameWallpaperDaylight,
   type IWallpaperDaylight,
   type IWallpaperWave,
+  type TWallpaperError,
   type TWallpaperMotion,
 } from '../../common/wallpaper';
 import Glyph from '../community/Glyph';
@@ -169,6 +170,9 @@ export default function WallpaperDialog({
   const [batteryChoice, setBatteryChoice] = useState<boolean>();
   const pauseOnBattery = batteryChoice ?? savedBattery;
   const [attempted, setAttempted] = useState(false);
+  // Chosen monitors the last Set left without this visualizer and without an
+  // error of their own (`apply`).
+  const [unanswered, setUnanswered] = useState<number[]>([]);
   // The stop pressed below, told apart from the one `apply` makes itself for
   // monitors it takes this visualizer off: that one is part of setting the
   // background, and must not read as stopping every monitor.
@@ -221,7 +225,19 @@ export default function WallpaperDialog({
         screen.phase === 'error' &&
         chosen.includes(screen.displayId),
     );
-    if (!failed) {
+    // A chosen monitor main does not report as showing this visualizer at
+    // all was not set, whatever else the answer says: the dialog stays and
+    // says so, rather than closing on a desktop where nothing happened.
+    const notTaken = chosen.filter(
+      (displayId) =>
+        !next.screens.some(
+          (screen) =>
+            screen.displayId === displayId && screen.lookId === lookId,
+        ),
+    );
+    if (notTaken.length > 0) {
+      setUnanswered(notTaken);
+    } else if (!failed) {
       onClose();
     }
   };
@@ -237,7 +253,7 @@ export default function WallpaperDialog({
     setStoppingAll(false);
   };
 
-  const failures = attempted
+  const reported = attempted
     ? screens.filter(
         (screen) =>
           screen.lookId === lookId &&
@@ -245,6 +261,20 @@ export default function WallpaperDialog({
           chosen.includes(screen.displayId),
       )
     : [];
+  const failures: { displayId: number; error?: TWallpaperError }[] = [
+    ...reported,
+    ...unanswered
+      .filter(
+        (displayId) =>
+          chosen.includes(displayId) &&
+          !reported.some((screen) => screen.displayId === displayId) &&
+          !screens.some(
+            (screen) =>
+              screen.displayId === displayId && screen.lookId === lookId,
+          ),
+      )
+      .map((displayId) => ({ displayId })),
+  ];
   const starting = operation.pending && !stoppingAll;
   let startLabel = t('wallpaper.start');
   if (starting) {

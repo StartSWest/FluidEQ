@@ -4,6 +4,7 @@ import {
   type IpcMainEvent,
   type IpcMainInvokeEvent,
 } from 'electron';
+import log from 'electron-log';
 import { isSceneCameraControl } from '../../common/sceneCameraControl';
 import { isScenePerformance } from '../../common/scenePerformance';
 import {
@@ -56,17 +57,24 @@ const registerWallpaperIpc = (
   ipcMain.handle(
     WALLPAPER.start,
     ownerOnly((raw) => {
-      if (isWallpaperStart(raw)) {
-        manager.start(raw);
+      // A request this main cannot read is refused out loud: answered with
+      // the state as it was, the dialog took "nothing changed" for success
+      // and closed, and the desktop stayed as it was with nothing said.
+      if (!isWallpaperStart(raw)) {
+        log.warn('Desktop background: a start request of an unknown shape.');
+        throw new Error('Not a desktop background request.');
       }
+      manager.start(raw);
     }),
   );
   ipcMain.handle(
     WALLPAPER.stop,
     ownerOnly((raw) => {
-      if (isWallpaperStop(raw)) {
-        manager.stop(raw);
+      if (!isWallpaperStop(raw)) {
+        log.warn('Desktop background: a stop request of an unknown shape.');
+        throw new Error('Not a desktop background request.');
       }
+      manager.stop(raw);
     }),
   );
   ipcMain.handle(
