@@ -51,7 +51,7 @@ import StudioStagePlayer from './StudioStagePlayer';
 import StudioStageZoom from './StudioStageZoom';
 import useStageBox from './useStageBox';
 import useStageFullscreen from './useStageFullscreen';
-import useStageZoom from './useStageZoom';
+import useStageZoom, { LEAST_EDIT_ZOOM } from './useStageZoom';
 import StudioEditBar from './edit/StudioEditBar';
 import StudioEditOverlay from './edit/StudioEditOverlay';
 import StudioEditPanel from './edit/StudioEditPanel';
@@ -229,10 +229,6 @@ export default function StudioStage({
   // frame, and the stage's own gestures give way to it while it is on.
   const edit = useStageEdit(identity, pack);
   const isEditing = useSyncExternalStore(edit.subscribe, () => edit.state().on);
-  const editInsets = useSyncExternalStore(
-    edit.subscribe,
-    () => edit.state().insets,
-  );
   const draftVersion = useSyncExternalStore(
     edit.subscribe,
     () => edit.state().version,
@@ -343,7 +339,16 @@ export default function StudioStage({
     [box, preview, plate],
   );
   // A closer look, drawn at the size it is zoomed to (`useStageZoom.ts`).
-  const zoom = useStageZoom(wellRef, screenRef, screen.width, screen.height);
+  const zoom = useStageZoom(
+    wellRef,
+    screenRef,
+    screen.width,
+    screen.height,
+    // In Edit mode the member may stand back from the scene, to see all of
+    // it clear of the panels floating over it; the scene itself stays put
+    // until they do.
+    isEditing && !isWindowed ? LEAST_EDIT_ZOOM : 1,
+  );
   const { view } = zoom;
   const { spectrumRange } = pack;
   // The graph's grid on the stage and on the ultra-wide graph; the Compact
@@ -422,27 +427,6 @@ export default function StudioStage({
       edit.buildEnded();
     }
   }, [updating, edit]);
-  // In Edit mode the whole scene stands in the room the panels leave, made
-  // smaller to fit and never larger, so no part of it is under a panel.
-  // What is left round it is the editor's grid (`.studio-stage.is-editing`).
-  const editFit = useMemo(() => {
-    if (!isEditing || isWindowed || screen.width <= 0 || screen.height <= 0) {
-      return undefined;
-    }
-    const pad = 8;
-    const roomWidth = box.width - editInsets.left - 2 * pad;
-    const roomHeight = box.height - editInsets.top - editInsets.bottom - pad;
-    const fit = Math.max(
-      0.2,
-      Math.min(1, roomWidth / screen.width, roomHeight / screen.height),
-    );
-    const x = editInsets.left + pad + (roomWidth - screen.width * fit) / 2;
-    const y = editInsets.top + (roomHeight - screen.height * fit) / 2;
-    return {
-      transform: `translate(${x}px, ${y}px) scale(${fit})`,
-      transformOrigin: '0 0',
-    };
-  }, [isEditing, isWindowed, screen.width, screen.height, box, editInsets]);
   const zoomed = zoom.zoomed
     ? { transform: `translate(${view.x}px, ${view.y}px)` }
     : undefined;
@@ -454,7 +438,7 @@ export default function StudioStage({
     >
       <div
         ref={frameRef}
-        className={`studio-stage studio-stage--${size}${isWindowed ? ' studio-stage--windowed' : ''}${editFit ? ' is-editing' : ''}`}
+        className={`studio-stage studio-stage--${size}${isWindowed ? ' studio-stage--windowed' : ''}${isEditing && !isWindowed ? ' is-editing' : ''}`}
         data-testid="studio-stage"
         aria-busy={waiting}
         // The graph's gesture for the same thing, and the same full screen as
@@ -477,7 +461,7 @@ export default function StudioStage({
                   width: screen.width,
                   height: screen.height,
                 }
-              : editFit
+              : undefined
           }
         >
           <div

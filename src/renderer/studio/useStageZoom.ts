@@ -29,7 +29,15 @@ export interface IStageView {
 export const MOST_STAGE_ZOOM = 4;
 
 /** The buttons' steps. */
-const STOPS = [1, 1.5, 2, 3, 4];
+/**
+ * The furthest the stage is stood back from, in Edit mode: a quarter of its
+ * size, with the editor's grid round it (Ivan, 2026-11-11: "it is the user
+ * who decides to zoom out to see more"). Everywhere else the whole picture is
+ * the furthest there is.
+ */
+export const LEAST_EDIT_ZOOM = 0.25;
+
+const STOPS = [0.25, 0.35, 0.5, 0.7, 1, 1.5, 2, 3, 4];
 
 /** How far one pixel of wheel zooms, as an exponent (`usePictureZoom`). */
 const WHEEL_ZOOM = 0.002;
@@ -41,12 +49,21 @@ const clamp = (value: number, low: number, high: number) =>
   Math.min(high, Math.max(low, value));
 
 /** A view that keeps the screen covered by the picture. */
-const held = (view: IStageView, width: number, height: number) => {
-  const scale = clamp(view.scale, 1, MOST_STAGE_ZOOM);
+const held = (
+  view: IStageView,
+  width: number,
+  height: number,
+  least: number,
+) => {
+  const scale = clamp(view.scale, least, MOST_STAGE_ZOOM);
+  // Closer than whole, the picture covers the screen and is moved inside
+  // it; stood back, it is smaller than the screen and stays inside it.
+  const spareX = width - width * scale;
+  const spareY = height - height * scale;
   return {
     scale,
-    x: clamp(view.x, width - width * scale, 0),
-    y: clamp(view.y, height - height * scale, 0),
+    x: clamp(view.x, Math.min(spareX, 0), Math.max(spareX, 0)),
+    y: clamp(view.y, Math.min(spareY, 0), Math.max(spareY, 0)),
   };
 };
 
@@ -58,8 +75,9 @@ const zoomedAbout = (
   py: number,
   width: number,
   height: number,
+  least: number,
 ) => {
-  const to = clamp(scale, 1, MOST_STAGE_ZOOM);
+  const to = clamp(scale, least, MOST_STAGE_ZOOM);
   const ratio = to / from.scale;
   return held(
     {
@@ -69,6 +87,7 @@ const zoomedAbout = (
     },
     width,
     height,
+    least,
   );
 };
 
@@ -77,16 +96,19 @@ export default function useStageZoom(
   screenRef: RefObject<HTMLDivElement | null>,
   width: number,
   height: number,
+  /** How far the stage may be stood back from: 1, or less in Edit mode. */
+  least = 1,
 ) {
   const [stored, setStored] = useState<IStageView>(FITTED);
-  const view = held(stored, width, height);
-  const zoomed = view.scale > 1.001;
+  const view = held(stored, width, height, least);
+  // Closer than the whole picture, or stood back from it.
+  const zoomed = Math.abs(view.scale - 1) > 0.001;
   // Space is the view's only while there is a view to move: unzoomed, a
   // stage takes nothing from the keyboard.
   const spaceHeld = useSpaceHeld(zoomed);
   const [dragging, setDragging] = useState(false);
-  const live = useRef({ view, width, height, spaceHeld, zoomed });
-  live.current = { view, width, height, spaceHeld, zoomed };
+  const live = useRef({ view, width, height, spaceHeld, zoomed, least });
+  live.current = { view, width, height, spaceHeld, zoomed, least };
 
   useEffect(() => {
     const well = wellRef.current;
@@ -117,6 +139,7 @@ export default function useStageZoom(
           at.y,
           now.width,
           now.height,
+          now.least,
         ),
       );
     };
@@ -149,7 +172,7 @@ export default function useStageZoom(
         return;
       }
       event.stopPropagation();
-      const { width: w, height: h } = live.current;
+      const { width: w, height: h, least: furthest } = live.current;
       setStored(
         held(
           {
@@ -159,6 +182,7 @@ export default function useStageZoom(
           },
           w,
           h,
+          furthest,
         ),
       );
     };
@@ -189,7 +213,9 @@ export default function useStageZoom(
     const next =
       direction > 0
         ? STOPS.find((stop) => stop > view.scale + 0.01)
-        : [...STOPS].reverse().find((stop) => stop < view.scale - 0.01);
+        : [...STOPS]
+            .reverse()
+            .find((stop) => stop < view.scale - 0.01 && stop >= least - 0.001);
     setStored(
       zoomedAbout(
         view,
@@ -198,6 +224,7 @@ export default function useStageZoom(
         height / 2,
         width,
         height,
+        least,
       ),
     );
   };
@@ -210,7 +237,7 @@ export default function useStageZoom(
     dragging,
     percent: Math.round(view.scale * 100),
     canZoomIn: view.scale < MOST_STAGE_ZOOM - 0.01,
-    canZoomOut: zoomed,
+    canZoomOut: view.scale > least + 0.01,
     zoomIn: () => step(1),
     zoomOut: () => step(-1),
     toFit: () => setStored(FITTED),

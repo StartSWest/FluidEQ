@@ -60,10 +60,13 @@ button.studio-edit__fold {
   background: $hover-accent;
 }
 
-// THE EDITOR'S FLOOR. In Edit mode the scene stands whole in the room the
-// panels leave (`editFit` in StudioStage.tsx), and what is left of the stage
-// round it is a ruled grid, as an editor's empty canvas is: the scene's own
-// edge is then plain to see, and no part of it lies under a panel.
+// THE EDITOR'S FLOOR. In Edit mode the scene stays exactly where it is and
+// the panels float over it; the member stands back from it themselves, with
+// the stage's own zoom, when they want to see what a panel covers (Ivan,
+// 2026-11-11: "it is the user who decides to zoom out to see more, not you
+// auto"). What is then left of the stage round the scene is a ruled grid, as
+// an editor's empty canvas is, with the scene's own edge drawn. The first
+// version shrank the scene by itself to fit beside the panels.
 .studio-stage.is-editing {
   background-color: $surface-well;
   background-image:
@@ -71,9 +74,8 @@ button.studio-edit__fold {
     linear-gradient(90deg, $border-subtle 1px, transparent 1px);
   background-size: 24px 24px;
 
-  .studio-stage__screen {
+  .studio-stage__canvas {
     outline: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
-    transition: transform $motion-fast $ease-out;
   }
 }
 
