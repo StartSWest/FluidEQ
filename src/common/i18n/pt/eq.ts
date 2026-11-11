@@ -218,6 +218,15 @@ const eq: Partial<Dictionary> = {
   'graph.version.updated': '{name} agora está na versão {version}',
   'graph.version.updatedNote': '{name} agora está na versão {version}: {note}',
   'graph.version.see': 'Ver novidades',
+  'graph.look.refused.compile':
+    '{name} não pode aparecer no gráfico: o código dela não compila neste computador. Um visual padrão aparece no lugar.',
+  'graph.look.refused.heavy':
+    '{name} está pesada demais para a placa de vídeo deste computador agora. Um visual padrão aparece no lugar.',
+  'graph.look.refused.unavailable':
+    '{name} não pode aparecer agora: a placa de vídeo deste computador não consegue desenhá-la. Um visual padrão aparece no lugar.',
+  'graph.look.refused.driver':
+    'O driver de vídeo parou enquanto desenhava {name}. Um visual padrão aparece no lugar.',
+  'graph.look.retry': 'Tentar de novo',
   'graph.scene.loading': 'Carregando visualizador…',
   'graph.scene.attack': 'Ataque',
   'graph.scene.attackHint':

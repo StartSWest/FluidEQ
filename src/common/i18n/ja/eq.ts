@@ -216,6 +216,15 @@ const eq: Partial<Dictionary> = {
   'graph.version.updatedNote':
     '{name} がバージョン {version} になりました：{note}',
   'graph.version.see': '新しい点を見る',
+  'graph.look.refused.compile':
+    '{name} はグラフで再生できません：このコンピューターではコードをコンパイルできません。代わりに標準のルックを表示しています。',
+  'graph.look.refused.heavy':
+    '{name} は今このコンピューターのグラフィックスには重すぎます。代わりに標準のルックを表示しています。',
+  'graph.look.refused.unavailable':
+    '{name} は今再生できません：このコンピューターのグラフィックスでは描画できません。代わりに標準のルックを表示しています。',
+  'graph.look.refused.driver':
+    '{name} の描画中にグラフィックスドライバーが停止しました。代わりに標準のルックを表示しています。',
+  'graph.look.retry': '再試行',
   'graph.scene.loading': 'ビジュアライザーを読み込み中…',
   'graph.scene.attack': 'アタック',
   'graph.scene.attackHint':

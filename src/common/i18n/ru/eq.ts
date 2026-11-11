@@ -216,6 +216,15 @@ const eq: Partial<Dictionary> = {
   'graph.version.updated': '{name} теперь версии {version}',
   'graph.version.updatedNote': '{name} теперь версии {version}: {note}',
   'graph.version.see': 'Что нового',
+  'graph.look.refused.compile':
+    '{name} не может работать на графике: её код не компилируется на этом компьютере. Вместо неё показан стандартный вид.',
+  'graph.look.refused.heavy':
+    '{name} сейчас слишком тяжела для графики этого компьютера. Вместо неё показан стандартный вид.',
+  'graph.look.refused.unavailable':
+    '{name} сейчас не может работать: графика этого компьютера не может её нарисовать. Вместо неё показан стандартный вид.',
+  'graph.look.refused.driver':
+    'Графический драйвер остановился во время отрисовки {name}. Вместо неё показан стандартный вид.',
+  'graph.look.retry': 'Повторить',
   'graph.scene.loading': 'Загрузка визуализатора…',
   'graph.scene.attack': 'Атака',
   'graph.scene.attackHint':

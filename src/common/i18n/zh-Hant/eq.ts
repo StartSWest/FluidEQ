@@ -181,6 +181,15 @@ const eq = {
   'graph.version.updated': '{name} 已更新至版本 {version}',
   'graph.version.updatedNote': '{name} 已更新至版本 {version}：{note}',
   'graph.version.see': '檢視更新內容',
+  'graph.look.refused.compile':
+    '{name} 無法在圖表上播放：它的程式碼在這台電腦上無法編譯。已改為顯示標準外觀。',
+  'graph.look.refused.heavy':
+    '{name} 對這台電腦的顯示卡來說暫時太重了。已改為顯示標準外觀。',
+  'graph.look.refused.unavailable':
+    '{name} 暫時無法播放：這台電腦的顯示卡無法繪製它。已改為顯示標準外觀。',
+  'graph.look.refused.driver':
+    '繪製 {name} 時顯示卡驅動程式停止了。已改為顯示標準外觀。',
+  'graph.look.retry': '重試',
   'graph.scene.loading': '正在載入視覺化工具...',
   'graph.scene.attack': '起音',
   'graph.scene.attackHint':

@@ -213,6 +213,15 @@ const eq: Partial<Dictionary> = {
   'graph.version.updated': '{name} अब संस्करण {version} पर है',
   'graph.version.updatedNote': '{name} अब संस्करण {version} पर है: {note}',
   'graph.version.see': 'नया क्या है देखें',
+  'graph.look.refused.compile':
+    '{name} ग्राफ़ पर नहीं चल सकता: इसका कोड इस कंप्यूटर पर कंपाइल नहीं होता। इसकी जगह एक मानक लुक दिख रहा है।',
+  'graph.look.refused.heavy':
+    '{name} अभी इस कंप्यूटर के ग्राफ़िक्स के लिए बहुत भारी है। इसकी जगह एक मानक लुक दिख रहा है।',
+  'graph.look.refused.unavailable':
+    '{name} अभी नहीं चल सकता: इस कंप्यूटर के ग्राफ़िक्स इसे नहीं बना सकते। इसकी जगह एक मानक लुक दिख रहा है।',
+  'graph.look.refused.driver':
+    '{name} बनाते समय ग्राफ़िक्स ड्राइवर रुक गया। इसकी जगह एक मानक लुक दिख रहा है।',
+  'graph.look.retry': 'फिर से कोशिश करें',
   'graph.scene.loading': 'विज़ुअलाइज़र लोड हो रहा है…',
   'graph.scene.attack': 'अटैक',
   'graph.scene.attackHint':

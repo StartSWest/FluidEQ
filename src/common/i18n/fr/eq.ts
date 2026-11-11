@@ -220,6 +220,15 @@ const eq: Partial<Dictionary> = {
   'graph.version.updated': '{name} passe à la version {version}',
   'graph.version.updatedNote': '{name} passe à la version {version} : {note}',
   'graph.version.see': 'Voir les nouveautés',
+  'graph.look.refused.compile':
+    '{name} ne peut pas s’afficher sur le graphique : son code ne compile pas sur cet ordinateur. Un style standard s’affiche à la place.',
+  'graph.look.refused.heavy':
+    '{name} est trop lourde pour la carte graphique de cet ordinateur pour l’instant. Un style standard s’affiche à la place.',
+  'graph.look.refused.unavailable':
+    '{name} ne peut pas s’afficher pour l’instant : la carte graphique de cet ordinateur ne peut pas la dessiner. Un style standard s’affiche à la place.',
+  'graph.look.refused.driver':
+    'Le pilote graphique s’est arrêté pendant le dessin de {name}. Un style standard s’affiche à la place.',
+  'graph.look.retry': 'Réessayer',
   'graph.scene.loading': 'Chargement du visualiseur…',
   'graph.scene.attack': 'Attaque',
   'graph.scene.attackHint':

@@ -230,6 +230,15 @@ const eq = {
   'graph.version.updated': '{name} is now version {version}',
   'graph.version.updatedNote': '{name} is now version {version}: {note}',
   'graph.version.see': "See what's new",
+  'graph.look.refused.compile':
+    '{name} can’t play on the graph: its code doesn’t build on this computer. A standard look is showing instead.',
+  'graph.look.refused.heavy':
+    '{name} is too heavy for this computer’s graphics right now. A standard look is showing instead.',
+  'graph.look.refused.unavailable':
+    '{name} can’t play here right now: this computer’s graphics can’t draw it. A standard look is showing instead.',
+  'graph.look.refused.driver':
+    'The graphics driver stopped while drawing {name}. A standard look is showing instead.',
+  'graph.look.retry': 'Try again',
   'graph.scene.loading': 'Loading visualizer…',
   'graph.scene.attack': 'Attack',
   'graph.scene.attackHint':

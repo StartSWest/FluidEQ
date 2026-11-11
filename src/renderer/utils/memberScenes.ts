@@ -232,6 +232,13 @@ export const blockMemberScene = (lookId: string) => {
   }
 };
 
+/** Tried again by the member: offered once more, as `unblockScene`. */
+export const unblockMemberScene = (lookId: string) => {
+  if (blocked.delete(lookId)) {
+    publish();
+  }
+};
+
 /** How many members like a scene, and whether this one does. */
 export const fetchMemberSceneLikes = async (
   lookId: string,

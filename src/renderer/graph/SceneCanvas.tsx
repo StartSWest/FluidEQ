@@ -9,6 +9,7 @@ import {
 import { createPortal } from 'react-dom';
 import { sceneMakerOf } from 'common/sceneMaker';
 import { premiumLookId, type IScenePack } from 'common/scenePacks';
+import type { TSceneFailure } from 'main/scenePackStore';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { reportSceneColourControls } from '../utils/sceneAppColours';
 import { reportOwnParams, useListenerParams } from '../utils/sceneParamStore';
@@ -32,6 +33,7 @@ import {
 } from '../utils/memberScenes';
 import { useWatchedSceneWave } from '../utils/sceneWaveStore';
 import { lastSceneBuild, reportSceneBuilt } from '../utils/sceneBuilds';
+import { clearLookRefusal, refuseLook, type TLookRefusal } from './lookRefusal';
 import useMovableContainer from '../utils/useMovableContainer';
 import { studioSpectrumRect } from '../studio/studioWave';
 import type { ISceneFrame } from './sceneGl';
@@ -133,55 +135,80 @@ export default function SceneCanvas({
   const key = sceneIdentityOf(scene);
   const version = scene.revision ?? String(scene.version);
   const name = scene.names.en;
-  const source = useMemo<ISceneSource>(
-    () =>
-      member
-        ? {
-            identity: key,
-            version: String(version),
-            name,
-            load: () => loadMemberScene(key),
-            block: () => blockMemberScene(key),
-            reportFailure: (reason, log) => {
-              reportMemberSceneFailure(key, reason, log).catch(() => undefined);
-            },
-            versionFailed: (log) => {
-              noteMemberSceneFailure(
-                key,
-                'compile',
-                `an earlier version plays on: ${log}`,
-              ).catch(() => undefined);
-            },
-            lastBuilt: () => lastSceneBuild(key),
-            built: () => reportSceneBuilt(key, String(version)),
-            tooSlow: () => blockMemberScene(key),
-            madeBy,
-          }
-        : {
-            identity: key,
-            version: String(version),
-            name,
-            load: () => loadScenePack(key),
-            block: () => blockScene(key),
-            reportFailure: (reason, log) => {
-              reportSceneFailure(key, reason, log).catch(() => undefined);
-            },
-            versionFailed: (log) => {
-              noteSceneFailure(
-                key,
-                'compile',
-                `an earlier version plays on: ${log}`,
-              ).catch(() => undefined);
-            },
-            lastBuilt: () => lastSceneBuild(premiumLookId(key)),
-            built: () => reportSceneBuilt(premiumLookId(key), String(version)),
-            // A slow session is a fact about the machine right now, not about
-            // the pack: fall back until the next launch, write nothing down.
-            tooSlow: () => blockScene(key),
-            madeBy,
+  const { names } = scene;
+  const source = useMemo<ISceneSource>(() => {
+    // What the graph had to put aside, said where it was picked
+    // (`lookRefusal.ts`), before it falls back.
+    const lookId = member ? key : premiumLookId(key);
+    const refused = (reason: TLookRefusal) => refuseLook(lookId, names, reason);
+    const failed = (reason: TSceneFailure) =>
+      refused(reason === 'compile' ? 'compile' : 'driver');
+    return member
+      ? {
+          identity: key,
+          version: String(version),
+          name,
+          load: () => loadMemberScene(key),
+          block: () => {
+            refused('unavailable');
+            blockMemberScene(key);
           },
-    [member, madeBy, key, version, name],
-  );
+          reportFailure: (reason, log) => {
+            failed(reason);
+            reportMemberSceneFailure(key, reason, log).catch(() => undefined);
+          },
+          versionFailed: (log) => {
+            noteMemberSceneFailure(
+              key,
+              'compile',
+              `an earlier version plays on: ${log}`,
+            ).catch(() => undefined);
+          },
+          lastBuilt: () => lastSceneBuild(key),
+          built: () => {
+            clearLookRefusal(lookId);
+            reportSceneBuilt(key, String(version));
+          },
+          tooSlow: () => {
+            refused('heavy');
+            blockMemberScene(key);
+          },
+          madeBy,
+        }
+      : {
+          identity: key,
+          version: String(version),
+          name,
+          load: () => loadScenePack(key),
+          block: () => {
+            refused('unavailable');
+            blockScene(key);
+          },
+          reportFailure: (reason, log) => {
+            failed(reason);
+            reportSceneFailure(key, reason, log).catch(() => undefined);
+          },
+          versionFailed: (log) => {
+            noteSceneFailure(
+              key,
+              'compile',
+              `an earlier version plays on: ${log}`,
+            ).catch(() => undefined);
+          },
+          lastBuilt: () => lastSceneBuild(premiumLookId(key)),
+          built: () => {
+            clearLookRefusal(lookId);
+            reportSceneBuilt(lookId, String(version));
+          },
+          // A slow session is a fact about the machine right now, not about
+          // the pack: fall back until the next launch, write nothing down.
+          tooSlow: () => {
+            refused('heavy');
+            blockScene(key);
+          },
+          madeBy,
+        };
+  }, [member, madeBy, key, version, name, names]);
 
   // The music it answers, held open here as well as by the plot: off the
   // graph's page, in the Backdrop, nothing else may be listening.

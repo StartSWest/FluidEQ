@@ -201,6 +201,15 @@ const eq: Partial<Dictionary> = {
   'graph.version.updated': '{name} 已更新到版本 {version}',
   'graph.version.updatedNote': '{name} 已更新到版本 {version}：{note}',
   'graph.version.see': '查看新内容',
+  'graph.look.refused.compile':
+    '{name} 无法在图表上播放：它的代码在这台电脑上无法编译。已改为显示标准外观。',
+  'graph.look.refused.heavy':
+    '{name} 对这台电脑的显卡来说暂时太重了。已改为显示标准外观。',
+  'graph.look.refused.unavailable':
+    '{name} 暂时无法播放：这台电脑的显卡无法绘制它。已改为显示标准外观。',
+  'graph.look.refused.driver':
+    '绘制 {name} 时显卡驱动停止了。已改为显示标准外观。',
+  'graph.look.retry': '重试',
   'graph.scene.loading': '正在加载可视化效果…',
   'graph.scene.attack': '起音',
   'graph.scene.attackHint':
