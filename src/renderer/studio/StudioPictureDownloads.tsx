@@ -66,74 +66,84 @@ export default function StudioPictureDownloads({
   const { t } = useTranslation();
   return (
     <div className="studio-picture-downloads">
-      <button
-        type="button"
-        className="button small subtle"
-        disabled={!atlas.image || busy !== undefined}
-        onClick={() => onSave(WHOLE_IMAGE)}
-      >
-        <Glyph name="download" />
-        {t('studio.picture.download')}
-      </button>
-      {notice && notice !== 'cancelled' && (
-        <span role="status">
-          {t(
-            notice === 'saved'
-              ? 'studio.picture.downloaded'
-              : 'studio.picture.downloadFailed',
-          )}
-        </span>
-      )}
+      {/* One row: the whole image's save, then what the tiles under it are.
+          The pieces are always in sight (Ivan, 2026-11-10: "always show
+          images"): they sat folded under a line to press, in a tab whose
+          whole point is to look at them. */}
+      <div className="studio-picture-downloads__bar">
+        <button
+          type="button"
+          className="button small subtle"
+          disabled={!atlas.image || busy !== undefined}
+          onClick={() => onSave(WHOLE_IMAGE)}
+        >
+          <Glyph name="download" />
+          {t('studio.picture.download')}
+        </button>
+        {notice && notice !== 'cancelled' && (
+          <span role="status">
+            {t(
+              notice === 'saved'
+                ? 'studio.picture.downloaded'
+                : 'studio.picture.downloadFailed',
+            )}
+          </span>
+        )}
+        {!!atlas.regions?.length && (
+          <span className="studio-picture-downloads__about">
+            <strong>
+              {t('studio.picture.separate', { count: atlas.regions.length })}
+            </strong>
+            <span className="studio-pictures__lead">
+              {t('studio.picture.separateHint')}
+            </span>
+          </span>
+        )}
+      </div>
       {!!atlas.regions?.length && (
-        <details className="studio-picture-regions">
-          <summary>
-            {t('studio.picture.separate', { count: atlas.regions.length })}
-          </summary>
-          <p className="studio-pictures__lead">
-            {t('studio.picture.separateHint')}
-          </p>
-          <ul className="studio-pictures__list">
-            {atlas.regions.map((region) => (
-              <li className="studio-picture" key={region.id}>
-                <span
-                  className="studio-picture__frame"
-                  onContextMenu={(event) => {
-                    if (url) {
-                      onMenu(event, region);
-                    }
-                  }}
-                >
-                  {url && (
-                    <>
-                      <AtlasPicture
-                        className="studio-picture__art"
-                        url={url}
-                        atlasWidth={atlas.width}
-                        atlasHeight={atlas.height}
-                        region={region}
-                      />
-                      <StudioPictureViewButton
-                        label={t('studio.picture.view', { name: region.id })}
-                        onClick={() => onView(region)}
-                      />
-                    </>
-                  )}
-                </span>
+        <ul className="studio-pictures__list studio-pictures__list--pieces">
+          {atlas.regions.map((region) => (
+            <li className="studio-picture" key={region.id}>
+              <span
+                className="studio-picture__frame"
+                onContextMenu={(event) => {
+                  if (url) {
+                    onMenu(event, region);
+                  }
+                }}
+              >
+                {url && (
+                  <>
+                    <AtlasPicture
+                      className="studio-picture__art"
+                      url={url}
+                      atlasWidth={atlas.width}
+                      atlasHeight={atlas.height}
+                      region={region}
+                    />
+                    <StudioPictureViewButton
+                      label={t('studio.picture.view', { name: region.id })}
+                      onClick={() => onView(region)}
+                    />
+                  </>
+                )}
+              </span>
+              <span className="studio-picture__foot">
                 <span className="studio-picture__name">{region.id}</span>
                 <button
                   type="button"
-                  className="button small subtle"
+                  className="button small subtle studio-picture__save"
                   disabled={!atlas.image || busy !== undefined}
                   aria-label={`${t('studio.picture.download')} ${region.id}`}
+                  title={t('studio.picture.download')}
                   onClick={() => onSave(regionKey(region), region)}
                 >
                   <Glyph name="download" />
-                  {t('studio.picture.download')}
                 </button>
-              </li>
-            ))}
-          </ul>
-        </details>
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

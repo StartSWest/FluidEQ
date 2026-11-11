@@ -23,23 +23,83 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .studio-picture-downloads {
   display: grid;
-  justify-items: start;
   gap: 10px;
+  min-width: 0;
+}
+
+// The whole image's save and what the tiles under it are, on one line while
+// there is room: the tab is a short strip under the stage, and a row each for
+// the button, a line to open and its note left no room for a picture.
+.studio-picture-downloads__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  min-width: 0;
 
   > .button {
     gap: 6px;
   }
 }
-.studio-picture-regions {
-  width: 100%;
+
+.studio-picture-downloads__about {
+  display: flex;
+  flex: 1 1 260px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  min-width: 0;
+
+  strong {
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
 }
-.studio-picture-regions > summary {
-  cursor: pointer;
-  color: $secondary-light;
-  font-size: $text-body;
+
+// The pieces: more to a row than the places, each a picture with its name
+// and a small save beside it, so two rows of them show in the tab at once.
+.studio-pictures__list.studio-pictures__list--pieces {
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 10px;
+
+  .studio-picture {
+    grid-template-rows: auto auto;
+    gap: 4px;
+  }
+
+  .studio-picture__frame {
+    aspect-ratio: 4 / 3;
+  }
+
+  .studio-picture__name {
+    font-size: $text-small;
+  }
 }
-.studio-picture-regions .studio-pictures__list {
-  margin-top: 12px;
+
+.studio-picture__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+
+  .studio-picture__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    overflow-wrap: normal;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// Save as a mark alone: its name is on the button for a reader and a hover.
+.studio-picture .studio-picture__save {
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 4px 6px;
 }
 
 .studio-pictures__head {
