@@ -159,6 +159,89 @@ const tour24 = {
   'tour.level.how':
     '이미 있는 랙은 DSP 페이지에서 해당 기본 프리셋을 다시 고를 때까지 설정을 유지합니다.',
   'tour.level.open': 'DSP 열기',
+
+  'tour.edit.kicker': '스튜디오 · 편집 모드',
+  'tour.edit.title': '장면 속 물체를 손으로 옮기기',
+  'tour.edit.subtitle': '이동, 회전, 크기 조절 후 저장',
+  'tour.edit.lead':
+    '무대에서 편집을 누르고 3D 장면의 무엇이든 고르세요. 도형, 조명, 3D 모델 또는 그 그룹.',
+  'tour.edit.point1':
+    '핸들로 이동, 회전, 크기 조절을 하고, 스냅으로 4분의 1 단위와 15° 회전에 맞춥니다. 솔로는 그것만 보여 줍니다.',
+  'tour.edit.point2':
+    '장면 속 모든 것이 한 목록에 있어 검색, 숨기기, 잠그기, 이름 바꾸기, 그룹 만들기를 할 수 있습니다.',
+  'tour.edit.point3':
+    '저장을 누르기 전에는 장면이 바뀌지 않습니다. 버리기는 변경을 버리고, 실행 취소와 다시 실행으로 오갈 수 있습니다.',
+  'tour.edit.how': '스튜디오에서 3D 장면을 열고 무대에서 편집을 누르세요.',
+  'tour.edit.open': '시각화 도우미 열기',
+  'tour.edit.imageAlt':
+    '스튜디오 무대의 장면에서 도형 하나가 선택되어 핸들이 붙어 있고, 위에 이동·회전·크기 조절 도구, 옆에 장면 속 물체 목록이 있는 화면.',
+  'tour.watch.kicker': '스튜디오 · 나의 AI',
+  'tour.watch.title': '장면이 움직이는 모습을 보는 AI',
+  'tour.watch.subtitle': '음악을 따라가는 프레임, 세 가지 보기, 곡',
+  'tour.watch.lead':
+    'AI는 이제 그림 한 장으로 장면을 판단하지 않습니다. 움직이는 모습을 보고 청취자가 볼 방식대로 확인합니다.',
+  'tour.watch.point1':
+    '음악을 따라 몇 프레임을 나란히 놓고, 무엇이 어느 쪽으로 고르게 움직이는지 봅니다.',
+  'tour.watch.point2':
+    '일반 그래프, 울트라와이드 그래프, 컴팩트 플레이어의 전체 열을 같은 순간에. 잘리거나 검게 남는 곳이 없도록.',
+  'tour.watch.point3':
+    '테스트 곡의 여섯 순간을 무음부터 드롭까지 보며 드롭이 보이는지, 주광 0에서 밤이 얼마나 어두운지 확인합니다.',
+  'tour.watch.how':
+    '장면의 채팅에 변경을 요청하세요. 매번 이렇게 작업을 확인합니다.',
+  'tour.watch.open': '시각화 도우미 열기',
+  'tour.watch.imageAlt':
+    '음악을 따라가는 장면의 다섯 프레임과 움직임, 일반·울트라와이드·컴팩트 플레이어 보기의 장면, 무음부터 드롭까지 테스트 곡의 여섯 순간.',
+  'tour.watch.frames': '음악을 따라가는 프레임',
+  'tour.watch.moves': '오른쪽으로, 고르게 움직임',
+  'tour.watch.standard': '일반',
+  'tour.watch.song': '곡으로 확인',
+  'tour.watch.silence': '무음',
+  'tour.watch.verse': '벌스',
+  'tour.watch.build': '빌드업',
+  'tour.watch.drop': '드롭',
+  'tour.watch.dropShows': '드롭이 보임',
+  'tour.watch.night': '밤: 밝기 {value}%',
+  'tour.makers.kicker': '스튜디오 · 그림',
+  'tour.makers.title': 'GPT 옆의 Higgsfield',
+  'tour.makers.subtitle': '나만의 도구, 그리고 채팅이 어느 쪽인지 묻습니다',
+  'tour.makers.lead':
+    '장면에 새 그림이나 애니메이션 프레임이 필요하면, AI는 내 GPT 플러그인이나 Higgsfield를 쓸 수 있습니다. 둘 다 내 Claude Code 안에 있습니다.',
+  'tour.makers.point1':
+    '채팅의 계정에서 Higgsfield를 설정하세요. FluidEQ가 그 도구를 Claude Code에 추가하고 브라우저에서 로그인을 엽니다.',
+  'tour.makers.point2':
+    '둘 다 있으면 채팅이 그림마다 어느 쪽으로 만들지 묻고, 선택을 기억할 수 있습니다.',
+  'tour.makers.point3':
+    '둘 다 내 것입니다. FluidEQ는 어느 것도 포함하지 않고, 로그인 정보도 갖지 않으며, 아무것도 결제하지 않습니다.',
+  'tour.makers.how': '스튜디오에서 장면의 채팅을 열고 계정을 누르세요.',
+  'tour.makers.open': '시각화 도우미 열기',
+  'tour.makers.imageAlt':
+    '장면의 채팅이 애니메이션 프레임을 내 GPT 플러그인과 Higgsfield 중 어느 쪽으로 만들지 묻는 화면과, Claude·GPT·Higgsfield가 있는 계정 목록.',
+  'tour.makers.request': '잉어가 헤엄치는 애니메이션으로 만들어 줘',
+  'tour.code.kicker': '스튜디오 · 코드',
+  'tour.code.title': '코드 탭에서 장면의 모든 파일을',
+  'tour.code.subtitle': '셰이더, 월드, 재질, 애니메이션, 메모',
+  'tour.code.lead':
+    '코드 탭은 셰이더만이 아니라 장면 전체를 보여 줍니다. 팩, 3D 월드와 거기서 이름을 부르는 재질, 애니메이션, 메모.',
+  'tour.code.point1':
+    '파일마다 이름과 줄 수로 접히고, 모두 펼치기로 한꺼번에 엽니다.',
+  'tour.code.point2':
+    'AI가 저장할 때마다 파일을 따라가고, 변경사항 표시로 바뀐 곳을 표시합니다.',
+  'tour.code.point3':
+    'AI가 일반 그림으로 묶은 프레임 시트는 애니메이션 탭의 진짜 애니메이션이 됩니다.',
+  'tour.code.how': '스튜디오에서 장면을 열고 무대 아래에서 코드를 고르세요.',
+  'tour.code.open': '시각화 도우미 열기',
+  'tour.code.imageAlt':
+    '장면의 파일이 이름으로 접혀 있고 3D 월드의 재질 하나가 열린 코드 탭.',
+  'tour.v25.also': '2.5의 다른 변경 사항',
+  'tour.v25.recover':
+    '바탕 화면 배경이나 컴팩트 플레이어는 빌드되지 않는 장면을 스튜디오 프로젝트나 갤러리 사본으로 고칩니다.',
+  'tour.v25.never':
+    '재생되지 않는 장면을 다른 모양으로 바꾸지 않습니다. 그래프가 이유를 알려 주고 다시 시도를 제안합니다.',
+  'tour.v25.copy':
+    '스튜디오에서 연 다른 멤버의 장면은 잠긴 사본이며, 그 채팅은 명령마다 먼저 묻습니다.',
+  'tour.v25.review':
+    '승인되지 않은 장면은 이름 옆에 검토자의 이유를 보여 줍니다.',
+  'tour.v25.publish': '게시에 월간 한도가 없습니다.',
 } as const;
 
 export default tour24;

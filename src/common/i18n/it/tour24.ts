@@ -169,6 +169,91 @@ const tour24 = {
   'tour.level.how':
     'Un rack che hai già mantiene le sue impostazioni finché non scegli di nuovo il suo preset di fabbrica nella pagina DSP.',
   'tour.level.open': 'Apri DSP',
+
+  'tour.edit.kicker': 'STUDIO · MODALITÀ MODIFICA',
+  'tour.edit.title': 'Sposta a mano le cose della tua scena',
+  'tour.edit.subtitle': 'Sposta, ruota e ridimensiona, poi Salva',
+  'tour.edit.lead':
+    'Premi Modifica sul palco e scegli qualsiasi cosa in una scena 3D: una forma, una luce, un modello 3D o un loro gruppo.',
+  'tour.edit.point1':
+    'Spostala, ruotala o ridimensionala con le sue maniglie, con Aggancia per passi di un quarto e rotazioni di 15°. Solo la mostra da sola.',
+  'tour.edit.point2':
+    'Tutto ciò che è nella scena sta in un elenco dove puoi cercare, nascondere, bloccare, rinominare e raggruppare.',
+  'tour.edit.point3':
+    'Niente tocca la tua scena finché non premi Salva. Scarta butta via le modifiche, Annulla e Ripeti le ripercorrono.',
+  'tour.edit.how':
+    'Apri una scena 3D nello Studio e premi Modifica sul suo palco.',
+  'tour.edit.open': 'Apri Visualizzatori',
+  'tour.edit.imageAlt':
+    'Una scena sul palco dello Studio con una forma scelta e le sue maniglie, gli strumenti Sposta, Ruota e Ridimensiona sopra, e accanto l’elenco di ciò che contiene.',
+  'tour.watch.kicker': 'STUDIO · LA TUA IA',
+  'tour.watch.title': 'Un’IA che guarda la tua scena muoversi',
+  'tour.watch.subtitle': 'Fotogrammi lungo la musica, tre viste, il brano',
+  'tour.watch.lead':
+    'La tua IA non giudica più una scena da un’immagine sola. La guarda muoversi e la controlla come la vedrà chi ascolta.',
+  'tour.watch.point1':
+    'Alcuni fotogrammi lungo la musica, uno accanto all’altro, per vedere in che direzione si muove una cosa e se si muove in modo regolare.',
+  'tour.watch.point2':
+    'Il grafico normale, il grafico ultra-wide e l’intera colonna del player compatto nello stesso istante, così niente resta tagliato o nero.',
+  'tour.watch.point3':
+    'Sei momenti del brano di prova, dal silenzio al drop, per controllare che il drop si veda, e quanto è buia la notte con Luce del giorno a 0.',
+  'tour.watch.how':
+    'Chiedi una modifica alla chat della scena. Controlla il suo lavoro così ogni volta.',
+  'tour.watch.open': 'Apri Visualizzatori',
+  'tour.watch.imageAlt':
+    'Cinque fotogrammi di una scena lungo la musica e come si muove, la scena nelle viste normale, ultra-wide e del player compatto, e sei momenti del brano di prova dal silenzio al drop.',
+  'tour.watch.frames': 'Fotogrammi lungo la musica',
+  'tour.watch.moves': 'Si muove a destra, regolare',
+  'tour.watch.standard': 'Normale',
+  'tour.watch.song': 'Prova col brano',
+  'tour.watch.silence': 'Silenzio',
+  'tour.watch.verse': 'Strofa',
+  'tour.watch.build': 'Crescendo',
+  'tour.watch.drop': 'Drop',
+  'tour.watch.dropShows': 'Il drop si vede',
+  'tour.watch.night': 'Notte: {value}% illuminata',
+  'tour.makers.kicker': 'STUDIO · IMMAGINI',
+  'tour.makers.title': 'Higgsfield accanto a GPT',
+  'tour.makers.subtitle': 'I tuoi strumenti, e la chat chiede quale',
+  'tour.makers.lead':
+    'Quando una scena ha bisogno di una nuova immagine o di fotogrammi di animazione, la tua IA può usare il tuo plugin GPT o Higgsfield, entrambi nel tuo Claude Code.',
+  'tour.makers.point1':
+    'Configura Higgsfield da Account nella chat: FluidEQ aggiunge i suoi strumenti al tuo Claude Code e apre il suo accesso nel browser.',
+  'tour.makers.point2':
+    'Con entrambi disponibili, la chat chiede quale fa ogni immagine e può ricordare la tua scelta.',
+  'tour.makers.point3':
+    'Sono entrambi tuoi: FluidEQ non ne include nessuno, non conserva accessi e non paga nulla.',
+  'tour.makers.how': 'Apri la chat di una scena nello Studio e premi Account.',
+  'tour.makers.open': 'Apri Visualizzatori',
+  'tour.makers.imageAlt':
+    'La chat di una scena che chiede se i fotogrammi di animazione li deve fare il tuo plugin GPT o Higgsfield, accanto all’elenco Account con Claude, GPT e Higgsfield.',
+  'tour.makers.request': 'Fai nuotare il koi in un’animazione',
+  'tour.code.kicker': 'STUDIO · CODICE',
+  'tour.code.title': 'Ogni file della tua scena nella scheda Codice',
+  'tour.code.subtitle': 'Shader, mondo, materiali, animazioni, note',
+  'tour.code.lead':
+    'La scheda Codice mostra tutta la scena, non solo il suo shader: il pacchetto, il mondo 3D e i materiali che nomina, le animazioni e le note.',
+  'tour.code.point1':
+    'Ogni file si chiude sul suo nome e sul numero di righe, ed Espandi tutto li apre insieme.',
+  'tour.code.point2':
+    'Segue i file mentre la tua IA li salva, e Mostra modifiche segna cosa è cambiato.',
+  'tour.code.point3':
+    'Un foglio di fotogrammi che la tua IA ha impacchettato come immagine semplice diventa una vera animazione, nella scheda Animazioni.',
+  'tour.code.how':
+    'Apri una scena nello Studio e scegli Codice sotto il palco.',
+  'tour.code.open': 'Apri Visualizzatori',
+  'tour.code.imageAlt':
+    'La scheda Codice con i file della scena chiusi sui loro nomi e un materiale del suo mondo 3D aperto.',
+  'tour.v25.also': 'Anche nella 2.5',
+  'tour.v25.recover':
+    'Uno sfondo del desktop o il player compatto sistema una scena che non si compila dal tuo progetto dello Studio o dalla copia della Galleria.',
+  'tour.v25.never':
+    'Una scena che non parte non viene mai sostituita con un altro look: il grafico dice perché e offre Riprova.',
+  'tour.v25.copy':
+    'La scena di un altro membro aperta nello Studio è una copia bloccata, e la sua chat chiede prima di ogni comando.',
+  'tour.v25.review':
+    'Una scena non approvata mostra il motivo del revisore accanto al suo nome.',
+  'tour.v25.publish': 'Nessun limite mensile per pubblicare.',
 } as const;
 
 export default tour24;

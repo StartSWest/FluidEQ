@@ -167,6 +167,92 @@ const tour24 = {
   'tour.level.how':
     'Ein Rack, das Sie schon haben, behält seine Einstellungen, bis Sie sein Werkspreset auf der DSP-Seite erneut wählen.',
   'tour.level.open': 'DSP öffnen',
+
+  'tour.edit.kicker': 'STUDIO · BEARBEITEN',
+  'tour.edit.title': 'Dinge in Ihrer Szene von Hand bewegen',
+  'tour.edit.subtitle': 'Bewegen, drehen, Größe ändern, dann Speichern',
+  'tour.edit.lead':
+    'Drücken Sie auf der Bühne Bearbeiten und wählen Sie etwas in einer 3D-Szene: eine Form, ein Licht, ein 3D-Modell oder eine Gruppe davon.',
+  'tour.edit.point1':
+    'Bewegen, drehen oder skalieren Sie es mit seinen Griffen, mit Einrasten für Viertelschritte und 15°-Drehungen. Solo zeigt eines allein.',
+  'tour.edit.point2':
+    'Alles in der Szene steht in einer Liste, in der Sie suchen, ausblenden, sperren, umbenennen und gruppieren können.',
+  'tour.edit.point3':
+    'Nichts ändert Ihre Szene, bis Sie Speichern drücken. Verwerfen wirft die Änderungen weg, Rückgängig und Wiederholen gehen sie durch.',
+  'tour.edit.how':
+    'Öffnen Sie eine 3D-Szene im Studio und drücken Sie auf ihrer Bühne Bearbeiten.',
+  'tour.edit.open': 'Visualizer öffnen',
+  'tour.edit.imageAlt':
+    'Eine Szene auf der Bühne des Studios mit einer gewählten Form und ihren Griffen, darüber die Werkzeuge Bewegen, Drehen und Größe ändern, daneben die Liste dessen, was in der Szene ist.',
+  'tour.watch.kicker': 'STUDIO · IHRE KI',
+  'tour.watch.title': 'Eine KI, die Ihrer Szene beim Bewegen zusieht',
+  'tour.watch.subtitle': 'Bilder entlang der Musik, drei Ansichten, der Song',
+  'tour.watch.lead':
+    'Ihre KI beurteilt eine Szene nicht mehr nach einem Bild. Sie sieht ihr beim Bewegen zu und prüft sie so, wie ein Zuhörer sie sehen wird.',
+  'tour.watch.point1':
+    'Einige Bilder entlang der Musik nebeneinander, um zu sehen, wohin sich etwas bewegt und ob gleichmäßig.',
+  'tour.watch.point2':
+    'Die normale Grafik, die Ultra-Wide-Grafik und die ganze Spalte des Kompaktplayers im selben Moment, damit nichts abgeschnitten oder schwarz bleibt.',
+  'tour.watch.point3':
+    'Sechs Momente des Testsongs, von der Stille bis zum Drop, um zu prüfen, dass der Drop sichtbar ist, und wie dunkel die Nacht bei Tageslicht 0 ist.',
+  'tour.watch.how':
+    'Bitten Sie den Chat der Szene um eine Änderung. Er prüft seine Arbeit jedes Mal so.',
+  'tour.watch.open': 'Visualizer öffnen',
+  'tour.watch.imageAlt':
+    'Fünf Bilder einer Szene entlang der Musik und wie sie sich bewegt, die Szene in der normalen, der Ultra-Wide- und der Kompaktplayer-Ansicht, und sechs Momente des Testsongs von der Stille bis zum Drop.',
+  'tour.watch.frames': 'Bilder entlang der Musik',
+  'tour.watch.moves': 'Bewegt sich nach rechts, gleichmäßig',
+  'tour.watch.standard': 'Normal',
+  'tour.watch.song': 'Song-Prüfung',
+  'tour.watch.silence': 'Stille',
+  'tour.watch.verse': 'Strophe',
+  'tour.watch.build': 'Aufbau',
+  'tour.watch.drop': 'Drop',
+  'tour.watch.dropShows': 'Der Drop ist sichtbar',
+  'tour.watch.night': 'Nacht: {value} % hell',
+  'tour.makers.kicker': 'STUDIO · BILDER',
+  'tour.makers.title': 'Higgsfield neben GPT',
+  'tour.makers.subtitle': 'Ihre eigenen Macher, und der Chat fragt, welcher',
+  'tour.makers.lead':
+    'Braucht eine Szene ein neues Bild oder Animationsbilder, kann Ihre KI Ihr eigenes GPT-Plugin oder Higgsfield nutzen, beide in Ihrem eigenen Claude Code.',
+  'tour.makers.point1':
+    'Richten Sie Higgsfield über Konten im Chat ein: FluidEQ fügt seine Werkzeuge Ihrem Claude Code hinzu und öffnet seine Anmeldung in Ihrem Browser.',
+  'tour.makers.point2':
+    'Sind beide da, fragt der Chat, welcher jedes Bild macht, und kann sich Ihre Wahl merken.',
+  'tour.makers.point3':
+    'Beide gehören Ihnen: FluidEQ liefert keinen davon mit, speichert keine Anmeldung und bezahlt nichts.',
+  'tour.makers.how':
+    'Öffnen Sie den Chat einer Szene im Studio und drücken Sie Konten.',
+  'tour.makers.open': 'Visualizer öffnen',
+  'tour.makers.imageAlt':
+    'Der Chat einer Szene fragt, ob Ihr eigenes GPT-Plugin oder Higgsfield die Animationsbilder machen soll, neben der Kontenliste mit Claude, GPT und Higgsfield.',
+  'tour.makers.request': 'Lass den Koi in einer Animation schwimmen',
+  'tour.code.kicker': 'STUDIO · CODE',
+  'tour.code.title': 'Jede Datei Ihrer Szene im Code-Tab',
+  'tour.code.subtitle': 'Shader, Welt, Materialien, Animationen, Notizen',
+  'tour.code.lead':
+    'Der Code-Tab zeigt die ganze Szene, nicht nur ihren Shader: ihr Paket, ihre 3D-Welt und die Materialien, die sie nennt, ihre Animationen und ihre Notizen.',
+  'tour.code.point1':
+    'Jede Datei klappt sich auf ihren Namen und ihre Zeilenzahl zusammen, und Alle aufklappen öffnet sie zusammen.',
+  'tour.code.point2':
+    'Er folgt den Dateien, wie Ihre KI sie speichert, und Änderungen zeigen markiert, was sich geändert hat.',
+  'tour.code.point3':
+    'Ein Blatt mit Einzelbildern, das Ihre KI als einfaches Bild gepackt hat, wird zu einer echten Animation im Tab Animationen.',
+  'tour.code.how':
+    'Öffnen Sie eine Szene im Studio und wählen Sie Code unter der Bühne.',
+  'tour.code.open': 'Visualizer öffnen',
+  'tour.code.imageAlt':
+    'Der Code-Tab mit den Dateien der Szene, auf ihre Namen zusammengeklappt, und einem offenen Material ihrer 3D-Welt.',
+  'tour.v25.also': 'Außerdem in 2.5',
+  'tour.v25.recover':
+    'Ein Desktop-Hintergrund oder der Kompaktplayer setzt eine Szene, die sich nicht bauen lässt, aus Ihrem Studio-Projekt oder der Kopie der Galerie wieder instand.',
+  'tour.v25.never':
+    'Eine Szene, die nicht spielt, wird nie gegen einen anderen Look getauscht: Die Grafik sagt, warum, und bietet Erneut versuchen an.',
+  'tour.v25.copy':
+    'Die Szene eines anderen Mitglieds, im Studio geöffnet, ist eine gesperrte Kopie, und ihr Chat fragt vor jedem Befehl.',
+  'tour.v25.review':
+    'Eine nicht freigegebene Szene zeigt die Begründung der Prüfung neben ihrem Namen.',
+  'tour.v25.publish': 'Kein monatliches Limit beim Veröffentlichen.',
 } as const;
 
 export default tour24;

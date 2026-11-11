@@ -154,6 +154,84 @@ const tour24 = {
   'tour.level.how':
     '已有的效果链会保留原有设置，直到你在 DSP 页面重新选择它的出厂预设。',
   'tour.level.open': '打开 DSP',
+
+  'tour.edit.kicker': '工作室 · 编辑模式',
+  'tour.edit.title': '亲手移动场景里的东西',
+  'tour.edit.subtitle': '移动、旋转、缩放，然后保存',
+  'tour.edit.lead':
+    '在舞台上按“编辑”，选中 3D 场景里的任何东西：形状、灯光、3D 模型或它们的组。',
+  'tour.edit.point1':
+    '用控制柄移动、旋转或缩放它，“吸附”让它按四分之一步和 15° 转动。“单独显示”只显示这一个。',
+  'tour.edit.point2':
+    '场景里的每样东西都在一个列表里，可以搜索、隐藏、锁定、重命名和编组。',
+  'tour.edit.point3':
+    '按“保存”之前，场景不会有任何改变。“放弃”丢掉改动，撤销和重做可以来回查看。',
+  'tour.edit.how': '在工作室打开一个 3D 场景，在它的舞台上按“编辑”。',
+  'tour.edit.open': '打开“可视化”',
+  'tour.edit.imageAlt':
+    '工作室舞台上的场景里选中了一个形状并显示控制柄，上方是移动、旋转和缩放工具，旁边是场景里所有东西的列表。',
+  'tour.watch.kicker': '工作室 · 你的 AI',
+  'tour.watch.title': '会看场景动起来的 AI',
+  'tour.watch.subtitle': '随音乐的画面、三种视图、整首歌',
+  'tour.watch.lead':
+    '你的 AI 不再凭一张图判断场景。它会看场景怎么动，并按听众看到的样子检查。',
+  'tour.watch.point1': '沿着音乐取几帧并排放，看清东西往哪边动、动得是否均匀。',
+  'tour.watch.point2':
+    '同一时刻的普通图表、超宽图表和紧凑播放器的整列，确保没有被裁掉或留黑。',
+  'tour.watch.point3':
+    '测试歌曲的六个时刻，从静音到高潮，检查高潮是否看得出来，以及日光为 0 时夜晚有多暗。',
+  'tour.watch.how': '在场景的聊天里提出修改。它每次都这样检查自己的成果。',
+  'tour.watch.open': '打开“可视化”',
+  'tour.watch.imageAlt':
+    '一个场景随音乐的五帧画面及其运动方式，场景在普通、超宽和紧凑播放器视图中的样子，以及测试歌曲从静音到高潮的六个时刻。',
+  'tour.watch.frames': '随音乐的画面',
+  'tour.watch.moves': '向右移动，均匀',
+  'tour.watch.standard': '普通',
+  'tour.watch.song': '用歌曲检查',
+  'tour.watch.silence': '静音',
+  'tour.watch.verse': '主歌',
+  'tour.watch.build': '铺垫',
+  'tour.watch.drop': '高潮',
+  'tour.watch.dropShows': '高潮看得出来',
+  'tour.watch.night': '夜晚：亮度 {value}%',
+  'tour.makers.kicker': '工作室 · 图片',
+  'tour.makers.title': 'GPT 旁边的 Higgsfield',
+  'tour.makers.subtitle': '用你自己的工具，聊天会问用哪个',
+  'tour.makers.lead':
+    '当场景需要新图片或动画帧时，你的 AI 可以用你自己的 GPT 插件或 Higgsfield，两者都在你自己的 Claude Code 里。',
+  'tour.makers.point1':
+    '在聊天的“账号”里设置 Higgsfield：FluidEQ 会把它的工具加入你的 Claude Code，并在浏览器中打开它的登录。',
+  'tour.makers.point2':
+    '两者都在时，聊天会问每张图用哪个来做，并可以记住你的选择。',
+  'tour.makers.point3':
+    '两者都是你的：FluidEQ 不自带任何一个，不保存任何登录，也不付任何费用。',
+  'tour.makers.how': '在工作室打开一个场景的聊天，按“账号”。',
+  'tour.makers.open': '打开“可视化”',
+  'tour.makers.imageAlt':
+    '场景的聊天在问动画帧由你自己的 GPT 插件还是 Higgsfield 来做，旁边是列有 Claude、GPT 和 Higgsfield 的账号列表。',
+  'tour.makers.request': '把锦鲤做成游动的动画',
+  'tour.code.kicker': '工作室 · 代码',
+  'tour.code.title': '在“代码”标签页查看场景的每个文件',
+  'tour.code.subtitle': '着色器、世界、材质、动画、笔记',
+  'tour.code.lead':
+    '“代码”标签页显示整个场景，而不只是着色器：它的包、3D 世界及其引用的材质、动画和笔记。',
+  'tour.code.point1': '每个文件都能折叠成名称和行数，“全部展开”一次全部打开。',
+  'tour.code.point2': '它随 AI 保存实时跟进文件，“查看改动”会标出改了哪里。',
+  'tour.code.point3':
+    'AI 当作普通图片打包的一张帧图，会变成“动画”标签页里真正的动画。',
+  'tour.code.how': '在工作室打开一个场景，在舞台下方选择“代码”。',
+  'tour.code.open': '打开“可视化”',
+  'tour.code.imageAlt':
+    '“代码”标签页，场景的文件折叠成名称，其 3D 世界的一个材质处于展开状态。',
+  'tour.v25.also': '2.5 的其他更新',
+  'tour.v25.recover':
+    '桌面背景或紧凑播放器会用你的工作室项目或图库的副本修好无法构建的场景。',
+  'tour.v25.never':
+    '无法播放的场景绝不会被换成别的外观：图表会说明原因并提供“重试”。',
+  'tour.v25.copy':
+    '在工作室打开的其他成员的场景是锁定的副本，它的聊天会在每条命令前询问。',
+  'tour.v25.review': '未通过审核的场景会在名称旁显示审核者的理由。',
+  'tour.v25.publish': '发布不再有每月上限。',
 } as const;
 
 export default tour24;

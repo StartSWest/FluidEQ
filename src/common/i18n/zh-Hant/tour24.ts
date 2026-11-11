@@ -154,6 +154,85 @@ const tour24 = {
   'tour.level.how':
     '已有的效果鏈會保留原本的設定，直到你在 DSP 頁面重新選擇它的原廠預設。',
   'tour.level.open': '開啟 DSP',
+
+  'tour.edit.kicker': '工作室 · 編輯模式',
+  'tour.edit.title': '親手移動場景裡的東西',
+  'tour.edit.subtitle': '移動、旋轉、縮放，然後儲存',
+  'tour.edit.lead':
+    '在舞台上按「編輯」，選取 3D 場景裡的任何東西：形狀、燈光、3D 模型或它們的群組。',
+  'tour.edit.point1':
+    '用控制點移動、旋轉或縮放它，「貼齊」讓它以四分之一步和 15° 轉動。「單獨顯示」只顯示這一個。',
+  'tour.edit.point2':
+    '場景裡的每樣東西都在一個清單裡，可以搜尋、隱藏、鎖定、重新命名和群組。',
+  'tour.edit.point3':
+    '按「儲存」之前，場景不會有任何改變。「放棄」丟掉更改，復原和重做可以來回查看。',
+  'tour.edit.how': '在工作室開啟一個 3D 場景，在它的舞台上按「編輯」。',
+  'tour.edit.open': '開啟展示臺',
+  'tour.edit.imageAlt':
+    '工作室舞台上的場景裡選取了一個形狀並顯示控制點，上方是移動、旋轉和縮放工具，旁邊是場景裡所有東西的清單。',
+  'tour.watch.kicker': '工作室 · 你的 AI',
+  'tour.watch.title': '會看場景動起來的 AI',
+  'tour.watch.subtitle': '隨音樂的畫面、三種檢視、整首歌',
+  'tour.watch.lead':
+    '你的 AI 不再憑一張圖判斷場景。它會看場景怎麼動，並依聽眾看到的樣子檢查。',
+  'tour.watch.point1': '沿著音樂取幾格並排放，看清東西往哪邊動、動得是否均勻。',
+  'tour.watch.point2':
+    '同一時刻的一般圖表、超寬圖表和精簡播放器的整欄，確保沒有被裁掉或留黑。',
+  'tour.watch.point3':
+    '測試歌曲的六個時刻，從靜音到高潮，檢查高潮是否看得出來，以及日光為 0 時夜晚有多暗。',
+  'tour.watch.how': '在場景的聊天裡提出修改。它每次都這樣檢查自己的成果。',
+  'tour.watch.open': '開啟展示臺',
+  'tour.watch.imageAlt':
+    '一個場景隨音樂的五格畫面及其移動方式，場景在一般、超寬和精簡播放器檢視中的樣子，以及測試歌曲從靜音到高潮的六個時刻。',
+  'tour.watch.frames': '隨音樂的畫面',
+  'tour.watch.moves': '向右移動，均勻',
+  'tour.watch.standard': '一般',
+  'tour.watch.song': '用歌曲檢查',
+  'tour.watch.silence': '靜音',
+  'tour.watch.verse': '主歌',
+  'tour.watch.build': '鋪陳',
+  'tour.watch.drop': '高潮',
+  'tour.watch.dropShows': '高潮看得出來',
+  'tour.watch.night': '夜晚：亮度 {value}%',
+  'tour.makers.kicker': '工作室 · 圖片',
+  'tour.makers.title': 'GPT 旁邊的 Higgsfield',
+  'tour.makers.subtitle': '用你自己的工具，聊天會問用哪個',
+  'tour.makers.lead':
+    '當場景需要新圖片或動畫格時，你的 AI 可以用你自己的 GPT 外掛或 Higgsfield，兩者都在你自己的 Claude Code 裡。',
+  'tour.makers.point1':
+    '在聊天的「帳戶」裡設定 Higgsfield：FluidEQ 會把它的工具加入你的 Claude Code，並在瀏覽器中開啟它的登入。',
+  'tour.makers.point2':
+    '兩者都在時，聊天會問每張圖用哪個來做，並可以記住你的選擇。',
+  'tour.makers.point3':
+    '兩者都是你的：FluidEQ 不內附任何一個，不保存任何登入，也不付任何費用。',
+  'tour.makers.how': '在工作室開啟一個場景的聊天，按「帳戶」。',
+  'tour.makers.open': '開啟展示臺',
+  'tour.makers.imageAlt':
+    '場景的聊天在問動畫格由你自己的 GPT 外掛還是 Higgsfield 來做，旁邊是列有 Claude、GPT 和 Higgsfield 的帳戶清單。',
+  'tour.makers.request': '把錦鯉做成游動的動畫',
+  'tour.code.kicker': '工作室 · 程式碼',
+  'tour.code.title': '在「程式碼」分頁查看場景的每個檔案',
+  'tour.code.subtitle': '著色器、世界、材質、動畫、筆記',
+  'tour.code.lead':
+    '「程式碼」分頁顯示整個場景，而不只是著色器：它的套件、3D 世界及其引用的材質、動畫和筆記。',
+  'tour.code.point1':
+    '每個檔案都能摺疊成名稱和行數，「全部展開」一次全部打開。',
+  'tour.code.point2': '它隨 AI 儲存即時跟上檔案，「顯示更改」會標出改了哪裡。',
+  'tour.code.point3':
+    'AI 當作一般圖片打包的一張畫格圖，會變成「動畫」分頁裡真正的動畫。',
+  'tour.code.how': '在工作室開啟一個場景，在舞台下方選擇「程式碼」。',
+  'tour.code.open': '開啟展示臺',
+  'tour.code.imageAlt':
+    '「程式碼」分頁，場景的檔案摺疊成名稱，其 3D 世界的一個材質處於展開狀態。',
+  'tour.v25.also': '2.5 的其他更新',
+  'tour.v25.recover':
+    '桌面背景或精簡播放器會用你的工作室專案或圖庫的副本修好無法建置的場景。',
+  'tour.v25.never':
+    '無法播放的場景絕不會被換成別的外觀：圖表會說明原因並提供「重試」。',
+  'tour.v25.copy':
+    '在工作室開啟的其他成員的場景是鎖定的副本，它的聊天會在每個指令前詢問。',
+  'tour.v25.review': '未通過審核的場景會在名稱旁顯示審核者的理由。',
+  'tour.v25.publish': '發布不再有每月上限。',
 } as const;
 
 export default tour24;

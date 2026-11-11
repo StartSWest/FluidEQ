@@ -49,7 +49,11 @@ interface IShowcaseSlideProps {
     | 'tour.ai'
     | 'tour.controls'
     | 'tour.camera'
-    | 'tour.level';
+    | 'tour.level'
+    | 'tour.edit'
+    | 'tour.watch'
+    | 'tour.makers'
+    | 'tour.code';
   /** What the slide's button does: land somewhere, and close the tour. */
   onOpen: () => void;
   visual: ReactNode;

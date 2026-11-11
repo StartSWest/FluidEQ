@@ -165,6 +165,90 @@ const tour24 = {
   'tour.level.how':
     'A rack you already have keeps its settings until you pick its factory preset again on the DSP page.',
   'tour.level.open': 'Open DSP',
+
+  'tour.edit.kicker': 'STUDIO · EDIT MODE',
+  'tour.edit.title': 'Move things in your scene by hand',
+  'tour.edit.subtitle': 'Move, turn and resize, then Save',
+  'tour.edit.lead':
+    'Press Edit on the stage and pick anything in a 3D scene: a shape, a light, a 3D model or a group of them.',
+  'tour.edit.point1':
+    'Move, turn or resize it with its handles, with Snap for quarter steps and 15° turns. Solo shows one thing alone.',
+  'tour.edit.point2':
+    'Every thing in the scene is in one list you can search, hide, lock, rename and group.',
+  'tour.edit.point3':
+    'Nothing touches your scene until you press Save. Discard throws the changes away, and Undo and Redo step through them.',
+  'tour.edit.how': 'Open a 3D scene in the Studio and press Edit on its stage.',
+  'tour.edit.open': 'Open Visualizers',
+  'tour.edit.imageAlt':
+    'A scene on the Studio’s stage with one shape picked and its handles, the Move, Turn and Resize tools above it, and the list of what is in the scene beside it.',
+  'tour.watch.kicker': 'STUDIO · YOUR AI',
+  'tour.watch.title': 'An AI that watches your scene move',
+  'tour.watch.subtitle': 'Frames along the music, three views, the song',
+  'tour.watch.lead':
+    'Your AI no longer judges a scene from one picture. It watches it move and checks it the ways a listener will see it.',
+  'tour.watch.point1':
+    'A few frames along the music, side by side, to see which way a thing moves and whether it moves evenly.',
+  'tour.watch.point2':
+    'The standard graph, the ultra-wide graph and the Compact player’s whole column at the same moment, so nothing is cut off or left black.',
+  'tour.watch.point3':
+    'Six moments of the test song, from silence to the drop, to check that the drop shows, and how dark the night is at Daylight 0.',
+  'tour.watch.how':
+    'Ask the scene’s chat for a change. It looks at its work this way every time.',
+  'tour.watch.open': 'Open Visualizers',
+  'tour.watch.imageAlt':
+    'Five frames of a scene along the music with how it moves, the scene in the standard, ultra-wide and Compact player views, and six moments of the test song from silence to the drop.',
+  'tour.watch.frames': 'Frames along the music',
+  'tour.watch.moves': 'Moves right, evenly',
+  'tour.watch.standard': 'Standard',
+  'tour.watch.song': 'Song check',
+  'tour.watch.silence': 'Silence',
+  'tour.watch.verse': 'Verse',
+  'tour.watch.build': 'Build',
+  'tour.watch.drop': 'Drop',
+  'tour.watch.dropShows': 'The drop shows',
+  'tour.watch.night': 'Night: {value}% lit',
+  'tour.makers.kicker': 'STUDIO · PICTURES',
+  'tour.makers.title': 'Higgsfield beside GPT',
+  'tour.makers.subtitle': 'Your own makers, and the chat asks which',
+  'tour.makers.lead':
+    'When a scene needs a new picture or animation frames, your AI can use your own GPT plugin or Higgsfield, both in your own Claude Code.',
+  'tour.makers.point1':
+    'Set Higgsfield up from the chat’s Accounts: FluidEQ adds its tools to your Claude Code and opens its sign-in in your browser.',
+  'tour.makers.point2':
+    'With both there, the chat asks which one makes each picture, and can remember your choice.',
+  'tour.makers.point3':
+    'Both are yours: FluidEQ ships neither, holds no sign-in and pays for nothing.',
+  'tour.makers.how': 'Open a scene’s chat in the Studio and press Accounts.',
+  'tour.makers.open': 'Open Visualizers',
+  'tour.makers.imageAlt':
+    'A scene’s chat asking whether your own GPT plugin or Higgsfield should make the animation frames, beside the Accounts list with Claude, GPT and Higgsfield.',
+  'tour.makers.request': 'Make the koi a swimming animation',
+  'tour.code.kicker': 'STUDIO · CODE',
+  'tour.code.title': 'Every file of your scene in the Code tab',
+  'tour.code.subtitle': 'Shader, world, materials, animations, notes',
+  'tour.code.lead':
+    'The Code tab shows the whole scene, not only its shader: its pack, its 3D world and the materials it names, its animations and its notes.',
+  'tour.code.point1':
+    'Each file folds to its name and its count of lines, and Expand all opens them together.',
+  'tour.code.point2':
+    'It follows the files as your AI saves them, and Show changes marks what changed.',
+  'tour.code.point3':
+    'A sheet of frames your AI packed as a plain picture becomes a real animation, in the Animations tab.',
+  'tour.code.how':
+    'Open a scene in the Studio and choose Code under the stage.',
+  'tour.code.open': 'Open Visualizers',
+  'tour.code.imageAlt':
+    'The Code tab with the scene’s files folded to their names and one material of its 3D world open.',
+  'tour.v25.also': 'Also in 2.5',
+  'tour.v25.recover':
+    'A desktop background or the Compact player puts a scene that will not build right from your Studio project or the Gallery’s copy.',
+  'tour.v25.never':
+    'A scene that will not play is never swapped for another look: the graph says why and offers Try again.',
+  'tour.v25.copy':
+    'Another member’s scene opened in the Studio is a locked copy, and its chat asks before every command.',
+  'tour.v25.review':
+    'A scene that was not approved shows the reviewer’s reason beside its name.',
+  'tour.v25.publish': 'No monthly limit on publishing.',
 } as const;
 
 export default tour24;

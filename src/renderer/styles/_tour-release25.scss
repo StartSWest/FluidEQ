@@ -1,0 +1,855 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// 2.5's pictures in the Visualizers' own What's New: Edit mode, the AI that
+// watches a scene, Higgsfield beside GPT and the Code tab (`StudioEditVisual`,
+// `StudioWatchVisual`, `StudioMakersVisual`, `StudioCodeVisual`). The same
+// miniature language as 2.4's: framed panels, pills, the tour's own unit.
+
+// The pictures' loop, 2.4's ten seconds, so the pages keep one pace.
+$loop: 10s;
+
+@mixin still {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@mixin picture($max: 38) {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * #{$max});
+  gap: calc(#{$u} * 0.8);
+  text-align: left;
+  @include animate(rise-in, $motion-slow);
+}
+
+@mixin caption {
+  color: $text-faint;
+  font-size: calc(#{$u} * 0.62);
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+}
+
+@mixin heading {
+  color: $text-accent;
+  font-size: calc(#{$u} * 0.58);
+  font-weight: $weight-bold;
+  @include tracking(0.12em);
+  text-transform: uppercase;
+}
+
+// ---------------------------------------------------------------------------
+// Edit mode: the stage with one thing picked, and the list beside it.
+
+// The stage over the list, as the frame is taller than it is wide.
+.edit-visual {
+  @include picture(30);
+}
+
+.edit-visual__stage {
+  @include framed;
+
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  border-radius: $radius-l;
+  background: $black;
+}
+
+.edit-visual__scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  // The scene stands back while it is edited, as Edit mode stands it back.
+  filter: saturate(0.85) brightness(0.82);
+}
+
+.edit-visual__bar {
+  position: absolute;
+  top: calc(#{$u} * 0.45);
+  right: calc(#{$u} * 0.45);
+  left: calc(#{$u} * 0.45);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(#{$u} * 0.35);
+}
+
+.edit-visual__tools,
+.edit-visual__keep {
+  display: inline-flex;
+  flex-wrap: wrap;
+  padding: calc(#{$u} * 0.18);
+  border: 1px solid rgba($edge-tint, 0.14);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-menu 84%, transparent);
+  backdrop-filter: blur(8px);
+  gap: calc(#{$u} * 0.18);
+}
+
+.edit-visual__tool,
+.edit-visual__discard,
+.edit-visual__save {
+  @include pill;
+
+  border-color: transparent;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.64);
+}
+
+.edit-visual__tool.is-on {
+  color: $text-primary;
+  border-color: color-mix(in srgb, $secondary-light 55%, transparent);
+  background: color-mix(in srgb, $secondary-default 24%, transparent);
+}
+
+.edit-visual__snap {
+  margin-left: calc(#{$u} * 0.2);
+  border-left-color: rgba($edge-tint, 0.14);
+  border-radius: 0 $radius-xs $radius-xs 0;
+}
+
+.edit-visual__discard {
+  border-color: rgba($edge-tint, 0.2);
+}
+
+.edit-visual__save {
+  color: $surface-base;
+  background: $secondary-light;
+}
+
+// The picked thing: its frame, its corners, its two move arrows and its
+// name, carried along and back as a hand would drag it.
+.edit-visual__pick {
+  position: absolute;
+  top: 44%;
+  left: 40%;
+  width: 22%;
+  height: 34%;
+  animation: edit-visual-drag $loop $ease-unfold infinite;
+  @include still;
+}
+
+@keyframes edit-visual-drag {
+  0%,
+  14% {
+    transform: none;
+  }
+
+  40%,
+  58% {
+    transform: translate(48%, -10%);
+  }
+
+  84%,
+  100% {
+    transform: none;
+  }
+}
+
+.edit-visual__frame {
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid $secondary-light;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, $secondary-default 45%, transparent);
+
+  i {
+    position: absolute;
+    width: calc(#{$u} * 0.38);
+    height: calc(#{$u} * 0.38);
+    border: 1.5px solid $secondary-light;
+    border-radius: 2px;
+    background: $surface-base;
+
+    &:nth-child(1) {
+      top: calc(#{$u} * -0.2);
+      left: calc(#{$u} * -0.2);
+    }
+
+    &:nth-child(2) {
+      top: calc(#{$u} * -0.2);
+      right: calc(#{$u} * -0.2);
+    }
+
+    &:nth-child(3) {
+      bottom: calc(#{$u} * -0.2);
+      left: calc(#{$u} * -0.2);
+    }
+
+    &:nth-child(4) {
+      right: calc(#{$u} * -0.2);
+      bottom: calc(#{$u} * -0.2);
+    }
+  }
+}
+
+.edit-visual__arrows {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(#{$u} * 2.6);
+  height: calc(#{$u} * 2.6);
+  overflow: visible;
+  transform: translate(-50%, -50%);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+
+  circle {
+    fill: $white;
+    stroke: none;
+  }
+}
+
+.edit-visual__arrow-x {
+  stroke: $neon-pink;
+}
+
+.edit-visual__arrow-y {
+  stroke: $neon-lime;
+}
+
+.edit-visual__name {
+  @include pill;
+
+  position: absolute;
+  bottom: calc(100% + #{$u} * 0.35);
+  left: 0;
+  border-color: color-mix(in srgb, $secondary-light 50%, transparent);
+  background: color-mix(in srgb, $surface-menu 86%, transparent);
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.64);
+}
+
+.edit-visual__list {
+  @include panel;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: calc(#{$u} * 0.55);
+  gap: calc(#{$u} * 0.12) calc(#{$u} * 0.5);
+}
+
+.edit-visual__list-title {
+  @include heading;
+
+  grid-column: 1 / -1;
+  margin-bottom: calc(#{$u} * 0.2);
+}
+
+.edit-visual__row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: calc(#{$u} * 0.22) calc(#{$u} * 0.35);
+  border-radius: $radius-xs;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.68);
+  gap: calc(#{$u} * 0.35);
+
+  &.is-inner {
+    padding-left: calc(#{$u} * 1.1);
+  }
+
+  &.is-picked {
+    color: $text-primary;
+    background: color-mix(in srgb, $secondary-default 18%, transparent);
+  }
+}
+
+.edit-visual__dot {
+  flex: 0 0 auto;
+  width: calc(#{$u} * 0.36);
+  height: calc(#{$u} * 0.36);
+  border: 1.5px solid currentcolor;
+  border-radius: 2px;
+  opacity: 0.7;
+
+  .is-picked & {
+    border-color: $secondary-light;
+    background: $secondary-light;
+    opacity: 1;
+  }
+}
+
+.edit-visual__row-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit-visual__solo {
+  @include pill;
+
+  margin-left: auto;
+  padding-block: 0;
+  border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+  color: $secondary-light;
+  font-size: calc(#{$u} * 0.56);
+}
+
+// ---------------------------------------------------------------------------
+// The AI watching: frames along the music, the three views, the song.
+
+.watch-visual {
+  @include picture(30);
+
+  gap: calc(#{$u} * 0.6);
+}
+
+.watch-visual__card {
+  @include panel;
+
+  display: grid;
+  min-width: 0;
+  padding: calc(#{$u} * 0.55);
+  gap: calc(#{$u} * 0.4);
+}
+
+.watch-visual__title {
+  @include heading;
+}
+
+.watch-visual__frames {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: calc(#{$u} * 0.3);
+}
+
+.watch-visual__frame {
+  display: grid;
+  min-width: 0;
+  gap: calc(#{$u} * 0.2);
+
+  img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border: 1px solid rgba($edge-tint, 0.14);
+    border-radius: $radius-xs;
+    object-fit: cover;
+  }
+
+  small {
+    @include caption;
+  }
+
+  // Each frame lit as the look reaches it, left to right.
+  animation: watch-visual-frame $loop ease-out infinite;
+  @include still;
+
+  @for $i from 1 through 5 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{($i - 1) * 0.35}s;
+    }
+  }
+}
+
+@keyframes watch-visual-frame {
+  0%,
+  6% {
+    opacity: 0.35;
+  }
+
+  14%,
+  100% {
+    opacity: 1;
+  }
+}
+
+.watch-visual__moves {
+  display: flex;
+  align-items: center;
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.66);
+  font-weight: $weight-semibold;
+  gap: calc(#{$u} * 0.45);
+
+  i {
+    position: relative;
+    flex: 1 1 auto;
+    height: 2px;
+    border-radius: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      $secondary-light 70%,
+      $secondary-light
+    );
+
+    &::after {
+      position: absolute;
+      top: 50%;
+      right: -1px;
+      width: calc(#{$u} * 0.4);
+      height: calc(#{$u} * 0.4);
+      border-top: 2px solid $secondary-light;
+      border-right: 2px solid $secondary-light;
+      transform: translateY(-50%) rotate(45deg);
+      content: '';
+    }
+  }
+}
+
+.watch-visual__row {
+  display: grid;
+  gap: calc(#{$u} * 0.6);
+}
+
+// The three views at one moment, each in the shape the app draws it.
+.watch-visual__views {
+  grid-template-columns: minmax(0, 1fr) calc(#{$u} * 4);
+  grid-template-rows: auto auto;
+  align-items: start;
+}
+
+.watch-visual__view {
+  display: grid;
+  min-width: 0;
+  gap: calc(#{$u} * 0.18);
+
+  img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 1px solid rgba($edge-tint, 0.14);
+    border-radius: $radius-xs;
+    object-fit: cover;
+  }
+
+  small {
+    @include caption;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.watch-visual__view--wide img {
+  aspect-ratio: 5.5 / 1;
+}
+
+.watch-visual__view--column {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+
+  img {
+    aspect-ratio: 480 / 966;
+  }
+
+  // Its name wraps under a column this narrow rather than being cut.
+  small {
+    white-space: normal;
+  }
+}
+
+.watch-visual__moments {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: calc(#{$u} * 0.22);
+}
+
+.watch-visual__moment {
+  display: grid;
+  min-width: 0;
+  gap: calc(#{$u} * 0.16);
+
+  img {
+    width: 100%;
+    aspect-ratio: 1;
+    border: 1px solid rgba($edge-tint, 0.14);
+    border-radius: $radius-xs;
+    object-fit: cover;
+  }
+
+  small {
+    @include caption;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &.is-drop {
+    img {
+      border-color: $secondary-light;
+      box-shadow: 0 0 14px
+        color-mix(in srgb, $secondary-default 55%, transparent);
+    }
+
+    small {
+      color: $secondary-light;
+    }
+  }
+}
+
+.watch-visual__checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(#{$u} * 0.3);
+}
+
+.watch-visual__check {
+  @include pill;
+
+  border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.62);
+
+  svg {
+    width: calc(#{$u} * 0.6);
+    height: calc(#{$u} * 0.6);
+    color: $secondary-light;
+  }
+}
+
+.watch-visual__night i {
+  width: calc(#{$u} * 0.5);
+  height: calc(#{$u} * 0.5);
+  border: 1px solid rgba($edge-tint, 0.3);
+  border-radius: 50%;
+  background: $black;
+}
+
+// ---------------------------------------------------------------------------
+// Higgsfield beside GPT: the chat's ask, and its Accounts.
+
+// The chat over its Accounts, as the frame is taller than it is wide.
+.makers-visual {
+  @include picture(28);
+}
+
+.makers-visual__chat {
+  @include panel;
+  @include framed;
+
+  display: grid;
+  padding: calc(#{$u} * 0.6);
+  background: color-mix(in srgb, $surface-menu 92%, $black);
+  gap: calc(#{$u} * 0.5);
+}
+
+.makers-visual__mine {
+  justify-self: end;
+  max-width: 85%;
+  padding: calc(#{$u} * 0.35) calc(#{$u} * 0.55);
+  border-radius: $radius-m $radius-m $radius-xs $radius-m;
+  color: $text-primary;
+  background: color-mix(in srgb, $secondary-default 22%, $surface-control);
+  font-size: calc(#{$u} * 0.7);
+}
+
+.makers-visual__ask {
+  display: grid;
+  padding: calc(#{$u} * 0.5);
+  border: 1px solid color-mix(in srgb, $secondary-light 35%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  gap: calc(#{$u} * 0.35);
+}
+
+.makers-visual__ask-title {
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.72);
+  font-weight: $weight-semibold;
+}
+
+.makers-visual__maker {
+  display: grid;
+  padding: calc(#{$u} * 0.35) calc(#{$u} * 0.45);
+  border: 1px solid rgba($edge-tint, 0.14);
+  border-radius: $radius-s;
+  background: $surface-control;
+  gap: calc(#{$u} * 0.1);
+
+  small {
+    color: $text-faint;
+    font-size: calc(#{$u} * 0.6);
+    line-height: 1.35;
+  }
+
+  // The one the member reaches for, lit as the pointer reaches it.
+  &.is-chosen {
+    animation: makers-visual-choose $loop ease-in-out infinite;
+    @include still;
+  }
+}
+
+@keyframes makers-visual-choose {
+  0%,
+  30% {
+    border-color: rgba($edge-tint, 0.14);
+    box-shadow: none;
+  }
+
+  45%,
+  85% {
+    border-color: $secondary-light;
+    box-shadow: 0 0 16px color-mix(in srgb, $secondary-default 40%, transparent);
+  }
+
+  100% {
+    border-color: rgba($edge-tint, 0.14);
+    box-shadow: none;
+  }
+}
+
+.makers-visual__maker-name {
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.7);
+  font-weight: $weight-bold;
+}
+
+.makers-visual__remember {
+  display: flex;
+  align-items: center;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.62);
+  gap: calc(#{$u} * 0.3);
+
+  i {
+    flex: 0 0 auto;
+    width: calc(#{$u} * 0.55);
+    height: calc(#{$u} * 0.55);
+    border: 1.5px solid rgba($edge-tint, 0.35);
+    border-radius: 3px;
+  }
+}
+
+.makers-visual__accounts {
+  @include panel;
+
+  display: grid;
+  padding: calc(#{$u} * 0.55);
+  gap: calc(#{$u} * 0.35);
+}
+
+.makers-visual__accounts-title {
+  @include heading;
+}
+
+.makers-visual__account {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: calc(#{$u} * 0.35);
+
+  i {
+    width: calc(#{$u} * 0.4);
+    height: calc(#{$u} * 0.4);
+    margin-top: calc(#{$u} * 0.2);
+    border-radius: 50%;
+    background: $neon-lime;
+    box-shadow: 0 0 8px color-mix(in srgb, $neon-lime 60%, transparent);
+  }
+
+  span {
+    display: grid;
+    min-width: 0;
+    gap: calc(#{$u} * 0.08);
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.7);
+    font-weight: $weight-semibold;
+  }
+
+  small {
+    color: $text-faint;
+    font-size: calc(#{$u} * 0.6);
+    line-height: 1.35;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The Code tab: every file, folded, and one open.
+
+.code-visual {
+  @include picture(30);
+  @include panel;
+  @include framed;
+
+  padding: calc(#{$u} * 0.6);
+  background: color-mix(in srgb, $surface-menu 92%, $black);
+  gap: calc(#{$u} * 0.45);
+}
+
+.code-visual__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(#{$u} * 0.35);
+
+  strong {
+    margin-right: auto;
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.76);
+    font-weight: $weight-bold;
+  }
+}
+
+.code-visual__watching {
+  display: inline-flex;
+  align-items: center;
+  color: $text-faint;
+  font-size: calc(#{$u} * 0.6);
+  gap: calc(#{$u} * 0.25);
+
+  i {
+    width: calc(#{$u} * 0.32);
+    height: calc(#{$u} * 0.32);
+    border-radius: 50%;
+    background: $neon-lime;
+  }
+}
+
+.code-visual__fold {
+  @include pill;
+
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.58);
+}
+
+.code-visual__files {
+  display: grid;
+  gap: calc(#{$u} * 0.2);
+}
+
+.code-visual__file {
+  overflow: hidden;
+  border: 1px solid rgba($edge-tint, 0.1);
+  border-radius: $radius-s;
+  background: $surface-control;
+
+  &.is-open {
+    border-color: color-mix(in srgb, $secondary-light 35%, transparent);
+  }
+}
+
+.code-visual__file-head {
+  display: flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.28) calc(#{$u} * 0.45);
+  gap: calc(#{$u} * 0.4);
+
+  small {
+    @include caption;
+
+    margin-left: auto;
+    white-space: nowrap;
+  }
+}
+
+.code-visual__chevron {
+  flex: 0 0 auto;
+  width: calc(#{$u} * 0.32);
+  height: calc(#{$u} * 0.32);
+  border-right: 1.5px solid $text-faint;
+  border-bottom: 1.5px solid $text-faint;
+  transform: rotate(-45deg);
+
+  .is-open & {
+    border-color: $secondary-light;
+    transform: rotate(45deg);
+  }
+}
+
+.code-visual__file-name {
+  min-width: 0;
+  overflow: hidden;
+  color: $text-primary;
+  font-family: $font-mono;
+  font-size: calc(#{$u} * 0.66);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.code-visual__code {
+  display: grid;
+  padding: calc(#{$u} * 0.2) 0 calc(#{$u} * 0.35);
+  border-top: 1px solid rgba($edge-tint, 0.08);
+  background: color-mix(in srgb, $black 35%, transparent);
+  font-family: $font-mono;
+  font-size: calc(#{$u} * 0.6);
+  line-height: 1.6;
+}
+
+.code-visual__line {
+  display: grid;
+  grid-template-columns: calc(#{$u} * 1.4) minmax(0, 1fr);
+  white-space: pre;
+
+  // The line the AI just changed, marked as Show changes marks one.
+  &.is-changed {
+    animation: code-visual-changed $loop ease-out infinite;
+    @include still;
+
+    @media (prefers-reduced-motion: reduce) {
+      background: color-mix(in srgb, $neon-lime 14%, transparent);
+    }
+  }
+}
+
+@keyframes code-visual-changed {
+  0%,
+  20% {
+    background: transparent;
+  }
+
+  32%,
+  90% {
+    background: color-mix(in srgb, $neon-lime 14%, transparent);
+  }
+
+  100% {
+    background: transparent;
+  }
+}
+
+.code-visual__number {
+  padding-right: calc(#{$u} * 0.4);
+  color: $text-dim;
+  text-align: right;
+}
+
+.code-visual__text {
+  overflow: hidden;
+  color: $text-muted;
+  text-overflow: ellipsis;
+}
+
+.code-visual__k {
+  color: $neon-purple;
+}
+
+.code-visual__n {
+  color: $secondary-light;
+}
+
+.code-visual__d {
+  color: $amber;
+}
+
+.code-visual__p {
+  color: $text-muted;
+}

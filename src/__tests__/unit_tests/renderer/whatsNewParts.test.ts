@@ -34,6 +34,10 @@ const VISUALS = [
   'studio-ai',
   'scene-controls',
   'scene-camera',
+  'studio-edit',
+  'studio-watch',
+  'studio-makers',
+  'studio-code',
 ];
 
 const VERSIONS = [
@@ -83,6 +87,14 @@ describe("What's New: the sound's and the visualizers'", () => {
     expect(featureTourFor('2.5.3')).toEqual(featureTourFor('2.5.0'));
   });
 
+  it('opens the Visualizers’ own on 2.5’s, in the order of the release', () => {
+    const visuals = slidesOfPart(featureTourFor('2.5.0'), 'visuals');
+    expect(
+      visuals.filter((slide) => slide.release === '2.5').map((s) => s.id),
+    ).toEqual(['studio-edit', 'studio-watch', 'studio-makers', 'studio-code']);
+    expect(visuals[0].id).toBe('studio-edit');
+  });
+
   it('keeps 2.4’s visualizers as new in the Visualizers’ own', () => {
     const visuals = slidesOfPart(featureTourFor('2.5.0'), 'visuals');
     expect(
@@ -101,8 +113,11 @@ describe("What's New: the sound's and the visualizers'", () => {
     expect(newInPart(featureTourFor('2.4.0'), 'visuals', '2.4.0')).toHaveLength(
       6,
     );
-    // 2.5 has no visualizer slide of its own yet: nothing to mark new.
-    expect(newInPart(featureTourFor('2.5.0'), 'visuals', '2.5.0')).toEqual([]);
+    expect(
+      newInPart(featureTourFor('2.5.0'), 'visuals', '2.5.0').map((s) => s.id),
+    ).toEqual(['studio-edit', 'studio-watch', 'studio-makers', 'studio-code']);
+    // The sound's 2.5 brings no feature slide: nothing new there.
+    expect(newInPart(featureTourFor('2.5.0'), 'sound', '2.5.0')).toEqual([]);
     expect(isVisualsNewsUnseen('2.4.0', true, null)).toBe(true);
     expect(isVisualsNewsUnseen('2.4.2', true, '2.4')).toBe(false);
     expect(isVisualsNewsUnseen('2.5.0', true, '2.4')).toBe(true);

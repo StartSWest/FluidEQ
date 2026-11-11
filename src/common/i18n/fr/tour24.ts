@@ -166,6 +166,93 @@ const tour24 = {
   'tour.level.how':
     'Un rack que vous avez déjà garde ses réglages jusqu’à ce que vous choisissiez de nouveau son préréglage d’usine sur la page DSP.',
   'tour.level.open': 'Ouvrir le DSP',
+
+  'tour.edit.kicker': 'STUDIO · MODE MODIFICATION',
+  'tour.edit.title': 'Déplacez les choses de votre scène à la main',
+  'tour.edit.subtitle': 'Déplacer, tourner, redimensionner, puis Enregistrer',
+  'tour.edit.lead':
+    'Appuyez sur Modifier sur la scène et choisissez n’importe quoi dans une scène 3D : une forme, une lumière, un modèle 3D ou un groupe.',
+  'tour.edit.point1':
+    'Déplacez-le, tournez-le ou redimensionnez-le avec ses poignées, avec Aimanter pour des pas d’un quart et des rotations de 15°. Solo le montre seul.',
+  'tour.edit.point2':
+    'Tout ce qui est dans la scène est dans une liste où vous pouvez chercher, masquer, verrouiller, renommer et grouper.',
+  'tour.edit.point3':
+    'Rien ne touche votre scène tant que vous n’appuyez pas sur Enregistrer. Abandonner jette les changements, Annuler et Rétablir les parcourent.',
+  'tour.edit.how':
+    'Ouvrez une scène 3D dans le Studio et appuyez sur Modifier sur sa scène.',
+  'tour.edit.open': 'Ouvrir Visualiseurs',
+  'tour.edit.imageAlt':
+    'Une scène sur la scène du Studio avec une forme choisie et ses poignées, les outils Déplacer, Tourner et Redimensionner au-dessus, et à côté la liste de ce qu’elle contient.',
+  'tour.watch.kicker': 'STUDIO · VOTRE IA',
+  'tour.watch.title': 'Une IA qui regarde votre scène bouger',
+  'tour.watch.subtitle':
+    'Des images au fil de la musique, trois vues, la chanson',
+  'tour.watch.lead':
+    'Votre IA ne juge plus une scène sur une seule image. Elle la regarde bouger et la vérifie comme un auditeur la verra.',
+  'tour.watch.point1':
+    'Quelques images au fil de la musique, côte à côte, pour voir dans quel sens une chose bouge et si elle bouge régulièrement.',
+  'tour.watch.point2':
+    'Le graphique normal, le graphique ultra-large et toute la colonne du lecteur compact au même instant, pour que rien ne soit coupé ni laissé noir.',
+  'tour.watch.point3':
+    'Six moments de la chanson de test, du silence au drop, pour vérifier que le drop se voit, et à quel point la nuit est sombre avec la Lumière du jour à 0.',
+  'tour.watch.how':
+    'Demandez un changement au chat de la scène. Il vérifie son travail ainsi à chaque fois.',
+  'tour.watch.open': 'Ouvrir Visualiseurs',
+  'tour.watch.imageAlt':
+    'Cinq images d’une scène au fil de la musique et sa façon de bouger, la scène dans les vues normale, ultra-large et du lecteur compact, et six moments de la chanson de test du silence au drop.',
+  'tour.watch.frames': 'Images au fil de la musique',
+  'tour.watch.moves': 'Bouge vers la droite, régulièrement',
+  'tour.watch.standard': 'Normale',
+  'tour.watch.song': 'Test avec la chanson',
+  'tour.watch.silence': 'Silence',
+  'tour.watch.verse': 'Couplet',
+  'tour.watch.build': 'Montée',
+  'tour.watch.drop': 'Drop',
+  'tour.watch.dropShows': 'Le drop se voit',
+  'tour.watch.night': 'Nuit : {value} % éclairée',
+  'tour.makers.kicker': 'STUDIO · IMAGES',
+  'tour.makers.title': 'Higgsfield à côté de GPT',
+  'tour.makers.subtitle': 'Vos propres outils, et le chat demande lequel',
+  'tour.makers.lead':
+    'Quand une scène a besoin d’une nouvelle image ou d’images d’animation, votre IA peut utiliser votre propre plugin GPT ou Higgsfield, tous deux dans votre propre Claude Code.',
+  'tour.makers.point1':
+    'Configurez Higgsfield depuis Comptes dans le chat : FluidEQ ajoute ses outils à votre Claude Code et ouvre sa connexion dans votre navigateur.',
+  'tour.makers.point2':
+    'Avec les deux, le chat demande lequel fait chaque image et peut retenir votre choix.',
+  'tour.makers.point3':
+    'Les deux sont à vous : FluidEQ n’en fournit aucun, ne garde aucune connexion et ne paie rien.',
+  'tour.makers.how':
+    'Ouvrez le chat d’une scène dans le Studio et appuyez sur Comptes.',
+  'tour.makers.open': 'Ouvrir Visualiseurs',
+  'tour.makers.imageAlt':
+    'Le chat d’une scène demandant si votre propre plugin GPT ou Higgsfield doit faire les images d’animation, à côté de la liste Comptes avec Claude, GPT et Higgsfield.',
+  'tour.makers.request': 'Fais nager le koï dans une animation',
+  'tour.code.kicker': 'STUDIO · CODE',
+  'tour.code.title': 'Chaque fichier de votre scène dans l’onglet Code',
+  'tour.code.subtitle': 'Shader, monde, matériaux, animations, notes',
+  'tour.code.lead':
+    'L’onglet Code montre toute la scène, pas seulement son shader : son paquet, son monde 3D et les matériaux qu’il nomme, ses animations et ses notes.',
+  'tour.code.point1':
+    'Chaque fichier se replie sur son nom et son nombre de lignes, et Tout déplier les ouvre ensemble.',
+  'tour.code.point2':
+    'Il suit les fichiers à mesure que votre IA les enregistre, et Voir les changements marque ce qui a changé.',
+  'tour.code.point3':
+    'Une planche d’images que votre IA a empaquetée comme simple image devient une vraie animation, dans l’onglet Animations.',
+  'tour.code.how':
+    'Ouvrez une scène dans le Studio et choisissez Code sous la scène.',
+  'tour.code.open': 'Ouvrir Visualiseurs',
+  'tour.code.imageAlt':
+    'L’onglet Code avec les fichiers de la scène repliés sur leurs noms et un matériau de son monde 3D ouvert.',
+  'tour.v25.also': 'Aussi dans la 2.5',
+  'tour.v25.recover':
+    'Un fond d’écran ou le lecteur compact répare une scène qui ne se construit pas depuis votre projet du Studio ou la copie de la Galerie.',
+  'tour.v25.never':
+    'Une scène qui ne joue pas n’est jamais remplacée par un autre style : le graphique dit pourquoi et propose Réessayer.',
+  'tour.v25.copy':
+    'La scène d’un autre membre ouverte dans le Studio est une copie verrouillée, et son chat demande avant chaque commande.',
+  'tour.v25.review':
+    'Une scène non approuvée montre la raison de la modération à côté de son nom.',
+  'tour.v25.publish': 'Plus de limite mensuelle pour publier.',
 } as const;
 
 export default tour24;

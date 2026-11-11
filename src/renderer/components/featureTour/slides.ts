@@ -61,6 +61,7 @@ import {
   StudioAiSlide,
 } from './release24';
 import SongLevelSlide from './release24Sound';
+import { CodeSlide, EditSlide, MakersSlide, WatchSlide } from './release25';
 import WalkthroughSlide, { WALKTHROUGH_FILM } from './WalkthroughSlide';
 
 /**
@@ -428,6 +429,42 @@ const SONG_LEVEL: TSlideEntry = {
   Body: SongLevelSlide,
 };
 
+/**
+ * 2.5's visualizers, all of them in the Visualizers' own What's New: Edit
+ * mode, the AI that watches a scene, Higgsfield beside GPT and the Code tab,
+ * with the rest of the release listed under the last.
+ */
+const RELEASE_25: TSlideEntry[] = [
+  {
+    id: 'studio-edit',
+    part: 'visuals',
+    titleKey: 'tour.edit.title',
+    subtitleKey: 'tour.edit.subtitle',
+    Body: EditSlide,
+  },
+  {
+    id: 'studio-watch',
+    part: 'visuals',
+    titleKey: 'tour.watch.title',
+    subtitleKey: 'tour.watch.subtitle',
+    Body: WatchSlide,
+  },
+  {
+    id: 'studio-makers',
+    part: 'visuals',
+    titleKey: 'tour.makers.title',
+    subtitleKey: 'tour.makers.subtitle',
+    Body: MakersSlide,
+  },
+  {
+    id: 'studio-code',
+    part: 'visuals',
+    titleKey: 'tour.code.title',
+    subtitleKey: 'tour.code.subtitle',
+    Body: CodeSlide,
+  },
+];
+
 const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
   entries.map((entry) => ({ ...entry, release }));
 
@@ -446,8 +483,10 @@ const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
 const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
   // 2.5 brings the sound no feature of its own (its notes list the fixes),
   // so the sound's What's New opens on 2.4's sound, never shown as a slide
-  // before; the Visualizers' What's New keeps 2.4 as new under its number.
+  // before; the Visualizers' opens on 2.5's own and keeps 2.4 as new under
+  // its number.
   '2.5': [
+    ...announced('2.5', RELEASE_25),
     ...announced('2.4', [SONG_LEVEL]),
     ...announced('2.4', RELEASE_24),
     // Earlier features remain discoverable without being announced again.
