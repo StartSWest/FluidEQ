@@ -35,6 +35,12 @@ import type {
   TSaveGalleryVersion,
   TTakedownCost,
 } from '../common/plusGallery';
+import type {
+  ISignedEditionStatus,
+  TEditionDownload,
+  TEditionLinkFinish,
+  TEditionLinkStart,
+} from '../common/signedEdition';
 import type { IGalleryClip } from './plus/galleryClip';
 import type { TPlusProfileResult } from './ipc/plusProfile';
 import type { IPlusProfile } from '../common/plusProfile';
@@ -179,6 +185,25 @@ const sceneTakedownCost = (sceneId: string) =>
     sceneId,
   ) as Promise<TTakedownCost>;
 
+// The Signed Edition (`ipc/signedEdition.ts`).
+const signedEditionStatus = () =>
+  ipcRenderer.invoke('signed-edition-status') as Promise<ISignedEditionStatus>;
+const signedEditionDownload = () =>
+  ipcRenderer.invoke('signed-edition-download') as Promise<TEditionDownload>;
+const signedEditionBuy = () =>
+  ipcRenderer.invoke('signed-edition-buy') as Promise<boolean>;
+const signedEditionLinkStart = (email: string) =>
+  ipcRenderer.invoke(
+    'signed-edition-link-start',
+    email,
+  ) as Promise<TEditionLinkStart>;
+const signedEditionLinkFinish = (email: string, code: string) =>
+  ipcRenderer.invoke(
+    'signed-edition-link-finish',
+    email,
+    code,
+  ) as Promise<TEditionLinkFinish>;
+
 // The member's name on the board and in the gallery: read it, choose it, or
 // change it. A result rather than a throw, so "that handle is taken" survives
 // the bridge.
@@ -209,6 +234,11 @@ const plusBridge = {
   publishedStudioSettings,
   unpublishScene,
   sceneTakedownCost,
+  signedEditionStatus,
+  signedEditionDownload,
+  signedEditionBuy,
+  signedEditionLinkStart,
+  signedEditionLinkFinish,
   plusProfile,
   plusCreateProfile,
   plusUpdateProfile,

@@ -264,9 +264,13 @@ const didRestartForUnattendedUpdate = consumeUnattendedRestart(
  */
 const startedInTray = process.argv.includes(START_IN_TRAY_ARG);
 
+// The account is set up further down; the updater asks for its token only
+// when it checks, long after.
+let accountUpdateToken: (() => Promise<string>) | undefined;
 const updates = createAppUpdates({
   getMainWindow,
   unattendedRestartMarkerPath: UNATTENDED_RESTART_MARKER_PATH,
+  getUpdateToken: async () => (await accountUpdateToken?.()) ?? '',
 });
 
 const placement = createWindowPlacement({
@@ -736,6 +740,7 @@ const members = registerMemberServices({
   getMainWindow,
   userDataDir,
 });
+accountUpdateToken = members.updateToken;
 
 // The tools menu's animations row: the saved choice, and the one this launch
 // was started with, so the row can say when a restart is still owed.
