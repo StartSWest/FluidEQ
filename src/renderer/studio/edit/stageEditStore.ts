@@ -728,13 +728,27 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       if (!base) {
         return;
       }
-      // Where the camera on screen is looking - the Studio's own while it is
-      // looked around with, the scene's otherwise - so the new thing is seen.
-      // At the world's middle it stood wherever the scene happened to have
-      // put something: a ball added to a lake scene came up inside the boat.
-      const at = (state.freeView ? view : sceneView)?.target ?? NO_MOVE;
       const now = drafted(base, made.flat());
-      const count = (now.ok ? now.pack : base).world?.nodes.length ?? 0;
+      const { world } = now.ok ? now.pack : base;
+      const count = world?.nodes.length ?? 0;
+      // Where the camera on screen is looking, so the new thing is seen. At
+      // the world's middle it stood wherever the scene happened to have put
+      // something: a ball added to a lake scene came up inside the boat.
+      //
+      // Looked around with, that is what the Studio's camera turns about.
+      // Otherwise what the scene's own camera is aimed at, which is its
+      // subject and at the subject's distance - when the file says it in
+      // plain numbers. Where it is a formula, the point the scene last
+      // reported ahead of its camera, which is on the line of sight and ten
+      // units along it whatever the scene's size.
+      const aimed = world?.camera.target;
+      const subject =
+        aimed && aimed.every((part) => typeof part === 'number')
+          ? (aimed as readonly number[])
+          : undefined;
+      const at =
+        (state.freeView ? view?.target : (subject ?? sceneView?.target)) ??
+        NO_MOVE;
       if (
         act([
           { kind: 'add', shape, name, at: [...at] as [number, number, number] },

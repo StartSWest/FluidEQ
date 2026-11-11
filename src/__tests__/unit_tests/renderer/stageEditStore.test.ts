@@ -290,19 +290,49 @@ const heard = (
 
 // Found driving the buttons nobody had pressed, 2026-11-11.
 describe('a new thing', () => {
-  it('is added where the camera on screen is looking, so it can be seen', () => {
-    const { store, pack } = setUp();
-    store.heard(heard([]));
+  /** A store on `RAW` as a scene whose camera is aimed at `target`. */
+  const lookingAt = (target: unknown) => {
+    const store = createStageEdit({
+      save: async () => ({ ok: true, changed: false }),
+    });
+    const pack = packOf({
+      ...RAW,
+      camera: { position: [0, 2, 10], target },
+    });
+    store.setPack(pack);
+    store.setOn(true);
+    return { store, pack };
+  };
+
+  it("is added at what the scene's camera is aimed at, so it can be seen", () => {
+    const { store, pack } = lookingAt([0, 1.5, -2]);
+    // The point the scene reports ahead of its camera is not asked for.
+    store.heard(heard([], [9, 9, 9]));
     store.add('ball', 'Ball');
     const nodes = store.draft(pack).world?.nodes ?? [];
     expect(nodes).toHaveLength(4);
-    expect(nodes[3]).toMatchObject({ name: 'Ball', position: [0, 1.2, 0] });
+    expect(nodes[3]).toMatchObject({ name: 'Ball', position: [0, 1.5, -2] });
     // And it is what is picked.
     expect(store.state().selected).toEqual([[3]]);
   });
 
-  it('is added at the middle of the world before the scene has said where it looks', () => {
-    const { store, pack } = setUp();
+  it('is added ahead of the camera where its aim is a formula', () => {
+    const { store, pack } = lookingAt(['sin(time)', 1, 0]);
+    store.heard(heard([], [0, 1.2, 0]));
+    store.add('ball', 'Ball');
+    expect(placeOf(store.draft(pack), 3)).toEqual([0, 1.2, 0]);
+  });
+
+  it("is added at what the Studio's own camera turns about, while that is the one on screen", () => {
+    const { store, pack } = lookingAt([0, 1.5, -2]);
+    store.heard(heard([], [3, 1, 0]));
+    store.setFreeView(true);
+    store.add('ball', 'Ball');
+    expect(placeOf(store.draft(pack), 3)).toEqual([3, 1, 0]);
+  });
+
+  it('is added at the middle of the world when nothing says where the camera looks', () => {
+    const { store, pack } = lookingAt(['sin(time)', 1, 0]);
     store.add('ball', 'Ball');
     expect(placeOf(store.draft(pack), 3)).toEqual([0, 0, 0]);
   });
