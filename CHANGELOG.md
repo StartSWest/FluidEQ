@@ -6,6 +6,43 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 
 ---
 
+## 2.4.1
+
+- **Your own scenes play on the graph again.** A scene with a colour palette
+  or a colour control lost them when it went into your looks (Add to my
+  looks, publishing, or the Gallery's Add), and the graph went back to a
+  standard look. Fixed, and the copies you already have heal by themselves:
+  nothing to publish again. A scene made a Studio project again keeps its
+  palettes and colours too.
+- **A scene that will not play is never swapped for another look.** A save
+  that would lose anything is refused and the copy you had is kept. A scene
+  that will not build is put right by itself from your Studio project or the
+  Gallery's copy; if it cannot be, the graph says why and offers **Try
+  again**. What went wrong is written to the log, and **Help → Report a
+  problem** carries it.
+- **Every scene is drawn the same way.** The brightness limiter no longer
+  blends any scene's picture on screen.
+- **Your own scene is yours on every computer** you sign in on, not only the
+  one it was built on.
+- **Studio: Edit mode.** **Edit** on the stage lets you pick the things in a
+  3D scene and **Move**, **Turn** or **Resize** them by hand, look at one
+  alone with **Solo**, and find any of them in the list of what is in the
+  scene. Nothing is saved until you press **Save**; **Discard**, Undo and
+  Redo are there, and the scene stands back on a grid while you edit.
+- **Studio: clearer answers.** **Put on desktop** says why it is off for a
+  scene that does not play, and every way setting a desktop background or
+  keeping a version can fail now says so on screen.
+- **Studio: tabs.** The Animations tab stays where you scroll it while an
+  animation plays, with the way back always in reach, and the Pictures tab
+  shows a scene's separate images straight away.
+- **Studio: scenes from outside FluidEQ.** A scene that came from somewhere
+  else asks before every command its chat runs until you press **I trust
+  this scene**. Your own scenes never ask this.
+- **No monthly limit on publishing.**
+- **An output that lost its profile gets one back**, and you are told once.
+- **Processes** shows the Windows audio service's processor use correctly.
+- The media helper no longer crashes when a player closes.
+
 ## 2.4.0
 
 FluidEQ 2.4 is the Studio's biggest release yet. The pictures in a scene
