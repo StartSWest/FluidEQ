@@ -38,6 +38,12 @@ link brings you here. **Help → What's new** opens the tour again any time; **H
 - **Studio: scenes from outside FluidEQ.** A scene that came from somewhere
   else asks before every command its chat runs until you press **I trust
   this scene**. Your own scenes never ask this.
+- **Studio: a scene that was not approved says why.** An amber mark stands
+  beside the scene's name, in the project list and under Your scenes. Point
+  at it or press it for the reviewer's reason in full, the date and what to
+  do next: fix it and publish it again. It stays until you send the scene
+  again, a scene waiting for review shows a clock, and a decision shows the
+  next time FluidEQ checks.
 - **No monthly limit on publishing.**
 - **An output that lost its profile gets one back**, and you are told once.
 - **Processes** shows the Windows audio service's processor use correctly.
