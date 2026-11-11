@@ -30,7 +30,10 @@ import {
 } from '../../../common/scenePacks';
 import storedScenePack from '../../../common/sceneStoredPack';
 import { createVersionPins } from '../../../main/keptVersions';
+import { readProject } from '../../../main/memberScenes/project';
+import { writeRestoredProject } from '../../../main/memberScenes/projectRestore';
 import { createMemberSceneStore } from '../../../main/memberScenes/store';
+import { createSceneBuilds } from '../../../main/sceneBuilds';
 import { createScenePackStore } from '../../../main/scenePackStore';
 import { trustScenePackKeyForTesting } from '../../../main/scenePackVerify';
 import { EVERY_PACK_FIELD, everyFieldPack } from '../../utils/everyFieldScene';
@@ -183,6 +186,33 @@ describe('every field survives', () => {
       },
     ]);
     expectSame(createScenePackStore({ userDataDir: root }).load(pack.id), pack);
+  });
+
+  it('the last build of a look, kept for a version that will not build', () => {
+    expect.hasAssertions();
+    const pack = everyFieldPack();
+    const lookId = memberLookId(ME, pack.id);
+    const open = () =>
+      createSceneBuilds({
+        dir: path.join(root, 'scene-builds'),
+        loadScene: () => ({ pack, madeBy: 'listener' as const }),
+      });
+    open().drawn(lookId, pack);
+    // Read from disk by a FluidEQ started afterwards.
+    expectSame(open().lastBuilt(lookId), pack);
+  });
+
+  it("the maker's own scene made a Studio project again, and built from its folder", async () => {
+    expect.hasAssertions();
+    const pack = everyFieldPack();
+    const made = await writeRestoredProject(
+      path.join(root, 'FluidEQ Studio'),
+      'Every Field',
+      pack,
+    );
+    expect(made.ok).toBe(true);
+    const build = made.ok ? await readProject(made.folder) : undefined;
+    expectSame(build?.ok ? build.pack : undefined, pack);
   });
 });
 

@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { MAX_MEMBER_NAME_LENGTH } from '../../common/memberScenes';
 import type { IScenePack } from '../../common/scenePacks';
+import storedScenePack from '../../common/sceneStoredPack';
 import type { ISceneWorld } from '../../common/sceneWorld';
 import { folderNameFor } from './projectFolders';
 import { MANIFEST_FILE, readManifest } from './projectFiles';
@@ -41,7 +42,12 @@ export const restoredManifest = (pack: IScenePack) =>
       fallbackStyle: pack.fallbackStyle,
       swatch: pack.swatch,
       sourceFile: RESTORED_SOURCE_FILE,
-      params: pack.params,
+      // Every control, in the layout a project's `pack.json` keeps them:
+      // the palettes, the single colours and a choice's `type` live among
+      // `params` there (`storedScenePack`). Written as the built pack holds
+      // them, a restored scene came back without its palettes and colours,
+      // and its shader named uniforms the folder no longer declared.
+      params: storedScenePack(pack).params,
       ...(pack.artwork
         ? {
             artworkFile: RESTORED_ARTWORK_FILE,
