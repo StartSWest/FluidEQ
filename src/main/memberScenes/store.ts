@@ -18,6 +18,7 @@ import {
 import storedScenePack, { storedFormOf } from '../../common/sceneStoredPack';
 import type { ISceneWave } from '../../common/sceneWave';
 import { verifyMemberSceneEnvelope } from '../scenePackVerify';
+import writeFileAtomically from '../atomicWrite';
 import { readSceneCache, writeSceneCache } from '../sceneCacheFile';
 import {
   forgetKeptVersions,
@@ -254,6 +255,44 @@ export const createMemberSceneStore = ({
     );
   };
 
+  /**
+   * Writes a scene's file and holds the write to what was meant (Ivan,
+   * 2026-11-11: "we cannot have missing data"): the copy is read back
+   * through the very reader the looks use, and unless the scene that comes
+   * back is the scene being saved, field for field, the file is put back as
+   * it was and the save fails, loudly. A poorer copy is never left in the
+   * place of a good one: that is how a palette scene went on playing as a
+   * standard look with nothing saying why.
+   */
+  const writeWhole = (
+    file: string,
+    meant: IScenePack,
+    write: () => void,
+    readBack: () => IScenePack | undefined,
+  ) => {
+    let before: Buffer | undefined;
+    try {
+      before = fs.readFileSync(file);
+    } catch {
+      before = undefined;
+    }
+    write();
+    const back = readBack();
+    if (back && JSON.stringify(back) === JSON.stringify(meant)) {
+      return;
+    }
+    if (before) {
+      writeFileAtomically(file, before);
+    } else {
+      fs.rmSync(file, { force: true });
+    }
+    summaries.forget(file);
+    logger?.warn(
+      `Scene ${meant.id} v${meant.version} did not read back as it was saved; the copy before it was kept.`,
+    );
+    throw new Error('The scene did not read back as it was saved.');
+  };
+
   /** The version a look is pinned to, while this computer still has it. */
   const pinnedOf = (authorId: string, packId: string): number | undefined => {
     const version = pins?.pinned(memberLookId(authorId, packId));
@@ -354,15 +393,21 @@ export const createMemberSceneStore = ({
         );
       }
       summaries.forget(ownFile(authorId, pack.id));
-      writeSceneCache(
+      writeWhole(
         ownFile(authorId, pack.id),
-        `own/${authorId}/${pack.id}`,
-        {
-          schema: RECORD_SCHEMA,
-          authorId,
-          savedAt: new Date().toISOString(),
-          pack: storedScenePack(checked.pack),
-        },
+        checked.pack,
+        () =>
+          writeSceneCache(
+            ownFile(authorId, pack.id),
+            `own/${authorId}/${pack.id}`,
+            {
+              schema: RECORD_SCHEMA,
+              authorId,
+              savedAt: new Date().toISOString(),
+              pack: storedScenePack(checked.pack),
+            },
+          ),
+        () => readOwn(authorId, pack.id),
       );
       return summarise(authorId, checked.pack);
     },
@@ -383,10 +428,16 @@ export const createMemberSceneStore = ({
         importedFile(author.id, pack.id),
         current && current.version < pack.version ? current.version : undefined,
         () =>
-          writeSceneCache(
+          writeWhole(
             importedFile(author.id, pack.id),
-            `imported/${author.id}/${pack.id}`,
-            envelope,
+            pack,
+            () =>
+              writeSceneCache(
+                importedFile(author.id, pack.id),
+                `imported/${author.id}/${pack.id}`,
+                envelope,
+              ),
+            () => readImported(author.id, pack.id)?.pack,
           ),
       );
       return summarise(author.id, pack, { authorName: author.name });
