@@ -114,10 +114,13 @@ it('opens no desktop for a scene that could not be kept, and says why', async ()
     await settle();
   }
   expect(openWallpaperDialog).not.toHaveBeenCalled();
+  // Each in its own words: a version that does not play is "can be added
+  // once it plays"; a main that could not be asked at all is a save that
+  // failed, never a scene that does not play (`useStudioKeep`).
   expect(notify.mock.calls.map(([notice]) => notice.key)).toEqual([
     'studio.inspect.locked',
     'studio.notice.addFailed',
-    'studio.notice.addFailed',
+    'studio.notice.saveFailed',
   ]);
   expect(hook.result.current.settingDesktop).toBe(false);
 });
