@@ -80,8 +80,8 @@ const registerDiagnosticsIpc = ({
     const channel = ChannelEnum.GATHER_BUG_REPORT;
     try {
       // What each page and look cost since the last report, written where
-      // the logs this report collects will find it.
-      writePerformanceReport();
+      // the logs this report collects will find it — before they are read.
+      await writePerformanceReport();
       const facts = await gatherBugReportFacts(getEngine(), userDataDir);
       event.reply(channel, { result: facts });
     } catch (e) {

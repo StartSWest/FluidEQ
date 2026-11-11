@@ -70,8 +70,11 @@ export interface IProcessIpcDeps {
   getNativeHostStats: () => IHostStats | undefined;
   /** Dynamic lighting's helper, only while it runs. */
   getLightingHelperPid?: () => number | undefined;
-  /** The processes the FluidEQ Engine runs in, once each, as it measured them. */
-  getSystemEngineProcesses?: () => IEngineProcessStats[];
+  /**
+   * The processes the FluidEQ Engine runs in, once each, as each measures
+   * itself when asked (`measureEngineProcesses`).
+   */
+  measureSystemEngineProcesses?: () => Promise<IEngineProcessStats[]>;
   /**
    * Private memory and CPU time for every row, and the programs the app
    * started that nothing else lists (`processMeter.ts`).
@@ -107,7 +110,10 @@ const desktopVisualizerPids = (): Set<number> =>
 
 export const registerProcessIpc = (
   deps: IProcessIpcDeps,
-): { listQuietly: () => IAppProcess[] } => {
+): {
+  listQuietly: () => Promise<IAppProcess[]>;
+  listWithoutAsking: () => IAppProcess[];
+} => {
   // The meter runs while the list is open, and only then: the list says when
   // it closes, and a window that reloads or goes away has closed it too.
   const stopMeter = () => deps.meter?.stop();
@@ -125,8 +131,9 @@ export const registerProcessIpc = (
   // Every process Electron and the engines report on, read without the meter:
   // what the list starts from, and what the performance log reads each time
   // the screen changes (`performanceLog.ts`), where starting the meter would
-  // cost more than what it measures.
-  const listQuietly = () => {
+  // cost more than what it measures. The engines' own processes are handed
+  // in, measured by the caller.
+  const collect = (systemEngines: readonly IEngineProcessStats[]) => {
     const window = deps.getMainWindow();
     const context = {
       appWindowPid: processIdOf(window?.webContents),
@@ -180,7 +187,7 @@ export const registerProcessIpc = (
       rows.push({ pid: lightingPid, role: 'lighting' });
     }
 
-    deps.getSystemEngineProcesses?.().forEach((engine) => {
+    systemEngines.forEach((engine) => {
       rows.push({
         pid: engine.pid,
         role: 'systemEngine',
@@ -204,8 +211,13 @@ export const registerProcessIpc = (
     return { window, listed, unique };
   };
 
+  // The audio service asked now, so its running total is today's and not the
+  // one it gave the time before (`measureEngineProcesses`).
+  const listQuietly = async () =>
+    collect((await deps.measureSystemEngineProcesses?.()) ?? []);
+
   ipcMain.handle('app-processes', async (): Promise<IAppProcess[]> => {
-    const { window, listed, unique } = listQuietly();
+    const { window, listed, unique } = await listQuietly();
     watchWindow(window);
     // The LAN audio helper starts the capture helpers itself, as its own
     // children — that is how the capture sent to another computer leaves
@@ -240,5 +252,11 @@ export const registerProcessIpc = (
     }
   });
   app.on('will-quit', stopMeter);
-  return { listQuietly: () => listQuietly().unique };
+  return {
+    listQuietly: async () => (await listQuietly()).unique,
+    // For a moment nothing can be waited on (the app quitting): the audio
+    // service is left out rather than given an old total, so the performance
+    // log keeps its count and books it nothing it cannot vouch for.
+    listWithoutAsking: () => collect([]).unique,
+  };
 };

@@ -29,7 +29,8 @@ export interface IEngineProcessStats {
   cpuSeconds: number;
 }
 
-type TCommand = 1 | 2 | 3;
+/** A frame (1) or the preamp (2); the stats request (3) has its own slot. */
+type TCommand = 1 | 2;
 
 interface ISource {
   socket: net.Socket;
@@ -45,31 +46,18 @@ interface ISource {
   /** Said by the handshake: this engine answers the process-stats request. */
   supportsStats?: boolean;
   statsPending?: boolean;
-  stats?: IEngineProcessStats;
+  /** Stats asked for while another request was on the wire. */
+  statsQueued?: boolean;
+  /** Everyone waiting for this connection's next stats answer. */
+  statsWaiters: ((stats: IEngineProcessStats | undefined) => void)[];
   queued?: TCommand;
 }
 
-/** Every engine connection: the DSP page reads them, and `readEngineProcesses`. */
+/** Every engine connection: the DSP page reads them, and `measureEngineProcesses`. */
 const sources = new Set<ISource>();
 
-const requestFrame = (source: ISource, command: TCommand) => {
-  if (source.pending) {
-    let inFlight: TCommand = 1;
-    if (source.preampPending) {
-      inFlight = 2;
-    } else if (source.statsPending) {
-      inFlight = 3;
-    }
-    // Stats never displace a frame or a preamp already waiting: the DSP page
-    // reads those, and the Processes list will simply ask again.
-    if (
-      inFlight !== command &&
-      (command !== 3 || source.queued === undefined)
-    ) {
-      source.queued = command;
-    }
-    return;
-  }
+/** One request on the wire; each connection carries one at a time. */
+const send = (source: ISource, command: TCommand | 3) => {
   source.pending = true;
   source.preampPending = command === 2;
   source.statsPending = command === 3;
@@ -79,9 +67,51 @@ const requestFrame = (source: ISource, command: TCommand) => {
   source.socket.write(Buffer.from([command]));
 };
 
+const requestFrame = (source: ISource, command: TCommand) => {
+  if (source.pending) {
+    const inFlight = source.preampPending ? 2 : 1;
+    if (source.statsPending || inFlight !== command) {
+      source.queued = command;
+    }
+    return;
+  }
+  send(source, command);
+};
+
 /**
- * The processes the FluidEQ Engine is running in, one entry per process, and
- * a fresh measurement asked of each for next time.
+ * Asked in a slot of its own, so a frame or a preamp request already waiting
+ * can never push it out. It used to share their one slot and was simply not
+ * sent when the DSP page had a frame queued, which left whoever was waiting
+ * on the number with the answer to some earlier question.
+ */
+const requestStats = (source: ISource) => {
+  if (source.statsPending || source.statsQueued) {
+    return;
+  }
+  if (source.pending) {
+    source.statsQueued = true;
+    return;
+  }
+  send(source, 3);
+};
+
+/**
+ * What the processes the FluidEQ Engine runs in have cost up to now, one
+ * entry per process, answered by each of them when asked.
+ *
+ * NOW, NOT AT THE PREVIOUS QUESTION. This used to hand back whatever the
+ * engine had said the last time it was asked and ask again for next time, so
+ * every reading of audiodg's processor time was the one taken at the reading
+ * before. The performance log books the difference between two readings to
+ * what was on screen between them, which put each stretch's audio service
+ * time in the stretch after it: in a 2.4.0 report a 168.9-minute stretch with
+ * music playing showed none at all, and the 0.6 minutes after it 1862% of one
+ * core — the whole 168.9 minutes, divided by 36 seconds. Over the report as a
+ * whole audiodg had used about a quarter of a core.
+ *
+ * The engine answers on its own thread from lock-free meter reads
+ * (`analysis_link.cpp`), so the wait is milliseconds; a connection that
+ * closes answers with nothing and is left out.
  *
  * Every output the engine runs on holds a connection, and on an ordinary
  * machine they all live in the one audiodg.exe — so the answers are keyed by
@@ -89,22 +119,38 @@ const requestFrame = (source: ISource, command: TCommand) => {
  * added to the total, once per output. Only a connection whose handshake said
  * it can answer is asked: an older engine reads the question as "meters off"
  * and never replies, which would hold that connection's one request slot —
- * the DSP page's measurements with it — for good.
+ * the DSP page's measurements with it — and this wait, for good.
  */
-export const readEngineProcesses = (): IEngineProcessStats[] => {
+export const measureEngineProcesses = async (): Promise<
+  IEngineProcessStats[]
+> => {
+  const answers = await Promise.all(
+    [...sources]
+      .filter((source) => source.endpoint !== undefined && source.supportsStats)
+      .map(
+        (source) =>
+          new Promise<IEngineProcessStats | undefined>((resolve) => {
+            source.statsWaiters.push(resolve);
+            requestStats(source);
+          }),
+      ),
+  );
   const byPid = new Map<number, IEngineProcessStats>();
-  sources.forEach((source) => {
-    if (source.endpoint === undefined || !source.supportsStats) {
-      return;
-    }
-    const { stats } = source;
+  answers.forEach((stats) => {
     const known = stats ? byPid.get(stats.pid) : undefined;
     if (stats && (!known || stats.cpuSeconds > known.cpuSeconds)) {
       byPid.set(stats.pid, stats);
     }
-    requestFrame(source, 3);
   });
   return [...byPid.values()];
+};
+
+/** Hands one answer, or none, to everyone waiting on this connection. */
+const answerStats = (
+  source: ISource,
+  stats: IEngineProcessStats | undefined,
+) => {
+  source.statsWaiters.splice(0).forEach((resolve) => resolve(stats));
 };
 
 // Pull only while the DSP surface is painting. A single outstanding request
@@ -209,6 +255,7 @@ const startEngineAnalysisPipe = (
       pending: false,
       enabled: false,
       active: false,
+      statsWaiters: [],
     };
     sources.add(source);
     let buffered = Buffer.alloc(0);
@@ -286,10 +333,10 @@ const startEngineAnalysisPipe = (
             socket.destroy();
             return;
           }
-          source.stats = { pid, workingSetBytes, cpuSeconds };
           source.statsPending = false;
           source.pending = false;
           buffered = buffered.subarray(STATS_SIZE + 4);
+          answerStats(source, { pid, workingSetBytes, cpuSeconds });
         } else if (size === 0xffffffff && source.pending) {
           source.pending = false;
           source.active = false;
@@ -318,7 +365,12 @@ const startEngineAnalysisPipe = (
           }
           buffered = buffered.subarray(size + 4);
         }
-        if (!source.pending && source.queued) {
+        // Stats first: somebody is waiting on them, and a frame asked a
+        // millisecond later is still the DSP page's next frame.
+        if (!source.pending && source.statsQueued) {
+          source.statsQueued = false;
+          send(source, 3);
+        } else if (!source.pending && source.queued) {
           const command = source.queued;
           source.queued = undefined;
           requestFrame(source, command);
@@ -328,7 +380,10 @@ const startEngineAnalysisPipe = (
     socket.on('error', (error) => {
       log.warn('FluidEQ Engine display connection failed', error.message);
     });
-    socket.on('close', () => sources.delete(source));
+    socket.on('close', () => {
+      sources.delete(source);
+      answerStats(source, undefined);
+    });
   });
   return new Promise((resolve) => {
     server.on('error', (error) => {

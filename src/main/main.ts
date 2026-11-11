@@ -55,7 +55,7 @@ import { createSongProgramme } from './songProgramme';
 import { resetEngineAtSessionEnd, resetEngineForQuit } from './engineQuitReset';
 import { startEngineOwnerPipe } from './engineOwnerPipe';
 import startEngineAnalysisPipe, {
-  readEngineProcesses,
+  measureEngineProcesses,
 } from './engineAnalysisPipe';
 import { createProcessMeter } from './processMeter';
 import ChannelEnum from '../common/channels';
@@ -881,12 +881,13 @@ const processList = registerProcessIpc({
   getNativeHostPid: dspHostPid,
   getNativeHostStats: dspHostStats,
   getLightingHelperPid: () => lighting.helperPid(),
-  getSystemEngineProcesses: readEngineProcesses,
+  measureSystemEngineProcesses: measureEngineProcesses,
   meter: createProcessMeter(),
 });
 registerPerformanceLog({
   getMainWindow,
   listProcesses: processList.listQuietly,
+  listProcessesWithoutAsking: processList.listWithoutAsking,
 });
 
 const libraryIpc = registerLibraryIpc({
