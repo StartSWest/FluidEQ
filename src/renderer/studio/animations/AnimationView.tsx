@@ -74,11 +74,24 @@ export default function AnimationView({
     (a, b) => a - b,
   );
 
-  // The strip follows the frame, so the lit one is never scrolled off.
+  // The strip follows the frame, so the lit one is never scrolled off. Only
+  // the strip moves, sideways: `scrollIntoView` also scrolled the tab under
+  // it down to the strip on every frame, so while an animation played the
+  // top of the tab, with the way back, could not be reached (Ivan,
+  // 2026-11-10).
   useEffect(() => {
-    stripRef.current
-      ?.querySelector('[aria-current="true"]')
-      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    const strip = stripRef.current;
+    const cell = strip?.querySelector<HTMLElement>('[aria-current="true"]');
+    if (!strip || !cell) {
+      return;
+    }
+    const box = strip.getBoundingClientRect();
+    const lit = cell.getBoundingClientRect();
+    if (lit.left < box.left) {
+      strip.scrollLeft -= box.left - lit.left;
+    } else if (lit.right > box.right) {
+      strip.scrollLeft += lit.right - box.right;
+    }
   }, [frame]);
 
   return (

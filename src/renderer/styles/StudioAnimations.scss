@@ -372,12 +372,23 @@ it under the terms of the GNU General Public License version 3 or later.
   container: studio-animation / inline-size;
 }
 
+// Pinned to the top of the tab while the view under it scrolls, so the way
+// back is always in reach (Ivan, 2026-11-10: "never be able to reach the top
+// ... to go back"). Over the panel's own top padding, on a frosted floor, so
+// the stage does not show through the row.
 .studio-animation-opened__head {
+  position: sticky;
+  z-index: 2;
+  top: -12px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 12px;
   min-width: 0;
+  margin: -6px 0;
+  padding: 6px 0;
+  background: color-mix(in srgb, $surface-base 86%, transparent);
+  backdrop-filter: blur(12px);
 
   .button {
     gap: 4px;
