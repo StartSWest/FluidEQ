@@ -325,6 +325,10 @@ const NOT_SETTING_FILES = [
   // (`oldAnimatorChats.ts`).
   'allowed-tools.json',
   'retired-sessions.json',
+  // The settings file a chat in a scene from outside starts with, which
+  // puts every command and outside tool to the member (`chatLaunch.ts`):
+  // written by FluidEQ at each launch, never chosen by the member.
+  'careful-settings.json',
   // An animation's undo history inside its Studio project
   // (`animationHistory.ts`): the member's work, not a remembered choice.
   'state.json',

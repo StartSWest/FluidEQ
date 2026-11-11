@@ -107,6 +107,7 @@ import './StudioPictureLightbox.scss';
 import './StudioPictureCopy.scss';
 import './StudioAnimations.scss';
 import './StudioAnimationImport.scss';
+import './StudioEdit.scss';
 import './StudioAsk.scss';
 import './PaneResizer.scss';
 import './ColumnResizer.scss';
