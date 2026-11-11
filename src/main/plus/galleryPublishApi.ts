@@ -8,6 +8,7 @@ import type { TPlusCategory } from '../../common/plusGallery';
 import type { IScenePack } from '../../common/scenePacks';
 import storedScenePack from '../../common/sceneStoredPack';
 import { headers, type IAuthorised } from './galleryApi';
+import { previewPackSha256 } from './scenePreviewApi';
 
 /**
  * Publishing a member's scene and taking it down: one function on the server
@@ -57,6 +58,12 @@ export type TPublishFailure =
    * the gallery before the first wrote to it.
    */
   | 'version-not-raised'
+  /**
+   * The gallery read this scene differently from how it was built here, and
+   * kept nothing (`packSha256` below). Told apart from `refused`: nothing
+   * the Studio shows is wrong with the scene, and editing it will not help.
+   */
+  | 'pack-differs'
   /**
    * The admin took this scene down: it takes no new version, and comes back
    * only as it was, if the admin restores it (server migration 0038).
@@ -124,6 +131,9 @@ const publishFailure = async (response: Response): Promise<TPublishFailure> => {
   if (response.status === 422 && reason === 'too_many_scenes') {
     return 'too-many-scenes';
   }
+  if (response.status === 422 && reason === 'pack_differs') {
+    return 'pack-differs';
+  }
   if (response.status === 422 && reason === 'preview') {
     return 'preview-invalid';
   }
@@ -131,6 +141,22 @@ const publishFailure = async (response: Response): Promise<TPublishFailure> => {
     return 'refused';
   }
   return 'server';
+};
+
+/**
+ * Whether the gallery kept the scene that was meant: `same` by its own
+ * digest of what it kept; `unsaid` from a service before the check, which
+ * compared nothing; `differs` should be impossible, since a service that
+ * answers with a digest refuses the publication first, and is logged loudly.
+ */
+export type TKeptCopy = 'same' | 'differs' | 'unsaid';
+
+const keptCopyOf = (body: unknown, meant: string): TKeptCopy => {
+  const said = isRecord(body) ? body.packSha256 : undefined;
+  if (typeof said !== 'string') {
+    return 'unsaid';
+  }
+  return said === meant ? 'same' : 'differs';
 };
 
 const callPublish = async (
@@ -183,8 +209,13 @@ export const publishScene = async (
     previewUploadId?: string;
   },
 ): Promise<
-  { ok: true; review?: 'pending' } | { ok: false; reason: TPublishFailure }
+  | { ok: true; review?: 'pending'; kept: TKeptCopy }
+  | { ok: false; reason: TPublishFailure }
 > => {
+  // What this publication is meant to be, as the service will work it out
+  // from the scene it reads: it refuses when the two differ, before it signs
+  // or keeps anything, and answers a publication with what it kept.
+  const meant = previewPackSha256(pack);
   const response = await callPublish(auth, {
     action: 'publish',
     termsVersion,
@@ -192,6 +223,7 @@ export const publishScene = async (
     ...(category2 ? { category2 } : {}),
     // The service reads every control from `params` alone.
     pack: storedScenePack(pack),
+    packSha256: meant,
     picture,
     ...(note ? { note } : {}),
     ...(previewUploadId ? { previewUploadId } : {}),
@@ -214,16 +246,14 @@ export const publishScene = async (
     ) {
       return { ok: false, reason: 'preview-upload' };
     }
-    return typeof body === 'object' &&
-      body !== null &&
-      'review' in body &&
-      body.review === 'pending'
-      ? { ok: true, review: 'pending' }
-      : { ok: true };
+    const kept = keptCopyOf(body, meant);
+    return isRecord(body) && body.review === 'pending'
+      ? { ok: true, review: 'pending', kept }
+      : { ok: true, kept };
   } catch {
     return previewUploadId
       ? { ok: false, reason: 'preview-upload' }
-      : { ok: true };
+      : { ok: true, kept: 'unsaid' };
   }
 };
 

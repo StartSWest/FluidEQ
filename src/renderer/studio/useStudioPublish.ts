@@ -58,6 +58,7 @@ const PUBLISH_FAILURES: Record<string, TranslationKey> = {
   'no-picture': 'studio.publish.noPicture',
   'official-copy': 'studio.publish.officialCopy',
   'version-not-raised': 'studio.publish.versionTaken',
+  'pack-differs': 'studio.publish.packDiffers',
   'taken-down': 'studio.publish.takenDown',
   deleted: 'studio.publish.deleted',
   'inspect-only': 'studio.inspect.locked',

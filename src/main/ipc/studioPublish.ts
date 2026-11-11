@@ -385,6 +385,15 @@ export const registerStudioPublish = ({
       });
       timeline.phase('publish');
       attached = published.ok;
+      if (published.ok && published.kept !== 'same') {
+        // Never silent: a copy nobody compared, or one that differs, is in
+        // the log by name (a bug report carries it).
+        logger?.warn(
+          published.kept === 'differs'
+            ? `The gallery kept ${raised.pack.id} v${raised.pack.version} differently from how it was published.`
+            : `The gallery did not say what it kept of ${raised.pack.id} v${raised.pack.version}: it is a service from before the check.`,
+        );
+      }
       if (published.ok) {
         // The server recorded the agreement with the publication, for this
         // account; so is this.
@@ -405,7 +414,12 @@ export const registerStudioPublish = ({
           fetchOwnCopy(raised.pack.id, raised.pack.version);
         }
       }
-      return published;
+      if (!published.ok) {
+        return published;
+      }
+      return published.review === 'pending'
+        ? { ok: true, review: 'pending' }
+        : { ok: true };
     } finally {
       if (staged && !attached) {
         await discardScenePreview(staged.auth, staged.uploadId);

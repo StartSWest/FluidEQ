@@ -223,6 +223,8 @@ const studio = {
     '약관에 최신 버전이 있습니다. 읽고 게시하려면 FluidEQ를 업데이트하세요.',
   'studio.publish.versionTaken':
     '이 장면은 얼마 전 또 공개됐습니다. 한 번 더 시도하면 다음 버전으로 출시됩니다.',
+  'studio.publish.packDiffers':
+    '아무것도 게시되지 않았습니다. 갤러리가 이 장면을 여기서 재생되는 것과 다르게 읽었습니다. FluidEQ를 업데이트한 뒤 다시 게시해 주세요. 또 발생하면 버그 보고서를 보내 주세요.',
   'studio.publish.takenDown':
     'FluidEQ가 이 장면을 갤러리에서 내려왔으므로 새 버전을 사용할 수 없습니다. FluidEQ가 복원하는 경우에만 원래대로 돌아올 수 있습니다.',
   'studio.publish.deleted':

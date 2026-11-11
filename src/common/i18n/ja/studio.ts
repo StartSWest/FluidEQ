@@ -228,6 +228,8 @@ const studio = {
     '規約の新しいバージョンがあります。FluidEQ を更新して読んでから公開してください。',
   'studio.publish.versionTaken':
     'このシーンは少し前に再公開されました。もう一度お試しください。次のバージョンとして公開されます。',
+  'studio.publish.packDiffers':
+    '何も公開されませんでした。ギャラリーがこのシーンを、ここでの表示とは異なる内容で読み取りました。FluidEQ を更新してもう一度公開してください。再発する場合はバグレポートを送信してください。',
   'studio.publish.takenDown':
     'FluidEQ がこのシーンをギャラリーから取り下げたため、新しいバージョンは送れません。FluidEQ が復元した場合にのみ、元のまま戻ります。',
   'studio.publish.deleted':

@@ -232,6 +232,8 @@ const studio = {
     'The terms have a newer version. Update FluidEQ to read it and publish.',
   'studio.publish.versionTaken':
     'This scene was published again a moment ago. Try once more and it will go out as the next version.',
+  'studio.publish.packDiffers':
+    'Nothing was published: the gallery read this scene differently from how it plays here. Update FluidEQ and publish again; if it happens again, send a bug report.',
   'studio.publish.takenDown':
     "FluidEQ took this scene down from the gallery, so it can't take a new version. It can only come back as it was, if FluidEQ restores it.",
   'studio.publish.deleted':

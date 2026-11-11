@@ -22,6 +22,7 @@ import {
   publishScene,
   unpublishScene,
 } from '../../../main/plus/galleryPublishApi';
+import { previewPackSha256 } from '../../../main/plus/scenePreviewApi';
 import {
   fakeResponse,
   memberPack,
@@ -312,7 +313,10 @@ describe('publishing', () => {
     });
 
   it('says each refusal in its own word', async () => {
-    expect(await publish(200, { published: {} })).toEqual({ ok: true });
+    expect(await publish(200, { published: {} })).toEqual({
+      ok: true,
+      kept: 'unsaid',
+    });
     expect(await publish(409, { error: 'terms_outdated' })).toEqual({
       ok: false,
       reason: 'terms',
@@ -362,6 +366,49 @@ describe('publishing', () => {
     expect(await publish(409, { error: 'scene_deleted' })).toEqual({
       ok: false,
       reason: 'deleted',
+    });
+  });
+
+  // What the gallery kept is held against what was meant (Ivan, 2026-11-11:
+  // "we cannot have missing data on publish").
+  it('says what it means to publish, and reads what the gallery kept', async () => {
+    const meant = previewPackSha256(memberPack());
+    const fetchImpl = answering(
+      fakeResponse(200, { published: {}, packSha256: meant }),
+    );
+    const outcome = await publishScene(authWith(fetchImpl), {
+      termsVersion: 4,
+      category: 'cities',
+      pack: memberPack(),
+      picture: 'UklGRg==',
+    });
+    expect(outcome).toEqual({ ok: true, kept: 'same' });
+    const [, init] = fetchImpl.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(JSON.parse(String(init.body)).packSha256).toBe(meant);
+    expect(meant).toMatch(/^[0-9a-f]{64}$/);
+    // A service from before the check says nothing; one that kept another
+    // scene says so. Neither is taken for "same".
+    expect(await publish(200, { review: 'pending' })).toEqual({
+      ok: true,
+      review: 'pending',
+      kept: 'unsaid',
+    });
+    expect(
+      await publish(200, { published: {}, packSha256: '0'.repeat(64) }),
+    ).toEqual({ ok: true, kept: 'differs' });
+  });
+
+  it('tells a scene the gallery read differently apart from one it refused', async () => {
+    expect(
+      await publish(422, { error: 'refused', reason: 'pack_differs' }),
+    ).toEqual({ ok: false, reason: 'pack-differs' });
+    // The control: any other refusal of the scene is still "refused".
+    expect(await publish(422, { error: 'refused', reason: 'scene' })).toEqual({
+      ok: false,
+      reason: 'refused',
     });
   });
 

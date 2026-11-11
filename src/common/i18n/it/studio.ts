@@ -229,6 +229,8 @@ const studio = {
     'Le condizioni hanno una versione più recente. Aggiorna FluidEQ per leggerla e pubblicare.',
   'studio.publish.versionTaken':
     'Questa scena è stata pubblicata di nuovo poco fa. Riprova e uscirà come versione successiva.',
+  'studio.publish.packDiffers':
+    'Non è stato pubblicato nulla: la galleria ha letto questa scena in modo diverso da come appare qui. Aggiorna FluidEQ e pubblica di nuovo; se succede ancora, invia una segnalazione di bug.',
   'studio.publish.takenDown':
     'FluidEQ ha ritirato questa scena dalla galleria, quindi non accetta nuove versioni. Può tornare solo com’era, se FluidEQ la ripristina.',
   'studio.publish.deleted':

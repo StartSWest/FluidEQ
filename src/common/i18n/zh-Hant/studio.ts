@@ -204,6 +204,8 @@ const studio = {
     '這些條款有較新的版本。更新 FluidEQ 以閱讀並發布。',
   'studio.publish.versionTaken':
     '剛才這個場景又被發布了。再試一次，它將作為下一個版本發布。',
+  'studio.publish.packDiffers':
+    '沒有發布任何內容：相簿讀取到的場景與這裡播放的不一致。請更新 FluidEQ 後重新發布；如果再次發生，請傳送錯誤報告。',
   'studio.publish.takenDown':
     'FluidEQ 從相簿中刪除了該場景，因此無法採用新版本。只有 FluidEQ 恢復它，它才能恢復原樣。',
   'studio.publish.deleted':

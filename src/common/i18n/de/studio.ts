@@ -233,6 +233,8 @@ const studio = {
     'Die Bedingungen haben eine neuere Version. Aktualisieren Sie FluidEQ, um sie zu lesen und zu veröffentlichen.',
   'studio.publish.versionTaken':
     'Diese Szene wurde gerade eben erneut veröffentlicht. Versuchen Sie es noch einmal, dann geht sie als nächste Version hinaus.',
+  'studio.publish.packDiffers':
+    'Es wurde nichts veröffentlicht: Die Galerie hat diese Szene anders gelesen, als sie hier läuft. Aktualisieren Sie FluidEQ und veröffentlichen Sie erneut; wenn es wieder passiert, senden Sie einen Fehlerbericht.',
   'studio.publish.takenDown':
     'FluidEQ hat diese Szene aus der Galerie entfernt, daher nimmt sie keine neue Version an. Sie kann nur unverändert zurückkehren, wenn FluidEQ sie wiederherstellt.',
   'studio.publish.deleted':

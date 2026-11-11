@@ -203,6 +203,8 @@ const studio = {
   'studio.publish.outdated': '条款有更新的版本。请更新 FluidEQ 阅读后再发布。',
   'studio.publish.versionTaken':
     '这个场景刚刚又发布了一次。请再试一次，它会以下一个版本发布。',
+  'studio.publish.packDiffers':
+    '没有发布任何内容：图库读取到的场景与这里播放的不一致。请更新 FluidEQ 后重新发布；如果再次出现，请发送错误报告。',
   'studio.publish.takenDown':
     'FluidEQ 已将此场景从图库下架，因此不能提交新版本。只有 FluidEQ 恢复它时，它才能以原样回来。',
   'studio.publish.deleted':
