@@ -19,6 +19,7 @@ import type { TAgentProject } from '../studioAgent/agentProject';
 import { LOOK_SCHEMA } from '../studioAgent/lookRequest';
 import { VIEWS_SCHEMA } from '../studioAgent/viewsTool';
 import watchPictures from '../studioAgent/watchPictures';
+import { SONG_SCHEMA } from '../studioAgent/songTool';
 import { WATCH_SCHEMA } from '../studioAgent/watchTool';
 import type { IMcpTool } from '../studioAgent/mcpProtocol';
 import {
@@ -86,6 +87,14 @@ const WATCH_WITHOUT_FOLDER = {
   ),
 };
 
+/** And for the song watched. */
+const SONG_WITHOUT_FOLDER = {
+  ...SONG_SCHEMA,
+  properties: Object.fromEntries(
+    Object.entries(SONG_SCHEMA.properties).filter(([key]) => key !== 'folder'),
+  ),
+};
+
 /** The door's look, watch and hear, bound to the project in `folder`. */
 const ownLookTools = (door: IStudioLook, folder: string): IMcpTool[] =>
   createStudioTools({
@@ -99,6 +108,9 @@ const ownLookTools = (door: IStudioLook, folder: string): IMcpTool[] =>
     }
     if (tool.name === 'look_at_views') {
       return { ...tool, inputSchema: VIEWS_WITHOUT_FOLDER };
+    }
+    if (tool.name === 'watch_the_song') {
+      return { ...tool, inputSchema: SONG_WITHOUT_FOLDER };
     }
     return tool.name === 'watch_scene'
       ? { ...tool, inputSchema: WATCH_WITHOUT_FOLDER }

@@ -34,6 +34,12 @@ even where it should be even, moving at all. One picture never shows this.
 
 Watch it in silence too when it should rest: `sound: "silence"`.
 
+If the scene is new or rebuilt, or the change touched how it answers the
+music: `watch_the_song`, once, and read its **Song check**. It draws the
+scene at rest, in a plain bar, at the top of a build, as the drop lands and
+in the bar after. NOTHING ANSWERS THE MUSIC and THE DROP DOES NOT SHOW are
+not finished: with the sound off, someone must be able to point at the drop.
+
 ## 3. Animations
 
 A sheet of frames is an animation, never a picture. If you made or changed

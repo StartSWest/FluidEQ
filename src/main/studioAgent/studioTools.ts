@@ -20,6 +20,7 @@ import { HEAR_SCHEMA, readHearRequest } from './hearRequest';
 import { LOOK_SCHEMA, readLookRequest, type ILookRequest } from './lookRequest';
 import type { IMcpTool, IMcpToolResult } from './mcpProtocol';
 import { createViewsTool } from './viewsTool';
+import { createSongTool } from './songTool';
 import { createWatchTool, type IWatchPictures } from './watchTool';
 
 /**
@@ -441,6 +442,21 @@ export const createStudioTools = ({
     const decoded = pictures?.decode(outcome.answer.image);
     return decoded ? darkLevel(decoded) : undefined;
   };
+  /** What the tools that take several looks in a row need of one look. */
+  const framesOf = {
+    look,
+    ...(shapeNow ? { shapeNow } : {}),
+    pictureOf: (outcome: TLookOutcome) =>
+      outcome.ok ? outcome.answer.image : undefined,
+    explain: (outcome: TLookOutcome) =>
+      outcome.ok
+        ? failure('The scene could not be watched.')
+        : explain(outcome),
+    titleOf: (outcome: TLookOutcome) =>
+      outcome.ok
+        ? `${nameOf(outcome.pack)} (id ${outcome.pack.id}, version ${outcome.pack.version})`
+        : '',
+  };
   return [
     {
       name: 'look_at_scene',
@@ -498,21 +514,9 @@ export const createStudioTools = ({
     }),
     ...(pictures
       ? [
-          createWatchTool<TLookOutcome>({
-            look,
-            ...(shapeNow ? { shapeNow } : {}),
-            pictures,
-            pictureOf: (outcome) =>
-              outcome.ok ? outcome.answer.image : undefined,
-            explain: (outcome) =>
-              outcome.ok
-                ? failure('The scene could not be watched.')
-                : explain(outcome),
-            titleOf: (outcome) =>
-              outcome.ok
-                ? `${nameOf(outcome.pack)} (id ${outcome.pack.id}, version ${outcome.pack.version})`
-                : '',
-          }),
+          createWatchTool<TLookOutcome>({ ...framesOf, pictures }),
+          // The same frames at the moments a song is made of.
+          createSongTool<TLookOutcome>({ ...framesOf, pictures }),
         ]
       : []),
   ];

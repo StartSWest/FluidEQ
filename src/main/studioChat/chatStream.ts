@@ -85,6 +85,7 @@ const LOOK_TOOL = `mcp__${DOOR_SERVER}__look_at_scene`;
 /** A few looks in a row: the member sees it as the scene being looked at. */
 const WATCH_TOOL = `mcp__${DOOR_SERVER}__watch_scene`;
 const VIEWS_TOOL = `mcp__${DOOR_SERVER}__look_at_views`;
+const SONG_TOOL = `mcp__${DOOR_SERVER}__watch_the_song`;
 const HEAR_TOOL = `mcp__${DOOR_SERVER}__hear_the_music`;
 const PICTURE_TOOL = `mcp__${DOOR_SERVER}__make_picture`;
 const PACK_TOOL = `mcp__${DOOR_SERVER}__pack_artwork`;
@@ -117,7 +118,12 @@ export const stepOf = (
   name: string,
   input: unknown,
 ): IStudioChatStep => {
-  if (name === LOOK_TOOL || name === WATCH_TOOL || name === VIEWS_TOOL) {
+  if (
+    name === LOOK_TOOL ||
+    name === WATCH_TOOL ||
+    name === VIEWS_TOOL ||
+    name === SONG_TOOL
+  ) {
     return { id, kind: 'look', state: 'running' };
   }
   if (name === HEAR_TOOL) {

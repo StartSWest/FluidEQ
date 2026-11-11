@@ -102,6 +102,7 @@ const ALLOWED = [
   'Grep',
   `mcp__${DOOR_SERVER}__look_at_scene`,
   `mcp__${DOOR_SERVER}__watch_scene`,
+  `mcp__${DOOR_SERVER}__watch_the_song`,
   `mcp__${DOOR_SERVER}__look_at_views`,
   `mcp__${DOOR_SERVER}__hear_the_music`,
   `mcp__${DOOR_SERVER}__make_picture`,

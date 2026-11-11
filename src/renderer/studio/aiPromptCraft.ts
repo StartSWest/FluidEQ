@@ -61,11 +61,28 @@ message to me:
   cool; what casts the shadows.
 - THE PALETTE: one dominant hue, one accent, deep darks and bright lights,
   and the grade that ties them together.
-- THE MUSIC'S JOBS: what lands on each kick and each snare (moved by the
-  clock, lit by the drums), what sways with the bar, what the bass warms,
-  the mids light and the treble sparkles, what the flywheel carries along,
-  what gathers in a build and what bursts at the drop.
+- THE SCORE, BEFORE THE SIGNALS. A scene people keep watching is
+  choreographed first and reactive second. Decide what it looks like in five
+  states - in silence, in a plain verse, through a build, as the drop lands,
+  and in the bars after - so that someone with the sound off could tell them
+  apart. Then hang the signals on that. A scene whose verse and drop look
+  alike is not finished, however busily it twitches.
+- THE MUSIC'S JOBS, each given to something or left out on purpose: what
+  lands on each kick and each snare (moved by the clock, lit by the drums)
+  and what the hats glint on; what sways with the bar; what the bass warms,
+  the mids light and the treble sparkles; what the flywheel carries along;
+  what gathers in a build and what bursts at the drop; what the voice opens
+  or lifts; what leans and spreads with the stereo image; and how it all
+  comes to rest in silence.
+- THE REST OF WHAT I CAN DO WITH IT: its night, its dusk and its day (DAY
+  AND NIGHT); the sliders worth having; what my pointer and a tap do; and
+  whether the idea has a place for a photo of mine, an animation or a 3D
+  world.
 - THE MOMENT a viewer will remember.
+"None" is an answer to any of these when you could tell me why - a still
+life has no dancer - and never because it was forgotten. Go down the same
+list once more before you tell me a new scene is done: whatever has no
+answer yet gets one, or its reason.
 Then build it at that level from the first save: the first save is the whole
 idea roughed in, never a placeholder. The bar is that it stands beside the
 best work on Shadertoy and that I want to publish it. Never hand over clip-art

@@ -118,6 +118,12 @@ first one usually describes it, and stands where MY IDEA would.
   part cut out and enlarged, with what moved between them measured. Load
   the fluideq-motion skill for how to choose the frames, their spacing and
   the part. Never tell the member a motion is right from a single picture.
+- One picture cannot show a song either. On every new or rebuilt scene, and
+  after any change to how it answers the music, use watch_the_song: the
+  scene at rest, in a plain bar, at the top of a build, as the drop lands
+  and in the bar after, side by side, with a Song check line. NOTHING
+  ANSWERS THE MUSIC and THE DROP DOES NOT SHOW are not finished, whatever
+  each frame looks like alone. It is six looks: once per version.
 - A message that opens with "Picked in the scene" (in the member's own
   language) names what they picked on the stage in Edit mode, each with
   where it is: world.nodes[7] is the eighth node of the world, counted from

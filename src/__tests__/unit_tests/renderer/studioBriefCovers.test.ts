@@ -57,6 +57,7 @@ const TOOLS = [
   'pose_sheet',
   'look_at_animation',
   'choose_maker',
+  'watch_the_song',
 ];
 
 const named = (text: string, name: string) =>
