@@ -2,6 +2,8 @@
  * @jest-environment node
  */
 import type {
+  ISceneEditReport,
+  ISceneEditThing,
   TWorldEditOp,
   TWorldEditOutcome,
 } from '../../../common/sceneEdit';
@@ -11,6 +13,8 @@ import { applyWorldEdits } from '../../../common/worldEdit';
 import {
   createStageEdit,
   emptyMove,
+  lockedIn,
+  thingsPicked,
 } from '../../../renderer/studio/edit/stageEditStore';
 
 const RAW = {
@@ -248,5 +252,103 @@ describe("Edit mode's Save", () => {
     store.setPack(rewritten);
     expect(store.state()).toMatchObject({ changes: 0, failure: 'missing' });
     expect(store.draft(rewritten)).toBe(rewritten);
+  });
+});
+
+/** A thing as the scene measures one, standing where nothing depends on it. */
+const measured = (path: number[]): ISceneEditThing => ({
+  path,
+  inView: true,
+  box: [0, 0, 1, 1],
+  pivot: [0, 0],
+  axes: [
+    [1, 0],
+    [0, 1],
+    [0, 0],
+  ],
+  ownAxes: [
+    [1, 0],
+    [0, 1],
+    [0, 0],
+  ],
+  toward: [1, 1, 1],
+  centre: [0, 0, 0],
+  position: [0, 0, 0],
+  rotation: [0, 0, 0],
+  scale: [1, 1, 1],
+});
+
+/** What the scene says of a frame: what it measured, and its camera. */
+const heard = (
+  things: ISceneEditThing[],
+  target: [number, number, number] = [0, 1.2, 0],
+): ISceneEditReport => ({
+  world: 'lake',
+  things,
+  camera: { position: [0, 2.6, 13], target },
+});
+
+// Found driving the buttons nobody had pressed, 2026-11-11.
+describe('a new thing', () => {
+  it('is added where the camera on screen is looking, so it can be seen', () => {
+    const { store, pack } = setUp();
+    store.heard(heard([]));
+    store.add('ball', 'Ball');
+    const nodes = store.draft(pack).world?.nodes ?? [];
+    expect(nodes).toHaveLength(4);
+    expect(nodes[3]).toMatchObject({ name: 'Ball', position: [0, 1.2, 0] });
+    // And it is what is picked.
+    expect(store.state().selected).toEqual([[3]]);
+  });
+
+  it('is added at the middle of the world before the scene has said where it looks', () => {
+    const { store, pack } = setUp();
+    store.add('ball', 'Ball');
+    expect(placeOf(store.draft(pack), 3)).toEqual([0, 0, 0]);
+  });
+});
+
+describe('what the stage frames', () => {
+  it('is what the scene measured of what is picked now, and nothing older', () => {
+    const { store } = setUp();
+    store.select([1, 0], false);
+    store.heard(heard([measured([1, 0])]));
+    expect(thingsPicked(store.state()).map((thing) => thing.path)).toEqual([
+      [1, 0],
+    ]);
+    // A ball is added: the world is being rebuilt, and the measurements the
+    // store still holds are of the hull.
+    store.add('ball', 'Ball');
+    expect(store.state().things.map((thing) => thing.path)).toEqual([[1, 0]]);
+    expect(thingsPicked(store.state())).toEqual([]);
+    // Once the scene has measured the ball, it is framed.
+    store.heard(heard([measured([3])]));
+    expect(thingsPicked(store.state()).map((thing) => thing.path)).toEqual([
+      [3],
+    ]);
+  });
+});
+
+describe('a locked thing', () => {
+  it('is locked with everything that is a part of it, and nothing beside it', () => {
+    expect(lockedIn(['1'], [1])).toBe(true);
+    expect(lockedIn(['1'], [1, 0])).toBe(true);
+    expect(lockedIn(['1.0'], [1])).toBe(false);
+    expect(lockedIn(['1'], [0])).toBe(false);
+    expect(lockedIn(['1'], [10])).toBe(false);
+    expect(lockedIn([], [1, 0])).toBe(false);
+  });
+
+  it('is not carried by a move, alone or picked with others', () => {
+    const { store, pack } = setUp();
+    store.select([0], false);
+    store.lockPicked(true);
+    store.nudge(moved([0], 2));
+    expect(store.state().changes).toBe(0);
+    expect(placeOf(store.draft(pack), 0)).toEqual([1, 2, 3]);
+    // The control: let go, the same move carries it.
+    store.lockPicked(false);
+    store.nudge(moved([0], 2));
+    expect(placeOf(store.draft(pack), 0)).toEqual([3, 2, 3]);
   });
 });

@@ -25,7 +25,12 @@ import {
   turnBetween,
   type TPoint,
 } from './editMath';
-import { emptyMove, type IStageEditStore } from './stageEditStore';
+import {
+  emptyMove,
+  lockedIn,
+  thingsPicked,
+  type IStageEditStore,
+} from './stageEditStore';
 import { useStageEditState } from './useStageEdit';
 import '../../styles/StudioEdit.scss';
 
@@ -140,11 +145,13 @@ export default function StudioEditOverlay({
     ];
   };
 
-  const thing = state.things[state.things.length - 1];
+  // Only what is picked now: the scene's measurements run behind the pick.
+  const things = thingsPicked(state);
+  const thing = things.length > 0 ? things[things.length - 1] : undefined;
   // Not what is picked already: its frame is there.
   const over =
     state.hovered?.inView &&
-    !state.things.some(
+    !things.some(
       (picked) => picked.path.join('.') === state.hovered?.path.join('.'),
     )
       ? state.hovered
@@ -371,8 +378,13 @@ export default function StudioEditOverlay({
   };
 
   const handles = () => {
-    // One copy of many is placed by its node's rule: nothing to pull.
-    if (!thing?.inView || copyOf(thing.path)) {
+    // One copy of many is placed by its node's rule: nothing to pull. Nor
+    // on a locked thing: a handle that can be pulled and moves nothing.
+    if (
+      !thing?.inView ||
+      copyOf(thing.path) ||
+      lockedIn(state.locked, thing.path)
+    ) {
       return null;
     }
     if (state.tool === 'turn') {
@@ -473,7 +485,7 @@ export default function StudioEditOverlay({
       onDoubleClick={(event) => event.stopPropagation()}
     >
       {is3d &&
-        state.things.map(
+        things.map(
           (picked) =>
             picked.inView && (
               <rect
@@ -512,8 +524,8 @@ export default function StudioEditOverlay({
           x={thing.box[0] * width - 2}
           y={Math.max(12, thing.box[1] * height - 10)}
         >
-          {state.things.length > 1
-            ? `${nameOf(thing.path)} +${String(state.things.length - 1)}`
+          {things.length > 1
+            ? `${nameOf(thing.path)} +${String(things.length - 1)}`
             : nameOf(thing.path)}
         </text>
       )}

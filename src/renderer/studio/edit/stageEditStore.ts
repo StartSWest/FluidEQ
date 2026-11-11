@@ -285,6 +285,30 @@ export interface IStageEditStore {
   setListOpen(open: boolean): void;
 }
 
+/** Whether `path`, or anything it is a part of, is locked. */
+export const lockedIn = (locked: readonly string[], path: TNodePath) =>
+  path.some((_step, depth) =>
+    locked.includes(pathKey(path.slice(0, depth + 1))),
+  );
+
+/**
+ * The things the stage frames and gives handles to: what the scene last
+ * measured, of what is picked now.
+ *
+ * The two are not always the same. What the scene measures arrives a frame
+ * behind what was picked, and after a change that rebuilds the world - a
+ * thing added, grouped, copied or deleted - a good deal later: until then
+ * the last measurements are of what was picked before, and drawn as they
+ * stood the stage put the old thing's frame and handles under the new
+ * thing's name.
+ */
+export const thingsPicked = (
+  state: Pick<IStageEditState, 'things' | 'selected'>,
+): readonly ISceneEditThing[] =>
+  state.things.filter((thing) =>
+    state.selected.some((path) => samePath(path, thing.path)),
+  );
+
 const START: IStageEditState = {
   on: false,
   tool: 'move',
@@ -348,10 +372,7 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
   /** What the hand is moving now: one move per thing it carries. */
   let live: ISceneEditMove[] = [];
 
-  const isLocked = (path: TNodePath) =>
-    path.some((_step, depth) =>
-      state.locked.includes(pathKey(path.slice(0, depth + 1))),
-    );
+  const isLocked = (path: TNodePath) => lockedIn(state.locked, path);
 
   const stacks = () => ({
     changes: made.length,
@@ -707,8 +728,11 @@ export const createStageEdit = (bridge: IStageEditBridge): IStageEditStore => {
       if (!base) {
         return;
       }
-      // In front of the Studio's camera when it has one, or at the middle.
-      const at = state.freeView && view ? view.target : NO_MOVE;
+      // Where the camera on screen is looking - the Studio's own while it is
+      // looked around with, the scene's otherwise - so the new thing is seen.
+      // At the world's middle it stood wherever the scene happened to have
+      // put something: a ball added to a lake scene came up inside the boat.
+      const at = (state.freeView ? view : sceneView)?.target ?? NO_MOVE;
       const now = drafted(base, made.flat());
       const count = (now.ok ? now.pack : base).world?.nodes.length ?? 0;
       if (
