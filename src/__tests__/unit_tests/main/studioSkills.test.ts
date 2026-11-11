@@ -69,8 +69,10 @@ describe('the skills FluidEQ ships', () => {
     expect(skills.map(({ name }) => name)).toEqual([
       'fluideq-3d-world',
       'fluideq-animation',
+      'fluideq-finish',
       'fluideq-motion',
       'fluideq-photo-3d',
+      'fluideq-views',
     ]);
     skills.forEach(({ name, files }) => {
       const skill = files.find(({ relative }) => relative === 'SKILL.md');

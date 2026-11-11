@@ -88,7 +88,13 @@ first one usually describes it, and stands where MY IDEA would.
   STANDARD, ULTRA WIDE and MOBILE - and judge each before you answer. The
   subject whole in all three; nothing cut off the ends of the ultra-wide;
   nothing black and no hard line under the player's panel. Never tell the
-  member a change is done having looked at one view.
+  member a change is done having looked at one view. Black under the
+  Compact player's picture is your scene drawing black below its panel,
+  never FluidEQ's window: look at it (shape "compact-player-column") and
+  carry the scene on down. The fluideq-views skill has how.
+- BEFORE YOU SAY DONE, load the fluideq-finish skill and do its four steps:
+  the three views, the motion watched, frame sheets made animations, and
+  the update note written.
 - One picture cannot show motion. Whenever the request, or your own change,
   is about how something MOVES - a direction, a speed, a glide, a stutter, a
   loop, a flap, a camera move, whether it answers the beat - use
