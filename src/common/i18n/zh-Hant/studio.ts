@@ -685,6 +685,20 @@ const studio = {
   'studio.code.updatedAt': '在 {time} 外部更改',
   'studio.code.unchanged': '{count} 未更改行',
   'studio.code.delta': '新增了 {added} 行，刪除了 {removed}',
+  'studio.code.expandAll': '全部展開',
+  'studio.code.collapseAll': '全部收合',
+  'studio.code.lines': '{count} 行',
+  'studio.code.oneLine': '1 行',
+  'studio.code.viewOnly': '僅供檢視',
+  'studio.code.viewOnlyHint':
+    '依磁碟上的內容顯示。若要修改，請使用您自己的編輯器，或請 AI 來改。',
+  'studio.code.tooLargeToShow': '此檔案太大，無法在這裡顯示（{size}）。',
+  'studio.code.role.scene': '場景',
+  'studio.code.role.pack': '詳細資料',
+  'studio.code.role.world': '3D 世界',
+  'studio.code.role.material': '材質',
+  'studio.code.role.animation': '動畫',
+  'studio.code.role.notes': '備註',
   'studio.publish.pointReview':
     'FluidEQ 在每個場景出現在相簿中之前都會對其進行審查。批准後我們會通知您。',
   'studio.publish.pointReviewUpdate':

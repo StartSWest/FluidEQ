@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { IMemberSceneProblem } from 'common/memberScenes';
 import type { IProjectSource } from 'main/memberScenes/project';
+import type { IProjectCodeFile } from 'main/memberScenes/projectCode';
 import { useTranslation } from '../utils/I18nContext';
-import { describeChange, type ILineChange } from './lineDiff';
-import StudioCodeDiff from './StudioCodeDiff';
-import StudioCodeEditor from './StudioCodeEditor';
-import { writeStudioSource } from './studioStore';
+import { openFilesOf, rememberOpenFiles } from './codeOpenFiles';
+import StudioCodeFile from './StudioCodeFile';
+import StudioCodeScene from './StudioCodeScene';
+import { readStudioProjectCode, useStudio } from './studioStore';
 import '../styles/StudioCode.scss';
 
 /**
@@ -30,249 +31,160 @@ export const problemLinesOf = (
   return [...lines];
 };
 
-type TSaveTrouble = 'failed' | 'too-large' | undefined;
-
-/** The last save that came from outside the pane, and what it changed. */
-interface IOutsideChange {
-  id: number;
-  at: Date;
-  detail: ILineChange;
-}
-
-const NOTHING = new Set<number>();
-
 interface IStudioCodeProps {
+  /** The open project, so what is open in the tab is remembered for it. */
+  projectId?: string;
   /** The open project's scene source as it is on disk now. */
   source: IProjectSource | undefined;
   problemLines: readonly number[];
 }
 
 /**
- * The open project's scene code, beside the stage it becomes.
+ * The open project's code, beside the stage it becomes: every file of it,
+ * one under another, each folding to its name.
  *
- * Live in both directions. Whatever writes the file — the member's AI, their
- * editor, this pane — the main process reads it on the save and the pane
- * shows it at once, the way the stage replays it. A save from outside marks
- * what it changed: the added lines in green, a red notch where lines went,
- * brought into view, and the whole change as a diff on request. Typed here,
- * the code is the member's until they save it (Save, or Ctrl+S), and a save
- * arriving from elsewhere meanwhile is offered rather than written over
- * their typing.
+ * It showed the scene's shader and nothing else (Ivan, 2026-11-11: "code
+ * only show scene frag, it needs to show the full code, all files, and
+ * expand collapse on each"). A scene with a 3D world keeps most of itself
+ * in `world.json` and its materials' files, and all of it is here now: the
+ * shader first and open, edited as before (`StudioCodeScene`), the rest
+ * shown as they are on disk (`StudioCodeFile`).
+ *
+ * A scene with several files opens as the list of them, every one folded.
+ * Its shader runs to a thousand lines and more, and open it stood between
+ * the member and every other file, so the tab looked exactly as it did when
+ * it had the one. The list is also where a change is seen first: each file
+ * says when it was last written from outside and by how much. A scene that
+ * is one file shows that file, as it always did, and what a member opens or
+ * folds is kept for the project (`codeOpenFiles.ts`).
+ *
+ * The files are read again whenever the Studio hears of the project - a
+ * save, a build - and whenever the window is come back to, which is when a
+ * member returns from their own editor. A file is known by its name, so one
+ * that is open stays open, and keeps its marks, across every read.
  */
-export default function StudioCode({ source, problemLines }: IStudioCodeProps) {
-  const { t, locale } = useTranslation();
-  const [draft, setDraft] = useState(source?.text ?? '');
-  // The disk text the draft started from: unequal means unsaved typing.
-  const [base, setBase] = useState(source?.text ?? '');
-  const [incoming, setIncoming] = useState<string>();
-  const [saving, setSaving] = useState(false);
-  const [trouble, setTrouble] = useState<TSaveTrouble>();
-  const [change, setChange] = useState<IOutsideChange>();
-  const [showDiff, setShowDiff] = useState(false);
-  const draftRef = useRef(draft);
-  draftRef.current = draft;
-  const baseRef = useRef(base);
-  baseRef.current = base;
-  // Whether a disk text has been shown yet: the first one is the file as it
-  // is, not a change to it.
-  const seenRef = useRef(source !== undefined);
-  const changesRef = useRef(0);
+export default function StudioCode({
+  projectId,
+  source,
+  problemLines,
+}: IStudioCodeProps) {
+  const { t } = useTranslation();
+  const view = useStudio();
+  // Not known until the first read answers. Nothing is drawn before it: a
+  // shader shown open and folded a moment later, when its other files are
+  // heard of, is a thousand lines flashing past.
+  const [files, setFiles] = useState<readonly IProjectCodeFile[]>();
+  const [open, setOpen] = useState(() => openFilesOf(projectId));
+  // Whether the scene was one file when the tab came up, settled by the
+  // first read and never again: a shader being read must not fold itself
+  // because the member's AI has just written the scene a second file.
+  const [alone, setAlone] = useState<boolean>();
+  const [focused, setFocused] = useState(0);
+  const asked = useRef(0);
 
-  const adoptOutside = useCallback((before: string, after: string) => {
-    const detail = describeChange(before, after);
-    changesRef.current += 1;
-    setChange(
-      detail ? { id: changesRef.current, at: new Date(), detail } : undefined,
-    );
-    setDraft(after);
-    setBase(after);
-    setIncoming(undefined);
+  useEffect(() => {
+    const again = () => setFocused((count) => count + 1);
+    window.addEventListener('focus', again);
+    return () => window.removeEventListener('focus', again);
   }, []);
 
-  const diskText = source?.text;
   useEffect(() => {
-    if (diskText === undefined) {
-      return;
-    }
-    const seen = seenRef.current;
-    seenRef.current = true;
-    // What the pane itself just saved coming back, or nothing new.
-    if (diskText === draftRef.current) {
-      setBase(diskText);
-      setIncoming(undefined);
-      return;
-    }
-    if (draftRef.current === baseRef.current) {
-      if (seen) {
-        adoptOutside(baseRef.current, diskText);
-      } else {
-        setDraft(diskText);
-        setBase(diskText);
+    asked.current += 1;
+    const mine = asked.current;
+    const take = (list: readonly IProjectCodeFile[]) => {
+      // Only the newest answer: two saves a moment apart are two reads,
+      // and the first may come back last.
+      if (mine === asked.current) {
+        setFiles(list);
+        setAlone((was) => was ?? list.every((file) => file.role === 'scene'));
       }
-      return;
-    }
-    setIncoming(diskText);
-  }, [diskText, adoptOutside]);
-
-  const wrong = useMemo(() => new Set(problemLines), [problemLines]);
-  const dirty = draft !== base;
-  const timeOf = useMemo(
-    () =>
-      new Intl.DateTimeFormat(locale, {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }),
-    [locale],
-  );
-
-  const type = (text: string) => {
-    setDraft(text);
-    // Typing moves the lines the marks were counted against.
-    setChange(undefined);
-    setShowDiff(false);
-  };
-
-  const save = () => {
-    if (saving || !dirty) {
-      return;
-    }
-    const text = draft;
-    setSaving(true);
-    setTrouble(undefined);
-    writeStudioSource(text)
-      .then((outcome) => {
-        if (outcome === 'written') {
-          setBase(text);
-          setIncoming(undefined);
-        } else {
-          setTrouble(outcome);
-        }
+    };
+    readStudioProjectCode()
+      .then((list) => {
+        take(list);
         return undefined;
       })
-      .catch(() => setTrouble('failed'))
-      .finally(() => setSaving(false));
-  };
+      // Unread, the scene's own file is still shown: it comes another way.
+      .catch(() => take([]));
+    // `view` is a new object for everything the Studio hears of the project.
+  }, [view, focused]);
 
-  let status = t('studio.code.watching');
-  if (dirty) {
-    status = t('studio.code.unsaved');
-  } else if (change) {
-    status = t('studio.code.updatedAt', { time: timeOf.format(change.at) });
-  }
+  // The scene's own file is the live one the Studio is sent on every save;
+  // the read's copy of it only says where it stands among the others.
+  const others = useMemo(
+    () => (files ?? []).filter((file) => file.role !== 'scene'),
+    [files],
+  );
+  const names = useMemo(
+    () => [...(source ? [source.file] : []), ...others.map((f) => f.file)],
+    [source, others],
+  );
+  const isOpen = (file: string) =>
+    open ? open.has(file) : alone === true && file === source?.file;
+  const remember = (next: ReadonlySet<string>) => {
+    setOpen(next);
+    rememberOpenFiles(projectId, next);
+  };
+  const toggle = (file: string) => {
+    const next = new Set(names.filter(isOpen));
+    if (!next.delete(file)) {
+      next.add(file);
+    }
+    remember(next);
+  };
+  const openCount = names.filter(isOpen).length;
 
   return (
     <section className="studio-card studio-code">
       <div className="studio-code__head">
-        {/* A heading, not a fold: the code has a tab of its own under the
-            stage (layout A, 2026-09-27), and a fold inside that tab would be
-            a second way of not showing it. */}
-        <h3 className="studio-code__toggle">
+        <h3 className="studio-code__heading">
           <span className="studio-code__title">{t('studio.code.title')}</span>
-          {source && <span className="studio-code__file">{source.file}</span>}
-        </h3>
-        {source && (
-          <span
-            className={`studio-code__state${dirty ? ' is-dirty' : ''}${change && !dirty ? ' is-changed' : ''}`}
-            role="status"
-          >
-            <span className="studio-code__dot" aria-hidden="true" />
-            {status}
-          </span>
-        )}
-        {change && !dirty && (
-          <>
-            <span
-              className="studio-code__delta"
-              title={t('studio.code.delta', {
-                added: change.detail.addedCount,
-                removed: change.detail.removedCount,
-              })}
-            >
-              <span className="studio-code__delta-add">
-                +{change.detail.addedCount}
-              </span>
-              <span className="studio-code__delta-remove">
-                −{change.detail.removedCount}
-              </span>
+          {names.length > 1 && (
+            <span className="studio-code__count" aria-hidden="true">
+              {names.length}
             </span>
+          )}
+        </h3>
+        {names.length > 1 && (
+          <div className="studio-code__fold-all">
             <button
               type="button"
               className="button small subtle"
-              aria-pressed={showDiff}
-              onClick={() => setShowDiff((was) => !was)}
+              disabled={openCount === names.length}
+              onClick={() => remember(new Set(names))}
             >
-              {showDiff
-                ? t('studio.code.showCode')
-                : t('studio.code.showChanges')}
-            </button>
-          </>
-        )}
-        {source && (
-          <button
-            type="button"
-            className={`button small${saving ? ' is-running' : ''}`}
-            aria-busy={saving}
-            disabled={!dirty || saving}
-            onClick={save}
-          >
-            {saving ? t('studio.code.saving') : t('studio.code.save')}
-          </button>
-        )}
-      </div>
-
-      <div className="studio-code__body">
-        {incoming !== undefined && (
-          <div className="studio-code__incoming" role="alert">
-            <span>{t('studio.code.changed')}</span>
-            <button
-              type="button"
-              className="button small"
-              onClick={() => adoptOutside(base, incoming)}
-            >
-              {t('studio.code.load')}
+              {t('studio.code.expandAll')}
             </button>
             <button
               type="button"
               className="button small subtle"
-              onClick={() => {
-                setBase(incoming);
-                setIncoming(undefined);
-              }}
+              disabled={openCount === 0}
+              onClick={() => remember(new Set())}
             >
-              {t('studio.code.keep')}
+              {t('studio.code.collapseAll')}
             </button>
           </div>
         )}
-        {trouble && (
-          <p className="studio-code__trouble" role="alert">
-            {t(
-              trouble === 'too-large'
-                ? 'studio.code.tooLarge'
-                : 'studio.code.failed',
-            )}
-          </p>
-        )}
-        {source && showDiff && change && (
-          <StudioCodeDiff lines={change.detail.lines} />
-        )}
-        {source && !(showDiff && change) && (
-          <StudioCodeEditor
-            text={draft}
-            label={t('studio.code.label', { file: source.file })}
-            onText={type}
-            onSave={save}
-            wrong={wrong}
-            added={change?.detail.added ?? NOTHING}
-            removedAbove={change?.detail.removedAbove ?? NOTHING}
-            reveal={
-              change
-                ? { id: change.id, line: change.detail.firstLine }
-                : undefined
-            }
+      </div>
+
+      <div className="studio-code__files">
+        {source && files !== undefined && (
+          <StudioCodeScene
+            source={source}
+            problemLines={problemLines}
+            open={isOpen(source.file)}
+            onToggle={() => toggle(source.file)}
           />
         )}
-        {!source && (
+        {others.map((file) => (
+          <StudioCodeFile
+            key={file.file}
+            file={file}
+            open={isOpen(file.file)}
+            onToggle={() => toggle(file.file)}
+          />
+        ))}
+        {names.length === 0 && files !== undefined && (
           <p className="studio-code__missing">{t('studio.code.missing')}</p>
         )}
       </div>

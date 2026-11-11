@@ -703,6 +703,20 @@ const studio = {
   'studio.code.updatedAt': '{time} 在外部被修改',
   'studio.code.unchanged': '{count} 行未改动',
   'studio.code.delta': '新增 {added} 行，删除 {removed} 行',
+  'studio.code.expandAll': '全部展开',
+  'studio.code.collapseAll': '全部折叠',
+  'studio.code.lines': '{count} 行',
+  'studio.code.oneLine': '1 行',
+  'studio.code.viewOnly': '仅供查看',
+  'studio.code.viewOnlyHint':
+    '按磁盘上的内容显示。要修改它，请使用你自己的编辑器，或让 AI 来改。',
+  'studio.code.tooLargeToShow': '此文件太大，无法在这里显示（{size}）。',
+  'studio.code.role.scene': '场景',
+  'studio.code.role.pack': '详情',
+  'studio.code.role.world': '3D 世界',
+  'studio.code.role.material': '材质',
+  'studio.code.role.animation': '动画',
+  'studio.code.role.notes': '备注',
   'studio.publish.pointReview':
     'FluidEQ 会在每个场景出现在图库前进行审核。审核通过时会通知你。',
   'studio.publish.pointReviewUpdate':

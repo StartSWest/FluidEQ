@@ -778,6 +778,21 @@ const studio = {
   'studio.code.updatedAt': '{time} पर बाहर बदला गया',
   'studio.code.unchanged': '{count} पंक्तियाँ अपरिवर्तित',
   'studio.code.delta': '{added} पंक्तियाँ जोड़ी गईं, {removed} हटाई गईं',
+  'studio.code.expandAll': 'सभी खोलें',
+  'studio.code.collapseAll': 'सभी समेटें',
+  'studio.code.lines': '{count} पंक्तियाँ',
+  'studio.code.oneLine': '1 पंक्ति',
+  'studio.code.viewOnly': 'केवल देखने के लिए',
+  'studio.code.viewOnlyHint':
+    'जैसी डिस्क पर है वैसी दिखाई गई है। इसे बदलने के लिए अपना एडिटर इस्तेमाल करें या AI से कहें।',
+  'studio.code.tooLargeToShow':
+    'यह फ़ाइल यहाँ दिखाने के लिए बहुत बड़ी है ({size})।',
+  'studio.code.role.scene': 'दृश्य',
+  'studio.code.role.pack': 'विवरण',
+  'studio.code.role.world': '3D दुनिया',
+  'studio.code.role.material': 'मटीरियल',
+  'studio.code.role.animation': 'ऐनिमेशन',
+  'studio.code.role.notes': 'नोट्स',
   'studio.publish.pointReview':
     'FluidEQ हर सीन को गैलरी में आने से पहले जाँचता है। मंज़ूर होने पर आपको बताया जाएगा।',
   'studio.publish.pointReviewUpdate':

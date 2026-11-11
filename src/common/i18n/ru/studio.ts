@@ -783,6 +783,21 @@ const studio = {
   'studio.code.updatedAt': 'Изменено извне в {time}',
   'studio.code.unchanged': 'Без изменений строк: {count}',
   'studio.code.delta': 'Добавлено строк: {added}, удалено: {removed}',
+  'studio.code.expandAll': 'Развернуть все',
+  'studio.code.collapseAll': 'Свернуть все',
+  'studio.code.lines': 'Строк: {count}',
+  'studio.code.oneLine': 'Строк: 1',
+  'studio.code.viewOnly': 'Только просмотр',
+  'studio.code.viewOnlyHint':
+    'Показан так, как он записан на диске. Чтобы изменить его, откройте свой редактор или попросите ИИ.',
+  'studio.code.tooLargeToShow':
+    'Этот файл слишком велик, чтобы показать его здесь ({size}).',
+  'studio.code.role.scene': 'Сцена',
+  'studio.code.role.pack': 'Сведения',
+  'studio.code.role.world': '3D-мир',
+  'studio.code.role.material': 'Материал',
+  'studio.code.role.animation': 'Анимация',
+  'studio.code.role.notes': 'Заметки',
   'studio.publish.pointReview':
     'FluidEQ проверяет каждую сцену, прежде чем она появится в галерее. Вам сообщат, когда её одобрят.',
   'studio.publish.pointReviewUpdate':

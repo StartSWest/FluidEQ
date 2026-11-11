@@ -11,15 +11,19 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The Studio's code pane: a card under the stage, its head a toggle that
-// folds it to one row. The editor is a textarea over its own highlighted
-// copy, so every metric below that shapes text — family, size, line height,
-// padding, tab width — is set once, on both, from the same variables.
+// The Studio's Code tab: every file of the scene, one under another, each a
+// bar with its name that folds the file under it. A file's text is a
+// textarea over its own highlighted copy, so every metric below that shapes
+// text — family, size, line height, padding, tab width — is set once, on
+// both, from the same variables.
 
 $code-size: $text-small;
 $code-line: 1.65;
 $code-pad-block: 10px;
 $code-pad-inline: 12px;
+// Room under the last line for the sideways scrollbar of a file with a long
+// line, so the bar never lies over the code.
+$code-bar: 10px;
 
 .studio-code {
   display: grid;
@@ -31,41 +35,139 @@ $code-pad-inline: 12px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: $spacing-xs $spacing-s;
   min-width: 0;
 }
 
-.studio-code__toggle {
+.studio-code__heading {
   display: inline-flex;
-  flex: 1 1 auto;
   align-items: center;
   gap: 8px;
   min-width: 0;
-  padding: 2px 4px 2px 0;
-  color: $text-primary;
+  margin: 0;
+}
+
+.studio-code__title {
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+// How many files there are, beside the tab's name.
+.studio-code__count {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  padding: 0 5px;
+  color: $text-faint;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $edge-tint 8%, transparent);
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.studio-code__fold-all {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.studio-code__files {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+// The panel's own top padding is handed to the card. A file's head sticks to
+// the panel's top, and Chromium stops it at the inside of the padding: left
+// there, the head hung 12px down with the code it had passed showing above.
+.studio-work__panel:has(> .studio-code) {
+  padding-top: 0;
+}
+
+.studio-work__panel > .studio-code {
+  margin-top: 12px;
+}
+
+// ------------------------------------------------------------------ a file
+
+// No `overflow` here, deliberately: the head sticks to the tab's panel, and
+// a box that clips between the two would become what it sticks to. The
+// corners are rounded on the head and on the code instead.
+.studio-code__item {
+  min-width: 0;
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $edge-tint 3%, $surface-panel);
+  transition: border-color $motion-fast $ease-out;
+
+  &.is-open,
+  &:hover {
+    border-color: color-mix(in srgb, $edge-tint 16%, $surface-panel);
+  }
+}
+
+// ONE SCROLL IN THE CODE TAB: the tab's panel. Every file is as tall as its
+// text and none scrolls up and down by itself (Ivan, 2026-09-27: "remove
+// source in studio double scroll"). So that the name of what is being read,
+// and the scene file's Save, are never a screen away, the head of the file
+// being scrolled through stays at the panel's top until its file ends. It
+// is opaque for that: code passes under it.
+.studio-code__item-head {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px $spacing-s;
+  min-width: 0;
+  // A row with a button in it and one without are the same height, so the
+  // list keeps its rhythm when a file is marked as changed.
+  min-height: 38px;
+  padding: 3px 8px 3px 4px;
+  border-radius: calc(#{$radius-m} - 1px);
+  background: color-mix(in srgb, $edge-tint 3%, $surface-panel);
+
+  .is-open > & {
+    border-bottom: 1px solid $border-subtle;
+    border-radius: calc(#{$radius-m} - 1px) calc(#{$radius-m} - 1px) 0 0;
+    background: color-mix(in srgb, $edge-tint 6%, $surface-panel);
+  }
+}
+
+// The fold: the whole name, not a small arrow beside it.
+.studio-code__toggle {
+  display: inline-flex;
+  flex: 1 1 180px;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 28px;
+  padding: 2px 6px 2px 4px;
+  color: $text-muted;
   border: 0;
   border-radius: $radius-xs;
   background: none;
   font: inherit;
+  text-align: start;
   cursor: pointer;
 
   svg {
     flex: 0 0 auto;
-    width: 14px;
-    height: 14px;
     fill: none;
-    stroke: $text-faint;
-    stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
-    transition: transform $motion-fast $ease-out;
   }
 
-  &[aria-expanded='true'] svg {
-    transform: rotate(90deg);
+  &:hover,
+  &[aria-expanded='true'] {
+    color: $text-primary;
   }
 
-  &:hover svg {
+  &:hover .studio-code__chevron {
     stroke: $text-primary;
   }
 
@@ -74,17 +176,60 @@ $code-pad-inline: 12px;
   }
 }
 
-.studio-code__title {
-  font-size: $text-body;
-  font-weight: $weight-semibold;
+.studio-code__chevron {
+  width: 14px;
+  height: 14px;
+  stroke: $text-faint;
+  stroke-width: 1.8;
+  transition: transform $motion-fast $ease-out;
+
+  [aria-expanded='true'] > & {
+    transform: rotate(90deg);
+  }
+}
+
+// What kind of file it is. The scene's own wears the accent: it is the one
+// that plays, and the one edited here.
+.studio-code__mark {
+  width: 15px;
+  height: 15px;
+  stroke: $text-faint;
+  stroke-width: 1.4;
+
+  &--scene {
+    stroke: $secondary-light;
+  }
 }
 
 .studio-code__file {
   min-width: 0;
-  color: $text-faint;
   font-family: $font-mono;
   font-size: $text-small;
+  font-weight: $weight-semibold;
   @include truncate;
+}
+
+.studio-code__role {
+  flex: 0 0 auto;
+  padding: 1px 7px;
+  color: $text-faint;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $edge-tint 8%, transparent);
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+}
+
+.studio-code__meta,
+.studio-code__view-only {
+  color: $text-dim;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.studio-code__view-only {
+  cursor: help;
 }
 
 // Saved and following the file, or holding the member's own typing.
@@ -112,6 +257,12 @@ $code-pad-inline: 12px;
     background: $amber;
     box-shadow: none;
   }
+
+  // Written by somebody else a moment ago: the diff's own green.
+  .is-changed & {
+    background: $analogous-2;
+    box-shadow: 0 0 8px color-mix(in srgb, $analogous-2 60%, transparent);
+  }
 }
 
 // What the last outside save did, in the diff's own colours.
@@ -132,11 +283,20 @@ $code-pad-inline: 12px;
   color: $red;
 }
 
-.studio-code__body {
+// What has to be read whether the file is open or folded.
+.studio-code__notices {
   display: grid;
-  gap: $spacing-s;
+  gap: 6px;
+  padding: 8px;
+}
+
+.studio-code__item-body {
   min-width: 0;
   @include animate(fade-in, $motion-fast);
+
+  > .studio-code__missing {
+    padding: 10px 12px;
+  }
 }
 
 .studio-code__incoming {
@@ -170,57 +330,27 @@ $code-pad-inline: 12px;
   color: $text-faint;
 }
 
-// ONE SCROLL IN THE CODE TAB: the code's own. The pane is the Studio work
-// panel's whole height and the editor, or the diff in its place, takes what
-// the head and any notice leave of it. At its own clamp of up to 520px the
-// editor stood taller than a panel of 456, so the panel scrolled the pane
-// and the editor scrolled the code, two bars for one text (Ivan,
-// 2026-09-27: "remove source in studio double scroll"). A panel too short
-// for the editor's floor still scrolls, rather than crushing the text.
-.studio-work__panel:has(> .studio-code) {
-  display: flex;
-  flex-direction: column;
-}
-
-.studio-work__panel > .studio-code {
-  flex: 1 1 auto;
-  min-height: 0;
-  grid-template-rows: auto minmax(0, 1fr);
-
-  > .studio-code__body {
-    display: flex;
-    min-height: 0;
-    flex-direction: column;
-
-    > :is(.studio-code__editor, .studio-code__diff) {
-      height: auto;
-      min-height: 160px;
-      flex: 1 1 0;
-    }
-  }
-}
-
 // ---------------------------------------------------------------- editor
 
+// As tall as its text: the line count (`--code-lines`, set by the editor)
+// times one line, the padding, and room for the sideways bar. Counted, not
+// measured, so a file is its full height in the frame it appears.
 .studio-code__editor {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  height: clamp(220px, 46vh, 520px);
+  height: calc(
+    var(--code-lines, 1) * #{$code-size * $code-line} + #{$code-pad-block * 2} +
+      #{$code-bar}
+  );
   overflow: hidden;
-  border: 1px solid $card-edge;
-  border-radius: $radius-s;
+  border-radius: 0 0 calc(#{$radius-m} - 1px) calc(#{$radius-m} - 1px);
   background: color-mix(in srgb, $black 32%, $surface-block);
-
-  &:focus-within {
-    border-color: $border-field-focus;
-  }
 }
 
-// Bottom-padded by a scrollbar's height for the same reason as the copy.
 .studio-code__gutter {
   display: flex;
   flex-direction: column;
-  padding: $code-pad-block 10px calc(#{$code-pad-block} + 8px) 12px;
+  padding: $code-pad-block 10px 0 12px;
   overflow: hidden;
   color: $text-dim;
   border-right: 1px solid $border-subtle;
@@ -277,21 +407,23 @@ $code-pad-inline: 12px;
   overflow-wrap: normal;
 }
 
-// Padded by the textarea's scrollbar on the far edges: the textarea can
-// scroll that much further than a box without bars, and the copy must be
-// able to follow it all the way, or the last line drifts by a bar's width.
+// Padded by the textarea's scrollbar on the far edge: the textarea can
+// scroll that much further sideways than a box without a bar, and the copy
+// must be able to follow it all the way.
 .studio-code__paint {
   padding-right: calc(#{$code-pad-inline} + 8px);
-  padding-bottom: calc(#{$code-pad-block} + 8px);
   overflow: hidden;
   color: $text-muted;
   pointer-events: none;
 }
 
 // The caret and the selection are the textarea's; its own letters are clear
-// so the painted copy under them shows through, exactly aligned.
+// so the painted copy under them shows through, exactly aligned. It scrolls
+// sideways only: up and down belongs to the tab's panel, and a wheel turned
+// over the code moves the panel.
 .studio-code__input {
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
   color: transparent;
   border: 0;
   background: transparent;
@@ -304,6 +436,18 @@ $code-pad-inline: 12px;
   &::selection {
     background: color-mix(in srgb, $secondary-default 30%, transparent);
   }
+
+  // A file that is only shown: read and copied, with no caret promising
+  // that typing will do something.
+  .is-view-only & {
+    caret-color: transparent;
+    cursor: text;
+  }
+}
+
+// The file being typed in says so on its own edge.
+.studio-code__item:has(.studio-code__input:not([readonly]):focus) {
+  border-color: $border-field-focus;
 }
 
 // A block per line, at least as wide as the pane, so a line's tint runs the
@@ -352,12 +496,12 @@ $code-pad-inline: 12px;
 // ---------------------------------------------------------------- diff
 
 // The change as it is read: two line-number columns, the sign, the line.
+// As tall as it is, like the code it stands in for.
 .studio-code__diff {
-  height: clamp(220px, 46vh, 520px);
-  padding: 6px 0;
-  overflow: auto;
-  border: 1px solid $card-edge;
-  border-radius: $radius-s;
+  padding: 6px 0 $code-bar;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: 0 0 calc(#{$radius-m} - 1px) calc(#{$radius-m} - 1px);
   background: color-mix(in srgb, $black 32%, $surface-block);
   font-family: $font-mono;
   font-size: $code-size;

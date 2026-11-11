@@ -15,6 +15,7 @@ import type {
   TProjectBuild,
   TSourceWrite,
 } from 'main/memberScenes/project';
+import type { IProjectCodeFile } from 'main/memberScenes/projectCode';
 import { forgetChatDraft } from './chat/chatDraftStore';
 
 /**
@@ -125,6 +126,10 @@ export const openStudioSession = (): (() => void) => {
     api?.closeStudio?.().catch(() => undefined);
   };
 };
+
+/** Every code file of the open project, for the Code tab; none when it may not be read. */
+export const readStudioProjectCode = async (): Promise<IProjectCodeFile[]> =>
+  (await bridge()?.readStudioProjectCode?.()) ?? [];
 
 /** Saves the code pane's text into the open project's scene file. */
 export const writeStudioSource = async (text: string): Promise<TSourceWrite> =>

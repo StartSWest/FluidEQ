@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useTranslation } from '../utils/I18nContext';
-import { glslPieces } from './glslTokens';
+import { glslPieces, type IGlslPiece } from './glslTokens';
 import { diffRows, type IDiffLine } from './lineDiff';
 
 const SIGNS = { same: ' ', add: '+', remove: '−' } as const;
@@ -13,8 +13,11 @@ const SIGNS = { same: ' ', add: '+', remove: '−' } as const;
  */
 export default function StudioCodeDiff({
   lines,
+  pieces = glslPieces,
 }: {
   lines: readonly IDiffLine[];
+  /** How a line is coloured; the shader's way unless the file is another kind. */
+  pieces?: (line: string) => IGlslPiece[];
 }) {
   const { t } = useTranslation();
   const rows = useMemo(
@@ -25,13 +28,13 @@ export default function StudioCodeDiff({
           : {
               ...row,
               at,
-              pieces: glslPieces(row.text).map((piece, index) => ({
+              pieces: pieces(row.text).map((piece, index) => ({
                 ...piece,
                 index,
               })),
             },
       ),
-    [lines],
+    [lines, pieces],
   );
   return (
     <div

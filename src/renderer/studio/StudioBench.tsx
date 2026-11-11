@@ -398,6 +398,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     panels.code = (
       <StudioCode
         key={project.id}
+        projectId={project.id}
         source={view.source}
         problemLines={problemLinesOf(
           problems,

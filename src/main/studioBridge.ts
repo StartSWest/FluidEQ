@@ -206,6 +206,12 @@ const readStudioArtworkSources = () =>
     import('./ipc/studioAnimationHistory').TArtworkSourcesOutcome
   >;
 
+/** Every code file of the open project, for the Code tab. */
+const readStudioProjectCode = () =>
+  ipcRenderer.invoke('studio-project-code') as Promise<
+    import('./memberScenes/projectCode').IProjectCodeFile[]
+  >;
+
 /** Edit mode's Save: every change since the last, into the scene's world. */
 const editStudioWorld = (ops: import('../common/sceneEdit').TWorldEditOp[]) =>
   ipcRenderer.invoke('studio-world-edit', ops) as Promise<
@@ -408,6 +414,7 @@ const studioBridge = {
   studioAnimationHistory,
   readStudioArtworkSources,
   editStudioWorld,
+  readStudioProjectCode,
   showStudioAnimation,
   onStudioAnimationsChanged,
   chooseStudioPicture,

@@ -759,6 +759,21 @@ const studio = {
   'studio.code.updatedAt': '{time}에서 외부로 변경됨',
   'studio.code.unchanged': '{count} 변경되지 않은 라인',
   'studio.code.delta': '{added} 라인 추가됨, {removed} 제거됨',
+  'studio.code.expandAll': '모두 펼치기',
+  'studio.code.collapseAll': '모두 접기',
+  'studio.code.lines': '{count}줄',
+  'studio.code.oneLine': '1줄',
+  'studio.code.viewOnly': '보기 전용',
+  'studio.code.viewOnlyHint':
+    '디스크에 있는 그대로 표시됩니다. 변경하려면 사용하시는 편집기를 쓰거나 AI에게 요청하세요.',
+  'studio.code.tooLargeToShow':
+    '이 파일은 너무 커서 여기에 표시할 수 없습니다({size}).',
+  'studio.code.role.scene': '장면',
+  'studio.code.role.pack': '세부 정보',
+  'studio.code.role.world': '3D 세계',
+  'studio.code.role.material': '재질',
+  'studio.code.role.animation': '애니메이션',
+  'studio.code.role.notes': '메모',
   'studio.publish.pointReview':
     'FluidEQ는 갤러리에 표시되기 전에 모든 장면을 검토합니다. 승인되면 알려드리겠습니다.',
   'studio.publish.pointReviewUpdate':

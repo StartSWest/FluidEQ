@@ -15,6 +15,7 @@ import { registerStudioDemoMusicIpc } from './studioDemoMusic';
 import { registerStudioNotesIpc } from './studioNotes';
 import { registerStudioPicturesIpc } from './studioPictures';
 import { registerStudioPreviewIpc } from './studioPreview';
+import { registerStudioProjectCode } from './studioProjectCode';
 import { registerStudioSettingsIpc } from './studioSettings';
 import { registerStudioWorldEdit } from './studioWorldEdit';
 
@@ -118,7 +119,14 @@ export const registerStudioProjectPanes = ({
     mayEdit: mayUseActive,
     activeFolder,
   });
+  // The Code tab's files: read, never written, and only of a project the
+  // member may use.
+  const disposeCode = registerStudioProjectCode({
+    mayRead: mayUseActive,
+    activeFolder,
+  });
   return () => {
+    disposeCode();
     disposeWorldEdit();
     disposeNotes();
     disposePictures();

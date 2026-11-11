@@ -788,6 +788,21 @@ const studio = {
   'studio.code.updatedAt': '{time} に外部で変更されました',
   'studio.code.unchanged': '変更のない {count} 行',
   'studio.code.delta': '{added} 行追加、{removed} 行削除',
+  'studio.code.expandAll': 'すべて展開',
+  'studio.code.collapseAll': 'すべて折りたたむ',
+  'studio.code.lines': '{count} 行',
+  'studio.code.oneLine': '1 行',
+  'studio.code.viewOnly': '表示のみ',
+  'studio.code.viewOnlyHint':
+    'ディスク上の内容をそのまま表示しています。変更するには、お使いのエディターを使うか、AI に頼んでください。',
+  'studio.code.tooLargeToShow':
+    'このファイルは大きすぎるため、ここには表示できません（{size}）。',
+  'studio.code.role.scene': 'シーン',
+  'studio.code.role.pack': '詳細',
+  'studio.code.role.world': '3D ワールド',
+  'studio.code.role.material': 'マテリアル',
+  'studio.code.role.animation': 'アニメーション',
+  'studio.code.role.notes': 'メモ',
   'studio.publish.pointReview':
     'FluidEQ はすべてのシーンをギャラリーに出る前に審査します。承認されたらお知らせします。',
   'studio.publish.pointReviewUpdate':

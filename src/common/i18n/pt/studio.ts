@@ -783,6 +783,21 @@ const studio = {
   'studio.code.updatedAt': 'Alterado fora às {time}',
   'studio.code.unchanged': '{count} linhas sem alteração',
   'studio.code.delta': '{added} linhas adicionadas, {removed} removidas',
+  'studio.code.expandAll': 'Expandir tudo',
+  'studio.code.collapseAll': 'Recolher tudo',
+  'studio.code.lines': '{count} linhas',
+  'studio.code.oneLine': '1 linha',
+  'studio.code.viewOnly': 'Somente leitura',
+  'studio.code.viewOnlyHint':
+    'Mostrado como está no disco. Para alterá-lo, use seu próprio editor ou peça à IA.',
+  'studio.code.tooLargeToShow':
+    'Este arquivo é grande demais para ser mostrado aqui ({size}).',
+  'studio.code.role.scene': 'Cena',
+  'studio.code.role.pack': 'Detalhes',
+  'studio.code.role.world': 'Mundo 3D',
+  'studio.code.role.material': 'Material',
+  'studio.code.role.animation': 'Animação',
+  'studio.code.role.notes': 'Notas',
   'studio.publish.pointReview':
     'O FluidEQ revisa cada cena antes que ela apareça na galeria. Você será avisado quando for aprovada.',
   'studio.publish.pointReviewUpdate':
