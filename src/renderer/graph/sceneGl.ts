@@ -1,3 +1,4 @@
+import type { ISceneEdit, ISceneEditReport } from 'common/sceneEdit';
 import type { ISceneFraming } from 'common/sceneFraming';
 import type { IScenePack } from 'common/scenePacks';
 import type { ISceneRhythm } from 'common/sceneRhythm';
@@ -69,6 +70,12 @@ export interface ISceneFrame {
    */
   view?: TSceneView;
   /**
+   * The Studio's Edit mode (`common/sceneEdit.ts`): what is picked, what a
+   * hand is moving, the Studio's own camera. Only the Studio's stage sends
+   * it, and only a 3D world reads more of it than `frozen`.
+   */
+  edit?: ISceneEdit;
+  /**
    * What the scene keeps in view on a panel narrower or wider than it was
    * composed for (`common/sceneFraming.ts`): its pack's, handed with each
    * frame so a save that changes only this is drawn at once, without the
@@ -138,6 +145,12 @@ export interface ISceneProgram {
    * giving back and leaves this out.
    */
   rest?(): void;
+  /**
+   * What the last frame drawn with `frame.edit` has to say back: where the
+   * picked things stand on the canvas, and what a pick found. A 3D world's
+   * only; a painted scene has no things.
+   */
+  editReport?(): ISceneEditReport | undefined;
   /**
    * Renders once what every band of a still of `frame` lays down, a strip at
    * a time, before the bands are drawn (`sceneStillKeep.ts`), and what that

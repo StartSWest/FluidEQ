@@ -1,3 +1,4 @@
+import type { ISceneEditReport } from 'common/sceneEdit';
 import type { IScenePack } from 'common/scenePacks';
 import type { IWorldReport } from 'common/worldNotes';
 import type { ISceneFrame } from './sceneGl';
@@ -100,6 +101,8 @@ export type TSceneWorkerReply =
       intervalMs?: number;
       /** Frames put on the canvas so far, and the newest's time (`shownFrames`). */
       shown?: ISceneShownFrames;
+      /** The Studio's Edit mode answered (`common/sceneEdit.ts`). */
+      edit?: ISceneEditReport;
     }
   | {
       kind: 'lost';

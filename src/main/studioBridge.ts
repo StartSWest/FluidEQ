@@ -214,6 +214,24 @@ const readStudioArtworkSources = () =>
     import('./ipc/studioAnimationHistory').TArtworkSourcesOutcome
   >;
 
+/** Edit mode: a hand's edits written into the open scene's 3D world. */
+const editStudioWorld = (ops: import('../common/sceneEdit').TWorldEditOp[]) =>
+  ipcRenderer.invoke('studio-world-edit', ops) as Promise<
+    import('../common/sceneEdit').TWorldEditOutcome
+  >;
+
+/** Edit mode: one step back or forward over those edits. */
+const stepStudioWorld = (direction: 'undo' | 'redo') =>
+  ipcRenderer.invoke('studio-world-step', direction) as Promise<
+    import('../common/sceneEdit').TWorldEditOutcome
+  >;
+
+/** Edit mode: whether there is a step to take either way. */
+const readStudioWorldHistory = () =>
+  ipcRenderer.invoke('studio-world-history') as Promise<
+    import('../common/sceneEdit').IWorldEditHistory
+  >;
+
 /** The file manager opened on an animation's sheet, by its name. */
 const showStudioAnimation = (name: string) =>
   ipcRenderer.invoke('studio-animation-show', name) as Promise<
@@ -409,6 +427,9 @@ const studioBridge = {
   importStudioAnimation,
   studioAnimationHistory,
   readStudioArtworkSources,
+  editStudioWorld,
+  stepStudioWorld,
+  readStudioWorldHistory,
   showStudioAnimation,
   onStudioAnimationsChanged,
   chooseStudioPicture,

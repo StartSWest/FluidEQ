@@ -248,6 +248,10 @@ const studioChat = {
   'studioChat.queue.sendNowHint':
     'Останавливает текущий шаг Claude и передаёт всё это сейчас одним сообщением',
   'studioChat.step.times': '×{count}',
+  'studioChat.picked.lead':
+    'Выбрано в сцене (меняй только это, если я не скажу иначе):',
+  'studioChat.picked.label': 'Выбрано в сцене',
+  'studioChat.picked.remove': 'Убрать {name}',
 } as const;
 
 export default studioChat;

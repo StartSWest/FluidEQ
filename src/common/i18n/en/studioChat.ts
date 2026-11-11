@@ -249,6 +249,10 @@ const studioChat = {
   'studioChat.queue.sendNowHint':
     'Stops the step Claude is on and reads these now, as one message',
   'studioChat.step.times': '×{count}',
+  'studioChat.picked.lead':
+    'Picked in the scene (change only these unless I say otherwise):',
+  'studioChat.picked.label': 'Picked in the scene',
+  'studioChat.picked.remove': 'Remove {name}',
 } as const;
 
 export default studioChat;

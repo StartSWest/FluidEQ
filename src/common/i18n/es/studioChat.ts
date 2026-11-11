@@ -250,6 +250,10 @@ const studioChat = {
   'studioChat.queue.sendNowHint':
     'Detiene el paso en que está Claude y los lee ahora, como un solo mensaje',
   'studioChat.step.times': '×{count}',
+  'studioChat.picked.lead':
+    'Elegido en la escena (cambia solo esto salvo que diga otra cosa):',
+  'studioChat.picked.label': 'Elegido en la escena',
+  'studioChat.picked.remove': 'Quitar {name}',
 } as const;
 
 export default studioChat;

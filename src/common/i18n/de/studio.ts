@@ -831,6 +831,85 @@ const studio = {
   'studio.agent.hearingIdle':
     'Spielen Sie den Song ab, für den die Szene gedacht ist.',
   'studio.agent.hearingSong': '{time} dieses Songs bisher',
+  'studio.edit.switch': 'Bearbeiten',
+  'studio.edit.switchHint':
+    'Wählen Sie Dinge in der Szene aus, um sie von Hand zu bewegen oder der KI zu zeigen',
+  'studio.edit.tool.move': 'Bewegen',
+  'studio.edit.tool.turn': 'Drehen',
+  'studio.edit.tool.size': 'Größe ändern',
+  'studio.edit.snap': 'Einrasten',
+  'studio.edit.snapHint':
+    'In Viertelschritten bewegen, in 15°-Schritten drehen',
+  'studio.edit.freeze': 'Musik einfrieren',
+  'studio.edit.freezeHint': 'Hält die Szene beim Bearbeiten still',
+  'studio.edit.undo': 'Rückgängig',
+  'studio.edit.redo': 'Wiederholen',
+  'studio.edit.saving': 'Wird gespeichert…',
+  'studio.edit.view.free': 'Umsehen',
+  'studio.edit.view.freeHint':
+    'Ziehen zum Umsehen, mit Umschalt ziehen zum Verschieben, Mausrad zum Annähern. Die Kamera der Szene bleibt, wie sie ist.',
+  'studio.edit.view.top': 'Oben',
+  'studio.edit.view.front': 'Vorn',
+  'studio.edit.view.side': 'Seite',
+  'studio.edit.view.keep': 'Als Kamera der Szene verwenden',
+  'studio.edit.view.keepHint': 'Zuschauer sehen die Szene dann von hier',
+  'studio.edit.list.title': 'In dieser Szene',
+  'studio.edit.list.find': 'Ding suchen…',
+  'studio.edit.list.empty': 'Keine Treffer.',
+  'studio.edit.kind.mesh': 'Form',
+  'studio.edit.kind.instances': 'Kopien',
+  'studio.edit.kind.points': 'Punkte',
+  'studio.edit.kind.ribbon': 'Band',
+  'studio.edit.kind.terrain': 'Boden',
+  'studio.edit.kind.model': '3D-Modell',
+  'studio.edit.kind.light': 'Licht',
+  'studio.edit.kind.group': 'Gruppe',
+  'studio.edit.unnamed': '{kind} {number}',
+  'studio.edit.lock': 'Sperren, damit es nicht bewegt wird',
+  'studio.edit.hide': 'Ausblenden',
+  'studio.edit.rename': 'Umbenennen',
+  'studio.edit.copy': 'Kopie erstellen',
+  'studio.edit.group': 'Gruppieren',
+  'studio.edit.delete': 'Löschen',
+  'studio.edit.ask': 'Die KI dazu fragen',
+  'studio.edit.add': 'Hinzufügen',
+  'studio.edit.add.box': 'Würfel',
+  'studio.edit.add.ball': 'Kugel',
+  'studio.edit.add.light': 'Licht',
+  'studio.edit.add.group': 'Leere Gruppe',
+  'studio.edit.add.ask': 'Die KI etwas erstellen lassen',
+  'studio.edit.add.askDraft': 'Füge der Szene hinzu: ',
+  'studio.edit.place': 'Position',
+  'studio.edit.turn': 'Drehung',
+  'studio.edit.size': 'Größe',
+  'studio.edit.shadow': 'Wirft einen Schatten',
+  'studio.edit.follows': 'Bewegt sich von selbst',
+  'studio.edit.stay': 'Hier stehen lassen',
+  'studio.edit.stayHint':
+    'Ersetzt die Bewegung durch die angezeigten Zahlen. Ziehen behält die Bewegung und verschiebt sie.',
+  'studio.edit.hint':
+    'Klicken Sie ein Ding an, um es auszuwählen. Klicken Sie erneut, um einen Teil davon auszuwählen.',
+  'studio.edit.flat.title': 'Eine gemalte Szene',
+  'studio.edit.flat.body':
+    'Diese Szene ist ein einziges, per Code gemaltes Bild und hat keine einzelnen Dinge zum Greifen. Markieren Sie die gemeinte Stelle, und die KI ändert nur diese.',
+  'studio.edit.flat.pin': 'Punkt markieren',
+  'studio.edit.flat.box': 'Bereich einrahmen',
+  'studio.edit.flat.clear': 'Markierungen löschen',
+  'studio.edit.flat.send': 'Markierungen an die KI senden',
+  'studio.edit.flat.rebuild': 'Die KI bitten, sie in 3D neu zu bauen',
+  'studio.edit.flat.rebuildWhy':
+    'Dinge von Hand zu ziehen braucht eine 3D-Szene.',
+  'studio.edit.flat.rebuildDraft':
+    'Baue diese Szene als 3D-Welt neu, mit demselben Aussehen, damit ich ihre Dinge von Hand bewegen kann.',
+  'studio.edit.failure.mismatch':
+    'Einige Dinge in der Datei dieser Szene werden nicht gezeichnet, daher lässt sie sich nicht von Hand bearbeiten. Bitten Sie die KI, die Szene zu reparieren.',
+  'studio.edit.failure.formula':
+    'Die Formel dieses Werts ist zu lang, um sie weiter zu verschieben. Bitten Sie die KI, sie zu ändern.',
+  'studio.edit.failure.refused':
+    'Die Szene kann diese Änderung nicht aufnehmen.',
+  'studio.edit.failure.missing':
+    'Dieses Ding hat sich seit der Auswahl geändert. Wählen Sie es erneut aus.',
+  'studio.edit.failure.failed': 'Die Änderung konnte nicht gespeichert werden.',
 } as const;
 
 export default studio;

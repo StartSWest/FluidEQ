@@ -250,6 +250,10 @@ const studioChat = {
   'studioChat.queue.sendNowHint':
     'Claude가 진행 중인 단계를 중지하고 이제 이를 하나의 메시지로 읽습니다.',
   'studioChat.step.times': '×{count}',
+  'studioChat.picked.lead':
+    '장면에서 선택함 (따로 말하지 않으면 이것만 바꿔 줘):',
+  'studioChat.picked.label': '장면에서 선택함',
+  'studioChat.picked.remove': '{name} 제거',
 } satisfies Partial<Dictionary>;
 
 export default studioChat;

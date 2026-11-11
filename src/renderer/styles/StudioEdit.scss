@@ -1,0 +1,632 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// EDIT MODE ON THE STUDIO'S STAGE (`studio/edit`).
+//
+// The three axes wear the colours every 3D editor gives them — X red, Y
+// green, Z blue — so a hand that has used one knows these.
+$edit-x: #ff6b6b;
+$edit-y: #6fdc8c;
+$edit-z: #5aa9ff;
+
+// Its plate is the stage's own (`.studio-stage__bar`), stood in the other
+// top corner. The stage's plate keeps the right; where the two would meet,
+// this one's tools wrap under its switch rather than run under the other.
+.studio-stage__bar.studio-edit__bar {
+  right: auto;
+  left: $spacing-s;
+  max-width: min(46%, calc(100% - #{2 * $spacing-s}));
+  row-gap: 2px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  pointer-events: auto;
+
+  > .studio-stage-controls:not(:last-child) {
+    padding-right: 4px;
+    border-right: 1px solid $border-subtle;
+  }
+
+  button[aria-disabled='true'] {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.studio-stage__bar .studio-edit__switch {
+  gap: 6px;
+
+  &.is-on {
+    color: $white;
+    background: $selected-accent;
+  }
+}
+
+.studio-stage__bar .studio-edit__word {
+  padding: 0 6px;
+}
+
+// Exactly over the scene's canvas. A press on it is Edit mode's, so the
+// arrow, never the hand the scene's own gestures show.
+.studio-edit__overlay {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  cursor: default;
+  touch-action: none;
+  user-select: none;
+
+  &.is-free {
+    cursor: grab;
+  }
+
+  &.is-flat {
+    cursor: crosshair;
+  }
+}
+
+.studio-edit__frame {
+  fill: none;
+  stroke: color-mix(in srgb, $secondary-light 55%, transparent);
+  stroke-width: 1.25;
+  stroke-dasharray: 5 4;
+  pointer-events: none;
+
+  &.is-last {
+    stroke: $secondary-light;
+    stroke-dasharray: none;
+    stroke-width: 1.5;
+    // A dark line under the bright one: seen on a white sky and a night one.
+    filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.9));
+  }
+}
+
+.studio-edit__grip {
+  cursor: pointer;
+
+  &--x {
+    color: $edit-x;
+  }
+
+  &--y {
+    color: $edit-y;
+  }
+
+  &--z {
+    color: $edit-z;
+  }
+
+  &:hover .studio-edit__arm,
+  &:hover .studio-edit__ring {
+    stroke-width: 4;
+  }
+}
+
+// What the hand catches: far wider than what is drawn.
+.studio-edit__reach {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16;
+}
+
+.studio-edit__arm,
+.studio-edit__ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.85));
+  pointer-events: none;
+}
+
+.studio-edit__tip {
+  fill: currentColor;
+  filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.85));
+  pointer-events: none;
+}
+
+.studio-edit__centre {
+  fill: $white;
+  stroke: rgba(0, 0, 0, 0.7);
+  stroke-width: 1;
+  cursor: move;
+}
+
+.studio-edit__mark {
+  pointer-events: none;
+}
+
+.studio-edit__mark-box {
+  fill: color-mix(in srgb, $secondary-light 8%, transparent);
+  stroke: $secondary-light;
+  stroke-width: 1.5;
+  stroke-dasharray: 7 5;
+  pointer-events: none;
+}
+
+.studio-edit__mark-dot,
+.studio-edit__mark-badge {
+  fill: $secondary-light;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+}
+
+.studio-edit__mark-number {
+  fill: #03222a;
+  font-size: 12px;
+  font-weight: $weight-bold;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+// WHERE EDIT MODE'S PANELS STAND: under the plates, inside the stage's
+// edges. The list of things down the left, closable, and the picked thing's
+// numbers in a strip along the bottom, so the scene between them stays in
+// view: as one tall panel the two covered a third of an ordinary stage.
+// The dock itself takes no press; the scene under its gaps does.
+.studio-edit__dock {
+  position: absolute;
+  z-index: 3;
+  inset: $spacing-s;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  // The plate, a word when a save fails, the scene's room, the numbers.
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 8px;
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+    transition: opacity $motion-fast $ease-out;
+  }
+
+  // A handle in the hand: the panels stand back so the thing being moved
+  // is seen wherever it goes, and come back when it is let go.
+  &.is-dragging > :not(.studio-stage__bar) {
+    opacity: 0.12;
+    pointer-events: none;
+  }
+
+  > [role='alert'] {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  // The plate heads the panels, so they start under however many rows its
+  // tools take: stood on its own corner it wrapped onto a second row on a
+  // narrow stage and the list covered that row.
+  > .studio-stage__bar.studio-edit__bar {
+    position: static;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: start;
+  }
+}
+
+%edit-glass {
+  color: $text-primary;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-menu 84%, transparent);
+  backdrop-filter: blur(14px);
+  font-size: $text-small;
+  line-height: 1.4;
+
+  h3 {
+    margin: 0;
+    font-size: $text-small;
+    font-weight: $weight-semibold;
+  }
+}
+
+.studio-edit__panel {
+  @extend %edit-glass;
+
+  display: flex;
+  width: min(248px, 40vw);
+  min-height: 0;
+  flex-direction: column;
+  grid-column: 1;
+  grid-row: 3 / 5;
+  gap: 8px;
+  padding: 10px;
+  overflow: hidden auto;
+
+  h3 {
+    margin: 0;
+    font-size: $text-small;
+    font-weight: $weight-semibold;
+  }
+
+  p {
+    margin: 0;
+    color: $text-muted;
+  }
+}
+
+.studio-edit__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.studio-edit__aside {
+  color: $text-muted;
+  font-size: $text-micro;
+  list-style: none;
+}
+
+.studio-edit__find,
+.studio-edit__rename,
+.studio-edit__number input {
+  min-width: 0;
+  height: 26px;
+  padding: 0 8px;
+  color: $text-primary;
+  border: 1px solid $border-field;
+  border-radius: $radius-2xs;
+  background: $surface-well;
+  font: inherit;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.studio-edit__rename {
+  flex: 1;
+}
+
+.studio-edit__menu {
+  display: grid;
+  gap: 1px;
+  padding: 4px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-2xs;
+  background: $surface-well;
+
+  button {
+    height: 26px;
+    padding: 0 8px;
+    color: $text-primary;
+    border: 0;
+    border-radius: $radius-2xs;
+    background: none;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+
+    &:hover {
+      background: $hover-accent;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    &.is-ask {
+      color: $text-accent;
+    }
+  }
+}
+
+.studio-edit__list {
+  display: grid;
+  flex: 1 1 96px;
+  min-height: 96px;
+  align-content: start;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden auto;
+  list-style: none;
+}
+
+.studio-edit__row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 2px;
+  border-radius: $radius-2xs;
+
+  &.is-picked {
+    background: $selected-accent;
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, $secondary-light 60%, transparent);
+  }
+
+  &.is-hidden .studio-edit__name {
+    opacity: 0.5;
+  }
+}
+
+.studio-edit__name {
+  display: flex;
+  min-width: 0;
+  height: 26px;
+  flex: 1;
+  align-items: baseline;
+  gap: 6px;
+  padding: 0 8px;
+  color: $text-primary;
+  border: 0;
+  border-radius: $radius-2xs;
+  background: none;
+  font: inherit;
+  line-height: 26px;
+  text-align: start;
+  cursor: pointer;
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    flex: none;
+    color: $text-muted;
+    font-size: $text-micro;
+  }
+
+  &:hover {
+    background: $hover-accent;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// Lock and hide: faint until the row is under the hand, lit while they hold.
+.studio-edit__flag {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: $text-muted;
+  border: 0;
+  border-radius: $radius-2xs;
+  background: none;
+  opacity: 0;
+  cursor: pointer;
+
+  svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.4;
+  }
+
+  .studio-edit__row:hover &,
+  &:focus-visible,
+  &[aria-pressed='true'] {
+    opacity: 1;
+  }
+
+  &[aria-pressed='true'] {
+    color: $amber;
+  }
+
+  &:hover {
+    color: $white;
+    background: $hover-accent;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.studio-edit__thing {
+  @extend %edit-glass;
+
+  display: flex;
+  max-height: 100%;
+  flex-wrap: wrap;
+  grid-column: 2;
+  grid-row: 4;
+  align-items: center;
+  align-self: end;
+  gap: 6px 14px;
+  padding: 6px 10px;
+  overflow: hidden auto;
+
+  // The name and what can be done to the thing, a row of their own.
+  > .studio-edit__actions {
+    flex: 1 1 calc(100% - 16em);
+  }
+}
+
+.studio-edit__thing-name {
+  max-width: 14em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.studio-edit__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  .button[aria-pressed='true'] {
+    color: $white;
+    background: $selected-accent;
+  }
+}
+
+.studio-edit__delete {
+  color: $red;
+}
+
+.studio-edit__field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+
+.studio-edit__field-name {
+  color: $text-muted;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.studio-edit__number {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+
+  span {
+    flex: none;
+    color: $text-muted;
+    font-size: $text-micro;
+  }
+
+  input {
+    width: 52px;
+    padding: 0 6px;
+  }
+
+  // A value that moves on its own wears the amber every "careful" here does.
+  &.is-following input {
+    border-color: color-mix(in srgb, $amber 70%, transparent);
+  }
+}
+
+// A value that moves on its own: one amber pin, which makes it stay.
+.studio-edit__follows {
+  display: inline-flex;
+
+  button {
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: $amber;
+    border: 0;
+    border-radius: $radius-2xs;
+    background: none;
+    cursor: pointer;
+
+    svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    &:hover {
+      color: $white;
+      background: $hover-accent;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
+
+.studio-edit__check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.studio-edit__failure {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 8px;
+  color: $text-primary;
+  border: 1px solid color-mix(in srgb, $red 55%, transparent);
+  border-radius: $radius-2xs;
+  background: color-mix(in srgb, $red 12%, transparent);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+
+  svg {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    color: $red;
+  }
+}
+
+// What was picked on the stage, in the chat's box above the typing.
+.studio-chat__picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    max-width: 100%;
+    height: 22px;
+    align-items: center;
+    gap: 2px;
+    padding: 0 2px 0 8px;
+    color: $text-primary;
+    border: 1px solid color-mix(in srgb, $secondary-light 60%, transparent);
+    border-radius: 11px;
+    background: $selected-accent;
+    font-size: $text-micro;
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  button {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: $text-muted;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+
+    svg {
+      width: 10px;
+      height: 10px;
+    }
+
+    &:hover {
+      color: $white;
+      background: $hover-accent;
+    }
+  }
+}

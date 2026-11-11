@@ -32,6 +32,11 @@ export interface ISceneDrawClock {
     now: number,
     pageDeltaMs: number | undefined,
   ): { timeSeconds: number; deltaMs: number };
+  /**
+   * A frame drawn with the clock standing still: the Studio's Edit mode
+   * freezes the scene so a thing can be picked and moved where it stands.
+   */
+  hold(now: number): { timeSeconds: number; deltaMs: number };
   /** Nothing drawn until the next frame, which is drawn at once. */
   pause(): void;
   /** A different scene starts from the beginning of its clock. */
@@ -59,6 +64,10 @@ export const createSceneDrawClock = (): ISceneDrawClock => {
       }
       drawnAt = now;
       return { timeSeconds: sceneTimeS, deltaMs: stepMs };
+    },
+    hold: (now) => {
+      drawnAt = now;
+      return { timeSeconds: sceneTimeS, deltaMs: 0 };
     },
     pause: () => {
       drawnAt = undefined;

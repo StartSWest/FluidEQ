@@ -360,10 +360,14 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
     };
   }
 
-  const frame: ISceneFrame = carriedOn(
-    { ...request.frame, ...sceneClock.advance(now, request.frame.deltaMs) },
-    now - latestAt,
-  );
+  // Frozen by the Studio's Edit mode: the same moment drawn again, with
+  // whatever a hand has moved since.
+  const frame: ISceneFrame = request.frame.edit?.frozen
+    ? { ...request.frame, ...sceneClock.hold(now) }
+    : carriedOn(
+        { ...request.frame, ...sceneClock.advance(now, request.frame.deltaMs) },
+        now - latestAt,
+      );
 
   // A GPU that refuses the finishing chain draws straight onto a canvas of
   // the drawn size.
@@ -503,7 +507,12 @@ scope.onmessage = ({ data }) => {
     return;
   }
   try {
-    scope.postMessage(draw(data));
+    const reply = draw(data);
+    // What Edit mode asked of the newest frame drawn, answered with it.
+    const edit = data.frame.edit ? program?.editReport?.() : undefined;
+    scope.postMessage(
+      edit && reply.kind === 'drawn' ? { ...reply, edit } : reply,
+    );
   } catch (error) {
     scope.postMessage({ kind: 'error', log: String(error) });
   }

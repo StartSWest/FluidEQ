@@ -37,6 +37,7 @@ import { createWorldInputs } from './worldInputs';
 import type { IWorldMaterialContext } from './worldMaterials';
 import { createWorldMirror } from './worldMirror';
 import { parseWorldModels, type IWorldModelAsset } from './worldModels';
+import createWorldEditor, { worldKeyOf } from './worldEditor';
 import { buildWorldNodes } from './worldNodes';
 import { createWorldPass } from './worldPasses';
 import {
@@ -243,6 +244,12 @@ const compileWorld = async (
     const build = buildWorldNodes(world, inputs, context, models, camera);
     disposables.push(build);
     scene.add(build.root);
+    // The Studio's Edit mode; idle unless a frame asks for it.
+    const editor = createWorldEditor(
+      build.root,
+      camera,
+      worldKeyOf([world.nodes, world.camera]),
+    );
     renderer.shadowMap.enabled = build.shadows;
     const aim = createWorldCamera(
       world.camera,
@@ -457,11 +464,21 @@ const compileWorld = async (
       renderer,
       inputs,
       camera,
-      aim,
-      advance: (seconds) => build.update(seconds),
+      aim: (aspect) => {
+        aim(aspect);
+        editor.aim();
+      },
+      advance: (seconds) => {
+        build.update(seconds);
+        editor.place();
+      },
       prepare,
       renderMain,
-      finish,
+      finish: (width, height) => {
+        finish(width, height);
+        editor.measure();
+      },
+      editor,
       composite,
       pass,
       shown,

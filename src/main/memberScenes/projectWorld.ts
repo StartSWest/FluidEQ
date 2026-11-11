@@ -22,7 +22,7 @@ import {
  * A world written whole: every model inline as base64 (4 bytes for 3), both
  * hooks of every material, and a megabyte for the nodes around them.
  */
-const MAX_WORLD_FILE_BYTES =
+export const MAX_WORLD_FILE_BYTES =
   Math.ceil((WORLD_LIMITS.modelBytes * 4) / 3) +
   WORLD_LIMITS.materials * 2 * WORLD_LIMITS.hookBytes +
   1024 * 1024;

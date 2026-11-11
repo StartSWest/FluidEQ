@@ -49,6 +49,21 @@ import { buildTerrain } from './worldTerrain';
  * fixed is placed once and never touched again.
  */
 
+/** Where an object keeps which node it is (`IWorldNodeTag`). */
+export const WORLD_NODE_TAG = 'worldNode';
+
+/**
+ * Which node an object was built from and how it is put where its formulas
+ * say. `live` is whether that is done every frame anyway; a node whose
+ * formulas are all fixed is placed once, and whoever moves it has to place
+ * it again to have it back.
+ */
+export interface IWorldNodeTag {
+  path: readonly number[];
+  place(): void;
+  live: boolean;
+}
+
 export interface IWorldBuild {
   root: Group;
   /** Every frame, after the music and the camera are in. */
@@ -268,14 +283,15 @@ const placeNode = (
     }
   };
   apply();
-  if (
+  const live =
     !position.constant ||
     !rotation.constant ||
     !scale.constant ||
-    (hides && visible.constant === undefined)
-  ) {
+    (hides && visible.constant === undefined);
+  if (live) {
     state.frame.push(apply);
   }
+  return { place: apply, live };
 };
 
 /**
@@ -315,7 +331,11 @@ const whileShown = (
   });
 };
 
-const buildNode = (node: TWorldNode, state: IBuildState): Object3D => {
+const buildNode = (
+  node: TWorldNode,
+  state: IBuildState,
+  path: readonly number[],
+): Object3D => {
   const { inputs, context } = state;
   let object: Object3D;
   /** The material a shadow of this object has to be drawn like. */
@@ -414,9 +434,12 @@ const buildNode = (node: TWorldNode, state: IBuildState): Object3D => {
       customDistanceMaterial: shaped.shadow.distance,
     });
   }
-  placeNode(object, node, state, node.type !== 'light');
-  node.children.forEach((child) => {
-    object.add(buildNode(child, state));
+  const placed = placeNode(object, node, state, node.type !== 'light');
+  // Which node this is, for the Studio's Edit mode (`worldEditor.ts`).
+  const tag: IWorldNodeTag = { path, ...placed };
+  object.userData[WORLD_NODE_TAG] = tag;
+  node.children.forEach((child, index) => {
+    object.add(buildNode(child, state, [...path, index]));
   });
   return node.type === 'light' ? withTarget(object) : object;
 };
@@ -441,8 +464,8 @@ export const buildWorldNodes = (
     mirror: null,
   };
   const root = new Group();
-  world.nodes.forEach((node) => {
-    root.add(buildNode(node, state));
+  world.nodes.forEach((node, index) => {
+    root.add(buildNode(node, state, [index]));
   });
   const shared = [...state.materials.values()];
   return {

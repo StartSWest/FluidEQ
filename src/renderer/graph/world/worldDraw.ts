@@ -13,6 +13,7 @@ import type { ISceneFrame, ISceneProgram } from '../sceneGl';
 import { walkBands } from '../sceneStillBands';
 import { FULL_VIEW, isFullView, panelSize } from '../sceneView';
 import type { IWorldComposite } from './worldComposite';
+import type { IWorldEditor } from './worldEditor';
 import type { IWorldInputs } from './worldInputs';
 import type { IWorldPass } from './worldPasses';
 import type { IExternalTargets } from './worldRenderer';
@@ -53,6 +54,8 @@ export interface IWorldDrawParts {
   renderMain(strip?: { from: number; rows: number }): void;
   /** Its glow, and the mix's inputs for this frame. */
   finish(width: number, height: number): void;
+  /** The Studio's Edit mode (`worldEditor.ts`), told of every frame. */
+  editor: IWorldEditor;
   composite: IWorldComposite;
   pass: IWorldPass;
   /** The target that wraps the worker's framebuffer: never disposed. */
@@ -76,6 +79,7 @@ export const createWorldSceneProgram = (
 
   /** The world's inputs, camera and clocks moved to `frame`. */
   const stage = (frame: ISceneFrame, width: number, height: number) => {
+    parts.editor.frame(frame.edit);
     inputs.update(frame, width, height);
     // Framed on the panel, then widened to the canvas round it: under the
     // Backdrop the canvas is the window, the graph is still what the camera
@@ -218,6 +222,7 @@ export const createWorldSceneProgram = (
       }
       return { spentMs, longestMs };
     },
+    editReport: () => parts.editor.report(),
     isSettled: () => inputs.settled(),
     musicAccent: () => lastAccent,
     rest: () => {

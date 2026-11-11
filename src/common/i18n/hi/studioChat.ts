@@ -247,6 +247,10 @@ const studioChat = {
   'studioChat.queue.sendNowHint':
     'Claude का मौजूदा चरण रोककर इन्हें अभी एक संदेश के रूप में पढ़वाता है',
   'studioChat.step.times': '×{count}',
+  'studioChat.picked.lead':
+    'दृश्य में चुना गया (जब तक मैं कुछ और न कहूँ, केवल इन्हें बदलो):',
+  'studioChat.picked.label': 'दृश्य में चुना गया',
+  'studioChat.picked.remove': '{name} हटाएँ',
 } as const;
 
 export default studioChat;

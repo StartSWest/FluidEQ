@@ -623,6 +623,7 @@ export default function useSceneRunner({
             outputHeight: output.height,
             fsr: finish.fsr,
             fxaa: finish.fxaa,
+            ...(result.edit ? { edit: result.edit } : {}),
           };
           drawnRef.current?.(frame, scale, result.accent, shaped, report);
         },

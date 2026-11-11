@@ -247,6 +247,10 @@ const studioChat = {
   'studioChat.queue.sendNowHint':
     'Claude の今のステップを止め、これらを1つのメッセージとして今すぐ読ませます',
   'studioChat.step.times': '×{count}',
+  'studioChat.picked.lead':
+    'シーンで選択したもの (特に指示がなければ、これだけを変更して):',
+  'studioChat.picked.label': 'シーンで選択したもの',
+  'studioChat.picked.remove': '{name} を外す',
 } as const;
 
 export default studioChat;

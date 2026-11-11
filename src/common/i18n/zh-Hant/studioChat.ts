@@ -242,6 +242,9 @@ const studioChat = {
   'studioChat.queue.sendNowHint':
     '停止克勞德正在進行的步驟並立即閱讀這些內容，作為一條訊息',
   'studioChat.step.times': '×{count}',
+  'studioChat.picked.lead': '在場景中選取（除非我另有說明，只改這些）：',
+  'studioChat.picked.label': '在場景中選取',
+  'studioChat.picked.remove': '移除 {name}',
 } satisfies Partial<Dictionary>;
 
 export default studioChat;

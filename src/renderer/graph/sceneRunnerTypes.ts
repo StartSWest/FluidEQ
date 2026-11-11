@@ -1,3 +1,4 @@
+import type { ISceneEditReport } from 'common/sceneEdit';
 import type { TSceneMaker } from 'common/sceneMaker';
 import type { IScenePack } from 'common/scenePacks';
 import type { IScenePerformance } from 'common/scenePerformance';
@@ -36,6 +37,8 @@ export interface ISceneDrawReport {
   /** How the picture was finished: FSR up to size, FXAA over it. */
   fsr: boolean;
   fxaa: boolean;
+  /** The Studio's Edit mode answered, when the frame asked. */
+  edit?: ISceneEditReport;
 }
 
 /**

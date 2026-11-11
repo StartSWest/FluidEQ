@@ -19,7 +19,13 @@ import { chatPictureIn, firstPicture } from './chatPictureIn';
 import StudioChatEffortDots from './StudioChatEffortDots';
 import StudioChatAttachment from './StudioChatAttachment';
 import StudioChatModelPick from './StudioChatModelPick';
+import {
+  setEditPicks,
+  useEditPicks,
+  withEditPicks,
+} from '../edit/editPicksStore';
 import '../../styles/StudioChatComposer.scss';
+import '../../styles/StudioEdit.scss';
 
 interface IStudioChatComposerProps {
   /**
@@ -80,6 +86,8 @@ export default function StudioChatComposer({
   // Between the press and main's first word back: no second send.
   const [sending, setSending] = useState(false);
   const text = draft.trim();
+  // What was picked on the stage in Edit mode, said first in the message.
+  const picks = useEditPicks(chatKey);
   // While Claude answers, a message still goes: main queues it behind the
   // reply (Ivan, 2026-10-14: "we need to be able to queue messages").
   const blocked = sending;
@@ -92,7 +100,11 @@ export default function StudioChatComposer({
     try {
       onDraft('');
       setStage(undefined);
-      await onSend(text, stage);
+      setEditPicks(chatKey, []);
+      await onSend(
+        withEditPicks(text, picks, t('studioChat.picked.lead')),
+        stage,
+      );
     } finally {
       setSending(false);
     }
@@ -173,6 +185,32 @@ export default function StudioChatComposer({
             onChange={setStage}
             onRemove={() => setStage(undefined)}
           />
+        )}
+        {picks.length > 0 && (
+          <ul
+            className="studio-chat__picks"
+            aria-label={t('studioChat.picked.label')}
+          >
+            {picks.map((pick) => (
+              <li key={pick.where}>
+                <span>{pick.label}</span>
+                <button
+                  type="button"
+                  aria-label={t('studioChat.picked.remove', {
+                    name: pick.label,
+                  })}
+                  onClick={() =>
+                    setEditPicks(
+                      chatKey,
+                      picks.filter((known) => known !== pick),
+                    )
+                  }
+                >
+                  <Glyph name="close" />
+                </button>
+              </li>
+            ))}
+          </ul>
         )}
         <textarea
           aria-label={t('studioChat.label')}

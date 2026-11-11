@@ -16,6 +16,7 @@ import { registerStudioNotesIpc } from './studioNotes';
 import { registerStudioPicturesIpc } from './studioPictures';
 import { registerStudioPreviewIpc } from './studioPreview';
 import { registerStudioSettingsIpc } from './studioSettings';
+import { registerStudioWorldEdit } from './studioWorldEdit';
 
 /**
  * The panes beside the Studio's bench: the notes, the Pictures card, the
@@ -111,7 +112,14 @@ export const registerStudioProjectPanes = ({
     mayEdit: mayUseActive,
     activeFolder,
   });
+  // Edit mode's hand edits. Not for a FluidEQ scene opened to look inside:
+  // `mayUseActive` is the same test every other write to the folder takes.
+  const disposeWorldEdit = registerStudioWorldEdit({
+    mayEdit: mayUseActive,
+    activeFolder,
+  });
   return () => {
+    disposeWorldEdit();
     disposeNotes();
     disposePictures();
     disposeAnimations();

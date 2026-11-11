@@ -116,6 +116,13 @@ const fakeWorld = () => {
     prepare: jest.fn(),
     renderMain,
     finish,
+    editor: {
+      frame: jest.fn(),
+      aim: jest.fn(),
+      place: jest.fn(),
+      measure: jest.fn(),
+      report: jest.fn(),
+    },
     composite: composite as unknown as IWorldComposite,
     pass: pass as unknown as IWorldPass,
     shown: {

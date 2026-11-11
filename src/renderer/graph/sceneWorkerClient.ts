@@ -1,3 +1,4 @@
+import type { ISceneEditReport } from 'common/sceneEdit';
 import type { IScenePack } from 'common/scenePacks';
 import textDigest from 'common/textDigest';
 import type { ISceneFrame } from './sceneGl';
@@ -37,6 +38,8 @@ export interface ISceneDrawn {
   intervalMs?: number;
   /** What the worker has put on the canvas (`ISceneShownFrames`). */
   shown?: ISceneShownFrames;
+  /** The Studio's Edit mode answered (`common/sceneEdit.ts`). */
+  edit?: ISceneEditReport;
 }
 
 export interface ISceneWorkerClient {
@@ -418,6 +421,7 @@ export const createSceneWorkerClient = (
         skipped: data.skipped,
         intervalMs: data.intervalMs,
         shown: data.shown,
+        ...(data.edit ? { edit: data.edit } : {}),
       });
     } else if (data.kind === 'lost') {
       lost = true;

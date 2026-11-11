@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type MutableRefObject,
   type ReactNode,
   type RefObject,
@@ -51,6 +52,10 @@ import StudioStageZoom from './StudioStageZoom';
 import useStageBox from './useStageBox';
 import useStageFullscreen from './useStageFullscreen';
 import useStageZoom from './useStageZoom';
+import StudioEditBar from './edit/StudioEditBar';
+import StudioEditOverlay from './edit/StudioEditOverlay';
+import StudioEditPanel from './edit/StudioEditPanel';
+import useStageEdit from './edit/useStageEdit';
 
 export type TStudioSize = 'graph' | 'full';
 
@@ -270,6 +275,10 @@ export default function StudioStage({
   // Calm takes the place of whatever the stage hears — the music, the demo
   // song or a test signal — as it takes the music's place on a desktop.
   const calm = useStageCalm(motion);
+  // Edit mode (`edit/stageEditStore.ts`): what is picked and moved rides the
+  // frame, and the stage's own gestures give way to it while it is on.
+  const edit = useStageEdit(identity, pack);
+  const isEditing = useSyncExternalStore(edit.subscribe, () => edit.state().on);
   const shapeFrame = useMemo(
     () => (frame: ISceneFrame) => {
       const shaped = calm(
@@ -277,11 +286,11 @@ export default function StudioStage({
           sound: readFrameRef.current()?.sound,
         }),
       );
-      return isPlayerRef.current
-        ? { ...shaped, view: PLAYER_PANEL_VIEW }
-        : shaped;
+      return edit.shape(
+        isPlayerRef.current ? { ...shaped, view: PLAYER_PANEL_VIEW } : shaped,
+      );
     },
-    [buffers, calm],
+    [buffers, calm, edit],
   );
 
   const drawnRef = useRef(onDrawn);
@@ -298,9 +307,10 @@ export default function StudioStage({
       reportSceneBeat('studio', frame, hostRef.current?.current);
       // And the Processes dialog says what it is costing.
       reportSceneDraw('studio', nameRef.current, report);
+      edit.heard(report.edit);
       drawnRef.current(frame, drawnScale, accent, heard, report);
     },
-    [],
+    [edit],
   );
   // The window's light goes with the stage: the Studio closing, another
   // project taking the bench, the stage stood down for a publish.
@@ -382,13 +392,23 @@ export default function StudioStage({
   useEffect(() => {
     const frame = frameRef.current;
     const host = sceneRef.current;
-    if (!frame || !host) {
+    // In Edit mode a press picks and a drag moves; neither is the scene's.
+    if (!frame || !host || isEditing) {
       return undefined;
     }
     return interaction.attach(frame, {
       frame: () => host.getBoundingClientRect(),
     });
-  }, [interaction, sceneRef]);
+  }, [interaction, sceneRef, isEditing]);
+  // A save's build over, well or badly: Edit mode stops waiting on it.
+  useEffect(() => {
+    if (!updating) {
+      edit.buildEnded();
+    }
+  }, [updating, edit]);
+  const zoomed = zoom.zoomed
+    ? { transform: `translate(${view.x}px, ${view.y}px)` }
+    : undefined;
 
   return (
     <div
@@ -443,12 +463,22 @@ export default function StudioStage({
           )}
           {/* What the scene throws from the hand, over it: never gated here,
               where trying the hands is the point. */}
-          <ScenePointerLayer
-            gestures={interaction.onGesture}
-            pointer={pack.pointer}
-            ambient={pack.ambient}
-            artwork={pack.artwork}
-          />
+          {isEditing ? (
+            <StudioEditOverlay
+              store={edit}
+              is3d={pack.world !== undefined}
+              width={screen.width * view.scale}
+              height={screen.height * view.scale}
+              style={zoomed}
+            />
+          ) : (
+            <ScenePointerLayer
+              gestures={interaction.onGesture}
+              pointer={pack.pointer}
+              ambient={pack.ambient}
+              artwork={pack.artwork}
+            />
+          )}
           {/* The player's parts over the scene when asked for, moved and
               magnified by a closer look as the scene under them is. */}
           {isPlayer && hasPlayerParts && screen.height > 0 && (
@@ -533,6 +563,57 @@ export default function StudioStage({
             </button>
           )}
         </div>
+        {/* Edit mode: its switch in the top left corner and, while it is on,
+            the scene's things down the left side. Not on a preview's window,
+            which shows the scene as a listener's player or graph frames it. */}
+        {!isWindowed && !isEditing && (
+          <StudioEditBar
+            store={edit}
+            is3d={pack.world !== undefined}
+            roomy={box.height >= 460}
+            style={
+              plot
+                ? {
+                    top: plot.margins.top + plot.padding.top + 8,
+                    left: plot.margins.left + plot.padding.left + 8,
+                  }
+                : undefined
+            }
+          />
+        )}
+        {isEditing && !isWindowed && (
+          <StudioEditPanel
+            store={edit}
+            pack={pack}
+            projectId={identity}
+            bar={
+              <StudioEditBar
+                store={edit}
+                is3d={pack.world !== undefined}
+                roomy
+                isDocked
+              />
+            }
+            style={
+              plot
+                ? {
+                    top: plot.margins.top + plot.padding.top + 8,
+                    left: plot.margins.left + plot.padding.left + 8,
+                    right: plot.margins.right + plot.padding.right + 8,
+                    bottom: plot.margins.bottom + plot.padding.bottom + 8,
+                  }
+                : undefined
+            }
+            capture={() =>
+              captureVisibleStage(
+                sceneRef.current,
+                view,
+                screen.width,
+                screen.height,
+              )
+            }
+          />
+        )}
         <SceneViewReset
           interaction={interaction}
           className="studio-stage__reset"

@@ -59,3 +59,9 @@ export const takeAskFocus = (): boolean => {
   unfocused = false;
   return waiting;
 };
+
+/** The chat shown with its box taking the typing, nothing added to it. */
+export const focusSceneChat = () => {
+  unfocused = true;
+  listeners.forEach((listener) => listener());
+};

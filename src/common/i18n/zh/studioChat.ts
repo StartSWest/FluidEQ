@@ -237,6 +237,9 @@ const studioChat = {
   'studioChat.queue.sendNowHint':
     '停下 Claude 当前这一步，现在把这些作为一条消息读取',
   'studioChat.step.times': '×{count}',
+  'studioChat.picked.lead': '在场景中选取（除非我另有说明，只改这些）：',
+  'studioChat.picked.label': '在场景中选取',
+  'studioChat.picked.remove': '移除 {name}',
 } as const;
 
 export default studioChat;
