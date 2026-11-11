@@ -5,6 +5,7 @@ import { MAX_MEMBER_LOOPS } from 'common/memberSceneRules';
 import { SELECTABLE_GRAPH_STYLES, type GraphStyle } from 'common/graphStyles';
 import { PREVIEW_FILE } from 'common/memberScenes';
 import {
+  NIGHT_BACKGROUND_MOST,
   SCENE_DAYLIGHT_MAX,
   SCENE_DAYLIGHT_MIN,
   SCENE_DAYLIGHT_PARAM,
@@ -368,16 +369,36 @@ FluidEQ will not play a scene without it.
   shadows short, and the scene's own glows and neon soften into the daylight
   rather than vanish; by night it is dark, lit by its own lights, the moon
   and the stars. A scene with no sky or place of its own - bars, waves,
-  shapes - still keeps the hours: its background goes from deep and dark to
-  light and airy, its colours from glowing to bright and clean, and the
-  music stays as easy to see on the light one as on the dark.
+  shapes - still keeps the hours: its background goes from black to light
+  and airy, its colours from glowing to bright and clean, and the music
+  stays as easy to see on the light one as on the dark.
+- NIGHT IS BLACK. At ${SCENE_DAYLIGHT_MIN} the scene is as dark as a real night: the sky, the
+  ground and the water are near black, and the only bright things are the
+  ones that give off light - the moon, stars, lamps, windows, an aurora,
+  fire, the music's own element. Never a grey-blue or purple wash over the
+  picture, never fog, mist or haze lifting the blacks, never an ambient
+  light left on at ${SCENE_DAYLIGHT_MIN}, never a blend that keeps some of the day's sky.
+  FluidEQ measures it, so it is not a matter of taste: look_at_scene with
+  sliders { "${SCENE_DAYLIGHT_PARAM}": ${SCENE_DAYLIGHT_MIN} } and sound "silence" says how bright the picture's
+  background is - the darkest 60% of it - and whether that is night:
+  ${NIGHT_BACKGROUND_MOST}% of full brightness or under. A night that looks dark enough to
+  you is, nearly always, still too light: go by the number.
+- DAY IS BRIGHT. At ${SCENE_DAYLIGHT_MAX} it is a full, clear day - a light sky, lit ground,
+  clean colour - with nothing burnt to flat white: a white wall or a cloud
+  still has its shading.
+- THE MIDDLE IS DUSK, a time of its own: the light low and warm, the sky
+  deepening, the first lamps on. Not the night at half strength, and not
+  the day greyed.
 - Change SMOOTHLY: every value between is a believable moment between -
   dusk and dawn - and never a cut or a jump at some value. Blend with mix
   and smoothstep over wide spans of it.
 - Keep it readable at every value: the subject and the music as clear at 0
   as at 50 and at 100.
-- Draw it at ${SCENE_DAYLIGHT_MIN}, 50 and ${SCENE_DAYLIGHT_MAX} before you tell me it is done, and fix
-  whichever of the three is weakest.
+- After ANY change to light, colour, sky, fog or materials, and before you
+  tell me anything is done: look at ${SCENE_DAYLIGHT_MIN} in silence and read its Night check,
+  then at 50 and at ${SCENE_DAYLIGHT_MAX}. Fix whichever of the three is weakest, and never
+  leave a Night check that says TOO LIGHT. The fluideq-night-and-day skill
+  has how a night is made black in a shader and in a 3D world.
 
 FIT THE PANEL AND MY WAVE
 - The panel can be any shape, from a narrow column to a wide strip, and

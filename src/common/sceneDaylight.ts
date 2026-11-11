@@ -50,6 +50,26 @@ export const SCENE_DAYLIGHT_DECLARATION = JSON.stringify(
   SCENE_DAYLIGHT_CONTROL,
 );
 
+/**
+ * NIGHT IS BLACK: the most the background of a scene's picture may measure
+ * at Daylight 0 in silence, in percent of full brightness, where the
+ * background is the darkest 60% of the picture and a pixel is as bright as
+ * its brightest channel (`main/studioAgent/darkLevel.ts`, which measures it
+ * for the member's AI on every look).
+ *
+ * Ivan, 2026-11-11: "all scenes I build always make night at 0 too light; it
+ * needs to be fully black look, as dark as the night". The number is read
+ * off FluidEQ's own 3D scenes, each drawn at Daylight 0 in silence at the
+ * graph's shape that day. The ones whose night is black, with only what
+ * gives off light bright, measure 0.8 to 5.4 (Prism Bloom 0.8, Ember 1.9,
+ * Laser 2.0, Eclipse 3.9, Coral 5.2, Truss 5.4). The ones that are a wash
+ * of colour measure 8 and over (Hyperdrive 8.4, Reef Light 10.9, Bloom
+ * 11.4, Silk 12.1, Glacier's blue 14.6, Lantern Lake's purple sky 17.0).
+ * Nothing sits between 5.4 and 8.4, and 6 is the line just above the black
+ * ones.
+ */
+export const NIGHT_BACKGROUND_MOST = 6;
+
 /** `value` held to the time of day's own range. */
 export const clampDaylight = (value: number): number =>
   Math.min(SCENE_DAYLIGHT_MAX, Math.max(SCENE_DAYLIGHT_MIN, value));

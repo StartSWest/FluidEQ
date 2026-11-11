@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * music representation not for a game").
  */
 
+import { NIGHT_BACKGROUND_MOST } from '../../../common/sceneDaylight';
 import { LIGHT_FRAME_MS } from '../../../common/studioAgent';
 import { promptWithIdea } from '../../../renderer/studio/aiPrompt';
 import chatBrief from '../../../renderer/studio/chat/chatBrief';
@@ -90,6 +91,26 @@ describe("the Studio chat's brief", () => {
     expect(brief).toContain('THE SCENE RUNS ON PAST ITS PANEL');
     expect(brief).toContain('shape "compact-player-column"');
     expect(brief).toContain('480 by 966');
+  });
+
+  // Ivan, 2026-11-11: "all scenes I build always make night at 0 too light;
+  // it needs to be fully black look, as dark as the night".
+  it('says night is black, how FluidEQ measures it, and never to pass a night that is too light', () => {
+    expect(brief).toContain('NIGHT IS BLACK. At 0 the scene is as dark as');
+    expect(brief).toContain(
+      `${NIGHT_BACKGROUND_MOST}% of full brightness or under`,
+    );
+    expect(brief).toContain(
+      'sliders { "daylight": 0 } and sound "silence" says how bright',
+    );
+    expect(brief).toContain('DAY IS BRIGHT.');
+    expect(brief).toContain('THE MIDDLE IS DUSK');
+    expect(brief).toContain(
+      'Never tell the\n  member a night is done over TOO LIGHT',
+    );
+    expect(brief).toContain('fluideq-night-and-day');
+    // The prompt copied for another AI carries the rule too.
+    expect(promptWithIdea('a lake', FOLDER)).toContain('NIGHT IS BLACK.');
   });
 
   it('says motion is watched, and a frame sheet is never a plain picture', () => {

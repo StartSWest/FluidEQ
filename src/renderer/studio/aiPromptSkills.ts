@@ -1,6 +1,7 @@
 import animationSkill from '../../../assets/studio/fluideq/skills/fluideq-animation/SKILL.md';
 import finishSkill from '../../../assets/studio/fluideq/skills/fluideq-finish/SKILL.md';
 import motionSkill from '../../../assets/studio/fluideq/skills/fluideq-motion/SKILL.md';
+import nightSkill from '../../../assets/studio/fluideq/skills/fluideq-night-and-day/SKILL.md';
 import viewsSkill from '../../../assets/studio/fluideq/skills/fluideq-views/SKILL.md';
 import worldSkill from '../../../assets/studio/fluideq/skills/fluideq-3d-world/SKILL.md';
 import photoSkill from '../../../assets/studio/fluideq/skills/fluideq-photo-3d/SKILL.md';
@@ -26,6 +27,7 @@ export const SHIPPED_SKILL_TEXTS: readonly string[] = [
   photoSkill,
   animationSkill,
   motionSkill,
+  nightSkill,
   viewsSkill,
   finishSkill,
 ];

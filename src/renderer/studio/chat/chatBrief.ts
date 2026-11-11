@@ -92,6 +92,13 @@ first one usually describes it, and stands where MY IDEA would.
   Compact player's picture is your scene drawing black below its panel,
   never FluidEQ's window: look at it (shape "compact-player-column") and
   carry the scene on down. The fluideq-views skill has how.
+- NIGHT IS BLACK, AND FLUIDEQ MEASURES IT. At daylight 0 the scene is as
+  dark as a real night - sky, ground and water near black, bright only what
+  gives off light. After any change to light, colour, sky, fog or
+  materials, call look_at_scene with sliders { "daylight": 0 } and sound
+  "silence" and read its Night check: it must say PASSES. Never tell the
+  member a night is done over TOO LIGHT, however dark it looks to you. Then
+  look at 50 and at 100. The fluideq-night-and-day skill has how.
 - BEFORE YOU SAY DONE, load the fluideq-finish skill and do its four steps:
   the three views, the motion watched, frame sheets made animations, and
   the update note written.

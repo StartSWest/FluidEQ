@@ -18,9 +18,12 @@ wide; nothing black and no hard line under the Compact player's panel.
 (The fluideq-views skill has what right looks like in each, and how to
 carry a scene on past its panel.)
 
-If the change touched light or colour, look again with
-`sliders: { "daylight": 0 }` and with `100`: night really dark, day really
-bright, in all three.
+If the change touched light, colour, sky, fog or materials: `look_at_scene`
+with `sliders: { "daylight": 0 }` and `sound: "silence"`, and read its
+**Night check**. It must say PASSES - the background at 6% or under. TOO
+LIGHT is not finished, however dark it looks to you. Then look at `50`
+(a dusk of its own) and `100` (a bright day, nothing burnt white).
+(The fluideq-night-and-day skill has how a night is made black.)
 
 ## 2. Motion
 

@@ -71,6 +71,7 @@ describe('the skills FluidEQ ships', () => {
       'fluideq-animation',
       'fluideq-finish',
       'fluideq-motion',
+      'fluideq-night-and-day',
       'fluideq-photo-3d',
       'fluideq-views',
     ]);
