@@ -1,0 +1,105 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The review's word on a maker's scene, beside its name (`SceneReviewMark`).
+// Small enough to sit in the Studio's bar and inside a picker row without
+// moving anything around it; the warning wears the app's warning colour
+// (`$amber`, as the report dialog's warnings do), the wait the quiet text.
+.scene-review-mark {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  color: $text-muted;
+
+  .menu-icon {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.scene-review-mark--rejected {
+  color: $amber;
+  cursor: pointer;
+
+  &.scene-review-mark--still {
+    cursor: inherit;
+  }
+
+  &:not(.scene-review-mark--still):hover,
+  &[aria-expanded='true'] {
+    background: color-mix(in srgb, $amber 16%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// The reason in full: a long one wraps and the panel scrolls inside the room
+// AnchoredMenu gives it, never clipped.
+.scene-review-mark__panel {
+  @include menu-surface;
+  z-index: 1001;
+  width: min(320px, calc(100vw - 16px));
+  padding: 10px 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.scene-review-mark__body {
+  display: grid;
+  gap: 6px;
+  user-select: text;
+
+  p {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.scene-review-mark__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: $amber;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+
+  .menu-icon {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.scene-review-mark__reason {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-medium;
+}
+
+.scene-review-mark__note {
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.scene-review-mark__next {
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in srgb, $text-muted 18%, transparent);
+  color: $text-muted;
+  font-size: $text-small;
+}

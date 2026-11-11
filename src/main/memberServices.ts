@@ -49,6 +49,7 @@ import {
   createSceneOwnership,
   isSceneStoreRecord,
 } from './plus/sceneOwnership';
+import { createAccountPush } from './plus/accountPush';
 import { createCreditsPush } from './plus/creditsPush';
 import openExternalIfSafe from './safeExternal';
 import { createStudioAgentDoor } from './studioAgent/studioAgentDoor';
@@ -375,6 +376,17 @@ const registerMemberServices = ({
         offIdentity();
       };
     },
+    // A scene sent for review decided, heard at once (premium 0102).
+    createReviewPush: (onDecided) =>
+      createAccountPush({
+        config: ACCOUNT_CONFIG,
+        session: accountIpc.session,
+        topicOf: (userId) => `scene-review:${userId}`,
+        event: 'decided',
+        name: 'scene review',
+        onEvent: onDecided,
+        logger: log,
+      }),
     logger: log,
   });
   // The member's own AI looking at the scene it is writing, over MCP on this

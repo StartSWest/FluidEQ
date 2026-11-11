@@ -33,6 +33,11 @@ const review = {
   'review.notice.gotIt': 'ठीक है',
   'review.notice.openStudio': 'स्टूडियो खोलें',
   'review.notice.openMine': 'आपके सीन',
+  'review.next': 'इसे ठीक करें और फिर से प्रकाशित करें।',
+  'review.mark.rejected': 'गैलरी के लिए स्वीकृत नहीं',
+  'review.mark.rejectedOn': '{date} को स्वीकृत नहीं हुआ',
+  'review.mark.show': 'स्वीकृत नहीं: कारण देखें',
+  'review.mark.pending': 'समीक्षा की प्रतीक्षा में',
 } as const;
 
 export default review;

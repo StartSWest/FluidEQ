@@ -41,6 +41,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
   -webkit-line-clamp: 2;
 }
 
+// The admin's reason for a refusal is read whole: it is what the maker has to
+// fix, and two lines of it cut the instruction in half (Ivan, 2026-11-11:
+// "shows the admin's reason in full").
+.review-row__note--whole {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+
+// What to do about a refusal, under its reason, said plainly rather than as
+// a quote.
+.review-row__next {
+  display: block;
+  margin-top: 4px;
+  color: $text-primary;
+  font-size: $text-small;
+}
+
 // New to the gallery, in the colour the app says "on" in; a new version of a
 // scene members already have, in the accent — with the numbers it goes from
 // and to, which is the first thing worth knowing about an update.
@@ -67,5 +85,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // Not approved, in the amber the app says "look at this" in.
   &--refused {
     --kind: #{$amber};
+
+    gap: 4px;
+    padding-left: 6px;
   }
+}
+
+// The warning the Studio wears for the same refusal (`SceneReviewMark`).
+.review-kind__mark {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
 }

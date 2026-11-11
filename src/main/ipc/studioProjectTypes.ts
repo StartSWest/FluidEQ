@@ -31,6 +31,8 @@ export interface IStudioProject {
   path: string;
   /** What its scene is called, when its `pack.json` could be read. */
   names?: TLocalizedName;
+  /** Its scene's id, from the same `pack.json`, when it could be read. */
+  sceneId?: string;
   /**
    * A FluidEQ scene, opened to look inside and take ideas from: never added
    * to looks, exported or published.
@@ -135,6 +137,8 @@ export const studioStateOf = (
     projectsRoot: string;
     /** Each project's scene name, read from its `pack.json`, by project id. */
     names: ReadonlyMap<string, TLocalizedName>;
+    /** Each project's scene id, from the same file, by project id. */
+    sceneIds?: ReadonlyMap<string, string>;
     usable: (project: IStoredProject) => boolean;
     /** The latest build of the open project, while the Studio is open. */
     build?: TProjectBuild;
@@ -146,6 +150,7 @@ export const studioStateOf = (
   projectsRoot: seen.projectsRoot,
   projects: byRecent(list).map((project) => {
     const names = seen.names.get(project.id);
+    const sceneId = seen.sceneIds?.get(project.id);
     const published = project.official
       ? undefined
       : seen.publishedOf?.(project.folder);
@@ -154,6 +159,7 @@ export const studioStateOf = (
       folderName: path.basename(project.folder),
       path: project.folder,
       ...(names ? { names } : {}),
+      ...(sceneId ? { sceneId } : {}),
       ...(project.official ? { official: true as const } : {}),
       ...(project.origin === 'opened' ? { outside: true as const } : {}),
       ...(published ? { published } : {}),

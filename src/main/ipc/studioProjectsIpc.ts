@@ -221,6 +221,7 @@ export const registerStudioProjectsIpc = ({
       mayAddProject: mayAddProject(),
       projectsRoot: projectsRoot(),
       names: bench.names,
+      sceneIds: bench.sceneIds,
       usable,
       ...(build ? { build } : {}),
       ...(marks ? { publishedOf: marks.of } : {}),

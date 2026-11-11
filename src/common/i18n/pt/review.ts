@@ -34,6 +34,11 @@ const review = {
   'review.notice.gotIt': 'Entendido',
   'review.notice.openStudio': 'Abrir o Estúdio',
   'review.notice.openMine': 'Suas cenas',
+  'review.next': 'Corrija e publique de novo.',
+  'review.mark.rejected': 'Não aprovada para a galeria',
+  'review.mark.rejectedOn': 'Não aprovada em {date}',
+  'review.mark.show': 'Não aprovada: veja por quê',
+  'review.mark.pending': 'Aguardando revisão',
 } as const;
 
 export default review;

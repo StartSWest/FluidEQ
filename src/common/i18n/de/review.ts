@@ -34,6 +34,12 @@ const review = {
   'review.notice.gotIt': 'Verstanden',
   'review.notice.openStudio': 'Studio öffnen',
   'review.notice.openMine': 'Ihre Szenen',
+  'review.next':
+    'Überarbeiten Sie die Szene und veröffentlichen Sie sie erneut.',
+  'review.mark.rejected': 'Nicht für die Galerie freigegeben',
+  'review.mark.rejectedOn': 'Am {date} nicht freigegeben',
+  'review.mark.show': 'Nicht freigegeben: Grund ansehen',
+  'review.mark.pending': 'Wartet auf Prüfung',
 } as const;
 
 export default review;

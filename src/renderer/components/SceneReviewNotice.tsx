@@ -114,6 +114,7 @@ export default function SceneReviewNotice() {
             })}
           </p>
         )}
+        <p className="scene-review-notice__line">{t('review.next')}</p>
       </>
     );
     action = {

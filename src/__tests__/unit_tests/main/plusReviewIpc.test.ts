@@ -196,3 +196,87 @@ describe('the picture that waits', () => {
     expect(calls).toHaveLength(0);
   });
 });
+
+describe('a decision heard the moment it is made', () => {
+  const row = (state: 'pending' | 'rejected' | 'approved', version = 3) => ({
+    scene_id: 'lake',
+    version,
+    category: 'water',
+    names: { en: 'Lake' },
+    swatch: ['#0a1020', '#ffb347'],
+    state,
+    submitted_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+    ...(state === 'pending' ? {} : { decided_at: new Date().toISOString() }),
+    ...(state === 'rejected'
+      ? { reason: 'flashing', reason_note: 'Slow the white flash down.' }
+      : {}),
+  });
+
+  const withPush = () => {
+    registration.dispose();
+    let decided: (() => void) | undefined;
+    const push = { watch: jest.fn(), stop: jest.fn() };
+    registration = registerPlusReviewIpc({
+      getMainWindow: () =>
+        ({
+          webContents: {
+            send: (_channel: string, state: ISceneReviewState) =>
+              sent.push(state),
+          },
+        }) as unknown as Electron.BrowserWindow,
+      userDataDir,
+      access,
+      onAccountChange: () => () => undefined,
+      createReviewPush: (onDecided) => {
+        decided = onDecided;
+        return push;
+      },
+    });
+    return { push, decide: () => decided?.() };
+  };
+
+  // Ivan, 2026-11-11: "I just rejected a scene and I don't see the user got
+  // the rejected notification". The app asked only when somebody came back
+  // to its window; the server now says so on the maker's own topic (0102).
+  it('listens while a scene waits, reads at once when told, and stops once answered', async () => {
+    const { push, decide } = withPush();
+    mine = [row('pending')];
+    await registration.refreshIfDue('launch');
+    expect(push.watch).toHaveBeenCalled();
+    expect((await notice()).notice).toBeNull();
+
+    mine = [row('rejected')];
+    decide();
+    // The read the decision asked for, then the notice from it.
+    await registration.refreshIfDue('settle');
+    const state = await notice();
+    expect(state.notice).toMatchObject({
+      kind: 'rejected',
+      sceneId: 'lake',
+      reason: 'flashing',
+      reasonNote: 'Slow the white flash down.',
+    });
+    expect(push.stop).toHaveBeenCalled();
+  });
+
+  it('opens no socket for an account with nothing waiting', async () => {
+    const { push } = withPush();
+    mine = [row('approved')];
+    await registration.refreshIfDue('launch');
+    expect(push.watch).not.toHaveBeenCalled();
+  });
+
+  it('says where each scene stands, the newest sent deciding', async () => {
+    mine = [row('rejected', 3)];
+    await registration.refreshIfDue('launch');
+    expect((await notice()).standings).toEqual({
+      lake: expect.objectContaining({ kind: 'rejected', version: 3 }),
+    });
+    // Sent again: waiting, the refusal no longer stands.
+    mine = [row('pending', 4), row('rejected', 3)];
+    await registration.refreshNow();
+    expect((await notice()).standings).toEqual({
+      lake: expect.objectContaining({ kind: 'pending', version: 4 }),
+    });
+  });
+});

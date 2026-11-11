@@ -259,6 +259,25 @@ export const readProjectNames = async (
   }
 };
 
+/** A scene id as the gallery and the review know it (`parseSubmissionRow`). */
+const SCENE_ID = /^[a-z][a-z0-9-]{1,47}$/;
+
+/**
+ * The scene id its `pack.json` names, for where the review stands with it
+ * (`sceneReviewStanding.ts`): known on every computer the folder is on,
+ * where a publication's record is only known on the one that published.
+ */
+export const readProjectSceneId = async (
+  folder: string,
+): Promise<string | undefined> => {
+  try {
+    const { id } = await readManifest(folder);
+    return typeof id === 'string' && SCENE_ID.test(id) ? id : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 const exists = async (target: string) => {
   try {
     await fs.promises.access(target);

@@ -30,6 +30,11 @@ const review = {
   'review.notice.gotIt': '明白了',
   'review.notice.openStudio': '開啟工作室',
   'review.notice.openMine': '你的場景',
+  'review.next': '修改後重新發布。',
+  'review.mark.rejected': '未獲准進入藝廊',
+  'review.mark.rejectedOn': '{date} 未獲核准',
+  'review.mark.show': '未獲核准：查看原因',
+  'review.mark.pending': '等待審核',
 } satisfies Partial<Dictionary>;
 
 export default review;

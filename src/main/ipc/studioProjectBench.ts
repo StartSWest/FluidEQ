@@ -6,7 +6,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { BrowserWindow } from 'electron';
 import type { TLocalizedName } from '../../common/scenePacks';
-import { readProjectNames, type TProjectBuild } from '../memberScenes/project';
+import {
+  readProjectNames,
+  readProjectSceneId,
+  type TProjectBuild,
+} from '../memberScenes/project';
 import {
   watchProject,
   type IProjectWatcher,
@@ -38,6 +42,8 @@ export interface IProjectBenchDeps {
 export interface IProjectBench {
   /** Each project's scene name, read from its `pack.json`, by project id. */
   readonly names: ReadonlyMap<string, TLocalizedName>;
+  /** Each project's scene id, from the same `pack.json`, by project id. */
+  readonly sceneIds: ReadonlyMap<string, string>;
   /** The latest build of the open project, while the Studio is open. */
   lastBuild(): TProjectBuild | undefined;
   /** The watcher now, for a rename that has to wait for it to settle. */
@@ -66,6 +72,7 @@ export const createProjectBench = ({
   announce,
 }: IProjectBenchDeps): IProjectBench => {
   const names = new Map<string, TLocalizedName>();
+  const sceneIds = new Map<string, string>();
   let watcher: IProjectWatcher | undefined;
   let build: TProjectBuild | undefined;
   let renaming = false;
@@ -95,6 +102,7 @@ export const createProjectBench = ({
         // the member switches projects cannot rename the one they switched to.
         if (next.ok) {
           names.set(active, next.pack.names);
+          sceneIds.set(active, next.pack.id);
         }
         announce();
       },
@@ -106,11 +114,19 @@ export const createProjectBench = ({
   const refreshNames = async () => {
     await Promise.all(
       list().projects.map(async (project) => {
-        const read = await readProjectNames(project.folder);
+        const [read, sceneId] = await Promise.all([
+          readProjectNames(project.folder),
+          readProjectSceneId(project.folder),
+        ]);
         if (read) {
           names.set(project.id, read);
         } else {
           names.delete(project.id);
+        }
+        if (sceneId) {
+          sceneIds.set(project.id, sceneId);
+        } else {
+          sceneIds.delete(project.id);
         }
       }),
     );
@@ -119,12 +135,16 @@ export const createProjectBench = ({
 
   return {
     names,
+    sceneIds,
     lastBuild: () => build,
     watching: () => watcher,
     start,
     stop,
     refreshNames,
-    forget: (id) => names.delete(id),
+    forget: (id) => {
+      names.delete(id);
+      sceneIds.delete(id);
+    },
     setRenaming: (next) => {
       renaming = next;
     },

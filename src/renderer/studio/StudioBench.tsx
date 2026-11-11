@@ -25,6 +25,7 @@ import StudioProblems, {
 } from './StudioProblems';
 import { prefersReducedMotion } from '../utils/bandReveal';
 import StudioProjects from './StudioProjects';
+import SceneReviewMark from '../plus/SceneReviewMark';
 import StudioPublishDialog from './StudioPublishDialog';
 import StudioShareDialog from './StudioShareDialog';
 import StudioShipCard from './StudioShipCard';
@@ -456,6 +457,13 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             }
             look={state.look}
           />
+        )}
+        {/* What the review said of it, beside its name and number, until it
+            is sent again (`SceneReviewMark`). Here and not in the ship row,
+            which is one row by design and full in German at the narrowest
+            window. */}
+        {project && !project.official && (
+          <SceneReviewMark sceneId={project.sceneId} />
         )}
         {project && (
           <span

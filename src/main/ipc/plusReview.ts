@@ -15,6 +15,12 @@ import {
   sceneRefOf,
   type IGalleryAccess,
 } from '../plus/galleryAccess';
+import {
+  anyPending,
+  sceneStandings,
+  type TSceneStandings,
+} from '../../common/sceneReviewStanding';
+import type { IAccountPush } from '../plus/accountPush';
 import { createReviewNoticeSeen } from '../plus/reviewNoticeSeen';
 import {
   fetchSubmissionPicture,
@@ -44,6 +50,8 @@ export type TMySubmissionsOutcome =
 export interface ISceneReviewState {
   accountId?: string;
   notice: TSceneReviewNotice | null;
+  /** Where each of this account's scenes stands with the review. */
+  standings?: TSceneStandings;
 }
 
 export interface IPlusReviewIpcDeps {
@@ -52,6 +60,11 @@ export interface IPlusReviewIpcDeps {
   access: IGalleryAccess;
   /** Signing in and out, and a membership changing, all arrive here. */
   onAccountChange: (listener: () => void) => () => void;
+  /**
+   * The server's word that a scene sent for review was decided (premium
+   * 0102), listened to exactly while one of this account's waits.
+   */
+  createReviewPush?: (onDecided: () => void) => IAccountPush;
   logger?: { warn(message: string, ...details: unknown[]): void };
 }
 
@@ -94,6 +107,7 @@ export const registerPlusReviewIpc = ({
   userDataDir,
   access,
   onAccountChange,
+  createReviewPush,
   logger,
 }: IPlusReviewIpcDeps): IPlusReviewRegistration => {
   const seen = createReviewNoticeSeen(userDataDir);
@@ -136,7 +150,11 @@ export const registerPlusReviewIpc = ({
       seen: seenBy(me),
       now: Date.now(),
     });
-    return { accountId: me, notice: notice ?? null };
+    return {
+      accountId: me,
+      notice: notice ?? null,
+      standings: sceneStandings(facts.mine),
+    };
   };
 
   // Sent only when it changed: most events change nothing.
@@ -148,6 +166,23 @@ export const registerPlusReviewIpc = ({
     }
     sent = serialised;
     getMainWindow()?.webContents.send('scene-review-notice-changed', current);
+  };
+
+  // Open exactly while one of this account's scenes waits for an answer:
+  // the decision is the one thing it can bring, and a socket held for
+  // nothing would count against the free plan's connections.
+  const push = createReviewPush?.(() => {
+    refresh(true).catch((error) => {
+      logger?.warn('Scene review news after a decision failed', error);
+    });
+  });
+  const listen = () => {
+    const me = access.accountId();
+    if (me && facts?.accountId === me && anyPending(facts.mine)) {
+      push?.watch();
+    } else {
+      push?.stop();
+    }
   };
 
   const ask = async () => {
@@ -191,6 +226,7 @@ export const registerPlusReviewIpc = ({
         asking = undefined;
       }
     }
+    listen();
     announce();
   };
 
@@ -263,6 +299,8 @@ export const registerPlusReviewIpc = ({
   });
 
   const unsubscribe = onAccountChange(() => {
+    // The socket is joined as the account that opened it.
+    push?.stop();
     refresh(true).catch(() => undefined);
   });
   // `ready` rather than now: before it the stored session cannot be read.
@@ -282,6 +320,7 @@ export const registerPlusReviewIpc = ({
       }),
     dispose: () => {
       unsubscribe();
+      push?.stop();
       CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));
     },
   };

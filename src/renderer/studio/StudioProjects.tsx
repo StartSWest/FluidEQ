@@ -9,6 +9,7 @@ import { openGalleryPage, type IMakerRef } from '../plus/plusNavigation';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { type IRichPickEntry } from '../widgets/RichPick';
 import StudioRenameProjectDialog from './StudioRenameProjectDialog';
+import SceneReviewBadge from '../plus/SceneReviewBadge';
 import { useStudioChat, type TStudioChatWork } from './chat/studioChatStore';
 import { forgetStudioProject, selectStudioProject } from './studioStore';
 import useProjectsReleased, {
@@ -144,6 +145,10 @@ export default function StudioProjects({
           const doing = work[project.id];
           // An AI at work on it says so instead: the scene is changing.
           const release = doing ? undefined : releaseOf(project);
+          // The review's word on it stands beside whatever else is said.
+          const mark = project.official ? null : (
+            <SceneReviewBadge sceneId={project.sceneId} />
+          );
           let trailing;
           if (doing) {
             trailing = (
@@ -174,7 +179,16 @@ export default function StudioProjects({
                 className="rich-pick__glyph"
               />
             ),
-            ...(trailing ? { trailing } : {}),
+            ...(trailing || mark
+              ? {
+                  trailing: (
+                    <>
+                      {mark}
+                      {trailing}
+                    </>
+                  ),
+                }
+              : {}),
           };
         }),
     [state.projects, locale, work, t, releaseOf],

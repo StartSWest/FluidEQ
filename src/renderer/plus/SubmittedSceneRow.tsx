@@ -6,10 +6,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { ISceneSubmission } from 'common/plusReview';
 import { resolveSceneName } from 'common/scenePacks';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { categoriesLabel } from './GalleryParts';
 import { REJECT_REASON_LABELS } from './rejectReasons';
 import ReviewPicture from './ReviewPicture';
+import { useSceneReview } from './sceneReviewStore';
 
 interface IReviewStateProps {
   submission: ISceneSubmission;
@@ -24,6 +26,12 @@ interface IReviewStateProps {
  */
 export function ReviewState({ submission, liveVersion }: IReviewStateProps) {
   const { t } = useTranslation();
+  const { standings } = useSceneReview();
+  // What to do next only while this refusal is still the newest word on the
+  // scene: one already sent again, or approved since, has nothing to fix.
+  const standing = standings?.[submission.sceneId];
+  const stillRefused =
+    standing?.kind === 'rejected' && standing.version === submission.version;
   const update = liveVersion !== undefined;
   const version = String(submission.version);
   if (submission.state === 'pending') {
@@ -44,6 +52,8 @@ export function ReviewState({ submission, liveVersion }: IReviewStateProps) {
     <>
       <span className="review-row__facts">
         <span className="review-kind review-kind--refused">
+          {/* The Studio's warning for the same refusal (`SceneReviewMark`). */}
+          <MenuIcon name="alert" className="menu-icon review-kind__mark" />
           {update
             ? t('review.state.rejectedUpdate', { version })
             : t('review.state.rejected')}
@@ -53,7 +63,12 @@ export function ReviewState({ submission, liveVersion }: IReviewStateProps) {
         </span>
       </span>
       {submission.reasonNote && (
-        <span className="review-row__note">{submission.reasonNote}</span>
+        <span className="review-row__note review-row__note--whole">
+          {submission.reasonNote}
+        </span>
+      )}
+      {stillRefused && (
+        <span className="review-row__next">{t('review.next')}</span>
       )}
     </>
   );
